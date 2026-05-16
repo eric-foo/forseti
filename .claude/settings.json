@@ -1,0 +1,11 @@
+{
+  "extraKnownMarketplaces": {
+    "agent-workflow-local": {
+      "source": "file",
+      "installLocation": "../agent-workflow/marketplace.json"
+    }
+  },
+  "enabledPlugins": {
+    "agent-workflow@agent-workflow-local": true
+  }
+}
