@@ -23,6 +23,9 @@ Source basis:
 - current owner instruction on 2026-05-21 accepting the first proof-run charter
   in chat and authorizing one bounded manual docs-first proof run under that
   charter;
+- current owner instruction on 2026-05-21 selecting `BT2-04` Shutterstock
+  response to generative image AI as the historical backtest case and
+  authorizing a lock-record patch;
 - `AGENTS.md`;
 - `.agents/workflow-overlay/README.md`;
 - `.agents/workflow-overlay/project-authority.md`;
@@ -40,11 +43,14 @@ Source basis:
 - `docs/product/core_spine_v0_proof_packet_preflight_v0.md`;
 - `docs/product/core_spine_v0_first_proof_packet_preparation_v0.md`;
 - `docs/product/core_spine_v0_first_proof_run_charter_v0.md`;
+- `docs/product/core_spine_v0_heavyweight_proof_case_discovery_results_part_2_v0.md`;
 - repository check: `git status --short --branch` reported
-  `## main...origin/main [ahead 4]`;
-- recent log check: `git log --oneline -5` included
-  `dbfbfda docs: add first proof run charter` and
-  `c724852 docs: add core spine proof-prep milestone`.
+  `## main...origin/main [ahead 7]` and untracked
+  `docs/prompts/hygiene-queue/`;
+- recent log check: `git log --oneline -8` included
+  `f596149 docs: add AI-era proof case discovery refresh`,
+  `c43cfc6 docs: add proof case discovery results`, and
+  `913cfc4 docs: add proof discovery gate`.
 
 Non-authority:
 
@@ -78,8 +84,8 @@ that the charter has been accepted. The accepted scope remains limited to:
 - one outcome report or review packet.
 
 Evidence collection may not begin until this lock record is complete. This
-record is not complete because the shadow-satellite and backtest locks lack
-required pre-evidence inputs.
+record is not complete because the shadow-satellite lock still lacks required
+pre-evidence inputs.
 
 ## 3. No-Evidence-Interpreted Declaration
 
@@ -288,7 +294,7 @@ lock.
 
 ## 6. Backtest Pre-Registration Lock
 
-Lock status: incomplete.
+Lock status: complete for pre-evidence framing.
 
 Case-selection policy:
 
@@ -299,58 +305,91 @@ inconclusive results must remain calibration input.
 
 Case-selection owner or decision source:
 
-Incomplete. No accepted source in the required read set names the owner or
-decision source for selecting the exact case.
+Owner-selected in chat on 2026-05-21 from the committed Part 2 AI-era
+heavyweight discovery candidate universe:
+`docs/product/core_spine_v0_heavyweight_proof_case_discovery_results_part_2_v0.md`.
+
+The selected candidate source is the second heavyweight discovery pass,
+generative creative-tools and content-licensing lane. The selection followed
+owner concern about familiarity bias toward Chegg and a preference for the more
+honest calibration case.
 
 Exact historical case:
 
-`BLOCKED_BACKTEST_LOCK_INPUT`
-
-No exact historical case is supplied by the accepted sources for this lock.
-Selecting one here would invent a case or risk selecting from knowledge of a
-persuasive later outcome.
+`BT2-04`: Shutterstock response to generative image AI.
 
 Decision context:
 
-Incomplete until the exact historical case is supplied.
+Stock-image marketplace, contributor economics, licensing, customer creative
+workflows, and partnership response to text-to-image AI after Stable Diffusion
+and other generative-image tools made synthetic image supply publicly visible.
 
 Why the case is relevant to Core Spine v0:
 
-Not lock-complete. A valid case must test whether public pre-cutoff signals
-could have supported a useful decision memo before the outcome was obvious. It
-must stress the same Core Spine primitives used by the `jb` and shadow
+The case tests whether public pre-cutoff signals could have supported a useful
+decision memo before Shutterstock's later partnership, licensing, and product
+response outcomes were public. It stresses public market pull, actor strategy,
+platform economics, creator/contributor conflict, licensing pressure, and AI
+hype control without requiring private data or runtime systems.
+
+It must use the same Core Spine primitives used by the `jb` and shadow
 satellite dry runs: Decision Frame, Evidence Unit, Signal Integrity, Signal Use
 Classification, Decision Strength, Action Ceiling, Decision Memo, Backtesting
 and Outcome Memory, and Boundary Rules.
 
 Why the case was not selected merely because the later outcome is persuasive:
 
-Incomplete until a case-selection owner or decision source, exact case, and
-anti-cherry-pick rationale are supplied before evidence interpretation.
+The case was selected from a predeclared AI-era backtest refresh after the
+owner rejected the more famous Chegg/ChatGPT case as too familiarity-biased.
+Shutterstock has a meaningful but less iconic post-window outcome than Chegg's
+stock reaction, and it tests marketplace supply disruption plus licensing and
+partnership response rather than a direct AI-substitution story.
+
+The replay must still preserve wrong, overconfident, underconfident, blocked,
+early, late, useful, and inconclusive outcomes. It must not treat the later
+OpenAI partnership, AI Image Generator launch, expanded data agreement, or
+copyright narrative as evidence that the pre-cutoff judgment should have been
+obvious.
 
 Cutoff date:
 
-`BLOCKED_BACKTEST_LOCK_INPUT`
-
-No cutoff date is supplied by the accepted sources for this lock. Selecting one
-without the exact case would be invented and could create hindsight leakage.
+2022-09-15.
 
 Why the cutoff is fair and before the outcome was obvious:
 
-Incomplete until the exact case and cutoff date are supplied.
+This date is the later edge of the Part 2 proposed cutoff window
+`2022-08-23 to 2022-09-15`. It falls after Stable Diffusion's public release
+made text-to-image disruption visible, but before Shutterstock announced its
+expanded OpenAI partnership on 2022-10-25.
+
+At the cutoff, stock-image platforms could plausibly have responded by banning
+AI images, litigating, licensing training data, partnering with AI labs,
+creating their own tools, changing contributor economics, or waiting for
+copyright clarity. The later Shutterstock partnership, contributor-fund
+posture, AI Image Generator, expanded data agreement, and Getty comparison
+context were not yet part of the at-cutoff record.
 
 Pre-cutoff source visibility requirement:
 
-Only public evidence visible or discoverable before the frozen cutoff may
-inform the at-cutoff judgment. Any evidence without usable timing for the
-cutoff-sensitive claim is blocked or excluded.
+Only public evidence published, visible, or reasonably discoverable on or
+before 2022-09-15 may inform the at-cutoff judgment. Any evidence without
+usable timing for the cutoff-sensitive claim is blocked or excluded.
+
+Admissible pre-cutoff visibility may include public product pages, public
+platform statements, official launch or release notes, public market-level
+coverage, and public company materials visible by the cutoff. It may not use
+post-window material to infer what was knowable at cutoff.
 
 Post-window exclusion rule:
 
-All post-window evidence must be separated from pre-cutoff evidence and
-excluded from the at-cutoff recommendation, Decision Strength, Action Ceiling,
-and backtest judgment. Post-window material may be used only after the
-at-cutoff record is complete to compare later outcome and record calibration.
+Exclude Shutterstock's 2022-10-25 OpenAI partnership announcement, AI Image
+Generator launch, expanded OpenAI data agreement, later Getty litigation or
+product moves, later copyright and artist-compensation narratives, and
+post-window retrospective coverage from the at-cutoff recommendation, Decision
+Strength, Action Ceiling, and backtest judgment.
+
+Post-window material may be used only after the at-cutoff record is complete
+to compare later outcome and record calibration.
 
 Allowed result states:
 
@@ -382,13 +421,13 @@ Evidence collection can begin only if all locks are complete.
 | --- | --- |
 | `jb` decision-frame lock complete | Pass |
 | Shadow-satellite lock complete | Blocked |
-| Backtest pre-registration lock complete | Blocked |
+| Backtest pre-registration lock complete | Pass |
 | No-evidence-interpreted declaration recorded | Pass |
 | Source boundaries preserved | Pass |
 | No exact source maps or source systems introduced | Pass |
 
 Evidence collection may not begin under the charter because the
-shadow-satellite lock and backtest pre-registration lock are incomplete.
+shadow-satellite lock is incomplete.
 
 ## 8. Stop Criteria
 
@@ -426,7 +465,8 @@ This record does not claim:
 - proof readiness beyond the blocked evidence-start gate;
 - Core Spine v0 works;
 - the shadow satellite is selected at exact case level;
-- the backtest case or cutoff is selected;
+- the selected backtest case or cutoff proves evidence availability, proof
+  readiness, or backtest success;
 - any evidence exists or will be strong;
 - any decision memo has been drafted;
 - any backtest has been executed;
@@ -448,5 +488,5 @@ Current verdict: `BLOCKED_SHADOW_LOCK_INPUT`.
 The `jb` Client 0 decision-frame lock is complete, and the no-evidence
 declaration is recorded. Evidence collection may not begin because the
 shadow-satellite lock lacks one exact buyer-visible narrative pressure decision
-and the backtest lock also lacks an exact historical case, case-selection owner
-or decision source, and cutoff date.
+and associated case-specific lock fields. The backtest pre-registration lock is
+complete for the selected `BT2-04` Shutterstock case.
