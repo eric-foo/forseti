@@ -1,6 +1,6 @@
 # Core Spine v0 First Proof Run Locks
 
-- Status: LOCKS_COMPLETE_PENDING_REVIEW
+- Status: LOCKS_REVIEWED_AWAITING_PROOF_RUN_AUTHORIZATION
 - Artifact type: Product proof-run lock record
 - Scope: First Core Spine v0 proof-run starting conditions before evidence collection or interpretation
 - Date context: 2026-05-21, Asia/Singapore
@@ -30,6 +30,9 @@ Source basis:
   Agent pressure on Zendesk customer service positioning as the
   shadow-satellite case and authorizing a lock-record patch with explicit
   volatility controls;
+- current owner instruction on 2026-05-21 accepting the read-only SH-01 lock
+  review, committing the SH-01 lock milestone, and authorizing this
+  review-gate reconciliation patch;
 - `AGENTS.md`;
 - `.agents/workflow-overlay/README.md`;
 - `.agents/workflow-overlay/project-authority.md`;
@@ -50,9 +53,10 @@ Source basis:
 - `docs/product/core_spine_v0_heavyweight_proof_case_discovery_results_v0.md`;
 - `docs/product/core_spine_v0_heavyweight_proof_case_discovery_results_part_2_v0.md`;
 - repository check: `git status --short --branch` reported
-  `## main...origin/main [ahead 8]` and untracked
+  `## main...origin/main [ahead 9]` and untracked
   `docs/prompts/hygiene-queue/`;
 - recent log check: `git log --oneline -8` included
+  `b7d3395 docs: lock SH-01 shadow case`,
   `7492093 docs: lock Shutterstock backtest case`,
   `f596149 docs: add AI-era proof case discovery refresh`,
   `c43cfc6 docs: add proof case discovery results`, and
@@ -90,9 +94,9 @@ that the charter has been accepted. The accepted scope remains limited to:
 - one outcome report or review packet.
 
 Evidence collection may not begin until this lock record is complete. This
-record has now recorded the required shadow-satellite and backtest locks, but
-evidence collection and interpretation remain blocked until the updated lock
-record is reviewed.
+record has now recorded and reviewed the required shadow-satellite and
+backtest locks, but evidence collection and interpretation remain inactive
+until the owner explicitly authorizes proof-run start.
 
 ## 3. No-Evidence-Interpreted Declaration
 
@@ -206,8 +210,7 @@ willingness to pay.
 
 ## 5. Competitor Narrative Response Shadow-Satellite Lock
 
-Lock status: complete for pre-evidence framing, pending separate lock-record
-review.
+Lock status: complete and reviewed for pre-evidence framing.
 
 Exact buyer-visible narrative pressure decision:
 
@@ -291,7 +294,7 @@ Volatility controls:
   narrative pressure, but they must not be overclaimed as independent buyer
   pull without additional support.
 - No proof evidence collection or interpretation for this shadow satellite may
-  begin until this lock patch has been reviewed.
+  begin until the owner explicitly authorizes proof-run start.
 
 Actor or competitor behavior that matters:
 
@@ -315,13 +318,13 @@ Kill criteria:
 - Product-page volatility, vendor benchmarks, customer-story claims, or
   comparison pages are treated as stable independent buyer pull without timing
   control and discounting.
-- Evidence collection or interpretation begins before this lock patch is
-  reviewed.
+- Evidence collection or interpretation begins before explicit proof-run start
+  authorization.
 
 This is not broad competitor monitoring. It is one locked buyer-visible
 narrative pressure decision. It does not authorize source maps, broad source
 inventories, recurring monitoring, feature planning, implementation, or proof
-execution before review.
+execution before explicit proof-run start authorization.
 
 No proof evidence has been interpreted for this shadow satellite before this
 lock.
@@ -449,8 +452,8 @@ No proof evidence has been interpreted before this backtest lock.
 
 ## 7. Evidence-Start Permission Gate
 
-Evidence collection can begin only if all locks are complete and the updated
-lock record has been reviewed.
+Evidence collection can begin only if all locks are complete, the updated lock
+record has been reviewed, and the owner explicitly authorizes proof-run start.
 
 | Gate | State |
 | --- | --- |
@@ -460,10 +463,11 @@ lock record has been reviewed.
 | No-evidence-interpreted declaration recorded | Pass |
 | Source boundaries preserved | Pass |
 | No exact source maps or source systems introduced | Pass |
-| Updated lock record reviewed after `SH-01` patch | Blocked |
+| Updated lock record reviewed after `SH-01` patch | Pass |
+| Explicit proof-run start authorization recorded | Blocked |
 
 Evidence collection and interpretation may not begin under the charter because
-the updated lock record has not yet been reviewed after the `SH-01` patch.
+explicit proof-run start authorization has not yet been recorded.
 
 ## 8. Stop Criteria
 
@@ -483,8 +487,8 @@ Stop before evidence collection or interpretation if any of these are true:
 - pre-cutoff source visibility cannot be established;
 - post-window evidence cannot be excluded from the at-cutoff judgment;
 - any proof evidence has already been interpreted before a lock is complete;
-- evidence collection or interpretation begins before the updated lock record
-  is reviewed after the `SH-01` patch;
+- evidence collection or interpretation begins before explicit proof-run start
+  authorization is recorded;
 - fast-changing product pages, vendor benchmark claims, or customer-story
   claims are used without timing control, discounting, and source-limitation
   notes;
@@ -525,10 +529,11 @@ This record does not claim:
 
 ## 10. Current Verdict
 
-Current verdict: `LOCKS_COMPLETE_PENDING_REVIEW`.
+Current verdict: `LOCKS_REVIEWED_AWAITING_PROOF_RUN_AUTHORIZATION`.
 
 The `jb` Client 0 decision-frame lock is complete, the `SH-01` shadow-satellite
 lock is complete for pre-evidence framing, the `BT2-04` backtest
-pre-registration lock is complete, and the no-evidence declaration is recorded.
-Evidence collection and interpretation may not begin because the updated lock
-record still requires review after the `SH-01` patch.
+pre-registration lock is complete, the no-evidence declaration is recorded, and
+the updated lock record has been reviewed after the `SH-01` patch. Evidence
+collection and interpretation may not begin until the owner explicitly
+authorizes proof-run start.
