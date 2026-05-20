@@ -1,6 +1,6 @@
 # Core Spine v0 First Proof Run Locks
 
-- Status: BLOCKED_LOCK_RECORD
+- Status: LOCKS_COMPLETE_PENDING_REVIEW
 - Artifact type: Product proof-run lock record
 - Scope: First Core Spine v0 proof-run starting conditions before evidence collection or interpretation
 - Date context: 2026-05-21, Asia/Singapore
@@ -26,6 +26,10 @@ Source basis:
 - current owner instruction on 2026-05-21 selecting `BT2-04` Shutterstock
   response to generative image AI as the historical backtest case and
   authorizing a lock-record patch;
+- current owner instruction on 2026-05-21 selecting `SH-01` Intercom Fin AI
+  Agent pressure on Zendesk customer service positioning as the
+  shadow-satellite case and authorizing a lock-record patch with explicit
+  volatility controls;
 - `AGENTS.md`;
 - `.agents/workflow-overlay/README.md`;
 - `.agents/workflow-overlay/project-authority.md`;
@@ -43,11 +47,13 @@ Source basis:
 - `docs/product/core_spine_v0_proof_packet_preflight_v0.md`;
 - `docs/product/core_spine_v0_first_proof_packet_preparation_v0.md`;
 - `docs/product/core_spine_v0_first_proof_run_charter_v0.md`;
+- `docs/product/core_spine_v0_heavyweight_proof_case_discovery_results_v0.md`;
 - `docs/product/core_spine_v0_heavyweight_proof_case_discovery_results_part_2_v0.md`;
 - repository check: `git status --short --branch` reported
-  `## main...origin/main [ahead 7]` and untracked
+  `## main...origin/main [ahead 8]` and untracked
   `docs/prompts/hygiene-queue/`;
 - recent log check: `git log --oneline -8` included
+  `7492093 docs: lock Shutterstock backtest case`,
   `f596149 docs: add AI-era proof case discovery refresh`,
   `c43cfc6 docs: add proof case discovery results`, and
   `913cfc4 docs: add proof discovery gate`.
@@ -84,8 +90,9 @@ that the charter has been accepted. The accepted scope remains limited to:
 - one outcome report or review packet.
 
 Evidence collection may not begin until this lock record is complete. This
-record is not complete because the shadow-satellite lock still lacks required
-pre-evidence inputs.
+record has now recorded the required shadow-satellite and backtest locks, but
+evidence collection and interpretation remain blocked until the updated lock
+record is reviewed.
 
 ## 3. No-Evidence-Interpreted Declaration
 
@@ -199,41 +206,45 @@ willingness to pay.
 
 ## 5. Competitor Narrative Response Shadow-Satellite Lock
 
-Lock status: incomplete.
+Lock status: complete for pre-evidence framing, pending separate lock-record
+review.
 
 Exact buyer-visible narrative pressure decision:
 
-`BLOCKED_SHADOW_LOCK_INPUT`
-
-No accepted source in the required read set names one exact buyer-visible
-narrative pressure decision. Naming one here would invent a case or select it
-through unsupported interpretation before the lock.
+Whether the Zendesk customer service product, positioning, or competitive
+response context should monitor, defend, reposition, or test a response to
+Intercom Fin's buyer-visible "AI agent for customer service" narrative.
 
 Decision owner or decision context:
 
-Incomplete until the exact narrative pressure decision is supplied. The
-available generic context is a team accountable for product, positioning,
-growth, or competitive response, but that is not sufficient to lock one case.
+Zendesk customer service suite product, positioning, or competitive response
+context.
 
 Buyer-visible belief or consequence:
 
-Incomplete until the exact case is supplied. The lock must name the belief or
-consequence visible to buyers before evidence work starts.
+Support leaders may evaluate customer service platforms around AI-agent
+resolution, support-volume reduction, trust, control, and AI-first customer
+experience rather than helpdesk workflow alone.
 
 Domain language:
 
-Incomplete until the exact case is supplied. Domain language must come from the
-selected buyer-visible decision context, not from a generic competitor-monitoring
-template.
+B2B customer service, helpdesk, CX, support operations, AI support agents, and
+AI-first customer experience.
 
 Costly behavior standard:
 
-Not lock-complete. The generic satellite standard is buyer or market behavior
-that creates real response pressure, such as switching consideration, repeated
-buyer objections, changed evaluation criteria, public comparison with stakes,
-sales-cycle friction, willingness to test alternatives, or customer-facing
-pressure that persists beyond a campaign burst. The exact costly behavior
-standard must be narrowed to the selected case before evidence work.
+For this shadow case, costly behavior means public, inspectable market or buyer
+behavior that plausibly creates real response pressure for Zendesk. Examples
+include public migration or evaluation statements, detailed buyer comparisons,
+public trial or switching consideration, support workflow changes,
+support-team staffing or budget implications, repeated buyer objections with
+stakes, sales-cycle friction, or customer-facing pressure that persists beyond
+a campaign burst.
+
+Vendor claims alone, product-positioning repetition, AI resolution benchmarks,
+customer logos, customer stories, or comparison pages do not satisfy the costly
+behavior standard unless the later proof record also shows why they are
+buyer-visible, timing-valid, and not merely self-promotional.
 
 Allowed recommendation verbs:
 
@@ -264,18 +275,35 @@ affiliate incentives, copied language, analyst-only visibility, platform
 sampling bias, weak audience fit, artificial-amplification risk, and ambiguity
 between competitor intent and buyer pull.
 
+Volatility controls:
+
+- Product pages, pricing pages, comparison pages, and AI-agent claims may
+  change quickly. Later evidence work must record event or publication timing
+  and capture or access timing before interpretation.
+- Current product-page language must not be used as evidence of earlier buyer
+  belief, narrative traction, or response pressure unless timing supports that
+  use.
+- Vendor benchmark, resolution-rate, automation-rate, deflection-rate,
+  support-volume, and productivity claims must be discounted unless the proof
+  record explains actor incentive, source limitations, audience fit, and
+  independent support.
+- Benchmark or customer-story claims may inform actor strategy or buyer-visible
+  narrative pressure, but they must not be overclaimed as independent buyer
+  pull without additional support.
+- No proof evidence collection or interpretation for this shadow satellite may
+  begin until this lock patch has been reviewed.
+
 Actor or competitor behavior that matters:
 
-Not lock-complete until the actor, competitor, or narrative is supplied. In the
-generic satellite frame, material behavior may include repeated narrative
-language, positioning shifts, campaign repetition, distribution emphasis,
-buyer-facing comparison pressure, or coordinated amplification that changes
+Material behavior may include Intercom Fin launch and repeated AI-agent or
+customer-service positioning, Zendesk AI positioning and platform response,
+buyer-facing comparison pressure between AI-agent support and helpdesk-suite
+approaches, public positioning shifts, campaign repetition, distribution
+emphasis, customer-story repetition, or coordinated amplification that changes
 the response ceiling.
 
 Kill criteria:
 
-- The exact buyer-visible narrative pressure decision is not supplied before
-  evidence work.
 - The satellite becomes broad competitor monitoring.
 - The case lacks a buyer-visible belief or consequence.
 - The case requires new Core Spine primitives.
@@ -284,10 +312,16 @@ Kill criteria:
   independent buyer pull.
 - Action thresholds or costly behavior require owner input that remains
   unavailable.
+- Product-page volatility, vendor benchmarks, customer-story claims, or
+  comparison pages are treated as stable independent buyer pull without timing
+  control and discounting.
+- Evidence collection or interpretation begins before this lock patch is
+  reviewed.
 
-This is not broad competitor monitoring. It must become one locked
-buyer-visible narrative pressure decision before evidence collection or
-interpretation begins.
+This is not broad competitor monitoring. It is one locked buyer-visible
+narrative pressure decision. It does not authorize source maps, broad source
+inventories, recurring monitoring, feature planning, implementation, or proof
+execution before review.
 
 No proof evidence has been interpreted for this shadow satellite before this
 lock.
@@ -415,19 +449,21 @@ No proof evidence has been interpreted before this backtest lock.
 
 ## 7. Evidence-Start Permission Gate
 
-Evidence collection can begin only if all locks are complete.
+Evidence collection can begin only if all locks are complete and the updated
+lock record has been reviewed.
 
 | Gate | State |
 | --- | --- |
 | `jb` decision-frame lock complete | Pass |
-| Shadow-satellite lock complete | Blocked |
+| Shadow-satellite lock complete | Pass |
 | Backtest pre-registration lock complete | Pass |
 | No-evidence-interpreted declaration recorded | Pass |
 | Source boundaries preserved | Pass |
 | No exact source maps or source systems introduced | Pass |
+| Updated lock record reviewed after `SH-01` patch | Blocked |
 
-Evidence collection may not begin under the charter because the
-shadow-satellite lock is incomplete.
+Evidence collection and interpretation may not begin under the charter because
+the updated lock record has not yet been reviewed after the `SH-01` patch.
 
 ## 8. Stop Criteria
 
@@ -447,6 +483,11 @@ Stop before evidence collection or interpretation if any of these are true:
 - pre-cutoff source visibility cannot be established;
 - post-window evidence cannot be excluded from the at-cutoff judgment;
 - any proof evidence has already been interpreted before a lock is complete;
+- evidence collection or interpretation begins before the updated lock record
+  is reviewed after the `SH-01` patch;
+- fast-changing product pages, vendor benchmark claims, or customer-story
+  claims are used without timing control, discounting, and source-limitation
+  notes;
 - the work requires source URLs, exact source maps, source systems, broad
   source inventories, broad competitor monitoring, scrapers, APIs, databases,
   dashboards, scoring engines, automation runtimes, software tests, feature
@@ -464,7 +505,8 @@ This record does not claim:
 - proof success;
 - proof readiness beyond the blocked evidence-start gate;
 - Core Spine v0 works;
-- the shadow satellite is selected at exact case level;
+- the selected shadow case proves evidence availability, proof readiness, or
+  narrative strength;
 - the selected backtest case or cutoff proves evidence availability, proof
   readiness, or backtest success;
 - any evidence exists or will be strong;
@@ -483,10 +525,10 @@ This record does not claim:
 
 ## 10. Current Verdict
 
-Current verdict: `BLOCKED_SHADOW_LOCK_INPUT`.
+Current verdict: `LOCKS_COMPLETE_PENDING_REVIEW`.
 
-The `jb` Client 0 decision-frame lock is complete, and the no-evidence
-declaration is recorded. Evidence collection may not begin because the
-shadow-satellite lock lacks one exact buyer-visible narrative pressure decision
-and associated case-specific lock fields. The backtest pre-registration lock is
-complete for the selected `BT2-04` Shutterstock case.
+The `jb` Client 0 decision-frame lock is complete, the `SH-01` shadow-satellite
+lock is complete for pre-evidence framing, the `BT2-04` backtest
+pre-registration lock is complete, and the no-evidence declaration is recorded.
+Evidence collection and interpretation may not begin because the updated lock
+record still requires review after the `SH-01` patch.
