@@ -6,8 +6,8 @@ Before project work, read `.agents/workflow-overlay/README.md` and follow the Or
 
 Keep Orca project facts, constraints, artifact folders, review lanes, validation gates, and safety rules in `.agents/workflow-overlay/`. Do not treat `jb` rules, paths, handoffs, lifecycle mechanics, product policy, or validation habits as Orca authority.
 
-Orca is docs-first until implementation is explicitly authorized. Do not create software implementation, automation runtimes, packages, tests, or generated artifacts without a later explicit implementation turn.
+Orca is no longer globally docs-first by default. Documentation remains the authority layer for project facts, decisions, prompts, reviews, migration notes, and overlay maintenance, but a later turn may explicitly authorize bounded implementation, automation, packages, tests, generated artifacts, or runtime work. Do not create those from planning, review, or product-method work unless the current turn or an accepted handoff explicitly authorizes that bounded implementation scope.
 
 Do not install, uninstall, rename, rewrite, or shadow global/user/plugin skills unless a later turn explicitly authorizes that workflow-kernel action. Do not edit workflow-kernel source or deployment copies from Orca project work.
 
-Allowed project work at this stage is documentation, decisions, prompts, reviews, migration notes, and overlay maintenance inside this workspace.
+Allowed project work by default is documentation, decisions, prompts, reviews, migration notes, and overlay maintenance inside this workspace. Implementation or runtime work requires explicit bounded authorization in the current turn or accepted handoff.

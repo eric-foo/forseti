@@ -32,13 +32,17 @@ precedence.
 
 ## Current Operating Boundary
 
-Orca remains non-implementation unless a later turn explicitly authorizes
-implementation.
+Orca is no longer globally docs-first by default. Documentation remains the
+authority layer for project facts, decisions, prompts, reviews, migration notes,
+and overlay maintenance, but implementation is permitted when a current turn or
+accepted handoff explicitly authorizes a bounded implementation scope.
 
-Architecture work may be future-runtime-aware when the user asks for it. That
-means prompts may discuss eventual APIs, scraping, agents, screenshots,
-archives, media, or source systems as conceptual requirements, but must not
-authorize building, deploying, testing, or operating those systems.
+Architecture and product-method work may be future-runtime-aware when the user
+asks for it. That means prompts may discuss eventual APIs, scraping, agents,
+screenshots, archives, media, or source systems as conceptual requirements.
+They must not authorize building, deploying, testing, or operating those
+systems unless the current turn or accepted handoff explicitly grants bounded
+implementation authority.
 
 ## Orca Start Preflight
 

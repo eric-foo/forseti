@@ -10,7 +10,10 @@ use_when:
 authority_boundary: retrieval_only
 ```
 
-This file defines Orca's lightweight prompt-orchestration layer. It is docs-first and binds reusable mechanics from `agent-workflow` to Orca-owned paths without importing `jb` project policy.
+This file defines Orca's lightweight prompt-orchestration layer. It binds
+reusable mechanics from `agent-workflow` to Orca-owned paths without importing
+`jb` project policy, while preserving Orca's explicit-authorization boundary
+for implementation and runtime work.
 
 ## Source Boundary
 
@@ -53,7 +56,7 @@ prompt-orchestrator templates.
 | Review | Ask a read-only or patch-authorized reviewer to inspect artifacts | `docs/prompts/reviews/` or `docs/review-inputs/` | `review-report` |
 | Rerun or patch | Retry an unresolved finding without reopening settled decisions | `docs/prompts/reruns/` or `docs/prompts/patches/` | `patch-queue` |
 
-Typed child folders under `docs/prompts/` may be created when the first prompt of that family is authored. Until implementation is explicitly authorized, source-changing handoff prompts must target documentation or overlay work only.
+Typed child folders under `docs/prompts/` may be created when the first prompt of that family is authored. Source-changing handoff prompts may target implementation only when the current turn or an accepted handoff explicitly authorizes bounded implementation; otherwise they must target documentation or overlay work only.
 
 Prompt templates may also use `paste-ready-chat` when the intended output is a
 single prompt, wrapper, or handoff body meant to be pasted into another model,
