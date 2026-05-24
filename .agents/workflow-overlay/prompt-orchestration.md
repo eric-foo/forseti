@@ -122,8 +122,18 @@ or report destination is not bound before the review begins.
 
 ## Required Preflight Fields
 
+Every repo-aware Orca prompt must include or reference the
+`orca_start_preflight` receipt owned by
+`.agents/workflow-overlay/source-loading.md`. Prompt authors may record the
+fields in that receipt or in adjacent preflight prose, but the prompt must make
+the start state checkable.
+
 Every repo-aware Orca prompt must state:
 
+- whether `AGENTS.md` and `.agents/workflow-overlay/README.md` were read or
+  supplied in the current task context;
+- selected source pack from `.agents/workflow-overlay/source-loading.md`, or a
+  bounded custom source pack;
 - workspace path or repository identifier;
 - expected branch, detached revision, or commit hash when source stability matters;
 - dirty-state allowance and whether untracked files are in scope;
@@ -204,7 +214,10 @@ exceptions to that shape:
 
 Before using a generated Orca prompt, apply these gates:
 
-1. Overlay authority loaded: `AGENTS.md` and `.agents/workflow-overlay/README.md` were read.
+1. Start preflight complete: `AGENTS.md` and
+   `.agents/workflow-overlay/README.md` were read or supplied in the current
+   task context; source pack, edit permission, target scope, and dirty-state
+   check are recorded according to `.agents/workflow-overlay/source-loading.md`.
 2. Artifact roles bound: every prompt role maps to `.agents/workflow-overlay/artifact-roles.md` or another accepted overlay file.
 3. Source resolution clean: agent-workflow material is source guidance only; installed skills are deployment copies; `jb` project policy is not imported.
 4. Worktree preflight present: workspace, revision, dirty-state allowance, target scope, and edit permission are explicit when repository state matters.

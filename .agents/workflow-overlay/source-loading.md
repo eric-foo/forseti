@@ -40,6 +40,41 @@ means prompts may discuss eventual APIs, scraping, agents, screenshots,
 archives, media, or source systems as conceptual requirements, but must not
 authorize building, deploying, testing, or operating those systems.
 
+## Orca Start Preflight
+
+Before repo-aware Orca prompt authoring, review setup, handoff creation,
+docs-write or overlay maintenance, source-changing work, or completion claims,
+record a compact start-preflight receipt. The receipt proves only that the
+entrypoint and source-loading route were declared; it does not prove cognition,
+validation, approval, readiness, implementation authorization, deployment,
+resolver behavior, source-of-truth promotion, or edit permission beyond the
+permission value stated in the receipt.
+
+Minimum receipt fields:
+
+```text
+orca_start_preflight:
+  agents_read: yes/no
+  overlay_read: yes/no
+  source_pack: S0/S1/S2/S3/S4/custom
+  edit_permission: read-only/docs-write/patch-only/implementation-authorized
+  target_scope:
+  dirty_state_checked: yes/no/not_applicable
+  blocked_if_missing:
+```
+
+Use the smallest source pack that can support the task. `agents_read: yes`
+means `AGENTS.md` was read or supplied in the current task context.
+`overlay_read: yes` means `.agents/workflow-overlay/README.md` was read or
+supplied in the current task context. If either field is `no` for a task that
+requires Orca project authority, stop and load the missing source before
+continuing.
+
+Do not require the receipt for tiny chat-only answers that do not create or
+materially touch artifacts, route another agent, make completion/readiness
+claims, depend on repository state, or change source. If a lightweight answer
+turns into one of those tasks, record the receipt before continuing.
+
 ## Default Read Order
 
 Use this order unless the user gives a narrower source pack:

@@ -17,6 +17,12 @@ Validation must be able to fail. Missing evidence is not a pass.
 - Required Orca files exist before claiming bootstrap completion.
 - No software implementation directories are present unless explicitly authorized.
 - `AGENTS.md` and overlay files do not encode `jb` project-specific authority as Orca rules.
+- Repo-aware prompt use, review setup, handoff creation, docs-write or overlay
+  maintenance, source-changing work, and completion claims include or report
+  the `orca_start_preflight` receipt from
+  `.agents/workflow-overlay/source-loading.md`. Missing preflight evidence is a
+  blocker for the claim or handoff, not proof that the artifact body is false
+  and not authority for broad cleanup.
 - New or materially touched durable human-authored workflow artifacts follow
   `.agents/workflow-overlay/retrieval-metadata.md` or are clearly outside that
   contract.
@@ -32,7 +38,10 @@ Validation must be able to fail. Missing evidence is not a pass.
 
 ## Prompt Orchestration Gates
 
-- Overlay authority gate: `AGENTS.md` and `.agents/workflow-overlay/README.md` must be read before prompt-orchestration work.
+- Overlay authority gate: `AGENTS.md` and `.agents/workflow-overlay/README.md`
+  must be read before prompt-orchestration work, and repo-aware prompts must
+  carry the start-preflight fields owned by
+  `.agents/workflow-overlay/source-loading.md`.
 - Artifact role gate: every prompt role must be bound in `.agents/workflow-overlay/artifact-roles.md` or another accepted Orca overlay file.
 - Source-resolution gate: `agent-workflow` may provide generic mechanics only; installed skills are deployment copies; `jb` project policy must not be imported.
 - Worktree preflight gate: repository-aware prompts must state workspace, revision or hash when needed, dirty-state allowance, target scope, and edit permission.
