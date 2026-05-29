@@ -54,6 +54,14 @@ validation, approval, readiness, implementation authorization, deployment,
 resolver behavior, source-of-truth promotion, or edit permission beyond the
 permission value stated in the receipt.
 
+Start-route cue: when `target_scope` would change product doctrine,
+architecture doctrine, workflow authority, validation philosophy, review
+authority, output authority, or a lifecycle boundary, route through the
+Doctrine Change Propagation Contract in
+`.agents/workflow-overlay/source-of-truth.md`. The start preflight may name the
+expected propagation surfaces, but it is not a substitute for the required
+`direction_change_propagation` receipt or blocker at closeout.
+
 Minimum receipt fields:
 
 ```text

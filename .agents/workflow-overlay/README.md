@@ -5,7 +5,7 @@ This overlay is the project authority for Orca. Reusable workflow methods may pr
 ## Overlay Sections
 
 - `project-authority.md`: project identity, boundary, and unknown facts.
-- `source-of-truth.md`: Orca source hierarchy and conflict rules.
+- `source-of-truth.md`: Orca source hierarchy, conflict rules, and doctrine-change propagation contract.
 - `artifact-folders.md`: accepted docs-first artifact locations.
 - `artifact-roles.md`: role bindings, permissions, freshness markers, and paired artifacts.
 - `prompt-orchestration.md`: lightweight Orca prompt artifact, wrapper, preflight, output mode, and rerun rules.

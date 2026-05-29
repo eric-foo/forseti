@@ -23,6 +23,14 @@ Validation must be able to fail. Missing evidence is not a pass.
   `.agents/workflow-overlay/source-loading.md`. Missing preflight evidence is a
   blocker for the claim or handoff, not proof that the artifact body is false
   and not authority for broad cleanup.
+- Doctrine-changing source work must include an inline
+  `direction_change_propagation` receipt or explicit
+  `direction_change_propagation_blocker` under
+  `.agents/workflow-overlay/source-of-truth.md` before claiming completion.
+  Missing propagation evidence blocks strict completion, readiness, validation,
+  `PASS`, `ADEQUATE_NOW`, acceptance, or alignment-complete claims; it does not
+  authorize a broad template sweep, automation, new skill, registry, or
+  standalone receipt file.
 - New or materially touched durable human-authored workflow artifacts follow
   `.agents/workflow-overlay/retrieval-metadata.md` or are clearly outside that
   contract.

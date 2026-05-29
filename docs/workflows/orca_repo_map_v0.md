@@ -15,6 +15,7 @@ open_next:
 stale_if:
   - New top-level docs folders are added.
   - Core Spine, Data Capture Spine, Cleaning Spine, Judgment Spine, offer, proof, or prompt families are materially reorganized.
+  - .agents/workflow-overlay/source-of-truth.md changes source hierarchy or the doctrine-change propagation contract.
   - A later repo-map artifact supersedes this file.
 ```
 
@@ -33,6 +34,13 @@ For source-loading budgets, open `.agents/workflow-overlay/source-loading.md`.
 For artifact retrievability, body-opening shape, stale/recheck patterns, and
 temporary-artifact anti-rot guidance, open
 `docs/workflows/artifact_retrievability_guide.md`.
+
+Start-route cue: when a task may change product doctrine, architecture
+doctrine, workflow authority, validation philosophy, review authority, output
+authority, or a lifecycle boundary, open the Doctrine Change Propagation
+Contract in `.agents/workflow-overlay/source-of-truth.md` before selecting
+downstream surfaces. Use this map to identify likely downstream surfaces; do not
+treat the map itself as propagation evidence.
 
 ## Top-Level Structure
 
@@ -57,7 +65,7 @@ temporary-artifact anti-rot guidance, open
 | --- | --- |
 | `.agents/workflow-overlay/README.md` | Overlay entrypoint and binding rule. |
 | `.agents/workflow-overlay/project-authority.md` | Project identity, stage, and forbidden drift. |
-| `.agents/workflow-overlay/source-of-truth.md` | Source precedence and conflict rules. |
+| `.agents/workflow-overlay/source-of-truth.md` | Source precedence, conflict rules, and doctrine-change propagation contract. |
 | `.agents/workflow-overlay/source-loading.md` | Read packs, context budgets, and prompt source capsules. |
 | `.agents/workflow-overlay/artifact-folders.md` | Accepted artifact folders and folder rules. |
 | `.agents/workflow-overlay/artifact-roles.md` | Artifact role bindings and permissions. |

@@ -54,6 +54,13 @@ durable artifact or pasted prompt carries the human-readable value. Do apply it
 to Chief Architect sequencing, planning, implementation scoping, phase gates,
 completion reports, chat-only decisions, and failure/blocker routing.
 
+For doctrine-changing file writes or source-changing closeouts, include the
+`direction_change_propagation` receipt or
+`direction_change_propagation_blocker` from
+`.agents/workflow-overlay/source-of-truth.md` in the agent-readable detail or
+compact courier state. Do not present that receipt as validation, readiness,
+approval, acceptance, proof, implementation authorization, or source promotion.
+
 ## Readability Rules
 
 - Use plain decision language. Say what is accepted, blocked, deferred, or

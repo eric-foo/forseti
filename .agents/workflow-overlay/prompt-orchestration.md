@@ -27,6 +27,13 @@ Reusable mechanics may come from `agent-workflow` source documents and queue rec
 
 Orca-specific facts, product constraints, artifact paths, review lanes, validation gates, and safety rules must come from `AGENTS.md`, this overlay, or accepted Orca docs named in `.agents/workflow-overlay/source-of-truth.md`.
 
+Prompt-policy, handoff, wrapper, review, output-mode, or execution-contract
+changes that alter durable agent behavior are doctrine-changing when they touch
+product doctrine, architecture doctrine, workflow authority, validation
+philosophy, review authority, output authority, or lifecycle boundaries. They
+must follow the Doctrine Change Propagation Contract in
+`.agents/workflow-overlay/source-of-truth.md`.
+
 Product-proof prompts and customer-discovery prompts must read
 `.agents/workflow-overlay/product-proof.md` when they define buyer
 qualification, trust objections, disqualifiers, kill criteria, pull grading, or
@@ -140,6 +147,10 @@ Every repo-aware Orca prompt must state:
 - workspace path or repository identifier;
 - expected branch, detached revision, or commit hash when source stability matters;
 - dirty-state allowance and whether untracked files are in scope;
+- whether the work changes product doctrine, architecture doctrine, workflow
+  authority, validation philosophy, review authority, output authority, or a
+  lifecycle boundary, and if so which propagation surfaces must be checked
+  before closeout;
 - target files or directories;
 - source hierarchy for the task;
 - edit permission: `read-only`, `patch-only`, or `docs-write`;
@@ -206,7 +217,11 @@ exceptions to that shape:
 - `file-write` may return a compact path/hash/status receipt after the durable
   artifact is written when that artifact carries the human-readable value. If
   the write fails or the chat itself carries a decision, return readable
-  blocker detail instead of treating a receipt as a substitute artifact.
+  blocker detail instead of treating a receipt as a substitute artifact. If the
+  file-write changes doctrine, the closeout must include a
+  `direction_change_propagation` receipt or
+  `direction_change_propagation_blocker` from
+  `.agents/workflow-overlay/source-of-truth.md`.
 - `paste-ready-chat` may prioritize the paste-ready body when that body is the
   deliverable. Do not use this mode to hide a Chief Architect, planning,
   scoping, phase-gate, or completion decision inside machine-only structure.
@@ -230,7 +245,14 @@ Before using a generated Orca prompt, apply these gates:
    artifacts use retrieval metadata only for source loading and do not create
    authority, validation proof, approval, readiness, lifecycle completion,
    deployment/install/resolver status, or edit permission.
-8. Rerun economy satisfied: retry prompts preserve frozen decisions and avoid scope reset.
+8. Doctrine propagation satisfied: prompt, handoff, wrapper, review,
+   output-mode, or execution-contract changes that alter durable doctrine carry
+   a `direction_change_propagation` receipt or
+   `direction_change_propagation_blocker` under
+   `.agents/workflow-overlay/source-of-truth.md`, or block strict completion,
+   readiness, validation, `PASS`, `ADEQUATE_NOW`, acceptance, and
+   alignment-complete claims.
+9. Rerun economy satisfied: retry prompts preserve frozen decisions and avoid scope reset.
 
 ## Prompt Verdicts
 
