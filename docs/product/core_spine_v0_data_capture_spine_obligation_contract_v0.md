@@ -19,10 +19,10 @@ stale_if:
   - A pressure-test revision supersedes these v0 obligations.
 ```
 
-- Status: CONTRACT_DRAFT_V0
+- Status: CONTRACT_DRAFT_V0_AMENDED_2026_05_31
 - Artifact type: Product-method contract
 - Scope: Commissioned Data Capture Spine obligations, discharge states, mode rules, re-capture rules, and pressure-test checks
-- Source basis: `docs/product/core_spine_v0_data_capture_spine_architecture_blueprint_v0.md`, `docs/product/core_spine_v0_data_capture_context_preservation_note_v0.md`, `docs/product/core_spine_v0_data_and_cleaning_spine_boundary_v0.md`
+- Source basis: `docs/product/core_spine_v0_data_capture_spine_architecture_blueprint_v0.md`, `docs/product/core_spine_v0_data_capture_context_preservation_note_v0.md`, `docs/product/core_spine_v0_data_and_cleaning_spine_boundary_v0.md`, `docs/product/data_capture_source_access_boundary_decision_v0.md`, `docs/product/data_capture_spine_obligation_contract_patch_proposal_v0.md`, `docs/decisions/data_capture_spine_obligation_contract_patch_proposal_owner_decision_v0.md`
 - Implementation authorized: no
 - Feature planning authorized: no
 - Runtime/source-system design authorized: no
@@ -67,8 +67,20 @@ Every commissioned capture must make each core obligation explicit as one of:
 
 - `met`: the obligation is satisfied enough for categorical handoff.
 - `partial`: the obligation is partly satisfied, and the limitation is visible.
+- `assessed_not_met`: the obligation is required and attempted, and the
+  available capture is sufficient to assess that the obligation was not
+  satisfied. The failure reason must be visible.
+- `cannot_assess`: the obligation is required and attempted, but the captured
+  observable is not faithful, complete, or inspectable enough to assess whether
+  the obligation was satisfied. The limitation and reason must be visible.
+- `access_failed`: the source material appears within the allowed Orca
+  source-access boundary, and capture attempted access, but the capture method,
+  tool, host, archive, or origin failed to return the needed observable. The
+  failed path, fallback path if any, and visible limitation must be recorded.
 - `blocked`: the obligation is required, but capture cannot satisfy it under
-  the allowed boundary.
+  the allowed Orca boundary, project boundary, or hard-stop exclusion. It must
+  not be used as the generic label for ordinary tool, host, origin,
+  archive-content, or method failure against otherwise in-bound material.
 - `unavailable_by_source`: the source does not expose the needed fact or state.
 - `not_applicable`: the obligation does not apply to this signal or source.
 - `not_attempted`: the obligation was not attempted and must carry a reason.
@@ -94,13 +106,32 @@ Failure mode: if there is no Decision Frame, Data Capture Spine has not started.
 
 ### 2. Boundary Compliance
 
-Capture must stay public, market-level, non-deceptive, and non-intrusive.
+Capture must stay inside the current Orca source-access boundary.
 
-Capture must not use private access, deceptive collection, ordinary-person
-dossiers, or source acquisition that violates the current Orca boundary.
+The current boundary is discoverable-or-entitled source material plus
+disclosable access method, with hard stops for explicitly illegal,
+nonconsensual, exploit-style, obvious cross-account/private/admin spillover
+once noticed, confidential, or otherwise too morally compromising access.
+
+Free or account-created access is allowed. Entitled paid, client, or
+consenting-coworker access is allowed. If access visibly spills into
+cross-account, private, or admin material, Capture must not use that spillover
+once noticed.
+
+Capture must not use stolen credentials or cookies, nonconsensual sessions,
+security exploits, malware, credential stuffing, no-entitlement payment/access
+gate bypass, obvious cross-account/private/admin spillover once noticed,
+private/confidential account areas without consent,
+ordinary-person dossiers, or source acquisition that violates the current Orca
+boundary.
 
 Failure mode: boundary-violating material is not a Data Capture blocker to be
 worked around. It is out of bounds for this contract.
+
+Access failure against otherwise in-bound source material is a capture
+limitation, not a source-access boundary expansion. It should be discharged as
+`access_failed`, not `blocked`, unless the failure is caused by the current
+Orca boundary, project boundary, or a hard-stop exclusion.
 
 ### 3. Capture-Event Provenance
 
@@ -147,19 +178,37 @@ Examples:
 
 Mode changes do not invalidate capture. Hidden mode changes do.
 
-### 6. Raw Observable Preservation
+### 6. Raw Observable Fidelity
 
 Capture must preserve the raw observable enough for downstream inspection.
+Capture should make visible which fidelity dimensions were preserved, limited,
+not applicable, not attempted, access-failed, or unable to be assessed when
+those dimensions are relevant to the Decision Frame or were visibly encountered
+during capture.
 
 Minimum obligation:
 
-- preserve what the source showed or said, not only Orca's summary;
-- keep source claim separate from Orca interpretation;
-- preserve domain-native language when it carries signal;
-- preserve modality when text-only capture would lose signal meaning.
+- fact or content-claim preservation: preserve what the source showed or said,
+  not only Orca's summary;
+- source-language preservation: keep source language separate from Orca
+  interpretation and preserve domain-native wording when it carries signal;
+- visible-structure preservation: preserve layout, headings, tables, nesting,
+  ordering, grouping, proximity, emphasis, packaging cues, and other visible
+  structure when those carry signal;
+- modality preservation: preserve screenshots, images, gallery/media state,
+  page chrome, audio, video, dynamic rendering, or interaction state when
+  text-only capture would lose signal meaning;
+- frame-keyed fidelity context: record which fidelity dimensions the Decision
+  Frame caused Capture to seek, preserve, limit, fail to access, or be unable
+  to assess.
 
 Capture may add short context notes, but it must not replace the observable
 with interpretation.
+
+Capture reports fidelity state by dimension. Downstream Judgment decides which
+dimensions are decision-material. This obligation does not create a universal
+requirement to screenshot or media-capture every source regardless of Decision
+Frame materiality.
 
 Source-read ledgers, summaries, and title/date/claim rows are provenance aids.
 They do not by themselves preserve the raw observable when source meaning
@@ -375,15 +424,21 @@ prior-window uncertainty.
 
 Re-capture does not erase prior capture history.
 
-### 16. Categorical Handoff Sufficiency
+### 16. Categorical Handoff Readiness
 
-Capture must hand off enough categorical context for ECR, Cleaning, and
+Capture must make enough categorical context available for ECR, Cleaning, and
 Judgment to proceed without recollecting source history.
+
+This obligation assesses Capture-owned handoff readiness. It does not require
+that ECR has already receipted the material, and it does not define ECR fields,
+keys, IDs, tables, data types, receipt structures, storage, schema, or file
+formats.
 
 Minimum handoff accomplishments:
 
 - the captured signal is inspectable;
-- raw observable and related context are preserved;
+- raw observable and related context are preserved, or their limitations are
+  visible;
 - source claim is separate from Orca interpretation;
 - source identity, actor category, timing, modality, visibility, and
   cutoff/archive posture are visible where knowable;
@@ -396,9 +451,6 @@ Minimum handoff accomplishments:
 - capture obligations and limitations are visible;
 - Cleaning can proceed without reconstructing collection history;
 - Judgment can inspect capture limits without Capture making judgment calls.
-
-This contract does not define ECR fields, keys, IDs, tables, data types,
-receipt structures, storage, schema, or file formats.
 
 ## Capture Modes
 
@@ -506,6 +558,36 @@ Data Capture must not emit:
 Capture may record visible facts that downstream layers later use. It must not
 decide downstream effects.
 
+## Checker Vocabulary And Comparability
+
+Checker vocabulary, when used in pressure-test or review artifacts, must carry
+explicit glosses:
+
+- `capture_closure_blocker`: a checker-visible reason the capture artifact
+  should not be treated as cleanly closed under the current contract posture.
+  It is not the discharge state `blocked`, not validation failure, and not a
+  mandatory rerun command by itself.
+- `visible_capture_limitation`: a checker-visible limitation that must remain
+  visible to downstream layers. It is not proof that capture is adequate.
+- `vocabulary_divergence`: a checker-visible mismatch between contract
+  vocabulary and artifact language that is not clearly labeled as a proposal.
+- `vocabulary_consistent`: checker-visible contract vocabulary appears
+  consistent for the checked surface. It is not capture adequacy, validation,
+  readiness, approval, source adequacy, or proof.
+
+During pressure-test patching, a second vocabulary-consistency check may be
+used to distinguish unlabeled vocabulary drift from clearly labeled proposal
+language. The check may expose contract-language pressure. It must not certify
+capture quality, source adequacy, validation, readiness, approval, or handoff
+sufficiency.
+
+Pressure-test or checker-bearing artifacts must disclose checker posture
+categorically when the posture is compared, synthesized, or used to explain a
+review result: separate checker invocation, artifact-internal self-check, or
+missing checker pass. Checker posture supports comparability only. It must not
+become a quality rank, validation rule, approval rule, readiness rule,
+model-agreement rule, or proof of source adequacy.
+
 ## Source-Family Promotion
 
 Source-family heuristics begin as satellite rules unless they are obvious core
@@ -527,12 +609,17 @@ real commissioned captures.
 Pressure-test each capture against:
 
 - whether the Decision Frame was sufficient to start capture;
-- which obligations were met, partial, blocked, unavailable, not applicable, or
-  not attempted;
+- which obligations were `met`, `partial`, `assessed_not_met`,
+  `cannot_assess`, `access_failed`, `blocked`, `unavailable_by_source`,
+  `not_applicable`, or `not_attempted`;
 - whether related context was too thin, too broad, or fair;
 - whether cutoff and archive posture were clear enough;
 - whether agent/human mode boundaries held;
 - whether Capture stayed out of ECR, Cleaning, and Judgment;
+- whether checker vocabulary, if used, was glossed and kept separate from
+  validation, readiness, approval, source adequacy, and proof;
+- whether checker posture, if compared or synthesized, was disclosed
+  categorically and treated as comparability only;
 - whether the signal was captured but later unusable, and why that was not a
   Capture failure;
 - which obligation should be tightened, relaxed, split, or moved to satellite.
@@ -578,6 +665,9 @@ Reject:
 
 - standing/opportunistic corpus capture inside this v0 contract;
 - generic "hybrid" mode mixing without obligation discharge;
+- checker vocabulary as obligation discharge;
+- checker output, checker agreement, or checker posture as validation,
+  readiness, approval, source adequacy, proof, or model authority;
 - source volume as evidence validity;
 - source maps or inventories as Data Capture core;
 - capture-time credibility scoring;
@@ -599,3 +689,49 @@ Candidate Record completion, or Evidence Unit design completion.
 It does not authorize implementation, runtime design, source maps, schemas,
 scrapers, APIs, storage, dashboards, automation, tests, deployment, proof runs,
 feature planning, commits, pushes, PRs, or readiness claims.
+
+## Direction Change Propagation
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: "The Data Capture obligation contract now operationalizes the accepted PCP-01 through PCP-08 package: expanded discharge vocabulary, narrowed blocked/access_failed distinction, raw-observable fidelity dimensions, Capture-owned handoff readiness, and checker vocabulary/comparability limits."
+  trigger: product_doctrine
+  controlling_sources_updated:
+    - docs/product/core_spine_v0_data_capture_spine_obligation_contract_v0.md
+    - .agents/workflow-overlay/source-loading.md
+    - docs/workflows/orca_repo_map_v0.md
+  downstream_surfaces_checked:
+    - AGENTS.md
+    - CLAUDE.md
+    - .agents/workflow-overlay/source-of-truth.md
+    - .agents/workflow-overlay/source-loading.md
+    - docs/workflows/orca_repo_map_v0.md
+    - docs/product/data_capture_spine_obligation_contract_patch_proposal_v0.md
+    - docs/decisions/data_capture_spine_obligation_contract_patch_proposal_owner_decision_v0.md
+    - docs/product/data_capture_source_access_boundary_decision_v0.md
+    - docs/product/data_capture_source_access_method_plan_v0.md
+  intentionally_not_updated:
+    - path: AGENTS.md
+      reason: "Top-level Orca project instructions already permit bounded docs/decision work and require separate explicit authorization for implementation/runtime work."
+    - path: CLAUDE.md
+      reason: "Claude shim remains subordinate to AGENTS.md and the Orca overlay; no Claude-specific instruction changed."
+    - path: .agents/workflow-overlay/source-of-truth.md
+      reason: "Source hierarchy and propagation mechanics did not change; this amendment applies the existing propagation contract."
+    - path: docs/product/data_capture_spine_obligation_contract_patch_proposal_v0.md
+      reason: "The proposal remains historical candidate-language input; the controlling contract now consumes the accepted package."
+    - path: docs/decisions/data_capture_spine_obligation_contract_patch_proposal_owner_decision_v0.md
+      reason: "The owner decision remains the amendment authority and is now consumed by this contract amendment."
+    - path: docs/product/data_capture_source_access_boundary_decision_v0.md
+      reason: "The source-access boundary remains controlling for Obligation 2; this amendment cross-references it without changing the boundary."
+    - path: docs/product/data_capture_source_access_method_plan_v0.md
+      reason: "PCP-03 is made consistent with the existing source-access boundary without amending method planning."
+  stale_language_search: "rg -n \"which obligations were met, partial, blocked, unavailable|Categorical Handoff Sufficiency|Raw Observable Preservation|blocked, unavailable, not applicable|later bounded Data Capture obligation-contract amendment drafting|later docs-only obligation-contract amendment drafting|still does not amend the controlling contract|Draft Data Capture Spine v0 obligation contract for setup and pressure testing|checker output as validation|checker agreement as validation|validation-ready|ready for implementation|ECR schema now authorized|Cleaning implementation now authorized|Judgment rules now authorized|runtime/source-system implementation now authorized\" docs/product/core_spine_v0_data_capture_spine_obligation_contract_v0.md .agents/workflow-overlay/source-loading.md docs/workflows/orca_repo_map_v0.md"
+  non_claims:
+    - "not validation"
+    - "not readiness"
+    - "not source-access method-plan amendment"
+    - "not ECR design"
+    - "not Cleaning implementation"
+    - "not Judgment design"
+    - "not runtime authorization"
+```

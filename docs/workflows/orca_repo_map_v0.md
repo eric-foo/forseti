@@ -105,8 +105,18 @@ Use these before broad product architecture or CA setup:
 | `docs/product/core_spine_v0_product_contract.md` | Core Spine product contract and eight primitives. |
 | `docs/product/core_spine_v0_information_production_foundation_v0.md` | Manual information-production foundation and Evidence Unit standard. |
 | `docs/product/core_spine_v0_data_and_cleaning_spine_boundary_v0.md` | Data Capture/Cleaning/Judgment boundary and Evidence Candidate Record setup context. |
+| `docs/decisions/data_capture_spine_pressure_test_batch_classification_decision_v0.md` | Commissioner classification for the first N=3 Data Capture pressure-test batch: patchable, not architecture-threatening; docs-only patch planning authorized, not contract hardening or runtime/source-system work. |
+| `docs/decisions/data_capture_spine_post_batch_patch_plan_owner_decision_v0.md` | Owner decision accepting the minor-patched post-batch Data Capture patch plan for downstream docs-only obligation-contract and source-access method patch drafts; not contract hardening or implementation authority. |
+| `docs/product/data_capture_spine_post_batch_patch_plan_v0.md` | Docs-only post-batch Data Capture patch plan sequencing contract candidates, source-access refinements, MSP next gate, checker refinements, and owner gate; accepted by owner decision for downstream docs-only patch drafts, not direct contract hardening authority. |
+| `docs/product/data_capture_spine_obligation_contract_patch_proposal_v0.md` | Docs-only obligation-contract patch proposal for discharge vocabulary, Obligation #6, Obligation #16, and checker-adjacent wording after the N=3 pressure-test batch; patched after adversarial review for owner-decision input, not contract amendment. |
+| `docs/decisions/data_capture_spine_obligation_contract_patch_proposal_owner_decision_v0.md` | Owner decision that accepted PCP-01 through PCP-08 for bounded Data Capture obligation-contract amendment drafting; now consumed by the amended controlling obligation contract; not runtime/source-system authorization. |
+| `docs/product/data_capture_spine_intake_surface_consolidation_v0.md` | Accepted bounded pressure-test target for Raw Capture, optional Mechanical Source Projection, categorical ECR receipt, and Cleaning handoff. |
+| `docs/product/data_capture_spine_pressure_test_execution_authorization_v0.md` | Owner authorization for the bounded first three-slot Data Capture pressure-test execution batch; not runtime, tooling, or downstream design authorization. |
+| `docs/product/data_capture_spine_pressure_test_slot3_combined_handoff_v0.md` | Combined first-pass Slot 3 Reddit + WSO Data Capture handoff posture; categorical ECR handoff with visible venue-specific limitations, not pressure-test discharge. |
+| `docs/product/data_capture_source_access_boundary_decision_v0.md` | Current Data Capture source-access boundary: discoverable-or-entitled, free/account-created access allowed, paid/client/coworker entitlement allowed, obvious spillover excluded once noticed, and hard-stop exclusions. |
+| `docs/product/data_capture_source_access_method_plan_v0.md` | Docs-only method plan for source-access methods under the current boundary; not build/runtime authorization. |
 | `docs/product/core_spine_v0_data_capture_spine_architecture_blueprint_v0.md` | Data Capture Spine architecture blueprint for commissioned capture, core/satellite boundary, and rejected patterns. |
-| `docs/product/core_spine_v0_data_capture_spine_obligation_contract_v0.md` | Draft Data Capture Spine v0 obligation contract for setup and pressure testing. |
+| `docs/product/core_spine_v0_data_capture_spine_obligation_contract_v0.md` | Amended draft Data Capture Spine v0 obligation contract for setup and pressure testing, now operationalizing PCP-01 through PCP-08. |
 | `docs/product/core_spine_v0_data_capture_spine_remaining_fixture_plan_v0.md` | Planning-only fixture architecture for remaining Data Capture pressure tests and stop condition. |
 | `docs/product/core_spine_v0_data_capture_spine_pressure_test_synthesis_usage_note_v0.md` | Navigation and status-use note for the Data Capture pressure-test synthesis after optional adversarial clarifications. |
 | `docs/product/core_spine_v0_data_capture_spine_full_fixture_synthesis_v0.md` | Full Data Capture pressure-test synthesis across planned fixtures; advisory baseline candidate, not acceptance or completion. |
@@ -188,6 +198,11 @@ Unity runtime-fee specimen:
 | --- | --- |
 | `docs/research/consulting-judgment-corpus/` | Consulting-judgment corpus, prompts, lane outputs, synthesis, candidate screens, backtestability, and reject patterns. |
 | `docs/research/judgment-spine/` | Judgment Spine parent contract, manifest, case indexes, and case-learning artifacts for consultant-grade decision judgment. |
+| `docs/research/packing-phase/` | Boundary note for decision-packet construction between cleaned evidence and Judgment Harness inputs. |
+| `docs/research/judgment-spine/judgment_spine_thesis_v0.md` | Long-term Judgment Spine optimization thesis; open before CA setup, harness changes, or lesson-promotion decisions. |
+| `docs/research/judgment-spine/judgment_spine_thesis_operating_contract_v0.md` | Operating contract for consuming, protecting, and applying the Judgment Spine thesis; open after the thesis before future Judgment Spine prompts, harness changes, case additions, or lesson-promotion decisions. |
+| `docs/research/judgment-spine/harness/v0_14/` | Working v0.14 Judgment Harness spec: schemas, scoring, runner contracts, case construction, memorization probe, and failure logging. |
+| `docs/research/judgment-spine/harness/adjacent-context/` | Side-context index for related Orca judgment/evidence/layer-boundary material; not controlling v0.14 spec authority. |
 | `docs/review-outputs/adversarial-artifact-reviews/` | Adversarial artifact review reports. |
 | `docs/review-outputs/method-validation/` | Method-validation review outputs. |
 | `docs/review-outputs/proof/` | Proof review outputs. |
@@ -231,6 +246,9 @@ implementation-ready, runtime-ready, or Cleaning-complete.
 
 Start with:
 
+- `docs/decisions/data_capture_spine_pressure_test_batch_classification_decision_v0.md`
+- `docs/product/data_capture_spine_intake_surface_consolidation_v0.md`
+- `docs/product/data_capture_spine_pressure_test_execution_authorization_v0.md`
 - `docs/product/core_spine_v0_data_capture_spine_pressure_test_synthesis_usage_note_v0.md`
 - `docs/product/core_spine_v0_data_capture_spine_obligation_contract_v0.md`
 - `docs/product/core_spine_v0_data_capture_spine_full_fixture_synthesis_v0.md`

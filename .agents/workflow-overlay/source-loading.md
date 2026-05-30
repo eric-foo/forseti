@@ -30,6 +30,14 @@ labels, strict/not-proven boundaries, targeted excerpts, and context-budget
 discipline. Orca overlay and repo map still choose Orca source files and source
 precedence.
 
+This file is the canonical Orca owner for source-loading budgets, source-pack
+tiers, source-capsule rules, and Data Capture Spine CA read-pack limits. Repo maps,
+prompt artifacts, wrappers, and review requests may point here or summarize the
+current rule for convenience, but they must not fork the rule. If another
+retrieval or navigation artifact conflicts with this file, load
+`.agents/workflow-overlay/source-of-truth.md` and resolve the conflict before
+claiming readiness.
+
 ## Current Operating Boundary
 
 Orca is no longer globally docs-first by default. Documentation remains the
@@ -127,6 +135,27 @@ details.
 Prefer targeted sections over full files whenever a file is long, historical,
 or adjacent rather than controlling.
 
+### High-Context Guard
+
+Before the route, blocker, edit boundary, source-loading unit, or strict claim is
+known, do not widen source loading to prove general familiarity.
+
+Use cheap orientation first:
+
+- scan headings before opening long files;
+- read exact section windows instead of full adjacent artifacts;
+- cap search output to the smallest hit set that can identify the next source;
+- summarize repository state by branch, HEAD, dirty/untracked status, and affected
+  target paths when those paths are known;
+- avoid broad whole-worktree status dumps unless whole-worktree state is itself
+  decision-bearing;
+- record plausible background sources as `available not read` or `not loaded
+  because not decision-bearing` instead of opening them.
+
+This guard does not weaken source authority. Strict claims still require the
+controlling source, and skipped sources must be reopened when they could
+materially change the current claim, route, blocker, or edit boundary.
+
 For each source read, keep a compact ledger entry:
 
 - file or source;
@@ -200,6 +229,9 @@ Budget rules:
 - Prefer paraphrase plus file path over long quotation.
 - If the capsule needs more than ten excerpts, split the work or start a new
   thread.
+- If any capsule budget would be exceeded, stop and narrow the question, split
+  the source-loading unit, or create a new-thread handoff. Do not compress a
+  broader archive into the capsule and call it bounded.
 
 `sources_available_not_read` should name files that were relevant but skipped
 because they would add background rather than change the current decision.
@@ -218,9 +250,20 @@ sections instead of carrying long excerpts. When the receiving lane has no repo
 access, the capsule may include short excerpts, but should still avoid full
 documents.
 
-## Data Spine CA Read Pack
+Every CA or model-lane handoff using a source capsule must state whether the
+receiving lane has repo access. Repo-access capsules should use paths, section
+names, and short paraphrases. No-repo-access capsules may carry short decisive
+excerpts, but must still honor the same budgets and exclusions.
 
-For a Data Spine setup CA, start with:
+## Data Capture Spine CA Read Pack
+
+This section is the canonical read-pack rule for Data Capture Spine setup CA
+prompts. Older prompts may call this the Data Spine CA read pack; treat that as
+a deprecated shorthand for Data Capture Spine.
+Repo maps and prompt artifacts should reference this section instead of
+restating the full pack.
+
+For a Data Capture Spine setup CA, start with these targeted sections:
 
 - `docs/decisions/turn_08_product_thesis_v0.md`: thesis, value proposition,
   strategic center, and current theory sections.
@@ -237,17 +280,20 @@ For a Data Spine setup CA, start with:
 
 Do not read these six files in full by default. Use the targeted sections
 above, then expand only when a specific source gap would change the CA prompt.
+If a prompt author cannot locate the named sections, the prompt must report a
+source gap instead of widening to full-file reads by default.
 
 Do not include method-validation replays, proof-run packets, review outputs,
 or research corpus files by default. Use the repo map to decide whether any
 one of those is necessary.
 
-### Data Spine CA Capsule Limit
+### Data Capture Spine CA Capsule Limit
 
-A Data Spine CA prompt should include only:
+A Data Capture Spine CA prompt should include only:
 
 - one paragraph on Orca's value proposition;
-- one paragraph on the current Data/Cleaning/Judgment boundary;
+- one paragraph on the current Data Capture / Evidence Candidate Record /
+  Cleaning / Judgment boundary;
 - one paragraph on the non-implementation operating boundary;
 - the targeted source pack above;
 - the exact files and sections to read;
@@ -256,7 +302,54 @@ A Data Spine CA prompt should include only:
 
 It should not paste the full offer, proof packet, Core Spine contract, boundary
 note, or IPF. It should not include method-validation history unless the CA task
-explicitly asks how prior cases affected Data Spine source loading.
+explicitly asks how prior cases affected Data Capture Spine source loading.
+
+## Data Capture Intake Surface / MSP Pressure-Test Target Pack
+
+Use this pack when the task is to prepare, review, route, or verify the bounded
+Data Capture pressure-test gate around Raw Capture, Mechanical Source
+Projection, categorical ECR receipt, and Cleaning handoff.
+
+Start with:
+
+- `docs/product/data_capture_spine_intake_surface_consolidation_v0.md`
+
+For post-batch patch planning, review, or owner decision, also open:
+
+- `docs/product/data_capture_spine_post_batch_patch_plan_v0.md`
+- `docs/decisions/data_capture_spine_post_batch_patch_plan_owner_decision_v0.md`
+- `docs/product/data_capture_spine_obligation_contract_patch_proposal_v0.md`
+- `docs/decisions/data_capture_spine_obligation_contract_patch_proposal_owner_decision_v0.md`
+- `docs/review-outputs/adversarial-artifact-reviews/data_capture_spine_obligation_contract_patch_proposal_adversarial_artifact_review_v0.md`
+
+Then open only the controlling source needed for the current claim:
+
+- `docs/decisions/data_capture_spine_pressure_test_batch_classification_decision_v0.md`
+- `docs/product/data_capture_harness_operating_model_architecture_v2_acceptance_decision_v0.md`
+- `docs/product/data_capture_harness_operating_model_architecture_v2.md`
+- `docs/product/core_spine_v0_data_capture_spine_obligation_contract_v0.md`
+- `docs/product/core_spine_v0_data_and_cleaning_spine_boundary_v0.md`
+- `docs/product/data_capture_source_access_boundary_decision_v0.md`
+- `docs/product/data_capture_spine_pressure_test_commissioning_plan_v0.md`
+- `docs/product/data_capture_spine_pressure_test_execution_authorization_v0.md`
+
+The accepted consolidation is the bounded pressure-test target, not a final
+Capture Spine contract and not pressure-test validation. The first N=3 batch
+classification decision classifies that batch as patchable and authorizes
+docs-only patch planning, not contract hardening or runtime/source-system
+implementation. The post-batch patch plan sequences the currently authorized
+docs-only patch candidates for owner gating after adversarial review; the owner
+decision accepts that plan for downstream docs-only patch drafts, but neither
+artifact amends the obligation contract or source-access method plan. The
+obligation-contract patch proposal owner decision accepted PCP-01 through PCP-08
+as bounded authority for docs-only obligation-contract amendment drafting; that
+package is now consumed by the amended controlling obligation contract. The
+proposal and owner decision remain historical amendment inputs and do not amend
+the source-access method plan or authorize runtime/source-system
+implementation.
+Do not use this pack to design ECR schema, Cleaning
+implementation, Judgment behavior, runtime source systems, scrapers, APIs,
+storage, dashboards, or tests.
 
 ## Expansion Rules
 
@@ -274,6 +367,11 @@ When expanding, prefer targeted section reads over full-file reads.
 Do not follow every retrieval-header `open_next` automatically. Open it only
 when it can change the current task; otherwise list it as an available source
 not read.
+
+If expansion would exceed the source-capsule budget, require more than one
+`S3` artifact family, or pull `S4` history by default, stop and return the
+specific source gap or new-thread handoff requirement instead of broadening the
+read pack inside the same prompt.
 
 ## Artifact Body Shape
 
