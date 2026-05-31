@@ -333,6 +333,12 @@ Then open only the controlling source needed for the current claim:
 - `docs/product/data_capture_spine_pressure_test_commissioning_plan_v0.md`
 - `docs/product/data_capture_spine_pressure_test_execution_authorization_v0.md`
 
+For Slot 3 WSO continuation or cross-venue Slot 3 synthesis, also open
+`docs/product/data_capture_spine_pressure_test_slot3_reddit_subbatch_control_note_v0.md`
+before treating Reddit capture as complete venue coverage. That note records
+the Reddit sub-batch checker outcomes, source-language-anchor lesson, media and
+cutoff limitations, and the open WSO-run versus WSO-defer control decision.
+
 The accepted consolidation is the bounded pressure-test target, not a final
 Capture Spine contract and not pressure-test validation. The first N=3 batch
 classification decision classifies that batch as patchable and authorizes

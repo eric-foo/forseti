@@ -112,6 +112,7 @@ Use these before broad product architecture or CA setup:
 | `docs/decisions/data_capture_spine_obligation_contract_patch_proposal_owner_decision_v0.md` | Owner decision that accepted PCP-01 through PCP-08 for bounded Data Capture obligation-contract amendment drafting; now consumed by the amended controlling obligation contract; not runtime/source-system authorization. |
 | `docs/product/data_capture_spine_intake_surface_consolidation_v0.md` | Accepted bounded pressure-test target for Raw Capture, optional Mechanical Source Projection, categorical ECR receipt, and Cleaning handoff. |
 | `docs/product/data_capture_spine_pressure_test_execution_authorization_v0.md` | Owner authorization for the bounded first three-slot Data Capture pressure-test execution batch; not runtime, tooling, or downstream design authorization. |
+| `docs/product/data_capture_spine_pressure_test_slot3_reddit_subbatch_control_note_v0.md` | Slot 3 Reddit sub-batch control note recording Reddit batch checker outcomes, source-language-anchor capture lesson, visible media/cutoff limitations, and the open WSO-run versus WSO-defer decision before cross-venue synthesis. |
 | `docs/product/data_capture_spine_pressure_test_slot3_combined_handoff_v0.md` | Combined first-pass Slot 3 Reddit + WSO Data Capture handoff posture; categorical ECR handoff with visible venue-specific limitations, not pressure-test discharge. |
 | `docs/product/data_capture_source_access_boundary_decision_v0.md` | Current Data Capture source-access boundary: discoverable-or-entitled, free/account-created access allowed, paid/client/coworker entitlement allowed, obvious spillover excluded once noticed, and hard-stop exclusions. |
 | `docs/product/data_capture_source_access_method_plan_v0.md` | Docs-only method plan for source-access methods under the current boundary; not build/runtime authorization. |
@@ -249,6 +250,7 @@ Start with:
 - `docs/decisions/data_capture_spine_pressure_test_batch_classification_decision_v0.md`
 - `docs/product/data_capture_spine_intake_surface_consolidation_v0.md`
 - `docs/product/data_capture_spine_pressure_test_execution_authorization_v0.md`
+- `docs/product/data_capture_spine_pressure_test_slot3_reddit_subbatch_control_note_v0.md` when continuing Slot 3 WSO/non-Reddit capture or cross-venue Slot 3 synthesis.
 - `docs/product/core_spine_v0_data_capture_spine_pressure_test_synthesis_usage_note_v0.md`
 - `docs/product/core_spine_v0_data_capture_spine_obligation_contract_v0.md`
 - `docs/product/core_spine_v0_data_capture_spine_full_fixture_synthesis_v0.md`
