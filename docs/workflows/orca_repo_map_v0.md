@@ -22,7 +22,7 @@ stale_if:
 - Status: PROPOSED_MAP
 - Artifact type: Workflow navigation artifact
 - Scope: Repo navigation and source-pack selection
-- Refreshed: 2026-05-31
+- Refreshed: 2026-06-01
 - Implementation authorized: no
 
 ## How To Use This Map
@@ -112,6 +112,10 @@ Use these before broad product architecture or CA setup:
 | `docs/decisions/data_capture_spine_obligation_contract_patch_proposal_owner_decision_v0.md` | Owner decision that accepted PCP-01 through PCP-08 for bounded Data Capture obligation-contract amendment drafting; now consumed by the amended controlling obligation contract; not runtime/source-system authorization. |
 | `docs/product/data_capture_spine_intake_surface_consolidation_v0.md` | Accepted bounded pressure-test target for Raw Capture, optional Mechanical Source Projection, categorical ECR receipt, and Cleaning handoff. |
 | `docs/product/data_capture_spine_pressure_test_execution_authorization_v0.md` | Owner authorization for the bounded first three-slot Data Capture pressure-test execution batch; not runtime, tooling, or downstream design authorization. |
+| `docs/product/data_capture_spine_pressure_test_all_slot_synthesis_v0.md` | All-slot synthesis of the first Data Capture pressure-test batch; classifies recurring source-observability pressure as patchable on this record and routes the next bounded owner decision, not validation or implementation authority. |
+| `docs/decisions/data_capture_spine_source_observability_scoping_authorization_v0.md` | Owner authorization for one bounded docs-only source-observability requirements scoping lane after the all-slot pressure-test synthesis; not source-access implementation, runtime/tooling, contract hardening, or downstream ECR/Cleaning/Judgment design. |
+| `docs/product/data_capture_spine_source_observability_requirements_scoping_v0.md` | Candidate source-observability requirements and owner-decision queue from the all-slot pressure-test batch; decision input only, not implementation authority or governing doctrine. |
+| `docs/decisions/data_capture_spine_source_observability_local_support_implementation_scoping_authorization_v0.md` | Owner authorization for one bounded implementation-scoping lane for local source-observability support; not implementation execution, source-access method work, archive/media retrieval, contract hardening, or downstream ECR/Cleaning/Judgment design. |
 | `docs/product/data_capture_spine_pressure_test_slot3_reddit_subbatch_control_note_v0.md` | Slot 3 Reddit sub-batch control note recording Reddit batch checker outcomes, source-language-anchor capture lesson, visible media/cutoff limitations, and the open WSO-run versus WSO-defer decision before cross-venue synthesis. |
 | `docs/product/data_capture_spine_pressure_test_slot3_combined_handoff_v0.md` | Combined first-pass Slot 3 Reddit + WSO Data Capture handoff posture; categorical ECR handoff with visible venue-specific limitations, not pressure-test discharge. |
 | `docs/product/data_capture_source_access_boundary_decision_v0.md` | Current Data Capture source-access boundary: discoverable-or-entitled, free/account-created access allowed, paid/client/coworker entitlement allowed, obvious spillover excluded once noticed, and hard-stop exclusions. |
@@ -250,6 +254,10 @@ Start with:
 - `docs/decisions/data_capture_spine_pressure_test_batch_classification_decision_v0.md`
 - `docs/product/data_capture_spine_intake_surface_consolidation_v0.md`
 - `docs/product/data_capture_spine_pressure_test_execution_authorization_v0.md`
+- `docs/product/data_capture_spine_pressure_test_all_slot_synthesis_v0.md` and `docs/review-outputs/adversarial-artifact-reviews/data_capture_spine_pressure_test_all_slot_synthesis_blast_radius_recheck_v0.md` when routing from the completed all-slot pressure-test batch to the next source-observability decision.
+- `docs/decisions/data_capture_spine_source_observability_scoping_authorization_v0.md` when checking whether bounded docs-only source-observability requirements scoping is authorized.
+- `docs/product/data_capture_spine_source_observability_requirements_scoping_v0.md` when reviewing candidate source-observability requirements or routing their next owner decision.
+- `docs/decisions/data_capture_spine_source_observability_local_support_implementation_scoping_authorization_v0.md` when checking whether bounded local source-observability support implementation scoping is authorized.
 - `docs/product/data_capture_spine_pressure_test_slot3_reddit_subbatch_control_note_v0.md` when continuing Slot 3 WSO/non-Reddit capture or cross-venue Slot 3 synthesis.
 - `docs/product/core_spine_v0_data_capture_spine_pressure_test_synthesis_usage_note_v0.md`
 - `docs/product/core_spine_v0_data_capture_spine_obligation_contract_v0.md`

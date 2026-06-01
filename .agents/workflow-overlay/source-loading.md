@@ -322,6 +322,15 @@ For post-batch patch planning, review, or owner decision, also open:
 - `docs/decisions/data_capture_spine_obligation_contract_patch_proposal_owner_decision_v0.md`
 - `docs/review-outputs/adversarial-artifact-reviews/data_capture_spine_obligation_contract_patch_proposal_adversarial_artifact_review_v0.md`
 
+For all-slot source-observability scoping authorization or follow-on scoping,
+also open:
+
+- `docs/decisions/data_capture_spine_source_observability_scoping_authorization_v0.md`
+- `docs/product/data_capture_spine_source_observability_requirements_scoping_v0.md`
+- `docs/decisions/data_capture_spine_source_observability_local_support_implementation_scoping_authorization_v0.md`
+- `docs/product/data_capture_spine_pressure_test_all_slot_synthesis_v0.md`
+- `docs/review-outputs/adversarial-artifact-reviews/data_capture_spine_pressure_test_all_slot_synthesis_blast_radius_recheck_v0.md`
+
 Then open only the controlling source needed for the current claim:
 
 - `docs/decisions/data_capture_spine_pressure_test_batch_classification_decision_v0.md`
@@ -352,7 +361,15 @@ as bounded authority for docs-only obligation-contract amendment drafting; that
 package is now consumed by the amended controlling obligation contract. The
 proposal and owner decision remain historical amendment inputs and do not amend
 the source-access method plan or authorize runtime/source-system
-implementation.
+implementation. The source-observability scoping authorization permits one
+bounded docs-only requirements scoping lane from the all-slot pressure-test
+synthesis; the resulting source-observability requirements scoping artifact is
+candidate decision input, not governing doctrine. The local support
+implementation-scoping authorization permits one bounded implementation-scoping
+lane for local source-observability support, not implementation execution.
+These artifacts do not authorize source-access implementation, runtime/tooling,
+archive/media retrieval, contract hardening, source-access method-plan
+amendment, or ECR/Cleaning/Judgment design.
 Do not use this pack to design ECR schema, Cleaning
 implementation, Judgment behavior, runtime source systems, scrapers, APIs,
 storage, dashboards, or tests.
