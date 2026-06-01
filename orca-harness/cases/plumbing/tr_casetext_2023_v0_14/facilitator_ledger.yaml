@@ -1,0 +1,79 @@
+case_id: tr_casetext_2023_v0_14
+batch_id: plumbing
+case_family: legal_ai_competitor_backtest
+decision_shape: escalation_required
+labeling_rubric_version: v0_14
+mapping_table_version_pin: v0_14_mvp
+ledger_authors:
+  primary_labeler: Claude adjudication lane
+  second_labeler: GPT-5.5 advisory lane
+  second_labeler_type: separate_model_family_advisory
+second_label_diffs:
+  - input_name: authority
+    primary_label: full
+    second_label: partial
+    final_label: partial
+    resolution_reason: Board-level acquisition authority is materially distinct from scoped exploratory authority.
+  - input_name: capability
+    primary_label: full
+    second_label: partial
+    final_label: partial
+    resolution_reason: Existing AI investments do not collapse integration and category-risk uncertainty.
+  - input_name: information_decay
+    primary_label: medium
+    second_label: fast
+    final_label: fast
+    resolution_reason: The opportunity window is moving quickly enough to justify fast rather than slow decay pressure.
+  - input_name: option_value
+    primary_label: moderate
+    second_label: high
+    final_label: high
+    resolution_reason: Early move value is material and knife-edge relative to later strategic loss.
+  - input_name: urgency
+    primary_label: low
+    second_label: medium
+    final_label: medium
+    resolution_reason: Delay carries real strategic cost but not a same-day emergency.
+frozen_band_inputs:
+  evidence_strength: moderate
+  evidence_independence: partially_independent
+  reversibility_feasibility: low
+  reversibility_cost: high
+  authority: partial
+  authority_acquisition_cost: medium
+  capability: partial
+  capability_build_cost: high
+  loss_shape: asymmetric_down
+  opportunity_cost: moderate
+  information_decay: fast
+  option_value: high
+  upside_shape: asymmetric_up
+  urgency: medium
+must_address_items:
+  - must_address_item_id: MA-01
+    description: The passed-the-bar and category-leader signal is amplification of one vendor-affiliated source and echoes, not independent corroboration.
+    evidence_unit_ids: [E2, E3, E4, E5]
+  - must_address_item_id: MA-02
+    description: Moderate, partly amplified evidence supports scoped, reversible moves, not a low-reversibility 650 million dollar acquisition.
+    evidence_unit_ids: [E1, E2, E3, E6]
+  - must_address_item_id: MA-03
+    description: Competitive FOMO is real but unquantified; no pre-cutoff evidence proves an imminent rival bid.
+    evidence_unit_ids: [E6, E7]
+  - must_address_item_id: MA-04
+    description: Separate the genuine GenAI in legal opportunity from the unverified claim that Casetext is the leader.
+    evidence_unit_ids: [E1, E2, E3, E4, E5, E6]
+  - must_address_item_id: MA-05
+    description: Distinguish independent signal from echo and press reprinting.
+    evidence_unit_ids: [E1, E4, E5]
+underreach_observability:
+  present: false
+  notes: Step A plumbing case focuses on conflict escalation rather than primary underreach.
+  evidence_unit_ids: []
+leakage_audit:
+  memorization_probe_required: true
+  known_fame_risk: quarantined_high_fame_case
+  spoiler_inventory: In-repo replay material and known post-cutoff acquisition outcome contaminate judgment-quality use.
+fixture_status: QUARANTINED
+fixture_grade: plumbing_grade
+committed_at: 2026-05-29T00:00:00Z
+ledger_freeze_hash: c434be0070eb717f6faf4eb9f1cdee669e9b433b8f9652803d5b745205909bf2

@@ -1,0 +1,36 @@
+case_id: tr_casetext_2023_v0_14
+contestant_id: fixed_tr_casetext_plumbing
+run_id: run_tr_casetext_fixed
+model_id: fixture_only
+model_family: fixture_only
+model_snapshot_if_available: null
+prompt_hash: 69c3a55bf7b4d3569fa4ec47d77018a5a25edbdf01f9bf8b2af6ad7d96d6c1a6
+temperature: 0.0
+seed_if_supported: 0
+harness_version: v0_14
+judgement_class: escalate
+decision_shape: escalation_required
+recommended_action:
+  ladder_level: 6
+  action_label: escalate
+  rationale: Seek executive authority and sharper independent corroboration before any hard-to-reverse acquisition move.
+contestant_band_claim:
+  claimed_floor: 6
+  claimed_ceiling: 6
+  reasoning: The packet shows meaningful strategic pressure but the irreversible move is constrained enough to force escalation.
+  advisory_only: true
+evidence_used:
+  - claim_id: C1
+    claim_text: Casetext has a real product signal but much of the strongest category framing is amplified vendor narrative.
+    claim_role: load_bearing
+    evidence_unit_ids: [E1, E2, E3, E4, E5]
+  - claim_id: C2
+    claim_text: Strategic urgency and option value are real, but they do not erase acquisition downside and authority constraints.
+    claim_role: load_bearing
+    evidence_unit_ids: [E6, E7]
+must_address_items_covered: [MA-01, MA-02, MA-03, MA-04, MA-05]
+load_bearing_assumption:
+  statement: The decision owner can escalate for authority and diligence without committing to the acquisition itself.
+  evidence_unit_ids: [E6, E7]
+  would_flip_if_false: true
+advisory_phase_1_fields: {}

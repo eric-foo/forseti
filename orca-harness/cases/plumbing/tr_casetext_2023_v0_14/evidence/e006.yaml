@@ -1,0 +1,11 @@
+evidence_id: E6
+source_id: E6
+source: Thomson Reuters official generative AI positioning
+source_type: corporate_update
+timestamp: 2023-05-01
+retrieval_timestamp: 2026-05-29T00:00:00Z
+hash: 680e54f4b49e833dbf889ab698c9eb62c03f4d6e4b52d9cf8fe9eb88e4613830
+hash_basis: sha256(canonical_payload(url,timestamp,retrieval_timestamp,summary))
+pre_decision_status: verified_pre_decision
+pre_decision_basis: Published before the 2023-06-25 cutoff.
+summary: Thomson Reuters is already making material AI moves, increasing strategic pressure while not eliminating acquisition downside.

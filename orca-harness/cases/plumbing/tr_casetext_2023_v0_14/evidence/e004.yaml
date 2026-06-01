@@ -1,0 +1,11 @@
+evidence_id: E4
+source_id: E4
+source: Stanford Legal Aggregate repost
+source_type: blog_post
+timestamp: 2023-04-19
+retrieval_timestamp: 2026-05-29T00:00:00Z
+hash: 88781c72fd6f5d42d620dcb2c820d761fa1964046341d465bc2f5ef87594f1c4
+hash_basis: sha256(canonical_payload(url,timestamp,retrieval_timestamp,summary))
+pre_decision_status: verified_pre_decision
+pre_decision_basis: Published before the 2023-06-25 cutoff.
+summary: Reposts and amplifies the vendor-framed category story rather than independently verifying it.

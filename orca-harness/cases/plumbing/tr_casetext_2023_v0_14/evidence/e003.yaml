@@ -1,0 +1,11 @@
+evidence_id: E3
+source_id: E3
+source: SSRN paper on bar-exam performance claims
+source_type: paper
+timestamp: 2023-03-15
+retrieval_timestamp: 2026-05-29T00:00:00Z
+hash: 7d65f1bbca0c7f9ec61758c1ff9f59dbf0d2982da9eb2d646f092d137cee6621
+hash_basis: sha256(canonical_payload(url,timestamp,retrieval_timestamp,summary))
+pre_decision_status: verified_pre_decision
+pre_decision_basis: Published before the 2023-06-25 cutoff.
+summary: Vendor-affiliated academic-style support reinforces bar-exam performance claims but is not fully independent corroboration.

@@ -1,0 +1,14 @@
+case_id: tr_casetext_2023_v0_14
+contestant_id: fixed_tr_casetext_plumbing
+run_id: run_tr_casetext_fixed
+model_id: fixture_only
+model_family: fixture_only
+model_snapshot_if_available: null
+temperature: 0.0
+seed_if_supported: 0
+prompt_path: fixed_fixture_disk_read
+prompt_hash: 69c3a55bf7b4d3569fa4ec47d77018a5a25edbdf01f9bf8b2af6ad7d96d6c1a6
+participant_packet_hash: written_at_runtime
+facilitator_ledger_hash: written_at_runtime
+mapping_table_version_pin: v0_14_mvp
+created_at: 2026-05-29T00:00:00Z

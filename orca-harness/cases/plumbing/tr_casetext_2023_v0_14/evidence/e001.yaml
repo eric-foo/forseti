@@ -1,0 +1,11 @@
+evidence_id: E1
+source_id: E1
+source: LawSites / LawNext hands-on launch coverage
+source_type: article
+timestamp: 2023-03-01
+retrieval_timestamp: 2026-05-29T00:00:00Z
+hash: 5d3724f95bc6f468f8f4c0c301f3122d4e9352e1ecf0f0c704e163d10fb5cd3e
+hash_basis: sha256(canonical_payload(url,timestamp,retrieval_timestamp,summary))
+pre_decision_status: verified_pre_decision
+pre_decision_basis: Published before the 2023-06-25 cutoff.
+summary: Hands-on launch coverage confirms a real GenAI legal workflow product and early law-firm interest.

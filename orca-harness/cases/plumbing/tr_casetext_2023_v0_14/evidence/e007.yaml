@@ -1,0 +1,11 @@
+evidence_id: E7
+source_id: E7
+source: Thomson Reuters and Microsoft 365 Copilot plugin announcement
+source_type: partnership_announcement
+timestamp: 2023-05-23
+retrieval_timestamp: 2026-05-29T00:00:00Z
+hash: 3ad1d79f948ab0cd0cc40fe277338de604d87144d146d74974cb17e13afe649f
+hash_basis: sha256(canonical_payload(url,timestamp,retrieval_timestamp,summary))
+pre_decision_status: verified_pre_decision
+pre_decision_basis: Published before the 2023-06-25 cutoff.
+summary: Strategic partnership signal increases urgency and opportunity cost without proving a clean winner-take-all window.
