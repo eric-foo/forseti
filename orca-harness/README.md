@@ -7,6 +7,10 @@ This package is intentionally narrow:
 - deterministic mapping and scoring only;
 - fixed disk-backed TR/Casetext plumbing fixture only;
 - local source-observability support checks only, not source acquisition;
+- local dry memorization-probe receipt normalization only, not provider
+  execution;
+- opt-in raw-API no-tools memorization-probe execution plumbing only, not
+  probe authorization;
 - append-only scoring results and failure-event logging;
 - explicit non-claim boundary: `plumbing works only; not judgment quality`.
 
@@ -63,6 +67,43 @@ If a score already exists for the same `(case_id, run_id, contestant_id)`, the
 runner refuses to write a duplicate unless `--allow-duplicate-score` is passed.
 Mapping-version mismatches are a separate override:
 `--allow-mapping-version-mismatch`.
+
+Build a local dry memorization-probe receipt from pre-supplied probe input and
+response files:
+
+```powershell
+python runners/run_memorization_probe.py --probe-input <probe_input.yaml> --raw-response <raw_response.yaml> --output <probe_receipt.yaml>
+```
+
+This runner does not call a model, provider SDK, browser, network, search, or
+participant packet. It only normalizes local inputs into the v0.14
+`contestant_execution_isolation` receipt shape and applies local gate
+interpretation. A clean gate still requires structural no-tools evidence under
+the v0.14 no-tools execution contract; prompt-only "do not search" language is
+not enough.
+
+Run an explicitly authorized raw-API no-tools memorization probe:
+
+```powershell
+python runners/run_memorization_probe_raw_api.py --probe-input <probe_input.yaml> --output <probe_receipt.yaml> --provider <openai_responses|anthropic_messages> --api-url <provider_url> --api-key-env <ENV_NAME> --allow-live-provider-call
+```
+
+The raw-API runner uses no provider SDK and requires the live-call flag so an
+operator cannot accidentally call a model while doing local validation. Clean
+no-tools isolation is limited to the standard OpenAI Responses endpoint and
+Anthropic Messages endpoint named by the runner; arbitrary proxy or provider
+URLs are rejected for clean isolation. The runner rejects request bodies with
+tool, search, retrieval, browser, file, attachment, workspace, system,
+developer, or hidden-context fields, and the receipt `raw_response_hash` covers
+the full provider response body. The runner is still only execution plumbing;
+using it for a real probe requires separate owner authorization for the exact
+model/case pair.
+
+No-case provider smoke tests are also non-gate-clearing. Before passing
+`--allow-live-provider-call` for a synthetic smoke test, follow
+`../docs/research/judgment-spine/harness/v0_14/no_case_smoke_test_authorization_checklist_v0.md`
+and capture the required out-of-band execution provenance. A smoke receipt must
+not be cited as a clean memorization-probe pass for any real model/case pair.
 
 ## Canonical TR/Casetext Scores
 
