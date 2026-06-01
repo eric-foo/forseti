@@ -21,5 +21,7 @@ orca-harness/pytest_tmp_*/
 orca-harness/pytest_*_tmp/
 orca-harness/pytest_run_*/
 orca-harness/pytest-cache-files-*/
+orca-harness/reports/source_observability/*_dry_run.yaml
+orca-harness/reports/source_observability/*_dry_run.json
 orca-harness/cases/*/*/scores/
 orca-harness/memory/logs/

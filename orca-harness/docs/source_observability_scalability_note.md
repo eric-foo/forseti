@@ -1,7 +1,7 @@
 # Source Observability Scalability Note
 
 This note records how the local source-observability helper should scale after
-the first Slot 3 WSO and Slot 1 M&I/BIWS dry-use passes.
+the first Slot 3 WSO, Slot 1 M&I/BIWS, and Slot 2 Teal dry-use passes.
 
 It is a harness-local application note. It is subordinate to the Data Capture
 obligation contract, the Data Capture/Cleaning/Judgment boundary, and the
@@ -10,7 +10,7 @@ doctrine, source-access authority, fixture policy, or a required handoff gate.
 
 ## Current Evidence Base
 
-The helper has been dry-used against two different pressure-test shapes:
+The helper has been dry-used against three different pressure-test shapes:
 
 - Slot 3 WSO: forum-like venue evidence with bounded source-language anchors,
   discovery inventory, hidden-comment/gated-access posture, and missing raw
@@ -19,10 +19,24 @@ The helper has been dry-used against two different pressure-test shapes:
 - Slot 1 M&I/BIWS: non-forum offer/pricing evidence with pricing facts, bundle
   structure, redirected pages, archive-availability posture, layout loss, and
   archive-body access failure.
+- Slot 2 Teal: full source-body access failure with live-page HTTP 403 posture,
+  archive availability without archive bodies, URL inventory, non-verbatim
+  search-summary pointers, help/app/job carrier pointers, and no inspectable
+  Teal source language, source structure, raw HTML, screenshot, layout, or
+  verified pricing/features body content.
 
-The same local record model handled both without schema expansion. The evidence
-supports keeping the current helper small while adding discipline for future
-extension.
+The same local record model handled all three without schema expansion. The
+evidence supports keeping the current helper small while adding discipline for
+future extension.
+
+Slot 2 added a useful negative test: the helper emitted visible limitations for
+access failure, archive-body absence, missing source-language anchors, missing
+source structure, and missing media/layout evidence without treating the report
+as a clean pass. The mild friction was semantic rather than structural:
+`access_posture: pointer_only` and generic limitation types can represent
+pointer-only inventory and search-summary posture only when `record_summaries`
+and `limitation_notes` remain visible. That friction should travel as visible
+limitation evidence, not as immediate field-expansion justification.
 
 ## Local Helper Boundary
 
@@ -73,6 +87,8 @@ Examples:
   clean combined posture;
 - archive availability without archive-body retrieval remains a limitation,
   not historical-source preservation.
+- URL inventory and non-verbatim search-summary pointers should remain
+  distinguishable from preserved source language or verified source claims.
 
 Current structured fields are provisional helper fields. They are not promoted
 Core Spine invariants, final capture obligations, or ECR schema fields.
@@ -116,6 +132,11 @@ Possible future examples include clearer first-class support for
 bounded-anchor-only posture, mixed access posture, pointer-only inventory, or
 full-comment-graph absence. Those remain candidate helper refinements until
 accepted through the extension rule above.
+
+The first three dry-use passes do not yet justify promoting those examples into
+structured fields. Continue using record splitting and `limitation_notes` unless
+future source families show repeated pressure that cannot be represented without
+losing limitation visibility.
 
 ## Forbidden Expansion
 

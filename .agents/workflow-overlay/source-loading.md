@@ -328,6 +328,7 @@ also open:
 - `docs/decisions/data_capture_spine_source_observability_scoping_authorization_v0.md`
 - `docs/product/data_capture_spine_source_observability_requirements_scoping_v0.md`
 - `docs/decisions/data_capture_spine_source_observability_local_support_implementation_scoping_authorization_v0.md`
+- `docs/decisions/data_capture_spine_source_observability_local_support_implementation_execution_authorization_v0.md`
 - `docs/product/data_capture_spine_pressure_test_all_slot_synthesis_v0.md`
 - `docs/review-outputs/adversarial-artifact-reviews/data_capture_spine_pressure_test_all_slot_synthesis_blast_radius_recheck_v0.md`
 
@@ -366,10 +367,13 @@ bounded docs-only requirements scoping lane from the all-slot pressure-test
 synthesis; the resulting source-observability requirements scoping artifact is
 candidate decision input, not governing doctrine. The local support
 implementation-scoping authorization permits one bounded implementation-scoping
-lane for local source-observability support, not implementation execution.
-These artifacts do not authorize source-access implementation, runtime/tooling,
-archive/media retrieval, contract hardening, source-access method-plan
-amendment, or ECR/Cleaning/Judgment design.
+lane for local source-observability support, not implementation execution. The
+local support implementation-execution authorization separately records and
+bounds the implemented local operator-record/checker/report/docs/tests surface;
+it does not authorize further implementation expansion. These artifacts do not
+authorize source-access implementation, runtime/tooling, archive/media
+retrieval, contract hardening, source-access method-plan amendment, or
+ECR/Cleaning/Judgment design.
 Do not use this pack to design ECR schema, Cleaning
 implementation, Judgment behavior, runtime source systems, scrapers, APIs,
 storage, dashboards, or tests.
