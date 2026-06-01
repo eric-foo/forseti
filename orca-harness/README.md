@@ -36,6 +36,9 @@ receipt, Cleaning output, Judgment output, source acquisition, archive
 retrieval, browser automation, or source-quality scoring. Do not treat it as a
 required capture gate or as proof that the underlying capture is complete.
 
+For record-authoring guidance, see
+[`docs/source_observability_operator_records.md`](docs/source_observability_operator_records.md).
+
 ## Commands
 
 Run tests:
