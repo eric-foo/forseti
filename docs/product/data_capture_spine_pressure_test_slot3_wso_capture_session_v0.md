@@ -18,20 +18,22 @@ open_next:
   - docs/product/core_spine_v0_data_capture_spine_obligation_contract_v0.md
 stale_if:
   - A later owner decision rejects or supersedes the WSO venue scope.
-  - A later WSO raw/source-projection packet supersedes this bounded source-language anchor pass.
+  - A later WSO full raw/source-projection packet supersedes this bounded visible-page envelope pass.
   - The accepted intake-surface target, commissioning plan, or obligation contract is materially amended before this capture is receipted.
   - WSO source visibility changes materially or source-language anchors become unavailable at the cited URLs.
 ```
 
 ## Status
 
-Status: `CAPTURE_SESSION_WSO_BOUNDED_SOURCE_LANGUAGE_ANCHORS_V0`.
+Status: `CAPTURE_SESSION_WSO_BOUNDED_VISIBLE_ENVELOPE_SUPPLEMENTED_V0`.
 
 This artifact records the WSO/non-Reddit venue for the authorized Slot 3
-pressure-test frame. It is a bounded public-page capture with source-language
-anchors embedded from the start. It does not create a Reddit-style raw JSON
-corpus, preserved raw HTML packet, screenshot set, or Mechanical Source
-Projection packet.
+pressure-test frame. It began as a bounded public-page capture with
+source-language anchors embedded from the start and is now supplemented by a
+2026-06-01 bounded visible-page envelope packet: visible HTML, text excerpt,
+screenshot, and archive availability posture for each selected WSO URL. It does
+not create a Reddit-style raw JSON corpus, full WSO comment graph, hidden-comment
+capture, or Mechanical Source Projection packet.
 
 `SOURCE_CONTEXT_READY`
 
@@ -82,11 +84,14 @@ orca_start_preflight:
   - Public WSO forum pages reachable through current browser/web inspection.
   - The Reddit Slot 3 control note as required routing context:
     `docs/product/data_capture_spine_pressure_test_slot3_reddit_subbatch_control_note_v0.md`.
+  - Supplemental WSO visible-envelope recapture packet:
+    `docs/_inbox/data_capture_pressure_test_operator_supplied_2026_05_29/slot3_recapture_2026_06_01/wso_visible_envelope/`.
 - Boundary compliance: this session used discoverable public page access and
-  browser/web inspection only. It did not use login, email unlock, social
-  unlock, paid access, private access, deceptive collection, anti-detect
-  methods, proxies, automated extraction builds, or runtime/source-system
-  tooling.
+  browser/web inspection only, later supplemented by bounded in-app browser
+  visible-page capture and Wayback availability checks. It did not use login,
+  email unlock, social unlock, paid access, private access, deceptive
+  collection, anti-detect methods, proxies, API, scraper, automated extraction
+  builds, or runtime/source-system tooling.
 - Out-of-bounds material observed and excluded:
   - WSO comment-unlock prompts were visible on some pages and were not used.
   - Full hidden or gated comment material is not claimed.
@@ -101,8 +106,11 @@ orca_start_preflight:
   - The session then reopened the Reddit control note and the prior WSO
     discovery inventory.
   - The session used public browser/web inspection for selected WSO pages.
+  - 2026-06-01 targeted recapture supplemented the original bounded anchor pass
+    with visible HTML, text excerpt, screenshot, per-page receipt timestamps,
+    and Wayback availability posture for each selected WSO URL.
   - No Mechanical Source Projection was performed because no preserved WSO raw
-    source packet was created.
+    row packet was created.
 
 ## Per-Obligation Discharge States
 
@@ -110,20 +118,20 @@ orca_start_preflight:
 | --- | --- | --- | --- |
 | 1 | Commissioning Gate | met | |
 | 2 | Boundary Compliance | met | |
-| 3 | Capture-Event Provenance | partial | Source URLs, selected page titles, visible page dates or relative ages where available, prior discovery note path, current capture date, and operator category are visible, but no local raw HTML/screenshot hash or exact browser acquisition timestamp was recorded per WSO page. |
+| 3 | Capture-Event Provenance | met | Source URLs, selected page titles, visible page dates or relative ages where available, prior discovery note path, current capture date, operator category, per-page receipt timestamps, and local HTML/text/screenshot hashes are visible in the artifact plus 2026-06-01 recapture packet. |
 | 4 | Capture Mode Disclosure | met | |
 | 5 | Mode-Change Rule | met | |
-| 6 | Raw Observable Fidelity | partial | This artifact embeds bounded source-language anchors and page posture, but no raw WSO HTML, screenshot set, complete comment graph, or row-level projection packet was preserved locally. |
+| 6 | Raw Observable Fidelity | partial | This artifact embeds bounded source-language anchors and page posture, and the 2026-06-01 recapture packet preserves visible HTML, text excerpts, and screenshots for the seven selected WSO pages. It still does not preserve a complete comment graph, hidden/comment-unlocked material, or row-level projection packet. |
 | 7 | Source Identity And Actor Context | partial | WSO surface identity, URLs, titles, handles where visible, role badges where visible, regions where visible, and comment counts where visible are recorded; full actor history and hidden comment context are not claimed. |
 | 8 | Decomposed Timing | partial | Public pages expose page dates or relative ages in visible text where available; exact capture timestamps, edit history, and complete comment timestamps are not separately preserved. |
 | 9 | Cutoff Posture | met | |
-| 10 | Archive / Historical Posture | not_attempted | No Wayback/archive lookup or external archival confirmation was attempted for WSO in this pass. |
+| 10 | Archive / Historical Posture | partial | Wayback availability was checked for all seven WSO URLs in the 2026-06-01 recapture packet. Two URLs returned archived metadata availability, five returned no available snapshot, and archive body retrieval was not attempted. |
 | 11 | Source Visibility And Access Limits | met | |
 | 12 | Related Context Preservation | partial | The selected pages preserve OP posture and selected visible reply/comment anchors, but this pass does not preserve full thread hierarchy, all comments, or hidden/comment-unlocked material. |
 | 13 | Bundled-Offer Structure Observables | not_applicable | Slot 3 WSO is a forum-thread venue, not a bundled offer, settlement, pricing package, or multi-term counterparty package. |
 | 14 | Capture Failure And Blocker Visibility | met | |
 | 15 | Re-Capture Semantics | not_applicable | No prior accepted WSO capture for this same bounded venue slice was supplied; the old untracked WSO artifact is treated as stale scratch, not as a prior accepted capture. |
-| 16 | Categorical Handoff Readiness | partial | The artifact is handoff-ready only as a bounded WSO venue capture with embedded source-language anchors and visible limitations. It is not a complete WSO raw corpus, full comment graph, archive packet, screenshot packet, or Mechanical Source Projection packet. |
+| 16 | Categorical Handoff Readiness | partial | The artifact is handoff-ready only as a bounded WSO venue capture with embedded source-language anchors and supplemental visible-page envelope receipts. It is not a complete WSO corpus, full comment graph, archive body packet, hidden-comment capture, or Mechanical Source Projection packet. |
 
 Allowed states used: `met`, `partial`, `not_attempted`, `not_applicable`.
 
@@ -132,7 +140,7 @@ Allowed states used: `met`, `partial`, `not_attempted`, `not_applicable`.
 | Slice | Archive/history posture | Source visibility/access posture | Related context posture | Re-capture relationship |
 | --- | --- | --- | --- | --- |
 | Prior WSO discovery inventory | Prior local discovery note preserved; no WSO raw page bodies preserved there. | Earlier direct WebFetch attempts were recorded as HTTP 403, while URL inventory and search snippets were captured. | URL inventory includes WSO non-target, resume, no-response, interview-access, advice, and success/counter-signal candidates. | Used as candidate inventory for this current bounded public-page inspection pass. |
-| Current WSO public-page inspection | No external archive lookup attempted. | Selected WSO pages were publicly inspectable enough to capture source-language anchors. Pages include heavy navigation/promo envelope and some comment-unlock prompts. | OP/title posture and selected visible comment/reply anchors are preserved below. Full comment graph completeness is not claimed. | Future pass can recapture with screenshots, raw HTML, archive lookup, or account-created access only if separately authorized. |
+| Current WSO public-page inspection | 2026-06-01 Wayback availability check performed for all seven URLs; two returned archived metadata availability, five returned no available snapshot, and archive body retrieval was not attempted. | Selected WSO pages were publicly inspectable enough to capture source-language anchors and a supplemental visible-page envelope packet. Pages include heavy navigation/promo envelope and some comment-unlock prompts. | OP/title posture, selected visible comment/reply anchors, visible HTML, text excerpts, and screenshots are preserved below or in the supplemental packet. Full comment graph completeness is not claimed. | Future pass can recapture hidden comments, full comment graph, archive bodies, or account-created access only if separately authorized. |
 | WSO hidden/full comments | Not attempted. | Email/social unlock prompts were visible and not used. | Hidden or gated comments are not captured. | Requires a separate owner decision or human-led access path if needed. |
 | Mechanical Source Projection | Not applicable in this pass. | No WSO raw source packet exists to project. | No row-level WSO projection exists. | Can be commissioned later only after raw WSO source is preserved. |
 
@@ -148,6 +156,24 @@ The prior discovery note records WSO search/query attempts, direct WSO WebFetch
 403 blockers, and a URL inventory of candidate WSO threads. Current browser/web
 inspection found selected WSO pages publicly inspectable enough to embed bounded
 source-language anchors in this artifact.
+
+Supplemental visible-envelope recapture packet:
+
+```text
+root:
+  docs/_inbox/data_capture_pressure_test_operator_supplied_2026_05_29/slot3_recapture_2026_06_01/wso_visible_envelope/
+receipt:
+  wso_visible_envelope_receipt.json
+  SHA256 D52446098F0117BE0C2E1CA3CEE7C122AA46658DB84DC23D6867DA13CABBAC5A
+archive_posture:
+  docs/_inbox/data_capture_pressure_test_operator_supplied_2026_05_29/slot3_recapture_2026_06_01/archive_posture/slot3_archive_availability_posture.json
+  SHA256 AEC5171825B431D98AF4BEF220B21DD16CE32AFA23CD2E7DF7599223FA9BFD58
+receipt_readback:
+  WSO-01 through WSO-07 each captured visible_page.html, visible_text_excerpt.txt, and screenshot PNG.
+  Title anchors were present in both text and HTML for all seven WSO pages.
+  The receipt JSON preserves original temp-path file pointers; the canonical packet files are the workspace-rooted files under the root above.
+  Visible HTML files appear capped near 200KB; text excerpts and screenshots are the primary evidence for page content beyond that bounded HTML capture.
+```
 
 ### Bounded Source-Language Anchors
 
@@ -169,7 +195,8 @@ what was captured without re-fetching the pages.
 
 - WSO pages expose substantial navigation, promotional, related-link, profile,
   and unlock scaffolding.
-- This pass records source-language anchors and page posture only. It does not
+- This pass records source-language anchors, page posture, visible HTML, text
+  excerpt, screenshot, and archive availability posture. It does not
   mechanically separate source-envelope noise into projection rows.
 - The current artifact should be treated as a bounded WSO venue capture, not as
   a complete WSO corpus or source-system extraction.
@@ -178,15 +205,15 @@ what was captured without re-fetching the pages.
 
 - Capture-owned failures observed:
   - No local WSO raw corpus existed before this pass.
-  - No WSO raw HTML, screenshots, archive captures, or projection rows were
-    saved during this pass.
+  - No full WSO comment graph, hidden/comment-unlocked material, archive body,
+    or projection rows were saved during this pass.
   - Prior subagent WebFetch attempts against WSO recorded HTTP 403, while
     current browser/web inspection could view selected public pages. This mixed
     access posture must remain visible.
 - Visible limitations to travel downstream:
   - Full comment graph completeness is not claimed.
   - Hidden or comment-unlocked material is not captured.
-  - No external archive lookup was attempted.
+  - Archive availability was checked, but archive bodies were not retrieved.
   - WSO-07 is outside the US-domestic core frame and should travel only as
     related/counter-signal context.
   - No Mechanical Source Projection packet exists for WSO.
@@ -223,16 +250,17 @@ what was captured without re-fetching the pages.
 - Handoff state: `categorical_handoff_to_ECR`.
 - Reason if not `categorical_handoff_to_ECR`: not applicable.
 - Visible limitations attached to handoff:
-  - Handoff is only for the bounded WSO source-language anchor pass.
+  - Handoff is only for the bounded WSO source-language anchor plus visible-page
+    envelope pass.
   - This is not a full WSO raw corpus, not a full WSO comment graph, not a WSO
-    archive packet, not a WSO screenshot packet, and not a WSO Mechanical Source
-    Projection packet.
+    archive body packet, not a hidden-comment capture, and not a WSO Mechanical
+    Source Projection packet.
   - ECR may receipt categorical source/provenance/visibility context, but this
     artifact does not define ECR fields, IDs, storage, schema, table shape, or
     runtime receipt mechanism.
   - If WSO becomes materially load-bearing downstream, a later owner decision
-    may still choose recapture with raw HTML, screenshots, archive lookup, or
-    account-created access.
+    may still choose recapture with full comment graph preservation, archive
+    body retrieval, hidden/comment-unlocked material, or account-created access.
 
 ## LLM Capture-Visibility Checker Output
 
@@ -243,17 +271,20 @@ what was captured without re-fetching the pages.
     GPT-5.5 UI invocation specified by the commissioning plan was not performed
     for this WSO artifact. That model-separation limitation travels downstream.
 - Specifics:
-  - Obligation 3: exact browser acquisition timestamp and local raw file hash
-    were not recorded per WSO page.
-  - Obligation 6: source-language anchors are visible, but raw WSO HTML,
-    screenshots, full comment graph, and projection rows are not preserved.
+  - Obligation 3: per-page visible-envelope receipt timestamps and local
+    HTML/text/screenshot hashes are now recorded in the supplemental packet.
+  - Obligation 6: source-language anchors, visible HTML, text excerpts, and
+    screenshots are visible, but full comment graph, hidden/comment-unlocked
+    material, and projection rows are not preserved.
   - Obligation 8: complete item-level timing, edit history, and comment timing
     are not separately preserved.
-  - Obligation 10: archive/history lookup was not attempted.
+  - Obligation 10: archive availability was checked; archive bodies were not
+    retrieved.
   - Obligation 12: full thread hierarchy and hidden/comment-unlocked material
     are not preserved.
-  - Obligation 16: handoff is categorical only for the bounded WSO anchor pass,
-    not for a complete WSO corpus or projection packet.
+  - Obligation 16: handoff is categorical only for the bounded WSO anchor plus
+    visible-page envelope pass, not for a complete WSO corpus or projection
+    packet.
   - Checker scope: source fidelity, source completeness, and full WSO comment
     graph completeness were not independently verified.
 - Remediation taken by capture operator:
@@ -261,15 +292,18 @@ what was captured without re-fetching the pages.
   - Limitations were made explicit in the obligation table, per-slice posture,
     raw observable pointers, failures/limitations, and categorical handoff
     sections.
-  - No remediation attempted live WSO recapture, login/unlock, archive lookup,
-    raw HTML preservation, runtime tooling, ECR design, Cleaning, or Judgment.
+  - 2026-06-01 remediation preserved visible HTML, text excerpts, screenshots,
+    and archive availability posture. No remediation attempted login/unlock,
+    hidden-comment capture, archive body retrieval, runtime tooling, ECR design,
+    Cleaning, or Judgment.
 - Post-remediation re-invocation:
   - None performed; no second checker-token output is asserted.
 
 ## Combined Handoff Decision
 
 The current WSO artifact is suitable to carry into a later Reddit+WSO Slot 3
-combined handoff as a bounded second-venue capture with visible limitations.
+combined handoff as a bounded second-venue capture with visible limitations and
+supplemental visible-page envelope receipts.
 
 The existing untracked combined handoff artifact should remain scratch until it
 is rewritten against:
@@ -285,7 +319,7 @@ No Reddit+WSO synthesis is performed in this artifact.
 
 This artifact does not:
 
-- complete a full WSO raw corpus capture;
+- complete a full WSO raw corpus or full comment graph capture;
 - create a WSO Mechanical Source Projection packet;
 - validate, certify, approve, accept, or harden the Data Capture Spine;
 - discharge the full pressure-test batch;

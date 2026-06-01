@@ -26,12 +26,13 @@ stale_if:
 
 ## Status
 
-Status: `COMBINED_HANDOFF_STATE_DECIDED_RECAPTURE_POSTURE_V0`.
+Status: `COMBINED_HANDOFF_STATE_DECIDED_CATEGORICAL_HANDOFF_TO_ECR_V0`.
 
 This artifact has been rewritten against the current Reddit and WSO Slot 3
-capture surfaces and now sets the combined Slot 3 capture-owned handoff state.
-It records an artifact-hygiene validation pass. It does not claim Slot 3
-pressure-test completion, Data Capture validation, or downstream readiness.
+capture surfaces plus the 2026-06-01 targeted recapture packet and now sets
+the combined Slot 3 capture-owned handoff state. It records an artifact-hygiene
+validation pass. It does not claim Slot 3 pressure-test completion, Data
+Capture validation, source completeness, or downstream readiness.
 
 `SOURCE_CONTEXT_READY`
 
@@ -58,10 +59,11 @@ Primary current inputs:
 
 | Input | Path | SHA256 | Current posture |
 | --- | --- | --- | --- |
-| Reddit batch 1of2 | `docs/product/data_capture_spine_pressure_test_slot_3_reddit_batch_1of2_reddit_financialcareers_threads_batch_1of2_capture_session_v0.md` | `7833038440C81B6BEE30AC4AAEE7F8CBF4AFF383E0AD5269ED671F141293E770` | `re-capture_posture`; checker output `visible_capture_limitation`. |
-| Reddit batch 2of2 | `docs/product/data_capture_spine_pressure_test_slot_3_reddit_batch_2of2_reddit_financialcareers_threads_batch_2of2_capture_session_v0.md` | `BA950FCF72AC7EB1B3C85BBEA3BEE8F398CB08D35D292EF82182102C04A2E8F5` | `categorical_handoff_to_ECR`; checker output `visible_capture_limitation`. |
+| Reddit batch 1of2 | `docs/product/data_capture_spine_pressure_test_slot_3_reddit_batch_1of2_reddit_financialcareers_threads_batch_1of2_capture_session_v0.md` | `7C284C51909F496B7715052BAF73B49DF89BE947A05F295DC303F8E05605D8FC` | `categorical_handoff_to_ECR`; checker output `visible_capture_limitation`. |
+| Reddit batch 2of2 | `docs/product/data_capture_spine_pressure_test_slot_3_reddit_batch_2of2_reddit_financialcareers_threads_batch_2of2_capture_session_v0.md` | `576A6F5FE0F59CB9503C946EF64BB62688F782FEA4700C1BA5036610BF7B8C96` | `categorical_handoff_to_ECR`; checker output `visible_capture_limitation`. |
 | Reddit control note | `docs/product/data_capture_spine_pressure_test_slot3_reddit_subbatch_control_note_v0.md` | `1BBC784DF6A8DE049DF2F2EA66766AFBB0AB07E5AE741B8F7EF2B2102A1FED1C` | Reddit captured with visible limitations; WSO now no longer deferred. |
-| WSO bounded anchor pass | `docs/product/data_capture_spine_pressure_test_slot3_wso_capture_session_v0.md` | `778F92F1F1EAE7E06F75B120D2178687E9131FAE8FDBF95E89AAB7D45A271132` | `categorical_handoff_to_ECR`; checker output `visible_capture_limitation`. |
+| WSO bounded visible-envelope pass | `docs/product/data_capture_spine_pressure_test_slot3_wso_capture_session_v0.md` | `28404EF3ACBF9F47DCCBC35E9D33300A28B47D7108725F675BC7620041F45162` | `categorical_handoff_to_ECR`; checker output `visible_capture_limitation`. |
+| 2026-06-01 Slot 3 recapture packet | `docs/_inbox/data_capture_pressure_test_operator_supplied_2026_05_29/slot3_recapture_2026_06_01/slot3_recapture_step_01_05_receipt.md` | `CB5D3A1A4AF088E4F33B0CE4D855AB65F35E671F2922B05ABA93947BA2588E01` | Supplemental packet: 10 Reddit media files preserved; 7 WSO visible envelopes captured; archive availability posture recorded. |
 
 Controlling execution and obligation sources:
 
@@ -101,20 +103,29 @@ rewrite.
   - Existing Reddit Mechanical Source Projection working views.
   - Reddit readable thread views used for bounded source-language anchors in
     batch 1.
+  - Targeted 2026-06-01 Reddit media files and archive availability posture for
+    `R01`, `R03`, `R08`, and `R10`.
 - WSO in scope:
   - Seven public WSO URL slices with bounded source-language anchors.
+  - Supplemental visible HTML, text excerpts, screenshots, and archive
+    availability posture for the same seven WSO URL slices.
   - Prior WSO discovery inventory as source-candidate context.
 - Boundary compliance:
   - Reddit inspection stayed inside owner-supplied local public-thread files.
-  - WSO inspection used public browser/web inspection only.
+  - Reddit targeted media preservation used ordinary URL fetches for public
+    `preview.redd.it` and `i.redd.it` assets.
+  - WSO inspection used public browser/web inspection and bounded visible-page
+    envelope capture only.
+  - Archive posture used Wayback availability metadata only; archive bodies were
+    not retrieved.
   - No login, email unlock, social unlock, paid access, private access,
     anti-detect method, proxy, source-system build, scraper, API, ECR schema,
     Cleaning transformation, or Judgment conclusion was used.
 - Observed but not used:
-  - Reddit live continuation, media binary retrieval, user-profile traversal,
-    and archive/cache lookup.
-  - WSO hidden/comment-unlocked material, full comment graph retrieval, raw HTML
-    preservation, screenshots, archive lookup, and account-created access.
+  - Reddit live continuation, user-profile traversal, and archive body
+    retrieval.
+  - WSO hidden/comment-unlocked material, full comment graph retrieval, archive
+    body retrieval, and account-created access.
 
 ## Capture Mode
 
@@ -127,26 +138,29 @@ rewrite.
 - WSO mode: mixed human-led plus agent-assisted public browser/web inspection,
   with bounded source-language anchors embedded directly in the artifact.
 - Combined handoff mode: consolidation of current capture artifacts only. This
-  artifact does not perform live recapture, archive lookup, source completion,
+  artifact receipts a previously produced targeted recapture packet; it does
+  not perform new live recapture, archive body retrieval, source completion,
   ECR design, Cleaning, Judgment, runtime, or tooling.
 
 ## Per-Venue Posture
 
 | Venue unit | Captured surface | Capture posture | Principal visible limitations | Current handoff implication |
 | --- | --- | --- | --- | --- |
-| Reddit batch 1of2, rows R01-R05 | Five local `r/FinancialCareers` JSON slices with bounded source-language anchors added after checker remediation. | `re-capture_posture` at sub-batch level. | `R01` is materially gallery/image-dependent with only media metadata and preview URLs; `R03` includes preview-image rows without local image binaries; no live/archive continuation; one visible `more` placeholder; deleted rows remain pointer-only. | Cannot be treated as fully inspectable for layout/image-dependent meaning without carrying recapture posture visibly. |
-| Reddit batch 2of2, rows R06-R10 | Five local `r/FinancialCareers` JSON slices plus existing projection working views. | `categorical_handoff_to_ECR` with visible limitations. | Missing separately logged per-thread acquisition receipts; `R08` and `R10` preserve `i.redd.it` image pointers without local image binaries; supplied set mixes direct-frame, adjacent, older, and UK/DACH context. | Can travel categorically as a bounded Reddit sub-batch only if mixed-slice and media-pointer limitations remain visible. |
-| Reddit control note | Control summary for both Reddit sub-batches. | Reddit captured with visible limitations; neither sub-batch has active `capture_closure_blocker`. | Reddit-only state was incomplete Slot 3 coverage before WSO; media binaries and live/archive continuation remain unperformed. | Now serves as routing/control source for combined handoff; not a synthesis or validation artifact. |
-| WSO bounded source-language anchor pass | Seven public WSO URL slices with source-language anchors and visible venue envelope limitations. | `categorical_handoff_to_ECR` for bounded anchor pass only. | No raw WSO HTML, screenshots, archive lookup, projection rows, or full comment graph; hidden/comment-unlocked material not captured; checker was artifact-internal Codex pass, not separate manual GPT-5.5 UI invocation. | Can travel as second-venue capture if treated as bounded source-language anchor pass, not as a complete WSO corpus. |
+| Reddit batch 1of2, rows R01-R05 | Five local `r/FinancialCareers` JSON slices with bounded source-language anchors and supplemental local media/archive posture for `R01`/`R03`. | `categorical_handoff_to_ECR` with visible limitations. | `R01` gallery/comment images and `R03` preview images are now locally preserved; remaining limits are local JSON cutoff, no live continuation, one visible `more` placeholder, deleted rows as placeholders, no available Wayback snapshots for targeted locators, and no archive body retrieval. | Can travel categorically as a bounded Reddit sub-batch if those snapshot and archive-body limits remain visible. |
+| Reddit batch 2of2, rows R06-R10 | Five local `r/FinancialCareers` JSON slices plus existing projection working views and supplemental local media/archive posture for `R08`/`R10`. | `categorical_handoff_to_ECR` with visible limitations. | Missing separately logged per-thread acquisition receipts; `R08` and `R10` image assets are now locally preserved; targeted archive availability returned no snapshots; supplied set mixes direct-frame, adjacent, older, and UK/DACH context. | Can travel categorically as a bounded Reddit sub-batch only if mixed-slice, acquisition, and archive-body limits remain visible. |
+| Reddit control note | Control summary for both Reddit sub-batches. | Reddit captured with visible limitations; neither sub-batch has active `capture_closure_blocker`. | Reddit-only state was incomplete Slot 3 coverage before WSO; targeted media recapture now supplements the two Reddit sub-batches, while live continuation and archive body retrieval remain unperformed. | Now serves as routing/control source for combined handoff; not a synthesis or validation artifact. |
+| WSO bounded visible-page envelope pass | Seven public WSO URL slices with source-language anchors plus visible HTML, text excerpts, screenshots, and archive availability posture. | `categorical_handoff_to_ECR` for bounded visible-page envelope pass only. | No full WSO comment graph, hidden/comment-unlocked material, archive body retrieval, or projection rows; checker was artifact-internal Codex pass, not separate manual GPT-5.5 UI invocation. | Can travel as second-venue capture if treated as bounded visible-page envelope capture, not as a complete WSO corpus. |
 
 ## Cross-Venue Limitation Posture
 
 - Reddit is stronger on raw/projection preservation because it has local raw JSON
-  and, for batch 2, existing projection working views. It is weaker where
-  image/gallery assets were not locally preserved.
+  and, for batch 2, existing projection working views. Targeted image/gallery
+  assets are now locally preserved for the previously image-limited slices.
 - WSO is stronger as a non-Reddit venue check with source-language anchors. It
-  is weaker on raw preservation because there is no local raw HTML, screenshot
-  set, archive packet, full comment graph, or projection packet.
+  now also has visible HTML, text excerpts, screenshots, and archive
+  availability posture for the selected pages. It remains weaker on full source
+  preservation because there is no complete comment graph, archive body packet,
+  hidden-comment capture, or projection packet.
 - Both venues carry `visible_capture_limitation` checker results rather than
   clean checker closure.
 - The combined Slot 3 surface is mixed by design: direct non-target pain,
@@ -157,36 +171,44 @@ rewrite.
 
 ## Final Combined Handoff-State Decision
 
-Handoff state: `re-capture_posture`.
+Handoff state: `categorical_handoff_to_ECR`.
 
 Reason:
 
-The combined Slot 3 surface is captured enough to inspect the current venue
-posture, but it should not be treated as a clean categorical handoff yet because
-one current source input, Reddit batch 1of2, is itself in `re-capture_posture`.
-That posture is driven by image/gallery-dependent slices where source meaning
-may depend on media binaries that were not locally preserved. WSO is also a
-bounded source-language anchor pass rather than a raw corpus or projection
-packet. Upgrading the combined Slot 3 surface to `categorical_handoff_to_ECR`
-would hide the fact that at least one component still asks downstream to
-consider recapture before treating the venue set as fully inspectable.
+The combined Slot 3 surface is captured enough for categorical Data
+Capture-owned handoff because the active re-capture driver in the prior handoff
+state has been addressed: `R01`, `R03`, `R08`, and `R10` media assets are now
+locally preserved in the 2026-06-01 recapture packet, WSO has supplemental
+visible-page envelope receipts, and archive availability posture is recorded
+instead of silently omitted.
 
-This is not a `visible_blocker` or `visible_stop`: Reddit batch 2of2 and WSO can
-travel categorically as bounded inputs with visible limitations, and Reddit
-batch 1of2 remains inspectable as a first-pass snapshot. The combined result is
-therefore best classified as `re-capture_posture`: usable for capture learning
-and pressure-test evidence, but not cleanly closed for categorical ECR handoff
-unless the owner accepts the media and WSO-boundedness limitations as sufficient
-or authorizes a targeted recapture.
+This is not a clean-source or completeness claim. The handoff remains bounded to
+the preserved Reddit local JSON/projection/readable views, the supplemental
+Reddit media packet, and the bounded WSO visible-page envelope packet. Downstream
+layers must still carry the local-JSON cutoff, no live Reddit continuation, one
+`R01` empty `more` placeholder, deleted-row placeholders, no archive body
+retrieval, WSO hidden/comment-unlocked material not captured, no full WSO comment
+graph, and same-thread/artifact-internal checker posture for WSO.
 
-Recapture candidates, if later authorized:
+This is not a `visible_blocker` or `visible_stop`: all current venue inputs now
+travel categorically as bounded inputs with visible limitations. The correct
+combined classification is therefore `categorical_handoff_to_ECR`, not because
+Slot 3 is complete, but because Capture has made the raw/provenance/source-limit
+surface inspectable enough for downstream layers to proceed without recollecting
+the source history.
 
-- Reddit batch 1of2: preserve `R01` gallery/image binaries and `R03`
-  preview-image rows as local media artifacts or screenshots.
-- WSO: preserve raw HTML, screenshots, archive posture, or account-created
-  access output if WSO becomes load-bearing enough to need stronger capture.
+Future recapture candidates, if later authorized and material downstream:
 
-No recapture is performed in this artifact.
+- Reddit: live continuation beyond the local JSON cutoff, especially the `R01`
+  empty `more` placeholder.
+- Reddit and WSO: archive body retrieval where historical/cutoff posture becomes
+  load-bearing.
+- WSO: full comment graph, hidden/comment-unlocked material, account-created
+  access output, or row-level Mechanical Source Projection if WSO becomes
+  source-load-bearing enough to need stronger source preservation.
+
+No new recapture is performed in this artifact; it receipts the completed
+2026-06-01 recapture packet.
 
 ## Artifact Hygiene Validation Record
 
@@ -202,6 +224,15 @@ Validation scope:
 Validation result:
 
 - Current source-input hashes match the Source Surface table.
+- The 2026-06-01 recapture packet receipts match the Source Surface table.
+- Short recapture readback confirmed all 10 Reddit media files opened as
+  readable images; all seven WSO text/HTML files contained the expected title
+  anchors; and archive body retrieval remained explicitly `not_attempted`.
+- The WSO receipt JSON preserves original temp-path file pointers, while the
+  canonical packet files are the workspace-rooted files under the
+  `wso_visible_envelope/` packet root; visible HTML files appear capped near
+  200KB, so text excerpts and screenshots remain primary evidence for page
+  content beyond that bounded HTML capture.
 - No stale pre-amendment raw-observable or handoff-sufficiency obligation
   vocabulary was found in operative text.
 - No stale single-Reddit-capture artifact reference was found in operative text.
