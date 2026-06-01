@@ -15,6 +15,27 @@ records. It does not fetch sources, retrieve archives, automate browsers, call
 APIs, score source quality, validate Data Capture, or authorize downstream ECR,
 Cleaning, or Judgment behavior.
 
+## Source Observability Runner
+
+Use the source-observability report runner when an operator has already authored
+local posture records and wants a structured list of visible capture
+limitations:
+
+```powershell
+python runners/run_source_observability_report.py <records.yaml> --output <report.json>
+```
+
+The input must be local YAML or JSON containing either a list of
+`SourceObservabilityRecord`-compatible records or a mapping with `records`.
+Those records are operator-authored observations, not extracted source truth.
+The report output is support evidence for reviewing source-language,
+source-structure, archive-body, media, access, locator, and cutoff limitations.
+
+The report is not capture validation, capture readiness, categorical ECR
+receipt, Cleaning output, Judgment output, source acquisition, archive
+retrieval, browser automation, or source-quality scoring. Do not treat it as a
+required capture gate or as proof that the underlying capture is complete.
+
 ## Commands
 
 Run tests:
