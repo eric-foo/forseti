@@ -19,6 +19,49 @@ records. It does not fetch sources, retrieve archives, automate browsers, call
 APIs, score source quality, validate Data Capture, or authorize downstream ECR,
 Cleaning, or Judgment behavior.
 
+## Source Capture Packet
+
+Use the source-capture runner when an operator already has local source files
+and needs a no-network packet directory with a manifest, preserved raw files,
+SHA256 hashes, posture metadata, and a human-readable receipt:
+
+```powershell
+python runners/run_source_capture_packet.py --source-family "docs_page" --source-locator "C:\capture\vendor_pricing_page.html" --decision-question "What did the pricing page show before the decision cutoff?" --input-file "C:\capture\vendor_pricing_page.html" --source-publication-or-event "pricing page date visible in local artifact" --cutoff-posture "pre-decision local capture artifact" --access-posture "local_file_only" --archive-history-not-attempted-reason "local CLI does not query archives" --media-modality-not-attempted-reason "local CLI does not retrieve additional media" --output ".\_test_runs\example_source_capture_packet"
+```
+
+This first checkpoint is local-file-only. It does not fetch URLs, call APIs,
+query archives, automate browsers, preserve additional media, or decide
+credibility, inclusion, Signal Use, Decision Strength, Action Ceiling, buyer
+proof, or commercial readiness.
+
+Optional metadata flags let the operator carry already-known source timing,
+cutoff, archive, media, actor, mode-change, access, and re-capture posture into
+the packet. Omitted fields stay visible as unknown, not attempted, or not
+applicable rather than disappearing.
+
+For the packet directory shape and receipt details, see
+[`docs/source_capture_packet.md`](docs/source_capture_packet.md).
+
+Use the Direct HTTP runner when one ordinary HTTP URL should be captured into
+the same packet shape:
+
+```powershell
+python runners/run_source_capture_http_packet.py --url "https://example.com/page" --decision-question "What did the page return before the decision cutoff?" --cutoff-posture "pre-cutoff direct HTTP capture requested by operator" --output ".\_test_runs\example_source_capture_http_packet"
+```
+
+This runner is still deliberately narrow. It uses stdlib `urllib` only, follows
+normal redirects, preserves the raw response body plus provenance-safe response
+metadata, and fails visibly on timeout, DNS/TLS failure, empty-body response,
+or byte-cap breach. It does not use browser automation, API SDKs, archive
+retrieval, media fetching, scraper frameworks, proxy/auth/session injection,
+ECR logic, Cleaning, Judgment, buyer proof, or commercial-readiness logic.
+
+Dry-run packet outputs under `reports/source_capture/` are local review evidence
+unless a separate fixture-admission decision says otherwise. They can include
+machine-specific `original_path` provenance values and copied raw source files;
+do not treat them as canonical fixtures merely because they sit under
+`reports/`.
+
 ## Source Observability Runner
 
 Use the source-observability report runner when an operator has already authored
