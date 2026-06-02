@@ -5,6 +5,9 @@ implemented in `orca-harness`. It packages already-local source artifacts into a
 local packet directory without fetching anything from a network, browser, API,
 archive service, or scraper runtime.
 
+For agent-facing runner selection, stop conditions, and report format, see
+`source_capture_agent_runbook.md`.
+
 The same packet shape now also accepts one bounded Direct HTTP capture path. The
 Direct HTTP runner may fetch one ordinary `http://` or `https://` URL with
 stdlib `urllib`, preserve the raw response body plus selected provenance-safe

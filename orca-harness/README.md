@@ -41,6 +41,8 @@ applicable rather than disappearing.
 
 For the packet directory shape and receipt details, see
 [`docs/source_capture_packet.md`](docs/source_capture_packet.md).
+For agent-facing runner selection, stop conditions, and report format, see
+[`docs/source_capture_agent_runbook.md`](docs/source_capture_agent_runbook.md).
 
 Use the Direct HTTP runner when one ordinary HTTP URL should be captured into
 the same packet shape:

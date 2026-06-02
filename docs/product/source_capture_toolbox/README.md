@@ -144,6 +144,19 @@ For local-only packaging, `--source-locator` may be a file path, supplied
 provenance pointer, or explicit `unknown_with_reason`; it must not force a live
 URL when no live locator is available.
 
+### Agent Runbook
+
+Purpose: make the existing packet writers safe for bounded agent operation.
+
+The agent runbook should tell agents which runner to use for concrete supplied
+inputs, when to stop instead of guessing, how to inspect `manifest.json`,
+`receipt.md`, and `raw/`, and how to report warnings and limitations without
+deciding source meaning.
+
+It should not authorize inference, source discovery, broad crawling, browser
+fallback, API use, ECR, Cleaning, Judgment, validation, readiness, buyer proof,
+or commercial-readiness claims.
+
 ### Direct HTTP Fetch Adapter
 
 Purpose: retrieve public or discoverable pages where ordinary HTTP access works,
@@ -201,10 +214,11 @@ limitations visible.
 2. Build Source Capture Packet core and CLI with local-file packaging only. **Done.**
 3. Dry-run the packet CLI against an already-local source artifact. **Done.**
 4. Add Direct HTTP fetch adapter. **Done.**
-5. Add Media / Asset Preservation adapter. **Implemented; pending commit after review cleanup.**
-6. Add Archive.org availability/body adapter. **Implemented in harness.**
-7. Add Honest Browser Snapshot adapter. **Next candidate.**
-8. Decide separately whether Reddit API, commercial fetch services, anti-detect,
+5. Add Media / Asset Preservation adapter. **Done.**
+6. Add Archive.org availability/body adapter. **Done.**
+7. Add agent-facing runbook for bounded runner use. **Done.**
+8. Add Honest Browser Snapshot adapter. **Next candidate.**
+9. Decide separately whether Reddit API, commercial fetch services, anti-detect,
    proxies, SERP APIs, storage, dashboards, schedulers, deployment, or production
    runtime should receive their own owner authorization.
 
@@ -247,7 +261,9 @@ Implemented first-tranche pieces:
 - no-network/no-deferred-adapter guard tests for packet core;
 - Direct HTTP adapter;
 - Media / Asset Preservation adapter;
-- Archive.org availability/body adapter.
+- Archive.org availability/body adapter;
+- agent-facing runbook for bounded runner selection, stops, inspection, and
+  reporting.
 
 Remaining current gaps:
 
