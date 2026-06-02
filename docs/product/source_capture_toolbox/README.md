@@ -168,7 +168,8 @@ states visibly instead of silently dropping them.
 Purpose: distinguish archive availability from archive-body retrieval.
 
 It may query availability/CDX metadata and retrieve accessible snapshot body
-content through ordinary HTTP/browser routes.
+content through ordinary HTTP routes. Browser fallback belongs to the Honest
+Browser Snapshot adapter, not this adapter.
 
 It should record when only archive metadata is available and when archive body
 retrieval fails or is not attempted.
@@ -196,13 +197,13 @@ limitations visible.
 
 ## Current Build Order
 
-1. Design and document this toolbox entrypoint.
-2. Build Source Capture Packet core and CLI with local-file packaging only.
-3. Dry-run the packet CLI against an already-local source artifact.
-4. Add Direct HTTP fetch adapter.
-5. Add Media / Asset Preservation adapter.
-6. Add Archive.org availability/body adapter.
-7. Add Honest Browser Snapshot adapter.
+1. Design and document this toolbox entrypoint. **Done.**
+2. Build Source Capture Packet core and CLI with local-file packaging only. **Done.**
+3. Dry-run the packet CLI against an already-local source artifact. **Done.**
+4. Add Direct HTTP fetch adapter. **Done.**
+5. Add Media / Asset Preservation adapter. **Implemented; pending commit after review cleanup.**
+6. Add Archive.org availability/body adapter. **Implemented in harness.**
+7. Add Honest Browser Snapshot adapter. **Next candidate.**
 8. Decide separately whether Reddit API, commercial fetch services, anti-detect,
    proxies, SERP APIs, storage, dashboards, schedulers, deployment, or production
    runtime should receive their own owner authorization.
@@ -231,26 +232,27 @@ without a separate reference-migration pass.
 
 ## Overall Gaps
 
-The toolbox is not implemented yet. Current gaps:
+Implemented first-tranche pieces:
 
-- no Source Capture Packet schema/model;
-- no implementation-facing packet-core spec derived from the obligation mapping
+- Source Capture Packet schema/model;
+- implementation-facing packet-core docs derived from the obligation mapping
   above;
-- no packet writer;
-- no hashing helper for packet artifacts;
-- no human-readable receipt writer;
-- no CLI runner;
-- no local-file packaging mode;
-- no output lifecycle rule for packet directories;
-- no unit tests or contract tests;
-- no no-network/no-deferred-adapter guard tests;
-- no Direct HTTP adapter;
-- no Media / Asset Preservation adapter;
-- no Archive.org availability/body adapter;
+- packet writer;
+- hashing helper for packet artifacts;
+- human-readable receipt writer;
+- local-file packet CLI runner;
+- local-file packaging mode;
+- output lifecycle guidance for packet directories;
+- unit and contract tests for packet core;
+- no-network/no-deferred-adapter guard tests for packet core;
+- Direct HTTP adapter;
+- Media / Asset Preservation adapter;
+- Archive.org availability/body adapter.
+
+Remaining current gaps:
+
 - no Honest Browser Snapshot adapter;
 - no Source Observability integration point;
-- no dry-run packet produced from an existing pressure-test artifact;
-- no implementation review of source capture code;
 - no accepted fixture policy for generated packets;
 - no rights, retention, or sensitivity rule for durably preserved raw source
   files, screenshots, media, entitled content, or paid-access artifacts.

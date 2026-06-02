@@ -56,6 +56,39 @@ or byte-cap breach. It does not use browser automation, API SDKs, archive
 retrieval, media fetching, scraper frameworks, proxy/auth/session injection,
 ECR logic, Cleaning, Judgment, buyer proof, or commercial-readiness logic.
 
+Use the Media / Asset runner when an operator already has explicit
+source-meaningful asset URLs, such as image or gallery-frame URLs, and wants
+them preserved into the same packet shape:
+
+```powershell
+python runners/run_source_capture_media_packet.py --asset-url "https://example.com/source-image.png" --decision-question "Which source-meaningful media asset was visible before cutoff?" --cutoff-posture "pre-cutoff explicit asset capture requested by operator" --output ".\_test_runs\example_source_capture_media_packet"
+```
+
+This runner is explicit-URL-only. It reuses the Direct HTTP helper, preserves
+asset bodies plus provenance-safe metadata, writes mixed-success packets when
+at least one asset is preserved, and carries failed assets as visible
+limitations. It does not discover assets, parse galleries, parse HTML, recurse
+through linked media, run OCR or image analysis, query archives, automate a
+browser, call APIs, use scraper frameworks, inject auth/session/proxy behavior,
+or perform ECR, Cleaning, Judgment, buyer-proof, or commercial-readiness logic.
+
+Use the Archive.org runner when an operator wants archive availability metadata
+and, when available, a selected Wayback snapshot body preserved into the same
+packet shape:
+
+```powershell
+python runners/run_source_capture_archive_packet.py --url "https://example.com/page" --cutoff-timestamp "20240501000000" --decision-question "What archived source state was visible before cutoff?" --output ".\_test_runs\example_source_capture_archive_packet"
+```
+
+This runner distinguishes archive availability from archive-body preservation.
+If availability metadata is preserved but no eligible snapshot or retrievable
+body is available, the packet keeps that limitation visible. If availability
+lookup itself fails and no metadata is preserved, the runner writes no normal
+packet. Snapshot body retrieval reuses the Direct HTTP helper. It does not use
+browser automation, Archive.org packages, API SDKs, scraper frameworks,
+proxy/session behavior, archived-HTML meaning extraction, OCR, ECR, Cleaning,
+Judgment, buyer-proof, or commercial-readiness logic.
+
 Dry-run packet outputs under `reports/source_capture/` are local review evidence
 unless a separate fixture-admission decision says otherwise. They can include
 machine-specific `original_path` provenance values and copied raw source files;

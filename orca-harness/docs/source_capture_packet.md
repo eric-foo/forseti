@@ -30,6 +30,17 @@ The Direct HTTP runner stages `http_response_body.bin` and
 the packet, then removes those staging files after the packet writer copies them
 into `raw/`.
 
+The Media / Asset runner stages explicit asset files as
+`asset_01_body.bin`, `asset_01_metadata.json`, `asset_02_body.bin`, and so on in
+the output directory's parent while building the packet, then removes those
+staging files after the packet writer copies preserved assets into `raw/`.
+
+The Archive.org runner stages `archive_availability_metadata.json`, and when a
+selected snapshot body is preserved, `archive_snapshot_body.bin` and
+`archive_snapshot_body_metadata.json` in the output directory's parent while
+building the packet. It removes those staging files after the packet writer
+copies preserved archive artifacts into `raw/`.
+
 `manifest.json` is the machine-readable packet record. It carries the packet id,
 manifest version, obligation-contract version, requested decision context,
 source locator/provenance pointer, decomposed timing fields, access posture,
@@ -108,6 +119,89 @@ Examples:
 Only pass one value or reason flag per field. For example, do not combine
 `--access-posture` with `--access-posture-unknown-reason`.
 
+## Direct HTTP Boundary
+
+Run from `orca-harness/`:
+
+```powershell
+python runners/run_source_capture_http_packet.py `
+  --url "https://example.com/page" `
+  --decision-question "What did the page return before the decision cutoff?" `
+  --cutoff-posture "pre-cutoff direct HTTP capture requested by operator" `
+  --output ".\_test_runs\example_source_capture_http_packet"
+```
+
+The Direct HTTP runner uses ordinary stdlib HTTP only. It preserves a non-empty
+response body plus provenance-safe metadata. HTTP error responses with bodies
+can still produce a packet, but the access limitation is visible. Timeout,
+DNS/TLS failure, empty-body response, or byte-cap breach fails visibly and writes
+no normal packet.
+
+## Media / Asset Boundary
+
+Run from `orca-harness/`:
+
+```powershell
+python runners/run_source_capture_media_packet.py `
+  --asset-url "https://example.com/source-image.png" `
+  --asset-url "https://example.com/source-gallery-frame.jpg" `
+  --decision-question "Which source-meaningful media assets were visible before cutoff?" `
+  --cutoff-posture "pre-cutoff explicit asset capture requested by operator" `
+  --output ".\_test_runs\example_source_capture_media_packet"
+```
+
+The Media / Asset runner preserves only operator-supplied explicit asset URLs.
+It does not discover assets, parse galleries, parse HTML, inspect CSS, recurse
+through linked assets, run OCR, analyze images, query archives, or automate a
+browser. It reuses the Direct HTTP helper for ordinary HTTP access.
+
+If at least one asset body is preserved, the runner writes a packet and records
+failed or unavailable assets as visible per-slice limitations. If no asset body
+is preserved, it fails visibly and writes no normal packet. Non-2xx responses
+with bodies can be preserved, but the corresponding slice carries an
+`access_failed` limitation.
+
+## Archive.org Boundary
+
+Run from `orca-harness/`:
+
+```powershell
+python runners/run_source_capture_archive_packet.py `
+  --url "https://example.com/page" `
+  --cutoff-timestamp "20240501000000" `
+  --decision-question "What archived source state was visible before cutoff?" `
+  --output ".\_test_runs\example_source_capture_archive_packet"
+```
+
+The Archive.org runner queries a CDX/Wayback-style availability endpoint and
+preserves the raw availability metadata whenever that lookup returns a body. It
+then selects a snapshot at or before `--cutoff-timestamp` when supplied, or the
+latest available snapshot when no cutoff is supplied.
+
+The default CDX query uses `collapse=digest`, so `snapshot_count` reflects
+unique-content snapshot rows returned by the availability endpoint, not every
+historical capture timestamp that Archive.org may hold for the URL.
+
+Archive availability and archive-body preservation are separate states:
+
+- availability metadata preserved and no eligible snapshot found: packet
+  written with metadata only;
+- availability metadata preserved and snapshot body preserved: packet written
+  with metadata plus body;
+- availability metadata preserved but snapshot body retrieval failed: packet
+  written with metadata and visible body limitation;
+- availability lookup failed before metadata was preserved: no normal packet
+  written.
+
+Snapshot body retrieval reuses the Direct HTTP helper. Non-2xx snapshot
+responses with a body can be preserved, but the packet carries an
+`access_failed` limitation.
+
+The runner does not use browser automation, Archive.org packages, API SDKs,
+scraper frameworks, proxy/session injection, anti-detect behavior, CAPTCHA
+handling, archived-HTML meaning extraction, OCR, image analysis, ECR, Cleaning,
+Judgment, buyer proof, or commercial-readiness logic.
+
 ## Direct HTTP Runner
 
 Run from `orca-harness/`:
@@ -180,4 +274,9 @@ required capture gate merely because they exist in the reports tree.
 
 This packet core and local CLI are not source acquisition, direct HTTP fetch,
 archive retrieval, media preservation, browser automation, ECR design, Cleaning
+implementation, Judgment scoring, buyer proof, or commercial-readiness logic.
+The Direct HTTP, Media / Asset, and Archive.org runners are bounded
+source-acquisition adapters, but they are still not archive completeness proof,
+source-state truth proof, browser automation, API SDK use, scraper framework
+use, proxy/session injection, OCR or image analysis, ECR design, Cleaning
 implementation, Judgment scoring, buyer proof, or commercial-readiness logic.
