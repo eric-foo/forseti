@@ -44,6 +44,12 @@ selected snapshot body is preserved, `archive_snapshot_body.bin` and
 building the packet. It removes those staging files after the packet writer
 copies preserved archive artifacts into `raw/`.
 
+The Browser Snapshot runner stages `browser_rendered_dom.html`,
+`browser_visible_text.txt`, `browser_viewport_screenshot.png`, and
+`browser_snapshot_metadata.json` in the output directory's parent while building
+the packet. It removes those staging files after the packet writer copies the
+browser artifacts into `raw/`.
+
 `manifest.json` is the machine-readable packet record. It carries the packet id,
 manifest version, obligation-contract version, requested decision context,
 source locator/provenance pointer, decomposed timing fields, access posture,
@@ -205,6 +211,62 @@ scraper frameworks, proxy/session injection, anti-detect behavior, CAPTCHA
 handling, archived-HTML meaning extraction, OCR, image analysis, ECR, Cleaning,
 Judgment, buyer proof, or commercial-readiness logic.
 
+## Browser Snapshot Boundary
+
+Run from `orca-harness/`:
+
+The Browser Snapshot runner requires the optional browser dependency and a local
+Chromium browser binary before live use:
+
+```powershell
+python -m pip install -e .[browser]
+python -m playwright install chromium
+```
+
+```powershell
+python runners/run_source_capture_browser_packet.py `
+  --url "https://example.com/page" `
+  --decision-question "What browser-rendered source was visible before cutoff?" `
+  --cutoff-posture "pre-cutoff browser snapshot requested by operator" `
+  --output ".\_test_runs\example_source_capture_browser_packet"
+```
+
+The Browser Snapshot runner uses an anonymous/headless browser path for one
+explicitly supplied URL. It preserves rendered DOM, visible text, a viewport
+screenshot, and metadata. It uses a fresh browser context and does not accept or
+load stored sessions, browser profiles, cookies, credentials, or storage-state
+files.
+
+Exit codes:
+
+- `0`: packet written.
+- `2`: CLI or user/config error.
+- `3`: missing Playwright package, missing Chromium binary, browser
+  navigation, or artifact failure; no normal packet written.
+
+The runner writes four deterministic packet inputs before packet writing:
+
+```text
+browser_rendered_dom.html
+browser_visible_text.txt
+browser_viewport_screenshot.png
+browser_snapshot_metadata.json
+```
+
+The packet writer then copies them into the packet `raw/` directory as numbered
+preserved files.
+
+The metadata records requested URL, final URL, page title, capture timestamp,
+timeout, wait policy, viewport, screenshot mode, and artifact byte counts. It
+does not preserve request cookies, authorization material, browser profiles, or
+storage-state files.
+
+The runner does not use anti-detect behavior, proxies, CAPTCHA solving, API
+SDKs, scraper frameworks, crawling, OCR, image analysis, ECR, Cleaning,
+Judgment, buyer proof, or commercial-readiness logic. A packet proves browser
+artifacts were preserved; it does not prove source-meaningful content
+sufficiency, login-wall absence, or source completeness.
+
 ## Direct HTTP Runner
 
 Run from `orca-harness/`:
@@ -278,8 +340,9 @@ required capture gate merely because they exist in the reports tree.
 This packet core and local CLI are not source acquisition, direct HTTP fetch,
 archive retrieval, media preservation, browser automation, ECR design, Cleaning
 implementation, Judgment scoring, buyer proof, or commercial-readiness logic.
-The Direct HTTP, Media / Asset, and Archive.org runners are bounded
-source-acquisition adapters, but they are still not archive completeness proof,
-source-state truth proof, browser automation, API SDK use, scraper framework
-use, proxy/session injection, OCR or image analysis, ECR design, Cleaning
-implementation, Judgment scoring, buyer proof, or commercial-readiness logic.
+The Direct HTTP, Media / Asset, Archive.org, and Browser Snapshot runners are
+bounded source-acquisition adapters, but they are still not archive completeness
+proof, source-state truth proof, login/session capture, API SDK use, scraper
+framework use, proxy/session injection, OCR or image analysis, ECR design,
+Cleaning implementation, Judgment scoring, buyer proof, or
+commercial-readiness logic.

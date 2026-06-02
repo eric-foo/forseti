@@ -8,6 +8,11 @@ dependencies = [
   "PyYAML>=6.0,<7",
 ]
 
+[project.optional-dependencies]
+browser = [
+  "playwright>=1.44,<2",
+]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-q"

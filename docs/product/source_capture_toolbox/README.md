@@ -190,7 +190,13 @@ retrieval fails or is not attempted.
 ### Honest Browser Snapshot Adapter
 
 Purpose: preserve visible HTML/text/screenshot artifacts for pages requiring
-JavaScript rendering or logged-in/entitled visible access.
+JavaScript rendering or browser-visible inspection.
+
+The implemented v0 is anonymous/headless browser capture for one explicitly
+supplied URL. It preserves rendered DOM, visible text, a viewport screenshot,
+and receipt metadata. It does not use stored sessions, browser profiles,
+cookies, credentials, or storage-state files. Logged-in or entitled browser
+session reuse remains a later extension that needs its own contract.
 
 It is first-tranche only as an honest browser/headless-browser path. Anti-detect,
 proxy rotation, CAPTCHA solving, and no-entitlement bypass remain separately
@@ -217,8 +223,9 @@ limitations visible.
 5. Add Media / Asset Preservation adapter. **Done.**
 6. Add Archive.org availability/body adapter. **Done.**
 7. Add agent-facing runbook for bounded runner use. **Done.**
-8. Add Honest Browser Snapshot adapter. **Next candidate.**
-9. Decide separately whether Reddit API, commercial fetch services, anti-detect,
+8. Add Honest Browser Snapshot adapter. **Done for anonymous/headless v0.**
+9. Decide separately whether logged-in/entitled browser session reuse, Reddit API,
+   commercial fetch services, anti-detect,
    proxies, SERP APIs, storage, dashboards, schedulers, deployment, or production
    runtime should receive their own owner authorization.
 
@@ -262,12 +269,13 @@ Implemented first-tranche pieces:
 - Direct HTTP adapter;
 - Media / Asset Preservation adapter;
 - Archive.org availability/body adapter;
+- Honest Browser Snapshot adapter, anonymous/headless v0 only;
 - agent-facing runbook for bounded runner selection, stops, inspection, and
   reporting.
 
 Remaining current gaps:
 
-- no Honest Browser Snapshot adapter;
+- no logged-in/entitled browser session/profile/cookie/storage-state extension;
 - no Source Observability integration point;
 - no accepted fixture policy for generated packets;
 - no rights, retention, or sensitivity rule for durably preserved raw source
@@ -276,6 +284,7 @@ Remaining current gaps:
 Deferred gaps that are intentionally outside the first tranche:
 
 - Reddit API registration, OAuth setup, API calls, or PRAW/direct-API adapter;
+- logged-in/entitled browser session reuse unless separately contracted;
 - commercial scraping or fetch-service integration;
 - anti-detect browser implementation;
 - residential, rotating, or managed proxy integration;

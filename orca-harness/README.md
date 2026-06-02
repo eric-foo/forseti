@@ -91,6 +91,28 @@ browser automation, Archive.org packages, API SDKs, scraper frameworks,
 proxy/session behavior, archived-HTML meaning extraction, OCR, ECR, Cleaning,
 Judgment, buyer-proof, or commercial-readiness logic.
 
+Use the Browser Snapshot runner when one supplied URL needs anonymous browser
+rendering or screenshot preservation:
+
+Install the optional browser dependency and Chromium browser binary before live
+use:
+
+```powershell
+python -m pip install -e .[browser]
+python -m playwright install chromium
+```
+
+```powershell
+python runners/run_source_capture_browser_packet.py --url "https://example.com/page" --decision-question "What browser-rendered source was visible before cutoff?" --cutoff-posture "pre-cutoff browser snapshot requested by operator" --output ".\_test_runs\example_source_capture_browser_packet"
+```
+
+This runner preserves rendered DOM, visible text, a viewport screenshot, and
+browser metadata into the packet shape. It uses a fresh anonymous/headless
+browser context and does not accept stored sessions, browser profiles, cookies,
+credentials, storage-state files, anti-detect behavior, proxy behavior, CAPTCHA
+solving, crawling, OCR, ECR, Cleaning, Judgment, buyer-proof, or
+commercial-readiness logic.
+
 Dry-run packet outputs under `reports/source_capture/` are local review evidence
 unless a separate fixture-admission decision says otherwise. They can include
 machine-specific `original_path` provenance values and copied raw source files;

@@ -5,6 +5,13 @@ from source_capture.adapters.archive_org import (
     ArchiveOrgSnapshot,
     fetch_archive_org_capture,
 )
+from source_capture.adapters.browser_snapshot import (
+    BrowserSnapshotFailure,
+    BrowserSnapshotFailureKind,
+    BrowserSnapshotResult,
+    BrowserSnapshotSuccess,
+    fetch_browser_snapshot_capture,
+)
 from source_capture.adapters.direct_http import (
     DirectHttpCaptureFailure,
     DirectHttpCaptureFailureKind,
@@ -24,6 +31,10 @@ __all__ = [
     "ArchiveOrgCaptureResult",
     "ArchiveOrgCaptureSuccess",
     "ArchiveOrgSnapshot",
+    "BrowserSnapshotFailure",
+    "BrowserSnapshotFailureKind",
+    "BrowserSnapshotResult",
+    "BrowserSnapshotSuccess",
     "DirectHttpCaptureFailure",
     "DirectHttpCaptureFailureKind",
     "DirectHttpCaptureResult",
@@ -32,6 +43,7 @@ __all__ = [
     "MediaAssetCaptureFailure",
     "MediaAssetCaptureSuccess",
     "fetch_archive_org_capture",
+    "fetch_browser_snapshot_capture",
     "fetch_direct_http_capture",
     "fetch_media_assets",
 ]

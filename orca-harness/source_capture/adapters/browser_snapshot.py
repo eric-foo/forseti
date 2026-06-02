@@ -1,0 +1,297 @@
+from __future__ import annotations
+
+from dataclasses import dataclass, field
+from enum import StrEnum
+from importlib import import_module
+from typing import Protocol, TypeAlias
+from urllib.parse import urlparse
+
+from harness_utils import utc_now_z
+
+
+DEFAULT_TIMEOUT_SECONDS = 20.0
+DEFAULT_VIEWPORT_WIDTH = 1280
+DEFAULT_VIEWPORT_HEIGHT = 720
+DEFAULT_MAX_ARTIFACT_BYTES = 5_000_000
+ALLOWED_WAIT_UNTIL = {"commit", "domcontentloaded", "load", "networkidle"}
+
+
+class BrowserSnapshotFailureKind(StrEnum):
+    DEPENDENCY_UNAVAILABLE = "dependency_unavailable"
+    TIMEOUT = "timeout"
+    CAPTURE_FAILED = "capture_failed"
+    EMPTY_RENDERED_DOM = "empty_rendered_dom"
+    EMPTY_SCREENSHOT = "empty_screenshot"
+    SIZE_CAP_EXCEEDED = "size_cap_exceeded"
+
+
+@dataclass(frozen=True)
+class BrowserSnapshotSuccess:
+    requested_url: str
+    final_url: str
+    title: str | None
+    rendered_dom: str
+    visible_text: str
+    screenshot_png: bytes
+    metadata: dict[str, object]
+    warning_notes: list[str]
+    limitation_notes: list[str]
+
+
+@dataclass(frozen=True)
+class BrowserSnapshotFailure:
+    requested_url: str
+    failure_kind: BrowserSnapshotFailureKind
+    message: str
+    final_url: str | None = None
+
+
+BrowserSnapshotResult: TypeAlias = BrowserSnapshotSuccess | BrowserSnapshotFailure
+
+
+class BrowserSnapshotEngineResult(Protocol):
+    final_url: str
+    title: str | None
+    rendered_dom: str
+    visible_text: str
+    screenshot_png: bytes
+    warning_notes: list[str]
+
+
+class BrowserSnapshotEngine(Protocol):
+    def capture(
+        self,
+        *,
+        url: str,
+        timeout_seconds: float,
+        wait_until: str,
+        viewport_width: int,
+        viewport_height: int,
+    ) -> BrowserSnapshotEngineResult:
+        ...
+
+
+def fetch_browser_snapshot_capture(
+    *,
+    url: str,
+    timeout_seconds: float = DEFAULT_TIMEOUT_SECONDS,
+    wait_until: str = "load",
+    viewport_width: int = DEFAULT_VIEWPORT_WIDTH,
+    viewport_height: int = DEFAULT_VIEWPORT_HEIGHT,
+    max_artifact_bytes: int = DEFAULT_MAX_ARTIFACT_BYTES,
+    engine: BrowserSnapshotEngine | None = None,
+) -> BrowserSnapshotResult:
+    normalized_url = _validate_http_url(url)
+    _validate_positive_number("timeout_seconds", timeout_seconds)
+    _validate_positive_int("viewport_width", viewport_width)
+    _validate_positive_int("viewport_height", viewport_height)
+    _validate_positive_int("max_artifact_bytes", max_artifact_bytes)
+    if wait_until not in ALLOWED_WAIT_UNTIL:
+        allowed = ", ".join(sorted(ALLOWED_WAIT_UNTIL))
+        raise ValueError(f"wait_until must be one of: {allowed}")
+
+    capture_engine = engine or _PlaywrightBrowserSnapshotEngine()
+    try:
+        engine_result = capture_engine.capture(
+            url=normalized_url,
+            timeout_seconds=timeout_seconds,
+            wait_until=wait_until,
+            viewport_width=viewport_width,
+            viewport_height=viewport_height,
+        )
+    except _BrowserSnapshotDependencyUnavailable as exc:
+        return BrowserSnapshotFailure(
+            requested_url=normalized_url,
+            failure_kind=BrowserSnapshotFailureKind.DEPENDENCY_UNAVAILABLE,
+            message=str(exc),
+        )
+    except Exception as exc:
+        return BrowserSnapshotFailure(
+            requested_url=normalized_url,
+            failure_kind=_failure_kind_from_exception(exc),
+            message=f"Browser snapshot capture failed: {exc}",
+        )
+
+    if not engine_result.rendered_dom:
+        return BrowserSnapshotFailure(
+            requested_url=normalized_url,
+            final_url=engine_result.final_url,
+            failure_kind=BrowserSnapshotFailureKind.EMPTY_RENDERED_DOM,
+            message="Browser snapshot returned an empty rendered DOM",
+        )
+    if not engine_result.screenshot_png:
+        return BrowserSnapshotFailure(
+            requested_url=normalized_url,
+            final_url=engine_result.final_url,
+            failure_kind=BrowserSnapshotFailureKind.EMPTY_SCREENSHOT,
+            message="Browser snapshot returned an empty screenshot",
+        )
+
+    artifact_sizes = {
+        "rendered_dom": len(engine_result.rendered_dom.encode("utf-8")),
+        "visible_text": len(engine_result.visible_text.encode("utf-8")),
+        "screenshot_png": len(engine_result.screenshot_png),
+    }
+    oversized = {
+        name: size
+        for name, size in artifact_sizes.items()
+        if size > max_artifact_bytes
+    }
+    if oversized:
+        details = ", ".join(f"{name}={size}" for name, size in sorted(oversized.items()))
+        return BrowserSnapshotFailure(
+            requested_url=normalized_url,
+            final_url=engine_result.final_url,
+            failure_kind=BrowserSnapshotFailureKind.SIZE_CAP_EXCEEDED,
+            message=(
+                f"Browser snapshot artifact exceeded max-artifact-bytes cap "
+                f"({max_artifact_bytes}): {details}"
+            ),
+        )
+
+    warning_notes: list[str] = []
+    if engine_result.final_url != normalized_url:
+        warning_notes.append(
+            f"browser_snapshot landed at {engine_result.final_url} from requested URL {normalized_url}"
+        )
+    warning_notes.extend(engine_result.warning_notes)
+
+    metadata = {
+        "requested_url": normalized_url,
+        "final_url": engine_result.final_url,
+        "title": engine_result.title,
+        "capture_timestamp": utc_now_z(),
+        "timeout_seconds": timeout_seconds,
+        "wait_until": wait_until,
+        "viewport_width": viewport_width,
+        "viewport_height": viewport_height,
+        "screenshot_mode": "viewport",
+        "rendered_dom_byte_count": artifact_sizes["rendered_dom"],
+        "visible_text_byte_count": artifact_sizes["visible_text"],
+        "screenshot_byte_count": artifact_sizes["screenshot_png"],
+    }
+
+    return BrowserSnapshotSuccess(
+        requested_url=normalized_url,
+        final_url=engine_result.final_url,
+        title=engine_result.title,
+        rendered_dom=engine_result.rendered_dom,
+        visible_text=engine_result.visible_text,
+        screenshot_png=engine_result.screenshot_png,
+        metadata=metadata,
+        warning_notes=warning_notes,
+        limitation_notes=[],
+    )
+
+
+class _PlaywrightBrowserSnapshotEngine:
+    def capture(
+        self,
+        *,
+        url: str,
+        timeout_seconds: float,
+        wait_until: str,
+        viewport_width: int,
+        viewport_height: int,
+    ) -> BrowserSnapshotEngineResult:
+        try:
+            sync_api = import_module("playwright.sync_api")
+        except ModuleNotFoundError as exc:
+            raise _BrowserSnapshotDependencyUnavailable(
+                "Playwright is not installed. Install the browser optional dependency before running browser snapshots."
+            ) from exc
+
+        timeout_ms = timeout_seconds * 1000
+        with sync_api.sync_playwright() as playwright:
+            try:
+                browser = playwright.chromium.launch(headless=True)
+            except Exception as exc:
+                if _looks_like_missing_browser_binary(exc):
+                    raise _BrowserSnapshotDependencyUnavailable(
+                        "Playwright Chromium browser binary is not installed. "
+                        "Run `python -m playwright install chromium` before running browser snapshots."
+                    ) from exc
+                raise
+            try:
+                context = browser.new_context(
+                    viewport={
+                        "width": viewport_width,
+                        "height": viewport_height,
+                    }
+                )
+                try:
+                    page = context.new_page()
+                    page.goto(url, wait_until=wait_until, timeout=timeout_ms)
+                    rendered_dom = page.content()
+                    warning_notes: list[str] = []
+                    try:
+                        visible_text = page.locator("body").inner_text(timeout=timeout_ms)
+                    except Exception as exc:
+                        visible_text = ""
+                        warning_notes.append(f"browser_snapshot visible_text extraction failed: {exc}")
+                    screenshot_png = page.screenshot(
+                        type="png",
+                        full_page=False,
+                        timeout=timeout_ms,
+                    )
+                    return _EngineResult(
+                        final_url=page.url,
+                        title=page.title(),
+                        rendered_dom=rendered_dom,
+                        visible_text=visible_text,
+                        screenshot_png=screenshot_png,
+                        warning_notes=warning_notes,
+                    )
+                finally:
+                    context.close()
+            finally:
+                browser.close()
+
+
+@dataclass(frozen=True)
+class _EngineResult:
+    final_url: str
+    title: str | None
+    rendered_dom: str
+    visible_text: str
+    screenshot_png: bytes
+    warning_notes: list[str] = field(default_factory=list)
+
+
+class _BrowserSnapshotDependencyUnavailable(RuntimeError):
+    pass
+
+
+def _validate_http_url(url: str) -> str:
+    parsed = urlparse(url)
+    if parsed.scheme not in {"http", "https"} or not parsed.netloc:
+        raise ValueError("Browser snapshot capture requires an absolute http:// or https:// URL")
+    if parsed.username is not None or parsed.password is not None:
+        raise ValueError("Browser snapshot capture does not accept URLs with embedded credentials")
+    return parsed.geturl()
+
+
+def _validate_positive_number(name: str, value: float) -> None:
+    if value <= 0:
+        raise ValueError(f"{name} must be greater than zero")
+
+
+def _validate_positive_int(name: str, value: int) -> None:
+    if value <= 0:
+        raise ValueError(f"{name} must be greater than zero")
+
+
+def _failure_kind_from_exception(error: Exception) -> BrowserSnapshotFailureKind:
+    text = f"{type(error).__name__}: {error}".lower()
+    if "timeout" in text or "timed out" in text:
+        return BrowserSnapshotFailureKind.TIMEOUT
+    return BrowserSnapshotFailureKind.CAPTURE_FAILED
+
+
+def _looks_like_missing_browser_binary(error: Exception) -> bool:
+    text = f"{type(error).__name__}: {error}".lower()
+    return (
+        "executable doesn't exist" in text
+        or "browser has not been installed" in text
+        or "playwright install" in text
+    )
