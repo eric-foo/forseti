@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from enum import StrEnum
 from importlib import import_module
+from pathlib import Path
 from typing import Protocol, TypeAlias
 from urllib.parse import urlparse
 
@@ -67,6 +68,7 @@ class BrowserSnapshotEngine(Protocol):
         wait_until: str,
         viewport_width: int,
         viewport_height: int,
+        storage_state_path: Path | None = None,
     ) -> BrowserSnapshotEngineResult:
         ...
 
@@ -79,6 +81,7 @@ def fetch_browser_snapshot_capture(
     viewport_width: int = DEFAULT_VIEWPORT_WIDTH,
     viewport_height: int = DEFAULT_VIEWPORT_HEIGHT,
     max_artifact_bytes: int = DEFAULT_MAX_ARTIFACT_BYTES,
+    storage_state_path: Path | None = None,
     engine: BrowserSnapshotEngine | None = None,
 ) -> BrowserSnapshotResult:
     normalized_url = _validate_http_url(url)
@@ -98,6 +101,7 @@ def fetch_browser_snapshot_capture(
             wait_until=wait_until,
             viewport_width=viewport_width,
             viewport_height=viewport_height,
+            storage_state_path=storage_state_path,
         )
     except _BrowserSnapshotDependencyUnavailable as exc:
         return BrowserSnapshotFailure(
@@ -166,6 +170,7 @@ def fetch_browser_snapshot_capture(
         "viewport_width": viewport_width,
         "viewport_height": viewport_height,
         "screenshot_mode": "viewport",
+        "storage_state_loaded": storage_state_path is not None,
         "rendered_dom_byte_count": artifact_sizes["rendered_dom"],
         "visible_text_byte_count": artifact_sizes["visible_text"],
         "screenshot_byte_count": artifact_sizes["screenshot_png"],
@@ -193,6 +198,7 @@ class _PlaywrightBrowserSnapshotEngine:
         wait_until: str,
         viewport_width: int,
         viewport_height: int,
+        storage_state_path: Path | None = None,
     ) -> BrowserSnapshotEngineResult:
         try:
             sync_api = import_module("playwright.sync_api")
@@ -213,12 +219,15 @@ class _PlaywrightBrowserSnapshotEngine:
                     ) from exc
                 raise
             try:
-                context = browser.new_context(
-                    viewport={
+                context_kwargs: dict[str, object] = {
+                    "viewport": {
                         "width": viewport_width,
                         "height": viewport_height,
                     }
-                )
+                }
+                if storage_state_path is not None:
+                    context_kwargs["storage_state"] = str(storage_state_path)
+                context = browser.new_context(**context_kwargs)
                 try:
                     page = context.new_page()
                     page.goto(url, wait_until=wait_until, timeout=timeout_ms)

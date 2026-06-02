@@ -43,8 +43,10 @@ class _FakeEngineResult:
 class _FakeBrowserEngine:
     def __init__(self, result: _FakeEngineResult | Exception) -> None:
         self.result = result
+        self.capture_kwargs: dict[str, object] | None = None
 
     def capture(self, **kwargs: object) -> _FakeEngineResult:
+        self.capture_kwargs = dict(kwargs)
         if isinstance(self.result, Exception):
             raise self.result
         return self.result
@@ -79,9 +81,38 @@ def test_fetch_browser_snapshot_capture_with_fake_engine_preserves_browser_artif
     assert result.metadata["viewport_width"] == 1024
     assert result.metadata["viewport_height"] == 768
     assert result.metadata["screenshot_mode"] == "viewport"
+    assert result.metadata["storage_state_loaded"] is False
     assert result.metadata["rendered_dom_byte_count"] == len(result.rendered_dom.encode("utf-8"))
     assert result.metadata["visible_text_byte_count"] == len(result.visible_text.encode("utf-8"))
     assert result.metadata["screenshot_byte_count"] == len(result.screenshot_png)
+
+
+def test_fetch_browser_snapshot_capture_passes_storage_state_without_recording_path(
+    scratch_dir: Path,
+) -> None:
+    state_path = scratch_dir / "state.json"
+    state_path.write_text('{"cookies": [], "origins": []}', encoding="utf-8")
+    engine = _FakeBrowserEngine(
+        _FakeEngineResult(
+            final_url="https://example.com/rendered",
+            title="Rendered Source",
+            rendered_dom="<html><body><h1>Rendered source</h1></body></html>",
+            visible_text="Rendered source",
+            screenshot_png=b"\x89PNG\r\n\x1a\nbrowser",
+        )
+    )
+
+    result = fetch_browser_snapshot_capture(
+        url="https://example.com/source",
+        storage_state_path=state_path,
+        engine=engine,
+    )
+
+    assert isinstance(result, BrowserSnapshotSuccess)
+    assert engine.capture_kwargs is not None
+    assert engine.capture_kwargs["storage_state_path"] == state_path
+    assert result.metadata["storage_state_loaded"] is True
+    assert str(state_path) not in json.dumps(result.metadata)
 
 
 def test_fetch_browser_snapshot_capture_returns_size_cap_failure() -> None:

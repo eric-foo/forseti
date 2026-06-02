@@ -194,13 +194,17 @@ JavaScript rendering or browser-visible inspection.
 
 The implemented v0 is anonymous/headless browser capture for one explicitly
 supplied URL. It preserves rendered DOM, visible text, a viewport screenshot,
-and receipt metadata. It does not use stored sessions, browser profiles,
-cookies, credentials, or storage-state files. Logged-in or entitled browser
-session reuse remains a later extension that needs its own contract.
+and receipt metadata. The authenticated v0 extension uses Playwright
+manual-login storage-state for one explicitly supplied URL, with a fixed
+session-mode vocabulary and local ignored `_auth_state/` storage. Bootstrap
+writes a local ignored sidecar that binds the saved state file to the declared
+session mode, and capture refuses mismatched mode declarations. Packets record
+session mode and state label but do not copy, hash, print, or preserve
+storage-state JSON, sidecar metadata, cookies, tokens, or credentials.
 
 It is first-tranche only as an honest browser/headless-browser path. Anti-detect,
-proxy rotation, CAPTCHA solving, and no-entitlement bypass remain separately
-gated.
+proxy rotation, CAPTCHA solving, password-driven login automation, direct
+profile/cookie import, and no-entitlement bypass remain separately gated.
 
 ### Source Observability Helper
 
@@ -223,9 +227,10 @@ limitations visible.
 5. Add Media / Asset Preservation adapter. **Done.**
 6. Add Archive.org availability/body adapter. **Done.**
 7. Add agent-facing runbook for bounded runner use. **Done.**
-8. Add Honest Browser Snapshot adapter. **Done for anonymous/headless v0.**
-9. Decide separately whether logged-in/entitled browser session reuse, Reddit API,
-   commercial fetch services, anti-detect,
+8. Add Honest Browser Snapshot adapter. **Done for anonymous/headless v0 and
+   manual-login storage-state authenticated v0.**
+9. Decide separately whether password-driven login automation, direct
+   profile/cookie import, Reddit API, commercial fetch services, anti-detect,
    proxies, SERP APIs, storage, dashboards, schedulers, deployment, or production
    runtime should receive their own owner authorization.
 
@@ -269,13 +274,13 @@ Implemented first-tranche pieces:
 - Direct HTTP adapter;
 - Media / Asset Preservation adapter;
 - Archive.org availability/body adapter;
-- Honest Browser Snapshot adapter, anonymous/headless v0 only;
+- Honest Browser Snapshot adapter, anonymous/headless v0;
+- Authenticated Browser Snapshot adapter, manual-login storage-state v0;
 - agent-facing runbook for bounded runner selection, stops, inspection, and
   reporting.
 
 Remaining current gaps:
 
-- no logged-in/entitled browser session/profile/cookie/storage-state extension;
 - no Source Observability integration point;
 - no accepted fixture policy for generated packets;
 - no rights, retention, or sensitivity rule for durably preserved raw source
@@ -284,7 +289,8 @@ Remaining current gaps:
 Deferred gaps that are intentionally outside the first tranche:
 
 - Reddit API registration, OAuth setup, API calls, or PRAW/direct-API adapter;
-- logged-in/entitled browser session reuse unless separately contracted;
+- password-driven login automation;
+- direct browser profile or raw cookie import;
 - commercial scraping or fetch-service integration;
 - anti-detect browser implementation;
 - residential, rotating, or managed proxy integration;
@@ -381,5 +387,53 @@ direction_change_propagation:
     - "not implementation execution"
     - "not final packet schema"
     - "not source-access boundary amendment"
+    - "not ECR, Cleaning, or Judgment design"
+```
+
+## Direction Change Propagation - Authenticated Browser Snapshot v0
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: "The Source Capture Toolbox now treats manual-login Playwright storage-state authenticated browser capture as an implemented first-tranche Browser Snapshot extension, with local ignored session-mode sidecar binding, while password automation, direct profile/cookie import, anti-detect, proxy behavior, CAPTCHA solving, and no-entitlement bypass remain deferred or forbidden."
+  trigger: lifecycle_boundary
+  related_triggers:
+    - product_doctrine
+  controlling_sources_updated:
+    - "docs/product/source_capture_toolbox/README.md"
+    - "orca-harness/docs/source_capture_agent_runbook.md"
+    - "orca-harness/docs/source_capture_packet.md"
+    - "orca-harness/README.md"
+  downstream_surfaces_checked:
+    - "AGENTS.md"
+    - ".agents/workflow-overlay/README.md"
+    - ".agents/workflow-overlay/source-of-truth.md"
+    - ".agents/workflow-overlay/safety-rules.md"
+    - "docs/product/data_capture_source_access_boundary_decision_v0.md"
+    - "docs/product/data_capture_source_access_method_plan_v0.md"
+    - "docs/decisions/data_capture_spine_source_access_tooling_build_authorization_v0.md"
+    - "docs/product/core_spine_v0_data_capture_spine_obligation_contract_v0.md"
+    - ".agents/workflow-overlay/source-loading.md"
+    - "docs/workflows/orca_repo_map_v0.md"
+  intentionally_not_updated:
+    - path: "docs/product/data_capture_source_access_boundary_decision_v0.md"
+      reason: "The source-access boundary already permits free/account-created, paid, client-provided, and consenting-coworker access when disclosable and hard stops are avoided; this patch implements a bounded tool path without changing permission doctrine."
+    - path: "docs/product/data_capture_source_access_method_plan_v0.md"
+      reason: "Method sequencing and hard stops did not change; authenticated v0 stays inside the already authorized first-tranche Source Capture Toolbox implementation lane."
+    - path: "docs/decisions/data_capture_spine_source_access_tooling_build_authorization_v0.md"
+      reason: "The existing tooling authorization controls the bounded first-tranche build surface; no new API, commercial fetch, anti-detect, proxy, production runtime, ECR, Cleaning, or Judgment authority is introduced."
+    - path: "docs/product/core_spine_v0_data_capture_spine_obligation_contract_v0.md"
+      reason: "Capture obligations and handoff states did not change; packets remain visible limitation carriers only."
+    - path: ".agents/workflow-overlay/source-loading.md"
+      reason: "Source-loading already routes agents to this toolbox README for current component status and gaps; it does not encode per-adapter build status."
+    - path: "docs/workflows/orca_repo_map_v0.md"
+      reason: "Repo map already indexes this toolbox README as the component/gap entrypoint; no stale logged-in/session-state status was found there."
+  stale_language_search: "rg -n \"logged-in/entitled browser session reuse remains|no logged-in/entitled browser session|session/profile/cookie/storage-state reuse|Login-visible or entitled browser session content \\| none yet|not login/session capture\" docs/product/source_capture_toolbox/README.md orca-harness/docs/source_capture_agent_runbook.md orca-harness/docs/source_capture_packet.md orca-harness/README.md"
+  non_claims:
+    - "not validation"
+    - "not readiness"
+    - "not source-access boundary amendment"
+    - "not password automation authorization"
+    - "not direct profile or raw cookie import authorization"
+    - "not anti-detect, proxy, CAPTCHA, API, commercial fetch, or production-runtime authorization"
     - "not ECR, Cleaning, or Judgment design"
 ```

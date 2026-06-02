@@ -14,9 +14,11 @@ from source_capture.models import (
     not_attempted,
     unknown_with_reason,
 )
+from source_capture.auth_state import AuthenticatedSessionMode
 from source_capture.writer import NON_CLAIMS, render_receipt, write_local_source_capture_packet
 
 __all__ = [
+    "AuthenticatedSessionMode",
     "CaptureModeCategory",
     "NON_CLAIMS",
     "OBLIGATION_CONTRACT_VERSION",

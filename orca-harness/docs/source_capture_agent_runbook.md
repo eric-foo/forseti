@@ -18,6 +18,11 @@ The agent may:
 - run Archive.org capture against one explicitly supplied original URL;
 - run Browser Snapshot capture against one explicitly supplied URL that needs
   anonymous browser rendering or screenshot preservation;
+- bootstrap a permitted browser session manually into ignored local Playwright
+  storage-state JSON;
+- run Authenticated Browser Snapshot capture against one explicitly supplied URL
+  using a previously bootstrapped storage-state label and an allowed session
+  mode;
 - inspect `manifest.json`, `receipt.md`, and `raw/`;
 - report packet path, exit code, preserved files, warnings, and limitations.
 
@@ -28,8 +33,8 @@ The agent must not:
 - choose targets through broad search or crawling;
 - discover hidden media, parse galleries, recurse through pages, or run OCR;
 - use unbuilt or separately gated methods from this runbook, including
-  logged-in browser session/profile/cookie/storage-state reuse, APIs, SDKs,
-  scraper frameworks, proxy/session behavior, anti-detect behavior, CAPTCHA
+  password-driven login automation, direct browser profile/cookie import, APIs,
+  SDKs, scraper frameworks, proxy behavior, anti-detect behavior, CAPTCHA
   solving, or commercial fetch services;
 - use no-entitlement login bypass, credential misuse, undisclosed session/cookie
   use, or any method Orca would refuse to disclose internally;
@@ -38,10 +43,12 @@ The agent must not:
 
 If the requested capture needs anonymous browser-rendered content, JavaScript
 rendering, or screenshot preservation for one supplied URL, use the Honest
-Browser Snapshot runner. If it requires login-visible or entitled content through
-stored sessions, browser profiles, cookies, credentials, or storage-state files,
-stop with `visible_capture_limitation`: that browser-session extension is not
-built in v0.
+Browser Snapshot runner. If it requires login-visible or entitled content, use
+Authenticated Browser Snapshot only when the operator has supplied an allowed
+session mode and a previously bootstrapped local storage-state label. If the
+operator asks for password automation, direct profile/cookie import, credentials
+in flags or environment variables, no-entitlement bypass, anti-detect behavior,
+proxy behavior, or CAPTCHA solving, stop with `visible_capture_limitation`.
 
 The agent cannot reliably know browser-rendering or login-wall posture before
 running a byte-preserving adapter. A Direct HTTP, Media / Asset, or Archive.org
@@ -72,6 +79,8 @@ Before running anything, the agent must have:
   - explicit media/asset URL list for Media / Asset;
   - original URL plus optional cutoff timestamp for Archive.org;
   - ordinary URL for Browser Snapshot;
+  - ordinary URL, storage-state label, and allowed session mode for
+    Authenticated Browser Snapshot;
 - enough context to set `cutoff_posture` or explain why cutoff posture is
   unknown.
 
@@ -83,9 +92,20 @@ For the local-file packet runner only, the agent must also have:
 - `source_locator` or `source_locator_unknown_reason`: operator-supplied
   provenance pointer, or a visible reason no stable locator was supplied.
 
-Direct HTTP, Media / Asset, Archive.org, and Browser Snapshot runners have
-default source-family labels and URL-derived locators; do not ask for
-local-file-only fields when those runners are used.
+Direct HTTP, Media / Asset, Archive.org, Browser Snapshot, and Authenticated
+Browser Snapshot runners have default source-family labels and URL-derived
+locators; do not ask for local-file-only fields when those runners are used.
+
+For Authenticated Browser Snapshot, `session_mode` must be exactly one of:
+
+- `free_account_created_session`
+- `paid_entitled_session`
+- `client_provided_session`
+- `consenting_coworker_session`
+
+The storage-state label resolves only under `orca-harness/_auth_state/`. Do not
+paste, print, stage, commit, or copy storage-state JSON, cookies, credentials, or
+session values into a packet or report.
 
 If any required input is missing, do not invent it. Stop and report the smallest
 missing input.
@@ -101,7 +121,7 @@ Use the narrowest runner that matches the supplied input.
 | Explicit asset URLs | `run_source_capture_media_packet.py` | The operator supplied image/media/gallery-frame URLs directly. |
 | Original URL plus archive need | `run_source_capture_archive_packet.py` | The operator needs Archive.org availability and maybe snapshot body. |
 | Browser-rendered or screenshot-needed page | `run_source_capture_browser_packet.py` | One supplied URL needs anonymous browser rendering or screenshot preservation. |
-| Login-visible or entitled browser session content | none yet | Stop; v0 does not use stored sessions, profiles, cookies, credentials, or storage-state. |
+| Login-visible or entitled browser session content | `run_source_capture_browser_session_bootstrap.py`, then `run_source_capture_authenticated_browser_packet.py` | The operator authorizes an allowed manual-login storage-state session. |
 
 If a supplied URL points directly to a source-meaningful asset, prefer Media /
 Asset. If it points to a page or file whose whole response body is the capture
@@ -234,6 +254,48 @@ normal packet, and rerun only in an environment with subprocess-launch
 permission. Do not switch methods or claim the adapter is broken from this error
 alone.
 
+Authenticated Browser Snapshot:
+
+First bootstrap storage state through a visible manual login. This writes no
+packet and stores only local ignored Playwright storage-state JSON under
+`orca-harness/_auth_state/`, plus a small local ignored metadata sidecar binding
+the saved state file to the declared session mode:
+
+```powershell
+python runners/run_source_capture_browser_session_bootstrap.py `
+  --login-url "<ordinary login or target URL>" `
+  --state-label "<local state label>" `
+  --session-mode "<allowed session mode>"
+```
+
+The runner opens a headed Chromium window. Complete only the permitted login in
+that window, then press Enter in the terminal to save storage state. Do not pass
+passwords, usernames, cookies, tokens, or profile paths to the runner. If the
+label already exists, choose a new label or ask the operator before deleting
+anything. Choose a non-sensitive state label; the label is later recorded in
+packet metadata.
+
+Then capture one explicit URL with that saved state:
+
+```powershell
+python runners/run_source_capture_authenticated_browser_packet.py `
+  --url "<ordinary http or https URL>" `
+  --state-label "<local state label>" `
+  --session-mode "<allowed session mode>" `
+  --decision-question "<operator-supplied decision question>" `
+  --cutoff-posture "<operator-supplied cutoff posture>" `
+  --output "<packet directory>"
+```
+
+The Authenticated Browser Snapshot runner preserves rendered DOM, visible text,
+a viewport screenshot, and browser metadata. It records the session mode and
+state label, and it refuses to run if the capture-time session mode does not
+match the bootstrap sidecar. It does not copy, hash, print, or preserve the
+storage-state file, metadata sidecar, or cookie/session values. It does not
+prove login-wall absence or content sufficiency. If a login wall or auth
+challenge remains visibly present, preserve that as a limitation and do not call
+the packet a clean unlocked capture.
+
 ## Post-Run Inspection
 
 After a runner returns exit code `0`, inspect:
@@ -267,6 +329,11 @@ For Browser Snapshot packets, report that the screenshot is viewport-only and
 that browser artifacts do not prove content sufficiency, login-wall absence, or
 source completeness.
 
+For Authenticated Browser Snapshot packets, report the session mode and state
+label, but do not report storage-state file contents, cookie values, tokens, or
+credentials. Also report that storage-state use does not prove entitlement
+sufficiency, login-wall absence, or source completeness.
+
 Do not summarize the source as true or false. Do not say the capture is ready,
 validated, complete, or sufficient for Judgment.
 
@@ -291,6 +358,8 @@ Current runner exit-code shape:
 | Media / Asset | `0`, `2`, `3` | At least one preserved asset can write a packet with visible failed-asset limitations; all assets failed is exit `3`; no packet. |
 | Archive.org | `0`, `2`, `3` | Availability lookup failure is exit `3`; no packet. Metadata-only states can still be exit `0` packets with limitations. |
 | Browser Snapshot | `0`, `2`, `3` | Missing Playwright package, missing Chromium binary, navigation failure, or artifact failure is exit `3`; no packet. Exit `0` preserves browser artifacts only, not content sufficiency. |
+| Browser Session Bootstrap | `0`, `2`, `3` | Exit `0` writes ignored local storage-state JSON only; no packet. Missing/invalid labels are exit `2`; Playwright/browser/manual interaction failures are exit `3`. |
+| Authenticated Browser Snapshot | `0`, `2`, `3` | Missing/invalid auth state is exit `2`; missing Playwright package, missing Chromium binary, navigation failure, or artifact failure is exit `3`; no normal packet. Exit `0` preserves browser artifacts only, not content sufficiency or login-wall absence. |
 
 If a network runner reports a staging-collision or "clear it before rerunning"
 message, clear or choose a new output parent only after operator approval. Do
@@ -328,6 +397,7 @@ source_capture_agent_report:
     - <manifest limitation or none>
   archive_snapshot_count_caveat: <if archive packet, collapse=digest unique-content rows; otherwise none>
   browser_snapshot_caveat: <if browser packet, viewport screenshot and no content-sufficiency proof; otherwise none>
+  authenticated_browser_caveat: <if authenticated browser packet, session mode/state label reported but no state contents or login-wall absence proof; otherwise none>
   visible_stop_if_any: <missing input, access failure, browser-needed, no packet, or none>
   non_claims:
     - <receipt non-claim or none>
@@ -339,7 +409,7 @@ Before treating a changed runner as reusable by agents, run the relevant focused
 tests and the source-capture stack:
 
 ```powershell
-python -m pytest -p no:cacheprovider tests/unit/test_source_capture_packet.py tests/contract/test_source_capture_packet_no_runtime_imports.py tests/unit/test_source_capture_direct_http.py tests/contract/test_source_capture_direct_http_contract.py tests/unit/test_source_capture_media_asset.py tests/contract/test_source_capture_media_asset_contract.py tests/unit/test_source_capture_archive_org.py tests/contract/test_source_capture_archive_org_contract.py tests/unit/test_source_capture_browser_snapshot.py tests/contract/test_source_capture_browser_snapshot_contract.py
+python -m pytest -p no:cacheprovider tests/unit/test_source_capture_packet.py tests/contract/test_source_capture_packet_no_runtime_imports.py tests/unit/test_source_capture_direct_http.py tests/contract/test_source_capture_direct_http_contract.py tests/unit/test_source_capture_media_asset.py tests/contract/test_source_capture_media_asset_contract.py tests/unit/test_source_capture_archive_org.py tests/contract/test_source_capture_archive_org_contract.py tests/unit/test_source_capture_browser_snapshot.py tests/unit/test_source_capture_authenticated_browser_snapshot.py tests/contract/test_source_capture_browser_snapshot_contract.py
 ```
 
 For a new adapter, add focused unit tests, contract tests, one manual dry-run,

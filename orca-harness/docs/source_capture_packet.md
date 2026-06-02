@@ -50,6 +50,17 @@ The Browser Snapshot runner stages `browser_rendered_dom.html`,
 the packet. It removes those staging files after the packet writer copies the
 browser artifacts into `raw/`.
 
+The Authenticated Browser Snapshot runner stages
+`authenticated_browser_rendered_dom.html`,
+`authenticated_browser_visible_text.txt`,
+`authenticated_browser_viewport_screenshot.png`, and
+`authenticated_browser_snapshot_metadata.json` in the output directory's parent
+while building the packet. It removes those staging files after the packet
+writer copies the browser artifacts into `raw/`. The Playwright storage-state
+JSON and the small session-mode metadata sidecar used to open the browser
+context stay under ignored `_auth_state/` and are not copied, hashed, printed,
+or preserved in the packet.
+
 `manifest.json` is the machine-readable packet record. It carries the packet id,
 manifest version, obligation-contract version, requested decision context,
 source locator/provenance pointer, decomposed timing fields, access posture,
@@ -267,6 +278,63 @@ Judgment, buyer proof, or commercial-readiness logic. A packet proves browser
 artifacts were preserved; it does not prove source-meaningful content
 sufficiency, login-wall absence, or source completeness.
 
+## Authenticated Browser Snapshot Boundary
+
+Authenticated Browser Snapshot is the manual-login storage-state extension of
+Browser Snapshot. It is for one explicitly supplied URL where the operator has
+already bootstrapped a permitted browser session under one of the allowed
+session modes.
+
+First create local ignored storage state:
+
+```powershell
+python runners/run_source_capture_browser_session_bootstrap.py `
+  --login-url "https://example.com/login" `
+  --state-label "example-client-session" `
+  --session-mode "client_provided_session"
+```
+
+Allowed session modes are:
+
+- `free_account_created_session`
+- `paid_entitled_session`
+- `client_provided_session`
+- `consenting_coworker_session`
+
+The bootstrap runner opens a headed browser for manual login and writes only a
+Playwright storage-state JSON file plus a session-mode metadata sidecar under
+`orca-harness/_auth_state/`. It writes no packet. It does not accept username,
+password, token, cookie, or profile path arguments.
+
+Then write a packet:
+
+```powershell
+python runners/run_source_capture_authenticated_browser_packet.py `
+  --url "https://example.com/entitled-page" `
+  --state-label "example-client-session" `
+  --session-mode "client_provided_session" `
+  --decision-question "What authenticated source was visible before cutoff?" `
+  --cutoff-posture "pre-cutoff authenticated browser snapshot requested by operator" `
+  --output ".\_test_runs\example_authenticated_browser_packet"
+```
+
+The authenticated packet preserves rendered DOM, visible text, a viewport
+screenshot, and metadata. It records `source_surface` as
+`authenticated_browser_snapshot`, records the session mode and state label in
+visible packet metadata, verifies the capture-time session mode against the
+bootstrap sidecar, and records that storage state was loaded. It does not copy,
+hash, print, or preserve the storage-state JSON, metadata sidecar, or
+cookie/session values. Operators should choose non-sensitive state labels
+because labels are packet-visible.
+
+The runner must not be used for password-driven login automation, direct
+profile/cookie import, no-entitlement bypass, anti-detect behavior, proxy
+behavior, CAPTCHA solving, crawling, OCR, image analysis, ECR, Cleaning,
+Judgment, buyer proof, or commercial-readiness logic. A packet proves
+authenticated browser artifacts were preserved; it does not prove entitlement
+sufficiency, login-wall absence, source completeness, source truth, or content
+sufficiency.
+
 ## Direct HTTP Runner
 
 Run from `orca-harness/`:
@@ -340,9 +408,10 @@ required capture gate merely because they exist in the reports tree.
 This packet core and local CLI are not source acquisition, direct HTTP fetch,
 archive retrieval, media preservation, browser automation, ECR design, Cleaning
 implementation, Judgment scoring, buyer proof, or commercial-readiness logic.
-The Direct HTTP, Media / Asset, Archive.org, and Browser Snapshot runners are
-bounded source-acquisition adapters, but they are still not archive completeness
-proof, source-state truth proof, login/session capture, API SDK use, scraper
-framework use, proxy/session injection, OCR or image analysis, ECR design,
-Cleaning implementation, Judgment scoring, buyer proof, or
-commercial-readiness logic.
+The Direct HTTP, Media / Asset, Archive.org, Browser Snapshot, and Authenticated
+Browser Snapshot runners are bounded source-acquisition adapters, but they are
+still not archive completeness proof, source-state truth proof, password-driven
+login automation, credential storage, API SDK use, scraper framework use,
+proxy behavior, anti-detect behavior, OCR or image analysis, ECR design,
+Cleaning implementation, Judgment scoring, buyer proof, or commercial-readiness
+logic.

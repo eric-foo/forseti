@@ -113,6 +113,25 @@ credentials, storage-state files, anti-detect behavior, proxy behavior, CAPTCHA
 solving, crawling, OCR, ECR, Cleaning, Judgment, buyer-proof, or
 commercial-readiness logic.
 
+Use the Authenticated Browser Snapshot runner when one supplied URL requires a
+permitted manually bootstrapped browser session:
+
+```powershell
+python runners/run_source_capture_browser_session_bootstrap.py --login-url "https://example.com/login" --state-label "example-session" --session-mode "free_account_created_session"
+python runners/run_source_capture_authenticated_browser_packet.py --url "https://example.com/page" --state-label "example-session" --session-mode "free_account_created_session" --decision-question "What authenticated browser-visible source was present before cutoff?" --cutoff-posture "pre-cutoff authenticated browser snapshot requested by operator" --output ".\_test_runs\example_authenticated_browser_packet"
+```
+
+The bootstrap command opens a headed browser for manual login and writes ignored
+local Playwright storage-state JSON plus a session-mode metadata sidecar under
+`_auth_state/`. The packet runner loads that state into a browser context,
+refuses mismatched session-mode declarations, and preserves rendered DOM,
+visible text, a viewport screenshot, and metadata. It records session mode and
+state label, but never copies, hashes, prints, or preserves storage-state JSON,
+sidecar metadata, cookies, tokens, or credentials. It does not automate
+passwords, import browser profiles or raw cookies, bypass entitlement, use
+anti-detect or proxy behavior, solve CAPTCHA, crawl, run OCR, ECR, Cleaning,
+Judgment, buyer-proof, or commercial-readiness logic.
+
 Dry-run packet outputs under `reports/source_capture/` are local review evidence
 unless a separate fixture-admission decision says otherwise. They can include
 machine-specific `original_path` provenance values and copied raw source files;
