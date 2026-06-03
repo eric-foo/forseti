@@ -411,13 +411,14 @@ Implemented first-tranche pieces:
 - Honest Browser Snapshot adapter, anonymous/headless v0;
 - Authenticated Browser Snapshot adapter, manual-login storage-state v0;
 - Source Quality report-skeleton helper for existing Source Capture Packets;
+- Source Quality State Assembler for read-only state census over existing
+  source-quality rows and packets;
 - agent-facing runbook for bounded runner selection, stops, inspection, and
   reporting.
 
 Recorded architecture boundaries that are not implemented tooling:
 
-- Source Quality State Assembler architecture boundary for a read-only
-  multi-row state census over existing packets.
+- none currently listed.
 
 Remaining current gaps:
 
