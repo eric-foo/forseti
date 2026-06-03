@@ -12,6 +12,7 @@ use_when:
 authority_boundary: retrieval_only
 open_next:
   - docs/research/judgment-spine/README.md
+  - docs/product/judgment_quality_promotion_operating_model_v0.md
   - docs/research/judgment-spine/judgment_spine_thesis_v0.md
   - docs/research/judgment-spine/harness/v0_14/index.md
   - docs/research/judgment-spine/cases/milwaukee-fiscal-crossroads/case_index.md
@@ -49,6 +50,15 @@ orca_start_preflight:
 | --- | --- | --- |
 | `docs/research/judgment-spine/judgment_spine_thesis_v0.md` | Long-term Judgment Spine optimization thesis | Working thesis; not validation, readiness, implementation authorization, or CA execution |
 | `docs/research/judgment-spine/judgment_spine_thesis_operating_contract_v0.md` | Operating contract for consuming, protecting, and applying the parent thesis | Working contract; not validation, readiness, approval, implementation authorization, or source-of-truth promotion |
+
+## Operating Model And Gate Doctrine
+
+| Path | Role | Status |
+| --- | --- | --- |
+| `docs/product/judgment_quality_promotion_operating_model_v0.md` | Conductor that sequences gates JSG-01 to JSG-10 with mechanical receipt predicates, total fail/blocked transitions, a by-hand isolation cap, and named run lifecycle states | Working operating model; routes and verifies receipts; not validation, readiness, scoring, fixture admission, or judgment-quality evidence |
+| `docs/product/judgment_spine_evidence_ladder_architecture_v0.md` | Claim-tier and closeout-state vocabulary the conductor routes to | Controlling doctrine |
+| `docs/product/judgment_spine_gate_ownership_map_v0.md` | Gate ownership the conductor sequences | Controlling doctrine |
+| `docs/product/judgment_spine_reveal_calibration_owner_contract_v0.md` | JSG-08 receipt shape the conductor reads | Controlling doctrine |
 
 ## Reusable Prompt
 
