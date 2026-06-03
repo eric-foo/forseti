@@ -58,6 +58,13 @@ packet without redefining Capture obligations.
 | `docs/product/data_capture_source_access_boundary_decision_v0.md` | Source-access boundary, entitlement/disclosability standard, and hard stops. |
 | `docs/product/core_spine_v0_data_capture_spine_obligation_contract_v0.md` | Capture obligations, forbidden Capture outputs, and handoff discipline. |
 | `docs/product/data_capture_spine_pressure_test_closeout_synthesis_v0.md` | Why pressure-test findings support moving from all-tools-deferred to bounded first-tranche tooling. |
+| `docs/product/source_capture_toolbox/source_quality_mini_god_tier_profile_v0.md` | Reusable operating profile for the smallest complete source-quality target per bounded source unit; not fixture admission, validation, source discovery, or Judgment authority. |
+| `docs/product/source_capture_toolbox/source_quality_source_unit_queue_template_v0.md` | Blank queue template for planning mini god-tier source-quality passes over already-bounded source units; not source selection, source discovery, or fixture admission. |
+| `docs/product/source_capture_toolbox/source_quality_mixed_source_trial_closeout_v0.md` | First mixed-source Mini God-Tier trial closeout; helper-input context only, not fixture admission, validation, or Judgment authority. |
+| `docs/product/source_capture_toolbox/source_quality_cw_p4_end_to_end_pass_closeout_v0.md` | One-source CW-P4 Mini God-Tier end-to-end pass evidence; read as operational closeout context only, not fixture admission, validation, or doctrine authority. |
+| `docs/product/source_capture_toolbox/source_quality_cw_p6_end_to_end_pass_closeout_v0.md` | One-source CW-P6 Mini God-Tier limitation-path pass evidence; read as operational closeout context only, not fixture admission, validation, or doctrine authority. |
+| `docs/product/source_capture_toolbox/source_quality_cw_p1_end_to_end_pass_closeout_v0.md` | One-source CW-P1 Mini God-Tier metadata-only negative-path pass evidence; read as operational closeout context only, not fixture admission, validation, or doctrine authority. |
+| `docs/product/source_capture_toolbox/source_quality_state_assembler_v0.md` | Architecture boundary for a read-only Source Quality State Assembler over already-bounded rows and existing packets; state census only, not source discovery, runner dispatch, scoring, fixture admission, or Judgment authority. |
 
 ## Toolbox Components
 
@@ -156,6 +163,133 @@ deciding source meaning.
 It should not authorize inference, source discovery, broad crawling, browser
 fallback, API use, ECR, Cleaning, Judgment, validation, readiness, buyer proof,
 or commercial-readiness claims.
+
+### Mini God-Tier Source Quality Profile
+
+Purpose: give future agents a reusable smallest-complete target for improving
+one bounded source unit's source-quality posture after a source locator is
+already selected.
+
+The profile defines required criteria, result tokens, a runner ladder,
+source-unit queue fields, and a report block for source-quality passes. It does
+not admit fixtures, decide rights or retention, discover sources, rank
+credibility, score source quality, or authorize ECR, Cleaning, Judgment, APIs,
+crawlers, browser fallback, commercial fetch, or production runtime.
+
+### Source-Unit Queue Template
+
+Purpose: give agents a blank planning surface for applying the Mini God-Tier
+Source Quality Profile to already-bounded source units without inventing fields
+or result vocabulary.
+
+The queue template records source id, bounded context, locator, current state,
+target posture, runner choices, cutoff, row status, profile-owned result token,
+packet lifecycle, and visible limitations. It must not be used to discover,
+select, rank, score, admit, or judge sources.
+
+### Mixed-Source Trial Closeout
+
+Purpose: preserve the first mixed-source trial results for the Mini God-Tier
+profile so future helper automation can be scoped from observed packet friction
+rather than thread memory.
+
+The closeout is at
+`docs/product/source_capture_toolbox/source_quality_mixed_source_trial_closeout_v0.md`.
+It records the Canoo/Walmart `CW-P4`, `CW-P1`, and `CW-P6` trial outcomes,
+including the important distinction between packet-write success and
+source-quality result tokens.
+
+It is trial evidence and helper-input context only. It is not fixture admission,
+validation, source completeness proof, Judgment scoring, source discovery, or
+authorization for new adapters.
+
+### CW-P4 End-To-End Source Quality Pass Closeout
+
+Purpose: preserve the first one-source Mini God-Tier queue-to-report pass after
+the report-skeleton helper existed.
+
+The closeout is at
+`docs/product/source_capture_toolbox/source_quality_cw_p4_end_to_end_pass_closeout_v0.md`.
+It records how `CW-P4` moved from queue posture through scratch packet
+inspection, skeleton output, operator-finalized report block, and reported row
+status.
+
+It is operational source-quality evidence only. It is not fixture admission,
+validation, source completeness proof, Judgment scoring, source discovery, or
+authorization for new adapters.
+
+### CW-P6 End-To-End Source Quality Pass Closeout
+
+Purpose: preserve the one-source Mini God-Tier queue-to-report pass for a
+preserved current official SEC body where visible limitations still travel.
+
+The closeout is at
+`docs/product/source_capture_toolbox/source_quality_cw_p6_end_to_end_pass_closeout_v0.md`.
+It records how `CW-P6` moved from queue posture through scratch Direct HTTP
+packet inspection, skeleton output, operator-finalized report block, and
+reported row status while retaining `mini_god_tier_with_visible_limitations`.
+
+It is operational source-quality evidence only. It is not fixture admission,
+validation, source completeness proof, Judgment scoring, source discovery, or
+authorization for new adapters.
+
+### CW-P1 End-To-End Source Quality Pass Closeout
+
+Purpose: preserve the one-source Mini God-Tier queue-to-report pass for an
+Archive.org availability metadata packet where no eligible archive body was
+selected or preserved.
+
+The closeout is at
+`docs/product/source_capture_toolbox/source_quality_cw_p1_end_to_end_pass_closeout_v0.md`.
+It records how `CW-P1` moved from queue posture through scratch Archive.org
+packet inspection, skeleton output, operator-finalized report block, and
+reported row status while retaining `archive_body_not_preserved`.
+
+It is operational source-quality evidence only. It is not fixture admission,
+validation, source completeness proof, Judgment scoring, source discovery, or
+authorization for new adapters.
+
+### Source-Quality Example Ladder
+
+Purpose: give future agents a compact retrieval pattern for reading packet
+success separately from source-quality status.
+
+| Example | Packet/body posture | Source-quality result | Lesson |
+| --- | --- | --- | --- |
+| `CW-P4` | Archive.org snapshot body preserved. | `mini_god_tier_met` | A cutoff-compatible archive body can satisfy the clean preserved-body path, while still carrying scratch lifecycle and archive-completeness non-claims. |
+| `CW-P6` | Current official SEC Archives body preserved by Direct HTTP. | `mini_god_tier_with_visible_limitations` | A real preserved body can still carry limitations when archive/history, media, and source-envelope posture are incomplete. |
+| `CW-P1` | Archive availability metadata exists, but no eligible archive body was selected or preserved. | `archive_body_not_preserved` | Packet or metadata success must not be upgraded into source-body possession. |
+
+Use the ladder as an operating example only. It is not source-quality scoring,
+fixture admission, validation, source selection, Judgment evidence, or a
+substitute for inspecting the controlling closeout artifacts.
+
+### Source Quality Report-Skeleton Helper
+
+Purpose: turn one existing Source Capture Packet manifest into a Mini God-Tier
+report skeleton so agents do not manually rebuild body-posture, provenance,
+lifecycle, and conservative result-token guidance from scratch.
+
+The helper is implemented in
+`orca-harness/runners/run_source_quality_report_skeleton.py` and reads packet
+manifest plus packet-side metadata only. It does not fetch sources, parse raw
+source bodies for meaning, infer source-language anchors, score source quality,
+admit fixtures, or finalize `mini_god_tier_met`.
+
+### Source Quality State Assembler
+
+Purpose: assemble already-bounded source-unit rows, existing packet paths,
+report-skeleton state, lifecycle state, and visible limitations into an
+inspectable state census.
+
+The architecture boundary is at
+`docs/product/source_capture_toolbox/source_quality_state_assembler_v0.md`.
+The helper is implemented in
+`orca-harness/runners/run_source_quality_state_assembler.py`.
+The name is intentional: this is not a conductor, gate sequencer, scorer,
+source selector, runner dispatcher, or fixture-admission surface. Output must
+preserve helper suggestions as suggestions, keep operator finalization for
+quality-bearing claims, and distinguish state census from verdict.
 
 ### Direct HTTP Fetch Adapter
 
@@ -276,8 +410,14 @@ Implemented first-tranche pieces:
 - Archive.org availability/body adapter;
 - Honest Browser Snapshot adapter, anonymous/headless v0;
 - Authenticated Browser Snapshot adapter, manual-login storage-state v0;
+- Source Quality report-skeleton helper for existing Source Capture Packets;
 - agent-facing runbook for bounded runner selection, stops, inspection, and
   reporting.
+
+Recorded architecture boundaries that are not implemented tooling:
+
+- Source Quality State Assembler architecture boundary for a read-only
+  multi-row state census over existing packets.
 
 Remaining current gaps:
 

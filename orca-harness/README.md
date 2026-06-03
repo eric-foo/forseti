@@ -44,6 +44,31 @@ For the packet directory shape and receipt details, see
 For agent-facing runner selection, stop conditions, and report format, see
 [`docs/source_capture_agent_runbook.md`](docs/source_capture_agent_runbook.md).
 
+Build a local Mini God-Tier source-quality report skeleton from an existing
+packet after an operator has commissioned a source-quality pass:
+
+```powershell
+python runners/run_source_quality_report_skeleton.py --packet ".\_test_runs\example_source_capture_packet" --source-id "SOURCE-ID" --output ".\_test_runs\example_source_quality_skeleton.yaml"
+```
+
+The skeleton helper is manifest/metadata-only. It gives conservative
+`suggested_result_token` guidance and keeps final source-language anchors,
+coverage/drift notes, lifecycle admission, and `mini_god_tier_met` finalization
+with the operator. It does not fetch sources, parse source bodies for meaning,
+score source quality, admit fixtures, or run Judgment logic.
+
+Build a read-only Source Quality state census from explicit queue rows and
+existing packet paths:
+
+```powershell
+python runners/run_source_quality_state_assembler.py --queue ".\_test_runs\example_source_quality_queue.yaml" --output ".\_test_runs\example_source_quality_state_census.yaml"
+```
+
+The State Assembler surfaces packet existence, manifest inspectability,
+report-skeleton state, visible stops, and operator-finalization requirements
+per row. It does not discover sources, run capture tools, fetch data, score
+source quality, auto-advance queue rows, or finalize `mini_god_tier_met`.
+
 Use the Direct HTTP runner when one ordinary HTTP URL should be captured into
 the same packet shape:
 

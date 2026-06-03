@@ -139,6 +139,30 @@ Do not chain runners unless the operator explicitly asks for multiple packets.
 For example, do not run Archive.org automatically after Direct HTTP fails unless
 that fallback was requested.
 
+## Restricted Network Permission Discipline
+
+In Codex or another restricted sandbox, launch live network-backed runners with
+per-operation network permission before the first attempt. This applies to:
+
+- Direct HTTP;
+- Media / Asset capture for remote URLs;
+- Archive.org availability/body capture;
+- Browser Snapshot or Authenticated Browser Snapshot against a remote URL.
+
+The local-file packet runner does not need network permission.
+
+On Windows, `WinError 10061` before any HTTP response is usually sandbox network
+refusal, not a source-access result. Do not record that as a source limitation
+or spend a doomed first attempt when the runner is known to require network
+access. Run the same bounded command with per-operation network permission, or
+report an operational blocker if permission is unavailable.
+
+Do not request broad standing Python or network permission for source capture.
+The approval request should name the exact runner class and the single bounded
+source packet attempt. If a denied or timed-out attempt leaves no packet
+directory, the same fresh output path may be reused; otherwise choose a new
+output path or ask the operator before clearing anything.
+
 ## Output Directory Discipline
 
 Use a fresh directory under `_test_runs/` for smoke tests or under
@@ -330,6 +354,57 @@ The agent report must include:
 - receipt non-claims from `receipt.md` or manifest receipt metadata when
   present.
 
+When the operator commissioned a source-quality pass, the agent report must also
+include a `mini_god_tier_source_quality_report` block. Use result tokens from
+`docs/product/source_capture_toolbox/source_quality_mini_god_tier_profile_v0.md`
+and queue row-status vocabulary from
+`docs/product/source_capture_toolbox/source_quality_source_unit_queue_template_v0.md`.
+Do not redefine those vocabularies in the runbook report.
+
+For this runbook, an operator-commissioned source-quality pass means the
+operator explicitly asked for source-quality improvement or mini god-tier
+classification for a bounded source unit. Ordinary packet smoke tests, adapter
+checks, local packaging tests, and generic capture runs do not trigger this
+block unless the operator says they are source-quality passes.
+
+The mini god-tier block reports the observed packet state and visible limits. It
+does not validate the source, admit a fixture, prove source completeness, score
+source quality, or decide Judgment meaning.
+
+For source-quality passes, agents may use the report-skeleton helper after a
+packet has already been written:
+
+```powershell
+python runners/run_source_quality_report_skeleton.py `
+  --packet "<packet directory or manifest.json>" `
+  --source-id "<operator-supplied source id>" `
+  --output "<skeleton yaml>"
+```
+
+The helper is local and deterministic. It reads existing packet manifest and
+packet-side metadata only, then emits a Mini God-Tier report skeleton for
+operator completion. It does not fetch sources, parse source bodies for meaning,
+infer source-language anchors, discover sources, admit fixtures, score source
+quality, or finalize `mini_god_tier_met`. Treat `suggested_result_token` as
+conservative guidance, not the final `result_token`.
+
+For multi-row source-quality passes, agents may use the Source Quality State
+Assembler after queue rows and packet paths already exist:
+
+```powershell
+python runners/run_source_quality_state_assembler.py `
+  --queue "<queue yaml with explicit rows>" `
+  --output "<state census yaml>"
+```
+
+The assembler is a read-only state census helper. It reads explicit rows,
+existing packet paths, and existing packet manifests, then surfaces skeleton
+state, visible stops, lifecycle posture, and operator-finalization requirements
+per row. It does not run Source Capture tools, discover sources, fetch data,
+rank rows, score source quality, auto-advance row status, or finalize
+`mini_god_tier_met`. Missing packet paths and invalid manifests must remain
+visible row stops, not hidden batch failures or clean passes.
+
 For Archive.org packets, report that `snapshot_count` reflects
 `collapse=digest` unique-content snapshot rows returned by the availability
 endpoint, not every historical capture timestamp that Archive.org may hold.
@@ -382,7 +457,7 @@ operator authorizes the next method.
 
 ```text
 source_capture_agent_report:
-  runner: <local_file|direct_http|media_asset|archive_org|browser_snapshot>
+  runner: <local_file|direct_http|media_asset|archive_org|browser_snapshot|authenticated_browser_snapshot>
   exit_code: <observed exit code>
   packet_path: <path or none>
   packet_written: <yes|no>
@@ -410,7 +485,42 @@ source_capture_agent_report:
   visible_stop_if_any: <missing input, access failure, browser-needed, no packet, or none>
   non_claims:
     - <receipt non-claim or none>
+  mini_god_tier_source_quality_report:
+    required_when: <operator commissioned a source-quality pass; otherwise omit>
+    source_id: <operator-supplied source id or unknown_with_reason>
+    result_token: <token from source_quality_mini_god_tier_profile_v0.md>
+    packet_path: <path or none>
+    best_in_bound_body:
+      posture: <preserved|not_preserved|metadata_only|current_only|not_applicable>
+      preserved_body_path: <packet-relative path or none>
+      sha256: <hash or none>
+      byte_count: <bytes or none>
+      source_or_snapshot_time: <timestamp or unknown_with_reason>
+    provenance:
+      original_locator: <locator or unknown_with_reason>
+      final_or_snapshot_locator: <locator or unknown_with_reason>
+      access_status: <status or unknown_with_reason>
+      content_type: <content type or unknown_with_reason>
+      capture_time: <timestamp or unknown_with_reason>
+    source_language_anchors:
+      - <bounded source-visible anchor or not_applicable_with_reason>
+    coverage_or_drift_note: <improves|replaces|supplements|conflicts|standardizes|unknown_with_reason>
+    visible_limitations:
+      - <limitation or none>
+    lifecycle_state: <scratch|candidate_evidence|recommended_fixture_admission|separately_admitted>
+    lifecycle_decision_reference: <required if separately_admitted; otherwise none>
+    non_claims:
+      - not validation
+      - not source completeness proof
+      - not fixture admission unless separately decided
+      - not Judgment scoring
 ```
+
+Do not use `separately_admitted` unless `lifecycle_decision_reference` cites the
+separate fixture-admission or equivalent lifecycle decision. After completing
+the mini god-tier report block for a queued source-quality row, update the queue
+row from `packet_written_needs_report` to `reported` when the queue is part of
+the commissioned work.
 
 Do not collapse an exit-code-0 packet with empty limitations into "clean
 capture." Packet postures may still carry current-capture, cutoff, archive,
@@ -428,6 +538,18 @@ python -m pytest -p no:cacheprovider tests/unit/test_source_capture_packet.py te
 For a new adapter, add focused unit tests, contract tests, one manual dry-run,
 and adversarial implementation review before committing it as an agent-facing
 primitive.
+
+For the source-quality report-skeleton helper, run:
+
+```powershell
+python -m pytest -p no:cacheprovider tests/unit/test_source_quality_report_skeleton.py tests/contract/test_source_quality_report_skeleton_contract.py
+```
+
+For the Source Quality State Assembler helper, run:
+
+```powershell
+python -m pytest -p no:cacheprovider tests/unit/test_source_quality_state_assembler.py tests/contract/test_source_quality_report_skeleton_contract.py
+```
 
 ## Direction Change Propagation - Archive Timestamp And Posture Reporting
 
@@ -461,4 +583,176 @@ direction_change_propagation:
     - "not source completeness"
     - "not source-access boundary amendment"
     - "not adapter implementation"
+```
+
+## Direction Change Propagation - Restricted Network Runner Permission
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: "The Source Capture Agent Runbook now tells agents to request per-operation network permission before running live network-backed source-capture runners in restricted sandboxes, and to treat pre-response WinError 10061 as an operational sandbox refusal rather than a source limitation."
+  trigger: lifecycle_boundary
+  related_triggers:
+    - output_authority
+  controlling_sources_updated:
+    - "orca-harness/docs/source_capture_agent_runbook.md"
+  downstream_surfaces_checked:
+    - "AGENTS.md"
+    - ".agents/workflow-overlay/README.md"
+    - ".agents/workflow-overlay/source-of-truth.md"
+    - "docs/product/source_capture_toolbox/README.md"
+    - "orca-harness/README.md"
+    - ".agents/workflow-overlay/source-loading.md"
+    - "docs/workflows/orca_repo_map_v0.md"
+  intentionally_not_updated:
+    - path: "docs/product/source_capture_toolbox/README.md"
+      reason: "The toolbox component set, adapter boundaries, hard stops, and deferred gaps did not change; it already points to the runbook for agent-facing runner use."
+    - path: "orca-harness/README.md"
+      reason: "The harness README already points to the runbook for agent-facing runner selection and report format; detailed sandbox permission sequencing belongs in the runbook."
+    - path: ".agents/workflow-overlay/source-loading.md"
+      reason: "Source-loading routes were not changed; this is runner-use guidance inside the existing runbook."
+    - path: "docs/workflows/orca_repo_map_v0.md"
+      reason: "Repo map already indexes the toolbox implementation and runbook surfaces; no new durable source family or component path was added."
+  stale_language_search: "rg -n \"WinError 10061|network permission|restricted sandbox|standing Python|source limitation\" orca-harness/docs/source_capture_agent_runbook.md docs/product/source_capture_toolbox/README.md orca-harness/README.md .agents/workflow-overlay/source-loading.md docs/workflows/orca_repo_map_v0.md"
+  non_claims:
+    - "not validation"
+    - "not readiness"
+    - "not source-access boundary amendment"
+    - "not broad standing permission"
+    - "not adapter implementation"
+    - "not source-quality proof"
+```
+
+## Direction Change Propagation - Mini God-Tier Report Block
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: "The Source Capture Agent Runbook now requires agents to include a mini_god_tier_source_quality_report block when an operator commissions a source-quality pass, while leaving result-token vocabulary in the Mini God-Tier profile and row-status vocabulary in the source-unit queue template."
+  trigger: output_authority
+  related_triggers:
+    - lifecycle_boundary
+  controlling_sources_updated:
+    - "orca-harness/docs/source_capture_agent_runbook.md"
+  downstream_surfaces_checked:
+    - "AGENTS.md"
+    - ".agents/workflow-overlay/README.md"
+    - ".agents/workflow-overlay/source-of-truth.md"
+    - "docs/product/source_capture_toolbox/source_quality_mini_god_tier_profile_v0.md"
+    - "docs/product/source_capture_toolbox/source_quality_source_unit_queue_template_v0.md"
+    - "docs/product/source_capture_toolbox/README.md"
+    - "orca-harness/README.md"
+    - ".agents/workflow-overlay/source-loading.md"
+    - "docs/workflows/orca_repo_map_v0.md"
+  intentionally_not_updated:
+    - path: "docs/product/source_capture_toolbox/source_quality_mini_god_tier_profile_v0.md"
+      reason: "The profile already owns mini god-tier criteria, result tokens, and report-block fields; this runbook patch references that vocabulary without changing it."
+    - path: "docs/product/source_capture_toolbox/source_quality_source_unit_queue_template_v0.md"
+      reason: "The queue template already owns row-status vocabulary; this runbook patch references that vocabulary without changing it."
+    - path: "docs/product/source_capture_toolbox/README.md"
+      reason: "The README already indexes the profile, queue template, and runbook; no new component or entrypoint was added."
+    - path: "orca-harness/README.md"
+      reason: "The harness README already points agents to this runbook for report format; detailed source-quality report fields belong in the runbook."
+    - path: ".agents/workflow-overlay/source-loading.md"
+      reason: "Source-loading routes were not changed; this is report-format guidance inside the existing runbook."
+    - path: "docs/workflows/orca_repo_map_v0.md"
+      reason: "Repo map already indexes the toolbox/runbook path through the harness and product docs; no new durable source family was added."
+  stale_language_search: "rg -n \"mini_god_tier_source_quality_report|source_quality_mini_god_tier_profile_v0|source_quality_source_unit_queue_template_v0|operator-commissioned source-quality pass|source-quality scoring|validated|ready|fixture admission|Judgment scoring|Commissioning Gate|Decision Frame|recommended_fixture_admission|separately_admitted\" orca-harness/docs/source_capture_agent_runbook.md docs/product/source_capture_toolbox/source_quality_mini_god_tier_profile_v0.md docs/product/source_capture_toolbox/source_quality_source_unit_queue_template_v0.md docs/product/source_capture_toolbox/README.md .agents/workflow-overlay/source-loading.md docs/workflows/orca_repo_map_v0.md"
+  non_claims:
+    - "not validation"
+    - "not readiness"
+    - "not source completeness proof"
+    - "not fixture admission"
+    - "not source-quality scoring"
+    - "not ECR, Cleaning, or Judgment authority"
+```
+
+## Direction Change Propagation - Source Quality Report-Skeleton Helper
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: "The Source Capture Agent Runbook now exposes a local Source Quality report-skeleton helper for existing Source Capture Packets; the helper emits conservative operator-completion skeletons and does not finalize result tokens, fetch sources, parse source meaning, admit fixtures, or score source quality."
+  trigger: output_authority
+  related_triggers:
+    - lifecycle_boundary
+  controlling_sources_updated:
+    - "orca-harness/docs/source_capture_agent_runbook.md"
+    - "orca-harness/README.md"
+    - "docs/product/source_capture_toolbox/README.md"
+  downstream_surfaces_checked:
+    - "AGENTS.md"
+    - ".agents/workflow-overlay/README.md"
+    - ".agents/workflow-overlay/source-of-truth.md"
+    - ".agents/workflow-overlay/source-loading.md"
+    - "docs/product/source_capture_toolbox/source_quality_mini_god_tier_profile_v0.md"
+    - "docs/product/source_capture_toolbox/source_quality_source_unit_queue_template_v0.md"
+    - "docs/product/source_capture_toolbox/source_quality_mixed_source_trial_closeout_v0.md"
+    - "docs/product/source_capture_toolbox/README.md"
+    - "orca-harness/README.md"
+    - "docs/workflows/orca_repo_map_v0.md"
+  intentionally_not_updated:
+    - path: "docs/product/source_capture_toolbox/source_quality_mini_god_tier_profile_v0.md"
+      reason: "Profile tokens, lifecycle vocabulary, required criteria, and report-block fields did not change."
+    - path: "docs/product/source_capture_toolbox/source_quality_source_unit_queue_template_v0.md"
+      reason: "Queue fields and row-status vocabulary did not change; the helper does not mutate queues."
+    - path: "docs/product/source_capture_toolbox/source_quality_mixed_source_trial_closeout_v0.md"
+      reason: "The closeout already supplies the helper requirements and remains trial evidence rather than helper API documentation."
+    - path: ".agents/workflow-overlay/source-loading.md"
+      reason: "Source-loading already routes Data Capture source-access tooling through the toolbox README and runbook; no new read-pack entry is needed."
+    - path: "docs/workflows/orca_repo_map_v0.md"
+      reason: "Repo map already indexes the toolbox and runbook entrypoints; detailed helper command routing belongs in the README/runbook."
+  stale_language_search: "rg -n \"run_source_quality_report_skeleton|report-skeleton|mini_god_tier_met|source-quality scoring|validated|ready|fixture admission|Judgment scoring|source discovery|source selection\" orca-harness/docs/source_capture_agent_runbook.md orca-harness/README.md docs/product/source_capture_toolbox/README.md docs/product/source_capture_toolbox/source_quality_mini_god_tier_profile_v0.md docs/product/source_capture_toolbox/source_quality_source_unit_queue_template_v0.md docs/product/source_capture_toolbox/source_quality_mixed_source_trial_closeout_v0.md .agents/workflow-overlay/source-loading.md docs/workflows/orca_repo_map_v0.md"
+  non_claims:
+    - "not validation"
+    - "not readiness"
+    - "not source completeness proof"
+    - "not fixture admission"
+    - "not source-quality scoring"
+    - "not source-access boundary amendment"
+    - "not ECR, Cleaning, or Judgment authority"
+```
+
+## Direction Change Propagation - Source Quality State Assembler Helper
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: "The Source Capture Agent Runbook now exposes a local read-only Source Quality State Assembler helper for explicit source-quality rows and existing packet manifests; the helper emits a state census and does not run capture tools, discover sources, score source quality, auto-advance queue rows, or finalize mini_god_tier_met."
+  trigger: output_authority
+  related_triggers:
+    - lifecycle_boundary
+  controlling_sources_updated:
+    - "orca-harness/docs/source_capture_agent_runbook.md"
+    - "orca-harness/README.md"
+    - "docs/product/source_capture_toolbox/README.md"
+  downstream_surfaces_checked:
+    - "AGENTS.md"
+    - ".agents/workflow-overlay/README.md"
+    - ".agents/workflow-overlay/source-of-truth.md"
+    - ".agents/workflow-overlay/source-loading.md"
+    - "docs/product/source_capture_toolbox/source_quality_state_assembler_v0.md"
+    - "docs/product/source_capture_toolbox/source_quality_mini_god_tier_profile_v0.md"
+    - "docs/product/source_capture_toolbox/source_quality_source_unit_queue_template_v0.md"
+    - "docs/product/source_capture_toolbox/README.md"
+    - "orca-harness/README.md"
+    - "docs/workflows/orca_repo_map_v0.md"
+  intentionally_not_updated:
+    - path: "docs/product/source_capture_toolbox/source_quality_state_assembler_v0.md"
+      reason: "The architecture boundary already authorizes only a read-only state census over explicit rows and existing packets; implementation follows that boundary without changing it."
+    - path: "docs/product/source_capture_toolbox/source_quality_mini_god_tier_profile_v0.md"
+      reason: "Result tokens, criteria, lifecycle states, and finalization ownership did not change."
+    - path: "docs/product/source_capture_toolbox/source_quality_source_unit_queue_template_v0.md"
+      reason: "Queue row fields and row-status vocabulary did not change; the assembler echoes rows and does not mutate queues."
+    - path: ".agents/workflow-overlay/source-loading.md"
+      reason: "Source-loading already routes multi-row state-census questions to the State Assembler architecture boundary."
+    - path: "docs/workflows/orca_repo_map_v0.md"
+      reason: "Repo map already indexes the State Assembler architecture and toolbox entrypoint; detailed helper invocation belongs in the runbook and harness README."
+  stale_language_search: "rg -n \"run_source_quality_state_assembler|Source Quality State Assembler|mini_god_tier_met|source-quality scoring|validated|ready|fixture admission|Judgment scoring|source discovery|source selection|runner dispatch|all rows passed|ladder complete\" orca-harness/docs/source_capture_agent_runbook.md orca-harness/README.md docs/product/source_capture_toolbox/README.md docs/product/source_capture_toolbox/source_quality_state_assembler_v0.md docs/product/source_capture_toolbox/source_quality_mini_god_tier_profile_v0.md docs/product/source_capture_toolbox/source_quality_source_unit_queue_template_v0.md .agents/workflow-overlay/source-loading.md docs/workflows/orca_repo_map_v0.md"
+  non_claims:
+    - "not validation"
+    - "not readiness"
+    - "not source completeness proof"
+    - "not fixture admission"
+    - "not source discovery"
+    - "not runner dispatch"
+    - "not source acquisition"
+    - "not source-quality scoring"
+    - "not ECR, Cleaning, or Judgment authority"
 ```

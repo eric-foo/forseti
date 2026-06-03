@@ -66,8 +66,10 @@ Start-route cue: when `target_scope` would change product doctrine,
 architecture doctrine, workflow authority, validation philosophy, review
 authority, output authority, or a lifecycle boundary, route through the
 Doctrine Change Propagation Contract in
-`.agents/workflow-overlay/source-of-truth.md`. The start preflight may name the
-expected propagation surfaces, but it is not a substitute for the required
+`.agents/workflow-overlay/source-of-truth.md`. If more than one doctrine
+dimension applies, use the source-of-truth primary `trigger` plus
+`related_triggers` grammar. The start preflight may name the expected
+propagation surfaces, but it is not a substitute for the required
 `direction_change_propagation` receipt or blocker at closeout.
 
 Minimum receipt fields:
@@ -294,7 +296,7 @@ A Data Capture Spine CA prompt should include only:
 - one paragraph on Orca's value proposition;
 - one paragraph on the current Data Capture / Evidence Candidate Record /
   Cleaning / Judgment boundary;
-- one paragraph on the non-implementation operating boundary;
+- one paragraph on the bounded-implementation authorization boundary;
 - the targeted source pack above;
 - the exact files and sections to read;
 - the default exclusions;
@@ -327,8 +329,15 @@ also open:
 
 - `docs/decisions/data_capture_spine_source_observability_scoping_authorization_v0.md`
 - `docs/product/data_capture_spine_source_observability_requirements_scoping_v0.md`
+- `docs/decisions/data_capture_spine_source_observability_requirements_boundary_decision_v0.md`
+- `docs/decisions/data_capture_spine_source_observability_requirements_support_implementation_scoping_authorization_v0.md`
 - `docs/decisions/data_capture_spine_source_observability_local_support_implementation_scoping_authorization_v0.md`
 - `docs/decisions/data_capture_spine_source_observability_local_support_implementation_execution_authorization_v0.md`
+- `docs/decisions/data_capture_spine_source_observability_support_closeout_decision_v0.md`
+- `docs/product/data_capture_spine_pressure_test_closeout_synthesis_v0.md`
+- `docs/product/source_capture_toolbox/README.md`
+- `docs/product/source_capture_toolbox/source_quality_state_assembler_v0.md` when checking whether already-bounded source-quality rows and existing Source Capture Packets may be assembled into a state census without runner dispatch, source discovery, scoring, fixture admission, or Judgment authority.
+- `docs/decisions/data_capture_spine_source_access_tooling_build_authorization_v0.md`
 - `docs/product/data_capture_spine_pressure_test_all_slot_synthesis_v0.md`
 - `docs/review-outputs/adversarial-artifact-reviews/data_capture_spine_pressure_test_all_slot_synthesis_blast_radius_recheck_v0.md`
 
@@ -365,18 +374,82 @@ the source-access method plan or authorize runtime/source-system
 implementation. The source-observability scoping authorization permits one
 bounded docs-only requirements scoping lane from the all-slot pressure-test
 synthesis; the resulting source-observability requirements scoping artifact is
-candidate decision input, not governing doctrine. The local support
+candidate decision input, not governing doctrine. The post-Slot-3-recapture
+requirements-boundary decision is the current source for RQ status after
+recapture: RQ-01, RQ-03, and RQ-05 carry forward; RQ-02 is split into
+visibility-now/body-retrieval-default-deferred; RQ-04 remains deferred candidate
+context. The requirements-support implementation-scoping authorization permits
+one bounded scoping lane for RQ-01, RQ-03, RQ-05, and RQ-02 visibility-only
+support; it does not authorize implementation execution, RQ-04/source-access
+handling, archive/media retrieval, source-access method-plan amendment, or
+contract hardening. The local support
 implementation-scoping authorization permits one bounded implementation-scoping
 lane for local source-observability support, not implementation execution. The
 local support implementation-execution authorization separately records and
 bounds the implemented local operator-record/checker/report/docs/tests surface;
-it does not authorize further implementation expansion. These artifacts do not
-authorize source-access implementation, runtime/tooling, archive/media
-retrieval, contract hardening, source-access method-plan amendment, or
-ECR/Cleaning/Judgment design.
-Do not use this pack to design ECR schema, Cleaning
-implementation, Judgment behavior, runtime source systems, scrapers, APIs,
-storage, dashboards, or tests.
+it does not authorize further implementation expansion. The support closeout
+decision records that the current local helper proved sufficient for the
+accepted post-recapture Slot 3 dry-use without schema or code expansion, while
+leaving a later helper-semantics vocabulary patch as candidate-only if repeated
+future friction warrants it. The pressure-test closeout synthesis records the
+first Data Capture pressure-test foundation as good enough for bounded next
+planning while carrying Slot 1, Slot 2, Slot 3, and Source Observability
+limitations forward; it is not validation, readiness, pressure-test discharge,
+contract hardening, or source-access method-plan amendment. The Source Capture
+Toolbox README is the product-facing entrypoint for first-tranche tooling docs
+and gaps. The Source Quality State Assembler architecture is a read-only
+multi-row state-census boundary over already-bounded source-quality rows and
+existing Source Capture Packets; it does not authorize source discovery, runner
+dispatch, source-quality scoring, fixture admission, or Judgment behavior. A
+later owner decision now authorizes one bounded first-tranche
+source-access tooling build surface: Source Capture Packet core/CLI, direct HTTP
+fetch, media/asset preservation, Archive.org availability/body retrieval, and
+honest browser snapshot support. That authorization does not cover Reddit API
+registration/calls, commercial fetch services, anti-detect browsers, proxies,
+SERP APIs, storage, dashboards, schedulers, deployment, production runtime,
+contract hardening, source-access boundary change, or ECR/Cleaning/Judgment
+design. Do not use this pack to design ECR schema, Cleaning implementation, or
+Judgment behavior.
+
+## Judgment Spine Evidence Ladder Read Pack
+
+Use this pack when classifying what a Judgment Spine run, case, model answer,
+memo, deck, or proof artifact can claim, or when checking whether a lower-tier
+signal is being overclaimed.
+
+Start with:
+
+- `docs/product/judgment_spine_evidence_ladder_architecture_v0.md`
+- `docs/product/judgment_spine_gate_ownership_map_v0.md` when the work asks
+  which gate owns source identity, packet freeze, no-tools isolation,
+  memorization probe, sealed output, scoring, reveal/calibration, claim
+  classification, closeout, or judgment-quality promotion blockers.
+- `docs/product/judgment_spine_reveal_calibration_owner_contract_v0.md` when
+  the work asks whether reveal/calibration material is absent, reveal-only,
+  qualitative calibration, score-linked calibration, contaminated, or strong
+  enough to satisfy `JSG-08` for a stronger claim.
+- `docs/product/judgment_quality_promotion_operating_model_v0.md` when the work
+  needs to run or plan a case through gates JSG-01 to JSG-10, decide a run's
+  lifecycle state, or check what a partial or by-hand run can claim. This is the
+  conductor: it sequences and verifies gate receipts and never computes judgment
+  quality.
+
+Then open only the controlling source for the stronger claim being considered:
+
+- For buyer-proof claims, open `.agents/workflow-overlay/product-proof.md` and
+  `docs/product/orca_buyer_proof_packet_v0.md`.
+- For judgment-quality, blind-use, fixture-admission, clean no-tools, scoring,
+  probe, or calibration claims, open
+  `docs/research/judgment-spine/harness/v0_14/contestant_no_tools_execution_contract_v0.md`
+  and the specific case/run/probe/scoring/reveal/calibration artifact.
+- For pre-sale manual subscription/chat routing claims, open
+  `docs/decisions/judgment_spine_pre_sale_execution_evidence_tier_policy_v0.md`.
+
+Do not bulk-load all Judgment Spine research, all harness specs, all proof-run
+packets, all review outputs, or all case artifacts by default. Product-Learning
+evidence may guide design and patch priorities, but strict Buyer-Proof or
+Judgment-Quality claims remain not proven until the controlling tier gate is
+satisfied.
 
 ## Expansion Rules
 
