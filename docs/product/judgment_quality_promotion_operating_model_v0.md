@@ -28,21 +28,21 @@ input_hashes:
   AGENTS.md: 5800D6EC863102DC680A6FDB91199337BC8CAC65A4C820FE3F94610B0AFA82A1
   .agents/workflow-overlay/README.md: 40E28238868A423CD43559C1BE5C312E088439E596ECE8AFD25E73835A62A27F
   .agents/workflow-overlay/source-of-truth.md: 7DFBF052A098C0AD77A5598BB6EA4738DA9AD6943D391852DC2E032A173182EF
-  .agents/workflow-overlay/source-loading.md: 68261B8F69ADCF5EB47C79E5D0B6D2D7C5D9401EB78210787343EFB3EB7A125A
+  .agents/workflow-overlay/source-loading.md: 5CE8772563021F02968C76B9FE34D5E136459EFDF9DC92CF9F74077C59932560
   .agents/workflow-overlay/product-proof.md: AD1724202841D616F74494B22E3659D7987CC875BD36BF0F23B12C210E4B19C4
   .agents/workflow-overlay/validation-gates.md: FD7AE96F481733ED7FA5F1DDE252B7CF6A7C5A9053DAC7317795353F003F520F
   docs/product/judgment_spine_evidence_ladder_architecture_v0.md: 79F6696DD50BE3FDCB574FD6AED4FE0761C6335029BFDBE39B51F104F4AD16CF
-  docs/product/judgment_spine_gate_ownership_map_v0.md: C8A3A80FFA84175D072215FDBA6F3E1194139C26C47246DB057D0379365838BF
+  docs/product/judgment_spine_gate_ownership_map_v0.md: A74CD639FBB564916736599F14999E817C40CC5B9E949D4E89933B7075C0F473
   docs/product/judgment_spine_reveal_calibration_owner_contract_v0.md: ED146BEB5767EFDDA3E979AA798CA5CB044A896421872B02FBDF03615E4E6E07
   docs/research/judgment-spine/harness/v0_14/contestant_no_tools_execution_contract_v0.md: 3301224649991811D91B8B5932F0DFF18D3E356CB51979619BDBE3494BC9193C
   docs/research/judgment-spine/harness/v0_14/memorization_probe_protocol.md: 7862F03D0DA8DB6D845DF47FAA7940D89C2B27C8A27204C41744ECD3AC7B4C61
   docs/research/judgment-spine/harness/v0_14/packing_to_harness_foundation_interface_architecture_v3.md: 7291EF5E7C19A3514AE2B0E91D9FDD8917D7C4BFF039726FCD6075E55F73C1A4
   docs/research/judgment-spine/harness/v0_14/phase_1_infrastructure_architecture.md: 0459C21E7083CD9295290170692BE47A85CBCD24B42B9B0C6E9D7ACF29AC850A
   docs/research/judgment-spine/harness/v0_14/band_input_labeling_rubric.md: 0CE6E9584F4F1C4716559A654870AF43EBED3E5D53D3279AB658993B7DE1C2AE
-  docs/workflows/orca_repo_map_v0.md: 3769C464DBA9C1C5BA183370D35B50D4BCBB688C6C3EF5175D80B2900E8C0DE9
+  docs/workflows/orca_repo_map_v0.md: BF5559164431C98C1C6A1DB614B854A99E70FF2C0E63E33D26DDDA5AD3E6802E
   orca-harness/scoring/band_scorer.py: D54DCD2CB34A8158232E1A428F70A1F3F182052529D7BC8E5293D5F21A67E1E3
   orca-harness/runners/run_case.py: F04BABF1EF4BAFE187E83552E3A3066DEBC47CAD92F5186011BD7B2925CE52AD
-branch_or_commit: main @ 6cd8a95b691275db275b6221960f550a57622fc0
+branch_or_commit: main @ dd2d06553b4412416b1e37a28b2faaf2b7683d33
 input_hash_baseline_note: >
   The worktree was heavily dirty when these hashes were computed. Several
   controlling product docs are untracked and several overlay files are

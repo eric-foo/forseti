@@ -1,5 +1,16 @@
 ﻿# Source Of Truth
 
+```yaml
+retrieval_header_version: 1
+artifact_role: Orca overlay authority
+scope: Source hierarchy, conflict rules, doctrine-change propagation, and known source documents.
+use_when:
+  - Resolving Orca source precedence.
+  - Checking whether a document is a known Orca source.
+  - Changing product, architecture, workflow, validation, review, output, or lifecycle doctrine.
+authority_boundary: retrieval_only
+```
+
 ## Current Source Hierarchy
 
 1. Explicit user instruction for the current turn.
@@ -14,6 +25,7 @@
 - Future `agent-workflow` source may own reusable workflow mechanics, not Orca facts.
 - Installed global/user/plugin skills are runtime copies or external tools, not Orca project authority.
 - If a required source is missing, report a visible failure and name the missing file or decision.
+- Source hierarchy is not a read-all list. Use `.agents/workflow-overlay/source-loading.md` and `docs/workflows/orca_repo_map_v0.md` to choose bounded source packs.
 
 ## Doctrine Change Propagation Contract
 
@@ -31,6 +43,19 @@ Use these trigger values:
 - `review_authority`
 - `output_authority`
 - `lifecycle_boundary`
+
+Each `direction_change_propagation` receipt keeps `trigger` as one primary
+trigger for backward compatibility and route clarity. If a source-changing edit
+materially touches additional doctrine dimensions, add `related_triggers` as a
+list using the same trigger vocabulary. `related_triggers` is discovery and
+routing metadata only: it does not replace the primary trigger, reduce the
+required controlling-source update, or reduce downstream surface checks.
+An additional doctrine dimension is material when it changes which downstream
+surface must be checked, changes which future agent route can rely on the
+receipt, or is explicitly identified by a source, review, or receipt as a
+secondary propagation risk. Do not add `related_triggers` for incidental topic
+overlap, examples, quoted vocabulary, or context that does not affect routing
+or downstream checks.
 
 Before claiming completion for doctrine-changing work, update the controlling
 source and check the downstream source-loaded surfaces that could continue to
@@ -55,6 +80,7 @@ Use this receipt shape:
 direction_change_propagation:
   doctrine_changed: "<one sentence>"
   trigger: product_doctrine | architecture_doctrine | workflow_authority | validation_philosophy | review_authority | output_authority | lifecycle_boundary
+  related_triggers: [] # optional discovery/routing metadata; does not reduce required checks
   controlling_sources_updated:
     - "<path>"
   downstream_surfaces_checked:
@@ -75,6 +101,7 @@ completion claim:
 direction_change_propagation_blocker:
   doctrine_changed: "<one sentence>"
   trigger: product_doctrine | architecture_doctrine | workflow_authority | validation_philosophy | review_authority | output_authority | lifecycle_boundary
+  related_triggers: [] # optional discovery/routing metadata; does not reduce required checks
   blocking_surface: "<missing, conflicting, or unchecked path/source>"
   attempted_check: "<what was attempted>"
   allowed_next_step: "<narrow action that would unblock propagation>"
@@ -87,6 +114,76 @@ The receipt or blocker is propagation evidence only. It is not validation,
 readiness, approval, acceptance, proof, implementation authorization, or source
 promotion.
 
+## Direction Change Propagation
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Orca doctrine-change propagation receipts now keep one primary trigger and
+    may add related_triggers for secondary doctrine dimensions that need
+    machine-detectable routing.
+  trigger: workflow_authority
+  related_triggers:
+    - lifecycle_boundary
+  controlling_sources_updated:
+    - .agents/workflow-overlay/source-of-truth.md
+    - .agents/workflow-overlay/source-loading.md
+    - docs/workflows/orca_repo_map_v0.md
+    - docs/product/judgment_spine_gate_ownership_map_v0.md
+  downstream_surfaces_checked:
+    - AGENTS.md
+    - .agents/workflow-overlay/README.md
+    - .agents/workflow-overlay/source-loading.md
+    - docs/workflows/orca_repo_map_v0.md
+    - docs/product/judgment_spine_gate_ownership_map_v0.md
+    - docs/product/judgment_spine_reveal_calibration_owner_contract_v0.md
+    - .agents/workflow-overlay/validation-gates.md
+    - .agents/workflow-overlay/prompt-orchestration.md
+    - .agents/workflow-overlay/communication-style.md
+  intentionally_not_updated:
+    - path: docs/product/judgment_spine_reveal_calibration_owner_contract_v0.md
+      reason: >
+        The owner-contract DCP receipt remains a primary architecture-doctrine
+        change. The concrete lifecycle-audit failure mode was exposed in the
+        gate-map DCP receipt, which now carries related_triggers.
+    - path: .agents/workflow-overlay/validation-gates.md
+      reason: >
+        Validation-gate doctrine still requires a DCP receipt or blocker. This
+        patch changes DCP trigger grammar, not validation-gate pass/fail rules.
+    - path: .agents/workflow-overlay/prompt-orchestration.md
+      reason: >
+        Prompt closeout still delegates doctrine-change propagation to this
+        source-of-truth contract. No prompt output mode or wrapper rule changes.
+    - path: .agents/workflow-overlay/communication-style.md
+      reason: >
+        Response-style guidance still points to DCP receipts or blockers without
+        owning receipt grammar.
+  stale_language_search: >
+    rg -n "related_triggers|additional_trigger|multi-trigger DCP|one trigger|trigger: architecture_doctrine|lifecycle-boundary implications"
+    .agents/workflow-overlay/source-of-truth.md
+    .agents/workflow-overlay/source-loading.md
+    docs/workflows/orca_repo_map_v0.md
+    docs/product/judgment_spine_gate_ownership_map_v0.md
+    docs/product/judgment_spine_reveal_calibration_owner_contract_v0.md
+  stale_language_search_result: >
+    Executed on 2026-06-03 after the AR-01 through AR-03 minor review patch for
+    the DCP primary/related trigger grammar. Hits in source-of-truth are
+    expected trigger vocabulary, related_triggers grammar, field-level comments,
+    threshold guidance, this DCP receipt, and non-claims. Hits in source-loading
+    and repo-map are expected navigation references. Hits in the gate map are
+    expected primary trigger and related_triggers receipt fields. Hits in the
+    owner contract are expected architecture-doctrine primary trigger fields.
+    No hit converted related_triggers into validation, readiness, acceptance,
+    source-of-truth promotion, buyer proof, fixture admission, scoring
+    authorization, model-execution authorization, or judgment-quality evidence.
+  non_claims:
+    - not validation
+    - not readiness
+    - not buyer proof
+    - not judgment-quality evidence
+    - not implementation authorization
+```
+
 ## Known Source Documents
 
 - `README.md`: workspace entrypoint.
@@ -94,10 +191,18 @@ promotion.
 - `CLAUDE.md`: Claude-specific instruction shim; subordinate to `AGENTS.md` and the Orca overlay for Orca project authority.
 - `.agents/workflow-overlay/README.md`: overlay entrypoint.
 - `.agents/workflow-overlay/artifact-roles.md`: Orca artifact role bindings for reusable workflow methods.
+- `.agents/workflow-overlay/source-loading.md`: Orca source-loading budgets, read packs, and context-bloat controls.
+- `.agents/workflow-overlay/retrieval-metadata.md`: Orca retrieval-header contract for durable human-authored workflow artifacts.
 - `.agents/workflow-overlay/prompt-orchestration.md`: Orca prompt artifact, wrapper, preflight, output mode, validation, and rerun bindings.
+- `.agents/workflow-overlay/template-registry.md`: Orca-owned prompt template registry for project-local templates.
+- `.agents/workflow-overlay/product-proof.md`: Orca buyer-proof semantics, trust-objection handling, pull signals, and product-proof non-claims.
 - `.agents/workflow-overlay/communication-style.md`: Orca response style for Chief Architect sequencing, review closeouts, and prompt handoffs.
 - `docs/STRUCTURE.md`: docs-folder usage guide for future agents; subordinate to this overlay if conflicts appear.
 - `docs/workflows/orca_bootstrap_record.md`: Turn 6 bootstrap record.
+- `docs/workflows/orca_repo_map_v0.md`: compact repo map for source-pack selection and prompt setup.
 - `docs/migration/import_queue.md`: read-only import queue state.
 - `docs/decisions/turn_08_product_thesis_v0.md`: current Orca product thesis and value proposition.
+- `docs/product/judgment_spine_evidence_ladder_architecture_v0.md`: Judgment Spine claim-tier architecture for Product-Learning, Buyer-Proof, and Judgment-Quality evidence boundaries.
+- `docs/product/judgment_spine_gate_ownership_map_v0.md`: Judgment Spine gate ownership map for source identity, packet freeze, no-tools isolation, memorization probe, sealed output, scoring, reveal/calibration, classification, and closeout blockers.
+- `docs/product/judgment_spine_reveal_calibration_owner_contract_v0.md`: JSG-08 owner contract for outcome reveal/calibration receipt shape, satisfaction states, scoring relationship, and claim caps.
 - `docs/workflows/turn_08_workflow_bedrock_maximization.md`: docs-first maximization plan for `workflow-deep-thinking`, future `workflow-product-ultraplan`, and future `workflow-feature-ultraplan`.
