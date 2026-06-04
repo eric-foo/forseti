@@ -23,7 +23,7 @@ stale_if:
 - Status: PROPOSED_MAP
 - Artifact type: Workflow navigation artifact
 - Scope: Repo navigation and source-pack selection
-- Refreshed: 2026-06-03
+- Refreshed: 2026-06-04 (Judgment Spine consolidated under a single entry-map pointer)
 - Implementation authorized: no
 
 ## How To Use This Map
@@ -117,7 +117,7 @@ design) remain gated.
 
 Controlling build authority:
 `docs/decisions/data_capture_spine_source_access_tooling_build_authorization_v0.md`
-(source-capture toolbox) and
+(source-capture armory) and
 `docs/decisions/data_capture_spine_source_observability_local_support_implementation_execution_authorization_v0.md`
 (local source-observability support).
 
@@ -138,6 +138,14 @@ Use these before broad product architecture or CA setup:
 | `docs/product/orca_product_lead_first_icp_wedge_decision_v0.md` | Selected first ICP wedge and decision-family focus. |
 | `docs/product/orca_product_proof_lead_charter_v0.md` | Product proof lead role and proof execution boundary. |
 
+## Judgment Spine
+
+The Judgment Spine spans **both** trees — `docs/research/judgment-spine/` (thesis, manifest, cases, harness) and `docs/product/judgment_spine_*` plus the conductor. **Open the consolidation map first**: it is the single `retrieval_only` entry that orients across both trees and routes one hop to every owner. Do not pre-load the owners from here.
+
+| Path | Use for |
+| --- | --- |
+| `docs/research/judgment-spine/judgment_spine_consolidation_map_v0.md` | **Judgment Spine entry map — open first.** Per-area summary, owner-native status, and one pointer for thesis, cases/manifest, conductor, gate ownership, evidence ladder, JSG-08, and the harness; routes to the owners rather than restating them. The path toward judgment-quality evidence, not proof; by-hand runs cap at product-learning. |
+
 ## Core Spine Files
 
 | Path | Use for |
@@ -146,10 +154,6 @@ Use these before broad product architecture or CA setup:
 | `docs/product/core_spine_v0_information_production_foundation_v0.md` | Manual information-production foundation and Evidence Unit standard. |
 | `docs/product/core_spine_v0_data_and_cleaning_spine_boundary_v0.md` | Data Capture/Cleaning/Judgment boundary and Evidence Candidate Record setup context. |
 | `docs/product/core_spine_v0_corroboration_vs_amplification_discipline_v0.md` | Proposed Core Spine design note on placing independent-corroboration vs artificial-amplification discipline across the Cleaning/Judgment boundary; proposed, not validated. |
-| `docs/product/judgment_spine_evidence_ladder_architecture_v0.md` | Judgment Spine claim-tier architecture separating Product-Learning, Buyer-Proof, and Judgment-Quality evidence and promotion gates. |
-| `docs/product/judgment_spine_gate_ownership_map_v0.md` | Case-agnostic Judgment Spine gate ownership map for source identity, packet freeze, no-tools isolation, memorization probe, sealed output, scoring, reveal/calibration, claim classification, and closeout blockers before stronger claims. |
-| `docs/product/judgment_spine_reveal_calibration_owner_contract_v0.md` | Case-agnostic JSG-08 owner contract for reveal-only, qualitative calibration, score-linked calibration, contaminated, or absent outcome reveal/calibration receipts. |
-| `docs/product/judgment_quality_promotion_operating_model_v0.md` | Case-agnostic conductor that sequences Judgment Spine gates JSG-01 to JSG-10 with mechanical receipt predicates, total fail/blocked transitions, a by-hand isolation cap, and named run lifecycle states; routes and verifies receipts, does not compute judgment quality. |
 | `docs/decisions/daimler_advisory_001_claim_tier_classification_decision_v0.md` | Daimler advisory claim-tier classification decision recording the current no-durable-evidence state, required product-learning receipt before any evidence claim, and blocked buyer-proof/judgment-quality claims. |
 | `docs/decisions/data_capture_spine_pressure_test_batch_classification_decision_v0.md` | Commissioner classification for the first N=3 Data Capture pressure-test batch: patchable, not architecture-threatening; docs-only patch planning authorized, not contract hardening or runtime/source-system work. |
 | `docs/decisions/data_capture_spine_post_batch_patch_plan_owner_decision_v0.md` | Owner decision accepting the minor-patched post-batch Data Capture patch plan for downstream docs-only obligation-contract and source-access method patch drafts; not contract hardening or implementation authority. |
@@ -160,10 +164,10 @@ Use these before broad product architecture or CA setup:
 | `docs/product/data_capture_spine_pressure_test_execution_authorization_v0.md` | Owner authorization for the bounded first three-slot Data Capture pressure-test execution batch; not runtime, tooling, or downstream design authorization. |
 | `docs/product/data_capture_spine_pressure_test_all_slot_synthesis_v0.md` | All-slot synthesis of the first Data Capture pressure-test batch; classifies recurring source-observability pressure as patchable on this record and routes the next bounded owner decision, not validation or implementation authority. |
 | `docs/product/data_capture_spine_pressure_test_closeout_synthesis_v0.md` | Closeout synthesis for the first Data Capture pressure-test foundation after Slot 3 recapture and Source Observability support closeout; records the foundation as good enough for bounded next planning, not validation, readiness, contract hardening, or implementation authority. |
-| `docs/product/source_capture_toolbox/README.md` | Product-facing entrypoint and folder convention for the Source Capture Toolbox; indexes controlling authority, component responsibilities, build order, and current gaps without authorizing deferred adapters or downstream-spine design. |
+| `docs/product/source_capture_toolbox/README.md` | Product-facing entrypoint and folder convention for the Source Capture Armory; indexes controlling authority, component responsibilities, build order, and current gaps without authorizing deferred adapters or downstream-spine design. |
 | `docs/decisions/source_capture_packet_fixture_retention_sensitivity_decision_v0.md` | Source Capture Packet lifecycle, retention, durable citation, and sensitivity decision; generated packets remain scratch by default and no named packet is admitted as a fixture by this decision. |
 | `docs/product/source_capture_toolbox/source_quality_state_assembler_v0.md` | Architecture boundary for a read-only Source Quality State Assembler over already-bounded source-quality rows and existing Source Capture Packets; state census only, not source discovery, runner dispatch, source-quality scoring, fixture admission, or Judgment authority. |
-| `docs/product/source_capture_toolbox/source_capture_toolbox_agent_usability_dry_run_closeout_v0.md` | Closeout note for the Canoo/Walmart fresh-agent Source Capture Toolbox dry run; records agent-usability signal, runbook lessons, and the distinction between toolbox usability and source-quality improvement. |
+| `docs/product/source_capture_toolbox/source_capture_toolbox_agent_usability_dry_run_closeout_v0.md` | Closeout note for the Canoo/Walmart fresh-agent Source Capture Armory dry run; records agent-usability signal, runbook lessons, and the distinction between armory usability and source-quality improvement. |
 | `docs/decisions/data_capture_spine_source_access_tooling_build_authorization_v0.md` | Owner authorization for bounded first-tranche Data Capture source-access tooling builds: Source Capture Packet core/CLI, direct HTTP, media/asset preservation, Archive.org availability/body retrieval, and honest browser snapshot support; not API, commercial fetch, anti-detect, proxy, production runtime, ECR, Cleaning, or Judgment authorization. |
 | `docs/decisions/data_capture_spine_source_observability_scoping_authorization_v0.md` | Owner authorization for one bounded docs-only source-observability requirements scoping lane after the all-slot pressure-test synthesis; not source-access implementation, runtime/tooling, contract hardening, or downstream ECR/Cleaning/Judgment design. |
 | `docs/product/data_capture_spine_source_observability_requirements_scoping_v0.md` | Candidate source-observability requirements and owner-decision queue from the all-slot pressure-test batch; decision input only, not implementation authority or governing doctrine. |
@@ -280,17 +284,10 @@ pending hygiene triage.
 | Path | Use for |
 | --- | --- |
 | `docs/research/consulting-judgment-corpus/` | Consulting-judgment corpus, prompts, lane outputs, synthesis, candidate screens, backtestability, and reject patterns. |
-| `docs/research/judgment-spine/` | Judgment Spine parent contract, manifest, three case tracks (Milwaukee, Unity, Canoo/Walmart), harness specs, and case-learning artifacts for consultant-grade decision judgment. |
-| `docs/research/judgment-spine/manifest_v0.md` | Authoritative Judgment Spine case inventory and per-artifact status; open first for case selection. Indexes cases as Tier 0 — not validated, scored, or buyer-proof. |
-| `docs/research/judgment-spine/cases/` | The three Tier 0 case tracks (Milwaukee, Unity Runtime Fee, Canoo/Walmart) at qualitative case-learning capture; see the manifest for per-case artifact status. Not scoreable fixtures, repeatability, or judgment-quality proof. |
+| `docs/research/judgment-spine/` | Judgment Spine corpus (parent contract, manifest, case tracks, harness, case-learning). **Open the consolidation map first** — see the Judgment Spine section above; it routes to every owner across both trees instead of enumerating them here. |
 | `docs/research/daimler_advisory_001_source_registry_v0.md` | Manual Daimler source-unit registry separating participant-safe candidates, date ambiguity, missing evidence, and reveal-only material before any packet rebuild or judgment-quality claim. |
 | `docs/research/packing-phase/` | Boundary note for decision-packet construction between cleaned evidence and Judgment Harness inputs. |
-| `docs/research/judgment-spine/judgment_spine_thesis_v0.md` | Long-term Judgment Spine optimization thesis; open before CA setup, harness changes, or lesson-promotion decisions. |
-| `docs/research/judgment-spine/judgment_spine_thesis_operating_contract_v0.md` | Operating contract for consuming, protecting, and applying the Judgment Spine thesis; open after the thesis before future Judgment Spine prompts, harness changes, case additions, or lesson-promotion decisions. |
 | `docs/decisions/judgment_spine_pre_sale_execution_evidence_tier_policy_v0.md` | Decision record on pre-sale Judgment Spine model-execution evidence tiers (subscription/manual/chat default; raw API/harness as optional gate-bearing plumbing) and how to read no-case smoke-test / raw-API runner artifacts relative to buyer proof. |
-| `docs/research/judgment-spine/harness/v0_14/` | Working v0.14 Judgment Harness spec: schemas, scoring, runner contracts, case construction, memorization probe, and failure logging. |
-| `docs/research/judgment-spine/harness/v0_14/fixtures/` | Draft docs-only v0.14 fixture packs (Unity, Canoo/Walmart); blocked before scoring — not probe-safe, score-ready, validation, or proof. |
-| `docs/research/judgment-spine/harness/adjacent-context/` | Side-context index for related Orca judgment/evidence/layer-boundary material; not controlling v0.14 spec authority. |
 | `docs/review-outputs/` (root) | Flat collection of harness implementation/code-review outputs (source-capture adapters, source-observability helper, no-tools probe and execution-foundation); advisory findings only, co-located at the folder root rather than a typed subfolder. |
 | `docs/review-outputs/adversarial-artifact-reviews/` | Adversarial artifact review reports, including the Daimler advisory and Canoo/Walmart Judgment Spine fixture-review families. |
 | `docs/review-outputs/method-validation/` | Method-validation review outputs. |
@@ -356,12 +353,12 @@ Start with:
 - `docs/product/data_capture_spine_pressure_test_execution_authorization_v0.md`
 - `docs/product/data_capture_spine_pressure_test_all_slot_synthesis_v0.md` and `docs/review-outputs/adversarial-artifact-reviews/data_capture_spine_pressure_test_all_slot_synthesis_blast_radius_recheck_v0.md` when routing from the completed all-slot pressure-test batch to the next source-observability decision.
 - `docs/product/data_capture_spine_pressure_test_closeout_synthesis_v0.md` when checking the current closeout checkpoint for the first Data Capture pressure-test foundation after Slot 3 recapture and Source Observability support closeout.
-- `docs/product/source_capture_toolbox/README.md` when orienting the first-tranche Source Capture Toolbox, checking component responsibilities, or finding current toolbox gaps.
+- `docs/product/source_capture_toolbox/README.md` when orienting the first-tranche Source Capture Armory, checking component responsibilities, or finding current armory gaps.
 - `docs/decisions/source_capture_packet_fixture_retention_sensitivity_decision_v0.md` when checking whether generated Source Capture Packets remain scratch, may be cited by durable closeouts, require retention/sensitivity handling, or require a cited separate admission decision before `separately_admitted` can be used.
 - `docs/product/source_capture_toolbox/source_quality_state_assembler_v0.md` when checking the architecture boundary for assembling multiple already-bounded source-quality rows and existing Source Capture Packets into a state census.
-- `docs/product/source_capture_toolbox/source_capture_toolbox_agent_usability_dry_run_closeout_v0.md` when checking whether the current toolbox is agent-usable from a fresh-agent dry run, what runbook lessons were patched, or how to distinguish the dry run from a source-quality win.
+- `docs/product/source_capture_toolbox/source_capture_toolbox_agent_usability_dry_run_closeout_v0.md` when checking whether the current armory is agent-usable from a fresh-agent dry run, what runbook lessons were patched, or how to distinguish the dry run from a source-quality win.
 - `docs/decisions/data_capture_spine_source_access_tooling_build_authorization_v0.md` when checking whether bounded first-tranche source-access tooling builds are authorized and where API/commercial/anti-detect/proxy/runtime surfaces remain gated.
-- `orca-harness/source_capture/` (see the Orca Harness section) when the task needs the actual bounded capture implementation, adapters, or CLI runners rather than the toolbox contract.
+- `orca-harness/source_capture/` (see the Orca Harness section) when the task needs the actual bounded capture implementation, adapters, or CLI runners rather than the armory contract.
 - `docs/decisions/data_capture_spine_source_observability_scoping_authorization_v0.md` when checking whether bounded docs-only source-observability requirements scoping is authorized.
 - `docs/product/data_capture_spine_source_observability_requirements_scoping_v0.md` when reviewing candidate source-observability requirements or routing their next owner decision.
 - `docs/decisions/data_capture_spine_source_observability_requirements_boundary_decision_v0.md` when checking current RQ status after Slot 3 recapture or deciding whether the older scoping artifact is stale-alone.
@@ -418,9 +415,10 @@ Start with:
 
 - `docs/product/core_spine_v0_product_contract.md`
 - `docs/product/core_spine_v0_information_production_foundation_v0.md`
+- **Open `docs/research/judgment-spine/judgment_spine_consolidation_map_v0.md` first** for any Judgment Spine work; it routes to the ladder, gate ownership map, conductor, and JSG-08 owner contract below.
 - `docs/product/judgment_spine_evidence_ladder_architecture_v0.md` when the work classifies Judgment Spine claim tier, proof tier, buyer-proof boundary, or judgment-quality boundary.
 - `docs/product/judgment_spine_gate_ownership_map_v0.md` when the work needs to route or block Judgment Spine gate ownership before claim promotion.
-- `docs/product/judgment_quality_promotion_operating_model_v0.md` when the work needs to run or plan a case through gates JSG-01 to JSG-10, decide a run lifecycle state, or check what a partial or by-hand run can claim.
+- `docs/product/judgment_quality_promotion_operating_model_v0.md` — **the Judgment Spine conductor; open this FIRST for the judgment run lane** (running or planning any case through gates JSG-01 to JSG-10). It sequences the gates and routes to the evidence ladder, gate ownership map, and JSG-08 owner contract rather than restating them; use it to decide a run lifecycle state or check what a partial or by-hand run can claim. It is the path toward judgment-quality evidence, not proof — by-hand runs cap at product-learning.
 - `docs/product/engagement_logic_registry_v0.md`
 - nearest boundary or proof artifact named by the request.
 
