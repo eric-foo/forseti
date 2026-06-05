@@ -435,6 +435,10 @@ signal is being overclaimed.
 
 Start with:
 
+- `docs/research/judgment-spine/judgment_spine_consolidation_map_v0.md` for
+  orientation across Judgment Spine product docs, research docs, cases,
+  manifest, conductor, gate ownership, evidence ladder, JSG-08, and harness
+  surfaces without bulk-loading the corpus.
 - `docs/product/judgment_spine_evidence_ladder_architecture_v0.md`
 - `docs/product/judgment_spine_gate_ownership_map_v0.md` when the work asks
   which gate owns source identity, packet freeze, no-tools isolation,

@@ -12,11 +12,13 @@ authority_boundary: retrieval_only
 open_next:
   - docs/product/source_capture_toolbox/README.md
   - docs/decisions/data_capture_spine_source_access_tooling_build_authorization_v0.md
+  - docs/product/data_capture_harness_operating_model_architecture_v2_acceptance_decision_v0.md
 stale_if:
   - The source-access tooling authorization changes build tranches, selected backend, or Reddit ordering.
   - The Source Capture Armory README changes component status, runner set, or gap list.
   - The Data Capture obligation contract changes capture obligations or forbidden outputs.
   - Source Capture Packet lifecycle, retention, or fixture-admission rules move to a new owner.
+  - Data Capture operating-model, obligation-baseline, lane-thesis, or commissioning-plan ownership moves.
 ```
 
 > **What this is.** A retrieval map. It tells a cold reader which owner source
@@ -35,6 +37,7 @@ stale_if:
 | Check whether a source-access build or backend is authorized | `docs/decisions/data_capture_spine_source_access_tooling_build_authorization_v0.md` |
 | Check source-access boundary / hard stops | `docs/product/data_capture_source_access_boundary_decision_v0.md` |
 | Compare source-access methods and Reddit ordering | `docs/product/data_capture_source_access_method_plan_v0.md` |
+| Check operating-model / commissioning-plan authority | `docs/product/data_capture_harness_operating_model_architecture_v2_acceptance_decision_v0.md`, then `docs/product/data_capture_harness_operating_model_architecture_v2.md` or `docs/product/data_capture_spine_pressure_test_commissioning_plan_v0.md` as needed |
 | Plan bounded pre-commercial Reddit capture/consolidation | `docs/product/source_capture_toolbox/reddit_precommercial_capture_consolidation_planning_thread_v0.md` |
 | Check Capture obligations / forbidden outputs | `docs/product/core_spine_v0_data_capture_spine_obligation_contract_v0.md` |
 | Check packet lifecycle, retention, sensitivity, or fixture movement | `docs/decisions/source_capture_packet_fixture_retention_sensitivity_decision_v0.md` |
@@ -96,6 +99,19 @@ stale_if:
 - summary: Candidate methods, source-family recommendations, Reddit `.json`
   posture, old Reddit HTML preference, BeautifulSoup parser position.
 - owner: `docs/product/data_capture_source_access_method_plan_v0.md`
+
+### Operating model / commissioning
+
+- summary: Owner-accepted v2 Data Capture operating-model architecture,
+  obligation baseline, lane thesis, and bounded pressure-test commissioning
+  plan. These are pressure-test planning authorities, not validation,
+  hardening, product readiness, runtime, ECR, Cleaning, or Judgment design.
+- owners: `docs/product/data_capture_harness_operating_model_architecture_v2_acceptance_decision_v0.md`,
+  `docs/product/data_capture_harness_operating_model_architecture_v2.md`,
+  `docs/product/data_capture_harness_product_goal_direction_signal_decision_v0.md`,
+  `docs/product/data_capture_obligation_baseline_decision_v0.md`,
+  `docs/product/data_capture_spine_lane_product_thesis_v0.md`,
+  `docs/product/data_capture_spine_pressure_test_commissioning_plan_v0.md`
 
 ### Reddit pre-commercial planning thread
 

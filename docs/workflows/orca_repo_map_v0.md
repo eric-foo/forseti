@@ -23,7 +23,7 @@ stale_if:
 - Status: PROPOSED_MAP
 - Artifact type: Workflow navigation artifact
 - Scope: Repo navigation and source-pack selection
-- Refreshed: 2026-06-05 (Data Capture Spine consolidated under a single entry-map pointer)
+- Refreshed: 2026-06-05 (repo-map/submap hygiene: Data Capture detail routed through its submap; Judgment source-loading routed through its submap)
 - Implementation authorized: no
 
 ## How To Use This Map
@@ -91,6 +91,8 @@ propagation evidence.
 | --- | --- |
 | `docs/workflows/artifact_retrievability_guide.md` | Operational guidance for durable artifact headers, body-opening source surfaces, stale/recheck patterns, repo-map/index treatment, report-only retrieval checks, and hygiene anti-rot. |
 | `docs/workflows/orca_repo_map_v0.md` | Compact navigation map for bounded source-pack selection and prompt setup. |
+| `docs/workflows/data_capture_spine_consolidation_map_v0.md` | Data Capture Spine / Source Capture Armory submap. Open before enumerating capture owner docs. |
+| `docs/research/judgment-spine/judgment_spine_consolidation_map_v0.md` | Judgment Spine submap. Open before enumerating Judgment owners across `docs/research/judgment-spine/` and `docs/product/judgment_spine_*`. |
 
 ## Orca Harness
 
@@ -168,64 +170,23 @@ the owner sources. Do not pre-load all capture artifacts from this map.
 | `docs/product/core_spine_v0_data_and_cleaning_spine_boundary_v0.md` | Data Capture/Cleaning/Judgment boundary and Evidence Candidate Record setup context. |
 | `docs/product/core_spine_v0_corroboration_vs_amplification_discipline_v0.md` | Proposed Core Spine design note on placing independent-corroboration vs artificial-amplification discipline across the Cleaning/Judgment boundary; proposed, not validated. |
 | `docs/decisions/daimler_advisory_001_claim_tier_classification_decision_v0.md` | Daimler advisory claim-tier classification decision recording the current no-durable-evidence state, required product-learning receipt before any evidence claim, and blocked buyer-proof/judgment-quality claims. |
-| `docs/decisions/data_capture_spine_pressure_test_batch_classification_decision_v0.md` | Commissioner classification for the first N=3 Data Capture pressure-test batch: patchable, not architecture-threatening; docs-only patch planning authorized, not contract hardening or runtime/source-system work. |
-| `docs/decisions/data_capture_spine_post_batch_patch_plan_owner_decision_v0.md` | Owner decision accepting the minor-patched post-batch Data Capture patch plan for downstream docs-only obligation-contract and source-access method patch drafts; not contract hardening or implementation authority. |
-| `docs/product/data_capture_spine_post_batch_patch_plan_v0.md` | Docs-only post-batch Data Capture patch plan sequencing contract candidates, source-access refinements, MSP next gate, checker refinements, and owner gate; accepted by owner decision for downstream docs-only patch drafts, not direct contract hardening authority. |
-| `docs/product/data_capture_spine_obligation_contract_patch_proposal_v0.md` | Docs-only obligation-contract patch proposal for discharge vocabulary, Obligation #6, Obligation #16, and checker-adjacent wording after the N=3 pressure-test batch; patched after adversarial review for owner-decision input, not contract amendment. |
-| `docs/decisions/data_capture_spine_obligation_contract_patch_proposal_owner_decision_v0.md` | Owner decision that accepted PCP-01 through PCP-08 for bounded Data Capture obligation-contract amendment drafting; now consumed by the amended controlling obligation contract; not runtime/source-system authorization. |
-| `docs/product/data_capture_spine_intake_surface_consolidation_v0.md` | Accepted bounded pressure-test target for Raw Capture, optional Mechanical Source Projection, categorical ECR receipt, and Cleaning handoff. |
-| `docs/product/data_capture_spine_pressure_test_execution_authorization_v0.md` | Owner authorization for the bounded first three-slot Data Capture pressure-test execution batch; not runtime, tooling, or downstream design authorization. |
-| `docs/product/data_capture_spine_pressure_test_all_slot_synthesis_v0.md` | All-slot synthesis of the first Data Capture pressure-test batch; classifies recurring source-observability pressure as patchable on this record and routes the next bounded owner decision, not validation or implementation authority. |
-| `docs/product/data_capture_spine_pressure_test_closeout_synthesis_v0.md` | Closeout synthesis for the first Data Capture pressure-test foundation after Slot 3 recapture and Source Observability support closeout; records the foundation as good enough for bounded next planning, not validation, readiness, contract hardening, or implementation authority. |
-| `docs/product/source_capture_toolbox/README.md` | Product-facing entrypoint and folder convention for the Source Capture Armory; indexes controlling authority, component responsibilities, build order, current gaps, and selected CloakBrowser anti-blocking route without authorizing downstream-spine design. |
-| `docs/decisions/source_capture_packet_fixture_retention_sensitivity_decision_v0.md` | Source Capture Packet lifecycle, retention, durable citation, and sensitivity decision; generated packets remain scratch by default and no named packet is admitted as a fixture by this decision. |
-| `docs/product/source_capture_toolbox/source_quality_state_assembler_v0.md` | Architecture boundary for a read-only Source Quality State Assembler over already-bounded source-quality rows and existing Source Capture Packets; state census only, not source discovery, runner dispatch, source-quality scoring, fixture admission, or Judgment authority. |
-| `docs/product/source_capture_toolbox/source_capture_toolbox_agent_usability_dry_run_closeout_v0.md` | Closeout note for the Canoo/Walmart fresh-agent Source Capture Armory dry run; records agent-usability signal, runbook lessons, and the distinction between armory usability and source-quality improvement. |
-| `docs/decisions/data_capture_spine_source_access_tooling_build_authorization_v0.md` | Owner authorization for bounded Data Capture source-access tooling builds: first-tranche packet/HTTP/media/archive/honest-browser support, second-tranche Reddit API and owner-named adapters, third-tranche anti-blocking/proxy/JS-challenge support, and CloakBrowser-first anti-blocking selection; not commercial fetch, broad crawling, storage/dashboard/deployment/production runtime, ECR, Cleaning, or Judgment authorization. |
-| `docs/decisions/data_capture_spine_source_observability_scoping_authorization_v0.md` | Owner authorization for one bounded docs-only source-observability requirements scoping lane after the all-slot pressure-test synthesis; not source-access implementation, runtime/tooling, contract hardening, or downstream ECR/Cleaning/Judgment design. |
-| `docs/product/data_capture_spine_source_observability_requirements_scoping_v0.md` | Candidate source-observability requirements and owner-decision queue from the all-slot pressure-test batch; decision input only, not implementation authority or governing doctrine. |
-| `docs/decisions/data_capture_spine_source_observability_requirements_boundary_decision_v0.md` | Current post-Slot-3-recapture Source Observability requirements boundary decision: RQ-01/RQ-03/RQ-05 carry forward, RQ-02 is split, RQ-04 remains deferred candidate context; not implementation or source-access method authority. |
-| `docs/decisions/data_capture_spine_source_observability_requirements_support_implementation_scoping_authorization_v0.md` | Owner authorization for one bounded implementation-scoping lane for post-Slot-3-recapture Source Observability requirements support: RQ-01/RQ-03/RQ-05 plus RQ-02 visibility-only; not implementation execution, RQ-04/source-access handling, method-plan amendment, or contract hardening. |
-| `docs/decisions/data_capture_spine_source_observability_local_support_implementation_scoping_authorization_v0.md` | Owner authorization for one bounded implementation-scoping lane for local source-observability support; not implementation execution, source-access method work, archive/media retrieval, contract hardening, or downstream ECR/Cleaning/Judgment design. |
-| `docs/decisions/data_capture_spine_source_observability_local_support_implementation_execution_authorization_v0.md` | Owner authorization and durable trace for bounded local source-observability support implementation execution; limited to operator-record model/checker/report runner/docs/tests, not source acquisition, archive/media retrieval, browser automation, contract hardening, or downstream ECR/Cleaning/Judgment design. |
-| `docs/decisions/data_capture_spine_source_observability_support_closeout_decision_v0.md` | Closeout decision that the updated local source-observability helper was sufficient for the current post-recapture Slot 3 support use case without schema or code expansion; leaves only a later candidate helper-semantics vocabulary patch if repeated friction recurs. |
-| `docs/product/data_capture_spine_pressure_test_slot3_reddit_subbatch_control_note_v0.md` | Slot 3 Reddit sub-batch control note recording Reddit batch checker outcomes, source-language-anchor capture lesson, visible media/cutoff limitations, and the open WSO-run versus WSO-defer decision before cross-venue synthesis. |
-| `docs/product/data_capture_spine_pressure_test_slot3_combined_handoff_v0.md` | Combined first-pass Slot 3 Reddit + WSO Data Capture handoff posture; categorical ECR handoff with visible venue-specific limitations, not pressure-test discharge. |
-| `docs/product/data_capture_source_access_boundary_decision_v0.md` | Current Data Capture source-access boundary: discoverable-or-entitled, free/account-created access allowed, paid/client/coworker entitlement allowed, obvious spillover excluded once noticed, and hard-stop exclusions. |
-| `docs/product/data_capture_source_access_method_plan_v0.md` | Source-access method plan under the current boundary; first-tranche build authority is separate and bounded by `docs/decisions/data_capture_spine_source_access_tooling_build_authorization_v0.md`. |
-| `docs/product/core_spine_v0_data_capture_spine_architecture_blueprint_v0.md` | Data Capture Spine architecture blueprint for commissioned capture, core/satellite boundary, and rejected patterns. |
-| `docs/product/core_spine_v0_data_capture_spine_obligation_contract_v0.md` | Amended draft Data Capture Spine v0 obligation contract for setup and pressure testing, now operationalizing PCP-01 through PCP-08. |
-| `docs/product/core_spine_v0_data_capture_spine_remaining_fixture_plan_v0.md` | Planning-only fixture architecture for remaining Data Capture pressure tests and stop condition. |
-| `docs/product/core_spine_v0_data_capture_spine_pressure_test_synthesis_usage_note_v0.md` | Navigation and status-use note for the Data Capture pressure-test synthesis after optional adversarial clarifications. |
-| `docs/product/core_spine_v0_data_capture_spine_full_fixture_synthesis_v0.md` | Full Data Capture pressure-test synthesis across planned fixtures; advisory baseline candidate, not acceptance or completion. |
-| `docs/product/core_spine_v0_data_capture_context_preservation_note_v0.md` | Context-preservation note for threaded, review, docs/changelog, domain-language, human-assisted, and archive/history capture. |
-| `docs/product/core_spine_v0_data_capture_spine_pressure_test_threaded_forum_reddit_api_pricing_v0.md` | Data Capture pressure fixture for threaded forum and package/segmentation capture using Reddit API/data pricing. |
-| `docs/product/core_spine_v0_data_capture_spine_pressure_test_public_sector_package_milwaukee_fiscal_crossroads_v0.md` | Data Capture pressure fixture for public-sector package/bundle capture using Milwaukee fiscal-crossroads material. |
-| `docs/product/core_spine_v0_data_capture_spine_pressure_test_review_surface_v0.md` | Data Capture pressure fixture for review-surface capture using ClickUp Trustpilot/G2 material. |
-| `docs/product/core_spine_v0_data_capture_spine_pressure_test_docs_changelog_versioned_page_v0.md` | Data Capture pressure fixture for docs/changelog/versioned-page capture using Kubernetes v1.32 docs. |
-| `docs/product/core_spine_v0_data_capture_spine_pressure_test_archive_history_recapture_v0.md` | Data Capture pressure fixture for archive/history and recapture using Unity Runtime Fee material. |
 | `docs/product/engagement_logic_registry_v0.md` | Signal-use and engagement interpretation registry. |
 | `docs/product/core_spine_v0_proof_protocol_v0.md` | Core proof protocol. |
 | `docs/product/core_spine_v0_proof_input_selection_v0.md` | Proof input-selection rules. |
 | `docs/product/core_spine_v0_proof_packet_preflight_v0.md` | Proof packet preflight. |
 | `docs/product/core_spine_v0_proof_case_selection_brief_v0.md` | Early proof case-selection brief; status BLOCKED_OWNER_CANDIDATES_NEEDED. For current case/backtest selection see the heavyweight discovery pass (`docs/product/core_spine_v0_heavyweight_proof_case_discovery_results_v0.md` and `..._results_part_2_v0.md`), which produced the candidates the brief was blocked on. |
 
+For Data Capture / Source Capture Armory detail, open
+`docs/workflows/data_capture_spine_consolidation_map_v0.md`; this repo map
+intentionally does not duplicate the owner-doc inventory.
+
 ## Data Capture Harness Operating Model
 
-Accepted design direction for how commissioned Data Capture should operate.
-Retrieval/navigation context only; "accepted" here means owner-accepted for
-bounded pressure-test commissioning planning, not validated, hardened, or
-product-ready. v0 and v1 of the operating-model architecture are superseded by
-v2 — do not load them as current.
-
-| Path | Use for |
-| --- | --- |
-| `docs/product/data_capture_harness_operating_model_architecture_v2.md` | Proposed v2 hybrid operating-model architecture (roles, session lifecycle, obligation-discharge visibility, handoff boundaries); resolves the v0/v1 review findings. Not ECR/Cleaning/Judgment/runtime design. |
-| `docs/product/data_capture_harness_operating_model_architecture_v2_acceptance_decision_v0.md` | Owner acceptance of v2 as the controlling operating-model architecture for pressure-test commissioning planning only; explicitly not validation, hardening, or product readiness. |
-| `docs/product/data_capture_harness_product_goal_direction_signal_decision_v0.md` | Accepted decision demoting the current manual harness + BT2-04 dry run to a direction signal and stating the goal for a buyer-trustworthy, obligation-discharging, inspectable harness. |
-| `docs/product/data_capture_obligation_baseline_decision_v0.md` | Accepted Data Capture obligation baseline underpinning the v2 operating-model architecture; not validation, hardening, or product readiness. |
-| `docs/product/data_capture_spine_lane_product_thesis_v0.md` | Data Capture Spine lane product thesis built on the v2 operating model; states lane purpose and boundaries without designing ECR/Cleaning/Judgment or authorizing runtime. |
-| `docs/product/data_capture_spine_pressure_test_commissioning_plan_v0.md` | Bounded commissioning plan for three real Data Capture pressure tests against the accepted intake surface, v2 architecture, and current obligation contract; states what the tests expose and exclude. |
+Route Data Capture operating-model and commissioning-plan questions through
+`docs/workflows/data_capture_spine_consolidation_map_v0.md` first. That submap
+owns the one-hop pointers to v2 operating-model architecture, owner acceptance,
+obligation baseline, lane thesis, and commissioning plan. This repo map does
+not duplicate that inventory.
 
 ## Method Validation And Replay Files
 
@@ -361,57 +322,16 @@ implementation-ready, runtime-ready, or Cleaning-complete.
 
 Start with:
 
-- `docs/decisions/data_capture_spine_pressure_test_batch_classification_decision_v0.md`
-- `docs/product/data_capture_spine_intake_surface_consolidation_v0.md`
-- `docs/product/data_capture_spine_pressure_test_execution_authorization_v0.md`
-- `docs/product/data_capture_spine_pressure_test_all_slot_synthesis_v0.md` and `docs/review-outputs/adversarial-artifact-reviews/data_capture_spine_pressure_test_all_slot_synthesis_blast_radius_recheck_v0.md` when routing from the completed all-slot pressure-test batch to the next source-observability decision.
-- `docs/product/data_capture_spine_pressure_test_closeout_synthesis_v0.md` when checking the current closeout checkpoint for the first Data Capture pressure-test foundation after Slot 3 recapture and Source Observability support closeout.
-- `docs/workflows/data_capture_spine_consolidation_map_v0.md` first when orienting any Data Capture Spine / Source Capture Armory task; it routes one hop to the owner sources and prevents capture-artifact bulk loading.
-- `docs/product/source_capture_toolbox/README.md` when the Data Capture Spine map routes you to the bounded Source Capture Armory for component responsibilities, selected anti-blocking backend, or current armory gaps.
-- `docs/decisions/source_capture_packet_fixture_retention_sensitivity_decision_v0.md` when checking whether generated Source Capture Packets remain scratch, may be cited by durable closeouts, require retention/sensitivity handling, or require a cited separate admission decision before `separately_admitted` can be used.
-- `docs/product/source_capture_toolbox/source_quality_state_assembler_v0.md` when checking the architecture boundary for assembling multiple already-bounded source-quality rows and existing Source Capture Packets into a state census.
-- `docs/product/source_capture_toolbox/source_capture_toolbox_agent_usability_dry_run_closeout_v0.md` when checking whether the current armory is agent-usable from a fresh-agent dry run, what runbook lessons were patched, or how to distinguish the dry run from a source-quality win.
-- `docs/decisions/data_capture_spine_source_access_tooling_build_authorization_v0.md` when checking whether bounded source-access tooling builds are authorized, including Reddit API, CloakBrowser anti-blocking, proxy/JS-challenge support, and where commercial fetch / broad crawling / runtime surfaces remain gated.
-- `orca-harness/source_capture/` (see the Orca Harness section) when the task needs the actual bounded capture implementation, adapters, or CLI runners rather than the armory contract.
-- `docs/decisions/data_capture_spine_source_observability_scoping_authorization_v0.md` when checking whether bounded docs-only source-observability requirements scoping is authorized.
-- `docs/product/data_capture_spine_source_observability_requirements_scoping_v0.md` when reviewing candidate source-observability requirements or routing their next owner decision.
-- `docs/decisions/data_capture_spine_source_observability_requirements_boundary_decision_v0.md` when checking current RQ status after Slot 3 recapture or deciding whether the older scoping artifact is stale-alone.
-- `docs/decisions/data_capture_spine_source_observability_requirements_support_implementation_scoping_authorization_v0.md` when checking whether bounded implementation scoping is authorized from the post-recapture requirements boundary.
-- `docs/decisions/data_capture_spine_source_observability_local_support_implementation_scoping_authorization_v0.md` when checking whether bounded local source-observability support implementation scoping is authorized.
-- `docs/decisions/data_capture_spine_source_observability_local_support_implementation_execution_authorization_v0.md` when checking whether bounded local source-observability support implementation execution was authorized and how far it extends.
-- `docs/decisions/data_capture_spine_source_observability_support_closeout_decision_v0.md` when checking whether the updated local helper was sufficient for current post-recapture Slot 3 support or whether any helper patch remains open.
-- `docs/product/data_capture_spine_pressure_test_slot3_reddit_subbatch_control_note_v0.md` when continuing Slot 3 WSO/non-Reddit capture or cross-venue Slot 3 synthesis.
-- `docs/product/data_capture_spine_pressure_test_slot3_interim_evidence_synthesis_v0.md` and `docs/product/data_capture_spine_pressure_test_all_slot_synthesis_post_slot3_recapture_delta_v0.md` (with `docs/decisions/data_capture_spine_post_slot3_recapture_delta_lane_local_acceptance_decision_v0.md`) when checking Slot 3 interim synthesis or the reviewed post-recapture delta against the all-slot synthesis.
-- Per-slot capture-session records (`docs/product/data_capture_spine_pressure_test_slot1_mi_biws_capture_session_v0.md`, `..._slot2_teal_...`, `..._slot3_reddit_...`, `..._slot3_wso_...`, and the Reddit batch 1of2/2of2 sessions) are execution detail — open a specific one only to inspect what that slot captured; they do not harden the obligation contract.
-- `docs/product/core_spine_v0_data_capture_spine_pressure_test_synthesis_usage_note_v0.md`
-- `docs/product/core_spine_v0_data_capture_spine_obligation_contract_v0.md`
-- `docs/product/core_spine_v0_data_capture_spine_full_fixture_synthesis_v0.md`
-- `docs/review-outputs/adversarial-artifact-reviews/core_spine_v0_data_capture_spine_full_fixture_synthesis_adversarial_review_v0.md`
-- `docs/product/core_spine_v0_data_capture_spine_remaining_fixture_plan_v0.md`
-- `docs/product/core_spine_v0_data_capture_context_preservation_note_v0.md`
-- `docs/product/core_spine_v0_data_capture_spine_architecture_blueprint_v0.md`
-- `docs/product/core_spine_v0_data_capture_spine_pressure_test_threaded_forum_reddit_api_pricing_v0.md`
-- `docs/product/core_spine_v0_data_capture_spine_pressure_test_public_sector_package_milwaukee_fiscal_crossroads_v0.md`
-- `docs/product/core_spine_v0_data_capture_spine_pressure_test_review_surface_v0.md`
-- `docs/product/core_spine_v0_data_capture_spine_pressure_test_docs_changelog_versioned_page_v0.md`
-- `docs/product/core_spine_v0_data_capture_spine_pressure_test_archive_history_recapture_v0.md`
+- `docs/workflows/data_capture_spine_consolidation_map_v0.md` for orientation.
+- `.agents/workflow-overlay/source-loading.md#data-capture-intake-surface--msp-pressure-test-target-pack` for the canonical pressure-test read-pack rule.
 
-Current pressure-test or setup handoffs should pin a freshly computed hash of
-the obligation contract. The last reported working hash for the contract was
-`B06BD6722F76D223E7A122B7F97B967431BDEEE5D4E41AD6DCCEF81903DAC8C5`, but
-receiving lanes should recompute it before strict source-pinning claims.
+Then open only the controlling owner doc named by the submap or source-loading
+pack for the current claim. Do not bulk-load all capture sessions, historical
+fixture files, review outputs, or Source Capture Armory docs from this repo map.
 
-Current post-clarification synthesis hash was last reported as
-`46103142927A7EA7A4B61F10E0EF029614814F36438F4359C4B69B838E6C6126`. The
-pressure-test synthesis usage note hash was last reported as
-`7A5C5B26AA6F95C99428D7C7EB5014FD172E47DF57BFC2D92C68A1994DECAE29`. Recompute
-before strict claims.
-
-Note: older fixture headers and the adversarial review may reference earlier
-synthesis or contract hashes. Treat those as historical provenance unless the
-receiving lane is explicitly reviewing that older state. The adversarial review
-is useful for rationale and optional clarification findings, but it reviewed
-the pre-clarification synthesis hash recorded inside that report.
+For strict source-pinning claims, compute fresh hashes from the current target
+files. Do not rely on historical hashes recorded in older prompts, reviews, or
+map versions unless the task is explicitly reviewing that older state.
 
 ### Offer Or Buyer Proof Work
 

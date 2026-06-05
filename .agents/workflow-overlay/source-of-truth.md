@@ -251,6 +251,58 @@ direction_change_propagation:
     - not skill adoption
 ```
 
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Orca repo-map routing now keeps the main repo map thin and routes Data
+    Capture and Judgment owner inventories through their consolidation submaps.
+  trigger: workflow_authority
+  related_triggers:
+    - output_authority
+  controlling_sources_updated:
+    - docs/workflows/orca_repo_map_v0.md
+    - docs/workflows/data_capture_spine_consolidation_map_v0.md
+    - .agents/workflow-overlay/source-loading.md
+    - .agents/workflow-overlay/source-of-truth.md
+  downstream_surfaces_checked:
+    - AGENTS.md
+    - CLAUDE.md
+    - .agents/workflow-overlay/README.md
+    - .agents/workflow-overlay/source-loading.md
+    - docs/workflows/orca_repo_map_v0.md
+    - docs/workflows/data_capture_spine_consolidation_map_v0.md
+    - docs/research/judgment-spine/judgment_spine_consolidation_map_v0.md
+  intentionally_not_updated:
+    - path: AGENTS.md
+      reason: >
+        Root instructions already route project facts and workflow authority
+        through the Orca overlay and do not enumerate repo-map/submap details.
+    - path: CLAUDE.md
+      reason: >
+        Claude shim imports AGENTS.md and carries no independent Orca map
+        routing.
+    - path: docs/research/judgment-spine/judgment_spine_consolidation_map_v0.md
+      reason: >
+        Judgment submap already functions as the entry map; this patch changes
+        source-loading to enter through it, not the submap's owner inventory.
+  stale_language_search: >
+    rg -n "Data Capture Setup / Pressure-Test Packet|data_capture_spine_consolidation_map_v0|Judgment Spine Evidence Ladder Read Pack|judgment_spine_consolidation_map_v0|last reported working hash|B06BD6722F76D223E7A122B7F97B967431BDEEE5D4E41AD6DCCEF81903DAC8C5|Current post-clarification synthesis hash"
+    .agents/workflow-overlay docs/workflows/orca_repo_map_v0.md docs/workflows/data_capture_spine_consolidation_map_v0.md docs/research/judgment-spine/judgment_spine_consolidation_map_v0.md
+  stale_language_search_result: >
+    Executed on 2026-06-05 after this patch. Remaining hits were the intended
+    Data Capture submap pointers, Judgment submap pointers, source-loading
+    read-pack heading, source-of-truth known-source entries, this DCP receipt,
+    and historical Data Capture submap DCP text. No live main repo-map route
+    retained the removed historical hash pins or the long Data Capture owner-doc
+    inventory.
+  non_claims:
+    - not validation
+    - not readiness
+    - not source promotion
+    - not acceptance
+    - not implementation authorization
+```
+
 ## Known Source Documents
 
 - `README.md`: workspace entrypoint.
@@ -269,6 +321,7 @@ direction_change_propagation:
 - `docs/workflows/orca_bootstrap_record.md`: Turn 6 bootstrap record.
 - `docs/workflows/orca_repo_map_v0.md`: compact repo map for source-pack selection and prompt setup.
 - `docs/workflows/data_capture_spine_consolidation_map_v0.md`: retrieval-only entry map for Data Capture Spine and Source Capture Armory navigation; routes to owner sources and carries no source-access, validation, readiness, implementation, ECR, Cleaning, or Judgment authority.
+- `docs/research/judgment-spine/judgment_spine_consolidation_map_v0.md`: retrieval-only entry map for Judgment Spine navigation across product docs, research docs, cases, manifest, conductor, gate ownership, evidence ladder, JSG-08, and harness surfaces; routes to owner sources and carries no validation, readiness, buyer-proof, fixture-admission, scoring, model-execution, or judgment-quality authority.
 - `docs/migration/import_queue.md`: read-only import queue state.
 - `docs/decisions/turn_08_product_thesis_v0.md`: current Orca product thesis and value proposition.
 - `docs/product/judgment_spine_evidence_ladder_architecture_v0.md`: Judgment Spine claim-tier architecture for Product-Learning, Buyer-Proof, and Judgment-Quality evidence boundaries.
