@@ -371,7 +371,7 @@ direction_change_propagation:
   design_basis:
     - path: "docs/product/ecr_consolidation_v0_frame_source_visibility_slice_architecture_plan_v0.md"
       sha256: "50DDE207824BCB7CE38DBDDF00C23014CA73E170BB4B62907C209C622174816F"
-      status: "advisory; cross-family reviewed (accept_with_friction); untracked"
+      status: "advisory; cross-family reviewed (accept_with_friction); now tracked (committed as design basis; sha256 above pins the exact committed blob)"
   upstream_dependency:
     - "R2 (closed posture vocabularies + PreservedFile.hash_basis) committed at 102a171; schema-enforcement tests green at HEAD this turn (test_source_capture_packet.py + test_packet_assembly.py, 31 passed)."
   downstream_surfaces_checked:
