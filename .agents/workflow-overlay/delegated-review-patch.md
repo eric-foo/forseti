@@ -187,7 +187,6 @@ direction_change_propagation:
     - .agents/workflow-overlay/source-of-truth.md
     - .agents/workflow-overlay/review-lanes.md
     - AGENTS.md
-    - CLAUDE.md
     - docs/workflows/orca_repo_map_v0.md
   downstream_surfaces_checked:
     - .agents/workflow-overlay/prompt-orchestration.md
@@ -212,6 +211,12 @@ direction_change_propagation:
       reason: >
         The protected-path list defers to safety-rules as the authority rather
         than forking a new forbidden-edit set; no safety rule changes.
+    - path: CLAUDE.md
+      reason: >
+        CLAUDE.md is a thin shim that loads AGENTS.md and must not duplicate
+        Orca rules; the AGENTS.md terse pointer ("...and delegated
+        review-and-patch, load the owning overlay file") covers the convention.
+        No CLAUDE.md pointer was added.
   stale_language_search: >
     rg -n "source-read-only|Reviewer threads are source-read-only|runtime model|model-neutral|reviewer still does not edit|patch authority"
     .agents/workflow-overlay/review-lanes.md
