@@ -119,6 +119,50 @@ promotion.
 ```yaml
 direction_change_propagation:
   doctrine_changed: >
+    The Cynefin Routing Layer now requires a smallest-complete outcome, allows
+    Mixed/Unclear classification, and requires concrete bottleneck and
+    evidence-shaped stop/pivot wording.
+  trigger: workflow_authority
+  related_triggers:
+    - output_authority
+  controlling_sources_updated:
+    - .agents/workflow-overlay/decision-routing.md
+    - .agents/workflow-overlay/source-of-truth.md
+  downstream_surfaces_checked:
+    - AGENTS.md
+    - .agents/workflow-overlay/README.md
+    - docs/prompts/templates/shared/orca_prompt_behavior_contract_v0.md
+  intentionally_not_updated:
+    - path: AGENTS.md
+      reason: >
+        AGENTS.md already triggers the Cynefin Routing Layer and points to the
+        owner file. The refinement changes router output details, not the root
+        trigger.
+    - path: .agents/workflow-overlay/README.md
+      reason: >
+        The overlay index already registers the decision-routing owner. No new
+        overlay section or owner path was added.
+    - path: docs/prompts/templates/shared/orca_prompt_behavior_contract_v0.md
+      reason: >
+        The shared prompt behavior contract references the owner file and should
+        not duplicate the router fields.
+  stale_language_search: >
+    rg -n "Smallest complete outcome|Mixed or Unclear|mixed or unclear|concrete bottleneck|evidence-shaped stop|decision_routing"
+    .agents/workflow-overlay/decision-routing.md .agents/workflow-overlay/source-of-truth.md docs/prompts/templates/shared/orca_prompt_behavior_contract_v0.md
+  stale_language_search_result: >
+    Executed on 2026-06-06 after this patch. Hits were the intended owner-file
+    output fields, Mixed/Unclear regime text, this DCP receipt, and no live
+    YAML-style decision_routing block.
+  non_claims:
+    - not validation
+    - not readiness
+    - not review authority
+    - not implementation authorization
+    - not source promotion
+```
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
     Orca now has an ordinary-start quick path for tiny, non-doctrine work and
     marks the repo map as the active retrieval-only map instead of a proposed
     map, without changing source authority, validation, readiness, or

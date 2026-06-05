@@ -57,23 +57,25 @@ If bypassing could be contested, state a one-line bypass reason before acting.
 
 ## Router Output
 
-Use this compact shape:
+Use compact headed prose, not YAML. The output should be readable in chat:
 
 ```text
-decision_routing:
-  regime: clear | complicated | complex | chaotic
-  why:
-  decomposition:
-  current_bottleneck:
-  riskiest_assumption:
-  stop_or_pivot_condition:
-  allowed_next_move:
-  disallowed_next_move:
-  bypass_reason:
+Smallest complete outcome: What fully satisfies the actual request without extra scope.
+Regime: Clear / Complicated / Complex / Chaotic / Mixed or Unclear.
+Why: One sentence.
+Decomposition: Functional, layer-based, risk-first probe, stabilize first, or split and classify.
+Current bottleneck: The concrete constraint that should govern WIP.
+Riskiest assumption: The assumption most likely to change the route.
+Stop or pivot condition: The evidence that would make the current route wrong.
+Allowed next move: What may happen next.
+Disallowed next move: What must not happen next.
 ```
 
-Omit `bypass_reason` when the router runs. Use `bypass_reason` only when the
-router is intentionally skipped.
+When the router is intentionally skipped, use one plain line:
+
+```text
+Cynefin bypass: <why this is narrow, clear, or already scoped>.
+```
 
 ## Regimes
 
@@ -94,11 +96,25 @@ truth, repo state, or authority is disordered.
 Stabilize first: classify dirty state, bind authority, narrow the target, or
 name the hard stop before any broader task tree.
 
+`mixed or unclear`: the request contains multiple regimes, or the regime cannot
+be classified without first separating the work.
+Split the task into regime-specific parts before planning. Do not force one
+label when the first safe move is to separate the problem.
+
 ## Execution Contract
 
 The router must produce an allowed next move and a disallowed next move before
 planning continues. The disallowed move is load-bearing: it prevents the agent
 from turning spare capacity into non-bottleneck work.
+
+The smallest complete outcome is also load-bearing. It names what would satisfy
+the actual request, so correct classification does not become permission for
+extra cleanup, adjacent refactors, broader prompt sweeps, or infrastructure.
+
+The bottleneck and stop-or-pivot condition must be concrete enough to govern
+action. Do not write vague bottlenecks such as "uncertainty" or vague stops such
+as "if it seems too hard." Name the specific unknown, evidence, failure signal,
+owner decision, source gap, or boundary breach that changes the route.
 
 For complex work, the allowed next move should normally be a probe, source read,
 owner decision, scoped contract, or narrow adapter/surface step that resolves
