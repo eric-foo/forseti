@@ -31,16 +31,19 @@ For decision-bearing Orca chat, use this order:
 
 1. Human summary.
 2. Agent-readable detail.
-3. Compact courier YAML, only when useful or required.
+3. Compact courier state, only when useful or required.
 
 The human summary states the decision, scope, accepted or deferred items,
 blocker if any, and next authorized step. Agent-readable detail may include
 source-read notes, file lists, dirty-state classification, validation-not-run
 notes, report paths, exact handoff constraints, and blockers.
 
-Courier YAML is routable state, not the decision or report itself. It should
-stay compact and appear last unless an output-mode exception explicitly
-requires YAML-first or YAML-only chat.
+Courier state is routable state, not the decision or report itself. Use clear
+headed prose by default. Use YAML only when the user requests it, an output-mode
+exception requires it, an explicit output contract needs machine-shaped fields,
+or lane switching / handoff routing would materially benefit from compact
+courier YAML. It should stay compact and appear last unless an output-mode
+exception explicitly requires YAML-first or YAML-only chat.
 
 This file owns the general chat shape and exact courier YAML shapes it defines.
 Output-mode exceptions, including when `review-report` may use YAML-only chat,
@@ -51,7 +54,8 @@ when `file-write` may return compact artifact receipts, and how
 Do not apply the human-summary-first rule mechanically to artifact-native
 tables, paste-ready prompt bodies, or compact post-artifact receipts when the
 durable artifact or pasted prompt carries the human-readable value. Do apply it
-to Chief Architect sequencing, planning, implementation scoping, phase gates,
+to substantial decision-bearing `file-write` closeouts, Chief Architect
+sequencing, planning, implementation scoping, overlay process gates,
 completion reports, chat-only decisions, and failure/blocker routing.
 
 For doctrine-changing file writes or source-changing closeouts, include the
@@ -91,6 +95,26 @@ Use this order for sequencing decisions:
 2. Scope or boundary.
 3. Next action.
 4. What remains blocked.
+
+## Chief Architect Review Consumption
+
+When an Orca Chief Architect or CA-facing handoff consumes one or more review
+reports, preserve this order:
+
+1. Commission: what the CA or owner asked the review to decide or inspect.
+2. Target: the exact artifact, prompt, diff, report, or surface reviewed.
+3. Authority: the Orca overlay, prompt, current instruction, or source boundary
+   that controls the review result.
+4. Decision criteria: the criteria the review was asked to apply.
+5. Evidence: the cited findings, source reads, gaps, and not-proven limits.
+6. Reviewer verdict or recommendation: the reviewer summary, if one is bound.
+
+Reviewer recommendations in `review_summary` are courier and decision input.
+They are not acceptance, approval, validation, readiness, mandatory
+remediation, or patch authority unless a separate Orca decision or execution
+lane binds that result. Do not add a synthesis lane by merging multiple review
+reports into a new authority surface; unresolved review disagreement remains
+Chief Architect adjudication unless Orca later binds another owner.
 
 ## Adversarial Review Summary Pattern
 

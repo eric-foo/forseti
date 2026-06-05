@@ -34,6 +34,6 @@ Keep Orca project facts, source hierarchy, source-loading rules, artifact folder
 
 Do not treat `jb` rules, paths, handoffs, lifecycle mechanics, product policy, validation habits, or external workflow source as Orca authority. Explicitly invoked or resolver-loaded skills may provide task-local mechanics only.
 
-For doctrine-changing work, implementation boundaries, skill adoption, review lanes, validation, prompt orchestration, and source loading, load the owning overlay file instead of duplicating the rule here.
+For doctrine-changing work, implementation boundaries, skill adoption, review lanes, validation, prompt orchestration, source loading, and delegated review-and-patch, load the owning overlay file instead of duplicating the rule here.
 
 Default allowed work is documentation, decisions, prompts, reviews, migration notes, and overlay maintenance inside this workspace. Implementation or runtime work requires explicit bounded authorization in the current turn or accepted handoff.

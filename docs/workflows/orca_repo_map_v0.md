@@ -23,7 +23,7 @@ stale_if:
 - Status: PROPOSED_MAP
 - Artifact type: Workflow navigation artifact
 - Scope: Repo navigation and source-pack selection
-- Refreshed: 2026-06-04 (Judgment Spine consolidated under a single entry-map pointer)
+- Refreshed: 2026-06-05 (Data Capture Spine consolidated under a single entry-map pointer)
 - Implementation authorized: no
 
 ## How To Use This Map
@@ -81,6 +81,7 @@ propagation evidence.
 | `.agents/workflow-overlay/communication-style.md` | Orca response style. |
 | `.agents/workflow-overlay/validation-gates.md` | Validation gate expectations. |
 | `.agents/workflow-overlay/review-lanes.md` | Review lane rules. |
+| `.agents/workflow-overlay/delegated-review-patch.md` | Provisional, opt-in Delegated Review-and-Patch convention for high-stakes authored artifacts; not a bound review lane. |
 | `.agents/workflow-overlay/safety-rules.md` | Safety and forbidden drift. |
 | `.agents/workflow-overlay/skill-adoption.md` | Skill source and adoption status. |
 
@@ -97,13 +98,13 @@ propagation evidence.
 source acquisition and the v0.14 Judgment Harness. It is navigation context
 here, not a runtime, acceptance, or readiness claim. Build scope is controlled
 by the authorization decisions named below; surfaces outside them (production
-runtime, API/commercial fetch, anti-detect, proxy, ECR, Cleaning, Judgment
+runtime, commercial fetch, broad crawling, ECR, Cleaning, Judgment
 design) remain gated.
 
 | Path | Use for |
 | --- | --- |
 | `orca-harness/source_capture/` | Source-capture packet core: models, writer, CLI support, and plaintext receipts. |
-| `orca-harness/source_capture/adapters/` | Bounded capture adapters (direct HTTP, media/asset, Archive.org, browser snapshot, authenticated browser); not scraper frameworks, API SDKs, proxies, or anti-detect. |
+| `orca-harness/source_capture/adapters/` | Bounded capture adapters (direct HTTP, media/asset, Archive.org, browser snapshot, authenticated browser, Reddit API where present); anti-blocking/CloakBrowser is selected and authorized by decision but should be verified in implementation before use. Not scraper frameworks, commercial fetch, broad crawling, storage, dashboards, deployment, or production runtime. |
 | `orca-harness/source_observability/` | Local operator-record posture checker and limitation reporter. |
 | `orca-harness/schemas/` | Pydantic v2 models for cases, judgments, scoring, and probes (v0.14). |
 | `orca-harness/scoring/` | Deterministic band scorer and mapping table (v0.14 Step A); not judgment-quality proof. |
@@ -146,6 +147,18 @@ The Judgment Spine spans **both** trees — `docs/research/judgment-spine/` (the
 | --- | --- |
 | `docs/research/judgment-spine/judgment_spine_consolidation_map_v0.md` | **Judgment Spine entry map — open first.** Per-area summary, owner-native status, and one pointer for thesis, cases/manifest, conductor, gate ownership, evidence ladder, JSG-08, and the harness; routes to the owners rather than restating them. The path toward judgment-quality evidence, not proof; by-hand runs cap at product-learning. |
 
+## Data Capture Spine
+
+The Data Capture Spine spans product authority, source-access decisions, Source
+Capture Armory docs, source-quality support, and `orca-harness/` implementation.
+**Open the consolidation map first** for capture/armory work: it is the
+`retrieval_only` entry that orients across these surfaces and routes one hop to
+the owner sources. Do not pre-load all capture artifacts from this map.
+
+| Path | Use for |
+| --- | --- |
+| `docs/workflows/data_capture_spine_consolidation_map_v0.md` | **Data Capture Spine entry map — open first.** Routes to Capture obligations, source-access boundary, build authorization, method plan, Source Capture Armory README, packet lifecycle, harness runners, source-quality support, and current Reddit pre-commercial routing. Map only; not validation, readiness, source-access permission, or implementation authority. |
+
 ## Core Spine Files
 
 | Path | Use for |
@@ -164,11 +177,11 @@ The Judgment Spine spans **both** trees — `docs/research/judgment-spine/` (the
 | `docs/product/data_capture_spine_pressure_test_execution_authorization_v0.md` | Owner authorization for the bounded first three-slot Data Capture pressure-test execution batch; not runtime, tooling, or downstream design authorization. |
 | `docs/product/data_capture_spine_pressure_test_all_slot_synthesis_v0.md` | All-slot synthesis of the first Data Capture pressure-test batch; classifies recurring source-observability pressure as patchable on this record and routes the next bounded owner decision, not validation or implementation authority. |
 | `docs/product/data_capture_spine_pressure_test_closeout_synthesis_v0.md` | Closeout synthesis for the first Data Capture pressure-test foundation after Slot 3 recapture and Source Observability support closeout; records the foundation as good enough for bounded next planning, not validation, readiness, contract hardening, or implementation authority. |
-| `docs/product/source_capture_toolbox/README.md` | Product-facing entrypoint and folder convention for the Source Capture Armory; indexes controlling authority, component responsibilities, build order, and current gaps without authorizing deferred adapters or downstream-spine design. |
+| `docs/product/source_capture_toolbox/README.md` | Product-facing entrypoint and folder convention for the Source Capture Armory; indexes controlling authority, component responsibilities, build order, current gaps, and selected CloakBrowser anti-blocking route without authorizing downstream-spine design. |
 | `docs/decisions/source_capture_packet_fixture_retention_sensitivity_decision_v0.md` | Source Capture Packet lifecycle, retention, durable citation, and sensitivity decision; generated packets remain scratch by default and no named packet is admitted as a fixture by this decision. |
 | `docs/product/source_capture_toolbox/source_quality_state_assembler_v0.md` | Architecture boundary for a read-only Source Quality State Assembler over already-bounded source-quality rows and existing Source Capture Packets; state census only, not source discovery, runner dispatch, source-quality scoring, fixture admission, or Judgment authority. |
 | `docs/product/source_capture_toolbox/source_capture_toolbox_agent_usability_dry_run_closeout_v0.md` | Closeout note for the Canoo/Walmart fresh-agent Source Capture Armory dry run; records agent-usability signal, runbook lessons, and the distinction between armory usability and source-quality improvement. |
-| `docs/decisions/data_capture_spine_source_access_tooling_build_authorization_v0.md` | Owner authorization for bounded first-tranche Data Capture source-access tooling builds: Source Capture Packet core/CLI, direct HTTP, media/asset preservation, Archive.org availability/body retrieval, and honest browser snapshot support; not API, commercial fetch, anti-detect, proxy, production runtime, ECR, Cleaning, or Judgment authorization. |
+| `docs/decisions/data_capture_spine_source_access_tooling_build_authorization_v0.md` | Owner authorization for bounded Data Capture source-access tooling builds: first-tranche packet/HTTP/media/archive/honest-browser support, second-tranche Reddit API and owner-named adapters, third-tranche anti-blocking/proxy/JS-challenge support, and CloakBrowser-first anti-blocking selection; not commercial fetch, broad crawling, storage/dashboard/deployment/production runtime, ECR, Cleaning, or Judgment authorization. |
 | `docs/decisions/data_capture_spine_source_observability_scoping_authorization_v0.md` | Owner authorization for one bounded docs-only source-observability requirements scoping lane after the all-slot pressure-test synthesis; not source-access implementation, runtime/tooling, contract hardening, or downstream ECR/Cleaning/Judgment design. |
 | `docs/product/data_capture_spine_source_observability_requirements_scoping_v0.md` | Candidate source-observability requirements and owner-decision queue from the all-slot pressure-test batch; decision input only, not implementation authority or governing doctrine. |
 | `docs/decisions/data_capture_spine_source_observability_requirements_boundary_decision_v0.md` | Current post-Slot-3-recapture Source Observability requirements boundary decision: RQ-01/RQ-03/RQ-05 carry forward, RQ-02 is split, RQ-04 remains deferred candidate context; not implementation or source-access method authority. |
@@ -353,11 +366,12 @@ Start with:
 - `docs/product/data_capture_spine_pressure_test_execution_authorization_v0.md`
 - `docs/product/data_capture_spine_pressure_test_all_slot_synthesis_v0.md` and `docs/review-outputs/adversarial-artifact-reviews/data_capture_spine_pressure_test_all_slot_synthesis_blast_radius_recheck_v0.md` when routing from the completed all-slot pressure-test batch to the next source-observability decision.
 - `docs/product/data_capture_spine_pressure_test_closeout_synthesis_v0.md` when checking the current closeout checkpoint for the first Data Capture pressure-test foundation after Slot 3 recapture and Source Observability support closeout.
-- `docs/product/source_capture_toolbox/README.md` when orienting the first-tranche Source Capture Armory, checking component responsibilities, or finding current armory gaps.
+- `docs/workflows/data_capture_spine_consolidation_map_v0.md` first when orienting any Data Capture Spine / Source Capture Armory task; it routes one hop to the owner sources and prevents capture-artifact bulk loading.
+- `docs/product/source_capture_toolbox/README.md` when the Data Capture Spine map routes you to the bounded Source Capture Armory for component responsibilities, selected anti-blocking backend, or current armory gaps.
 - `docs/decisions/source_capture_packet_fixture_retention_sensitivity_decision_v0.md` when checking whether generated Source Capture Packets remain scratch, may be cited by durable closeouts, require retention/sensitivity handling, or require a cited separate admission decision before `separately_admitted` can be used.
 - `docs/product/source_capture_toolbox/source_quality_state_assembler_v0.md` when checking the architecture boundary for assembling multiple already-bounded source-quality rows and existing Source Capture Packets into a state census.
 - `docs/product/source_capture_toolbox/source_capture_toolbox_agent_usability_dry_run_closeout_v0.md` when checking whether the current armory is agent-usable from a fresh-agent dry run, what runbook lessons were patched, or how to distinguish the dry run from a source-quality win.
-- `docs/decisions/data_capture_spine_source_access_tooling_build_authorization_v0.md` when checking whether bounded first-tranche source-access tooling builds are authorized and where API/commercial/anti-detect/proxy/runtime surfaces remain gated.
+- `docs/decisions/data_capture_spine_source_access_tooling_build_authorization_v0.md` when checking whether bounded source-access tooling builds are authorized, including Reddit API, CloakBrowser anti-blocking, proxy/JS-challenge support, and where commercial fetch / broad crawling / runtime surfaces remain gated.
 - `orca-harness/source_capture/` (see the Orca Harness section) when the task needs the actual bounded capture implementation, adapters, or CLI runners rather than the armory contract.
 - `docs/decisions/data_capture_spine_source_observability_scoping_authorization_v0.md` when checking whether bounded docs-only source-observability requirements scoping is authorized.
 - `docs/product/data_capture_spine_source_observability_requirements_scoping_v0.md` when reviewing candidate source-observability requirements or routing their next owner decision.

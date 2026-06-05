@@ -204,9 +204,11 @@ direction_change_propagation:
     - .agents/workflow-overlay/review-lanes.md
     - .agents/workflow-overlay/validation-gates.md
     - .agents/workflow-overlay/prompt-orchestration.md
+    - .agents/workflow-overlay/template-registry.md
     - .agents/workflow-overlay/artifact-roles.md
     - .agents/workflow-overlay/project-authority.md
     - .agents/workflow-overlay/safety-rules.md
+    - .agents/workflow-overlay/delegated-review-patch.md
     - .agents/workflow-overlay/skill-adoption.md
   downstream_surfaces_checked:
     - AGENTS.md
@@ -218,9 +220,11 @@ direction_change_propagation:
     - .agents/workflow-overlay/review-lanes.md
     - .agents/workflow-overlay/validation-gates.md
     - .agents/workflow-overlay/prompt-orchestration.md
+    - .agents/workflow-overlay/template-registry.md
     - .agents/workflow-overlay/artifact-roles.md
     - .agents/workflow-overlay/project-authority.md
     - .agents/workflow-overlay/safety-rules.md
+    - .agents/workflow-overlay/delegated-review-patch.md
     - .agents/workflow-overlay/skill-adoption.md
   intentionally_not_updated:
     - path: .agents/workflow-overlay/skill-adoption.md
@@ -229,7 +233,7 @@ direction_change_propagation:
         user explicitly preserved skills. These paths record resolver-visible
         skill evidence only, not workflow-core authority.
   stale_language_search: >
-    rg -n "workflow-core|@\.\./agent-workflow|supersede any conflicting local|Future accepted `agent-workflow`|Future `agent-workflow` source|reusable `agent-workflow`|agent-workflow.*mechanics|agent-workflow material|agent-workflow.*source guidance|agent-workflow.*prompt-orchestrator|candidate for promotion to the `agent-workflow`|workflow-kernel|future kernel skill|AGENTS.md.*operating constraints"
+    rg -n "workflow-core|@\\.\\./agent-workflow|supersede any conflicting local|Future accepted `agent-workflow`|Future `agent-workflow` source|reusable `agent-workflow`|agent-workflow.*mechanics|agent-workflow material|agent-workflow.*source guidance|agent-workflow.*prompt-orchestrator|candidate for promotion to the `agent-workflow`|workflow-kernel|future kernel skill|AGENTS.md.*operating constraints"
     AGENTS.md CLAUDE.md README.md .agents/workflow-overlay docs/workflows/orca_repo_map_v0.md
   stale_language_search_result: >
     Executed on 2026-06-05 after this patch. Matches were confined to this
@@ -260,9 +264,11 @@ direction_change_propagation:
 - `.agents/workflow-overlay/template-registry.md`: Orca-owned prompt template registry for project-local templates.
 - `.agents/workflow-overlay/product-proof.md`: Orca buyer-proof semantics, trust-objection handling, pull signals, and product-proof non-claims.
 - `.agents/workflow-overlay/communication-style.md`: Orca response style for Chief Architect sequencing, review closeouts, and prompt handoffs.
+- `.agents/workflow-overlay/delegated-review-patch.md`: provisional, opt-in Delegated Review-and-Patch convention for high-stakes authored artifacts, plus overlay-interface fields a future skill implementation may read; not a bound review lane and creates no strict claims.
 - `docs/STRUCTURE.md`: docs-folder usage guide for future agents; subordinate to this overlay if conflicts appear.
 - `docs/workflows/orca_bootstrap_record.md`: Turn 6 bootstrap record.
 - `docs/workflows/orca_repo_map_v0.md`: compact repo map for source-pack selection and prompt setup.
+- `docs/workflows/data_capture_spine_consolidation_map_v0.md`: retrieval-only entry map for Data Capture Spine and Source Capture Armory navigation; routes to owner sources and carries no source-access, validation, readiness, implementation, ECR, Cleaning, or Judgment authority.
 - `docs/migration/import_queue.md`: read-only import queue state.
 - `docs/decisions/turn_08_product_thesis_v0.md`: current Orca product thesis and value proposition.
 - `docs/product/judgment_spine_evidence_ladder_architecture_v0.md`: Judgment Spine claim-tier architecture for Product-Learning, Buyer-Proof, and Judgment-Quality evidence boundaries.

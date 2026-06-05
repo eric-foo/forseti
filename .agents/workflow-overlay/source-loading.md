@@ -326,6 +326,11 @@ For post-batch patch planning, review, or owner decision, also open:
 For all-slot source-observability scoping authorization or follow-on scoping,
 also open:
 
+- `docs/workflows/data_capture_spine_consolidation_map_v0.md` first for
+  Data Capture Spine / Source Capture Armory orientation; it routes one hop to
+  capture obligations, source-access authority, armory components, packet
+  lifecycle, harness implementation, source-quality support, and current Reddit
+  pre-commercial ordering without bulk-loading every capture artifact.
 - `docs/decisions/data_capture_spine_source_observability_scoping_authorization_v0.md`
 - `docs/product/data_capture_spine_source_observability_requirements_scoping_v0.md`
 - `docs/decisions/data_capture_spine_source_observability_requirements_boundary_decision_v0.md`
@@ -396,7 +401,7 @@ first Data Capture pressure-test foundation as good enough for bounded next
 planning while carrying Slot 1, Slot 2, Slot 3, and Source Observability
 limitations forward; it is not validation, readiness, pressure-test discharge,
 contract hardening, or source-access method-plan amendment. The Source Capture
-Toolbox README is the product-facing entrypoint for first-tranche tooling docs
+Armory README is the product-facing entrypoint for bounded tooling docs
 and gaps. The Source Quality State Assembler architecture is a read-only
 multi-row state-census boundary over already-bounded source-quality rows and
 existing Source Capture Packets; it does not authorize source discovery, runner
@@ -405,16 +410,22 @@ Source Capture Packet fixture/retention/sensitivity decision controls how
 generated packets move from scratch output to durable operational context,
 candidate evidence, fixture-admission recommendation, or separate fixture
 admission; it does not admit any current packet, prove source completeness,
-clear rights, or authorize production storage. A later owner decision now
-authorizes one bounded first-tranche source-access tooling build surface:
-Source Capture Packet core/CLI, direct HTTP fetch, media/asset preservation,
-Archive.org availability/body retrieval, and honest browser snapshot support.
-That authorization does not cover Reddit API
-registration/calls, commercial fetch services, anti-detect browsers, proxies,
-SERP APIs, storage, dashboards, schedulers, deployment, production runtime,
-contract hardening, source-access boundary change, or ECR/Cleaning/Judgment
-design. Do not use this pack to design ECR schema, Cleaning implementation, or
-Judgment behavior.
+clear rights, or authorize production storage. Later owner decisions now
+authorize bounded source-access tooling build surfaces: first-tranche Source
+Capture Packet core/CLI, direct HTTP fetch, media/asset preservation,
+Archive.org availability/body retrieval, and honest browser snapshot support;
+second-tranche Reddit API adapter and owner-named source adapters; and
+third-tranche anti-blocking/proxy/JS-challenge support. CloakBrowser is the
+selected primary anti-blocking browser backend for the next implementation lane.
+For Reddit pre-commercial capture, the current order is CloakBrowser
+anti-blocking first once implemented, then low-volume bounded
+subreddit/thematic/thread-family capture, then archive capture; commercial use
+moves to the sanctioned commercial / enterprise API or data-licensing path. That
+authorization does not cover commercial fetch services, SERP APIs, broad
+crawler/spider frameworks, storage, dashboards, schedulers, deployment,
+production runtime, contract hardening, source-access boundary change, or
+ECR/Cleaning/Judgment design. Do not use this pack to design ECR schema,
+Cleaning implementation, or Judgment behavior.
 
 ## Judgment Spine Evidence Ladder Read Pack
 
