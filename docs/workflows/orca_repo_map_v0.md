@@ -20,7 +20,7 @@ stale_if:
   - A later repo-map artifact supersedes this file.
 ```
 
-- Status: PROPOSED_MAP
+- Status: ACTIVE_RETRIEVAL_MAP (retrieval-only; source authority remains in `.agents/workflow-overlay/source-of-truth.md`)
 - Artifact type: Workflow navigation artifact
 - Scope: Repo navigation and source-pack selection
 - Refreshed: 2026-06-05 (repo-map/submap hygiene: Data Capture detail routed through its submap; Judgment source-loading routed through its submap)

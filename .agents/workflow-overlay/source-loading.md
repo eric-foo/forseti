@@ -96,6 +96,26 @@ materially touch artifacts, route another agent, make completion/readiness
 claims, depend on repository state, or change source. If a lightweight answer
 turns into one of those tasks, record the receipt before continuing.
 
+### Ordinary-Start Quick Path
+
+For tiny, non-doctrine Orca work, use the direct path:
+
+1. Read the current user instruction.
+2. Use `AGENTS.md` and `.agents/workflow-overlay/README.md` only when project
+   authority is needed for the answer or edit.
+3. Skip the repo map unless choosing among multiple possible source files would
+   otherwise require broad search.
+4. Skip Cynefin routing when `.agents/workflow-overlay/decision-routing.md`
+   bypass conditions apply.
+5. Stop and upgrade to the normal start preflight when the task becomes
+   repo-aware prompt authoring, review setup, handoff creation, docs-write or
+   overlay maintenance, source-changing work, completion/readiness claims,
+   doctrine change, cross-thread work, delegation, or messy-worktree routing.
+
+This quick path changes startup cost only. It does not weaken source hierarchy,
+strict-claim rules, validation gates, implementation authorization, doctrine
+propagation, or repo-map authority boundaries.
+
 ## Default Read Order
 
 Use this order unless the user gives a narrower source pack:

@@ -119,6 +119,66 @@ promotion.
 ```yaml
 direction_change_propagation:
   doctrine_changed: >
+    Orca now has an ordinary-start quick path for tiny, non-doctrine work and
+    marks the repo map as the active retrieval-only map instead of a proposed
+    map, without changing source authority, validation, readiness, or
+    implementation authorization.
+  trigger: workflow_authority
+  related_triggers:
+    - output_authority
+  controlling_sources_updated:
+    - .agents/workflow-overlay/source-loading.md
+    - docs/workflows/orca_repo_map_v0.md
+    - .agents/workflow-overlay/source-of-truth.md
+  downstream_surfaces_checked:
+    - AGENTS.md
+    - .agents/workflow-overlay/README.md
+    - .agents/workflow-overlay/decision-routing.md
+    - .agents/workflow-overlay/prompt-orchestration.md
+    - docs/prompts/templates/shared/orca_prompt_behavior_contract_v0.md
+  intentionally_not_updated:
+    - path: AGENTS.md
+      reason: >
+        Root instructions already require the overlay and decision-routing
+        preflight for substantial or doctrine-bearing work. The quick path is a
+        source-loading detail for tiny, non-doctrine work.
+    - path: .agents/workflow-overlay/README.md
+      reason: >
+        The overlay entrypoint already lists source-loading, source-of-truth,
+        and decision-routing owners. No new overlay section was added.
+    - path: .agents/workflow-overlay/decision-routing.md
+      reason: >
+        The quick path points to existing bypass conditions and does not change
+        the router's trigger, bypass, or output rules.
+    - path: .agents/workflow-overlay/prompt-orchestration.md
+      reason: >
+        Prompt preflight and repo_map_decision behavior are unchanged. The
+        quick path does not apply to repo-aware prompt authoring.
+    - path: docs/prompts/templates/shared/orca_prompt_behavior_contract_v0.md
+      reason: >
+        Prompt behavior remains bound to prompt-orchestration and source-loading
+        for repo-aware prompts; duplicating the quick path into templates would
+        create drift.
+  stale_language_search: >
+    rg -n "PROPOSED_MAP|ACTIVE_RETRIEVAL_MAP|Ordinary-Start Quick Path|tiny, non-doctrine|mandatory repo-map read|mandatory Cynefin"
+    AGENTS.md .agents/workflow-overlay docs/workflows/orca_repo_map_v0.md docs/prompts/templates/shared/orca_prompt_behavior_contract_v0.md
+  stale_language_search_result: >
+    Executed on 2026-06-06 after this patch. Hits were the intended active
+    retrieval-map status in docs/workflows/orca_repo_map_v0.md, the
+    Ordinary-Start Quick Path in source-loading.md, and this DCP receipt. No hit
+    retained PROPOSED_MAP or introduced a mandatory repo-map read or mandatory
+    Cynefin route for tiny, non-doctrine work.
+  non_claims:
+    - not validation
+    - not readiness
+    - not source promotion
+    - not implementation authorization
+    - not repo-map authority expansion
+```
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
     Repo-aware Orca prompts now record a repo_map_decision and repo_map_reason
     in required preflight so repo-map routing is explicit without making the
     repo map a mandatory read.
