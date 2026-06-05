@@ -187,7 +187,7 @@ def test_archive_runner_writes_no_snapshot_metadata_packet(
     assert manifest["source_surface"] == "archive_org_wayback"
     assert len(manifest["preserved_files"]) == 1
     assert [item["slice_id"] for item in manifest["source_slices"]] == ["archive_availability"]
-    assert "no eligible snapshot" in manifest["archive_history_posture"]["value"]
+    assert manifest["archive_history_posture"]["value"] == "attempt_failed"
     _assert_receipt_non_claims(output_dir)
 
 
@@ -215,7 +215,7 @@ def test_archive_runner_writes_metadata_and_body_packet(
     assert availability_slice["timing"]["source_edit_or_version"]["value"].startswith(
         "Archive.org availability metadata"
     )
-    assert "snapshot body preserved" in manifest["archive_history_posture"]["value"]
+    assert manifest["archive_history_posture"]["value"] == "archived"
     assert (output_dir / "raw" / "02_archive_snapshot_body.bin").read_bytes() == b"<html>archived body</html>"
     _assert_receipt_non_claims(output_dir)
 
@@ -293,7 +293,7 @@ def test_archive_runner_writes_metadata_packet_when_cdx_parse_fails(
     manifest = _read_manifest(output_dir)
     assert len(manifest["preserved_files"]) == 1
     assert [item["slice_id"] for item in manifest["source_slices"]] == ["archive_availability"]
-    assert "could not be parsed" in manifest["archive_history_posture"]["value"]
+    assert manifest["archive_history_posture"]["value"] == "attempt_failed"
     assert any("parse_failed" in item for item in manifest["limitations"])
     metadata = json.loads((output_dir / "raw" / "01_archive_availability_metadata.json").read_text(encoding="utf-8"))
     assert metadata["parse_warning"].startswith("archive_org availability metadata parse_failed")
@@ -315,7 +315,7 @@ def test_archive_runner_writes_metadata_packet_when_cutoff_filters_all_snapshots
     manifest = _read_manifest(output_dir)
     assert len(manifest["preserved_files"]) == 1
     assert [item["slice_id"] for item in manifest["source_slices"]] == ["archive_availability"]
-    assert "no eligible snapshot" in manifest["archive_history_posture"]["value"]
+    assert manifest["archive_history_posture"]["value"] == "attempt_failed"
     metadata = json.loads((output_dir / "raw" / "01_archive_availability_metadata.json").read_text(encoding="utf-8"))
     assert metadata["snapshot_count"] == 1
     assert metadata["selected_snapshot"] is None

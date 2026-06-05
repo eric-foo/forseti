@@ -23,7 +23,9 @@ NON_CLAIMS = [
     "not Cleaning output",
     "not Judgment output",
     "not source acquisition",
+    "not source-access handling",
     "not archive retrieval",
+    "not media capture",
     "not browser automation",
     "not source-quality scoring",
 ]

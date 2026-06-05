@@ -136,7 +136,7 @@ def test_media_runner_writes_single_asset_packet(http_server: str, scratch_dir: 
             "--asset-url",
             f"{http_server}/image",
             "--cutoff-posture",
-            "pre-cutoff explicit media asset capture",
+            "pre_cutoff",
         ],
     )
 

@@ -17,9 +17,9 @@ from source_capture import (
     not_applicable,
     not_attempted,
     unknown_with_reason,
-    write_local_source_capture_packet,
 )
 from source_capture.cli_support import build_optional_fact
+from source_capture.packet_assembly import stage_and_write_packet, staged_file_id_map
 from source_capture.adapters import MediaAssetCaptureFailure, fetch_media_assets
 from source_capture.adapters.direct_http import DirectHttpCaptureSuccess
 
@@ -74,149 +74,145 @@ def run_source_capture_media_packet(
         failure_summary = "; ".join(_format_failure(failure) for failure in batch.failures)
         return 3, f"no media assets were preserved; {failure_summary}"
 
-    staging_parent = output_directory.parent
-    staging_parent.mkdir(parents=True, exist_ok=True)
-    staged_paths: list[Path] = []
-    packet_slices: list[SourceCaptureSlice] = []
     packet_warnings = list(warnings)
     packet_limitations = list(limitations)
-    preserved_file_counter = 1
 
-    try:
-        packet_timing = PacketTiming(
-            source_publication_or_event=source_publication_or_event
-            or unknown_with_reason("media asset adapter did not infer source publication or event timing"),
-            source_edit_or_version=source_edit_or_version
-            or unknown_with_reason("media asset adapter did not infer source edit or version timing"),
-            capture_time=known_fact(str(batch.successes[0].http_result.metadata["capture_timestamp"])),
-            recapture_time=recapture_time
-            or not_applicable("media asset packet did not model an earlier capture by default"),
-            cutoff_posture=cutoff_posture
-            or unknown_with_reason("media asset runner did not receive cutoff posture metadata"),
+    packet_timing = PacketTiming(
+        source_publication_or_event=source_publication_or_event
+        or unknown_with_reason("media asset adapter did not infer source publication or event timing"),
+        source_edit_or_version=source_edit_or_version
+        or unknown_with_reason("media asset adapter did not infer source edit or version timing"),
+        capture_time=known_fact(str(batch.successes[0].http_result.metadata["capture_timestamp"])),
+        recapture_time=recapture_time
+        or not_applicable("media asset packet did not model an earlier capture by default"),
+        cutoff_posture=cutoff_posture
+        or unknown_with_reason("media asset runner did not receive cutoff posture metadata"),
+    )
+    archive_posture = not_attempted("media asset adapter does not query archive or history services")
+    recapture_posture = re_capture_relationship or not_applicable(
+        "no prior source capture packet was supplied for this media asset capture"
+    )
+
+    # Build staged artifacts in preservation (success) order: the writer assigns
+    # file_NN and raw/NN_<name> by input order, so staged_file_id_map lets each
+    # slice reference its own file_ids without hard-coding them. Serializing the
+    # metadata bytes here -- before stage_and_write_packet touches the disk --
+    # means a metadata-serialization failure aborts with nothing staged to clean.
+    artifacts: list[tuple[str, bytes]] = []
+    for success in batch.successes:
+        artifacts.append(
+            (f"asset_{success.asset_index:02d}_body.bin", success.http_result.body)
         )
-        archive_posture = not_attempted("media asset adapter does not query archive or history services")
-        recapture_posture = re_capture_relationship or not_applicable(
-            "no prior source capture packet was supplied for this media asset capture"
+        artifacts.append(
+            (
+                f"asset_{success.asset_index:02d}_metadata.json",
+                (
+                    json.dumps(
+                        _asset_metadata(success.asset_index, success.asset_url, success.http_result),
+                        indent=2,
+                        sort_keys=True,
+                    )
+                    + "\n"
+                ).encode("utf-8"),
+            )
+        )
+    file_ids = staged_file_id_map(artifacts)
+
+    packet_slices: list[SourceCaptureSlice] = []
+    for success in batch.successes:
+        media_posture = known_fact(
+            f"media_asset preserved asset {success.asset_index:02d} with "
+            f"{len(success.http_result.body)} bytes"
+        )
+        packet_warnings.extend(success.http_result.warning_notes)
+        packet_limitations.extend(success.http_result.limitation_notes)
+        packet_slices.append(
+            SourceCaptureSlice(
+                slice_id=f"asset_{success.asset_index:02d}",
+                locator=known_fact(success.http_result.final_url),
+                timing=_timing_for_success(
+                    success.http_result,
+                    source_publication_or_event=packet_timing.source_publication_or_event,
+                    source_edit_or_version=packet_timing.source_edit_or_version,
+                    recapture_time=packet_timing.recapture_time,
+                    cutoff_posture=packet_timing.cutoff_posture,
+                ),
+                access_posture=_access_posture_for_success(success.http_result),
+                archive_history_posture=archive_posture,
+                media_modality_posture=media_posture,
+                re_capture_relationship=recapture_posture,
+                limitations=list(success.http_result.limitation_notes),
+                warning_notes=list(success.http_result.warning_notes),
+                preserved_file_ids=[
+                    file_ids[f"asset_{success.asset_index:02d}_body.bin"],
+                    file_ids[f"asset_{success.asset_index:02d}_metadata.json"],
+                ],
+            )
         )
 
-        for success in batch.successes:
-            body_path = staging_parent / f"asset_{success.asset_index:02d}_body.bin"
-            metadata_path = staging_parent / f"asset_{success.asset_index:02d}_metadata.json"
-            if body_path.exists() or metadata_path.exists():
-                raise ValueError(
-                    "media asset staging files already exist in the output parent; clear them before rerunning"
-                )
-            body_path.write_bytes(success.http_result.body)
-            staged_paths.append(body_path)
-            metadata_path.write_text(
-                f"{json.dumps(_asset_metadata(success.asset_index, success.asset_url, success.http_result), indent=2, sort_keys=True)}\n",
-                encoding="utf-8",
-                newline="\n",
+    for failure in batch.failures:
+        failure_note = _format_failure(failure)
+        packet_limitations.append(f"asset_{failure.asset_index:02d}_not_preserved: {failure_note}")
+        packet_slices.append(
+            SourceCaptureSlice(
+                slice_id=f"asset_{failure.asset_index:02d}",
+                locator=known_fact(failure.asset_url),
+                timing=_timing_for_failure(
+                    failure,
+                    source_publication_or_event=packet_timing.source_publication_or_event,
+                    source_edit_or_version=packet_timing.source_edit_or_version,
+                    recapture_time=packet_timing.recapture_time,
+                    cutoff_posture=packet_timing.cutoff_posture,
+                ),
+                access_posture=known_fact(f"media_asset access_failed: {failure.http_result.message}"),
+                archive_history_posture=archive_posture,
+                media_modality_posture=known_fact(
+                    f"media_asset asset {failure.asset_index:02d} not preserved"
+                ),
+                re_capture_relationship=recapture_posture,
+                limitations=[failure_note],
+                warning_notes=[],
+                preserved_file_ids=[],
             )
-            staged_paths.append(metadata_path)
-
-            access_posture = _access_posture_for_success(success.http_result)
-            media_posture = known_fact(
-                f"media_asset preserved asset {success.asset_index:02d} with "
-                f"{len(success.http_result.body)} bytes"
-            )
-            file_ids = [
-                f"file_{preserved_file_counter:02d}",
-                f"file_{preserved_file_counter + 1:02d}",
-            ]
-            preserved_file_counter += 2
-            packet_warnings.extend(success.http_result.warning_notes)
-            packet_limitations.extend(success.http_result.limitation_notes)
-            packet_slices.append(
-                SourceCaptureSlice(
-                    slice_id=f"asset_{success.asset_index:02d}",
-                    locator=known_fact(success.http_result.final_url),
-                    timing=_timing_for_success(
-                        success.http_result,
-                        source_publication_or_event=packet_timing.source_publication_or_event,
-                        source_edit_or_version=packet_timing.source_edit_or_version,
-                        recapture_time=packet_timing.recapture_time,
-                        cutoff_posture=packet_timing.cutoff_posture,
-                    ),
-                    access_posture=access_posture,
-                    archive_history_posture=archive_posture,
-                    media_modality_posture=media_posture,
-                    re_capture_relationship=recapture_posture,
-                    limitations=list(success.http_result.limitation_notes),
-                    warning_notes=list(success.http_result.warning_notes),
-                    preserved_file_ids=file_ids,
-                )
-            )
-
-        for failure in batch.failures:
-            failure_note = _format_failure(failure)
-            packet_limitations.append(f"asset_{failure.asset_index:02d}_not_preserved: {failure_note}")
-            packet_slices.append(
-                SourceCaptureSlice(
-                    slice_id=f"asset_{failure.asset_index:02d}",
-                    locator=known_fact(failure.asset_url),
-                    timing=_timing_for_failure(
-                        failure,
-                        source_publication_or_event=packet_timing.source_publication_or_event,
-                        source_edit_or_version=packet_timing.source_edit_or_version,
-                        recapture_time=packet_timing.recapture_time,
-                        cutoff_posture=packet_timing.cutoff_posture,
-                    ),
-                    access_posture=known_fact(f"media_asset access_failed: {failure.http_result.message}"),
-                    archive_history_posture=archive_posture,
-                    media_modality_posture=known_fact(
-                        f"media_asset asset {failure.asset_index:02d} not preserved"
-                    ),
-                    re_capture_relationship=recapture_posture,
-                    limitations=[failure_note],
-                    warning_notes=[],
-                    preserved_file_ids=[],
-                )
-            )
-
-        packet_slices.sort(key=lambda item: item.slice_id)
-        result = write_local_source_capture_packet(
-            output_directory=output_directory,
-            input_files=staged_paths,
-            source_family=source_family,
-            source_surface=source_surface,
-            source_locator=source_locator or known_fact("explicit media asset URL set"),
-            decision_question=decision_question,
-            capture_context=capture_context,
-            actor_audience_context=actor_audience_context
-            or unknown_with_reason("actor or audience context was not supplied to the media asset runner"),
-            capture_mode=capture_mode,
-            operator_category=operator_category,
-            session_identity=session_id,
-            visible_mode_changes=visible_mode_changes,
-            source_publication_or_event=packet_timing.source_publication_or_event,
-            source_edit_or_version=packet_timing.source_edit_or_version,
-            cutoff_posture=packet_timing.cutoff_posture,
-            recapture_time=packet_timing.recapture_time,
-            access_posture=known_fact(
-                f"media_asset preserved {len(batch.successes)} of {len(asset_urls)} explicit asset URL(s)"
-            ),
-            archive_history_posture=archive_posture,
-            media_modality_posture=known_fact(
-                f"media_asset preserved {len(batch.successes)} asset body/bodies; "
-                f"{len(batch.failures)} asset(s) not preserved"
-            ),
-            re_capture_relationship=recapture_posture,
-            source_slices=packet_slices,
-            warnings=packet_warnings,
-            limitations=packet_limitations,
-            receipt_summary=(
-                f"Media asset packet for {source_family} with {len(batch.successes)} preserved "
-                f"of {len(asset_urls)} explicit asset URL(s)."
-            ),
-            receipt_non_claims=MEDIA_ASSET_NON_CLAIMS,
         )
-    finally:
-        for staging_path in staged_paths:
-            try:
-                staging_path.unlink()
-            except FileNotFoundError:
-                pass
+
+    packet_slices.sort(key=lambda item: item.slice_id)
+    result = stage_and_write_packet(
+        output_directory=output_directory,
+        staged_artifacts=artifacts,
+        source_slices=packet_slices,
+        source_family=source_family,
+        source_surface=source_surface,
+        source_locator=source_locator or known_fact("explicit media asset URL set"),
+        decision_question=decision_question,
+        capture_context=capture_context,
+        actor_audience_context=actor_audience_context
+        or unknown_with_reason("actor or audience context was not supplied to the media asset runner"),
+        capture_mode=capture_mode,
+        operator_category=operator_category,
+        session_identity=session_id,
+        visible_mode_changes=visible_mode_changes,
+        source_publication_or_event=packet_timing.source_publication_or_event,
+        source_edit_or_version=packet_timing.source_edit_or_version,
+        cutoff_posture=packet_timing.cutoff_posture,
+        recapture_time=packet_timing.recapture_time,
+        access_posture=known_fact(
+            f"media_asset preserved {len(batch.successes)} of {len(asset_urls)} explicit asset URL(s)"
+        ),
+        archive_history_posture=archive_posture,
+        media_modality_posture=known_fact(
+            f"media_asset preserved {len(batch.successes)} asset body/bodies; "
+            f"{len(batch.failures)} asset(s) not preserved"
+        ),
+        re_capture_relationship=recapture_posture,
+        warnings=packet_warnings,
+        limitations=packet_limitations,
+        receipt_summary=(
+            f"Media asset packet for {source_family} with {len(batch.successes)} preserved "
+            f"of {len(asset_urls)} explicit asset URL(s)."
+        ),
+        receipt_non_claims=MEDIA_ASSET_NON_CLAIMS,
+    )
     return 0, result.output_directory
 
 

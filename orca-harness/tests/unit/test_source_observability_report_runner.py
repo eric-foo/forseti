@@ -129,6 +129,8 @@ def test_build_report_exposes_counts_limitations_and_non_claims() -> None:
     ]
     assert "not capture validation" in report["non_claims"]
     assert "not source acquisition" in report["non_claims"]
+    assert "not source-access handling" in report["non_claims"]
+    assert "not media capture" in report["non_claims"]
 
 
 def test_write_report_writes_json_file(scratch_dir: Path) -> None:

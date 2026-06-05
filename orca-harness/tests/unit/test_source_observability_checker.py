@@ -194,6 +194,22 @@ def test_preserved_language_without_anchor_count_is_still_limited_when_required(
     ]
 
 
+def test_archive_state_can_be_visible_without_body_retrieval_default() -> None:
+    result = run_source_observability_checks(
+        [
+            _record(
+                archive_body_posture=ObservablePosture.NOT_ATTEMPTED,
+                archive_body_expected=False,
+                limitation_notes=[
+                    "Archive availability was recorded, but archive-body retrieval was not required for this slice."
+                ],
+            )
+        ]
+    )
+
+    assert result.limitations == []
+
+
 def test_posture_values_are_bounded() -> None:
     with pytest.raises(ValidationError):
         _record(source_language_posture="validated")

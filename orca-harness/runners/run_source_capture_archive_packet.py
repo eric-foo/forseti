@@ -264,21 +264,21 @@ def _source_version_from_snapshot(capture: ArchiveOrgCaptureSuccess):
 def _cutoff_posture_from_timestamp(cutoff_timestamp: str | None):
     if cutoff_timestamp is None:
         return unknown_with_reason("archive runner did not receive a cutoff timestamp")
-    return known_fact(f"Archive.org snapshot selection constrained at or before {cutoff_timestamp}")
+    # cutoff_posture is a closed posture (Ob.9): a snapshot constrained at-or-before the
+    # cutoff timestamp is pre_cutoff. The exact constraining timestamp is preserved in the
+    # archive availability metadata, not in this posture value.
+    return known_fact("pre_cutoff")
 
 
 def _archive_posture(capture: ArchiveOrgCaptureSuccess):
-    if capture.parse_warning is not None:
-        return known_fact("archive_org availability metadata preserved but could not be parsed")
-    if capture.selected_snapshot is None:
-        return known_fact("archive_org availability metadata preserved; no eligible snapshot selected")
-    if isinstance(capture.body_result, DirectHttpCaptureSuccess):
-        return known_fact(
-            f"archive_org availability metadata preserved; snapshot body preserved for {capture.selected_snapshot.timestamp}"
-        )
-    return known_fact(
-        f"archive_org availability metadata preserved; snapshot body not preserved for {capture.selected_snapshot.timestamp}"
-    )
+    # Ob.10 closed, agent-readable vocabulary: known value is archived | attempt_failed.
+    # The body-preservation outcome IS the posture; the snapshot timestamp and the
+    # specific non-preservation reason live as structured fields in the preserved archive
+    # availability metadata (parse_warning / selected_snapshot / body_result) and in the
+    # packet limitations -- not as free text in this posture value.
+    if capture.selected_snapshot is not None and isinstance(capture.body_result, DirectHttpCaptureSuccess):
+        return known_fact("archived")
+    return known_fact("attempt_failed")
 
 
 def _access_posture_for_success(*, prefix: str, result: DirectHttpCaptureSuccess):
@@ -298,11 +298,13 @@ def _body_access_posture(result: DirectHttpCaptureSuccess | DirectHttpCaptureFai
 
 
 def _body_archive_posture(capture: ArchiveOrgCaptureSuccess):
+    # Ob.10 closed vocabulary: archived | attempt_failed; not_applicable when there was no
+    # snapshot to relate a body to. The snapshot timestamp lives in the archive metadata.
     if capture.selected_snapshot is None:
         return not_applicable("no Archive.org snapshot was selected")
     if isinstance(capture.body_result, DirectHttpCaptureSuccess):
-        return known_fact(f"archive_org snapshot body preserved for {capture.selected_snapshot.timestamp}")
-    return known_fact(f"archive_org snapshot body not preserved for {capture.selected_snapshot.timestamp}")
+        return known_fact("archived")
+    return known_fact("attempt_failed")
 
 
 def _body_timing(capture: ArchiveOrgCaptureSuccess, *, packet_timing: PacketTiming) -> PacketTiming:

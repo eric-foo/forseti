@@ -204,7 +204,7 @@ def test_http_runner_writes_packet_with_metadata_and_body_files(http_server: str
             "--output",
             str(output_dir),
             "--cutoff-posture",
-            "pre-cutoff capture requested by operator",
+            "pre_cutoff",
         ],
         cwd=project_root,
         check=False,

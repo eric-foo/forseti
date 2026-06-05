@@ -17,9 +17,9 @@ from source_capture import (
     not_applicable,
     not_attempted,
     unknown_with_reason,
-    write_local_source_capture_packet,
 )
 from source_capture.cli_support import build_optional_fact
+from source_capture.packet_assembly import stage_and_write_packet, staged_file_id_map
 from source_capture.adapters import DirectHttpCaptureFailure, fetch_direct_http_capture
 
 
@@ -81,94 +81,81 @@ def run_source_capture_http_packet(
             f"direct_http access_failed with HTTP {capture_result.status} {capture_result.reason or 'without reason'}; response body preserved"
         )
 
-    staging_parent = output_directory.parent
-    staging_parent.mkdir(parents=True, exist_ok=True)
-    body_path = staging_parent / "http_response_body.bin"
-    metadata_path = staging_parent / "http_response_metadata.json"
-    if body_path.exists() or metadata_path.exists():
-        raise ValueError(
-            "direct HTTP staging files already exist in the output parent; clear them before rerunning"
-        )
-    try:
-        body_path.write_bytes(capture_result.body)
-        metadata_path.write_text(
-            f"{json.dumps(capture_result.metadata, indent=2, sort_keys=True)}\n",
-            encoding="utf-8",
-            newline="\n",
-        )
+    artifacts: list[tuple[str, bytes]] = [
+        ("http_response_body.bin", capture_result.body),
+        (
+            "http_response_metadata.json",
+            (json.dumps(capture_result.metadata, indent=2, sort_keys=True) + "\n").encode("utf-8"),
+        ),
+    ]
+    file_ids = staged_file_id_map(artifacts)
 
-        timing = PacketTiming(
-            source_publication_or_event=source_publication_or_event
-            or unknown_with_reason("direct HTTP adapter did not infer source publication or event timing"),
-            source_edit_or_version=source_edit_or_version
-            or unknown_with_reason("direct HTTP adapter did not infer source edit or version timing"),
-            capture_time=known_fact(str(capture_result.metadata["capture_timestamp"])),
-            recapture_time=recapture_time
-            or not_applicable("direct HTTP packet did not model an earlier capture by default"),
-            cutoff_posture=cutoff_posture
-            or unknown_with_reason("direct HTTP runner did not receive cutoff posture metadata"),
-        )
+    timing = PacketTiming(
+        source_publication_or_event=source_publication_or_event
+        or unknown_with_reason("direct HTTP adapter did not infer source publication or event timing"),
+        source_edit_or_version=source_edit_or_version
+        or unknown_with_reason("direct HTTP adapter did not infer source edit or version timing"),
+        capture_time=known_fact(str(capture_result.metadata["capture_timestamp"])),
+        recapture_time=recapture_time
+        or not_applicable("direct HTTP packet did not model an earlier capture by default"),
+        cutoff_posture=cutoff_posture
+        or unknown_with_reason("direct HTTP runner did not receive cutoff posture metadata"),
+    )
+    archive_posture = not_attempted("direct HTTP adapter does not query archive or history services")
+    media_posture = not_attempted(
+        "direct HTTP adapter preserves the response body only and does not fetch linked media assets"
+    )
+    recapture_posture = re_capture_relationship or not_applicable(
+        "no prior source capture packet was supplied for this direct HTTP capture"
+    )
 
-        result = write_local_source_capture_packet(
-            output_directory=output_directory,
-            input_files=[body_path, metadata_path],
-            source_family=source_family,
-            source_surface=source_surface,
-            source_locator=known_fact(capture_result.requested_url),
-            decision_question=decision_question,
-            capture_context=capture_context,
-            actor_audience_context=actor_audience_context
-            or unknown_with_reason("actor or audience context was not supplied to the direct HTTP runner"),
-            capture_mode=capture_mode,
-            operator_category=operator_category,
-            session_identity=session_id,
-            visible_mode_changes=visible_mode_changes,
-            source_publication_or_event=timing.source_publication_or_event,
-            source_edit_or_version=timing.source_edit_or_version,
-            cutoff_posture=timing.cutoff_posture,
-            recapture_time=timing.recapture_time,
-            access_posture=access_posture,
-            archive_history_posture=not_attempted(
-                "direct HTTP adapter does not query archive or history services"
-            ),
-            media_modality_posture=not_attempted(
-                "direct HTTP adapter preserves the response body only and does not fetch linked media assets"
-            ),
-            re_capture_relationship=re_capture_relationship
-            or not_applicable("no prior source capture packet was supplied for this direct HTTP capture"),
-            source_slices=[
-                SourceCaptureSlice(
-                    slice_id="slice_01",
-                    locator=known_fact(capture_result.final_url),
-                    timing=timing,
-                    access_posture=access_posture,
-                    archive_history_posture=not_attempted(
-                        "direct HTTP adapter does not query archive or history services"
-                    ),
-                    media_modality_posture=not_attempted(
-                        "direct HTTP adapter preserves the response body only and does not fetch linked media assets"
-                    ),
-                    re_capture_relationship=re_capture_relationship
-                    or not_applicable("no prior source capture packet was supplied for this direct HTTP capture"),
-                    limitations=packet_limitations,
-                    warning_notes=packet_warnings,
-                    preserved_file_ids=["file_01", "file_02"],
-                )
-            ],
-            warnings=packet_warnings,
-            limitations=packet_limitations,
-            receipt_summary=(
-                f"Direct HTTP packet for {source_family} with HTTP {capture_result.status} "
-                f"and {len(capture_result.body)} preserved body bytes."
-            ),
-            receipt_non_claims=DIRECT_HTTP_NON_CLAIMS,
-        )
-    finally:
-        for staging_path in (body_path, metadata_path):
-            try:
-                staging_path.unlink()
-            except FileNotFoundError:
-                pass
+    result = stage_and_write_packet(
+        output_directory=output_directory,
+        staged_artifacts=artifacts,
+        source_slices=[
+            SourceCaptureSlice(
+                slice_id="slice_01",
+                locator=known_fact(capture_result.final_url),
+                timing=timing,
+                access_posture=access_posture,
+                archive_history_posture=archive_posture,
+                media_modality_posture=media_posture,
+                re_capture_relationship=recapture_posture,
+                limitations=packet_limitations,
+                warning_notes=packet_warnings,
+                preserved_file_ids=[
+                    file_ids["http_response_body.bin"],
+                    file_ids["http_response_metadata.json"],
+                ],
+            )
+        ],
+        source_family=source_family,
+        source_surface=source_surface,
+        source_locator=known_fact(capture_result.requested_url),
+        decision_question=decision_question,
+        capture_context=capture_context,
+        actor_audience_context=actor_audience_context
+        or unknown_with_reason("actor or audience context was not supplied to the direct HTTP runner"),
+        capture_mode=capture_mode,
+        operator_category=operator_category,
+        session_identity=session_id,
+        visible_mode_changes=visible_mode_changes,
+        source_publication_or_event=timing.source_publication_or_event,
+        source_edit_or_version=timing.source_edit_or_version,
+        cutoff_posture=timing.cutoff_posture,
+        recapture_time=timing.recapture_time,
+        access_posture=access_posture,
+        archive_history_posture=archive_posture,
+        media_modality_posture=media_posture,
+        re_capture_relationship=recapture_posture,
+        warnings=packet_warnings,
+        limitations=packet_limitations,
+        receipt_summary=(
+            f"Direct HTTP packet for {source_family} with HTTP {capture_result.status} "
+            f"and {len(capture_result.body)} preserved body bytes."
+        ),
+        receipt_non_claims=DIRECT_HTTP_NON_CLAIMS,
+    )
     return 0, result.output_directory
 
 
