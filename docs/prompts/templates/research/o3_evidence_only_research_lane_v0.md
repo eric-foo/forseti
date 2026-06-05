@@ -9,7 +9,10 @@ use_when:
 authority_boundary: retrieval_only
 ```
 
-Model target: o3 or o3-deep-research
+Template target: o3 or o3-deep-research prompt posture.
+
+This template is prompt-shaping guidance only. It does not recommend, require,
+rank, or route runtime model choice.
 
 Output mode: `paste-ready-chat`
 

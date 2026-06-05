@@ -9,7 +9,10 @@ use_when:
 authority_boundary: retrieval_only
 ```
 
-Model target: model-neutral
+Template target: model-neutral.
+
+This template is prompt-shaping guidance only. It does not recommend, require,
+rank, or route runtime model choice.
 
 Output mode: `review-report` or `paste-ready-chat`
 
@@ -45,9 +48,28 @@ Use `workflow-deep-thinking` first.
 
 Then use `workflow-adversarial-artifact-review`.
 
+If `workflow-adversarial-artifact-review` is unavailable, unresolved, or cannot
+be applied after `SOURCE_CONTEXT_READY`, return a blocked or advisory-only
+result. Do not emit formal verdicts, severity authority, blocked/ready status,
+validation claims, readiness claims, mandatory remediation, patch queues,
+executor-ready handoffs, or alignment-complete claims.
+
 The deep-thinking step should frame the boundary problem, failure modes, and
 decision criteria before findings are listed. It does not widen review scope or
 authorize patching.
+
+Review authority:
+Use findings-first review output by default. Formal verdicts, blocked/ready
+status, validation pass/fail claims, approval, readiness, mandatory
+remediation, patch queues, and executor-ready handoffs require explicit Orca
+overlay or prompt binding. In this template, `critical`, `major`, and `minor`
+severity labels are finding-priority labels only; they are not approval,
+rejection, readiness, validation, or mandatory-remediation authority.
+
+Review target and review purpose are commission-bound. Within that
+commission-bound target and purpose, be maximally adversarial about material
+decision-relevant failure modes. Do not retarget or widen the review, but do
+not soften a material failure mode because remediation would be difficult.
 
 Output mode and report contract:
 Use exactly one output mode for the run.
@@ -72,10 +94,13 @@ name the failed path and include enough human-readable failure detail in
 If no write authority or report destination is bound before review work starts,
 use `paste-ready-chat` instead of `review-report`.
 
-For `paste-ready-chat` reviews, use human-readable findings first and put any
-compact courier YAML last unless the launch instruction binds a different
-chat-only shape. Do not use `paste-ready-chat` to replace a required
-`review-report` durable destination after review work starts.
+For `paste-ready-chat` reviews, start with the compact `review_summary` YAML
+shape from `.agents/workflow-overlay/communication-style.md`, using
+`review_location: chat_only_current_thread` and no `report_path`. Then provide
+human-readable findings in prose. Courier YAML preserves routing state; it is
+not a substitute for the review findings. Do not use `paste-ready-chat` to
+replace a required `review-report` durable destination after review work
+starts.
 
 Review checks:
 - Source hierarchy and authority boundary.
@@ -98,11 +123,25 @@ For each finding include:
 - issue;
 - evidence;
 - impact;
-- recommended correction.
+- minimum_closure_condition;
+- next_authorized_action;
+- recommended correction or advisory remediation direction.
+
+`minimum_closure_condition` states what must become true for the failure mode
+to be resolved. It is not an implementation instruction. Optional hardening may
+be listed only when it is clearly labeled optional and non-required.
+
+Do not include `patch_queue_entry` unless the launch instruction explicitly
+binds patch-queue review or patch/integration execution authority. A
+`patch_queue_entry` is executor-ready how-to, not ordinary read-only review
+advice.
 
 If no issues are found, say so and list residual risks or test gaps.
 
-Non-claims:
-Do not claim approval, validation, readiness, implementation authorization, or
-product proof unless the prompt and Orca sources explicitly bind that claim.
+Review-use boundary:
+This is a read-only review. Treat findings and non-findings as decision input
+only, not as approval, validation, product proof, mandatory remediation, or
+executor-ready instructions. Do not anchor downstream work to this review as
+binding authority unless a separate authorized Orca decision, patch,
+validation, or implementation lane accepts it.
 ```

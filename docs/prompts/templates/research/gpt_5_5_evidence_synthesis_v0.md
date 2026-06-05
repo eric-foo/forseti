@@ -9,7 +9,10 @@ use_when:
 authority_boundary: retrieval_only
 ```
 
-Model target: GPT-5.5
+Template target: GPT-5.5 prompt posture.
+
+This template is prompt-shaping guidance only. It does not recommend, require,
+rank, or route runtime model choice.
 
 Output mode: `paste-ready-chat`
 

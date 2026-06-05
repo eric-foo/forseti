@@ -9,7 +9,10 @@ use_when:
 authority_boundary: retrieval_only
 ```
 
-Model target: model-neutral
+Template target: model-neutral.
+
+This template is prompt-shaping guidance only. It does not recommend, require,
+rank, or route runtime model choice.
 
 Output mode: `paste-ready-chat` or `file-write`
 
