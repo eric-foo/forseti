@@ -3,11 +3,11 @@
 ```yaml
 retrieval_header_version: 1
 artifact_role: Product decision
-scope: Owner authorization for bounded Data Capture source-access tooling builds — first tranche (capture core + HTTP/media/archive/honest-browser adapters) and second tranche (Reddit official API adapter and additional owner-named source adapters) — after the first pressure-test foundation closeout.
+scope: Owner authorization for bounded Data Capture source-access tooling builds — first tranche (capture core + HTTP/media/archive/honest-browser adapters), second tranche (Reddit official API adapter and additional owner-named source adapters), third tranche (anti-blocking), and selected anti-blocking backend/order — after the first pressure-test foundation closeout.
 use_when:
   - Checking whether Data Capture source-access tooling builds are now allowed.
-  - Scoping or implementing the first tranche of local source-access/capture-support tools.
-  - Distinguishing first-tranche build authority from later API, proxy, anti-detect, commercial fetch, storage, dashboard, or downstream-spine work.
+  - Scoping or implementing the bounded local source-access/capture-support tools.
+  - Distinguishing authorized first/second/third-tranche build scope from commercial fetch, broad crawling, storage, dashboard, deployment, production runtime, or downstream-spine work.
 authority_boundary: retrieval_only
 open_next:
   - docs/product/source_capture_toolbox/README.md
@@ -15,7 +15,7 @@ open_next:
   - docs/product/data_capture_spine_pressure_test_closeout_synthesis_v0.md
   - docs/decisions/data_capture_spine_source_observability_requirements_boundary_decision_v0.md
 stale_if:
-  - A later owner decision supersedes the first-tranche build scope.
+  - A later owner decision supersedes the authorized build scope, selected anti-blocking backend, or Reddit pre-commercial ordering.
   - The source-access boundary decision materially changes hard stops or disclosability requirements.
   - The Data Capture obligation contract, Data Capture/Cleaning/Judgment boundary, or source-access method plan materially changes source-acquisition obligations.
   - First-tranche implementation exposes an access, fidelity, provenance, rights, or boundary issue that cannot be represented by the authorized packet/adapter surface.
@@ -77,6 +77,52 @@ in-browser JS-challenge handling authorized here), SERP / discovery APIs, and
 persistent storage / database / dashboard / queue / scheduler / deployment /
 production-runtime surfaces. The source-access boundary and its hard stops are
 unchanged.
+
+### Anti-Blocking Backend And Reddit Ordering Amendment (2026-06-05)
+
+Owner decision: `SELECT_CLOAKBROWSER_PRIMARY_ANTI_BLOCKING_BACKEND`.
+
+For the authorized third-tranche anti-blocking surface, Orca selects
+**CloakBrowser** as the primary backend for the next anti-blocking browser
+implementation lane. Patchright remains an optional lower-change compatibility
+fallback, not the default first probe, because the armory's job is reliable
+capture on already-known actively blocking public/discoverable sources, not
+minimizing a failed experiment's integration cost.
+
+For Reddit during the current pre-commercial / personal-project phase, Orca uses
+this source-specific order:
+
+1. anti-blocking browser capture first, using the selected CloakBrowser route
+   once implemented, and preferring the old Reddit HTML surface when it is
+   available;
+2. low-volume bounded capture over source sets that are subreddit-bounded,
+   thematic, or thread-family scoped;
+3. archive capture for historical thread posture or when live capture is not
+   necessary or fails visibly.
+
+The Reddit bound is **not URL-only**. A bounded capture unit may be a subreddit,
+theme, query, thread family, or small monitored thread set when the operator
+names the boundary and records it in provenance. This does not authorize broad
+crawling, site-wide walking, generic subreddit harvesting, production monitoring,
+or volume escalation. The capture must remain low-volume and purpose-bounded,
+with method provenance recorded plainly.
+
+Reddit `.json` endpoints are not a primary pre-commercial capture spine. Current
+spot checks from Reddit's own help/dev surfaces and live developer reports show
+that OAuth/login credentials are expected for Data API use and anonymous `.json`
+reads are seeing 403/network-security failures. Treat `.json` as opportunistic
+fallback evidence only when it works and its access posture is recorded. The
+old Reddit HTML surface is the preferred Reddit browser-visible capture surface
+for this tranche.
+
+BeautifulSoup-style HTML parsing is allowed as a parser over already retrieved
+old Reddit HTML or archived HTML. It is not an access method and does not solve
+blocking, login, JavaScript, rate-limit, or anti-bot posture by itself.
+
+When Orca goes commercial / enterprise on Reddit or another source, the source
+moves to the sanctioned or commercial path for that source. For Reddit, that is
+the commercial / enterprise API or data-licensing route. Anti-blocking remains a
+pre-commercial bridge, not the commercial-scale method.
 
 ## Source Basis
 
@@ -170,13 +216,42 @@ Signal Use, Decision Strength, Action Ceiling, buyer proof, or commercial
 meaning. Generated packets remain `scratch` under the fixture/retention/
 sensitivity decision unless separately admitted.
 
+## Authorized Third-Tranche Build Surface
+
+The third tranche (owner-authorized 2026-06-05) may build, against the same
+Source Capture Packet/adapter shape and hard stops:
+
+9. **CloakBrowser anti-blocking browser adapter** (primary anti-blocking backend)
+   - use CloakBrowser as the default anti-blocking / cloaked Chromium route for
+     public or discoverable source material that ordinary browser capture is
+     expected to miss or fail;
+   - preserve visible HTML/text/screenshot artifacts, access posture, bounded
+     source-set posture, method provenance, warnings, hashes, and limitation
+     notes in the packet shape;
+   - support Reddit pre-commercial capture over named subreddit/thematic/thread
+     family bounds without requiring each run to start from a single supplied URL;
+   - prefer old Reddit HTML capture for Reddit where available, with optional
+     BeautifulSoup-style parsing after HTML is retrieved and preserved;
+   - keep low-volume capture limits and no-broad-crawling stops visible.
+
+Patchright may be used later as a compatibility fallback or cheaper migration
+probe if CloakBrowser introduces a concrete operational blocker. It is not the
+primary backend selected by this decision.
+
+CloakBrowser selection does not authorize stolen credentials, raw cookie import,
+nonconsensual sessions, no-entitlement gate bypass, obvious private/admin
+spillover, broad crawler/spider frameworks, commercial fetch services, standalone
+CAPTCHA-solving services, storage/dashboard/scheduler/deployment/production
+runtime, or Judgment/ECR/Cleaning behavior.
+
 ## Deferred Or Separately Authorized Build Surface
 
 The following remain in-bounds method candidates under the source-access method
 plan, but are not authorized for implementation by this decision (first, second,
-or third tranche). Reddit API moved to the second tranche; anti-detect browser,
+or third tranche). Reddit API moved to the second tranche. Anti-detect browser,
 residential/rotating proxy, and in-browser JS-challenge handling moved to the
-third tranche.
+third tranche, with CloakBrowser selected as the primary anti-blocking browser
+backend.
 
 - Scrapy or other broad crawler/spider frameworks for systematic site-wide URL
   discovery and large-scale walking (a breadth-at-scale / post-sale tool, not a
@@ -349,4 +424,53 @@ direction_change_propagation:
     - "not commercial-fetch, Scrapy, SERP, standalone-CAPTCHA-service, storage, or production-runtime authorization"
     - "not legal sufficiency"
     - "not Reddit live-run authorization"
+```
+
+## Direction Change Propagation - CloakBrowser And Reddit Pre-Commercial Order
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: "The owner selected CloakBrowser as Orca's primary third-tranche anti-blocking browser backend and set Reddit's pre-commercial order to anti-blocking browser first, old Reddit HTML where available, low-volume bounded subreddit/thematic/thread-family capture, then archive capture, with anonymous `.json` opportunistic only, BeautifulSoup parser-only, and commercial Reddit use moving to the sanctioned commercial / enterprise API or data-licensing path."
+  trigger: product_doctrine
+  related_triggers:
+    - lifecycle_boundary
+    - architecture_doctrine
+  controlling_sources_updated:
+    - "docs/decisions/data_capture_spine_source_access_tooling_build_authorization_v0.md"
+    - "docs/product/data_capture_source_access_method_plan_v0.md"
+    - "docs/product/source_capture_toolbox/README.md"
+    - ".agents/workflow-overlay/source-loading.md"
+    - ".agents/workflow-overlay/source-of-truth.md"
+    - ".agents/workflow-overlay/safety-rules.md"
+    - "docs/workflows/orca_repo_map_v0.md"
+    - "docs/workflows/data_capture_spine_consolidation_map_v0.md"
+    - "orca-harness/docs/source_capture_agent_runbook.md"
+    - "orca-harness/docs/adapter_author_contract.md"
+  downstream_surfaces_checked:
+    - "AGENTS.md"
+    - ".agents/workflow-overlay/README.md"
+    - "docs/product/data_capture_source_access_boundary_decision_v0.md"
+    - "docs/product/core_spine_v0_data_capture_spine_obligation_contract_v0.md"
+    - "orca-harness/source_capture/adapters/"
+  intentionally_not_updated:
+    - path: "AGENTS.md"
+      reason: "Top-level project instructions already permit bounded implementation only under current-turn or accepted-decision authority and do not encode source-specific ordering."
+    - path: "docs/product/data_capture_source_access_boundary_decision_v0.md"
+      reason: "The boundary already permits disclosable anti-blocking techniques and hard stops are unchanged; this patch selects backend/order, not boundary permission."
+    - path: "docs/product/core_spine_v0_data_capture_spine_obligation_contract_v0.md"
+      reason: "Capture obligations and forbidden Capture outputs did not change."
+    - path: "orca-harness/source_capture/adapters/"
+      reason: "No implementation was performed in this docs-only owner-decision pass; runbook now states CloakBrowser is authorized but not implemented in current runners."
+  stale_language_search: "rg -n \"Reddit official API.*cleanest|human-led/browser-visible capture by default pre-sale|human-led browser capture.*primary default|API access is not the default pre-sale route|anti-detect.*remain separately gated|does not cover Reddit API|anonymous `.json`.*primary|BeautifulSoup.*access method|old Reddit|Data Capture Spine entry map|data_capture_spine_consolidation_map\" docs/decisions/data_capture_spine_source_access_tooling_build_authorization_v0.md docs/product/data_capture_source_access_method_plan_v0.md docs/product/source_capture_toolbox/README.md .agents/workflow-overlay/source-loading.md .agents/workflow-overlay/source-of-truth.md docs/workflows/orca_repo_map_v0.md docs/workflows/data_capture_spine_consolidation_map_v0.md orca-harness/docs/source_capture_agent_runbook.md orca-harness/docs/adapter_author_contract.md"
+  stale_language_search_result: "Executed 2026-06-05 after the old Reddit / `.json` / BeautifulSoup and Data Capture Spine map patch. Remaining hits are current old Reddit preference, `.json` opportunistic-only posture, BeautifulSoup parser-only posture, Data Capture Spine map pointers, the honest-browser runner's one-supplied-URL scope, current runbook notes that CloakBrowser is authorized but not implemented there, and historical DCP receipt text. No live routing surface still makes Reddit API or anonymous `.json` the default pre-commercial route, treats BeautifulSoup as an access method, or treats anti-blocking/proxy as deferred by current authority."
+  non_claims:
+    - "not validation"
+    - "not readiness"
+    - "not source-access boundary amendment"
+    - "not legal sufficiency"
+    - "not implementation execution"
+    - "not CloakBrowser installed"
+    - "not Reddit live-run authorization"
+    - "not commercial fetch, broad crawling, storage, dashboard, deployment, or production-runtime authorization"
+    - "not ECR, Cleaning, or Judgment design"
 ```

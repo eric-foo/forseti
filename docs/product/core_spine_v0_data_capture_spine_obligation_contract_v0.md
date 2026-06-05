@@ -23,10 +23,10 @@ stale_if:
   - `docs/product/data_capture_source_access_method_plan_v0.md` materially changes method planning for the current source-access boundary.
 ```
 
-- Status: CONTRACT_DRAFT_V0_AMENDED_2026_05_31
+- Status: CONTRACT_DRAFT_V0_AMENDED_2026_06_05
 - Artifact type: Product-method contract
 - Scope: Commissioned Data Capture Spine obligations, discharge states, mode rules, re-capture rules, and pressure-test checks
-- Source basis: `docs/product/core_spine_v0_data_capture_spine_architecture_blueprint_v0.md`, `docs/product/core_spine_v0_data_capture_context_preservation_note_v0.md`, `docs/product/core_spine_v0_data_and_cleaning_spine_boundary_v0.md`, `docs/product/data_capture_source_access_boundary_decision_v0.md`, `docs/product/data_capture_spine_obligation_contract_patch_proposal_v0.md`, `docs/decisions/data_capture_spine_obligation_contract_patch_proposal_owner_decision_v0.md`
+- Source basis: `docs/product/core_spine_v0_data_capture_spine_architecture_blueprint_v0.md`, `docs/product/core_spine_v0_data_capture_context_preservation_note_v0.md`, `docs/product/core_spine_v0_data_and_cleaning_spine_boundary_v0.md`, `docs/product/data_capture_source_access_boundary_decision_v0.md`, `docs/product/data_capture_spine_obligation_contract_patch_proposal_v0.md`, `docs/decisions/data_capture_spine_obligation_contract_patch_proposal_owner_decision_v0.md`, `docs/product/data_capture_spine_posture_vocabulary_enforcement_proposal_v0.md`, `docs/review-outputs/adversarial-artifact-reviews/data_capture_spine_posture_vocabulary_enforcement_proposal_adversarial_review_v0.md`
 - Implementation authorized: no
 - Feature planning authorized: no
 - Runtime/source-system design authorized: no
@@ -269,6 +269,14 @@ Minimum obligation:
 - whether the capture includes any post-window material that downstream packet
   builders must exclude.
 
+The cutoff posture is a closed capture fact: when its status is `known`, its
+value is one of `pre_cutoff`, `post_cutoff`, `mixed`, or `unknown`, enforced at
+write-time by the Source Capture packet schema. Capture-context narrative — why a
+value was chosen, local-packetization limits, source notes — does not belong in
+this field; record it in `capture_context`. When the posture cannot be stated as
+one closed value, use the fact's `unknown_with_reason`, `not_attempted`, or
+`not_applicable` status with a reason rather than a free-text value.
+
 Capture does not decide whether the signal is admissible for a backtest or
 decision. It makes cutoff posture visible enough for downstream exclusion and
 Judgment rules to operate.
@@ -277,12 +285,18 @@ Judgment rules to operate.
 
 Every capture must record archive/history posture. When a capture has only one
 relevant source slice or the archive/history state is uniform, the posture may
-be recorded at capture level as one of:
+be recorded at capture level.
 
-- `archived`;
-- `attempt_failed`;
-- `not_attempted`;
-- `not_applicable`.
+The posture is a closed capture fact, enforced at write-time by the Source
+Capture packet schema. When its status is `known`, its value is one of:
+
+- `archived` — an archived or historical copy was obtained;
+- `attempt_failed` — an archive/history copy was sought but not obtained.
+
+`not_attempted` and `not_applicable` are carried by the fact's status with a
+reason, not as posture values. The selected snapshot timestamp and the specific
+non-preservation reason are recorded in the preserved archive metadata and in
+packet limitations — not as free text in the posture value.
 
 When cutoff, deletion, edit, cache, prior-window, archive-only, migration,
 fallback, or visibility-shift risk is load-bearing, capture-level posture is
@@ -417,6 +431,13 @@ A re-capture must preserve its relationship to the earlier capture:
   capture;
 - whether cutoff posture changed or became clearer.
 
+The re-capture relationship is a closed capture fact: when its status is
+`known`, its value is one of `supersede`, `supplement`, `conflict`, or `mixed`,
+enforced at write-time by the Source Capture packet schema. `mixed` is the value
+for a capture that supersedes the prior one for current-state posture while
+supplementing or conflicting with it for a prior-window or cutoff question; use
+it instead of forcing one global label.
+
 When re-capture involves changed, migrated, archived, cached, fallback, or
 failed-access source states, that relationship must be preserved per material
 source slice or locator. The relationship must distinguish the original
@@ -452,7 +473,7 @@ Minimum handoff accomplishments:
   cutoff/archive posture are visible where knowable;
 - when archive/history or recapture states differ, the original locator,
   historical/archive/cache locator, current or migrated locator, fallback path,
-  failed access attempt, changed source state, and supersede/supplement/conflict
+  failed access attempt, changed source state, and supersede/supplement/conflict/mixed
   relationship remain visible at the relevant source-slice level;
 - bundled-offer structure, source-visible framing, and visible packaging cues
   are preserved when the source is a multi-term proposal;
@@ -746,3 +767,85 @@ direction_change_propagation:
     - "not Judgment design"
     - "not runtime authorization"
 ```
+
+The receipt below records the DCS-POSTURE-VOCAB-R2 posture-vocabulary closure
+amendment (2026-06-05: §9/§10/§15 stated closed and write-time-enforced to match
+the landed Source Capture schema enforcement). It is propagation evidence only and
+explicitly does **not** claim the change is settled — that requires the owner-run
+cross-family implementation+doctrine review named in its non_claims.
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: "Ob.9 cutoff, Ob.10 archive/history, and Ob.15 re-capture posture vocabularies are now stated as closed and write-time-enforced (known value ∈ the named closed set; not_attempted/not_applicable carried by VisibleFact status), matching the Source Capture schema enforcement landed for DCS-POSTURE-VOCAB-R2."
+  trigger: product_doctrine
+  related_triggers: []
+  controlling_sources_updated:
+    - docs/product/core_spine_v0_data_capture_spine_obligation_contract_v0.md
+  downstream_surfaces_checked:
+    - orca-harness/source_capture/models.py
+    - orca-harness/source_capture/writer.py
+    - orca-harness/source_capture/source_quality.py
+    - orca-harness/runners/run_source_capture_archive_packet.py
+    - orca-harness/docs/source_capture_packet.md
+    - orca-harness/docs/source_capture_agent_runbook.md
+    - orca-harness/docs/adapter_author_contract.md
+    - docs/product/data_capture_spine_posture_vocabulary_enforcement_proposal_v0.md
+    - docs/review-outputs/adversarial-artifact-reviews/data_capture_spine_posture_vocabulary_enforcement_proposal_adversarial_review_v0.md
+  intentionally_not_updated:
+    - path: orca-harness/source_capture/models.py
+      reason: "Already IS the enforcement this amendment describes; the closed sets and validators landed under bounded implementation. The contract now states what the schema does — no code change is part of the doctrine amendment."
+    - path: orca-harness/docs/source_capture_packet.md
+      reason: "Describes archive availability/body OUTCOMES in behavioral prose (metadata-only / metadata+body / body-failed packet), not the posture field VALUE; the outcomes are unchanged, so there is no off-vocab value to correct."
+    - path: orca-harness/docs/source_capture_agent_runbook.md
+      reason: "References cutoff_posture as operator-set context and the separate coverage_or_drift_note field; carries no off-vocab posture value contradicting the closed sets."
+    - path: orca-harness/docs/adapter_author_contract.md
+      reason: "References the posture axes by name in terms of STATUS (unknown_with_reason/not_attempted/not_applicable) per the AR-05 split, not off-vocab values; hash_basis is writer-set, outside adapter-author scope."
+    - path: docs/product/jsg01_source_side_receipt_translator_v0.md
+      reason: "JSG-01 source-side consumer is FROZEN per AR-01 and is ECR/JSG-lane-owned. Coordination is by re-courier if a build stop-condition changes the contract, not by editing the consumer from this lane. (Applies to the jsg01_sp6_* derivation docs as well.)"
+    - path: docs/review-outputs/source_capture_archive_org_adapter_adversarial_code_review_v0.md
+      reason: "Point-in-time review record documenting the pre-migration free-text posture values as they existed then; editing it would falsify the historical record. (Applies to the other review-outputs that quote old posture strings.)"
+    - path: docs/product/source_capture_toolbox/source_quality_cw_p1_end_to_end_pass_closeout_v0.md
+      reason: "Point-in-time end-to-end pass closeout recording the posture values that specific packet carried at that pass; historical record, not a live contract surface. (Applies to the sibling cw_p4 / cw_p6 closeouts.)"
+  stale_language_search: "rg -n \"cutoff_posture|archive_history_posture|re_capture_relationship|hash_basis\" + rg -n \"snapshot body preserved|no eligible snapshot|availability metadata preserved|archive_org snapshot body\" over docs/ orca-harness/docs/. Triage: live harness docs (packet/runbook/adapter-contract) describe behavior or STATUS, not off-vocab values; review-outputs and source_quality_cw_p* closeouts are historical point-in-time records; jsg01_* is frozen consumer. No live contract surface carries an off-vocab posture value after this amendment."
+  non_claims:
+    - "not validation"
+    - "not readiness"
+    - "not settled — settled requires the owner-run cross-family review at docs/prompts/reviews/data_capture_spine_posture_vocabulary_enforcement_implementation_adversarial_review_prompt_v0.md; a same-family self-review does not satisfy that bar"
+    - "not a commit/push authorization"
+    - "not JSG-01 unfreeze"
+    - "not ECR/Cleaning/Judgment design"
+    - "not runtime authorization"
+```
+
+### R2 closure note (2026-06-05)
+
+The owner-run cross-family implementation+doctrine review ran
+(`docs/review-outputs/adversarial-artifact-reviews/data_capture_spine_posture_vocabulary_enforcement_implementation_adversarial_review_v0.md`,
+SHA256 `F6C669B0A4C04E7AC01EC1BA4BA33E62AC2FEAEF53065A9210BD0162367BDB9C`),
+recommendation `patch_before_acceptance`. The code-side remediations (AR-03/04/05 for new
+writes) held; both blockers were **pre-R2 on-disk packets**, not the code: R2-01 (existing
+manifests lack the now-required `hash_basis`) and R2-02 (existing manifests carry
+off-vocabulary `known` `cutoff_posture` narratives) — both in the three
+`orca-harness/reports/source_capture/slot3_reddit_batch1_*` dry-run packets, which are
+hash-pinned review evidence and the off-vocab examples this proposal itself cites.
+
+Owner resolution (the review sanctioned "closed OR scoped out by owner decision"):
+- **Scope-out:** the three pre-R2 packets are frozen `v0` review evidence, read-exempt from
+  the R2 schema, left byte-for-byte untouched (prior reviews' hash-pins and the cited
+  off-vocab "before" evidence stay intact). Mutating or deleting them was rejected as
+  destroying review-evidence integrity.
+- **Honest versioning:** R2 is a backward-incompatible packet-schema change, so
+  `SOURCE_CAPTURE_MANIFEST_VERSION` is bumped `source_capture_packet_manifest_v0` → `_v1`.
+  New writes carry `v1`; old packets remain `v0`. The scope-out is therefore
+  version-grounded: a `v0` packet is not required to satisfy the `v1` schema.
+
+Status: R2-01/R2-02 are resolved on the scope-out path; R2 code + doctrine is settled to the
+`v1` manifest schema (new-write correctness verified: `v1` + `hash_basis=raw_stored_bytes` +
+closed `cutoff_posture`; full suite green). This supersedes the "not settled, pending review"
+non_claim above.
+
+The broader packet schema-evolution structure (where strict validation belongs — every-read
+vs admission/consume gate vs version-aware read-back; upgrade-on-load vs clear-reject design;
+the build trigger) is NOT part of this R2 closure. It is routed to a standard architectural
+pass (`docs/prompts/architecture/source_capture_packet_schema_evolution_architecture_prompt_v0.md`),
+3 subagents, owner-run.

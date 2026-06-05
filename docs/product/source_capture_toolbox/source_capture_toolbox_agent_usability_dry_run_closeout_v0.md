@@ -1,12 +1,12 @@
-# Source Capture Toolbox Agent Usability Dry Run Closeout v0
+# Source Capture Armory Agent Usability Dry Run Closeout v0
 
 ```yaml
 retrieval_header_version: 1
 artifact_role: Product artifact
-scope: Closeout note for the Canoo/Walmart Source Capture Toolbox agent-usability dry run.
+scope: Closeout note for the Canoo/Walmart Source Capture Armory agent-usability dry run.
 use_when:
-  - Checking what the first fresh-agent Source Capture Toolbox dry run proved.
-  - Distinguishing toolbox agent usability from source-quality improvement.
+  - Checking what the first fresh-agent Source Capture Armory dry run proved.
+  - Distinguishing armory agent usability from source-quality improvement.
   - Deciding whether to patch the runbook, rerun a source-quality pass, or scope a next adapter.
 authority_boundary: retrieval_only
 open_next:
@@ -15,7 +15,7 @@ open_next:
   - docs/research/judgment-spine/cases/canoo-walmart/case_index.md
   - docs/research/judgment-spine/harness/v0_14/fixtures/canoo_walmart_2022_v0_14/source_acquisition_receipt_v0.md
 stale_if:
-  - The Source Capture Toolbox runner set materially changes.
+  - The Source Capture Armory runner set materially changes.
   - The source-capture agent runbook materially changes runner selection, output reporting, or generated-packet lifecycle.
   - A later dry run supersedes this Canoo/Walmart dry-run result.
   - A later fixture-admission or source-quality decision admits generated packet outputs as durable evidence.
@@ -23,10 +23,10 @@ stale_if:
 
 ## Status
 
-Status: `SOURCE_CAPTURE_TOOLBOX_AGENT_USABILITY_DRY_RUN_CLOSEOUT_V0`.
+Status: `SOURCE_CAPTURE_ARMORY_AGENT_USABILITY_DRY_RUN_CLOSEOUT_V0`.
 
 This closeout records the first bounded fresh-agent dry run of the Source
-Capture Toolbox against the Canoo/Walmart case. The run tested whether an agent
+Capture Armory against the Canoo/Walmart case. The run tested whether an agent
 could use the existing runbook and runners to produce inspectable packets and
 report visible limitations.
 
@@ -44,7 +44,7 @@ The dry run supports a narrow agent-usability claim:
   `receipt.md`, and `raw/`, avoided alternate-source search, and carried
   limitations forward.
 
-This is a toolbox-usability win, not a source-quality win.
+This is a armory-usability win, not a source-quality win.
 
 ## What It Did Not Prove
 
@@ -113,7 +113,7 @@ agent-usability dry run.
 
 ## Next Authorized Step
 
-If the goal is toolbox closure, commit the runbook lesson and this closeout.
+If the goal is armory closure, commit the runbook lesson and this closeout.
 
 If the goal is source-quality improvement, scope a single-source Canoo/Walmart
 source-quality pass that attempts to upgrade one source from current/live or

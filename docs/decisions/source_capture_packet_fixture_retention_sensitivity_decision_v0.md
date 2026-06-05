@@ -28,7 +28,7 @@ Owner-accepted decision: generated Source Capture Packets remain scratch by
 default. A packet may be cited, retained, recommended for fixture admission, or
 treated as separately admitted only under the lifecycle rules below.
 
-This decision closes the current Source Capture Toolbox gap for generated packet
+This decision closes the current Source Capture Armory gap for generated packet
 fixture, retention, and sensitivity handling. It does not admit any existing
 packet as a fixture.
 
@@ -142,7 +142,7 @@ legal sufficiency.
 
 ## What This Decision Closes
 
-This decision closes the Source Capture Toolbox gap named as:
+This decision closes the Source Capture Armory gap named as:
 
 - no accepted fixture policy for generated packets;
 - no rights, retention, or sensitivity rule for durably preserved raw source

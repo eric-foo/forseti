@@ -5,9 +5,9 @@ retrieval_header_version: 1
 artifact_role: Product artifact
 scope: Reusable source-quality operating profile for deciding the smallest complete source-capture posture future agents should target per source unit.
 use_when:
-  - Planning or running bounded source-quality improvement passes after the Source Capture Toolbox has a concrete source locator.
+  - Planning or running bounded source-quality improvement passes after the Source Capture Armory has a concrete source locator.
   - Distinguishing source-capture completeness from fixture admission, Judgment scoring, ECR, Cleaning, or source discovery.
-  - Preparing a source-unit queue before applying Source Capture Toolbox runners.
+  - Preparing a source-unit queue before applying Source Capture Armory runners.
 authority_boundary: retrieval_only
 open_next:
   - docs/product/source_capture_toolbox/README.md
@@ -15,7 +15,7 @@ open_next:
   - orca-harness/docs/source_capture_agent_runbook.md
   - docs/product/core_spine_v0_data_capture_spine_obligation_contract_v0.md
 stale_if:
-  - The Source Capture Toolbox packet shape, runner set, or output lifecycle materially changes.
+  - The Source Capture Armory packet shape, runner set, or output lifecycle materially changes.
   - The Data Capture obligation contract changes capture obligations, forbidden outputs, or handoff states.
   - The Source Capture Packet fixture, retention, or sensitivity decision is amended or superseded.
 ```
@@ -186,7 +186,7 @@ evidence.
 
 ```yaml
 direction_change_propagation:
-  doctrine_changed: "The Source Capture Toolbox now has a reusable Mini God-Tier Source Quality Profile that defines the smallest complete source-quality target for future bounded source units without creating fixture admission, validation, source discovery, or Judgment authority."
+  doctrine_changed: "The Source Capture Armory now has a reusable Mini God-Tier Source Quality Profile that defines the smallest complete source-quality target for future bounded source units without creating fixture admission, validation, source discovery, or Judgment authority."
   trigger: product_doctrine
   related_triggers:
     - lifecycle_boundary
@@ -204,7 +204,7 @@ direction_change_propagation:
     - "docs/workflows/orca_repo_map_v0.md"
   intentionally_not_updated:
     - path: "docs/product/core_spine_v0_data_capture_spine_obligation_contract_v0.md"
-      reason: "Capture obligations, forbidden outputs, and handoff states did not change; this profile operationalizes source-quality targets inside the existing toolbox."
+      reason: "Capture obligations, forbidden outputs, and handoff states did not change; this profile operationalizes source-quality targets inside the existing armory."
     - path: "docs/product/data_capture_source_access_boundary_decision_v0.md"
       reason: "No source-access permission, hard stop, entitlement, or disclosability rule changed."
     - path: "docs/decisions/data_capture_spine_source_access_tooling_build_authorization_v0.md"
@@ -212,9 +212,9 @@ direction_change_propagation:
     - path: "orca-harness/docs/source_capture_agent_runbook.md"
       reason: "Checkpoint 1 defines the profile standard only; the agent-facing report-block patch is a later checkpoint."
     - path: ".agents/workflow-overlay/source-loading.md"
-      reason: "Source-loading already routes toolbox work through the toolbox README; no new read-pack entry is required for this profile."
+      reason: "Source-loading already routes armory work through the armory README; no new read-pack entry is required for this profile."
     - path: "docs/workflows/orca_repo_map_v0.md"
-      reason: "Repo map already indexes the toolbox folder and README as the entrypoint; the README now points to this profile."
+      reason: "Repo map already indexes the armory folder and README as the entrypoint; the README now points to this profile."
   stale_language_search: "rg -n \"mini_god_tier|Mini God-Tier|source-quality scoring|fixture admission|validated|ready|Judgment scoring|ECR design|Cleaning implementation|source discovery|source selection|commissioning gate|Decision Frame|recommended_fixture_admission|separately_admitted\" docs/product/source_capture_toolbox/source_quality_mini_god_tier_profile_v0.md docs/product/source_capture_toolbox/source_quality_source_unit_queue_template_v0.md orca-harness/docs/source_capture_agent_runbook.md docs/product/source_capture_toolbox/README.md .agents/workflow-overlay/source-loading.md docs/workflows/orca_repo_map_v0.md"
   non_claims:
     - "not validation"
@@ -253,9 +253,9 @@ direction_change_propagation:
     - path: "docs/product/source_capture_toolbox/README.md"
       reason: "The README already indexes the profile, queue template, and runbook; the clarification changes operating semantics inside those artifacts, not component discoverability."
     - path: ".agents/workflow-overlay/source-loading.md"
-      reason: "Source-loading already routes toolbox work through the toolbox README; no new read-pack entry is required for this clarification."
+      reason: "Source-loading already routes armory work through the armory README; no new read-pack entry is required for this clarification."
     - path: "docs/workflows/orca_repo_map_v0.md"
-      reason: "Repo map already indexes the toolbox folder and runbook surfaces; no new durable source family or component path was added."
+      reason: "Repo map already indexes the armory folder and runbook surfaces; no new durable source family or component path was added."
     - path: "docs/product/core_spine_v0_data_capture_spine_obligation_contract_v0.md"
       reason: "Capture obligations and Commissioning Gate requirements did not change; this patch says the mini god-tier structure does not satisfy them by itself."
     - path: "docs/product/data_capture_source_access_boundary_decision_v0.md"

@@ -9,8 +9,9 @@
 ## Product Bet
 
 Core Spine v0 is Orca's reusable decision-evidence spine. It turns public market
-signals into inspectable allocation recommendations without becoming a generic
-OSINT platform or a `jb`-specific finance-career intelligence tool.
+signals into clean, classified, source-backed, and constrained decision
+evidence without becoming a generic OSINT platform, deck shop, or `jb`-specific
+finance-career intelligence tool.
 
 Core Spine owns market-agnostic evidence mechanics. Satellites own
 decision-specific context, language, source maps, buyers, success criteria, and
@@ -39,7 +40,7 @@ these primitives.
 | 3 | Signal Integrity | Judge credibility, incentives, independence, repetition, manipulation risk, botting, copied language, artificial amplification, and source limitations. | Source quality, fake engagement, dedupe, campaign distortion |
 | 4 | Signal Use Classification | Classify what the signal can validly inform: demand, attention, resonance, objection, distribution, buyer belief, actor strategy, manipulation risk, weak evidence, or exclusion. | Competitive intelligence, engagement interpretation, message propagation |
 | 5 | Decision Strength | Judge what action the evidence can support by weighing audience fit, costly behavior, counterevidence, alternative explanations, confidence, and action threshold. | Audience fit, costly behavior, counterevidence, confidence, recommendation threshold |
-| 6 | Decision Memo | Produce the recommendation, evidence basis, alternatives, uncertainty, kill criteria, and what would change the answer. | Memo format, decision accountability |
+| 6 | Decision Artifact | Produce the recommendation, evidence basis, alternatives, uncertainty, kill criteria, and what would change the answer. The minimum artifact is a decision memo plus evidence appendix; the premium buyer-facing artifact is an executive decision deck derived from that substrate. | Memo format, evidence appendix, executive deck, decision accountability |
 | 7 | Backtesting and Outcome Memory | Replay past decisions using only pre-cutoff evidence, compare with later outcomes, record misses, and update the evidence standard. | Multi-case backtesting, calibration, outcome learning |
 | 8 | Boundary Rules | Preserve public, market-level, non-deceptive intelligence and prevent implementation drift. | Ethics, anti-dossier boundary, no runtime authorization, no generic OSINT platform |
 
@@ -58,7 +59,7 @@ Core Spine v0 requires only these product objects:
 | Signal integrity assessment | Prevents cited-noise theater, copied-language overcounting, and manipulation blind spots. |
 | Signal use classification | Uses `engagement_logic_registry_v0.md` to classify what a signal can support. |
 | Decision strength assessment | Converts evidence quality into action threshold without false precision. |
-| Decision memo | Converts evidence into accountable recommendation. |
+| Decision artifact | Converts evidence into an accountable recommendation. The memo and evidence appendix are the reasoning substrate; the executive decision deck is the premium buyer-facing package when needed. |
 | Backtest or outcome note | Creates learning loop and calibration record. |
 | Boundary note | Keeps the work public, market-level, non-deceptive, and docs-first. |
 
@@ -77,6 +78,32 @@ Each satellite must provide:
 - what actor or competitor behavior matters;
 - outcome or backtest target when available.
 
+## Decision Artifact Model
+
+Raw public market signals are not final evidence. Core Spine must clean,
+classify, source-back, and constrain messy or contradictory public inputs
+before they can support a decision artifact.
+
+The decision memo remains the reasoning substrate, minimum viable artifact,
+proof gate, and backtest artifact. It carries the recommendation, evidence
+basis, alternatives, uncertainty, action ceiling, kill criteria, and what would
+change the answer.
+
+The evidence appendix remains mandatory for inspectability. It must preserve
+source paths, provenance, signal-use classification, source-integrity notes,
+and uncertainty boundaries sufficient for a decision owner or reviewer to
+reconstruct the argument.
+
+The executive decision deck is the premium buyer-facing artifact. It may make
+the recommendation easier to circulate and decide from, but it must be derived
+from the memo and evidence appendix. A deck cannot introduce unsupported
+claims, hide uncertainty, or outrun the source-backed evidence boundary.
+
+Core is the repeatable decision spine. Satellites adapt the spine to buyer,
+industry, decision family, competitor set, and source families. Bespoke work is
+permitted only as bounded final adaptation; overage or repeated custom work is
+consulting-risk evidence unless it reveals a repeatable decision family.
+
 ## What Must Not Be Hardcoded From `jb`
 
 Do not promote these into core:
@@ -93,7 +120,7 @@ Do not promote these into core:
 
 | Proof component | Weight | Purpose |
 | --- | ---: | --- |
-| Client 0 `jb` decision memo plan | 30% | Tests concrete decision usefulness. |
+| Client 0 `jb` decision artifact plan | 30% | Tests concrete decision usefulness through the memo substrate, evidence appendix, and any deck-ready shape. |
 | Source-quality and engagement evidence standard | 25% | Tests the core differentiator. |
 | Core Spine contract | 15% | Establishes the reusable boundary. |
 | Shadow satellite portability check | 15% | Tests non-`jb` generality. |
@@ -109,6 +136,10 @@ Internal backtest question:
 
 > Given only public evidence available before date X, would Orca have produced
 > a useful decision memo before the outcome was obvious?
+
+For backtests, the decision memo remains the correct artifact because it
+preserves reasoning and timestamp discipline. Any deck-shaped demo must be
+derived after the memo and evidence appendix are sealed.
 
 Backtests must record:
 

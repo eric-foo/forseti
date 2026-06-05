@@ -3,20 +3,21 @@
 ```yaml
 retrieval_header_version: 1
 artifact_role: Product artifact
-scope: Docs-only method plan comparing candidate source-access methods against the loosened discoverable-or-entitled + disclosable boundary standard and recommending approaches per blocked source. No build authorization.
+scope: Method plan comparing candidate source-access methods against the loosened discoverable-or-entitled + disclosable boundary standard and recommending approaches per blocked source. Build authority now comes from the separate bounded source-access tooling authorization decision.
 use_when:
   - Evaluating or selecting source-access methods for Orca Data Capture.
-  - Scoping a build of source-access tooling after receiving explicit owner authorization to exit the non-implementation phase.
+  - Scoping a build of source-access tooling after receiving explicit owner authorization for a bounded implementation scope.
   - Checking which methods are in-bounds under the discoverable-or-entitled + disclosable standard.
 authority_boundary: retrieval_only
 open_next:
+  - docs/product/source_capture_toolbox/README.md
   - docs/product/data_capture_source_access_boundary_decision_v0.md
   - docs/product/core_spine_v0_data_capture_spine_obligation_contract_v0.md
   - docs/product/data_capture_spine_pressure_test_commissioning_plan_v0.md
 stale_if:
   - The boundary decision is amended or superseded.
   - The obligation contract's Obligation 2 is materially revised.
-  - The owner explicitly authorizes building source-access tooling (this plan is superseded by the build authorization at that point).
+  - The source-access tooling build authorization is amended or superseded.
   - Pressure-test evidence surfaces access patterns this plan did not anticipate.
 ```
 
@@ -24,11 +25,11 @@ stale_if:
 
 ## Status
 
-`ACCEPTED_SOURCE_ACCESS_METHOD_PLAN_V0` — patched 2026-05-30 to reflect the discoverable-or-entitled + disclosable standard with materiality-gated provenance cleanup; patched 2026-06-01 to add API cost/sequence preference without changing boundary permission.
+`ACCEPTED_SOURCE_ACCESS_METHOD_PLAN_V0` — patched 2026-05-30 to reflect the discoverable-or-entitled + disclosable standard with materiality-gated provenance cleanup; patched 2026-06-01 to add API cost/sequence preference without changing boundary permission; patched 2026-06-02 to link the bounded first-tranche source-access tooling build authorization; patched 2026-06-05 to reflect third-tranche anti-blocking authorization, CloakBrowser-first selection, Reddit pre-commercial ordering, old Reddit HTML preference, and `.json` unreliability.
 
-Artifact type: Product artifact — docs-only method plan.
-Produced: 2026-05-28. Patched: 2026-05-28 and 2026-05-30.
-Phase: Orca non-implementation phase. No build, no install, no runtime authorized.
+Artifact type: Product artifact — method plan and build-scope input.
+Produced: 2026-05-28. Patched: 2026-05-28, 2026-05-30, 2026-06-01, 2026-06-02, and 2026-06-05.
+Phase: bounded source-access tooling build authorized only through `docs/decisions/data_capture_spine_source_access_tooling_build_authorization_v0.md`, including the first, second, and third tranches recorded there.
 Edit permission: docs-write (this file only).
 Controlling standard: `docs/product/data_capture_source_access_boundary_decision_v0.md`.
 
@@ -369,16 +370,27 @@ Note on the archive.org block: the Wayback Machine availability API (`archive.or
 
 **Root problem:** Claude Code's WebFetch tool blocks Reddit hosts entirely. This is a tool constraint, not a network restriction. Reddit is accessible via any standard HTTP client, browser, or the Reddit API.
 
-**Recommended method for pressure-test:**
-1. **Human-led browser capture** (primary default) — operator opens thread URLs in a real browser; copies verbatim OP, signal-bearing comments, related chain context per Obligation 12.
-2. **Reddit official API** (owner-authorized complement) — clean and in-bounds when separately chosen. Public subreddit content (posts, comments, threads) is accessible via the API at the free tier (100 req/min) and returns verbatim text, not paraphrases, but API access is not the default pre-sale route.
+**Recommended method for pre-commercial / personal-project capture:**
+1. **Anti-blocking browser capture first** — use the selected CloakBrowser route once implemented for public/discoverable Reddit material, because ordinary browser or tool-layer capture is expected to fail on large actively blocking sites.
+2. **Old Reddit HTML surface first where available** — prefer `old.reddit.com` browser-visible HTML for posts, comment trees, and listing context because it is simpler to preserve and parse than the modern app surface when it renders.
+3. **Low-volume bounded capture** — keep capture purpose-bounded by subreddit, theme, query, thread family, or a small monitored thread set; record the bound and method provenance visibly.
+4. **Archive capture** — use archive capture for historical thread posture or when live capture is not necessary or fails visibly.
+
+Do not make the legacy `.json` endpoint trick the primary Reddit capture spine.
+Online spot checks on 2026-06-05 showed Reddit's official help now says clients
+must authenticate with registered OAuth tokens and non-OAuth/login traffic will
+be blocked, while current developer reports describe anonymous `.json` reads
+returning 403/network-security failures. Some third-party posts still claim
+`.json` can work with headers/rate limits, so treat it as an opportunistic
+fallback only when observed in the current environment and recorded in access
+posture.
 
 **Recommended method for production:**
-- Reddit official API with registered credentials is the cleanest, most defensible, and most scalable method for Reddit when post-sale need, repeated scale pressure, source-specific fidelity need, or explicit owner decision justifies API use. Anti-detect or proxy methods are unnecessary for Reddit when the API is the chosen route.
-- Before that threshold, use human-led/browser-visible capture and local preserved files; record limitations rather than defaulting to API setup.
-- If data licensing for commercial use is required at scale, review before productizing Reddit content.
+- When Orca goes commercial / enterprise on Reddit, move to the sanctioned commercial / enterprise API or data-licensing path and stop relying on anti-blocking as the primary method.
+- Before that threshold, do not treat Reddit official API access as realistic default sequencing if the source is not approving the current personal/research use. Use bounded anti-blocking capture and preserve the owner-accepted ToS / reputational / litigation risk in provenance.
+- If data licensing for commercial use is required at scale, review before productizing Reddit content and obtain legal counsel.
 
-Note: Reddit API app registration is an administrative step, not a code build, but it is still deferred by default unless separately owner-authorized for post-sale, scale, or source-specific need.
+Note: Reddit API app registration remains build-authorized by the second tranche, but it is not the default Reddit operating route for the current pre-commercial phase because approval/access practicality is source-controlled. The commercial/API path becomes the expected route once client money or enterprise use enters the loop.
 
 ---
 
@@ -408,9 +420,16 @@ Note: Reddit API app registration is an administrative step, not a code build, b
 
 ---
 
-## What a Build Would Entail (Named, Not Built)
+## What a Build Would Entail (Build Catalogue)
 
-Nothing here authorizes building, installing, or running anything. Orca is in its non-implementation phase.
+This section is a method catalogue, not the build authorization by itself. As of
+2026-06-02, `docs/decisions/data_capture_spine_source_access_tooling_build_authorization_v0.md`
+authorizes a bounded first tranche: Source Capture Packet core/CLI, direct HTTP
+fetch, media/asset preservation, Archive.org availability/body retrieval, and
+honest browser snapshot support. Later owner decisions authorize the Reddit API
+adapter and third-tranche anti-blocking surface. Commercial fetch services, SERP
+APIs, storage, dashboards, schedulers, deployment, and broad production runtime
+remain separately gated.
 
 ### Build 1: Reddit API Access
 
@@ -503,21 +522,23 @@ Nothing here authorizes building, installing, or running anything. Orca is in it
 
 ---
 
-### Build 6: Anti-Detect Browser (Playwright-Stealth or Equivalent)
+### Build 6: CloakBrowser Anti-Blocking Browser
 
 **Dependencies:**
-- Node.js or Python environment
-- `npm install playwright playwright-stealth` or `pip install playwright-stealth`
-- Chromium binaries
+- Node.js or Python environment, depending on the wrapper used
+- CloakBrowser package and pinned custom Chromium binary
+- Existing Source Capture Packet writer and browser-capture packet conventions
 
 **What the build does:**
-- Launch Chromium with fingerprint spoofing (UA, canvas, WebGL, webdriver flag suppression)
-- Bypass bot-detection checks on Teal, WSO, and similar actively-blocking sources
-- Navigate to target URL; extract verbatim content
+- Launch CloakBrowser as the primary anti-blocking / cloaked Chromium backend
+- Bypass bot-detection checks on Reddit, Teal, WSO, and similar actively-blocking public/discoverable sources
+- Capture visible HTML/text/screenshot artifacts and method provenance into the Source Capture Packet shape
+- For Reddit, prefer old Reddit HTML where available and support low-volume capture over named subreddit, thematic, query, thread-family, or small monitored-thread bounds rather than URL-only capture units
+- Parse retrieved old Reddit HTML with a structured HTML parser such as BeautifulSoup only after preserving the raw HTML/body-equivalent; the parser is not the access method
 
-**Rough effort:** Low-Medium — 3 to 6 hours. Anti-detect configurations may need tuning per source.
-**Rough cost:** Free (open source). Compute cost for browser instances.
-**Legal / ToS flags:** Owner-accepted risk. ToS violation likely for actively-blocking sources. Potential CFAA-adjacent exposure in some jurisdictions. Must be disclosed in capture provenance as "automated extraction / anti-detect browser." Real legal counsel recommended before commercializing against actively-enforcing sources.
+**Rough effort:** Low-Medium — 3 to 8 hours for first bounded adapter integration. CloakBrowser pinning and packet provenance are the main implementation costs.
+**Rough cost:** Open-source package plus compute cost for browser instances.
+**Legal / ToS flags:** Owner-accepted risk. ToS violation likely for actively-blocking sources. Potential CFAA-adjacent exposure in some jurisdictions. Must be disclosed in capture provenance as "automated extraction / anti-blocking CloakBrowser." Real legal counsel recommended before commercializing against actively-enforcing sources.
 
 ---
 
@@ -547,8 +568,9 @@ These are risk flags, not legal opinions. Real legal counsel is advisable before
 
 - **API ToS:** Reddit's Developer Terms prohibit large-scale automated access except via the API. The free API tier permits public data access at rate limits appropriate for research. Bulk commercial redistribution likely requires a data license.
 - **Direct scraping:** Reddit's `robots.txt` restricts scrapers. Anti-detect and proxy methods bypass this; under the updated standard this is in-bounds, but litigation risk (Reddit has shown willingness to enforce) is real.
-- **Reputational:** Disclosing "official API with registered credentials" is a stronger provenance claim than scraping. For Reddit specifically, the API is the cleanest route when API access is justified; anti-detect scraping is unnecessary when the sanctioned route is used.
-- **Recommendation:** Do not treat API permission as default API sequencing. Use human-led/browser-visible capture by default pre-sale; use the official API after explicit owner decision, post-sale need, repeated scale pressure, or source-specific fidelity need. Review Reddit Developer Terms before productizing. Legal counsel before commercializing content sourced from Reddit at scale.
+- **Reputational:** Disclosing "official API with registered credentials" is stronger provenance when sanctioned access is actually available. For current pre-commercial use, the owner has decided that API approval is not a realistic default and anti-blocking capture is the practical bridge.
+- **`.json` posture:** Do not depend on anonymous `.json` endpoints as the spine. Current official guidance requires OAuth/login credentials for Data API traffic, and current developer reports show anonymous `.json` 403 failures. Use `.json` only if it works in the current environment and the packet records that access posture.
+- **Recommendation:** Use CloakBrowser anti-blocking first for bounded pre-commercial Reddit capture, prefer old Reddit HTML where available, keep capture low-volume and subreddit/thematic/thread-family scoped, parse with BeautifulSoup-style tooling only after raw HTML/body preservation, and record method provenance plainly. Move to the official commercial / enterprise API or licensing path when client-paid or commercial use begins. Legal counsel before commercializing content sourced from Reddit at scale.
 
 ### Teal
 
@@ -580,36 +602,59 @@ These are risk flags, not legal opinions. Real legal counsel is advisable before
 
 ## Sequencing Recommendation
 
-**Recommendation: Defer API/admin/tooling by default; complete pre-sale pressure-test capture via human-led/local methods unless the owner separately authorizes API use.**
+**Recommendation: build the authorized first tranche before selecting higher-risk
+or higher-cost adapters.**
 
-The commissioning plan prohibits runtime tooling during the pressure-test phase. Human capture is both the authorized mode and the most obligation-compliant path for v0 bootstrap. API use may be in-bounds, but it is not the default sequence before owner authorization, post-sale need, repeated scale pressure, or source-specific necessity.
+The earlier pressure-test sequence correctly deferred runtime tooling while the
+obligation architecture was still untested. That phase is now superseded for the
+bounded first tranche by
+`docs/decisions/data_capture_spine_source_access_tooling_build_authorization_v0.md`.
+The prior API/admin cost discipline still holds: API use may be in-bounds and
+the Reddit API adapter is build-authorized, but source-controlled approval
+practicality can make the API a poor pre-commercial default. Reddit now has its
+own pre-commercial order: CloakBrowser anti-blocking first, old Reddit HTML
+where available, low-volume bounded capture, then archive capture; commercial/API
+route when client-paid or enterprise use begins. Legacy `.json` endpoints are
+opportunistic, not the capture spine.
 
-**Reasons to defer:**
+**Reasons to sequence the first tranche first:**
 
-1. **Obligation architecture validation first.** The critical near-term question is whether the 16-obligation architecture holds under real source mess. This is independent of tooling. Building tooling before validating the architecture risks building against the wrong capture requirements.
+1. **Pressure-test lessons are now available.** The critical near-term pressure
+   is source observability and source preservation, not ECR/Cleaning/Judgment
+   design. The first tranche builds directly against that pressure.
 
-2. **Human capture is viable for the 3-batch test.** All five blocked source targets are accessible in a standard browser. The pressure-test batch can complete with human capture for all three slots.
+2. **Packet discipline should precede adapters.** Direct HTTP, archive, media,
+   and browser adapters should share the same capture packet shape before more
+   source-specific methods are added.
 
-3. **API registration is deferred by default.** Creating a Reddit account and registering an app is an administrative step rather than a code build, but it still changes operating sequence. It should proceed only after an explicit owner decision, post-sale need, repeated scale pressure, or source-specific fidelity need.
+3. **Source-specific approval practicality matters.** Creating a Reddit account
+   and registering an app may be build-authorized, but if the source is not
+   approving narrow personal/research use, it should not remain the practical
+   default for pre-commercial capture.
 
-4. **Tooling scope will be informed by the pressure tests.** If the 3-slot batch surfaces obligation failures or access patterns this plan did not anticipate, the build requirements may change.
+4. **Higher-risk adapters stay bounded.** CloakBrowser anti-blocking is now the
+   selected Reddit pre-commercial route, but commercial scraping services, SERP
+   APIs, broad crawler/spider frameworks, storage, dashboards, schedulers,
+   deployment, and production runtime remain outside this method plan's build
+   route unless separately authorized.
 
 **Recommended sequence:**
 
 ```
-Step 1 (now): Run slot-1 M&I capture via human-led browser + Wayback Machine browser access.
-              Complete obligation-discipline capture Markdown. Run LLM checker.
+Step 1 (authorized now): Build Source Capture Packet core and CLI.
 
-Step 2 (parallel or after slot-1): Run slot-2 Teal + slot-3 Reddit/WSO via human-led capture.
-              Use the enumerated URL lists from the pressure-test subagent outputs.
+Step 2 (authorized now): Add direct HTTP, media/asset, Archive.org, and honest
+                         browser snapshot adapters against the same packet shape.
 
-Step 3 (after 3-slot batch): Evaluate whether patchable or architecture-threatening
-              findings exist. Decide whether to harden or rebuild.
+Step 3 (authorized later): Build or use Reddit API only when that source route
+                           is practical and appropriate; use CloakBrowser as
+                           the selected pre-commercial anti-blocking route for
+                           bounded Reddit capture.
 
-Step 4 (separately authorized): Build tooling for the recommended methods above.
-              Reddit API may become a high-priority build only after owner/post-sale/scale
-              or source-specific justification. Honest headless remains a separate decision.
-              Anti-detect and residential proxy if honest headless fails against Teal/WSO.
+Step 4 (still separately gated): Evaluate whether commercial fetch services,
+                                 SERP, broad crawling, storage, dashboard, or
+                                 production runtime should receive separate
+                                 owner authorization.
 ```
 
 ---
@@ -620,8 +665,8 @@ Step 4 (separately authorized): Build tooling for the recommended methods above.
 - [x] Boundary standard (discoverable-or-entitled + disclosable) applied to all 11 candidate methods.
 - [x] All 11 candidate methods are in-bounds when they avoid the hard stops; free/account-created access is allowed, paid/client/coworker entitlement is allowed, and obvious cross-account/private/admin spillover is not used once noticed.
 - [x] Owner-accepted risk posture for anti-blocking techniques recorded explicitly and not treated as a boundary question.
-- [x] API cost/sequence preference recorded explicitly without prohibiting APIs and without authorizing API registration, calls, builds, or runtime tooling.
-- [x] No build, install, runtime, or tooling action taken or authorized in this document.
+- [x] API cost/sequence preference recorded explicitly without prohibiting APIs and without authorizing API registration, calls, or deferred runtime surfaces.
+- [x] First-tranche build authority is routed to `docs/decisions/data_capture_spine_source_access_tooling_build_authorization_v0.md`, not silently implied by this method plan alone.
 - [x] Non-claims stated explicitly below.
 
 ---
@@ -630,9 +675,13 @@ Step 4 (separately authorized): Build tooling for the recommended methods above.
 
 This artifact does not claim:
 
-- Implementation authorization. This plan does not authorize building, installing, running, testing, or deploying any source-access tooling.
-- API execution authorization. This plan does not authorize API calls, API app registration, credential setup, commercial fetch service use, scraper execution, crawler execution, or source-access runtime setup.
-- Exit from the non-implementation phase. Orca remains in its non-implementation / proof-setup phase per `safety-rules.md`. This plan does not change that.
+- Standalone implementation authorization. This plan does not by itself authorize
+  building, installing, running, testing, or deploying source-access tooling; the
+  separate first-tranche authorization decision does.
+- API execution authorization. This plan does not authorize API calls, API app registration, credential setup, commercial fetch service use, scraper execution, crawler execution, or deferred source-access runtime setup.
+- Blanket exit from bounded authorization. Orca may now build the separately
+  authorized first tranche, but this plan does not authorize production runtime
+  or every candidate method in the catalogue.
 - Legal sufficiency. The legal/ToS flags above are not legal opinions. Orca should obtain real legal counsel before commercializing any capability that relies on automated web access.
 - Data-rights sufficiency. Access to source material does not resolve questions about rights to process, store, or commercially use that content.
 - Authorization of any specific source access. Each method/source pair must still pass the standard; this plan names recommendations but does not execute or authorize them.
@@ -645,26 +694,31 @@ This artifact does not claim:
 
 ## Next Authorized Step
 
-Proceed to the 3-slot pressure-test batch using human-led capture and local/source-visible preservation:
+Proceed to implementation scoping for the bounded source-access tooling build
+authorized by
+`docs/decisions/data_capture_spine_source_access_tooling_build_authorization_v0.md`.
+Use `docs/product/source_capture_toolbox/README.md` as the armory entrypoint
+before writing implementation-facing specs or code.
 
-1. Open slot-1 M&I capture. Use the enumerated URL list from `docs/_inbox/data_capture_pressure_test_subagent_outputs_2026_05_28/slot1_mi_subagent_output.md`. Navigate pages in a real browser; copy verbatim content. Navigate Wayback Machine snapshots for historical state. Produce a capture Markdown artifact using the commissioning plan template.
-2. For Reddit: default to human-led/browser-visible capture. Consider Reddit API registration only if separately owner-authorized for post-sale need, repeated scale pressure, or source-specific fidelity need.
-3. For Teal and WSO: human capture via browser.
-4. After the 3-slot batch: evaluate findings. If the architecture is patchable, request a separate owner authorization to exit the non-implementation phase for bounded tooling builds per the named builds above.
-
-Building source-access tooling, registering API apps, running API calls, or setting up source-access runtime requires a separate, explicit owner authorization. That authorization is not granted here.
+Do not include commercial fetch services, SERP APIs, broad crawler/spider
+frameworks, storage, dashboards, schedulers, deployment, or production runtime
+unless a later owner authorization names that scope. Anti-blocking/CloakBrowser
+and Reddit API work are bounded by the source-access tooling authorization
+decision and still must stay inside its hard stops and non-claims.
 
 ---
 
 ## Human Summary
 
-**What changed in this patch:**
+**What changed in this patch series:**
 
 The boundary decision is now updated to `LOOSEN_SOURCE_ACCESS_TO_DISCOVERABLE_OR_ENTITLED_DISCLOSABLE`. This plan has been patched to match. The standard is now discoverable source material, free/account-created access, entitled paid/client/coworker access, disclosability, obvious spillover avoidance once noticed, and hard-stop avoidance. Anti-detect browsers, residential proxy rotation, Chrome automation with fingerprint handling, and free or entitled authenticated/paywalled access are in-bounds when they stay inside that standard.
 
-**What this means for the pressure tests:** nothing changes for default execution. Human-led capture remains the right mode for v0 bootstrap — it is the most obligation-compliant path regardless of boundary width. API/admin/tooling steps are deferred unless separately owner-authorized.
+**What this means after the pressure tests:** the first-tranche tooling build is
+now authorized as a bounded implementation route. This does not retroactively
+make the pressure tests validation, readiness, or production proof.
 
-**What changes for production:** the full toolkit remains available inside the boundary. If honest headless browsers fail against Teal or WSO, Orca can proceed to anti-detect and residential proxies without a boundary question. Free/account-created access is okay. If authenticated or paywalled access is legitimately available through Orca, the client, or a consenting collaborator, headless/browser/API/convenience access can be used. The remaining question is risk management, cost discipline, provenance, and owner/post-sale/scale justification — not a blanket in/out gate.
+**What changes for production tooling:** the full in-bound method set remains available inside the boundary, and later owner decisions have now authorized Reddit API plus anti-blocking/proxy/JS-challenge support as bounded build surfaces. CloakBrowser is the selected primary anti-blocking backend. Free/account-created access is okay. If authenticated or paywalled access is legitimately available through Orca, the client, or a consenting collaborator, headless/browser/API/convenience access can be used. The remaining question is risk management, cost discipline, provenance, and owner/post-sale/scale justification — not a blanket in/out gate.
 
 **The hard line that stays:** no-entitlement gate bypass, stolen credentials/cookies, nonconsensual sessions, security exploits, malware, credential stuffing, using obvious cross-account/private/admin spillover once noticed, private/confidential account areas without consent, and methods Orca would refuse to disclose internally. Free logins, account-created access, authentication, and paywalls are not automatic stop signs.
 
@@ -677,17 +731,21 @@ artifact_written_to: docs/product/data_capture_source_access_method_plan_v0.md
 status: ACCEPTED_SOURCE_ACCESS_METHOD_PLAN_V0
 patch_date: 2026-06-01
 patch_reason: API cost/sequence preference added; boundary permission unchanged from discoverable-or-entitled + disclosable standard with materiality-gated provenance cleanup
-phase: Orca non-implementation — no build authorized
+patch_2026_06_02_reason: linked bounded first-tranche source-access tooling build authorization
+patch_2026_06_05_reason: aligned to third-tranche anti-blocking authorization, CloakBrowser-first backend selection, and Reddit pre-commercial ordering
+phase: bounded source-access tooling build authorized by separate decision
 boundary_standard_applied: yes, to all 11 candidate methods
 methods_out_of_bounds: no-entitlement gate bypass, stolen credentials/cookies, nonconsensual sessions, security exploits, malware, credential stuffing, using obvious cross-account/private/admin spillover once noticed, private/confidential account areas without consent, and methods Orca would refuse to disclose internally
 hard_line_exclusions: narrowed from blanket auth/paywall/private labels to no-entitlement, nonconsensual, exploit-style, obvious-spillover-once-noticed, confidential, internally non-disclosable, or clearly illegal / morally compromising methods
-recommended_for_pressure_tests: human-led browser capture (all slots); Reddit official API only as separately owner-authorized complement
+recommended_for_reddit_pre_commercial: CloakBrowser anti-blocking first once implemented; prefer old Reddit HTML where available; then low-volume bounded capture; then archive capture
+reddit_json_posture: opportunistic fallback only; not primary capture spine
 api_preference: APIs remain in-bounds, but manual/subscription/local-first is the pre-sale default; API/admin/tooling requires owner/post-sale/scale/source-specific justification
-build_authorization: NOT GRANTED — requires separate owner decision to exit non-implementation phase
+build_authorization: FIRST_TRANCHE_GRANTED_BY docs/decisions/data_capture_spine_source_access_tooling_build_authorization_v0.md
 commits_pushes_prs: NOT authorized — docs-write only
 legal_counsel_advisory: recommended before commercializing any automated web-access capability
 original_patch_produced_by: Claude Sonnet 4.6 under source-access method planning prompt v0
 patch_2026_06_01_produced_by: Codex under user-authorized source-access API preference patch route
+patch_2026_06_02_produced_by: Codex under user-authorized source-access tooling build authorization docs route
 ```
 
 ## Direction Change Propagation
@@ -710,4 +768,43 @@ direction_change_propagation:
     - path: "docs/workflows/orca_repo_map_v0.md"
       reason: "The repo map entry already describes the artifact as a docs-only source-access method plan with no build/runtime authorization; no discoverability/status change was needed."
   stale_language_search: "rg -n \"never API|API.*disallowed|APIs.*out-of-bounds|API-first|Reddit API registration.*parallel|highest-priority build|API registration.*can proceed|official API.*primary|API.*authorized now|build.*authorized|runtime.*authorized|tooling.*authorized\" docs/product/data_capture_source_access_method_plan_v0.md"
+```
+
+## Direction Change Propagation - 2026-06-02 Build Authority Patch
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: "The method plan now recognizes that a separate owner decision authorizes bounded first-tranche source-access tooling builds while keeping API registration/calls, commercial fetch services, anti-detect, proxies, SERP APIs, storage, dashboards, schedulers, deployment, and production runtime separately gated."
+  trigger: lifecycle_boundary
+  controlling_sources_updated:
+    - "docs/product/data_capture_source_access_method_plan_v0.md"
+    - "docs/decisions/data_capture_spine_source_access_tooling_build_authorization_v0.md"
+    - "docs/product/source_capture_toolbox/README.md"
+    - ".agents/workflow-overlay/source-loading.md"
+    - "docs/workflows/orca_repo_map_v0.md"
+  downstream_surfaces_checked:
+    - "AGENTS.md"
+    - ".agents/workflow-overlay/README.md"
+    - ".agents/workflow-overlay/source-of-truth.md"
+    - "docs/product/source_capture_toolbox/README.md"
+    - "docs/product/data_capture_source_access_boundary_decision_v0.md"
+    - "docs/product/core_spine_v0_data_capture_spine_obligation_contract_v0.md"
+    - "docs/decisions/data_capture_spine_source_observability_requirements_boundary_decision_v0.md"
+    - "docs/decisions/data_capture_spine_source_observability_local_support_implementation_execution_authorization_v0.md"
+  intentionally_not_updated:
+    - path: "docs/product/data_capture_source_access_boundary_decision_v0.md"
+      reason: "Boundary permission and hard stops did not change."
+    - path: "docs/product/core_spine_v0_data_capture_spine_obligation_contract_v0.md"
+      reason: "Capture obligations did not change; runtime work remains allowed only when separately authorized."
+    - path: "docs/decisions/data_capture_spine_source_observability_requirements_boundary_decision_v0.md"
+      reason: "That decision remains accurate for requirements classification and already requires separate authorization for implementation; this later decision supplies separate authorization for source-access tooling, not a requirements reclassification."
+    - path: "docs/decisions/data_capture_spine_source_observability_local_support_implementation_execution_authorization_v0.md"
+      reason: "The local source-observability helper authorization remains bounded to that helper and is not the new source-access tooling authority."
+  stale_language_search: "rg -n \"No build authorization|No build, no install, no runtime authorized|Nothing here authorizes building|build_authorization: NOT GRANTED|That authorization is not granted here|not build tools now|defer_until_separate_owner_authorization\" docs/product/data_capture_source_access_method_plan_v0.md .agents/workflow-overlay/source-loading.md docs/workflows/orca_repo_map_v0.md docs/product/data_capture_spine_pressure_test_closeout_synthesis_v0.md"
+  non_claims:
+    - "not validation"
+    - "not readiness"
+    - "not source-access boundary amendment"
+    - "not API, commercial-scraper, anti-detect, proxy, or production-runtime authorization"
+    - "not ECR, Cleaning, or Judgment design"
 ```

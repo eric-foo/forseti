@@ -7,7 +7,7 @@ scope: Architecture boundary for a read-only Source Capture-owned state assemble
 use_when:
   - Deciding whether a future Source Quality helper may combine multiple already-bounded source-quality rows.
   - Preventing packet success, helper suggestions, or scratch lifecycle from being upgraded into source-quality verdicts.
-  - Distinguishing the Source Capture Toolbox state-assembler pattern from Judgment Spine conductor authority.
+  - Distinguishing the Source Capture Armory state-assembler pattern from Judgment Spine conductor authority.
 authority_boundary: retrieval_only
 open_next:
   - docs/product/source_capture_toolbox/source_quality_mini_god_tier_profile_v0.md
@@ -187,7 +187,7 @@ commercial-readiness evidence.
 
 ```yaml
 direction_change_propagation:
-  doctrine_changed: "The Source Capture Toolbox now has a Source Quality State Assembler architecture boundary for read-only multi-row source-quality state census over already-bounded rows and existing packets, explicitly avoiding conductor/gate-sequencer authority."
+  doctrine_changed: "The Source Capture Armory now has a Source Quality State Assembler architecture boundary for read-only multi-row source-quality state census over already-bounded rows and existing packets, explicitly avoiding conductor/gate-sequencer authority."
   trigger: architecture_doctrine
   related_triggers:
     - output_authority
@@ -227,7 +227,7 @@ direction_change_propagation:
     - path: "docs/research/judgment-spine/judgment_spine_thesis_operating_contract_v0.md"
       reason: "Judgment/Data Capture boundary already separates Judgment inference from source acquisition and preservation mechanics."
     - path: "docs/product/judgment_spine_toolkit_blocker_specs_from_daimler_source_fanout_v0.md"
-      reason: "The Daimler toolkit-planning boundary already keeps Source Capture Toolbox responsibilities separate from later Judgment packet/reveal/execution/calibration concerns."
+      reason: "The Daimler toolkit-planning boundary already keeps Source Capture Armory responsibilities separate from later Judgment packet/reveal/execution/calibration concerns."
   stale_language_search: "rg -n \"Source Quality State Assembler|source_quality_state_assembler|conductor|gate sequencer|validated|ready|fixture admission|Judgment scoring|source discovery|source selection|runner dispatch|mini_god_tier_met|all rows passed|ladder complete\" docs/product/source_capture_toolbox/source_quality_state_assembler_v0.md docs/product/source_capture_toolbox/README.md .agents/workflow-overlay/source-loading.md docs/workflows/orca_repo_map_v0.md"
   stale_language_search_result: "Executed on 2026-06-03 after the AR-01 through AR-05 review patch. Hits are expected title/navigation references, explicit forbidden-responsibility and non-claim text, Judgment-pattern caveats, the source-loading/repo-map navigation entries, existing Judgment conductor navigation text, and this DCP receipt/search string. No hit authorizes conductor/gate-sequencer behavior, validation, readiness, fixture admission, Judgment scoring, source discovery, source selection, runner dispatch, automated mini_god_tier_met finalization, all-rows-passed rollup, or ladder-complete claim."
   non_claims:

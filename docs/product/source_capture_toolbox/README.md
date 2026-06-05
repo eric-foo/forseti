@@ -1,12 +1,12 @@
-# Source Capture Toolbox
+# Source Capture Armory
 
 ```yaml
 retrieval_header_version: 1
 artifact_role: Product artifact
-scope: Product-facing index and design guide for the bounded Source Capture Toolbox.
+scope: Product-facing index and design guide for the bounded Source Capture Armory.
 use_when:
-  - Scoping, implementing, reviewing, or extending first-tranche Data Capture source-access tooling.
-  - Checking what each Source Capture Toolbox component does.
+  - Scoping, implementing, reviewing, or extending bounded Data Capture source-access tooling.
+  - Checking what each Source Capture Armory component does.
   - Distinguishing source capture tooling from Source Observability, ECR, Cleaning, Judgment, or deferred source-access adapters.
 authority_boundary: retrieval_only
 open_next:
@@ -23,25 +23,25 @@ stale_if:
 
 ## Status
 
-Status: `SOURCE_CAPTURE_TOOLBOX_README_V0`.
+Status: `SOURCE_CAPTURE_ARMORY_README_V0`.
 
-This folder is the product-facing home for Source Capture Toolbox design notes,
+This folder is the product-facing home for Source Capture Armory design notes,
 implementation-facing docs, gap registers, and future scoped specs.
 
 Existing controlling artifacts are not moved into this folder. They remain in
 their original product/decision locations because those paths are already cited
 by source-loading, reviews, decisions, and propagation receipts. This README
-indexes them so future toolbox work has one entrypoint without breaking
+indexes them so future armory work has one entrypoint without breaking
 historical references.
 
-## Why This Toolbox Exists
+## Why This Armory Exists
 
 The Data Capture pressure tests showed repeated source-observability pressure:
 source language, source structure, media, archive body state, access posture,
 cutoff posture, and acquisition receipts need to stay inspectable.
 
 If each fetcher, archive helper, browser snapshot, or media preserver writes its
-own output shape, downstream work inherits adapter-specific mess. The toolbox
+own output shape, downstream work inherits adapter-specific mess. The armory
 exists to make every capture path emit the same kind of Source Capture Packet
 before more adapters are added.
 
@@ -53,7 +53,7 @@ packet without redefining Capture obligations.
 
 | Source | What It Controls |
 | --- | --- |
-| `docs/decisions/data_capture_spine_source_access_tooling_build_authorization_v0.md` | Whether first-tranche source-access tooling builds are authorized and which adapters remain separately gated. |
+| `docs/decisions/data_capture_spine_source_access_tooling_build_authorization_v0.md` | Whether bounded source-access tooling builds are authorized, including first/second/third-tranche scope, selected anti-blocking backend, and which adapters remain separately gated. |
 | `docs/product/data_capture_source_access_method_plan_v0.md` | Candidate methods, sequence discipline, source-family method notes, and risk posture. |
 | `docs/product/data_capture_source_access_boundary_decision_v0.md` | Source-access boundary, entitlement/disclosability standard, and hard stops. |
 | `docs/product/core_spine_v0_data_capture_spine_obligation_contract_v0.md` | Capture obligations, forbidden Capture outputs, and handoff discipline. |
@@ -67,8 +67,9 @@ packet without redefining Capture obligations.
 | `docs/product/source_capture_toolbox/source_quality_cw_p1_end_to_end_pass_closeout_v0.md` | One-source CW-P1 Mini God-Tier metadata-only negative-path pass evidence; read as operational closeout context only, not fixture admission, validation, or doctrine authority. |
 | `docs/product/source_capture_toolbox/source_quality_state_assembler_v0.md` | Architecture boundary for a read-only Source Quality State Assembler over already-bounded rows and existing packets; state census only, not source discovery, runner dispatch, scoring, fixture admission, or Judgment authority. |
 | `docs/product/source_capture_toolbox/source_quality_slot3_post_recapture_closeout_v0.md` | Slot 3 post-recapture Mini God-Tier source-quality closeout across Reddit batch 1, Reddit batch 2, and WSO; read as operational closeout context only, not fixture admission, validation, source completeness, or Judgment authority. |
+| `docs/product/source_capture_toolbox/reddit_precommercial_capture_consolidation_planning_thread_v0.md` | Durable architectural planning thread for bounded pre-commercial Reddit capture/consolidation: CloakBrowser-first old Reddit HTML route, packet-before-parser handoff, provenance-first consolidation shape, archive fallback, `.json` opportunistic fallback, and non-implementation stop lines. |
 
-## Toolbox Components
+## Armory Components
 
 ### Source Capture Packet Core
 
@@ -286,6 +287,25 @@ It is operational source-quality evidence only. It is not fixture admission,
 validation, source completeness proof, Judgment scoring, source discovery, or
 authorization for new adapters.
 
+### Reddit Pre-Commercial Capture Consolidation Planning Thread
+
+Purpose: preserve the durable planning thread for bounded Reddit
+pre-commercial capture and consolidation before implementation.
+
+The planning artifact is at
+`docs/product/source_capture_toolbox/reddit_precommercial_capture_consolidation_planning_thread_v0.md`.
+It frames the work as an architectural planning pass: CloakBrowser-first old
+Reddit HTML capture once implemented, Source Capture Packet preservation before
+BeautifulSoup-style parsing, provenance-first consolidation, archive fallback,
+anonymous `.json` as opportunistic fallback only, and explicit stop lines for
+implementation, runtime, broad crawling, storage, production monitoring, and
+commercial use.
+
+It is planning context only. It is not validation, readiness, live Reddit
+capture authorization, CloakBrowser installation proof, parser correctness
+proof, storage authorization, production-runtime authorization, ECR, Cleaning,
+Judgment, or commercial Reddit authority.
+
 ### Source-Quality Example Ladder
 
 Purpose: give future agents a compact retrieval pattern for reading packet
@@ -378,6 +398,50 @@ It is first-tranche only as an honest browser/headless-browser path. Anti-detect
 proxy rotation, CAPTCHA solving, password-driven login automation, direct
 profile/cookie import, and no-entitlement bypass remain separately gated.
 
+### CloakBrowser Anti-Blocking Browser Adapter
+
+Purpose: preserve browser-visible source artifacts from public or discoverable
+sources that are expected to block ordinary browser/headless capture.
+
+The owner selected CloakBrowser as the primary third-tranche anti-blocking
+backend for the next implementation lane. Patchright remains an optional
+compatibility fallback if CloakBrowser creates a concrete operational blocker;
+it is not the default first probe.
+
+For Reddit in the current pre-commercial / personal-project phase, the operating
+order is:
+
+1. anti-blocking browser capture first through the selected CloakBrowser route
+   once implemented;
+2. old Reddit HTML capture where available;
+3. low-volume bounded capture over source sets that are subreddit-bounded,
+   thematic, query-based, thread-family scoped, or small monitored thread sets;
+4. archive capture for historical thread posture or when live capture is not
+   necessary or fails visibly.
+
+The Reddit bound is not URL-only. Operators must name the subreddit, theme,
+query, thread family, or monitored-thread set and record the method provenance
+plainly. This does not authorize broad crawling, site-wide walking, generic
+subreddit harvesting, production monitoring, storage, dashboards, schedulers,
+deployment, or commercial-scale use.
+
+When Orca goes commercial / enterprise on Reddit, move to the sanctioned
+commercial / enterprise API or data-licensing path and stop relying on
+anti-blocking as the primary method.
+
+Do not treat anonymous Reddit `.json` endpoint access as the primary capture
+spine. Current official guidance and developer reports indicate OAuth/login
+credentials are expected for Data API traffic and anonymous `.json` reads may
+return 403/network-security failures. If `.json` works in a run, record it as an
+observed access posture and preserve its output, but do not design the armory
+around it.
+
+BeautifulSoup-style parsing is appropriate after old Reddit HTML or archived
+HTML has been retrieved and preserved. It helps extract posts, comment text,
+links, timestamps, nesting cues, and visible metadata from HTML; it does not
+fetch the source, bypass blocking, solve JavaScript rendering, or replace packet
+provenance.
+
 ### Source Observability Helper
 
 Purpose: inspect operator-authored posture records and emit visible limitation
@@ -392,7 +456,7 @@ limitations visible.
 
 ## Current Build Order
 
-1. Design and document this toolbox entrypoint. **Done.**
+1. Design and document this armory entrypoint. **Done.**
 2. Build Source Capture Packet core and CLI with local-file packaging only. **Done.**
 3. Dry-run the packet CLI against an already-local source artifact. **Done.**
 4. Add Direct HTTP fetch adapter. **Done.**
@@ -401,14 +465,19 @@ limitations visible.
 7. Add agent-facing runbook for bounded runner use. **Done.**
 8. Add Honest Browser Snapshot adapter. **Done for anonymous/headless v0 and
    manual-login storage-state authenticated v0.**
-9. Decide separately whether password-driven login automation, direct
-   profile/cookie import, Reddit API, commercial fetch services, anti-detect,
-   proxies, SERP APIs, storage, dashboards, schedulers, deployment, or production
-   runtime should receive their own owner authorization.
+9. Add Reddit API adapter and credential support. **Authorized by second tranche;
+   implementation status should be checked in `orca-harness/source_capture/`
+   before use.**
+10. Add CloakBrowser anti-blocking browser adapter. **Authorized by third
+    tranche; selected primary backend; not implemented in this README state.**
+11. Decide separately whether password-driven login automation, direct
+    profile/cookie import, commercial fetch services, SERP APIs, broad
+    crawler/spider frameworks, storage, dashboards, schedulers, deployment, or
+    production runtime should receive their own owner authorization.
 
 ## Folder Convention
 
-Use this folder for product-facing Source Capture Toolbox docs:
+Use this folder for product-facing Source Capture Armory docs:
 
 ```text
 docs/product/source_capture_toolbox/
@@ -455,9 +524,11 @@ Implemented first-tranche pieces:
 - agent-facing runbook for bounded runner selection, stops, inspection, and
   reporting.
 
-Recorded architecture boundaries that are not implemented tooling:
+Recorded architecture boundaries / owner selections that are not implemented
+tooling:
 
-- none currently listed.
+- CloakBrowser is selected as the primary anti-blocking browser backend for the
+  next third-tranche implementation lane.
 
 Remaining current gaps:
 
@@ -466,13 +537,11 @@ Remaining current gaps:
 
 Deferred gaps that are intentionally outside the first tranche:
 
-- Reddit API registration, OAuth setup, API calls, or PRAW/direct-API adapter;
 - password-driven login automation;
 - direct browser profile or raw cookie import;
 - commercial scraping or fetch-service integration;
-- anti-detect browser implementation;
-- residential, rotating, or managed proxy integration;
-- CAPTCHA-solving or challenge-handling service integration;
+- broad crawler/spider frameworks;
+- standalone CAPTCHA-solving service integration;
 - SERP/discovery API integration;
 - persistent storage, database, dashboard, queue, scheduler, deployment,
   production crawler, or broad source-system runtime.
@@ -481,17 +550,19 @@ Deferred gaps that are intentionally outside the first tranche:
 
 This README is not validation, readiness, source-of-truth promotion, legal
 sufficiency, source-access boundary amendment, contract hardening,
-implementation execution, API authorization, commercial-scraper authorization,
-anti-detect authorization, proxy authorization, production-runtime
-authorization, final packet schema, ECR design, Cleaning implementation,
-Judgment design, buyer proof, rights-to-process sufficiency, retention policy,
-or commercial-readiness evidence.
+implementation execution, commercial-scraper authorization, standalone
+CAPTCHA-service authorization, production-runtime authorization, final packet
+schema, ECR design, Cleaning implementation, Judgment design, buyer proof,
+rights-to-process sufficiency, retention policy, or commercial-readiness
+evidence. Reddit API and anti-blocking/CloakBrowser build authority comes from
+`docs/decisions/data_capture_spine_source_access_tooling_build_authorization_v0.md`,
+not from this README.
 
 ## Direction Change Propagation
 
 ```yaml
 direction_change_propagation:
-  doctrine_changed: "The Source Capture Toolbox now has a product-facing entrypoint and folder convention: future toolbox product docs should live under docs/product/source_capture_toolbox while existing controlling authority files remain at their historical paths and are indexed here."
+  doctrine_changed: "The Source Capture Armory now has a product-facing entrypoint and folder convention: future armory product docs should live under docs/product/source_capture_toolbox while existing controlling authority files remain at their historical paths and are indexed here."
   trigger: lifecycle_boundary
   controlling_sources_updated:
     - "docs/product/source_capture_toolbox/README.md"
@@ -517,12 +588,69 @@ direction_change_propagation:
       reason: "Harness implementation has not yet added source_capture code; the harness README should change with implementation, not with this product-facing design index."
     - path: "orca-harness/docs/source_observability_scalability_note.md"
       reason: "Source Observability remains a separate helper; this README references it without changing its boundary."
-  stale_language_search: "rg -n \"Source Capture Toolbox|source_capture_toolbox|Source Capture Packet|source_capture\" .agents/workflow-overlay/artifact-folders.md docs/product/README.md docs/product/source_capture_toolbox/README.md docs/decisions/data_capture_spine_source_access_tooling_build_authorization_v0.md docs/product/data_capture_source_access_method_plan_v0.md .agents/workflow-overlay/source-loading.md docs/workflows/orca_repo_map_v0.md"
+  stale_language_search: "rg -n \"Source Capture Armory|source_capture_toolbox|Source Capture Packet|source_capture\" .agents/workflow-overlay/artifact-folders.md docs/product/README.md docs/product/source_capture_toolbox/README.md docs/decisions/data_capture_spine_source_access_tooling_build_authorization_v0.md docs/product/data_capture_source_access_method_plan_v0.md .agents/workflow-overlay/source-loading.md docs/workflows/orca_repo_map_v0.md"
   non_claims:
     - "not validation"
     - "not readiness"
     - "not implementation execution"
     - "not source-access boundary amendment"
+    - "not ECR, Cleaning, or Judgment design"
+```
+
+## Direction Change Propagation - Source Capture Armory Display Name
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: "The product-facing display name is now Source Capture Armory; the historical docs/product/source_capture_toolbox path remains stable until a separate migration decision."
+  trigger: product_doctrine
+  related_triggers:
+    - output_authority
+    - lifecycle_boundary
+  controlling_sources_updated:
+    - "docs/product/source_capture_toolbox/README.md"
+    - "docs/product/README.md"
+    - ".agents/workflow-overlay/artifact-folders.md"
+    - ".agents/workflow-overlay/source-loading.md"
+    - ".agents/workflow-overlay/safety-rules.md"
+    - "docs/workflows/orca_repo_map_v0.md"
+    - "docs/product/data_capture_source_access_method_plan_v0.md"
+    - "docs/product/data_capture_source_access_boundary_decision_v0.md"
+    - "docs/decisions/data_capture_spine_source_access_tooling_build_authorization_v0.md"
+    - "docs/decisions/source_capture_packet_fixture_retention_sensitivity_decision_v0.md"
+    - "orca-harness/docs/source_capture_agent_runbook.md"
+    - "orca-harness/docs/source_capture_packet.md"
+    - "orca-harness/README.md"
+  downstream_surfaces_checked:
+    - "AGENTS.md"
+    - "CLAUDE.md"
+    - ".agents/workflow-overlay/README.md"
+    - ".agents/workflow-overlay/source-of-truth.md"
+    - "docs/product/source_capture_toolbox/source_quality_mini_god_tier_profile_v0.md"
+    - "docs/product/source_capture_toolbox/source_quality_source_unit_queue_template_v0.md"
+    - "docs/product/source_capture_toolbox/source_quality_state_assembler_v0.md"
+    - "docs/product/source_capture_toolbox/source_capture_toolbox_agent_usability_dry_run_closeout_v0.md"
+    - "docs/product/source_capture_toolbox/source_quality_mixed_source_trial_closeout_v0.md"
+    - "docs/product/source_capture_toolbox/source_quality_cw_p1_end_to_end_pass_closeout_v0.md"
+    - "docs/product/source_capture_toolbox/source_quality_cw_p4_end_to_end_pass_closeout_v0.md"
+    - "docs/product/source_capture_toolbox/source_quality_cw_p6_end_to_end_pass_closeout_v0.md"
+    - "docs/product/source_capture_toolbox/source_quality_slot3_post_recapture_closeout_v0.md"
+  intentionally_not_updated:
+    - path: "docs/product/judgment_spine_toolkit_blocker_specs_from_daimler_source_fanout_v0.md"
+      reason: "Judgment toolkit planning is a separate Judgment-lane concept, not the Source Capture Armory display-name surface."
+    - path: "docs/review-outputs/**"
+      reason: "Review outputs are historical/advisory snapshots and should not be rewritten for display-name harmonization."
+    - path: "docs/prompts/**"
+      reason: "Prompt and precompact artifacts are historical routing context unless a future prompt-specific pass is authorized; the new CA handoff is the current continuation prompt."
+    - path: "docs/_inbox/**"
+      reason: "Inbox/raw capture material is non-authoritative scratch or provenance material."
+  stale_language_search: "rg -n \"Source Capture Toolbox|SOURCE_CAPTURE_TOOLBOX|source-capture toolbox|current toolbox|toolbox gap|toolbox usability|full toolkit\" .agents/workflow-overlay/artifact-folders.md .agents/workflow-overlay/source-loading.md .agents/workflow-overlay/safety-rules.md docs/product/README.md docs/product/source_capture_toolbox docs/workflows/orca_repo_map_v0.md docs/product/data_capture_source_access_method_plan_v0.md docs/product/data_capture_source_access_boundary_decision_v0.md docs/decisions/data_capture_spine_source_access_tooling_build_authorization_v0.md docs/decisions/source_capture_packet_fixture_retention_sensitivity_decision_v0.md orca-harness/docs/source_capture_agent_runbook.md orca-harness/docs/source_capture_packet.md orca-harness/README.md"
+  non_claims:
+    - "not validation"
+    - "not readiness"
+    - "not path migration"
+    - "not source-access boundary amendment"
+    - "not new implementation authorization"
+    - "not Reddit API, commercial fetch, anti-detect, proxy, storage, dashboard, deployment, or production-runtime authorization"
     - "not ECR, Cleaning, or Judgment design"
 ```
 
@@ -547,7 +675,7 @@ direction_change_propagation:
     - "docs/workflows/orca_repo_map_v0.md"
   intentionally_not_updated:
     - path: "docs/product/core_spine_v0_data_capture_spine_obligation_contract_v0.md"
-      reason: "The obligation contract remains the authority; this patch maps the toolbox packet to it without changing Capture obligations."
+      reason: "The obligation contract remains the authority; this patch maps the armory packet to it without changing Capture obligations."
     - path: "docs/decisions/data_capture_spine_source_access_tooling_build_authorization_v0.md"
       reason: "Authorized first-tranche build surface did not change."
     - path: "docs/product/data_capture_source_access_method_plan_v0.md"
@@ -555,9 +683,9 @@ direction_change_propagation:
     - path: "docs/product/data_capture_source_access_boundary_decision_v0.md"
       reason: "Source-access boundary permission and hard stops did not change."
     - path: ".agents/workflow-overlay/source-loading.md"
-      reason: "Source-loading route already points to the toolbox README; no new read-pack entry is required."
+      reason: "Source-loading route already points to the armory README; no new read-pack entry is required."
     - path: "docs/workflows/orca_repo_map_v0.md"
-      reason: "Repo map already indexes the toolbox README as the product-facing entrypoint."
+      reason: "Repo map already indexes the armory README as the product-facing entrypoint."
   stale_language_search: "rg -n \"packet is the spine|acquisition timestamp and cutoff posture|--source-url|no-network.*implied\" docs/product/source_capture_toolbox/README.md"
   non_claims:
     - "not validation"
@@ -572,7 +700,7 @@ direction_change_propagation:
 
 ```yaml
 direction_change_propagation:
-  doctrine_changed: "The Source Capture Toolbox now treats manual-login Playwright storage-state authenticated browser capture as an implemented first-tranche Browser Snapshot extension, with local ignored session-mode sidecar binding, while password automation, direct profile/cookie import, anti-detect, proxy behavior, CAPTCHA solving, and no-entitlement bypass remain deferred or forbidden."
+  doctrine_changed: "The Source Capture Armory now treats manual-login Playwright storage-state authenticated browser capture as an implemented first-tranche Browser Snapshot extension, with local ignored session-mode sidecar binding, while password automation, direct profile/cookie import, anti-detect, proxy behavior, CAPTCHA solving, and no-entitlement bypass remain deferred or forbidden."
   trigger: lifecycle_boundary
   related_triggers:
     - product_doctrine
@@ -596,15 +724,15 @@ direction_change_propagation:
     - path: "docs/product/data_capture_source_access_boundary_decision_v0.md"
       reason: "The source-access boundary already permits free/account-created, paid, client-provided, and consenting-coworker access when disclosable and hard stops are avoided; this patch implements a bounded tool path without changing permission doctrine."
     - path: "docs/product/data_capture_source_access_method_plan_v0.md"
-      reason: "Method sequencing and hard stops did not change; authenticated v0 stays inside the already authorized first-tranche Source Capture Toolbox implementation lane."
+      reason: "Method sequencing and hard stops did not change; authenticated v0 stays inside the already authorized first-tranche Source Capture Armory implementation lane."
     - path: "docs/decisions/data_capture_spine_source_access_tooling_build_authorization_v0.md"
       reason: "The existing tooling authorization controls the bounded first-tranche build surface; no new API, commercial fetch, anti-detect, proxy, production runtime, ECR, Cleaning, or Judgment authority is introduced."
     - path: "docs/product/core_spine_v0_data_capture_spine_obligation_contract_v0.md"
       reason: "Capture obligations and handoff states did not change; packets remain visible limitation carriers only."
     - path: ".agents/workflow-overlay/source-loading.md"
-      reason: "Source-loading already routes agents to this toolbox README for current component status and gaps; it does not encode per-adapter build status."
+      reason: "Source-loading already routes agents to this armory README for current component status and gaps; it does not encode per-adapter build status."
     - path: "docs/workflows/orca_repo_map_v0.md"
-      reason: "Repo map already indexes this toolbox README as the component/gap entrypoint; no stale logged-in/session-state status was found there."
+      reason: "Repo map already indexes this armory README as the component/gap entrypoint; no stale logged-in/session-state status was found there."
   stale_language_search: "rg -n \"logged-in/entitled browser session reuse remains|no logged-in/entitled browser session|session/profile/cookie/storage-state reuse|Login-visible or entitled browser session content \\| none yet|not login/session capture\" docs/product/source_capture_toolbox/README.md orca-harness/docs/source_capture_agent_runbook.md orca-harness/docs/source_capture_packet.md orca-harness/README.md"
   non_claims:
     - "not validation"

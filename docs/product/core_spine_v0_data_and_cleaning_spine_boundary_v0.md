@@ -71,8 +71,8 @@ The split is product-method, not runtime:
 
 | Layer | Canonical term | Owns | Must not own |
 | --- | --- | --- | --- |
-| Data Capture Spine | Evidence-grade signal acquisition and preservation | Source-surface discovery, access-path evaluation, capture obligations, raw-signal preservation, capture fidelity, source visibility, source identity, event/capture timing, cutoff/archive posture, and handoff requirements for public/external signals. | Final ECR field schema, storage, IDs, adapters, scraper/API implementation, source truth, cleaning transformations, credibility labels, discounting, Decision Strength, Action Ceiling. |
-| Evidence Candidate Record | Pre-cleaning captured-signal receipt | The content/receipt contract for a captured signal entering Cleaning: raw observation, provenance/timing/capture-context obligations, inspectability reference, preservation posture, and handoff state at a categorical level. | Source discovery, source collection operations, runtime storage, cleaning transformations, integrity labels, signal-use classification, decision-use claims. |
+| Data Capture Spine | Evidence-grade signal acquisition and preservation | Source-surface discovery, access-path evaluation, capture obligations, raw-signal preservation, capture fidelity, source visibility, source identity, event/capture timing, cutoff/archive posture, source-envelope removal, mechanical source projection into inspectable rows when needed, projection receipt warnings, and handoff requirements for public/external signals. | Final ECR field schema, storage, IDs, adapters, scraper/API implementation, source truth, cleaning transformations, credibility labels, discounting, Decision Strength, Action Ceiling, semantic filtering, or evidence-row removal due to apparent low value. |
+| Evidence Candidate Record | Pre-cleaning captured-signal receipt | The content/receipt contract for a captured signal entering Cleaning: raw observation, mechanical source projection packet reference where used, provenance/timing/capture-context obligations, inspectability reference, preservation posture, and handoff state at a categorical level. | Source discovery, source collection operations, runtime storage, cleaning transformations, integrity labels, signal-use classification, decision-use claims, or certification that a projection is fully normalized. |
 | Cleaning Spine | Provenance & Normalization | Non-destructive transformation ledger, normalization, translation, summarization, dedupe mechanics, clustering mechanics, and raw-to-cleaned traceability. | Source acquisition, credibility, discounting effects, integrity labels, exclusion due to judgment, Decision Strength, Action Ceiling. |
 | Judgment Spine | Judgment Spine | Signal Integrity, Signal Use Classification, uncertainty, counterevidence, discounting, exclusion, Decision Strength, Action Ceiling. | Capture, source storage, raw transformation history, deck production. |
 | Decision Artifact | Reasoning + Communication Artifact | Memo and evidence appendix as reasoning substrate; executive deck as derived communication. | New unsupported claims or claims above Action Ceiling. |
@@ -82,8 +82,8 @@ The canonical architecture is:
 
 ```text
 Decision Frame
--> Data Capture Spine: signal discovery, access, capture, preservation, handoff
--> Evidence Candidate Record
+-> Data Capture Spine: signal discovery, access, capture, preservation, mechanical source projection when needed, handoff
+-> Evidence Candidate Record: pre-cleaning receipt of raw capture and projection packet
 -> Cleaning Spine: Provenance & Normalization ledger
 -> Judgment Spine overlays
 -> Reasoning Artifact: memo + evidence appendix
@@ -97,6 +97,9 @@ The wrong moves are:
   contract;
 - using Data Capture Spine as an Evidence Object Model alias;
 - giving Data Capture Spine runtime meaning too early;
+- promoting mechanical source projection into a standalone spine layer;
+- calling projection "filtering" or "purification" if it removes evidence rows
+  instead of only source-envelope noise;
 - treating source availability or collection volume as evidence validity;
 - letting Cleaning absorb Judgment;
 - letting decks drive evidence structure.
@@ -113,14 +116,29 @@ archive posture, and preservation obligations Orca must support conceptually.
 It must not become a runtime source-system plan, scraper plan, source inventory,
 source map, or generic listening platform.
 
+Mechanical Source Projection is a Data Capture-owned helper, not a new spine
+layer. When raw source format is too transport-heavy for later inspection, Data
+Capture may create a Data Capture Projection Packet: preserved raw source plus
+a mechanical row view plus a projection receipt. The projection may remove
+source-envelope noise such as API transport, UI, report, award, embed, or
+client-voting scaffolding from the working view. It must not remove post,
+comment, document, review, or other evidence rows because they appear
+low-value, low-score, repetitive, embarrassing, bot-like, deleted, or
+unhelpful. Projection self-checks may record counts, omissions, warnings, and
+missing-continuation markers, but they do not certify the projection as cleaned
+or normalized.
+
 Evidence Candidate Record owns the pre-cleaning captured-signal receipt. This
 artifact does not freeze a field architecture; the current IPF Evidence Unit
 standard remains the source to cite until the later Evidence Candidate Record /
 Evidence Unit consolidation.
 
-Cleaning Spine may record dedupe and clustering mechanics. Once dedupe or
-clustering affects independence, credibility, uncertainty, exclusion, Decision
-Strength, or Action Ceiling, the effect belongs to Judgment Spine.
+Cleaning Spine verifies raw-to-projected traceability where a projection packet
+exists and records non-destructive transformation history. It may record
+normalization, translation, summarization, dedupe, and clustering mechanics.
+Once dedupe or clustering affects independence, credibility, uncertainty,
+exclusion, Decision Strength, or Action Ceiling, the effect belongs to Judgment
+Spine.
 
 Judgment Spine owns inference and decision-use effects. The consultant-loop CA
 lane may train inference, build a case backlog, compare solved cases, and
@@ -267,6 +285,8 @@ Future Evidence Candidate Record / Evidence Unit consolidation should answer:
 - which Evidence Unit fields are frozen core invariants;
 - how capture handoff obligations become receipt fields without turning Data
   Spine into an ECR schema;
+- how Data Capture Projection Packet references should be receipted without
+  turning ECR into a projection schema;
 - how transformation ledger references should be represented conceptually;
 - how inclusion state, state reason, and layer ownership should be recorded;
 - how snapshot/archive status relates to pre-cutoff visibility;
@@ -294,6 +314,42 @@ Future Evidence Candidate Record / Evidence Unit consolidation should answer:
 - Engagement Logic Registry extension model for satellites.
 - When, if ever, runtime/source-system Data Capture Spine planning becomes
   authorized.
+
+## Direction Change Propagation
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: "Mechanical Source Projection is a Data Capture-owned projection helper and Data Capture Projection Packet, not Cleaning, Judgment, or a standalone spine layer."
+  trigger: architecture_doctrine
+  controlling_sources_updated:
+    - "docs/product/core_spine_v0_data_and_cleaning_spine_boundary_v0.md"
+  downstream_surfaces_checked:
+    - "AGENTS.md"
+    - ".agents/workflow-overlay/README.md"
+    - ".agents/workflow-overlay/source-of-truth.md"
+    - ".agents/workflow-overlay/source-loading.md"
+    - "docs/workflows/orca_repo_map_v0.md"
+    - "docs/product/data_capture_harness_operating_model_architecture_v2.md"
+    - "docs/product/data_capture_harness_operating_model_architecture_v2_acceptance_decision_v0.md"
+    - "docs/product/data_capture_spine_lane_product_thesis_v0.md"
+    - "docs/prompts/data_capture_pressure_test_reddit_mechanical_source_projection_worker_prompt_v0.md"
+    - "docs/prompts/data_capture_pressure_test_slot3_reddit_manifest_architecture_thread_prompt_v0.md"
+    - "docs/_inbox/data_capture_pressure_test_operator_supplied_2026_05_29/slot3_reddit_b1/README.md"
+  intentionally_not_updated:
+    - path: ".agents/workflow-overlay/source-loading.md"
+      reason: "Read-pack and source-budget rules remain accurate; they point to this boundary note rather than restating projection doctrine."
+    - path: "docs/workflows/orca_repo_map_v0.md"
+      reason: "Navigation entry for the Data Capture/Cleaning boundary remains accurate and should not fork the doctrine."
+    - path: "docs/_inbox/data_capture_pressure_test_operator_supplied_2026_05_29/slot3_reddit_b1/cleansed/"
+      reason: "Legacy generated-folder name retained to avoid artifact churn; documentation now states the contents are source-projected, not Cleaning outputs."
+  stale_language_search: "rg -n \"mechanical cleanser|cleanser|cleansing|filtering layer|source purification|source-purification\" docs .agents"
+  non_claims:
+    - "not validation"
+    - "not readiness"
+    - "not ECR schema design"
+    - "not Cleaning implementation"
+    - "not Judgment authorization"
+```
 
 ## Non-Claims
 

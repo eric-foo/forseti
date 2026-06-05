@@ -15,7 +15,7 @@ open_next:
   - orca-harness/docs/source_capture_agent_runbook.md
 stale_if:
   - The Mini God-Tier profile changes result tokens, lifecycle vocabulary, or required report fields.
-  - The Source Capture Toolbox packet manifest shape changes materially.
+  - The Source Capture Armory packet manifest shape changes materially.
   - A fixture-admission, rights, retention, or sensitivity policy becomes controlling for generated packet outputs.
 ```
 
@@ -25,7 +25,7 @@ Status: `SOURCE_QUALITY_MIXED_SOURCE_TRIAL_CLOSEOUT_V0`.
 
 This artifact closes the first mixed-source trial of the Mini God-Tier
 source-quality structure. It records what the trial showed about the current
-profile, queue template, runbook report block, and Source Capture Toolbox
+profile, queue template, runbook report block, and Source Capture Armory
 packet outputs.
 
 The trial used already-bounded Canoo/Walmart source units. It did not discover,

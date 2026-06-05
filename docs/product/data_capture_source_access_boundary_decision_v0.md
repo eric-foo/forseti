@@ -109,8 +109,8 @@ This is a deliberate loosening from a stricter reading, recorded as a decision b
 
 ## What This Decision Does NOT Do
 
-- It does **not** authorize building source-access tooling, scrapers, crawlers, runtime systems, or any software. Orca remains in its non-implementation phase per `safety-rules.md`. Building requires a separate, explicit owner authorization to exit that phase.
-- It does **not** change Orca's non-implementation / proof-setup phase.
+- It does **not** authorize building source-access tooling, scrapers, crawlers, runtime systems, or any software by itself. Building requires a separate, explicit owner authorization naming the bounded implementation scope.
+- Later owner authorization now exists for the bounded first-tranche Source Capture Armory build in `docs/decisions/data_capture_spine_source_access_tooling_build_authorization_v0.md`; this boundary decision still controls the source-access standard and hard stops.
 - It does **not** authorize accessing any specific source; each method/source pair must still pass the standard.
 - It does **not** claim legal sufficiency; Orca should obtain real legal counsel before commercializing a scraping-based capability.
 - It does **not** waive the other 15 obligations or any non-claim.
@@ -162,4 +162,43 @@ This artifact does not claim: implementation authorization, runtime authorizatio
 
 ## Next Authorized Step
 
-Use this decision as the controlling boundary basis for Obligation 2 and source-access method planning. Building any source-access tooling still requires separate explicit owner authorization to exit the non-implementation phase.
+Use this decision as the controlling boundary basis for Obligation 2 and source-access method planning. Building any source-access tooling still requires separate explicit owner authorization naming the bounded implementation scope; the current first-tranche authorization is `docs/decisions/data_capture_spine_source_access_tooling_build_authorization_v0.md`.
+
+## Direction Change Propagation - 2026-06-02 Phase Language Patch
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: "The source-access boundary decision no longer describes Orca as globally non-implementation; it now says this boundary does not itself authorize builds, while the later first-tranche Source Capture Armory authorization supplies bounded implementation authority."
+  trigger: lifecycle_boundary
+  controlling_sources_updated:
+    - "docs/product/data_capture_source_access_boundary_decision_v0.md"
+    - ".agents/workflow-overlay/project-authority.md"
+    - ".agents/workflow-overlay/safety-rules.md"
+    - ".agents/workflow-overlay/template-registry.md"
+    - ".agents/workflow-overlay/validation-gates.md"
+    - ".agents/workflow-overlay/source-loading.md"
+    - "docs/product/data_capture_source_access_method_plan_v0.md"
+  downstream_surfaces_checked:
+    - "AGENTS.md"
+    - ".agents/workflow-overlay/README.md"
+    - ".agents/workflow-overlay/source-of-truth.md"
+    - "docs/workflows/orca_repo_map_v0.md"
+    - "docs/decisions/data_capture_spine_source_access_tooling_build_authorization_v0.md"
+    - "docs/product/source_capture_toolbox/README.md"
+    - "docs/product/core_spine_v0_data_capture_spine_obligation_contract_v0.md"
+  intentionally_not_updated:
+    - path: "docs/product/core_spine_v0_data_capture_spine_obligation_contract_v0.md"
+      reason: "Capture obligations and forbidden outputs did not change."
+    - path: "docs/workflows/orca_repo_map_v0.md"
+      reason: "Repo map already routes to the later first-tranche tooling authorization and armory README."
+    - path: "docs/decisions/data_capture_spine_source_access_tooling_build_authorization_v0.md"
+      reason: "Already supplies the later bounded first-tranche implementation authority."
+    - path: "docs/product/source_capture_toolbox/README.md"
+      reason: "Already points armory work to the later bounded first-tranche authorization."
+  stale_language_search: "rg -n \"Orca remains in its non-implementation phase|non-implementation / proof-setup phase|exit the non-implementation phase\" docs/product/data_capture_source_access_boundary_decision_v0.md .agents/workflow-overlay/safety-rules.md .agents/workflow-overlay/project-authority.md .agents/workflow-overlay/template-registry.md .agents/workflow-overlay/validation-gates.md docs/product/data_capture_source_access_method_plan_v0.md"
+  non_claims:
+    - "not validation"
+    - "not readiness"
+    - "not source-access boundary amendment"
+    - "not blanket implementation authorization"
+```
