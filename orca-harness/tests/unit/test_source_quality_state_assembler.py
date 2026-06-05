@@ -191,6 +191,6 @@ def _write_local_body_packet(root: Path) -> Path:
         source_locator=known_fact("https://example.test/source"),
         decision_question="What source body was preserved?",
         capture_context="unit test source-quality state assembler packet",
-        cutoff_posture=known_fact("current local packet test cutoff"),
+        cutoff_posture=known_fact("unknown"),
     )
     return packet_dir

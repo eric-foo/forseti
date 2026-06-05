@@ -117,6 +117,30 @@ def test_metadata_only_non_archive_packet_reports_body_possession_not_proven(scr
     }
 
 
+def test_body_content_type_inferred_from_extension_when_metadata_absent(scratch_dir: Path) -> None:
+    packet_dir = _write_local_json_body_packet_without_metadata(scratch_dir)
+
+    skeleton = build_source_quality_report_skeleton(
+        packet_or_manifest_path=packet_dir,
+        source_id="LOCAL-JSON",
+    )["mini_god_tier_source_quality_report_skeleton"]
+
+    assert skeleton["best_in_bound_body"]["preserved_body_path"] == "raw/01_source.json"
+    assert skeleton["provenance"]["content_type"] == "inferred_from_extension: application/json"
+
+
+def test_html_body_content_type_inferred_from_extension_when_metadata_absent(scratch_dir: Path) -> None:
+    packet_dir = _write_local_html_body_packet_without_metadata(scratch_dir)
+
+    skeleton = build_source_quality_report_skeleton(
+        packet_or_manifest_path=packet_dir,
+        source_id="LOCAL-HTML",
+    )["mini_god_tier_source_quality_report_skeleton"]
+
+    assert skeleton["best_in_bound_body"]["preserved_body_path"] == "raw/01_visible_page.html"
+    assert skeleton["provenance"]["content_type"] == "inferred_from_extension: text/html"
+
+
 def test_cli_reports_manifest_validation_failures_separately(scratch_dir: Path) -> None:
     project_root = Path(__file__).resolve().parents[2]
     packet_dir = scratch_dir / "invalid_packet"
@@ -287,7 +311,7 @@ def _write_archive_metadata_only_packet(root: Path) -> Path:
         source_surface="archive_org_wayback",
         capture_mode="archive/history",
         access_posture=_known("archive_org availability metadata preserved; no eligible snapshot body requested"),
-        archive_history_posture=_known("archive_org availability metadata preserved; no eligible snapshot selected"),
+        archive_history_posture=_known("attempt_failed"),
         media_modality_posture=_not_applicable("archive runner does not retrieve linked media assets"),
         preserved_files=[
             _preserved_file("file_01", "raw/01_archive_availability_metadata.json", 2500),
@@ -298,7 +322,7 @@ def _write_archive_metadata_only_packet(root: Path) -> Path:
                 preserved_file_ids=["file_01"],
                 locator="https://web.archive.org/cdx/search/cdx?url=https%3A%2F%2Fexample.com&output=json",
                 access_posture=_known("archive_org availability direct_http succeeded with HTTP 200 OK"),
-                archive_history_posture=_known("archive_org availability metadata preserved; no eligible snapshot selected"),
+                archive_history_posture=_known("attempt_failed"),
                 media_modality_posture=_not_applicable("archive availability metadata is not a media asset"),
             )
         ],
@@ -337,7 +361,7 @@ def _write_archive_snapshot_body_packet(root: Path) -> Path:
         source_surface="archive_org_wayback",
         capture_mode="archive/history",
         access_posture=_known("archive_org availability metadata and selected snapshot body preserved"),
-        archive_history_posture=_known("archive_org availability metadata preserved; snapshot body preserved for 20220511053411"),
+        archive_history_posture=_known("archived"),
         media_modality_posture=_not_applicable("archive runner does not retrieve linked media assets"),
         preserved_files=[
             _preserved_file("file_01", "raw/01_archive_availability_metadata.json", 100),
@@ -350,7 +374,7 @@ def _write_archive_snapshot_body_packet(root: Path) -> Path:
                 preserved_file_ids=["file_01"],
                 locator="https://web.archive.org/cdx/search/cdx?url=https%3A%2F%2Fexample.com&output=json",
                 access_posture=_known("archive_org availability direct_http succeeded with HTTP 200 OK"),
-                archive_history_posture=_known("archive_org availability metadata preserved; snapshot body preserved for 20220511053411"),
+                archive_history_posture=_known("archived"),
                 media_modality_posture=_not_applicable("archive availability metadata is not a media asset"),
             ),
             _source_slice(
@@ -358,7 +382,7 @@ def _write_archive_snapshot_body_packet(root: Path) -> Path:
                 preserved_file_ids=["file_02", "file_03"],
                 locator="https://web.archive.org/web/20220511053411/https://example.com/source",
                 access_posture=_known("archive_org snapshot body direct_http succeeded with HTTP 200 OK"),
-                archive_history_posture=_known("archive_org snapshot body preserved for 20220511053411"),
+                archive_history_posture=_known("archived"),
                 media_modality_posture=_not_applicable("archive snapshot body is preserved as raw response body"),
                 source_edit_or_version=_known("Archive.org snapshot timestamp 20220511053411"),
             ),
@@ -402,7 +426,7 @@ def _write_direct_http_packet(root: Path) -> Path:
                 access_posture=_known("direct_http succeeded with HTTP 200 OK"),
                 archive_history_posture=_not_attempted("direct HTTP adapter does not query archive or history services"),
                 media_modality_posture=_not_attempted("direct HTTP adapter preserves the response body only and does not fetch linked media assets"),
-                cutoff_posture=_known("current retrieval of stable SEC Archives URL"),
+                cutoff_posture=_known("unknown"),
             )
         ],
     )
@@ -442,7 +466,65 @@ def _write_direct_http_metadata_only_packet(root: Path) -> Path:
                 access_posture=_known("direct_http metadata preserved without inspectable source body"),
                 archive_history_posture=_not_attempted("direct HTTP adapter does not query archive or history services"),
                 media_modality_posture=_not_attempted("direct HTTP adapter preserves the response body only and does not fetch linked media assets"),
-                cutoff_posture=_known("current retrieval of stable SEC Archives URL"),
+                cutoff_posture=_known("unknown"),
+            )
+        ],
+    )
+    return packet_dir
+
+
+def _write_local_json_body_packet_without_metadata(root: Path) -> Path:
+    packet_dir = root / "local_json_without_metadata"
+    raw_dir = packet_dir / "raw"
+    raw_dir.mkdir(parents=True)
+    (raw_dir / "01_source.json").write_text('{"title": "source-visible title"}', encoding="utf-8")
+    _write_manifest(
+        packet_dir,
+        source_surface="local_file",
+        capture_mode="agent-assisted",
+        access_posture=_known("local file body preserved"),
+        archive_history_posture=_not_attempted("local file packet does not query archive services"),
+        media_modality_posture=_not_applicable("JSON body has no linked media in this test"),
+        preserved_files=[
+            _preserved_file("file_01", "raw/01_source.json", 33),
+        ],
+        source_slices=[
+            _source_slice(
+                "slice_01",
+                preserved_file_ids=["file_01"],
+                locator="C:/tmp/source.json",
+                access_posture=_known("local file body preserved"),
+                archive_history_posture=_not_attempted("local file packet does not query archive services"),
+                media_modality_posture=_not_applicable("JSON body has no linked media in this test"),
+            )
+        ],
+    )
+    return packet_dir
+
+
+def _write_local_html_body_packet_without_metadata(root: Path) -> Path:
+    packet_dir = root / "local_html_without_metadata"
+    raw_dir = packet_dir / "raw"
+    raw_dir.mkdir(parents=True)
+    (raw_dir / "01_visible_page.html").write_text("<html><title>source-visible title</title></html>", encoding="utf-8")
+    _write_manifest(
+        packet_dir,
+        source_surface="local_file",
+        capture_mode="agent-assisted",
+        access_posture=_known("local HTML body preserved"),
+        archive_history_posture=_not_attempted("local file packet does not query archive services"),
+        media_modality_posture=_not_applicable("HTML body media posture is not material in this test"),
+        preserved_files=[
+            _preserved_file("file_01", "raw/01_visible_page.html", 47),
+        ],
+        source_slices=[
+            _source_slice(
+                "slice_01",
+                preserved_file_ids=["file_01"],
+                locator="C:/tmp/visible_page.html",
+                access_posture=_known("local HTML body preserved"),
+                archive_history_posture=_not_attempted("local file packet does not query archive services"),
+                media_modality_posture=_not_applicable("HTML body media posture is not material in this test"),
             )
         ],
     )
@@ -470,7 +552,7 @@ def _write_clean_direct_http_packet(root: Path) -> Path:
         source_surface="direct_http",
         capture_mode="structured access",
         access_posture=_known("direct_http succeeded with HTTP 200 OK"),
-        archive_history_posture=_known("archive body relationship already handled by selected packet"),
+        archive_history_posture=_known("archived"),
         media_modality_posture=_not_applicable("no linked media in this source unit"),
         preserved_files=[
             _preserved_file("file_01", "raw/01_http_response_body.bin", 11),
@@ -482,9 +564,9 @@ def _write_clean_direct_http_packet(root: Path) -> Path:
                 preserved_file_ids=["file_01", "file_02"],
                 locator="https://www.sec.gov/example.htm",
                 access_posture=_known("direct_http succeeded with HTTP 200 OK"),
-                archive_history_posture=_known("archive body relationship already handled by selected packet"),
+                archive_history_posture=_known("archived"),
                 media_modality_posture=_not_applicable("no linked media in this source unit"),
-                cutoff_posture=_known("current retrieval of stable SEC Archives URL"),
+                cutoff_posture=_known("unknown"),
             )
         ],
     )
@@ -504,7 +586,7 @@ def _write_manifest(
 ) -> None:
     manifest = {
         "packet_id": "01TESTPACKET",
-        "manifest_version": "source_capture_packet_manifest_v0",
+        "manifest_version": "source_capture_packet_manifest_v1",
         "obligation_contract_version": "core_spine_v0_data_capture_spine_obligation_contract_v0",
         "source_family": "web_page",
         "source_surface": source_surface,
@@ -573,7 +655,7 @@ def _timing(
         "source_edit_or_version": source_edit_or_version or _unknown("not supplied"),
         "capture_time": _known("2026-06-03T00:00:00Z"),
         "recapture_time": _not_applicable("first capture"),
-        "cutoff_posture": cutoff_posture or _known("test cutoff posture"),
+        "cutoff_posture": cutoff_posture or _known("unknown"),
     }
 
 
@@ -583,6 +665,7 @@ def _preserved_file(file_id: str, relative_packet_path: str, size_bytes: int) ->
         "original_path": f"C:/tmp/{relative_packet_path}",
         "relative_packet_path": relative_packet_path,
         "sha256": f"sha-{file_id}",
+        "hash_basis": "raw_stored_bytes",
         "size_bytes": size_bytes,
     }
 

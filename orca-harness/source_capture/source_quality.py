@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import mimetypes
 from collections import Counter
 from collections.abc import Mapping, Sequence
 from pathlib import Path
@@ -242,7 +243,9 @@ def _build_provenance(
         "original_locator": _fact_value(packet.source_locator),
         "final_or_snapshot_locator": http_metadata.get("final_url") or final_locator,
         "access_status": _fact_value(packet.access_posture),
-        "content_type": http_metadata.get("content_type") or "unknown_with_reason: content type not present in manifest metadata",
+        "content_type": http_metadata.get("content_type")
+        or _content_type_from_preserved_body(body)
+        or "unknown_with_reason: content type not present in manifest metadata or inferable file extension",
         "capture_time": http_metadata.get("capture_timestamp") or _fact_value(packet.timing.capture_time),
     }
 
@@ -387,6 +390,18 @@ def _best_http_metadata(metadata_files: dict[str, Any], *, prefer_snapshot: bool
     return {}
 
 
+def _content_type_from_preserved_body(body: dict[str, Any]) -> str | None:
+    preserved_file = body.get("preserved_file")
+    relative_path = getattr(preserved_file, "relative_packet_path", None)
+    if not relative_path:
+        return None
+
+    guessed_type, _ = mimetypes.guess_type(relative_path)
+    if guessed_type is None:
+        return None
+    return f"inferred_from_extension: {guessed_type}"
+
+
 def _selected_snapshot_field(metadata_files: dict[str, Any], field: str) -> str | None:
     for data in metadata_files.values():
         if not isinstance(data, dict):
@@ -417,10 +432,14 @@ def _archive_metadata_time_summary(metadata_files: dict[str, Any]) -> str:
 
 
 def _source_time(source_slice: SourceCaptureSlice) -> str:
+    # AR-03: source/snapshot time must NOT be derived from cutoff_posture -- a
+    # posture is not a time. Once cutoff_posture is a closed vocabulary
+    # ({pre_cutoff, post_cutoff, mixed, unknown}), reading it here would surface a
+    # posture value as a timestamp (e.g. source_or_snapshot_time: "pre_cutoff").
+    # Re-source from real timing fields only; otherwise explicit unknown.
     for fact in (
         source_slice.timing.source_edit_or_version,
         source_slice.timing.source_publication_or_event,
-        source_slice.timing.cutoff_posture,
     ):
         if fact.status == VisibleFactStatus.KNOWN and fact.value:
             return fact.value

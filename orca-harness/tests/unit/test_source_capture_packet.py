@@ -38,7 +38,7 @@ def scratch_dir() -> Path:
 def _minimal_packet_payload() -> dict[str, object]:
     return {
         "packet_id": "01TESTPACKET",
-        "manifest_version": "source_capture_packet_manifest_v0",
+        "manifest_version": "source_capture_packet_manifest_v1",
         "obligation_contract_version": "core_spine_v0_data_capture_spine_obligation_contract_v0",
         "source_family": "docs_page",
         "source_surface": "local_file_artifact",
@@ -132,6 +132,7 @@ def _minimal_packet_payload() -> dict[str, object]:
                 "original_path": "C:/source/input.txt",
                 "relative_packet_path": "raw/01_input.txt",
                 "sha256": "abc123",
+                "hash_basis": "raw_stored_bytes",
                 "size_bytes": 12,
             }
         ],
@@ -193,6 +194,7 @@ def test_model_rejects_unreferenced_preserved_file() -> None:
             "original_path": "C:/source/unused.txt",
             "relative_packet_path": "raw/02_unused.txt",
             "sha256": "def456",
+            "hash_basis": "raw_stored_bytes",
             "size_bytes": 9,
         }
     )
@@ -227,10 +229,12 @@ def test_writer_copies_files_records_sha256_and_writes_manifest_and_receipt(scra
     assert copied_file.exists()
     assert result.packet.preserved_files[0].sha256 == hash_file(copied_file)
     assert result.packet.preserved_files[0].relative_packet_path == "raw/01_input.txt"
+    assert result.packet.preserved_files[0].hash_basis == "raw_stored_bytes"
 
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     assert manifest["source_family"] == "docs_page"
     assert manifest["preserved_files"][0]["sha256"] == hash_file(copied_file)
+    assert manifest["preserved_files"][0]["hash_basis"] == "raw_stored_bytes"
 
     receipt_text = receipt_path.read_text(encoding="utf-8")
     assert "# Source Capture Packet Receipt" in receipt_text
@@ -326,7 +330,7 @@ def test_writer_accepts_explicit_multi_slice_path(scratch_dir: Path) -> None:
         source_edit_or_version=unknown_with_reason("edit timing not supplied"),
         capture_time=known_fact("2026-06-02T00:00:00Z"),
         recapture_time=not_applicable("first local packetization"),
-        cutoff_posture=known_fact("local cutoff posture"),
+        cutoff_posture=unknown_with_reason("local-file packetization; cutoff posture not established"),
     )
 
     result = write_local_source_capture_packet(
@@ -414,8 +418,8 @@ def test_cli_writes_packet_from_local_input_file(scratch_dir: Path) -> None:
             "source artifact contains Reddit post and comment timing from supplied JSON",
             "--source-edit-or-version-unknown-reason",
             "local markdown does not expose complete edit/version state",
-            "--cutoff-posture",
-            "local JSON file state supplied for the pressure-test capture",
+            "--cutoff-posture-unknown-reason",
+            "local JSON file state supplied for the pressure-test capture; cutoff posture not independently established by the local CLI",
             "--recapture-time-not-applicable-reason",
             "dry-run packet is the first local packetization of this artifact",
             "--access-posture",
@@ -454,10 +458,7 @@ def test_cli_writes_packet_from_local_input_file(scratch_dir: Path) -> None:
         == "source artifact contains Reddit post and comment timing from supplied JSON"
     )
     assert manifest["timing"]["source_edit_or_version"]["status"] == "unknown_with_reason"
-    assert (
-        manifest["timing"]["cutoff_posture"]["value"]
-        == "local JSON file state supplied for the pressure-test capture"
-    )
+    assert manifest["timing"]["cutoff_posture"]["status"] == "unknown_with_reason"
     assert manifest["access_posture"]["value"] == "local_file_only"
     assert manifest["archive_history_posture"]["status"] == "not_attempted"
     assert (

@@ -262,6 +262,9 @@ def _copy_preserved_files(raw_directory: Path, input_files: Sequence[Path]) -> l
                 original_path=str(source_path),
                 relative_packet_path=str(destination_path.relative_to(raw_directory.parent)).replace("\\", "/"),
                 sha256=hash_file(destination_path),
+                # hash_file hashes the complete copied bytes at relative_packet_path; the
+                # basis is therefore raw_stored_bytes (AR-04 recomputation-bound contract).
+                hash_basis="raw_stored_bytes",
                 size_bytes=destination_path.stat().st_size,
             )
         )
