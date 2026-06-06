@@ -44,6 +44,7 @@ stale_if:
 | Run existing capture tools safely | `orca-harness/docs/source_capture_agent_runbook.md` |
 | Author a new adapter against existing conventions | `orca-harness/docs/adapter_author_contract.md` |
 | Inspect actual implemented adapters/runners | `orca-harness/source_capture/` and `orca-harness/runners/` |
+| Choose or escalate an anti-block rung against a 403 bot-block (honestly) | `docs/product/source_capture_toolbox/source_capture_anti_block_ladder_usage_guide_v0.md` |
 | Check source-quality pass/report conventions | `docs/product/source_capture_toolbox/source_quality_mini_god_tier_profile_v0.md` and `docs/product/source_capture_toolbox/source_quality_source_unit_queue_template_v0.md` |
 | Assemble existing source-quality rows and packet state | `docs/product/source_capture_toolbox/source_quality_state_assembler_v0.md` |
 
@@ -51,6 +52,13 @@ stale_if:
 
 - **Armory is the entrypoint.** `docs/product/source_capture_toolbox/README.md`
   indexes components, build order, current gaps, and non-claims.
+- **Anti-block HTTP ladder has a rung-1 arm + usage guide.** A header-complete
+  stdlib anti-blocking HTTP fetch (`anti_blocking_http`, rung-1) plus a
+  `block_shell` honest-success guard were built and live-proven against one
+  Akamai 403 wall (Daimler IR PDFs) — container-level retrieval, one data point,
+  not a settled capability. Introduced on the `feat/anti-block-http-ladder`
+  branch (confirm merge state in git before assuming it is on main). See the
+  anti-block ladder usage guide and the rung-resolution closeout in Areas.
 - **Build authority is bounded.** The source-access tooling authorization owns
   first/second/third-tranche build scope. It now selects CloakBrowser as the
   primary anti-blocking backend.
@@ -126,6 +134,18 @@ stale_if:
 - summary: Product-facing component index, build order, current gaps, non-claims,
   and source-quality entrypoints.
 - owner: `docs/product/source_capture_toolbox/README.md`
+
+### Anti-block capture ladder
+
+- summary: How to choose and honestly escalate anti-block rungs (0 `direct_http`
+  control → 1 header-complete `anti_blocking_http` → 2 `curl_cffi` TLS/JA3
+  (gated) → 3 `browser_snapshot` → heavier rungs) against 403 bot-blocks; how to
+  judge success honestly (`block_shell` + a container-level discriminator); and
+  the live Daimler/Akamai rung-1 result. Cost-ordered, not capability-ordered;
+  browser rungs do not capture file bytes; one data point, not a settled
+  capability.
+- owners: `docs/product/source_capture_toolbox/source_capture_anti_block_ladder_usage_guide_v0.md`,
+  `docs/product/source_capture_toolbox/source_capture_anti_blocking_http_ladder_daimler_rung_resolution_closeout_v0.md`
 
 ### Packet lifecycle / retention
 
@@ -208,5 +228,33 @@ direction_change_propagation:
     - "not CloakBrowser installed"
     - "not Reddit live-run authorization"
     - "not commercial fetch, broad crawling, storage, dashboard, deployment, or production-runtime authorization"
+    - "not ECR, Cleaning, or Judgment design"
+```
+
+## Direction Change Propagation - Anti-Block Capture Ladder Navigation
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: "The Data Capture submap and repo map now route to the anti-block capture ladder: a header-complete anti_blocking_http rung-1 adapter plus a block_shell honest-success guard (introduced on feat/anti-block-http-ladder, live-proven against one Akamai 403 wall — one data point, container-level retrieval, not settled), with a usage guide and a rung-resolution closeout."
+  trigger: workflow_authority
+  related_triggers:
+    - lifecycle_boundary
+  controlling_sources_updated:
+    - "docs/workflows/data_capture_spine_consolidation_map_v0.md"
+    - "docs/workflows/orca_repo_map_v0.md"
+  downstream_surfaces_checked:
+    - "docs/product/source_capture_toolbox/README.md"
+    - "docs/decisions/data_capture_spine_source_access_tooling_build_authorization_v0.md"
+  intentionally_not_updated:
+    - path: "docs/product/source_capture_toolbox/README.md"
+      reason: "The README reflects committed-main armory state; the rung-1 arm is on feat/anti-block-http-ladder and not yet merged. Index it from the README in a separate pass when the arm lands on main."
+    - path: "docs/decisions/data_capture_spine_source_access_tooling_build_authorization_v0.md"
+      reason: "Build authority is unchanged; the header-complete stdlib rung is within the authorized bounded anti-blocking scope and adds no new gated surface."
+  non_claims:
+    - "not validation"
+    - "not readiness"
+    - "not a settled anti-block capability"
+    - "not merged to main"
+    - "not source-access boundary amendment"
     - "not ECR, Cleaning, or Judgment design"
 ```

@@ -23,7 +23,7 @@ stale_if:
 - Status: ACTIVE_RETRIEVAL_MAP (retrieval-only; source authority remains in `.agents/workflow-overlay/source-of-truth.md`)
 - Artifact type: Workflow navigation artifact
 - Scope: Repo navigation and source-pack selection
-- Refreshed: 2026-06-05 (repo-map/submap hygiene: Data Capture detail routed through its submap; Judgment source-loading routed through its submap)
+- Refreshed: 2026-06-06 (added the header-complete anti-blocking HTTP rung-1 adapter `anti_blocking_http` + the `block_shell` honest-success guard to the harness rows; anti-block ladder usage guide indexed via the Data Capture submap). Prior: 2026-06-05 repo-map/submap hygiene.
 - Implementation authorized: no
 
 ## How To Use This Map
@@ -105,8 +105,8 @@ design) remain gated.
 
 | Path | Use for |
 | --- | --- |
-| `orca-harness/source_capture/` | Source-capture packet core: models, writer, CLI support, and plaintext receipts. |
-| `orca-harness/source_capture/adapters/` | Bounded capture adapters (direct HTTP, media/asset, Archive.org, browser snapshot, authenticated browser, Reddit API where present); anti-blocking/CloakBrowser is selected and authorized by decision but should be verified in implementation before use. Not scraper frameworks, commercial fetch, broad crawling, storage, dashboards, deployment, or production runtime. |
+| `orca-harness/source_capture/` | Source-capture packet core: models, writer, CLI support, plaintext receipts, and the `block_shell` honest-success classifier (block-shell / empty / content-unverified; no positive content class). |
+| `orca-harness/source_capture/adapters/` | Bounded capture adapters (direct HTTP, media/asset, Archive.org, browser snapshot, authenticated browser, Reddit API where present, and a header-complete anti-blocking HTTP rung-1 adapter `anti_blocking_http`); the heavier anti-blocking/CloakBrowser backend is selected and authorized by decision but should be verified in implementation before use. Verify any adapter's presence in code before use. Not scraper frameworks, commercial fetch, broad crawling, storage, dashboards, deployment, or production runtime. |
 | `orca-harness/source_observability/` | Local operator-record posture checker and limitation reporter. |
 | `orca-harness/schemas/` | Pydantic v2 models for cases, judgments, scoring, and probes (v0.14). |
 | `orca-harness/scoring/` | Deterministic band scorer and mapping table (v0.14 Step A); not judgment-quality proof. |
