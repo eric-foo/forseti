@@ -1,3 +1,12 @@
+from source_capture.adapters.anti_blocking_http import (
+    ANTI_BLOCKING_HTTP_METHOD_CATEGORY,
+    AntiBlockingHttpCaptureFailure,
+    AntiBlockingHttpCaptureFailureKind,
+    AntiBlockingHttpCaptureResult,
+    AntiBlockingHttpCaptureSuccess,
+    fetch_anti_blocking_http_capture,
+    header_complete_profile,
+)
 from source_capture.adapters.archive_org import (
     ArchiveOrgCaptureFailure,
     ArchiveOrgCaptureResult,
@@ -40,6 +49,11 @@ from source_capture.adapters.reddit_api import (
 )
 
 __all__ = [
+    "ANTI_BLOCKING_HTTP_METHOD_CATEGORY",
+    "AntiBlockingHttpCaptureFailure",
+    "AntiBlockingHttpCaptureFailureKind",
+    "AntiBlockingHttpCaptureResult",
+    "AntiBlockingHttpCaptureSuccess",
     "ArchiveOrgCaptureFailure",
     "ArchiveOrgCaptureResult",
     "ArchiveOrgCaptureSuccess",
@@ -65,6 +79,8 @@ __all__ = [
     "RedditPostCapture",
     "RedditPostFailure",
     "build_reddit_oauth_client",
+    "fetch_anti_blocking_http_capture",
+    "header_complete_profile",
     "fetch_archive_org_capture",
     "fetch_browser_snapshot_capture",
     "fetch_direct_http_capture",
