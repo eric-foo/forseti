@@ -63,6 +63,8 @@ Architect reserves final authority over what is kept and may veto any change it
 judges to add no benefit or net-negative value, even when individually
 defensible.
 
+**Access modes — `repo` (default) and `no_repo`.** The commission records `access: repo | no_repo` — an operator/commission access constraint, not a model choice. In **`repo`** mode the loop above runs as written: the de-correlated delegate patches the named target and returns a diff. In **`no_repo`** mode the delegate has no repo access and **does not patch**; it runs advisory-only via the portable review method (registry id `portable-adversarial-artifact-review-method`), returns findings (not a diff), and the **CA applies** accepted changes within the bounded scope. `no_repo` preserves de-correlated *review* but **not** de-correlated *patch authorship*, so it is **strictly weaker than `repo` mode** and **requires a de-correlated post-patch re-review**: a second different-family advisory pass over the CA's patch, bounded to closure-of-findings plus any new blocker/major in the delta, adjudicated before anything is kept. The package ships the review target as a **verbatim file attachment** with an independently confirmable file hash (embedded-in-markdown copies are not byte-confirmable); and the package assembler/CA runs the portable method's **freshness gate** (hash-compare its `derived_from` pins to live sources; re-derive on mismatch) before bundling, recording the result in the commission. The de-correlation who-constraint, CA adjudication, `NEEDS_ARCHITECTURE_PASS`, and the strict-claim boundary are otherwise unchanged.
+
 **Citations.** The delegate's citations are neutral in tone — factual source
 evidence, no advocacy or editorializing — but decision-sufficient in substance,
 so the Chief Architect's veto stays informed rather than blind. The delegate's
@@ -140,6 +142,12 @@ delegated_review_patch_overlay_interface:
     fallback: >
       if no different-family model is available, do not claim this lane; fall
       back to source-read-only review + CA self-review and record the limitation.
+  access_modes:
+    values: [repo, no_repo]   # default repo; operator/commission access constraint, NOT model routing
+    no_repo: >
+      delegate advisory-only via portable-adversarial-artifact-review-method (returns findings, not a diff);
+      CA applies the patch; REQUIRED de-correlated post-patch re-review before keep; review target shipped as a
+      hash-confirmable verbatim attachment; assembler/CA runs the portable-method freshness gate pre-bundle and records the result.
   preflight_schema:
     - orca_start_preflight (.agents/workflow-overlay/source-loading.md)
     - Required Preflight Fields (.agents/workflow-overlay/prompt-orchestration.md)
@@ -236,4 +244,40 @@ direction_change_propagation:
     - not a mandatory or machine-routable review lane
     - not runtime model routing
     - not jb authority import
+```
+
+```yaml
+# no_repo access mode added 2026-06-08, after a de-correlated cross-family no-repo review + bounded recheck (5/5 prior findings closed) and CA adjudication.
+direction_change_propagation:
+  doctrine_changed: >
+    The provisional Delegated Review-and-Patch convention gains a no_repo access mode: a repo-blind
+    de-correlated delegate runs advisory-only (portable method), returns findings not a diff, the CA
+    applies the patch, and a required de-correlated post-patch re-review restores patch-time
+    de-correlation before keep. Review-side de-correlation, CA adjudication, protected paths, and the
+    strict-claim boundary are unchanged.
+  trigger: review_authority
+  related_triggers: [workflow_authority, output_authority]
+  controlling_sources_updated:
+    - .agents/workflow-overlay/delegated-review-patch.md
+  downstream_surfaces_checked:
+    - .agents/workflow-overlay/review-lanes.md          # UPDATED: lane line now distinguishes repo (delegate patches) vs no_repo (delegate read-only/advisory, CA patches)
+    - .agents/workflow-overlay/prompt-orchestration.md  # checked, no change: no_repo review prompts use existing paste-ready-chat + the registered portable-method template; deep-thinking-first, model-neutrality, findings-first already apply
+    - AGENTS.md                                         # checked, no change: the existing delegated-review-and-patch pointer (line 48) covers the new mode
+  intentionally_not_updated:
+    - path: docs/decisions/adversarial_review_routing_policy_v0.md
+      reason: routing-policy tiers declined by owner (Pile 3); the no_repo mode stands alone
+    - path: .agents/workflow-overlay/safety-rules.md
+      reason: protected-path set unchanged; the no_repo delegate edits nothing
+    - path: .agents/workflow-overlay/validation-gates.md
+      reason: advisory findings create no validation or strict claim
+  stale_language_search: >
+    grep 'NOT a source-read-only review lane|unified diff|patches the target' over review-lanes.md,
+    delegated-review-patch.md, AGENTS.md. Result: review-lanes line updated for the two modes; the
+    'unified diff' delegate_return is repo-mode-specific and the no_repo subsection states the
+    findings-return, so no other language was made stale.
+  non_claims:
+    - not validation
+    - not readiness
+    - not a bound, mandatory, or machine-routable review lane (the convention stays provisional)
+    - not runtime model routing (access is an operator/commission constraint)
 ```

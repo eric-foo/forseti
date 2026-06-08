@@ -45,6 +45,7 @@ boundaries.
 | `research-synthesis-gpt55` | `docs/prompts/templates/research/gpt_5_5_evidence_synthesis_v0.md` | GPT-5.5 prompt posture | paste-ready-chat | active | Synthesis from prior evidence-only lane outputs. |
 | `adversarial-artifact-review` | `docs/prompts/templates/review/adversarial_artifact_review_v0.md` | model-neutral | review-report or paste-ready-chat | active | Read-only non-code artifact review prompt template. |
 | `thin-wrapper` | `docs/prompts/templates/wrappers/thin_wrapper_v0.md` | model-neutral | paste-ready-chat or file-write | active | Wrapper around an existing prompt or source artifact. |
+| `portable-adversarial-artifact-review-method` | `docs/prompts/templates/portable/adversarial_artifact_review_portable_method_v0.md` | model-neutral | paste-ready-chat | active | Self-contained, model-agnostic review METHOD for repo-agnostic / cross-family reviewers with no skill/overlay access; ship the delimited PORTABLE METHOD block as review-package component (c). Derived from `adversarial-artifact-review` template + review-lanes doctrine; re-derive on source-hash change. |
 
 ## Unbound Template Kinds
 
