@@ -15,9 +15,10 @@ authority_boundary: retrieval_only
 
 - Orca has no local reusable workflow skill source.
 - Orca has one accepted Orca-local candidate skill: `orca-product-lead`
-  (accepted/frozen 2026-06-08; Orca-local only, not deployed or activated). See
-  `## Accepted Orca-Local Candidate Skills` below. Orca accepts only specific,
-  narrowly scoped local candidates like this one.
+  (accepted/frozen 2026-06-08; DEPLOYED/ACTIVATED 2026-06-08 for the Claude Code
+  runtime, project-scoped — not user-global). See `## Accepted Orca-Local
+  Candidate Skills` below. Orca accepts only specific, narrowly scoped local
+  candidates like this one.
 - Orca has no accepted global skill shadow candidates.
 - Orca has no same-name global skill promotions.
 - Orca may use resolver-visible workflow skills when explicitly invoked or
@@ -145,8 +146,10 @@ skill-governance action under the Protected Skill Boundary.
 
 - `orca-product-lead` — accepted/frozen 2026-06-08.
   - Source path: `.agents/skills/orca-product-lead/SKILL.md` (Orca-local).
-  - Source sha256: `2B011CE8CA69254E05128C77E53BF0D3499640E00FE64B3DB241DA5F530D22F4`
-    (working-tree bytes at acceptance; reread-required if the file changes).
+  - Source sha256: `42EF7C2DCE667CFA09EA6F3F8CE369C7F55D7721D131692CB06C11152E908BB5`
+    (working-tree bytes; updated at deployment 2026-06-08 when the status text was
+    added; supersedes the at-acceptance hash 2B011CE8; reread-required if the file
+    changes).
   - Scope: prepares — does not freeze, run outreach, produce, or build — any Orca
     product decision (value proposition, offer, ICP / first-proof wedge,
     buyer-proof design, positioning / packaging, deliverable shape, pull / kill /
@@ -162,11 +165,23 @@ skill-governance action under the Protected Skill Boundary.
     source-of-truth, project-authority, safety-rules, product-proof,
     artifact-folders, communication-style, validation-gates, source-loading,
     retrieval-metadata.
-  - Rollback: delete `.agents/skills/orca-product-lead/`, revert this record and
-    the acceptance policy bullet above, and revert the `.agents/skills/` entry in
+  - Deployment (2026-06-08): DEPLOYED/ACTIVATED for the Claude Code runtime as a
+    project-level copy at `.claude/skills/orca-product-lead/SKILL.md`
+    (byte-identical to source; same sha256). Project scope only — not user-global
+    (`~/.claude/skills/`), not plugin, not external. Sync rule: the
+    `.agents/skills/` file is source-of-record; on any source change, regenerate
+    the `.claude/skills/` copy and re-pin the sha256 here. Activation needs one
+    Claude Code restart to begin watching the newly-created `.claude/skills/`
+    directory. Invocation: `/orca-product-lead` (command name from the
+    directory), description auto-trigger, or the Skill tool. Codex /
+    other-runtime activation is a separate target, not done here.
+  - Rollback: delete `.claude/skills/orca-product-lead/` (deployment copy) and/or
+    `.agents/skills/orca-product-lead/` (source); revert this record, the
+    acceptance policy bullet above, and the `.agents/skills/` entry in
     `artifact-folders.md`; no plugin / user-level / installed / external skill
     source is touched.
-  - Boundary: not Orca authority; Orca-local only; not deployed or activated.
+  - Boundary: not Orca authority; Orca-local only; project-scoped (not
+    user-global, not plugin, not external).
 
 ## Protected Skill Boundary
 
