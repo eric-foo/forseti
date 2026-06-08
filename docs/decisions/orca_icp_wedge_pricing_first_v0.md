@@ -179,6 +179,52 @@ reread scope (AR-03), copy-paste DCP prose (AR-04). Full reports:
 These refine the direction record; they do not change the pricing-first
 direction. Still not validation / WTP / readiness / ICP-proven.
 
+## SUGGESTED — Pricing-as-Sensitivity-Read framing (NOT FROZEN; pending product-lead)
+
+Status: `SUGGESTED_PENDING_PRODUCT_LEAD` — owner working-direction recorded
+2026-06-09; decision-prep only. Not adjudicated, not frozen, and not a change to
+the locked pricing-first direction above.
+
+What the pricing product actually is (refinement of "decision INPUT, not a
+monitoring feed"):
+
+- The deliverable is a price-SENSITIVITY / reaction read, NOT competitor
+  price-CHANGE tracking. Tracking competitor price moves is commodity ("anyone
+  can do that") — it is the stimulus, not the product.
+- Stimulus (clean / public / dated): the competitor price or packaging move —
+  the x-axis of the read, not the deliverable.
+- Response (the differentiated, harder half): the public reaction to that move on
+  forums / social / reviews (complaint volume, sentiment swing, switching/churn
+  chatter, backlash).
+- The read pairs stimulus with response across three axes — across a competitor's
+  own move history (time), across competitors (cross-section), and the buyer's own
+  customers — to graph reaction-to-an-X%-price-change (sensitivity / anchoring).
+- Market-level asset: the same read is reusable across every player in a market (a
+  later commercial-frame / trust-conflict question, not now).
+- It stays a decision INPUT; it is NOT a private-margin elasticity number
+  (consistent with the locked Decision above) and NOT a monitoring feed.
+
+Substrate consequence (sharpens "The crux test" and AR-S2): the sensitivity read
+moves onto the demand-side substrate (forums/social) — partly the same
+biased/polluted substrate flagged for the break-in wedge — so the open
+decide-vs-confirm question HARDENS: not "did they use the competitor price" (easy)
+but "can public signal carry a DECISION-GRADE sensitivity read" (hard). It stays
+better-anchored than break-in because the price move is a clean, dated event to
+measure reactions against. The decide-vs-confirm method-validation cases should be
+scored on this sensitivity read off real price-move events, not on
+price-as-used-input.
+
+Displacement-read reframing (corrects the break-in characterization): the
+competitor-displacement read is "why am I NOT occupying competitor Y's customer X"
+(winnability / switching-barrier / fit-gap) — NOT "why are customers leaving"
+(churn-cause). Different read, possibly cleaner (competitive-positioning)
+substrate than the review-only substrate the demotion was scored against; the
+displacement method-validation case should be scored on this winnability framing.
+
+Non-claims for this SUGGESTED block: not adjudicated, not frozen, not validation,
+not WTP, not readiness, not a change to the locked pricing-first direction;
+pending product-lead freeze.
+
 ## Non-claims
 
 Not validation, WTP, readiness, buyer-proof, or ICP-proven. Pricing wins by being
