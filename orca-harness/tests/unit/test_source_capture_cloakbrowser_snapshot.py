@@ -1,0 +1,1234 @@
+from __future__ import annotations
+
+import json
+import shutil
+import uuid
+from dataclasses import dataclass, field
+from pathlib import Path
+
+import pytest
+
+import source_capture.adapters.cloakbrowser_snapshot as cloakbrowser_snapshot_module
+from runners import run_source_capture_cloakbrowser_packet as cloakbrowser_runner
+from runners.run_source_capture_cloakbrowser_packet import CLOAKBROWSER_SNAPSHOT_NON_CLAIMS
+from source_capture import CaptureModeCategory
+from source_capture.adapters.cloakbrowser_snapshot import (
+    CloakBrowserSnapshotFailure,
+    CloakBrowserSnapshotFailureKind,
+    CloakBrowserSnapshotSuccess,
+    _CloakBrowserSnapshotEngine,
+    _looks_like_cloakbrowser_dependency_failure,
+    fetch_cloakbrowser_snapshot_capture,
+)
+from source_capture.proxy_profiles import ProxyCategory, ProxyProfile
+
+
+@pytest.fixture
+def scratch_dir() -> Path:
+    root = Path(__file__).resolve().parents[2] / "_test_runs"
+    path = root / f"source_capture_cloakbrowser_snapshot_{uuid.uuid4().hex}"
+    path.mkdir(parents=True)
+    try:
+        yield path
+    finally:
+        shutil.rmtree(path, ignore_errors=True)
+
+
+@dataclass(frozen=True)
+class _FakeEngineResult:
+    final_url: str
+    title: str | None
+    rendered_dom: str
+    visible_text: str
+    screenshot_png: bytes
+    warning_notes: list[str] = field(default_factory=list)
+
+
+class _FakeCloakBrowserEngine:
+    def __init__(self, result: _FakeEngineResult | Exception) -> None:
+        self.result = result
+        self.capture_kwargs: dict[str, object] | None = None
+
+    def capture(self, **kwargs: object) -> _FakeEngineResult:
+        self.capture_kwargs = dict(kwargs)
+        if isinstance(self.result, Exception):
+            raise self.result
+        return self.result
+
+
+def test_fetch_cloakbrowser_snapshot_capture_with_fake_engine_records_method_provenance() -> None:
+    engine = _FakeCloakBrowserEngine(
+        _FakeEngineResult(
+            final_url="https://example.com/rendered",
+            title="Rendered Source",
+            rendered_dom="<html><body><h1>Rendered source</h1></body></html>",
+            visible_text="Rendered source",
+            screenshot_png=b"\x89PNG\r\n\x1a\ncloakbrowser",
+        )
+    )
+
+    result = fetch_cloakbrowser_snapshot_capture(
+        url="https://example.com/source",
+        timeout_seconds=5,
+        wait_until="domcontentloaded",
+        viewport_width=1024,
+        viewport_height=768,
+        max_artifact_bytes=10_000,
+        engine=engine,
+    )
+
+    assert isinstance(result, CloakBrowserSnapshotSuccess)
+    assert result.requested_url == "https://example.com/source"
+    assert result.final_url == "https://example.com/rendered"
+    assert result.warning_notes == [
+        "cloakbrowser_snapshot landed at https://example.com/rendered from requested URL https://example.com/source"
+    ]
+    assert result.metadata["method_category"] == "anti_blocking_browser"
+    assert result.metadata["browser_engine"] == "cloakbrowser"
+    assert result.metadata["cloakbrowser_backend"] == "playwright"
+    assert result.metadata["profile_persistence"] == "none"
+    assert result.metadata["storage_state_loaded"] is False
+    assert result.metadata["proxy_used"] is False
+    assert result.metadata["proxy_category"] is None
+    assert result.metadata["proxy_disclosure"] == "none"
+    assert result.metadata["proxy_endpoint_recorded"] is False
+    assert result.metadata["proxy_exit_ip_recorded"] is False
+    assert result.metadata["geoip_used"] is False
+    assert result.metadata["extension_paths_loaded"] is False
+    assert result.metadata["wait_until"] == "domcontentloaded"
+    assert result.metadata["viewport_width"] == 1024
+    assert result.metadata["viewport_height"] == 768
+    assert result.metadata["screenshot_mode"] == "viewport"
+    assert result.metadata["rendered_dom_byte_count"] == len(result.rendered_dom.encode("utf-8"))
+    assert result.metadata["visible_text_byte_count"] == len(result.visible_text.encode("utf-8"))
+    assert result.metadata["screenshot_byte_count"] == len(result.screenshot_png)
+    assert result.metadata["access_blocked"] is False
+    assert result.metadata["access_block_reason"] is None
+    assert result.access_block_reason is None
+    assert result.limitation_notes == []
+    assert engine.capture_kwargs == {
+        "url": "https://example.com/source",
+        "timeout_seconds": 5,
+        "wait_until": "domcontentloaded",
+        "viewport_width": 1024,
+        "viewport_height": 768,
+        "proxy_profile": None,
+        "block_heavy_assets": False,
+    }
+
+
+def test_fetch_cloakbrowser_snapshot_capture_default_engine_is_visible_dependency_stop(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    def fake_import_module(name: str) -> object:
+        assert name == "cloakbrowser"
+        raise ModuleNotFoundError("No module named 'cloakbrowser'")
+
+    monkeypatch.setattr(cloakbrowser_snapshot_module, "import_module", fake_import_module)
+
+    result = fetch_cloakbrowser_snapshot_capture(url="https://example.com/source")
+
+    assert isinstance(result, CloakBrowserSnapshotFailure)
+    assert result.failure_kind == CloakBrowserSnapshotFailureKind.DEPENDENCY_UNAVAILABLE
+    assert "CloakBrowser is not installed" in result.message
+
+
+def test_live_engine_returns_dependency_stop_when_launch_api_is_missing(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class FakeCloakBrowserModule:
+        pass
+
+    def fake_import_module(name: str) -> FakeCloakBrowserModule:
+        assert name == "cloakbrowser"
+        return FakeCloakBrowserModule()
+
+    monkeypatch.setattr(cloakbrowser_snapshot_module, "import_module", fake_import_module)
+
+    result = fetch_cloakbrowser_snapshot_capture(url="https://example.com/source")
+
+    assert isinstance(result, CloakBrowserSnapshotFailure)
+    assert result.failure_kind == CloakBrowserSnapshotFailureKind.DEPENDENCY_UNAVAILABLE
+    assert "does not expose cloakbrowser.launch" in result.message
+
+
+def test_geoip_missing_extra_is_classified_as_dependency_failure() -> None:
+    error = ModuleNotFoundError("No module named 'geoip2'")
+
+    assert _looks_like_cloakbrowser_dependency_failure(error) is True
+
+
+def test_live_engine_uses_anonymous_non_persistent_launch(monkeypatch: pytest.MonkeyPatch) -> None:
+    launch_kwargs: dict[str, object] = {}
+    context_kwargs: dict[str, object] = {}
+    goto_kwargs: dict[str, object] = {}
+
+    class FakeLocator:
+        def inner_text(self, *, timeout: float) -> str:
+            return "Visible source text"
+
+    class FakePage:
+        url = "https://example.com/rendered"
+
+        def goto(self, url: str, **kwargs: object) -> None:
+            goto_kwargs["url"] = url
+            goto_kwargs.update(kwargs)
+
+        def content(self) -> str:
+            return "<html><body>Visible source text</body></html>"
+
+        def locator(self, selector: str) -> FakeLocator:
+            assert selector == "body"
+            return FakeLocator()
+
+        def screenshot(self, **kwargs: object) -> bytes:
+            assert kwargs == {"type": "png", "full_page": False, "timeout": 5000}
+            return b"\x89PNG\r\n\x1a\ncloakbrowser"
+
+        def title(self) -> str:
+            return "Rendered Source"
+
+    class FakeContext:
+        def new_page(self) -> FakePage:
+            return FakePage()
+
+        def close(self) -> None:
+            context_kwargs["closed"] = True
+
+    class FakeBrowser:
+        def new_context(self, **kwargs: object) -> FakeContext:
+            context_kwargs.update(kwargs)
+            return FakeContext()
+
+        def close(self) -> None:
+            launch_kwargs["closed"] = True
+
+    class FakeCloakBrowserModule:
+        def launch(self, **kwargs: object) -> FakeBrowser:
+            launch_kwargs.update(kwargs)
+            return FakeBrowser()
+
+    def fake_import_module(name: str) -> FakeCloakBrowserModule:
+        assert name == "cloakbrowser"
+        return FakeCloakBrowserModule()
+
+    monkeypatch.setattr(cloakbrowser_snapshot_module, "import_module", fake_import_module)
+
+    result = _CloakBrowserSnapshotEngine().capture(
+        url="https://example.com/source",
+        timeout_seconds=5,
+        wait_until="domcontentloaded",
+        viewport_width=1024,
+        viewport_height=768,
+        proxy_profile=None,
+        block_heavy_assets=False,
+    )
+
+    assert result.final_url == "https://example.com/rendered"
+    assert result.title == "Rendered Source"
+    assert result.rendered_dom == "<html><body>Visible source text</body></html>"
+    assert result.visible_text == "Visible source text"
+    assert result.screenshot_png == b"\x89PNG\r\n\x1a\ncloakbrowser"
+    assert launch_kwargs == {
+        "headless": True,
+        "proxy": None,
+        "args": None,
+        "stealth_args": True,
+        "timezone": None,
+        "locale": None,
+        "geoip": False,
+        "backend": "playwright",
+        "humanize": False,
+        "extension_paths": None,
+        "closed": True,
+    }
+    assert context_kwargs == {
+        "viewport": {
+            "width": 1024,
+            "height": 768,
+        },
+        "closed": True,
+    }
+    assert goto_kwargs == {
+        "url": "https://example.com/source",
+        "wait_until": "domcontentloaded",
+        "timeout": 5000,
+    }
+
+
+def test_live_engine_passes_proxy_profile_only_to_cloakbrowser_launch(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    launch_kwargs: dict[str, object] = {}
+
+    class FakeLocator:
+        def inner_text(self, *, timeout: float) -> str:
+            return "Visible source text"
+
+    class FakePage:
+        url = "https://example.com/rendered"
+
+        def goto(self, url: str, **kwargs: object) -> None:
+            return None
+
+        def content(self) -> str:
+            return "<html><body>Visible source text</body></html>"
+
+        def locator(self, selector: str) -> FakeLocator:
+            return FakeLocator()
+
+        def screenshot(self, **kwargs: object) -> bytes:
+            return b"\x89PNG\r\n\x1a\ncloakbrowser"
+
+        def title(self) -> str:
+            return "Rendered Source"
+
+    class FakeContext:
+        def new_page(self) -> FakePage:
+            return FakePage()
+
+        def close(self) -> None:
+            return None
+
+    class FakeBrowser:
+        def new_context(self, **kwargs: object) -> FakeContext:
+            return FakeContext()
+
+        def close(self) -> None:
+            return None
+
+    class FakeCloakBrowserModule:
+        def launch(self, **kwargs: object) -> FakeBrowser:
+            launch_kwargs.update(kwargs)
+            return FakeBrowser()
+
+    def fake_import_module(name: str) -> FakeCloakBrowserModule:
+        assert name == "cloakbrowser"
+        return FakeCloakBrowserModule()
+
+    monkeypatch.setattr(cloakbrowser_snapshot_module, "import_module", fake_import_module)
+    profile = ProxyProfile(
+        proxy_endpoint="http://user:SUPER_SECRET_PROXY_VALUE@proxy.example:8080",
+        proxy_category=ProxyCategory.RESIDENTIAL_STATIC,
+        geoip_enabled=True,
+    )
+
+    _CloakBrowserSnapshotEngine().capture(
+        url="https://example.com/source",
+        timeout_seconds=5,
+        wait_until="domcontentloaded",
+        viewport_width=1024,
+        viewport_height=768,
+        proxy_profile=profile,
+        block_heavy_assets=False,
+    )
+
+    assert launch_kwargs["proxy"] == "http://user:SUPER_SECRET_PROXY_VALUE@proxy.example:8080"
+    assert launch_kwargs["geoip"] is True
+
+
+def test_fetch_cloakbrowser_snapshot_capture_records_proxy_category_without_endpoint() -> None:
+    profile = ProxyProfile(
+        proxy_endpoint="http://user:SUPER_SECRET_PROXY_VALUE@proxy.example:8080",
+        proxy_category=ProxyCategory.RESIDENTIAL_STATIC,
+        geoip_enabled=True,
+    )
+    result = fetch_cloakbrowser_snapshot_capture(
+        url="https://example.com/source",
+        proxy_profile=profile,
+        engine=_FakeCloakBrowserEngine(
+            _FakeEngineResult(
+                final_url="https://example.com/source",
+                title=None,
+                rendered_dom="<html><body>ok</body></html>",
+                visible_text="ok",
+                screenshot_png=b"\x89PNG\r\n\x1a\ncloakbrowser",
+            )
+        ),
+    )
+
+    assert isinstance(result, CloakBrowserSnapshotSuccess)
+    assert result.metadata["proxy_used"] is True
+    assert result.metadata["proxy_category"] == "residential_static"
+    assert result.metadata["proxy_disclosure"] == "category_only"
+    assert result.metadata["proxy_endpoint_recorded"] is False
+    assert result.metadata["proxy_exit_ip_recorded"] is False
+    assert result.metadata["geoip_used"] is True
+    serialized = json.dumps(result.metadata, sort_keys=True)
+    assert "SUPER_SECRET_PROXY_VALUE" not in serialized
+    assert "proxy.example" not in serialized
+
+
+def test_fetch_cloakbrowser_snapshot_capture_records_heavy_asset_blocking() -> None:
+    engine = _FakeCloakBrowserEngine(
+        _FakeEngineResult(
+            final_url="https://example.com/source",
+            title=None,
+            rendered_dom="<html><body>ok</body></html>",
+            visible_text="ok",
+            screenshot_png=b"\x89PNG\r\n\x1a\ncloakbrowser",
+        )
+    )
+
+    result = fetch_cloakbrowser_snapshot_capture(
+        url="https://example.com/source",
+        block_heavy_assets=True,
+        engine=engine,
+    )
+
+    assert isinstance(result, CloakBrowserSnapshotSuccess)
+    assert result.metadata["heavy_assets_blocked"] is True
+    assert result.metadata["blocked_resource_types"] == ["font", "image", "media"]
+    assert engine.capture_kwargs is not None
+    assert engine.capture_kwargs["block_heavy_assets"] is True
+
+
+def test_fetch_cloakbrowser_snapshot_capture_metadata_has_no_secret_bearing_fields() -> None:
+    result = fetch_cloakbrowser_snapshot_capture(
+        url="https://example.com/source",
+        engine=_FakeCloakBrowserEngine(
+            _FakeEngineResult(
+                final_url="https://example.com/source",
+                title=None,
+                rendered_dom="<html><body>ok</body></html>",
+                visible_text="ok",
+                screenshot_png=b"\x89PNG\r\n\x1a\ncloakbrowser",
+            )
+        ),
+    )
+
+    assert isinstance(result, CloakBrowserSnapshotSuccess)
+    serialized = json.dumps(result.metadata, sort_keys=True).lower()
+    forbidden_terms = {
+        "authorization",
+        "bearer",
+        "client_secret",
+        "cookie",
+        "password",
+        "proxy_url",
+        "storage_state_path",
+        "token",
+        "user_data_dir",
+    }
+    assert not any(term in serialized for term in forbidden_terms)
+
+
+def test_fetch_cloakbrowser_snapshot_capture_preserves_access_blocked_reddit_security_page() -> None:
+    result = fetch_cloakbrowser_snapshot_capture(
+        url="https://old.reddit.com/r/SaaS/comments/1es61lz/why_is_b2b_so_much_better/",
+        engine=_FakeCloakBrowserEngine(
+            _FakeEngineResult(
+                final_url="https://old.reddit.com/r/SaaS/comments/1es61lz/why_is_b2b_so_much_better/",
+                title="",
+                rendered_dom=(
+                    "<html><body>You've been blocked by network security. "
+                    "If you think you've been blocked by mistake, file a ticket below."
+                    "</body></html>"
+                ),
+                visible_text=(
+                    "You've been blocked by network security. If you think you've been blocked "
+                    "by mistake, file a ticket below and we'll look into it. File a ticket"
+                ),
+                screenshot_png=b"\x89PNG\r\n\x1a\ncloakbrowser",
+            )
+        ),
+    )
+
+    assert isinstance(result, CloakBrowserSnapshotSuccess)
+    assert result.final_url == "https://old.reddit.com/r/SaaS/comments/1es61lz/why_is_b2b_so_much_better/"
+    assert result.access_block_reason == "reddit_network_security_block"
+    assert result.metadata["access_blocked"] is True
+    assert result.metadata["access_block_reason"] == "reddit_network_security_block"
+    assert any("access_failed" in item for item in result.limitation_notes)
+    assert "You've been blocked by network security" in result.visible_text
+
+
+def test_fetch_cloakbrowser_snapshot_capture_rejects_credential_bearing_final_url() -> None:
+    result = fetch_cloakbrowser_snapshot_capture(
+        url="https://example.com/source",
+        engine=_FakeCloakBrowserEngine(
+            _FakeEngineResult(
+                final_url="https://user:pass@example.com/rendered",
+                title=None,
+                rendered_dom="<html><body>ok</body></html>",
+                visible_text="ok",
+                screenshot_png=b"\x89PNG\r\n\x1a\ncloakbrowser",
+            )
+        ),
+    )
+
+    assert isinstance(result, CloakBrowserSnapshotFailure)
+    assert result.failure_kind == CloakBrowserSnapshotFailureKind.CAPTURE_FAILED
+    assert "embedded credentials" in result.message
+    assert "user:pass" not in result.message
+
+
+def test_fetch_cloakbrowser_snapshot_capture_redacts_secret_like_final_url_query_values() -> None:
+    result = fetch_cloakbrowser_snapshot_capture(
+        url="https://example.com/source",
+        engine=_FakeCloakBrowserEngine(
+            _FakeEngineResult(
+                final_url="https://example.com/rendered?token=secret-value&ok=1",
+                title=None,
+                rendered_dom="<html><body>ok</body></html>",
+                visible_text="ok",
+                screenshot_png=b"\x89PNG\r\n\x1a\ncloakbrowser",
+            )
+        ),
+    )
+
+    assert isinstance(result, CloakBrowserSnapshotSuccess)
+    assert result.final_url == "https://example.com/rendered?token=%5Bredacted%5D&ok=1"
+    assert result.metadata["final_url"] == result.final_url
+    assert "secret-value" not in json.dumps(result.metadata)
+    assert "secret-value" not in "\n".join(result.warning_notes)
+
+
+def test_fetch_cloakbrowser_snapshot_capture_redacts_secret_like_engine_warning_notes() -> None:
+    result = fetch_cloakbrowser_snapshot_capture(
+        url="https://example.com/source",
+        engine=_FakeCloakBrowserEngine(
+            _FakeEngineResult(
+                final_url="https://example.com/source",
+                title=None,
+                rendered_dom="<html><body>ok</body></html>",
+                visible_text="ok",
+                screenshot_png=b"\x89PNG\r\n\x1a\ncloakbrowser",
+                warning_notes=["debug Authorization: Bearer secret-value", "safe warning"],
+            )
+        ),
+    )
+
+    assert isinstance(result, CloakBrowserSnapshotSuccess)
+    assert result.warning_notes == [
+        "cloakbrowser_snapshot engine warning redacted because it contained secret-like text",
+        "safe warning",
+    ]
+    assert "secret-value" not in "\n".join(result.warning_notes)
+
+
+def test_fetch_cloakbrowser_snapshot_capture_redacts_proxy_endpoint_from_engine_failure_message() -> None:
+    profile = ProxyProfile(
+        proxy_endpoint="http://user:SUPER_SECRET_PROXY_VALUE@proxy.example:8080",
+        proxy_category=ProxyCategory.RESIDENTIAL_STATIC,
+        geoip_enabled=True,
+    )
+
+    result = fetch_cloakbrowser_snapshot_capture(
+        url="https://example.com/source",
+        proxy_profile=profile,
+        engine=_FakeCloakBrowserEngine(
+            RuntimeError(
+                "proxy connection failed for "
+                "http://user:SUPER_SECRET_PROXY_VALUE@proxy.example:8080"
+            )
+        ),
+    )
+
+    assert isinstance(result, CloakBrowserSnapshotFailure)
+    assert result.failure_kind == CloakBrowserSnapshotFailureKind.CAPTURE_FAILED
+    assert "SUPER_SECRET_PROXY_VALUE" not in result.message
+    assert "proxy.example" not in result.message
+    assert "[redacted-proxy-endpoint]" in result.message
+
+
+def test_fetch_cloakbrowser_snapshot_capture_redacts_proxy_endpoint_from_dependency_failure_message() -> None:
+    profile = ProxyProfile(
+        proxy_endpoint="http://user:SUPER_SECRET_PROXY_VALUE@proxy.example:8080",
+        proxy_category=ProxyCategory.RESIDENTIAL_STATIC,
+        geoip_enabled=True,
+    )
+    dependency_error = cloakbrowser_snapshot_module._CloakBrowserSnapshotDependencyUnavailable(
+        "CloakBrowser dependency unavailable: socksio missing while dialing "
+        "http://user:SUPER_SECRET_PROXY_VALUE@proxy.example:8080"
+    )
+
+    result = fetch_cloakbrowser_snapshot_capture(
+        url="https://example.com/source",
+        proxy_profile=profile,
+        engine=_FakeCloakBrowserEngine(dependency_error),
+    )
+
+    assert isinstance(result, CloakBrowserSnapshotFailure)
+    assert result.failure_kind == CloakBrowserSnapshotFailureKind.DEPENDENCY_UNAVAILABLE
+    assert "SUPER_SECRET_PROXY_VALUE" not in result.message
+    assert "proxy.example" not in result.message
+
+
+def test_fetch_cloakbrowser_snapshot_capture_redacts_proxy_endpoint_from_engine_warning_notes() -> None:
+    profile = ProxyProfile(
+        proxy_endpoint="http://user:SUPER_SECRET_PROXY_VALUE@proxy.example:8080",
+        proxy_category=ProxyCategory.RESIDENTIAL_STATIC,
+        geoip_enabled=True,
+    )
+
+    result = fetch_cloakbrowser_snapshot_capture(
+        url="https://example.com/source",
+        proxy_profile=profile,
+        engine=_FakeCloakBrowserEngine(
+            _FakeEngineResult(
+                final_url="https://example.com/source",
+                title=None,
+                rendered_dom="<html><body>ok</body></html>",
+                visible_text="ok",
+                screenshot_png=b"\x89PNG\r\n\x1a\ncloakbrowser",
+                warning_notes=[
+                    "cloakbrowser_snapshot visible_text extraction failed: render context "
+                    "bound to http://user:SUPER_SECRET_PROXY_VALUE@proxy.example:8080"
+                ],
+            )
+        ),
+    )
+
+    assert isinstance(result, CloakBrowserSnapshotSuccess)
+    joined = "\n".join(result.warning_notes)
+    assert "SUPER_SECRET_PROXY_VALUE" not in joined
+    assert "proxy.example" not in joined
+
+
+def test_fetch_cloakbrowser_snapshot_capture_rejects_embedded_credentials_url() -> None:
+    with pytest.raises(ValueError, match="embedded credentials"):
+        fetch_cloakbrowser_snapshot_capture(
+            url="https://user:pass@example.com/source",
+            engine=_FakeCloakBrowserEngine(
+                _FakeEngineResult(
+                    final_url="https://example.com/source",
+                    title=None,
+                    rendered_dom="<html><body>ok</body></html>",
+                    visible_text="ok",
+                    screenshot_png=b"\x89PNG\r\n\x1a\ncloakbrowser",
+                )
+            ),
+        )
+
+
+def test_fetch_cloakbrowser_snapshot_capture_returns_size_cap_failure() -> None:
+    result = fetch_cloakbrowser_snapshot_capture(
+        url="https://example.com/source",
+        max_artifact_bytes=5,
+        engine=_FakeCloakBrowserEngine(
+            _FakeEngineResult(
+                final_url="https://example.com/source",
+                title=None,
+                rendered_dom="<html><body>ok</body></html>",
+                visible_text="ok",
+                screenshot_png=b"x" * 51,
+            )
+        ),
+    )
+
+    assert isinstance(result, CloakBrowserSnapshotFailure)
+    assert result.failure_kind == CloakBrowserSnapshotFailureKind.SIZE_CAP_EXCEEDED
+    assert "screenshot_png=51" in result.message
+
+
+def test_fetch_cloakbrowser_snapshot_capture_classifies_timeout() -> None:
+    result = fetch_cloakbrowser_snapshot_capture(
+        url="https://example.com/source",
+        engine=_FakeCloakBrowserEngine(TimeoutError("navigation timed out")),
+    )
+
+    assert isinstance(result, CloakBrowserSnapshotFailure)
+    assert result.failure_kind == CloakBrowserSnapshotFailureKind.TIMEOUT
+
+
+def test_fetch_cloakbrowser_snapshot_capture_returns_empty_rendered_dom_failure() -> None:
+    result = fetch_cloakbrowser_snapshot_capture(
+        url="https://example.com/source",
+        engine=_FakeCloakBrowserEngine(
+            _FakeEngineResult(
+                final_url="https://example.com/source",
+                title=None,
+                rendered_dom="",
+                visible_text="text without dom",
+                screenshot_png=b"\x89PNG\r\n\x1a\ncloakbrowser",
+            )
+        ),
+    )
+
+    assert isinstance(result, CloakBrowserSnapshotFailure)
+    assert result.failure_kind == CloakBrowserSnapshotFailureKind.EMPTY_RENDERED_DOM
+
+
+def test_fetch_cloakbrowser_snapshot_capture_returns_empty_screenshot_failure() -> None:
+    result = fetch_cloakbrowser_snapshot_capture(
+        url="https://example.com/source",
+        engine=_FakeCloakBrowserEngine(
+            _FakeEngineResult(
+                final_url="https://example.com/source",
+                title=None,
+                rendered_dom="<html><body>ok</body></html>",
+                visible_text="ok",
+                screenshot_png=b"",
+            )
+        ),
+    )
+
+    assert isinstance(result, CloakBrowserSnapshotFailure)
+    assert result.failure_kind == CloakBrowserSnapshotFailureKind.EMPTY_SCREENSHOT
+
+
+def test_cloakbrowser_snapshot_runner_writes_packet_with_four_artifacts(
+    scratch_dir: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    output_dir = scratch_dir / "packet"
+
+    def fake_capture(**kwargs: object) -> CloakBrowserSnapshotSuccess:
+        return CloakBrowserSnapshotSuccess(
+            requested_url="https://example.com/source",
+            final_url="https://example.com/source",
+            title="Rendered Source",
+            rendered_dom="<html><body><main>Visible source language</main></body></html>",
+            visible_text="Visible source language",
+            screenshot_png=b"\x89PNG\r\n\x1a\ncloakbrowser",
+            metadata={
+                "requested_url": "https://example.com/source",
+                "final_url": "https://example.com/source",
+                "title": "Rendered Source",
+                "capture_timestamp": "2026-06-06T01:02:03Z",
+                "timeout_seconds": kwargs["timeout_seconds"],
+                "wait_until": kwargs["wait_until"],
+                "viewport_width": kwargs["viewport_width"],
+                "viewport_height": kwargs["viewport_height"],
+                "screenshot_mode": "viewport",
+                "method_category": "anti_blocking_browser",
+                "browser_engine": "cloakbrowser",
+                "cloakbrowser_backend": "playwright",
+                "profile_persistence": "none",
+                "storage_state_loaded": False,
+                "proxy_used": False,
+                "geoip_used": False,
+                "extension_paths_loaded": False,
+                "rendered_dom_byte_count": 64,
+                "visible_text_byte_count": 23,
+                "screenshot_byte_count": 20,
+            },
+            warning_notes=[],
+            limitation_notes=[],
+        )
+
+    monkeypatch.setattr(cloakbrowser_runner, "fetch_cloakbrowser_snapshot_capture", fake_capture)
+
+    exit_code, message = cloakbrowser_runner.run_source_capture_cloakbrowser_packet(
+        url="https://example.com/source",
+        source_family="web_page",
+        source_surface="cloakbrowser_snapshot",
+        decision_question="What rendered source was visible before cutoff?",
+        output_directory=output_dir,
+        capture_context="test CloakBrowser snapshot",
+        operator_category="cloakbrowser_snapshot_cli_operator",
+        capture_mode=CaptureModeCategory.MULTIMODAL,
+        session_id=None,
+        proxy_profile=None,
+        actor_audience_context=None,
+        visible_mode_changes=[],
+        source_publication_or_event=None,
+        source_edit_or_version=None,
+        cutoff_posture=None,
+        recapture_time=None,
+        re_capture_relationship=None,
+        warnings=[],
+        limitations=["operator-visible limitation travels"],
+        timeout_seconds=20,
+        wait_until="load",
+        viewport_width=1280,
+        viewport_height=720,
+        max_artifact_bytes=5_000,
+        block_heavy_assets=False,
+    )
+
+    assert exit_code == 0
+    assert message == str(output_dir.resolve())
+    manifest = json.loads((output_dir / "manifest.json").read_text(encoding="utf-8"))
+    assert manifest["source_surface"] == "cloakbrowser_snapshot"
+    assert manifest["capture_mode"] == "multimodal"
+    assert manifest["source_slices"][0]["slice_id"] == "cloakbrowser_snapshot_01"
+    assert manifest["source_slices"][0]["preserved_file_ids"] == [
+        "file_01",
+        "file_02",
+        "file_03",
+        "file_04",
+    ]
+    assert [item["relative_packet_path"] for item in manifest["preserved_files"]] == [
+        "raw/01_cloakbrowser_rendered_dom.html",
+        "raw/02_cloakbrowser_visible_text.txt",
+        "raw/03_cloakbrowser_viewport_screenshot.png",
+        "raw/04_cloakbrowser_snapshot_metadata.json",
+    ]
+    assert manifest["receipt_metadata"]["non_claims"] == CLOAKBROWSER_SNAPSHOT_NON_CLAIMS
+    assert "operator-visible limitation travels" in manifest["limitations"]
+    assert "anti-blocking browser capture" in manifest["access_posture"]["value"]
+    metadata_text = (output_dir / "raw" / "04_cloakbrowser_snapshot_metadata.json").read_text(encoding="utf-8")
+    assert "cloakbrowser" in metadata_text
+    assert "Visible source language" in (output_dir / "raw" / "02_cloakbrowser_visible_text.txt").read_text(
+        encoding="utf-8"
+    )
+    assert not (output_dir.parent / "cloakbrowser_rendered_dom.html").exists()
+    assert not (output_dir.parent / "cloakbrowser_snapshot_metadata.json").exists()
+    receipt_text = (output_dir / "receipt.md").read_text(encoding="utf-8")
+    for non_claim in CLOAKBROWSER_SNAPSHOT_NON_CLAIMS:
+        assert non_claim in receipt_text
+
+
+def test_cloakbrowser_snapshot_runner_writes_proxy_category_without_proxy_secret(
+    scratch_dir: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    output_dir = scratch_dir / "packet"
+    profile = ProxyProfile(
+        proxy_endpoint="http://user:SUPER_SECRET_PROXY_VALUE@proxy.example:8080",
+        proxy_category=ProxyCategory.RESIDENTIAL_STATIC,
+        geoip_enabled=True,
+    )
+
+    def fake_capture(**kwargs: object) -> CloakBrowserSnapshotSuccess:
+        assert kwargs["proxy_profile"] is profile
+        return CloakBrowserSnapshotSuccess(
+            requested_url="https://example.com/source",
+            final_url="https://example.com/source",
+            title="Rendered Source",
+            rendered_dom="<html><body><main>Visible source language</main></body></html>",
+            visible_text="Visible source language",
+            screenshot_png=b"\x89PNG\r\n\x1a\ncloakbrowser",
+            metadata={
+                "requested_url": "https://example.com/source",
+                "final_url": "https://example.com/source",
+                "title": "Rendered Source",
+                "capture_timestamp": "2026-06-06T01:02:03Z",
+                "timeout_seconds": kwargs["timeout_seconds"],
+                "wait_until": kwargs["wait_until"],
+                "viewport_width": kwargs["viewport_width"],
+                "viewport_height": kwargs["viewport_height"],
+                "screenshot_mode": "viewport",
+                "method_category": "anti_blocking_browser",
+                "browser_engine": "cloakbrowser",
+                "cloakbrowser_backend": "playwright",
+                "profile_persistence": "none",
+                "storage_state_loaded": False,
+                "proxy_used": True,
+                "proxy_category": "residential_static",
+                "proxy_disclosure": "category_only",
+                "proxy_endpoint_recorded": False,
+                "proxy_exit_ip_recorded": False,
+                "geoip_used": True,
+                "extension_paths_loaded": False,
+                "rendered_dom_byte_count": 64,
+                "visible_text_byte_count": 23,
+                "screenshot_byte_count": 20,
+            },
+            warning_notes=[],
+            limitation_notes=[],
+        )
+
+    monkeypatch.setattr(cloakbrowser_runner, "fetch_cloakbrowser_snapshot_capture", fake_capture)
+
+    exit_code, message = cloakbrowser_runner.run_source_capture_cloakbrowser_packet(
+        url="https://example.com/source",
+        source_family="web_page",
+        source_surface="cloakbrowser_snapshot",
+        decision_question="What rendered source was visible before cutoff?",
+        output_directory=output_dir,
+        capture_context="test CloakBrowser proxied snapshot",
+        operator_category="cloakbrowser_snapshot_cli_operator",
+        capture_mode=CaptureModeCategory.MULTIMODAL,
+        session_id=None,
+        proxy_profile=profile,
+        actor_audience_context=None,
+        visible_mode_changes=[],
+        source_publication_or_event=None,
+        source_edit_or_version=None,
+        cutoff_posture=None,
+        recapture_time=None,
+        re_capture_relationship=None,
+        warnings=[],
+        limitations=[],
+        timeout_seconds=20,
+        wait_until="load",
+        viewport_width=1280,
+        viewport_height=720,
+        max_artifact_bytes=5_000,
+        block_heavy_assets=False,
+    )
+
+    assert exit_code == 0
+    assert message == str(output_dir.resolve())
+    combined_text = "\n".join(
+        path.read_text(encoding="utf-8", errors="ignore")
+        for path in output_dir.rglob("*")
+        if path.is_file() and path.suffix.lower() not in {".png"}
+    )
+    assert "residential_static" in combined_text
+    assert "not proxy endpoint or credential disclosure" in combined_text
+    assert "SUPER_SECRET_PROXY_VALUE" not in combined_text
+    assert "proxy.example" not in combined_text
+
+
+def test_cloakbrowser_snapshot_runner_records_heavy_asset_blocking_limitation(
+    scratch_dir: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    output_dir = scratch_dir / "packet"
+
+    def fake_capture(**kwargs: object) -> CloakBrowserSnapshotSuccess:
+        assert kwargs["block_heavy_assets"] is True
+        return CloakBrowserSnapshotSuccess(
+            requested_url="https://example.com/source",
+            final_url="https://example.com/source",
+            title="Rendered Source",
+            rendered_dom="<html><body><main>Visible source language</main></body></html>",
+            visible_text="Visible source language",
+            screenshot_png=b"\x89PNG\r\n\x1a\ncloakbrowser",
+            metadata={
+                "requested_url": "https://example.com/source",
+                "final_url": "https://example.com/source",
+                "title": "Rendered Source",
+                "capture_timestamp": "2026-06-06T01:02:03Z",
+                "timeout_seconds": kwargs["timeout_seconds"],
+                "wait_until": kwargs["wait_until"],
+                "viewport_width": kwargs["viewport_width"],
+                "viewport_height": kwargs["viewport_height"],
+                "screenshot_mode": "viewport",
+                "method_category": "anti_blocking_browser",
+                "browser_engine": "cloakbrowser",
+                "cloakbrowser_backend": "playwright",
+                "profile_persistence": "none",
+                "storage_state_loaded": False,
+                "proxy_used": False,
+                "geoip_used": False,
+                "extension_paths_loaded": False,
+                "heavy_assets_blocked": True,
+                "blocked_resource_types": ["font", "image", "media"],
+                "rendered_dom_byte_count": 64,
+                "visible_text_byte_count": 23,
+                "screenshot_byte_count": 20,
+            },
+            warning_notes=[],
+            limitation_notes=[],
+        )
+
+    monkeypatch.setattr(cloakbrowser_runner, "fetch_cloakbrowser_snapshot_capture", fake_capture)
+
+    exit_code, message = cloakbrowser_runner.run_source_capture_cloakbrowser_packet(
+        url="https://example.com/source",
+        source_family="web_page",
+        source_surface="cloakbrowser_snapshot",
+        decision_question="What rendered source was visible before cutoff?",
+        output_directory=output_dir,
+        capture_context="test CloakBrowser snapshot",
+        operator_category="cloakbrowser_snapshot_cli_operator",
+        capture_mode=CaptureModeCategory.MULTIMODAL,
+        session_id=None,
+        proxy_profile=None,
+        actor_audience_context=None,
+        visible_mode_changes=[],
+        source_publication_or_event=None,
+        source_edit_or_version=None,
+        cutoff_posture=None,
+        recapture_time=None,
+        re_capture_relationship=None,
+        warnings=[],
+        limitations=[],
+        timeout_seconds=20,
+        wait_until="load",
+        viewport_width=1280,
+        viewport_height=720,
+        max_artifact_bytes=5_000,
+        block_heavy_assets=True,
+    )
+
+    assert exit_code == 0
+    assert message == str(output_dir.resolve())
+    manifest = json.loads((output_dir / "manifest.json").read_text(encoding="utf-8"))
+    assert any("blocked image, media, and font" in item for item in manifest["limitations"])
+    metadata = json.loads(
+        (output_dir / "raw" / "04_cloakbrowser_snapshot_metadata.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    assert metadata["heavy_assets_blocked"] is True
+    assert metadata["blocked_resource_types"] == ["font", "image", "media"]
+
+
+def test_cloakbrowser_snapshot_runner_returns_3_without_packet_on_capture_failure(
+    scratch_dir: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    output_dir = scratch_dir / "packet"
+
+    def fail_capture(**kwargs: object) -> CloakBrowserSnapshotFailure:
+        return CloakBrowserSnapshotFailure(
+            requested_url="https://example.com/source",
+            failure_kind=CloakBrowserSnapshotFailureKind.CAPTURE_FAILED,
+            message="CloakBrowser failed visibly",
+        )
+
+    monkeypatch.setattr(cloakbrowser_runner, "fetch_cloakbrowser_snapshot_capture", fail_capture)
+
+    exit_code, message = cloakbrowser_runner.run_source_capture_cloakbrowser_packet(
+        url="https://example.com/source",
+        source_family="web_page",
+        source_surface="cloakbrowser_snapshot",
+        decision_question="What rendered source was visible before cutoff?",
+        output_directory=output_dir,
+        capture_context="test CloakBrowser snapshot",
+        operator_category="cloakbrowser_snapshot_cli_operator",
+        capture_mode=CaptureModeCategory.MULTIMODAL,
+        session_id=None,
+        proxy_profile=None,
+        actor_audience_context=None,
+        visible_mode_changes=[],
+        source_publication_or_event=None,
+        source_edit_or_version=None,
+        cutoff_posture=None,
+        recapture_time=None,
+        re_capture_relationship=None,
+        warnings=[],
+        limitations=[],
+        timeout_seconds=20,
+        wait_until="load",
+        viewport_width=1280,
+        viewport_height=720,
+        max_artifact_bytes=50_000,
+        block_heavy_assets=False,
+    )
+
+    assert exit_code == 3
+    assert message == "cloakbrowser_capture_failed: CloakBrowser failed visibly"
+    assert not output_dir.exists()
+
+
+def test_cloakbrowser_snapshot_cli_preflight_validates_without_capture(
+    scratch_dir: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    profile_root = scratch_dir / "_proxy_profiles"
+    profile_root.mkdir(parents=True)
+    (profile_root / "reddit-res.json").write_text(
+        json.dumps({"server": "http://user:SUPER_SECRET_PROXY_VALUE@proxy.example:8080"}),
+        encoding="utf-8",
+    )
+    (profile_root / "reddit-res.meta.json").write_text(
+        json.dumps(
+            {
+                "profile_file": "reddit-res.json",
+                "proxy_category": "residential_rotating",
+                "geoip_enabled": True,
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    exit_code = cloakbrowser_runner.main(
+        [
+            "--url",
+            "https://old.reddit.com/r/SaaS/comments/1es61lz/why_is_b2b_so_much_better/",
+            "--decision-question",
+            "Can guarded launch preflight validate locally?",
+            "--output",
+            str(scratch_dir / "packet"),
+            "--proxy-profile-label",
+            "reddit-res",
+            "--proxy-profile-category",
+            "residential_rotating",
+            "--proxy-profile-root",
+            str(profile_root),
+            "--guarded-reddit-launch",
+            "--preflight-only",
+        ]
+    )
+
+    captured = capsys.readouterr()
+    assert exit_code == 0
+    assert "preflight passed" in captured.out
+    assert "no network capture attempted" in captured.out
+    assert "SUPER_SECRET_PROXY_VALUE" not in captured.out
+    assert "proxy.example" not in captured.out
+    assert not (scratch_dir / "packet").exists()
+
+
+def test_cloakbrowser_snapshot_cli_guarded_reddit_rejects_non_old_reddit_url(
+    scratch_dir: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    with pytest.raises(SystemExit) as excinfo:
+        cloakbrowser_runner.main(
+            [
+                "--url",
+                "https://www.reddit.com/r/SaaS/comments/1es61lz/why_is_b2b_so_much_better/",
+                "--decision-question",
+                "Can guarded launch reject non-old Reddit locally?",
+                "--output",
+                str(scratch_dir / "packet"),
+                "--guarded-reddit-launch",
+                "--preflight-only",
+            ]
+        )
+
+    captured = capsys.readouterr()
+    assert excinfo.value.code == 2
+    assert "requires an absolute old.reddit.com URL" in captured.err
+    assert not (scratch_dir / "packet").exists()
+
+
+def test_cloakbrowser_snapshot_runner_writes_access_blocked_packet(
+    scratch_dir: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    output_dir = scratch_dir / "packet"
+
+    def fake_capture(**kwargs: object) -> CloakBrowserSnapshotSuccess:
+        return CloakBrowserSnapshotSuccess(
+            requested_url="https://old.reddit.com/r/SaaS/comments/1es61lz/why_is_b2b_so_much_better/",
+            final_url="https://old.reddit.com/r/SaaS/comments/1es61lz/why_is_b2b_so_much_better/",
+            title="",
+            rendered_dom=(
+                "<html><body>You've been blocked by network security. "
+                "If you think you've been blocked by mistake, file a ticket below."
+                "</body></html>"
+            ),
+            visible_text=(
+                "You've been blocked by network security. If you think you've been blocked "
+                "by mistake, file a ticket below and we'll look into it. File a ticket"
+            ),
+            screenshot_png=b"\x89PNG\r\n\x1a\ncloakbrowser",
+            metadata={
+                "requested_url": "https://old.reddit.com/r/SaaS/comments/1es61lz/why_is_b2b_so_much_better/",
+                "final_url": "https://old.reddit.com/r/SaaS/comments/1es61lz/why_is_b2b_so_much_better/",
+                "title": "",
+                "capture_timestamp": "2026-06-06T01:02:03Z",
+                "timeout_seconds": kwargs["timeout_seconds"],
+                "wait_until": kwargs["wait_until"],
+                "viewport_width": kwargs["viewport_width"],
+                "viewport_height": kwargs["viewport_height"],
+                "screenshot_mode": "viewport",
+                "method_category": "anti_blocking_browser",
+                "browser_engine": "cloakbrowser",
+                "cloakbrowser_backend": "playwright",
+                "profile_persistence": "none",
+                "storage_state_loaded": False,
+                "proxy_used": False,
+                "geoip_used": False,
+                "extension_paths_loaded": False,
+                "access_blocked": True,
+                "access_block_reason": "reddit_network_security_block",
+                "rendered_dom_byte_count": 146,
+                "visible_text_byte_count": 116,
+                "screenshot_byte_count": 20,
+            },
+            warning_notes=[],
+            limitation_notes=[
+                "access_failed: CloakBrowser rendered an access-block/interstitial page "
+                "instead of source content: reddit_network_security_block; block artifacts preserved"
+            ],
+            access_block_reason="reddit_network_security_block",
+        )
+
+    monkeypatch.setattr(cloakbrowser_runner, "fetch_cloakbrowser_snapshot_capture", fake_capture)
+
+    exit_code, message = cloakbrowser_runner.run_source_capture_cloakbrowser_packet(
+        url="https://old.reddit.com/r/SaaS/comments/1es61lz/why_is_b2b_so_much_better/",
+        source_family="reddit_thread",
+        source_surface="old_reddit_cloakbrowser_snapshot",
+        decision_question="What rendered Reddit thread was visible?",
+        output_directory=output_dir,
+        capture_context="test CloakBrowser Reddit snapshot",
+        operator_category="cloakbrowser_snapshot_cli_operator",
+        capture_mode=CaptureModeCategory.MULTIMODAL,
+        session_id=None,
+        proxy_profile=None,
+        actor_audience_context=None,
+        visible_mode_changes=[],
+        source_publication_or_event=None,
+        source_edit_or_version=None,
+        cutoff_posture=None,
+        recapture_time=None,
+        re_capture_relationship=None,
+        warnings=[],
+        limitations=[],
+        timeout_seconds=20,
+        wait_until="load",
+        viewport_width=1280,
+        viewport_height=720,
+        max_artifact_bytes=50_000,
+        block_heavy_assets=False,
+    )
+
+    assert exit_code == 0
+    assert message == str(output_dir.resolve())
+    manifest = json.loads((output_dir / "manifest.json").read_text(encoding="utf-8"))
+    assert manifest["access_posture"]["value"].startswith(
+        "cloakbrowser_snapshot access_failed with access block reddit_network_security_block"
+    )
+    assert any("access_failed" in item for item in manifest["limitations"])
+    assert "source content was not captured" in manifest["receipt_metadata"]["summary"]
+    metadata = json.loads(
+        (output_dir / "raw" / "04_cloakbrowser_snapshot_metadata.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    assert metadata["access_blocked"] is True
+    assert metadata["access_block_reason"] == "reddit_network_security_block"
+    visible_text = (output_dir / "raw" / "02_cloakbrowser_visible_text.txt").read_text(
+        encoding="utf-8"
+    )
+    assert "You've been blocked by network security" in visible_text
+    non_claims = manifest["receipt_metadata"]["non_claims"]
+    assert any("not source-content capture" in item for item in non_claims)
+
+
+def test_cloakbrowser_snapshot_runner_cleans_staged_files_when_metadata_write_fails(
+    scratch_dir: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    output_dir = scratch_dir / "packet"
+
+    def fake_capture(**kwargs: object) -> CloakBrowserSnapshotSuccess:
+        return CloakBrowserSnapshotSuccess(
+            requested_url="https://example.com/source",
+            final_url="https://example.com/source",
+            title="Rendered Source",
+            rendered_dom="<html><body>ok</body></html>",
+            visible_text="ok",
+            screenshot_png=b"\x89PNG\r\n\x1a\ncloakbrowser",
+            metadata={"bad": object()},
+            warning_notes=[],
+            limitation_notes=[],
+        )
+
+    monkeypatch.setattr(cloakbrowser_runner, "fetch_cloakbrowser_snapshot_capture", fake_capture)
+
+    with pytest.raises(TypeError):
+        cloakbrowser_runner.run_source_capture_cloakbrowser_packet(
+            url="https://example.com/source",
+            source_family="web_page",
+            source_surface="cloakbrowser_snapshot",
+            decision_question="What rendered source was visible before cutoff?",
+            output_directory=output_dir,
+            capture_context="test CloakBrowser snapshot",
+            operator_category="cloakbrowser_snapshot_cli_operator",
+            capture_mode=CaptureModeCategory.MULTIMODAL,
+            session_id=None,
+            proxy_profile=None,
+            actor_audience_context=None,
+            visible_mode_changes=[],
+            source_publication_or_event=None,
+            source_edit_or_version=None,
+            cutoff_posture=None,
+            recapture_time=None,
+            re_capture_relationship=None,
+            warnings=[],
+            limitations=[],
+            timeout_seconds=30,
+            wait_until="load",
+            viewport_width=1280,
+            viewport_height=720,
+            max_artifact_bytes=50_000,
+            block_heavy_assets=False,
+        )
+
+    assert not output_dir.exists()
+    assert not (output_dir.parent / "cloakbrowser_rendered_dom.html").exists()
+    assert not (output_dir.parent / "cloakbrowser_visible_text.txt").exists()
+    assert not (output_dir.parent / "cloakbrowser_viewport_screenshot.png").exists()
+    assert not (output_dir.parent / "cloakbrowser_snapshot_metadata.json").exists()

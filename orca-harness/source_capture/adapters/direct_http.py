@@ -6,7 +6,7 @@ from http.client import HTTPResponse
 from typing import TypeAlias
 from urllib.error import HTTPError, URLError
 from urllib.parse import urlparse
-from urllib.request import Request, urlopen
+from urllib.request import ProxyHandler, Request, build_opener
 
 from harness_utils import utc_now_z
 
@@ -14,6 +14,7 @@ from harness_utils import utc_now_z
 DEFAULT_TIMEOUT_SECONDS = 20.0
 DEFAULT_MAX_BYTES = 5_000_000
 DEFAULT_USER_AGENT = "OrcaSourceCaptureDirectHTTP/0.1 (stdlib honest fetch; no browser/api/archive)"
+_NO_PROXY_OPENER = build_opener(ProxyHandler({}))
 
 
 class DirectHttpCaptureFailureKind(StrEnum):
@@ -71,7 +72,7 @@ def fetch_direct_http_capture(
     )
 
     try:
-        with urlopen(request, timeout=timeout_seconds) as response:
+        with _open_direct_http(request, timeout_seconds=timeout_seconds) as response:
             return _capture_response(
                 requested_url=normalized_url,
                 response=response,
@@ -176,6 +177,11 @@ def _capture_response(
         warning_notes=warning_notes,
         limitation_notes=limitation_notes,
     )
+
+
+def _open_direct_http(request: Request, *, timeout_seconds: float):
+    """Open without ambient proxy env so direct_http provenance stays true."""
+    return _NO_PROXY_OPENER.open(request, timeout=timeout_seconds)
 
 
 def _validate_http_url(url: str) -> str:

@@ -45,6 +45,7 @@ def test_only_browser_snapshot_surfaces_name_playwright_dependency() -> None:
     runner_paths = sorted((project_root / "runners").glob("run_source_capture_*packet.py"))
     allowed = {
         project_root / "source_capture" / "adapters" / "browser_snapshot.py",
+        project_root / "source_capture" / "adapters" / "cloakbrowser_snapshot.py",
         project_root / "runners" / "run_source_capture_authenticated_browser_packet.py",
         project_root / "runners" / "run_source_capture_browser_session_bootstrap.py",
     }

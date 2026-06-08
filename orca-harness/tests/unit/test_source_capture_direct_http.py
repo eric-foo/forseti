@@ -159,7 +159,7 @@ def test_fetch_direct_http_capture_classifies_timeout(monkeypatch: pytest.Monkey
     def raise_timeout(*args: object, **kwargs: object) -> object:
         raise URLError("timed out")
 
-    monkeypatch.setattr(direct_http_module, "urlopen", raise_timeout)
+    monkeypatch.setattr(direct_http_module, "_open_direct_http", raise_timeout)
 
     result = fetch_direct_http_capture(url="https://example.test/source", timeout_seconds=5, max_bytes=1024)
 
@@ -172,7 +172,7 @@ def test_fetch_direct_http_capture_classifies_network_error(monkeypatch: pytest.
     def raise_network_error(*args: object, **kwargs: object) -> object:
         raise URLError("name resolution failed")
 
-    monkeypatch.setattr(direct_http_module, "urlopen", raise_network_error)
+    monkeypatch.setattr(direct_http_module, "_open_direct_http", raise_network_error)
 
     result = fetch_direct_http_capture(url="https://example.test/source", timeout_seconds=5, max_bytes=1024)
 
@@ -187,6 +187,21 @@ def test_fetch_direct_http_capture_follows_redirects(http_server: str) -> None:
     assert isinstance(result, DirectHttpCaptureSuccess)
     assert result.final_url == f"{http_server}/ok"
     assert result.warning_notes == [f"direct_http followed redirect from {http_server}/redirect to {http_server}/ok"]
+
+
+def test_fetch_direct_http_capture_ignores_ambient_proxy_env(
+    http_server: str, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("HTTP_PROXY", "http://127.0.0.1:9")
+    monkeypatch.setenv("HTTPS_PROXY", "http://127.0.0.1:9")
+    monkeypatch.setenv("ALL_PROXY", "http://127.0.0.1:9")
+    monkeypatch.setenv("NO_PROXY", "")
+
+    result = fetch_direct_http_capture(url=f"{http_server}/ok", timeout_seconds=5, max_bytes=1024)
+
+    assert isinstance(result, DirectHttpCaptureSuccess)
+    assert result.status == 200
+    assert result.body == b"hello direct http\n"
 
 
 def test_http_runner_writes_packet_with_metadata_and_body_files(http_server: str, scratch_dir: Path) -> None:

@@ -15,6 +15,7 @@ from source_capture.models import (
     unknown_with_reason,
 )
 from source_capture.auth_state import AuthenticatedSessionMode
+from source_capture.proxy_profiles import ProxyCategory
 from source_capture.reddit_credentials import RedditCredentialMode
 from source_capture.source_quality import (
     SOURCE_QUALITY_REPORT_SKELETON_VERSION,
@@ -31,6 +32,7 @@ __all__ = [
     "OBLIGATION_CONTRACT_VERSION",
     "PacketTiming",
     "PreservedFile",
+    "ProxyCategory",
     "ReceiptMetadata",
     "RedditCredentialMode",
     "SOURCE_CAPTURE_MANIFEST_VERSION",

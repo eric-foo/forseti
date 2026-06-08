@@ -21,6 +21,13 @@ from source_capture.adapters.browser_snapshot import (
     BrowserSnapshotSuccess,
     fetch_browser_snapshot_capture,
 )
+from source_capture.adapters.cloakbrowser_snapshot import (
+    CloakBrowserSnapshotFailure,
+    CloakBrowserSnapshotFailureKind,
+    CloakBrowserSnapshotResult,
+    CloakBrowserSnapshotSuccess,
+    fetch_cloakbrowser_snapshot_capture,
+)
 from source_capture.adapters.direct_http import (
     DirectHttpCaptureFailure,
     DirectHttpCaptureFailureKind,
@@ -62,6 +69,10 @@ __all__ = [
     "BrowserSnapshotFailureKind",
     "BrowserSnapshotResult",
     "BrowserSnapshotSuccess",
+    "CloakBrowserSnapshotFailure",
+    "CloakBrowserSnapshotFailureKind",
+    "CloakBrowserSnapshotResult",
+    "CloakBrowserSnapshotSuccess",
     "DirectHttpCaptureFailure",
     "DirectHttpCaptureFailureKind",
     "DirectHttpCaptureResult",
@@ -83,6 +94,7 @@ __all__ = [
     "header_complete_profile",
     "fetch_archive_org_capture",
     "fetch_browser_snapshot_capture",
+    "fetch_cloakbrowser_snapshot_capture",
     "fetch_direct_http_capture",
     "fetch_media_assets",
     "fetch_reddit_api_capture",
