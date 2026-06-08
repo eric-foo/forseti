@@ -130,6 +130,55 @@ External sources (non-Reddit-capture): linkeddit.com best-subreddits-b2b-lead-
 generation-2026; infrasity.com reddit-b2b-marketing-strategy; redreach.ai
 10-most-effective-subreddits-for-b2b-lead-generation.
 
+## Discovery-Surface Design (arm)
+
+The arm reaches candidate subreddits through discovery surfaces. The realized
+runs used only the related-subreddit sidebar; the Arm Evaluation Note shows that
+surface drifts to general hubs and under-reaches specialized verticals. The
+intended arm design combines three complementary surfaces, sequenced by lock-in:
+
+| Surface | Finds subs by | Recall bias | Lock-in |
+|---|---|---|---|
+| Related-subreddit sidebar (realized) | adjacency cross-links | drifts to general hubs | in this lane |
+| Reddit search listing | Reddit's own keyword index | name/topic match; reaches non-sidebar-linked subs | in this lane: a declared-and-capped candidate surface (`CandidateSurface.REDDIT_SEARCH_LISTING`) |
+| External web / SERP | external authority and recency | listicle-grade verticals neither surface above reaches | OUT of this lane: different source family; SERP/discovery builds deferred by the crawler contract |
+
+The surfaces are complementary, not redundant: each has a different recall bias,
+so combining them improves reach for specialized communities more than any one
+alone. This is arm design, not a content goal; the owner remains
+subreddit-agnostic.
+
+### Resolved -- keep sidebar traversal (Q1)
+
+The related-subreddit sidebar surface is kept as a secondary adjacency surface,
+not culled. It is complementary to search (adjacency bias vs vertical-relevance
+bias) and adds reach rather than duplicating it. Owner-confirmed 2026-06-08.
+
+### Resolved -- external web / SERP placement (option 1)
+
+Switching on Reddit search is an in-lane config choice (declare the surface and
+cap it). Binding **external** web search is a separate, higher-lock-in decision
+that is NOT a toggle inside Reddit Candidate URL Intake:
+
+- Reddit Candidate URL Intake is Reddit-source-family only; web-search results
+  are a different source family (outbound / separate-family intake), not Reddit
+  candidate rows.
+- The crawler architecture contract defers SERP/discovery-API builds.
+
+The question was: **where do web-discovered subreddits live?** Owner-chosen
+2026-06-08: **option 1 -- a sibling web-discovery surface** that emits subreddit
+candidates into the same Graph Frontier Register, kept distinct from
+Reddit-source intake. This keeps the source-family boundary clean (web finds are
+not laundered into Reddit candidate rows) at the cost of a new surface.
+
+Not chosen: (2) outbound-URL rows inside the existing lane, promoted separately;
+(3) defer to sidebar + Reddit search only.
+
+This resolution sets direction only. It does not authorize a build: the sibling
+surface still requires the deferred SERP/discovery-API gate and a concrete
+scoped design before implementation. Reddit search remains independently
+available as an in-lane surface.
+
 ## Selection-Recording Convention (provisional)
 
 Each frontier selection records the 4-part seam above: (1) candidates considered,
