@@ -68,7 +68,10 @@ This record does not assert that any server-side gate is active. It is not.
    lane must confirm the `orca-harness-tests` check is green (for example, `gh pr checks <n>`)
    before merging its PR, and must not merge a red or pending PR. This is a process commitment, not
    a server-enforced gate — nothing technically blocks a non-conforming merge — so it holds only as
-   long as every lane follows it.
+   long as every lane follows it. An optional helper,
+   `.github/scripts/merge-when-green.ps1`, performs this check-then-merge (it refuses unless the
+   required check is green); using it is encouraged but not required, and it does not change this
+   discipline.
 
 ## Why core-only CI (evidence)
 
