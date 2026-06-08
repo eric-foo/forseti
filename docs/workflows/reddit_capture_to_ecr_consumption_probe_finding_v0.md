@@ -42,9 +42,26 @@ One bounded, owner-authorized probe drove the full chain on real data — a sing
 1. **ECR consumes Reddit capture output source-agnostically, with no Reddit-specific wiring.** Confirmed on a real captured packet: same `SourceCapturePacket` type, loads cleanly, deriver runs. There is no capture→ECR *integration* gap.
 2. **Reddit captures currently land as not-proven residuals**, because the capture path supplies no source-side postures. In the real packet, every source-side field is `unknown_with_reason` or `not_attempted` (cutoff posture, publication/event timing, edit/version, actor/audience). `run_reddit_old_http_batch.py` passes `cutoff_posture=None`; `run_source_capture_http_packet` accepts a `cutoff_posture` but none is threaded through.
 
-## Open question (tees up the next decision)
+## Resolution (step 2 — by design)
 
-`cutoff_posture` is "was the source visible before the *decision* cutoff" — arguably a per-*use* judgment tied to a decision question, not a pure capture-time fact. So the residual may be a **gap to close** (the capture path should derive/accept source-side postures) *or* **correct by design** (postures are supplied later, at use/analysis time). That choice is owner-owned and sits at the capture↔ECR / judgment-model seam. It is **not** a Reddit-capture defect.
+Resolved against the Data Capture Spine obligation contract
+(`docs/product/core_spine_v0_data_capture_spine_obligation_contract_v0.md`,
+Obligation 9 + the commissioned-capture requirement): **by design.**
+
+Cutoff posture is a first-class *capture* fact, but it is known only for capture
+**commissioned against a Decision Frame** — which supplies the decision question,
+cutoff posture, and intended downstream use. The contract treats standing or
+opportunistic capture as out of scope ("if there is no Decision Frame, Data
+Capture Spine has not started"), and Ob.9 prescribes recording `unknown` with a
+reason when the posture cannot be stated.
+
+The probe used the bounded *calibration* batch runner with **no Decision Frame**,
+so `cutoff_posture` → `unknown_with_reason` → ECR residual is the
+contract-prescribed, honest outcome — **not a defect**. The capability exists
+(`run_source_capture_http_packet` accepts a `cutoff_posture`); the batch runner
+intentionally passes `None`. To obtain *cleared* ECR postures from Reddit, run
+commissioned capture against a Decision Frame — a larger owner / judgment-model
+question (step 3), not a capture-path fix.
 
 ## Boundaries / non-claims
 
@@ -54,6 +71,9 @@ One bounded, owner-authorized probe drove the full chain on real data — a sing
 
 ## Sequenced follow-ups (owner-directed)
 
-1. (this doc) Document the finding + wrap the capture lane.
-2. Decide where source-side postures (especially `cutoff_posture`) come from for Reddit captures, and — if a gap — thread them through the capture path so ECR can clear.
-3. Hand the source-side-posture question to the ECR / judgment-model lane that owns the seam.
+1. **Done** — document the finding + wrap the capture lane (committed).
+2. **Done** — decide gap-vs-by-design → **resolved by design** (Ob.9 / commissioned
+   capture); no capture-path change warranted.
+3. **Open** — hand the commissioned-capture / Decision-Frame question (how Reddit
+   captures acquire a real cutoff posture for an actual decision) to the ECR /
+   judgment-model lane that owns the Decision Frame.

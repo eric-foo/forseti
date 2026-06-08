@@ -52,6 +52,7 @@ stale_if:
 | Plan bounded pre-commercial Reddit capture/consolidation | `docs/product/source_capture_toolbox/reddit_precommercial_capture_consolidation_planning_thread_v0.md` |
 | Check Reddit capture/consolidation success-signal hardening rationale | `docs/product/source_capture_toolbox/reddit_precommercial_capture_consolidation_success_signal_architecture_v0.md` |
 | Check Capture obligations / forbidden outputs | `docs/product/core_spine_v0_data_capture_spine_obligation_contract_v0.md` |
+| Check whether Reddit capture output lands usefully in ECR (real-data probe; resolved by-design) | `docs/workflows/reddit_capture_to_ecr_consumption_probe_finding_v0.md` |
 | Check packet lifecycle, retention, sensitivity, or fixture movement | `docs/decisions/source_capture_packet_fixture_retention_sensitivity_decision_v0.md` |
 | Run existing capture tools safely | `orca-harness/docs/source_capture_agent_runbook.md` |
 | Author a new adapter against existing conventions | `orca-harness/docs/adapter_author_contract.md` |
