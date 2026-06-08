@@ -16,6 +16,7 @@ open_next:
   - docs/decisions/data_capture_spine_source_observability_requirements_boundary_decision_v0.md
 stale_if:
   - A later owner decision supersedes the authorized build scope, selected anti-blocking backend, or Reddit pre-commercial ordering.
+  - Current old Reddit Direct HTTP exact-thread capture stops working as the operator default.
   - The source-access boundary decision materially changes hard stops or disclosability requirements.
   - The Data Capture obligation contract, Data Capture/Cleaning/Judgment boundary, or source-access method plan materially changes source-acquisition obligations.
   - First-tranche implementation exposes an access, fidelity, provenance, rights, or boundary issue that cannot be represented by the authorized packet/adapter surface.
@@ -92,12 +93,15 @@ minimizing a failed experiment's integration cost.
 For Reddit during the current pre-commercial / personal-project phase, Orca uses
 this source-specific order:
 
-1. anti-blocking browser capture first, using the selected CloakBrowser route
-   once implemented, and preferring the old Reddit HTML surface when it is
-   available;
-2. low-volume bounded capture over source sets that are subreddit-bounded,
+1. exact old Reddit Direct HTTP first for supplied thread URLs when current old
+   Reddit HTML is the capture target and the bounded batch runner accepts the
+   URL;
+2. CloakBrowser anti-blocking browser capture for one supplied URL when Direct
+   HTTP is unsuitable, blocked, or browser-visible anti-blocking capture is
+   explicitly needed; CloakBrowser remains the primary anti-blocking backend;
+3. low-volume bounded capture over source sets that are subreddit-bounded,
    thematic, or thread-family scoped;
-3. archive capture for historical thread posture or when live capture is not
+4. archive capture for historical thread posture or when live capture is not
    necessary or fails visibly.
 
 The Reddit bound is **not URL-only**. A bounded capture unit may be a subreddit,
@@ -107,13 +111,22 @@ crawling, site-wide walking, generic subreddit harvesting, production monitoring
 or volume escalation. The capture must remain low-volume and purpose-bounded,
 with method provenance recorded plainly.
 
-Reddit `.json` endpoints are not a primary pre-commercial capture spine. Current
-spot checks from Reddit's own help/dev surfaces and live developer reports show
-that OAuth/login credentials are expected for Data API use and anonymous `.json`
-reads are seeing 403/network-security failures. Treat `.json` as opportunistic
-fallback evidence only when it works and its access posture is recorded. The
-old Reddit HTML surface is the preferred Reddit browser-visible capture surface
-for this tranche.
+Cold Reddit `.json` endpoints are not a primary pre-commercial capture spine.
+Current spot checks from Reddit's own help/dev surfaces and live developer
+reports show that OAuth/login credentials are expected for Data API use and
+anonymous `.json` reads are seeing 403/network-security failures. Orca's bounded
+2026-06-08 probes also saw cold direct `.json`, cold browser `.json`, and cold
+CloakBrowser+proxy `.json` fail with network-security blocks.
+
+The useful bounded JSON route is warm same-context JSON: load the exact old
+Reddit HTML thread first in CloakBrowser, confirm the page is not blocked, then
+fetch the same thread's `.json` URL inside that same browser context. Treat that
+as a structured enrichment path over the same supplied thread, not as standalone
+cold JSON access, source discovery, crawling, monitoring, storage, or commercial
+API use. The old Reddit HTML surface remains the preferred provenance surface
+for this tranche. Direct HTTP is the current exact-thread operator default for
+that surface; CloakBrowser is the anti-blocking/browser-visible route, not a
+reason to skip a working Direct HTTP capture.
 
 BeautifulSoup-style HTML parsing is allowed as a parser over already retrieved
 old Reddit HTML or archived HTML. It is not an access method and does not solve
