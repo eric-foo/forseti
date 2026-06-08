@@ -134,6 +134,8 @@ review_summary:
   status: completed
   report_path: docs/review-outputs/example_adversarial_review_v0.md
   recommendation: accept | accept_with_friction | patch_before_acceptance | reject | blocked
+  reviewed_by: claude-opus-4.8     # model+version that performed the review; operator/CA-supplied; "unrecorded" if not; never fabricated; observed record, not a recommendation
+  authored_by: claude-opus-4.8     # model+version that authored the reviewed artifact; same-vs-cross is computed by relating the two
   summary: "One sentence describing the review result."
   findings_count: 0
   blocking_findings: []
@@ -160,6 +162,8 @@ review_summary:
   status: failed
   review_location: chat_only_current_thread
   recommendation: blocked
+  reviewed_by: unrecorded
+  authored_by: unrecorded
   summary: "Failed to write required report to docs/review-outputs/example_adversarial_review_v0.md."
   findings_count: 0
   blocking_findings: []
@@ -167,6 +171,17 @@ review_summary:
   prior_findings_remediated: []
   next_action: "Resolve the report write failure, then rerun the review-report prompt."
 ```
+
+`reviewed_by` and `authored_by` record the model+version that performed the
+review and that authored the reviewed artifact (for example `claude-opus-4.8`,
+`gpt-5.5`), set by the operator/CA on the durable record; each value is
+`unrecorded` when the identity was not supplied and is never fabricated. Both
+are present on every review summary. They are observed provenance records only
+and do not recommend, rank, or select a runtime model (see
+`.agents/workflow-overlay/review-lanes.md` Review Doctrine, the model-neutrality
+bullet). Same-family-vs-cross-family is computed by relating the two and is
+measured only when both carry real values; a present `unrecorded` value is a
+visible measurement gap, not success.
 
 Do not include these fields in Orca adversarial review summaries:
 

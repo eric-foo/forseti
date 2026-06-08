@@ -14,7 +14,7 @@ use_when:
 authority_boundary: retrieval_only
 derived_from:
   - docs/prompts/templates/review/adversarial_artifact_review_v0.md@0cb80057795215b3311d00c3d0ad603fbef78fe92e5ae24d8042490b8b60c3fc
-  - .agents/workflow-overlay/review-lanes.md@c3f37fb2e02b9ca6dee55e685c9913035a9cca050acff7954294e5e2a417df72   # re-pinned 2026-06-08: a Current-Lanes-only edit changed the file hash; the distilled Review Doctrine is unchanged, so method content is unchanged
+  - .agents/workflow-overlay/review-lanes.md@b8569fb5edd62d5cc85e265658317e8e30fd8fd04ed244872912a5d7057f6884   # re-pinned 2026-06-09: reviewed_by/authored_by provenance bullets added to Review Doctrine; those fields are CA-recorded on ingest (not part of this reviewer method), so the distilled stance/checks are unchanged and this is pin-only
 method_version: v0
 stale_if:
   - Either derived_from source hash changes. Freshness gate = hash-compare these pins against the live files before assembling any package; on mismatch, re-derive this method rather than shipping it.

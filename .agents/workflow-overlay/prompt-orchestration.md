@@ -278,6 +278,18 @@ by review lane, method/skill, target, authority, output mode, destination, and
 prompt-template target only. Template targets are prompt-shaping guidance;
 runtime model choice for review work is outside Orca review-lane authority.
 
+Review prompts must require the durable review output to record two provenance
+fields -- `reviewed_by` (the model and version that performed the review) and
+`authored_by` (the model and version that authored the reviewed artifact) --
+operator/tooling-supplied, value `unrecorded` when not supplied, never
+fabricated, on new or materially touched review outputs (not backfilled). They
+are set by the operator/CA on the durable record (a no-repo or portable reviewer
+need not self-emit them) and are observed provenance facts only; they must not
+be expressed as, or turned into, a runtime model recommendation, ranking, or
+selection. Same-family-vs-cross-family is computed by relating the two and is
+measured only when both carry real values, so a present `unrecorded` value is a
+visible measurement gap, not success.
+
 Every Orca adversarial artifact review prompt must invoke
 `workflow-adversarial-artifact-review` after `SOURCE_CONTEXT_READY`. If that
 skill is unavailable, unresolved, or not applied, the run may return only a
@@ -535,7 +547,13 @@ Before using a generated Orca prompt, apply these gates:
    template retrieval only; do not add a synthesis lane; and, for
    intent-bearing review targets, anchor the decision criteria to a bound
    fitness reference (goal plus observable success signal) or require the
-   review to name its absence as `no checkable success bar bound`.
+   review to name its absence as `no checkable success bar bound`; and record
+   `reviewed_by` and `authored_by` (the reviewing model+version and the reviewed
+   artifact's author model+version) as present fields on every new or materially
+   touched review output, operator/CA-supplied with `unrecorded` allowed and
+   never fabricated, observed provenance facts that do not select, recommend, or
+   rank a runtime model, where a present `unrecorded` value is a visible
+   measurement gap rather than a captured measurement.
 12. Doctrine propagation satisfied: prompt, handoff, wrapper, review,
    output-mode, or execution-contract changes that alter durable doctrine carry
    a `direction_change_propagation` receipt or

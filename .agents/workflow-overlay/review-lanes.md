@@ -100,6 +100,25 @@ routing, and Chief Architect consumption rules.
   authority, output mode, destination, and prompt-template target. Runtime
   model choice is outside Orca review-lane authority and remains an
   operator/tooling decision.
+- Review outputs record two provenance fields, operator/tooling-supplied and
+  set by the operator/CA on the durable review record (including when ingesting
+  a no-repo or portable reviewer's returned findings -- the reviewer is not
+  required to self-emit them): `reviewed_by` (the model and version that
+  performed the review) and `authored_by` (the model and version that authored
+  the artifact under review), for example `claude-opus-4.8`, `gpt-5.5`. Each is
+  a required (present) field on new or materially touched review outputs (not
+  backfilled); its value is `unrecorded` when the identity was not supplied, and
+  it is never fabricated. These are factual provenance records -- the
+  ordinary-review analogue of the delegated-review-patch actor/model-family
+  receipt -- and must never be used to select, recommend, rank, or imply a
+  runtime model; the model-neutrality rule above is unchanged.
+- The purpose of `reviewed_by` / `authored_by` is to make reviewer attribution
+  and same-family-vs-cross-family coverage measurable. Same-vs-cross is computed
+  by relating the two families, so it is measured only when both fields carry
+  real values: a present `unrecorded` value satisfies the schema but records a
+  visible measurement gap, not a captured measurement, and is never treated as
+  success. The measurement is realized only when tooling actually populates the
+  real values.
 
 ## Template Retrieval Binding
 
@@ -170,3 +189,38 @@ prompt-orchestration work.
 - Runtime model recommendations for review lanes: forbidden. Template target
   retrieval is allowed only as prompt-shaping guidance.
 - Prompt output contracts are bound in `.agents/workflow-overlay/prompt-orchestration.md`.
+
+## Direction Change Propagation
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Review outputs now record two required (present), model-neutral provenance fields -- reviewed_by and
+    authored_by (the reviewing model+version and the reviewed-artifact author model+version) -- set by the
+    operator/CA on the durable record, value unrecorded allowed (a visible measurement gap, never fabricated,
+    never a success path), forward-only. Same-family-vs-cross-family is computed by relating the two.
+    Observed records, not model routing/recommendation; review-lane model-neutrality is unchanged.
+  trigger: review_authority
+  related_triggers: [output_authority]
+  controlling_sources_updated:
+    - .agents/workflow-overlay/review-lanes.md
+    - .agents/workflow-overlay/prompt-orchestration.md
+    - .agents/workflow-overlay/communication-style.md
+  downstream_surfaces_checked:
+    - {path: docs/prompts/templates/portable/adversarial_artifact_review_portable_method_v0.md, note: pin-only re-pin of the review-lanes derived_from hash; distilled method body unchanged}
+    - {path: .agents/workflow-overlay/validation-gates.md, note: F4 single-source decision; no duplicate enforcement gate added}
+  intentionally_not_updated:
+    - {path: .agents/workflow-overlay/validation-gates.md, reason: F4 single-source; the Review Doctrine here is read by every Orca agent, so no duplicate gate was added}
+    - {path: .agents/workflow-overlay/retrieval-metadata.md, reason: review-output fields, not universal durable-artifact header fields}
+    - {path: .agents/workflow-overlay/delegated-review-patch.md, reason: its actor/model-family receipt already records author and controller families; these are the consistent ordinary-review analogue}
+    - {path: docs/decisions/adversarial_review_routing_policy_v0.md, reason: routing tiers declined (Pile 3); this records measurement, not routing}
+  stale_language_search: >
+    reviewed_by / authored_by are net-new field names; no prior overlay text stated review outputs do not
+    record reviewer/author identity, so no language was made stale, and the model-neutrality rule is
+    unchanged and explicitly reconciled in the new bullets.
+  non_claims:
+    - not validation
+    - not readiness
+    - not model routing/recommendation
+    - not a kept change until committed and the same-family post-patch blast-radius re-review resolves
+```
