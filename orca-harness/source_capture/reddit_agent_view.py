@@ -230,6 +230,7 @@ def _strip_candidate_intake(data: dict[str, Any]) -> dict[str, Any]:
             "stop_reason": provenance.get("stop_reason"),
             "coverage_claim": envelope.get("coverage_claim"),
             "caps_applied": provenance.get("caps_applied"),
+            "exclusions": provenance.get("exclusions_applied"),
         },
         "candidates": rows,
         "counts": provenance.get("row_counts", {}),

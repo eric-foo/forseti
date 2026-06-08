@@ -168,6 +168,49 @@ def test_candidate_intake_view_keeps_candidate_rows_without_repeated_receipts(
     assert "per-row exclusion receipts" in stripped["omitted_field_groups"]
 
 
+def test_candidate_intake_view_retains_run_level_exclusions(scratch_dir: Path) -> None:
+    source_path = scratch_dir / "reddit_candidate_url_intake.json"
+    source_path.write_text(
+        json.dumps(
+            {
+                "reddit_candidate_url_intake": {
+                    "envelope": {"run_id": "run_1", "declared_topic_theme_query": "b2b"},
+                    "candidate_subreddits": [],
+                    "candidate_threads": [],
+                    "outbound_urls": [],
+                    "provenance": {
+                        "run_id": "run_1",
+                        "source_surface": "related_subreddit",
+                        "stop_reason": "caps_reached",
+                        "caps_applied": {"max_subreddits": 5},
+                        "exclusions_applied": [
+                            "no_same_run_traversal",
+                            "no_body_comment_profile_capture",
+                        ],
+                        "row_counts": {},
+                        "non_claims": ["not Source Capture Packet output"],
+                    },
+                    "non_claims": ["not Source Capture Packet output"],
+                }
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    result = build_reddit_agent_views(input_json_path=source_path, output_directory=scratch_dir / "views")
+
+    stripped = json.loads(Path(result["stripped_json_path"]).read_text(encoding="utf-8"))[
+        "reddit_agent_view"
+    ]["stripped"]
+    # Run-level exclusions are a preserve-rule field (bounds/caps/exclusions); keep
+    # them once at run level, with per-row exclusion receipts still omitted.
+    assert stripped["run"]["exclusions"] == [
+        "no_same_run_traversal",
+        "no_body_comment_profile_capture",
+    ]
+    assert "per-row exclusion receipts" in stripped["omitted_field_groups"]
+
+
 def test_graph_frontier_view_keeps_graph_shape_and_drops_repeated_non_claims(
     scratch_dir: Path,
 ) -> None:
