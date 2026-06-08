@@ -287,10 +287,15 @@ def _strip_graph_frontier(data: dict[str, Any]) -> dict[str, Any]:
         for value, count in sorted(Counter(value.lower() for value in node_values).items())
         if count > 1
     }
+    provenance = data.get("provenance")
+    if not isinstance(provenance, dict):
+        provenance = {}
     return {
         "register_id": data.get("register_id"),
         "source_intake_run_id": data.get("source_intake_run_id"),
         "source_policy_posture": data.get("source_policy_posture"),
+        "caps_applied": provenance.get("caps_applied"),
+        "exclusions": provenance.get("exclusions"),
         "nodes": nodes,
         "edges": edges,
         "frontier_decisions": decisions,
@@ -309,7 +314,7 @@ def _strip_graph_frontier(data: dict[str, Any]) -> dict[str, Any]:
             "per-edge repeated non-claims payload",
             "frontier-decision generated identifiers and timestamps",
             "frontier-decision repeated non-claims payload",
-            "register provenance detail",
+            "register provenance detail beyond run-level caps and exclusions",
             "top-level repeated non-claims payload",
         ],
     }

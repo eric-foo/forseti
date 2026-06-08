@@ -245,6 +245,66 @@ def test_graph_frontier_view_keeps_graph_shape_and_drops_repeated_non_claims(
     assert stripped["frontier_decisions"][0]["next_run_id_or_none"] == "run_2"
 
 
+def test_graph_frontier_view_retains_caps_and_exclusions_once(scratch_dir: Path) -> None:
+    source_path = scratch_dir / "reddit_graph_frontier_register.json"
+    source_path.write_text(
+        json.dumps(
+            {
+                "reddit_graph_frontier_register": {
+                    "register_id": "register_1",
+                    "source_intake_run_id": "run_1",
+                    "source_policy_posture": "candidate-only",
+                    "nodes": [
+                        {
+                            "node_id": "run:run_1",
+                            "node_type": "run",
+                            "candidate_value_or_none": None,
+                            "source_surface": "subreddit_listing",
+                            "source_url_or_locator": "https://old.reddit.com/r/SEO/",
+                            "stop_reason": "caps_reached",
+                            "run_id": "run_1",
+                            "caps_applied": {"max_subreddits": 5, "max_frontier_hops": 1},
+                            "exclusions": ["no_same_run_traversal"],
+                            "visible_subscriber_count_or_none": None,
+                            "visible_active_user_count_or_none": None,
+                            "non_claims": ["not Graph Frontier-owned live Reddit fetch"],
+                        }
+                    ],
+                    "edges": [],
+                    "frontier_decisions": [],
+                    "provenance": {
+                        "caps_applied": {"max_subreddits": 5, "max_frontier_hops": 1},
+                        "exclusions": [
+                            "no_same_run_traversal",
+                            "no_body_comment_profile_capture",
+                        ],
+                        "source_surface": "subreddit_listing",
+                        "stop_reason": "caps_reached",
+                    },
+                    "non_claims": ["not Graph Frontier-owned live Reddit fetch"],
+                }
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    result = build_reddit_agent_views(input_json_path=source_path, output_directory=scratch_dir / "views")
+
+    stripped = json.loads(Path(result["stripped_json_path"]).read_text(encoding="utf-8"))[
+        "reddit_agent_view"
+    ]["stripped"]
+    # Caps and exclusions are the traversal bounds an agent needs to plan the next
+    # hop; the runbook preserve rule names them. Retain once at run level, not
+    # dropped and not repeated per node.
+    assert stripped["caps_applied"] == {"max_subreddits": 5, "max_frontier_hops": 1}
+    assert stripped["exclusions"] == [
+        "no_same_run_traversal",
+        "no_body_comment_profile_capture",
+    ]
+    assert "caps_applied" not in stripped["nodes"][0]
+    assert "exclusions" not in stripped["nodes"][0]
+
+
 def test_rejects_unsupported_json_artifact(scratch_dir: Path) -> None:
     source_path = scratch_dir / "other.json"
     source_path.write_text(json.dumps({"other": {}}), encoding="utf-8")
