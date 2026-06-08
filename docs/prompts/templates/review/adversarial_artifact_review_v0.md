@@ -28,17 +28,29 @@ Review target:
 Review purpose:
 [FILL_REVIEW_PURPOSE]
 
-Required source hierarchy:
+Fitness reference (intent-bearing targets only -- a stated goal plus an
+observable success signal; pointer-preferred to a controlling contract,
+decision, or gate that already carries the signal):
+[FILL_GOAL_AND_SUCCESS_SIGNAL_OR_POINTER, or "none bound"]
+
+Required authority sources:
 - `AGENTS.md`
 - `.agents/workflow-overlay/README.md`
 - `.agents/workflow-overlay/source-of-truth.md`
+- `.agents/workflow-overlay/source-loading.md`
 - `.agents/workflow-overlay/artifact-roles.md`
 - `.agents/workflow-overlay/review-lanes.md`
 - `.agents/workflow-overlay/prompt-orchestration.md`
-- `.agents/workflow-overlay/communication-style.md`
 - `.agents/workflow-overlay/validation-gates.md`
-- `.agents/workflow-overlay/template-registry.md`
-- [FILL_ADDITIONAL_REQUIRED_SOURCES]
+
+Default review source pack:
+- the review target;
+- sources named by the target retrieval header only when material;
+- `.agents/workflow-overlay/communication-style.md` when chat or report
+  closeout shape matters;
+- `.agents/workflow-overlay/template-registry.md` when reviewing, selecting, or
+  applying prompt templates;
+- [FILL_ADDITIONAL_TASK_SOURCES]
 
 Edit permission:
 Read-only unless the launch instruction explicitly assigns patch execution.
@@ -108,6 +120,10 @@ Review checks:
 - Missing required inputs or unbound roles.
 - Output mode and destination correctness.
 - Downstream executability.
+- Fitness to the bound goal and success signal, for intent-bearing targets:
+  whether the target achieves its intended outcome. Attack whether the goal and
+  signal are themselves right. If no fitness reference is bound, name `no
+  checkable success bar bound` as a finding rather than inventing the goal.
 - Leakage of `jb` project policy or template language.
 - Overclaims, readiness claims, validation claims, buyer-proof claims, or commercial claims.
 

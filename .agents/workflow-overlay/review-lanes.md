@@ -44,6 +44,28 @@ routing, and Chief Architect consumption rules.
   be maximally adversarial about material decision-relevant failure modes. This
   does not widen the target; it means the reviewer should not soften or skip a
   material failure mode merely because remediation would be awkward.
+- For intent-bearing review targets -- artifacts whose correctness is judged by
+  fitness to an upstream goal (proofs, fixtures, calibration gates, plans,
+  operating structures, runbooks, product-proof artifacts) rather than by
+  internal or technical consistency alone -- the decision criteria the review
+  applies should be anchored to a bound `fitness_reference`: a stated goal plus
+  an observable success signal, pointer-preferred (cite the controlling upstream
+  contract, decision, or gate that already carries the signal; write compact
+  prose only when none exists). The fitness reference is an added alignment axis
+  the reviewer must also attack -- the reviewer asks whether the goal and signal
+  are themselves right -- never a pass-if-matches bar. It does not narrow the
+  commission-bound adversarial posture and creates no approval, validation, or
+  readiness.
+- If an intent-bearing target arrives with no bound fitness reference, the
+  review names the gap (`no checkable success bar bound`) as a finding rather
+  than silently inventing the goal. This is review-side back-pressure, not new
+  verdict authority, and it stays findings-first.
+- The fitness-reference rule applies to adversarial artifact review. Code or
+  implementation review is not extended here; its fitness bar (spec, tests,
+  ground-truth substrate) is governed separately. The authoring home for the
+  goal and success signal is framing/scoping (reuse `workflow-goal-framing`
+  output); this doctrine routes that output and does not relocate or fork it.
+  Owning decision: `docs/decisions/work_unit_fitness_reference_v0.md`.
 - Review lanes emit findings by default. Formal verdicts, severity taxonomies,
   blocked/ready status, validation pass/fail claims, approval, readiness,
   mandatory remediation, and executor-ready patch queues are strict-shaped

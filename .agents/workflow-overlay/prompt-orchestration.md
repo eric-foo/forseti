@@ -172,6 +172,17 @@ the registry before using any generic prompt-orchestration template.
 
 Typed child folders under `docs/prompts/` may be created when the first prompt of that family is authored. Source-changing handoff prompts may target implementation only when the current turn or an accepted handoff explicitly authorizes bounded implementation; otherwise they must target documentation or overlay work only.
 
+For goal-fitness-judged source-changing work -- work whose correctness is judged
+by achieving an upstream goal (proofs, fixtures, calibration gates, plans,
+operating structures, runbooks) rather than by internal or technical consistency
+alone -- a concrete goal and observable success signal must be bound before
+source-changing edits begin. This is the scoped fused/scoping fitness gate.
+Technical or consistency-judged work (schema reconciliation, citation/grounding
+fixes, mechanical patches, vocabulary-enforcement edits, provenance corrections)
+is exempt. When the classification is ambiguous, prefer binding a pointer when
+cheap but do not block absent the trigger; name the ambiguity. Owning decision:
+`docs/decisions/work_unit_fitness_reference_v0.md`.
+
 Prompt templates may also use `paste-ready-chat` when the intended output is a
 single prompt, wrapper, or handoff body meant to be pasted into another model,
 agent, thread, or worktree.
@@ -294,6 +305,16 @@ Within the commission-bound target and purpose, adversarial review prompts
 should ask reviewers to be maximally adversarial about material
 decision-relevant failure modes. Optional hardening may be named only when
 clearly labeled optional and non-required.
+
+For intent-bearing review targets, review prompts should bind or point at the
+`fitness_reference` (a goal plus an observable success signal, pointer-preferred)
+so the review's decision criteria are anchored to the work unit's intended
+outcome rather than re-derived from scratch. If no fitness reference exists, the
+prompt must ask the review to name the gap (`no checkable success bar bound`)
+rather than invent the goal. The reference is an alignment axis the reviewer must
+also attack, never a pass-if-matches bar. This applies to adversarial artifact
+review only; see `.agents/workflow-overlay/review-lanes.md` and
+`docs/decisions/work_unit_fitness_reference_v0.md`.
 
 Do not request `patch_queue_entry` from a read-only review. It means
 executor-ready how-to and belongs only in a patch-queue review or separately
@@ -511,7 +532,10 @@ Before using a generated Orca prompt, apply these gates:
    patch/integration execution; preserve the Chief Architect consumption order
    when the review is CA-facing; do not recommend, prescribe, rank, or imply a
    runtime model for review lanes; treat model-named template targets as
-   template retrieval only; and do not add a synthesis lane.
+   template retrieval only; do not add a synthesis lane; and, for
+   intent-bearing review targets, anchor the decision criteria to a bound
+   fitness reference (goal plus observable success signal) or require the
+   review to name its absence as `no checkable success bar bound`.
 12. Doctrine propagation satisfied: prompt, handoff, wrapper, review,
    output-mode, or execution-contract changes that alter durable doctrine carry
    a `direction_change_propagation` receipt or
