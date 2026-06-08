@@ -348,6 +348,137 @@ def test_graph_frontier_view_retains_caps_and_exclusions_once(scratch_dir: Path)
     assert "exclusions" not in stripped["nodes"][0]
 
 
+def test_strip_retention_contract(scratch_dir: Path) -> None:
+    """Content-lossless cleaning contract (regression guard).
+
+    Every runbook-protected field must survive cleaning across all three
+    cleaned-view profiles. Passthrough fields are checked by unique-sentinel
+    value-survival (robust to the cleaner relocating a field, e.g. caps moved
+    per-node -> top-level). non_claims is the wrapper NON_CLAIMS constant, not a
+    passthrough, so it is checked by presence. Drop a protected field in any
+    strip profile and this test fails.
+    """
+    cases = [
+        (
+            "reddit_thread_consolidation",
+            {
+                "reddit_thread_consolidation": {
+                    "thread": {"thread_id": "t1", "subreddit": "SEO"},
+                    "post": {"author_state": "poster", "body_text": "SENT_POST_BODY"},
+                    "comments": [
+                        {
+                            "row_id": "c1",
+                            "comment_id": "c1",
+                            "parent_id": None,
+                            "depth": 0,
+                            "author_state": "helper",
+                            "comment_posture": "present",
+                            "body_text": "SENT_COMMENT_BODY",
+                            "parser_warnings": ["SENT_PARSER_WARNING"],
+                        }
+                    ],
+                    "counts": {},
+                    "warnings": [],
+                    "limitations": [],
+                    "non_claims": ["not live"],
+                }
+            },
+            ["SENT_POST_BODY", "SENT_COMMENT_BODY", "SENT_PARSER_WARNING"],
+        ),
+        (
+            "reddit_candidate_url_intake",
+            {
+                "reddit_candidate_url_intake": {
+                    "envelope": {"run_id": "r1", "declared_topic_theme_query": "q"},
+                    "candidate_subreddits": [
+                        {
+                            "candidate_subreddit": "SENT_CAND_SUB",
+                            "source_url": "https://old.reddit.com/r/x/",
+                            "source_surface": "related_subreddit",
+                            "allowed_downstream_use": "planning_only",
+                            "capture_unit_intake_status": "candidate_or_scouting",
+                            "same_run_traversal_authorized": False,
+                            "visible_subscriber_count_or_none": None,
+                            "visible_active_user_count_or_none": None,
+                        }
+                    ],
+                    "candidate_threads": [],
+                    "outbound_urls": [],
+                    "provenance": {
+                        "run_id": "r1",
+                        "source_surface": "related_subreddit",
+                        "stop_reason": "SENT_STOP_REASON",
+                        "caps_applied": {"SENT_CAP_KEY": 7},
+                        "exclusions_applied": ["SENT_EXCLUSION"],
+                        "row_counts": {},
+                        "non_claims": ["not x"],
+                    },
+                    "non_claims": ["not x"],
+                }
+            },
+            ["SENT_CAND_SUB", "SENT_STOP_REASON", "SENT_CAP_KEY", "SENT_EXCLUSION"],
+        ),
+        (
+            "reddit_graph_frontier_register",
+            {
+                "reddit_graph_frontier_register": {
+                    "register_id": "reg1",
+                    "source_intake_run_id": "r1",
+                    "source_policy_posture": "candidate-only",
+                    "nodes": [
+                        {
+                            "node_id": "subreddit:r1:sent",
+                            "node_type": "subreddit_candidate",
+                            "candidate_value_or_none": "SENT_NODE_VALUE",
+                            "source_surface": "related_subreddit",
+                            "source_url_or_locator": "https://old.reddit.com/r/x/",
+                            "stop_reason": "SENT_NODE_STOP",
+                            "run_id": "r1",
+                            "visible_subscriber_count_or_none": None,
+                            "visible_active_user_count_or_none": None,
+                        }
+                    ],
+                    "edges": [],
+                    "frontier_decisions": [
+                        {
+                            "decision": "selected_as_next_frontier",
+                            "selected_node_id": "subreddit:r1:sent",
+                            "frontier_selection_reason": "SENT_DECISION_REASON",
+                            "next_run_id_or_none": "r2",
+                        }
+                    ],
+                    "provenance": {
+                        "caps_applied": {"SENT_FCAP": 3},
+                        "exclusions": ["SENT_FEXCL"],
+                        "source_surface": "related_subreddit",
+                        "stop_reason": "caps_reached",
+                    },
+                    "non_claims": ["not w"],
+                }
+            },
+            ["SENT_NODE_VALUE", "SENT_NODE_STOP", "SENT_FCAP", "SENT_FEXCL", "SENT_DECISION_REASON"],
+        ),
+    ]
+
+    for index, (artifact_type, source, survivors) in enumerate(cases):
+        source_path = scratch_dir / f"{artifact_type}_{index}.json"
+        source_path.write_text(json.dumps(source), encoding="utf-8")
+        result = build_reddit_agent_views(
+            input_json_path=source_path,
+            output_directory=scratch_dir / f"views_{index}",
+        )
+        view = json.loads(Path(result["stripped_json_path"]).read_text(encoding="utf-8"))[
+            "reddit_agent_view"
+        ]
+        cleaned = json.dumps(view["stripped"])
+        for sentinel in survivors:
+            assert sentinel in cleaned, (
+                f"{artifact_type}: cleaning dropped a protected field carrying {sentinel}"
+            )
+        # non_claims is the wrapper constant -> presence, not value-survival.
+        assert view["non_claims"], f"{artifact_type}: cleaned view missing non_claims"
+
+
 def test_rejects_unsupported_json_artifact(scratch_dir: Path) -> None:
     source_path = scratch_dir / "other.json"
     source_path.write_text(json.dumps({"other": {}}), encoding="utf-8")
