@@ -512,6 +512,43 @@ def test_reddit_post_body_field_selftext_is_rejected() -> None:
         assert exc_info.value.code == "forbidden_output_field"
 
 
+def test_secret_like_output_values_are_rejected() -> None:
+    # Defense-in-depth beyond the field-NAME blocklist: a credential that lands
+    # in a non-secret-named field (a leaked header pasted into a free-text
+    # reason, or proxy creds embedded in a source URL) must still be rejected by
+    # a VALUE scan. The keys here are deliberately legitimate, so only the value
+    # scan can trip.
+    secret_values = (
+        "-----BEGIN RSA PRIVATE KEY-----",                          # PEM private key
+        "Authorization: Bearer abcdef0123456789ABCDEF",             # bearer token
+        "https://proxyuser:proxypass@proxy.internal:8080",          # url userinfo creds
+        "Set-Cookie: reddit_session=eyJhbGciOiJIUzI1NiJ9; Path=/",  # cookie header
+    )
+    for secret in secret_values:
+        with pytest.raises(RedditCandidateIntakeError) as exc_info:
+            assert_no_forbidden_output_fields({"frontier_decision_reason": secret})
+        assert exc_info.value.code == "forbidden_output_value"
+
+
+def test_legit_token_like_values_are_not_rejected() -> None:
+    # The secret-value scan must NOT false-positive on the candidate/frontier
+    # value vocabulary. Each anchors on a credential marker, never on entropy,
+    # so hash-like node ids and colon/`:`-bearing ids pass.
+    legit_values = (
+        "abc123",                                                   # base36 thread id
+        "a3f8c9e2b1d4f6a87c0e",                                     # hash-like node id (no marker)
+        "orca_test:abc123:0",                                       # colon-bearing node id
+        "https://old.reddit.com/r/orca_test/comments/abc123/x/",    # permalink
+        "orca_test",                                                # subreddit name
+        "run_001",                                                  # run id
+        "bounded_probe_only",                                       # coverage claim
+        "stopped: max_threads_per_subreddit reached",               # free-text stop reason
+    )
+    for value in legit_values:
+        # Must not raise.
+        assert_no_forbidden_output_fields({"node_id": value, "reason": value})
+
+
 def test_same_run_traversal_is_rejected() -> None:
     with pytest.raises(RedditCandidateIntakeError) as exc_info:
         build_candidate_intake_output(
