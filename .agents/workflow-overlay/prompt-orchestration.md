@@ -176,6 +176,26 @@ Prompt templates may also use `paste-ready-chat` when the intended output is a
 single prompt, wrapper, or handoff body meant to be pasted into another model,
 agent, thread, or worktree.
 
+## Author Through The Prompt Orchestrator
+
+Always author Orca prompts, handoffs, wrappers, rerun prompts, and patch prompts
+**through `workflow-prompt-orchestrator`** — the prompt-orchestration owner that
+applies the Prompt Orchestrator Binding (source-loading policy), the
+Source-Gated Method Contract, the Required Preflight Fields, Default Path
+Assignment, and the Prompt Validation Gates below. Do not hand-draft these
+prompt artifacts directly.
+
+Hand-drafting a prompt, handoff, wrapper, rerun, or patch prompt bypasses
+source-loading and the preflight/routing contract, so it is a prompt-quality
+defect even when the result looks complete — the defect is the skipped contract,
+not the surface text.
+
+If `workflow-prompt-orchestrator` is not resolver-available in the current lane,
+do not silently hand-draft instead: apply this file's prompt-orchestration
+contract in full, or return a visible blocker. This routing default does not by
+itself claim the skill is an adopted or resolver-validated executable; the
+Anti-Import rule on resolver-visible adoption still governs that claim.
+
 ## Default Path Assignment
 
 The user is not responsible for naming routine Orca artifact paths.
@@ -466,6 +486,13 @@ output-mode exceptions to that shape:
 
 ## Prompt Validation Gates
 
+Authoring-route precondition: the prompt, handoff, wrapper, rerun, or patch
+prompt must have been authored through `workflow-prompt-orchestrator` (see
+"Author Through The Prompt Orchestrator"). A hand-drafted artifact that skipped
+the orchestrator — and therefore source-loading and this preflight/routing
+contract — is a prompt-quality defect; reconstruct it through the orchestrator,
+or apply this file's contract in full and record that, before use.
+
 Before using a generated Orca prompt, apply these gates:
 
 1. Start preflight complete: `AGENTS.md` and
@@ -533,3 +560,70 @@ Before using a generated Orca prompt, apply these gates:
 - Do not copy `jb` prompt templates, skill files, GAP/CV Engine policy, compiler paths, handoff rules, product-lead rules, or repo-local lifecycle mechanics.
 - Do not claim `workflow-product-ultraplan`, `workflow-feature-ultraplan`, or `workflow-prompt-orchestrator` are executable unless a real resolver-visible `SKILL.md` exists and Orca source-resolution/adoption checks pass.
 - Generic layout ideas may be reused only after binding to Orca paths, artifact roles, output modes, and validation gates.
+
+## Direction Change Propagation
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Orca prompt authoring now has an explicit routing rule: all prompt, handoff,
+    wrapper, rerun, and patch-prompt authoring must go through
+    workflow-prompt-orchestrator (the prompt-orchestration owner that applies
+    source-loading and the preflight/routing contract); hand-drafting any of them
+    is a prompt-quality defect, and AGENTS.md now carries the up-front trigger
+    pointing here.
+  trigger: workflow_authority
+  controlling_sources_updated:
+    - .agents/workflow-overlay/prompt-orchestration.md
+    - AGENTS.md
+  downstream_surfaces_checked:
+    - .agents/workflow-overlay/README.md
+    - .agents/workflow-overlay/source-of-truth.md
+    - .agents/workflow-overlay/skill-adoption.md
+    - .agents/workflow-overlay/template-registry.md
+    - .agents/workflow-overlay/validation-gates.md
+    - docs/prompts/templates/_generic/
+  intentionally_not_updated:
+    - path: .agents/workflow-overlay/README.md
+      reason: >
+        The overlay index already names prompt-orchestration.md as the owner of
+        prompt artifact, wrapper, preflight, and output-mode rules; the routing
+        rule lives in that owner file and needs no index restatement.
+    - path: .agents/workflow-overlay/validation-gates.md
+      reason: >
+        Its Prompt Orchestration Gates already defer to prompt-orchestration.md
+        as the prompt-mechanics owner; single-source is preserved by adding the
+        enforcement precondition in that owner file, not by duplicating it here.
+    - path: .agents/workflow-overlay/skill-adoption.md
+      reason: >
+        Its caution that workflow-prompt-orchestrator adoption needs a resolver
+        recheck is unchanged and is explicitly preserved by the new rule's
+        fallback clause; the routing default does not assert strict adoption.
+    - path: .agents/workflow-overlay/template-registry.md
+      reason: >
+        It governs template-target retrieval, not prompt-authoring routing; the
+        new rule does not change template fallback behavior.
+    - path: .agents/workflow-overlay/source-of-truth.md
+      reason: >
+        Source hierarchy and the propagation contract are unchanged; the only hit
+        is an unrelated historical rg pattern in a prior receipt.
+    - path: docs/prompts/templates/_generic/
+      reason: >
+        Model-style template targets; they reference prompt-orchestrator template
+        use, not the hand-draft/routing rule, and are unaffected.
+  stale_language_search: >
+    rg -i -n "prompt-orchestrator|hand-draft|hand-drafted|route through" .agents docs AGENTS.md
+    (run 2026-06-09 on main @ cc93187 in the worktree)
+  stale_language_search_result: >
+    Executed 2026-06-09. No surface stated an opposing rule (no surface permits
+    hand-drafting prompts or bypassing source-loading). Existing prompt-orchestrator
+    hits are the binding, the Anti-Import adoption caution, the skill-adoption
+    recheck note, template-target references, and an unrelated historical rg pattern
+    in source-of-truth.md — none conflicts with or duplicates the new routing rule.
+  non_claims:
+    - not validation
+    - not readiness
+    - not a claim that workflow-prompt-orchestrator is an adopted or resolver-validated executable
+    - not implementation authorization
+    - not source promotion
+```
