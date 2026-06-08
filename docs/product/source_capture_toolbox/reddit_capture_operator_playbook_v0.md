@@ -10,6 +10,9 @@ use_when:
   - Checking Reddit capture stops, non-claims, and operator report expectations.
 authority_boundary: retrieval_only
 open_next:
+  - docs/workflows/data_capture_spine_consolidation_map_v0.md
+  - docs/product/data_capture_spine_reddit_candidate_url_intake_crawler_architecture_v0.md
+  - docs/product/data_capture_spine_reddit_graph_frontier_lane_architecture_v0.md
   - orca-harness/docs/source_capture_agent_runbook.md
   - docs/product/source_capture_toolbox/reddit_precommercial_capture_consolidation_planning_thread_v0.md
   - docs/product/source_capture_toolbox/README.md
@@ -18,6 +21,7 @@ stale_if:
   - A warm same-context Reddit JSON runner is implemented.
   - Reddit capture ordering or CloakBrowser/proxy posture is amended.
   - Candidate URL intake receives a production-grade handoff contract.
+  - A Reddit lane stage (discover/select/capture/read) or its runner changes.
 ```
 
 ## Status
@@ -28,6 +32,24 @@ This playbook is current-procedure guidance for bounded personal-project Reddit
 capture. It consolidates existing Armory and runbook rules. It does not create a
 new source-access method, authorize broad crawling, authorize commercial Reddit
 use, or prove capture quality.
+
+## Reddit Lane At A Glance
+
+This playbook owns the **capture** stage. A new agent operating Reddit end to end
+moves through four stages, in order, staying inside each stage's owner contract:
+
+| Stage | What it does | Runner | Owner contract |
+| --- | --- | --- | --- |
+| 1. Discover | Find candidate subreddits/threads (rows + provenance only; no bodies) | `orca-harness/runners/run_reddit_candidate_intake_live.py` | `docs/product/data_capture_spine_reddit_candidate_url_intake_crawler_architecture_v0.md` |
+| 2. Select | Build a Graph Frontier Register over candidates and queue a non-executing next-run envelope | `orca-harness/runners/run_reddit_graph_frontier_register.py` | `docs/product/data_capture_spine_reddit_graph_frontier_lane_architecture_v0.md` |
+| 3. Capture | Capture exact thread URLs into packets + consolidation (this playbook) | `run_reddit_old_http_batch.py` / `run_reddit_consolidation.py` / `run_reddit_batch_quality_summary.py` | this playbook |
+| 4. Read | Read capture/intake/frontier outputs as an agent (stripped view is the default surface; full JSON for provenance) | `orca-harness/runners/run_reddit_agent_view.py` | `orca-harness/docs/source_capture_agent_runbook.md` (stripped-default rule) |
+
+Stages 1–2 are planning/provenance only: they never capture bodies and never
+authorize the next run automatically — each hop needs a fresh bounded run
+envelope, and promotion of a discovered URL into a capture unit is a separate gate
+before stage 3. The navigation hub for every owner doc in this lane is
+`docs/workflows/data_capture_spine_consolidation_map_v0.md`.
 
 ## Current Operator Default
 
@@ -241,9 +263,12 @@ Do not infer why a comment was removed or deleted. Moderator action, automod,
 spam removal, user deletion, account deletion, or other source-state changes
 can look similar from current public HTML.
 
-Deleted-comment recovery is a separate future lane. The safe version is exact
-thread archive fallback with timestamped provenance, not broad recovery from
-unofficial caches.
+Active deleted-comment recovery was evaluated and **dropped** (see
+`docs/decisions/data_capture_spine_deleted_comment_signal_retrieval_scoped_doctrine_decision_v0.md`):
+third-party archives are stale and recovery is unverified, against the
+no-body/comment hard stop and the privacy/consent cost. Do not attempt it. The
+only safe path remains exact-thread archive fallback with timestamped provenance,
+not broad recovery from unofficial caches.
 
 ## Stop Lines
 
