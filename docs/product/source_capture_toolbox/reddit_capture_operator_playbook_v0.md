@@ -51,6 +51,29 @@ envelope, and promotion of a discovered URL into a capture unit is a separate ga
 before stage 3. The navigation hub for every owner doc in this lane is
 `docs/workflows/data_capture_spine_consolidation_map_v0.md`.
 
+## From Discovery To Capture (the handoff)
+
+Discovery and capture are linked by candidate **thread URLs**, across a deliberate
+promotion gate (not an automatic pipe). This is how "we finished the crawl and now
+have subreddits" becomes "we gather information from them":
+
+1. **Discover subreddits.** Run Candidate URL Intake on a seed subreddit's
+   related/sidebar surface -> candidate **subreddit** rows. The Graph Frontier
+   Register records lineage and selects which subreddit to pursue next.
+2. **Enumerate threads.** Run Candidate URL Intake on a chosen subreddit's
+   **listing** surface -> candidate **thread URL** rows
+   (`candidate_threads[].candidate_thread_url` in the intake JSON). This turns
+   "we have the subreddits" into "we have the exact threads to gather from."
+3. **Promote.** Promote the selected candidate thread URLs into a capture unit
+   (the separate promotion gate), then use them as the exact-URL list for the
+   Capture stage (`--url-list`; see URL List Shape below).
+4. **Gather + read.** Capture and consolidate those threads (Capture stage), then
+   read them via the stripped agent view.
+
+Candidate URL Intake emits URL rows + provenance only -- it never captures bodies
+and never auto-feeds capture. The thread URLs are the bridge, promotion is the
+gate, and each intake hop is its own bounded run.
+
 ## Current Operator Default
 
 For exact old Reddit thread URLs, use old Reddit Direct HTTP first.
