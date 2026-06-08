@@ -138,7 +138,8 @@ Use these before broad product architecture or CA setup:
 | `docs/decisions/turn_08_product_thesis_v0.md` | Orca thesis, value proposition, strategic center, broad product boundary. |
 | `docs/product/orca_offer_hypothesis_v0.md` | Offer hypothesis, buyer-facing language, first proof offer, ICP boundary. |
 | `docs/product/orca_buyer_proof_packet_v0.md` | First buyer-proof packet, proof gates, pull signals, kill/graduation criteria. |
-| `docs/product/orca_product_lead_first_icp_wedge_decision_v0.md` | Selected first ICP wedge and decision-family focus. |
+| `docs/decisions/orca_icp_wedge_pricing_first_v0.md` | **Current** first-proof wedge authority: pricing-first / AI-monetization beachhead on an outside-in competitive-intelligence engine. Owner-locked; supersedes the v0 ICP wedge below. Chosen, not validated (decide-vs-confirm test pending). |
+| `docs/product/orca_product_lead_first_icp_wedge_decision_v0.md` | First ICP wedge decision and decision-family focus. **SUPERSEDED** by `orca_icp_wedge_pricing_first_v0.md` (above); historical only. |
 | `docs/product/orca_product_proof_lead_charter_v0.md` | Product proof lead role and proof execution boundary. |
 
 ## Judgment Spine
@@ -340,7 +341,8 @@ Start with:
 - `docs/decisions/turn_08_product_thesis_v0.md`
 - `docs/product/orca_offer_hypothesis_v0.md`
 - `docs/product/orca_buyer_proof_packet_v0.md`
-- `docs/product/orca_product_lead_first_icp_wedge_decision_v0.md`
+- `docs/decisions/orca_icp_wedge_pricing_first_v0.md` — current first-proof wedge (pricing-first); supersedes the v0 wedge below
+- `docs/product/orca_product_lead_first_icp_wedge_decision_v0.md` — superseded; historical only
 - `.agents/workflow-overlay/product-proof.md`
 
 ### Core Spine Evidence Standard Work

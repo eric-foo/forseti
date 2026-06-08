@@ -7,6 +7,14 @@ Keep the Core + Satellite split explicit:
 - Core Spine: market-agnostic evidence mechanics.
 - Satellites: decision-specific and domain-specific context.
 
+For the current first-proof direction, see
+`docs/decisions/orca_icp_wedge_pricing_first_v0.md` — pricing-first / AI-monetization
+beachhead on an outside-in competitive-intelligence engine (chosen, not validated;
+decide-vs-confirm test pending). It supersedes
+`docs/product/orca_product_lead_first_icp_wedge_decision_v0.md`. The product-proof
+corpus (offer hypothesis, buyer-proof packet, proof-lead charter, discovery brief and
+prompt) hangs off that wedge.
+
 For Judgment Spine claim boundaries, use
 `judgment_spine_evidence_ladder_architecture_v0.md` to distinguish
 Product-Learning, Buyer-Proof, and Judgment-Quality evidence before making
