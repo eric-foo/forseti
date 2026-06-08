@@ -234,6 +234,46 @@ def test_projects_old_reddit_search_title_anchors_without_comment_links() -> Non
     assert rows[0].visible_listing_title == "A friend of mine closed a 72k deal from a meeting funnel"
 
 
+def test_listing_projection_records_link_post_target_thread_with_its_true_subreddit() -> None:
+    # Pins the link-post semantics surfaced by a real live run: when a listing
+    # entry is a LINK to a thread in another subreddit, the projection captures
+    # the title anchor's target thread and records its TRUE home subreddit, not
+    # the declared listing subreddit. This is honest provenance, not a
+    # no_subreddit_crawl breach — only the one declared page is read.
+    html = """
+    <html>
+      <body>
+        <div class="thing">
+          <a class="title may-blank" href="/r/orca_test/comments/aaa111/native_self_post/">
+            Native self post in the declared subreddit
+          </a>
+        </div>
+        <div class="thing">
+          <a class="title may-blank" href="/r/marketing/comments/bbb222/2025_state_of_marketing_survey/">
+            2025 State of Marketing Survey
+          </a>
+        </div>
+      </body>
+    </html>
+    """
+    rows = project_old_reddit_html_listing(
+        html_text=html,
+        envelope=_envelope(),
+        source_url="https://old.reddit.com/r/orca_test/",
+        timestamp="2026-06-08T00:00:00Z",
+    )
+
+    assert len(rows) == 2
+    by_subreddit = {row.subreddit: row for row in rows}
+    # The off-subreddit link target is captured and honestly tagged with its
+    # real home subreddit, which differs from the declared listing (orca_test).
+    assert set(by_subreddit) == {"orca_test", "marketing"}
+    assert by_subreddit["marketing"].candidate_thread_url == (
+        "https://old.reddit.com/r/marketing/comments/bbb222/2025_state_of_marketing_survey/"
+    )
+    assert by_subreddit["marketing"].subreddit != "orca_test"
+
+
 def test_projects_seed_subreddit_with_visible_counts_to_candidate_row() -> None:
     html = """
     <html>

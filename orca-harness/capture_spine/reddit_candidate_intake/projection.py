@@ -25,7 +25,15 @@ def project_old_reddit_html_listing(
     source_surface: CandidateSurface = CandidateSurface.SUBREDDIT_LISTING,
     method_category: str | None = None,
 ) -> list[CandidateThreadUrlRow]:
-    """Project old Reddit listing/search HTML into candidate thread rows only."""
+    """Project old Reddit listing/search HTML into candidate thread rows only.
+
+    Each row's ``subreddit`` is the thread's true home, parsed from the title
+    anchor's target URL. For a link post (a listing entry whose title links to
+    another thread), that target may live in a different subreddit than the
+    declared listing; such rows are still captured and tagged with their real
+    subreddit. This is honest provenance, not a ``no_subreddit_crawl`` breach:
+    only the one declared page is read, never another subreddit's listing.
+    """
     validate_run_envelope(envelope)
     source_subreddit = validate_old_reddit_html_listing_input_url(source_url)
     if source_surface not in envelope.candidate_surface_allowlist:
