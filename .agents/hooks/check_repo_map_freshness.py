@@ -244,6 +244,19 @@ def advisory_only(relposix: str) -> str | None:
     return None
 
 
+def commit_nudge(relposix: str) -> str | None:
+    """Per-edit reminder for the repo map itself: it is a high-contention
+    commit-once-whole shared file, so an edit should be committed immediately,
+    explicit-path, before other lanes' interleaving edits get swept into an
+    unrelated commit. Fires on ANY edit to the map (distinct from the
+    structural/freshness check, which fires on OTHER files adding structure)."""
+    if relposix != MAP:
+        return None
+    return ("you edited the repo map (a high-contention commit-once-whole shared "
+            "file). Commit it now, explicit-path, before other lanes' edits "
+            "interleave: `git commit --only -- " + MAP + "`.")
+
+
 # --- git plumbing -----------------------------------------------------------
 
 def git_lines(root: Path, args: list[str]) -> list[str]:
@@ -328,16 +341,22 @@ def run_hook(root: Path) -> int:
         return 0
     map_text = read_map_text(root)
     extra = map_excludes(map_text)
-    msg = structural_trigger(rel, map_text, extra) or advisory_only(rel)
-    if not msg:
-        return 0
-    note = (
-        "Repo-map freshness (advisory, not blocking): " + msg
-        + " Update " + MAP + " (or the relevant consolidation submap), or record "
-        "a `repo-map-ack: <reason>` in your commit message if it is deliberately "
-        "not a navigation target. Enforced at the write boundary per " + PRINCIPLE
-        + "; judgment-shaped staleness stays with " + DCP + "."
-    )
+    # Editing the map itself -> a per-edit commit reminder (its own, simpler note);
+    # structural/freshness triggers only fire on OTHER files, so these never overlap.
+    nudge = commit_nudge(rel)
+    if nudge:
+        note = "Repo-map commit reminder (advisory, not blocking): " + nudge
+    else:
+        msg = structural_trigger(rel, map_text, extra) or advisory_only(rel)
+        if not msg:
+            return 0
+        note = (
+            "Repo-map freshness (advisory, not blocking): " + msg
+            + " Update " + MAP + " (or the relevant consolidation submap), or record "
+            "a `repo-map-ack: <reason>` in your commit message if it is deliberately "
+            "not a navigation target. Enforced at the write boundary per " + PRINCIPLE
+            + "; judgment-shaped staleness stays with " + DCP + "."
+        )
     print(json.dumps({"hookSpecificOutput": {
         "hookEventName": "PostToolUse", "additionalContext": note}}))
     return 0
@@ -482,6 +501,12 @@ def selftest() -> int:
               "internal helper") and read_ack(None, "no ack here") is None
     print(("PASS" if ack_ok else "FAIL") + " ack-parse")
     ok = ok and ack_ok
+    # commit nudge: fires on the map itself, silent on any other path
+    nudge_ok = (commit_nudge(MAP) is not None
+                and commit_nudge("docs/decisions/x_v0.md") is None
+                and commit_nudge(SOURCE_OF_TRUTH) is None)
+    print(("PASS" if nudge_ok else "FAIL") + " commit-nudge")
+    ok = ok and nudge_ok
     print("SELFTEST", "OK" if ok else "FAILED")
     return 0 if ok else 1
 
