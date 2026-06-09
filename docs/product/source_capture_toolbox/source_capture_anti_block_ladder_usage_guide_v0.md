@@ -95,9 +95,13 @@ Three load-bearing rules about the ladder:
   code — run/build there so you never execute other-lane code; keep scratch
   packets in gitignored `_test_runs/`.
 - **Live fetch needs per-operation network approval** (sandbox escalation),
-  never standing. **Public-content-only.** **STOP** if the target is
-  entitlement / login / paywall-gated rather than bot-blocked (no-gate-bypass
-  hard line).
+  never standing. This ladder is the **anonymous** path — it sends no
+  credentials, so it reaches anonymously-served content. If a target needs
+  entitled access (login / paywall), this ladder is not the tool: **never
+  bypass an unentitled gate** (the hard line), and reach content we are
+  *entitled* to (our own free / paid account) via the separate
+  authenticated-capture path. A free signup nag over content already served to
+  an anonymous request is not a gate.
 - Record per URL × rung: HTTP status, `block_shell` verdict, discriminator
   result, and the lowest sufficient rung (or an honest still-blocked).
 

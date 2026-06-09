@@ -19,7 +19,7 @@ stale_if:
 - Principle: provide the cheap escalation path + less-walled-surface options used when the block-handling guard fires.
 - Wall-signature it targets: observed UA/header-keyed blocks where request identity changes the response (generic "Python-urllib" UA → 403; browser-like UA → HTTP 200, still uncertified). Also where a JS-heavy front surface has a server-rendered / less-walled sibling (old.reddit.com vs www.reddit.com; developers.openai.com vs openai.com).
 - Pairs with: rung-1 for UA/header walls; rung-3 for JS-rendered content; rung-0/1 against the less-walled sibling.
-- Applies / doesn't: applies when the wall is UA/header-keyed or a less-walled surface exists. Does NOT beat JS-challenge / Turnstile bot-detection (→ rung-3, then gated cloakbrowser/proxy), IP/rate blocks, or entitlement/login gates (hard stop, no bypass).
+- Applies / doesn't: applies when the wall is UA/header-keyed or a less-walled surface exists. Does NOT beat JS-challenge / Turnstile bot-detection (→ rung-3, then gated cloakbrowser/proxy), IP/rate blocks, or login/entitlement gates — never *bypass* an unentitled gate (hard line); entitled access via our own account is a separate authenticated path, not this pipe.
 - Honest limits: verified on one site at one moment (the OpenAI UA-gate); Cloudflare can still challenge on IP/rate/edge even with a browser UA; container-level retrieval ≠ content authenticity.
 - fires_via: node:source-fetch-block-handling (post-block routing) — proposed cell, pending the data-capture binding's home.
 
