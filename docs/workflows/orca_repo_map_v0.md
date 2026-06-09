@@ -234,6 +234,26 @@ Reinstall the PreToolUse guard in `.claude/settings.json`:
 
 Restart the Claude Code session after editing settings.
 
+**Repo-map commit reminder + Stop-warn backstop.** Two complementary,
+non-blocking advisories for the high-contention commit-once-whole shared files
+(the repo map, `.claude/settings.json`, `.agents/workflow-overlay/source-of-truth.md`):
+
+- **Per-edit (PostToolUse).** The repo-map-freshness hook
+  (`check_repo_map_freshness.py`) additionally emits a non-blocking advisory when
+  the edited file IS the repo map, reminding to commit it immediately,
+  explicit-path (`git commit --only -- docs/workflows/orca_repo_map_v0.md`),
+  before other lanes' edits interleave. Distinct from its structural/freshness
+  trigger (which fires on OTHER files adding navigation).
+- **Turn-end (Stop).** `check_shared_files_dirty.py` (a `Stop` hook, no matcher)
+  warns when any of the three shared files is left dirty at end of turn, listing
+  them plus the explicit-path commit. Exit 0, never blocks, never auto-commits
+  (unsafe on a shared branch), guards `stop_hook_active`, fails open. CLI:
+  `--check` (live tree), `--selftest` (logic). Reinstall = re-add the `Stop`
+  entry in `.claude/settings.json`, then restart the session.
+
+These put the "edit the repo map -> commit it immediately, explicit-path" norm on
+the substrate, not a heavy resident banner. Both are advisory; neither blocks.
+
 **Future agents: reuse this pattern.** To enforce the next load-bearing,
 deterministically-checkable rule, do not add another instruction -- add a
 sibling checker under `.agents/hooks/` that references the rule's authority
