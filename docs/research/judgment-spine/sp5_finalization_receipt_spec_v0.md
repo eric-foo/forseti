@@ -5,7 +5,7 @@ retrieval_header_version: 1
 artifact_role: Spec
 scope: >
   Behavior contract (what-must-be-true) for the SP-5 finalization of evidence
-  pre_decision_status: a separate FinalizationReceipt record keyed by evidence_id,
+  pre_decision_status: a separate FinalizationReceipt record indexed by evidence_id,
   finalized cross-family from the judge, provenance-bound, validated by a
   block-don't-repair consumer. Docs/spec only — not the build, not a harness
   finalizer, not a JSG-01 unfreeze. Product-learning grade (operator-recorded
@@ -30,7 +30,7 @@ stale_if:
 **Spec status:** SPEC_COMPLETE_READY_FOR_SCOPING. Docs/spec only; authorizes no build.
 
 Frozen input basis (settled; not re-opened here): A1 = Option 2 (separate record
-keyed by `evidence_id`); A3 = operator family-attestation; decision B (distinct,
+indexed by (not uniquely keyed by) `evidence_id`); A3 = operator family-attestation; decision B (distinct,
 cross-family, provenance-bound, out-of-band act; no same-family self-finalization);
 AR-01 option C (band-labeling operator finalizes for now, under guardrails);
 reuse the existing `PreDecisionStatus` enum; the harness role is a validate-only
@@ -51,6 +51,13 @@ gate (block-don't-repair).
   the final value. Finalization is performed out-of-band; the consumer validates only.
 - The receipt must carry provenance sufficient to audit *who* finalized, *when*,
   *over what*, and *that the cross-family constraint held*.
+- **Corrections are append-only.** A finalized value is never edited in place; a
+  correction is recorded as a **new receipt**, the prior is **retained for audit**,
+  and **exactly one receipt per `evidence_id` is the current finalization** (the
+  consumer reads the current; zero or more-than-one ⇒ block). The mechanism that
+  links a correction to its prior and designates the current receipt is **deferred
+  to scoping** — until then this current-selection check is `indeterminate_until_authored`
+  (like `binding_hash`).
 
 ## Non-goals
 
@@ -70,11 +77,11 @@ gate (block-don't-repair).
 
 ## Interfaces / contracts
 
-`FinalizationReceipt` — a **separate record keyed by `evidence_id`** (A1 = Option 2):
+`FinalizationReceipt` — a **separate record indexed by `evidence_id`** (A1 = Option 2; not a field on `EvidenceUnit`). Under append-only corrections **several receipts may exist for one `evidence_id`** over time (original + corrections), exactly one current — so `evidence_id` is the association/index, **not a uniqueness key**:
 
 | Field | Type | Contract |
 | --- | --- | --- |
-| `evidence_id` | str | key; the `EvidenceUnit` finalized |
+| `evidence_id` | str | association/index (**not** a uniqueness key); the `EvidenceUnit` finalized |
 | `finalized_over` | { `proposed_pre_decision_status`: PreDecisionStatus, `proposed_pre_decision_basis`: str } | the Packing-proposed inputs being finalized over |
 | `final_pre_decision_status` | PreDecisionStatus | Judgment-owned final value (reuse existing enum) |
 | `finalizer_identity` | str | decision-B provenance: who performed the act |
@@ -84,14 +91,14 @@ gate (block-don't-repair).
 | `binding_hash` | str | a **deterministic, reproducible** hash over a canonical serialization of (`evidence_id` + `finalized_over` proposed status & basis); exact algorithm + canonicalization fixed at scoping |
 
 Invariants:
-- exactly **one** finalization record per `evidence_id`;
+- receipts are **append-only / immutable** (a finalized value is never edited in place); a correction is a **new receipt**, the prior is **retained for audit**, and **exactly one receipt per `evidence_id` is current** (zero, or more than one, ⇒ the consumer blocks); the correction-linking, current-designation, and per-receipt-identity mechanism is **deferred to scoping** (like `binding_hash`), so the one-current check is `indeterminate_until_authored` until then;
 - both `judge_model_family` and `finalizer_model_family` are **present**, and `finalizer_model_family != judge_model_family`;
 - `final_pre_decision_status ∈ PreDecisionStatus`;
 - the validating consumer is **read-only** over the record (block-don't-repair).
 
 ## Acceptance criteria (testable in principle)
 
-- Valid receipt (present; keyed by the unit's `evidence_id`; final status ∈ enum;
+- Valid **current** receipt (present and current for the unit's `evidence_id`; final status ∈ enum;
   `judge ≠ finalizer` family; `binding_hash` matches; `finalized_at` present) ⇒
   the finalization-provenance subpredicate reads cleared (subject to the other
   JSG-01 subpredicates).
@@ -101,18 +108,24 @@ Invariants:
 - The `EvidenceUnit` record is unchanged by finalization; its proposed
   `pre_decision_status` / `pre_decision_basis` remain readable as proposed inputs.
 - No code path authors/defaults/repairs `final_pre_decision_status`.
+- The **current** receipt for an `evidence_id` clears (subject to the other JSG-01
+  subpredicates); a non-current/superseded receipt does not; **zero or more than one**
+  current receipt for an `evidence_id` ⇒ block. Prior receipts are retained (not
+  deleted/overwritten). Until the current-designation mechanism is fixed at scoping,
+  the current-selection check is `indeterminate_until_authored` (like `binding_hash`).
 
 ## Open questions (deferred to scoping)
 
 - The receipt's persistence/home and serialization (the spec requires only "a
-  separate record keyed by `evidence_id`").
+  separate record indexed by `evidence_id`").
 - The exact `binding_hash` algorithm + canonicalization. Until fixed, the
   `binding_hash`-match acceptance criterion is `indeterminate_until_authored` —
   the contract requires only that the hash be **deterministic and reproducible**
   from the bound inputs; the exact form is a scoping decision.
-- Whether **re-finalization** (correcting an erroneous receipt) is permitted, and
-  if so how it is represented (error / overwrite / versioned) under the
-  one-record-per-`evidence_id` invariant.
+- The correction mechanism for re-finalization (per-receipt identity, how a
+  correction links to its prior, how the current receipt is designated, and where
+  one-current is enforced) — the immutable + supersede + audit-retain **principle**
+  is decided; the mechanism is a scoping decision.
 - Whether a later refinement links the receipt to a *specific judge run id*
   rather than only `judge_model_family` — additive and non-breaking; the contract
   is family-level per A3 / decision B.
@@ -123,4 +136,3 @@ Invariants:
 - Authorizes no build, no model run, no live execution, no JSG-01 unfreeze.
 - A behavior contract; the owning sources (AR-01, core-spine boundary decision B,
   the PreDecisionStatus enum) win on any conflict.
-```
