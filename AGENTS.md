@@ -36,6 +36,8 @@ For substantial, ambiguous, cross-thread, delegated, doctrine-changing, review/p
 
 Author every prompt, handoff, wrapper, rerun, or patch prompt through the `workflow-prompt-orchestrator` skill — which owns prompt source-loading and the preflight/routing contract — and never hand-draft them; the owning rule is `.agents/workflow-overlay/prompt-orchestration.md`.
 
+When starting or "spinning up" a new unit of repo-changing work, decide and state the isolation before editing: use a worktree off `main` for writing work that runs alongside other active lanes or on a dirty base; a branch off `main` for solo, sequential writing; and neither for read-only work. Land changes via the per-lane PR flow in `docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md`.
+
 Do not treat `jb` rules, paths, handoffs, lifecycle mechanics, product policy, validation habits, or external workflow source as Orca authority. Explicitly invoked or resolver-loaded skills may provide task-local mechanics only.
 
 For doctrine-changing work, implementation boundaries, skill adoption, review lanes, validation, prompt orchestration, source loading, and delegated review-and-patch, load the owning overlay file instead of duplicating the rule here.
