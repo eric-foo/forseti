@@ -41,6 +41,8 @@ stale_if:
 | Apply the JSG-08 reveal/calibration receipt | `docs/product/judgment_spine_reveal_calibration_owner_contract_v0.md` | product |
 | Work from the harness spec (schemas, scorer, runner, probe) | `harness/v0_14/index.md` | research |
 | Understand no-tools isolation for JSG-04/05/06 | `harness/v0_14/contestant_no_tools_execution_contract_v0.md` | research |
+| Know what machinery is built vs a named gap (build-state) | `judgment_spine_machinery_build_state_gap_map_v0.md` | research |
+| Read the SP-5 finalization-receipt contract | `sp5_finalization_receipt_spec_v0.md` | research |
 
 ## Current Reality Snapshot (as of v0, refreshed 2026-06-09 — verify each against its owner)
 
@@ -50,8 +52,8 @@ stale_if:
 - **Current cases are pre-cutoff** and cap at qualitative / product-learning; none is a scoreable fixture. Which cases exist → manifest (the inventory owner); what each can claim → evidence ladder. (This map does not list cases — that would inherit the manifest's drift.)
 - **Judgment-quality lane — where we are / next** (orientation, refreshed 2026-06-09; verify against the lane records, which own the detail):
   - *Tier:* capped at **product-learning** (by-hand); "almost judgment-quality" is a proximity description, **not** a minted tier → `ideal_judgment_quality_run_and_current_position_v0.md`.
-  - *Settled this lane:* AR-01 staffing, option C → `docs/decisions/ar_01_pre_decision_status_finalizer_staffing_v0.md`; ground-truth-before-absence/build-state kernel rule → `docs/decisions/ground_truth_check_before_absence_or_build_state_claims_v0.md`; conductor hardened to Round-18 (F5 fix); gate predicates exercised mechanically checkable → `conductor_per_gate_predicate_exercise_canoo_walmart_v0.md`.
-  - *Next authorized (docs/spec only; build needs implementation authorization):* SP-5 A2 finalization-receipt field-set spec (A1 separate record keyed by `evidence_id`, A3 operator family-attestation — both settled); conductor JSG-01 wording correction + **cross-family re-pass** on corrected bytes (prior finding was major). The build-state gap map is **built** → `judgment_spine_machinery_build_state_gap_map_v0.md`.
+  - *Settled this lane:* AR-01 staffing, option C → `docs/decisions/ar_01_pre_decision_status_finalizer_staffing_v0.md`; ground-truth-before-absence/build-state kernel rule → `docs/decisions/ground_truth_check_before_absence_or_build_state_claims_v0.md`; conductor hardened to Round-18 (F5 fix); gate predicates exercised mechanically checkable → `conductor_per_gate_predicate_exercise_canoo_walmart_v0.md`; the SP-5 A2 finalization-receipt **spec** authored + reviewed (design done; build still gated) → `sp5_finalization_receipt_spec_v0.md`.
+  - *Next authorized (docs/spec only; build needs implementation authorization):* conductor JSG-01 wording correction + **cross-family re-pass** on corrected bytes (prior finding was major). Gated/deferred: the SP-5 finalizer **build** (needs implementation authorization); the authorized-live-execution + case-sourcing path (owner authorize-a-run decision).
   - *JQ gap (named build work, not yet authorized):* authorized live blind-judgment execution under isolation + SP-5 finalizer + JSG-01 `EvidenceUnit` binding + case-finder. (Scoring and the memorization-probe runner are **built** — see `judgment_spine_machinery_build_state_gap_map_v0.md`.)
 
 ## Areas (each → one owner; summaries are locational, never evaluative)
