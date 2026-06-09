@@ -27,6 +27,40 @@ authority_boundary: retrieval_only
 - If a required source is missing, report a visible failure and name the missing file or decision.
 - Source hierarchy is not a read-all list. Use `.agents/workflow-overlay/source-loading.md` and `docs/workflows/orca_repo_map_v0.md` to choose bounded source packs.
 
+## Checkpoint Artifacts
+
+Checkpoint artifacts capture transient lane state for recovery or transfer:
+precompact working packets (`workflow-precompact`, under `docs/hygiene/`), cold
+cross-lane handoff packets (`workflow-handoff`), and any equivalent lane-state
+resume/snapshot note. They are convenience copies, never an Orca source of truth.
+
+- Non-authoritative. A checkpoint's volatile claims — what is built, what is
+  authorized, current doctrine, or "where we are" — are orientation only.
+  Re-confirm any such claim against the canonical source (the owning
+  decision/contract/overlay), or against disk for build state, before relying on
+  it. The source hierarchy above governs; a checkpoint never overrides it, even
+  when more recent.
+- Single-consumption, burned after consumption. A checkpoint exists to be
+  consumed once by the resuming or receiving lane. After it is read, its recovery
+  checks run, and live state is re-established or superseded by a fresh
+  checkpoint, the consuming lane deletes it. Do not leave a spent checkpoint to be
+  re-trusted later as if current.
+- One live instance per lane. Refresh a checkpoint by overwriting it in place
+  under a stable name; do not accumulate `_v2`/`_v3` copies. A checkpoint whose
+  work has landed (committed/settled) is retired by deletion.
+- Point, do not copy. When a checkpoint must carry a volatile fact, record a
+  pointer plus a re-confirm instruction (for example "authorization -> <decision>;
+  build state -> glob disk"), not a copied snapshot that silently goes stale.
+
+This binds how Orca uses the `workflow-precompact` and `workflow-handoff` skills:
+the skills supply mechanics, this overlay owns the lifecycle. It does not apply to
+Orca source-of-truth artifacts (decisions, contracts, architecture records) or to
+pointer-indexes (the repo map, this overlay) — those are the canonical sources a
+checkpoint points to and must never be deleted as "consumed." It also does not
+apply to authored handoff *prompts* under `docs/prompts/handoffs/` (the
+Planning/Implementation handoff prompt role): those are docs-only prompt
+artifacts, not lane-state checkpoints, and keep their own role lifecycle.
+
 ## Doctrine Change Propagation Contract
 
 Doctrine-changing work is any source-changing edit that changes a durable rule
@@ -205,6 +239,7 @@ direction_change_propagation:
     - not implementation authorization
     - not source promotion
 ```
+
 ```yaml
 direction_change_propagation:
   doctrine_changed: >
@@ -542,6 +577,234 @@ direction_change_propagation:
     - not source promotion
     - not acceptance
     - not implementation authorization
+```
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Orca now treats checkpoint artifacts (precompact packets, cold cross-lane
+    workflow-handoff state packets, and equivalent lane-state snapshots) as
+    non-authoritative, single-consumption state: their volatile claims must be
+    re-confirmed against canonical source or disk, and the consuming lane burns
+    (deletes) the checkpoint after consumption, keeping one live instance per
+    lane. Authored handoff prompts under docs/prompts/handoffs/ are excluded.
+  trigger: workflow_authority
+  related_triggers:
+    - lifecycle_boundary
+  controlling_sources_updated:
+    - .agents/workflow-overlay/source-of-truth.md
+  downstream_surfaces_checked:
+    - AGENTS.md
+    - .agents/workflow-overlay/README.md
+    - .agents/workflow-overlay/artifact-roles.md
+    - .agents/workflow-overlay/source-loading.md
+    - .agents/workflow-overlay/prompt-orchestration.md
+    - .agents/workflow-overlay/skill-adoption.md
+  intentionally_not_updated:
+    - path: AGENTS.md
+      reason: >
+        The agent kernel already requires confirm-don't-trust (verify the durable
+        target with a fresh read before strict claims). This overlay specifies how
+        that applies to checkpoint artifacts; it does not change the kernel rule.
+    - path: .agents/workflow-overlay/README.md
+      reason: >
+        Checkpoint non-authority is a source-hierarchy/conflict clarification
+        inside source-of-truth's existing scope; no new overlay section owner was
+        created.
+    - path: .agents/workflow-overlay/artifact-roles.md
+      reason: >
+        The docs/hygiene/ Hygiene-queue role already carries a promotion-or-disposal
+        lifecycle that accommodates burning; the new rule adds the consumption
+        trigger without contradicting the role binding. The handoff-prompt and
+        inbox-scratch roles are explicitly outside the checkpoint rule.
+    - path: .agents/workflow-overlay/source-loading.md
+      reason: >
+        Source-loading already treats summaries, context packets, and prior-thread
+        notes as orientation, not authority; the checkpoint rule is consistent and
+        adds no read-pack change.
+    - path: .agents/workflow-overlay/prompt-orchestration.md
+      reason: >
+        Every handoff reference there is an authored handoff PROMPT (a prompt
+        role), not a workflow-handoff state packet; the new rule excludes them.
+        "Chat checkpoints" there means receipt-level chat facts, a different sense.
+    - path: .agents/workflow-overlay/skill-adoption.md
+      reason: >
+        Adoption status of workflow-precompact / workflow-handoff is unchanged; the
+        skills still supply mechanics and the overlay binds their use, not the
+        skill source. The file is also concurrently modified by another lane and
+        was left untouched.
+  stale_language_search: >
+    rg -ni "precompact|handoff|checkpoint|disposable|burn|single-consumption|re-confirm|retain" .agents/workflow-overlay
+  stale_language_search_result: >
+    Run 2026-06-06 after this patch. Every "handoff" hit is an authored
+    handoff-PROMPT reference (docs/prompts/handoffs/ Planning/Implementation
+    handoff role), which the new rule explicitly excludes; "chat checkpoints" in
+    prompt-orchestration.md is receipt-level chat facts, a different sense. The
+    only state-checkpoint doctrine hits are the new Checkpoint Artifacts section
+    and this receipt in source-of-truth.md. No live surface asserts a state
+    checkpoint is authoritative or must be retained after consumption.
+  non_claims:
+    - not validation
+    - not readiness
+    - not skill adoption
+    - not skill-source edit
+```
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Orca now binds the Enforcement Placement principle into the overlay and
+    enforces its first instance at a tool boundary: a load-bearing,
+    mechanically-checkable rule is enforced by a deterministic substrate
+    (write-time hook + portable checker with a --strict CI/commit mode) rather
+    than actor-carried instruction. The first instance is the retrieval-header
+    check (EP-06): a PostToolUse Write|Edit hook running
+    .agents/hooks/check_retrieval_header.py, which references (never restates)
+    .agents/workflow-overlay/retrieval-metadata.md. This builds the EP-06
+    substrate the prepare-only classification record proposed and left
+    owner-gated; the current-turn authorization satisfies that gate.
+  trigger: workflow_authority
+  related_triggers:
+    - validation_philosophy
+  controlling_sources_updated:
+    - .agents/workflow-overlay/validation-gates.md          # owns the thin Enforcement Placement principle
+    - .agents/workflow-overlay/decision-routing.md          # one-line cross-ref to the owner
+    - docs/workflows/orca_repo_map_v0.md                    # Active Hooks note (discoverability + reinstall)
+    - .agents/hooks/check_retrieval_header.py               # the substrate (new file; advisory + --strict)
+    - .claude/settings.json                                 # PostToolUse Write|Edit hook (new hooks block)
+    - docs/decisions/overlay_enforcement_placement_classification_v0.md  # build-status update (EP-06 built; stale_if tripped)
+    - .agents/workflow-overlay/source-of-truth.md           # this receipt
+  downstream_surfaces_checked:
+    - AGENTS.md
+    - .agents/workflow-overlay/README.md
+    - .agents/workflow-overlay/retrieval-metadata.md
+    - .agents/workflow-overlay/safety-rules.md
+    - docs/workflows/artifact_retrievability_guide.md
+  intentionally_not_updated:
+    - path: AGENTS.md
+      reason: >
+        Already routes doctrine and infrastructure work to the overlay and
+        decision-routing; the new principle lives in overlay files AGENTS.md
+        already points to. No root-instruction change.
+    - path: .agents/workflow-overlay/README.md
+      reason: >
+        The overlay index already registers validation-gates.md and
+        decision-routing.md as owners; the principle is a section within an
+        existing owner, not a new overlay file, so no index entry is added.
+    - path: .agents/workflow-overlay/retrieval-metadata.md
+      reason: >
+        It is the enforced rule and remains the single source for header scope,
+        exclusions, and fields; the checker references it and must not restate
+        it. Unchanged.
+    - path: .agents/workflow-overlay/safety-rules.md
+      reason: >
+        It already owns the bounded-implementation owner gate that the
+        current-turn authorization satisfies; the principle was homed in
+        validation-gates.md per owner decision. Separately, the new checker
+        surfaced that safety-rules.md itself lacks a retrieval header (a
+        pre-existing gap) — left to the owner; forward-only, not backfilled here.
+    - path: docs/workflows/artifact_retrievability_guide.md
+      reason: >
+        Report-only retrieval guidance subordinate to retrieval-metadata.md; the
+        boundary checker is a separate enforcement substrate that references the
+        contract, not this guide. Unchanged.
+  stale_language_search: >
+    rg -n "Enforcement Placement|enforcement-placement|check_retrieval_header|Active Hooks|hookSpecificOutput"
+    AGENTS.md .agents/workflow-overlay docs/workflows/orca_repo_map_v0.md .claude/settings.json
+    docs/decisions/overlay_enforcement_placement_classification_v0.md
+  stale_language_search_result: >
+    Executed 2026-06-09 after this patch. Hits are confined to the intended
+    surfaces: the validation-gates.md principle, the decision-routing.md
+    cross-ref, the repo-map Active Hooks note, the checker script, the
+    settings.json hook, the prior classification decision (EP-06/07 plus its
+    new build-update note), and this receipt. No surface carries a conflicting
+    instruction to enforce this rule only by actor-carried instruction, and no
+    checked surface restates the retrieval-header rule's body in place of
+    referencing retrieval-metadata.md.
+  non_claims:
+    - not validation
+    - not readiness
+    - not approval or acceptance
+    - not source-of-truth promotion
+    - not blanket implementation or runtime authorization beyond this bounded checker and hook
+    - the hook and checker enforce header shape, never the truth of any field
+```
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Orca adds a second Enforcement Placement substrate: a repo-map freshness
+    check (.agents/hooks/check_repo_map_freshness.py) that enforces the
+    mechanically-detectable subset of the repo map's own stale_if: block at the
+    write boundary (a PostToolUse Write|Edit hook) and as a portable --strict
+    commit/CI gate. It reads the repo map AS its spec and references the map's
+    stale_if as authority, never restating it; advisory and forward-only by
+    default. High-precision gate triggers are a new top-level area (stale_if #1)
+    and a new orca-harness runner/adapter (#2); source-of-truth edits (#5) are an
+    advisory nudge only; judgment-shaped staleness (#3 spine reorg, #4 routing
+    doctrine) stays with this Doctrine Change Propagation contract, which already
+    lists the repo map as a downstream surface. A legitimate non-map change is
+    acknowledged by a repo-map-ack: commit-message token or by the map's
+    "do not enumerate" exclusion list; updating the map or a consolidation submap
+    in the same change also satisfies the gate.
+  trigger: workflow_authority
+  related_triggers:
+    - validation_philosophy
+  controlling_sources_updated:
+    - .agents/hooks/check_repo_map_freshness.py            # the substrate (new file; advisory + --strict, fails open)
+    - .claude/settings.json                                # second PostToolUse Write|Edit hook
+    - docs/workflows/orca_repo_map_v0.md                   # Active Hooks note (discoverability, reinstall, ack, recheck recipe)
+    - .agents/workflow-overlay/source-of-truth.md          # this receipt
+  downstream_surfaces_checked:
+    - AGENTS.md
+    - .agents/workflow-overlay/README.md
+    - .agents/workflow-overlay/validation-gates.md
+    - .agents/workflow-overlay/retrieval-metadata.md
+    - docs/decisions/overlay_enforcement_placement_classification_v0.md
+    - docs/workflows/artifact_retrievability_guide.md
+  intentionally_not_updated:
+    - path: .agents/workflow-overlay/validation-gates.md
+      reason: >
+        The Enforcement Placement principle there already authorizes reusing the
+        write-time-hook + portable-checker pattern for "the next such rule" and
+        names the retrieval-header check (EP-06) as the active instance. This is
+        that reuse and changes no principle, so no edit. A later turn may add a
+        second named active instance there if desired.
+    - path: docs/decisions/overlay_enforcement_placement_classification_v0.md
+      reason: >
+        The per-rule EP classification record governs the previously enumerated
+        substrates (EP-06 header check; EP-01/03 permission floor). Recording
+        repo-map freshness as a new EP item is a classification-record edit owned
+        by that decision and was not in this bounded build's scope; left to the
+        owner.
+    - path: AGENTS.md
+      reason: >
+        Already routes doctrine and infrastructure work to the overlay and
+        decision-routing; the checker lives in surfaces AGENTS.md points to.
+    - path: .agents/workflow-overlay/retrieval-metadata.md
+      reason: >
+        Different rule (the retrieval-header contract). The freshness checker
+        enforces the repo map's stale_if, not the header contract; unchanged.
+  stale_language_search: >
+    rg -n "check_repo_map_freshness|repo-map freshness|repo-map-ack|Repo-map freshness check"
+    .claude/settings.json docs/workflows/orca_repo_map_v0.md
+    .agents/workflow-overlay/source-of-truth.md .agents/hooks/check_repo_map_freshness.py
+  stale_language_search_result: >
+    Executed 2026-06-09 after this patch. Hits are confined to the intended
+    surfaces: the checker script, the settings.json second PostToolUse hook, the
+    repo-map Active Hooks note, and this receipt. One pre-existing unrelated hit
+    remains at source-of-truth.md ("not repo-map freshness proof", a non-claim in
+    the earlier repo_map_decision preflight receipt); it does not concern this
+    checker. No surface instructs enforcing repo-map freshness only by
+    actor-carried instruction, and no checked surface restates the map's stale_if
+    body in place of referencing the map.
+  non_claims:
+    - not validation
+    - not readiness
+    - not approval or acceptance
+    - not source-of-truth promotion
+    - not a new EP classification-record entry (left to that owner)
+    - the hook and checker enforce map shape, never the truth or completeness of any route
 ```
 
 ## Known Source Documents
