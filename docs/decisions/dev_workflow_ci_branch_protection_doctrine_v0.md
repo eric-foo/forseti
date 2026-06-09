@@ -28,7 +28,9 @@ Accepted 2026-06-09 (owner sign-off, eric-foo); amended 2026-06-09 to record the
 - **Interim (owner-selected):** keep CI plus a *merge-when-green* flow under **structure B**
   (Decision item 7): agents prep green PRs but do **not** self-merge — a human/authorized action
   lands to `main`. This is now enforced by the enforcement lane's protected-action guard (it blocks
-  an agent's `gh pr merge` → `main`), not discipline alone. The server-side hard gate (items 2 and 4)
+  an agent's `gh pr merge` → `main`), not discipline alone — though **currently machine-local** (the guard is not yet tracked on `main`,
+  so a fresh clone is not yet protected; see Decision item 7's liveness boundary, with
+  durable-on-`main` the pending target). The server-side hard gate (items 2 and 4)
   is the deferred target end-state, unblocked only by a GitHub Pro/Team upgrade or making the repo
   public.
 
@@ -75,7 +77,16 @@ This record does not assert that any server-side gate is active. It is not.
    discipline alone: the enforcement lane's protected-action guard
    (`.agents/hooks/guard_protected_actions.py`) blocks an agent's `gh pr merge` → `main`, push to
    `main`, and force-push, while allowing a benign lane-branch push — so the human is the gate on the
-   one irreversible step. **This supersedes the earlier "a solo lane self-merges once CI is green"
+   one irreversible step. **Liveness boundary (interim):** this guard enforcement is currently
+   **machine-local** — the guard and its `.claude/settings.json` PreToolUse registration are **not yet
+   tracked on `main`**, so a fresh clone, another machine, or CI is **not yet protected**.
+   Durable-on-`main` is the **target**, pending the guard + its registration landing via the
+   coordinator's hooks-cluster PR; a human lands it (the guard correctly blocks an agent from merging
+   its own PR). When it lands, the git-lifecycle half (`gh pr merge` / push-to-`main` / force /
+   destructive) is portable and becomes durable on every clone, while external-path protection stays
+   per-machine — so the doctrine will then read: *structure-B merge protection is durable on `main`;
+   external-path protection is per-machine.* This answers the lane-health detector's machine-local flag
+   (the enforcement lane confirmed A-target + B-interim). **This supersedes the earlier "a solo lane self-merges once CI is green"
    wording**, written before the guard existed. The helper `.github/scripts/merge-when-green.ps1` is
    the **human's** green-check-then-merge tool (run it to verify green and land); agents must **not**
    use it to self-merge — it wraps `gh pr merge`, so an agent running it would bypass the guard, which
@@ -298,4 +309,55 @@ direction_change_propagation:
     - not validation, readiness, or acceptance of any lane's content
     - the detector is a nudge, not a gate, and not a guarantee of lane hygiene
     - not an edit to the enforcement lane's guard or its on-main durability
+```
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    States the structure-B guard's liveness boundary in Decision item 7 and the Status interim bullet:
+    guard enforcement is currently machine-local — the guard and its .claude/settings.json PreToolUse
+    registration are not tracked on origin/main, so a fresh clone, another machine, or CI is not yet
+    protected. Durable-on-main is the target, pending the guard + its registration landing via the
+    coordinator's hooks-cluster PR (a human lands it; the guard blocks an agent from merging its own
+    PR). On landing, EP-03 git-lifecycle merge protection becomes durable on every clone while EP-01
+    external-path protection stays per-machine. This is the enforcement lane's answer to the
+    lane-health detector's machine-local flag: A (durable-on-main) is the target, B (machine-local) is
+    the honest interim.
+  trigger: workflow_authority
+  related_triggers:
+    - lifecycle_boundary
+  controlling_sources_updated:
+    - docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md
+  downstream_surfaces_checked:
+    - .agents/hooks/guard_protected_actions.py
+    - .claude/settings.json
+    - docs/workflows/orca_repo_map_v0.md
+  intentionally_not_updated:
+    - path: .agents/hooks/guard_protected_actions.py
+      reason: >
+        Cross-lane, frozen, verified correct (selftest 32/32). Landing it on main is the coordinator's
+        hooks-cluster PR, not this doctrine edit; a human lands it because the guard blocks an agent
+        from merging its own PR.
+    - path: .claude/settings.json
+      reason: >
+        Coordinator-owned and frozen; origin/main carries no PreToolUse registration. Its landing
+        rides the same coordinated hooks-cluster PR.
+    - path: docs/workflows/orca_repo_map_v0.md
+      reason: >
+        Per the enforcement lane, its "Active Hooks" note has the same not-on-main incoherence for the
+        retrieval-header hook; that is the repo-map / hook owners' fix, flagged not edited here.
+  stale_language_search: >
+    rg -i -n "enforc" docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md
+    (run 2026-06-09 in the doctrine-lane-isolation worktree)
+  stale_language_search_result: >
+    Executed 2026-06-09. Both live "enforced" claims — the Status interim bullet and Decision item 7 —
+    now carry the machine-local liveness boundary. The remaining hits are the Enforcement-status
+    section, the server-enforced-gate non-claims, and the historical DCP receipts (which accurately
+    record prior changes); none present structure-B guard enforcement as durable on main while the
+    guard is untracked there.
+  non_claims:
+    - not validation, readiness, or acceptance
+    - structure-B guard enforcement is machine-local until the guard lands on main; this records the
+      boundary, it does not land the guard
+    - not an edit to the enforcement lane's guard, the coordinator's settings.json, or the repo map
 ```
