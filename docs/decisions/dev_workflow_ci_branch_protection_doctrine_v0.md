@@ -85,7 +85,12 @@ This record does not assert that any server-side gate is active. It is not.
    machine's layout and stays per-machine, so other clones adjust their own externals. So the doctrine
    now reads: *structure-B merge protection is durable on `main`; external-path protection is
    per-machine.* (This closes the lane-health detector's machine-local flag: A — durable-on-main —
-   landed.) **This supersedes the earlier "a solo lane self-merges once CI is green"
+   landed.) **Harness scope:** the protection above is **Claude-Code-scoped** — the guard is a
+   `.claude/settings.json` `PreToolUse` hook matching Claude Code tools, so "a fresh clone is
+   protected" holds for **Claude Code sessions**. A non-Claude-Code harness (e.g. Codex) on a fresh
+   clone is **not** guard-blocked until the same scripts are wired into its own config; the only
+   **harness-agnostic, unbypassable** gate remains the deferred server-side branch protection (items 2
+   and 4). **This supersedes the earlier "a solo lane self-merges once CI is green"
    wording**, written before the guard existed. The helper `.github/scripts/merge-when-green.ps1` is
    the **human's** green-check-then-merge tool (run it to verify green and land); agents must **not**
    use it to self-merge — it wraps `gh pr merge`, so an agent running it would bypass the guard, which
@@ -408,4 +413,36 @@ direction_change_propagation:
     - EP-01 external-path protection is per-machine, not durable-on-main
     - the other two cluster hooks (retrieval-header, repo-map-freshness) landed with the guard for
       registration coherence; their correctness is their owners' concern, not asserted here
+```
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Scopes the structure-B "durable on main" claim in Decision item 7 to its actual reach: the guard is
+    a Claude-Code-specific .claude/settings.json PreToolUse hook (matcher = Claude Code tool names), so
+    "a fresh clone is protected" holds for Claude Code sessions only. A non-Claude-Code harness (e.g.
+    Codex) is not guard-blocked until the same scripts are wired into its own config; the
+    harness-agnostic, unbypassable gate remains the deferred server-side branch protection. Corrects a
+    potential overstatement (the durable flip read as harness-agnostic).
+  trigger: workflow_authority
+  related_triggers:
+    - lifecycle_boundary
+  controlling_sources_updated:
+    - docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md
+  downstream_surfaces_checked:
+    - .claude/settings.json
+    - .agents/hooks/guard_protected_actions.py
+  intentionally_not_updated:
+    - path: .claude/settings.json
+      reason: >
+        The Claude-Code wiring is correct and on main; this records its harness scope, it does not
+        change the registration. Wiring other harnesses is per-harness work.
+  verification: >
+    origin/main:.claude/settings.json registers the guard under hooks.PreToolUse with matcher
+    "Bash|PowerShell|Write|Edit|MultiEdit|NotebookEdit" - Claude Code tool names - confirming the
+    enforcement is Claude-Code-scoped as wired.
+  non_claims:
+    - not validation or readiness
+    - does not claim any non-Claude-Code harness is protected; states the opposite until wired
+    - the harness-agnostic gate (server-side branch protection) remains deferred / 403-blocked
 ```
