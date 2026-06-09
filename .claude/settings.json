@@ -39,6 +39,17 @@
           }
         ]
       }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python .agents/hooks/check_shared_files_dirty.py --hook",
+            "timeout": 10
+          }
+        ]
+      }
     ]
   },
   "permissions": {
