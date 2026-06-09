@@ -14,7 +14,7 @@ use_when:
 authority_boundary: retrieval_only
 derived_from:
   - docs/prompts/templates/review/adversarial_artifact_review_v0.md@0cb80057795215b3311d00c3d0ad603fbef78fe92e5ae24d8042490b8b60c3fc
-  - .agents/workflow-overlay/review-lanes.md@b8569fb5edd62d5cc85e265658317e8e30fd8fd04ed244872912a5d7057f6884   # re-pinned 2026-06-09: reviewed_by/authored_by provenance bullets added to Review Doctrine; those fields are CA-recorded on ingest (not part of this reviewer method), so the distilled stance/checks are unchanged and this is pin-only
+  - .agents/workflow-overlay/review-lanes.md@7fd702f5bddd8d9e670f503dd7def6c1e0d8a04d9fce0103fa0336d6614f3c22   # re-pinned 2026-06-10: two-bar de-correlation (family=vendor) added to Review Doctrine -- delegate-selection + provenance machinery (de_correlation_bar / same_vendor_rationale), not the distilled reviewer stance/checks, so pin-only. (Prior 2026-06-09 re-pin: reviewed_by/authored_by provenance bullets, also pin-only.)
 method_version: v0
 stale_if:
   - Either derived_from source hash changes. Freshness gate = hash-compare these pins against the live files before assembling any package; on mismatch, re-derive this method rather than shipping it.
