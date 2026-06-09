@@ -1,17 +1,22 @@
 #!/usr/bin/env pwsh
 <#
 .SYNOPSIS
-    Merge a pull request only when its CI check is green.
+    Human tool: verify a PR's CI check is green, then land it to main.
 
 .DESCRIPTION
-    Backs the merge-when-green discipline recorded in
-    docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md (Decision item 7).
+    Backs the merge-when-green flow under STRUCTURE B in
+    docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md (Decision item 7):
+    agents PREPARE green PRs but do not self-merge; a HUMAN (or otherwise authorized
+    action) lands the PR to main, and only when green. THIS SCRIPT IS THAT HUMAN STEP
+    - run it yourself to green-check-and-merge.
 
-    This is a CONVENIENCE helper, not a server-side gate. Branch protection is
-    unavailable on this private free-plan repo, so nothing technically blocks a
-    non-conforming merge; this script just refuses to do one. It merges only when
-    the required check is present and passing AND no check is failing or pending.
-    Use -DryRun to evaluate read-only without merging.
+    Agents must NOT use this to self-merge. The enforcement lane's protected-action
+    guard blocks an agent's `gh pr merge` -> main; this helper merely wraps that merge,
+    so running it from an agent would bypass the guard - which structure B forbids.
+
+    Convenience, not a server-side gate (branch protection is 403-blocked on this
+    private/free repo). It merges only when the required check is present and passing
+    AND no check is failing or pending. Use -DryRun to evaluate read-only.
 
     Requires: GitHub CLI (gh) authenticated with repo access (recent enough to
     support `gh pr checks --json`).

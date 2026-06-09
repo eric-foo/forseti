@@ -25,9 +25,12 @@ Accepted 2026-06-09 (owner sign-off, eric-foo); amended 2026-06-09 to record the
   are **not available** on this repository — it is private on a free plan, and GitHub returns HTTP
   403 ("Upgrade to GitHub Pro or make this repository public") for both classic branch protection
   and rulesets. They are **not applied**.
-- **Interim (owner-selected):** keep CI plus a *merge-when-green* discipline (Decision item 7). The
-  hard gate (items 2 and 4) is the deferred target end-state, unblocked only by a GitHub Pro/Team
-  upgrade or making the repo public.
+- **Interim (owner-selected):** keep CI plus a *merge-when-green* flow under **structure B**
+  (Decision item 7): agents prep green PRs but do **not** self-merge — a human/authorized action
+  lands to `main`. This is now enforced by the enforcement lane's protected-action guard (it blocks
+  an agent's `gh pr merge` → `main`), not discipline alone. The server-side hard gate (items 2 and 4)
+  is the deferred target end-state, unblocked only by a GitHub Pro/Team upgrade or making the repo
+  public.
 
 This record does not assert that any server-side gate is active. It is not.
 
@@ -49,8 +52,9 @@ This record does not assert that any server-side gate is active. It is not.
 2. **Branch protection on `main`** (TARGET — deferred; blocked on this private+free repo, see
    Status). When enabled it requires:
    - the `orca-harness-tests` status check to pass;
-   - a pull request before merging (`required_approving_review_count: 0` — a solo lane self-merges
-     once CI is green);
+   - a pull request before merging (`required_approving_review_count: 0`; under this *server-gated
+     target* a solo lane could self-merge once green — but the current interim uses structure B
+     (item 7), where a human lands to `main`);
    - `strict: false` (a branch need not be up-to-date with `main` before merging);
    - `enforce_admins: false` (the owner retains an emergency override).
 3. **Per-lane PR flow.** Each lane branches off `main`, works in its own branch/worktree, and opens
@@ -64,14 +68,18 @@ This record does not assert that any server-side gate is active. It is not.
 6. **Rebase cadence.** Each lane keeps its branch reasonably current with `main` (rebase or merge
    `main`) to limit semantic drift before merging. When the hard gate is enabled it will use
    `strict: false`, so this stays a lane responsibility rather than a server requirement.
-7. **Interim enforcement (merge-when-green discipline).** Until a server-side gate is available, a
-   lane must confirm the `orca-harness-tests` check is green (for example, `gh pr checks <n>`)
-   before merging its PR, and must not merge a red or pending PR. This is a process commitment, not
-   a server-enforced gate — nothing technically blocks a non-conforming merge — so it holds only as
-   long as every lane follows it. An optional helper,
-   `.github/scripts/merge-when-green.ps1`, performs this check-then-merge (it refuses unless the
-   required check is green); using it is encouraged but not required, and it does not change this
-   discipline.
+7. **Interim enforcement — structure B (merge-when-green, human-landed).** Until a server-side gate
+   is available, agents **prepare** green PRs — push their own lane branch, open the PR, confirm the
+   `orca-harness-tests` check is green — but do **not** self-merge to `main`. A **human or otherwise
+   authorized action lands the PR to `main`**, and only when green. This is now **enforced**, not
+   discipline alone: the enforcement lane's protected-action guard
+   (`.agents/hooks/guard_protected_actions.py`) blocks an agent's `gh pr merge` → `main`, push to
+   `main`, and force-push, while allowing a benign lane-branch push — so the human is the gate on the
+   one irreversible step. **This supersedes the earlier "a solo lane self-merges once CI is green"
+   wording**, written before the guard existed. The helper `.github/scripts/merge-when-green.ps1` is
+   the **human's** green-check-then-merge tool (run it to verify green and land); agents must **not**
+   use it to self-merge — it wraps `gh pr merge`, so an agent running it would bypass the guard, which
+   structure B forbids.
 
 ## Why core-only CI (evidence)
 
@@ -180,4 +188,62 @@ direction_change_propagation:
     - not deployment
     - not blanket commit/push/PR authorization
     - the interim discipline is not a server-enforced gate
+```
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    The merge-when-green interim is amended to structure B: agents prepare green PRs but do not
+    self-merge to main; a human or otherwise authorized action lands to main, now enforced by the
+    enforcement lane's protected-action guard (it blocks an agent's gh pr merge -> main and allows a
+    benign lane-branch push). This supersedes the prior "a solo lane self-merges once CI is green"
+    wording, and re-scopes .github/scripts/merge-when-green.ps1 as the human's check-then-merge tool,
+    not an agent self-merge path.
+  trigger: workflow_authority
+  related_triggers:
+    - lifecycle_boundary
+  controlling_sources_updated:
+    - docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md
+    - .github/scripts/merge-when-green.ps1
+  downstream_surfaces_checked:
+    - .agents/hooks/guard_protected_actions.py
+    - docs/decisions/overlay_enforcement_placement_classification_v0.md
+    - .agents/workflow-overlay/safety-rules.md
+    - AGENTS.md
+    - .agents/workflow-overlay/source-of-truth.md
+  intentionally_not_updated:
+    - path: .agents/hooks/guard_protected_actions.py
+      reason: >
+        The guard is the enforcement lane's surface (frozen, cross-lane). That lane built the
+        structure-B re-target; this doctrine records and relies on it, and does not edit it.
+    - path: docs/decisions/overlay_enforcement_placement_classification_v0.md
+      reason: >
+        The enforcement lane owns and updates the EP classification record for the guard; this
+        doctrine references the guard's behavior, it does not edit that record.
+    - path: .agents/workflow-overlay/safety-rules.md
+      reason: >
+        Its "do not push/merge unless authorized" rule is unchanged; structure B is the concrete
+        enforcement of it for main, and the guard cites safety-rules as its authority.
+    - path: AGENTS.md
+      reason: >
+        The lane-isolation trigger (PR #9) and behavior kernel are unchanged; the who-merges change
+        lives in this decision record, not the kernel.
+    - path: .agents/workflow-overlay/source-of-truth.md
+      reason: >
+        Source hierarchy and the propagation contract are unchanged; this is a downstream decision
+        amendment (and the file is coordination-frozen this turn regardless).
+  stale_language_search: >
+    rg -i -n "self-merge|self-merges|lane .*merges|merge-when-green|gh pr merge"
+    docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md .github/scripts/merge-when-green.ps1
+    (run 2026-06-09 in the doctrine-structure-b worktree)
+  stale_language_search_result: >
+    Executed 2026-06-09. Remaining "self-merge" mentions are the now-explicitly-superseded item 2
+    server-gated-target note and this receipt; item 7 and the helper are re-scoped to human-landed.
+    No surface still asserts agents self-merge to main as the live interim.
+  non_claims:
+    - not validation
+    - not readiness
+    - not an edit to the enforcement lane's guard or its classification record
+    - not a claim that the guard is bug-free or that every merge passed CI
+    - structure B is a guard-enforced interim, not the deferred server-side gate
 ```
