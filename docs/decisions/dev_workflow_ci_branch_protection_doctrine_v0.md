@@ -80,6 +80,15 @@ This record does not assert that any server-side gate is active. It is not.
    the **human's** green-check-then-merge tool (run it to verify green and land); agents must **not**
    use it to self-merge — it wraps `gh pr merge`, so an agent running it would bypass the guard, which
    structure B forbids.
+8. **Lane-isolation integrity — early detection, not a hard gate.** Lane isolation (the AGENTS.md
+   rule, PR #9) is a *judgment* rule, so its integrity mechanism is **early detection**, not another
+   hard block. A read-only detector, `.github/scripts/lane-health-check.ps1` (PR #11), surfaces drift
+   before it compounds: (a) uncommitted pile-up on a shared base, (b) worktree sprawl, and (c)
+   machine-local enforcement — any `.agents/hooks/*.py` present in the working tree but not tracked on
+   `origin/main` (a hook that enforces only on this machine). A non-zero exit is a **nudge**
+   (operator- or periodic-run), never an unattended block — early detection chosen over a hard
+   SessionStart reminder, which was considered and not taken. The detector is read-only with respect
+   to the working tree, index, and local branches; `-Fetch` is its only network action.
 
 ## Why core-only CI (evidence)
 
@@ -246,4 +255,47 @@ direction_change_propagation:
     - not an edit to the enforcement lane's guard or its classification record
     - not a claim that the guard is bug-free or that every merge passed CI
     - structure B is a guard-enforced interim, not the deferred server-side gate
+```
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Adds the lane-isolation integrity mechanism (Decision item 8): lane isolation is a judgment rule,
+    so its integrity is maintained by early detection — a read-only detector,
+    .github/scripts/lane-health-check.ps1 (PR #11), that flags uncommitted pile-up on a shared base,
+    worktree sprawl, and machine-local enforcement (a .agents/hooks/*.py present locally but not
+    tracked on origin/main). Detection was chosen over a hard SessionStart reminder; the detector is a
+    nudge, not a gate.
+  trigger: workflow_authority
+  related_triggers:
+    - lifecycle_boundary
+  controlling_sources_updated:
+    - docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md
+  downstream_surfaces_checked:
+    - .github/scripts/lane-health-check.ps1
+    - AGENTS.md
+    - .agents/hooks/guard_protected_actions.py
+  intentionally_not_updated:
+    - path: AGENTS.md
+      reason: >
+        The lane-isolation rule (PR #9) is unchanged; item 8 records the integrity mechanism for that
+        rule, not a new or altered kernel rule.
+    - path: .agents/hooks/guard_protected_actions.py
+      reason: >
+        Cross-lane, frozen. The detector only observes whether enforcement hooks are tracked on main;
+        it does not edit the guard. The guard's own on-main durability is a separate flag already
+        raised to the enforcement lane.
+  stale_language_search: >
+    rg -i -n "lane.?isolation|SessionStart|machine-local|early.detection|health.?check"
+    docs AGENTS.md .agents   (run 2026-06-09 in the doctrine-lane-isolation worktree off main @ 583d4f0)
+  stale_language_search_result: >
+    Executed 2026-06-09. Additive — no surface asserts a lane-isolation integrity mechanism or a
+    SessionStart reminder that item 8 would contradict. The only doctrine hit is the prior receipt's
+    note that the lane-isolation trigger (PR #9) is unchanged, which item 8 is consistent with. Other
+    hits are unrelated (a jb skills inventory in orca_bootstrap_record.md, and the workflow-health-check
+    kernel skill in skill-adoption.md).
+  non_claims:
+    - not validation, readiness, or acceptance of any lane's content
+    - the detector is a nudge, not a gate, and not a guarantee of lane hygiene
+    - not an edit to the enforcement lane's guard or its on-main durability
 ```
