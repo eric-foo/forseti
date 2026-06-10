@@ -19,6 +19,7 @@ __pycache__/
 dist/
 build/
 *.egg-info/
+orca-harness/_scratch/
 orca-harness/_test_runs/
 orca-harness/_auth_state/
 orca-harness/_reddit_credentials/
