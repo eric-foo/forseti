@@ -17,7 +17,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python .agents/hooks/guard_protected_actions.py",
+            "command": "python \"$CLAUDE_PROJECT_DIR/.agents/hooks/guard_protected_actions.py\"",
             "timeout": 10
           }
         ]
@@ -29,12 +29,17 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python .agents/hooks/check_retrieval_header.py --hook",
+            "command": "python \"$CLAUDE_PROJECT_DIR/.agents/hooks/check_retrieval_header.py\" --hook",
             "timeout": 10
           },
           {
             "type": "command",
-            "command": "python .agents/hooks/check_repo_map_freshness.py --hook",
+            "command": "python \"$CLAUDE_PROJECT_DIR/.agents/hooks/check_repo_map_freshness.py\" --hook",
+            "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "python \"$CLAUDE_PROJECT_DIR/.agents/hooks/check_placement.py\" --hook",
             "timeout": 10
           }
         ]
@@ -45,7 +50,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python .agents/hooks/check_shared_files_dirty.py --hook",
+            "command": "python \"$CLAUDE_PROJECT_DIR/.agents/hooks/check_shared_files_dirty.py\" --hook",
             "timeout": 10
           }
         ]
