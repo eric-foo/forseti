@@ -95,6 +95,18 @@ def validate_live_access_envelope(envelope: Mapping[str, Any]) -> None:
     caps = envelope.get("caps")
     if not isinstance(caps, Mapping) or not caps:
         _fail("missing_caps", "caps are required (a live access run must declare its caps)")
+    # Each declared cap must be a non-negative integer under a non-empty name, and the
+    # total must be positive -- so a run's caps are a strict posture, not coerced from a
+    # string / bool / negative at runtime (cross-vendor 3c-2a review).
+    caps_total = 0
+    for cap_name, cap_value in caps.items():
+        if not isinstance(cap_name, str) or not cap_name.strip():
+            _fail("invalid_cap", "each cap name must be a non-empty string")
+        if type(cap_value) is not int or cap_value < 0:
+            _fail("invalid_cap", "each cap value must be a non-negative integer (no bools, strings, or negatives)")
+        caps_total += cap_value
+    if caps_total < 1:
+        _fail("invalid_cap", "the declared caps total must be positive")
     is_poc_mode = envelope.get("live_access_mode") in _POC_RISK_LIVE_ACCESS_MODE_VALUES
     poc_flag_set = envelope.get("optional_poc_risk_mode") is True
     if is_poc_mode and not poc_flag_set:
