@@ -15,8 +15,10 @@ import pytest
 import runners.run_source_capture_archive_packet as archive_runner
 from runners.run_source_capture_archive_packet import ARCHIVE_ORG_NON_CLAIMS
 from source_capture.adapters.archive_org import (
+    DEFAULT_CDX_LIMIT,
     ArchiveOrgCaptureFailure,
     ArchiveOrgCaptureSuccess,
+    build_cdx_availability_url,
     fetch_archive_org_capture,
 )
 
@@ -59,6 +61,25 @@ def archive_server():
             ["timestamp", "original", "statuscode", "mimetype", "digest"],
             ["20250101000000", "https://example.com/post-cutoff-only", "200", "text/html", "FUTURE"],
         ],
+        # Many-snapshot history spanning a cutoff. The fake CDX server returns the
+        # full list (it ignores the server-side to=/limit bound); client-side
+        # select_snapshot must still return the latest pre-cutoff row, proving the
+        # selection invariant holds when the bound only shrinks the response.
+        "https://example.com/many": [
+            ["timestamp", "original", "statuscode", "mimetype", "digest"],
+            ["20251201000000", "https://example.com/many", "200", "text/html", "M12"],
+            ["20250901000000", "https://example.com/many", "200", "text/html", "M11"],
+            ["20250601000000", "https://example.com/many", "200", "text/html", "M10"],
+            ["20240701000000", "https://example.com/many", "200", "text/html", "M09"],
+            ["20240515000000", "https://example.com/many", "200", "text/html", "M08"],
+            ["20240301000000", "https://example.com/many", "200", "text/html", "M07"],
+            ["20231101000000", "https://example.com/many", "200", "text/html", "M06"],
+            ["20230815000000", "https://example.com/many", "200", "text/html", "M05"],
+            ["20230101000000", "https://example.com/many", "200", "text/html", "M04"],
+            ["20220601000000", "https://example.com/many", "200", "text/html", "M03"],
+            ["20211231000000", "https://example.com/many", "200", "text/html", "M02"],
+            ["20200101000000", "https://example.com/many", "200", "text/html", "M01"],
+        ],
     }
 
     body_payloads = {
@@ -68,6 +89,7 @@ def archive_server():
         ("20240101000000", "https://example.com/multi"): (200, b"old archived body"),
         ("20250101000000", "https://example.com/multi"): (200, b"new archived body"),
         ("20240101000000", "https://example.com/dict-format"): (200, b"dict archived body"),
+        ("20240515000000", "https://example.com/many"): (200, b"<html>latest pre-cutoff body</html>"),
     }
 
     class Handler(BaseHTTPRequestHandler):
@@ -168,6 +190,54 @@ def test_fetch_archive_org_capture_selects_cutoff_snapshot(archive_server: dict[
     assert isinstance(result, ArchiveOrgCaptureSuccess)
     assert result.selected_snapshot is not None
     assert result.selected_snapshot.timestamp == "20240101000000"
+    assert result.body_result is not None
+
+
+def test_build_cdx_availability_url_bounds_query_with_cutoff_and_limit() -> None:
+    url = build_cdx_availability_url(
+        original_url="https://example.com/page",
+        cutoff_timestamp="20240601000000",
+        limit=-10,
+    )
+
+    query = parse_qs(urlparse(url).query)
+    assert query["to"] == ["20240601000000"]
+    assert query["limit"] == ["-10"]
+    assert query["collapse"] == ["digest"]
+    assert query["url"] == ["https://example.com/page"]
+
+
+def test_build_cdx_availability_url_omits_to_without_cutoff() -> None:
+    url = build_cdx_availability_url(
+        original_url="https://example.com/page",
+        limit=-10,
+    )
+
+    query = parse_qs(urlparse(url).query)
+    assert "to" not in query
+    assert query["limit"] == ["-10"]
+    assert query["collapse"] == ["digest"]
+
+
+def test_fetch_archive_org_capture_bounds_cdx_query_and_selects_latest_pre_cutoff(
+    archive_server: dict[str, str],
+) -> None:
+    result = fetch_archive_org_capture(
+        original_url="https://example.com/many",
+        cutoff_timestamp="20240601000000",
+        cdx_endpoint=archive_server["cdx_endpoint"],
+        snapshot_base_url=archive_server["snapshot_base_url"],
+        timeout_seconds=5,
+        max_bytes=1024,
+    )
+
+    assert isinstance(result, ArchiveOrgCaptureSuccess)
+    query = parse_qs(urlparse(result.availability_url).query)
+    assert query["to"] == ["20240601000000"]
+    assert query["limit"] == [str(DEFAULT_CDX_LIMIT)]
+    assert query["collapse"] == ["digest"]
+    assert result.selected_snapshot is not None
+    assert result.selected_snapshot.timestamp == "20240515000000"
     assert result.body_result is not None
 
 

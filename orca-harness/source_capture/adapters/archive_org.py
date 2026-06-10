@@ -18,6 +18,13 @@ from source_capture.adapters.direct_http import (
 DEFAULT_CDX_ENDPOINT = "https://web.archive.org/cdx/search/cdx"
 DEFAULT_SNAPSHOT_BASE_URL = "https://web.archive.org/web"
 
+# Most-recent N rows the CDX availability query returns (negative => newest |N|).
+# Bounds the response so long-lived URLs no longer return full history and time
+# out. Snapshot selection needs only the single latest pre-cutoff row; -10 keeps
+# a small margin for the deferred redirect-resolution case without materially
+# growing the response.
+DEFAULT_CDX_LIMIT = -10
+
 
 @dataclass(frozen=True)
 class ArchiveOrgSnapshot:
@@ -58,6 +65,7 @@ def fetch_archive_org_capture(
     snapshot_base_url: str = DEFAULT_SNAPSHOT_BASE_URL,
     timeout_seconds: float = DEFAULT_TIMEOUT_SECONDS,
     max_bytes: int = DEFAULT_MAX_BYTES,
+    limit: int = DEFAULT_CDX_LIMIT,
 ) -> ArchiveOrgCaptureResult:
     normalized_original_url = _validate_original_url(original_url)
     if cutoff_timestamp is not None:
@@ -66,6 +74,8 @@ def fetch_archive_org_capture(
     availability_url = build_cdx_availability_url(
         original_url=normalized_original_url,
         cdx_endpoint=cdx_endpoint,
+        cutoff_timestamp=cutoff_timestamp,
+        limit=limit,
     )
     availability_result = fetch_direct_http_capture(
         url=availability_url,
@@ -111,7 +121,13 @@ def fetch_archive_org_capture(
     )
 
 
-def build_cdx_availability_url(*, original_url: str, cdx_endpoint: str = DEFAULT_CDX_ENDPOINT) -> str:
+def build_cdx_availability_url(
+    *,
+    original_url: str,
+    cdx_endpoint: str = DEFAULT_CDX_ENDPOINT,
+    cutoff_timestamp: str | None = None,
+    limit: int | None = None,
+) -> str:
     parsed_endpoint = urlparse(cdx_endpoint)
     if parsed_endpoint.scheme not in {"http", "https"} or not parsed_endpoint.netloc:
         raise ValueError("Archive.org CDX endpoint requires an absolute http:// or https:// URL")
@@ -125,6 +141,12 @@ def build_cdx_availability_url(*, original_url: str, cdx_endpoint: str = DEFAULT
             "collapse": "digest",
         }
     )
+    # Server-side bound so long-lived URLs return a small window instead of full
+    # history; client-side select_snapshot stays authoritative over the result.
+    if cutoff_timestamp is not None:
+        query["to"] = cutoff_timestamp
+    if limit is not None:
+        query["limit"] = str(limit)
     return urlunparse(parsed_endpoint._replace(query=urlencode(query)))
 
 
