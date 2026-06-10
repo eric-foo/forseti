@@ -21,6 +21,7 @@ build/
 orca-harness/_test_runs/
 orca-harness/_auth_state/
 orca-harness/_reddit_credentials/
+orca-harness/_proxy_profiles/
 orca-harness/pytest_tmp/
 orca-harness/pytest_tmp_*/
 orca-harness/pytest_*_tmp/
