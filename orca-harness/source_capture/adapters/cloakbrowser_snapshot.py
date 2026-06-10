@@ -15,6 +15,19 @@ DEFAULT_VIEWPORT_WIDTH = 1280
 DEFAULT_VIEWPORT_HEIGHT = 720
 DEFAULT_MAX_ARTIFACT_BYTES = 5_000_000
 ALLOWED_WAIT_UNTIL = {"commit", "domcontentloaded", "load", "networkidle"}
+# Pause after each scroll-to-bottom pass so lazy-loaded ("load more" / infinite
+# scroll) content has time to fetch and render before the next pass or capture.
+_SCROLL_PASS_SETTLE_MS = 2000
+# Max time to wait for an operator-supplied "load more" control to become
+# clickable before giving up that pass (treated as end-of-list, not an error).
+_LOAD_MORE_CLICK_TIMEOUT_MS = 5000
+# Pause after each progressive scroll step so an IntersectionObserver-gated
+# section (e.g. a lazy-rendered reviews widget) can enter the viewport, fetch,
+# and render before the next step or the capture.
+_PROGRESSIVE_SCROLL_PAUSE_MS = 1500
+# Safety cap on progressive scroll steps so an infinite-scroll page (whose
+# scrollHeight keeps growing) cannot loop unbounded.
+_MAX_PROGRESSIVE_SCROLL_STEPS = 40
 CLOAKBROWSER_METHOD_CATEGORY = "anti_blocking_browser"
 CLOAKBROWSER_BACKEND = "playwright"
 HEAVY_RESOURCE_TYPES = frozenset({"font", "image", "media"})
@@ -97,6 +110,10 @@ class CloakBrowserSnapshotEngine(Protocol):
         proxy_profile: ProxyProfile | None,
         block_heavy_assets: bool,
         settle_seconds: float,
+        scroll_passes: int,
+        load_more_selector: str | None,
+        load_more_clicks: int,
+        scroll_step_px: int,
     ) -> CloakBrowserSnapshotEngineResult:
         ...
 
@@ -112,6 +129,10 @@ def fetch_cloakbrowser_snapshot_capture(
     proxy_profile: ProxyProfile | None = None,
     block_heavy_assets: bool = False,
     settle_seconds: float = 0.0,
+    scroll_passes: int = 0,
+    load_more_selector: str | None = None,
+    load_more_clicks: int = 0,
+    scroll_step_px: int = 0,
     engine: CloakBrowserSnapshotEngine | None = None,
 ) -> CloakBrowserSnapshotResult:
     normalized_url = _validate_http_url(url)
@@ -121,6 +142,14 @@ def fetch_cloakbrowser_snapshot_capture(
     _validate_positive_int("max_artifact_bytes", max_artifact_bytes)
     if settle_seconds < 0:
         raise ValueError("settle_seconds must be zero or greater")
+    if scroll_passes < 0:
+        raise ValueError("scroll_passes must be zero or greater")
+    if scroll_step_px < 0:
+        raise ValueError("scroll_step_px must be zero or greater")
+    if load_more_clicks < 0:
+        raise ValueError("load_more_clicks must be zero or greater")
+    if load_more_clicks > 0 and not load_more_selector:
+        raise ValueError("load_more_selector is required when load_more_clicks is greater than zero")
     if wait_until not in ALLOWED_WAIT_UNTIL:
         allowed = ", ".join(sorted(ALLOWED_WAIT_UNTIL))
         raise ValueError(f"wait_until must be one of: {allowed}")
@@ -136,6 +165,10 @@ def fetch_cloakbrowser_snapshot_capture(
             proxy_profile=proxy_profile,
             block_heavy_assets=block_heavy_assets,
             settle_seconds=settle_seconds,
+            scroll_passes=scroll_passes,
+            load_more_selector=load_more_selector,
+            load_more_clicks=load_more_clicks,
+            scroll_step_px=scroll_step_px,
         )
     except _CloakBrowserSnapshotDependencyUnavailable as exc:
         return CloakBrowserSnapshotFailure(
@@ -225,6 +258,10 @@ def fetch_cloakbrowser_snapshot_capture(
         "timeout_seconds": timeout_seconds,
         "wait_until": wait_until,
         "settle_seconds": settle_seconds,
+        "scroll_passes": scroll_passes,
+        "scroll_step_px": scroll_step_px,
+        "load_more_selector": load_more_selector,
+        "load_more_clicks": load_more_clicks,
         "viewport_width": viewport_width,
         "viewport_height": viewport_height,
         "screenshot_mode": "viewport",
@@ -277,6 +314,10 @@ class _CloakBrowserSnapshotEngine:
         proxy_profile: ProxyProfile | None,
         block_heavy_assets: bool,
         settle_seconds: float = 0.0,
+        scroll_passes: int = 0,
+        load_more_selector: str | None = None,
+        load_more_clicks: int = 0,
+        scroll_step_px: int = 0,
     ) -> CloakBrowserSnapshotEngineResult:
         try:
             cloakbrowser = import_module("cloakbrowser")
@@ -335,6 +376,27 @@ class _CloakBrowserSnapshotEngine:
                 page.goto(url, wait_until=wait_until, timeout=timeout_ms)
                 if settle_seconds > 0:
                     page.wait_for_timeout(settle_seconds * 1000)
+                if scroll_step_px > 0:
+                    position = 0
+                    for _ in range(_MAX_PROGRESSIVE_SCROLL_STEPS):
+                        height = page.evaluate("() => document.body.scrollHeight")
+                        if position >= height:
+                            break
+                        position += scroll_step_px
+                        page.evaluate("(y) => window.scrollTo(0, y)", position)
+                        page.wait_for_timeout(_PROGRESSIVE_SCROLL_PAUSE_MS)
+                for _ in range(scroll_passes):
+                    page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
+                    page.wait_for_timeout(_SCROLL_PASS_SETTLE_MS)
+                if load_more_selector and load_more_clicks > 0:
+                    for _ in range(load_more_clicks):
+                        if page.locator(load_more_selector).count() == 0:
+                            break
+                        try:
+                            page.locator(load_more_selector).first.click(timeout=_LOAD_MORE_CLICK_TIMEOUT_MS)
+                        except Exception:
+                            break
+                        page.wait_for_timeout(_SCROLL_PASS_SETTLE_MS)
                 rendered_dom = page.content()
                 warning_notes: list[str] = []
                 try:

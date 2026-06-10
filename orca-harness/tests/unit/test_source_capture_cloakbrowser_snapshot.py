@@ -115,6 +115,10 @@ def test_fetch_cloakbrowser_snapshot_capture_with_fake_engine_records_method_pro
         "proxy_profile": None,
         "block_heavy_assets": False,
         "settle_seconds": 0.0,
+        "scroll_passes": 0,
+        "load_more_selector": None,
+        "load_more_clicks": 0,
+        "scroll_step_px": 0,
     }
 
 
@@ -626,6 +630,700 @@ def test_cloakbrowser_runner_threads_settle_seconds_to_capture(monkeypatch: pyte
 
     assert exit_code == 3
     assert seen["settle_seconds"] == 8
+
+
+def test_fetch_cloakbrowser_snapshot_capture_passes_scroll_passes_to_engine_and_metadata() -> None:
+    engine = _FakeCloakBrowserEngine(
+        _FakeEngineResult(
+            final_url="https://example.com/reviews",
+            title="Reviews",
+            rendered_dom="<html><body>reviews</body></html>",
+            visible_text="reviews",
+            screenshot_png=b"\x89PNG\r\n\x1a\ncloakbrowser",
+        )
+    )
+
+    result = fetch_cloakbrowser_snapshot_capture(
+        url="https://example.com/reviews",
+        scroll_passes=3,
+        engine=engine,
+    )
+
+    assert isinstance(result, CloakBrowserSnapshotSuccess)
+    assert engine.capture_kwargs is not None
+    assert engine.capture_kwargs["scroll_passes"] == 3
+    assert result.metadata["scroll_passes"] == 3
+
+
+def test_fetch_cloakbrowser_snapshot_capture_rejects_negative_scroll_passes() -> None:
+    with pytest.raises(ValueError, match="scroll_passes"):
+        fetch_cloakbrowser_snapshot_capture(
+            url="https://example.com/reviews",
+            scroll_passes=-1,
+            engine=_FakeCloakBrowserEngine(
+                _FakeEngineResult(
+                    final_url="https://example.com/reviews",
+                    title=None,
+                    rendered_dom="<html><body>ok</body></html>",
+                    visible_text="ok",
+                    screenshot_png=b"\x89PNG\r\n\x1a\ncloakbrowser",
+                )
+            ),
+        )
+
+
+def test_live_engine_scrolls_after_settle_when_scroll_passes_set(monkeypatch: pytest.MonkeyPatch) -> None:
+    calls: list[str] = []
+    scrolls: list[str] = []
+
+    class FakeLocator:
+        def inner_text(self, *, timeout: float) -> str:
+            return "reviews"
+
+    class FakePage:
+        url = "https://example.com/reviews"
+
+        def goto(self, url: str, **kwargs: object) -> None:
+            calls.append("goto")
+
+        def wait_for_timeout(self, ms: float) -> None:
+            calls.append("wait")
+
+        def evaluate(self, script: str) -> None:
+            scrolls.append(script)
+            calls.append("scroll")
+
+        def content(self) -> str:
+            calls.append("content")
+            return "<html><body>reviews</body></html>"
+
+        def locator(self, selector: str) -> FakeLocator:
+            return FakeLocator()
+
+        def screenshot(self, **kwargs: object) -> bytes:
+            return b"\x89PNG\r\n\x1a\ncloakbrowser"
+
+        def title(self) -> str:
+            return "Reviews"
+
+    class FakeContext:
+        def new_page(self) -> FakePage:
+            return FakePage()
+
+        def close(self) -> None:
+            return None
+
+    class FakeBrowser:
+        def new_context(self, **kwargs: object) -> FakeContext:
+            return FakeContext()
+
+        def close(self) -> None:
+            return None
+
+    class FakeCloakBrowserModule:
+        def launch(self, **kwargs: object) -> FakeBrowser:
+            return FakeBrowser()
+
+    def fake_import_module(name: str) -> FakeCloakBrowserModule:
+        assert name == "cloakbrowser"
+        return FakeCloakBrowserModule()
+
+    monkeypatch.setattr(cloakbrowser_snapshot_module, "import_module", fake_import_module)
+
+    _CloakBrowserSnapshotEngine().capture(
+        url="https://example.com/reviews",
+        timeout_seconds=5,
+        wait_until="load",
+        viewport_width=1024,
+        viewport_height=768,
+        proxy_profile=None,
+        block_heavy_assets=False,
+        settle_seconds=0.0,
+        scroll_passes=3,
+    )
+
+    # Three scroll-to-bottom passes, all between goto and the content capture.
+    assert len(scrolls) == 3
+    assert all("scrollto" in s.lower() for s in scrolls)
+    assert calls.count("scroll") == 3
+    assert calls.index("goto") < calls.index("scroll") < calls.index("content")
+
+
+def test_cloakbrowser_runner_threads_scroll_passes_to_capture(monkeypatch: pytest.MonkeyPatch) -> None:
+    seen: dict[str, object] = {}
+
+    def fake_capture(**kwargs: object) -> CloakBrowserSnapshotFailure:
+        seen.update(kwargs)
+        return CloakBrowserSnapshotFailure(
+            requested_url="https://example.com/reviews",
+            failure_kind=CloakBrowserSnapshotFailureKind.CAPTURE_FAILED,
+            message="stub failure after recording kwargs",
+        )
+
+    monkeypatch.setattr(cloakbrowser_runner, "fetch_cloakbrowser_snapshot_capture", fake_capture)
+
+    exit_code, _ = cloakbrowser_runner.run_source_capture_cloakbrowser_packet(
+        url="https://example.com/reviews",
+        source_family="web_page",
+        source_surface="cloakbrowser_snapshot",
+        decision_question="does scroll thread through?",
+        output_directory=Path("unused_no_packet_on_failure"),
+        capture_context="test scroll threading",
+        operator_category="cloakbrowser_snapshot_cli_operator",
+        capture_mode=CaptureModeCategory.MULTIMODAL,
+        session_id=None,
+        proxy_profile=None,
+        actor_audience_context=None,
+        visible_mode_changes=[],
+        source_publication_or_event=None,
+        source_edit_or_version=None,
+        cutoff_posture=None,
+        recapture_time=None,
+        re_capture_relationship=None,
+        warnings=[],
+        limitations=[],
+        timeout_seconds=20,
+        wait_until="load",
+        viewport_width=1280,
+        viewport_height=720,
+        max_artifact_bytes=50_000,
+        block_heavy_assets=False,
+        scroll_passes=4,
+    )
+
+    assert exit_code == 3
+    assert seen["scroll_passes"] == 4
+
+
+def test_fetch_cloakbrowser_snapshot_capture_passes_load_more_to_engine_and_metadata() -> None:
+    engine = _FakeCloakBrowserEngine(
+        _FakeEngineResult(
+            final_url="https://example.com/reviews",
+            title="Reviews",
+            rendered_dom="<html><body>reviews</body></html>",
+            visible_text="reviews",
+            screenshot_png=b"\x89PNG\r\n\x1a\ncloakbrowser",
+        )
+    )
+
+    result = fetch_cloakbrowser_snapshot_capture(
+        url="https://example.com/reviews",
+        load_more_selector="text=Show more",
+        load_more_clicks=4,
+        engine=engine,
+    )
+
+    assert isinstance(result, CloakBrowserSnapshotSuccess)
+    assert engine.capture_kwargs is not None
+    assert engine.capture_kwargs["load_more_selector"] == "text=Show more"
+    assert engine.capture_kwargs["load_more_clicks"] == 4
+    assert result.metadata["load_more_selector"] == "text=Show more"
+    assert result.metadata["load_more_clicks"] == 4
+
+
+def test_fetch_cloakbrowser_snapshot_capture_requires_selector_for_load_more_clicks() -> None:
+    with pytest.raises(ValueError, match="load_more_selector is required"):
+        fetch_cloakbrowser_snapshot_capture(
+            url="https://example.com/reviews",
+            load_more_clicks=3,
+            engine=_FakeCloakBrowserEngine(
+                _FakeEngineResult(
+                    final_url="https://example.com/reviews",
+                    title=None,
+                    rendered_dom="<html><body>ok</body></html>",
+                    visible_text="ok",
+                    screenshot_png=b"\x89PNG\r\n\x1a\ncloakbrowser",
+                )
+            ),
+        )
+
+
+def test_fetch_cloakbrowser_snapshot_capture_rejects_negative_load_more_clicks() -> None:
+    with pytest.raises(ValueError, match="load_more_clicks must be zero or greater"):
+        fetch_cloakbrowser_snapshot_capture(
+            url="https://example.com/reviews",
+            load_more_selector="text=Show more",
+            load_more_clicks=-1,
+            engine=_FakeCloakBrowserEngine(
+                _FakeEngineResult(
+                    final_url="https://example.com/reviews",
+                    title=None,
+                    rendered_dom="<html><body>ok</body></html>",
+                    visible_text="ok",
+                    screenshot_png=b"\x89PNG\r\n\x1a\ncloakbrowser",
+                )
+            ),
+        )
+
+
+def test_live_engine_clicks_load_more_until_selector_gone(monkeypatch: pytest.MonkeyPatch) -> None:
+    calls: list[str] = []
+
+    class FakeBodyLocator:
+        def inner_text(self, *, timeout: float) -> str:
+            return "reviews"
+
+    class FakeLoadMoreLocator:
+        # Present for the first 2 clicks, then gone (count -> 0): graceful end.
+        def __init__(self, state: dict) -> None:
+            self._state = state
+
+        def count(self) -> int:
+            return 1 if self._state["clicks"] < 2 else 0
+
+        @property
+        def first(self) -> "FakeLoadMoreLocator":
+            return self
+
+        def click(self, *, timeout: float) -> None:
+            self._state["clicks"] += 1
+            calls.append("click")
+
+    class FakePage:
+        url = "https://example.com/reviews"
+
+        def __init__(self) -> None:
+            self._state = {"clicks": 0}
+
+        def goto(self, url: str, **kwargs: object) -> None:
+            calls.append("goto")
+
+        def wait_for_timeout(self, ms: float) -> None:
+            calls.append("wait")
+
+        def content(self) -> str:
+            calls.append("content")
+            return "<html><body>reviews</body></html>"
+
+        def locator(self, selector: str):
+            if selector == "body":
+                return FakeBodyLocator()
+            return FakeLoadMoreLocator(self._state)
+
+        def screenshot(self, **kwargs: object) -> bytes:
+            return b"\x89PNG\r\n\x1a\ncloakbrowser"
+
+        def title(self) -> str:
+            return "Reviews"
+
+    page = FakePage()
+
+    class FakeContext:
+        def new_page(self) -> FakePage:
+            return page
+
+        def close(self) -> None:
+            return None
+
+    class FakeBrowser:
+        def new_context(self, **kwargs: object) -> FakeContext:
+            return FakeContext()
+
+        def close(self) -> None:
+            return None
+
+    class FakeCloakBrowserModule:
+        def launch(self, **kwargs: object) -> FakeBrowser:
+            return FakeBrowser()
+
+    def fake_import_module(name: str) -> FakeCloakBrowserModule:
+        assert name == "cloakbrowser"
+        return FakeCloakBrowserModule()
+
+    monkeypatch.setattr(cloakbrowser_snapshot_module, "import_module", fake_import_module)
+
+    _CloakBrowserSnapshotEngine().capture(
+        url="https://example.com/reviews",
+        timeout_seconds=5,
+        wait_until="load",
+        viewport_width=1024,
+        viewport_height=768,
+        proxy_profile=None,
+        block_heavy_assets=False,
+        settle_seconds=0.0,
+        scroll_passes=0,
+        load_more_selector="text=Show more",
+        load_more_clicks=5,
+    )
+
+    # 5 requested, but the control vanishes after 2 -> stops at 2, all before content.
+    assert calls.count("click") == 2
+    assert calls.index("goto") < calls.index("click") < calls.index("content")
+
+
+def test_cloakbrowser_runner_threads_load_more_to_capture(monkeypatch: pytest.MonkeyPatch) -> None:
+    seen: dict[str, object] = {}
+
+    def fake_capture(**kwargs: object) -> CloakBrowserSnapshotFailure:
+        seen.update(kwargs)
+        return CloakBrowserSnapshotFailure(
+            requested_url="https://example.com/reviews",
+            failure_kind=CloakBrowserSnapshotFailureKind.CAPTURE_FAILED,
+            message="stub failure after recording kwargs",
+        )
+
+    monkeypatch.setattr(cloakbrowser_runner, "fetch_cloakbrowser_snapshot_capture", fake_capture)
+
+    exit_code, _ = cloakbrowser_runner.run_source_capture_cloakbrowser_packet(
+        url="https://example.com/reviews",
+        source_family="web_page",
+        source_surface="cloakbrowser_snapshot",
+        decision_question="does load-more thread through?",
+        output_directory=Path("unused_no_packet_on_failure"),
+        capture_context="test load-more threading",
+        operator_category="cloakbrowser_snapshot_cli_operator",
+        capture_mode=CaptureModeCategory.MULTIMODAL,
+        session_id=None,
+        proxy_profile=None,
+        actor_audience_context=None,
+        visible_mode_changes=[],
+        source_publication_or_event=None,
+        source_edit_or_version=None,
+        cutoff_posture=None,
+        recapture_time=None,
+        re_capture_relationship=None,
+        warnings=[],
+        limitations=[],
+        timeout_seconds=20,
+        wait_until="load",
+        viewport_width=1280,
+        viewport_height=720,
+        max_artifact_bytes=50_000,
+        block_heavy_assets=False,
+        load_more_selector="text=Show more",
+        load_more_clicks=3,
+    )
+
+    assert exit_code == 3
+    assert seen["load_more_selector"] == "text=Show more"
+    assert seen["load_more_clicks"] == 3
+
+
+def test_fetch_cloakbrowser_snapshot_capture_passes_scroll_step_px_to_engine_and_metadata() -> None:
+    engine = _FakeCloakBrowserEngine(
+        _FakeEngineResult(
+            final_url="https://example.com/reviews",
+            title="Reviews",
+            rendered_dom="<html><body>reviews</body></html>",
+            visible_text="reviews",
+            screenshot_png=b"\x89PNG\r\n\x1a\ncloakbrowser",
+        )
+    )
+
+    result = fetch_cloakbrowser_snapshot_capture(
+        url="https://example.com/reviews",
+        scroll_step_px=700,
+        engine=engine,
+    )
+
+    assert isinstance(result, CloakBrowserSnapshotSuccess)
+    assert engine.capture_kwargs is not None
+    assert engine.capture_kwargs["scroll_step_px"] == 700
+    assert result.metadata["scroll_step_px"] == 700
+
+
+def test_fetch_cloakbrowser_snapshot_capture_rejects_negative_scroll_step_px() -> None:
+    with pytest.raises(ValueError, match="scroll_step_px"):
+        fetch_cloakbrowser_snapshot_capture(
+            url="https://example.com/reviews",
+            scroll_step_px=-1,
+            engine=_FakeCloakBrowserEngine(
+                _FakeEngineResult(
+                    final_url="https://example.com/reviews",
+                    title=None,
+                    rendered_dom="<html><body>ok</body></html>",
+                    visible_text="ok",
+                    screenshot_png=b"\x89PNG\r\n\x1a\ncloakbrowser",
+                )
+            ),
+        )
+
+
+def test_live_engine_progressive_scrolls_before_scroll_passes(monkeypatch: pytest.MonkeyPatch) -> None:
+    calls: list[str] = []
+    scrolled_y: list[int] = []
+
+    class FakeLocator:
+        def inner_text(self, *, timeout: float) -> str:
+            return "reviews"
+
+    class FakePage:
+        url = "https://example.com/reviews"
+
+        def goto(self, url: str, **kwargs: object) -> None:
+            calls.append("goto")
+
+        def wait_for_timeout(self, ms: float) -> None:
+            calls.append("wait")
+
+        def evaluate(self, script: str, arg: object = None) -> object:
+            if "scrollHeight" in script:
+                return 3000
+            if "scrollTo" in script:
+                scrolled_y.append(arg)
+                calls.append("scroll")
+            return None
+
+        def content(self) -> str:
+            calls.append("content")
+            return "<html><body>reviews</body></html>"
+
+        def locator(self, selector: str) -> FakeLocator:
+            return FakeLocator()
+
+        def screenshot(self, **kwargs: object) -> bytes:
+            return b"\x89PNG\r\n\x1a\ncloakbrowser"
+
+        def title(self) -> str:
+            return "Reviews"
+
+    class FakeContext:
+        def new_page(self) -> FakePage:
+            return FakePage()
+
+        def close(self) -> None:
+            return None
+
+    class FakeBrowser:
+        def new_context(self, **kwargs: object) -> FakeContext:
+            return FakeContext()
+
+        def close(self) -> None:
+            return None
+
+    class FakeCloakBrowserModule:
+        def launch(self, **kwargs: object) -> FakeBrowser:
+            return FakeBrowser()
+
+    def fake_import_module(name: str) -> FakeCloakBrowserModule:
+        assert name == "cloakbrowser"
+        return FakeCloakBrowserModule()
+
+    monkeypatch.setattr(cloakbrowser_snapshot_module, "import_module", fake_import_module)
+
+    _CloakBrowserSnapshotEngine().capture(
+        url="https://example.com/reviews",
+        timeout_seconds=5,
+        wait_until="load",
+        viewport_width=1024,
+        viewport_height=768,
+        proxy_profile=None,
+        block_heavy_assets=False,
+        settle_seconds=0.0,
+        scroll_passes=0,
+        load_more_selector=None,
+        load_more_clicks=0,
+        scroll_step_px=700,
+    )
+
+    # Steps of 700px until position reaches the 3000px page height: strictly
+    # increasing, bounded, and all before the content capture.
+    assert scrolled_y == [700, 1400, 2100, 2800, 3500]
+    assert scrolled_y == sorted(scrolled_y)
+    assert len(scrolled_y) <= cloakbrowser_snapshot_module._MAX_PROGRESSIVE_SCROLL_STEPS
+    assert calls.index("goto") < calls.index("scroll") < calls.index("content")
+
+
+def test_live_engine_progressive_scroll_is_bounded_by_step_cap(monkeypatch: pytest.MonkeyPatch) -> None:
+    scrolled_y: list[int] = []
+
+    class FakeLocator:
+        def inner_text(self, *, timeout: float) -> str:
+            return "reviews"
+
+    class FakePage:
+        url = "https://example.com/reviews"
+
+        def goto(self, url: str, **kwargs: object) -> None:
+            return None
+
+        def wait_for_timeout(self, ms: float) -> None:
+            return None
+
+        def evaluate(self, script: str, arg: object = None) -> object:
+            if "scrollHeight" in script:
+                return 10_000_000  # an effectively endless (infinite-scroll) page
+            if "scrollTo" in script:
+                scrolled_y.append(arg)
+            return None
+
+        def content(self) -> str:
+            return "<html><body>reviews</body></html>"
+
+        def locator(self, selector: str) -> FakeLocator:
+            return FakeLocator()
+
+        def screenshot(self, **kwargs: object) -> bytes:
+            return b"\x89PNG\r\n\x1a\ncloakbrowser"
+
+        def title(self) -> str:
+            return "Reviews"
+
+    class FakeContext:
+        def new_page(self) -> FakePage:
+            return FakePage()
+
+        def close(self) -> None:
+            return None
+
+    class FakeBrowser:
+        def new_context(self, **kwargs: object) -> FakeContext:
+            return FakeContext()
+
+        def close(self) -> None:
+            return None
+
+    class FakeCloakBrowserModule:
+        def launch(self, **kwargs: object) -> FakeBrowser:
+            return FakeBrowser()
+
+    def fake_import_module(name: str) -> FakeCloakBrowserModule:
+        assert name == "cloakbrowser"
+        return FakeCloakBrowserModule()
+
+    monkeypatch.setattr(cloakbrowser_snapshot_module, "import_module", fake_import_module)
+
+    _CloakBrowserSnapshotEngine().capture(
+        url="https://example.com/reviews",
+        timeout_seconds=5,
+        wait_until="load",
+        viewport_width=1024,
+        viewport_height=768,
+        proxy_profile=None,
+        block_heavy_assets=False,
+        settle_seconds=0.0,
+        scroll_passes=0,
+        load_more_selector=None,
+        load_more_clicks=0,
+        scroll_step_px=700,
+    )
+
+    # An endless page must still stop at the module step cap (never unbounded).
+    assert len(scrolled_y) == cloakbrowser_snapshot_module._MAX_PROGRESSIVE_SCROLL_STEPS
+
+
+def test_live_engine_progressive_scroll_no_op_on_zero_height(monkeypatch: pytest.MonkeyPatch) -> None:
+    scrolled_y: list[int] = []
+
+    class FakeLocator:
+        def inner_text(self, *, timeout: float) -> str:
+            return "reviews"
+
+    class FakePage:
+        url = "https://example.com/reviews"
+
+        def goto(self, url: str, **kwargs: object) -> None:
+            return None
+
+        def wait_for_timeout(self, ms: float) -> None:
+            return None
+
+        def evaluate(self, script: str, arg: object = None) -> object:
+            if "scrollHeight" in script:
+                return 0  # nothing scrollable (empty/zero-height body)
+            if "scrollTo" in script:
+                scrolled_y.append(arg)
+            return None
+
+        def content(self) -> str:
+            return "<html><body>reviews</body></html>"
+
+        def locator(self, selector: str) -> FakeLocator:
+            return FakeLocator()
+
+        def screenshot(self, **kwargs: object) -> bytes:
+            return b"\x89PNG\r\n\x1a\ncloakbrowser"
+
+        def title(self) -> str:
+            return "Reviews"
+
+    class FakeContext:
+        def new_page(self) -> FakePage:
+            return FakePage()
+
+        def close(self) -> None:
+            return None
+
+    class FakeBrowser:
+        def new_context(self, **kwargs: object) -> FakeContext:
+            return FakeContext()
+
+        def close(self) -> None:
+            return None
+
+    class FakeCloakBrowserModule:
+        def launch(self, **kwargs: object) -> FakeBrowser:
+            return FakeBrowser()
+
+    def fake_import_module(name: str) -> FakeCloakBrowserModule:
+        assert name == "cloakbrowser"
+        return FakeCloakBrowserModule()
+
+    monkeypatch.setattr(cloakbrowser_snapshot_module, "import_module", fake_import_module)
+
+    _CloakBrowserSnapshotEngine().capture(
+        url="https://example.com/reviews",
+        timeout_seconds=5,
+        wait_until="load",
+        viewport_width=1024,
+        viewport_height=768,
+        proxy_profile=None,
+        block_heavy_assets=False,
+        settle_seconds=0.0,
+        scroll_passes=0,
+        load_more_selector=None,
+        load_more_clicks=0,
+        scroll_step_px=700,
+    )
+
+    # A zero-height page makes the progressive phase a clean no-op (0 >= 0 breaks first).
+    assert scrolled_y == []
+
+
+def test_cloakbrowser_runner_threads_scroll_step_px_to_capture(monkeypatch: pytest.MonkeyPatch) -> None:
+    seen: dict[str, object] = {}
+
+    def fake_capture(**kwargs: object) -> CloakBrowserSnapshotFailure:
+        seen.update(kwargs)
+        return CloakBrowserSnapshotFailure(
+            requested_url="https://example.com/reviews",
+            failure_kind=CloakBrowserSnapshotFailureKind.CAPTURE_FAILED,
+            message="stub failure after recording kwargs",
+        )
+
+    monkeypatch.setattr(cloakbrowser_runner, "fetch_cloakbrowser_snapshot_capture", fake_capture)
+
+    exit_code, _ = cloakbrowser_runner.run_source_capture_cloakbrowser_packet(
+        url="https://example.com/reviews",
+        source_family="web_page",
+        source_surface="cloakbrowser_snapshot",
+        decision_question="does scroll-step thread through?",
+        output_directory=Path("unused_no_packet_on_failure"),
+        capture_context="test scroll-step threading",
+        operator_category="cloakbrowser_snapshot_cli_operator",
+        capture_mode=CaptureModeCategory.MULTIMODAL,
+        session_id=None,
+        proxy_profile=None,
+        actor_audience_context=None,
+        visible_mode_changes=[],
+        source_publication_or_event=None,
+        source_edit_or_version=None,
+        cutoff_posture=None,
+        recapture_time=None,
+        re_capture_relationship=None,
+        warnings=[],
+        limitations=[],
+        timeout_seconds=20,
+        wait_until="load",
+        viewport_width=1280,
+        viewport_height=720,
+        max_artifact_bytes=50_000,
+        block_heavy_assets=False,
+        scroll_step_px=700,
+    )
+
+    assert exit_code == 3
+    assert seen["scroll_step_px"] == 700
 
 
 def test_fetch_cloakbrowser_snapshot_capture_records_heavy_asset_blocking() -> None:

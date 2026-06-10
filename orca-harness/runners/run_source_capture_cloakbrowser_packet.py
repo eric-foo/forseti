@@ -80,6 +80,10 @@ def run_source_capture_cloakbrowser_packet(
     max_artifact_bytes: int,
     block_heavy_assets: bool,
     settle_seconds: float = 0.0,
+    scroll_passes: int = 0,
+    load_more_selector: str | None = None,
+    load_more_clicks: int = 0,
+    scroll_step_px: int = 0,
 ) -> tuple[int, str]:
     capture_result = fetch_cloakbrowser_snapshot_capture(
         url=url,
@@ -91,6 +95,10 @@ def run_source_capture_cloakbrowser_packet(
         proxy_profile=proxy_profile,
         block_heavy_assets=block_heavy_assets,
         settle_seconds=settle_seconds,
+        scroll_passes=scroll_passes,
+        load_more_selector=load_more_selector,
+        load_more_clicks=load_more_clicks,
+        scroll_step_px=scroll_step_px,
     )
     if isinstance(capture_result, CloakBrowserSnapshotFailure):
         return 3, f"{_failure_report_token(capture_result.failure_kind)}: {capture_result.message}"
@@ -314,6 +322,43 @@ def _build_parser() -> argparse.ArgumentParser:
         ),
     )
     parser.add_argument(
+        "--scroll-passes",
+        type=int,
+        default=0,
+        help=(
+            "After the settle, scroll to the bottom this many times (pausing between) so "
+            "lazy-loaded / 'load more' / infinite-scroll content (e.g. product reviews) "
+            "populates. Default 0 (no scrolling)."
+        ),
+    )
+    parser.add_argument(
+        "--load-more-selector",
+        default=None,
+        help=(
+            "Selector (CSS or 'text=...') for a click-to-load-more control, e.g. "
+            "'text=Show more'. Site-specific, supplied per capture; requires --load-more-clicks."
+        ),
+    )
+    parser.add_argument(
+        "--load-more-clicks",
+        type=int,
+        default=0,
+        help=(
+            "After scrolling, click --load-more-selector up to this many times (pausing between), "
+            "stopping early when it disappears. Default 0 (no clicks)."
+        ),
+    )
+    parser.add_argument(
+        "--scroll-step-px",
+        type=int,
+        default=0,
+        help=(
+            "Before any scroll-to-bottom passes, scroll down incrementally by this many pixels "
+            "(pausing between steps), so content that lazy-loads when its section enters the "
+            "viewport (e.g. a reviews widget) is triggered. Default 0 (off)."
+        ),
+    )
+    parser.add_argument(
         "--preflight-only",
         action="store_true",
         help="Validate CLI inputs and optional proxy profile locally, then exit without network capture.",
@@ -435,6 +480,10 @@ def main(argv: Sequence[str] | None = None) -> int:
             max_artifact_bytes=args.max_artifact_bytes,
             block_heavy_assets=block_heavy_assets,
             settle_seconds=args.settle_seconds,
+            scroll_passes=args.scroll_passes,
+            load_more_selector=args.load_more_selector,
+            load_more_clicks=args.load_more_clicks,
+            scroll_step_px=args.scroll_step_px,
         )
     except ValueError as exc:
         parser.exit(status=2, message=f"source capture CloakBrowser snapshot failed: {exc}\n")
