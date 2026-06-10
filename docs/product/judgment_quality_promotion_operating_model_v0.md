@@ -206,7 +206,7 @@ Invariant B intact.
 
 | Gate | Routed semantics owner | Receipt | Mechanical clear-predicate | If owner field/schema absent |
 | --- | --- | --- | --- | --- |
-| JSG-01 | data-capture obligation contract + core-spine boundary own the source-identity obligation and now declare the **ratified** JSG-01 source-side ECR field schema (SP-1/2/3/6); packing interface owns `pre_decision_status` | packing final status + ECR source-identity receipt | `pre_decision_status` present and set to an allowed *cleared* pre-decision value (not `excluded` or an uncertain/placeholder value). The finalization-provenance subpredicate — that the final `pre_decision_status` was finalized by the Judgment authority (AR-01, **resolved** — operator-for-now, a distinct cross-family act; see `docs/decisions/ar_01_pre_decision_status_finalizer_staffing_v0.md`), which the owner names as a block-state when unmet — is `indeterminate_until_authored`: the SP-5 finalization mechanism is unbuilt, so no owner field yet records Judgment-authority finalization, so bare presence does **not** clear. The source-identity, inspectability, and timing/cutoff subpredicates now route to the **ratified** owner fields and allowed values (core-spine boundary: SP-1 `source_identity_state` ∈ {`resolved`, `family_only`}; SP-2 `inspectability_state == inspectable_verifiable`; SP-3 timing `== pre_cutoff` carried over the producer's `PacketTiming.cutoff_posture`; SP-6 `source_visibility_posture` per the ratified grade) — but remain `indeterminate_until_authored` **in practice** because, although the field **derivers are built** (`orca-harness/ecr/deriver.py` — postures binding no `EvidenceUnit`), the **`EvidenceUnit` binding**, the **SP-5 finalizer mechanism**, and **D2** are still deferred, so no case packet yet carries the derived fields | schema now **ratified** (SP-1/2/3/6 declared); `indeterminate_until_authored` in practice until the `EvidenceUnit` binding + SP-5 finalizer + D2 are built (derivers already built) and a case packet carries the derived fields. **JSG-01 stays FROZEN and clears no case** |
+| JSG-01 | data-capture obligation contract + core-spine boundary own the source-identity obligation and now declare the **ratified** JSG-01 source-side ECR field schema (SP-1/2/3/6); packing interface owns `pre_decision_status` | packing final status + ECR source-identity receipt | `pre_decision_status` present and set to an allowed *cleared* pre-decision value (not `excluded` or an uncertain/placeholder value). The finalization-provenance subpredicate — that the final `pre_decision_status` was finalized by the Judgment authority (AR-01, **resolved** — operator-for-now, a distinct cross-family act; see `docs/decisions/ar_01_pre_decision_status_finalizer_staffing_v0.md`), which the owner names as a block-state when unmet — is `indeterminate_until_authored`: the SP-5 finalization **mechanism is now built** (`orca-harness/schemas/finalization_models.py`, committed `a37f896` — the `FinalizationReceipt` model + a validate-only consumer) **but no case packet yet carries a `FinalizationReceipt`**, so no owner field yet records Judgment-authority finalization and bare presence does **not** clear. The source-identity, inspectability, and timing/cutoff subpredicates now route to the **ratified** owner fields and allowed values (core-spine boundary: SP-1 `source_identity_state` ∈ {`resolved`, `family_only`}; SP-2 `inspectability_state == inspectable_verifiable`; SP-3 timing `== pre_cutoff` carried over the producer's `PacketTiming.cutoff_posture`; SP-6 `source_visibility_posture` per the ratified grade) — but remain `indeterminate_until_authored` **in practice** because, although the field **derivers are built** (`orca-harness/ecr/deriver.py` — postures binding no `EvidenceUnit`), the **`EvidenceUnit` binding**, a **case packet carrying a `FinalizationReceipt`**, and **D2** are still deferred (the **SP-5 finalizer half is built** — see the finalization-mechanism note above), so no case packet yet carries the derived fields | schema now **ratified** (SP-1/2/3/6 declared); `indeterminate_until_authored` in practice until the `EvidenceUnit` binding + D2 are built and a case packet carries the derived fields + a valid `FinalizationReceipt` (the SP-5 finalizer half + the derivers are already built). **JSG-01 stays FROZEN and clears no case** |
 | JSG-02 | evidence ladder + product-proof zero-spoiler boundary + packing interface | frozen participant packet | the participant-packet freeze receipt is present and valid per the owner-enumerated required receipt fields (the conductor checks owner-enumerated field presence/validity, not holistic completeness), including the product-proof zero-spoiler boundary for participant-facing surfaces and the packing interface's participant-visible boundary / leakage-spoiler admission checks. The conductor must not enumerate the owner-owned spoiler list locally. A bare present `participant_packet_hash`, or a hard-marker-only packing pass that leaves a product-proof-covered participant-facing leakage/spoiler issue unresolved, does **not** clear. A recorded leakage/spoiler block-class failure routes to contaminated/blocked (Leakage) | semantic-leakage subpredicate is `indeterminate_until_authored` (owner leaves it to operator/review) until its admission fields are authored |
 | JSG-03 | band-input labeling rubric + packing interface | frozen FacilitatorLedger | the frozen FacilitatorLedger receipt is present and valid per the owner-enumerated required receipt fields (the conductor checks owner-enumerated field presence/validity, not holistic completeness), including the packing interface's frozen-ledger requirements and any rubric quarantine handling; the conductor must not enumerate ledger-content fields locally. A bare present `ledger_freeze_hash` does **not** clear when the owner-required frozen-ledger receipt is incomplete or invalid | `indeterminate_until_authored` for any required ledger field whose owner schema is not yet authored |
 | JSG-04 | contestant no-tools execution contract | `contestant_execution_isolation` + authorized live-execution provenance | `isolation_result == "proven"` **and** the contract's auditable live-execution provenance is bound (separate owner authorization; production by the live runner; accepted endpoint; out-of-band operator record binding provider, endpoint, UTC timestamp, exit status, console output, `prompt_hash`, `raw_response_hash`). A bare computed `proven` does **not** clear (receipt-provenance sub-rule) | not cleared; with no live runner, by-hand receipts cannot bind provenance, so `indeterminate_until_authored` / capped per Seam 3 |
@@ -815,4 +815,42 @@ direction_change_propagation:
     - not judgment-quality evidence
     - not kept until the bounded same-family post-patch recheck clears
     - JSG-01 stays FROZEN; this pass does not unfreeze it
+```
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Round-19 patch (2026-06-10): build-state correction only (no gate/predicate/transition
+    change). The SP-5 finalizer HALF is now built and committed
+    (orca-harness/schemas/finalization_models.py, a37f896 -- the FinalizationReceipt model +
+    a validate-only, block-don't-repair consumer; hardened after a no_repo cross-family code
+    review). The JSG-01 finalization-provenance subpredicate row is corrected from "SP-5
+    finalization mechanism is unbuilt" to "mechanism built, but no case packet yet carries a
+    FinalizationReceipt." JSG-01 STAYS FROZEN: the EvidenceUnit binding, a case packet
+    carrying a receipt, and D2 still gate the unfreeze. No claim tier or closeout_state minted.
+  trigger: lifecycle_boundary
+  related_triggers:
+    - validation_philosophy
+  controlling_sources_updated:
+    - docs/product/judgment_quality_promotion_operating_model_v0.md
+    - docs/research/judgment-spine/judgment_spine_machinery_build_state_gap_map_v0.md
+    - docs/research/judgment-spine/judgment_spine_consolidation_map_v0.md
+  downstream_surfaces_checked:
+    - docs/workflows/orca_repo_map_v0.md
+    - docs/research/judgment-spine/ideal_judgment_quality_run_and_current_position_v0.md
+    - docs/research/judgment-spine/sp5_finalization_receipt_spec_v0.md
+  intentionally_not_updated:
+    - path: docs/workflows/orca_repo_map_v0.md
+      reason: >
+        Thin door -- its Judgment Spine section routes to the consolidation map / gap map
+        (now updated) rather than carrying build-state; no edit needed.
+    - path: docs/research/judgment-spine/sp5_finalization_receipt_spec_v0.md
+      reason: >
+        The behavior spec stays the contract; an as-built note is a later spec pass.
+  non_claims:
+    - not validation
+    - not readiness
+    - not judgment-quality evidence
+    - not a JSG-01 unfreeze (JSG-01 stays FROZEN)
+    - not the EvidenceUnit binding (a separate later slice)
 ```
