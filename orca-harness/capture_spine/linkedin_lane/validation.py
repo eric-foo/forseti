@@ -24,6 +24,7 @@ from dataclasses import fields
 from typing import Any
 
 from capture_spine.linkedin_lane.models import (
+    LINKEDIN_LANE_RUN_ENVELOPE_SCHEMA_VERSION,
     PERSON_ENTITY_TYPES,
     PERSON_PRIVACY_SENSITIVITIES,
     CandidateClass,
@@ -35,6 +36,7 @@ from capture_spine.linkedin_lane.models import (
     PrivacySensitivity,
     RunEnvelope,
     SourceSurface,
+    StopReason,
 )
 from capture_spine.linkedin_lane.shared_validation import (
     assert_no_forbidden_output_fields,
@@ -86,6 +88,17 @@ _CLOSED_ENUM_FIELDS: tuple[tuple[str, frozenset[str]], ...] = (
 )
 
 
+# RunEnvelope closed-enum value sets. RunEnvelope is a dataclass -- type hints are
+# NOT enforced at runtime -- so these must be validated like CandidateRow's closed
+# enums (a StrEnum member compares equal to its value, so a valid member passes
+# and a bogus string fails).
+_ALLOWED_METHOD_MODE_VALUES = frozenset(v.value for v in MethodMode)
+_ALLOWED_CANDIDATE_CLASS_VALUES = frozenset(v.value for v in CandidateClass)
+_ALLOWED_SOURCE_SURFACE_VALUES = frozenset(v.value for v in SourceSurface)
+_ALLOWED_MINIMIZATION_RULE_VALUES = frozenset(v.value for v in MinimizationRule)
+_ALLOWED_STOP_REASON_VALUES = frozenset(v.value for v in StopReason)
+
+
 def validate_run_envelope(envelope: RunEnvelope) -> None:
     if not envelope.run_id.strip():
         _fail("missing_run_id", "run_id is required")
@@ -117,6 +130,29 @@ def validate_run_envelope(envelope: RunEnvelope) -> None:
             "missing_entity_caps",
             "at least one entity cap (businesses / organizations / people) must be positive",
         )
+    # Closed-enum + schema validation. RunEnvelope is a dataclass (type hints not
+    # enforced at runtime), so out-of-schema values must be rejected here, matching
+    # the strictness validate_candidate_row already uses for closed enums.
+    if envelope.schema_version != LINKEDIN_LANE_RUN_ENVELOPE_SCHEMA_VERSION:
+        _fail(
+            "invalid_schema_version",
+            f"run envelope schema_version must be {LINKEDIN_LANE_RUN_ENVELOPE_SCHEMA_VERSION}",
+        )
+    if envelope.method_mode not in _ALLOWED_METHOD_MODE_VALUES:
+        _fail("invalid_method_mode", "method_mode must be a valid MethodMode value")
+    for candidate_class in envelope.candidate_classes:
+        if candidate_class not in _ALLOWED_CANDIDATE_CLASS_VALUES:
+            _fail("invalid_candidate_class", "each candidate_class must be a valid CandidateClass value")
+    for surface in envelope.source_surface_allowlist:
+        if surface not in _ALLOWED_SOURCE_SURFACE_VALUES:
+            _fail(
+                "invalid_source_surface",
+                "each source_surface_allowlist entry must be a valid SourceSurface value",
+            )
+    if envelope.minimization_rule not in _ALLOWED_MINIMIZATION_RULE_VALUES:
+        _fail("invalid_minimization_rule", "minimization_rule must be a valid MinimizationRule value")
+    if envelope.stop_condition not in _ALLOWED_STOP_REASON_VALUES:
+        _fail("invalid_stop_condition", "stop_condition must be a valid StopReason value")
     # Shared NEGATED non_claims check (closes slice-1's F4 substring weakness).
     validate_non_claims_categories(envelope.non_claims, "run_envelope")
 

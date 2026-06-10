@@ -52,6 +52,7 @@ _PERSON_DATA_MINIMIZED_SET = frozenset({"yes", "no"})
 # Fail-closed top-level KEY allowlists, derived from the dataclasses so they track
 # the schema with zero drift. This closes the alias path the exact-key forbidden
 # walk cannot: a forbidden graph under an innocuous key.
+_ALLOWED_REGISTER_TOP_LEVEL_KEYS = frozenset({"linkedin_graph_frontier_register"})
 _ALLOWED_REGISTER_WRAPPER_KEYS = frozenset(
     {"schema_version", "register_id", "source_run_id", "nodes", "edges", "frontier_decisions", "non_claims"}
 )
@@ -63,6 +64,9 @@ _ALLOWED_NEXT_RUN_ENVELOPE_KEYS = frozenset(f.name for f in fields(NextRunEnvelo
 
 def validate_graph_frontier_register(register: Mapping[str, Any]) -> None:
     assert_no_forbidden_output_fields(register)
+    # Top-level shape: only the wrapper key is allowed -- reject sibling keys that
+    # would otherwise be silently ignored (cross-vendor F2).
+    _reject_unknown_keys(register, _ALLOWED_REGISTER_TOP_LEVEL_KEYS, "register top-level")
     wrapper = register.get("linkedin_graph_frontier_register")
     if not isinstance(wrapper, Mapping):
         _fail("missing_register", "linkedin_graph_frontier_register wrapper is required")

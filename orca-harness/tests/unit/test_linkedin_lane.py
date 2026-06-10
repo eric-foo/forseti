@@ -341,3 +341,35 @@ def test_benign_compound_non_claims_passes() -> None:
             )
         )
     )
+
+
+# --- negatives added for the RunEnvelope closed-enum hardening (cross-vendor F1) ---
+
+def test_envelope_invalid_schema_version_raises() -> None:
+    with pytest.raises(LinkedInLaneError):
+        validate_run_envelope(_envelope(schema_version="wrong"))
+
+
+def test_envelope_invalid_method_mode_raises() -> None:
+    with pytest.raises(LinkedInLaneError):
+        validate_run_envelope(_envelope(method_mode="live_runner"))
+
+
+def test_envelope_invalid_candidate_class_raises() -> None:
+    with pytest.raises(LinkedInLaneError):
+        validate_run_envelope(_envelope(candidate_classes=("bogus_class",)))
+
+
+def test_envelope_invalid_source_surface_raises() -> None:
+    with pytest.raises(LinkedInLaneError):
+        validate_run_envelope(_envelope(source_surface_allowlist=("bogus_surface",)))
+
+
+def test_envelope_invalid_minimization_rule_raises() -> None:
+    with pytest.raises(LinkedInLaneError):
+        validate_run_envelope(_envelope(minimization_rule="bogus_rule"))
+
+
+def test_envelope_invalid_stop_condition_raises() -> None:
+    with pytest.raises(LinkedInLaneError):
+        validate_run_envelope(_envelope(stop_condition="bogus_stop"))

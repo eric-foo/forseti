@@ -387,3 +387,29 @@ def test_positive_non_claims_raises() -> None:
     )
     with pytest.raises(LinkedInLaneError):
         validate_graph_frontier_register(reg)
+
+
+def test_reversal_negation_in_non_claims_raises() -> None:
+    # Cross-vendor (GPT-5.5) reversal-bypass, shared with slice 3a: a syntactically
+    # negated but semantically POSITIVE claim ("not only live access; it also
+    # authorizes it") must NOT satisfy the "live" category.
+    reg = _register(
+        non_claims=(
+            "not only live access; it also authorizes it",
+            "not promotion",
+            "not source capture packet",
+            "not data capture",
+            "not outreach",
+        )
+    )
+    with pytest.raises(LinkedInLaneError):
+        validate_graph_frontier_register(reg)
+
+
+def test_register_unknown_top_level_sibling_key_raises() -> None:
+    # Cross-vendor F2: a non-forbidden key ADJACENT to the wrapper at the top level
+    # must be rejected, not silently ignored.
+    reg = _register()
+    reg["extra_top_level"] = "ignored"
+    with pytest.raises(LinkedInLaneError):
+        validate_graph_frontier_register(reg)
