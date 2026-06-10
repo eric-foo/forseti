@@ -54,6 +54,7 @@ class CdpAttachBrowserDriver:
         cdp_endpoint: str,
         wait_until: str = "load",
         nav_timeout_seconds: float = DEFAULT_NAV_TIMEOUT_SECONDS,
+        content_ready_selector: str | None = None,
     ) -> None:
         if not isinstance(cdp_endpoint, str) or not cdp_endpoint.strip():
             raise LinkedInLaneError(
@@ -70,6 +71,12 @@ class CdpAttachBrowserDriver:
         self._cdp_endpoint = self._validate_cdp_endpoint(cdp_endpoint)
         self._wait_until = wait_until
         self._nav_timeout_ms = float(nav_timeout_seconds) * 1000
+        # Optional CSS selector to wait for AFTER navigation. LinkedIn is a client-
+        # rendered SPA: the company top-card is NOT in the DOM at the `load` event, so
+        # the caller passes a content anchor (e.g. ".org-top-card-summary__title") and
+        # the rendered DOM is read only after that content has hydrated. None = read
+        # immediately (static pages).
+        self._content_ready_selector = content_ready_selector
 
     def rendered_dom(self, target: str) -> str:
         normalized = self._validate_http_target(target)
@@ -93,6 +100,8 @@ class CdpAttachBrowserDriver:
                 page = context.new_page()
                 try:
                     page.goto(normalized, wait_until=self._wait_until, timeout=self._nav_timeout_ms)
+                    if self._content_ready_selector is not None:
+                        page.wait_for_selector(self._content_ready_selector, timeout=self._nav_timeout_ms)
                     return page.content()
                 finally:
                     page.close()

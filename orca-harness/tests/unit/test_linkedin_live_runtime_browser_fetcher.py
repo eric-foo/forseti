@@ -341,6 +341,15 @@ def test_cdp_driver_accepts_local_endpoint() -> None:
     CdpAttachBrowserDriver(cdp_endpoint="ws://localhost:9222/devtools/browser/abc")
 
 
+def test_cdp_driver_accepts_content_ready_selector() -> None:
+    # the SPA content-anchor selector is stored for the owner-validated live wait
+    # (LinkedIn renders the top-card client-side, after the load event)
+    CdpAttachBrowserDriver(
+        cdp_endpoint="http://127.0.0.1:9222",
+        content_ready_selector=".org-top-card-summary__title",
+    )
+
+
 def test_browser_fetcher_rejects_credentialed_target() -> None:
     # review F4: the fetcher self-validates the locator so a credentialed URL never
     # enters the bag, regardless of the injected driver
