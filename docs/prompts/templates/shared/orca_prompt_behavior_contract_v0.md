@@ -16,7 +16,8 @@ Use this contract only when a prompt explicitly references it.
 - Current user instruction for the turn wins.
 - Orca `AGENTS.md` and `.agents/workflow-overlay/` own Orca project facts.
 - Orca docs under `docs/` are subordinate to the overlay when conflicts appear.
-- `agent-workflow` may provide reusable mechanics only.
+- Explicitly invoked or resolver-loaded skills may provide task-local mechanics
+  only; external workflow source is not Orca authority.
 - `jb` paths, product rules, lifecycle mechanics, templates, validation habits,
   and handoffs are not Orca authority.
 

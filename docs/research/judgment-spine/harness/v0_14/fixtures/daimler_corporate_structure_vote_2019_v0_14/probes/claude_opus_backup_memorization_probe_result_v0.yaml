@@ -1,0 +1,83 @@
+memorization_probe_artifact:
+  probe_id: claude_opus_backup_memorization_probe_daimler_v0_14_20260531
+  case_id: daimler_corporate_structure_vote_2019_v0_14
+  probe_model_family: Claude Opus
+  probe_model_id: claude-opus-4-8
+  model_snapshot_if_available: not_available
+  provider_metadata_if_available: |
+    access_method: Claude Code Agent tool harness (not raw API)
+    model_id_resolution: system context mapping — Agent tool "opus" resolves to claude-opus-4-8
+    raw_api_snapshot: not available via Agent tool path
+    raw_api_provider_metadata: not available via Agent tool path
+    access_note: >
+      ANTHROPIC_API_KEY and ANTHROPIC_BASE_URL were confirmed present in process
+      environment. Python and Node.js Anthropic SDKs were not installed (installation
+      not authorized per probe protocol). API key not accessible in PowerShell child
+      process scope. Probe was executed via Claude Code Agent tool (tooling path),
+      which is the available authorized access path in this operator environment.
+      No packages were installed. No reusable runner was created.
+  prompt_hash: cabfe8bc30e906860ed50b3655675554d507c7e39c26dc7785c4726604fd37e8
+  raw_response_hash: d8f3fde3ce7d16b932d51a511b38e7f1f063a7782ee665e187549ff38d0ab561
+  raw_response_hash_note: >
+    Hash computed over model output YAML text only, excluding harness-injected metadata
+    (agentId and usage tags appended by Claude Code Agent tool harness).
+  raw_response_text: |
+    recognition_status: recognized
+    claimed_outcome: |
+      This is the real-world Daimler AG corporate reorganization (Project "Future of Mobility" / "Zukunftsbild"). At the May 22, 2019 Annual General Meeting, Daimler shareholders approved the hive-down (Abspaltung/Ausgliederung) by a large majority — well above the required 75% threshold. The proposal carved out the Cars & Vans business into Mercedes-Benz AG and the Trucks & Buses business into Daimler Truck AG, with Daimler AG continuing as the parent/holding company. The reorganization took legal effect on November 1, 2019.
+
+      Notably, this structure was a precursor to the later, separate decision (announced February 2021, executed December 2021) to spin off Daimler Truck as an independently listed company and rename the parent Mercedes-Benz Group AG. That later spin-off is a distinct subsequent decision, after the cutoff.
+    confidence: 0.9
+    notes: |
+      Recognition is from prior knowledge, NOT from any provided packet — no packet was supplied. The cutoff of 2019-05-21 precedes the May 22, 2019 AGM vote, so the approval outcome itself is post-cutoff information.
+
+      High-confidence facts: the AGM date, the entity names (Mercedes-Benz AG, Daimler Truck AG, Daimler AG as holding company), and the Nov 1, 2019 effective date. The exact approval percentage I do not recall precisely (only that it cleared the 75% supermajority comfortably), hence confidence below 1.0.
+
+      This is a clear case of prior-knowledge contamination relative to the stated decision cutoff: I know the actual approval outcome and the downstream 2021 Daimler Truck spin-off, none of which would be derivable from pre-2019-05-22 evidence alone.
+      contamination_flag: true
+  parsed_response:
+    recognition_status: recognized
+    claimed_outcome: >
+      Hive-down approved at May 22, 2019 AGM by large majority, well above required 75%
+      threshold. Cars & Vans carved out into Mercedes-Benz AG; Trucks & Buses into Daimler
+      Truck AG; Daimler AG continues as holding company. Reorganization took legal effect
+      November 1, 2019. Model additionally notes precursor relationship to the 2021 Daimler
+      Truck spin-off (distinct subsequent decision, after the cutoff).
+    confidence: 0.9
+    notes: >
+      Model stated recognition from prior knowledge only (no packet provided). Explicitly
+      identified the cutoff date issue (2019-05-21 precedes the AGM vote). Volunteered
+      contamination_flag: true beyond the requested YAML schema. High-confidence on AGM
+      date, entity names, and effective date; acknowledges imprecise recall of exact
+      approval percentage.
+  probe_result: fail
+  probe_result_rationale: >
+    recognition_status == recognized AND confidence 0.9 >= 0.50 AND model states the
+    actual outcome (vote approved, above 75% supermajority, effective Nov 1, 2019, entity
+    names). Meets fail condition: model stated the actual outcome with confidence >= 0.50.
+    Model also self-reported contamination_flag: true.
+  reviewed_by_operator: Claude Sonnet 4.6 (claude-sonnet-4-6) — non-contestant operator lane
+  operator_review_status: reviewed
+  operator_review_notes: >
+    Operator is Claude Sonnet 4.6 (claude-sonnet-4-6); target contestant is Claude Opus
+    (claude-opus-4-8). Same-family boundary maintained — Sonnet 4.6 is not in the Opus
+    family. Probe prompt exposure was public-identifiers-only (contestant probe prompt
+    only; no participant packet, no facilitator material, no source manifest, no evidence
+    registry, no outcome material). Classification is fail per parsed YAML: recognized,
+    confidence 0.9, outcome stated accurately per probe schema criteria (no outcome
+    material was loaded to verify — classification is based on response structure and
+    confidence threshold, consistent with probe protocol). Model self-flagged
+    contamination_flag: true.
+  created_at: "2026-05-31"
+  participant_packet_exposed: false
+  target_contestant_exposure: public_identifiers_probe_only
+  non_claims:
+    - no blind-use authorization
+    - no participant packet exposure
+    - no model judgment run
+    - no scoring
+    - no ledger freeze
+    - no schema/runtime implementation
+    - no validation
+    - no fixture admission
+    - no judgment-quality claim

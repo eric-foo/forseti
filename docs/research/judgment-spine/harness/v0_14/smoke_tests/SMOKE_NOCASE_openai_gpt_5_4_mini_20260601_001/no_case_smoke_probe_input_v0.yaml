@@ -1,0 +1,8 @@
+﻿case_id: SMOKE_NOCASE_openai_gpt_5_4_mini_20260601_001
+decision_question: "Synthetic no-case plumbing question: should placeholder option A be selected?"
+public_identifiers_if_any:
+  - SYNTHETIC_NO_CASE_IDENTIFIERS_NONE
+decision_date_or_cutoff: SYNTHETIC_NO_CASE_CUTOFF_NOT_A_REAL_CASE
+probe_model_family: OpenAI GPT-5.4 mini
+probe_model_id: gpt-5.4-mini
+probe_prompt_template_version: v0.14_no_case_smoke

@@ -1,0 +1,11 @@
+evidence_id: E4
+source_id: E4
+source: Technology news outlet — category-leading RSS reader launches paid service
+source_type: independent_press
+timestamp: 2013-08-05
+retrieval_timestamp: 2026-06-10T00:00:00Z
+hash: fc5ac9dfcf67f161d3ba18c02af36eaa3075ddd00bb7bcd1bb1713e36276814a
+hash_basis: sha256 of the captured source response body (_test_runs/source_capture_http_feedly_paid_launch_2013_computerworld/raw/01_http_response_body.bin)
+pre_decision_status: verified_pre_decision
+pre_decision_basis: Published before the 2019-02-06 cutoff.
+summary: The category-leading RSS reader gated search and integrations behind a paid Pro tier in 2013 (evidence that gating power features is industry-normal), while the search paywall specifically drew documented user backlash about losing a core expected feature.

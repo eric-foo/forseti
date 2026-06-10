@@ -1,0 +1,78 @@
+advisory_phase_1_fields: {}
+case_id: feedhaven_repricing_2019_anon_v0
+contestant_band_claim:
+  advisory_only: true
+  claimed_ceiling: 5
+  claimed_floor: 3
+  reasoning: Defensible range centers on 4; narrow phase-in (3) is safer given backlash
+    precedents but may under-monetize the established differentiator, while substantial
+    gating (5) is viable with strong migration. Beyond this range risks violating
+    reversibility/trust given zero own-user signal.
+contestant_id: grok_4_isolated_external_v0
+decision_shape: action_band
+evidence_used:
+- claim_id: C1
+  claim_role: load_bearing
+  claim_text: Flows is the established power-user differentiator already positioned
+    and tiered as Pro/upper-tier.
+  evidence_unit_ids:
+  - E1
+  - E2
+- claim_id: C2
+  claim_role: load_bearing
+  claim_text: Documented base rate of resistance and backlash to gating expected RSS
+    features.
+  evidence_unit_ids:
+  - E3
+  - E4
+- claim_id: C3
+  claim_role: supporting
+  claim_text: Industry norm for some gating of power features, with sustainability
+    tolerated within a WTP band.
+  evidence_unit_ids:
+  - E2
+  - E4
+  - E5
+- claim_id: C4
+  claim_role: contextual
+  claim_text: No direct pre-cutoff measurement of FeedHaven users' tolerance for tightening
+    Flows.
+  evidence_unit_ids:
+  - E1
+  - E2
+  - E3
+  - E4
+  - E5
+harness_version: v0_14
+judgement_class: recommend
+load_bearing_assumption:
+  evidence_unit_ids:
+  - E2
+  - E4
+  statement: A structured migration path (grandfathering + clear paths) can materially
+    reduce backlash compared to hard gating while still achieving repackaging goals.
+  would_flip_if_false: true
+model_family: xai_grok
+model_id: grok-4
+model_snapshot_if_available: null
+must_address_items_covered:
+- MA-01
+- MA-02
+- MA-03
+- MA-04
+- MA-05
+prompt_hash: 97859101fd52a71e41b5c488ae7b1200875368f7ed07bb7739a70b4e9e57f4e5
+recommended_action:
+  action_label: moderate, structured tier migration
+  ladder_level: 4
+  rationale: E2 shows Flows and searches already concentrated in upper tiers with
+    a generous low end, establishing precedent for gating without full free access.
+    E1 reinforces Flows as the paid power-user differentiator. However, E3 and E4
+    document clear base-rate backlash to paywalling expected RSS features, while E5
+    shows tolerance only within a willingness-to-pay band. Aggressive gating (7-8)
+    risks hitting exactly the core users who rely on Flows (MA-01) with no FeedHaven-specific
+    tolerance data (MA-04). Moderate migration with grandfathering balances industry-normal
+    gating (MA-03) against the backlash threshold (MA-05) while remaining reversible.
+run_id: run_001
+seed_if_supported: null
+temperature: 1.0

@@ -1,0 +1,77 @@
+advisory_phase_1_fields: {}
+case_id: inoreader_repricing_2019_v0
+contestant_band_claim:
+  advisory_only: true
+  claimed_ceiling: 5
+  claimed_floor: 2
+  reasoning: Evidence supports some action (not abstain/wait); aggressive full gating
+    (7-8) is unsupported given the backlash base rate and the absence of internal
+    tolerance data. Defensible range is narrow-to-moderate, floor at a light phase-in,
+    ceiling at a structured tier migration.
+contestant_id: claude_sonnet_isolated_subagent_v0
+decision_shape: action_band
+evidence_used:
+- claim_id: C1
+  claim_role: load_bearing
+  claim_text: Rules automation is a multi-year power-user differentiator anchor.
+  evidence_unit_ids:
+  - E1
+- claim_id: C2
+  claim_role: load_bearing
+  claim_text: Tiering automation behind paid tiers is already established in Inoreader's
+    own pricing history.
+  evidence_unit_ids:
+  - E2
+- claim_id: C3
+  claim_role: load_bearing
+  claim_text: Analogous RSS readers drew documented user backlash to paywalling previously
+    free power features.
+  evidence_unit_ids:
+  - E3
+  - E4
+- claim_id: C4
+  claim_role: load_bearing
+  claim_text: Power users have a willingness-to-pay band; steep increases beyond it
+    generate pushback.
+  evidence_unit_ids:
+  - E5
+- claim_id: C5
+  claim_role: supporting
+  claim_text: Gating power features behind paid tiers is industry-normal category
+    behavior.
+  evidence_unit_ids:
+  - E4
+harness_version: v0_14
+judgement_class: recommend
+load_bearing_assumption:
+  evidence_unit_ids:
+  - E3
+  - E4
+  statement: The documented backlash base rate from analogous products (E3, E4) is
+    a reasonable proxy for Inoreader's user reaction, i.e., its base is not materially
+    more price-tolerant than the RSS power-user population those sources represent.
+  would_flip_if_false: true
+model_family: anthropic_claude
+model_id: claude-sonnet-4-6
+model_snapshot_if_available: null
+must_address_items_covered:
+- MA-01
+- MA-02
+- MA-03
+- MA-04
+- MA-05
+prompt_hash: 8546683e8090e865b5f8a62b02bc2c5a9173e6837b7ac056a005d7f8c1aac2e9
+recommended_action:
+  action_label: phase-in narrow Rules gating
+  ladder_level: 3
+  rationale: Tiering automation behind paid tiers is industry-normal and already baked
+    into Inoreader's multi-year positioning (E1, E2), so some gating is defensible.
+    But E3 and E4 document a base rate of backlash when an expected power-user feature
+    is aggressively paywalled, and E5 shows a willingness-to-pay band beyond which
+    even motivated power users push back. With no internal measurement of Inoreader
+    users' tolerance for tightening Rules, the asymmetry favors a staged narrowing
+    that preserves a usable lower-tier Rules entry point over a hard gate that risks
+    a trust rupture with the segment that defines the product.
+run_id: run_001
+seed_if_supported: null
+temperature: 1.0

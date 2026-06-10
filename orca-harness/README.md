@@ -138,6 +138,27 @@ credentials, storage-state files, anti-detect behavior, proxy behavior, CAPTCHA
 solving, crawling, OCR, ECR, Cleaning, Judgment, buyer-proof, or
 commercial-readiness logic.
 
+Use the CloakBrowser Snapshot runner when one supplied URL needs anonymous
+anti-blocking browser rendering because ordinary browser/headless capture is
+expected to fail or has failed:
+
+Install the optional CloakBrowser dependency before live use:
+
+```powershell
+python -m pip install -e .[cloakbrowser]
+```
+
+```powershell
+python runners/run_source_capture_cloakbrowser_packet.py --url "https://example.com/page" --decision-question "What anti-blocking browser-visible source was present before cutoff?" --cutoff-posture "pre-cutoff CloakBrowser snapshot requested by operator" --output ".\_test_runs\example_source_capture_cloakbrowser_packet"
+```
+
+This runner preserves rendered DOM, visible text, a viewport screenshot, and
+CloakBrowser method-provenance metadata into the packet shape. It uses an
+anonymous non-persistent CloakBrowser launch and does not accept stored
+sessions, browser profiles, cookies, credentials, storage-state files, proxy
+behavior, CAPTCHA solving, crawling, Reddit target discovery, OCR, ECR,
+Cleaning, Judgment, buyer-proof, or commercial-readiness logic.
+
 Use the Authenticated Browser Snapshot runner when one supplied URL requires a
 permitted manually bootstrapped browser session:
 

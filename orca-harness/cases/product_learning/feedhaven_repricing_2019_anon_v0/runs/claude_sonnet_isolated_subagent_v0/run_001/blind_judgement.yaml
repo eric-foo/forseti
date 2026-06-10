@@ -1,0 +1,94 @@
+advisory_phase_1_fields: {}
+case_id: feedhaven_repricing_2019_anon_v0
+contestant_band_claim:
+  advisory_only: true
+  claimed_ceiling: 4
+  claimed_floor: 2
+  reasoning: 'Floor 2: the evidence clearly supports some restructuring given industry
+    norms and FeedHaven''s own positioning; 0-1 ignores the monetization signal in
+    E2/E4/E5. Ceiling 4 (structured migration with grandfathering) is defensible only
+    with strong evidence users have internalized a clear Flows tier boundary, which
+    E2 partially supports but MA-04 prevents confirming for a tightening move. Levels
+    5-8 overshoot: no packet evidence establishes FeedHaven users'' tolerance beyond
+    what already existed, and E3/E4 backlash base rates make hard gating an irreversibility
+    risk without a pre-cutoff measurement.'
+contestant_id: claude_sonnet_isolated_subagent_v0
+decision_shape: action_band
+evidence_used:
+- claim_id: C1
+  claim_role: load_bearing
+  claim_text: Flows is FeedHaven's primary power-user differentiator and has historically
+    been positioned as a paid/Pro feature.
+  evidence_unit_ids:
+  - E1
+  - E2
+- claim_id: C2
+  claim_role: load_bearing
+  claim_text: Power users of RSS tools exhibit a documented base-rate resistance to
+    paywalling features they perceive as part of the free internet.
+  evidence_unit_ids:
+  - E3
+- claim_id: C3
+  claim_role: load_bearing
+  claim_text: Gating power features is industry-normal in the RSS reader category,
+    but gating an expected feature specifically draws documented backlash even when
+    the general practice is accepted.
+  evidence_unit_ids:
+  - E4
+- claim_id: C4
+  claim_role: supporting
+  claim_text: There is an established willingness-to-pay band for RSS readers; sustainability
+    pricing is tolerated, but steep jumps beyond that band generate pushback.
+  evidence_unit_ids:
+  - E5
+- claim_id: C5
+  claim_role: load_bearing
+  claim_text: FeedHaven has no pre-cutoff measurement of its own users' specific tolerance
+    for tightening Flows gating beyond the historical tier structure; external base
+    rates are proxies, not direct evidence.
+  evidence_unit_ids: []
+- claim_id: C6
+  claim_role: supporting
+  claim_text: The existing tier structure already concentrates power-user value in
+    upper tiers, establishing some prior user expectation of Flows being a paid feature.
+  evidence_unit_ids:
+  - E2
+harness_version: v0_14
+judgement_class: recommend
+load_bearing_assumption:
+  evidence_unit_ids:
+  - E3
+  - E4
+  - E5
+  statement: The willingness-to-pay band (E5) and backlash documented in E3/E4 apply
+    with similar force to FeedHaven's user base as to the comparable RSS reader contexts
+    - i.e., FeedHaven's power users are not materially more tolerant of aggressive
+    Flows gating than the observed base rates.
+  would_flip_if_false: true
+model_family: anthropic_claude
+model_id: claude-sonnet-4-6
+model_snapshot_if_available: null
+must_address_items_covered:
+- MA-01
+- MA-02
+- MA-03
+- MA-04
+- MA-05
+prompt_hash: 97859101fd52a71e41b5c488ae7b1200875368f7ed07bb7739a70b4e9e57f4e5
+recommended_action:
+  action_label: Narrow phase-in - keep usable lower-tier Flows entry
+  ladder_level: 3
+  rationale: Some gating is industry-normal (E2/E4) and FeedHaven already positions
+    Flows in upper tiers (E1/E2), but aggressive gating (7-8) is contraindicated by
+    the free-internet resistance base rate (E3), the category leader's documented
+    search-paywall backlash (E4), and the willingness-to-pay band (E5) which signals
+    tolerance for sustainability pricing, not steep tier jumps. With no pre-cutoff
+    measurement of FeedHaven's own users' tolerance for tightening Flows (MA-04),
+    a hard gate carries asymmetric, poorly reversible trust/churn risk among exactly
+    the users who came for Flows. A narrow phase-in gates advanced Flows capabilities
+    into higher tiers while keeping a usable lower-tier entry, captures upside, and
+    preserves reversibility. Level 3 is the highest defensible step given the evidence
+    ceiling.
+run_id: run_001
+seed_if_supported: null
+temperature: 1.0

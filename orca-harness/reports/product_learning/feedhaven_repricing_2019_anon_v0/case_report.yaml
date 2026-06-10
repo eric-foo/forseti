@@ -1,0 +1,33 @@
+batch_id: product_learning
+case_id: feedhaven_repricing_2019_anon_v0
+contestant_results:
+- blocking_failures: 1
+  contestant_id: claude_sonnet_isolated_subagent_v0
+  in_band: false
+  over_band: false
+  overreach_distance: 0
+  run_id: run_001
+  scoring_result_id: 01KTSANTH2ZJW3AA3DW9R1ZD64
+  under_band: true
+  underreach_distance: 1
+- blocking_failures: 0
+  contestant_id: grok_4_isolated_external_v0
+  in_band: true
+  over_band: false
+  overreach_distance: 0
+  run_id: run_001
+  scoring_result_id: 01KTSBBVJK9XM3KS3H3CHBNWB8
+  under_band: false
+  underreach_distance: 0
+facilitator_ledger_hash: 05c8fea949b0f48ac139bbfc1a23d0c432fb618a9f972aa7172ac986ea2cedab
+failure_event_summary:
+  by_severity:
+    blocking: 1
+    info: 1
+  by_type:
+    evidence_id_missing: 1
+    under_band: 1
+  total: 2
+generated_at: '2026-06-10T18:05:28Z'
+mapping_table_version: v0_14_mvp
+non_claim_notice: plumbing works only; not judgment quality

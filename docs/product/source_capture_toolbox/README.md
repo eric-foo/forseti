@@ -67,7 +67,9 @@ packet without redefining Capture obligations.
 | `docs/product/source_capture_toolbox/source_quality_cw_p1_end_to_end_pass_closeout_v0.md` | One-source CW-P1 Mini God-Tier metadata-only negative-path pass evidence; read as operational closeout context only, not fixture admission, validation, or doctrine authority. |
 | `docs/product/source_capture_toolbox/source_quality_state_assembler_v0.md` | Architecture boundary for a read-only Source Quality State Assembler over already-bounded rows and existing packets; state census only, not source discovery, runner dispatch, scoring, fixture admission, or Judgment authority. |
 | `docs/product/source_capture_toolbox/source_quality_slot3_post_recapture_closeout_v0.md` | Slot 3 post-recapture Mini God-Tier source-quality closeout across Reddit batch 1, Reddit batch 2, and WSO; read as operational closeout context only, not fixture admission, validation, source completeness, or Judgment authority. |
-| `docs/product/source_capture_toolbox/reddit_precommercial_capture_consolidation_planning_thread_v0.md` | Durable architectural planning thread for bounded pre-commercial Reddit capture/consolidation: CloakBrowser-first old Reddit HTML route, packet-before-parser handoff, provenance-first consolidation shape, archive fallback, `.json` opportunistic fallback, and non-implementation stop lines. |
+| `docs/product/source_capture_toolbox/reddit_capture_operator_playbook_v0.md` | Current operator procedure for bounded Reddit exact-thread capture with implemented Armory tools: old Reddit Direct HTTP batch first, quality summary, exact-URL archive fallback, CloakBrowser/proxy boundaries, warm same-context JSON as future/specialized enrichment, and no broad crawl or commercial-use claims. |
+| `docs/product/source_capture_toolbox/reddit_precommercial_capture_consolidation_planning_thread_v0.md` | Durable architectural planning thread for bounded pre-commercial Reddit capture/consolidation: exact old Reddit Direct HTTP as the current exact-thread operator default, CloakBrowser as the anti-blocking/browser-visible route when Direct HTTP is unsuitable or blocked, warm same-context Reddit JSON as a bounded enrichment path, packet-before-parser handoff, provenance-first consolidation shape, archive fallback, and non-implementation stop lines. |
+| `docs/product/source_capture_toolbox/reddit_precommercial_capture_consolidation_success_signal_architecture_v0.md` | Advisory routing object that explains why the Reddit planning thread needs Decision-Frame-or-candidate classification, non-promoting success tiers, Armory vocabulary reuse, packet-contamination stops, no source-discovery expansion, and candidate-intake gap visibility. |
 
 ## Armory Components
 
@@ -287,19 +289,51 @@ It is operational source-quality evidence only. It is not fixture admission,
 validation, source completeness proof, Judgment scoring, source discovery, or
 authorization for new adapters.
 
+### Reddit Capture Operator Playbook
+
+Purpose: give operators and agents a single current-procedure route for bounded
+Reddit exact-thread capture using implemented Source Capture Armory tools.
+
+The playbook is at
+`docs/product/source_capture_toolbox/reddit_capture_operator_playbook_v0.md`.
+It covers required inputs, URL-list shape, old Reddit Direct HTTP batch capture,
+budget-window cadence, Reddit consolidation, quality summary interpretation,
+exact-URL archive fallback, CloakBrowser/proxy boundaries, warm same-context
+`.json` as a future/specialized enrichment path, and stop lines.
+
+It is operational guidance only. It is not validation, readiness, source
+completeness proof, source discovery authorization, broad crawling,
+monitoring, commercial Reddit authority, ECR, Cleaning, Judgment, or buyer
+proof.
+
 ### Reddit Pre-Commercial Capture Consolidation Planning Thread
 
 Purpose: preserve the durable planning thread for bounded Reddit
-pre-commercial capture and consolidation before implementation.
+pre-commercial capture and consolidation before Reddit-specific parser,
+consolidation, monitoring, or storage implementation.
 
 The planning artifact is at
 `docs/product/source_capture_toolbox/reddit_precommercial_capture_consolidation_planning_thread_v0.md`.
-It frames the work as an architectural planning pass: CloakBrowser-first old
-Reddit HTML capture once implemented, Source Capture Packet preservation before
-BeautifulSoup-style parsing, provenance-first consolidation, archive fallback,
-anonymous `.json` as opportunistic fallback only, and explicit stop lines for
+It frames the Reddit-specific work as an architectural planning pass: exact old
+Reddit Direct HTTP as the current exact-thread operator default when current old
+Reddit HTML is the capture target; CloakBrowser as the anti-blocking/browser-
+visible route when Direct HTTP is unsuitable or blocked; Source Capture Packet
+preservation before BeautifulSoup-style parsing; provenance-first
+consolidation; archive fallback; and warm same-context `.json` as a bounded
+enrichment path only after the exact old Reddit HTML thread has loaded
+successfully in the same browser context.
+It also keeps explicit stop lines for Reddit parser/consolidation
 implementation, runtime, broad crawling, storage, production monitoring, and
 commercial use.
+
+The success-signal routing object is at
+`docs/product/source_capture_toolbox/reddit_precommercial_capture_consolidation_success_signal_architecture_v0.md`.
+It is advisory context for the planning-thread hardening patch and should be
+read when checking why Reddit units must be classified as
+`decision_frame_bound` or `candidate_or_scouting`, why success tiers do not
+promote silently, and why candidate/scouting units currently have no compliant
+Data Capture handoff destination without a separate Candidate Signal Intake /
+Corpus Intake contract.
 
 It is planning context only. It is not validation, readiness, live Reddit
 capture authorization, CloakBrowser installation proof, parser correctness
@@ -357,6 +391,10 @@ then write the response into the Source Capture Packet shape.
 It should preserve response body, final URL, status, useful provenance headers,
 hashes, and access failures.
 
+It should ignore ambient proxy configuration so direct HTTP provenance remains
+true. If a run uses a proxy, that must happen through an explicit proxy-capable
+runner with method provenance, not through shell or process environment drift.
+
 It should not use API registration, browser automation, anti-detect behavior,
 proxies, credential bypass, or production crawling.
 
@@ -378,6 +416,16 @@ Browser Snapshot adapter, not this adapter.
 
 It should record when only archive metadata is available and when archive body
 retrieval fails or is not attempted.
+
+For a bounded URL whose live/current capture visibly fails with an access block
+or non-content interstitial, Archive.org is the preferred first fallback when
+the operator requested fallback handling. The fallback remains bound to the same
+source unit: first try the exact supplied URL, then a same-thread canonical URL
+variant when the source family has an obvious canonical equivalent, and record
+`snapshot_count=0` or `archive_body_not_preserved` loudly when no snapshot body
+exists. Do not treat archive fallback as permission to crawl the site, discover
+related URLs, follow comments/users/recommendations, or infer source content
+from archive absence.
 
 ### Honest Browser Snapshot Adapter
 
@@ -404,20 +452,37 @@ Purpose: preserve browser-visible source artifacts from public or discoverable
 sources that are expected to block ordinary browser/headless capture.
 
 The owner selected CloakBrowser as the primary third-tranche anti-blocking
-backend for the next implementation lane. Patchright remains an optional
-compatibility fallback if CloakBrowser creates a concrete operational blocker;
-it is not the default first probe.
+backend. Anonymous CloakBrowser Snapshot v0 is implemented in
+`orca-harness/source_capture/adapters/cloakbrowser_snapshot.py` with runner
+`orca-harness/runners/run_source_capture_cloakbrowser_packet.py`. Patchright
+remains an optional compatibility fallback if CloakBrowser creates a concrete
+operational blocker; it is not the default first probe.
+
+Implemented v0 scope:
+
+- one explicitly supplied ordinary URL;
+- anonymous non-persistent CloakBrowser launch;
+- rendered DOM, visible text, viewport screenshot, and method-provenance
+  metadata preserved into a Source Capture Packet;
+- no stored session, browser profile, raw cookies, storage-state file, proxy,
+  credential injection, CAPTCHA service, crawler, target discovery, parser,
+  consolidation, storage, dashboard, scheduler, deployment, production runtime,
+  ECR, Cleaning, Judgment, buyer proof, or commercial-readiness logic.
 
 For Reddit in the current pre-commercial / personal-project phase, the operating
 order is:
 
-1. anti-blocking browser capture first through the selected CloakBrowser route
-   once implemented;
-2. old Reddit HTML capture where available;
+1. exact old Reddit Direct HTTP first for supplied thread URLs when current old
+   Reddit HTML is the capture target and the bounded batch runner accepts the
+   URL;
+2. CloakBrowser anti-blocking browser capture for one supplied URL when Direct
+   HTTP is unsuitable, blocked, or browser-visible anti-blocking capture is
+   explicitly needed;
 3. low-volume bounded capture over source sets that are subreddit-bounded,
    thematic, query-based, thread-family scoped, or small monitored thread sets;
 4. archive capture for historical thread posture or when live capture is not
-   necessary or fails visibly.
+   necessary or fails visibly, bounded to the same supplied thread URL and
+   same-thread canonical variants.
 
 The Reddit bound is not URL-only. Operators must name the subreddit, theme,
 query, thread family, or monitored-thread set and record the method provenance
@@ -429,18 +494,45 @@ When Orca goes commercial / enterprise on Reddit, move to the sanctioned
 commercial / enterprise API or data-licensing path and stop relying on
 anti-blocking as the primary method.
 
-Do not treat anonymous Reddit `.json` endpoint access as the primary capture
-spine. Current official guidance and developer reports indicate OAuth/login
-credentials are expected for Data API traffic and anonymous `.json` reads may
-return 403/network-security failures. If `.json` works in a run, record it as an
-observed access posture and preserve its output, but do not design the armory
-around it.
+Do not treat cold anonymous Reddit `.json` endpoint access as the primary
+capture spine. Current official guidance and developer reports indicate
+OAuth/login credentials are expected for Data API traffic, and Orca's bounded
+2026-06-08 probes saw direct cold `.json`, browser cold `.json`, and
+CloakBrowser+proxy cold `.json` return 403/network-security blocks.
+
+However, Orca also observed a useful bounded exception on 2026-06-08: after the
+exact old Reddit HTML thread loaded successfully in a no-proxy CloakBrowser
+context, fetching that same thread's `.json` URL inside the same browser context
+with browser credentials returned HTTP 200 JSON. Treat this as a future
+`old_reddit_html_warmup_then_same_context_json` method shape: HTML remains the
+visible access/provenance warm-up, and same-context JSON may become the cleaner
+structured extraction body. It remains one supplied thread only unless a
+separate bounded batch runner is implemented; it does not authorize cold JSON
+probing, link following, subreddit crawling, user/profile capture, storage,
+monitoring, or commercial use.
+
+Bounded old Reddit batch capture should use a hard ceiling plus an inspectable
+cadence budget when more than a tiny smoke list is run: maximum thread count,
+time window, min/max gaps, recorded random seed, planned waits, planned offsets,
+actual timestamps, and visible stop reason. This cadence is for low-load
+bounded operation and provenance, not a claim to mimic a human or bypass access
+controls. The batch runner must stop visibly on blocks; it must not add hidden
+retries, proxy escalation, source discovery, monitoring, or browser fallback
+inside the Direct HTTP batch lane.
 
 BeautifulSoup-style parsing is appropriate after old Reddit HTML or archived
 HTML has been retrieved and preserved. It helps extract posts, comment text,
 links, timestamps, nesting cues, and visible metadata from HTML; it does not
 fetch the source, bypass blocking, solve JavaScript rendering, or replace packet
 provenance.
+
+Observed Reddit block pages such as HTTP `403 Blocked` with a visible
+"network security" message are source-access outcomes, not parser failures. The
+packet should preserve the block body and the consolidation or quality layer
+should mark the row unusable for downstream content extraction unless a bounded
+fallback packet preserves a usable source body. Archive absence is also an
+outcome: `snapshot_count=0` is not source completeness proof and must not be
+upgraded into evidence about the thread content.
 
 ### Source Observability Helper
 
@@ -468,8 +560,10 @@ limitations visible.
 9. Add Reddit API adapter and credential support. **Authorized by second tranche;
    implementation status should be checked in `orca-harness/source_capture/`
    before use.**
-10. Add CloakBrowser anti-blocking browser adapter. **Authorized by third
-    tranche; selected primary backend; not implemented in this README state.**
+10. Add CloakBrowser anti-blocking browser adapter. **Done for anonymous
+    non-persistent v0 over one explicitly supplied URL; not Reddit
+    discovery/consolidation, proxy/session behavior, storage, production
+    runtime, or commercial use.**
 11. Decide separately whether password-driven login automation, direct
     profile/cookie import, commercial fetch services, SERP APIs, broad
     crawler/spider frameworks, storage, dashboards, schedulers, deployment, or
@@ -517,18 +611,13 @@ Implemented first-tranche pieces:
 - Archive.org availability/body adapter;
 - Honest Browser Snapshot adapter, anonymous/headless v0;
 - Authenticated Browser Snapshot adapter, manual-login storage-state v0;
+- CloakBrowser Snapshot adapter, anonymous non-persistent v0;
 - Source Quality report-skeleton helper for existing Source Capture Packets;
 - Source Quality State Assembler for read-only state census over existing
   source-quality rows and packets;
 - Source Capture Packet fixture / retention / sensitivity decision;
 - agent-facing runbook for bounded runner selection, stops, inspection, and
   reporting.
-
-Recorded architecture boundaries / owner selections that are not implemented
-tooling:
-
-- CloakBrowser is selected as the primary anti-blocking browser backend for the
-  next third-tranche implementation lane.
 
 Remaining current gaps:
 
@@ -557,6 +646,59 @@ rights-to-process sufficiency, retention policy, or commercial-readiness
 evidence. Reddit API and anti-blocking/CloakBrowser build authority comes from
 `docs/decisions/data_capture_spine_source_access_tooling_build_authorization_v0.md`,
 not from this README.
+
+## Direction Change Propagation - CloakBrowser Anonymous Snapshot v0
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: "CloakBrowser is no longer only a selected third-tranche backend: Orca now has an anonymous non-persistent CloakBrowser Snapshot v0 adapter and packet runner for one explicitly supplied URL, while Reddit discovery/consolidation, proxy/session behavior, commercial fetch, storage, dashboards, deployment, and production runtime remain separately gated."
+  trigger: lifecycle_boundary
+  related_triggers:
+    - product_doctrine
+    - workflow_authority
+  controlling_sources_updated:
+    - "orca-harness/source_capture/adapters/cloakbrowser_snapshot.py"
+    - "orca-harness/runners/run_source_capture_cloakbrowser_packet.py"
+    - "orca-harness/tests/unit/test_source_capture_cloakbrowser_snapshot.py"
+    - "orca-harness/tests/contract/test_source_capture_cloakbrowser_snapshot_contract.py"
+    - "orca-harness/tests/contract/test_source_capture_browser_snapshot_contract.py"
+    - "orca-harness/pyproject.toml"
+    - "orca-harness/docs/source_capture_agent_runbook.md"
+    - "orca-harness/README.md"
+    - "docs/product/source_capture_toolbox/README.md"
+    - "docs/workflows/orca_repo_map_v0.md"
+    - "docs/workflows/data_capture_spine_consolidation_map_v0.md"
+  downstream_surfaces_checked:
+    - "AGENTS.md"
+    - ".agents/workflow-overlay/README.md"
+    - ".agents/workflow-overlay/safety-rules.md"
+    - "docs/decisions/data_capture_spine_source_access_tooling_build_authorization_v0.md"
+    - "docs/product/data_capture_source_access_boundary_decision_v0.md"
+    - "docs/product/data_capture_source_access_method_plan_v0.md"
+    - "docs/product/core_spine_v0_data_capture_spine_obligation_contract_v0.md"
+    - "docs/product/source_capture_toolbox/reddit_precommercial_capture_consolidation_planning_thread_v0.md"
+  intentionally_not_updated:
+    - path: "docs/decisions/data_capture_spine_source_access_tooling_build_authorization_v0.md"
+      reason: "The bounded third-tranche CloakBrowser build was already authorized; this patch implements the anonymous v0 runner without changing the authorization boundary."
+    - path: "docs/product/data_capture_source_access_boundary_decision_v0.md"
+      reason: "Source-access hard stops and disclosability requirements did not change."
+    - path: "docs/product/data_capture_source_access_method_plan_v0.md"
+      reason: "Method sequencing did not change; the selected CloakBrowser route moved from planned to anonymous v0 implementation."
+    - path: "docs/product/core_spine_v0_data_capture_spine_obligation_contract_v0.md"
+      reason: "Capture obligations and forbidden downstream outputs did not change."
+    - path: "docs/product/source_capture_toolbox/reddit_precommercial_capture_consolidation_planning_thread_v0.md"
+      reason: "The Reddit planning thread still owns parser/consolidation/monitoring/storage decisions; this patch implements only the generic one-URL CloakBrowser packet runner."
+  stale_language_search: "rg -n \"CloakBrowser.*not implemented|not implemented.*CloakBrowser|future primary backend|STEP-01 adapter contract|once implemented|not an implemented runner|live CloakBrowser engine, packet runner\" docs/product/source_capture_toolbox/README.md orca-harness/docs/source_capture_agent_runbook.md orca-harness/README.md docs/workflows/orca_repo_map_v0.md docs/workflows/data_capture_spine_consolidation_map_v0.md orca-harness/source_capture orca-harness/runners orca-harness/tests"
+  stale_language_search_result: "Executed 2026-06-06 after this patch; the only hit is this receipt's own stale_language_search line."
+  non_claims:
+    - "not validation"
+    - "not readiness"
+    - "not Reddit source discovery"
+    - "not Reddit parser or consolidation implementation"
+    - "not proxy, stored session, profile, cookie, credential, or CAPTCHA-service behavior"
+    - "not commercial fetch, broad crawling, storage, dashboard, deployment, or production-runtime authorization"
+    - "not ECR, Cleaning, or Judgment design"
+```
 
 ## Direction Change Propagation
 
@@ -742,4 +884,84 @@ direction_change_propagation:
     - "not direct profile or raw cookie import authorization"
     - "not anti-detect, proxy, CAPTCHA, API, commercial fetch, or production-runtime authorization"
     - "not ECR, Cleaning, or Judgment design"
+```
+
+## Direction Change Propagation - Blocked URL Archive Fallback
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: "Source Capture Armory runner guidance now treats visible HTTP block/interstitial packets as source-access outcomes and routes operator-requested archive fallback through exact URL plus same-thread canonical variants only, with snapshot absence recorded loudly."
+  trigger: product_doctrine
+  related_triggers:
+    - lifecycle_boundary
+    - output_authority
+  controlling_sources_updated:
+    - "docs/product/source_capture_toolbox/README.md"
+    - "docs/product/source_capture_toolbox/reddit_precommercial_capture_consolidation_planning_thread_v0.md"
+    - "orca-harness/docs/source_capture_agent_runbook.md"
+  downstream_surfaces_checked:
+    - "AGENTS.md"
+    - ".agents/workflow-overlay/README.md"
+    - ".agents/workflow-overlay/source-of-truth.md"
+    - ".agents/workflow-overlay/decision-routing.md"
+    - ".agents/workflow-overlay/source-loading.md"
+    - "docs/workflows/data_capture_spine_consolidation_map_v0.md"
+  intentionally_not_updated:
+    - path: "docs/workflows/data_capture_spine_consolidation_map_v0.md"
+      reason: "The consolidation map already routes Armory and Reddit source-access questions to this README, the Reddit planning thread, and the runbook; no new source family or entrypoint was added."
+    - path: ".agents/workflow-overlay/source-loading.md"
+      reason: "Source-loading already routes source-access tooling questions to the Armory README and runbook; no new read-pack or source hierarchy path is needed."
+    - path: "docs/product/core_spine_v0_data_capture_spine_obligation_contract_v0.md"
+      reason: "Capture obligations and posture vocabulary did not change; this patch applies existing archive/access visibility rules to blocked URL fallback."
+    - path: "docs/product/data_capture_source_access_boundary_decision_v0.md"
+      reason: "Source-access permission and hard stops did not change; the fallback remains bounded to the same source unit and does not authorize crawling or bypass."
+  stale_language_search: "rg -n \"archive fallback|same-thread canonical|snapshot_count=0|network security|ambient proxy|Do not chain runners|archive_body_not_preserved\" docs/product/source_capture_toolbox/README.md orca-harness/docs/source_capture_agent_runbook.md docs/product/source_capture_toolbox/reddit_precommercial_capture_consolidation_planning_thread_v0.md docs/workflows/data_capture_spine_consolidation_map_v0.md .agents/workflow-overlay/source-loading.md"
+  stale_language_search_result: "Executed 2026-06-08 after this patch. Hits are intended owner-surface language in the Armory README, Reddit planning thread, and runbook, plus pre-existing archive_body_not_preserved examples. The consolidation map remains pointer-only."
+  non_claims:
+    - "not validation"
+    - "not readiness"
+    - "not implementation execution"
+    - "not new source discovery authority"
+    - "not broad crawling"
+    - "not proxy, anti-detect, CAPTCHA, API, commercial fetch, storage, dashboard, deployment, or production-runtime authorization"
+    - "not ECR, Cleaning, Judgment, buyer proof, or source completeness proof"
+```
+
+## Direction Change Propagation - Warm Reddit JSON
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: "Reddit `.json` posture now distinguishes blocked cold JSON requests from the observed warm same-context JSON enrichment path: load exact old Reddit HTML first, then fetch that same thread's `.json` in the same browser context while preserving both bodies and provenance."
+  trigger: product_doctrine
+  related_triggers:
+    - architecture_doctrine
+    - output_authority
+  controlling_sources_updated:
+    - "docs/product/source_capture_toolbox/README.md"
+    - "docs/product/source_capture_toolbox/reddit_precommercial_capture_consolidation_planning_thread_v0.md"
+    - "docs/product/data_capture_source_access_method_plan_v0.md"
+    - "docs/decisions/data_capture_spine_source_access_tooling_build_authorization_v0.md"
+    - "docs/workflows/data_capture_spine_consolidation_map_v0.md"
+    - "orca-harness/docs/source_capture_agent_runbook.md"
+  downstream_surfaces_checked:
+    - "AGENTS.md"
+    - ".agents/workflow-overlay/README.md"
+    - ".agents/workflow-overlay/source-of-truth.md"
+    - ".agents/workflow-overlay/decision-routing.md"
+    - "docs/workflows/data_capture_spine_consolidation_map_v0.md"
+  intentionally_not_updated:
+    - path: "docs/product/core_spine_v0_data_capture_spine_obligation_contract_v0.md"
+      reason: "Capture obligations did not change; this patch changes Reddit method ordering and preservation posture."
+    - path: "docs/product/data_capture_source_access_boundary_decision_v0.md"
+      reason: "Source-access permission boundaries and hard stops did not change."
+    - path: "orca-harness/runners"
+      reason: "This is a docs-method update only; a warm same-context JSON runner remains a separately scoped implementation step."
+  stale_language_search: "rg -n \"anonymous `.json`|cold `.json`|warm same-context|same-context JSON|json_fallback|Reddit `.json` is not the spine\" docs/product/source_capture_toolbox/README.md docs/product/source_capture_toolbox/reddit_precommercial_capture_consolidation_planning_thread_v0.md docs/product/data_capture_source_access_method_plan_v0.md docs/decisions/data_capture_spine_source_access_tooling_build_authorization_v0.md docs/workflows/data_capture_spine_consolidation_map_v0.md orca-harness/docs/source_capture_agent_runbook.md"
+  non_claims:
+    - "not validation"
+    - "not readiness"
+    - "not implementation execution"
+    - "not live Reddit capture authorization"
+    - "not source discovery, crawling, monitoring, storage, or commercial Reddit authorization"
+    - "not ECR, Cleaning, Judgment, buyer proof, or source completeness proof"
 ```

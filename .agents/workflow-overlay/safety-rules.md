@@ -1,5 +1,15 @@
 # Safety Rules
 
+```yaml
+retrieval_header_version: 1
+artifact_role: Orca overlay authority
+scope: Project-specific safety rules, forbidden drift, authorization boundaries, and rollback limits for Orca work.
+use_when:
+  - Checking whether an action is forbidden drift or needs explicit authorization (implementation, runtime, commit, push, external-folder, or skill edits).
+  - Confirming fail-visible behavior, scope discipline, or rollback boundaries before acting.
+authority_boundary: retrieval_only
+```
+
 ## Project-Specific Safety
 
 - Fail visibly when required Orca authority is missing.
@@ -13,6 +23,7 @@
   does not authorize global, user-level, plugin, installed, or external workflow
   source mutation.
 - Do not commit, push, configure remotes, create pull requests, or perform destructive cleanup unless explicitly authorized.
+- **Online/external source-data capture routes through the Source Capture Armory Runner Ladder.** Any capture of online or external source data for evidence or learning goes through the armory runners + Mini God-Tier source-quality discipline (the "Runner Ladder"), not ad-hoc web fetches; captures emit inspectable Source Capture Packets that also serve as Capture-lane data. Route via the repo map (`docs/workflows/orca_repo_map_v0.md` -> Data Capture / Source Capture Armory submap) -> `orca-harness/docs/source_capture_agent_runbook.md` + `docs/product/source_capture_toolbox/source_quality_mini_god_tier_profile_v0.md`. Uncaptured scouting/diagnostic web reads (not entered as evidence) are exempt.
 
 ## Scope Discipline
 
@@ -71,4 +82,30 @@ direction_change_propagation:
     - "not blanket implementation authorization"
     - "not API, commercial-scraper, anti-detect, proxy, or production-runtime authorization"
     - "not ECR, Cleaning, or Judgment design"
+```
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: "Captures of online/external source data must route through the Source Capture Armory Runner Ladder (armory runners + Mini God-Tier source-quality discipline), not ad-hoc web fetches; emitted Source Capture Packets double as Capture-lane data. This is a behavioral routing rule that points to the existing armory owners via the repo map; the armory mechanics, source-access boundaries, and capture authorizations are unchanged. Uncaptured scouting/diagnostic web reads are exempt."
+  trigger: workflow_authority
+  related_triggers:
+    - lifecycle_boundary
+  controlling_sources_updated:
+    - ".agents/workflow-overlay/safety-rules.md"
+  downstream_surfaces_checked:
+    - "docs/workflows/orca_repo_map_v0.md"
+    - "orca-harness/docs/source_capture_agent_runbook.md"
+    - "docs/product/source_capture_toolbox/source_quality_mini_god_tier_profile_v0.md"
+  intentionally_not_updated:
+    - path: "docs/workflows/orca_repo_map_v0.md"
+      reason: "Already routes capture/armory work to the Data Capture submap, runbook, and runner/adapter files; this rule points to that existing route rather than forking it."
+    - path: "orca-harness/docs/source_capture_agent_runbook.md"
+      reason: "Owns the Runner Ladder mechanics and runner selection; this rule routes to it and changes none of it."
+    - path: "docs/product/source_capture_toolbox/source_quality_mini_god_tier_profile_v0.md"
+      reason: "Owns the Mini God-Tier rungs/result tokens; referenced, not changed."
+  non_claims:
+    - "not new capture authorization"
+    - "not a source-access boundary change"
+    - "not an armory mechanics change"
+    - "not ECR, Cleaning, or Judgment authority"
 ```

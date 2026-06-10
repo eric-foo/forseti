@@ -1,0 +1,76 @@
+batch_id: product_learning
+case_family: rss_reader_repricing_decide_vs_confirm
+case_id: feedhaven_repricing_2019_anon_v0
+committed_at: '2026-06-10T00:00:00Z'
+decision_shape: ceiling_trap
+fixture_grade: plumbing_grade
+fixture_status: QUARANTINED
+frozen_band_inputs:
+  authority: full
+  authority_acquisition_cost: low
+  capability: full
+  capability_build_cost: low
+  evidence_independence: partially_independent
+  evidence_strength: moderate
+  information_decay: slow
+  loss_shape: asymmetric_down
+  opportunity_cost: low
+  option_value: high
+  reversibility_cost: medium
+  reversibility_feasibility: high
+  upside_shape: symmetric
+  urgency: low
+labeling_rubric_version: v0_14
+leakage_audit:
+  known_fame_risk: low_fame_obscure_case
+  memorization_probe_required: true
+  spoiler_inventory: Anonymized re-skin of a real, higher-fame retrospective case.
+    The 'low_fame' label is the original rubric value, retained for schema compatibility;
+    the underlying real episode is recognizable, which is exactly why names are stripped
+    and runs are probe-gated on believe_know_outcome. The sealed outcome and the real-world
+    post-cutoff walk-back are spoilers; the isolated contestant must not access repo
+    or web or attempt to re-identify the underlying real company. Provenance hashes
+    still point to the real captured source bodies, so this is product-learning-clean,
+    not hostile-reviewer-proof.
+ledger_authors:
+  primary_labeler: Claude facilitator lane (this session)
+  second_labeler: owner (human ratification 2026-06-10)
+  second_labeler_type: human_operator
+ledger_freeze_hash: ebf46b68073d3f19c543ab436c3bc2496afea99164eb21672da07bc0438b8beb
+mapping_table_version_pin: v0_14_mvp
+must_address_items:
+- description: Flows automation is the power-user differentiator (E1); aggressive
+    gating hits exactly the users who came for it.
+  evidence_unit_ids:
+  - E1
+  - E2
+  must_address_item_id: MA-01
+- description: The free-internet base rate (E3) and the category leader's search-paywall
+    backlash (E4) show aggressive gating of an expected feature draws backlash.
+  evidence_unit_ids:
+  - E3
+  - E4
+  must_address_item_id: MA-02
+- description: Some gating is industry-normal (E2, E4); the live question is aggressiveness,
+    not whether to gate at all.
+  evidence_unit_ids:
+  - E2
+  - E4
+  must_address_item_id: MA-03
+- description: There is no pre-cutoff measurement of FeedHaven's own users' tolerance
+    for tightening Flows.
+  evidence_unit_ids:
+  - E1
+  - E5
+  must_address_item_id: MA-04
+- description: Distinguish the accepted willingness-to-pay band (E5) from the backlash
+    threshold of gating an expected feature.
+  evidence_unit_ids:
+  - E5
+  - E3
+  must_address_item_id: MA-05
+second_label_diffs: []
+underreach_observability:
+  evidence_unit_ids: []
+  notes: The decide-vs-confirm axis here is over-reach (ceiling), not underreach.
+  present: false

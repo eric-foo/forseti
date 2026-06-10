@@ -1,0 +1,71 @@
+batch_id: product_learning
+case_family: rss_reader_repricing_decide_vs_confirm
+case_id: inoreader_repricing_2019_v0
+committed_at: '2026-06-10T00:00:00Z'
+decision_shape: ceiling_trap
+fixture_grade: plumbing_grade
+fixture_status: QUARANTINED
+frozen_band_inputs:
+  authority: full
+  authority_acquisition_cost: low
+  capability: full
+  capability_build_cost: low
+  evidence_independence: partially_independent
+  evidence_strength: moderate
+  information_decay: slow
+  loss_shape: asymmetric_down
+  opportunity_cost: low
+  option_value: high
+  reversibility_cost: medium
+  reversibility_feasibility: high
+  upside_shape: symmetric
+  urgency: low
+labeling_rubric_version: v0_14
+leakage_audit:
+  known_fame_risk: low_fame_obscure_case
+  memorization_probe_required: true
+  spoiler_inventory: The in-repo case_index sealed outcome and the public February
+    2019 walk-back are post-cutoff spoilers; the isolated contestant must not access
+    the repo or web.
+ledger_authors:
+  primary_labeler: Claude facilitator lane (this session)
+  second_labeler: owner (human ratification 2026-06-10)
+  second_labeler_type: human_operator
+ledger_freeze_hash: b580099d4c453b7b1ad205a33d300a1f799072b948591fd284650c2ea2890c46
+mapping_table_version_pin: v0_14_mvp
+must_address_items:
+- description: Rules automation is the power-user differentiator (E1); aggressive
+    gating hits exactly the users who came for it.
+  evidence_unit_ids:
+  - E1
+  - E2
+  must_address_item_id: MA-01
+- description: The free-internet base rate (E3) and the Feedly search-paywall backlash
+    (E4) show aggressive gating of an expected feature draws backlash.
+  evidence_unit_ids:
+  - E3
+  - E4
+  must_address_item_id: MA-02
+- description: Some gating is industry-normal (E2, E4); the live question is aggressiveness,
+    not whether to gate at all.
+  evidence_unit_ids:
+  - E2
+  - E4
+  must_address_item_id: MA-03
+- description: There is no pre-cutoff measurement of Inoreader's own users' tolerance
+    for tightening Rules.
+  evidence_unit_ids:
+  - E1
+  - E5
+  must_address_item_id: MA-04
+- description: Distinguish the accepted willingness-to-pay band (E5) from the backlash
+    threshold of gating an expected feature.
+  evidence_unit_ids:
+  - E5
+  - E3
+  must_address_item_id: MA-05
+second_label_diffs: []
+underreach_observability:
+  evidence_unit_ids: []
+  notes: The decide-vs-confirm axis here is over-reach (ceiling), not underreach.
+  present: false

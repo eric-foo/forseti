@@ -1,0 +1,40 @@
+batch_id: product_learning
+case_id: inoreader_repricing_2019_v0
+contestant_results:
+- blocking_failures: 0
+  contestant_id: claude_sonnet_isolated_subagent_v0
+  in_band: false
+  over_band: false
+  overreach_distance: 0
+  run_id: run_001
+  scoring_result_id: 01KTRSD5PRX3E7J7H6HX470AGF
+  under_band: true
+  underreach_distance: 1
+- blocking_failures: 0
+  contestant_id: gpt_5_5_isolated_external_v0
+  in_band: true
+  over_band: false
+  overreach_distance: 0
+  run_id: run_001
+  scoring_result_id: 01KTRW0Y0K56HV4CEVD8FFPVSM
+  under_band: false
+  underreach_distance: 0
+- blocking_failures: 0
+  contestant_id: grok_4_isolated_external_v0
+  in_band: false
+  over_band: false
+  overreach_distance: 0
+  run_id: run_001
+  scoring_result_id: 01KTRX9N9GQHAHQ509JCX1B0YW
+  under_band: true
+  underreach_distance: 1
+facilitator_ledger_hash: 4e4a39ee8e0c18ad0e3c2f59047ceabba1d3c196b4600499c9fba2f43dc69a30
+failure_event_summary:
+  by_severity:
+    info: 2
+  by_type:
+    under_band: 2
+  total: 2
+generated_at: '2026-06-10T13:59:36Z'
+mapping_table_version: v0_14_mvp
+non_claim_notice: plumbing works only; not judgment quality

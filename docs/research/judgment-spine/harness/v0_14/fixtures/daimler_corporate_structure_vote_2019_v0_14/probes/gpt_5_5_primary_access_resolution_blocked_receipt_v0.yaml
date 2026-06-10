@@ -1,0 +1,62 @@
+retrieval_header_version: 1
+artifact_role: Research artifact - access-resolution blocked receipt
+scope: Blocked receipt for the Daimler GPT-5.5 primary-family access-resolution lane before any contestant probe run.
+use_when:
+  - Verifying why the Daimler GPT-5.5 primary memorization probe did not run.
+  - Checking whether exact GPT-5.5 access metadata was resolved for this fixture lane.
+authority_boundary: retrieval_only
+open_next:
+  - docs/decisions/daimler_v0_14_probe_execution_authorization_decision_v0.md
+  - docs/research/judgment-spine/harness/v0_14/fixtures/daimler_corporate_structure_vote_2019_v0_14/memorization_probe_request_prep_v0.md
+  - docs/research/judgment-spine/harness/v0_14/memorization_probe_protocol.md
+input_hashes:
+  docs/decisions/daimler_v0_14_probe_execution_authorization_decision_v0.md: A4D1B02D50C98A162ACE8ED3653E33BE7861DF2E42CEEE1E232F0C55760BBCF2
+  docs/research/judgment-spine/harness/v0_14/fixtures/daimler_corporate_structure_vote_2019_v0_14/memorization_probe_request_prep_v0.md: 8AB7B3986A930D2E689053C7C347F1EDA4B8ECE3EB08B1FDF82521D8CB93C6A6
+  docs/research/judgment-spine/harness/v0_14/memorization_probe_protocol.md: 96B2EF245E6E92A11024D1BAD3B26C2C18B45283831B5D5C1ED209B30A55AF8A
+branch_or_commit: main @ fb7f1a1cac09
+stale_if:
+  - Any listed input hash changes.
+  - A credentialed GPT-5.5 access path becomes available in the operator environment.
+  - The authorized probe family, case ID, or required reproducibility metadata changes.
+
+blocked_probe_receipt:
+  case_id: daimler_corporate_structure_vote_2019_v0_14
+  probe_model_family: GPT-5.5
+  probe_model_id: NOT_RESOLVED
+  model_snapshot_if_available: NOT_AVAILABLE_ACCESS_BLOCKED
+  system_fingerprint_if_available: NOT_AVAILABLE_ACCESS_BLOCKED
+  seed_if_supported: NOT_USED
+  prompt_hash: NOT_COMPUTED_ACCESS_BLOCKED
+  raw_response_hash: NOT_AVAILABLE_NO_VALID_PROBE_RUN
+  parsed_response:
+    recognition_status: NOT_AVAILABLE_NO_VALID_PROBE_RUN
+    claimed_outcome: NOT_AVAILABLE_NO_VALID_PROBE_RUN
+    confidence: NOT_AVAILABLE_NO_VALID_PROBE_RUN
+    notes: Access resolution blocked before any contestant prompt was sent.
+  access_resolution_status: blocked
+  blocker: no_observed_openai_or_azure_openai_credential_env_vars_and_no_usable_python_sdk_or_http_client_path_in_current_operator_environment
+  observed_environment_facts:
+    branch: main
+    head: fb7f1a1cac0960d1c6239271bcdf9a0df47a9c4e
+    openai_related_env_var_names: []
+    python_modules_checked:
+      openai: missing
+      httpx: missing
+      requests: missing
+  probe_result: blocked_or_not_run
+  reviewed_by_operator: false
+  operator_review_status: not_started
+  created_at: 2026-05-31T08:24:44.2885726Z
+  participant_packet_exposed: false
+  target_contestant_exposure: false
+  non_claims:
+    - no blind-use authorization
+    - no participant packet exposure
+    - no backup-family probe authorization
+    - no model judgment run
+    - no scoring
+    - no ledger freeze
+    - no schema/runtime implementation
+    - no validation
+    - no fixture admission
+    - no judgment-quality claim

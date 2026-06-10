@@ -1,0 +1,35 @@
+case_id: SMOKE_NOCASE_openai_gpt_5_4_mini_20260601_001
+contestant_execution_isolation:
+  browser_tools_disabled: true
+  execution_surface: raw_api_no_tools
+  external_retrieval_disabled: true
+  filesystem_workspace_access_disabled: true
+  hidden_context_boundary: request body contained only the generated public-identifiers
+    probe prompt and provider control fields; no participant packet, source, facilitator,
+    outcome, tool, browser, filesystem, or retrieval context was supplied
+  isolation_result: proven
+  tool_access_policy: no_tools
+  tool_call_trace_status: not_applicable
+  tool_config_evidence: raw API request body supplied only model/provider control
+    fields and the generated public-identifiers probe prompt; no tool, search, retrieval,
+    browser, file, attachment, workspace, system, developer, or hidden-context fields
+    were supplied
+  tool_config_evidence_kind: structural_config
+  web_search_disabled: true
+created_at: '2026-06-01T13:39:35Z'
+gate_interpretation: pass_valid
+model_snapshot_if_available: gpt-5.4-mini-2026-03-17
+non_claim_notice: plumbing works only; not judgment quality
+parsed_response:
+  claimed_outcome: unknown
+  confidence: 1.0
+  notes: No specific real-world case is identifiable from the provided synthetic identifiers;
+    I do not recognize a real case here and will not guess.
+  recognition_status: unknown
+probe_id: 01KT1PJHG19507ZYNTH828AKJ8
+probe_model_family: OpenAI GPT-5.4 mini
+probe_model_id: gpt-5.4-mini
+probe_result: pass
+prompt_hash: 17f80a6f81e3df4bcd1ace7778e53d721443f4fea9feea3356403f1ff67d35ec
+raw_response_hash: dfc7ca891e65ed0037f73b7c0ef34c90b452361fdec69c0cf6ff0057c19cf55b
+reviewed_by_operator: true

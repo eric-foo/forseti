@@ -1,0 +1,20 @@
+blocked_probe_receipt:
+  case_id: daimler_corporate_structure_vote_2019_v0_14
+  probe_model_family: GPT-5.5
+  status: blocked_or_not_run
+  blocker: exact_gpt_5_5_model_id_cannot_be_resolved_or_accessed_in_current_operator_environment
+  probe_result: NOT_AVAILABLE_NO_VALID_PROBE_RUN
+  participant_packet_exposed: false
+  target_contestant_exposure: false
+  created_at: 2026-05-31T07:47:43.8598267Z
+  non_claims:
+    - no probe run
+    - no probe pass
+    - no participant packet exposure
+    - no blind-use authorization
+    - no model judgment run
+    - no scoring
+    - no ledger freeze
+    - no validation
+    - no fixture admission
+    - no judgment-quality claim

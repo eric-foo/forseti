@@ -1,0 +1,72 @@
+advisory_phase_1_fields: {}
+case_id: inoreader_repricing_2019_v0
+contestant_band_claim:
+  advisory_only: true
+  claimed_ceiling: 4
+  claimed_floor: 2
+  reasoning: Defensible range is minimal-to-moderate (2-4) due to industry precedent
+    for gating (E2+E4) tempered by documented resistance patterns (E3+E4) and lack
+    of direct Inoreader user signal (MA-04+MA-05); aggressive (7+) would overstep
+    evidence on backlash threshold.
+contestant_id: grok_4_isolated_external_v0
+decision_shape: action_band
+evidence_used:
+- claim_id: C1
+  claim_role: load_bearing
+  claim_text: Rules are the established power-user differentiator already concentrated
+    in higher tiers
+  evidence_unit_ids:
+  - E1
+  - E2
+- claim_id: C2
+  claim_role: load_bearing
+  claim_text: Base rate of RSS user resistance to paywalling previously-free/expected
+    features, plus specific search-gating backlash precedent
+  evidence_unit_ids:
+  - E3
+  - E4
+- claim_id: C3
+  claim_role: supporting
+  claim_text: Accepted WTP band exists but steep gating of core features risks crossing
+    into pushback
+  evidence_unit_ids:
+  - E5
+- claim_id: C4
+  claim_role: contextual
+  claim_text: Some gating is category-normal; aggressiveness is the variable
+  evidence_unit_ids:
+  - E2
+  - E4
+harness_version: v0_14
+judgement_class: recommend
+load_bearing_assumption:
+  evidence_unit_ids:
+  - E3
+  - E4
+  statement: Pre-cutoff evidence of general RSS backlash (E3+E4) is predictive enough
+    of risk to favor caution over aggressive gating in repackaging, absent own-user
+    data
+  would_flip_if_false: true
+model_family: xai_grok
+model_id: grok-4
+model_snapshot_if_available: null
+must_address_items_covered:
+- MA-01
+- MA-02
+- MA-03
+- MA-04
+- MA-05
+prompt_hash: 8546683e8090e865b5f8a62b02bc2c5a9173e6837b7ac056a005d7f8c1aac2e9
+recommended_action:
+  action_label: narrow phase-in (gate a small power-user slice; keep a usable lower-tier
+    Rules entry)
+  ladder_level: 3
+  rationale: E1+E2 show Rules already positioned/tiered as power-user value in upper
+    plans, so some gating is consistent and normal (MA-03, E2+E4). But E3+E4 document
+    base-rate backlash risk when gating expected free-internet features, and E5 notes
+    pushback on steep moves beyond accepted WTP band. With no own-user tolerance data
+    (MA-04), narrow phase-in balances monetization of differentiator (MA-01) against
+    trust/reversibility while preserving entry-level usability.
+run_id: run_001
+seed_if_supported: null
+temperature: 1.0

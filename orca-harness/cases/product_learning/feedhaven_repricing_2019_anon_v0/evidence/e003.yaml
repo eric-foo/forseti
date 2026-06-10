@@ -1,0 +1,11 @@
+evidence_id: E3
+source_id: E3
+source: 'Competing RSS reader blog — premium-pricing announcement (2014)'
+source_type: competitor_blog
+timestamp: 2014-03-18
+retrieval_timestamp: 2026-06-10T00:00:00Z
+hash: 6c85358548226e20e3bbb5795f2e5c8fedc27435592ef80670147303293fb987
+hash_basis: sha256 of the captured source response body (_test_runs/source_capture_http_oldreader_premium_pricing_2014/raw/01_http_response_body.bin)
+pre_decision_status: verified_pre_decision
+pre_decision_basis: Published before the 2019-02-06 cutoff.
+summary: An analogous RSS reader's 2014 move to premium pricing drew verbatim free-internet objections ("why pay for something that's always been free"), a documented base rate of power-user resistance to paywalling RSS.

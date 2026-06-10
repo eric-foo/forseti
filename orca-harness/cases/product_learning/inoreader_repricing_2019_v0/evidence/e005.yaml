@@ -1,0 +1,11 @@
+evidence_id: E5
+source_id: E5
+source: Hacker News — RSS reader monetization / willingness-to-pay discussion
+source_type: forum_thread
+timestamp: 2017-11-11
+retrieval_timestamp: 2026-06-10T00:00:00Z
+hash: dd4b42bf5f53a87fb61df87034ee9e9726cda98fc79ad81e58e4dff52fd57dd7
+hash_basis: sha256 of the captured source response body (_test_runs/source_capture_http_hn_rss_monetization_2017/raw/01_http_response_body.bin)
+pre_decision_status: verified_pre_decision
+pre_decision_basis: Published before the 2019-02-06 cutoff.
+summary: A 2017 power-user discussion shows an accepted willingness-to-pay band for RSS readers and tolerance for sustainability pricing, with clear pushback against steep increases beyond that band.

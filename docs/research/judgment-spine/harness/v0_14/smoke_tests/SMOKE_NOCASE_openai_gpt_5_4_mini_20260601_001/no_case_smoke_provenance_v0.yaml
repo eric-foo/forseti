@@ -1,0 +1,68 @@
+﻿provenance_record_version: 1
+artifact_role: no_case_smoke_operator_provenance
+authority_boundary: plumbing_only_non_gate_clearing
+status: completed
+authorization_record_path: docs/decisions/no_case_smoke_test_authorization_openai_gpt_5_4_mini_20260601_v0.md
+authorization_record_sha256: 377D834A70F4B38ACD4A419290394DFD1B5C7A2F1957146DEBEE5B29867DB52B
+authorization_review_report_path: docs/review-outputs/adversarial-artifact-reviews/no_case_smoke_test_authorization_openai_gpt_5_4_mini_adversarial_artifact_review_v0.md
+authorization_review_report_sha256: F883F0EB19B87F4369CE1704BA39D6D727AC27BABC9693ECC7B4042FA8715E7B
+smoke_run_id: SMOKE_NOCASE_openai_gpt_5_4_mini_20260601_001
+operator: vmon7
+repo_branch: main
+repo_head: b9adaa26859e599dad17f052049b9065824d7165
+probe_input_path_used: docs\research\judgment-spine\harness\v0_14\smoke_tests\SMOKE_NOCASE_openai_gpt_5_4_mini_20260601_001\no_case_smoke_probe_input_v0.yaml
+probe_input_sha256: A9DEA6EE2C249A6BB9F59F9DA8638F817648BB262D8304CE2746CF9D18B157F6
+runner_path: orca-harness/runners/run_memorization_probe_raw_api.py
+runner_sha256: CD83FDE1960CA503AD0EE39188CB49EB4676426115A54A7A38A888AA2A99A021
+provider: openai_responses
+model_id_or_snapshot: gpt-5.4-mini
+api_url: https://api.openai.com/v1/responses
+endpoint_url: https://api.openai.com/v1/responses
+api_key_env: OPENAI_API_KEY
+api_key_env_name_only: OPENAI_API_KEY
+api_key_present_without_value: true
+model_source_basis: "OpenAI official Models documentation, retrieved 2026-06-01"
+exact_command: "python orca-harness/runners/run_memorization_probe_raw_api.py --probe-input docs\research\judgment-spine\harness\v0_14\smoke_tests\SMOKE_NOCASE_openai_gpt_5_4_mini_20260601_001\no_case_smoke_probe_input_v0.yaml --output docs\research\judgment-spine\harness\v0_14\smoke_tests\SMOKE_NOCASE_openai_gpt_5_4_mini_20260601_001\no_case_smoke_receipt_v0.yaml --provider openai_responses --api-url https://api.openai.com/v1/responses --api-key-env OPENAI_API_KEY --max-tokens 512 --timeout-seconds 60 --reviewed-by-operator --allow-live-provider-call"
+command_without_secret_values: "python orca-harness/runners/run_memorization_probe_raw_api.py --probe-input docs\research\judgment-spine\harness\v0_14\smoke_tests\SMOKE_NOCASE_openai_gpt_5_4_mini_20260601_001\no_case_smoke_probe_input_v0.yaml --output docs\research\judgment-spine\harness\v0_14\smoke_tests\SMOKE_NOCASE_openai_gpt_5_4_mini_20260601_001\no_case_smoke_receipt_v0.yaml --provider openai_responses --api-url https://api.openai.com/v1/responses --api-key-env OPENAI_API_KEY --max-tokens 512 --timeout-seconds 60 --reviewed-by-operator --allow-live-provider-call"
+sandbox_or_network_escalation:
+  requested: false
+  approved: not_applicable
+start_timestamp_local: "2026-06-01T21:39:27+08:00"
+end_timestamp_local: "2026-06-01T21:39:35+08:00"
+utc_started_at: "2026-06-01T13:39:27Z"
+utc_finished_at: "2026-06-01T13:39:35Z"
+process_exit_status: 0
+live_call_flag_passed: true
+participant_packet_exposed: false
+real_case_identifiers_used: false
+stdout_full: |-
+  docs\research\judgment-spine\harness\v0_14\smoke_tests\SMOKE_NOCASE_openai_gpt_5_4_mini_20260601_001\no_case_smoke_receipt_v0.yaml
+  probe_result=pass
+  isolation_result=proven
+  gate_interpretation=pass_valid
+  
+stderr_full: |-
+  
+receipt_path: docs\research\judgment-spine\harness\v0_14\smoke_tests\SMOKE_NOCASE_openai_gpt_5_4_mini_20260601_001\no_case_smoke_receipt_v0.yaml
+receipt_sha256: DB2A90D8FF93CD58D6409AD0CD72AA44F69FF162050B656D4B297A88B48C7B61
+receipt_fresh_read_status: read_ok
+receipt_prompt_hash: "17f80a6f81e3df4bcd1ace7778e53d721443f4fea9feea3356403f1ff67d35ec"
+receipt_raw_response_hash: "dfc7ca891e65ed0037f73b7c0ef34c90b452361fdec69c0cf6ff0057c19cf55b"
+prompt_hash_from_receipt: "17f80a6f81e3df4bcd1ace7778e53d721443f4fea9feea3356403f1ff67d35ec"
+raw_response_hash_from_receipt: "dfc7ca891e65ed0037f73b7c0ef34c90b452361fdec69c0cf6ff0057c19cf55b"
+non_gate_clearing_rule: >
+  No-case smoke output is plumbing confirmation only, even if the receipt
+  computes pass_valid. It is not a real-case probe pass, blind-use
+  authorization, validation, fixture admission, product proof, or
+  judgment-quality evidence.
+non_claims:
+  - no real-case probe
+  - no participant packet exposure
+  - no blind judgment
+  - no scoring
+  - no ledger freeze
+  - no schema/runtime implementation
+  - no validation
+  - no fixture admission
+  - no product proof
+  - no judgment-quality claim
