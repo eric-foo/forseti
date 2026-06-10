@@ -41,16 +41,26 @@ class ProxyCategory(StrEnum):
 
 @dataclass(frozen=True, repr=False)
 class ProxyProfile:
-    """In-memory proxy profile. Holds the secret endpoint; never serialize."""
+    """In-memory proxy profile. Holds the secret endpoint; never serialize.
+
+    ``timezone`` / ``locale`` are the operator-declared target geo for the proxy's
+    exit country (e.g. ``America/New_York`` / ``en-US`` for a US residential exit).
+    They are NOT secret; they are passed to the CloakBrowser launch so the rendered
+    session's timezone/locale match the proxy IP's country instead of the capture
+    host's, removing a geo-congruence signal anti-bot systems flag.
+    """
 
     proxy_endpoint: str
     proxy_category: ProxyCategory
     geoip_enabled: bool
+    timezone: str | None = None
+    locale: str | None = None
 
     def __repr__(self) -> str:
         return (
             "ProxyProfile(proxy_endpoint='<redacted>', "
-            f"proxy_category={self.proxy_category.value!r}, geoip_enabled={self.geoip_enabled!r})"
+            f"proxy_category={self.proxy_category.value!r}, geoip_enabled={self.geoip_enabled!r}, "
+            f"timezone={self.timezone!r}, locale={self.locale!r})"
         )
 
 
@@ -96,18 +106,29 @@ def write_proxy_profile_metadata(
     *,
     proxy_category: ProxyCategory,
     geoip_enabled: bool,
+    timezone: str | None = None,
+    locale: str | None = None,
     profile_root: Path | None = None,
 ) -> Path:
     root = profile_root or default_proxy_profile_root()
     profile_path = validate_proxy_profile_file(label, profile_root=root)
     metadata_path = proxy_profile_metadata_path_for_label(label, profile_root=root)
+    payload: dict[str, object] = {
+        "profile_file": profile_path.name,
+        "proxy_category": proxy_category.value,
+        "geoip_enabled": geoip_enabled,
+    }
+    # Declared target geo is non-secret and optional. Omit when not declared so a
+    # pre-geo profile keeps its exact prior sidecar shape (backward-compatible).
+    declared_timezone = _normalize_declared_geo(timezone)
+    if declared_timezone is not None:
+        payload["timezone"] = declared_timezone
+    declared_locale = _normalize_declared_geo(locale)
+    if declared_locale is not None:
+        payload["locale"] = declared_locale
     write_sidecar(
         metadata_path,
-        payload={
-            "profile_file": profile_path.name,
-            "proxy_category": proxy_category.value,
-            "geoip_enabled": geoip_enabled,
-        },
+        payload=payload,
         kind=_PROXY_PROFILE_KIND,
         label=label,
     )
@@ -145,12 +166,38 @@ def load_proxy_profile(
     geoip_enabled = sidecar.get("geoip_enabled")
     if not isinstance(geoip_enabled, bool):
         raise ValueError(f"proxy-profile metadata geoip_enabled must be boolean for label: {label}")
+    timezone = _read_declared_geo(sidecar.get("timezone"), field="timezone", label=label)
+    locale = _read_declared_geo(sidecar.get("locale"), field="locale", label=label)
 
     return ProxyProfile(
         proxy_endpoint=payload["server"],
         proxy_category=proxy_category,
         geoip_enabled=geoip_enabled,
+        timezone=timezone,
+        locale=locale,
     )
+
+
+def _normalize_declared_geo(value: str | None) -> str | None:
+    """Normalize an operator-declared timezone/locale at write time: trim, and
+    treat empty/whitespace-only (or non-string) as 'not declared' (None)."""
+    if not isinstance(value, str):
+        return None
+    stripped = value.strip()
+    return stripped or None
+
+
+def _read_declared_geo(value: object, *, field: str, label: str) -> str | None:
+    """Read a declared timezone/locale from the sidecar. Absent (None) is allowed
+    and means 'not declared'; a present-but-blank/non-string value is a hard error
+    so a corrupt sidecar fails loud instead of silently dropping the geo signal."""
+    if value is None:
+        return None
+    if not isinstance(value, str) or not value.strip():
+        raise ValueError(
+            f"proxy-profile metadata {field} must be a non-empty string when present for label: {label}"
+        )
+    return value
 
 
 def _validate_profile_shape(payload: dict, *, label: str) -> None:

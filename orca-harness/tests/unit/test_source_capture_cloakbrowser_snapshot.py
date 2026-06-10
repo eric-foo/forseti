@@ -325,6 +325,117 @@ def test_live_engine_passes_proxy_profile_only_to_cloakbrowser_launch(
 
     assert launch_kwargs["proxy"] == "http://user:SUPER_SECRET_PROXY_VALUE@proxy.example:8080"
     assert launch_kwargs["geoip"] is True
+    # A profile that declared no geo must still launch with timezone/locale None.
+    assert launch_kwargs["timezone"] is None
+    assert launch_kwargs["locale"] is None
+
+
+def test_live_engine_passes_declared_proxy_geo_to_cloakbrowser_launch(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    launch_kwargs: dict[str, object] = {}
+
+    class FakeLocator:
+        def inner_text(self, *, timeout: float) -> str:
+            return "Visible source text"
+
+    class FakePage:
+        url = "https://example.com/rendered"
+
+        def goto(self, url: str, **kwargs: object) -> None:
+            return None
+
+        def content(self) -> str:
+            return "<html><body>Visible source text</body></html>"
+
+        def locator(self, selector: str) -> FakeLocator:
+            return FakeLocator()
+
+        def screenshot(self, **kwargs: object) -> bytes:
+            return b"\x89PNG\r\n\x1a\ncloakbrowser"
+
+        def title(self) -> str:
+            return "Rendered Source"
+
+    class FakeContext:
+        def new_page(self) -> FakePage:
+            return FakePage()
+
+        def close(self) -> None:
+            return None
+
+    class FakeBrowser:
+        def new_context(self, **kwargs: object) -> FakeContext:
+            return FakeContext()
+
+        def close(self) -> None:
+            return None
+
+    class FakeCloakBrowserModule:
+        def launch(self, **kwargs: object) -> FakeBrowser:
+            launch_kwargs.update(kwargs)
+            return FakeBrowser()
+
+    def fake_import_module(name: str) -> FakeCloakBrowserModule:
+        assert name == "cloakbrowser"
+        return FakeCloakBrowserModule()
+
+    monkeypatch.setattr(cloakbrowser_snapshot_module, "import_module", fake_import_module)
+    profile = ProxyProfile(
+        proxy_endpoint="http://user:SUPER_SECRET_PROXY_VALUE@proxy.example:8080",
+        proxy_category=ProxyCategory.RESIDENTIAL_STATIC,
+        geoip_enabled=True,
+        timezone="America/New_York",
+        locale="en-US",
+    )
+
+    _CloakBrowserSnapshotEngine().capture(
+        url="https://example.com/source",
+        timeout_seconds=5,
+        wait_until="domcontentloaded",
+        viewport_width=1024,
+        viewport_height=768,
+        proxy_profile=profile,
+        block_heavy_assets=False,
+    )
+
+    # The declared target geo must reach the cloaked-browser launch so the rendered
+    # session's timezone/locale match the proxy exit country, not the capture host.
+    assert launch_kwargs["timezone"] == "America/New_York"
+    assert launch_kwargs["locale"] == "en-US"
+    assert launch_kwargs["proxy"] == "http://user:SUPER_SECRET_PROXY_VALUE@proxy.example:8080"
+    assert launch_kwargs["geoip"] is True
+
+
+def test_fetch_cloakbrowser_snapshot_capture_records_declared_proxy_geo() -> None:
+    profile = ProxyProfile(
+        proxy_endpoint="http://user:SUPER_SECRET_PROXY_VALUE@proxy.example:8080",
+        proxy_category=ProxyCategory.RESIDENTIAL_STATIC,
+        geoip_enabled=True,
+        timezone="America/New_York",
+        locale="en-US",
+    )
+    result = fetch_cloakbrowser_snapshot_capture(
+        url="https://example.com/source",
+        proxy_profile=profile,
+        engine=_FakeCloakBrowserEngine(
+            _FakeEngineResult(
+                final_url="https://example.com/source",
+                title=None,
+                rendered_dom="<html><body>ok</body></html>",
+                visible_text="ok",
+                screenshot_png=b"\x89PNG\r\n\x1a\ncloakbrowser",
+            )
+        ),
+    )
+
+    assert isinstance(result, CloakBrowserSnapshotSuccess)
+    assert result.metadata["proxy_timezone"] == "America/New_York"
+    assert result.metadata["proxy_locale"] == "en-US"
+    # Declared geo is non-secret, but the endpoint/credentials still must not leak.
+    serialized = json.dumps(result.metadata, sort_keys=True)
+    assert "SUPER_SECRET_PROXY_VALUE" not in serialized
+    assert "proxy.example" not in serialized
 
 
 def test_fetch_cloakbrowser_snapshot_capture_records_proxy_category_without_endpoint() -> None:
