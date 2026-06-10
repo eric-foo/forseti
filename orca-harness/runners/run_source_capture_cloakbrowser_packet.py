@@ -79,6 +79,7 @@ def run_source_capture_cloakbrowser_packet(
     viewport_height: int,
     max_artifact_bytes: int,
     block_heavy_assets: bool,
+    settle_seconds: float = 0.0,
 ) -> tuple[int, str]:
     capture_result = fetch_cloakbrowser_snapshot_capture(
         url=url,
@@ -89,6 +90,7 @@ def run_source_capture_cloakbrowser_packet(
         max_artifact_bytes=max_artifact_bytes,
         proxy_profile=proxy_profile,
         block_heavy_assets=block_heavy_assets,
+        settle_seconds=settle_seconds,
     )
     if isinstance(capture_result, CloakBrowserSnapshotFailure):
         return 3, f"{_failure_report_token(capture_result.failure_kind)}: {capture_result.message}"
@@ -303,6 +305,15 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--viewport-height", type=int, default=DEFAULT_VIEWPORT_HEIGHT)
     parser.add_argument("--max-artifact-bytes", type=int, default=DEFAULT_MAX_ARTIFACT_BYTES)
     parser.add_argument(
+        "--settle-seconds",
+        type=float,
+        default=0.0,
+        help=(
+            "Seconds to wait after the load event before capturing, so client-rendered (SPA) "
+            "content (e.g. a search/listing grid) can populate. Default 0 (capture at load)."
+        ),
+    )
+    parser.add_argument(
         "--preflight-only",
         action="store_true",
         help="Validate CLI inputs and optional proxy profile locally, then exit without network capture.",
@@ -423,6 +434,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             viewport_height=args.viewport_height,
             max_artifact_bytes=args.max_artifact_bytes,
             block_heavy_assets=block_heavy_assets,
+            settle_seconds=args.settle_seconds,
         )
     except ValueError as exc:
         parser.exit(status=2, message=f"source capture CloakBrowser snapshot failed: {exc}\n")

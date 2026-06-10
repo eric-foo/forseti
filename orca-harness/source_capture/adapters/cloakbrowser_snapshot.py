@@ -96,6 +96,7 @@ class CloakBrowserSnapshotEngine(Protocol):
         viewport_height: int,
         proxy_profile: ProxyProfile | None,
         block_heavy_assets: bool,
+        settle_seconds: float,
     ) -> CloakBrowserSnapshotEngineResult:
         ...
 
@@ -110,6 +111,7 @@ def fetch_cloakbrowser_snapshot_capture(
     max_artifact_bytes: int = DEFAULT_MAX_ARTIFACT_BYTES,
     proxy_profile: ProxyProfile | None = None,
     block_heavy_assets: bool = False,
+    settle_seconds: float = 0.0,
     engine: CloakBrowserSnapshotEngine | None = None,
 ) -> CloakBrowserSnapshotResult:
     normalized_url = _validate_http_url(url)
@@ -117,6 +119,8 @@ def fetch_cloakbrowser_snapshot_capture(
     _validate_positive_int("viewport_width", viewport_width)
     _validate_positive_int("viewport_height", viewport_height)
     _validate_positive_int("max_artifact_bytes", max_artifact_bytes)
+    if settle_seconds < 0:
+        raise ValueError("settle_seconds must be zero or greater")
     if wait_until not in ALLOWED_WAIT_UNTIL:
         allowed = ", ".join(sorted(ALLOWED_WAIT_UNTIL))
         raise ValueError(f"wait_until must be one of: {allowed}")
@@ -131,6 +135,7 @@ def fetch_cloakbrowser_snapshot_capture(
             viewport_height=viewport_height,
             proxy_profile=proxy_profile,
             block_heavy_assets=block_heavy_assets,
+            settle_seconds=settle_seconds,
         )
     except _CloakBrowserSnapshotDependencyUnavailable as exc:
         return CloakBrowserSnapshotFailure(
@@ -219,6 +224,7 @@ def fetch_cloakbrowser_snapshot_capture(
         "capture_timestamp": utc_now_z(),
         "timeout_seconds": timeout_seconds,
         "wait_until": wait_until,
+        "settle_seconds": settle_seconds,
         "viewport_width": viewport_width,
         "viewport_height": viewport_height,
         "screenshot_mode": "viewport",
@@ -270,6 +276,7 @@ class _CloakBrowserSnapshotEngine:
         viewport_height: int,
         proxy_profile: ProxyProfile | None,
         block_heavy_assets: bool,
+        settle_seconds: float = 0.0,
     ) -> CloakBrowserSnapshotEngineResult:
         try:
             cloakbrowser = import_module("cloakbrowser")
@@ -326,6 +333,8 @@ class _CloakBrowserSnapshotEngine:
                         ),
                     )
                 page.goto(url, wait_until=wait_until, timeout=timeout_ms)
+                if settle_seconds > 0:
+                    page.wait_for_timeout(settle_seconds * 1000)
                 rendered_dom = page.content()
                 warning_notes: list[str] = []
                 try:

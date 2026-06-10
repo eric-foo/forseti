@@ -114,6 +114,7 @@ def test_fetch_cloakbrowser_snapshot_capture_with_fake_engine_records_method_pro
         "viewport_height": 768,
         "proxy_profile": None,
         "block_heavy_assets": False,
+        "settle_seconds": 0.0,
     }
 
 
@@ -468,6 +469,163 @@ def test_fetch_cloakbrowser_snapshot_capture_records_proxy_category_without_endp
     serialized = json.dumps(result.metadata, sort_keys=True)
     assert "SUPER_SECRET_PROXY_VALUE" not in serialized
     assert "proxy.example" not in serialized
+
+
+def test_fetch_cloakbrowser_snapshot_capture_passes_settle_seconds_to_engine_and_metadata() -> None:
+    engine = _FakeCloakBrowserEngine(
+        _FakeEngineResult(
+            final_url="https://example.com/listing",
+            title="Listing",
+            rendered_dom="<html><body>grid</body></html>",
+            visible_text="grid",
+            screenshot_png=b"\x89PNG\r\n\x1a\ncloakbrowser",
+        )
+    )
+
+    result = fetch_cloakbrowser_snapshot_capture(
+        url="https://example.com/listing",
+        settle_seconds=8,
+        engine=engine,
+    )
+
+    assert isinstance(result, CloakBrowserSnapshotSuccess)
+    assert engine.capture_kwargs is not None
+    assert engine.capture_kwargs["settle_seconds"] == 8
+    assert result.metadata["settle_seconds"] == 8
+
+
+def test_fetch_cloakbrowser_snapshot_capture_rejects_negative_settle_seconds() -> None:
+    with pytest.raises(ValueError, match="settle_seconds"):
+        fetch_cloakbrowser_snapshot_capture(
+            url="https://example.com/listing",
+            settle_seconds=-1,
+            engine=_FakeCloakBrowserEngine(
+                _FakeEngineResult(
+                    final_url="https://example.com/listing",
+                    title=None,
+                    rendered_dom="<html><body>ok</body></html>",
+                    visible_text="ok",
+                    screenshot_png=b"\x89PNG\r\n\x1a\ncloakbrowser",
+                )
+            ),
+        )
+
+
+def test_live_engine_waits_after_load_when_settle_seconds_set(monkeypatch: pytest.MonkeyPatch) -> None:
+    calls: list[str] = []
+    waited: list[float] = []
+
+    class FakeLocator:
+        def inner_text(self, *, timeout: float) -> str:
+            return "grid"
+
+    class FakePage:
+        url = "https://example.com/listing"
+
+        def goto(self, url: str, **kwargs: object) -> None:
+            calls.append("goto")
+
+        def wait_for_timeout(self, ms: float) -> None:
+            waited.append(ms)
+            calls.append("wait")
+
+        def content(self) -> str:
+            calls.append("content")
+            return "<html><body>grid</body></html>"
+
+        def locator(self, selector: str) -> FakeLocator:
+            return FakeLocator()
+
+        def screenshot(self, **kwargs: object) -> bytes:
+            return b"\x89PNG\r\n\x1a\ncloakbrowser"
+
+        def title(self) -> str:
+            return "Listing"
+
+    class FakeContext:
+        def new_page(self) -> FakePage:
+            return FakePage()
+
+        def close(self) -> None:
+            return None
+
+    class FakeBrowser:
+        def new_context(self, **kwargs: object) -> FakeContext:
+            return FakeContext()
+
+        def close(self) -> None:
+            return None
+
+    class FakeCloakBrowserModule:
+        def launch(self, **kwargs: object) -> FakeBrowser:
+            return FakeBrowser()
+
+    def fake_import_module(name: str) -> FakeCloakBrowserModule:
+        assert name == "cloakbrowser"
+        return FakeCloakBrowserModule()
+
+    monkeypatch.setattr(cloakbrowser_snapshot_module, "import_module", fake_import_module)
+
+    _CloakBrowserSnapshotEngine().capture(
+        url="https://example.com/listing",
+        timeout_seconds=5,
+        wait_until="load",
+        viewport_width=1024,
+        viewport_height=768,
+        proxy_profile=None,
+        block_heavy_assets=False,
+        settle_seconds=8,
+    )
+
+    # The settle wait fires AFTER goto and BEFORE content extraction.
+    assert waited == [8000]
+    assert calls.index("goto") < calls.index("wait") < calls.index("content")
+
+
+def test_cloakbrowser_runner_threads_settle_seconds_to_capture(monkeypatch: pytest.MonkeyPatch) -> None:
+    seen: dict[str, object] = {}
+
+    def fake_capture(**kwargs: object) -> CloakBrowserSnapshotFailure:
+        seen.update(kwargs)
+        return CloakBrowserSnapshotFailure(
+            requested_url="https://example.com/listing",
+            failure_kind=CloakBrowserSnapshotFailureKind.CAPTURE_FAILED,
+            message="stub failure after recording kwargs",
+        )
+
+    monkeypatch.setattr(cloakbrowser_runner, "fetch_cloakbrowser_snapshot_capture", fake_capture)
+
+    exit_code, _ = cloakbrowser_runner.run_source_capture_cloakbrowser_packet(
+        url="https://example.com/listing",
+        source_family="web_page",
+        source_surface="cloakbrowser_snapshot",
+        decision_question="does settle thread through?",
+        output_directory=Path("unused_no_packet_on_failure"),
+        capture_context="test settle threading",
+        operator_category="cloakbrowser_snapshot_cli_operator",
+        capture_mode=CaptureModeCategory.MULTIMODAL,
+        session_id=None,
+        proxy_profile=None,
+        actor_audience_context=None,
+        visible_mode_changes=[],
+        source_publication_or_event=None,
+        source_edit_or_version=None,
+        cutoff_posture=None,
+        recapture_time=None,
+        re_capture_relationship=None,
+        warnings=[],
+        limitations=[],
+        timeout_seconds=20,
+        wait_until="load",
+        viewport_width=1280,
+        viewport_height=720,
+        max_artifact_bytes=50_000,
+        block_heavy_assets=False,
+        settle_seconds=8,
+    )
+
+    assert exit_code == 3
+    assert seen["settle_seconds"] == 8
 
 
 def test_fetch_cloakbrowser_snapshot_capture_records_heavy_asset_blocking() -> None:
