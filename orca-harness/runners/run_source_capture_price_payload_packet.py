@@ -26,6 +26,7 @@ import argparse
 import hashlib
 import json
 import sys
+import time
 from pathlib import Path
 from typing import Sequence
 from urllib.parse import urljoin, urlparse
@@ -111,7 +112,11 @@ def _chunk_urls(page_html: str, base_url: str) -> list[str]:
 def _discover_prices_chunk(chunk_urls, *, timeout, max_chunks, byte_budget):
     """Fetch chunks (rung-1) in order, stop at the first carrying the prices anchor.
 
-    Returns (url, success_result, classification, scanned_log) or raises ValueError.
+    Returns ``(url, success_result, classification, scanned_log, reason)``: on a
+    hit the first three are set and ``reason`` is None; on a miss they are None
+    and ``reason`` is ``'byte_budget_exceeded'`` or ``'anchor_not_found'`` (an
+    honest classified miss, never a silent empty result). ``scanned_log`` is the
+    per-chunk scan log either way, so a loud failure can preserve it.
     """
     scanned: list[dict] = []
     spent = 0
@@ -129,15 +134,47 @@ def _discover_prices_chunk(chunk_urls, *, timeout, max_chunks, byte_budget):
             "has_prices_anchor": has,
         })
         if has:
-            return url, success, classification, scanned
+            return url, success, classification, scanned, None
         if spent > byte_budget:
-            raise ValueError(
-                f"prices payload not found within byte budget ({byte_budget}); "
-                f"scanned {len(scanned)} chunks"
-            )
-    raise ValueError(
-        f"prices payload anchor {PRICES_ANCHOR.pattern!r} not found in "
-        f"{len(scanned)} scanned module-preload chunks"
+            return None, None, None, scanned, "byte_budget_exceeded"
+    return None, None, None, scanned, "anchor_not_found"
+
+
+_DEGRADED_CHUNK_FLOOR = 15  # a full pricing page exposes ~31 module-preload chunks;
+                            # an intermittent degraded/thin server variant exposes ~4.
+
+_FRESHNESS_HEADERS = ("date", "age", "cache-control", "etag", "last-modified")
+
+
+def _response_freshness(headers) -> dict:
+    """Cache/freshness headers from a response -- PROVENANCE ONLY (recorded, never
+    gated). Lets a downstream operator judge whether a body was served from a
+    stale cache; the certifier does NOT assert freshness."""
+    if not headers:
+        return {h.replace("-", "_"): None for h in _FRESHNESS_HEADERS}
+    lower = {str(k).lower(): str(v) for k, v in headers.items()}
+    return {h.replace("-", "_"): lower.get(h) for h in _FRESHNESS_HEADERS}
+
+
+def _write_failure_artifact(output_directory: Path, page_url: str, attempts: list[dict]) -> None:
+    """Preserve per-attempt evidence on an all-attempts loud failure so the operator
+    can tell a transient degraded-page cluster from a real vendor change without
+    re-running (kernel: preserve real failure visibility)."""
+    output_directory.mkdir(parents=True, exist_ok=True)
+    record = {
+        "schema": "rung15_capture_failure_v0",
+        "page_url": page_url,
+        "outcome": "discovery_miss_all_attempts",
+        "attempts": attempts,
+        "diagnosis_note": (
+            "parser_no_chunks / anchor_not_found_thin_page = the transient degraded "
+            "server variant (thin module-preload list) -> re-run; "
+            "anchor_not_found_full_page = a full page missing the prices anchor -> "
+            "likely a real vendor change, escalate (do NOT just retry)."
+        ),
+    }
+    (output_directory / "rung15_capture_failure.json").write_text(
+        json.dumps(record, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
     )
 
 
@@ -179,28 +216,62 @@ def run_price_payload_capture(
     timeout_seconds: float,
     max_chunks: int,
     chunk_byte_budget: int,
+    max_page_attempts: int = 3,
+    page_retry_backoff_seconds: float = 1.5,
 ) -> tuple[int, str]:
-    capture_ts = None
+    # --- 1+2. page (structure) + prices-chunk discovery, with degraded-page retry ---
+    # An intermittent server variant serves a thin module-preload list (the prices
+    # chunk absent) ~17% of the time; it heals on a page re-fetch. Only a discovery
+    # MISS is retried; the certifier remains the content honesty guard. All-K miss
+    # is a loud failure with preserved per-attempt evidence -- never a silent empty.
+    attempts: list[dict] = []
+    page_res = page_cls = page_html = base_url = None
+    chunk_url = chunk_res = chunk_cls = scan_log = None
+    page_module_preload_count = None
+    for attempt_i in range(max_page_attempts):
+        pr, pc = _rung1_fetch(page_url, timeout=timeout_seconds, max_bytes=12_000_000)
+        if isinstance(pr, AntiBlockingHttpCaptureFailure):
+            attempts.append({"attempt": attempt_i, "failure_class": "page_fetch_failed",
+                             "detail": pr.message})
+        else:
+            phtml = pr.body.decode("utf-8", "replace")
+            burl = pr.final_url
+            curls = _chunk_urls(phtml, burl)
+            ncount = len(curls)
+            if not curls:
+                attempts.append({"attempt": attempt_i, "failure_class": "parser_no_chunks",
+                                 "status": pr.status, "final_url": burl,
+                                 "body_sha256": _sha256(pr.body), "byte_count": len(pr.body),
+                                 "module_preload_count": 0})
+            else:
+                curl, cres, ccls, slog, reason = _discover_prices_chunk(
+                    curls, timeout=timeout_seconds,
+                    max_chunks=max_chunks, byte_budget=chunk_byte_budget,
+                )
+                if reason is None:
+                    page_res, page_cls, page_html, base_url = pr, pc, phtml, burl
+                    chunk_url, chunk_res, chunk_cls, scan_log = curl, cres, ccls, slog
+                    page_module_preload_count = ncount
+                    attempts.append({"attempt": attempt_i, "outcome": "found",
+                                     "module_preload_count": ncount})
+                    break
+                fclass = (reason if reason == "byte_budget_exceeded"
+                          else ("anchor_not_found_thin_page" if ncount < _DEGRADED_CHUNK_FLOOR
+                                else "anchor_not_found_full_page"))
+                attempts.append({"attempt": attempt_i, "failure_class": fclass,
+                                 "status": pr.status, "final_url": burl,
+                                 "body_sha256": _sha256(pr.body), "byte_count": len(pr.body),
+                                 "module_preload_count": ncount, "scan_log": slog})
+        if attempt_i < max_page_attempts - 1 and page_retry_backoff_seconds > 0:
+            time.sleep(page_retry_backoff_seconds)
 
-    # --- 1. page (structure) over rung-1 -----------------------------------
-    page_res, page_cls = _rung1_fetch(page_url, timeout=timeout_seconds, max_bytes=12_000_000)
-    if isinstance(page_res, AntiBlockingHttpCaptureFailure):
-        return 3, f"page fetch failed: {page_res.message}"
+    if page_res is None:
+        _write_failure_artifact(output_directory, page_url, attempts)
+        last_class = attempts[-1].get("failure_class") if attempts else None
+        return 3, (f"rung-1.5 capture failed: prices payload not found after "
+                   f"{max_page_attempts} page attempt(s) (last failure_class={last_class}); "
+                   f"per-attempt evidence preserved in rung15_capture_failure.json")
     capture_ts = page_res.metadata["capture_timestamp"]
-    page_html = page_res.body.decode("utf-8", "replace")
-    base_url = page_res.final_url
-
-    # --- 2. discover + fetch prices chunk (amounts) over rung-1 ------------
-    chunk_urls = _chunk_urls(page_html, base_url)
-    if not chunk_urls:
-        return 3, "no module-preload chunks found in page; cannot locate prices payload"
-    try:
-        chunk_url, chunk_res, chunk_cls, scan_log = _discover_prices_chunk(
-            chunk_urls, timeout=timeout_seconds,
-            max_chunks=max_chunks, byte_budget=chunk_byte_budget,
-        )
-    except ValueError as exc:
-        return 3, str(exc)
     chunk_text = chunk_res.body.decode("utf-8", "replace")
 
     # --- 3. structured extraction (pure) -----------------------------------
@@ -326,14 +397,16 @@ def run_price_payload_capture(
             "byte_count": len(page_res.body), "sha256": _sha256(page_res.body),
             "block_shell": page_cls.classification.value,
             "block_shell_signal": page_cls.signal,
+            "freshness": _response_freshness(page_res.response_headers),
         },
         "prices_chunk": {
             "url": chunk_url, "status": chunk_res.status,
             "content_type": chunk_res.metadata.get("content_type"),
             "byte_count": len(chunk_res.body), "sha256": _sha256(chunk_res.body),
             "block_shell": chunk_cls.classification.value,
-            "module_preload_chunks_seen": len(chunk_urls),
+            "module_preload_chunks_seen": page_module_preload_count,
             "chunk_scan_log": scan_log,
+            "freshness": _response_freshness(chunk_res.response_headers),
         },
         "announcement": (
             {
@@ -345,6 +418,7 @@ def run_price_payload_capture(
             }
             if announcement_url else None
         ),
+        "capture_attempts": attempts,
         "capture_timestamp": capture_ts,
     }
 
@@ -367,9 +441,12 @@ def run_price_payload_capture(
         access_posture = known_fact(
             "rung-1.5 payload extraction: displayed pricing tiers + amounts recovered "
             "browser-free from structured payloads (HTML turbo-stream structure + "
-            "JS-module prices object amounts) and CONTENT-CERTIFIED via interpretation-layer "
-            f"discriminator rung15_price_payload_v0 (all checks passed; "
-            f"{verdict.priced_tier_count} tiers priced). Per-body block_shell stays "
+            "JS-module prices object amounts). Discriminator rung15_price_payload_v0 PASSED "
+            f"({verdict.priced_tier_count} tiers priced): the payload is an INTERNALLY-CONSISTENT "
+            "structured pricing payload AS SERVED at capture-time. It is NOT independently "
+            "verified as the CURRENT or COMPLETE displayed pricing -- response freshness "
+            "(Date/Age/Cache-Control) and module-preload completeness are recorded as "
+            "provenance for operator judgement, not asserted. Per-body block_shell stays "
             "content_unverified and is NOT weakened."
         )
         capture_limitations: list[str] = []
@@ -493,7 +570,8 @@ def run_price_payload_capture(
             f"rung-1.5 price-payload capture for openai_chatgpt_pricing: "
             f"{verdict.priced_tier_count} priced tiers recovered browser-free "
             f"(structure=react-router turbo-stream, amounts=JS-module prices object); "
-            f"content_certification={cert_state}; block_shell per body content_unverified."
+            f"discriminator={cert_state} (internal-consistency only; freshness/completeness "
+            f"recorded as provenance, NOT asserted); block_shell per body content_unverified."
         ),
         receipt_non_claims=PRICE_PAYLOAD_NON_CLAIMS,
     )
@@ -523,6 +601,10 @@ def _build_parser() -> argparse.ArgumentParser:
     p.add_argument("--timeout-seconds", type=float, default=25.0)
     p.add_argument("--max-chunks", type=int, default=20)
     p.add_argument("--chunk-byte-budget", type=int, default=20_000_000)
+    p.add_argument("--max-page-attempts", type=int, default=3,
+                   help="page fetch+discovery attempts before a loud failure (degraded-page retry)")
+    p.add_argument("--page-retry-backoff-seconds", type=float, default=1.5,
+                   help="sleep between page attempts; degraded responses cluster")
     return p
 
 
@@ -543,6 +625,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             timeout_seconds=args.timeout_seconds,
             max_chunks=args.max_chunks,
             chunk_byte_budget=args.chunk_byte_budget,
+            max_page_attempts=args.max_page_attempts,
+            page_retry_backoff_seconds=args.page_retry_backoff_seconds,
         )
     except ValueError as exc:
         parser.exit(status=2, message=f"rung-1.5 price-payload capture failed: {exc}\n")

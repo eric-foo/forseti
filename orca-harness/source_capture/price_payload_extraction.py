@@ -325,7 +325,7 @@ def join_tiers_with_amounts(
             amount = None
             if isinstance(cur_map, dict):
                 amount = cur_map.get(currency)
-            resolved = isinstance(amount, (int, float))
+            resolved = isinstance(amount, (int, float)) and not isinstance(amount, bool)
             rt.prices.append(ResolvedTierPrice(
                 price_token=tp.price_token,
                 descriptor=tp.description,
@@ -390,8 +390,10 @@ class CertificationVerdict:
             "priced_tier_count": self.priced_tier_count,
             "discriminator": "rung15_price_payload_v0",
             "discriminator_note": (
-                "interpretation-layer content discriminator over rung-1 provenance; "
-                "does NOT weaken block_shell (each fetched body keeps its block-shell class)"
+                "interpretation-layer INTERNAL-CONSISTENCY discriminator over rung-1 provenance: "
+                "asserts the payload parsed cleanly and cross-checks (two-way token list, all "
+                "displayed tokens resolved, amounts plausible). Does NOT assert freshness or "
+                "completeness (recorded as provenance, not certified) and does NOT weaken block_shell"
             ),
             "checks": [
                 {"check": c.name, "passed": c.passed, "detail": c.detail}
@@ -468,6 +470,23 @@ def certify_extraction(
     numeric_tier_prices = [
         rp for rt in resolved_tiers for rp in rt.prices
     ]
+
+    # Two-way coherence: every DISPLAYED price token must be covered by the
+    # canonical token list (completing displayed ⊆ token_list ⊆ prices). The
+    # one-way token_list ⊆ prices check alone could pass a wrong/partial list.
+    displayed_tokens = [rp.price_token for rp in numeric_tier_prices]
+    displayed_in_list = bool(token_list) and all(t in token_list for t in displayed_tokens)
+    missing_from_list = (
+        [t for t in displayed_tokens if t not in token_list] if token_list else displayed_tokens
+    )
+    checks.append(CertificationCheck(
+        "displayed_tokens_in_token_list",
+        displayed_in_list,
+        (f"all {len(displayed_tokens)} displayed price tokens covered by the canonical token list"
+         if displayed_in_list
+         else f"displayed tokens NOT covered by canonical token list: {missing_from_list}"),
+    ))
+
     unresolved = [rp.price_token for rp in numeric_tier_prices if not rp.resolved]
     all_tokens_resolved = len(unresolved) == 0 and len(numeric_tier_prices) > 0
     checks.append(CertificationCheck(

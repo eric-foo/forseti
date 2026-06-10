@@ -8,7 +8,10 @@ a legitimate Free $0 tier must NOT be false-failed.
 from source_capture.price_payload_extraction import (
     ResolvedTier,
     ResolvedTierPrice,
+    Tier,
+    TierPrice,
     certify_extraction,
+    join_tiers_with_amounts,
 )
 
 
@@ -113,3 +116,38 @@ def test_free_zero_tier_still_certifies():
         ],
     )
     assert v.certified, _failed(v)
+
+
+def test_bool_amount_is_not_resolved_as_a_price():
+    # bool is an int subclass; a malformed JSON `true` must NOT resolve as $0.01.
+    tiers = [
+        Tier(
+            name="Plus", cms_name=None, display_order=1,
+            prices=(TierPrice(price_token="chatgpt.plus", description=None, price_header=None,
+                              label=None, cms_name=None, updated_at=None),),
+            static_price=None,
+        )
+    ]
+    resolved = join_tiers_with_amounts(tiers, {"chatgpt.plus": {"usd": True}}, currency="usd")
+    rp = resolved[0].prices[0]
+    assert rp.resolved is False
+    assert rp.amount_minor is None
+
+
+def test_displayed_token_not_in_token_list_refuses_certification():
+    # a displayed token resolves from prices but is NOT covered by the canonical token list
+    v = _certify(
+        token_list=["chatgpt.plus.2026"],
+        prices={"chatgpt.plus.2026": {"usd": 2000}, "chatgpt.rogue": {"usd": 999}},
+        resolved_tiers=[
+            ResolvedTier(name="Rogue", display_order=1, prices=[_rtp("chatgpt.rogue", 999)]),
+        ],
+    )
+    assert not v.certified
+    assert "displayed_tokens_in_token_list" in _failed(v)
+
+
+def test_discriminator_note_does_not_overclaim_currency_or_completeness():
+    note = _certify().as_dict()["discriminator_note"]
+    assert "INTERNAL-CONSISTENCY" in note
+    assert "freshness" in note  # the claim explicitly does NOT assert freshness/completeness
