@@ -322,6 +322,63 @@ def test_observation_valid_visible_influence_passes() -> None:
     )
 
 
+# --- carried-field closed-value / shape gate (cross-vendor 3c-1 review fold) ---
+
+def test_observation_invalid_source_surface_raises() -> None:
+    bad = _observation(observed_source_surface="totally_made_up_surface").to_dict()
+    with pytest.raises(LinkedInLaneError) as exc:
+        validate_live_observation(bad)
+    assert exc.value.code == "invalid_observed_source_surface"
+
+
+def test_observation_invalid_minimization_rule_raises() -> None:
+    bad = _observation(minimization_rule="keep everything actually").to_dict()
+    with pytest.raises(LinkedInLaneError) as exc:
+        validate_live_observation(bad)
+    assert exc.value.code == "invalid_minimization_rule"
+
+
+def test_observation_invalid_person_data_minimized_raises() -> None:
+    # A business observation with a garbage person_data_minimized value: the person
+    # gate would not catch it (non-person), so the carried-field closed-value check does.
+    bad = _observation(person_data_minimized="some smuggled narrative").to_dict()
+    with pytest.raises(LinkedInLaneError) as exc:
+        validate_live_observation(bad)
+    assert exc.value.code == "invalid_person_data_minimized"
+
+
+def test_observation_unsafe_id_raises() -> None:
+    bad = _observation(observation_id="obs 0001 with a pasted bio paragraph and spaces").to_dict()
+    with pytest.raises(LinkedInLaneError) as exc:
+        validate_live_observation(bad)
+    assert exc.value.code == "invalid_observation_id"
+
+
+def test_observation_bad_provenance_timestamp_raises() -> None:
+    bad = _observation(provenance_timestamp="last Tuesday afternoon").to_dict()
+    with pytest.raises(LinkedInLaneError) as exc:
+        validate_live_observation(bad)
+    assert exc.value.code == "invalid_provenance_timestamp"
+
+
+def test_observation_timestamp_plus_utc_offset_passes() -> None:
+    # F2 (v1 review): +00:00 is a legitimate ISO-8601 UTC spelling (e.g. from
+    # datetime.isoformat()) and must not be false-rejected.
+    validate_live_observation(
+        _observation(provenance_timestamp="2026-06-10T00:00:00+00:00").to_dict()
+    )
+
+
+def test_observation_exclusions_must_be_empty_raises() -> None:
+    # F1 (v1 review): the gate must reject carried exclusion content for ANY caller,
+    # not only rely on the minimizer forcing it safe.
+    bad = _observation().to_dict()
+    bad["exclusions"] = ["a pasted narrative masquerading as an exclusion receipt"]
+    with pytest.raises(LinkedInLaneError) as exc:
+        validate_live_observation(bad)
+    assert exc.value.code == "invalid_observation_exclusions"
+
+
 # --- slice 3b-2: projection (LiveObservation -> CandidateRow) + mint-path + binding ---
 
 def _run_envelope(**overrides) -> RunEnvelope:

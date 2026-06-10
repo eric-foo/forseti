@@ -16,11 +16,18 @@ non_claims category check, excluded public-actor-basis markers) are IMPORTED fro
 """
 from __future__ import annotations
 
+import re
 from collections.abc import Mapping
 from dataclasses import fields
 from typing import Any
 
-from capture_spine.linkedin_lane.models import EntityType, PERSON_ENTITY_TYPES
+from capture_spine.linkedin_lane.models import (
+    EntityType,
+    MinimizationRule,
+    PERSON_ENTITY_TYPES,
+    PersonDataMinimized,
+    SourceSurface,
+)
 from capture_spine.linkedin_lane.shared_validation import (
     assert_no_forbidden_output_fields,
     fail as _fail,
@@ -150,6 +157,19 @@ _MINIMIZATION_BOUNDARY_FLAGS: tuple[str, ...] = (
     "profile_body_captured",
     "content_captured",
 )
+# Closed-value sets + shapes for the remaining carried fields the gate previously left
+# unchecked (cross-vendor 3c-1 review: carried-but-unchecked content-smuggle paths).
+# The observation is the §6.2 seam, so every carried field is closed-valued, capped,
+# id-shaped, or timestamp-shaped -- none carries free narrative.
+_ALLOWED_OBSERVED_SOURCE_SURFACES = frozenset(v.value for v in SourceSurface)
+_ALLOWED_OBSERVED_MINIMIZATION_RULES = frozenset(v.value for v in MinimizationRule)
+_ALLOWED_PERSON_DATA_MINIMIZED = frozenset(v.value for v in PersonDataMinimized)
+_SAFE_ID_FIELDS: tuple[str, ...] = ("observation_id", "live_access_id", "run_id")
+_MAX_ID_LEN = 128
+_SAFE_ID_RE = re.compile(r"^[A-Za-z0-9._:-]+$")
+# provenance_timestamp is an ISO-8601 UTC instant (e.g. 2026-06-10T00:00:00Z or
+# 2026-06-10T00:00:00+00:00). Both UTC spellings accepted; non-UTC offsets are not.
+_UTC_TIMESTAMP_RE = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|\+00:00)$")
 
 
 def validate_live_observation(observation: Mapping[str, Any]) -> None:
@@ -188,6 +208,35 @@ def validate_live_observation(observation: Mapping[str, Any]) -> None:
     # Visible influence fields: counts / coarse bands only (shared guard; review F1).
     for field_name in _VISIBLE_INFLUENCE_OBSERVATION_FIELDS:
         validate_visible_influence_value(field_name, observation.get(field_name))
+    # Closed-value + shape checks on the remaining carried fields (cross-vendor 3c-1
+    # review: enum / id / timestamp fields that were carried but unchecked).
+    if observation.get("observed_source_surface") not in _ALLOWED_OBSERVED_SOURCE_SURFACES:
+        _fail("invalid_observed_source_surface", "observed_source_surface must be a valid SourceSurface value")
+    if observation.get("minimization_rule") not in _ALLOWED_OBSERVED_MINIMIZATION_RULES:
+        _fail("invalid_minimization_rule", "minimization_rule must be a valid MinimizationRule value")
+    if observation.get("person_data_minimized") not in _ALLOWED_PERSON_DATA_MINIMIZED:
+        _fail("invalid_person_data_minimized", "person_data_minimized must be a valid PersonDataMinimized value")
+    for id_field in _SAFE_ID_FIELDS:
+        id_value = observation.get(id_field)
+        if not isinstance(id_value, str) or len(id_value) > _MAX_ID_LEN or not _SAFE_ID_RE.fullmatch(id_value):
+            _fail(
+                f"invalid_{id_field}",
+                f"{id_field} must be a compact safe id (<= {_MAX_ID_LEN} chars; letters, digits, . _ : -)",
+            )
+    provenance_timestamp = observation.get("provenance_timestamp")
+    if not isinstance(provenance_timestamp, str) or not _UTC_TIMESTAMP_RE.fullmatch(provenance_timestamp):
+        _fail(
+            "invalid_provenance_timestamp",
+            "provenance_timestamp must be an ISO-8601 UTC timestamp like 2026-06-10T00:00:00Z or +00:00",
+        )
+    # exclusions carries no content at the gate for ANY caller (the minimizer already
+    # forces it safe; this closes the same path for a direct caller). A future
+    # structured receipt would need its own bounded validation here (v1 review F1).
+    if observation.get("exclusions"):
+        _fail(
+            "invalid_observation_exclusions",
+            "live observation exclusions must be empty (raw exclusion text must not pass the gate)",
+        )
     # Person observations: the shared public-actor-basis gate + must be minimized.
     if observation.get("observed_entity_type") in _PERSON_ENTITY_TYPE_VALUES:
         validate_public_actor_basis(
