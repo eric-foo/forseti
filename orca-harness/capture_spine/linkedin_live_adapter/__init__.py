@@ -6,17 +6,25 @@ core never imports this package, so deleting it leaves slices 1+2 intact.
 from capture_spine.linkedin_live_adapter.models import (
     DEFAULT_LINKEDIN_LIVE_ADAPTER_NON_CLAIMS,
     LINKEDIN_LIVE_ACCESS_ENVELOPE_SCHEMA_VERSION,
+    LINKEDIN_LIVE_OBSERVATION_SCHEMA_VERSION,
     LinkedInLaneError,
     LiveAccessEnvelope,
     LiveAccessMode,
+    LiveObservation,
 )
-from capture_spine.linkedin_live_adapter.validation import validate_live_access_envelope
+from capture_spine.linkedin_live_adapter.validation import (
+    validate_live_access_envelope,
+    validate_live_observation,
+)
 
 __all__ = [
     "DEFAULT_LINKEDIN_LIVE_ADAPTER_NON_CLAIMS",
     "LINKEDIN_LIVE_ACCESS_ENVELOPE_SCHEMA_VERSION",
+    "LINKEDIN_LIVE_OBSERVATION_SCHEMA_VERSION",
     "LinkedInLaneError",
     "LiveAccessEnvelope",
     "LiveAccessMode",
+    "LiveObservation",
     "validate_live_access_envelope",
+    "validate_live_observation",
 ]
