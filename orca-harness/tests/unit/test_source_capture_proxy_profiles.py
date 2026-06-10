@@ -115,6 +115,98 @@ def test_write_metadata_then_load_returns_secret_endpoint(scratch_dir: Path) -> 
     assert profile.geoip_enabled is True
 
 
+def test_write_metadata_then_load_round_trips_declared_geo(scratch_dir: Path) -> None:
+    profile_root = scratch_dir / "_proxy_profiles"
+    _write_profile_file(profile_root, "reddit-res")
+
+    metadata_path = write_proxy_profile_metadata(
+        "reddit-res",
+        proxy_category=ProxyCategory.RESIDENTIAL_STATIC,
+        geoip_enabled=True,
+        timezone="America/New_York",
+        locale="en-US",
+        profile_root=profile_root,
+    )
+    assert json.loads(metadata_path.read_text(encoding="utf-8")) == {
+        "profile_file": "reddit-res.json",
+        "proxy_category": "residential_static",
+        "geoip_enabled": True,
+        "timezone": "America/New_York",
+        "locale": "en-US",
+    }
+
+    profile = load_proxy_profile(
+        "reddit-res",
+        proxy_category=ProxyCategory.RESIDENTIAL_STATIC,
+        profile_root=profile_root,
+    )
+    assert profile.timezone == "America/New_York"
+    assert profile.locale == "en-US"
+
+
+def test_load_proxy_profile_without_declared_geo_defaults_to_none(scratch_dir: Path) -> None:
+    profile_root = scratch_dir / "_proxy_profiles"
+    _write_profile_file(profile_root, "reddit-res")
+    write_proxy_profile_metadata(
+        "reddit-res",
+        proxy_category=ProxyCategory.RESIDENTIAL_STATIC,
+        geoip_enabled=True,
+        profile_root=profile_root,
+    )
+
+    profile = load_proxy_profile(
+        "reddit-res",
+        proxy_category=ProxyCategory.RESIDENTIAL_STATIC,
+        profile_root=profile_root,
+    )
+    assert profile.timezone is None
+    assert profile.locale is None
+
+
+def test_load_proxy_profile_rejects_blank_declared_geo(scratch_dir: Path) -> None:
+    profile_root = scratch_dir / "_proxy_profiles"
+    _write_profile_file(profile_root, "reddit-res")
+    metadata_path = proxy_profile_metadata_path_for_label("reddit-res", profile_root=profile_root)
+    metadata_path.write_text(
+        json.dumps(
+            {
+                "profile_file": "reddit-res.json",
+                "proxy_category": "residential_static",
+                "geoip_enabled": True,
+                "timezone": "   ",
+            }
+        ),
+        encoding="utf-8",
+    )
+    with pytest.raises(ValueError, match="timezone"):
+        load_proxy_profile(
+            "reddit-res",
+            proxy_category=ProxyCategory.RESIDENTIAL_STATIC,
+            profile_root=profile_root,
+        )
+
+
+def test_bootstrap_writes_declared_geo_into_sidecar(scratch_dir: Path) -> None:
+    profile_root = scratch_dir / "_proxy_profiles"
+    _write_profile_file(profile_root, "reddit-res")
+
+    exit_code, message = run_proxy_profile_bootstrap(
+        profile_label="reddit-res",
+        proxy_category=ProxyCategory.RESIDENTIAL_STATIC,
+        geoip_enabled=True,
+        timezone="America/New_York",
+        locale="en-US",
+        profile_root=profile_root,
+    )
+
+    assert exit_code == 0
+    assert "America/New_York" in message
+    assert "SUPER_SECRET_PROXY_VALUE" not in message
+    sidecar = json.loads((profile_root / "reddit-res.meta.json").read_text(encoding="utf-8"))
+    assert sidecar["timezone"] == "America/New_York"
+    assert sidecar["locale"] == "en-US"
+
+
 def test_load_rejects_category_mismatch(scratch_dir: Path) -> None:
     profile_root = scratch_dir / "_proxy_profiles"
     _write_profile_file(profile_root, "reddit-res")

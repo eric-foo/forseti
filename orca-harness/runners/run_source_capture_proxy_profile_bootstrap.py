@@ -21,6 +21,8 @@ def run_proxy_profile_bootstrap(
     profile_label: str,
     proxy_category: ProxyCategory,
     geoip_enabled: bool,
+    timezone: str | None = None,
+    locale: str | None = None,
     profile_root: Path | None = None,
 ) -> tuple[int, str]:
     profile_directory = ensure_proxy_profile_directory(profile_root=profile_root)
@@ -29,12 +31,15 @@ def run_proxy_profile_bootstrap(
         profile_label,
         proxy_category=proxy_category,
         geoip_enabled=geoip_enabled,
+        timezone=timezone,
+        locale=locale,
         profile_root=profile_directory,
     )
     return (
         0,
         "registered proxy profile "
         f"{profile_label!r} as {proxy_category.value}; geoip_enabled={geoip_enabled}; "
+        f"declared_geo timezone={timezone or 'none'}/locale={locale or 'none'}; "
         f"place endpoint JSON out-of-band at {profile_path.name}; no packet written",
     )
 
@@ -53,6 +58,16 @@ def _build_parser() -> argparse.ArgumentParser:
         required=True,
     )
     parser.add_argument("--geoip-enabled", action="store_true")
+    parser.add_argument(
+        "--timezone",
+        default=None,
+        help="Declared IANA timezone for the proxy's target geo (e.g. America/New_York). Non-secret.",
+    )
+    parser.add_argument(
+        "--locale",
+        default=None,
+        help="Declared locale for the proxy's target geo (e.g. en-US). Non-secret.",
+    )
     parser.add_argument("--profile-root", type=Path, default=None)
     return parser
 
@@ -65,6 +80,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             profile_label=args.profile_label,
             proxy_category=ProxyCategory(args.proxy_category),
             geoip_enabled=args.geoip_enabled,
+            timezone=args.timezone,
+            locale=args.locale,
             profile_root=args.profile_root,
         )
     except ValueError as exc:
