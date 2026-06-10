@@ -22,6 +22,7 @@ from signal_content.models import (
     SignalContentRecord,
     SignalEventTimeField,
     SignalEventTimeReference,
+    SignalEventTimeStatus,
     SignalFamily,
 )
 
@@ -102,6 +103,59 @@ def test_signal_event_time_field_excludes_capture_and_cutoff() -> None:
         assert excluded not in members
         with pytest.raises(ValidationError):
             SignalEventTimeReference(packet_timing_field=excluded)
+
+
+def test_event_time_known_requires_field_and_rejects_reason() -> None:
+    # D2=(b1) XOR: a KNOWN reference names a field and carries no reason.
+    ref = SignalEventTimeReference(
+        status=SignalEventTimeStatus.KNOWN,
+        packet_timing_field=SignalEventTimeField.SOURCE_PUBLICATION_OR_EVENT,
+    )
+    assert ref.packet_timing_field is SignalEventTimeField.SOURCE_PUBLICATION_OR_EVENT
+    with pytest.raises(ValidationError):  # KNOWN without a field
+        SignalEventTimeReference(status=SignalEventTimeStatus.KNOWN)
+    with pytest.raises(ValidationError):  # KNOWN must not carry a reason
+        SignalEventTimeReference(
+            status=SignalEventTimeStatus.KNOWN,
+            packet_timing_field=SignalEventTimeField.SOURCE_PUBLICATION_OR_EVENT,
+            reason="not allowed when known",
+        )
+
+
+def test_event_time_residual_requires_reason_and_rejects_field() -> None:
+    # D2=(b1) XOR: a non-KNOWN reference carries a reason and names no field.
+    ref = SignalEventTimeReference(
+        status=SignalEventTimeStatus.UNKNOWN_WITH_REASON,
+        reason="no authored event-time anchor supplied",
+    )
+    assert ref.packet_timing_field is None
+    with pytest.raises(ValidationError):  # non-KNOWN without a reason
+        SignalEventTimeReference(status=SignalEventTimeStatus.UNKNOWN_WITH_REASON)
+    with pytest.raises(ValidationError):  # non-KNOWN must not name a field
+        SignalEventTimeReference(
+            status=SignalEventTimeStatus.UNKNOWN_WITH_REASON,
+            packet_timing_field=SignalEventTimeField.SOURCE_EDIT_OR_VERSION,
+            reason="conflicting state",
+        )
+    with pytest.raises(ValidationError):  # whitespace-only reason is not a reason
+        SignalEventTimeReference(
+            status=SignalEventTimeStatus.UNKNOWN_WITH_REASON, reason="   "
+        )
+
+
+def test_event_time_status_is_tightened_to_two_states() -> None:
+    # narrowed from VisibleFactStatus: not_attempted / not_applicable are not valid here
+    for excluded in ("not_attempted", "not_applicable"):
+        with pytest.raises(ValidationError):
+            SignalEventTimeReference(status=excluded, reason="x")
+
+
+def test_event_time_status_defaults_known_keeps_bare_reference_valid() -> None:
+    # additive/non-breaking: the prior bare construction stays valid (status -> KNOWN).
+    ref = SignalEventTimeReference(
+        packet_timing_field=SignalEventTimeField.SOURCE_EDIT_OR_VERSION
+    )
+    assert ref.status is SignalEventTimeStatus.KNOWN
 
 
 def test_key_integrity_rejects_empty_packet_id() -> None:

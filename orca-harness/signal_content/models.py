@@ -120,15 +120,64 @@ class SignalEventTimeField(StrEnum):
     SOURCE_EDIT_OR_VERSION = "source_edit_or_version"
 
 
+class SignalEventTimeStatus(StrEnum):
+    """Closed two-state status for a signal's event-time anchor.
+
+    Deliberately tighter than ``VisibleFactStatus``: the anchor is either KNOWN
+    (a source-side ``PacketTiming`` field is the event time) or
+    ``UNKNOWN_WITH_REASON`` (no anchor resolved -- the v0 residual default).
+    Further states (e.g. not-applicable for a timeless signal) are an additive
+    enum growth if a future authored lane needs them; v0 admits only the two it
+    uses.
+    """
+
+    KNOWN = "known"
+    UNKNOWN_WITH_REASON = "unknown_with_reason"
+
+
 class SignalEventTimeReference(StrictModel):
     """By-reference pointer to the ``PacketTiming`` field that carries the event time.
 
     Carries no copied timestamp: the actual value lives on the referenced
     packet's ``PacketTiming``; this names WHICH source-timing field is the event
     time (never capture/cutoff).
+
+    Honesty under absence (D2 = b1): naming which source-timing field is *the
+    signal's event time* is an interpretive act the deriver must not perform from
+    packet prose. So the reference is ``VisibleFact``-shaped -- a KNOWN status
+    names a field; any non-KNOWN status carries a ``reason`` and names no field
+    (the residual the deriver defaults to when no authored anchor is supplied).
+    ``status`` defaults KNOWN, so existing constructions and records are
+    unchanged (additive, non-breaking).
     """
 
-    packet_timing_field: SignalEventTimeField
+    status: SignalEventTimeStatus = SignalEventTimeStatus.KNOWN
+    packet_timing_field: SignalEventTimeField | None = None
+    reason: str | None = None
+
+    @model_validator(mode="after")
+    def validate_event_time(self) -> "SignalEventTimeReference":
+        if self.status == SignalEventTimeStatus.KNOWN:
+            if self.packet_timing_field is None:
+                raise ValueError(
+                    "a KNOWN event-time reference must name a packet_timing_field"
+                )
+            if self.reason is not None:
+                raise ValueError(
+                    "a KNOWN event-time reference must not carry a reason; reasons "
+                    "are carried only by non-known (residual) references"
+                )
+            return self
+        if self.packet_timing_field is not None:
+            raise ValueError(
+                "a non-KNOWN event-time reference must not name a packet_timing_field "
+                "(the anchor is unresolved)"
+            )
+        if self.reason is None or not self.reason.strip():
+            raise ValueError(
+                "a non-KNOWN event-time reference requires a non-empty reason"
+            )
+        return self
 
 
 class FamilyDetailBase(StrictModel):
