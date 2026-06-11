@@ -1,0 +1,11 @@
+evidence_id: E1
+source_id: E1
+source: Archive.org Wayback snapshot 20241225121950 of https://en.wikipedia.org/wiki/Canoo
+source_type: archived_web_page
+timestamp: 2024-12-25T12:19:50Z
+retrieval_timestamp: 2026-06-08T19:00:49Z
+hash: 7a3267d33e170959c974a049e4419a3c9fe6cfb4a9a19d2ec22117dfb94453e8
+hash_basis: raw_stored_bytes (PreservedFile file_02 sha256 of packet 01KTM9QS8RJJAYJVD3A3C784HW; recompute from raw/02_archive_snapshot_body.bin)
+pre_decision_status: verified_pre_decision
+pre_decision_basis: Archive.org snapshot dated 2024-12-25, established pre-cutoff by the producer's anti-leakage select_snapshot <= cutoff capture (packet cutoff_posture = pre_cutoff, carried by reference; SP-3/M1).
+summary: Archived Wikipedia article snapshot for Canoo Inc. preserved as raw bytes in a real pre-cutoff archive Source Capture Packet; carried as the assembly-proof evidence unit for the JSG-01 binding slice.
