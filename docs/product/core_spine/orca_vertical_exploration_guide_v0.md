@@ -1,4 +1,4 @@
-# Orca Venue Exploration Procedure v0
+# Orca Vertical Exploration Guide v0
 
 ```yaml
 retrieval_header_version: 1
@@ -215,3 +215,10 @@ Mints no ladder vocabulary; the Status label is doc-local.
   candidate; the wave requirement keeps candidates market-visible. Origin and
   first application (Xerjoff):
   `docs/decisions/beauty_subtle_decision_screen3_ledger_v0.md`.
+- 2026-06-11 (owner-directed rename): this artifact is now the VERTICAL
+  EXPLORATION GUIDE — renamed from `orca_venue_exploration_procedure_v0.md` to
+  `orca_vertical_exploration_guide_v0.md` (the walk explores a VERTICAL;
+  venues are its waypoints). Path references in live artifacts updated the
+  same turn; historical records (the commissioning prompt, past cleanup
+  reports, dated ledger filenames) keep their original path text. Section-name
+  grep contracts ("Screen Provenance" / "Venue Provenance") are unchanged.
