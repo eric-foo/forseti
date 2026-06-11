@@ -376,6 +376,7 @@ nickname: "crawling graph." The runner is
 | Path | Use for |
 | --- | --- |
 | `docs/workflows/artifact_retrievability_guide.md` | Operational guidance for durable artifact headers, body-opening source surfaces, stale/recheck patterns, repo-map/index treatment, report-only retrieval checks, and hygiene anti-rot. |
+| `docs/decisions/orca_doctrine_index_v0.md` | **Doctrine index (router, not authority)** — one place to find every binding doctrine across the kernel, overlay, decision records, and product lanes, with explicit doctrine naming and subset grouping. On conflict the doctrine's own record wins. |
 | `docs/workflows/orca_repo_map_v0.md` | Compact navigation map for bounded source-pack selection and prompt setup. |
 | `docs/workflows/data_capture_spine_consolidation_map_v0.md` | Data Capture Spine repo submap. Open before enumerating capture owner docs. |
 | `docs/workflows/ecr_spine_submap_v0.md` | ECR source-side spine repo submap (integrity postures SP-1/2/3/6 + Signal Content Record). Open before enumerating ECR/SCR owner docs. |
