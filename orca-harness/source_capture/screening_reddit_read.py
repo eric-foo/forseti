@@ -7,7 +7,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from typing import Literal
-from urllib.parse import urlparse
+from urllib.parse import unquote, urlparse
 
 from source_capture.adapters.direct_http import (
     DirectHttpCaptureFailure,
@@ -18,6 +18,7 @@ from source_capture.adapters.direct_http import (
 
 _ALLOWED_HOSTS: frozenset[str] = frozenset({"old.reddit.com", "www.reddit.com"})
 _PUBLIC_PATH_PREFIX = "/r/"
+_ALLOWED_SCHEMES: frozenset[str] = frozenset({"https"})
 
 RATE_CEILING_NOTE = (
     "Unauthenticated old.reddit HTML: human-rate, one bounded GET. "
@@ -27,6 +28,12 @@ RATE_CEILING_NOTE = (
 )
 
 _LOGIN_MARKERS = ("reddit.com/login", "reddit.com/register", "reddit.com/account/login")
+_LOGIN_BODY_MARKERS = (
+    'action="/login"',
+    'action="https://www.reddit.com/login"',
+    'href="/login"',
+    "log in to reddit",
+)
 
 
 @dataclass(frozen=True)
@@ -88,11 +95,12 @@ def reddit_screening_read(
             message=result.message,
         )
 
-    post_gate = _post_fetch_entitlement_gate(url, result)
+    body_text = result.body.decode("utf-8", errors="replace")
+
+    post_gate = _post_fetch_entitlement_gate(url, result, body_text=body_text)
     if post_gate is not None:
         return post_gate
 
-    body_text = result.body.decode("utf-8", errors="replace")
     marker_count = body_text.count("/comments/")
 
     return RedditScreenLight(
@@ -114,7 +122,18 @@ def _pre_fetch_entitlement_gate(url: str) -> RedditScreeningReadRefused | None:
             message=f"URL could not be parsed ({exc!r}); refusing without fetch.",
         )
 
-    host = (parsed.netloc or "").lower()
+    if parsed.scheme.lower() not in _ALLOWED_SCHEMES or not parsed.netloc:
+        return RedditScreeningReadRefused(
+            url=url,
+            reason="entitlement_gated",
+            message=(
+                f"URL scheme {parsed.scheme!r} is not permitted; "
+                "only absolute https:// Reddit URLs are permitted. "
+                "Refused without a network call."
+            ),
+        )
+
+    host = (parsed.hostname or "").lower()
     if host not in _ALLOWED_HOSTS:
         return RedditScreeningReadRefused(
             url=url,
@@ -139,11 +158,24 @@ def _pre_fetch_entitlement_gate(url: str) -> RedditScreeningReadRefused | None:
             ),
         )
 
+    decoded_path = unquote(path)
+    path_segments = decoded_path.split("/")
+    if "." in path_segments or ".." in path_segments:
+        return RedditScreeningReadRefused(
+            url=url,
+            reason="entitlement_gated",
+            message=(
+                f"Path {path!r} contains dot-segment traversal; "
+                "only direct public subreddit paths are permitted. "
+                "Refused without a network call."
+            ),
+        )
+
     return None
 
 
 def _post_fetch_entitlement_gate(
-    requested_url: str, result: DirectHttpCaptureSuccess
+    requested_url: str, result: DirectHttpCaptureSuccess, *, body_text: str
 ) -> RedditScreeningReadRefused | None:
     """Detect login redirects after the fetch; refuse if content was gated at the response level."""
     final = result.final_url.lower()
@@ -154,6 +186,16 @@ def _post_fetch_entitlement_gate(
             message=(
                 f"Reddit redirected to a login/register page (final_url={result.final_url!r}); "
                 "content is access-gated. Screen-light refused — no body consumed."
+            ),
+        )
+    body_lower = body_text.lower()
+    if any(marker in body_lower for marker in _LOGIN_BODY_MARKERS):
+        return RedditScreeningReadRefused(
+            url=requested_url,
+            reason="login_redirect",
+            message=(
+                "Reddit served a login/register page without a redirect; "
+                "content is access-gated. Screen-light refused."
             ),
         )
     return None

@@ -266,6 +266,30 @@ def test_login_redirect_is_refused_post_fetch() -> None:
     assert result.reason == "login_redirect"
 
 
+def test_login_page_body_without_redirect_is_refused_post_fetch() -> None:
+    """If Reddit serves a login page at the requested URL, the screen-light result is refused."""
+    requested_url = "https://old.reddit.com/r/beauty/search?q=test&restrict_sr=on&sort=new"
+    mock_result = DirectHttpCaptureSuccess(
+        requested_url=requested_url,
+        final_url=requested_url,
+        status=200,
+        reason="OK",
+        metadata={"byte_count": 100, "capture_timestamp": "2026-06-12T00:00:00Z"},
+        body=b'<html><form action="/login" method="post">Log in to Reddit</form></html>',
+        warning_notes=[],
+        limitation_notes=[],
+    )
+
+    with patch(
+        "source_capture.screening_reddit_read.fetch_direct_http_capture",
+        return_value=mock_result,
+    ):
+        result = reddit_screening_read(url=requested_url)
+
+    assert isinstance(result, RedditScreeningReadRefused)
+    assert result.reason == "login_redirect"
+
+
 # ---------------------------------------------------------------------------
 # (d) Entitlement gate: auth-gated / non-reddit URLs refused pre-fetch
 # ---------------------------------------------------------------------------
@@ -288,6 +312,15 @@ def test_login_redirect_is_refused_post_fetch() -> None:
             "https://reddit.com/r/beauty/search?q=test",
             "reddit.com",
         ),
+        # Non-HTTPS and non-absolute URLs are refused before the adapter.
+        (
+            "http://old.reddit.com/r/beauty/search?q=test",
+            "scheme",
+        ),
+        (
+            "//old.reddit.com/r/beauty/search?q=test",
+            "scheme",
+        ),
         # Path does not start with /r/
         (
             "https://old.reddit.com/login?dest=/r/beauty",
@@ -297,6 +330,15 @@ def test_login_redirect_is_refused_post_fetch() -> None:
         (
             "https://old.reddit.com/prefs",
             "/prefs",
+        ),
+        # Dot-segment traversal must not pass the /r/ prefix gate.
+        (
+            "https://old.reddit.com/r/../login",
+            "dot-segment",
+        ),
+        (
+            "https://old.reddit.com/r/%2e%2e/login",
+            "dot-segment",
         ),
     ],
 )
