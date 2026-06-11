@@ -15,7 +15,7 @@ use_when:
   - Deciding whether the finder warrants an architecture pass yet.
 authority_boundary: retrieval_only
 open_next:
-  - docs/product/core_spine_v0_heavyweight_proof_case_discovery_charter_v0.md
+  - docs/product/core_spine/core_spine_v0_heavyweight_proof_case_discovery_charter_v0.md
   - docs/research/judgment-spine/manifest_v0.md   # Selection-Rule-for-Case-2
   - docs/research/judgment-spine/decide_vs_confirm_backtest_case_frame_template_v0.md
   - docs/decisions/orca_moat_judgment_quality_proof_path_decision_chain_v0.md
@@ -35,8 +35,9 @@ a manual selection discipline extending existing discovery. Freezes nothing.
 
 **Operative bar relaxed per owner direction 2026-06-09 — see "Operative bar" below; the strong-memorization machinery in this frame is retained as rationale / rigorous ceiling, not the operative rule.**
 
-Dirty-state: written on the current ECR branch (`ecr-sp3-timing-deriver-slice1`),
-untracked; durable-home reconciliation is a separate step.
+Dirty-state (corrected 2026-06-11): tracked at its Phase-2 home
+`docs/product/core_spine/`; the original "untracked, durable-home
+reconciliation separate" authoring note is retired.
 
 ## Operative bar (owner relaxation, 2026-06-09)
 
