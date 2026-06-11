@@ -1,5 +1,24 @@
 # Orca ICP Wedge — Pricing-First Direction (Un-Flip) v0
 
+> **SUPERSEDED AS FIRST-PROOF WEDGE (2026-06-12)**
+> The first-proof wedge moves to beauty consumer-demand
+> (`docs/decisions/orca_icp_wedge_consumer_demand_first_v0.md`,
+> owner-co-ratified 2026-06-12). Pricing-first is RETAINED as (a) an engine
+> application reachable from the same spine and (b) the two RETRO SaaS dev
+> cases as cross-vertical method anchors. The original (c) — default re-entry
+> candidate on a beauty-wedge kill — was WITHDRAWN the same day by owner word
+> ("we cant call any wind for that"); on kill, re-entry re-forms toward the
+> harder / more-profitable buyer-ladder doors (fund screen, PE/FO diligence),
+> owner-decided. The SUGGESTED pricing-as-sensitivity-read block below remains a
+> non-frozen historical suggestion inside a superseded record. This record's
+> open `direction_change_propagation_blocker` is closed by supersession
+> EXCEPT the two discovery instruments (propagation AR-01), whose
+> realignment transferred to the consumer-demand cascade: the
+> target-selection brief was superseded by
+> `docs/product/product_lead/orca_discovery_consumer_demand_target_selection_brief_v0.md`
+> and the customer-discovery prompt is queued for a prompt-orchestration
+> lane (ORCA-HYGIENE-018).
+
 ```yaml
 retrieval_header_version: 1
 artifact_role: Decision record
@@ -11,6 +30,7 @@ use_when:
 authority_boundary: retrieval_only
 supersedes:
   - docs/decisions/orca_icp_wedge_convergence_break_in_first_v0.md
+superseded_by: docs/decisions/orca_icp_wedge_consumer_demand_first_v0.md
 open_next:
   - docs/research/orca_icp_redo_evidence_targets_v0.md
   - docs/research/orca_wedge_alternatives_register_v0.md

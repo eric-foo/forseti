@@ -2,15 +2,18 @@
 
 ```yaml
 retrieval_header_version: 1
-artifact_role: Decision record (proposed — pending owner sign-off)
+artifact_role: Decision record (wedge direction lock — owner co-ratified)
 scope: >
-  Product-lead preparation of the next first-proof wedge decision:
-  consumer-demand decision intelligence, beauty/personal-care first,
-  operator-brand first door, under the owner's no-warm-leads reachability
-  constraint. Prepared for owner sign-off; supersedes nothing until ratified.
-  Reconciles the wedge chain (dev-facing pricing v0 -> break-in-first ->
-  pricing-first un-flip) with the owner-signed beauty backtest batch and the
-  org-motion/demand discovery input.
+  The first-proof wedge decision: consumer-demand decision intelligence,
+  beauty/personal-care first, operator-brand first door, under the owner's
+  no-warm-leads reachability constraint. Prepared 2026-06-11; co-ratified by
+  the owner 2026-06-12 (see Status). Supersedes the pricing-first record as
+  first-proof wedge authority. Reconciles the wedge chain (dev-facing
+  pricing v0 -> break-in-first -> pricing-first un-flip) with the
+  owner-signed beauty backtest batch and the org-motion/demand discovery
+  input.
+supersedes:
+  - docs/decisions/orca_icp_wedge_pricing_first_v0.md
 use_when:
   - Owner sign-off on the first ICP/wedge for the consumer-demand/beauty direction.
   - Checking how the proposed wedge reconciles with the pricing-first lock.
@@ -21,20 +24,28 @@ open_next:
   - docs/decisions/judgment_spine_backtest_batch1_ledger_declaration_v0.md
   - docs/research/orgmotion_demand_signal_wedge_discovery_v0.md
 stale_if:
-  - Owner ratifies, amends, or rejects this proposal (the outcome record governs).
+  - The owner amends this record (dated amendments only; no silent rewrites).
   - Batch-1 distillation lands a contrary decide-vs-confirm read on the demand substrate.
   - The no-buyer-contact-before-full-spine-MVP gate is reopened or changed.
 ```
 
 ## Status
 
-`PROPOSED_PENDING_OWNER_SIGNOFF` — prepared by the product-lead lane
-(2026-06-11). This record decides nothing. If the owner ratifies it, it becomes
-the wedge direction lock, supersedes
-`docs/decisions/orca_icp_wedge_pricing_first_v0.md`, and the ratifying turn
-owes a `direction_change_propagation` receipt or blocker per
-`.agents/workflow-overlay/source-of-truth.md` (prepared map below). Until then
-the pricing-first record remains the current wedge authority.
+`OWNER_LOCKED_DIRECTION` — co-ratified by the owner 2026-06-12, in-thread
+(owner words: "co-ratify ok"; thesis ask 2). This record is now the wedge
+direction lock and supersedes
+`docs/decisions/orca_icp_wedge_pricing_first_v0.md` as first-proof wedge
+authority. The executed `direction_change_propagation` receipt for the
+ratification event (one receipt covering thesis + wedge cascades) lives in
+`docs/decisions/orca_product_thesis_consumer_demand_v0.md`
+("Doctrine-Change Propagation — Executed"). The owner's ask-1 amendment
+(measured-ToS-risk capture posture) is recorded there and in the decision
+memo; it changes this record's org-motion route citations from hard walls to
+capture-lane-owned bindings (see the dated notes below).
+
+Historical: proposed as `PROPOSED_PENDING_OWNER_SIGNOFF` by the product-lead
+lane 2026-06-11; until ratification the pricing-first record was the current
+wedge authority.
 
 A direction lock, if granted, locks a DIRECTION, not a result: not validation,
 willingness-to-pay, readiness, buyer pull, or proof the wedge will win.
@@ -79,8 +90,8 @@ Why move off a lock that was not disproven (the honest core):
 
 1. The proof engine has already materially committed to beauty consumer-demand:
    the owner signed backtest batch 1 (2026-06-11,
-   `docs/decisions/judgment_spine_backtest_batch1_ledger_declaration_v0.md`,
-   untracked-on-branch) — 4 of 6 cases are beauty consumer-demand decisions and
+   `docs/decisions/judgment_spine_backtest_batch1_ledger_declaration_v0.md`;
+   tracked as of the 2026-06-12 ratification) — 4 of 6 cases are beauty consumer-demand decisions and
    the owner relaxed the case family to "any beauty-vertical consumer-demand
    decision." The pricing-first wedge's own decide-vs-confirm cases exist only
    as the two RETRO SaaS dev cases inside that same beauty batch. Doctrine and
@@ -96,7 +107,8 @@ Why move off a lock that was not disproven (the honest core):
    that decided the un-flip had already eroded inside its own record.
 4. Same engine either way: beauty consumer-demand exercises capture, cleaning,
    entity-resolution, judgment, and calibration on the same spine. Pricing
-   remains an application the engine can re-enter (re-entry condition below).
+   remains an application the engine can re-enter (re-entry candidacy later
+   withdrawn by owner word 2026-06-12 — see the amended disposition below).
 
 ## Proposed Decision 1 — First ICP / Wedge
 
@@ -117,7 +129,9 @@ intelligence**, operator-first.
 - Lead signal: consumer demand (reviews, forums, social, search). Corroboration:
   org-motion (hiring composition + headcount trend at brand AND parent level),
   kept at org level — never person-level dossiers (thesis boundary; LinkedIn
-  policy boundary is official/manual/entitled routes only). Divergence reads
+  routes per the owning capture decisions — official/manual/entitled today;
+  dated note 2026-06-12: route bindings are capture-lane-owned under the
+  owner's measured-ToS-risk posture, not hard thesis walls). Divergence reads
   (demand↑+staffing↑ durable; demand↑+staffing-flat flash or
   capital-constrained; staffing↑+demand-flat betting-ahead) are the premium
   element. Org-motion is corroboration inside the artifact, not a standalone
@@ -129,11 +143,15 @@ intelligence**, operator-first.
 - Destination (unchanged): PE / family-office commercial diligence — retainer
   horizon, gatekept, reached after proof exists.
 - Pricing-first wedge disposition on ratification: SUPERSEDED as first proof;
-  retained as (a) an engine application reachable from the same spine, (b) the
-  two RETRO SaaS dev cases as cross-vertical method anchors, and (c) a re-entry
-  condition: if the beauty wedge kills under the buyer-proof packet's kill
-  criteria, pricing-first is the default re-entry candidate, re-evaluated
-  against its own `stale_if` (beachhead-window maturity).
+  retained as (a) an engine application reachable from the same spine, and
+  (b) the two RETRO SaaS dev cases as cross-vertical method anchors.
+  [AMENDED 2026-06-12, owner word: "do NOT do poricing - first actually.
+  that's too... we cant call any wind for that. we need to hit the harder
+  ones / profitable ones"] The original (c) — pricing-first as default
+  re-entry candidate on a beauty-wedge kill — is WITHDRAWN: the wedge offers
+  too weak a wind-calling demonstration. On kill, re-entry re-forms toward
+  the harder / more-profitable end of the buyer ladder (fund screen,
+  PE/family-office diligence path), decided by the owner at kill time.
 
 Good-proof-wedge vs durable-market (kept separate, per product-lead method):
 beauty is the proof vertical — chosen for substrate richness, running proof
@@ -215,7 +233,8 @@ outreach is a separate owner decision (sign-off item 4).
 | Main open risk | Substrate-newness (AR-S2); decide-vs-confirm open | Demand-read reliability open (batch 1 tests it); budget size | Screen interest ≠ artifact pull | Access |
 
 First-door verdict proposed: **B**, C kept warm as second door, A retained as
-engine application + re-entry candidate, D destination.
+engine application only (re-entry candidacy withdrawn by owner word
+2026-06-12), D destination.
 
 ## Load-Bearing Assumption — Assessed (does "lead with demand" survive?)
 
@@ -280,11 +299,14 @@ operator-first ordering is void.
   only) and Reddit pre-commercial ordering remain as bound in their owning
   decisions.
 
-## Doctrine-Change Propagation — Prepared Map (owed at ratification, not now)
+## Doctrine-Change Propagation — Executed (2026-06-12; receipt in the thesis record)
 
-This proposal changes no doctrine; no receipt or blocker is owed yet. If the
-owner ratifies, the ratifying turn owes a `direction_change_propagation`
-receipt (or blocker) with `trigger: product_doctrine`. Prepared cascade map:
+Co-ratified with the thesis in one ratification event; the single executed
+`direction_change_propagation` receipt covering both cascades lives in
+`docs/decisions/orca_product_thesis_consumer_demand_v0.md`
+("Doctrine-Change Propagation — Executed"). The prepared map below was
+consumed by `docs/product/product_lead/orca_ratification_day_runbook_v0.md`
+and is retained as history:
 
 | Surface | Change on ratification | Priority |
 | --- | --- | --- |
@@ -297,7 +319,7 @@ receipt (or blocker) with `trigger: product_doctrine`. Prepared cascade map:
 | Discovery instruments (`docs/product/orca_discovery_batch_0_target_selection_brief_v0.md`, `docs/prompts/product-planning/orca_product_proof_lead_customer_discovery_prompt_v0.md`) | Already flagged stale by pricing-first AR-01 (still hard-gated to dev-facing B2B SaaS); now doubly stale — realign or retire | P2 |
 | Checked, no change expected | Thesis (families cover consumer-demand decisions); `product-proof.md` (wedge-agnostic semantics); `source-loading.md` / repo map (wedge is not a routing surface); `AGENTS.md` / `CLAUDE.md` (no wedge content) | — |
 
-## Owner Sign-Off Asks
+## Owner Sign-Off Asks (decided 2026-06-12 — outcomes in Status; retained as asked)
 
 1. **Wedge**: ratify B (beauty operator first door, fund second, PE
    destination, pricing-first superseded-with-re-entry) — or hold the
@@ -315,19 +337,19 @@ receipt (or blocker) with `trigger: product_doctrine`. Prepared cascade map:
 
 ## Non-Claims
 
-- Prepares a decision; decides nothing. Not an owner decision until signed.
+- Co-ratified 2026-06-12 (see Status) — a direction lock only, not a result.
 - Not validation, willingness-to-pay, paid conversion, repeatability, ROI,
   buyer pull, buyer-proof, judgment-quality, product/feature/implementation/
   commercial readiness, or proof the wedge will win.
 - The discovery note remains non-authoritative input; this record does not
   promote it. Probe findings cited from it are scouting evidence, not
-  method-validation. The capture recon index and batch-1 ledger are untracked
-  on a shared branch; their content is reported as read, with acceptance
-  status as stated in those documents.
+  method-validation. The capture recon index and batch-1 ledger (both
+  tracked as of the 2026-06-12 ratification) are reported as read, with
+  acceptance status as stated in those documents.
 - Batch-1 results are not prejudged; the no-flip verdict on sequencing binds
   only until the named pivot condition or owner amendment.
 - Authorizes no outreach, no implementation, no entity-spine or org-motion
-  build, no live-source calls, no commits/pushes, and no edits to the
-  downstream product corpus (cascade runs only after ratification, in its own
-  authorized lane).
+  build, no live-source calls, and no commits/pushes. The downstream product
+  corpus cascade ran at ratification (2026-06-12) per the runbook; further
+  edits need their own authorization.
 - Mints no evidence-ladder vocabulary and changes no overlay rule.

@@ -2,15 +2,18 @@
 
 ```yaml
 retrieval_header_version: 1
-artifact_role: Decision record (proposed product thesis — pending owner sign-off)
+artifact_role: Decision record (controlling product thesis — owner-ratified)
 scope: >
-  Proposed v1 product thesis re-centering Orca on consumer-demand decision
+  V1 product thesis re-centering Orca on consumer-demand decision
   intelligence (durable-vs-hollow demand discrimination), beauty/personal-care
   as the first vertical, on the existing outside-in engine and frozen Core
-  Spine foundation. Prepared for owner sign-off after a cross-branch
-  exploration sweep; supersedes nothing until ratified. On ratification it
-  supersedes docs/decisions/turn_08_product_thesis_v0.md as the controlling
-  product thesis.
+  Spine foundation. Prepared 2026-06-11 after a cross-branch exploration
+  sweep; ratified by the owner 2026-06-12 with the ask-1 capture-risk
+  amendment folded in (see Status). Supersedes
+  docs/decisions/turn_08_product_thesis_v0.md as the controlling product
+  thesis.
+supersedes:
+  - docs/decisions/turn_08_product_thesis_v0.md
 use_when:
   - Owner sign-off on the consumer-demand product thesis.
   - Anchoring product, capture, judgment, or proof lanes to the product center.
@@ -22,17 +25,38 @@ open_next:
   - docs/decisions/judgment_spine_backtest_batch1_ledger_declaration_v0.md
   - docs/product/judgment_spine/judgment_spine_evidence_ladder_architecture_v0.md
 stale_if:
-  - Owner ratifies, amends, or rejects (the signed outcome record governs).
+  - The owner amends this record (dated amendments only; no silent rewrites).
   - The consumer-demand durability probe's Stage-2 stop/go gate fails decide-grade.
   - Batch-1 distillation lands a contrary decide-vs-confirm read on the demand substrate.
 ```
 
 ## Status
 
-`PROPOSED_PENDING_OWNER_SIGNOFF` — prepared by the product-lead lane
-2026-06-11. Owner direction recorded in-thread the same day: the
+`OWNER_LOCKED` — ratified by the owner 2026-06-12, in-thread, with one
+amendment (ask 1 ratified AS AMENDED; verbatim words and effects recorded in
+the Owner Decision Record of
+`docs/decisions/orca_consumer_demand_ratification_decision_memo_v0.md`):
+
+- Ask 1 — owner words: "no for 1 - it does not depend on no live ToS
+  violating source. we accept the risks for ToS just not at an absurd level
+  (e.g. Brightdata)". Effect: the Product Boundary capture bullet is restated
+  under the measured-ToS-risk posture (dated amendment 2026-06-12 below);
+  the prior "does not depend on any live ToS-violating source" premise is
+  retired.
+- Ask 2 — "co-ratify ok": the wedge record
+  (`docs/decisions/orca_icp_wedge_consumer_demand_first_v0.md`) is
+  co-ratified as the wedge direction lock.
+- Ask 3 — "yes thats okay": durability probe Stage-1 feasibility gate
+  authorized per the decision memo's recommendation (Stage 2 held until
+  Stage 1 reports); execution belongs to the `consumer-demand-probe` lane
+  under its own authorization record.
+- Ask 4 — "yes close for now": the outreach gate stays closed; no opening
+  condition named.
+
+Historical: proposed as `PROPOSED_PENDING_OWNER_SIGNOFF` by the product-lead
+lane 2026-06-11. Owner direction recorded in-thread that day: the
 consumer-demand/beauty direction "feels more possible than b2b pricing";
-formal wedge sign-off deferred until a thesis exists; this record is that
+formal wedge sign-off deferred until a thesis exists; this record was that
 thesis, proposed.
 
 Preparation basis: a four-lane read-only exploration sweep across the current
@@ -116,7 +140,7 @@ called at cutoff against what actually happened — misses included.
   ledgers and calibration receipts compound into evidence no copywriter can
   fake.
 - Standard ownership is the commercial posture (claim-defense doctrine,
-  pending sign-off): Orca owns and publishes the judgment-evidence standard
+  owner-signed 2026-06-11): Orca owns and publishes the judgment-evidence standard
   it grades itself against — "built to" ships now; "proven at" only with the
   receipted rung.
 
@@ -129,11 +153,16 @@ Carried from thesis v0 and sharpened for the demand substrate:
   outreach lists; org-level signals only.
 - No fake reviews, botting, astroturf, manipulation, or deceptive competitive
   tactics — Orca detects and discounts these; it never produces them.
-- Capture stays inside entitlement: archive and entitled/official/manual
-  routes only where platform terms forbid automation (LinkedIn live and
-  TikTok live are NO-GO walls today; TikTok archive carries a closed
-  2019–2023 window). The thesis does not depend on any live ToS-violating
-  source, and no standing monitor, broad crawler, or production pipeline is
+- Capture risk posture (owner-amended at ratification, 2026-06-12): Orca
+  accepts measured platform-terms (ToS) risk in capture; it rejects
+  absurd-level risk approaches (the owner's example: Bright-Data-style
+  industrial scraping). The thesis is NOT premised on avoiding every live
+  ToS-violating source. Per-venue route bindings stay capture-lane-owned and
+  are revisited there under this posture (LinkedIn live NO-GO today; TikTok
+  live ratified GO by owner word 2026-06-12 — the owning capture-lane
+  records still carry the pre-ratification NO-GO and owe their own dated
+  alignment; TikTok archive's closed 2019–2023 window is a coverage fact,
+  unchanged). No standing monitor, broad crawler, or production pipeline is
   implied.
 - Raw signals are inputs, not evidence. Nothing reaches a buyer artifact
   without provenance, integrity labels, classification, and constraint.
@@ -272,7 +301,7 @@ center of gravity moves to the beauty backtest portfolio.
 | Durability probe spec v2 (lane `consumer-demand-probe`) | `PROPOSED_PROBE_SPEC_V2 — KEEP-CLEARED` | Designed blind test of the central read; review state only |
 | Demand projection (lane `capture-demand-projection`) | built; design review `NEEDS_ARCHITECTURE_PASS` | Deterministic demand_observation extraction; Ulta live 43 obs |
 | Beauty Pie org-motion feasibility (`docs/research/`) | DISCOVERY / FEASIBILITY — Gate-0 PASS (ATS-led) | Org-motion archive-backtest viability; provenance cap noted |
-| TikTok probe (lane `capture-probe-tiktok-demand`) | PARTIAL (archive GO-fidelity / live NO-GO legal) | Social demand venue limits; field-presence playbook gap |
+| TikTok probe (lane `capture-probe-tiktok-demand`) | PARTIAL at thesis prep (archive GO-fidelity / live NO-GO legal); owner ratified TikTok live = GO 2026-06-12 in-thread — lane-record alignment pending in the capture lane | Social demand venue limits; field-presence playbook gap |
 | Sephora reviews (lane `capture-cloak-scroll`) | corrected GO via incremental scroll | Beauty review substrate capturable |
 | Venue procedure + beauty proving screen | `SHAPE_C_OWNER_ADOPTED`; proving run 2026-06-11 | Venue doctrine; 7 screen-grade candidates; subtle-decision class |
 | Finder frame | `PROPOSED_DOCTRINE_FRAME_PENDING_SIGNOFF` | Memorization-resistant case selection |
@@ -282,23 +311,96 @@ center of gravity moves to the beauty backtest portfolio.
 Nothing above is validation, buyer proof, or judgment-quality evidence; the
 weakest-cleared-gate rule caps every claim.
 
-## Doctrine-Change Propagation — Prepared Map (owed at ratification, not now)
+## Doctrine-Change Propagation — Executed (2026-06-12)
 
-This proposal changes no doctrine. On ratification the ratifying turn owes a
-`direction_change_propagation` receipt, `trigger: product_doctrine`. Prepared
-cascade:
+Ratification executed per
+`docs/product/product_lead/orca_ratification_day_runbook_v0.md` (one pass;
+this receipt also covers the co-ratified wedge record's cascade — one
+ratification event, one receipt, pointed to from the wedge record).
 
-| Surface | Change on ratification | Priority |
-| --- | --- | --- |
-| This record | Status -> `OWNER_LOCKED`; `supersedes: turn_08_product_thesis_v0.md` added | P0 |
-| `docs/decisions/turn_08_product_thesis_v0.md` | `superseded_by` banner | P0 |
-| `docs/decisions/orca_icp_wedge_consumer_demand_first_v0.md` | Co-ratify or amend (subordinate first-proof decision); its own cascade then runs (offer hypothesis, buyer-proof packet, charter, discovery instruments) | P0 |
-| `.agents/workflow-overlay/source-loading.md` | S2 anchor + Data Capture CA read pack cite the turn_08 path explicitly — re-point to this record | P1 |
-| `docs/workflows/orca_repo_map_v0.md` | Thesis pointer refresh (file currently dirty from another lane — coordinate, do not clobber) | P1 |
-| `orca-product-lead` skill (both copies) | Cites turn_08 + pricing-first as current — refresh in an authorized skill-edit lane | P2 |
-| Checked, no change expected | Core Spine contracts, evidence ladder, capture boundaries, product-proof overlay (the thesis sits on them and amends none) | — |
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    The controlling Orca product thesis moves to consumer-demand decision
+    intelligence (beauty first vertical) with the owner's measured-ToS-risk
+    capture posture amendment, and the first-proof wedge moves to the beauty
+    operator door, superseding turn_08 and pricing-first; subordinate
+    product-lead artifacts re-targeted via the prepared consumer-demand
+    revision packages (applied with recorded deviations).
+  trigger: product_doctrine
+  related_triggers: []
+  controlling_sources_updated:
+    - docs/decisions/orca_product_thesis_consumer_demand_v0.md
+    - docs/decisions/turn_08_product_thesis_v0.md
+    - docs/decisions/orca_icp_wedge_consumer_demand_first_v0.md
+    - docs/decisions/orca_icp_wedge_pricing_first_v0.md
+    - docs/decisions/orca_consumer_demand_ratification_decision_memo_v0.md
+    - docs/product/product_lead/orca_offer_hypothesis_v0.md
+    - docs/product/product_lead/orca_buyer_proof_packet_v0.md
+    - docs/product/product_lead/orca_product_proof_lead_charter_v0.md
+    - docs/product/product_lead/orca_discovery_consumer_demand_target_selection_brief_v0.md
+    - docs/product/product_lead/orca_discovery_batch_0_target_selection_brief_v0.md
+    - .agents/workflow-overlay/source-loading.md
+    - .agents/workflow-overlay/project-authority.md
+    - .agents/workflow-overlay/artifact-roles.md
+    - .agents/workflow-overlay/source-of-truth.md
+    - docs/workflows/orca_repo_map_v0.md
+    - docs/hygiene/queue.md
+  downstream_surfaces_checked:
+    - AGENTS.md                                   # no thesis/wedge content; routes to overlay — unchanged
+    - CLAUDE.md                                   # shim — unchanged
+    - .agents/workflow-overlay/product-proof.md   # wedge-agnostic semantics — unchanged
+    - docs/product/core_spine/core_spine_v0_product_contract.md  # senior frozen contract — unchanged
+    - docs/product/judgment_spine/judgment_spine_evidence_ladder_architecture_v0.md  # senior; one-way subordination — unchanged
+    - docs/product/product_lead/orca_claim_defense_doctrine_v0.md  # owner-signed wording policy — unchanged
+    - docs/product/product_lead/orca_discovery_batch_0_qualification_prep_sentry_clerk_v0.md  # already superseded-bannered; resolves via chain
+    - docs/product/product_lead/orca_discovery_batch_0_candidate_context_scan_v0.md  # same chain resolution
+  intentionally_not_updated:
+    - path: docs/prompts/product-planning/orca_product_proof_lead_customer_discovery_prompt_v0.md
+      reason: >
+        Prompt artifact outside the product lane's write scope; queued as
+        ORCA-HYGIENE-018 for a prompt-orchestration lane. Until realigned it
+        remains pricing-gated and must not drive consumer-demand discovery.
+    - path: .agents/skills/orca-product-lead/SKILL.md and .claude/skills/orca-product-lead/SKILL.md
+      reason: >
+        Skill source is sha-pinned under skill-adoption governance; queued as
+        ORCA-HYGIENE-019 for an authorized skill-edit lane.
+    - path: capture-lane source-access boundary decisions (LinkedIn/TikTok walls, Reddit ordering)
+      reason: >
+        The ask-1 amendment sets the product-level risk posture; per-venue
+        route bindings are owned by capture-lane decisions and are revisited
+        there, not silently rewritten by ratification.
+    - path: pre-migration flat docs/product/ paths inside product-lead docs
+      reason: >
+        Owned by the Phase-2 migration posture (forward-only resolve via
+        moved_paths_index.md; ORCA-HYGIENE-016 owner decision).
+  stale_language_search: >
+    rg -in "turn_08_product_thesis|pricing.first|PROPOSED_PENDING_OWNER_SIGNOFF"
+    docs/decisions docs/product/product_lead .agents/workflow-overlay
+    docs/workflows/orca_repo_map_v0.md
+  stale_language_search_result: >
+    Executed 2026-06-12 after the cascade edits. Overlay + repo-map hits for
+    turn_08 are all supersedes-annotations on the new thesis path; the only
+    live-routing residue is the two orca-product-lead skill copies (queued,
+    ORCA-HYGIENE-019) and the customer-discovery prompt (queued,
+    ORCA-HYGIENE-018). PROPOSED_PENDING_OWNER_SIGNOFF survives only in the
+    two anchors' "Historical: proposed as" lines and this receipt's own
+    search string. A "current wedge authority" sweep caught two stale
+    Source Use / Source Basis lines still labeling pricing-first as current
+    (offer hypothesis; charter) — both fixed in the same pass, dated.
+    Remaining pricing-first / turn_08 mentions are superseded banners,
+    historical reasoning, review records, input_hash provenance pins, and
+    the prep lane's own consistency report — intended residue, none of it a
+    live routing surface.
+  non_claims:
+    - not validation
+    - not readiness
+    - not buyer proof
+    - not judgment-quality evidence
+    - ratification locks a direction; every gated lane keeps its own authorization boundary
+```
 
-## Owner Sign-Off Asks
+## Owner Sign-Off Asks (decided 2026-06-12 — outcomes in Status; retained as asked)
 
 1. **Ratify this thesis** as the controlling product center (or amend: e.g.,
    keep the v0 sector-agnostic framing with consumer-demand as first
@@ -315,9 +417,9 @@ cascade:
 
 ## Non-Claims
 
-- Proposes; decides nothing until owner sign-off. Not validation,
-  willingness-to-pay, buyer pull, buyer proof, judgment quality, readiness,
-  or proof the direction will win.
+- Ratified 2026-06-12 (see Status) — a direction lock only. Still not
+  validation, willingness-to-pay, buyer pull, buyer proof, judgment quality,
+  readiness, or proof the direction will win.
 - Asserts no build authorization: no entity-spine build, no live-source
   calls, no probe execution, no capture expansion, no dashboards, no
   automation, no outreach. Every gated lane keeps its own authorization
@@ -328,5 +430,6 @@ cascade:
 - The wedge record, probe specs, and doctrine drafts it cites remain
   separately owned and separately signable; this thesis does not ratify them
   by reference.
-- Mints no evidence-ladder vocabulary, amends no overlay rule, and carries no
-  propagation receipt until ratified.
+- Mints no evidence-ladder vocabulary and amends no overlay rule beyond the
+  ratification pointer re-points; the propagation receipt is in the
+  Doctrine-Change Propagation section above.

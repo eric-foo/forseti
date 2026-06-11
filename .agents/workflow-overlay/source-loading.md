@@ -286,8 +286,9 @@ restating the full pack.
 
 For a Data Capture Spine setup CA, start with these targeted sections:
 
-- `docs/decisions/turn_08_product_thesis_v0.md`: thesis, value proposition,
-  strategic center, and current theory sections.
+- `docs/decisions/orca_product_thesis_consumer_demand_v0.md`: thesis (the
+  bet), value proposition, strategic center, and central-read sections
+  (owner-ratified 2026-06-12; supersedes `turn_08_product_thesis_v0.md`).
 - `docs/product/product_lead/orca_offer_hypothesis_v0.md`: core offer hypothesis,
   mechanism, fit diagnostic, and non-claims sections.
 - `docs/product/product_lead/orca_buyer_proof_packet_v0.md`: proof standard, target buyer,

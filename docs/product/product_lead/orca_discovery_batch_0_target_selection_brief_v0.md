@@ -1,17 +1,29 @@
 # Orca Discovery Batch 0 Target-Selection Brief v0
 
+> **SUPERSEDED / OFF-TARGET (2026-06-12)**
+> This brief predates the consumer-demand re-scope and remains hard-gated to
+> the superseded pricing wedge (pricing-first propagation AR-01 had already
+> flagged it as a misrouting live instrument). The live target-selection
+> instrument is now
+> `docs/product/product_lead/orca_discovery_consumer_demand_target_selection_brief_v0.md`.
+> Current wedge authority:
+> `docs/decisions/orca_icp_wedge_consumer_demand_first_v0.md` (owner
+> co-ratified 2026-06-12). Retained as history; do not use this brief as a
+> live qualification instrument.
+
 ```yaml
 retrieval_header_version: 1
-artifact_role: Product artifact
+artifact_role: Product artifact (superseded discovery instrument — historical)
 scope: Discovery Batch 0 target-selection brief for the first Orca Product Proof Lead customer-discovery pass.
 use_when:
   - Selecting blank Discovery Batch 0 target slots before outreach or web research.
   - Checking first-contact qualification objectives before memo production.
   - Preserving Product Proof Lead stop rules and non-claims.
 authority_boundary: retrieval_only
+superseded_by: docs/product/product_lead/orca_discovery_consumer_demand_target_selection_brief_v0.md
 open_next:
   - .agents/workflow-overlay/product-proof.md
-  - docs/decisions/orca_icp_wedge_pricing_first_v0.md  # current wedge authority (pricing-first)
+  - docs/decisions/orca_icp_wedge_pricing_first_v0.md  # superseded wedge record (historical)
   - docs/product/orca_product_lead_first_icp_wedge_decision_v0.md  # superseded by above; reread-required
   - docs/product/orca_product_proof_lead_charter_v0.md
   - docs/product/orca_buyer_proof_packet_v0.md

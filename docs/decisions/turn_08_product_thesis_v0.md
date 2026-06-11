@@ -1,7 +1,29 @@
 # Turn 08 Product Thesis V0
 
+```yaml
+retrieval_header_version: 1
+artifact_role: Decision record (superseded product thesis — historical)
+scope: >
+  Turn-08 v0 product thesis (outside-in strategic intelligence,
+  sector-agnostic). Superseded 2026-06-12 by the consumer-demand thesis;
+  retained as history.
+use_when:
+  - Reading the historical v0 thesis baseline or its carried-forward elements.
+authority_boundary: retrieval_only
+superseded_by: docs/decisions/orca_product_thesis_consumer_demand_v0.md
+```
+
+> **SUPERSEDED (2026-06-12)**
+> This thesis is superseded as the controlling product thesis by
+> `docs/decisions/orca_product_thesis_consumer_demand_v0.md`
+> (consumer-demand decision intelligence; beauty first vertical), ratified by
+> the owner 2026-06-12. Retained as history; carried-forward elements are
+> listed in that record's "Carried From Thesis v0 / Changed" section. Do not
+> anchor new product, capture, judgment, or proof lanes here.
+
 - Decision ID: T8-ORCA-01
-- Status: PROPOSED_LOCK
+- Status: PROPOSED_LOCK (historical; superseded 2026-06-12)
+- Superseded by: docs/decisions/orca_product_thesis_consumer_demand_v0.md
 - Decision date: 2026-05-13
 - Source: explicit owner instruction in Turn 08
 - Implementation authorized this turn: no

@@ -10,9 +10,9 @@ use_when:
 authority_boundary: retrieval_only
 open_next:
   - .agents/workflow-overlay/product-proof.md
-  - docs/product/orca_product_lead_first_icp_wedge_decision_v0.md
+  - docs/decisions/orca_icp_wedge_consumer_demand_first_v0.md     # current wedge authority (supersedes pricing-first)
   - docs/product/orca_product_proof_lead_charter_v0.md
-  - docs/decisions/turn_08_product_thesis_v0.md
+  - docs/decisions/orca_product_thesis_consumer_demand_v0.md      # controlling thesis (supersedes turn_08; ratified 2026-06-12)
 input_hashes:
   - path: docs/decisions/turn_08_product_thesis_v0.md
     sha256: 822653A241CF84675A3F07F695BA0ED3BFACC230F7F13AA47A4649B5DB2CD7E6
@@ -37,76 +37,63 @@ Readiness verdict: `ready for product-fit testing`; not ready for product-bet pl
 
 Feature planning verdict: not ready. This packet does not route to feature planning.
 
-## Pricing-First Refinement (2026-06-08)
+## Consumer-Demand Refinement (2026-06-12, ratified cascade)
 
-This packet's first-proof framing is REFINED by the owner-locked pricing-first
-direction. Controlling wedge authority:
-`docs/decisions/orca_icp_wedge_pricing_first_v0.md` (the pinned `input_hashes` /
-v0 ICP-wedge references are superseded by it — reread-required). Deltas:
+This packet's first-proof framing is RE-TARGETED by the owner-ratified
+consumer-demand direction. Controlling authority:
+`docs/decisions/orca_product_thesis_consumer_demand_v0.md` (thesis,
+`OWNER_LOCKED` 2026-06-12) and
+`docs/decisions/orca_icp_wedge_consumer_demand_first_v0.md` (wedge,
+`OWNER_LOCKED_DIRECTION` 2026-06-12), which supersede
+`docs/decisions/orca_icp_wedge_pricing_first_v0.md` as first-proof authority
+(pricing retained as engine application + re-entry candidate). Earlier pinned
+`input_hashes` / wedge references are superseded — reread-required. Deltas:
 
-- Engine/spine = outside-in COMPETITIVE & market intelligence; pricing is its
-  first application (the competitive decision with the cleanest public substrate).
-- First-proof BEACHHEAD re-scoped: from "developer-facing SaaS" (a stale,
-  convenience-derived inheritance) to the AI-MONETIZATION SLICE — B2B SaaS making
-  a first-time AI-monetization or competitor-triggered repricing/repackaging
-  decision, where the competitor-pricing substrate is publicly rich and the firm
-  is flying blind. Dev-facing SaaS is a strong sub-instance, not the defining
-  qualifier. Wedge frame stays cross-sector-open. Decision family
-  (pricing/packaging/monetization) is UNCHANGED.
-- Beachhead RATIONALE (so this reads as a test instrument, not an arbitrary
-  filter): the "first-time AI-monetization / flying-blind" qualifiers exist
-  because that is where public signal can plausibly DECIDE the repricing move
-  rather than merely CONFIRM it — the firm has no internal AI-pricing history to
-  fall back on. Caveat the proof must test: in a first-time wave the
-  competitor-price substrate is itself new/sparse, so "publicly rich" is not yet
-  "clean/decision-grade." See the decision record.
-- Servability HARD GATE: the differentiated read must sit on a CLEAN,
-  decision-grade public substrate — competitor PRICE/packaging signal (pricing
-  pages, changelogs, filings, earnings), NOT user reviews (independently shown
-  biased / FTC-polluted / interview-gated). Read every "enough public signal" /
-  "meaningful public signal" requirement below as "clean, decision-grade
-  substrate."
-- Open question (pending, NOT validated): does public signal DECIDE the repricing
-  move or merely CONFIRM it — to be tested by two method-validation cases
-  (pricing-repricing + clean-substrate displacement), no buyer contact.
+- Proof subject: beauty consumer-demand allocation decisions —
+  durable-vs-hollow demand discrimination (act / phase / narrow / hold /
+  defend), per the thesis's central read.
+- Substrate HARD GATE RE-DERIVED (replaces "competitor prices clean, reviews
+  confirmatory-only," which was derived for a pricing read and does not
+  transfer): see "Demand-Substrate Hard Gate" below.
+- Capture risk posture (owner ask-1 amendment, 2026-06-12): measured ToS risk
+  is accepted; absurd-level approaches (e.g., Bright-Data-style industrial
+  scraping) are rejected. Per-venue route bindings stay capture-lane-owned.
+- Buyer-proof remains gated exactly as before: qualified live decision +
+  memo + readback; the no-buyer-contact-before-full-spine-MVP gate is
+  UNTOUCHED (owner ask 4, 2026-06-12: gate stays closed); publishing
+  backtest receipts is door-opening content at `product_learning` tier,
+  never buyer proof.
+- Named pivot condition (from the wedge record): if batch-1 distillation
+  shows demand reads landing confirm-only or persistently out-of-band, the
+  first proof re-forms around the lower-bar screen (fund-first and/or
+  org-motion-led shortlist) and this packet's operator-first targeting is
+  void pending re-derivation.
 
-```yaml
-direction_change_propagation:
-  doctrine_changed: First-proof framing refined to pricing-first / AI-monetization beachhead / outside-in competitive-intelligence engine / clean-substrate servability hard gate.
-  trigger: product_doctrine
-  controlling_sources_updated:
-    - this artifact
-  controlling_decision: docs/decisions/orca_icp_wedge_pricing_first_v0.md
-  downstream_surfaces_checked:
-    - docs/decisions/turn_08_product_thesis_v0.md   # consistent; no change (pricing within scope)
-    - .agents/workflow-overlay/product-proof.md      # buyer-proof + trust semantics unchanged
-  non_claims:
-    - not validation
-    - not willingness-to-pay
-    - not readiness
-    - not ICP proven
-```
+The executed `direction_change_propagation` receipt for this ratification
+event lives in `docs/decisions/orca_product_thesis_consumer_demand_v0.md`
+("Doctrine-Change Propagation — Executed"). Applied here from
+`docs/product/product_lead/orca_buyer_proof_packet_consumer_demand_revision_v0.md`
+(deviations recorded in that package's status).
 
-The substantive content below (proof standard, target buyer, rubric, kill and
-graduation criteria, exclusions, and all non-claims) is SURGICALLY ALIGNED to
-the refinement; proof standard, rubric, kill/graduation criteria, non-claims, and
-all non-claim boundaries are unchanged in substance.
+The substantive content below (rubric grades, trust handling, pull standard,
+kill and graduation structure, exclusions, and all non-claims) is SURGICALLY
+ALIGNED to the refinement and unchanged in substance.
 
 ## Proof Standard
 
 This packet tests one narrow first-proof claim:
 
-A real decision owner at a B2B SaaS company making a first-time
-AI-monetization or competitor-triggered repricing/repackaging decision —
-where the competitor-pricing substrate is publicly rich and the firm is flying
-blind — will use an Orca decision artifact to reduce allocation risk before
-committing budget to a live pricing, packaging, API, billing, usage, add-on,
-or monetization decision. Developer-facing SaaS is a strong sub-instance of
-this AI-monetization slice; the wedge frame is cross-sector-open. The engine
-is outside-in competitive & market intelligence; pricing is its first
-application. Orca creates that artifact by cleaning, classifying,
-source-backing, and constraining messy, noisy, and contradictory public market
-signals into inspectable decision evidence.
+A real decision owner at an indie/DTC beauty / personal-care brand facing a
+live consumer-demand allocation decision — where internal data is not
+conclusive — will use an Orca decision artifact to reduce allocation risk
+before committing inventory, retail/channel, launch, or pricing budget. Orca
+creates that artifact by capturing, cleaning, integrity-labeling, classifying
+(costly behavior, never engagement volume alone), and constraining messy
+public demand signals — reviews, forums, search interest, retail presence —
+fused with org-motion corroboration at brand and parent level, into
+inspectable decision evidence with an explicit action ceiling. The engine is
+outside-in market & competitive intelligence; beauty consumer-demand
+allocation is its first application.
 
 Minimum viable artifact: a manual decision memo plus evidence appendix.
 
@@ -115,6 +102,42 @@ Premium buyer-facing artifact: an executive-grade decision deck derived from the
 Commercial next-step hypothesis: a fixed-scope paid decision sprint or equivalent budget-adjacent commitment. This is a hypothesis to test, not validated commercial readiness.
 
 The proof is manual and docs-first. It does not authorize software implementation, automation, source systems, dashboards, collection pipelines, source maps, data-spine designs, packages, tests, commits, pushes, PRs, or feature planning.
+
+## Demand-Substrate Hard Gate (re-derived 2026-06-12)
+
+The pricing wedge's gate ("clean substrate = competitor price pages; reviews
+confirmatory-only") protected a read whose differentiated half sat on one
+clean venue. The demand wedge's differentiated read sits BY DESIGN on the
+hostile, manipulable demand substrate, so the gate re-derives as a fusion and
+integrity rule instead of a venue allowlist:
+
+- A qualified read requires demand signal from AT LEAST TWO independent venue
+  families (review surfaces; forums/community; search interest; retail
+  presence), so no single venue's bias or manipulation carries the answer.
+- The read must anchor on COSTLY BEHAVIOR (payment, switching, workarounds,
+  churn, durable buyer pressure — frozen Core Spine rule). Engagement volume
+  alone classifies as attention/resonance and cannot carry a Commit-grade
+  recommendation; it caps the action ceiling instead.
+- Every venue's evidence carries integrity labels (artificial-amplification
+  risk, incentive distortion, copied/coordinated) before it may enter the
+  fused read. Reviews ARE admissible — as one fused venue, flagged for
+  J-curve self-selection bias and FTC 16 CFR 465 pollution — never as the
+  sole basis. This knowingly prices in the bias risk the pricing un-flip
+  demoted reviews for; multi-venue fusion + integrity judgment + batch-1
+  calibration are the mitigations, and batch-1 measures whether they hold.
+- Org-motion (hiring composition + headcount, brand AND parent) is
+  CORROBORATION inside the artifact — divergence reads (demand up +
+  staffing up / demand up + staffing flat / staffing up + demand flat) are
+  the premium element — never a standalone product, never person-level.
+  Routes follow the owning capture decisions (official/manual/entitled/
+  archive today); the owner's measured-ToS-risk posture (ask-1 amendment,
+  2026-06-12) accepts measured risk and rejects absurd-level approaches
+  (e.g., Bright-Data-style industrial scraping). Route-binding changes are
+  capture-lane decisions, never per-proof stretches.
+- If the fused minimum cannot be met for a candidate decision (fewer than two
+  clean-enough venue families, or no costly-behavior evidence available), the
+  candidate FAILS the gate: disqualify or hold — do not run a single-venue or
+  engagement-only memo.
 
 ## Evidence Mode And Source Boundary
 
@@ -130,96 +153,91 @@ Source mode: local Orca authority and repo-visible product artifacts only. No pu
 
 Primary segment:
 
-B2B SaaS companies making a first-time AI-monetization or
-competitor-triggered repricing/repackaging decision, where the
-competitor-pricing substrate is publicly rich (pricing pages, changelogs,
-filings, earnings, visible public reaction) and the firm is flying blind (no
-internal AI-pricing history or directly applicable precedent). Developer-facing
-SaaS is a strong sub-instance; the wedge frame is cross-sector-open. A
-qualified target must have a live pricing, packaging, API, billing, usage,
-add-on, or monetization decision in the next 30-90 days.
+Indie/DTC beauty / personal-care brands facing a live 30-90 day
+consumer-demand allocation decision — tier/price change, retail or channel
+expansion (e.g., a retailer rollout), launch / moratorium / reposition, or
+pivot on a taste or preference shift — where internal data is not conclusive.
 
-Targets must have a clean, decision-grade public substrate — competitor
-price/packaging signal (pricing pages, changelogs, filings, earnings) — to
-support a differentiated decision memo. User reviews are confirmatory-only and
-must be flagged as independently biased (J-curve self-selection) and
-potentially polluted (FTC 16 CFR 465); they do not satisfy the hard gate.
-Changelog or docs updates and visible ecosystem reaction are acceptable
-supplementary signal where the competitor-price substrate anchors the read. A
-qualified target must also have a named decision owner who can identify a
-concrete budget, launch, retention, revenue-capture, customer-backlash, or
-sales-enablement consequence.
+A qualified target must pass the Demand-Substrate Hard Gate above (at least
+two independent venue families; costly-behavior anchoring; integrity labels
+applicable) and have a named decision owner who can identify a concrete
+inventory, retail-commitment, launch-budget, backlash/churn, or
+delayed-capture consequence.
 
-If results are mixed, diagnose pricing, packaging, API, billing, usage,
-add-on, and monetization sub-types separately before treating the decision
-family as repeatable or non-repeatable.
+If results are mixed, diagnose the demand decision families separately
+(inventory/replenishment vs channel expansion vs launch/reposition vs
+tier/price) before treating the family as repeatable or non-repeatable.
 
 Primary decision owner:
 
-VP Product, GM, pricing or packaging lead, growth or strategy lead, product marketing lead, or founder/operator directly accountable for the decision.
+Founder, head of brand / insights / growth / strategy, or operator directly
+accountable for the budgeted demand-allocation decision.
 
 Economic context:
 
-The decision should have meaningful allocation risk: launch spend, pricing
-change, packaging change, API monetization, billing transition, usage-based
-monetization, add-on monetization, package migration, customer backlash risk,
-churn risk, sales enablement cost, competitive response cost, or delayed
-capture of a real opportunity.
+The decision should have meaningful allocation risk: inventory commitment,
+purchase depth, replenishment, retail or channel commitment, launch spend,
+tier/price change, customer backlash risk, churn risk, or delayed capture of
+a real opportunity.
 
 Disqualifiers:
 
 - No named decision owner.
 - Budget-adjacent champion cannot surface a named decision owner for the memo step.
-- No live 30-90 day pricing, packaging, API, billing, usage, add-on, or
-  monetization decision.
+- No live 30-90 day consumer-demand allocation decision in the families above.
 - No budget or allocation consequence.
-- Buyer wants only generic research, source volume, dashboard access, or a market-monitoring feed.
+- Candidate fails the Demand-Substrate Hard Gate (single-venue-only signal,
+  engagement-volume-only signal, or signal obtainable only through a route
+  outside the capture lane's current bindings or only at absurd risk level —
+  route expansion is a capture-lane decision, not a per-candidate stretch).
+- Buyer wants only generic research, source volume, dashboard access, trend
+  feeds, or a market-monitoring feed.
 - Buyer requires private/internal data or automated collection before a manual public-signal memo can be useful.
 - Categorical trust refusal: buyer says public-signal evidence cannot affect this decision regardless of evidence quality, explanation, examples, numbers, case logic, or proof memo.
-- Buyer attributes such as `venture-backed`, `AI-native`, or `AI-adjacent`
-  are neither qualifiers nor disqualifiers. They may be recorded as context,
-  but cannot replace the decision owner, live decision, consequence,
-  public-signal surface, paid-first condition, trust-refusal test, or
+- Buyer attributes such as funding status, trend-darling visibility, or
+  creator attention are neither qualifiers nor disqualifiers. They may be
+  recorded as context, but cannot replace the decision owner, live decision,
+  consequence, substrate gate, paid-first condition, trust-refusal test, or
   consulting-risk test.
 
 ## Live Decision Trigger
 
 The proof should start only when at least one of these triggers is present:
 
-- A pricing, packaging, API, billing, usage, add-on, or monetization change is
-  being planned or debated.
-- A competitor or adjacent platform has changed pricing, packaging, API
-  access, billing, usage, add-on, or monetization.
-- An AI-triggered shift, such as AI feature bundling, AI add-on monetization,
-  AI cost-structure-driven repricing, or an AI-native competitor packaging
-  move, creates a pricing, packaging, API, billing, usage, add-on, or
-  monetization decision.
-- Public customer, developer, buyer, partner, or ecosystem reaction creates risk around a planned change.
-- A launch, board, budget, strategy, or GTM decision deadline creates a near-term need to reduce allocation risk.
+- A retail or channel window (retailer rollout, shelf reset, marketplace
+  expansion) forces a commit/hold decision.
+- A virality spike, creator-driven surge, or social moment raises a
+  durable-vs-hollow question before inventory or launch commitment.
+- A taste/preference shift (ingredient, format, claim trend) puts a
+  reformulation, reposition, or launch decision in play.
+- A planned launch, moratorium, tier/price change, or SKU rationalization is
+  being debated and internal data is inconclusive.
+- Suspected manufactured or coordinated demand (the brand's own or a
+  competitor's) creates a defend/hold decision.
 
 The trigger must be real enough that the buyer can say what decision is pending, who owns it, what budget or allocation is at stake, and when the decision must be made.
 
-AI exposure is trigger and candidate-context ordering only. It is not a buyer
-filter, not a wedge replacement, not buyer validation, not willingness-to-pay
-proof, and not market-size or capital-density proof. Trust,
-competitive-positioning, agent-workflow, and AI-cost-structure questions count
-inside this packet only when they present as the first-wedge decision families
-above.
+Virality, creator attention, and trend coverage are trigger and
+candidate-context ordering only. They are not buyer filters, not buyer
+validation, and not evidence of durable demand — the fused,
+costly-behavior-anchored read decides; engagement volume alone caps the
+action ceiling.
 
 ## Orca Promise
 
-Orca helps a decision owner reduce allocation risk before committing budget by turning messy public market signals into a clean, source-backed, inspectable, and bounded decision artifact.
+Orca helps the decision owner reduce allocation risk before committing budget
+by discriminating durable demand from hollow demand on fused,
+integrity-labeled public evidence.
 
-For this first proof, the promise is not "Orca sets the correct price." The promise is narrower:
+For this first proof, the promise is not "Orca predicts the trend." The promise is narrower:
 
-Orca can identify a safer action ceiling for a pricing, packaging, API,
-billing, usage, add-on, or monetization decision, such as hold, narrow,
-segment, phase, exempt, grandfather, message, test, upgrade, downgrade, or
-reframe.
+Orca identifies the evidence-supported action ceiling for the live demand
+decision — act, phase, narrow, hold, or defend — states what the public
+signal can and cannot support, and names what would change the answer.
 
 ## Manual Proof Artifact
 
-Artifact name: `Public-Signal Pricing/Package/Billing Decision Risk Memo`.
+Artifact name: `Public-Signal Demand-Allocation Decision Risk Memo`.
 
 Minimum sufficient artifact:
 
@@ -253,19 +271,23 @@ Recommended memo and evidence appendix shape:
 
 1. Decision question and live trigger.
 2. Decision owner, timing, and allocation risk.
-3. Public-signal synthesis relevant to the decision.
-4. Signal-quality caveats, including source cleanliness, audience fit, uncertainty, and artificial-amplification risk where visible.
-5. Buyer, user, developer, partner, or ecosystem objection patterns.
-6. Competitor or category movement relevant to the decision.
-7. Valid action ceiling and unsafe overclaims.
-8. Decision options: hold, narrow, segment, phase, exempt, grandfather, message, test, upgrade, downgrade, or reframe.
-9. Evidence appendix with source links or citations.
-10. Explicit non-claims.
+3. Fused demand-signal synthesis across the qualifying venue families, with
+   costly-behavior classification stated per signal.
+4. Integrity labels and signal-quality caveats (artificial-amplification
+   risk, incentive distortion, copied/coordinated, venue bias flags).
+5. Org-motion corroboration at brand and parent level, and the divergence
+   read where the layers disagree.
+6. Competitor and category movement relevant to the decision.
+7. Valid action ceiling (act / phase / narrow / hold / defend) and the
+   unsafe overclaims explicitly declined.
+8. Decision options mapped to the ceiling, with what would change the answer.
+9. Evidence appendix with provenance-backed citations.
+10. Explicit non-claims and tier label (`product_learning` cap).
 
 Recommended executive deck shape, if the premium layer is produced:
 
 1. Decision question and recommendation verb.
-2. Executive action ceiling: accelerate, narrow, delay, defend, or reframe.
+2. Executive action ceiling: act, phase, narrow, hold, or defend.
 3. What public signals can and cannot support.
 4. Source-backed signal synthesis.
 5. Buyer, user, developer, partner, or ecosystem objection patterns.
@@ -368,8 +390,8 @@ consulting-risk evidence, not graduation evidence.
 Run a small manual proof batch before any product-bet or feature-planning claim:
 
 1. Qualify 6-8 target decision owners, or budget-adjacent champions who can surface a named decision owner for the memo step.
-2. Select up to 3 buyers with live pricing, packaging, API, billing, usage,
-   add-on, or monetization decisions.
+2. Select up to 3 buyers with live consumer-demand allocation decisions
+   (families per Target Buyer).
 3. Produce one manual memo plus evidence appendix per selected buyer.
 4. Produce an executive deck only when the memo and evidence appendix pass the same gates and the deck has a live decision-circulation use.
 5. Run a live readback for each memo, and deck readback only if a deck is produced.
@@ -401,6 +423,15 @@ Kill or reframe the proof if any of these conditions hold after the first proof 
 - The strongest buyer ask is generic market monitoring, not allocation-risk reduction.
 - No buyer shows fixed-scope paid-decision-sprint-level pull or equivalent commercial next step after useful memo feedback.
 - The work only succeeds as bespoke consulting and does not repeat around a decision family.
+- The demand read cannot reach decision-grade within the capture lane's bound
+  routes, or would require an absurd-risk capture approach (owner-rejected
+  level, e.g., Bright-Data-style industrial scraping) — a boundary kill;
+  route expansion is a capture-lane decision, never a per-proof stretch.
+
+On kill, the re-entry disposition is the wedge record's rule as amended
+2026-06-12: re-form toward the harder / more-profitable end of the buyer
+ladder (fund screen, PE/family-office diligence path), owner-decided at kill
+time; pricing-first is not a re-entry candidate.
 
 A single strong candidate may justify a follow-up conversation, but not graduation or proof-boundary acceptance.
 
