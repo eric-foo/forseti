@@ -1,0 +1,109 @@
+batch_id: product_learning
+case_family: beauty_subscription_repricing_decide_vs_confirm
+case_id: beautypie_repricing_2023_v0
+committed_at: <<pending-freeze>>
+decision_shape: ceiling_trap
+fixture_grade: plumbing_grade
+fixture_status: DRAFT
+frozen_band_inputs:
+  authority: full
+  authority_acquisition_cost: low
+  capability: full
+  capability_build_cost: low
+  evidence_independence: partially_independent
+  evidence_strength: moderate
+  information_decay: slow
+  loss_shape: asymmetric_down
+  opportunity_cost: low
+  option_value: moderate
+  reversibility_cost: medium
+  reversibility_feasibility: medium
+  upside_shape: symmetric
+  urgency: low
+labeling_rubric_version: v0_14
+leakage_audit:
+  known_fame_risk: medium_fame_named_brand
+  memorization_probe_required: true
+  spoiler_inventory: >-
+    Named real brand and a real event. All post-cutoff material is a spoiler and must
+    be withheld from the isolated contestant; the specific post-cutoff taxonomy is held
+    ONLY in the sealed facilitator-only outcome record
+    (orgmotion_beautypie_sealed_outcome_facilitator_only_v0.md) and is deliberately NOT
+    enumerated here -- an enumerated spoiler list is itself a leak (whitelist only).
+    The org-motion block in the augmented packet (public Greenhouse postings, snapshot
+    <= 2023-01-31) is pre-cutoff and is NOT a spoiler. The isolated contestant must not
+    access the repo or web or recall any post-March-2023 information.
+ledger_authors:
+  primary_labeler: Outcome-blind constructor lane (this session)
+  second_labeler: <<pending-second-label>>
+  second_labeler_type: <<pending-second-label>>  # human_operator | separate_model_family_advisory
+ledger_freeze_hash: <<pending-freeze>>  # sha256(canonical_yaml_dump(ledger_minus_hash_field)) computed at freeze
+mapping_table_version_pin: v0_14_mvp
+must_address_items:
+- description: The £5/mo tier is the lowest-commitment on-ramp into the membership model
+    (E1, E2); eliminating it and moving those members to £10/mo doubles the price for
+    exactly the most price-sensitive, lowest-commitment segment.
+  evidence_unit_ids:
+  - E1
+  - E2
+  must_address_item_id: MA-01
+- description: UK cost-of-living pressure in early 2023 (E3) raises the retention risk
+    of a price increase on discretionary beauty spend.
+  evidence_unit_ids:
+  - E3
+  must_address_item_id: MA-02
+- description: Eliminating an entry tier / raising the floor price is a recognized
+    retention-risk repricing lever (E4); the live question is how aggressive, not
+    whether to touch pricing at all.
+  evidence_unit_ids:
+  - E4
+  must_address_item_id: MA-03
+- description: There is no pre-cutoff measurement of Beauty Pie's own members' tolerance
+    for the doubling or for scrapping the monthly spending limits.
+  evidence_unit_ids:
+  - E2
+  must_address_item_id: MA-04
+- description: Comparable consumer-subscription repricings (E5) are a base-rate proxy
+    only; their outcomes are excluded, so they cannot substitute for direct evidence
+    of Beauty Pie member tolerance.
+  evidence_unit_ids:
+  - E5
+  - E3
+  must_address_item_id: MA-05
+paired_packet_design:
+  arms:
+  - participant_packet_baseline.md
+  - participant_packet_augmented.md
+  measures: >-
+    Sensitivity of the blind judgement (recommended action band) to the org-motion
+    block, holding all else byte-identical. The constructor asserts no direction of
+    effect.
+  only_delta: >-
+    The two participant packets are byte-identical except for a single inserted
+    "Organizational Motion Signal" section (public Greenhouse hiring intent, snapshot
+    <= 2023-01-31) present only in participant_packet_augmented.md.
+  org_motion_is_must_address: false
+  org_motion_signal_class: hiring_intent_gross_base_rate_discounted_not_net_adds
+sealed_outcome: <<facilitator-seals-separately>>
+second_label_diffs:
+- band_input: option_value
+  primary: moderate
+  second_label_assessment: high
+  floor_impact: "moderate -> floor 3; high -> floor 4 (floor-driving, contested)"
+  rationale: >-
+    The decision forecloses the GBP5/mo entry tier (E1/E2/MA-01: THE low-commitment
+    on-ramp into the model) plus member trust, during a cost-of-living squeeze (E3) --
+    major option value at stake; medium reversibility only partially bounds the
+    downside, reading closer to high than moderate on the v0_14 rubric. CONTESTED and
+    set by an outcome-aware labeler; the frozen_band_inputs value is left at the primary
+    (moderate) pending a separate-model-family second-label before freeze.
+  status: pending_separate_family_resolution
+underreach_observability:
+  evidence_unit_ids: []
+  notes: >-
+    The decide-vs-confirm axis here is over-reach (ceiling), not underreach. In the
+    augmented arm the org-motion block is a tempting signal that can pressure an
+    aggressive repricing, while the cost-of-living context (E3) and the retention-risk
+    base rate (E4) argue for caution. No observable closing window makes holding an
+    underreach error.
+  present: false
