@@ -155,6 +155,13 @@ skill-governance action under the Protected Skill Boundary.
     (working-tree bytes; updated at deployment 2026-06-08 when the status text was
     added; supersedes the at-acceptance hash 2B011CE8; reread-required if the file
     changes).
+    (eol note 2026-06-12, post origin/main merge: the merge-conflict checkout
+    rematerialized both copies with CRLF working-tree line endings, so on-disk
+    Get-FileHash now reads
+    `C5D02D04E6E0C17A6468689D918E7CAB235AF45472C62D8DD3661E31E7D0ACD4`; git
+    content is unchanged — index blob `9b5b57e` on both copies, identical to the
+    re-pinned LF source. Either byte hash verifies the same frozen content
+    depending on checkout eol; the eol-stable identity is the git blob.)
   - Scope: prepares — does not freeze, run outreach, produce, or build — any Orca
     product decision (value proposition, offer, ICP / first-proof wedge,
     buyer-proof design, positioning / packaging, deliverable shape, pull / kill /
