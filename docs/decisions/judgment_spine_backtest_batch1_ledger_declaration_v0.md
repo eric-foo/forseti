@@ -180,6 +180,34 @@ live-API authorization; mints no new ladder, closeout-state, or claim-tier
 vocabulary. Org-motion is **not** promoted to a standing source-family, and the
 holdouts (#5 Lime Crime, #6 REFY) are untouched.
 
+## Amendment - Org-Motion Batch Pre-Commitment (2026-06-11, owner sign-off, in-thread)
+
+To remove the selection bias that case-by-case org-motion admission would otherwise
+carry (the case-#3 admission happened *after* its gate-0 revealed org-motion aligned
+with the outcome), the owner pre-commits, in-thread 2026-06-11:
+
+- **Org-motion is attempted on ALL remaining batch cases** (#4 Topicals, #5 Lime
+  Crime, #6 REFY), not only #3. This set + the run-on-all rule are fixed **now**,
+  before each case's gate-0 reveals whether org-motion aligns, so inclusion cannot
+  correlate with favorability.
+- **Per case:** run gate-0 feasibility; where org-motion is archive-backtestable
+  <=cutoff, run the paired with/without; **record a blind org-motion prediction** (the
+  signal's predicted direction) *before* the reveal. Report **all** results -
+  including feasibility failures and cases where org-motion did not move the call.
+  Selective reporting voids the anti-cherry-pick property.
+- **Outcome-blind construction:** packets are built by an actor not holding the
+  sealed outcome (see the proposed conductor construction-integrity addendum,
+  `docs/product/judgment_spine/conductor_construction_integrity_probe_addendum_proposal_v0.md`).
+- **Dev/holdout respected:** dev cases (#3, #4) may inform method; holdouts (#5, #6)
+  are run once under the pinned key and only reported - no key or harness iteration
+  may condition on them.
+
+Honest claim this enables: "org-motion moved the call in K of N pre-committed cases,"
+not "here is a case where it worked." Caps unchanged: product-learning, small-N;
+pinned scoring key unchanged; JSG-01 frozen; not live-API authorization; org-motion
+not promoted to a standing source-family. Per-case org-motion scope (ATS-led vs
+broader) is set at each case's gate-0, as for #3.
+
 ## Non-Claims
 
 - Not validation, readiness, buyer proof, or judgment-quality evidence; the
