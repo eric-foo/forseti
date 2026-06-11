@@ -483,6 +483,8 @@ one hop to every owner. Do not pre-load the ECR/SCR owner docs from this map.
 | `docs/product/core_spine/core_spine_v0_proof_input_selection_v0.md` | Proof input-selection rules. |
 | `docs/product/core_spine/core_spine_v0_proof_packet_preflight_v0.md` | Proof packet preflight. |
 | `docs/product/core_spine/core_spine_v0_proof_case_selection_brief_v0.md` | Early proof case-selection brief; status BLOCKED_OWNER_CANDIDATES_NEEDED. For current case/backtest selection see the heavyweight discovery pass (`docs/product/core_spine/core_spine_v0_heavyweight_proof_case_discovery_results_v0.md` and `..._results_part_2_v0.md`), which produced the candidates the brief was blocked on. |
+| `docs/product/core_spine/orca_venue_exploration_procedure_v0.md` | WHERE-side venue exploration procedure (owner-adopted Shape C): batch-scoped walk steps, commons split, influence yield, promote-on-reuse trigger. Subordinate to the case-finder frame; amendments are dated notes. |
+| `docs/product/core_spine/beauty_venue_card_set_v0.md` | Beauty venue card-set (promoted 2026-06-11; the ONE maintained venue asset — 12-card hard cap, per-card review dates): read FIRST at Step 0 of any beauty/personal-care screen, fragrance included. Binding terms: `docs/decisions/beauty_venue_card_set_promotion_decision_v0.md`. |
 
 For Data Capture / Source Capture Armory detail, open the repo submap at
 `docs/workflows/data_capture_spine_consolidation_map_v0.md`; this repo map
