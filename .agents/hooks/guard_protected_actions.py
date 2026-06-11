@@ -40,6 +40,7 @@ import re
 import sys
 
 HOME = os.path.expanduser("~")
+REPO_SLUG = "eric-foo/orca"
 
 
 def _norm(p):
@@ -162,6 +163,7 @@ def decide(tool_name, tool_input):
 _BLOCK_MSG = (
     "BLOCKED by Orca protected-action guard (.agents/hooks/guard_protected_actions.py).\n"
     "Reason: %s\n"
+    "%s"
     "Authority: .agents/workflow-overlay/safety-rules.md + dev-workflow doctrine "
     "(no unattended land-to-main / push-to-main / force-push / destructive-clean, "
     "and no edits to jb/external/installed skills, unless explicitly authorized). "
@@ -235,7 +237,15 @@ def main():
         sys.stderr.write("guard_protected_actions: internal error, allowing: %s\n" % exc)
         sys.exit(0)
     if block:
-        sys.stderr.write(_BLOCK_MSG % reason + "\n")
+        hint = ""
+        if "land-to-main (PR merge)" in reason:
+            pr_m = re.search(r"\bpr\s+merge\s+(\d+)", reason, re.I)
+            pr_ref = pr_m.group(1) if pr_m else "<PR#>"
+            hint = (
+                "  → Merge manually (PowerShell / terminal):\n"
+                "    gh pr merge %s --squash --delete-branch --repo %s\n"
+            ) % (pr_ref, REPO_SLUG)
+        sys.stderr.write(_BLOCK_MSG % (reason, hint) + "\n")
         sys.exit(2)
     sys.exit(0)
 
