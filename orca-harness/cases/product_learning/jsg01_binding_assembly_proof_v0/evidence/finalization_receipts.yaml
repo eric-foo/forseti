@@ -1,0 +1,16 @@
+---
+binding_hash: 408e4e670f452dd5db53cb71427f6b29cf875d606ff7ae00299315be95761374
+evidence_id: E1
+final_pre_decision_status: verified_pre_decision
+finalized_at: '2026-06-11T19:59:07Z'
+finalized_over:
+  proposed_pre_decision_basis: Archive.org snapshot dated 2024-12-25, established
+    pre-cutoff by the producer's anti-leakage select_snapshot <= cutoff capture (packet
+    cutoff_posture = pre_cutoff, carried by reference; SP-3/M1).
+  proposed_pre_decision_status: verified_pre_decision
+finalizer_identity: operator:eric_band_labeling_operator (proxy-recorded by ecr_ca_lane
+  per owner word in-thread, 2026-06-12)
+finalizer_model_family: human_operator
+judge_model_family: unassigned_pending_run_authorization
+receipt_id: 01KTW48P5PW4JJQG7NBG6G6DBP
+supersedes: null

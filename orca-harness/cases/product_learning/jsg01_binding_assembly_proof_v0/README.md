@@ -47,11 +47,30 @@ binding the same way, re-run the composition, and update this record.
   assertion that the `archive_snapshot_body` slice's preserved bytes carry this
   unit's content.
 - `evidence/finalization_receipts.yaml` — the case-carried append-only SP-5
-  receipt stream (written by `runners/run_finalization_receipt.py`; absent
-  until the operator's out-of-band finalization act per AR-01).
+  receipt stream (written by `runners/run_finalization_receipt.py`). The
+  finalization act was recorded 2026-06-12: receipt
+  `01KTW48P5PW4JJQG7NBG6G6DBP`, finalizer `operator:eric_band_labeling_operator`
+  (proxy-recorded by the ECR CA lane per the owner's in-thread word),
+  `finalizer_model_family: human_operator`. `judge_model_family` is the
+  EXPLICIT placeholder `unassigned_pending_run_authorization` — no judge model
+  lane is assigned for this case yet (owner-couriered); when a run is
+  authorized, record a correction receipt (`--supersedes
+  01KTW48P5PW4JJQG7NBG6G6DBP`) carrying the real judge family before
+  evaluation. A human finalizer is structurally cross-family from any model
+  judge (AR-01 guardrail a).
 - `evidence/jsg01_evidence_record_E1.yaml` — materialized composed-record
   snapshot (convenience only; **authority is re-derivation** via
   `evidence_binding.compose_jsg01_evidence_record` — re-derive, never migrate).
+
+## Composition observed (2026-06-12; authority = re-derivation)
+
+All five JSG-01 reads evaluated determinately over this packet via
+`evidence_binding.compose_jsg01_evidence_record`: SP-1 `resolved` (clears),
+SP-6 `archive_only` (clears), SP-3 bound `pre_cutoff` (clears), SP-2 bound
+`inspectable_verifiable` (clears), SP-5 finalization CLEARED (single current
+cross-family binding-consistent receipt, final `verified_pre_decision`) when
+evaluated at the recorded judge family. Determinate evaluation is a machinery
+fact, not a JSG-01 clearance: the conductor stays FROZEN and clears no case.
 
 ## Non-claims
 

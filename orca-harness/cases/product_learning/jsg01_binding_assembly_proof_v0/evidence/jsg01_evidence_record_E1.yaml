@@ -1,0 +1,44 @@
+derived_from:
+  composer: evidence_binding.compose_jsg01_evidence_record
+  judge_model_family_evaluated: unassigned_pending_run_authorization
+  packet_id: 01KTM9QS8RJJAYJVD3A3C784HW
+  packet_manifest: reports\source_capture\g4_archive_validation_3\manifest.json
+re_derivable: true
+record:
+  evidence_id: E1
+  evidence_slice_id: archive_snapshot_body
+  finalization:
+    current_receipt_id: 01KTW48P5PW4JJQG7NBG6G6DBP
+    final_pre_decision_status: verified_pre_decision
+    reason: single current cross-family binding-consistent FinalizationReceipt
+    result: cleared
+  identity:
+    clears_identity: true
+    packet_id: 01KTM9QS8RJJAYJVD3A3C784HW
+    reason: null
+    state: resolved
+  inspectability:
+  - clears_inspectable: true
+    reason: null
+    slice_id: archive_availability
+    state: inspectable_verifiable
+  - clears_inspectable: true
+    reason: null
+    slice_id: archive_snapshot_body
+    state: inspectable_verifiable
+  packet_id: 01KTM9QS8RJJAYJVD3A3C784HW
+  source_visibility:
+    clears_source_visibility: true
+    packet_id: 01KTM9QS8RJJAYJVD3A3C784HW
+    reason: null
+    residual: null
+    value: archive_only
+  timing:
+  - carried_cutoff_posture: pre_cutoff
+    clears_pre_cutoff: true
+    residual: null
+    slice_id: archive_availability
+  - carried_cutoff_posture: pre_cutoff
+    clears_pre_cutoff: true
+    residual: null
+    slice_id: archive_snapshot_body
