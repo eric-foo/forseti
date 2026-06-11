@@ -134,10 +134,10 @@ The Product Proof Lead does not own:
 
 Recommended first buyer segment:
 
-Indie/DTC beauty / personal-care brand decision owners (founder, head of
-brand / insights / growth / strategy) with a live 30-90 day demand-allocation
-decision and a concrete allocation consequence, passing the buyer-proof
-packet's Demand-Substrate Hard Gate (at least two independent venue families;
+US-market indie/DTC beauty / personal-care brand decision owners (founder,
+head of brand / insights / growth / strategy) with a live 30-90 day
+demand-allocation decision and a concrete allocation consequence, passing the
+buyer-proof packet's Demand-Substrate Hard Gate (at least two independent venue families;
 costly-behavior anchoring; integrity labels applicable; org-motion
 corroboration through capture-lane-bound routes).
 

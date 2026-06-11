@@ -117,9 +117,11 @@ intelligence**, operator-first.
 
 - Engine (unchanged): outside-in market & competitive intelligence.
   Consumer-demand allocation is its first application.
-- First door — buyer: an **indie/DTC beauty brand decision owner** (founder,
-  head of brand / insights / growth / strategy) facing a live consumer-demand
-  allocation decision where internal data is not conclusive. Decision families
+- First door — buyer: a **US-market indie/DTC beauty brand decision owner**
+  (founder, head of brand / insights / growth / strategy) facing a live
+  consumer-demand allocation decision where internal data is not conclusive
+  (US-market qualifier per the thesis geography doctrine, owner-adopted
+  2026-06-12). Decision families
   (mirroring the owner-selected batch-1 cases): tier/price change, retail or
   channel expansion (e.g., a Sephora-type rollout), launch / moratorium /
   reposition, pivot on a taste or preference shift.

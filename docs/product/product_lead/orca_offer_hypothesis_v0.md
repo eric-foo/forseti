@@ -261,7 +261,8 @@ The first proof ICP wedge is selected, not proven.
 
 Selected first proof ICP / wedge (selected, not proven):
 
-Indie/DTC beauty / personal-care brands facing a live 30-90 day
+US-market indie/DTC beauty / personal-care brands (geography per the thesis
+doctrine, 2026-06-12) facing a live 30-90 day
 consumer-demand allocation decision — tier/price change, retail or channel
 expansion, launch / moratorium / reposition, or pivot on a taste or preference
 shift — with a named decision owner (founder, head of brand / insights /
@@ -477,8 +478,9 @@ becomes categorical `trust_refusal`.
 
 For the first proof offer, add these stricter gates:
 
-1. Is there a live 30-90 day consumer-demand allocation decision in beauty /
-   personal care (families per the decision-families list)?
+1. Is there a live 30-90 day consumer-demand allocation decision in US-market
+   beauty / personal care (families per the decision-families list; non-US
+   candidates route to the owner per the thesis geography doctrine)?
 2. Is there a named decision owner or budget-accountable lead?
 3. Is the allocation consequence concrete (inventory, retail commitment,
    launch budget, backlash/churn risk, delayed capture)?

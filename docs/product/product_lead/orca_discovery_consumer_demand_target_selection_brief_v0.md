@@ -71,9 +71,11 @@ a separately authorized candidate-scan lane.
 
 Slot-fill rule: a slot may be filled only from a dated, provenance-noted
 candidate scan produced by an authorized lane; no slot is filled from memory,
-from another lane's unverified summary, or from this lane. Candidate companies
-are not buyers, leads, prospects, or clients; trust posture is `unknown` until
-qualification.
+from another lane's unverified summary, or from this lane. Slots default
+US-market per the thesis geography doctrine (2026-06-12); non-US candidates
+route to the owner or defer (mirroring the candidate-pool handoff
+obligations). Candidate companies are not buyers, leads, prospects, or
+clients; trust posture is `unknown` until qualification.
 
 ## Qualification Objectives (first contact, when outreach is ever opened)
 

@@ -202,12 +202,24 @@ Satellites adapt the spine to vertical, venue set, decision family, and
 buyer language (beauty is the first satellite); the core stays
 market-agnostic per the Core Spine satellite contract.
 
-## Vertical Doctrine (beauty first, narrow-then-widen)
+## Vertical And Geography Doctrine (beauty first, US first, narrow-then-widen)
 
 - Beauty/personal-care is the proof vertical: substrate-rich (reviews,
   Reddit/forums, trackers, trade press), entity hierarchies tractable, and
   the proof engine already runs there. "Good proof vertical" and "durable
   market" stay separate questions; widening is a later owner decision.
+- Geography doctrine (owner-adopted 2026-06-12, "bake that into thesis";
+  consistent with the same-day US-default direction already recorded in the
+  discovery lane's candidate-pool handoff): the first proof runs US-market —
+  the probe-verified venue set, the compounding screen knowledge,
+  English-language receipts, and the FTC-calibrated integrity flags all sit
+  there. US brands/ecosystem is the default; non-US candidates route to the
+  owner or defer. The engine is geography-portable by design — EU/UK is a
+  later widening decision (bringing its own claims/integrity doctrine row,
+  e.g. Omnibus/DSA, and a stricter org-motion privacy posture), not part of
+  the first proof. The exception gate is the substrate, not the passport: a
+  qualified non-US buyer whose decision sits on capturable venues is routed
+  to the owner, not refused outright.
 - Venue knowledge compounds by Shape C only: the owner-adopted thin
   exploration procedure plus append-only Screen/Venue Provenance blocks — no
   registry, atlas, or standing source map (owner-rejected 2026-06-11;

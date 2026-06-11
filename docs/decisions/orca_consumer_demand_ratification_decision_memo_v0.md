@@ -85,7 +85,8 @@ amendments the same day:
   at thesis prep was live-NO-GO — so the GO is recorded here on the owner's
   current word, and the owning capture-lane records (probe lane,
   recon index) owe their own dated alignment in their lanes. Consistent
-  with the ask-1 measured-ToS-risk posture.
+  with the ask-1 measured-ToS-risk posture. The owner re-confirmed the GO
+  after this flag was raised ("2 - go", 2026-06-12).
 - **Pricing-first re-entry candidacy: withdrawn.** Owner words: "do NOT do
   poricing - first actually. that's too... we cant call any wind for that.
   we need to hit the harder ones / profitable ones". Effect: pricing-first
@@ -96,6 +97,16 @@ amendments the same day:
   more-profitable end of the buyer ladder (fund screen, PE/family-office
   diligence path), decided by the owner at kill time. Amended in the wedge
   record, the buyer-proof packet, and the pricing-first banner.
+- **Geography: US-first baked into the thesis.** Owner words: "got it. bake
+  that into thesis" (accepting the lane's US-first recommendation;
+  consistent with the same-day US-default direction already recorded in the
+  discovery lane's candidate-pool handoff: "US brands/ecosystem default;
+  consuming batch routes inclusion to the owner or defers the row"). Effect:
+  the thesis carries a Vertical And Geography Doctrine bullet (US-market
+  first proof; EU/UK a later widening decision; substrate-not-passport
+  exception gate), and the wedge first door, buyer-proof packet segment,
+  charter segment, offer-hypothesis wedge statement, and the live discovery
+  brief carry the US-market qualifier.
 
 ## Readiness In One Line
 

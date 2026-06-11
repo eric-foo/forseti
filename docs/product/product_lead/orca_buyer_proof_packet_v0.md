@@ -153,10 +153,12 @@ Source mode: local Orca authority and repo-visible product artifacts only. No pu
 
 Primary segment:
 
-Indie/DTC beauty / personal-care brands facing a live 30-90 day
+US-market indie/DTC beauty / personal-care brands facing a live 30-90 day
 consumer-demand allocation decision — tier/price change, retail or channel
 expansion (e.g., a retailer rollout), launch / moratorium / reposition, or
 pivot on a taste or preference shift — where internal data is not conclusive.
+Geography: US-market first proof per the thesis geography doctrine
+(2026-06-12); non-US candidates route to the owner or defer.
 
 A qualified target must pass the Demand-Substrate Hard Gate above (at least
 two independent venue families; costly-behavior anchoring; integrity labels
