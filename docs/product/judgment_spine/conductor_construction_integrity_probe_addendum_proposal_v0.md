@@ -29,6 +29,9 @@ delegated review). Not yet part of the conductor; do not cite as ratified.**
 Motivated by the org-motion Beauty Pie pilot. Three additions, none of which adds a
 new gate - each is a constraint on an existing gate or an invocation note.
 
+**SUPERSEDED 2026-06-12 by `conductor_construction_integrity_probe_addendum_v1.md`** (the
+architecture-resolved requirements + routed-out redraft); v0 is retained for review history only.
+
 **Delegated review outcome (2026-06-12): NEEDS_ARCHITECTURE_PASS.** A cross-vendor
 review (`docs/review-outputs/adversarial-artifact-reviews/conductor_construction_integrity_probe_addendum_adversarial_review_v0.md`)
 returned three accepted findings - AR-01 critical (Rule 3's passive read cannot be a
