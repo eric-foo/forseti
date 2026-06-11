@@ -87,14 +87,14 @@ anti-steering lesson).
 
 ## Sealed-outcome recoverability (calibration target)
 
-Recoverable -- and firmed in Phase 2. Post-cutoff sources document overwhelmingly
-negative member reaction and widespread cancellations (Mar 2023); the medium-term
-result is established and **sealed** in the facilitator-only outcome record
-(`orgmotion_beautypie_sealed_outcome_facilitator_only_v0.md`), a contrast to the
-Inoreader case's walk-back. The gate-0 "Covent Garden pop-up" signpost is
-**retracted** as an over-read -- that pop-up was a June-2022 marketing activation,
-not a post-backlash response. The detailed outcome is facilitator-only and is not
-restated here.
+Recoverable -- and firmed in Phase 2. The medium-term result is established and
+**sealed** in the facilitator-only outcome record
+(`orgmotion_beautypie_sealed_outcome_facilitator_only_v0.md`). **To keep THIS
+research-tier doc safe for an outcome-blind constructor to read, the post-cutoff
+outcome (reaction, results, trajectory) is NOT restated here** -- it lives only in
+the sealed record. The gate-0 "Covent Garden pop-up" signpost is **retracted** as
+an over-read -- that pop-up was a June-2022 marketing activation, not a
+post-backlash response.
 
 ## Scope decision (owner-accepted 2026-06-11)
 
