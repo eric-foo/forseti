@@ -96,6 +96,22 @@ Use this order for sequencing decisions:
 3. Next action.
 4. What remains blocked.
 
+## Owner-Run Command Blocks
+
+(Added 2026-06-12, owner word: commands handed to the owner must be usable
+"from anywhere".) When an agent hands the owner a command block to run
+themselves — any guard-gated human step, such as landing a PR via
+`.github/scripts/merge-when-green.ps1` or operating on guard-protected paths —
+the block must be runnable from any directory:
+
+- Use absolute paths for every script and file in the block; never a
+  repo-relative path on its own.
+- Pass explicit repo/target flags (for example `--repo owner/name`) rather
+  than relying on the current working directory to imply them.
+- If a command genuinely requires a specific working directory, make the
+  block self-contained by starting it with an explicit
+  `cd "<absolute path>"` line.
+
 ## Chief Architect Review Consumption
 
 When an Orca Chief Architect or CA-facing handoff consumes one or more review
