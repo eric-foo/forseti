@@ -45,6 +45,20 @@ parent. The build and EDGAR source-access authorizations were granted by the
 owner in-thread (2026-06-12); this record **documents** that scope and is not
 itself the authorizing instrument.
 
+### Build + code-review status (2026-06-12)
+
+The revised three-record architecture below is **BUILT and green**, superseding its
+earlier `PROPOSED — not locked` status: STEP-01..06 implemented in
+`orca-harness/source_capture/company_aggregate/` (plus the EDGAR adapters + runners),
+**108 offline unit tests passing**. A third, **code-level** cross-vendor review ran
+(author Anthropic/Claude; reviewer OpenAI/GPT-5-Codex; repo-read, advisory): 1 critical
++ 4 major, **all in the v0 extraction/plumbing — the identity core (AR-04/05/06/07) was
+confirmed sound in code.** All five were CA-adjudicated, remediated, and cleared by a
+bounded same-vendor recheck (`ALL_CLOSED_NO_NEW_ISSUES`). Record:
+`docs/review-outputs/company_aggregate_edgar_slice_code_review_v0.md`. Still not
+validation / readiness / source-of-truth promotion; the EDGAR-first series remains a
+filer-level UNRESOLVED trend until the entity spine resolves it.
+
 ## Owner Refinements (2026-06-12)
 
 Owner input received after this scope was first written. These **sharpen
@@ -157,6 +171,244 @@ and a future provider-feed adapter are two implementations behind the same
 source-adapter interface. Durable investment concentrates in the official
 adapters (EDGAR/CH) + the core, which carry no ToS risk and are the permanent
 surfaces.
+
+## Locked Implementation Call — EDGAR-First Slice (2026-06-12, review-gated)
+
+Produced by the `/fused` pre-implementation lanes (scoping → spec →
+micro-lock). **Status: SUPERSEDED by cross-vendor review (2026-06-12) → bounded
+architecture revision** (see the adjudication subsection at the end of this
+section). The two-layer *instinct* survives; the single-record Layer-2 contract
+below does **not** — it is the historical proposal that went into review.
+**No code was written.**
+
+### Data-shape call (high lock-in)
+
+Two layers. **Layer 1 (capture) = `SourceCapturePacket`, unmodified** — each
+EDGAR reading is one packet preserving the 10-K excerpt; ECR binds packets by
+`packet_id`+`evidence_slice_id` (verified firsthand in
+`orca-harness/evidence_binding/composer.py`), so packets-as-capture-unit
+preserves the ECR binding path. **Layer 2 (series) = a NEW entity-keyed,
+append-only derivation record** built on the `reddit_consolidation` pattern
+(validate + re-verify sha256 → derive outside the immutable packet →
+`schema_version` + `non_claims`), but a new many-packets→one-entity-series fold.
+**`entity_key` lives in Layer 2 only**, never the packet (keeps capture
+decoupled from the unbuilt entity-resolution spine).
+
+### Layer-2 record contract (thin spec)
+
+- Fields: `schema_version`; `entity_key`; ≥1 `raw_surface_form`; `source` ∈
+  {`sec_edgar`,`companies_house`,`linkedin`}; `capture_posture` ∈
+  {`official`,`attended_fallback`}; `number_of_employees`; `size_band`;
+  `follower_count`; `source_effective_date`; `capture_date`; provenance
+  (`packet_id`,`slice_id`,`sha256`).
+- **Honesty invariant:** every measured field + `source_effective_date` carries
+  a NAMED state (known value | named absence + reason) — never a silent null or
+  guess (reuse the existing `VisibleFact` discipline).
+- **Append-only:** logical-point identity = (`entity_key`,`source`,
+  `source_effective_date`); re-captures appended as new rows, never overwriting;
+  trend orders by `source_effective_date`.
+- **EDGAR captures only:** the adapter yields the filing + *structured* filing
+  metadata (CIK, form, period-of-report, filing date — structured, not
+  narrative); the employee count (narrative) is extracted in Layer 2.
+  `EdgarSuccess`/`EdgarFailure` carry no interpreted count. For
+  `source=sec_edgar`, `follower_count` + `size_band` = `not_applicable`.
+
+### Route (read-only; STEP-01..06)
+
+STEP-01 Layer-2 contract → STEP-02 EDGAR adapter (`fetch_edgar_*`, composes
+`direct_http` behind the seam, declared SEC User-Agent) → STEP-03 packet runner
+→ STEP-04 derivation (re-hash + narrative extraction) → STEP-05 append-only
+series → STEP-06 trigger-agnostic entrypoint (manual now). Offline unit tests
+per unit; no live network in unit/contract tests.
+
+### Locked micro-decisions
+
+- Module home: `source_capture/company_aggregate/` (mirrors
+  `reddit_consolidation`). [reversible]
+- Honesty type: reuse `source_capture` `VisibleFact` (import, don't fork).
+  [review-gated]
+- `number_of_employees`: VisibleFact state authoritative + a typed int only when
+  state=known. [review-gated]
+- Series persistence: append-only file artifact outside the packet; **no
+  DB/storage** (separately gated, unauthorized). [authority-forced]
+- `entity_key` provisional: `{source}:{raw_id}` (e.g.
+  `sec_edgar:CIK0000320193`), swappable to canonical. [review-gated]
+- EDGAR transport: compose `direct_http.fetch_direct_http_capture`. [reversible]
+
+### Non-claims (this section)
+
+Not implemented (no code this turn). Not validated, not ready. The
+review-gated record-contract elements are review proposals, not owner-final.
+Not storage/DB/scheduler authorization, not ECR field design, not entity-spine
+resolution.
+
+### Cross-Vendor Review Adjudication (2026-06-12)
+
+A cross-vendor delegated review ran (author Anthropic/Claude; controller
+OpenAI/GPT; de-correlation satisfied; advisory / `no_repo`). **Verdict:
+`NEEDS_ARCHITECTURE_PASS` — accepted by home-model adjudication.** All eight
+findings (AR-01..AR-08) were adjudicated as **accepted** (several bounded). The
+diff/verdict were treated as claims, not premises. Survivors: the two-layer
+instinct, packet-as-capture-unit, ECR-binding, consume-not-absorb. **The
+single-record Layer-2 contract above is superseded** by a bounded architecture
+revision:
+
+- **Split Layer 2** → an **immutable observation event** keyed on durable source
+  facts (source + CIK + accession + period-of-report + packet provenance — **not**
+  the provisional `entity_key`) + a **derived entity projection**
+  (resolution-map-driven, re-derivable; `entity_key` is a resolved attribute, not
+  part of immutable identity). [AR-01, AR-02, AR-06]
+- **Capture the full raw filing** in Layer 1, not a hand-selected excerpt;
+  region/span selection moves into Layer-2 extraction. [AR-04]
+- Add **derivation provenance** (deterministic parser method+version+run) + a
+  **supersession relationship**, reusing the packet's `re_capture_relationship`
+  idiom. [AR-05]
+- Add bounded **value-quality** (exact/approximate/ambiguous) + **measurement
+  basis** (full-time/total/average/segment) to a known count. [AR-03, AR-07]
+- **Tighten non_claims:** raw observations; cross-year/cross-company
+  comparability **not established** (a probability-shifter, not a clean trend).
+  [AR-07]
+- Do **not** pre-couple non-EDGAR fields (`follower_count`/`size_band`) into the
+  durable EDGAR observation; per-source measures, unified at the projection
+  layer. [AR-08]
+
+**Implementation does NOT proceed.** Next authorized step: a **bounded
+architecture revision** re-derives the Layer-2 contract above; `STEP-01..`
+resume only after that revision (owner may commission a lighter re-review of the
+revised shape).
+
+## Revised Layer-2 Architecture (2026-06-12, BUILT — see "Build + code-review status" above)
+
+Output of the standard 3-subagent architecture pass that re-derived the Layer-2
+contract along the accepted AR-01..AR-08 direction. Three independent,
+code-grounded designs **converged** on the shape below (a confidence signal).
+**Status: BUILT + green + code-reviewed** — STEP-01..06 implemented, 108 offline tests,
+the cross-vendor code review remediated + same-vendor-rechecked (see "Build + code-review
+status" under Status above). Supersedes this section's original `PROPOSED — not locked`
+status. Still not validation / readiness / source-of-truth promotion.
+
+**Three records, not one** (separates identity that must never move from
+identity that will move):
+
+- **Layer 1 — `SourceCapturePacket`, unmodified.** Preserves the **full 10-K
+  filing** bytes (`raw_stored_bytes`), one slice; structured filing metadata
+  (CIK/accession/form/period_of_report/filing_date) carried as `KNOWN`
+  `VisibleFact`s. No excerpt, no employee number, no `entity_key`. Stays
+  ECR-bindable by `(packet_id, evidence_slice_id)`; full-filing capture
+  *strengthens* the inspectability posture. [AR-04]
+- **Layer 2a — `EdgarHeadcountObservation`** (NEW, immutable, append-only, in
+  `source_capture/company_aggregate/`):
+  - **Durable identity = `(source, cik, accession, period_of_report)`** —
+    `entity_key` is **absent** from immutable identity. [AR-01/02/06]
+  - **`extraction_span`** = `{preserved_file_id, source_sha256 (re-verified),
+    start, end, excerpt_sha256, matched_text, pattern_id}` — the re-derivable
+    receipt of where in the immutable bytes the count was read. [AR-04/05]
+  - **Measure** = `employee_count: VisibleFact` (known int | named absence +
+    reason) + `value_quality` (closed) + `measurement_basis` (closed
+    `VisibleFact`). [AR-03/07]
+  - **`derivation`** = `{parser_method, parser_version, ruleset_sha256, run_id}`
+    — deterministic regex, not an LLM. [AR-05]
+  - **`supersedes`** = `{relationship ∈ RE_CAPTURE_RELATIONSHIP_VALUES,
+    prior_ref}`. [AR-05]
+  - **No** `follower_count`/`size_band`. [AR-08] Append-only file artifact
+    outside the packet dir; no DB.
+- **Layer 2b — `CompanyHeadcountProjection`** (NEW, DERIVED, **computed-on-read,
+  not persisted as truth**): `entity_key` resolved **here** via an injected,
+  versioned `ResolutionMap` (v0 default = passthrough `sec_edgar:CIK…`); fold =
+  resolve → group by `entity_key` → collapse supersession chains → order by
+  `period_of_report` → per-source lanes (source-tagged, NOT inter-converted;
+  official-first is a read-time view). **Merge/split/remap handled in the map +
+  fold; the immutable log is never touched.** [AR-01/02/06/08]
+
+**Re-extraction vs new-observation:** same `accession` ⇒ re-extraction
+(`supersede`/`conflict`); new `accession` + new period ⇒ new (`supplement`); new
+`accession` + same period (10-K/A) ⇒ `mixed`. Append-only keeps both rows;
+"supersede" is a projection-collapse instruction, never a delete.
+
+**Reuse vs new:** reuses `VisibleFact` (import, don't fork),
+`RE_CAPTURE_RELATIONSHIP_VALUES`, the `reddit_consolidation` derive-from-bytes
+contract (re-hash gate → derive-outside-packet → `schema_version`+`non_claims`),
+the closed-posture validator, `append_yaml_document`. The split + full-filing/span
+boundary + per-source-models-unified-only-at-projection are the only new
+structural surfaces.
+
+**Open questions for owner / the lighter re-review:**
+
+1. **ResolutionMap / ResolutionEvent ownership (doctrine boundary):** confirm
+   this lane only *applies* resolution (consumes the map), never *authors* it —
+   else the capture lane silently acquires entity-resolution authority.
+2. **Durable key disambiguator:** add `measurement_basis` (or an
+   `extraction_target` token) to the key for multi-statement filings, or keep
+   the 4-tuple for v0? Lean: 4-tuple now; add only when a real filing forces it.
+3. **Full-filing vs the `direct_http` 5 MB cap:** 10-K primary docs can exceed
+   it — adapter raises the cap / fetches the primary document only /
+   bounded-but-complete. Constrains what "full filing" means.
+4. **Minor:** `value_quality`/`measurement_basis` membership; projection conflict
+   handling (lean: surface both); `range` encoding (lean: non-known + range in
+   reason); structured-metadata as a 2nd preserved file (lean: yes).
+
+**non_claims:** PROPOSED architecture, not locked, not implemented; raw
+observations, cross-year/cross-company comparability NOT established; `entity_key`
+provisional; not ECR-ready until rebound under a Decision Frame; not storage/DB/
+scheduler authorization; not entity-spine authorship.
+
+### Second (Narrow) Cross-Vendor Review Adjudication (2026-06-12)
+
+A narrow cross-vendor re-review ran (author Anthropic/Claude; controller
+OpenAI/GPT; de-correlation satisfied; advisory / `no_repo`), scoped to the
+identity split + merge/split model + the **#1 ownership boundary**. **Verdict:
+sound-with-fixes — accepted.** The core identity split and the #1 boundary are
+**confirmed directionally sound and strengthened** — a tightening, not a restart.
+All 7 findings accepted; two corrected the author's own claims (AR-04, AR-05).
+
+- **AR-01 (blocker) — merge semantics:** the merge model conflated
+  *continuity-remap* (same entity, join histories) with *economic
+  rollup/acquisition* (distinct entities — must NOT retroactively flatten). Fix:
+  distinguish them; economic rollup needs a temporal/effective boundary and is
+  **spine-authored + a hard-STOP for this lane** (reinforces #1). Does NOT gate
+  EDGAR-first (passthrough does no merges); recorded for the spine contract.
+- **AR-02 (major) — split discriminator:** make the `ResolutionEvent`
+  discriminator typed/extensible (period-boundary is one type; also
+  effective-date / accession / observation-id). Spine-owned; doesn't gate
+  EDGAR-first.
+- **AR-03 (major) — filing key vs observation key:** the durable 4-tuple is a
+  *filing-period* key; a single 10-K can state total + full-time + segment counts,
+  so it is not a safe *observation* key as-is. Fix: add an immutable observation
+  discriminator (`measurement_basis`/`extraction_target`) to the key, or
+  state+enforce one-canonical-observation-per-filing. **Elevates open-question #2
+  from defer to MUST-RESOLVE. Gates EDGAR-first.**
+- **AR-04 (major) — passthrough sufficiency [corrects the author]:**
+  "passthrough-by-CIK = a company headcount trend" was overstated. CIK is a
+  *filer* id, not a company id (consolidated parent filings, multi-CIK businesses,
+  re-IPO/successor paths). Fix: the interim output is an **unresolved, filer-level**
+  series — type it `provisional_filer_key`, "entity not resolved" visible to every
+  consumer. **Gates EDGAR-first.**
+- **AR-05 (major) — entity_key leak [corrects the author]:** emitting a
+  provisional value in a field named `entity_key` leaks a de-facto canonical id.
+  Fix: separate `provisional_filer_key` (interim) from `entity_key` (populated
+  only when the spine resolves); `resolution_state ∈ {unresolved, resolved}`;
+  unresolved outputs may not be treated as canonical. **Strengthens #1; gates
+  EDGAR-first.**
+- **AR-06 (major) — reproducibility binding:** bind `(map_version +
+  resolver_version + event_ordering + conflict_rule)` on every projection; reads
+  pin a version, never float to "latest." **Gates EDGAR-first.**
+- **AR-07 (minor) — interface authority creep:** define the consumer interface as
+  a deliberately-provisional **port** under a neutral/stub namespace the spine can
+  replace, not buried as authoritative.
+
+**Open question #1 — SETTLED + hardened:** entity-resolution **authoring** = the
+(unbuilt) spine's; this lane **consumes only** and ships a passthrough-**null**
+that emits `provisional_filer_key` + `resolution_state=unresolved` (**never** a
+canonical `entity_key`); economic merge/rollup is spine-authored + a hard-STOP;
+the consumer interface is a provisional port. The EDGAR-first series is honestly a
+**filer-level unresolved trend** until the spine resolves it — correctly labeled.
+
+**Status:** revised architecture adjudicated **sound-with-fixes**; #1 settled.
+Gating EDGAR-first fixes (AR-03, AR-04, AR-05, AR-06, AR-07) are the build's first
+task; spine-contract fixes (AR-01, AR-02) are recorded and don't gate EDGAR-first.
+`STEP-01..` may resume on the corrected shape at the owner's go. Recheck posture:
+same-family CA folded the reviewer's explicit minimum-fixes into this record; the
+edits transcribe the findings directly.
 
 ## Inputs (source-loading, S-route bound)
 
