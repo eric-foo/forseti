@@ -10,8 +10,8 @@ use_when:
   - Preserving cross-project boundary between Orca prompt drafting and JB authority.
 authority_boundary: retrieval_only
 open_next:
-  - C:\Users\vmon7\Desktop\projects\jb\AGENTS.md
-  - C:\Users\vmon7\Desktop\projects\jb\docs\workflow-overlay.md
+  - C:\Users\vmon7\Desktop\projects\jb\AGENTS.md # nonresolving: external jb project (local machine only)
+  - C:\Users\vmon7\Desktop\projects\jb\docs\workflow-overlay.md # nonresolving: external jb project (local machine only)
   - .agents/workflow-overlay/prompt-orchestration.md
 input_hashes:
   - path: .agents/workflow-overlay/prompt-orchestration.md
