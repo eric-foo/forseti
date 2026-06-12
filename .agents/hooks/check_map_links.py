@@ -119,16 +119,26 @@ def is_exempt_line(line: str) -> bool:
 # C2 helpers: open_next parsing from header text
 # ---------------------------------------------------------------------------
 
-def parse_open_next(header_text: str) -> list[str]:
+def parse_open_next(header_text: str) -> tuple[list[str], int]:
     """Parse path entries from the open_next: block of a YAML retrieval header.
 
     header_text is the first 40 lines of the file joined into a single string.
-    Returns path-like entries only (contains "/" or ends with ".md").
-    Strips surrounding quotes and ignores everything after " # " (inline comment).
+    Returns (entries, nonresolving_count) where:
+      - entries: path-like entries that are NOT annotated with a "nonresolving:"
+        trailing comment (contains "/" or ends with ".md").
+      - nonresolving_count: number of path-like entries whose trailing comment
+        (after " # ") starts with "nonresolving:" -- these are skipped from the
+        existence check and counted as annotated debt.
+
+    Strips surrounding quotes and reads trailing comments (after " # ").
+    An entry with "# nonresolving: <reason>" is skipped but counted.
+    An entry with "# <other comment>" is still checked.
+    An entry with no comment is checked.
 
     Pure function (testable).
     """
     entries: list[str] = []
+    nonresolving_count = 0
     in_open_next = False
     in_yaml_block = False
 
@@ -162,22 +172,27 @@ def parse_open_next(header_text: str) -> list[str]:
                     continue
 
             if stripped.startswith("- "):
-                entry = stripped[2:].strip()
-                # Strip inline comment
-                comment_pos = entry.find(" # ")
+                raw = stripped[2:].strip()
+                # Extract trailing comment (after " # ")
+                comment_pos = raw.find(" # ")
+                comment = ""
                 if comment_pos != -1:
-                    entry = entry[:comment_pos].strip()
+                    comment = raw[comment_pos + 3:].strip()
+                    raw = raw[:comment_pos].strip()
                 # Strip surrounding quotes
-                entry = entry.strip("\"'")
-                entry = entry.strip()
+                entry = raw.strip("\"'").strip()
                 if not entry:
                     continue
-                # Only keep path-like entries
-                if "/" in entry or entry.endswith(".md"):
-                    entries.append(entry)
-                # else: non-path entries like "owner decision" are skipped
+                # Only handle path-like entries
+                if not ("/" in entry or entry.endswith(".md")):
+                    continue  # non-path entries like "owner decision" are skipped
+                # Check for nonresolving annotation: skip existence check, count as debt
+                if comment.startswith("nonresolving:"):
+                    nonresolving_count += 1
+                    continue
+                entries.append(entry)
 
-    return entries
+    return entries, nonresolving_count
 
 
 # ---------------------------------------------------------------------------
@@ -272,9 +287,14 @@ def run_c1(root: Path, map_files: list[Path]) -> list[Finding]:
     return findings
 
 
-def run_c2(root: Path) -> list[Finding]:
-    """C2: every open_next path in any .md file under docs/ and .agents/ must exist."""
+def run_c2(root: Path) -> tuple[list[Finding], int]:
+    """C2: every open_next path in any .md file under docs/ and .agents/ must exist.
+
+    Returns (findings, total_nonresolving) where total_nonresolving is the
+    sum of all annotated nonresolving entries across all scanned files.
+    """
     findings: list[Finding] = []
+    total_nonresolving = 0
     search_roots = [root / "docs", root / ".agents"]
 
     for search_root in search_roots:
@@ -303,7 +323,9 @@ def run_c2(root: Path) -> list[Finding]:
                 except OSError:
                     continue
 
-                entries = parse_open_next(header_text)
+                entries, nonresolving = parse_open_next(header_text)
+                total_nonresolving += nonresolving
+
                 if not entries:
                     continue
 
@@ -316,7 +338,7 @@ def run_c2(root: Path) -> list[Finding]:
                             source=rel_source,
                             detail="open_next path does not exist on disk: %s" % entry,
                         ))
-    return findings
+    return findings, total_nonresolving
 
 
 def run_c3(root: Path, map_text: str) -> list[Finding]:
@@ -352,15 +374,20 @@ def run_c3(root: Path, map_text: str) -> list[Finding]:
     return findings
 
 
-def run_all_checks(root: Path) -> list[Finding]:
-    """Single-pass collection of all three checks."""
+def run_all_checks(root: Path) -> tuple[list[Finding], int]:
+    """Single-pass collection of all three checks.
+
+    Returns (findings, total_nonresolving) where total_nonresolving is the
+    count of annotated nonresolving open_next entries (debt, not failures).
+    """
     map_files = collect_map_files(root)
     map_text = load_map_text(map_files)
     findings: list[Finding] = []
     findings.extend(run_c1(root, map_files))
-    findings.extend(run_c2(root))
+    c2_findings, nonresolving = run_c2(root)
+    findings.extend(c2_findings)
     findings.extend(run_c3(root, map_text))
-    return findings
+    return findings, nonresolving
 
 
 # ---------------------------------------------------------------------------
@@ -369,21 +396,24 @@ def run_all_checks(root: Path) -> list[Finding]:
 
 def run_strict(root: Path) -> int:
     """--strict: CI gate.  Print findings; exit 1 if any, else 0."""
-    findings = run_all_checks(root)
+    findings, nonresolving = run_all_checks(root)
     if findings:
         print("check_map_links --strict: %d finding(s)" % len(findings))
         for f in findings:
             print("  [%s] %s  ::  %s" % (f.check, f.source, f.detail))
+        print("annotated nonresolving: %d (debt, not failures)" % nonresolving)
         return 1
     print("check_map_links --strict: OK (0 findings)")
+    print("annotated nonresolving: %d (debt, not failures)" % nonresolving)
     return 0
 
 
 def run_check(root: Path) -> int:
     """--check: human-readable; always exit 0."""
-    findings = run_all_checks(root)
+    findings, nonresolving = run_all_checks(root)
     if not findings:
         print("check_map_links: OK -- all map paths, open_next paths, and folder coverage checks passed.")
+        print("annotated nonresolving: %d (debt, not failures)" % nonresolving)
         return 0
     c1 = [f for f in findings if f.check == "C1"]
     c2 = [f for f in findings if f.check == "C2"]
@@ -408,6 +438,7 @@ def run_check(root: Path) -> int:
             print("  source: %s" % f.source)
             print("  detail: %s" % f.detail)
             print()
+    print("annotated nonresolving: %d (debt, not failures)" % nonresolving)
     return 0
 
 
@@ -492,6 +523,7 @@ def selftest() -> int:
         print("%s  %-42s  expect=%s got=%s" % (status, label, expected, got))
 
     # --- parse_open_next cases ---
+    # Each case: (label, header_text, expected_entries, expected_nonresolving)
     def make_header(*entries: str) -> str:
         items = "".join("  - %s\n" % e for e in entries)
         return "# Title\n\n```yaml\nopen_next:\n%s```\n" % items
@@ -499,46 +531,64 @@ def selftest() -> int:
     pon_cases = [
         ("simple path entry",
          make_header("docs/foo/bar_v0.md"),
-         ["docs/foo/bar_v0.md"]),
+         ["docs/foo/bar_v0.md"], 0),
         ("backtick-quoted entry",
          make_header('"docs/foo/bar_v0.md"'),
-         ["docs/foo/bar_v0.md"]),
+         ["docs/foo/bar_v0.md"], 0),
         ("single-quoted entry",
          make_header("'docs/foo/bar_v0.md'"),
-         ["docs/foo/bar_v0.md"]),
-        ("entry with trailing # comment",
+         ["docs/foo/bar_v0.md"], 0),
+        ("entry with ordinary # comment (still checked)",
          make_header("docs/foo/bar_v0.md # load first"),
-         ["docs/foo/bar_v0.md"]),
+         ["docs/foo/bar_v0.md"], 0),
+        ("nonresolving annotation (skipped, counted)",
+         make_header("docs/foo/ephemeral_v0.md # nonresolving: ephemeral scratch"),
+         [], 1),
+        ("ordinary comment not confused with nonresolving",
+         make_header("docs/foo/bar_v0.md # some other comment"),
+         ["docs/foo/bar_v0.md"], 0),
+        ("entry with no comment (checked)",
+         make_header("docs/foo/nocomment_v0.md"),
+         ["docs/foo/nocomment_v0.md"], 0),
         ("non-path entry (owner decision)",
          make_header("owner decision"),
-         []),
+         [], 0),
         ("non-path entry (plain word)",
          make_header("defer"),
-         []),
+         [], 0),
         ("mixed: path + non-path",
          make_header("docs/foo/bar_v0.md", "owner decision", ".agents/overlay/x.md"),
-         ["docs/foo/bar_v0.md", ".agents/overlay/x.md"]),
+         ["docs/foo/bar_v0.md", ".agents/overlay/x.md"], 0),
         ("multiple path entries",
          make_header("docs/a/b_v0.md", "docs/c/d_v0.md"),
-         ["docs/a/b_v0.md", "docs/c/d_v0.md"]),
+         ["docs/a/b_v0.md", "docs/c/d_v0.md"], 0),
+        ("mixed nonresolving + normal",
+         make_header(
+             "docs/foo/real_v0.md",
+             "docs/foo/gone_v0.md # nonresolving: operator workfile, never committed",
+             "docs/foo/also_real_v0.md",
+         ),
+         ["docs/foo/real_v0.md", "docs/foo/also_real_v0.md"], 1),
         ("path in open_next stops at next yaml key",
          "```yaml\nopen_next:\n  - docs/a/b_v0.md\nstale_if:\n  - something\n```\n",
-         ["docs/a/b_v0.md"]),
+         ["docs/a/b_v0.md"], 0),
         ("no yaml block -> empty",
          "# Plain doc\n\nno yaml here\n",
-         []),
+         [], 0),
         ("yaml block no open_next -> empty",
          "```yaml\nscope: foo\n```\n",
-         []),
+         [], 0),
     ]
     print()
     print("--- parse_open_next ---")
-    for label, header_text, expected in pon_cases:
-        got = parse_open_next(header_text)
-        status = "PASS" if got == expected else "FAIL"
-        if got != expected:
+    for label, header_text, exp_entries, exp_nr in pon_cases:
+        got_entries, got_nr = parse_open_next(header_text)
+        passed = (got_entries == exp_entries and got_nr == exp_nr)
+        status = "PASS" if passed else "FAIL"
+        if not passed:
             ok = False
-        print("%s  %-48s  expect=%s got=%s" % (status, label, expected, got))
+        print("%s  %-52s  expect=(%s, nr=%d) got=(%s, nr=%d)" % (
+            status, label, exp_entries, exp_nr, got_entries, got_nr))
 
     # --- dir_is_covered cases ---
     dic_cases = [
