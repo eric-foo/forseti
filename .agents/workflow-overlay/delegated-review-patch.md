@@ -120,6 +120,26 @@ the Review Doctrine in `.agents/workflow-overlay/review-lanes.md` and the prompt
 validation gates in `.agents/workflow-overlay/prompt-orchestration.md`; this
 convention creates none of them.
 
+**Repo-mode discovery discharges a downstream independent-review gate.** When a
+cross-vendor delegate runs the `repo`-mode loop — full-artifact adversarial
+discovery (loop step 1, not only the patched lines) plus authorship of the
+bounded fix — and the CA adjudicates and independently verifies closure (a
+class-level sweep for the finding's leak class plus byte/scope checks), that pass
+**satisfies** a `cross_vendor_discovery` independent-review requirement for the
+*patched* artifact (for example, a pre-freeze leakage gate). A separate
+standalone post-patch re-scan is **not** additionally required to clear that gate.
+The one non-independent sliver — the delegate's own edited lines — must be
+mechanically verifiable (e.g. a class sweep), and the CA records that limitation
+on the durable disposition. *Proportionality, owner-set by assurance tier:* a
+higher tier (e.g. buyer-proof) may still require a separate independent pass;
+product-learning / N-case-batch tiers may rely on the delegated pass. *Residual,
+named:* a **novel** leak class shared across vendors and absent from the swept
+set is caught by neither the class sweep (which catches known systematic classes)
+nor batch averaging (which cancels random misses) — bounded and acceptable below
+buyer-proof, not zero. This **contrasts `no_repo`**, which still requires the
+bounded same-vendor post-patch recheck because the CA, not the delegate, authored
+the patch (patch-time de-correlation is lost there, preserved here).
+
 ## Overlay Interface (fields a future skill implementation may read)
 
 This is the seam to handoff 2 (a skill implementation, authored separately - not in
@@ -380,4 +400,49 @@ direction_change_propagation:
     - not readiness
     - not a bound, mandatory, or machine-routable review lane (the convention stays provisional)
     - not runtime model routing (access mode and package shape are operator/commission constraints)
+```
+
+```yaml
+# repo-mode discovery discharges a downstream independent-review gate; added 2026-06-13 (CA + owner decision).
+direction_change_propagation:
+  doctrine_changed: >
+    The repo-mode delegated review-and-patch loop -- cross-vendor delegate runs full-artifact discovery and
+    authors the bounded fix; CA adjudicates and independently verifies via class-sweep + byte/scope checks --
+    SATISFIES a cross_vendor_discovery independent-review requirement for the patched artifact, so a separate
+    standalone post-patch re-scan is not additionally required to clear a downstream leakage gate.
+    Proportionality is owner-set by assurance tier (buyer-proof may still require a separate pass;
+    product-learning / N-case batch may rely on the delegated pass); the one non-independent sliver (the
+    delegate's own edited lines) must be mechanically verifiable and the limitation recorded. Contrasts
+    no_repo, which still requires the bounded same-vendor post-patch recheck. Validation/who-constraint
+    framing only; not runtime-model routing.
+  trigger: review_authority
+  related_triggers: [validation_philosophy]
+  controlling_sources_updated:
+    - .agents/workflow-overlay/delegated-review-patch.md
+  downstream_surfaces_checked:
+    - path: .agents/workflow-overlay/review-lanes.md
+      note: >
+        two-bar rule is consistent (it already names cross_vendor_discovery as the discovery bar); a one-line
+        cross-ref that the bar can be DELIVERED via the repo-mode delegated loop is recommended and deferred to
+        a low-risk follow-up, not required (no stale routing without it).
+    - path: docs/product/judgment_spine/conductor_construction_integrity_probe_addendum_v1.md
+      note: >
+        the R6 pre-freeze leakage gate is the consuming gate; conductor v1 is PROPOSED/pending ratification, so
+        not edited mid-flight -- reconcile (R6 independent leakage review is satisfiable via the delegated loop)
+        at its next revision/ratification.
+    - path: .agents/workflow-overlay/validation-gates.md
+      note: no new validation gate; this clarifies when an existing independent-review requirement is met.
+  intentionally_not_updated:
+    - path: AGENTS.md
+      reason: the delegated-review-patch pointer already routes here; no top-level rule change.
+  receipt_section_hygiene: >
+    This file's inline receipt section now exceeds the <=2-most-recent-inline limit (source-of-truth.md DCP
+    contract; it already held 4 before this change). Rotation of the older receipts to
+    docs/decisions/dcp_receipts_archive_v0.md plus the required archive-pointer line is owed as a separate
+    low-risk hygiene pass; deferred here to keep this doctrine change focused and reviewable.
+  non_claims:
+    - not validation
+    - not readiness
+    - not a bound/mandatory/machine-routable review lane (the convention stays provisional)
+    - not runtime model routing
 ```
