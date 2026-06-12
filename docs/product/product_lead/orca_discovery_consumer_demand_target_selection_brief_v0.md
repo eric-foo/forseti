@@ -38,9 +38,12 @@ stale_if:
 target-selection brief as the live instrument. Prepared 2026-06-11 by the
 ICP / product-direction lane. The companion instrument —
 `docs/prompts/product-planning/orca_product_proof_lead_customer_discovery_prompt_v0.md`
-— is OUTSIDE the product lane's write scope (prompt artifact) and is queued
-for a prompt-orchestration lane (ORCA-HYGIENE-018); until realigned it
-remains pricing-gated and must not drive consumer-demand discovery.
+— is OUTSIDE the product lane's write scope (prompt artifact). Corrected
+2026-06-12 (gap DB-5): ORCA-HYGIENE-018 was resolved by RETIRING that prompt
+outright (RETIRED / OFF-TARGET banner, 2026-06-12), not by realigning it. No
+live discovery operating prompt exists; when the owner opens outreach, a
+consumer-demand successor must be commissioned through prompt orchestration
+before any discovery runs.
 
 Dated note (2026-06-12, owner ask-1 amendment): the capture risk posture is
 measured ToS risk accepted / absurd-level rejected (the owner's example:
