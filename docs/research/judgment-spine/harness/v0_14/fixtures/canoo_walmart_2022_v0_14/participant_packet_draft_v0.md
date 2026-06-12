@@ -13,7 +13,7 @@ permitted_assumptions:
   - The retailer has a real last-mile electrification need.
   - EV fit depends on route, charging, uptime, service, and supplier execution.
   - Alternatives may exist, but may not solve every route, timing, or strategic-control need.
-forbidden_information_notice: Do not search for the case, source material, company names, agreement terms, public announcement, later outcomes, or source locators before answering.
+information_boundary: Decide using only the information in this brief; do not use, recall, or look up any outside or later knowledge about this case.
 source_manifest:
   - source_id: CW-P1
     source: PARTICIPANT_SAFE_SOURCE_ALIAS_CW_P1_RAW_LOCATOR_WITHHELD
@@ -84,7 +84,7 @@ If this packet is later used for a blind contestant, show only the participant-f
 
 You are advising the leadership team of a large U.S. retailer in mid-2022. The retailer is deciding whether, when, and how strongly to commit to an early-stage electric delivery-vehicle supplier for last-mile operations.
 
-Your job is to make the best decision from the facts available at this point. Do not search for the case, source material, company names, or later developments before answering.
+Your job is to make the best decision from the facts available at this point. Decide using only the information in this brief; do not use, recall, or look up any outside or later knowledge about this case.
 
 ### Decision Question
 

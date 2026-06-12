@@ -43,8 +43,11 @@ C1 cocokind (held), C2 Saie (persisted).
 
 ## Obligations carried (bind on admission)
 
-- **Recognition check FIRST** per case-and-model (isolated, web-off, recorded); a
-  fail = SWAP signal, not a verdict. FAME rows (6, 7) cannot be used without it.
+- **Non-inducing isolation screen FIRST** per case-and-model (structural web-off /
+  `isolation_result == proven`, recorded); active recall is dropped — recognition
+  capacity alone is not a swap. Contamination is outcome-USE, caught by tell-auditing
+  the reasoning trace at JSG-08. FAME rows (6, 7) cannot be used without the isolation
+  screen.
 - **NON-US rows (2, 6, 8, 10, 12) + BORDER (5, 13) route to the owner** (US-default,
   owner direction 2026-06-12).
 - Row 14 (Kalumi): source-depth check before admission. Row 10 (Xerjoff): community-

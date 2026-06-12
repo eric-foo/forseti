@@ -173,7 +173,7 @@ External criticism is processed as an unsolicited adversarial review:
 | --- | --- |
 | "Tuned the key after seeing results" | Scoring-key SHA256 pins recorded in the batch ledger for prospective batch runs; retro-known dev cases are disclosed as retro/quarantined and cannot carry clean evidence |
 | "Cherry-picked the cases" | Pre-declared ledger for prospective cases; all-results reporting rule; swaps and retro-known/quarantined cases recorded as findings |
-| "The model knew the outcome" | Per-case-and-model recognition probes on record; contaminated arms reported as data; (future) sealed outcome-free calls |
+| "The model knew the outcome" | Contamination is outcome-USE, not recognition: the required reasoning trace is tell-audited for outcome-knowledge not derivable from the packet; contaminated arms quarantined as data; (future) sealed outcome-free calls |
 | "Moved the goalposts" | Versioned standard; dated-amendment-only rule on ledgers and doctrine |
 | "Nothing is verifiable" | The audit invitation plus the receipts above; diligence access posture is owner-gated per engagement |
 
@@ -183,16 +183,16 @@ The owner directed, in-thread 2026-06-11, recording the org-motion backtest's
 anti-bias mechanisms as defense receipts. These **extend** (do not rewrite) the
 Debunking Triage and Receipts Inventory above. Source artifacts:
 `docs/decisions/judgment_spine_backtest_batch1_ledger_declaration_v0.md` (the
-Org-Motion Batch Pre-Commitment amendment) and the proposed conductor addendum
-`docs/product/judgment_spine/conductor_construction_integrity_probe_addendum_proposal_v0.md`
-(outcome-blind construction + JSG-05 probe refinement; pending sign-off +
-delegated review).
+Org-Motion Batch Pre-Commitment amendment) and the conductor addendum v1
+`docs/product/judgment_spine/conductor_construction_integrity_probe_addendum_v1.md`
+(outcome-blind construction + JSG-05 isolation screen + R5 whitelist leak-safety;
+v1 pending ratification after cross-vendor re-review).
 
 | Attack (Provenance / Independence class) | Receipt |
 | --- | --- |
 | "You cherry-picked the case where org-motion happened to work" | The org-motion **batch pre-commitment**: the case set and the run-on-all rule are fixed *before* each case's gate-0 reveals alignment; **all** results reported (incl. feasibility failures and non-moves). A single favorable case is disclosed AS a favorable-by-selection anecdote, never promoted; the defensible claim is a pre-committed K-of-N hit-rate. |
 | "You steered the packets toward the org-motion conclusion" | **Outcome-blind construction**: the with/without packets and any anonymization are built by an actor not holding the sealed outcome; org-motion enters as raw job-list facts, never an editorialized read. The outcome-aware facilitator only reveals/calibrates. |
-| "Your recognition probe manufactured the recognition it measured" | **Passive-first, non-inducing probe**: contamination is detected primarily by reading the sealed judgment for outcome-knowledge it could not have from the packet; the light familiarity probe is dropped (false-positive-prone); active "name the case" recall is a post-seal forensic only, never a pre-judgment prime. |
+| "Your recognition probe manufactured the recognition it measured" | **Passive-first, non-inducing probe**: contamination is detected primarily by reading the sealed judgment for outcome-knowledge it could not have from the packet; the light familiarity probe is dropped (false-positive-prone); active "name the case" recall is dropped entirely (forcing recall manufactures recognition — a survivorship trap). |
 
 These are product-learning-tier process receipts; they harden the *method*, not
 the claim cap (Row 1 still governs what may be said). The conductor-addendum

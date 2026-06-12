@@ -25,11 +25,11 @@ source_manifest:
     retrieval_timestamp: <<pending-phase4-capture>>
     hash: <<pending-phase4-capture>>
   - source_id: E4
-    source: 'General base rate — eliminating an entry tier / raising the floor price is a recognized retention-risk repricing lever (no specific company outcome)'
+    source: 'General base rate — eliminating an entry tier / raising the floor price is a recognized retention-risk repricing lever (general base rate)'
     retrieval_timestamp: <<pending-phase4-capture>>
     hash: <<pending-phase4-capture>>
   - source_id: E5
-    source: 'Generic comparable consumer-subscription repricings exist across the market (outcomes deliberately excluded)'
+    source: 'Generic comparable consumer-subscription repricings exist across the market (general base rate)'
     retrieval_timestamp: <<pending-phase4-capture>>
     hash: <<pending-phase4-capture>>
 ---
@@ -38,15 +38,15 @@ source_manifest:
 
 ## Decision Context
 
-Beauty Pie is weighing a membership repricing. The live question, before any decision is announced, is **how aggressively to restructure its membership pricing** — specifically whether to **eliminate the £5/mo entry tier** (moving those members to £10/mo, a doubling for them) and **scrap the monthly spending limits**. The £5/mo tier is the lowest-commitment way into the membership, and the spending limits are part of the current structure. The packet is intentionally narrow: it preserves the pre-decision uncertainty and excludes any later announcement, reaction, or outcome. The options span watch / hold / soften / phase-or-grandfather / commit-to-the-full-elimination-and-doubling.
+Beauty Pie is weighing a membership repricing. The live question, before any decision is announced, is **how aggressively to restructure its membership pricing** — specifically whether to **eliminate the £5/mo entry tier** (moving those members to £10/mo, a doubling for them) and **scrap the monthly spending limits**. The £5/mo tier is the lowest-commitment way into the membership, and the spending limits are part of the current structure. The packet is intentionally narrow: it presents only what was knowable on or before the cutoff (28 February 2023); decide using only the information in this brief. The options span watch / hold / soften / phase-or-grandfather / commit-to-the-full-elimination-and-doubling.
 
 ## Evidence Units
 
 - `E1`: Beauty Pie's **membership business model** — factory-direct; members pay a membership fee to buy beauty products at cost. The membership fee is the revenue gate, and the cheapest tier is the low-commitment on-ramp into the model.
 - `E2`: Beauty Pie's **membership structure at the cutoff** — two monthly tiers, £5/mo and £10/mo, plus a £59/yr annual "Beauty Pie Plus" (introduced in a 2021 relaunch), each carrying monthly spending limits. The £5/mo tier is the lowest-commitment entry point.
 - `E3`: **UK cost-of-living pressure in early 2023** — elevated inflation and squeezed discretionary household spend — a neutral macro context bearing on price sensitivity for discretionary beauty.
-- `E4`: Eliminating an entry tier or raising the floor price is a **recognized retention-risk repricing lever** in subscription/membership businesses — a documented base rate, with no specific company outcome included.
-- `E5`: **Comparable consumer-subscription repricings** exist across the market — a generic base rate; their outcomes are deliberately excluded from this packet.
+- `E4`: Eliminating an entry tier or raising the floor price is a **recognized retention-risk repricing lever** in subscription/membership businesses — a documented general base rate.
+- `E5`: **Comparable consumer-subscription repricings** exist across the market — a generic base rate.
 
 ## Known Uncertainties
 

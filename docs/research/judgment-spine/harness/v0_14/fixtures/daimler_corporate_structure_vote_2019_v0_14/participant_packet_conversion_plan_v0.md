@@ -102,7 +102,7 @@ permitted_assumptions:
   - The legal restructuring is a governance approval decision before the May 22, 2019 annual meeting.
   - The facts in the participant packet are pre-cutoff unless explicitly labeled as unknown.
   - Later vote result, implementation status, company actions, and outcome metrics are unknown.
-forbidden_information_notice: Do not search for the case, source material, source titles, raw locators, consulting narrative, vote result, implementation status, later company actions, later outcomes, or facilitator artifacts before answering.
+information_boundary: Decide using only the information in this brief; do not use, recall, or look up any outside or later knowledge about this case.
 source_manifest:
   - source_id: DCSV-S1
     source: S1 official issuer disclosure
@@ -162,7 +162,7 @@ S7 inclusion is mandatory for the current parent packet because the packet alrea
 The later draft must preserve the parent packet's zero-spoiler body and may normalize only to fit v0.14 packet shape:
 
 - keep the role frame, decision cutoff, decision question, proposal snapshot, company and market context, division snapshot, execution burden, stakeholder constraints, judgment questions, red-team prompts, required blind judgment output, known unknowns, and non-claims;
-- keep the instruction not to search for the case or later developments before answering;
+- keep a whitelist-only information boundary ("decide using only the information in this brief; not outside or later knowledge") — no enumerated forbidden-category list on the contestant surface;
 - do not add source titles, source URLs, source filenames, outlet names, source hashes, retrieval timestamps, source-byte sizes, 403 notes, canonical-source residue, final vote result, implementation status, later actions, later outcomes, consulting narrative, or result-quality labels;
 - do not derive new participant-facing facts from facilitator-only summaries unless they already appear in the parent participant packet or are needed only as non-substantive v0.14 frontmatter normalization;
 - do not add evidence IDs to the participant-facing body except through the safe `source_manifest` rows above.

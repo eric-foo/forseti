@@ -217,3 +217,30 @@ broader) is set at each case's gate-0, as for #3.
 - Mints no ladder vocabulary: dev/holdout and the Status label are batch-local.
 - This ledger's existence proves selection discipline only — it proves nothing
   about result quality.
+
+## Amendment - Active Recall Dropped: Recognition Check -> Isolation Screen + Trace Tell-Audit (2026-06-12)
+
+Per the ratified owner architecture decision (drop active recall entirely,
+2026-06-12) and the conductor construction-integrity addendum v1
+(`docs/product/judgment_spine/conductor_construction_integrity_probe_addendum_v1.md`,
+R3/R5; v1 pending ratification, applies as by-hand discipline), propagated by
+`docs/decisions/r5_whitelist_decision_framing_propagation_v0.md`, the Execution
+Rules recognition-check bullet ("a recognition check per case-and-model pair
+precedes any judgment ... a fail is a swap signal") is **superseded** as follows
+(dated note; the original bullet is left in place per the dated-amendment-only rule):
+
+- A **non-inducing pre-judgment isolation screen** (structural web-off /
+  `isolation_result == proven`, recorded) precedes any judgment. Active "name the
+  case" recall is **dropped** — forcing recall manufactures recognition (a
+  survivorship trap).
+- **Recognition capacity alone is not contamination and not a swap signal.**
+  Contamination is **outcome-USE**, caught after the fact by tell-auditing the
+  required reasoning trace at JSG-08; a confirmed outcome-use tell routes the arm to
+  contaminated / **quarantine = recorded-as-data, not discarded**.
+- A fame/obscurity screen may still inform swap selection, but it is not a
+  recognition gate.
+
+This is a dated method amendment only. It changes none of the caps: pinned scoring
+key unchanged; product-learning cap and N held; JSG-01 frozen; not live-API
+authorization; **not a new owner sign-off**. The case list, split, panel, and swap
+pool are untouched.

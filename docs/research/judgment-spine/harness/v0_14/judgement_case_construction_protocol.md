@@ -69,7 +69,7 @@ participant_packet_must_include:
   - known_uncertainties
   - source_manifest
   - permitted_assumptions
-  - forbidden_information_notice
+  - information_boundary
 ```
 
 ## Participant Packet Must Not Include
@@ -231,7 +231,7 @@ accept_if:
 reject_or_quarantine_if:
   - more than 3 band input disagreements before resolution
   - disagreement involves ruinous_tail or expiring labels and cannot be resolved
-  - memorization probe fails or is ambiguous without operator review
+  - structural pre-judgment isolation cannot be established at the JSG-05 isolation screen (recognition capacity alone is not a reject; only a confirmed outcome-use tell at JSG-08 contaminates, and a contaminated arm is quarantined as data, not discarded)
   - underreach case lacks observable opportunity cost/window closure
 ```
 
@@ -252,7 +252,7 @@ role_frame:
 authority_constraints:
 capability_constraints:
 permitted_assumptions:
-forbidden_information_notice:
+information_boundary:
 source_manifest:
 ```
 

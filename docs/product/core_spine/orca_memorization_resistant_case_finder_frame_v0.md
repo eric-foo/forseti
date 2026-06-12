@@ -50,16 +50,20 @@ screen at product-learning tier is:
 - **Web search OFF** for the contestant — structural and recorded
   (`web_search_disabled` evidence per the probe protocol), not a prompt instruction.
   Load-bearing: it is what makes "not too prominent" safe.
-- **Isolated memory probe as a conservative backstop** — run it in a SEPARATE
-  session from the judgment (no priming); treat a fail as a *swap signal*, not a
-  verdict (over-rejection is the safe direction). The probe is NOT a gate and NOT
-  proof of no-memorization; it errs toward caution by design — asking a model to
-  recall can manufacture recognition.
+- **Non-inducing isolation screen as the pre-judgment backstop** — active "name
+  the case" recall is dropped entirely (asking a model to recall manufactures
+  recognition — a survivorship trap). Contamination is outcome-USE, not
+  recognition capacity: it is caught after the fact by tell-auditing the required
+  reasoning trace (JSG-08). A contestant who merely recognized the case but did
+  not use the outcome is a legitimate arm, not a swap signal.
 - **Optional flavor-anonymization at packet construction** — genericize company
   name / non-decision flavor only; **never the decision-driving numbers** (those stay
   real so the outcome remains ground truth). It slightly pre-cleans raw signal — a
-  small product-faithfulness tax; use sparingly.
-- **Swap on recognition** — the `Uses` counter ledger + this finder generate
+  small product-faithfulness tax; use sparingly. Anonymization stays whitelist-only
+  (no enumerated forbidden-category list on any contestant-readable surface) and
+  must pass the R6 pre-freeze leakage gate.
+- **Swap on a confirmed outcome-use tell** — recognition capacity alone is not a
+  swap; when a swap is warranted, the `Uses` counter ledger + this finder generate
   lower-count, more-obscure replacements.
 
 The independent-signal / narrow-band / per-model-recertification machinery below is

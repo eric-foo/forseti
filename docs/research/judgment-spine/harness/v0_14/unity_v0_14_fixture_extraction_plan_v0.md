@@ -179,7 +179,7 @@ role_frame: executive or senior monetization/package decision owner accountable 
 authority_constraints: to be authored from packet-safe role assumptions only
 capability_constraints: to be authored from packet-safe source gaps only
 permitted_assumptions: to be authored from clean pre-cutoff source packet limits
-forbidden_information_notice: no post-cutoff outcome, actual decision, backlash, revision, cancellation, sealed memo, owner read, calibration, or reveal material
+information_boundary: whitelist-only ("decide using only the information in this brief; not outside or later knowledge about this case"); no enumerated forbidden-category list on the contestant surface
 source_manifest: to be converted from source packet source ledger after hash and timestamp audit
 ```
 
