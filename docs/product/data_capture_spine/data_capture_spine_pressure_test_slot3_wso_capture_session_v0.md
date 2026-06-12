@@ -10,12 +10,12 @@ use_when:
   - Preserving WSO limitations before any Reddit+WSO Slot 3 handoff, Cleaning work, or Judgment synthesis.
 authority_boundary: retrieval_only
 open_next:
-  - docs/product/data_capture_spine_pressure_test_slot3_combined_handoff_v0.md
-  - docs/product/data_capture_spine_pressure_test_slot3_reddit_subbatch_control_note_v0.md
-  - docs/product/data_capture_spine_pressure_test_execution_authorization_v0.md
-  - docs/product/data_capture_spine_pressure_test_commissioning_plan_v0.md
-  - docs/product/data_capture_spine_intake_surface_consolidation_v0.md
-  - docs/product/core_spine_v0_data_capture_spine_obligation_contract_v0.md
+  - docs/product/data_capture_spine/data_capture_spine_pressure_test_slot3_combined_handoff_v0.md
+  - docs/product/data_capture_spine/data_capture_spine_pressure_test_slot3_reddit_subbatch_control_note_v0.md
+  - docs/product/data_capture_spine/data_capture_spine_pressure_test_execution_authorization_v0.md
+  - docs/product/data_capture_spine/data_capture_spine_pressure_test_commissioning_plan_v0.md
+  - docs/product/data_capture_spine/data_capture_spine_intake_surface_consolidation_v0.md
+  - docs/product/data_capture_spine/core_spine_v0_data_capture_spine_obligation_contract_v0.md
 stale_if:
   - A later owner decision rejects or supersedes the WSO venue scope.
   - A later WSO full raw/source-projection packet supersedes this bounded visible-page envelope pass.

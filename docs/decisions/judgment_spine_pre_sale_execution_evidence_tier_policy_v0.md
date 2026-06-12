@@ -12,7 +12,7 @@ authority_boundary: retrieval_only
 open_next:
   - docs/research/judgment-spine/harness/v0_14/contestant_no_tools_execution_contract_v0.md
   - docs/research/judgment-spine/harness/v0_14/no_case_smoke_test_authorization_checklist_v0.md
-  - docs/product/data_capture_source_access_method_plan_v0.md
+  - docs/product/data_capture_spine/data_capture_source_access_method_plan_v0.md
 branch_or_commit: main @ 392f7935c029
 stale_if:
   - A buyer or owner explicitly requires API-grade execution provenance for the next pre-sale proof step.

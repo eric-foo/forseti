@@ -10,11 +10,11 @@ use_when:
   - Preparing categorical downstream notes for future ECR or Cleaning work without designing those layers.
 authority_boundary: retrieval_only
 open_next:
-  - docs/product/core_spine_v0_data_capture_spine_remaining_fixture_plan_v0.md
-  - docs/product/core_spine_v0_data_capture_spine_obligation_contract_v0.md
-  - docs/product/core_spine_v0_data_capture_context_preservation_note_v0.md
-  - docs/product/core_spine_v0_data_capture_spine_architecture_blueprint_v0.md
-  - docs/product/core_spine_v0_data_capture_spine_pressure_test_docs_changelog_versioned_page_v0.md
+  - docs/product/data_capture_spine/core_spine_v0_data_capture_spine_remaining_fixture_plan_v0.md
+  - docs/product/data_capture_spine/core_spine_v0_data_capture_spine_obligation_contract_v0.md
+  - docs/product/data_capture_spine/core_spine_v0_data_capture_context_preservation_note_v0.md
+  - docs/product/data_capture_spine/core_spine_v0_data_capture_spine_architecture_blueprint_v0.md
+  - docs/product/data_capture_spine/core_spine_v0_data_capture_spine_pressure_test_docs_changelog_versioned_page_v0.md
 input_hashes:
   fixture_plan: D4BC5D2983F8EC490AD3154A3C748014A71B123364D73AFF8E8C2743297C0584
   contract: ED11CD3995E47A2DC1BF277966D59E66BE798128EBECCBFE3D4574AA82FC10CB

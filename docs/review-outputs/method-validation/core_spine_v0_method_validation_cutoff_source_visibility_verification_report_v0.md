@@ -9,9 +9,9 @@ use_when:
   - Checking which locked cases need cutoff or source-family timing patches before replay prompting.
 authority_boundary: retrieval_only
 open_next:
-  - docs/product/core_spine_v0_method_validation_case_locks_v0.md
-  - docs/product/core_spine_v0_method_validation_case_frame_lock_contract_v0.md
-  - docs/product/core_spine_v0_method_validation_case_frame_locks_v0.md
+  - docs/product/core_spine/core_spine_v0_method_validation_case_locks_v0.md
+  - docs/product/core_spine/core_spine_v0_method_validation_case_frame_lock_contract_v0.md
+  - docs/product/core_spine/core_spine_v0_method_validation_case_frame_locks_v0.md
 input_hashes:
   docs/prompts/product-planning/core_spine_v0_method_validation_cutoff_source_visibility_verification_prompt_v0.md: A51534E692BB2E3C9543241212B5E194F83EB9DB568180F68AE40A0E50C69A6D
   docs/product/core_spine_v0_method_validation_case_locks_v0.md: 5782C9E809269A783B73E29E733CFFF9D9C4BC9E0F95F2C365886CCD387FC4E5

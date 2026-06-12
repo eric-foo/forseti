@@ -14,7 +14,7 @@ open_next:
   - docs/workflows/data_capture_spine_consolidation_map_v0.md
   - docs/product/source_capture_toolbox/README.md
   - docs/decisions/data_capture_spine_source_access_tooling_build_authorization_v0.md
-  - docs/product/data_capture_source_access_method_plan_v0.md
+  - docs/product/data_capture_spine/data_capture_source_access_method_plan_v0.md
 stale_if:
   - Reddit source-access ordering or selected anti-blocking backend changes.
   - Old Reddit HTML becomes unavailable or materially unsuitable.

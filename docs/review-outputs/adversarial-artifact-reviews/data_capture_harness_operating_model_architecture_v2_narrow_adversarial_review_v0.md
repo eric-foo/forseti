@@ -10,10 +10,10 @@ use_when:
   - Checking whether the v2 hybrid introduced new ECR, Cleaning, Judgment, runtime, proof, readiness, or implementation leakage.
 authority_boundary: retrieval_only
 open_next:
-  - docs/product/data_capture_harness_operating_model_architecture_v2.md
+  - docs/product/data_capture_spine/data_capture_harness_operating_model_architecture_v2.md
   - docs/review-outputs/adversarial-artifact-reviews/data_capture_harness_operating_model_architecture_v0_v1_adversarial_review_v0.md
-  - docs/product/core_spine_v0_data_capture_spine_obligation_contract_v0.md
-  - docs/product/data_capture_obligation_baseline_decision_v0.md
+  - docs/product/data_capture_spine/core_spine_v0_data_capture_spine_obligation_contract_v0.md
+  - docs/product/data_capture_spine/data_capture_obligation_baseline_decision_v0.md
 stale_if:
   - docs/product/data_capture_harness_operating_model_architecture_v2.md is materially revised.
   - Owner accepts, rejects, patches, or supersedes v2.

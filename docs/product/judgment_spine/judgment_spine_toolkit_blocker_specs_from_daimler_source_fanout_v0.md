@@ -11,7 +11,7 @@ use_when:
 authority_boundary: retrieval_only
 open_next:
   - docs/research/daimler_advisory_001_source_fanout_consolidation_v0.md
-  - docs/product/judgment_spine_evidence_ladder_architecture_v0.md
+  - docs/product/judgment_spine/judgment_spine_evidence_ladder_architecture_v0.md
   - docs/decisions/daimler_advisory_001_claim_tier_classification_decision_v0.md
 stale_if:
   - A later accepted toolkit architecture supersedes these blocker specs.

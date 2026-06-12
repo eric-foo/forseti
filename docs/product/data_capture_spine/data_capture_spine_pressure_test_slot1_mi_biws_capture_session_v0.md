@@ -10,10 +10,10 @@ use_when:
   - Preserving Slot 1 pressure-test findings without hardening the obligation contract or designing source-access tooling.
 authority_boundary: retrieval_only
 open_next:
-  - docs/product/data_capture_spine_pressure_test_slot3_interim_evidence_synthesis_v0.md
-  - docs/product/data_capture_spine_pressure_test_execution_authorization_v0.md
-  - docs/product/data_capture_spine_pressure_test_commissioning_plan_v0.md
-  - docs/product/core_spine_v0_data_capture_spine_obligation_contract_v0.md
+  - docs/product/data_capture_spine/data_capture_spine_pressure_test_slot3_interim_evidence_synthesis_v0.md
+  - docs/product/data_capture_spine/data_capture_spine_pressure_test_execution_authorization_v0.md
+  - docs/product/data_capture_spine/data_capture_spine_pressure_test_commissioning_plan_v0.md
+  - docs/product/data_capture_spine/core_spine_v0_data_capture_spine_obligation_contract_v0.md
   - slot2_teal_CAPTURE_operator_workfile.md
 stale_if:
   - A later owner decision rejects or supersedes the Slot 1 source boundary.

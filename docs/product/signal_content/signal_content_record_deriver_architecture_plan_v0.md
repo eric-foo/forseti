@@ -17,7 +17,7 @@ use_when:
   - Resolving the signal_event_time honesty gap and the authorship boundary.
 authority_boundary: retrieval_only
 open_next:
-  - docs/product/core_spine_v0_signal_content_record_architecture_v0.md
+  - docs/product/signal_content/core_spine_v0_signal_content_record_architecture_v0.md
   - orca-harness/signal_content/models.py
   - orca-harness/ecr/__init__.py
 branch_or_commit: ecr-sp3-timing-deriver-slice1 @ c912203 (worktree dirty; controlling sources pinned below)

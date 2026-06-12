@@ -10,8 +10,8 @@ use_when:
   - Routing the field-by-field schema slice to the ECR-consolidation lane.
 authority_boundary: retrieval_only
 open_next:
-  - docs/product/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
-  - docs/product/core_spine_v0_information_production_foundation_v0.md
+  - docs/product/core_spine/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
+  - docs/product/core_spine/core_spine_v0_information_production_foundation_v0.md
   - orca-harness/ecr/__init__.py
 stale_if:
   - The owner settles the final Evidence Candidate Record / Evidence Unit field architecture (currently reserved).

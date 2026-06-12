@@ -12,8 +12,8 @@ authority_boundary: retrieval_only
 open_next:
   - .agents/workflow-overlay/prompt-orchestration.md
   - .agents/workflow-overlay/product-proof.md
-  - docs/product/orca_product_lead_first_icp_wedge_decision_v0.md
-  - docs/product/orca_offer_hypothesis_v0.md
+  - docs/product/product_lead/orca_product_lead_first_icp_wedge_decision_v0.md
+  - docs/product/product_lead/orca_offer_hypothesis_v0.md
 input_hashes:
   - path: docs/product/orca_product_lead_first_icp_wedge_decision_v0.md
     sha256: 67608F4E8DD0011E416C3F1619EEB4F2ACAAB1D062C46C0A4EA3527C756705A7

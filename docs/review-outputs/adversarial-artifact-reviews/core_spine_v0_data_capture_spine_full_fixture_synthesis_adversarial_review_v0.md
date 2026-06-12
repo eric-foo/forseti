@@ -9,9 +9,9 @@ use_when:
   - Tracing which synthesis claims are source-supported, which are bounded, and which carry stale provenance.
 authority_boundary: retrieval_only
 open_next:
-  - docs/product/core_spine_v0_data_capture_spine_full_fixture_synthesis_v0.md
-  - docs/product/core_spine_v0_data_capture_spine_obligation_contract_v0.md
-  - docs/product/core_spine_v0_data_capture_spine_remaining_fixture_plan_v0.md
+  - docs/product/data_capture_spine/core_spine_v0_data_capture_spine_full_fixture_synthesis_v0.md
+  - docs/product/data_capture_spine/core_spine_v0_data_capture_spine_obligation_contract_v0.md
+  - docs/product/data_capture_spine/core_spine_v0_data_capture_spine_remaining_fixture_plan_v0.md
 target_artifact: docs/product/core_spine_v0_data_capture_spine_full_fixture_synthesis_v0.md
 target_artifact_sha256: 45FA3EA3D40DE41405C3763034C2988978FF49AE74CA7CF520064D1ACCB4EA93
 branch_or_commit: main@5e999c1 with dirty/untracked workspace sources

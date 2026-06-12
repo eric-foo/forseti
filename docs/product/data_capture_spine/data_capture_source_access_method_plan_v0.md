@@ -11,9 +11,9 @@ use_when:
 authority_boundary: retrieval_only
 open_next:
   - docs/product/source_capture_toolbox/README.md
-  - docs/product/data_capture_source_access_boundary_decision_v0.md
-  - docs/product/core_spine_v0_data_capture_spine_obligation_contract_v0.md
-  - docs/product/data_capture_spine_pressure_test_commissioning_plan_v0.md
+  - docs/product/data_capture_spine/data_capture_source_access_boundary_decision_v0.md
+  - docs/product/data_capture_spine/core_spine_v0_data_capture_spine_obligation_contract_v0.md
+  - docs/product/data_capture_spine/data_capture_spine_pressure_test_commissioning_plan_v0.md
 stale_if:
   - The boundary decision is amended or superseded.
   - The obligation contract's Obligation 2 is materially revised.

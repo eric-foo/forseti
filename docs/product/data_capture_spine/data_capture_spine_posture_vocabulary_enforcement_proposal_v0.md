@@ -14,10 +14,10 @@ use_when:
   - Preparing the Data Capture lane change that JSG-01 source-side will consume.
 authority_boundary: retrieval_only
 open_next:
-  - docs/product/core_spine_v0_data_capture_spine_obligation_contract_v0.md
+  - docs/product/data_capture_spine/core_spine_v0_data_capture_spine_obligation_contract_v0.md
   - orca-harness/source_capture/models.py
   - docs/review-outputs/adversarial-artifact-reviews/data_capture_spine_posture_vocabulary_enforcement_proposal_adversarial_review_v0.md
-  - docs/product/jsg01_source_side_receipt_translator_v0.md
+  - docs/product/judgment_spine/jsg01_source_side_receipt_translator_v0.md
 branch_or_commit: main @ f9b05e6 (worktree dirty; controlling sources untracked)
 stale_if:
   - The Data Capture lane accepts, amends, or rejects this proposal.

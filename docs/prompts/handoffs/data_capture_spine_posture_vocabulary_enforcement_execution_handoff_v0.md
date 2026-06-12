@@ -12,9 +12,9 @@ use_when:
   - Routing the R2 proposal into Data Capture lane scoping/execution.
 authority_boundary: retrieval_only
 open_next:
-  - docs/product/data_capture_spine_posture_vocabulary_enforcement_proposal_v0.md
+  - docs/product/data_capture_spine/data_capture_spine_posture_vocabulary_enforcement_proposal_v0.md
   - docs/review-outputs/adversarial-artifact-reviews/data_capture_spine_posture_vocabulary_enforcement_proposal_adversarial_review_v0.md
-  - docs/product/core_spine_v0_data_capture_spine_obligation_contract_v0.md
+  - docs/product/data_capture_spine/core_spine_v0_data_capture_spine_obligation_contract_v0.md
   - orca-harness/source_capture/models.py
 input_hashes:
   docs/product/data_capture_spine_posture_vocabulary_enforcement_proposal_v0.md: F873C0EA9B61135971058B517DF0C220569FAFDA032D9407B2073216D8920B27

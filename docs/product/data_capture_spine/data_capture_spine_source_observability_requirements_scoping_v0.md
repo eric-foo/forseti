@@ -11,9 +11,9 @@ use_when:
 authority_boundary: retrieval_only
 open_next:
   - docs/decisions/data_capture_spine_source_observability_scoping_authorization_v0.md
-  - docs/product/data_capture_spine_pressure_test_all_slot_synthesis_v0.md
+  - docs/product/data_capture_spine/data_capture_spine_pressure_test_all_slot_synthesis_v0.md
   - docs/review-outputs/adversarial-artifact-reviews/data_capture_spine_pressure_test_all_slot_synthesis_blast_radius_recheck_v0.md
-  - docs/product/data_capture_spine_pressure_test_commissioning_plan_v0.md
+  - docs/product/data_capture_spine/data_capture_spine_pressure_test_commissioning_plan_v0.md
 stale_if:
   - A later owner decision accepts, rejects, narrows, or supersedes this scoping artifact.
   - The source-observability authorization is materially revised.

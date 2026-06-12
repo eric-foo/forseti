@@ -10,9 +10,9 @@ use_when:
   - Checking whether Data Capture Spine has enough pressure-test coverage for advisory downstream design input.
 authority_boundary: retrieval_only
 open_next:
-  - docs/product/core_spine_v0_data_capture_spine_obligation_contract_v0.md
-  - docs/product/core_spine_v0_data_capture_context_preservation_note_v0.md
-  - docs/product/core_spine_v0_data_capture_spine_architecture_blueprint_v0.md
+  - docs/product/data_capture_spine/core_spine_v0_data_capture_spine_obligation_contract_v0.md
+  - docs/product/data_capture_spine/core_spine_v0_data_capture_context_preservation_note_v0.md
+  - docs/product/data_capture_spine/core_spine_v0_data_capture_spine_architecture_blueprint_v0.md
   - docs/workflows/orca_repo_map_v0.md
 input_hashes:
   contract: ED11CD3995E47A2DC1BF277966D59E66BE798128EBECCBFE3D4574AA82FC10CB

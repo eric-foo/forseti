@@ -12,7 +12,7 @@ use_when:
   - Checking the review commission, target, decision criteria, and output contract.
 authority_boundary: retrieval_only
 open_next:
-  - docs/product/jsg01_source_side_receipt_translator_v0.md
+  - docs/product/judgment_spine/jsg01_source_side_receipt_translator_v0.md
   - .agents/workflow-overlay/review-lanes.md
   - .agents/workflow-overlay/prompt-orchestration.md
 input_hashes:

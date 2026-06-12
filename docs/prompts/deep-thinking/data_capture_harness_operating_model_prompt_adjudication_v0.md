@@ -12,8 +12,8 @@ authority_boundary: retrieval_only
 open_next:
   - docs/prompts/product-planning/data_capture_harness_operating_model_architecture_prompt_v0.md
   - docs/prompts/reviews/data_capture_harness_operating_model_architecture_prompt_adversarial_review_prompt_v0.md
-  - docs/product/data_capture_obligation_baseline_decision_v0.md
-  - docs/product/data_capture_harness_product_goal_direction_signal_decision_v0.md
+  - docs/product/data_capture_spine/data_capture_obligation_baseline_decision_v0.md
+  - docs/product/data_capture_spine/data_capture_harness_product_goal_direction_signal_decision_v0.md
 stale_if:
   - Either compared prompt is materially revised or superseded.
   - The owner changes the requirement to use exactly three architecture-planning subagents.

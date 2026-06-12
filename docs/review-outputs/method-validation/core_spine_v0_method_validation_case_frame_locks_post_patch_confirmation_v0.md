@@ -10,7 +10,7 @@ use_when:
   - Understanding the replay artifact boundary observation before downstream decisions.
 authority_boundary: retrieval_only
 open_next:
-  - docs/product/core_spine_v0_method_validation_case_frame_locks_v0.md
+  - docs/product/core_spine/core_spine_v0_method_validation_case_frame_locks_v0.md
 input_hashes:
   docs/product/core_spine_v0_method_validation_case_frame_locks_v0.md: 4C8CFE49D8BB2FDDE650C99FEBB7BFE5F0CF76125057BD1B992431027D541785
 prior_artifact_hash: B4018996BECC8F79B254BF5A113265B873DCB9C1AE35746DABADAA4D99D4A537

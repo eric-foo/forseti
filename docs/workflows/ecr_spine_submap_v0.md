@@ -45,19 +45,19 @@ The cross-kind invariants the spine runs on (stated here for orientation only �
 2. **One derived record per epistemic kind, composed by the Evidence Unit, never merged.** The integrity postures and the content row are siblings at their own grain; future kinds (e.g. corroboration) follow the same shape rather than sprawling. → *SCR direction brief.*
 3. **Carry-supplied-or-residualize; never author from prose.** Every source-side deriver is a pure function of its frozen inputs (the packet plus caller-supplied bodies / posture-keys / authored-interpretation). Each field is carried from an input or emitted as a **named residual**; an absent input → honest residual. No deriver classifies, selects, or infers an interpretive value from packet prose (the shared M1-carry / M2-derive / M3-residual discipline). → *SCR deriver plan (Amendment v0.1); ECR frame plan.*
 4. **Derived / re-derivable — re-derive, never migrate.** These are M2-style derived reads over the still-frozen raw observable, not persisted-at-capture columns; a taxonomy change is a re-derive, not a stored-column migration (inherits the capture-packet schema-evolution doctrine verbatim: read-checked `_vN`, additive enum growth, lenient-read/strict-admit). → *schema-evolution doctrine.*
-5. **Foundation only — the conductor owns evaluation.** Everything here is source-side derivation feeding JSG-01 evaluation. JSG-01 was unfrozen by the owner's dated act (2026-06-12, `docs/decisions/jsg01_unfreeze_decision_v0.md`) and clears no case until a separately authorized run; the final Evidence Unit field architecture stays owner-reserved; nothing under this map authorizes runs or widens the reserved architecture. → *data/cleaning boundary doc; `safety-rules.md`.*
+5. **Foundation only — the conductor owns evaluation.** Everything here is source-side derivation feeding JSG-01 evaluation. JSG-01 was unfrozen by the owner's dated act (2026-06-12, `docs/decisions/jsg01_unfreeze_decision_v0.md`) and clears no case until a separately authorized run; the final Evidence Unit field architecture stays owner-reserved; nothing under this map authorizes runs or widens the reserved architecture. → *data/cleaning boundary doc; `.agents/workflow-overlay/safety-rules.md`.*
 
 ## Fast Route
 
 | I need to... | Open |
 | --- | --- |
-| Understand the content layer's locked direction + invariants | `docs/product/core_spine_v0_signal_content_record_architecture_v0.md` |
-| Build/review the SCR deriver (carry-or-residualize, per-slice grain, the D2 event-time amendment) | `docs/product/signal_content_record_deriver_architecture_plan_v0.md` (see **Amendment v0.1**) |
-| Understand the ECR frame (the M1/M2/M3 binding rule + INV-1..5) and the SP-6 source-visibility slice | `docs/product/ecr_consolidation_v0_frame_source_visibility_slice_architecture_plan_v0.md` |
-| Bind SP-1 identity / SP-2 inspectability / SP-3 timing-cutoff to committed producer fields | `docs/product/ecr_consolidation_v0_sp1_sp2_sp3_source_side_slice_plan_v0.md` |
-| Decide SP-6 derivation ownership + mechanical rule shape | `docs/product/jsg01_sp6_source_visibility_derivation_architecture_plan_v0.md`, `..._routing_v0.md` |
-| See where the source-side fields + closed allowed-values came from (interim translator) | `docs/product/jsg01_source_side_receipt_translator_v0.md` |
-| Check the schema-evolution doctrine the spine inherits | `docs/product/source_capture_packet_schema_evolution_architecture_v0.md` |
+| Understand the content layer's locked direction + invariants | `docs/product/signal_content/core_spine_v0_signal_content_record_architecture_v0.md` |
+| Build/review the SCR deriver (carry-or-residualize, per-slice grain, the D2 event-time amendment) | `docs/product/signal_content/signal_content_record_deriver_architecture_plan_v0.md` (see **Amendment v0.1**) |
+| Understand the ECR frame (the M1/M2/M3 binding rule + INV-1..5) and the SP-6 source-visibility slice | `docs/product/ecr/ecr_consolidation_v0_frame_source_visibility_slice_architecture_plan_v0.md` |
+| Bind SP-1 identity / SP-2 inspectability / SP-3 timing-cutoff to committed producer fields | `docs/product/ecr/ecr_consolidation_v0_sp1_sp2_sp3_source_side_slice_plan_v0.md` |
+| Decide SP-6 derivation ownership + mechanical rule shape | `docs/product/judgment_spine/jsg01_sp6_source_visibility_derivation_architecture_plan_v0.md`, `..._routing_v0.md` |
+| See where the source-side fields + closed allowed-values came from (interim translator) | `docs/product/judgment_spine/jsg01_source_side_receipt_translator_v0.md` |
+| Check the schema-evolution doctrine the spine inherits | `docs/product/data_capture_spine/source_capture_packet_schema_evolution_architecture_v0.md` |
 | Inspect the built ECR integrity derivers (SP-1/2/3/6) + models | `orca-harness/ecr/` |
 | Inspect the built Signal Content Record deriver + model | `orca-harness/signal_content/` |
 | Record an out-of-band SP-5 finalization act (`FinalizationReceipt` producer) | `orca-harness/runners/run_finalization_receipt.py` (model + validate-only consumer: `orca-harness/schemas/finalization_models.py`) |
@@ -76,9 +76,9 @@ The cross-kind invariants the spine runs on (stated here for orientation only �
 ## Owners By Layer
 
 - **Provenance (capture):** `docs/workflows/data_capture_spine_consolidation_map_v0.md` → `orca-harness/source_capture/`.
-- **Integrity (ECR postures):** frame + SP-6 slice — `ecr_consolidation_v0_frame_source_visibility_slice_architecture_plan_v0.md`; SP-1/2/3 — `ecr_consolidation_v0_sp1_sp2_sp3_source_side_slice_plan_v0.md`; SP-6 derivation ownership/rule — `jsg01_sp6_source_visibility_derivation_architecture_plan_v0.md` (+ `..._routing_v0.md`); origin of the closed values — `jsg01_source_side_receipt_translator_v0.md`. Code: `orca-harness/ecr/`.
-- **Content (SCR):** direction + invariants — `core_spine_v0_signal_content_record_architecture_v0.md`; deriver contract — `signal_content_record_deriver_architecture_plan_v0.md`. Code: `orca-harness/signal_content/`.
-- **Shared discipline:** schema evolution — `source_capture_packet_schema_evolution_architecture_v0.md`; data/cleaning boundary — `core_spine_v0_data_and_cleaning_spine_boundary_v0.md`.
+- **Integrity (ECR postures):** frame + SP-6 slice — `docs/product/ecr/ecr_consolidation_v0_frame_source_visibility_slice_architecture_plan_v0.md`; SP-1/2/3 — `docs/product/ecr/ecr_consolidation_v0_sp1_sp2_sp3_source_side_slice_plan_v0.md`; SP-6 derivation ownership/rule — `docs/product/judgment_spine/jsg01_sp6_source_visibility_derivation_architecture_plan_v0.md` (+ `..._routing_v0.md`); origin of the closed values — `docs/product/judgment_spine/jsg01_source_side_receipt_translator_v0.md`. Code: `orca-harness/ecr/`.
+- **Content (SCR):** direction + invariants — `docs/product/signal_content/core_spine_v0_signal_content_record_architecture_v0.md`; deriver contract — `docs/product/signal_content/signal_content_record_deriver_architecture_plan_v0.md`. Code: `orca-harness/signal_content/`.
+- **Shared discipline:** schema evolution — `docs/product/data_capture_spine/source_capture_packet_schema_evolution_architecture_v0.md`; data/cleaning boundary — `core_spine_v0_data_and_cleaning_spine_boundary_v0.md`.
 - **Downstream consumer:** the JSG-01 conductor (unfrozen 2026-06-12; evaluable, clears no case until an authorized run) — the final Evidence Unit field architecture stays owner-reserved; boundary in `.agents/workflow-overlay/safety-rules.md`.
 
 ## Non-Claims

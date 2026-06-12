@@ -16,8 +16,8 @@ use_when:
 authority_boundary: retrieval_only
 open_next:
   - orca-harness/source_capture/models.py
-  - docs/product/core_spine_v0_data_capture_spine_obligation_contract_v0.md
-  - docs/product/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
+  - docs/product/data_capture_spine/core_spine_v0_data_capture_spine_obligation_contract_v0.md
+  - docs/product/core_spine/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
 input_hashes:
   orca-harness/source_capture/models.py: 3B89A19BAEAB90762C34FE0C95517A005D383933E48057C1ADD12E004A3A7245
 branch_or_commit: main @ d69aeee (worktree dirty; controlling sources uncommitted/untracked)

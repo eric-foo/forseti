@@ -14,7 +14,7 @@ use_when:
   - Recording the next frontier-selection decision under the same convention.
 authority_boundary: retrieval_only
 open_next:
-  - docs/product/data_capture_spine_reddit_graph_frontier_lane_architecture_v0.md
+  - docs/product/data_capture_spine/data_capture_spine_reddit_graph_frontier_lane_architecture_v0.md
   - docs/workflows/reddit_candidate_intake_to_projection_lane_handoff_v0.md
   - docs/workflows/reddit_candidate_intake_subreddit_projection_seo_002_closeout_v0.md
 stale_if:

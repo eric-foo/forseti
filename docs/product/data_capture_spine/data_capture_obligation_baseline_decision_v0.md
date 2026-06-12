@@ -10,11 +10,11 @@ use_when:
   - Checking the non-claims attached to the accepted Data Capture obligation baseline.
 authority_boundary: retrieval_only
 open_next:
-  - docs/product/core_spine_v0_data_capture_spine_obligation_contract_v0.md
-  - docs/product/core_spine_v0_data_capture_spine_full_fixture_synthesis_v0.md
+  - docs/product/data_capture_spine/core_spine_v0_data_capture_spine_obligation_contract_v0.md
+  - docs/product/data_capture_spine/core_spine_v0_data_capture_spine_full_fixture_synthesis_v0.md
   - docs/review-outputs/adversarial-artifact-reviews/core_spine_v0_data_capture_spine_full_fixture_synthesis_adversarial_review_v0.md
   - docs/review-outputs/adversarial-artifact-reviews/data_capture_obligation_baseline_decision_adversarial_artifact_review_v0.md
-  - docs/product/data_capture_harness_product_goal_direction_signal_decision_v0.md
+  - docs/product/data_capture_spine/data_capture_harness_product_goal_direction_signal_decision_v0.md
 stale_if:
   - A later owner decision amends, rejects, or supersedes this accepted decision.
   - A later patch supersedes this version.

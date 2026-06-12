@@ -12,8 +12,8 @@ authority_boundary: retrieval_only
 open_next:
   - docs/decisions/data_capture_spine_pressure_test_batch_classification_decision_v0.md
   - docs/research/data_capture_spine_pressure_test_batch_synthesis_n3of3_v0.md
-  - docs/product/core_spine_v0_data_capture_spine_obligation_contract_v0.md
-  - docs/product/data_capture_source_access_method_plan_v0.md
+  - docs/product/data_capture_spine/core_spine_v0_data_capture_spine_obligation_contract_v0.md
+  - docs/product/data_capture_spine/data_capture_source_access_method_plan_v0.md
 stale_if:
   - The first N=3 batch classification decision is superseded.
   - The N=3 synthesis is materially revised.

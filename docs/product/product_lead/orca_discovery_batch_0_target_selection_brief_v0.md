@@ -24,9 +24,9 @@ superseded_by: docs/product/product_lead/orca_discovery_consumer_demand_target_s
 open_next:
   - .agents/workflow-overlay/product-proof.md
   - docs/decisions/orca_icp_wedge_pricing_first_v0.md  # superseded wedge record (historical)
-  - docs/product/orca_product_lead_first_icp_wedge_decision_v0.md  # superseded by above; reread-required
-  - docs/product/orca_product_proof_lead_charter_v0.md
-  - docs/product/orca_buyer_proof_packet_v0.md
+  - docs/product/product_lead/orca_product_lead_first_icp_wedge_decision_v0.md # superseded by above; reread-required
+  - docs/product/product_lead/orca_product_proof_lead_charter_v0.md
+  - docs/product/product_lead/orca_buyer_proof_packet_v0.md
   - docs/prompts/product-planning/orca_product_proof_lead_customer_discovery_prompt_v0.md
 input_hashes:
   - path: docs/product/orca_product_lead_first_icp_wedge_decision_v0.md

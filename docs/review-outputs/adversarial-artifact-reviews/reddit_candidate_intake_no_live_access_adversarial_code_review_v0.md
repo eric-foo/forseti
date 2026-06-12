@@ -10,8 +10,8 @@ review_branch: ecr-sp3-timing-deriver-slice1
 open_next:
   - docs/prompts/reviews/reddit_candidate_intake_no_live_access_adversarial_code_review_prompt_v0.md
   - .agents/workflow-overlay/delegated-review-patch.md
-  - docs/product/data_capture_spine_candidate_url_intake_contract_v0.md
-  - docs/product/data_capture_spine_reddit_candidate_url_intake_crawler_architecture_v0.md
+  - docs/product/data_capture_spine/data_capture_spine_candidate_url_intake_contract_v0.md
+  - docs/product/data_capture_spine/data_capture_spine_reddit_candidate_url_intake_crawler_architecture_v0.md
   - docs/decisions/data_capture_spine_reddit_candidate_url_intake_default_policy_decision_v0.md
 stale_if:
   - Any target file changes after the post-patch hashes recorded below.

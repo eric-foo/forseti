@@ -14,9 +14,9 @@ use_when:
   - Deciding what the operator and the agent each do across the lane's six stages without widening into capture or outreach.
 authority_boundary: retrieval_only
 open_next:
-  - docs/product/data_capture_spine_linkedin_discovery_planning_lane_architecture_v0.md
-  - docs/product/data_capture_spine_candidate_url_intake_contract_v0.md
-  - docs/product/data_capture_source_access_boundary_decision_v0.md
+  - docs/product/data_capture_spine/data_capture_spine_linkedin_discovery_planning_lane_architecture_v0.md
+  - docs/product/data_capture_spine/data_capture_spine_candidate_url_intake_contract_v0.md
+  - docs/product/data_capture_spine/data_capture_source_access_boundary_decision_v0.md
   - docs/workflows/data_capture_spine_consolidation_map_v0.md
 stale_if:
   - The LinkedIn Lane architecture changes stages, run envelope, candidate classes, row schema, source-surface matrix, bounded-watch posture, promotion gate, or hard stops.

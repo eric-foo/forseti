@@ -13,10 +13,10 @@ open_next:
   - docs/decisions/data_capture_spine_obligation_contract_patch_proposal_owner_decision_v0.md
   - docs/review-outputs/adversarial-artifact-reviews/data_capture_spine_obligation_contract_patch_proposal_adversarial_artifact_review_v0.md
   - docs/decisions/data_capture_spine_post_batch_patch_plan_owner_decision_v0.md
-  - docs/product/data_capture_spine_post_batch_patch_plan_v0.md
+  - docs/product/data_capture_spine/data_capture_spine_post_batch_patch_plan_v0.md
   - docs/decisions/data_capture_spine_pressure_test_batch_classification_decision_v0.md
   - docs/research/data_capture_spine_pressure_test_batch_synthesis_n3of3_v0.md
-  - docs/product/core_spine_v0_data_capture_spine_obligation_contract_v0.md
+  - docs/product/data_capture_spine/core_spine_v0_data_capture_spine_obligation_contract_v0.md
 stale_if:
   - A later owner decision supersedes the obligation-contract patch proposal owner decision.
   - A later adversarial artifact review supersedes the review report named in open_next.

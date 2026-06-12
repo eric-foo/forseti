@@ -13,8 +13,8 @@ use_when:
 authority_boundary: retrieval_only
 open_next:
   - docs/workflows/reddit_candidate_intake_operator_pilot_parameter_packet_v0.md
-  - docs/product/data_capture_spine_candidate_url_intake_contract_v0.md
-  - docs/product/data_capture_spine_reddit_candidate_url_intake_crawler_architecture_v0.md
+  - docs/product/data_capture_spine/data_capture_spine_candidate_url_intake_contract_v0.md
+  - docs/product/data_capture_spine/data_capture_spine_reddit_candidate_url_intake_crawler_architecture_v0.md
   - orca-harness/_test_runs/reddit_candidate_pilot_001_operator_supplied_html/reddit_candidate_url_intake.json
   - orca-harness/_test_runs/reddit_candidate_pilot_001_operator_supplied_html/reddit_candidate_url_intake_receipt.md
 stale_if:

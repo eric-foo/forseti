@@ -14,7 +14,7 @@ open_next:
   - docs/research/judgment-spine/README.md
   - docs/research/judgment-spine/manifest_v0.md
   - docs/research/judgment-spine/harness/v0_14/index.md
-  - docs/product/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
+  - docs/product/core_spine/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
 ```
 
 - Status: WORKING_CONTRACT_V0

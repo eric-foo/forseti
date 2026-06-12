@@ -10,11 +10,11 @@ use_when:
   - Preserving visible limitations before any later WSO pass, ECR design, Cleaning work, or Judgment synthesis.
 authority_boundary: retrieval_only
 open_next:
-  - docs/product/data_capture_spine_pressure_test_slot3_combined_handoff_v0.md
-  - docs/product/data_capture_spine_pressure_test_execution_authorization_v0.md
-  - docs/product/data_capture_spine_pressure_test_commissioning_plan_v0.md
-  - docs/product/data_capture_spine_intake_surface_consolidation_v0.md
-  - docs/product/core_spine_v0_data_capture_spine_obligation_contract_v0.md
+  - docs/product/data_capture_spine/data_capture_spine_pressure_test_slot3_combined_handoff_v0.md
+  - docs/product/data_capture_spine/data_capture_spine_pressure_test_execution_authorization_v0.md
+  - docs/product/data_capture_spine/data_capture_spine_pressure_test_commissioning_plan_v0.md
+  - docs/product/data_capture_spine/data_capture_spine_intake_surface_consolidation_v0.md
+  - docs/product/data_capture_spine/core_spine_v0_data_capture_spine_obligation_contract_v0.md
 stale_if:
   - A later owner decision rejects or supersedes the Reddit-only first-pass scope.
   - The Slot 3 WSO pass is completed and a combined Slot 3 capture-session artifact supersedes this one.

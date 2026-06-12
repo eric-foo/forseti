@@ -11,8 +11,8 @@ use_when:
 authority_boundary: retrieval_only
 open_next:
   - docs/workflows/data_capture_spine_consolidation_map_v0.md
-  - docs/product/data_capture_spine_reddit_candidate_url_intake_crawler_architecture_v0.md
-  - docs/product/data_capture_spine_reddit_graph_frontier_lane_architecture_v0.md
+  - docs/product/data_capture_spine/data_capture_spine_reddit_candidate_url_intake_crawler_architecture_v0.md
+  - docs/product/data_capture_spine/data_capture_spine_reddit_graph_frontier_lane_architecture_v0.md
   - orca-harness/docs/source_capture_agent_runbook.md
   - docs/product/source_capture_toolbox/reddit_precommercial_capture_consolidation_planning_thread_v0.md
   - docs/product/source_capture_toolbox/README.md

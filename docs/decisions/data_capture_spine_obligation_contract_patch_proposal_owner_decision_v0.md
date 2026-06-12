@@ -10,10 +10,10 @@ use_when:
   - Confirming whether this decision authorizes runtime/source-system work, source-access method-plan amendment, ECR design, Cleaning implementation, or Judgment design.
 authority_boundary: retrieval_only
 open_next:
-  - docs/product/data_capture_spine_obligation_contract_patch_proposal_v0.md
+  - docs/product/data_capture_spine/data_capture_spine_obligation_contract_patch_proposal_v0.md
   - docs/review-outputs/adversarial-artifact-reviews/data_capture_spine_obligation_contract_patch_proposal_adversarial_artifact_review_v0.md
-  - docs/product/core_spine_v0_data_capture_spine_obligation_contract_v0.md
-  - docs/product/data_capture_source_access_method_plan_v0.md
+  - docs/product/data_capture_spine/core_spine_v0_data_capture_spine_obligation_contract_v0.md
+  - docs/product/data_capture_spine/data_capture_source_access_method_plan_v0.md
   - docs/decisions/data_capture_spine_post_batch_patch_plan_owner_decision_v0.md
 stale_if:
   - The patched obligation-contract patch proposal is materially revised.

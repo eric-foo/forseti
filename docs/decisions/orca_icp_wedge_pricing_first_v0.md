@@ -34,8 +34,8 @@ superseded_by: docs/decisions/orca_icp_wedge_consumer_demand_first_v0.md
 open_next:
   - docs/research/orca_icp_redo_evidence_targets_v0.md
   - docs/research/orca_wedge_alternatives_register_v0.md
-  - docs/product/orca_offer_hypothesis_v0.md
-  - docs/product/orca_product_lead_first_icp_wedge_decision_v0.md
+  - docs/product/product_lead/orca_offer_hypothesis_v0.md
+  - docs/product/product_lead/orca_product_lead_first_icp_wedge_decision_v0.md
 stale_if:
   - Owner accepts a different first-proof wedge.
   - The "decide-vs-confirm" method-validation test flips the call.

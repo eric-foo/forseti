@@ -10,9 +10,9 @@ use_when:
   - Confirming that acceptance does not authorize implementation, source access, method-plan amendment, contract amendment, ECR, Cleaning, Judgment, validation, readiness, buyer proof, or commercial readiness.
 authority_boundary: retrieval_only
 open_next:
-  - docs/product/data_capture_spine_pressure_test_all_slot_synthesis_post_slot3_recapture_delta_v0.md
+  - docs/product/data_capture_spine/data_capture_spine_pressure_test_all_slot_synthesis_post_slot3_recapture_delta_v0.md
   - docs/review-outputs/adversarial-artifact-reviews/data_capture_spine_post_slot3_recapture_delta_adversarial_artifact_review_v0.md
-  - docs/product/data_capture_spine_source_observability_requirements_scoping_v0.md
+  - docs/product/data_capture_spine/data_capture_spine_source_observability_requirements_scoping_v0.md
 stale_if:
   - The accepted delta hash changes.
   - The post-Slot-3-recapture delta is reviewed, accepted, rejected, or superseded by a later artifact.

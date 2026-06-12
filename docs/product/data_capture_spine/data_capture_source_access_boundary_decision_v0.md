@@ -11,8 +11,8 @@ use_when:
   - Checking when authenticated, paywalled, cached, mirrored, or convenience access is in-bounds.
 authority_boundary: retrieval_only
 open_next:
-  - docs/product/core_spine_v0_data_capture_spine_obligation_contract_v0.md
-  - docs/product/data_capture_spine_pressure_test_commissioning_plan_v0.md
+  - docs/product/data_capture_spine/core_spine_v0_data_capture_spine_obligation_contract_v0.md
+  - docs/product/data_capture_spine/data_capture_spine_pressure_test_commissioning_plan_v0.md
   - docs/decisions/turn_08_product_thesis_v0.md
 stale_if:
   - A later owner decision amends, rejects, or supersedes this source-access posture.

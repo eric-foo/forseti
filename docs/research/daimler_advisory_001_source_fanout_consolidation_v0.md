@@ -11,7 +11,7 @@ use_when:
 authority_boundary: retrieval_only
 open_next:
   - docs/decisions/daimler_advisory_001_claim_tier_classification_decision_v0.md
-  - docs/product/judgment_spine_evidence_ladder_architecture_v0.md
+  - docs/product/judgment_spine/judgment_spine_evidence_ladder_architecture_v0.md
 stale_if:
   - A later source-acquisition pass verifies or rejects the pre-cutoff status of the AGM legal PDFs.
   - A Daimler source registry, participant-safe delta packet, or reveal calibration artifact supersedes this synthesis.

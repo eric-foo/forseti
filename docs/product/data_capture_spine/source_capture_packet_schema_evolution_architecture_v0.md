@@ -19,8 +19,8 @@ authority_boundary: retrieval_only
 open_next:
   - orca-harness/source_capture/models.py
   - orca-harness/source_capture/source_quality.py
-  - docs/product/core_spine_v0_data_capture_spine_obligation_contract_v0.md
-  - docs/product/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
+  - docs/product/data_capture_spine/core_spine_v0_data_capture_spine_obligation_contract_v0.md
+  - docs/product/core_spine/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
   - docs/product/source_capture_toolbox/source_capture_packet_fixture_admission_criteria_v0.md
 input_hashes:
   orca-harness/source_capture/models.py: 3B89A19BAEAB90762C34FE0C95517A005D383933E48057C1ADD12E004A3A7245

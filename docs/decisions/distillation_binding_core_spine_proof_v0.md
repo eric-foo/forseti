@@ -10,7 +10,7 @@ use_when:
 authority_boundary: retrieval_only
 open_next:
   - docs/decisions/distillation_doctrine_orca_spine_bindings_v0.md
-  - docs/product/core_spine_v0_proof_protocol_v0.md
+  - docs/product/core_spine/core_spine_v0_proof_protocol_v0.md
   - docs/decisions/distillation_binding_product_proof_v0.md
 ```
 

@@ -10,11 +10,11 @@ use_when:
   - Preserving Slot 2 pressure-test findings without hardening the obligation contract or designing source-access tooling.
 authority_boundary: retrieval_only
 open_next:
-  - docs/product/data_capture_spine_pressure_test_slot1_mi_biws_capture_session_v0.md
-  - docs/product/data_capture_spine_pressure_test_slot3_interim_evidence_synthesis_v0.md
-  - docs/product/data_capture_spine_pressure_test_execution_authorization_v0.md
-  - docs/product/data_capture_spine_pressure_test_commissioning_plan_v0.md
-  - docs/product/core_spine_v0_data_capture_spine_obligation_contract_v0.md
+  - docs/product/data_capture_spine/data_capture_spine_pressure_test_slot1_mi_biws_capture_session_v0.md
+  - docs/product/data_capture_spine/data_capture_spine_pressure_test_slot3_interim_evidence_synthesis_v0.md
+  - docs/product/data_capture_spine/data_capture_spine_pressure_test_execution_authorization_v0.md
+  - docs/product/data_capture_spine/data_capture_spine_pressure_test_commissioning_plan_v0.md
+  - docs/product/data_capture_spine/core_spine_v0_data_capture_spine_obligation_contract_v0.md
 stale_if:
   - A later owner decision rejects or supersedes the Slot 2 source boundary.
   - A later Teal verbatim, raw HTML, screenshot, browser, archive-content, or authenticated/entitled recapture supersedes this access-failed capture.

@@ -11,7 +11,7 @@ authority_boundary: retrieval_only
 open_next:
   - docs/decisions/distillation_doctrine_orca_spine_bindings_v0.md
   - .agents/workflow-overlay/product-proof.md
-  - docs/product/judgment_spine_evidence_ladder_architecture_v0.md
+  - docs/product/judgment_spine/judgment_spine_evidence_ladder_architecture_v0.md
 ```
 
 **Status: PREPARE-ONLY DRAFT** (see the index). Orca's **actor-carried (judgment) pole** — the

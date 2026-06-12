@@ -11,8 +11,8 @@ open_next:
   - docs/research/data_capture_spine_pressure_test_batch_synthesis_n2of3_v0.md
   - slot2_teal_CAPTURE_operator_workfile.md
   - slot1_mi_CAPTURE_operator_workfile.md
-  - docs/product/data_capture_spine_pressure_test_commissioning_plan_v0.md
-  - docs/product/core_spine_v0_data_capture_spine_obligation_contract_v0.md
+  - docs/product/data_capture_spine/data_capture_spine_pressure_test_commissioning_plan_v0.md
+  - docs/product/data_capture_spine/core_spine_v0_data_capture_spine_obligation_contract_v0.md
   - docs/_inbox/data_capture_pressure_test_subagent_outputs_2026_05_28/slot3_nontarget_forum_subagent_output.md
 stale_if:
   - The slot-3 fork is resolved and slot 3 is run (this handoff then describes a past state).

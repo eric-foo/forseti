@@ -17,7 +17,7 @@ use_when:
 authority_boundary: retrieval_only
 open_next:
   - docs/decisions/ar_01_pre_decision_status_finalizer_staffing_v0.md
-  - docs/product/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
+  - docs/product/core_spine/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
   - docs/research/judgment-spine/judgment_spine_machinery_build_state_gap_map_v0.md
 stale_if:
   - AR-01, decision B (finalizer kind), or the PreDecisionStatus enum changes.

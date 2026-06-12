@@ -10,11 +10,11 @@ use_when:
   - Preventing Reddit candidate enumeration from becoming broad crawling, Source Capture Armory capture, or unreviewed Data Capture input.
 authority_boundary: retrieval_only
 open_next:
-  - docs/product/data_capture_spine_candidate_url_intake_contract_v0.md
-  - docs/product/data_capture_spine_reddit_graph_frontier_lane_architecture_v0.md
+  - docs/product/data_capture_spine/data_capture_spine_candidate_url_intake_contract_v0.md
+  - docs/product/data_capture_spine/data_capture_spine_reddit_graph_frontier_lane_architecture_v0.md
   - docs/decisions/data_capture_spine_reddit_candidate_url_intake_default_policy_decision_v0.md
   - docs/workflows/data_capture_spine_consolidation_map_v0.md
-  - docs/product/core_spine_v0_data_capture_spine_obligation_contract_v0.md
+  - docs/product/data_capture_spine/core_spine_v0_data_capture_spine_obligation_contract_v0.md
   - docs/product/source_capture_toolbox/reddit_precommercial_capture_consolidation_planning_thread_v0.md
   - docs/decisions/data_capture_spine_source_access_tooling_build_authorization_v0.md
 stale_if:

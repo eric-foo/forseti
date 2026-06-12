@@ -10,9 +10,9 @@ use_when:
   - Attacking source-support, propagation, checker-vocabulary, discharge-state, Obligation #6, Obligation #16, and source-access-boundary risks in the amended controlling contract.
 authority_boundary: retrieval_only
 open_next:
-  - docs/product/core_spine_v0_data_capture_spine_obligation_contract_v0.md
+  - docs/product/data_capture_spine/core_spine_v0_data_capture_spine_obligation_contract_v0.md
   - docs/decisions/data_capture_spine_obligation_contract_patch_proposal_owner_decision_v0.md
-  - docs/product/data_capture_spine_obligation_contract_patch_proposal_v0.md
+  - docs/product/data_capture_spine/data_capture_spine_obligation_contract_patch_proposal_v0.md
   - docs/review-outputs/adversarial-artifact-reviews/data_capture_spine_obligation_contract_amendment_adversarial_artifact_review_v0.md
 input_hashes:
   docs/product/core_spine_v0_data_capture_spine_obligation_contract_v0.md: 85925ECB3429CF39CE4F287E959E75DE8944260596C798321D0E38186E6D45DC

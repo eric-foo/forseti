@@ -10,10 +10,10 @@ use_when:
   - Preparing same-lane Data Capture operating or tooling architecture without overclaiming Data Capture completion.
 authority_boundary: retrieval_only
 open_next:
-  - docs/product/core_spine_v0_data_capture_spine_obligation_contract_v0.md
-  - docs/product/core_spine_v0_data_capture_spine_full_fixture_synthesis_v0.md
+  - docs/product/data_capture_spine/core_spine_v0_data_capture_spine_obligation_contract_v0.md
+  - docs/product/data_capture_spine/core_spine_v0_data_capture_spine_full_fixture_synthesis_v0.md
   - docs/review-outputs/adversarial-artifact-reviews/core_spine_v0_data_capture_spine_full_fixture_synthesis_adversarial_review_v0.md
-  - docs/product/core_spine_v0_data_capture_spine_architecture_blueprint_v0.md
+  - docs/product/data_capture_spine/core_spine_v0_data_capture_spine_architecture_blueprint_v0.md
 input_hashes:
   patched_obligation_contract: A9B4D61226571ADCADD96504D361A7EBEB00775C315708AE53495E2F60EEE1DF
   post_clarification_synthesis: 46103142927A7EA7A4B61F10E0EF029614814F36438F4359C4B69B838E6C6126

@@ -10,8 +10,8 @@ use_when:
   - Checking whether reveal/calibration material is being overclaimed as judgment-quality evidence.
 authority_boundary: retrieval_only
 open_next:
-  - docs/product/judgment_spine_evidence_ladder_architecture_v0.md
-  - docs/product/judgment_spine_gate_ownership_map_v0.md
+  - docs/product/judgment_spine/judgment_spine_evidence_ladder_architecture_v0.md
+  - docs/product/judgment_spine/judgment_spine_gate_ownership_map_v0.md
   - .agents/workflow-overlay/product-proof.md
   - docs/research/judgment-spine/harness/v0_14/contestant_no_tools_execution_contract_v0.md
 input_hashes:

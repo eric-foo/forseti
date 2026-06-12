@@ -10,15 +10,15 @@ use_when:
   - Checking what the pressure tests will not cover in v0.
 authority_boundary: retrieval_only
 open_next:
-  - docs/product/data_capture_spine_intake_surface_consolidation_v0.md
-  - docs/product/data_capture_spine_pressure_test_execution_authorization_v0.md
-  - docs/product/data_capture_harness_operating_model_architecture_v2.md
-  - docs/product/data_capture_harness_operating_model_architecture_v2_acceptance_decision_v0.md
-  - docs/product/data_capture_spine_lane_product_thesis_v0.md
-  - docs/product/core_spine_v0_data_capture_spine_obligation_contract_v0.md
-  - docs/product/data_capture_obligation_baseline_decision_v0.md
-  - docs/product/data_capture_harness_product_goal_direction_signal_decision_v0.md
-  - docs/product/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
+  - docs/product/data_capture_spine/data_capture_spine_intake_surface_consolidation_v0.md
+  - docs/product/data_capture_spine/data_capture_spine_pressure_test_execution_authorization_v0.md
+  - docs/product/data_capture_spine/data_capture_harness_operating_model_architecture_v2.md
+  - docs/product/data_capture_spine/data_capture_harness_operating_model_architecture_v2_acceptance_decision_v0.md
+  - docs/product/data_capture_spine/data_capture_spine_lane_product_thesis_v0.md
+  - docs/product/data_capture_spine/core_spine_v0_data_capture_spine_obligation_contract_v0.md
+  - docs/product/data_capture_spine/data_capture_obligation_baseline_decision_v0.md
+  - docs/product/data_capture_spine/data_capture_harness_product_goal_direction_signal_decision_v0.md
+  - docs/product/core_spine/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
 stale_if:
   - The Data Capture intake-surface consolidation is rejected, narrowed, or superseded.
   - The Data Capture Harness v2 acceptance is amended, rejected, or superseded.

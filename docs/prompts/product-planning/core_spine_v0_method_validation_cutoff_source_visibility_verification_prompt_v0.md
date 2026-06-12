@@ -10,9 +10,9 @@ use_when:
   - Preserving the boundary between verification and evidence replay.
 authority_boundary: retrieval_only
 open_next:
-  - docs/product/core_spine_v0_method_validation_case_locks_v0.md
-  - docs/product/core_spine_v0_method_validation_case_frame_lock_contract_v0.md
-  - docs/product/core_spine_v0_method_validation_case_frame_locks_v0.md
+  - docs/product/core_spine/core_spine_v0_method_validation_case_locks_v0.md
+  - docs/product/core_spine/core_spine_v0_method_validation_case_frame_lock_contract_v0.md
+  - docs/product/core_spine/core_spine_v0_method_validation_case_frame_locks_v0.md
 input_hashes:
   docs/product/core_spine_v0_method_validation_case_locks_v0.md: 5782C9E809269A783B73E29E733CFFF9D9C4BC9E0F95F2C365886CCD387FC4E5
   docs/product/core_spine_v0_method_validation_case_frame_lock_contract_v0.md: F5633E834BE599C1C5ACFDBB9A65DC281F7AF72F18CC19E48A51FE57C4EFC1F0

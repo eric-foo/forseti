@@ -12,8 +12,8 @@ authority_boundary: retrieval_only
 open_next:
   - slot1_mi_CAPTURE_operator_workfile.md
   - slot2_teal_CAPTURE_operator_workfile.md
-  - docs/product/data_capture_spine_pressure_test_commissioning_plan_v0.md
-  - docs/product/core_spine_v0_data_capture_spine_obligation_contract_v0.md
+  - docs/product/data_capture_spine/data_capture_spine_pressure_test_commissioning_plan_v0.md
+  - docs/product/data_capture_spine/core_spine_v0_data_capture_spine_obligation_contract_v0.md
 stale_if:
   - Slot 3 runs and supersedes this interim synthesis with the full N=3 picture.
   - The commissioner renders the batch verdict or the patchable-vs-architecture classification (this synthesis then becomes historical input).

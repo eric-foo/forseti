@@ -11,12 +11,12 @@ use_when:
 authority_boundary: retrieval_only
 open_next:
   - docs/decisions/orca_product_thesis_consumer_demand_v0.md      # controlling thesis (supersedes turn_08; ratified 2026-06-12)
-  - docs/product/core_spine_v0_product_contract.md
-  - docs/product/core_spine_v0_information_production_foundation_v0.md
+  - docs/product/core_spine/core_spine_v0_product_contract.md
+  - docs/product/core_spine/core_spine_v0_information_production_foundation_v0.md
   - docs/decisions/orca_icp_wedge_consumer_demand_first_v0.md     # current wedge authority (supersedes pricing-first)
-  - docs/product/orca_product_lead_first_icp_wedge_decision_v0.md  # superseded — historical
-  - docs/product/orca_buyer_proof_packet_v0.md
-  - docs/product/orca_product_proof_lead_charter_v0.md
+  - docs/product/product_lead/orca_product_lead_first_icp_wedge_decision_v0.md # superseded — historical
+  - docs/product/product_lead/orca_buyer_proof_packet_v0.md
+  - docs/product/product_lead/orca_product_proof_lead_charter_v0.md
   - docs/review-outputs/adversarial-artifact-reviews/orca_offer_hypothesis_v0_narrow_adversarial_review.md
   - docs/review-outputs/adversarial-artifact-reviews/orca_ai_exposed_icp_refinement_adversarial_review_v0.md
   - .agents/workflow-overlay/product-proof.md

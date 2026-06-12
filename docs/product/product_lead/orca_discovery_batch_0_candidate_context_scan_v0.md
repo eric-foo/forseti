@@ -27,7 +27,7 @@ authority_boundary: retrieval_only
 open_next:
   - .agents/workflow-overlay/product-proof.md
   - .agents/workflow-overlay/validation-gates.md
-  - docs/product/orca_discovery_batch_0_target_selection_brief_v0.md
+  - docs/product/product_lead/orca_discovery_batch_0_target_selection_brief_v0.md
 ```
 
 ## Scope

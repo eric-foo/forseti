@@ -27,7 +27,7 @@ open_next:
   - docs/product/source_capture_toolbox/source_quality_mini_god_tier_profile_v0.md
   - docs/product/source_capture_toolbox/source_quality_source_unit_queue_template_v0.md
   - docs/product/source_capture_toolbox/source_quality_state_assembler_v0.md
-  - docs/product/core_spine_v0_data_capture_spine_obligation_contract_v0.md
+  - docs/product/data_capture_spine/core_spine_v0_data_capture_spine_obligation_contract_v0.md
   - docs/decisions/source_capture_packet_fixture_retention_sensitivity_decision_v0.md
   - docs/decisions/data_capture_spine_source_access_tooling_build_authorization_v0.md
 stale_if:

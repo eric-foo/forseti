@@ -10,9 +10,9 @@ use_when:
   - Deciding whether a capture rule belongs in core, satellite, deferred runtime, or another layer.
 authority_boundary: retrieval_only
 open_next:
-  - docs/product/core_spine_v0_data_capture_spine_obligation_contract_v0.md
-  - docs/product/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
-  - docs/product/core_spine_v0_data_capture_context_preservation_note_v0.md
+  - docs/product/data_capture_spine/core_spine_v0_data_capture_spine_obligation_contract_v0.md
+  - docs/product/core_spine/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
+  - docs/product/data_capture_spine/core_spine_v0_data_capture_context_preservation_note_v0.md
   - .agents/workflow-overlay/source-loading.md
 stale_if:
   - Orca renames Data Capture Spine, Evidence Candidate Record, Cleaning Spine, or Judgment Spine.

@@ -12,8 +12,8 @@ authority_boundary: retrieval_only
 open_next:
   - .agents/workflow-overlay/prompt-orchestration.md
   - .agents/workflow-overlay/source-loading.md
-  - docs/product/orca_offer_hypothesis_v0.md
-  - docs/product/orca_buyer_proof_packet_v0.md
+  - docs/product/product_lead/orca_offer_hypothesis_v0.md
+  - docs/product/product_lead/orca_buyer_proof_packet_v0.md
 stale_if:
   - Orca product thesis, offer hypothesis, buyer-proof packet, or Core Spine product contract is materially revised.
   - The current Data Capture manual harness artifacts are promoted, rejected, or superseded by owner decision.

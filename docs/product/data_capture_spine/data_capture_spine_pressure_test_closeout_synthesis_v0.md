@@ -10,7 +10,7 @@ use_when:
   - Routing the next owner checkpoint without treating the pressure test as validation, readiness, contract hardening, or implementation authority.
 authority_boundary: retrieval_only
 open_next:
-  - docs/product/data_capture_spine_pressure_test_all_slot_synthesis_post_slot3_recapture_delta_v0.md
+  - docs/product/data_capture_spine/data_capture_spine_pressure_test_all_slot_synthesis_post_slot3_recapture_delta_v0.md
   - docs/decisions/data_capture_spine_source_observability_support_closeout_decision_v0.md
   - docs/decisions/data_capture_spine_source_observability_requirements_boundary_decision_v0.md
 input_hashes:

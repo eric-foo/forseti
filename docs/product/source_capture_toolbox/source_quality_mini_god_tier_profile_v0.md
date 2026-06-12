@@ -13,7 +13,7 @@ open_next:
   - docs/product/source_capture_toolbox/README.md
   - docs/decisions/source_capture_packet_fixture_retention_sensitivity_decision_v0.md
   - orca-harness/docs/source_capture_agent_runbook.md
-  - docs/product/core_spine_v0_data_capture_spine_obligation_contract_v0.md
+  - docs/product/data_capture_spine/core_spine_v0_data_capture_spine_obligation_contract_v0.md
 stale_if:
   - The Source Capture Armory packet shape, runner set, or output lifecycle materially changes.
   - The Data Capture obligation contract changes capture obligations, forbidden outputs, or handoff states.

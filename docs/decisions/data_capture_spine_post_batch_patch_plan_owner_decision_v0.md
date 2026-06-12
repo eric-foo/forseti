@@ -10,11 +10,11 @@ use_when:
   - Confirming whether contract hardening, source-access implementation, runtime work, or downstream ECR/Cleaning/Judgment design is authorized.
 authority_boundary: retrieval_only
 open_next:
-  - docs/product/data_capture_spine_post_batch_patch_plan_v0.md
+  - docs/product/data_capture_spine/data_capture_spine_post_batch_patch_plan_v0.md
   - docs/review-outputs/adversarial-artifact-reviews/data_capture_spine_post_batch_patch_plan_adversarial_artifact_review_v0.md
   - docs/decisions/data_capture_spine_pressure_test_batch_classification_decision_v0.md
-  - docs/product/core_spine_v0_data_capture_spine_obligation_contract_v0.md
-  - docs/product/data_capture_source_access_method_plan_v0.md
+  - docs/product/data_capture_spine/core_spine_v0_data_capture_spine_obligation_contract_v0.md
+  - docs/product/data_capture_spine/data_capture_source_access_method_plan_v0.md
 stale_if:
   - The post-batch patch plan is materially revised after this decision.
   - A later owner decision supersedes this decision.

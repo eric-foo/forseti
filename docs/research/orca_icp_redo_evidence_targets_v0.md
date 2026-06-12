@@ -10,8 +10,8 @@ use_when:
   - Checking which stats are already grounded vs. still needed.
 authority_boundary: retrieval_only
 open_next:
-  - docs/product/orca_product_lead_first_icp_wedge_decision_v0.md
-  - docs/product/orca_offer_hypothesis_v0.md
+  - docs/product/product_lead/orca_product_lead_first_icp_wedge_decision_v0.md
+  - docs/product/product_lead/orca_offer_hypothesis_v0.md
 stale_if:
   - The ICP redo selects a wedge and supersedes this note.
   - The decided frame, axes, or dial weights change.

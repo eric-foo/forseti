@@ -10,12 +10,12 @@ use_when:
   - Avoiding drift from Mechanical Source Projection into Cleaning, ECR schema, Judgment, or runtime/tooling design.
 authority_boundary: retrieval_only
 open_next:
-  - docs/product/data_capture_harness_operating_model_architecture_v2_acceptance_decision_v0.md
-  - docs/product/data_capture_harness_operating_model_architecture_v2.md
-  - docs/product/core_spine_v0_data_capture_spine_obligation_contract_v0.md
-  - docs/product/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
-  - docs/product/data_capture_spine_pressure_test_commissioning_plan_v0.md
-  - docs/product/data_capture_spine_pressure_test_execution_authorization_v0.md
+  - docs/product/data_capture_spine/data_capture_harness_operating_model_architecture_v2_acceptance_decision_v0.md
+  - docs/product/data_capture_spine/data_capture_harness_operating_model_architecture_v2.md
+  - docs/product/data_capture_spine/core_spine_v0_data_capture_spine_obligation_contract_v0.md
+  - docs/product/core_spine/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
+  - docs/product/data_capture_spine/data_capture_spine_pressure_test_commissioning_plan_v0.md
+  - docs/product/data_capture_spine/data_capture_spine_pressure_test_execution_authorization_v0.md
 stale_if:
   - A later owner decision rejects, narrows, or supersedes this intake-surface consolidation.
   - The Data Capture obligation contract, Data Capture/Cleaning boundary, v2 operating model, or v2 acceptance decision is materially amended.

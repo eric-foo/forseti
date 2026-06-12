@@ -10,10 +10,10 @@ use_when:
   - Routing post-execution synthesis requirements and non-authorized adjacent work.
 authority_boundary: retrieval_only
 open_next:
-  - docs/product/data_capture_spine_intake_surface_consolidation_v0.md
-  - docs/product/data_capture_spine_pressure_test_commissioning_plan_v0.md
-  - docs/product/data_capture_harness_operating_model_architecture_v2_acceptance_decision_v0.md
-  - docs/product/core_spine_v0_data_capture_spine_obligation_contract_v0.md
+  - docs/product/data_capture_spine/data_capture_spine_intake_surface_consolidation_v0.md
+  - docs/product/data_capture_spine/data_capture_spine_pressure_test_commissioning_plan_v0.md
+  - docs/product/data_capture_spine/data_capture_harness_operating_model_architecture_v2_acceptance_decision_v0.md
+  - docs/product/data_capture_spine/core_spine_v0_data_capture_spine_obligation_contract_v0.md
 stale_if:
   - A later owner decision narrows, pauses, or supersedes this execution authorization.
   - The accepted intake-surface target or commissioning plan is materially amended or superseded before the three authorized captures are executed.

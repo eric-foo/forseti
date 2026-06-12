@@ -13,12 +13,12 @@ authority_boundary: retrieval_only
 open_next:
   - docs/review-outputs/adversarial-artifact-reviews/data_capture_harness_operating_model_architecture_v2_independent_adversarial_review_v0.md
   - docs/review-outputs/adversarial-artifact-reviews/data_capture_harness_operating_model_architecture_v0_v1_adversarial_review_v0.md
-  - docs/product/data_capture_harness_operating_model_architecture_v1.md
-  - docs/product/data_capture_harness_operating_model_architecture_v0.md
-  - docs/product/data_capture_obligation_baseline_decision_v0.md
-  - docs/product/core_spine_v0_data_capture_spine_obligation_contract_v0.md
-  - docs/product/data_capture_harness_product_goal_direction_signal_decision_v0.md
-  - docs/product/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
+  - docs/product/data_capture_spine/data_capture_harness_operating_model_architecture_v1.md
+  - docs/product/data_capture_spine/data_capture_harness_operating_model_architecture_v0.md
+  - docs/product/data_capture_spine/data_capture_obligation_baseline_decision_v0.md
+  - docs/product/data_capture_spine/core_spine_v0_data_capture_spine_obligation_contract_v0.md
+  - docs/product/data_capture_spine/data_capture_harness_product_goal_direction_signal_decision_v0.md
+  - docs/product/core_spine/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
 stale_if:
   - Owner accepts, rejects, patches, or supersedes this v2 proposed architecture.
   - The Data Capture obligation baseline decision is amended, rejected, or superseded.

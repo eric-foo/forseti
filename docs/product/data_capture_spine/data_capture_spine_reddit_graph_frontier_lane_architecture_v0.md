@@ -10,11 +10,11 @@ use_when:
   - Preventing bounded Reddit exploration from becoming same-run traversal, broad crawling, Source Capture, Data Capture, or production crawl infrastructure.
 authority_boundary: retrieval_only
 open_next:
-  - docs/product/data_capture_spine_reddit_candidate_url_intake_crawler_architecture_v0.md
+  - docs/product/data_capture_spine/data_capture_spine_reddit_candidate_url_intake_crawler_architecture_v0.md
   - docs/workflows/reddit_candidate_intake_to_projection_lane_handoff_v0.md
   - docs/workflows/data_capture_spine_consolidation_map_v0.md
   - docs/decisions/data_capture_spine_source_access_tooling_build_authorization_v0.md
-  - docs/product/data_capture_source_access_boundary_decision_v0.md
+  - docs/product/data_capture_spine/data_capture_source_access_boundary_decision_v0.md
 stale_if:
   - Candidate URL Intake changes row outputs, provenance fields, same-run traversal rules, promotion gates, or Reddit source-surface policy.
   - Reddit source-access authority changes robots.txt handling, old Reddit posture, broad-crawler authorization, API/commercial requirements, or anti-blocking hard stops.

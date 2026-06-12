@@ -10,8 +10,8 @@ use_when:
   - Defining Evidence Candidate Record / Evidence Unit fields that must preserve independence and source identity.
 authority_boundary: retrieval_only
 open_next:
-  - docs/product/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
-  - docs/product/core_spine_v0_product_contract.md
+  - docs/product/core_spine/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
+  - docs/product/core_spine/core_spine_v0_product_contract.md
 ```
 
 - Status: PROPOSED (design note)

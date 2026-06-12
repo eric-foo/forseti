@@ -10,9 +10,9 @@ use_when:
   - Routing a full adversarial artifact review of this synthesis.
 authority_boundary: retrieval_only
 open_next:
-  - docs/product/core_spine_v0_data_capture_spine_obligation_contract_v0.md
-  - docs/product/core_spine_v0_data_capture_spine_remaining_fixture_plan_v0.md
-  - docs/product/core_spine_v0_data_capture_spine_pressure_test_archive_history_recapture_v0.md
+  - docs/product/data_capture_spine/core_spine_v0_data_capture_spine_obligation_contract_v0.md
+  - docs/product/data_capture_spine/core_spine_v0_data_capture_spine_remaining_fixture_plan_v0.md
+  - docs/product/data_capture_spine/core_spine_v0_data_capture_spine_pressure_test_archive_history_recapture_v0.md
 input_hashes:
   patched_obligation_contract: A9B4D61226571ADCADD96504D361A7EBEB00775C315708AE53495E2F60EEE1DF
   remaining_fixture_plan: D4BC5D2983F8EC490AD3154A3C748014A71B123364D73AFF8E8C2743297C0584

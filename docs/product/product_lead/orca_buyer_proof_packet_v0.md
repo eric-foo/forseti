@@ -11,7 +11,7 @@ authority_boundary: retrieval_only
 open_next:
   - .agents/workflow-overlay/product-proof.md
   - docs/decisions/orca_icp_wedge_consumer_demand_first_v0.md     # current wedge authority (supersedes pricing-first)
-  - docs/product/orca_product_proof_lead_charter_v0.md
+  - docs/product/product_lead/orca_product_proof_lead_charter_v0.md
   - docs/decisions/orca_product_thesis_consumer_demand_v0.md      # controlling thesis (supersedes turn_08; ratified 2026-06-12)
 input_hashes:
   - path: docs/decisions/turn_08_product_thesis_v0.md

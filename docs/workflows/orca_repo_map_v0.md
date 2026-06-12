@@ -51,7 +51,7 @@ propagation evidence.
 ORCA enforces load-bearing, mechanically-checkable rules at **tool
 boundaries**, not by instruction alone. The owning principle is
 `.agents/workflow-overlay/validation-gates.md` -> "Enforcement Placement"
-(cross-referenced from `decision-routing.md`); the per-rule classification is
+(cross-referenced from `.agents/workflow-overlay/decision-routing.md`); the per-rule classification is
 `docs/decisions/overlay_enforcement_placement_classification_v0.md`.
 
 **Retrieval-header check.** A PostToolUse hook (matcher `Write|Edit`) in the
@@ -112,7 +112,7 @@ It reads THIS map as its own spec and, forward-only on the file just touched,
 emits a non-blocking advisory when an edit adds navigable structure this map
 does not yet cover -- the mechanically-detectable subset of the `stale_if:` block
 above: a new top-level area (#1) or a new `orca-harness/` runner/adapter (#2).
-Edits to `source-of-truth.md` get a coarser advisory nudge (#5). It stays silent
+Edits to `.agents/workflow-overlay/source-of-truth.md` get a coarser advisory nudge (#5). It stays silent
 on ordinary content in already-mapped folders (a new `docs/decisions/*` is
 reachable by convention, not a map event) and cannot see judgment-shaped
 staleness -- "a spine was reorganized" (#3) or "routing doctrine changed" (#4) --
@@ -145,7 +145,7 @@ retrieval-header hook in `.claude/settings.json`, then restart the session.
 **Placement check (EP-04) — built, NOT YET WIRED.** A third substrate,
 `.agents/hooks/check_placement.py`, enforces placement shape at the write
 boundary: it reads `repo-structure.yaml` as its ONLY rule source (authority
-stays in `artifact-folders.md`; binding in
+stays in `.agents/workflow-overlay/artifact-folders.md`; binding in
 `docs/decisions/orca_repo_structure_binding_v0.md`), WARNs on unplaced writes,
 nudges flat `docs/product/` writes toward the bound lanes, and checks
 map<->tree consistency in both directions. `_inbox` age and declared legacy
@@ -173,14 +173,14 @@ Claude Code `permissions` rules — no script:
 - **`ask` — git lifecycle, shared/tracked in `.claude/settings.json`:**
   `git push`, `git commit`, `git remote`, `gh pr`, `git reset --hard`,
   `git clean`, for both the `Bash` and `PowerShell` tools. Claude Code prompts for
-  explicit approval; the approval is the authorization (`safety-rules.md`
+  explicit approval; the approval is the authorization (`.agents/workflow-overlay/safety-rules.md`
   "...unless explicitly authorized"). Travels with the repo.
 - **`deny` — protected paths, machine-local in `.claude/settings.local.json`:**
   writes/edits to external / installed-skill roots — `agent-workflow`, `jb*`,
   `~/.codex/{plugins,skills}`, `~/.claude/{plugins,skills}`, `~/.agents/skills`.
   Hard-blocked. Machine-specific absolute paths, so NOT tracked; a fresh clone
   re-adds its own external paths.
-- Authority: `safety-rules.md` (the rules) + validation-gates "Enforcement
+- Authority: `.agents/workflow-overlay/safety-rules.md` (the rules) + validation-gates "Enforcement
   Placement" (the placement principle). Config enforces existing rules; it
   changes no doctrine. EP-02 (impl-dir blocking) was deliberately excluded.
 - Limits: Claude-Code-only (Codex unaffected — the resident instruction stays);
@@ -239,7 +239,7 @@ permission modes:
   `docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md`); a
   human/authorized action lands the PR to `main`. Narrow: `commit`, generic
   deletion, and *mentions* of these in quoted strings are NOT blocked.
-- references authority (`safety-rules.md`), fails OPEN on internal error, and has
+- references authority (`.agents/workflow-overlay/safety-rules.md`), fails OPEN on internal error, and has
   a selftest: `python .agents/hooks/guard_protected_actions.py --selftest`.
 - authorized exception: run the action yourself, or temporarily remove the hook.
 
@@ -262,12 +262,12 @@ non-blocking advisories for the high-contention commit-once-whole shared files
 (the repo map, `.claude/settings.json`, `.agents/workflow-overlay/source-of-truth.md`):
 
 - **Per-edit (PostToolUse).** The repo-map-freshness hook
-  (`check_repo_map_freshness.py`) additionally emits a non-blocking advisory when
+  (`.agents/hooks/check_repo_map_freshness.py`) additionally emits a non-blocking advisory when
   the edited file IS the repo map, reminding to commit it immediately,
   explicit-path (`git commit --only -- docs/workflows/orca_repo_map_v0.md`),
   before other lanes' edits interleave. Distinct from its structural/freshness
   trigger (which fires on OTHER files adding navigation).
-- **Turn-end (Stop).** `check_shared_files_dirty.py` (a `Stop` hook, no matcher)
+- **Turn-end (Stop).** `.agents/hooks/check_shared_files_dirty.py` (a `Stop` hook, no matcher)
   warns when any of the three shared files is left dirty at end of turn, listing
   them plus the explicit-path commit. Exit 0, never blocks, never auto-commits
   (unsafe on a shared branch), guards `stop_hook_active`, fails open. CLI:
@@ -408,7 +408,7 @@ design) remain gated.
 | `orca-harness/config/` | Static YAML config (contestants, models, prompts) consumed by runners. |
 | `orca-harness/docs/` | Harness operating docs: source-capture packet and agent runbook, source-observability record guide, and scalability note. |
 | `orca-harness/tests/` | `unit/`, `contract/`, and `integration/` tests, including no-LLM-import and no-tools contract guards. |
-| `orca-harness/harness_utils.py`, `Makefile`, `pyproject.toml` | Shared utilities, dev shortcuts, and package metadata (optional `[browser]` Playwright extra). |
+| `orca-harness/harness_utils.py`, `orca-harness/Makefile`, `orca-harness/pyproject.toml` | Shared utilities, dev shortcuts, and package metadata (optional `[browser]` Playwright extra). |
 
 Controlling build authority:
 `docs/decisions/data_capture_spine_source_access_tooling_build_authorization_v0.md`
@@ -417,7 +417,7 @@ Controlling build authority:
 (local source-observability support).
 
 Generated/gitignored scratch — do not enumerate or treat as authoritative:
-`orca-harness/_test_runs/`, `_auth_state/`, `pytest_*` temp dirs,
+`orca-harness/_test_runs/` (scratch; does not exist yet on a fresh clone), `_auth_state/`, `pytest_*` temp dirs,
 `reports/source_observability/*_dry_run.*`, `cases/*/*/scores/`, and
 `memory/logs/`.
 
@@ -427,7 +427,7 @@ Use these before broad product architecture or CA setup:
 
 | Path | Use for |
 | --- | --- |
-| `docs/decisions/orca_product_thesis_consumer_demand_v0.md` | Orca thesis (consumer-demand decision intelligence, beauty first; owner-ratified 2026-06-12; supersedes `turn_08_product_thesis_v0.md`), value proposition, strategic center, product boundary. |
+| `docs/decisions/orca_product_thesis_consumer_demand_v0.md` | Orca thesis (consumer-demand decision intelligence, beauty first; owner-ratified 2026-06-12; supersedes `docs/decisions/turn_08_product_thesis_v0.md`), value proposition, strategic center, product boundary. |
 | `docs/product/product_lead/orca_offer_hypothesis_v0.md` | Offer hypothesis, buyer-facing language, first proof offer, ICP boundary. |
 | `docs/product/product_lead/orca_buyer_proof_packet_v0.md` | First buyer-proof packet, proof gates, pull signals, kill/graduation criteria. |
 | `docs/decisions/orca_icp_wedge_consumer_demand_first_v0.md` | Current first-proof ICP wedge (beauty operator door; owner co-ratified 2026-06-12; supersedes pricing-first) and decision-family focus. |
@@ -616,7 +616,7 @@ source-loading rule.
 
 Navigation pointers for that pack live in the Product Anchor Files and Core
 Spine Files sections above. Do not read the target files in full by default.
-Use the targeted sections named by `source-loading.md`, then expand only when a
+Use the targeted sections named by `.agents/workflow-overlay/source-loading.md`, then expand only when a
 concrete source gap could change the Data Capture Spine CA prompt.
 
 Exclude by default:
@@ -782,7 +782,7 @@ status field. Open the owning doc for authority; this table is navigation only.
 
 | Workstream | Owning doc | Status |
 | --- | --- | --- |
-| Beauty vertical satellite | `docs/product/beauty_vertical_satellite_v0.md` | owning doc not found on main |
+| Beauty vertical satellite | `docs/product/beauty_vertical_satellite_v0.md` | owning doc does not exist yet on main |
 | Data capture spine | `docs/product/data_capture_spine/data_capture_harness_operating_model_architecture_v2.md` | `PROPOSED_ARCHITECTURE_V2` |
 | Judgment spine | `docs/product/judgment_spine/judgment_spine_evidence_ladder_architecture_v0.md` | no status field |
 | ECR | `docs/workflows/ecr_spine_submap_v0.md` | no status field |

@@ -11,10 +11,10 @@ use_when:
 authority_boundary: retrieval_only
 open_next:
   - docs/prompts/data_capture_spine_pressure_test_llm_capture_visibility_checker_prompt_v0.md
-  - docs/product/data_capture_spine_pressure_test_execution_authorization_v0.md
-  - docs/product/data_capture_spine_pressure_test_commissioning_plan_v0.md
-  - docs/product/core_spine_v0_data_capture_spine_obligation_contract_v0.md
-  - docs/product/data_capture_source_access_boundary_decision_v0.md
+  - docs/product/data_capture_spine/data_capture_spine_pressure_test_execution_authorization_v0.md
+  - docs/product/data_capture_spine/data_capture_spine_pressure_test_commissioning_plan_v0.md
+  - docs/product/data_capture_spine/core_spine_v0_data_capture_spine_obligation_contract_v0.md
+  - docs/product/data_capture_spine/data_capture_source_access_boundary_decision_v0.md
 stale_if:
   - A later capture-session artifact supersedes this exact five-thread sub-batch.
   - The current obligation contract, execution authorization, or commissioning plan is materially amended before this artifact is used downstream.

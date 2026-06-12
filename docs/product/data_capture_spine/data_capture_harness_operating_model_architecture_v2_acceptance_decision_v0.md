@@ -10,10 +10,10 @@ use_when:
   - Preparing pressure-test commissioning planning artifacts against v2.
 authority_boundary: retrieval_only
 open_next:
-  - docs/product/data_capture_harness_operating_model_architecture_v2.md
-  - docs/product/data_capture_spine_lane_product_thesis_v0.md
-  - docs/product/data_capture_obligation_baseline_decision_v0.md
-  - docs/product/core_spine_v0_data_capture_spine_obligation_contract_v0.md
+  - docs/product/data_capture_spine/data_capture_harness_operating_model_architecture_v2.md
+  - docs/product/data_capture_spine/data_capture_spine_lane_product_thesis_v0.md
+  - docs/product/data_capture_spine/data_capture_obligation_baseline_decision_v0.md
+  - docs/product/data_capture_spine/core_spine_v0_data_capture_spine_obligation_contract_v0.md
   - docs/review-outputs/adversarial-artifact-reviews/data_capture_harness_operating_model_architecture_v2_independent_adversarial_review_v0.md
 stale_if:
   - A later owner decision amends, rejects, or supersedes this acceptance.

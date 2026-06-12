@@ -13,7 +13,7 @@ authority_boundary: retrieval_only
 open_next:
   - docs/workflows/reddit_candidate_intake_operator_pilot_plan_v0.md
   - docs/workflows/reddit_candidate_intake_no_live_dry_use_receipt_v0.md
-  - docs/product/data_capture_spine_reddit_candidate_url_intake_crawler_architecture_v0.md
+  - docs/product/data_capture_spine/data_capture_spine_reddit_candidate_url_intake_crawler_architecture_v0.md
   - docs/decisions/data_capture_spine_reddit_candidate_url_intake_default_policy_decision_v0.md
 stale_if:
   - The operator pilot plan changes required parameters, stop gates, or live-access posture.

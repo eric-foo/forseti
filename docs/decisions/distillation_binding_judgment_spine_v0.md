@@ -11,7 +11,7 @@ authority_boundary: retrieval_only
 open_next:
   - docs/decisions/distillation_doctrine_orca_spine_bindings_v0.md
   - docs/research/judgment-spine/judgment_spine_consolidation_map_v0.md
-  - docs/product/judgment_quality_promotion_operating_model_v0.md
+  - docs/product/judgment_spine/judgment_quality_promotion_operating_model_v0.md
 ```
 
 **Status: PREPARE-ONLY DRAFT** (see the index). Distills recorded Judgment Spine outcomes. **Reconcile

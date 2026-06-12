@@ -21,7 +21,7 @@ open_next:
   - docs/workflows/data_capture_spine_consolidation_map_v0.md
   - docs/product/source_capture_toolbox/reddit_precommercial_capture_consolidation_planning_thread_v0.md
   - docs/product/source_capture_toolbox/reddit_precommercial_capture_consolidation_success_signal_architecture_v0.md
-  - docs/product/data_capture_source_access_boundary_decision_v0.md
+  - docs/product/data_capture_spine/data_capture_source_access_boundary_decision_v0.md
 stale_if:
   - LinkedIn policy, API, legal, or commercial-access posture changes.
   - Reddit source-access order, CloakBrowser backend, old Reddit HTML posture,

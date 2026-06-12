@@ -10,10 +10,10 @@ use_when:
   - Distinguishing decision-evidence discovery from future lead/outreach handling.
 authority_boundary: retrieval_only
 open_next:
-  - docs/product/data_capture_spine_candidate_url_intake_contract_v0.md
+  - docs/product/data_capture_spine/data_capture_spine_candidate_url_intake_contract_v0.md
   - docs/product/source_capture_toolbox/linkedin_reddit_source_capture_armory_concurrent_structure_architecture_v0.md
   - docs/workflows/data_capture_spine_consolidation_map_v0.md
-  - docs/product/data_capture_source_access_boundary_decision_v0.md
+  - docs/product/data_capture_spine/data_capture_source_access_boundary_decision_v0.md
 stale_if:
   - LinkedIn platform policy, API, Sales Navigator, or source-access posture changes.
   - The Candidate URL Intake parent contract changes candidate rows, run envelopes, promotion gates, caps, or traversal stops.
