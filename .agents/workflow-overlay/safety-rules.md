@@ -22,7 +22,7 @@ authority_boundary: retrieval_only
   controlled lane in `.agents/workflow-overlay/skill-adoption.md`. That lane
   does not authorize global, user-level, plugin, installed, or external workflow
   source mutation.
-- Do not commit, push, configure remotes, create pull requests, or perform destructive cleanup unless explicitly authorized.
+- Do not configure remotes or perform destructive cleanup unless explicitly authorized. Commit, push, and pull-request preparation follow the work-unit completion rule in `AGENTS.md`: at the verified completion of a repo-changing work unit on the lane's own branch or worktree they proceed without a typed instruction, owner-gated by the `settings.json` permission prompts; landing to `main` stays human-gated.
 - **Online/external source-data capture routes through the Source Capture Armory Runner Ladder.** Any capture of online or external source data for evidence or learning goes through the armory runners + Mini God-Tier source-quality discipline (the "Runner Ladder"), not ad-hoc web fetches; captures emit inspectable Source Capture Packets that also serve as Capture-lane data. Route via the repo map (`docs/workflows/orca_repo_map_v0.md` -> Data Capture / Source Capture Armory submap) -> `orca-harness/docs/source_capture_agent_runbook.md` + `docs/product/source_capture_toolbox/source_quality_mini_god_tier_profile_v0.md`. Uncaptured scouting/diagnostic web reads (not entered as evidence) are exempt.
 
 ## Scope Discipline
