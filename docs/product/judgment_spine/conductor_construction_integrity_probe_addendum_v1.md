@@ -25,9 +25,13 @@ stale_if:
 # Conductor Construction-Integrity + Probe Addendum v1 (requirements + routed-out)
 
 **Status: PROPOSED v1 — supersedes v0 (which carried NEEDS_ARCHITECTURE_PASS). Not
-ratified; pending a cross-vendor delegated re-review. The addendum STATES
-requirements and ROUTES enactment to owner sources; it edits no gate, field,
-predicate, or protocol itself.**
+ratified. The cross-vendor delegated re-review RETURNED (2026-06-12, codex-gpt-5,
+cross_vendor_discovery): prior AR-01/AR-02/AR-03 resolved at addendum level; one
+minor finding (ARV1-01, R4 field-name precision) accepted by the home model and
+patched below. Still PROPOSED — pending OWNER ratification (the addendum ratifies
+nothing itself). The addendum STATES requirements and ROUTES enactment to owner
+sources; it edits no gate, field, predicate, or protocol itself. Re-review report:
+`docs/review-outputs/adversarial-artifact-reviews/conductor_construction_integrity_probe_addendum_v1_adversarial_re_review_v0.md`.**
 
 Owner architecture decisions (2026-06-12) folded in: (1) drop active recall; (2)
 recognized arm = record-as-data/quarantine (not discard); (3) JSG-08 tell = hard
@@ -79,7 +83,7 @@ REQUIREMENT, three parts:
 ## R4 — The tell test runs on the reasoning trace (owner decisions 2 + 3)
 
 REQUIREMENT: the blind judgment MUST include a **reasoning trace** (JSG-06
-requirement; reuses the existing `blind_judgement` rationale field). The JSG-08
+requirement; reuses the existing `blind_judgement.contestant_band_claim.reasoning` field, made a required receipt field by its owner per routed change 5 below). The JSG-08
 tell-audit discriminates on **derivability against the trace**: a correct call
 *derived* from brief facts (traceable in the trace) is a lucky/legit prediction; a
 call that *asserts* the outcome or cites non-brief knowledge with no derivation is
@@ -136,5 +140,6 @@ only thing that catches this class — so it is a **gate, not optional hardening
 
 Requirements + routed proposals only. Enacts nothing; ratifies nothing; clears no
 gate (predicates stay `indeterminate_until_authored` until owners author them).
-Product-learning tier; the rules apply as by-hand discipline meanwhile. Pending a
-cross-vendor delegated re-review before ratification.
+Product-learning tier; the rules apply as by-hand discipline meanwhile.
+Cross-vendor delegated re-review returned (2026-06-12); the one minor finding
+(ARV1-01) is patched; pending owner ratification.
