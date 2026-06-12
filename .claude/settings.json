@@ -41,6 +41,11 @@
             "type": "command",
             "command": "python \"$CLAUDE_PROJECT_DIR/.agents/hooks/check_placement.py\" --hook",
             "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "python \"$CLAUDE_PROJECT_DIR/.agents/hooks/check_prompt_provenance.py\" --hook",
+            "timeout": 10
           }
         ]
       }
@@ -51,6 +56,22 @@
           {
             "type": "command",
             "command": "python \"$CLAUDE_PROJECT_DIR/.agents/hooks/check_shared_files_dirty.py\" --hook",
+            "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "python \"$CLAUDE_PROJECT_DIR/.agents/hooks/check_token_burn.py\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python \"$CLAUDE_PROJECT_DIR/.agents/hooks/session_context_capsule.py\" --hook",
             "timeout": 10
           }
         ]
