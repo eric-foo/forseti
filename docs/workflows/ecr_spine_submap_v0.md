@@ -10,8 +10,8 @@ use_when:
   - Checking what is built vs declared-but-dormant vs frozen, without bulk-loading every ECR/SCR artifact.
 authority_boundary: retrieval_only
 open_next:
-  - docs/product/core_spine_v0_signal_content_record_architecture_v0.md
-  - docs/product/ecr_consolidation_v0_frame_source_visibility_slice_architecture_plan_v0.md
+  - docs/product/signal_content/core_spine_v0_signal_content_record_architecture_v0.md
+  - docs/product/ecr/ecr_consolidation_v0_frame_source_visibility_slice_architecture_plan_v0.md
   - orca-harness/ecr/__init__.py
 downstream_consumers:
   - JSG-01 conductor (UNFROZEN 2026-06-12 by the owner's dated act, docs/decisions/jsg01_unfreeze_decision_v0.md; evaluable, clears no case until an authorized run) — the reader of the records this spine produces; nothing under this map authorizes runs or clears cases.

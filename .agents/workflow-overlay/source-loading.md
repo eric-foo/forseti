@@ -254,6 +254,8 @@ Budget rules:
   the source-loading unit, or create a new-thread handoff. Do not compress a
   broader archive into the capsule and call it bounded.
 
+These budgets are also the ratified cold-lane retrievability bar (owner-ratified 2026-06-13): a cold lane navigating from the standard entry points should reach its decisive sources within this same budget. Exceeding it on a routine task is a retrievability defect signal, not a license to read more.
+
 `sources_available_not_read` should name files that were relevant but skipped
 because they would add background rather than change the current decision.
 
