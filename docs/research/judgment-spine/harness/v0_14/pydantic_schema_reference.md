@@ -44,7 +44,7 @@ role_frame:
 authority_constraints:
 capability_constraints:
 permitted_assumptions:
-forbidden_information_notice:
+information_boundary:
 source_manifest:
   - source_id:
     source:
@@ -127,7 +127,7 @@ class FacilitatorLedger(BaseModel):
     must_address_items: list[MustAddressItem] = []
     underreach_observability: UnderreachObservability
     leakage_audit_notes: Optional[str] = None
-    spoiler_inventory: Optional[str] = None  # advisory
+    spoiler_inventory: Optional[str] = None  # sealed facilitator-only; never enumerated in the ledger body or any participant packet
     committed_at: str  # ISO-8601 UTC, Z suffix
     ledger_freeze_hash: str
 ```

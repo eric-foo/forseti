@@ -88,8 +88,11 @@ Per `judgement_case_construction_protocol.md`, each case folder is
 
 - `participant_packet.md` — zero-spoiler, with required frontmatter (case_id,
   decision_question, decision_date_or_cutoff, role_frame, authority/capability
-  constraints, permitted_assumptions, forbidden_information_notice,
-  source_manifest). MUST EXCLUDE actual outcome, actual decision (if avoidable),
+  constraints, permitted_assumptions, information_boundary,
+  source_manifest). The `information_boundary` is whitelist-only ("decide using
+  only the information in this brief; not outside or later knowledge") — never an
+  enumerated forbidden-category list on a contestant-readable surface. MUST
+  EXCLUDE actual outcome, actual decision (if avoidable),
   frozen band inputs, derived floor/ceiling, must-address items, post-decision
   interpretation.
 - `facilitator_ledger.yaml` — sealed (scorer/operator only): frozen band inputs,

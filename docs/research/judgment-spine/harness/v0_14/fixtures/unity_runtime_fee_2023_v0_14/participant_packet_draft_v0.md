@@ -11,8 +11,8 @@ permitted_assumptions:
   - Public pre-cutoff company filings can be used to frame business model, revenue pressure, customer risk, and competitive context.
   - Archive visibility checks can be used only to mark source visibility limits when they do not establish substantive facts.
   - Competitor licensing context may be considered when assessing market expectations and perceived customer economics.
-forbidden_information_notice: >
-  Use only information available at or before the cutoff. Do not use later public events, later company actions, later policy changes, later internal judgments, hidden labels, or non-packet evaluation material.
+information_boundary: >
+  Decide using only the information in this brief; do not use, recall, or look up any outside or later knowledge about this case.
 source_manifest:
   - source_id: S-01
     source: https://www.sec.gov/Archives/edgar/data/1810806/000181080623000016/0001810806-23-000016-index.htm

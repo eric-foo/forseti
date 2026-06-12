@@ -145,7 +145,7 @@ Convert `participant_packet_v0.md` into v0.14 packet form while preserving the c
 - `authority_constraints`;
 - `capability_constraints`;
 - `permitted_assumptions`;
-- `forbidden_information_notice`;
+- `information_boundary`;
 - known uncertainties;
 - packet-safe evidence-source manifest using source-class labels only.
 

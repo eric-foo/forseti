@@ -13,6 +13,18 @@ open_next:
   - docs/research/judgment-spine/harness/v0_14/contestant_no_tools_execution_contract_v0.md
 ```
 
+> **SUPERSEDED (2026-06-12) — active recall dropped.** This memorization-probe
+> protocol is superseded by the conductor construction-integrity addendum v1
+> (`docs/product/judgment_spine/conductor_construction_integrity_probe_addendum_v1.md`,
+> R3). Active "name the case" recall is dropped entirely: forcing a contestant to
+> recall manufactures recognition and would invalidate legitimately-clean work (a
+> survivorship trap). JSG-05 is now a **non-inducing pre-judgment isolation screen**
+> (structural `web_search_disabled` → `isolation_result == proven`). Contamination
+> is **outcome-USE, not recognition capacity**, caught after the fact by
+> tell-auditing the required reasoning trace at JSG-08. This document is retained
+> for review history; do not apply its active-recall mechanics. (v1 pending
+> ratification; applies as by-hand discipline meanwhile.)
+
 
 ## Purpose
 

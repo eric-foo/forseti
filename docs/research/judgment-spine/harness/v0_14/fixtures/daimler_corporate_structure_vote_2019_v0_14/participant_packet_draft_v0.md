@@ -15,7 +15,7 @@ permitted_assumptions:
   - The legal restructuring is a governance approval decision before the May 22, 2019 annual meeting.
   - The facts in the participant packet are pre-cutoff unless explicitly labeled as unknown.
   - Later vote result, implementation status, company actions, and outcome metrics are unknown.
-forbidden_information_notice: Do not search for the case, source material, source titles, raw locators, consulting narrative, vote result, implementation status, later company actions, later outcomes, or facilitator artifacts before answering.
+information_boundary: Decide using only the information in this brief; do not use, recall, or look up any outside or later knowledge about this case.
 source_manifest:
   - source_id: DCSV-S1
     source: S1 official issuer disclosure
@@ -55,9 +55,7 @@ source_manifest:
 
 ## Use Boundary
 
-This is a blind judgment packet. Do not search the web, open consulting case pages, open post-cutoff company records, or inspect later business press before recording your judgment.
-
-This packet intentionally excludes source URLs, source titles, consulting-firm narrative, implementation status, final vote result, later company actions, later outcome metrics, and result-quality labels.
+Advise on this decision as it stood at the cutoff. Decide using only the information in this brief; do not use, recall, or look up any outside or later knowledge about this case.
 
 ## Role Frame
 
