@@ -56,6 +56,7 @@ def write_local_source_capture_packet(
     source_edit_or_version: VisibleFact | None = None,
     cutoff_posture: VisibleFact | None = None,
     recapture_time: VisibleFact | None = None,
+    archive_snapshot_time: VisibleFact | None = None,
     access_posture: VisibleFact | None = None,
     archive_history_posture: VisibleFact | None = None,
     media_modality_posture: VisibleFact | None = None,
@@ -93,6 +94,7 @@ def write_local_source_capture_packet(
         source_edit_or_version=source_edit_or_version
         or unknown_with_reason("local-file CLI did not receive source edit or version timing"),
         capture_time=known_fact(captured_at),
+        archive_snapshot_time=archive_snapshot_time,
         recapture_time=recapture_time
         or not_applicable("first checkpoint local-file packet does not model an earlier capture by default"),
         cutoff_posture=cutoff_posture

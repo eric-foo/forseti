@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+from datetime import datetime
 from pathlib import Path
 from typing import Sequence
 
@@ -13,6 +14,7 @@ from source_capture import (
     CaptureModeCategory,
     PacketTiming,
     SourceCaptureSlice,
+    VisibleFact,
     known_fact,
     not_applicable,
     unknown_with_reason,
@@ -117,6 +119,7 @@ def run_source_capture_archive_packet(
             source_edit_or_version=source_edit_or_version
             or _source_version_from_snapshot(capture),
             capture_time=known_fact(str(capture.availability_result.metadata["capture_timestamp"])),
+            archive_snapshot_time=_archive_snapshot_time_fact(capture),
             recapture_time=recapture_time
             or not_applicable("archive packet did not model an earlier capture by default"),
             cutoff_posture=cutoff_posture
@@ -201,6 +204,7 @@ def run_source_capture_archive_packet(
             source_edit_or_version=packet_timing.source_edit_or_version,
             cutoff_posture=packet_timing.cutoff_posture,
             recapture_time=packet_timing.recapture_time,
+            archive_snapshot_time=packet_timing.archive_snapshot_time,
             access_posture=_packet_access_posture(capture),
             archive_history_posture=archive_posture,
             media_modality_posture=not_applicable("archive runner does not retrieve linked media assets"),
@@ -261,6 +265,38 @@ def _source_version_from_snapshot(capture: ArchiveOrgCaptureSuccess):
     return known_fact(f"Archive.org snapshot timestamp {capture.selected_snapshot.timestamp}")
 
 
+def _normalize_wayback_timestamp(raw: str) -> str | None:
+    # Wayback snapshot timestamps are exactly 14 digits (YYYYMMDDhhmmss). Normalize to the
+    # same ISO-8601 UTC "...Z" form capture_time uses. Return None for anything that is not a
+    # parseable 14-digit timestamp (wrong length, non-numeric, or an impossible date) so the
+    # caller records a typed unknown instead of emitting a fabricated time.
+    if len(raw) != 14 or not raw.isdigit():
+        return None
+    try:
+        parsed = datetime.strptime(raw, "%Y%m%d%H%M%S")
+    except ValueError:
+        return None
+    return parsed.strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def _archive_snapshot_time_fact(capture: ArchiveOrgCaptureSuccess) -> VisibleFact:
+    # Typed, producer-owned archive snapshot time -- the seam downstream consumers
+    # (demand-projection dating, ECR SP-3) bind to instead of parsing prose or the availability
+    # metadata side-file. Distinct from capture_time (fetch/access). Never falls back to fetch
+    # time: an unselected snapshot or an unparseable snapshot timestamp is recorded as
+    # unknown_with_reason.
+    snapshot = capture.selected_snapshot
+    if snapshot is None:
+        return unknown_with_reason("no Archive.org snapshot was selected")
+    raw = str(snapshot.timestamp)
+    normalized = _normalize_wayback_timestamp(raw)
+    if normalized is None:
+        return unknown_with_reason(
+            f"Archive.org snapshot timestamp {raw!r} is not a parseable 14-digit Wayback timestamp"
+        )
+    return known_fact(normalized)
+
+
 def _cutoff_posture_from_timestamp(cutoff_timestamp: str | None):
     if cutoff_timestamp is None:
         return unknown_with_reason("archive runner did not receive a cutoff timestamp")
@@ -316,6 +352,7 @@ def _body_timing(capture: ArchiveOrgCaptureSuccess, *, packet_timing: PacketTimi
         source_publication_or_event=packet_timing.source_publication_or_event,
         source_edit_or_version=packet_timing.source_edit_or_version,
         capture_time=capture_time,
+        archive_snapshot_time=packet_timing.archive_snapshot_time,
         recapture_time=packet_timing.recapture_time,
         cutoff_posture=packet_timing.cutoff_posture,
     )
@@ -328,6 +365,7 @@ def _availability_timing(*, packet_timing: PacketTiming) -> PacketTiming:
             "Archive.org availability metadata for the requested original URL; selected snapshot timestamp is recorded separately"
         ),
         capture_time=packet_timing.capture_time,
+        archive_snapshot_time=packet_timing.archive_snapshot_time,
         recapture_time=packet_timing.recapture_time,
         cutoff_posture=packet_timing.cutoff_posture,
     )

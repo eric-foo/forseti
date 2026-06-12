@@ -83,6 +83,17 @@ class PacketTiming(StrictModel):
     source_publication_or_event: VisibleFact
     source_edit_or_version: VisibleFact
     capture_time: VisibleFact
+    # archive_snapshot_time: when the ARCHIVE captured the surface (e.g. the Wayback Machine
+    # snapshot moment), normalized to the same ISO-8601 UTC "...Z" form as capture_time. It is
+    # DISTINCT from capture_time, which stays the access/fetch time (when WE obtained the bytes
+    # from the archive) and is never repurposed. Additive and optional so existing manifests
+    # stay readable under extra="forbid": None means this packet's producer did not set the
+    # field -- a legacy packet captured before the field existed, or a non-archive capture
+    # mode. An archive-mode producer always sets a VisibleFact here: known_fact(normalized)
+    # when the archive declared a parseable snapshot timestamp, else unknown_with_reason(...);
+    # it never falls back to fetch time. Seam published in
+    # docs/decisions/source_capture_archive_snapshot_typed_timing_decision_v0.md.
+    archive_snapshot_time: VisibleFact | None = None
     recapture_time: VisibleFact
     cutoff_posture: VisibleFact
 

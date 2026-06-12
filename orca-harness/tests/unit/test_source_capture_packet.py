@@ -155,6 +155,36 @@ def test_model_accepts_minimal_valid_local_packet_payload() -> None:
     assert packet.preserved_files[0].relative_packet_path == "raw/01_input.txt"
 
 
+def test_packet_timing_archive_snapshot_time_is_optional_for_legacy_manifests() -> None:
+    # Additive / forward-only: a manifest written before archive_snapshot_time existed (the
+    # minimal payload omits it) still validates, and the field reads back as None on the packet
+    # timing and every slice timing -- no manifest_version bump, no in-place upgrade required.
+    payload = _minimal_packet_payload()
+    assert "archive_snapshot_time" not in payload["timing"]  # type: ignore[operator]
+
+    packet = SourceCapturePacket.model_validate(payload)
+
+    assert packet.timing.archive_snapshot_time is None
+    for source_slice in packet.source_slices:
+        assert source_slice.timing.archive_snapshot_time is None
+
+
+def test_packet_timing_accepts_explicit_archive_snapshot_time() -> None:
+    timing = PacketTiming(
+        source_publication_or_event=unknown_with_reason("not supplied"),
+        source_edit_or_version=unknown_with_reason("not supplied"),
+        capture_time=known_fact("2026-06-11T00:00:00Z"),
+        archive_snapshot_time=known_fact("2024-01-01T00:00:00Z"),
+        recapture_time=not_applicable("first capture only"),
+        cutoff_posture=unknown_with_reason("not supplied"),
+    )
+
+    assert timing.archive_snapshot_time is not None
+    assert timing.archive_snapshot_time.value == "2024-01-01T00:00:00Z"
+    # capture_time stays its own distinct fact.
+    assert timing.capture_time.value == "2026-06-11T00:00:00Z"
+
+
 def test_model_rejects_missing_required_fields() -> None:
     payload = _minimal_packet_payload()
     del payload["source_family"]

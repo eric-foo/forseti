@@ -8,6 +8,7 @@ import threading
 import uuid
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
+from types import SimpleNamespace
 from urllib.parse import parse_qs, urlparse
 
 import pytest
@@ -288,6 +289,85 @@ def test_archive_runner_writes_metadata_and_body_packet(
     assert manifest["archive_history_posture"]["value"] == "archived"
     assert (output_dir / "raw" / "02_archive_snapshot_body.bin").read_bytes() == b"<html>archived body</html>"
     _assert_receipt_non_claims(output_dir)
+
+
+def test_archive_runner_emits_typed_archive_snapshot_time(
+    archive_server: dict[str, str],
+    scratch_dir: Path,
+) -> None:
+    # Anchor goal: the archived snapshot's own time is a typed producer field, normalized to
+    # ISO-8601 Z, on the packet timing and both archive slices -- and capture_time stays the
+    # (distinct) fetch/access time, never collapsed onto the snapshot time.
+    output_dir = scratch_dir / "packet"
+    result = _run_archive_runner(
+        archive_server=archive_server,
+        output_dir=output_dir,
+        original_url="https://example.com/with-body",
+    )
+
+    assert result.returncode == 0, result.stderr
+    manifest = _read_manifest(output_dir)
+
+    snapshot_time = manifest["timing"]["archive_snapshot_time"]
+    assert snapshot_time["status"] == "known"
+    assert snapshot_time["value"] == "2024-01-01T00:00:00Z"
+
+    capture_time = manifest["timing"]["capture_time"]
+    assert capture_time["status"] == "known"
+    # capture_time is the fetch wall-clock; it must NOT be repurposed as the snapshot time.
+    assert capture_time["value"] != snapshot_time["value"]
+
+    availability_slice, body_slice = manifest["source_slices"]
+    assert availability_slice["timing"]["archive_snapshot_time"] == snapshot_time
+    assert body_slice["timing"]["archive_snapshot_time"] == snapshot_time
+
+
+def test_archive_runner_types_archive_snapshot_time_unknown_when_no_snapshot(
+    archive_server: dict[str, str],
+    scratch_dir: Path,
+) -> None:
+    # Absent path: no snapshot selected -> typed unknown_with_reason, never fabricated or fetch
+    # time.
+    output_dir = scratch_dir / "packet"
+    result = _run_archive_runner(
+        archive_server=archive_server,
+        output_dir=output_dir,
+        original_url="https://example.com/no-snapshot",
+    )
+
+    assert result.returncode == 0, result.stderr
+    manifest = _read_manifest(output_dir)
+    snapshot_time = manifest["timing"]["archive_snapshot_time"]
+    assert snapshot_time["status"] == "unknown_with_reason"
+    assert snapshot_time["reason"] == "no Archive.org snapshot was selected"
+
+
+def test_normalize_wayback_timestamp_present_and_unparseable() -> None:
+    # Present: 14-digit Wayback form -> ISO-8601 Z.
+    assert archive_runner._normalize_wayback_timestamp("20240101000000") == "2024-01-01T00:00:00Z"
+    assert archive_runner._normalize_wayback_timestamp("20231231235959") == "2023-12-31T23:59:59Z"
+    # Unparseable: wrong length, non-numeric, empty, or an impossible date -> None.
+    assert archive_runner._normalize_wayback_timestamp("2024") is None
+    assert archive_runner._normalize_wayback_timestamp("not-a-timestamp") is None
+    assert archive_runner._normalize_wayback_timestamp("") is None
+    assert archive_runner._normalize_wayback_timestamp("20241301000000") is None  # month 13
+
+
+def test_archive_snapshot_time_fact_present_absent_unparseable() -> None:
+    present = SimpleNamespace(selected_snapshot=SimpleNamespace(timestamp="20240101000000"))
+    fact = archive_runner._archive_snapshot_time_fact(present)
+    assert fact.status == "known"
+    assert fact.value == "2024-01-01T00:00:00Z"
+
+    absent = SimpleNamespace(selected_snapshot=None)
+    fact = archive_runner._archive_snapshot_time_fact(absent)
+    assert fact.status == "unknown_with_reason"
+    assert fact.reason == "no Archive.org snapshot was selected"
+
+    unparseable = SimpleNamespace(selected_snapshot=SimpleNamespace(timestamp="2024"))
+    fact = archive_runner._archive_snapshot_time_fact(unparseable)
+    assert fact.status == "unknown_with_reason"
+    assert "not a parseable 14-digit Wayback timestamp" in fact.reason
 
 
 def test_archive_runner_writes_metadata_packet_when_body_fails(
