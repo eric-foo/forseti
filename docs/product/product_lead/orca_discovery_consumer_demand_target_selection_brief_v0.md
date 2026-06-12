@@ -80,6 +80,16 @@ route to the owner or defer (mirroring the candidate-pool handoff
 obligations). Candidate companies are not buyers, leads, prospects, or
 clients; trust posture is `unknown` until qualification.
 
+Record homes (bound 2026-06-12, gap DB-4, owner word): candidate-scan
+outputs are research artifacts and live in `docs/research/` (filename prefix
+`orca_discovery_candidate_scan_`); a slot fills only from such a dated scan
+doc. The backtest candidate pool
+(`docs/product/core_spine/consumer_demand_candidate_pool_handoff_v0.md`) is
+outcome-bearing backtest material and is NEVER a slot source. Near-miss,
+hold, and disqualification records from the stop rules go to the proof-batch
+notes home (`docs/product/product_lead/orca_proof_batch_<n>_notes_v0.md`,
+per the charter).
+
 ## Qualification Objectives (first contact, when outreach is ever opened)
 
 Derived from the wedge and the buyer-proof packet revision; the packet's

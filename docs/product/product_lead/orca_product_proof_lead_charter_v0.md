@@ -186,6 +186,14 @@ An executive-grade decision deck may be produced only after the memo and evidenc
 
 The Product Proof Lead or designated operator produces the proof memo and, only if justified, the executive deck. The proof artifact should fit a bounded manual session under the accepted scope. If it materially exceeds that scope, classify the result as consulting-risk evidence and record it in the batch notes.
 
+Proof-record home (bound 2026-06-12, gap DB-4, owner word): batch notes —
+including readback records, near-misses, disqualifications, and
+consulting-risk classifications — live at `docs/product/product_lead/` as
+`orca_proof_batch_<n>_notes_v0.md` (one file per proof batch;
+product_learning tier; retrieval-headered). Candidate-scan outputs are
+research artifacts in `docs/research/` per the discovery brief's slot-fill
+rule; they are inputs to slot selection, never proof records.
+
 Core/satellite/bespoke boundary:
 
 - Core is the repeatable decision spine.
