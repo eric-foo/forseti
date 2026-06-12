@@ -27,3 +27,6 @@ jobs:
           python -m pip install -e . "pytest==9.0.3"
       - name: Run tests
         run: python -m pytest
+      - name: retrieval link check
+        working-directory: ${{ github.workspace }}
+        run: python .agents/hooks/check_map_links.py --strict
