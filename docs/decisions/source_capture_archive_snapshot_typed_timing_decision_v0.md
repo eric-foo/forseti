@@ -18,7 +18,7 @@ authority_boundary: retrieval_only
 open_next:
   - orca-harness/source_capture/models.py
   - orca-harness/runners/run_source_capture_archive_packet.py
-  - docs/product/source_capture_packet_schema_evolution_architecture_v0.md
+  - docs/product/source_capture_packet_schema_evolution_architecture_v0.md # nonresolving: pending on unmerged lane
 branch_or_commit: capture-archive-snapshot-timing (base main @ f15de945); no merge (owner-gated)
 input_hashes:
   commission_handoff_sha256: 69E370A3C39D5206030DFBA3E16F06D037C2467F5129608CBA2C9F6936C2EC04
