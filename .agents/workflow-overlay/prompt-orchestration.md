@@ -10,22 +10,11 @@ use_when:
 authority_boundary: retrieval_only
 ```
 
-This file defines Orca's lightweight prompt-orchestration layer. It binds
-Orca-owned prompt mechanics without importing `jb` project policy, while
-preserving Orca's explicit-authorization boundary for implementation and
-runtime work.
+This file defines Orca's lightweight prompt-orchestration layer: Orca-owned prompt mechanics, output modes, preflight, and validation gates, without importing `jb` project policy and preserving Orca's explicit-authorization boundary for implementation and runtime work.
 
 ## Source Boundary
 
-Prompt mechanics come from Orca-owned source documents and queue records:
-
-- prompt artifact creation and thin-wrapper prompts;
-- worktree preflight and hash pins;
-- explicit output mode;
-- source hierarchy and hard constraints;
-- required checks, verdicts, and rerun economy.
-
-Orca-specific facts, product constraints, artifact paths, review lanes, validation gates, and safety rules must come from `AGENTS.md`, this overlay, or accepted Orca docs named in `.agents/workflow-overlay/source-of-truth.md`.
+Orca-specific facts, product constraints, artifact paths, review lanes, validation gates, and safety rules must come from `AGENTS.md`, this overlay, or accepted Orca docs named in `.agents/workflow-overlay/source-of-truth.md`. Prompt mechanics come from those same sources; see Required Preflight Fields below for the field-level authority list.
 
 Prompt-policy, handoff, wrapper, review, output-mode, or execution-contract
 changes that alter durable agent behavior are doctrine-changing when they touch
@@ -49,10 +38,7 @@ prompt_orchestrator:
   source_loading_policy: .agents/workflow-overlay/source-loading.md
 ```
 
-Orca prompt-orchestrator work must use the source-loading policy above when
-choosing source packs, read budgets, source-heavy split points, and source
-capsule boundaries. Do not substitute generic, `jb`, plugin, or installed-skill
-source-loading defaults for Orca prompt-orchestrator work.
+All Orca prompt-orchestrator work must use the source-loading policy above; do not substitute generic, `jb`, plugin, or installed-skill defaults.
 
 ## Source-Gated Method Contract
 
@@ -112,12 +98,9 @@ gate.
 When a workflow prompt, wrapper, rerun, review prompt, patch prompt, or handoff
 continues the same workstream with a visible active `thread_operating_target`,
 preserve that target verbatim near the top of the generated prompt and include
-a compact continuity disclosure.
-
-A visible active `thread_operating_target` is not required for every prompt. It
-is required only to carry the target forward or explain omission when the
-generated prompt continues the same workstream or claims to optimize for the
-same anchor goal.
+a compact continuity disclosure. The target is required only when the generated
+prompt continues the same workstream or claims the same anchor goal; explain
+any omission or the omission is a prompt-quality defect.
 
 Use this disclosure shape:
 
@@ -130,23 +113,7 @@ thread_operating_target_continuity:
   if_changed_reason:
 ```
 
-Treat `thread_operating_target` as thread-local orientation only. It is not
-source authority, validation evidence, readiness, approval, lifecycle
-completion, durable goal state, artifact authority, workflow sequencing
-authority, automatic routing, cross-thread memory, registry state, or
-permission to edit protected paths.
-
-A `thread_operating_target` may be retired only by explicit owner intent,
-achieved output that satisfies the current `output_fit_check`, or a visible
-blocker that makes continued optimization invalid or impossible. Retirement
-must be explicit. If retirement is due to a blocker, name the blocker and what
-remains allowed. Downstream lanes may recommend retirement but must not retire
-the target unless their prompt or owner authority explicitly grants that
-action.
-
-If a prompt claims to optimize for an anchored goal but omits a visible active
-`thread_operating_target` without explaining why it was not carried forward,
-treat that as a prompt-quality defect.
+`thread_operating_target` is thread-local orientation only — not source authority, validation evidence, readiness, approval, lifecycle completion, durable goal state, artifact authority, workflow sequencing authority, automatic routing, cross-thread memory, registry state, or permission to edit protected paths. Retirement requires explicit owner intent, achieved output satisfying the current `output_fit_check`, or a visible blocker; name the blocker and what remains allowed. Downstream lanes may recommend retirement but must not execute it without explicit prompt or owner authority.
 
 ## Project Template Registry
 
@@ -172,16 +139,7 @@ the registry before using any generic prompt-orchestration template.
 
 Typed child folders under `docs/prompts/` may be created when the first prompt of that family is authored. Source-changing handoff prompts may target implementation only when the current turn or an accepted handoff explicitly authorizes bounded implementation; otherwise they must target documentation or overlay work only.
 
-For goal-fitness-judged source-changing work -- work whose correctness is judged
-by achieving an upstream goal (proofs, fixtures, calibration gates, plans,
-operating structures, runbooks) rather than by internal or technical consistency
-alone -- a concrete goal and observable success signal must be bound before
-source-changing edits begin. This is the scoped fused/scoping fitness gate.
-Technical or consistency-judged work (schema reconciliation, citation/grounding
-fixes, mechanical patches, vocabulary-enforcement edits, provenance corrections)
-is exempt. When the classification is ambiguous, prefer binding a pointer when
-cheap but do not block absent the trigger; name the ambiguity. Owning decision:
-`docs/decisions/work_unit_fitness_reference_v0.md`.
+Goal-fitness-judged source-changing work must bind a concrete goal and observable success signal before edits begin; technical or consistency-judged work is exempt; when ambiguous prefer binding a pointer but do not block absent the trigger. Owning decision: `docs/decisions/work_unit_fitness_reference_v0.md`.
 
 Prompt templates may also use `paste-ready-chat` when the intended output is a
 single prompt, wrapper, or handoff body meant to be pasted into another model,
@@ -190,50 +148,25 @@ agent, thread, or worktree.
 ## Author Through The Prompt Orchestrator
 
 Always author Orca prompts, handoffs, wrappers, rerun prompts, and patch prompts
-**through `workflow-prompt-orchestrator`** — the prompt-orchestration owner that
-applies the Prompt Orchestrator Binding (source-loading policy), the
-Source-Gated Method Contract, the Required Preflight Fields, Default Path
-Assignment, and the Prompt Validation Gates below. Do not hand-draft these
-prompt artifacts directly.
-
-Hand-drafting a prompt, handoff, wrapper, rerun, or patch prompt bypasses
-source-loading and the preflight/routing contract, so it is a prompt-quality
-defect even when the result looks complete — the defect is the skipped contract,
-not the surface text.
-
-If `workflow-prompt-orchestrator` is not resolver-available in the current lane,
-do not silently hand-draft instead: apply this file's prompt-orchestration
-contract in full, or return a visible blocker. This routing default does not by
-itself claim the skill is an adopted or resolver-validated executable; the
-Anti-Import rule on resolver-visible adoption still governs that claim.
+**through `workflow-prompt-orchestrator`**. Hand-drafting bypasses source-loading
+and the preflight/routing contract and is a prompt-quality defect even when the
+surface text looks complete — the defect is the skipped contract. If
+`workflow-prompt-orchestrator` is not resolver-available, apply this file's
+contract in full or return a visible blocker; this routing default does not claim
+the skill is an adopted or resolver-validated executable.
 
 ## Default Path Assignment
 
 The user is not responsible for naming routine Orca artifact paths.
 
-When a user asks for a prompt, review prompt, handoff, rerun, patch prompt, or
-other repo-aware prompt artifact without naming a path, the prompt-authoring
-agent must choose the narrowest accepted Orca folder from
-`.agents/workflow-overlay/artifact-folders.md` and create a deterministic,
-descriptive versioned filename.
-
-Default destinations:
-
-- review prompts: `docs/prompts/reviews/<descriptive_slug>_prompt_vN.md`;
-- product-planning prompts: `docs/prompts/product-planning/<descriptive_slug>_prompt_vN.md`;
-- feature-planning prompts: `docs/prompts/feature-planning/<descriptive_slug>_prompt_vN.md`;
-- deep-thinking prompts: `docs/prompts/deep-thinking/<descriptive_slug>_prompt_vN.md`;
-- handoff prompts: `docs/prompts/handoffs/<descriptive_slug>_prompt_vN.md`;
-- rerun prompts: `docs/prompts/reruns/<descriptive_slug>_prompt_vN.md`;
-- patch prompts: `docs/prompts/patches/<descriptive_slug>_prompt_vN.md`;
-- thin wrappers: `docs/prompts/wrappers/<descriptive_slug>_wrapper_vN.md`.
-
-For a review prompt, the prompt-authoring agent must also assign the downstream
-review-report destination unless the user explicitly requests chat-only review.
-Use the narrowest accepted report folder, normally
-`docs/review-outputs/adversarial-artifact-reviews/<descriptive_slug>_review_vN.md`
-for adversarial artifact reviews and `docs/review-outputs/<descriptive_slug>_review_vN.md`
-when no narrower child folder is bound.
+When a user asks for a prompt artifact without naming a path, choose the
+narrowest accepted Orca folder from `.agents/workflow-overlay/artifact-folders.md`
+and the Supported Prompt Families table above, and create a deterministic,
+descriptive versioned filename. Example: a review prompt goes to
+`docs/prompts/reviews/<descriptive_slug>_prompt_vN.md` with a downstream report
+at `docs/review-outputs/adversarial-artifact-reviews/<descriptive_slug>_review_vN.md`
+(or `docs/review-outputs/<descriptive_slug>_review_vN.md` when no narrower child
+folder is bound) unless the user explicitly requests chat-only review.
 
 Repo-aware prompts handed to another model, agent, thread, or worktree must
 state both:
@@ -414,11 +347,7 @@ Every repo-aware Orca prompt must state:
   supplied in the current task context;
 - selected source pack from `.agents/workflow-overlay/source-loading.md`, or a
   bounded custom source pack;
-- `repo_map_decision: loaded | not_needed | unavailable`, plus
-  `repo_map_reason`, stating why this task does or does not need repo-map
-  routing. Source-loading remains the owner of the actual read-pack rule; this
-  field records the prompt author's repo-map decision and must not make
-  `docs/workflows/orca_repo_map_v0.md` a mandatory read for every prompt;
+- `repo_map_decision: loaded | not_needed | unavailable`, plus `repo_map_reason`. Source-loading (`.agents/workflow-overlay/source-loading.md`) owns the read-pack rule; this field records the prompt author's routing decision and must not make the repo map a mandatory read;
 - workspace path or repository identifier;
 - expected branch, detached revision, or commit hash when source stability matters;
 - dirty-state allowance and whether untracked files are in scope;
@@ -466,10 +395,7 @@ For source-heavy work:
 - synthesize later packets from explicit compact summary sections, artifact
   paths, hashes, and statuses, not by rereading full source-heavy artifacts.
 
-The highest-token actions to carve out are external web page opens, search
-result pages with noisy snippets, full artifact readbacks, pasted source-ledger
-rows, pasted Evidence Units, and multi-case or multi-target accumulation in one
-live thread. Prefer artifact-local detail plus compact chat receipts.
+Highest-token actions to carve out: external web page opens, search result pages, full artifact readbacks, pasted source-ledger rows, pasted Evidence Units, multi-case or multi-target accumulation in one live thread. Prefer artifact-local detail plus compact chat receipts.
 
 ## Output Modes
 
@@ -486,36 +412,12 @@ live thread. Prefer artifact-local detail plus compact chat receipts.
   chat shape from `.agents/workflow-overlay/communication-style.md`.
 - `patch-queue`: produce stable patch units, target files, authority basis, and validation gates. Applying patches requires separate execution authority.
 
-The general human-summary / agent-detail / optional courier-state chat shape is
-owned by `.agents/workflow-overlay/communication-style.md`. This file owns
-output-mode exceptions to that shape:
+The general human-summary / agent-detail / optional courier-state chat shape is owned by `.agents/workflow-overlay/communication-style.md`. This file owns output-mode exceptions to that shape:
 
-- `review-report` may use YAML-only chat only after the required durable report
-  has been successfully written. Failed durable writes must not use
-  `report_path`; they must use `review_location: chat_only_current_thread`,
-  `status: failed`, `recommendation: blocked`, name the failed path, and give
-  enough human-readable routing detail in the allowed summary fields.
-- `file-write` may return a compact path/hash/status receipt after the durable
-  artifact is written when that artifact carries the human-readable value and no
-  material decision needs to be understood from chat. Substantial
-  decision-bearing file writes must close with clear headed human summary first,
-  then path/hash/status receipt. The summary should state the recommendation or
-  verdict, why it matters, material boundaries or deferred items, and the exact
-  next authorized step without pasting the full artifact, source ledger, option
-  table, or evidence body. YAML is not required by default for `file-write`
-  closeouts; use it when the user asks for it, an output contract needs
-  machine-shaped fields, or lane switching / handoff routing would materially
-  benefit from compact courier YAML. If the write fails or the chat itself
-  carries a decision, return readable blocker detail instead of treating a
-  receipt as a substitute artifact. If the file-write changes doctrine, the
-  closeout must include a `direction_change_propagation` receipt or
-  `direction_change_propagation_blocker` from
-  `.agents/workflow-overlay/source-of-truth.md`.
-- `paste-ready-chat` may prioritize the paste-ready body when that body is the
-  deliverable. Do not use this mode to hide a Chief Architect, planning,
-  scoping, overlay gate, or completion decision inside machine-only structure.
-- `patch-queue` may use stable structured units, but applying patches still
-  requires separate execution authority and readable routing of blockers.
+- `review-report` may use YAML-only chat only after the required durable report has been successfully written; failed durable writes must use `review_location: chat_only_current_thread`, `status: failed`, `recommendation: blocked`, name the failed path, and include enough human-readable routing detail.
+- `file-write` may return a compact path/hash/status receipt when the durable artifact carries the human-readable value; substantial decision-bearing writes must close with a headed human summary first (recommendation, why it matters, material boundaries, next authorized step), then receipt. If the write fails or the chat carries a decision, return readable blocker detail. Doctrine-changing file writes must include a `direction_change_propagation` receipt or blocker from `.agents/workflow-overlay/source-of-truth.md`.
+- `paste-ready-chat` may prioritize the paste-ready body when that body is the deliverable; do not use this mode to hide a Chief Architect, planning, scoping, overlay gate, or completion decision.
+- `patch-queue` may use stable structured units, but applying patches requires separate execution authority and readable blocker routing.
 
 ## Prompt Validation Gates
 
@@ -558,29 +460,15 @@ Before using a generated Orca prompt, apply these gates:
    artifacts use retrieval metadata only for source loading and do not create
    authority, validation proof, approval, readiness, lifecycle completion,
    deployment/install/resolver status, or edit permission.
-11. Review doctrine satisfied: adversarial artifact review prompts invoke
-   `workflow-adversarial-artifact-review` after source readiness or block strict
-   claims as advisory-only; review prompts and review templates use
-   findings-first output by default; bind any formal verdict, severity
-   contract, blocked/ready status, validation claim, readiness claim, mandatory
-   remediation, patch queue, or executor-ready handoff; include
-   `minimum_closure_condition` and `next_authorized_action` for actionable
-   findings; define closure conditions as required end states rather than
-   implementation instructions; label optional hardening as optional and
-   non-required; exclude `patch_queue_entry` unless the lane is patch-queue or
-   patch/integration execution; preserve the Chief Architect consumption order
-   when the review is CA-facing; do not recommend, prescribe, rank, or imply a
-   runtime model for review lanes; treat model-named template targets as
-   template retrieval only; do not add a synthesis lane; and, for
-   intent-bearing review targets, anchor the decision criteria to a bound
-   fitness reference (goal plus observable success signal) or require the
-   review to name its absence as `no checkable success bar bound`; and record
-   `reviewed_by` and `authored_by` (the reviewing model+version and the reviewed
-   artifact's author model+version) as present fields on every new or materially
-   touched review output, operator/CA-supplied with `unrecorded` allowed and
-   never fabricated, observed provenance facts that do not select, recommend, or
-   rank a runtime model, where a present `unrecorded` value is a visible
-   measurement gap rather than a captured measurement.
+11. Review doctrine satisfied (per Review Prompt Defaults above):
+   (a) invoke `workflow-adversarial-artifact-review` after source readiness or block strict claims as advisory-only;
+   (b) findings-first output by default; bind any formal verdict, severity contract, blocked/ready status, validation/readiness claim, mandatory remediation, patch queue, or executor-ready handoff;
+   (c) include `minimum_closure_condition` and `next_authorized_action` for actionable findings; define closure conditions as required end states, not implementation instructions;
+   (d) label optional hardening optional and non-required; exclude `patch_queue_entry` unless the lane is patch-queue or patch/integration execution;
+   (e) preserve Chief Architect consumption order for CA-facing reviews; do not add a synthesis lane;
+   (f) do not recommend, prescribe, rank, or imply a runtime model; treat model-named template targets as template retrieval only;
+   (g) for intent-bearing targets, anchor decision criteria to a bound fitness reference or require the review to name its absence as `no checkable success bar bound`;
+   (h) record `reviewed_by` and `authored_by` on every new or materially touched review output — operator/CA-supplied, `unrecorded` allowed, never fabricated; a present `unrecorded` value is a visible measurement gap, not a captured measurement.
 12. Doctrine propagation satisfied: prompt, handoff, wrapper, review,
    output-mode, or execution-contract changes that alter durable doctrine carry
    a `direction_change_propagation` receipt or
