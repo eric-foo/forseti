@@ -14,3 +14,19 @@ finalizer_model_family: human_operator
 judge_model_family: unassigned_pending_run_authorization
 receipt_id: 01KTW48P5PW4JJQG7NBG6G6DBP
 supersedes: null
+---
+binding_hash: 0a254076250f5ffd3e5838928b94f0a89049162442dddf2c65dc418586a27f23
+evidence_id: E2
+final_pre_decision_status: verified_pre_decision
+finalized_at: '2026-06-12T07:17:20Z'
+finalized_over:
+  proposed_pre_decision_basis: Archive.org snapshot dated 2019-12-30, established
+    pre-cutoff by the producer's anti-leakage select_snapshot <= 20200101000000 capture
+    (packet cutoff_posture = pre_cutoff, carried by reference; SP-3/M1).
+  proposed_pre_decision_status: verified_pre_decision
+finalizer_identity: operator:eric_band_labeling_operator (proxy-recorded by ecr_ca_lane
+  per owner test-run word in-thread, 2026-06-12)
+finalizer_model_family: human_operator
+judge_model_family: unassigned_pending_run_authorization
+receipt_id: 01KTXB2HYNH9VYR6RSQ2Y4CAKC
+supersedes: null
