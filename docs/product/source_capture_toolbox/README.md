@@ -11,9 +11,9 @@ use_when:
 authority_boundary: retrieval_only
 open_next:
   - docs/decisions/data_capture_spine_source_access_tooling_build_authorization_v0.md
-  - docs/product/data_capture_source_access_method_plan_v0.md
-  - docs/product/data_capture_source_access_boundary_decision_v0.md
-  - docs/product/core_spine_v0_data_capture_spine_obligation_contract_v0.md
+  - docs/product/data_capture_spine/data_capture_source_access_method_plan_v0.md
+  - docs/product/data_capture_spine/data_capture_source_access_boundary_decision_v0.md
+  - docs/product/data_capture_spine/core_spine_v0_data_capture_spine_obligation_contract_v0.md
 stale_if:
   - The source-access tooling build authorization is amended or superseded.
   - The source-access boundary decision materially changes hard stops or disclosability requirements.

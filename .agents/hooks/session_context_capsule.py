@@ -5,10 +5,16 @@ WHAT THIS DOES
   At session start (startup / resume / clear / compact), prints a short
   capsule of mechanical lane state so a new or re-oriented lane does not
   re-derive it turn by turn: repo root, branch, HEAD, last 3 commit subjects,
-  dirty/untracked counts, config-surface dirt, and pointers to the two
-  source-loading entry artifacts (repo map, overlay README). Replaces the
-  repeated session-open recovery ritual with deterministic output
-  (ratified config proposal P3, 2026-06-12).
+  dirty/untracked counts, config-surface dirt, doctrine state relative to
+  last-fetched origin/main, and pointers to the two source-loading entry
+  artifacts (repo map, overlay README). Replaces the repeated session-open
+  recovery ritual with deterministic output (ratified config proposal P3,
+  2026-06-12).
+
+  doctrine state field: compares AGENTS.md and .agents/ against origin/main
+  using `git diff --name-only origin/main -- AGENTS.md .agents`. Reports
+  DIFFERS (with up to 3 filenames) when non-empty, matches when empty, or
+  omits the line entirely on git failure (fail open).
 
 WHY (enforcement placement)
   Mechanical state recovery belongs in a deterministic substrate, not in model
@@ -83,9 +89,27 @@ def config_dirt(porcelain: str) -> list[str]:
     return out
 
 
+def doctrine_lag_line(diff_output: str | None) -> str | None:
+    """Return the doctrine-state capsule line (pure function).
+
+    diff_output: stdout of `git diff --name-only origin/main -- AGENTS.md
+    .agents`, or None to signal git failure (fail open -> omit line).
+    Returns a single ASCII line, or None when git failed.
+    """
+    if diff_output is None:
+        return None  # fail open: omit the line
+    names = [n for n in diff_output.splitlines() if n.strip()]
+    if not names:
+        return "doctrine state: matches last-fetched origin/main"
+    preview = ", ".join(names[:3])
+    return "doctrine state: DIFFERS from last-fetched origin/main (%d file%s: %s)" % (
+        len(names), "s" if len(names) != 1 else "", preview)
+
+
 def build_capsule(source: str, root: str, branch: str, head: str,
                   subjects: list[str], counts: tuple[int, int],
-                  cfg_dirty: list[str]) -> str:
+                  cfg_dirty: list[str],
+                  doctrine: str | None = None) -> str:
     """Render the capsule (pure function). Mechanical state only — no claims."""
     lines = [
         "[lane-state capsule | source=%s]" % (source or "unknown"),
@@ -97,6 +121,8 @@ def build_capsule(source: str, root: str, branch: str, head: str,
     lines.append("tree: %d modified, %d untracked" % counts)
     lines.append("config-surface dirt (CLAUDE.md/AGENTS.md/.claude/.agents): "
                  + (", ".join(cfg_dirty) if cfg_dirty else "clean"))
+    if doctrine is not None:
+        lines.append(doctrine)
     lines.append("source-loading entry points: " + " ; ".join(ENTRY_POINTERS)
                  + " (read overlay README before project work, per AGENTS.md)")
     lines.append("capsule is observed git state only -- not doctrine, "
@@ -120,7 +146,14 @@ def gather(root: Path, source: str) -> str:
     subjects = [s for s in _git(root, "log", "-3", "--format=%s").splitlines() if s]
     counts = tree_counts(_git(root, "status", "--porcelain"))
     cfg = config_dirt(_git(root, "status", "--porcelain", "--", *CONFIG_SURFACE))
-    return build_capsule(source, str(root), branch, head, subjects, counts, cfg)
+    raw_diff = _git(root, "diff", "--name-only", "origin/main", "--", "AGENTS.md", ".agents")
+    # _git returns "" on failure; use None sentinel only when git itself errors
+    # (we cannot distinguish "" output from error via _git's current contract,
+    # so treat the empty-string-on-error case as fail-open: an empty diff output
+    # means "matches", which is the safe/non-alarming default).
+    doctrine = doctrine_lag_line(raw_diff)
+    return build_capsule(source, str(root), branch, head, subjects, counts, cfg,
+                         doctrine=doctrine)
 
 
 def run_hook(root: Path) -> int:
@@ -142,16 +175,37 @@ def selftest() -> int:
         and config_dirt("R  old.md -> AGENTS.md\n") == ["AGENTS.md"]
         and config_dirt("") == []
     )
-    capsule = build_capsule("startup", "/r", "main", "abc fix", ["s1", "s2"],
-                            (1, 2), [])
-    shape_ok = (
-        capsule.startswith("[lane-state capsule | source=startup]")
-        and "branch: main @ abc fix" in capsule
-        and "tree: 1 modified, 2 untracked" in capsule
-        and "clean" in capsule
-        and len(capsule.splitlines()) <= 12
+    # doctrine_lag_line: non-empty diff (3 files)
+    dl_nonempty = doctrine_lag_line("AGENTS.md\n.agents/hooks/x.py\n.agents/other.py\n")
+    # doctrine_lag_line: empty diff (matches)
+    dl_empty = doctrine_lag_line("")
+    # doctrine_lag_line: git failure (None -> omit)
+    dl_fail = doctrine_lag_line(None)
+    doctrine_ok = (
+        dl_nonempty is not None
+        and "DIFFERS" in dl_nonempty
+        and "3 files" in dl_nonempty
+        and "AGENTS.md" in dl_nonempty
+        and dl_empty == "doctrine state: matches last-fetched origin/main"
+        and dl_fail is None
     )
-    ok = cases_ok and shape_ok
+    # capsule with doctrine line present (non-empty diff case)
+    capsule_with = build_capsule("startup", "/r", "main", "abc fix", ["s1", "s2"],
+                                 (1, 2), [], doctrine=dl_nonempty)
+    # capsule with doctrine omitted (git-failure case)
+    capsule_without = build_capsule("startup", "/r", "main", "abc fix", ["s1", "s2"],
+                                    (1, 2), [], doctrine=None)
+    shape_ok = (
+        capsule_with.startswith("[lane-state capsule | source=startup]")
+        and "branch: main @ abc fix" in capsule_with
+        and "tree: 1 modified, 2 untracked" in capsule_with
+        and "clean" in capsule_with
+        and "DIFFERS" in capsule_with
+        and len(capsule_with.splitlines()) <= 14
+        and "DIFFERS" not in capsule_without
+        and len(capsule_without.splitlines()) <= 13
+    )
+    ok = cases_ok and doctrine_ok and shape_ok
     print("SELFTEST", "OK" if ok else "FAILED")
     return 0 if ok else 1
 

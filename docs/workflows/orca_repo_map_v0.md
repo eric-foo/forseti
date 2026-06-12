@@ -339,6 +339,7 @@ nickname: "crawling graph." The runner is
 | `.agents/workflow-overlay/` | Orca overlay authority for project facts, folders, source rules, prompt rules, validation, safety, and review lanes. |
 | `orca-harness/` | Bounded authorized implementation backing Data Capture source acquisition and the v0.14 Judgment Harness (capture adapters, source-observability, schemas, scoring, runners, fixtures, tests). Navigation context only; not runtime, acceptance, or readiness. See the Orca Harness section. |
 | `docs/decisions/` | Decision records. |
+| `docs/decisions/consultant_loop/` | Consultant-loop judgment records. |
 | `docs/product/` | Product contracts, Core Spine artifacts, proof plans, source/evidence standards, offer, buyer-proof, and decision artifacts. |
 | `docs/prompts/` | Prompt artifacts, wrappers, reruns, reviews, and local templates. |
 | `docs/research/` | Research artifacts and consulting-judgment corpus material. |
@@ -346,7 +347,7 @@ nickname: "crawling graph." The runner is
 | `docs/review-outputs/` | Review reports and adversarial artifact reviews. |
 | `docs/workflows/` | Workflow records, operational notes, and repo maps. |
 | `docs/migration/` | Import and migration records. |
-| `docs/hygiene/` | Triage and cleanup queues. |
+| `docs/hygiene/` | Triage and cleanup queues. Hygiene packets are operational/burn-after-read artifacts, not retrieval-indexed by design (owner-ratified default 2026-06-13). |
 | `docs/_inbox/` | Non-authoritative scratch and parked material. |
 | (root strays) | Quarantined 2026-06-11: `slot1_mi`/`slot2_teal` operator workfiles and `di_dd.html` moved from the repo root to `docs/_inbox/`; see `docs/hygiene/queue.md` ORCA-HYGIENE-010. The root is now fully enumerated by `repo-structure.yaml` `known_top_level`. |
 
@@ -454,7 +455,7 @@ the owner sources. Do not pre-load all capture artifacts from this map.
 | `docs/workflows/data_capture_spine_consolidation_map_v0.md` | **Data Capture Spine repo submap — open first.** Routes to Capture obligations, source-access boundary, build authorization, method plan, Source Capture Armory README, packet lifecycle, harness runners, source-quality support, and current Reddit pre-commercial routing. Map only; not validation, readiness, source-access permission, or implementation authority. |
 | `docs/product/data_capture_spine/data_capture_spine_linkedin_lane_index_v0.md` | **LinkedIn lane entry map — open first for any LinkedIn task.** THE canonical cold-start index for LinkedIn access (no-live, planning-only): ties the authority docs + the slice-1/slice-2 harness + the hard rails + deferred work + cross-vendor review provenance. |
 | `docs/product/data_capture_spine/data_capture_spine_future_exploration_lanes_v0.md` | Capture-spine-level backlog of deferred, legally-gated capabilities (relationship-graph analytics; contact/outreach) surfaced during LinkedIn discovery design — non-authorizing, out of scope for all discovery lanes. |
-| `docs/product/source_capture_toolbox/capture_investigation_playbook_v0.md` | **Capture-investigation method (the playbook).** The repeatable "read the problem -> point to the route" method for deciding whether/how a NEW source is capturable, within entitlement, by the cheapest route. MVP = entitlement gate (Step 0) + read + route catalog + pointer + guardrails; per-source recipe cards are a growing tail authored BY probes. Review-hardened draft (de-correlated artifact review, AR-01..AR-07 adjudicated); non-authorizing, not validation/readiness. |
+| `docs/product/source_capture_toolbox/source_capture_playbook_v0.md` | **Capture-investigation method (the playbook).** The repeatable "read the problem -> point to the route" method for deciding whether/how a NEW source is capturable, within entitlement, by the cheapest route. MVP = entitlement gate (Step 0) + read + route catalog + pointer + guardrails; per-source recipe cards are a growing tail authored BY probes. Review-hardened draft (de-correlated artifact review, AR-01..AR-07 adjudicated); non-authorizing, not validation/readiness. |
 | `docs/product/source_capture_toolbox/capture_recon_index_v0.md` | Capture recon consolidation index — the per-source probe findings (forums / pricing / archive / PDF / reviews / embedded-state) the playbook distills from, incl. worktree-pending findings and the explicit TikTok/Instagram recon gap. Non-authorizing. |
 
 ## ECR Source-Side Spine
@@ -556,10 +557,12 @@ Unity runtime-fee specimen:
 | `docs/prompts/handoffs/` | Handoff prompt drafts. |
 | `docs/prompts/reviews/` | Review prompts. |
 | `docs/prompts/reruns/` | Rerun prompts. |
-| `docs/prompts/patches/` | Patch prompts (accepted family; no drafts created yet). |
+| `docs/prompts/patches/` | Patch prompts (accepted family; created on first artifact; does not exist yet). |
 | `docs/prompts/wrappers/` | Thin wrapper prompts. |
 | `docs/prompts/templates/` | Local prompt templates. |
-| `docs/prompts/hygiene-queue/` | Current drift/parking area; not listed as an accepted prompt-family folder in the overlay. |
+| `docs/prompts/architecture/` | Architecture prompt family. |
+| `docs/prompts/advisory/` | Advisory prompt family. |
+| `docs/prompts/hygiene-queue/` | Drift/parking area (created on first artifact; does not exist yet); not listed as an accepted prompt-family folder in the overlay. |
 
 A few Data Capture pressure-test prompts currently sit unfiled at the
 `docs/prompts/` root rather than in a typed family folder; treat them as drift
@@ -771,6 +774,21 @@ direction_change_propagation:
     - "not Source Capture"
     - "not Data Capture"
 ```
+
+## Workstream Status Pointers
+
+Owner-ratified 2026-06-13. Status values are verbatim from each owning doc's
+status field. Open the owning doc for authority; this table is navigation only.
+
+| Workstream | Owning doc | Status |
+| --- | --- | --- |
+| Beauty vertical satellite | `docs/product/beauty_vertical_satellite_v0.md` | owning doc not found on main |
+| Data capture spine | `docs/product/data_capture_spine/data_capture_harness_operating_model_architecture_v2.md` | `PROPOSED_ARCHITECTURE_V2` |
+| Judgment spine | `docs/product/judgment_spine/judgment_spine_evidence_ladder_architecture_v0.md` | no status field |
+| ECR | `docs/workflows/ecr_spine_submap_v0.md` | no status field |
+| Signal content | `docs/product/signal_content/core_spine_v0_signal_content_record_architecture_v0.md` | `OWNER_DECIDED_DIRECTION` |
+| Source capture toolbox | `docs/product/source_capture_toolbox/README.md` | `SOURCE_CAPTURE_ARMORY_README_V0` |
+| Core spine | `docs/product/core_spine/core_spine_v0_product_contract.md` | `PROPOSED_FREEZE` |
 
 ## Not-Proven Boundaries
 
