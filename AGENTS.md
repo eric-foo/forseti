@@ -36,14 +36,12 @@ intervention rule above.**
 ## Mini God Tier
 
 Whenever the user or instructions say **"mini god tier"** (including "god tier
-but small"), interpret it as the owner-invoked capability-target lens bound in
-`docs/decisions/orca_mini_god_tier_doctrine_v0.md`: target most of the maximal
-capability's value at a fraction of its cost and speed, with the foregone
-limitations named and consciously accepted, never quietly dropped. Only the
-owner sets this bar; it never authorizes agent-initiated scope expansion, and
-every intervention toward it remains governed by the Smallest Complete
-Intervention rule above. It is a design lens, not a claim tier: the label
-asserts no validation or readiness.
+but small"), interpret it as the owner-invoked capability-target lens in
+`docs/decisions/orca_mini_god_tier_doctrine_v0.md` — name every foregone
+limitation; owner-invoked only (never agent grounds for scope expansion); a
+design lens, not a claim tier (asserts no validation or readiness). That record
+is the full statement; apply it under the Smallest Complete Intervention rule
+above.
 
 ## Orca Project Instructions
 
@@ -57,7 +55,7 @@ For substantial, ambiguous, cross-thread, delegated, doctrine-changing, review/p
 
 Author every prompt, handoff, wrapper, rerun, or patch prompt through the `workflow-prompt-orchestrator` skill — which owns prompt source-loading and the preflight/routing contract — and never hand-draft them; the owning rule is `.agents/workflow-overlay/prompt-orchestration.md`. In-session subagent dispatches that only gather and summarize are delegation under `.agents/workflow-overlay/decision-routing.md`, not prompt artifacts; durable or cross-lane prompt artifacts remain orchestrator-owned.
 
-When starting or "spinning up" a new unit of repo-changing work, decide and state the isolation before editing: use a worktree off `main` for writing work that runs alongside other active lanes or on a dirty base; a branch off `main` for solo, sequential writing; and neither for read-only work. Land changes via the per-lane PR flow in `docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md`. When a repo-changing work unit completes verified on its own lane branch or worktree, proceed to commit, push, and PR preparation without waiting for a typed instruction; the `settings.json` permission prompts on push and PR actions are the owner gate. Landing to `main` stays human-gated, with one guard-verified exception: an agent may self-merge its **own** PR only when the protected-action guard confirms it is `mergeStateStatus == CLEAN` + all CI checks green + carries the opt-in `agent-automerge` label; every other state fails closed to a human merge. See `docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md`.
+When starting or "spinning up" a new unit of repo-changing work, decide and state the isolation before editing: use a worktree off `main` for writing work that runs alongside other active lanes or on a dirty base; a branch off `main` for solo, sequential writing; and neither for read-only work. Land changes via the per-lane PR flow in `docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md`. When a repo-changing work unit completes verified on its own lane branch or worktree, proceed to commit, push, and PR preparation without waiting for a typed instruction; the `settings.json` permission prompts on push and PR actions are the owner gate. Landing to `main` stays human-gated, except an agent may self-merge its **own** PR under the protected-action guard's verified exception (else it fails closed to a human merge). See `docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md`.
 
 Do not treat `jb` rules, paths, handoffs, lifecycle mechanics, product policy, validation habits, or external workflow source as Orca authority. Explicitly invoked or resolver-loaded skills may provide task-local mechanics only.
 
