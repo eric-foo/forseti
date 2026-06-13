@@ -1,10 +1,10 @@
 batch_id: product_learning
 case_family: beauty_subscription_repricing_decide_vs_confirm
 case_id: beautypie_repricing_2023_v0
-committed_at: <<pending-freeze>>
+committed_at: 2026-06-13T16:21:57Z
 decision_shape: ceiling_trap
 fixture_grade: plumbing_grade
-fixture_status: DRAFT
+fixture_status: frozen
 frozen_band_inputs:
   authority: full
   authority_acquisition_cost: low
@@ -68,7 +68,7 @@ ledger_authors:
   primary_labeler: Outcome-blind constructor lane (this session)
   second_labeler: <<pending-second-label>>
   second_labeler_type: <<pending-second-label>>  # human_operator | separate_model_family_advisory
-ledger_freeze_hash: <<pending-freeze>>  # sha256(canonical_yaml_dump(ledger_minus_hash_field)) computed at freeze
+ledger_freeze_hash: ce7cc6bca3ca9c847d6278e20b9368d4374ae292a11ea293c4abc487ad70abe8  # sha256(canonical_yaml_dump(ledger_minus_hash_field)) computed at freeze
 mapping_table_version_pin: v0_14_mvp
 must_address_items:
 - description: The £5/mo tier is the lowest-commitment on-ramp into the membership model
@@ -115,7 +115,31 @@ paired_packet_design:
     <= 2023-01-31) present only in participant_packet_augmented.md.
   org_motion_is_must_address: false
   org_motion_signal_class: hiring_intent_gross_base_rate_discounted_not_net_adds
-sealed_outcome: <<facilitator-seals-separately>>
+sealed_outcome:
+  status: sealed
+  authority_boundary: facilitator_only_calibration_target  # NEVER copy into any participant packet
+  sealed_at: 2026-06-13
+  source_record:
+    path: docs/research/orgmotion_beautypie_sealed_outcome_facilitator_only_v0.md
+    sha256: a19eeb6cc00a0a57261ef9b8b27f6fb9c8dee005d25fb3bf7f4be61cced055ff
+    sha256_basis: raw_file_bytes
+  reveal_phase: phase_7_reveal_calibration
+  embedded_outcome:
+    direction: held_and_grew
+    reversed: false
+    rollback: none  # GBP5/mo entry tier did not return; model continued at GBP10/mo monthly + annual plans
+    business_result: >-
+      Repricing held through the vocal backlash and the business grew over the
+      following year on revenue, retention, and funding; the backlash read as a
+      noisy-minority signal that did not translate into business harm.
+    calibration_target_for: JSG-08_reveal
+    contrast_pattern: opposite_of_walk_back_and_grandfather
+    uncertainties:
+    - Revenue growth is multi-causal; not solely attributable to the repricing.
+    - The retention-vs-peer claim is founder PR, not audited.
+    - GBP5-tier-specific churn magnitude is not quantified.
+    - Org-motion hiring signal is a single corroboration of the read, not proof.
+    org_motion_corroboration: with_arm_signal_points_toward_sealed_direction
 second_label_diffs:
 - band_input: option_value
   primary: moderate
