@@ -30,6 +30,24 @@ This record is a bounded carve-out to one prior boundary, scoped exclusively to
 internal wind-caller calibration for creator/influencer wind-callers. It is not
 validation, readiness, buyer proof, or commercial authorization.
 
+## Amendment — 2026-06-14 (owner): attended-automated, human-mimicking pace
+
+Tier-1's pace constraint is amended (dated; original preserved here, not silently
+rewritten).
+
+- **Original (2026-06-13):** "Human pace: human-scrolling rate only — no automated
+  crawling, no scheduled scraping, no mass extraction."
+- **Amended (2026-06-14, owner):** attended **automated** capture is permitted, but
+  paced to imitate a human — a variable, irregular, human-speed scroll/fetch cadence
+  (an ADHD-like rhythm), explicitly **not** uniform machine-rate, high-throughput
+  blasting, or continuous/24-7 operation.
+
+Unchanged: the anti-mass-extraction, no-standing/scheduled-crawler, attended,
+≤5-account, pre-commercial, internal-only, US-first, and buy-at-commercial
+constraints. Only the manual-vs-automated method is relaxed, and only to a
+human-mimicking cadence. "Human pace" elsewhere in this record now reads as this
+human-mimicking automated cadence.
+
 ## The Prior Boundary (baseline)
 
 All Orca product and capture doctrine to date has held:
@@ -57,8 +75,11 @@ For **internal wind-caller calibration only**, Orca may:
 
 - Pre-commercial recon / bootstrap only.
 - Small scale: **no more than 5 accounts** under this carve-out at any one time.
-- Human pace: human-scrolling rate only — no automated crawling, no scheduled
-  scraping, no mass extraction.
+- Human-mimicking pace (amended 2026-06-14, see above): attended **automated**
+  capture is permitted, but it must imitate human behaviour — a variable,
+  irregular, human-speed scroll/fetch cadence (an ADHD-like rhythm), explicitly
+  **not** a uniform machine rate, high-throughput blast, or continuous/24-7
+  operation. No standing or scheduled crawler; no mass extraction.
 - ToS risk: accepted by the owner at this scale, consistent with the project's
   measured-ToS-risk posture. At commercial scale, this becomes non-negotiable:
   licensed or bought data only.
