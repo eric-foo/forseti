@@ -240,6 +240,13 @@ Orca identifies the evidence-supported action ceiling for the live demand
 decision — act, phase, narrow, hold, or defend — states what the public
 signal can and cannot support, and names what would change the answer.
 
+**Never-a-feed invariant (2026-06-14):** every output is a calibrated decision
+with an action ceiling — **never a feed or stream**. This is the structural lock
+that keeps Orca off the "monitoring-only pull" kill (below) and out of the
+social-listening category, including when a read is monitored over time
+(transient → earn-durable): recurring engagement is sold as recurring
+*decisions*, never as a monitoring feed.
+
 ## Manual Proof Artifact
 
 Artifact name: `Public-Signal Demand-Allocation Decision Risk Memo`.

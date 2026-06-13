@@ -178,9 +178,9 @@ quality under a promo push) — is *evidence you use to classify* a candidate as
 transient or manufactured. It is no longer synonymous with "hollow"; it is how
 you tell real-but-fading from fake.
 
-## Calling Sequence & Billing Shape (2026-06-14, owner)
+## Calling Sequence (2026-06-14, owner)
 
-The reads relate over time, and that sequence is the product motion:
+The reads relate over time, and that sequence is the read grammar's motion:
 
 1. **First call = transient (the conservative default).** Durable is the
    over-claimable label — anything can be *asserted* durable — so the read never
@@ -195,22 +195,16 @@ The reads relate over time, and that sequence is the product motion:
    Durable is the *earned* state, confirmed by observed momentum — never the
    opening assertion.
 
-**Billing shape:** monitoring is recurring, so it carries **retainer potential
-(upgraded billing)** — but only as **recurring decisions**, never a feed. This is
-load-bearing: the buyer-proof packet names monitoring-only / dashboard-only pull
-as a **kill signal**, and a feed is also what would make Orca social listening.
-Same activity, opposite product; the line is the invariant below.
-
-**The invariant (never a feed):** every output is a **calibrated decision with an
-action ceiling** — never a stream of mentions. This single rule keeps the
-retainer off the kill signal *and* keeps Orca out of the social-listening
-category.
-
-**The loop compounds:** every monitored case (decayed-as-called or
-upgraded-to-durable) is a dated, labeled outcome — the same outcome-memory the
-wind-caller calibration ledger collects. The retainer is therefore also the
-**calibration-data source** that earns the judgment moat over time. The moat is
-built, not assumed.
+**Re-homed 2026-06-14** (kept here only as grammar; the commercial and
+positioning consequences live where they belong): the *billing shape* (recurring
+monitoring → retainer / recurring-decision packaging) is an offer concern —
+offer hypothesis → Commercial Frame Status, as input to the pricing /
+commercial-frame CA run; the *never-a-feed invariant* (every output is a
+calibrated decision with an action ceiling, never a stream — the lock that keeps
+the retainer off the "monitoring-only pull" kill and out of social listening) is
+owned by the buyer-proof packet → Orca Promise; and the *judgment moat /
+differentiation floor* (each monitored outcome compounds the calibration ledger)
+is strategic — thesis → Strategic Center.
 
 ## Pricing Refinement (PROPOSED final take on the owner's question)
 
@@ -265,3 +259,6 @@ The demand-state model (durable / transient / manufactured) is PROPOSED and
 amends the controlling thesis only by dated pointer on adoption. The decay-curve
 capability and decay-timing calibration do not yet exist — transient-spike reads
 are built-to, not proven-at — so no transient-timing claim is validated here.
+This artifact is the read **grammar**; defining the ontology and proving reads
+decision-grade is a separate, separately-commissioned pass — the taxonomy asserts
+no ontology or decision-grade claim.

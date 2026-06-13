@@ -433,6 +433,15 @@ A separate Chief Architect run should decide pricing, packaging, duration,
 payment terms, and whether the offer is sold as a sprint, deck, advisory
 package, or another paid container.
 
+**Billing-shape hypothesis (2026-06-14, input to that CA run — not decided
+here):** the demand read is sequenced transient → monitor → earn-durable (see the
+demand-read taxonomy's Calling Sequence), so the monitoring is recurring. That
+suggests a **retainer / recurring-decision** shape layered on the first
+fixed-scope sprint — but only as *recurring decisions*, never a monitoring feed.
+This is a hypothesis the pricing / commercial-frame CA run owns and decides (price
+band, sprint-vs-retainer packaging, cadence); it asserts no willingness-to-pay or
+pricing outcome.
+
 Current commercial boundary:
 
 - No unpaid custom deck production.

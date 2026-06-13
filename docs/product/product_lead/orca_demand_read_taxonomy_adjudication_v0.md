@@ -300,10 +300,15 @@ but are replicable features — a survivable fallback business, not a moat. Judg
 + outcome memory is the uncopyable differentiator and the category-definer; don't
 sell the plumbing.
 
-**Status:** executed into the taxonomy (Calling Sequence section + read types) and
-propagated to the controlling thesis (dated amendment). Q1 and Q2 below inherit
-the horizon dimension (rerouting is usually transient; a wind-caller's value
-splits by whether they call durable shifts or spikes). Nothing pending on Q0.
+**Status:** executed into the taxonomy (Calling Sequence kept as *grammar*) and
+the controlling thesis (dated amendment + body integration 2026-06-14: central
+read, value proposition, strategic center, boundary). Commercial/positioning
+parts re-homed to their owners — billing shape → offer hypothesis (Commercial
+Frame Status, as input to the pricing CA run); never-a-feed invariant →
+buyer-proof packet (Orca Promise); differentiation floor → thesis (Strategic
+Center). Grammar ≠ ontology: decision-grade validation is a separate, already-
+commissioned ontology pass, not this taxonomy. Q1 and Q2 below inherit the
+horizon dimension. Nothing pending on Q0.
 
 ### Q1 — Pricing-signal refinement
 
