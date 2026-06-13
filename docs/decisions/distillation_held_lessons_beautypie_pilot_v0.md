@@ -39,8 +39,16 @@ state for L2; L1 has no Orca decision node at all and is held for upstream routi
 Edits no overlay rule, no doctrine, no binding, no harness. Same boundary as the
 distillation index (`distillation_doctrine_orca_spine_bindings_v0.md`): a
 prepare-only classification of *already-recorded* outcomes, so **no
-`direction_change_propagation` receipt is owed** and **no substrate is built**.
-No validation, readiness, acceptance, firing, or proof claim is made.
+`direction_change_propagation` receipt is owed**. No validation, readiness,
+acceptance, or proof claim is made by this record.
+
+> **UPDATE — L2 OPERATIONALIZED (this lane).** L2 is now a code-enforced cell:
+> `GUARD claim-support-span-in-body` at `node:evidence-claim-binding` in
+> `distillation_binding_judgment_spine_v0.md`, enforced by
+> `orca-harness/evidence_binding/verifier.py` (+ `tests/unit/test_claim_support_verifier.py`).
+> The L2 held analysis below is **superseded by that cell**. L1 remains held
+> (upstream routing to the incremental-planning skill is still pending); this
+> record stays alive for L1 until that is discharged.
 
 ## Why this exists (foundation, not paving)
 
@@ -134,6 +142,12 @@ held_lesson:
     "encode/auto if possible").
   retirement_test: retire if the fixture schema enforces span-in-body for every
     source-to-claim binding and the checker is shown to fire.
+  operationalized: >
+    SUPERSEDED by GUARD claim-support-span-in-body at node:evidence-claim-binding in
+    distillation_binding_judgment_spine_v0.md, enforced by
+    orca-harness/evidence_binding/verifier.py (Jsg01ClaimSupportAssertion +
+    verify_claim_support) with contract test tests/unit/test_claim_support_verifier.py.
+    Page-grain, atomic-claims-only, additive/optional (frozen fixtures unaffected).
 ```
 
 ## Deferred to the architecture pass (not decided here)

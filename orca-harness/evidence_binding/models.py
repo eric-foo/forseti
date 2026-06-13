@@ -173,3 +173,40 @@ class Jsg01EvidenceRecord(StrictModel):
             for posture in self.inspectability
             if posture.slice_id == self.evidence_slice_id
         )
+
+
+class Jsg01ClaimSupportAssertion(StrictModel):
+    """An assembly-authored assertion that a verbatim span on ONE preserved page backs ONE claim.
+
+    Reference-keyed: claim -> evidence -> packet -> slice -> preserved file. Unlike
+    ``Jsg01EvidenceBinding`` (three keys, reference-never-merge), this assertion
+    deliberately carries the verbatim ``quoted_span`` and the ``verified_sha256`` it was
+    checked against, so the claim -> page -> span -> fingerprint chain is fully retrievable
+    for audit. It is a SEPARATE record and does not relax the binding's no-content
+    constraint. The span is confirmed against the hash-anchored body by
+    ``evidence_binding.verifier.verify_claim_support`` (an I/O step), never by the pure
+    composer. Atomic, quotable claims only; aggregate/derived claims assert no span.
+    """
+
+    claim_id: str
+    evidence_id: str
+    packet_id: str
+    evidence_slice_id: str
+    preserved_file_id: str
+    quoted_span: str
+    verified_sha256: str
+
+    @field_validator(
+        "claim_id",
+        "evidence_id",
+        "packet_id",
+        "evidence_slice_id",
+        "preserved_file_id",
+        "quoted_span",
+        "verified_sha256",
+    )
+    @classmethod
+    def reject_blank(cls, value: str) -> str:
+        if not value.strip():
+            raise ValueError("Jsg01ClaimSupportAssertion fields must be non-empty")
+        return value

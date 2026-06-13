@@ -15,15 +15,20 @@ aggregate verdict and clears no case.
 """
 from evidence_binding.composer import Jsg01BindingError, compose_jsg01_evidence_record
 from evidence_binding.models import (
+    Jsg01ClaimSupportAssertion,
     Jsg01EvidenceBinding,
     Jsg01EvidenceRecord,
     Jsg01FinalizationRead,
 )
+from evidence_binding.verifier import ClaimSupportError, verify_claim_support
 
 __all__ = [
+    "ClaimSupportError",
     "Jsg01BindingError",
+    "Jsg01ClaimSupportAssertion",
     "Jsg01EvidenceBinding",
     "Jsg01EvidenceRecord",
     "Jsg01FinalizationRead",
     "compose_jsg01_evidence_record",
+    "verify_claim_support",
 ]

@@ -62,6 +62,15 @@ deterministic check. One partial substrate exists (the band scorer hardcodes
 - substrate: PARTIAL — the band scorer hardcodes `memorization_probe_result="not_run"` (code-held); truth of any hand-typed field stays resident
 - PROV: `docs/product/judgment_quality_promotion_operating_model_v0.md:307` "By-hand execution cannot bind the authorized, auditable live-execution provenance..." tier: accepted-orca-gate. date 2026-06.
 
+### GUARD claim-support-span-in-body  (code-enforced)
+- decision_node: `node:evidence-claim-binding`
+- `GUARD claim-support-span-in-body: WHEN an assembly binds a captured source as support for a claim (a claim-support assertion) → the asserted verbatim span must be present in the hash-verified preserved body of the cited page → UNLESS no claim-support span is asserted (atomic, quotable claims only; aggregate/derived claims are out of scope, not blocked).`
+- outcome_class: a mechanically successful capture (right page, pre-cutoff, hash-anchored) is treated as backing a claim its body does not contain — `silent-wrong-input`
+- causal_miss: missing distinction — "capture succeeded" is NOT "the body backs claim X"; the second question was skipped
+- verification: under-case (asserted span absent from the cited body) → `ClaimSupportError` block; over-edge (span present in the hash-verified body) → passes; omitted (no assertion) → composes clean
+- substrate: CODE-ENFORCED (I/O) — `evidence_binding/verifier.py::verify_claim_support` recomputes the cited preserved file's sha256 (AR-04 `raw_stored_bytes` basis) then asserts the span is a byte-substring; block-don't-repair, mirroring `Jsg01BindingError`. enforced_in: `orca-harness/evidence_binding/verifier.py` + `orca-harness/tests/unit/test_claim_support_verifier.py`. v0 limit: exact UTF-8 byte-substring (false-negative-biased on entity-encoded / whitespace-normalized HTML); fail-closed is the deliberate integrity bias.
+- PROV: case `beautypie_repricing_2023_v0` — the `beautypie.com/how-it-works` capture (`source_captures/e2_howitworks_20221201`) was clean but its body lacked the £5/£59/spending-limit facts the premise leaned on; reclassified to a case-stated premise (`source_provenance_notes_v0.md`). tier: probed (recorded session outcome + code-enforced contract test). date 2026-06.
+
 ## A2 — core size / budget
 
 Mostly actor-carried, so these cells compete for the budget (one partial is code-held). Each is
@@ -73,12 +82,13 @@ working rare-but-catastrophic gate cell. Budget model-dependent; not fixed here.
 
 `node:source-identity-finalization` (JSG-01) · `node:packet-freeze` · `node:no-tools-isolation-provenance`
 (JSG-04) · `node:memorization-probe-gate` (JSG-05) · `node:gate-outcome-routing` · `node:sealed-output`
-· `node:scoring` · `node:reveal-calibration` (JSG-08) · `node:closeout`. Cells index by `decision_node`.
+· `node:scoring` · `node:reveal-calibration` (JSG-08) · `node:closeout` · `node:evidence-claim-binding`
+(JSG-01 evidence integrity; code-enforced). Cells index by `decision_node`.
 
 ## A4 — slots filled
 
 - **intervention-type set** (closed; owner-extensible): `GUARD`, `GATE-OUTCOME`, `ESCALATION` (blocker), `SOURCE-RULE`.
-- **verification substrate**: the conductor's `indeterminate_until_authored` halt + the band scorer's hardcoded `not_run`; otherwise human review of gate-outcome decisions.
+- **verification substrate**: the conductor's `indeterminate_until_authored` halt + the band scorer's hardcoded `not_run` + `evidence_binding/verifier.py` (the first fully code-enforced cell here — a deterministic claim-support span check with a contract test); otherwise human review of gate-outcome decisions.
 - **fire-log capability**: MODERATE — gate outcomes are recorded per run (the conductor names blockers and halts), but there is no deterministic pass/fail engine, so telemetry comes from run records; **complied-but-inert** is the live risk (a gate nominally satisfied without the action changing).
 - **tier enum**: {accepted-orca-gate, probed, asserted}; recorded cells are probed / accepted-orca-gate.
 - **review window**: owner sets (per case run / gate-map change).
