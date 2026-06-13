@@ -35,20 +35,6 @@ stale_if:
   - Any participant-facing prompt includes facilitator-only routing facts.
 ```
 
-## Current Task Receipt
-
-```yaml
-orca_start_preflight:
-  agents_read: yes
-  overlay_read: yes
-  source_pack: custom_daimler_advisory_run_001_authorization
-  edit_permission: docs-write
-  target_scope:
-    - docs/decisions/daimler_advisory_run_001_authorization_record_v0.md
-  dirty_state_checked: yes
-  blocked_if_missing: no
-```
-
 ## Authorization
 
 ```yaml

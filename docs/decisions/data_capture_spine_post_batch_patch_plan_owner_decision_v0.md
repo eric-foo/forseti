@@ -29,19 +29,6 @@ Owner decision: `ACCEPT_PATCH_PLAN_FOR_CONTRACT_AND_METHOD_PATCH_DRAFTS`.
 
 The minor-patched post-batch Data Capture patch plan is accepted as the bounded planning basis for downstream docs-only patch drafts. This decision accepts the plan for drafting authority only. It does not amend or harden the obligation contract, amend the source-access method plan, promote MSP, require checker standards, authorize runtime/source-system work, or authorize ECR, Cleaning, or Judgment design.
 
-## Start Preflight
-
-```yaml
-orca_start_preflight:
-  agents_read: yes - AGENTS.md supplied in current task context
-  overlay_read: yes
-  source_pack: custom Data Capture post-batch patch-plan owner gate
-  edit_permission: docs-write
-  target_scope: owner decision accepting the post-batch Data Capture patch plan for bounded docs-only patch drafts
-  dirty_state_checked: yes - worktree dirty; overlay and controlling product sources are modified/untracked; advisory-only boundaries preserved except for this explicit owner decision
-  blocked_if_missing: none
-```
-
 ## Source Basis
 
 Decision inputs:

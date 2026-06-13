@@ -77,15 +77,6 @@ The two rules operate on different objects and compose:
 - Drift cue: "while we're at it" additions creeping toward god tier — route
   back to the owner instead of building.
 
-## Provenance (uses preceding this record)
-
-- Slot-3 capture closeout verdict label (`mini_god_tier_with_visible_limitations`).
-- Shape C venue memory: most of a registry's value, none of its staleness rot.
-- Cheapest-first capture recon ladder (capture recon index).
-- Vertical-exploration reframe (owner, 2026-06-11): mini-god-tier influence
-  intelligence via batch-scoped walks + dated provenance, no standing
-  infrastructure.
-
 ## Discoverability Binding
 
 The trigger phrase is bound in `AGENTS.md` ("Mini God Tier" kernel section),

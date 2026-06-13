@@ -11,15 +11,6 @@ use_when:
 authority_boundary: retrieval_only
 ```
 
-orca_start_preflight:
-  agents_read: yes
-  overlay_read: yes
-  source_pack: S0 plus artifact folder/role/retrieval metadata
-  edit_permission: docs-write
-  target_scope: Write the owner's pre-reveal Milwaukee fiscal-decision judgment beside the existing sealed artifact.
-  dirty_state_checked: yes
-  blocked_if_missing: no
-
 ## Status
 
 Pre-reveal owner judgment. This file was written before opening

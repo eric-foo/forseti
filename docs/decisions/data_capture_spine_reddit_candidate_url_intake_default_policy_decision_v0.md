@@ -45,20 +45,6 @@ artifact does not claim validation, readiness, clean-tree state, runtime
 feasibility, owner acceptance, legal sufficiency, or source-access boundary
 amendment.
 
-```text
-orca_start_preflight:
-  agents_read: yes
-  overlay_read: yes
-  source_pack: custom Reddit Candidate URL Intake default-policy pack
-  edit_permission: docs-write
-  target_scope:
-    - docs/decisions/data_capture_spine_reddit_candidate_url_intake_default_policy_decision_v0.md
-    - docs/product/data_capture_spine_reddit_candidate_url_intake_crawler_architecture_v0.md
-    - docs/workflows/data_capture_spine_consolidation_map_v0.md
-  dirty_state_checked: yes
-  blocked_if_missing: owner acceptance for implementation scoping
-```
-
 Primary grounding sources:
 
 - `.agents/workflow-overlay/README.md`

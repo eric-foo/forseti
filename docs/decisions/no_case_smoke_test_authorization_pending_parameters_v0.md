@@ -29,20 +29,6 @@ stale_if:
   - The no-case smoke-test checklist changes concrete authorization fields or non-gate-clearing rules.
 ```
 
-## Current Task Receipt
-
-```yaml
-orca_start_preflight:
-  agents_read: yes
-  overlay_read: yes
-  source_pack: no_case_smoke_test_authorization_pending_parameters
-  edit_permission: docs-write
-  target_scope:
-    - docs/decisions/no_case_smoke_test_authorization_pending_parameters_v0.md
-  dirty_state_checked: yes
-  blocked_if_missing: no
-```
-
 ## Decision Status
 
 ```yaml

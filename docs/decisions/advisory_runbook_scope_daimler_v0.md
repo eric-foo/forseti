@@ -31,20 +31,6 @@ stale_if:
   - Daimler advisory runbook scope adversarial review report changes.
 ```
 
-## Current Task Receipt
-
-```yaml
-orca_start_preflight:
-  agents_read: yes
-  overlay_read: yes
-  source_pack: daimler_advisory_runbook_scope
-  edit_permission: docs-write
-  target_scope:
-    - docs/decisions/advisory_runbook_scope_daimler_v0.md
-  dirty_state_checked: yes
-  blocked_if_missing: no
-```
-
 ## Scope Decision
 
 ```yaml

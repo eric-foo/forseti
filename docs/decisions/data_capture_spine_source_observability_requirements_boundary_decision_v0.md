@@ -35,22 +35,6 @@ implementation, source acquisition, source-access method changes, contract
 amendments, ECR, Cleaning, Judgment, validation, readiness, buyer proof, or
 commercial readiness.
 
-## Start Preflight
-
-```yaml
-orca_start_preflight:
-  agents_read: yes
-  overlay_read: yes
-  source_pack: custom Data Capture Source Observability requirements-boundary decision
-  edit_permission: docs-write for one decision artifact plus propagation navigation surfaces
-  target_scope:
-    - docs/decisions/data_capture_spine_source_observability_requirements_boundary_decision_v0.md
-    - .agents/workflow-overlay/source-loading.md
-    - docs/workflows/orca_repo_map_v0.md
-  dirty_state_checked: yes - worktree dirty; this decision is docs-only and makes no validation, readiness, implementation, runtime, or source-of-truth-promotion claim
-  blocked_if_missing: none
-```
-
 ## Spec-Writing Gate
 
 `workflow-spec-writing` was invoked before this artifact was written.

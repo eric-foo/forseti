@@ -36,22 +36,6 @@ execution, source acquisition, source-access method changes, contract
 amendments, ECR, Cleaning, Judgment, validation, readiness, buyer proof, or
 commercial readiness.
 
-## Start Preflight
-
-```yaml
-orca_start_preflight:
-  agents_read: yes
-  overlay_read: yes
-  source_pack: custom Source Observability requirements-support implementation-scoping authorization
-  edit_permission: docs-write for one owner authorization artifact plus propagation navigation surfaces
-  target_scope:
-    - docs/decisions/data_capture_spine_source_observability_requirements_support_implementation_scoping_authorization_v0.md
-    - .agents/workflow-overlay/source-loading.md
-    - docs/workflows/orca_repo_map_v0.md
-  dirty_state_checked: yes - worktree dirty; this artifact records scoping authorization only and makes no validation, readiness, implementation, runtime, or source-of-truth-promotion claim
-  blocked_if_missing: none
-```
-
 ## Source Basis
 
 Decision inputs:

@@ -35,19 +35,6 @@ delta the decision itself, the requirements basis, product doctrine, architectur
 doctrine, workflow authority, validation evidence, readiness evidence,
 implementation authority, or source-of-truth material.
 
-## Start Preflight
-
-```yaml
-orca_start_preflight:
-  agents_read: yes
-  overlay_read: yes
-  source_pack: custom post-Slot-3-recapture delta lane-local acceptance pack
-  edit_permission: docs-write for one lane-local acceptance decision artifact
-  target_scope: docs/decisions/data_capture_spine_post_slot3_recapture_delta_lane_local_acceptance_decision_v0.md
-  dirty_state_checked: yes - worktree dirty; this artifact records lane-local input acceptance only and makes no validation, readiness, implementation, runtime, or source-of-truth-promotion claim
-  blocked_if_missing: none
-```
-
 ## Source Basis
 
 Decision inputs:

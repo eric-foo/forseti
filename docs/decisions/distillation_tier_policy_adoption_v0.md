@@ -268,26 +268,3 @@ the policy when P1 is resolved.
   existing cells are correctly tiered. Only the 4 proof cases were checked.
 - Not validation, readiness, approval, source-of-truth promotion, or
   implementation authorization.
-
-## Preflight receipt
-
-```yaml
-orca_start_preflight:
-  agents_read: yes
-  overlay_read: partial
-    # README, decision-routing, artifact-roles, safety-rules, source-loading,
-    # validation-gates read this turn. Other overlay sections via prior context
-    # and repo map.
-  source_pack: custom
-    # overlay core + distillation doctrine index + code binding + product-proof
-    # binding + test suite grep + probe_models.py read.
-  edit_permission: docs-write
-    # new decision record under docs/decisions/ only;
-    # no binding file edited; no overlay file edited.
-  target_scope:
-    - docs/decisions/distillation_tier_policy_adoption_v0.md (this file)
-  dirty_state_checked: yes
-    # branch ecr-sp3-timing-deriver-slice1; many untracked docs;
-    # orca-harness modified. This adds one new file; edits no overlay file.
-  blocked_if_missing: no
-```

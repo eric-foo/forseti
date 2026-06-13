@@ -36,19 +36,6 @@ tools, runtime source systems, scrapers, APIs, browser automation, storage,
 schemas, dashboards, tests, ECR design, Cleaning implementation, Judgment design,
 contract hardening, or source-access method-plan amendment.
 
-## Start Preflight
-
-```yaml
-orca_start_preflight:
-  agents_read: yes - AGENTS.md supplied in current task context
-  overlay_read: yes
-  source_pack: custom Data Capture source-observability scoping authorization
-  edit_permission: docs-write for one owner authorization artifact
-  target_scope: owner authorization for bounded docs-only source-observability requirements scoping
-  dirty_state_checked: yes - worktree dirty; this artifact records a bounded owner authorization and makes no validation, readiness, implementation, runtime, or source-of-truth-promotion claim
-  blocked_if_missing: none
-```
-
 ## Source Basis
 
 Decision inputs:

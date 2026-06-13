@@ -32,19 +32,6 @@ The patched obligation-contract patch proposal is accepted as bounded authority 
 
 This decision accepts PCP-01 through PCP-08 for amendment drafting with the constraints below. It does not itself amend or harden the obligation contract, amend the source-access method plan, authorize runtime/source-system work, authorize ECR/Cleaning/Judgment design, or validate the Data Capture Spine.
 
-## Start Preflight
-
-```yaml
-orca_start_preflight:
-  agents_read: yes - AGENTS.md supplied in current task context
-  overlay_read: yes
-  source_pack: custom Data Capture obligation-contract patch proposal owner decision
-  edit_permission: docs-write
-  target_scope: owner decision accepting PCP package for bounded obligation-contract amendment drafting
-  dirty_state_checked: yes - worktree dirty; overlay and controlling product sources are modified/untracked; this decision records owner authority but makes no validation, readiness, hardening, runtime, or implementation claim
-  blocked_if_missing: none
-```
-
 ## Source Basis
 
 Decision inputs:

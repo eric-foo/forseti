@@ -38,20 +38,6 @@ stale_if:
   - Owner authorizes participant-packet exposure, model/provider selection, advisory execution, buyer contact, API execution, or gate-bearing use.
 ```
 
-## Current Task Receipt
-
-```yaml
-orca_start_preflight:
-  agents_read: yes
-  overlay_read: yes
-  source_pack: custom_daimler_advisory_run_authorization_decision
-  edit_permission: docs-write
-  target_scope:
-    - docs/decisions/daimler_advisory_run_authorization_decision_v0.md
-  dirty_state_checked: yes
-  blocked_if_missing: no
-```
-
 ## Decision
 
 ```yaml

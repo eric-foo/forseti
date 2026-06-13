@@ -20,23 +20,6 @@ stale_if:
   - contestant_no_tools_execution_contract_v0.md changes gate-bearing evidence semantics.
 ```
 
-## Current Task Receipt
-
-```yaml
-orca_start_preflight:
-  agents_read: yes
-  overlay_read: yes
-  source_pack: pre_sale_execution_evidence_tier_policy_patch
-  edit_permission: docs-write
-  target_scope:
-    - docs/decisions/judgment_spine_pre_sale_execution_evidence_tier_policy_v0.md
-    - docs/research/judgment-spine/harness/v0_14/contestant_no_tools_execution_contract_v0.md
-    - docs/research/judgment-spine/harness/v0_14/no_case_smoke_test_authorization_checklist_v0.md
-    - docs/decisions/no_case_smoke_test_authorization_openai_gpt_5_4_mini_20260601_v0.md
-  dirty_state_checked: yes
-  blocked_if_missing: no
-```
-
 ## Decision
 
 For pre-sale Judgment Spine work, Orca's default model-use posture is

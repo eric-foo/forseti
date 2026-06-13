@@ -42,20 +42,6 @@ stale_if:
   - The planned smoke receipt path or provenance path already exists before execution.
 ```
 
-## Current Task Receipt
-
-```yaml
-orca_start_preflight:
-  agents_read: yes
-  overlay_read: yes
-  source_pack: no_case_smoke_test_concrete_authorization_openai_gpt_5_4_mini
-  edit_permission: docs-write
-  target_scope:
-    - docs/decisions/no_case_smoke_test_authorization_openai_gpt_5_4_mini_20260601_v0.md
-  dirty_state_checked: yes
-  blocked_if_missing: no
-```
-
 ## Owner Instruction Basis
 
 User instruction `proceed with that` on 2026-06-01 is accepted as authorization

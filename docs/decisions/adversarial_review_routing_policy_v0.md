@@ -45,19 +45,6 @@ stale_if:
   - The cross-family reviewer's access mode or token budget changes.
 ```
 
-## Current Task Receipt
-
-```yaml
-orca_start_preflight:
-  agents_read: yes
-  overlay_read: yes
-  source_pack: routing_analysis_2wk_corpus + n1_head_to_head + decorrelation_principle + review-lanes.md
-  edit_permission: docs-write
-  target_scope: [docs/decisions/adversarial_review_routing_policy_v0.md]
-  dirty_state_checked: yes  # overlay files modified in worktree; this record is additive, writes no overlay file
-  blocked_if_missing: no
-```
-
 ## Decision (proposed)
 
 ### 0. Core principle (and the bound that makes same-family OK sometimes)

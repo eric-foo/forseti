@@ -44,25 +44,6 @@ deferred); the reference lives in the review template plus a review-lanes rule
 plus a prompt-orchestration default and the scoped gate — no new preflight schema
 or validation gate.
 
-## Current Task Receipt
-
-```yaml
-orca_start_preflight:
-  agents_read: yes
-  overlay_read: yes
-  source_pack: custom — review doctrine (review-lanes, prompt-orchestration,
-    artifact-roles, communication-style, retrieval-metadata, source-of-truth
-    propagation contract), both review templates, and the past-week adversarial
-    review corpus (docs/review-outputs/adversarial-artifact-reviews/ and
-    docs/prompts/reviews/)
-  edit_permission: docs-write (this decision record only)
-  target_scope:
-    - docs/decisions/work_unit_fitness_reference_v0.md
-  dirty_state_checked: yes — worktree is dirty; this is a new untracked decision
-    doc; no clean-worktree claim is made
-  blocked_if_missing: no
-```
-
 ## Decision
 
 ```yaml

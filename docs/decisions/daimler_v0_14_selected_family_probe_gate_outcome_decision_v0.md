@@ -35,20 +35,6 @@ stale_if:
   - Any target contestant receives Daimler participant packet or facilitator material outside an authorized public-identifiers-only probe input.
 ```
 
-## Current Task Receipt
-
-```yaml
-orca_start_preflight:
-  agents_read: yes
-  overlay_read: yes
-  source_pack: custom_daimler_selected_family_probe_gate_outcome
-  edit_permission: docs-write
-  target_scope:
-    - docs/decisions/daimler_v0_14_selected_family_probe_gate_outcome_decision_v0.md
-  dirty_state_checked: yes
-  blocked_if_missing: no
-```
-
 ## Decision
 
 ```yaml

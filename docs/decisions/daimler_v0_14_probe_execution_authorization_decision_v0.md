@@ -25,20 +25,6 @@ stale_if:
   - Any target contestant receives Daimler participant packet or facilitator material outside the authorized probe input.
 ```
 
-## Current Task Receipt
-
-```yaml
-orca_start_preflight:
-  agents_read: yes
-  overlay_read: yes
-  source_pack: custom_daimler_probe_execution_authorization_decision
-  edit_permission: docs-write
-  target_scope:
-    - docs/decisions/daimler_v0_14_probe_execution_authorization_decision_v0.md
-  dirty_state_checked: yes
-  blocked_if_missing: no
-```
-
 ## Decision
 
 Owner instruction `proceed` on 2026-05-31 is accepted as authorization to create this decision record and to authorize the next bounded Daimler memorization-probe execution lane for the primary target family only.

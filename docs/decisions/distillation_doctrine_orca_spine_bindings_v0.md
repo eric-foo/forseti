@@ -45,34 +45,6 @@ Source-hierarchy #1 (explicit current-turn instruction): **full inventory** (one
 spine in the table below) delivered as **one file per binding**. This index is the thin spine that
 the per-binding files hang off.
 
-## Current Task Receipt
-
-```yaml
-orca_start_preflight:
-  agents_read: yes
-  overlay_read: partial         # README, source-of-truth, artifact-folders, validation-gates,
-                                # decision-routing, retrieval-metadata, safety-rules, product-proof,
-                                # review-lanes read directly this turn; prompt-orchestration +
-                                # delegated-review-patch read via cited excerpts; remaining sections
-                                # via repo map + prior records. No strict PASS/readiness claim made.
-  source_pack: custom           # overlay core + repo map + EP classification + 4 doctrine-pack files
-                                # (temp) + per-spine recorded-outcome mining (verified citations)
-  edit_permission: docs-write   # prepare-only decision records under docs/decisions/ only
-  target_scope:
-    - docs/decisions/distillation_doctrine_orca_spine_bindings_v0.md
-    - docs/decisions/distillation_binding_overlay_governance_v0.md
-    - docs/decisions/distillation_binding_orca_harness_code_v0.md
-    - docs/decisions/distillation_binding_judgment_spine_v0.md
-    - docs/decisions/distillation_binding_data_capture_v0.md
-    - docs/decisions/distillation_binding_prompt_orchestration_v0.md
-    - docs/decisions/distillation_binding_product_proof_v0.md
-    - docs/decisions/distillation_binding_review_patch_v0.md
-    - docs/decisions/distillation_binding_core_spine_proof_v0.md
-  dirty_state_checked: yes       # branch ecr-sp3-timing-deriver-slice1; many untracked docs;
-                                 # orca-harness modified. This adds new files; edits no overlay file.
-  blocked_if_missing: no
-```
-
 ## What is already adopted vs. what is new
 
 - **Enforcement-Placement doctrine — already adopted in Orca.** The placement *principle* is bound

@@ -32,24 +32,6 @@ locate a raw answer, score output, admit a fixture, validate Judgment Spine,
 package buyer proof, or authorize any ECR, Cleaning, Judgment, source-access,
 archive, media, schema, runtime, or implementation work.
 
-## Start Preflight
-
-```yaml
-orca_start_preflight:
-  agents_read: yes
-  overlay_read: yes
-  precompact_rehydrated: yes
-  source_pack: custom Daimler claim-tier classification read
-  edit_permission: docs-write for one decision record and one repo-map pointer
-  target_scope:
-    - docs/decisions/daimler_advisory_001_claim_tier_classification_decision_v0.md
-    - docs/workflows/orca_repo_map_v0.md
-  target_path_existed_before_write: false
-  dirty_state_checked: yes - worktree dirty; this decision does not revert, normalize, or rely on unrelated modified or untracked files
-  run_control_files_edited: no
-  blocked_if_missing: no
-```
-
 ## Source Basis
 
 | Source artifact | SHA256 | Role in this classification |

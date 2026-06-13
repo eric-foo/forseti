@@ -32,22 +32,6 @@ current three-record dry-use pass only. It does not promote the helper to
 product doctrine, validate capture completeness, or authorize further helper
 expansion.
 
-## Start Preflight
-
-```yaml
-orca_start_preflight:
-  agents_read: yes
-  overlay_read: yes
-  source_pack: custom Source Observability support closeout decision
-  edit_permission: docs-write for one closeout decision plus minimal retrievability updates
-  target_scope:
-    - docs/decisions/data_capture_spine_source_observability_support_closeout_decision_v0.md
-    - .agents/workflow-overlay/source-loading.md
-    - docs/workflows/orca_repo_map_v0.md
-  dirty_state_checked: yes - worktree dirty; this closeout records local support sufficiency only and makes no validation, readiness, implementation, runtime, or source-of-truth-promotion claim
-  blocked_if_missing: none
-```
-
 ## Source Basis
 
 | Source artifact | SHA256 | Role in this closeout |

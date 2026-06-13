@@ -31,20 +31,6 @@ stale_if:
   - Advisory proof-slice adversarial review report changes.
 ```
 
-## Current Task Receipt
-
-```yaml
-orca_start_preflight:
-  agents_read: yes
-  overlay_read: yes
-  source_pack: advisory_proof_slice_definition_scoping
-  edit_permission: docs-write
-  target_scope:
-    - docs/decisions/advisory_proof_slice_definition_v0.md
-  dirty_state_checked: yes
-  blocked_if_missing: no
-```
-
 ## Decision
 
 ```yaml

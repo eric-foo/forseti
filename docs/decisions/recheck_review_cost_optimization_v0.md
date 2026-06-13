@@ -26,19 +26,6 @@ stale_if:
   - Owner mandates or forbids a pre-delegation objective review pass, or reviewed_by data measures its net effect.
 ```
 
-## Current Task Receipt
-
-```yaml
-orca_start_preflight:
-  agents_read: yes
-  overlay_read: yes
-  source_pack: 2wk_corpus_recheck_yield_finding
-  edit_permission: docs-write
-  target_scope: [docs/decisions/recheck_review_cost_optimization_v0.md]
-  dirty_state_checked: yes
-  blocked_if_missing: no
-```
-
 ## Decision (adopted)
 
 - **Finding.** In the 2-week corpus, post-patch / blast-radius **rechecks** (the "did the patch land + any new major?" passes) surfaced a new blocker/major in only **~6 of 46** files; the rest confirmed closure with nothing new. Rechecks are near-zero-yield for *new* majors.
