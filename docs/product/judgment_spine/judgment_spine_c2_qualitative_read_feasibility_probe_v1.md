@@ -31,12 +31,12 @@ are **synthetic illustrations (`example_not_a_real_row`)**; the probe **binds no
 signal, populates no real row, builds no runner, and edits neither the ledger nor
 the FROZEN conductor.**
 
-**THIS FILE IS THE PRE-REGISTRATION STAGE (AR-02 fix).** It contains the cases,
-the frozen predictions, and the rubric — **but NOT the attempted reads.** The
-attempted reads (the answers being graded) are added in a **separate, later
-commit**, so the git history is externally-checkable evidence that the
-predictions below were committed *before* any read existed and therefore cannot
-be retrofitted. The PASS/FAIL verdict is reserved for a de-correlated grader.
+**The pre-registration (cases, frozen predictions, rubric) was committed FIRST**
+(commit `dc63a23`, plus a self-caught β correction `0714161`) **with no attempted
+reads present; the attempted reads below were added in a later commit.** So the
+git history is externally-checkable evidence the predictions were committed
+*before* any read existed and cannot be retrofitted (the AR-02 fix). The PASS/FAIL
+verdict is reserved for a de-correlated grader.
 
 ## Why v1 Exists (the v0 grading)
 
@@ -167,6 +167,87 @@ substantive judgment to reject:
 - **BAD-γ (framing-dependent / F4 tell):** gives high trust under γ1's framing and
   low under γ2's, each "justified." Rejection requires noticing the **same facts
   produced different weights by framing** → unconstrained discretion.
+
+## Attempted Reads (authored AFTER the pre-registration — commits `dc63a23` / `0714161`)
+
+Claims for the grader to adjudicate, not a self-declared pass.
+
+- **α1 read:** "Org-motion is 2-of-3 in beauty-consumer-demand, and the record is
+  heterogeneous, which matters because this case sits awkwardly across it. The two
+  successes were a founder-DTC brand (P1) and a prestige brand (P2); this hybrid
+  is part-DTC, part-wholesale — a *loose partial* analogue to each, not a clean
+  match to either. The decisive consideration is the miss: P3 failed because a
+  category-wide hiring surge made org-motion look expansionary for everyone, and
+  this case sits in *mild* category growth — a weaker recurrence of exactly that
+  failure condition. Pulled between loose positive analogues and a partial
+  reappearance of the known miss-driver, I weight org-motion **weak-to-moderate,
+  leaning weak**: the failure mode behind the only miss is live here and the
+  analogues are too loose to override it. **This would rise to moderate if the
+  category hiring surge cooled, and drop further if it intensified.**"
+- **α2 read:** "Same 2-of-3 record, but the pulls differ in kind from α1. This
+  case is a strong, clean analogue to P2 (prestige) with no macro confound — both
+  say the favorable part of the record should transfer. The weak link is not the
+  record but the *input*: this case's own ATS board is partly private, so the
+  observed expansionary direction is low-confidence. Where α1's risk lived in the
+  *record's* failure mode, here the record is favorable and the *current
+  observation* is shaky. I weight org-motion **moderate**, discounting for input
+  quality rather than record fit — the track record earns trust, this specific
+  reading only partly does. **This would rise to moderately-high if the full ATS
+  board became visible and confirmed the direction, and collapse if the visible
+  slice proved unrepresentative.**"
+- **β read:** "β1 (review-yield) has the higher ratio at 0.80, but it was recorded
+  in an adjacent sub-family (prestige-skincare), not this case's
+  beauty-consumer-demand family. The ledger's discipline is that a signal is
+  reliable *within* a decision_family — so β1's 0.80 is a track record from a
+  neighboring problem, not this one, and I can't bank it at face value. β2
+  (price-payload) has the lower ratio at 0.60 but is an exact family match on a
+  solid sample. I trust **β2 more than β1** despite the lower ratio: an on-family
+  0.60 is better evidence for *this* decision than an off-family 0.80. β2 is the
+  primary prior; β1 is a weak cross-family hint, not a co-equal signal. **β1 would
+  move back ahead only if its prestige-skincare uses were shown to transfer to
+  beauty-consumer-demand, or if β2's sample proved family-contaminated.**"
+- **γ1 read (strengths-first framing):** "This founder-DTC brand shows
+  expansionary org-motion, and the 2-of-3 record includes a clean founder-DTC
+  success (P1) that's a good analogue. The concerns are a recent senior-marketing
+  departure and the usual P3 confound risk (a category hiring surge), but I see no
+  strong evidence the surge is active. I weight org-motion **moderate**: a decent
+  analogue and direction, hedged for the departure and the unverified confound.
+  Load-bearing facts: (1) the P1 founder-DTC analogue, (2) the live confound risk,
+  (3) the senior departure. **This would rise if the confound were confirmed
+  absent, and drop if the departure proved part of a broader exodus.**"
+- **γ2 read (concerns-first framing — same case):** "This brand has a recent
+  senior-marketing departure and sits under the P3 confound risk, and the record
+  is thin at N=3. Against that: the org-motion is expansionary and the record
+  includes a clean founder-DTC success (P1) this case resembles. I weight
+  org-motion **moderate**: hedged for the departure and the unverified confound,
+  supported by the P1 analogue and the expansionary direction. Load-bearing facts:
+  (1) the P1 founder-DTC analogue, (2) the live confound risk, (3) the senior
+  departure. **This would rise if the confound were confirmed absent, and drop if
+  the departure proved part of a broader exodus.**" *(Same prior, same load-bearing
+  facts, same counterfactual as γ1 — framing did not move it.)*
+
+## Planted Bad Reads (plausible-but-wrong texts — the rubric MUST reject all three)
+
+- **BAD-α (cherry-picked correspondence — for α1):** "α1 is solid for org-motion:
+  a 2-of-3 record with two clear successes, and this brand resembles both our
+  founder-DTC and prestige winners. The one miss was a special case — a category
+  hiring surge — and there's no surge here. The record's positives apply and its
+  failure doesn't. I weight org-motion **strong**." *(Wrong: calls a loose partial
+  analogue a match to both winners, and dismisses the confound as absent when the
+  case explicitly has mild category growth — a partial recurrence of the
+  miss-driver. Real facts, selectively inflated.)*
+- **BAD-β (caveat laundering):** "β1 is 0.80, β2 is 0.60. I note β1 is from an
+  adjacent sub-family and β2 is exact-match, and that family scoping matters. On
+  balance, β1's stronger track record (0.80 vs 0.60) makes it the more reliable
+  signal; I weight β1 above β2." *(Wrong: names the family mismatch, then ranks by
+  ratio anyway — the caveat does no work. Ordinal scoring behind a qualitative
+  label.)*
+- **BAD-γ (framing-dependent — F4 tell):** "Under γ1 (strengths-first), the
+  expansionary hiring and the P1 analogue stand out — org-motion is **strong**.
+  Under γ2 (concerns-first), the senior departure, thin N, and confound risk
+  dominate — org-motion is **weak**. Each framing supports its read." *(Wrong:
+  same case, same facts, weight swings strong↔weak with presentation order —
+  unconstrained discretion.)*
 
 ## Grading Rubric (for the de-correlated grader)
 
