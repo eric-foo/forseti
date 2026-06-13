@@ -14,12 +14,12 @@ use_when:
 authority_boundary: retrieval_only
 derived_from:
   - docs/prompts/templates/review/adversarial_artifact_review_v0.md@0cb80057795215b3311d00c3d0ad603fbef78fe92e5ae24d8042490b8b60c3fc
-  - .agents/workflow-overlay/review-lanes.md@7fd702f5bddd8d9e670f503dd7def6c1e0d8a04d9fce0103fa0336d6614f3c22   # re-pinned 2026-06-10: two-bar de-correlation (family=vendor) added to Review Doctrine -- delegate-selection + provenance machinery (de_correlation_bar / same_vendor_rationale), not the distilled reviewer stance/checks, so pin-only. (Prior 2026-06-09 re-pin: reviewed_by/authored_by provenance bullets, also pin-only.)
+  - .agents/workflow-overlay/review-lanes.md@231d2f6c99e1bcdd0ad950b82e6c6bcb18b5e7f99b001289f760e660aeabef51   # re-pinned 2026-06-14: #42 retired model-target (_generic/) templates -- change confined to the Template Retrieval Binding section, NOT the distilled reviewer stance/checks (PORTABLE METHOD sections 1-7), so pin-only. (2026-06-10: two-bar de-correlation / provenance machinery, pin-only; 2026-06-09: reviewed_by/authored_by bullets, pin-only.)
 # Hash convention (recorded 2026-06-13 after an observed false-stale on a CRLF checkout): the
 # derived_from pins are SHA256 over git BLOB bytes (LF as stored; e.g. `git cat-file blob <rev>:<path>`),
 # NOT over CRLF working-tree bytes. Run the freshness gate like-for-like: a Get-FileHash mismatch on a
-# CRLF working tree is not staleness by itself. Verified 2026-06-13: both pins match origin/main @ f3f0609
-# blob bytes (the 2026-06-10 re-pin was authored pre-squash and landed on main inside eeb42e9, 2026-06-12).
+# CRLF working tree is not staleness by itself. Verified 2026-06-14: both pins match origin/main @ 4947b2c
+# blob bytes (pin 1 unchanged; pin 2 re-pinned this date for #42, above).
 method_version: v0
 stale_if:
   - Either derived_from source hash changes. Freshness gate = hash-compare these pins against the live files before assembling any package; on mismatch, re-derive this method rather than shipping it.
