@@ -279,7 +279,12 @@ full-history enumeration (only 48 of 321 posts loaded) and a production-grade ca
 - **H5 — sustained cadence vs anti-bot not stress-tested.** No rate-limit was hit, but repeated,
   over-time, multi-account capture (what calibration actually does) was not exercised.
 - **Verbatim caption needs the DOM node + a robust selector** (no `ld+json`/`h1`); the meta tag is
-  lossy (~59% on a post, ~86% on a reel) and can be stale.
+  lossy (~59% on a post, ~86% on a reel) and can be stale. **[Correction 2026-06-14: those
+  truncation deltas were a measurement artifact — the "DOM 635/1594" figures were a heuristic
+  "longest non-chrome text node" that over-grabbed comments/transcript, not the caption. A headless
+  re-probe showed `og:description` carried the FULL caption for the tested posts; genuine og
+  truncation applies only to captions beyond IG's og cap (~125–200 chars). See
+  `ig_wind_caller_calls_capture_build_architecture_v0.md` → Probe finding (2026-06-14).]**
 - **The grid is index-only; capture is per-item.** Caption + per-item engagement require visiting
   each `/p/` **and** `/reel/` page one-by-one (one grid walk + N item visits per account).
 - **Reel view/play count NOT captured** in this recon — absent from the standalone reel-page DOM

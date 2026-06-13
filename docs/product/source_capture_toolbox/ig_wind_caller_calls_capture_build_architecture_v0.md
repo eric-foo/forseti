@@ -38,6 +38,42 @@ This **narrows** the recon's earlier build-lane finding (which inspected only
 the anonymous `cloakbrowser_snapshot.py` and overstated the gap — see the recon doc's dated
 correction) without treating the full IG loop as already authorized.
 
+## Probe finding (2026-06-14, post assumption-gate): headless logged-out reaches IG — calls + stats need NO session
+
+A bounded headless-Playwright probe (the existing `browser_snapshot` adapter, **logged-out**, no
+storage_state) against a real creator (`@hyram`) — profile + post + reel — resolved the
+assumption-gate's load-bearing unknown ("does headless reach IG like the visible Chrome"):
+
+- **All three SUCCESS, HTTP 200, no login redirect, no bot/challenge block** (rendered DOM
+  0.68–0.97 MB each; bounded human-paced reads, no rate-limit hit).
+- **Calls render in `og:description` logged-out, headless** — post: `"1,693 likes, 26 comments -
+  hyram on … : '…#selflessbyhyram'"`; reel: `"1,047 likes, 43 comments - … : '#ad … #YTTPpartner'"`.
+  Caption + likes + comments + date + `#ad` — all present, **no session**.
+- **Stats render logged-out** — profile `og:description` = `"724K Followers, 2,339 Following, 321 Posts"`.
+
+**Scope impact (build shrinks):**
+- The **moat calls + stats are capturable headless, LOGGED-OUT, via `og:description`** — the
+  authenticated-session path (`auth_state` / bootstrap / storage_state) is **NOT required** for the
+  core signal. The **A2 fork largely dissolves** (plain headless logged-out already works on bounded
+  reads). The browser rung IS still required (stdlib `direct_http` got the shell without
+  `og:description`; the browser receives the og tags), but **session is not**.
+- The session becomes an **optional enhancement only** (deeper grid enumeration / reel view-counts),
+  not a core dependency — so the owner's cookies are not needed for the core build.
+
+**Remaining build-time unknowns (smaller; deferrable, not blockers):**
+- Grid permalink enumeration depth logged-out (does the grid scroll-load past the first tranche
+  headless, or does the logged-out modal wall scroll) — the loop needs a scroll capability anyway (D1).
+- Reel view/play count — still only in the media GraphQL JSON; whether it fires logged-out is
+  untested (needs the D3 response-hook). `og:description` already carries likes+comments.
+- H5 cadence at repeated/scale — single reads were clean (no block); volume untested.
+
+**Correction to the recon's truncation finding:** the recon's "`og:description` truncates ~59–86%"
+used a heuristic "longest non-chrome DOM text node" (635/1594 chars) that over-grabbed non-caption
+text (comments/transcript). On re-probe, `og:description` carried the **full** caption for the
+tested posts. Genuine og truncation applies only to captions beyond IG's og cap (~125–200 chars) —
+real but unmeasured here. So **D2 can use `og:description` for short/medium calls** and fall back to
+the DOM caption node only for genuinely long ones.
+
 ## What already exists (verified, with paths)
 
 | Piece | Path | What it gives |
