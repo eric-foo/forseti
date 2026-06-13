@@ -185,6 +185,52 @@ amendments the same day:
   `main`) can see the prompts and their pinned sources — each prompt
   carries a `BLOCKED_STALE_BASE` gate for exactly this.
 
+## Owner Decision Record — Fourth Addendum (2026-06-13, scan-spec adjudication + ontology commission)
+
+- **Scan-core spec returned and adjudicated (this lane's recommendation; owner signs adoption).** The scanning lane delivered
+  `docs/product/core_spine/orca_demand_scan_core_spec_v0.md` (PROPOSED, in worktree
+  `orca-demand-scan-spec-wt` @ `64c442a`, sha256 `53665FA938E69C48…`, not yet on `main`),
+  hardened by a cross-vendor delegated review (controller OpenAI GPT-5; author Claude Fable 5;
+  report sha256 `78C3EDAB94…`). This lane verified independently: both reported hashes match,
+  the spec faithfully reconciles taxonomy/guide/finder-frame/brief/pool, and the on-disk §3
+  reflects the CA-tightened categorical gate-family rule (evidence venues always
+  `gate_family: none`) rather than the controller's looser laundering prose — confirmed safer
+  (a single laundering venue cannot fabricate two "independent" families; aligns with the
+  buyer-proof "no single venue carries the answer"). **Adjudication verdict: RECOMMEND ADOPT.**
+  - Finding 1 (gate_family/gate_family_basis fields + categorical rule): accepted as adjudicated.
+  - Finding 2 (4-value `org_motion_route` enum): accepted as-is (makes the brief's route-blocked
+    stop enforceable).
+  - 21-day forward freshness default: accepted PROVISIONALLY as a labeled PROPOSED default
+    (amendable by dated note; forward mode cannot run until outreach opens, so it has time to
+    validate against real scan cadence).
+  - Downstream schema enforcement: not a defect — inherent to a method spec; consuming lanes
+    (forward = discovery lane on outreach; backward = consuming batch) must populate
+    `gate_family`/`independence_basis`. The gate paper-check lane can dry-run that population.
+- **SUBTLE-gate tension routed (open owner decision).** The spec correctly flags that
+  SUBTLE-class demand (detector + community) may reach only ONE Hard Gate demand family
+  (`forums_community`), because `tracker_detector` is an evidence venue (`gate_family: none`) —
+  so a pure SUBTLE candidate (e.g., the Purito/INCIDecoder flagship pattern) may fail the
+  ≥2-demand-family bar. This is a real tension between two owner-locked surfaces (the
+  buyer-proof Hard Gate vs the venue card set's SUBTLE class), not a spec defect. ROUTED to the
+  gate paper-check lane as a required test (do the actual SUBTLE batch-1/pool cases clear the
+  2-family bar?) and SURFACED to the owner: if SUBTLE cases systematically fail, the Hard Gate
+  needs an owner amendment (e.g., a SUBTLE-class variant: detector + community + costly-behavior
+  qualifies). No surface changed unilaterally.
+- **Ontology backbone commissioned (architecture pass).** Owner words 2026-06-13: "heavily
+  adopt palantir's ontology… backbone for the whole repo" + "prompt out for this ontology with
+  your structure, make them do goal framing." Commission authored:
+  `docs/prompts/product-planning/orca_ontology_backbone_architecture_pass_commission_prompt_v0.md`
+  — goal-framing FIRST, then architecture planning; two layers (domain BUILD + workflow-ontology
+  MAP-don't-rebuild); venue-card-set survival-term kernel; naming-normative/schema-light v0;
+  PROPOSED architecture object only (no folder/router enactment, no object cards as live
+  authority). HIGH lock-in named; runs as an architecture pass (Cynefin + DCP). This lane
+  adjudicates the returned goal frame + architecture object; owner signs adoption.
+- **Sequencing.** Ontology is mostly consolidation of existing proto-schemas, so it is fast;
+  the scan-spec schema is its richest single input and a forward consumer. Recommended order:
+  the scan spec lands + owner-signs adoption; the ontology pass runs next; future scan/capture
+  schema work then speaks ontology vocabulary. The gate paper-check and pricing lanes have no
+  ontology dependency and proceed independently.
+
 ## Readiness In One Line
 
 The consistency sweep found **nothing that blocks asks 1-2**: no subordinate
