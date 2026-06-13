@@ -68,7 +68,10 @@ This authorization is **bounded — not blanket**:
   auth gate is not — that is the line between civil/ToS exposure and unauthorized-access exposure.*
 - **No private personal data of individuals / no surveillance-grade harvesting** (unchanged separate
   legal line — see `data_capture_spine_future_exploration_lanes_v0.md`). Market-level signal
-  (product/brand/hashtag/aggregate counts) is fine; building dossiers on individuals is not.
+  (product/brand/hashtag/aggregate counts) is fine; building dossiers on individuals is not
+  (exception: internal wind-caller calibration per `docs/decisions/wind_caller_calibration_carveout_v0.md`
+  — bounded to ≤5 public-figure creator accounts, public data only, human pace, pre-commercial,
+  internal only; that carve-out does not change the general dossier prohibition).
 - **No secrets, no exit-IP leak, per-operation network approval** (unchanged operational hygiene).
 
 **The hard line moved from "ToS forbids it" to "it's behind an access-control gate you can't

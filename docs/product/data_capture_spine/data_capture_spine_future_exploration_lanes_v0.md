@@ -3,12 +3,18 @@ retrieval_header_version: 1
 artifact_role: Future-exploration backlog (non-authorizing, capture-spine level)
 scope: >
   Deliberately-deferred, legally-gated capture-spine capabilities surfaced during the
-  LinkedIn Discovery & Planning Lane design. Records the idea, why it is OUT of the
-  discovery lane, the boundary it must not cross, and the preconditions to revisit it.
+  LinkedIn Discovery & Planning Lane design, plus two capabilities reclassified from
+  out-of-scope to sanctioned-but-deferred by the wind-caller calibration carve-out
+  (docs/decisions/wind_caller_calibration_carveout_v0.md, 2026-06-13):
+  audience/follower-graph analytics (Tier 2A) and cross-platform public-handle
+  stitching (Tier 2B). Records the idea, why it is deferred/gated, and preconditions.
 use_when:
   - Someone proposes relationship-graph analytics or contact/outreach inside a discovery lane.
-  - Scoping a future, separately-authorized lane for either capability.
+  - Scoping a future, separately-authorized lane for audience-graph, handle-stitching, or outreach.
+  - Checking whether audience/follower-graph or cross-platform stitching is authorized.
 authority_boundary: retrieval_only
+open_next:
+  - docs/decisions/wind_caller_calibration_carveout_v0.md   # Tier 2 reclassification authority
 ```
 
 # Data Capture Spine — Future Exploration Lanes (v0)
@@ -16,22 +22,30 @@ authority_boundary: retrieval_only
 ## What this is — and is not
 
 This is a **capture-spine-level backlog of deferred capabilities**, surfaced while
-designing the LinkedIn Discovery & Planning Lane. It is **not authorized work, not a
-build spec, and not legal advice.** Each item below is **out of scope for every
-discovery/planning lane** and may be built only as its **own** lane, after its own
-architecture pass, **legal review**, and an explicit bounded execution authorization.
+designing the LinkedIn Discovery & Planning Lane, plus two items reclassified by the
+2026-06-13 wind-caller calibration carve-out
+(`docs/decisions/wind_caller_calibration_carveout_v0.md`) from out-of-scope to
+**sanctioned-but-deferred** (Tier 2A audience/follower-graph analytics and Tier 2B
+cross-platform public-handle stitching). It is **not authorized work, not a
+build spec, and not legal advice.** Each item below remains deferred and may be
+activated only under **its own** dated authorization + legal gate.
 
 Nothing here changes the current discovery lane's Hard Stops or Non-Claims. The
 discovery lane continues to forbid these capabilities; this doc only records *where
 they would live if pursued* and *what would have to be true first*.
 
-## Future Exploration A — Relationship-Graph Analytics Lane
+## Future Exploration A — Audience / Follower-Graph Analytics Lane
+
+**Classification (2026-06-13):** Reclassified from out-of-scope →
+**sanctioned-but-deferred** (Tier 2A) by `docs/decisions/wind_caller_calibration_carveout_v0.md`.
+Requires own dated authorization + **hard legal gate** before any activation
+(touches ordinary followers, not public figures).
 
 **The idea.** Apply data science to follower / connection / commenter relationship
 graphs — network analysis, influence mapping, community detection — which is
 genuinely useful analytically.
 
-**Why it is OUT of every discovery lane.** Building or retaining these graphs is the
+**Why it is OUT of every discovery lane (and must not be activated without a legal gate).** Building or retaining these graphs is the
 single highest-risk capability surfaced in the LinkedIn design:
 
 - it is squarely against LinkedIn's Terms of Service;
@@ -52,7 +66,32 @@ a lawful basis and entitlement/consent model; data-minimization by design; and a
 clear statement of who the data subjects are and on what basis they are processed.
 Never folded into discovery.
 
-## Future Exploration B — Contact / Outreach Lane
+## Future Exploration B — Cross-Platform Public-Handle Stitching
+
+**Classification (2026-06-13):** Reclassified from out-of-scope →
+**sanctioned-but-deferred** (Tier 2B) by `docs/decisions/wind_caller_calibration_carveout_v0.md`.
+Requires own dated authorization + legal review before any activation.
+
+**The idea.** Link the same wind-caller's public handles across IG, TikTok, YouTube,
+and other platforms into a unified calibration record — useful for cross-platform
+call-accuracy grading.
+
+**Why it is deferred.** At the public-handle level (linking @handle on IG to
+@handle on TikTok) the risk is lower than audience-graph. However, any join beyond
+the public-handle layer (private handles, follower-level data, cross-platform
+audience overlap) raises the same legal concerns as Tier 2A and must be gated
+separately.
+
+**Boundary.** Public-handle stitching at the wind-caller level only; no audience
+data, no cross-platform follower lists. Any broader cross-platform join requires its
+own legal assessment.
+
+**Preconditions to activate.** Separate dated authorization; legal review for any
+non-public-handle joins; data-minimization design; explicit authorization.
+
+---
+
+## Future Exploration C — Contact / Outreach Lane
 
 **The idea.** B2B contact and outreach — including the question of whether contact
 acquisition is acceptable "because it's B2B."
@@ -78,11 +117,16 @@ basis + consent / published-channel model; no harvesting; and explicit authoriza
 
 ## Cross-cutting
 
-- Both lanes require **legal review** and a **separate explicit authorization** before
-  any build — neither is implied by the discovery lane's existence.
-- Neither changes the current discovery lane Hard Stops or Non-Claims.
-- Both are **out of scope** for the LinkedIn Discovery & Planning Lane and for the
-  capture spine's current build scope.
+- All three items require **legal review** and a **separate explicit authorization**
+  before any activation — none is implied by the discovery lane's existence or by
+  the wind-caller Tier 1 carve-out.
+- None changes the current discovery lane Hard Stops or Non-Claims.
+- All three are **out of scope** for the LinkedIn Discovery & Planning Lane and for
+  the capture spine's current build scope.
+- Tier 2A (audience/follower-graph) and Tier 2B (cross-platform stitching) are
+  reclassified to sanctioned-but-deferred by
+  `docs/decisions/wind_caller_calibration_carveout_v0.md`; Tier 2C (contact/outreach)
+  remains out-of-scope (no reclassification).
 
 ## Non-claims
 

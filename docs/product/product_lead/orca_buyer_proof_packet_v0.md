@@ -128,7 +128,10 @@ integrity rule instead of a venue allowlist:
 - Org-motion (hiring composition + headcount, brand AND parent) is
   CORROBORATION inside the artifact — divergence reads (demand up +
   staffing up / demand up + staffing flat / staffing up + demand flat) are
-  the premium element — never a standalone product, never person-level.
+  the premium element — never a standalone product, never a sold or externally
+  published person-level surface (internal wind-caller calibration is the sole
+  bounded exception per `docs/decisions/wind_caller_calibration_carveout_v0.md`;
+  that carve-out is internal-only and does not change this artifact's external boundary).
   Routes follow the owning capture decisions (official/manual/entitled/
   archive today); the owner's measured-ToS-risk posture (ask-1 amendment,
   2026-06-12) accepts measured risk and rejects absurd-level approaches
