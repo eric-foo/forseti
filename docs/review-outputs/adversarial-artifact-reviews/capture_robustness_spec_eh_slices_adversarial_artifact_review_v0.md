@@ -200,3 +200,28 @@ Here is the delegated artifact review result. Adjudicate it under the delegated-
 - Reviewer verdict: `NEEDS_PATCH_BEFORE_BUILD_SCOPING`.
 - Residual risk: no live archive probes rerun; source-backed repo review only.
 - Blockers/off-scope/not-proven: no strict validation, readiness, approval, fixture admission, implementation authorization, or patch authority claimed.
+
+## Same-Vendor Post-Patch Recheck (CA-adjudicated, 2026-06-14)
+
+```yaml
+recheck:
+  de_correlation_bar: same_vendor_sanity
+  same_vendor_rationale: bounded post-patch recheck; no no-new-seam claim
+  reviewed_by: claude-sonnet-4-6
+  authored_by: claude-opus-4.8
+  overall: clean
+  per_finding:
+    AR-01: closed
+    AR-02: closed
+    AR-03: closed   # name/label branch; full closure was the owner decision, now made
+    AR-04: closed
+    AR-05: closed
+  new_issues: []
+  residual: acceptance criterion (a) assumed archive.today present; resolved by the AR-03 (b+) owner decision + acceptance alignment in the same commit
+ca_adjudication:
+  verdict: recheck accepted; AR-01..05 patches kept/final (two-bar gate cleared)
+  ar03_owner_decision: >
+    (b+) — v1 Wayback + publisher-history (labeled: SPOF not removed for ordinary brand/retailer
+    pages); archive.today committed fast-follow gated on its AR-02 served-time + no-gate-defeat
+    probe; Common Crawl per-URL CDX backup second general rung.
+```
