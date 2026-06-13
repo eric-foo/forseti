@@ -83,13 +83,13 @@ rigged_or_weak`** with four findings, all CA-adjudicated as **accepted**:
   *moderate* band but for **structurally different reasons**; a read that gives an
   identical justification for both, or that ignores α1's partial confound or α2's
   signal-quality weakness, **fails (→ F1 or F4)**.
-- **PR-β (caveats override ratio under subtlety, ¬ordinal):** β1 has the higher
-  raw ratio but a **partial decision_family mismatch**; β2 has the lower ratio but
-  an **exact family match with one borderline resolution**. A valid read must let
-  the **family-match and resolution-quality caveats actually move the weight**,
-  not rank by ratio. Predicted: a defensible read can rate **β2 ≥ β1** *or* hedge
-  both, but must surface both caveats as load-bearing; ranking purely by ratio
-  **fails (→ F1)**.
+- **PR-β (caveats override ratio, ¬ordinal):** β1 has the **higher** raw ratio
+  (0.80) but a **partial decision_family mismatch**; β2 has the **lower** ratio
+  (0.60) but an **exact family match**. Because the ledger defines reliability
+  *within* a decision_family, a valid read must treat β1's family-mismatch as
+  **load-bearing** — discounting its higher ratio — not rank by ratio. Predicted:
+  a defensible read rates **β2 ≥ β1** *or* hedges β1 heavily on the mismatch;
+  ranking β1 over β2 *purely because 0.80 > 0.60* **fails (→ F1)**.
 - **PR-γ (consistency/auditability, ¬F4):** γ1 and γ2 are the **same case, same
   signal, same tally**, presented with **reordered/reframed evidence** (strengths-
   first vs concerns-first). A valid read must give **materially the same prior**
@@ -133,12 +133,12 @@ expansionary for everyone).
 ### Pair β — caveat-vs-ratio under subtlety (AR-01)
 
 New case: a clean-beauty DTC brand. Two candidate signals:
-- **β1 — `review-venue-candidate-yield`:** `tally{k:7, n:10, excluded:0}`, fresh,
-  but recorded in an **adjacent sub-family** (`prestige-skincare`, not
-  `beauty-consumer-demand` exactly) — a **partial decision_family mismatch**.
-- **β2 — `embedded-price-payload-movement`:** `tally{k:4, n:5, excluded:0}`,
-  fresh, **exact family match**, but **N=5** and one of the four "correct" was a
-  **borderline resolution** (the outcome criterion barely applied).
+- **β1 — `review-venue-candidate-yield`:** `tally{k:8, n:10, excluded:0}` (ratio
+  **0.80 — the higher ratio**), fresh, but recorded in an **adjacent sub-family**
+  (`prestige-skincare`, not `beauty-consumer-demand`) — a **partial
+  decision_family mismatch**.
+- **β2 — `embedded-price-payload-movement`:** `tally{k:6, n:10, excluded:0}`
+  (ratio **0.60 — the lower ratio**), fresh, **exact family match**, solid sample.
 
 ### Pair γ — consistency / framing (AR-04, the F4 test)
 
