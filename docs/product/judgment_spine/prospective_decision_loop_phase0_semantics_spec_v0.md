@@ -64,8 +64,9 @@ Every field name below traces to one owning source. No new vocabulary is minted.
 | --- | --- |
 | decision_object_v0 groups (identity, mode, frame, sealed_call, disclosure, actual_path, updates, resolution, learning_extraction, integrity) | Target architecture §1 (adjudicated) |
 | claimed_floor, claimed_ceiling, reasoning | `ContestantBandClaim`, orca-harness/schemas/judgement_models.py |
-| statement, would_flip_if_false | `LoadBearingAssumption`, judgement_models.py |
-| claim_role: load_bearing / supporting / contextual | `EvidenceUsed`, judgement_models.py |
+| statement, evidence_unit_ids, would_flip_if_false | `LoadBearingAssumption`, judgement_models.py |
+| claim_text, claim_role: load_bearing / supporting / contextual, evidence_unit_ids | `EvidenceUsed`, judgement_models.py |
+| signal_id | Target architecture §1 `signals_used` / pending near-half signal-reliability interface |
 | 0–8 action-intensity ladder | `RecommendedAction.ladder_level`, judgement_models.py |
 | seal-before-disclose, mechanical resolution, append-only, quarantine-as-data | Target architecture (firewall translation, adjudicated) |
 | unscoreable_by_design | Target architecture §1 intake gate |
@@ -111,8 +112,8 @@ Format per field: **filled by / when / from what / filled means**.
 - `resolution_criteria` — sealing actor / at seal / mechanical instructions a third party could apply: where the metric is read, how the band is compared, what counts as in/over/under / filled means resolution requires zero judgment. Resolution may **apply** these; it may never author or amend them.
 - `leading_indicators` — sealing actor / at seal / `[{signal, expected_direction, check_window}]` / observable early signals; empty allowed with the line "none identified".
 - `kill_or_adjust_triggers` — sealing actor / at seal / `[{condition, pre_committed_response}]` / conditions concrete enough that firing is observable.
-- `signals_used` — sealing actor / at seal / `[{signal_id, description, claim_role}]` with `claim_role` ∈ load_bearing/supporting/contextual / every load-bearing input named (this is the live signal pre-commitment; rows flow to the near-half reliability ledger at resolution).
-- `assumptions` — sealing actor / at seal / `[{statement, evidence_refs, would_flip_if_false}]` / every assumption whose falsity would change the call carries `would_flip_if_false: true`.
+- `signals_used` — sealing actor / at seal / `[{signal_id, claim_text, claim_role, evidence_unit_ids}]` with `claim_role` ∈ load_bearing/supporting/contextual / every load-bearing input named; `signal_id` is the live-loop signal key, while `claim_text`, `claim_role`, and `evidence_unit_ids` reuse the harness evidence vocabulary (this is the live signal pre-commitment; rows flow to the near-half reliability ledger at resolution). Values in `evidence_unit_ids` at this tier are retrieval handles (paths, sections, URLs); no `EvidenceUnit` is bound by any live-loop entry — JSG-01 stays frozen.
+- `assumptions` — sealing actor / at seal / `[{statement, evidence_unit_ids, would_flip_if_false}]` / every assumption whose falsity would change the call carries `would_flip_if_false: true`.
 - `lessons_consulted` — sealing actor / at seal / retrieval handles of validated lessons used; `pending_interface` until the near-half ledger exists (N7); never invented.
 - `reasoning_trace` — sealing actor / at seal / REQUIRED full trace from frame to recommendation / filled means a reader can derive the call from the brief (the derivability standard; doubles as the lesson-extraction and audit surface).
 - `seal.content_hash` — operator / immediately after committing the sealed-call file / the hash convention below.
@@ -153,15 +154,19 @@ Format per field: **filled by / when / from what / filled means**.
   01_intake.md          # identity + mode + frame
   02_sealed_call.md     # sealed_call (embeds the SHA256 of 01_intake.md)
   03_disclosure.md      # assisted only (embeds the SHA256 of 02_sealed_call.md)
-  0N_update_seal.md     # optional re-seals (each embeds the prior seal's SHA256)
-  0M_resolution.md      # resolution + learning_extraction (embeds the SHA256 of 02_sealed_call.md)
+  04_actual_path.md     # passive observation when the org decides (embeds the latest prior entry SHA256)
+  0N_update_seal.md     # optional re-seals before org-decision/outcome/resolution signal is known (each embeds the prior scoreable seal's SHA256 and the latest prior entry SHA256)
+  0M_resolution_<seal-entry>.md # resolution + learning_extraction for one scoreable seal/update (embeds that seal/update SHA256 and the latest prior entry SHA256)
 <ledger_home>/index.md  # one line per entry: decision_id -> file -> hash -> status
 ```
 
 **The chain rule (the ordering proof):** every entry after the first embeds the
-hash of the entry it follows. A disclosure containing the seal's hash can only
-have been written after the seal existed — ordering is proven by content, not
-by timestamps or git history, so it survives squash-merges and branch deletion.
+hash of the latest prior ledger entry it follows. A disclosure containing the
+seal's hash can only have been written after the seal existed; an update seal
+also embeds the prior scoreable seal hash it supersedes-by-reference; a
+resolution embeds the specific seal/update hash it resolves. Ordering is proven
+by content, not by timestamps or git history, so it survives squash-merges and
+branch deletion.
 
 **Hash convention (binding):** SHA256 over **git blob bytes** (LF as stored),
 never CRLF working-tree bytes. Verified recipe (cross-platform):
@@ -224,11 +229,12 @@ sign-off, not by this spec.
   Reddit equivalents, check_window: first screening day}]`.
   kill_or_adjust_triggers: `[{condition: first pass yields 0 qualifying blog
   candidates, pre_committed_response: reprioritize Reddit immediately}]`.
-  signals_used: `[{signal_id: batch1-screen-venue-yield, description: "blogs
+  signals_used: `[{signal_id: batch1-screen-venue-yield, claim_text: "blogs
   (mysubscriptionaddiction, hellosubscription) produced multiple Tier-A
-  candidates in batch-1", claim_role: load_bearing}]`. assumptions:
+  candidates in batch-1", claim_role: load_bearing, evidence_unit_ids:
+  [batch-1 Screen Provenance]}]`. assumptions:
   `[{statement: "decision-shaped events (repricing, channel entry) surface in
-  dedicated review blogs before general communities", evidence_refs: [batch-1
+  dedicated review blogs before general communities", evidence_unit_ids: [batch-1
   Screen Provenance], would_flip_if_false: true}]`. lessons_consulted:
   `pending_interface (near-half ledger not yet durable)`. reasoning_trace:
   "batch-1's only proven candidate venues are blogs; the family constraint
