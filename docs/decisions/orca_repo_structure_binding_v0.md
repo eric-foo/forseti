@@ -155,19 +155,6 @@ gated by the runbook's precondition (clean commit checkpoint or explicit
 owner waiver) and rewrites live references only; historical records keep
 their original path text and are covered by the package's moved-paths index.
 
-## Start preflight receipt
-
-```text
-orca_start_preflight:
-  agents_read: yes
-  overlay_read: yes
-  source_pack: custom (overlay authority files + EP classification + hooks + DCP contract + retrieval-metadata)
-  edit_permission: implementation-authorized (bounded, current-turn owner authorization)
-  target_scope: repo-structure binding + EP-04 substrate + Phase-2 package
-  dirty_state_checked: yes (per-target; other lanes' dirty files excluded from claim)
-  blocked_if_missing: no
-```
-
 ## Direction change propagation
 
 The `direction_change_propagation` receipt for this change set lives inline in

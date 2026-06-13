@@ -296,19 +296,6 @@ declares itself to be and is unchanged; this update records a behavior change to
 an already-built substrate, not a new EP handle. Advisory record — not
 validation, readiness, or approval.
 
-## Current Task Receipt
-
-```yaml
-orca_start_preflight:
-  agents_read: yes
-  overlay_read: yes            # all 17 .agents/workflow-overlay/ sections read this turn
-  source_pack: custom          # full overlay + substrate probe (.claude/, orca-harness/)
-  edit_permission: docs-write
-  target_scope: [docs/decisions/overlay_enforcement_placement_classification_v0.md]
-  dirty_state_checked: yes      # source-of-truth.md modified; many untracked docs; this is a new file, no overlay edit
-  blocked_if_missing: no
-```
-
 ## Problem (Orca-bound)
 
 The Orca overlay (`.agents/workflow-overlay/`, the always-on governance layer loaded for project work) carries many rules as **resident model instructions** that a deterministic substrate could enforce at a boundary instead. Each such rule (a) fires only when the model attends to it — unreliable — and (b) spends a slot of the scarce, reliability-bounded always-on instruction budget that a genuinely judgment-based rule needs. The recurring miss is reaching for a "be careful to…" instruction by reflex when a hook, gate, schema, or test could enforce the rule by construction.
