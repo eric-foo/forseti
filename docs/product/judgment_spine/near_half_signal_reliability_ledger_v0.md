@@ -107,12 +107,19 @@ non-negotiable rules carried from batch-1:
 2. **Report all.** Every pre-committed `(signal, case)` use is tallied —
    correct, wrong, not-applicable, and unscoreable alike. Dropping the misses
    voids the property. The honest claim is "signal S pointed the right way in K
-   of N pre-committed uses," never "here is a case where S worked."
+   of S scoreable uses, out of T total pre-committed uses with every exclusion
+   reported," never "here is a case where S worked."
 
 Per use, the outcome is exactly one of: `correct_direction` | `wrong_direction`
 | `not_applicable` (signal didn't bear on this case) | `unscoreable`
-(outcome criterion couldn't be applied). Only `correct`/`wrong` count toward K/N;
-the others are reported but excluded from the ratio.
+(outcome criterion couldn't be applied). `correct_direction` / `wrong_direction`
+mean the pre-reveal predicted direction was compared against a pre-specified
+resolution criterion or scoring key, not a post-reveal restatement of what the
+signal "obviously" meant. If the applicable direction criterion was not fixed
+before reveal, the row is `unscoreable` or contaminated; it must not be rescued
+as a favorable correct/wrong tally after seeing the outcome. Only `correct` /
+`wrong` count toward the scoreable ratio; the total pre-committed count and all
+exclusions travel with the ratio.
 
 ## Ledger Schema v0
 
@@ -127,11 +134,14 @@ signal_reliability_ledger_v0:
           # - case_id:
           #   predicted_direction:        # recorded in the blind call (pre-reveal)
           #   blind_call_ref:             # provenance: the sealed pre-reveal judgment that carries the prediction
+          #   resolution_criteria_ref:     # pre-specified criterion/key used to compute actual direction
           #   outcome: correct_direction | wrong_direction | not_applicable | unscoreable
+          #   scoreability_reason:         # required for not_applicable/unscoreable; optional note for scoreable rows
           #   resolution_ref:             # provenance: where the post-reveal score was computed
         tally:
           k_correct:             # count of correct_direction
           n_scoreable:           # correct + wrong (the denominator)
+          n_pre_committed_total:  # correct + wrong + not_applicable + unscoreable
           excluded:              # not_applicable + unscoreable counts, reported
       validation_status:         # the N7 "validation status": product_learning (default) | <stronger only via a named gate>
       staleness:                 # the N7 "staleness marker"
@@ -199,9 +209,11 @@ reliability:
     - case_id: beautypie_repricing_2023_v0
       predicted_direction: expansion -> supports demand-positive call
       blind_call_ref: <the sealed blind judgment carrying the org-motion prediction>
+      resolution_criteria_ref: <the pre-specified outcome criterion / scoring key used to compute direction>
       outcome: correct_direction
+      scoreability_reason: scoreable under the pre-specified criterion
       resolution_ref: <where the post-reveal score was computed>
-  tally: { k_correct: 1, n_scoreable: 1, excluded: 0 }
+  tally: { k_correct: 1, n_scoreable: 1, n_pre_committed_total: 1, excluded: 0 }
 validation_status: product_learning
 staleness:
   stale_if: [Greenhouse board schema changes, beauty-family drift, N < 3]
