@@ -41,15 +41,11 @@ This file binds reusable artifact-role mechanics to Orca-owned paths. Generic wo
 
 ## Retrieval Metadata
 
-New or materially touched durable human-authored workflow artifacts should
-follow `.agents/workflow-overlay/retrieval-metadata.md` when the artifact may
-affect future routing, planning, review, proof, validation, prompt, or overlay
-work.
-
-Retrieval metadata helps future agents find and interpret artifacts. It does
-not change any role binding, permission, freshness marker, paired artifact,
-validation evidence, source-of-truth status, or authority boundary in this
-file.
+Durable human-authored workflow artifacts follow the retrieval-header contract
+in `.agents/workflow-overlay/retrieval-metadata.md` (which owns applicability
+and exclusions). It changes no role binding, permission, freshness marker,
+paired artifact, validation evidence, source-of-truth status, or authority
+boundary in this file.
 
 ## Failure States
 
