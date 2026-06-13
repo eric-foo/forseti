@@ -54,81 +54,6 @@ authority_boundary: retrieval_only
 - Do not copy or move material from external reference folders unless a later turn explicitly authorizes the import.
 - Placement is checked at the write boundary by `.agents/hooks/check_placement.py` (EP-04, advisory; `--strict` commit/CI mode available), which reads `repo-structure.yaml` as its only rule source. A passing check is placement shape only - never validation, readiness, or authority. Parameters and invariants: `docs/decisions/orca_repo_structure_binding_v0.md`.
 
-## Direction Change Propagation - Source Capture Armory Product Folder
-
-```yaml
-direction_change_propagation:
-  doctrine_changed: "The Source Capture Armory product-doc folder convention is now bound in the overlay folder authority while existing controlling Data Capture source-access documents remain at their historical paths."
-  trigger: output_authority
-  controlling_sources_updated:
-    - ".agents/workflow-overlay/artifact-folders.md"
-    - "docs/product/source_capture_toolbox/README.md"
-    - "docs/product/README.md"
-  downstream_surfaces_checked:
-    - "AGENTS.md"
-    - ".agents/workflow-overlay/README.md"
-    - ".agents/workflow-overlay/source-of-truth.md"
-    - ".agents/workflow-overlay/source-loading.md"
-    - "docs/workflows/orca_repo_map_v0.md"
-    - "docs/decisions/data_capture_spine_source_access_tooling_build_authorization_v0.md"
-    - "docs/product/data_capture_spine/data_capture_source_access_method_plan_v0.md"
-  intentionally_not_updated:
-    - path: ".agents/workflow-overlay/artifact-roles.md"
-      reason: "The existing Product artifact role covers Source Capture Armory design notes and scoped specs; this patch binds folder routing, not a new artifact role."
-    - path: "docs/product/data_capture_spine/data_capture_source_access_boundary_decision_v0.md"
-      reason: "Source-access boundary permission and hard stops did not change."
-    - path: "docs/product/data_capture_spine/core_spine_v0_data_capture_spine_obligation_contract_v0.md"
-      reason: "Data Capture obligations did not change."
-  stale_language_search: "rg -n \"source_capture_toolbox|Source Capture Armory\" .agents/workflow-overlay/artifact-folders.md docs/product/README.md docs/product/source_capture_toolbox/README.md .agents/workflow-overlay/source-loading.md docs/workflows/orca_repo_map_v0.md docs/decisions/data_capture_spine_source_access_tooling_build_authorization_v0.md docs/product/data_capture_spine/data_capture_source_access_method_plan_v0.md"
-  non_claims:
-    - "not validation"
-    - "not readiness"
-    - "not implementation authorization"
-    - "not source-access boundary amendment"
-    - "not ECR, Cleaning, or Judgment design"
-```
-
-## Direction Change Propagation - No-Case Smoke Tests Folder
-
-```yaml
-direction_change_propagation:
-  doctrine_changed: >
-    The Judgment Harness v0.14 now has a narrow accepted folder for no-case
-    smoke-test receipts and operator provenance records, with a permanent
-    plumbing-only/non-gate-clearing boundary.
-  trigger: output_authority
-  controlling_sources_updated:
-    - .agents/workflow-overlay/artifact-folders.md
-  downstream_surfaces_checked:
-    - AGENTS.md
-    - .agents/workflow-overlay/README.md
-    - .agents/workflow-overlay/source-of-truth.md
-    - .agents/workflow-overlay/source-loading.md
-    - docs/research/judgment-spine/harness/v0_14/no_case_smoke_test_authorization_checklist_v0.md
-    - docs/decisions/no_case_smoke_test_authorization_pending_parameters_v0.md
-    - docs/review-outputs/adversarial-artifact-reviews/no_case_smoke_test_authorization_pending_parameters_adversarial_artifact_review_v0.md
-  intentionally_not_updated:
-    - path: .agents/workflow-overlay/artifact-roles.md
-      reason: >
-        Existing Research artifact and Workflow record roles already cover the
-        receipt/provenance distinction; this patch only binds a narrower folder.
-    - path: docs/research/judgment-spine/harness/v0_14/no_case_smoke_test_authorization_checklist_v0.md
-      reason: >
-        The checklist already requires exact receipt/provenance paths and keeps
-        smoke artifacts non-gate-clearing; no semantic update is required.
-  stale_language_search: >
-    rg -n "smoke_tests|no-case smoke|SMOKE_NOCASE_|gate-clearing|fixture admission|judgment-quality"
-    .agents/workflow-overlay/artifact-folders.md
-    docs/research/judgment-spine/harness/v0_14/no_case_smoke_test_authorization_checklist_v0.md
-    docs/decisions/no_case_smoke_test_authorization_pending_parameters_v0.md
-  non_claims:
-    - not validation
-    - not readiness
-    - not live-call authorization
-    - not fixture admission
-    - not judgment-quality proof
-```
-
 ## Direction Change Propagation - Orca-Local Skill Folder
 
 ```yaml
@@ -213,3 +138,5 @@ direction_change_propagation:
     - not execution of the Phase-2 move
     - hook wiring not live until session restart
 ```
+
+Older receipts archived verbatim in `docs/decisions/dcp_receipts_archive_v0.md`.

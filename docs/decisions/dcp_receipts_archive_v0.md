@@ -789,3 +789,222 @@ direction_change_propagation:
     - not source promotion
     - not acceptance
 ```
+
+## From .agents/workflow-overlay/delegated-review-patch.md
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Orca now carries a provisional, opt-in Delegated Review-and-Patch convention:
+    under an explicit Chief Architect commission, a de-correlated executor may run
+    a combined review-and-patch hardening pass on a single named high-stakes
+    authored artifact, with the CA adjudicating the returned diff before anything
+    is kept. It is not a bound review lane and creates no strict claims.
+  trigger: review_authority
+  related_triggers:
+    - workflow_authority
+  controlling_sources_updated:
+    - .agents/workflow-overlay/delegated-review-patch.md
+    - .agents/workflow-overlay/README.md
+    - .agents/workflow-overlay/source-of-truth.md
+    - .agents/workflow-overlay/review-lanes.md
+    - AGENTS.md
+    - docs/workflows/orca_repo_map_v0.md
+  downstream_surfaces_checked:
+    - .agents/workflow-overlay/prompt-orchestration.md
+    - .agents/workflow-overlay/validation-gates.md
+    - .agents/workflow-overlay/source-loading.md
+    - .agents/workflow-overlay/communication-style.md
+    - .agents/workflow-overlay/safety-rules.md
+  intentionally_not_updated:
+    - path: .agents/workflow-overlay/prompt-orchestration.md
+      reason: >
+        Model-neutrality, review-prompt findings-first defaults, strict-claim
+        gates, and preflight fields are unchanged. The convention defers to them
+        and adds a who-constraint, not review-lane model routing.
+    - path: .agents/workflow-overlay/validation-gates.md
+      reason: >
+        The convention claims no validation or readiness and creates no new
+        validation gate; existing gates are unchanged.
+    - path: .agents/workflow-overlay/source-loading.md
+      reason: >
+        Preflight receipt and source packs are referenced, not changed.
+    - path: .agents/workflow-overlay/safety-rules.md
+      reason: >
+        The protected-path list defers to safety-rules as the authority rather
+        than forking a new forbidden-edit set; no safety rule changes.
+    - path: CLAUDE.md
+      reason: >
+        CLAUDE.md is a thin shim that loads AGENTS.md and must not duplicate
+        Orca rules; the AGENTS.md terse pointer ("...and delegated
+        review-and-patch, load the owning overlay file") covers the convention.
+        No CLAUDE.md pointer was added.
+  stale_language_search: >
+    rg -n "source-read-only|Reviewer threads are source-read-only|runtime model|model-neutral|reviewer still does not edit|patch authority"
+    .agents/workflow-overlay/review-lanes.md
+    .agents/workflow-overlay/prompt-orchestration.md
+    AGENTS.md CLAUDE.md
+  stale_language_search_result: >
+    Run during this binding. Hits are the existing reviewer-read-only rule and
+    the existing model-neutrality rule. The convention is consistent with both:
+    the delegate is a commissioned executor (not a read-only reviewer), and
+    de-correlation is a commission who-constraint, not review-lane model routing.
+    No prior text claimed authored artifacts may never be patched or that no
+    commissioned-executor path exists, so no language was made stale.
+  non_claims:
+    - not validation
+    - not readiness
+    - not formal review authority
+    - not a mandatory or machine-routable review lane
+    - not runtime model routing
+    - not jb authority import
+```
+
+```yaml
+# no_repo access mode added 2026-06-08, after a de-correlated cross-family no-repo review + bounded recheck (5/5 prior findings closed) and CA adjudication.
+direction_change_propagation:
+  doctrine_changed: >
+    The provisional Delegated Review-and-Patch convention gains a no_repo access mode: a repo-blind
+    de-correlated delegate runs advisory-only (portable method), returns findings not a diff, the CA
+    applies the patch, and a required de-correlated post-patch re-review restores patch-time
+    de-correlation before keep. Review-side de-correlation, CA adjudication, protected paths, and the
+    strict-claim boundary are unchanged.
+  trigger: review_authority
+  related_triggers: [workflow_authority, output_authority]
+  controlling_sources_updated:
+    - .agents/workflow-overlay/delegated-review-patch.md
+  downstream_surfaces_checked:
+    - .agents/workflow-overlay/review-lanes.md          # UPDATED: lane line now distinguishes repo (delegate patches) vs no_repo (delegate read-only/advisory, CA patches)
+    - .agents/workflow-overlay/prompt-orchestration.md  # checked, no change: no_repo review prompts use existing paste-ready-chat + the registered portable-method template; deep-thinking-first, model-neutrality, findings-first already apply
+    - AGENTS.md                                         # checked, no change: the existing delegated-review-and-patch pointer (line 48) covers the new mode
+  intentionally_not_updated:
+    - path: docs/decisions/adversarial_review_routing_policy_v0.md
+      reason: routing-policy tiers declined by owner (Pile 3); the no_repo mode stands alone
+    - path: .agents/workflow-overlay/safety-rules.md
+      reason: protected-path set unchanged; the no_repo delegate edits nothing
+    - path: .agents/workflow-overlay/validation-gates.md
+      reason: advisory findings create no validation or strict claim
+  stale_language_search: >
+    grep 'NOT a source-read-only review lane|unified diff|patches the target' over review-lanes.md,
+    delegated-review-patch.md, AGENTS.md. Result: review-lanes line updated for the two modes; the
+    'unified diff' delegate_return is repo-mode-specific and the no_repo subsection states the
+    findings-return, so no other language was made stale.
+  non_claims:
+    - not validation
+    - not readiness
+    - not a bound, mandatory, or machine-routable review lane (the convention stays provisional)
+    - not runtime model routing (access is an operator/commission constraint)
+```
+
+```yaml
+# Bounded recheck actor refined 2026-06-09 (CA decision): same-family lower/mechanical-tier, not cross-family.
+direction_change_propagation:
+  doctrine_changed: >
+    no_repo post-patch re-review refined: the REQUIRED post-patch re-review is now a BOUNDED closure +
+    blast-radius recheck run by a SAME-FAMILY different/lower (mechanical-tier) model, not a cross-family
+    de-correlated pass. A bounded recheck verifies a known patch against explicit closure conditions
+    (near-mechanical) rather than discovering unknown seams, so cross-family de-correlation — whose value is
+    in discovery — is reserved for the discovery (full adversarial) pass and for claiming the
+    survives-an-adversarial-review-with-no-new-seam standard. Amends the 2026-06-08 no_repo entry's
+    "de-correlated post-patch re-review" to this bounded same-family recheck. CA adjudication, review-side
+    de-correlation, protected paths, the freshness gate, and the strict-claim boundary are unchanged.
+    who-constraint only; not a runtime-model recommendation.
+  trigger: review_authority
+  related_triggers: [workflow_authority]
+  controlling_sources_updated:
+    - .agents/workflow-overlay/delegated-review-patch.md
+  downstream_surfaces_checked:
+    - .agents/workflow-overlay/review-lanes.md
+    - AGENTS.md
+  intentionally_not_updated:
+    - path: .agents/workflow-overlay/review-lanes.md
+      reason: >
+        the no_repo lane line distinguishes repo vs no_repo by who-patches (delegate read-only/advisory,
+        CA patches); the recheck-actor tier is owned here and needs no lane-line change.
+    - path: .agents/workflow-overlay/delegated-review-patch.md (model_ladder block)
+      reason: >
+        the executor rung already defines a cheap same-family tier; the bounded recheck reuses that concept
+        rather than adding a rung.
+  non_claims:
+    - not validation
+    - not readiness
+    - not a bound, mandatory, or machine-routable review lane (the convention stays provisional)
+    - not runtime model routing (same-family/lower-tier is a who-constraint)
+```
+
+## From .agents/workflow-overlay/artifact-folders.md
+
+### Direction Change Propagation - Source Capture Armory Product Folder
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: "The Source Capture Armory product-doc folder convention is now bound in the overlay folder authority while existing controlling Data Capture source-access documents remain at their historical paths."
+  trigger: output_authority
+  controlling_sources_updated:
+    - ".agents/workflow-overlay/artifact-folders.md"
+    - "docs/product/source_capture_toolbox/README.md"
+    - "docs/product/README.md"
+  downstream_surfaces_checked:
+    - "AGENTS.md"
+    - ".agents/workflow-overlay/README.md"
+    - ".agents/workflow-overlay/source-of-truth.md"
+    - ".agents/workflow-overlay/source-loading.md"
+    - "docs/workflows/orca_repo_map_v0.md"
+    - "docs/decisions/data_capture_spine_source_access_tooling_build_authorization_v0.md"
+    - "docs/product/data_capture_spine/data_capture_source_access_method_plan_v0.md"
+  intentionally_not_updated:
+    - path: ".agents/workflow-overlay/artifact-roles.md"
+      reason: "The existing Product artifact role covers Source Capture Armory design notes and scoped specs; this patch binds folder routing, not a new artifact role."
+    - path: "docs/product/data_capture_spine/data_capture_source_access_boundary_decision_v0.md"
+      reason: "Source-access boundary permission and hard stops did not change."
+    - path: "docs/product/data_capture_spine/core_spine_v0_data_capture_spine_obligation_contract_v0.md"
+      reason: "Data Capture obligations did not change."
+  stale_language_search: "rg -n \"source_capture_toolbox|Source Capture Armory\" .agents/workflow-overlay/artifact-folders.md docs/product/README.md docs/product/source_capture_toolbox/README.md .agents/workflow-overlay/source-loading.md docs/workflows/orca_repo_map_v0.md docs/decisions/data_capture_spine_source_access_tooling_build_authorization_v0.md docs/product/data_capture_spine/data_capture_source_access_method_plan_v0.md"
+  non_claims:
+    - "not validation"
+    - "not readiness"
+    - "not implementation authorization"
+    - "not source-access boundary amendment"
+    - "not ECR, Cleaning, or Judgment design"
+```
+
+### Direction Change Propagation - No-Case Smoke Tests Folder
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    The Judgment Harness v0.14 now has a narrow accepted folder for no-case
+    smoke-test receipts and operator provenance records, with a permanent
+    plumbing-only/non-gate-clearing boundary.
+  trigger: output_authority
+  controlling_sources_updated:
+    - .agents/workflow-overlay/artifact-folders.md
+  downstream_surfaces_checked:
+    - AGENTS.md
+    - .agents/workflow-overlay/README.md
+    - .agents/workflow-overlay/source-of-truth.md
+    - .agents/workflow-overlay/source-loading.md
+    - docs/research/judgment-spine/harness/v0_14/no_case_smoke_test_authorization_checklist_v0.md
+    - docs/decisions/no_case_smoke_test_authorization_pending_parameters_v0.md
+    - docs/review-outputs/adversarial-artifact-reviews/no_case_smoke_test_authorization_pending_parameters_adversarial_artifact_review_v0.md
+  intentionally_not_updated:
+    - path: .agents/workflow-overlay/artifact-roles.md
+      reason: >
+        Existing Research artifact and Workflow record roles already cover the
+        receipt/provenance distinction; this patch only binds a narrower folder.
+    - path: docs/research/judgment-spine/harness/v0_14/no_case_smoke_test_authorization_checklist_v0.md
+      reason: >
+        The checklist already requires exact receipt/provenance paths and keeps
+        smoke artifacts non-gate-clearing; no semantic update is required.
+  stale_language_search: >
+    rg -n "smoke_tests|no-case smoke|SMOKE_NOCASE_|gate-clearing|fixture admission|judgment-quality"
+    .agents/workflow-overlay/artifact-folders.md
+    docs/research/judgment-spine/harness/v0_14/no_case_smoke_test_authorization_checklist_v0.md
+    docs/decisions/no_case_smoke_test_authorization_pending_parameters_v0.md
+  non_claims:
+    - not validation
+    - not readiness
+    - not live-call authorization
+    - not fixture admission
+    - not judgment-quality proof
+```
