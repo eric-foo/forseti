@@ -1,0 +1,110 @@
+{
+  "availability_http_metadata": {
+    "byte_count": 1820,
+    "capture_timestamp": "2026-06-13T07:27:59Z",
+    "content_length": null,
+    "content_type": "application/json",
+    "date": "Sat, 13 Jun 2026 07:27:59 GMT",
+    "etag": null,
+    "final_url": "https://web.archive.org/cdx/search/cdx?url=https%3A%2F%2Fwww.ons.gov.uk%2Feconomy%2Finflationandpriceindices%2Fbulletins%2Fconsumerpriceinflation%2Fjanuary2023&output=json&fl=timestamp%2Coriginal%2Cstatuscode%2Cmimetype%2Cdigest&collapse=digest&to=20230228235959&limit=-10",
+    "last_modified": null,
+    "reason": "OK",
+    "requested_url": "https://web.archive.org/cdx/search/cdx?url=https%3A%2F%2Fwww.ons.gov.uk%2Feconomy%2Finflationandpriceindices%2Fbulletins%2Fconsumerpriceinflation%2Fjanuary2023&output=json&fl=timestamp%2Coriginal%2Cstatuscode%2Cmimetype%2Cdigest&collapse=digest&to=20230228235959&limit=-10",
+    "status": 200,
+    "timeout_seconds": 20.0
+  },
+  "availability_url": "https://web.archive.org/cdx/search/cdx?url=https%3A%2F%2Fwww.ons.gov.uk%2Feconomy%2Finflationandpriceindices%2Fbulletins%2Fconsumerpriceinflation%2Fjanuary2023&output=json&fl=timestamp%2Coriginal%2Cstatuscode%2Cmimetype%2Cdigest&collapse=digest&to=20230228235959&limit=-10",
+  "original_url": "https://www.ons.gov.uk/economy/inflationandpriceindices/bulletins/consumerpriceinflation/january2023",
+  "parse_warning": null,
+  "selected_snapshot": {
+    "digest": "6AL47Z76BM6BTEE2H3K2YV3CJ2NSQ7M6",
+    "mime_type": "text/html",
+    "original_url": "https://www.ons.gov.uk/economy/inflationandpriceindices/bulletins/consumerpriceinflation/january2023",
+    "snapshot_url": "https://web.archive.org/web/20230216220653/https://www.ons.gov.uk/economy/inflationandpriceindices/bulletins/consumerpriceinflation/january2023",
+    "status_code": "200",
+    "timestamp": "20230216220653"
+  },
+  "snapshot_count": 10,
+  "snapshots": [
+    {
+      "digest": "K2YRKODDE72TGAFPAJN3GLXZG72ERLCY",
+      "mime_type": "text/html",
+      "original_url": "https://www.ons.gov.uk/economy/inflationandpriceindices/bulletins/consumerpriceinflation/january2023",
+      "snapshot_url": "https://web.archive.org/web/20230215090230/https://www.ons.gov.uk/economy/inflationandpriceindices/bulletins/consumerpriceinflation/january2023",
+      "status_code": "200",
+      "timestamp": "20230215090230"
+    },
+    {
+      "digest": "RMD7B4JHO6AQGBU6YXD64D4OPXF7ZNM5",
+      "mime_type": "text/html",
+      "original_url": "https://www.ons.gov.uk/economy/inflationandpriceindices/bulletins/consumerpriceinflation/january2023",
+      "snapshot_url": "https://web.archive.org/web/20230215102609/https://www.ons.gov.uk/economy/inflationandpriceindices/bulletins/consumerpriceinflation/january2023",
+      "status_code": "200",
+      "timestamp": "20230215102609"
+    },
+    {
+      "digest": "S2ZSIR3KFWKK2UCOCJTTAD3VSLVMNS7F",
+      "mime_type": "text/html",
+      "original_url": "https://www.ons.gov.uk/economy/inflationandpriceindices/bulletins/consumerpriceinflation/january2023",
+      "snapshot_url": "https://web.archive.org/web/20230215105431/https://www.ons.gov.uk/economy/inflationandpriceindices/bulletins/consumerpriceinflation/january2023",
+      "status_code": "200",
+      "timestamp": "20230215105431"
+    },
+    {
+      "digest": "QAJT63S4QQQWC6BXB54OHJDY7W63U6B4",
+      "mime_type": "text/html",
+      "original_url": "https://www.ons.gov.uk/economy/inflationandpriceindices/bulletins/consumerpriceinflation/january2023",
+      "snapshot_url": "https://web.archive.org/web/20230215122341/https://www.ons.gov.uk/economy/inflationandpriceindices/bulletins/consumerpriceinflation/january2023",
+      "status_code": "200",
+      "timestamp": "20230215122341"
+    },
+    {
+      "digest": "X5QBLYAFVBULCDC6TIFBMOO4JOCMRKAX",
+      "mime_type": "text/html",
+      "original_url": "https://www.ons.gov.uk/economy/inflationandpriceindices/bulletins/consumerpriceinflation/january2023",
+      "snapshot_url": "https://web.archive.org/web/20230215142452/https://www.ons.gov.uk/economy/inflationandpriceindices/bulletins/consumerpriceinflation/january2023",
+      "status_code": "200",
+      "timestamp": "20230215142452"
+    },
+    {
+      "digest": "KVVJUKBHMJVTW5YNTNFEUF6M4MY2ZSK2",
+      "mime_type": "text/html",
+      "original_url": "https://www.ons.gov.uk/economy/inflationandpriceindices/bulletins/consumerpriceinflation/january2023",
+      "snapshot_url": "https://web.archive.org/web/20230215150508/https://www.ons.gov.uk/economy/inflationandpriceindices/bulletins/consumerpriceinflation/january2023",
+      "status_code": "200",
+      "timestamp": "20230215150508"
+    },
+    {
+      "digest": "6KPA2APGHPG5OB4UHCPEAEAASUXE53SK",
+      "mime_type": "text/html",
+      "original_url": "https://www.ons.gov.uk/economy/inflationandpriceindices/bulletins/consumerpriceinflation/january2023",
+      "snapshot_url": "https://web.archive.org/web/20230215151056/https://www.ons.gov.uk/economy/inflationandpriceindices/bulletins/consumerpriceinflation/january2023",
+      "status_code": "200",
+      "timestamp": "20230215151056"
+    },
+    {
+      "digest": "VOFPVBF5YVFSWJVOEPFCHHSUGWR62O57",
+      "mime_type": "text/html",
+      "original_url": "https://www.ons.gov.uk/economy/inflationandpriceindices/bulletins/consumerpriceinflation/january2023",
+      "snapshot_url": "https://web.archive.org/web/20230215155603/https://www.ons.gov.uk/economy/inflationandpriceindices/bulletins/consumerpriceinflation/january2023",
+      "status_code": "200",
+      "timestamp": "20230215155603"
+    },
+    {
+      "digest": "AZ4XUWQIGHDFEHT7HJ6DLEID6GI4PBTJ",
+      "mime_type": "text/html",
+      "original_url": "https://www.ons.gov.uk/economy/inflationandpriceindices/bulletins/consumerpriceinflation/january2023",
+      "snapshot_url": "https://web.archive.org/web/20230215191229/https://www.ons.gov.uk/economy/inflationandpriceindices/bulletins/consumerpriceinflation/january2023",
+      "status_code": "200",
+      "timestamp": "20230215191229"
+    },
+    {
+      "digest": "6AL47Z76BM6BTEE2H3K2YV3CJ2NSQ7M6",
+      "mime_type": "text/html",
+      "original_url": "https://www.ons.gov.uk/economy/inflationandpriceindices/bulletins/consumerpriceinflation/january2023",
+      "snapshot_url": "https://web.archive.org/web/20230216220653/https://www.ons.gov.uk/economy/inflationandpriceindices/bulletins/consumerpriceinflation/january2023",
+      "status_code": "200",
+      "timestamp": "20230216220653"
+    }
+  ]
+}

@@ -1,0 +1,265 @@
+{
+  "access_posture": {
+    "reason": null,
+    "status": "known",
+    "value": "archive_org availability metadata and selected snapshot body preserved"
+  },
+  "actor_audience_context": {
+    "reason": "actor or audience context was not supplied to the archive runner",
+    "status": "unknown_with_reason",
+    "value": null
+  },
+  "archive_history_posture": {
+    "reason": null,
+    "status": "known",
+    "value": "archived"
+  },
+  "capture_context": {
+    "reason": null,
+    "status": "known",
+    "value": "Archive.org availability/body source capture with Direct HTTP helper"
+  },
+  "capture_mode": "archive/history",
+  "limitations": [],
+  "manifest_version": "source_capture_packet_manifest_v1",
+  "media_modality_posture": {
+    "reason": "archive runner does not retrieve linked media assets",
+    "status": "not_applicable",
+    "value": null
+  },
+  "obligation_contract_version": "core_spine_v0_data_capture_spine_obligation_contract_v0",
+  "operator_category": "archive_org_cli_operator",
+  "packet_id": "01KV0H10HV2M6TRHCSM3YC7JQG",
+  "preserved_files": [
+    {
+      "file_id": "file_01",
+      "hash_basis": "raw_stored_bytes",
+      "original_path": "C:\\Users\\vmon7\\Desktop\\projects\\_orca_capture_staging\\archive_availability_metadata.json",
+      "relative_packet_path": "raw/01_archive_availability_metadata.json",
+      "sha256": "2e26f561f721ffe67d0831314463cb9c6b2e0aa2778c3e5ebcb5ae7339010aad",
+      "size_bytes": 3191
+    },
+    {
+      "file_id": "file_02",
+      "hash_basis": "raw_stored_bytes",
+      "original_path": "C:\\Users\\vmon7\\Desktop\\projects\\_orca_capture_staging\\archive_snapshot_body.bin",
+      "relative_packet_path": "raw/02_archive_snapshot_body.bin",
+      "sha256": "7dae8856471a729be5a1940371d854f2c6494b7c731ab685f7f27c493dc7920e",
+      "size_bytes": 10780
+    },
+    {
+      "file_id": "file_03",
+      "hash_basis": "raw_stored_bytes",
+      "original_path": "C:\\Users\\vmon7\\Desktop\\projects\\_orca_capture_staging\\archive_snapshot_body_metadata.json",
+      "relative_packet_path": "raw/03_archive_snapshot_body_metadata.json",
+      "sha256": "bfdabd783f2aab36c37794ddab1d3bd1e1c17edb9873db66cf2b93b71fbf1367",
+      "size_bytes": 970
+    }
+  ],
+  "re_capture_relationship": {
+    "reason": "no prior source capture packet was supplied for this archive capture",
+    "status": "not_applicable",
+    "value": null
+  },
+  "receipt_metadata": {
+    "generated_at": "2026-06-13T12:59:05Z",
+    "non_claims": [
+      "not archive completeness proof",
+      "not source-state truth proof",
+      "not browser automation",
+      "not API SDK use",
+      "not Archive.org package use",
+      "not HTML meaning extraction",
+      "not OCR or image analysis",
+      "not scraper framework use",
+      "not proxy or session injection",
+      "not ECR design",
+      "not Cleaning implementation",
+      "not Judgment scoring",
+      "not buyer proof",
+      "not commercial-readiness logic"
+    ],
+    "summary": "Archive.org packet with availability metadata and snapshot body preserved for 20220629042406.",
+    "title": "Source Capture Packet Receipt"
+  },
+  "requested_decision_context": {
+    "reason": null,
+    "status": "known",
+    "value": "At the 2023-02-28 cutoff, how aggressively should Beauty Pie restructure membership pricing (eliminate GBP5/mo entry tier, double to GBP10/mo, scrap monthly spending limits)?"
+  },
+  "session_identity": "01KV0H10HVB8MN01SNGQ11XDBP",
+  "source_family": "greenhouse_ats_board",
+  "source_locator": {
+    "reason": null,
+    "status": "known",
+    "value": "https://boards.eu.greenhouse.io/beautypie"
+  },
+  "source_slices": [
+    {
+      "access_posture": {
+        "reason": null,
+        "status": "known",
+        "value": "archive_org availability direct_http succeeded with HTTP 200 OK"
+      },
+      "archive_history_posture": {
+        "reason": null,
+        "status": "known",
+        "value": "archived"
+      },
+      "limitations": [],
+      "locator": {
+        "reason": null,
+        "status": "known",
+        "value": "https://web.archive.org/cdx/search/cdx?url=https%3A%2F%2Fboards.eu.greenhouse.io%2Fbeautypie&output=json&fl=timestamp%2Coriginal%2Cstatuscode%2Cmimetype%2Cdigest&collapse=digest&to=20220630235959&limit=-10"
+      },
+      "media_modality_posture": {
+        "reason": "archive availability metadata is not a media asset",
+        "status": "not_applicable",
+        "value": null
+      },
+      "preserved_file_ids": [
+        "file_01"
+      ],
+      "re_capture_relationship": {
+        "reason": "no prior source capture packet was supplied for this archive capture",
+        "status": "not_applicable",
+        "value": null
+      },
+      "slice_id": "archive_availability",
+      "timing": {
+        "archive_snapshot_time": {
+          "reason": null,
+          "status": "known",
+          "value": "2022-06-29T04:24:06Z"
+        },
+        "capture_time": {
+          "reason": null,
+          "status": "known",
+          "value": "2026-06-13T12:59:03Z"
+        },
+        "cutoff_posture": {
+          "reason": null,
+          "status": "known",
+          "value": "pre_cutoff"
+        },
+        "recapture_time": {
+          "reason": "archive packet did not model an earlier capture by default",
+          "status": "not_applicable",
+          "value": null
+        },
+        "source_edit_or_version": {
+          "reason": null,
+          "status": "known",
+          "value": "Archive.org availability metadata for the requested original URL; selected snapshot timestamp is recorded separately"
+        },
+        "source_publication_or_event": {
+          "reason": "Archive.org adapter did not infer original source publication or event timing",
+          "status": "unknown_with_reason",
+          "value": null
+        }
+      },
+      "warning_notes": []
+    },
+    {
+      "access_posture": {
+        "reason": null,
+        "status": "known",
+        "value": "archive_org snapshot body direct_http succeeded with HTTP 200 OK"
+      },
+      "archive_history_posture": {
+        "reason": null,
+        "status": "known",
+        "value": "archived"
+      },
+      "limitations": [],
+      "locator": {
+        "reason": null,
+        "status": "known",
+        "value": "https://web.archive.org/web/20220629042406/https://boards.eu.greenhouse.io/beautypie"
+      },
+      "media_modality_posture": {
+        "reason": "archive snapshot body is preserved as raw response body",
+        "status": "not_applicable",
+        "value": null
+      },
+      "preserved_file_ids": [
+        "file_02",
+        "file_03"
+      ],
+      "re_capture_relationship": {
+        "reason": "no prior source capture packet was supplied for this archive capture",
+        "status": "not_applicable",
+        "value": null
+      },
+      "slice_id": "archive_snapshot_body",
+      "timing": {
+        "archive_snapshot_time": {
+          "reason": null,
+          "status": "known",
+          "value": "2022-06-29T04:24:06Z"
+        },
+        "capture_time": {
+          "reason": null,
+          "status": "known",
+          "value": "2026-06-13T12:59:05Z"
+        },
+        "cutoff_posture": {
+          "reason": null,
+          "status": "known",
+          "value": "pre_cutoff"
+        },
+        "recapture_time": {
+          "reason": "archive packet did not model an earlier capture by default",
+          "status": "not_applicable",
+          "value": null
+        },
+        "source_edit_or_version": {
+          "reason": null,
+          "status": "known",
+          "value": "Archive.org snapshot timestamp 20220629042406"
+        },
+        "source_publication_or_event": {
+          "reason": "Archive.org adapter did not infer original source publication or event timing",
+          "status": "unknown_with_reason",
+          "value": null
+        }
+      },
+      "warning_notes": []
+    }
+  ],
+  "source_surface": "greenhouse_public_jobs_board",
+  "timing": {
+    "archive_snapshot_time": {
+      "reason": null,
+      "status": "known",
+      "value": "2022-06-29T04:24:06Z"
+    },
+    "capture_time": {
+      "reason": null,
+      "status": "known",
+      "value": "2026-06-13T12:59:05Z"
+    },
+    "cutoff_posture": {
+      "reason": null,
+      "status": "known",
+      "value": "pre_cutoff"
+    },
+    "recapture_time": {
+      "reason": "archive packet did not model an earlier capture by default",
+      "status": "not_applicable",
+      "value": null
+    },
+    "source_edit_or_version": {
+      "reason": null,
+      "status": "known",
+      "value": "Archive.org snapshot timestamp 20220629042406"
+    },
+    "source_publication_or_event": {
+      "reason": "Archive.org adapter did not infer original source publication or event timing",
+      "status": "unknown_with_reason",
+      "value": null
+    }
+  },
+  "visible_mode_changes": [],
+  "warnings": []
+}

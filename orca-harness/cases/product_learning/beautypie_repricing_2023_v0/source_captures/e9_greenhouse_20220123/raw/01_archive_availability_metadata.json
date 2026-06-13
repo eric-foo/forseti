@@ -1,0 +1,38 @@
+{
+  "availability_http_metadata": {
+    "byte_count": 177,
+    "capture_timestamp": "2026-06-13T12:58:58Z",
+    "content_length": null,
+    "content_type": "application/json",
+    "date": "Sat, 13 Jun 2026 12:58:59 GMT",
+    "etag": null,
+    "final_url": "https://web.archive.org/cdx/search/cdx?url=https%3A%2F%2Fboards.eu.greenhouse.io%2Fbeautypie&output=json&fl=timestamp%2Coriginal%2Cstatuscode%2Cmimetype%2Cdigest&collapse=digest&to=20220131235959&limit=-10",
+    "last_modified": null,
+    "reason": "OK",
+    "requested_url": "https://web.archive.org/cdx/search/cdx?url=https%3A%2F%2Fboards.eu.greenhouse.io%2Fbeautypie&output=json&fl=timestamp%2Coriginal%2Cstatuscode%2Cmimetype%2Cdigest&collapse=digest&to=20220131235959&limit=-10",
+    "status": 200,
+    "timeout_seconds": 60.0
+  },
+  "availability_url": "https://web.archive.org/cdx/search/cdx?url=https%3A%2F%2Fboards.eu.greenhouse.io%2Fbeautypie&output=json&fl=timestamp%2Coriginal%2Cstatuscode%2Cmimetype%2Cdigest&collapse=digest&to=20220131235959&limit=-10",
+  "original_url": "https://boards.eu.greenhouse.io/beautypie",
+  "parse_warning": null,
+  "selected_snapshot": {
+    "digest": "7EXA6YU5WSIMB6F2SLGK43225CNOFIN7",
+    "mime_type": "text/html",
+    "original_url": "https://boards.eu.greenhouse.io/beautypie",
+    "snapshot_url": "https://web.archive.org/web/20220123234700/https://boards.eu.greenhouse.io/beautypie",
+    "status_code": "200",
+    "timestamp": "20220123234700"
+  },
+  "snapshot_count": 1,
+  "snapshots": [
+    {
+      "digest": "7EXA6YU5WSIMB6F2SLGK43225CNOFIN7",
+      "mime_type": "text/html",
+      "original_url": "https://boards.eu.greenhouse.io/beautypie",
+      "snapshot_url": "https://web.archive.org/web/20220123234700/https://boards.eu.greenhouse.io/beautypie",
+      "status_code": "200",
+      "timestamp": "20220123234700"
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "original_url": "https://boards.eu.greenhouse.io/beautypie",
+  "selected_snapshot": {
+    "digest": "3BYZ4JEIL4KZLJOICMSNUM6MG44ILP2C",
+    "mime_type": "text/html",
+    "original_url": "https://boards.eu.greenhouse.io/beautypie",
+    "snapshot_url": "https://web.archive.org/web/20230131034812/https://boards.eu.greenhouse.io/beautypie",
+    "status_code": "200",
+    "timestamp": "20230131034812"
+  },
+  "snapshot_body_http_metadata": {
+    "byte_count": 20572,
+    "capture_timestamp": "2026-06-13T12:57:50Z",
+    "content_length": null,
+    "content_type": "text/html; charset=utf-8",
+    "date": "Sat, 13 Jun 2026 12:57:50 GMT",
+    "etag": null,
+    "final_url": "https://web.archive.org/web/20230131034812/https://boards.eu.greenhouse.io/beautypie",
+    "last_modified": null,
+    "reason": "OK",
+    "requested_url": "https://web.archive.org/web/20230131034812/https://boards.eu.greenhouse.io/beautypie",
+    "status": 200,
+    "timeout_seconds": 60.0
+  }
+}

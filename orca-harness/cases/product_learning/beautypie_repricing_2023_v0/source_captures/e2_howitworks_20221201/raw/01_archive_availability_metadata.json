@@ -1,0 +1,94 @@
+{
+  "availability_http_metadata": {
+    "byte_count": 972,
+    "capture_timestamp": "2026-06-13T07:29:59Z",
+    "content_length": null,
+    "content_type": "application/json",
+    "date": "Sat, 13 Jun 2026 07:29:59 GMT",
+    "etag": null,
+    "final_url": "https://web.archive.org/cdx/search/cdx?url=https%3A%2F%2Fwww.beautypie.com%2Fhow-it-works&output=json&fl=timestamp%2Coriginal%2Cstatuscode%2Cmimetype%2Cdigest&collapse=digest&to=20230228235959&limit=-10",
+    "last_modified": null,
+    "reason": "OK",
+    "requested_url": "https://web.archive.org/cdx/search/cdx?url=https%3A%2F%2Fwww.beautypie.com%2Fhow-it-works&output=json&fl=timestamp%2Coriginal%2Cstatuscode%2Cmimetype%2Cdigest&collapse=digest&to=20230228235959&limit=-10",
+    "status": 200,
+    "timeout_seconds": 60.0
+  },
+  "availability_url": "https://web.archive.org/cdx/search/cdx?url=https%3A%2F%2Fwww.beautypie.com%2Fhow-it-works&output=json&fl=timestamp%2Coriginal%2Cstatuscode%2Cmimetype%2Cdigest&collapse=digest&to=20230228235959&limit=-10",
+  "original_url": "https://www.beautypie.com/how-it-works",
+  "parse_warning": null,
+  "selected_snapshot": {
+    "digest": "B64X2OVAZAMEZSRZGQCYXSB7MIR6H4KO",
+    "mime_type": "text/html",
+    "original_url": "https://www.beautypie.com/how-it-works",
+    "snapshot_url": "https://web.archive.org/web/20221201032019/https://www.beautypie.com/how-it-works",
+    "status_code": "200",
+    "timestamp": "20221201032019"
+  },
+  "snapshot_count": 8,
+  "snapshots": [
+    {
+      "digest": "LKCUJHK6V6FE5G6A2DAE6CYU4P4XM7FE",
+      "mime_type": "text/html",
+      "original_url": "https://www.beautypie.com/how-it-works",
+      "snapshot_url": "https://web.archive.org/web/20220415152230/https://www.beautypie.com/how-it-works",
+      "status_code": "200",
+      "timestamp": "20220415152230"
+    },
+    {
+      "digest": "QH2IGIJMOYMTJL5YREYBHWLYRNU7LR4I",
+      "mime_type": "text/html",
+      "original_url": "https://www.beautypie.com/how-it-works",
+      "snapshot_url": "https://web.archive.org/web/20220526120505/https://www.beautypie.com/how-it-works",
+      "status_code": "200",
+      "timestamp": "20220526120505"
+    },
+    {
+      "digest": "7A7PFKP657HAM5IJPJDBQPY24KDIRWDT",
+      "mime_type": "text/html",
+      "original_url": "https://www.beautypie.com/how-it-works",
+      "snapshot_url": "https://web.archive.org/web/20220527122643/https://www.beautypie.com/how-it-works",
+      "status_code": "200",
+      "timestamp": "20220527122643"
+    },
+    {
+      "digest": "KFD7TEEVG47KOS7UD4D3O55HAERH6HMV",
+      "mime_type": "text/html",
+      "original_url": "https://www.beautypie.com/how-it-works",
+      "snapshot_url": "https://web.archive.org/web/20220710035020/https://www.beautypie.com/how-it-works",
+      "status_code": "200",
+      "timestamp": "20220710035020"
+    },
+    {
+      "digest": "ZKYHORC6ETONJCZR2PJLTC6TGXIJTW6B",
+      "mime_type": "text/html",
+      "original_url": "https://www.beautypie.com/how-it-works",
+      "snapshot_url": "https://web.archive.org/web/20220808142222/https://www.beautypie.com/how-it-works",
+      "status_code": "200",
+      "timestamp": "20220808142222"
+    },
+    {
+      "digest": "X2HMFZS72RRER553NEYIZRKKDQMPZXJC",
+      "mime_type": "text/html",
+      "original_url": "https://www.beautypie.com/how-it-works",
+      "snapshot_url": "https://web.archive.org/web/20220810080411/https://www.beautypie.com/how-it-works",
+      "status_code": "200",
+      "timestamp": "20220810080411"
+    },
+    {
+      "digest": "ISY5OQB26CDGP6UWQY4DI6RMGUYM24UM",
+      "mime_type": "text/html",
+      "original_url": "https://www.beautypie.com/how-it-works",
+      "snapshot_url": "https://web.archive.org/web/20221129000628/https://www.beautypie.com/how-it-works",
+      "status_code": "200",
+      "timestamp": "20221129000628"
+    },
+    {
+      "digest": "B64X2OVAZAMEZSRZGQCYXSB7MIR6H4KO",
+      "mime_type": "text/html",
+      "original_url": "https://www.beautypie.com/how-it-works",
+      "snapshot_url": "https://web.archive.org/web/20221201032019/https://www.beautypie.com/how-it-works",
+      "status_code": "200",
+      "timestamp": "20221201032019"
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "original_url": "https://www.beautypie.com/",
+  "selected_snapshot": {
+    "digest": "3I42H3S6NNFQ2MSVX7XZKYAYSCX5QBYJ",
+    "mime_type": "warc/revisit",
+    "original_url": "http://beautypie.com/",
+    "snapshot_url": "https://web.archive.org/web/20230225210430/http://beautypie.com/",
+    "status_code": "-",
+    "timestamp": "20230225210430"
+  },
+  "snapshot_body_http_metadata": {
+    "byte_count": 391937,
+    "capture_timestamp": "2026-06-13T07:26:30Z",
+    "content_length": null,
+    "content_type": "text/html; charset=utf-8",
+    "date": "Sat, 13 Jun 2026 07:26:30 GMT",
+    "etag": null,
+    "final_url": "https://web.archive.org/web/20230225210430/http://beautypie.com/",
+    "last_modified": null,
+    "reason": "OK",
+    "requested_url": "https://web.archive.org/web/20230225210430/http://beautypie.com/",
+    "status": 200,
+    "timeout_seconds": 20.0
+  }
+}

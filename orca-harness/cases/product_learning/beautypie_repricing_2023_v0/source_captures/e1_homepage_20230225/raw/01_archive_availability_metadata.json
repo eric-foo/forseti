@@ -1,0 +1,110 @@
+{
+  "availability_http_metadata": {
+    "byte_count": 1063,
+    "capture_timestamp": "2026-06-13T07:26:28Z",
+    "content_length": null,
+    "content_type": "application/json",
+    "date": "Sat, 13 Jun 2026 07:26:29 GMT",
+    "etag": null,
+    "final_url": "https://web.archive.org/cdx/search/cdx?url=https%3A%2F%2Fwww.beautypie.com%2F&output=json&fl=timestamp%2Coriginal%2Cstatuscode%2Cmimetype%2Cdigest&collapse=digest&to=20230225210430&limit=-10",
+    "last_modified": null,
+    "reason": "OK",
+    "requested_url": "https://web.archive.org/cdx/search/cdx?url=https%3A%2F%2Fwww.beautypie.com%2F&output=json&fl=timestamp%2Coriginal%2Cstatuscode%2Cmimetype%2Cdigest&collapse=digest&to=20230225210430&limit=-10",
+    "status": 200,
+    "timeout_seconds": 20.0
+  },
+  "availability_url": "https://web.archive.org/cdx/search/cdx?url=https%3A%2F%2Fwww.beautypie.com%2F&output=json&fl=timestamp%2Coriginal%2Cstatuscode%2Cmimetype%2Cdigest&collapse=digest&to=20230225210430&limit=-10",
+  "original_url": "https://www.beautypie.com/",
+  "parse_warning": null,
+  "selected_snapshot": {
+    "digest": "3I42H3S6NNFQ2MSVX7XZKYAYSCX5QBYJ",
+    "mime_type": "warc/revisit",
+    "original_url": "http://beautypie.com/",
+    "snapshot_url": "https://web.archive.org/web/20230225210430/http://beautypie.com/",
+    "status_code": "-",
+    "timestamp": "20230225210430"
+  },
+  "snapshot_count": 10,
+  "snapshots": [
+    {
+      "digest": "WMCR2F5G5SGJ4FTL6CNGFNECMGVYNFL3",
+      "mime_type": "warc/revisit",
+      "original_url": "http://www.beautypie.com/",
+      "snapshot_url": "https://web.archive.org/web/20230220012133/http://www.beautypie.com/",
+      "status_code": "-",
+      "timestamp": "20230220012133"
+    },
+    {
+      "digest": "HCEFVFAMPY5YZBKSAAG4GSUSVRMY3USN",
+      "mime_type": "warc/revisit",
+      "original_url": "https://www.beautypie.com/",
+      "snapshot_url": "https://web.archive.org/web/20230220012133/https://www.beautypie.com/",
+      "status_code": "-",
+      "timestamp": "20230220012133"
+    },
+    {
+      "digest": "3I42H3S6NNFQ2MSVX7XZKYAYSCX5QBYJ",
+      "mime_type": "text/html",
+      "original_url": "http://beautypie.com/",
+      "snapshot_url": "https://web.archive.org/web/20230221104329/http://beautypie.com/",
+      "status_code": "301",
+      "timestamp": "20230221104329"
+    },
+    {
+      "digest": "RZR355ZRQIHMU2YGLSGHURZ4XD33UGKY",
+      "mime_type": "text/html",
+      "original_url": "https://www.beautypie.com/",
+      "snapshot_url": "https://web.archive.org/web/20230221171657/https://www.beautypie.com/",
+      "status_code": "200",
+      "timestamp": "20230221171657"
+    },
+    {
+      "digest": "3I42H3S6NNFQ2MSVX7XZKYAYSCX5QBYJ",
+      "mime_type": "text/html",
+      "original_url": "http://beautypie.com/",
+      "snapshot_url": "https://web.archive.org/web/20230221220307/http://beautypie.com/",
+      "status_code": "301",
+      "timestamp": "20230221220307"
+    },
+    {
+      "digest": "PY5OWSSCSITJJOYNWHBTW4ZKIIG3SUZN",
+      "mime_type": "text/html",
+      "original_url": "https://www.beautypie.com/",
+      "snapshot_url": "https://web.archive.org/web/20230221231527/https://www.beautypie.com/",
+      "status_code": "200",
+      "timestamp": "20230221231527"
+    },
+    {
+      "digest": "3I42H3S6NNFQ2MSVX7XZKYAYSCX5QBYJ",
+      "mime_type": "text/html",
+      "original_url": "https://beautypie.com/",
+      "snapshot_url": "https://web.archive.org/web/20230224155153/https://beautypie.com/",
+      "status_code": "301",
+      "timestamp": "20230224155153"
+    },
+    {
+      "digest": "TQYSP45YXSWQ32HICPOF2FV3EBINY6CX",
+      "mime_type": "text/html",
+      "original_url": "https://www.beautypie.com/",
+      "snapshot_url": "https://web.archive.org/web/20230224155153/https://www.beautypie.com/",
+      "status_code": "200",
+      "timestamp": "20230224155153"
+    },
+    {
+      "digest": "3I42H3S6NNFQ2MSVX7XZKYAYSCX5QBYJ",
+      "mime_type": "warc/revisit",
+      "original_url": "http://beautypie.com/",
+      "snapshot_url": "https://web.archive.org/web/20230225210430/http://beautypie.com/",
+      "status_code": "-",
+      "timestamp": "20230225210430"
+    },
+    {
+      "digest": "QTM66M6XKT7ZF5UG5V33SLWA4H4AALNQ",
+      "mime_type": "text/html",
+      "original_url": "https://www.beautypie.com/",
+      "snapshot_url": "https://web.archive.org/web/20230225210430/https://www.beautypie.com/",
+      "status_code": "200",
+      "timestamp": "20230225210430"
+    }
+  ]
+}

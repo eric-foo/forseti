@@ -10,28 +10,28 @@ permitted_assumptions:
   - Distinguish general membership/subscription base rates from evidence specific to Beauty Pie's pre-cutoff situation.
   - Treat the prices, tiers, and monthly spending limits in the evidence as real.
   - Judge only on this packet; produce a single blind judgement from it alone.
-information_boundary: Decide using only the evidence in this packet. Do not use, recall, or look up any outside or later knowledge about this company or this decision; base the judgement solely on the packet.
+forbidden_information_notice: Decide using only the evidence in this packet. Do not use, recall, or look up any outside or later knowledge about this company or this decision; base the judgement solely on the packet.
 source_manifest:
   - source_id: E1
-    source: 'Beauty Pie membership model — factory-direct; members pay a membership fee to buy products at cost (public brand/product description, pre-cutoff)'
-    retrieval_timestamp: <<pending-phase4-capture>>
-    hash: <<pending-phase4-capture>>
+    source: 'Beauty Pie membership model — factory-direct; members pay a membership fee to buy products at cost (public brand/product description, pre-cutoff). Captured: beautypie.com homepage, Wayback snapshot 2023-02-25 (web.archive.org/web/20230225210430/), evidencing the no-middlemen/no-markup, members-buy-near-making-cost model. SourceCapturePacket: source_captures/e1_homepage_20230225/'
+    retrieval_timestamp: 2023-02-25T21:04:30Z
+    hash: sha256:1dad75a206688f81309e71af41f4f4c7576f30e1b9760cc7e29627cd0c03745d
   - source_id: E2
-    source: 'Beauty Pie membership structure at cutoff — £5/mo and £10/mo monthly tiers plus a £59/yr "Beauty Pie Plus" annual (2021 relaunch), each with monthly spending limits (public pricing, pre-cutoff)'
-    retrieval_timestamp: <<pending-phase4-capture>>
-    hash: <<pending-phase4-capture>>
+    source: 'Beauty Pie membership pricing context for the scenario — public site how-it-works, Wayback snapshot 2022-12-01 (web.archive.org/web/20221201032019/), evidencing the £10/mo monthly membership and the factory-direct/at-cost model. SourceCapturePacket: source_captures/e2_howitworks_20221201/'
+    retrieval_timestamp: 2022-12-01T03:20:19Z
+    hash: sha256:07aab0838c202da050881c51407f0144dfccfb694cc811f51be87aca415ef425
   - source_id: E3
-    source: 'UK cost-of-living / elevated-inflation context, early 2023 (neutral macro context bearing on discretionary spend)'
-    retrieval_timestamp: <<pending-phase4-capture>>
-    hash: <<pending-phase4-capture>>
+    source: 'UK cost-of-living / elevated-inflation context, early 2023 (neutral macro context bearing on discretionary spend). Captured: ONS Consumer Price Inflation bulletin, Wayback snapshot 2023-02-16 (web.archive.org/web/20230216220653/). SourceCapturePacket: source_captures/e3_ons_cpi_20230216/'
+    retrieval_timestamp: 2023-02-16T22:06:53Z
+    hash: sha256:cd358676ff1ece94a31d1af771e57f29d3997928d75683a2ae5243664af5f3fe
   - source_id: E4
-    source: 'General base rate — eliminating an entry tier / raising the floor price is a recognized retention-risk repricing lever (general base rate)'
-    retrieval_timestamp: <<pending-phase4-capture>>
-    hash: <<pending-phase4-capture>>
+    source: 'General base rate — eliminating an entry tier / raising the floor price is a recognized retention-risk repricing lever. source_type general_base_rate: a standing analytic prior, true at and before the cutoff by construction; asserted, not retrieved (no source document or bytes). Freeze-integrity of the asserted text is carried by ledger_freeze_hash.'
+    retrieval_timestamp: not_applicable_base_rate
+    hash: not_applicable_base_rate
   - source_id: E5
-    source: 'Generic comparable consumer-subscription repricings exist across the market (general base rate)'
-    retrieval_timestamp: <<pending-phase4-capture>>
-    hash: <<pending-phase4-capture>>
+    source: 'Generic comparable consumer-subscription repricings exist across the market. source_type general_base_rate: a standing analytic prior, true at and before the cutoff by construction; asserted, not retrieved (no source document or bytes).'
+    retrieval_timestamp: not_applicable_base_rate
+    hash: not_applicable_base_rate
 ---
 
 # Participant Packet

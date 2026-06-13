@@ -1,0 +1,25 @@
+{
+  "original_url": "https://www.beautypie.com/how-it-works",
+  "selected_snapshot": {
+    "digest": "B64X2OVAZAMEZSRZGQCYXSB7MIR6H4KO",
+    "mime_type": "text/html",
+    "original_url": "https://www.beautypie.com/how-it-works",
+    "snapshot_url": "https://web.archive.org/web/20221201032019/https://www.beautypie.com/how-it-works",
+    "status_code": "200",
+    "timestamp": "20221201032019"
+  },
+  "snapshot_body_http_metadata": {
+    "byte_count": 227843,
+    "capture_timestamp": "2026-06-13T07:30:01Z",
+    "content_length": null,
+    "content_type": "text/html; charset=utf-8",
+    "date": "Sat, 13 Jun 2026 07:30:00 GMT",
+    "etag": null,
+    "final_url": "https://web.archive.org/web/20221201032019/https://www.beautypie.com/how-it-works",
+    "last_modified": null,
+    "reason": "OK",
+    "requested_url": "https://web.archive.org/web/20221201032019/https://www.beautypie.com/how-it-works",
+    "status": 200,
+    "timeout_seconds": 60.0
+  }
+}
