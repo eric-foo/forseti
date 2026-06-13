@@ -8,8 +8,9 @@ scope: >
   fleshed sketch to an owner-adjudicable state: operative definitions
   (what-counts / anti-trigger / boundary) for every signal layer and read
   type, the internal tensions named as tensions, and an explicit owner-decision
-  queue (Q1 pricing refinement, Q2 wind-caller primacy, Q3 channel-vs-person
-  boundary). Prepares the adopt/amend/reject decision; does not make it.
+  queue (Q0 demand-state model [decided 2026-06-14], Q1 pricing refinement, Q2
+  wind-caller primacy, Q3 channel-vs-person boundary). Prepares the
+  adopt/amend/reject decision; does not make it.
 use_when:
   - Adjudicating the demand-read taxonomy (adopt / amend / reject) in one pass.
   - Checking the operative definition or anti-trigger for a signal layer or read type before scanning.
@@ -50,6 +51,19 @@ what prep found. With that fix landed, **Q3 now reduces to two open items**: (a)
 your confirmation of the boundary *policy*, and (b) the optional org-motion-≠-
 wind-caller distinction sentence (the conflation guard), which was *not* added —
 it is a separate recommendation, not part of the inconsistency that was fixed.
+
+**Update 2026-06-14 (owner-decided in-thread — the demand-state model, Q0):** the
+central axis moved from **durable vs hollow** to **durable vs transient**
+(persistence) × **real vs manufactured** (integrity). "Hollow" is retired (it
+conflated transient-real with manufactured-fake). Three actionable states —
+durable (commit), transient (move, short horizon), manufactured (discount /
+avoid). Transient gets **equal billing** with durable (owner call), with a lane
+guardrail: a **decay-timing confidence** (currently low) caps the transient
+ceiling until a decay-curve capability exists. The taxonomy's layers and read
+types are restructured to this model (its dated amendment); the controlling
+thesis is amended by dated pointer (receipt at the end of the thesis). Part 1's
+read types and Part 3's queue below are updated accordingly — Q0 is added as the
+now-decided lead, and Q1/Q2 inherit the horizon dimension.
 
 ## How To Read This (for the owner, one pass)
 
@@ -154,25 +168,43 @@ may never exceed what signal integrity supports.
 
 ### Read Types
 
-**Convergence read** — durable-demand candidate
-- *What counts:* independent venue families + wind callers + org motion pointing
-  the **same way**, costly-behavior anchored (owner example: peptides — named
-  wind-callers + companies launching ads/hiring + reviews/pain-points honing in).
-- *Anti-trigger:* convergence asserted on engagement volume; single-venue
-  agreement dressed up as multi-venue; convergence without any costly behavior.
-- *Boundary:* must clear the Hard Gate; the action ceiling cannot exceed what
-  signal integrity supports.
+> Read types now follow the demand-state model (Q0, decided 2026-06-14): two
+> axes — durable vs transient × real vs manufactured — yielding three actionable
+> states. Divergence is a *technique*, not a read.
 
-**Divergence read** — hollow / manufactured-demand candidate
-- *What counts:* promotion-engagement mismatch (an influencer actively promotes
-  X but ad engagement runs **below their own baseline**); venue sentiment splits
-  (TikTok disagrees with IG); a **quality attack where marketing is loudest**
-  (Reddit attacking quality under a promo push).
-- *Anti-trigger:* treating disagreement as a data-quality defect to reconcile or
-  average; a single contrarian voice promoted to "divergence."
-- *Boundary:* divergence is **signal, not noise**. A hollow-demand finding is a
-  real read output (a narrow / hold / defend ceiling), **not** a failed
-  convergence.
+**Durable-demand read** — real + persists → *commit*, long horizon
+- *What counts:* independent venue families + wind callers + org motion pointing
+  the **same way**, costly-behavior anchored, **and persisting past the trigger**
+  (owner example: peptides). The trust anchor — the one persistence backtests support.
+- *Anti-trigger:* convergence asserted on engagement volume; single-venue
+  agreement dressed up as multi-venue; convergence without costly behavior; a
+  **spike mistaken for persistence** (decay not assessed).
+- *Boundary:* must clear the Hard Gate; ceiling capped by signal integrity.
+
+**Transient-spike read** — real + decays → *move*, short horizon, time-boxed (NEW; owner equal-billing 2026-06-14)
+- *What counts:* real costly behavior with a **short expected lifespan** — a
+  genuine spike that will normalize (viral surge, time-limited dupe wave, seasonal pop).
+- *Anti-trigger:* a spike treated as durable (commit long → stranded inventory);
+  a manufactured pump mistaken for a real spike (integrity layer must clear it first).
+- *Boundary:* **equal billing as a read**, but ceiling capped by **decay-timing
+  confidence** — currently low (calling a spike is two claims, *real* AND *decays
+  in ~N weeks*; the decay-curve capability does not yet exist). Built-to, not proven-at.
+
+**Manufactured-demand read** — fake / amplified → *discount / avoid*
+- *What counts:* demand that is not real — promotion-engagement mismatch,
+  astroturf, coordinated/bot amplification, dupe-wave distortion.
+- *Anti-trigger:* a single contrarian voice promoted to "manufactured"; treating
+  **absence of a flag as proof of organic**.
+- *Boundary:* identifying manufactured demand is **decision-critical in its own
+  right** (owner) — the contamination check protecting both real reads; acting on
+  someone else's manufactured spike commits to demand that was never yours.
+
+*Divergence is a technique, not a verdict* (owner 2026-06-14): signals
+disagreeing — promotion-engagement mismatch (an influencer promotes X but ad
+engagement runs **below their own baseline**), venue sentiment splits (TikTok
+disagrees with IG), a quality attack where marketing is loudest (Reddit attacking
+quality under a promo push) — is *evidence used to classify* a candidate as
+transient or manufactured. No longer synonymous with "hollow."
 
 **Brand-decision event read** — the monetization unit
 - *What counts:* a **named brand's** live allocation decision — launch /
@@ -241,6 +273,28 @@ carve-out — a conflation risk if the two person-boundaries are read as one. �
 > Each entry is a decision the **owner** makes. The lane's *recommendation*,
 > where given, is a defensible call offered for efficiency — it is **not** the
 > decision and binds nothing until the owner adjudicates.
+
+### Q0 — Demand-state model (DECIDED 2026-06-14; the lead decision)
+
+**Decided (owner, in-thread):** replace **durable vs hollow** with **durable vs
+transient** (persistence) × **real vs manufactured** (integrity). Three actionable
+states — durable (commit, long horizon), transient (move, short horizon,
+time-boxed), manufactured (discount / avoid). **Transient gets equal billing**
+with durable (owner: spikes are still capital-allocation decisions and occur more
+often). Divergence becomes a **technique, not a verdict**. Identifying
+manufactured demand is **decision-critical in its own right** (owner).
+
+**Lane guardrail (baked in unless owner rejects):** transient reads carry an
+explicit **decay-timing confidence**, currently low, capping the transient action
+ceiling until a decay-curve capability exists (likely earned from historical
+analogues, like wind-caller calibration). Equal billing on the *read*; earned,
+claim-honest billing on the *claim* (built-to vs proven-at).
+
+**Status:** executed into the taxonomy (dated amendment) and propagated to the
+controlling thesis (dated amendment). **Open for owner:** confirm or reject the
+decay-timing-confidence guardrail. Q1 and Q2 below now inherit the horizon
+dimension (rerouting is usually transient; a wind-caller's value splits by whether
+they call durable shifts or spikes).
 
 ### Q1 — Pricing-signal refinement
 

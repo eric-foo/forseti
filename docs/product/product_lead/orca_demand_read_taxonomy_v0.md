@@ -44,20 +44,42 @@ lines). No policy change. The channel-vs-person boundary itself remains an
 owner-confirmation item — see the adjudication-prep companion
 (`orca_demand_read_taxonomy_adjudication_v0.md`, Q3).
 
+Demand-state model amendment (2026-06-14, owner-authorized in-thread): the
+central axis changes from **durable vs hollow** to **two independent axes** —
+**durable vs transient** (persistence) and **real vs manufactured** (integrity).
+"Hollow" is retired: it conflated *transient* (real demand that decays — still
+valuable short-term) with *manufactured* (fake / amplified). Three actionable
+states result — **durable** (commit, long horizon), **transient** (move, short
+horizon, time-boxed to the decay window), **manufactured** (discount / avoid) —
+and the action ceiling is matched to the demand's lifespan. Transient gets
+**equal billing** with durable as a read (owner call: spikes are still
+capital-allocation decisions and occur more often than durable shifts), but
+carries an explicit **decay-timing confidence** that is currently low and caps
+its ceiling until a decay-curve capability exists (lane guardrail on the owner's
+equal-billing call). The layers and read types below are restructured to this
+model; the controlling thesis is amended by dated pointer (see the propagation
+receipt at the end).
+
 ## The Function In One Sentence
 
-For a vertical and sub-niche, Orca reads where demand is actually going —
-durable versus hollow — by fusing buy-side movement with supply-side org
-motion under integrity labels, identifies who calls the wind in that niche,
-and packages the evidence so judgment can set the action ceiling (act, phase,
-narrow, hold, defend).
+For a vertical and sub-niche, Orca reads where demand is actually going **and how
+long it will last** — sorting **durable** demand (persists past its trigger) from
+**transient** demand (real, but decays) and from **manufactured** demand (fake /
+amplified) — by fusing buy-side movement with supply-side org motion under
+integrity labels, identifies who calls the wind in that niche, and packages the
+evidence so judgment can set the action ceiling **matched to the demand's
+lifespan** (act, phase, narrow, hold, defend; long-horizon *commit* vs
+short-horizon *move*).
 
 ## Signal Layers
 
 1. **Trend vector** — the object of the read: demand moving toward or away
    from an ingredient, category, format, or claim (owner example: peptides).
-   A trend vector carries direction, velocity, and the durability question;
-   it is never reported as bare momentum.
+   A trend vector carries direction, velocity, **and expected lifespan** — the
+   durable-vs-transient question is not a yes/no flag but "what horizon should
+   you act on?"; it is never reported as bare momentum. (Computing the decay
+   curve is a forward capability, likely earned from historical analogues — see
+   the decay-timing confidence note in the Transient-spike read.)
 2. **Wind callers** — the leading indicators: per vertical × sub-niche, the
    specific accounts, communities, or detectors whose early public calls
    precede the move. The owner flags influencers as possibly the main wind
@@ -85,34 +107,74 @@ narrow, hold, defend).
    it.
 5. **Integrity layer** — manufactured-versus-organic labels: paid-promotion
    flags, engagement anomalies, astroturf and bot marks, dupe-wave
-   distortion. Cross-venue disagreement is itself signal (a divergence read),
-   never noise to be averaged away.
+   distortion. This layer **owns the real-vs-manufactured axis** — it answers
+   "is this demand real?", independently of whether real demand is durable or
+   transient. Identifying manufactured demand is decision-critical in its own
+   right (owner, 2026-06-14): it is the contamination check that protects both
+   real reads. Cross-venue disagreement is itself signal (surfaced by the
+   divergence *technique*, below), never noise to be averaged away.
+   Manufactured separation is a forward/live capability; backtests cannot
+   recover historical paid-proxy spend.
 
 ## Read Types
 
-- **Convergence read** (durable-demand candidate): independent venue families
-  + wind callers + org motion pointing the same way. Owner's example: demand
-  trending toward peptides, evidenced by named influencer wind-callers, with
-  companies launching ads and hiring in that direction, and reviews /
-  pain-points honing in on the same thing.
-- **Divergence read** (hollow / manufactured-demand candidate):
-  promotion-engagement mismatch (influencers actively promote X but their ad
-  engagement runs below their own baseline); venue sentiment splits (TikTok
-  does not agree with IG); a quality attack running where marketing is
-  loudest (Reddit attacking product quality under a promo push).
+The reads sort into the demand-state model: two independent axes — **durable vs
+transient** (does it persist past its trigger?) and **real vs manufactured** (is
+there costly behavior, or is it amplified/fake?) — yielding three actionable
+states. The action ceiling is matched to the demand's lifespan: commit on a
+spike strands inventory; "move" on a durable shift leaves the compounding play
+on the table.
+
+- **Durable-demand read** (real + persists → *commit*, long horizon): independent
+  venue families + wind callers + org motion pointing the same way,
+  costly-behavior anchored, and **persisting past the trigger**. Owner's example:
+  demand trending toward peptides, evidenced by named influencer wind-callers,
+  with companies launching ads and hiring in that direction, and reviews /
+  pain-points honing in on the same thing. The trust anchor — the one persistence
+  backtests can support.
+- **Transient-spike read** (real + decays → *move*, short horizon, time-boxed):
+  real costly behavior with a **short expected lifespan** — a genuine spike that
+  will normalize (a viral surge, a time-limited dupe wave, a seasonal pop). It is
+  **equal billing** with the durable read (owner call, 2026-06-14): it is still a
+  capital-allocation decision and these occur more often than durable shifts.
+  **But** its ceiling is capped by **decay-timing confidence**, currently low:
+  calling a spike is two claims — *it's real* AND *it decays in ~N weeks* — and
+  the decay-curve capability does not yet exist, so the read stays claim-honest
+  (built-to, not proven-at) until it does. Anti-trap: a transient spike can look
+  identical to durable convergence in the moment; only the lifespan assessment
+  separates them.
+- **Manufactured-demand read** (fake / amplified → *discount / avoid*): demand
+  that is not real — promotion-engagement mismatch, astroturf, coordinated/bot
+  amplification, dupe-wave distortion. Acting on someone else's manufactured
+  spike commits to demand that was never yours; identifying it protects both real
+  reads (owner: this ability is itself decision-critical).
 - **Brand-decision event read** (the monetization unit): a specific brand's
   live allocation decision — launch / reposition; retail or channel entry;
   restock / sellout; discontinuation / moratorium; defend-versus-hype;
-  event-triggered pricing. Trend vectors, wind-caller state, and integrity
-  labels are the context that makes this read decide-grade.
+  event-triggered pricing. The demand-state read (durable / transient /
+  manufactured), wind-caller state, and integrity labels are the context that
+  makes it decide-grade, and they set the action ceiling **and its horizon**
+  (long-horizon commit vs short-horizon move) — never stronger than signal
+  integrity and decay-timing confidence support.
 - **Wind-caller calibration** (the compounding asset): grade each niche's
-  wind callers' public calls against outcomes over time. This is the
-  outcome-memory moat applied to sources — "we know who actually calls
-  beauty winds, with receipts." Calibration receipts are dated and
-  anti-cherry-picked like every other ledger; channel-level by default and —
-  under the bounded internal carve-out (Layer 2;
+  wind callers' public calls against outcomes over time — on **both** whether the
+  move happened **and how long it lasted**, since a caller good at durable shifts
+  and one good at spikes are different and both valuable. This is the
+  outcome-memory moat applied to sources — "we know who actually calls beauty
+  winds, with receipts" — and the same historical-outcome machinery is the
+  likeliest path to the decay-curve capability the transient read needs.
+  Calibration receipts are dated and anti-cherry-picked like every other ledger;
+  channel-level by default and — under the bounded internal carve-out (Layer 2;
   `docs/decisions/wind_caller_calibration_carveout_v0.md`) — named-public-figure
   for the ≤5 internal-only calibration subjects.
+
+**Divergence is a technique, not a verdict** (owner, 2026-06-14): signals
+disagreeing — promotion-engagement mismatch (an influencer promotes X but ad
+engagement runs below their own baseline), venue sentiment splits (TikTok
+disagrees with IG), a quality attack where marketing is loudest (Reddit attacking
+quality under a promo push) — is *evidence you use to classify* a candidate as
+transient or manufactured. It is no longer synonymous with "hollow"; it is how
+you tell real-but-fading from fake.
 
 ## Pricing Refinement (PROPOSED final take on the owner's question)
 
@@ -127,6 +189,11 @@ narrow, hold, defend).
   that happened or is visibly imminent (batch-1's Beauty Pie 2023 repricing
   is exactly this) stays a valid decision family. Complaint chatter alone
   never triggers it.
+- **Horizon (2026-06-14):** price-driven rerouting is usually a **transient**
+  signal (a dupe wave surges then normalizes) but is **durable** when a price
+  move drives permanent defection to a cheaper brand. The read must classify
+  which; rerouting inherits the durable/transient tag and its decay-timing
+  confidence like every other read. Q1's substance is unchanged.
 
 ## Pipeline Fit (owner's six-step structure, 2026-06-12)
 
@@ -157,3 +224,8 @@ default, extended to named-public-figure calibration only under the bounded
 internal carve-out (≤5 accounts, internal-only); person-level dossiers in any
 sold or external surface remain forbidden. Authorizes no scan, capture,
 monitoring, or outreach.
+
+The demand-state model (durable / transient / manufactured) is PROPOSED and
+amends the controlling thesis only by dated pointer on adoption. The decay-curve
+capability and decay-timing calibration do not yet exist — transient-spike reads
+are built-to, not proven-at — so no transient-timing claim is validated here.

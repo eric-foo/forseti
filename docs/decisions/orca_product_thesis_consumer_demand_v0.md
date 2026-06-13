@@ -70,6 +70,114 @@ capture-entitlement walls, both encoded below.
 This thesis states a DIRECTION and a center of gravity. It is not validation,
 buyer proof, willingness-to-pay, judgment-quality evidence, or readiness.
 
+## Amendment — 2026-06-14 (owner): Demand-State Model (durable / transient / manufactured)
+
+Owner-authorized in-thread. The central read's framing changes from **durable vs
+hollow** to **two independent axes**. This amendment governs forward; the in-body
+"durable vs hollow" phrasings below (Value Proposition; Central Read #1; the named
+read line) are read through it (dated amendment; original preserved, not silently
+rewritten — consistent with this record's amendment rule).
+
+- **Two axes, not one.** *Persistence:* **durable** (demand persists past its
+  trigger) vs **transient** (real demand that decays). *Integrity:* **real**
+  (costly behavior) vs **manufactured** (fake / amplified). "Hollow" is retired —
+  it conflated *transient* (real but short-lived, still valuable short-term) with
+  *manufactured* (not real).
+- **Three actionable states.** Durable → *commit* (long horizon); transient →
+  *move* (short horizon, time-boxed to the decay window); manufactured →
+  *discount / avoid*. The action ceiling is matched to the demand's **lifespan**,
+  not only its strength — binding to the frozen ladder as long-horizon **Commit**
+  vs short-horizon **Move**.
+- **Transient gets equal billing** with durable as a read (owner: transient
+  spikes are still capital-allocation decisions and occur more often than durable
+  shifts; a durable-only product serves too thin a slice). **Guardrail:**
+  transient reads carry an explicit **decay-timing confidence**, currently low,
+  capping the action ceiling until a decay-curve capability exists (forward
+  capability, likely earned from historical analogues). Equal billing on the
+  read; claim-honest billing on the claim ("built to" vs "proven at").
+- **Identifying manufactured demand is decision-critical in its own right**
+  (owner) — the integrity axis is the contamination check that protects both real
+  reads, not merely an avoid filter.
+- **Falsifier note:** the durability probe's central discrimination is the
+  persistence axis (durable vs transient); manufactured separation remains the
+  forward/live capability it already was. No falsifier is weakened.
+
+The operative grammar for this model is
+`docs/product/product_lead/orca_demand_read_taxonomy_v0.md` (restructured
+2026-06-14) and its adjudication companion
+(`orca_demand_read_taxonomy_adjudication_v0.md`, Q0). This amendment is the
+thesis's owed dated pointer under the Doctrine Change Propagation Contract.
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    The thesis central read changes from binary durable-vs-hollow demand
+    discrimination to a two-axis demand-state model: durable-vs-transient
+    (persistence) and real-vs-manufactured (integrity), yielding three actionable
+    states (durable=commit; transient=move/short-horizon; manufactured=
+    discount/avoid). "Hollow" is retired as conflating transient with
+    manufactured. Transient gets equal billing as a read, under a decay-timing
+    confidence guardrail; identifying manufactured demand is decision-critical in
+    its own right.
+  trigger: product_doctrine
+  related_triggers: []
+  controlling_sources_updated:
+    - docs/decisions/orca_product_thesis_consumer_demand_v0.md               # this dated amendment
+    - docs/product/product_lead/orca_demand_read_taxonomy_v0.md              # restructured to the model
+    - docs/product/product_lead/orca_demand_read_taxonomy_adjudication_v0.md # Q0 recorded; read types updated
+  downstream_surfaces_checked:
+    - path: docs/product/product_lead/orca_buyer_proof_packet_v0.md
+      note: >
+        carries "durable-vs-hollow demand discrimination" framing (~L53, ~L215)
+        and "hollow demand" (~L234, manufactured-sense); superseded-by this
+        amendment; FLAGGED for a dated wording-realignment pass — named here, not
+        silently rewritten.
+    - path: docs/product/product_lead/orca_offer_hypothesis_v0.md
+      note: >
+        carries "durable-vs-hollow" (~L70) and "hollow or manufactured" (~L219,
+        ~L339); same realignment-pending status.
+    - path: docs/product/product_lead/orca_product_proof_lead_charter_v0.md
+      note: >
+        carries "hollow demand" (~L158, ~L170, manufactured-sense); same
+        realignment-pending status.
+    - path: docs/decisions/orca_icp_wedge_consumer_demand_first_v0.md
+      note: uses divergence reads but no "hollow" framing; consistent with the model — no change needed.
+  intentionally_not_updated:
+    - path: docs/decisions/orca_consumer_demand_ratification_decision_memo_v0.md
+      reason: >
+        dated record of the 2026-06-12 ratification; its "durable-vs-hollow" is an
+        account of what was decided then — rewriting it would falsify the record.
+        Forward-only.
+    - path: docs/prompts/product-planning/consumer_demand_probe_stage1_feasibility_commission_prompt_v0.md
+      reason: >
+        mid-flight commission prompt; its persistence-discrimination wording is
+        still substantively correct (durable vs transient); realign on reissue.
+    - path: docs/prompts/handoffs/capture_spine_archive_snapshot_typed_timing_handoff_prompt_v0.md
+      reason: handoff prompt artifact; the "persistence signal" sense is unchanged by the rename.
+    - path: docs/review-inputs/demand_projection_f6_r6_norepo_adversarial_artifact_review_bundle_v0/demand_projection_f6_r6_revised_design_v0.md
+      reason: review-input design artifact; historical bundle, not a live routing surface.
+    - path: orca-harness/** and docs/review-outputs/** uses of "hollow"
+      reason: >
+        "hollow" there means "lacking substance" (hollow tests / hollow non_claims
+        / hollow receipt) — unrelated to the demand axis; must NOT be renamed.
+  stale_language_search: >
+    rg -in "durable.?vs.?hollow|hollow demand|durable demand from hollow"
+    docs/decisions docs/product/product_lead
+  stale_language_search_result: >
+    Executed 2026-06-14 after this amendment. Remaining demand-sense hits are the
+    three ratified surfaces named above (buyer-proof, offer, charter) flagged for
+    the realignment pass, plus the ratification memo (historical record). The
+    taxonomy, companion, and this thesis amendment carry the new model. No
+    "lacking-substance"-sense occurrence (hollow tests/non_claims/receipt) was
+    touched.
+  non_claims:
+    - not validation
+    - not readiness
+    - not buyer proof
+    - not judgment-quality evidence
+    - the decay-curve capability and decay-timing calibration do not yet exist (transient reads are built-to, not proven-at)
+```
+
 ## Thesis (the bet)
 
 Orca is a productized outside-in **consumer-demand decision intelligence**
