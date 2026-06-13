@@ -150,6 +150,26 @@ widely or facts differ by framing → F4.
 
 `PENDING_DE_CORRELATED_GRADING`.
 
+## Cross-Model Addendum (4 brands; baseline + disciplined)
+
+Run after the same-model blind test, to close the same-model caveat.
+- **Baseline (10 reads; Claude/GPT/Qwen/Grok, 2 framings):** direction +
+  load-bearing facts + counterfactual **unanimous across all 4 brands**; only the
+  dial drifted, within ≈one band (Qwen/Grok run ≈one band hot). The convergence is
+  **not** a single-model artifact.
+- **Disciplined re-run (8 reads; forced cap/discount/neutral classification, NO
+  convention):** the discipline **recentered** the dial — only **2/8 hard-capped**
+  an unconfirmed risk; most said neutral/discount, correcting a framing-induced
+  over-cap — **and localized the entire residual spread to one doctrine question:**
+  is an unconfirmed-known-risk / an inherent small-N a **cap or a discount**? Net
+  weight tracked the count of hard CAPs applied. Several models independently
+  proposed: **absence of a known risk = floor-clearing, not positive evidence.**
+- **Routed:** that convention — how C2 treats a known risk across evidentiary
+  states (present / unconfirmed / absent) — is handed to a dedicated owner thread;
+  this probe established it is the **single remaining lever** on consistency.
+- Caveat: synthetic single case; `product_learning`; not validation or real-world
+  reliability.
+
 ## Non-Claims
 
 - Synthetic paper experiment; binds/populates/runs nothing on the real machinery.
