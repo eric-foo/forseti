@@ -287,6 +287,63 @@ direction_change_propagation:
     - delegated review findings are decision input only, not a bound-lane verdict
 ```
 
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    The subagent return-shape contract (prompt-orchestration.md, the
+    subagent-contract owner) now also covers execution / source-changing
+    subagents — ones that edit, install, commit, push, or open a PR. Their
+    schema-bound return must additionally carry lifecycle-verification fields
+    (branch, base and commit SHA, push/PR state, `merged` state) plus a
+    per-surface change list with one file:line cite each, so the dispatching CA
+    verifies the durable target on a fresh read per AGENTS.md rather than trust a
+    `done`. A raw diff dump is not a substitute (it is a prose dump in another
+    form), and `merged` must reflect observed state, never an assumption.
+    Additive extension of the orientation/research return rule directly above; it
+    binds only the return shape and leaves load-side ownership unchanged.
+  trigger: workflow_authority
+  related_triggers:
+    - output_authority
+  controlling_sources_updated:
+    - .agents/workflow-overlay/prompt-orchestration.md
+    - .agents/workflow-overlay/source-of-truth.md
+  downstream_surfaces_checked:
+    - AGENTS.md
+    - .agents/workflow-overlay/README.md
+    - .agents/workflow-overlay/validation-gates.md
+    - .agents/workflow-overlay/communication-style.md
+  intentionally_not_updated:
+    - path: AGENTS.md
+      reason: >
+        Routes subagent detail to the owning overlay file; the rule lives in
+        prompt-orchestration.md, so no root restatement is added.
+    - path: .agents/workflow-overlay/README.md
+      reason: >
+        The index already names prompt-orchestration.md as the subagent-contract
+        owner; no new overlay section was added.
+    - path: .agents/workflow-overlay/validation-gates.md
+      reason: >
+        Prompt gates already defer to prompt-orchestration.md as the
+        prompt-mechanics owner; single-source preserved.
+    - path: .agents/workflow-overlay/communication-style.md
+      reason: >
+        Governs human-facing chat output; the execution-return fields are
+        agent-facing verification data — complementary, no conflict.
+  stale_language_search: run
+  stale_language_search_result: >
+    rg -iE "diff dump|raw diff|merged|prose dump|execution.*subagent" across
+    .agents/workflow-overlay on 2026-06-14: the only return-rule hits are the
+    orientation/research rule directly above (extended here, not contradicted);
+    `merged` appears nowhere else, so no surface sanctioned an unverified
+    `merged` claim or a raw diff dump.
+  non_claims:
+    - not validation
+    - not readiness
+    - not approval or acceptance
+    - not source-of-truth promotion
+    - not implementation authorization
+```
+
 Older receipts (#1–#13) archived verbatim in `docs/decisions/dcp_receipts_archive_v0.md`.
 
 ## Known Source Documents

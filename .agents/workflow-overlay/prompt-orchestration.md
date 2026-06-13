@@ -97,7 +97,14 @@ For an orientation or research subagent whose output returns to an agent, bind
 the return shape, not just the source side. Require a terse, schema-bound verdict
 — the exact fields named in the dispatch prompt, one line per field, a `file:line`
 cite for every load-bearing claim, and `unknown` for an absent field — not a
-prose dump. Source-readiness stays governed by the rule above and
+prose dump. For an execution or source-changing subagent — one that edits,
+installs, commits, pushes, or opens a PR — extend that return with
+lifecycle-verification fields: branch, base and commit SHA, push/PR state, and
+`merged` state, plus a per-surface change list carrying one `file:line` cite
+each, so the dispatching CA can verify the durable target on a fresh read per
+`AGENTS.md` rather than trust a `done`; a raw diff dump is not a substitute (it
+is a prose dump in another form), and `merged` must reflect observed state,
+never an assumption. Source-readiness stays governed by the rule above and
 `.agents/workflow-overlay/source-loading.md` (the load-side owner); here the
 spawning CA names that load in the dispatch, escalates minimally, and validates
 the return on receipt: reject or re-prompt a non-conforming or citation-less
