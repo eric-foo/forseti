@@ -282,51 +282,46 @@ excerpts, but must still honor the same budgets and exclusions.
 
 This section is the canonical read-pack rule for Data Capture Spine setup CA
 prompts. Older prompts may call this the Data Spine CA read pack; treat that as
-a deprecated shorthand for Data Capture Spine.
-Repo maps and prompt artifacts should reference this section instead of
-restating the full pack.
+a deprecated shorthand for Data Capture Spine. Repo maps and prompt artifacts
+should reference this section instead of restating the full pack.
 
-For a Data Capture Spine setup CA, start with these targeted sections:
+Start with:
+
+- `docs/workflows/data_capture_spine_consolidation_map_v0.md` — the
+  `retrieval_only` front door. It routes one hop to capture obligations,
+  source-access authority, armory components, packet lifecycle, harness
+  implementation, and source-quality support without bulk-loading every artifact.
+
+Then open only the targeted sections needed for the CA prompt:
 
 - `docs/decisions/orca_product_thesis_consumer_demand_v0.md`: thesis (the
-  bet), value proposition, strategic center, and central-read sections
-  (owner-ratified 2026-06-12; supersedes `turn_08_product_thesis_v0.md`).
-- `docs/product/product_lead/orca_offer_hypothesis_v0.md`: core offer hypothesis,
-  mechanism, fit diagnostic, and non-claims sections.
-- `docs/product/product_lead/orca_buyer_proof_packet_v0.md`: proof standard, target buyer,
-  signal surface, disqualifiers, and not-build boundaries.
+  bet), value proposition, strategic center, and central-read sections.
+- `docs/product/product_lead/orca_offer_hypothesis_v0.md`: core offer
+  hypothesis, mechanism, fit diagnostic, and non-claims sections.
+- `docs/product/product_lead/orca_buyer_proof_packet_v0.md`: proof standard,
+  target buyer, signal surface, disqualifiers, and not-build boundaries.
 - `docs/product/core_spine/core_spine_v0_data_and_cleaning_spine_boundary_v0.md`:
   purpose, decision, layer rules, and future ECR/Evidence Unit boundaries.
-- `docs/product/core_spine/core_spine_v0_product_contract.md`: product bet, core rule,
-  frozen primitives, and explicit non-goals only.
+- `docs/product/core_spine/core_spine_v0_product_contract.md`: product bet,
+  core rule, frozen primitives, and explicit non-goals only.
 - `docs/product/core_spine/core_spine_v0_information_production_foundation_v0.md`:
   Evidence Unit standard and boundary rules only.
 
-Do not read these six files in full by default. Use the targeted sections
-above, then expand only when a specific source gap would change the CA prompt.
-If a prompt author cannot locate the named sections, the prompt must report a
-source gap instead of widening to full-file reads by default.
-
-Do not include method-validation replays, proof-run packets, review outputs,
-or research corpus files by default. Use the repo map to decide whether any
-one of those is necessary.
+Do not read these files in full by default. Use the targeted sections above,
+then expand only when a specific source gap would change the CA prompt. Do not
+include method-validation replays, proof-run packets, review outputs, or
+research corpus files by default.
 
 ### Data Capture Spine CA Capsule Limit
 
-A Data Capture Spine CA prompt should include only:
-
-- one paragraph on Orca's value proposition;
-- one paragraph on the current Data Capture / Evidence Candidate Record /
-  Cleaning / Judgment boundary;
-- one paragraph on the bounded-implementation authorization boundary;
-- the targeted source pack above;
-- the exact files and sections to read;
-- the default exclusions;
-- the owner decisions or source gaps the CA should surface.
-
-It should not paste the full offer, proof packet, Core Spine contract, boundary
-note, or IPF. It should not include method-validation history unless the CA task
-explicitly asks how prior cases affected Data Capture Spine source loading.
+A Data Capture Spine CA prompt should include only: one paragraph on Orca's
+value proposition; one paragraph on the current Data Capture / ECR / Cleaning /
+Judgment boundary; one paragraph on the bounded-implementation authorization
+boundary; the targeted source pack above; the exact files and sections to read;
+the default exclusions; and the owner decisions or source gaps the CA should
+surface. Do not paste the full offer, proof packet, Core Spine contract,
+boundary note, or IPF. Do not include method-validation history unless the CA
+task explicitly asks how prior cases affected Data Capture Spine source loading.
 
 ## Data Capture Intake Surface / MSP Pressure-Test Target Pack
 
@@ -336,119 +331,40 @@ Projection, categorical ECR receipt, and Cleaning handoff.
 
 Start with:
 
+- `docs/workflows/data_capture_spine_consolidation_map_v0.md` — the
+  `retrieval_only` front door for Data Capture Spine / Source Capture Armory.
+  It routes one hop to capture obligations, source-access authority, armory
+  components, packet lifecycle, harness implementation, source-quality support,
+  and current Reddit pre-commercial ordering without bulk-loading every artifact.
+
+Then open the intake surface consolidation as the pressure-test anchor:
+
 - `docs/product/data_capture_spine/data_capture_spine_intake_surface_consolidation_v0.md`
 
-For post-batch patch planning, review, or owner decision, also open:
+Then open only the controlling source for the current claim. Key owners:
 
-- `docs/product/data_capture_spine/data_capture_spine_post_batch_patch_plan_v0.md`
-- `docs/decisions/data_capture_spine_post_batch_patch_plan_owner_decision_v0.md`
-- `docs/product/data_capture_spine/data_capture_spine_obligation_contract_patch_proposal_v0.md`
-- `docs/decisions/data_capture_spine_obligation_contract_patch_proposal_owner_decision_v0.md`
-- `docs/review-outputs/adversarial-artifact-reviews/data_capture_spine_obligation_contract_patch_proposal_adversarial_artifact_review_v0.md`
+- **Pressure-test closeout state and authorization-chain walk** (slot status,
+  RQ status, CloakBrowser selection, Reddit ordering, tranche build authority):
+  `docs/product/data_capture_spine/data_capture_spine_pressure_test_closeout_synthesis_v0.md`
+  — the "Intake Surface / MSP Pressure-Test State" section carries the verbatim
+  authorization-chain narrative relocated from this pack on 2026-06-13.
+- **Source-observability scoping / RQ boundary**: open the requirements-boundary
+  decision and source-access tooling authorization named by the consolidation map.
+- **Post-batch patch planning, obligation-contract patch, adversarial review**:
+  open the post-batch patch plan, patch proposal, owner decision, and review
+  output named by the consolidation map.
+- **Slot 3 WSO continuation or cross-venue synthesis**: open
+  `docs/product/data_capture_spine/data_capture_spine_pressure_test_slot3_reddit_subbatch_control_note_v0.md`
+  before treating Reddit capture as complete venue coverage.
+- **Source Capture Packet lifecycle / fixture admission**:
+  `docs/decisions/source_capture_packet_fixture_retention_sensitivity_decision_v0.md`
+- **Source Quality State Assembler boundary**:
+  `docs/product/source_capture_toolbox/source_quality_state_assembler_v0.md`
 
-For all-slot source-observability scoping authorization or follow-on scoping,
-also open:
-
-- `docs/workflows/data_capture_spine_consolidation_map_v0.md` first for
-  Data Capture Spine / Source Capture Armory orientation; it routes one hop to
-  capture obligations, source-access authority, armory components, packet
-  lifecycle, harness implementation, source-quality support, and current Reddit
-  pre-commercial ordering without bulk-loading every capture artifact.
-- `docs/decisions/data_capture_spine_source_observability_scoping_authorization_v0.md`
-- `docs/product/data_capture_spine/data_capture_spine_source_observability_requirements_scoping_v0.md`
-- `docs/decisions/data_capture_spine_source_observability_requirements_boundary_decision_v0.md`
-- `docs/decisions/data_capture_spine_source_observability_requirements_support_implementation_scoping_authorization_v0.md`
-- `docs/decisions/data_capture_spine_source_observability_local_support_implementation_scoping_authorization_v0.md`
-- `docs/decisions/data_capture_spine_source_observability_local_support_implementation_execution_authorization_v0.md`
-- `docs/decisions/data_capture_spine_source_observability_support_closeout_decision_v0.md`
-- `docs/product/data_capture_spine/data_capture_spine_pressure_test_closeout_synthesis_v0.md`
-- `docs/product/source_capture_toolbox/README.md`
-- `docs/decisions/source_capture_packet_fixture_retention_sensitivity_decision_v0.md` when deciding whether generated Source Capture Packets remain scratch, may be cited by durable closeouts, require retention/sensitivity handling, or require a cited separate admission decision before `separately_admitted` can be used.
-- `docs/product/source_capture_toolbox/source_quality_state_assembler_v0.md` when checking whether already-bounded source-quality rows and existing Source Capture Packets may be assembled into a state census without runner dispatch, source discovery, scoring, fixture admission, or Judgment authority.
-- `docs/decisions/data_capture_spine_source_access_tooling_build_authorization_v0.md`
-- `docs/product/data_capture_spine/data_capture_spine_pressure_test_all_slot_synthesis_v0.md`
-- `docs/review-outputs/adversarial-artifact-reviews/data_capture_spine_pressure_test_all_slot_synthesis_blast_radius_recheck_v0.md`
-
-Then open only the controlling source needed for the current claim:
-
-- `docs/decisions/data_capture_spine_pressure_test_batch_classification_decision_v0.md`
-- `docs/product/data_capture_spine/data_capture_harness_operating_model_architecture_v2_acceptance_decision_v0.md`
-- `docs/product/data_capture_spine/data_capture_harness_operating_model_architecture_v2.md`
-- `docs/product/data_capture_spine/core_spine_v0_data_capture_spine_obligation_contract_v0.md`
-- `docs/product/core_spine/core_spine_v0_data_and_cleaning_spine_boundary_v0.md`
-- `docs/product/data_capture_spine/data_capture_source_access_boundary_decision_v0.md`
-- `docs/product/data_capture_spine/data_capture_spine_pressure_test_commissioning_plan_v0.md`
-- `docs/product/data_capture_spine/data_capture_spine_pressure_test_execution_authorization_v0.md`
-
-For Slot 3 WSO continuation or cross-venue Slot 3 synthesis, also open
-`docs/product/data_capture_spine/data_capture_spine_pressure_test_slot3_reddit_subbatch_control_note_v0.md`
-before treating Reddit capture as complete venue coverage. That note records
-the Reddit sub-batch checker outcomes, source-language-anchor lesson, media and
-cutoff limitations, and the open WSO-run versus WSO-defer control decision.
-
-The accepted consolidation is the bounded pressure-test target, not a final
-Capture Spine contract and not pressure-test validation. The first N=3 batch
-classification decision classifies that batch as patchable and authorizes
-docs-only patch planning, not contract hardening or runtime/source-system
-implementation. The post-batch patch plan sequences the currently authorized
-docs-only patch candidates for owner gating after adversarial review; the owner
-decision accepts that plan for downstream docs-only patch drafts, but neither
-artifact amends the obligation contract or source-access method plan. The
-obligation-contract patch proposal owner decision accepted PCP-01 through PCP-08
-as bounded authority for docs-only obligation-contract amendment drafting; that
-package is now consumed by the amended controlling obligation contract. The
-proposal and owner decision remain historical amendment inputs and do not amend
-the source-access method plan or authorize runtime/source-system
-implementation. The source-observability scoping authorization permits one
-bounded docs-only requirements scoping lane from the all-slot pressure-test
-synthesis; the resulting source-observability requirements scoping artifact is
-candidate decision input, not governing doctrine. The post-Slot-3-recapture
-requirements-boundary decision is the current source for RQ status after
-recapture: RQ-01, RQ-03, and RQ-05 carry forward; RQ-02 is split into
-visibility-now/body-retrieval-default-deferred; RQ-04 remains deferred candidate
-context. The requirements-support implementation-scoping authorization permits
-one bounded scoping lane for RQ-01, RQ-03, RQ-05, and RQ-02 visibility-only
-support; it does not authorize implementation execution, RQ-04/source-access
-handling, archive/media retrieval, source-access method-plan amendment, or
-contract hardening. The local support
-implementation-scoping authorization permits one bounded implementation-scoping
-lane for local source-observability support, not implementation execution. The
-local support implementation-execution authorization separately records and
-bounds the implemented local operator-record/checker/report/docs/tests surface;
-it does not authorize further implementation expansion. The support closeout
-decision records that the current local helper proved sufficient for the
-accepted post-recapture Slot 3 dry-use without schema or code expansion, while
-leaving a later helper-semantics vocabulary patch as candidate-only if repeated
-future friction warrants it. The pressure-test closeout synthesis records the
-first Data Capture pressure-test foundation as good enough for bounded next
-planning while carrying Slot 1, Slot 2, Slot 3, and Source Observability
-limitations forward; it is not validation, readiness, pressure-test discharge,
-contract hardening, or source-access method-plan amendment. The Source Capture
-Armory README is the product-facing entrypoint for bounded tooling docs
-and gaps. The Source Quality State Assembler architecture is a read-only
-multi-row state-census boundary over already-bounded source-quality rows and
-existing Source Capture Packets; it does not authorize source discovery, runner
-dispatch, source-quality scoring, fixture admission, or Judgment behavior. A
-Source Capture Packet fixture/retention/sensitivity decision controls how
-generated packets move from scratch output to durable operational context,
-candidate evidence, fixture-admission recommendation, or separate fixture
-admission; it does not admit any current packet, prove source completeness,
-clear rights, or authorize production storage. Later owner decisions now
-authorize bounded source-access tooling build surfaces: first-tranche Source
-Capture Packet core/CLI, direct HTTP fetch, media/asset preservation,
-Archive.org availability/body retrieval, and honest browser snapshot support;
-second-tranche Reddit API adapter and owner-named source adapters; and
-third-tranche anti-blocking/proxy/JS-challenge support. CloakBrowser is the
-selected primary anti-blocking browser backend for the next implementation lane.
-For Reddit pre-commercial capture, the current order is CloakBrowser
-anti-blocking first once implemented, then low-volume bounded
-subreddit/thematic/thread-family capture, then archive capture; commercial use
-moves to the sanctioned commercial / enterprise API or data-licensing path. That
-authorization does not cover commercial fetch services, SERP APIs, broad
-crawler/spider frameworks, storage, dashboards, schedulers, deployment,
-production runtime, contract hardening, source-access boundary change, or
-ECR/Cleaning/Judgment design. Do not use this pack to design ECR schema,
-Cleaning implementation, or Judgment behavior.
+Capsule note: embedded state narrative (slot-by-slot history, authorization
+boundaries, CloakBrowser selection, Reddit ordering) now lives in the closeout
+synthesis. Do not use this pack to design ECR schema, Cleaning implementation,
+or Judgment behavior.
 
 ## ECR Source-Side Spine Read Pack
 
@@ -479,40 +395,35 @@ signal is being overclaimed.
 
 Start with:
 
-- `docs/research/judgment-spine/judgment_spine_consolidation_map_v0.md` for
-  orientation across Judgment Spine product docs, research docs, cases,
-  manifest, conductor, gate ownership, evidence ladder, JSG-08, and harness
-  surfaces without bulk-loading the corpus.
-- `docs/product/judgment_spine/judgment_spine_evidence_ladder_architecture_v0.md`
-- `docs/product/judgment_spine/judgment_spine_gate_ownership_map_v0.md` when the work asks
-  which gate owns source identity, packet freeze, no-tools isolation,
-  memorization probe, sealed output, scoring, reveal/calibration, claim
-  classification, closeout, or judgment-quality promotion blockers.
-- `docs/product/judgment_spine/judgment_spine_reveal_calibration_owner_contract_v0.md` when
-  the work asks whether reveal/calibration material is absent, reveal-only,
-  qualitative calibration, score-linked calibration, contaminated, or strong
-  enough to satisfy `JSG-08` for a stronger claim.
-- `docs/product/judgment_spine/judgment_quality_promotion_operating_model_v0.md` when the work
-  needs to run or plan a case through gates JSG-01 to JSG-10, decide a run's
-  lifecycle state, or check what a partial or by-hand run can claim. This is the
-  conductor: it sequences and verifies gate receipts and never computes judgment
-  quality.
+- `docs/research/judgment-spine/judgment_spine_consolidation_map_v0.md` — the
+  `retrieval_only` front door. It orients across thesis, cases, manifest,
+  conductor, gate ownership, evidence ladder, JSG-08, and harness surfaces, and
+  routes one hop to each owner without bulk-loading the corpus. Per-claim-type
+  owner pointers (evidence ladder, gate ownership map, reveal/calibration
+  contract, conductor) live in that map's Fast Route table.
 
-Then open only the controlling source for the stronger claim being considered:
+Then open only the controlling source for the claim being considered:
 
-- For buyer-proof claims, open `.agents/workflow-overlay/product-proof.md` and
+- **Claim-tier classification or overclaim check**: evidence ladder at
+  `docs/product/judgment_spine/judgment_spine_evidence_ladder_architecture_v0.md`.
+- **Gate ownership (source identity, packet freeze, no-tools, scoring, reveal,
+  closeout, or promotion blockers)**: gate ownership map at
+  `docs/product/judgment_spine/judgment_spine_gate_ownership_map_v0.md`.
+- **JSG-08 reveal/calibration receipt**: owner contract at
+  `docs/product/judgment_spine/judgment_spine_reveal_calibration_owner_contract_v0.md`.
+- **Running or planning a case through JSG-01→JSG-10**: conductor at
+  `docs/product/judgment_spine/judgment_quality_promotion_operating_model_v0.md`.
+- **Buyer-proof claims**: `.agents/workflow-overlay/product-proof.md` and
   `docs/product/product_lead/orca_buyer_proof_packet_v0.md`.
-- For judgment-quality, blind-use, fixture-admission, clean no-tools, scoring,
-  probe, or calibration claims, open
-  `docs/research/judgment-spine/harness/v0_14/contestant_no_tools_execution_contract_v0.md`
-  and the specific case/run/probe/scoring/reveal/calibration artifact.
-- For pre-sale manual subscription/chat routing claims, open
+- **Judgment-quality, blind-use, fixture-admission, scoring, or calibration
+  claims**: `docs/research/judgment-spine/harness/v0_14/contestant_no_tools_execution_contract_v0.md`
+  and the specific case/run artifact.
+- **Pre-sale manual subscription/chat routing claims**:
   `docs/decisions/judgment_spine_pre_sale_execution_evidence_tier_policy_v0.md`.
 
 Do not bulk-load all Judgment Spine research, all harness specs, all proof-run
-packets, all review outputs, or all case artifacts by default. Product-Learning
-evidence may guide design and patch priorities, but strict Buyer-Proof or
-Judgment-Quality claims remain not proven until the controlling tier gate is
+packets, all review outputs, or all case artifacts by default. Strict Buyer-Proof
+or Judgment-Quality claims remain not proven until the controlling tier gate is
 satisfied.
 
 ## Expansion Rules
@@ -591,3 +502,78 @@ promotion.
 
 If a claim needs one of those statuses, load the controlling authority or mark
 the claim `not proven`.
+
+## Direction Change Propagation
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Spine read packs (Data Capture Spine CA, Data Capture Intake Surface / MSP
+    Pressure-Test Target, Judgment Spine Evidence Ladder) reshaped to
+    front-door pointer form matching the ECR pack model: each pack now leads
+    with its retrieval_only front-door submap and routes to owner docs on
+    demand. Embedded spine state (slot-by-slot pressure-test authorization-chain
+    walk, CloakBrowser selection, Reddit ordering, RQ status) relocated verbatim
+    to the spine-owned closeout synthesis. Source-loading.md is navigation only;
+    state of the work lives in the spine-owned doc it belongs to.
+  trigger: workflow_authority
+  related_triggers:
+    - architecture_doctrine
+    - lifecycle_boundary
+  controlling_sources_updated:
+    - .agents/workflow-overlay/source-loading.md
+    - docs/product/data_capture_spine/data_capture_spine_pressure_test_closeout_synthesis_v0.md
+  downstream_surfaces_checked:
+    - .agents/workflow-overlay/prompt-orchestration.md
+    - .agents/workflow-overlay/README.md
+    - docs/workflows/orca_repo_map_v0.md
+    - docs/research/judgment-spine/judgment_spine_consolidation_map_v0.md
+    - docs/workflows/data_capture_spine_consolidation_map_v0.md
+  intentionally_not_updated:
+    - path: .agents/workflow-overlay/prompt-orchestration.md
+      reason: >
+        Prompt orchestration binds source-loading as the read-pack authority and
+        points here; it does not reproduce pack contents. The front-door reshape
+        does not change the binding rule.
+    - path: .agents/workflow-overlay/README.md
+      reason: >
+        The overlay index already names source-loading.md as the read-pack owner.
+        No section owner or overlay path changed.
+    - path: docs/workflows/orca_repo_map_v0.md
+      reason: >
+        The repo map already points to the section anchors
+        (source-loading.md#data-capture-intake-surface--msp-pressure-test-target-pack
+        etc.) and does not reproduce pack contents. Section headings are
+        unchanged so existing anchors remain valid.
+    - path: docs/research/judgment-spine/judgment_spine_consolidation_map_v0.md
+      reason: >
+        The Judgment Spine consolidation map is the front door this pack now
+        points to; it is not a downstream consumer of pack contents. No changes
+        needed there.
+    - path: docs/workflows/data_capture_spine_consolidation_map_v0.md
+      reason: >
+        The Data Capture Spine consolidation map is the front door this pack now
+        points to; it is not a downstream consumer of pack contents. No changes
+        needed there.
+  stale_language_search: >
+    rg -n "MSP|pressure-test|read pack" .agents/workflow-overlay/
+  stale_language_search_result: >
+    Executed 2026-06-13 after edits. Hits in .agents/workflow-overlay/:
+    artifact-folders.md:197 ("read packs reference unchanged paths until
+    Phase-2 apply" — DCP receipt comment, not stale); README.md:19 ("read
+    packs, and context-bloat controls" — description of source-loading.md,
+    accurate); source-loading.md — section title "Data Capture Intake Surface /
+    MSP Pressure-Test Target Pack" (correct, kept), "pressure-test" in navigation
+    text (correct nav context, not state prose), "read pack" in capsule-limit
+    prose and Expansion Rules (both accurate descriptions of navigation artifacts,
+    not stale); source-of-truth.md — references to source-loading.md description
+    (accurate). No hit retained the inline authorization-chain state narrative
+    or bulk file-list in source-loading.md; none points to a stale-language
+    conflict requiring a further fix.
+  non_claims:
+    - not validation
+    - not readiness
+    - not source promotion
+    - not implementation authorization
+    - not ECR or Judgment design
+```

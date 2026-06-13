@@ -325,3 +325,76 @@ archive/media retrieval authorization, not browser/API/scraper/tooling
 authorization, not runtime/source-system authorization, not schema/storage
 authorization, not ECR design, not Cleaning implementation, and not Judgment
 design.
+
+## Intake Surface / MSP Pressure-Test State (relocated from source-loading.md 2026-06-13)
+
+This section records the authorization-chain walk for the pressure-test and
+source-observability lifecycle. It was embedded in the source-loading read pack
+(`.agents/workflow-overlay/source-loading.md`, "Data Capture Intake Surface /
+MSP Pressure-Test Target Pack") as inline state narrative. It is relocated here
+verbatim (light stitching only) because this doc is the spine-owned closeout
+record for the pressure-test foundation; source-loading.md is a navigation
+pointer, not a state doc. The file-list navigation remains in source-loading.md;
+the authorization-state walk belongs here.
+
+The accepted consolidation is the bounded pressure-test target, not a final
+Capture Spine contract and not pressure-test validation. The first N=3 batch
+classification decision classifies that batch as patchable and authorizes
+docs-only patch planning, not contract hardening or runtime/source-system
+implementation. The post-batch patch plan sequences the currently authorized
+docs-only patch candidates for owner gating after adversarial review; the owner
+decision accepts that plan for downstream docs-only patch drafts, but neither
+artifact amends the obligation contract or source-access method plan. The
+obligation-contract patch proposal owner decision accepted PCP-01 through PCP-08
+as bounded authority for docs-only obligation-contract amendment drafting; that
+package is now consumed by the amended controlling obligation contract. The
+proposal and owner decision remain historical amendment inputs and do not amend
+the source-access method plan or authorize runtime/source-system
+implementation. The source-observability scoping authorization permits one
+bounded docs-only requirements scoping lane from the all-slot pressure-test
+synthesis; the resulting source-observability requirements scoping artifact is
+candidate decision input, not governing doctrine. The post-Slot-3-recapture
+requirements-boundary decision is the current source for RQ status after
+recapture: RQ-01, RQ-03, and RQ-05 carry forward; RQ-02 is split into
+visibility-now/body-retrieval-default-deferred; RQ-04 remains deferred candidate
+context. The requirements-support implementation-scoping authorization permits
+one bounded scoping lane for RQ-01, RQ-03, RQ-05, and RQ-02 visibility-only
+support; it does not authorize implementation execution, RQ-04/source-access
+handling, archive/media retrieval, source-access method-plan amendment, or
+contract hardening. The local support implementation-scoping authorization
+permits one bounded implementation-scoping lane for local source-observability
+support, not implementation execution. The local support
+implementation-execution authorization separately records and bounds the
+implemented local operator-record/checker/report/docs/tests surface; it does not
+authorize further implementation expansion. The support closeout decision records
+that the current local helper proved sufficient for the accepted post-recapture
+Slot 3 dry-use without schema or code expansion, while leaving a later
+helper-semantics vocabulary patch as candidate-only if repeated future friction
+warrants it. The pressure-test closeout synthesis records the first Data Capture
+pressure-test foundation as good enough for bounded next planning while carrying
+Slot 1, Slot 2, Slot 3, and Source Observability limitations forward; it is not
+validation, readiness, pressure-test discharge, contract hardening, or
+source-access method-plan amendment. The Source Capture Armory README is the
+product-facing entrypoint for bounded tooling docs and gaps. The Source Quality
+State Assembler architecture is a read-only multi-row state-census boundary over
+already-bounded source-quality rows and existing Source Capture Packets; it does
+not authorize source discovery, runner dispatch, source-quality scoring, fixture
+admission, or Judgment behavior. A Source Capture Packet fixture/retention/sensitivity
+decision controls how generated packets move from scratch output to durable
+operational context, candidate evidence, fixture-admission recommendation, or
+separate fixture admission; it does not admit any current packet, prove source
+completeness, clear rights, or authorize production storage. Later owner decisions
+now authorize bounded source-access tooling build surfaces: first-tranche Source
+Capture Packet core/CLI, direct HTTP fetch, media/asset preservation, Archive.org
+availability/body retrieval, and honest browser snapshot support; second-tranche
+Reddit API adapter and owner-named source adapters; and third-tranche
+anti-blocking/proxy/JS-challenge support. CloakBrowser is the selected primary
+anti-blocking browser backend for the next implementation lane. For Reddit
+pre-commercial capture, the current order is CloakBrowser anti-blocking first
+once implemented, then low-volume bounded subreddit/thematic/thread-family
+capture, then archive capture; commercial use moves to the sanctioned commercial /
+enterprise API or data-licensing path. That authorization does not cover commercial
+fetch services, SERP APIs, broad crawler/spider frameworks, storage, dashboards,
+schedulers, deployment, production runtime, contract hardening, source-access
+boundary change, or ECR/Cleaning/Judgment design. Do not use this pack to design
+ECR schema, Cleaning implementation, or Judgment behavior.
