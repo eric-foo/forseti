@@ -128,6 +128,21 @@ already-authenticated session.
   (the heuristic "longest non-chrome text node" worked here but is not production-robust).
   Post permalinks (`/<handle>/p/<shortcode>/` and `/reel/<shortcode>/`) are enumerable from the
   profile grid, which **lazy-loads on scroll** (12 → 48 over 3 passes on a 321-post account).
+- **The grid is an INDEX, not the signal (owner correction, 2026-06-14).** The profile grid yields
+  only thumbnails + permalinks. The capturable signal — verbatim caption **and per-item
+  engagement** — lives on **each individual `/p/` and `/reel/` page, visited one-by-one.** Reels
+  (`/reel/`) are a first-class capture target alongside posts, **not** the same surface as the grid.
+  Per-item engagement confirmed in the page: **likes, comments, date, and the sponsorship `#ad`
+  flag** (a `/reel/` probe returned `"1,047 likes, 43 comments - hyram on … : \"#ad …\""` — the
+  `#ad` flag is exactly the carve-out's sponsorship-disclosure signal). Caption truncation in the
+  meta is even worse for reels: **1,594-char DOM caption vs 220-char `og:description` (~86% loss).**
+  **Reel view/play count is a residual** — it was **not** in the standalone reel-page DOM text or
+  `og:description`; it lives in the media **GraphQL JSON** (`video_view_count` / `play_count`)
+  and/or a grid-tile overlay, a targeted extraction **not demonstrated here**.
+- **Capture-volume consequence:** because capture is per-item, a full account read is **one grid
+  walk + N individual item-page visits** (N up to the post count, e.g. 321 for `@hyram`). That
+  multiplies request volume, which makes the human-mimicking cadence discipline (H5) **more**
+  load-bearing, not less — it is the dominant open risk for at-scale capture.
 - **NOT in the initial logged-out stdlib HTML:** a bare `direct_http` GET returns a ~595 KB JS
   shell with **no** `og:description`, **no** embedded stats/calls — IG serves the meta-tag'd /
   hydrated content only to a browser-like session.
@@ -148,6 +163,7 @@ no scheduler, no bulk enumeration. Consistent with the amended carve-out.
 | **real browser, logged-IN own account** | own post page `/p/<shortcode>/` | rendered, no login modal | Caption present in `og:description`/`og:title` (short ≈ 95-char caption — fit fully, so meta == full *here*; likes/comments/date present) | **GO (calls, short)** |
 | **real browser, logged-IN, third-party public** `@hyram` | profile `/hyram/` | rendered, **no login modal**, `is_private:false` | Stats render (321 posts / 723K followers); grid lazy-loads on scroll **12 → 48** over 3 passes | **GO (third-party reachability + pagination)** |
 | **real browser, logged-IN, third-party public** `@hyram` | post page `/p/<shortcode>/` | rendered, no login modal | **Full caption = 635 chars in rendered DOM** vs **261 chars in `og:description`** (meta truncates ~59%); `ld+json`/`h1` absent | **GO (verbatim calls) — via DOM, not meta** |
+| **real browser, logged-IN, third-party public** `@hyram` | **reel** page `/reel/<shortcode>/` | rendered, no login modal | Caption **1,594-char DOM vs 220 meta** (~86% trunc); **likes 1,047 + comments 43 + date + `#ad` flag** in `og:description`; **view/play count NOT in page DOM** | **GO (caption + likes + comments + sponsorship); reel-views = residual (GraphQL JSON)** |
 
 The 429-cookieless → 200-logged-in contrast on the **same endpoint** is the clean proof that the
 block was a session/bot gate (Pattern 1: "blocked is a hypothesis"), not an auth wall and not a
@@ -205,7 +221,18 @@ the harness can already do the Social Blade stats fetch at the `direct_http` run
 (12 → 48 on scroll) — so enumeration is not the blocker; the **login session** is. (2) The
 verbatim caption is a **plain DOM text node** (no `ld+json`, no `<h1>` on the probed post), so the
 build needs a **robust caption-extraction selector** — the recon's "longest non-chrome text node"
-heuristic worked once but is not production-grade.
+heuristic worked once but is not production-grade. (3) Reel **view/play counts** are not in the
+rendered page; the build would pull them from the media **GraphQL JSON** (`video_view_count` /
+`play_count`) the page already fetches.
+
+**What "harness-native" buys — and does NOT (re: "is it automatic?"):** the build would let the
+harness load a **saved logged-in session** (storage_state) and **programmatically walk each
+post/reel page** to pull caption + engagement — so a human is not hand-clicking hundreds of items.
+It is **not** "automatic" in a set-and-forget sense: the carve-out hard-caps it to **attended,
+human-mimicking cadence, no standing/scheduled crawler, ≤5 accounts, pre-commercial.** So it is
+**automated extraction during an attended run** — a power tool the owner runs, not a crawler that
+runs itself. The capture-volume math above (one grid walk + N item pages) is exactly why the
+cadence cap, not the mechanics, is the binding constraint.
 
 ## Cross-cutting patterns confirmed (recon index spine)
 
@@ -242,7 +269,12 @@ full-history enumeration (only 48 of 321 posts loaded) and a production-grade ca
 - **H5 — sustained cadence vs anti-bot not stress-tested.** No rate-limit was hit, but repeated,
   over-time, multi-account capture (what calibration actually does) was not exercised.
 - **Verbatim caption needs the DOM node + a robust selector** (no `ld+json`/`h1`); the meta tag is
-  lossy (~59% on the probed post) and can be stale.
+  lossy (~59% on a post, ~86% on a reel) and can be stale.
+- **The grid is index-only; capture is per-item.** Caption + per-item engagement require visiting
+  each `/p/` **and** `/reel/` page one-by-one (one grid walk + N item visits per account).
+- **Reel view/play count NOT captured** in this recon — absent from the standalone reel-page DOM
+  and `og:description`; lives in the media GraphQL JSON (`video_view_count`/`play_count`) /
+  grid-tile overlay (targeted extraction not demonstrated).
 - **Harness-native logged-in capture NOT built** (see the build-lane finding) — calls self-capture
   is human-driven (attended browser) only until the auth-browser capability exists.
 - **Stats deep-history** from Social Blade free is **premium-limited** (recent window only);
