@@ -42,15 +42,24 @@ text was viewed live for the demonstration but is **not retained** here
 
 ## Verdict (headline)
 
-**GO (demonstrated) — at the attended logged-in own-account browser rung**, with a clean
-self-capture-vs-buy split:
+**GO (demonstrated) — at the attended logged-in browser rung**, with a clean
+self-capture-vs-buy split. Demonstrated on the owner's **own** account *and* on **one public
+third-party wind-caller** (`@hyram`, US skincare creator — a feasibility probe, not a chosen
+calibration subject). Scope honesty: a feasibility GO on n=2 accounts, **not** an at-full-scale
+or multi-account-over-time validation (see Diagnosis & gap-closing + Limitations).
 
 - **Calls (verbatim post captions + dated engagement) = SELF-CAPTURE** first-party, via the
-  attended logged-in own-account browser. This is the moat signal. **Demonstrated live.**
+  attended logged-in browser. This is the moat signal. **Demonstrated live.** The verbatim
+  caption lives in the **rendered post-page DOM caption node** — **not** the `og:description` /
+  `og:title` meta, which is a **truncated summary** (observed on a real `@hyram` post: meta 261
+  chars vs full DOM caption 635 chars — ~59% dropped). Enumerate posts via **scroll pagination**
+  of the profile grid (observed 12 → 48 across 3 human-paced passes).
 - **Public stats (follower / following / post counts; and the historical series) = BUY** the
-  series from Social Blade (free tier carries it; second-hand is acceptable per the carve-out).
-  Current-snapshot stats also come **free alongside the calls** (carried in the same profile
-  `og:description` meta), so only the *historical time-series* genuinely needs Social Blade.
+  series from Social Blade (real creator confirmed tracked; free tier carries a **recent daily
+  window** — deep multi-month/year history is premium; second-hand is acceptable per the
+  carve-out). Current-snapshot stats also come **free alongside the calls** (profile
+  `og:description` meta + header), so only the *deeper historical series* genuinely needs Social
+  Blade or continuous self-logging.
 
 `direct_http` (the cheapest rung) is **NO-GO for the signal**; a session-bearing browser is
 the working rung. Full per-rung verdicts below.
@@ -107,10 +116,18 @@ already-authenticated session.
   `web_profile_info` JSON API (`edge_followed_by.count`, `edge_follow.count`,
   `edge_owner_to_timeline_media.count`). The API **no longer carries the post nodes** — counts
   only (observed: `recentPosts: []` even on a 200 logged-in response).
-- **Calls (verbatim captions + dated engagement):** carried per-post in the **post page**
-  `og:description` / `og:title` meta (`"<likes> likes, <comments> comments - <handle> on
-  <date>: \"<caption>\""`). Post permalinks (`/<handle>/p/<shortcode>/`) are enumerable from the
-  profile DOM.
+- **Calls (verbatim captions + dated engagement):** the **full verbatim caption** lives in the
+  **rendered post-page DOM caption node** (a text element; on the probed `@hyram` post the
+  longest non-chrome text node = 635 chars). The post-page `og:description` / `og:title` meta
+  (`"<likes> likes, <comments> comments - <handle> on <date>: \"<caption>\""`) carries the same
+  fields **but truncates the caption** (~261 chars on that post — ~59% loss) and can be **stale**
+  (a profile-page meta showed a following-count that disagreed with the live header). So the meta
+  is fine for short captions / engagement+date, but **verbatim long-form calls require the DOM
+  node**, not the meta. `ld+json` and an `<h1>` caption were **absent** on the probed post — the
+  caption is a plain DOM text node, so a **robust caption selector is a real engineering task**
+  (the heuristic "longest non-chrome text node" worked here but is not production-robust).
+  Post permalinks (`/<handle>/p/<shortcode>/` and `/reel/<shortcode>/`) are enumerable from the
+  profile grid, which **lazy-loads on scroll** (12 → 48 over 3 passes on a 321-post account).
 - **NOT in the initial logged-out stdlib HTML:** a bare `direct_http` GET returns a ~595 KB JS
   shell with **no** `og:description`, **no** embedded stats/calls — IG serves the meta-tag'd /
   hydrated content only to a browser-like session.
@@ -128,21 +145,34 @@ no scheduler, no bulk enumeration. Consistent with the amended carve-out.
 | **real browser, logged-OUT** (guest session) | `instagram.com/instagram/` | rendered | **Stats render** (header + `og:description`); post grid renders but **caption depth login-walled** by the signup modal | **PARTIAL** (stats GO; calls walled) |
 | **real browser, logged-IN own account** | `instagram.com/foo_yu_quan/` profile | rendered, **no login modal** | Stats in header + `og:description`; post permalinks enumerable | **GO** |
 | **real browser, logged-IN own account** | `web_profile_info` API (same-origin fetch, session cookies + app-id) | **200** JSON | Structured stats (followers 186, following 267, posts 3, `is_private:false`); **no post nodes** | **GO (stats only)** |
-| **real browser, logged-IN own account** | own post page `/p/<shortcode>/` | rendered, no login modal | **Verbatim caption present** in `og:description`/`og:title` (caption len ≈ 95 chars; likes/comments/date present) | **GO (calls)** |
+| **real browser, logged-IN own account** | own post page `/p/<shortcode>/` | rendered, no login modal | Caption present in `og:description`/`og:title` (short ≈ 95-char caption — fit fully, so meta == full *here*; likes/comments/date present) | **GO (calls, short)** |
+| **real browser, logged-IN, third-party public** `@hyram` | profile `/hyram/` | rendered, **no login modal**, `is_private:false` | Stats render (321 posts / 723K followers); grid lazy-loads on scroll **12 → 48** over 3 passes | **GO (third-party reachability + pagination)** |
+| **real browser, logged-IN, third-party public** `@hyram` | post page `/p/<shortcode>/` | rendered, no login modal | **Full caption = 635 chars in rendered DOM** vs **261 chars in `og:description`** (meta truncates ~59%); `ld+json`/`h1` absent | **GO (verbatim calls) — via DOM, not meta** |
 
 The 429-cookieless → 200-logged-in contrast on the **same endpoint** is the clean proof that the
 block was a session/bot gate (Pattern 1: "blocked is a hypothesis"), not an auth wall and not a
-true NO-GO.
+true NO-GO. The meta-vs-DOM caption-length gap (Pattern 3: verbatim-vs-paraphrase is a separate
+axis) is the proof that the meta tag is a **lossy** substrate for long calls.
 
 ## Step 3 — Social Blade (free-tier) commodity coverage
 
 `socialblade.com/instagram/user/instagram` via `direct_http` (logged-out): **HTTP 200, ~80 KB**,
 **no Cloudflare/challenge wall**. Markers present: `Followers`, `engagement` (×20), `rank`,
 `Daily`, `Future Projections`, charting. → The free tier **carries the stats series surface**
-(follower / engagement / rank / daily, with projections). Known limitations: full historical
-depth + export are **premium-gated**; data is **second-hand** (aggregated) — so **verbatim call
-text must still come first-party**, never from Social Blade (carve-out requirement).
-**Verdict: GO (stats commodity, free tier).**
+(follower / engagement / rank / daily, with projections).
+
+**Real-creator depth check (`@hyram`, post-review):** `socialblade.com/instagram/user/hyram` via
+`direct_http`: **HTTP 200, ~80 KB, tracked = true** (a real beauty wind-caller is covered, not
+just the platform account). The free HTML embeds a **recent daily series** (~14 ISO-date rows
+observed) plus `Daily`/`Weekly`/`Monthly` framing and charts. So the free tier gives a **recent
+rolling window**; **deeper multi-month/year history is premium** (or must be self-logged over
+time). Current numeric extraction from the free page was partial (the live current count is
+JS-rendered; it is trivially available first-party from IG itself anyway).
+
+Known limitations: deep historical depth + export are **premium-gated**; data is **second-hand**
+(aggregated) — so **verbatim call text must still come first-party**, never from Social Blade
+(carve-out requirement).
+**Verdict: GO (stats commodity, free tier) for a recent window; deep history = premium / self-log.**
 
 ## Step 4 — The decision (locks the architecture's open choices)
 
@@ -170,6 +200,13 @@ scope for this recon. Recorded as a finding, **not built here.**
 Until that capability exists: IG calls self-capture is **human-driven (attended browser) only**;
 the harness can already do the Social Blade stats fetch at the `direct_http` rung today.
 
+**Two build details surfaced by the third-party probe:** (1) the existing CloakBrowser adapter
+**already supports scroll pagination** (`scroll_passes` / `scroll_step_px`), which the grid needs
+(12 → 48 on scroll) — so enumeration is not the blocker; the **login session** is. (2) The
+verbatim caption is a **plain DOM text node** (no `ld+json`, no `<h1>` on the probed post), so the
+build needs a **robust caption-extraction selector** — the recon's "longest non-chrome text node"
+heuristic worked once but is not production-grade.
+
 ## Cross-cutting patterns confirmed (recon index spine)
 
 1. **"Blocked" is a hypothesis** — the cookieless 429 was a session gate, not NO-GO (200 once
@@ -178,25 +215,52 @@ the harness can already do the Social Blade stats fetch at the `direct_http` run
    in-scope; own-account is own-entitled; no auth gate defeated. 5. **PARTIAL/NO-GO are first-class**
    — direct_http NO-GO-for-signal and logged-out-browser PARTIAL are honest, useful diagnoses.
 
+## Diagnosis & gap-closing (post-review, 2026-06-14)
+
+After the first own-account write, the verdict was adversarially diagnosed: the original "GO
+(demonstrated)" rested on n=1 own account (3 posts) and documented the **meta-tag** caption
+substrate, which is lossy. Five holes were named (H1–H5) and a bounded third-party probe
+(`@hyram`) was run to close them:
+
+| Hole | Status | Evidence |
+|---|---|---|
+| **H1** — proved only the own (easiest) account class, not a third-party creator | **CLOSED** | `@hyram` public account renders logged-in with **no login wall** (`is_private:false`); stats render |
+| **H2** — caption fidelity rested on the truncating meta tag | **CLOSED + corrected** | meta `og:description` = 261 chars vs **full DOM caption = 635 chars** (~59% loss); verbatim substrate is the **rendered DOM node**, not meta |
+| **H3** — no pagination past the first grid tranche | **CLOSED** | scroll grew the grid **12 → 48** over 3 passes; CloakBrowser `scroll_passes` supports it |
+| **H4** — Social Blade depth unverified for a real candidate | **CLOSED (nuanced)** | `@hyram` tracked = true; free HTML carries a **recent ~14-day daily window** + weekly/monthly + charts; **deep history premium** |
+| **H5** — cadence vs anti-bot sustainability at scale | **RESIDUAL** | ~6 reads across 2 accounts, **no 429s** on the logged-in browser or Social Blade `direct_http`; but **repeated / over-time / multi-account** reads were **not stress-tested** |
+
+Net: the GO holds and is now better-supported (own + 1 third-party), with the calls substrate
+**corrected from meta → rendered DOM**. The honest residual is H5 (sustained cadence) plus
+full-history enumeration (only 48 of 321 posts loaded) and a production-grade caption selector.
+
 ## Limitations / residuals / non-claims
 
-- **Single own account, single session.** Demonstrated on `@foo_yu_quan` (3 posts). Behavior on a
-  larger creator account (pagination of the posts feed beyond the profile DOM's first tranche) is
-  **not probed** — the per-post `og:description` substrate is expected to hold, but post
-  *enumeration* past the initial grid uses a separate paginated query, **not demonstrated here**.
-- **Third-party wind-caller accounts NOT probed.** #73 is merged (third-party would be permitted),
-  but this recon was scoped own-account-first per the commission; third-party capture is a separate
-  bounded step.
-- **Harness-native logged-in capture NOT built** (see the build-lane finding above).
-- **Stats historical series** depth from Social Blade free is **premium-limited**; verbatim call
-  text must stay first-party.
+- **Feasibility scope, n=2 accounts.** Demonstrated on `@foo_yu_quan` (own, 3 posts) and `@hyram`
+  (third-party, 321 posts). **Full enumeration not run** — only 48 of `@hyram`'s 321 posts were
+  loaded (3 scroll passes); the scroll path is proven, the *complete* walk is not.
+- **H5 — sustained cadence vs anti-bot not stress-tested.** No rate-limit was hit, but repeated,
+  over-time, multi-account capture (what calibration actually does) was not exercised.
+- **Verbatim caption needs the DOM node + a robust selector** (no `ld+json`/`h1`); the meta tag is
+  lossy (~59% on the probed post) and can be stale.
+- **Harness-native logged-in capture NOT built** (see the build-lane finding) — calls self-capture
+  is human-driven (attended browser) only until the auth-browser capability exists.
+- **Stats deep-history** from Social Blade free is **premium-limited** (recent window only);
+  verbatim call text must stay first-party.
+- **`@hyram` is a feasibility probe, not a chosen calibration subject.** No calibration record was
+  built; only capture-mechanics metrics (lengths, counts, status) were retained — no caption text.
 - Not validation / readiness / buyer-proof / commercial authorization / Tier-2 activation / a
   doctrine change. A green fetch is not the gate — this recorded verdict is.
 
 ## Next authorized step (candidate, not authorized here)
 
-A bounded, separately-authorized build to add a harness authenticated-browser capability (own
-session storage-state, attended, human-mimicking) so the calls self-capture is harness-native;
-and/or a first **third-party** wind-caller own-rung probe under the merged carve-out. Both require
-their own authorization.
+The first third-party feasibility probe is now done (`@hyram`, above). Remaining candidates, each
+needing its own authorization:
+
+- A bounded build to add a harness **authenticated-browser capability** (own session
+  storage-state, attended, human-mimicking; scroll pagination already supported; needs a robust
+  caption-DOM selector) so calls self-capture is harness-native, not human-driven.
+- A **full-enumeration + sustained-cadence (H5)** check on a real calibration set (the residuals
+  this recon left open): complete the scroll walk past the first tranche and confirm a
+  human-mimicking, over-time, multi-account cadence does not trip anti-bot.
 ```
