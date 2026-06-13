@@ -35,6 +35,15 @@ influencers as wind callers of their own — "maybe the main wind callers
 actually"; convergence and divergence examples (peptides trend; promoted-but-
 low-engagement; Reddit-vs-TikTok-vs-IG splits); movement over availability.
 
+Text-consistency fix (2026-06-14, owner-authorized in-thread): the
+wind-caller-calibration read-type and Non-Claims lines below were reconciled to
+match Signal Layer 2 and the live carve-out
+(`docs/decisions/wind_caller_calibration_carveout_v0.md`), completing that
+carve-out's propagation (its receipt amended Layer 2 but missed these two
+lines). No policy change. The channel-vs-person boundary itself remains an
+owner-confirmation item — see the adjudication-prep companion
+(`orca_demand_read_taxonomy_adjudication_v0.md`, Q3).
+
 ## The Function In One Sentence
 
 For a vertical and sub-niche, Orca reads where demand is actually going —
@@ -99,8 +108,11 @@ narrow, hold, defend).
 - **Wind-caller calibration** (the compounding asset): grade each niche's
   wind callers' public calls against outcomes over time. This is the
   outcome-memory moat applied to sources — "we know who actually calls
-  beauty winds, with receipts." Calibration receipts are channel-level,
-  dated, and anti-cherry-picked like every other ledger.
+  beauty winds, with receipts." Calibration receipts are dated and
+  anti-cherry-picked like every other ledger; channel-level by default and —
+  under the bounded internal carve-out (Layer 2;
+  `docs/decisions/wind_caller_calibration_carveout_v0.md`) — named-public-figure
+  for the ≤5 internal-only calibration subjects.
 
 ## Pricing Refinement (PROPOSED final take on the owner's question)
 
@@ -140,6 +152,8 @@ PROPOSED only — no validation, readiness, buyer proof, or judgment-quality
 claim; closeout state for any such claim: `no_durable_evidence`. Mints no
 evidence-ladder vocabulary and redefines no overlay-owned semantics. Does not
 amend the thesis (on adoption, the thesis gains a dated pointer through the
-propagation contract). Wind-caller tracking is channel-level public-output
-tracking, never a person-level dossier. Authorizes no scan, capture,
+propagation contract). Wind-caller tracking is channel-level public-output by
+default, extended to named-public-figure calibration only under the bounded
+internal carve-out (≤5 accounts, internal-only); person-level dossiers in any
+sold or external surface remain forbidden. Authorizes no scan, capture,
 monitoring, or outreach.

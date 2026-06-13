@@ -39,6 +39,18 @@ decide.** No layer ranking is chosen here; Q2 is surfaced as an owner value-call
 This is not validation, readiness, buyer proof, or judgment-quality evidence.
 It authorizes no scan, capture, monitoring, or outreach.
 
+**Update 2026-06-14 (owner-authorized in-thread — "fix the 1 thing"):** the
+*residual-text inconsistency* flagged below (Tension C, Q3, the Part-1
+calibration boundary, and the Part-5 plan item) — the taxonomy's
+wind-caller-calibration read-type line and Non-Claims line still saying
+"channel-level only" while Signal Layer 2 was already reconciled — **has been
+fixed in the taxonomy** (`orca_demand_read_taxonomy_v0.md`, dated note in its
+Status). Those passages are retained below as written, for the audit trail of
+what prep found. With that fix landed, **Q3 now reduces to two open items**: (a)
+your confirmation of the boundary *policy*, and (b) the optional org-motion-≠-
+wind-caller distinction sentence (the conflation guard), which was *not* added —
+it is a separate recommendation, not part of the inconsistency that was fixed.
+
 ## How To Read This (for the owner, one pass)
 
 1. **Operative definitions** — the grammar fleshed so the scanning lane could
