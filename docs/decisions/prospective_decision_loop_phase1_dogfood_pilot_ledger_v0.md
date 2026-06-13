@@ -2,7 +2,7 @@
 
 ```yaml
 retrieval_header_version: 1
-artifact_role: DRAFT decision record (pre-declared dogfood shadow pilot ledger; binds nothing and authorizes no seal until the owner fixes the decision list and signs)
+artifact_role: DRAFT decision record (pre-declared dogfood shadow pilot ledger; binds nothing and authorizes no seal until the owner fixes the decision list, binds the ledger home, and signs)
 scope: >
   Pre-declared ledger for the Phase-1 dogfood shadow pilot of the prospective
   decision loop: the counterparty-free first run, on real Orca-INTERNAL
@@ -34,7 +34,8 @@ stale_if:
 closeout_state or claim tier. This artifact **authorizes no seal**. Two
 owner-owned inputs are unfilled by design (the decision list and the per-decision
 mode); the agent must not invent them. Signing = fixing those slots + the
-sign-off block below. Until then nothing in the loop may be sealed.
+sign-off block below + the ledger-home binding amendment. Until then nothing in
+the loop may be sealed.
 
 ## Authorization Basis And Cap
 
@@ -78,11 +79,17 @@ favorability:
   reported at resolution — in-band / over / under, plus `unscoreable_by_design`,
   abandoned, and `breached_quarantined` outcomes. Selective reporting voids the
   pilot's anti-cherry-pick property.
-- **Run shape mirrors the hardened book.** Each decision is one folder of
-  write-once hash-chained entries (`01_intake` → `02_sealed_call` →
-  `04_actual_path` → `0M_resolution_<seal-entry>`), per the semantics spec's
-  entry mechanics and dual-hash chain rule. The pilot does **not** re-derive the
-  chain shape.
+- **Run shape mirrors the book — by pointer, not restatement.** Each decision
+  is one folder of write-once hash-chained entries exactly as the Phase-0
+  semantics spec's "The Book: Entry Mechanics" section defines, under that
+  spec's chain rule. The pilot **restates no entry filenames and forks
+  nothing**: whatever that section defines at the consumed spec revision
+  governs, and `input_hashes` pins that revision at signature. Sign against the
+  **adjudication-hardened spec revision** (the AR-01 vocabulary fix + the AR-02
+  `actual_path`-observation / per-seal-resolution / dual-hash chain), which must
+  be on `main` before first seal (see Owner Decisions Required). The pilot does
+  **not** re-derive the chain shape. (Restating filenames here was the original
+  AR-1 defect and is deliberately not reintroduced.)
 - **Mechanical resolution.** Resolution applies the `resolution_criteria` sealed
   into each call; it never authors or amends them. A decision whose outcome
   criterion cannot be pre-specified is admitted as `unscoreable_by_design` —
@@ -94,26 +101,30 @@ A candidate decision qualifies for the pre-declared set only if **all** hold:
 
 1. **Real and live** — an actual Orca operating decision with a genuine owner
    and a near-term `decision_deadline`, not a hypothetical.
-2. **Scoreable** — its `expected_outcome` admits a named observable metric, a
-   predicted band, and a measurement window that closes in a tractable horizon.
-   If not, it may still be logged `unscoreable_by_design` but does not count
-   toward the calibration set.
+2. **Outcome-declarable** — its `expected_outcome` either admits a named
+   observable metric, a predicted band, and a measurement window that closes in
+   a tractable horizon, or is explicitly admitted at signature as
+   `unscoreable_by_design` for protocol-falsification / decision-memory only.
+   `unscoreable_by_design` rows are reported but never count toward the
+   calibration set.
 3. **Not self-referential** — not a decision *about the loop itself* (e.g., "do
    we build N9", "do we ratify the target"). Shadowing the loop's own
    governance would contaminate the pilot with reflexivity. Pilot decisions are
    ordinary Orca product/research/operating calls.
-4. **Outcome not yet knowable at intake** — the decision is open and its outcome
-   has not begun arriving, so the seal is genuinely prospective.
+4. **Decision and outcome not yet knowable at intake** — the org decision has
+   not been made or irreversibly committed, and its outcome has not begun
+   arriving, so both the sealed call and the passive actual-path observation are
+   genuinely prospective.
 5. **Owner-fixed before reveal** — the full set is fixed at signature, before
-   any member's gate-0/outcome is examined, so membership cannot correlate with
-   favorability.
+   any member's expected direction, actual path, or outcome signal is examined
+   for favorable alignment, so membership cannot correlate with favorability.
 
 ## Pre-Declared Decision Set (OWNER-FILL — do not fabricate)
 
 > The agent has intentionally left this list empty. These are real Orca
 > operating decisions only the owner can name. Fill 3–5 rows (suggested range;
 > owner fixes N) at signature, fix the per-decision mode (`shadow` for Phase 1),
-> then the set is frozen and amended only by dated note.
+> bind the ledger home, then the set is frozen and amended only by dated note.
 
 | # | Decision (one-line brief) | Decision family | Mode | Decision deadline | Scoreable? (Y / unscoreable_by_design) |
 | --- | --- | --- | --- | --- | --- |
@@ -168,8 +179,16 @@ amendments (owner-gated); and the single-operator-residual honesty note.
    `docs/product/judgment_spine/decision_ledger/` with a permanent
    location-confers-no-evidence-tier boundary. Binding it is a separate
    `artifact-folders.md` amendment with its own propagation receipt, executed at
-   signature — not by this draft.
-4. **Recommended gate before first seal:** a de-correlated cross-vendor review
+   signature — not by this draft. No first seal is authorized while
+   `ledger_home_bound` remains false.
+4. **Adjudication-hardened spec must be on `main` (no-seal precondition):** the
+   Phase-0 semantics spec's cross-vendor adjudication (AR-01 vocabulary fix +
+   AR-02 chain hardening) was dropped by the PR #46 squash-merge; `main`
+   currently carries the pre-adjudication spec. It is being re-landed via a
+   separate PR. The pilot's run-shape pointer resolves to the hardened spec only
+   once that PR lands; **no first seal while `main` carries the un-hardened
+   spec.** `input_hashes` is pinned at signature to the hardened revision.
+5. **Recommended gate before first seal:** a de-correlated cross-vendor review
    of this ledger's doctrine (authorization basis, selection criteria,
    anti-cherry-pick completeness, firewall-preservation) plus a post-fill check
    of the chosen decision list for scoreability and cherry-pick discipline. The
@@ -180,7 +199,7 @@ amendments (owner-gated); and the single-operator-residual honesty note.
 
 ```yaml
 pilot_signoff:
-  status: DRAFT_PENDING_OWNER_SIGNOFF   # advance to PILOT_ACTIVE_OWNER_SIGNED on signature
+  status: DRAFT_PENDING_OWNER_SIGNOFF   # advance only after table fixed + ledger_home_bound true + owner signature
   owner: <owner-fill>
   signoff_date: <owner-fill>
   target_ratification_state: ratified | amended | proposed_stack   # owner decision 1
