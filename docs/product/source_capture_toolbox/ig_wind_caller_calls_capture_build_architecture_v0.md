@@ -20,7 +20,7 @@ open_next:
 stale_if:
   - The authenticated-browser adapter / auth_state / cadence primitives change shape.
   - The H5 cadence probe result flips the A2 fork (plain-headless vs session+anti-detect).
-  - The retention posture changes again (set 2026-06-14 to permanent + takedown-on-request via the carve-out amendment).
+  - The retention posture changes again (set 2026-06-14 to a 10-year horizon + takedown-on-request via the carve-out).
 status: PLANNING_DRAFT — pre-scoping; not a build authorization
 ```
 
@@ -33,7 +33,7 @@ source found the **single-URL authenticated-browser primitives already exist, ar
 and have bounded build authority.** The IG work composes those primitives. The multi-item
 person-level loop, IG reel response-read, and retention were **owner-confirmation deltas** — now
 **confirmed 2026-06-14** (see Authorization map: bounded ≤5-account rotating set, ~1-month window,
-repeated-attended, reel in-context JSON in / video bytes out, permanent retention + takedown-on-request).
+repeated-attended, reel in-context JSON in / video bytes out, 10-year retention + takedown-on-request).
 This **narrows** the recon's earlier build-lane finding (which inspected only
 the anonymous `cloakbrowser_snapshot.py` and overstated the gap — see the recon doc's dated
 correction) without treating the full IG loop as already authorized.
@@ -69,7 +69,7 @@ The "no-secret/anonymous" property was a per-adapter property of `cloakbrowser_s
 ## Authorization map (what's covered vs to confirm)
 
 - **Covered:** the existing single-URL authenticated browser snapshot and local session-store mechanics (1st-tranche #5 + 2nd-tranche #7), plus the wind-caller carve-out's permission for internal, attended, human-mimicking, ≤5-account public-figure calibration capture.
-- **Owner-confirmed (2026-06-14):** (i) **multi-item loop = bounded capture unit** — ≤5 accounts at any one time (rotating / no fixed named list), **recent ~1-month window**, **no full-history backfill**; **repeated _attended_ capture over time is authorized** (to build the durable time-series) and stays **attended — not a standing/scheduled crawler**; (ii) **reel view/play count via in-context (warm-same-context) JSON = in scope; video/image bytes out**; (iii) **retention = permanent with immediate takedown-on-request**, per the carve-out's dated 2026-06-14 amendment (`docs/decisions/wind_caller_calibration_carveout_v0.md`). **Residual carried:** permanent person-level retention raises EU/UK + CCPA stakes — the carve-out's EU/UK flag-and-assess gate + takedown-on-request are the mitigations (not legal advice).
+- **Owner-confirmed (2026-06-14):** (i) **multi-item loop = bounded capture unit** — ≤5 accounts at any one time (rotating / no fixed named list), **recent ~1-month window**, **no full-history backfill**; **repeated _attended_ capture over time is authorized** (to build the durable time-series) and stays **attended — not a standing/scheduled crawler**; (ii) **reel view/play count via in-context (warm-same-context) JSON = in scope; video/image bytes out**; (iii) **retention = 10-year bounded horizon + immediate takedown-on-request**, per the carve-out's dated 2026-06-14 horizon-setting (`docs/decisions/wind_caller_calibration_carveout_v0.md`) — stays within the signed time-bounded posture.
 
 ## H5 gate (the build's premise — run before scaling)
 
@@ -86,7 +86,7 @@ Per-item → **Source Capture Packets** via the existing `write_local_source_cap
 ## Next steps (each gated)
 
 1. `workflow-implementation-scoping` over D1–D4 + A1 (read-only route; STEP-*).
-2. ✓ Owner confirmed the three deltas + retention (permanent + takedown-on-request), 2026-06-14.
+2. ✓ Owner confirmed the three deltas + retention (10-year horizon + takedown-on-request), 2026-06-14.
 3. **H5 gate probe** (bounded) → gates the first A2 build shape; at-scale sustainability remains a residual until exercised.
 4. Bounded build authorization → build the delta → full offline contract suite green before any green claim.
 

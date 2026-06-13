@@ -48,39 +48,24 @@ constraints. Only the manual-vs-automated method is relaxed, and only to a
 human-mimicking cadence. "Human pace" elsewhere in this record now reads as this
 human-mimicking automated cadence.
 
-## Amendment — 2026-06-14 (owner): retention horizon → permanent, with takedown-on-request
+## Amendment — 2026-06-14 (owner): retention horizon set to 10 years, with takedown-on-request
 
-The Tier-1 retention posture is amended (dated; original preserved below under
-"Retention posture", not silently rewritten).
+The signed posture leaves the specific retention/purge horizon for the owner to set before
+the first session. The owner sets it (dated):
 
-- **Original (signed):** calibration records are time-bounded, not permanent; the owner
-  sets a purge horizon before the first session; records past it are purged, not
-  accumulated indefinitely (default: proof-phase duration; purge-review on commercial
-  trigger or annual review).
-- **Amended (2026-06-14, owner):** retention is **permanent** — calibration records are
-  retained indefinitely (no time-based auto-purge), to build a durable call-vs-outcome
-  calibration time-series.
-- **New standing commitment (the mitigation that makes permanent acceptable):**
-  **immediate takedown / purge on request.** Any subject, platform, or legal request to
-  remove a wind-caller's records is honored promptly. "Permanent" means no *time-based*
-  expiry; it does **not** mean undeletable — deletion-on-request is a standing obligation.
-- **Owner's scope rationale (recorded):** this bounded set (≤5 public-figure accounts at
-  any one time, attended, human-mimicking, internal-only) is not industrial-scale
-  scraping; the owner distinguishes it from a "data farm" (millions-of-bots scale, e.g.
-  BrightData). The "never a data farm" goal is read as a **scale/automation** constraint,
-  satisfied by the unchanged ≤5-account / attended / no-standing-crawler bounds — not by
-  time-bounded retention.
+- **Horizon: 10 years from capture, then purge** — longer than the proof-phase-duration
+  default, to support a durable call-vs-outcome calibration time-series. (Rationale: most
+  wind-callers won't persist near that long anyway, so 10 years is a generous-but-bounded
+  ceiling, not indefinite accumulation.)
+- **Standing commitment:** immediate takedown / purge on request — any subject, platform, or
+  legal removal request is honored promptly.
+- This **stays within** the signed "time-bounded, not permanent" posture (10 years is
+  bounded); it simply fills in the owner-set horizon, longer than the default. **Not a
+  reversal.**
 
-**Unchanged:** every other Tier-1 constraint — ≤5 accounts at any one time, attended +
+**Unchanged:** every other Tier-1 constraint (≤5 accounts at any one time, attended +
 human-mimicking cadence, no standing/scheduled crawler, no mass extraction, pre-commercial,
-internal-only, US-first, buy-at-commercial — and all Tier-3 permanent exclusions (no resale,
-no external person-level publication). Only the retention *horizon* changes.
-
-**Named residual (not legal advice):** permanent person-level retention raises the stakes on
-the EU/UK gate (the flag-and-assess-before-inclusion requirement becomes more load-bearing —
-permanent retention of an EU/UK subject without a lawful basis is a real exposure) and on the
-CCPA public-figure posture. Takedown-on-request is a mitigation, not a full substitute for a
-retention-limitation basis; revisit with counsel before commercial scale or any EU/UK inclusion.
+internal-only, US-first, buy-at-commercial) and all Tier-3 exclusions.
 
 ## The Prior Boundary (baseline)
 
@@ -130,10 +115,10 @@ For **internal wind-caller calibration only**, Orca may:
 asset is the calibration ledger ("who actually calls beauty winds, with receipts"),
 not a public or sold data product. See Tier 3 for the permanent external exclusion.
 
-**Retention posture: [SUPERSEDED 2026-06-14 — see "Amendment — 2026-06-14 (owner):
-retention horizon → permanent, with takedown-on-request" above. Retention is now
-permanent with immediate takedown/purge on request. The original time-bounded posture
-is preserved verbatim below as the prior record.]** calibration records are
+**Retention posture: [Horizon SET 2026-06-14 — see "Amendment — 2026-06-14 (owner):
+retention horizon set to 10 years, with takedown-on-request" above. The time-bounded
+posture below STANDS; the amendment fills in the owner-set horizon (10 years) and adds
+takedown-on-request.]** calibration records are
 **time-bounded**, not permanent. The
 owner will set a specific retention/purge horizon before the first calibration
 session begins; records past their retention date are purged, not accumulated
@@ -292,28 +277,22 @@ direction_change_propagation:
 ```
 
 ```yaml
-# Retention horizon amendment 2026-06-14 (owner): time-bounded -> permanent + takedown-on-request.
+# Retention horizon set 2026-06-14 (owner): bounded 10-year horizon + takedown-on-request (within the time-bounded posture; not a reversal).
 direction_change_propagation:
   doctrine_changed: >
-    Tier-1 retention is amended from time-bounded / not-permanent to PERMANENT retention
-    (no time-based auto-purge), paired with a new standing immediate-takedown / purge-on-request
-    commitment. All other Tier-1 bounds (<=5 accounts at any one time, attended, human-mimicking,
-    no standing/scheduled crawler, no mass extraction, pre-commercial, internal-only, US-first,
-    buy-at-commercial) and all Tier-3 exclusions are unchanged. Only the retention horizon changes.
+    The owner set the Tier-1 retention horizon (which the signed posture delegates to the owner)
+    to a bounded 10-years-from-capture-then-purge horizon, longer than the proof-phase default,
+    plus a standing immediate-takedown / purge-on-request commitment. This stays WITHIN the signed
+    "time-bounded, not permanent" posture (10 years is bounded; not a reversal). All other Tier-1
+    bounds and Tier-3 exclusions are unchanged.
   trigger: product_doctrine
   related_triggers:
     - lifecycle_boundary
   controlling_sources_updated:
-    - docs/decisions/wind_caller_calibration_carveout_v0.md   # this record (amended)
+    - docs/decisions/wind_caller_calibration_carveout_v0.md   # this record (horizon set)
   downstream_surfaces_checked:
     - path: docs/product/source_capture_toolbox/ig_wind_caller_calls_capture_build_architecture_v0.md
-      note: Delta 3 / retention references updated to permanent + takedown-on-request (recon lane).
-    - path: docs/product/source_capture_toolbox/ig_wind_caller_capture_feasibility_recon_v0.md
-      note: recon points to this carve-out for retention; inherits the amended horizon; no edit owed.
-  named_residual: >
-    Permanent person-level retention raises EU/UK and CCPA stakes; the EU/UK flag-and-assess gate
-    and the takedown-on-request commitment are the mitigations; revisit with counsel before
-    commercial scale or any EU/UK inclusion. Not legal advice.
+      note: Delta 3 retention reference set to 10-year horizon + takedown-on-request (recon lane).
   non_claims:
     - not validation
     - not readiness
