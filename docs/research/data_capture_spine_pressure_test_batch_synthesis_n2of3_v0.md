@@ -42,7 +42,7 @@ stale_if:
 | Pass-1 checker | `capture_closure_blocker` | `capture_closure_blocker` | — |
 | Pass-2 checker | `vocabulary_divergence` (1 HARD look-alike: "rejected") | `vocabulary_consistent` (all labeled proposals) | — |
 
-Source workfiles: [slot1_mi_CAPTURE_operator_workfile.md](../../slot1_mi_CAPTURE_operator_workfile.md), [slot2_teal_CAPTURE_operator_workfile.md](../../slot2_teal_CAPTURE_operator_workfile.md).
+Source workfiles: [slot1_mi_CAPTURE_operator_workfile.md](../../slot1_mi_CAPTURE_operator_workfile.md), [slot2_teal_CAPTURE_operator_workfile.md](../../slot2_teal_CAPTURE_operator_workfile.md). <!-- # nonresolving: untracked root operator workfiles, never committed -->
 
 ## The accumulated source-access requirement set (a real batch output)
 

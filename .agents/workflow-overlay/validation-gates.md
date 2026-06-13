@@ -223,6 +223,22 @@ next such rule. Placement decides where a rule is enforced, not whether it is
 correct: a passing check is not validation, readiness, approval, or
 source-of-truth promotion.
 
+**Retrieval-header index + forward-only CI gate** (`.agents/hooks/header_index.py`).
+Companion to EP-06. Adds three non-blocking surfaces and one CI gate:
+- `--index`: full retrieval view of all header-bearing durable docs (human use).
+- `--health [--verbose]`: whole-repo advisory counts of MISSING-HEADER and ORPHAN
+  docs; exit 0 always (backlog surfaced, not gated).
+- `--health --oneline`: single capsule line emitted by `session_context_capsule.py`
+  at session start so every lane sees the advisory health count without walking the
+  tree itself.
+- `--strict`: **CI gate — diff-scoped, forward-only.** For changed durable `.md`
+  files only (vs `$GITHUB_BASE_REF` or `origin/main`): fails (exit 1) if a
+  changed doc is MISSING-HEADER or is an ORPHAN (not substring-found in the repo
+  map or any submap).  Pre-existing backlog is never gated — only new/changed docs
+  are in scope.  Fails OPEN (exit 0) if diff-scoping is unavailable; never falls
+  back to whole-repo strict.
+Registered in `.github/workflows/ci.yml` after the existing link-check step.
+
 ## Future Gates
 
 - Orca independence dry run: UNKNOWN - requires owner input.
@@ -286,4 +302,65 @@ direction_change_propagation:
     - not readiness
     - the gate's existence does not prove it is enforced or that any artifact passes it
     - not a kernel or jb change
+```
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    New forward-only CI gate: changed durable docs must carry a retrieval header
+    and be map-reachable (substring-present in repo map or any submap); whole-repo
+    backlog surfaced advisory-only via --health + the session capsule.
+  trigger: validation_philosophy
+  controlling_sources_updated:
+    - .agents/workflow-overlay/validation-gates.md
+    - .agents/hooks/header_index.py
+    - .github/workflows/ci.yml
+    - .agents/hooks/session_context_capsule.py
+  downstream_surfaces_checked:
+    - AGENTS.md
+    - .agents/workflow-overlay/README.md
+    - .agents/workflow-overlay/source-loading.md
+    - docs/workflows/orca_repo_map_v0.md
+    - .agents/hooks/check_retrieval_header.py
+  intentionally_not_updated:
+    - path: AGENTS.md
+      reason: >
+        AGENTS.md triggers overlay-load for validation gates; the gate is
+        registered in validation-gates.md which AGENTS.md already routes to.
+        No new trigger word is needed.
+    - path: .agents/workflow-overlay/README.md
+      reason: >
+        README routes to validation-gates.md. The new gate is registered there;
+        no new overlay-level pointer needed.
+    - path: .agents/workflow-overlay/source-loading.md
+      reason: >
+        Source-loading packs are unchanged; the new hook is a CI substrate, not
+        a source-loading artifact or context-budget item.
+    - path: docs/workflows/orca_repo_map_v0.md
+      reason: >
+        The repo map's Active Hooks section already documents the pattern;
+        this DCP receipt is in validation-gates.md (the enforcement-placement
+        authority). A separate map entry is deferred as a hygiene-level note,
+        not a DCP-required propagation.
+    - path: .agents/hooks/check_retrieval_header.py
+      reason: >
+        check_retrieval_header.py is unchanged; header_index.py imports from it
+        without modification. Its own selftest continues to pass.
+  stale_language_search: >
+    rg -i -n "retrieval header|header_index|missing header" .agents
+  stale_language_search_result: >
+    Executed 2026-06-13 after adding header_index.py. Hits are in:
+    check_map_links.py (retrieval header mention, unrelated), check_retrieval_header.py
+    (canonical source, unchanged), header_index.py (new file, expected),
+    session_context_capsule.py (new capsule line, expected), README.md (hook table),
+    prompt-orchestration.md and retrieval-metadata.md (authority docs, unchanged),
+    source-loading.md (use_when reference, unchanged). No pre-existing stale
+    language; no checked surface required a new CA to block the gate or omit the
+    header requirement.
+  non_claims:
+    - not validation
+    - not readiness
+    - the gate's existence does not prove any artifact passes it
+    - not a kernel or jb change
+    - --strict passing for a PR does not prove the whole repo is header-complete
 ```

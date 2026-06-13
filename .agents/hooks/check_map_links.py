@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
-"""Bidirectional retrieval link-check: repo map <-> disk, open_next <-> disk, folder coverage.
+"""Bidirectional retrieval link-check: repo map <-> disk, open_next <-> disk,
+folder coverage, and inline body links <-> disk.
 
 WHAT THIS DOES
-  Three mechanically-checkable invariants that keep the repo map and the
-  retrieval headers honest without reading product-authority sources:
+  Four mechanically-checkable invariants that keep the repo map, retrieval
+  headers, and inline markdown links honest without reading product-authority
+  sources:
 
   C1  MAP->DISK: every repo-relative path mentioned in the repo map or any
       submap must exist on disk.  Exempt: lines whose surrounding text says
@@ -19,11 +21,22 @@ WHAT THIS DOES
       phrase "not retrieval-indexed".  Exempt: docs/_inbox and any dir whose
       path contains "_scratch".
 
+  C4  INLINE-LINK->DISK: every inline markdown link or image link in the body
+      of any .md file under docs/ and .agents/ (same walk, same skip rules)
+      whose target is a relative/repo path must resolve to a file on disk.
+      Out of scope: external URLs (http/https/mailto/ftp), protocol-relative
+      (//...), pure same-file anchors (#...).  Reference-style links
+      ([text][ref] + [ref]: url) are out of scope for v0 (named limitation).
+      Exempt: same line-level markers as C1/C2 ("does not exist yet",
+      "not retrieval-indexed").  Trailing comment "# nonresolving:<reason>"
+      exempts a link and counts it as annotated debt.
+
 WHY (enforcement placement)
   The repo map and open_next headers are written by agents and humans.  Path
   rot happens silently: a file is renamed, a folder is added, a path is
   copy-pasted wrong.  A check run in CI and pre-commit catches the rot at the
-  moment the diff lands, not after the next reader is confused.
+  moment the diff lands, not after the next reader is confused.  Inline body
+  links carry the same rot risk.
 
 HARD BOUNDARY
   Read-only.  No git calls.  No writes.  Fails OPEN on internal error
@@ -31,9 +44,10 @@ HARD BOUNDARY
   --check always exits 0.  --strict exits 1 only when actual findings exist.
 
 MODES
-  check_map_links.py --strict     CI gate; print findings; exit 1 if any, else 0
-  check_map_links.py --check      human-readable; always exit 0
-  check_map_links.py --selftest   pure-function cases; exit per pass/fail
+  check_map_links.py --strict         CI gate; print findings; exit 1 if any (C1-C4), else 0
+  check_map_links.py --strict-inline  alias for --strict (C4 included; kept for caller compat)
+  check_map_links.py --check          human-readable; always exit 0
+  check_map_links.py --selftest       pure-function cases; exit per pass/fail
 
 REGISTRATION (.github/workflows/ci.yml, after the test step)
   - name: retrieval link check
@@ -225,11 +239,121 @@ def dir_is_exempt_coverage(rel_dir: str) -> bool:
 
 
 # ---------------------------------------------------------------------------
+# C4 helpers: inline link extraction and resolution
+# ---------------------------------------------------------------------------
+
+# Matches both image links and regular inline links:
+#   ![alt](target)  or  [text](target)
+# Does NOT match reference-style links ([text][ref]) -- out of scope for v0.
+_INLINE_LINK_RE = re.compile(r"!\[[^\]]*\]\(([^)]+)\)|\[[^\]]*\]\(([^)]+)\)")
+
+# Extensions that indicate a checkable repo path even without a "/" separator.
+_CHECKABLE_EXTS = (".md", ".py", ".yml", ".yaml", ".json", ".csv", ".png", ".svg")
+
+# URL-scheme prefixes that mark external or out-of-scope targets.
+_EXTERNAL_PREFIXES = ("http://", "https://", "mailto:", "ftp://", "//")
+
+
+def extract_inline_links_from_line(line: str) -> list[str]:
+    """Extract checkable path tokens from inline markdown links on one line.
+
+    Handles:
+      - Image links: ![alt](target)
+      - Regular links: [text](target)
+      - Optional title attribute: [x](path "Title") -> returns path only
+        (first whitespace-delimited token inside the parens)
+      - Fragment anchors: path#heading -> returns path with anchor stripped
+      - Pure same-file anchors (#heading) -> skipped (out of scope)
+      - External URLs (http/https/mailto/ftp) -> skipped (out of scope)
+      - Protocol-relative (//...) -> skipped (out of scope)
+      - Targets not containing "/" and not ending with a checkable extension
+        are skipped (likely ids, colours, or other non-path tokens)
+
+    Reference-style links ([text][ref] / [ref]: url) are out of scope for v0.
+
+    Returns a list of raw path strings (anchor stripped, title stripped).
+    Pure function (testable).
+    """
+    results: list[str] = []
+    for m in _INLINE_LINK_RE.finditer(line):
+        raw = m.group(1) or m.group(2)
+        if not raw:
+            continue
+        # First whitespace-delimited token (strips optional title "Title" or 'T')
+        tok = raw.split()[0] if raw.split() else raw
+        # Skip external and protocol-relative targets
+        if any(tok.startswith(p) for p in _EXTERNAL_PREFIXES):
+            continue
+        # Skip pure same-file anchors
+        if tok.startswith("#"):
+            continue
+        # Strip fragment anchor (check base path only)
+        path = tok.split("#")[0]
+        if not path:
+            continue  # pure anchor after stripping
+        # Only check paths that look like repo paths:
+        # must contain "/" or end with a known checkable extension
+        if not ("/" in path or any(path.endswith(e) for e in _CHECKABLE_EXTS)):
+            continue
+        results.append(path)
+    return results
+
+
+def is_exempt_inline_line(line: str) -> bool:
+    """True if the line carries an exemption marker for C4.
+
+    Same markers as C1/C2: 'does not exist yet' or 'not retrieval-indexed'.
+    Pure function (testable).
+    """
+    lower = line.lower()
+    return "does not exist yet" in lower or "not retrieval-indexed" in lower
+
+
+def inline_link_is_nonresolving(line: str, path_token: str) -> bool:
+    """True if the line has a trailing comment '# nonresolving:' AFTER the link
+    that contains path_token.  We check for the comment anywhere on the line
+    since multiple links on one line are rare; the annotation covers the line.
+
+    Pure function (testable).
+    """
+    # Find the link that contains this path token
+    idx = line.find(path_token)
+    if idx == -1:
+        return False
+    rest = line[idx + len(path_token):]
+    # Look for trailing comment after the closing paren of the link
+    comment_match = re.search(r"#\s*nonresolving\s*:", rest, re.IGNORECASE)
+    return comment_match is not None
+
+
+def inline_link_exists(path: str, linking_file: Path, root: Path) -> bool:
+    """True if path resolves to an existing file.
+
+    Resolution order (mirrors the spec):
+      1. path relative to linking_file's directory
+      2. path relative to repo root
+
+    Pure function given that Path.exists() is the only I/O.
+    """
+    # Normalise to OS separators
+    norm = path.replace("/", os.sep)
+    # 1. Relative to the linking file's directory
+    candidate_rel = linking_file.parent / norm
+    if candidate_rel.exists():
+        return True
+    # 2. Relative to repo root
+    candidate_root = root / norm
+    if candidate_root.exists():
+        return True
+    return False
+
+
+# ---------------------------------------------------------------------------
 # Finding type
 # ---------------------------------------------------------------------------
 
 class Finding(NamedTuple):
-    check: str     # "C1", "C2", "C3"
+    check: str     # "C1", "C2", "C3", "C4"
     source: str    # which file reported the finding
     detail: str    # human-readable detail
 
@@ -374,20 +498,77 @@ def run_c3(root: Path, map_text: str) -> list[Finding]:
     return findings
 
 
+def run_c4(root: Path) -> tuple[list[Finding], int]:
+    """C4: every inline markdown link/image-link in .md files under docs/ and
+    .agents/ whose target is a relative/repo path must resolve to a file on
+    disk.
+
+    Returns (findings, total_nonresolving) where total_nonresolving counts
+    links annotated with '# nonresolving:<reason>' (debt, not failures).
+
+    Reuses the same os.walk pass and skip rules as C2 (no second walk).
+    """
+    findings: list[Finding] = []
+    total_nonresolving = 0
+    search_roots = [root / "docs", root / ".agents"]
+
+    for search_root in search_roots:
+        if not search_root.is_dir():
+            continue
+        for dirpath, dirnames, filenames in os.walk(search_root):
+            # Prune excluded directories in-place (same rules as C2)
+            dirnames[:] = [
+                d for d in dirnames
+                if d not in ("_scratch", "_inbox", "node_modules")
+                and "_scratch" not in d
+            ]
+            for fname in filenames:
+                if not fname.endswith(".md"):
+                    continue
+                fpath = Path(dirpath) / fname
+                try:
+                    lines = fpath.read_text(encoding="utf-8", errors="replace").splitlines()
+                except OSError:
+                    continue
+
+                rel_source = fpath.relative_to(root).as_posix()
+                for line in lines:
+                    if is_exempt_inline_line(line):
+                        continue
+                    for path in extract_inline_links_from_line(line):
+                        if inline_link_is_nonresolving(line, path):
+                            total_nonresolving += 1
+                            continue
+                        if not inline_link_exists(path, fpath, root):
+                            findings.append(Finding(
+                                check="C4",
+                                source=rel_source,
+                                detail="inline link target does not exist on disk: %s" % path,
+                            ))
+
+    return findings, total_nonresolving
+
+
 def run_all_checks(root: Path) -> tuple[list[Finding], int]:
-    """Single-pass collection of all three checks.
+    """Single-pass collection of all checks (C1, C2, C3, C4).
 
     Returns (findings, total_nonresolving) where total_nonresolving is the
-    count of annotated nonresolving open_next entries (debt, not failures).
+    combined count of annotated nonresolving entries across C2 and C4
+    (debt, not failures).
+
+    All four checks feed into --strict and --check.
     """
     map_files = collect_map_files(root)
     map_text = load_map_text(map_files)
     findings: list[Finding] = []
     findings.extend(run_c1(root, map_files))
-    c2_findings, nonresolving = run_c2(root)
+    c2_findings, c2_nonresolving = run_c2(root)
     findings.extend(c2_findings)
     findings.extend(run_c3(root, map_text))
-    return findings, nonresolving
+    c4_findings, c4_nonresolving = run_c4(root)
+    findings.extend(c4_findings)
+    total_nonresolving = c2_nonresolving + c4_nonresolving
+    return findings, total_nonresolving
 
 
 # ---------------------------------------------------------------------------
@@ -395,7 +576,9 @@ def run_all_checks(root: Path) -> tuple[list[Finding], int]:
 # ---------------------------------------------------------------------------
 
 def run_strict(root: Path) -> int:
-    """--strict: CI gate.  Print findings; exit 1 if any, else 0."""
+    """--strict: CI gate.  Gates on C1/C2/C3/C4.
+    Print findings; exit 1 if any, else 0.
+    """
     findings, nonresolving = run_all_checks(root)
     if findings:
         print("check_map_links --strict: %d finding(s)" % len(findings))
@@ -408,16 +591,25 @@ def run_strict(root: Path) -> int:
     return 0
 
 
+def run_strict_inline(root: Path) -> int:
+    """--strict-inline: alias for --strict (C4 is already included in the gate).
+    Kept for caller compatibility in case downstream automation uses this flag.
+    """
+    return run_strict(root)
+
+
 def run_check(root: Path) -> int:
     """--check: human-readable; always exit 0."""
     findings, nonresolving = run_all_checks(root)
-    if not findings:
-        print("check_map_links: OK -- all map paths, open_next paths, and folder coverage checks passed.")
-        print("annotated nonresolving: %d (debt, not failures)" % nonresolving)
-        return 0
     c1 = [f for f in findings if f.check == "C1"]
     c2 = [f for f in findings if f.check == "C2"]
     c3 = [f for f in findings if f.check == "C3"]
+    c4 = [f for f in findings if f.check == "C4"]
+    gate_findings = c1 + c2 + c3 + c4
+    if not findings:
+        print("check_map_links: OK -- all map paths, open_next paths, folder coverage, and inline link checks passed.")
+        print("annotated nonresolving: %d (debt, not failures)" % nonresolving)
+        return 0
     print("check_map_links --check: %d finding(s)" % len(findings))
     print()
     if c1:
@@ -435,6 +627,13 @@ def run_check(root: Path) -> int:
     if c3:
         print("C3  FOLDER COVERAGE  (%d)" % len(c3))
         for f in c3:
+            print("  source: %s" % f.source)
+            print("  detail: %s" % f.detail)
+            print()
+    if c4:
+        c4_files = len(set(f.source for f in c4))
+        print("C4  INLINE-LINK->DISK  (%d finding(s) across %d file(s))" % (len(c4), c4_files))
+        for f in c4:
             print("  source: %s" % f.source)
             print("  detail: %s" % f.detail)
             print()
@@ -636,6 +835,101 @@ def selftest() -> int:
             ok = False
         print("%s  %-52s  expect=%s got=%s" % (status, label, expected, got))
 
+    # --- extract_inline_links_from_line cases ---
+    print()
+    print("--- extract_inline_links_from_line ---")
+    eill_cases = [
+        # (label, line, expected path tokens)
+        ("relative .md link",
+         "see [foo](docs/decisions/foo_v0.md) for context",
+         ["docs/decisions/foo_v0.md"]),
+        ("image link checked",
+         "![diagram](docs/assets/diagram.png)",
+         ["docs/assets/diagram.png"]),
+        ("link with title stripped",
+         '[ref](docs/foo/bar_v0.md "Some Title")',
+         ["docs/foo/bar_v0.md"]),
+        ("link with anchor path-only checked",
+         "[see here](docs/foo/bar_v0.md#section)",
+         ["docs/foo/bar_v0.md"]),
+        ("pure anchor skipped",
+         "[jump](#heading)",
+         []),
+        ("external http skipped",
+         "[ext](http://example.com/page)",
+         []),
+        ("external https skipped",
+         "[ext](https://example.com/page)",
+         []),
+        ("mailto skipped",
+         "[email](mailto:foo@bar.com)",
+         []),
+        ("protocol-relative skipped",
+         "[cdn](//cdn.example.com/img.png)",
+         []),
+        ("no slash no ext skipped",
+         "[something](OWNERS)",
+         []),
+        ("svg extension checked",
+         "![icon](assets/icon.svg)",
+         ["assets/icon.svg"]),
+        ("yaml extension checked",
+         "[config](config/settings.yml)",
+         ["config/settings.yml"]),
+    ]
+    for label, line, expected in eill_cases:
+        got = extract_inline_links_from_line(line)
+        status = "PASS" if got == expected else "FAIL"
+        if got != expected:
+            ok = False
+        print("%s  %-48s  expect=%s got=%s" % (status, label, expected, got))
+
+    # --- is_exempt_inline_line cases ---
+    print()
+    print("--- is_exempt_inline_line ---")
+    ieil_cases = [
+        ("exempt: does not exist yet",
+         "[x](docs/foo.md) -- does not exist yet", True),
+        ("exempt: not retrieval-indexed",
+         "see [y](docs/bar.md) -- not retrieval-indexed", True),
+        ("not exempt: normal line",
+         "see [z](docs/baz.md) for details", False),
+    ]
+    for label, line, expected in ieil_cases:
+        got = is_exempt_inline_line(line)
+        status = "PASS" if got == expected else "FAIL"
+        if got != expected:
+            ok = False
+        print("%s  %-52s  expect=%s got=%s" % (status, label, expected, got))
+
+    # --- inline_link_is_nonresolving cases ---
+    print()
+    print("--- inline_link_is_nonresolving ---")
+    ilnr_cases = [
+        ("nonresolving comment present",
+         "[x](slot1_workfile.md) # nonresolving: operator workfile, never committed",
+         "slot1_workfile.md",
+         True),
+        ("no trailing comment",
+         "[x](docs/foo/bar_v0.md)",
+         "docs/foo/bar_v0.md",
+         False),
+        ("other comment not nonresolving",
+         "[x](docs/foo/bar_v0.md) # load first",
+         "docs/foo/bar_v0.md",
+         False),
+        ("path not in line",
+         "[x](docs/foo/bar_v0.md) # nonresolving: gone",
+         "docs/other/baz_v0.md",
+         False),
+    ]
+    for label, line, path, expected in ilnr_cases:
+        got = inline_link_is_nonresolving(line, path)
+        status = "PASS" if got == expected else "FAIL"
+        if got != expected:
+            ok = False
+        print("%s  %-52s  expect=%s got=%s" % (status, label, expected, got))
+
     print()
     print("SELFTEST", "OK" if ok else "FAILED")
     return 0 if ok else 1
@@ -655,13 +949,16 @@ def main(argv: list[str]) -> int:
         return 0  # fail open
     if "--check" in argv:
         return run_check(root)
+    if "--strict-inline" in argv:
+        return run_strict_inline(root)
     if "--strict" in argv:
         return run_strict(root)
     # Default: print usage
-    print("Usage: check_map_links.py --strict | --check | --selftest")
-    print("  --strict   CI gate: exit 1 if any finding")
-    print("  --check    human-readable report, always exit 0")
-    print("  --selftest pure-function self-check")
+    print("Usage: check_map_links.py --strict | --strict-inline | --check | --selftest")
+    print("  --strict         CI gate: exit 1 if any finding (C1/C2/C3/C4)")
+    print("  --strict-inline  alias for --strict (C4 included; kept for caller compat)")
+    print("  --check          human-readable report, always exit 0")
+    print("  --selftest       pure-function self-check")
     return 1
 
 

@@ -43,6 +43,7 @@ import json
 import subprocess
 import sys
 from pathlib import Path
+import os
 
 # Config-surface paths whose dirt matters to every lane (repo-relative POSIX).
 CONFIG_SURFACE = ("CLAUDE.md", "AGENTS.md", ".claude", ".agents")
@@ -109,7 +110,8 @@ def doctrine_lag_line(diff_output: str | None) -> str | None:
 def build_capsule(source: str, root: str, branch: str, head: str,
                   subjects: list[str], counts: tuple[int, int],
                   cfg_dirty: list[str],
-                  doctrine: str | None = None) -> str:
+                  doctrine: str | None = None,
+                  retrieval_health: str | None = None) -> str:
     """Render the capsule (pure function). Mechanical state only — no claims."""
     lines = [
         "[lane-state capsule | source=%s]" % (source or "unknown"),
@@ -123,6 +125,8 @@ def build_capsule(source: str, root: str, branch: str, head: str,
                  + (", ".join(cfg_dirty) if cfg_dirty else "clean"))
     if doctrine is not None:
         lines.append(doctrine)
+    if retrieval_health is not None:
+        lines.append(retrieval_health)
     lines.append("source-loading entry points: " + " ; ".join(ENTRY_POINTERS)
                  + " (read overlay README before project work, per AGENTS.md)")
     lines.append("capsule is observed git state only -- not doctrine, "
@@ -140,6 +144,29 @@ def _git(root: Path, *args: str) -> str:
     return res.stdout if res.returncode == 0 else ""
 
 
+def retrieval_health_line(root: Path) -> str | None:
+    """Call header_index.py --health --oneline; return the output line, or None on error.
+
+    Uses a 5-second timeout. Fails open (returns None) on any error so a broken
+    index never stalls session start.  Never inlines a second os.walk here —
+    delegates entirely to the hook.
+
+    Pure subprocess call (testable by mocking subprocess.run; not a pure
+    function since it shells out, but it is the single authoritative call site).
+    """
+    hook = root / ".agents" / "hooks" / "header_index.py"
+    try:
+        res = subprocess.run(
+            ["python", str(hook), "--health", "--oneline"],
+            capture_output=True, text=True, timeout=5,
+        )
+        if res.returncode == 0 and res.stdout.strip():
+            return res.stdout.strip()
+        return None
+    except (FileNotFoundError, OSError, subprocess.TimeoutExpired):
+        return None
+
+
 def gather(root: Path, source: str) -> str:
     branch = _git(root, "rev-parse", "--abbrev-ref", "HEAD").strip()
     head = _git(root, "log", "-1", "--format=%h %s").strip()
@@ -152,8 +179,9 @@ def gather(root: Path, source: str) -> str:
     # so treat the empty-string-on-error case as fail-open: an empty diff output
     # means "matches", which is the safe/non-alarming default).
     doctrine = doctrine_lag_line(raw_diff)
+    health = retrieval_health_line(root)
     return build_capsule(source, str(root), branch, head, subjects, counts, cfg,
-                         doctrine=doctrine)
+                         doctrine=doctrine, retrieval_health=health)
 
 
 def run_hook(root: Path) -> int:
@@ -195,6 +223,16 @@ def selftest() -> int:
     # capsule with doctrine omitted (git-failure case)
     capsule_without = build_capsule("startup", "/r", "main", "abc fix", ["s1", "s2"],
                                     (1, 2), [], doctrine=None)
+    # capsule with retrieval_health line
+    capsule_with_health = build_capsule("startup", "/r", "main", "abc fix", ["s1"],
+                                        (0, 0), [],
+                                        doctrine=None,
+                                        retrieval_health="retrieval health: 3 missing headers, 1 orphan")
+    # capsule without retrieval_health line (None)
+    capsule_no_health = build_capsule("startup", "/r", "main", "abc fix", ["s1"],
+                                      (0, 0), [],
+                                      doctrine=None,
+                                      retrieval_health=None)
     shape_ok = (
         capsule_with.startswith("[lane-state capsule | source=startup]")
         and "branch: main @ abc fix" in capsule_with
@@ -204,6 +242,8 @@ def selftest() -> int:
         and len(capsule_with.splitlines()) <= 14
         and "DIFFERS" not in capsule_without
         and len(capsule_without.splitlines()) <= 13
+        and "retrieval health: 3 missing headers" in capsule_with_health
+        and "retrieval health" not in capsule_no_health
     )
     ok = cases_ok and doctrine_ok and shape_ok
     print("SELFTEST", "OK" if ok else "FAILED")

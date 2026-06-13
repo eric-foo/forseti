@@ -18,6 +18,8 @@ jobs:
         working-directory: orca-harness
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # full history needed for git diff ...HEAD diff-scoping in header_index --strict
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -30,3 +32,6 @@ jobs:
       - name: retrieval link check
         working-directory: ${{ github.workspace }}
         run: python .agents/hooks/check_map_links.py --strict
+      - name: retrieval header index (forward-only gate)
+        working-directory: ${{ github.workspace }}
+        run: python .agents/hooks/header_index.py --strict
