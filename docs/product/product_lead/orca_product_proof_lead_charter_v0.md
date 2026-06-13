@@ -127,7 +127,7 @@ The Product Proof Lead does not own:
   work, agent-workflow design, or AI cost-structure analysis unless it
   presents as a qualified consumer-demand allocation decision in the first
   proof lane's families.
-- Broad market research, generic social listening, person-level dossiers, outreach lists, data-broker activity, manipulation, fake reviews, botting, or deceptive competitive tactics.
+- Broad market research, generic social listening, person-level dossiers (exception: internal wind-caller calibration per `docs/decisions/wind_caller_calibration_carveout_v0.md` — bounded to ≤5 public-figure accounts, pre-commercial, internal only; external/product person-level boundary unchanged), outreach lists, data-broker activity, manipulation, fake reviews, botting, or deceptive competitive tactics.
 - Revalidation of the accepted method replay packet or use of archived contaminated replay outputs.
 
 ## First Proof Lane

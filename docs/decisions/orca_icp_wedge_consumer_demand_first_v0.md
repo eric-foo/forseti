@@ -130,7 +130,11 @@ intelligence**, operator-first.
   ceiling (act / phase / narrow / hold / defend)?"
 - Lead signal: consumer demand (reviews, forums, social, search). Corroboration:
   org-motion (hiring composition + headcount trend at brand AND parent level),
-  kept at org level — never person-level dossiers (thesis boundary; LinkedIn
+  kept at org level — never person-level dossiers for org-motion (thesis
+  boundary; note: the creator wind-caller calibration carve-out is DISTINCT
+  from org-motion — it applies only to internal calibration of public-figure
+  wind-callers per `docs/decisions/wind_caller_calibration_carveout_v0.md`
+  and does not touch the org-level-only rule here; LinkedIn
   routes per the owning capture decisions — official/manual/entitled today;
   dated note 2026-06-12: route bindings are capture-lane-owned under the
   owner's measured-ToS-risk posture, not hard thesis walls). Divergence reads

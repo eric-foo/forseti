@@ -55,8 +55,14 @@ narrow, hold, defend).
    callers. The repo already holds a worked exemplar: INCIDecoder (venue card
    11, "root-receipt detector / wind-caller exemplar" — its commissioned SPF
    tests became the root receipt the entire Purito chain cites). Boundary:
-   wind callers are **channels, not persons** — tracked only through their
-   public output and call record; person-level dossiers remain forbidden
+   wind callers are **channels AND named public-figure wind-callers under the
+   bounded internal carve-out** (`docs/decisions/wind_caller_calibration_carveout_v0.md`):
+   public handle + public name + public calls + public stats + call-vs-outcome
+   calibration, ≤5 accounts, human pace, pre-commercial, internal only.
+   Audience/follower-graph analytics: **deferred-gated** (separate authorization +
+   legal gate required; reclassified from out-of-scope to sanctioned-but-deferred
+   in `docs/product/data_capture_spine/data_capture_spine_future_exploration_lanes_v0.md`).
+   Person-level dossiers in any sold or external surface remain **forbidden**
    (charter exclusion, unchanged).
 3. **Buy-side corroboration (primary, owner word)** — costly behavior:
    sellouts, waitlists, restock pressure, review velocity and content shifts,
