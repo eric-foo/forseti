@@ -10,7 +10,7 @@ permitted_assumptions:
   - Distinguish general membership/subscription base rates from evidence specific to Beauty Pie's pre-cutoff situation.
   - Treat the prices, tiers, and monthly spending limits in the evidence as real.
   - Judge only on this packet; produce a single blind judgement from it alone.
-information_boundary: Decide using only the evidence in this packet. Do not use, recall, or look up any outside or later knowledge about this company or this decision; base the judgement solely on the packet.
+forbidden_information_notice: Decide using only the evidence in this packet. Do not use, recall, or look up any outside or later knowledge about this company or this decision; base the judgement solely on the packet.
 source_manifest:
   - source_id: E1
     source: 'Beauty Pie membership model — factory-direct; members pay a membership fee to buy products at cost (public brand/product description, pre-cutoff). Captured: beautypie.com homepage, Wayback snapshot 2023-02-25 (web.archive.org/web/20230225210430/), evidencing the no-middlemen/no-markup, members-buy-near-making-cost model. SourceCapturePacket: source_captures/e1_homepage_20230225/'
