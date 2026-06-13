@@ -21,6 +21,16 @@
             "timeout": 10
           }
         ]
+      },
+      {
+        "matcher": "WebSearch|WebFetch",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python \"$CLAUDE_PROJECT_DIR/.agents/hooks/check_source_capture_front_door.py\" --hook",
+            "timeout": 10
+          }
+        ]
       }
     ],
     "PostToolUse": [

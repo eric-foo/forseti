@@ -165,6 +165,28 @@ third entry beside the two existing PostToolUse hooks:
 `{ "type": "command", "command": "python .agents/hooks/check_placement.py --hook", "timeout": 10 }`
 then restart the session (hooks load at session start).
 
+**Source-capture front door check.** A PreToolUse hook (matcher
+`WebSearch|WebFetch`) in the tracked `.claude/settings.json` runs:
+
+```
+python .agents/hooks/check_source_capture_front_door.py --hook
+```
+
+Before a generic online tool runs, it injects a non-blocking advisory: if the
+intent is to capture/preserve a source as evidence, the sanctioned path is the
+Source Capture Armory runbook (`orca-harness/docs/source_capture_agent_runbook.md`),
+not a free-form fetch/crawl; ordinary non-evidence lookups proceed untouched. It
+fires only for `WebSearch`/`WebFetch`, never blocks, fails OPEN, and references
+the rule authority (`.agents/workflow-overlay/source-loading.md` -> "Online
+Source-Capture Front Door") rather than restating it.
+
+```
+python .agents/hooks/check_source_capture_front_door.py --selftest   # decision-logic self-check
+```
+
+Reinstall = re-add the `WebSearch|WebFetch` PreToolUse entry in
+`.claude/settings.json`, then restart the session (hooks load at session start).
+
 **Permission floor (protected paths + git lifecycle).** A second
 enforcement-placement substrate (EP-01 + EP-03 in
 `docs/decisions/overlay_enforcement_placement_classification_v0.md`), built as

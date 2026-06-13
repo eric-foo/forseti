@@ -51,6 +51,40 @@ They must not authorize building, deploying, testing, or operating those
 systems unless the current turn or accepted handoff explicitly grants bounded
 implementation authority.
 
+## Online Source-Capture Front Door
+
+Before any online fetch or search whose intent is to **capture or preserve a
+source as evidence** for an Orca decision, route through the Source Capture
+Armory runbook as the source of truth for that walking:
+
+- `orca-harness/docs/source_capture_agent_runbook.md` owns runner selection,
+  required inputs, stop conditions, restricted-sandbox network-permission
+  discipline, and the agent report format. Use the narrowest runner for the
+  supplied input; preserve a provenance packet; do not broaden a fetch into
+  broad search, crawling, target discovery, or source-meaning inference.
+- `docs/workflows/data_capture_spine_consolidation_map_v0.md` routes the wider
+  capture area (obligations, Reddit/LinkedIn lanes, anti-block ladder, packet
+  lifecycle) one hop to its owners.
+- `docs/product/data_capture_spine/data_capture_source_access_boundary_decision_v0.md`
+  governs *what* may be accessed (discoverable-or-entitled + disclosable, hard
+  stops). This front door is a routing rule and does **not** amend that boundary.
+
+Scope is **evidence/source capture only**. Ordinary online activity that is not
+capturing a source as decision evidence — reading library/API docs, a quick fact
+check, dedicated-MCP docs/browser tools used for non-evidence work — is out of
+scope and needs no packet. A generic `WebSearch`/`WebFetch` is not the sanctioned
+path for source-capture evidence; the runbook runners are.
+
+The boundary substrate for this rule is an advisory, non-blocking PreToolUse hook
+on `WebSearch`/`WebFetch` (`.agents/hooks/check_source_capture_front_door.py`),
+placed per `.agents/workflow-overlay/validation-gates.md` ("Enforcement
+Placement"). The hook reminds; it never blocks a call and never authorizes a
+capture. Having the runners installed and runnable is equipment, not
+authorization: live capture still needs explicitly supplied operator inputs and,
+in a restricted sandbox, per-operation network permission. This rule is not
+validation, readiness, source-access authorization, or a source-access-boundary
+amendment.
+
 ## Orca Start Preflight
 
 Before repo-aware Orca prompt authoring, review setup, handoff creation,
@@ -576,4 +610,90 @@ direction_change_propagation:
     - not source promotion
     - not implementation authorization
     - not ECR or Judgment design
+```
+
+## Direction Change Propagation - Online Source-Capture Front Door
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Orca now has an Online Source-Capture Front Door: before any online fetch or
+    search intended to capture or preserve a source as evidence, agents route
+    through the Source Capture Armory runbook as the source of truth (bounded
+    runner over a supplied input, provenance packet, no broad search/crawl, no
+    source-meaning inference); generic WebSearch/WebFetch is not the sanctioned
+    source-capture path, and ordinary non-evidence lookups stay out of scope. The
+    rule is enforced by an advisory, non-blocking PreToolUse hook on
+    WebSearch/WebFetch that reminds and never authorizes a capture.
+  trigger: workflow_authority
+  related_triggers:
+    - validation_philosophy
+  controlling_sources_updated:
+    - .agents/workflow-overlay/source-loading.md            # the rule home (this section)
+    - AGENTS.md                                             # one-line pointer to the owning rule
+    - .agents/hooks/check_source_capture_front_door.py      # the advisory PreToolUse substrate (new file)
+    - .claude/settings.json                                 # WebSearch|WebFetch PreToolUse hook (new entry)
+    - docs/workflows/orca_repo_map_v0.md                    # Active Hooks note (discoverability + reinstall)
+  downstream_surfaces_checked:
+    - .agents/workflow-overlay/README.md
+    - .agents/workflow-overlay/source-of-truth.md
+    - .agents/workflow-overlay/validation-gates.md
+    - .agents/workflow-overlay/decision-routing.md
+    - docs/decisions/overlay_enforcement_placement_classification_v0.md
+    - docs/workflows/data_capture_spine_consolidation_map_v0.md
+    - orca-harness/docs/source_capture_agent_runbook.md
+    - docs/product/data_capture_spine/data_capture_source_access_boundary_decision_v0.md
+  intentionally_not_updated:
+    - path: .agents/workflow-overlay/README.md
+      reason: >
+        The overlay index already registers source-loading.md as an owner; the
+        front door is a section within that existing owner, not a new overlay
+        file, so no index entry is added.
+    - path: .agents/workflow-overlay/source-of-truth.md
+      reason: >
+        Source hierarchy and the known-source list are unchanged; no new durable
+        source document was created. The rule home is source-loading.md and the
+        propagation receipt lives there inline per the contract.
+    - path: .agents/workflow-overlay/validation-gates.md
+      reason: >
+        The hook reuses the existing Enforcement Placement pattern (write/tool
+        boundary substrate + reference-not-restate) without changing the
+        principle. Naming it as a new active EP instance is a classification
+        edit left to that owner, matching the repo-map-freshness precedent.
+    - path: docs/decisions/overlay_enforcement_placement_classification_v0.md
+      reason: >
+        Recording a new per-rule EP classification entry is owned by that
+        decision and was not in this bounded build's scope; left to the owner.
+    - path: docs/workflows/data_capture_spine_consolidation_map_v0.md
+      reason: >
+        It already routes "run existing capture tools safely" to the runbook; the
+        front door references that submap and adds no new capture-area owner.
+    - path: orca-harness/docs/source_capture_agent_runbook.md
+      reason: >
+        The runbook is the referenced source of truth; its runner selection, stop
+        conditions, and report format are unchanged by this routing front door.
+    - path: docs/product/data_capture_spine/data_capture_source_access_boundary_decision_v0.md
+      reason: >
+        What may be accessed (discoverable-or-entitled + disclosable, hard stops)
+        is unchanged. This is a routing rule, not a source-access-boundary
+        amendment.
+  stale_language_search: >
+    rg -n "Online Source-Capture Front Door|check_source_capture_front_door|
+    source-capture front door|sanctioned source-capture path|WebSearch\\|WebFetch"
+    AGENTS.md .agents/workflow-overlay docs/workflows/orca_repo_map_v0.md
+    .claude/settings.json .agents/hooks
+  stale_language_search_result: >
+    Executed 2026-06-14 after this patch. Hits are confined to the five intended
+    surfaces: the rule home in source-loading.md (this section + receipt), the
+    AGENTS.md pointer, the new hook script, the settings.json PreToolUse entry,
+    and the repo-map Active Hooks note. No other surface carried conflicting
+    language saying online source capture is ungoverned or that generic
+    WebSearch/WebFetch is the sanctioned source-capture path.
+  non_claims:
+    - not validation
+    - not readiness
+    - not source-access authorization
+    - not a source-access-boundary amendment
+    - not a new EP classification-record entry (left to that owner)
+    - the hook reminds at the tool boundary and never authorizes a capture
 ```
