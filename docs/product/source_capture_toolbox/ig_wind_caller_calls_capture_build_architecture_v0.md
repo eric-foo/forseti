@@ -126,6 +126,40 @@ Per-item → **Source Capture Packets** via the existing `write_local_source_cap
 3. **H5 gate probe** (bounded) → gates the first A2 build shape; at-scale sustainability remains a residual until exercised.
 4. Bounded build authorization → build the delta → full offline contract suite green before any green claim.
 
+## Frozen implementation route (2026-06-14) — for a fresh `/fused` implementation turn
+
+`/fused` scoped this and paused at the implementation gate for **context-risk** (do not write new
+capture code at the tail of a very long thread; this lane "previously shipped capture code on
+partial tests"). The route below is frozen; a fresh turn is pure execution. Code lane prepared:
+worktree `.claude/worktrees/ig-calls-capture-build`, branch `ig-calls-capture-build` off
+`origin/main` (`96eb1ad`); harness venv with Playwright+chromium installed: `orca-harness/.venv`.
+Scope = the verified **logged-out** build above (no session/auth).
+
+- **STEP-01 — parser (pure, offline).** NEW `source_capture/ig_calls_parse.py`:
+  `parse_ig_og_description(s)` → `{caption, likes, comments, date, is_ad}`;
+  `extract_item_permalinks(rendered_dom)` → `/p/` + `/reel/` permalinks. NEW
+  `tests/unit/test_ig_calls_parse.py` from the recon's observed `og:description` fixtures. No deps.
+- **STEP-02 — scroll on the headless engine.** Add bounded `scroll_passes`/`scroll_step_px`
+  (default 0 → existing single-URL contract unchanged) to `adapters/browser_snapshot.py`'s engine,
+  mirroring `cloakbrowser_snapshot.py`'s scroll loop. Existing browser_snapshot tests must still pass.
+- **STEP-03 — the runner.** NEW `runners/run_source_capture_ig_calls_packet.py`: load profile
+  (browser_snapshot, logged-out, scroll) → `extract_item_permalinks` → per item: load →
+  `parse_ig_og_description` (+ DOM-caption fallback when og looks truncated) →
+  `cadence.build_cadence_plan(bounded_jitter)` between items →
+  `writer.write_local_source_capture_packet` (compose the authenticated runner's packet pattern
+  **minus** `auth_state`) → IG block-detection (login-modal/`challenge`/429) → per-session item cap.
+  NEW unit tests (monkeypatch `fetch_browser_snapshot_capture` with fixture-DOM fakes; assert
+  packets, cadence applied, block-detection, cap; no live deps).
+- **STEP-04 — validation.** FULL offline contract suite green (`orca-harness/.venv` pytest — full
+  suite, not feature-only). Then a bounded LIVE `@hyram` check (logged-out, ≤3 items, human-paced)
+  → gitignored `_test_runs/`. **No green claim without the full suite green.**
+- **STEP-05 — land.** Commit + PR on `ig-calls-capture-build`, then the **recommended adversarial
+  review** (`after_all_steps_pre_closeout`, target = the new runner + parser) via
+  `workflow-delegated-review-patch`.
+
+DEFERRED (record, do not build): D3 reel view/play count via GraphQL response-sniff; session/
+`auth_state` enhancement (only if logged-out grid-scroll depth proves walled); H5 sustained cadence.
+
 ## Non-claims
 
 Planning draft. Not a build authorization, not validation/readiness, not a doctrine change, not an authorization-scope ruling (the owner adjudicates the three deltas), not at-scale or multi-account-over-time proof, not ECR/Cleaning/Judgment design. The existing primitive claims are verified against primary source at the paths cited; the authorization mapping is an advisory reading of the cited decision, carve-out, and recon residuals, not an owner ruling.
