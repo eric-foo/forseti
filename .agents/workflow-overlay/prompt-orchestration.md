@@ -93,6 +93,20 @@ requires source-backed reasoning; provide the same source pack or a bounded
 source capsule, or require the subagent to perform its own source-readiness
 gate.
 
+For an orientation or research subagent whose output returns to an agent, bind
+the return shape, not just the source side. Require a terse, schema-bound verdict
+— the exact fields named in the dispatch prompt, one line per field, a `file:line`
+cite for every load-bearing claim, and `unknown` for an absent field — not a
+prose dump. Source-readiness stays governed by the rule above and
+`.agents/workflow-overlay/source-loading.md` (the load-side owner); here the
+spawning CA names that load in the dispatch, escalates minimally, and validates
+the return on receipt: reject or re-prompt a non-conforming or citation-less
+reply rather than consuming it. "Returns to an agent" covers any output an agent
+will act on, summarize, or route — even output later shown to a human; the only
+exception is a deliverable meant directly for a human with no agent acting on it.
+The return dimension is distinct from subagent source-readiness (above) and from
+forked-context runtime-payload safety (`decision-routing.md`).
+
 ## Thread Operating Target Continuity
 
 When a workflow prompt, wrapper, rerun, review prompt, patch prompt, or handoff

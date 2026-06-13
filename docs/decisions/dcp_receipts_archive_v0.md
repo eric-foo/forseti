@@ -734,3 +734,58 @@ direction_change_propagation:
     - not a new EP classification-record entry (left to that owner)
     - the hook and checker enforce map shape, never the truth or completeness of any route
 ```
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    The Judgment Spine routing-pointer batch (ORCA-HYGIENE-008) is complete:
+    every entry surface now routes Judgment Spine navigation through the
+    consolidation submap — the repo map and the source-loading read pack
+    (landed earlier; 2026-06-05 receipt above), and now the spine README
+    (open_next trimmed to the single submap pointer, contract body kept) and
+    the harness README (submap up-pointer added).
+  trigger: workflow_authority
+  related_triggers:
+    - output_authority
+  controlling_sources_updated:
+    - docs/research/judgment-spine/README.md
+    - docs/research/judgment-spine/harness/README.md
+    - .agents/workflow-overlay/source-of-truth.md
+  downstream_surfaces_checked:
+    - docs/workflows/orca_repo_map_v0.md
+    - .agents/workflow-overlay/source-loading.md
+    - docs/research/judgment-spine/judgment_spine_consolidation_map_v0.md
+    - docs/research/judgment-spine/manifest_v0.md
+    - docs/hygiene/queue.md
+  intentionally_not_updated:
+    - path: docs/workflows/orca_repo_map_v0.md
+      reason: >
+        Its Judgment Spine section already says open the consolidation map
+        first (2026-06-04 partial work + 2026-06-05 receipt); unchanged today.
+    - path: .agents/workflow-overlay/source-loading.md
+      reason: >
+        The Judgment Spine Evidence Ladder Read Pack already starts with the
+        consolidation map; covered by the 2026-06-05 routing receipt.
+    - path: docs/research/judgment-spine/judgment_spine_consolidation_map_v0.md
+      reason: >
+        It is the routing destination; pointing more surfaces at it changes
+        nothing inside it.
+    - path: docs/research/judgment-spine/manifest_v0.md
+      reason: >
+        Inventory owner, not an entry surface; separately brought current
+        2026-06-11 (ORCA-HYGIENE-009/012) without routing-doctrine change.
+  stale_language_search: >
+    rg -n "open_next|manifest open first" docs/research/judgment-spine/README.md
+    docs/research/judgment-spine/harness/README.md
+  stale_language_search_result: >
+    Executed 2026-06-11 after the two README edits. The spine README open_next
+    carries exactly the consolidation-map pointer; the harness README open_next
+    leads with the submap up-pointer then its local v0_14 and adjacent-context
+    entries. Neither README still instructs entering through the manifest or a
+    scattered per-doc enumeration.
+  non_claims:
+    - not validation
+    - not readiness
+    - not source promotion
+    - not acceptance
+```

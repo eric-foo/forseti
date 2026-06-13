@@ -94,6 +94,13 @@ formatting, direct command answers, or already-scoped implementation steps.
   consumption order: commission, target, authority, decision criteria,
   evidence, then reviewer verdict or recommendation. Do not create a synthesis
   lane unless a later Orca overlay decision binds one.
+- When dispatching an orientation or research subagent whose output an agent
+  will consume — act on, summarize, or route, even if later shown to a human —
+  apply the subagent return contract in
+  `.agents/workflow-overlay/prompt-orchestration.md` rather than a local
+  prose-output rule: validate the return against that contract's named-field,
+  one-line, `file:line`-cite, `unknown`-for-absent, and reject-or-re-prompt
+  requirements. Do not request a prose dump for an agent-facing return.
 
 ## Source-Heavy Work
 

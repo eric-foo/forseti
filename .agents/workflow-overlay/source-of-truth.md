@@ -155,63 +155,6 @@ promotion.
 ```yaml
 direction_change_propagation:
   doctrine_changed: >
-    The Judgment Spine routing-pointer batch (ORCA-HYGIENE-008) is complete:
-    every entry surface now routes Judgment Spine navigation through the
-    consolidation submap — the repo map and the source-loading read pack
-    (landed earlier; 2026-06-05 receipt above), and now the spine README
-    (open_next trimmed to the single submap pointer, contract body kept) and
-    the harness README (submap up-pointer added).
-  trigger: workflow_authority
-  related_triggers:
-    - output_authority
-  controlling_sources_updated:
-    - docs/research/judgment-spine/README.md
-    - docs/research/judgment-spine/harness/README.md
-    - .agents/workflow-overlay/source-of-truth.md
-  downstream_surfaces_checked:
-    - docs/workflows/orca_repo_map_v0.md
-    - .agents/workflow-overlay/source-loading.md
-    - docs/research/judgment-spine/judgment_spine_consolidation_map_v0.md
-    - docs/research/judgment-spine/manifest_v0.md
-    - docs/hygiene/queue.md
-  intentionally_not_updated:
-    - path: docs/workflows/orca_repo_map_v0.md
-      reason: >
-        Its Judgment Spine section already says open the consolidation map
-        first (2026-06-04 partial work + 2026-06-05 receipt); unchanged today.
-    - path: .agents/workflow-overlay/source-loading.md
-      reason: >
-        The Judgment Spine Evidence Ladder Read Pack already starts with the
-        consolidation map; covered by the 2026-06-05 routing receipt.
-    - path: docs/research/judgment-spine/judgment_spine_consolidation_map_v0.md
-      reason: >
-        It is the routing destination; pointing more surfaces at it changes
-        nothing inside it.
-    - path: docs/research/judgment-spine/manifest_v0.md
-      reason: >
-        Inventory owner, not an entry surface; separately brought current
-        2026-06-11 (ORCA-HYGIENE-009/012) without routing-doctrine change.
-  stale_language_search: >
-    rg -n "open_next|manifest open first" docs/research/judgment-spine/README.md
-    docs/research/judgment-spine/harness/README.md
-  stale_language_search_result: >
-    Executed 2026-06-11 after the two README edits. The spine README open_next
-    carries exactly the consolidation-map pointer; the harness README open_next
-    leads with the submap up-pointer then its local v0_14 and adjacent-context
-    entries. Neither README still instructs entering through the manifest or a
-    scattered per-doc enumeration.
-  non_claims:
-    - not validation
-    - not readiness
-    - not source promotion
-    - not acceptance
-```
-
-Older receipts (#1–#12) archived verbatim in `docs/decisions/dcp_receipts_archive_v0.md`.
-
-```yaml
-direction_change_propagation:
-  doctrine_changed: >
     Receipt-archiving rule adopted (at most two most-recent receipts inline per
     controlling file; older receipts move verbatim to the single authorized
     standalone archive docs/decisions/dcp_receipts_archive_v0.md; inline section
@@ -268,6 +211,83 @@ direction_change_propagation:
     - not source promotion
     - not implementation authorization
 ```
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Orientation/research subagent dispatch now binds a third dimension — the
+    return shape. prompt-orchestration.md (the subagent-contract owner) now
+    requires, for a subagent whose output an agent will consume (act on,
+    summarize, or route — even if later shown to a human), a terse schema-bound
+    verdict (named fields, one line each, a file:line cite per load-bearing
+    claim, `unknown` for an absent field) instead of a prose dump, validated by
+    the spawning CA on receipt. The load side stays owned by the source-readiness
+    rule and source-loading.md; the new rule defers to them and binds only the
+    return shape. The behavior contract gains a CA-facing pointer rather than a
+    separate local return rule. Additive and orthogonal to the two existing
+    subagent rules: source-readiness (prompt-orchestration.md, above it) and
+    forked-context runtime-payload safety (decision-routing.md).
+  trigger: workflow_authority
+  related_triggers:
+    - output_authority
+  reviewed_by: >
+    Cross-vendor delegated review (GPT-family, provisional convention) run and
+    CA-adjudicated 2026-06-12; findings AR-01 (human/agent boundary loophole),
+    AR-02 (behavior-contract pointer not a soft local rule), AR-03 (defer
+    load-side ownership), AR-04 (receipt honesty) accepted and applied. Decision
+    input only; not a bound-lane verdict.
+  controlling_sources_updated:
+    - .agents/workflow-overlay/prompt-orchestration.md
+    - docs/prompts/templates/shared/orca_prompt_behavior_contract_v0.md
+    - .agents/workflow-overlay/source-of-truth.md
+  downstream_surfaces_checked:
+    - AGENTS.md
+    - .agents/workflow-overlay/README.md
+    - .agents/workflow-overlay/decision-routing.md
+    - .agents/workflow-overlay/source-loading.md
+    - .agents/workflow-overlay/communication-style.md
+    - docs/workflows/orca_repo_map_v0.md
+  intentionally_not_updated:
+    - path: AGENTS.md
+      reason: >
+        Carries no subagent return-shape instruction (grep: no "subagent" hit)
+        and already routes detail to the owning overlay file; the rule lives in
+        prompt-orchestration.md, so no AGENTS.md restatement is added.
+    - path: .agents/workflow-overlay/decision-routing.md
+      reason: >
+        Owns the distinct forked-context runtime-payload rule; the return-shape
+        dimension is orthogonal and cross-referenced from prompt-orchestration.md,
+        so nothing here changes or conflicts.
+    - path: .agents/workflow-overlay/source-loading.md
+      reason: >
+        The load-side owner (budgets, pack tiers, source-capsule and repo-access
+        rules); the new rule defers to it for the load side and changes nothing
+        in it.
+    - path: .agents/workflow-overlay/communication-style.md
+      reason: >
+        Its prose guidance governs human-facing chat output; the new rule governs
+        agent-facing subagent returns — complementary, no conflict, no edit.
+    - path: docs/workflows/orca_repo_map_v0.md
+      reason: >
+        No subagent enumeration to update (grep: no hit); these are additive
+        in-file doc edits, not a structural or navigation change. repo-map-ack.
+  stale_language_search: run
+  stale_language_search_result: >
+    Ran 2026-06-12 (AR-04): rg -i "prose|verbose|narrative|return.*(report|prose)"
+    across .agents/workflow-overlay, plus a "subagent|return|prose" sweep of
+    source-loading.md. No conflicting language — every prose/verbose hit governs
+    human-facing CHAT output (communication-style.md, decision-routing.md,
+    validation-gates.md), complementary to this agent-facing return rule. No
+    prior rule permitted prose subagent returns.
+  non_claims:
+    - not validation
+    - not readiness
+    - not approval or acceptance
+    - not source-of-truth promotion
+    - delegated review findings are decision input only, not a bound-lane verdict
+```
+
+Older receipts (#1–#13) archived verbatim in `docs/decisions/dcp_receipts_archive_v0.md`.
 
 ## Known Source Documents
 
