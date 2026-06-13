@@ -64,6 +64,27 @@ into durable output.
 - substrate: actor-carried (could be code-enforced in the projection parser)
 - PROV: `reddit_candidate_intake_old_reddit_search_surface_handling_v0.md:74-89` "Candidate URL Intake should treat both `title` and `search-title` anchors as candidate thread title anchors"; surface "discovered during the first operator-supplied pilot". tier: probed. date 2026-06.
 
+## A1b — proposed cell (HELD; pending slice-F build verification)
+
+Distilled 2026-06-14 from the backtest/MGT capture-robustness pass. **Held, not installed:** the
+decision node is a proposed spine-addition (not yet on A3's accepted spine) and the under-case is
+OWED (verifiable only when slice F — body-retrieve escalation — is built). Recorded here so the
+lesson is retrievable at that build; it is not an accepted/verified cell and competes for no budget
+until its under-case runs. Adding it to this prepare-only binding is **not a doctrine change → no
+`direction_change_propagation` receipt owed** (per `distillation_doctrine_orca_spine_bindings_v0.md`).
+
+### GUARD probe-then-pin  (actor-carried) — HELD
+- decision_node: `node:capture-rung-selection`  (**PROPOSED** spine-addition)
+- `GUARD probe-then-pin: WHEN fetching a source/archive with a multi-rung capture ladder → probe once (escalate cheapest-first) to find the cheapest working rung, pin it (record per source/archive via the capture-recon-index cheapest-GO-rung pattern), then fetch direct at the pinned rung → UNLESS the pinned rung fails (then re-probe).`
+- outcome_class: running the full capture escalation ladder on *every* fetch when a source/archive has multiple rungs — a per-fetch cost that should be a one-time discovery cost
+- causal_miss: missing distinction between rung DISCOVERY (probe for the cheapest working rung) and STEADY-STATE fetch (reuse the pinned rung); treating the ladder as a per-fetch runtime cost
+- verification: under-case (a multi-rung source fetched repeatedly → steady-state goes direct at the pinned rung, no re-walk) — **OWED, verify at slice-F build**; over-edge (pinned rung starts failing → re-probe fires, does not hammer a dead rung) — **OWED, verify at slice-F build**
+- substrate: actor-carried (rung selection is lane judgment; the capture-recon-index cheapest-GO-rung record is the pin)
+- conflict_check: none — A3 has no rung-selection cell; consistent with the capture-recon-index cheapest-first ladder; contradicts none of the A1 cells
+- tier: probed (design-time capture) — **capped; under-case OWED so meets no verified tier yet**
+- retirement_test: capture standardizes on a single rung (no ladder), or per-fetch re-walking becomes free
+- PROV: slice-F spec (`archive_org_refinement_and_source_family_gap_spec_v0.md` §F, PR #81); `capture_recon_index_v0.md` already records cheapest-GO-rung per source (the pin substrate). blind_spot: slice-F nearly committed to a full ladder per fetch; owner caught it → probe-then-pin. n=1 (design-time catch). date 2026-06.
+
 ## A2 — core size / budget
 
 Lane cells are actor-carried and compete for budget; the credential subset of `raw-html-scratch-only`
@@ -75,7 +96,8 @@ model-dependent; not fixed here.
 
 `node:candidate-intake-access-mode` · `node:raw-html-projection` · `node:old-reddit-anchor-parse` ·
 `node:graph-frontier-seed` (planning only; no same-run traversal) · `node:capture-packet-emit` ·
-`node:no-forbidden-output-fields-chokepoint` (referenced; canonical home = orca-harness binding).
+`node:no-forbidden-output-fields-chokepoint` (referenced; canonical home = orca-harness binding) ·
+`node:capture-rung-selection` (**PROPOSED** spine-addition — pending owner acceptance; see A1b).
 
 ## A4 — slots filled
 

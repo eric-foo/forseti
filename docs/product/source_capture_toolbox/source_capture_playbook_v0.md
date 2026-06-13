@@ -213,6 +213,16 @@ adapter shape, access posture, request-rate ceiling, known false-diagnoses}`. Ca
 method stays stable. TikTok is the first *intended* probe target — its card (or NO-GO / PARTIAL /
 CATALOG_GAP) is authored by that probe, not here.
 
+## Reuse the pin: probe once, then go direct (capture economy)
+
+The banked recipe card / recon-index entry **is the pin**. Once a probe finds the working route for a
+source (or the per-archive rung for historical capture), steady-state fetches go **direct to the
+pinned route** — do not re-walk the catalog or re-climb rungs on every fetch. Re-probe (re-run the
+method) **only when the pinned route fails** — then the failure is a fresh symptom under Guardrail 4.
+The catalog is a discovery tool, not a per-fetch cost. Distilled cell: `probe-then-pin-rung` in
+`docs/decisions/distillation_binding_data_capture_v0.md` (held; the automated dispatcher form is
+capture-spine spec slice F, pending build).
+
 ## Known gaps (honest)
 
 - **No route for mobile/app-only substrate.** If a probe finds the signal lives only in a phone app
