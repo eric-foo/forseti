@@ -144,10 +144,13 @@ held_lesson:
     source-to-claim binding and the checker is shown to fire.
   operationalized: >
     SUPERSEDED by GUARD claim-support-span-in-body at node:evidence-claim-binding in
-    distillation_binding_judgment_spine_v0.md, enforced by
-    orca-harness/evidence_binding/verifier.py (Jsg01ClaimSupportAssertion +
-    verify_claim_support) with contract test tests/unit/test_claim_support_verifier.py.
-    Page-grain, atomic-claims-only, additive/optional (frozen fixtures unaffected).
+    distillation_binding_judgment_spine_v0.md — a code-backed, contract-tested
+    deterministic span-PRESENCE checker (orca-harness/evidence_binding/verifier.py:
+    Jsg01ClaimSupportAssertion + verify_claim_support; test
+    tests/unit/test_claim_support_verifier.py). Page-grain, atomic-claims-only,
+    additive/optional (frozen fixtures unaffected). Invoke-time, not yet an automatic
+    write-time gate (deferred follow-on); checks presence, not semantic support
+    (actor-carried). Narrowed after the cross-vendor review (F1/F2).
 ```
 
 ## Deferred to the architecture pass (not decided here)

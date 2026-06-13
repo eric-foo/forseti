@@ -186,6 +186,10 @@ class Jsg01ClaimSupportAssertion(StrictModel):
     constraint. The span is confirmed against the hash-anchored body by
     ``evidence_binding.verifier.verify_claim_support`` (an I/O step), never by the pure
     composer. Atomic, quotable claims only; aggregate/derived claims assert no span.
+
+    The verifier checks that ``quoted_span`` is PRESENT in the body (a necessary
+    precondition); whether the span is specific enough to genuinely support ``claim_id``
+    is the asserting author's judgment, not code-enforced.
     """
 
     claim_id: str

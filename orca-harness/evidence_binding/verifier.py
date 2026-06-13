@@ -19,6 +19,15 @@ Contract (mirrors the composer's block-don't-repair discipline):
   sha256 is recomputed and matched (AR-04 ``raw_stored_bytes`` basis), so a tampered
   or swapped body cannot satisfy the check.
 
+Scope — what this proves and does NOT prove (VERIFY-FIRING honesty): it proves the
+asserted ``quoted_span`` is PRESENT in the hash-verified body — a necessary precondition.
+It does NOT prove the span is specific enough, or that it semantically supports
+``claim_id``; that judgment stays with the asserting author. And it fires only WHEN
+INVOKED (by a caller or the contract test) and WHEN an assertion is declared — it is not
+an automatic write-time gate on every assembly. Wiring it into a mandatory assembly/CI
+boundary is a deferred follow-on (no assembly runner exists yet; JSG-01 is frozen).
+Present-and-contract-tested is not the same as auto-firing on real assemblies.
+
 Limitation (v0): the span is matched as an EXACT UTF-8 byte substring of the raw
 stored body. It is therefore false-negative-biased on rendered text that differs from
 the raw bytes (HTML entity-encoding, whitespace normalization, tag splits). Fail-closed
@@ -76,14 +85,26 @@ def verify_claim_support(
             f"in packet {packet.packet_id!r}; block-don't-repair."
         )
 
-    body_path = packet_dir / preserved.relative_packet_path
-    if not body_path.is_file():
+    # Containment: an integrity verifier must not read outside the packet dir, even if a
+    # packet declares an escaping or absolute relative_packet_path. The producer-side
+    # constraint on relative_packet_path belongs in source_capture.models; this is a
+    # defensive floor in the verifier itself.
+    resolved_body = (packet_dir / preserved.relative_packet_path).resolve()
+    try:
+        resolved_body.relative_to(packet_dir.resolve())
+    except ValueError:
+        raise ClaimSupportError(
+            f"preserved path {preserved.relative_packet_path!r} for "
+            f"{assertion.preserved_file_id!r} resolves outside the packet dir; "
+            f"block-don't-repair."
+        )
+    if not resolved_body.is_file():
         raise ClaimSupportError(
             f"preserved body for {assertion.preserved_file_id!r} not found at "
             f"{preserved.relative_packet_path!r} under the packet dir; block-don't-repair."
         )
 
-    data = body_path.read_bytes()
+    data = resolved_body.read_bytes()
     recomputed = hashlib.sha256(data).hexdigest()
     if recomputed != preserved.sha256:
         raise ClaimSupportError(

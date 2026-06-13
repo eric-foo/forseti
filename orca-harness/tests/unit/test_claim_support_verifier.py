@@ -135,3 +135,26 @@ def test_claim_support_is_separate_from_the_reference_never_merge_binding():
     assert not any(
         "claim" in name or "span" in name for name in Jsg01EvidenceRecord.model_fields
     )
+
+
+# ---- containment: never read outside the packet dir (de-correlated review hardening) ----
+
+def test_path_escape_blocks(tmp_path):
+    # A packet whose preserved relative_packet_path escapes the packet dir must be refused
+    # BEFORE any read — an integrity verifier does not follow an escaping/absolute path.
+    sha = hashlib.sha256(BODY).hexdigest()
+    packet = build_packet(
+        [{"id": "s_body", "files": [("../escape.bin", sha)], "locator_known": True, "cutoff": "pre_cutoff"}],
+        packet_id="pkt-test",
+    )
+    assertion = Jsg01ClaimSupportAssertion(
+        claim_id="C1",
+        evidence_id="E1",
+        packet_id="pkt-test",
+        evidence_slice_id="s_body",
+        preserved_file_id="../escape.bin",
+        quoted_span="£59 a year",
+        verified_sha256=sha,
+    )
+    with pytest.raises(ClaimSupportError, match="resolves outside the packet dir"):
+        verify_claim_support(assertion=assertion, packet=packet, packet_dir=tmp_path)
