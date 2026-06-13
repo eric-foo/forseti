@@ -20,7 +20,7 @@ open_next:
   - docs/product/judgment_spine/near_half_signal_reliability_ledger_v0.md
 input_hashes:
   docs/product/judgment_spine/near_half_signal_reliability_ledger_v0.md: 388352b83bac9860c3b9959d93af3d04d0c9ccfb69198cd9382f2fbe0a498102 (SHA256 over git blob bytes at 3fe878c, per the bound hash convention; not CRLF working-tree bytes)
-branch_or_commit: near-half-signal-reliability-ledger-v0 @ 3fe878c (PR #54, base main @ 96134a3)
+branch_or_commit: signal-reliability-ledger-hardening-v0 off origin/main @ 700c1ba (re-pinned 2026-06-13 after #54 landed; the ledger content is unchanged — blob hash still 388352b8 — only the now-merged #54 branch pin was stale). This review is a FOLLOW-UP hardening pass on the LANDED ledger.
 stale_if:
   - The target file hash changes before the run starts (re-issue with a fresh pin).
   - Home-model adjudication for this commission completes (historical thereafter).
@@ -62,7 +62,7 @@ controller — do not dispatch subagents or a replacement controller.
 - Workspace: `C:\Users\vmon7\Desktop\projects\orca-worktrees\orca-prospective-loop-wt`
   — the lane worktree, NOT the primary `...\projects\orca` checkout (different
   branch, unrelated dirty work). `cd` here first.
-- Branch: `near-half-signal-reliability-ledger-v0` (PR #54). `git log` must show `3fe878c`.
+- Branch: `signal-reliability-ledger-hardening-v0` (off `origin/main @ 700c1ba`; #54 already landed, so this is a follow-up hardening pass and its result is a NEW patch PR). The ledger file must be present on this branch (it is, from main).
 - Target (the ONLY file you may patch):
   `docs/product/judgment_spine/near_half_signal_reliability_ledger_v0.md`
 - Target SHA256 (git blob bytes at `3fe878c`):
