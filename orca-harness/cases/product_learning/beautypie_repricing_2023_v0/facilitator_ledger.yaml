@@ -119,16 +119,39 @@ sealed_outcome: <<facilitator-seals-separately>>
 second_label_diffs:
 - band_input: option_value
   primary: moderate
-  second_label_assessment: high
-  floor_impact: "moderate -> floor 3; high -> floor 4 (floor-driving, contested)"
-  rationale: >-
-    The decision forecloses the GBP5/mo entry tier (E1/E2/MA-01: THE low-commitment
-    on-ramp into the model) plus member trust, during a cost-of-living squeeze (E3) --
-    major option value at stake; medium reversibility only partially bounds the
-    downside, reading closer to high than moderate on the v0_14 rubric. CONTESTED and
-    set by an outcome-aware labeler; the frozen_band_inputs value is left at the primary
-    (moderate) pending a separate-model-family second-label before freeze.
-  status: pending_separate_family_resolution
+  primary_author: claude
+  outcome_aware_contest_assessment: high
+  outcome_aware_contest_note: >-
+    An outcome-aware labeler read this closer to high -- major option value foreclosing the GBP5/mo
+    low-commitment on-ramp (E1/E2/MA-01) plus member trust during a cost-of-living squeeze (E3),
+    with medium reversibility only partially bounding downside. Contested precisely because an
+    outcome-aware label risks hindsight; it could not resolve the freeze, so a separate-model-family
+    outcome-blind second-label was commissioned.
+  separate_family_second_label_assessment: moderate
+  separate_family_second_label:
+    reviewed_by: gpt-5
+    authored_by: claude
+    outcome_blind: yes
+    blind_to_primary_label: yes
+    de_correlation_bar: cross_vendor_discovery
+    labeled_from: 'participant_packet_baseline.md @ aec13c3 (blob 912cc28)'
+    rationale: >-
+      Useful future choice / learning path (whether a simpler, higher-floor membership structure can
+      hold) -- more than minor optionality because it touches the revenue gate and the low-commitment
+      on-ramp -- but NOT high: the v0_14 high bar requires major option value WITH bounded downside,
+      and the downside is not clearly bounded (cheapest tier doubles, most price-sensitive members
+      exposed, early-2023 UK inflation, no Beauty Pie-specific tolerance evidence). high explicitly
+      tested and rejected.
+    key_uncertainty: >-
+      Whether the move can be phased, grandfathered, or reversed to bound churn and trust damage
+      while preserving the restructuring learning.
+  floor_impact: "moderate -> action floor 3 (resolved value); high -> floor 4 (rejected)"
+  resolution: >-
+    The outcome-blind, separate-vendor (cross_vendor_discovery) second-label CONFIRMS the primary
+    (moderate) and rejects the outcome-aware high on the bounded-downside test. The
+    frozen_band_inputs.option_value value stays moderate (action floor 3); no band change. Contest
+    resolved before freeze.
+  status: resolved_separate_family_confirms_primary
 underreach_observability:
   evidence_unit_ids: []
   notes: >-
