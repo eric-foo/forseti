@@ -103,13 +103,11 @@ proof.
 
 ## Activation Caveat
 
-This Orca overlay records that `0.1.52` exists in the installed plugin cache.
-It cannot force the current Codex thread to reload the active skill registry.
-If the visible skill list for a running thread still points at plugin cache
-older than `0.1.52`, start a fresh thread or reload Codex before expecting
-automatic triggering or absence decisions to reflect `0.1.52`. Until then,
-manual source loading from the `0.1.52` cache may be used only with an
-explicit disclosure that active resolver behavior was not proven in-thread.
+A recognition record here reflects the plugin-cache state observed when it was
+written; a running thread may still resolve against an older cache. If the
+visible skill list looks stale, start a fresh thread or reload before relying on
+automatic triggering or absence decisions, and disclose when active resolver
+behavior was not proven in-thread.
 
 ## Adoption Rules
 
@@ -216,10 +214,5 @@ cache files, global/user skill roots, or external workflow source.
 
 - The Turn 6 resolver-visible skill snapshot is recorded in
   `docs/workflows/orca_bootstrap_record.md`.
-- The 2026-05-24 collision check observed no Orca-local `.agents/skills`
-  directory, system skills `imagegen`, `openai-docs`, `plugin-creator`,
-  `skill-creator`, and `skill-installer`, then-current user-level skill
-  collisions, and user-level `pre-compact-checkpoint` under
-  `C:\Users\vmon7\.agents\skills`.
 - The 2026-06-05 collision table above is the current recognition check for
   Agent Workflow plugin cache `0.1.52`.

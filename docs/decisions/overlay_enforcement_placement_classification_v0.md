@@ -31,7 +31,7 @@ Scope guard: this is the **enforcement-placement step only**. Binding the shared
 
 ## Update — 2026-06-09: EP-06 substrate built and wired
 
-The retrieval-header substrate proposed here (EP-06; Appendix B) has since been
+The retrieval-header substrate proposed here (EP-06) has since been
 built and wired under explicit current-turn owner authorization (the
 `safety-rules.md` owner gate named in § Owner gate):
 
@@ -448,135 +448,13 @@ Each item is bounded and independent; none is implied by this record.
 
 ---
 
-## Appendix A — SAMPLE substrate draft: `PreToolUse` protected-path guard (prepare-only)
+## Sample Substrate Drafts (removed)
 
-**SAMPLE — prepare-only.** NOT wired into `.claude/settings.json`, NOT added to `orca-harness`, runs nothing. Adopting it is owner-gated (EP-01/02/03). The load-bearing part is the **forbidden-target decision logic**; the hook I/O envelope is illustrative and must be confirmed against the Claude Code hook contract at build time.
-
-```python
-# orca_protected_path_guard.py  (SAMPLE — not installed, not wired, owner-gated)
-# Intended use: a PreToolUse hook. Denies writes/edits/deletes to protected paths
-# and unauthorized git/gh lifecycle commands. Authorization is an explicit per-session
-# opt-in (ORCA_BOUNDED_IMPL_AUTHORIZED=1), mirroring the overlay's "unless explicitly
-# authorized" boundary — the guard fails closed when the flag is absent.
-import json, os, re, sys
-from pathlib import Path
-
-REPO = Path(__file__).resolve().parents[1]  # adjust at build time
-AUTHORIZED = os.environ.get("ORCA_BOUNDED_IMPL_AUTHORIZED") == "1"
-
-WRITE_TOOLS = {"Write", "Edit", "NotebookEdit", "MultiEdit"}
-SHELL_TOOLS = {"Bash", "PowerShell"}
-
-# Always read-only / flag-only (safety-rules, artifact-roles, skill-adoption, delegated-review-patch):
-PROTECTED_SUBSTRINGS = (
-    "agent-workflow",                         # external workflow source
-    os.path.join(".codex", "plugins"),        # installed plugin cache
-    os.path.join(".codex", "skills"),         # user-level skill shadow
-    os.path.join(".claude", "plugins"),       # installed plugin cache
-)
-# Implementation dirs forbidden unless authorized (artifact-folders / validation-gates / safety-rules):
-IMPL_DIRS = ("src", "app", "packages", "tests", "runtime")
-# Lifecycle commands forbidden unless authorized (safety-rules):
-GIT_LIFECYCLE = re.compile(r"\bgit\s+(push|commit|remote)\b|\bgh\s+pr\b|\bgit\s+clean\s+-[a-z]*f", re.I)
-
-
-def deny(reason_token, detail):
-    print(json.dumps({"hookSpecificOutput": {
-        "hookEventName": "PreToolUse", "permissionDecision": "deny",
-        "permissionDecisionReason": f"{reason_token}: {detail}"}}))
-    sys.exit(0)  # confirm deny envelope/exit code against Claude Code hook docs at build time
-
-
-def is_outside_repo(p: Path) -> bool:
-    try: p.resolve().relative_to(REPO); return False
-    except ValueError: return True
-
-
-def main():
-    ev = json.load(sys.stdin)
-    tool, ti = ev.get("tool_name", ""), ev.get("tool_input", {}) or {}
-
-    if tool in WRITE_TOOLS:
-        raw = ti.get("file_path") or ti.get("path") or ti.get("notebook_path") or ""
-        if not raw: return
-        if any(s in raw for s in PROTECTED_SUBSTRINGS) or is_outside_repo(Path(raw)):
-            deny("BLOCKED_PROTECTED_PATH", raw)
-        parts = Path(raw).resolve().relative_to(REPO).parts if not is_outside_repo(Path(raw)) else ()
-        if parts and parts[0] in IMPL_DIRS and not AUTHORIZED:
-            deny("BLOCKED_IMPL_DIR_UNAUTHORIZED", raw)
-
-    elif tool in SHELL_TOOLS:
-        cmd = ti.get("command", "")
-        if GIT_LIFECYCLE.search(cmd) and not AUTHORIZED:
-            deny("BLOCKED_GIT_LIFECYCLE_UNAUTHORIZED", cmd.strip()[:120])
-    # else: allow (no output = allow)
-
-
-if __name__ == "__main__":
-    main()
-```
-
-Notes / known gaps (resolve at build time): the single-target restriction for a delegated-review-patch commission (delegate may edit only the one named file) would be an extra check keyed off the commission record; the exact `PreToolUse` deny envelope and exit-code semantics must be confirmed against the Claude Code hook docs; `REPO` resolution and the protected-substring list should be reviewed against the live machine layout in `skill-adoption.md`.
-
-## Appendix B — SAMPLE substrate draft: retrieval-header lint (prepare-only)
-
-**SAMPLE — prepare-only.** NOT installed, runs nothing. Adopting it (as an `orca-harness` test target or a `PostToolUse` hook) is owner-gated (EP-06/07). This one is pure file parsing + assertions; it enforces header **shape only**, never the truth of any field.
-
-```python
-# test_retrieval_header.py  (SAMPLE — not installed, owner-gated)
-# Enforces .agents/workflow-overlay/retrieval-metadata.md: in-scope durable artifacts
-# carry a well-formed retrieval header. Shape only — not validation of any claim.
-import re
-from pathlib import Path
-
-REPO = Path(__file__).resolve().parents[1]  # adjust at build time
-IN_SCOPE = ("docs/decisions", "docs/product", "docs/workflows",
-            "docs/review-outputs", ".agents/workflow-overlay")
-FORBIDDEN_HEADER_FIELDS = {  # retrieval-metadata.md "Forbidden Header Fields"
-    "approval", "approval_status", "validation", "validation_status", "readiness",
-    "lifecycle", "lifecycle_state", "deployment", "install", "resolver",
-    "edit_permission", "executor_authorization", "review_verdict", "source_of_truth"}
-
-
-def first_yaml_block(text: str) -> str | None:
-    m = re.search(r"^```ya?ml\s*\n(.*?)\n```", text, re.S | re.M)
-    return m.group(1) if m else None
-
-
-def header_violations(path: Path) -> list[str]:
-    text = path.read_text(encoding="utf-8", errors="replace")
-    block = first_yaml_block(text)
-    if block is None:
-        return [f"{path}: no retrieval header (yaml block) found"]
-    top_keys = re.findall(r"^([A-Za-z0-9_]+):", block, re.M)
-    out = []
-    if "retrieval_header_version: 1" not in block:
-        out.append(f"{path}: retrieval_header_version must be 1")
-    if not re.search(r"^authority_boundary:\s*retrieval_only\s*$", block, re.M):
-        out.append(f"{path}: authority_boundary must be exactly 'retrieval_only'")
-    for k in top_keys:
-        if k.lower() in FORBIDDEN_HEADER_FIELDS:
-            out.append(f"{path}: forbidden header field '{k}'")
-    return out
-
-
-def iter_in_scope():
-    for rel in IN_SCOPE:
-        for p in (REPO / rel).rglob("*.md"):
-            if p.name.lower() == "readme.md":   # simple folder READMEs are excluded
-                continue
-            yield p
-
-
-def test_retrieval_headers():
-    violations = [v for p in iter_in_scope() for v in header_violations(p)]
-    assert not violations, "Retrieval-header violations:\n" + "\n".join(violations)
-
-
-if __name__ == "__main__":
-    for p in iter_in_scope():
-        for v in header_violations(p):
-            print(v)
-```
-
-Notes / known gaps (resolve at build time): "in scope" is intentionally conservative and should be reconciled with `retrieval-metadata.md` § Applicability / Exclusions (e.g. `docs/_inbox/` scratch, generated outputs, raw evidence units are excluded); the core-field-count (≤5 unless a triggered field passes the value test) and "triggered field justified" checks are deliberately omitted because the justification is a judgment call (PARTIAL, not pure shape).
+The two prepare-only SAMPLE drafts that illustrated possible substrates — a
+`PreToolUse` protected-path guard (EP-01/EP-03) and a retrieval-header lint
+(EP-06/EP-07) — have been removed: those substrates are now BUILT and live in
+`.agents/hooks/` (`guard_protected_actions.py` for EP-01/EP-03;
+`check_retrieval_header.py` for EP-06). The built scripts are the durable
+reference and enforce shape only, never the truth of any field. EP-02
+(implementation-directory blocking) remains deliberately owner-declined with no
+hook (see the classification body above).
