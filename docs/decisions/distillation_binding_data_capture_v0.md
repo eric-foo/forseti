@@ -75,7 +75,7 @@ until its under-case runs. Adding it to this prepare-only binding is **not a doc
 
 ### GUARD probe-then-pin  (actor-carried) — HELD
 - decision_node: `node:capture-rung-selection`  (**PROPOSED** spine-addition)
-- `GUARD probe-then-pin: WHEN fetching a source/archive with a multi-rung capture ladder → probe once (escalate cheapest-first) to find the cheapest working rung, pin it (record per source/archive via the capture-recon-index cheapest-GO-rung pattern), then fetch direct at the pinned rung → UNLESS the pinned rung fails (then re-probe).`
+- `GUARD probe-then-pin: WHEN fetching a source/archive with a multi-rung capture ladder → probe once (escalate cheapest-first) to find the cheapest working rung, pin it (record per source/archive via the capture-recon-index cheapest-GO-rung pattern), then fetch direct at the pinned rung → UNLESS the pinned rung fails OR its output degrades — slice-G verification / quality sub-floor, not just transport (then re-probe).`
 - outcome_class: running the full capture escalation ladder on *every* fetch when a source/archive has multiple rungs — a per-fetch cost that should be a one-time discovery cost
 - causal_miss: missing distinction between rung DISCOVERY (probe for the cheapest working rung) and STEADY-STATE fetch (reuse the pinned rung); treating the ladder as a per-fetch runtime cost
 - verification: under-case (a multi-rung source fetched repeatedly → steady-state goes direct at the pinned rung, no re-walk) — **OWED, verify at slice-F build**; over-edge (pinned rung starts failing → re-probe fires, does not hammer a dead rung) — **OWED, verify at slice-F build**

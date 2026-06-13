@@ -218,7 +218,9 @@ CATALOG_GAP) is authored by that probe, not here.
 The banked recipe card / recon-index entry **is the pin**. Once a probe finds the working route for a
 source (or the per-archive rung for historical capture), steady-state fetches go **direct to the
 pinned route** — do not re-walk the catalog or re-climb rungs on every fetch. Re-probe (re-run the
-method) **only when the pinned route fails** — then the failure is a fresh symptom under Guardrail 4.
+method) when the pinned route fails **or its output degrades** (slice-G verification / quality
+sub-floor — not just transport; a stale pin can still return HTTP 200) — then it is a fresh symptom
+under Guardrail 4.
 The catalog is a discovery tool, not a per-fetch cost. Distilled cell: `probe-then-pin-rung` in
 `docs/decisions/distillation_binding_data_capture_v0.md` (held; the automated dispatcher form is
 capture-spine spec slice F, pending build).
