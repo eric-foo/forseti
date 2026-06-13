@@ -204,14 +204,24 @@ Known limitations: deep historical depth + export are **premium-gated**; data is
 
 ## Load-bearing finding for the build lane (STOP — not built here)
 
-The harness's existing browser adapter (`cloakbrowser_snapshot.py`) launches **`headless=True`**
-with **`profile_persistence: none`** and **`storage_state_loaded: False`** — it carries **no
-session / no login**. It therefore **cannot perform the logged-in own-account calls capture** that
-this recon demonstrated via the human-driven browser. Operationalizing the calls self-capture
-**inside the harness** (so it is not human-driven each time) requires a **new authenticated /
-persistent-context browser capability** (own-session storage-state load, attended, human-mimicking
-cadence). That is **new committed adapter code → a separate authorized build**, explicitly out of
-scope for this recon. Recorded as a finding, **not built here.**
+**CORRECTION (2026-06-14, post architecture pass — verified against primary source):** the original
+paragraph below is **overstated and partly wrong** — it inspected only the anonymous
+`cloakbrowser_snapshot.py`. A separate **authenticated-browser capability already exists, is tested,
+reviewed, and authorized**: `adapters/browser_snapshot.py` (storage_state-aware), `auth_state.py` +
+`local_secret_store.py` (session store + secret confinement), `runners/run_source_capture_browser_session_bootstrap.py`
+(interactive **human** login) + `run_source_capture_authenticated_browser_packet.py` (session → URL →
+packet), and `cadence.py` (`bounded_jitter`) — under
+`docs/decisions/data_capture_spine_source_access_tooling_build_authorization_v0.md`. So IG calls
+capture **composes the existing capability** plus a small delta (multi-item loop runner, IG
+caption/engagement extraction, reel view-count via the authorized *warm same-context JSON* pattern,
+IG block markers) — see `docs/product/source_capture_toolbox/ig_wind_caller_calls_capture_build_architecture_v0.md`.
+It is **compose-plus-small-delta, not net-new**, and most is already authorized; still out of scope
+for *this recon*, gated on the H5 probe + implementation scoping + owner-confirmed authorization deltas.
+
+Original observation (preserved, narrower-but-true): The *anonymous* adapter `cloakbrowser_snapshot.py`
+launches `headless=True` with `profile_persistence: none` and `storage_state_loaded: False` — *it*
+carries no session, so the anonymous adapter **alone** cannot do logged-in capture. What this missed:
+the separate authenticated adapter + runners above.
 
 Until that capability exists: IG calls self-capture is **human-driven (attended browser) only**;
 the harness can already do the Social Blade stats fetch at the `direct_http` rung today.
