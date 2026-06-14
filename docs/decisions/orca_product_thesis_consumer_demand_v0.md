@@ -5,7 +5,7 @@ retrieval_header_version: 1
 artifact_role: Decision record (controlling product thesis — owner-ratified)
 scope: >
   V1 product thesis re-centering Orca on consumer-demand decision
-  intelligence (durable-vs-hollow demand discrimination), beauty/personal-care
+  intelligence (durable / transient / manufactured demand discrimination), beauty/personal-care
   as the first vertical, on the existing outside-in engine and frozen Core
   Spine foundation. Prepared 2026-06-11 after a cross-branch exploration
   sweep; ratified by the owner 2026-06-12 with the ask-1 capture-risk
@@ -70,6 +70,129 @@ capture-entitlement walls, both encoded below.
 This thesis states a DIRECTION and a center of gravity. It is not validation,
 buyer proof, willingness-to-pay, judgment-quality evidence, or readiness.
 
+## Amendment — 2026-06-14 (owner): Demand-State Model (durable / transient / manufactured)
+
+Owner-authorized in-thread. The central read's framing changes from **durable vs
+hollow** to **two independent axes**. This amendment governs forward; the in-body
+"durable vs hollow" phrasings below (Value Proposition; Central Read #1; the named
+read line) are read through it (dated amendment; original preserved, not silently
+rewritten — consistent with this record's amendment rule).
+
+- **Two axes, not one.** *Persistence:* **durable** (demand persists past its
+  trigger) vs **transient** (real demand that decays). *Integrity:* **real**
+  (costly behavior) vs **manufactured** (fake / amplified). "Hollow" is retired —
+  it conflated *transient* (real but short-lived, still valuable short-term) with
+  *manufactured* (not real).
+- **Three actionable states.** Durable → *commit* (long horizon); transient →
+  *move* (short horizon, time-boxed to the decay window); manufactured →
+  *discount / avoid*. The action ceiling is matched to the demand's **lifespan**,
+  not only its strength — binding to the frozen ladder as long-horizon **Commit**
+  vs short-horizon **Move**.
+- **Transient gets equal billing** with durable as a read (owner: transient
+  spikes are still capital-allocation decisions and occur more often than durable
+  shifts; a durable-only product serves too thin a slice).
+- **Calling sequence (dissolves the decay-timing problem).** The read opens
+  **transient** and acts in-window (buy or avoid); durability is then **observed
+  via monitoring, not predicted**, and **earned** as an upgrade when persistence
+  holds. There is no decay curve to forecast; the earlier decay-timing-confidence
+  guardrail is superseded by observe-don't-predict. Durable stays claim-honest
+  (built-to; proven only once monitored persistence confirms it).
+- **Billing shape & the never-a-feed invariant.** Monitoring is recurring →
+  **retainer / upgraded billing**, but only as **recurring decisions**; every
+  output is a calibrated decision with an action ceiling, **never a feed**. (A
+  feed trips the buyer-proof "monitoring-only pull" kill *and* is what would make
+  Orca social listening — same activity, opposite product.) The monitored
+  outcomes are also the calibration data that earns the judgment moat.
+- **Differentiation floor.** The mechanical layers (costly-behavior primitive,
+  org-motion fusion, entity resolution) genuinely beat a social listener's inputs
+  but are *replicable features* — a survivable fallback business, not a moat. The
+  durable, uncopyable differentiator is the calibrated **judgment + outcome
+  memory**: don't sell the plumbing, sell the calibrated decision. This
+  reinforces the Strategic Center (judgment over a hostile substrate, not access
+  to data); it is a positioning hypothesis, not a validated claim.
+- **Identifying manufactured demand is decision-critical in its own right**
+  (owner) — the integrity axis is the contamination check that protects both real
+  reads, not merely an avoid filter.
+- **Falsifier note:** the durability probe's central discrimination is the
+  persistence axis (durable vs transient); manufactured separation remains the
+  forward/live capability it already was. No falsifier is weakened.
+
+The operative grammar for this model is
+`docs/product/product_lead/orca_demand_read_taxonomy_v0.md` (restructured
+2026-06-14) and its adjudication companion
+(`orca_demand_read_taxonomy_adjudication_v0.md`, Q0). This amendment is the
+thesis's owed dated pointer under the Doctrine Change Propagation Contract.
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    The thesis central read changes from binary durable-vs-hollow demand
+    discrimination to a two-axis demand-state model: durable-vs-transient
+    (persistence) and real-vs-manufactured (integrity), yielding three actionable
+    states (durable=commit; transient=move/short-horizon; manufactured=
+    discount/avoid). "Hollow" is retired as conflating transient with
+    manufactured. Transient gets equal billing as a read, under a decay-timing
+    confidence guardrail; identifying manufactured demand is decision-critical in
+    its own right.
+  trigger: product_doctrine
+  related_triggers: []
+  controlling_sources_updated:
+    - docs/decisions/orca_product_thesis_consumer_demand_v0.md               # this dated amendment
+    - docs/product/product_lead/orca_demand_read_taxonomy_v0.md              # restructured to the model
+    - docs/product/product_lead/orca_demand_read_taxonomy_adjudication_v0.md # Q0 recorded; read types updated
+  downstream_surfaces_checked:
+    - path: docs/product/product_lead/orca_buyer_proof_packet_v0.md
+      note: >
+        carries "durable-vs-hollow demand discrimination" framing (~L53, ~L215)
+        and "hollow demand" (~L234, manufactured-sense); superseded-by this
+        amendment; FLAGGED for a dated wording-realignment pass — named here, not
+        silently rewritten.
+    - path: docs/product/product_lead/orca_offer_hypothesis_v0.md
+      note: >
+        carries "durable-vs-hollow" (~L70) and "hollow or manufactured" (~L219,
+        ~L339); same realignment-pending status.
+    - path: docs/product/product_lead/orca_product_proof_lead_charter_v0.md
+      note: >
+        carries "hollow demand" (~L158, ~L170, manufactured-sense); same
+        realignment-pending status.
+    - path: docs/decisions/orca_icp_wedge_consumer_demand_first_v0.md
+      note: uses divergence reads but no "hollow" framing; consistent with the model — no change needed.
+  intentionally_not_updated:
+    - path: docs/decisions/orca_consumer_demand_ratification_decision_memo_v0.md
+      reason: >
+        dated record of the 2026-06-12 ratification; its "durable-vs-hollow" is an
+        account of what was decided then — rewriting it would falsify the record.
+        Forward-only.
+    - path: docs/prompts/product-planning/consumer_demand_probe_stage1_feasibility_commission_prompt_v0.md
+      reason: >
+        mid-flight commission prompt; its persistence-discrimination wording is
+        still substantively correct (durable vs transient); realign on reissue.
+    - path: docs/prompts/handoffs/capture_spine_archive_snapshot_typed_timing_handoff_prompt_v0.md
+      reason: handoff prompt artifact; the "persistence signal" sense is unchanged by the rename.
+    - path: docs/review-inputs/demand_projection_f6_r6_norepo_adversarial_artifact_review_bundle_v0/demand_projection_f6_r6_revised_design_v0.md
+      reason: review-input design artifact; historical bundle, not a live routing surface.
+    - path: orca-harness/** and docs/review-outputs/** uses of "hollow"
+      reason: >
+        "hollow" there means "lacking substance" (hollow tests / hollow non_claims
+        / hollow receipt) — unrelated to the demand axis; must NOT be renamed.
+  stale_language_search: >
+    rg -in "durable.?vs.?hollow|hollow demand|durable demand from hollow"
+    docs/decisions docs/product/product_lead
+  stale_language_search_result: >
+    Executed 2026-06-14 after this amendment. Remaining demand-sense hits are the
+    three ratified surfaces named above (buyer-proof, offer, charter) flagged for
+    the realignment pass, plus the ratification memo (historical record). The
+    taxonomy, companion, and this thesis amendment carry the new model. No
+    "lacking-substance"-sense occurrence (hollow tests/non_claims/receipt) was
+    touched.
+  non_claims:
+    - not validation
+    - not readiness
+    - not buyer proof
+    - not judgment-quality evidence
+    - the decay-curve capability and decay-timing calibration do not yet exist (transient reads are built-to, not proven-at)
+```
+
 ## Thesis (the bet)
 
 Orca is a productized outside-in **consumer-demand decision intelligence**
@@ -77,7 +200,8 @@ system. It turns messy, contradictory public demand signals — reviews, forums,
 search interest, retail presence, social chatter — fused with org-motion
 corroboration (hiring composition and headcount at brand and parent level),
 into clean, source-backed, calibrated decision evidence that discriminates
-**durable demand from hollow demand** before internal data is conclusive. It
+**durable demand from transient and manufactured demand** before internal data
+is conclusive. It
 serves the people who must allocate against that distinction: operators
 committing inventory, retail, launch, or pricing budget first; investors
 underwriting consumer demand later. Beauty/personal-care is the first
@@ -86,11 +210,11 @@ vertical; the engine, spine, and method are vertical-portable by design.
 ## Value Proposition
 
 For a decision owner facing a live consumer-demand allocation decision before
-internal data is conclusive, Orca delivers the decided answer — "this demand
-is real and durable / this demand is hollow or manufactured — act, phase,
-narrow, hold, or defend, and here is what would change the answer" — as an
-executive-grade decision artifact built from an inspectable memo + evidence
-appendix substrate, never as a dashboard, feed, or source dump.
+internal data is conclusive, Orca delivers the decided answer — "this demand is
+real-and-durable / real-but-transient / manufactured — *commit*, *move
+(time-boxed)*, or *discount*; here is what would change the answer and when" —
+as a **calibrated decision with an action ceiling, never a feed**, built from an
+inspectable memo + evidence appendix substrate, never a dashboard or source dump.
 
 The differentiated mechanism is judgment discipline over a hostile substrate,
 not access to data: provenance-verified capture, integrity labels
@@ -101,14 +225,19 @@ called at cutoff against what actually happened — misses included.
 
 ## The Central Read (what the product decides)
 
-1. **Durable vs hollow.** The core discriminating question is persistence:
-   does demand propagate down the funnel (search → reviews → retail) and
-   persist through and after its trigger, or does it collapse when the paid
-   or viral push decays? This is the read the consumer-demand durability probe
-   spec is designed to test blind against momentum and category-prior
-   baselines (`consumer_demand_durability_probe_spec_v2.md`, lane
-   `consumer-demand-probe`, status `PROPOSED_PROBE_SPEC_V2 — KEEP-CLEARED`;
-   review state, not execution authority).
+1. **Real first, then durable-or-transient.** Two questions, in order: is the
+   demand *real* (costly behavior) or *manufactured* (fake/amplified →
+   discount/avoid)? If real, does it *persist past its trigger* (durable) or is
+   it a real spike that *decays* (transient)? The product opens a **transient**
+   call and acts in-window (buy or avoid), then **monitors momentum to earn the
+   durable upgrade** (commit) — durable is *earned by observed persistence*, never
+   asserted up front. The action ceiling is matched to the demand's lifespan
+   (short-horizon *move* vs long-horizon *commit*). The persistence half is what
+   the consumer-demand durability probe spec is designed to test blind against
+   momentum and category-prior baselines
+   (`consumer_demand_durability_probe_spec_v2.md`, lane `consumer-demand-probe`,
+   status `PROPOSED_PROBE_SPEC_V2 — KEEP-CLEARED`; review state, not execution
+   authority).
 2. **Demand means costly behavior.** Per the frozen Core Spine rule, demand is
    evidenced by payment, switching, workarounds, churn, durable buyer
    pressure — never engagement volume alone. Engagement classifies as
@@ -139,6 +268,12 @@ called at cutoff against what actually happened — misses included.
 - Outcome memory is the moat: pre-declared, anti-cherry-picked backtest
   ledgers and calibration receipts compound into evidence no copywriter can
   fake.
+- Differentiation floor and moat: the mechanical layers (costly-behavior
+  classification, org-motion fusion, entity resolution) genuinely beat a social
+  listener's inputs but are *replicable features* — a survivable fallback
+  business, not a moat. The uncopyable, category-defining differentiator is the
+  calibrated **judgment + outcome memory**; don't sell the plumbing, sell the
+  calibrated decision. (Positioning hypothesis, not a validated claim.)
 - Standard ownership is the commercial posture (claim-defense doctrine,
   owner-signed 2026-06-11): Orca owns and publishes the judgment-evidence standard
   it grades itself against — "built to" ships now; "proven at" only with the
@@ -155,6 +290,11 @@ Carried from thesis v0 and sharpened for the demand substrate:
   wind-caller calibration is the bounded exception per
   `docs/decisions/wind_caller_calibration_carveout_v0.md`, 2026-06-13 — internal
   only, ≤5 public-figure accounts; the external/product boundary here is unchanged.)
+- **Recurring decisions, not a feed.** Where a read is monitored over time
+  (transient → earn-durable), every output stays a calibrated decision with an
+  action ceiling — never a monitoring feed or stream. This keeps Orca off the
+  buyer-proof "monitoring-only pull" kill and out of the social-listening
+  category (the never-a-feed invariant; owned in the buyer-proof packet).
 - No fake reviews, botting, astroturf, manipulation, or deceptive competitive
   tactics — Orca detects and discounts these; it never produces them.
 - Capture risk posture (owner-amended at ratification, 2026-06-12): Orca
@@ -300,7 +440,8 @@ moat; all v0 product boundaries; the core/satellite split.
 
 Changed: the strategic center names consumer demand as the product's subject
 (v0 was decision-family-agnostic "strategic intelligence"); the central read
-is named (durable-vs-hollow); org-motion corroboration and the entity join
+is named (durable / transient / manufactured, per the 2026-06-14 amendment);
+org-motion corroboration and the entity join
 enter the product shape; beauty becomes the first vertical; the buyer ladder
 replaces the undifferentiated "leaders" framing; proof doctrine binds to the
 evidence ladder and claim-defense wording that postdate v0.
