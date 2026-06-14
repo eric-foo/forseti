@@ -201,16 +201,27 @@ astroturf, or artificially amplified sentiment. Capture's role is to record
 the **observables that make farm detection possible**, not to render a
 farm-detection verdict.
 
-Capture must record as observables (not verdicts):
+Capture must record the **raw, source-visible observables** that make farm
+detection possible downstream (not derived pattern features, not verdicts):
 
 - reviewer account age and review history depth, when visible;
-- review posting velocity bursts (many reviews arriving in a short window) —
-  observable from the arrival-cadence timestamps;
-- language-pattern clustering within the corpus — observable from the review
-  text, without classification;
+- **raw per-review arrival timestamps** — the substrate from which downstream
+  Cleaning/Judgment computes posting-velocity / burst features. Capture records
+  the timestamps; it does **not** compute or record "bursts" (a derived
+  pattern);
+- **review text verbatim** — the substrate from which downstream computes
+  language-pattern / clustering features. Capture records the text; it does
+  **not** compute or record clustering, per the obligation contract's *Forbidden
+  Outputs From Capture* (no "semantic dedupe or clustering effects", no
+  "Cleaning transformations");
 - verified-purchase / verified-experience flag per review, or the absence of
   such flags;
 - any platform-visible moderation or flagging on individual reviews.
+
+Burst, clustering, and farm-pattern **derivation** is downstream (Cleaning /
+Judgment Signal Integrity). Capture preserves the raw timestamps, text, and
+visible labels that make that derivation possible and emits no derived pattern
+feature (INV-1).
 
 **Flag-don't-conclude rule (INV-1 application):** capture records each of these
 as a `VisibleFact` or `warning_note` per the envelope of record's mechanism. It

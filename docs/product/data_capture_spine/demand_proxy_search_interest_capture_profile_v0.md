@@ -142,7 +142,7 @@ Search-interest series are **relative / normalized** by construction. Across
 different pull dates, absolute values shift because the normalization peak
 shifts. Capture must record this as a standing series-level limitation:
 
-- The series is suitable for **shape and trend direction reads** (durable /
+- The series is suitable for **shape and trend direction reads** (persistent /
   rising / declining / spiked-and-retreated) within a single pull's normalized
   window.
 - It is **not suitable for magnitude comparison across different pull dates**
