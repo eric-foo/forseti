@@ -54,7 +54,8 @@ The dispatched lane MUST design against the current grammar:
   **durable vs transient** (persistence) × **real vs manufactured** (integrity) —
   → three actionable states: durable (commit), transient (move, time-boxed),
   manufactured (discount/avoid). "Hollow" is RETIRED. `Read` (and `Call`/`Outcome`)
-  carry a `demand_state` dimension on these axes.
+  carry this two-axis classification, with a derived action state only where
+  useful; do not collapse the integrity axis into the persistence axis.
 - **Calling sequence = a `Read` lifecycle (governed Actions).** A read opens
   **transient** (act in-window), is **monitored**, then **earns** the upgrade to
   durable or **decays** — model it as the Read state machine
@@ -140,16 +141,19 @@ so cross-artifact references stop being path-and-prose.
 
 Demand-state machinery to evaluate (added 2026-06-14, under the same cap — these
 may be dimensions/actions on existing types rather than new types; the lane
-decides): a `demand_state` dimension `{durable, transient, manufactured}` on
-Read/Call/Outcome; the **Read lifecycle Actions** (`open_transient → monitor →
-earn_durable / decay`); an `ActionCeiling` enum (commit/move + the frozen ladder)
-as a governed transition; the **Gate** actions `G1`/`G2`/`G4` (demand-gate
-closures); the **never-a-feed** invariant as an action constraint on recurring
-reads; and a `claim_tier` dimension (evidence ladder) on Memo/Case/Outcome/Read.
-The `WindCaller` object encodes the carve-out boundary (non-permanent,
-platform-scoped capture cap, internal-use, external/product boundary unchanged)
-and calibration-gated trigger primacy (Q2). Respect the cap — fold these into
-existing types where they are dimensions, not new objects.
+decides): the two-axis demand-state classification on Read/Call/Outcome
+(`persistence_state: durable|transient`, `integrity_state: real|manufactured`),
+plus a derived action state (`durable`, `transient`, `manufactured`) only where
+that helps downstream consumers; the **Read lifecycle Actions**
+(`open_transient → monitor → earn_durable / decay`); an `ActionCeiling` enum
+(commit/move + the frozen ladder) as a governed transition; the **Gate** actions
+`G1`/`G2`/`G4` (demand-gate closures); the **never-a-feed** invariant as an
+action constraint on recurring reads; and a `claim_tier` dimension (evidence
+ladder) on Memo/Case/Outcome/Read. The `WindCaller` object encodes the carve-out
+boundary (non-permanent, platform-scoped capture cap, internal-use,
+external/product boundary unchanged) and calibration-gated trigger primacy (Q2).
+Respect the cap — fold these into existing types where they are dimensions, not
+new objects.
 
 **Layer 2 — Workflow ontology (MAP, do NOT rebuild).** Lanes, artifact roles,
 claim tiers, gates, receipts, folders ALREADY have owners in the overlay.
@@ -184,12 +188,14 @@ The venue card set is the proven antidote to ontology rot; adopt its kernel:
   isolation rule: fresh worktree or branch off `origin/main` (runs alongside
   many active lanes).
 - Base freshness gate: the sha-pinned stable sources must exist at the pinned
-  sha256 prefixes (first 16 hex). The LIVE demand-grammar sources (thesis,
-  taxonomy, adjudication companion, buyer-proof) are NOT sha-pinned — instead
-  verify the 2026-06-14 demand-state model + Q0–Q3 adjudication are present in the
-  current `main` text (durable/transient/manufactured + calling sequence, not the
-  retired durable-vs-hollow framing). Either check failing → `BLOCKED_STALE_BASE`,
-  report back.
+  sha256 prefixes (first 16 hex). The LIVE demand-grammar / gate sources
+  (thesis, taxonomy, adjudication companion, buyer-proof, demand-gate closures,
+  and discovery brief where surveyed) are NOT sha-pinned — instead verify the
+  2026-06-14 demand-state model + Q0–Q3 adjudication and the applied gate-closure
+  model are present in the current `main` text (durable/transient/manufactured +
+  calling sequence, not the retired durable-vs-hollow framing; G1 origination
+  independence, G2 costly-behavior floor, G4 org-motion corroboration). Either
+  check failing → `BLOCKED_STALE_BASE`, report back.
 - Dirty-state allowance: fresh worktree, clean; only the lane's own new files
   may be dirty/untracked. Never touch other lanes' files.
 - Edit permission: `docs-write`, limited to the deliverable path(s) below and
@@ -219,17 +225,18 @@ REFERENCE-LOAD, in this order, and do not APPLY any until
 
 SOURCE-LOAD (pins = sha256 first-16-hex at authoring, current base):
 
-Domain-defining (Layer 1 inputs). The demand-grammar docs (thesis, taxonomy,
-adjudication companion, buyer-proof) are LIVE and were amended 2026-06-14 (#78,
+Domain-defining and gate-defining (Layer 1 inputs). The demand-grammar docs
+(thesis, taxonomy, adjudication companion, buyer-proof) and the gate-closure /
+discovery sources named LIVE below were amended or applied 2026-06-14 (#78,
 #88): do NOT pin them to an old sha — read current `main` and verify the
-demand-state model + Q0–Q3 adjudication are present (NOT the retired
-durable-vs-hollow framing); if absent → `BLOCKED_STALE_BASE`. Stable docs keep
-their sha pins.
+demand-state model + Q0–Q3 adjudication and applied gate-closure model are
+present (NOT the retired durable-vs-hollow framing or stale raw venue-count gate
+wording); if absent → `BLOCKED_STALE_BASE`. Stable docs keep their sha pins.
 - `docs/decisions/orca_product_thesis_consumer_demand_v0.md` — LIVE (verify, don't pin) — the demand world's primitives (costly behavior, action ceilings, org motion, outcome-memory moat) + the 2026-06-14 demand-state amendment (durable/transient/manufactured, calling sequence, never-a-feed, differentiation floor).
 - `docs/decisions/orca_icp_wedge_consumer_demand_first_v0.md` — `42787638E6185D4A` — the wedge (which entities matter first).
 - `docs/product/product_lead/orca_demand_read_taxonomy_v0.md` — LIVE (verify, don't pin) — the read grammar (Read, TrendVector, WindCaller, signal layers, read types, calling sequence); Q0–Q3 DECIDED, treat its types as DECIDED inputs (the artifact status line may still read PROPOSED).
 - `docs/product/product_lead/orca_demand_read_taxonomy_adjudication_v0.md` — LIVE (verify, don't pin) — the operative definitions (what-counts / anti-trigger / boundary per layer + read type) and the Q0–Q3 owner-decision outcomes; the firmest source for Read / WindCaller / Call definitions.
-- `docs/product/product_lead/orca_demand_gate_definition_closures_proposal_v0.md` — the G1 (independence by de-correlated origination) / G2 (costly-behavior floor) / G4 (org-motion corroboration, separate from G1) gate definitions to encode as Gate actions/preconditions. PROPOSED (owner-gated apply) — encode as candidate gate semantics and flag the status.
+- `docs/product/product_lead/orca_demand_gate_definition_closures_proposal_v0.md` — LIVE (verify, don't pin) — the APPLIED G1 (independence by de-correlated origination) / G2 (costly-behavior floor) / G4 (org-motion corroboration, separate from G1) gate definitions to encode as Gate actions/preconditions. Encode as live gate semantics and flag any consuming surface that still carries stale raw-venue-count wording.
 - `docs/product/core_spine/beauty_venue_card_set_v0.md` — `65E22CDAE5EDE781` — the best-engineered existing object type (Venue) + the kernel survival terms to steal.
 - `docs/product/product_lead/orca_buyer_proof_packet_v0.md` — LIVE (verify, don't pin) — the Demand-Substrate Hard Gate (independence rests on `derived_from`, divergence/astroturf on `diverges_from`) + the never-a-feed invariant (Orca Promise) + Memo/Case semantics. (Carries some pre-2026-06-14 durable-vs-hollow wording flagged for realignment — read the current Hard Gate + Orca Promise, not the stale framing.)
 - `docs/product/core_spine/consumer_demand_candidate_pool_handoff_v0.md` — `19009D43A7C29858` — an existing Case/Candidate schema.
