@@ -63,7 +63,7 @@ a separately authorized candidate-scan lane.
 
 ## Target Slots (blank by design)
 
-| Slot | Candidate context (brand + live decision) | Decision family | Venue families visible (≥2 required) | Costly-behavior evidence visible | Org-motion route available (capture-lane-bound routes) | Named decision owner | Status |
+| Slot | Candidate context (brand + live decision) | Decision family | Independent demand-venue origins visible (laundered / shared-origination copies = one; org-motion / retail excluded — see corroboration column) | Costly-behavior evidence visible | Org-motion route available (capture-lane-bound routes) | Named decision owner | Status |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | T1 | `UNFILLED - requires authorized candidate scan` | — | — | — | — | — | empty |
 | T2 | `UNFILLED - requires authorized candidate scan` | — | — | — | — | — | empty |
@@ -71,6 +71,10 @@ a separately authorized candidate-scan lane.
 | T4 | `UNFILLED - requires authorized candidate scan` | — | — | — | — | — | empty |
 | T5 | `UNFILLED - requires authorized candidate scan` | — | — | — | — | — | empty |
 | T6 | `UNFILLED - requires authorized candidate scan` | — | — | — | — | — | empty |
+
+Slot-tier guidance: **1 independent demand-venue origin → hold / low-commitment
+ceiling; ≥2 converging independent origins → material-action eligible**
+(org-motion / retail presence = corroboration, not counted toward origins).
 
 Slot-fill rule: a slot may be filled only from a dated, provenance-noted
 candidate scan produced by an authorized lane; no slot is filled from memory,
@@ -101,9 +105,12 @@ Demand-Substrate Hard Gate and disqualifiers control on any conflict.
 2. Confirm a named decision owner (founder, head of brand / insights /
    growth / strategy) and a concrete allocation consequence.
 3. Confirm the Demand-Substrate Hard Gate is satisfiable for this decision:
-   at least two independent venue families visible, costly-behavior evidence
-   present, integrity labels applicable, no route outside the capture lane's
-   current bindings required (and no absurd-risk route at any time).
+   enough effectively-independent **demand-venue origins** visible for the
+   intended **commitment** (laundered copies / shared-origination siblings
+   collapse to one; **org-motion including retail presence is corroboration, not
+   a demand family**), a gradeable costly-behavior instance present, integrity
+   labels applicable, no route outside the capture lane's current bindings
+   required (and no absurd-risk route at any time).
 4. Classify public-signal trust state (`trust_open` / `trust_objection` /
    `trust_refusal`) per `.agents/workflow-overlay/product-proof.md`; only
    categorical `trust_refusal` disqualifies.

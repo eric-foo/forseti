@@ -111,13 +111,67 @@ clean venue. The demand wedge's differentiated read sits BY DESIGN on the
 hostile, manipulable demand substrate, so the gate re-derives as a fusion and
 integrity rule instead of a venue allowlist:
 
-- A qualified read requires demand signal from AT LEAST TWO independent venue
-  families (review surfaces; forums/community; search interest; retail
-  presence), so no single venue's bias or manipulation carries the answer.
-- The read must anchor on COSTLY BEHAVIOR (payment, switching, workarounds,
+- **Independence = de-correlation by origination, not a raw venue count.** A
+  qualified read requires demand signal from **effectively-independent
+  demand-venue origins**, so no single origin's bias or manipulation carries the
+  answer. An "independent venue family" means traceable to a *distinct
+  origination event*. Per the venue-chain (community originates → trade press
+  launders → BoF/WWD terminate), signals on the same `derived_from` chain are
+  **one** family; independence requires **no shared origination ancestry** —
+  collapse to one family any signals that derive from each other **or** that
+  trace to a common upstream origination event or a shared coordinated
+  origination. Pairwise "neither derives from the other" is **insufficient** (two
+  laundered siblings of one event satisfy it while violating independence).
+  *(AR-01)*
+- **Verb-tiered by commitment, not a hard count or verb label.** The bar is
+  **enough effectively-independent origins for the commitment claimed**, tiered
+  by *commitment/reversibility*, not verb name: one origin (or
+  laundered/shared-origination copies of one) authorizes only **low-commitment,
+  reversible responses** (hold; a watchful or low-cost defensive posture); **any
+  material or irreversible commitment — act, phase, narrow, or a
+  costly/committing defend — requires ≥2 independent origins that converge.**
+  "Defend" is not automatically low-commitment; a costly defensive campaign is a
+  material action and needs the ≥2 bar. *(AR-02)*
+- **Two distinct maintained card sets.** Maintained cards split into **G1
+  demand-family cards** (today only **forums/community** is sourced;
+  review-surface and search-interest are **unsourced gaps**, owner-owned) and
+  **G4 org-motion corroboration cards** (including **retail presence**). Retail
+  presence is a **G4 corroboration card** — preserved as G4 evidence,
+  **excluded from the G1 independent-origin count**; it is neither a deprecated
+  label nor a sourcing gap. *(AR-04)*
+- **Manipulated sentiment is admissible input; floor vs ceiling ordering.**
+  Manipulable sources are admitted as *sentiment input*. **Costly behavior (G2)
+  clears the FLOOR** (is there real demand at all?); **divergence constrains the
+  CEILING** (how bold). Converted costly behavior can clear the floor while
+  divergence caps the verb. **Defeater:** if the divergence pattern indicates the
+  costly-behavior instance is itself likely manufactured/coordinated (e.g., the
+  only costly signal sits inside the same coordinated layer that divergence
+  flags), divergence **defeats the floor**, not merely the ceiling. Divergence
+  (`diverges_from`) is preserved as signal, never averaged away. *(AR-03)*
+- **The read must anchor on COSTLY BEHAVIOR** (payment, switching, workarounds,
   churn, durable buyer pressure — frozen Core Spine rule). Engagement volume
-  alone classifies as attention/resonance and cannot carry a Commit-grade
-  recommendation; it caps the action ceiling instead.
+  alone classifies as attention/resonance, cannot carry a Commit-grade
+  recommendation, and caps the action ceiling instead.
+- **Costly-behavior floor (clears G2), with a "gradeable" definition.** A
+  costly-behavior instance is **gradeable** when it is (a) **attributable to
+  identifiable buyer actions**, not aggregate mood/attention; (b) **statable with
+  a direction and rough magnitude**; (c) **corroborable/checkable**, not a single
+  unverifiable rumor. Floor = **≥1 gradeable** costly-behavior instance (payment,
+  switching/dupe-adoption, workaround/stockpiling/secondary-market premium,
+  churn, durable buyer pressure) **evidenced in ≥1 qualifying demand-venue
+  family**, distinguishable from attention volume. *(AR-05; full numeric
+  sufficiency deferred — P4-B; the single-instance interim floor is an
+  owner-accepted calibration risk — see DLF-01.)*
+- **Floor vs ceiling; evidence vs corroboration.** The floor needs the instance
+  **evidenced in ≥1 qualifying family**; a **second independent family is not
+  required at the floor** but **raises the verb ceiling** (per the verb-tiering
+  above). "Corroboration" = the ≥2-independent-origin step that raises the
+  ceiling, **not** a floor requirement. *(AR-06)*
+- **Ceiling tiering:** the strength/amount of costly behavior scales the action
+  ceiling — one gradeable instance → hold/low-commitment; a corroborated pattern
+  across ≥2 independent origins → material action.
+- **Guard:** absence of demand ("velocity miss," "low sales," falling
+  engagement) is **not** a G2 pass.
 - Every venue's evidence carries integrity labels (artificial-amplification
   risk, incentive distortion, copied/coordinated) before it may enter the
   fused read. Reviews ARE admissible — as one fused venue, flagged for
@@ -137,10 +191,15 @@ integrity rule instead of a venue allowlist:
   2026-06-12) accepts measured risk and rejects absurd-level approaches
   (e.g., Bright-Data-style industrial scraping). Route-binding changes are
   capture-lane decisions, never per-proof stretches.
-- If the fused minimum cannot be met for a candidate decision (fewer than two
-  clean-enough venue families, or no costly-behavior evidence available), the
-  candidate FAILS the gate: disqualify or hold — do not run a single-venue or
-  engagement-only memo.
+- **Gate outcome by tier, not a single hard count.** The candidate **FAILS the
+  gate** only when the floor cannot be cleared — **no gradeable costly-behavior
+  instance** in any qualifying demand-venue family (engagement/attention volume
+  alone never clears it), or **no qualifying demand-venue origin at all** — in
+  which case disqualify or hold, and do not run an engagement-only memo. With the
+  floor cleared on **one** independent origin, the read is **admissible but
+  capped at hold / low-commitment**; **≥2 converging independent origins** are
+  required before any material or irreversible commitment. A single clean origin
+  is therefore a **ceiling cap, not an automatic gate failure**.
 
 ## Evidence Mode And Source Boundary
 
@@ -163,10 +222,12 @@ pivot on a taste or preference shift — where internal data is not conclusive.
 Geography: US-market first proof per the thesis geography doctrine
 (2026-06-12); non-US candidates route to the owner or defer.
 
-A qualified target must pass the Demand-Substrate Hard Gate above (at least
-two independent venue families; costly-behavior anchoring; integrity labels
-applicable) and have a named decision owner who can identify a concrete
-inventory, retail-commitment, launch-budget, backlash/churn, or
+A qualified target must pass the Demand-Substrate Hard Gate above (enough
+effectively-independent demand-venue origins for the commitment claimed — one
+origin caps at hold/low-commitment, ≥2 converging independent origins for
+material action; a gradeable costly-behavior instance clearing the floor;
+integrity labels applicable) and have a named decision owner who can identify a
+concrete inventory, retail-commitment, launch-budget, backlash/churn, or
 delayed-capture consequence.
 
 If results are mixed, diagnose the demand decision families separately
@@ -191,10 +252,14 @@ Disqualifiers:
 - Budget-adjacent champion cannot surface a named decision owner for the memo step.
 - No live 30-90 day consumer-demand allocation decision in the families above.
 - No budget or allocation consequence.
-- Candidate fails the Demand-Substrate Hard Gate (single-venue-only signal,
-  engagement-volume-only signal, or signal obtainable only through a route
-  outside the capture lane's current bindings or only at absurd risk level —
-  route expansion is a capture-lane decision, not a per-candidate stretch).
+- Candidate fails the Demand-Substrate Hard Gate (no gradeable costly-behavior
+  instance clearing the floor — engagement-volume-only or attention-only signal;
+  no qualifying demand-venue origin at all; or signal obtainable only through a
+  route outside the capture lane's current bindings or only at absurd risk level
+  — route expansion is a capture-lane decision, not a per-candidate stretch). A
+  single independent origin is **not** a gate failure: it is admissible but caps
+  the read at hold / low-commitment (≥2 converging independent origins are
+  required for material action).
 - Buyer wants only generic research, source volume, dashboard access, trend
   feeds, or a market-monitoring feed.
 - Buyer requires private/internal data or automated collection before a manual public-signal memo can be useful.
@@ -533,3 +598,92 @@ Product fit gaps:
 - No live decision trigger has been selected yet.
 - No manual memo has been produced or read back yet.
 - No buyer pull, fixed-scope paid-decision-sprint intent, or equivalent commercial next step has been observed yet.
+
+## Direction Change Propagation
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    The Demand-Substrate Hard Gate's independence test moved from a raw "≥2
+    venue families" count to de-correlation-by-origination plus verb-tiering by
+    commitment (one independent origin → hold/low-commitment; ≥2 converging
+    independent origins → material/irreversible commitment); retail presence is
+    reclassified as G4 org-motion corroboration, excluded from the G1
+    independent-origin count; and the G2 costly-behavior floor is set to ≥1
+    gradeable instance evidenced in ≥1 qualifying demand-venue family, with
+    floor-vs-ceiling ordering, a divergence defeater, and ceiling tiering. The
+    discovery brief's qualification objective #3 and slot-table column carry the
+    same reword. This is the live apply of the owner-ratified (2026-06-13)
+    P2/P3/P4 amendments; the wording is transcribed from the ratified proposal,
+    not re-authored.
+  trigger: product_doctrine
+  controlling_sources_updated:
+    - docs/product/product_lead/orca_buyer_proof_packet_v0.md
+    - docs/product/product_lead/orca_discovery_consumer_demand_target_selection_brief_v0.md
+    - docs/product/product_lead/orca_demand_gate_definition_closures_proposal_v0.md
+  downstream_surfaces_checked:
+    - docs/product/product_lead/orca_demand_read_taxonomy_v0.md
+    - docs/product/product_lead/orca_product_proof_lead_charter_v0.md
+    - docs/product/product_lead/orca_offer_hypothesis_v0.md
+    - docs/product/product_lead/orca_offer_hypothesis_consumer_demand_revision_v0.md
+    - docs/product/product_lead/orca_demand_read_taxonomy_adjudication_v0.md
+    - docs/product/product_lead/orca_buyer_proof_packet_consumer_demand_revision_v0.md
+    - docs/prompts/product-planning/demand_substrate_gate_paper_check_commission_prompt_v0.md
+  intentionally_not_updated:
+    - path: docs/product/product_lead/orca_demand_read_taxonomy_v0.md
+      reason: >
+        Already classifies retail placements as supply-side org motion
+        (corroboration), consistent with the G4 reclassification (lines 104-106);
+        cite, no edit — confirmed against live text.
+    - path: docs/product/product_lead/orca_product_proof_lead_charter_v0.md
+      reason: >
+        Restates the gate parenthetically as "at least two independent venue
+        families" (line 140). Outside this owner-gated apply's authorized scope
+        (the apply was scoped to the buyer-proof packet + discovery brief, not a
+        repo-wide gate-wording sweep — the packet's "apply ballooning" drift
+        cue). FLAGGED residual reconcile target for a separate owner-decided
+        pass; recorded here, not silently left consistent.
+    - path: docs/product/product_lead/orca_offer_hypothesis_v0.md
+      reason: >
+        Qualification question restates "at least two independent venue families"
+        (line 496); same FLAGGED residual reconcile, outside authorized scope.
+    - path: docs/product/product_lead/orca_offer_hypothesis_consumer_demand_revision_v0.md
+      reason: >
+        Offer-hypothesis revision restates the same clause (line 167); FLAGGED
+        residual reconcile, outside authorized scope.
+    - path: docs/product/product_lead/orca_demand_read_taxonomy_adjudication_v0.md
+      reason: >
+        Adjudication record restating the prior gate wording (line 138);
+        historical adjudication context; FLAGGED residual, outside scope.
+    - path: docs/product/product_lead/orca_buyer_proof_packet_consumer_demand_revision_v0.md
+      reason: >
+        Prior revision document feeding orca_buyer_proof_packet_v0 (lines
+        124/169); not the live instrument edited here; FLAGGED residual, outside
+        scope.
+    - path: docs/prompts/product-planning/demand_substrate_gate_paper_check_commission_prompt_v0.md
+      reason: >
+        Separate completed paper-check commission (a different work unit the
+        handoff flags do-not-conflate); references "≥2 independent venue
+        families" walks; not the live gate instrument, not edited here.
+  stale_language_search: >
+    rg -ni "at least two independent venue|two independent venue families|two
+    clean-enough venue|≥2 required|single-venue-only" docs
+  stale_language_search_result: >
+    Executed 2026-06-14 after this apply (a replacement edit, so the search is
+    required — not purely additive). The two edited live instruments
+    (orca_buyer_proof_packet_v0.md, orca_discovery_consumer_demand_target_selection_brief_v0.md)
+    no longer match — the old "≥2 venue families / single-venue-only" wording is
+    gone from both. Remaining matches are: the ratified proposal quoting the old
+    qual-#3 text it amends (intentional, inside Amendment ③), and the six
+    downstream surfaces listed under intentionally_not_updated (charter,
+    offer-hypothesis ×2, taxonomy-adjudication, the prior revision packet, the
+    paper-check prompt) — all FLAGGED residuals outside this apply's authorized
+    scope. No unflagged live instrument retained the old gate count.
+  non_claims:
+    - not validation
+    - not readiness
+    - not gate clearance
+    - not buyer proof
+    - not a scoring engine
+    - not a repo-wide gate-wording reconcile (six residual surfaces flagged above)
+```

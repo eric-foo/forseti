@@ -1,28 +1,30 @@
-# Orca Demand-Gate Definition Closures — PROPOSED v0
+# Orca Demand-Gate Definition Closures — APPLIED v0
 
 ```yaml
 retrieval_header_version: 1
-artifact_role: Product artifact (PROPOSED amendment proposal — demand-gate definition closures; review-applied, recheck owed)
+artifact_role: Product artifact (amendment proposal — demand-gate definition closures; ratified, recheck-cleared, APPLIED to live instruments 2026-06-14)
 scope: >
-  Carries the proposed dated amendments to the Demand-Substrate Hard Gate
-  (buyer-proof packet G1 + G2) and the discovery brief, encoding owner-LOCKED
-  decisions on P2 (independence), P3 (venue-family binding), and P4
-  (costly-behavior floor). PROPOSED ONLY: nothing here is applied to the live
-  packet/brief. Cross-vendor delegated adversarial review applied 2026-06-13
-  (GPT-5; 7 findings accepted). A bounded same-vendor recheck is owed before
-  keep; the live-packet apply is owner-gated.
+  Carries the dated amendments to the Demand-Substrate Hard Gate (buyer-proof
+  packet G1 + G2) and the discovery brief, encoding owner-LOCKED decisions on
+  P2 (independence), P3 (venue-family binding), and P4 (costly-behavior floor).
+  APPLIED 2026-06-14: the ratified wording is now live in the buyer-proof packet
+  (Demand-Substrate Hard Gate) and the discovery brief (qualification objective
+  #3 + slot column); the live apply carries a direction_change_propagation
+  receipt in the buyer-proof packet. Cross-vendor delegated adversarial review
+  applied 2026-06-13 (GPT-5; 7 findings accepted); bounded same-vendor recheck
+  cleared 2026-06-13.
 use_when:
-  - Reviewing whether the proposed amendment wording faithfully encodes the owner's locked decisions.
-  - Adjudicating + applying the demand-gate definition closures after the recheck + owner go.
+  - Reviewing whether the applied amendment wording faithfully encodes the owner's locked decisions.
+  - Tracing the ratified demand-gate definition closures now live in the packet/brief.
 authority_boundary: retrieval_only
-status: DECISIONS_RATIFIED_ENCODING_RECHECK_CLEARED_2026-06-13_APPLY_OWNER_GATED
+status: APPLIED_TO_LIVE_INSTRUMENTS_2026-06-14 (decisions ratified + encoding recheck cleared 2026-06-13; live apply carries the DCP receipt in the buyer-proof packet)
 authored_by: claude-opus-4.8
 reviewed_by: gpt-5
 de_correlation_bar: cross_vendor_discovery
 locked_by: owner (in-thread, 2026-06-13)
 applies_to:
-  - docs/product/product_lead/orca_buyer_proof_packet_v0.md            # Demand-Substrate Hard Gate G1 + G2 (READ-ONLY until apply)
-  - docs/product/product_lead/orca_discovery_consumer_demand_target_selection_brief_v0.md  # qualification objective #3 + slot column
+  - docs/product/product_lead/orca_buyer_proof_packet_v0.md            # Demand-Substrate Hard Gate G1 + G2 (APPLIED 2026-06-14)
+  - docs/product/product_lead/orca_discovery_consumer_demand_target_selection_brief_v0.md  # qualification objective #3 + slot column (APPLIED 2026-06-14)
 ripple_surfaces:
   - docs/product/product_lead/orca_demand_read_taxonomy_v0.md          # retail = org-motion (already states it; cite, confirm before claiming)
   - docs/prompts/product-planning/orca_ontology_backbone_architecture_pass_commission_prompt_v0.md  # derived_from / diverges_from links (folded in 2026-06-13)
@@ -154,9 +156,13 @@ action (that needs ≥2 independent origins).
 **Keep status:** the bounded same-vendor recheck **CLEARED 2026-06-13** (reviewer
 `claude-sonnet-4-6`, `de_correlation_bar: same_vendor_sanity`; all 7 findings
 `closed`; no new major in the touched scope; target hash confirmed) —
-CA-adjudicated as accepted. **The encoding is kept.** Remaining: the
-live-packet/brief apply is **owner-gated**, off `origin/main`, carrying a
-`direction_change_propagation` receipt; then the gate-run commission criteria.
+CA-adjudicated as accepted. **The encoding is kept.** **Applied 2026-06-14:** the
+ratified wording is now live in the buyer-proof packet (G1 + G2, with three
+adjacent stale "≥2 venue families" sentences reconciled to verb-tiering under
+owner-approved scope) and the discovery brief (qualification objective #3 + slot
+column), in a fresh worktree/branch off `origin/main`, carrying a
+`direction_change_propagation` receipt in the buyer-proof packet. Remaining: the
+gate-run commission criteria (scan → gate-run → filled discovery slot).
 
 ## Ripple / DCP Surfaces (to check at apply time)
 
@@ -169,9 +175,10 @@ live-packet/brief apply is **owner-gated**, off `origin/main`, carrying a
 
 ## Non-Claims
 
-PROPOSED only; not applied to the live packet/brief. Not validation, not
-readiness, not gate clearance, not a doctrine change yet (the apply step carries
-the DCP). The locked decisions are the owner's; this doc proposes their
-*encoding*. Review applied is advisory input adjudicated by the CA, not a formal
-PASS; the same-vendor recheck and owner go are still owed before keep.
+APPLIED to the live packet/brief 2026-06-14 (the doctrine change carries its DCP
+receipt in the buyer-proof packet). Still not validation, not readiness, not gate
+clearance, not buyer proof, and not a scoring engine — applying the gate's
+definition is not the same as a candidate having passed it. The locked decisions
+are the owner's; this doc encoded them and that encoding is now live. Review
+applied was advisory input adjudicated by the CA, not a formal PASS.
 ```
