@@ -288,8 +288,10 @@ Carried from thesis v0 and sharpened for the demand substrate:
   sold or externally published surface, and no outreach lists at all; org-level
   signals only. (Internal
   wind-caller calibration is the bounded exception per
-  `docs/decisions/wind_caller_calibration_carveout_v0.md`, 2026-06-13 — internal
-  only, ≤5 public-figure accounts; the external/product boundary here is unchanged.)
+  `docs/decisions/wind_caller_calibration_carveout_v0.md` — named public-figure
+  calibration, non-permanent, internal-use only; the ≤5-accounts / attended cap
+  is scoped to IG/TikTok-style platform capture (carve-out 2026-06-14 amendment);
+  the external/product boundary here is unchanged.)
 - **Recurring decisions, not a feed.** Where a read is monitored over time
   (transient → earn-durable), every output stays a calibrated decision with an
   action ceiling — never a monitoring feed or stream. This keeps Orca off the
