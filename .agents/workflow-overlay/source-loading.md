@@ -366,6 +366,20 @@ boundaries, CloakBrowser selection, Reddit ordering) now lives in the closeout
 synthesis. Do not use this pack to design ECR schema, Cleaning implementation,
 or Judgment behavior.
 
+## Source Capture Method (auto-load for capture-spine activity)
+
+Any capture-spine activity — onboarding a source, running or commissioning a capture probe,
+choosing or judging a capture route, or checking a "blocked" / NO-GO call — starts with the
+**canonical capture-method playbook**
+`docs/product/source_capture_toolbox/source_capture_playbook_v0.md` and its `open_next`
+`docs/product/source_capture_toolbox/capture_recon_index_v0.md`. It is the canonical method (the
+retired `capture_investigation_playbook_v0.md` is its pre-rename name); load it before picking a
+route, and do not re-derive the access-control gate (Step 0) or the route catalog from scratch.
+
+Scanning / screening activity reads the screening-side distillation of this method — the **Walker
+Equipment Kit** in `docs/product/core_spine/orca_vertical_exploration_guide_v0.md` (public pages,
+no logins, URLs + short quotes) — and escalates to the full playbook only for packet-grade capture.
+
 ## ECR Source-Side Spine Read Pack
 
 Use this pack when the task touches the ECR source-side derived-record spine —
@@ -576,4 +590,43 @@ direction_change_propagation:
     - not source promotion
     - not implementation authorization
     - not ECR or Judgment design
+```
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Source-loading now binds the canonical capture-method playbook
+    (source_capture_playbook_v0.md + its open_next recon-index) as a required start-read for
+    capture-spine activity, and points scanning/screening activity at the screening-side Walker
+    Equipment Kit (escalating to the playbook only for packet-grade capture). Previously the
+    playbook was canonical but referenced by no overlay surface and reachable only one hop from a
+    pack — not an auto-load start-read.
+  trigger: workflow_authority
+  controlling_sources_updated:
+    - .agents/workflow-overlay/source-loading.md
+  downstream_surfaces_checked:
+    - docs/product/source_capture_toolbox/source_capture_playbook_v0.md
+    - docs/product/source_capture_toolbox/capture_recon_index_v0.md
+    - docs/product/core_spine/orca_vertical_exploration_guide_v0.md
+    - docs/workflows/orca_repo_map_v0.md
+  intentionally_not_updated:
+    - path: docs/product/source_capture_toolbox/source_capture_playbook_v0.md
+      reason: >
+        It is the target being bound and is already canonical; no content change is needed to make
+        it a start-read.
+    - path: docs/workflows/orca_repo_map_v0.md
+      reason: >
+        The repo map already routes to the playbook / recon-index; adding a source-loading
+        start-read does not change the map's pointers.
+  stale_language_search: >
+    rg -n "capture_investigation_playbook|source_capture_playbook" .agents/workflow-overlay/
+  stale_language_search_result: >
+    Executed 2026-06-14 in the worktree. No matches in .agents/workflow-overlay/ — the overlay
+    referenced neither the canonical nor the retired playbook name before this edit, so this adds
+    the first overlay binding and there is no stale retired-name reference to repoint.
+  non_claims:
+    - not validation
+    - not readiness
+    - not authorization to capture, build, or run (the playbook stays non-authorizing doctrine;
+      per-probe network approval still required)
 ```
