@@ -70,6 +70,26 @@ a separate charter-level decision, not granted here. Propagated surface: the
 demand-read taxonomy's wind-caller boundary (Layer 2 / calibration read-type /
 non-claims), updated the same day.
 
+## Amendment — 2026-06-14 (owner): retention horizon set to 10 years, with takedown-on-request
+
+The signed posture leaves the specific retention/purge horizon for the owner to set before
+the first session. The owner sets it (dated):
+
+- **Horizon: 10 years from capture, then purge** — longer than the proof-phase-duration
+  default, to support a durable call-vs-outcome calibration time-series. (Rationale: most
+  wind-callers won't persist near that long anyway, so 10 years is a generous-but-bounded
+  ceiling, not indefinite accumulation.)
+- **Standing commitment:** immediate takedown / purge on request — any subject, platform, or
+  legal removal request is honored promptly.
+- This **stays within** the signed "time-bounded, not permanent" posture (10 years is
+  bounded); it simply fills in the owner-set horizon, longer than the default. **Not a
+  reversal.** (Consistent with the ≤5-account-scope amendment above, which requires
+  non-permanence — this sets the bounded horizon that amendment refers to.)
+
+**Unchanged:** every other Tier-1 constraint (≤5 accounts at any one time, attended +
+human-mimicking cadence, no standing/scheduled crawler, no mass extraction, pre-commercial,
+internal-only, US-first, buy-at-commercial) and all Tier-3 exclusions.
+
 ## The Prior Boundary (baseline)
 
 All Orca product and capture doctrine to date has held:
@@ -118,7 +138,11 @@ For **internal wind-caller calibration only**, Orca may:
 asset is the calibration ledger ("who actually calls beauty winds, with receipts"),
 not a public or sold data product. See Tier 3 for the permanent external exclusion.
 
-**Retention posture:** calibration records are **time-bounded**, not permanent. The
+**Retention posture: [Horizon SET 2026-06-14 — see "Amendment — 2026-06-14 (owner):
+retention horizon set to 10 years, with takedown-on-request" above. The time-bounded
+posture below STANDS; the amendment fills in the owner-set horizon (10 years) and adds
+takedown-on-request.]** calibration records are
+**time-bounded**, not permanent. The
 owner will set a specific retention/purge horizon before the first calibration
 session begins; records past their retention date are purged, not accumulated
 indefinitely. Default posture: retain for the active proof-phase duration; review
@@ -273,4 +297,31 @@ direction_change_propagation:
     - not outreach authorization
     - not a change to LinkedIn org-motion doctrine
     - not merged; owner adjudicates
+```
+
+```yaml
+# Retention horizon set 2026-06-14 (owner): bounded 10-year horizon + takedown-on-request (within the time-bounded posture; not a reversal).
+direction_change_propagation:
+  doctrine_changed: >
+    The owner set the Tier-1 retention horizon (which the signed posture delegates to the owner)
+    to a bounded 10-years-from-capture-then-purge horizon, longer than the proof-phase default,
+    plus a standing immediate-takedown / purge-on-request commitment. This stays WITHIN the signed
+    "time-bounded, not permanent" posture (10 years is bounded; not a reversal). All other Tier-1
+    bounds and Tier-3 exclusions are unchanged.
+  trigger: product_doctrine
+  related_triggers:
+    - lifecycle_boundary
+  controlling_sources_updated:
+    - docs/decisions/wind_caller_calibration_carveout_v0.md   # this record (horizon set)
+  downstream_surfaces_checked:
+    - path: docs/product/source_capture_toolbox/ig_wind_caller_calls_capture_build_architecture_v0.md
+      note: Delta 3 retention reference set to 10-year horizon + takedown-on-request (recon lane).
+  non_claims:
+    - not validation
+    - not readiness
+    - not commercial-scale authorization
+    - not a change to the scale / attended / no-standing-crawler bounds
+    - not a change to Tier-3 exclusions
+    - not legal sufficiency
+    - owner-instructed 2026-06-14; owner merge = sign-off
 ```

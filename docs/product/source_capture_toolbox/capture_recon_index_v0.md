@@ -134,16 +134,20 @@ doctrine should encode.
 | Source probed | Path | Rung / where signal lives | Reported verdict | Signal |
 | --- | --- | --- | --- | --- |
 | LinkedIn official policy | `docs/product/source_capture_toolbox/linkedin_reddit_source_capture_armory_concurrent_structure_architecture_v0.md` | Policy docs (2026-06-05): scraping/automation forbidden absent authorization | **Boundary-only** — official/API/manual/entitled routes only; no scraping | MODERATE-HIGH |
+| Instagram wind-caller — own `@foo_yu_quan` + third-party `@hyram` *(2026-06-14)* | `docs/product/source_capture_toolbox/ig_wind_caller_capture_feasibility_recon_v0.md` | Attended logged-in browser (own + 1 public third-party, no wall). **Grid = index only**; capture is **per-item: each `/p/` AND `/reel/` page, one-by-one**. Per item → **full verbatim caption in the rendered DOM node** (meta `og:description` truncates ~59% on a post, ~86% on a reel) + **likes/comments/date/`#ad` sponsorship flag**. Enumerate via **scroll pagination** (12 → 48 / 3 passes). Stats → profile `og:description`/header + Social Blade free (recent daily window; deep history premium) + `web_profile_info` JSON (counts only). `direct_http` NO-GO for signal (200 shell; API **429 cookieless** → **200 logged-in**). | **GO (demonstrated, n=2)** — self-capture calls via DOM (moat), **buy** stats series (Social Blade free). Residual: sustained cadence (H5), full enumeration, robust caption selector, **reel view/play count (in GraphQL JSON, not page DOM)**. Harness-native authenticated capture **already exists** (browser_snapshot + auth_state + runners + cadence, authorized/reviewed); IG = compose + small delta (loop runner, extraction, reel warm-JSON, block markers) — see ig_wind_caller_calls_capture_build_architecture_v0.md. | HIGH ⭐ |
 
 ## Coverage map
 
 - **Well-covered:** forums/threads (Reddit ×4, WSO), pricing (M&I, Teal, OpenAI-lane), archive/history (Daimler, Unity), docs-PDF body (Daimler — the strongest anti-bot escalation case), browser runner (CloakBrowser), reviews (ClickUp + Sephora-pending).
 - **Thin / single-fixture:** docs-changelog (Kubernetes only), reviews (one merged fixture; the strong one is worktree-pending), SPA embedded-state (Ulta worktree-pending only).
-- **ABSENT — and directly relevant to the stated multi-source product direction:**
-  **TikTok and Instagram have no technical recon at all.** The only social probe is the
-  LinkedIn *policy* boundary. Any TikTok/IG recipe card is **speculative** until probed,
-  and both carry the heaviest ToS/auth-wall/anti-bot posture (entitlement gate, Pattern 4,
-  applies before any technical attempt). No media/video capture recipe exists either.
+- **ABSENT / PARTIAL — directly relevant to the stated multi-source product direction:**
+  **TikTok has no technical recon at all.** **Instagram is now probed** (own-account
+  wind-caller recon, 2026-06-14 — **GO demonstrated** at the attended logged-in browser rung;
+  see the Social networks table). The only other social probe is the LinkedIn *policy*
+  boundary. Any TikTok recipe card is **speculative** until probed; social surfaces carry the
+  heaviest ToS/auth-wall/anti-bot posture (entitlement gate, Pattern 4, applies before any
+  technical attempt). No media/video capture recipe exists either. (IG media/video capture is
+  likewise still unprobed — the IG recon covered caption text + stats, not media bytes.)
 
 ## Pending-merge / external (not on main; include before the doctrine finalizes)
 
