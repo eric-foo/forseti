@@ -48,6 +48,28 @@ constraints. Only the manual-vs-automated method is relaxed, and only to a
 human-mimicking cadence. "Human pace" elsewhere in this record now reads as this
 human-mimicking automated cadence.
 
+## Amendment — 2026-06-14 (owner): scope of the ≤5-account / attended-capture cap
+
+Owner-adjudicated in the demand-read-taxonomy lane (Q3; dated, original preserved).
+The Tier-1 small-scale **capture** constraints — **≤5 accounts, attended
+human-mimicking pace, IG-first sequencing, Social Blade discipline** — are scoped
+to **social-platform creator capture (Instagram / TikTok / equivalent)**, the
+ToS-risky scraping context they were written for. **Named public-figure
+wind-caller calibration from other public outputs** (public web, detector venues,
+public statements — not platform scraping) **is allowed more broadly**, subject to
+**non-permanence**: records are time-bounded (retention/purge horizon per this
+record), never permanent person dossiers. The "≤5 accounts" wording elsewhere in
+this record now reads as this platform-capture-scoped cap.
+
+Unchanged: internal judgment/calibration **use** only; and the **external/product
+boundary** — Orca never sells or externally publishes a person-level surface
+(Tier 3, permanent). This amendment relaxes only the *capture* cap for
+non-platform named-public-figure calibration; it does **not** loosen the
+external/product boundary. Selling or publishing any person-level surface remains
+a separate charter-level decision, not granted here. Propagated surface: the
+demand-read taxonomy's wind-caller boundary (Layer 2 / calibration read-type /
+non-claims), updated the same day.
+
 ## The Prior Boundary (baseline)
 
 All Orca product and capture doctrine to date has held:

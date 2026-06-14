@@ -86,16 +86,26 @@ short-horizon *move*).
    precede the move. The owner flags influencers as possibly the main wind
    callers. The repo already holds a worked exemplar: INCIDecoder (venue card
    11, "root-receipt detector / wind-caller exemplar" — its commissioned SPF
-   tests became the root receipt the entire Purito chain cites). Boundary:
-   wind callers are **channels AND named public-figure wind-callers under the
-   bounded internal carve-out** (`docs/decisions/wind_caller_calibration_carveout_v0.md`):
-   public handle + public name + public calls + public stats + call-vs-outcome
-   calibration, ≤5 accounts, human pace, pre-commercial, internal only.
-   Audience/follower-graph analytics: **deferred-gated** (separate authorization +
-   legal gate required; reclassified from out-of-scope to sanctioned-but-deferred
-   in `docs/product/data_capture_spine/data_capture_spine_future_exploration_lanes_v0.md`).
-   Person-level dossiers in any sold or external surface remain **forbidden**
-   (charter exclusion, unchanged).
+   tests became the root receipt the entire Purito chain cites).
+   **Primacy (owner-adjudicated 2026-06-14, Q2):** wind callers are **primary at
+   the trigger** — their early call opens the transient read (the in-window
+   action) — while **buy-side costly behavior is primary at the durable upgrade**.
+   A wind-caller's standalone trigger-weight is **calibration-gated**: a proven
+   precede-the-move record earns more weight; until that evidence exists the
+   **conservative default holds** — the Demand-Substrate Hard Gate (≥2 venue
+   families + costly behavior) applies even to a transient move, so a wind-caller
+   call alone never fires one. *Evidence to prove (open, owner-flagged):* that
+   beauty wind-callers actually precede the move reliably — what the calibration
+   ledger must demonstrate before trigger-weight shifts toward wind-callers.
+   **Boundary (owner-adjudicated 2026-06-14, Q3):** named public-figure
+   wind-caller calibration from public outputs is **broadly allowed and
+   non-permanent** (time-bounded, never a permanent dossier); the **≤5-accounts /
+   attended human-paced cap is scoped to IG/TikTok-style platform creator
+   capture** (per the carve-out's 2026-06-14 amendments) — not a blanket cap.
+   Internal judgment/calibration use only; **person-level dossiers in any sold or
+   external surface remain forbidden** and the external/product boundary is
+   unchanged. Audience / follower-graph analytics stay **deferred-gated**
+   (`docs/product/data_capture_spine/data_capture_spine_future_exploration_lanes_v0.md`).
 3. **Buy-side corroboration (primary, owner word)** — costly behavior:
    sellouts, waitlists, restock pressure, review velocity and content shifts,
    pain-point convergence, dupe-seeking and switching behavior, effortful
@@ -165,10 +175,10 @@ on the table.
   outcome-memory moat applied to sources — "we know who actually calls beauty
   winds, with receipts" — and the same historical-outcome machinery is the
   likeliest path to the decay-curve capability the transient read needs.
-  Calibration receipts are dated and anti-cherry-picked like every other ledger;
-  channel-level by default and — under the bounded internal carve-out (Layer 2;
-  `docs/decisions/wind_caller_calibration_carveout_v0.md`) — named-public-figure
-  for the ≤5 internal-only calibration subjects.
+  Calibration receipts are dated, anti-cherry-picked, and **non-permanent**
+  (time-bounded); channel-level by default and — under the carve-out (Layer 2) —
+  **named-public-figure broadly**, with the ≤5-accounts / attended cap scoped to
+  IG/TikTok-style platform capture (per the carve-out's 2026-06-14 amendments).
 
 **Divergence is a technique, not a verdict** (owner, 2026-06-14): signals
 disagreeing — promotion-engagement mismatch (an influencer promotes X but ad
@@ -206,7 +216,7 @@ owned by the buyer-proof packet → Orca Promise; and the *judgment moat /
 differentiation floor* (each monitored outcome compounds the calibration ledger)
 is strategic — thesis → Strategic Center.
 
-## Pricing Refinement (PROPOSED final take on the owner's question)
+## Pricing Refinement (owner-ratified 2026-06-14)
 
 - **Price-complaint volume: anti-trigger.** Chronic, omnipresent,
   non-discriminating, and it almost never resolves into an event — it cannot
@@ -249,10 +259,11 @@ PROPOSED only — no validation, readiness, buyer proof, or judgment-quality
 claim; closeout state for any such claim: `no_durable_evidence`. Mints no
 evidence-ladder vocabulary and redefines no overlay-owned semantics. Does not
 amend the thesis (on adoption, the thesis gains a dated pointer through the
-propagation contract). Wind-caller tracking is channel-level public-output by
-default, extended to named-public-figure calibration only under the bounded
-internal carve-out (≤5 accounts, internal-only); person-level dossiers in any
-sold or external surface remain forbidden. Authorizes no scan, capture,
+propagation contract). Wind-caller tracking is channel-level public-output plus
+**non-permanent** named-public-figure calibration under the carve-out (the
+≤5-accounts / attended cap is scoped to IG/TikTok-style platform capture, per the
+carve-out's 2026-06-14 amendments); person-level dossiers in any sold or external
+surface remain forbidden and the external/product boundary is unchanged. Authorizes no scan, capture,
 monitoring, or outreach.
 
 The demand-state model (durable / transient / manufactured) is PROPOSED and

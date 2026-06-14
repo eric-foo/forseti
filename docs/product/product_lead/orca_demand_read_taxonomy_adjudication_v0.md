@@ -65,6 +65,13 @@ thesis is amended by dated pointer (receipt at the end of the thesis). Part 1's
 read types and Part 3's queue below are updated accordingly — Q0 is added as the
 now-decided lead, and Q1/Q2 inherit the horizon dimension.
 
+**Update 2026-06-14 (owner adjudication — Q1–Q3 all decided):** Q1 ratified; Q2
+adopted (wind-callers primary-at-trigger / earned, buy-side primary at the durable
+upgrade, conservative default + an evidence-to-prove note); Q3 confirmed + refined
+(≤5 / attended cap scoped to IG/TikTok platform capture; broader named-public-figure
+calibration allowed, non-permanent; the carve-out was amended). **Q0–Q3 are now all
+decided** and folded into the taxonomy (plus the carve-out and the thesis pointer).
+
 ## How To Read This (for the owner, one pass)
 
 1. **Operative definitions** — the grammar fleshed so the scanning lane could
@@ -312,6 +319,10 @@ horizon dimension. Nothing pending on Q0.
 
 ### Q1 — Pricing-signal refinement
 
+**DECIDED 2026-06-14 (owner): ratified as written** ("yes i believe this is
+adequate"). The Pricing Refinement section is now owner-ratified; the framing
+below is retained.
+
 **Decision:** ratify, amend, or reject the taxonomy's proposed final take on the
 owner's pricing question:
 - price-**complaint volume** = anti-trigger (never a scan trigger);
@@ -332,6 +343,17 @@ That clarification is wording, not a new decision; it is offered so the scanning
 lane inherits an unambiguous test.
 
 ### Q2 — Wind-caller primacy (owner value-call; the lead decision)
+
+**DECIDED 2026-06-14 (owner): adopted** ("yeah i think that's okay — but note down
+on the evidence thing to prove"). The new-model resolution: wind-callers are
+**primary at the trigger** (their early call opens the transient read); **buy-side
+costly behavior is primary at the durable upgrade**; standalone trigger-weight is
+**calibration-gated**, with the **conservative default** (Hard-Gate corroboration
+even for a transient move) holding until evidence. **Evidence to prove
+(owner-flagged):** that beauty wind-callers actually precede the move reliably —
+the calibration ledger must demonstrate it before trigger-weight shifts toward
+wind-callers. Folded into taxonomy Layer 2. (The (a)/(b) framing below is the
+pre-adjudication queue; the sequence-position resolution supersedes it.)
 
 **Decision:** are wind-callers / influencers the **primary** signal layer, or a
 **leading indicator** feeding a buy-side-primary read?
@@ -366,6 +388,13 @@ or (b); the recommendation is a middle path, not the decision.**
 > no fleshing was blocked.
 
 ### Q3 — Channel-not-person boundary (confirm the reconciliation)
+
+**DECIDED 2026-06-14 (owner): confirmed + refined.** The ≤5-accounts / attended
+cap is scoped to **IG/TikTok-style platform creator capture**; named public-figure
+calibration from other public outputs is **broadly allowed and non-permanent**;
+internal-use only and the external/product boundary are unchanged. The
+**carve-out was amended** (dated) and the taxonomy boundary (Layer 2 / calibration
+read-type / non-claims) + the thesis pointer updated to match.
 
 **Decision:** confirm the wind-caller boundary as reconciled with the carve-out:
 - channel-level public-output calibration of **named public-figure**
