@@ -131,9 +131,9 @@ direction_change_propagation:
     (persistence) and real-vs-manufactured (integrity), yielding three actionable
     states (durable=commit; transient=move/short-horizon; manufactured=
     discount/avoid). "Hollow" is retired as conflating transient with
-    manufactured. Transient gets equal billing as a read, under a decay-timing
-    confidence guardrail; identifying manufactured demand is decision-critical in
-    its own right.
+    manufactured. Transient gets equal billing as a read, with the decay-timing
+    problem dissolved by the calling sequence (observe persistence, not predict
+    decay); identifying manufactured demand is decision-critical in its own right.
   trigger: product_doctrine
   related_triggers: []
   controlling_sources_updated:

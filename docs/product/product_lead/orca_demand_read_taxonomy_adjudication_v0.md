@@ -57,9 +57,12 @@ central axis moved from **durable vs hollow** to **durable vs transient**
 (persistence) × **real vs manufactured** (integrity). "Hollow" is retired (it
 conflated transient-real with manufactured-fake). Three actionable states —
 durable (commit), transient (move, short horizon), manufactured (discount /
-avoid). Transient gets **equal billing** with durable (owner call), with a lane
-guardrail: a **decay-timing confidence** (currently low) caps the transient
-ceiling until a decay-curve capability exists. The taxonomy's layers and read
+avoid). Transient gets **equal billing** with durable (owner call); the
+decay-timing problem is later **dissolved** by the calling sequence (observe
+persistence, not predict decay — see the Q0 *Refined* note below), so transient
+reads are **built-to-not-proven-at** until a decay-curve capability exists,
+rather than capped by a standing guardrail (reconciled 2026-06-14, OF-01 —
+consistency with the dissolve, no policy change). The taxonomy's layers and read
 types are restructured to this model (its dated amendment); the controlling
 thesis is amended by dated pointer (receipt at the end of the thesis). Part 1's
 read types and Part 3's queue below are updated accordingly — Q0 is added as the
@@ -193,9 +196,11 @@ may never exceed what signal integrity supports.
   genuine spike that will normalize (viral surge, time-limited dupe wave, seasonal pop).
 - *Anti-trigger:* a spike treated as durable (commit long → stranded inventory);
   a manufactured pump mistaken for a real spike (integrity layer must clear it first).
-- *Boundary:* **equal billing as a read**, but ceiling capped by **decay-timing
-  confidence** — currently low (calling a spike is two claims, *real* AND *decays
-  in ~N weeks*; the decay-curve capability does not yet exist). Built-to, not proven-at.
+- *Boundary:* **equal billing as a read**; durability is **observed via the
+  calling sequence** (open transient, monitor, earn durable — not predicted, so
+  the decay-timing problem is dissolved, not a standing cap). A transient call is
+  **built-to, not proven-at** on its lifespan until a decay-curve capability
+  exists (reconciled 2026-06-14, OF-01).
 
 **Manufactured-demand read** — fake / amplified → *discount / avoid*
 - *What counts:* demand that is not real — promotion-engagement mismatch,
