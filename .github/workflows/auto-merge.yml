@@ -29,6 +29,10 @@ name: auto-merge
 #                  or the cron backstop handles the next, so GitHub fully recomputes
 #                  mergeability between merges (there is no native merge queue here).
 #   6. squash + delete branch (the repo default).
+#   7. head-pinned — merge with `--match-head-commit` (a post-check push fails
+#                  the merge loudly instead of landing an untested head), and
+#                  cross-repository (fork) PRs are skipped (their up-to-date
+#                  compare can't be trusted and unattended fork merge is unsafe).
 #
 # Honest limitation: a bot merge via GITHUB_TOKEN does NOT re-trigger the push:main
 # CI run (GitHub's no-recursion rule), so main-CI is not a redundant post-merge
@@ -46,6 +50,8 @@ on:
 permissions:
   contents: write          # repo default is read-only; this workflow opts up to
   pull-requests: write     # least-privilege write for merge + branch delete.
+  checks: read             # an explicit permissions block zeroes unlisted scopes;
+  statuses: read           # checks+statuses read are needed to read statusCheckRollup.
 
 concurrency:
   group: auto-merge        # never run two mergers at once
@@ -68,11 +74,15 @@ jobs:
         run: |
           set -euo pipefail
 
-          # Open PRs that opted in via the label. Filtering in jq (not via
-          # `gh pr list --label`) means a missing label yields an empty set
-          # instead of an error.
-          mapfile -t prs < <(gh pr list --repo "$REPO" --state open --json number,labels \
-            | jq -r --arg lbl "$AUTOMERGE_LABEL" '.[] | select(any(.labels[]?; .name==$lbl)) | .number')
+          # Open PRs that opted in via the label. Run the list as a CHECKED
+          # command (not inside the mapfile process substitution, whose failure
+          # bash would swallow) so an API/auth failure aborts loudly instead of
+          # silently looking like "no PRs". --limit lifts the default 30-PR cap.
+          # Filtering in jq (not `gh pr list --label`) makes a missing label an
+          # empty set instead of an error.
+          prs_json=$(gh pr list --repo "$REPO" --state open --limit 200 --json number,labels)
+          mapfile -t prs < <(jq -r --arg lbl "$AUTOMERGE_LABEL" \
+            '.[] | select(any(.labels[]?; .name==$lbl)) | .number' <<<"$prs_json")
 
           if [ "${#prs[@]}" -eq 0 ]; then
             echo "No open PRs carry the '$AUTOMERGE_LABEL' label. Nothing to do."
@@ -82,15 +92,21 @@ jobs:
           for n in "${prs[@]}"; do
             echo "::group::Evaluating PR #$n"
             data=$(gh pr view "$n" --repo "$REPO" \
-              --json isDraft,mergeable,headRefName,baseRefName,statusCheckRollup)
+              --json isDraft,isCrossRepository,mergeable,headRefName,headRefOid,baseRefName,statusCheckRollup)
 
             is_draft=$(jq -r '.isDraft' <<<"$data")
+            is_cross=$(jq -r '.isCrossRepository' <<<"$data")
             mergeable=$(jq -r '.mergeable' <<<"$data")
             head=$(jq -r '.headRefName' <<<"$data")
+            head_oid=$(jq -r '.headRefOid' <<<"$data")
             base=$(jq -r '.baseRefName' <<<"$data")
 
-            # Only land lane PRs that target main, and never a draft.
+            # Only land same-repo lane PRs that target main, and never a draft.
+            # Cross-repository (fork) PRs are never auto-merged: the up-to-date
+            # compare can't be trusted for a fork head, and unattended fork
+            # auto-merge is a supply-chain hazard. Flag and skip.
             if [ "$base" != "main" ]; then echo "skip: base is '$base', not main"; echo "::endgroup::"; continue; fi
+            if [ "$is_cross" = "true" ]; then echo "skip: cross-repository (fork) PR — not auto-merged"; echo "::endgroup::"; continue; fi
             if [ "$is_draft" = "true" ]; then echo "skip: draft"; echo "::endgroup::"; continue; fi
 
             # Guard 2 — no textual conflict (recomputed vs current main).
@@ -111,13 +127,19 @@ jobs:
             if [ "$all_green" != "true" ]; then echo "skip: a check is failing or pending"; echo "::endgroup::"; continue; fi
             if [ "$ci_success" != "true" ]; then echo "skip: CI check '$CI_CHECK' is not SUCCESS"; echo "::endgroup::"; continue; fi
 
-            # Guard 4 — up-to-date with main (behind_by counts commits in main not in head).
-            behind=$(gh api "repos/$REPO/compare/main...$head" --jq '.behind_by')
+            # Guard 4 — up-to-date with main. Compare by the head SHA (not the
+            # branch name): unambiguous and free of branch-name encoding issues.
+            # behind_by counts commits in main not reachable from the head.
+            behind=$(gh api "repos/$REPO/compare/main...$head_oid" --jq '.behind_by')
             if [ "$behind" != "0" ]; then echo "skip: behind main by $behind commit(s) — rebase to enable"; echo "::endgroup::"; continue; fi
 
             echo "PR #$n is eligible (labeled, mergeable, green, up-to-date). Merging (squash)."
-            gh pr merge "$n" --repo "$REPO" --squash --delete-branch
-            echo "Merged PR #$n. Stopping — one merge per run for safe serialization."
+            # Pin the merge to the exact head we just validated. If a new commit
+            # was pushed after the checks above (a TOCTOU race), the merge fails
+            # loudly instead of landing an untested head; the next trigger
+            # re-evaluates the new commit.
+            gh pr merge "$n" --repo "$REPO" --squash --delete-branch --match-head-commit "$head_oid"
+            echo "Merged PR #$n at $head_oid. Stopping — one merge per run for safe serialization."
             echo "::endgroup::"
             exit 0
           done
