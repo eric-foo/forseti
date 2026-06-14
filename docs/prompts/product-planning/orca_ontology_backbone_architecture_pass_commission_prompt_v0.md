@@ -15,7 +15,7 @@ scope: >
 use_when:
   - Dispatching the ontology backbone architecture-pass commission (owner word 2026-06-13, "prompt out for this ontology with your structure, make them do goal framing").
 authority_boundary: retrieval_only
-status: AUTHORED_2026-06-13_AWAITING_DISPATCH
+status: AUTHORED_2026-06-13; REFRESHED_2026-06-14_AWAITING_DISPATCH
 adjudication_route: ICP / product-direction lane (commissioning thread) adjudicates the returned goal frame + architecture object; owner signs adoption and any folder/router binding.
 lock_in_notice: >
   HIGH downstream lock-in by design — this is meant as the repo backbone. A
@@ -24,6 +24,56 @@ lock_in_notice: >
   v0 is naming-normative / schema-light (see Kernel Discipline). Surfacing this
   tradeoff for an owner decision is part of the commission, not a side note.
 ```
+
+## Applied-Contract Record (prompt-orchestration)
+
+This 2026-06-14 refresh was authored under owner instruction ("/workflow-deep-thinking
+propose ontology prompt, /workflow-delegated-review-patch the prompt after"), which
+under the source hierarchy (explicit current-turn instruction > AGENTS.md > overlay)
+sets the method. Per `.agents/workflow-overlay/prompt-orchestration.md` (validation
+gate 1: "apply this file's contract in full and record that"), the contract was
+applied: source-loading per `source-loading.md` (current product docs swept; the
+SOURCE-LOAD below refreshed to landed `main`, #78/#88); the source-gated method
+contract (REFERENCE-LOAD → SOURCE-LOAD → `SOURCE_CONTEXT_READY` → APPLY) preserved;
+required preflight, `file-write` output mode, artifact roles, validation gates, and
+non-claims preserved from v0 with the Base freshness gate updated for the live
+grammar docs. This refresh updates the commission's inputs and candidate roster to
+the landed grammar; it does not change prompt doctrine, so it carries no
+`direction_change_propagation` of its own — the dispatched lane's deliverable still
+carries one, as required below. A `workflow-delegated-review-patch` hardening pass
+follows (owner instruction); its `reviewed_by` / `authored_by` provenance is recorded
+on the review output.
+
+## Refresh Note (2026-06-14 — design against the current grammar, not the 2026-06-13 snapshot)
+
+Since this commission was authored (2026-06-13), the demand-read grammar was
+overhauled and owner-adjudicated; the changes are now on `main` (PRs #78, #88).
+The dispatched lane MUST design against the current grammar:
+
+- **Demand-state model (replaces "durable vs hollow").** Two independent axes —
+  **durable vs transient** (persistence) × **real vs manufactured** (integrity) —
+  → three actionable states: durable (commit), transient (move, time-boxed),
+  manufactured (discount/avoid). "Hollow" is RETIRED. `Read` (and `Call`/`Outcome`)
+  carry a `demand_state` dimension on these axes.
+- **Calling sequence = a `Read` lifecycle (governed Actions).** A read opens
+  **transient** (act in-window), is **monitored**, then **earns** the upgrade to
+  durable or **decays** — model it as the Read state machine
+  (`open_transient → monitor → earn_durable / decay`), each with its gate.
+- **Action ceiling + horizon are typed** (long-horizon *commit* vs short-horizon
+  *move*, capped by signal integrity); the **never-a-feed invariant** (every output
+  is a calibrated decision with an action ceiling, never a feed) is a constraint to
+  encode.
+- **Q0–Q3 are DECIDED** (not "PROPOSED-strength"): demand-state model (Q0); pricing
+  refinement (Q1); wind-caller primacy **"at the trigger" / calibration-gated** (Q2);
+  channel-vs-person boundary **refined** (Q3 — named public-figure calibration,
+  **non-permanent**, the ≤5/attended capture cap **platform-scoped**, external/product
+  boundary unchanged). Encode the WindCaller boundary into its object definition.
+- **Gate actions** are now defined (demand-gate closures): **G1** independence by
+  de-correlated origination, **G2** costly-behavior floor, **G4** org-motion
+  corroboration (separate from G1) — encode as Gate actions/preconditions, routed to
+  their owners, not rebuilt.
+
+The SOURCE-LOAD and candidate roster below are updated accordingly.
 
 ## Commission
 
@@ -62,7 +112,12 @@ commitments, and the lane must design all four:
    independent-venue requirement) and
    **`Observation —diverges_from→ Observation`** (cross-layer disagreement — the
    integrity / astroturf-tell signal, preserved as signal, never averaged away).
-   The lane finalizes the roster; these enter as candidate links, not frozen.
+   These two links are now **load-bearing** (owner-decided in the demand-gate
+   closures, 2026-06-13/14), and the judgment-spine read-machinery
+   (`docs/prompts/handoffs/judgment_spine_read_machinery_architecture_handoff_v0.md`)
+   is a **forward consumer** that depends on them — design them precisely enough for
+   that consumer's de-correlation + divergence weighting. The lane finalizes the
+   roster; these enter as candidate links, not frozen.
 3. **Actions** — the governed state transitions that are the ONLY sanctioned
    ways an object changes state, each with its precondition/gate (Case.seal
    requires a pre-declared ledger row; Slot.fill requires a dated scan doc;
@@ -82,6 +137,19 @@ Brand (with parent resolution), Product/SKU, WindCaller, Call, Observation,
 CapturePacket, EvidenceUnit, TrendVector, Read, DecisionEvent, Case, Outcome,
 Memo, Slot. Assign stable IDs (`brand:beautypie`, `case:bt-beautypie-repricing-2023`)
 so cross-artifact references stop being path-and-prose.
+
+Demand-state machinery to evaluate (added 2026-06-14, under the same cap — these
+may be dimensions/actions on existing types rather than new types; the lane
+decides): a `demand_state` dimension `{durable, transient, manufactured}` on
+Read/Call/Outcome; the **Read lifecycle Actions** (`open_transient → monitor →
+earn_durable / decay`); an `ActionCeiling` enum (commit/move + the frozen ladder)
+as a governed transition; the **Gate** actions `G1`/`G2`/`G4` (demand-gate
+closures); the **never-a-feed** invariant as an action constraint on recurring
+reads; and a `claim_tier` dimension (evidence ladder) on Memo/Case/Outcome/Read.
+The `WindCaller` object encodes the carve-out boundary (non-permanent,
+platform-scoped capture cap, internal-use, external/product boundary unchanged)
+and calibration-gated trigger primacy (Q2). Respect the cap — fold these into
+existing types where they are dimensions, not new objects.
 
 **Layer 2 — Workflow ontology (MAP, do NOT rebuild).** Lanes, artifact roles,
 claim tiers, gates, receipts, folders ALREADY have owners in the overlay.
@@ -115,9 +183,13 @@ The venue card set is the proven antidote to ontology rot; adopt its kernel:
 - Workspace: `C:\Users\vmon7\Desktop\projects\orca`. Spin up per the AGENTS.md
   isolation rule: fresh worktree or branch off `origin/main` (runs alongside
   many active lanes).
-- Base freshness gate: the pinned sources must exist at the pinned sha256
-  prefixes (first 16 hex). Missing/drifted → `BLOCKED_STALE_BASE`, report back
-  (the commissioning lane's batch may not have landed on `main`).
+- Base freshness gate: the sha-pinned stable sources must exist at the pinned
+  sha256 prefixes (first 16 hex). The LIVE demand-grammar sources (thesis,
+  taxonomy, adjudication companion, buyer-proof) are NOT sha-pinned — instead
+  verify the 2026-06-14 demand-state model + Q0–Q3 adjudication are present in the
+  current `main` text (durable/transient/manufactured + calling sequence, not the
+  retired durable-vs-hollow framing). Either check failing → `BLOCKED_STALE_BASE`,
+  report back.
 - Dirty-state allowance: fresh worktree, clean; only the lane's own new files
   may be dirty/untracked. Never touch other lanes' files.
 - Edit permission: `docs-write`, limited to the deliverable path(s) below and
@@ -147,12 +219,19 @@ REFERENCE-LOAD, in this order, and do not APPLY any until
 
 SOURCE-LOAD (pins = sha256 first-16-hex at authoring, current base):
 
-Domain-defining (Layer 1 inputs):
-- `docs/decisions/orca_product_thesis_consumer_demand_v0.md` — `B119E24691066E47` — the demand world's primitives (costly behavior, action ceilings, org motion, outcome-memory moat).
+Domain-defining (Layer 1 inputs). The demand-grammar docs (thesis, taxonomy,
+adjudication companion, buyer-proof) are LIVE and were amended 2026-06-14 (#78,
+#88): do NOT pin them to an old sha — read current `main` and verify the
+demand-state model + Q0–Q3 adjudication are present (NOT the retired
+durable-vs-hollow framing); if absent → `BLOCKED_STALE_BASE`. Stable docs keep
+their sha pins.
+- `docs/decisions/orca_product_thesis_consumer_demand_v0.md` — LIVE (verify, don't pin) — the demand world's primitives (costly behavior, action ceilings, org motion, outcome-memory moat) + the 2026-06-14 demand-state amendment (durable/transient/manufactured, calling sequence, never-a-feed, differentiation floor).
 - `docs/decisions/orca_icp_wedge_consumer_demand_first_v0.md` — `42787638E6185D4A` — the wedge (which entities matter first).
-- `docs/product/product_lead/orca_demand_read_taxonomy_v0.md` — `BC478D890419B2B6` — the read grammar (Read, TrendVector, WindCaller, layers); PROPOSED, so treat its types as PROPOSED-strength inputs.
+- `docs/product/product_lead/orca_demand_read_taxonomy_v0.md` — LIVE (verify, don't pin) — the read grammar (Read, TrendVector, WindCaller, signal layers, read types, calling sequence); Q0–Q3 DECIDED, treat its types as DECIDED inputs (the artifact status line may still read PROPOSED).
+- `docs/product/product_lead/orca_demand_read_taxonomy_adjudication_v0.md` — LIVE (verify, don't pin) — the operative definitions (what-counts / anti-trigger / boundary per layer + read type) and the Q0–Q3 owner-decision outcomes; the firmest source for Read / WindCaller / Call definitions.
+- `docs/product/product_lead/orca_demand_gate_definition_closures_proposal_v0.md` — the G1 (independence by de-correlated origination) / G2 (costly-behavior floor) / G4 (org-motion corroboration, separate from G1) gate definitions to encode as Gate actions/preconditions. PROPOSED (owner-gated apply) — encode as candidate gate semantics and flag the status.
 - `docs/product/core_spine/beauty_venue_card_set_v0.md` — `65E22CDAE5EDE781` — the best-engineered existing object type (Venue) + the kernel survival terms to steal.
-- `docs/product/product_lead/orca_buyer_proof_packet_v0.md` — `732C65BEBFC31DA1` — Demand-Substrate Hard Gate (an action gate to encode — its independence semantics rest on the `derived_from` link, its divergence/astroturf detection on `diverges_from`; added 2026-06-13), Memo/Case semantics.
+- `docs/product/product_lead/orca_buyer_proof_packet_v0.md` — LIVE (verify, don't pin) — the Demand-Substrate Hard Gate (independence rests on `derived_from`, divergence/astroturf on `diverges_from`) + the never-a-feed invariant (Orca Promise) + Memo/Case semantics. (Carries some pre-2026-06-14 durable-vs-hollow wording flagged for realignment — read the current Hard Gate + Orca Promise, not the stale framing.)
 - `docs/product/core_spine/consumer_demand_candidate_pool_handoff_v0.md` — `19009D43A7C29858` — an existing Case/Candidate schema.
 
 Workflow-layer (Layer 2 MAP targets — READ-ONLY, never edit):
@@ -173,6 +252,16 @@ the batch-1 ledger's case rows. The scan-core spec
 worktree, not yet on `main`): treat its observation/candidate schema as a
 forward consumer to design FOR, not a landed source to pin; if it is on `main`
 by dispatch, read it.
+
+Also survey (do not pin; confirm paths via the repo map): the judgment-spine
+gate-ownership map (`docs/product/judgment_spine/judgment_spine_gate_ownership_map_v0.md`)
+— so Gate actions MAP to their owning gates rather than rebuild them; the
+evidence-ladder architecture (`docs/product/judgment_spine/judgment_spine_evidence_ladder_architecture_v0.md`)
+— the `claim_tier` dimension on every object; the discovery brief
+(`docs/product/product_lead/orca_discovery_consumer_demand_target_selection_brief_v0.md`)
+— the `Slot` object's columns and state machine; and the read-machinery handoff
+(`docs/prompts/handoffs/judgment_spine_read_machinery_architecture_handoff_v0.md`)
+— a forward consumer that depends on `derived_from` / `diverges_from`.
 
 Declare `SOURCE_CONTEXT_READY` / `SOURCE_CONTEXT_INCOMPLETE` (with the gap
 list) before applying goal-framing or architecture planning.
