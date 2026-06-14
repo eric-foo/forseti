@@ -204,8 +204,10 @@ omission is not allowed (obligation contract rule, reused).
 **1. List price** (`list_price`)
 The source-visible regular/full/undiscounted price for the observed
 variant/SKU. Captured as displayed (amount + currency, in source units).
-When no list price is shown separately (e.g. always-sale display), record
-`unavailable_by_source` with reason. Do not compute or impute.
+When no list price is shown separately (e.g. always-sale display), record the
+field's status as `unknown_with_reason` (the source does not expose it) and
+discharge its capture obligation as `unavailable_by_source` — never as a fact
+status. Do not compute or impute.
 
 **2. Effective / sale price** (`effective_price`)
 The price a buyer would actually pay at capture time — the active/settled
@@ -285,9 +287,11 @@ reproduced here as the application of that element to price time-series:
   series must hold one variant fixed; a variant swap makes two observations
   non-comparable.
 
-When a pin is unknown or the source does not expose it, the capture records
-`unknown_with_reason` / `unavailable_by_source` rather than guessing. Silent
-omission is not allowed.
+When a pin is unknown or the source does not expose it, the capture records the
+pin's fact status as a valid `VisibleFactStatus` (`unknown_with_reason` or
+`not_applicable`) with a reason, and discharges the pin's capture obligation as
+`unavailable_by_source` — never recording `unavailable_by_source` as a fact
+status — rather than guessing. Silent omission is not allowed.
 
 ### Retroactive-Native Addendum — Amazon-family sources (Keepa / Camel)
 

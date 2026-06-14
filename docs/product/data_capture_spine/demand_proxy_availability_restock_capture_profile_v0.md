@@ -368,8 +368,9 @@ series to be honest; an undisclosed gap masquerades as "no stock change."
   to a public or account-holding observer within Ob.2 boundary compliance.
 - Variant-level granularity is required but may not always be achievable
   (some sources aggregate or obscure variant states). When granularity cannot
-  be achieved, record `unavailable_by_source` with reason at the affected
-  variant level; do not aggregate silently.
+  be achieved, record the affected variant's status as `unknown_with_reason`
+  (with reason) and discharge its capture obligation as `unavailable_by_source`;
+  do not aggregate silently.
 - Whether an OOS event is meaningful (duration, breadth, restock lag,
   cross-venue corroboration) is Judgment's read; capture records the event
   and its visible signals.
