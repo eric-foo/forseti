@@ -41,6 +41,14 @@ from source_capture.adapters.media_asset import (
     MediaAssetCaptureSuccess,
     fetch_media_assets,
 )
+from source_capture.adapters.publisher_history import (
+    PublisherHistoryCaptureFailure,
+    PublisherHistoryCaptureResult,
+    PublisherHistoryCaptureSuccess,
+    PublisherRevision,
+    fetch_github_history_capture,
+    fetch_mediawiki_history_capture,
+)
 from source_capture.adapters.reddit_api import (
     RedditApiCaptureFailure,
     RedditApiCaptureFailureKind,
@@ -80,6 +88,10 @@ __all__ = [
     "MediaAssetCaptureBatch",
     "MediaAssetCaptureFailure",
     "MediaAssetCaptureSuccess",
+    "PublisherHistoryCaptureFailure",
+    "PublisherHistoryCaptureResult",
+    "PublisherHistoryCaptureSuccess",
+    "PublisherRevision",
     "RedditApiCaptureFailure",
     "RedditApiCaptureFailureKind",
     "RedditApiCaptureResult",
@@ -96,6 +108,8 @@ __all__ = [
     "fetch_browser_snapshot_capture",
     "fetch_cloakbrowser_snapshot_capture",
     "fetch_direct_http_capture",
+    "fetch_github_history_capture",
     "fetch_media_assets",
+    "fetch_mediawiki_history_capture",
     "fetch_reddit_api_capture",
 ]
