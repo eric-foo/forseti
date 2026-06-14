@@ -241,8 +241,11 @@ forced into these labels when the source uses different language):
   membership; capture the subscription tier.
 - `none_observed` — list price = effective price; no promo mechanism
   visible at capture time.
-- `unavailable_by_source` — a promo is inferred or partially visible but
-  the mechanism cannot be determined from the observable.
+When the promo mechanism cannot be determined from the observable (a promo is
+inferred or only partially visible), `promo_mechanism` takes **no value from the
+vocabulary above**: its `VisibleFact` status is `unknown_with_reason` (with the
+reason) and the field's capture obligation is discharged `unavailable_by_source`.
+The list above is the set of source-visible *known* values only.
 
 When multiple mechanisms coexist, capture each separately. When the source
 shows a promo that changes during the observation window (e.g. sale ends

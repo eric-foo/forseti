@@ -218,9 +218,12 @@ Vocabulary (source-visible categories — record as observed):
 - `discontinued` — the source shows the variant as no longer produced,
   retired, or permanently unavailable (distinct from a temporary OOS).
   Capture the source-visible label.
-- `unavailable_by_source` — stock state cannot be determined from the
-  observable (e.g. variant selector present but state not shown, or the
-  variant does not appear on this page).
+When stock state cannot be determined from the observable (e.g. a variant
+selector is present but the state is not shown, or the variant does not appear
+on this page), `stock_status` takes **no value from the vocabulary above**: its
+`VisibleFact` status is `unknown_with_reason` (with the reason) and the field's
+capture obligation is discharged `unavailable_by_source`. The list above is the
+set of source-visible *known* values only.
 
 When the source aggregates multiple variants onto one page, capture state
 per variant; do not roll up to a product-level average or composite status.
