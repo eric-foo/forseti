@@ -1,0 +1,147 @@
+name: auto-merge
+
+# Lands clean + green lane PRs that opt in via the `agent-automerge` label, without
+# the human merge step — within this repo's reality that native auto-merge and
+# branch protection are 403-blocked (private repo on a free plan). See
+# docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md (item 7, the
+# 2026-06-14 structure-B amendment).
+#
+# The interactive-agent EP-03 gate (.agents/hooks/guard_protected_actions.py) is
+# UNCHANGED: it already allows the agent to `gh pr merge` only a CLEAN + green +
+# `agent-automerge`-labeled PR, in-session. THIS workflow is the UNATTENDED
+# extension of that structure-B′ self-merge — a separate, code-enforced actor that
+# runs in Actions (not through the PreToolUse hook) and lands the same opt-in PRs
+# overnight / with no session, under the guardrails below. Same label, one merge
+# actor or the other lands it first.
+#
+# Conflict-prevention guardrails (the contract the owner asked for):
+#   1. opt-in    — PR must carry the `agent-automerge` label.
+#   2. no conflict — mergeable == MERGEABLE (GitHub recomputes this vs CURRENT main,
+#                    so it self-corrects across serial merges; this is the class the
+#                    #83/#87 stacked-squash conflict fell into).
+#   3. green     — the `orca-harness-tests` CI check is SUCCESS and nothing is
+#                  failing or still pending.
+#   4. up-to-date — behind_by == 0 vs main, so two independently-green branches
+#                   cannot break main when combined. (This guard is stricter than
+#                   the in-session self-merge path, which checks CLEAN but not
+#                   up-to-date.)
+#   5. serialize — merge AT MOST ONE PR per run, then exit. The next CI completion
+#                  or the cron backstop handles the next, so GitHub fully recomputes
+#                  mergeability between merges (there is no native merge queue here).
+#   6. squash + delete branch (the repo default).
+#   7. head-pinned — merge with `--match-head-commit` (a post-check push fails
+#                  the merge loudly instead of landing an untested head), and
+#                  cross-repository (fork) PRs are skipped (their up-to-date
+#                  compare can't be trusted and unattended fork merge is unsafe).
+#
+# Honest limitation: a bot merge via GITHUB_TOKEN does NOT re-trigger the push:main
+# CI run (GitHub's no-recursion rule), so main-CI is not a redundant post-merge
+# backstop for bot-landed commits. The PR's own green check plus guardrail 4 stand
+# in for that.
+
+on:
+  workflow_run:
+    workflows: [ci]
+    types: [completed]
+  schedule:
+    - cron: "0 */3 * * *"   # sparse backstop; the primary path is CI-completion
+  workflow_dispatch:
+
+permissions:
+  contents: write          # repo default is read-only; this workflow opts up to
+  pull-requests: write     # least-privilege write for merge + branch delete.
+  checks: read             # an explicit permissions block zeroes unlisted scopes;
+  statuses: read           # checks+statuses read are needed to read statusCheckRollup.
+
+concurrency:
+  group: auto-merge        # never run two mergers at once
+  cancel-in-progress: false
+
+jobs:
+  auto-merge:
+    # On a CI-completion trigger, only proceed if that CI run was green.
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      GH_TOKEN: ${{ github.token }}
+      REPO: ${{ github.repository }}
+      CI_CHECK: orca-harness-tests
+      AUTOMERGE_LABEL: agent-automerge
+    steps:
+      - name: Merge one eligible auto-merge PR
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          # Open PRs that opted in via the label. Run the list as a CHECKED
+          # command (not inside the mapfile process substitution, whose failure
+          # bash would swallow) so an API/auth failure aborts loudly instead of
+          # silently looking like "no PRs". --limit lifts the default 30-PR cap.
+          # Filtering in jq (not `gh pr list --label`) makes a missing label an
+          # empty set instead of an error.
+          prs_json=$(gh pr list --repo "$REPO" --state open --limit 200 --json number,labels)
+          mapfile -t prs < <(jq -r --arg lbl "$AUTOMERGE_LABEL" \
+            '.[] | select(any(.labels[]?; .name==$lbl)) | .number' <<<"$prs_json")
+
+          if [ "${#prs[@]}" -eq 0 ]; then
+            echo "No open PRs carry the '$AUTOMERGE_LABEL' label. Nothing to do."
+            exit 0
+          fi
+
+          for n in "${prs[@]}"; do
+            echo "::group::Evaluating PR #$n"
+            data=$(gh pr view "$n" --repo "$REPO" \
+              --json isDraft,isCrossRepository,mergeable,headRefName,headRefOid,baseRefName,statusCheckRollup)
+
+            is_draft=$(jq -r '.isDraft' <<<"$data")
+            is_cross=$(jq -r '.isCrossRepository' <<<"$data")
+            mergeable=$(jq -r '.mergeable' <<<"$data")
+            head=$(jq -r '.headRefName' <<<"$data")
+            head_oid=$(jq -r '.headRefOid' <<<"$data")
+            base=$(jq -r '.baseRefName' <<<"$data")
+
+            # Only land same-repo lane PRs that target main, and never a draft.
+            # Cross-repository (fork) PRs are never auto-merged: the up-to-date
+            # compare can't be trusted for a fork head, and unattended fork
+            # auto-merge is a supply-chain hazard. Flag and skip.
+            if [ "$base" != "main" ]; then echo "skip: base is '$base', not main"; echo "::endgroup::"; continue; fi
+            if [ "$is_cross" = "true" ]; then echo "skip: cross-repository (fork) PR — not auto-merged"; echo "::endgroup::"; continue; fi
+            if [ "$is_draft" = "true" ]; then echo "skip: draft"; echo "::endgroup::"; continue; fi
+
+            # Guard 2 — no textual conflict (recomputed vs current main).
+            if [ "$mergeable" != "MERGEABLE" ]; then
+              echo "skip: mergeable=$mergeable (conflict, or still computing)"; echo "::endgroup::"; continue
+            fi
+
+            # Guard 3 — green: every check is SUCCESS/NEUTRAL/SKIPPED (and there is
+            # at least one), AND the named CI check passed.
+            all_green=$(jq -r '
+              [ .statusCheckRollup[]?
+                | if has("conclusion") then (.conclusion // "PENDING") else (.state // "PENDING") end ]
+              | (length > 0) and (all(. as $s | (["SUCCESS","NEUTRAL","SKIPPED"] | index($s)) != null))
+            ' <<<"$data")
+            ci_success=$(jq -r --arg c "$CI_CHECK" '
+              [ .statusCheckRollup[]? | select(.name==$c) | .conclusion ] | any(. == "SUCCESS")
+            ' <<<"$data")
+            if [ "$all_green" != "true" ]; then echo "skip: a check is failing or pending"; echo "::endgroup::"; continue; fi
+            if [ "$ci_success" != "true" ]; then echo "skip: CI check '$CI_CHECK' is not SUCCESS"; echo "::endgroup::"; continue; fi
+
+            # Guard 4 — up-to-date with main. Compare by the head SHA (not the
+            # branch name): unambiguous and free of branch-name encoding issues.
+            # behind_by counts commits in main not reachable from the head.
+            behind=$(gh api "repos/$REPO/compare/main...$head_oid" --jq '.behind_by')
+            if [ "$behind" != "0" ]; then echo "skip: behind main by $behind commit(s) — rebase to enable"; echo "::endgroup::"; continue; fi
+
+            echo "PR #$n is eligible (labeled, mergeable, green, up-to-date). Merging (squash)."
+            # Pin the merge to the exact head we just validated. If a new commit
+            # was pushed after the checks above (a TOCTOU race), the merge fails
+            # loudly instead of landing an untested head; the next trigger
+            # re-evaluates the new commit.
+            gh pr merge "$n" --repo "$REPO" --squash --delete-branch --match-head-commit "$head_oid"
+            echo "Merged PR #$n at $head_oid. Stopping — one merge per run for safe serialization."
+            echo "::endgroup::"
+            exit 0
+          done
+
+          echo "No eligible PR this run."

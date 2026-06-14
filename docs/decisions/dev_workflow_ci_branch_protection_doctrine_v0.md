@@ -36,6 +36,12 @@ Accepted 2026-06-09 (owner sign-off, eric-foo); amended 2026-06-09 to record the
   block-all-merges form landed via PR #15 — this amendment relaxes it to the CLEAN-gated form, owner-ratified 2026-06-12). The server-side hard gate (items 2 and 4) is the
   deferred target end-state, unblocked only by a GitHub Pro/Team upgrade or making the repo public —
   and remains the only **harness-agnostic** gate (this guard is Claude-Code-scoped).
+- **Unattended auto-merge (added 2026-06-14, this lane):** a CI-controlled GitHub Actions workflow
+  (`.github/workflows/auto-merge.yml`) now lands a labeled (`agent-automerge`), clean, green, and
+  **up-to-date** lane PR with **no agent session** — the unattended extension of structure B′ (Decision
+  item 9). It uses an immediate `gh pr merge --squash` that does **not** need the 403-blocked
+  `allow_auto_merge`, so it is still **not** the server-side gate. Code-backed; the first live run is
+  owner-triggered and fail-safe (an ineligible PR is skipped, never mis-merged).
 
 This record does not assert that any server-side gate is active. It is not.
 
@@ -68,7 +74,9 @@ This record does not assert that any server-side gate is active. It is not.
 4. **Auto-merge** (TARGET — deferred; blocked on this private+free repo). When available, repo
    `allow_auto_merge` lets a lane set a PR to land the moment CI is green (unattended/overnight).
    `delete_branch_on_merge` **is** enabled now (it is not plan-gated); merged head branches are
-   auto-deleted.
+   auto-deleted. (Update 2026-06-14: an **interim** unattended auto-merge that does **not** need the
+   403-blocked `allow_auto_merge` is now live via a CI-controlled Actions workflow — see Decision item
+   9; the native `allow_auto_merge` + merge-queue path remains the deferred gold-standard target.)
 5. **Merge method.** Lane PRs squash-merge by default — one tidy commit per lane on `main`. Other
    methods remain available; squash is the documented default.
 6. **Rebase cadence.** Each lane keeps its branch reasonably current with `main` (rebase or merge
@@ -118,6 +126,24 @@ This record does not assert that any server-side gate is active. It is not.
    (operator- or periodic-run), never an unattended block — early detection chosen over a hard
    SessionStart reminder, which was considered and not taken. The detector is read-only with respect
    to the working tree, index, and local branches; `-Fetch` is its only network action.
+9. **Unattended auto-merge bot (extends structure B′).** `.github/workflows/auto-merge.yml` is the
+   **unattended** extension of item 7: where structure B′ lets the **in-session** agent self-merge a
+   CLEAN + green + `agent-automerge`-labeled PR via the guard, this workflow lands the **same** opt-in
+   PRs **with no agent session** — triggered on CI completion (`workflow_run` on `ci`), with a 3-hour
+   `cron` backstop and `workflow_dispatch`. It runs in Actions (declaring its own `contents` /
+   `pull-requests: write`, since the repo default is read-only) and is **not** subject to the PreToolUse
+   guard, so it carries its **own** guardrails in code: the `agent-automerge` label, `mergeable ==
+   MERGEABLE`, the `orca-harness-tests` check green (and no failing/pending check), **`behind_by == 0`
+   (up-to-date with `main`)**, **one merge per run** (safe serialization — there is no native merge
+   queue), and squash + delete-branch. The up-to-date guard is **stricter than** the in-session guard
+   path (which checks CLEAN but not up-to-date); closing that gap in the guard itself is a deferred
+   enforcement-lane follow-on. It uses an immediate `gh pr merge --squash`, which needs no
+   `allow_auto_merge` (item 4), so it is **not** the server-side gate. **Honest limitation:** a bot
+   merge via `GITHUB_TOKEN` does not re-trigger the `push:main` CI run (GitHub's no-recursion rule); the
+   PR's own green check plus the up-to-date guard stand in. The EP-03 guard and `merge-when-green.ps1`
+   are unchanged. **Liveness:** code-backed and YAML/logic-checked; the **first live merge is
+   owner-triggered** and fail-safe (an ineligible PR is skipped, never mis-merged) — this record does
+   **not** claim a proven unattended merge.
 
 ## Why core-only CI (evidence)
 
@@ -542,4 +568,69 @@ direction_change_propagation:
       self-merge until wired
     - not durable on main until this amendment's own PR is landed by a human (the pre-amendment guard
       blocks the agent from self-merging it)
+```
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Adds Decision item 9: an unattended GitHub Actions auto-merge bot
+    (.github/workflows/auto-merge.yml) that is the unattended extension of structure B' (item 7).
+    Where the guard lets the in-session agent self-merge a CLEAN + green + agent-automerge-labeled PR,
+    this workflow lands the SAME opt-in PRs with no agent session, triggered on CI completion plus a
+    3-hour cron backstop and workflow_dispatch. It carries its own in-code guardrails: the
+    agent-automerge label, mergeable == MERGEABLE, orca-harness-tests green (no failing/pending check),
+    behind_by == 0 (up-to-date with main), one merge per run, and squash + delete-branch. It uses an
+    immediate `gh pr merge --squash` that does NOT need the 403-blocked allow_auto_merge, so it is an
+    interim unattended auto-merge, NOT the deferred server-side gate. The EP-03 guard and
+    merge-when-green.ps1 are unchanged; the workflow runs in Actions, not through the PreToolUse hook.
+  trigger: workflow_authority
+  related_triggers:
+    - lifecycle_boundary
+  controlling_sources_updated:
+    - docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md
+    - .github/workflows/auto-merge.yml
+  downstream_surfaces_checked:
+    - .agents/hooks/guard_protected_actions.py
+    - .github/workflows/ci.yml
+    - .agents/workflow-overlay/safety-rules.md
+  intentionally_not_updated:
+    - path: .agents/hooks/guard_protected_actions.py
+      reason: >
+        Frozen enforcement-lane surface. The bot runs in Actions (not through the PreToolUse hook) and
+        carries its guardrails independently; the in-session guard's lack of an up-to-date check is a
+        documented residual and a deferred enforcement-lane follow-on, not closed here.
+    - path: .github/workflows/ci.yml
+      reason: >
+        Referenced by the bot's workflow_run trigger (workflows: [ci]) and as the orca-harness-tests
+        green gate; its content is unchanged.
+    - path: .agents/workflow-overlay/safety-rules.md
+      reason: >
+        The do-not-push/merge-unless-authorized rule is unchanged; the bot is an Actions actor, not an
+        agent lane, and the owner lands this lane's own PR.
+  verification: >
+    auto-merge.yml parses (python yaml.safe_load OK): workflow name auto-merge, concurrency group
+    auto-merge, env AUTOMERGE_LABEL=agent-automerge, permissions contents/pull-requests: write, triggers
+    workflow_run[ci] + schedule(0 */3 * * *) + workflow_dispatch. All label references are
+    agent-automerge while name/concurrency stay auto-merge; the jq eligibility filters were hand-traced
+    (green -> eligible; failing/pending/no-checks -> skip). NOT live-run: jq is not installed locally and
+    the workflow cannot run until on main; the first live merge is owner-triggered and fail-safe.
+  stale_language_search: >
+    rg -i -n "auto.?merge|allow_auto_merge|unattended|overnight"
+    docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md
+    (run 2026-06-14 in the automerge-bot-v0 worktree off origin/main @ 8e54aad)
+  stale_language_search_result: >
+    Executed 2026-06-14. Item 4 (native auto-merge deferred/blocked) now carries a parenthetical pointer
+    to the interim Actions-bot path (item 9); the Status section carries the unattended-auto-merge
+    bullet; item 9 is the canonical home. No live surface still implies the human merge is the only
+    interim or that no unattended auto-merge exists. The "deferred target" wording for the native
+    allow_auto_merge + server gate stays accurate (item 9 is explicitly not that gate).
+  non_claims:
+    - not validation, readiness, or acceptance of any lane's content
+    - the bot is code-backed and logic-checked, NOT a proven unattended merge; the first live run is
+      owner-triggered and fail-safe (ineligible PR skipped, never mis-merged)
+    - not the server-side branch-protection / native auto-merge gate (still 403-blocked); an interim
+      Actions-bot mechanism
+    - the in-session guard path still lacks an up-to-date check (documented residual); the guard is
+      unchanged this lane
+    - the owner lands this lane's own PR
 ```
