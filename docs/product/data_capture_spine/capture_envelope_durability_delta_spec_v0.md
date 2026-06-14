@@ -149,9 +149,14 @@ since a series observation maps to a `SourceCaptureSlice`), each carried as a
 These are **capture facts that fix comparability across a series**. They are not
 normalization (Cleaning's job), not currency conversion, and not a decision
 about which variant matters (Judgment's job). When a pin is unknown or the source
-does not expose it, the capture records `unknown_with_reason` /
-`unavailable_by_source` rather than guessing — silent omission is not allowed
-(obligation-contract rule, reused).
+does not expose it, the capture records the pin's **fact status** as a valid
+`VisibleFactStatus` — `unknown_with_reason` (or `not_applicable` where the pin
+cannot apply), with a reason — and, where the source's non-exposure discharges
+the pin's *capture obligation*, records that separately as the
+obligation-discharge state `unavailable_by_source`. `unavailable_by_source` is
+an obligation-discharge state, **not** a `VisibleFactStatus`, and is never
+written as a fact's status. Silent omission is not allowed (obligation-contract
+rule, reused).
 
 **Relationship to the envelope of record.** This narrows, for durability
 proxies, what today lives generically inside `capture_context`. It does not
