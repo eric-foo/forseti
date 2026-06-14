@@ -4,15 +4,15 @@
 retrieval_header_version: 1
 artifact_role: Product-method spec (delta on the Capture Envelope of record)
 scope: >
-  Extension/delta spec for demand-durability proxy capture. Specifies ONLY the
+  Extension/delta spec for demand-durability indicator capture. Specifies ONLY the
   capture facts the existing Capture Envelope of record does not yet name as
   first-class, plus the cross-cutting temporal-regime / cold-start doctrine the
-  four proxy specs (price, availability, search-interest, review) will consume.
+  four indicator specs (price, availability, search-interest, review) will consume.
   It does not re-derive, replace, or fork the envelope of record.
 use_when:
-  - Specifying a demand-durability proxy capture (price, availability, search-interest, review) that observes a source repeatedly over time.
+  - Specifying a demand-durability indicator capture (price, availability, search-interest, review) that observes a source repeatedly over time.
   - Checking how durability-over-time capture facts (pinning, cold-start, series-diff, cadence) sit on top of the existing Source Capture packet schema and obligation contract.
-  - Consuming the three temporal regimes or the cold-start inherent-limit cap from a downstream proxy spec.
+  - Consuming the three temporal regimes or the cold-start inherent-limit cap from a downstream indicator spec.
 authority_boundary: retrieval_only
 open_next:
   - orca-harness/source_capture/models.py                                              # Capture Envelope of record (schema)
@@ -23,7 +23,7 @@ stale_if:
   - The Source Capture packet schema (orca-harness/source_capture/models.py) changes PacketTiming, the closed posture vocabularies, hash_basis, or re_capture_relationship in a way that overlaps these delta facts.
   - The Data Capture obligation contract is amended in a way that already names one of the five new elements below.
   - An owner decision adopts, narrows, or rejects any of the five new elements, or amends the temporal-regime / cold-start doctrine.
-  - A proxy spec (price, availability, search-interest, review) supersedes the temporal-regime / cold-start section with its own owner-accepted version.
+  - A indicator spec (price, availability, search-interest, review) supersedes the temporal-regime / cold-start section with its own owner-accepted version.
 ```
 
 - Status: `DELTA_SPEC_DRAFT_V0`
@@ -36,7 +36,7 @@ stale_if:
 ## What This Is (And Is Not)
 
 This is an **extension/delta note on the Capture Envelope of record**, not a new
-Capture Envelope. It exists because demand-durability proxies (price,
+Capture Envelope. It exists because demand-durability indicators (price,
 availability, search-interest, review) are captured as a **series over time**,
 and that durability-over-time reading needs a small set of capture facts named
 as first-class that the envelope of record today carries only generically.
@@ -128,7 +128,7 @@ mixing GBP and USD, a locale that flips a product in/out of stock, or a variant
 swap (50ml vs 100ml) makes two observations non-comparable, and the comparison
 break is invisible if the pinning condition is buried in prose.
 
-**Spec (capture fact only).** A demand-durability proxy capture must record the
+**Spec (capture fact only).** A demand-durability indicator capture must record the
 following as **named, first-class capture facts** per observation (per slice,
 since a series observation maps to a `SourceCaptureSlice`), each carried as a
 `VisibleFact` so unknown/not-attempted/not-applicable ride on status:
@@ -140,7 +140,7 @@ since a series observation maps to a `SourceCaptureSlice`), each carried as a
   from `session_identity` (which distinguishes sessions for provenance, Ob.3).
 - `locale_pin` — the locale/region/language context the surface rendered in
   (e.g. `en-GB`, `US`), when locale changes what is shown.
-- `currency_pin` — the currency the surface presented values in, when the proxy
+- `currency_pin` — the currency the surface presented values in, when the indicator
   observes priced or monetary surfaces.
 - `variant_pin` — the specific product/offer/page variant observed (size, SKU,
   pack, edition, plan tier), when a source exposes multiple variants and the
@@ -159,9 +159,9 @@ written as a fact's status. Silent omission is not allowed (obligation-contract
 rule, reused).
 
 **Relationship to the envelope of record.** This narrows, for durability
-proxies, what today lives generically inside `capture_context`. It does not
+indicators, what today lives generically inside `capture_context`. It does not
 replace `capture_context`; it names the four pins that recur across all four
-proxies so a downstream reader can see a comparability break without parsing
+indicators so a downstream reader can see a comparability break without parsing
 prose. Whether these pins eventually become schema fields is a contract-hardening
 decision and is **out of scope** (owner-gated).
 
@@ -175,11 +175,11 @@ relationship, but it does not mark the **series' own origin** — the fact that
 history before the first observation is absent by construction, not merely
 unobserved-this-run.
 
-**Spec (capture fact only).** A demand-durability proxy series must carry a
+**Spec (capture fact only).** A demand-durability indicator series must carry a
 **per-series cold-start marker** on its first observation, recording:
 
 - `series_id` — the identifier that binds the observations into one series
-  (which source surface, for which decision/proxy). This is the join key the
+  (which source surface, for which decision/indicator). This is the join key the
   series-diff (Element 3) operates over.
 - `cold_start_at` — the series origin: the timing at/after which coverage
   begins (normally the first `capture_time`), carried as a `VisibleFact`.
@@ -213,7 +213,7 @@ patterns that only become visible across many observations (e.g. a value that
 was present in observations 1–8, silently edited at 9, and the edit back-dated;
 or a review/thread that existed early in the series and was deleted later).
 
-**Spec (capture fact / observed-pattern only).** A demand-durability proxy
+**Spec (capture fact / observed-pattern only).** A demand-durability indicator
 series may carry a **series-level recapture-diff** record, distinct from and
 additive to the per-capture `re_capture_relationship`. It records, across the
 ordered observations of one `series_id`, the **observed source-state changes**:
@@ -260,7 +260,15 @@ primitive**: `CadencePlan` with modes `fixed` and `bounded_jitter`,
 This delta **references** it and does not re-invent scheduling math, a scheduler,
 or a runtime.
 
-**Spec (capture doctrine + capture fact).** A demand-durability proxy series
+**Scale note (owner, 2026-06-15).** The demand-durability indicator sampling
+rhythm is **hourly-to-daily**, whereas `CadencePlan` is a within-session,
+**seconds-scale** anti-block jitter planner — so it lends *vocabulary* (mode,
+`slot_count`, offsets) only; a real hourly/daily sampling cadence and the
+runtime/scheduler to execute it are a separate build step (out of scope). An
+hourly/daily rhythm is also unambiguously **standing** capture — see
+`demand_durability_indicator_standing_capture_obligation_home_decision_framing_v0.md`.
+
+**Spec (capture doctrine + capture fact).** A demand-durability indicator series
 should:
 
 - declare its **intended cadence** for the series, using the existing
@@ -284,12 +292,12 @@ gaps are honest; cadence is not a quality score.
 ### Element 5 — Cross-Cutting Doctrine: The Three Temporal Regimes + Cold-Start As Inherent-Limit Cap
 
 This is the **most valuable output of this delta** and is written to be
-**self-contained**: the four proxy specs (price, availability, search-interest,
+**self-contained**: the four indicator specs (price, availability, search-interest,
 review) cite this section directly.
 
 #### The three temporal regimes
 
-Every demand-durability proxy source falls into one of three **temporal
+Every demand-durability indicator source falls into one of three **temporal
 regimes**, defined by *what history the source itself makes available at capture
 time*. The regime is a **capture-time classification of the source**, not a
 judgment about the demand:
@@ -319,7 +327,7 @@ judgment about the demand:
    the gap semantics (un-observed interval ≠ no-change) as a visible limitation;
    cadence (Element 4) governs how confidently absence-of-event can be stated.
 
-A single proxy or even a single series may touch more than one regime across its
+A single indicator or even a single series may touch more than one regime across its
 slices/locators (e.g. a live forward-only surface plus a retroactive-native
 archive of the same source). When regimes coexist, the capture records the
 regime **per relevant source slice/locator** (the same per-slice discipline
@@ -347,7 +355,7 @@ is to make the cap **visible and correctly classified** (which regime, how far
 back coverage reaches, why earlier is unrecoverable). Capture does **not** decide
 whether the cap is acceptable for a given decision — that is Judgment's call.
 
-#### What downstream proxy specs consume from this section
+#### What downstream indicator specs consume from this section
 
 - the three-regime classification (per slice/locator; `mixed` when they coexist);
 - the cold-start marker (Element 2) as the anchor of the cap;
@@ -390,8 +398,8 @@ taxonomy). Concretely, in this spec:
 - **No ECR / Cleaning / Judgment design.** No ECR fields, keys, schemas,
   Cleaning transformations, normalization rules, currency conversion, or
   Judgment/scoring logic.
-- **Out of scope and untouched:** distribution / org-motion proxies and
-  repurchase proxies (deferred). This delta does not mention, design, or imply
+- **Out of scope and untouched:** distribution / org-motion indicators and
+  repurchase indicators (deferred). This delta does not mention, design, or imply
   them beyond this exclusion.
 - **Commissioned capture only.** The obligation contract's commissioning gate
   (Ob.1) still binds; durability series are commissioned against a Decision
@@ -407,4 +415,4 @@ source-access boundary amendment, obligation-contract amendment, schema change,
 ECR design, Cleaning implementation, Judgment design, or commercial-readiness
 evidence. It is a design+spec delta that cites the existing Capture Envelope of
 record and names the durability-over-time capture facts and doctrine the four
-demand-durability proxy specs will consume next.
+demand-durability indicator specs will consume next.
