@@ -890,8 +890,8 @@ direction_change_propagation:
     - orca-harness/source_capture/models.py
   downstream_surfaces_checked:
     - docs/product/data_capture_spine/capture_envelope_durability_delta_spec_v0.md
-    - docs/product/data_capture_spine/demand_proxy_price_timeseries_capture_profile_v0.md
-    - docs/product/data_capture_spine/demand_proxy_availability_restock_capture_profile_v0.md
+    - docs/product/data_capture_spine/demand_durability_indicator_price_timeseries_capture_profile_v0.md
+    - docs/product/data_capture_spine/demand_durability_indicator_availability_restock_capture_profile_v0.md
     - docs/decisions/distillation_binding_data_capture_v0.md
     - orca-harness/source_capture/writer.py
     - orca-harness/runners/run_source_capture_http_packet.py
