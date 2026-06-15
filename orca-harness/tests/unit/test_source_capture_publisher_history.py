@@ -11,6 +11,7 @@ from source_capture.adapters.direct_http import DirectHttpCaptureFailure, Direct
 from source_capture.adapters.publisher_history import (
     PublisherHistoryCaptureFailure,
     PublisherHistoryCaptureSuccess,
+    _PUBLISHER_HISTORY_PAGE_SIZE,
     build_github_history_url,
     build_mediawiki_history_url,
     fetch_github_history_capture,
@@ -55,12 +56,31 @@ _MEDIAWIKI_LISTINGS = {
         {"revid": 220, "parentid": 219, "timestamp": "2024-05-15T10:00:00Z"},  # latest <= cutoff
         {"revid": 100, "parentid": 99, "timestamp": "2023-01-01T00:00:00Z"},
     ],
+    # PH-03: first entry is unproofed (missing timestamp), second entry is the proofed one.
+    "Unproofed Top": [
+        {"revid": 888},  # missing timestamp -> skipped by parser
+        {"revid": 444, "parentid": 443, "timestamp": "2024-05-10T08:00:00Z"},
+    ],
+    # PH-02: body revid mismatch test
+    "Body Revid Mismatch": [
+        {"revid": 333, "parentid": 332, "timestamp": "2024-05-15T10:00:00Z"},
+    ],
+    # PH-01 body non-2xx test
+    "Body Non-2xx": [
+        {"revid": 666, "parentid": 665, "timestamp": "2024-05-15T10:00:00Z"},
+    ],
 }
 
 _MEDIAWIKI_CONTENT = {
-    "555": (200, b"<wikitext>with body revision 555</wikitext>"),
-    "220": (200, b"<wikitext>multi latest pre-cutoff revision 220</wikitext>"),
+    # revid -> (status, body_bytes, timestamp_in_content_response)
+    "555": (200, b"<wikitext>with body revision 555</wikitext>", "2024-05-15T10:00:00Z"),
+    "220": (200, b"<wikitext>multi latest pre-cutoff revision 220</wikitext>", "2024-05-15T10:00:00Z"),
+    "444": (200, b"<wikitext>unproofed-top second proofed revision 444</wikitext>", "2024-05-10T08:00:00Z"),
     # revid 777 (Body Fails) intentionally absent -> content endpoint returns 204 empty -> PARTIAL.
+    # revid 333 (Body Revid Mismatch): content endpoint returns a different revid (sentinel).
+    "333": (200, "mismatch", None),  # special sentinel: server returns wrong revid
+    # revid 666 (Body Non-2xx): content endpoint returns 403 with body.
+    "666": (403, b"<html>Forbidden</html>", None),
 }
 
 
@@ -79,12 +99,22 @@ _GITHUB_LISTINGS = {
         _github_commit("sha-latest", "2024-05-15T10:00:00Z"),  # latest <= cutoff
         _github_commit("sha-old", "2023-01-01T00:00:00Z"),
     ],
+    # PH-03: first entry has no sha (unproofed), second is the proofed entry.
+    "docs/unproofed-top.md": [
+        {"sha": None, "commit": {"committer": {"date": "2024-05-12T00:00:00Z"}}},  # unproofed
+        _github_commit("sha-proofed-second", "2024-05-10T00:00:00Z"),
+    ],
+    # PH-01 body non-2xx test
+    "docs/body-non-2xx.md": [_github_commit("sha-non2xx", "2024-05-15T10:00:00Z")],
 }
 
 _GITHUB_RAW = {
     "sha-withbody": (200, b"# with body file content"),
     "sha-latest": (200, b"# multi latest pre-cutoff file content"),
+    "sha-proofed-second": (200, b"# second proofed entry content"),
     # sha-bodyfails intentionally absent -> raw endpoint returns 204 empty -> PARTIAL.
+    # sha-non2xx returns 403 -> PH-01 body non-2xx -> PARTIAL.
+    "sha-non2xx": (403, b"Forbidden"),
 }
 
 
@@ -118,9 +148,20 @@ def publisher_server():
                 if response is None:
                     self._send(204, b"")
                     return
-                status, body = response
+                status, body, content_ts = response
+                # Special sentinel: return a different revid to trigger PH-02 mismatch.
+                if body == "mismatch":
+                    payload = _mediawiki_listing(
+                        [{"revid": 9999, "timestamp": "2024-05-15T10:00:00Z", "content": "wrong"}]
+                    )
+                    self._send_json(status, payload)
+                    return
+                # Non-2xx body: return raw bytes (not JSON) with the error status.
+                if status >= 300:
+                    self._send(status, body)
+                    return
                 payload = _mediawiki_listing(
-                    [{"revid": int(revid), "timestamp": "2024-05-15T10:00:00Z", "content": body.decode()}]
+                    [{"revid": int(revid), "timestamp": content_ts, "content": body.decode()}]
                 )
                 self._send_json(status, payload)
                 return
@@ -128,6 +169,17 @@ def publisher_server():
                 # Empty body -> direct_http maps this to a NO_BODY DirectHttpCaptureFailure, i.e. a
                 # genuine transport-level listing-lookup failure (distinct from NO-GO/PARTIAL).
                 self._send(204, b"")
+                return
+            # PH-01 listing non-2xx: return a valid-shaped JSON body with a non-2xx status.
+            if title == "Listing Non-2xx":
+                payload = _mediawiki_listing(
+                    [{"revid": 123, "parentid": 122, "timestamp": "2024-05-15T10:00:00Z"}]
+                )
+                body_bytes = json.dumps(payload).encode("utf-8")
+                self.send_response(403)
+                self.send_header("Content-Type", "application/json")
+                self.end_headers()
+                self.wfile.write(body_bytes)
                 return
             revisions = _MEDIAWIKI_LISTINGS.get(title)
             if revisions is None:
@@ -137,6 +189,15 @@ def publisher_server():
 
         def _handle_github_listing(self, query: dict) -> None:
             path = query.get("path", [""])[0]
+            # PH-01 listing non-2xx: return valid-shaped JSON with a non-2xx status.
+            if path == "docs/listing-non-2xx.md":
+                commits = [_github_commit("sha-error", "2024-05-15T10:00:00Z")]
+                body_bytes = json.dumps(commits).encode("utf-8")
+                self.send_response(403)
+                self.send_header("Content-Type", "application/json")
+                self.end_headers()
+                self.wfile.write(body_bytes)
+                return
             commits = _GITHUB_LISTINGS.get(path)
             if commits is None:
                 self._send(500, b"unexpected github path")
@@ -155,6 +216,7 @@ def publisher_server():
                 self._send(204, b"")
                 return
             status, body = response
+            # For non-2xx raw responses the body is still returned (PH-01 body non-2xx test).
             self._send(status, body)
 
         def _send_json(self, status: int, payload: object) -> None:
@@ -416,22 +478,24 @@ def test_mediawiki_listing_transport_failure_returns_failure(
     assert isinstance(result.listing_result, DirectHttpCaptureFailure)
 
 
-def test_mediawiki_unparseable_listing_with_body_is_no_go_not_failure(
+def test_mediawiki_non2xx_listing_is_failure_not_no_go(
     publisher_server: dict[str, str],
 ) -> None:
-    # A non-2xx listing that still returns a body is a DirectHttpCaptureSuccess (body preserved),
-    # so the listing leg "succeeded"; the body just is not parseable revision JSON -> NO-GO with a
-    # parse_warning, never an opaque pass. This documents the availability/body boundary.
+    # PH-01: a non-2xx listing response (body preserved by direct_http) must not be treated as
+    # usable listing evidence.  The adapter must return PublisherHistoryCaptureFailure, NOT a
+    # NO-GO PublisherHistoryCaptureSuccess, because the listing is not usable at all.
     result = fetch_mediawiki_history_capture(
         wiki_api_base=publisher_server["wiki_api_base"],
-        title="Unknown Title",  # fake server answers HTTP 500 with a non-JSON body
+        title="Listing Non-2xx",  # server returns HTTP 403 with valid-shaped JSON body
         cutoff_timestamp=CUTOFF,
         timeout_seconds=5,
         max_bytes=4096,
     )
-    assert isinstance(result, PublisherHistoryCaptureSuccess)
-    assert result.selected_revision is None
-    assert result.parse_warning is not None
+    assert isinstance(result, PublisherHistoryCaptureFailure), (
+        "non-2xx listing must produce PublisherHistoryCaptureFailure, not a NO-GO success"
+    )
+    assert result.listing_result is not None
+    assert any("access_failed" in note for note in result.limitation_notes)
 
 
 def test_invalid_cutoff_raises_value_error(publisher_server: dict[str, str]) -> None:
@@ -455,7 +519,9 @@ def test_build_mediawiki_history_url_carries_cutoff_and_older_direction() -> Non
     query = parse_qs(urlparse(url).query)
     assert query["rvstart"] == ["2024-06-01T00:00:00Z"]
     assert query["rvdir"] == ["older"]
-    assert query["rvlimit"] == ["1"]
+    # PH-03: rvlimit must be the bounded page size, not 1, so the adapter can skip unproofed
+    # top entries and find the next proofed one.
+    assert query["rvlimit"] == [str(_PUBLISHER_HISTORY_PAGE_SIZE)]
     assert query["prop"] == ["revisions"]
 
 
@@ -469,4 +535,140 @@ def test_build_github_history_url_carries_until_and_path() -> None:
     query = parse_qs(urlparse(url).query)
     assert query["until"] == ["2024-06-01T00:00:00Z"]
     assert query["path"] == ["docs/multi.md"]
-    assert query["per_page"] == ["1"]
+    # PH-03: per_page must be the bounded page size, not 1.
+    assert query["per_page"] == [str(_PUBLISHER_HISTORY_PAGE_SIZE)]
+
+
+# --------------------------------------------------------------------------------------------------
+# PH-01 / PH-02 / PH-03 new fix tests
+# --------------------------------------------------------------------------------------------------
+
+
+def test_mediawiki_non2xx_body_is_partial(
+    publisher_server: dict[str, str],
+) -> None:
+    # PH-01: a non-2xx content response must be treated as PARTIAL (body not usable), even if
+    # bytes were preserved by direct_http.
+    result = fetch_mediawiki_history_capture(
+        wiki_api_base=publisher_server["wiki_api_base"],
+        title="Body Non-2xx",  # server returns HTTP 403 for revid 666
+        cutoff_timestamp=CUTOFF,
+        timeout_seconds=5,
+        max_bytes=4096,
+    )
+    assert isinstance(result, PublisherHistoryCaptureSuccess)
+    assert result.selected_revision is not None
+    assert result.selected_revision.identity == "666"
+    # Body must be a failure (PARTIAL), not a success.
+    assert isinstance(result.body_result, DirectHttpCaptureFailure), (
+        "non-2xx body must be a DirectHttpCaptureFailure (PARTIAL), not a success"
+    )
+    assert "access_failed" in result.body_result.message
+
+
+def test_github_non2xx_listing_is_failure_not_no_go(
+    publisher_server: dict[str, str],
+) -> None:
+    # PH-01: a non-2xx listing response must produce PublisherHistoryCaptureFailure, not NO-GO.
+    result = fetch_github_history_capture(
+        owner="acme",
+        repo="docs",
+        path="docs/listing-non-2xx.md",
+        cutoff_timestamp=CUTOFF,
+        api_base=publisher_server["github_api_base"],
+        raw_base=publisher_server["github_raw_base"],
+        timeout_seconds=5,
+        max_bytes=4096,
+    )
+    assert isinstance(result, PublisherHistoryCaptureFailure), (
+        "non-2xx listing must produce PublisherHistoryCaptureFailure, not a NO-GO success"
+    )
+    assert any("access_failed" in note for note in result.limitation_notes)
+
+
+def test_github_non2xx_body_is_partial(
+    publisher_server: dict[str, str],
+) -> None:
+    # PH-01: a non-2xx raw body response must be PARTIAL (not usable), even if bytes preserved.
+    result = fetch_github_history_capture(
+        owner="acme",
+        repo="docs",
+        path="docs/body-non-2xx.md",
+        cutoff_timestamp=CUTOFF,
+        api_base=publisher_server["github_api_base"],
+        raw_base=publisher_server["github_raw_base"],
+        timeout_seconds=5,
+        max_bytes=4096,
+    )
+    assert isinstance(result, PublisherHistoryCaptureSuccess)
+    assert result.selected_revision is not None
+    assert result.selected_revision.identity == "sha-non2xx"
+    assert isinstance(result.body_result, DirectHttpCaptureFailure), (
+        "non-2xx body must be a DirectHttpCaptureFailure (PARTIAL), not a success"
+    )
+    assert "access_failed" in result.body_result.message
+
+
+def test_mediawiki_body_revid_mismatch_is_partial(
+    publisher_server: dict[str, str],
+) -> None:
+    # PH-02: if the content response returns a different revid than selected, the body must be
+    # treated as PARTIAL/verification-failure, not a successful body.
+    result = fetch_mediawiki_history_capture(
+        wiki_api_base=publisher_server["wiki_api_base"],
+        title="Body Revid Mismatch",  # server returns revid 9999, selected is 333
+        cutoff_timestamp=CUTOFF,
+        timeout_seconds=5,
+        max_bytes=4096,
+    )
+    assert isinstance(result, PublisherHistoryCaptureSuccess)
+    assert result.selected_revision is not None
+    assert result.selected_revision.identity == "333"
+    assert isinstance(result.body_result, DirectHttpCaptureFailure), (
+        "revid mismatch must be a DirectHttpCaptureFailure (verification failure), not a success"
+    )
+    assert "verification_failed" in result.body_result.message
+
+
+def test_mediawiki_unproofed_top_entry_selects_next_proofed(
+    publisher_server: dict[str, str],
+) -> None:
+    # PH-03: if the top (first) entry is unproofed (missing timestamp), the adapter must select
+    # the next proofed entry instead of returning a false NO-GO.
+    result = fetch_mediawiki_history_capture(
+        wiki_api_base=publisher_server["wiki_api_base"],
+        title="Unproofed Top",  # first entry has no timestamp, second is revid 444
+        cutoff_timestamp=CUTOFF,
+        timeout_seconds=5,
+        max_bytes=4096,
+    )
+    assert isinstance(result, PublisherHistoryCaptureSuccess)
+    assert result.selected_revision is not None, (
+        "adapter must select the next proofed entry, not return false NO-GO"
+    )
+    assert result.selected_revision.identity == "444"
+    assert result.selected_revision.served_timestamp == "2024-05-10T08:00:00Z"
+    assert isinstance(result.body_result, DirectHttpCaptureSuccess)
+
+
+def test_github_unproofed_top_entry_selects_next_proofed(
+    publisher_server: dict[str, str],
+) -> None:
+    # PH-03: if the top entry is unproofed (missing/null sha), the adapter must select the next
+    # proofed entry instead of returning a false NO-GO.
+    result = fetch_github_history_capture(
+        owner="acme",
+        repo="docs",
+        path="docs/unproofed-top.md",
+        cutoff_timestamp=CUTOFF,
+        api_base=publisher_server["github_api_base"],
+        raw_base=publisher_server["github_raw_base"],
+        timeout_seconds=5,
+        max_bytes=4096,
+    )
+    assert isinstance(result, PublisherHistoryCaptureSuccess)
+    assert result.selected_revision is not None, (
+        "adapter must select the next proofed entry, not return false NO-GO"
+    )
+    assert result.selected_revision.identity == "sha-proofed-second"
+    assert isinstance(result.body_result, DirectHttpCaptureSuccess)
