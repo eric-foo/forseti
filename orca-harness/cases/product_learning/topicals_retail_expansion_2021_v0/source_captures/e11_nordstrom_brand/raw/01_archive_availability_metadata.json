@@ -1,0 +1,38 @@
+{
+  "availability_http_metadata": {
+    "byte_count": 184,
+    "capture_timestamp": "2026-06-15T13:45:39Z",
+    "content_length": null,
+    "content_type": "application/json",
+    "date": "Mon, 15 Jun 2026 13:45:39 GMT",
+    "etag": null,
+    "final_url": "https://web.archive.org/cdx/search/cdx?url=https%3A%2F%2Fwww.nordstrom.com%2Fbrands%2Ftopicals--21693&output=json&fl=timestamp%2Coriginal%2Cstatuscode%2Cmimetype%2Cdigest&collapse=digest&to=20201110000000&limit=-10",
+    "last_modified": null,
+    "reason": "OK",
+    "requested_url": "https://web.archive.org/cdx/search/cdx?url=https%3A%2F%2Fwww.nordstrom.com%2Fbrands%2Ftopicals--21693&output=json&fl=timestamp%2Coriginal%2Cstatuscode%2Cmimetype%2Cdigest&collapse=digest&to=20201110000000&limit=-10",
+    "status": 200,
+    "timeout_seconds": 90.0
+  },
+  "availability_url": "https://web.archive.org/cdx/search/cdx?url=https%3A%2F%2Fwww.nordstrom.com%2Fbrands%2Ftopicals--21693&output=json&fl=timestamp%2Coriginal%2Cstatuscode%2Cmimetype%2Cdigest&collapse=digest&to=20201110000000&limit=-10",
+  "original_url": "https://www.nordstrom.com/brands/topicals--21693",
+  "parse_warning": null,
+  "selected_snapshot": {
+    "digest": "GTNGM2NZ7VEB3VNQVEOV7SI2X53JOI2Q",
+    "mime_type": "text/html",
+    "original_url": "https://www.nordstrom.com/brands/topicals--21693",
+    "snapshot_url": "https://web.archive.org/web/20201109194021/https://www.nordstrom.com/brands/topicals--21693",
+    "status_code": "200",
+    "timestamp": "20201109194021"
+  },
+  "snapshot_count": 1,
+  "snapshots": [
+    {
+      "digest": "GTNGM2NZ7VEB3VNQVEOV7SI2X53JOI2Q",
+      "mime_type": "text/html",
+      "original_url": "https://www.nordstrom.com/brands/topicals--21693",
+      "snapshot_url": "https://web.archive.org/web/20201109194021/https://www.nordstrom.com/brands/topicals--21693",
+      "status_code": "200",
+      "timestamp": "20201109194021"
+    }
+  ]
+}

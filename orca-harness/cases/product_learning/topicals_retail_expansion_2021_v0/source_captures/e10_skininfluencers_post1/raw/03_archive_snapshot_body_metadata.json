@@ -1,0 +1,25 @@
+{
+  "original_url": "https://mytopicals.com/blogs/skindex/top-skininfluencers-post-1",
+  "selected_snapshot": {
+    "digest": "HADVM5YJW7JJ3W3NX2OX76X6EMQMKXTG",
+    "mime_type": "text/html",
+    "original_url": "https://mytopicals.com/blogs/skindex/top-skininfluencers-post-1",
+    "snapshot_url": "https://web.archive.org/web/20210303081931/https://mytopicals.com/blogs/skindex/top-skininfluencers-post-1",
+    "status_code": "200",
+    "timestamp": "20210303081931"
+  },
+  "snapshot_body_http_metadata": {
+    "byte_count": 132761,
+    "capture_timestamp": "2026-06-15T13:36:10Z",
+    "content_length": null,
+    "content_type": "text/html; charset=utf-8",
+    "date": "Mon, 15 Jun 2026 13:36:09 GMT",
+    "etag": null,
+    "final_url": "https://web.archive.org/web/20210303081931/https://mytopicals.com/blogs/skindex/top-skininfluencers-post-1",
+    "last_modified": null,
+    "reason": "OK",
+    "requested_url": "https://web.archive.org/web/20210303081931/https://mytopicals.com/blogs/skindex/top-skininfluencers-post-1",
+    "status": 200,
+    "timeout_seconds": 60.0
+  }
+}

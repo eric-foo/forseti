@@ -1,0 +1,277 @@
+{
+  "access_posture": {
+    "reason": null,
+    "status": "known",
+    "value": "archive_org availability metadata and selected snapshot body preserved"
+  },
+  "actor_audience_context": {
+    "reason": "actor or audience context was not supplied to the archive runner",
+    "status": "unknown_with_reason",
+    "value": null
+  },
+  "archive_history_posture": {
+    "reason": null,
+    "status": "known",
+    "value": "archived"
+  },
+  "capture_context": {
+    "reason": null,
+    "status": "known",
+    "value": "Archive.org availability/body source capture with Direct HTTP helper"
+  },
+  "capture_mode": "archive/history",
+  "cold_start_at": null,
+  "intended_cadence": null,
+  "limitations": [],
+  "manifest_version": "source_capture_packet_manifest_v1",
+  "media_modality_posture": {
+    "reason": "archive runner does not retrieve linked media assets",
+    "status": "not_applicable",
+    "value": null
+  },
+  "obligation_contract_version": "core_spine_v0_data_capture_spine_obligation_contract_v0",
+  "operator_category": "archive_org_cli_operator",
+  "packet_id": "01KV5QSNN9FPV5J9BM481SY228",
+  "pre_coverage_history_posture": null,
+  "preserved_files": [
+    {
+      "file_id": "file_01",
+      "hash_basis": "raw_stored_bytes",
+      "original_path": "C:\\Users\\vmon7\\Desktop\\projects\\orca\\.claude\\worktrees\\demand-read-fet\\orca-harness\\cases\\product_learning\\topicals_retail_expansion_2021_v0\\source_captures\\archive_availability_metadata.json",
+      "relative_packet_path": "raw/01_archive_availability_metadata.json",
+      "sha256": "a4fb9e272d26b8b7ee11380e19dac9fb2967007b3e8aeabe55d464f3e2485e15",
+      "size_bytes": 3193
+    },
+    {
+      "file_id": "file_02",
+      "hash_basis": "raw_stored_bytes",
+      "original_path": "C:\\Users\\vmon7\\Desktop\\projects\\orca\\.claude\\worktrees\\demand-read-fet\\orca-harness\\cases\\product_learning\\topicals_retail_expansion_2021_v0\\source_captures\\archive_snapshot_body.bin",
+      "relative_packet_path": "raw/02_archive_snapshot_body.bin",
+      "sha256": "ff2db40f4359009784388df6bdecf1a0d452bae31a2f456a5ee86690043497b2",
+      "size_bytes": 243892
+    },
+    {
+      "file_id": "file_03",
+      "hash_basis": "raw_stored_bytes",
+      "original_path": "C:\\Users\\vmon7\\Desktop\\projects\\orca\\.claude\\worktrees\\demand-read-fet\\orca-harness\\cases\\product_learning\\topicals_retail_expansion_2021_v0\\source_captures\\archive_snapshot_body_metadata.json",
+      "relative_packet_path": "raw/03_archive_snapshot_body_metadata.json",
+      "sha256": "34645c618e1f19b91ce95340de31429233ff84d86fa953009af4d720def26414",
+      "size_bytes": 1086
+    }
+  ],
+  "re_capture_relationship": {
+    "reason": "no prior source capture packet was supplied for this archive capture",
+    "status": "not_applicable",
+    "value": null
+  },
+  "receipt_metadata": {
+    "generated_at": "2026-06-15T13:33:36Z",
+    "non_claims": [
+      "not archive completeness proof",
+      "not source-state truth proof",
+      "not browser automation",
+      "not API SDK use",
+      "not Archive.org package use",
+      "not HTML meaning extraction",
+      "not OCR or image analysis",
+      "not scraper framework use",
+      "not proxy or session injection",
+      "not ECR design",
+      "not Cleaning implementation",
+      "not Judgment scoring",
+      "not buyer proof",
+      "not commercial-readiness logic"
+    ],
+    "summary": "Archive.org packet with availability metadata and snapshot body preserved for 20210303090202.",
+    "title": "Source Capture Packet Receipt"
+  },
+  "requested_decision_context": {
+    "reason": null,
+    "status": "known",
+    "value": "Topicals near-term distribution/growth (DTC -> national beauty retail) at <=2021-03-15 cutoff: buy-side demand-pressure signal (reviews/availability) from the Like Butter product page"
+  },
+  "series_id": null,
+  "session_identity": "01KV5QSNN9X1E7X7ZQABM229D4",
+  "source_family": "archive_org",
+  "source_locator": {
+    "reason": null,
+    "status": "known",
+    "value": "https://mytopicals.com/collections/shop-all/products/like-butter"
+  },
+  "source_slices": [
+    {
+      "access_posture": {
+        "reason": null,
+        "status": "known",
+        "value": "archive_org availability direct_http succeeded with HTTP 200 OK"
+      },
+      "archive_history_posture": {
+        "reason": null,
+        "status": "known",
+        "value": "archived"
+      },
+      "currency_pin": null,
+      "limitations": [],
+      "locale_pin": null,
+      "locator": {
+        "reason": null,
+        "status": "known",
+        "value": "https://web.archive.org/cdx/search/cdx?url=https%3A%2F%2Fmytopicals.com%2Fcollections%2Fshop-all%2Fproducts%2Flike-butter&output=json&fl=timestamp%2Coriginal%2Cstatuscode%2Cmimetype%2Cdigest&collapse=digest&to=20210315000000&limit=-10"
+      },
+      "media_modality_posture": {
+        "reason": "archive availability metadata is not a media asset",
+        "status": "not_applicable",
+        "value": null
+      },
+      "preserved_file_ids": [
+        "file_01"
+      ],
+      "re_capture_relationship": {
+        "reason": "no prior source capture packet was supplied for this archive capture",
+        "status": "not_applicable",
+        "value": null
+      },
+      "session_visibility_pin": null,
+      "slice_id": "archive_availability",
+      "timing": {
+        "archive_snapshot_time": {
+          "reason": null,
+          "status": "known",
+          "value": "2021-03-03T09:02:02Z"
+        },
+        "capture_time": {
+          "reason": null,
+          "status": "known",
+          "value": "2026-06-15T13:33:34Z"
+        },
+        "cutoff_posture": {
+          "reason": null,
+          "status": "known",
+          "value": "pre_cutoff"
+        },
+        "recapture_time": {
+          "reason": "archive packet did not model an earlier capture by default",
+          "status": "not_applicable",
+          "value": null
+        },
+        "source_edit_or_version": {
+          "reason": null,
+          "status": "known",
+          "value": "Archive.org availability metadata for the requested original URL; selected snapshot timestamp is recorded separately"
+        },
+        "source_publication_or_event": {
+          "reason": "Archive.org adapter did not infer original source publication or event timing",
+          "status": "unknown_with_reason",
+          "value": null
+        }
+      },
+      "variant_pin": null,
+      "warning_notes": []
+    },
+    {
+      "access_posture": {
+        "reason": null,
+        "status": "known",
+        "value": "archive_org snapshot body direct_http succeeded with HTTP 200 OK"
+      },
+      "archive_history_posture": {
+        "reason": null,
+        "status": "known",
+        "value": "archived"
+      },
+      "currency_pin": null,
+      "limitations": [],
+      "locale_pin": null,
+      "locator": {
+        "reason": null,
+        "status": "known",
+        "value": "https://web.archive.org/web/20210303090202/https://mytopicals.com/collections/shop-all/products/like-butter"
+      },
+      "media_modality_posture": {
+        "reason": "archive snapshot body is preserved as raw response body",
+        "status": "not_applicable",
+        "value": null
+      },
+      "preserved_file_ids": [
+        "file_02",
+        "file_03"
+      ],
+      "re_capture_relationship": {
+        "reason": "no prior source capture packet was supplied for this archive capture",
+        "status": "not_applicable",
+        "value": null
+      },
+      "session_visibility_pin": null,
+      "slice_id": "archive_snapshot_body",
+      "timing": {
+        "archive_snapshot_time": {
+          "reason": null,
+          "status": "known",
+          "value": "2021-03-03T09:02:02Z"
+        },
+        "capture_time": {
+          "reason": null,
+          "status": "known",
+          "value": "2026-06-15T13:33:36Z"
+        },
+        "cutoff_posture": {
+          "reason": null,
+          "status": "known",
+          "value": "pre_cutoff"
+        },
+        "recapture_time": {
+          "reason": "archive packet did not model an earlier capture by default",
+          "status": "not_applicable",
+          "value": null
+        },
+        "source_edit_or_version": {
+          "reason": null,
+          "status": "known",
+          "value": "Archive.org snapshot timestamp 20210303090202"
+        },
+        "source_publication_or_event": {
+          "reason": "Archive.org adapter did not infer original source publication or event timing",
+          "status": "unknown_with_reason",
+          "value": null
+        }
+      },
+      "variant_pin": null,
+      "warning_notes": []
+    }
+  ],
+  "source_surface": "archive_org_wayback",
+  "timing": {
+    "archive_snapshot_time": {
+      "reason": null,
+      "status": "known",
+      "value": "2021-03-03T09:02:02Z"
+    },
+    "capture_time": {
+      "reason": null,
+      "status": "known",
+      "value": "2026-06-15T13:33:36Z"
+    },
+    "cutoff_posture": {
+      "reason": null,
+      "status": "known",
+      "value": "pre_cutoff"
+    },
+    "recapture_time": {
+      "reason": "archive packet did not model an earlier capture by default",
+      "status": "not_applicable",
+      "value": null
+    },
+    "source_edit_or_version": {
+      "reason": null,
+      "status": "known",
+      "value": "Archive.org snapshot timestamp 20210303090202"
+    },
+    "source_publication_or_event": {
+      "reason": "Archive.org adapter did not infer original source publication or event timing",
+      "status": "unknown_with_reason",
+      "value": null
+    }
+  },
+  "visible_mode_changes": [],
+  "warnings": []
+}

@@ -1,0 +1,38 @@
+{
+  "availability_http_metadata": {
+    "byte_count": 194,
+    "capture_timestamp": "2026-06-15T13:25:44Z",
+    "content_length": null,
+    "content_type": "application/json",
+    "date": "Mon, 15 Jun 2026 13:25:44 GMT",
+    "etag": null,
+    "final_url": "https://web.archive.org/cdx/search/cdx?url=https%3A%2F%2Fmytopicals.com%2Fcollections%2Fshop-all%2Fproducts%2Ffaded&output=json&fl=timestamp%2Coriginal%2Cstatuscode%2Cmimetype%2Cdigest&collapse=digest&to=20210315000000&limit=-10",
+    "last_modified": null,
+    "reason": "OK",
+    "requested_url": "https://web.archive.org/cdx/search/cdx?url=https%3A%2F%2Fmytopicals.com%2Fcollections%2Fshop-all%2Fproducts%2Ffaded&output=json&fl=timestamp%2Coriginal%2Cstatuscode%2Cmimetype%2Cdigest&collapse=digest&to=20210315000000&limit=-10",
+    "status": 200,
+    "timeout_seconds": 60.0
+  },
+  "availability_url": "https://web.archive.org/cdx/search/cdx?url=https%3A%2F%2Fmytopicals.com%2Fcollections%2Fshop-all%2Fproducts%2Ffaded&output=json&fl=timestamp%2Coriginal%2Cstatuscode%2Cmimetype%2Cdigest&collapse=digest&to=20210315000000&limit=-10",
+  "original_url": "https://mytopicals.com/collections/shop-all/products/faded",
+  "parse_warning": null,
+  "selected_snapshot": {
+    "digest": "ERGXC4GL3EDO3W52LNBZGHHKIQ5R26J2",
+    "mime_type": "text/html",
+    "original_url": "https://mytopicals.com/collections/shop-all/products/faded",
+    "snapshot_url": "https://web.archive.org/web/20210210010815/https://mytopicals.com/collections/shop-all/products/faded",
+    "status_code": "200",
+    "timestamp": "20210210010815"
+  },
+  "snapshot_count": 1,
+  "snapshots": [
+    {
+      "digest": "ERGXC4GL3EDO3W52LNBZGHHKIQ5R26J2",
+      "mime_type": "text/html",
+      "original_url": "https://mytopicals.com/collections/shop-all/products/faded",
+      "snapshot_url": "https://web.archive.org/web/20210210010815/https://mytopicals.com/collections/shop-all/products/faded",
+      "status_code": "200",
+      "timestamp": "20210210010815"
+    }
+  ]
+}

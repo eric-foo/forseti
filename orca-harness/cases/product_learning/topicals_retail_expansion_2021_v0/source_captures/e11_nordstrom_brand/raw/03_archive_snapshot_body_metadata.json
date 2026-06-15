@@ -1,0 +1,25 @@
+{
+  "original_url": "https://www.nordstrom.com/brands/topicals--21693",
+  "selected_snapshot": {
+    "digest": "GTNGM2NZ7VEB3VNQVEOV7SI2X53JOI2Q",
+    "mime_type": "text/html",
+    "original_url": "https://www.nordstrom.com/brands/topicals--21693",
+    "snapshot_url": "https://web.archive.org/web/20201109194021/https://www.nordstrom.com/brands/topicals--21693",
+    "status_code": "200",
+    "timestamp": "20201109194021"
+  },
+  "snapshot_body_http_metadata": {
+    "byte_count": 149390,
+    "capture_timestamp": "2026-06-15T13:45:44Z",
+    "content_length": null,
+    "content_type": "text/html; charset=UTF-8",
+    "date": "Mon, 15 Jun 2026 13:45:42 GMT",
+    "etag": null,
+    "final_url": "https://web.archive.org/web/20201109194021/https://www.nordstrom.com/brands/topicals--21693",
+    "last_modified": null,
+    "reason": "OK",
+    "requested_url": "https://web.archive.org/web/20201109194021/https://www.nordstrom.com/brands/topicals--21693",
+    "status": 200,
+    "timeout_seconds": 90.0
+  }
+}
