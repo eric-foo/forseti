@@ -528,6 +528,17 @@ def _detect_access_blocked_page(
         and "file a ticket" in probe_text
     ):
         return "reddit_network_security_block"
+    # Amazon serves a low-content bot-mitigation interstitial in place of the product
+    # page -- a near-empty page whose only action is a "Click the button below to
+    # continue shopping" button -- AT the requested URL (no redirect), carrying none of
+    # the PDP price/availability/review substrate. That button copy does not appear on a
+    # real product page, so it is a low-false-positive signal. Classifying it
+    # access_failed makes the durability runner record an un-observed gap, not a fake
+    # observation (INV-1 / no-fake-success). Other Amazon bot variants (the "Enter the
+    # characters you see below" / "Robot Check" CAPTCHA) are NOT covered here -- they
+    # were not observed and a guessed signature could mis-fire; that stays a known gap.
+    if "click the button below to continue shopping" in probe_text:
+        return "amazon_continue_shopping_interstitial"
     return None
 
 

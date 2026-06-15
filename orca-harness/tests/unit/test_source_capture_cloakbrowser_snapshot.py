@@ -1410,6 +1410,42 @@ def test_fetch_cloakbrowser_snapshot_capture_preserves_access_blocked_reddit_sec
     assert "You've been blocked by network security" in result.visible_text
 
 
+def test_fetch_cloakbrowser_snapshot_capture_flags_amazon_continue_shopping_interstitial() -> None:
+    # Amazon serves a low-content "Continue shopping" bot interstitial AT the PDP URL
+    # (no redirect) with none of the product substrate. It must be classified
+    # access_failed so the durability runner records an un-observed gap rather than a
+    # fake observation (INV-1 / no-fake-success).
+    pdp_url = "https://www.amazon.com/Laneige-Sleeping-Berry/dp/B07XXPHQZK"
+    result = fetch_cloakbrowser_snapshot_capture(
+        url=pdp_url,
+        engine=_FakeCloakBrowserEngine(
+            _FakeEngineResult(
+                final_url=pdp_url,
+                title="Amazon.com",
+                rendered_dom=(
+                    "<html><body><button>Continue shopping</button>"
+                    "<p>Click the button below to continue shopping</p>"
+                    "</body></html>"
+                ),
+                visible_text=(
+                    "Click the button below to continue shopping\n"
+                    "Continue shopping\n"
+                    "Conditions of Use Privacy Policy\n"
+                    "© 1996-2025, Amazon.com, Inc. or its affiliates"
+                ),
+                screenshot_png=b"\x89PNG\r\n\x1a\ncloakbrowser",
+            )
+        ),
+    )
+
+    assert isinstance(result, CloakBrowserSnapshotSuccess)
+    assert result.final_url == pdp_url
+    assert result.access_block_reason == "amazon_continue_shopping_interstitial"
+    assert result.metadata["access_blocked"] is True
+    assert result.metadata["access_block_reason"] == "amazon_continue_shopping_interstitial"
+    assert any("access_failed" in item for item in result.limitation_notes)
+
+
 def test_fetch_cloakbrowser_snapshot_capture_rejects_credential_bearing_final_url() -> None:
     result = fetch_cloakbrowser_snapshot_capture(
         url="https://example.com/source",
