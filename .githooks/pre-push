@@ -1,0 +1,5 @@
+#!/bin/sh
+# Thin Git hook adapter. The policy lives in a Python checker so it can be
+# validated directly and shared across Windows/Unix shells.
+
+python .agents/hooks/pre_push_guard.py "$@"

@@ -1,0 +1,7 @@
+#!/bin/sh
+# Orca local commit-message guard for repo-map freshness.
+#
+# Delegates to the portable checker. The checker is strict in --commit-msg mode
+# and supports repo-map-ack: <reason> for deliberate non-route structural adds.
+
+python .agents/hooks/check_repo_map_freshness.py --commit-msg "$1"

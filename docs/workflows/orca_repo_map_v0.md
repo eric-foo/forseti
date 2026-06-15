@@ -24,7 +24,7 @@ stale_if:
 - Status: ACTIVE_RETRIEVAL_MAP (retrieval-only; source authority remains in `.agents/workflow-overlay/source-of-truth.md`)
 - Artifact type: Workflow navigation artifact
 - Scope: Repo navigation and source-pack selection
-- Refreshed: 2026-06-11 (repo-structure binding v0: machine map `repo-structure.yaml` + EP-04 placement checker registered; root strays quarantined to `docs/_inbox/`)
+- Refreshed: 2026-06-16 (added Codex-compatible local Git-hook adapters under `.githooks/`, the local hook installer under `.github/scripts/`, and the promoted auto-merge/main-red-alert workflows under `.github/workflows/`). Prior: 2026-06-11 repo-structure binding v0: machine map `repo-structure.yaml` + EP-04 placement checker registered; root strays quarantined to `docs/_inbox/`.
 - Implementation authorized: no
 
 ## How To Use This Map
@@ -336,7 +336,10 @@ nickname: "crawling graph." The runner is
 | --- | --- |
 | `AGENTS.md` | Canonical root instructions, global behavior, and triggers to Orca owner docs. |
 | `repo-structure.yaml` | Machine structure map (router only): homes + scratch/tolerance declarations consumed by `check_placement.py` and agents. Placement authority stays in `.agents/workflow-overlay/artifact-folders.md`; binding/parameters in `docs/decisions/orca_repo_structure_binding_v0.md`. |
+| `.github/` | GitHub Actions workflows and local operational scripts for lane setup, merge-when-green, lane health, and local hook installation. Local automation only; not validation, readiness, or server-side branch protection. |
+| `.githooks/` | Tracked local Git hook adapters installed via `.github/scripts/install-local-hooks.ps1`; catches local Git push/commit boundaries where enabled. Bypassable with `--no-verify`; not a server-side lock. |
 | `.agents/workflow-overlay/` | Orca overlay authority for project facts, folders, source rules, prompt rules, validation, safety, and review lanes. |
+| `.agents/hooks/` | Portable enforcement/checker scripts for protected actions, retrieval headers, repo-map freshness, and local Git pre-push policy. Harness adapters invoke these scripts; passing checks are not validation or readiness. |
 | `orca-harness/` | Bounded authorized implementation backing Data Capture source acquisition and the v0.14 Judgment Harness (capture adapters, source-observability, schemas, scoring, runners, fixtures, tests). Navigation context only; not runtime, acceptance, or readiness. See the Orca Harness section. |
 | `docs/decisions/` | Decision records. |
 | `docs/decisions/consultant_loop/` | Consultant-loop judgment records. |

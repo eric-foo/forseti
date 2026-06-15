@@ -15,6 +15,7 @@ via exit code — so they are **harness-portable**: the *logic* runs anywhere; o
 | Script | When | Effect |
 |---|---|---|
 | `guard_protected_actions.py` | **pre-tool** (before a shell/write tool runs) | **HARD-blocks** (exit 2) irreversible / main-affecting actions: an agent's `gh pr merge` → main, push-to-main, force-push, `reset --hard`, `git clean`, and writes into protected external roots. **Allows** a benign lane-branch push. Fires in **all** permission modes. **Fails OPEN** on internal error. |
+| `pre_push_guard.py` | local Git **pre-push** adapter policy | Blocks pushes targeting `main`, branch deletes, non-fast-forward updates, and unverifiable update safety when `.githooks/pre-push` is installed through `core.hooksPath`. Bypassable with `--no-verify`; misses GitHub API merges. |
 | `check_retrieval_header.py` | **post-tool** (after a write) | Advisory (exit 0): warns if an in-scope artifact is missing its retrieval header. Forward-only; never blocks. |
 | `check_repo_map_freshness.py` | **post-tool** (after a write) | Advisory (exit 0): reports structural drift vs the repo map; has a `--strict` gate for commit/CI use. |
 
@@ -49,18 +50,34 @@ Verify: `python .agents/hooks/guard_protected_actions.py --selftest`.
 
 ### Another harness (e.g. Codex, or your own runner)
 `.claude/settings.json` is **not read** by other harnesses, so:
-1. Find your harness's **pre-tool / post-tool command-hook** mechanism (consult its docs).
-2. Register `guard_protected_actions.py` on the **pre-tool** event for shell + write
-   tools, honoring **exit 2 = block**. Register the two `--hook` checkers on the
-   **post-tool** event for write tools.
-3. Map your harness's event payload onto the `tool_name` / `tool_input` fields on
-   stdin (a small adapter shim if the names differ).
-4. Confirm with the `--selftest`s.
+1. If your harness has a **pre-tool / post-tool command-hook** mechanism, register
+   `guard_protected_actions.py` on the pre-tool event for shell + write tools,
+   honoring **exit 2 = block**. Register the `--hook` checkers on the post-tool
+   event for write tools. Map your harness payload onto `tool_name` /
+   `tool_input` on stdin.
+2. If your harness has no equivalent hook API, install the tracked local Git
+   hook adapters:
+   ```powershell
+   pwsh .github/scripts/install-local-hooks.ps1
+   ```
+   This sets `core.hooksPath` to `.githooks`, enabling:
+   - `.githooks/pre-push` — blocks pushes targeting `main`, branch deletes, and
+     non-fast-forward updates at Git's pre-push boundary.
+   - `.githooks/commit-msg` — runs `check_repo_map_freshness.py --commit-msg`.
+3. Confirm with:
+   ```powershell
+   python .agents/hooks/guard_protected_actions.py --selftest
+   python .agents/hooks/check_repo_map_freshness.py --selftest
+   python .agents/hooks/pre_push_guard.py --selftest
+   pwsh .github/scripts/install-local-hooks.ps1 -VerifyOnly
+   ```
 
 ### If your harness has no hook mechanism
 The scripts can't auto-fire, so fall back to **enforcement outside the agent**:
-- a git **`pre-push` hook** (via `core.hooksPath`) to catch `git push` — note it
-  **misses `gh pr merge`** (a GitHub API call) and is **bypassable** with `--no-verify`;
+- the tracked Git hooks under `.githooks/`, installed with
+  `.github/scripts/install-local-hooks.ps1`, to catch `git push` and commit-time
+  repo-map freshness — note they **miss `gh pr merge`** (a GitHub API call) and
+  are **bypassable** with `--no-verify`;
 - **CI** (already runs the test gate on every PR);
 - the **merge-when-green discipline** in `docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md`.
 
