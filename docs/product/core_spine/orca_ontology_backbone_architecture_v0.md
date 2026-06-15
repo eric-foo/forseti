@@ -136,8 +136,10 @@ only via the backing map.
 | `outcome:` | `outcome:beautypie_repricing_2023` | a realized result |
 | `packet:` | `packet:3b89a19b…` | a source-capture packet (by sha) |
 | `evidence:` | `evidence:beautypie.repricing-2023.1` | a cleaned evidence unit |
+| `buyer:` | `buyer:<slug>` | a qualified buyer (the ICP entity a Memo serves) |
+| `org:` | `org:thg` | a company / parent org behind a Brand (org-motion anchor) |
 
-### 2.2 Object-type roster (15 types — at the hard cap; "16th in = one out")
+### 2.2 Object-type roster (17 of 18 types — cap raised to 18 on 2026-06-15; "19th in = one out")
 
 Folds applied to stay under the cap (noted): **SubNiche → Vertical** (self-parent
 link). **`Read` is an ACTION on the `TrendVector` object, not an object type**
@@ -150,10 +152,10 @@ verb (§2.5). Demand-state, action-ceiling, read-type, and claim-tier are
 | # | Type | One-line definition | Key states / dimensions | Backing artifact(s) |
 | --- | --- | --- | --- | --- |
 | 1 | **Vertical** | A demand domain at a level (vertical or sub-niche); sub-niches nest via self-parent. | level: vertical \| sub_niche | thesis, wedge |
-| 2 | **Brand** | A consumer brand, with parent-org resolution. | — | candidate-pool handoff |
+| 2 | **Brand** | A consumer brand (consumer-facing label); company/parent resolution via `Org`. A Brand can itself act as a `WindCaller` (its own moves precede the shift). | — | candidate-pool handoff |
 | 3 | **Product** | The demand target a TrendVector is *about*: ingredient / category / format / claim / SKU. | target_type | (gap — no single backing yet; §3) |
 | 4 | **Venue** | A demand-signal surface (where observations originate). | access_shape, review_by | beauty venue card set |
-| 5 | **WindCaller** | A leading-indicator account/community/detector, per vertical×sub-niche; carries the carve-out boundary. | calibration_state; carve-out (non-permanent, platform-scoped cap, internal-use) | demand-read taxonomy (gap — no card-set asset yet; §3) |
+| 5 | **WindCaller** | A leading-indicator referent — an account, community, detector, *or a Brand* whose own moves precede the shift; per vertical×sub-niche; carries the carve-out boundary. | calibration_state; carve-out (non-permanent, platform-scoped cap, internal-use) | demand-read taxonomy (gap — no card-set asset yet; §3) |
 | 6 | **Call** | A wind-caller's early public call that opens a (transient) TrendVector. | — | scan-spec (forward) / read outputs |
 | 7 | **Observation** | One captured demand-signal instance from a Venue — the node the two provenance links connect. | integrity flags | CapturePacket / scan-spec (forward) |
 | 8 | **TrendVector** | The demand movement: demand moving toward/away from a target (ingredient/category/format/claim), with direction, velocity, expected lifespan. *(Reading it — emitting a calibrated decision — is the `Read` action, §2.5.)* | persistence_state, integrity_state | demand-read taxonomy |
@@ -164,12 +166,14 @@ verb (§2.5). Demand-state, action-ceiling, read-type, and claim-tier are
 | 13 | **Outcome** | The realized result a Reading/Call/Case is graded against (calibration target). | — | case ledger / calibration |
 | 14 | **CapturePacket** | A write-once, hash-pinned source-capture packet — the raw provenance an Observation derives from. | manifest_version, cutoff_posture | `orca-harness/source_capture/models.py` |
 | 15 | **EvidenceUnit** | A cleaned evidence unit (IPF standard) bound at the Cleaning/Judgment boundary. | claim_tier | IPF foundation + evidence ladder |
+| 16 | **Buyer** | *(added 2026-06-15)* The qualified customer a `Memo` serves — the ICP entity (e.g. a beauty operator) who owns the live `DecisionEvent`. Was implicit in the Hard Gate precondition. | qualification_status | icp/wedge + offer hypothesis |
+| 17 | **Org** | *(added 2026-06-15)* The company / parent behind a `Brand`; the unit org-motion (hiring, headcount, retail presence) attaches to. Distinct from `Brand` (a consumer label). | (org-motion signals) | G4 org-motion cards (candidate pool) |
 
 ### 2.3 Link map (typed relationships)
 
 Structural / identity:
 - `Vertical —narrows_to→ Vertical` (sub-niche nesting)
-- `Brand —in→ Vertical` · `Brand —child_of→ Brand` (parent org) · `Brand —offers→ Product`
+- `Brand —in→ Vertical` · `Brand —owned_by→ Org` · `Org —subsidiary_of→ Org` (parent resolution) · `Brand —offers→ Product` · `Brand —can_act_as→ WindCaller`
 - `WindCaller —covers→ Vertical` (per vertical×sub-niche)
 
 Signal flow:
@@ -196,12 +200,12 @@ read-machinery forward consumer depends on them — design them precisely):
   not resolved).
 
 Proof / calibration:
-- `Memo —for→ DecisionEvent` · `Memo —cites→ EvidenceUnit` (and/or `Observation`)
+- `Memo —for→ DecisionEvent` · `Memo —cites→ EvidenceUnit` (and/or `Observation`) · `Memo —serves→ Buyer` · `Buyer —owns→ DecisionEvent`
 - `Case —backtests→ DecisionEvent` · `Reading —graded_by→ Outcome` · `Call —graded_by→ Outcome` · `Case —graded_by→ Outcome`
 - a discovery-scan candidate is a `DecisionEvent` (with `discovery_status`) · `DecisionEvent —concerns→ Brand` (candidate = brand + live decision)
 
 G4 distinction (must not leak into the G1 count):
-- org-motion / retail-presence evidence `corroborates` a TrendVector but is EXCLUDED
+- org-motion / retail-presence evidence (attached to `Org`) `corroborates` a TrendVector but is EXCLUDED
   from the independent-origin count — modeled as a distinct link `corroborates` (G4),
   never `supports`-counted toward independence (G1). The premium signal is the
   `diverges_from` read where org-motion and demand layers disagree.
@@ -334,9 +338,9 @@ never minted here.
 
 Stolen from the venue card set, the proven antidote to ontology rot:
 
-- **Hard cap: 15 domain object types.** "16th in = one out." The roster in §2.2 is
-  AT the cap by design. (The 2026-06-15 `Reading` addition tripped it to 16 and was
-  resolved by folding `Slot` → `DecisionEvent.discovery_status`, holding 15 — §6.1.)
+- **Hard cap: 18 domain object types** (raised from 15 on 2026-06-15 to seat `Buyer`
+  and `Org` as first-class; §6.1). "19th in = one out." 17 of 18 used — one slot of
+  deliberate headroom.
 - **Owner: Eric.** Per-type review dates (each card carries a `review_by`); a card
   past its date is a stale hint to review or retire, not a current-state claim.
 - **Dated amendments only, never silent rewrites.** Fail-soft cards: dated hints,
@@ -367,6 +371,14 @@ Stolen from the venue card set, the proven antidote to ontology rot:
   action becomes `DecisionEvent.fill_from_scan`. Rationale: a `Slot` was a discovery-lane
   worksheet row whose durable content is a candidate `DecisionEvent` + gate evidence
   already captured by the gate actions. Roster back to 15.
+- **2026-06-15 (owner decision): cap raised 15 → 18; `Buyer` and `Org` seated as types.**
+  The 15-cap was borrowed from the venue card set's *instance* cap (12 venues); for a
+  whole-domain *type* roster, 18 is the disciplined size. `Buyer` (the qualified ICP
+  customer a `Memo` serves — was implicit in the Hard Gate precondition) and `Org` (the
+  company/parent a `Brand` rolls up to, the org-motion / G4 anchor, distinct from the
+  consumer-facing `Brand`) become first-class. Roster now 17 of 18. Also recorded: a
+  `Brand` may act as a `WindCaller` (`Brand —can_act_as→ WindCaller`) — a brand's own
+  moves can be the leading indicator.
 
 ---
 
