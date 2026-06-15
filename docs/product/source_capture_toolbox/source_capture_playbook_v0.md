@@ -70,8 +70,11 @@ This authorization is **bounded — not blanket**:
   legal line — see `data_capture_spine_future_exploration_lanes_v0.md`). Market-level signal
   (product/brand/hashtag/aggregate counts) is fine; building dossiers on individuals is not
   (exception: internal wind-caller calibration per `docs/decisions/wind_caller_calibration_carveout_v0.md`
-  — bounded to ≤5 public-figure creator accounts, public data only, human pace, pre-commercial,
-  internal only; that carve-out does not change the general dossier prohibition).
+  — bounded to ≤10 own operating/capture accounts (starting ≤5); subject-creator roster uncapped
+  within the vertical; active capture: attended (human-initiated), faster-than-human pace;
+  passive monitoring: human-initiated, time-bounded, self-terminating (no discovery during);
+  public data only, pre-commercial, internal only; that carve-out does not change the general
+  dossier prohibition).
 - **No secrets, no exit-IP leak, per-operation network approval** (unchanged operational hygiene).
 
 **The hard line moved from "ToS forbids it" to "it's behind an access-control gate you can't
@@ -247,3 +250,14 @@ acceptance, not legal advice. The Risk posture is an owner risk decision, not a 
 legal/ToS exposure is real and owner-accepted for the pre-commercial phase. Grants no
 capture/build/merge authority; per-operation network approval still required per probe. Distilled
 from `capture_recon_index_v0.md`; worktree-pending recon is weaker than merged primary artifacts.
+
+```yaml
+direction_change_propagation_note_2026-06-15: >
+  Downstream surface of carve-out 2026-06-15 cap-redefinition: cap now counts own
+  operating/capture accounts (≤10, starting ≤5), not subject creators; subject-creator
+  roster uncapped within the vertical; active capture = attended (human-initiated),
+  faster-than-human pace; passive monitoring = human-initiated, time-bounded,
+  self-terminating (no discovery during). Risk-posture footer (dossier carve-out
+  exception line) updated accordingly. "That carve-out does not change the general
+  dossier prohibition" preserved verbatim.
+```

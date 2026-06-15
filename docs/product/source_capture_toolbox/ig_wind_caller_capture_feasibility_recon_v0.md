@@ -73,8 +73,20 @@ the working rung. Full per-rung verdicts below.
   high-throughput, not continuous/24-7; no standing or scheduled crawler.
 - This probe is the **owner's OWN account** (`@foo_yu_quan`) — the owner's own data, attended,
   logged into IG by the owner (the agent did not and may not enter credentials).
-- Bounded: ≤5 accounts, pre-commercial, internal calibration only, US-first. Tier-2 (audience
-  graph / cross-platform stitching) NOT activated. Tier-3 exclusions untouched.
+- Bounded (own operating/capture accounts): ceiling ≤10, ops start ≤5, pre-commercial, internal
+  calibration only, US-first. Subject-creator roster is **uncapped** — all creators in the
+  vertical are in scope for the roster; the account cap counts **our own capture accounts, not
+  subject creators.** Tier-2 (audience graph / cross-platform stitching) NOT activated.
+  Tier-3 exclusions untouched.
+- Method posture: **ACTIVE** (discovery + capture decisions) = attended (human-initiated);
+  **PASSIVE** (monitoring already-flagged creators) = human-initiated, time-bounded,
+  self-terminating — no discovery during passive monitoring; NOT a perpetual or scheduled
+  standing crawler. Faster-than-human cadence; ToS-accepted.
+- *(direction_change_propagation 2026-06-15: cap-redefinition — carve-out 2026-06-15 amendment
+  records that the ≤10/start-5 ceiling counts OUR OWN operating/capture accounts; subject-creator
+  roster is uncapped; active/passive method posture is now explicitly defined. Supersedes the
+  prior "≤5 accounts" framing. The 2026-06-14 PR #73 receipt and probe n=2 facts below are
+  factual records and remain untouched.)*
 - Risk-posture line (`source_capture_playbook_v0.md`): public content is in scope even against
   ToS; **the auth gate is the hard line — own entitled access only.** The own-account logged-in
   read is exactly own-entitled access; no auth gate was defeated.
@@ -239,7 +251,8 @@ rendered page; the build would pull them from the media **GraphQL JSON** (`video
 harness load a **saved logged-in session** (storage_state) and **programmatically walk each
 post/reel page** to pull caption + engagement — so a human is not hand-clicking hundreds of items.
 It is **not** "automatic" in a set-and-forget sense: the carve-out hard-caps it to **attended,
-human-mimicking cadence, no standing/scheduled crawler, ≤5 accounts, pre-commercial.** So it is
+human-mimicking cadence, no standing/scheduled crawler, own operating/capture accounts ≤10
+(ops start ≤5) — subject-creator roster uncapped — pre-commercial.** So it is
 **automated extraction during an attended run** — a power tool the owner runs, not a crawler that
 runs itself. The capture-volume math above (one grid walk + N item pages) is exactly why the
 cadence cap, not the mechanics, is the binding constraint.

@@ -3,8 +3,9 @@ retrieval_header_version: 1
 artifact_role: build architecture decision/plan (non-authorizing; planning-only)
 scope: >
   Target build architecture for operationalizing IG wind-caller CALLS self-capture
-  (per-item post + reel caption + engagement) on attended, logged-in, ≤5 public-figure
-  accounts. Decides how to COMPOSE the existing authenticated-browser primitives
+  (per-item post + reel caption + engagement) on attended, logged-in, own operating/capture
+  accounts (≤10 ceiling / start-5); subject-creator roster uncapped (all creators in
+  vertical). Decides how to COMPOSE the existing authenticated-browser primitives
   plus the bounded IG-specific delta, names the few genuinely-architectural choices,
   separates implemented capability from owner-confirmation gaps, and gates the first
   build shape on the H5 cadence probe. Downstream of the IG
@@ -34,6 +35,9 @@ and have bounded build authority.** The IG work composes those primitives. The m
 person-level loop, IG reel response-read, and retention were **owner-confirmation deltas** — now
 **confirmed 2026-06-14** (see Authorization map: bounded ≤5-account rotating set, ~1-month window,
 repeated-attended, reel in-context JSON in / video bytes out, 10-year retention + takedown-on-request).
+*(Superseded 2026-06-15: cap counts own operating/capture accounts ≤10/start-5; subject-creator
+roster uncapped — see carve-out 2026-06-15 amendment. The "≤5-account rotating set" above is the
+2026-06-14 historical receipt; not retro-edited.)*
 This **narrows** the recon's earlier build-lane finding (which inspected only
 the anonymous `cloakbrowser_snapshot.py` and overstated the gap — see the recon doc's dated
 correction) without treating the full IG loop as already authorized.
@@ -104,8 +108,13 @@ The "no-secret/anonymous" property was a per-adapter property of `cloakbrowser_s
 
 ## Authorization map (what's covered vs to confirm)
 
-- **Covered:** the existing single-URL authenticated browser snapshot and local session-store mechanics (1st-tranche #5 + 2nd-tranche #7), plus the wind-caller carve-out's permission for internal, attended, human-mimicking, ≤5-account public-figure calibration capture.
-- **Owner-confirmed (2026-06-14):** (i) **multi-item loop = bounded capture unit** — ≤5 accounts at any one time (rotating / no fixed named list), **recent ~1-month window**, **no full-history backfill**; **repeated _attended_ capture over time is authorized** (to build the durable time-series) and stays **attended — not a standing/scheduled crawler**; (ii) **reel view/play count via in-context (warm-same-context) JSON = in scope; video/image bytes out**; (iii) **retention = 10-year bounded horizon + immediate takedown-on-request**, per the carve-out's dated 2026-06-14 horizon-setting (`docs/decisions/wind_caller_calibration_carveout_v0.md`) — stays within the signed time-bounded posture.
+- **Covered:** the existing single-URL authenticated browser snapshot and local session-store mechanics (1st-tranche #5 + 2nd-tranche #7), plus the wind-caller carve-out's permission for internal, attended, human-mimicking, own operating/capture accounts ≤10 (start-5) calibration capture; subject-creator roster uncapped (all creators in the vertical).
+- **Owner-confirmed (2026-06-14):** (i) **multi-item loop = bounded capture unit** — ≤5 accounts at any one time (rotating / no fixed named list), **recent ~1-month window**, **no full-history backfill**; **repeated _attended_ capture over time is authorized** (to build the durable time-series) and stays **attended — not a standing/scheduled crawler**; (ii) **reel view/play count via in-context (warm-same-context) JSON = in scope; video/image bytes out**; (iii) **retention = 10-year bounded horizon + immediate takedown-on-request**, per the carve-out's dated 2026-06-14 horizon-setting (`docs/decisions/wind_caller_calibration_carveout_v0.md`) — stays within the signed time-bounded posture. *(Superseded 2026-06-15: cap counts own operating/capture accounts ≤10/start-5; subject-creator roster uncapped — see carve-out 2026-06-15 amendment. The 2026-06-14 "≤5 accounts at any one time" text above is the historical owner-confirmation receipt and is not retro-edited.)*
+- *(direction_change_propagation 2026-06-15: carve-out 2026-06-15 amendment redefines the cap —
+  the ≤10/start-5 ceiling counts OUR OWN operating/capture accounts; the subject-creator roster is
+  uncapped (all creators in the vertical); active=attended/passive=bounded-self-terminating method
+  posture now explicitly defined. YAML scope header, Covered cell, and Cadence governor updated to
+  reflect. Dated 2026-06-14 receipts above are forward-noted, not retro-edited.)*
 
 ## H5 gate (the build's premise — run before scaling)
 
@@ -113,7 +122,7 @@ Bounded ~20–30-item slice on ONE owner-confirmed account at full `bounded_jitt
 
 ## Cadence governor (reuse `cadence.py`)
 
-`bounded_jitter`: inter-item ~8–45 s jitter; inject a long 90–180 s pause every ~5–9 items; randomize visit order; **per-session ≤40 items; ≤2 sessions / ≤60 items per day; ≤5 accounts total**; deterministic-per-seed for auditability; **no scheduler entrypoint** (operator launches each attended run). These are planning ceilings, not entitlement to exhaust every account: one account with N posts implies one grid walk + N item visits, so the owner-confirmed H5 result and stop-on-block behavior govern how far any attended run proceeds.
+`bounded_jitter`: inter-item ~8–45 s jitter; inject a long 90–180 s pause every ~5–9 items; randomize visit order; **per-session ≤40 items; ≤2 sessions / ≤60 items per day; ≤10 of OUR OWN capture/operating accounts total (ceiling; ops start ≤5) — this cap counts our own accounts, not the subject-creator roster which is uncapped**; deterministic-per-seed for auditability; **no scheduler entrypoint** (operator launches each attended run). These are planning ceilings, not entitlement to exhaust every account: one account with N posts implies one grid walk + N item visits, so the owner-confirmed H5 result and stop-on-block behavior govern how far any attended run proceeds.
 
 ## Record boundary
 

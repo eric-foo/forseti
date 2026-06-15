@@ -65,6 +65,21 @@ event lives in `docs/decisions/orca_product_thesis_consumer_demand_v0.md`
 `docs/product/product_lead/orca_product_proof_lead_charter_consumer_demand_revision_v0.md`
 (deviations recorded in that package's status).
 
+```yaml
+direction_change_propagation:
+  note: >
+    This file is a downstream surface of the carve-out 2026-06-15
+    cap-redefinition propagation. "What Remains Outside The Role" updated:
+    the cap now refers to our own operating/capture accounts (≤10, starting ≤5);
+    subject-creator roster uncapped (all-in-vertical); active = attended; passive
+    = bounded self-terminating runs. The "pre-commercial, internal only;
+    external/product person-level boundary unchanged" clause is preserved verbatim
+    and unchanged. The Product Proof Lead's authorized external activity scope is
+    NOT expanded by this change.
+  authority: docs/decisions/wind_caller_calibration_carveout_v0.md (2026-06-15 amendment)
+  date: 2026-06-15
+```
+
 ## Source Basis
 
 - Current owner instruction for Orca product-proof planning.
@@ -127,7 +142,7 @@ The Product Proof Lead does not own:
   work, agent-workflow design, or AI cost-structure analysis unless it
   presents as a qualified consumer-demand allocation decision in the first
   proof lane's families.
-- Broad market research, generic social listening, person-level dossiers (exception: internal wind-caller calibration per `docs/decisions/wind_caller_calibration_carveout_v0.md` — bounded to ≤5 public-figure accounts, pre-commercial, internal only; external/product person-level boundary unchanged), outreach lists, data-broker activity, manipulation, fake reviews, botting, or deceptive competitive tactics.
+- Broad market research, generic social listening, person-level dossiers (exception: internal wind-caller calibration per `docs/decisions/wind_caller_calibration_carveout_v0.md` — bounded to ≤10 own operating/capture accounts (starting ≤5); subject-creator roster uncapped (all-in-vertical); active = attended; passive = bounded self-terminating runs (carve-out 2026-06-15 amendment); pre-commercial, internal only; external/product person-level boundary unchanged), outreach lists, data-broker activity, manipulation, fake reviews, botting, or deceptive competitive tactics.
 - Revalidation of the accepted method replay packet or use of archived contaminated replay outputs.
 
 ## First Proof Lane
