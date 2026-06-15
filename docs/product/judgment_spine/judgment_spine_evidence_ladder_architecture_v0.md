@@ -76,6 +76,42 @@ A usable manual advisory answer can be valuable product-learning evidence, but
 it does not become buyer proof or judgment-quality evidence unless the separate
 promotion gates for those tiers are satisfied.
 
+## Measurement Target
+
+The Judgment Spine measures **the best move given the evidence available at the
+decision point** — not correctness against the sealed real-world outcome. The
+unit of evaluation is the quality of the decision under the case's evidence
+constraints (the frozen participant packet and frozen band inputs, judged on the
+case's action ladder), consistent with the thesis goal of *right-sized action
+under evidence constraints*
+(`docs/research/judgment-spine/judgment_spine_thesis_v0.md`).
+
+This is a structural property of the spine, not an aspiration:
+
+- **Scoring grades the call, not the outcome.** `JSG-07` scores the blind
+  judgment against the frozen band inputs and the case action band; it does not
+  read the sealed outcome. Scoring and reveal are separate gates
+  (`judgment_spine_gate_ownership_map_v0.md`: `JSG-07` owns scoring, `JSG-08`
+  owns reveal/calibration).
+- **The sealed outcome is a blindness input and a learning input, never a
+  grade.** It is held out of construction and scoring to prevent leakage
+  (`.agents/workflow-overlay/product-proof.md` zero-spoiler lanes), and at
+  `JSG-08` it feeds reveal/calibration *learning* under
+  `calibration_changes_score: no`
+  (`judgment_spine_reveal_calibration_owner_contract_v0.md`). Calibration may
+  compare the call against the later outcome, but only under an explicitly
+  declared frame (`later_outcome_alignment`); it never silently converts the
+  outcome into the score.
+- **No outcome (resulting) bias.** A judgment is not better because the outcome
+  later matched it, nor worse because it did not. A defensible best-move call the
+  world later contradicted remains a good judgment under this measure; a lucky
+  call the evidence did not support remains a weak one.
+
+Consequence for claims: completed judgment-quality evidence is evidence of a
+clean, scoreable judgment *under evidence constraints* — it is **not** evidence
+that Orca predicted an outcome. Outcome prediction is not a Judgment Spine claim
+at any tier.
+
 ## Claim Tiers
 
 ```yaml
@@ -449,6 +485,8 @@ Daimler remains satellite. The evidence ladder is case-agnostic.
 - This artifact does not admit any fixture.
 - This artifact does not freeze a facilitator ledger.
 - This artifact does not resolve reveal/calibration gate ownership.
+- This artifact does not measure or claim correctness against the real-world
+  outcome; outcome prediction is not a Judgment Spine claim.
 - This artifact does not authorize implementation, runtime design, tests,
   deployment, commits, pushes, or PRs.
 
@@ -518,4 +556,112 @@ direction_change_propagation:
     - not buyer proof
     - not judgment-quality proof
     - not implementation authorization
+```
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    The Judgment Spine evidence ladder now states an explicit Measurement Target
+    principle: the spine measures the best move given the evidence available at
+    the decision point, not correctness against the sealed real-world outcome.
+    Scoring (JSG-07) grades the call against the frozen band inputs and action
+    band and never reads the outcome; the sealed outcome is a blindness input and
+    a JSG-08 reveal/calibration learning input under calibration_changes_score:
+    no, never the scoring key or a correctness grade; outcome (resulting) bias is
+    barred and outcome prediction is not a Judgment Spine claim at any tier. This
+    is an additive restatement of a property the spine already encodes
+    structurally (JSG-07/JSG-08 gate separation, the reveal contract's
+    calibration_changes_score and action-vs-outcome calibration frames, the
+    thesis goal of right-sized action under evidence constraints); it renames,
+    merges, splits, or retires no claim tier, closeout state, or receipt minimum.
+  trigger: validation_philosophy
+  related_triggers:
+    - product_doctrine
+  controlling_sources_updated:
+    - docs/product/judgment_spine/judgment_spine_evidence_ladder_architecture_v0.md
+  downstream_surfaces_checked:
+    - docs/product/judgment_spine/judgment_spine_reveal_calibration_owner_contract_v0.md
+    - docs/product/judgment_spine/judgment_spine_gate_ownership_map_v0.md
+    - docs/product/judgment_spine/judgment_quality_promotion_operating_model_v0.md
+    - docs/research/judgment-spine/judgment_spine_thesis_v0.md
+    - .agents/workflow-overlay/product-proof.md
+    - .agents/workflow-overlay/validation-gates.md
+    - AGENTS.md
+    - .agents/workflow-overlay/source-loading.md
+    - docs/workflows/orca_repo_map_v0.md
+  intentionally_not_updated:
+    - path: docs/product/judgment_spine/judgment_spine_reveal_calibration_owner_contract_v0.md
+      reason: >
+        Already encodes the principle: JSG-08 calibration carries
+        calibration_changes_score: no, and its Calibration Frame Boundary forces
+        an explicit frame (later_outcome_alignment vs action/decision-quality
+        alignment) so the outcome is never silently converted into the score. It
+        points to this ladder via open_next; no edit needed.
+    - path: docs/product/judgment_spine/judgment_spine_gate_ownership_map_v0.md
+      reason: >
+        Already separates JSG-07 (scoring) from JSG-08 (reveal/calibration) and
+        states JSG-07 still owns scoring. The measurement target is the principle
+        behind that separation, not a change to gate ownership.
+    - path: docs/product/judgment_spine/judgment_quality_promotion_operating_model_v0.md
+      reason: >
+        The conductor already sequences scoring (JSG-07) before reveal (JSG-08)
+        and treats sealed_awaiting_outcome as a non-binding annotation that adds
+        no gate clearance; it routes to this ladder and mints no claim vocabulary.
+    - path: docs/research/judgment-spine/judgment_spine_thesis_v0.md
+      reason: >
+        The north-star thesis already optimizes for right-sized action under
+        evidence constraints; this ladder section restates that as the product
+        claim doc's measurement target and cites the thesis. The thesis is the
+        research-lane source, not the product claim surface the owner asked to
+        carry the principle.
+    - path: .agents/workflow-overlay/product-proof.md
+      reason: >
+        Already keeps participant / facilitator / blind-judgment /
+        outcome-calibration lanes separate ("ask what should be done, not tell or
+        imply what happened"; outcome_calibration is post-reveal). Buyer-proof
+        semantics are unchanged, so the ladder stale_if on product-proof is not
+        tripped.
+    - path: .agents/workflow-overlay/validation-gates.md
+      reason: >
+        The Judgment Spine claim-tier gate already routes claim classification to
+        this ladder. The measurement target is upstream of the tiers and changes
+        no tier, closeout state, or receipt minimum, so the gate mechanics are
+        unchanged.
+    - path: AGENTS.md / .agents/workflow-overlay/source-loading.md / docs/workflows/orca_repo_map_v0.md
+      reason: >
+        Routing and start-route surfaces; grep-checked and they carry no
+        measurement-target framing (they route claim-tier work to this ladder and
+        define no measurement semantics). No route changed.
+  stale_language_search: >
+    rg -ni "correctness|correct call|right call|predicted the outcome|outcome
+    prediction|against the (real|actual|sealed) outcome|outcome.?match|resulting
+    bias|graded? (on|against|by) (the )?outcome|score.{0,20}outcome"
+    docs/product/judgment_spine docs/research/judgment-spine .agents/workflow-overlay
+  stale_language_search_result: >
+    Executed 2026-06-15 after this patch (the change adds a durable rule, so the
+    search is run, not skipped). No controlling surface frames the measurement as
+    correctness-vs-outcome. Hits either confirm the principle — the reveal
+    contract's Calibration Frame Boundary (action matching vs outcome matching),
+    the canoo-walmart outcome_calibration ("a retailer's actual commitment does
+    not prove that commitment was the right call ... the supplier's later failure
+    does not prove every protected engagement path was wrong") and its
+    facilitator ledger ("does not prove the owner-assisted judgment in a
+    scoreable way until outcome calibration defines the comparison method") — or
+    use "correct/correctness" in unrelated senses (capture field correctness in
+    jsg01_source_side_receipt_translator_v0.md; tell-audit derivability in
+    conductor_construction_integrity_probe_addendum_v1.md). One research
+    discovery doc (decide_vs_confirm_case_discovery_results_v0.md) uses loose
+    "score it WHEN the outcome resolves" wording for a forward-test option
+    explicitly recorded as "an option, not a decision"; it is not a controlling
+    claim surface and the new principle governs, so it was not edited
+    (out of scope for this propagation).
+  non_claims:
+    - not validation
+    - not readiness
+    - not buyer proof
+    - not judgment-quality evidence
+    - not scoring authorization
+    - not model execution
+    - not a Judgment Spine run or outcome reveal
+    - not outcome-prediction capability
 ```
