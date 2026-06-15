@@ -390,7 +390,7 @@ direction_change_propagation:
     - path: docs/product/product_lead/orca_demand_read_taxonomy_adjudication_v0.md
       note: Three live boundary sites re-framed; dated-historical Q3 sites (Status, Q3-decided, Q3 lane-reasoning) received forward-pointing notes only; PLAN block got a dated 2026-06-15 sub-note.
     - path: docs/product/product_lead/orca_product_proof_lead_charter_v0.md
-      note: "What Remains Outside The Role" exception re-framed; external/product person-level boundary preserved verbatim; external activity scope NOT expanded; DCP note added.
+      note: The "What Remains Outside The Role" exception re-framed; external/product person-level boundary preserved verbatim; external activity scope NOT expanded; DCP note added.
     - path: docs/product/source_capture_toolbox/ig_capture_findings_consolidated_v0.md
       note: Residuals (H5) + Posture/carve-out re-framed; retention + commercial clauses preserved verbatim; DCP note added.
     - path: docs/product/source_capture_toolbox/ig_creator_discovery_spec_v0.md
