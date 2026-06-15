@@ -145,10 +145,14 @@ self-terminating** sessions — **no perpetual/scheduled standing crawler.** So:
 - The cadences here define an **ideal sampling schedule (a target)**, executed by **batching the due
   reads into bounded attended monitoring sessions** — NOT a 24/7 daemon that auto-fires every 6h. A
   sample "due at +6h" is taken whenever the next bounded session runs.
-- **Flag for owner:** the tight hot-list cadence (6h/12h) is the one that most strains "attended /
-  bounded." If genuine sub-daily automated sampling is wanted for virality capture, that likely needs a
-  **separate owner clarification/authorization** beyond the current bounded-session posture. Until then,
-  treat tight cadences as *best-effort within session frequency*, not guarantees.
+- **Resolved (owner, 2026-06-15 — posture (C), v0):** virality uses **best-effort-within-session**. The
+  hot-list *flags* spiking posts (spike detection = reading the projection, always permitted), and the
+  tight 6h/12h sampling happens whenever the next bounded session runs — **no sprint mechanism and no
+  carve-out amendment for v0.** Tight cadences are *best-effort targets, not guarantees*; coarser peak
+  resolution is accepted for v0. Escalation path if best-effort proves too coarse to capture the
+  wind-calling moment: **(A)** human-initiated bounded sprints (still conformant), then **(B)**
+  pre-authorized supervised-autonomy auto-launch (would need a dated carve-out clarification) — both
+  **deferred, not built.**
 - Account-cap rules (≤10 / start ≤5 operating accounts) apply to social platforms; EDGAR/org-motion (if
   ever monitored) is a separate non-person posture, not governed here.
 
