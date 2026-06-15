@@ -68,6 +68,10 @@ def archive_server():
             ["timestamp", "original", "statuscode", "mimetype", "digest"],
             ["20250101000000", "https://example.com/post-cutoff-only", "200", "text/html", "FUTURE"],
         ],
+        "https://example.com/served-leak": [
+            ["timestamp", "original", "statuscode", "mimetype", "digest"],
+            ["20240101000000", "https://example.com/served-leak", "200", "text/html", "LEAK"],
+        ],
         # Many-snapshot history spanning a cutoff. The fake CDX server returns the
         # full list (it ignores the server-side to=/limit bound); client-side
         # select_snapshot must still return the latest pre-cutoff row, proving the
@@ -97,6 +101,12 @@ def archive_server():
         ("20250101000000", "https://example.com/multi"): (200, b"new archived body"),
         ("20240101000000", "https://example.com/dict-format"): (200, b"dict archived body"),
         ("20240515000000", "https://example.com/many"): (200, b"<html>latest pre-cutoff body</html>"),
+        ("20250101000000", "https://example.com/served-leak"): (200, b"<html>post-cutoff leaked body</html>"),
+    }
+
+    # Slice G: a pre-cutoff selected snapshot whose replay 302s to a POST-cutoff capture.
+    body_redirects = {
+        ("20240101000000", "https://example.com/served-leak"): "20250101000000",
     }
 
     class Handler(BaseHTTPRequestHandler):
@@ -146,6 +156,12 @@ def archive_server():
 
             if parsed.path.startswith("/web/"):
                 _, _, timestamp, original_url = parsed.path.split("/", 3)
+                redirect_ts = body_redirects.get((timestamp, original_url))
+                if redirect_ts is not None:
+                    self.send_response(302)
+                    self.send_header("Location", f"{base}/web/{redirect_ts}/{original_url}")
+                    self.end_headers()
+                    return
                 key = (timestamp, original_url)
                 response = body_payloads.get(key)
                 if response is None:
@@ -671,6 +687,126 @@ def test_fetch_with_retry_does_not_retry_non_rate_limit_status(monkeypatch: pyte
 
     assert calls["n"] == 1
     assert getattr(result, "status", None) == 404
+
+
+def _body_success_for(final_url: str) -> DirectHttpCaptureSuccess:
+    return DirectHttpCaptureSuccess(
+        requested_url=final_url,
+        final_url=final_url,
+        status=200,
+        reason="OK",
+        metadata={},
+        body=b"<html>archived</html>",
+        warning_notes=[],
+        limitation_notes=[],
+    )
+
+
+def test_verify_archive_body_clean_pre_cutoff_passes() -> None:
+    v = archive_org.verify_archive_body(
+        body_result=_body_success_for("https://web.archive.org/web/20230101000000/https://example.com/p"),
+        requested_original_url="https://example.com/p",
+        cutoff_timestamp="20230601000000",
+    )
+    assert v is not None and v.ok
+    assert v.served_timestamp == "20230101000000"
+    assert v.reason is None
+
+
+def test_verify_archive_body_served_time_leak_fails() -> None:
+    # Selection said pre-cutoff, but the SERVED snapshot (final_url after a 302) is post-cutoff.
+    v = archive_org.verify_archive_body(
+        body_result=_body_success_for("https://web.archive.org/web/20230912135629/https://example.com/p"),
+        requested_original_url="https://example.com/p",
+        cutoff_timestamp="20230101000000",
+    )
+    assert v is not None and not v.ok
+    assert v.served_timestamp == "20230912135629"
+    assert "served_time_leak" in (v.reason or "")
+
+
+def test_verify_archive_body_url_identity_mismatch_fails() -> None:
+    v = archive_org.verify_archive_body(
+        body_result=_body_success_for("https://web.archive.org/web/20230101000000/https://evil.example/other"),
+        requested_original_url="https://example.com/p",
+        cutoff_timestamp="20230601000000",
+    )
+    assert v is not None and not v.ok
+    assert "served_url_identity_mismatch" in (v.reason or "")
+
+
+def test_verify_archive_body_unparseable_served_time_with_cutoff_fails() -> None:
+    # No /web/<14-digit>/ in final_url + a cutoff set -> unverifiable is a FAILURE, not a pass.
+    v = archive_org.verify_archive_body(
+        body_result=_body_success_for("https://example.com/not-a-wayback-url"),
+        requested_original_url="https://example.com/p",
+        cutoff_timestamp="20230601000000",
+    )
+    assert v is not None and not v.ok
+    assert v.served_timestamp is None
+    assert "served_time_unverifiable" in (v.reason or "")
+
+
+def test_verify_archive_body_no_cutoff_does_not_leak_check() -> None:
+    v = archive_org.verify_archive_body(
+        body_result=_body_success_for("https://example.com/not-a-wayback-url"),
+        requested_original_url="https://example.com/p",
+        cutoff_timestamp=None,
+    )
+    assert v is not None and v.ok and v.served_timestamp is None
+
+
+def test_verify_archive_body_none_when_no_preserved_body() -> None:
+    assert (
+        archive_org.verify_archive_body(
+            body_result=None,
+            requested_original_url="https://example.com/p",
+            cutoff_timestamp="20230601000000",
+        )
+        is None
+    )
+    failure = DirectHttpCaptureFailure(
+        requested_url="https://web.archive.org/web/20230101000000/https://example.com/p",
+        failure_kind=DirectHttpCaptureFailureKind.NO_BODY,
+        message="HTTP 503 empty body",
+        status=503,
+    )
+    assert (
+        archive_org.verify_archive_body(
+            body_result=failure,
+            requested_original_url="https://example.com/p",
+            cutoff_timestamp="20230601000000",
+        )
+        is None
+    )
+
+
+def test_archive_runner_flags_served_time_leak_as_not_decision_grade(
+    archive_server: dict[str, str],
+    scratch_dir: Path,
+) -> None:
+    # End-to-end: the selected snapshot is pre-cutoff (20240101 <= 20240601) but its replay
+    # 302s to a post-cutoff capture (20250101). Slice G must flag it, never silently pass it.
+    output_dir = scratch_dir / "packet"
+    result = _run_archive_runner(
+        archive_server=archive_server,
+        output_dir=output_dir,
+        original_url="https://example.com/served-leak",
+    )
+
+    assert result.returncode == 0, result.stderr
+    manifest = _read_manifest(output_dir)
+    assert manifest["archive_history_posture"]["value"] == "attempt_failed"
+    assert any(
+        "archive_body_verification_failed" in item and "served_time_leak" in item
+        for item in manifest["limitations"]
+    )
+    body_slice = manifest["source_slices"][1]
+    assert body_slice["slice_id"] == "archive_snapshot_body"
+    assert body_slice["archive_history_posture"]["value"] == "attempt_failed"
+    # honest preservation: the leaked body bytes stay preserved, just flagged not-clean.
+    assert body_slice["preserved_file_ids"] == ["file_02", "file_03"]
+    _assert_receipt_non_claims(output_dir)
 
 
 def _run_archive_runner(

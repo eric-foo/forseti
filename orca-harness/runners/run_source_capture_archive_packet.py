@@ -191,6 +191,10 @@ def run_source_capture_archive_packet(
             )
             if isinstance(capture.body_result, DirectHttpCaptureFailure):
                 packet_limitations.append(f"archive_snapshot_body_not_preserved: {capture.body_result.message}")
+            if _body_verification_failed(capture):
+                packet_limitations.append(
+                    f"archive_body_verification_failed: {capture.body_verification.reason}"
+                )
 
         result = write_local_source_capture_packet(
             output_directory=output_directory,
@@ -312,13 +316,23 @@ def _cutoff_posture_from_timestamp(cutoff_timestamp: str | None):
     return known_fact("pre_cutoff")
 
 
+def _body_verification_failed(capture: ArchiveOrgCaptureSuccess) -> bool:
+    # Slice G: a retrieved body whose SERVED snapshot failed served-time / identity
+    # verification is NOT a clean pre-cutoff archived body.
+    return capture.body_verification is not None and not capture.body_verification.ok
+
+
 def _archive_posture(capture: ArchiveOrgCaptureSuccess):
     # Ob.10 closed, agent-readable vocabulary: known value is archived | attempt_failed.
     # The body-preservation outcome IS the posture; the snapshot timestamp and the
     # specific non-preservation reason live as structured fields in the preserved archive
     # availability metadata (parse_warning / selected_snapshot / body_result) and in the
     # packet limitations -- not as free text in this posture value.
-    if capture.selected_snapshot is not None and isinstance(capture.body_result, DirectHttpCaptureSuccess):
+    if (
+        capture.selected_snapshot is not None
+        and isinstance(capture.body_result, DirectHttpCaptureSuccess)
+        and not _body_verification_failed(capture)
+    ):
         return known_fact("archived")
     return known_fact("attempt_failed")
 
@@ -344,7 +358,7 @@ def _body_archive_posture(capture: ArchiveOrgCaptureSuccess):
     # snapshot to relate a body to. The snapshot timestamp lives in the archive metadata.
     if capture.selected_snapshot is None:
         return not_applicable("no Archive.org snapshot was selected")
-    if isinstance(capture.body_result, DirectHttpCaptureSuccess):
+    if isinstance(capture.body_result, DirectHttpCaptureSuccess) and not _body_verification_failed(capture):
         return known_fact("archived")
     return known_fact("attempt_failed")
 
@@ -394,6 +408,11 @@ def _body_warnings(result: DirectHttpCaptureSuccess | DirectHttpCaptureFailure |
 def _packet_access_posture(capture: ArchiveOrgCaptureSuccess):
     if capture.selected_snapshot is None:
         return known_fact("archive_org availability metadata preserved; no eligible snapshot body requested")
+    if _body_verification_failed(capture):
+        return known_fact(
+            "archive_org availability metadata preserved; selected snapshot body served-time/identity "
+            "verification failed (not decision-grade)"
+        )
     if isinstance(capture.body_result, DirectHttpCaptureSuccess):
         return known_fact("archive_org availability metadata and selected snapshot body preserved")
     return known_fact("archive_org availability metadata preserved; selected snapshot body access_failed")
@@ -402,6 +421,11 @@ def _packet_access_posture(capture: ArchiveOrgCaptureSuccess):
 def _receipt_summary(capture: ArchiveOrgCaptureSuccess) -> str:
     if capture.selected_snapshot is None:
         return "Archive.org packet with availability metadata preserved and no eligible snapshot body."
+    if _body_verification_failed(capture):
+        return (
+            f"Archive.org packet with availability metadata preserved; selected snapshot body retrieved but "
+            f"FAILED served-time/identity verification (not decision-grade) for {capture.selected_snapshot.timestamp}."
+        )
     if isinstance(capture.body_result, DirectHttpCaptureSuccess):
         return (
             f"Archive.org packet with availability metadata and snapshot body preserved "
