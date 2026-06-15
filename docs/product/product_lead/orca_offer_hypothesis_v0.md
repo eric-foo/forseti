@@ -67,7 +67,7 @@ are superseded — reread-required. Deltas:
 
 - Engine/spine = outside-in market & competitive intelligence (unchanged);
   its first application moves from B2B SaaS pricing to beauty
-  consumer-demand allocation decisions — durable-vs-hollow demand
+  consumer-demand allocation decisions — durable / transient / manufactured demand
   discrimination per the thesis's central read.
 - First door: an indie/DTC beauty brand decision owner (founder, head of
   brand / insights / growth / strategy) facing a live demand-allocation
@@ -216,7 +216,7 @@ For an indie/DTC beauty brand decision owner facing a live consumer-demand
 allocation decision — commit inventory, retail/channel expansion, launch,
 moratorium, reposition, or tier/price change — before internal data is
 conclusive, Orca offers the decided answer: "this demand is real and durable /
-this demand is hollow or manufactured — act, phase, narrow, hold, or defend,
+this demand is transient or manufactured — act, phase, narrow, hold, or defend,
 and here is what would change the answer." The artifact is a decision memo +
 evidence appendix substrate surfaced as an executive-grade decision deck when
 the proof gates pass: fused public demand signal (reviews, forums, search
@@ -336,7 +336,7 @@ The first proof offer is narrower:
 - launch, launch moratorium, or reposition;
 - tier or price change framed as a demand decision;
 - pivot on a taste or preference shift;
-- defend / hold decisions against suspected manufactured or hollow demand.
+- defend / hold decisions against suspected manufactured or transient demand.
 
 This preserves the broader offer boundary while avoiding a vague "we do
 strategy" position. The first proof decision must be specific enough to build a

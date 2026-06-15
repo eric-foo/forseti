@@ -155,7 +155,7 @@ Recommended first decision family:
 
 Tier/price change; retail or channel expansion; launch / moratorium /
 reposition; pivot on a taste or preference shift; defend/hold against
-suspected manufactured or hollow demand — where a false broad commit could
+suspected manufactured or transient demand — where a false broad commit could
 waste inventory or launch budget, misfire a retail window, create backlash or
 churn, or surrender a real opportunity to noise.
 
@@ -167,7 +167,7 @@ trend-darling visibility are neither qualifiers nor disqualifiers.
 Selected product promise:
 
 Orca reduces allocation risk before budget is committed by discriminating
-durable from hollow demand on fused, integrity-labeled public evidence and
+durable from transient and manufactured demand on fused, integrity-labeled public evidence and
 naming the evidence-supported action ceiling — act, phase, narrow, hold, or
 defend — plus what would change the answer.
 

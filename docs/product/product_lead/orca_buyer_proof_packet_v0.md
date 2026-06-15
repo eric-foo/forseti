@@ -50,8 +50,8 @@ consumer-demand direction. Controlling authority:
 `input_hashes` / wedge references are superseded — reread-required. Deltas:
 
 - Proof subject: beauty consumer-demand allocation decisions —
-  durable-vs-hollow demand discrimination (act / phase / narrow / hold /
-  defend), per the thesis's central read.
+  durable / transient / manufactured demand discrimination (act / phase / narrow /
+  hold / defend), per the thesis's central read.
 - Substrate HARD GATE RE-DERIVED (replaces "competitor prices clean, reviews
   confirmatory-only," which was derived for a pricing read and does not
   transfer): see "Demand-Substrate Hard Gate" below.
@@ -277,7 +277,7 @@ The proof should start only when at least one of these triggers is present:
 - A retail or channel window (retailer rollout, shelf reset, marketplace
   expansion) forces a commit/hold decision.
 - A virality spike, creator-driven surge, or social moment raises a
-  durable-vs-hollow question before inventory or launch commitment.
+  durable-vs-transient question before inventory or launch commitment.
 - A taste/preference shift (ingredient, format, claim trend) puts a
   reformulation, reposition, or launch decision in play.
 - A planned launch, moratorium, tier/price change, or SKU rationalization is
@@ -296,7 +296,7 @@ action ceiling.
 ## Orca Promise
 
 Orca helps the decision owner reduce allocation risk before committing budget
-by discriminating durable demand from hollow demand on fused,
+by discriminating durable demand from transient and manufactured demand on fused,
 integrity-labeled public evidence.
 
 For this first proof, the promise is not "Orca predicts the trend." The promise is narrower:

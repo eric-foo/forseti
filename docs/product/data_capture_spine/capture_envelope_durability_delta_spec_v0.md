@@ -48,8 +48,8 @@ It is a new doc that **cites** them.
 It does not define Evidence Candidate Record (ECR) fields, Cleaning
 transformations, or Judgment rules. It does not weight, score, rank, or judge
 any captured fact (see INV-1 below). It captures durability-over-time as
-**observed facts and their limits**; whether a series shows durable versus
-hollow demand is a downstream Judgment call, not a capture output.
+**observed facts and their limits**; whether a series shows durable, transient, or
+manufactured demand is a downstream Judgment call, not a capture output.
 
 ## Envelope Of Record (Cited, Not Re-Derived)
 
@@ -198,7 +198,7 @@ points at: downstream layers must be able to see that a series cannot speak to
 the window before its cold start, and why.
 
 This is a capture fact about coverage extent. It is **not** a statement that the
-pre-coverage demand was high, low, durable, or hollow — that would be judgment
+pre-coverage demand was high, low, durable, or transient — that would be judgment
 over data Orca does not have.
 
 ### Element 3 — Series-Level Recapture-Diff (tamper / deletion detection across a series)
@@ -381,7 +381,7 @@ taxonomy). Concretely, in this spec:
 - the series-diff detects observed change; it does **not** classify
   tamper/astroturf/distortion (Signal Integrity is Judgment's);
 - the temporal regimes and cold-start cap classify *coverage*, not *demand
-  durability*; "durable versus hollow" is a downstream Judgment read;
+  durability*; "durable versus transient" is a downstream Judgment read;
 - costly-behavior semantics, the Demand-Substrate Hard Gate, and the posture
   vocabularies are **consumed as defined elsewhere**, not redefined here.
 

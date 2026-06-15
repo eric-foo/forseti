@@ -77,8 +77,8 @@ hardens no contract, and does not edit `models.py`, the obligation contract, or
 `price_payload_extraction.py`. It **cites** them.
 
 It does not define ECR fields, Cleaning transformations, or Judgment rules. It
-does not assess whether any price level, change, or pattern signals durable or
-hollow demand — that is downstream Judgment's call.
+does not assess whether any price level, change, or pattern signals durable,
+transient, or manufactured demand — that is downstream Judgment's call.
 
 ---
 
@@ -179,7 +179,7 @@ Concretely:
 - The promo-mechanism field records what the source shows; it does not classify
   the promo as material, meaningful, or demand-relevant (Judgment's call).
 - The temporal regime and cold-start cap classify *coverage extent*, not *demand
-  durability*. "Durable versus hollow" is a downstream Judgment read.
+  durability*. "Durable versus transient" is a downstream Judgment read.
 - Costly-behavior semantics (buyer pressure, sellouts, restock, switching) are
   NOT in scope for price capture: price is a supply-side indicator, not a
   costly-behavior signal on its own. INV-1 forbids injecting demand assessment

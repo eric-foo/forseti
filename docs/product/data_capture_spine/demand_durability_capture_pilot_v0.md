@@ -68,7 +68,7 @@ What a real demand-durability series runs, per source SKU:
 5. **Series-diff on EXTRACTED values** (A1c): extract per-observation price + availability (variant-keyed); the change signal is value inequality across observations; the raw `sha256` is only a coarse "differs → inspect" flag; record `tamper_deletion_visibility` (`source-visibly marked` | `inferred-from-divergence-only` | `cannot_assess`).
 6. **Stop conditions:** gate encountered → re-probe / switch source (record the limitation); extraction layer absent for a surface → record raw-hash divergence as inspect-flag + `tamper_deletion_visibility=cannot_assess`, never as a confirmed change.
 
-Capture emits observed facts + limits only; whether the series shows durable vs hollow demand is downstream Judgment (INV-1).
+Capture emits observed facts + limits only; whether the series shows durable, transient, or manufactured demand is downstream Judgment (INV-1).
 
 ## 4. Contract-hardening targets the pilot identified
 

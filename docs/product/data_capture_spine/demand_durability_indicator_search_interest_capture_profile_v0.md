@@ -151,8 +151,8 @@ shifts. Capture must record this as a standing series-level limitation:
   flag that as an unresolved comparability question, not silently produce a
   composite series.
 
-This is a capture-side observability obligation. Whether the shape is durable
-vs hollow demand is a downstream Judgment call; capture records the series and
+This is a capture-side observability obligation. Whether the shape is durable,
+transient, or manufactured demand is a downstream Judgment call; capture records the series and
 its normalization limits — it does not judge them.
 
 ### Locale and Geography Pin
@@ -197,7 +197,7 @@ demand-read taxonomy. Concretely:
 
 - every capture fact described here is an **observable**, not a durability score;
 - the series shape (rising, falling, spiked) is recorded as an observed pattern;
-  whether that pattern reflects durable vs hollow demand is a Judgment call;
+  whether that pattern reflects durable, transient, or manufactured demand is a Judgment call;
 - no formula, threshold, weight, or numeric scoring rule appears in this profile;
 - normalization limits are captured as visible constraints on downstream use,
   not as quality scores.
