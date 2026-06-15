@@ -20,11 +20,11 @@ open_next:
   - docs/decisions/wind_caller_calibration_carveout_v0.md
   - docs/prompts/product-planning/orca_ontology_backbone_architecture_pass_commission_prompt_v0.md
 stale_if:
-  - The suggested-accounts-edge feasibility probe lands (moves mechanism 1 from UNPROVEN to GO/NO-GO).
-  - IG changes the suggested-accounts surface, the profile-feed payload, or the grid doc_id.
+  - Phase 2 (snowball depth / sub-niche coherence / follower bands / crawler-strip retry) lands.
+  - IG changes the web_profile_info payload or moves edge_related_profiles behind auth.
   - The ontology backbone is adopted and SubNiche becomes a live classifier (this doc's forward-link resolves).
   - The carve-out is amended (e.g. the floated <=10-account cap is recorded).
-status: PROPOSED — discovery design; suggested-accounts-edge feasibility UNPROVEN (next probe)
+status: PROPOSED — discovery design; suggested-accounts edge FEASIBILITY-PROVEN logged-out (Phase 1, n=3); snowball/Phase 2 pending
 ```
 
 # Instagram Creator Discovery — Spec (proposed, v0)
@@ -56,9 +56,14 @@ finding, a build-go, or a validation.
 1. **Suggested-accounts edge** — IG's "similar accounts" graph. Seed a few known
    creators per sub-niche → expand to adjacent accounts, which skew *rising*
    (that's who the algorithm clusters as "similar but smaller").
-   **UNPROVEN gating dependency:** does IG expose this edge **logged-out** (the
-   way `web_profile_info` exposed the feed)? → the next probe, below. Same lane
-   and shape as the reel-view-count recon.
+   **FEASIBILITY-PROVEN logged-out (Phase 1, 2026-06-15, n=3):** the edge is
+   `data.user.edge_related_profiles` in the `web_profile_info` JSON (the tolerant
+   200-cookieless surface), populated logged-out (19 and 32 related accounts for
+   two seeds; sub-niche-coherent), each node carrying `username`+`id` (so the
+   snowball is feasible). See
+   `ig_creator_discovery_suggested_accounts_recon_v0.md`. Snowball depth,
+   sub-niche coherence at depth, follower bands, and the crawler-strip retry are
+   **Phase 2**.
 2. **Collab / mention traversal** — walk tagged collaborators and `@`-mentions
    from seed/rostered posts. Emerging creators collab to grow, so this snowballs
    the same sub-niche.
@@ -95,15 +100,18 @@ finding, a build-go, or a validation.
   Keep hashtags only as a cheap *secondary corroboration* signal for the
   classifier — never the classifier itself, and not the discovery spine.
 
-## Next probe (the one gating unknown)
+## Probe status
 
-**Suggested-accounts-edge feasibility, logged-out** — same template as the reel
-recon (`ig_reel_viewcount_capture_feasibility_recon_v0.md`): does IG return the
-related/suggested-accounts edge **cookieless** (on which surface/endpoint), and
-how deep before the grid-style **~35-anon-req/window → HTTP 401** ceiling bites
-(see the consolidated findings note). Probe-first, before any discovery build; the
-result lands as a `capture_recon_index_v0.md` row. If it returns logged-out, the
-whole pipeline runs on **one IG substrate** with no off-IG discovery dependency.
+- **Phase 1 — reachability: DONE, GO logged-out** (2026-06-15, n=3). The edge is
+  `data.user.edge_related_profiles` in `web_profile_info`, populated logged-out, no
+  off-IG dependency. Full finding:
+  `ig_creator_discovery_suggested_accounts_recon_v0.md`; recon-index row in
+  `capture_recon_index_v0.md`.
+- **Phase 2 — snowball: PENDING, gated.** Seed one sub-niche, 2-hop BFS, bounded;
+  measure expansion, sub-niche coherence at depth, follower bands (does it surface
+  rising accounts), saturation-vs-sprawl, the crawler-strip empty rate + retry, and
+  wpi's own rate ceiling. **Gated on** the owner discovery-read posture ruling
+  (below) and carries the crawler-strip retry design from the Phase-1 caveat.
 
 ## Posture / carve-out boundary
 
@@ -121,10 +129,11 @@ whole pipeline runs on **one IG substrate** with no off-IG discovery dependency.
 ## Non-claims
 
 Proposed capability design only — not a finding, build-go, validation, readiness,
-or commercial/legal authorization. The suggested-accounts edge is **UNPROVEN**.
-Free-tool capabilities are **vendor claims**, not verified by us. The
-sub-niche/ontology ownership is a **forward design link** to a not-yet-adopted
-ontology.
+or commercial/legal authorization. The suggested-accounts edge is
+**feasibility-proven logged-out (Phase 1, n=3)** — a recon GO, not a build or
+at-scale claim; snowball/Phase 2 is pending. Free-tool capabilities are **vendor
+claims**, not verified by us. The sub-niche/ontology ownership is a **forward
+design link** to a not-yet-adopted ontology.
 
 ## Grounding (external, 2026)
 
