@@ -13,7 +13,7 @@ use_when:
   - Adjudicating whether to adopt the Orca ontology as the repo's semantic backbone.
   - Locating the proposed object roster, links, action gates, ID grammar, and binding plan.
 authority_boundary: retrieval_only
-status: OWNER_ADJUDICATED_2026-06-15 — ADOPT core (15 of 18 names); Buyer + Org RESERVED (names held, deferred); AWAITING_MERGE_TO_MAIN
+status: ADOPTED_2026-06-15 (owner-signed) — core 15 of 18 names; Buyer + Org RESERVED (deferred, §6.1)
 commission: docs/prompts/product-planning/orca_ontology_backbone_architecture_pass_commission_prompt_v0.md
 base: origin/main @ 953af7ea (frozen); freshness gate PASSED (8/8 sha-pins + LIVE grammar verified)
 adjudication_route: ICP / product-direction lane adjudicates; owner signs adoption and any folder/router binding.
