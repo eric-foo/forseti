@@ -67,14 +67,66 @@ The dispatched lane MUST design against the current grammar:
 - **Q0–Q3 are DECIDED** (not "PROPOSED-strength"): demand-state model (Q0); pricing
   refinement (Q1); wind-caller primacy **"at the trigger" / calibration-gated** (Q2);
   channel-vs-person boundary **refined** (Q3 — named public-figure calibration,
-  **non-permanent**, the ≤5/attended capture cap **platform-scoped**, external/product
-  boundary unchanged). Encode the WindCaller boundary into its object definition.
+  **non-permanent**, the capture cap **platform-scoped** and on **Orca's own
+  operating/capture accounts (≤10 ceiling; operations start at ≤5), NOT the number of
+  subject creators** — the subject roster is uncapped (target = all creators in the
+  vertical); method = **active capture (discovery + capture-target decisions) is
+  attended/human-initiated; passive capture (time-series monitoring of already-flagged
+  creators) runs as human-initiated, time-bounded, self-terminating runs — no discovery
+  inside them, and never a perpetual/scheduled standing crawler**; faster-than-human but
+  not takedown-risking; ToS risk owner-accepted; external/product
+  boundary unchanged — per the carve-out 2026-06-15 amendment). Encode the WindCaller boundary into its object definition.
 - **Gate actions** are now defined (demand-gate closures): **G1** independence by
   de-correlated origination, **G2** costly-behavior floor, **G4** org-motion
   corroboration (separate from G1) — encode as Gate actions/preconditions, routed to
   their owners, not rebuilt.
 
 The SOURCE-LOAD and candidate roster below are updated accordingly.
+
+## Refresh Note (2026-06-15 — wind-caller capture-cap re-framing; doctrine propagation surface)
+
+**Applied-contract basis.** This bounded 2026-06-15 edit was authored under an explicit
+current-turn owner patch (source hierarchy: explicit current-turn instruction > AGENTS.md >
+overlay). Scope: `docs-write` bounded to this single target file; two WindCaller cap sites
+re-framed + this note added. The retrieval header, the `AWAITING_DISPATCH` status, the
+output mode, artifact role, hard constraints, and non-claims are preserved unchanged
+(dated-amendment-only, never a silent rewrite), per
+`.agents/workflow-overlay/prompt-orchestration.md`.
+
+**Owner doctrine (2026-06-15).** The wind-caller **capture cap** is a ceiling on **Orca's
+own operating/capture accounts (≤10; operations start at ≤5)**, **not** a cap on the number
+of subject creators. The **subject-creator roster is uncapped** — target = all creators
+within the vertical. **Method posture (two modes).** *Active* capture — discovery +
+capture-target decisions — is **attended / human-initiated**. *Passive* capture —
+time-series monitoring of **already-flagged** creators — runs as **human-initiated,
+time-bounded, self-terminating runs with no discovery inside them**; a **perpetual /
+scheduled standing crawler remains forbidden**. Both are **faster-than-human but not
+takedown-risking**; **ToS risk owner-accepted**. The **non-permanence** and the
+**external/product person-level boundary are UNCHANGED** by this capture-scale change.
+Controlling authority: `docs/decisions/wind_caller_calibration_carveout_v0.md`
+**2026-06-15 amendment** (recorded in parallel).
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: "Wind-caller capture cap re-defined: a ≤10 ceiling (start ≤5) on Orca's OWN operating/capture accounts (not subject count); subject roster uncapped (all-in-vertical); method = two modes — active capture (discovery/capture-target) is attended/human-initiated, passive capture (time-series monitoring of already-flagged creators) is human-initiated, time-bounded, self-terminating runs with no discovery and never a perpetual/scheduled standing crawler; faster-than-human but not takedown-risking; ToS risk owner-accepted; non-permanence and external/product person-level boundary unchanged."
+  trigger: product_doctrine
+  related_triggers: []
+  controlling_sources_updated:
+    - "docs/decisions/wind_caller_calibration_carveout_v0.md — 2026-06-15 amendment (PARALLEL/PENDING — NOT edited by this bounded single-file patch; on branch ig-cadence-rails @ c365dca2 the file still carries only the 2026-06-14 ≤5 framing, so this surface is intentionally AHEAD of its controlling source until that amendment lands)."
+  downstream_surfaces_checked:
+    - "docs/prompts/product-planning/orca_ontology_backbone_architecture_pass_commission_prompt_v0.md — both WindCaller cap sites re-framed (this file)."
+  intentionally_not_updated:
+    - path: ".agents/workflow-overlay/source-of-truth.md (inline receipts)"
+      reason: "Outside this bounded single-file patch scope; the canonical inline receipt is the carve-out 2026-06-15 lane's parallel job."
+    - path: "Other repo consumers of the ≤5 capture-cap wording"
+      reason: "Cross-lane propagation is owned by the carve-out 2026-06-15 amendment lane, not this single-surface patch."
+  stale_language_search: "ran in-file (grep: capture cap / platform-scoped / ≤5 / ≤10 / WindCaller / attended) — the only cap-framing occurrences in this file are the two sites updated above; repo-wide sweep deferred to the controlling carve-out lane."
+  non_claims:
+    - "not validation"
+    - "not readiness"
+    - "not ontology adoption / not commission re-dispatch"
+    - "controlling carve-out 2026-06-15 amendment is pending/parallel; this surface does not enact it"
+```
 
 ## Commission
 
@@ -150,8 +202,14 @@ that helps downstream consumers; the **Read lifecycle Actions**
 `G1`/`G2`/`G4` (demand-gate closures); the **never-a-feed** invariant as an
 action constraint on recurring reads; and a `claim_tier` dimension (evidence
 ladder) on Memo/Case/Outcome/Read. The `WindCaller` object encodes the carve-out
-boundary (non-permanent, platform-scoped capture cap, internal-use,
-external/product boundary unchanged) and calibration-gated trigger primacy (Q2).
+boundary (non-permanent; the capture cap constrains **Orca's own capture/operating
+accounts — ≤10 ceiling, operations start at ≤5 — NOT the subject count**; the subject
+roster is **uncapped (all creators in-vertical)**; method = **active capture (discovery +
+capture-target) is attended/human-initiated; passive capture (time-series monitoring of
+already-flagged creators) is human-initiated, time-bounded, self-terminating — no discovery
+inside, never a perpetual/scheduled standing crawler**, faster-than-human but not
+takedown-risking; ToS risk owner-accepted; internal-use,
+external/product boundary unchanged; per the carve-out 2026-06-15 amendment) and calibration-gated trigger primacy (Q2).
 Respect the cap — fold these into existing types where they are dimensions, not
 new objects.
 
