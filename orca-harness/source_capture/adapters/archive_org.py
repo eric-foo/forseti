@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 import time
 from dataclasses import dataclass
 from json import JSONDecodeError
@@ -50,6 +51,15 @@ class ArchiveOrgSnapshot:
 
 
 @dataclass(frozen=True)
+class ArchiveBodyVerification:
+    # Slice G verdict for a retrieved archive body: whether the SERVED snapshot
+    # (parsed from the post-redirect final_url) holds the no-lookahead line.
+    ok: bool
+    served_timestamp: str | None
+    reason: str | None = None
+
+
+@dataclass(frozen=True)
 class ArchiveOrgCaptureSuccess:
     original_url: str
     availability_url: str
@@ -58,6 +68,7 @@ class ArchiveOrgCaptureSuccess:
     selected_snapshot: ArchiveOrgSnapshot | None
     body_result: DirectHttpCaptureSuccess | DirectHttpCaptureFailure | None
     parse_warning: str | None = None
+    body_verification: ArchiveBodyVerification | None = None
 
 
 @dataclass(frozen=True)
@@ -120,6 +131,7 @@ def fetch_archive_org_capture(
 
     selected_snapshot = select_snapshot(snapshots, cutoff_timestamp=cutoff_timestamp)
     body_result: DirectHttpCaptureSuccess | DirectHttpCaptureFailure | None = None
+    body_verification: ArchiveBodyVerification | None = None
     if selected_snapshot is not None:
         body_result = _fetch_with_retry(
             url=selected_snapshot.snapshot_url,
@@ -127,6 +139,12 @@ def fetch_archive_org_capture(
             max_bytes=max_bytes,
             max_attempts=max_attempts,
             retry_backoff_seconds=retry_backoff_seconds,
+        )
+        body_verification = verify_archive_body(
+            body_result=body_result,
+            requested_original_url=selected_snapshot.original_url,
+            cutoff_timestamp=cutoff_timestamp,
+            snapshot_base_url=snapshot_base_url,
         )
 
     return ArchiveOrgCaptureSuccess(
@@ -137,7 +155,76 @@ def fetch_archive_org_capture(
         selected_snapshot=selected_snapshot,
         body_result=body_result,
         parse_warning=parse_warning,
+        body_verification=body_verification,
     )
+
+
+# Wayback replay form after the archive base: <14-digit ts>[<2-3 char modifier>_]/<original_url>.
+# The optional modifier (id_, if_, im_, cs_, js_, ...) must be tolerated or a clean modifier
+# replay false-fails (G-001); anchoring to the archive base (below) stops an off-archive
+# redirect that merely mimics the /web/<ts>/<url> shape from false-passing (G-001).
+_SERVED_SNAPSHOT_RE = re.compile(r"^(\d{14})(?:[a-z]{2,3}_)?/(.+)$")
+
+
+def verify_archive_body(
+    *,
+    body_result: DirectHttpCaptureSuccess | DirectHttpCaptureFailure | None,
+    requested_original_url: str,
+    cutoff_timestamp: str | None,
+    snapshot_base_url: str = DEFAULT_SNAPSHOT_BASE_URL,
+) -> ArchiveBodyVerification | None:
+    # Slice G -- served-time no-lookahead guard. select_snapshot's selection-time
+    # <=cutoff check cannot see that Wayback may 302 a pre-cutoff request to a
+    # POST-cutoff capture; this verifies the SERVED snapshot (parsed from the
+    # post-redirect final_url) came from the expected archive host, is <=cutoff,
+    # and still addresses the requested original URL. An off-archive host, a
+    # served-time violation, an identity drift, or -- when a cutoff is set -- an
+    # unparseable served time is a verification FAILURE, never a silent pass.
+    # Content-integrity checks (soft-404 / charset) are a separate deferred slice.
+    if not isinstance(body_result, DirectHttpCaptureSuccess):
+        return None  # no preserved body to verify; body-not-preserved is handled elsewhere
+    base_prefix = snapshot_base_url.rstrip("/") + "/"
+    if not body_result.final_url.startswith(base_prefix):
+        return ArchiveBodyVerification(
+            ok=False,
+            served_timestamp=None,
+            reason=(
+                f"served_off_archive_host: final_url {body_result.final_url!r} is not under the "
+                f"expected archive base {base_prefix!r}"
+            ),
+        )
+    match = _SERVED_SNAPSHOT_RE.match(body_result.final_url[len(base_prefix):])
+    if match is None:
+        if cutoff_timestamp is None:
+            return ArchiveBodyVerification(ok=True, served_timestamp=None)
+        return ArchiveBodyVerification(
+            ok=False,
+            served_timestamp=None,
+            reason=(
+                "served_time_unverifiable: could not parse a 14-digit served snapshot "
+                f"timestamp from archive replay URL {body_result.final_url!r}"
+            ),
+        )
+    served_timestamp, served_original_url = match.group(1), match.group(2)
+    if served_original_url != requested_original_url:
+        return ArchiveBodyVerification(
+            ok=False,
+            served_timestamp=served_timestamp,
+            reason=(
+                f"served_url_identity_mismatch: served {served_original_url!r} "
+                f"!= requested {requested_original_url!r}"
+            ),
+        )
+    if cutoff_timestamp is not None and served_timestamp > cutoff_timestamp:
+        return ArchiveBodyVerification(
+            ok=False,
+            served_timestamp=served_timestamp,
+            reason=(
+                f"served_time_leak: served snapshot {served_timestamp} is after cutoff "
+                f"{cutoff_timestamp} (no-lookahead violation the select-time <=cutoff guard cannot see)"
+            ),
+        )
+    return ArchiveBodyVerification(ok=True, served_timestamp=served_timestamp)
 
 
 def _is_rate_limited(result: DirectHttpCaptureResult) -> bool:
