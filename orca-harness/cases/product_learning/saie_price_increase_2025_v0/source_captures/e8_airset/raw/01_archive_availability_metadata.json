@@ -1,0 +1,110 @@
+{
+  "availability_http_metadata": {
+    "byte_count": 1190,
+    "capture_timestamp": "2026-06-15T13:49:55Z",
+    "content_length": null,
+    "content_type": "application/json",
+    "date": "Mon, 15 Jun 2026 13:49:55 GMT",
+    "etag": null,
+    "final_url": "https://web.archive.org/cdx/search/cdx?url=https%3A%2F%2Fsaiehello.com%2Fproducts%2Fairset&output=json&fl=timestamp%2Coriginal%2Cstatuscode%2Cmimetype%2Cdigest&collapse=digest&to=20250601000000&limit=-10",
+    "last_modified": null,
+    "reason": "OK",
+    "requested_url": "https://web.archive.org/cdx/search/cdx?url=https%3A%2F%2Fsaiehello.com%2Fproducts%2Fairset&output=json&fl=timestamp%2Coriginal%2Cstatuscode%2Cmimetype%2Cdigest&collapse=digest&to=20250601000000&limit=-10",
+    "status": 200,
+    "timeout_seconds": 90.0
+  },
+  "availability_url": "https://web.archive.org/cdx/search/cdx?url=https%3A%2F%2Fsaiehello.com%2Fproducts%2Fairset&output=json&fl=timestamp%2Coriginal%2Cstatuscode%2Cmimetype%2Cdigest&collapse=digest&to=20250601000000&limit=-10",
+  "original_url": "https://saiehello.com/products/airset",
+  "parse_warning": null,
+  "selected_snapshot": {
+    "digest": "4JYNENAY2ZNAZBHCGJKDCLCITUOQWOWF",
+    "mime_type": "text/html",
+    "original_url": "https://saiehello.com/products/airset",
+    "snapshot_url": "https://web.archive.org/web/20250428045316/https://saiehello.com/products/airset",
+    "status_code": "200",
+    "timestamp": "20250428045316"
+  },
+  "snapshot_count": 10,
+  "snapshots": [
+    {
+      "digest": "DH3NRQOAXAWTCNODC5YSHHJONJF4U5GE",
+      "mime_type": "text/html",
+      "original_url": "https://saiehello.com/products/airset",
+      "snapshot_url": "https://web.archive.org/web/20231204022205/https://saiehello.com/products/airset",
+      "status_code": "200",
+      "timestamp": "20231204022205"
+    },
+    {
+      "digest": "PT62QN574RXSHWXBJ2SZM4YHEA3DHZWK",
+      "mime_type": "text/html",
+      "original_url": "https://saiehello.com/products/airset",
+      "snapshot_url": "https://web.archive.org/web/20231204142246/https://saiehello.com/products/airset",
+      "status_code": "200",
+      "timestamp": "20231204142246"
+    },
+    {
+      "digest": "BFSKW54KW5ZBLHTVCO3FNJKLQECBJAYS",
+      "mime_type": "text/html",
+      "original_url": "https://saiehello.com/products/airset",
+      "snapshot_url": "https://web.archive.org/web/20231212131429/https://saiehello.com/products/airset",
+      "status_code": "200",
+      "timestamp": "20231212131429"
+    },
+    {
+      "digest": "QGOWXKCHRGGEE5ZNURUF6ZR6BMGFGZF4",
+      "mime_type": "text/html",
+      "original_url": "https://saiehello.com/products/airset",
+      "snapshot_url": "https://web.archive.org/web/20240205080434/https://saiehello.com/products/airset",
+      "status_code": "200",
+      "timestamp": "20240205080434"
+    },
+    {
+      "digest": "RJALQXRJ5BPBV2AEZASKBXUPTTI7JCEL",
+      "mime_type": "text/html",
+      "original_url": "https://saiehello.com/products/airset",
+      "snapshot_url": "https://web.archive.org/web/20240527085045/https://saiehello.com/products/airset",
+      "status_code": "200",
+      "timestamp": "20240527085045"
+    },
+    {
+      "digest": "L7URUV6KX4EJMEFKWF5RQXEAK5C5TDKT",
+      "mime_type": "text/html",
+      "original_url": "https://saiehello.com/products/airset",
+      "snapshot_url": "https://web.archive.org/web/20240909140235/https://saiehello.com/products/airset",
+      "status_code": "200",
+      "timestamp": "20240909140235"
+    },
+    {
+      "digest": "OLFZT4QA4AQPF2PETX3MDL4JCFLTRS6Q",
+      "mime_type": "text/html",
+      "original_url": "https://saiehello.com/products/airset",
+      "snapshot_url": "https://web.archive.org/web/20240911121310/https://saiehello.com/products/airset",
+      "status_code": "200",
+      "timestamp": "20240911121310"
+    },
+    {
+      "digest": "RVWX2GBOVABEIGAPCDFXFBP2GAAWFJNX",
+      "mime_type": "text/html",
+      "original_url": "https://saiehello.com/products/airset",
+      "snapshot_url": "https://web.archive.org/web/20250120144709/https://saiehello.com/products/airset",
+      "status_code": "200",
+      "timestamp": "20250120144709"
+    },
+    {
+      "digest": "DYTFUECVZKCXNM2L3INQXTJRJAA6TTJJ",
+      "mime_type": "text/html",
+      "original_url": "https://saiehello.com/products/airset",
+      "snapshot_url": "https://web.archive.org/web/20250315194721/https://saiehello.com/products/airset",
+      "status_code": "200",
+      "timestamp": "20250315194721"
+    },
+    {
+      "digest": "4JYNENAY2ZNAZBHCGJKDCLCITUOQWOWF",
+      "mime_type": "text/html",
+      "original_url": "https://saiehello.com/products/airset",
+      "snapshot_url": "https://web.archive.org/web/20250428045316/https://saiehello.com/products/airset",
+      "status_code": "200",
+      "timestamp": "20250428045316"
+    }
+  ]
+}

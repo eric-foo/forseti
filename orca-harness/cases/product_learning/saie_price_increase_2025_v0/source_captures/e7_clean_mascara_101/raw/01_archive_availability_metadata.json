@@ -1,0 +1,110 @@
+{
+  "availability_http_metadata": {
+    "byte_count": 1300,
+    "capture_timestamp": "2026-06-15T13:54:26Z",
+    "content_length": null,
+    "content_type": "application/json",
+    "date": "Mon, 15 Jun 2026 13:54:26 GMT",
+    "etag": null,
+    "final_url": "https://web.archive.org/cdx/search/cdx?url=https%3A%2F%2Fsaiehello.com%2Fproducts%2Fclean-mascara-101&output=json&fl=timestamp%2Coriginal%2Cstatuscode%2Cmimetype%2Cdigest&collapse=digest&to=20250601000000&limit=-10",
+    "last_modified": null,
+    "reason": "OK",
+    "requested_url": "https://web.archive.org/cdx/search/cdx?url=https%3A%2F%2Fsaiehello.com%2Fproducts%2Fclean-mascara-101&output=json&fl=timestamp%2Coriginal%2Cstatuscode%2Cmimetype%2Cdigest&collapse=digest&to=20250601000000&limit=-10",
+    "status": 200,
+    "timeout_seconds": 120.0
+  },
+  "availability_url": "https://web.archive.org/cdx/search/cdx?url=https%3A%2F%2Fsaiehello.com%2Fproducts%2Fclean-mascara-101&output=json&fl=timestamp%2Coriginal%2Cstatuscode%2Cmimetype%2Cdigest&collapse=digest&to=20250601000000&limit=-10",
+  "original_url": "https://saiehello.com/products/clean-mascara-101",
+  "parse_warning": null,
+  "selected_snapshot": {
+    "digest": "76VX77WNQMLDXE3QKL66AZQRIRU66YVZ",
+    "mime_type": "text/html",
+    "original_url": "https://saiehello.com/products/clean-mascara-101",
+    "snapshot_url": "https://web.archive.org/web/20250428050840/https://saiehello.com/products/clean-mascara-101",
+    "status_code": "200",
+    "timestamp": "20250428050840"
+  },
+  "snapshot_count": 10,
+  "snapshots": [
+    {
+      "digest": "HUQOZJH2LO4BMH7O6DMD77MF3SLPX6S7",
+      "mime_type": "text/html",
+      "original_url": "https://saiehello.com/products/clean-mascara-101",
+      "snapshot_url": "https://web.archive.org/web/20230605093833/https://saiehello.com/products/clean-mascara-101",
+      "status_code": "200",
+      "timestamp": "20230605093833"
+    },
+    {
+      "digest": "DU4O3USLQPXBOA5OZUPSDDHLFYOI2J6F",
+      "mime_type": "text/html",
+      "original_url": "https://saiehello.com/products/clean-mascara-101",
+      "snapshot_url": "https://web.archive.org/web/20230921180512/https://saiehello.com/products/clean-mascara-101",
+      "status_code": "200",
+      "timestamp": "20230921180512"
+    },
+    {
+      "digest": "W52AJLKTFOBTIMA3NFZZF46PIDVFYRLY",
+      "mime_type": "text/html",
+      "original_url": "https://saiehello.com/products/clean-mascara-101",
+      "snapshot_url": "https://web.archive.org/web/20231204032330/https://saiehello.com/products/clean-mascara-101",
+      "status_code": "200",
+      "timestamp": "20231204032330"
+    },
+    {
+      "digest": "UKVJ7HJJBQJLCNCKEGRRS52PE4NXYZAJ",
+      "mime_type": "text/html",
+      "original_url": "https://saiehello.com/products/clean-mascara-101",
+      "snapshot_url": "https://web.archive.org/web/20240202191015/https://saiehello.com/products/clean-mascara-101",
+      "status_code": "200",
+      "timestamp": "20240202191015"
+    },
+    {
+      "digest": "RNPHHTIYQIMRPTPB6XU7PMWDR46WCOY4",
+      "mime_type": "text/html",
+      "original_url": "https://saiehello.com/products/clean-mascara-101",
+      "snapshot_url": "https://web.archive.org/web/20240416131338/https://saiehello.com/products/clean-mascara-101",
+      "status_code": "200",
+      "timestamp": "20240416131338"
+    },
+    {
+      "digest": "FU5GX52636F557Z5QMIIKMLILKV3LNJW",
+      "mime_type": "text/html",
+      "original_url": "https://saiehello.com/products/clean-mascara-101",
+      "snapshot_url": "https://web.archive.org/web/20240907042151/https://saiehello.com/products/clean-mascara-101",
+      "status_code": "200",
+      "timestamp": "20240907042151"
+    },
+    {
+      "digest": "YXA4F3WF4GKUHAIGPFQHUQC56BSTJTNL",
+      "mime_type": "text/html",
+      "original_url": "https://saiehello.com/products/clean-mascara-101",
+      "snapshot_url": "https://web.archive.org/web/20241015053340/https://saiehello.com/products/clean-mascara-101",
+      "status_code": "200",
+      "timestamp": "20241015053340"
+    },
+    {
+      "digest": "XT6D5RBVPQ35PW47MEEJLBGHRCEDD4SX",
+      "mime_type": "text/html",
+      "original_url": "https://saiehello.com/products/clean-mascara-101",
+      "snapshot_url": "https://web.archive.org/web/20250120150641/https://saiehello.com/products/clean-mascara-101",
+      "status_code": "200",
+      "timestamp": "20250120150641"
+    },
+    {
+      "digest": "EL2XQ373JMSSAHINLWPXG5NCFPEXHWJ3",
+      "mime_type": "text/html",
+      "original_url": "https://saiehello.com/products/clean-mascara-101",
+      "snapshot_url": "https://web.archive.org/web/20250409185618/https://saiehello.com/products/clean-mascara-101",
+      "status_code": "200",
+      "timestamp": "20250409185618"
+    },
+    {
+      "digest": "76VX77WNQMLDXE3QKL66AZQRIRU66YVZ",
+      "mime_type": "text/html",
+      "original_url": "https://saiehello.com/products/clean-mascara-101",
+      "snapshot_url": "https://web.archive.org/web/20250428050840/https://saiehello.com/products/clean-mascara-101",
+      "status_code": "200",
+      "timestamp": "20250428050840"
+    }
+  ]
+}

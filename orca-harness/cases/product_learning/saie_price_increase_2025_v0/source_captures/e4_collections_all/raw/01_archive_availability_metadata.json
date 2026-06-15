@@ -1,0 +1,110 @@
+{
+  "availability_http_metadata": {
+    "byte_count": 1190,
+    "capture_timestamp": "2026-06-15T13:53:27Z",
+    "content_length": null,
+    "content_type": "application/json",
+    "date": "Mon, 15 Jun 2026 13:53:27 GMT",
+    "etag": null,
+    "final_url": "https://web.archive.org/cdx/search/cdx?url=https%3A%2F%2Fsaiehello.com%2Fcollections%2Fall&output=json&fl=timestamp%2Coriginal%2Cstatuscode%2Cmimetype%2Cdigest&collapse=digest&to=20250601000000&limit=-10",
+    "last_modified": null,
+    "reason": "OK",
+    "requested_url": "https://web.archive.org/cdx/search/cdx?url=https%3A%2F%2Fsaiehello.com%2Fcollections%2Fall&output=json&fl=timestamp%2Coriginal%2Cstatuscode%2Cmimetype%2Cdigest&collapse=digest&to=20250601000000&limit=-10",
+    "status": 200,
+    "timeout_seconds": 120.0
+  },
+  "availability_url": "https://web.archive.org/cdx/search/cdx?url=https%3A%2F%2Fsaiehello.com%2Fcollections%2Fall&output=json&fl=timestamp%2Coriginal%2Cstatuscode%2Cmimetype%2Cdigest&collapse=digest&to=20250601000000&limit=-10",
+  "original_url": "https://saiehello.com/collections/all",
+  "parse_warning": null,
+  "selected_snapshot": {
+    "digest": "3RVFXPJ4GXCKUUA7K3I6ODA7FSYZUSVC",
+    "mime_type": "text/html",
+    "original_url": "https://saiehello.com/collections/all",
+    "snapshot_url": "https://web.archive.org/web/20250428061256/https://saiehello.com/collections/all",
+    "status_code": "200",
+    "timestamp": "20250428061256"
+  },
+  "snapshot_count": 10,
+  "snapshots": [
+    {
+      "digest": "DWYKV4VC3BHVU2AST7D65K35QME37ZV6",
+      "mime_type": "text/html",
+      "original_url": "https://saiehello.com/collections/all",
+      "snapshot_url": "https://web.archive.org/web/20230307161000/https://saiehello.com/collections/all",
+      "status_code": "200",
+      "timestamp": "20230307161000"
+    },
+    {
+      "digest": "4REKVYHNP65A2SPC5OEG74V5MML5HI4S",
+      "mime_type": "text/html",
+      "original_url": "https://saiehello.com/collections/all",
+      "snapshot_url": "https://web.archive.org/web/20230315063404/https://saiehello.com/collections/all",
+      "status_code": "200",
+      "timestamp": "20230315063404"
+    },
+    {
+      "digest": "NXVUTB6PCYC52EKWVVERDRIZYH6POIBI",
+      "mime_type": "text/html",
+      "original_url": "https://saiehello.com/collections/all",
+      "snapshot_url": "https://web.archive.org/web/20231001024125/https://saiehello.com/collections/all",
+      "status_code": "200",
+      "timestamp": "20231001024125"
+    },
+    {
+      "digest": "I7233RVD4EHRKEGPS3EYXOEZ6CV2VQGG",
+      "mime_type": "text/html",
+      "original_url": "https://saiehello.com/collections/all",
+      "snapshot_url": "https://web.archive.org/web/20240416143238/https://saiehello.com/collections/all",
+      "status_code": "200",
+      "timestamp": "20240416143238"
+    },
+    {
+      "digest": "EWFWXSMK2LJBWW3EQWDARPNNZJYFFPSA",
+      "mime_type": "text/html",
+      "original_url": "https://saiehello.com/collections/all",
+      "snapshot_url": "https://web.archive.org/web/20240625155334/https://saiehello.com/collections/all",
+      "status_code": "200",
+      "timestamp": "20240625155334"
+    },
+    {
+      "digest": "K4OKS2FPWIQZPFWEQEUEVO6TXUWAA6PH",
+      "mime_type": "text/html",
+      "original_url": "https://saiehello.com/collections/all",
+      "snapshot_url": "https://web.archive.org/web/20240907012859/https://saiehello.com/collections/all",
+      "status_code": "200",
+      "timestamp": "20240907012859"
+    },
+    {
+      "digest": "2E7YCUE3RLZN4JX3FRUOJK3F626DI2Z3",
+      "mime_type": "text/html",
+      "original_url": "https://saiehello.com/collections/all",
+      "snapshot_url": "https://web.archive.org/web/20241015065203/https://saiehello.com/collections/all",
+      "status_code": "200",
+      "timestamp": "20241015065203"
+    },
+    {
+      "digest": "X3WP26UA72HD6IJ3ES74ZKF43MCC7IJ5",
+      "mime_type": "text/html",
+      "original_url": "https://saiehello.com/collections/all",
+      "snapshot_url": "https://web.archive.org/web/20250120162338/https://saiehello.com/collections/all",
+      "status_code": "200",
+      "timestamp": "20250120162338"
+    },
+    {
+      "digest": "LQ4SSKAOOZQPNSAGH76WOM3RJUB5555Z",
+      "mime_type": "text/html",
+      "original_url": "https://saiehello.com/collections/all",
+      "snapshot_url": "https://web.archive.org/web/20250415160455/https://saiehello.com/collections/all",
+      "status_code": "200",
+      "timestamp": "20250415160455"
+    },
+    {
+      "digest": "3RVFXPJ4GXCKUUA7K3I6ODA7FSYZUSVC",
+      "mime_type": "text/html",
+      "original_url": "https://saiehello.com/collections/all",
+      "snapshot_url": "https://web.archive.org/web/20250428061256/https://saiehello.com/collections/all",
+      "status_code": "200",
+      "timestamp": "20250428061256"
+    }
+  ]
+}

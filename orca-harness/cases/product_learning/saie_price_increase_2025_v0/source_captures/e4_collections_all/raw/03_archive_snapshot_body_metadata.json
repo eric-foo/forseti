@@ -1,0 +1,25 @@
+{
+  "original_url": "https://saiehello.com/collections/all",
+  "selected_snapshot": {
+    "digest": "3RVFXPJ4GXCKUUA7K3I6ODA7FSYZUSVC",
+    "mime_type": "text/html",
+    "original_url": "https://saiehello.com/collections/all",
+    "snapshot_url": "https://web.archive.org/web/20250428061256/https://saiehello.com/collections/all",
+    "status_code": "200",
+    "timestamp": "20250428061256"
+  },
+  "snapshot_body_http_metadata": {
+    "byte_count": 4125876,
+    "capture_timestamp": "2026-06-15T13:53:31Z",
+    "content_length": null,
+    "content_type": "text/html; charset=utf-8",
+    "date": "Mon, 15 Jun 2026 13:53:29 GMT",
+    "etag": null,
+    "final_url": "https://web.archive.org/web/20250428061256/https://saiehello.com/collections/all",
+    "last_modified": null,
+    "reason": "OK",
+    "requested_url": "https://web.archive.org/web/20250428061256/https://saiehello.com/collections/all",
+    "status": 200,
+    "timeout_seconds": 120.0
+  }
+}

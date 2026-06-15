@@ -1,0 +1,110 @@
+{
+  "availability_http_metadata": {
+    "byte_count": 1220,
+    "capture_timestamp": "2026-06-15T13:48:20Z",
+    "content_length": null,
+    "content_type": "application/json",
+    "date": "Mon, 15 Jun 2026 13:48:20 GMT",
+    "etag": null,
+    "final_url": "https://web.archive.org/cdx/search/cdx?url=https%3A%2F%2Fsaiehello.com%2Fproducts%2Fdew-blush&output=json&fl=timestamp%2Coriginal%2Cstatuscode%2Cmimetype%2Cdigest&collapse=digest&to=20250601000000&limit=-10",
+    "last_modified": null,
+    "reason": "OK",
+    "requested_url": "https://web.archive.org/cdx/search/cdx?url=https%3A%2F%2Fsaiehello.com%2Fproducts%2Fdew-blush&output=json&fl=timestamp%2Coriginal%2Cstatuscode%2Cmimetype%2Cdigest&collapse=digest&to=20250601000000&limit=-10",
+    "status": 200,
+    "timeout_seconds": 90.0
+  },
+  "availability_url": "https://web.archive.org/cdx/search/cdx?url=https%3A%2F%2Fsaiehello.com%2Fproducts%2Fdew-blush&output=json&fl=timestamp%2Coriginal%2Cstatuscode%2Cmimetype%2Cdigest&collapse=digest&to=20250601000000&limit=-10",
+  "original_url": "https://saiehello.com/products/dew-blush",
+  "parse_warning": null,
+  "selected_snapshot": {
+    "digest": "JMZQBTV6G3PINICZ3MVWVLF4OY5BTDR4",
+    "mime_type": "text/html",
+    "original_url": "https://saiehello.com/products/dew-blush",
+    "snapshot_url": "https://web.archive.org/web/20250514080038/https://saiehello.com/products/dew-blush",
+    "status_code": "200",
+    "timestamp": "20250514080038"
+  },
+  "snapshot_count": 10,
+  "snapshots": [
+    {
+      "digest": "VBZ5YMN5KUWUJR7ATU533F37IIYR37A4",
+      "mime_type": "text/html",
+      "original_url": "https://saiehello.com/products/dew-blush",
+      "snapshot_url": "https://web.archive.org/web/20250116024032/https://saiehello.com/products/dew-blush",
+      "status_code": "200",
+      "timestamp": "20250116024032"
+    },
+    {
+      "digest": "ENOMK57FNG4WCK3UM3MRI7G5P3DXEOMQ",
+      "mime_type": "text/html",
+      "original_url": "https://saiehello.com/products/dew-blush",
+      "snapshot_url": "https://web.archive.org/web/20250120145844/https://saiehello.com/products/dew-blush",
+      "status_code": "200",
+      "timestamp": "20250120145844"
+    },
+    {
+      "digest": "WZ7DP3ZHNS7ARENMUTZUWKL6CD7SZUGI",
+      "mime_type": "text/html",
+      "original_url": "https://saiehello.com/products/dew-blush",
+      "snapshot_url": "https://web.archive.org/web/20250127124636/https://saiehello.com/products/dew-blush",
+      "status_code": "200",
+      "timestamp": "20250127124636"
+    },
+    {
+      "digest": "P3ICGTAGV6IVC72PB6ESSS5GAJ236UR3",
+      "mime_type": "text/html",
+      "original_url": "https://saiehello.com/products/dew-blush",
+      "snapshot_url": "https://web.archive.org/web/20250208182846/https://saiehello.com/products/dew-blush",
+      "status_code": "200",
+      "timestamp": "20250208182846"
+    },
+    {
+      "digest": "BFLFXFAULG5MU7TARH3C3VOPNPDGS7GA",
+      "mime_type": "text/html",
+      "original_url": "https://saiehello.com/products/dew-blush",
+      "snapshot_url": "https://web.archive.org/web/20250320105515/https://saiehello.com/products/dew-blush",
+      "status_code": "200",
+      "timestamp": "20250320105515"
+    },
+    {
+      "digest": "FDU6HKDHRQGRY3DCS4OJCJ2NEC7SXXDO",
+      "mime_type": "text/html",
+      "original_url": "https://saiehello.com/products/dew-blush",
+      "snapshot_url": "https://web.archive.org/web/20250409143909/https://saiehello.com/products/dew-blush",
+      "status_code": "200",
+      "timestamp": "20250409143909"
+    },
+    {
+      "digest": "BNWEYSH3DQZV2532EWFTDVWYYU5RQOIO",
+      "mime_type": "text/html",
+      "original_url": "https://saiehello.com/products/dew-blush",
+      "snapshot_url": "https://web.archive.org/web/20250415122616/https://saiehello.com/products/dew-blush",
+      "status_code": "200",
+      "timestamp": "20250415122616"
+    },
+    {
+      "digest": "XWTKZ2GHZGGDQXKXPAT2NZ72ZYL2PN7U",
+      "mime_type": "text/html",
+      "original_url": "https://saiehello.com/products/dew-blush",
+      "snapshot_url": "https://web.archive.org/web/20250423000242/https://saiehello.com/products/dew-blush",
+      "status_code": "200",
+      "timestamp": "20250423000242"
+    },
+    {
+      "digest": "FEPRX4KAMP32LWXPNB7YH557FFYOKQAH",
+      "mime_type": "text/html",
+      "original_url": "https://saiehello.com/products/dew-blush",
+      "snapshot_url": "https://web.archive.org/web/20250428050042/https://saiehello.com/products/dew-blush",
+      "status_code": "200",
+      "timestamp": "20250428050042"
+    },
+    {
+      "digest": "JMZQBTV6G3PINICZ3MVWVLF4OY5BTDR4",
+      "mime_type": "text/html",
+      "original_url": "https://saiehello.com/products/dew-blush",
+      "snapshot_url": "https://web.archive.org/web/20250514080038/https://saiehello.com/products/dew-blush",
+      "status_code": "200",
+      "timestamp": "20250514080038"
+    }
+  ]
+}

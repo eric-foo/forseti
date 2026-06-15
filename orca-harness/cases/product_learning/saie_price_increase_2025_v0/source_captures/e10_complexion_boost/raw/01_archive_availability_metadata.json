@@ -1,0 +1,86 @@
+{
+  "availability_http_metadata": {
+    "byte_count": 921,
+    "capture_timestamp": "2026-06-15T13:50:54Z",
+    "content_length": null,
+    "content_type": "application/json",
+    "date": "Mon, 15 Jun 2026 13:50:53 GMT",
+    "etag": null,
+    "final_url": "https://web.archive.org/cdx/search/cdx?url=https%3A%2F%2Fsaiehello.com%2Fproducts%2Fcomplexion-boost&output=json&fl=timestamp%2Coriginal%2Cstatuscode%2Cmimetype%2Cdigest&collapse=digest&to=20250601000000&limit=-10",
+    "last_modified": null,
+    "reason": "OK",
+    "requested_url": "https://web.archive.org/cdx/search/cdx?url=https%3A%2F%2Fsaiehello.com%2Fproducts%2Fcomplexion-boost&output=json&fl=timestamp%2Coriginal%2Cstatuscode%2Cmimetype%2Cdigest&collapse=digest&to=20250601000000&limit=-10",
+    "status": 200,
+    "timeout_seconds": 90.0
+  },
+  "availability_url": "https://web.archive.org/cdx/search/cdx?url=https%3A%2F%2Fsaiehello.com%2Fproducts%2Fcomplexion-boost&output=json&fl=timestamp%2Coriginal%2Cstatuscode%2Cmimetype%2Cdigest&collapse=digest&to=20250601000000&limit=-10",
+  "original_url": "https://saiehello.com/products/complexion-boost",
+  "parse_warning": null,
+  "selected_snapshot": {
+    "digest": "KOGTJJ4GBT5I6CGZXJTICVNNPXAHWM5S",
+    "mime_type": "text/html",
+    "original_url": "https://saiehello.com/products/complexion-boost",
+    "snapshot_url": "https://web.archive.org/web/20250428064731/https://saiehello.com/products/complexion-boost",
+    "status_code": "200",
+    "timestamp": "20250428064731"
+  },
+  "snapshot_count": 7,
+  "snapshots": [
+    {
+      "digest": "JAD5A5PR55LKFCLM6NHIYSVHPWCHKXQS",
+      "mime_type": "text/html",
+      "original_url": "https://saiehello.com/products/complexion-boost",
+      "snapshot_url": "https://web.archive.org/web/20210921062557/https://saiehello.com/products/complexion-boost",
+      "status_code": "200",
+      "timestamp": "20210921062557"
+    },
+    {
+      "digest": "KHBIAZYYZYU2LUZRELMJNR2JY2P77K74",
+      "mime_type": "text/html",
+      "original_url": "https://saiehello.com/products/complexion-boost",
+      "snapshot_url": "https://web.archive.org/web/20220517153443/https://saiehello.com/products/complexion-boost",
+      "status_code": "200",
+      "timestamp": "20220517153443"
+    },
+    {
+      "digest": "HEVQYTT6F7TB6QBDZDAGGVMUIE5Z4UD6",
+      "mime_type": "text/html",
+      "original_url": "https://saiehello.com/products/complexion-boost",
+      "snapshot_url": "https://web.archive.org/web/20230130190850/https://saiehello.com/products/complexion-boost",
+      "status_code": "200",
+      "timestamp": "20230130190850"
+    },
+    {
+      "digest": "JHPIUYF2NBS6G5H45DOYRXEWH5GR2HTX",
+      "mime_type": "text/html",
+      "original_url": "https://saiehello.com/products/complexion-boost",
+      "snapshot_url": "https://web.archive.org/web/20231001032907/https://saiehello.com/products/complexion-boost",
+      "status_code": "200",
+      "timestamp": "20231001032907"
+    },
+    {
+      "digest": "3DP4BYJU2BOUF4HKY5GRZ435H643P3TB",
+      "mime_type": "text/html",
+      "original_url": "https://saiehello.com/products/complexion-boost",
+      "snapshot_url": "https://web.archive.org/web/20240416151942/https://saiehello.com/products/complexion-boost",
+      "status_code": "200",
+      "timestamp": "20240416151942"
+    },
+    {
+      "digest": "FRH6MZMSF5P6SHDDZ5P3AYTHBY5LR2UY",
+      "mime_type": "text/html",
+      "original_url": "https://saiehello.com/products/complexion-boost",
+      "snapshot_url": "https://web.archive.org/web/20250120171109/https://saiehello.com/products/complexion-boost",
+      "status_code": "200",
+      "timestamp": "20250120171109"
+    },
+    {
+      "digest": "KOGTJJ4GBT5I6CGZXJTICVNNPXAHWM5S",
+      "mime_type": "text/html",
+      "original_url": "https://saiehello.com/products/complexion-boost",
+      "snapshot_url": "https://web.archive.org/web/20250428064731/https://saiehello.com/products/complexion-boost",
+      "status_code": "200",
+      "timestamp": "20250428064731"
+    }
+  ]
+}

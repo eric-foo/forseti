@@ -1,0 +1,25 @@
+{
+  "original_url": "https://saiehello.com/products/dew-blush",
+  "selected_snapshot": {
+    "digest": "JMZQBTV6G3PINICZ3MVWVLF4OY5BTDR4",
+    "mime_type": "text/html",
+    "original_url": "https://saiehello.com/products/dew-blush",
+    "snapshot_url": "https://web.archive.org/web/20250514080038/https://saiehello.com/products/dew-blush",
+    "status_code": "200",
+    "timestamp": "20250514080038"
+  },
+  "snapshot_body_http_metadata": {
+    "byte_count": 1230136,
+    "capture_timestamp": "2026-06-15T13:48:23Z",
+    "content_length": null,
+    "content_type": "text/html; charset=utf-8",
+    "date": "Mon, 15 Jun 2026 13:48:21 GMT",
+    "etag": null,
+    "final_url": "https://web.archive.org/web/20250514080038/https://saiehello.com/products/dew-blush",
+    "last_modified": null,
+    "reason": "OK",
+    "requested_url": "https://web.archive.org/web/20250514080038/https://saiehello.com/products/dew-blush",
+    "status": 200,
+    "timeout_seconds": 90.0
+  }
+}

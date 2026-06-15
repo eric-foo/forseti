@@ -1,0 +1,25 @@
+{
+  "original_url": "https://saiehello.com/products/blush-n-glow",
+  "selected_snapshot": {
+    "digest": "SZYS7VEUA34MPQDUQSZ4I2VN23GMLBC7",
+    "mime_type": "text/html",
+    "original_url": "https://saiehello.com/products/blush-n-glow",
+    "snapshot_url": "https://web.archive.org/web/20250320113004/https://saiehello.com/products/blush-n-glow",
+    "status_code": "200",
+    "timestamp": "20250320113004"
+  },
+  "snapshot_body_http_metadata": {
+    "byte_count": 1225000,
+    "capture_timestamp": "2026-06-15T13:50:20Z",
+    "content_length": null,
+    "content_type": "text/html; charset=utf-8",
+    "date": "Mon, 15 Jun 2026 13:50:17 GMT",
+    "etag": null,
+    "final_url": "https://web.archive.org/web/20250320113004/https://saiehello.com/products/blush-n-glow",
+    "last_modified": null,
+    "reason": "OK",
+    "requested_url": "https://web.archive.org/web/20250320113004/https://saiehello.com/products/blush-n-glow",
+    "status": 200,
+    "timeout_seconds": 90.0
+  }
+}
