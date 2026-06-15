@@ -310,8 +310,72 @@ def _read_capture_time(packet_dir: Path) -> str | None:
     return capture_time.get("value")
 
 
+def _read_access_posture(packet_dir: Path) -> str | None:
+    """Read the packet's ``access_posture`` value from its manifest, if present.
+
+    The writers encode an unsuccessful access (a non-2xx body, or a rendered anti-bot /
+    interstitial block page) with the token ``access_failed`` in this value, and a clean
+    capture without it. The cadence runner uses that token to refuse to record an
+    access-failed capture as an observed durability slot (see ``run_slot``).
+    """
+    manifest_path = packet_dir / "manifest.json"
+    if not manifest_path.exists():
+        return None
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    access_posture = manifest.get("access_posture") or {}
+    return access_posture.get("value")
+
+
 def _any_slot_observed(index: dict[str, object]) -> bool:
     return any(slot["status"] == SLOT_OBSERVED for slot in index["slots"])
+
+
+# Allowlist of rendered-capture tuning knobs an operator may pass through to the selected
+# writer via ``run-slot --writer-arg``. These are capture MECHANICS only; none touches the
+# observation's identity, source, output location, durability pins/cadence/postures, access
+# posture, or a non-capture mode. The runner OWNS --url / --output / --decision-question /
+# --series-id / all durability flags and forwards them itself, so passing any of those (or a
+# capture-skipping mode flag like --preflight-only / --old-reddit-only / --guarded-reddit-launch,
+# or a proxy flag) through --writer-arg is rejected: argparse last-value-wins would otherwise let
+# a passthrough silently override the runner-owned identity/source/output or select a mode that
+# returns success without capturing. Default-deny: an unknown flag is rejected, not waved through.
+_WRITER_ARG_KNOB_ALLOWLIST = frozenset(
+    {
+        "--settle-seconds",
+        "--scroll-passes",
+        "--scroll-step-px",
+        "--load-more-selector",
+        "--load-more-clicks",
+        "--wait-until",
+        "--viewport-width",
+        "--viewport-height",
+        "--timeout-seconds",
+        "--max-artifact-bytes",
+        "--block-heavy-assets",
+    }
+)
+
+
+def _validate_writer_extra_argv(writer_extra_argv: Sequence[str]) -> None:
+    """Reject any ``--writer-arg`` flag that is not an allowlisted rendered-capture knob.
+
+    Each flag-shaped token (``--flag`` or ``--flag=value``) must name a knob in
+    ``_WRITER_ARG_KNOB_ALLOWLIST``; non-flag tokens are accepted as values for a preceding
+    allowed flag. This is the guard that keeps a passthrough from overriding runner-owned
+    identity/source/output args or selecting a capture-skipping mode (input validation only;
+    INV-1). Raises ``ValueError`` (surfaced as exit 2) on the first disallowed flag.
+    """
+    for token in writer_extra_argv:
+        if not token.startswith("--"):
+            continue  # a value for a preceding allowed flag (e.g. `--scroll-step-px 350`)
+        flag = token.split("=", 1)[0]
+        if flag not in _WRITER_ARG_KNOB_ALLOWLIST:
+            allowed = ", ".join(sorted(_WRITER_ARG_KNOB_ALLOWLIST))
+            raise ValueError(
+                f"--writer-arg {flag} is not an allowed rendered-capture knob; the runner owns "
+                f"identity/source/output/durability args and they cannot be overridden via "
+                f"passthrough. Allowed knobs: {allowed}"
+            )
 
 
 def run_slot(
@@ -344,6 +408,10 @@ def run_slot(
             f"slot {slot_index} is already {slot['status']}; "
             "refusing to overwrite (a recorded slot is immutable)"
         )
+    # A passthrough may carry only allowlisted rendered-capture knobs; it must not override the
+    # runner-owned identity/source/output args or select a capture-skipping mode. Validate before
+    # any writer is invoked so a bad passthrough fails visibly (exit 2), never silently.
+    _validate_writer_extra_argv(writer_extra_argv)
     cold_start = not _any_slot_observed(index)
     realized_now = now_z or _utc_now_z()
 
@@ -367,7 +435,26 @@ def run_slot(
         if exit_code != 0:
             failures.append(f"url[{url_index}] {url}: writer exit {exit_code}")
             continue
+        # Exit 0 alone is NOT proof of an observation. A writer can exit 0 without producing a
+        # source-capture packet (e.g. a capture-skipping mode), or produce a packet whose access
+        # posture is ``access_failed`` (a non-2xx body or a rendered anti-bot / interstitial block
+        # page). Neither is an observed durability slot -- both are un-observed GAPS (visible
+        # limitations), never a no-change fact. Verifying the durable artifact (not the exit code)
+        # before recording ``observed`` is the gap != no-change / no-fake-success guard (INV-1).
         capture_time = _read_capture_time(output_dir)
+        if capture_time is None:
+            failures.append(
+                f"url[{url_index}] {url}: writer exit 0 but wrote no source-capture packet "
+                f"(no manifest/capture_time) at {output_dir.name}"
+            )
+            continue
+        access_posture = _read_access_posture(output_dir)
+        if access_posture is not None and "access_failed" in access_posture:
+            failures.append(
+                f"url[{url_index}] {url}: access_failed capture is an un-observed gap, not an "
+                f"observation: {access_posture}"
+            )
+            continue
         observation: dict[str, object] = {
             "url": url,
             "packet_dir": output_dir.name,

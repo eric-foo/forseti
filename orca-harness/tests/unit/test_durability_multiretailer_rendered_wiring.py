@@ -12,6 +12,7 @@ limits are recorded -- never a demand verdict, score, weight, or durable-vs-holl
 
 from __future__ import annotations
 
+import argparse
 import json
 from pathlib import Path
 
@@ -20,31 +21,43 @@ import pytest
 from runners import run_source_capture_cloakbrowser_packet as cloak_writer
 from runners import run_source_capture_durability_series as series_runner
 from runners import run_source_capture_http_packet as http_writer
+from source_capture import cli_support
 from source_capture.adapters.cloakbrowser_snapshot import CloakBrowserSnapshotSuccess
 
 
-def _durability_option_strings(build_parser) -> set[str]:
+def _all_option_strings(build_parser) -> set[str]:
     parser = build_parser()
     opts: set[str] = set()
     for action in parser._actions:
         opts.update(action.option_strings)
-    return {
-        opt
-        for opt in opts
-        if any(key in opt for key in ("series-id", "intended-cadence", "-pin", "cold-start", "pre-coverage"))
-    }
+    return opts
+
+
+def _canonical_durability_option_strings() -> set[str]:
+    """The EXACT durability flag surface, defined once in cli_support.add_durability_arguments."""
+    parser = argparse.ArgumentParser()
+    cli_support.add_durability_arguments(parser)
+    opts = _all_option_strings(lambda: parser)
+    opts.discard("-h")
+    opts.discard("--help")
+    return opts
 
 
 def test_rendered_and_direct_writers_expose_identical_durability_flags() -> None:
-    """Drift guard. The cadence runner forwards ONE fixed durability argv to whichever writer it
-    invokes, so the rendered writer must expose exactly the same flag surface as direct_http or it
-    would silently drop forwarded facts (a forwarded --series-id would even abort the rendered
-    writer with an argparse error). Sharing the definition in cli_support keeps them identical; this
-    test fails loudly if they ever diverge."""
-    direct = _durability_option_strings(http_writer._build_parser)
-    rendered = _durability_option_strings(cloak_writer._build_parser)
-    assert rendered == direct
-    assert "--series-id" in rendered  # non-empty sanity: the surface really exists
+    """Drift guard (EXACT, not a substring proxy). The cadence runner forwards ONE fixed durability
+    argv to whichever writer --writer selects, so each writer must expose EXACTLY the shared
+    durability surface from cli_support.add_durability_arguments -- a single missing or renamed flag
+    would abort the rendered writer on a forwarded arg. Compared against the canonical set so a
+    future durability flag added outside the old substring tokens can no longer slip past."""
+    canonical = _canonical_durability_option_strings()
+    assert canonical  # the shared contract is non-empty
+    direct = _all_option_strings(http_writer._build_parser)
+    rendered = _all_option_strings(cloak_writer._build_parser)
+    # each writer exposes the FULL canonical durability surface...
+    assert canonical <= direct, f"direct_http missing: {canonical - direct}"
+    assert canonical <= rendered, f"rendered writer missing: {canonical - rendered}"
+    # ...and the two writers' durability surfaces are identical (no divergence within the surface).
+    assert (direct & canonical) == (rendered & canonical) == canonical
 
 
 def _fake_rendered_capture(**kwargs: object) -> CloakBrowserSnapshotSuccess:
@@ -267,3 +280,118 @@ def test_run_slot_default_writer_is_direct_http(
     )
     assert rc == 0
     assert used.get("direct_http") is True
+
+
+# --- Hardening guards (closes the delegated cross-vendor review findings) -------------------
+
+
+def test_run_slot_rejects_writer_arg_overriding_runner_owned_arg(tmp_path: Path) -> None:
+    """A --writer-arg that re-specifies a runner-owned arg (here --url) is rejected (exit 2), so a
+    passthrough cannot override the slot's identity/source/output via argparse last-value-wins."""
+    series_dir = tmp_path / "series"
+    _init_series(series_dir)
+    with pytest.raises(SystemExit) as excinfo:
+        series_runner.main(
+            [
+                "run-slot", "--series-dir", str(series_dir), "--slot", "0",
+                "--writer", "cloakbrowser",
+                "--writer-arg=--url=https://evil.example/x",
+            ]
+        )
+    assert excinfo.value.code == 2
+
+
+def test_run_slot_rejects_writer_arg_capture_skipping_mode(tmp_path: Path) -> None:
+    """A --writer-arg selecting a capture-skipping mode (--preflight-only) is rejected (exit 2), so
+    it cannot be used to mark a slot observed without a real capture."""
+    series_dir = tmp_path / "series"
+    _init_series(series_dir)
+    with pytest.raises(SystemExit) as excinfo:
+        series_runner.main(
+            [
+                "run-slot", "--series-dir", str(series_dir), "--slot", "0",
+                "--writer", "cloakbrowser",
+                "--writer-arg=--preflight-only",
+            ]
+        )
+    assert excinfo.value.code == 2
+
+
+def test_run_slot_allows_capture_knob_writer_arg(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """A legitimate rendered-capture knob (--scroll-step-px) passes the allowlist, routes to the
+    rendered writer, and is appended to the forwarded argv (the intended Sephora-scroll path)."""
+    series_dir = tmp_path / "series"
+    _init_series(series_dir)
+    captured: dict[str, list[str]] = {}
+
+    def fake(argv) -> int:
+        captured["argv"] = list(argv)
+        out = Path(argv[argv.index("--output") + 1])
+        out.mkdir(parents=True, exist_ok=True)
+        (out / "manifest.json").write_text(
+            json.dumps({"timing": {"capture_time": {"value": "2026-06-15T00:00:05Z"}}}),
+            encoding="utf-8",
+        )
+        return 0
+
+    monkeypatch.setitem(series_runner.WRITER_MAINS, "cloakbrowser", fake)
+    rc = series_runner.main(
+        [
+            "run-slot", "--series-dir", str(series_dir), "--slot", "0",
+            "--writer", "cloakbrowser",
+            "--writer-arg=--scroll-step-px=350",
+        ]
+    )
+    assert rc == 0  # observed
+    assert "--scroll-step-px=350" in captured["argv"]
+
+
+def test_run_slot_writer_exit0_without_packet_is_un_observed_gap(tmp_path: Path) -> None:
+    """Exit 0 alone is NOT an observation: a writer that returns 0 but writes no source-capture
+    packet is recorded as an un-observed GAP, never observed (no fake success / gap != no-change)."""
+    series_dir = tmp_path / "series"
+    _init_series(series_dir)
+    status, slot = series_runner.run_slot(
+        series_dir=series_dir, slot_index=0, writer_main=lambda argv: 0, now_z="2026-06-15T00:00:00Z"
+    )
+    assert status == series_runner.SLOT_UN_OBSERVED
+    assert slot["gap_kind"] == "fetch_failed"
+    assert "no source-capture packet" in slot["gap_reason"]
+    assert "no_change" not in json.dumps(slot).lower()
+    assert "no change" not in json.dumps(slot).lower()
+
+
+def test_run_slot_access_failed_packet_is_un_observed_gap(tmp_path: Path) -> None:
+    """A packet whose access_posture is access_failed (a non-2xx body or a rendered anti-bot /
+    interstitial block page) is an un-observed GAP, never an observed durability slot (commission
+    no-gate-defeat: STOP at a challenge, record the limitation)."""
+    series_dir = tmp_path / "series"
+    _init_series(series_dir)
+
+    def access_blocked_writer(argv) -> int:
+        out = Path(argv[argv.index("--output") + 1])
+        out.mkdir(parents=True, exist_ok=True)
+        (out / "manifest.json").write_text(
+            json.dumps(
+                {
+                    "timing": {"capture_time": {"value": "2026-06-15T00:00:05Z"}},
+                    "access_posture": {
+                        "status": "known",
+                        "value": (
+                            "cloakbrowser_snapshot access_failed with access block "
+                            "reddit_network_security_block; rendered block artifacts preserved"
+                        ),
+                        "reason": None,
+                    },
+                }
+            ),
+            encoding="utf-8",
+        )
+        return 0
+
+    status, slot = series_runner.run_slot(
+        series_dir=series_dir, slot_index=0, writer_main=access_blocked_writer, now_z="2026-06-15T00:00:00Z"
+    )
+    assert status == series_runner.SLOT_UN_OBSERVED
+    assert "access_failed" in slot["gap_reason"]
+    assert "no_change" not in json.dumps(slot).lower()
