@@ -1,0 +1,277 @@
+{
+  "access_posture": {
+    "reason": null,
+    "status": "known",
+    "value": "archive_org availability metadata and selected snapshot body preserved"
+  },
+  "actor_audience_context": {
+    "reason": "actor or audience context was not supplied to the archive runner",
+    "status": "unknown_with_reason",
+    "value": null
+  },
+  "archive_history_posture": {
+    "reason": null,
+    "status": "known",
+    "value": "archived"
+  },
+  "capture_context": {
+    "reason": null,
+    "status": "known",
+    "value": "Pre-cutoff backtest evidence capture (capture-spine deliverable; INV-1 facts+limits only; feeds a future judgment-spine fixture)"
+  },
+  "capture_mode": "archive/history",
+  "cold_start_at": null,
+  "intended_cadence": null,
+  "limitations": [],
+  "manifest_version": "source_capture_packet_manifest_v1",
+  "media_modality_posture": {
+    "reason": "archive runner does not retrieve linked media assets",
+    "status": "not_applicable",
+    "value": null
+  },
+  "obligation_contract_version": "core_spine_v0_data_capture_spine_obligation_contract_v0",
+  "operator_category": "archive_org_cli_operator",
+  "packet_id": "01KV5RPTE0H04D853RQWE5MEYD",
+  "pre_coverage_history_posture": null,
+  "preserved_files": [
+    {
+      "file_id": "file_01",
+      "hash_basis": "raw_stored_bytes",
+      "original_path": "C:\\Users\\vmon7\\Desktop\\projects\\orca\\.claude\\worktrees\\cocokind-capture\\orca-harness\\cases\\product_learning\\cocokind_holdprice_2025_v0\\source_captures\\archive_availability_metadata.json",
+      "relative_packet_path": "raw/01_archive_availability_metadata.json",
+      "sha256": "dd713192cfb2680e1049b595686cb7b6b2074ad3c405cdb2b771c539bd350ef2",
+      "size_bytes": 2297
+    },
+    {
+      "file_id": "file_02",
+      "hash_basis": "raw_stored_bytes",
+      "original_path": "C:\\Users\\vmon7\\Desktop\\projects\\orca\\.claude\\worktrees\\cocokind-capture\\orca-harness\\cases\\product_learning\\cocokind_holdprice_2025_v0\\source_captures\\archive_snapshot_body.bin",
+      "relative_packet_path": "raw/02_archive_snapshot_body.bin",
+      "sha256": "304d378d7c3935b7b8217542eb47dab89f2c36c73e8e8a1ddf16bf35767032ed",
+      "size_bytes": 372727
+    },
+    {
+      "file_id": "file_03",
+      "hash_basis": "raw_stored_bytes",
+      "original_path": "C:\\Users\\vmon7\\Desktop\\projects\\orca\\.claude\\worktrees\\cocokind-capture\\orca-harness\\cases\\product_learning\\cocokind_holdprice_2025_v0\\source_captures\\archive_snapshot_body_metadata.json",
+      "relative_packet_path": "raw/03_archive_snapshot_body_metadata.json",
+      "sha256": "41b41e4d86c8e2801edaf195ee157a5c3d7f15e676815d59307a17f5a4297744",
+      "size_bytes": 1032
+    }
+  ],
+  "re_capture_relationship": {
+    "reason": "no prior source capture packet was supplied for this archive capture",
+    "status": "not_applicable",
+    "value": null
+  },
+  "receipt_metadata": {
+    "generated_at": "2026-06-15T13:49:31Z",
+    "non_claims": [
+      "not archive completeness proof",
+      "not source-state truth proof",
+      "not browser automation",
+      "not API SDK use",
+      "not Archive.org package use",
+      "not HTML meaning extraction",
+      "not OCR or image analysis",
+      "not scraper framework use",
+      "not proxy or session injection",
+      "not ECR design",
+      "not Cleaning implementation",
+      "not Judgment scoring",
+      "not buyer proof",
+      "not commercial-readiness logic"
+    ],
+    "summary": "Archive.org packet with availability metadata and snapshot body preserved for 20250418155951.",
+    "title": "Source Capture Packet Receipt"
+  },
+  "requested_decision_context": {
+    "reason": null,
+    "status": "known",
+    "value": "Backtest: at the ~June 2025 tariff-pressure pricing decision, did cocokind's pre-cutoff public prices/positioning signal whether holding price would stick? (known later outcome: price HELD through 2026)"
+  },
+  "series_id": null,
+  "session_identity": "01KV5RPTE0ANZPCDFZFQJ5NA5Z",
+  "source_family": "archive_org",
+  "source_locator": {
+    "reason": null,
+    "status": "known",
+    "value": "https://cocokind.com/products/chagaglo-highlighter"
+  },
+  "source_slices": [
+    {
+      "access_posture": {
+        "reason": null,
+        "status": "known",
+        "value": "archive_org availability direct_http succeeded with HTTP 200 OK"
+      },
+      "archive_history_posture": {
+        "reason": null,
+        "status": "known",
+        "value": "archived"
+      },
+      "currency_pin": null,
+      "limitations": [],
+      "locale_pin": null,
+      "locator": {
+        "reason": null,
+        "status": "known",
+        "value": "https://web.archive.org/cdx/search/cdx?url=https%3A%2F%2Fcocokind.com%2Fproducts%2Fchagaglo-highlighter&output=json&fl=timestamp%2Coriginal%2Cstatuscode%2Cmimetype%2Cdigest&collapse=digest&to=20250601000000&limit=-10"
+      },
+      "media_modality_posture": {
+        "reason": "archive availability metadata is not a media asset",
+        "status": "not_applicable",
+        "value": null
+      },
+      "preserved_file_ids": [
+        "file_01"
+      ],
+      "re_capture_relationship": {
+        "reason": "no prior source capture packet was supplied for this archive capture",
+        "status": "not_applicable",
+        "value": null
+      },
+      "session_visibility_pin": null,
+      "slice_id": "archive_availability",
+      "timing": {
+        "archive_snapshot_time": {
+          "reason": null,
+          "status": "known",
+          "value": "2025-04-18T15:59:51Z"
+        },
+        "capture_time": {
+          "reason": null,
+          "status": "known",
+          "value": "2026-06-15T13:49:29Z"
+        },
+        "cutoff_posture": {
+          "reason": null,
+          "status": "known",
+          "value": "pre_cutoff"
+        },
+        "recapture_time": {
+          "reason": "archive packet did not model an earlier capture by default",
+          "status": "not_applicable",
+          "value": null
+        },
+        "source_edit_or_version": {
+          "reason": null,
+          "status": "known",
+          "value": "Archive.org availability metadata for the requested original URL; selected snapshot timestamp is recorded separately"
+        },
+        "source_publication_or_event": {
+          "reason": "Archive.org adapter did not infer original source publication or event timing",
+          "status": "unknown_with_reason",
+          "value": null
+        }
+      },
+      "variant_pin": null,
+      "warning_notes": []
+    },
+    {
+      "access_posture": {
+        "reason": null,
+        "status": "known",
+        "value": "archive_org snapshot body direct_http succeeded with HTTP 200 OK"
+      },
+      "archive_history_posture": {
+        "reason": null,
+        "status": "known",
+        "value": "archived"
+      },
+      "currency_pin": null,
+      "limitations": [],
+      "locale_pin": null,
+      "locator": {
+        "reason": null,
+        "status": "known",
+        "value": "https://web.archive.org/web/20250418155951/https://www.cocokind.com/products/chagaglo-highlighter"
+      },
+      "media_modality_posture": {
+        "reason": "archive snapshot body is preserved as raw response body",
+        "status": "not_applicable",
+        "value": null
+      },
+      "preserved_file_ids": [
+        "file_02",
+        "file_03"
+      ],
+      "re_capture_relationship": {
+        "reason": "no prior source capture packet was supplied for this archive capture",
+        "status": "not_applicable",
+        "value": null
+      },
+      "session_visibility_pin": null,
+      "slice_id": "archive_snapshot_body",
+      "timing": {
+        "archive_snapshot_time": {
+          "reason": null,
+          "status": "known",
+          "value": "2025-04-18T15:59:51Z"
+        },
+        "capture_time": {
+          "reason": null,
+          "status": "known",
+          "value": "2026-06-15T13:49:31Z"
+        },
+        "cutoff_posture": {
+          "reason": null,
+          "status": "known",
+          "value": "pre_cutoff"
+        },
+        "recapture_time": {
+          "reason": "archive packet did not model an earlier capture by default",
+          "status": "not_applicable",
+          "value": null
+        },
+        "source_edit_or_version": {
+          "reason": null,
+          "status": "known",
+          "value": "Archive.org snapshot timestamp 20250418155951"
+        },
+        "source_publication_or_event": {
+          "reason": "Archive.org adapter did not infer original source publication or event timing",
+          "status": "unknown_with_reason",
+          "value": null
+        }
+      },
+      "variant_pin": null,
+      "warning_notes": []
+    }
+  ],
+  "source_surface": "archive_org_wayback",
+  "timing": {
+    "archive_snapshot_time": {
+      "reason": null,
+      "status": "known",
+      "value": "2025-04-18T15:59:51Z"
+    },
+    "capture_time": {
+      "reason": null,
+      "status": "known",
+      "value": "2026-06-15T13:49:31Z"
+    },
+    "cutoff_posture": {
+      "reason": null,
+      "status": "known",
+      "value": "pre_cutoff"
+    },
+    "recapture_time": {
+      "reason": "archive packet did not model an earlier capture by default",
+      "status": "not_applicable",
+      "value": null
+    },
+    "source_edit_or_version": {
+      "reason": null,
+      "status": "known",
+      "value": "Archive.org snapshot timestamp 20250418155951"
+    },
+    "source_publication_or_event": {
+      "reason": "Archive.org adapter did not infer original source publication or event timing",
+      "status": "unknown_with_reason",
+      "value": null
+    }
+  },
+  "visible_mode_changes": [],
+  "warnings": []
+}

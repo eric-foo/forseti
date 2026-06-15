@@ -1,0 +1,110 @@
+{
+  "availability_http_metadata": {
+    "byte_count": 1380,
+    "capture_timestamp": "2026-06-15T13:47:11Z",
+    "content_length": null,
+    "content_type": "application/json",
+    "date": "Mon, 15 Jun 2026 13:47:11 GMT",
+    "etag": null,
+    "final_url": "https://web.archive.org/cdx/search/cdx?url=https%3A%2F%2Fcocokind.com%2Fproducts%2Fceramide-barrier-serum&output=json&fl=timestamp%2Coriginal%2Cstatuscode%2Cmimetype%2Cdigest&collapse=digest&to=20250601000000&limit=-10",
+    "last_modified": null,
+    "reason": "OK",
+    "requested_url": "https://web.archive.org/cdx/search/cdx?url=https%3A%2F%2Fcocokind.com%2Fproducts%2Fceramide-barrier-serum&output=json&fl=timestamp%2Coriginal%2Cstatuscode%2Cmimetype%2Cdigest&collapse=digest&to=20250601000000&limit=-10",
+    "status": 200,
+    "timeout_seconds": 90.0
+  },
+  "availability_url": "https://web.archive.org/cdx/search/cdx?url=https%3A%2F%2Fcocokind.com%2Fproducts%2Fceramide-barrier-serum&output=json&fl=timestamp%2Coriginal%2Cstatuscode%2Cmimetype%2Cdigest&collapse=digest&to=20250601000000&limit=-10",
+  "original_url": "https://cocokind.com/products/ceramide-barrier-serum",
+  "parse_warning": null,
+  "selected_snapshot": {
+    "digest": "YKZMWDK57R6SUFLEE3BJGQD7WZFHYX3K",
+    "mime_type": "text/html",
+    "original_url": "https://www.cocokind.com/products/ceramide-barrier-serum",
+    "snapshot_url": "https://web.archive.org/web/20250522232519/https://www.cocokind.com/products/ceramide-barrier-serum",
+    "status_code": "200",
+    "timestamp": "20250522232519"
+  },
+  "snapshot_count": 10,
+  "snapshots": [
+    {
+      "digest": "XGAWF6W4AXAUFGCOM3LU7IOODFA32GBZ",
+      "mime_type": "text/html",
+      "original_url": "https://www.cocokind.com/products/ceramide-barrier-serum",
+      "snapshot_url": "https://web.archive.org/web/20250129141716/https://www.cocokind.com/products/ceramide-barrier-serum",
+      "status_code": "200",
+      "timestamp": "20250129141716"
+    },
+    {
+      "digest": "3JMD34UQXZNQNH7XUR66XAC76OZMUMC5",
+      "mime_type": "text/html",
+      "original_url": "https://www.cocokind.com/products/ceramide-barrier-serum",
+      "snapshot_url": "https://web.archive.org/web/20250214044946/https://www.cocokind.com/products/ceramide-barrier-serum",
+      "status_code": "200",
+      "timestamp": "20250214044946"
+    },
+    {
+      "digest": "5WRN5VGTPHGWYRLOGU5MVLSAOGLHZJZW",
+      "mime_type": "text/html",
+      "original_url": "https://www.cocokind.com/products/ceramide-barrier-serum",
+      "snapshot_url": "https://web.archive.org/web/20250214153254/https://www.cocokind.com/products/ceramide-barrier-serum",
+      "status_code": "200",
+      "timestamp": "20250214153254"
+    },
+    {
+      "digest": "T5OKWAAGHVSL7EOI43N6BWS3KWEO55O2",
+      "mime_type": "text/html",
+      "original_url": "https://www.cocokind.com/products/ceramide-barrier-serum",
+      "snapshot_url": "https://web.archive.org/web/20250218105229/https://www.cocokind.com/products/ceramide-barrier-serum",
+      "status_code": "200",
+      "timestamp": "20250218105229"
+    },
+    {
+      "digest": "CB52IT77O6YVN57UVZGSSSW4ZC4JE62J",
+      "mime_type": "text/html",
+      "original_url": "https://www.cocokind.com/products/ceramide-barrier-serum",
+      "snapshot_url": "https://web.archive.org/web/20250218113424/https://www.cocokind.com/products/ceramide-barrier-serum",
+      "status_code": "200",
+      "timestamp": "20250218113424"
+    },
+    {
+      "digest": "ULMQTDRCTLOCNO3KN7T5E2E3CQQY3Y2L",
+      "mime_type": "text/html",
+      "original_url": "https://www.cocokind.com/products/ceramide-barrier-serum",
+      "snapshot_url": "https://web.archive.org/web/20250309000444/https://www.cocokind.com/products/ceramide-barrier-serum",
+      "status_code": "200",
+      "timestamp": "20250309000444"
+    },
+    {
+      "digest": "SP5VUZFOUFZDO5A5UP73QREH5Q3EEXGM",
+      "mime_type": "text/html",
+      "original_url": "https://www.cocokind.com/products/ceramide-barrier-serum",
+      "snapshot_url": "https://web.archive.org/web/20250309000450/https://www.cocokind.com/products/ceramide-barrier-serum",
+      "status_code": "200",
+      "timestamp": "20250309000450"
+    },
+    {
+      "digest": "WFQCTV2FE4N2N2SDLFRXWWDL4N3HVWAP",
+      "mime_type": "text/html",
+      "original_url": "https://www.cocokind.com/products/ceramide-barrier-serum",
+      "snapshot_url": "https://web.archive.org/web/20250321143355/https://www.cocokind.com/products/ceramide-barrier-serum",
+      "status_code": "200",
+      "timestamp": "20250321143355"
+    },
+    {
+      "digest": "O6AJFMGGPGZGBQBIG5AWH7M75PEDFONS",
+      "mime_type": "text/html",
+      "original_url": "https://www.cocokind.com/products/ceramide-barrier-serum",
+      "snapshot_url": "https://web.archive.org/web/20250403145711/https://www.cocokind.com/products/ceramide-barrier-serum",
+      "status_code": "200",
+      "timestamp": "20250403145711"
+    },
+    {
+      "digest": "YKZMWDK57R6SUFLEE3BJGQD7WZFHYX3K",
+      "mime_type": "text/html",
+      "original_url": "https://www.cocokind.com/products/ceramide-barrier-serum",
+      "snapshot_url": "https://web.archive.org/web/20250522232519/https://www.cocokind.com/products/ceramide-barrier-serum",
+      "status_code": "200",
+      "timestamp": "20250522232519"
+    }
+  ]
+}

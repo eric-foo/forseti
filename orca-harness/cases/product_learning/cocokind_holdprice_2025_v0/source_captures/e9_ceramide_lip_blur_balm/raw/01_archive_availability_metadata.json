@@ -1,0 +1,78 @@
+{
+  "availability_http_metadata": {
+    "byte_count": 852,
+    "capture_timestamp": "2026-06-15T13:49:10Z",
+    "content_length": null,
+    "content_type": "application/json",
+    "date": "Mon, 15 Jun 2026 13:49:09 GMT",
+    "etag": null,
+    "final_url": "https://web.archive.org/cdx/search/cdx?url=https%3A%2F%2Fcocokind.com%2Fproducts%2Fceramide-lip-blur-balm&output=json&fl=timestamp%2Coriginal%2Cstatuscode%2Cmimetype%2Cdigest&collapse=digest&to=20250601000000&limit=-10",
+    "last_modified": null,
+    "reason": "OK",
+    "requested_url": "https://web.archive.org/cdx/search/cdx?url=https%3A%2F%2Fcocokind.com%2Fproducts%2Fceramide-lip-blur-balm&output=json&fl=timestamp%2Coriginal%2Cstatuscode%2Cmimetype%2Cdigest&collapse=digest&to=20250601000000&limit=-10",
+    "status": 200,
+    "timeout_seconds": 90.0
+  },
+  "availability_url": "https://web.archive.org/cdx/search/cdx?url=https%3A%2F%2Fcocokind.com%2Fproducts%2Fceramide-lip-blur-balm&output=json&fl=timestamp%2Coriginal%2Cstatuscode%2Cmimetype%2Cdigest&collapse=digest&to=20250601000000&limit=-10",
+  "original_url": "https://cocokind.com/products/ceramide-lip-blur-balm",
+  "parse_warning": null,
+  "selected_snapshot": {
+    "digest": "HNJLCUWPN7CT5BGQHMBI6JDSV7C73PO4",
+    "mime_type": "text/html",
+    "original_url": "https://www.cocokind.com/products/ceramide-lip-blur-balm",
+    "snapshot_url": "https://web.archive.org/web/20250501155815/https://www.cocokind.com/products/ceramide-lip-blur-balm",
+    "status_code": "200",
+    "timestamp": "20250501155815"
+  },
+  "snapshot_count": 6,
+  "snapshots": [
+    {
+      "digest": "HSICSSKJZZ6B6QFYBBTBTMU7CKGFTTMO",
+      "mime_type": "text/html",
+      "original_url": "https://www.cocokind.com/products/ceramide-lip-blur-balm",
+      "snapshot_url": "https://web.archive.org/web/20250321145022/https://www.cocokind.com/products/ceramide-lip-blur-balm",
+      "status_code": "200",
+      "timestamp": "20250321145022"
+    },
+    {
+      "digest": "5OXUTOLCHIRYUNMD2KPX2E7BII4R4A2D",
+      "mime_type": "text/html",
+      "original_url": "https://www.cocokind.com/products/ceramide-lip-blur-balm",
+      "snapshot_url": "https://web.archive.org/web/20250410092612/https://www.cocokind.com/products/ceramide-lip-blur-balm",
+      "status_code": "200",
+      "timestamp": "20250410092612"
+    },
+    {
+      "digest": "4TO75AHOKKJX54VRLSVZUYBS42IDZMB2",
+      "mime_type": "text/html",
+      "original_url": "https://www.cocokind.com/products/ceramide-lip-blur-balm",
+      "snapshot_url": "https://web.archive.org/web/20250418124354/https://www.cocokind.com/products/ceramide-lip-blur-balm",
+      "status_code": "200",
+      "timestamp": "20250418124354"
+    },
+    {
+      "digest": "HLOGYXSSX2OTVBQPOSFYFHMU2QGG5EBU",
+      "mime_type": "text/html",
+      "original_url": "https://www.cocokind.com/products/ceramide-lip-blur-balm",
+      "snapshot_url": "https://web.archive.org/web/20250430041340/https://www.cocokind.com/products/ceramide-lip-blur-balm",
+      "status_code": "200",
+      "timestamp": "20250430041340"
+    },
+    {
+      "digest": "OFPLKZG4DEF6TOABZZGYIJXHTIR73XP6",
+      "mime_type": "text/html",
+      "original_url": "https://www.cocokind.com/products/ceramide-lip-blur-balm",
+      "snapshot_url": "https://web.archive.org/web/20250501075333/https://www.cocokind.com/products/ceramide-lip-blur-balm",
+      "status_code": "200",
+      "timestamp": "20250501075333"
+    },
+    {
+      "digest": "HNJLCUWPN7CT5BGQHMBI6JDSV7C73PO4",
+      "mime_type": "text/html",
+      "original_url": "https://www.cocokind.com/products/ceramide-lip-blur-balm",
+      "snapshot_url": "https://web.archive.org/web/20250501155815/https://www.cocokind.com/products/ceramide-lip-blur-balm",
+      "status_code": "200",
+      "timestamp": "20250501155815"
+    }
+  ]
+}

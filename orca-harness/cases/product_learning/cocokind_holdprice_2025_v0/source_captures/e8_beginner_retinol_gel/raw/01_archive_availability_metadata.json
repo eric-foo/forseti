@@ -1,0 +1,110 @@
+{
+  "availability_http_metadata": {
+    "byte_count": 1360,
+    "capture_timestamp": "2026-06-15T13:48:23Z",
+    "content_length": null,
+    "content_type": "application/json",
+    "date": "Mon, 15 Jun 2026 13:48:23 GMT",
+    "etag": null,
+    "final_url": "https://web.archive.org/cdx/search/cdx?url=https%3A%2F%2Fcocokind.com%2Fproducts%2Fbeginner-retinol-gel&output=json&fl=timestamp%2Coriginal%2Cstatuscode%2Cmimetype%2Cdigest&collapse=digest&to=20250601000000&limit=-10",
+    "last_modified": null,
+    "reason": "OK",
+    "requested_url": "https://web.archive.org/cdx/search/cdx?url=https%3A%2F%2Fcocokind.com%2Fproducts%2Fbeginner-retinol-gel&output=json&fl=timestamp%2Coriginal%2Cstatuscode%2Cmimetype%2Cdigest&collapse=digest&to=20250601000000&limit=-10",
+    "status": 200,
+    "timeout_seconds": 90.0
+  },
+  "availability_url": "https://web.archive.org/cdx/search/cdx?url=https%3A%2F%2Fcocokind.com%2Fproducts%2Fbeginner-retinol-gel&output=json&fl=timestamp%2Coriginal%2Cstatuscode%2Cmimetype%2Cdigest&collapse=digest&to=20250601000000&limit=-10",
+  "original_url": "https://cocokind.com/products/beginner-retinol-gel",
+  "parse_warning": null,
+  "selected_snapshot": {
+    "digest": "7D7SDRGKKOU3YDQ7P3KTBLHAOHWQ7YQV",
+    "mime_type": "text/html",
+    "original_url": "https://www.cocokind.com/products/beginner-retinol-gel",
+    "snapshot_url": "https://web.archive.org/web/20250522221905/https://www.cocokind.com/products/beginner-retinol-gel",
+    "status_code": "200",
+    "timestamp": "20250522221905"
+  },
+  "snapshot_count": 10,
+  "snapshots": [
+    {
+      "digest": "76K33L4ILGPUMUVNHRAT47KS52NS4PI2",
+      "mime_type": "text/html",
+      "original_url": "https://www.cocokind.com/products/beginner-retinol-gel",
+      "snapshot_url": "https://web.archive.org/web/20240408164132/https://www.cocokind.com/products/beginner-retinol-gel",
+      "status_code": "200",
+      "timestamp": "20240408164132"
+    },
+    {
+      "digest": "NW7JLYAUSS6TYZVXYD5D45BZ7HU62ICE",
+      "mime_type": "text/html",
+      "original_url": "https://www.cocokind.com/products/beginner-retinol-gel",
+      "snapshot_url": "https://web.archive.org/web/20240423005842/https://www.cocokind.com/products/beginner-retinol-gel",
+      "status_code": "200",
+      "timestamp": "20240423005842"
+    },
+    {
+      "digest": "HGDGD6MUYSEPHJD7ZAZ4Z7ROBTQ63O62",
+      "mime_type": "text/html",
+      "original_url": "https://www.cocokind.com/products/beginner-retinol-gel",
+      "snapshot_url": "https://web.archive.org/web/20240524222419/https://www.cocokind.com/products/beginner-retinol-gel",
+      "status_code": "200",
+      "timestamp": "20240524222419"
+    },
+    {
+      "digest": "TZHG6E5DECK3OFVSJHDBGOI7V4FPU3JN",
+      "mime_type": "text/html",
+      "original_url": "https://www.cocokind.com/products/beginner-retinol-gel",
+      "snapshot_url": "https://web.archive.org/web/20241013004726/https://www.cocokind.com/products/beginner-retinol-gel",
+      "status_code": "200",
+      "timestamp": "20241013004726"
+    },
+    {
+      "digest": "H5XNYVEO2NSF2IKOWSJ452NCTF4UFFZO",
+      "mime_type": "text/html",
+      "original_url": "https://www.cocokind.com/products/beginner-retinol-gel",
+      "snapshot_url": "https://web.archive.org/web/20241219084013/https://www.cocokind.com/products/beginner-retinol-gel",
+      "status_code": "200",
+      "timestamp": "20241219084013"
+    },
+    {
+      "digest": "R27SJTKY77A2GDX3H6BVC6WHFPP3WQNF",
+      "mime_type": "text/html",
+      "original_url": "https://www.cocokind.com/products/beginner-retinol-gel",
+      "snapshot_url": "https://web.archive.org/web/20250213090718/https://www.cocokind.com/products/beginner-retinol-gel",
+      "status_code": "200",
+      "timestamp": "20250213090718"
+    },
+    {
+      "digest": "ITYR3HN575FCN5OF2XLVRSUH4HPLKFY3",
+      "mime_type": "text/html",
+      "original_url": "https://www.cocokind.com/products/beginner-retinol-gel",
+      "snapshot_url": "https://web.archive.org/web/20250214044842/https://www.cocokind.com/products/beginner-retinol-gel",
+      "status_code": "200",
+      "timestamp": "20250214044842"
+    },
+    {
+      "digest": "WJAKAUYCSCWSIZ3DTP4LPVFTEEJTJAX3",
+      "mime_type": "text/html",
+      "original_url": "https://www.cocokind.com/products/beginner-retinol-gel",
+      "snapshot_url": "https://web.archive.org/web/20250508130917/https://www.cocokind.com/products/beginner-retinol-gel",
+      "status_code": "200",
+      "timestamp": "20250508130917"
+    },
+    {
+      "digest": "S77A5P4NUIFZL6UDGSWUZYTZTRFHV6WB",
+      "mime_type": "text/html",
+      "original_url": "https://www.cocokind.com/products/beginner-retinol-gel",
+      "snapshot_url": "https://web.archive.org/web/20250509231411/https://www.cocokind.com/products/beginner-retinol-gel",
+      "status_code": "200",
+      "timestamp": "20250509231411"
+    },
+    {
+      "digest": "7D7SDRGKKOU3YDQ7P3KTBLHAOHWQ7YQV",
+      "mime_type": "text/html",
+      "original_url": "https://www.cocokind.com/products/beginner-retinol-gel",
+      "snapshot_url": "https://web.archive.org/web/20250522221905/https://www.cocokind.com/products/beginner-retinol-gel",
+      "status_code": "200",
+      "timestamp": "20250522221905"
+    }
+  ]
+}

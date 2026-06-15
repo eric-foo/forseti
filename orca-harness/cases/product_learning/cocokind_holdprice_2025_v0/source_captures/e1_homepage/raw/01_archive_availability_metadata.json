@@ -1,0 +1,110 @@
+{
+  "availability_http_metadata": {
+    "byte_count": 1070,
+    "capture_timestamp": "2026-06-15T13:41:31Z",
+    "content_length": null,
+    "content_type": "application/json",
+    "date": "Mon, 15 Jun 2026 13:41:30 GMT",
+    "etag": null,
+    "final_url": "https://web.archive.org/cdx/search/cdx?url=https%3A%2F%2Fcocokind.com%2F&output=json&fl=timestamp%2Coriginal%2Cstatuscode%2Cmimetype%2Cdigest&collapse=digest&to=20250601000000&limit=-10",
+    "last_modified": null,
+    "reason": "OK",
+    "requested_url": "https://web.archive.org/cdx/search/cdx?url=https%3A%2F%2Fcocokind.com%2F&output=json&fl=timestamp%2Coriginal%2Cstatuscode%2Cmimetype%2Cdigest&collapse=digest&to=20250601000000&limit=-10",
+    "status": 200,
+    "timeout_seconds": 90.0
+  },
+  "availability_url": "https://web.archive.org/cdx/search/cdx?url=https%3A%2F%2Fcocokind.com%2F&output=json&fl=timestamp%2Coriginal%2Cstatuscode%2Cmimetype%2Cdigest&collapse=digest&to=20250601000000&limit=-10",
+  "original_url": "https://cocokind.com/",
+  "parse_warning": null,
+  "selected_snapshot": {
+    "digest": "6N6IHED435GL2FH2EGRSSJLWXKBLHVZ3",
+    "mime_type": "text/html",
+    "original_url": "https://www.cocokind.com/",
+    "snapshot_url": "https://web.archive.org/web/20250530192304/https://www.cocokind.com/",
+    "status_code": "200",
+    "timestamp": "20250530192304"
+  },
+  "snapshot_count": 10,
+  "snapshots": [
+    {
+      "digest": "BLNCGEYVAU7JT2GRASUKJK6BBDC32HRF",
+      "mime_type": "text/html",
+      "original_url": "https://www.cocokind.com/",
+      "snapshot_url": "https://web.archive.org/web/20250501223724/https://www.cocokind.com/",
+      "status_code": "200",
+      "timestamp": "20250501223724"
+    },
+    {
+      "digest": "3DXXNCQODMH774OCO6R7LUNFNPE2WIJV",
+      "mime_type": "text/html",
+      "original_url": "https://www.cocokind.com/",
+      "snapshot_url": "https://web.archive.org/web/20250504041314/https://www.cocokind.com/",
+      "status_code": "200",
+      "timestamp": "20250504041314"
+    },
+    {
+      "digest": "WZN55WXYBUE5TKV5BROA3XPNYV6SYEN6",
+      "mime_type": "text/html",
+      "original_url": "https://www.cocokind.com/",
+      "snapshot_url": "https://web.archive.org/web/20250504065755/https://www.cocokind.com/",
+      "status_code": "200",
+      "timestamp": "20250504065755"
+    },
+    {
+      "digest": "FQLVUBOEA2A5EGHWW25WFBCRYYK5GH7A",
+      "mime_type": "text/html",
+      "original_url": "https://www.cocokind.com/",
+      "snapshot_url": "https://web.archive.org/web/20250507143650/https://www.cocokind.com/",
+      "status_code": "200",
+      "timestamp": "20250507143650"
+    },
+    {
+      "digest": "OIMKV7KA7JPZROFR2HBKJDMFHZKXXRDU",
+      "mime_type": "text/html",
+      "original_url": "https://www.cocokind.com/",
+      "snapshot_url": "https://web.archive.org/web/20250508220356/https://www.cocokind.com/",
+      "status_code": "200",
+      "timestamp": "20250508220356"
+    },
+    {
+      "digest": "FEV3AXAWDUYH6HSKXVBHDZDNWNAGHDP7",
+      "mime_type": "text/html",
+      "original_url": "https://www.cocokind.com/",
+      "snapshot_url": "https://web.archive.org/web/20250509183814/https://www.cocokind.com/",
+      "status_code": "200",
+      "timestamp": "20250509183814"
+    },
+    {
+      "digest": "Y6SGCCVQDZBWD6CRWCJMKNUHUTXMXVIJ",
+      "mime_type": "text/html",
+      "original_url": "https://www.cocokind.com/",
+      "snapshot_url": "https://web.archive.org/web/20250516170201/https://www.cocokind.com/",
+      "status_code": "200",
+      "timestamp": "20250516170201"
+    },
+    {
+      "digest": "VH2DUXNVKOBQ7IR25NPYKHH7AMZ5CLVJ",
+      "mime_type": "text/html",
+      "original_url": "https://www.cocokind.com/",
+      "snapshot_url": "https://web.archive.org/web/20250522231600/https://www.cocokind.com/",
+      "status_code": "200",
+      "timestamp": "20250522231600"
+    },
+    {
+      "digest": "EUM5FWRKQYJUJT3JZWL3BZVKUOJYWIZM",
+      "mime_type": "text/html",
+      "original_url": "https://www.cocokind.com/",
+      "snapshot_url": "https://web.archive.org/web/20250523165003/https://www.cocokind.com/",
+      "status_code": "200",
+      "timestamp": "20250523165003"
+    },
+    {
+      "digest": "6N6IHED435GL2FH2EGRSSJLWXKBLHVZ3",
+      "mime_type": "text/html",
+      "original_url": "https://www.cocokind.com/",
+      "snapshot_url": "https://web.archive.org/web/20250530192304/https://www.cocokind.com/",
+      "status_code": "200",
+      "timestamp": "20250530192304"
+    }
+  ]
+}

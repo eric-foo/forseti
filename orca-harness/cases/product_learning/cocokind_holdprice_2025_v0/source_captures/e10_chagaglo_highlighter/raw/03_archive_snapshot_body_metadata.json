@@ -1,0 +1,25 @@
+{
+  "original_url": "https://cocokind.com/products/chagaglo-highlighter",
+  "selected_snapshot": {
+    "digest": "3QERKDMF3DFDUC2CJRDAPCMBSOD52MHK",
+    "mime_type": "text/html",
+    "original_url": "https://www.cocokind.com/products/chagaglo-highlighter",
+    "snapshot_url": "https://web.archive.org/web/20250418155951/https://www.cocokind.com/products/chagaglo-highlighter",
+    "status_code": "200",
+    "timestamp": "20250418155951"
+  },
+  "snapshot_body_http_metadata": {
+    "byte_count": 372727,
+    "capture_timestamp": "2026-06-15T13:49:31Z",
+    "content_length": null,
+    "content_type": "text/html; charset=utf-8",
+    "date": "Mon, 15 Jun 2026 13:49:30 GMT",
+    "etag": null,
+    "final_url": "https://web.archive.org/web/20250418155951/https://www.cocokind.com/products/chagaglo-highlighter",
+    "last_modified": null,
+    "reason": "OK",
+    "requested_url": "https://web.archive.org/web/20250418155951/https://www.cocokind.com/products/chagaglo-highlighter",
+    "status": 200,
+    "timeout_seconds": 90.0
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "original_url": "https://cocokind.com/",
+  "selected_snapshot": {
+    "digest": "3I42H3S6NNFQ2MSVX7XZKYAYSCX5QBYJ",
+    "mime_type": "text/html",
+    "original_url": "http://www.cocokind.com/",
+    "snapshot_url": "https://web.archive.org/web/20241129210010/http://www.cocokind.com/",
+    "status_code": "301",
+    "timestamp": "20241129210010"
+  },
+  "snapshot_body_http_metadata": {
+    "byte_count": 655124,
+    "capture_timestamp": "2026-06-15T13:43:52Z",
+    "content_length": null,
+    "content_type": "text/html; charset=utf-8",
+    "date": "Mon, 15 Jun 2026 13:43:50 GMT",
+    "etag": null,
+    "final_url": "https://web.archive.org/web/20241129210010/http://www.cocokind.com/",
+    "last_modified": null,
+    "reason": "OK",
+    "requested_url": "https://web.archive.org/web/20241129210010/http://www.cocokind.com/",
+    "status": 200,
+    "timeout_seconds": 90.0
+  }
+}
