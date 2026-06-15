@@ -20,7 +20,7 @@ stale_if:
   - Phase 2 (snowball depth / sub-niche coherence / follower bands / crawler-strip retry) lands.
   - IG changes the web_profile_info payload or moves edge_related_profiles behind auth.
   - The crawler-strip empty-cause (vs account opt-out) is disambiguated.
-status: GO (logged-out) — Phase 1, n=3, feasibility-proven; snowball + at-scale = Phase 2 (pending)
+status: GO (logged-out) — Phase 1 (reachability, n=3) + Phase 2 (bounded snowball) feasibility-proven; production needs a sub-niche filter (gating) + rising-tier depth + at-scale posture
 ```
 
 # Instagram Creator Discovery — Suggested-Accounts Edge Recon (Phase 1, v0)
@@ -97,18 +97,45 @@ conclusive (2 cleanly-populated GOs + 1 explained empty). Recorded, per the reel
 discipline (*"'blocked/limited/empty' is a hypothesis — verify the mechanism before recording
 a verdict"*).
 
-## Residuals / not-proven (Phase 2)
+## Phase 2 — bounded snowball (2026-06-15): GO mechanics + two design requirements
 
-- **Snowball depth & sub-niche coherence at depth** — does a 2-hop BFS stay in-sub-niche, and
-  what is the expansion factor?
-- **Follower bands / does it surface rising accounts** — the momentum cohort, via the
-  follower-count hop.
-- **Saturation vs sprawl** — do related sets overlap (bounded community = good) or drift to
-  mega-influencers?
-- **Crawler-strip empty rate + retry** — how often the empty variant appears, and whether a
-  pure-wpi (no-nav) walk avoids it; disambiguate crawler-strip vs account opt-out.
-- **wpi's own rate ceiling** at ~25–30 consecutive reads.
-- n=3 feasibility, **not** an at-scale validation.
+Pure-wpi walk from `jeremyfragrance` (fragrance), 15 logged-out reads, 2-hop BFS, hard cap.
+Raw: `orca-harness/_test_runs/related_snowball/{nodes.jsonl, summary.json}`.
+
+**Mechanics — GO:**
+- **Pure-wpi populates `edge_related_profiles` WITHOUT a profile-page nav** → sidesteps the
+  crawler-strip (Caveat 1 mitigated); empty rate fell to **1/15** (`elijahfragrance`, likely an
+  account opt-out — so the strip was nav-triggered, not a wpi property).
+- **15 consecutive wpi reads, all HTTP 200, no 401/429** → wpi's own logged-out ceiling is **≥15**.
+- **Follower count per node** (`edge_followed_by.count`) confirmed → follower-band filter runs on
+  the same fetch.
+- **Expansion + saturation:** 15 fetches → **243 unique accounts**; **69 appear in >1 related set**
+  → the sub-niche community **closes on itself** (converges, not infinite sprawl).
+
+**Two design requirements (not blockers):**
+- **Sub-niche coherence degrades at depth via bridge nodes → a coherence filter is GATING, not
+  polish.** A single legitimate-but-off-niche neighbor (`@Bible`, a real `jeremyfragrance`
+  relation — he posts Christian content) injected a whole **religious cluster** at depth-2;
+  **skincare** also bled in (cerave, eucerin, neutrogena). Raw snowball without a sub-niche
+  classifier/pruner produces a poisoned roster (owner 2026-06-15: *"worthless without polish, we
+  definitely need so"*). This **elevates the sub-niche classification layer from nice-to-have to
+  required** (ontology `SubNiche` / keyword filter / bridge-node pruning).
+- **A mega seed surfaces mid-tier, not the rising cohort.** Follower **min 184k / median 438k /
+  max 3.1M** — none micro/nano. Reaching the rising tier (**working def: micro ~10k–100k**; owner
+  proposed 50k–100k; momentum is really *trajectory*, not absolute size) needs **deeper snowball
+  from smaller nodes / smaller seeds**, not a one-hop walk from a mega account.
+
+## Residuals / not-proven (post-Phase-2)
+
+- **Sub-niche coherence filter DESIGN** — now gating; how to classify/prune bridge nodes
+  (ontology `SubNiche` / keyword) is unbuilt.
+- **Rising-tier reach** — deeper snowball from smaller seeds to surface ~10k–100k; untested.
+- **Production at-scale** — n=3 (Phase 1) + 15 reads (Phase 2) are feasibility, **not** an at-scale
+  validation; wpi's ceiling beyond ~15 consecutive reads is unmeasured.
+- **Discovery-read posture** — whether production roster-building read volume is governed by the
+  carve-out (owner-owned, open).
+- **Empty-cause** — `elijahfragrance`/`hyram` empties: account opt-out vs strip not fully
+  disambiguated (pure-wpi made it rare, ~1/15).
 
 ## Posture
 

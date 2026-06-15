@@ -24,7 +24,7 @@ stale_if:
   - IG changes the web_profile_info payload or moves edge_related_profiles behind auth.
   - The ontology backbone is adopted and SubNiche becomes a live classifier (this doc's forward-link resolves).
   - The carve-out is amended (e.g. the floated <=10-account cap is recorded).
-status: PROPOSED — discovery design; suggested-accounts edge FEASIBILITY-PROVEN logged-out (Phase 1, n=3); snowball/Phase 2 pending
+status: PROPOSED — discovery design; suggested-accounts edge FEASIBILITY-PROVEN logged-out (Phase 1 + 2); sub-niche filter is GATING; rising-tier depth + production at-scale pending
 ```
 
 # Instagram Creator Discovery — Spec (proposed, v0)
@@ -68,7 +68,12 @@ finding, a build-go, or a validation.
    from seed/rostered posts. Emerging creators collab to grow, so this snowballs
    the same sub-niche.
 3. **Follower-band + sub-niche filter** — reduce the expanded set to the target
-   momentum tier (follower band) and confirm sub-niche (next section).
+   momentum tier and confirm sub-niche (next section). **Rising-tier working
+   definition: micro ~10k–100k** (owner proposed 50k–100k; momentum is really
+   *trajectory*, not absolute size — adjustable). Phase 2 showed a mega seed
+   surfaces only mid-tier (≥184k), so reaching the rising band needs **deeper
+   snowball from smaller nodes/seeds**. Follower count is one wpi hop per candidate
+   (`edge_followed_by.count`).
 
 ## Backfill layer — free creator-DB tier
 
@@ -82,6 +87,12 @@ finding, a build-go, or a validation.
   the rising-cohort source.
 
 ## Sub-niche classification
+
+**Phase 2 made this GATING, not polish.** A single off-niche bridge node (e.g.
+`@Bible`, a real fragrance-creator relation) injects a foreign community at depth-2,
+so raw snowball without a sub-niche filter produces a poisoned roster (owner
+2026-06-15: *"worthless without polish, we definitely need so"*). The filter below
+is a **build requirement**, not an enhancement.
 
 - The roster unit is a beauty **sub-niche** (skincare, K-/J-beauty, fragrance,
   indie/clean, makeup-artistry, men's grooming, haircare, …), **not "beauty"
@@ -107,11 +118,15 @@ finding, a build-go, or a validation.
   off-IG dependency. Full finding:
   `ig_creator_discovery_suggested_accounts_recon_v0.md`; recon-index row in
   `capture_recon_index_v0.md`.
-- **Phase 2 — snowball: PENDING, gated.** Seed one sub-niche, 2-hop BFS, bounded;
-  measure expansion, sub-niche coherence at depth, follower bands (does it surface
-  rising accounts), saturation-vs-sprawl, the crawler-strip empty rate + retry, and
-  wpi's own rate ceiling. **Gated on** the owner discovery-read posture ruling
-  (below) and carries the crawler-strip retry design from the Phase-1 caveat.
+- **Phase 2 — bounded snowball: DONE, GO mechanics** (2026-06-15, 15 logged-out
+  reads). Pure-wpi walk (no profile nav) populates `edge_related_profiles` and
+  sidesteps the crawler-strip; 15 reads all 200 (wpi ceiling ≥15); 15 fetches → 243
+  unique accounts, 69 multi-set → bounded community. **Two design requirements
+  surfaced** (see below): a sub-niche coherence filter (now gating) and rising-tier
+  depth. Finding: `ig_creator_discovery_suggested_accounts_recon_v0.md`.
+- **Still gated / unbuilt:** the sub-niche filter design, rising-tier reach (deeper
+  snowball), production at-scale validation, and the owner discovery-read posture
+  ruling.
 
 ## Posture / carve-out boundary
 
