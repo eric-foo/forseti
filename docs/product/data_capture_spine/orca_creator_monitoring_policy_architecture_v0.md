@@ -145,17 +145,17 @@ self-terminating** sessions — **no perpetual/scheduled standing crawler.** So:
 - The cadences here define an **ideal sampling schedule (a target)**, executed by **batching the due
   reads into bounded attended monitoring sessions** — NOT a 24/7 daemon that auto-fires every 6h. A
   sample "due at +6h" is taken whenever the next bounded session runs.
-- **Resolved (owner, 2026-06-15 — posture (B), supervised autonomy):** virality is to use
-  **pre-authorized, bounded, self-terminating sprints** — on spike detection (spike detection = reading
-  the projection, always permitted) the system may **auto-launch** a time-bounded, self-terminating
-  sprint that samples the hot post at a tight cadence (6h/12h), within a cap, then stops. **GATED —
-  owner-owned prerequisite:** (B) edges past the carve-out's "human-initiated" wording, so it **requires
-  a dated carve-out clarification** (extending "human-initiated" → "human-pre-authorized, bounded,
-  self-terminating, capped") recorded on the carve-out lane. **Until that clarification lands, (B) is NOT
-  authorized to run; the interim posture is (C) best-effort-within-session** (hot-list flags; tight
-  sampling rides the next bounded session). Two build prerequisites: the carve-out clarification (owner),
-  and the sprint auto-launch mechanism (separate runtime authorization — not built). Fallback if the
-  clarification is declined: (A) human-initiated bounded sprints, then (C).
+- **Resolved (owner, 2026-06-15 — posture (B), supervised autonomy; carve-out clarification AUTHORIZED):**
+  virality is to use **pre-authorized, bounded, self-terminating sprints** — on spike detection (= reading
+  the projection, always permitted) the system may **auto-launch** a time-bounded, self-terminating sprint
+  that samples the hot post at a tight cadence (6h/12h), within a cap, then stops. The carve-out
+  clarification (B) needs — extending "human-initiated" → "human-pre-authorized, bounded, self-terminating,
+  capped" — is **owner-authorized 2026-06-15 (this session)**; the durable dated clarification is
+  owner-owned, to be recorded on the carve-out lane (`wind_caller_calibration_carveout_v0.md`).
+  **Remaining build prerequisite:** the sprint auto-launch mechanism is **unbuilt runtime work** needing
+  separate authorization — so **until it is built, the interim runtime posture is (C)
+  best-effort-within-session**. (B) is the authorized target; (C) the interim; (A) human-initiated sprints
+  the intermediate if wanted.
 - Account-cap rules (≤10 / start ≤5 operating accounts) apply to social platforms; EDGAR/org-motion (if
   ever monitored) is a separate non-person posture, not governed here.
 
