@@ -85,6 +85,27 @@ until its under-case runs. Adding it to this prepare-only binding is **not a doc
 - retirement_test: capture standardizes on a single rung (no ladder), or per-fetch re-walking becomes free
 - PROV: slice-F spec (`archive_org_refinement_and_source_family_gap_spec_v0.md` §F, PR #81); `capture_recon_index_v0.md` already records cheapest-GO-rung per source (the pin substrate). blind_spot: slice-F nearly committed to a full ladder per fetch; owner caught it → probe-then-pin. n=1 (design-time catch). date 2026-06.
 
+## A1c — proposed cell (under-case VERIFIED on live pilot; over-edge owed; pending owner spine acceptance)
+
+Distilled 2026-06-15 from the demand-durability pilot (live Sol de Janeiro Bum Bum Cream capture,
+obs1+obs2). The decision node is a proposed spine-addition (not yet on A3's accepted spine), but —
+unlike A1b — the **under-case is RUN** (confirmed on live data), so the cell is verification-accepted;
+only the **over-edge is OWED** (caps the tier). Adding it to this prepare-only binding is **not a
+doctrine change → no `direction_change_propagation` receipt owed**.
+
+### GUARD series-diff-on-extracted-values  (actor-carried; code-enforceable)
+- decision_node: `node:capture-series-diff-change-detection`  (**PROPOSED** spine-addition)
+- `GUARD series-diff-on-extracted-values: WHEN detecting change across a re-observed source series → diff the EXTRACTED / normalized demand-relevant values (price, availability, variant-keyed), using the raw PreservedFile.sha256 only as a coarse "differs → inspect" flag → UNLESS no extraction layer exists for the surface (then record raw-hash divergence as an inspect-flag + tamper_deletion_visibility=cannot_assess, never as a confirmed change).`
+- outcome_class: change-detection keyed on the raw stored-bytes hash emits a false "change" on essentially every live re-observation (dynamic chrome — CSRF / cache / session — perturbs bytes with no demand-relevant change)
+- causal_miss: missing distinction between raw-transport-bytes divergence (noisy) and demand-relevant-value divergence (price / availability / variant-keyed); the series-diff conflated "bytes differ" with "the tracked state changed"
+- verification: under-case (re-observation: raw body differs, extracted price + availability identical) → reports no-change where a raw-hash diff would have falsely reported change — **RUN, live pilot obs1 vs obs2**; over-edge (re-observation where an extracted value actually moves — a variant goes OOS, or price changes) → must STILL register a real change — **OWED (no real value-change occurred in the short pilot window)**
+- substrate: actor-carried (the extracted-value comparison is a capture-analysis step; code-enforceable once a per-surface extractor exists — then mixed)
+- conflict_check: none — no resident shares the change-detection trigger; probe-then-pin (A1b) governs rung / transport selection, not change-detection; contradicts none of A1 / A1b
+- tier: probed (live pilot) — **capped at probed; over-edge OWED**
+- retirement_test: capture standardizes on a normalized extracted-value record whose equality is the canonical change signal (raw-hash diffing retired), or a deterministic series-diff extractor makes this code-enforced
+- outcome class is `silent-wrong-output` (a false "change" misleads the downstream demand read) → prune-exempt from frequency-only retirement once admitted
+- PROV: live demand-durability pilot — SdJ Bum Bum Cream, `_scratch/pilot/sdj_obs1`+`sdj_obs2`; raw body sha256 `4c642d15…` ≠ `e80a1e03…` while extracted price `{$12,$24,$36,$44,$48}` + availability `{15× add-to-cart, 3× Notify-Me}` were byte-identical. Consumes Lane 1 Element 3 (`capture_envelope_durability_delta_spec_v0.md` §Element 3). blind_spot: Element 3 names "content-hash difference via PreservedFile.sha256" as a change anchor; the pilot shows that anchor false-positives on live pages and the extracted-value comparison is the load-bearing one. n=1 (live, 2 observations). date 2026-06-15.
+
 ## A2 — core size / budget
 
 Lane cells are actor-carried and compete for budget; the credential subset of `raw-html-scratch-only`
@@ -97,7 +118,8 @@ model-dependent; not fixed here.
 `node:candidate-intake-access-mode` · `node:raw-html-projection` · `node:old-reddit-anchor-parse` ·
 `node:graph-frontier-seed` (planning only; no same-run traversal) · `node:capture-packet-emit` ·
 `node:no-forbidden-output-fields-chokepoint` (referenced; canonical home = orca-harness binding) ·
-`node:capture-rung-selection` (**PROPOSED** spine-addition — pending owner acceptance; see A1b).
+`node:capture-rung-selection` (**PROPOSED** spine-addition — pending owner acceptance; see A1b) ·
+`node:capture-series-diff-change-detection` (**PROPOSED** spine-addition — pending owner acceptance; see A1c).
 
 ## A4 — slots filled
 
