@@ -229,6 +229,46 @@ Thin wrappers must not restate or fork project policy. If policy changes are nee
 Use a retrieval header for a wrapper only when the wrapper is durable and
 expected to route future work.
 
+## Fitness-Reference Surfacing (Durable / Cross-Recipient Prompts)
+
+For durable or cross-recipient prompts — handoffs, commissions, reviews, and patch
+prompts (the saved or `paste-ready-chat` families), not trivial inline `chat-only`
+prompts — surface the work unit's `fitness_reference` (goal + observable success
+signal, the object owned by `docs/decisions/work_unit_fitness_reference_v0.md`),
+**reusing that concept; do not mint a new goal/success vocabulary.** Surface it in
+two places:
+
+- **Chat return (for the dispatcher):** show the goal + success signal beside the
+  prompt path or link, in **plain language a non-expert reads at a glance** — no
+  skill jargon, no internal vocabulary. If it cannot be stated plainly, that is a
+  prompt-quality defect, not a styling nit.
+- **Prompt body (for the receiving executor):** carry it **pointer-preferred**
+  (cite the controlling upstream goal/signal when one exists; fresh compact prose
+  only when none does) as a clearly-labeled "what this is for / done looks like"
+  entry. A cross-recipient prompt travels without this chat, so the body is the
+  only place its executor sees the target; this extends, and does not duplicate,
+  the already-required "objective and intended decision."
+
+Label the carried reference **executor target + review axis-to-attack, not a review
+pass bar.** This preserves `prompt_body_injection: no` and the alignment-axis
+guardrail from `work_unit_fitness_reference_v0`: a later review of the commissioned
+work treats the goal/signal as a pointer-preferred axis it must attack, never as a
+conformance bar graded against the generating prompt. Carrying the target for the
+executor is not making it the review bar.
+
+Generic shape (illustrative only — keep your wording specific to the work; do not
+anchor to this):
+
+> **Goal:** the one outcome this work must achieve, in plain words.
+> **Done looks like:** the observable check that says it worked — what a good result
+> shows, not a restatement of the task.
+
+This **extends the surfacing** of `work_unit_fitness_reference_v0` (scope-locked at
+enactment to adversarial artifact review plus the fused gate) to durable and
+cross-recipient prompts generally. It changes none of that decision's substance:
+not its review back-pressure, not the scoped fused gate, not `prompt_body_injection:
+no`, and not the alignment-axis-not-pass-bar guardrail.
+
 ## Review Prompt Defaults
 
 All Orca review prompts must include `workflow-deep-thinking` before the
@@ -514,71 +554,6 @@ Before using a generated Orca prompt, apply these gates:
 ```yaml
 direction_change_propagation:
   doctrine_changed: >
-    Orca prompt authoring now has an explicit routing rule: all prompt, handoff,
-    wrapper, rerun, and patch-prompt authoring must go through
-    workflow-prompt-orchestrator (the prompt-orchestration owner that applies
-    source-loading and the preflight/routing contract); hand-drafting any of them
-    is a prompt-quality defect, and AGENTS.md now carries the up-front trigger
-    pointing here.
-  trigger: workflow_authority
-  controlling_sources_updated:
-    - .agents/workflow-overlay/prompt-orchestration.md
-    - AGENTS.md
-  downstream_surfaces_checked:
-    - .agents/workflow-overlay/README.md
-    - .agents/workflow-overlay/source-of-truth.md
-    - .agents/workflow-overlay/skill-adoption.md
-    - .agents/workflow-overlay/template-registry.md
-    - .agents/workflow-overlay/validation-gates.md
-    - docs/prompts/templates/_generic/
-  intentionally_not_updated:
-    - path: .agents/workflow-overlay/README.md
-      reason: >
-        The overlay index already names prompt-orchestration.md as the owner of
-        prompt artifact, wrapper, preflight, and output-mode rules; the routing
-        rule lives in that owner file and needs no index restatement.
-    - path: .agents/workflow-overlay/validation-gates.md
-      reason: >
-        Its Prompt Orchestration Gates already defer to prompt-orchestration.md
-        as the prompt-mechanics owner; single-source is preserved by adding the
-        enforcement precondition in that owner file, not by duplicating it here.
-    - path: .agents/workflow-overlay/skill-adoption.md
-      reason: >
-        Its caution that workflow-prompt-orchestrator adoption needs a resolver
-        recheck is unchanged and is explicitly preserved by the new rule's
-        fallback clause; the routing default does not assert strict adoption.
-    - path: .agents/workflow-overlay/template-registry.md
-      reason: >
-        It governs template-target retrieval, not prompt-authoring routing; the
-        new rule does not change template fallback behavior.
-    - path: .agents/workflow-overlay/source-of-truth.md
-      reason: >
-        Source hierarchy and the propagation contract are unchanged; the only hit
-        is an unrelated historical rg pattern in a prior receipt.
-    - path: docs/prompts/templates/_generic/
-      reason: >
-        Model-target templates retired 2026-06-13 (unused; owner decision); no
-        longer a live surface. Prior receipt preserved for history only.
-  stale_language_search: >
-    rg -i -n "prompt-orchestrator|hand-draft|hand-drafted|route through" .agents docs AGENTS.md
-    (run 2026-06-09 on main @ cc93187 in the worktree)
-  stale_language_search_result: >
-    Executed 2026-06-09. No surface stated an opposing rule (no surface permits
-    hand-drafting prompts or bypassing source-loading). Existing prompt-orchestrator
-    hits are the binding, the Anti-Import adoption caution, the skill-adoption
-    recheck note, template-target references, and an unrelated historical rg pattern
-    in source-of-truth.md — none conflicts with or duplicates the new routing rule.
-  non_claims:
-    - not validation
-    - not readiness
-    - not a claim that workflow-prompt-orchestrator is an adopted or resolver-validated executable
-    - not implementation authorization
-    - not source promotion
-```
-
-```yaml
-direction_change_propagation:
-  doctrine_changed: >
     Model-target template retrieval retired (unused; no-runtime-model-routing
     rules retained and tightened); preflight defaults artifact
     (docs/prompts/templates/shared/orca_preflight_defaults_v0.md) blessed for
@@ -635,6 +610,73 @@ direction_change_propagation:
     hits — historical review records citing prior template IDs, archives only).
     No live-doctrine surface retains an instruction that routes agents to a
     model-target template or implies runtime model selection.
+  non_claims:
+    - not validation
+    - not readiness
+    - not source promotion
+    - not implementation authorization
+```
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Prompt orchestration now surfaces the fitness_reference (goal + observable
+    success signal, owned by work_unit_fitness_reference_v0) for durable and
+    cross-recipient prompts in two places: the chat return for the dispatcher in
+    plain language (human-glance test), and the prompt body for the receiving
+    executor, pointer-preferred and labeled executor-target / review-axis-to-attack
+    (not a review pass bar). This EXTENDS the surfacing of
+    work_unit_fitness_reference_v0 beyond its review-only scope-lock; it reuses that
+    object (no new vocabulary) and changes none of its substance — not the review
+    back-pressure, the scoped fused gate, prompt_body_injection: no, or the
+    alignment-axis guardrail.
+  trigger: output_authority
+  related_triggers:
+    - workflow_authority
+  controlling_sources_updated:
+    - .agents/workflow-overlay/prompt-orchestration.md
+  downstream_surfaces_checked:
+    - docs/decisions/work_unit_fitness_reference_v0.md
+    - .agents/workflow-overlay/review-lanes.md
+    - .agents/workflow-overlay/communication-style.md
+    - .agents/workflow-overlay/validation-gates.md
+    - AGENTS.md
+  intentionally_not_updated:
+    - path: docs/decisions/work_unit_fitness_reference_v0.md
+      reason: >
+        The owning decision is unchanged in substance; this overlay rule extends
+        its surfacing and cites it as the concept owner. The decision's scope-lock
+        (adversarial artifact review + fused gate) remains accurate for what it
+        enacted; the extension lives in the overlay, not by re-opening the decision.
+    - path: .agents/workflow-overlay/review-lanes.md
+      reason: >
+        Its review-side fitness_reference rule (pointer-preferred, axis-to-attack,
+        name the gap when unbound) is unchanged and is explicitly preserved by the
+        new rule's executor-target / not-a-pass-bar labeling.
+    - path: .agents/workflow-overlay/communication-style.md
+      reason: >
+        It owns the general chat shape; its Decision-criteria consumption item
+        already accommodates a surfaced goal+signal. prompt-orchestration.md owns
+        output-mode behavior and carries the new surfacing requirement, so no
+        duplicate rule is added here.
+    - path: .agents/workflow-overlay/validation-gates.md
+      reason: >
+        Its prompt gates defer to prompt-orchestration.md as the prompt-mechanics
+        owner; the new surfacing rule lives there and needs no new gate.
+    - path: AGENTS.md
+      reason: >
+        Routes prompt detail to prompt-orchestration.md; the rule lives in that
+        owner file, so no root restatement is added.
+  stale_language_search: >
+    rg -i "fitness_reference|prompt_body_injection|success signal|fitness reference"
+    .agents/workflow-overlay (run 2026-06-15 in worktree orch-goal-success @ cd681d9e)
+  stale_language_search_result: >
+    Executed 2026-06-15. Hits: prompt-orchestration.md (the goal-fitness gate, the
+    review fitness_reference rule, review gate item g), review-lanes.md (the
+    review-side fitness_reference rule), skill-adoption.md (the workflow-goal-framing
+    skill entry). None states an opposing rule; all are consistent with extending
+    the same object's surfacing. No surface forbids surfacing the fitness_reference
+    in chat or carrying it pointer-preferred in a prompt body.
   non_claims:
     - not validation
     - not readiness
