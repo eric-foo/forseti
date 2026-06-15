@@ -125,6 +125,68 @@ class PreservedFile(StrictModel):
         return value
 
 
+# Creator-momentum typed metric observation (IG capture-shape contract; spine PR #151). The
+# capture->projection backbone's CORE "typed value + typed availability posture" discipline applied
+# per metric: absence / out-of-window / not-attempted / blocked / not-applicable can NEVER be stored
+# as an observed value (in particular, never as an observed 0). This is the one irreversible,
+# un-re-capturable lock-in named by the IG capture-shape spec, landed here as the platform-agnostic
+# CORE substrate. Per-platform SATELLITE pieces ride with the producer (deferred): the closed IG
+# metric vocabulary (follower_count / view_count / like_count / comment_count), the value>=0
+# constraint, the numeric-id identity anchor + conflict-policy version pin, and the packet-level
+# coverage CLAIM (which posts were claimed/attempted). `value` is int (counts); widening to other
+# value types is a future additive change.
+class MetricPosture(StrEnum):
+    OBSERVED = "observed"
+    UNAVAILABLE_WITH_REASON = "unavailable_with_reason"
+    OUT_OF_CAPTURE_WINDOW = "out_of_capture_window"
+    NOT_ATTEMPTED = "not_attempted"
+    NOT_APPLICABLE = "not_applicable"
+
+
+class CoverageWindow(StrictModel):
+    # The capture window a metric observation claims to cover (ISO-8601 UTC); either bound may be
+    # None when the producer does not bound that side. This is the per-metric window, distinct from
+    # a (deferred) packet-level coverage CLAIM over which posts were claimed/attempted.
+    start: str | None = None
+    end: str | None = None
+
+
+class MetricObservation(StrictModel):
+    # A typed momentum metric observation: a typed value coupled to a typed availability posture so
+    # absence is never stored as a value. `metric` is the metric identity (closed per-platform at
+    # the satellite producer, not here). `value` is present iff posture == observed; `reason` is
+    # present iff posture != observed.
+    metric: str
+    posture: MetricPosture
+    value: int | None = None
+    reason: str | None = None
+    coverage_window: CoverageWindow | None = None
+
+    @field_validator("metric")
+    @classmethod
+    def validate_metric_non_empty(cls, value: str) -> str:
+        if not value.strip():
+            raise ValueError("metric identity must be a non-empty token")
+        return value
+
+    @model_validator(mode="after")
+    def validate_observation(self) -> "MetricObservation":
+        if self.posture == MetricPosture.OBSERVED:
+            if self.value is None:
+                raise ValueError("an observed metric requires a value")
+            if self.reason is not None:
+                raise ValueError("an observed metric must not carry a reason")
+            return self
+        if self.value is not None:
+            raise ValueError(
+                f"a non-observed metric (posture={self.posture}) must not carry a value "
+                f"(absence must never be stored as an observed value, e.g. an observed 0)"
+            )
+        if not self.reason:
+            raise ValueError(f"a non-observed metric (posture={self.posture}) requires a reason")
+        return self
+
+
 class SourceCaptureSlice(StrictModel):
     slice_id: str
     locator: VisibleFact
@@ -146,6 +208,12 @@ class SourceCaptureSlice(StrictModel):
     limitations: list[str] = Field(default_factory=list)
     warning_notes: list[str] = Field(default_factory=list)
     preserved_file_ids: list[str] = Field(default_factory=list)
+    # Creator-momentum typed metric observations for this slice (IG capture-shape contract). Additive
+    # and optional (default empty) so existing manifests stay valid under extra="forbid": an empty
+    # list means this slice's producer captured no typed momentum metric (a non-momentum capture, or
+    # a legacy slice). Each entry couples a typed value to a typed availability posture so absence is
+    # never stored as an observed value. Same back-compat pattern as the demand-durability pins above.
+    metric_observations: list[MetricObservation] = Field(default_factory=list)
 
     @model_validator(mode="after")
     def validate_closed_postures(self) -> "SourceCaptureSlice":
