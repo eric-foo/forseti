@@ -184,6 +184,38 @@ This record does not assert that any server-side gate is active. It is not.
      is a behavioral/doctrine rule, not code — it is "live" only insofar as agents follow it, and it
      asserts **no** proven long-run bound on worktree/branch count (that outcome is unproven until the
      rule runs across several lanes). Owner-gated; lands via a per-lane PR off `main` (squash).
+11. **Standing self-label policy — when the lane author applies the opt-in marker.** Items 7 and 9 keep
+   `agent-automerge` an **opt-in marker** and the bot/guard act only on labeled PRs — that mechanism is
+   **unchanged**. This item adds the lane author's **standing policy for *when* to apply that marker**: a
+   lane author applies `agent-automerge` to its **own** CLEAN + green PR **by default for routine,
+   low-risk changes** it judges safe to land unattended, and **withholds** it — leaving the PR for owner
+   review — for higher-risk changes. The marker stays a deliberate, per-PR judgment (it is **not**
+   auto-applied by path or automation); this item only sets the default *direction* of that judgment, so
+   routine work lands unattended while the human gate is preserved exactly where it matters. It shifts
+   the routine-work default from "wait for the owner" to "land unattended," not the merge mechanism.
+   - **Apply by default (safe to land unattended) when ALL hold:** it is the author's **own** lane work,
+     scoped and traceable to the request; CLEAN + green; and a routine low-risk change — additive
+     documentation, decisions/prompts/reviews/migration notes the author is confident in, or a small
+     scoped code change with clear test coverage — that needs no human diff-review.
+   - **Withhold (leave for owner review) when ANY hold:** it touches enforcement/safety surfaces (the
+     EP-01/EP-03 guard, hooks, `.claude/settings.json`, CI or auto-merge workflows, this
+     branch-protection doctrine), makes a contested doctrine/tradeoff decision, carries high downstream
+     lock-in (schema, interface, persisted data shape), the author is uncertain, or the owner asked to
+     review it. **When in doubt, withhold.**
+   - **Authority unchanged:** this grants **no new merge authority** — item 7's guard (CLEAN + green +
+     label, fail-closed) and the per-lane / accepted-handoff authorization required to open the PR at all
+     are unchanged. The owner can always remove the label to hold a PR, and can still CLI-merge anything
+     directly. Unlabeled, non-CLEAN, or non-green PRs still go to a human (item 7) — unchanged.
+   - **Why author judgment, not a path Action:** "safe to land unattended" is a **content judgment**, not
+     a mechanically-checkable path fact, so per the overlay's Enforcement Placement principle
+     (`.agents/workflow-overlay/decision-routing.md`) it belongs in an actor-carried rule, not a
+     deterministic substrate. A path-scoped auto-label Action (deterministic; would apply to every PR,
+     including human- or other-harness-opened ones) remains an explicit **optional follow-on**,
+     deliberately not taken here.
+   - **Liveness / non-claims:** a behavioral/doctrine rule, not code — "live" only insofar as agents
+     follow it; it does **not** assert that auto-landed PRs are correct (CI is a test-suite signal only;
+     main is not deployed and a bad merge is reversible by a follow-up PR). Owner-gated; lands via a
+     per-lane PR off `main` (squash).
 
 ## Why core-only CI (evidence)
 
@@ -747,4 +779,71 @@ direction_change_propagation:
     - asserts no proven long-run bound on worktree/branch count (unproven until run across several lanes)
     - not an edit to the EP-03 guard, the item-8 detector, or the item-9 bot
     - not a destructive always-on automation, a --force prune, or a creation throttle
+```
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Adds Decision item 11: a standing self-label policy for WHEN the lane author applies the existing
+    opt-in agent-automerge marker. The merge mechanism is unchanged (items 7/9: bot/guard act only on
+    labeled PRs); this item sets the agent's default judgment — apply the label to its own CLEAN + green
+    PR by default for routine low-risk changes (additive docs, decisions/prompts/reviews the author is
+    confident in, or small scoped code with test coverage), and WITHHOLD it (leave for owner review) for
+    higher-risk changes: enforcement/safety surfaces (EP-01/EP-03 guard, hooks, settings.json, CI or
+    auto-merge workflows, this doctrine), contested doctrine/tradeoff decisions, high downstream lock-in
+    (schema/interface/persisted data), author uncertainty, or owner-requested review — when in doubt,
+    withhold. This shifts the routine-work default from "wait for the owner" to "land unattended" while
+    preserving the human gate where it matters. It grants NO new merge authority and is author judgment,
+    not a path Action; a deterministic path-scoped auto-label Action is an explicit deferred follow-on.
+  trigger: workflow_authority
+  related_triggers:
+    - lifecycle_boundary
+  controlling_sources_updated:
+    - docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md
+  downstream_surfaces_checked:
+    - .agents/hooks/guard_protected_actions.py
+    - .github/workflows/auto-merge.yml
+    - AGENTS.md
+    - .agents/workflow-overlay/safety-rules.md
+  intentionally_not_updated:
+    - path: .agents/hooks/guard_protected_actions.py
+      reason: >
+        The EP-03 guard is unchanged: self-merge still requires CLEAN + green + label and fails closed.
+        Item 11 sets which PRs the author labels, not what the guard allows; no authority is added.
+    - path: .github/workflows/auto-merge.yml
+      reason: >
+        The bot's guardrails (label, mergeable, green, up-to-date, one-per-run, squash+delete) are
+        unchanged; item 11 changes only the agent's default policy for applying the label it already reads.
+    - path: AGENTS.md
+      reason: >
+        The behavior kernel and the per-turn / accepted-handoff authorization to open a PR at all are
+        unchanged; this is a procedural default in the decision record, co-located with items 7/9/10.
+    - path: .agents/workflow-overlay/safety-rules.md
+      reason: >
+        The do-not-push/merge-unless-authorized rule is unchanged; item 11 grants no new authority and
+        applies only to a PR the lane was already authorized to open.
+  verification: >
+    Re-verified 2026-06-15 against origin/main @ f883b68 (item 10 landed via PR #104, MERGED
+    2026-06-15T08:05:22Z): items 7 and 9 present; item 7's "the opt-in label is the agent's deliberate
+    marker" framing (lines ~100-101) stays accurate — item 11 keeps the marker a deliberate per-PR
+    judgment and does not auto-apply it, so that wording is consistent and not edited. Item 7's "a human
+    lands every other case" (unlabeled / non-CLEAN / non-green) also stays accurate. All YAML blocks parse.
+  stale_language_search: >
+    git grep -i -nE "self.?label|opt.?in|deliberate marker|by default.*label|agent-automerge"
+    docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md AGENTS.md .agents/workflow-overlay
+    (run 2026-06-15 in the selflabel-default worktree off origin/main @ f883b68)
+  stale_language_search_result: >
+    Executed 2026-06-15. The agent-automerge / opt-in / deliberate-marker hits are all item 7 and item 9
+    MECHANISM wording, which item 11 preserves (the bot/guard still act only on labeled PRs; the marker
+    stays a deliberate per-PR judgment). No live surface claims the agent never self-applies the label or
+    that every PR must wait for the owner, so item 11 forks no existing rule — it is additive and only
+    sets the agent's default direction for applying the existing marker. The other opt-in hits are the
+    unrelated delegated-review-patch convention. No surface required an edit.
+  non_claims:
+    - not validation, readiness, or acceptance of any lane's content
+    - a behavioral/doctrine rule, NOT code; "live" only insofar as agents follow it
+    - grants no new merge authority; item 7's guard and the per-lane authorization are unchanged
+    - does not claim auto-landed PRs are correct (CI is a test-suite signal only; main is not deployed and
+      a bad merge is reversible by a follow-up PR)
+    - not a path-scoped auto-label automation (that deterministic variant is a deferred optional follow-on)
 ```
