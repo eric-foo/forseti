@@ -1,0 +1,62 @@
+{
+  "availability_http_metadata": {
+    "byte_count": 480,
+    "capture_timestamp": "2026-06-15T13:53:03Z",
+    "content_length": null,
+    "content_type": "application/json",
+    "date": "Mon, 15 Jun 2026 13:53:02 GMT",
+    "etag": null,
+    "final_url": "https://web.archive.org/cdx/search/cdx?url=https%3A%2F%2Fsundots.com%2Fpages%2Ffaq&output=json&fl=timestamp%2Coriginal%2Cstatuscode%2Cmimetype%2Cdigest&collapse=digest&to=20180601000000&limit=-10",
+    "last_modified": null,
+    "reason": "OK",
+    "requested_url": "https://web.archive.org/cdx/search/cdx?url=https%3A%2F%2Fsundots.com%2Fpages%2Ffaq&output=json&fl=timestamp%2Coriginal%2Cstatuscode%2Cmimetype%2Cdigest&collapse=digest&to=20180601000000&limit=-10",
+    "status": 200,
+    "timeout_seconds": 90.0
+  },
+  "availability_url": "https://web.archive.org/cdx/search/cdx?url=https%3A%2F%2Fsundots.com%2Fpages%2Ffaq&output=json&fl=timestamp%2Coriginal%2Cstatuscode%2Cmimetype%2Cdigest&collapse=digest&to=20180601000000&limit=-10",
+  "original_url": "https://sundots.com/pages/faq",
+  "parse_warning": null,
+  "selected_snapshot": {
+    "digest": "AZBEYC7MXZG4J2ZY2YSQKUECQLWMJCRQ",
+    "mime_type": "text/html",
+    "original_url": "https://sundots.com/pages/faq",
+    "snapshot_url": "https://web.archive.org/web/20180508234950/https://sundots.com/pages/faq",
+    "status_code": "200",
+    "timestamp": "20180508234950"
+  },
+  "snapshot_count": 4,
+  "snapshots": [
+    {
+      "digest": "CMWCAWMUCFX5Q7XOXFFW4C5HGZKZJV2L",
+      "mime_type": "text/html",
+      "original_url": "https://sundots.com/pages/faq",
+      "snapshot_url": "https://web.archive.org/web/20180330054806/https://sundots.com/pages/faq",
+      "status_code": "200",
+      "timestamp": "20180330054806"
+    },
+    {
+      "digest": "R4DVI2RPMUVWGL6CTLACRKCMQPMIDOHO",
+      "mime_type": "text/html",
+      "original_url": "https://sundots.com/pages/faq",
+      "snapshot_url": "https://web.archive.org/web/20180331003505/https://sundots.com/pages/faq",
+      "status_code": "200",
+      "timestamp": "20180331003505"
+    },
+    {
+      "digest": "PO27OX37VNAV7A25X4TDTB2DWFRN33OX",
+      "mime_type": "text/html",
+      "original_url": "https://sundots.com/pages/faq",
+      "snapshot_url": "https://web.archive.org/web/20180401045546/https://sundots.com/pages/faq",
+      "status_code": "200",
+      "timestamp": "20180401045546"
+    },
+    {
+      "digest": "AZBEYC7MXZG4J2ZY2YSQKUECQLWMJCRQ",
+      "mime_type": "text/html",
+      "original_url": "https://sundots.com/pages/faq",
+      "snapshot_url": "https://web.archive.org/web/20180508234950/https://sundots.com/pages/faq",
+      "status_code": "200",
+      "timestamp": "20180508234950"
+    }
+  ]
+}

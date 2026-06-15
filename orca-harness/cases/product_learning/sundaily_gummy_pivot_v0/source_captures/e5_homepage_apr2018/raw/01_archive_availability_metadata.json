@@ -1,0 +1,110 @@
+{
+  "availability_http_metadata": {
+    "byte_count": 1024,
+    "capture_timestamp": "2026-06-15T13:52:37Z",
+    "content_length": null,
+    "content_type": "application/json",
+    "date": "Mon, 15 Jun 2026 13:52:36 GMT",
+    "etag": null,
+    "final_url": "https://web.archive.org/cdx/search/cdx?url=https%3A%2F%2Fsundots.com%2F&output=json&fl=timestamp%2Coriginal%2Cstatuscode%2Cmimetype%2Cdigest&collapse=digest&to=20180415000000&limit=-10",
+    "last_modified": null,
+    "reason": "OK",
+    "requested_url": "https://web.archive.org/cdx/search/cdx?url=https%3A%2F%2Fsundots.com%2F&output=json&fl=timestamp%2Coriginal%2Cstatuscode%2Cmimetype%2Cdigest&collapse=digest&to=20180415000000&limit=-10",
+    "status": 200,
+    "timeout_seconds": 90.0
+  },
+  "availability_url": "https://web.archive.org/cdx/search/cdx?url=https%3A%2F%2Fsundots.com%2F&output=json&fl=timestamp%2Coriginal%2Cstatuscode%2Cmimetype%2Cdigest&collapse=digest&to=20180415000000&limit=-10",
+  "original_url": "https://sundots.com/",
+  "parse_warning": null,
+  "selected_snapshot": {
+    "digest": "2C64O2MIMVW3JAHZ5E2WNAVBIHBAT7XR",
+    "mime_type": "text/html",
+    "original_url": "https://sundots.com/",
+    "snapshot_url": "https://web.archive.org/web/20180401011400/https://sundots.com/",
+    "status_code": "200",
+    "timestamp": "20180401011400"
+  },
+  "snapshot_count": 10,
+  "snapshots": [
+    {
+      "digest": "D3KGCDHKELSKTJVUTAMS5ASNYP43357S",
+      "mime_type": "text/html",
+      "original_url": "http://sundots.com/",
+      "snapshot_url": "https://web.archive.org/web/20130722132411/http://sundots.com/",
+      "status_code": "403",
+      "timestamp": "20130722132411"
+    },
+    {
+      "digest": "SVJFNGGJVSYQX537DSUAITUWRSSZ43SF",
+      "mime_type": "text/html",
+      "original_url": "http://sundots.com/",
+      "snapshot_url": "https://web.archive.org/web/20131230030042/http://sundots.com/",
+      "status_code": "200",
+      "timestamp": "20131230030042"
+    },
+    {
+      "digest": "D3KGCDHKELSKTJVUTAMS5ASNYP43357S",
+      "mime_type": "text/html",
+      "original_url": "http://sundots.com/",
+      "snapshot_url": "https://web.archive.org/web/20160111040509/http://sundots.com/",
+      "status_code": "403",
+      "timestamp": "20160111040509"
+    },
+    {
+      "digest": "3I42H3S6NNFQ2MSVX7XZKYAYSCX5QBYJ",
+      "mime_type": "httpd/unix-directory",
+      "original_url": "http://sundots.com/",
+      "snapshot_url": "https://web.archive.org/web/20160304171245/http://sundots.com/",
+      "status_code": "200",
+      "timestamp": "20160304171245"
+    },
+    {
+      "digest": "DQWUDFAPLQMWLBQWAZWYM2Q3IB4DVECH",
+      "mime_type": "text/html",
+      "original_url": "http://sundots.com/",
+      "snapshot_url": "https://web.archive.org/web/20161008084213/http://sundots.com/",
+      "status_code": "200",
+      "timestamp": "20161008084213"
+    },
+    {
+      "digest": "SVJFNGGJVSYQX537DSUAITUWRSSZ43SF",
+      "mime_type": "text/html",
+      "original_url": "http://sundots.com/",
+      "snapshot_url": "https://web.archive.org/web/20170911133153/http://sundots.com/",
+      "status_code": "200",
+      "timestamp": "20170911133153"
+    },
+    {
+      "digest": "27W2TANA7XH5VWCSSIV7Z7I3Q3A5CWEA",
+      "mime_type": "text/html",
+      "original_url": "http://sundots.com/",
+      "snapshot_url": "https://web.archive.org/web/20180314133428/http://sundots.com/",
+      "status_code": "301",
+      "timestamp": "20180314133428"
+    },
+    {
+      "digest": "7VB7PDLRJOP4NUGZQBDK62C4MW42KIBA",
+      "mime_type": "text/html",
+      "original_url": "https://sundots.com/",
+      "snapshot_url": "https://web.archive.org/web/20180330054805/https://sundots.com/",
+      "status_code": "200",
+      "timestamp": "20180330054805"
+    },
+    {
+      "digest": "FSTSEHRIE4IAMC72Y2IBXFMAL3X2YA6O",
+      "mime_type": "text/html",
+      "original_url": "https://sundots.com/",
+      "snapshot_url": "https://web.archive.org/web/20180331003503/https://sundots.com/",
+      "status_code": "200",
+      "timestamp": "20180331003503"
+    },
+    {
+      "digest": "2C64O2MIMVW3JAHZ5E2WNAVBIHBAT7XR",
+      "mime_type": "text/html",
+      "original_url": "https://sundots.com/",
+      "snapshot_url": "https://web.archive.org/web/20180401011400/https://sundots.com/",
+      "status_code": "200",
+      "timestamp": "20180401011400"
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "original_url": "https://sundots.com/pages/faq",
+  "selected_snapshot": {
+    "digest": "AZBEYC7MXZG4J2ZY2YSQKUECQLWMJCRQ",
+    "mime_type": "text/html",
+    "original_url": "https://sundots.com/pages/faq",
+    "snapshot_url": "https://web.archive.org/web/20180508234950/https://sundots.com/pages/faq",
+    "status_code": "200",
+    "timestamp": "20180508234950"
+  },
+  "snapshot_body_http_metadata": {
+    "byte_count": 56474,
+    "capture_timestamp": "2026-06-15T13:53:04Z",
+    "content_length": null,
+    "content_type": "text/html; charset=utf-8",
+    "date": "Mon, 15 Jun 2026 13:53:03 GMT",
+    "etag": null,
+    "final_url": "https://web.archive.org/web/20180508234950/https://sundots.com/pages/faq",
+    "last_modified": null,
+    "reason": "OK",
+    "requested_url": "https://web.archive.org/web/20180508234950/https://sundots.com/pages/faq",
+    "status": 200,
+    "timeout_seconds": 90.0
+  }
+}

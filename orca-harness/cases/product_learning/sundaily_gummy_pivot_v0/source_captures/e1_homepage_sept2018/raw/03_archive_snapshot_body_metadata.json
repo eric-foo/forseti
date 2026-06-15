@@ -1,0 +1,25 @@
+{
+  "original_url": "https://sundots.com/",
+  "selected_snapshot": {
+    "digest": "CDXORQSVXTEE2UIPL2J37XQWAJJGPJ7V",
+    "mime_type": "text/html",
+    "original_url": "https://sundots.com/",
+    "snapshot_url": "https://web.archive.org/web/20180923193940/https://sundots.com/",
+    "status_code": "200",
+    "timestamp": "20180923193940"
+  },
+  "snapshot_body_http_metadata": {
+    "byte_count": 79896,
+    "capture_timestamp": "2026-06-15T13:50:26Z",
+    "content_length": null,
+    "content_type": "text/html; charset=utf-8",
+    "date": "Mon, 15 Jun 2026 13:50:25 GMT",
+    "etag": null,
+    "final_url": "https://web.archive.org/web/20180923193940/https://sundots.com/",
+    "last_modified": null,
+    "reason": "OK",
+    "requested_url": "https://web.archive.org/web/20180923193940/https://sundots.com/",
+    "status": 200,
+    "timeout_seconds": 90.0
+  }
+}
