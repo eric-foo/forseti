@@ -1,0 +1,38 @@
+{
+  "availability_http_metadata": {
+    "byte_count": 172,
+    "capture_timestamp": "2026-06-14T08:33:44Z",
+    "content_length": null,
+    "content_type": "application/json",
+    "date": "Sun, 14 Jun 2026 08:33:44 GMT",
+    "etag": null,
+    "final_url": "https://web.archive.org/cdx/search/cdx?url=https%3A%2F%2Fmytopicals.com%2Fpages%2Fcareers&output=json&fl=timestamp%2Coriginal%2Cstatuscode%2Cmimetype%2Cdigest&collapse=digest&to=20210315000000&limit=-10",
+    "last_modified": null,
+    "reason": "OK",
+    "requested_url": "https://web.archive.org/cdx/search/cdx?url=https%3A%2F%2Fmytopicals.com%2Fpages%2Fcareers&output=json&fl=timestamp%2Coriginal%2Cstatuscode%2Cmimetype%2Cdigest&collapse=digest&to=20210315000000&limit=-10",
+    "status": 200,
+    "timeout_seconds": 20.0
+  },
+  "availability_url": "https://web.archive.org/cdx/search/cdx?url=https%3A%2F%2Fmytopicals.com%2Fpages%2Fcareers&output=json&fl=timestamp%2Coriginal%2Cstatuscode%2Cmimetype%2Cdigest&collapse=digest&to=20210315000000&limit=-10",
+  "original_url": "https://mytopicals.com/pages/careers",
+  "parse_warning": null,
+  "selected_snapshot": {
+    "digest": "675QC7DKLKWUKTCKBEETER6UQSMYBEMA",
+    "mime_type": "text/html",
+    "original_url": "https://mytopicals.com/pages/careers",
+    "snapshot_url": "https://web.archive.org/web/20210303084505/https://mytopicals.com/pages/careers",
+    "status_code": "200",
+    "timestamp": "20210303084505"
+  },
+  "snapshot_count": 1,
+  "snapshots": [
+    {
+      "digest": "675QC7DKLKWUKTCKBEETER6UQSMYBEMA",
+      "mime_type": "text/html",
+      "original_url": "https://mytopicals.com/pages/careers",
+      "snapshot_url": "https://web.archive.org/web/20210303084505/https://mytopicals.com/pages/careers",
+      "status_code": "200",
+      "timestamp": "20210303084505"
+    }
+  ]
+}

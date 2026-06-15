@@ -1,0 +1,203 @@
+batch_id: product_learning
+case_family: dtc_to_retail_distribution_expansion_decide_vs_confirm
+case_id: topicals_retail_expansion_2021_v0
+committed_at: 2026-06-14T08:33:46Z
+decision_shape: floor_trap
+fixture_grade: judgment_quality_candidate
+fixture_status: frozen
+frozen_band_inputs:
+  authority: full
+  authority_acquisition_cost: low
+  capability: partial
+  capability_build_cost: medium
+  evidence_independence: partially_independent
+  evidence_strength: weak
+  information_decay: slow
+  loss_shape: asymmetric_down
+  opportunity_cost: moderate
+  option_value: high
+  reversibility_cost: high
+  reversibility_feasibility: low
+  upside_shape: asymmetric_up
+  urgency: low
+labeling_rubric_version: v0_14
+leakage_audit:
+  known_fame_risk: low_to_medium_fame_named_dtc_brand
+  memorization_probe_required: true
+  use_for_blind_contestant_exposure: yes  # cleared ONLY the R6 leak gate (see blind_exposure_clearance)
+  blind_exposure_clearance:
+    status: cleared
+    authorized_by: outcome-aware R6 pre-freeze leakage review (independent), post-remediation
+    finding_closed: >-
+      Two pre-freeze defects fixed before this freeze: (1) a participant-surface
+      case_id slug leak and (2) one L2 claim-support span defect in the org-motion
+      provenance binding. After remediation the outcome-aware reviewer re-scanned and
+      found no other leak in the paired packets.
+    de_correlation_bar: outcome_aware_independent_review
+    evidence_basis: >-
+      An independent OUTCOME-AWARE R6 leakage reviewer (distinct from the outcome-blind
+      constructor) scanned both participant packets plus the provenance notes against the
+      cutoff (<= 2021-03-15). The reviewer flagged the case_id slug leak and the single L2
+      span defect, both were remediated, and the reviewer re-scanned post-remediation and
+      attested no remaining post-cutoff or outcome leakage on the contestant surface.
+    limitation: >-
+      The R6 leakage review is outcome-aware by construction (the reviewer could read the
+      sealed outcome), so the leak-clear attestation is single-vendor for this case; no
+      separate cross-vendor post-remediation re-scan was run. Product-learning tier, N=1.
+    scope_note: >-
+      Clears ONLY the R6 leakage gate (the paired packets are leak-clear for blind
+      contestant exposure). Does NOT by itself ratify any conductor, resolve a second
+      label, or assert judgment-quality calibration readiness.
+    captured_packet_body_sha256: db147fc02195e872957d588be376a935aee0fda584960dbd10d063912a0d981b
+  spoiler_inventory: >-
+    Named real brand (Topicals) and a real, datable post-cutoff event class. All
+    post-cutoff material is a spoiler and must be withheld from the isolated contestant;
+    the specific post-cutoff taxonomy is held ONLY in the sealed facilitator-only outcome
+    record (topicals_sephora_expansion_sealed_outcome_facilitator_only_v0.md) and is
+    deliberately NOT enumerated here -- an enumerated spoiler list is itself a leak
+    (whitelist only). The org-motion block in the augmented packet (one Wayback careers
+    snapshot, 2021-03-03, <= cutoff) is pre-cutoff and is NOT a spoiler. The isolated
+    contestant must not access the repo or web or recall any post-March-2021 information
+    about Topicals.
+ledger_authors:
+  primary_labeler: Outcome-blind constructor lane (distinct context; sealed outcome withheld)
+  second_labeler: <<pending-second-label>>
+  second_labeler_type: <<pending-second-label>>  # human_operator | separate_model_family_advisory
+ledger_freeze_hash: e25319b34d134cc48d36f770096f1bfeb9686ab2d351231d574a911b2e8f579c  # sha256(canonical_yaml_dump(ledger_minus_hash_field)) computed at freeze
+mapping_table_version_pin: v0_14_mvp
+must_address_items:
+- description: A young DTC brand (~7 months past launch, E1/E2) faces a national
+    retail/wholesale expansion that is a high-commitment, low-reversibility move; the
+    live question is how broad/aggressive, not whether retail exists as a path (E3).
+  evidence_unit_ids:
+  - E1
+  - E2
+  - E3
+  must_address_item_id: MA-01
+- description: Moving DTC -> wholesale/retail raises real operational demands (inventory,
+    supply chain, demand planning, vendor terms) and is a recognized commitment/
+    execution-risk growth lever for an early-stage brand (E4).
+  evidence_unit_ids:
+  - E4
+  must_address_item_id: MA-02
+- description: There is no pre-cutoff measurement of Topicals' OWN operational readiness
+    (inventory depth, supply-chain capacity, demand planning) to support a wholesale
+    expansion in this packet beyond the single org-motion role signal.
+  evidence_unit_ids:
+  - E2
+  - E4
+  must_address_item_id: MA-03
+- description: Comparable DTC -> retail expansions (E5) are a base-rate proxy only; their
+    outcomes are excluded, so they cannot substitute for direct evidence of Topicals'
+    specific readiness or timing.
+  evidence_unit_ids:
+  - E5
+  must_address_item_id: MA-04
+- description: The augmented-arm org-motion signal (E6) is a single pre-cutoff careers
+    snapshot, one open supply-chain/operations role -- gross hiring INTENT in one
+    function, not a realized hire, not net headcount adds, and not a multi-month
+    trajectory; its thinness must travel with any inference drawn from it.
+  evidence_unit_ids:
+  - E6
+  must_address_item_id: MA-05
+paired_packet_design:
+  arms:
+  - participant_packet_baseline.md
+  - participant_packet_augmented.md
+  arm_hashes:
+    participant_packet_baseline.md:
+      sha256: 757bdb2f191c4e43239a9ee8f913cf1f58e69facaeb1fcd5473eea24ae9e29e8
+      hash_basis: raw_file_bytes
+    participant_packet_augmented.md:
+      sha256: 8b375aacce32627a2aa8bdb8afb5e8d82ba09b395587960b25647bd5ed5b1981
+      hash_basis: raw_file_bytes
+  measures: >-
+    Sensitivity of the blind judgement (recommended action band on the
+    watch -> hold -> pilot -> broad-expansion ladder) to the org-motion block, holding
+    all else byte-identical. The constructor asserts no direction of effect.
+  only_delta: >-
+    The two participant packets are byte-identical except for a single inserted
+    "Organizational Motion Signal" section plus its E6 source_manifest entry (one public
+    Wayback careers snapshot, 2021-03-03, one open Supply Chain Manager role) present only
+    in participant_packet_augmented.md.
+  org_motion_is_must_address: false
+  org_motion_signal_class: hiring_intent_single_role_single_snapshot_not_net_adds
+provenance_refs:
+  source_provenance_notes:
+    path: source_provenance_notes_v0.md
+    sha256: ea9715ecff293fb151f431b5d77aac36fa09a9b46c6b5afd1f1c2c680c048e3f
+    hash_basis: raw_file_bytes
+  captured_org_motion_packet:
+    packet_id: 01KV2M7XPZENAJJ74H1QVWCW6E
+    dir: source_captures/e6_careers_20210303/
+    snapshot_url: https://web.archive.org/web/20210303084505/https://mytopicals.com/pages/careers
+    snapshot_timestamp: '20210303084505'
+    cutoff_posture: pre_cutoff
+    body_file: raw/02_archive_snapshot_body.bin
+    body_sha256: db147fc02195e872957d588be376a935aee0fda584960dbd10d063912a0d981b
+    body_bytes: 129094
+    body_sha256_basis: raw_snapshot_body_bytes
+construction_integrity_receipts:
+  actor_separation: >-
+    The participant packets were built by an OUTCOME-BLIND constructor subagent in a
+    distinct context; the sealed outcome was withheld from it (actor separation + input
+    separation satisfied).
+  r6_pre_freeze_leakage_review: >-
+    An independent OUTCOME-AWARE R6 pre-freeze leakage review PASSED after remediation. A
+    participant-surface case_id slug leak and one L2 span defect were fixed; the reviewer
+    found no other leak on the contestant surface.
+  blind_chain_intact: >-
+    The main lane agent and the owner stayed OUTCOME-BLIND throughout construction and
+    freeze. Only the firewalled outcome-aware freeze actor (this ledger's author of the
+    sealed block) read the sealed outcome.
+  org_motion_body_verified: >-
+    The captured org-motion snapshot body sha256 was re-verified against the bytes on
+    disk at freeze (db147fc0...0d981b, 129094 bytes); the augmented-arm E6 claims bind to
+    body-verified spans recorded in source_provenance_notes_v0.md.
+blind_org_motion_prediction_ref:
+  path: org_motion_blind_prediction_v0.md
+  sha256: 1c888a8acc47327f70b216448133026e07e79dd89b8932f76ce925191fdd4ac4
+  hash_basis: raw_file_bytes
+  authored: pre_freeze_pre_reveal_outcome_blind
+  note: >-
+    Pre-registered blind facilitator prediction of the org-motion signal's directional
+    effect on the call, authored outcome-blind before this freeze so the reveal cannot be
+    back-fit into a post-hoc story.
+sealed_outcome:
+  status: sealed
+  authority_boundary: facilitator_only_calibration_target  # NEVER copy into any participant packet
+  sealed_at: 2026-06-14
+  source_record:
+    path: docs/research/topicals_sephora_expansion_sealed_outcome_facilitator_only_v0.md
+    sha256: 628214512d6a637766ef749d0e15f45f2fcfabd766411dd9fdc81e3f3f53bcd9
+    sha256_basis: raw_file_bytes
+  reveal_phase: phase_7_reveal_calibration
+  embedded_outcome:
+    direction: proceeded_and_scaled
+    reversed: false
+    rollback: none  # the DTC->national retail expansion was not pulled or walked back
+    business_result: >-
+      The month-9 DTC -> national beauty-retail expansion proceeded and the brand scaled
+      strongly on the back of it through 2021-2022 and beyond, with institutional
+      follow-on funding. Company-disclosed growth multiples are self-reported, not
+      audited.
+    calibration_target_for: JSG-08_reveal
+    contrast_pattern: opposite_of_watch_hold_and_stay_dtc
+    uncertainties:
+    - Growth multiples are company-disclosed marketing/PR figures, not audited financials.
+    - Revenue trajectory is multi-causal; not solely attributable to the retail move.
+    - The org-motion hiring signal is a single corroboration of the read, not proof.
+    org_motion_corroboration: with_arm_signal_points_toward_sealed_direction
+underreach_observability:
+  present: true
+  basis: opportunity_cost
+  evidence_unit_ids:
+  - E3
+  - E5
+  notes: >-
+    The decide-vs-confirm axis here is under-reach (floor), not over-reach. The packet
+    frames a young-brand expansion window (E3) with comparable DTC -> retail moves
+    available across the market (E5); failing to act on an available growth window is the
+    observable underreach error, balanced against the genuine commitment/execution cost
+    (E4) of a low-reversibility wholesale move. Observability basis: opportunity cost of a
+    foregone expansion window, not a hard same-day deadline (urgency stays low).
