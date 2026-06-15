@@ -119,6 +119,7 @@ def test_fetch_cloakbrowser_snapshot_capture_with_fake_engine_records_method_pro
         "load_more_selector": None,
         "load_more_clicks": 0,
         "scroll_step_px": 0,
+        "delivery_zip": None,
     }
 
 

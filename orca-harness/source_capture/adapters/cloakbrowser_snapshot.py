@@ -28,6 +28,12 @@ _PROGRESSIVE_SCROLL_PAUSE_MS = 1500
 # Safety cap on progressive scroll steps so an infinite-scroll page (whose
 # scrollHeight keeps growing) cannot loop unbounded.
 _MAX_PROGRESSIVE_SCROLL_STEPS = 40
+# Delivery-location widget: settle after clicking the popover open, and timeout
+# for each click/fill step. Probed on amazon.com 2026-06-16; selectors subject
+# to Amazon DOM changes.
+_DELIVERY_LOCATION_SETTLE_MS = 1500
+_DELIVERY_LOCATION_CLICK_TIMEOUT_MS = 8000
+_AMAZON_HOMEPAGE_URL = "https://www.amazon.com/"
 CLOAKBROWSER_METHOD_CATEGORY = "anti_blocking_browser"
 CLOAKBROWSER_BACKEND = "playwright"
 HEAVY_RESOURCE_TYPES = frozenset({"font", "image", "media"})
@@ -114,6 +120,7 @@ class CloakBrowserSnapshotEngine(Protocol):
         load_more_selector: str | None,
         load_more_clicks: int,
         scroll_step_px: int,
+        delivery_zip: str | None,
     ) -> CloakBrowserSnapshotEngineResult:
         ...
 
@@ -133,6 +140,7 @@ def fetch_cloakbrowser_snapshot_capture(
     load_more_selector: str | None = None,
     load_more_clicks: int = 0,
     scroll_step_px: int = 0,
+    delivery_zip: str | None = None,
     engine: CloakBrowserSnapshotEngine | None = None,
 ) -> CloakBrowserSnapshotResult:
     normalized_url = _validate_http_url(url)
@@ -169,6 +177,7 @@ def fetch_cloakbrowser_snapshot_capture(
             load_more_selector=load_more_selector,
             load_more_clicks=load_more_clicks,
             scroll_step_px=scroll_step_px,
+            delivery_zip=delivery_zip,
         )
     except _CloakBrowserSnapshotDependencyUnavailable as exc:
         return CloakBrowserSnapshotFailure(
@@ -249,6 +258,12 @@ def fetch_cloakbrowser_snapshot_capture(
             "access_failed: CloakBrowser rendered an access-block/interstitial page "
             f"instead of source content: {access_block_reason}; block artifacts preserved"
         )
+    if delivery_zip is not None:
+        limitation_notes.append(
+            f"declared_delivery_zip: Amazon delivery location set to {delivery_zip!r} via "
+            f"homepage widget ({_AMAZON_HOMEPAGE_URL}) before main URL capture; "
+            "humanize=True used; widget selectors probed 2026-06-16 and subject to Amazon DOM changes"
+        )
 
     metadata = {
         "requested_url": normalized_url,
@@ -283,6 +298,7 @@ def fetch_cloakbrowser_snapshot_capture(
         "blocked_resource_types": sorted(HEAVY_RESOURCE_TYPES) if block_heavy_assets else [],
         "access_blocked": access_block_reason is not None,
         "access_block_reason": access_block_reason,
+        "delivery_zip_requested": delivery_zip,
         "rendered_dom_byte_count": artifact_sizes["rendered_dom"],
         "visible_text_byte_count": artifact_sizes["visible_text"],
         "screenshot_byte_count": artifact_sizes["screenshot_png"],
@@ -318,6 +334,7 @@ class _CloakBrowserSnapshotEngine:
         load_more_selector: str | None = None,
         load_more_clicks: int = 0,
         scroll_step_px: int = 0,
+        delivery_zip: str | None = None,
     ) -> CloakBrowserSnapshotEngineResult:
         try:
             cloakbrowser = import_module("cloakbrowser")
@@ -345,7 +362,7 @@ class _CloakBrowserSnapshotEngine:
                 locale=proxy_profile.locale if proxy_profile is not None else None,
                 geoip=proxy_profile.geoip_enabled if proxy_profile is not None else False,
                 backend=CLOAKBROWSER_BACKEND,
-                humanize=False,
+                humanize=delivery_zip is not None,
                 extension_paths=None,
             )
         except Exception as exc:
@@ -373,6 +390,14 @@ class _CloakBrowserSnapshotEngine:
                             else route.continue_()
                         ),
                     )
+                warning_notes: list[str] = []
+                if delivery_zip is not None:
+                    _set_delivery_location(
+                        page=page,
+                        delivery_zip=delivery_zip,
+                        timeout_ms=timeout_ms,
+                        warning_notes=warning_notes,
+                    )
                 page.goto(url, wait_until=wait_until, timeout=timeout_ms)
                 if settle_seconds > 0:
                     page.wait_for_timeout(settle_seconds * 1000)
@@ -398,7 +423,6 @@ class _CloakBrowserSnapshotEngine:
                             break
                         page.wait_for_timeout(_SCROLL_PASS_SETTLE_MS)
                 rendered_dom = page.content()
-                warning_notes: list[str] = []
                 try:
                     visible_text = page.locator("body").inner_text(timeout=timeout_ms)
                 except Exception as exc:
@@ -431,6 +455,92 @@ class _LiveEngineResult:
     visible_text: str
     screenshot_png: bytes
     warning_notes: list[str] = field(default_factory=list)
+
+
+def _set_delivery_location(
+    *,
+    page: object,
+    delivery_zip: str,
+    timeout_ms: float,
+    warning_notes: list[str],
+) -> None:
+    """Navigate to amazon.com homepage and set the delivery location to delivery_zip.
+
+    Uses the delivery-location widget (probed 2026-06-16; selectors subject to Amazon
+    DOM changes). Failures are recorded as warning notes rather than raising, so the
+    main URL capture can still proceed. Calls page.goto, page.locator, .click, .fill.
+    """
+    try:
+        page.goto(_AMAZON_HOMEPAGE_URL, wait_until="load", timeout=timeout_ms)  # type: ignore[union-attr]
+        page.wait_for_timeout(_DELIVERY_LOCATION_SETTLE_MS)  # type: ignore[union-attr]
+    except Exception as exc:
+        warning_notes.append(
+            f"delivery_zip_setup: homepage navigation failed ({exc}); "
+            "main URL capture proceeds without delivery location pin"
+        )
+        return
+
+    widget_clicked = False
+    for selector in (
+        "#nav-global-location-popover-link",
+        "#glow-ingress-block",
+    ):
+        try:
+            elem = page.locator(selector).first  # type: ignore[union-attr]
+            if elem.is_visible(timeout=2000):
+                elem.click(timeout=_DELIVERY_LOCATION_CLICK_TIMEOUT_MS)
+                page.wait_for_timeout(_DELIVERY_LOCATION_SETTLE_MS)  # type: ignore[union-attr]
+                widget_clicked = True
+                break
+        except Exception:
+            continue
+
+    if not widget_clicked:
+        warning_notes.append(
+            "delivery_zip_setup: could not click delivery location widget; "
+            "main URL capture proceeds without delivery location pin"
+        )
+        return
+
+    zip_filled = False
+    for selector in ("#GLUXZipUpdateInput", "input[id*='zip' i][type='text']"):
+        try:
+            inp = page.locator(selector).first  # type: ignore[union-attr]
+            if inp.is_visible(timeout=2000):
+                inp.fill(delivery_zip, timeout=_DELIVERY_LOCATION_CLICK_TIMEOUT_MS)
+                zip_filled = True
+                break
+        except Exception:
+            continue
+
+    if not zip_filled:
+        warning_notes.append(
+            "delivery_zip_setup: could not fill ZIP input; "
+            "main URL capture proceeds without delivery location pin"
+        )
+        return
+
+    apply_clicked = False
+    for selector in ("#GLUXZipUpdate", "span.a-button-inner > input[type='submit']"):
+        try:
+            btn = page.locator(selector).first  # type: ignore[union-attr]
+            if btn.is_visible(timeout=2000):
+                btn.click(timeout=_DELIVERY_LOCATION_CLICK_TIMEOUT_MS)
+                page.wait_for_timeout(_DELIVERY_LOCATION_SETTLE_MS)  # type: ignore[union-attr]
+                apply_clicked = True
+                break
+        except Exception:
+            continue
+
+    if not apply_clicked:
+        try:
+            page.keyboard.press("Return")  # type: ignore[union-attr]
+            page.wait_for_timeout(_DELIVERY_LOCATION_SETTLE_MS)  # type: ignore[union-attr]
+        except Exception as exc:
+            warning_notes.append(
+                f"delivery_zip_setup: could not click Apply or press Return ({exc}); "
+                "main URL capture proceeds without delivery location pin"
+            )
 
 
 class _CloakBrowserSnapshotDependencyUnavailable(RuntimeError):

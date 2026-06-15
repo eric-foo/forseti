@@ -89,6 +89,7 @@ def run_source_capture_cloakbrowser_packet(
     load_more_selector: str | None = None,
     load_more_clicks: int = 0,
     scroll_step_px: int = 0,
+    delivery_zip: str | None = None,
     session_visibility_pin=None,
     locale_pin=None,
     currency_pin=None,
@@ -112,6 +113,7 @@ def run_source_capture_cloakbrowser_packet(
         load_more_selector=load_more_selector,
         load_more_clicks=load_more_clicks,
         scroll_step_px=scroll_step_px,
+        delivery_zip=delivery_zip,
     )
     if isinstance(capture_result, CloakBrowserSnapshotFailure):
         return 3, f"{_failure_report_token(capture_result.failure_kind)}: {capture_result.message}"
@@ -406,6 +408,16 @@ def _build_parser() -> argparse.ArgumentParser:
             "assets. The runner still performs one capture attempt only."
         ),
     )
+    parser.add_argument(
+        "--delivery-zip",
+        default=None,
+        help=(
+            "US ZIP code to set as delivery location on amazon.com before capture "
+            "(e.g. '10001'). Causes a stateful homepage navigation to pin the US "
+            "storefront (USD) via the delivery-location widget. humanize=True is "
+            "used automatically. Probed 2026-06-16; subject to Amazon DOM changes."
+        ),
+    )
     parser.add_argument("--proxy-profile-label", default=None)
     parser.add_argument(
         "--proxy-profile-category",
@@ -513,6 +525,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             load_more_selector=args.load_more_selector,
             load_more_clicks=args.load_more_clicks,
             scroll_step_px=args.scroll_step_px,
+            delivery_zip=args.delivery_zip,
             # Demand-durability series facts (Ob.17). Element 1 pins (each an honest
             # value/unknown/not-applicable VisibleFact) ride on the slice; Element 2 origin
             # postures + Element 4 declared cadence ride on the packet. Observed facts only,
