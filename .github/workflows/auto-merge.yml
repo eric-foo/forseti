@@ -7,12 +7,9 @@ name: auto-merge
 # 2026-06-14 structure-B amendment).
 #
 # The interactive-agent EP-03 gate (.agents/hooks/guard_protected_actions.py) is
-# UNCHANGED: it already allows the agent to `gh pr merge` only a CLEAN + green +
-# `agent-automerge`-labeled PR, in-session. THIS workflow is the UNATTENDED
-# extension of that structure-B′ self-merge — a separate, code-enforced actor that
-# runs in Actions (not through the PreToolUse hook) and lands the same opt-in PRs
-# overnight / with no session, under the guardrails below. Same label, one merge
-# actor or the other lands it first.
+# UNCHANGED: it blocks in-session `gh pr merge` and direct push-to-main attempts.
+# THIS workflow is the UNATTENDED merge actor that runs in Actions (not through
+# the PreToolUse hook) and lands opt-in PRs under the guardrails below.
 #
 # Conflict-prevention guardrails (the contract the owner asked for):
 #   1. opt-in    — PR must carry the `agent-automerge` label.
