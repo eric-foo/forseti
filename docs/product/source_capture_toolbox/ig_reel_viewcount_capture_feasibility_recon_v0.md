@@ -103,7 +103,8 @@ on this lane's history on purpose.
 
 - **Sustained cadence at scale — UNTESTED.** The deep pagination above was a **single profile**,
   25 pages at ~1.2 s spacing, **no `429`**. That is clean for one deep walk, but it is **not**
-  the H5 question: repeated harvesting across ≤5 accounts **over time** may be IP-rate-limited.
+  the H5 question: repeated harvesting across many subject creators using ≤10 of our own
+  capture accounts (start ≤5) **over time** may be IP-rate-limited.
   Logged-out has no account to ban (good) but no account to spread load (risk). This stays the
   **H5 lane**, not this verdict.
 
@@ -134,8 +135,17 @@ screenshot only). **Not authorized by this finding** — it records feasibility,
 
 n=1 account (`@hyram`), one sitting. A feasibility GO on **reachability + single-profile depth**,
 not a multi-account-over-time or sustained-cadence validation. Not authorization, not a build
-spec, not validation/readiness/acceptance, not legal advice. The carve-out posture (≤5 accounts,
-~1-month window, repeated-attended, 10-year bounded retention + takedown) governs downstream use.
+spec, not validation/readiness/acceptance, not legal advice. The carve-out posture (≤10 own
+operating/capture accounts (start ≤5), subject-creator roster uncapped within the vertical,
+active = attended / passive = bounded self-terminating, ~1-month window, repeated-attended,
+10-year bounded retention + takedown; carve-out 2026-06-15 amendment) governs downstream use.
+
+*(direction_change_propagation 2026-06-15: carve-out 2026-06-15 amendment redefines the cap — the
+≤10/start-5 ceiling counts OUR OWN operating/capture accounts, NOT subject creators; the
+subject-creator roster is uncapped (all creators in the vertical); active = attended /
+passive = bounded self-terminating method posture defined. The H5 residual and the non-claims
+carve-out-posture reference above were updated to match. The n=1 `@hyram` probe facts and the
+logged-out reachability findings are factual records and remain untouched.)*
 
 ## Evidence
 

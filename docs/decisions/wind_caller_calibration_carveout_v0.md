@@ -90,6 +90,37 @@ the first session. The owner sets it (dated):
 human-mimicking cadence, no standing/scheduled crawler, no mass extraction, pre-commercial,
 internal-only, US-first, buy-at-commercial) and all Tier-3 exclusions.
 
+## Amendment — 2026-06-15 (owner): the cap counts OUR operating accounts (not subjects), ≤10; active/passive method
+
+Owner-adjudicated 2026-06-15 (creator-momentum lane). This **supersedes the count and the
+referent** of the small-scale cap in the prior records above — which read "≤5 accounts" and, in
+context, as ≤5 subject creators. Those prior dated lines are preserved as history; this amendment
+governs going forward.
+
+- **What the cap counts:** a ceiling on **Orca's own operating/capture accounts** (the
+  accounts/sessions WE use to capture), **NOT** the number of subject creators. **Ceiling: ≤10**
+  (operations start at ≤5; ≤10 is written now to avoid a future re-propagation).
+- **Subject-creator roster: uncapped.** The calibration roster target is **all creators within the
+  vertical** (e.g. all of a beauty sub-niche); the "small scale" framing no longer applies to the
+  subject side.
+- **Method — active / passive:**
+  - **Active** (discovery + capture-target decisions) stays **attended** (human-initiated/supervised).
+  - **Passive** (time-series monitoring of **already-flagged** creators) may run **human-initiated,
+    time-bounded, and self-terminating** — it runs, captures over a defined period, then turns off;
+    **no discovery during it.** This is **not** a perpetual/scheduled standing crawler, which remains
+    forbidden.
+  - Pace: **faster than human, but not takedown-risking.**
+- **ToS risk:** owner-accepted at this scope.
+- **Deliberately relaxed:** the small-scale subject cap (now all-in-vertical) and the strict
+  "attended"/"human-mimicking pace" requirement for the bounded passive-monitoring phase.
+- **UNCHANGED:** the external/product person-level boundary (Orca never sells/publishes a
+  person-level surface); non-permanence + 10-year retention + takedown-on-request; commercial scale →
+  licensed/bought data.
+
+This is a doctrine change; its downstream surfaces are propagated under the
+`direction_change_propagation` receipt at the foot of this record (creator-momentum
+cap-redefinition, 2026-06-15).
+
 ## The Prior Boundary (baseline)
 
 All Orca product and capture doctrine to date has held:
@@ -116,7 +147,10 @@ For **internal wind-caller calibration only**, Orca may:
 **Posture and constraints (non-negotiable within Tier 1):**
 
 - Pre-commercial recon / bootstrap only.
-- Small scale: **no more than 5 accounts** under this carve-out at any one time.
+- Small scale: **no more than 5 accounts** under this carve-out at any one time. *(Amended
+  2026-06-15 — see amendment above: "accounts" = Orca's own operating/capture accounts, ceiling ≤10 /
+  start ≤5; the subject-creator roster is uncapped / all-in-vertical; active=attended,
+  passive=bounded self-terminating monitoring.)*
 - Human-mimicking pace (amended 2026-06-14, see above): attended **automated**
   capture is permitted, but it must imitate human behaviour — a variable,
   irregular, human-speed scroll/fetch cadence (an ADHD-like rhythm), explicitly
@@ -324,4 +358,87 @@ direction_change_propagation:
     - not a change to Tier-3 exclusions
     - not legal sufficiency
     - owner-instructed 2026-06-14; owner merge = sign-off
+```
+
+```yaml
+# Cap re-definition set 2026-06-15 (owner): the ≤N cap counts Orca's OWN operating/capture
+# accounts (ceiling ≤10, ops start ≤5), NOT subject creators; subject roster uncapped
+# (all-in-vertical); active/passive method posture defined. See the 2026-06-15 amendment above.
+direction_change_propagation:
+  doctrine_changed: >
+    The wind-caller capture cap is re-defined: the ≤N ceiling counts Orca's OWN
+    operating/capture accounts (≤10 ceiling; operations start at ≤5), NOT the number of
+    subject creators. The subject-creator roster is uncapped (target = all creators within
+    the vertical). Method posture is defined in two modes: ACTIVE (discovery + capture-target
+    decisions) stays attended/human-initiated; PASSIVE (time-series monitoring of
+    already-flagged creators) may run human-initiated, time-bounded, and self-terminating
+    with no discovery during it — a perpetual/scheduled standing crawler remains forbidden.
+    Pace is faster-than-human but not takedown-risking; ToS risk owner-accepted at this scope.
+    This supersedes the prior "≤5 accounts" count and its subject-creator referent. UNCHANGED:
+    the external/product person-level boundary, non-permanence + 10-year retention +
+    takedown-on-request, and commercial-scale → licensed/bought-data posture.
+  trigger: product_doctrine
+  related_triggers:
+    - lifecycle_boundary
+  controlling_sources_updated:
+    - docs/decisions/wind_caller_calibration_carveout_v0.md   # this record (2026-06-15 amendment + Tier-1 pointer)
+  downstream_surfaces_checked:
+    - path: docs/decisions/orca_product_thesis_consumer_demand_v0.md
+      note: Product Boundary wind-caller parenthetical re-framed; external/product boundary preserved verbatim; DCP note added.
+    - path: docs/product/product_lead/orca_demand_read_taxonomy_v0.md
+      note: Three live sites (Layer-2 boundary, calibration read-type, Non-Claims) re-framed; external boundary preserved verbatim; DCP note added.
+    - path: docs/product/product_lead/orca_demand_read_taxonomy_adjudication_v0.md
+      note: Three live boundary sites re-framed; dated-historical Q3 sites (Status, Q3-decided, Q3 lane-reasoning) received forward-pointing notes only; PLAN block got a dated 2026-06-15 sub-note.
+    - path: docs/product/product_lead/orca_product_proof_lead_charter_v0.md
+      note: The "What Remains Outside The Role" exception re-framed; external/product person-level boundary preserved verbatim; external activity scope NOT expanded; DCP note added.
+    - path: docs/product/source_capture_toolbox/ig_capture_findings_consolidated_v0.md
+      note: Residuals (H5) + Posture/carve-out re-framed; retention + commercial clauses preserved verbatim; DCP note added.
+    - path: docs/product/source_capture_toolbox/ig_creator_discovery_spec_v0.md
+      note: stale_if + Posture/carve-out re-framed; discovery-read open question marked RESOLVED by the active/passive posture; DCP note added.
+    - path: docs/product/source_capture_toolbox/ig_wind_caller_calls_capture_build_architecture_v0.md
+      note: YAML scope header, Authorization-map Covered cell, and Cadence governor ceiling re-framed; dated 2026-06-14 owner-confirmation receipts forward-noted (not retro-edited); DCP note added.
+    - path: docs/product/source_capture_toolbox/ig_wind_caller_capture_feasibility_recon_v0.md
+      note: Posture/bounds + method-posture re-framed; dated 2026-06-14 PR #73 receipt and probe n=2 facts left untouched; DCP note added.
+    - path: docs/product/source_capture_toolbox/source_capture_playbook_v0.md
+      note: Risk-posture dossier-carve-out exception re-framed; "does not change the general dossier prohibition" preserved verbatim; DCP note added.
+    - path: docs/product/source_capture_toolbox/ig_reel_viewcount_capture_feasibility_recon_v0.md
+      note: H5 residual + non-claims carve-out-posture reference re-framed; n=1 @hyram probe facts left untouched; DCP note added. (Caught in this lane's stale-language sweep; not in the original propagation set.)
+  intentionally_not_updated:
+    - path: docs/prompts/product-planning/orca_ontology_backbone_architecture_pass_commission_prompt_v0.md
+      reason: >
+        Owned and landed by the parallel ontology-backbone lane (committed aed85c4d on the
+        primary repo). This worktree's working tree also carries the new framing for this file,
+        but it is intentionally NOT included in this lane's cap-propagation commit to avoid a
+        competing version; the ontology lane owns it.
+    - path: docs/decisions/wind_caller_calibration_carveout_v0.md (the 2026-06-13 carve-out receipt and the 2026-06-14 retention receipt above)
+      reason: Dated-historical receipts; preserved verbatim. The 2026-06-15 amendment supersedes the prior count/referent in-doc via a forward note; the historical receipts are not retro-edited.
+    - path: docs/decisions/orca_icp_wedge_consumer_demand_first_v0.md
+      reason: Carries no live ≤5 capture-cap framing (confirmed by sweep); the carve-out pointer it holds resolves to the now-amended record.
+    - path: docs/product/product_lead/orca_buyer_proof_packet_v0.md
+      reason: Carries no live ≤5 capture-cap framing (confirmed by sweep).
+    - path: docs/product/source_capture_toolbox/ig_creator_discovery_suggested_accounts_recon_v0.md
+      reason: Recon finding; carries no live ≤5 capture-cap framing (confirmed by sweep).
+    - path: docs/product/data_capture_spine/data_capture_spine_future_exploration_lanes_v0.md
+      reason: Carries no live ≤5 capture-cap framing (confirmed by sweep).
+    - path: "ontology-review artifacts (docs/review-outputs/.../ontology_commission_refresh_delegated_review_v0.md and siblings)"
+      reason: Dated review records that legitimately quote both old and new cap wording as a review diff; not live doctrine surfaces.
+  stale_language_search: >
+    git grep -n -iE "(≤5|<=5|five|[^0-9]5)[ -]?(account|public-figure|creator)" -- docs/
+  stale_language_search_result: >
+    Ran 2026-06-15 after the propagation edits. The only residual LIVE ≤5 capture-cap surface
+    was docs/product/source_capture_toolbox/ig_reel_viewcount_capture_feasibility_recon_v0.md
+    (H5 residual + non-claims) — now re-framed and listed above. All other ≤5 occurrences are
+    either this record's own baseline lines (which the 2026-06-15 amendment explicitly supersedes
+    in-doc) or dated-historical receipts/decision records already carrying forward-pointing notes.
+    No live surface retains the superseded "≤5 subject-creator" reading.
+  non_claims:
+    - not validation
+    - not readiness
+    - not buyer-proof
+    - not commercial-scale authorization
+    - not Tier-2 activation
+    - not a change to the external/product person-level boundary
+    - not a change to non-permanence / 10-year retention / takedown-on-request
+    - not a change to LinkedIn org-motion doctrine
+    - not merged; owner adjudicates (lane PR flow; landing to main is human-gated)
 ```
