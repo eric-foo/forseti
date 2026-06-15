@@ -52,6 +52,10 @@ permissions:
   pull-requests: write     # least-privilege write for merge + branch delete.
   checks: read             # an explicit permissions block zeroes unlisted scopes;
   statuses: read           # checks+statuses read are needed to read statusCheckRollup.
+  actions: read            # statusCheckRollup CheckRun nodes traverse to
+                           # checkSuite.workflowRun, which needs actions:read;
+                           # without it `gh pr view --json statusCheckRollup`
+                           # fails GraphQL "Resource not accessible by integration".
 
 concurrency:
   group: auto-merge        # never run two mergers at once
