@@ -15,7 +15,7 @@ scope: >
 use_when:
   - Dispatching the ontology backbone architecture-pass commission (owner word 2026-06-13, "prompt out for this ontology with your structure, make them do goal framing").
 authority_boundary: retrieval_only
-status: AUTHORED_2026-06-13; REFRESHED_2026-06-14_AWAITING_DISPATCH
+status: AUTHORED_2026-06-13; REFRESHED_2026-06-14; PIN_TIDIED_AND_DISPATCHED_2026-06-15
 adjudication_route: ICP / product-direction lane (commissioning thread) adjudicates the returned goal frame + architecture object; owner signs adoption and any folder/router binding.
 lock_in_notice: >
   HIGH downstream lock-in by design — this is meant as the repo backbone. A
@@ -43,6 +43,38 @@ the landed grammar; it does not change prompt doctrine, so it carries no
 carries one, as required below. A `workflow-delegated-review-patch` hardening pass
 follows (owner instruction); its `reviewed_by` / `authored_by` provenance is recorded
 on the review output.
+
+## Pin Tidy + Applied-Contract Record (2026-06-15 — dispatch-time sha re-sync)
+
+At dispatch the 8 sha-pinned sources were re-verified against the frozen base
+`origin/main @ 953af7ea`. Six had drifted forward since the 2026-06-14 refresh and
+were re-pinned to current values; all six drifts are non-material to the object
+carve:
+
+- `orca_icp_wedge_consumer_demand_first_v0.md` `42787638E6185D4A → B4EC557D024C6397`
+  (wind-caller calibration carve-out, already reflected in the live grammar);
+- `.agents/workflow-overlay/artifact-roles.md` `F8365D39800F7604 → A9BEC91DB82E81D1`,
+  `artifact-folders.md` `BA0F05C4E9A8EC81 → 14B136BBD117425F`,
+  `source-of-truth.md` `F7D5CAE3FE42C8E5 → 94E3C63F551E3C71` (Layer-2 MAP targets —
+  appended DCP receipts / role rows; read live as map targets regardless of exact sha);
+- `orca_repo_structure_binding_v0.md` `97903E7827AB181D → 44D1AB274FD7946A`
+  (receipt sweep) and `repo-structure.yaml` `E84EB865442C40A8 → 776EE1324C356BC8`
+  (a home-row addition) — mirrored as a pattern, not copied.
+
+`beauty_venue_card_set_v0.md` (`65E22CDAE5EDE781`) and
+`consumer_demand_candidate_pool_handoff_v0.md` (`19009D43A7C29858`) were unchanged.
+The LIVE (verify-don't-pin) demand-grammar sources were all present at the frozen base.
+
+Applied-contract record: this is a mechanical freshness re-sync under
+`.agents/workflow-overlay/prompt-orchestration.md` (consistency-judged, fitness-gate
+exempt per its "vocabulary-enforcement / provenance-correction" class). The full
+prompt-orchestration contract was applied directly (the same "apply this file's
+contract in full and record that" route as the 2026-06-14 refresh): preflight,
+`file-write` output mode, artifact roles, validation gates, retrieval header, and
+non-claims are preserved; no input, candidate roster, instruction, or doctrine
+changed, so it carries no `direction_change_propagation` of its own. Owner
+instruction basis: "tidy 3 pins, then dispatch" (2026-06-15); the count was
+corrected to 6 drifted of 8 pinned on re-verification.
 
 ## Refresh Note (2026-06-14 — design against the current grammar, not the 2026-06-13 snapshot)
 
@@ -233,7 +265,7 @@ demand-state model + Q0–Q3 adjudication and applied gate-closure model are
 present (NOT the retired durable-vs-hollow framing or stale raw venue-count gate
 wording); if absent → `BLOCKED_STALE_BASE`. Stable docs keep their sha pins.
 - `docs/decisions/orca_product_thesis_consumer_demand_v0.md` — LIVE (verify, don't pin) — the demand world's primitives (costly behavior, action ceilings, org motion, outcome-memory moat) + the 2026-06-14 demand-state amendment (durable/transient/manufactured, calling sequence, never-a-feed, differentiation floor).
-- `docs/decisions/orca_icp_wedge_consumer_demand_first_v0.md` — `42787638E6185D4A` — the wedge (which entities matter first).
+- `docs/decisions/orca_icp_wedge_consumer_demand_first_v0.md` — `B4EC557D024C6397` — the wedge (which entities matter first).
 - `docs/product/product_lead/orca_demand_read_taxonomy_v0.md` — LIVE (verify, don't pin) — the read grammar (Read, TrendVector, WindCaller, signal layers, read types, calling sequence); Q0–Q3 DECIDED, treat its types as DECIDED inputs (the artifact status line may still read PROPOSED).
 - `docs/product/product_lead/orca_demand_read_taxonomy_adjudication_v0.md` — LIVE (verify, don't pin) — the operative definitions (what-counts / anti-trigger / boundary per layer + read type) and the Q0–Q3 owner-decision outcomes; the firmest source for Read / WindCaller / Call definitions.
 - `docs/product/product_lead/orca_demand_gate_definition_closures_proposal_v0.md` — LIVE (verify, don't pin) — the APPLIED G1 (independence by de-correlated origination) / G2 (costly-behavior floor) / G4 (org-motion corroboration, separate from G1) gate definitions to encode as Gate actions/preconditions. Encode as live gate semantics and flag any consuming surface that still carries stale raw-venue-count wording.
@@ -242,11 +274,11 @@ wording); if absent → `BLOCKED_STALE_BASE`. Stable docs keep their sha pins.
 - `docs/product/core_spine/consumer_demand_candidate_pool_handoff_v0.md` — `19009D43A7C29858` — an existing Case/Candidate schema.
 
 Workflow-layer (Layer 2 MAP targets — READ-ONLY, never edit):
-- `.agents/workflow-overlay/artifact-roles.md` — `F8365D39800F7604`.
-- `.agents/workflow-overlay/artifact-folders.md` — `BA0F05C4E9A8EC81`.
-- `.agents/workflow-overlay/source-of-truth.md` — `F7D5CAE3FE42C8E5` (the DCP contract this deliverable must satisfy).
-- `docs/decisions/orca_repo_structure_binding_v0.md` — `97903E7827AB181D` — the existing router pattern (`repo-structure.yaml`) to mirror, NOT fork.
-- `repo-structure.yaml` — `E84EB865442C40A8` — the machine router precedent for any proposed `ontology.yaml`.
+- `.agents/workflow-overlay/artifact-roles.md` — `A9BEC91DB82E81D1`.
+- `.agents/workflow-overlay/artifact-folders.md` — `14B136BBD117425F`.
+- `.agents/workflow-overlay/source-of-truth.md` — `94E3C63F551E3C71` (the DCP contract this deliverable must satisfy).
+- `docs/decisions/orca_repo_structure_binding_v0.md` — `44D1AB274FD7946A` — the existing router pattern (`repo-structure.yaml`) to mirror, NOT fork.
+- `repo-structure.yaml` — `776EE1324C356BC8` — the machine router precedent for any proposed `ontology.yaml`.
 
 Survey (DISCOVER and read; do not pin — confirm exact paths via the repo map):
 the remaining proto-schemas the ontology must reconcile — the capture packet
