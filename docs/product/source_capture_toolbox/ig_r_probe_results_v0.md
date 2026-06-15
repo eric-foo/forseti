@@ -61,6 +61,20 @@ refinement — *not* branch 2/3.
 - Sessions (account-keyed) trade the pace-throttle for ban-risk + ToS + a carve-out amendment —
   unjustified when pace discipline already clears the realistic load.
 
+## Owner closeout (2026-06-16)
+Owner-accepted on this reading:
+- **Operating pace target ≈ 2.5–4s between reads** — a safety margin above the ~2s trip point; at
+  this pace the probe read sustained (run 1: 176 modeled / 37 min, no wall). Beyond that spacing,
+  expect long clean read sessions.
+- **Burst (B) confirming run — WAIVED** (owner: safe for sure); 6h/12h is far gentler than the pace
+  that trips the wall.
+- **Fuller characterization (pin the pace threshold + at-pace daily-volume ceiling) — DEFERRED** to a
+  future contingency, to run **only if we hit a persistent / perma block** (the unpinned at-pace
+  ceiling is the open risk that would matter then).
+
+Lane core question (report R + decide proxies) is **ANSWERED**: R is pace-bound; neither proxies nor
+sessions are warranted; operate at ~2.5–4s spacing in bounded attended sessions.
+
 ## Caveats / residuals (why this is directional, n=1)
 - **Pace threshold not pinned** — we know ≥2s clean and sub-2s trips it; the exact boundary (1s? burst-shape?) is unmeasured.
 - **At-pace daily-volume ceiling not pinned** — clean to ≥176/session; the per-day ceiling at proper pace (and the throttle's decay time) are unmeasured. If all-in-vertical `M` is very large, re-check volume at proper pace.
