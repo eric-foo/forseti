@@ -1,5 +1,21 @@
 # Orca Demand Scan-Core Spec v0 — Delegated Adversarial Review/Patch Report
 
+```yaml
+retrieval_header_version: 1
+artifact_role: Adversarial review output (delegated review/patch report — advisory; decision input for commissioning-CA adjudication)
+scope: >
+  Delegated adversarial review/patch report on the 2026-06-13 draft of
+  orca_demand_scan_core_spec_v0 (PROPOSED), de-correlated controller (OpenAI
+  GPT-5) vs Anthropic author home. Advisory findings only. Covers the prior
+  schema; the spec was re-derived 2026-06-16 after this review (see the spec's
+  Status), so the gate_family-with-retail remedy here is superseded while its
+  mechanical-checkability principle is preserved.
+use_when:
+  - Reviewing the delegated adversarial findings on the scan-core spec draft.
+  - Tracing the gate_family / org_motion_route schema patches and their citations.
+authority_boundary: retrieval_only
+```
+
 ## De-correlation self-check
 
 Controller vendor/lineage: OpenAI GPT-5. Author home model family recorded by the commission: Anthropic Claude Fable 5 (`claude-fable-5`). De-correlation status: satisfied by commission constraint; not Anthropic and not unknown/undisclosed.
