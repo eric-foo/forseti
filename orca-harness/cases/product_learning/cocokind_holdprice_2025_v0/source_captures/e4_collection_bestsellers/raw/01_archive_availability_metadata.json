@@ -1,0 +1,110 @@
+{
+  "availability_http_metadata": {
+    "byte_count": 1300,
+    "capture_timestamp": "2026-06-15T13:45:00Z",
+    "content_length": null,
+    "content_type": "application/json",
+    "date": "Mon, 15 Jun 2026 13:44:59 GMT",
+    "etag": null,
+    "final_url": "https://web.archive.org/cdx/search/cdx?url=https%3A%2F%2Fcocokind.com%2Fcollections%2Fbestsellers&output=json&fl=timestamp%2Coriginal%2Cstatuscode%2Cmimetype%2Cdigest&collapse=digest&to=20250601000000&limit=-10",
+    "last_modified": null,
+    "reason": "OK",
+    "requested_url": "https://web.archive.org/cdx/search/cdx?url=https%3A%2F%2Fcocokind.com%2Fcollections%2Fbestsellers&output=json&fl=timestamp%2Coriginal%2Cstatuscode%2Cmimetype%2Cdigest&collapse=digest&to=20250601000000&limit=-10",
+    "status": 200,
+    "timeout_seconds": 90.0
+  },
+  "availability_url": "https://web.archive.org/cdx/search/cdx?url=https%3A%2F%2Fcocokind.com%2Fcollections%2Fbestsellers&output=json&fl=timestamp%2Coriginal%2Cstatuscode%2Cmimetype%2Cdigest&collapse=digest&to=20250601000000&limit=-10",
+  "original_url": "https://cocokind.com/collections/bestsellers",
+  "parse_warning": null,
+  "selected_snapshot": {
+    "digest": "SKX2BHRTWIXM3FD3RM3ZOLJVLWRRLGE2",
+    "mime_type": "text/html",
+    "original_url": "https://www.cocokind.com/collections/bestsellers",
+    "snapshot_url": "https://web.archive.org/web/20250523181013/https://www.cocokind.com/collections/bestsellers",
+    "status_code": "200",
+    "timestamp": "20250523181013"
+  },
+  "snapshot_count": 10,
+  "snapshots": [
+    {
+      "digest": "NXLKJEZ7YN6WTEOPZUFGIA2LOCPL4E2Z",
+      "mime_type": "text/html",
+      "original_url": "https://www.cocokind.com/collections/bestsellers",
+      "snapshot_url": "https://web.archive.org/web/20220118195840/https://www.cocokind.com/collections/bestsellers",
+      "status_code": "200",
+      "timestamp": "20220118195840"
+    },
+    {
+      "digest": "XLUXOWWY5EULVJVP5I574PCCCLV2DKUK",
+      "mime_type": "text/html",
+      "original_url": "https://www.cocokind.com/collections/bestsellers",
+      "snapshot_url": "https://web.archive.org/web/20220630225745/https://www.cocokind.com/collections/bestsellers",
+      "status_code": "200",
+      "timestamp": "20220630225745"
+    },
+    {
+      "digest": "TPYXYSHZUOJZ6HLEWX4M3WT3RPMSP65O",
+      "mime_type": "text/html",
+      "original_url": "https://www.cocokind.com/collections/bestsellers",
+      "snapshot_url": "https://web.archive.org/web/20221130174840/https://www.cocokind.com/collections/bestsellers",
+      "status_code": "200",
+      "timestamp": "20221130174840"
+    },
+    {
+      "digest": "S46LP2A5MMVOLP3ELK32AZLEI5LWJMN3",
+      "mime_type": "text/html",
+      "original_url": "https://www.cocokind.com/collections/bestsellers",
+      "snapshot_url": "https://web.archive.org/web/20230326221229/https://www.cocokind.com/collections/bestsellers",
+      "status_code": "200",
+      "timestamp": "20230326221229"
+    },
+    {
+      "digest": "YM5BXWBCT7LY7NVGLC4IGHIE6XJPCKD4",
+      "mime_type": "text/html",
+      "original_url": "https://www.cocokind.com/collections/bestsellers",
+      "snapshot_url": "https://web.archive.org/web/20230929172159/https://www.cocokind.com/collections/bestsellers",
+      "status_code": "200",
+      "timestamp": "20230929172159"
+    },
+    {
+      "digest": "XT3A7NM4D7TDNRILN3FCYCISVQ5T2W6Y",
+      "mime_type": "text/html",
+      "original_url": "https://www.cocokind.com/collections/bestsellers",
+      "snapshot_url": "https://web.archive.org/web/20240226045041/https://www.cocokind.com/collections/bestsellers",
+      "status_code": "200",
+      "timestamp": "20240226045041"
+    },
+    {
+      "digest": "5QQWGJZ4OPEXMVAFM5XAYWPTO5E5NKJZ",
+      "mime_type": "text/html",
+      "original_url": "https://www.cocokind.com/collections/bestsellers",
+      "snapshot_url": "https://web.archive.org/web/20240618030043/https://www.cocokind.com/collections/bestsellers",
+      "status_code": "200",
+      "timestamp": "20240618030043"
+    },
+    {
+      "digest": "D4YTJC4S4XOMOMNFCW4Q4OGWGZPAPGIR",
+      "mime_type": "text/html",
+      "original_url": "https://www.cocokind.com/collections/bestsellers",
+      "snapshot_url": "https://web.archive.org/web/20241013014335/https://www.cocokind.com/collections/bestsellers",
+      "status_code": "200",
+      "timestamp": "20241013014335"
+    },
+    {
+      "digest": "VHT6DEHZ2GPGBAWZSK4LRKG73OXID47H",
+      "mime_type": "text/html",
+      "original_url": "https://www.cocokind.com/collections/bestsellers",
+      "snapshot_url": "https://web.archive.org/web/20250213095725/https://www.cocokind.com/collections/bestsellers",
+      "status_code": "200",
+      "timestamp": "20250213095725"
+    },
+    {
+      "digest": "SKX2BHRTWIXM3FD3RM3ZOLJVLWRRLGE2",
+      "mime_type": "text/html",
+      "original_url": "https://www.cocokind.com/collections/bestsellers",
+      "snapshot_url": "https://web.archive.org/web/20250523181013/https://www.cocokind.com/collections/bestsellers",
+      "status_code": "200",
+      "timestamp": "20250523181013"
+    }
+  ]
+}

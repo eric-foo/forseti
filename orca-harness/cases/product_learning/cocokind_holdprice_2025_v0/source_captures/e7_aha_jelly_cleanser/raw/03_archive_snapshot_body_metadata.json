@@ -1,0 +1,25 @@
+{
+  "original_url": "https://cocokind.com/products/aha-jelly-cleanser",
+  "selected_snapshot": {
+    "digest": "LUN4AECWNCXEN4IRYSPL6RDNN6S7DBGJ",
+    "mime_type": "text/html",
+    "original_url": "https://www.cocokind.com/products/aha-jelly-cleanser",
+    "snapshot_url": "https://web.archive.org/web/20250418123906/https://www.cocokind.com/products/aha-jelly-cleanser",
+    "status_code": "200",
+    "timestamp": "20250418123906"
+  },
+  "snapshot_body_http_metadata": {
+    "byte_count": 380727,
+    "capture_timestamp": "2026-06-15T13:47:36Z",
+    "content_length": null,
+    "content_type": "text/html; charset=utf-8",
+    "date": "Mon, 15 Jun 2026 13:47:34 GMT",
+    "etag": null,
+    "final_url": "https://web.archive.org/web/20250418123906/https://www.cocokind.com/products/aha-jelly-cleanser",
+    "last_modified": null,
+    "reason": "OK",
+    "requested_url": "https://web.archive.org/web/20250418123906/https://www.cocokind.com/products/aha-jelly-cleanser",
+    "status": 200,
+    "timeout_seconds": 90.0
+  }
+}

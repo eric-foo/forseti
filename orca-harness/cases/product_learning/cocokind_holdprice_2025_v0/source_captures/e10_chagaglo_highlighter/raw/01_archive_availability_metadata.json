@@ -1,0 +1,46 @@
+{
+  "availability_http_metadata": {
+    "byte_count": 320,
+    "capture_timestamp": "2026-06-15T13:49:29Z",
+    "content_length": null,
+    "content_type": "application/json",
+    "date": "Mon, 15 Jun 2026 13:49:28 GMT",
+    "etag": null,
+    "final_url": "https://web.archive.org/cdx/search/cdx?url=https%3A%2F%2Fcocokind.com%2Fproducts%2Fchagaglo-highlighter&output=json&fl=timestamp%2Coriginal%2Cstatuscode%2Cmimetype%2Cdigest&collapse=digest&to=20250601000000&limit=-10",
+    "last_modified": null,
+    "reason": "OK",
+    "requested_url": "https://web.archive.org/cdx/search/cdx?url=https%3A%2F%2Fcocokind.com%2Fproducts%2Fchagaglo-highlighter&output=json&fl=timestamp%2Coriginal%2Cstatuscode%2Cmimetype%2Cdigest&collapse=digest&to=20250601000000&limit=-10",
+    "status": 200,
+    "timeout_seconds": 90.0
+  },
+  "availability_url": "https://web.archive.org/cdx/search/cdx?url=https%3A%2F%2Fcocokind.com%2Fproducts%2Fchagaglo-highlighter&output=json&fl=timestamp%2Coriginal%2Cstatuscode%2Cmimetype%2Cdigest&collapse=digest&to=20250601000000&limit=-10",
+  "original_url": "https://cocokind.com/products/chagaglo-highlighter",
+  "parse_warning": null,
+  "selected_snapshot": {
+    "digest": "3QERKDMF3DFDUC2CJRDAPCMBSOD52MHK",
+    "mime_type": "text/html",
+    "original_url": "https://www.cocokind.com/products/chagaglo-highlighter",
+    "snapshot_url": "https://web.archive.org/web/20250418155951/https://www.cocokind.com/products/chagaglo-highlighter",
+    "status_code": "200",
+    "timestamp": "20250418155951"
+  },
+  "snapshot_count": 2,
+  "snapshots": [
+    {
+      "digest": "IPZNIAU6U2DVDIGS6VWVMXOI5QQC6BLA",
+      "mime_type": "text/html",
+      "original_url": "https://www.cocokind.com/products/chagaglo-highlighter",
+      "snapshot_url": "https://web.archive.org/web/20250116212701/https://www.cocokind.com/products/chagaglo-highlighter",
+      "status_code": "200",
+      "timestamp": "20250116212701"
+    },
+    {
+      "digest": "3QERKDMF3DFDUC2CJRDAPCMBSOD52MHK",
+      "mime_type": "text/html",
+      "original_url": "https://www.cocokind.com/products/chagaglo-highlighter",
+      "snapshot_url": "https://web.archive.org/web/20250418155951/https://www.cocokind.com/products/chagaglo-highlighter",
+      "status_code": "200",
+      "timestamp": "20250418155951"
+    }
+  ]
+}

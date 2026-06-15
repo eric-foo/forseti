@@ -1,0 +1,25 @@
+{
+  "original_url": "https://cocokind.com/collections/bestsellers",
+  "selected_snapshot": {
+    "digest": "SKX2BHRTWIXM3FD3RM3ZOLJVLWRRLGE2",
+    "mime_type": "text/html",
+    "original_url": "https://www.cocokind.com/collections/bestsellers",
+    "snapshot_url": "https://web.archive.org/web/20250523181013/https://www.cocokind.com/collections/bestsellers",
+    "status_code": "200",
+    "timestamp": "20250523181013"
+  },
+  "snapshot_body_http_metadata": {
+    "byte_count": 489734,
+    "capture_timestamp": "2026-06-15T13:45:02Z",
+    "content_length": null,
+    "content_type": "text/html; charset=utf-8",
+    "date": "Mon, 15 Jun 2026 13:45:01 GMT",
+    "etag": null,
+    "final_url": "https://web.archive.org/web/20250523181013/https://www.cocokind.com/collections/bestsellers",
+    "last_modified": null,
+    "reason": "OK",
+    "requested_url": "https://web.archive.org/web/20250523181013/https://www.cocokind.com/collections/bestsellers",
+    "status": 200,
+    "timeout_seconds": 90.0
+  }
+}
