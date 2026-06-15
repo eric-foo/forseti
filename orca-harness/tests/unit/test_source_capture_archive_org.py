@@ -15,12 +15,18 @@ import pytest
 
 import runners.run_source_capture_archive_packet as archive_runner
 from runners.run_source_capture_archive_packet import ARCHIVE_ORG_NON_CLAIMS
+from source_capture.adapters import archive_org
 from source_capture.adapters.archive_org import (
     DEFAULT_CDX_LIMIT,
     ArchiveOrgCaptureFailure,
     ArchiveOrgCaptureSuccess,
     build_cdx_availability_url,
     fetch_archive_org_capture,
+)
+from source_capture.adapters.direct_http import (
+    DirectHttpCaptureFailure,
+    DirectHttpCaptureFailureKind,
+    DirectHttpCaptureSuccess,
 )
 
 
@@ -555,6 +561,116 @@ def test_archive_runner_cleans_snapshot_metadata_staging_after_metadata_write_fa
 
     assert not (scratch_dir / "archive_snapshot_body.bin").exists()
     assert not (scratch_dir / "archive_snapshot_body_metadata.json").exists()
+
+
+def test_fetch_with_retry_recovers_after_transient_rate_limit(monkeypatch: pytest.MonkeyPatch) -> None:
+    # A 503 (empty-body failure form) on the first two attempts, then a 200: the
+    # retry wrapper backs off and recovers instead of surfacing the transient
+    # throttle as a capture failure. This is the recurring CDX 503 the batch hit.
+    sleeps: list[float] = []
+    calls = {"n": 0}
+
+    def fake_fetch(*, url: str, timeout_seconds: float, max_bytes: int):
+        calls["n"] += 1
+        if calls["n"] < 3:
+            return DirectHttpCaptureFailure(
+                requested_url=url,
+                failure_kind=DirectHttpCaptureFailureKind.NO_BODY,
+                message="HTTP 503 empty body",
+                status=503,
+            )
+        return DirectHttpCaptureSuccess(
+            requested_url=url,
+            final_url=url,
+            status=200,
+            reason="OK",
+            metadata={},
+            body=b"ok",
+            warning_notes=[],
+            limitation_notes=[],
+        )
+
+    monkeypatch.setattr(archive_org, "fetch_direct_http_capture", fake_fetch)
+    monkeypatch.setattr(archive_org.time, "sleep", lambda seconds: sleeps.append(seconds))
+
+    result = archive_org._fetch_with_retry(
+        url="https://web.archive.org/cdx/search/cdx",
+        timeout_seconds=5,
+        max_bytes=1024,
+        max_attempts=4,
+        retry_backoff_seconds=2.0,
+    )
+
+    assert isinstance(result, DirectHttpCaptureSuccess)
+    assert result.status == 200
+    assert calls["n"] == 3  # two retries, then success
+    assert sleeps == [2.0, 4.0]  # exponential backoff between attempts
+
+
+def test_fetch_with_retry_exhausts_then_returns_last_rate_limited(monkeypatch: pytest.MonkeyPatch) -> None:
+    # Persistent 503 across all attempts: give up after exactly max_attempts and
+    # return the last (still rate-limited) result, so the caller's existing honest
+    # recording (access_failed limitation / non-zero runner exit) applies -- never
+    # a fabricated success.
+    calls = {"n": 0}
+
+    def fake_fetch(*, url: str, timeout_seconds: float, max_bytes: int):
+        calls["n"] += 1
+        return DirectHttpCaptureFailure(
+            requested_url=url,
+            failure_kind=DirectHttpCaptureFailureKind.NO_BODY,
+            message="HTTP 503 empty body",
+            status=503,
+        )
+
+    monkeypatch.setattr(archive_org, "fetch_direct_http_capture", fake_fetch)
+    monkeypatch.setattr(archive_org.time, "sleep", lambda seconds: None)
+
+    result = archive_org._fetch_with_retry(
+        url="https://web.archive.org/cdx/search/cdx",
+        timeout_seconds=5,
+        max_bytes=1024,
+        max_attempts=3,
+        retry_backoff_seconds=0,
+    )
+
+    assert calls["n"] == 3
+    assert getattr(result, "status", None) == 503
+
+
+def test_fetch_with_retry_does_not_retry_non_rate_limit_status(monkeypatch: pytest.MonkeyPatch) -> None:
+    # A 404 is a real result, not a transient throttle: return it on the first
+    # attempt without retrying, so genuine non-2xx is neither slowed nor masked.
+    calls = {"n": 0}
+
+    def fake_fetch(*, url: str, timeout_seconds: float, max_bytes: int):
+        calls["n"] += 1
+        return DirectHttpCaptureSuccess(
+            requested_url=url,
+            final_url=url,
+            status=404,
+            reason="Not Found",
+            metadata={},
+            body=b"missing",
+            warning_notes=[],
+            limitation_notes=[],
+        )
+
+    monkeypatch.setattr(archive_org, "fetch_direct_http_capture", fake_fetch)
+    monkeypatch.setattr(
+        archive_org.time, "sleep", lambda seconds: pytest.fail("must not sleep on a non-rate-limit status")
+    )
+
+    result = archive_org._fetch_with_retry(
+        url="https://web.archive.org/cdx/search/cdx",
+        timeout_seconds=5,
+        max_bytes=1024,
+        max_attempts=4,
+        retry_backoff_seconds=2.0,
+    )
+
+    assert calls["n"] == 1
+    assert getattr(result, "status", None) == 404
 
 
 def _run_archive_runner(

@@ -26,6 +26,8 @@ from source_capture.adapters import (
 )
 from source_capture.adapters.archive_org import (
     DEFAULT_CDX_ENDPOINT,
+    DEFAULT_MAX_ATTEMPTS,
+    DEFAULT_RETRY_BACKOFF_SECONDS,
     DEFAULT_SNAPSHOT_BASE_URL,
     ArchiveOrgCaptureSuccess,
 )
@@ -76,6 +78,8 @@ def run_source_capture_archive_packet(
     snapshot_base_url: str,
     timeout_seconds: float,
     max_bytes: int,
+    max_attempts: int = DEFAULT_MAX_ATTEMPTS,
+    retry_backoff_seconds: float = DEFAULT_RETRY_BACKOFF_SECONDS,
 ) -> tuple[int, str]:
     capture = fetch_archive_org_capture(
         original_url=original_url,
@@ -84,6 +88,8 @@ def run_source_capture_archive_packet(
         snapshot_base_url=snapshot_base_url,
         timeout_seconds=timeout_seconds,
         max_bytes=max_bytes,
+        max_attempts=max_attempts,
+        retry_backoff_seconds=retry_backoff_seconds,
     )
     if isinstance(capture, ArchiveOrgCaptureFailure):
         return 3, capture.availability_result.message
@@ -432,6 +438,8 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--session-id", default=None)
     parser.add_argument("--timeout-seconds", type=float, default=20.0)
     parser.add_argument("--max-bytes", type=int, default=5_000_000)
+    parser.add_argument("--max-attempts", type=int, default=DEFAULT_MAX_ATTEMPTS)
+    parser.add_argument("--retry-backoff-seconds", type=float, default=DEFAULT_RETRY_BACKOFF_SECONDS)
     parser.add_argument("--actor-audience-context", default=None)
     parser.add_argument("--actor-audience-context-unknown-reason", default=None)
     parser.add_argument("--visible-mode-change", action="append", default=[])
@@ -502,6 +510,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             snapshot_base_url=args.snapshot_base_url,
             timeout_seconds=args.timeout_seconds,
             max_bytes=args.max_bytes,
+            max_attempts=args.max_attempts,
+            retry_backoff_seconds=args.retry_backoff_seconds,
         )
     except ValueError as exc:
         parser.exit(status=2, message=f"source capture Archive.org failed: {exc}\n")

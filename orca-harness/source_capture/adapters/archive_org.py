@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import time
 from dataclasses import dataclass
 from json import JSONDecodeError
 from typing import TypeAlias
@@ -10,6 +11,7 @@ from source_capture.adapters.direct_http import (
     DEFAULT_MAX_BYTES,
     DEFAULT_TIMEOUT_SECONDS,
     DirectHttpCaptureFailure,
+    DirectHttpCaptureResult,
     DirectHttpCaptureSuccess,
     fetch_direct_http_capture,
 )
@@ -24,6 +26,17 @@ DEFAULT_SNAPSHOT_BASE_URL = "https://web.archive.org/web"
 # a small margin for the deferred redirect-resolution case without materially
 # growing the response.
 DEFAULT_CDX_LIMIT = -10
+
+
+# Bounded retry for transient Archive.org rate-limiting. CDX availability and
+# snapshot-body requests intermittently return HTTP 429/503/504 under load; a few
+# backed-off retries let a transient rate-limit self-heal instead of forcing the
+# operator to re-run the capture by hand. Persistent failure still surfaces
+# honestly (the final access_failed limitation note / non-zero runner exit),
+# never a fabricated success.
+DEFAULT_MAX_ATTEMPTS = 4
+DEFAULT_RETRY_BACKOFF_SECONDS = 2.0
+_RATE_LIMIT_STATUSES = frozenset({429, 503, 504})
 
 
 @dataclass(frozen=True)
@@ -66,6 +79,8 @@ def fetch_archive_org_capture(
     timeout_seconds: float = DEFAULT_TIMEOUT_SECONDS,
     max_bytes: int = DEFAULT_MAX_BYTES,
     limit: int = DEFAULT_CDX_LIMIT,
+    max_attempts: int = DEFAULT_MAX_ATTEMPTS,
+    retry_backoff_seconds: float = DEFAULT_RETRY_BACKOFF_SECONDS,
 ) -> ArchiveOrgCaptureResult:
     normalized_original_url = _validate_original_url(original_url)
     if cutoff_timestamp is not None:
@@ -77,10 +92,12 @@ def fetch_archive_org_capture(
         cutoff_timestamp=cutoff_timestamp,
         limit=limit,
     )
-    availability_result = fetch_direct_http_capture(
+    availability_result = _fetch_with_retry(
         url=availability_url,
         timeout_seconds=timeout_seconds,
         max_bytes=max_bytes,
+        max_attempts=max_attempts,
+        retry_backoff_seconds=retry_backoff_seconds,
     )
     if isinstance(availability_result, DirectHttpCaptureFailure):
         return ArchiveOrgCaptureFailure(
@@ -104,10 +121,12 @@ def fetch_archive_org_capture(
     selected_snapshot = select_snapshot(snapshots, cutoff_timestamp=cutoff_timestamp)
     body_result: DirectHttpCaptureSuccess | DirectHttpCaptureFailure | None = None
     if selected_snapshot is not None:
-        body_result = fetch_direct_http_capture(
+        body_result = _fetch_with_retry(
             url=selected_snapshot.snapshot_url,
             timeout_seconds=timeout_seconds,
             max_bytes=max_bytes,
+            max_attempts=max_attempts,
+            retry_backoff_seconds=retry_backoff_seconds,
         )
 
     return ArchiveOrgCaptureSuccess(
@@ -119,6 +138,33 @@ def fetch_archive_org_capture(
         body_result=body_result,
         parse_warning=parse_warning,
     )
+
+
+def _is_rate_limited(result: DirectHttpCaptureResult) -> bool:
+    # Transient Archive.org throttling shows up as HTTP 429/503/504 in either the
+    # body-preserved success form (status on the success) or the empty-body failure
+    # form (status on the failure). Network errors carry no status and are NOT
+    # retried here -- they are not a reliable transient rate-limit signal.
+    return getattr(result, "status", None) in _RATE_LIMIT_STATUSES
+
+
+def _fetch_with_retry(
+    *,
+    url: str,
+    timeout_seconds: float,
+    max_bytes: int,
+    max_attempts: int,
+    retry_backoff_seconds: float,
+) -> DirectHttpCaptureResult:
+    if max_attempts < 1:
+        raise ValueError("max_attempts must be at least 1")
+    result = fetch_direct_http_capture(url=url, timeout_seconds=timeout_seconds, max_bytes=max_bytes)
+    attempt = 1
+    while _is_rate_limited(result) and attempt < max_attempts:
+        time.sleep(retry_backoff_seconds * (2 ** (attempt - 1)))
+        attempt += 1
+        result = fetch_direct_http_capture(url=url, timeout_seconds=timeout_seconds, max_bytes=max_bytes)
+    return result
 
 
 def build_cdx_availability_url(
