@@ -40,8 +40,9 @@ Accepted 2026-06-09 (owner sign-off, eric-foo); amended 2026-06-09 to record the
   (`.github/workflows/auto-merge.yml`) now lands a labeled (`agent-automerge`), clean, green, and
   **up-to-date** lane PR with **no agent session** — the unattended extension of structure B′ (Decision
   item 9). It uses an immediate `gh pr merge --squash` that does **not** need the 403-blocked
-  `allow_auto_merge`, so it is still **not** the server-side gate. Code-backed; the first live run is
-  owner-triggered and fail-safe (an ineligible PR is skipped, never mis-merged).
+  `allow_auto_merge`, so it is still **not** the server-side gate. Code-backed and now **proven**
+  (2026-06-15): the bot landed PR #121 unattended (merged by `github-actions[bot]`) after the
+  `actions: read` permission fix (PR #118); an ineligible PR is still skipped, never mis-merged.
 
 This record does not assert that any server-side gate is active. It is not.
 
@@ -141,9 +142,11 @@ This record does not assert that any server-side gate is active. It is not.
    `allow_auto_merge` (item 4), so it is **not** the server-side gate. **Honest limitation:** a bot
    merge via `GITHUB_TOKEN` does not re-trigger the `push:main` CI run (GitHub's no-recursion rule); the
    PR's own green check plus the up-to-date guard stand in. The EP-03 guard and `merge-when-green.ps1`
-   are unchanged. **Liveness:** code-backed and YAML/logic-checked; the **first live merge is
-   owner-triggered** and fail-safe (an ineligible PR is skipped, never mis-merged) — this record does
-   **not** claim a proven unattended merge.
+   are unchanged. **Liveness — proven 2026-06-15:** the bot's **first unattended merge is proven** — it
+   landed PR #121 with no agent session (merged by `github-actions[bot]`), after PR #118 added the
+   `actions: read` scope its `statusCheckRollup` eligibility query needs (without it every prior run
+   failed GraphQL `Resource not accessible by integration`, so no earlier run had actually merged). An
+   ineligible PR is still skipped, never mis-merged.
 10. **Lane-start auto-prune — the cleanup complement to item 9.** Item 9's bot closes the *merge* half
    of the agent-fast-creation / human-gated-cleanup velocity mismatch; this standing
    **agent-instruction-only** rule closes the *cleanup* half. At the **start of each new lane** (the
@@ -846,4 +849,59 @@ direction_change_propagation:
     - does not claim auto-landed PRs are correct (CI is a test-suite signal only; main is not deployed and
       a bad merge is reversible by a follow-up PR)
     - not a path-scoped auto-label automation (that deterministic variant is a deferred optional follow-on)
+```
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Flips the auto-merge bot (Decision item 9) from "code-backed, NOT a proven unattended merge" to
+    PROVEN: on 2026-06-15 the bot landed PR #121 with no agent session (merged by github-actions[bot]).
+    This was unblocked by PR #118, which added actions:read to the workflow permissions — the scope the
+    statusCheckRollup -> checkSuite.workflowRun eligibility query needs; before it, every bot run that
+    evaluated a labeled PR failed GraphQL "Resource not accessible by integration", so no earlier run had
+    actually merged. Updates the two LIVE surfaces (the Status "Unattended auto-merge" bullet and item 9's
+    Liveness line); the fail-safe behavior (ineligible PR skipped, never mis-merged) and the
+    not-the-server-side-gate framing are unchanged.
+  trigger: workflow_authority
+  related_triggers:
+    - lifecycle_boundary
+  controlling_sources_updated:
+    - docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md
+  downstream_surfaces_checked:
+    - .github/workflows/auto-merge.yml
+    - AGENTS.md
+    - .agents/workflow-overlay/safety-rules.md
+  intentionally_not_updated:
+    - path: .github/workflows/auto-merge.yml
+      reason: >
+        The actions:read fix already landed via PR #118; this record only flips the liveness claim it
+        enables. The workflow logic is unchanged.
+    - path: AGENTS.md
+      reason: >
+        The kernel routes "land via the per-lane PR flow" to this doctrine; the bot's existence (item 9)
+        and how to opt a PR in (item 11) live here, so no kernel edit is needed.
+    - path: .agents/workflow-overlay/safety-rules.md
+      reason: >
+        Merge authority is unchanged; proving the bot works grants no new authority.
+  verification: >
+    Observed 2026-06-15: PR #121 state MERGED, mergedBy.login = "github-actions"; auto-merge run
+    27541440896 logged "PR #121 is eligible (labeled, mergeable, green, up-to-date). Merging (squash)."
+    then "Merged PR #121 at 0a87d8f8...". Earlier bot run 27534994021 had failed on PR #116 with
+    "Resource not accessible by integration (...statusCheckRollup...checkSuite.workflowRun)"; actions:read
+    landed via PR #118 (MERGED 2026-06-15). The two live surfaces now read "proven".
+  stale_language_search: >
+    git grep -inE "first live run|first live merge|not.{0,4}a proven unattended|NOT.{0,4}claim a proven"
+    docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md
+    (run 2026-06-15 in the doctrine-automerge-bot-proven worktree off origin/main @ 9f10a8a7)
+  stale_language_search_result: >
+    Executed 2026-06-15. The two LIVE surfaces (Status "Unattended auto-merge" bullet, item 9 Liveness)
+    now read "proven". The remaining "first live run / first live merge / not a proven" hits are the
+    append-only DCP receipts that recorded the bot's addition and its actions:read fix — historical
+    records of prior states, correctly NOT edited.
+  non_claims:
+    - not validation, readiness, or acceptance of any lane's content
+    - the proven claim is one observed unattended bot merge (#121); it is NOT the server-side
+      branch-protection gate (still 403-blocked) and does not claim the bot is bug-free
+    - still fail-safe: an ineligible PR is skipped, never mis-merged
+    - the in-session PreToolUse guard is unchanged (and is harness/working-tree-scoped, not the bot)
 ```
