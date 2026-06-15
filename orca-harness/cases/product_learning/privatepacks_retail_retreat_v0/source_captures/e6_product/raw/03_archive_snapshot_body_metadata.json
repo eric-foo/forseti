@@ -1,0 +1,25 @@
+{
+  "original_url": "https://privatepacks.com/products/private-packs",
+  "selected_snapshot": {
+    "digest": "N4FWHTKLH7WMLCN56JO2ZZ7MEGJMNJPD",
+    "mime_type": "text/html",
+    "original_url": "https://privatepacks.com/products/private-packs",
+    "snapshot_url": "https://web.archive.org/web/20250316035548/https://privatepacks.com/products/private-packs",
+    "status_code": "200",
+    "timestamp": "20250316035548"
+  },
+  "snapshot_body_http_metadata": {
+    "byte_count": 417872,
+    "capture_timestamp": "2026-06-15T13:46:39Z",
+    "content_length": null,
+    "content_type": "text/html; charset=utf-8",
+    "date": "Mon, 15 Jun 2026 13:46:37 GMT",
+    "etag": null,
+    "final_url": "https://web.archive.org/web/20250316035548/https://privatepacks.com/products/private-packs",
+    "last_modified": null,
+    "reason": "OK",
+    "requested_url": "https://web.archive.org/web/20250316035548/https://privatepacks.com/products/private-packs",
+    "status": 200,
+    "timeout_seconds": 90.0
+  }
+}

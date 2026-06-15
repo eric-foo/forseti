@@ -1,0 +1,25 @@
+{
+  "original_url": "https://privatepacks.com/collections/all",
+  "selected_snapshot": {
+    "digest": "PX63H7M6ZWMZJJIHVZUDYW36V6CEPGQO",
+    "mime_type": "text/html",
+    "original_url": "https://privatepacks.com/collections/all",
+    "snapshot_url": "https://web.archive.org/web/20250219205138/https://privatepacks.com/collections/all",
+    "status_code": "200",
+    "timestamp": "20250219205138"
+  },
+  "snapshot_body_http_metadata": {
+    "byte_count": 260578,
+    "capture_timestamp": "2026-06-15T13:47:00Z",
+    "content_length": null,
+    "content_type": "text/html; charset=utf-8",
+    "date": "Mon, 15 Jun 2026 13:46:59 GMT",
+    "etag": null,
+    "final_url": "https://web.archive.org/web/20250219205138/https://privatepacks.com/collections/all",
+    "last_modified": null,
+    "reason": "OK",
+    "requested_url": "https://web.archive.org/web/20250219205138/https://privatepacks.com/collections/all",
+    "status": 200,
+    "timeout_seconds": 90.0
+  }
+}

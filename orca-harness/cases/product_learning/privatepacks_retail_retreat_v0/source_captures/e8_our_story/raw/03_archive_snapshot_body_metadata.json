@@ -1,0 +1,25 @@
+{
+  "original_url": "https://privatepacks.com/pages/our-story-2023",
+  "selected_snapshot": {
+    "digest": "54JJ7BLYS432RAEPNJYIR6XR7HLCGAQ6",
+    "mime_type": "text/html",
+    "original_url": "https://privatepacks.com/pages/our-story-2023",
+    "snapshot_url": "https://web.archive.org/web/20250219222920/https://privatepacks.com/pages/our-story-2023",
+    "status_code": "200",
+    "timestamp": "20250219222920"
+  },
+  "snapshot_body_http_metadata": {
+    "byte_count": 243114,
+    "capture_timestamp": "2026-06-15T13:47:54Z",
+    "content_length": null,
+    "content_type": "text/html; charset=utf-8",
+    "date": "Mon, 15 Jun 2026 13:47:53 GMT",
+    "etag": null,
+    "final_url": "https://web.archive.org/web/20250219222920/https://privatepacks.com/pages/our-story-2023",
+    "last_modified": null,
+    "reason": "OK",
+    "requested_url": "https://web.archive.org/web/20250219222920/https://privatepacks.com/pages/our-story-2023",
+    "status": 200,
+    "timeout_seconds": 90.0
+  }
+}

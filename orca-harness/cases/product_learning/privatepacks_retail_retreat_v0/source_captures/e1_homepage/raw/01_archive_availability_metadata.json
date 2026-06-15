@@ -1,0 +1,110 @@
+{
+  "availability_http_metadata": {
+    "byte_count": 1068,
+    "capture_timestamp": "2026-06-15T13:42:54Z",
+    "content_length": null,
+    "content_type": "application/json",
+    "date": "Mon, 15 Jun 2026 13:42:53 GMT",
+    "etag": null,
+    "final_url": "https://web.archive.org/cdx/search/cdx?url=https%3A%2F%2Fprivatepacks.com%2F&output=json&fl=timestamp%2Coriginal%2Cstatuscode%2Cmimetype%2Cdigest&collapse=digest&to=20250501000000&limit=-10",
+    "last_modified": null,
+    "reason": "OK",
+    "requested_url": "https://web.archive.org/cdx/search/cdx?url=https%3A%2F%2Fprivatepacks.com%2F&output=json&fl=timestamp%2Coriginal%2Cstatuscode%2Cmimetype%2Cdigest&collapse=digest&to=20250501000000&limit=-10",
+    "status": 200,
+    "timeout_seconds": 90.0
+  },
+  "availability_url": "https://web.archive.org/cdx/search/cdx?url=https%3A%2F%2Fprivatepacks.com%2F&output=json&fl=timestamp%2Coriginal%2Cstatuscode%2Cmimetype%2Cdigest&collapse=digest&to=20250501000000&limit=-10",
+  "original_url": "https://privatepacks.com/",
+  "parse_warning": null,
+  "selected_snapshot": {
+    "digest": "LZE5WB7LFSTZ4R5ZNYZYGIQJNF3LWIAA",
+    "mime_type": "text/html",
+    "original_url": "https://privatepacks.com/",
+    "snapshot_url": "https://web.archive.org/web/20250428091259/https://privatepacks.com/",
+    "status_code": "200",
+    "timestamp": "20250428091259"
+  },
+  "snapshot_count": 10,
+  "snapshots": [
+    {
+      "digest": "3I42H3S6NNFQ2MSVX7XZKYAYSCX5QBYJ",
+      "mime_type": "text/html",
+      "original_url": "http://privatepacks.com/",
+      "snapshot_url": "https://web.archive.org/web/20250216060522/http://privatepacks.com/",
+      "status_code": "301",
+      "timestamp": "20250216060522"
+    },
+    {
+      "digest": "CPFWCMKR4J2MDYUTEDT4REUXZAGQCU57",
+      "mime_type": "text/html",
+      "original_url": "https://privatepacks.com/",
+      "snapshot_url": "https://web.archive.org/web/20250216060529/https://privatepacks.com/",
+      "status_code": "200",
+      "timestamp": "20250216060529"
+    },
+    {
+      "digest": "H3CDDD6AG5IW4A7ER5UNIN2ZQBB5QGJG",
+      "mime_type": "text/html",
+      "original_url": "https://privatepacks.com/",
+      "snapshot_url": "https://web.archive.org/web/20250217034959/https://privatepacks.com/",
+      "status_code": "200",
+      "timestamp": "20250217034959"
+    },
+    {
+      "digest": "DJ3RXRFFBGBOAEREJOU46WMS45FNY4TH",
+      "mime_type": "text/html",
+      "original_url": "https://privatepacks.com/",
+      "snapshot_url": "https://web.archive.org/web/20250219181228/https://privatepacks.com/",
+      "status_code": "200",
+      "timestamp": "20250219181228"
+    },
+    {
+      "digest": "2Y6YOBP3HMN74QSDTIRRIN4MHPJXHRR4",
+      "mime_type": "text/html",
+      "original_url": "https://privatepacks.com/",
+      "snapshot_url": "https://web.archive.org/web/20250219215514/https://privatepacks.com/",
+      "status_code": "200",
+      "timestamp": "20250219215514"
+    },
+    {
+      "digest": "YBSSOOXF6MLVZ2NC373AMZWDPMXLTI72",
+      "mime_type": "text/html",
+      "original_url": "https://privatepacks.com/",
+      "snapshot_url": "https://web.archive.org/web/20250316031433/https://privatepacks.com/",
+      "status_code": "200",
+      "timestamp": "20250316031433"
+    },
+    {
+      "digest": "GUGSZ3LVRON2FFDYU5RIFENEWRRH4POC",
+      "mime_type": "text/html",
+      "original_url": "https://privatepacks.com/",
+      "snapshot_url": "https://web.archive.org/web/20250401065537/https://privatepacks.com/",
+      "status_code": "200",
+      "timestamp": "20250401065537"
+    },
+    {
+      "digest": "3I42H3S6NNFQ2MSVX7XZKYAYSCX5QBYJ",
+      "mime_type": "text/html",
+      "original_url": "http://privatepacks.com/",
+      "snapshot_url": "https://web.archive.org/web/20250406014039/http://privatepacks.com/",
+      "status_code": "301",
+      "timestamp": "20250406014039"
+    },
+    {
+      "digest": "5JREM4PQGA23T44IRNQE364DQB6JV4AH",
+      "mime_type": "text/html",
+      "original_url": "https://privatepacks.com/",
+      "snapshot_url": "https://web.archive.org/web/20250406014039/https://privatepacks.com/",
+      "status_code": "200",
+      "timestamp": "20250406014039"
+    },
+    {
+      "digest": "LZE5WB7LFSTZ4R5ZNYZYGIQJNF3LWIAA",
+      "mime_type": "text/html",
+      "original_url": "https://privatepacks.com/",
+      "snapshot_url": "https://web.archive.org/web/20250428091259/https://privatepacks.com/",
+      "status_code": "200",
+      "timestamp": "20250428091259"
+    }
+  ]
+}

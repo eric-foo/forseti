@@ -1,0 +1,70 @@
+{
+  "availability_http_metadata": {
+    "byte_count": 680,
+    "capture_timestamp": "2026-06-15T13:50:09Z",
+    "content_length": null,
+    "content_type": "application/json",
+    "date": "Mon, 15 Jun 2026 13:50:09 GMT",
+    "etag": null,
+    "final_url": "https://web.archive.org/cdx/search/cdx?url=https%3A%2F%2Fprivatepacks.com%2Fpages%2Fhow-it-works-2023&output=json&fl=timestamp%2Coriginal%2Cstatuscode%2Cmimetype%2Cdigest&collapse=digest&to=20250501000000&limit=-10",
+    "last_modified": null,
+    "reason": "OK",
+    "requested_url": "https://web.archive.org/cdx/search/cdx?url=https%3A%2F%2Fprivatepacks.com%2Fpages%2Fhow-it-works-2023&output=json&fl=timestamp%2Coriginal%2Cstatuscode%2Cmimetype%2Cdigest&collapse=digest&to=20250501000000&limit=-10",
+    "status": 200,
+    "timeout_seconds": 90.0
+  },
+  "availability_url": "https://web.archive.org/cdx/search/cdx?url=https%3A%2F%2Fprivatepacks.com%2Fpages%2Fhow-it-works-2023&output=json&fl=timestamp%2Coriginal%2Cstatuscode%2Cmimetype%2Cdigest&collapse=digest&to=20250501000000&limit=-10",
+  "original_url": "https://privatepacks.com/pages/how-it-works-2023",
+  "parse_warning": null,
+  "selected_snapshot": {
+    "digest": "AZWFK4WQO3LT5T46LYSUZDELG4NG2SDD",
+    "mime_type": "text/html",
+    "original_url": "https://privatepacks.com/pages/how-it-works-2023",
+    "snapshot_url": "https://web.archive.org/web/20250428095103/https://privatepacks.com/pages/how-it-works-2023",
+    "status_code": "200",
+    "timestamp": "20250428095103"
+  },
+  "snapshot_count": 5,
+  "snapshots": [
+    {
+      "digest": "FRFEP2XG6ZTWGWUOIIBPJD75ELXC5OSS",
+      "mime_type": "text/html",
+      "original_url": "https://privatepacks.com/pages/how-it-works-2023",
+      "snapshot_url": "https://web.archive.org/web/20231210014547/https://privatepacks.com/pages/how-it-works-2023",
+      "status_code": "200",
+      "timestamp": "20231210014547"
+    },
+    {
+      "digest": "H5DD47XR6NRKIGGTYD3XY4YPYB2JFZHT",
+      "mime_type": "text/html",
+      "original_url": "https://privatepacks.com/pages/how-it-works-2023",
+      "snapshot_url": "https://web.archive.org/web/20231226233710/https://privatepacks.com/pages/how-it-works-2023",
+      "status_code": "200",
+      "timestamp": "20231226233710"
+    },
+    {
+      "digest": "MHJWIOEGN2XFDCVR3XC4SIJMA4KQE4QX",
+      "mime_type": "text/html",
+      "original_url": "https://privatepacks.com/pages/how-it-works-2023",
+      "snapshot_url": "https://web.archive.org/web/20240522214913/https://privatepacks.com/pages/how-it-works-2023",
+      "status_code": "200",
+      "timestamp": "20240522214913"
+    },
+    {
+      "digest": "WCPMPKYDLM4ATFKSH2YSHTBX6MWOHAVO",
+      "mime_type": "text/html",
+      "original_url": "https://privatepacks.com/pages/how-it-works-2023",
+      "snapshot_url": "https://web.archive.org/web/20250116161620/https://privatepacks.com/pages/how-it-works-2023",
+      "status_code": "200",
+      "timestamp": "20250116161620"
+    },
+    {
+      "digest": "AZWFK4WQO3LT5T46LYSUZDELG4NG2SDD",
+      "mime_type": "text/html",
+      "original_url": "https://privatepacks.com/pages/how-it-works-2023",
+      "snapshot_url": "https://web.archive.org/web/20250428095103/https://privatepacks.com/pages/how-it-works-2023",
+      "status_code": "200",
+      "timestamp": "20250428095103"
+    }
+  ]
+}

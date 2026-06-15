@@ -1,0 +1,110 @@
+{
+  "availability_http_metadata": {
+    "byte_count": 1291,
+    "capture_timestamp": "2026-06-15T13:46:37Z",
+    "content_length": null,
+    "content_type": "application/json",
+    "date": "Mon, 15 Jun 2026 13:46:36 GMT",
+    "etag": null,
+    "final_url": "https://web.archive.org/cdx/search/cdx?url=https%3A%2F%2Fprivatepacks.com%2Fproducts%2Fprivate-packs&output=json&fl=timestamp%2Coriginal%2Cstatuscode%2Cmimetype%2Cdigest&collapse=digest&to=20250501000000&limit=-10",
+    "last_modified": null,
+    "reason": "OK",
+    "requested_url": "https://web.archive.org/cdx/search/cdx?url=https%3A%2F%2Fprivatepacks.com%2Fproducts%2Fprivate-packs&output=json&fl=timestamp%2Coriginal%2Cstatuscode%2Cmimetype%2Cdigest&collapse=digest&to=20250501000000&limit=-10",
+    "status": 200,
+    "timeout_seconds": 90.0
+  },
+  "availability_url": "https://web.archive.org/cdx/search/cdx?url=https%3A%2F%2Fprivatepacks.com%2Fproducts%2Fprivate-packs&output=json&fl=timestamp%2Coriginal%2Cstatuscode%2Cmimetype%2Cdigest&collapse=digest&to=20250501000000&limit=-10",
+  "original_url": "https://privatepacks.com/products/private-packs",
+  "parse_warning": null,
+  "selected_snapshot": {
+    "digest": "N4FWHTKLH7WMLCN56JO2ZZ7MEGJMNJPD",
+    "mime_type": "text/html",
+    "original_url": "https://privatepacks.com/products/private-packs",
+    "snapshot_url": "https://web.archive.org/web/20250316035548/https://privatepacks.com/products/private-packs",
+    "status_code": "200",
+    "timestamp": "20250316035548"
+  },
+  "snapshot_count": 10,
+  "snapshots": [
+    {
+      "digest": "DLS272H5SOKJNLMI6OWB3SITXS64KDXO",
+      "mime_type": "text/html",
+      "original_url": "https://privatepacks.com/products/private-packs",
+      "snapshot_url": "https://web.archive.org/web/20230606001621/https://privatepacks.com/products/private-packs",
+      "status_code": "200",
+      "timestamp": "20230606001621"
+    },
+    {
+      "digest": "KTW5HFODOL5SNPJ7QXVGXMMO73KCTZUE",
+      "mime_type": "text/html",
+      "original_url": "https://privatepacks.com/products/private-packs",
+      "snapshot_url": "https://web.archive.org/web/20230924210935/https://privatepacks.com/products/private-packs",
+      "status_code": "200",
+      "timestamp": "20230924210935"
+    },
+    {
+      "digest": "C67CMNH7JBXHO7OTEEEN2DYF4UDZCOUF",
+      "mime_type": "text/html",
+      "original_url": "https://privatepacks.com/products/private-packs",
+      "snapshot_url": "https://web.archive.org/web/20231218174932/https://privatepacks.com/products/private-packs",
+      "status_code": "200",
+      "timestamp": "20231218174932"
+    },
+    {
+      "digest": "VPZB3XEAGHV453FESXX7TZQSMUKYE2KW",
+      "mime_type": "text/html",
+      "original_url": "https://privatepacks.com/products/private-packs",
+      "snapshot_url": "https://web.archive.org/web/20231226233637/https://privatepacks.com/products/private-packs",
+      "status_code": "200",
+      "timestamp": "20231226233637"
+    },
+    {
+      "digest": "H4VNOCZMPVZSB5MYUOOJKOT2YB6TUYBW",
+      "mime_type": "text/html",
+      "original_url": "https://privatepacks.com/products/private-packs",
+      "snapshot_url": "https://web.archive.org/web/20240222114646/https://privatepacks.com/products/private-packs",
+      "status_code": "200",
+      "timestamp": "20240222114646"
+    },
+    {
+      "digest": "VNLNZGRX4RDBLBZZ2VB2OAQ4HSQZ4VQQ",
+      "mime_type": "text/html",
+      "original_url": "https://privatepacks.com/products/private-packs",
+      "snapshot_url": "https://web.archive.org/web/20240522212451/https://privatepacks.com/products/private-packs",
+      "status_code": "200",
+      "timestamp": "20240522212451"
+    },
+    {
+      "digest": "ZECDVKY4ZF2TJPXP5LXJG2IH2XHTJTD7",
+      "mime_type": "text/html",
+      "original_url": "https://privatepacks.com/products/private-packs",
+      "snapshot_url": "https://web.archive.org/web/20240908004747/https://privatepacks.com/products/private-packs",
+      "status_code": "200",
+      "timestamp": "20240908004747"
+    },
+    {
+      "digest": "CB37QTVYU2KGXLYEZS3PPVWENXBIMFPN",
+      "mime_type": "text/html",
+      "original_url": "https://privatepacks.com/products/private-packs",
+      "snapshot_url": "https://web.archive.org/web/20241112102104/https://privatepacks.com/products/private-packs",
+      "status_code": "200",
+      "timestamp": "20241112102104"
+    },
+    {
+      "digest": "QSP2QSNV3Y6MB4CWPAMWBOBPF4O64ABO",
+      "mime_type": "text/html",
+      "original_url": "https://privatepacks.com/products/private-packs/",
+      "snapshot_url": "https://web.archive.org/web/20250116141502/https://privatepacks.com/products/private-packs/",
+      "status_code": "200",
+      "timestamp": "20250116141502"
+    },
+    {
+      "digest": "N4FWHTKLH7WMLCN56JO2ZZ7MEGJMNJPD",
+      "mime_type": "text/html",
+      "original_url": "https://privatepacks.com/products/private-packs",
+      "snapshot_url": "https://web.archive.org/web/20250316035548/https://privatepacks.com/products/private-packs",
+      "status_code": "200",
+      "timestamp": "20250316035548"
+    }
+  ]
+}

@@ -1,0 +1,94 @@
+{
+  "availability_http_metadata": {
+    "byte_count": 1020,
+    "capture_timestamp": "2026-06-15T13:45:21Z",
+    "content_length": null,
+    "content_type": "application/json",
+    "date": "Mon, 15 Jun 2026 13:45:20 GMT",
+    "etag": null,
+    "final_url": "https://web.archive.org/cdx/search/cdx?url=https%3A%2F%2Fprivatepacks.com%2Fpages%2Fstore-locator&output=json&fl=timestamp%2Coriginal%2Cstatuscode%2Cmimetype%2Cdigest&collapse=digest&to=20250501000000&limit=-10",
+    "last_modified": null,
+    "reason": "OK",
+    "requested_url": "https://web.archive.org/cdx/search/cdx?url=https%3A%2F%2Fprivatepacks.com%2Fpages%2Fstore-locator&output=json&fl=timestamp%2Coriginal%2Cstatuscode%2Cmimetype%2Cdigest&collapse=digest&to=20250501000000&limit=-10",
+    "status": 200,
+    "timeout_seconds": 90.0
+  },
+  "availability_url": "https://web.archive.org/cdx/search/cdx?url=https%3A%2F%2Fprivatepacks.com%2Fpages%2Fstore-locator&output=json&fl=timestamp%2Coriginal%2Cstatuscode%2Cmimetype%2Cdigest&collapse=digest&to=20250501000000&limit=-10",
+  "original_url": "https://privatepacks.com/pages/store-locator",
+  "parse_warning": null,
+  "selected_snapshot": {
+    "digest": "VP4DQZN2CVTWNQPQRL3XJWP72NVWZSYQ",
+    "mime_type": "text/html",
+    "original_url": "https://privatepacks.com/pages/store-locator",
+    "snapshot_url": "https://web.archive.org/web/20250428084930/https://privatepacks.com/pages/store-locator",
+    "status_code": "200",
+    "timestamp": "20250428084930"
+  },
+  "snapshot_count": 8,
+  "snapshots": [
+    {
+      "digest": "DQ5Q6DU27BUUBWKSPX5VYR57UMTLGVLG",
+      "mime_type": "text/html",
+      "original_url": "https://privatepacks.com/pages/store-locator",
+      "snapshot_url": "https://web.archive.org/web/20230202013454/https://privatepacks.com/pages/store-locator",
+      "status_code": "200",
+      "timestamp": "20230202013454"
+    },
+    {
+      "digest": "LTJW2ZMFRWO5FYHZ7WLH33YDIE6ET2OY",
+      "mime_type": "text/html",
+      "original_url": "https://privatepacks.com/pages/store-locator",
+      "snapshot_url": "https://web.archive.org/web/20230327213335/https://privatepacks.com/pages/store-locator",
+      "status_code": "200",
+      "timestamp": "20230327213335"
+    },
+    {
+      "digest": "R556LQWTWAJIZQYQGOFTWAD7OCQPTRMC",
+      "mime_type": "text/html",
+      "original_url": "https://privatepacks.com/pages/store-locator",
+      "snapshot_url": "https://web.archive.org/web/20230605233027/https://privatepacks.com/pages/store-locator",
+      "status_code": "200",
+      "timestamp": "20230605233027"
+    },
+    {
+      "digest": "66Z7EMINF5SWI4SMNTJYY5JIHJJAEEGX",
+      "mime_type": "text/html",
+      "original_url": "https://privatepacks.com/pages/store-locator",
+      "snapshot_url": "https://web.archive.org/web/20240222110237/https://privatepacks.com/pages/store-locator",
+      "status_code": "200",
+      "timestamp": "20240222110237"
+    },
+    {
+      "digest": "436AK4KMIAVQNVAAPSR5XHGKKTI6JSJD",
+      "mime_type": "text/html",
+      "original_url": "https://privatepacks.com/pages/store-locator",
+      "snapshot_url": "https://web.archive.org/web/20240522204128/https://privatepacks.com/pages/store-locator",
+      "status_code": "200",
+      "timestamp": "20240522204128"
+    },
+    {
+      "digest": "6RVJERHSMRGJ3LEQ7UCE5YCXIBPF6EPW",
+      "mime_type": "text/html",
+      "original_url": "https://privatepacks.com/pages/store-locator",
+      "snapshot_url": "https://web.archive.org/web/20240612182418/https://privatepacks.com/pages/store-locator",
+      "status_code": "200",
+      "timestamp": "20240612182418"
+    },
+    {
+      "digest": "QWLZ3G2HFNJQEVDY36HJ7RO6BKH7IRS4",
+      "mime_type": "text/html",
+      "original_url": "https://privatepacks.com/pages/store-locator",
+      "snapshot_url": "https://web.archive.org/web/20250116150809/https://privatepacks.com/pages/store-locator",
+      "status_code": "200",
+      "timestamp": "20250116150809"
+    },
+    {
+      "digest": "VP4DQZN2CVTWNQPQRL3XJWP72NVWZSYQ",
+      "mime_type": "text/html",
+      "original_url": "https://privatepacks.com/pages/store-locator",
+      "snapshot_url": "https://web.archive.org/web/20250428084930/https://privatepacks.com/pages/store-locator",
+      "status_code": "200",
+      "timestamp": "20250428084930"
+    }
+  ]
+}

@@ -1,0 +1,78 @@
+{
+  "availability_http_metadata": {
+    "byte_count": 756,
+    "capture_timestamp": "2026-06-15T13:46:58Z",
+    "content_length": null,
+    "content_type": "application/json",
+    "date": "Mon, 15 Jun 2026 13:46:58 GMT",
+    "etag": null,
+    "final_url": "https://web.archive.org/cdx/search/cdx?url=https%3A%2F%2Fprivatepacks.com%2Fcollections%2Fall&output=json&fl=timestamp%2Coriginal%2Cstatuscode%2Cmimetype%2Cdigest&collapse=digest&to=20250501000000&limit=-10",
+    "last_modified": null,
+    "reason": "OK",
+    "requested_url": "https://web.archive.org/cdx/search/cdx?url=https%3A%2F%2Fprivatepacks.com%2Fcollections%2Fall&output=json&fl=timestamp%2Coriginal%2Cstatuscode%2Cmimetype%2Cdigest&collapse=digest&to=20250501000000&limit=-10",
+    "status": 200,
+    "timeout_seconds": 90.0
+  },
+  "availability_url": "https://web.archive.org/cdx/search/cdx?url=https%3A%2F%2Fprivatepacks.com%2Fcollections%2Fall&output=json&fl=timestamp%2Coriginal%2Cstatuscode%2Cmimetype%2Cdigest&collapse=digest&to=20250501000000&limit=-10",
+  "original_url": "https://privatepacks.com/collections/all",
+  "parse_warning": null,
+  "selected_snapshot": {
+    "digest": "PX63H7M6ZWMZJJIHVZUDYW36V6CEPGQO",
+    "mime_type": "text/html",
+    "original_url": "https://privatepacks.com/collections/all",
+    "snapshot_url": "https://web.archive.org/web/20250219205138/https://privatepacks.com/collections/all",
+    "status_code": "200",
+    "timestamp": "20250219205138"
+  },
+  "snapshot_count": 6,
+  "snapshots": [
+    {
+      "digest": "VHETT5HA2MUIUEVJPWE3QNPFVN72K2XI",
+      "mime_type": "text/html",
+      "original_url": "https://privatepacks.com/collections/all",
+      "snapshot_url": "https://web.archive.org/web/20200804192531/https://privatepacks.com/collections/all",
+      "status_code": "200",
+      "timestamp": "20200804192531"
+    },
+    {
+      "digest": "ZT722XJQTG76G27R27HEVTNKGY4FP76A",
+      "mime_type": "text/html",
+      "original_url": "https://privatepacks.com/collections/all",
+      "snapshot_url": "https://web.archive.org/web/20200918223946/https://privatepacks.com/collections/all",
+      "status_code": "200",
+      "timestamp": "20200918223946"
+    },
+    {
+      "digest": "4PT3SFGSHIFCZDFM2ERHFY2IG3MXAXWO",
+      "mime_type": "text/html",
+      "original_url": "https://privatepacks.com/collections/all",
+      "snapshot_url": "https://web.archive.org/web/20220521021305/https://privatepacks.com/collections/all",
+      "status_code": "200",
+      "timestamp": "20220521021305"
+    },
+    {
+      "digest": "HY256ZAHJ5V23NUAPHRE23AD7OUII57S",
+      "mime_type": "text/html",
+      "original_url": "https://privatepacks.com/collections/all",
+      "snapshot_url": "https://web.archive.org/web/20220929134554/https://privatepacks.com/collections/all",
+      "status_code": "200",
+      "timestamp": "20220929134554"
+    },
+    {
+      "digest": "ULMXLQT3SF5MCZJIP6QC5VVUB3QSX37G",
+      "mime_type": "text/html",
+      "original_url": "https://privatepacks.com/collections/all",
+      "snapshot_url": "https://web.archive.org/web/20230202005934/https://privatepacks.com/collections/all",
+      "status_code": "200",
+      "timestamp": "20230202005934"
+    },
+    {
+      "digest": "PX63H7M6ZWMZJJIHVZUDYW36V6CEPGQO",
+      "mime_type": "text/html",
+      "original_url": "https://privatepacks.com/collections/all",
+      "snapshot_url": "https://web.archive.org/web/20250219205138/https://privatepacks.com/collections/all",
+      "status_code": "200",
+      "timestamp": "20250219205138"
+    }
+  ]
+}
