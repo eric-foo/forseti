@@ -149,9 +149,13 @@ related accounts for two seeds; **sub-niche-coherent** — a fragrance seed retu
 accounts), each node carrying `username`+`id` so the **snowball is feasible**. One empty seed
 (`hyram`) coincided with the **crawler-strip / login-wall variant** (bundle flag
 `should_remove_related_profiles_for_crawlers`) or an account opt-out — a known empties source
-for Phase 2 to detect-and-retry, **not** a reachability failure. **Phase 2** (snowball depth,
-sub-niche coherence at depth, follower bands, saturation-vs-sprawl, crawler-strip retry, wpi's
-own rate ceiling) is pending + gated on the owner discovery-read posture ruling.
+for Phase 2 to detect-and-retry, **not** a reachability failure. **Phase 2 (bounded snowball,
+2026-06-15): GO mechanics, two design requirements.** Pure-wpi (no profile nav) sidesteps the
+strip; 15 reads all 200 (wpi ceiling ≥15); 15 fetches → **243 unique accounts**, 69 multi-set →
+bounded community. But (a) **sub-niche coherence degrades at depth** via bridge nodes (one
+`@Bible` relation injected a religious cluster) → a **sub-niche filter is now GATING**, not
+polish; and (b) a **mega seed surfaces only mid-tier** (≥184k), so the rising tier (~10k–100k)
+needs deeper snowball. Production at-scale + the discovery-read posture remain open.
 `ig_creator_discovery_suggested_accounts_recon_v0.md` is the finding;
 `ig_creator_discovery_spec_v0.md` is the capability spec.
 
