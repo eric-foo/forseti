@@ -97,11 +97,13 @@ short-horizon *move*).
    call alone never fires one. *Evidence to prove (open, owner-flagged):* that
    beauty wind-callers actually precede the move reliably — what the calibration
    ledger must demonstrate before trigger-weight shifts toward wind-callers.
-   **Boundary (owner-adjudicated 2026-06-14, Q3):** named public-figure
+   **Boundary (owner-adjudicated 2026-06-14, Q3; cap redefined 2026-06-15):** named public-figure
    wind-caller calibration from public outputs is **broadly allowed and
-   non-permanent** (time-bounded, never a permanent dossier); the **≤5-accounts /
-   attended human-paced cap is scoped to IG/TikTok-style platform creator
-   capture** (per the carve-out's 2026-06-14 amendments) — not a blanket cap.
+   non-permanent** (time-bounded, never a permanent dossier); the cap applies to
+   our own **operating/capture accounts (≤10, starting ≤5)** — the subject-creator
+   roster is **uncapped (all-in-vertical)**; active capture = attended/human-initiated;
+   passive monitoring = human-initiated, time-bounded, self-terminating runs
+   (carve-out 2026-06-15 amendment) — not a blanket creator cap.
    Internal judgment/calibration use only; **person-level dossiers in any sold or
    external surface remain forbidden** and the external/product boundary is
    unchanged. Audience / follower-graph analytics stay **deferred-gated**
@@ -177,8 +179,10 @@ on the table.
   likeliest path to the decay-curve capability the transient read needs.
   Calibration receipts are dated, anti-cherry-picked, and **non-permanent**
   (time-bounded); channel-level by default and — under the carve-out (Layer 2) —
-  **named-public-figure broadly**, with the ≤5-accounts / attended cap scoped to
-  IG/TikTok-style platform capture (per the carve-out's 2026-06-14 amendments).
+  **named-public-figure broadly**, with the cap on our own operating/capture
+  accounts (≤10, starting ≤5); subject-creator roster uncapped (all-in-vertical);
+  active = attended; passive = bounded self-terminating runs
+  (carve-out 2026-06-15 amendment).
 
 **Divergence is a technique, not a verdict** (owner, 2026-06-14): signals
 disagreeing — promotion-engagement mismatch (an influencer promotes X but ad
@@ -260,9 +264,10 @@ claim; closeout state for any such claim: `no_durable_evidence`. Mints no
 evidence-ladder vocabulary and redefines no overlay-owned semantics. Does not
 amend the thesis (on adoption, the thesis gains a dated pointer through the
 propagation contract). Wind-caller tracking is channel-level public-output plus
-**non-permanent** named-public-figure calibration under the carve-out (the
-≤5-accounts / attended cap is scoped to IG/TikTok-style platform capture, per the
-carve-out's 2026-06-14 amendments); person-level dossiers in any sold or external
+**non-permanent** named-public-figure calibration under the carve-out (the cap
+applies to our own operating/capture accounts — ≤10, starting ≤5; subject-creator
+roster uncapped, all-in-vertical; active = attended; passive = bounded
+self-terminating runs; carve-out 2026-06-15 amendment); person-level dossiers in any sold or external
 surface remain forbidden and the external/product boundary is unchanged. Authorizes no scan, capture,
 monitoring, or outreach.
 
@@ -273,3 +278,18 @@ are built-to, not proven-at — so no transient-timing claim is validated here.
 This artifact is the read **grammar**; defining the ontology and proving reads
 decision-grade is a separate, separately-commissioned pass — the taxonomy asserts
 no ontology or decision-grade claim.
+
+```yaml
+direction_change_propagation:
+  note: >
+    This file is a downstream surface of the carve-out 2026-06-15
+    cap-redefinition propagation. Three sites updated (Layer-2 wind-caller
+    boundary, Read-Types calibration, Non-Claims): the cap is redefined to our
+    own operating/capture accounts (≤10, starting ≤5); subject-creator roster
+    uncapped (all-in-vertical); active = attended; passive = bounded
+    self-terminating runs. The "person-level dossiers in any sold or external
+    surface remain forbidden and the external/product boundary is unchanged"
+    clause (Non-Claims site) is preserved verbatim and unchanged.
+  authority: docs/decisions/wind_caller_calibration_carveout_v0.md (2026-06-15 amendment)
+  date: 2026-06-15
+```

@@ -92,8 +92,11 @@ auth path is needed anywhere.** Two independent attempts to justify a session pa
 ## Residuals / not-proven
 
 - **Sustained cadence at scale (H5)** — the one cross-signal residual. Single deep walks are clean
-  (no `429`), but repeated harvesting across ≤5 accounts **over time** is untested (IP-rate risk;
-  logged-out has no account to ban but none to spread load). **Untested.**
+  (no `429`), but repeated harvesting across many subject creators using ≤10 of OUR OWN capture
+  accounts (ceiling; ops start ≤5) **over time** is untested (IP-rate risk; logged-out has no
+  account to ban but none to spread load). Subject-creator roster is uncapped; the per-run account
+  limit is on our own capture/operating accounts, not on the number of creators tracked.
+  **Untested.**
 - **Reel view counts are cumulative-at-capture**, not a time series — momentum requires the
   repeated-over-time harvesting the carve-out authorizes.
 - **Image posts** carry no `video_view_count`; some values are `0`.
@@ -102,10 +105,19 @@ auth path is needed anywhere.** Two independent attempts to justify a session pa
 
 ## Posture / carve-out
 
-Governed by `docs/decisions/wind_caller_calibration_carveout_v0.md`: ≤5 rotating public-figure
-accounts, ~1-month recent window, no full-history backfill, repeated-**attended** (not a scheduled
-crawler), 10-year bounded retention + immediate takedown-on-request. Stats at commercial scale →
+Governed by `docs/decisions/wind_caller_calibration_carveout_v0.md` as amended (carve-out
+2026-06-15 amendment): own operating/capture accounts ≤10 ceiling (ops start ≤5) — this cap
+counts OUR OWN capture accounts, not subject creators; subject-creator roster is **uncapped**
+(all creators in the vertical). ~1-month recent window, no full-history backfill,
+repeated-**attended** (not a scheduled crawler). Method: **ACTIVE** (discovery + capture
+decisions) = attended (human-initiated); **PASSIVE** (monitoring already-flagged creators) =
+human-initiated, time-bounded, self-terminating — not a perpetual or scheduled standing crawler.
+10-year bounded retention + immediate takedown-on-request. Stats at commercial scale →
 licensed/bought-data posture.
+*(direction_change_propagation 2026-06-15: cap-redefinition per carve-out 2026-06-15 amendment —
+≤10/start-5 ceiling counts own operating/capture accounts; subject roster uncapped;
+active/passive method posture defined. "10-year bounded retention + immediate takedown-on-request"
+and "commercial scale → licensed/bought-data posture" clauses preserved verbatim.)*
 
 ## Non-claims
 

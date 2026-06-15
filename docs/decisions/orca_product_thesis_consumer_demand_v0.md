@@ -289,8 +289,11 @@ Carried from thesis v0 and sharpened for the demand substrate:
   signals only. (Internal
   wind-caller calibration is the bounded exception per
   `docs/decisions/wind_caller_calibration_carveout_v0.md` — named public-figure
-  calibration, non-permanent, internal-use only; the ≤5-accounts / attended cap
-  is scoped to IG/TikTok-style platform capture (carve-out 2026-06-14 amendment);
+  calibration, non-permanent, internal-use only; the cap applies to our own
+  operating/capture accounts (≤10, starting ≤5); the subject-creator roster is
+  uncapped (all-in-vertical); active capture = attended/human-initiated; passive
+  monitoring = human-initiated, time-bounded, self-terminating runs (carve-out
+  2026-06-15 amendment);
   the external/product boundary here is unchanged.)
 - **Recurring decisions, not a feed.** Where a read is monitored over time
   (transient → earn-durable), every output stays a calibrated decision with an
@@ -592,3 +595,17 @@ direction_change_propagation:
 - Mints no evidence-ladder vocabulary and amends no overlay rule beyond the
   ratification pointer re-points; the propagation receipt is in the
   Doctrine-Change Propagation section above.
+
+```yaml
+direction_change_propagation:
+  note: >
+    This file is a downstream surface of the carve-out 2026-06-15
+    cap-redefinition propagation. The Product Boundary parenthetical (wind-caller
+    calibration exception) has been updated to reflect that the cap applies to
+    our own operating/capture accounts (≤10, starting ≤5), the subject-creator
+    roster is uncapped (all-in-vertical), and the active/passive method
+    distinction (active = attended; passive = bounded self-terminating runs).
+    The external/product boundary clause is unchanged and preserved verbatim.
+  authority: docs/decisions/wind_caller_calibration_carveout_v0.md (2026-06-15 amendment)
+  date: 2026-06-15
+```

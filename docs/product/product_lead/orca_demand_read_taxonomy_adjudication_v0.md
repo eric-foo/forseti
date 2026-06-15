@@ -75,6 +75,12 @@ upgrade, conservative default + an evidence-to-prove note); Q3 confirmed + refin
 calibration allowed, non-permanent; the carve-out was amended). **Q0–Q3 are now all
 decided** and folded into the taxonomy (plus the carve-out and the thesis pointer).
 
+> **Updated 2026-06-15 (owner):** cap now counts own operating/capture accounts
+> (≤10, starting ≤5), not subject creators; subject-creator roster is uncapped
+> (all creators in the vertical). Active capture = attended (human-initiated);
+> passive monitoring = human-initiated, time-bounded, self-terminating. See
+> carve-out 2026-06-15 amendment.
+
 ## How To Read This (for the owner, one pass)
 
 1. **Operative definitions** — the grammar fleshed so the scanning lane could
@@ -129,10 +135,13 @@ may never exceed what signal integrity supports.
   owner-signed 2026-06-13, amended 2026-06-14) named **public-figure**
   creator/influencer wind-callers may additionally be calibrated by public
   handle + public name + public calls + public stats + call-vs-outcome record —
-  **≤5 accounts, human-mimicking attended-automated pace, pre-commercial,
-  internal-only**. Person-level dossiers in any **sold or external** surface
-  remain forbidden (charter exclusion, unchanged). **This boundary is distinct
-  from org-motion's** (Layer 4) — see Tension C / Q3.
+  **≤10 own operating/capture accounts (starting ≤5); subject-creator roster
+  uncapped within the vertical; active capture: attended (human-initiated),
+  faster-than-human pace; passive monitoring: human-initiated, time-bounded,
+  self-terminating (no discovery during); pre-commercial, internal-only**.
+  Person-level dossiers in any **sold or external** surface remain forbidden
+  (charter exclusion, unchanged). **This boundary is distinct from
+  org-motion's** (Layer 4) — see Tension C / Q3.
 
 **Layer 3 — Buy-side corroboration** (PRIMARY — owner word)
 - *What counts:* **costly behavior** — sellouts, waitlists, restock pressure,
@@ -239,10 +248,13 @@ transient or manufactured. No longer synonymous with "hollow."
 - *Anti-trigger:* cherry-picked hits; calibration with no dated pre-declaration;
   reach / follower count used as a calibration proxy.
 - *Boundary:* channel-level by default; under the carve-out, **named
-  public-figure calibration** is permitted (internal-only, ≤5, human-mimicking
-  pace). **Unreconciled-text flag:** the taxonomy's calibration line and its
-  Non-Claims still read "channel-level only," while Signal Layer 2 was already
-  reconciled with the carve-out — adoption must reconcile all three (Q3).
+  public-figure calibration** is permitted (internal-only; ≤10 own
+  operating/capture accounts, starting ≤5; subject-creator roster uncapped
+  within the vertical; active: attended human-initiated pace; passive:
+  human-initiated, time-bounded, self-terminating). **Unreconciled-text flag:**
+  the taxonomy's calibration line and its Non-Claims still read "channel-level
+  only," while Signal Layer 2 was already reconciled with the carve-out —
+  adoption must reconcile all three (Q3).
 
 ---
 
@@ -401,6 +413,10 @@ internal-use only and the external/product boundary are unchanged. The
 **carve-out was amended** (dated) and the taxonomy boundary (Layer 2 / calibration
 read-type / non-claims) + the thesis pointer updated to match.
 
+> **Updated 2026-06-15 (owner):** cap now counts own operating/capture accounts
+> (≤10, starting ≤5); subject-creator roster uncapped (all creators in the
+> vertical). See carve-out 2026-06-15 amendment.
+
 **Decision:** confirm the wind-caller boundary as reconciled with the carve-out:
 - channel-level public-output calibration of **named public-figure**
   wind-callers is **allowed** (≤5 accounts, human-mimicking attended-automated
@@ -417,6 +433,11 @@ still say "channel-level only," contradicting the reconciled Layer 2 — an
 internal inconsistency in the live doc; (2) nothing in the taxonomy yet states
 the **org-motion ≠ wind-caller** boundary distinction the wedge is explicit
 about, leaving a conflation risk.
+
+> **Updated 2026-06-15 (owner):** cap now counts own operating/capture accounts
+> (≤10, starting ≤5); subject-creator roster uncapped (all creators in the
+> vertical); active/passive method redefined — see carve-out 2026-06-15
+> amendment.
 
 **Lane recommendation (not a decision):** *confirm the reconciled boundary*, and
 on adoption fix both residual lines (calibration read-type + Non-Claims) to the
@@ -475,6 +496,15 @@ direction_change_propagation_PLAN:   # prepared only — not a completion receip
       why: the scanning lane hunts from this grammar; Q1/Q2 outcomes change what it leads with
     - path: docs/workflows/orca_repo_map_v0.md
       why: optional Product Anchor / row entry if the adopted taxonomy becomes a routing surface (advisory; repo-map-ack otherwise)
+  direction_change_propagation_note_2026-06-15: >
+    Downstream surface of carve-out 2026-06-15 cap-redefinition: cap now counts
+    own operating/capture accounts (≤10, starting ≤5), not subject creators;
+    subject-creator roster is uncapped (all creators in the vertical);
+    active capture = attended (human-initiated); passive monitoring =
+    human-initiated, time-bounded, self-terminating (no discovery during).
+    All three live boundary sites in this file updated accordingly. Dated-historical
+    Q3 sites (Status block, Q3 decided record, Q3 lane-reasoning) received
+    forward-pointing notes only — not retro-edited.
   stale_language_search_at_execution: >
     rg -n "channels, not persons|channel-level public-output|PROPOSED_PENDING_OWNER_ADJUDICATION|buy-side primary"
     docs/product/product_lead docs/decisions
@@ -517,7 +547,10 @@ direction_change_propagation_PLAN:   # prepared only — not a completion receip
 - Does **not** amend the thesis. On adoption the thesis gains a dated pointer via
   the propagation contract — the owner's act, not this lane's.
 - Wind-caller tracking stays channel-level public-output plus the bounded
-  internal carve-out (named public-figure calibration, ≤5, internal-only);
+  internal carve-out (named public-figure calibration; ≤10 own
+  operating/capture accounts, starting ≤5; subject-creator roster uncapped
+  within the vertical; active: attended human-initiated; passive:
+  human-initiated, time-bounded, self-terminating; internal-only);
   person-level dossiers in any sold or external surface remain forbidden;
   org-motion stays org-level-only with no carve-out.
 - Mints no evidence-ladder vocabulary and redefines no overlay-owned semantics.

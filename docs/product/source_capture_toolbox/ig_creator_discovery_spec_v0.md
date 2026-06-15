@@ -23,7 +23,9 @@ stale_if:
   - Phase 2 (snowball depth / sub-niche coherence / follower bands / crawler-strip retry) lands.
   - IG changes the web_profile_info payload or moves edge_related_profiles behind auth.
   - The ontology backbone is adopted and SubNiche becomes a live classifier (this doc's forward-link resolves).
-  - The carve-out is amended (e.g. the floated <=10-account cap is recorded).
+  - The carve-out is further amended beyond the 2026-06-15 recording (≤10 ceiling on our own
+    operating/capture accounts is now owner-accepted and recorded; subject roster uncapped — see
+    carve-out 2026-06-15 amendment).
 status: PROPOSED — discovery design; suggested-accounts edge FEASIBILITY-PROVEN logged-out (Phase 1 + 2); sub-niche filter is GATING; rising-tier depth + production at-scale pending
 ```
 
@@ -132,14 +134,26 @@ is a **build requirement**, not an enhancement.
 
 - Discovery enumerates a **candidate roster**, which may exceed the capture cap.
   Deep-capture/tracking (capabilities 2–3) operates at the carve-out account cap:
-  owner confirmed (2026-06-15) intent to raise it from **≤5** to **≤10** rotating
-  accounts. This still needs a **recorded dated amendment** to
-  `docs/decisions/wind_caller_calibration_carveout_v0.md` before it is
-  load-bearing; the spec defers to that doc as the authoritative cap.
-- **Open posture question (surfaced, not resolved):** whether discovery-stage
-  *reading* volume (suggested-accounts/profile reads to build the roster) is
-  itself governed by the carve-out, or only the **retained** capture set is. Flag
-  for owner before any at-volume discovery run.
+  the ≤10 ceiling on our OWN operating/capture accounts (ops start ≤5) is now
+  **RECORDED** (carve-out 2026-06-15 amendment) and is load-bearing. The cap counts
+  **our own capture/operating accounts, not subject creators** — the subject-creator
+  roster is **uncapped** (all creators in the vertical are in scope).
+  `docs/decisions/wind_caller_calibration_carveout_v0.md` is the authoritative cap doc.
+- **Active/passive method posture (RESOLVED 2026-06-15):** ACTIVE (discovery + capture
+  decisions) = attended (human-initiated). PASSIVE (monitoring already-flagged creators)
+  = human-initiated, time-bounded, self-terminating — no discovery during passive
+  monitoring; NOT a perpetual or scheduled standing crawler. Faster-than-human cadence;
+  ToS-accepted.
+- **Posture question on discovery-stage reading volume (RESOLVED 2026-06-15):** active
+  discovery (building the roster) is governed by the active-attended posture — each
+  discovery run is human-initiated. At-volume roster-building is therefore **permitted**
+  under the active-attended posture (not a standing crawler; each run is owner-launched).
+  Passive monitoring of already-flagged creators is bounded and self-terminating. No
+  further flag needed before at-volume discovery runs conducted under the attended posture.
+- *(direction_change_propagation 2026-06-15: carve-out 2026-06-15 amendment — cap now
+  recorded/load-bearing; ≤10/start-5 counts own operating/capture accounts; subject-creator
+  roster uncapped; active/passive method posture defined and the open discovery-reading
+  posture question resolved by the active-attended ruling.)*
 
 ## Non-claims
 
