@@ -1,6 +1,15 @@
 # Publisher-History Capture Adapter Adversarial Code Review
 
 ```yaml
+retrieval_header_version: 1
+artifact_role: Review output
+scope: >
+  Delegated cross-vendor adversarial code review of the publisher-history
+  capture adapter (PR #89): non-2xx / error-body honesty (PH-01/02/03), body
+  and selection status gating, and re-capture / limitation visibility. Re-landed
+  after #89 merged ahead of this review's patch. Advisory findings only; no
+  validation claim and no readiness verdict.
+authority_boundary: retrieval_only
 review_type: delegated_adversarial_code_review
 access_mode: no_repo_advisory
 commission: PR #89 publisher-history capture adapter
