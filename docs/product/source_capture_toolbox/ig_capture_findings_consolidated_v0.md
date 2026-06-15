@@ -14,6 +14,7 @@ use_when:
   - Resolving an apparent conflict between older IG recon docs (this note is the current consolidation).
 authority_boundary: retrieval_only
 open_next:
+  - docs/product/source_capture_toolbox/ig_creator_discovery_spec_v0.md
   - docs/product/source_capture_toolbox/ig_reel_viewcount_capture_feasibility_recon_v0.md
   - docs/product/source_capture_toolbox/ig_wind_caller_capture_feasibility_recon_v0.md
   - docs/product/source_capture_toolbox/ig_wind_caller_calls_capture_build_architecture_v0.md
