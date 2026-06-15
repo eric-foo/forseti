@@ -29,7 +29,12 @@ from source_capture.adapters.cloakbrowser_snapshot import (
     DEFAULT_VIEWPORT_WIDTH,
     CloakBrowserSnapshotFailureKind,
 )
-from source_capture.cli_support import build_optional_fact
+from source_capture.cli_support import (
+    add_durability_arguments,
+    build_intended_cadence,
+    build_optional_fact,
+    require_series_identity,
+)
 from source_capture.proxy_profiles import ProxyCategory, ProxyProfile, load_proxy_profile
 
 
@@ -84,6 +89,14 @@ def run_source_capture_cloakbrowser_packet(
     load_more_selector: str | None = None,
     load_more_clicks: int = 0,
     scroll_step_px: int = 0,
+    session_visibility_pin=None,
+    locale_pin=None,
+    currency_pin=None,
+    variant_pin=None,
+    series_id: str | None = None,
+    cold_start_at=None,
+    pre_coverage_history_posture=None,
+    intended_cadence: dict[str, object] | None = None,
 ) -> tuple[int, str]:
     capture_result = fetch_cloakbrowser_snapshot_capture(
         url=url,
@@ -181,6 +194,14 @@ def run_source_capture_cloakbrowser_packet(
             archive_history_posture=archive_posture,
             media_modality_posture=media_posture,
             re_capture_relationship=recapture_posture,
+            # Demand-durability series facts (Ob.17). Element 2 (series origin) + Element 4
+            # (declared cadence) ride on the packet; Element 1 pins ride on the slice below.
+            # All optional + forwarded verbatim, so a non-durability capture leaves them None
+            # (back-compat; no manifest bump). Observed facts only, never weights (INV-1).
+            series_id=series_id,
+            cold_start_at=cold_start_at,
+            pre_coverage_history_posture=pre_coverage_history_posture,
+            intended_cadence=intended_cadence,
             source_slices=[
                 SourceCaptureSlice(
                     slice_id="cloakbrowser_snapshot_01",
@@ -190,6 +211,10 @@ def run_source_capture_cloakbrowser_packet(
                     archive_history_posture=archive_posture,
                     media_modality_posture=media_posture,
                     re_capture_relationship=recapture_posture,
+                    session_visibility_pin=session_visibility_pin,
+                    locale_pin=locale_pin,
+                    currency_pin=currency_pin,
+                    variant_pin=variant_pin,
                     limitations=packet_limitations,
                     warning_notes=packet_warnings,
                     preserved_file_ids=["file_01", "file_02", "file_03", "file_04"],
@@ -403,6 +428,9 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--recapture-relationship-not-applicable-reason", default=None)
     parser.add_argument("--warning", action="append", default=[])
     parser.add_argument("--limitation", action="append", default=[])
+    # The SAME demand-durability flag surface the direct_http writer exposes, so the cadence
+    # runner's injectable writer_main seam can invoke either writer per slot interchangeably.
+    add_durability_arguments(parser)
     return parser
 
 
@@ -410,6 +438,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser = _build_parser()
     args = parser.parse_args(argv)
     try:
+        require_series_identity(args)
         proxy_profile = _load_optional_proxy_profile(
             label=args.proxy_profile_label,
             category=args.proxy_profile_category,
@@ -484,6 +513,48 @@ def main(argv: Sequence[str] | None = None) -> int:
             load_more_selector=args.load_more_selector,
             load_more_clicks=args.load_more_clicks,
             scroll_step_px=args.scroll_step_px,
+            # Demand-durability series facts (Ob.17). Element 1 pins (each an honest
+            # value/unknown/not-applicable VisibleFact) ride on the slice; Element 2 origin
+            # postures + Element 4 declared cadence ride on the packet. Observed facts only,
+            # forwarded verbatim, never weights or a durable-vs-hollow verdict (INV-1).
+            session_visibility_pin=build_optional_fact(
+                label="session visibility pin",
+                value=args.session_visibility_pin,
+                unknown_reason=args.session_visibility_pin_unknown_reason,
+                not_applicable_reason=args.session_visibility_pin_not_applicable_reason,
+            ),
+            locale_pin=build_optional_fact(
+                label="locale pin",
+                value=args.locale_pin,
+                unknown_reason=args.locale_pin_unknown_reason,
+                not_applicable_reason=args.locale_pin_not_applicable_reason,
+            ),
+            currency_pin=build_optional_fact(
+                label="currency pin",
+                value=args.currency_pin,
+                unknown_reason=args.currency_pin_unknown_reason,
+                not_applicable_reason=args.currency_pin_not_applicable_reason,
+            ),
+            variant_pin=build_optional_fact(
+                label="variant pin",
+                value=args.variant_pin,
+                unknown_reason=args.variant_pin_unknown_reason,
+                not_applicable_reason=args.variant_pin_not_applicable_reason,
+            ),
+            series_id=args.series_id,
+            cold_start_at=build_optional_fact(
+                label="cold-start timing",
+                value=args.cold_start_at,
+                unknown_reason=args.cold_start_at_unknown_reason,
+                not_applicable_reason=args.cold_start_at_not_applicable_reason,
+            ),
+            pre_coverage_history_posture=build_optional_fact(
+                label="pre-coverage history posture",
+                value=args.pre_coverage_history_posture,
+                unknown_reason=args.pre_coverage_history_posture_unknown_reason,
+                not_applicable_reason=args.pre_coverage_history_posture_not_applicable_reason,
+            ),
+            intended_cadence=build_intended_cadence(args),
         )
     except ValueError as exc:
         parser.exit(status=2, message=f"source capture CloakBrowser snapshot failed: {exc}\n")

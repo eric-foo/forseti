@@ -58,6 +58,21 @@ if __package__ in {None, ""}:
 
 from source_capture.cadence import build_cadence_plan
 from runners.run_source_capture_http_packet import main as run_http_packet_main
+from runners.run_source_capture_cloakbrowser_packet import main as run_cloakbrowser_packet_main
+
+
+# Per-slot writer registry. Each entry is a writer ``main(argv) -> int`` exposing the SAME
+# demand-durability flag surface, so this runner can invoke any of them through the injectable
+# ``writer_main`` seam without changing how a slot is recorded. ``direct_http`` (stdlib urllib)
+# is the default; ``cloakbrowser`` is the anti-blocking rendered-browser path for JS / embedded-
+# JSON retail PDPs that ``direct_http`` cannot read. Importing the cloakbrowser writer does NOT
+# import the cloakbrowser runtime (the adapter imports it lazily, only at capture time), so this
+# import is safe even when the optional cloakbrowser dependency is absent.
+DEFAULT_WRITER = "direct_http"
+WRITER_MAINS = {
+    "direct_http": run_http_packet_main,
+    "cloakbrowser": run_cloakbrowser_packet_main,
+}
 
 
 SERIES_INDEX_FILENAME = "series_index.json"
@@ -295,8 +310,72 @@ def _read_capture_time(packet_dir: Path) -> str | None:
     return capture_time.get("value")
 
 
+def _read_access_posture(packet_dir: Path) -> str | None:
+    """Read the packet's ``access_posture`` value from its manifest, if present.
+
+    The writers encode an unsuccessful access (a non-2xx body, or a rendered anti-bot /
+    interstitial block page) with the token ``access_failed`` in this value, and a clean
+    capture without it. The cadence runner uses that token to refuse to record an
+    access-failed capture as an observed durability slot (see ``run_slot``).
+    """
+    manifest_path = packet_dir / "manifest.json"
+    if not manifest_path.exists():
+        return None
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    access_posture = manifest.get("access_posture") or {}
+    return access_posture.get("value")
+
+
 def _any_slot_observed(index: dict[str, object]) -> bool:
     return any(slot["status"] == SLOT_OBSERVED for slot in index["slots"])
+
+
+# Allowlist of rendered-capture tuning knobs an operator may pass through to the selected
+# writer via ``run-slot --writer-arg``. These are capture MECHANICS only; none touches the
+# observation's identity, source, output location, durability pins/cadence/postures, access
+# posture, or a non-capture mode. The runner OWNS --url / --output / --decision-question /
+# --series-id / all durability flags and forwards them itself, so passing any of those (or a
+# capture-skipping mode flag like --preflight-only / --old-reddit-only / --guarded-reddit-launch,
+# or a proxy flag) through --writer-arg is rejected: argparse last-value-wins would otherwise let
+# a passthrough silently override the runner-owned identity/source/output or select a mode that
+# returns success without capturing. Default-deny: an unknown flag is rejected, not waved through.
+_WRITER_ARG_KNOB_ALLOWLIST = frozenset(
+    {
+        "--settle-seconds",
+        "--scroll-passes",
+        "--scroll-step-px",
+        "--load-more-selector",
+        "--load-more-clicks",
+        "--wait-until",
+        "--viewport-width",
+        "--viewport-height",
+        "--timeout-seconds",
+        "--max-artifact-bytes",
+        "--block-heavy-assets",
+    }
+)
+
+
+def _validate_writer_extra_argv(writer_extra_argv: Sequence[str]) -> None:
+    """Reject any ``--writer-arg`` flag that is not an allowlisted rendered-capture knob.
+
+    Each flag-shaped token (``--flag`` or ``--flag=value``) must name a knob in
+    ``_WRITER_ARG_KNOB_ALLOWLIST``; non-flag tokens are accepted as values for a preceding
+    allowed flag. This is the guard that keeps a passthrough from overriding runner-owned
+    identity/source/output args or selecting a capture-skipping mode (input validation only;
+    INV-1). Raises ``ValueError`` (surfaced as exit 2) on the first disallowed flag.
+    """
+    for token in writer_extra_argv:
+        if not token.startswith("--"):
+            continue  # a value for a preceding allowed flag (e.g. `--scroll-step-px 350`)
+        flag = token.split("=", 1)[0]
+        if flag not in _WRITER_ARG_KNOB_ALLOWLIST:
+            allowed = ", ".join(sorted(_WRITER_ARG_KNOB_ALLOWLIST))
+            raise ValueError(
+                f"--writer-arg {flag} is not an allowed rendered-capture knob; the runner owns "
+                f"identity/source/output/durability args and they cannot be overridden via "
+                f"passthrough. Allowed knobs: {allowed}"
+            )
 
 
 def run_slot(
@@ -304,6 +383,7 @@ def run_slot(
     series_dir: Path,
     slot_index: int,
     writer_main=run_http_packet_main,
+    writer_extra_argv: Sequence[str] = (),
     now_z: str | None = None,
 ) -> tuple[str, dict[str, object]]:
     """Execute one slot NOW: fetch each series URL via the step-2 writer, record realized timings.
@@ -311,6 +391,12 @@ def run_slot(
     Returns ``(status, slot_record)`` where status is ``observed`` (every URL captured) or
     ``un_observed`` (the slot is recorded as a gap because a fetch failed). A failed fetch is
     NEVER recorded as a no-change fact -- it is an honest un-observed gap (limitation).
+
+    ``writer_main`` selects which per-slot writer is invoked (default the direct_http writer).
+    ``writer_extra_argv`` is appended verbatim to every observation's forwarded argv so a
+    rendered writer can receive per-source capture knobs (scroll/settle/wait-until) the series
+    state does not model; each packet still records its own capture config in metadata, so the
+    knobs stay auditable. These do not change how a slot is recorded (INV-1).
     """
     index = _read_index(series_dir)
     slot = _slot_record(index, slot_index)
@@ -322,6 +408,10 @@ def run_slot(
             f"slot {slot_index} is already {slot['status']}; "
             "refusing to overwrite (a recorded slot is immutable)"
         )
+    # A passthrough may carry only allowlisted rendered-capture knobs; it must not override the
+    # runner-owned identity/source/output args or select a capture-skipping mode. Validate before
+    # any writer is invoked so a bad passthrough fails visibly (exit 2), never silently.
+    _validate_writer_extra_argv(writer_extra_argv)
     cold_start = not _any_slot_observed(index)
     realized_now = now_z or _utc_now_z()
 
@@ -332,6 +422,7 @@ def run_slot(
         argv = _writer_argv_for_observation(
             index=index, url=url, output_dir=output_dir, cold_start=cold_start
         )
+        argv += list(writer_extra_argv)
         # The step-2 writer surfaces a fetch/validation failure either as a non-zero return
         # OR as ``SystemExit`` (its CLI ``main`` calls ``parser.exit``). Treat BOTH as a failed
         # observation so the slot is recorded as an un-observed GAP, never silently as no-change.
@@ -344,7 +435,26 @@ def run_slot(
         if exit_code != 0:
             failures.append(f"url[{url_index}] {url}: writer exit {exit_code}")
             continue
+        # Exit 0 alone is NOT proof of an observation. A writer can exit 0 without producing a
+        # source-capture packet (e.g. a capture-skipping mode), or produce a packet whose access
+        # posture is ``access_failed`` (a non-2xx body or a rendered anti-bot / interstitial block
+        # page). Neither is an observed durability slot -- both are un-observed GAPS (visible
+        # limitations), never a no-change fact. Verifying the durable artifact (not the exit code)
+        # before recording ``observed`` is the gap != no-change / no-fake-success guard (INV-1).
         capture_time = _read_capture_time(output_dir)
+        if capture_time is None:
+            failures.append(
+                f"url[{url_index}] {url}: writer exit 0 but wrote no source-capture packet "
+                f"(no manifest/capture_time) at {output_dir.name}"
+            )
+            continue
+        access_posture = _read_access_posture(output_dir)
+        if access_posture is not None and "access_failed" in access_posture:
+            failures.append(
+                f"url[{url_index}] {url}: access_failed capture is an un-observed gap, not an "
+                f"observation: {access_posture}"
+            )
+            continue
         observation: dict[str, object] = {
             "url": url,
             "packet_dir": output_dir.name,
@@ -454,8 +564,13 @@ def _cmd_init(args: argparse.Namespace) -> int:
 
 
 def _cmd_run_slot(args: argparse.Namespace) -> int:
-    status, _slot = run_slot(series_dir=args.series_dir, slot_index=args.slot)
-    print(f"slot {args.slot}: {status}")
+    status, _slot = run_slot(
+        series_dir=args.series_dir,
+        slot_index=args.slot,
+        writer_main=WRITER_MAINS[args.writer],
+        writer_extra_argv=args.writer_arg,
+    )
+    print(f"slot {args.slot}: {status} (writer={args.writer})")
     return 0 if status == SLOT_OBSERVED else 4
 
 
@@ -506,6 +621,31 @@ def _build_parser() -> argparse.ArgumentParser:
     run = sub.add_parser("run-slot", help="execute one slot NOW (fetch + record); operator-triggered")
     run.add_argument("--series-dir", type=Path, required=True)
     run.add_argument("--slot", type=int, required=True)
+    run.add_argument(
+        "--writer",
+        choices=sorted(WRITER_MAINS),
+        default=DEFAULT_WRITER,
+        help=(
+            "Which per-slot capture writer to invoke: 'direct_http' (stdlib urllib; default) or "
+            "'cloakbrowser' (anti-blocking rendered browser, for JS / embedded-JSON retail PDPs "
+            "direct_http cannot read). Both expose the same demand-durability flag surface, so the "
+            "series state model is unchanged. A retailer the rendered path cannot reach is recorded "
+            "as an un-observed gap, never a fake success (INV-1)."
+        ),
+    )
+    run.add_argument(
+        "--writer-arg",
+        action="append",
+        default=[],
+        metavar="--FLAG=VALUE",
+        help=(
+            "Extra argument appended verbatim to the selected writer's argv; repeatable. Use the "
+            "attached '=' form (e.g. --writer-arg=--scroll-step-px=350) so a value starting with "
+            "'--' is not misparsed. Lets a rendered capture supply per-source knobs (scroll / settle "
+            "/ wait-until) the series state does not model; each packet records its own capture "
+            "config in metadata, so per-slot knobs stay auditable for comparability."
+        ),
+    )
     run.set_defaults(func=_cmd_run_slot)
 
     gap = sub.add_parser("mark-gap", help="record a slot as an un-observed gap (skipped); never no-change")
