@@ -72,6 +72,17 @@ deterministic check. One partial substrate exists (the band scorer hardcodes
 - claim boundary (VERIFY FIRING — narrowed after the de-correlated cross-vendor review, F1/F2, 2026-06): it fires only WHEN INVOKED and WHEN an assertion is declared, and it verifies span PRESENCE — a necessary precondition, NOT semantic support or specificity (actor-carried). It is NOT yet an automatic write-time/assembly/CI gate on every binding; that enforcement-wiring is a deferred follow-on (no assembly runner exists; JSG-01 is FROZEN). Honest claim: "code-backed + contract-tested when invoked", not "auto-enforced for all assemblies". v0 match = exact UTF-8 byte-substring (fail-closed; HTML entity/whitespace brittleness named).
 - PROV: case `beautypie_repricing_2023_v0` — the `beautypie.com/how-it-works` capture (`source_captures/e2_howitworks_20221201`) was clean but its body lacked the £5/£59/spending-limit facts the premise leaned on; reclassified to a case-stated premise (`source_provenance_notes_v0.md`). tier: probed (recorded session outcome + code-backed contract test). date 2026-06.
 
+### GUARD judgment-run-uses-runtime-model  (actor-carried; tier: asserted)
+- decision_node: `node:contestant-run-config`
+- `GUARD judgment-run-uses-runtime-model: WHEN configuring the model for a judgment / contestant run (memorization probe, blind judgment, or paired-arm draw) → use the runtime model — the model that will serve judgments in production (currently Opus) → UNLESS the owner authorizes a specific cross-model comparison or vendor panel.`
+- outcome_class: a judgment run is produced by a non-runtime model, so the fixture/draw reflects a model that will not actually serve judgments — a calibration-validity loss (the fixture silently misrepresents runtime judgment); `silent-wrong-output`-class
+- causal_miss: missing rule — the judgment-run model is a config choice that must be pinned to the runtime model; left implicit, a run can default to a cheaper/different model and pass unnoticed
+- verification: under-case (a judgment run configured with a non-runtime model, no cross-model authorization) → flag and reconfigure to the runtime model; over-edge (an owner-authorized cross-model comparison / vendor panel) → allowed, with the non-runtime model labeled explicitly. **OVER-EDGE OWED** (not yet exercised against a real misconfigured run)
+- substrate: actor-carried — no code pins the judgment-run model; the rule is resident. fire-log: none
+- conflict_check: none — `node:contestant-run-config` is a new node; no resident cell shares its trigger
+- retirement/upgrade: promote to `probed` if a recorded run shows model choice changed the call; re-point the pinned model if the runtime model changes
+- PROV: owner direction 2026-06-14 ("all judgement should be opus since that's the runtime one"); the org-motion paired runs showed the **same** call shape across Sonnet and Opus (no observed model-driven divergence), so no loss was recorded — the rule rests on owner direction, not a probed loss. tier: **asserted** (cell + node `node:contestant-run-config` owner-accepted 2026-06-15). date 2026-06.
+
 ## A2 — core size / budget
 
 Mostly actor-carried, so these cells compete for the budget (one partial is code-held). Each is
@@ -84,14 +95,15 @@ working rare-but-catastrophic gate cell. Budget model-dependent; not fixed here.
 `node:source-identity-finalization` (JSG-01) · `node:packet-freeze` · `node:no-tools-isolation-provenance`
 (JSG-04) · `node:memorization-probe-gate` (JSG-05) · `node:gate-outcome-routing` · `node:sealed-output`
 · `node:scoring` · `node:reveal-calibration` (JSG-08) · `node:closeout` · `node:evidence-claim-binding`
-(JSG-01 evidence integrity; code-backed verifier + contract test, invoke-time). Cells index by `decision_node`.
+(JSG-01 evidence integrity; code-backed verifier + contract test, invoke-time) · `node:contestant-run-config`
+(judgment-run model config; actor-carried, tier asserted; owner-accepted 2026-06-15). Cells index by `decision_node`.
 
 ## A4 — slots filled
 
 - **intervention-type set** (closed; owner-extensible): `GUARD`, `GATE-OUTCOME`, `ESCALATION` (blocker), `SOURCE-RULE`.
 - **verification substrate**: the conductor's `indeterminate_until_authored` halt + the band scorer's hardcoded `not_run` + `evidence_binding/verifier.py` (the first code-backed + contract-tested cell here — a deterministic claim-support span-PRESENCE check exercised by a contract test, invoke-time; not yet an automatic write-time gate); otherwise human review of gate-outcome decisions.
 - **fire-log capability**: MODERATE — gate outcomes are recorded per run (the conductor names blockers and halts), but there is no deterministic pass/fail engine, so telemetry comes from run records; **complied-but-inert** is the live risk (a gate nominally satisfied without the action changing).
-- **tier enum**: {accepted-orca-gate, probed, asserted}; recorded cells are probed / accepted-orca-gate.
+- **tier enum**: {accepted-orca-gate, probed, asserted}; recorded cells are probed / accepted-orca-gate, plus one **asserted** (`judgment-run-uses-runtime-model`, owner-accepted 2026-06-15 on owner direction, not a probed loss).
 - **review window**: owner sets (per case run / gate-map change).
 - **owner map**: the Judgment Spine owner (conductor + gate ownership map).
 
