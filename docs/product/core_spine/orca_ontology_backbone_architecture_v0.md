@@ -170,7 +170,7 @@ AR-01 residual for `Memo` / `EvidenceUnit`). Gates are **actions**, not types (�
 | 2 | **Brand** | A consumer brand (consumer-facing label); company/parent resolution via `Org`. A Brand can itself act as a `WindCaller` (its own moves precede the shift), but never as an independent demand-origin for its own product/decision. | — | candidate-pool handoff |
 | 3 | **Product** | The demand target a TrendVector is *about*: ingredient / category / format / claim / SKU. | target_type | (gap — no single backing yet; §3) |
 | 4 | **Venue** | A demand-signal surface (where observations originate). | access_shape, review_by | beauty venue card set |
-| 5 | **WindCaller** | A leading-indicator referent — an account, community, detector, *or a Brand* whose own moves precede the shift; per vertical×sub-niche; carries the carve-out boundary. | calibration_state; carve-out (non-permanent, platform-scoped cap, internal-use) | demand-read taxonomy (gap — no card-set asset yet; §3) |
+| 5 | **WindCaller** | A leading-indicator referent — an account, community, detector, a Brand, *or a press/trade outlet* whose own moves precede the shift; per vertical×sub-niche; carries the carve-out boundary. Press is the venue-chain *launderer* (community originates → press launders → BoF/WWD terminate), so a press call is a *leading* indicator only when it genuinely originates; otherwise `derived_from` collapses it to the originating family (no independent-origin double-count) — same guard as Brand-as-WindCaller. | calibration_state; carve-out (non-permanent, platform-scoped cap, internal-use) | demand-read taxonomy (gap — no card-set asset yet; §3) |
 | 6 | **Call** | A wind-caller's early public call that opens a (transient) TrendVector. | — | scan-spec (forward) / read outputs |
 | 7 | **Observation** | One captured demand-signal instance from a Venue — the node the two provenance links connect. | integrity flags | CapturePacket / scan-spec (forward) |
 | 8 | **TrendVector** | The demand movement: demand moving toward/away from a target (ingredient/category/format/claim), with direction, velocity, expected lifespan. *(Reading it — emitting a calibrated decision — is the `Read` action, §2.5.)* | persistence_state, integrity_state | demand-read taxonomy |
@@ -446,6 +446,21 @@ Stolen from the venue card set, the proven antidote to ontology rot:
   DecisionEvent`, `Brand` parent-resolution `→ Org`) are **reserved with it** — provisional until
   the object is adopted. Status → `OWNER_ADJUDICATED … AWAITING_MERGE_TO_MAIN`; the merge to `main`
   (which makes adoption live) remains the human gate.
+- **2026-06-15 (owner: Press-as-WindCaller; migration approach; reserved-name graduation).**
+  (1) **Press / trade outlets are admissible `WindCaller` referents** (§2.2 row 5) — but press is
+  the venue-chain *launderer*, so a press call is a *leading* indicator only when it genuinely
+  originates; otherwise `derived_from` collapses it to the originating family (no independent-origin
+  double-count) — the same guard as Brand-as-WindCaller. (2) **Migration approach = physical
+  rename** (owner choice, long-term cleanliness), resolving the assumption-gate's alias-vs-rename
+  fork. Caveat carried to scoping: harness IDs are path-structural (case dir names propagated across
+  reports / ledgers / `_test_runs` / multiple worktrees) and some are frozen / hash-pinned run
+  history — scoping must handle frozen / holdout run artifacts carefully (leave-and-alias or a
+  one-time re-pin), not blind-rename. Execution stays gated on adoption-merge + a full inventory
+  (assumption-gate P2/P3). (3) **Reserved-name graduation:** `Buyer` graduates when a landed
+  buyer / offer (ICP-proof) artifact mints it; `Org` graduates when the in-flight org-motion capture
+  producer (EDGAR headcount / org-movement) lands a schema to re-express it against — each via dated
+  amendment; fold-fallback for `Org` is a `parent_org` dimension on `Brand` if that producer never
+  lands.
 
 ---
 
