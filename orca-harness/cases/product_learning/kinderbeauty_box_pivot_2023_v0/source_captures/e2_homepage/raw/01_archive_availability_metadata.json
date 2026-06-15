@@ -1,0 +1,110 @@
+{
+  "availability_http_metadata": {
+    "byte_count": 1070,
+    "capture_timestamp": "2026-06-15T12:34:10Z",
+    "content_length": null,
+    "content_type": "application/json",
+    "date": "Mon, 15 Jun 2026 12:34:09 GMT",
+    "etag": null,
+    "final_url": "https://web.archive.org/cdx/search/cdx?url=https%3A%2F%2Fkinderbeauty.com%2F&output=json&fl=timestamp%2Coriginal%2Cstatuscode%2Cmimetype%2Cdigest&collapse=digest&to=20220901000000&limit=-10",
+    "last_modified": null,
+    "reason": "OK",
+    "requested_url": "https://web.archive.org/cdx/search/cdx?url=https%3A%2F%2Fkinderbeauty.com%2F&output=json&fl=timestamp%2Coriginal%2Cstatuscode%2Cmimetype%2Cdigest&collapse=digest&to=20220901000000&limit=-10",
+    "status": 200,
+    "timeout_seconds": 60.0
+  },
+  "availability_url": "https://web.archive.org/cdx/search/cdx?url=https%3A%2F%2Fkinderbeauty.com%2F&output=json&fl=timestamp%2Coriginal%2Cstatuscode%2Cmimetype%2Cdigest&collapse=digest&to=20220901000000&limit=-10",
+  "original_url": "https://kinderbeauty.com/",
+  "parse_warning": null,
+  "selected_snapshot": {
+    "digest": "DIVNROPRDH35K3ISBQUIS2QWBSFCABU4",
+    "mime_type": "text/html",
+    "original_url": "https://kinderbeauty.com/",
+    "snapshot_url": "https://web.archive.org/web/20220831113339/https://kinderbeauty.com/",
+    "status_code": "200",
+    "timestamp": "20220831113339"
+  },
+  "snapshot_count": 10,
+  "snapshots": [
+    {
+      "digest": "ARQOOP5ID4ZAFVLUSQSDG7LF6ABJ344L",
+      "mime_type": "text/html",
+      "original_url": "https://kinderbeauty.com/",
+      "snapshot_url": "https://web.archive.org/web/20220802162753/https://kinderbeauty.com/",
+      "status_code": "200",
+      "timestamp": "20220802162753"
+    },
+    {
+      "digest": "PZP2Q6U5Y3JTWOEUFHMGGO6YXVW47YRV",
+      "mime_type": "text/html",
+      "original_url": "https://kinderbeauty.com/",
+      "snapshot_url": "https://web.archive.org/web/20220805161956/https://kinderbeauty.com/",
+      "status_code": "200",
+      "timestamp": "20220805161956"
+    },
+    {
+      "digest": "BD7NXK7E7JSWT57DAFVZY3QZV4BQHACP",
+      "mime_type": "text/html",
+      "original_url": "https://kinderbeauty.com/",
+      "snapshot_url": "https://web.archive.org/web/20220806113135/https://kinderbeauty.com/",
+      "status_code": "200",
+      "timestamp": "20220806113135"
+    },
+    {
+      "digest": "XVWYFCUNVWZRLHWYPD4VVUZAZEAM3SPS",
+      "mime_type": "text/html",
+      "original_url": "https://kinderbeauty.com/",
+      "snapshot_url": "https://web.archive.org/web/20220806152959/https://kinderbeauty.com/",
+      "status_code": "200",
+      "timestamp": "20220806152959"
+    },
+    {
+      "digest": "GKPLCQJJPNJTAX4BJDC7F7MRUQGWS325",
+      "mime_type": "text/html",
+      "original_url": "https://kinderbeauty.com/",
+      "snapshot_url": "https://web.archive.org/web/20220816113225/https://kinderbeauty.com/",
+      "status_code": "200",
+      "timestamp": "20220816113225"
+    },
+    {
+      "digest": "22ISUZLDKCNQMRECRSXRAOWNCAA4LMHP",
+      "mime_type": "text/html",
+      "original_url": "https://kinderbeauty.com/",
+      "snapshot_url": "https://web.archive.org/web/20220821213209/https://kinderbeauty.com/",
+      "status_code": "200",
+      "timestamp": "20220821213209"
+    },
+    {
+      "digest": "MXDP4D7RA6HXU4VBVLSFY34VMJ7FX7AB",
+      "mime_type": "text/html",
+      "original_url": "https://kinderbeauty.com/",
+      "snapshot_url": "https://web.archive.org/web/20220823143945/https://kinderbeauty.com/",
+      "status_code": "200",
+      "timestamp": "20220823143945"
+    },
+    {
+      "digest": "WG2JDYWYTUVI6QDK5ZIEHVVXBUX5RH72",
+      "mime_type": "text/html",
+      "original_url": "https://kinderbeauty.com/",
+      "snapshot_url": "https://web.archive.org/web/20220826113330/https://kinderbeauty.com/",
+      "status_code": "200",
+      "timestamp": "20220826113330"
+    },
+    {
+      "digest": "XWJCYVRADD26IYKRE7LX6J6K6WCZ3WKJ",
+      "mime_type": "text/html",
+      "original_url": "https://kinderbeauty.com/",
+      "snapshot_url": "https://web.archive.org/web/20220827132213/https://kinderbeauty.com/",
+      "status_code": "200",
+      "timestamp": "20220827132213"
+    },
+    {
+      "digest": "DIVNROPRDH35K3ISBQUIS2QWBSFCABU4",
+      "mime_type": "text/html",
+      "original_url": "https://kinderbeauty.com/",
+      "snapshot_url": "https://web.archive.org/web/20220831113339/https://kinderbeauty.com/",
+      "status_code": "200",
+      "timestamp": "20220831113339"
+    }
+  ]
+}

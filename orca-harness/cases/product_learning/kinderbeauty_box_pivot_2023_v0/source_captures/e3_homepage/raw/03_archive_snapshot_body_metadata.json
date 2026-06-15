@@ -1,0 +1,25 @@
+{
+  "original_url": "https://kinderbeauty.com/",
+  "selected_snapshot": {
+    "digest": "OAB3O2G5RHASNK7QTALOZL2Q3MELG5DM",
+    "mime_type": "text/html",
+    "original_url": "https://kinderbeauty.com/",
+    "snapshot_url": "https://web.archive.org/web/20220227111207/https://kinderbeauty.com/",
+    "status_code": "200",
+    "timestamp": "20220227111207"
+  },
+  "snapshot_body_http_metadata": {
+    "byte_count": 240983,
+    "capture_timestamp": "2026-06-15T12:34:18Z",
+    "content_length": null,
+    "content_type": "text/html; charset=utf-8",
+    "date": "Mon, 15 Jun 2026 12:34:17 GMT",
+    "etag": null,
+    "final_url": "https://web.archive.org/web/20220227111207/https://kinderbeauty.com/",
+    "last_modified": null,
+    "reason": "OK",
+    "requested_url": "https://web.archive.org/web/20220227111207/https://kinderbeauty.com/",
+    "status": 200,
+    "timeout_seconds": 60.0
+  }
+}
