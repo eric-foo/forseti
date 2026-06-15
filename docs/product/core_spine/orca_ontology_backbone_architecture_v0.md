@@ -119,13 +119,17 @@ only via the backing map.
 `namespace:slug`, lowercase, dot-separated sub-parts. The ontology owns the
 *grammar*; minting/resolving individual IDs (a registry) is deferred satellite (§6).
 
-**ID-canonicalization (owner-decided 2026-06-15).** This grammar is the single naming
-authority — producer / harness IDs **conform to it** (so `case:` / `outcome:` are normalized
-to the dotted form, matching `decision:`); the version suffix (`_v0`) is **metadata, not part
-of the ID** (owner-confirmed 2026-06-15); and **an ID survives any rename** (the display name
-lives in a field; the ID is an opaque, stable handle). Migrating the live harness `*_v0` IDs
-into this grammar is a downstream job owed by the harness lane, not performed by this naming
-decision. (See §6.1, §9.)
+**ID-canonicalization (owner-decided 2026-06-15; forward-only convention).** This grammar is
+the single naming authority: the **canonical id is the dotted form**. **Existing harness `*_v0`
+ids are NOT physically renamed** — each is kept as the recorded **storage alias** under its
+canonical dotted id (recorded on the Case card's `harness_case_id`, which seeds the registry);
+**new cases are born dotted**. The version suffix (`_v0`) is **metadata, not part of the ID**
+(owner-confirmed 2026-06-15); **an ID survives any rename** (the display name lives in a field;
+the ID is an opaque, stable handle). Forward-only was chosen over a physical rename of sealed
+history because the harness resolves cases by path and `case_id` is an embedded,
+cross-artifact-asserted field (`run_case.py:169`) — renaming sealed / holdout / hash-pinned runs
+would corrupt provenance. Both id forms always resolve (nothing is deleted), so an old reference
+never dangles. (See §6.1.)
 
 | Namespace | Example | Means |
 | --- | --- | --- |
@@ -461,6 +465,16 @@ Stolen from the venue card set, the proven antidote to ontology rot:
   producer (EDGAR headcount / org-movement) lands a schema to re-express it against — each via dated
   amendment; fold-fallback for `Org` is a `parent_org` dimension on `Brand` if that producer never
   lands.
+- **2026-06-15 (owner: forward-only ID convention — supersedes the "migrate / rename" framing above).**
+  The order-0 migration is resolved **forward-only**, NOT by physically renaming existing cases: the
+  canonical id is the dotted form; each existing harness `*_v0` id is **kept as the recorded storage
+  alias** under its canonical dotted id (on the Case card's `harness_case_id`, which seeds the
+  registry); **new cases are born dotted**. Rationale (assumption-gate, source-verified): the harness
+  resolves cases by path and `case_id` is an embedded, cross-artifact-asserted field
+  (`run_case.py:169`), so renaming sealed / holdout / hash-pinned runs would corrupt provenance; both
+  id forms always resolve (nothing deleted), so an old reference never dangles. This **supersedes**
+  the "harness `*_v0` IDs migrate / conform by physical rename" wording in the earlier order-0 and
+  migration amendments and in §9 item 0; §2.1 now states the forward-only rule.
 
 ---
 
