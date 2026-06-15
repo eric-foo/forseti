@@ -1,0 +1,82 @@
+name: main-red-alert
+
+# Fast backstop for the up-to-date-merge MGT (Decision item 12 in
+# docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md). When the
+# push:main CI run goes red, open (or keep) a single tracking issue so a break
+# landed via an unenforced merge path is fixed in minutes, not discovered by the
+# next lane. When main CI goes green again, the alert auto-closes. This is
+# DETECTIVE, not preventive (it does not stop the bad merge); the preventive,
+# unbypassable, all-paths gate remains the deferred server-side option (O1).
+#
+# Channel = a deduplicated GitHub issue (zero external dependency). One open
+# "main CI is red" issue at a time, updated while red, closed when green.
+
+on:
+  workflow_run:
+    workflows: [ci]
+    types: [completed]
+  workflow_dispatch:
+
+permissions:
+  issues: write   # open / comment / close the single tracking issue
+  actions: read   # read the latest ci run on manual dispatch
+
+concurrency:
+  group: main-red-alert
+  cancel-in-progress: false
+
+jobs:
+  alert:
+    # Act only on main's own CI outcome (push to main); always act on manual dispatch.
+    if: ${{ github.event_name == 'workflow_dispatch' || (github.event.workflow_run.head_branch == 'main' && github.event.workflow_run.event == 'push') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      GH_TOKEN: ${{ github.token }}
+      REPO: ${{ github.repository }}
+      EVENT: ${{ github.event_name }}
+      WR_CONCLUSION: ${{ github.event.workflow_run.conclusion }}
+      WR_SHA: ${{ github.event.workflow_run.head_sha }}
+      WR_URL: ${{ github.event.workflow_run.html_url }}
+      TITLE: "🔴 main CI is red"
+    steps:
+      - name: Open or close the main-red alert
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          # Resolve main's current CI conclusion + commit.
+          if [ "$EVENT" = "workflow_run" ]; then
+            conclusion="$WR_CONCLUSION"; sha="$WR_SHA"; run_url="$WR_URL"
+          else
+            conclusion=$(gh run list --repo "$REPO" --branch main --workflow ci --limit 1 --json conclusion --jq '.[0].conclusion // ""')
+            sha=$(gh run list --repo "$REPO" --branch main --workflow ci --limit 1 --json headSha --jq '.[0].headSha // ""')
+            run_url=$(gh run list --repo "$REPO" --branch main --workflow ci --limit 1 --json url --jq '.[0].url // ""')
+          fi
+          echo "main CI: conclusion='$conclusion' sha='$sha'"
+
+          # Dedup by exact title (no pre-created label needed). First open match wins.
+          existing=$(gh issue list --repo "$REPO" --state open --search "in:title $TITLE" --json number,title \
+            --jq "[.[] | select(.title==env.TITLE) | .number][0] // empty")
+
+          if [ "$conclusion" = "failure" ]; then
+            if [ -z "$existing" ]; then
+              gh issue create --repo "$REPO" --title "$TITLE" --body \
+          "push:main CI is failing at \`$sha\`. Run: $run_url
+
+          Up-to-date-merge backstop (doctrine item 12). A break likely landed via a merge path that does not enforce up-to-date (human/CLI \`gh pr merge\` of a behind PR). Fix forward with a small PR; this issue auto-closes when main CI next passes."
+              echo "Opened main-red alert."
+            else
+              gh issue comment "$existing" --repo "$REPO" --body "Still red at \`$sha\`. Run: $run_url"
+              echo "Updated existing alert #$existing."
+            fi
+          elif [ "$conclusion" = "success" ]; then
+            if [ -n "$existing" ]; then
+              gh issue close "$existing" --repo "$REPO" --comment "main CI green again at \`$sha\`. Closing."
+              echo "Closed alert #$existing."
+            else
+              echo "main green; no open alert."
+            fi
+          else
+            echo "Inconclusive conclusion ('$conclusion'); no action."
+          fi

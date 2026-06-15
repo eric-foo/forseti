@@ -219,6 +219,42 @@ This record does not assert that any server-side gate is active. It is not.
      follow it; it does **not** assert that auto-landed PRs are correct (CI is a test-suite signal only;
      main is not deployed and a bad merge is reversible by a follow-up PR). Owner-gated; lands via a
      per-lane PR off `main` (squash).
+12. **Up-to-date-before-merge — adopted MGT (bot-as-default + forward-ref annotation + red-main
+   detector).** Recurring red `push:main` CI from **combination breaks** — two independently-green PRs
+   that break when combined (e.g. one adds an `open_next` reference, another renames/removes the target).
+   **Root cause:** the up-to-date (`behind_by == 0`) check is enforced for **only one of three** merge
+   paths — the bot (item 9). The in-session guard (item 7) checks CLEAN+green+label but **not** up-to-date
+   (documented residual), and a human / other-harness raw `gh pr merge` checks nothing. CI tests
+   merge-with-base **at PR time**, so a PR merged while behind is never re-tested against current `main`.
+   Rationale + full option analysis: the up-to-date-merge enforcement proposal (PR #129). This adopts the
+   **mini-god-tier** target — most of the complete fix's value at a fraction of its cost, foregone limit
+   named:
+   - **Bot-as-default merge path.** Routine PRs land via the bot (apply `agent-automerge`; the bot
+     enforces `behind_by == 0` + green + mergeable); raw `gh pr merge` is reserved for urgent fixes. This
+     puts up-to-date enforcement on the default path **for free** (item 9's bot is proven) and extends
+     item 11 (self-label) from agents to the default merge habit.
+   - **Forward-ref annotation discipline (closes the class up-to-date cannot).** An `open_next` /
+     `derived_from` link to a file **intentionally not yet on `main`** (a branch-only forward-reference)
+     MUST carry a trailing `# nonresolving: <reason>` comment, which `.agents/hooks/check_map_links.py`
+     exempts from the existence check and counts as annotated debt — so a deliberate forward-ref cannot
+     hard-fail `push:main`. (Up-to-date enforcement, and even the server-side gate, cannot catch this
+     class: the target never lands on `main`.)
+   - **Red-main detector (detective backstop).** `.github/workflows/main-red-alert.yml` opens a single
+     deduplicated tracking issue the moment a `push:main` CI run fails and auto-closes it when `main`
+     goes green — so a break landed via an unenforced path is fixed in minutes, not discovered by the
+     next lane. **Liveness:** code-backed, **not yet proven** on a live red `main` (the first real
+     failure proves it). Detective, **not** preventive.
+   - **Downgraded (not adopted now):** *O2a* — add `behind_by == 0` to the EP-03 in-session guard's
+     self-merge allowance; covers only the rare agent in-session self-merge (agents route through the bot
+     by default) at the cost of editing the frozen, enforcement-lane-owned guard. *O2b* — make
+     `.github/scripts/merge-when-green.ps1` refuse when behind; a substrate that fires only if the helper
+     is used, so a raw `gh pr merge` bypasses it. Revisit either if agents become the primary mergers.
+   - **Deferred end-state:** server-side branch protection "require branches up to date" (+ merge queue)
+     — the only **complete, harness-agnostic, unbypassable** prevention across all paths. Blocked on this
+     private+free repo (HTTP 403, items 2/4); revisit on a GitHub Pro/Team upgrade or a public repo.
+   - **Foregone limitation (consciously accepted):** a human or non-Claude-harness raw `gh pr merge` of a
+     **behind** PR can still combination-break `main` — **detected fast** by the red-main detector, **not
+     prevented**. Closing this residual requires the deferred server-side gate.
 
 ## Why core-only CI (evidence)
 
@@ -904,4 +940,74 @@ direction_change_propagation:
       branch-protection gate (still 403-blocked) and does not claim the bot is bug-free
     - still fail-safe: an ineligible PR is skipped, never mis-merged
     - the in-session PreToolUse guard is unchanged (and is harness/working-tree-scoped, not the bot)
+```
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Adds Decision item 12: adopts the up-to-date-before-merge MGT after recurring red push:main CI from
+    combination breaks (two independently-green PRs that break combined). Root cause: behind_by==0 is
+    enforced only for the bot (item 9), not the in-session guard (item 7 residual) or human/CLI merges.
+    Adopted: (1) bot-as-default merge path (routine PRs land via the bot, which enforces up-to-date;
+    extends item 11); (2) forward-ref annotation discipline (a branch-only open_next/derived_from link
+    must carry "# nonresolving: <reason>", which check_map_links already exempts as debt); (3) a red-main
+    detector workflow (.github/workflows/main-red-alert.yml) that opens/auto-closes a single tracking
+    issue on push:main red/green. Downgraded O2a (guard behind_by check) and O2b (merge-when-green
+    refuse-when-behind); deferred the server-side require-up-to-date gate (O1, 403-blocked). Foregone
+    limit named: a raw gh pr merge of a behind PR can still break main — detected fast, not prevented.
+  trigger: workflow_authority
+  related_triggers:
+    - lifecycle_boundary
+  controlling_sources_updated:
+    - docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md
+    - .github/workflows/main-red-alert.yml
+  downstream_surfaces_checked:
+    - .agents/hooks/guard_protected_actions.py
+    - .github/scripts/merge-when-green.ps1
+    - .agents/hooks/check_map_links.py
+    - .github/workflows/auto-merge.yml
+    - AGENTS.md
+  intentionally_not_updated:
+    - path: .agents/hooks/guard_protected_actions.py
+      reason: >
+        O2a (adding behind_by==0 to the guard's self-merge allowance) is downgraded, not adopted; the
+        frozen EP-03 guard is unchanged. Agents route through the bot (which enforces up-to-date) by default.
+    - path: .github/scripts/merge-when-green.ps1
+      reason: >
+        O2b (refuse-when-behind in the helper) is downgraded — a raw gh pr merge bypasses the helper, so
+        the substrate gives near-zero coverage of the actual path. Unchanged.
+    - path: .agents/hooks/check_map_links.py
+      reason: >
+        The "# nonresolving:" exemption already exists in the checker; item 12 adopts the DISCIPLINE of
+        using it for deliberate forward-refs. No checker change needed.
+    - path: .github/workflows/auto-merge.yml
+      reason: >
+        The bot already enforces behind_by==0; item 12 makes it the default path. The workflow is unchanged.
+    - path: AGENTS.md
+      reason: >
+        The kernel routes "land via the per-lane PR flow" to this doctrine; the bot-as-default habit and
+        the disciplines live here. No kernel edit.
+  verification: >
+    main-red-alert.yml parses (python yaml.safe_load OK): triggers workflow_run[ci] + workflow_dispatch;
+    permissions issues:write + actions:read; gated to push:main outcomes; dedup-by-title issue
+    open/comment/close. check_map_links --strict OK on the PR tree — item 12's path refs resolve
+    (main-red-alert.yml in this PR; check_map_links.py and merge-when-green.ps1 on main; the proposal is
+    referenced by PR number, not a path token). Liveness: the detector is code-backed and NOT yet proven
+    on a live red main (the first real push:main failure proves it), mirroring item 9's honest non-claim.
+  stale_language_search: >
+    git grep -inE "up.?to.?date|behind_by|combination break|main.?red|nonresolving"
+    docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md
+    (run 2026-06-15 in the dev-workflow-uptodate-mgt worktree; re-synced onto origin/main after #127/#129)
+  stale_language_search_result: >
+    Executed 2026-06-15. Item 9 (now flipped to proven by #127) notes the in-session guard "lacks an
+    up-to-date check (documented residual)"; item 12 is consistent with and acts on that note (downgrades
+    the guard fix O2a, adopts bot-as-default instead). No live surface claims up-to-date is enforced on
+    all paths, so item 12 forks no existing rule — it is additive.
+  non_claims:
+    - not validation, readiness, or acceptance of any lane's content
+    - the red-main detector is code-backed, NOT yet proven on a live red main; detective, not preventive
+    - up-to-date enforcement is not complete here (the raw-CLI / other-harness path is a named, accepted
+      residual); the complete, unbypassable gate remains the deferred server-side option (O1)
+    - O2a does not edit the EP-03 guard; O2b does not edit the helper; check_map_links is unchanged
+    - mini-god-tier is a capability-target lens, not a validation or readiness claim
 ```
