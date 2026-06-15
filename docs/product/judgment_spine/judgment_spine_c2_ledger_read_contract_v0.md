@@ -14,7 +14,7 @@ scope: >
   are written) stays owned by the ledger + near-half postmortem; this spec edits
   neither.
 use_when:
-  - Scoping or implementing how the demand-read core's C2 weights an admitted signal using the ledger.
+  - Scoping or implementing how the demand-read core's C2 weights an allowed signal using the ledger.
   - Reviewing whether a C2 reasoning trace reads the ledger within INV-1 (no scoring engine).
   - Reconciling the ledger (per-signal trust) against the validated-lesson library (joint-configuration flag) at C2.
 authority_boundary: retrieval_only
@@ -37,7 +37,10 @@ schema nor the FROZEN conductor.** It fills the consumer half of an interface th
 core architecture names ("C2 weights per `decision_family` by *reading* the
 ledger, qualitative, LLM-in-session, explained") but does not specify. Authored
 2026-06-14 in the ledger-first continuation lane (worktree
-`ledger-c2-read-contract-v0` off `origin/main`).
+`ledger-c2-read-contract-v0` off `origin/main`). Rule 3 (risk-state weighting) folded 2026-06-15,
+re-grounded onto main's two-axis demand-state model — the cap lives on the
+manufactured/integrity axis; persistence-axis patterns are transient verdicts
+routed to C3, not caps.
 
 ## Input Basis (accepted)
 
@@ -59,14 +62,15 @@ ledger, qualitative, LLM-in-session, explained") but does not specify. Authored
   weight level drifts one qualitative band with framing while direction,
   load-bearing facts, and counterfactual stay stable. Adds Required Behavior
   items 7–8 below. Cross-model runs (4 brands) confirmed direction + reasoning are
-  brand-independent and the dial sits within ≈one band; the residual reduces to a
+  brand-independent and the dial sits within ≈one band; the residual reduced to a
   single open doctrine question — how C2 treats a known risk across evidentiary
-  states (present / unconfirmed / absent) — routed to a dedicated owner thread (a
-  prospective **rule 3**).
+  states (present / unconfirmed / absent) — now **resolved by Rule 3 below**
+  (folded 2026-06-15, re-grounded onto main's two-axis demand-state model: the cap
+  is on the manufactured axis; persistence-axis patterns are transient, routed to C3).
 
 ## Required Behavior
 
-When C2 weights an admitted signal under an active `decision_family`, it must:
+When C2 weights an allowed signal (one past the C1 gate) under an active `decision_family`, it must:
 
 1. **Query by `(decision_family, signal_id)`.** Retrieve the signal's K-of-N
    report-all tally *scoped to that `decision_family`*, together with its
@@ -117,6 +121,84 @@ When C2 weights an admitted signal under an active `decision_family`, it must:
    ambiguous caveat that silently moves, or silently fails to move, the weight is
    non-compliant. (Probe v2 traced the entire band drift to one ambiguous caveat
    read as a cap under one framing and as neutral under another.)
+9. **Apply Rule 3 — risk-state weighting across evidentiary states.** For a known
+   **dispositive manufactured-axis (integrity) risk** to the signal — one that, if
+   active, means the demand is **not real** — weight by the state the evidence is
+   in: **confirmed-present → cap** (defeater); **unconfirmed → ceiling discount**
+   banded on reversibility; **confirmed-absent → neutral baseline** (never
+   positive). Persistence-axis patterns (resale/flip, event/one-time,
+   scarcity/panic) are **not capped here** — they reclassify the read as
+   **transient** and route to C3 (verdict + horizon-matched ceiling). The full
+   rule, discriminator requirement, and the C3 hand-off are in the **Rule 3**
+   section below.
+
+## Rule 3 — Risk-State Weighting Across Evidentiary States (folded 2026-06-15)
+
+Rule 3 governs how C2 weights a **known dispositive manufactured-axis (integrity)
+risk** to an allowed signal across the three states evidence can leave it in. It is
+re-grounded onto main's two-axis demand-state model (durable/transient +
+real/manufactured): the **cap lives on the manufactured axis**; persistence-axis
+patterns are **transient verdicts, not caps** (routed to C3). Qualitative,
+INV-1-safe, advisory.
+
+**Scope.** Rule 3 governs risks that, if active, mean the demand **is not real**
+(fabrication / coordination — bots, fake accounts, review-stuffing, laundered
+origination, costly-behavior staged inside a coordinated layer). It does **not**
+govern: (i) **persistence-axis** patterns (resale/flip, event/one-time,
+scarcity/panic) — real-but-decaying demand, reclassified **transient** and routed to
+**C3** (verdict + horizon-matched ceiling), with their discriminator families
+(use-vs-flip, repeat/persistence, persistence-after-normalization,
+sell-through-vs-sell-in) re-homing there; (ii) **magnitude-only** markdowns
+(ordinary C2 weighting); (iii) the gross genuine-vs-manufactured filter already
+owned by the **C1 gate** (ratified G1/G2 — consumed, not reopened). Rule 3 is the
+**per-signal residual**: a known manufactured-mechanism risk to a signal the gate
+let through. Channel **sell-in ≠ sell-through** is an **owner judgment call**
+(integrity-artifact vs transient), not auto-capped.
+
+**Monotone chain:** on the trust ceiling, **cap ≤ discount ≤ neutral** (present ≤
+unconfirmed ≤ absent); inherent-limit caps sit orthogonal, lowest applicable binds.
+**Advisory, not control:** the read certifies a withheld/granted ceiling; it never
+prohibits the owner's action.
+
+- **R3(a) Confirmed-present → cap (defeater).** Evidence the risk is active (the
+  discriminator's stated **sufficiency bar** met) caps the read: withhold the
+  positive verdict on this dimension, regardless of positive evidence elsewhere —
+  there is no real demand to weight. References the C1 gate's independence logic; it
+  does not re-implement it.
+- **R3(b) Unconfirmed → ceiling discount, two reversibility bands.** Boundary =
+  whether the **committed portion** of the action is recoverable before its cost
+  sinks (not the verb): recoverable → **mild** (proceed); not recoverable →
+  **near-cap** (advise the recoverable path until checked). Recoverability is
+  multi-dimensional — economic, reputational, operational, evidence-contamination —
+  and the **least-recoverable dimension binds** (anti-slicing; a "small test" that
+  manufactures the signal it would read is material, not reversible).
+- **R3(c) Confirmed-absent → neutral baseline, never positive.** Verified-clean and
+  risk-not-applicable both sit at the risk-absent baseline, above unverified (which
+  bears the R3(b) discount); verified-clean earns **no positive credit** over
+  not-applicable (anti-gaming; preserves AR-05).
+- **R3(d) Discriminator companion (required) + status triple.** Each governed risk
+  carries a present-fingerprint + an absent-clearing-check, each with a stated
+  **sufficiency bar**. Core owns the requirement, shape, and per-class families; the
+  vertical deck owns the specific tells. Status: **set-run** (fingerprint → cap /
+  clearing-check → neutral / neither → inconclusive → near-cap, owner bets);
+  **missing-but-buildable** (withhold the material green-light, advise the
+  recoverable path, build the set); **impossible** (→ R3(e)). **Unlock rule:** a
+  material/irreversible action earns a durable-grade green-light only by *running*
+  the discriminator.
+- **R3(e) Falsifiability filter + inherent-limit caps.** A risk with no possible
+  clearing-check does not block via (a)–(c); it is a standing **inherent-limit cap**
+  (orthogonal, not verification-clearable — archetype small-N) or discarded as noise.
+- **FP/FN asymmetry.** C2 advises more strongly against a suspected-but-unproven risk
+  the more **irreversible** the action it would authorize; the asymmetry is
+  **bounded** (a judge that never certifies is inert), hardening toward a cap only as
+  the bet becomes un-undoable. Verification is the unlock.
+
+**Mini-god-tier / v2.** Qualitative now (bands, no probabilities; named limits:
+thin-deck early conservatism, LLM-in-session residual variance, manual lesson
+install, dispositive-checkable coverage, forward-capture cold-start). Numeric v2 is
+an **intended migration hypothesis** (may decompose the bands into separate
+variables: likelihood, evidence-quality, severity, action-lock-in), gated on a
+calibration spine **and** the owner lifting INV-1.
 
 ## Non-Goals
 
@@ -188,6 +270,14 @@ When C2 weights an admitted signal under an active `decision_family`, it must:
   the trace explicitly labels it **cap / discount / neutral, with a reason**; an
   ambiguous caveat that moves or fails to move the weight without a stated
   classification fails.
+- **Rule 3 axis scoping (item 9):** a persistence-axis pattern (resale / event /
+  scarcity) treated as a **cap** fails — it must be classified transient and routed
+  to C3; a confirmed-present manufactured-axis risk (sufficiency bar met) that does
+  not cap fails.
+- **Rule 3 evidentiary state (item 9):** an unconfirmed risk on an irreversible move
+  that draws only a mild discount fails (least-recoverable binds); a verified-clean
+  signal credited above risk-not-applicable fails (anti-gaming); a material
+  green-light granted without *running* the discriminator fails.
 
 ## Checking Items 7–8 (enforcement posture)
 
@@ -228,8 +318,12 @@ spec_handoff:
     flag) at different trace levels, stays advisory (no blind override, no
     source-family promotion, no ceiling lift), emits direction + reasoning with a
     two-sided tolerance on the level (one band either way, not a precise point;
-    owner decision 2026-06-14), and labels each ambiguous caveat
-    cap/discount/neutral with a reason.
+    owner decision 2026-06-14), labels each ambiguous caveat
+    cap/discount/neutral with a reason, and applies Rule 3 (risk-state weighting):
+    a known dispositive manufactured-axis risk caps when confirmed-present,
+    discounts (reversibility-banded) when unconfirmed, sits at a neutral baseline
+    when confirmed-absent, while persistence-axis patterns are not capped but
+    reclassified transient and routed to C3 (folded 2026-06-15, two-axis reground).
   non_goals:
     - numeric/ordinal weight or deterministic apply-rule from the tally (INV-1)
     - ledger-schema edits (consume by pointer; amend via delegated-review-patch)
@@ -252,6 +346,8 @@ spec_handoff:
     - advisory-only (no promotion, no ceiling lift)
     - direction/band tolerance (consistency judged on direction + reasoning, not exact level)
     - ambiguity classification (each ambiguous caveat labeled cap/discount/neutral with a reason)
+    - rule 3 axis scoping (manufactured-axis risk caps; persistence-axis pattern not capped -> transient -> C3)
+    - rule 3 evidentiary state (present->cap, unconfirmed->reversibility-banded discount, absent->neutral baseline; discriminator must be run for a material green-light)
   deferred_open_questions:
     - small-N threshold + staleness-age cutoff: ledger-owned; consumer only requires the caveat to travel
   review_timing_advisory:
@@ -298,6 +394,41 @@ judgment_spine_claim_classification:
     - not readiness unless separately proven
     - not buyer proof unless the buyer-proof receipt is complete
     - not judgment-quality evidence unless the judgment-quality receipt is complete
+```
+
+## Direction Change Propagation
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    C2 read-contract Rule 3 (risk-state weighting across present / unconfirmed /
+    absent evidentiary states) folded into this spec, re-grounded onto main's
+    two-axis demand-state model: the cap lives on the manufactured / integrity
+    axis; persistence-axis patterns (resale / event / scarcity) are transient
+    verdicts routed to C3, not caps. Same edit renames the C1-derived object
+    "admitted signal" -> "allowed signal" (the C1 step verb Admit -> Allow).
+  trigger: product_doctrine
+  related_triggers:
+    - architecture_doctrine
+  controlling_sources_updated:
+    - docs/product/judgment_spine/judgment_spine_c2_ledger_read_contract_v0.md
+    - docs/product/judgment_spine/judgment_spine_demand_read_machinery_architecture_v0.md
+  downstream_surfaces_checked:
+    - docs/product/product_lead/orca_demand_read_taxonomy_v0.md   # already two-axis + Calling Sequence (C3 transient handling); "hollow" hits are the retirement explanation, kept
+  intentionally_not_updated:
+    - path: source-family "admission"/"admissibility" + Demand-Substrate Hard Gate vocabulary (this spec's source-family admission lines; read-machinery "admission inputs"/"admissible")
+      reason: the rename targets the C1 demand-signal step verb only; the ratified G1/G2 gate concept and the source-family admission state are consumed, not renamed or reopened.
+    - path: docs/decisions/orca_c2_risk_state_weighting_v0.md (sender, ecr-sp3)
+      reason: stale-frame INPUT superseded by this folded + re-grounded Rule 3; lives on a stale branch, retired by the reground.
+  stale_language_search: >
+    rg -i "admit|admitt|admiss|hollow" across the two edited spine docs (2026-06-15):
+    residual hits are all intended-keep (source-family admission, gate
+    admissibility, lesson-admission, the "hollow is retired" explanation); no "C1
+    Admit", no "admitted signal", no live "durable-vs-hollow" verdict remains.
+  non_claims:
+    - not validation
+    - not readiness
+    - not a live fold to origin/main (per-lane PR pending)
 ```
 
 ## Non-Claims
