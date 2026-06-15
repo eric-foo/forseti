@@ -1,0 +1,46 @@
+{
+  "availability_http_metadata": {
+    "byte_count": 302,
+    "capture_timestamp": "2026-06-15T13:14:44Z",
+    "content_length": null,
+    "content_type": "application/json",
+    "date": "Mon, 15 Jun 2026 13:14:44 GMT",
+    "etag": null,
+    "final_url": "https://web.archive.org/cdx/search/cdx?url=https%3A%2F%2Fkinderbeauty.com%2Fpages%2Fapril-2022-box&output=json&fl=timestamp%2Coriginal%2Cstatuscode%2Cmimetype%2Cdigest&collapse=digest&to=20230301000000&limit=-10",
+    "last_modified": null,
+    "reason": "OK",
+    "requested_url": "https://web.archive.org/cdx/search/cdx?url=https%3A%2F%2Fkinderbeauty.com%2Fpages%2Fapril-2022-box&output=json&fl=timestamp%2Coriginal%2Cstatuscode%2Cmimetype%2Cdigest&collapse=digest&to=20230301000000&limit=-10",
+    "status": 200,
+    "timeout_seconds": 90.0
+  },
+  "availability_url": "https://web.archive.org/cdx/search/cdx?url=https%3A%2F%2Fkinderbeauty.com%2Fpages%2Fapril-2022-box&output=json&fl=timestamp%2Coriginal%2Cstatuscode%2Cmimetype%2Cdigest&collapse=digest&to=20230301000000&limit=-10",
+  "original_url": "https://kinderbeauty.com/pages/april-2022-box",
+  "parse_warning": null,
+  "selected_snapshot": {
+    "digest": "VIX3NPWXBXMROGXYMLD4H6NVSOGB3X2H",
+    "mime_type": "text/html",
+    "original_url": "https://kinderbeauty.com/pages/april-2022-box",
+    "snapshot_url": "https://web.archive.org/web/20230201165532/https://kinderbeauty.com/pages/april-2022-box",
+    "status_code": "200",
+    "timestamp": "20230201165532"
+  },
+  "snapshot_count": 2,
+  "snapshots": [
+    {
+      "digest": "TLW6FRC5F3NUHRWQ3THZUDVJXCSXV2T2",
+      "mime_type": "text/html",
+      "original_url": "https://kinderbeauty.com/pages/april-2022-box",
+      "snapshot_url": "https://web.archive.org/web/20221206070947/https://kinderbeauty.com/pages/april-2022-box",
+      "status_code": "200",
+      "timestamp": "20221206070947"
+    },
+    {
+      "digest": "VIX3NPWXBXMROGXYMLD4H6NVSOGB3X2H",
+      "mime_type": "text/html",
+      "original_url": "https://kinderbeauty.com/pages/april-2022-box",
+      "snapshot_url": "https://web.archive.org/web/20230201165532/https://kinderbeauty.com/pages/april-2022-box",
+      "status_code": "200",
+      "timestamp": "20230201165532"
+    }
+  ]
+}

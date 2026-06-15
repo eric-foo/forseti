@@ -1,0 +1,25 @@
+{
+  "original_url": "https://kinderbeauty.com/pages/april-2022-box",
+  "selected_snapshot": {
+    "digest": "VIX3NPWXBXMROGXYMLD4H6NVSOGB3X2H",
+    "mime_type": "text/html",
+    "original_url": "https://kinderbeauty.com/pages/april-2022-box",
+    "snapshot_url": "https://web.archive.org/web/20230201165532/https://kinderbeauty.com/pages/april-2022-box",
+    "status_code": "200",
+    "timestamp": "20230201165532"
+  },
+  "snapshot_body_http_metadata": {
+    "byte_count": 238534,
+    "capture_timestamp": "2026-06-15T13:14:46Z",
+    "content_length": null,
+    "content_type": "text/html; charset=utf-8",
+    "date": "Mon, 15 Jun 2026 13:14:45 GMT",
+    "etag": null,
+    "final_url": "https://web.archive.org/web/20230201165532/https://kinderbeauty.com/pages/april-2022-box",
+    "last_modified": null,
+    "reason": "OK",
+    "requested_url": "https://web.archive.org/web/20230201165532/https://kinderbeauty.com/pages/april-2022-box",
+    "status": 200,
+    "timeout_seconds": 90.0
+  }
+}

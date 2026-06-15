@@ -1,0 +1,25 @@
+{
+  "original_url": "https://kinderbeauty.com/pages/brands",
+  "selected_snapshot": {
+    "digest": "Z7Q2SZ7ZKBFKW3GEDCIGCU4X5TECNYTR",
+    "mime_type": "text/html",
+    "original_url": "https://kinderbeauty.com/pages/brands",
+    "snapshot_url": "https://web.archive.org/web/20221130230006/https://kinderbeauty.com/pages/brands",
+    "status_code": "200",
+    "timestamp": "20221130230006"
+  },
+  "snapshot_body_http_metadata": {
+    "byte_count": 282640,
+    "capture_timestamp": "2026-06-15T13:09:01Z",
+    "content_length": null,
+    "content_type": "text/html; charset=utf-8",
+    "date": "Mon, 15 Jun 2026 13:09:00 GMT",
+    "etag": null,
+    "final_url": "https://web.archive.org/web/20221130230006/https://kinderbeauty.com/pages/brands",
+    "last_modified": null,
+    "reason": "OK",
+    "requested_url": "https://web.archive.org/web/20221130230006/https://kinderbeauty.com/pages/brands",
+    "status": 200,
+    "timeout_seconds": 60.0
+  }
+}

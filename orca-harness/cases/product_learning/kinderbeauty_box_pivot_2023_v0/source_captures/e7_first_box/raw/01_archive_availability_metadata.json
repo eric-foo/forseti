@@ -1,0 +1,46 @@
+{
+  "availability_http_metadata": {
+    "byte_count": 298,
+    "capture_timestamp": "2026-06-15T13:08:15Z",
+    "content_length": null,
+    "content_type": "application/json",
+    "date": "Mon, 15 Jun 2026 13:08:15 GMT",
+    "etag": null,
+    "final_url": "https://web.archive.org/cdx/search/cdx?url=https%3A%2F%2Fkinderbeauty.com%2Fpages%2F16-first-box&output=json&fl=timestamp%2Coriginal%2Cstatuscode%2Cmimetype%2Cdigest&collapse=digest&to=20230301000000&limit=-10",
+    "last_modified": null,
+    "reason": "OK",
+    "requested_url": "https://web.archive.org/cdx/search/cdx?url=https%3A%2F%2Fkinderbeauty.com%2Fpages%2F16-first-box&output=json&fl=timestamp%2Coriginal%2Cstatuscode%2Cmimetype%2Cdigest&collapse=digest&to=20230301000000&limit=-10",
+    "status": 200,
+    "timeout_seconds": 60.0
+  },
+  "availability_url": "https://web.archive.org/cdx/search/cdx?url=https%3A%2F%2Fkinderbeauty.com%2Fpages%2F16-first-box&output=json&fl=timestamp%2Coriginal%2Cstatuscode%2Cmimetype%2Cdigest&collapse=digest&to=20230301000000&limit=-10",
+  "original_url": "https://kinderbeauty.com/pages/16-first-box",
+  "parse_warning": null,
+  "selected_snapshot": {
+    "digest": "HSJUHL7RLHNG2B5F5OYFMH5CFOK3FEB6",
+    "mime_type": "text/html",
+    "original_url": "https://kinderbeauty.com/pages/16-first-box",
+    "snapshot_url": "https://web.archive.org/web/20221208115319/https://kinderbeauty.com/pages/16-first-box",
+    "status_code": "200",
+    "timestamp": "20221208115319"
+  },
+  "snapshot_count": 2,
+  "snapshots": [
+    {
+      "digest": "VTTCHU3XQGUDPJY7XIUGYTLWPRE52EAL",
+      "mime_type": "text/html",
+      "original_url": "https://kinderbeauty.com/pages/16-first-box",
+      "snapshot_url": "https://web.archive.org/web/20221020120357/https://kinderbeauty.com/pages/16-first-box",
+      "status_code": "200",
+      "timestamp": "20221020120357"
+    },
+    {
+      "digest": "HSJUHL7RLHNG2B5F5OYFMH5CFOK3FEB6",
+      "mime_type": "text/html",
+      "original_url": "https://kinderbeauty.com/pages/16-first-box",
+      "snapshot_url": "https://web.archive.org/web/20221208115319/https://kinderbeauty.com/pages/16-first-box",
+      "status_code": "200",
+      "timestamp": "20221208115319"
+    }
+  ]
+}

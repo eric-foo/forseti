@@ -1,0 +1,78 @@
+{
+  "availability_http_metadata": {
+    "byte_count": 780,
+    "capture_timestamp": "2026-06-15T13:12:26Z",
+    "content_length": null,
+    "content_type": "application/json",
+    "date": "Mon, 15 Jun 2026 13:12:26 GMT",
+    "etag": null,
+    "final_url": "https://web.archive.org/cdx/search/cdx?url=https%3A%2F%2Fkinderbeauty.com%2Fpages%2Fcustomer-help&output=json&fl=timestamp%2Coriginal%2Cstatuscode%2Cmimetype%2Cdigest&collapse=digest&to=20230301000000&limit=-10",
+    "last_modified": null,
+    "reason": "OK",
+    "requested_url": "https://web.archive.org/cdx/search/cdx?url=https%3A%2F%2Fkinderbeauty.com%2Fpages%2Fcustomer-help&output=json&fl=timestamp%2Coriginal%2Cstatuscode%2Cmimetype%2Cdigest&collapse=digest&to=20230301000000&limit=-10",
+    "status": 200,
+    "timeout_seconds": 90.0
+  },
+  "availability_url": "https://web.archive.org/cdx/search/cdx?url=https%3A%2F%2Fkinderbeauty.com%2Fpages%2Fcustomer-help&output=json&fl=timestamp%2Coriginal%2Cstatuscode%2Cmimetype%2Cdigest&collapse=digest&to=20230301000000&limit=-10",
+  "original_url": "https://kinderbeauty.com/pages/customer-help",
+  "parse_warning": null,
+  "selected_snapshot": {
+    "digest": "WKWN3FBHTKZYLIKEYIN5KSLFYT4V6UBB",
+    "mime_type": "text/html",
+    "original_url": "https://kinderbeauty.com/pages/customer-help",
+    "snapshot_url": "https://web.archive.org/web/20230205211216/https://kinderbeauty.com/pages/customer-help",
+    "status_code": "200",
+    "timestamp": "20230205211216"
+  },
+  "snapshot_count": 6,
+  "snapshots": [
+    {
+      "digest": "L5ZOVLZO2YFOYGKJSYG6RVNTEGBSFDA6",
+      "mime_type": "text/html",
+      "original_url": "https://kinderbeauty.com/pages/customer-help",
+      "snapshot_url": "https://web.archive.org/web/20220811155535/https://kinderbeauty.com/pages/customer-help",
+      "status_code": "200",
+      "timestamp": "20220811155535"
+    },
+    {
+      "digest": "IY3WDDKNCYJAIF7IFWALVJ2QMCXFCS52",
+      "mime_type": "text/html",
+      "original_url": "https://kinderbeauty.com/pages/customer-help",
+      "snapshot_url": "https://web.archive.org/web/20221005113909/https://kinderbeauty.com/pages/customer-help",
+      "status_code": "200",
+      "timestamp": "20221005113909"
+    },
+    {
+      "digest": "QGL6JVRPJZ6YJM6ERCJUGIYU26FL46A6",
+      "mime_type": "text/html",
+      "original_url": "https://kinderbeauty.com/pages/customer-help",
+      "snapshot_url": "https://web.archive.org/web/20221020120357/https://kinderbeauty.com/pages/customer-help",
+      "status_code": "200",
+      "timestamp": "20221020120357"
+    },
+    {
+      "digest": "CEGUUOAY7JDFOQAHII6BVQWPDQSAJHTK",
+      "mime_type": "text/html",
+      "original_url": "https://kinderbeauty.com/pages/customer-help",
+      "snapshot_url": "https://web.archive.org/web/20221031204432/https://kinderbeauty.com/pages/customer-help",
+      "status_code": "200",
+      "timestamp": "20221031204432"
+    },
+    {
+      "digest": "RNCEAKUFUHPWVA6A5BJKGCFYX2SQKWM5",
+      "mime_type": "text/html",
+      "original_url": "https://kinderbeauty.com/pages/customer-help",
+      "snapshot_url": "https://web.archive.org/web/20221130232225/https://kinderbeauty.com/pages/customer-help",
+      "status_code": "200",
+      "timestamp": "20221130232225"
+    },
+    {
+      "digest": "WKWN3FBHTKZYLIKEYIN5KSLFYT4V6UBB",
+      "mime_type": "text/html",
+      "original_url": "https://kinderbeauty.com/pages/customer-help",
+      "snapshot_url": "https://web.archive.org/web/20230205211216/https://kinderbeauty.com/pages/customer-help",
+      "status_code": "200",
+      "timestamp": "20230205211216"
+    }
+  ]
+}

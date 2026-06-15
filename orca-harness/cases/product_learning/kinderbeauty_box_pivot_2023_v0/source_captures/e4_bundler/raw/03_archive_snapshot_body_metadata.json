@@ -1,0 +1,25 @@
+{
+  "original_url": "https://kinderbeauty.com/pages/bundler",
+  "selected_snapshot": {
+    "digest": "36X7VJGXBQIFNHYDGYMUHIDLCSPVG4LO",
+    "mime_type": "text/html",
+    "original_url": "https://kinderbeauty.com/pages/bundler",
+    "snapshot_url": "https://web.archive.org/web/20230206004210/https://kinderbeauty.com/pages/bundler",
+    "status_code": "200",
+    "timestamp": "20230206004210"
+  },
+  "snapshot_body_http_metadata": {
+    "byte_count": 229510,
+    "capture_timestamp": "2026-06-15T13:07:00Z",
+    "content_length": null,
+    "content_type": "text/html; charset=utf-8",
+    "date": "Mon, 15 Jun 2026 13:06:59 GMT",
+    "etag": null,
+    "final_url": "https://web.archive.org/web/20230206004210/https://kinderbeauty.com/pages/bundler",
+    "last_modified": null,
+    "reason": "OK",
+    "requested_url": "https://web.archive.org/web/20230206004210/https://kinderbeauty.com/pages/bundler",
+    "status": 200,
+    "timeout_seconds": 60.0
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "original_url": "https://kinderbeauty.com/pages/how-to-cancel",
+  "selected_snapshot": {
+    "digest": "E5VWYOTSDUCZHLBF3OIWP4CEWA4CY6RA",
+    "mime_type": "text/html",
+    "original_url": "https://kinderbeauty.com/pages/how-to-cancel",
+    "snapshot_url": "https://web.archive.org/web/20230205214157/https://kinderbeauty.com/pages/how-to-cancel",
+    "status_code": "200",
+    "timestamp": "20230205214157"
+  },
+  "snapshot_body_http_metadata": {
+    "byte_count": 233134,
+    "capture_timestamp": "2026-06-15T13:12:21Z",
+    "content_length": null,
+    "content_type": "text/html; charset=utf-8",
+    "date": "Mon, 15 Jun 2026 13:12:20 GMT",
+    "etag": null,
+    "final_url": "https://web.archive.org/web/20230205214157/https://kinderbeauty.com/pages/how-to-cancel",
+    "last_modified": null,
+    "reason": "OK",
+    "requested_url": "https://web.archive.org/web/20230205214157/https://kinderbeauty.com/pages/how-to-cancel",
+    "status": 200,
+    "timeout_seconds": 90.0
+  }
+}

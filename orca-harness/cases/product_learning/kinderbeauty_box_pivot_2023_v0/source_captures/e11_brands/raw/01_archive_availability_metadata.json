@@ -1,0 +1,54 @@
+{
+  "availability_http_metadata": {
+    "byte_count": 399,
+    "capture_timestamp": "2026-06-15T13:08:59Z",
+    "content_length": null,
+    "content_type": "application/json",
+    "date": "Mon, 15 Jun 2026 13:08:59 GMT",
+    "etag": null,
+    "final_url": "https://web.archive.org/cdx/search/cdx?url=https%3A%2F%2Fkinderbeauty.com%2Fpages%2Fbrands&output=json&fl=timestamp%2Coriginal%2Cstatuscode%2Cmimetype%2Cdigest&collapse=digest&to=20230301000000&limit=-10",
+    "last_modified": null,
+    "reason": "OK",
+    "requested_url": "https://web.archive.org/cdx/search/cdx?url=https%3A%2F%2Fkinderbeauty.com%2Fpages%2Fbrands&output=json&fl=timestamp%2Coriginal%2Cstatuscode%2Cmimetype%2Cdigest&collapse=digest&to=20230301000000&limit=-10",
+    "status": 200,
+    "timeout_seconds": 60.0
+  },
+  "availability_url": "https://web.archive.org/cdx/search/cdx?url=https%3A%2F%2Fkinderbeauty.com%2Fpages%2Fbrands&output=json&fl=timestamp%2Coriginal%2Cstatuscode%2Cmimetype%2Cdigest&collapse=digest&to=20230301000000&limit=-10",
+  "original_url": "https://kinderbeauty.com/pages/brands",
+  "parse_warning": null,
+  "selected_snapshot": {
+    "digest": "Z7Q2SZ7ZKBFKW3GEDCIGCU4X5TECNYTR",
+    "mime_type": "text/html",
+    "original_url": "https://kinderbeauty.com/pages/brands",
+    "snapshot_url": "https://web.archive.org/web/20221130230006/https://kinderbeauty.com/pages/brands",
+    "status_code": "200",
+    "timestamp": "20221130230006"
+  },
+  "snapshot_count": 3,
+  "snapshots": [
+    {
+      "digest": "NJSJ6XJLRHGJFKPL6SRQFCU6XTW5CLI4",
+      "mime_type": "text/html",
+      "original_url": "https://kinderbeauty.com/pages/brands",
+      "snapshot_url": "https://web.archive.org/web/20220811134945/https://kinderbeauty.com/pages/brands",
+      "status_code": "200",
+      "timestamp": "20220811134945"
+    },
+    {
+      "digest": "PFYFR7Q3ORXKDCR6Y46MUE7KPSTF7PNU",
+      "mime_type": "text/html",
+      "original_url": "https://kinderbeauty.com/pages/brands",
+      "snapshot_url": "https://web.archive.org/web/20221005113904/https://kinderbeauty.com/pages/brands",
+      "status_code": "200",
+      "timestamp": "20221005113904"
+    },
+    {
+      "digest": "Z7Q2SZ7ZKBFKW3GEDCIGCU4X5TECNYTR",
+      "mime_type": "text/html",
+      "original_url": "https://kinderbeauty.com/pages/brands",
+      "snapshot_url": "https://web.archive.org/web/20221130230006/https://kinderbeauty.com/pages/brands",
+      "status_code": "200",
+      "timestamp": "20221130230006"
+    }
+  ]
+}

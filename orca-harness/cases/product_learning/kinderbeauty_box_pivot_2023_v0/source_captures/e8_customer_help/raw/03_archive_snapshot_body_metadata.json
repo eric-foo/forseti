@@ -1,0 +1,25 @@
+{
+  "original_url": "https://kinderbeauty.com/pages/customer-help",
+  "selected_snapshot": {
+    "digest": "WKWN3FBHTKZYLIKEYIN5KSLFYT4V6UBB",
+    "mime_type": "text/html",
+    "original_url": "https://kinderbeauty.com/pages/customer-help",
+    "snapshot_url": "https://web.archive.org/web/20230205211216/https://kinderbeauty.com/pages/customer-help",
+    "status_code": "200",
+    "timestamp": "20230205211216"
+  },
+  "snapshot_body_http_metadata": {
+    "byte_count": 292457,
+    "capture_timestamp": "2026-06-15T13:12:28Z",
+    "content_length": null,
+    "content_type": "text/html; charset=utf-8",
+    "date": "Mon, 15 Jun 2026 13:12:27 GMT",
+    "etag": null,
+    "final_url": "https://web.archive.org/web/20230205211216/https://kinderbeauty.com/pages/customer-help",
+    "last_modified": null,
+    "reason": "OK",
+    "requested_url": "https://web.archive.org/web/20230205211216/https://kinderbeauty.com/pages/customer-help",
+    "status": 200,
+    "timeout_seconds": 90.0
+  }
+}
