@@ -145,14 +145,17 @@ self-terminating** sessions — **no perpetual/scheduled standing crawler.** So:
 - The cadences here define an **ideal sampling schedule (a target)**, executed by **batching the due
   reads into bounded attended monitoring sessions** — NOT a 24/7 daemon that auto-fires every 6h. A
   sample "due at +6h" is taken whenever the next bounded session runs.
-- **Resolved (owner, 2026-06-15 — posture (C), v0):** virality uses **best-effort-within-session**. The
-  hot-list *flags* spiking posts (spike detection = reading the projection, always permitted), and the
-  tight 6h/12h sampling happens whenever the next bounded session runs — **no sprint mechanism and no
-  carve-out amendment for v0.** Tight cadences are *best-effort targets, not guarantees*; coarser peak
-  resolution is accepted for v0. Escalation path if best-effort proves too coarse to capture the
-  wind-calling moment: **(A)** human-initiated bounded sprints (still conformant), then **(B)**
-  pre-authorized supervised-autonomy auto-launch (would need a dated carve-out clarification) — both
-  **deferred, not built.**
+- **Resolved (owner, 2026-06-15 — posture (B), supervised autonomy):** virality is to use
+  **pre-authorized, bounded, self-terminating sprints** — on spike detection (spike detection = reading
+  the projection, always permitted) the system may **auto-launch** a time-bounded, self-terminating
+  sprint that samples the hot post at a tight cadence (6h/12h), within a cap, then stops. **GATED —
+  owner-owned prerequisite:** (B) edges past the carve-out's "human-initiated" wording, so it **requires
+  a dated carve-out clarification** (extending "human-initiated" → "human-pre-authorized, bounded,
+  self-terminating, capped") recorded on the carve-out lane. **Until that clarification lands, (B) is NOT
+  authorized to run; the interim posture is (C) best-effort-within-session** (hot-list flags; tight
+  sampling rides the next bounded session). Two build prerequisites: the carve-out clarification (owner),
+  and the sprint auto-launch mechanism (separate runtime authorization — not built). Fallback if the
+  clarification is declined: (A) human-initiated bounded sprints, then (C).
 - Account-cap rules (≤10 / start ≤5 operating accounts) apply to social platforms; EDGAR/org-motion (if
   ever monitored) is a separate non-person posture, not governed here.
 
