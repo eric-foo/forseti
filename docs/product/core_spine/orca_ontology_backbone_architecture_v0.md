@@ -1,0 +1,472 @@
+# Orca Ontology Backbone — Architecture (PROPOSED) v0
+
+```yaml
+retrieval_header_version: 1
+artifact_role: Product artifact (architecture-pass deliverable — PROPOSED ontology backbone)
+scope: >
+  PROPOSED design for Orca's shared, governed semantic backbone: a Foundry-style
+  domain ontology in two layers — Layer 1 (domain object/link/action roster to
+  BUILD) and Layer 2 (workflow ontology that MAPS to existing overlay owners,
+  never rebuilds). Naming-normative / schema-light. Returns a design for owner
+  adjudication; enacts nothing.
+use_when:
+  - Adjudicating whether to adopt the Orca ontology as the repo's semantic backbone.
+  - Locating the proposed object roster, links, action gates, ID grammar, and binding plan.
+authority_boundary: retrieval_only
+status: PROPOSED_2026-06-15_AWAITING_OWNER_ADJUDICATION
+commission: docs/prompts/product-planning/orca_ontology_backbone_architecture_pass_commission_prompt_v0.md
+base: origin/main @ 953af7ea (frozen); freshness gate PASSED (8/8 sha-pins + LIVE grammar verified)
+adjudication_route: ICP / product-direction lane adjudicates; owner signs adoption and any folder/router binding.
+lock_in_notice: >
+  HIGH downstream lock-in BY DESIGN — this is meant as the repo backbone. The
+  lock-in lives in the NAMING / RELATIONSHIP / ID-GRAMMAR surface (object names,
+  the two load-bearing links, the ID scheme), which is deliberately kept small
+  and schema-light so the cost is bounded. See §7.
+```
+
+This is PROPOSED architecture. It is not validation, readiness, proof, adoption,
+or implementation authorization. It enacts no folder, router, or object card. The
+ontology is naming / relationship / gate-pointer authority by design — not a new
+validation or lifecycle authority. Property lists are deliberately NOT frozen.
+
+---
+
+## §0. Method, Source Context, and Freshness (receipt)
+
+- **Cynefin route:** Complicated (reason-through from existing sources) with one
+  Complex edge — the object carve is HIGH lock-in and rests on a freshly-landed
+  demand grammar; carved risk-first against the current grammar, not the
+  2026-06-13 snapshot.
+- **Method (source-gated):** `workflow-goal-framing` (§1) → `SOURCE_CONTEXT_READY`
+  → `workflow-architecture-planning` (§7). Methods were REFERENCE-LOADed and only
+  APPLIED after source readiness.
+- **Freshness gate:** PASSED. All 8 sha-pinned sources matched frozen base
+  `953af7ea`; the LIVE demand-grammar sources were verified to carry the current
+  demand-state model + Q0–Q3 adjudication + applied G1/G2/G4 gate-closure model
+  (NOT the retired durable-vs-hollow framing).
+- **Source-read ledger** (read at the frozen base; extraction delegated read-only):
+  - Layer-1 grammar: `orca_product_thesis_consumer_demand_v0.md`,
+    `orca_demand_read_taxonomy_v0.md`, `orca_demand_read_taxonomy_adjudication_v0.md`.
+  - Gates/proof: `orca_demand_gate_definition_closures_proposal_v0.md`,
+    `orca_buyer_proof_packet_v0.md`.
+  - Object exemplars/kernel: `beauty_venue_card_set_v0.md`,
+    `consumer_demand_candidate_pool_handoff_v0.md`,
+    `orca_discovery_consumer_demand_target_selection_brief_v0.md`.
+  - Survey: `source_capture_packet_schema_evolution_architecture_v0.md`,
+    `judgment_spine_evidence_ladder_architecture_v0.md`,
+    `judgment_spine_gate_ownership_map_v0.md`,
+    `judgment_spine_read_machinery_architecture_handoff_v0.md`,
+    `judgment_spine_backtest_batch1_ledger_declaration_v0.md`.
+  - Layer-2 owners + binding: `artifact-roles.md`, `artifact-folders.md`,
+    `source-of-truth.md`, `orca_repo_structure_binding_v0.md`, `repo-structure.yaml`.
+- **Declared source gaps (not blockers; commission anticipated):**
+  1. `orca_demand_scan_core_spec_v0.md` is ABSENT (in-flight, not on `main`) —
+     designed FOR as a forward consumer; its Observation/Candidate schema is not pinned.
+  2. `EvidenceUnit` is not a frozen schema anywhere; the concrete artifact is the
+     3-tier `claim_tier` ladder. Treated as a candidate type, schema-light.
+
+---
+
+## §1. Goal Frame
+
+**Long-term goal.** Orca becomes a consumer-demand decision-intelligence product
+(beauty first) whose every lane, scan, capture, backtest, judgment, and proof
+artifact reasons over ONE shared, governed vocabulary of demand-world
+objects/links/actions — so repo knowledge compounds (the outcome-memory moat)
+instead of fragmenting into per-lane schema re-inventions.
+
+**Anchor goal.** A PROPOSED ontology-backbone architecture that (a) names the
+capped demand-world object/link/action roster (Layer 1) against the current landed
+grammar, and (b) MAPS workflow concepts to their existing overlay owners (Layer 2)
+— naming-normative / schema-light, adoptable in one owner pass, nothing enacted.
+
+**Success signal.**
+- *Core success.*
+  - *Owner-observable:* owner reads this one doc and sees the full object roster
+    (≤~15), each with definition + stable-ID scheme + key states + governed
+    actions/gates + links + backing artifact, plus a Layer-2 pointer table — enough
+    to adopt / amend / reject in one pass.
+  - *Output fit:* cross-artifact references become addressable IDs
+    (`brand:beautypie`, `case:beautypie_repricing_2023`) instead of path-and-prose;
+    the two load-bearing links (`derived_from`, `diverges_from`) are precise enough
+    for the read-machinery forward consumer — without freezing any property list.
+  - *Boundary:* NOT success = a complete-looking doc that rebuilds/restates Layer-2
+    authority (forks governance), freezes property lists (straitjacket), enacts the
+    folder/router, or asserts validation/readiness/adoption. Writing the file ≠ goal.
+  - *Drift cue:* the design mints NEW gates/authority instead of pointing at existing
+    owners; the roster inflates past the cap by promoting demand-state dimensions into
+    new types; or it re-derives the demand grammar instead of encoding the landed one.
+- *Secondary success.* The in-flight scan-spec and the read-machinery can be
+  expressed in ontology terms with no new vocabulary; the cap + per-card review-date
+  + dated-amendment kernel is stated as the ontology's OWN survival terms.
+
+**Open question (owner decision the pass surfaces, does not answer):** accept the
+HIGH repo-wide-backbone lock-in now vs a thinner naming-only layer — owner-signed
+at adoption via the §7 option record.
+
+---
+
+## §2. Layer 1 — Domain Ontology (BUILD)
+
+The demand world. Naming-normative / schema-light: each card OWNS the type's name,
+one-line definition, stable-ID scheme, key states, governed actions (with the gate
+that already governs the transition), links, and backing artifact(s). It does NOT
+freeze the property list — that keeps evolving in the owning lane and is tracked
+only via the backing map.
+
+### 2.1 Stable-ID grammar (naming authority; NOT a registry)
+
+`namespace:slug`, lowercase, dot-separated sub-parts. The ontology owns the
+*grammar*; minting/resolving individual IDs (a registry) is deferred satellite (§6).
+
+| Namespace | Example | Means |
+| --- | --- | --- |
+| `vertical:` | `vertical:beauty`, `vertical:beauty.fragrance` | a demand domain; sub-niche via dotted child |
+| `brand:` | `brand:beautypie` | a consumer brand |
+| `product:` | `product:retinol`, `product:refillable-format` | the demand target (ingredient/category/format/claim/SKU) |
+| `venue:` | `venue:basenotes` | a demand-signal surface |
+| `windcaller:` | `windcaller:tiktok.hyram` | a leading-indicator account/community/detector |
+| `call:` | `call:tiktok.hyram.2023-04-12` | a wind-caller's early public call |
+| `observation:` | `observation:basenotes.2023-04-12.3` | one captured demand signal |
+| `read:` | `read:beautypie.2023-05-01` | a demand read (trend vector) |
+| `decision:` | `decision:beautypie.repricing-2023` | a live brand-decision event |
+| `memo:` | `memo:beautypie.repricing-2023.1` | a decision-risk memo |
+| `case:` | `case:beautypie_repricing_2023` | a backtest/proof case |
+| `outcome:` | `outcome:beautypie_repricing_2023` | a realized result |
+| `slot:` | `slot:disc-batch0.t1` | a target-selection slot |
+| `packet:` | `packet:3b89a19b…` | a source-capture packet (by sha) |
+| `evidence:` | `evidence:beautypie.repricing-2023.1` | a cleaned evidence unit |
+
+### 2.2 Object-type roster (15 types — at the hard cap; "16th in = one out")
+
+Folds applied to stay under the cap (noted): **SubNiche → Vertical** (self-parent
+link); **TrendVector → Read** (the read *is* the trend-vector-bearing object).
+Demand-state, action-ceiling, read-type, and claim-tier are **dimensions**, not
+types (§2.4). Gates are **actions**, not types (§2.5).
+
+| # | Type | One-line definition | Key states / dimensions | Backing artifact(s) |
+| --- | --- | --- | --- | --- |
+| 1 | **Vertical** | A demand domain at a level (vertical or sub-niche); sub-niches nest via self-parent. | level: vertical \| sub_niche | thesis, wedge |
+| 2 | **Brand** | A consumer brand, with parent-org resolution. | — | candidate-pool handoff |
+| 3 | **Product** | The demand target a read is *about*: ingredient / category / format / claim / SKU. | target_type | (gap — no single backing yet; §3) |
+| 4 | **Venue** | A demand-signal surface (where observations originate). | access_shape, review_by | beauty venue card set |
+| 5 | **WindCaller** | A leading-indicator account/community/detector, per vertical×sub-niche; carries the carve-out boundary. | calibration_state; carve-out (non-permanent, platform-scoped cap, internal-use) | demand-read taxonomy (gap — no card-set asset yet; §3) |
+| 6 | **Call** | A wind-caller's early public call that opens a (transient) read. | persistence_state, integrity_state | scan-spec (forward) / read outputs |
+| 7 | **Observation** | One captured demand-signal instance from a Venue — the node the two provenance links connect. | integrity flags | CapturePacket / scan-spec (forward) |
+| 8 | **Read** | The demand read (trend vector): demand moving toward/away from a target, with direction, velocity, expected lifespan. | persistence_state, integrity_state, read_type, action_ceiling | demand-read taxonomy + memos |
+| 9 | **DecisionEvent** | The live brand-decision event a read serves (the monetization unit a Memo is produced for). | trigger status | candidate pool, discovery brief |
+| 10 | **Memo** | The Public-Signal Demand-Allocation Decision-Risk Memo for one qualified DecisionEvent (reasoning substrate + proof gate). | claim_tier; gate pass/cap/fail | buyer-proof packet |
+| 11 | **Case** | A backtest/proof case: a historical decision with known outcome. | claim_tier, split: dev\|holdout, entry_basis | batch-1 ledger declaration |
+| 12 | **Outcome** | The realized result a Call/Case is graded against (calibration target). | — | case ledger / calibration |
+| 13 | **Slot** | A target-selection slot in a discovery scan. | status: empty→filled | discovery target-selection brief |
+| 14 | **CapturePacket** | A write-once, hash-pinned source-capture packet — the raw provenance an Observation derives from. | manifest_version, cutoff_posture | `orca-harness/source_capture/models.py` |
+| 15 | **EvidenceUnit** | A cleaned evidence unit (IPF standard) bound at the Cleaning/Judgment boundary. | claim_tier | IPF foundation + evidence ladder |
+
+### 2.3 Link map (typed relationships)
+
+Structural / identity:
+- `Vertical —narrows_to→ Vertical` (sub-niche nesting)
+- `Brand —in→ Vertical` · `Brand —child_of→ Brand` (parent org) · `Brand —offers→ Product`
+- `WindCaller —covers→ Vertical` (per vertical×sub-niche)
+
+Signal flow:
+- `WindCaller —made→ Call` · `Call —opens→ Read`
+- `Read —about→ Product` (or `—about→ Brand`) · `Read —serves→ DecisionEvent`
+- `Observation —from→ Venue` · `Observation —supports→ Read` · `Observation —captured_in→ CapturePacket`
+- `EvidenceUnit —cleaned_from→ Observation` (and/or `CapturePacket`)
+
+**The two load-bearing links** (owner-decided in the demand-gate closures; the
+read-machinery forward consumer depends on them — design them precisely):
+- **`Observation —derived_from→ Observation`** — the provenance/laundering edge.
+  Two Observations on one `derived_from` chain are NOT independent: they collapse
+  to a single origination family. This is the de-correlation test behind G1
+  (independence by de-correlated origination) and the Demand-Substrate Hard Gate's
+  independent-origin count. Directed, transitive for the collapse test (any shared
+  upstream origination event = one family); pairwise "neither derives from the
+  other" is explicitly insufficient.
+- **`Observation —diverges_from→ Observation`** — the cross-layer disagreement edge.
+  The integrity / astroturf tell. Preserved as signal, never averaged away.
+  Constrains the action ceiling; and where divergence indicates the costly-behavior
+  instance is itself likely manufactured/coordinated, it can **defeat the floor**
+  (G2), not merely cap the ceiling. Directed, non-collapsing (divergence is kept,
+  not resolved).
+
+Proof / calibration:
+- `Memo —for→ DecisionEvent` · `Memo —cites→ EvidenceUnit` (and/or `Observation`)
+- `Case —backtests→ DecisionEvent` · `Call —graded_by→ Outcome` · `Case —graded_by→ Outcome`
+- `Slot —filled_by→ Brand` + `DecisionEvent` (a candidate = brand + live decision)
+
+G4 distinction (must not leak into the G1 count):
+- org-motion / retail-presence evidence `corroborates` a Read but is EXCLUDED from
+  the independent-origin count — modeled as a distinct link `corroborates` (G4),
+  never `supports`-counted toward independence (G1). The premium signal is the
+  `diverges_from` read where org-motion and demand layers disagree.
+
+### 2.4 Demand-state machinery (DIMENSIONS, not new types)
+
+Folded onto existing types under the cap, per the commission:
+- `persistence_state: durable | transient` (durable = persists past trigger;
+  transient = real but decays) — on Read, Call, Outcome.
+- `integrity_state: real | manufactured` (real = costly behavior; manufactured =
+  fake/amplified) — on Read, Call, Outcome. "Hollow" is RETIRED (it conflated
+  transient with manufactured).
+- derived action state `{durable→commit, transient→move/time-boxed,
+  manufactured→discount/avoid}` — derived only where it helps a consumer; the
+  integrity axis must NOT be collapsed into the persistence axis.
+- `action_ceiling` — the frozen ladder `Excluded → Watch → Probe → Test → Hold →
+  Move → Commit` (verbs `act / phase / narrow / hold / defend`); capped by signal
+  integrity ("the verb may not exceed what signal integrity supports").
+- `read_type ∈ {durable-demand, transient-spike, manufactured-demand,
+  brand-decision-event (monetization unit), wind-caller-calibration (compounding
+  asset)}`. *Divergence is a technique, not a read type.*
+- `claim_tier ∈ {product_learning, buyer_proof, judgment_quality}` — on Memo, Case,
+  Outcome, Read (the evidence ladder, MAPPED, §5).
+
+### 2.5 Action / gate map (governed transitions — the ONLY sanctioned state changes)
+
+Each names the gate that ALREADY governs it; the ontology makes the gate
+*addressable*, it does not invent new gates.
+
+| Action | On | Precondition / gate (where it already lives) |
+| --- | --- | --- |
+| `Read.open_transient` | Read | conservative default: a read opens transient and acts in-window; never opens durable (demand-read taxonomy / calling sequence) |
+| `Read.monitor` | Read | persistence is observed, not predicted (taxonomy) |
+| `Read.earn_durable` | Read | monitored persistence holds past the trigger (taxonomy) — the earned upgrade transient→durable |
+| `Read.decay` | Read | spike decays as called (taxonomy) |
+| `Gate.G1` (independence) | Read / candidate | ≥2 de-correlated origination families for material commitment; `derived_from`-chain siblings collapse to one (demand-gate closures) |
+| `Gate.G2` (costly-behavior floor) | Read / candidate | ≥1 gradeable costly-behavior instance in ≥1 qualifying demand-venue family; absence of demand is not a pass (demand-gate closures) |
+| `Gate.G4` (org-motion corroboration) | Read | separate org-motion cards; corroborates but excluded from the G1 count (demand-gate closures) |
+| `HardGate.evaluate` | candidate / Read | fusion+integrity rule bundling G1+G2+ceiling+integrity → fail \| pass-capped(1 origin) \| pass-material(≥2) (buyer-proof packet) |
+| `Memo.produce` | Memo | named qualified buyer + live decision trigger selected AND Hard Gate passes (buyer-proof packet) |
+| `Call.grade` | Call | requires an Outcome receipt (wind-caller calibration; demand-side calibration is a gap — §3) |
+| `Case.seal` | Case | requires a pre-declared ledger row (batch-1 ledger declaration) |
+| `Slot.fill` | Slot | requires a dated, provenance-noted candidate scan by an authorized lane (discovery brief) |
+| *constraint* `never_a_feed` | recurring Read | every output is a calibrated decision with an action ceiling — never a feed/stream (Orca Promise; buyer-proof packet) |
+
+Judgment-spine gates JSG-01..JSG-10 that govern Case/EvidenceUnit/Memo as they move
+toward judgment-quality evidence are MAPPED, not restated (§5).
+
+---
+
+## §3. Backing Map and Named Gaps
+
+Every type names the artifact(s) that instantiate it (the Foundry "backing dataset"
+analog) — see the right column of §2.2. Where no clean owner/backing exists yet,
+the gap is NAMED, not filled with a new authority:
+
+- **WindCaller has no maintained card-set asset** (Venue has the venue card set;
+  WindCaller does not). Future asset, parallel to the venue cards.
+- **Product (demand target) has no single backing artifact** — currently implicit
+  in reads/memos.
+- **Observation and Call backing depends on the in-flight scan-spec**
+  (`orca_demand_scan_core_spec_v0.md`, not yet on `main`) — design FOR it.
+- **Demand-side Call.grade / Outcome calibration** exists only as the judgment-spine
+  reveal/calibration gate (JSG-08, not cleared for any case) — a gap for demand-side
+  outcome grading.
+- **No global stable-ID registry/resolver exists.** v0 owns the ID *grammar*
+  (§2.1); the registry is deferred satellite (§6).
+
+---
+
+## §4. Forward Consumers (design-for, not yet landed)
+
+Two consumers are not yet on `main` but the carve is designed FOR them; they are
+why the ID *grammar* and the two links are CORE (not deferred):
+
+- **Read-machinery** (`docs/prompts/handoffs/judgment_spine_read_machinery_architecture_handoff_v0.md`).
+  Its core weight step **de-correlates** signal sources via `derived_from` (so shared
+  upstream is not double-counted as independent corroboration) and **maps divergence**
+  via `diverges_from` (convergence-vs-divergence weighting), per-vertical, learned from
+  backtested cases, LLM-in-session / qualitative (no scoring engine until the owner
+  lifts the no-scoring boundary). It names this commission as the carrier of the two
+  links. Requirement on the ontology: `Observation` identity + the two links specified
+  precisely (§2.3).
+- **Demand scan-core spec** (`orca_demand_scan_core_spec_v0.md`, IN-FLIGHT, not on
+  `main`). A forward consumer whose Observation/Candidate schema should re-express in
+  ontology terms (`Observation`, `Read`, `Slot`, `Call`) with no new vocabulary when it
+  lands. Requirement: the §2.1 ID grammar so its rows reference addressable objects, not
+  path-and-prose.
+
+
+
+---
+
+## §5. Layer 2 — Workflow Ontology (MAP, do NOT rebuild)
+
+Lanes, artifact roles, claim tiers, gates, receipts, and folders ALREADY have
+owners in the overlay. Layer 2 is one pointer card per concept; it mints ZERO
+authority. Rebuilding or restating would fork governance — the single worst outcome
+for this repo. Route, don't restate.
+
+| Workflow concept | Existing owner (points to; does not restate) |
+| --- | --- |
+| Lanes (product second-level axis) | `docs/decisions/orca_repo_structure_binding_v0.md` + `.agents/workflow-overlay/artifact-folders.md` |
+| Artifact roles (15 bound roles) | `.agents/workflow-overlay/artifact-roles.md` |
+| Claim / evidence tiers (`product_learning`→`buyer_proof`→`judgment_quality`) | `docs/product/judgment_spine/judgment_spine_evidence_ladder_architecture_v0.md` (+ per-role "Validation evidence" in `artifact-roles.md`) |
+| Validation gates | `.agents/workflow-overlay/validation-gates.md` |
+| Judgment-run gates JSG-01..JSG-10 | `docs/product/judgment_spine/judgment_spine_gate_ownership_map_v0.md` |
+| Receipts (Doctrine Change Propagation) | `.agents/workflow-overlay/source-of-truth.md` (archive `docs/decisions/dcp_receipts_archive_v0.md`) |
+| Folders / placement | `.agents/workflow-overlay/artifact-folders.md` |
+| Review lanes | `.agents/workflow-overlay/review-lanes.md` |
+| Prompt families | `.agents/workflow-overlay/prompt-orchestration.md` |
+| Source hierarchy / source-of-truth | `.agents/workflow-overlay/source-of-truth.md` |
+| Retrieval headers | `.agents/workflow-overlay/retrieval-metadata.md` |
+| Template registry | `.agents/workflow-overlay/template-registry.md` |
+| Skill adoption | `.agents/workflow-overlay/skill-adoption.md` |
+| Repo router (machine map) | `repo-structure.yaml` (binding `orca_repo_structure_binding_v0.md`) |
+
+**Layer-2 rule:** a Layer-1 action that has a workflow owner (e.g. a `claim_tier`
+or a JSG gate) carries `backed_by: <owner path>` and nothing more. No Layer-2 card
+states a rule; if a workflow concept has no clean owner, it is named as a gap above,
+never minted here.
+
+---
+
+## §6. Kernel Discipline (the ontology's OWN survival terms)
+
+Stolen from the venue card set, the proven antidote to ontology rot:
+
+- **Hard cap: 15 domain object types.** "16th in = one out." The roster in §2.2 is
+  AT the cap by design.
+- **Owner: Eric.** Per-type review dates (each card carries a `review_by`); a card
+  past its date is a stale hint to review or retire, not a current-state claim.
+- **Dated amendments only, never silent rewrites.** Fail-soft cards: dated hints,
+  not current-state claims.
+- **Naming-normative / schema-light (load-bearing authority boundary).** v0 OWNS
+  names, definitions, links, action gates, and the ID grammar. It does NOT freeze
+  property lists — those keep evolving in their owning lanes and are tracked only
+  via the backing map (§3). This is the explicit authority boundary that keeps the
+  backbone from becoming a straitjacket.
+
+---
+
+## §7. Option Record + Lock-In
+
+**Architecture result: `TARGET_RECOMMENDED`** (standard profile; directional /
+adversarial / grounding perspectives run locally; extraction delegated read-only).
+
+| Option | Shape | Why it loses / wins |
+| --- | --- | --- |
+| **AO-1 Thin naming + action-gate layer, schema-light** ✅ RECOMMENDED | Owns names, definitions, links, action-gate pointers, ID grammar; property lists stay in owning lanes. | WINS: venue-card-proven anti-rot; low lock-in; does not fork lane schemas; survives a still-evolving demand grammar. Loses: no machine-validated schema (deferred to satellite). |
+| **AO-2 Full typed schema** ❌ | Freeze each type's property list now. | LOSES: builds the straitjacket the goal frame forbids; HIGH lock-in; forks lane-owned schemas; rots on the next grammar amendment. |
+| **AO-3 One flat ontology (no domain/workflow split)** ❌ | One layer over domain + workflow. | LOSES: rebuilds/forks Layer-2 overlay authority — the worst governance outcome. |
+| **AO-4 IDs-later (names now, IDs deferred)** ◑ partial | Defer the ID scheme. | LOSES: forward consumers (read-machinery, scan-spec) need addressable refs now; path-and-prose persists. ADOPT the ID *grammar* now (§2.1), defer the *registry* (§6). |
+
+**Recommended target = AO-1 + domain/workflow split + ID-grammar-now / registry-later.**
+
+**Core / satellite boundary.**
+- *Core (v0 owns):* the §2.2 roster names + definitions; the §2.1 ID grammar; the
+  §2.3 links (esp. `derived_from` / `diverges_from`); the §2.5 action-gate names +
+  preconditions; the §3 backing map; the §6 kernel terms.
+- *Satellite (deferred, NOT v0):* property-list schemas (stay in owning lanes); the
+  ID registry/resolver/index; `ontology.yaml` enactment; object cards as live
+  authority; migrating existing artifacts to stable IDs; any runtime/tooling.
+
+**Invariants later work must preserve.**
+1. Layer 2 never mints authority (MAP only).
+2. Naming-normative / schema-light — never freeze property lists in the backbone.
+3. `derived_from` = independence/laundering (collapse); `diverges_from` =
+   divergence/integrity (preserve-as-signal, never average) — both load-bearing.
+4. `never_a_feed` is an action constraint, not a new gate.
+5. The hard cap (15) holds; growth is one-in-one-out by dated amendment.
+
+**Lock-in the owner is accepting (the §0 lock_in_notice, concretely).** Adoption
+makes a repo-wide shared NAMING / RELATIONSHIP / ID-GRAMMAR surface the reference
+substrate. Renaming a core object, or changing the two load-bearing links,
+propagates to every consumer plus the read-machinery — costly to roll back. This is
+accepted deliberately because the compounding benefit (one vocabulary; addressable
+cross-artifact references; the moat) requires it. It is bounded by: schema-light
+(property lists stay free), the small capped surface, dated amendments, and
+PROPOSED-until-owner-signs.
+
+**What would change the recommendation.** If the demand grammar is still materially
+unsettled (it is now Q0–Q3 DECIDED, so it is not); if the owner wants a thinner
+naming-only layer with no action gates; or if a registry/resolver is needed in v0
+(it is not — forward consumers need the grammar, not the registry).
+
+---
+
+## §8. Physical Binding Plan (PROPOSED — NOT enacted)
+
+Adoption (owner-signed) would require, in order:
+
+1. **Create the `docs/product/ontology/` lane.** It is NOT currently an accepted
+   lane (the product second-level axis is a closed set; a new lane needs a recorded
+   decision). This v0 deliverable is therefore written to the commission's prescribed
+   fallback `docs/product/core_spine/orca_ontology_backbone_architecture_v0.md`.
+   - *artifact-folders.md amendment:* add `ontology/` to the bound product-lane set.
+   - *repo-structure.yaml amendment:* add `{ name: ontology, status: current }` to
+     `product_lanes` and `{ home: docs/product/ontology, entry: docs/product/ontology/README.md }`
+     to `docs_roles`.
+2. **Add an `ontology.yaml` router (router-only; states no rules).** Mirror the
+   `repo-structure.yaml` `{ home, entry }` field grammar and carry the same
+   `authority:`/`note: router_only_not_authority_not_validation` disclaimer. It would
+   index the object cards; placement/naming authority stays in this doc + the cards.
+3. **Author the first object cards** (§9) under the new folder, as dated hints.
+
+None of the above is done here. Adoption is an owner-signed step.
+
+**Doctrine Change Propagation receipt** (adoption would change `architecture_doctrine`
+and add an `output_authority` surface; this receipt travels with the PROPOSED design
+and is the template the adoption edit must complete):
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    PROPOSED: Orca adopts a two-layer, naming-normative / schema-light ontology
+    backbone — a capped domain object/link/action roster + stable-ID grammar (Layer 1
+    BUILD) and a workflow-ontology MAP to existing overlay owners (Layer 2, mints no
+    authority) — as the repo's shared semantic reference layer.
+  trigger: architecture_doctrine
+  related_triggers:
+    - output_authority
+  controlling_sources_updated:
+    - docs/product/ontology/orca_ontology_backbone_architecture_v0.md   # on adoption (this doc, promoted from the core_spine fallback)
+  downstream_surfaces_to_check_on_adoption:
+    - .agents/workflow-overlay/artifact-folders.md      # add ontology lane
+    - repo-structure.yaml                                # add product_lane + docs_role
+    - docs/decisions/orca_repo_structure_binding_v0.md   # record the new lane decision
+    - docs/workflows/orca_repo_map_v0.md                 # add ontology lane row
+    - .agents/workflow-overlay/source-of-truth.md        # known-source entry
+  intentionally_not_updated_now:
+    - path: "ALL of the above"
+      reason: >
+        This is PROPOSED architecture; enacting any binding is an owner-signed
+        adoption step. No overlay/router/folder edit is made by this pass.
+  stale_language_search: "not_run — PROPOSED design; no source-changing doctrine edit made yet"
+  non_claims:
+    - not validation
+    - not readiness
+    - not adoption
+    - not folder/router enactment
+    - not implementation authorization
+```
+
+---
+
+## §9. Smallest Complete Next Routing Object
+
+**After adoption (owner-signed), the first build is the N highest cross-lane-traffic
+object cards**, not the whole roster:
+
+1. `Brand`, `Venue`, `Observation`, `Read`, `Case` — the five types with the most
+   cross-lane reference traffic — authored as dated cards, with the two links
+   (`derived_from`, `diverges_from`) specified precisely enough for the read-machinery.
+2. Re-express the in-flight scan-spec's Observation/Candidate schema in ontology
+   terms (no new vocabulary) when it lands on `main`.
+
+**Deliberately deferred (satellite):** the remaining 10 cards; the ID
+registry/resolver; property-list schemas; migrating existing artifacts to stable
+IDs; the WindCaller card-set asset; demand-side Call.grade/Outcome calibration.
+
+**If not adopted:** no further build; the design stays PROPOSED.
+
+---
+
+## §10. Non-Claims
+
+Commission deliverable only — no validation, readiness, proof, adoption,
+folder-binding enactment, or implementation authorization. PROPOSED until owner
+word. The ontology is naming / relationship / gate-pointer authority by design, not
+a new validation or lifecycle authority. Property lists are deliberately not frozen.
+`model_lane: unbound`.
