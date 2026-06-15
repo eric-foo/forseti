@@ -44,6 +44,7 @@ stale_if:
 | Compare source-access methods and Reddit ordering | `docs/product/data_capture_spine/data_capture_source_access_method_plan_v0.md` |
 | Check operating-model / commissioning-plan authority | `docs/product/data_capture_spine/data_capture_harness_operating_model_architecture_v2_acceptance_decision_v0.md`, then `docs/product/data_capture_spine/data_capture_harness_operating_model_architecture_v2.md` or `docs/product/data_capture_spine/data_capture_spine_pressure_test_commissioning_plan_v0.md` as needed |
 | Check generic Candidate URL Intake boundaries | `docs/product/data_capture_spine/data_capture_spine_candidate_url_intake_contract_v0.md` |
+| Check standing-capture / Corpus Intake obligations (recurring capture before a Decision Frame) | `docs/product/data_capture_spine/data_capture_spine_corpus_intake_obligation_contract_proposal_v0.md` |
 | Check bounded Reddit candidate URL intake / crawler boundaries | `docs/product/data_capture_spine/data_capture_spine_reddit_candidate_url_intake_crawler_architecture_v0.md` |
 | Check accepted Reddit graph/frontier scouting boundaries | `docs/product/data_capture_spine/data_capture_spine_reddit_graph_frontier_lane_architecture_v0.md` |
 | Check bounded Reddit candidate URL intake default policy | `docs/decisions/data_capture_spine_reddit_candidate_url_intake_default_policy_decision_v0.md` |
@@ -217,6 +218,17 @@ stale_if:
   Judgment, fixture admission, source-quality scoring, or implementation
   authorization.
 - owner: `docs/product/data_capture_spine/data_capture_spine_candidate_url_intake_contract_v0.md`
+
+### Corpus Intake (standing-capture)
+
+- summary: Owner-ratified standing-capture sibling of the v0 commissioned
+  obligation contract: the obligation home for recurring capture of an approved
+  public signal into an append-only corpus BEFORE a Decision Frame (S1 standing
+  charter gate, S2 series identity/pins, S3 declared-capped-stop-bounded cadence,
+  S4 append-only integrity, S5 rebind gate, S6 manipulability flags ride forward,
+  S7 never-a-feed lock). Inherits the v0 obligations (Ob.2-16) unchanged. Ratified,
+  not pressure-tested; authorizes no build, scheduler, runtime, or source access.
+- owner: `docs/product/data_capture_spine/data_capture_spine_corpus_intake_obligation_contract_proposal_v0.md`
 
 ### Reddit pre-commercial planning thread
 
@@ -473,4 +485,28 @@ direction_change_propagation:
     - "not merged to main"
     - "not source-access boundary amendment"
     - "not ECR, Cleaning, or Judgment design"
+```
+
+## Direction Change Propagation - Corpus Intake (Standing-Capture) Registration
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: "The Data Capture submap now registers the owner-ratified Corpus Intake (standing-capture) obligation contract as the obligation home for recurring capture of an approved public signal into an append-only corpus before a Decision Frame (the standing sibling of the v0 commissioned obligation contract), with a Fast Route row and an Areas subsection."
+  trigger: workflow_authority
+  related_triggers:
+    - product_doctrine
+    - lifecycle_boundary
+  controlling_sources_updated:
+    - "docs/product/data_capture_spine/data_capture_spine_corpus_intake_obligation_contract_proposal_v0.md"
+    - "docs/product/data_capture_spine/core_spine_v0_data_capture_spine_obligation_contract_v0.md"
+    - "docs/decisions/company_aggregate_forward_signal_capture_lane_scope_decision_v0.md"
+    - "docs/product/data_capture_spine/data_capture_spine_lane_product_thesis_v0.md"
+    - "docs/workflows/data_capture_spine_consolidation_map_v0.md"
+    - "docs/workflows/orca_repo_map_v0.md"
+  non_claims:
+    - "not validation"
+    - "not readiness"
+    - "not contract hardening"
+    - "not pressure-tested"
+    - "not a build, scheduler, runtime, or source-access authorization"
 ```

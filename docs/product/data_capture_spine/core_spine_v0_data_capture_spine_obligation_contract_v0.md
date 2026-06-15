@@ -62,8 +62,10 @@ enough for capture obligations to be evaluated.
 Standing or opportunistic corpus capture is out of scope for Data Capture
 Spine v0. If Orca later collects public signals before a Decision Frame exists,
 that should be handled by a separate Candidate Signal Intake or Corpus Intake
-contract. Those items are not ECR-ready evidence until rebound or recaptured
-under a Decision Frame.
+contract (now the owner-ratified sibling
+`docs/product/data_capture_spine/data_capture_spine_corpus_intake_obligation_contract_proposal_v0.md`,
+owner-ratified 2026-06-15). Those items are not ECR-ready evidence until rebound
+or recaptured under a Decision Frame.
 
 ## Contract Rule
 

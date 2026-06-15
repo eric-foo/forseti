@@ -171,6 +171,17 @@ Data Capture Spine must not become:
 
 The lane may expose pressure for these later decisions. It must not absorb them.
 
+> **Standing/opportunistic corpus capture now has an obligation home (2026-06-15).**
+> The stale_if "Orca authorizes standing or opportunistic corpus capture inside
+> Data Capture Spine" has fired: standing/opportunistic corpus capture is now
+> governed by the owner-ratified Corpus Intake (standing-capture) obligation
+> contract,
+> `docs/product/data_capture_spine/data_capture_spine_corpus_intake_obligation_contract_proposal_v0.md`
+> (the standing sibling of the v0 commissioned obligation contract). This lane's
+> commissioned-only discipline above is unchanged; standing capture remains "not
+> ECR-ready evidence until rebound or recaptured under a Decision Frame," now
+> governed by that contract rather than absorbed here.
+
 ## Product Bet
 
 The product bet for this lane is:

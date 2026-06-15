@@ -232,7 +232,7 @@ A pressure test **fails** when its closure evidence is absent, narrative-only, o
 
 This contract does not prove or authorize validation, readiness, hardening, source-of-truth promotion, buyer proof, repeatable demand, product/feature/implementation/commercial readiness, source-system feasibility, data rights, or runtime feasibility; ratification accepts the obligation set but is **not** a pressure-test pass. It authorizes no implementation, scheduler, runtime, source access, storage, dashboard, automation, scraper, API, or ECR/Cleaning/Judgment design. It does not amend the v0 obligation contract, the source-access boundary, the Candidate URL Intake contract, or the company-aggregate decision; it is the standing-capture sibling those surfaces already point to. INV-1 is preserved: no weight, score, ranking, threshold, or judgment is introduced.
 
-## Direction Change (ratified 2026-06-15; propagation pending as tracked fast-follow)
+## Direction Change (ratified 2026-06-15; propagated 2026-06-15)
 
 ```yaml
 proposed_direction_change:
@@ -245,12 +245,16 @@ proposed_direction_change:
     and giving the demand-durability indicators their standing-capture home, under
     D1=general + D3=scheduler-deferred.
   trigger_if_ratified: product_doctrine
-  propagation_performed: pending
-  reason_propagation_pending: >
-    Owner-ratified 2026-06-15. Propagation to the controlling surfaces below is a
-    tracked post-ratification fast-follow (mirroring the sibling demand-durability
-    lanes' deferred propagation), not yet performed. The surfaces_to_update list is
-    the tracking; until it runs, referrers still resolve to this file's path.
+  propagation_performed: done
+  reason_propagation_done: >
+    Owner-ratified 2026-06-15. Propagation to the controlling surfaces below was
+    performed 2026-06-15 (additive registration/pointer edits only, no obligation
+    change): the v0 commissioned obligation contract now names this ratified
+    sibling; the company-aggregate decision records this contract as the
+    superseding obligation home (its stale_if fired); the Data Capture Spine lane
+    thesis references this contract as the standing-capture obligation home (its
+    stale_if fired); the Data Capture Spine consolidation map registers the
+    standing-capture layer + this contract; and the Orca repo map indexes it.
   surfaces_to_update_on_ratification:
     - path: docs/product/data_capture_spine/core_spine_v0_data_capture_spine_obligation_contract_v0.md
       change: Its standing-capture carve-out / stale_if can name this contract as the now-existing sibling (no obligation change).
@@ -262,14 +266,13 @@ proposed_direction_change:
       change: Register the standing-capture layer + this contract (a discoverability pass, deferred like the sibling lanes deferred theirs).
     - path: docs/workflows/orca_repo_map_v0.md
       change: Index the new contract.
-  not_yet_updated:
+  updated_on_ratification:
     - path: all of the above
-      reason: Ratified; propagation is the tracked post-ratification fast-follow above, not yet run.
+      reason: Propagated 2026-06-15 via additive registration/pointer edits; referrers now resolve to this file by path.
   non_claims:
     - not validation
     - not readiness
     - not contract hardening
-    - not propagation (pending; tracked above)
     - not pressure-tested
     - not a build/scheduler/runtime/source-access authorization
 ```

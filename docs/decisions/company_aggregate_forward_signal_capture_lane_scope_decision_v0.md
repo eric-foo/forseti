@@ -126,6 +126,18 @@ heavyweight contract" call:
   / Corpus Intake contract the v0 contract points to (a future general contract
   may supersede this), and does not amend the v0 obligation-contract file.
 
+> **Superseded as the obligation home (2026-06-15).** The general
+> standing-capture / Corpus Intake obligation contract anticipated above is now
+> owner-ratified:
+> `docs/product/data_capture_spine/data_capture_spine_corpus_intake_obligation_contract_proposal_v0.md`
+> (`CONTRACT_RATIFIED_V0_2026_06_15`). It is now the **obligation home** for this
+> slice's standing capture, superseding this slice-scoped clarification in that
+> role. The `stale_if` entry "A standing / corpus-capture obligation contract is
+> accepted, giving this slice its obligation home" has **fired**. This
+> clarification's content (existing v0 obligations + rebind rule + append-only)
+> is consistent with, not contradicted by, the ratified contract; the
+> org-motion record shape and official-first source selection remain owned here.
+
 ### EDGAR feasibility probe finding (read-only scouting, 2026-06-12)
 
 **Finding: SEC EDGAR has no reliably-populated structured employee-count field.**
