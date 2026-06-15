@@ -144,6 +144,46 @@ This record does not assert that any server-side gate is active. It is not.
    are unchanged. **Liveness:** code-backed and YAML/logic-checked; the **first live merge is
    owner-triggered** and fail-safe (an ineligible PR is skipped, never mis-merged) — this record does
    **not** claim a proven unattended merge.
+10. **Lane-start auto-prune — the cleanup complement to item 9.** Item 9's bot closes the *merge* half
+   of the agent-fast-creation / human-gated-cleanup velocity mismatch; this standing
+   **agent-instruction-only** rule closes the *cleanup* half. At the **start of each new lane** (the
+   cleanup rides on the next creation, so no new always-on infrastructure is added), the agent runs a
+   bounded, **non-destructive** prune of **merged** residue:
+   1. `git fetch --prune origin` — refresh remote-tracking refs and drop stale ones. This prunes only
+      `refs/remotes/origin/*`; it never removes a worktree or a local branch.
+   2. For every worktree whose branch reads `[gone]` (its squash-merged remote branch auto-deleted under
+      item 4's `delete_branch_on_merge` + item 5's squash default) **and** that has **no open PR**:
+      `git worktree remove "<path>"` — **non-force only**.
+   3. `git branch -D` the `[gone]` branches — covering **both** worktree-bound and branch-only `[gone]`
+      branches (the proven backlog sweep did both).
+   - **Load-bearing safety guards (the rule is unsafe without them):**
+     - **Non-force `git worktree remove` only — never `--force`.** Non-force `remove` *refuses* a worktree
+       holding uncommitted/untracked content; that refusal is the safety that makes the rule unable to
+       discard unsaved work. A refused worktree is left for the owner, never force-discarded.
+     - **Exclude open-PR worktrees.** Re-derive `gh pr list --state open` and skip any worktree/branch
+       with an open PR — removing it would disrupt in-flight review/work.
+     - **Never prune the seal or any `[ahead]`-with-unpushed-commits worktree.** The seal worktree
+       (`orca-seal-wt` / branch `pilot-seal-outcome`) holds the only copy of a firewalled,
+       outcome-sensitive result — never prune it and never read its sealed file. Re-derive the live
+       `[ahead]` set (`git for-each-ref --format='%(refname:short) %(upstream:track)' refs/heads | rg
+       ahead`) and exclude every entry; an `[ahead]` branch has unpushed unique commits.
+     - **Glance for closed-unmerged before `-D`.** A closed-unmerged (or manually-deleted-remote) PR's
+       branch *also* reads `[gone]` while its work is **not** on `main`; before deleting, glance
+       `gh pr list --state all --head <branch>` and keep any closed-unmerged branch.
+     - **Re-derive live every time — never act on a cached list.** The repo moves fast (a single session
+       has seen the worktree count and `origin/main` shift repeatedly), so re-derive `git worktree list`,
+       the `[gone]`/`[ahead]` sets, and the open-PR set at each lane start.
+   - **Boundaries (what this rule is *not*):** not a new always-on destructive automation; not a
+     `--force` prune of dirty/open-PR worktrees; not a throttle on lane creation (the chosen lever
+     automates the cleanup *tail*, it does not slow creation); not an edit to the EP-03 protected-action
+     guard (item 7). Wiring the item-8 detector (`.github/scripts/lane-health-check.ps1`) to *perform or
+     prompt* the prune is an explicit **optional follow-on**, deliberately deferred so this additive rule
+     introduces no destructive script — the detector stays read-only.
+   - **Why a lane-start agent rule (not a git hook):** PR merges are server-side, so a client
+     `post-merge` hook never fires; the cleanup must ride on the next lane's creation. **Liveness:** this
+     is a behavioral/doctrine rule, not code — it is "live" only insofar as agents follow it, and it
+     asserts **no** proven long-run bound on worktree/branch count (that outcome is unproven until the
+     rule runs across several lanes). Owner-gated; lands via a per-lane PR off `main` (squash).
 
 ## Why core-only CI (evidence)
 
@@ -633,4 +673,78 @@ direction_change_propagation:
     - the in-session guard path still lacks an up-to-date check (documented residual); the guard is
       unchanged this lane
     - the owner lands this lane's own PR
+```
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Adds Decision item 10: a lane-start auto-prune standing rule (agent-instruction-only) that is the
+    CLEANUP complement to item 9's auto-merge bot. At each new lane's start the agent runs
+    `git fetch --prune origin`, then non-force `git worktree remove` of any [gone]-branch worktree with
+    no open PR, then `git branch -D` of those [gone] branches (both worktree-bound and branch-only),
+    bounded by load-bearing guards: non-force remove only, exclude open-PR worktrees, never the seal or
+    any [ahead]-unpushed worktree, glance for closed-unmerged before -D, and re-derive live every time.
+    It is NOT a destructive always-on automation, NOT a --force prune, NOT a creation throttle, and NOT
+    a guard edit; wiring the item-8 lane-health-check.ps1 detector to perform/prompt the prune is an
+    explicit optional follow-on, deliberately deferred (the detector stays read-only).
+  trigger: workflow_authority
+  related_triggers:
+    - lifecycle_boundary
+  controlling_sources_updated:
+    - docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md
+  downstream_surfaces_checked:
+    - .agents/hooks/guard_protected_actions.py
+    - .github/scripts/lane-health-check.ps1
+    - .github/workflows/auto-merge.yml
+    - AGENTS.md
+    - .agents/workflow-overlay/safety-rules.md
+  intentionally_not_updated:
+    - path: .agents/hooks/guard_protected_actions.py
+      reason: >
+        The EP-03 guard is the frozen enforcement-lane surface; this is a behavioral/doctrine rule and
+        does not edit or weaken it. Non-force worktree remove and branch -D on lane branches are not
+        guard-blocked actions; push-to-main / force-push / destructive clean stay hard-blocked.
+    - path: .github/scripts/lane-health-check.ps1
+      reason: >
+        The item-8 detector stays read-only; wiring it to perform or prompt the prune is the explicit
+        optional follow-on, intentionally not taken here to avoid introducing a destructive script.
+    - path: .github/workflows/auto-merge.yml
+      reason: >
+        Item 9's bot (the merge half) is unchanged; item 10 is its cleanup complement and composes with
+        it (a bot-merged lane's branch reads [gone] and becomes prunable at the next lane start).
+    - path: AGENTS.md
+      reason: >
+        The behavior kernel and authorization boundaries are unchanged; the owner placed this procedural
+        git rule in the decision record (not the terse global kernel), co-located with items 8 and 9.
+    - path: .agents/workflow-overlay/safety-rules.md
+      reason: >
+        The do-not-push/merge-unless-authorized rule is unchanged; this rule prunes only merged,
+        no-open-PR residue at lane start and grants no new push/merge authority.
+  verification: >
+    Re-verified 2026-06-15 against origin/main before drafting (origin/main advanced 7c804cb -> 5efd405
+    during the session; doctrine identical across both, empty diff): items 8 and 9 present and unchanged;
+    PR #97 (auto-merge bot) MERGED 2026-06-14T14:36:46Z; auto-merge.yml and lane-health-check.ps1 tracked
+    on origin/main. Live state grounding the guards: the only [gone] branch was
+    r6-rescan-commission-beautypie (PR #37 MERGED -> a genuine squash-merge, not closed-unmerged); the
+    [ahead] set was doctrine-harness-caveat, hooks-readme, judgment-spine-read-machinery-architecture-v0,
+    ledger-c2-read-contract-v0; the seal worktree orca-seal-wt [pilot-seal-outcome] present. The prune
+    commands are proven by this lane's predecessor backlog sweep (worktrees 53->29, six [gone] branches
+    deleted, dirty worktrees correctly refused by non-force remove). NO fresh destructive sweep was run
+    as part of authoring this rule.
+  stale_language_search: >
+    git grep -i -nE "auto.?prune|worktree remove|lane.?start.*prune|sprawl|manual sweep|cleanup.*manual|\[gone\]"
+    docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md AGENTS.md .agents/workflow-overlay
+    (run 2026-06-15 in the autoprune-rule worktree off origin/main @ 5efd405)
+  stale_language_search_result: >
+    Executed 2026-06-15. The only hits are item 8 and its DCP receipt naming "worktree sprawl" as drift
+    the read-only detector *surfaces*. No live surface claims cleanup is manual-only, that no prune rule
+    exists, or that sprawl is unaddressed, so item 10 forks no existing wording — it is purely additive
+    and acts on what item 8 only detects (the two compose: detect, then prune). No surface required an
+    edit.
+  non_claims:
+    - not validation, readiness, or acceptance of any lane's content
+    - a behavioral/doctrine rule, NOT code; "live" only insofar as agents follow it
+    - asserts no proven long-run bound on worktree/branch count (unproven until run across several lanes)
+    - not an edit to the EP-03 guard, the item-8 detector, or the item-9 bot
+    - not a destructive always-on automation, a --force prune, or a creation throttle
 ```
