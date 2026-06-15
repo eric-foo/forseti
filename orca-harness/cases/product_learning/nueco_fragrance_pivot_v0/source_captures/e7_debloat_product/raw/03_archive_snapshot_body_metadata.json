@@ -1,0 +1,25 @@
+{
+  "original_url": "https://www.thenueco.com/collections/all/products/debloat-food-prebiotic-1",
+  "selected_snapshot": {
+    "digest": "TOX4LEPS47Y62B2CBOH7PC7DLQATUIGU",
+    "mime_type": "text/html",
+    "original_url": "https://www.thenueco.com/collections/all/products/debloat-food-prebiotic-1",
+    "snapshot_url": "https://web.archive.org/web/20191219074139/https://www.thenueco.com/collections/all/products/debloat-food-prebiotic-1",
+    "status_code": "200",
+    "timestamp": "20191219074139"
+  },
+  "snapshot_body_http_metadata": {
+    "byte_count": 155577,
+    "capture_timestamp": "2026-06-15T14:24:02Z",
+    "content_length": null,
+    "content_type": "text/html; charset=utf-8",
+    "date": "Mon, 15 Jun 2026 14:24:00 GMT",
+    "etag": null,
+    "final_url": "https://web.archive.org/web/20191219074139/https://www.thenueco.com/collections/all/products/debloat-food-prebiotic-1",
+    "last_modified": null,
+    "reason": "OK",
+    "requested_url": "https://web.archive.org/web/20191219074139/https://www.thenueco.com/collections/all/products/debloat-food-prebiotic-1",
+    "status": 200,
+    "timeout_seconds": 90.0
+  }
+}

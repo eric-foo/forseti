@@ -1,0 +1,62 @@
+{
+  "availability_http_metadata": {
+    "byte_count": 524,
+    "capture_timestamp": "2026-06-15T14:19:31Z",
+    "content_length": null,
+    "content_type": "application/json",
+    "date": "Mon, 15 Jun 2026 14:19:30 GMT",
+    "etag": null,
+    "final_url": "https://web.archive.org/cdx/search/cdx?url=https%3A%2F%2Fwww.thenueco.com%2Fcollections%2Fall&output=json&fl=timestamp%2Coriginal%2Cstatuscode%2Cmimetype%2Cdigest&collapse=digest&to=20200101000000&limit=-10",
+    "last_modified": null,
+    "reason": "OK",
+    "requested_url": "https://web.archive.org/cdx/search/cdx?url=https%3A%2F%2Fwww.thenueco.com%2Fcollections%2Fall&output=json&fl=timestamp%2Coriginal%2Cstatuscode%2Cmimetype%2Cdigest&collapse=digest&to=20200101000000&limit=-10",
+    "status": 200,
+    "timeout_seconds": 90.0
+  },
+  "availability_url": "https://web.archive.org/cdx/search/cdx?url=https%3A%2F%2Fwww.thenueco.com%2Fcollections%2Fall&output=json&fl=timestamp%2Coriginal%2Cstatuscode%2Cmimetype%2Cdigest&collapse=digest&to=20200101000000&limit=-10",
+  "original_url": "https://www.thenueco.com/collections/all",
+  "parse_warning": null,
+  "selected_snapshot": {
+    "digest": "ETSHO2BCWOEHTL3ABHTN33EFH4VPQ345",
+    "mime_type": "text/html",
+    "original_url": "https://www.thenueco.com/collections/all",
+    "snapshot_url": "https://web.archive.org/web/20191117093415/https://www.thenueco.com/collections/all",
+    "status_code": "200",
+    "timestamp": "20191117093415"
+  },
+  "snapshot_count": 4,
+  "snapshots": [
+    {
+      "digest": "LSZWRP5KIBGZ2FSXUOCA2X5T4DTVYYYL",
+      "mime_type": "text/html",
+      "original_url": "https://www.thenueco.com/collections/all",
+      "snapshot_url": "https://web.archive.org/web/20190122134654/https://www.thenueco.com/collections/all",
+      "status_code": "200",
+      "timestamp": "20190122134654"
+    },
+    {
+      "digest": "HDEBCYVCIPLVIF2INBOCNGMRUUHHOOY3",
+      "mime_type": "text/html",
+      "original_url": "https://www.thenueco.com/collections/all",
+      "snapshot_url": "https://web.archive.org/web/20190722124539/https://www.thenueco.com/collections/all",
+      "status_code": "200",
+      "timestamp": "20190722124539"
+    },
+    {
+      "digest": "CVKC6MQHTLGRRTXEX4D3D2PCISKOYGXA",
+      "mime_type": "text/html",
+      "original_url": "https://www.thenueco.com/collections/all",
+      "snapshot_url": "https://web.archive.org/web/20190823055131/https://www.thenueco.com/collections/all",
+      "status_code": "200",
+      "timestamp": "20190823055131"
+    },
+    {
+      "digest": "ETSHO2BCWOEHTL3ABHTN33EFH4VPQ345",
+      "mime_type": "text/html",
+      "original_url": "https://www.thenueco.com/collections/all",
+      "snapshot_url": "https://web.archive.org/web/20191117093415/https://www.thenueco.com/collections/all",
+      "status_code": "200",
+      "timestamp": "20191117093415"
+    }
+  ]
+}

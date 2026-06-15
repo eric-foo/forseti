@@ -1,0 +1,46 @@
+{
+  "availability_http_metadata": {
+    "byte_count": 310,
+    "capture_timestamp": "2026-06-15T14:20:27Z",
+    "content_length": null,
+    "content_type": "application/json",
+    "date": "Mon, 15 Jun 2026 14:20:26 GMT",
+    "etag": null,
+    "final_url": "https://web.archive.org/cdx/search/cdx?url=https%3A%2F%2Fwww.thenueco.com%2Fcollections%2Fbest-sellers&output=json&fl=timestamp%2Coriginal%2Cstatuscode%2Cmimetype%2Cdigest&collapse=digest&to=20200101000000&limit=-10",
+    "last_modified": null,
+    "reason": "OK",
+    "requested_url": "https://web.archive.org/cdx/search/cdx?url=https%3A%2F%2Fwww.thenueco.com%2Fcollections%2Fbest-sellers&output=json&fl=timestamp%2Coriginal%2Cstatuscode%2Cmimetype%2Cdigest&collapse=digest&to=20200101000000&limit=-10",
+    "status": 200,
+    "timeout_seconds": 90.0
+  },
+  "availability_url": "https://web.archive.org/cdx/search/cdx?url=https%3A%2F%2Fwww.thenueco.com%2Fcollections%2Fbest-sellers&output=json&fl=timestamp%2Coriginal%2Cstatuscode%2Cmimetype%2Cdigest&collapse=digest&to=20200101000000&limit=-10",
+  "original_url": "https://www.thenueco.com/collections/best-sellers",
+  "parse_warning": null,
+  "selected_snapshot": {
+    "digest": "TY3UQZBEOIQG2JCA32WWNU3DTDLEPXZC",
+    "mime_type": "text/html",
+    "original_url": "https://www.thenueco.com/collections/best-sellers",
+    "snapshot_url": "https://web.archive.org/web/20191117120927/https://www.thenueco.com/collections/best-sellers",
+    "status_code": "200",
+    "timestamp": "20191117120927"
+  },
+  "snapshot_count": 2,
+  "snapshots": [
+    {
+      "digest": "GXONRK56H5VSDCCKNCO7L2DITRXDONXW",
+      "mime_type": "text/html",
+      "original_url": "https://www.thenueco.com/collections/best-sellers",
+      "snapshot_url": "https://web.archive.org/web/20190923141839/https://www.thenueco.com/collections/best-sellers",
+      "status_code": "200",
+      "timestamp": "20190923141839"
+    },
+    {
+      "digest": "TY3UQZBEOIQG2JCA32WWNU3DTDLEPXZC",
+      "mime_type": "text/html",
+      "original_url": "https://www.thenueco.com/collections/best-sellers",
+      "snapshot_url": "https://web.archive.org/web/20191117120927/https://www.thenueco.com/collections/best-sellers",
+      "status_code": "200",
+      "timestamp": "20191117120927"
+    }
+  ]
+}

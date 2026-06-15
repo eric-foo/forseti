@@ -1,0 +1,25 @@
+{
+  "original_url": "https://www.thenueco.com/collections/all",
+  "selected_snapshot": {
+    "digest": "ETSHO2BCWOEHTL3ABHTN33EFH4VPQ345",
+    "mime_type": "text/html",
+    "original_url": "https://www.thenueco.com/collections/all",
+    "snapshot_url": "https://web.archive.org/web/20191117093415/https://www.thenueco.com/collections/all",
+    "status_code": "200",
+    "timestamp": "20191117093415"
+  },
+  "snapshot_body_http_metadata": {
+    "byte_count": 213104,
+    "capture_timestamp": "2026-06-15T14:19:33Z",
+    "content_length": null,
+    "content_type": "text/html; charset=utf-8",
+    "date": "Mon, 15 Jun 2026 14:19:32 GMT",
+    "etag": null,
+    "final_url": "https://web.archive.org/web/20191117093415/https://www.thenueco.com/collections/all",
+    "last_modified": null,
+    "reason": "OK",
+    "requested_url": "https://web.archive.org/web/20191117093415/https://www.thenueco.com/collections/all",
+    "status": 200,
+    "timeout_seconds": 90.0
+  }
+}

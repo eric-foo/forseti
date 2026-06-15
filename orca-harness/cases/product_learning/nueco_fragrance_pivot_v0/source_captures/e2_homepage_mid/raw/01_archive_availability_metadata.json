@@ -1,0 +1,110 @@
+{
+  "availability_http_metadata": {
+    "byte_count": 1061,
+    "capture_timestamp": "2026-06-15T14:18:31Z",
+    "content_length": null,
+    "content_type": "application/json",
+    "date": "Mon, 15 Jun 2026 14:18:31 GMT",
+    "etag": null,
+    "final_url": "https://web.archive.org/cdx/search/cdx?url=https%3A%2F%2Fwww.thenueco.com%2F&output=json&fl=timestamp%2Coriginal%2Cstatuscode%2Cmimetype%2Cdigest&collapse=digest&to=20190701000000&limit=-10",
+    "last_modified": null,
+    "reason": "OK",
+    "requested_url": "https://web.archive.org/cdx/search/cdx?url=https%3A%2F%2Fwww.thenueco.com%2F&output=json&fl=timestamp%2Coriginal%2Cstatuscode%2Cmimetype%2Cdigest&collapse=digest&to=20190701000000&limit=-10",
+    "status": 200,
+    "timeout_seconds": 90.0
+  },
+  "availability_url": "https://web.archive.org/cdx/search/cdx?url=https%3A%2F%2Fwww.thenueco.com%2F&output=json&fl=timestamp%2Coriginal%2Cstatuscode%2Cmimetype%2Cdigest&collapse=digest&to=20190701000000&limit=-10",
+  "original_url": "https://www.thenueco.com/",
+  "parse_warning": null,
+  "selected_snapshot": {
+    "digest": "L3K2KVAX76RZD6ACJC5OPQIGQDUE4V4L",
+    "mime_type": "text/html",
+    "original_url": "https://www.thenueco.com/",
+    "snapshot_url": "https://web.archive.org/web/20190626095434/https://www.thenueco.com/",
+    "status_code": "200",
+    "timestamp": "20190626095434"
+  },
+  "snapshot_count": 10,
+  "snapshots": [
+    {
+      "digest": "V7T6C4AWYPWB5R3RBVWIHYI4NSPUEALB",
+      "mime_type": "text/html",
+      "original_url": "https://www.thenueco.com/",
+      "snapshot_url": "https://web.archive.org/web/20181115021009/https://www.thenueco.com/",
+      "status_code": "200",
+      "timestamp": "20181115021009"
+    },
+    {
+      "digest": "ICLACWWTV26C4VUCUZ4UMLA4UFLLDU4R",
+      "mime_type": "text/html",
+      "original_url": "https://www.thenueco.com/",
+      "snapshot_url": "https://web.archive.org/web/20181125214329/https://www.thenueco.com/",
+      "status_code": "200",
+      "timestamp": "20181125214329"
+    },
+    {
+      "digest": "KABAM7POKDK7CQRUHQWXHQHCNUXBE7MA",
+      "mime_type": "text/html",
+      "original_url": "https://www.thenueco.com/",
+      "snapshot_url": "https://web.archive.org/web/20190208061318/https://www.thenueco.com/",
+      "status_code": "200",
+      "timestamp": "20190208061318"
+    },
+    {
+      "digest": "5K4Q2WL33MIRYQH3QFDWAQ3PMF2TNWGY",
+      "mime_type": "text/html",
+      "original_url": "https://www.thenueco.com/",
+      "snapshot_url": "https://web.archive.org/web/20190214185032/https://www.thenueco.com/",
+      "status_code": "200",
+      "timestamp": "20190214185032"
+    },
+    {
+      "digest": "TGM33O5EAEDOW37KYQQQ66ZT76MBDKP5",
+      "mime_type": "text/html",
+      "original_url": "https://www.thenueco.com/",
+      "snapshot_url": "https://web.archive.org/web/20190227065637/https://www.thenueco.com/",
+      "status_code": "200",
+      "timestamp": "20190227065637"
+    },
+    {
+      "digest": "IJVG2EQRQBYODB7OO2XUX4C7P2I34RBL",
+      "mime_type": "warc/revisit",
+      "original_url": "http://thenueco.com/",
+      "snapshot_url": "https://web.archive.org/web/20190507152756/http://thenueco.com/",
+      "status_code": "-",
+      "timestamp": "20190507152756"
+    },
+    {
+      "digest": "Q7XJRIC7WLV6C3KR3Y7GVUQPNYTN7DAA",
+      "mime_type": "text/html",
+      "original_url": "https://www.thenueco.com/",
+      "snapshot_url": "https://web.archive.org/web/20190521193117/https://www.thenueco.com/",
+      "status_code": "200",
+      "timestamp": "20190521193117"
+    },
+    {
+      "digest": "LMAUGHZYASB7LIDVHMSDKRXXHDC3OKAR",
+      "mime_type": "text/html",
+      "original_url": "https://www.thenueco.com/",
+      "snapshot_url": "https://web.archive.org/web/20190530053035/https://www.thenueco.com/",
+      "status_code": "200",
+      "timestamp": "20190530053035"
+    },
+    {
+      "digest": "IJVG2EQRQBYODB7OO2XUX4C7P2I34RBL",
+      "mime_type": "text/html",
+      "original_url": "http://thenueco.com/",
+      "snapshot_url": "https://web.archive.org/web/20190621100407/http://thenueco.com/",
+      "status_code": "301",
+      "timestamp": "20190621100407"
+    },
+    {
+      "digest": "L3K2KVAX76RZD6ACJC5OPQIGQDUE4V4L",
+      "mime_type": "text/html",
+      "original_url": "https://www.thenueco.com/",
+      "snapshot_url": "https://web.archive.org/web/20190626095434/https://www.thenueco.com/",
+      "status_code": "200",
+      "timestamp": "20190626095434"
+    }
+  ]
+}

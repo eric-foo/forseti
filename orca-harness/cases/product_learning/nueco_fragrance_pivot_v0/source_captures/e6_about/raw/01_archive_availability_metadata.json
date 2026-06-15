@@ -1,0 +1,46 @@
+{
+  "availability_http_metadata": {
+    "byte_count": 284,
+    "capture_timestamp": "2026-06-15T14:23:05Z",
+    "content_length": null,
+    "content_type": "application/json",
+    "date": "Mon, 15 Jun 2026 14:23:04 GMT",
+    "etag": null,
+    "final_url": "https://web.archive.org/cdx/search/cdx?url=https%3A%2F%2Fwww.thenueco.com%2Fpages%2Fabout&output=json&fl=timestamp%2Coriginal%2Cstatuscode%2Cmimetype%2Cdigest&collapse=digest&to=20190220000000&limit=-10",
+    "last_modified": null,
+    "reason": "OK",
+    "requested_url": "https://web.archive.org/cdx/search/cdx?url=https%3A%2F%2Fwww.thenueco.com%2Fpages%2Fabout&output=json&fl=timestamp%2Coriginal%2Cstatuscode%2Cmimetype%2Cdigest&collapse=digest&to=20190220000000&limit=-10",
+    "status": 200,
+    "timeout_seconds": 90.0
+  },
+  "availability_url": "https://web.archive.org/cdx/search/cdx?url=https%3A%2F%2Fwww.thenueco.com%2Fpages%2Fabout&output=json&fl=timestamp%2Coriginal%2Cstatuscode%2Cmimetype%2Cdigest&collapse=digest&to=20190220000000&limit=-10",
+  "original_url": "https://www.thenueco.com/pages/about",
+  "parse_warning": null,
+  "selected_snapshot": {
+    "digest": "TVPCNIPJQTDUAXTUJIRNLZ2BLOHQ5F4B",
+    "mime_type": "text/html",
+    "original_url": "https://www.thenueco.com/pages/about",
+    "snapshot_url": "https://web.archive.org/web/20190219231622/https://www.thenueco.com/pages/about",
+    "status_code": "200",
+    "timestamp": "20190219231622"
+  },
+  "snapshot_count": 2,
+  "snapshots": [
+    {
+      "digest": "KXEFOUS5BONA6UPXX3FGIH4EBRMKDCD3",
+      "mime_type": "text/html",
+      "original_url": "https://www.thenueco.com/pages/about",
+      "snapshot_url": "https://web.archive.org/web/20190122133020/https://www.thenueco.com/pages/about",
+      "status_code": "200",
+      "timestamp": "20190122133020"
+    },
+    {
+      "digest": "TVPCNIPJQTDUAXTUJIRNLZ2BLOHQ5F4B",
+      "mime_type": "text/html",
+      "original_url": "https://www.thenueco.com/pages/about",
+      "snapshot_url": "https://web.archive.org/web/20190219231622/https://www.thenueco.com/pages/about",
+      "status_code": "200",
+      "timestamp": "20190219231622"
+    }
+  ]
+}
