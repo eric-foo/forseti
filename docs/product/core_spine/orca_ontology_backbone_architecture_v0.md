@@ -87,7 +87,7 @@ grammar, and (b) MAPS workflow concepts to their existing overlay owners (Layer 
     actions/gates + links + backing artifact, plus a Layer-2 pointer table — enough
     to adopt / amend / reject in one pass.
   - *Output fit:* cross-artifact references become addressable IDs
-    (`brand:beautypie`, `case:beautypie_repricing_2023`) instead of path-and-prose;
+    (`brand:beautypie`, `case:beautypie.repricing-2023`) instead of path-and-prose;
     the two load-bearing links (`derived_from`, `diverges_from`) are precise enough
     for the read-machinery forward consumer — without freezing any property list.
   - *Boundary:* NOT success = a complete-looking doc that rebuilds/restates Layer-2
@@ -119,6 +119,14 @@ only via the backing map.
 `namespace:slug`, lowercase, dot-separated sub-parts. The ontology owns the
 *grammar*; minting/resolving individual IDs (a registry) is deferred satellite (§6).
 
+**ID-canonicalization (owner-decided 2026-06-15).** This grammar is the single naming
+authority — producer / harness IDs **conform to it** (so `case:` / `outcome:` are normalized
+to the dotted form, matching `decision:`); the version suffix (`_v0`) is **metadata, not part
+of the ID** (provisional — confirm); and **an ID survives any rename** (the display name
+lives in a field; the ID is an opaque, stable handle). Migrating the live harness `*_v0` IDs
+into this grammar is a downstream job owed by the harness lane, not performed by this naming
+decision. (See §6.1, §9.)
+
 | Namespace | Example | Means |
 | --- | --- | --- |
 | `vertical:` | `vertical:beauty`, `vertical:beauty.fragrance` | a demand domain; sub-niche via dotted child |
@@ -132,8 +140,8 @@ only via the backing map.
 | `decision:` | `decision:beautypie.repricing-2023` | a live brand-decision event |
 | `memo:` | `memo:beautypie.repricing-2023.1` | a decision-risk memo |
 | `reading:` | `reading:beautypie.repricing-2023.1` | a Reading (the `Read` action's calibrated decision output) |
-| `case:` | `case:beautypie_repricing_2023` | a backtest/proof case |
-| `outcome:` | `outcome:beautypie_repricing_2023` | a realized result |
+| `case:` | `case:beautypie.repricing-2023` | a backtest/proof case |
+| `outcome:` | `outcome:beautypie.repricing-2023` | a realized result |
 | `packet:` | `packet:3b89a19b…` | a source-capture packet (by sha) |
 | `evidence:` | `evidence:beautypie.repricing-2023.1` | a cleaned evidence unit |
 | `buyer:` | `buyer:<slug>` | a qualified buyer (the ICP entity a Memo serves) |
@@ -150,7 +158,10 @@ link). **`Read` is an ACTION on the `TrendVector` object, not an object type**
 (owner-directed amendment 2026-06-15, replacing the v0 TrendVector→Read merge — see
 §6.1): the object is the demand movement (`TrendVector`); reading it is the governed
 verb (§2.5). Demand-state, action-ceiling, read-type, and claim-tier are
-**dimensions**, not types (§2.4). Gates are **actions**, not types (§2.5). **`Slot` →
+**dimensions**, not types (§2.4) — and **`claim_tier` specifically is everywhere a
+receipt-gated evidence-ladder outcome, never a value a type mints; a row that lists it shows
+the *currently carried* tier, set only by the gate** (owner decision 2026-06-15; closes the
+AR-01 residual for `Memo` / `EvidenceUnit`). Gates are **actions**, not types (§2.5). **`Slot` →
 `DecisionEvent.discovery_status`** (owner decision 2026-06-15, §6.1).
 
 | # | Type | One-line definition | Key states / dimensions | Backing artifact(s) |
@@ -412,6 +423,18 @@ Stolen from the venue card set, the proven antidote to ontology rot:
   authority with build-readiness staged in §9. No `NEEDS_ARCHITECTURE_PASS`. Report:
   `docs/review-outputs/adversarial-artifact-reviews/ontology_backbone_architecture_review_v0.md`.
   This hardening does not adopt the ontology — status stays PROPOSED.
+- **2026-06-15 (owner decisions: order-0 ID rule + `claim_tier` uniformity).** (1) **Order-0
+  ID-canonicalization decided.** The §2.1 grammar is the single naming authority — producer /
+  harness IDs **conform to it**, not the reverse; `case:` / `outcome:` examples normalized to
+  the dotted grammar (matching `decision:`); the version suffix (`_v0`) is **metadata, not
+  part of the ID** (provisional — owner-leaning, confirm); **IDs are opaque and survive
+  rename**. Migrating the live harness `*_v0` IDs into this grammar is a downstream job **owed
+  by the harness lane**, not executed by this decision (§2.1, §9). The prior §9 note —
+  `derived_from` (origination) authoritative over venue-family for independence — stands.
+  (2) **`claim_tier` uniformity (AR-01 residual closed).** `claim_tier` is everywhere a
+  receipt-gated evidence-ladder outcome, never type-minted (rule added at §2.2/§2.4);
+  `Memo` / `EvidenceUnit` rows keep the field as the *carried* tier, not an intrinsic value —
+  no per-row rewrite needed.
 
 ---
 
@@ -526,14 +549,15 @@ pre-build pass (`workflow-deep-thinking` + `workflow-assumption-gate`, 2026-06-1
 refuted "build 5 cards first":
 
 0. **The real first object is the ID-canonicalization rule** (an owner decision, not a
-   card). Every card references IDs, but today the backing artifacts use NON-slug IDs
-   (venue cards `#1–12`, candidate pool `#1–14`, batch ledger `*_v0`), so the cards
-   cannot be built without a canonical `brand:` / `venue:` / `case:` assignment +
-   collision rule, **reconciled with the harness `*_v0` IDs** (does
-   `case:beautypie_repricing_2023` equal the harness id?), with IDs that survive a
-   rename. Also encode here, citing the demand-gate closures: **`derived_from`
-   (origination) is authoritative over venue-family** for independence counting (the
-   card states the pointer; it mints no new rule).
+   card) — **DECIDED 2026-06-15 (see §2.1, §6.1).** Every card references IDs, and the
+   backing artifacts use NON-slug IDs (venue cards `#1–12`, candidate pool `#1–14`, batch
+   ledger `*_v0`). Resolution: the §2.1 grammar is the **single authority and producer /
+   harness IDs conform to it** — the canonical `brand:` / `venue:` / `case:` are the dotted
+   slugs, the live harness `*_v0` case IDs **migrate to them** (a downstream job owed by the
+   harness lane), the `_v0` version suffix is **metadata, not part of the ID** (provisional),
+   and **IDs survive rename**. Still encode here, citing the demand-gate closures:
+   **`derived_from` (origination) is authoritative over venue-family** for independence
+   counting (the card states the pointer; it mints no new rule).
 1. **Then author the three cards with landed backing:** `Brand`, `Venue`, `Case`, as
    dated cards. The `Case` card MUST *map* (not restate) the dev/holdout split +
    zero-spoiler discipline to the batch-ledger + evidence-ladder owners (Layer-2 rule).
