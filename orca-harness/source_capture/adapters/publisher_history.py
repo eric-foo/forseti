@@ -56,6 +56,9 @@ DEFAULT_GITHUB_RAW_BASE = "https://raw.githubusercontent.com"
 DEFAULT_PUBLISHER_HISTORY_USER_AGENT = (
     "OrcaSourceCapturePublisherHistory/0.1 (stdlib honest fetch; no browser/api-client/archive)"
 )
+# PH-03: fetch a bounded window of revisions so the adapter can skip unproofed top entries and
+# find the next older proofed entry; keep it small to avoid large API responses.
+_PUBLISHER_HISTORY_PAGE_SIZE = 3
 
 
 @dataclass(frozen=True)
@@ -172,6 +175,30 @@ def fetch_mediawiki_history_capture(
                 f"access_failed: MediaWiki history listing {listing_result.failure_kind}"
             ],
         )
+    # PH-01: a non-2xx listing response (body preserved by direct_http) is NOT usable listing
+    # evidence; treat it as access_failed, same as archive_org does on availability errors.
+    if listing_result.status < 200 or listing_result.status >= 300:
+        return PublisherHistoryCaptureFailure(
+            rung="mediawiki_page_history",
+            source_identity=source_identity,
+            listing_url=listing_url,
+            listing_result=DirectHttpCaptureFailure(
+                requested_url=listing_result.requested_url,
+                failure_kind="access_failed",  # type: ignore[arg-type]
+                message=(
+                    f"access_failed: MediaWiki history listing returned HTTP "
+                    f"{listing_result.status} {listing_result.reason or 'without reason'}; "
+                    "not treated as usable listing evidence"
+                ),
+                final_url=listing_result.final_url,
+                status=listing_result.status,
+                reason=listing_result.reason,
+            ),
+            limitation_notes=[
+                f"access_failed: MediaWiki history listing HTTP {listing_result.status}; "
+                "response body preserved but not parsed"
+            ],
+        )
 
     revisions: list[PublisherRevision]
     parse_warning: str | None = None
@@ -187,11 +214,15 @@ def fetch_mediawiki_history_capture(
 
     body_result: DirectHttpCaptureSuccess | DirectHttpCaptureFailure | None = None
     if selected_revision is not None:
-        body_result = fetch_direct_http_capture(
+        raw_body_result = fetch_direct_http_capture(
             url=selected_revision.content_url,
             timeout_seconds=timeout_seconds,
             max_bytes=max_bytes,
             user_agent=user_agent,
+        )
+        # PH-01 / PH-02: non-2xx body is not usable; 2xx body must have revid+timestamp verified.
+        body_result = _verify_mediawiki_body(
+            raw_body_result, selected_revision=selected_revision
         )
 
     return PublisherHistoryCaptureSuccess(
@@ -226,7 +257,9 @@ def build_mediawiki_history_url(
             "rvprop": "timestamp|ids",
             "rvstart": cutoff_timestamp,
             "rvdir": "older",
-            "rvlimit": "1",
+            # PH-03: fetch a small bounded window so the adapter can skip unproofed top
+            # entries and select the next older proofed entry rather than returning a false NO-GO.
+            "rvlimit": str(_PUBLISHER_HISTORY_PAGE_SIZE),
             "format": "json",
             "formatversion": "2",
         }
@@ -367,6 +400,30 @@ def fetch_github_history_capture(
                 f"access_failed: GitHub commit listing {listing_result.failure_kind}"
             ],
         )
+    # PH-01: a non-2xx listing response (body preserved by direct_http) is NOT usable listing
+    # evidence; treat it as access_failed.
+    if listing_result.status < 200 or listing_result.status >= 300:
+        return PublisherHistoryCaptureFailure(
+            rung="github_commit_history",
+            source_identity=source_identity,
+            listing_url=listing_url,
+            listing_result=DirectHttpCaptureFailure(
+                requested_url=listing_result.requested_url,
+                failure_kind="access_failed",  # type: ignore[arg-type]
+                message=(
+                    f"access_failed: GitHub commit listing returned HTTP "
+                    f"{listing_result.status} {listing_result.reason or 'without reason'}; "
+                    "not treated as usable listing evidence"
+                ),
+                final_url=listing_result.final_url,
+                status=listing_result.status,
+                reason=listing_result.reason,
+            ),
+            limitation_notes=[
+                f"access_failed: GitHub commit listing HTTP {listing_result.status}; "
+                "response body preserved but not parsed"
+            ],
+        )
 
     revisions: list[PublisherRevision]
     parse_warning: str | None = None
@@ -386,11 +443,16 @@ def fetch_github_history_capture(
 
     body_result: DirectHttpCaptureSuccess | DirectHttpCaptureFailure | None = None
     if selected_revision is not None:
-        body_result = fetch_direct_http_capture(
+        raw_body_result = fetch_direct_http_capture(
             url=selected_revision.content_url,
             timeout_seconds=timeout_seconds,
             max_bytes=max_bytes,
             user_agent=user_agent,
+        )
+        # PH-01 / PH-02: non-2xx body is not usable; for GitHub the raw URL is pinned by SHA
+        # in the URL (identity binding), which we verify/record explicitly.
+        body_result = _verify_github_body(
+            raw_body_result, selected_revision=selected_revision
         )
 
     return PublisherHistoryCaptureSuccess(
@@ -421,7 +483,9 @@ def build_github_history_url(
         {
             "path": path,
             "until": cutoff_timestamp,
-            "per_page": "1",
+            # PH-03: fetch a small bounded window so the adapter can skip unproofed top
+            # entries and select the next older proofed entry rather than returning a false NO-GO.
+            "per_page": str(_PUBLISHER_HISTORY_PAGE_SIZE),
         }
     )
     return f"{api.rstrip('/')}/repos/{quote(owner)}/{quote(repo)}/commits?{query}"
@@ -484,6 +548,153 @@ def _github_commit_timestamp(commit: object) -> str | None:
                 if normalized is not None:
                     return normalized
     return None
+
+
+# --------------------------------------------------------------------------------------------------
+# Body verification helpers (PH-01 / PH-02)
+# --------------------------------------------------------------------------------------------------
+
+
+def _verify_mediawiki_body(
+    body_result: DirectHttpCaptureSuccess | DirectHttpCaptureFailure,
+    *,
+    selected_revision: PublisherRevision,
+) -> DirectHttpCaptureSuccess | DirectHttpCaptureFailure:
+    """Gate the MediaWiki content response on status and identity/timestamp proof (PH-01/PH-02).
+
+    A non-2xx body is not usable regardless of whether bytes were preserved (PH-01).  A 2xx body
+    must have its returned ``revid`` and ``timestamp`` verified against the selected revision before
+    it is treated as the proven body (PH-02).  On any mismatch or missing proof the result is
+    returned as a ``DirectHttpCaptureFailure`` so the caller records PARTIAL.
+    """
+    if isinstance(body_result, DirectHttpCaptureFailure):
+        return body_result
+
+    # PH-01: non-2xx body is not usable even if bytes were preserved.
+    if body_result.status < 200 or body_result.status >= 300:
+        return DirectHttpCaptureFailure(
+            requested_url=body_result.requested_url,
+            failure_kind="access_failed",  # type: ignore[arg-type]
+            message=(
+                f"access_failed: MediaWiki content fetch returned HTTP "
+                f"{body_result.status} {body_result.reason or 'without reason'}; "
+                "body bytes preserved but not treated as usable content"
+            ),
+            final_url=body_result.final_url,
+            status=body_result.status,
+            reason=body_result.reason,
+        )
+
+    # PH-02: parse the content response and verify revid + timestamp match the selected revision.
+    try:
+        payload = json.loads(body_result.body.decode("utf-8"))
+        query = payload.get("query") if isinstance(payload, dict) else None
+        pages = query.get("pages") if isinstance(query, dict) else None
+        page_dicts = _mediawiki_page_dicts(pages)
+        returned_rev: dict | None = None
+        for page in page_dicts:
+            raw_revisions = page.get("revisions")
+            if isinstance(raw_revisions, list) and raw_revisions:
+                first = raw_revisions[0]
+                if isinstance(first, dict):
+                    returned_rev = first
+                    break
+    except (JSONDecodeError, ValueError, UnicodeDecodeError):
+        returned_rev = None
+
+    if returned_rev is None:
+        return DirectHttpCaptureFailure(
+            requested_url=body_result.requested_url,
+            failure_kind="access_failed",  # type: ignore[arg-type]
+            message=(
+                "publisher_history mediawiki body verification_failed: "
+                "content response carries no parseable revision object; "
+                f"expected revid={selected_revision.identity}"
+            ),
+            final_url=body_result.final_url,
+            status=body_result.status,
+            reason=body_result.reason,
+        )
+
+    returned_revid = str(returned_rev.get("revid", "")) if returned_rev.get("revid") is not None else ""
+    returned_ts_raw = returned_rev.get("timestamp")
+    returned_ts = _normalize_iso8601(returned_ts_raw) if isinstance(returned_ts_raw, str) else None
+
+    if returned_revid != selected_revision.identity:
+        return DirectHttpCaptureFailure(
+            requested_url=body_result.requested_url,
+            failure_kind="access_failed",  # type: ignore[arg-type]
+            message=(
+                f"publisher_history mediawiki body verification_failed: "
+                f"returned revid {returned_revid!r} != selected {selected_revision.identity!r}"
+            ),
+            final_url=body_result.final_url,
+            status=body_result.status,
+            reason=body_result.reason,
+        )
+
+    if returned_ts is None or returned_ts != selected_revision.served_timestamp:
+        return DirectHttpCaptureFailure(
+            requested_url=body_result.requested_url,
+            failure_kind="access_failed",  # type: ignore[arg-type]
+            message=(
+                f"publisher_history mediawiki body verification_failed: "
+                f"returned timestamp {returned_ts!r} != selected {selected_revision.served_timestamp!r}"
+            ),
+            final_url=body_result.final_url,
+            status=body_result.status,
+            reason=body_result.reason,
+        )
+
+    return body_result
+
+
+def _verify_github_body(
+    body_result: DirectHttpCaptureSuccess | DirectHttpCaptureFailure,
+    *,
+    selected_revision: PublisherRevision,
+) -> DirectHttpCaptureSuccess | DirectHttpCaptureFailure:
+    """Gate the GitHub raw content response on status (PH-01) and record SHA binding (PH-02).
+
+    The GitHub raw URL is pinned by ``sha`` in the URL, so identity is structurally bound by URL
+    construction.  We verify/record that binding explicitly so the body is provably the selected
+    commit's content (PH-02).  A non-2xx body is not usable (PH-01).
+    """
+    if isinstance(body_result, DirectHttpCaptureFailure):
+        return body_result
+
+    # PH-01: non-2xx body is not usable even if bytes were preserved.
+    if body_result.status < 200 or body_result.status >= 300:
+        return DirectHttpCaptureFailure(
+            requested_url=body_result.requested_url,
+            failure_kind="access_failed",  # type: ignore[arg-type]
+            message=(
+                f"access_failed: GitHub raw content fetch returned HTTP "
+                f"{body_result.status} {body_result.reason or 'without reason'}; "
+                "body bytes preserved but not treated as usable content"
+            ),
+            final_url=body_result.final_url,
+            status=body_result.status,
+            reason=body_result.reason,
+        )
+
+    # PH-02: verify the selected SHA appears in the requested URL (identity binding is by URL
+    # construction in build_github_raw_url; record that the binding is confirmed).
+    sha = selected_revision.identity
+    if sha not in body_result.requested_url:
+        return DirectHttpCaptureFailure(
+            requested_url=body_result.requested_url,
+            failure_kind="access_failed",  # type: ignore[arg-type]
+            message=(
+                f"publisher_history github body verification_failed: "
+                f"selected sha {sha!r} not found in raw URL {body_result.requested_url!r}"
+            ),
+            final_url=body_result.final_url,
+            status=body_result.status,
+            reason=body_result.reason,
+        )
+
+    return body_result
 
 
 # --------------------------------------------------------------------------------------------------
