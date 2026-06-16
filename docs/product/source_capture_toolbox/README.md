@@ -71,6 +71,7 @@ packet without redefining Capture obligations.
 | `docs/product/source_capture_toolbox/reddit_precommercial_capture_consolidation_planning_thread_v0.md` | Durable architectural planning thread for bounded pre-commercial Reddit capture/consolidation: exact old Reddit Direct HTTP as the current exact-thread operator default, CloakBrowser as the anti-blocking/browser-visible route when Direct HTTP is unsuitable or blocked, warm same-context Reddit JSON as a bounded enrichment path, packet-before-parser handoff, provenance-first consolidation shape, archive fallback, and non-implementation stop lines. |
 | `docs/product/source_capture_toolbox/reddit_precommercial_capture_consolidation_success_signal_architecture_v0.md` | Advisory routing object that explains why the Reddit planning thread needs Decision-Frame-or-candidate classification, non-promoting success tiers, Armory vocabulary reuse, packet-contamination stops, no source-discovery expansion, and candidate-intake gap visibility. |
 | `docs/product/source_capture_toolbox/retail_pdp_projection_contract_v0.md` | Retail/PDP raw-packet-to-projection contract/playbook for Amazon, Sephora, and Ulta: capture inputs, projection rows, residual semantics, retailer binding limits, target DOM price/SKU binding posture, and the no-ECR/Cleaning/Judgment boundary. |
+| `docs/product/source_capture_toolbox/retail_pdp_sidecar_operator_playbook_v0.md` | Operator procedure for the bounded Retail/PDP CloakBrowser sidecar smoke across Amazon, Sephora, and Ulta: canonical URLs, flags, scratch output shape, expected projection summaries, failure taxonomy, merge-conflict posture, and code-enforceable follow-up flags. |
 
 ## Armory Components
 
@@ -152,6 +153,10 @@ Implemented capture-side wiring is opt-in only:
 --retail-pdp-projection-output <path>` writes a separate local projection JSON
 after a successful packet write. It does not change packet schema, packet
 receipts, residual rules, or ECR sequencing.
+
+For exact Amazon/Sephora/Ulta smoke commands, expected residuals, and
+code-enforceable follow-up flags, use
+`docs/product/source_capture_toolbox/retail_pdp_sidecar_operator_playbook_v0.md`.
 
 It is product contract context only. It is not capture execution, validation,
 readiness, implementation authorization, source completeness proof, or buyer
@@ -493,7 +498,9 @@ Implemented v0 scope:
 - optional Retail/PDP-only no-network projection sidecar when
   `--source-family retail_pdp` and `--retail-pdp-projection-output` are
   supplied; the sidecar writes a separate JSON and does not alter the packet
-  manifest or receipt;
+  manifest or receipt. Use
+  `docs/product/source_capture_toolbox/retail_pdp_sidecar_operator_playbook_v0.md`
+  for the three-retailer smoke procedure;
 - no stored session, browser profile, raw cookies, storage-state file, proxy,
   credential injection, CAPTCHA service, crawler, target discovery, parser,
   consolidation, storage, dashboard, scheduler, deployment, production runtime,

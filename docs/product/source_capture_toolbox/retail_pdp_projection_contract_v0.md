@@ -13,6 +13,7 @@ use_when:
   - Deciding whether the next move is playbook review, sidecar capture wiring, retailer recon, or ECR sequencing.
 authority_boundary: retrieval_only
 open_next:
+  - docs/product/source_capture_toolbox/retail_pdp_sidecar_operator_playbook_v0.md
   - docs/product/core_spine_v0_projection_doctrine_v0.md
   - docs/product/data_capture_spine/demand_durability_multi_retailer_rendered_capture_spec_v0.md
   - orca-harness/runners/run_source_capture_cloakbrowser_packet.py
@@ -33,9 +34,10 @@ This contract is a docs-first stabilization surface for the current Retail/PDP
 projection slice. It is not implementation authorization, not capture execution,
 not ECR sequencing, not Cleaning, not Judgment, not validation, and not readiness.
 
-The next implementation patch may wire capture output into projection only after
-this contract is accepted or explicitly used as the bounded implementation
-surface.
+The implemented capture-side wiring is bounded and opt-in: the CloakBrowser
+packet runner can write a separate Retail/PDP projection JSON after a successful
+packet write when `--source-family retail_pdp --retail-pdp-projection-output`
+are supplied.
 
 ## Purpose
 
@@ -63,6 +65,7 @@ Raw remains canonical. Projection is a re-derivable view.
 | `.agents/workflow-overlay/artifact-folders.md` and `retrieval-metadata.md` | Placement and retrieval-header rules | New durable product artifacts belong under `docs/product/` and need retrieval metadata. |
 | `docs/product/source_capture_toolbox/source_capture_playbook_v0.md` | Capture method boundary | Retail capture must locate the signal substrate first and preserve source-native bytes, not paraphrase. |
 | `docs/product/source_capture_toolbox/capture_recon_index_v0.md` | Existing recon evidence | Sephora progressive-scroll/Bazaarvoice and Ulta Apollo state are reported as worktree-pending recon; Amazon recon remains open in the rendered-capture spec. |
+| `docs/product/source_capture_toolbox/retail_pdp_sidecar_operator_playbook_v0.md` | Operator procedure | Exact Amazon/Sephora/Ulta sidecar smoke commands, output inspection contract, failure taxonomy, merge-conflict posture, and code-enforceable follow-up flags. |
 | `docs/product/core_spine_v0_projection_doctrine_v0.md` | Projection doctrine | Raw is canonical; projection is a view; Retail/PDP must preserve SKU/variant/price, availability, review-substrate, per-retailer/locale series, and embedded JSON. |
 | `docs/product/data_capture_spine/demand_durability_multi_retailer_rendered_capture_spec_v0.md` | Multi-retailer rendered capture spec | Per-retailer series, substrate-first posture, and Amazon/Sephora/Ulta source-access status. |
 | `orca-harness/runners/run_source_capture_cloakbrowser_packet.py` | Current capture-side wiring | `--retail-pdp-projection-output` is an opt-in Retail/PDP-only sidecar after packet write; it does not change packet schema, fetch, clean, judge, or feed ECR. |
@@ -198,6 +201,8 @@ wiring available, the next move is one of:
    CloakBrowser packet outputs:
    `--source-family retail_pdp --retail-pdp-projection-output <path>`, using
    this contract as the behavior surface and preserving residuals unchanged.
+   Use `retail_pdp_sidecar_operator_playbook_v0.md` for the current
+   Amazon/Sephora/Ulta smoke commands and inspection checklist.
 3. **Retailer recon closure** if the immediate bottleneck is source-access
    posture rather than projection behavior.
 
@@ -214,16 +219,20 @@ direction_change_propagation:
     Added a Retail/PDP projection contract/playbook that binds the current
     Amazon, Sephora, and Ulta raw-packet-to-projection slice: raw remains
     canonical, projection is a view, unsafe retailer fallbacks are carried only
-    with visible residuals, and ECR/Cleaning/Judgment remain downstream.
+    with visible residuals, ECR/Cleaning/Judgment remain downstream, and the
+    bounded sidecar operator path is documented without promoting scratch
+    packets into fixtures.
   trigger: product_doctrine
   related_triggers:
     - architecture_doctrine
     - output_authority
   controlling_sources_updated:
     - docs/product/source_capture_toolbox/retail_pdp_projection_contract_v0.md
+    - docs/product/source_capture_toolbox/retail_pdp_sidecar_operator_playbook_v0.md
     - docs/product/source_capture_toolbox/README.md
     - docs/workflows/data_capture_spine_consolidation_map_v0.md
     - docs/workflows/orca_repo_map_v0.md
+    - orca-harness/docs/source_capture_agent_runbook.md
   downstream_surfaces_checked:
     - AGENTS.md
     - .agents/workflow-overlay/README.md
@@ -236,6 +245,7 @@ direction_change_propagation:
     - docs/product/data_capture_spine/demand_durability_multi_retailer_rendered_capture_spec_v0.md
     - docs/product/source_capture_toolbox/source_capture_playbook_v0.md
     - docs/product/source_capture_toolbox/capture_recon_index_v0.md
+    - orca-harness/docs/source_capture_agent_runbook.md
     - orca-harness/source_capture/retail_pdp_projection.py
     - orca-harness/tests/unit/test_retail_pdp_projection.py
   intentionally_not_updated:
@@ -251,9 +261,9 @@ direction_change_propagation:
         did not produce a durable recon closeout or fixture-admission decision.
         Do not promote ignored `_test_runs/` packets into recon authority here.
   stale_language_search: >
-    rg -n "retail_pdp_projection_contract|Retail/PDP projection|Retail PDP projection|ProductPage|requested SKU"
+    rg -n "retail_pdp_projection_contract|retail_pdp_sidecar_operator|Retail/PDP projection|Retail PDP projection|ProductPage|requested SKU"
     docs/product/source_capture_toolbox/README.md docs/workflows/data_capture_spine_consolidation_map_v0.md
-    .agents/workflow-overlay/source-loading.md docs/workflows/orca_repo_map_v0.md
+    .agents/workflow-overlay/source-loading.md docs/workflows/orca_repo_map_v0.md orca-harness/docs/source_capture_agent_runbook.md
   stale_language_search_result: >
     Executed 2026-06-17 in this worktree after Sephora target-DOM price and
     Ulta requested-SKU residual hardening. Hits were updated in the intended

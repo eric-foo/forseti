@@ -24,7 +24,7 @@ stale_if:
 - Status: ACTIVE_RETRIEVAL_MAP (retrieval-only; source authority remains in `.agents/workflow-overlay/source-of-truth.md`)
 - Artifact type: Workflow navigation artifact
 - Scope: Repo navigation and source-pack selection
-- Refreshed: 2026-06-17 (added the local Retail/PDP projection runner route and the opt-in Retail/PDP CloakBrowser projection sidecar under `orca-harness/runners/`; clarified the corresponding source package route for retailer binding/residual logic). Prior: 2026-06-16 added Codex-compatible local Git-hook adapters under `.githooks/`, the local hook installer under `.github/scripts/`, and the promoted auto-merge/main-red-alert workflows under `.github/workflows/`; 2026-06-11 repo-structure binding v0 registered machine map `repo-structure.yaml` + EP-04 placement checker and quarantined root strays to `docs/_inbox/`.
+- Refreshed: 2026-06-17 (added the local Retail/PDP projection runner route, the opt-in Retail/PDP CloakBrowser projection sidecar under `orca-harness/runners/`, and the Retail/PDP sidecar operator playbook for the Amazon/Sephora/Ulta smoke; clarified the corresponding source package route for retailer binding/residual logic). Prior: 2026-06-16 added Codex-compatible local Git-hook adapters under `.githooks/`, the local hook installer under `.github/scripts/`, and the promoted auto-merge/main-red-alert workflows under `.github/workflows/`; 2026-06-11 repo-structure binding v0 registered machine map `repo-structure.yaml` + EP-04 placement checker and quarantined root strays to `docs/_inbox/`.
 - Implementation authorized: no
 
 ## How To Use This Map
@@ -385,6 +385,7 @@ nickname: "crawling graph." The runner is
 | `docs/workflows/data_capture_spine_consolidation_map_v0.md` | Data Capture Spine repo submap. Open before enumerating capture owner docs. |
 | `docs/workflows/ecr_spine_submap_v0.md` | ECR source-side spine repo submap (integrity postures SP-1/2/3/6 + Signal Content Record). Open before enumerating ECR/SCR owner docs. |
 | `docs/research/judgment-spine/judgment_spine_consolidation_map_v0.md` | Judgment Spine submap. Open before enumerating Judgment owners across `docs/research/judgment-spine/` and `docs/product/judgment_spine_*`. |
+| `docs/product/source_capture_toolbox/retail_pdp_sidecar_operator_playbook_v0.md` | Operator playbook for the bounded Amazon/Sephora/Ulta Retail/PDP CloakBrowser sidecar smoke: canonical URLs, flags, scratch outputs, expected residuals, failure taxonomy, and code-enforceable follow-up flags. |
 
 ## Orca Harness
 
