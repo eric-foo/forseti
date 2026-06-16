@@ -12,6 +12,7 @@ from source_capture.adapters.direct_http import (
     DEFAULT_MAX_BYTES,
     DEFAULT_TIMEOUT_SECONDS,
     DirectHttpCaptureFailure,
+    DirectHttpCaptureFailureKind,
     DirectHttpCaptureResult,
     DirectHttpCaptureSuccess,
     fetch_direct_http_capture,
@@ -250,6 +251,13 @@ def _is_rate_limited(result: DirectHttpCaptureResult) -> bool:
     return getattr(result, "status", None) in _RATE_LIMIT_STATUSES
 
 
+def _is_transient_timeout(result: DirectHttpCaptureResult) -> bool:
+    # A read/connect timeout is transient (a slow archive), not a permanent miss; retry it like a
+    # rate-limit so a transient stall self-heals. direct_http now surfaces a read-phase timeout as
+    # DirectHttpCaptureFailure(TIMEOUT) rather than crashing the caller, so it is a reliable signal.
+    return getattr(result, "failure_kind", None) is DirectHttpCaptureFailureKind.TIMEOUT
+
+
 def _fetch_with_retry(
     *,
     url: str,
@@ -262,7 +270,7 @@ def _fetch_with_retry(
         raise ValueError("max_attempts must be at least 1")
     result = fetch_direct_http_capture(url=url, timeout_seconds=timeout_seconds, max_bytes=max_bytes)
     attempt = 1
-    while _is_rate_limited(result) and attempt < max_attempts:
+    while (_is_rate_limited(result) or _is_transient_timeout(result)) and attempt < max_attempts:
         time.sleep(retry_backoff_seconds * (2 ** (attempt - 1)))
         attempt += 1
         result = fetch_direct_http_capture(url=url, timeout_seconds=timeout_seconds, max_bytes=max_bytes)

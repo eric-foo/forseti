@@ -635,6 +635,48 @@ def test_fetch_with_retry_recovers_after_transient_rate_limit(monkeypatch: pytes
     assert sleeps == [2.0, 4.0]  # exponential backoff between attempts
 
 
+def test_fetch_with_retry_recovers_after_transient_timeout(monkeypatch: pytest.MonkeyPatch) -> None:
+    # A read-phase timeout (now surfaced by direct_http as a TIMEOUT failure, not a crash) is
+    # transient: the retry wrapper backs off and recovers instead of failing the rung on a
+    # momentarily slow archive (observed live on the Wayback CDX during cross-archive capture).
+    sleeps: list[float] = []
+    calls = {"n": 0}
+
+    def fake_fetch(*, url: str, timeout_seconds: float, max_bytes: int):
+        calls["n"] += 1
+        if calls["n"] < 3:
+            return DirectHttpCaptureFailure(
+                requested_url=url,
+                failure_kind=DirectHttpCaptureFailureKind.TIMEOUT,
+                message="Direct HTTP request timed out during response read",
+            )
+        return DirectHttpCaptureSuccess(
+            requested_url=url,
+            final_url=url,
+            status=200,
+            reason="OK",
+            metadata={},
+            body=b"ok",
+            warning_notes=[],
+            limitation_notes=[],
+        )
+
+    monkeypatch.setattr(archive_org, "fetch_direct_http_capture", fake_fetch)
+    monkeypatch.setattr(archive_org.time, "sleep", lambda seconds: sleeps.append(seconds))
+
+    result = archive_org._fetch_with_retry(
+        url="https://web.archive.org/cdx/search/cdx",
+        timeout_seconds=5,
+        max_bytes=1024,
+        max_attempts=4,
+        retry_backoff_seconds=2.0,
+    )
+
+    assert isinstance(result, DirectHttpCaptureSuccess)
+    assert calls["n"] == 3  # two timeout retries, then success
+    assert sleeps == [2.0, 4.0]
+
+
 def test_fetch_with_retry_exhausts_then_returns_last_rate_limited(monkeypatch: pytest.MonkeyPatch) -> None:
     # Persistent 503 across all attempts: give up after exactly max_attempts and
     # return the last (still rate-limited) result, so the caller's existing honest

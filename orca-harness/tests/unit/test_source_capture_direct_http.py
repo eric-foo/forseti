@@ -115,6 +115,68 @@ def http_server():
         thread.join(timeout=5)
 
 
+def test_fetch_direct_http_capture_read_timeout_is_honest_failure(monkeypatch: pytest.MonkeyPatch) -> None:
+    # A read-phase socket timeout fires during response.read(), AFTER urlopen returned, so it is
+    # not a URLError. It must surface as an honest DirectHttpCaptureFailure(TIMEOUT), never an
+    # uncaught crash (observed live: a slow archive aborting a whole capture).
+    class _ReadTimesOut:
+        reason = "OK"
+        headers: dict[str, str] = {}
+
+        def getcode(self) -> int:
+            return 200
+
+        def geturl(self) -> str:
+            return "https://example.com/slow"
+
+        def read(self, *_args: object, **_kwargs: object) -> bytes:
+            raise TimeoutError("The read operation timed out")
+
+        def __enter__(self) -> "_ReadTimesOut":
+            return self
+
+        def __exit__(self, *_exc: object) -> bool:
+            return False
+
+    monkeypatch.setattr(
+        direct_http_module, "_open_direct_http", lambda request, *, timeout_seconds: _ReadTimesOut()
+    )
+    result = fetch_direct_http_capture(url="https://example.com/slow", timeout_seconds=5, max_bytes=1024)
+    assert isinstance(result, DirectHttpCaptureFailure)
+    assert result.failure_kind is DirectHttpCaptureFailureKind.TIMEOUT
+    assert "timed out" in result.message.lower()
+
+
+def test_fetch_direct_http_capture_read_oserror_is_network_failure(monkeypatch: pytest.MonkeyPatch) -> None:
+    # A non-timeout read-phase socket error (e.g. connection reset) likewise fires after urlopen and
+    # is not a URLError; record an honest NETWORK_ERROR failure rather than crashing the caller.
+    class _ReadResets:
+        reason = "OK"
+        headers: dict[str, str] = {}
+
+        def getcode(self) -> int:
+            return 200
+
+        def geturl(self) -> str:
+            return "https://example.com/reset"
+
+        def read(self, *_args: object, **_kwargs: object) -> bytes:
+            raise ConnectionResetError("connection reset by peer")
+
+        def __enter__(self) -> "_ReadResets":
+            return self
+
+        def __exit__(self, *_exc: object) -> bool:
+            return False
+
+    monkeypatch.setattr(
+        direct_http_module, "_open_direct_http", lambda request, *, timeout_seconds: _ReadResets()
+    )
+    result = fetch_direct_http_capture(url="https://example.com/reset", timeout_seconds=5, max_bytes=1024)
+    assert isinstance(result, DirectHttpCaptureFailure)
+    assert result.failure_kind is DirectHttpCaptureFailureKind.NETWORK_ERROR
+
+
 def test_fetch_direct_http_capture_returns_selected_metadata_for_success(http_server: str) -> None:
     result = fetch_direct_http_capture(url=f"{http_server}/ok", timeout_seconds=5, max_bytes=1024)
 
