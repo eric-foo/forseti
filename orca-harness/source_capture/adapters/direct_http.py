@@ -92,6 +92,26 @@ def fetch_direct_http_capture(
             failure_kind=_failure_kind_from_url_error(exc),
             message=f"Direct HTTP request failed: {exc.reason}",
         )
+    except TimeoutError as exc:
+        # A read-phase timeout (socket.timeout, aliased to TimeoutError on 3.10+) fires during
+        # response.read() AFTER urlopen returned, so it is NOT a URLError and was previously
+        # uncaught -- it propagated and crashed the caller (observed live: a slow archive aborting
+        # a whole capture) instead of surfacing as an honest timeout the caller can record, retry,
+        # or escalate past.
+        return DirectHttpCaptureFailure(
+            requested_url=normalized_url,
+            failure_kind=DirectHttpCaptureFailureKind.TIMEOUT,
+            message=f"Direct HTTP request timed out during response read: {exc}",
+        )
+    except OSError as exc:
+        # Other read-phase socket errors (connection reset, etc.) likewise fire after urlopen and
+        # are not URLError (which is handled above and is itself an OSError subclass); record an
+        # honest network failure rather than crashing the caller.
+        return DirectHttpCaptureFailure(
+            requested_url=normalized_url,
+            failure_kind=DirectHttpCaptureFailureKind.NETWORK_ERROR,
+            message=f"Direct HTTP response read failed: {exc}",
+        )
 
 
 def _capture_response(
