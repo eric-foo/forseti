@@ -265,6 +265,18 @@ This record does not assert that any server-side gate is active. It is not.
    - **Foregone limitation (consciously accepted):** a human or non-Claude-harness raw `gh pr merge` of a
      **behind** PR can still combination-break `main` — **detected fast** by the red-main detector, **not
      prevented**. Closing this residual requires the deferred server-side gate.
+13. **PR cadence — major durable point, not every subpoint.** A lane should open a focused PR after
+   each **major durable point**: one coherent, owner-reviewable decision or artifact boundary that
+   future agents may rely on. Examples include a first customer / ICP target selection, proof-gate
+   change, buyer-risk doctrine change, data-spine boundary change, roster-scope implication, or
+   implementation-scoping decision. Do **not** split every thought, objection, or supporting
+   refinement into its own PR; group subpoints when they change the same durable point, share the same
+   controlling sources, and should be reviewed with the same validation and non-claims. If a new major
+   point emerges while a lane is already open, either include it only when it is directly coupled to
+   the same reviewable decision or split it into a follow-up branch / PR. Each such PR should state:
+   what decision changed, why it changed, what stance shifted or was magnified, changed files,
+   explicit non-claims, and validation run. This cadence does not grant standing commit, push, or PR
+   authority; `.agents/workflow-overlay/safety-rules.md` still requires explicit authorization.
 
 ## Why core-only CI (evidence)
 
@@ -375,6 +387,61 @@ direction_change_propagation:
     - not deployment
     - not blanket commit/push/PR authorization
     - the interim discipline is not a server-enforced gate
+```
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Adds PR cadence guidance: lanes should open a focused PR after each major
+    durable point, not after every subpoint; subpoints stay grouped when they
+    share the same reviewable decision, controlling sources, validation, and
+    non-claims. PR bodies should state the decision change, why, stance shifts,
+    changed files, non-claims, and validation.
+  trigger: workflow_authority
+  related_triggers:
+    - lifecycle_boundary
+    - output_authority
+  controlling_sources_updated:
+    - docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md
+  downstream_surfaces_checked:
+    - AGENTS.md
+    - .agents/workflow-overlay/README.md
+    - .agents/workflow-overlay/safety-rules.md
+    - .agents/workflow-overlay/source-of-truth.md
+    - docs/workflows/orca_repo_map_v0.md
+  intentionally_not_updated:
+    - path: AGENTS.md
+      reason: >
+        AGENTS.md already routes landing through this per-lane PR flow. The
+        cadence refinement belongs in the flow record, not the root kernel.
+    - path: .agents/workflow-overlay/safety-rules.md
+      reason: >
+        The explicit-authorization rule for commit, push, and PR creation is
+        unchanged; this cadence applies only after authorization.
+    - path: .agents/workflow-overlay/source-of-truth.md
+      reason: >
+        Source hierarchy and propagation mechanics are unchanged; this is a
+        downstream workflow decision amendment.
+    - path: docs/workflows/orca_repo_map_v0.md
+      reason: >
+        The repo map already points lane PR flow to this decision record; no
+        new routing surface or file owner was added.
+  stale_language_search: >
+    rg -n "major durable point|every major point|every subpoint|per-lane PR|one focused PR|PR cadence"
+    AGENTS.md .agents/workflow-overlay docs/workflows/orca_repo_map_v0.md
+    docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md
+  stale_language_search_result: >
+    Executed 2026-06-16 after this patch. Hits are the new item 9 cadence
+    language, this receipt, and existing compatible references to per-lane /
+    one-focused-PR flow. No checked surface requires a PR for every subpoint or
+    grants standing PR authority.
+  non_claims:
+    - not validation
+    - not readiness
+    - not blanket commit authorization
+    - not blanket push authorization
+    - not blanket PR authorization
+    - not a merge authorization
 ```
 
 ```yaml

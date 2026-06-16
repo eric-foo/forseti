@@ -69,10 +69,11 @@ are superseded — reread-required. Deltas:
   its first application moves from B2B SaaS pricing to beauty
   consumer-demand allocation decisions — durable / transient / manufactured demand
   discrimination per the thesis's central read.
-- First door: an indie/DTC beauty brand decision owner (founder, head of
-  brand / insights / growth / strategy) facing a live demand-allocation
-  decision where internal data is not conclusive. Fund screen = second door
-  (kept warm); PE/family-office diligence = destination.
+- First door: a US-market tractioned indie/DTC beauty or personal-care brand
+  decision owner (founder, head of brand / insights / growth / strategy, or
+  equivalent operator) facing a live 30-90 day demand-allocation decision
+  where internal data is not conclusive. Fund screen = second door (kept
+  warm); PE/family-office diligence = destination.
 - Substrate gate RE-DERIVED for the demand wedge: the differentiated read is
   multi-venue fused demand signal anchored on costly behavior (reviews,
   forums/community, search interest, retail presence) with integrity labels,
@@ -101,6 +102,36 @@ families, deck framing, and all non-claims) is SURGICALLY ALIGNED to this
 refinement and unchanged in substance. (Proof standard, evaluation rubric, and
 kill/graduation criteria live in the buyer-proof packet and charter, not in
 this offer doc.)
+
+## Commercial Target Selection Update (2026-06-16)
+
+Owner direction confirms the first commercial target as US-market tractioned
+indie/DTC beauty or personal-care operators with a named decision owner and a
+live 30-90 day demand-allocation decision. This sharpens the first proof offer
+without narrowing the whole Orca value proposition.
+
+The first offer should bias toward retail/channel expansion,
+launch/reposition, and inventory or purchase-depth commitments because those
+decisions have clear allocation stakes, short windows, and a stronger chance
+that public creator/social/review/search/retail signals matter before internal
+data is conclusive. Tier/price, taste-shift pivot, and defend/hold decisions
+remain eligible when they pass the same gates.
+
+Retailer/category teams are deferred because their proprietary sell-through,
+basket, loyalty, and vendor data often weakens Orca's "internal data not
+conclusive" premise. That is not a business-ending finding; it means retailers
+are a later buyer class after operator/fund proof, not the first 2-3 month
+door. Consumer fund screen remains the second door and PE/family-office
+diligence remains the destination. Agencies and incubators may later act as
+routes to accountable brand decision owners, but agency/incubator interest does
+not count as buyer proof by itself.
+
+Customer-provided proprietary data can later make the judgment stronger by
+letting Orca reconcile the public-signal read against the buyer's internal
+sell-through, CRM, panel, retail, or cohort evidence. It should not be a first
+proof input requirement. The first proof offer must work as a public-first memo
+plus evidence appendix before data intake, data science, dashboards,
+integrations, or source-system buildout are considered.
 
 ## Source Use
 
@@ -212,17 +243,18 @@ test that the visible evidence can support without overclaiming.
 
 First proof offer layer:
 
-For an indie/DTC beauty brand decision owner facing a live consumer-demand
-allocation decision — commit inventory, retail/channel expansion, launch,
-moratorium, reposition, or tier/price change — before internal data is
-conclusive, Orca offers the decided answer: "this demand is real and durable /
-this demand is transient or manufactured — act, phase, narrow, hold, or defend,
-and here is what would change the answer." The artifact is a decision memo +
-evidence appendix substrate surfaced as an executive-grade decision deck when
-the proof gates pass: fused public demand signal (reviews, forums, search
-interest, retail presence) anchored on costly behavior, corroborated by
-org-level hiring composition and headcount at brand and parent level, every
-read carrying an explicit action ceiling.
+For a US-market tractioned indie/DTC beauty or personal-care brand decision
+owner facing a live 30-90 day consumer-demand allocation decision -- especially
+retail/channel expansion, launch/reposition, or inventory/purchase-depth
+commitment -- before internal data is conclusive, Orca offers the decided
+answer: "this demand is real and durable / this demand is transient or
+manufactured -- act, phase, narrow, hold, or defend, and here is what would
+change the answer." The artifact is a decision memo + evidence appendix
+substrate surfaced as an executive-grade decision deck when the proof gates
+pass: fused public demand signal (reviews, forums, search interest, retail
+presence) anchored on costly behavior, corroborated by org-level hiring
+composition and headcount at brand and parent level, every read carrying an
+explicit action ceiling.
 
 This first proof offer does not make beauty the permanent ICP. It is the
 bounded market-facing test of the broader offer.
@@ -248,12 +280,12 @@ uncertainty. Internally, the deck is built from a memo-like reasoning substrate
 and evidence appendix, but the meeting artifact is the deck.
 
 For the first proof lane, this buyer-facing language should be introduced only
-inside the selected wedge: indie/DTC beauty brand decision owners with a live
-30-90 day demand-allocation decision (inventory, retail or channel expansion,
-launch/moratorium/reposition, tier/price change) where internal data is not
-conclusive and public demand signal is visible across more than one venue
-family. The fund-screen door uses the same read later; it is not the first
-door.
+inside the selected wedge: US-market tractioned indie/DTC beauty or
+personal-care brand decision owners with a live 30-90 day demand-allocation
+decision -- prioritizing retail/channel expansion, launch/reposition, and
+inventory or purchase-depth commitment -- where internal data is not conclusive
+and public demand signal is visible across more than one venue family. The
+fund-screen door uses the same read later; it is not the first door.
 
 ## ICP Status
 
@@ -261,17 +293,19 @@ The first proof ICP wedge is selected, not proven.
 
 Selected first proof ICP / wedge (selected, not proven):
 
-US-market indie/DTC beauty / personal-care brands (geography per the thesis
-doctrine, 2026-06-12) facing a live 30-90 day
-consumer-demand allocation decision — tier/price change, retail or channel
-expansion, launch / moratorium / reposition, or pivot on a taste or preference
-shift — with a named decision owner (founder, head of brand / insights /
-growth / strategy), a concrete allocation consequence (inventory, retail
-commitment, launch budget), and demand signal visible across at least two
-independent public venue families so the fused, costly-behavior-anchored read
-is possible. Org-motion corroboration (brand and parent level, org-level only,
-through capture-lane-bound routes) strengthens but does not replace the
-demand lead.
+US-market tractioned indie/DTC beauty / personal-care brands (geography per
+the thesis doctrine, 2026-06-12) facing a live 30-90 day consumer-demand
+allocation decision -- prioritizing retail/channel expansion, launch /
+moratorium / reposition, and inventory or purchase-depth commitment -- with a
+named decision owner (founder, head of brand / insights / growth / strategy,
+or equivalent operator), a concrete allocation consequence (inventory, retail
+commitment, launch budget, backlash/churn risk, or delayed capture), and
+demand signal visible across at least two independent public venue families so
+the fused, costly-behavior-anchored read is possible. Tier/price change,
+taste-shift pivot, and defend/hold against suspected hollow or manufactured
+demand remain eligible when they satisfy the same gates. Org-motion
+corroboration (brand and parent level, org-level only, through
+capture-lane-bound routes) strengthens but does not replace the demand lead.
 
 This updates the first proof offer, not the permanent company-wide value
 proposition. The broader Orca value proposition can still apply to other
@@ -287,9 +321,9 @@ Buyer / sponsor types for the first proof offer:
 
 Qualifying conditions for the first proof offer:
 
-- Indie/DTC beauty / personal-care brand facing a live 30-90 day
-  consumer-demand allocation decision (families per the decision-families
-  list below).
+- US-market tractioned indie/DTC beauty / personal-care brand facing a live
+  30-90 day consumer-demand allocation decision (families per the
+  decision-families list below).
 - Named decision owner with a concrete allocation consequence: inventory,
   retail commitment, launch budget, backlash/churn risk, or delayed capture.
 - Demand signal visible across at least two independent public venue
@@ -331,9 +365,9 @@ hyper-competitive decisions, including:
 
 The first proof offer is narrower:
 
-- demand-allocation commitments: inventory, purchase depth, replenishment;
 - retail / channel expansion or contraction (e.g., a retailer rollout);
 - launch, launch moratorium, or reposition;
+- demand-allocation commitments: inventory, purchase depth, replenishment;
 - tier or price change framed as a demand decision;
 - pivot on a taste or preference shift;
 - defend / hold decisions against suspected manufactured or transient demand.
@@ -477,7 +511,7 @@ Disqualify or reframe if:
   monitoring before any paid decision use.
 - There is no specific strategic decision.
 - The work requires private/internal data before public-signal evidence can
-  matter.
+  matter without proprietary-data intake.
 - The buyer states public signals cannot affect the decision regardless of
   evidence quality, examples, numbers, mechanism, case logic, or proof
   experience.

@@ -50,6 +50,112 @@ wedge authority.
 A direction lock, if granted, locks a DIRECTION, not a result: not validation,
 willingness-to-pay, readiness, buyer pull, or proof the wedge will win.
 
+## Commercial Target Selection Amendment (2026-06-16)
+
+Owner direction on 2026-06-16 confirms the first commercial target class as:
+
+**US-market tractioned indie/DTC beauty or personal-care operators** with a
+named founder, head of brand, growth, insights, strategy, or equivalent
+decision owner facing a live 30-90 day demand-allocation decision where
+internal data is not conclusive and public creator/social/review/search/retail
+signals can be fused across at least two independent venue families.
+
+This sharpens the already-ratified operator-first door; it does not create
+buyer validation, outreach authority, willingness-to-pay proof, or commercial
+readiness. The first decision-family bias is retail/channel expansion,
+launch/reposition, and inventory or purchase-depth commitment; tier/price,
+taste-shift pivot, and defend/hold against suspected hollow or manufactured
+demand remain eligible when they satisfy the same gates.
+
+Retailer/category teams are not the first door because they often have
+stronger proprietary sell-through, basket, loyalty, and vendor data, making
+the "internal data not conclusive" gate much harder to satisfy. That is a
+sequencing risk, not an existential product kill: if operator pull fails, the
+standing fallback remains the harder / more-profitable buyer ladder already
+named here -- consumer fund screen and then PE/family-office diligence -- by
+owner decision at kill time. Agencies and incubators may later help source or
+route brand decision owners, but their interest is not buyer proof unless the
+accountable brand decision owner enters the proof loop.
+
+Customer-provided proprietary data is a later augmentation path, not a first
+proof dependency. Orca may eventually reconcile its public-signal judgment
+against buyer-provided sell-through, CRM, panel, retail, or cohort data under a
+separately authorized data-spine or proof lane. For this first door, the claim
+remains public-first: a manual memo plus evidence appendix must be credible
+before proprietary-data intake, data-science work, dashboards, integrations, or
+source-system buildout. Public evidence relevance is a plausibility premise,
+not a buyer-proof shortcut; Orca still has to observe decision-owner use or
+pull before making proof claims.
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    The consumer-demand first-proof door is sharpened from generic
+    indie/DTC beauty operators to US-market tractioned indie/DTC beauty or
+    personal-care operators with a named decision owner and live 30-90 day
+    demand-allocation decision, biasing first toward retail/channel,
+    launch/reposition, and inventory/purchase-depth decisions while
+    documenting retailer/category teams as deferred because proprietary
+    internal data weakens the first-door public-signal premise, and treating
+    customer-provided proprietary data as later augmentation rather than a
+    first-proof dependency.
+  trigger: product_doctrine
+  related_triggers:
+    - output_authority
+  controlling_sources_updated:
+    - docs/decisions/orca_icp_wedge_consumer_demand_first_v0.md
+    - docs/product/product_lead/orca_offer_hypothesis_v0.md
+    - docs/product/product_lead/orca_buyer_proof_packet_v0.md
+    - docs/product/product_lead/orca_product_proof_lead_charter_v0.md
+    - docs/product/product_lead/orca_discovery_consumer_demand_target_selection_brief_v0.md
+  downstream_surfaces_checked:
+    - AGENTS.md
+    - .agents/workflow-overlay/README.md
+    - .agents/workflow-overlay/source-loading.md
+    - .agents/workflow-overlay/product-proof.md
+    - docs/decisions/orca_product_thesis_consumer_demand_v0.md
+    - docs/product/source_capture_toolbox/ig_creator_roster_frontier_ledger_spec_v0.md @ codex/beauty-creator-roster-ledger:7e19ab42
+  intentionally_not_updated:
+    - path: docs/decisions/orca_product_thesis_consumer_demand_v0.md
+      reason: >
+        The thesis owns the broader buyer ladder and already delegates first
+        application specifics to this wedge record; this patch sharpens the
+        wedge and proof instruments without changing the thesis center.
+    - path: docs/product/source_capture_toolbox/ig_creator_roster_frontier_ledger_spec_v0.md
+      reason: >
+        The roster spec is on pending branch
+        codex/beauty-creator-roster-ledger at observed HEAD 7e19ab42 and is a
+        proposed non-authorizing source-capture spec. Its open question asks
+        which first commercial beauty sub-niche, buyer decision, and creator
+        universe should anchor the 500-record slice; this patch answers only
+        the buyer-class/decision-family side and does not edit that branch.
+  stale_language_search: >
+    rg -n "inventory/replenishment vs channel expansion|indie/DTC beauty brand
+    decision owner|retailer/category teams|agency/incubator|agencies and
+    incubators|Consumer fund screen|consumer fund screen|PE/family-office|tractioned"
+    docs/decisions/orca_icp_wedge_consumer_demand_first_v0.md
+    docs/product/product_lead/orca_offer_hypothesis_v0.md
+    docs/product/product_lead/orca_buyer_proof_packet_v0.md
+    docs/product/product_lead/orca_product_proof_lead_charter_v0.md
+    docs/product/product_lead/orca_discovery_consumer_demand_target_selection_brief_v0.md
+  stale_language_search_result: >
+    Executed 2026-06-16 after this patch. Hits were confined to intended
+    target-selection update language, the existing fund/PE ladder references,
+    and the retained historical candidate-grid labels. No hit retained the old
+    "inventory/replenishment vs channel expansion" mixed-family diagnostic or
+    a live first-door phrase that omits the tractioned US-market operator
+    narrowing.
+  non_claims:
+    - not validation
+    - not readiness
+    - not buyer proof
+    - not willingness-to-pay proof
+    - not outreach authorization
+    - not candidate scan authorization
+    - not creator roster construction authorization
+    - not implementation authorization
+```
+
 ## Reconciliation With The Wedge Chain (not a fresh decision)
 
 The commissioning prompt named
@@ -117,14 +223,16 @@ intelligence**, operator-first.
 
 - Engine (unchanged): outside-in market & competitive intelligence.
   Consumer-demand allocation is its first application.
-- First door — buyer: a **US-market indie/DTC beauty brand decision owner**
-  (founder, head of brand / insights / growth / strategy) facing a live
+- First door — buyer: a **US-market tractioned indie/DTC beauty or
+  personal-care brand decision owner** (founder, head of brand / insights /
+  growth / strategy, or equivalent operator) facing a live 30-90 day
   consumer-demand allocation decision where internal data is not conclusive
   (US-market qualifier per the thesis geography doctrine, owner-adopted
-  2026-06-12). Decision families
-  (mirroring the owner-selected batch-1 cases): tier/price change, retail or
-  channel expansion (e.g., a Sephora-type rollout), launch / moratorium /
-  reposition, pivot on a taste or preference shift.
+  2026-06-12). Priority decision families: retail/channel expansion or
+  contraction, launch / moratorium / reposition, and inventory or
+  purchase-depth commitment. Tier/price change, taste-shift pivot, and
+  defend/hold against suspected hollow or manufactured demand remain eligible
+  when they satisfy the buyer-proof gates.
 - The decision the product informs: "is this demand real, durable, and big
   enough to commit inventory, retail, or launch budget to — and at what action
   ceiling (act / phase / narrow / hold / defend)?"
