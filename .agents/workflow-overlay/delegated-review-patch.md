@@ -120,6 +120,22 @@ the Review Doctrine in `.agents/workflow-overlay/review-lanes.md` and the prompt
 validation gates in `.agents/workflow-overlay/prompt-orchestration.md`; this
 convention creates none of them.
 
+**Incomplete commission route-out.** When the user invokes this convention but
+the commission is missing operator-owned fields (for example delegate vendor,
+controller identity, access mode, report destination, or provenance values),
+do not end on an inert blocker if the target and review purpose are inferable.
+Route the request through `workflow-prompt-orchestrator` and return a
+`paste-ready-chat` route-out prompt with the missing operator fields clearly
+marked `operator_to_fill`. Block instead only when the target or review purpose
+cannot be inferred, when prompt-orchestrator cannot be applied under
+`.agents/workflow-overlay/prompt-orchestration.md`, or when the user asks for
+strict execution or patching without a bound commission. If the inferred target
+is not a single high-stakes authored artifact - for example a multi-file
+implementation/code diff - do not stretch this convention to fit it. Route via
+prompt-orchestrator to the appropriate review prompt, normally read-only
+implementation/code review unless a separate patch-execution commission is
+explicitly bound.
+
 **Repo-mode discovery discharges a downstream independent-review gate.** When a
 cross-vendor delegate runs the `repo`-mode loop — full-artifact adversarial
 discovery (loop step 1, not only the patched lines) plus authorship of the
@@ -150,6 +166,17 @@ and do not fork or restate it.
 delegated_review_patch_overlay_interface:
   status: provisional_opt_in   # available only by explicit CA commission; not a bound review lane; not mandatory
   operating_contract_pointer: .agents/workflow-overlay/delegated-review-patch.md
+  incomplete_commission_route_out:
+    owner: workflow-prompt-orchestrator
+    output_mode: paste-ready-chat
+    use_when: >
+      Target and review purpose are inferable, but operator-owned route fields
+      are missing; emit an operator-fill route-out prompt instead of an inert
+      blocker.
+    non_eligible_target_boundary: >
+      Multi-file implementation/code diffs are routed to the appropriate review
+      prompt, normally read-only code review, unless patch execution is
+      separately commissioned.
   protected_path_list:
     authority: .agents/workflow-overlay/safety-rules.md   # defer to it; do not fork or restate the forbidden-edit set
     rule: >
@@ -193,6 +220,7 @@ delegated_review_patch_overlay_interface:
     - source packs and read budgets (.agents/workflow-overlay/source-loading.md)
   output_destinations:
     delegate_return: unified diff + neutral source citations + verdict + residual-risk note (paste-ready courier to the commissioning Chief Architect)
+    prompt_orchestrator_route_out: paste-ready-chat route-out prompt with operator_to_fill fields when target/purpose are inferable but commission fields are unbound
     durable_review_report: docs/review-outputs/ or docs/review-outputs/adversarial-artifact-reviews/ when a durable report is commissioned
     patch_application: the single CA-named target file in-repo, under the commission (patch / integration execution authority per .agents/workflow-overlay/review-lanes.md)
 ```
@@ -214,53 +242,6 @@ and not runtime model routing. It does not import jb project authority, paths, o
 lifecycle mechanics into Orca; jb is cited only as cross-project provenance.
 
 ## Direction Change Propagation
-
-```yaml
-# no_repo package shape bound 2026-06-10 (CA decision): self-contained bundle + thin-wrapper, with inline fallback.
-direction_change_propagation:
-  doctrine_changed: >
-    The no_repo access mode now binds a default PACKAGE SHAPE: a self-contained bundle (the
-    hash-confirmable verbatim target attachment(s) plus a guardrail-complete README carrying the
-    method, authority excerpts, and contract) delivered with a thin-wrapper chat prompt that points
-    the repo-blind reviewer at the in-bundle README. The thin wrapper still carries the cross-vendor
-    who-constraint (it must not migrate silently into the bundle), and when the reviewer cannot read
-    in-bundle files the method is inlined in chat instead. Review-side de-correlation, CA adjudication,
-    the verbatim-hash-attachment + freshness-gate requirements, and the strict-claim boundary are unchanged.
-  trigger: review_authority
-  related_triggers: [output_authority, workflow_authority]
-  controlling_sources_updated:
-    - .agents/workflow-overlay/delegated-review-patch.md
-  downstream_surfaces_checked:
-    - path: docs/prompts/templates/portable/adversarial_artifact_review_portable_method_v0.md
-      note: >
-        "How to use" softened from "paste the block" to "deliver verbatim -- pasted or as the bundle
-        README; shape bound in delegated-review-patch.md". Prose only; the distilled PORTABLE METHOD
-        block and its derived_from pins are unchanged, so no consumer re-pin is owed.
-    - path: docs/prompts/templates/wrappers/thin_wrapper_v0.md
-      note: >
-        the "read & execute the README in the attached bundle" wrapper is a thin-wrapper variant,
-        owned by prompt-orchestration. NOT edited here -- flagged for that lane if a registered
-        no_repo wrapper variant is wanted.
-    - path: .agents/workflow-overlay/review-lanes.md
-      note: the repo-vs-no_repo lane line (who-patches) is unchanged; the package shape is owned here.
-  intentionally_not_updated:
-    - path: workflow-delegated-review-patch (the reusable kernel skill)
-      reason: >
-        the kernel owns invariants and the commission/adjudication contract, NOT a concrete
-        packaging/delivery shape (it states the overlay owns output destinations and "hardcodes none
-        of them"). Encoding a package shape there would break its boundary and portability, and it is
-        an installed/user-level skill out of edit-bounds without a deployment turn. The shape is an
-        overlay binding; the skill is unchanged.
-    - path: .agents/workflow-overlay/prompt-orchestration.md
-      reason: >
-        model-neutrality, findings-first defaults, and preflight fields are unchanged; the thin-wrapper
-        shape composes with the existing paste-ready-chat rendering rather than forking it.
-  non_claims:
-    - not validation
-    - not readiness
-    - not a bound, mandatory, or machine-routable review lane (the convention stays provisional)
-    - not runtime model routing (access mode and package shape are operator/commission constraints)
-```
 
 ```yaml
 # repo-mode discovery discharges a downstream independent-review gate; added 2026-06-13 (CA + owner decision).
@@ -305,6 +286,70 @@ direction_change_propagation:
     - not readiness
     - not a bound/mandatory/machine-routable review lane (the convention stays provisional)
     - not runtime model routing
+```
+
+```yaml
+# incomplete commission route-out fallback bound 2026-06-16 (CA decision).
+direction_change_propagation:
+  doctrine_changed: >
+    Incomplete delegated-review-patch commissions now route through
+    workflow-prompt-orchestrator as paste-ready route-out prompts when target
+    and purpose are inferable, with missing operator-owned fields marked
+    operator_to_fill; multi-file implementation/code diffs are routed to the
+    appropriate review prompt instead of being stretched into this convention.
+  trigger: review_authority
+  related_triggers: [workflow_authority, output_authority]
+  controlling_sources_updated:
+    - .agents/workflow-overlay/delegated-review-patch.md
+  receipt_storage_updated:
+    - docs/decisions/dcp_receipts_archive_v0.md
+  downstream_surfaces_checked:
+    - .agents/workflow-overlay/prompt-orchestration.md
+    - .agents/workflow-overlay/review-lanes.md
+    - .agents/workflow-overlay/source-loading.md
+    - .agents/workflow-overlay/skill-adoption.md
+    - AGENTS.md
+  intentionally_not_updated:
+    - path: .agents/workflow-overlay/prompt-orchestration.md
+      reason: >
+        Already owns prompt-orchestrator authoring, paste-ready-chat output,
+        repo-aware prompt preflight, and source-gated review method sequencing;
+        this patch routes to that owner instead of duplicating its contract.
+    - path: .agents/workflow-overlay/review-lanes.md
+      reason: >
+        Already defines delegated review-and-patch as provisional, opt-in, and
+        not machine-routable; the non-eligible target boundary belongs in the
+        convention file rather than in the general lane index.
+    - path: workflow-delegated-review-patch skill source and plugin cache
+      reason: >
+        External/user/plugin skill source is protected and not Orca project
+        authority. This Orca behavior is bound in the overlay; reusable upstream
+        skill-source changes require a separate skill-governance/deployment turn.
+    - path: AGENTS.md
+      reason: >
+        Already routes delegated review-and-patch to the owning overlay file; a
+        root restatement would fork the rule.
+  stale_language_search: >
+    rg -n "incomplete commission|operator_to_fill|prompt_orchestrator_route_out|multi-file implementation|code diff|machine-routable|workflow-prompt-orchestrator"
+    .agents/workflow-overlay AGENTS.md
+    plus targeted checks for protected external skill-source boundaries and
+    prompt-orchestrator review defaults.
+  stale_language_search_result: >
+    Executed 2026-06-16. Live hits are the new route-out fallback and interface
+    fields in delegated-review-patch.md; existing prompt-orchestrator ownership
+    in AGENTS.md and prompt-orchestration.md; existing delegated-review-patch
+    non-machine-routable text in delegated-review-patch.md and review-lanes.md;
+    and existing skill-adoption/source-of-truth text that protects external,
+    user-level, plugin, and installed skill source from ordinary Orca work. No
+    checked live surface instructed agents to hand-draft route-out prompts,
+    force multi-file code diffs into delegated review-and-patch, or edit
+    external reusable skill source in this Orca overlay turn.
+  non_claims:
+    - not validation
+    - not readiness
+    - not a bound/mandatory/machine-routable review lane (the convention stays provisional)
+    - not runtime model routing
+    - not reusable skill-source deployment
 ```
 
 Older receipts archived verbatim in `docs/decisions/dcp_receipts_archive_v0.md`.

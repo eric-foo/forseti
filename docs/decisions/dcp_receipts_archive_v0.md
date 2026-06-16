@@ -932,6 +932,53 @@ direction_change_propagation:
     - not runtime model routing (same-family/lower-tier is a who-constraint)
 ```
 
+```yaml
+# no_repo package shape bound 2026-06-10 (CA decision): self-contained bundle + thin-wrapper, with inline fallback.
+direction_change_propagation:
+  doctrine_changed: >
+    The no_repo access mode now binds a default PACKAGE SHAPE: a self-contained bundle (the
+    hash-confirmable verbatim target attachment(s) plus a guardrail-complete README carrying the
+    method, authority excerpts, and contract) delivered with a thin-wrapper chat prompt that points
+    the repo-blind reviewer at the in-bundle README. The thin wrapper still carries the cross-vendor
+    who-constraint (it must not migrate silently into the bundle), and when the reviewer cannot read
+    in-bundle files the method is inlined in chat instead. Review-side de-correlation, CA adjudication,
+    the verbatim-hash-attachment + freshness-gate requirements, and the strict-claim boundary are unchanged.
+  trigger: review_authority
+  related_triggers: [output_authority, workflow_authority]
+  controlling_sources_updated:
+    - .agents/workflow-overlay/delegated-review-patch.md
+  downstream_surfaces_checked:
+    - path: docs/prompts/templates/portable/adversarial_artifact_review_portable_method_v0.md
+      note: >
+        "How to use" softened from "paste the block" to "deliver verbatim -- pasted or as the bundle
+        README; shape bound in delegated-review-patch.md". Prose only; the distilled PORTABLE METHOD
+        block and its derived_from pins are unchanged, so no consumer re-pin is owed.
+    - path: docs/prompts/templates/wrappers/thin_wrapper_v0.md
+      note: >
+        the "read & execute the README in the attached bundle" wrapper is a thin-wrapper variant,
+        owned by prompt-orchestration. NOT edited here -- flagged for that lane if a registered
+        no_repo wrapper variant is wanted.
+    - path: .agents/workflow-overlay/review-lanes.md
+      note: the repo-vs-no_repo lane line (who-patches) is unchanged; the package shape is owned here.
+  intentionally_not_updated:
+    - path: workflow-delegated-review-patch (the reusable kernel skill)
+      reason: >
+        the kernel owns invariants and the commission/adjudication contract, NOT a concrete
+        packaging/delivery shape (it states the overlay owns output destinations and "hardcodes none
+        of them"). Encoding a package shape there would break its boundary and portability, and it is
+        an installed/user-level skill out of edit-bounds without a deployment turn. The shape is an
+        overlay binding; the skill is unchanged.
+    - path: .agents/workflow-overlay/prompt-orchestration.md
+      reason: >
+        model-neutrality, findings-first defaults, and preflight fields are unchanged; the thin-wrapper
+        shape composes with the existing paste-ready-chat rendering rather than forking it.
+  non_claims:
+    - not validation
+    - not readiness
+    - not a bound, mandatory, or machine-routable review lane (the convention stays provisional)
+    - not runtime model routing (access mode and package shape are operator/commission constraints)
+```
+
 ## From .agents/workflow-overlay/artifact-folders.md
 
 ### Direction Change Propagation - Source Capture Armory Product Folder
