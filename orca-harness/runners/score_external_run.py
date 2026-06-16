@@ -53,6 +53,7 @@ MODELS = {
     "gpt55": {"contestant_id": "gpt55_isolated_v0", "model_id": "gpt-5.5", "model_family": "openai_gpt"},
     "grok4": {"contestant_id": "grok4_isolated_v0", "model_id": "grok-4", "model_family": "xai_grok"},
     "gemini": {"contestant_id": "gemini_isolated_v0", "model_id": "gemini", "model_family": "google_gemini"},
+    "qwen": {"contestant_id": "qwen_isolated_v0", "model_id": "qwen", "model_family": "alibaba_qwen"},
 }
 
 # --- case aliases -> (case_dir, exam_filename) ----------------------------------
