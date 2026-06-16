@@ -186,7 +186,7 @@ Debunking Triage and Receipts Inventory above. Source artifacts:
 Org-Motion Batch Pre-Commitment amendment) and the conductor addendum v1
 `docs/product/judgment_spine/conductor_construction_integrity_probe_addendum_v1.md`
 (outcome-blind construction + JSG-05 isolation screen + R5 whitelist leak-safety;
-v1 pending ratification after cross-vendor re-review).
+v1 owner-ratified 2026-06-16, after its cross-vendor re-review returned).
 
 | Attack (Provenance / Independence class) | Receipt |
 | --- | --- |
@@ -196,7 +196,7 @@ v1 pending ratification after cross-vendor re-review).
 
 These are product-learning-tier process receipts; they harden the *method*, not
 the claim cap (Row 1 still governs what may be said). The conductor-addendum
-receipts count as *ratified* only on that addendum's sign-off + delegated review.
+receipts count as *ratified* only on that addendum's sign-off + delegated review — satisfied 2026-06-16 (addendum v1 owner-ratified; cross-vendor re-review returned).
 
 ## Subordination
 

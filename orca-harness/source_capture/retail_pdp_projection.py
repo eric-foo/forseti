@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+import hashlib
 import json
 import re
+from pathlib import Path
 from typing import Any, Literal, Mapping, Sequence
 
 from pydantic import Field, field_validator, model_validator
@@ -154,6 +156,32 @@ class RetailPdpProjectionPacket(StrictModel):
 def _retail_structure_preserved(bindings: Sequence[RetailPdpProjectionBinding]) -> bool:
     binding_types = {binding.binding_type for binding in bindings}
     return _REQUIRED_RETAIL_STRUCTURE_BINDINGS.issubset(binding_types)
+
+
+class RetailPdpProjectionInputError(ValueError):
+    """A packet directory cannot be projected without losing raw-file integrity."""
+
+
+def build_retail_pdp_projection_from_packet_directory(*, packet_directory: Path) -> RetailPdpProjectionPacket:
+    """Build a Retail/PDP projection from an existing local Source Capture Packet directory."""
+    packet, raw_file_bytes_by_file_id = _load_packet_directory_projection_inputs(packet_directory)
+    return build_retail_pdp_projection(packet=packet, raw_file_bytes_by_file_id=raw_file_bytes_by_file_id)
+
+
+def write_retail_pdp_projection(*, packet_directory: Path, output_path: Path) -> RetailPdpProjectionPacket:
+    """Write a projection JSON sidecar from an existing packet directory.
+
+    This is a local view writer only: it reads ``manifest.json`` plus hash-verified
+    preserved files, then writes the mechanical projection. It performs no capture,
+    fetch, Cleaning, ECR, or Judgment work.
+    """
+    projection = build_retail_pdp_projection_from_packet_directory(packet_directory=packet_directory)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    output_path.write_text(
+        f"{json.dumps(projection.model_dump(mode='json'), indent=2, sort_keys=True)}\n",
+        encoding="utf-8",
+    )
+    return projection
 
 
 def build_retail_pdp_projection(
@@ -485,6 +513,10 @@ def _variant_offer_fields(
 
     structured_fields, structured_anchor = _structured_variant_offer_fields(structured_entries)
     apollo_fields, apollo_anchor = _ulta_apollo_offer_fields(structured_entries) if retailer == "ulta" else ({}, None)
+    sephora_dom_fields = _sephora_dom_offer_fields(html) if retailer == "sephora" else {}
+    if sephora_dom_fields:
+        structured_fields = {**structured_fields, **sephora_dom_fields}
+    residuals.extend(_structured_price_residuals(retailer=retailer, structured_fields=structured_fields))
     if retailer == "ulta" and structured_fields and apollo_fields:
         for key in ("sku", "product_id", "price", "availability"):
             left = _string_or_none(structured_fields.get(key))
@@ -495,10 +527,14 @@ def _variant_offer_fields(
             key if key.startswith("apollo_") else f"apollo_{key}": value for key, value in apollo_fields.items()
         }
         merged = {**structured_fields, **apollo_prefixed}
+        _residualize_ulta_requested_sku_mismatch(merged, residuals, source_slice=source_slice)
         return merged, structured_anchor or apollo_anchor or fallback_anchor, residuals
     if structured_fields:
+        if retailer == "ulta":
+            _residualize_ulta_requested_sku_mismatch(structured_fields, residuals, source_slice=source_slice)
         return structured_fields, structured_anchor or fallback_anchor, residuals
     if apollo_fields:
+        _residualize_ulta_requested_sku_mismatch(apollo_fields, residuals, source_slice=source_slice)
         return apollo_fields, apollo_anchor or fallback_anchor, residuals
     return {}, fallback_anchor, residuals
 
@@ -613,8 +649,10 @@ def _offer_fields_from_product(
         "sku": _string_or_none(variant.get("sku")),
         "variant_name": _string_or_none(variant.get("color")) or _string_or_none(variant.get("scent")) or _string_or_none(variant.get("name")),
         "price": _string_or_none(offer.get("price")),
+        "price_isolation": "structured_json_offer" if _string_or_none(offer.get("price")) else "absent",
         "price_currency": _string_or_none(offer.get("priceCurrency")),
         "availability": _string_or_none(offer.get("availability")),
+        "price_binding_source": source,
         "variant_binding_source": source,
     }
 
@@ -645,6 +683,43 @@ def _ulta_apollo_offer_fields(
             "variant_binding_source": "apollo_state",
         }, entry.raw_anchor
     return {}, None
+
+
+def _sephora_dom_offer_fields(html: str) -> dict[str, Any | None]:
+    for match in re.finditer(r"<[^>]*data-comp=\"ProductPage[^\"]*\"[^>]*>", html, flags=re.IGNORECASE):
+        tag = match.group(0)
+        price = _html_attr_value(tag, "data-cnstrc-item-price")
+        if price is None:
+            continue
+        return {
+            "dom_product_id": _html_attr_value(tag, "data-cnstrc-item-id"),
+            "dom_sku": _html_attr_value(tag, "data-cnstrc-item-variation-id"),
+            "dom_price": price.lstrip("$"),
+            "price": price.lstrip("$"),
+            "price_isolation": "sephora_dom_product_page",
+            "price_binding_source": "rendered_dom_product_page",
+        }
+    return {}
+
+
+def _structured_price_residuals(
+    *,
+    retailer: Literal["amazon", "sephora", "ulta", "unknown"],
+    structured_fields: Mapping[str, object],
+) -> list[str]:
+    if (
+        retailer == "sephora"
+        and _string_or_none(structured_fields.get("price"))
+        and structured_fields.get("price_isolation") == "structured_json_offer"
+    ):
+        return ["sephora_price_from_structured_json_without_target_dom_price"]
+    return []
+
+
+def _sku_from_variant_pin(variant_pin: str | None) -> str | None:
+    if variant_pin is None:
+        return None
+    return _first_regex(variant_pin, (r"\bsku=([A-Za-z0-9_-]+)", r"\bsku:\s*([A-Za-z0-9_-]+)"))
 
 
 def _amazon_review_fields(*, html: str, visible_text: str) -> dict[str, Any | None]:
@@ -925,6 +1000,59 @@ def _with_anchor(raw_anchor: RetailProjectionRawAnchor, anchor_kind: str, anchor
     )
 
 
+def _load_packet_directory_projection_inputs(packet_directory: Path) -> tuple[SourceCapturePacket, dict[str, bytes]]:
+    manifest_path = packet_directory / "manifest.json"
+    raw_manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    if not isinstance(raw_manifest, dict):
+        raise RetailPdpProjectionInputError(f"manifest is not a JSON object: {manifest_path}")
+
+    packet = SourceCapturePacket.model_validate(raw_manifest)
+    raw_file_bytes_by_file_id: dict[str, bytes] = {}
+    for preserved_file in packet.preserved_files:
+        file_path = _resolve_packet_relative_path(
+            packet_directory=packet_directory,
+            relative_packet_path=preserved_file.relative_packet_path,
+            file_id=preserved_file.file_id,
+        )
+        if not file_path.is_file():
+            raise RetailPdpProjectionInputError(
+                f"preserved file for {preserved_file.file_id!r} not found at "
+                f"{preserved_file.relative_packet_path!r} under the packet dir; block-don't-repair."
+            )
+        body = file_path.read_bytes()
+        if len(body) != preserved_file.size_bytes:
+            raise RetailPdpProjectionInputError(
+                f"preserved file size mismatch for {preserved_file.file_id!r} "
+                f"(read {len(body)}, manifest {preserved_file.size_bytes}); block-don't-repair."
+            )
+        recomputed_sha256 = hashlib.sha256(body).hexdigest()
+        if recomputed_sha256 != preserved_file.sha256:
+            raise RetailPdpProjectionInputError(
+                f"preserved file sha256 mismatch for {preserved_file.file_id!r} "
+                f"(recomputed {recomputed_sha256}, manifest {preserved_file.sha256}); block-don't-repair."
+            )
+        raw_file_bytes_by_file_id[preserved_file.file_id] = body
+    return packet, raw_file_bytes_by_file_id
+
+
+def _resolve_packet_relative_path(*, packet_directory: Path, relative_packet_path: str, file_id: str) -> Path:
+    candidate = Path(relative_packet_path)
+    if candidate.is_absolute():
+        raise RetailPdpProjectionInputError(
+            f"preserved path {relative_packet_path!r} for {file_id!r} is absolute; block-don't-repair."
+        )
+    packet_root = packet_directory.resolve()
+    resolved = (packet_root / candidate).resolve()
+    try:
+        resolved.relative_to(packet_root)
+    except ValueError as exc:
+        raise RetailPdpProjectionInputError(
+            f"preserved path {relative_packet_path!r} for {file_id!r} resolves outside the packet dir; "
+            f"block-don't-repair."
+        ) from exc
+    return resolved
+
+
 def _decode_text(body: bytes) -> str:
     return body.decode("utf-8", errors="replace")
 
@@ -962,6 +1090,10 @@ def _first_literal(text: str, literals: tuple[str, ...]) -> str | None:
     return None
 
 
+def _html_attr_value(tag: str, attr_name: str) -> str | None:
+    return _first_regex(tag, (rf"\b{re.escape(attr_name)}=[\"']([^\"']+)[\"']",))
+
+
 def _string_or_none(value: object) -> str | None:
     if value is None:
         return None
@@ -977,6 +1109,21 @@ def _equivalent_offer_value(key: str, left: str, right: str) -> bool:
     if key == "availability":
         return left.rstrip("/").endswith(right.rstrip("/")) or right.rstrip("/").endswith(left.rstrip("/"))
     return False
+
+
+def _residualize_ulta_requested_sku_mismatch(
+    fields: Mapping[str, Any | None],
+    residuals: list[str],
+    *,
+    source_slice: SourceCaptureSlice | None = None,
+) -> None:
+    requested_sku = _string_or_none(fields.get("apollo_requested_sku"))
+    if requested_sku is None and source_slice is not None:
+        requested_sku = _sku_from_variant_pin(_fact_value(source_slice.variant_pin))
+    rendered_sku = _string_or_none(fields.get("sku")) or _string_or_none(fields.get("apollo_sku"))
+    residual = "ulta_requested_sku_rendered_sku_mismatch"
+    if requested_sku and rendered_sku and requested_sku != rendered_sku and residual not in residuals:
+        residuals.append(residual)
 
 
 def _row_token(value: str) -> str:
@@ -1003,6 +1150,7 @@ __all__ = [
     "RETAIL_PDP_PROJECTION_CERTIFICATION",
     "RETAIL_PDP_PROJECTION_METHOD",
     "RETAIL_PDP_PROJECTION_VERSION",
+    "RetailPdpProjectionInputError",
     "RetailPdpProjectionBinding",
     "RetailPdpProjectionLossEntry",
     "RetailPdpProjectionLossLedger",
@@ -1011,4 +1159,6 @@ __all__ = [
     "RetailProjectionRawAnchor",
     "RetailProjectionRawRef",
     "build_retail_pdp_projection",
+    "build_retail_pdp_projection_from_packet_directory",
+    "write_retail_pdp_projection",
 ]

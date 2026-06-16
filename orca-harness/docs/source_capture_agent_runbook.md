@@ -138,6 +138,7 @@ Use the narrowest runner that matches the supplied input.
 | Browser-rendered or screenshot-needed page | `run_source_capture_browser_packet.py` | One supplied URL needs anonymous browser rendering or screenshot preservation. |
 | Login-visible or entitled browser session content | `run_source_capture_browser_session_bootstrap.py`, then `run_source_capture_authenticated_browser_packet.py` | The operator authorizes an allowed manual-login storage-state session. |
 | Anti-blocking browser-rendered page | `run_source_capture_cloakbrowser_packet.py` | One supplied URL needs anonymous CloakBrowser rendering because ordinary browser/headless capture is expected to fail or has failed. |
+| Retail/PDP anti-blocking capture plus local projection | `run_source_capture_cloakbrowser_packet.py --source-family retail_pdp --retail-pdp-projection-output <path>` | One supplied retailer PDP URL needs a Source Capture Packet and a separate no-network Retail/PDP projection JSON. For the current Amazon/Sephora/Ulta smoke commands, use `docs/product/source_capture_toolbox/retail_pdp_sidecar_operator_playbook_v0.md`. |
 | Reddit pre-commercial anti-blocking capture | `run_source_capture_cloakbrowser_packet.py` for one supplied old Reddit/thread URL only | The runner can preserve one supplied browser-visible URL through CloakBrowser; it does not discover Reddit targets, monitor threads, parse/consolidate comments, use credentials, or authorize broad crawling. |
 
 If a supplied URL points directly to a source-meaningful asset, prefer Media /

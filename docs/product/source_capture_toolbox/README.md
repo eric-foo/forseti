@@ -70,6 +70,10 @@ packet without redefining Capture obligations.
 | `docs/product/source_capture_toolbox/reddit_capture_operator_playbook_v0.md` | Current operator procedure for bounded Reddit exact-thread capture with implemented Armory tools: old Reddit Direct HTTP batch first, quality summary, exact-URL archive fallback, CloakBrowser/proxy boundaries, warm same-context JSON as future/specialized enrichment, and no broad crawl or commercial-use claims. |
 | `docs/product/source_capture_toolbox/reddit_precommercial_capture_consolidation_planning_thread_v0.md` | Durable architectural planning thread for bounded pre-commercial Reddit capture/consolidation: exact old Reddit Direct HTTP as the current exact-thread operator default, CloakBrowser as the anti-blocking/browser-visible route when Direct HTTP is unsuitable or blocked, warm same-context Reddit JSON as a bounded enrichment path, packet-before-parser handoff, provenance-first consolidation shape, archive fallback, and non-implementation stop lines. |
 | `docs/product/source_capture_toolbox/reddit_precommercial_capture_consolidation_success_signal_architecture_v0.md` | Advisory routing object that explains why the Reddit planning thread needs Decision-Frame-or-candidate classification, non-promoting success tiers, Armory vocabulary reuse, packet-contamination stops, no source-discovery expansion, and candidate-intake gap visibility. |
+| `docs/product/source_capture_toolbox/retail_pdp_projection_contract_v0.md` | Retail/PDP raw-packet-to-projection contract/playbook for Amazon, Sephora, and Ulta: capture inputs, projection rows, residual semantics, retailer binding limits, target DOM price/SKU binding posture, and the no-ECR/Cleaning/Judgment boundary. |
+| `docs/product/source_capture_toolbox/retail_pdp_sidecar_operator_playbook_v0.md` | Operator procedure for the bounded Retail/PDP CloakBrowser sidecar smoke across Amazon, Sephora, and Ulta: canonical URLs, flags, scratch output shape, expected projection summaries, failure taxonomy, merge-conflict posture, and code-enforceable follow-up flags. |
+| `docs/product/source_capture_toolbox/retail_pdp_projection_playbook_v0.md` | Retail/PDP raw-packet-to-projection contract for Amazon, Sephora, and Ulta: captured inputs, projected rows, residual meanings, retailer target-binding posture, and the playbook-first boundary before auto-project wiring or ECR sequencing. |
+| `docs/product/source_capture_toolbox/ig_creator_roster_frontier_ledger_spec_v0.md` | Proposed current-main IG beauty creator roster/frontier ledger contract: append-only public-name observations, depth-1 discovery provenance, privacy invariants, ontology boundary, and current `250 -> 500 -> 1,000` roster gates. Non-authorizing. |
 
 ## Armory Components
 
@@ -130,6 +134,35 @@ Packet core concern mapping:
 It must not own ECR fields, Cleaning transforms, Judgment scoring, credibility,
 inclusion, exclusion, discounting, Signal Use, Decision Strength, Action
 Ceiling, buyer proof, or commercial meaning.
+
+### Retail/PDP Projection Contract
+
+Purpose: stabilize how captured retailer PDP packets are mechanically projected
+into source-visible product, variant/offer, review substrate, embedded JSON, and
+carried-module rows, including the bounded opt-in capture sidecar, before any
+ECR sequencing.
+
+The contract is at
+`docs/product/source_capture_toolbox/retail_pdp_projection_contract_v0.md`.
+It covers Amazon, Sephora, and Ulta binding postures; unsafe fallback residuals;
+Sephora target `ProductPage` DOM price binding versus structured-JSON fallback;
+Ulta requested-SKU versus projected-SKU residuals; Amazon DOM target price and
+storefront pin limits; `structure_preserved` semantics; and explicit
+no-Cleaning/no-ECR/no-Judgment boundaries.
+
+Implemented capture-side wiring is opt-in only:
+`run_source_capture_cloakbrowser_packet.py --source-family retail_pdp
+--retail-pdp-projection-output <path>` writes a separate local projection JSON
+after a successful packet write. It does not change packet schema, packet
+receipts, residual rules, or ECR sequencing.
+
+For exact Amazon/Sephora/Ulta smoke commands, expected residuals, and
+code-enforceable follow-up flags, use
+`docs/product/source_capture_toolbox/retail_pdp_sidecar_operator_playbook_v0.md`.
+
+It is product contract context only. It is not capture execution, validation,
+readiness, implementation authorization, source completeness proof, or buyer
+proof.
 
 ### Packet Fixture / Retention / Sensitivity Decision
 
@@ -340,6 +373,40 @@ capture authorization, CloakBrowser installation proof, parser correctness
 proof, storage authorization, production-runtime authorization, ECR, Cleaning,
 Judgment, or commercial Reddit authority.
 
+### Retail/PDP Projection Playbook
+
+Purpose: give agents and owners one current contract for projecting bounded
+Amazon, Sephora, and Ulta PDP packets into source-visible product, offer,
+review-substrate, embedded-JSON, and carried-module rows.
+
+The playbook is at
+`docs/product/source_capture_toolbox/retail_pdp_projection_playbook_v0.md`.
+It names the raw packet inputs, allowed projection rows, binding map requirements,
+loss and residual rules, retailer-specific target-binding posture, and next-move
+selector for playbook versus wiring versus ECR sequencing.
+
+It is product/source-capture guidance only. It is not validation, readiness,
+live capture authorization, auto-project wiring, ECR, Cleaning, Judgment,
+source-quality scoring, fixture admission, or buyer proof.
+
+### IG Creator Roster And Frontier Ledger Spec
+
+Purpose: preserve the proposed current-main ledger contract for beauty IG
+creator roster entries, public display-name observations, lifecycle events, and
+frontier discovery provenance before any implementation prompt or capture
+runner is scoped.
+
+The spec is at
+`docs/product/source_capture_toolbox/ig_creator_roster_frontier_ledger_spec_v0.md`.
+It ports only the old roster-ledger branch's still-useful
+ledger/privacy/frontier semantics and aligns roster sizing to current main:
+`250 -> 500 -> 1,000`, with the 1,000-creator serious-v0 planning target and
+10/30/60 A/B/C allocation.
+
+It is proposed docs-only context. It is not adoption, validation, readiness,
+capture authorization, outreach authorization, a crawler, a scheduler/runtime
+spec, an ontology amendment, or a public person-level product surface.
+
 ### Source-Quality Example Ladder
 
 Purpose: give future agents a compact retrieval pattern for reading packet
@@ -464,6 +531,12 @@ Implemented v0 scope:
 - anonymous non-persistent CloakBrowser launch;
 - rendered DOM, visible text, viewport screenshot, and method-provenance
   metadata preserved into a Source Capture Packet;
+- optional Retail/PDP-only no-network projection sidecar when
+  `--source-family retail_pdp` and `--retail-pdp-projection-output` are
+  supplied; the sidecar writes a separate JSON and does not alter the packet
+  manifest or receipt. Use
+  `docs/product/source_capture_toolbox/retail_pdp_sidecar_operator_playbook_v0.md`
+  for the three-retailer smoke procedure;
 - no stored session, browser profile, raw cookies, storage-state file, proxy,
   credential injection, CAPTCHA service, crawler, target discovery, parser,
   consolidation, storage, dashboard, scheduler, deployment, production runtime,
