@@ -15,6 +15,7 @@ via exit code — so they are **harness-portable**: the *logic* runs anywhere; o
 | Script | When | Effect |
 |---|---|---|
 | `guard_protected_actions.py` | **pre-tool** (before a shell/write tool runs) | **HARD-blocks** (exit 2) irreversible / main-affecting actions: an agent's `gh pr merge` → main, push-to-main, force-push, `reset --hard`, `git clean`, and writes into protected external roots. **Allows** a benign lane-branch push. Fires in **all** permission modes. **Fails OPEN** on internal error. |
+| `.codex/hooks/orca_guard_codex_adapter.py` | Codex **PreToolUse** adapter | Runs `guard_protected_actions.py`, converts guard denials into Codex's native JSON `permissionDecision: deny` response, and maps Codex `apply_patch` patch targets through the existing EP-01 protected-path check. |
 | `pre_push_guard.py` | local Git **pre-push** adapter policy | Blocks pushes targeting `main`, branch deletes, non-fast-forward updates, and unverifiable update safety when `.githooks/pre-push` is installed through `core.hooksPath`. Bypassable with `--no-verify`; misses GitHub API merges. |
 | `check_retrieval_header.py` | **post-tool** (after a write) | Advisory (exit 0): warns if an in-scope artifact is missing its retrieval header. Forward-only; never blocks. |
 | `check_repo_map_freshness.py` | **post-tool** (after a write) | Advisory (exit 0): reports structural drift vs the repo map; has a `--strict` gate for commit/CI use. |
@@ -27,10 +28,14 @@ reference it, they don't restate it.
 
 - **Input:** the harness passes the tool event as **JSON on stdin** — at minimum
   `tool_name` and `tool_input` (with `command` for shell tools, `file_path` for writes).
-- **Output / exit code:** **`2` = block** the tool call (stderr explains why); **`0` = allow**.
+- **Output / exit code:** for the raw Orca guard, **`2` = block** the tool call
+  (stderr explains why); **`0` = allow**.
   On any internal error the guard **exits 0 (fails open)** so a hook bug never bricks the agent.
 - Any harness that can run a command with the tool event on stdin and honor a
   blocking exit code can use these as-is (adapt field names with a tiny shim if yours differ).
+- Harnesses with their own denial protocol should use a small adapter rather than
+  assuming stderr + exit code is the only blocking contract. Codex uses
+  `.codex/hooks/orca_guard_codex_adapter.py` for that translation.
 
 ## Wiring per harness
 
@@ -48,7 +53,41 @@ Register in the repo's tracked `.claude/settings.json`:
 Hooks load at session start — **restart the session** after editing settings.
 Verify: `python .agents/hooks/guard_protected_actions.py --selftest`.
 
-### Another harness (e.g. Codex, or your own runner)
+### Codex (tracked project hook)
+Codex does not read `.claude/settings.json`. Orca wires Codex through the
+tracked project-local `.codex/hooks.json`, which registers:
+
+- `PreToolUse` for `Bash|PowerShell|apply_patch|Edit|Write`;
+- `.codex/hooks/orca_guard_codex_adapter.py` as the command hook.
+
+The adapter preserves the shared guard logic but returns Codex's native denial
+shape:
+```json
+{
+  "hookSpecificOutput": {
+    "hookEventName": "PreToolUse",
+    "permissionDecision": "deny",
+    "permissionDecisionReason": "..."
+  }
+}
+```
+
+It also parses Codex `apply_patch` headers (`*** Add/Update/Delete File:` and
+`*** Move to:`) and checks those paths through the EP-01 protected-path rule,
+because Codex reports patch edits as `tool_name: "apply_patch"` rather than
+Claude-style `Write` / `Edit` events.
+
+Codex only loads project-local hooks after the project `.codex/` layer is
+trusted. In a Codex session, open `/hooks` if Codex reports new or changed hooks
+that need review.
+
+Verify:
+```powershell
+python .agents/hooks/guard_protected_actions.py --selftest
+python .codex/hooks/orca_guard_codex_adapter.py --selftest
+```
+
+### Another harness
 `.claude/settings.json` is **not read** by other harnesses, so:
 1. If your harness has a **pre-tool / post-tool command-hook** mechanism, register
    `guard_protected_actions.py` on the pre-tool event for shell + write tools,

@@ -10,7 +10,10 @@ Thumbs.db
 !.env.example
 .claude/settings.local.json
 .claude/scheduled_tasks.lock
-.codex/
+.codex/*
+!.codex/hooks.json
+!.codex/hooks/
+!.codex/hooks/**
 
 # Keep docs-first workspace clean until implementation is authorized
 node_modules/

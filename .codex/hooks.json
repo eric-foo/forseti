@@ -1,0 +1,18 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash|PowerShell|apply_patch|Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python \"$(git rev-parse --show-toplevel)/.codex/hooks/orca_guard_codex_adapter.py\"",
+            "commandWindows": "python \"$(git rev-parse --show-toplevel)/.codex/hooks/orca_guard_codex_adapter.py\"",
+            "timeout": 10,
+            "statusMessage": "Checking Orca protected action policy"
+          }
+        ]
+      }
+    ]
+  }
+}
