@@ -143,6 +143,7 @@ Everything else is carry-or-residualize:
 | `sephora_review_count_from_unanchored_fallback` | Review count came from a bare visible-text pattern rather than the target "Ratings & Reviews (N)" widget. |
 | `sephora_ld_json_review_count_differs_from_target_dom` | LD JSON and target DOM review count disagree. Keep both facts visible. |
 | `ulta_ld_json_apollo_*_mismatch` | LD JSON and Apollo state disagree for SKU, product id, price, availability, review count, or rating. Keep both substrates visible. |
+| `ulta_requested_sku_rendered_sku_mismatch` | Ulta Apollo requested SKU differs from the rendered SKU. Keep both values visible and do not treat the URL/request parameter as the target-bound SKU. |
 
 Residuals are visible gaps. They are not failures, not suppressions, and not
 permission for ECR or Cleaning to author a value from prose.
@@ -153,7 +154,7 @@ permission for ECR or Cleaning to author a value from prose.
 | --- | --- | --- | --- |
 | Amazon | Rendered DOM in a US storefront session when commissioned; US storefront pin has a single-probe GO via public delivery ZIP widget, with bot-wall and selector fragility still visible. | Target-anchored ASIN/price/availability/review fields are carried from DOM/visible text. The DOM price input is the target price source when present. Shipping, loyalty, and recommendation modules are carried as frame-sensitive modules. | If price comes only from a visible `$N` fallback, residualize it. Do not let store-card, shipping, or recommendation dollars become target price. Amazon access posture remains the strictest and does not become commercial-scale authority. |
 | Sephora | Rendered PDP with Bazaarvoice-backed reviews first-party-rendered after progressive/incremental scroll when review bodies are needed. | Product/variant fields are carried from LD JSON; target review substrate uses the "Ratings & Reviews (N)" widget where present. Recommendation-review counts are carried as examples/noise posture, not target substrate. | A bare "`N Reviews`" count is unanchored fallback and must be residualized. A recommendation card count must not become target review count. Full per-review body rows are not emitted by v0 helper. |
-| Ulta | Rendered PDP with embedded `application/ld+json` and `window.__APOLLO_STATE__`. | Preserve both LD JSON and Apollo verbatim. Merge source-visible offer/review fields only when substrates are coherent, and residualize LD/Apollo mismatches. Carry `apollo_requested_sku` when present. | Requested-SKU versus rendered-SKU mismatch is a target-binding risk. Current helper records the requested SKU but does not make that mismatch a named residual unless LD JSON and Apollo disagree; this is a bounded patch candidate before auto-wiring. |
+| Ulta | Rendered PDP with embedded `application/ld+json` and `window.__APOLLO_STATE__`. | Preserve both LD JSON and Apollo verbatim. Merge source-visible offer/review fields only when substrates are coherent, residualize LD/Apollo mismatches, and residualize requested-SKU versus rendered-SKU mismatch. Carry `apollo_requested_sku` when present. | Requested-SKU versus rendered-SKU mismatch is a target-binding risk. Do not treat the URL/request parameter as target-bound when the rendered SKU differs. |
 
 ## What ECR May Consume
 
@@ -182,9 +183,9 @@ Use this selector after the playbook:
 | If the next goal is... | Correct move |
 | --- | --- |
 | Owner-observable contract for the slice | This playbook is the artifact. |
-| Auto-project after capture | First patch or explicitly accept the remaining target-binding gaps, especially requested-SKU mismatch residualization and per-review body-row scope. Then wire projection as a view over raw packet output. |
+| Auto-project after capture | First patch or explicitly accept the remaining target-binding gaps, especially per-review body-row scope. Then wire projection as a view over raw packet output. |
 | ECR sequencing | Wait until projection output carries residuals through the ECR handoff. ECR consumes source-visible facts and residuals only; it does not repair projection gaps. |
-| Bounded implementation patch | Target one gap: requested SKU mismatch residual, explicit per-review body row support, or runner invocation of the existing helper. Do not combine with ECR or Cleaning work. |
+| Bounded implementation patch | Target one remaining gap: explicit per-review body row support, or runner invocation of the existing helper. Do not combine with ECR or Cleaning work. |
 
 ## Non-Claims
 

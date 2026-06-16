@@ -348,6 +348,7 @@ def test_ulta_projection_preserves_ld_json_and_apollo_verbatim_and_binds_rendere
     assert variant.source_visible_fields["price"] == "12.00"
     assert variant.source_visible_fields["availability"] == "https://schema.org/InStock"
     assert "ulta_ld_json_apollo_sku_mismatch" not in projection.residuals
+    assert "ulta_requested_sku_rendered_sku_mismatch" in projection.residuals
 
     review = _single_row(projection, "retail_review_substrate")
     assert review.source_visible_fields["review_substrate_source"] == "ulta_ld_json_and_apollo_state"
@@ -386,6 +387,42 @@ def test_retail_projection_rejects_judgment_smuggling_field_names() -> None:
             raw_anchor=raw_anchor,
             source_visible_fields={"credibility_label": "high"},
         )
+
+
+def test_ulta_projection_residualizes_requested_sku_when_only_apollo_differs() -> None:
+    packet = _packet(
+        retailer="ulta",
+        locator="https://www.ulta.com/p/night-shift-overnight-lip-mask-pimprod2046225?sku=2620759",
+        series_id="ulta_nightshift_overnight_lipmask_us_v0",
+    )
+    apollo = json.dumps(
+        {
+            "ROOT_QUERY": {
+                'Page({"moduleParams":{"sku":"2620759"},"url":{"path":"/p/night-shift-overnight-lip-mask-pimprod2046225"}})': {
+                    "content": {
+                        "modules": [
+                            {
+                                "skuId": "2645443",
+                                "productId": "pimprod2046225",
+                                "productName": "Night Shift Overnight Lip Mask",
+                                "listPrice": "$12.00",
+                            }
+                        ]
+                    }
+                }
+            }
+        },
+        separators=(",", ":"),
+    )
+    html = f"<script>window.__APOLLO_STATE__ = {apollo}</script>"
+    visible_text = "Night Shift Overnight Lip Mask\n$12.00"
+
+    projection = _projection(packet=packet, html=html, visible_text=visible_text)
+
+    variant = _single_row(projection, "retail_variant_offer")
+    assert variant.source_visible_fields["sku"] == "2645443"
+    assert variant.source_visible_fields["apollo_requested_sku"] == "2620759"
+    assert "ulta_requested_sku_rendered_sku_mismatch" in projection.residuals
 
 
 def test_amazon_price_unanchored_visible_text_fallback_is_residualized() -> None:

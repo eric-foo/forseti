@@ -495,10 +495,12 @@ def _variant_offer_fields(
             key if key.startswith("apollo_") else f"apollo_{key}": value for key, value in apollo_fields.items()
         }
         merged = {**structured_fields, **apollo_prefixed}
+        _residualize_ulta_requested_sku_mismatch(merged, residuals)
         return merged, structured_anchor or apollo_anchor or fallback_anchor, residuals
     if structured_fields:
         return structured_fields, structured_anchor or fallback_anchor, residuals
     if apollo_fields:
+        _residualize_ulta_requested_sku_mismatch(apollo_fields, residuals)
         return apollo_fields, apollo_anchor or fallback_anchor, residuals
     return {}, fallback_anchor, residuals
 
@@ -977,6 +979,14 @@ def _equivalent_offer_value(key: str, left: str, right: str) -> bool:
     if key == "availability":
         return left.rstrip("/").endswith(right.rstrip("/")) or right.rstrip("/").endswith(left.rstrip("/"))
     return False
+
+
+def _residualize_ulta_requested_sku_mismatch(fields: Mapping[str, Any | None], residuals: list[str]) -> None:
+    requested_sku = _string_or_none(fields.get("apollo_requested_sku"))
+    rendered_sku = _string_or_none(fields.get("sku")) or _string_or_none(fields.get("apollo_sku"))
+    residual = "ulta_requested_sku_rendered_sku_mismatch"
+    if requested_sku and rendered_sku and requested_sku != rendered_sku and residual not in residuals:
+        residuals.append(residual)
 
 
 def _row_token(value: str) -> str:
