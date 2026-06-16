@@ -2,7 +2,7 @@
 
 ```yaml
 retrieval_header_version: 1
-artifact_role: downstream-facing findings report (PRELIMINARY; safe to build on, one ceiling pending)
+artifact_role: downstream-facing findings report (PRELIMINARY; usable for bounded planning, one ceiling pending)
 scope: >
   Actionable synthesis of the IG R-probe for the lanes that consume it (monitoring policy +
   capture/projection-store). States the operating guidance NOW so downstream work can progress on
@@ -20,13 +20,13 @@ stale_if:
 ```
 
 ## Status
-`PRELIMINARY — safe to build on.` One thing remains unmeasured: the **at-pace daily-volume
+`PRELIMINARY — usable for bounded planning, not a build-go.` One thing remains unmeasured: the **at-pace daily-volume
 ceiling**. The first endurance attempt aborted `ip_not_recovered`; a later retry wrote only
 `endurance_log.jsonl`, never got two clean warm-up reads, and wrote no `endurance_summary.json`.
 Everything below is observed (logged-out probe, n=1 onset + disambiguation + recovery-gated
 attempt logs); not validation/readiness. Evidence + caveats: `ig_r_probe_results_v0.md`.
 
-## Bottom line (build on this now)
+## Bottom line (bounded planning guidance)
 **IG logged-out reads are PACE-limited, not volume-limited.** Operate at **~2.5–4s between reads,
 never sub-2s bursts**, in bounded attended sessions. At that pace the probe read **≥176 requests/
 session with zero walls**; the true at-pace ceiling remains unmeasured (preliminary: no volume cap
@@ -38,12 +38,12 @@ warranted**; pace discipline is the whole mitigation.
 
 ## For the monitoring-policy lane (Consumer A)
 - Your realistic cadences (daily / 3-day / weekly per post, batched; Tier-C weekly heartbeat) are
-  **far gentler than the wall-tripping pace** → safe. The only rule: when a batch fires, **space the
+  **far gentler than the wall-tripping pace** → compatible with the current preliminary envelope. The only rule: when a batch fires, **space the
   reads ≥~2.5s**; don't blast a bucket back-to-back.
 - Treat **R as effectively non-binding for realistic rosters** at proper pace (volume ceiling pending,
   but ≥176/session clean and no volume cap seen before the pace wall). Size Tier-A breadth on coverage need, not on a
   scarce read budget.
-- **Virality sprints (6h/12h) are safe** — hours-spaced reads are orders of magnitude below the pace
+- **Virality sprint cadence is low-risk from the R-pace perspective** — hours-spaced reads are orders of magnitude below the pace
   wall. (Carve-out (B) note: this de-risks the cadence; (B) itself is still lane-only, not on `main`.)
 
 ## For the capture / projection-store lane (Consumer B)
@@ -64,7 +64,7 @@ warranted**; pace discipline is the whole mitigation.
 | Safe pace ~2.5–4s | **Adopted** (owner) — margin above the ~2s trip |
 | Onset = soft, IP-wide, login-redirect; **sticky ≥12 min** | **Measured** (disambig + endurance warm-up: persisted ≥12 min under probing; occasional 1-read slip-through; retry 2 still not both-clean through ~21.6 min) |
 | Neither proxies nor sessions | **Decided** |
-| Burst (6h/12h) safe | **Inferred** (run waived — owner: safe) |
+| Burst (6h/12h) cadence posture | **Inferred** (run waived — owner treated cadence as de-risked; lane authorization remains separate) |
 | At-pace daily-volume ceiling | **STILL PENDING** — endurance attempt aborted (`ip_not_recovered`); retry 2 has log-only warm-up failure and no summary; needs a long fully-quiet cooldown first |
 | Exact pace threshold (1s? burst-shape?) | Deferred (perma-block contingency) |
 
