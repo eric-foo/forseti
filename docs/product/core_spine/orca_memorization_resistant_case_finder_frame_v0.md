@@ -65,7 +65,12 @@ screen at product-learning tier is:
   provenance and do not reveal the target. **Never mask the decision-driving numbers
   / dates / counts** (those stay real so the outcome remains ground truth), and
   **never blur a source's provenance** — rename the source, keep its species
-  (first-party vs third-party). Supply any decision-relevant brand attribute
+  (first-party vs third-party). Beyond the brand name, genericize **decision-moment
+  locators** — specific datable news events, named collaborations, distinctive launch
+  episodes, any extraneous flavor that lets a brand-recognizer pin the exact episode
+  and its outcome — while keeping the bare cutoff and the decision-driving numbers
+  real. Recognition of the brand is not the threat; recall of the specific sealed
+  outcome is, and locators are what bridge the two. Supply any decision-relevant brand attribute
   (positioning, reputation, awareness) as **in-packet evidence**, name-free, rather
   than relying on contestant recall; a "signal" that cannot survive name-removal is
   recognition-recall, not evidence — treat it as a contamination tell. Supplied
@@ -88,11 +93,16 @@ screen at product-learning tier is:
   evidence kept real — a distinctive retailer / forum / publication, an exact metric,
   a launch date, a singular source relationship — not just the brand attribute;
   masking removes only the name-recall handle and makes no re-identification-resistance
-  claim (the tell-audit, not the mask, is the backstop), so route out only when a case
-  is both trivially re-identifiable and too brand-salient to learn from once
-  recognized. Track the route-out rate: if masking selects mostly low-brand-salience
-  cases, flag the masked-eligible set's decision-grade representativeness for owner
-  review before treating masked packets as the default population.
+  claim (the tell-audit, not the mask, is the backstop), **recognizability of the brand is not
+  grounds to route a case out** — recognition is a legitimate arm; only USE of the
+  sealed outcome is contamination, caught by the tell-audit. Route out **only** the
+  narrow case where, even after decision-moment-locator anonymization,
+  brand-recognition would reliably surface the specific sealed outcome (a famous
+  episode where the brand-plus-decision IS the memorable event) — use a post-cutoff
+  or prospective seal-and-wait case there. (Owner correction 2026-06-16: this
+  supersedes the earlier "route out trivially-re-identifiable cases" reading and
+  dissolves the representativeness concern — merely-recognizable cases are kept, so
+  the masked-eligible set stays decision-grade.)
 - **Masking is a supplement, not the spine.** Web-search-off + the JSG-08 tell-audit
   remain the contamination spine; masking raises the bar on passive recognition and
   makes the tell-audit's job cleaner, but it must **not** relax the tell-audit, and a
