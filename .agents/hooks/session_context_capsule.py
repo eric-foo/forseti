@@ -119,6 +119,11 @@ def build_capsule(source: str, root: str, branch: str, head: str,
         "repo: %s" % root,
         "branch: %s @ %s" % (branch or "UNKNOWN", head or "UNKNOWN"),
     ]
+    if branch and branch != "main":
+        lines.append(
+            "not on main (on '%s') -- verify on-main state via "
+            "`git show origin/main:<path>` or `git ls-tree origin/main`, "
+            "not a working-tree/file search" % branch)
     if subjects:
         lines.append("recent: " + " | ".join(subjects[:3]))
     lines.append("tree: %d modified, %d untracked" % counts)
@@ -268,6 +273,12 @@ def selftest() -> int:
     capsule_no_expansion = build_capsule(
         "startup", "/r", "main", "abc fix", ["s1"], (0, 0), [],
         doctrine=None, retrieval_health=None, ontology_expansion=None)
+    # capsule on a non-main branch (caution fires)
+    capsule_off_main = build_capsule("startup", "/r", "feature-x", "abc fix", ["s1"],
+                                     (0, 0), [])
+    # capsule with empty branch (git failure -> caution suppressed, fail-open)
+    capsule_empty_branch = build_capsule("startup", "/r", "", "abc fix", ["s1"],
+                                         (0, 0), [])
     shape_ok = (
         capsule_with.startswith("[lane-state capsule | source=startup]")
         and "branch: main @ abc fix" in capsule_with
@@ -281,6 +292,10 @@ def selftest() -> int:
         and "retrieval health" not in capsule_no_health
         and "ontology expansion: 4 types due" in capsule_with_expansion
         and "ontology expansion" not in capsule_no_expansion
+        and "not on main" in capsule_off_main
+        and "feature-x" in capsule_off_main
+        and "not on main" not in capsule_with
+        and "not on main" not in capsule_empty_branch
     )
     ok = cases_ok and doctrine_ok and shape_ok
     print("SELFTEST", "OK" if ok else "FAILED")
