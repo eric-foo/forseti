@@ -22,7 +22,8 @@ open_next:
 stale_if:
   - Orca's first commercial target, buyer-proof gate, demand-read taxonomy, or
     beauty creator roster/frontier spec changes.
-  - A completed sub-niche scan supersedes this prompt's hypothesis set.
+  - A completed niche/sub-niche scan supersedes this prompt's evaluated scope or
+    scoring method.
 ```
 
 ## Operator Context
@@ -37,7 +38,7 @@ scrape behind logins, recommend outreach copy, propose paid data acquisition,
 or treat candidate companies as leads. Do not claim buyer validation,
 willingness to pay, product readiness, or commercial readiness.
 
-## Orca's Current Buyer And Product Frame
+## Orca Buyer And Product Frame
 
 Orca's current first commercial target is:
 
@@ -58,17 +59,17 @@ whether demand is:
 
 The output is a calibrated decision with an action ceiling, never a feed.
 
-## Current First Bet To Attack
+## Neutral Niche Exploration
 
-Our current hypothesis is:
+Start from a neutral prior. Do not treat any parent niche or sub-niche as
+pre-selected, incumbent, default, runner-up, or category to defend. The task is
+to rank the best first opening for Orca from evidence and fit, not to confirm or
+reject a pre-existing category answer.
 
-> The first sub-niche to test should be indie fragrance / scent-layering /
-> fragrance-adjacent body or hair mists.
-
-Attack this hypothesis. Explore parent niches and their sub-niches before
-scoring anything. Do not score "skincare" or "makeup" as a whole until you have
-broken each into the most relevant sub-niches and judged whether those sub-niche
-pockets can produce Orca-qualified candidate slots.
+Explore parent niches and their sub-niches before scoring anything. Do not score
+"skincare," "makeup," "fragrance," "body care," "hair/scalp," or "SPF" as a
+whole until you have broken each into the most relevant sub-niches and judged
+whether those sub-niche pockets can produce Orca-qualified candidate slots.
 
 Evaluate at least these parent niches and likely sub-niche families:
 
@@ -89,6 +90,16 @@ Evaluate at least these parent niches and likely sub-niche families:
 
 You may add up to two stronger alternatives if current research shows a better
 fit, but do not widen into generic "beauty" or trend lists.
+
+Neutrality requirements:
+
+- Do not use pass/fail framing for one special category.
+- Do not give any parent niche a special attack section.
+- Do not anchor on prior answers, prior rankings, or any uploaded research memo
+  unless the user explicitly supplies one as evidence for this run.
+- If a category wins, explain why it beat the other scored options under the
+  rubric. If a category loses, explain the decision-relevant weakness without
+  treating that loss as a reversal from a prior answer.
 
 ## Decision Criteria
 
@@ -221,10 +232,12 @@ Return a concise research memo with these sections:
    - sources;
    - qualification status: strong / tentative / reject / needs follow-up.
 
-6. **Attack On The Fragrance Bet**
-   Explicitly say whether the current first bet survives. If it loses, explain
-   what beat it. If it survives, explain the narrow version of fragrance that
-   should be tested first and what fragrance-adjacent areas should be excluded.
+6. **Neutral Stress Test**
+   Stress-test the top-ranked opening against the next two strongest
+   alternatives. Explain what evidence would make the winner lose, what would
+   make each runner-up win, and which public-signal gaps are most likely to
+   change the ranking. Do not frame this as defending or attacking any prior
+   category bet.
 
 7. **No-Contact Scan Plan**
    A 1-week no-contact research plan to validate the recommendation before any
