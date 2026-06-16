@@ -1775,6 +1775,160 @@ def test_cloakbrowser_snapshot_runner_writes_packet_with_four_artifacts(
         assert non_claim in receipt_text
 
 
+def _fake_cloakbrowser_runner_success(**kwargs: object) -> CloakBrowserSnapshotSuccess:
+    return CloakBrowserSnapshotSuccess(
+        requested_url="https://example.com/source",
+        final_url="https://example.com/source",
+        title="Rendered Source",
+        rendered_dom="<html><body><main>Visible source language</main></body></html>",
+        visible_text="Visible source language",
+        screenshot_png=b"\x89PNG\r\n\x1a\ncloakbrowser",
+        metadata={
+            "requested_url": "https://example.com/source",
+            "final_url": "https://example.com/source",
+            "title": "Rendered Source",
+            "capture_timestamp": "2026-06-06T01:02:03Z",
+            "timeout_seconds": kwargs["timeout_seconds"],
+            "wait_until": kwargs["wait_until"],
+            "viewport_width": kwargs["viewport_width"],
+            "viewport_height": kwargs["viewport_height"],
+            "screenshot_mode": "viewport",
+            "method_category": "anti_blocking_browser",
+            "browser_engine": "cloakbrowser",
+            "cloakbrowser_backend": "playwright",
+            "profile_persistence": "none",
+            "storage_state_loaded": False,
+            "proxy_used": False,
+            "geoip_used": False,
+            "extension_paths_loaded": False,
+            "rendered_dom_byte_count": 64,
+            "visible_text_byte_count": 23,
+            "screenshot_byte_count": 20,
+        },
+        warning_notes=[],
+        limitation_notes=[],
+    )
+
+
+def test_cloakbrowser_snapshot_cli_writes_opt_in_retail_pdp_projection_sidecar(
+    scratch_dir: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    output_dir = scratch_dir / "packet"
+    projection_path = scratch_dir / "projection" / "retail_pdp_projection.json"
+    calls: list[tuple[Path, Path]] = []
+
+    def fake_projection(*, packet_directory: Path, output_path: Path) -> object:
+        calls.append((packet_directory, output_path))
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        output_path.write_text('{"projection_method":"retail_pdp_mechanical_projection"}\n', encoding="utf-8")
+        return object()
+
+    monkeypatch.setattr(cloakbrowser_runner, "fetch_cloakbrowser_snapshot_capture", _fake_cloakbrowser_runner_success)
+    monkeypatch.setattr(cloakbrowser_runner, "write_retail_pdp_projection", fake_projection)
+
+    exit_code = cloakbrowser_runner.main(
+        [
+            "--url",
+            "https://example.com/source",
+            "--source-family",
+            "retail_pdp",
+            "--decision-question",
+            "What retail PDP facts were source-visible?",
+            "--output",
+            str(output_dir),
+            "--retail-pdp-projection-output",
+            str(projection_path),
+        ]
+    )
+
+    captured = capsys.readouterr()
+    assert exit_code == 0
+    assert captured.out.splitlines() == [str(output_dir.resolve()), str(projection_path)]
+    assert calls == [(output_dir.resolve(), projection_path)]
+    assert (output_dir / "manifest.json").exists()
+    assert projection_path.exists()
+
+
+def test_cloakbrowser_snapshot_cli_rejects_retail_pdp_projection_for_non_retail_family(
+    scratch_dir: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    output_dir = scratch_dir / "packet"
+    projection_path = scratch_dir / "retail_pdp_projection.json"
+    capture_called = False
+
+    def unexpected_capture(**kwargs: object) -> CloakBrowserSnapshotSuccess:
+        nonlocal capture_called
+        capture_called = True
+        return _fake_cloakbrowser_runner_success(**kwargs)
+
+    monkeypatch.setattr(cloakbrowser_runner, "fetch_cloakbrowser_snapshot_capture", unexpected_capture)
+
+    with pytest.raises(SystemExit) as excinfo:
+        cloakbrowser_runner.main(
+            [
+                "--url",
+                "https://example.com/source",
+                "--source-family",
+                "web_page",
+                "--decision-question",
+                "What source-visible facts were present?",
+                "--output",
+                str(output_dir),
+                "--retail-pdp-projection-output",
+                str(projection_path),
+            ]
+        )
+
+    captured = capsys.readouterr()
+    assert excinfo.value.code == 2
+    assert "--retail-pdp-projection-output requires --source-family retail_pdp" in captured.err
+    assert capture_called is False
+    assert not output_dir.exists()
+    assert not projection_path.exists()
+
+
+def test_cloakbrowser_snapshot_cli_fails_loudly_when_opt_in_retail_projection_fails(
+    scratch_dir: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    output_dir = scratch_dir / "packet"
+    projection_path = scratch_dir / "retail_pdp_projection.json"
+
+    def fail_projection(*, packet_directory: Path, output_path: Path) -> Path:
+        raise RuntimeError("projection input gap")
+
+    monkeypatch.setattr(cloakbrowser_runner, "fetch_cloakbrowser_snapshot_capture", _fake_cloakbrowser_runner_success)
+    monkeypatch.setattr(cloakbrowser_runner, "write_retail_pdp_projection", fail_projection)
+
+    with pytest.raises(SystemExit) as excinfo:
+        cloakbrowser_runner.main(
+            [
+                "--url",
+                "https://example.com/source",
+                "--source-family",
+                "retail_pdp",
+                "--decision-question",
+                "What retail PDP facts were source-visible?",
+                "--output",
+                str(output_dir),
+                "--retail-pdp-projection-output",
+                str(projection_path),
+            ]
+        )
+
+    captured = capsys.readouterr()
+    assert excinfo.value.code == 2
+    assert captured.out == ""
+    assert "retail PDP projection failed after capture: projection input gap" in captured.err
+    assert (output_dir / "manifest.json").exists()
+    assert not projection_path.exists()
+
+
 def test_cloakbrowser_snapshot_runner_writes_proxy_category_without_proxy_secret(
     scratch_dir: Path,
     monkeypatch: pytest.MonkeyPatch,

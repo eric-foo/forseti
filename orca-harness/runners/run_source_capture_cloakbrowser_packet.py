@@ -37,6 +37,7 @@ from source_capture.cli_support import (
     require_series_identity,
 )
 from source_capture.proxy_profiles import ProxyCategory, ProxyProfile, load_proxy_profile
+from source_capture.retail_pdp_projection import write_retail_pdp_projection
 
 
 CLOAKBROWSER_SNAPSHOT_NON_CLAIMS = [
@@ -337,6 +338,15 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--decision-question", required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument(
+        "--retail-pdp-projection-output",
+        type=Path,
+        default=None,
+        help=(
+            "Optional Retail/PDP-only sidecar: after a successful packet write, build the "
+            "local no-network projection JSON at this path. Requires --source-family retail_pdp."
+        ),
+    )
+    parser.add_argument(
         "--capture-context",
         default=None,
     )
@@ -476,6 +486,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     args = parser.parse_args(argv)
     try:
         require_series_identity(args)
+        if args.retail_pdp_projection_output is not None and args.source_family != "retail_pdp":
+            raise ValueError("--retail-pdp-projection-output requires --source-family retail_pdp")
         proxy_profile = _load_optional_proxy_profile(
             label=args.proxy_profile_label,
             category=args.proxy_profile_category,
@@ -601,6 +613,17 @@ def main(argv: Sequence[str] | None = None) -> int:
         parser.exit(status=3, message=f"source capture CloakBrowser snapshot failed: {exc}\n")
 
     if exit_code == 0:
+        if args.retail_pdp_projection_output is not None:
+            try:
+                write_retail_pdp_projection(
+                    packet_directory=Path(message),
+                    output_path=args.retail_pdp_projection_output,
+                )
+            except Exception as exc:
+                parser.exit(status=2, message=f"retail PDP projection failed after capture: {exc}\n")
+            print(message)
+            print(args.retail_pdp_projection_output)
+            return 0
         print(message)
         return 0
 

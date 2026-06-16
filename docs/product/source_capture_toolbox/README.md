@@ -136,8 +136,8 @@ Ceiling, buyer proof, or commercial meaning.
 
 Purpose: stabilize how captured retailer PDP packets are mechanically projected
 into source-visible product, variant/offer, review substrate, embedded JSON, and
-carried-module rows before any auto-project-after-capture wiring or ECR
-sequencing.
+carried-module rows, including the bounded opt-in capture sidecar, before any
+ECR sequencing.
 
 The contract is at
 `docs/product/source_capture_toolbox/retail_pdp_projection_contract_v0.md`.
@@ -146,6 +146,12 @@ Sephora target `ProductPage` DOM price binding versus structured-JSON fallback;
 Ulta requested-SKU versus projected-SKU residuals; Amazon DOM target price and
 storefront pin limits; `structure_preserved` semantics; and explicit
 no-Cleaning/no-ECR/no-Judgment boundaries.
+
+Implemented capture-side wiring is opt-in only:
+`run_source_capture_cloakbrowser_packet.py --source-family retail_pdp
+--retail-pdp-projection-output <path>` writes a separate local projection JSON
+after a successful packet write. It does not change packet schema, packet
+receipts, residual rules, or ECR sequencing.
 
 It is product contract context only. It is not capture execution, validation,
 readiness, implementation authorization, source completeness proof, or buyer
@@ -484,6 +490,10 @@ Implemented v0 scope:
 - anonymous non-persistent CloakBrowser launch;
 - rendered DOM, visible text, viewport screenshot, and method-provenance
   metadata preserved into a Source Capture Packet;
+- optional Retail/PDP-only no-network projection sidecar when
+  `--source-family retail_pdp` and `--retail-pdp-projection-output` are
+  supplied; the sidecar writes a separate JSON and does not alter the packet
+  manifest or receipt;
 - no stored session, browser profile, raw cookies, storage-state file, proxy,
   credential injection, CAPTCHA service, crawler, target discovery, parser,
   consolidation, storage, dashboard, scheduler, deployment, production runtime,

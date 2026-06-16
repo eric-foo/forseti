@@ -8,15 +8,17 @@ scope: >
   what capture must preserve, what projection may emit, what residuals mean,
   and what remains outside projection until a later owner-authorized lane.
 use_when:
-  - Stabilizing or reviewing the Retail/PDP projection slice before capture-to-projection wiring.
+  - Stabilizing or reviewing the Retail/PDP projection slice and its bounded capture-to-projection wiring.
   - Checking Amazon, Sephora, or Ulta product/offer/review binding limits.
-  - Deciding whether the next move is playbook review, implementation patch, or ECR sequencing.
+  - Deciding whether the next move is playbook review, sidecar capture wiring, retailer recon, or ECR sequencing.
 authority_boundary: retrieval_only
 open_next:
   - docs/product/core_spine_v0_projection_doctrine_v0.md
   - docs/product/data_capture_spine/demand_durability_multi_retailer_rendered_capture_spec_v0.md
+  - orca-harness/runners/run_source_capture_cloakbrowser_packet.py
   - orca-harness/source_capture/retail_pdp_projection.py
   - orca-harness/tests/unit/test_retail_pdp_projection.py
+  - orca-harness/tests/unit/test_source_capture_cloakbrowser_snapshot.py
 stale_if:
   - Retail PDP projection code changes row kinds, residual vocabulary, required bindings, or retailer parsing posture.
   - Multi-retailer rendered capture posture changes for Amazon, Sephora, or Ulta.
@@ -63,8 +65,9 @@ Raw remains canonical. Projection is a re-derivable view.
 | `docs/product/source_capture_toolbox/capture_recon_index_v0.md` | Existing recon evidence | Sephora progressive-scroll/Bazaarvoice and Ulta Apollo state are reported as worktree-pending recon; Amazon recon remains open in the rendered-capture spec. |
 | `docs/product/core_spine_v0_projection_doctrine_v0.md` | Projection doctrine | Raw is canonical; projection is a view; Retail/PDP must preserve SKU/variant/price, availability, review-substrate, per-retailer/locale series, and embedded JSON. |
 | `docs/product/data_capture_spine/demand_durability_multi_retailer_rendered_capture_spec_v0.md` | Multi-retailer rendered capture spec | Per-retailer series, substrate-first posture, and Amazon/Sephora/Ulta source-access status. |
+| `orca-harness/runners/run_source_capture_cloakbrowser_packet.py` | Current capture-side wiring | `--retail-pdp-projection-output` is an opt-in Retail/PDP-only sidecar after packet write; it does not change packet schema, fetch, clean, judge, or feed ECR. |
 | `orca-harness/source_capture/retail_pdp_projection.py` | Current implementation | Row kinds, binding map, residual names, no-Judgment-field guard, and structure-preservation rule. |
-| `orca-harness/tests/unit/test_retail_pdp_projection.py` | Current behavioral tests | Amazon, Sephora, Ulta, unsafe fallback, no-Judgment-smuggling, and structure-preserved behavior. |
+| `orca-harness/tests/unit/test_retail_pdp_projection.py` and `orca-harness/tests/unit/test_source_capture_cloakbrowser_snapshot.py` | Current behavioral tests | Amazon, Sephora, Ulta, unsafe fallback, no-Judgment-smuggling, structure-preserved behavior, and opt-in capture-runner sidecar gating. |
 
 ## Contract
 
@@ -185,20 +188,23 @@ Projection must not:
 
 ## Next Move Gate
 
-The next safest move is **not** automatic ECR. The next move is one of:
+The next safest move is **not** automatic ECR. With bounded opt-in sidecar
+wiring available, the next move is one of:
 
 1. **Targeted recapture/reprojection checks** for new retailer edge cases, such
    as Sephora review-count precision, Ulta requested-SKU mismatch variants, or
    Amazon storefront/location posture.
-2. **Auto-project-after-capture wiring** for already bounded Retail PDP packet
-   outputs, using this contract as the behavior surface and preserving
-   residuals unchanged.
+2. **Use or recheck the opt-in sidecar** for already bounded Retail PDP
+   CloakBrowser packet outputs:
+   `--source-family retail_pdp --retail-pdp-projection-output <path>`, using
+   this contract as the behavior surface and preserving residuals unchanged.
 3. **Retailer recon closure** if the immediate bottleneck is source-access
    posture rather than projection behavior.
 
-Auto-project-after-capture wiring is acceptable only as a bounded patch against
-this contract. It must not hide residuals, silently trust fallbacks, or feed ECR
-facts that projection could not anchor.
+Auto-project-after-capture behavior is acceptable only as bounded opt-in sidecar
+wiring against this contract. It must not become a generic packet writer
+responsibility, hide residuals, silently trust fallbacks, or feed ECR facts that
+projection could not anchor.
 
 ## Direction Change Propagation
 
