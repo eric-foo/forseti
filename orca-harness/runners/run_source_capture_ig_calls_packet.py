@@ -3,13 +3,14 @@
 Composes existing primitives (no new auth/session path, no secrets):
 - browser_snapshot (headless, LOGGED-OUT; scroll to enumerate the profile grid),
 - ig_calls_parse (og:description -> caption/likes/comments/date/#ad; permalinks),
+- browser-context XHR (web_profile_info + bounded grid pagination -> view counts),
 - cadence.bounded_jitter (human-mimicking variable gaps between item visits),
 - writer.write_local_source_capture_packet (one packet: profile slice + N call slices).
 
 Substrate basis: the recon + 2026-06-14 headless probe found IG serves the call
 signal (caption + engagement) in the post/reel page og:description to a browser,
-LOGGED-OUT. This runner therefore needs no session. Reel view/play counts (media
-GraphQL) and any session-only depth are OUT of scope here (deferred).
+LOGGED-OUT. The reel view-count path is browser-context profile-feed JSON, also
+logged-out. This runner therefore needs no session.
 
 Bounded by the wind-caller carve-out: attended, human-mimicking cadence, no
 standing/scheduled crawler, per-run item cap. This is one bounded capture unit
@@ -47,12 +48,20 @@ from source_capture.adapters.browser_snapshot import (
     DEFAULT_VIEWPORT_WIDTH,
 )
 from source_capture.cadence import build_cadence_plan
+from source_capture.ig_momentum_harvest import (
+    IG_ID_CONFLICT_POLICY_VERSION,
+    IG_METRIC_REGISTRY_VERSION,
+    IgProfileMomentumCapture,
+    extract_ig_shortcode,
+    fetch_ig_profile_momentum,
+)
 from source_capture.ig_calls_parse import (
     extract_item_permalinks,
     extract_meta_content,
     parse_ig_og_description,
     parse_ig_profile_og,
 )
+from source_capture.models import CoverageWindow, MetricObservation, MetricPosture
 
 IG_CALLS_NON_CLAIMS = [
     "not content sufficiency proof",
@@ -63,7 +72,8 @@ IG_CALLS_NON_CLAIMS = [
     "not CAPTCHA solving",
     "not crawler or scheduled monitoring",
     "not full-history backfill",
-    "not reel view-count capture",
+    "not full momentum curve",
+    "not projection fold",
     "not media byte preservation",
     "not API SDK use",
     "not ECR design",
@@ -78,6 +88,8 @@ DEFAULT_PROFILE_SCROLL_PASSES = 3
 DEFAULT_CADENCE_WINDOW_SECONDS = 900.0
 DEFAULT_CADENCE_MIN_GAP_SECONDS = 8.0
 DEFAULT_CADENCE_MAX_GAP_SECONDS = 45.0
+DEFAULT_XHR_REQUEST_GAP_SECONDS = 3.0
+DEFAULT_VIEW_COUNT_MAX_GRAPHQL_PAGES = 1
 
 
 def _detect_ig_block(*, final_url: str, title: str | None, visible_text: str, rendered_dom: str) -> str | None:
@@ -124,6 +136,161 @@ def _has_captured_call_signal(parsed) -> bool:
     )
 
 
+def _observed_metric(metric: str, value: int, *, capture_timestamp: str) -> MetricObservation:
+    return MetricObservation(
+        metric=metric,
+        posture=MetricPosture.OBSERVED,
+        value=value,
+        coverage_window=CoverageWindow(end=capture_timestamp),
+    )
+
+
+def _gap_metric(
+    metric: str,
+    posture: MetricPosture,
+    reason: str,
+    *,
+    capture_timestamp: str,
+) -> MetricObservation:
+    return MetricObservation(
+        metric=metric,
+        posture=posture,
+        reason=reason,
+        coverage_window=CoverageWindow(end=capture_timestamp),
+    )
+
+
+def _profile_metric_observations(
+    *,
+    momentum_capture: IgProfileMomentumCapture | None,
+    capture_timestamp: str,
+    capture_view_counts: bool,
+) -> list[MetricObservation]:
+    if not capture_view_counts:
+        return [
+            _gap_metric(
+                "follower_count",
+                MetricPosture.NOT_ATTEMPTED,
+                "browser-context web_profile_info capture was disabled for this run",
+                capture_timestamp=capture_timestamp,
+            )
+        ]
+    if momentum_capture is not None and momentum_capture.follower_count is not None:
+        return [
+            _observed_metric(
+                "follower_count",
+                momentum_capture.follower_count,
+                capture_timestamp=capture_timestamp,
+            )
+        ]
+    reason = "browser-context web_profile_info did not yield an exact follower_count"
+    if momentum_capture is not None and momentum_capture.limitation_notes:
+        reason = "; ".join(momentum_capture.limitation_notes)
+    return [
+        _gap_metric(
+            "follower_count",
+            MetricPosture.UNAVAILABLE_WITH_REASON,
+            reason,
+            capture_timestamp=capture_timestamp,
+        )
+    ]
+
+
+def _item_metric_observations(
+    *,
+    record: dict,
+    momentum_capture: IgProfileMomentumCapture | None,
+    capture_timestamp: str,
+    capture_view_counts: bool,
+) -> list[MetricObservation]:
+    observations: list[MetricObservation] = []
+    likes = record.get("likes")
+    comments = record.get("comments")
+    if isinstance(likes, int):
+        observations.append(_observed_metric("like_count", likes, capture_timestamp=capture_timestamp))
+    elif record.get("status") == "captured":
+        observations.append(
+            _gap_metric(
+                "like_count",
+                MetricPosture.UNAVAILABLE_WITH_REASON,
+                "og:description call signal did not include like count",
+                capture_timestamp=capture_timestamp,
+            )
+        )
+    if isinstance(comments, int):
+        observations.append(_observed_metric("comment_count", comments, capture_timestamp=capture_timestamp))
+    elif record.get("status") == "captured":
+        observations.append(
+            _gap_metric(
+                "comment_count",
+                MetricPosture.UNAVAILABLE_WITH_REASON,
+                "og:description call signal did not include comment count",
+                capture_timestamp=capture_timestamp,
+            )
+        )
+
+    if not capture_view_counts:
+        observations.append(
+            _gap_metric(
+                "view_count",
+                MetricPosture.NOT_ATTEMPTED,
+                "browser-context profile-feed JSON capture was disabled for this run",
+                capture_timestamp=capture_timestamp,
+            )
+        )
+        return observations
+
+    status = str(record.get("status", "unknown"))
+    if status != "captured":
+        observations.append(
+            _gap_metric(
+                "view_count",
+                MetricPosture.UNAVAILABLE_WITH_REASON,
+                f"item status={status}; view_count not attributed because the item did not produce a captured call signal",
+                capture_timestamp=capture_timestamp,
+            )
+        )
+        return observations
+
+    shortcode = extract_ig_shortcode(str(record.get("url", "")))
+    media = momentum_capture.media_by_shortcode.get(shortcode) if momentum_capture and shortcode else None
+    if media is None:
+        reason = "browser-context profile-feed JSON did not include this shortcode"
+        if momentum_capture is not None and momentum_capture.limitation_notes:
+            reason = "; ".join(momentum_capture.limitation_notes)
+        observations.append(
+            _gap_metric(
+                "view_count",
+                MetricPosture.UNAVAILABLE_WITH_REASON,
+                reason,
+                capture_timestamp=capture_timestamp,
+            )
+        )
+        return observations
+
+    if media.video_view_count is not None:
+        observations.append(_observed_metric("view_count", media.video_view_count, capture_timestamp=capture_timestamp))
+    elif media.is_video is False:
+        observations.append(
+            _gap_metric(
+                "view_count",
+                MetricPosture.NOT_APPLICABLE,
+                "IG profile-feed JSON marks this media as non-video",
+                capture_timestamp=capture_timestamp,
+            )
+        )
+    else:
+        observations.append(
+            _gap_metric(
+                "view_count",
+                MetricPosture.UNAVAILABLE_WITH_REASON,
+                "IG profile-feed JSON did not include video_view_count for this media",
+                capture_timestamp=capture_timestamp,
+            )
+        )
+    return observations
+
+
 def run_source_capture_ig_calls_packet(
     *,
     profile_url: str,
@@ -139,6 +306,9 @@ def run_source_capture_ig_calls_packet(
     viewport_width: int = DEFAULT_VIEWPORT_WIDTH,
     viewport_height: int = DEFAULT_VIEWPORT_HEIGHT,
     max_artifact_bytes: int = DEFAULT_MAX_ARTIFACT_BYTES,
+    capture_view_counts: bool = True,
+    view_count_max_graphql_pages: int = DEFAULT_VIEW_COUNT_MAX_GRAPHQL_PAGES,
+    xhr_request_gap_seconds: float = DEFAULT_XHR_REQUEST_GAP_SECONDS,
     capture_context: str = "logged-out IG wind-caller calls capture (no session); one bounded account, recent calls",
     operator_category: str = "ig_calls_browser_snapshot_cli_operator",
     session_id: str | None = None,
@@ -150,6 +320,8 @@ def run_source_capture_ig_calls_packet(
         raise ValueError("max_items must be greater than zero")
     if max_items > DEFAULT_MAX_ITEMS:
         raise ValueError(f"max_items must be no greater than {DEFAULT_MAX_ITEMS} for this bounded runner")
+    if xhr_request_gap_seconds < 2.5:
+        raise ValueError("xhr_request_gap_seconds must be at least 2.5 seconds")
 
     profile = _capture_one(
         profile_url, scroll_passes=profile_scroll_passes, timeout_seconds=timeout_seconds,
@@ -174,6 +346,20 @@ def run_source_capture_ig_calls_packet(
     profile_og = extract_meta_content(profile.rendered_dom, "og:description")
     profile_stats = parse_ig_profile_og(profile_og) if profile_og else None
     capture_timestamp = str(profile.metadata["capture_timestamp"])
+    momentum_capture: IgProfileMomentumCapture | None = None
+    if capture_view_counts:
+        sleep_fn(xhr_request_gap_seconds)
+        momentum_capture = fetch_ig_profile_momentum(
+            profile_url=profile.final_url or profile.requested_url,
+            max_media=max_items,
+            max_graphql_pages=view_count_max_graphql_pages,
+            request_gap_seconds=xhr_request_gap_seconds,
+            timeout_seconds=timeout_seconds,
+            max_response_bytes=max_artifact_bytes,
+            sleep_fn=sleep_fn,
+        )
+        if permalinks:
+            sleep_fn(xhr_request_gap_seconds)
 
     # Human-mimicking gaps between the per-item visits (auditable, deterministic per seed).
     cadence = build_cadence_plan(
@@ -254,6 +440,8 @@ def run_source_capture_ig_calls_packet(
         session_id=session_id,
         warnings=list(warnings),
         limitations=list(limitations),
+        momentum_capture=momentum_capture,
+        capture_view_counts=capture_view_counts,
     )
 
 
@@ -263,7 +451,7 @@ def _slice_postures():
     )
     archive = not_attempted("IG calls runner does not query archive or history services")
     media = known_fact(
-        "og:description caption + engagement text preserved; reel view-counts and media bytes are out of scope"
+        "og:description caption + engagement text preserved; browser-context profile-feed JSON checked for view counts; media bytes are out of scope"
     )
     recapture = not_applicable("no prior source capture packet was supplied for this IG calls capture")
     return access, archive, media, recapture
@@ -285,6 +473,8 @@ def _write_packet(
     session_id: str | None,
     warnings: list[str],
     limitations: list[str],
+    momentum_capture: IgProfileMomentumCapture | None,
+    capture_view_counts: bool,
 ) -> tuple[int, str]:
     access, archive, media, recapture = _slice_postures()
     staging_parent = output_directory.parent
@@ -305,7 +495,21 @@ def _write_packet(
 
     # One staged file per slice: file_01 = profile, file_02.. = each item.
     staged: list[tuple[Path, dict]] = [(staging_parent / "ig_profile.json", profile_payload)]
+    profile_file_ids = ["file_01"]
+    if capture_view_counts:
+        momentum_payload = (
+            momentum_capture.to_staged_payload()
+            if momentum_capture is not None
+            else {
+                "status": "not_attempted",
+                "reason": "browser-context profile-feed JSON capture did not run",
+            }
+        )
+        profile_file_ids.append(f"file_{len(staged) + 1:02d}")
+        staged.append((staging_parent / "ig_profile_momentum.json", momentum_payload))
+    item_file_ids: list[str] = []
     for i, record in enumerate(item_records, start=1):
+        item_file_ids.append(f"file_{len(staged) + 1:02d}")
         staged.append((staging_parent / f"ig_call_{i:02d}.json", record))
 
     if any(path.exists() for path, _ in staged):
@@ -344,7 +548,12 @@ def _write_packet(
                 re_capture_relationship=recapture,
                 limitations=[],
                 warning_notes=[],
-                preserved_file_ids=["file_01"],
+                preserved_file_ids=profile_file_ids,
+                metric_observations=_profile_metric_observations(
+                    momentum_capture=momentum_capture,
+                    capture_timestamp=capture_timestamp,
+                    capture_view_counts=capture_view_counts,
+                ),
             )
         ]
         for i, record in enumerate(item_records, start=1):
@@ -370,15 +579,43 @@ def _write_packet(
                     re_capture_relationship=recapture,
                     limitations=slice_limitations,
                     warning_notes=[],
-                    preserved_file_ids=[f"file_{i + 1:02d}"],
+                    preserved_file_ids=[item_file_ids[i - 1]],
+                    metric_observations=_item_metric_observations(
+                        record=record,
+                        momentum_capture=momentum_capture,
+                        capture_timestamp=capture_timestamp,
+                        capture_view_counts=capture_view_counts,
+                    ),
                 )
             )
 
         run_limitations = list(limitations)
+        run_warnings = list(warnings)
+        if momentum_capture is not None:
+            run_limitations.extend(momentum_capture.limitation_notes)
+            run_warnings.extend(momentum_capture.warning_notes)
+            if momentum_capture.numeric_id is None:
+                run_limitations.append("ig_numeric_id_unavailable_from_profile_feed_json")
+            run_limitations.append(
+                f"ig_metric_registry_version={IG_METRIC_REGISTRY_VERSION}; "
+                f"ig_identity_conflict_policy_version={IG_ID_CONFLICT_POLICY_VERSION}"
+            )
         if captured_count < len(item_records):
             run_limitations.append(
                 f"partial_capture: {captured_count}/{len(item_records)} items yielded a call signal"
             )
+        view_count_observed = sum(
+            1
+            for source_slice in slices
+            for observation in source_slice.metric_observations
+            if observation.metric == "view_count" and observation.posture == MetricPosture.OBSERVED
+        )
+        visible_mode_changes = [
+            f"ig_calls_logged_out_capture:items={len(item_records)}:captured={captured_count}",
+            f"ig_browser_context_view_count_capture:observed={view_count_observed}",
+        ]
+        if not capture_view_counts:
+            visible_mode_changes.append("ig_browser_context_view_count_capture:not_attempted")
 
         result = write_local_source_capture_packet(
             output_directory=output_directory,
@@ -394,7 +631,7 @@ def _write_packet(
             capture_mode=CaptureModeCategory.AUTOMATED_EXTRACTION,
             operator_category=operator_category,
             session_identity=session_id,
-            visible_mode_changes=[f"ig_calls_logged_out_capture:items={len(item_records)}:captured={captured_count}"],
+            visible_mode_changes=visible_mode_changes,
             source_publication_or_event=profile_timing.source_publication_or_event,
             source_edit_or_version=profile_timing.source_edit_or_version,
             cutoff_posture=profile_timing.cutoff_posture,
@@ -404,11 +641,12 @@ def _write_packet(
             media_modality_posture=media,
             re_capture_relationship=recapture,
             source_slices=slices,
-            warnings=list(warnings),
+            warnings=run_warnings,
             limitations=run_limitations,
             receipt_summary=(
                 f"IG calls packet for {profile_final_url}: {captured_count} of {len(item_records)} "
-                "enumerated items yielded a logged-out call signal (caption + engagement)."
+                "enumerated items yielded a logged-out call signal (caption + engagement); "
+                f"{view_count_observed} item(s) yielded observed view_count."
             ),
             receipt_non_claims=IG_CALLS_NON_CLAIMS,
         )
@@ -436,6 +674,9 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--cadence-random-seed", type=int, default=None)
     parser.add_argument("--timeout-seconds", type=float, default=DEFAULT_TIMEOUT_SECONDS)
     parser.add_argument("--max-artifact-bytes", type=int, default=DEFAULT_MAX_ARTIFACT_BYTES)
+    parser.add_argument("--skip-view-counts", action="store_true")
+    parser.add_argument("--view-count-max-graphql-pages", type=int, default=DEFAULT_VIEW_COUNT_MAX_GRAPHQL_PAGES)
+    parser.add_argument("--xhr-request-gap-seconds", type=float, default=DEFAULT_XHR_REQUEST_GAP_SECONDS)
     parser.add_argument("--session-id", default=None)
     parser.add_argument("--warning", action="append", default=[])
     parser.add_argument("--limitation", action="append", default=[])
@@ -458,6 +699,9 @@ def main(argv: Sequence[str] | None = None) -> int:
             cadence_random_seed=args.cadence_random_seed,
             timeout_seconds=args.timeout_seconds,
             max_artifact_bytes=args.max_artifact_bytes,
+            capture_view_counts=not args.skip_view_counts,
+            view_count_max_graphql_pages=args.view_count_max_graphql_pages,
+            xhr_request_gap_seconds=args.xhr_request_gap_seconds,
             session_id=args.session_id,
             warnings=args.warning,
             limitations=args.limitation,
