@@ -203,6 +203,58 @@ def test_ig_calls_runner_writes_packet_with_profile_and_call_slices(
     assert momentum["media"]["BBB"]["video_view_count"] == 104700
 
 
+def test_ig_calls_runner_threads_operator_storage_state_without_persisting_path(
+    scratch_dir: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    storage_state_path = scratch_dir / "operator_storage_state.json"
+    storage_state_path.write_text('{"cookies": [], "origins": []}\n', encoding="utf-8")
+    snapshot_storage_paths: list[Path | None] = []
+    momentum_kwargs: list[dict] = []
+
+    def fake_snapshot(**kw):
+        snapshot_storage_paths.append(kw["storage_state_path"])
+        return _route_fake(kw["url"])
+
+    def fake_momentum(**kw) -> IgProfileMomentumCapture:
+        momentum_kwargs.append(kw)
+        return _momentum_capture(**kw)
+
+    monkeypatch.setattr(ig_runner, "fetch_browser_snapshot_capture", fake_snapshot)
+    monkeypatch.setattr(ig_runner, "fetch_ig_profile_momentum", fake_momentum)
+    output_dir = scratch_dir / "packet"
+
+    exit_code, message = run_source_capture_ig_calls_packet(
+        profile_url=PROFILE_URL,
+        output_directory=output_dir,
+        decision_question="Can a sessioned public IG capture yield view counts?",
+        max_items=2,
+        storage_state_path=storage_state_path,
+        cadence_random_seed=7,
+        sleep_fn=lambda _s: None,
+    )
+
+    assert exit_code == 0
+    assert message == str(output_dir.resolve())
+    assert snapshot_storage_paths == [storage_state_path, storage_state_path, storage_state_path]
+    assert momentum_kwargs[0]["storage_state_path"] == storage_state_path
+
+    persisted_text = "\n".join(
+        path.read_text(encoding="utf-8")
+        for path in [output_dir / "manifest.json", *sorted((output_dir / "raw").glob("*.json"))]
+    )
+    assert "operator_storage_state.json" not in persisted_text
+    assert '"cookies"' not in persisted_text
+
+    manifest = json.loads((output_dir / "manifest.json").read_text(encoding="utf-8"))
+    assert "ig_calls_operator_storage_state_capture:items=2:captured=2" in manifest["visible_mode_changes"]
+    profile = next(
+        json.loads(path.read_text(encoding="utf-8"))
+        for path in (output_dir / "raw").glob("*.json")
+        if "ig_profile.json" in path.name
+    )
+    assert profile["browser_storage_state_loaded"] is True
+
+
 def test_ig_calls_runner_respects_item_cap(scratch_dir: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(ig_runner, "fetch_browser_snapshot_capture", lambda **kw: _route_fake(kw["url"]))
     output_dir = scratch_dir / "packet"
@@ -228,6 +280,18 @@ def test_ig_calls_runner_rejects_item_cap_above_bounded_default(scratch_dir: Pat
             output_directory=scratch_dir / "packet",
             decision_question="q",
             max_items=ig_runner.DEFAULT_MAX_ITEMS + 1,
+            capture_view_counts=False,
+            sleep_fn=lambda _s: None,
+        )
+
+
+def test_ig_calls_runner_rejects_missing_browser_storage_state(scratch_dir: Path) -> None:
+    with pytest.raises(ValueError, match="browser storage state file does not exist"):
+        run_source_capture_ig_calls_packet(
+            profile_url=PROFILE_URL,
+            output_directory=scratch_dir / "packet",
+            decision_question="q",
+            storage_state_path=scratch_dir / "missing_state.json",
             capture_view_counts=False,
             sleep_fn=lambda _s: None,
         )
@@ -331,4 +395,5 @@ def test_ig_calls_runner_no_secret_or_session_cli_flags() -> None:
     parser = ig_runner._build_parser()
     options = {opt for action in parser._actions for opt in action.option_strings}
     forbidden = {"--password", "--username", "--token", "--cookie", "--storage-state-path", "--state-label", "--session-mode"}
+    assert "--browser-storage-state" in options
     assert options.isdisjoint(forbidden)

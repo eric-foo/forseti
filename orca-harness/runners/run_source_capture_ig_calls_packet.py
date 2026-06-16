@@ -1,7 +1,7 @@
-"""Bounded, logged-out IG wind-caller CALLS capture -> Source Capture Packet.
+"""Bounded IG wind-caller CALLS capture -> Source Capture Packet.
 
-Composes existing primitives (no new auth/session path, no secrets):
-- browser_snapshot (headless, LOGGED-OUT; scroll to enumerate the profile grid),
+Composes existing primitives (no login automation, no secrets):
+- browser_snapshot (headless; scroll to enumerate the profile grid),
 - ig_calls_parse (og:description -> caption/likes/comments/date/#ad; permalinks),
 - browser-context XHR (web_profile_info + bounded grid pagination -> view counts),
 - cadence.bounded_jitter (human-mimicking variable gaps between item visits),
@@ -9,8 +9,9 @@ Composes existing primitives (no new auth/session path, no secrets):
 
 Substrate basis: the recon + 2026-06-14 headless probe found IG serves the call
 signal (caption + engagement) in the post/reel page og:description to a browser,
-LOGGED-OUT. The reel view-count path is browser-context profile-feed JSON, also
-logged-out. This runner therefore needs no session.
+logged-out. The runner can optionally load an operator-supplied browser
+storage-state JSON for the bounded live assumption gate; it never performs
+login or credential capture itself.
 
 Bounded by the wind-caller carve-out: attended, human-mimicking cadence, no
 standing/scheduled crawler, per-run item cap. This is one bounded capture unit
@@ -65,8 +66,8 @@ from source_capture.models import CoverageWindow, MetricObservation, MetricPostu
 
 IG_CALLS_NON_CLAIMS = [
     "not content sufficiency proof",
-    "not login or session capture",
-    "not stored profile or cookie use",
+    "not login automation or credential capture",
+    "not storage-state generation or credential persistence",
     "not anti-detect behavior",
     "not proxy or session injection",
     "not CAPTCHA solving",
@@ -111,7 +112,7 @@ def _detect_ig_block(*, final_url: str, title: str | None, visible_text: str, re
 
 
 def _capture_one(url: str, *, scroll_passes: int, timeout_seconds: float, viewport_width: int,
-                 viewport_height: int, max_artifact_bytes: int):
+                 viewport_height: int, max_artifact_bytes: int, storage_state_path: Path | None):
     return fetch_browser_snapshot_capture(
         url=url,
         timeout_seconds=timeout_seconds,
@@ -120,6 +121,7 @@ def _capture_one(url: str, *, scroll_passes: int, timeout_seconds: float, viewpo
         viewport_height=viewport_height,
         max_artifact_bytes=max_artifact_bytes,
         scroll_passes=scroll_passes,
+        storage_state_path=storage_state_path,
     )
 
 
@@ -309,7 +311,11 @@ def run_source_capture_ig_calls_packet(
     capture_view_counts: bool = True,
     view_count_max_graphql_pages: int = DEFAULT_VIEW_COUNT_MAX_GRAPHQL_PAGES,
     xhr_request_gap_seconds: float = DEFAULT_XHR_REQUEST_GAP_SECONDS,
-    capture_context: str = "logged-out IG wind-caller calls capture (no session); one bounded account, recent calls",
+    storage_state_path: Path | None = None,
+    capture_context: str = (
+        "IG wind-caller calls capture; logged-out by default with optional operator-supplied browser storage state; "
+        "one bounded account, recent calls"
+    ),
     operator_category: str = "ig_calls_browser_snapshot_cli_operator",
     session_id: str | None = None,
     warnings: Sequence[str] = (),
@@ -322,10 +328,13 @@ def run_source_capture_ig_calls_packet(
         raise ValueError(f"max_items must be no greater than {DEFAULT_MAX_ITEMS} for this bounded runner")
     if xhr_request_gap_seconds < 2.5:
         raise ValueError("xhr_request_gap_seconds must be at least 2.5 seconds")
+    if storage_state_path is not None and not storage_state_path.is_file():
+        raise ValueError("browser storage state file does not exist")
 
     profile = _capture_one(
         profile_url, scroll_passes=profile_scroll_passes, timeout_seconds=timeout_seconds,
         viewport_width=viewport_width, viewport_height=viewport_height, max_artifact_bytes=max_artifact_bytes,
+        storage_state_path=storage_state_path,
     )
     if isinstance(profile, BrowserSnapshotFailure):
         return 3, f"profile capture failed: {profile.message}"
@@ -356,6 +365,7 @@ def run_source_capture_ig_calls_packet(
             request_gap_seconds=xhr_request_gap_seconds,
             timeout_seconds=timeout_seconds,
             max_response_bytes=max_artifact_bytes,
+            storage_state_path=storage_state_path,
             sleep_fn=sleep_fn,
         )
         if permalinks:
@@ -379,6 +389,7 @@ def run_source_capture_ig_calls_packet(
         item = _capture_one(
             url, scroll_passes=0, timeout_seconds=timeout_seconds, viewport_width=viewport_width,
             viewport_height=viewport_height, max_artifact_bytes=max_artifact_bytes,
+            storage_state_path=storage_state_path,
         )
         if isinstance(item, BrowserSnapshotFailure):
             item_records.append({"url": url, "status": "capture_failed", "message": item.message})
@@ -442,12 +453,13 @@ def run_source_capture_ig_calls_packet(
         limitations=list(limitations),
         momentum_capture=momentum_capture,
         capture_view_counts=capture_view_counts,
+        storage_state_loaded=storage_state_path is not None,
     )
 
 
 def _slice_postures():
     access = known_fact(
-        "ig_logged_out_browser_snapshot; public og:description; content sufficiency not asserted"
+        "ig_browser_snapshot; public og:description; optional operator-supplied browser storage state; content sufficiency not asserted"
     )
     archive = not_attempted("IG calls runner does not query archive or history services")
     media = known_fact(
@@ -475,6 +487,7 @@ def _write_packet(
     limitations: list[str],
     momentum_capture: IgProfileMomentumCapture | None,
     capture_view_counts: bool,
+    storage_state_loaded: bool,
 ) -> tuple[int, str]:
     access, archive, media, recapture = _slice_postures()
     staging_parent = output_directory.parent
@@ -491,6 +504,7 @@ def _write_packet(
         "stats": stats_dict,
         "permalinks_enumerated": permalink_count,
         "cadence_plan": cadence_summary,
+        "browser_storage_state_loaded": storage_state_loaded,
     }
 
     # One staged file per slice: file_01 = profile, file_02.. = each item.
@@ -610,8 +624,11 @@ def _write_packet(
             for observation in source_slice.metric_observations
             if observation.metric == "view_count" and observation.posture == MetricPosture.OBSERVED
         )
+        capture_mode_token = (
+            "ig_calls_operator_storage_state_capture" if storage_state_loaded else "ig_calls_logged_out_capture"
+        )
         visible_mode_changes = [
-            f"ig_calls_logged_out_capture:items={len(item_records)}:captured={captured_count}",
+            f"{capture_mode_token}:items={len(item_records)}:captured={captured_count}",
             f"ig_browser_context_view_count_capture:observed={view_count_observed}",
         ]
         if not capture_view_counts:
@@ -626,7 +643,7 @@ def _write_packet(
             decision_question=decision_question,
             capture_context=capture_context,
             actor_audience_context=known_fact(
-                "public-figure creator public profile; logged-out capture; internal wind-caller calibration"
+                "public-figure creator public profile; logged-out by default or operator-supplied browser storage state; internal wind-caller calibration"
             ),
             capture_mode=CaptureModeCategory.AUTOMATED_EXTRACTION,
             operator_category=operator_category,
@@ -645,7 +662,7 @@ def _write_packet(
             limitations=run_limitations,
             receipt_summary=(
                 f"IG calls packet for {profile_final_url}: {captured_count} of {len(item_records)} "
-                "enumerated items yielded a logged-out call signal (caption + engagement); "
+                "enumerated items yielded a browser-visible call signal (caption + engagement); "
                 f"{view_count_observed} item(s) yielded observed view_count."
             ),
             receipt_non_claims=IG_CALLS_NON_CLAIMS,
@@ -661,7 +678,10 @@ def _write_packet(
 
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description="Capture one IG creator's recent CALLS (logged-out) into a Source Capture Packet."
+        description=(
+            "Capture one IG creator's recent CALLS into a Source Capture Packet "
+            "(logged-out by default; optional operator-supplied browser storage state)."
+        )
     )
     parser.add_argument("--profile-url", required=True)
     parser.add_argument("--decision-question", required=True)
@@ -677,6 +697,7 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--skip-view-counts", action="store_true")
     parser.add_argument("--view-count-max-graphql-pages", type=int, default=DEFAULT_VIEW_COUNT_MAX_GRAPHQL_PAGES)
     parser.add_argument("--xhr-request-gap-seconds", type=float, default=DEFAULT_XHR_REQUEST_GAP_SECONDS)
+    parser.add_argument("--browser-storage-state", type=Path, default=None)
     parser.add_argument("--session-id", default=None)
     parser.add_argument("--warning", action="append", default=[])
     parser.add_argument("--limitation", action="append", default=[])
@@ -702,6 +723,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             capture_view_counts=not args.skip_view_counts,
             view_count_max_graphql_pages=args.view_count_max_graphql_pages,
             xhr_request_gap_seconds=args.xhr_request_gap_seconds,
+            storage_state_path=args.browser_storage_state,
             session_id=args.session_id,
             warnings=args.warning,
             limitations=args.limitation,

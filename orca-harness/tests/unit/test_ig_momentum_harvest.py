@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from pathlib import Path
 
 from source_capture.adapters.browser_snapshot import (
     BrowserContextResponse,
@@ -41,8 +42,11 @@ def test_extract_ig_shortcode_from_post_and_reel_urls() -> None:
 
 def test_fetch_ig_profile_momentum_parses_profile_and_grid_pages_without_faking_zero() -> None:
     sleeps: list[float] = []
+    storage_state_path = Path("ig_state.json")
+    storage_paths: list[Path | None] = []
 
     def fake_fetcher(**kwargs):
+        storage_paths.append(kwargs["storage_state_path"])
         request_id = kwargs["requests"][0].request_id
         if request_id == "web_profile_info":
             return _success(
@@ -107,11 +111,13 @@ def test_fetch_ig_profile_momentum_parses_profile_and_grid_pages_without_faking_
         max_media=3,
         max_graphql_pages=1,
         request_gap_seconds=3.0,
+        storage_state_path=storage_state_path,
         sleep_fn=sleeps.append,
         browser_fetcher=fake_fetcher,
     )
 
     assert sleeps == [3.0]
+    assert storage_paths == [storage_state_path, storage_state_path]
     assert capture.numeric_id == "5802114508"
     assert capture.follower_count == 723000
     assert capture.media_by_shortcode["AAA"].is_video is False
