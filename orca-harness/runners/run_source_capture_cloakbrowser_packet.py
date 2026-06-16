@@ -21,6 +21,7 @@ from source_capture import (
     write_local_source_capture_packet,
 )
 from source_capture.adapters import CloakBrowserSnapshotFailure, fetch_cloakbrowser_snapshot_capture
+from source_capture.adapters.amazon_delivery_location import AmazonDeliveryLocationPlugin
 from source_capture.adapters.cloakbrowser_snapshot import (
     ALLOWED_WAIT_UNTIL,
     DEFAULT_MAX_ARTIFACT_BYTES,
@@ -90,6 +91,7 @@ def run_source_capture_cloakbrowser_packet(
     load_more_clicks: int = 0,
     scroll_step_px: int = 0,
     delivery_zip: str | None = None,
+    delivery_zip_setup_timeout_seconds: float = 30.0,
     session_visibility_pin=None,
     locale_pin=None,
     currency_pin=None,
@@ -99,6 +101,17 @@ def run_source_capture_cloakbrowser_packet(
     pre_coverage_history_posture=None,
     intended_cadence: dict[str, object] | None = None,
 ) -> tuple[int, str]:
+    # The US-storefront pin is an Amazon-specific pre-capture plugin (FIX #6): the generic
+    # adapter knows nothing about Amazon or its delivery-location widget. The plugin carries
+    # its own bounded setup timeout (FIX #1) -- separate from the main capture timeout below.
+    pre_capture = (
+        AmazonDeliveryLocationPlugin(
+            delivery_zip=delivery_zip,
+            setup_timeout_seconds=delivery_zip_setup_timeout_seconds,
+        )
+        if delivery_zip is not None
+        else None
+    )
     capture_result = fetch_cloakbrowser_snapshot_capture(
         url=url,
         timeout_seconds=timeout_seconds,
@@ -113,7 +126,7 @@ def run_source_capture_cloakbrowser_packet(
         load_more_selector=load_more_selector,
         load_more_clicks=load_more_clicks,
         scroll_step_px=scroll_step_px,
-        delivery_zip=delivery_zip,
+        pre_capture=pre_capture,
     )
     if isinstance(capture_result, CloakBrowserSnapshotFailure):
         return 3, f"{_failure_report_token(capture_result.failure_kind)}: {capture_result.message}"
@@ -413,9 +426,21 @@ def _build_parser() -> argparse.ArgumentParser:
         default=None,
         help=(
             "US ZIP code to set as delivery location on amazon.com before capture "
-            "(e.g. '10001'). Causes a stateful homepage navigation to pin the US "
-            "storefront (USD) via the delivery-location widget. humanize=True is "
-            "used automatically. Probed 2026-06-16; subject to Amazon DOM changes."
+            "(e.g. '10001'). Runs a stateful homepage delivery-location widget flow to "
+            "ATTEMPT pinning the US storefront, then CONFIRMS the flip against the rendered "
+            "DOM (currencyOfPreference=USD). humanize=True is used automatically. If the "
+            "storefront cannot be confirmed, the packet records an honest un-pinned gap, never "
+            "a 'set' claim. Probed 2026-06-16; subject to Amazon DOM changes."
+        ),
+    )
+    parser.add_argument(
+        "--delivery-zip-setup-timeout-seconds",
+        type=float,
+        default=30.0,
+        help=(
+            "Bounds the pre-capture delivery-location widget flow (homepage navigation + "
+            "widget steps) SEPARATELY from the main capture --timeout-seconds. Default 30.0. "
+            "Only used when --delivery-zip is set."
         ),
     )
     parser.add_argument("--proxy-profile-label", default=None)
@@ -526,6 +551,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             load_more_clicks=args.load_more_clicks,
             scroll_step_px=args.scroll_step_px,
             delivery_zip=args.delivery_zip,
+            delivery_zip_setup_timeout_seconds=args.delivery_zip_setup_timeout_seconds,
             # Demand-durability series facts (Ob.17). Element 1 pins (each an honest
             # value/unknown/not-applicable VisibleFact) ride on the slice; Element 2 origin
             # postures + Element 4 declared cadence ride on the packet. Observed facts only,

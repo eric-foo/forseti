@@ -349,6 +349,7 @@ _WRITER_ARG_KNOB_ALLOWLIST = frozenset(
         "--wait-until",
         "--viewport-width",
         "--delivery-zip",
+        "--delivery-zip-setup-timeout-seconds",
         "--viewport-height",
         "--timeout-seconds",
         "--max-artifact-bytes",
