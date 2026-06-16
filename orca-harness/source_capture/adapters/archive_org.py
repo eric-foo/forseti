@@ -183,6 +183,21 @@ def verify_archive_body(
     # Content-integrity checks (soft-404 / charset) are a separate deferred slice.
     if not isinstance(body_result, DirectHttpCaptureSuccess):
         return None  # no preserved body to verify; body-not-preserved is handled elsewhere
+    if body_result.status < 200 or body_result.status >= 300:
+        # A non-2xx served status is a verification failure: direct_http preserves a non-2xx
+        # response as a DirectHttpCaptureSuccess (body kept + access_failed limitation), but
+        # availability is not body honesty -- a soft-404 / 403 / 429-with-body served from the
+        # archive host at a valid <=cutoff replay URL must not pass as a clean archived body
+        # (matches the archive_today/publisher-history rungs). Content-integrity checks
+        # (soft-404 with HTTP 200 / charset) remain the separate deferred slice noted above.
+        return ArchiveBodyVerification(
+            ok=False,
+            served_timestamp=None,
+            reason=(
+                f"body_http_status_not_usable: archive snapshot body returned HTTP {body_result.status} "
+                f"{body_result.reason or 'without reason'}; availability is not body honesty"
+            ),
+        )
     base_prefix = snapshot_base_url.rstrip("/") + "/"
     if not body_result.final_url.startswith(base_prefix):
         return ArchiveBodyVerification(

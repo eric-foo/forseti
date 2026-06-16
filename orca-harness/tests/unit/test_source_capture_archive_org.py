@@ -430,10 +430,14 @@ def test_archive_runner_fails_without_packet_when_availability_lookup_fails(
     assert not output_dir.exists()
 
 
-def test_archive_runner_preserves_non_2xx_body_with_access_failed_limitation(
+def test_archive_runner_rejects_non_2xx_body_as_not_decision_grade(
     archive_server: dict[str, str],
     scratch_dir: Path,
 ) -> None:
+    # A selected pre-cutoff snapshot whose body fetch returns a non-2xx (HTTP 404) WITH a body:
+    # direct_http preserves it as a DirectHttpCaptureSuccess, but availability is not body honesty.
+    # The 2xx gate in verify_archive_body fails it, so the body is NOT preserved as addressable
+    # content (G-002), the posture is attempt_failed (not "archived"), and the failure is recorded.
     output_dir = scratch_dir / "packet"
     result = _run_archive_runner(
         archive_server=archive_server,
@@ -443,10 +447,18 @@ def test_archive_runner_preserves_non_2xx_body_with_access_failed_limitation(
 
     assert result.returncode == 0, result.stderr
     manifest = _read_manifest(output_dir)
+    assert manifest["archive_history_posture"]["value"] == "attempt_failed"
     body_slice = manifest["source_slices"][1]
-    assert body_slice["access_posture"]["value"].startswith("archive_org snapshot body access_failed")
-    assert body_slice["preserved_file_ids"] == ["file_02", "file_03"]
-    assert any("access_failed" in item for item in manifest["limitations"])
+    assert body_slice["slice_id"] == "archive_snapshot_body"
+    assert body_slice["archive_history_posture"]["value"] == "attempt_failed"
+    # G-002: the non-2xx body is NOT preserved as addressable content -- only availability (file_01).
+    assert body_slice["preserved_file_ids"] == []
+    assert len(manifest["preserved_files"]) == 1
+    assert not (output_dir / "raw" / "02_archive_snapshot_body.bin").exists()
+    assert any(
+        "archive_body_verification_failed" in item and "body_http_status_not_usable" in item
+        for item in manifest["limitations"]
+    )
     _assert_receipt_non_claims(output_dir)
 
 
