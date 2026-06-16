@@ -9,7 +9,8 @@ scope: >
   hot-list, promotion/demotion loop, capture-once-then-recheck lifecycle) and the per-platform
   monitoring PROFILE seam (cadence values, curve window, content unit, momentum metric, spike
   threshold) that IG fills first and TikTok/YouTube/Reddit fill later. PROPOSED; the cadence numbers
-  are illustrative and R-tunable (R is unmeasured). Not a build-go, validation, or readiness claim.
+  remain illustrative and R-tunable. IG R now has a first measured pace-bound reading, with the
+  at-pace ceiling still open. Not a build-go, validation, or readiness claim.
 use_when:
   - Deciding how to spend the bounded capture budget across creators/posts (tiering + recheck cadence).
   - Scoping the IG capture-shape contract's monitoring half, or a future platform satellite's profile.
@@ -18,13 +19,14 @@ authority_boundary: retrieval_only
 open_next:
   - docs/product/data_capture_spine/orca_capture_projection_storage_spine_architecture_v0.md   # the storage/capture-shape backbone (this consumes its projection + records its cadence/fanout parameters)
   - docs/decisions/wind_caller_calibration_carveout_v0.md   # capture posture authority (amended 2026-06-15) — the scheduler must conform
+  - docs/product/source_capture_toolbox/ig_at_scale_operating_envelope_v0.md   # current IG R operating envelope
   - docs/product/data_capture_spine/orca_creator_momentum_pipeline_architecture_v0.md   # the IG-first pipeline instance
 stale_if:
   - The owner adopts/adjusts the tier model, the age-bucket scheduler, or the carve-out conformance posture.
-  - R is measured (the rate-limit probe lands) — turns the illustrative cadences into sized defaults.
+  - A fuller R run pins the at-pace daily-volume ceiling, exact pace threshold, or throttle decay time.
   - The IG capture-shape contract fills the IG monitoring profile (moves IG from illustrative to bound).
   - A second platform profile (TikTok/YouTube/Reddit) is authorized — tests the profile seam.
-status: PROPOSED — creator monitoring policy (core machinery + per-platform profile seam); cadences illustrative + R-tunable; AWAITING owner adoption
+status: PROPOSED — creator monitoring policy (core machinery + per-platform profile seam); cadences illustrative + R-tunable; IG R first-measured pace-bound, at-pace ceiling still open; AWAITING owner adoption
 ```
 
 # Orca Creator Monitoring Policy — Coverage Allocator (PROPOSED, v0)
@@ -105,13 +107,15 @@ where to spend the budget.
 ```
 reads/cycle ≈ Σ_creators [ Σ_buckets (tracked_posts_in_bucket / bucket_cadence) ]
                        + new-post polls + Tier-C heartbeats
-bound: reads/cycle ≤ R × cycle_days     (R = safe reads/day — UNMEASURED key unknown)
+bound: reads/cycle ≤ R × cycle_days     (R = safe reads/day — first measured as pace-bound; at-pace ceiling open)
 ```
 
-The bucket cadences and the per-creator cap are **R-tunable dials**, not fixed truths. **R is the one
-empirically-unmeasured number** (a bounded rate-limit probe resolves it). R sizes *Tier-A breadth*
-(how many creators get full density), **not** the storage tier — total rows stay throughput-bounded
-(10⁷–10⁸ over the working horizon → no server; see the storage backbone).
+The bucket cadences and the per-creator cap are **R-tunable dials**, not fixed truths. **R now has a
+first measured reading**: IG logged-out reads are per-IP pace-bound; operate at ~2.5–4s spacing, never
+sub-2s, and treat the at-pace daily ceiling as still open. R sizes *Tier-A breadth* (how many creators
+get full density), **not** the storage tier — total rows stay throughput-bounded (10⁷–10⁸ over the
+working horizon → no server; see the storage backbone). Current operating envelope:
+`docs/product/source_capture_toolbox/ig_at_scale_operating_envelope_v0.md`.
 
 **Batching note:** polling an age bucket reads its posts **together** → the reads return as a batch →
 the batch materializes as one projection partition. So the scheduler naturally produces the
@@ -162,7 +166,7 @@ self-terminating** sessions — **no perpetual/scheduled standing crawler.** So:
 ## Non-claims
 
 PROPOSED monitoring-policy architecture only — not a build-go, validation, readiness, or authorization.
-All cadence/cap numbers are **illustrative and R-tunable**; R is unmeasured. Core machinery here; IG
-profile values are finalized in the IG capture-shape contract; other platform profiles are
-named-deferred seams. The scheduler consumes the rebuildable projection (the storage backbone) and must
-conform to the carve-out's bounded-session posture.
+All cadence/cap numbers are **illustrative and R-tunable**; R is first-measured but not fully
+characterized. Core machinery here; IG profile values are finalized in the IG capture-shape contract;
+other platform profiles are named-deferred seams. The scheduler consumes the rebuildable projection
+(the storage backbone) and must conform to the carve-out's bounded-session posture.

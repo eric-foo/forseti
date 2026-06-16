@@ -19,11 +19,12 @@ use_when:
   - Sizing the monitoring-policy cadences AND the projection-store engine pick from measured R + volume.
 authority_boundary: retrieval_only
 open_next:
+  - docs/product/source_capture_toolbox/ig_r_probe_results_v0.md   # landed first measured reading
   - docs/product/source_capture_toolbox/ig_capture_findings_consolidated_v0.md   # the H5 residual + logged-out method map
   - docs/product/data_capture_spine/orca_creator_monitoring_policy_architecture_v0.md   # where R plugs in (read-budget equation)
   - docs/decisions/wind_caller_calibration_carveout_v0.md   # capture posture authority (amended 2026-06-15)
 stale_if:
-  - The bounded R-probe RUN lands (turns this design's predicted onset into a measured R; closes H5).
+  - A fuller R follow-up run changes the measured pace-bound result, at-pace ceiling, or decay-time posture.
   - The shipped calls runner changes its read model (max-items cap, scroll-pass enumeration, or onset detector).
   - The carve-out is amended in a way that changes the probe's posture bounds.
 branch_or_commit: designed against origin/main @ f266f83b (PR #154); instrument = orca-harness/runners/run_source_capture_ig_calls_packet.py at that revision.
@@ -31,21 +32,27 @@ branch_or_commit: designed against origin/main @ f266f83b (PR #154); instrument 
 
 ## Status
 
-`DESIGN — AWAITING OWNER GO FOR THE RUN.` This is doc/spec work (default-allowed).
-The probe **RUN** is live network / ToS-risk activity and is **owner-initiated**
-per the wind-caller carve-out. Nothing here authorizes the run, a proxy build, or
-any push/PR. Not validation, readiness, or a build-go.
+`DESIGN — RUN LANDED; HISTORICAL METHOD SPEC.` This is doc/spec work (default-allowed).
+The first measured reading has landed in `ig_r_probe_results_v0.md`; use that results doc for current
+R claims. Any further probe **RUN** remains live network / ToS-risk activity and is
+**owner-initiated** per the wind-caller carve-out. Nothing here authorizes another run, a proxy build,
+or any push/PR. Not validation, readiness, or a build-go.
 
 **2026-06-16 addendum (delta, not a reset):** this design now covers **two read
 profiles** (steady-state + burst), structures its report for **two consumers**
 (monitoring-policy + projection-store), and adds a **purity boundary** (measures reads
 only; writes no typed `metric_observations`). Confirm-don't-trust note: the addendum
-cites carve-out posture **(B)** (pre-authorized, self-terminating sprints) as "now
+historically cited carve-out posture **(B)** (pre-authorized, self-terminating sprints) as "now
 durably recorded," but as of this writing **(B) is still NOT on `main`** — lane-only
 (`ig-creator-momentum-lane` @ `6ff2f559`); the carve-out on `main` has no (B) language.
 The burst profile does **not depend on (B) being merged**: an *attended* burst test is
 human-initiated passive reads, already permitted by the **main** posture. The (B)
 propagation gap is flagged for the carve-out lane owner, not resolved here.
+
+**2026-06-16 outcome note:** the first R-probe measured a pace-bound result, not a complete at-pace
+daily ceiling. Current `origin/main`'s packet-mode IG runner has since grown metric-observation
+surfaces, but this probe design's purity boundary still applies to the R claim: R-probe evidence is
+read-measurement evidence, not producer/projection acceptance.
 
 ## The question (what R is, precisely)
 
@@ -54,11 +61,11 @@ before **rate-limit onset** — the point at which IG returns a `429`
 "please wait a few minutes" interstitial, redirects to `/accounts/login`, or shows
 a network-security block.
 
-R is **the one empirically-unmeasured number** in the creator-momentum lane. The
-monitoring policy (`orca_creator_monitoring_policy_architecture_v0.md`) is built
-around it: its read-budget bound is `reads/cycle ≤ R × cycle_days`, and R sizes
-**Tier-A breadth** (how many creators get full age-bucket density). Its cadence
-numbers are explicitly *illustrative and R-tunable* until R is measured.
+At design time, R was **the one empirically-unmeasured number** in the creator-momentum lane. The
+monitoring policy (`orca_creator_monitoring_policy_architecture_v0.md`) is built around it: its
+read-budget bound is `reads/cycle ≤ R × cycle_days`, and R sizes **Tier-A breadth** (how many
+creators get full age-bucket density). The first measured reading now says R is per-IP pace-bound,
+with the at-pace daily ceiling still open.
 
 ### The H5 residual this closes
 Per `ig_capture_findings_consolidated_v0.md`: single deep walks of one creator are
@@ -245,7 +252,8 @@ roster_demand (reads/day) ≈ M × [ f_A · d_A + f_B · d_B + f_C · d_C ]
 | 200 | ≈ 308 reads/day | 1 IP suffices if measured R ≳ 308/day |
 | 1,000 | ≈ 1,540 reads/day | 1 IP if R ≳ 1,540/day; else `ceil(1540 / R)` IPs |
 
-**(All figures illustrative — R is unmeasured; M and the tier mix are owner inputs.)**
+**(All figures illustrative — R was unmeasured at design time; M and the tier mix are owner inputs.
+Use `ig_at_scale_operating_envelope_v0.md` for the current first-measured operating envelope.)**
 
 ## The scaling-mitigation decision rule (the conditional fork)
 The probe's outcome maps to one of three actions — **not** a proxies yes/no:
@@ -331,7 +339,8 @@ Design / measurement-method only — not authorization for the run, a proxy buil
 any push/PR; not validation, readiness, buyer-proof, or commercial authorization.
 "Shipped" / "feasibility-proven" refer to the instruments' states recorded in
 `ig_capture_findings_consolidated_v0.md`; the reel path is not built. All
-extrapolation figures are illustrative (R is unmeasured) until the RUN lands.
+extrapolation figures in this method spec were illustrative until the RUN landed; use
+`ig_r_probe_results_v0.md` for current R evidence.
 
 **Purity boundary (Delta 3):** the probe **MEASURES READS only**. It must **never write
 typed `metric_observations`** (the IG typed-capture core, PR #158) during its runs — that

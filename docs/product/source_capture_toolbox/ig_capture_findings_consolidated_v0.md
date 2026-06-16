@@ -22,9 +22,9 @@ open_next:
   - docs/decisions/wind_caller_calibration_carveout_v0.md
 stale_if:
   - IG moves any signal behind auth, changes og:description shape, the profile-feed payload, or the grid doc_id.
-  - The H5 sustained-cadence-at-scale probe lands (closes the one cross-signal residual).
+  - A fuller H5/R run pins the at-pace ceiling, exact pace threshold, or throttle decay time.
   - The reel-view-count build ships (moves that signal from feasibility-proven to built).
-status: CONSOLIDATED — calls+stats SHIPPED logged-out; reel view-count FEASIBILITY-PROVEN logged-out; one residual (scale)
+status: CONSOLIDATED — calls+stats SHIPPED logged-out; reel view-count FEASIBILITY-PROVEN logged-out; scale first-measured, with at-pace ceiling still open
 ```
 
 # Instagram Capture Findings — Consolidated (v0)
@@ -91,12 +91,13 @@ auth path is needed anywhere.** Two independent attempts to justify a session pa
 
 ## Residuals / not-proven
 
-- **Sustained cadence at scale (H5)** — the one cross-signal residual. Single deep walks are clean
-  (no `429`), but repeated harvesting across many subject creators using ≤10 of OUR OWN capture
-  accounts (ceiling; ops start ≤5) **over time** is untested (IP-rate risk; logged-out has no
-  account to ban but none to spread load). Subject-creator roster is uncapped; the per-run account
-  limit is on our own capture/operating accounts, not on the number of creators tracked.
-  **Untested.**
+- **Sustained cadence at scale (H5)** — first measured, not fully characterized. The R-probe found
+  the constraint is per-IP **pace**, not ordinary session volume: ≥176 modeled requests at ≥~2s
+  spacing were clean, while a sub-2s burst tripped an IP-wide login redirect. Two recovery-gated
+  endurance attempts failed before measuring the at-pace daily ceiling, so exact threshold, daily
+  ceiling, and decay time remain open. Subject-creator roster is uncapped; the per-run account
+  limit is on our own capture/operating accounts, not on the number of creators tracked. See
+  `ig_r_probe_results_v0.md` for the evidence record and caveats.
 - **Reel view counts are cumulative-at-capture**, not a time series — momentum requires the
   repeated-over-time harvesting the carve-out authorizes.
 - **Image posts** carry no `video_view_count`; some values are `0`.
