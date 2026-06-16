@@ -1,6 +1,6 @@
 ---
 retrieval_header_version: 1
-artifact_role: PROPOSED conductor addendum v1 (requirements + routed-out change proposals; supersedes v0; pending cross-vendor re-review before ratification). Subordinate to the conductor operating model.
+artifact_role: RATIFIED conductor addendum v1 (requirements + routed-out change proposals; supersedes v0; owner-ratified 2026-06-16). Subordinate to the conductor operating model.
 scope: >
   Redraft of the conductor construction-integrity + probe addendum after the
   cross-vendor NEEDS_ARCHITECTURE_PASS review and the owner's architecture
@@ -24,14 +24,18 @@ stale_if:
 
 # Conductor Construction-Integrity + Probe Addendum v1 (requirements + routed-out)
 
-**Status: PROPOSED v1 — supersedes v0 (which carried NEEDS_ARCHITECTURE_PASS). Not
-ratified. The cross-vendor delegated re-review RETURNED (2026-06-12, codex-gpt-5,
-cross_vendor_discovery): prior AR-01/AR-02/AR-03 resolved at addendum level; one
-minor finding (ARV1-01, R4 field-name precision) accepted by the home model and
-patched below. Still PROPOSED — pending OWNER ratification (the addendum ratifies
-nothing itself). The addendum STATES requirements and ROUTES enactment to owner
-sources; it edits no gate, field, predicate, or protocol itself. Re-review report:
-`docs/review-outputs/adversarial-artifact-reviews/conductor_construction_integrity_probe_addendum_v1_adversarial_re_review_v0.md`.**
+**Status: RATIFIED v1 — owner-ratified 2026-06-16 (supersedes v0, which carried
+NEEDS_ARCHITECTURE_PASS). The cross-vendor delegated re-review RETURNED (2026-06-12,
+codex-gpt-5, cross_vendor_discovery): prior AR-01/AR-02/AR-03 resolved at addendum
+level; one minor finding (ARV1-01, R4 field-name precision) accepted by the home
+model and patched below. The addendum still ratifies nothing by itself — it STATES
+requirements and ROUTES enactment to owner sources; with owner ratification its
+requirements are adopted and that enactment is now carried by those sources (the
+finder-frame operative bar + the judgement case construction protocol; see the R5
+propagation map). Per this doc's own `stale_if`, the redraft is now historical and
+the conductor + owner files govern. It edits no gate, field, predicate, or protocol
+itself. Re-review report:
+`docs/review-outputs/adversarial-artifact-reviews/conductor_construction_integrity_probe_addendum_v1_adversarial_re_review_v0.md`. This ratification and the identity-masking adoption layered on it (finder-frame operative bar, 2026-06-16) are routed to adversarial artifact review before downstream lanes treat them as final (doctrine-change review gate).**
 
 Owner architecture decisions (2026-06-12) folded in: (1) drop active recall; (2)
 recognized arm = record-as-data/quarantine (not discard); (3) JSG-08 tell = hard

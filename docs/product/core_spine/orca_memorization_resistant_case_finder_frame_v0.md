@@ -56,12 +56,32 @@ screen at product-learning tier is:
   recognition capacity: it is caught after the fact by tell-auditing the required
   reasoning trace (JSG-08). A contestant who merely recognized the case but did
   not use the outcome is a legitimate arm, not a swap signal.
-- **Optional flavor-anonymization at packet construction** — genericize company
-  name / non-decision flavor only; **never the decision-driving numbers** (those stay
-  real so the outcome remains ground truth). It slightly pre-cleans raw signal — a
-  small product-faithfulness tax; use sparingly. Anonymization stays whitelist-only
-  (no enumerated forbidden-category list on any contestant-readable surface) and
-  must pass the R6 pre-freeze leakage gate.
+- **Default-on identity-masking with sealed crosswalk (owner-adopted 2026-06-16).**
+  At packet construction, mask the **target brand's identity only** — its name, its
+  own domain, its own theme/copy — to one neutral stand-in (with web search off no
+  search-defeating decoy is needed; pick a label checked not to be a real brand, to
+  avoid manufacturing a fresh false recognition). **Keep every third-party source
+  identity real** (retailers, publications, platforms, forums): those carry
+  provenance and do not reveal the target. **Never mask the decision-driving numbers
+  / dates / counts** (those stay real so the outcome remains ground truth), and
+  **never blur a source's provenance** — rename the source, keep its species
+  (first-party vs third-party). Supply any decision-relevant brand attribute
+  (positioning, reputation, awareness) as **in-packet evidence**, name-free, rather
+  than relying on contestant recall; a "signal" that cannot survive name-removal is
+  recognition-recall, not evidence — treat it as a contamination tell. Mask at
+  construction time (the constructor authors the packet name-free; raw captures stay
+  sealed and un-masked); the pseudonym↔real-case map is **operator-only and sealed**
+  (like the facilitator ledger). Masking stays whitelist-only (no enumerated
+  forbidden-category list on any contestant-readable surface), must pass the R6
+  pre-freeze leakage gate, and a plain real-name search of the finished contestant
+  packet must return nothing before freeze. **Route-out rule:** if the
+  decision-relevant attribute cannot be described faithfully without re-identifying
+  the brand, do not blind-backtest it — use a post-cutoff or prospective
+  seal-and-wait case instead.
+- **Masking is a supplement, not the spine.** Web-search-off + the JSG-08 tell-audit
+  remain the contamination spine; masking raises the bar on passive recognition and
+  makes the tell-audit's job cleaner, but it must **not** relax the tell-audit, and a
+  masked case is never assumed "blind" on the strength of the mask alone.
 - **Swap on a confirmed outcome-use tell** — recognition capacity alone is not a
   swap; when a swap is warranted, the `Uses` counter ledger + this finder generate
   lower-count, more-obscure replacements.

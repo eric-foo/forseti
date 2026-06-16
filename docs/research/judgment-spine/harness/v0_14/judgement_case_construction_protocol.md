@@ -85,7 +85,38 @@ participant_packet_must_not_include:
   - hidden_severe_error_labels
   - decoy_labels
   - post_decision_interpretation
+  - exam_or_test_framing
+  - recognition_self_report_request
+  - unmasked_target_brand_identity
 ```
+
+## Contestant-Surface Framing + Identity Masking (R5 + masking adoption, owner-ratified 2026-06-16)
+
+The participant packet is a **genuine decision brief, never a test**. On every
+contestant-readable surface (packet body, file name, run guide, paste wrapper):
+
+- Frame it as a real decision the role-holder faces ("you are the founder/CEO
+  deciding X"), not as an exam, quiz, or contest. Do not put the words
+  *exam* / *test* / *contestant-being-scored* on the contestant surface.
+- Do **not** request a recognition self-report or any active "did you recognize
+  this?" recall. Active recall is dropped (it manufactures recognition);
+  contamination is caught after the fact by the JSG-08 tell-audit on the reasoning
+  trace, not by asking (addendum v1 decision (1)).
+- Use the whitelist `information_boundary` ("decide using only the information in
+  this brief"); never an enumerated forbidden / spoiler list (an enumerated
+  forbidden list is itself a leak).
+- Apply **identity masking** per the finder-frame operative bar
+  (`docs/product/core_spine/orca_memorization_resistant_case_finder_frame_v0.md`):
+  mask the target brand's identity only; keep third-party source identities,
+  provenance, and all decision-driving numbers real; supply decision-relevant brand
+  attributes as in-packet evidence; seal the pseudonym↔real-case crosswalk
+  operator-side; route out cases that cannot be described without re-identifying.
+  That operative bar is the owning rule — this protocol points to it and does not
+  fork it.
+
+Any external-arm "exam" / paste packet is **derived from this participant-packet
+contract** — there is no separate ad-hoc wrapper that may reintroduce test framing,
+active recall, or an unmasked brand.
 
 ## Facilitator Ledger Required Fields
 

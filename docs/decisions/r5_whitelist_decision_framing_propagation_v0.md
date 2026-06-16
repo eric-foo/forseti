@@ -37,8 +37,16 @@ direction_change_propagation:
     entirely; contamination = outcome-USE, not recognition-capacity.
   trigger: product_doctrine
   related_triggers: [review_authority]
-  status: PROPOSED (conductor addendum v1 pending cross-vendor re-review; this
-    propagation enacts the doc-level controlling sources and routes the rest)
+  status: PARTIALLY ENACTED (conductor addendum v1 owner-RATIFIED 2026-06-16). The
+    finder-frame operative bar + the judgement case construction protocol are
+    enacted, and a default-on identity-masking-with-sealed-crosswalk rule (mask the
+    target brand only; keep third-party identities, provenance, and decision numbers
+    real; supply brand attributes as in-packet evidence; route out un-maskable
+    cases) is layered on R5 at those same surfaces. Remaining downstream surfaces
+    (claim-defense doctrine, packing interface, fixture drafts, the _scratch batch-2
+    exam instruments, and the case_models.py code field) stay pending. The
+    ratification + masking adoption are routed to adversarial artifact review before
+    downstream lanes treat them as final.
 ```
 
 ## Controlling sources (change #6 — the root that mandates the blacklist field)
@@ -56,7 +64,7 @@ direction_change_propagation:
 - **Fixture drafts (blacklist + test-framing):** canoo_walmart, daimler (frontmatter + body + conversion plan + extraction plan), unity — all `forbidden_information_notice` enumerations + "blind judgment packet" / "what is withheld" framing. **proposed-pending**.
 - **Active-recall surfaces (R3 drop):** `memorization_probe_protocol.md` (whole doc — **supersede**); daimler memorization-probe-request-prep + work-queue; canoo/unity/daimler freeze-blockers ("memorization probe passes" -> "isolation_result proven"); batch-1 ledger :104 + batch-2 routing :44-47 ("recognition check FIRST" -> isolation + tell-audit). **proposed-pending**.
 - **Claim defense doctrine** (`docs/product/product_lead/orca_claim_defense_doctrine_v0.md`): :177 "model knew the outcome" receipt (recognition -> outcome-USE/trace); :195 amendment (active recall "post-seal forensic" -> dropped entirely); :187-188 **stale citation to the blocked v0 addendum -> v1**. **proposed-pending (high; my doctrine, stale pointer)**.
-- **Finder frame** (`docs/product/core_spine/orca_memorization_resistant_case_finder_frame_v0.md`): :52-57 "swap on recognition" -> swap-on-outcome-USE; active recall dropped; :60-62 anonymization must stay whitelist + R6 gate. **proposed-pending**.
+- **Finder frame** (`docs/product/core_spine/orca_memorization_resistant_case_finder_frame_v0.md`): :52-57 "swap on recognition" -> swap-on-outcome-USE + active recall dropped (already on the operative bar); anonymization bullet **enacted 2026-06-16** — replaced "optional flavor-anonymization, use sparingly" with **default-on identity-masking with sealed crosswalk** (mask target brand only; keep third-party identities / provenance / decision-numbers real; attributes-as-evidence; route-out; masking is a supplement, tell-audit unchanged); stays whitelist + R6 gate. **enacted**.
 - **Packing interface v3**: :135 spoiler_inventory sealed-only reinforcement; :156 contestant-visible boundary whitelist note. **proposed-pending**.
 - **Conductor operating model** `stale_if`: add the v1 addendum at ratification. **at-ratification**.
 
