@@ -14,6 +14,8 @@ un-pinned -- never a fake "set" claim that could let a non-US capture count as a
 
 from __future__ import annotations
 
+import re
+
 from dataclasses import dataclass
 
 from source_capture.adapters.cloakbrowser_snapshot import (
@@ -43,6 +45,10 @@ _APPLY_SELECTORS = ("#GLUXZipUpdate", "span.a-button-inner > input[type='submit'
 
 # The US-storefront signal recon proved appears in the rendered DOM once a US ZIP is applied.
 _US_CURRENCY_DOM_SIGNAL = 'currencyOfPreference" value="USD"'
+# Secondary signal: a US price as DISPLAYED ($NN.NN). Tightened from a bare "$" in the DOM
+# (which matches page JS like jQuery's `$`) to a real price pattern; the negative lookbehind
+# excludes prefixed currencies (S$, C$, A$, HK$ ...) so a Singapore price never matches here.
+_US_PRICE_PATTERN = re.compile(r"(?<![A-Za-z$])\$\d[\d,]*\.\d{2}")
 
 
 @dataclass(frozen=True)
@@ -218,7 +224,8 @@ def confirm_us_storefront(rendered_dom: str) -> PinConfirmation:
     """Confirm the rendered DOM shows a US storefront after the delivery-location pin attempt.
 
     Confirmed iff a US signal is present: the recon-proven ``currencyOfPreference="USD"``, OR a
-    US ``$`` price with NO Singapore ``S$`` marker (origin-IP leak guard). Otherwise NOT
+    US ``$N.NN`` price PATTERN with NO Singapore ``S$`` marker (origin-IP leak guard; a bare
+    "$" from page JS does not qualify). Otherwise NOT
     confirmed, with a detail naming what was missing. This is the post-capture source of truth
     for the packet's pin_confirmed flag and the honesty of the note -- clicks alone never confirm.
     """
@@ -229,11 +236,11 @@ def confirm_us_storefront(rendered_dom: str) -> PinConfirmation:
             detail='currencyOfPreference="USD" observed in rendered DOM',
         )
     has_sg_price = "S$" in dom
-    has_us_price = "$" in dom
+    has_us_price = bool(_US_PRICE_PATTERN.search(dom))
     if has_us_price and not has_sg_price:
         return PinConfirmation(
             confirmed=True,
-            detail="US '$' price observed with no Singapore 'S$' marker in rendered DOM",
+            detail="US '$N.NN' price pattern observed with no Singapore 'S$' marker in rendered DOM",
         )
     if has_sg_price:
         return PinConfirmation(

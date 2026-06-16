@@ -145,6 +145,21 @@ def test_confirm_us_storefront_not_confirmed_when_no_signal() -> None:
     assert "no US storefront signal" in confirmation.detail
 
 
+def test_confirm_us_storefront_not_confirmed_on_bare_dollar_from_page_js() -> None:
+    """Tightening: a bare '$' from page JS (e.g. jQuery) with no US price PATTERN and no
+    currencyOfPreference signal must NOT confirm. The prior '$' in dom heuristic false-positived."""
+    dom = "<html><body><script>$(function(){var s='$';});</script>no price shown</body></html>"
+    confirmation = confirm_us_storefront(dom)
+    assert confirmation.confirmed is False
+
+
+def test_confirm_us_storefront_confirms_on_us_price_pattern_without_sgd() -> None:
+    """A real US price pattern ($N.NN) with no S$ marker confirms via the tightened fallback."""
+    dom = "<html><body><span class='a-offscreen'>$24.99</span></body></html>"
+    confirmation = confirm_us_storefront(dom)
+    assert confirmation.confirmed is True
+
+
 # ── The honesty keystone: note(...) ─────────────────────────────────────────────
 
 def test_plugin_note_confirmed_says_set_and_confirmed() -> None:
