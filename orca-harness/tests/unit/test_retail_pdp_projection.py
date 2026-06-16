@@ -486,7 +486,7 @@ def test_ulta_projection_preserves_ld_json_and_apollo_verbatim_and_binds_rendere
     assert variant.source_visible_fields["price"] == "12.00"
     assert variant.source_visible_fields["availability"] == "https://schema.org/InStock"
     assert "ulta_ld_json_apollo_sku_mismatch" not in projection.residuals
-    assert "ulta_requested_sku_differs_from_projected_sku" in projection.residuals
+    assert "ulta_requested_sku_rendered_sku_mismatch" in projection.residuals
 
     review = _single_row(projection, "retail_review_substrate")
     assert review.source_visible_fields["review_substrate_source"] == "ulta_ld_json_and_apollo_state"
@@ -543,7 +543,7 @@ def test_ulta_projection_does_not_residualize_matching_requested_sku() -> None:
     variant = _single_row(projection, "retail_variant_offer")
     assert variant.source_visible_fields["sku"] == "2645443"
     assert variant.source_visible_fields["apollo_requested_sku"] == "2645443"
-    assert "ulta_requested_sku_differs_from_projected_sku" not in projection.residuals
+    assert "ulta_requested_sku_rendered_sku_mismatch" not in projection.residuals
 
 
 def test_retail_projection_requires_raw_bytes_for_each_preserved_file() -> None:
@@ -576,6 +576,72 @@ def test_retail_projection_rejects_judgment_smuggling_field_names() -> None:
             raw_anchor=raw_anchor,
             source_visible_fields={"credibility_label": "high"},
         )
+
+
+def test_ulta_projection_residualizes_requested_sku_when_only_apollo_differs() -> None:
+    packet = _packet(
+        retailer="ulta",
+        locator="https://www.ulta.com/p/night-shift-overnight-lip-mask-pimprod2046225?sku=2620759",
+        series_id="ulta_nightshift_overnight_lipmask_us_v0",
+    )
+    apollo = json.dumps(
+        {
+            "ROOT_QUERY": {
+                'Page({"moduleParams":{"sku":"2620759"},"url":{"path":"/p/night-shift-overnight-lip-mask-pimprod2046225"}})': {
+                    "content": {
+                        "modules": [
+                            {
+                                "skuId": "2645443",
+                                "productId": "pimprod2046225",
+                                "productName": "Night Shift Overnight Lip Mask",
+                                "listPrice": "$12.00",
+                            }
+                        ]
+                    }
+                }
+            }
+        },
+        separators=(",", ":"),
+    )
+    html = f"<script>window.__APOLLO_STATE__ = {apollo}</script>"
+    visible_text = "Night Shift Overnight Lip Mask\n$12.00"
+
+    projection = _projection(packet=packet, html=html, visible_text=visible_text)
+
+    variant = _single_row(projection, "retail_variant_offer")
+    assert variant.source_visible_fields["sku"] == "2645443"
+    assert variant.source_visible_fields["apollo_requested_sku"] == "2620759"
+    assert "ulta_requested_sku_rendered_sku_mismatch" in projection.residuals
+
+
+def test_ulta_projection_residualizes_variant_pin_sku_when_apollo_request_is_absent() -> None:
+    packet = _packet(
+        retailer="ulta",
+        locator="https://www.ulta.com/p/night-shift-overnight-lip-mask-pimprod2046225?sku=2620759",
+        series_id="ulta_nightshift_overnight_lipmask_us_v0",
+        variant_pin="sku=2620759",
+    )
+    ld_json = json.dumps(
+        {
+            "@context": "https://schema.org/",
+            "@type": "Product",
+            "sku": "2645443",
+            "name": "Night Shift Overnight Lip Mask",
+            "offers": {
+                "@type": "Offer",
+                "price": "12.00",
+                "availability": "https://schema.org/InStock",
+            },
+        }
+    )
+    html = f'<script type="application/ld+json">{ld_json}</script>'
+
+    projection = _projection(packet=packet, html=html, visible_text="Night Shift Overnight Lip Mask\n$12.00")
+
+    variant = _single_row(projection, "retail_variant_offer")
+    assert variant.source_visible_fields["sku"] == "2645443"
+    assert "apollo_requested_sku" not in variant.source_visible_fields
+    assert "ulta_requested_sku_rendered_sku_mismatch" in projection.residuals
 
 
 def test_amazon_price_unanchored_visible_text_fallback_is_residualized() -> None:

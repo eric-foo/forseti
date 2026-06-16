@@ -527,14 +527,14 @@ def _variant_offer_fields(
             key if key.startswith("apollo_") else f"apollo_{key}": value for key, value in apollo_fields.items()
         }
         merged = {**structured_fields, **apollo_prefixed}
-        residuals.extend(_ulta_requested_sku_residuals(fields=merged, source_slice=source_slice))
+        _residualize_ulta_requested_sku_mismatch(merged, residuals, source_slice=source_slice)
         return merged, structured_anchor or apollo_anchor or fallback_anchor, residuals
     if structured_fields:
         if retailer == "ulta":
-            residuals.extend(_ulta_requested_sku_residuals(fields=structured_fields, source_slice=source_slice))
+            _residualize_ulta_requested_sku_mismatch(structured_fields, residuals, source_slice=source_slice)
         return structured_fields, structured_anchor or fallback_anchor, residuals
     if apollo_fields:
-        residuals.extend(_ulta_requested_sku_residuals(fields=apollo_fields, source_slice=source_slice))
+        _residualize_ulta_requested_sku_mismatch(apollo_fields, residuals, source_slice=source_slice)
         return apollo_fields, apollo_anchor or fallback_anchor, residuals
     return {}, fallback_anchor, residuals
 
@@ -713,20 +713,6 @@ def _structured_price_residuals(
         and structured_fields.get("price_isolation") == "structured_json_offer"
     ):
         return ["sephora_price_from_structured_json_without_target_dom_price"]
-    return []
-
-
-def _ulta_requested_sku_residuals(
-    *,
-    fields: Mapping[str, object],
-    source_slice: SourceCaptureSlice,
-) -> list[str]:
-    projected_sku = _string_or_none(fields.get("sku"))
-    requested_sku = _string_or_none(fields.get("apollo_requested_sku")) or _sku_from_variant_pin(
-        _fact_value(source_slice.variant_pin)
-    )
-    if projected_sku and requested_sku and projected_sku != requested_sku:
-        return ["ulta_requested_sku_differs_from_projected_sku"]
     return []
 
 
@@ -1123,6 +1109,21 @@ def _equivalent_offer_value(key: str, left: str, right: str) -> bool:
     if key == "availability":
         return left.rstrip("/").endswith(right.rstrip("/")) or right.rstrip("/").endswith(left.rstrip("/"))
     return False
+
+
+def _residualize_ulta_requested_sku_mismatch(
+    fields: Mapping[str, Any | None],
+    residuals: list[str],
+    *,
+    source_slice: SourceCaptureSlice | None = None,
+) -> None:
+    requested_sku = _string_or_none(fields.get("apollo_requested_sku"))
+    if requested_sku is None and source_slice is not None:
+        requested_sku = _sku_from_variant_pin(_fact_value(source_slice.variant_pin))
+    rendered_sku = _string_or_none(fields.get("sku")) or _string_or_none(fields.get("apollo_sku"))
+    residual = "ulta_requested_sku_rendered_sku_mismatch"
+    if requested_sku and rendered_sku and requested_sku != rendered_sku and residual not in residuals:
+        residuals.append(residual)
 
 
 def _row_token(value: str) -> str:

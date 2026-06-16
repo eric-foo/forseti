@@ -83,4 +83,29 @@ Adversarial artifact review of the ratification + masking adoption (PR #200) ret
 - **AR-02** (route-out representativeness) — **DISSOLVED by owner correction 2026-06-16** (below): since recognizability is no longer a route-out trigger, merely-recognizable cases are kept and the masked-eligible set stays representative. No lane-downgrade policy needed.
 - **Owner doctrinal correction (2026-06-16, supersedes part of AR-01):** recognizability of the brand is **not** grounds to route a case out (recognition ≠ contamination — the spine). The masking job is to defeat *outcome-location*: anonymize decision-moment locators (datable events, named collaborations, distinctive launch episodes) so brand-recognition cannot become outcome-recall, keeping the bare cutoff + decision numbers real. Route out only the narrow famous-episode case where recognition reliably surfaces the sealed outcome even after locator-scrubbing. Tell-audit remains the backstop. Enacted in the finder-frame masking rule.
 - Reviewer ratification-scope + pointer/fork residuals (unverifiable no-repo) — home-model re-checked with repo access: **no over-ratification** (this map states partial enactment and names pending surfaces); **two now-due dangling references** found — the operating-model `stale_if` (above) and `prospective_decision_loop_target_architecture_v0.md:566` ("applied here as by-hand discipline per its PROPOSED status" — now ratified). Both pending follow-up in their owning lanes, not patched from this lane (scope discipline).
+
+## Reconciliation against `main` (2026-06-17)
+
+The rows above are the original 2026-06-12 fan-out record and are **retained as-is**.
+Re-reading the named surfaces against `origin/main` (HEAD `ede2dca7`) shows several
+are now **enacted on `main`** — the dispositions above understate progress. This note
+reconciles status (observed `main` state only; not validation/readiness); it does not
+rewrite the historical rows.
+
+**Verified ENACTED on `main` (re-disposition → `enacted`; each confirmed by direct read):**
+- Controlling source — decide_vs_confirm template (`:91`): `information_boundary` field + whitelist note present.
+- Controlling source — pydantic_schema_reference (`:47` field; `:131` `spoiler_inventory` "sealed facilitator-only; never enumerated in the ledger body or any participant packet" comment): present.
+- Claim defense doctrine: outcome-USE-not-recognition receipt, active-recall-dropped probe row, and the citation to addendum **v1** (`:186-188`) are all present. **Residual:** the parenthetical "v1 pending ratification after cross-vendor re-review" is now stale — addendum v1 was owner-**RATIFIED 2026-06-16**; a one-line accuracy follow-up belongs to that doc's owning lane, not patched here.
+- Active-recall surface — memorization-probe protocol: correct path is `docs/research/judgment-spine/harness/v0_14/memorization_probe_protocol.md` (the row above dropped the `harness/v0_14/` segment); on `main` it carries a **SUPERSEDED (2026-06-12)** banner + active-recall dropped + JSG-05 recast as a non-inducing pre-judgment isolation screen.
+- Active-recall surface — batch-2 routing: the batch-2 ledger records that "name the case" recall is dropped.
+- Packing interface v3 (`:135` sealed-only `spoiler_inventory`; contestant-visible boundary whitelist-only note): both present on `main`. (The AR-04 *executable* sealed-crosswalk interface remains the separate pending construction item — see AR-04 above.)
+
+**Still GENUINELY pending — unchanged; none are this doc-lane's to enact:**
+- `orca-harness/schemas/case_models.py` (`:42` still `forbidden_information_notice: str`): rename + whitelist validator + `spoiler_inventory`/LeakageAudit sealing. **ROUTED → bounded code task; needs owner code authorization.** This is the gating bottleneck for blind contestant use (the docs already reference `information_boundary` ahead of the code field).
+- Live dev packets (Inoreader / FeedHaven / `tr_casetext`) — carved to that same code task.
+- Fixture drafts (canoo_walmart / daimler / unity) — owned by the fixture-admission lanes; the daimler draft (`docs/research/judgment-spine/cases/daimler-carve-out/participant_packet_v0.md`) was verified still carrying "blind judgment packet" framing + `forbidden_information_notice`; canoo/unity per the fan-out record, not re-verified in this pass.
+- batch-1 ledger (`:104` recognition-check-precedes-judgment): freeze-hash-protected — packet-surface fixes only, not a ledger rewrite.
+- Conductor operating-model `stale_if` add-v1 + `prospective_decision_loop_target_architecture_v0.md:566` — dangling-ref follow-ups in their owning lanes (per the 2026-06-16 residuals note above).
+
+**PR lineage:** the original masking-doctrine PR #200 was **closed because PR #206 superseded it** — a clean mainline port that **merged to `main` 2026-06-16** (commit `151a6d33`). Re-PRing #200's doctrine is therefore moot; the doctrine is landed (partial enactment as reconciled here).
 ```

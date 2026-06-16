@@ -159,7 +159,7 @@ Known residual classes include:
 | `sephora_review_count_from_unanchored_fallback` | Sephora review count came only from an unanchored visible-text review pattern, not the target `Ratings & Reviews (N)` widget. |
 | `sephora_ld_json_review_count_differs_from_target_dom` | Sephora structured JSON review count differs from the target DOM review widget. |
 | `ulta_ld_json_apollo_<field>_mismatch` | Ulta JSON-LD and Apollo state disagree for a variant field such as SKU, product ID, price, or availability. |
-| `ulta_requested_sku_differs_from_projected_sku` | Ulta requested SKU context differs from the projected variant SKU, even when JSON-LD and Apollo agree with each other. |
+| `ulta_requested_sku_rendered_sku_mismatch` | Ulta requested SKU context differs from the rendered/projected variant SKU, even when JSON-LD and Apollo agree with each other. |
 | `ulta_ld_json_apollo_review_count_mismatch` / `ulta_ld_json_apollo_rating_mismatch` | Ulta JSON-LD and Apollo state disagree for review substrate values. |
 | `<structured_kind>_<index>_malformed_json` | Embedded structured JSON was preserved but could not be parsed. |
 

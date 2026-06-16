@@ -55,6 +55,7 @@ stale_if:
 | Check Capture obligations / forbidden outputs | `docs/product/data_capture_spine/core_spine_v0_data_capture_spine_obligation_contract_v0.md` |
 | Check raw-to-Judgment projection view doctrine | `docs/product/core_spine_v0_projection_doctrine_v0.md` |
 | Check Retail/PDP projection contract for Amazon, Sephora, and Ulta | `docs/product/source_capture_toolbox/retail_pdp_projection_contract_v0.md` (target DOM price/SKU binding posture, residual vocabulary, and no-ECR/Cleaning/Judgment boundary) |
+| Check current Retail/PDP projection playbook for Amazon, Sephora, and Ulta | `docs/product/source_capture_toolbox/retail_pdp_projection_playbook_v0.md` |
 | Project an existing Retail/PDP packet directory into local projection JSON | `orca-harness/runners/run_retail_pdp_projection.py`, `orca-harness/source_capture/retail_pdp_projection.py`, and `orca-harness/tests/unit/test_retail_pdp_projection.py` |
 | Capture one Retail/PDP CloakBrowser packet and opt into local projection sidecar | `orca-harness/runners/run_source_capture_cloakbrowser_packet.py --source-family retail_pdp --retail-pdp-projection-output <path>` and `orca-harness/tests/unit/test_source_capture_cloakbrowser_snapshot.py` |
 | Run or hand off the three-retailer Retail/PDP sidecar smoke | `docs/product/source_capture_toolbox/retail_pdp_sidecar_operator_playbook_v0.md` (canonical Amazon/Sephora/Ulta URLs, flags, output inspection, failure taxonomy, and code-enforceable follow-up flags) |
@@ -321,6 +322,14 @@ stale_if:
 - summary: Product-facing component index, build order, current gaps, non-claims,
   and source-quality entrypoints.
 - owner: `docs/product/source_capture_toolbox/README.md`
+
+### Retail/PDP Projection Playbook
+
+- summary: Retail/PDP raw-packet-to-projection contract for Amazon, Sephora, and
+  Ulta: raw inputs, allowed projected rows, binding map requirements, residual
+  meanings, retailer-specific target-binding limits, and the playbook-first
+  boundary before auto-project wiring or ECR sequencing.
+- owner: `docs/product/source_capture_toolbox/retail_pdp_projection_playbook_v0.md`
 
 ### Anti-block capture ladder
 
