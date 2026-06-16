@@ -20,7 +20,7 @@ open_next:
   - docs/product/core_spine/core_spine_v0_information_production_foundation_v0.md
   - docs/workflows/ecr_spine_submap_v0.md
 stale_if:
-  - The owner settles OD-1 (pipeline ordering) or OD-7 (object naming); fold the decision in.
+  - The owner changes the 2026-06-16 OD-1/2/3/4/5/6/7 directions recorded here.
   - The owner amends or supersedes the vendor-CA kept candidate.
   - The boundary note changes the Mechanical Source Projection / Data Capture Projection Packet doctrine.
 ```
@@ -29,6 +29,7 @@ stale_if:
 - Artifact type: Product architecture draft (view contract)
 - Vendor-CA closeout: `docs/review-outputs/adversarial-artifact-reviews/projection_doctrine_v0_vendor_ca_closeout_v0.md`
 - Implementation authorized: no by this doctrine artifact. The bounded Reddit projection helper in the same lane was separately owner-authorized on 2026-06-16 and does not generalize schema/object authority.
+- Owner OD direction installed: 2026-06-16; see section 11.
 - Feature planning authorized: no
 - Proof run / capture execution authorized: no
 
@@ -62,9 +63,9 @@ Projection Packet** (`core_spine_v0_data_and_cleaning_spine_boundary_v0.md`). Th
 *Projected Unit* is a **working name (see OD-7) for the mechanical row view +
 projection receipt of the existing Data Capture Projection Packet — not a new object
 and not a new pipeline layer.** Its §2 pipeline position and §4 field list are a
-**candidate shape, not a ratified schema**: both are gated on owner adjudication of
-OD-1 (ordering) and OD-7 (naming) and must not be implemented as a standing object
-until those are settled.
+**candidate shape, not a ratified schema**: OD-1 installs the Cleaning-facing
+input-handle direction, and OD-7 keeps "Projected Unit" as a working label. The
+field list still must not be implemented as a standing persisted object.
 
 **Non-claims (load-bearing).**
 - **Not a new spine layer.** Promoting Mechanical Source Projection to a standalone
@@ -75,9 +76,9 @@ until those are settled.
 - **Not ECR / Cleaning / Judgment design, not a schema, not runtime/crawler design,
   not capture execution.**
 - **Not validation, readiness, buyer proof, Judgment quality, or platform coverage.**
-- **Does not amend accepted doctrine.** Where it would change the boundary note or
-  obligation contract (notably the §2 ordering), it routes to owner adjudication
-  (OD-1) and a Direction Change Propagation receipt — neither performed by this draft.
+- **Does not amend accepted doctrine.** Where implementation would widen beyond
+  the installed OD-1 input-handle direction or the boundary note, it routes to a
+  separate owner decision and Direction Change Propagation receipt.
 
 ## 2. Pipeline: artifacts and views over one raw packet
 
@@ -95,7 +96,7 @@ Decision Frame  (required upstream; no free-floating evidence)
         |       carry-or-residualize, never author.
         \-> [3] PROJECTED UNIT          owner: source lane (Data-Capture-owned projection helper)
                 the Data Capture Projection Packet's row view (WORKING NAME; not a new
-                object/layer; candidate shape, OD-1/OD-7-gated): rows + loss ledger +
+                object/layer; candidate re-derived view, working label only): rows + loss ledger +
                 raw anchors + projection receipt. Removes source-envelope noise ONLY.
   -> [4] CLEANING TRANSFORM LEDGER      owner: Cleaning Spine
         non-destructive ledger: normalization/translation/summarization, dedupe MECHANICS,
@@ -107,12 +108,12 @@ Decision Frame  (required upstream; no free-floating evidence)
         Judgment re-opens [1] when a trigger fires (§8). The view is advisory; raw is authority.
 ```
 
-**Ordering question (OD-1, owner-open):** the source brief sequences `ECR Receipt ->
-Projected Unit`; the accepted boundary note has Data Capture produce the projection
-packet and ECR receipt both raw and projection. This draft models [2] and [3] as
-**keyed siblings over the same raw packet** (both derived, both re-derivable, neither
-owning the other). Whether the Projected Unit formally derives *from* the ECR receipt
-or *in parallel* with it is **OD-1** in §11 — this draft does not presuppose the answer.
+**Ordering direction (OD-1, owner direction 2026-06-16):** Cleaning should not
+force every transform entry to repeat raw + projection + ECR references. Treat
+the Data Capture Projection Packet row view and ECR receipt/read as keyed
+siblings over raw for Cleaning purposes, then let Cleaning consume a single
+input handle keyed to raw that may attach projection and ECR references when
+present. Projection does not own ECR; ECR does not own projection.
 
 ## 3. Projection Doctrine Rules
 
@@ -154,8 +155,9 @@ or *in parallel* with it is **OD-1** in §11 — this draft does not presuppose 
 ## 4. Candidate Projected-Unit Fields
 
 > **Candidate shape, NOT a ratified schema.** These are the projection receipt's
-> fields, gated on OD-1/OD-7. They must not be implemented as a standing object until
-> the owner settles ordering and naming.
+> fields for a re-derived view. They must not be implemented as a standing
+> persisted object; "Projected Unit" remains a working label for the existing Data
+> Capture Projection Packet row view, not durable ontology.
 
 | Field | Why required | Obligating source |
 | --- | --- | --- |
@@ -356,23 +358,40 @@ breaking a new rule — and "all-platform coverage as a prerequisite" is an expl
 stressor (one cheap Read each) before locking the bench. Specimens 7 and 8 still need a
 source selected from existing captures.
 
-## 11. Open Owner Decisions
+## 11. Owner Directions Installed
 
-- **OD-1 — Pipeline ordering.** Does the Projected Unit derive *from* the ECR Receipt, or
-  in *parallel* with it as a keyed sibling over raw? Touches accepted boundary doctrine ->
-  Doctrine Change Propagation Contract if it changes the boundary note.
-- **OD-2 — Standing object vs re-derived view.** Persisted artifact or re-derived-on-read view (the ECR `re-derive-not-migrate` precedent)?
-- **OD-3 — Loss-ledger enforcement.** Schema-enforced at write-time (like `cutoff_posture` R2) or advisory?
-- **OD-4 — Where dedupe/clustering lives.** Cleaning keeps dedupe *mechanics*, or is even mechanical clustering deferred until Judgment has inspected independence?
-- **OD-5 — Projection vocabulary closure.** Which projected-unit fields get closed allowed-value sets vs. free-form, and who ratifies them.
-- **OD-6 — Family-rule promotion bar.** Confirm the >=2-family promotion bar applies to projection-family rules.
-- **OD-7 — Naming.** Is "Projected Unit" the durable name, or a working name distinct from the existing "Data Capture Projection Packet"? (Avoid two names for one object.)
+Owner direction recorded 2026-06-16:
+
+- **OD-1 — Pipeline ordering.** For Cleaning architecture, use one Cleaning input
+  handle keyed to raw, with optional projection and ECR references attached when
+  present. Projection and ECR are keyed siblings over raw for this purpose;
+  neither formally owns the other, and Cleaning transform rows must not carry
+  brittle triplicate references.
+- **OD-2 — Standing object vs re-derived view.** Projection is re-derived-on-read,
+  following the ECR `re-derive-not-migrate` precedent. Persistence requires a
+  separate bounded reason.
+- **OD-3 — Loss-ledger enforcement.** Loss-ledger obligations are code/schema
+  enforced at the producer/write boundary, not merely advisory.
+- **OD-4 — Where dedupe/clustering lives.** Cleaning core v0 may record exact
+  identity dedupe mechanics only. Near-match dedupe, copied-language grouping,
+  and clustering remain candidate/deferred mechanics unless separately owner
+  authorized; all independence, credibility, amplification, exclusion, Signal
+  Integrity, Decision Strength, or Action Ceiling effects stay Judgment-owned.
+- **OD-5 — Projection vocabulary closure.** Behavior-bearing projection fields
+  get closed allowed-value sets before code depends on them. Free-form fields are
+  for notes only.
+- **OD-6 — Family-rule promotion bar.** The >=2-source-family promotion bar
+  applies to projection-family rules unless the owner explicitly accepts an
+  exception.
+- **OD-7 — Naming.** "Projected Unit" is a working label for the existing Data
+  Capture Projection Packet row view. It is not durable ontology and should not
+  create a second canonical object name.
 
 ## 12. Next Authorized Step (smallest complete)
 
-1. **Owner adjudication of OD-1 / OD-4** (and OD-7) — both touch accepted doctrine and
-   gate the object model; the reframe above stops the draft from presupposing them but
-   does not resolve them.
+1. **Carry owner OD direction into the Cleaning foundation.** Use the single
+   input-handle pattern for OD-1, exact-identity-only core dedupe for OD-4, and
+   "Projected Unit" only as a working label for OD-7.
 2. **Specimen-bench confirmation** — read-only pass over the §10 backbone files
    (present on `main`) to confirm each exhibits its stressor; select sources for
    specimens 7 and 8 from existing captures. No new external capture.
@@ -398,7 +417,7 @@ owner confirmation still outside this artifact.**
 
 | Finding | Severity | Disposition | Where folded in |
 | --- | --- | --- | --- |
-| F1 — Projected Unit behaves like a new object/layer (numbered slot + field schema) before OD-1/OD-7 | critical | Accepted; reframed as the non-canonical view of the existing Data Capture Projection Packet; §2/§4 marked candidate + OD-1/OD-7-gated (not a separate full architecture pass) | §1, §2 node [3], §4 header |
+| F1 — Projected Unit behaves like a new object/layer (numbered slot + field schema) before OD-1/OD-7 | critical | Accepted; reframed as the non-canonical view of the existing Data Capture Projection Packet; §2/§4 now carry the installed OD-1 input-handle direction and OD-7 working-label limit, without promoting a standing object | §1, §2 node [3], §4 header |
 | F2 — "safe to collapse" overclaims; frame-blind | major | Accepted; column reframed to frame-conditional + logged + raw-anchored; risky examples become carry-unless-non-load-bearing | §9 column |
 | F3 — interpretation smuggled into projection (`anomaly`, `call record`) | major | Accepted; projection carries raw counts/labels/timestamps/captions/baseline only; interpretive labels residualized | §9 Social/Video + closing note; §3 Rule 7/10 |
 | F4 — `layer-owned inclusion-state reason` too loose | major | Accepted; narrowed to mechanical status tokens; discount/exclude/strength reasons are Judgment-authored only | §7 |
