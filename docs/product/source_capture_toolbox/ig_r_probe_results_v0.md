@@ -9,7 +9,8 @@ scope: >
   ig_sustained_cadence_r_probe_design_v0.md. Headline: the binding constraint is per-IP
   PACE, not session volume; a sub-2s burst trips an IP-wide soft login-wall; proper pacing
   (>=~2s) sustained 176 modeled requests with no wall. Reports for two consumers and gives
-  the proxies-vs-sessions-vs-neither call.
+  the proxies-vs-sessions-vs-neither call, plus two recovery-gated endurance attempts that
+  did not measure the at-pace ceiling.
 use_when:
   - Reading the measured R result before sizing monitoring cadences or the projection-store engine.
   - Checking whether proxies / IP-rotation / sessions are warranted (the conditional fork).
@@ -22,26 +23,28 @@ open_next:
 stale_if:
   - A fuller run pins the pace threshold, the at-pace daily-volume ceiling, or the throttle decay time.
   - The burst (6h/12h) profile is actually run (this result infers it is safe; not yet measured).
-branch_or_commit: measured against origin/main @ f266f83b base; instrument = run_source_capture_ig_calls_packet.py (logged-out). Raw: orca-harness/_test_runs/r_probe/{ramp,ramp2,disambig}/ (gitignored).
+branch_or_commit: measured against origin/main @ f266f83b base; instrument = run_source_capture_ig_calls_packet.py (logged-out). Raw: orca-harness/_test_runs/r_probe/{ramp,ramp2,disambig,endurance,endurance2}/ (gitignored; endurance2 has log only, no summary file).
 ```
 
 ## Status
-`RESULTS — FIRST MEASURED READING (n=1 onset + 3-read disambiguation).` Directional and
-well-supported, but **not** a fully-characterized R. Logged-out, attended, bounded; the IP was
-throttled at the end and live reads were stopped to let it recover. Not validation/readiness.
+`RESULTS — FIRST MEASURED READING (n=1 onset + 3-read disambiguation; two failed recovery-gated
+endurance attempts).` Directional and well-supported, but **not** a fully-characterized R.
+Logged-out, attended, bounded; the IP was throttled at the end, and later endurance attempts did
+not clear the warm-up gate. Not validation/readiness.
 
-## What ran (two sessions + a disambiguation)
+## What ran (two sessions + disambiguation + recovery attempts)
 | Session | Pace | Reads | Onset |
 |---|---|---|---|
 | **Run 1** (harvested after a crash) | R1+R2 (8–45s → 2–8s gaps) | 143 reads / **~176 modeled IG-requests**, 5 creators, 37 min | **NONE** |
 | **Run 2** (R2→R3) | R2 then R3 (0.5–2s gaps) | 6 invocations / ~84 modeled | **ONSET** `redirected_to_login` on the **first R3 read** (`kayla.ryan1`) |
 | **Disambiguation** (gentle, post-onset) | 6–12s gaps, 1 item | `kayla.ryan1`→**recovered (rc 0)**; `theglownarrative`→**blocked**; `milkydew_`→**blocked** | IP-wide, soft |
 | **Endurance attempt** (later; recovery-gated, 8 creators) | warm-up probes every ~150s | 5 recovery attempts over ~12.7 min — never both-clean (1 lone slip-through @ ~5 min) | **ABORTED `ip_not_recovered`** — at-pace ceiling NOT measured; throttle still active |
+| **Endurance retry 2** (later; recovery-gated) | warm-up probes roughly every 10–11 min | 3 recovery attempts over ~21.6 min — never both-clean (attempt 1: 1 clean + 1 blocked; attempts 2–3: both blocked) | **NO CEILING MEASURED** — no `endurance_summary.json` was written; only `endurance_log.jsonl` exists |
 
 ## Finding — the limit is PACE, not volume
 - **Run 1 did 176 modeled requests at ≥2s pace with zero walls; run 2 walled the instant it went sub-2s.** Volume isn't the binding constraint (run 1 = 2× run 2's volume, gentler, clean). **Pace is.**
 - The wall is **IP-wide** (two distinct creators blocked in the disambiguation), **soft** (`kayla` recovered one read → not a ban), and presents as **`redirected_to_login`** (IG's logged-out throttle mechanism — *not* a `429`).
-- Once a sub-2s burst trips it, the throttle is **sticky**: it persisted **≥12 min** under gentle periodic probing (every ~150s), with only occasional single-read slip-throughs — the probing itself likely sustained it. Full recovery needs a longer **fully-quiet** cooldown (>12 min, unmeasured). *(Corrects an earlier "decays in minutes" reading — the endurance attempt's recovery gate never cleared.)*
+- Once a sub-2s burst trips it, the throttle is **sticky**: it persisted **≥12 min** under gentle periodic probing (every ~150s), with only occasional single-read slip-throughs; a later retry still did not produce two clean warm-up reads over ~21.6 min. The probing itself may sustain the state. Full recovery needs a longer **fully-quiet** cooldown (>21 min, unmeasured). *(Corrects an earlier "decays in minutes" reading — the endurance attempts' recovery gates never cleared.)*
 - Per-creator read cost ≈ **16 modeled IG-requests** (1 profile≈4 + 12 items); call-yield ≈ **~89%** (image-carousel posts whose `og:description` lacks engagement miss the signal — not a block).
 
 ## Report — two consumers (per design Delta 2)
@@ -78,11 +81,12 @@ sessions are warranted; operate at ~2.5–4s spacing in bounded attended session
 
 ## Caveats / residuals (why this is directional, n=1)
 - **Pace threshold not pinned** — we know ≥2s clean and sub-2s trips it; the exact boundary (1s? burst-shape?) is unmeasured.
-- **At-pace daily-volume ceiling not pinned** — clean to ≥176/session; the per-day ceiling at proper pace (and the throttle's decay time) are unmeasured. If all-in-vertical `M` is very large, re-check volume at proper pace.
+- **At-pace daily-volume ceiling not pinned** — clean to ≥176/session; two recovery-gated endurance attempts did not reach the at-pace phase. The per-day ceiling at proper pace and the throttle's decay time are still unmeasured. If all-in-vertical `M` is very large, re-check volume at proper pace after a long fully-quiet cooldown.
 - **Onset is a single event** (`redirected_to_login`, not a `429`); the disambiguation supports IP-wide + soft, but a repeat run would harden the reading.
 - **Burst profile inferred, not run.**
 
 ## Non-claims
 First measured reading only — not validation, readiness, buyer-proof, or commercial authorization.
-Figures are from logged-out attended probe runs (raw in gitignored `_test_runs/`), n=1 onset.
+Figures are from logged-out attended probe runs (raw in gitignored `_test_runs/`), n=1 onset; the
+second endurance retry is log-only because the expected summary file is absent.
 "Safe"/"clean" describe observed probe behavior at the tested pace/volume, not a guarantee.
