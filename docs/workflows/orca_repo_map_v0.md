@@ -24,7 +24,7 @@ stale_if:
 - Status: ACTIVE_RETRIEVAL_MAP (retrieval-only; source authority remains in `.agents/workflow-overlay/source-of-truth.md`)
 - Artifact type: Workflow navigation artifact
 - Scope: Repo navigation and source-pack selection
-- Refreshed: 2026-06-17 (added the local Retail/PDP projection runner route, the opt-in Retail/PDP CloakBrowser projection sidecar under `orca-harness/runners/`, and the Retail/PDP sidecar operator playbook for the Amazon/Sephora/Ulta smoke; clarified the corresponding source package route for retailer binding/residual logic). Prior: 2026-06-16 added Codex-compatible local Git-hook adapters under `.githooks/`, the local hook installer under `.github/scripts/`, and the promoted auto-merge/main-red-alert workflows under `.github/workflows/`; 2026-06-11 repo-structure binding v0 registered machine map `repo-structure.yaml` + EP-04 placement checker and quarantined root strays to `docs/_inbox/`.
+- Refreshed: 2026-06-17 (added the neutral ChatGPT Pro beauty advisory intake route; added the local Retail/PDP projection runner route, the opt-in Retail/PDP CloakBrowser projection sidecar under `orca-harness/runners/`, and the Retail/PDP sidecar operator playbook for the Amazon/Sephora/Ulta smoke; clarified the corresponding source package route for retailer binding/residual logic). Prior: 2026-06-16 added Codex-compatible local Git-hook adapters under `.githooks/`, the local hook installer under `.github/scripts/`, and the promoted auto-merge/main-red-alert workflows under `.github/workflows/`; 2026-06-11 repo-structure binding v0 registered machine map `repo-structure.yaml` + EP-04 placement checker and quarantined root strays to `docs/_inbox/`.
 - Implementation authorized: no
 
 ## How To Use This Map
@@ -578,6 +578,7 @@ pending hygiene triage.
 | Path | Use for |
 | --- | --- |
 | `docs/research/consulting-judgment-corpus/` | Consulting-judgment corpus, prompts, lane outputs, synthesis, candidate screens, backtestability, and reject patterns. |
+| `docs/research/orca_discovery_candidate_scan_beauty_neutral_chatgptpro_v0.md` | Clean advisory intake of the neutral ChatGPT Pro beauty/personal-care niche answer; use before any no-contact verification scan or owner niche-selection decision. |
 | `docs/research/judgment-spine/` | Judgment Spine corpus (parent contract, manifest, case tracks, harness, case-learning). **Open the consolidation map first** — see the Judgment Spine section above; it routes to every owner across both trees instead of enumerating them here. |
 | `docs/research/daimler_advisory_001_source_registry_v0.md` | Manual Daimler source-unit registry separating participant-safe candidates, date ambiguity, missing evidence, and reveal-only material before any packet rebuild or judgment-quality claim. |
 | `docs/research/packing-phase/` | Boundary note for decision-packet construction between cleaned evidence and Judgment Harness inputs. |
