@@ -61,7 +61,12 @@ from source_capture.ig_calls_parse import (
     parse_ig_profile_og,
 )
 from source_capture.models import CoverageWindow, MetricObservation, MetricPosture
-from source_capture.proxy_profiles import ProxyCategory, ProxyProfile, load_proxy_profile
+from source_capture.proxy_profiles import (
+    ProxyCategory,
+    ProxyProfile,
+    load_proxy_profile,
+    load_proxy_profile_by_label,
+)
 
 IG_CALLS_NON_CLAIMS = [
     "not content sufficiency proof",
@@ -742,13 +747,34 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--capture-retries", type=int, default=0,
                         help="extra retries for a TRANSIENT capture failure (timeout/capture_failed); never retries a block")
     parser.add_argument("--capture-retry-backoff-seconds", type=float, default=DEFAULT_CAPTURE_RETRY_BACKOFF_SECONDS)
-    parser.add_argument("--proxy-profile-label", default=None)
-    parser.add_argument(
+    proxy_group = parser.add_argument_group(
+        "proxy profile",
+        "Optional label-indirected proxy use. The endpoint and credentials stay in the local secret store; "
+        "packets record category-only provenance.",
+    )
+    proxy_group.add_argument(
+        "--proxy-label",
+        "--proxy-profile-label",
+        dest="proxy_profile_label",
+        default=None,
+        help="Registered proxy profile label. If --proxy-category is omitted, the runner uses the sidecar category.",
+    )
+    proxy_group.add_argument(
+        "--proxy-category",
         "--proxy-profile-category",
+        dest="proxy_profile_category",
         choices=[item.value for item in ProxyCategory],
         default=None,
+        help="Optional category assertion for the selected label; rejects the run if it disagrees with the sidecar.",
     )
-    parser.add_argument("--proxy-profile-root", type=Path, default=None)
+    proxy_group.add_argument(
+        "--proxy-root",
+        "--proxy-profile-root",
+        dest="proxy_profile_root",
+        type=Path,
+        default=None,
+        help="Optional local proxy profile store root. Never recorded in packet output.",
+    )
     parser.add_argument("--session-id", default=None)
     parser.add_argument("--warning", action="append", default=[])
     parser.add_argument("--limitation", action="append", default=[])
@@ -763,8 +789,10 @@ def _load_optional_proxy_profile(
 ) -> ProxyProfile | None:
     if not label and not category:
         return None
-    if not label or not category:
-        raise ValueError("proxy profile capture requires both --proxy-profile-label and --proxy-profile-category")
+    if not label:
+        raise ValueError("proxy capture requires --proxy-label when --proxy-category is supplied")
+    if not category:
+        return load_proxy_profile_by_label(label=label, profile_root=profile_root)
     return load_proxy_profile(
         label=label,
         proxy_category=ProxyCategory(category),

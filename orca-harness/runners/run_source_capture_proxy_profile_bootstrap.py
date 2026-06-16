@@ -47,7 +47,7 @@ def run_proxy_profile_bootstrap(
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=(
-            "Register a local CloakBrowser proxy profile sidecar. The endpoint JSON must be "
+            "Register a local Source Capture proxy profile sidecar. The endpoint JSON must be "
             "placed in the ignored store out-of-band; this command accepts no proxy secrets."
         )
     )

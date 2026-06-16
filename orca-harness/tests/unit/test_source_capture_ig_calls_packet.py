@@ -310,6 +310,48 @@ def test_ig_calls_runner_threads_proxy_profile_and_records_category_only(
     assert "proxy_pass" not in raw_text
 
 
+def test_ig_calls_runner_loads_proxy_by_label_without_category(monkeypatch: pytest.MonkeyPatch) -> None:
+    proxy = ProxyProfile(
+        proxy_endpoint="http://proxy_user:proxy_pass@example.proxy.test:1234",
+        proxy_category=ProxyCategory.RESIDENTIAL_ROTATING,
+        geoip_enabled=False,
+    )
+    calls: list[tuple[str, Path | None]] = []
+
+    def fake_load_by_label(*, label: str, profile_root: Path | None = None) -> ProxyProfile:
+        calls.append((label, profile_root))
+        return proxy
+
+    monkeypatch.setattr(ig_runner, "load_proxy_profile_by_label", fake_load_by_label)
+
+    result = ig_runner._load_optional_proxy_profile(
+        label="reddit-res",
+        category=None,
+        profile_root=Path("_proxy_profiles"),
+    )
+
+    assert result is proxy
+    assert calls == [("reddit-res", Path("_proxy_profiles"))]
+
+
+def test_ig_calls_runner_proxy_cli_has_short_aliases() -> None:
+    parser = ig_runner._build_parser()
+    args = parser.parse_args(
+        [
+            "--profile-url", "https://www.instagram.com/hyram/",
+            "--decision-question", "q",
+            "--output", "packet",
+            "--proxy-label", "reddit-res",
+            "--proxy-category", "residential_rotating",
+            "--proxy-root", "_proxy_profiles",
+        ]
+    )
+
+    assert args.proxy_profile_label == "reddit-res"
+    assert args.proxy_profile_category == "residential_rotating"
+    assert args.proxy_profile_root == Path("_proxy_profiles")
+
+
 def test_ig_calls_runner_rejects_item_cap_above_bounded_default(scratch_dir: Path) -> None:
     with pytest.raises(ValueError, match="max_items must be no greater than"):
         run_source_capture_ig_calls_packet(

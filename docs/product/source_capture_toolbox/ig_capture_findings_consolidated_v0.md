@@ -107,7 +107,8 @@ sustained cadence remain unmeasured.
   writer; full suite passes; live-verified. Merged.
 - **Calls runner robustness: PARTIAL PATCHED** — `run_source_capture_ig_calls_packet.py` now defaults
   profile/item captures to the measured `768x1024` viewport, reducing the known false-empty DOM grid
-  failure at `1280x720`; it also accepts a label-indirected proxy profile and records only proxy
+  failure at `1280x720`; it also exposes proxy use as an explicit label-indirected runner option
+  (`--proxy-label`, with category read from the registered sidecar by default) and records only proxy
   category provenance. A bounded 2026-06-17 proxy smoke run against `@hyram` captured 4/4 call slices
   and `web_profile_info` + grid JSON returned 200. The runner can still hard-stop when DOM permalink
   enumeration is empty before using profile-feed JSON, so JSON shortcode fallback remains a separate
