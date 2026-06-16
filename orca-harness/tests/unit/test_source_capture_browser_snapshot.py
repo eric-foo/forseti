@@ -12,9 +12,13 @@ from runners import run_source_capture_browser_packet as browser_runner
 from runners.run_source_capture_browser_packet import BROWSER_SNAPSHOT_NON_CLAIMS
 from source_capture import CaptureModeCategory
 from source_capture.adapters.browser_snapshot import (
+    BrowserContextRequest,
+    BrowserContextResponse,
+    BrowserContextResponsesSuccess,
     BrowserSnapshotFailure,
     BrowserSnapshotFailureKind,
     BrowserSnapshotSuccess,
+    fetch_browser_context_responses,
     fetch_browser_snapshot_capture,
 )
 
@@ -46,6 +50,18 @@ class _FakeBrowserEngine:
         self.capture_kwargs: dict[str, object] | None = None
 
     def capture(self, **kwargs: object) -> _FakeEngineResult:
+        self.capture_kwargs = dict(kwargs)
+        if isinstance(self.result, Exception):
+            raise self.result
+        return self.result
+
+
+class _FakeContextResponseEngine:
+    def __init__(self, result: BrowserContextResponsesSuccess | Exception) -> None:
+        self.result = result
+        self.capture_kwargs: dict[str, object] | None = None
+
+    def capture_context_responses(self, **kwargs: object) -> BrowserContextResponsesSuccess:
         self.capture_kwargs = dict(kwargs)
         if isinstance(self.result, Exception):
             raise self.result
@@ -115,6 +131,86 @@ def test_fetch_browser_snapshot_capture_passes_storage_state_without_recording_p
     assert str(state_path) not in json.dumps(result.metadata)
 
 
+def test_fetch_browser_context_responses_preserves_status_and_body() -> None:
+    engine = _FakeContextResponseEngine(
+        BrowserContextResponsesSuccess(
+            page_url="https://www.instagram.com/hyram/",
+            final_page_url="https://www.instagram.com/hyram/",
+            responses=[
+                BrowserContextResponse(
+                    request_id="web_profile_info",
+                    requested_url="https://www.instagram.com/api/v1/users/web_profile_info/?username=hyram",
+                    final_url="https://www.instagram.com/api/v1/users/web_profile_info/?username=hyram",
+                    status=429,
+                    ok=False,
+                    body_text="",
+                    response_headers={"content-type": "application/json"},
+                )
+            ],
+            metadata={"request_count": 1},
+            warning_notes=[],
+            limitation_notes=[],
+        )
+    )
+
+    result = fetch_browser_context_responses(
+        page_url="https://www.instagram.com/hyram/",
+        requests=[
+            BrowserContextRequest(
+                request_id="web_profile_info",
+                url="https://www.instagram.com/api/v1/users/web_profile_info/?username=hyram",
+                headers={"X-IG-App-ID": "936619743392459"},
+            )
+        ],
+        timeout_seconds=7,
+        max_response_bytes=100,
+        engine=engine,
+    )
+
+    assert isinstance(result, BrowserContextResponsesSuccess)
+    assert engine.capture_kwargs is not None
+    assert engine.capture_kwargs["requests"][0].headers == {"X-IG-App-ID": "936619743392459"}
+    assert result.responses[0].status == 429
+    assert result.responses[0].ok is False
+
+
+def test_fetch_browser_context_responses_enforces_response_body_size_cap() -> None:
+    result = fetch_browser_context_responses(
+        page_url="https://www.instagram.com/hyram/",
+        requests=[
+            BrowserContextRequest(
+                request_id="web_profile_info",
+                url="https://www.instagram.com/api/v1/users/web_profile_info/?username=hyram",
+            )
+        ],
+        max_response_bytes=2,
+        engine=_FakeContextResponseEngine(
+            BrowserContextResponsesSuccess(
+                page_url="https://www.instagram.com/hyram/",
+                final_page_url="https://www.instagram.com/hyram/",
+                responses=[
+                    BrowserContextResponse(
+                        request_id="web_profile_info",
+                        requested_url="https://www.instagram.com/api/v1/users/web_profile_info/?username=hyram",
+                        final_url="https://www.instagram.com/api/v1/users/web_profile_info/?username=hyram",
+                        status=200,
+                        ok=True,
+                        body_text="too large",
+                        response_headers={},
+                    )
+                ],
+                metadata={},
+                warning_notes=[],
+                limitation_notes=[],
+            )
+        ),
+    )
+
+    assert isinstance(result, BrowserSnapshotFailure)
+    assert result.failure_kind == BrowserSnapshotFailureKind.SIZE_CAP_EXCEEDED
+    assert "web_profile_info" in result.message
+
+
 def test_fetch_browser_snapshot_capture_returns_size_cap_failure() -> None:
     result = fetch_browser_snapshot_capture(
         url="https://example.com/source",
@@ -158,6 +254,23 @@ def test_fetch_browser_snapshot_capture_classifies_timeout() -> None:
     result = fetch_browser_snapshot_capture(
         url="https://example.com/source",
         engine=_FakeBrowserEngine(TimeoutError("navigation timed out")),
+    )
+
+    assert isinstance(result, BrowserSnapshotFailure)
+    assert result.failure_kind == BrowserSnapshotFailureKind.TIMEOUT
+
+
+def test_fetch_browser_context_responses_classifies_fetch_abort_as_timeout() -> None:
+    result = fetch_browser_context_responses(
+        page_url="https://www.instagram.com/hyram/",
+        requests=[
+            BrowserContextRequest(
+                request_id="web_profile_info",
+                url="https://www.instagram.com/api/v1/users/web_profile_info/?username=hyram",
+            )
+        ],
+        timeout_seconds=3,
+        engine=_FakeContextResponseEngine(RuntimeError("AbortError: The operation was aborted")),
     )
 
     assert isinstance(result, BrowserSnapshotFailure)

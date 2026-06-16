@@ -10,6 +10,11 @@ import pytest
 from runners import run_source_capture_ig_calls_packet as ig_runner
 from runners.run_source_capture_ig_calls_packet import run_source_capture_ig_calls_packet
 from source_capture.adapters.browser_snapshot import BrowserSnapshotFailure, BrowserSnapshotFailureKind, BrowserSnapshotSuccess
+from source_capture.ig_momentum_harvest import (
+    IgMediaMetricRecord,
+    IgMomentumResponseRecord,
+    IgProfileMomentumCapture,
+)
 
 
 @pytest.fixture
@@ -77,11 +82,50 @@ def _route_garbled(url: str) -> BrowserSnapshotSuccess:
     return _success(requested_url=url, rendered_dom=_PROFILE_DOM)
 
 
+def _momentum_capture(**_kwargs) -> IgProfileMomentumCapture:
+    return IgProfileMomentumCapture(
+        username="hyram",
+        numeric_id="5802114508",
+        follower_count=724000,
+        media_by_shortcode={
+            "AAA": IgMediaMetricRecord(
+                shortcode="AAA",
+                is_video=False,
+                video_view_count=None,
+                like_count=1693,
+                comment_count=26,
+                caption="A post caption #fun",
+                taken_at_timestamp=1722470400,
+            ),
+            "BBB": IgMediaMetricRecord(
+                shortcode="BBB",
+                is_video=True,
+                video_view_count=104700,
+                like_count=1047,
+                comment_count=43,
+                caption="#ad sponsored thing",
+                taken_at_timestamp=1726012800,
+            ),
+        },
+        raw_responses=[
+            IgMomentumResponseRecord(
+                request_id="web_profile_info",
+                requested_url="https://www.instagram.com/api/v1/users/web_profile_info/?username=hyram",
+                final_url="https://www.instagram.com/api/v1/users/web_profile_info/?username=hyram",
+                status=200,
+                ok=True,
+                body_text='{"data":{"user":{"id":"5802114508"}}}',
+            )
+        ],
+    )
+
+
 def test_ig_calls_runner_writes_packet_with_profile_and_call_slices(
     scratch_dir: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     sleeps: list[float] = []
     monkeypatch.setattr(ig_runner, "fetch_browser_snapshot_capture", lambda **kw: _route_fake(kw["url"]))
+    monkeypatch.setattr(ig_runner, "fetch_ig_profile_momentum", _momentum_capture)
     output_dir = scratch_dir / "packet"
 
     exit_code, message = run_source_capture_ig_calls_packet(
@@ -94,28 +138,69 @@ def test_ig_calls_runner_writes_packet_with_profile_and_call_slices(
 
     assert exit_code == 0
     assert message == str(output_dir.resolve())
-    # Cadence applied between the 3 enumerated items (2 inter-item gaps), human-mimicking.
-    assert len(sleeps) == 2
+    # XHR gaps plus cadence between the 3 enumerated items (2 inter-item gaps), human-mimicking.
+    assert len(sleeps) == 4
+    assert sleeps[:2] == [ig_runner.DEFAULT_XHR_REQUEST_GAP_SECONDS, ig_runner.DEFAULT_XHR_REQUEST_GAP_SECONDS]
     assert all(s > 0 for s in sleeps)
 
     manifest = json.loads((output_dir / "manifest.json").read_text(encoding="utf-8"))
     assert manifest["source_surface"] == "ig_calls_browser_snapshot"
     assert manifest["capture_mode"] == "automated extraction"
+    assert "ig_browser_context_view_count_capture:observed=1" in manifest["visible_mode_changes"]
     slice_ids = [s["slice_id"] for s in manifest["source_slices"]]
     assert slice_ids == ["ig_profile_00", "ig_call_01", "ig_call_02", "ig_call_03"]
     assert manifest["receipt_metadata"]["non_claims"] == ig_runner.IG_CALLS_NON_CLAIMS
     # 2 of 3 captured (CCC has no og:description -> no_signal), surfaced honestly.
     assert any("partial_capture: 2/3" in lim for lim in manifest["limitations"])
+    assert any("ig_metric_registry_version=" in lim for lim in manifest["limitations"])
+
+    profile_slice = manifest["source_slices"][0]
+    post_slice = manifest["source_slices"][1]
+    reel_slice = manifest["source_slices"][2]
+    missing_slice = manifest["source_slices"][3]
+    assert profile_slice["metric_observations"] == [
+        {
+            "coverage_window": {"end": "2026-06-14T01:02:03Z", "start": None},
+            "metric": "follower_count",
+            "posture": "observed",
+            "reason": None,
+            "value": 724000,
+        }
+    ]
+    assert {
+        (obs["metric"], obs["posture"], obs["value"], obs["reason"])
+        for obs in post_slice["metric_observations"]
+    } == {
+        ("like_count", "observed", 1693, None),
+        ("comment_count", "observed", 26, None),
+        ("view_count", "not_applicable", None, "IG profile-feed JSON marks this media as non-video"),
+    }
+    assert any(
+        obs["metric"] == "view_count" and obs["posture"] == "observed" and obs["value"] == 104700
+        for obs in reel_slice["metric_observations"]
+    )
+    assert any(
+        obs["metric"] == "view_count" and obs["posture"] == "unavailable_with_reason"
+        for obs in missing_slice["metric_observations"]
+    )
+    missing_view_count = next(
+        obs for obs in missing_slice["metric_observations"] if obs["metric"] == "view_count"
+    )
+    assert missing_view_count["reason"] == (
+        "item status=no_signal; view_count not attributed because the item did not produce a captured call signal"
+    )
 
     raw = {p.name: json.loads(p.read_text(encoding="utf-8")) for p in (output_dir / "raw").iterdir() if p.suffix == ".json"}
     post = next(v for k, v in raw.items() if "ig_call_01" in k)
     reel = next(v for k, v in raw.items() if "ig_call_02" in k)
     missing = next(v for k, v in raw.items() if "ig_call_03" in k)
-    profile = next(v for k, v in raw.items() if "ig_profile" in k)
+    profile = next(v for k, v in raw.items() if "ig_profile.json" in k)
+    momentum = next(v for k, v in raw.items() if "ig_profile_momentum" in k)
     assert post["status"] == "captured" and post["likes"] == 1693 and post["is_ad"] is False
     assert reel["status"] == "captured" and reel["is_ad"] is True and reel["date"] == "September 11, 2024"
     assert missing["status"] == "no_signal"
     assert profile["stats"] == {"followers": "724K", "following": "2,339", "posts": "321"}
+    assert momentum["media"]["BBB"]["video_view_count"] == 104700
 
 
 def test_ig_calls_runner_respects_item_cap(scratch_dir: Path, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -127,6 +212,7 @@ def test_ig_calls_runner_respects_item_cap(scratch_dir: Path, monkeypatch: pytes
         decision_question="q",
         max_items=2,
         cadence_random_seed=1,
+        capture_view_counts=False,
         sleep_fn=lambda _s: None,
     )
     assert exit_code == 0
@@ -142,6 +228,7 @@ def test_ig_calls_runner_rejects_item_cap_above_bounded_default(scratch_dir: Pat
             output_directory=scratch_dir / "packet",
             decision_question="q",
             max_items=ig_runner.DEFAULT_MAX_ITEMS + 1,
+            capture_view_counts=False,
             sleep_fn=lambda _s: None,
         )
 
@@ -158,6 +245,7 @@ def test_ig_calls_runner_does_not_mark_garbled_og_as_captured(
         decision_question="q",
         max_items=1,
         cadence_random_seed=1,
+        capture_view_counts=False,
         sleep_fn=lambda _s: None,
     )
 
@@ -183,7 +271,11 @@ def test_ig_calls_runner_returns_nogo_when_profile_redirects_to_login(
     monkeypatch.setattr(ig_runner, "fetch_browser_snapshot_capture", blocked)
     output_dir = scratch_dir / "packet"
     exit_code, message = run_source_capture_ig_calls_packet(
-        profile_url=PROFILE_URL, output_directory=output_dir, decision_question="q", sleep_fn=lambda _s: None
+        profile_url=PROFILE_URL,
+        output_directory=output_dir,
+        decision_question="q",
+        capture_view_counts=False,
+        sleep_fn=lambda _s: None,
     )
     assert exit_code == 3
     assert "access-blocked" in message and "redirected_to_login" in message
@@ -200,7 +292,11 @@ def test_ig_calls_runner_returns_nogo_when_no_permalinks(
     )
     output_dir = scratch_dir / "packet"
     exit_code, message = run_source_capture_ig_calls_packet(
-        profile_url=PROFILE_URL, output_directory=output_dir, decision_question="q", sleep_fn=lambda _s: None
+        profile_url=PROFILE_URL,
+        output_directory=output_dir,
+        decision_question="q",
+        capture_view_counts=False,
+        sleep_fn=lambda _s: None,
     )
     assert exit_code == 3
     assert "no /p/ or /reel/ permalinks" in message
@@ -220,7 +316,11 @@ def test_ig_calls_runner_returns_3_on_profile_capture_failure(
     )
     output_dir = scratch_dir / "packet"
     exit_code, message = run_source_capture_ig_calls_packet(
-        profile_url=PROFILE_URL, output_directory=output_dir, decision_question="q", sleep_fn=lambda _s: None
+        profile_url=PROFILE_URL,
+        output_directory=output_dir,
+        decision_question="q",
+        capture_view_counts=False,
+        sleep_fn=lambda _s: None,
     )
     assert exit_code == 3
     assert "profile capture failed" in message
