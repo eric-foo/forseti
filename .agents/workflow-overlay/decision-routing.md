@@ -157,13 +157,22 @@ the whole router.
 ## Subagent Model Tiering
 
 When delegating to a spawned subagent, choose the model tier per
-`docs/decisions/subagent_model_tiering_doctrine_v0.md`: default delegable work to
-the Sonnet `worker` agent type; trivial rote to the Haiku `mechanical` type;
-reserve Opus (`general-purpose`, which inherits the main tier, or an explicit
-`model: opus`) for genuine judgment. A subagent spawned with no model silently
-inherits the parent (Opus) tier, so route to a pinned type to avoid paying Opus
-for non-judgment work. Do not set `CLAUDE_CODE_SUBAGENT_MODEL` (it hard-caps all
-subagents and blocks Opus escalation — over-restraint).
+`docs/decisions/subagent_model_tiering_doctrine_v0.md`.
+
+In Claude Code, default delegable work to the Sonnet `worker` agent type;
+trivial rote to the Haiku `mechanical` type; reserve Opus (`general-purpose`,
+which inherits the main tier, or an explicit `model: opus`) for genuine
+judgment. A subagent spawned with no model silently inherits the parent (Opus)
+tier, so route to a pinned type to avoid paying Opus for non-judgment work. Do
+not set `CLAUDE_CODE_SUBAGENT_MODEL` (it hard-caps all subagents and blocks
+Opus escalation — over-restraint).
+
+In Codex, classify the delegated task before the `spawn_agent` call:
+mechanical/trivial rote -> `gpt-5.3-codex-spark`; ordinary delegated work ->
+`gpt-5.4`; genuine judgment -> `gpt-5.5`. `agent_type` remains a role selector
+(`explorer`, `worker`, or omitted), not the model tier. Do not use
+`gpt-5.4-mini` as the ordinary default unless separately justified or
+re-decided by the owner.
 
 ## Non-Claims
 
