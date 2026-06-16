@@ -15,19 +15,20 @@ use_when:
   - Deciding when Judgment must pull the raw anchor instead of trusting the view.
 authority_boundary: retrieval_only
 open_next:
-  - docs/product/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
-  - docs/product/core_spine_v0_data_capture_spine_obligation_contract_v0.md
-  - docs/product/core_spine_v0_information_production_foundation_v0.md
+  - docs/product/core_spine/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
+  - docs/product/data_capture_spine/core_spine_v0_data_capture_spine_obligation_contract_v0.md
+  - docs/product/core_spine/core_spine_v0_information_production_foundation_v0.md
   - docs/workflows/ecr_spine_submap_v0.md
 stale_if:
   - The owner settles OD-1 (pipeline ordering) or OD-7 (object naming); fold the decision in.
-  - The vendor-CA keep/amend pass lands; this candidate is superseded by the kept version.
+  - The owner amends or supersedes the vendor-CA kept candidate.
   - The boundary note changes the Mechanical Source Projection / Data Capture Projection Packet doctrine.
 ```
 
-- Status: `CANDIDATE_DRAFT_PENDING_VENDOR_CA_KEEP`
+- Status: `CANDIDATE_KEPT_BY_VENDOR_CA_FOR_OWNER_CONFIRMATION`
 - Artifact type: Product architecture draft (view contract)
-- Implementation authorized: no
+- Vendor-CA closeout: `docs/review-outputs/adversarial-artifact-reviews/projection_doctrine_v0_vendor_ca_closeout_v0.md`
+- Implementation authorized: no by this doctrine artifact. The bounded Reddit projection helper in the same lane was separately owner-authorized on 2026-06-16 and does not generalize schema/object authority.
 - Feature planning authorized: no
 - Proof run / capture execution authorized: no
 
@@ -41,7 +42,7 @@ provenance:
   review_access_mode: no_repo_inline           # reviewer saw inline text; citations not repo-verified by the reviewer
   author_ca_adjudication: incorporated 2026-06-16 (all six findings accepted; F1 escalation scope tightened; fitness attack elevated to a rule)
   ca_authority: TRANSFERRED to the vendor lane (OpenAI / GPT) per owner instruction 2026-06-16 — "the vendor will be the new CA for this lane too"
-  pending: vendor-CA adjudication of these incorporations + bounded same-vendor closure recheck of the touched sections + keep
+  vendor_ca_closeout: kept 2026-06-16; see docs/review-outputs/adversarial-artifact-reviews/projection_doctrine_v0_vendor_ca_closeout_v0.md
   de_correlation_note: >
     The vendor (GPT) was both the discovery reviewer and is now the CA. The author!=CA axis is
     preserved and strengthened (Claude author vs GPT CA). The reviewer==CA correlation (GPT adjudicates
@@ -369,18 +370,20 @@ source selected from existing captures.
 
 ## 12. Next Authorized Step (smallest complete)
 
-1. **Vendor-CA adjudication + keep.** The vendor lane (now CA for this lane) adjudicates
-   the incorporated revisions, runs the bounded same-vendor closure recheck (§ Review
-   provenance), and decides keep / amend.
-2. **Owner adjudication of OD-1 / OD-4** (and OD-7) — both touch accepted doctrine and
+1. **Owner adjudication of OD-1 / OD-4** (and OD-7) — both touch accepted doctrine and
    gate the object model; the reframe above stops the draft from presupposing them but
    does not resolve them.
-3. **Specimen-bench confirmation** — read-only pass over the §10 backbone files
+2. **Specimen-bench confirmation** — read-only pass over the §10 backbone files
    (present on `main`) to confirm each exhibits its stressor; select sources for
    specimens 7 and 8 from existing captures. No new external capture.
+3. **Bounded source-lane enforcement.** The Reddit helper is the first owner-authorized
+   projection enforcement slice. It is a source-family implementation of the view
+   doctrine, not a general projection schema, not a Cleaning transform, and not proof
+   that other source families are covered.
 
-**Explicitly not next:** building a projector, collecting new data, designing a crawler,
-writing schema/ECR/Cleaning/Judgment code, or claiming validation/readiness/buyer-proof.
+**Explicitly not next by doctrine alone:** collecting new data, designing a crawler,
+writing schema/ECR/Cleaning/Judgment code, generalizing the Reddit helper to other
+families without owner authorization, or claiming validation/readiness/buyer-proof.
 
 ## Review and Adjudication Provenance
 
@@ -390,7 +393,8 @@ cross_vendor_discovery`. Author-CA (Claude) adjudication 2026-06-16: all six fin
 **accepted**; F1 escalation scope tightened (resolve by reframe; the genuine
 ordering/naming question stays owner-gated); the fitness attack elevated to Rule 10.
 **CA authority for this lane transferred to the vendor (OpenAI/GPT) per owner 2026-06-16
-— the dispositions below are author incorporations pending vendor-CA confirmation.**
+— the dispositions below are vendor-CA confirmed by the closeout named above, with final
+owner confirmation still outside this artifact.**
 
 | Finding | Severity | Disposition | Where folded in |
 | --- | --- | --- | --- |
@@ -403,9 +407,11 @@ ordering/naming question stays owner-gated); the fitness attack elevated to Rule
 | fitness attack — compact+readable is lossy; salience must not be projection's call | — | Accepted; elevated to §3 Rule 10 | §3 |
 
 **Validation gaps (honest):** the review was no_repo/inline, so the reviewer did not
-verify this draft's citations against the actual repo files. The **bounded same-vendor
-closure recheck is owed before keep** (now owned by the vendor-CA lane). This document is
-a CANDIDATE; it is not validation, readiness, ratification, or buyer-proof.
+verify this draft's citations against the actual repo files during discovery. The
+vendor-CA closeout confirmed the folded-in closure conditions against the persisted
+artifact bytes and found no new blocker/major in the touched delta. This document remains
+a candidate kept for owner confirmation; it is not validation, readiness, ratification,
+or buyer-proof.
 
 ## Non-Claims
 
