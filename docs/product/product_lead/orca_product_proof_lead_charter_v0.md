@@ -80,6 +80,34 @@ direction_change_propagation:
   date: 2026-06-15
 ```
 
+## Commercial Target Selection Update (2026-06-16)
+
+Owner direction confirms the first commercial target for the proof loop as
+US-market tractioned indie/DTC beauty or personal-care operators with a named
+decision owner and a live 30-90 day consumer-demand allocation decision.
+
+The Product Proof Lead should bias candidate qualification toward
+retail/channel expansion, launch/reposition, and inventory or purchase-depth
+commitment before tier/price, taste-shift pivot, or defend/hold decisions.
+Those first families have the clearest timing, allocation stakes, and
+public-signal relevance before internal data is conclusive.
+
+Retailer/category teams are deferred because their proprietary sell-through,
+basket, loyalty, and vendor data often makes Orca's public-signal increment
+harder to prove in the first 2-3 month window. This is a sequencing constraint,
+not a business-ending conclusion. If operator-first proof fails, the
+owner-decided fallback ladder remains consumer fund screen and then
+PE/family-office diligence. Agencies and incubators may later route to brand
+decision owners, but they are not the first buyer-proof target.
+
+Customer-provided proprietary data is a later augmentation path, not a first
+proof dependency. The Product Proof Lead may later route a separate
+data-spine/proof question for reconciling Orca's public-signal judgment against
+internal sell-through, CRM, panel, retail, or cohort evidence. This charter's
+first proof loop remains public-first and must not require proprietary-data
+intake, data science, dashboards, integrations, or source-system buildout to
+make the memo credible.
+
 ## Source Basis
 
 - Current owner instruction for Orca product-proof planning.
@@ -149,17 +177,18 @@ The Product Proof Lead does not own:
 
 Recommended first buyer segment:
 
-US-market indie/DTC beauty / personal-care brand decision owners (founder,
-head of brand / insights / growth / strategy) with a live 30-90 day
-demand-allocation decision and a concrete allocation consequence, passing the
-buyer-proof packet's Demand-Substrate Hard Gate (at least two independent venue families;
-costly-behavior anchoring; integrity labels applicable; org-motion
-corroboration through capture-lane-bound routes).
+US-market tractioned indie/DTC beauty / personal-care brand decision owners
+(founder, head of brand / insights / growth / strategy, or equivalent
+operator) with a live 30-90 day demand-allocation decision and a concrete
+allocation consequence, passing the buyer-proof packet's Demand-Substrate Hard
+Gate (at least two independent venue families; costly-behavior anchoring;
+integrity labels applicable; org-motion corroboration through
+capture-lane-bound routes).
 
 If results are mixed, diagnose the demand decision families separately
-(inventory/replenishment vs channel expansion vs launch/reposition vs
-tier/price) before treating the decision family as repeatable or
-non-repeatable.
+(retail/channel expansion vs launch/reposition vs inventory/purchase-depth vs
+tier/price vs defend/hold) before treating the decision family as repeatable
+or non-repeatable.
 
 Recommended decision owner:
 
@@ -168,9 +197,10 @@ accountable for the budgeted demand-allocation decision.
 
 Recommended first decision family:
 
-Tier/price change; retail or channel expansion; launch / moratorium /
-reposition; pivot on a taste or preference shift; defend/hold against
-suspected manufactured or transient demand — where a false broad commit could
+Retail or channel expansion; launch / moratorium / reposition; inventory or
+purchase-depth commitment. Tier/price change, pivot on a taste or preference
+shift, and defend/hold against suspected manufactured or transient demand remain
+eligible when they pass the same gates — where a false broad commit could
 waste inventory or launch budget, misfire a retail window, create backlash or
 churn, or surrender a real opportunity to noise.
 
@@ -274,7 +304,9 @@ Kill or materially reframe the proof if the first qualified proof batch shows an
 - Buyers show `trust_refusal`, or the proof memo fails to move a `trust_objection` enough for public-signal evidence, source cleanliness, and uncertainty boundaries to affect the decision.
 - Value depends on bespoke consulting labor with no repeatable decision pattern.
 - No buyer requests a fixed-scope paid decision sprint or equivalent commercial next step after useful memo feedback.
-- The memo requires software, dashboards, collection pipelines, source maps, automation, or private/internal data to be credible.
+- The memo requires software, dashboards, collection pipelines, source maps,
+  automation, data science, integrations, or private/internal data to be
+  credible.
 
 A single strong candidate may justify a follow-up conversation, but not graduation or proof-boundary acceptance.
 
