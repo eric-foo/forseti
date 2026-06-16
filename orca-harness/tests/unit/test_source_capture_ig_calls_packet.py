@@ -15,6 +15,7 @@ from source_capture.ig_momentum_harvest import (
     IgMomentumResponseRecord,
     IgProfileMomentumCapture,
 )
+from source_capture.proxy_profiles import ProxyCategory, ProxyProfile
 
 
 @pytest.fixture
@@ -248,6 +249,65 @@ def test_ig_calls_runner_defaults_to_measured_profile_grid_viewport(
         (ig_runner.DEFAULT_IG_PROFILE_VIEWPORT_WIDTH, ig_runner.DEFAULT_IG_PROFILE_VIEWPORT_HEIGHT),
         (ig_runner.DEFAULT_IG_PROFILE_VIEWPORT_WIDTH, ig_runner.DEFAULT_IG_PROFILE_VIEWPORT_HEIGHT),
     ]
+
+
+def test_ig_calls_runner_threads_proxy_profile_and_records_category_only(
+    scratch_dir: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    proxy = ProxyProfile(
+        proxy_endpoint="http://proxy_user:proxy_pass@example.proxy.test:1234",
+        proxy_category=ProxyCategory.RESIDENTIAL_ROTATING,
+        geoip_enabled=False,
+        timezone="America/New_York",
+        locale="en-US",
+    )
+    snapshot_proxy_profiles: list[ProxyProfile | None] = []
+    momentum_proxy_profiles: list[ProxyProfile | None] = []
+
+    def fake_snapshot(**kw):
+        snapshot_proxy_profiles.append(kw.get("proxy_profile"))
+        return _route_fake(kw["url"])
+
+    def fake_momentum(**kw):
+        momentum_proxy_profiles.append(kw.get("proxy_profile"))
+        return _momentum_capture(**kw)
+
+    monkeypatch.setattr(ig_runner, "fetch_browser_snapshot_capture", fake_snapshot)
+    monkeypatch.setattr(ig_runner, "fetch_ig_profile_momentum", fake_momentum)
+    output_dir = scratch_dir / "packet"
+
+    exit_code, _ = run_source_capture_ig_calls_packet(
+        profile_url=PROFILE_URL,
+        output_directory=output_dir,
+        decision_question="q",
+        max_items=1,
+        cadence_random_seed=1,
+        proxy_profile=proxy,
+        sleep_fn=lambda _s: None,
+    )
+
+    assert exit_code == 0
+    assert snapshot_proxy_profiles == [proxy, proxy]
+    assert momentum_proxy_profiles == [proxy]
+
+    raw = {p.name: json.loads(p.read_text(encoding="utf-8")) for p in (output_dir / "raw").iterdir() if p.suffix == ".json"}
+    profile = next(v for k, v in raw.items() if "ig_profile.json" in k)
+    capture_metadata = profile["capture_metadata"]
+    assert capture_metadata["proxy_used"] is True
+    assert capture_metadata["proxy_category"] == "residential_rotating"
+    assert capture_metadata["proxy_disclosure"] == "category_only"
+    assert capture_metadata["proxy_endpoint_recorded"] is False
+    assert capture_metadata["proxy_exit_ip_recorded"] is False
+
+    manifest_text = (output_dir / "manifest.json").read_text(encoding="utf-8")
+    raw_text = json.dumps(raw)
+    assert "proxy_profile_used: category=residential_rotating" in manifest_text
+    assert "example.proxy.test" not in manifest_text
+    assert "proxy_user" not in manifest_text
+    assert "proxy_pass" not in manifest_text
+    assert "example.proxy.test" not in raw_text
+    assert "proxy_user" not in raw_text
+    assert "proxy_pass" not in raw_text
 
 
 def test_ig_calls_runner_rejects_item_cap_above_bounded_default(scratch_dir: Path) -> None:

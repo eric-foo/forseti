@@ -10,6 +10,7 @@ from source_capture.ig_momentum_harvest import (
     extract_ig_shortcode,
     fetch_ig_profile_momentum,
 )
+from source_capture.proxy_profiles import ProxyCategory, ProxyProfile
 
 
 def _success(request_id: str, body: dict) -> BrowserContextResponsesSuccess:
@@ -41,8 +42,15 @@ def test_extract_ig_shortcode_from_post_and_reel_urls() -> None:
 
 def test_fetch_ig_profile_momentum_parses_profile_and_grid_pages_without_faking_zero() -> None:
     sleeps: list[float] = []
+    proxy = ProxyProfile(
+        proxy_endpoint="http://proxy_user:proxy_pass@example.proxy.test:1234",
+        proxy_category=ProxyCategory.RESIDENTIAL_ROTATING,
+        geoip_enabled=False,
+    )
+    seen_proxy_profiles: list[ProxyProfile | None] = []
 
     def fake_fetcher(**kwargs):
+        seen_proxy_profiles.append(kwargs.get("proxy_profile"))
         request_id = kwargs["requests"][0].request_id
         if request_id == "web_profile_info":
             return _success(
@@ -107,11 +115,13 @@ def test_fetch_ig_profile_momentum_parses_profile_and_grid_pages_without_faking_
         max_media=3,
         max_graphql_pages=1,
         request_gap_seconds=3.0,
+        proxy_profile=proxy,
         sleep_fn=sleeps.append,
         browser_fetcher=fake_fetcher,
     )
 
     assert sleeps == [3.0]
+    assert seen_proxy_profiles == [proxy, proxy]
     assert capture.numeric_id == "5802114508"
     assert capture.follower_count == 723000
     assert capture.media_by_shortcode["AAA"].is_video is False

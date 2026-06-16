@@ -107,8 +107,11 @@ sustained cadence remain unmeasured.
   writer; full suite passes; live-verified. Merged.
 - **Calls runner robustness: PARTIAL PATCHED** — `run_source_capture_ig_calls_packet.py` now defaults
   profile/item captures to the measured `768x1024` viewport, reducing the known false-empty DOM grid
-  failure at `1280x720`. The runner can still hard-stop when DOM permalink enumeration is empty before
-  using profile-feed JSON, so JSON shortcode fallback remains a separate patch candidate.
+  failure at `1280x720`; it also accepts a label-indirected proxy profile and records only proxy
+  category provenance. A bounded 2026-06-17 proxy smoke run against `@hyram` captured 4/4 call slices
+  and `web_profile_info` + grid JSON returned 200. The runner can still hard-stop when DOM permalink
+  enumeration is empty before using profile-feed JSON, so JSON shortcode fallback remains a separate
+  patch candidate.
 - **Reel view-count capture: NOT built** — feasibility proven only. The build would extend the
   logged-out runner to capture profile-feed response bodies + follow the grid cursor, parsing
   `video_view_count` per `shortcode` onto the call slices. Needs the runner to **expose response
@@ -127,6 +130,9 @@ sustained cadence remain unmeasured.
   `@hyram`, and used a residential rotating proxy plus current-egress/session diagnostics. They prove
   the failure mode and a working viewport candidate; they do not validate a production runner patch,
   mobile-data lane, or sustained account/session route.
+- **Proxy-backed packet evidence is smoke-level only.** The 2026-06-17 runner packet proves one
+  `@hyram` logged-out proxy run can capture recent calls and profile-feed JSON through the patched
+  runner. It is not sustained-cadence, mobile-data, account/session, or at-scale validation.
 - **Reel view counts are cumulative-at-capture**, not a time series — momentum requires the
   repeated-over-time harvesting the carve-out authorizes.
 - **Image posts** carry no `video_view_count`; some values are `0`.
