@@ -113,11 +113,12 @@ sustained cadence remain unmeasured.
   and `web_profile_info` + grid JSON returned 200. The runner can still hard-stop when DOM permalink
   enumeration is empty before using profile-feed JSON, so JSON shortcode fallback remains a separate
   patch candidate.
-- **IG projection transformer: PROTOTYPE PATCHED** — `source_capture/ig_projection.py` now builds a
-  view-only mechanical row index from existing IG packet `metric_observations`, preserving packet/slice/file
-  anchors, numeric-id identity when present, shortcode/content kind, value/posture coupling, and observed
-  zero values. This is a packet-derived photo-album/index step, not a scheduler, storage engine,
-  production projection, momentum score, or at-scale validation.
+- **IG projection transformer/helper: PROTOTYPE PATCHED** — `source_capture/ig_projection.py` now
+  builds a view-only mechanical row index from existing IG packet `metric_observations`, preserving
+  packet/slice/file anchors, numeric-id identity when present, shortcode/content kind,
+  value/posture coupling, and observed zero values. `run_ig_creator_momentum_projection.py` can
+  materialize that view from an existing packet directory or manifest. This is a packet-derived
+  photo-album/index step, not a scheduler, storage engine, production projection, momentum score, or at-scale validation.
 - **Reel view-count capture: NOT built** — feasibility proven only. The build would extend the
   logged-out runner to capture profile-feed response bodies + follow the grid cursor, parsing
   `video_view_count` per `shortcode` onto the call slices. Needs the runner to **expose response

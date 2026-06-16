@@ -27,6 +27,8 @@ from source_capture.ig_projection import (
     IgProjectionRawAnchor,
     IgProjectionRawRef,
     build_ig_creator_momentum_projection,
+    build_ig_creator_momentum_projection_from_packet_directory,
+    write_ig_creator_momentum_projection,
 )
 from source_capture.reddit_projection import (
     REDDIT_PROJECTION_CERTIFICATION,
@@ -108,10 +110,12 @@ __all__ = [
     "RetailProjectionRawAnchor",
     "RetailProjectionRawRef",
     "build_ig_creator_momentum_projection",
+    "build_ig_creator_momentum_projection_from_packet_directory",
     "build_reddit_api_projection",
     "build_retail_pdp_projection",
     "build_source_quality_report_skeleton",
     "build_source_quality_state_census",
+    "write_ig_creator_momentum_projection",
     "known_fact",
     "not_applicable",
     "not_attempted",

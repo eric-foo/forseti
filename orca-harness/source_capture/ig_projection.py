@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from pathlib import Path
 from typing import Any, Literal, Mapping
 from urllib.parse import urlparse
 
@@ -193,6 +194,61 @@ def build_ig_creator_momentum_projection(
         ),
         residuals=residuals,
     )
+
+
+def build_ig_creator_momentum_projection_from_packet_directory(
+    *,
+    packet_or_manifest_path: Path,
+) -> IgCreatorMomentumProjectionPacket:
+    packet, raw_file_bytes_by_file_id = _read_packet_directory(packet_or_manifest_path)
+    return build_ig_creator_momentum_projection(
+        packet=packet,
+        raw_file_bytes_by_file_id=raw_file_bytes_by_file_id,
+    )
+
+
+def write_ig_creator_momentum_projection(
+    *,
+    packet_or_manifest_path: Path,
+    output_path: Path,
+    overwrite: bool = False,
+) -> IgCreatorMomentumProjectionPacket:
+    projection = build_ig_creator_momentum_projection_from_packet_directory(
+        packet_or_manifest_path=packet_or_manifest_path,
+    )
+    if output_path.exists() and not overwrite:
+        raise FileExistsError(f"output already exists: {output_path}")
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    output_path.write_text(_projection_json_text(projection), encoding="utf-8")
+    return projection
+
+
+def _read_packet_directory(packet_or_manifest_path: Path) -> tuple[SourceCapturePacket, dict[str, bytes]]:
+    manifest_path = packet_or_manifest_path / "manifest.json" if packet_or_manifest_path.is_dir() else packet_or_manifest_path
+    if not manifest_path.exists():
+        raise FileNotFoundError(f"manifest not found: {manifest_path}")
+    packet_dir = manifest_path.parent
+    packet = SourceCapturePacket.model_validate(json.loads(manifest_path.read_text(encoding="utf-8")))
+    raw_file_bytes_by_file_id: dict[str, bytes] = {}
+    for preserved_file in packet.preserved_files:
+        raw_path = _resolve_preserved_file_path(packet_dir, preserved_file.file_id, preserved_file.relative_packet_path)
+        raw_file_bytes_by_file_id[preserved_file.file_id] = raw_path.read_bytes()
+    return packet, raw_file_bytes_by_file_id
+
+
+def _resolve_preserved_file_path(packet_dir: Path, file_id: str, relative_packet_path: str) -> Path:
+    relative_path = Path(relative_packet_path)
+    if relative_path.is_absolute():
+        raise ValueError(f"preserved file path for {file_id} must be packet-relative: {relative_packet_path}")
+    packet_root = packet_dir.resolve()
+    raw_path = (packet_dir / relative_path).resolve()
+    try:
+        raw_path.relative_to(packet_root)
+    except ValueError as exc:
+        raise ValueError(f"preserved file path for {file_id} escapes packet directory: {relative_packet_path}") from exc
+    if not raw_path.exists():
+        raise FileNotFoundError(f"preserved file not found for {file_id}: {raw_path}")
+    return raw_path
 
 
 class _RawContext(StrictModel):
@@ -415,6 +471,10 @@ def _row_id(*, packet_id: str, slice_id: str, metric: str) -> str:
     return f"{packet_id}:{slice_id}:{metric}"
 
 
+def _projection_json_text(projection: IgCreatorMomentumProjectionPacket) -> str:
+    return f"{json.dumps(projection.model_dump(mode='json'), indent=2, sort_keys=True)}\n"
+
+
 def _escape_json_pointer_token(value: str) -> str:
     return value.replace("~", "~0").replace("/", "~1")
 
@@ -442,4 +502,6 @@ __all__ = [
     "IgProjectionRawAnchor",
     "IgProjectionRawRef",
     "build_ig_creator_momentum_projection",
+    "build_ig_creator_momentum_projection_from_packet_directory",
+    "write_ig_creator_momentum_projection",
 ]

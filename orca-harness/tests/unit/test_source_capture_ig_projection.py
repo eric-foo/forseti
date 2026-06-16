@@ -3,8 +3,13 @@ from __future__ import annotations
 import json
 
 import pytest
+from runners import run_ig_creator_momentum_projection
 
-from source_capture.ig_projection import build_ig_creator_momentum_projection
+from source_capture.ig_projection import (
+    IG_PROJECTION_METHOD,
+    build_ig_creator_momentum_projection,
+    build_ig_creator_momentum_projection_from_packet_directory,
+)
 from source_capture.models import (
     CaptureModeCategory,
     CoverageWindow,
@@ -111,6 +116,36 @@ def test_ig_projection_requires_raw_bytes_for_preserved_files() -> None:
 
     with pytest.raises(ValueError, match="file_02"):
         build_ig_creator_momentum_projection(packet=packet, raw_file_bytes_by_file_id=raw)
+
+
+def test_ig_projection_builds_from_existing_packet_directory(tmp_path) -> None:
+    packet, raw = _packet()
+    packet_dir = _write_packet_dir(tmp_path, packet=packet, raw=raw)
+
+    projection = build_ig_creator_momentum_projection_from_packet_directory(
+        packet_or_manifest_path=packet_dir,
+    )
+
+    assert projection.packet_id == "pkt-ig"
+    assert projection.projection_method == IG_PROJECTION_METHOD
+    assert projection.loss_ledger.preserved_metric_rows == 4
+
+
+def test_ig_projection_runner_writes_existing_packet_projection(tmp_path, capsys) -> None:
+    packet, raw = _packet()
+    packet_dir = _write_packet_dir(tmp_path, packet=packet, raw=raw)
+    output_path = tmp_path / "projection" / "ig_projection.json"
+
+    result = run_ig_creator_momentum_projection.main(
+        ["--packet", str(packet_dir / "manifest.json"), "--output", str(output_path)]
+    )
+
+    assert result == 0
+    assert capsys.readouterr().out.strip() == str(output_path)
+    payload = json.loads(output_path.read_text(encoding="utf-8"))
+    assert payload["projection_method"] == IG_PROJECTION_METHOD
+    assert payload["certification"] == "view_only; not_cleaned; not_normalized; not_judgment_ready"
+    assert len(payload["rows"]) == 4
 
 
 def _packet(
@@ -270,6 +305,19 @@ def _preserved_file(file_id: str, relative_path: str, body: bytes) -> PreservedF
         hash_basis="raw_stored_bytes",
         size_bytes=len(body),
     )
+
+
+def _write_packet_dir(tmp_path, *, packet: SourceCapturePacket, raw: dict[str, bytes]):
+    packet_dir = tmp_path / "packet"
+    for preserved_file in packet.preserved_files:
+        raw_path = packet_dir / preserved_file.relative_packet_path
+        raw_path.parent.mkdir(parents=True, exist_ok=True)
+        raw_path.write_bytes(raw[preserved_file.file_id])
+    (packet_dir / "manifest.json").write_text(
+        f"{json.dumps(packet.model_dump(mode='json'), indent=2, sort_keys=True)}\n",
+        encoding="utf-8",
+    )
+    return packet_dir
 
 
 def _json_bytes(payload: dict[str, object]) -> bytes:
