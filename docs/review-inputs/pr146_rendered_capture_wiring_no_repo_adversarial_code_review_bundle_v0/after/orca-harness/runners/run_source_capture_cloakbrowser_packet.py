@@ -1,0 +1,613 @@
+from __future__ import annotations
+
+import argparse
+import json
+import sys
+from pathlib import Path
+from typing import Sequence
+from urllib.parse import urlparse
+
+if __package__ in {None, ""}:
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from source_capture import (
+    CaptureModeCategory,
+    PacketTiming,
+    SourceCaptureSlice,
+    known_fact,
+    not_applicable,
+    not_attempted,
+    unknown_with_reason,
+    write_local_source_capture_packet,
+)
+from source_capture.adapters import CloakBrowserSnapshotFailure, fetch_cloakbrowser_snapshot_capture
+from source_capture.adapters.cloakbrowser_snapshot import (
+    ALLOWED_WAIT_UNTIL,
+    DEFAULT_MAX_ARTIFACT_BYTES,
+    DEFAULT_TIMEOUT_SECONDS,
+    DEFAULT_VIEWPORT_HEIGHT,
+    DEFAULT_VIEWPORT_WIDTH,
+    CloakBrowserSnapshotFailureKind,
+)
+from source_capture.cli_support import (
+    add_durability_arguments,
+    build_intended_cadence,
+    build_optional_fact,
+    require_series_identity,
+)
+from source_capture.proxy_profiles import ProxyCategory, ProxyProfile, load_proxy_profile
+
+
+CLOAKBROWSER_SNAPSHOT_NON_CLAIMS = [
+    "not content sufficiency proof",
+    "not login or session capture",
+    "not stored profile or cookie use",
+    "not proxy use",
+    "not credential injection",
+    "not CAPTCHA solving",
+    "not crawler or source discovery",
+    "not Reddit-specific capture logic",
+    "not API SDK use",
+    "not OCR or image analysis",
+    "not ECR design",
+    "not Cleaning implementation",
+    "not Judgment scoring",
+    "not buyer proof",
+    "not commercial-readiness logic",
+]
+
+
+def run_source_capture_cloakbrowser_packet(
+    *,
+    url: str,
+    source_family: str,
+    source_surface: str,
+    decision_question: str,
+    output_directory: Path,
+    capture_context: str,
+    operator_category: str,
+    capture_mode: CaptureModeCategory,
+    session_id: str | None,
+    proxy_profile: ProxyProfile | None,
+    actor_audience_context,
+    visible_mode_changes: Sequence[str],
+    source_publication_or_event,
+    source_edit_or_version,
+    cutoff_posture,
+    recapture_time,
+    re_capture_relationship,
+    warnings: Sequence[str],
+    limitations: Sequence[str],
+    timeout_seconds: float,
+    wait_until: str,
+    viewport_width: int,
+    viewport_height: int,
+    max_artifact_bytes: int,
+    block_heavy_assets: bool,
+    settle_seconds: float = 0.0,
+    scroll_passes: int = 0,
+    load_more_selector: str | None = None,
+    load_more_clicks: int = 0,
+    scroll_step_px: int = 0,
+    session_visibility_pin=None,
+    locale_pin=None,
+    currency_pin=None,
+    variant_pin=None,
+    series_id: str | None = None,
+    cold_start_at=None,
+    pre_coverage_history_posture=None,
+    intended_cadence: dict[str, object] | None = None,
+) -> tuple[int, str]:
+    capture_result = fetch_cloakbrowser_snapshot_capture(
+        url=url,
+        timeout_seconds=timeout_seconds,
+        wait_until=wait_until,
+        viewport_width=viewport_width,
+        viewport_height=viewport_height,
+        max_artifact_bytes=max_artifact_bytes,
+        proxy_profile=proxy_profile,
+        block_heavy_assets=block_heavy_assets,
+        settle_seconds=settle_seconds,
+        scroll_passes=scroll_passes,
+        load_more_selector=load_more_selector,
+        load_more_clicks=load_more_clicks,
+        scroll_step_px=scroll_step_px,
+    )
+    if isinstance(capture_result, CloakBrowserSnapshotFailure):
+        return 3, f"{_failure_report_token(capture_result.failure_kind)}: {capture_result.message}"
+
+    packet_warnings = list(warnings) + capture_result.warning_notes
+    packet_limitations = list(limitations) + capture_result.limitation_notes
+    if block_heavy_assets:
+        packet_limitations.append(
+            "CloakBrowser snapshot blocked image, media, and font network resources to bound "
+            "proxy bandwidth; rendered content sufficiency is not asserted"
+        )
+    staging_parent = output_directory.parent
+    staging_parent.mkdir(parents=True, exist_ok=True)
+    staged_paths = [
+        staging_parent / "cloakbrowser_rendered_dom.html",
+        staging_parent / "cloakbrowser_visible_text.txt",
+        staging_parent / "cloakbrowser_viewport_screenshot.png",
+        staging_parent / "cloakbrowser_snapshot_metadata.json",
+    ]
+    if any(path.exists() for path in staged_paths):
+        raise ValueError(
+            "CloakBrowser snapshot staging files already exist in the output parent; clear them before rerunning"
+        )
+
+    written_paths: list[Path] = []
+    try:
+        _write_text(staged_paths[0], capture_result.rendered_dom)
+        written_paths.append(staged_paths[0])
+        _write_text(staged_paths[1], capture_result.visible_text)
+        written_paths.append(staged_paths[1])
+        staged_paths[2].write_bytes(capture_result.screenshot_png)
+        written_paths.append(staged_paths[2])
+        _write_text(staged_paths[3], json.dumps(capture_result.metadata, indent=2, sort_keys=True))
+        written_paths.append(staged_paths[3])
+
+        timing = PacketTiming(
+            source_publication_or_event=source_publication_or_event
+            or unknown_with_reason("CloakBrowser snapshot adapter did not infer source publication or event timing"),
+            source_edit_or_version=source_edit_or_version
+            or unknown_with_reason("CloakBrowser snapshot adapter did not infer source edit or version timing"),
+            capture_time=known_fact(str(capture_result.metadata["capture_timestamp"])),
+            recapture_time=recapture_time
+            or not_applicable("CloakBrowser snapshot packet did not model an earlier capture by default"),
+            cutoff_posture=cutoff_posture
+            or unknown_with_reason("CloakBrowser snapshot runner did not receive cutoff posture metadata"),
+        )
+        archive_posture = not_attempted("CloakBrowser snapshot adapter does not query archive or history services")
+        media_posture = known_fact(
+            "cloakbrowser_snapshot preserved a viewport screenshot; linked media files were not independently preserved"
+        )
+        access_posture = known_fact(
+            _access_posture_value(
+                proxy_profile=proxy_profile,
+                access_block_reason=capture_result.access_block_reason,
+            )
+        )
+        recapture_posture = re_capture_relationship or not_applicable(
+            "no prior source capture packet was supplied for this CloakBrowser snapshot capture"
+        )
+
+        result = write_local_source_capture_packet(
+            output_directory=output_directory,
+            input_files=written_paths,
+            source_family=source_family,
+            source_surface=source_surface,
+            source_locator=known_fact(capture_result.requested_url),
+            decision_question=decision_question,
+            capture_context=capture_context,
+            actor_audience_context=actor_audience_context
+            or unknown_with_reason("actor or audience context was not supplied to the CloakBrowser snapshot runner"),
+            capture_mode=capture_mode,
+            operator_category=operator_category,
+            session_identity=session_id,
+            visible_mode_changes=visible_mode_changes,
+            source_publication_or_event=timing.source_publication_or_event,
+            source_edit_or_version=timing.source_edit_or_version,
+            cutoff_posture=timing.cutoff_posture,
+            recapture_time=timing.recapture_time,
+            access_posture=access_posture,
+            archive_history_posture=archive_posture,
+            media_modality_posture=media_posture,
+            re_capture_relationship=recapture_posture,
+            # Demand-durability series facts (Ob.17). Element 2 (series origin) + Element 4
+            # (declared cadence) ride on the packet; Element 1 pins ride on the slice below.
+            # All optional + forwarded verbatim, so a non-durability capture leaves them None
+            # (back-compat; no manifest bump). Observed facts only, never weights (INV-1).
+            series_id=series_id,
+            cold_start_at=cold_start_at,
+            pre_coverage_history_posture=pre_coverage_history_posture,
+            intended_cadence=intended_cadence,
+            source_slices=[
+                SourceCaptureSlice(
+                    slice_id="cloakbrowser_snapshot_01",
+                    locator=known_fact(capture_result.final_url),
+                    timing=timing,
+                    access_posture=access_posture,
+                    archive_history_posture=archive_posture,
+                    media_modality_posture=media_posture,
+                    re_capture_relationship=recapture_posture,
+                    session_visibility_pin=session_visibility_pin,
+                    locale_pin=locale_pin,
+                    currency_pin=currency_pin,
+                    variant_pin=variant_pin,
+                    limitations=packet_limitations,
+                    warning_notes=packet_warnings,
+                    preserved_file_ids=["file_01", "file_02", "file_03", "file_04"],
+                )
+            ],
+            warnings=packet_warnings,
+            limitations=packet_limitations,
+            receipt_summary=_receipt_summary(
+                source_family=source_family,
+                access_block_reason=capture_result.access_block_reason,
+            ),
+            receipt_non_claims=_cloakbrowser_snapshot_non_claims(
+                proxy_profile=proxy_profile,
+                access_block_reason=capture_result.access_block_reason,
+            ),
+        )
+    finally:
+        for staging_path in written_paths:
+            try:
+                staging_path.unlink()
+            except FileNotFoundError:
+                pass
+    return 0, result.output_directory
+
+
+def _write_text(path: Path, text: str) -> None:
+    path.write_text(f"{text}\n", encoding="utf-8", newline="\n")
+
+
+def _failure_report_token(failure_kind: CloakBrowserSnapshotFailureKind) -> str:
+    if failure_kind == CloakBrowserSnapshotFailureKind.DEPENDENCY_UNAVAILABLE:
+        return "cloakbrowser_dependency_unavailable"
+    if failure_kind == CloakBrowserSnapshotFailureKind.ACCESS_BLOCKED:
+        return "cloakbrowser_access_blocked"
+    return f"cloakbrowser_{failure_kind.value}"
+
+
+def _access_posture_value(
+    *,
+    proxy_profile: ProxyProfile | None,
+    access_block_reason: str | None,
+) -> str:
+    if access_block_reason is not None:
+        base = (
+            "cloakbrowser_snapshot access_failed with access block "
+            f"{access_block_reason}; rendered block artifacts preserved through anonymous "
+            "anti-blocking browser capture"
+        )
+        if proxy_profile is None:
+            return f"{base}; content sufficiency is not asserted"
+        return (
+            f"{base} with label-indirected proxy category {proxy_profile.proxy_category.value}; "
+            "endpoint, credentials, and exit IP were not recorded; content sufficiency is not asserted"
+        )
+    if proxy_profile is None:
+        return (
+            "cloakbrowser_snapshot preserved rendered browser artifacts through anonymous anti-blocking browser capture; "
+            "content sufficiency is not asserted"
+        )
+    return (
+        "cloakbrowser_snapshot preserved rendered browser artifacts through anonymous anti-blocking browser capture "
+        f"with label-indirected proxy category {proxy_profile.proxy_category.value}; endpoint, credentials, "
+        "and exit IP were not recorded; content sufficiency is not asserted"
+    )
+
+
+def _receipt_summary(*, source_family: str, access_block_reason: str | None) -> str:
+    if access_block_reason is not None:
+        return (
+            f"CloakBrowser snapshot packet for {source_family} with rendered access-block artifacts "
+            f"preserved for one supplied URL; source content was not captured: {access_block_reason}."
+        )
+    return (
+        f"CloakBrowser snapshot packet for {source_family} with rendered DOM, visible text, "
+        f"viewport screenshot, and method-provenance metadata preserved for one supplied URL."
+    )
+
+
+def _cloakbrowser_snapshot_non_claims(
+    *, proxy_profile: ProxyProfile | None, access_block_reason: str | None
+) -> list[str]:
+    if proxy_profile is None:
+        base: list[str] = list(CLOAKBROWSER_SNAPSHOT_NON_CLAIMS)
+    else:
+        base = [
+            item
+            for item in CLOAKBROWSER_SNAPSHOT_NON_CLAIMS
+            if item != "not proxy use"
+        ] + [
+            "not proxy endpoint or credential disclosure",
+            "not proxy success or block-evasion proof",
+        ]
+    if access_block_reason is not None:
+        return ["not source-content capture; access-block page artifacts only"] + base
+    return base
+
+
+def _build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        description="Capture one URL through anonymous CloakBrowser and write a Source Capture Packet."
+    )
+    parser.add_argument("--url", required=True)
+    parser.add_argument("--source-family", default="web_page")
+    parser.add_argument("--source-surface", default="cloakbrowser_snapshot")
+    parser.add_argument("--decision-question", required=True)
+    parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument(
+        "--capture-context",
+        default=None,
+    )
+    parser.add_argument("--operator-category", default="cloakbrowser_snapshot_cli_operator")
+    parser.add_argument(
+        "--capture-mode",
+        choices=[item.value for item in CaptureModeCategory],
+        default=CaptureModeCategory.MULTIMODAL.value,
+    )
+    parser.add_argument("--session-id", default=None)
+    parser.add_argument("--timeout-seconds", type=float, default=DEFAULT_TIMEOUT_SECONDS)
+    parser.add_argument("--wait-until", choices=sorted(ALLOWED_WAIT_UNTIL), default="load")
+    parser.add_argument("--viewport-width", type=int, default=DEFAULT_VIEWPORT_WIDTH)
+    parser.add_argument("--viewport-height", type=int, default=DEFAULT_VIEWPORT_HEIGHT)
+    parser.add_argument("--max-artifact-bytes", type=int, default=DEFAULT_MAX_ARTIFACT_BYTES)
+    parser.add_argument(
+        "--settle-seconds",
+        type=float,
+        default=0.0,
+        help=(
+            "Seconds to wait after the load event before capturing, so client-rendered (SPA) "
+            "content (e.g. a search/listing grid) can populate. Default 0 (capture at load)."
+        ),
+    )
+    parser.add_argument(
+        "--scroll-passes",
+        type=int,
+        default=0,
+        help=(
+            "After the settle, scroll to the bottom this many times (pausing between) so "
+            "lazy-loaded / 'load more' / infinite-scroll content (e.g. product reviews) "
+            "populates. Default 0 (no scrolling)."
+        ),
+    )
+    parser.add_argument(
+        "--load-more-selector",
+        default=None,
+        help=(
+            "Selector (CSS or 'text=...') for a click-to-load-more control, e.g. "
+            "'text=Show more'. Site-specific, supplied per capture; requires --load-more-clicks."
+        ),
+    )
+    parser.add_argument(
+        "--load-more-clicks",
+        type=int,
+        default=0,
+        help=(
+            "After scrolling, click --load-more-selector up to this many times (pausing between), "
+            "stopping early when it disappears. Default 0 (no clicks)."
+        ),
+    )
+    parser.add_argument(
+        "--scroll-step-px",
+        type=int,
+        default=0,
+        help=(
+            "Before any scroll-to-bottom passes, scroll down incrementally by this many pixels "
+            "(pausing between steps), so content that lazy-loads when its section enters the "
+            "viewport (e.g. a reviews widget) is triggered. Default 0 (off)."
+        ),
+    )
+    parser.add_argument(
+        "--preflight-only",
+        action="store_true",
+        help="Validate CLI inputs and optional proxy profile locally, then exit without network capture.",
+    )
+    parser.add_argument(
+        "--old-reddit-only",
+        action="store_true",
+        help="Fail before network capture unless --url is on old.reddit.com.",
+    )
+    parser.add_argument(
+        "--block-heavy-assets",
+        action="store_true",
+        help="Block image, media, and font resources during browser capture to reduce bandwidth.",
+    )
+    parser.add_argument(
+        "--guarded-reddit-launch",
+        action="store_true",
+        help=(
+            "Cheap single-URL Reddit launch profile: requires old.reddit.com and blocks heavy "
+            "assets. The runner still performs one capture attempt only."
+        ),
+    )
+    parser.add_argument("--proxy-profile-label", default=None)
+    parser.add_argument(
+        "--proxy-profile-category",
+        choices=[item.value for item in ProxyCategory],
+        default=None,
+    )
+    parser.add_argument("--proxy-profile-root", type=Path, default=None)
+    parser.add_argument("--actor-audience-context", default=None)
+    parser.add_argument("--actor-audience-context-unknown-reason", default=None)
+    parser.add_argument("--visible-mode-change", action="append", default=[])
+    parser.add_argument("--source-publication-or-event", default=None)
+    parser.add_argument("--source-publication-or-event-unknown-reason", default=None)
+    parser.add_argument("--source-edit-or-version", default=None)
+    parser.add_argument("--source-edit-or-version-unknown-reason", default=None)
+    parser.add_argument("--cutoff-posture", default=None)
+    parser.add_argument("--cutoff-posture-unknown-reason", default=None)
+    parser.add_argument("--recapture-time", default=None)
+    parser.add_argument("--recapture-time-not-applicable-reason", default=None)
+    parser.add_argument("--recapture-relationship", default=None)
+    parser.add_argument("--recapture-relationship-not-applicable-reason", default=None)
+    parser.add_argument("--warning", action="append", default=[])
+    parser.add_argument("--limitation", action="append", default=[])
+    # The SAME demand-durability flag surface the direct_http writer exposes, so the cadence
+    # runner's injectable writer_main seam can invoke either writer per slot interchangeably.
+    add_durability_arguments(parser)
+    return parser
+
+
+def main(argv: Sequence[str] | None = None) -> int:
+    parser = _build_parser()
+    args = parser.parse_args(argv)
+    try:
+        require_series_identity(args)
+        proxy_profile = _load_optional_proxy_profile(
+            label=args.proxy_profile_label,
+            category=args.proxy_profile_category,
+            profile_root=args.proxy_profile_root,
+        )
+        old_reddit_only = args.old_reddit_only or args.guarded_reddit_launch
+        block_heavy_assets = args.block_heavy_assets or args.guarded_reddit_launch
+        if old_reddit_only:
+            _validate_old_reddit_url(args.url)
+        if args.preflight_only:
+            print(
+                "source capture CloakBrowser preflight passed; no network capture attempted; "
+                f"proxy_profile={'present' if proxy_profile is not None else 'absent'}; "
+                f"old_reddit_only={old_reddit_only}; block_heavy_assets={block_heavy_assets}"
+            )
+            return 0
+        capture_context = args.capture_context or _default_capture_context(
+            proxy_profile=proxy_profile
+        )
+        exit_code, message = run_source_capture_cloakbrowser_packet(
+            url=args.url,
+            source_family=args.source_family,
+            source_surface=args.source_surface,
+            decision_question=args.decision_question,
+            output_directory=args.output,
+            capture_context=capture_context,
+            operator_category=args.operator_category,
+            capture_mode=CaptureModeCategory(args.capture_mode),
+            session_id=args.session_id,
+            proxy_profile=proxy_profile,
+            actor_audience_context=build_optional_fact(
+                label="actor/audience context",
+                value=args.actor_audience_context,
+                unknown_reason=args.actor_audience_context_unknown_reason,
+            ),
+            visible_mode_changes=args.visible_mode_change,
+            source_publication_or_event=build_optional_fact(
+                label="source publication or event timing",
+                value=args.source_publication_or_event,
+                unknown_reason=args.source_publication_or_event_unknown_reason,
+            ),
+            source_edit_or_version=build_optional_fact(
+                label="source edit or version timing",
+                value=args.source_edit_or_version,
+                unknown_reason=args.source_edit_or_version_unknown_reason,
+            ),
+            cutoff_posture=build_optional_fact(
+                label="cutoff posture",
+                value=args.cutoff_posture,
+                unknown_reason=args.cutoff_posture_unknown_reason,
+            ),
+            recapture_time=build_optional_fact(
+                label="re-capture timing",
+                value=args.recapture_time,
+                not_applicable_reason=args.recapture_time_not_applicable_reason,
+            ),
+            re_capture_relationship=build_optional_fact(
+                label="re-capture relationship",
+                value=args.recapture_relationship,
+                not_applicable_reason=args.recapture_relationship_not_applicable_reason,
+            ),
+            warnings=args.warning,
+            limitations=args.limitation,
+            timeout_seconds=args.timeout_seconds,
+            wait_until=args.wait_until,
+            viewport_width=args.viewport_width,
+            viewport_height=args.viewport_height,
+            max_artifact_bytes=args.max_artifact_bytes,
+            block_heavy_assets=block_heavy_assets,
+            settle_seconds=args.settle_seconds,
+            scroll_passes=args.scroll_passes,
+            load_more_selector=args.load_more_selector,
+            load_more_clicks=args.load_more_clicks,
+            scroll_step_px=args.scroll_step_px,
+            # Demand-durability series facts (Ob.17). Element 1 pins (each an honest
+            # value/unknown/not-applicable VisibleFact) ride on the slice; Element 2 origin
+            # postures + Element 4 declared cadence ride on the packet. Observed facts only,
+            # forwarded verbatim, never weights or a durable-vs-hollow verdict (INV-1).
+            session_visibility_pin=build_optional_fact(
+                label="session visibility pin",
+                value=args.session_visibility_pin,
+                unknown_reason=args.session_visibility_pin_unknown_reason,
+                not_applicable_reason=args.session_visibility_pin_not_applicable_reason,
+            ),
+            locale_pin=build_optional_fact(
+                label="locale pin",
+                value=args.locale_pin,
+                unknown_reason=args.locale_pin_unknown_reason,
+                not_applicable_reason=args.locale_pin_not_applicable_reason,
+            ),
+            currency_pin=build_optional_fact(
+                label="currency pin",
+                value=args.currency_pin,
+                unknown_reason=args.currency_pin_unknown_reason,
+                not_applicable_reason=args.currency_pin_not_applicable_reason,
+            ),
+            variant_pin=build_optional_fact(
+                label="variant pin",
+                value=args.variant_pin,
+                unknown_reason=args.variant_pin_unknown_reason,
+                not_applicable_reason=args.variant_pin_not_applicable_reason,
+            ),
+            series_id=args.series_id,
+            cold_start_at=build_optional_fact(
+                label="cold-start timing",
+                value=args.cold_start_at,
+                unknown_reason=args.cold_start_at_unknown_reason,
+                not_applicable_reason=args.cold_start_at_not_applicable_reason,
+            ),
+            pre_coverage_history_posture=build_optional_fact(
+                label="pre-coverage history posture",
+                value=args.pre_coverage_history_posture,
+                unknown_reason=args.pre_coverage_history_posture_unknown_reason,
+                not_applicable_reason=args.pre_coverage_history_posture_not_applicable_reason,
+            ),
+            intended_cadence=build_intended_cadence(args),
+        )
+    except ValueError as exc:
+        parser.exit(status=2, message=f"source capture CloakBrowser snapshot failed: {exc}\n")
+    except Exception as exc:
+        parser.exit(status=3, message=f"source capture CloakBrowser snapshot failed: {exc}\n")
+
+    if exit_code == 0:
+        print(message)
+        return 0
+
+    parser.exit(status=exit_code, message=f"source capture CloakBrowser snapshot failed: {message}\n")
+    return exit_code
+
+
+def _load_optional_proxy_profile(
+    *,
+    label: str | None,
+    category: str | None,
+    profile_root: Path | None,
+) -> ProxyProfile | None:
+    if label is None and category is None:
+        return None
+    if not label or not category:
+        raise ValueError(
+            "proxy profile capture requires both --proxy-profile-label and --proxy-profile-category"
+        )
+    return load_proxy_profile(
+        label,
+        proxy_category=ProxyCategory(category),
+        profile_root=profile_root,
+    )
+
+
+def _validate_old_reddit_url(url: str) -> None:
+    parsed = urlparse(url)
+    if parsed.scheme not in {"http", "https"} or parsed.hostname != "old.reddit.com":
+        raise ValueError(
+            "--old-reddit-only/--guarded-reddit-launch requires an absolute old.reddit.com URL"
+        )
+
+
+def _default_capture_context(*, proxy_profile: ProxyProfile | None) -> str:
+    if proxy_profile is None:
+        return (
+            "anonymous CloakBrowser anti-blocking browser source capture without stored session, "
+            "proxy, profile, or credential injection"
+        )
+    return (
+        "anonymous CloakBrowser anti-blocking browser source capture using a label-indirected "
+        f"{proxy_profile.proxy_category.value} proxy profile; no stored session, browser profile, "
+        "or credential injection into packet artifacts"
+    )
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

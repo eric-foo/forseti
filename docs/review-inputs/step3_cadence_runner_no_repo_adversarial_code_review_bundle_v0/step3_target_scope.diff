@@ -1,0 +1,834 @@
+diff --git a/orca-harness/runners/run_source_capture_durability_series.py b/orca-harness/runners/run_source_capture_durability_series.py
+new file mode 100644
+index 00000000..6acc25ad
+--- /dev/null
++++ b/orca-harness/runners/run_source_capture_durability_series.py
+@@ -0,0 +1,511 @@
++"""Operator-triggered demand-durability series runner (capture-spine step 3).
++
++This is the cadence RUNNER that runs a *commissioned* demand-durability proxy series
++OVER TIME. It does NOT score, rank, weight, or judge demand (INV-1); it only records
++observed facts and their limits. Whether the series shows durable vs hollow demand is
++downstream Judgment.
++
++What it is (option A, operator-triggered per slot -- the lowest standing footprint):
++
++- A bounded, Decision-Frame-tied series is declared once (``init``) from a series spec:
++  a ``series_id``, a fixed source set (one or more URLs), a declared cadence plan built
++  via ``cadence.build_cadence_plan`` (the SAME primitive the step-2 writer uses -- no
++  re-invented cadence math), the demand-durability pins/postures, and a Decision-Frame
++  reference. The series is bounded to the cadence plan's ``slot_count``.
++- Each slot is executed by a SEPARATE operator invocation (``run-slot``), which fetches
++  the source(s) NOW by calling the step-2 durability writer
++  (``run_source_capture_http_packet``) per URL for that one observation, then records the
++  realized ``capture_time`` vs the intended slot time.
++- A slot the operator could not (or chose not to) sample is recorded explicitly as
++  ``un-observed`` (``mark-gap`` / a failed ``run-slot``). A gap is a visible LIMITATION,
++  NEVER "the source did not change" -- absence of an observation is not a no-change fact.
++
++What it is NOT:
++
++- NOT a scheduler/cron/daemon/queue (options B/C were owner-deferred as higher standing
++  footprint). The operator triggers each slot; this runner keeps only the minimal on-disk
++  series state needed to track slots across those separate invocations.
++- NOT an open crawler. The series is tied to a Decision Frame + fixed source set
++  (obligation contract Ob.1 commissioning gate) and bounded to ``slot_count``.
++- NOT series-diff / change-detection (Element 3, deferred). This runner records the
++  observation packets + realized timings + gaps only; comparing extracted values across
++  observations is a separate follow-on.
++
++Series state on disk (smallest-complete; no DB):
++
++    <series_dir>/
++        series_index.json     # the spec + per-slot records (intended vs realized, status)
++        obs_000/, obs_001/...  # one subdir per (slot, url) observation = a SourceCapturePacket
++
++Each slot record is one of:
++    {"status": "pending"}                                   # not yet sampled
++    {"status": "observed", realized timings + packet paths} # sampled; capture_time recorded
++    {"status": "un_observed", "gap_reason": ...}            # gap: visible limitation, not no-change
++"""
++
++from __future__ import annotations
++
++import argparse
++import json
++import sys
++from dataclasses import dataclass
++from datetime import datetime, timezone
++from pathlib import Path
++from typing import Sequence
++
++if __package__ in {None, ""}:
++    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
++
++from source_capture.cadence import build_cadence_plan
++from runners.run_source_capture_http_packet import main as run_http_packet_main
++
++
++SERIES_INDEX_FILENAME = "series_index.json"
++SERIES_INDEX_VERSION = "demand_durability_series_index_v0"
++
++# Slot status vocabulary. ``un_observed`` is deliberately distinct from any "no change"
++# notion: a gap is a visible limitation, never a no-change fact (the load-bearing
++# gap != no-change invariant).
++SLOT_PENDING = "pending"
++SLOT_OBSERVED = "observed"
++SLOT_UN_OBSERVED = "un_observed"
++
++SERIES_RUNNER_NON_CLAIMS = [
++    "not a scheduler, cron, daemon, or queue (operator triggers each slot)",
++    "not an open crawler (commissioned, Decision-Frame-bound, slot-count-bounded series)",
++    "not series-diff or change-detection (Element 3 deferred)",
++    "not a demand verdict, score, rank, weight, or threshold (INV-1)",
++    "not a durable-vs-hollow judgment",
++    "a gap is recorded as un-observed, never as no-change",
++]
++
++
++def _utc_now_z() -> str:
++    """Current UTC instant in the ISO-8601 ``...Z`` form used across the capture envelope."""
++    return datetime.now(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
++
++
++def _parse_z(timestamp: str) -> datetime:
++    """Parse an ISO-8601 ``...Z`` (or offset) timestamp to an aware UTC datetime."""
++    parsed = datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
++    if parsed.tzinfo is None:
++        parsed = parsed.replace(tzinfo=timezone.utc)
++    return parsed.astimezone(timezone.utc)
++
++
++@dataclass(frozen=True)
++class DurabilityPins:
++    """The Element-1 pins + Element-2 series-origin postures held fixed across the series.
++
++    Each is a raw operator string (a known value) or ``None`` (the writer records an honest
++    gap). A future caller that needs unknown/not-applicable reasons can extend the spec; the
++    runner forwards whatever is present to the step-2 writer's flags verbatim. These are
++    observed facts, never weights (INV-1).
++    """
++
++    session_visibility_pin: str | None = None
++    locale_pin: str | None = None
++    currency_pin: str | None = None
++    variant_pin: str | None = None
++    variant_pin_unknown_reason: str | None = None
++    cold_start_at: str | None = None
++    pre_coverage_history_posture: str | None = None
++
++    @classmethod
++    def from_dict(cls, data: dict[str, object]) -> "DurabilityPins":
++        known = {field for field in cls.__dataclass_fields__}
++        unknown = set(data) - known
++        if unknown:
++            raise ValueError(f"unknown durability pin keys: {', '.join(sorted(unknown))}")
++        return cls(**{key: data[key] for key in data})  # type: ignore[arg-type]
++
++    def to_dict(self) -> dict[str, object]:
++        return {key: getattr(self, key) for key in self.__dataclass_fields__ if getattr(self, key) is not None}
++
++
++def build_series_index(
++    *,
++    series_id: str,
++    urls: Sequence[str],
++    decision_frame_ref: str,
++    decision_question: str,
++    cadence_mode: str,
++    slot_count: int,
++    delay_seconds: float | None = None,
++    window_seconds: float | None = None,
++    min_gap_seconds: float | None = None,
++    max_gap_seconds: float | None = None,
++    random_seed: int | None = None,
++    pins: DurabilityPins | None = None,
++    anchor_time: str | None = None,
++) -> dict[str, object]:
++    """Build the series index (spec + empty per-slot records) for a new commissioned series.
++
++    The cadence plan is built with ``cadence.build_cadence_plan`` (the reused primitive); its
++    ``planned_offsets_seconds`` define the intended slot times relative to ``anchor_time`` (the
++    declared series start; defaults to now). ``slot_count`` bounds the series -- the runner
++    refuses to run a slot beyond it (Ob.1: bounded commissioned unit, not an open crawler).
++    """
++    if not urls:
++        raise ValueError("a demand-durability series requires at least one source URL")
++
++    plan = build_cadence_plan(
++        slot_count=slot_count,
++        mode=cadence_mode,
++        delay_seconds=delay_seconds if delay_seconds is not None else 0.0,
++        window_seconds=window_seconds,
++        min_gap_seconds=min_gap_seconds,
++        max_gap_seconds=max_gap_seconds,
++        random_seed=random_seed,
++    )
++    anchor = anchor_time or _utc_now_z()
++    anchor_dt = _parse_z(anchor)
++    pins = pins or DurabilityPins()
++
++    slots: list[dict[str, object]] = []
++    for slot_index, offset in enumerate(plan.planned_offsets_seconds):
++        intended_dt = datetime.fromtimestamp(anchor_dt.timestamp() + offset, tz=timezone.utc)
++        slots.append(
++            {
++                "slot_index": slot_index,
++                "intended_offset_seconds": offset,
++                "intended_slot_time": intended_dt.isoformat(timespec="seconds").replace("+00:00", "Z"),
++                "status": SLOT_PENDING,
++                "observations": [],
++            }
++        )
++
++    return {
++        "series_index_version": SERIES_INDEX_VERSION,
++        "series_id": series_id,
++        "decision_frame_ref": decision_frame_ref,
++        "decision_question": decision_question,
++        "urls": list(urls),
++        "anchor_time": anchor,
++        "slot_count": slot_count,
++        "intended_cadence": plan.to_dict(),
++        "durability_pins": pins.to_dict(),
++        "slots": slots,
++        "non_claims": list(SERIES_RUNNER_NON_CLAIMS),
++    }
++
++
++def _read_index(series_dir: Path) -> dict[str, object]:
++    index_path = series_dir / SERIES_INDEX_FILENAME
++    if not index_path.exists():
++        raise ValueError(f"no series index at {index_path}; run `init` first")
++    return json.loads(index_path.read_text(encoding="utf-8"))
++
++
++def _write_index(series_dir: Path, index: dict[str, object]) -> None:
++    (series_dir / SERIES_INDEX_FILENAME).write_text(
++        json.dumps(index, indent=2, sort_keys=True) + "\n", encoding="utf-8"
++    )
++
++
++def _slot_record(index: dict[str, object], slot_index: int) -> dict[str, object]:
++    slots = index["slots"]
++    if slot_index < 0 or slot_index >= len(slots):
++        raise ValueError(
++            f"slot {slot_index} is out of bounds for a bounded series with slot_count "
++            f"{index['slot_count']} (valid slots: 0..{len(slots) - 1})"
++        )
++    return slots[slot_index]
++
++
++def _writer_argv_for_observation(
++    *,
++    index: dict[str, object],
++    url: str,
++    output_dir: Path,
++    cold_start: bool,
++) -> list[str]:
++    """Build the step-2 writer's argv for one observation.
++
++    The intended_cadence, pins, and series identity are forwarded to the step-2 writer's
++    OWN flags so the writer (not this runner) populates the packet's durability fields --
++    no re-implementation of pin/cadence math here. ``cold_start`` gates the Element-2
++    series-origin postures onto the first observed slot only.
++    """
++    cadence = index["intended_cadence"]
++    pins = index["durability_pins"]
++    argv = [
++        "--url",
++        url,
++        "--decision-question",
++        str(index["decision_question"]),
++        "--output",
++        str(output_dir),
++        "--series-id",
++        str(index["series_id"]),
++        "--intended-cadence-mode",
++        str(cadence["mode"]),
++        "--intended-cadence-slot-count",
++        str(cadence["slot_count"]),
++    ]
++    if cadence.get("delay_seconds") is not None:
++        argv += ["--intended-cadence-delay-seconds", str(cadence["delay_seconds"])]
++    if cadence.get("window_seconds") is not None:
++        argv += ["--intended-cadence-window-seconds", str(cadence["window_seconds"])]
++    if cadence.get("min_gap_seconds") is not None:
++        argv += ["--intended-cadence-min-gap-seconds", str(cadence["min_gap_seconds"])]
++    if cadence.get("max_gap_seconds") is not None:
++        argv += ["--intended-cadence-max-gap-seconds", str(cadence["max_gap_seconds"])]
++    if cadence.get("random_seed") is not None:
++        argv += ["--intended-cadence-random-seed", str(cadence["random_seed"])]
++
++    if pins.get("session_visibility_pin") is not None:
++        argv += ["--session-visibility-pin", str(pins["session_visibility_pin"])]
++    if pins.get("locale_pin") is not None:
++        argv += ["--locale-pin", str(pins["locale_pin"])]
++    if pins.get("currency_pin") is not None:
++        argv += ["--currency-pin", str(pins["currency_pin"])]
++    if pins.get("variant_pin") is not None:
++        argv += ["--variant-pin", str(pins["variant_pin"])]
++    elif pins.get("variant_pin_unknown_reason") is not None:
++        argv += ["--variant-pin-unknown-reason", str(pins["variant_pin_unknown_reason"])]
++
++    # Element-2 series-origin postures mark the FIRST observed slot only (the cold start).
++    if cold_start:
++        if pins.get("cold_start_at") is not None:
++            argv += ["--cold-start-at", str(pins["cold_start_at"])]
++        if pins.get("pre_coverage_history_posture") is not None:
++            argv += ["--pre-coverage-history-posture", str(pins["pre_coverage_history_posture"])]
++    return argv
++
++
++def _read_capture_time(packet_dir: Path) -> str | None:
++    """Read the realized ``capture_time`` from a written packet's manifest, if present."""
++    manifest_path = packet_dir / "manifest.json"
++    if not manifest_path.exists():
++        return None
++    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
++    timing = manifest.get("timing", {})
++    capture_time = timing.get("capture_time", {})
++    return capture_time.get("value")
++
++
++def _any_slot_observed(index: dict[str, object]) -> bool:
++    return any(slot["status"] == SLOT_OBSERVED for slot in index["slots"])
++
++
++def run_slot(
++    *,
++    series_dir: Path,
++    slot_index: int,
++    writer_main=run_http_packet_main,
++    now_z: str | None = None,
++) -> tuple[str, dict[str, object]]:
++    """Execute one slot NOW: fetch each series URL via the step-2 writer, record realized timings.
++
++    Returns ``(status, slot_record)`` where status is ``observed`` (every URL captured) or
++    ``un_observed`` (the slot is recorded as a gap because a fetch failed). A failed fetch is
++    NEVER recorded as a no-change fact -- it is an honest un-observed gap (limitation).
++    """
++    index = _read_index(series_dir)
++    slot = _slot_record(index, slot_index)
++    cold_start = not _any_slot_observed(index)
++    realized_now = now_z or _utc_now_z()
++
++    observations: list[dict[str, object]] = []
++    failures: list[str] = []
++    for url_index, url in enumerate(index["urls"]):
++        output_dir = series_dir / f"obs_{slot_index:03d}_{url_index:02d}"
++        argv = _writer_argv_for_observation(
++            index=index, url=url, output_dir=output_dir, cold_start=cold_start
++        )
++        # The step-2 writer surfaces a fetch/validation failure either as a non-zero return
++        # OR as ``SystemExit`` (its CLI ``main`` calls ``parser.exit``). Treat BOTH as a failed
++        # observation so the slot is recorded as an un-observed GAP, never silently as no-change.
++        try:
++            exit_code = writer_main(argv)
++        except SystemExit as exc:
++            code = exc.code if isinstance(exc.code, int) else 1
++            failures.append(f"url[{url_index}] {url}: writer exit {code}")
++            continue
++        if exit_code != 0:
++            failures.append(f"url[{url_index}] {url}: writer exit {exit_code}")
++            continue
++        capture_time = _read_capture_time(output_dir)
++        observation: dict[str, object] = {
++            "url": url,
++            "packet_dir": output_dir.name,
++            "realized_capture_time": capture_time,
++        }
++        if capture_time is not None:
++            observation["lateness_seconds"] = round(
++                _parse_z(capture_time).timestamp() - _parse_z(slot["intended_slot_time"]).timestamp(),
++                3,
++            )
++        observations.append(observation)
++
++    if failures:
++        # A slot whose fetch(es) failed is an un-observed GAP -- a visible limitation, never a
++        # no-change fact. Any partial observations are still recorded, but the slot status is
++        # un_observed so downstream readers never mistake an incomplete slot for "no change".
++        slot["status"] = SLOT_UN_OBSERVED
++        slot["gap_reason"] = "; ".join(failures)
++        slot["gap_kind"] = "fetch_failed"
++        slot["recorded_at"] = realized_now
++        slot["observations"] = observations
++        _write_index(series_dir, index)
++        return SLOT_UN_OBSERVED, slot
++
++    slot["status"] = SLOT_OBSERVED
++    slot["was_cold_start"] = cold_start
++    slot["recorded_at"] = realized_now
++    slot["observations"] = observations
++    _write_index(series_dir, index)
++    return SLOT_OBSERVED, slot
++
++
++def mark_gap(*, series_dir: Path, slot_index: int, reason: str, now_z: str | None = None) -> dict[str, object]:
++    """Record a slot the operator did NOT sample as an un-observed gap (a visible limitation).
++
++    This is the explicit "I skipped/could not run this slot" path. The slot is ``un_observed``
++    with ``gap_kind=skipped``; it is NEVER "no change."
++    """
++    index = _read_index(series_dir)
++    slot = _slot_record(index, slot_index)
++    slot["status"] = SLOT_UN_OBSERVED
++    slot["gap_reason"] = reason
++    slot["gap_kind"] = "skipped"
++    slot["recorded_at"] = now_z or _utc_now_z()
++    _write_index(series_dir, index)
++    return slot
++
++
++def series_status(series_dir: Path) -> dict[str, object]:
++    """Summarize the series: counts of pending / observed / un-observed slots (facts only)."""
++    index = _read_index(series_dir)
++    slots = index["slots"]
++    counts = {SLOT_PENDING: 0, SLOT_OBSERVED: 0, SLOT_UN_OBSERVED: 0}
++    for slot in slots:
++        counts[slot["status"]] = counts.get(slot["status"], 0) + 1
++    return {
++        "series_id": index["series_id"],
++        "decision_frame_ref": index["decision_frame_ref"],
++        "slot_count": index["slot_count"],
++        "observed": counts[SLOT_OBSERVED],
++        "un_observed": counts[SLOT_UN_OBSERVED],
++        "pending": counts[SLOT_PENDING],
++        "complete": counts[SLOT_PENDING] == 0,
++    }
++
++
++def _cmd_init(args: argparse.Namespace) -> int:
++    pins = DurabilityPins(
++        session_visibility_pin=args.session_visibility_pin,
++        locale_pin=args.locale_pin,
++        currency_pin=args.currency_pin,
++        variant_pin=args.variant_pin,
++        variant_pin_unknown_reason=args.variant_pin_unknown_reason,
++        cold_start_at=args.cold_start_at,
++        pre_coverage_history_posture=args.pre_coverage_history_posture,
++    )
++    index = build_series_index(
++        series_id=args.series_id,
++        urls=args.url,
++        decision_frame_ref=args.decision_frame_ref,
++        decision_question=args.decision_question,
++        cadence_mode=args.cadence_mode,
++        slot_count=args.slot_count,
++        delay_seconds=args.cadence_delay_seconds,
++        window_seconds=args.cadence_window_seconds,
++        min_gap_seconds=args.cadence_min_gap_seconds,
++        max_gap_seconds=args.cadence_max_gap_seconds,
++        random_seed=args.cadence_random_seed,
++        pins=pins,
++        anchor_time=args.anchor_time,
++    )
++    series_dir = args.series_dir
++    if (series_dir / SERIES_INDEX_FILENAME).exists():
++        raise ValueError(f"series already initialized at {series_dir}; refusing to overwrite")
++    series_dir.mkdir(parents=True, exist_ok=True)
++    _write_index(series_dir, index)
++    print(str(series_dir / SERIES_INDEX_FILENAME))
++    return 0
++
++
++def _cmd_run_slot(args: argparse.Namespace) -> int:
++    status, _slot = run_slot(series_dir=args.series_dir, slot_index=args.slot)
++    print(f"slot {args.slot}: {status}")
++    return 0 if status == SLOT_OBSERVED else 4
++
++
++def _cmd_mark_gap(args: argparse.Namespace) -> int:
++    mark_gap(series_dir=args.series_dir, slot_index=args.slot, reason=args.reason)
++    print(f"slot {args.slot}: un_observed (skipped)")
++    return 0
++
++
++def _cmd_status(args: argparse.Namespace) -> int:
++    print(json.dumps(series_status(args.series_dir), indent=2, sort_keys=True))
++    return 0
++
++
++def _build_parser() -> argparse.ArgumentParser:
++    parser = argparse.ArgumentParser(
++        description=(
++            "Operator-triggered demand-durability series runner: run a commissioned, "
++            "Decision-Frame-bound series over time by invoking the step-2 durability writer "
++            "per slot. Records realized timings + gaps. INV-1: facts only, no demand verdict."
++        )
++    )
++    sub = parser.add_subparsers(dest="command", required=True)
++
++    init = sub.add_parser("init", help="declare a new commissioned series from a spec")
++    init.add_argument("--series-dir", type=Path, required=True)
++    init.add_argument("--series-id", required=True)
++    init.add_argument("--decision-frame-ref", required=True, help="reference to the commissioning Decision Frame (Ob.1)")
++    init.add_argument("--decision-question", required=True)
++    init.add_argument("--url", action="append", required=True, help="a source URL (repeatable for a fixed source set)")
++    init.add_argument("--anchor-time", default=None, help="declared series start (ISO-8601 ...Z); defaults to now")
++    init.add_argument("--cadence-mode", choices=["fixed", "bounded_jitter"], required=True)
++    init.add_argument("--slot-count", type=int, required=True)
++    init.add_argument("--cadence-delay-seconds", type=float, default=None)
++    init.add_argument("--cadence-window-seconds", type=float, default=None)
++    init.add_argument("--cadence-min-gap-seconds", type=float, default=None)
++    init.add_argument("--cadence-max-gap-seconds", type=float, default=None)
++    init.add_argument("--cadence-random-seed", type=int, default=None)
++    init.add_argument("--session-visibility-pin", default=None)
++    init.add_argument("--locale-pin", default=None)
++    init.add_argument("--currency-pin", default=None)
++    init.add_argument("--variant-pin", default=None)
++    init.add_argument("--variant-pin-unknown-reason", default=None)
++    init.add_argument("--cold-start-at", default=None)
++    init.add_argument("--pre-coverage-history-posture", default=None)
++    init.set_defaults(func=_cmd_init)
++
++    run = sub.add_parser("run-slot", help="execute one slot NOW (fetch + record); operator-triggered")
++    run.add_argument("--series-dir", type=Path, required=True)
++    run.add_argument("--slot", type=int, required=True)
++    run.set_defaults(func=_cmd_run_slot)
++
++    gap = sub.add_parser("mark-gap", help="record a slot as an un-observed gap (skipped); never no-change")
++    gap.add_argument("--series-dir", type=Path, required=True)
++    gap.add_argument("--slot", type=int, required=True)
++    gap.add_argument("--reason", required=True)
++    gap.set_defaults(func=_cmd_mark_gap)
++
++    status = sub.add_parser("status", help="summarize observed / un-observed / pending slots (facts only)")
++    status.add_argument("--series-dir", type=Path, required=True)
++    status.set_defaults(func=_cmd_status)
++
++    return parser
++
++
++def main(argv: Sequence[str] | None = None) -> int:
++    parser = _build_parser()
++    args = parser.parse_args(argv)
++    try:
++        return args.func(args)
++    except ValueError as exc:
++        parser.exit(status=2, message=f"demand-durability series runner failed: {exc}\n")
++    except Exception as exc:  # surface, do not swallow
++        parser.exit(status=3, message=f"demand-durability series runner failed: {exc}\n")
++    return 0
++
++
++if __name__ == "__main__":
++    raise SystemExit(main())
+diff --git a/orca-harness/tests/unit/test_source_capture_durability_series.py b/orca-harness/tests/unit/test_source_capture_durability_series.py
+new file mode 100644
+index 00000000..9bdd13d5
+--- /dev/null
++++ b/orca-harness/tests/unit/test_source_capture_durability_series.py
+@@ -0,0 +1,311 @@
++"""Tests for the operator-triggered demand-durability series runner (capture-spine step 3).
++
++These exercise the runner end-to-end against a local stdlib HTTP server (the same fixture
++shape as ``test_source_capture_direct_http.py``), so the step-2 durability writer is invoked
++for real per slot and writes real ``SourceCapturePacket``s -- no live network, no real SKU.
++
++Coverage maps to the step-3 brief:
++- the declared cadence is honored (slots run per the plan's offsets/slot_count);
++- a gap is recorded as ``un_observed`` -- NEVER "no change";
++- the series is bounded to ``slot_count`` (a slot beyond it is rejected);
++- INV-1: the runner records facts + limits, never a score/rank/weight/verdict.
++"""
++
++from __future__ import annotations
++
++import json
++import shutil
++import threading
++import uuid
++from dataclasses import dataclass
++from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
++from pathlib import Path
++
++import pytest
++
++from runners.run_source_capture_durability_series import (
++    SERIES_INDEX_FILENAME,
++    SERIES_RUNNER_NON_CLAIMS,
++    SLOT_OBSERVED,
++    SLOT_PENDING,
++    SLOT_UN_OBSERVED,
++    build_series_index,
++    main as series_main,
++    run_slot,
++    series_status,
++)
++
++
++@pytest.fixture
++def scratch_dir() -> Path:
++    root = Path(__file__).resolve().parents[2] / "_test_runs"
++    path = root / f"durability_series_{uuid.uuid4().hex}"
++    path.mkdir(parents=True)
++    try:
++        yield path
++    finally:
++        shutil.rmtree(path, ignore_errors=True)
++
++
++@dataclass(frozen=True)
++class _RouteResponse:
++    status: int
++    body: bytes
++    headers: dict[str, str]
++
++
++@pytest.fixture
++def http_server():
++    routes = {
++        "/sku": _RouteResponse(
++            status=200,
++            body=b"<html>price: $44.00 in_stock</html>\n",
++            headers={"Content-Type": "text/html; charset=utf-8"},
++        ),
++    }
++
++    class Handler(BaseHTTPRequestHandler):
++        def do_GET(self) -> None:  # noqa: N802
++            route = routes.get(self.path)
++            if route is None:
++                self.send_response(500)
++                self.end_headers()
++                self.wfile.write(b"unexpected path")
++                return
++            self.send_response(route.status)
++            for key, value in route.headers.items():
++                self.send_header(key, value)
++            self.end_headers()
++            if route.body:
++                self.wfile.write(route.body)
++
++        def log_message(self, format: str, *args: object) -> None:
++            return
++
++    server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
++    thread = threading.Thread(target=server.serve_forever, daemon=True)
++    thread.start()
++    try:
++        yield f"http://127.0.0.1:{server.server_address[1]}"
++    finally:
++        server.shutdown()
++        server.server_close()
++        thread.join(timeout=5)
++
++
++def _init_series(
++    *,
++    series_dir: Path,
++    url: str,
++    slot_count: int = 3,
++    delay_seconds: float = 86400.0,
++    anchor_time: str = "2026-06-15T00:00:00Z",
++) -> int:
++    return series_main(
++        [
++            "init",
++            "--series-dir",
++            str(series_dir),
++            "--series-id",
++            "test_series_001",
++            "--decision-frame-ref",
++            "DF-test-001",
++            "--decision-question",
++            "Is demand for this SKU durable across the series window?",
++            "--url",
++            url,
++            "--anchor-time",
++            anchor_time,
++            "--cadence-mode",
++            "fixed",
++            "--slot-count",
++            str(slot_count),
++            "--cadence-delay-seconds",
++            str(delay_seconds),
++            "--session-visibility-pin",
++            "logged_out_public",
++            "--locale-pin",
++            "en-US",
++            "--currency-pin",
++            "USD",
++            "--variant-pin-unknown-reason",
++            "default on-page variant; not pinned to a specific SKU id",
++            "--cold-start-at",
++            anchor_time,
++            "--pre-coverage-history-posture",
++            "uncovered by construction; series began at first commissioned capture",
++        ]
++    )
++
++
++def test_init_builds_bounded_series_with_declared_cadence(http_server: str, scratch_dir: Path) -> None:
++    # The declared cadence is honored: the series index carries the canonical CadencePlan shape
++    # and one slot per planned offset, bounded to slot_count. No score/verdict (INV-1).
++    series_dir = scratch_dir / "series"
++    assert _init_series(series_dir=series_dir, url=f"{http_server}/sku", slot_count=3) == 0
++
++    index = json.loads((series_dir / SERIES_INDEX_FILENAME).read_text(encoding="utf-8"))
++    assert index["series_id"] == "test_series_001"
++    assert index["decision_frame_ref"] == "DF-test-001"
++    assert index["slot_count"] == 3
++    # Cadence is the canonical CadencePlan.to_dict() shape (reused primitive; no invented shape).
++    assert index["intended_cadence"]["mode"] == "fixed"
++    assert index["intended_cadence"]["slot_count"] == 3
++    assert index["intended_cadence"]["planned_offsets_seconds"] == [0.0, 86400.0, 172800.0]
++    # One slot per planned offset; intended slot times = anchor + offset; all pending at init.
++    assert [slot["slot_index"] for slot in index["slots"]] == [0, 1, 2]
++    assert [slot["intended_slot_time"] for slot in index["slots"]] == [
++        "2026-06-15T00:00:00Z",
++        "2026-06-16T00:00:00Z",
++        "2026-06-17T00:00:00Z",
++    ]
++    assert all(slot["status"] == SLOT_PENDING for slot in index["slots"])
++    # INV-1: the substantive index (spec + slots, excluding the non-claims disclaimer that
++    # NAMES score/verdict only to deny them) carries no score/rank/weight/verdict -- it is
++    # cadence + identity + slot bookkeeping only.
++    substantive = {key: value for key, value in index.items() if key != "non_claims"}
++    blob = json.dumps(substantive).lower()
++    for forbidden in ("score", "rank", "weight", "verdict"):
++        assert forbidden not in blob
++    # The runner explicitly disclaims the gap != no-change confusion in its non-claims.
++    assert "a gap is recorded as un-observed, never as no-change" in index["non_claims"]
++
++
++def test_run_slot_observes_and_records_realized_capture_time(http_server: str, scratch_dir: Path) -> None:
++    # Running a slot invokes the step-2 writer, writes a real packet, and records the realized
++    # capture_time vs the intended slot time. The first observed slot is the cold start.
++    series_dir = scratch_dir / "series"
++    _init_series(series_dir=series_dir, url=f"{http_server}/sku", slot_count=3)
++
++    status, slot = run_slot(series_dir=series_dir, slot_index=0, now_z="2026-06-15T00:00:05Z")
++    assert status == SLOT_OBSERVED
++    assert slot["was_cold_start"] is True
++    observation = slot["observations"][0]
++    # A real packet was written and its capture_time recorded as the realized timing.
++    packet_dir = series_dir / observation["packet_dir"]
++    manifest = json.loads((packet_dir / "manifest.json").read_text(encoding="utf-8"))
++    assert manifest["series_id"] == "test_series_001"
++    assert manifest["intended_cadence"]["slot_count"] == 3
++    # Element-2 cold-start postures rode onto the FIRST observed slot only.
++    assert manifest["cold_start_at"]["value"] == "2026-06-15T00:00:00Z"
++    assert observation["realized_capture_time"] == manifest["timing"]["capture_time"]["value"]
++    assert "lateness_seconds" in observation
++
++    # The SECOND observed slot is NOT a cold start (postures do not repeat).
++    status2, slot2 = run_slot(series_dir=series_dir, slot_index=1, now_z="2026-06-16T00:00:00Z")
++    assert status2 == SLOT_OBSERVED
++    assert slot2["was_cold_start"] is False
++    packet_dir2 = series_dir / slot2["observations"][0]["packet_dir"]
++    manifest2 = json.loads((packet_dir2 / "manifest.json").read_text(encoding="utf-8"))
++    assert manifest2["cold_start_at"] is None
++
++
++def test_mark_gap_records_un_observed_never_no_change(http_server: str, scratch_dir: Path) -> None:
++    # The load-bearing invariant: a slot the operator did not sample is un_observed (a visible
++    # limitation), NEVER "no change". The recorded fact must say un_observed and carry a reason.
++    series_dir = scratch_dir / "series"
++    _init_series(series_dir=series_dir, url=f"{http_server}/sku", slot_count=3)
++
++    rc = series_main(
++        [
++            "mark-gap",
++            "--series-dir",
++            str(series_dir),
++            "--slot",
++            "1",
++            "--reason",
++            "operator unavailable for this slot",
++        ]
++    )
++    assert rc == 0
++    index = json.loads((series_dir / SERIES_INDEX_FILENAME).read_text(encoding="utf-8"))
++    gap_slot = index["slots"][1]
++    assert gap_slot["status"] == SLOT_UN_OBSERVED
++    assert gap_slot["gap_kind"] == "skipped"
++    assert gap_slot["gap_reason"] == "operator unavailable for this slot"
++    # The gap is NEVER expressed as a no-change fact.
++    assert "no_change" not in json.dumps(gap_slot).lower()
++    assert "no change" not in json.dumps(gap_slot).lower()
++
++
++def test_run_slot_failed_fetch_records_un_observed_gap_not_no_change(scratch_dir: Path) -> None:
++    # A failed fetch (writer non-zero exit) is recorded as an un_observed GAP, never no-change.
++    # Use a URL that cannot connect so the step-2 writer returns a non-zero exit for real.
++    series_dir = scratch_dir / "series"
++    # Port 9 (discard) refuses; the direct_http adapter returns a network failure -> writer exit 3.
++    _init_series(series_dir=series_dir, url="http://127.0.0.1:9/unreachable", slot_count=2)
++
++    status, slot = run_slot(series_dir=series_dir, slot_index=0, now_z="2026-06-15T00:00:00Z")
++    assert status == SLOT_UN_OBSERVED
++    assert slot["gap_kind"] == "fetch_failed"
++    assert "writer exit" in slot["gap_reason"]
++    assert "no_change" not in json.dumps(slot).lower()
++    assert "no change" not in json.dumps(slot).lower()
++
++
++def test_series_is_bounded_to_slot_count(http_server: str, scratch_dir: Path) -> None:
++    # The series is a bounded commissioned unit (Ob.1), not an open crawler: a slot index at or
++    # beyond slot_count is rejected -- the runner cannot run unbounded slots.
++    series_dir = scratch_dir / "series"
++    _init_series(series_dir=series_dir, url=f"{http_server}/sku", slot_count=3)
++
++    # Slot 3 is out of bounds for a 3-slot series (valid: 0..2).
++    with pytest.raises(ValueError, match="out of bounds"):
++        run_slot(series_dir=series_dir, slot_index=3, now_z="2026-06-15T00:00:00Z")
++
++    # Via the CLI the out-of-bounds attempt exits non-zero (SystemExit from parser.exit).
++    with pytest.raises(SystemExit) as exc_info:
++        series_main(["run-slot", "--series-dir", str(series_dir), "--slot", "3"])
++    assert exc_info.value.code == 2
++
++
++def test_status_summarizes_observed_un_observed_pending_as_facts(http_server: str, scratch_dir: Path) -> None:
++    # status reports counts of observed / un_observed / pending only -- facts, no verdict (INV-1).
++    series_dir = scratch_dir / "series"
++    _init_series(series_dir=series_dir, url=f"{http_server}/sku", slot_count=3)
++
++    run_slot(series_dir=series_dir, slot_index=0, now_z="2026-06-15T00:00:00Z")
++    series_main(["mark-gap", "--series-dir", str(series_dir), "--slot", "1", "--reason", "skipped"])
++
++    summary = series_status(series_dir)
++    assert summary["slot_count"] == 3
++    assert summary["observed"] == 1
++    assert summary["un_observed"] == 1
++    assert summary["pending"] == 1
++    assert summary["complete"] is False
++    # INV-1: the summary is counts + identity only; no score/rank/weight/verdict key.
++    for forbidden in ("score", "rank", "weight", "verdict"):
++        assert forbidden not in json.dumps(summary).lower()
++
++
++def test_build_series_index_requires_at_least_one_url() -> None:
++    with pytest.raises(ValueError, match="at least one source URL"):
++        build_series_index(
++            series_id="s",
++            urls=[],
++            decision_frame_ref="DF",
++            decision_question="q",
++            cadence_mode="fixed",
++            slot_count=1,
++            delay_seconds=0.0,
++        )
++
++
++def test_init_refuses_to_overwrite_existing_series(http_server: str, scratch_dir: Path) -> None:
++    # Re-initializing an existing series dir is refused (the series state is durable across the
++    # separate operator invocations; init must not clobber recorded slots).
++    series_dir = scratch_dir / "series"
++    assert _init_series(series_dir=series_dir, url=f"{http_server}/sku") == 0
++    with pytest.raises(SystemExit) as exc_info:
++        _init_series(series_dir=series_dir, url=f"{http_server}/sku")
++    assert exc_info.value.code == 2
++
++
++def test_runner_non_claims_assert_no_scheduler_no_crawler_no_diff() -> None:
++    # The runner's non-claims pin option A (operator-triggered, not a scheduler/cron), the
++    # commissioned-bounded model (not an open crawler), and the deferred series-diff.
++    blob = " ".join(SERIES_RUNNER_NON_CLAIMS).lower()
++    assert "not a scheduler" in blob
++    assert "not an open crawler" in blob
++    assert "not series-diff" in blob
++    assert "not a demand verdict" in blob

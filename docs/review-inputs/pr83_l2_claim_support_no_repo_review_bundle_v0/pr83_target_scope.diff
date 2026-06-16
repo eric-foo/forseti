@@ -1,0 +1,359 @@
+diff --git a/docs/decisions/distillation_binding_judgment_spine_v0.md b/docs/decisions/distillation_binding_judgment_spine_v0.md
+index 37326ef..18b6dfd 100644
+--- a/docs/decisions/distillation_binding_judgment_spine_v0.md
++++ b/docs/decisions/distillation_binding_judgment_spine_v0.md
+@@ -62,6 +62,15 @@ deterministic check. One partial substrate exists (the band scorer hardcodes
+ - substrate: PARTIAL — the band scorer hardcodes `memorization_probe_result="not_run"` (code-held); truth of any hand-typed field stays resident
+ - PROV: `docs/product/judgment_quality_promotion_operating_model_v0.md:307` "By-hand execution cannot bind the authorized, auditable live-execution provenance..." tier: accepted-orca-gate. date 2026-06.
+ 
++### GUARD claim-support-span-in-body  (code-enforced)
++- decision_node: `node:evidence-claim-binding`
++- `GUARD claim-support-span-in-body: WHEN an assembly binds a captured source as support for a claim (a claim-support assertion) → the asserted verbatim span must be present in the hash-verified preserved body of the cited page → UNLESS no claim-support span is asserted (atomic, quotable claims only; aggregate/derived claims are out of scope, not blocked).`
++- outcome_class: a mechanically successful capture (right page, pre-cutoff, hash-anchored) is treated as backing a claim its body does not contain — `silent-wrong-input`
++- causal_miss: missing distinction — "capture succeeded" is NOT "the body backs claim X"; the second question was skipped
++- verification: under-case (asserted span absent from the cited body) → `ClaimSupportError` block; over-edge (span present in the hash-verified body) → passes; omitted (no assertion) → composes clean
++- substrate: CODE-ENFORCED (I/O) — `evidence_binding/verifier.py::verify_claim_support` recomputes the cited preserved file's sha256 (AR-04 `raw_stored_bytes` basis) then asserts the span is a byte-substring; block-don't-repair, mirroring `Jsg01BindingError`. enforced_in: `orca-harness/evidence_binding/verifier.py` + `orca-harness/tests/unit/test_claim_support_verifier.py`. v0 limit: exact UTF-8 byte-substring (false-negative-biased on entity-encoded / whitespace-normalized HTML); fail-closed is the deliberate integrity bias.
++- PROV: case `beautypie_repricing_2023_v0` — the `beautypie.com/how-it-works` capture (`source_captures/e2_howitworks_20221201`) was clean but its body lacked the £5/£59/spending-limit facts the premise leaned on; reclassified to a case-stated premise (`source_provenance_notes_v0.md`). tier: probed (recorded session outcome + code-enforced contract test). date 2026-06.
++
+ ## A2 — core size / budget
+ 
+ Mostly actor-carried, so these cells compete for the budget (one partial is code-held). Each is
+@@ -73,12 +82,13 @@ working rare-but-catastrophic gate cell. Budget model-dependent; not fixed here.
+ 
+ `node:source-identity-finalization` (JSG-01) · `node:packet-freeze` · `node:no-tools-isolation-provenance`
+ (JSG-04) · `node:memorization-probe-gate` (JSG-05) · `node:gate-outcome-routing` · `node:sealed-output`
+-· `node:scoring` · `node:reveal-calibration` (JSG-08) · `node:closeout`. Cells index by `decision_node`.
++· `node:scoring` · `node:reveal-calibration` (JSG-08) · `node:closeout` · `node:evidence-claim-binding`
++(JSG-01 evidence integrity; code-enforced). Cells index by `decision_node`.
+ 
+ ## A4 — slots filled
+ 
+ - **intervention-type set** (closed; owner-extensible): `GUARD`, `GATE-OUTCOME`, `ESCALATION` (blocker), `SOURCE-RULE`.
+-- **verification substrate**: the conductor's `indeterminate_until_authored` halt + the band scorer's hardcoded `not_run`; otherwise human review of gate-outcome decisions.
++- **verification substrate**: the conductor's `indeterminate_until_authored` halt + the band scorer's hardcoded `not_run` + `evidence_binding/verifier.py` (the first fully code-enforced cell here — a deterministic claim-support span check with a contract test); otherwise human review of gate-outcome decisions.
+ - **fire-log capability**: MODERATE — gate outcomes are recorded per run (the conductor names blockers and halts), but there is no deterministic pass/fail engine, so telemetry comes from run records; **complied-but-inert** is the live risk (a gate nominally satisfied without the action changing).
+ - **tier enum**: {accepted-orca-gate, probed, asserted}; recorded cells are probed / accepted-orca-gate.
+ - **review window**: owner sets (per case run / gate-map change).
+diff --git a/orca-harness/evidence_binding/__init__.py b/orca-harness/evidence_binding/__init__.py
+index 7588f3f..63808b4 100644
+--- a/orca-harness/evidence_binding/__init__.py
++++ b/orca-harness/evidence_binding/__init__.py
+@@ -15,15 +15,20 @@ aggregate verdict and clears no case.
+ """
+ from evidence_binding.composer import Jsg01BindingError, compose_jsg01_evidence_record
+ from evidence_binding.models import (
++    Jsg01ClaimSupportAssertion,
+     Jsg01EvidenceBinding,
+     Jsg01EvidenceRecord,
+     Jsg01FinalizationRead,
+ )
++from evidence_binding.verifier import ClaimSupportError, verify_claim_support
+ 
+ __all__ = [
++    "ClaimSupportError",
+     "Jsg01BindingError",
++    "Jsg01ClaimSupportAssertion",
+     "Jsg01EvidenceBinding",
+     "Jsg01EvidenceRecord",
+     "Jsg01FinalizationRead",
+     "compose_jsg01_evidence_record",
++    "verify_claim_support",
+ ]
+diff --git a/orca-harness/evidence_binding/models.py b/orca-harness/evidence_binding/models.py
+index 52a916e..b9529c3 100644
+--- a/orca-harness/evidence_binding/models.py
++++ b/orca-harness/evidence_binding/models.py
+@@ -173,3 +173,40 @@ class Jsg01EvidenceRecord(StrictModel):
+             for posture in self.inspectability
+             if posture.slice_id == self.evidence_slice_id
+         )
++
++
++class Jsg01ClaimSupportAssertion(StrictModel):
++    """An assembly-authored assertion that a verbatim span on ONE preserved page backs ONE claim.
++
++    Reference-keyed: claim -> evidence -> packet -> slice -> preserved file. Unlike
++    ``Jsg01EvidenceBinding`` (three keys, reference-never-merge), this assertion
++    deliberately carries the verbatim ``quoted_span`` and the ``verified_sha256`` it was
++    checked against, so the claim -> page -> span -> fingerprint chain is fully retrievable
++    for audit. It is a SEPARATE record and does not relax the binding's no-content
++    constraint. The span is confirmed against the hash-anchored body by
++    ``evidence_binding.verifier.verify_claim_support`` (an I/O step), never by the pure
++    composer. Atomic, quotable claims only; aggregate/derived claims assert no span.
++    """
++
++    claim_id: str
++    evidence_id: str
++    packet_id: str
++    evidence_slice_id: str
++    preserved_file_id: str
++    quoted_span: str
++    verified_sha256: str
++
++    @field_validator(
++        "claim_id",
++        "evidence_id",
++        "packet_id",
++        "evidence_slice_id",
++        "preserved_file_id",
++        "quoted_span",
++        "verified_sha256",
++    )
++    @classmethod
++    def reject_blank(cls, value: str) -> str:
++        if not value.strip():
++            raise ValueError("Jsg01ClaimSupportAssertion fields must be non-empty")
++        return value
+diff --git a/orca-harness/evidence_binding/verifier.py b/orca-harness/evidence_binding/verifier.py
+new file mode 100644
+index 0000000..6f80b36
+--- /dev/null
++++ b/orca-harness/evidence_binding/verifier.py
+@@ -0,0 +1,104 @@
++"""I/O verifier for JSG-01 claim-support assertions (the slice-C body-read concern).
++
++The pure composer (``composer.py``) never reads bytes. This module does: it confirms
++that a claim-support assertion's verbatim ``quoted_span`` is actually present in the
++hash-anchored preserved-file body it cites. This is the L2 guard — "a mechanically
++successful capture is NOT claim-support until the body backs the claim" — distilled
++from the Beauty Pie #3 pilot, where a clean ``how-it-works`` capture was nearly used
++to support membership-pricing facts its body did not contain.
++
++Contract (mirrors the composer's block-don't-repair discipline):
++
++- Block, don't repair: any resolution, integrity, or presence failure raises
++  ``ClaimSupportError`` — a visible block, never a silent pass and never a
++  re-key toward a better-matching file.
++- Conditional: nothing runs unless a claim-support assertion is supplied. Bindings
++  that assert no span (e.g. aggregate/derived claims, or legacy bindings) are not
++  blocked — the guard simply does not cover them.
++- Integrity-anchored: the span is checked against the bytes ONLY after the file's
++  sha256 is recomputed and matched (AR-04 ``raw_stored_bytes`` basis), so a tampered
++  or swapped body cannot satisfy the check.
++
++Limitation (v0): the span is matched as an EXACT UTF-8 byte substring of the raw
++stored body. It is therefore false-negative-biased on rendered text that differs from
++the raw bytes (HTML entity-encoding, whitespace normalization, tag splits). Fail-closed
++is the deliberate bias for an integrity guard; a normalized match mode is a future option.
++"""
++from __future__ import annotations
++
++import hashlib
++from pathlib import Path
++
++from evidence_binding.models import Jsg01ClaimSupportAssertion
++from source_capture.models import SourceCapturePacket
++
++
++class ClaimSupportError(ValueError):
++    """A claim-support assertion that does not resolve or verify: a visible block."""
++
++
++def verify_claim_support(
++    *,
++    assertion: Jsg01ClaimSupportAssertion,
++    packet: SourceCapturePacket,
++    packet_dir: Path,
++) -> None:
++    """Confirm the assertion's quoted span is present in the hash-anchored cited body.
++
++    Raises ``ClaimSupportError`` on any key, integrity, or presence failure
++    (block-don't-repair); returns ``None`` when the span is verified present.
++    """
++    if assertion.packet_id != packet.packet_id:
++        raise ClaimSupportError(
++            f"claim-support packet_id {assertion.packet_id!r} does not match the "
++            f"supplied packet {packet.packet_id!r}; block-don't-repair."
++        )
++
++    slices = {source_slice.slice_id: source_slice for source_slice in packet.source_slices}
++    source_slice = slices.get(assertion.evidence_slice_id)
++    if source_slice is None:
++        raise ClaimSupportError(
++            f"evidence_slice_id {assertion.evidence_slice_id!r} names no slice in "
++            f"packet {packet.packet_id!r}; block-don't-repair."
++        )
++
++    if assertion.preserved_file_id not in source_slice.preserved_file_ids:
++        raise ClaimSupportError(
++            f"preserved_file_id {assertion.preserved_file_id!r} is not referenced by "
++            f"slice {assertion.evidence_slice_id!r}; block-don't-repair."
++        )
++
++    files = {item.file_id: item for item in packet.preserved_files}
++    preserved = files.get(assertion.preserved_file_id)
++    if preserved is None:
++        raise ClaimSupportError(
++            f"preserved_file_id {assertion.preserved_file_id!r} names no preserved file "
++            f"in packet {packet.packet_id!r}; block-don't-repair."
++        )
++
++    body_path = packet_dir / preserved.relative_packet_path
++    if not body_path.is_file():
++        raise ClaimSupportError(
++            f"preserved body for {assertion.preserved_file_id!r} not found at "
++            f"{preserved.relative_packet_path!r} under the packet dir; block-don't-repair."
++        )
++
++    data = body_path.read_bytes()
++    recomputed = hashlib.sha256(data).hexdigest()
++    if recomputed != preserved.sha256:
++        raise ClaimSupportError(
++            f"preserved body sha256 mismatch for {assertion.preserved_file_id!r} "
++            f"(recomputed {recomputed}, manifest {preserved.sha256}); block-don't-repair."
++        )
++    if assertion.verified_sha256 != preserved.sha256:
++        raise ClaimSupportError(
++            f"assertion verified_sha256 {assertion.verified_sha256!r} disagrees with the "
++            f"preserved file sha256 {preserved.sha256!r}; block-don't-repair."
++        )
++
++    if assertion.quoted_span.encode("utf-8") not in data:
++        raise ClaimSupportError(
++            f"quoted_span for claim {assertion.claim_id!r} is not present in the "
++            f"hash-verified body of {assertion.preserved_file_id!r}: the capture does not "
++            f"support the claim (L2). block-don't-repair."
++        )
+diff --git a/orca-harness/tests/unit/test_claim_support_verifier.py b/orca-harness/tests/unit/test_claim_support_verifier.py
+new file mode 100644
+index 0000000..a0409af
+--- /dev/null
++++ b/orca-harness/tests/unit/test_claim_support_verifier.py
+@@ -0,0 +1,137 @@
++"""Contract tests for the L2 claim-support verifier (evidence_binding.verifier).
++
++The guard: a captured page is not claim-support until its hash-anchored body actually
++contains the asserted span. Under-case (absent span) blocks; over-edge (present span)
++passes; omitted (no assertion) leaves the pure composer untouched.
++"""
++from __future__ import annotations
++
++import hashlib
++
++import pytest
++from _ecr_builders import build_packet
++from pydantic import ValidationError
++
++from evidence_binding import (
++    ClaimSupportError,
++    Jsg01ClaimSupportAssertion,
++    Jsg01EvidenceBinding,
++    Jsg01EvidenceRecord,
++    verify_claim_support,
++)
++
++# A small UTF-8 HTML-ish body. Contains the £59 annual wording; deliberately lacks any
++# spending-limit wording (the Beauty Pie #3 gap that motivated L2).
++BODY = (
++    "<html><body>Beauty Pie membership is £10 a month. "
++    "The Plus membership is £59 a year.</body></html>"
++).encode("utf-8")
++
++
++def _packet_with_body(tmp_path, body: bytes = BODY, *, file_id="f_body", slice_id="s_body", packet_id="pkt-test"):
++    """A producer-valid packet whose preserved file's real bytes live on disk.
++
++    build_packet sets relative_packet_path == file_id, so writing tmp_path/<file_id>
++    makes the verifier's packet_dir / relative_packet_path resolve to these bytes.
++    """
++    sha = hashlib.sha256(body).hexdigest()
++    packet = build_packet(
++        [{"id": slice_id, "files": [(file_id, sha)], "locator_known": True, "cutoff": "pre_cutoff"}],
++        packet_id=packet_id,
++    )
++    (tmp_path / file_id).write_bytes(body)
++    return packet, sha
++
++
++def _assertion(sha, **overrides):
++    kwargs = dict(
++        claim_id="C1",
++        evidence_id="E1",
++        packet_id="pkt-test",
++        evidence_slice_id="s_body",
++        preserved_file_id="f_body",
++        quoted_span="£59 a year",
++        verified_sha256=sha,
++    )
++    kwargs.update(overrides)
++    return Jsg01ClaimSupportAssertion(**kwargs)
++
++
++# ---- over-edge: a present span verifies clean ----
++
++def test_present_span_passes(tmp_path):
++    packet, sha = _packet_with_body(tmp_path)
++    assert verify_claim_support(assertion=_assertion(sha), packet=packet, packet_dir=tmp_path) is None
++
++
++# ---- under-case: an absent span is the L2 catch ----
++
++def test_absent_span_blocks(tmp_path):
++    packet, sha = _packet_with_body(tmp_path)
++    with pytest.raises(ClaimSupportError, match="not present in the hash-verified body"):
++        verify_claim_support(
++            assertion=_assertion(sha, quoted_span="£200 spending limit"),
++            packet=packet,
++            packet_dir=tmp_path,
++        )
++
++
++# ---- integrity guards: tamper + fingerprint disagreement ----
++
++def test_body_tamper_blocks(tmp_path):
++    packet, sha = _packet_with_body(tmp_path)
++    # overwrite the on-disk body with different bytes than the recorded sha256
++    (tmp_path / "f_body").write_bytes(BODY + b" tampered")
++    with pytest.raises(ClaimSupportError, match="sha256 mismatch"):
++        verify_claim_support(assertion=_assertion(sha), packet=packet, packet_dir=tmp_path)
++
++
++def test_assertion_fingerprint_disagreement_blocks(tmp_path):
++    packet, sha = _packet_with_body(tmp_path)
++    with pytest.raises(ClaimSupportError, match="disagrees with the preserved file"):
++        verify_claim_support(assertion=_assertion(sha, verified_sha256="b" * 64), packet=packet, packet_dir=tmp_path)
++
++
++# ---- resolution guards: block, don't repair ----
++
++def test_packet_id_mismatch_blocks(tmp_path):
++    packet, sha = _packet_with_body(tmp_path)
++    with pytest.raises(ClaimSupportError, match="does not match the supplied packet"):
++        verify_claim_support(assertion=_assertion(sha, packet_id="pkt-other"), packet=packet, packet_dir=tmp_path)
++
++
++def test_unknown_slice_blocks(tmp_path):
++    packet, sha = _packet_with_body(tmp_path)
++    with pytest.raises(ClaimSupportError, match="names no slice"):
++        verify_claim_support(assertion=_assertion(sha, evidence_slice_id="s_missing"), packet=packet, packet_dir=tmp_path)
++
++
++def test_preserved_file_not_in_slice_blocks(tmp_path):
++    packet, sha = _packet_with_body(tmp_path)
++    with pytest.raises(ClaimSupportError, match="not referenced by slice"):
++        verify_claim_support(assertion=_assertion(sha, preserved_file_id="f_other"), packet=packet, packet_dir=tmp_path)
++
++
++def test_missing_body_file_blocks(tmp_path):
++    packet, sha = _packet_with_body(tmp_path)
++    (tmp_path / "f_body").unlink()
++    with pytest.raises(ClaimSupportError, match="not found"):
++        verify_claim_support(assertion=_assertion(sha), packet=packet, packet_dir=tmp_path)
++
++
++# ---- model guards + separation from the ratified binding ----
++
++def test_blank_fields_rejected():
++    with pytest.raises(ValidationError):
++        _assertion("a" * 64, claim_id="   ")
++    with pytest.raises(ValidationError):
++        _assertion("a" * 64, quoted_span="")
++
++
++def test_claim_support_is_separate_from_the_reference_never_merge_binding():
++    # The assertion is its OWN model; Jsg01EvidenceBinding stays three keys (no content),
++    # and the composed record carries no claim/span field.
++    assert set(Jsg01EvidenceBinding.model_fields) == {"evidence_id", "packet_id", "evidence_slice_id"}
++    assert not any(
++        "claim" in name or "span" in name for name in Jsg01EvidenceRecord.model_fields
++    )
