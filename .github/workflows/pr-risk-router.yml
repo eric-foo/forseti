@@ -1,0 +1,225 @@
+name: pr-risk-router
+
+# Deterministically separates low-risk PRs that may be auto-merged from PRs that
+# require a human/manual merge decision. This workflow never checks out or runs
+# PR code. It uses GitHub metadata only, so `pull_request_target` is safe here.
+
+on:
+  pull_request_target:
+    types: [opened, reopened, synchronize, ready_for_review, labeled, unlabeled]
+  workflow_dispatch:
+    inputs:
+      pr:
+        description: Pull request number to route
+        required: true
+        type: number
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
+concurrency:
+  group: pr-risk-router-${{ github.event.pull_request.number || github.event.inputs.pr }}
+  cancel-in-progress: true
+
+jobs:
+  route:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      GH_TOKEN: ${{ github.token }}
+      REPO: ${{ github.repository }}
+      AUTO_LABEL: risk/auto-merge-eligible
+      MANUAL_LABEL: risk/manual-review-required
+      BLOCKED_LABEL: risk/blocked-for-merge-policy
+      AUTOPIN_LABEL: agent-automerge
+      MAX_AUTO_FILES: "8"
+      MAX_AUTO_ADDITIONS: "300"
+      MAX_AUTO_DELETIONS: "80"
+      COMMENT_MARKER: "<!-- orca-pr-risk-router -->"
+    steps:
+      - name: Classify PR risk
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          pr="${{ github.event.pull_request.number || github.event.inputs.pr }}"
+          if [ -z "$pr" ]; then
+            echo "No PR number was available for routing."
+            exit 1
+          fi
+
+          ensure_label() {
+            local name="$1" color="$2" description="$3"
+            gh label create "$name" --repo "$REPO" --color "$color" --description "$description" --force >/dev/null
+          }
+
+          ensure_label "$AUTO_LABEL" "2DA44E" "Deterministically low-risk and eligible for guarded auto-merge."
+          ensure_label "$MANUAL_LABEL" "D29922" "Requires human/manual merge decision; automation may summarize but not approve."
+          ensure_label "$BLOCKED_LABEL" "CF222E" "Blocked by merge policy until the named condition changes."
+
+          pr_json=$(gh pr view "$pr" --repo "$REPO" \
+            --json number,title,isDraft,isCrossRepository,baseRefName,headRefName,headRefOid,labels)
+          files_json=$(gh api --paginate "repos/$REPO/pulls/$pr/files?per_page=100" --jq '.[]' | jq -s '.')
+
+          is_draft=$(jq -r '.isDraft' <<<"$pr_json")
+          is_cross=$(jq -r '.isCrossRepository' <<<"$pr_json")
+          base=$(jq -r '.baseRefName' <<<"$pr_json")
+          title=$(jq -r '.title' <<<"$pr_json")
+          head=$(jq -r '.headRefName' <<<"$pr_json")
+          head_oid=$(jq -r '.headRefOid' <<<"$pr_json")
+          has_autopin=$(jq -r --arg lbl "$AUTOPIN_LABEL" 'any(.labels[]?; .name==$lbl)' <<<"$pr_json")
+
+          file_count=$(jq 'length' <<<"$files_json")
+          additions=$(jq '[.[].additions] | add // 0' <<<"$files_json")
+          deletions=$(jq '[.[].deletions] | add // 0' <<<"$files_json")
+          removed_count=$(jq '[.[] | select(.status=="removed")] | length' <<<"$files_json")
+          protected_files=$(jq -r '
+            .[].filename |
+            select(
+              . == "AGENTS.md" or
+              . == "CLAUDE.md" or
+              startswith(".github/") or
+              startswith(".githooks/") or
+              startswith(".agents/") or
+              startswith("docs/decisions/") or
+              startswith("docs/prompts/") or
+              startswith("docs/review-inputs/") or
+              startswith("docs/review-outputs/") or
+              startswith("docs/workflows/") or
+              startswith("docs/product/") or
+              startswith("docs/research/judgment-spine/") or
+              startswith("orca-harness/")
+            )' <<<"$files_json")
+          outside_low_risk=$(jq -r '
+            .[].filename |
+            select(
+              (startswith("docs/hygiene/") or
+               (startswith("docs/research/") and (startswith("docs/research/judgment-spine/") | not)))
+              | not
+            )' <<<"$files_json")
+
+          reasons=()
+          decision="$MANUAL_LABEL"
+
+          if [ "$base" != "main" ]; then
+            decision="$BLOCKED_LABEL"
+            reasons+=("base branch is '$base', not main")
+          fi
+          if [ "$is_cross" = "true" ]; then
+            decision="$BLOCKED_LABEL"
+            reasons+=("cross-repository PRs are never auto-merged")
+          fi
+          if [ "$is_draft" = "true" ]; then
+            decision="$BLOCKED_LABEL"
+            reasons+=("draft PRs are never auto-merged")
+          fi
+
+          if [ "$decision" != "$BLOCKED_LABEL" ]; then
+            if [ "$file_count" -gt "$MAX_AUTO_FILES" ]; then
+              reasons+=("changed file count $file_count exceeds $MAX_AUTO_FILES")
+            fi
+            if [ "$additions" -gt "$MAX_AUTO_ADDITIONS" ]; then
+              reasons+=("additions $additions exceed $MAX_AUTO_ADDITIONS")
+            fi
+            if [ "$deletions" -gt "$MAX_AUTO_DELETIONS" ]; then
+              reasons+=("deletions $deletions exceed $MAX_AUTO_DELETIONS")
+            fi
+            if [ "$removed_count" -gt 0 ]; then
+              reasons+=("deletes $removed_count file(s)")
+            fi
+            if [ -n "$protected_files" ]; then
+              reasons+=("touches protected/manual-risk surface(s)")
+            fi
+            if [ -n "$outside_low_risk" ]; then
+              reasons+=("touches files outside the low-risk allowlist")
+            fi
+            if [ "${#reasons[@]}" -eq 0 ]; then
+              decision="$AUTO_LABEL"
+            fi
+          fi
+
+          if [ "${#reasons[@]}" -eq 0 ]; then
+            reason_text="- none; PR fits the low-risk allowlist and size thresholds"
+          else
+            reason_text=$(printf '%s\n' "${reasons[@]}" | sed 's/^/- /')
+          fi
+
+          files_text=$(jq -r '.[] | "- `" + .filename + "` (" + .status + ", +" + (.additions|tostring) + "/-" + (.deletions|tostring) + ")"' <<<"$files_json")
+          if [ -n "$protected_files" ]; then
+            protected_text=$(printf '%s\n' "$protected_files" | sed 's/^/- `/; s/$/`/')
+          else
+            protected_text="- none"
+          fi
+          if [ -n "$outside_low_risk" ]; then
+            outside_text=$(printf '%s\n' "$outside_low_risk" | sed 's/^/- `/; s/$/`/')
+          else
+            outside_text="- none"
+          fi
+
+          apply_decision_label() {
+            local add_label="$1"
+            shift
+            gh pr edit "$pr" --repo "$REPO" --add-label "$add_label"
+            for remove_label in "$@"; do
+              if jq -e --arg lbl "$remove_label" 'any(.labels[]?; .name==$lbl)' <<<"$pr_json" >/dev/null; then
+                gh pr edit "$pr" --repo "$REPO" --remove-label "$remove_label"
+              fi
+            done
+          }
+
+          body="$COMMENT_MARKER
+          ## Orca PR Risk Router
+
+          **Decision:** \`$decision\`
+
+          **PR:** #$pr — $title
+          **Head:** \`$head\` @ \`$head_oid\`
+          **Agent auto-merge opt-in present:** \`$has_autopin\`
+
+          **Reasons**
+          $reason_text
+
+          **Diff size**
+          - files: $file_count / $MAX_AUTO_FILES
+          - additions: $additions / $MAX_AUTO_ADDITIONS
+          - deletions: $deletions / $MAX_AUTO_DELETIONS
+          - removed files: $removed_count
+
+          **Protected/manual-risk surfaces**
+          $protected_text
+
+          **Outside low-risk allowlist**
+          $outside_text
+
+          **Changed files**
+          $files_text
+
+          Boundary: this is deterministic routing, not approval, validation, review acceptance, or a claim that the PR is safe to merge. Auto-merge still requires green CI, mergeability, up-to-date head, same-repo head, non-draft state, \`agent-automerge\`, and \`$AUTO_LABEL\`."
+
+          case "$decision" in
+            "$AUTO_LABEL")
+              apply_decision_label "$AUTO_LABEL" "$MANUAL_LABEL" "$BLOCKED_LABEL"
+              ;;
+            "$MANUAL_LABEL")
+              apply_decision_label "$MANUAL_LABEL" "$AUTO_LABEL" "$BLOCKED_LABEL"
+              ;;
+            "$BLOCKED_LABEL")
+              apply_decision_label "$BLOCKED_LABEL" "$AUTO_LABEL" "$MANUAL_LABEL"
+              ;;
+            *)
+              echo "Unknown decision: $decision"
+              exit 1
+              ;;
+          esac
+
+          comment_id=$(gh api --paginate "repos/$REPO/issues/$pr/comments" \
+            --jq ".[] | select(.body | startswith(\"$COMMENT_MARKER\")) | .id" | tail -n 1)
+          if [ -n "$comment_id" ]; then
+            gh api --method PATCH "repos/$REPO/issues/comments/$comment_id" -f body="$body" >/dev/null
+          else
+            gh pr comment "$pr" --repo "$REPO" --body "$body" >/dev/null
+          fi
+
+          echo "Routed PR #$pr as $decision"

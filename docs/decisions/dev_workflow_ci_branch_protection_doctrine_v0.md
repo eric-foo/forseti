@@ -43,6 +43,13 @@ Accepted 2026-06-09 (owner sign-off, eric-foo); amended 2026-06-09 to record the
   `allow_auto_merge`, so it is still **not** the server-side gate. Code-backed and now **proven**
   (2026-06-15): the bot landed PR #121 unattended (merged by `github-actions[bot]`) after the
   `actions: read` permission fix (PR #118); an ineligible PR is still skipped, never mis-merged.
+- **Opt-in unattended low-risk merge (workflow-backed):** `auto-merge.yml` may land a PR only when
+  the PR carries both `agent-automerge` and the deterministic router label
+  `risk/auto-merge-eligible`, has green CI, is mergeable, is up to date with `main`, is same-repo,
+  and is not draft. The router (`pr-risk-router.yml`) defaults to
+  `risk/manual-review-required` or `risk/blocked-for-merge-policy` for governance, CI, hook,
+  overlay, decision, prompt, review, product, harness, large, deleting, fork, draft, or non-main
+  PRs. This is not server-side branch protection and not a review/approval claim.
 
 This record does not assert that any server-side gate is active. It is not.
 
@@ -133,10 +140,12 @@ This record does not assert that any server-side gate is active. It is not.
    PRs **with no agent session** — triggered on CI completion (`workflow_run` on `ci`), with a 3-hour
    `cron` backstop and `workflow_dispatch`. It runs in Actions (declaring its own `contents` /
    `pull-requests: write`, since the repo default is read-only) and is **not** subject to the PreToolUse
-   guard, so it carries its **own** guardrails in code: the `agent-automerge` label, `mergeable ==
-   MERGEABLE`, the `orca-harness-tests` check green (and no failing/pending check), **`behind_by == 0`
-   (up-to-date with `main`)**, **one merge per run** (safe serialization — there is no native merge
-   queue), and squash + delete-branch. The up-to-date guard is **stricter than** the in-session guard
+   guard, so it carries its **own** guardrails in code: the `agent-automerge` label, the
+   deterministic router label `risk/auto-merge-eligible`, no `risk/manual-review-required` or
+   `risk/blocked-for-merge-policy` label, `mergeable == MERGEABLE`, the `orca-harness-tests` check
+   green (and no failing/pending check), **`behind_by == 0` (up-to-date with `main`)**, **one merge
+   per run** (safe serialization — there is no native merge queue), and squash + delete-branch. The
+   up-to-date guard is **stricter than** the in-session guard
    path (which checks CLEAN but not up-to-date); closing that gap in the guard itself is a deferred
    enforcement-lane follow-on. It uses an immediate `gh pr merge --squash`, which needs no
    `allow_auto_merge` (item 4), so it is **not** the server-side gate. **Honest limitation:** a bot
@@ -146,7 +155,8 @@ This record does not assert that any server-side gate is active. It is not.
    landed PR #121 with no agent session (merged by `github-actions[bot]`), after PR #118 added the
    `actions: read` scope its `statusCheckRollup` eligibility query needs (without it every prior run
    failed GraphQL `Resource not accessible by integration`, so no earlier run had actually merged). An
-   ineligible PR is still skipped, never mis-merged.
+   ineligible PR is still skipped, never mis-merged. The 2026-06-16 risk-router amendment narrows
+   the bot further: `agent-automerge` alone is no longer sufficient for unattended merge.
 10. **Lane-start auto-prune — the cleanup complement to item 9.** Item 9's bot closes the *merge* half
    of the agent-fast-creation / human-gated-cleanup velocity mismatch; this standing
    **agent-instruction-only** rule closes the *cleanup* half. At the **start of each new lane** (the
@@ -304,6 +314,8 @@ re-derivable and is re-run by CI on every PR; it is not a self-asserted pass.
   applies.
 - The interim merge-when-green discipline is a process commitment, **not** a server-enforced gate;
   its presence does not prove it is followed or that any merge actually passed CI.
+- Risk-router labels and merge-packet comments are routing/check signal only — **not** validation,
+  approval, review acceptance, readiness, or proof that a PR is safe to merge.
 - Not validation, readiness, or acceptance of any lane's content beyond "the test suite passed."
 
 ```yaml
@@ -1010,4 +1022,55 @@ direction_change_propagation:
       residual); the complete, unbypassable gate remains the deferred server-side option (O1)
     - O2a does not edit the EP-03 guard; O2b does not edit the helper; check_map_links is unchanged
     - mini-god-tier is a capability-target lens, not a validation or readiness claim
+```
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Narrows the proven unattended auto-merge bot with deterministic risk routing:
+    `pr-risk-router.yml` labels PRs as auto-merge eligible, manual-review
+    required, or blocked; `auto-merge.yml` now requires both `agent-automerge`
+    and `risk/auto-merge-eligible` and skips manual/blocked PRs. Higher-risk PRs
+    get a deterministic merge packet, not automated approval. This narrows the
+    earlier label-only unattended path while preserving the non-claim that this
+    is not server-side branch protection.
+  trigger: workflow_authority
+  related_triggers:
+    - lifecycle_boundary
+  controlling_sources_updated:
+    - docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md
+    - .github/workflows/auto-merge.yml
+    - .github/workflows/pr-risk-router.yml
+  downstream_surfaces_checked:
+    - AGENTS.md
+    - .agents/workflow-overlay/safety-rules.md
+    - .agents/workflow-overlay/validation-gates.md
+    - docs/workflows/orca_repo_map_v0.md
+  intentionally_not_updated:
+    - path: AGENTS.md
+      reason: >
+        The behavior kernel and explicit authorization boundaries are unchanged;
+        this is a merge-routing workflow doctrine update, not a new global agent
+        rule.
+    - path: .agents/workflow-overlay/safety-rules.md
+      reason: >
+        The no-unauthorized commit/push/PR/merge rule is unchanged. The workflows
+        define repository automation behavior after explicit PR flow, not blanket
+        agent authority.
+    - path: .agents/workflow-overlay/validation-gates.md
+      reason: >
+        The existing enforcement-placement and non-self-certification rules
+        already cover this shape: deterministic labels are routing/check signal,
+        not validation or approval evidence.
+    - path: docs/workflows/orca_repo_map_v0.md
+      reason: >
+        The current map already indexes `.github/` as GitHub Actions workflows
+        and local operational scripts; no new top-level route is introduced.
+  non_claims:
+    - not server-side branch protection
+    - not native GitHub auto-merge
+    - not validation
+    - not readiness
+    - not review approval
+    - not blanket agent merge authority
 ```

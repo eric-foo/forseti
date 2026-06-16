@@ -1,10 +1,10 @@
 name: auto-merge
 
-# Lands clean + green lane PRs that opt in via the `agent-automerge` label, without
+# Lands clean + green lane PRs that opt in via the `agent-automerge` label AND
+# pass the deterministic low-risk router (`risk/auto-merge-eligible`), without
 # the human merge step — within this repo's reality that native auto-merge and
 # branch protection are 403-blocked (private repo on a free plan). See
-# docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md (item 7, the
-# 2026-06-14 structure-B amendment).
+# docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md.
 #
 # The interactive-agent EP-03 gate (.agents/hooks/guard_protected_actions.py) is
 # UNCHANGED: it blocks in-session `gh pr merge` and direct push-to-main attempts.
@@ -12,7 +12,8 @@ name: auto-merge
 # the PreToolUse hook) and lands opt-in PRs under the guardrails below.
 #
 # Conflict-prevention guardrails (the contract the owner asked for):
-#   1. opt-in    — PR must carry the `agent-automerge` label.
+#   1. opt-in    — PR must carry `agent-automerge` AND
+#                  `risk/auto-merge-eligible`.
 #   2. no conflict — mergeable == MERGEABLE (GitHub recomputes this vs CURRENT main,
 #                    so it self-corrects across serial merges; this is the class the
 #                    #83/#87 stacked-squash conflict fell into).
@@ -30,6 +31,9 @@ name: auto-merge
 #                  the merge loudly instead of landing an untested head), and
 #                  cross-repository (fork) PRs are skipped (their up-to-date
 #                  compare can't be trusted and unattended fork merge is unsafe).
+#   8. risk-routed — PRs labeled `risk/manual-review-required` or
+#                    `risk/blocked-for-merge-policy` are skipped even if someone
+#                    also applied `agent-automerge`.
 #
 # Honest limitation: a bot merge via GITHUB_TOKEN does NOT re-trigger the push:main
 # CI run (GitHub's no-recursion rule), so main-CI is not a redundant post-merge
@@ -69,31 +73,44 @@ jobs:
       REPO: ${{ github.repository }}
       CI_CHECK: orca-harness-tests
       AUTOMERGE_LABEL: agent-automerge
+      RISK_OK_LABEL: risk/auto-merge-eligible
+      RISK_MANUAL_LABEL: risk/manual-review-required
+      RISK_BLOCKED_LABEL: risk/blocked-for-merge-policy
     steps:
       - name: Merge one eligible auto-merge PR
         shell: bash
         run: |
           set -euo pipefail
 
-          # Open PRs that opted in via the label. Run the list as a CHECKED
+          # Open PRs that opted in and passed deterministic risk routing. Run the
+          # list as a CHECKED
           # command (not inside the mapfile process substitution, whose failure
           # bash would swallow) so an API/auth failure aborts loudly instead of
           # silently looking like "no PRs". --limit lifts the default 30-PR cap.
           # Filtering in jq (not `gh pr list --label`) makes a missing label an
-          # empty set instead of an error.
+          # empty set instead of an error. `agent-automerge` alone is never
+          # enough; the router must apply `risk/auto-merge-eligible`.
           prs_json=$(gh pr list --repo "$REPO" --state open --limit 200 --json number,labels)
-          mapfile -t prs < <(jq -r --arg lbl "$AUTOMERGE_LABEL" \
-            '.[] | select(any(.labels[]?; .name==$lbl)) | .number' <<<"$prs_json")
+          mapfile -t prs < <(jq -r \
+            --arg auto "$AUTOMERGE_LABEL" \
+            --arg ok "$RISK_OK_LABEL" \
+            --arg manual "$RISK_MANUAL_LABEL" \
+            --arg blocked "$RISK_BLOCKED_LABEL" \
+            '.[] |
+             select(any(.labels[]?; .name==$auto)) |
+             select(any(.labels[]?; .name==$ok)) |
+             select((any(.labels[]?; .name==$manual) or any(.labels[]?; .name==$blocked)) | not) |
+             .number' <<<"$prs_json")
 
           if [ "${#prs[@]}" -eq 0 ]; then
-            echo "No open PRs carry the '$AUTOMERGE_LABEL' label. Nothing to do."
+            echo "No open PRs carry both '$AUTOMERGE_LABEL' and '$RISK_OK_LABEL'. Nothing to do."
             exit 0
           fi
 
           for n in "${prs[@]}"; do
             echo "::group::Evaluating PR #$n"
             data=$(gh pr view "$n" --repo "$REPO" \
-              --json isDraft,isCrossRepository,mergeable,headRefName,headRefOid,baseRefName,statusCheckRollup)
+              --json isDraft,isCrossRepository,mergeable,headRefName,headRefOid,baseRefName,statusCheckRollup,labels)
 
             is_draft=$(jq -r '.isDraft' <<<"$data")
             is_cross=$(jq -r '.isCrossRepository' <<<"$data")
@@ -101,6 +118,9 @@ jobs:
             head=$(jq -r '.headRefName' <<<"$data")
             head_oid=$(jq -r '.headRefOid' <<<"$data")
             base=$(jq -r '.baseRefName' <<<"$data")
+            risk_ok=$(jq -r --arg lbl "$RISK_OK_LABEL" 'any(.labels[]?; .name==$lbl)' <<<"$data")
+            risk_manual=$(jq -r --arg lbl "$RISK_MANUAL_LABEL" 'any(.labels[]?; .name==$lbl)' <<<"$data")
+            risk_blocked=$(jq -r --arg lbl "$RISK_BLOCKED_LABEL" 'any(.labels[]?; .name==$lbl)' <<<"$data")
 
             # Only land same-repo lane PRs that target main, and never a draft.
             # Cross-repository (fork) PRs are never auto-merged: the up-to-date
@@ -109,6 +129,9 @@ jobs:
             if [ "$base" != "main" ]; then echo "skip: base is '$base', not main"; echo "::endgroup::"; continue; fi
             if [ "$is_cross" = "true" ]; then echo "skip: cross-repository (fork) PR — not auto-merged"; echo "::endgroup::"; continue; fi
             if [ "$is_draft" = "true" ]; then echo "skip: draft"; echo "::endgroup::"; continue; fi
+            if [ "$risk_ok" != "true" ]; then echo "skip: missing '$RISK_OK_LABEL'"; echo "::endgroup::"; continue; fi
+            if [ "$risk_manual" = "true" ]; then echo "skip: carries '$RISK_MANUAL_LABEL'"; echo "::endgroup::"; continue; fi
+            if [ "$risk_blocked" = "true" ]; then echo "skip: carries '$RISK_BLOCKED_LABEL'"; echo "::endgroup::"; continue; fi
 
             # Guard 2 — no textual conflict (recomputed vs current main).
             if [ "$mergeable" != "MERGEABLE" ]; then
@@ -134,7 +157,7 @@ jobs:
             behind=$(gh api "repos/$REPO/compare/main...$head_oid" --jq '.behind_by')
             if [ "$behind" != "0" ]; then echo "skip: behind main by $behind commit(s) — rebase to enable"; echo "::endgroup::"; continue; fi
 
-            echo "PR #$n is eligible (labeled, mergeable, green, up-to-date). Merging (squash)."
+            echo "PR #$n is eligible (opted-in, low-risk routed, mergeable, green, up-to-date). Merging (squash)."
             # Pin the merge to the exact head we just validated. If a new commit
             # was pushed after the checks above (a TOCTOU race), the merge fails
             # loudly instead of landing an untested head; the next trigger
