@@ -171,7 +171,9 @@ menu.** Cheapest fit wins.
 
 | Route | Solves | Cost | Fidelity preserved | Access note |
 |---|---|---|---|---|
-| archive.org / Wayback | historical state; current page gone/blocked | low | snapshot bytes (availability != body — check both) | public |
+| archive.org / Wayback (cross-archive ladder rung 1) | historical / pre-cutoff state; current page gone/blocked | low | snapshot bytes, served-time-verified <= cutoff (availability != body — check both) | public |
+| archive.today / Memento (ladder rung 2) | pre-cutoff state when Wayback misses; closes the single-archive SPOF for ordinary brand/retailer pages | low-med | memento bytes, served-time-verified <= cutoff (mirror-family host-anchored) | public; no-gate-defeat (CF/CAPTCHA challenge -> STOP; HTTP 429 -> retry/backoff) |
+| publisher version-history (MediaWiki / GitHub) | pre-cutoff state of a doc/wiki/repo from the publisher's OWN version history | low | the publisher's exact revision bytes, served-time-verified <= cutoff | public API (needs explicit wiki/repo coordinates) |
 | direct-HTTP | static first-party HTML/JSON | lowest | raw bytes | public |
 | real browser (headless) | JS-rendered DOM | med | rendered bytes | public |
 | visible browser + user action | headless-detected 403; user-gated download (PDF) | med-high | real bytes via the real UI path | public; own entitled access if gated |
@@ -192,6 +194,33 @@ which is NO-GO. Reach NO-GO only after the matching routes are exhausted, with t
 reviews; worktree-pending). The `anti-bot / cloakbrowser + proxy/geo` route is *setup/architecture-
 ready, not yet end-to-end capture-proven* — treat its fidelity as **expected, not demonstrated**,
 until a probe proves it. Don't cite an unproven route as evidence of capturability.
+
+### Cross-archive historical capture (the ladder + the runner)
+
+For **pre-cutoff historical state**, the three archive rows above are wired into one bounded,
+cheapest-first **LOCATE ladder** so a single archive is no longer a single point of failure:
+`runners/run_source_capture_historical_packet.py` (orchestrator: `source_capture/historical_capture.py`).
+
+- **Ladder order:** Wayback CDX -> archive.today TimeMap -> publisher version-history (the last *only*
+  when the source is a doc/wiki/repo — it needs explicit MediaWiki/GitHub coordinates, not a plain URL).
+  Stop at the **first served-time-verified pre-cutoff body**; a locate-hit whose body fails (transport,
+  non-2xx, or served-time/identity verification) is a **PARTIAL that escalates** to the next rung,
+  never a fake-success rollup.
+- **No-lookahead (served-time, per rung):** selection filters to memento/revision timestamp <= cutoff,
+  AND the *served* snapshot is re-verified <= cutoff (a replay redirect can serve a post-cutoff capture
+  for a pre-cutoff request — that leak is rejected). A non-2xx body is not body-honesty and is rejected.
+- **No-gate-defeat:** archive.today's anti-bot **challenge -> STOP** (never solved); a plain HTTP 429
+  rate-limit -> retry/backoff (in-posture). Wayback is not Cloudflare-fronted; it simply throttles.
+- **Honest NO-GO:** when every rung misses (or yields no clean pre-cutoff body), the run still writes
+  a packet whose receipt records the full ladder trace, so exhaustion is auditable.
+- **Receipt:** the selected rung's existing Source Capture Packet, plus a thin preserved
+  `archive_locate_metadata.json` side-file recording `archives_tried` / `archive_selected` /
+  `body_rung_used` as **neutral mechanical facts** (no scores or verdicts — INV-1).
+- **Cutoff form:** the runner takes an ISO-8601 cutoff (e.g. `2024-06-01T00:00:00Z`).
+
+Spec + provenance: `archive_org_refinement_and_source_family_gap_spec_v0.md` (slice E). This subsection
+is a `stale_if` catalog amendment documenting landed code (added 2026-06-16); it is outside the
+original de-correlated review's scope.
 
 ## Step 3 — The verdict + receipt
 
