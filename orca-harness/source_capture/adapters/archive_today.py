@@ -90,9 +90,19 @@ _CHALLENGE_MARKERS = (
     "cf-chl",
     "cf_chl",
     "/cdn-cgi/challenge",
-    "captcha",
     "hcaptcha",
     "recaptcha",
+)
+_CAPTCHA_CONTEXT_MARKERS = (
+    "complete the captcha",
+    "solve the captcha",
+    "verify you are human",
+    "verify that you are human",
+    "security check",
+    "access denied",
+    "enable cookies",
+    "enable javascript",
+    "cloudflare",
 )
 
 
@@ -362,6 +372,15 @@ def verify_archive_today_body(
     """
     if not isinstance(body_result, DirectHttpCaptureSuccess):
         return None  # no preserved body to verify; body-not-preserved is handled by the caller
+    if body_result.status < 200 or body_result.status >= 300:
+        return ArchiveTodayBodyVerification(
+            ok=False,
+            served_timestamp=None,
+            reason=(
+                f"body_http_status_not_usable: archive.today body returned HTTP {body_result.status} "
+                f"{body_result.reason or 'without reason'}; availability is not body honesty"
+            ),
+        )
     match = _MEMENTO_URL_RE.match(body_result.final_url)
     if match is None or match.group("host").lower() not in allowed_hosts:
         host = urlparse(body_result.final_url).netloc
@@ -425,6 +444,14 @@ def _detect_gate_defeat(result: DirectHttpCaptureResult) -> str | None:
                 f"challenge_detected (HTTP {result.status}); marker {marker!r} present -- "
                 "auth/anti-bot challenge is a hard STOP, not solved (no-gate-defeat)"
             )
+    if "captcha" in text:
+        for marker in _CAPTCHA_CONTEXT_MARKERS:
+            if marker in text:
+                return (
+                    f"challenge_detected (HTTP {result.status}); marker 'captcha' present with "
+                    f"context {marker!r} -- auth/anti-bot challenge is a hard STOP, not solved "
+                    "(no-gate-defeat)"
+                )
     return None
 
 

@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from dataclasses import replace
+
 import pytest
 
 from source_capture import historical_capture
@@ -215,6 +217,33 @@ def test_wayback_located_but_body_verification_fail_is_partial_and_escalates(mon
     wayback_outcome = result.archives_tried[0]
     assert wayback_outcome.located is True and wayback_outcome.verified_body is False
     assert "verification failed" in wayback_outcome.body_detail
+
+
+def test_wayback_non_2xx_body_is_partial_and_escalates(monkeypatch) -> None:
+    wayback = _wayback(selected_ts="20240101000000", body_ok=True)
+    assert wayback.selected_snapshot is not None
+    rate_limited_body = DirectHttpCaptureSuccess(
+        requested_url=wayback.selected_snapshot.snapshot_url,
+        final_url=wayback.selected_snapshot.snapshot_url,
+        status=429,
+        reason="Too Many Requests",
+        metadata={"capture_timestamp": "2024-01-01T00:00:00Z"},
+        body=b"<html>rate limited</html>",
+        warning_notes=[],
+        limitation_notes=["access_failed: direct HTTP returned HTTP 429 Too Many Requests"],
+    )
+    _patch(
+        monkeypatch,
+        wayback=replace(wayback, body_result=rate_limited_body),
+        archive_today=_archive_today(selected_ts="20240101000000", body_ok=True),
+    )
+    result = fetch_historical_capture(
+        original_url="https://example.com/page", cutoff_timestamp_iso="2024-06-01T00:00:00Z"
+    )
+    assert result.archive_selected == "archive_today"
+    wayback_outcome = result.archives_tried[0]
+    assert wayback_outcome.located is True and wayback_outcome.verified_body is False
+    assert "HTTP 429" in wayback_outcome.body_detail
 
 
 def test_all_miss_is_honest_no_go(monkeypatch) -> None:

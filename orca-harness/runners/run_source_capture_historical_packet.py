@@ -328,7 +328,7 @@ def _locate_metadata(capture: HistoricalCaptureResult) -> dict[str, object]:
         "original_url": capture.original_url,
         "cutoff_timestamp": capture.cutoff_timestamp_iso,
         "archive_selected": capture.archive_selected,
-        "body_rung_used": capture.archive_selected,
+        "body_rung_used": _body_rung_used(capture.selected_outcome),
         "archives_tried": [
             {
                 "rung": outcome.rung,
@@ -342,6 +342,12 @@ def _locate_metadata(capture: HistoricalCaptureResult) -> dict[str, object]:
             for outcome in capture.archives_tried
         ],
     }
+
+
+def _body_rung_used(outcome: RungOutcome | None) -> str | None:
+    if outcome is None or not outcome.verified_body:
+        return None
+    return "direct_http"
 
 
 def _ladder_limitations(capture: HistoricalCaptureResult) -> list[str]:

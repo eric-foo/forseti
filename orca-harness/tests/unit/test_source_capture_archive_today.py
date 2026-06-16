@@ -26,6 +26,8 @@ _CHALLENGE_BODY = (
     b"<html><head><title>Just a moment...</title></head>"
     b"<body>Checking your browser before accessing. challenge-platform</body></html>"
 )
+_CAPTCHA_CHALLENGE_BODY = b"<html><body>Please complete the captcha to verify you are human.</body></html>"
+_CAPTCHA_ARTICLE_BODY = b"<html><body>This archived article discusses captcha usability.</body></html>"
 _ARCHIVED_BODY = b"<html>archived archive.today body</html>"
 
 
@@ -58,6 +60,15 @@ def archive_today_server():
             ("20240101000000", "Mon, 01 Jan 2024 00:00:00 GMT"),
         ],
         "https://example.com/challenge-body": [
+            ("20240101000000", "Mon, 01 Jan 2024 00:00:00 GMT"),
+        ],
+        "https://example.com/captcha-challenge-body": [
+            ("20240101000000", "Mon, 01 Jan 2024 00:00:00 GMT"),
+        ],
+        "https://example.com/captcha-article": [
+            ("20240101000000", "Mon, 01 Jan 2024 00:00:00 GMT"),
+        ],
+        "https://example.com/rate-limited-body": [
             ("20240101000000", "Mon, 01 Jan 2024 00:00:00 GMT"),
         ],
     }
@@ -109,6 +120,15 @@ def archive_today_server():
                     return
                 if original.endswith("challenge-body"):
                     self._send(200, _CHALLENGE_BODY, "text/html")
+                    return
+                if original.endswith("captcha-challenge-body"):
+                    self._send(200, _CAPTCHA_CHALLENGE_BODY, "text/html")
+                    return
+                if original.endswith("captcha-article"):
+                    self._send(200, _CAPTCHA_ARTICLE_BODY, "text/html")
+                    return
+                if original.endswith("rate-limited-body"):
+                    self._send(429, b"<html><title>archive.ph rate limited</title></html>", "text/html")
                     return
                 self._send(200, _ARCHIVED_BODY, "text/html")
                 return
@@ -205,6 +225,39 @@ def test_challenge_on_body_stops_and_does_not_preserve_body(archive_today_server
     assert "challenge_detected" in result.gate_defeat_stop
     assert result.body_result is None  # a challenge body is not preserved or trusted
     assert result.body_verification is None
+
+
+def test_captcha_challenge_context_stops_and_does_not_preserve_body(archive_today_server) -> None:
+    result = _fetch(
+        archive_today_server, url="https://example.com/captcha-challenge-body", cutoff="20240601000000"
+    )
+    assert isinstance(result, ArchiveTodayCaptureSuccess)
+    assert result.gate_defeat_stop is not None
+    assert "challenge_detected" in result.gate_defeat_stop
+    assert result.body_result is None
+    assert result.body_verification is None
+
+
+def test_plain_captcha_text_in_archived_body_is_not_gate_defeat(archive_today_server) -> None:
+    result = _fetch(archive_today_server, url="https://example.com/captcha-article", cutoff="20240601000000")
+    assert isinstance(result, ArchiveTodayCaptureSuccess)
+    assert result.gate_defeat_stop is None
+    assert isinstance(result.body_result, DirectHttpCaptureSuccess)
+    assert result.body_result.body == _CAPTCHA_ARTICLE_BODY
+    assert result.body_verification is not None and result.body_verification.ok
+
+
+def test_persistent_rate_limit_body_is_partial_not_verified_body(archive_today_server) -> None:
+    result = _fetch(
+        archive_today_server, url="https://example.com/rate-limited-body", cutoff="20240601000000", max_attempts=1
+    )
+    assert isinstance(result, ArchiveTodayCaptureSuccess)
+    assert result.gate_defeat_stop is None
+    assert isinstance(result.body_result, DirectHttpCaptureSuccess)
+    assert result.body_result.status == 429
+    assert result.body_verification is not None
+    assert not result.body_verification.ok
+    assert "body_http_status_not_usable" in (result.body_verification.reason or "")
 
 
 def test_persistent_rate_limit_timemap_is_access_failed_not_challenge(archive_today_server) -> None:

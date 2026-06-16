@@ -195,7 +195,7 @@ def test_wayback_hit_selected_and_archive_today_not_tried(combined_server, scrat
     ]
     locate = _read_locate_metadata(output_dir)
     assert locate["archive_selected"] == "wayback"
-    assert locate["body_rung_used"] == "wayback"
+    assert locate["body_rung_used"] == "direct_http"
     assert [entry["rung"] for entry in locate["archives_tried"]] == ["wayback"]  # stopped at first verified
     assert (output_dir / "raw" / "02_historical_capture_body.bin").read_bytes() == _ARCHIVED_BODY
 
@@ -209,6 +209,7 @@ def test_wayback_miss_archive_today_hit_records_ladder(combined_server, scratch_
     assert manifest["archive_history_posture"]["value"] == "archived"
     locate = _read_locate_metadata(output_dir)
     assert locate["archive_selected"] == "archive_today"
+    assert locate["body_rung_used"] == "direct_http"
     assert [entry["rung"] for entry in locate["archives_tried"]] == ["wayback", "archive_today"]
     assert locate["archives_tried"][0]["located"] is False  # wayback miss recorded
     assert locate["archives_tried"][1]["verified_body"] is True
@@ -227,6 +228,7 @@ def test_all_miss_is_honest_no_go_packet_with_locate_trace(combined_server, scra
     assert any("historical_capture_no_go" in note for note in manifest["limitations"])
     locate = _read_locate_metadata(output_dir)
     assert locate["archive_selected"] is None
+    assert locate["body_rung_used"] is None
     assert all(entry["verified_body"] is False for entry in locate["archives_tried"])
     assert not (output_dir / "raw" / "02_historical_capture_body.bin").exists()
 

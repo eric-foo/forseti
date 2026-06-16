@@ -260,8 +260,10 @@ def _wayback_outcome(result: ArchiveOrgCaptureResult) -> RungOutcome:
         )
     timestamp = selected.timestamp
     verification = result.body_verification
+    status_failure = _direct_http_status_failure(result.body_result)
     if (
         isinstance(result.body_result, DirectHttpCaptureSuccess)
+        and status_failure is None
         and verification is not None
         and verification.ok
     ):
@@ -280,7 +282,9 @@ def _wayback_outcome(result: ArchiveOrgCaptureResult) -> RungOutcome:
         verified_body=False,
         selected_timestamp=timestamp,
         locate_detail=f"located pre-cutoff snapshot {timestamp}",
-        body_detail=_archive_body_detail(result.body_result, verification_reason=_verification_reason(verification)),
+        body_detail=_archive_body_detail(
+            result.body_result, verification_reason=status_failure or _verification_reason(verification)
+        ),
         result=result,
     )
 
@@ -329,8 +333,10 @@ def _archive_today_outcome(result: ArchiveTodayCaptureResult) -> RungOutcome:
             gate_defeat_stop=result.gate_defeat_stop,
         )
     verification = result.body_verification
+    status_failure = _direct_http_status_failure(result.body_result)
     if (
         isinstance(result.body_result, DirectHttpCaptureSuccess)
+        and status_failure is None
         and verification is not None
         and verification.ok
     ):
@@ -350,7 +356,7 @@ def _archive_today_outcome(result: ArchiveTodayCaptureResult) -> RungOutcome:
         selected_timestamp=timestamp,
         locate_detail=f"located pre-cutoff memento {timestamp}",
         body_detail=_archive_body_detail(
-            result.body_result, verification_reason=_verification_reason(verification)
+            result.body_result, verification_reason=status_failure or _verification_reason(verification)
         ),
         result=result,
     )
@@ -456,6 +462,16 @@ def _publisher_history_outcome(result: PublisherHistoryCaptureResult, *, kind: s
 
 def _verification_reason(verification: object) -> str | None:
     return getattr(verification, "reason", None)
+
+
+def _direct_http_status_failure(
+    body_result: DirectHttpCaptureSuccess | DirectHttpCaptureFailure | None,
+) -> str | None:
+    if not isinstance(body_result, DirectHttpCaptureSuccess):
+        return None
+    if 200 <= body_result.status < 300:
+        return None
+    return f"body HTTP {body_result.status} {body_result.reason or 'without reason'} is not usable"
 
 
 def _archive_body_detail(
