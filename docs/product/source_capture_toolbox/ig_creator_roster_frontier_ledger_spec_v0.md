@@ -143,9 +143,9 @@ provenance contract:
 - `candidate_promotion_link`: append-only bridge from frontier candidate to
   roster entry when a candidate is promoted.
 
-The roster should start with one or two high-density beauty sub-niches and
-roughly 300 to 500 rostered entries. A broad 1,000-creator beauty roster remains
-a later scale target after the loop proves useful in a bounded sub-niche.
+The roster should start with one or two high-density beauty sub-niches and 500
+rostered entries. A broad 1,000-creator beauty roster remains a later scale
+target after the loop proves useful in a bounded sub-niche.
 
 This is product sequencing, not a legal cap. The wind-caller carve-out does not
 cap the number of public subject creators that may be considered, but the first
@@ -529,7 +529,7 @@ Schema-level enforcement expectations:
 Initial proof slice:
 
 - One or two beauty sub-niches.
-- 300 to 500 rostered creator records.
+- 500 rostered creator records.
 - All entries must be placed into A/B/C monitoring priority.
 - At least 100 entries should be reviewed deeply enough to validate name
   observation, sub-niche assignment, tiering, and lifecycle event behavior.
@@ -537,9 +537,9 @@ Initial proof slice:
 
 Suggested tier distribution for the first proof slice:
 
-- Tier A: 30 to 50 high-relevance, high-signal records.
-- Tier B: 90 to 150 useful recurring references.
-- Tier C: remaining long-tail context, parked for low-touch review.
+- Tier A: 50 high-relevance, high-signal records.
+- Tier B: 150 useful recurring references.
+- Tier C: 300 long-tail context records, parked for low-touch review.
 
 Later scale target:
 
