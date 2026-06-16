@@ -70,6 +70,7 @@ packet without redefining Capture obligations.
 | `docs/product/source_capture_toolbox/reddit_capture_operator_playbook_v0.md` | Current operator procedure for bounded Reddit exact-thread capture with implemented Armory tools: old Reddit Direct HTTP batch first, quality summary, exact-URL archive fallback, CloakBrowser/proxy boundaries, warm same-context JSON as future/specialized enrichment, and no broad crawl or commercial-use claims. |
 | `docs/product/source_capture_toolbox/reddit_precommercial_capture_consolidation_planning_thread_v0.md` | Durable architectural planning thread for bounded pre-commercial Reddit capture/consolidation: exact old Reddit Direct HTTP as the current exact-thread operator default, CloakBrowser as the anti-blocking/browser-visible route when Direct HTTP is unsuitable or blocked, warm same-context Reddit JSON as a bounded enrichment path, packet-before-parser handoff, provenance-first consolidation shape, archive fallback, and non-implementation stop lines. |
 | `docs/product/source_capture_toolbox/reddit_precommercial_capture_consolidation_success_signal_architecture_v0.md` | Advisory routing object that explains why the Reddit planning thread needs Decision-Frame-or-candidate classification, non-promoting success tiers, Armory vocabulary reuse, packet-contamination stops, no source-discovery expansion, and candidate-intake gap visibility. |
+| `docs/product/source_capture_toolbox/retail_pdp_projection_playbook_v0.md` | Retail/PDP raw-packet-to-projection contract for Amazon, Sephora, and Ulta: captured inputs, projected rows, residual meanings, retailer target-binding posture, and the playbook-first boundary before auto-project wiring or ECR sequencing. |
 
 ## Armory Components
 
@@ -339,6 +340,22 @@ It is planning context only. It is not validation, readiness, live Reddit
 capture authorization, CloakBrowser installation proof, parser correctness
 proof, storage authorization, production-runtime authorization, ECR, Cleaning,
 Judgment, or commercial Reddit authority.
+
+### Retail/PDP Projection Playbook
+
+Purpose: give agents and owners one current contract for projecting bounded
+Amazon, Sephora, and Ulta PDP packets into source-visible product, offer,
+review-substrate, embedded-JSON, and carried-module rows.
+
+The playbook is at
+`docs/product/source_capture_toolbox/retail_pdp_projection_playbook_v0.md`.
+It names the raw packet inputs, allowed projection rows, binding map requirements,
+loss and residual rules, retailer-specific target-binding posture, and next-move
+selector for playbook versus wiring versus ECR sequencing.
+
+It is product/source-capture guidance only. It is not validation, readiness,
+live capture authorization, auto-project wiring, ECR, Cleaning, Judgment,
+source-quality scoring, fixture admission, or buyer proof.
 
 ### Source-Quality Example Ladder
 
