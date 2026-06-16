@@ -50,6 +50,32 @@ measured ToS risk accepted / absurd-level rejected (the owner's example:
 Bright-Data-style industrial scraping); per-venue route bindings stay
 capture-lane-owned. The stop rules below are stated under that posture.
 
+## Commercial Target Selection Update (2026-06-16)
+
+Owner direction confirms that blank discovery slots, when a candidate-scan lane
+is separately authorized, should target US-market tractioned indie/DTC beauty
+or personal-care operators with a named decision owner and a live 30-90 day
+demand-allocation decision.
+
+Prioritize candidate contexts with retail/channel expansion,
+launch/reposition, or inventory/purchase-depth commitment. Tier/price,
+taste-shift pivot, and defend/hold decisions remain eligible only when they
+pass the same qualification gates.
+
+Retailer/category teams are deferred for this first 2-3 month door because
+their proprietary sell-through, basket, loyalty, and vendor data often makes
+the "internal data not conclusive" gate harder to satisfy. Agencies and
+incubators may later route to accountable brand decision owners, but their
+interest is not a slot-fill substitute. Consumer fund screen and then
+PE/family-office diligence remain fallback/destination classes only if the
+operator-first proof path fails or the owner re-orders the ladder.
+
+Do not use target selection to request or plan proprietary-data intake.
+Customer-provided internal data may later improve judgment accuracy under a
+separately authorized proof or data-spine lane, but this discovery instrument
+selects public-first cases where the manual memo and evidence appendix can be
+credible without that intake.
+
 ## Output Boundary (carried unchanged from batch 0)
 
 Docs-first target-selection instrument only. It does not authorize buyer
@@ -99,9 +125,11 @@ per the charter).
 Derived from the wedge and the buyer-proof packet revision; the packet's
 Demand-Substrate Hard Gate and disqualifiers control on any conflict.
 
-1. Confirm a live 30-90 day consumer-demand allocation decision in the
-   wedge's families (tier/price; retail/channel expansion;
-   launch/moratorium/reposition; taste-shift pivot; defend/hold).
+1. Confirm a live 30-90 day consumer-demand allocation decision at a
+   US-market tractioned indie/DTC beauty or personal-care brand, prioritizing
+   retail/channel expansion, launch/moratorium/reposition, and
+   inventory/purchase-depth commitment; tier/price, taste-shift pivot, and
+   defend/hold remain eligible only when they pass the same gates.
 2. Confirm a named decision owner (founder, head of brand / insights /
    growth / strategy) and a concrete allocation consequence.
 3. Confirm the Demand-Substrate Hard Gate is satisfiable for this decision:

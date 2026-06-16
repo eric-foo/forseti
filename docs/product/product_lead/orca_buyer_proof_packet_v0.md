@@ -79,14 +79,46 @@ The substantive content below (rubric grades, trust handling, pull standard,
 kill and graduation structure, exclusions, and all non-claims) is SURGICALLY
 ALIGNED to the refinement and unchanged in substance.
 
+## Commercial Target Selection Update (2026-06-16)
+
+Owner direction confirms the first commercial target for this packet as
+US-market tractioned indie/DTC beauty or personal-care operators with a named
+decision owner and a live 30-90 day consumer-demand allocation decision.
+
+The proof batch should bias first toward retail/channel expansion,
+launch/reposition, and inventory or purchase-depth commitment because those
+decisions have concrete allocation stakes, short timing, and a high likelihood
+that public creator/social/review/search/retail signals remain material before
+internal data is conclusive. Tier/price, taste-shift pivot, and defend/hold
+against suspected hollow or manufactured demand remain eligible when they
+pass the same gates.
+
+Retailer/category teams are deferred, not killed forever: their proprietary
+sell-through, basket, loyalty, and vendor data often makes the public-signal
+increment harder to prove in the first 2-3 month window. If the operator-first
+proof fails for decision-use reasons, the fallback ladder remains the wedge
+record's rule: re-form toward consumer fund screen and then PE/family-office
+diligence by owner decision at kill time. Agencies and incubators may later
+serve as routes to brand decision owners, but their interest is not buyer proof
+unless the accountable brand decision owner enters the memo/readback loop.
+
+Customer-provided proprietary data may later improve accuracy by letting Orca
+compare the public-signal judgment against the buyer's internal demand
+evidence. This packet does not authorize that intake. For this first proof,
+requiring private/internal data, data science, dashboards, integrations, or
+source-system buildout before the public memo is useful remains a disqualifier.
+Public evidence relevance is treated as strong prior plausibility, not as
+buyer-proof evidence by itself.
+
 ## Proof Standard
 
 This packet tests one narrow first-proof claim:
 
-A real decision owner at an indie/DTC beauty / personal-care brand facing a
-live consumer-demand allocation decision — where internal data is not
-conclusive — will use an Orca decision artifact to reduce allocation risk
-before committing inventory, retail/channel, launch, or pricing budget. Orca
+A real decision owner at a US-market tractioned indie/DTC beauty /
+personal-care brand facing a live 30-90 day consumer-demand allocation
+decision — where internal data is not conclusive — will use an Orca decision
+artifact to reduce allocation risk before committing inventory,
+retail/channel, launch, or pricing budget. Orca
 creates that artifact by capturing, cleaning, integrity-labeling, classifying
 (costly behavior, never engagement volume alone), and constraining messy
 public demand signals — reviews, forums, search interest, retail presence —
@@ -215,10 +247,13 @@ Source mode: local Orca authority and repo-visible product artifacts only. No pu
 
 Primary segment:
 
-US-market indie/DTC beauty / personal-care brands facing a live 30-90 day
-consumer-demand allocation decision — tier/price change, retail or channel
-expansion (e.g., a retailer rollout), launch / moratorium / reposition, or
-pivot on a taste or preference shift — where internal data is not conclusive.
+US-market tractioned indie/DTC beauty / personal-care brands facing a live
+30-90 day consumer-demand allocation decision — prioritizing retail/channel
+expansion or contraction, launch / moratorium / reposition, and inventory or
+purchase-depth commitment — where internal data is not conclusive. Tier/price
+change, pivot on a taste or preference shift, and defend/hold against
+suspected hollow or manufactured demand remain eligible when they satisfy the
+same gates.
 Geography: US-market first proof per the thesis geography doctrine
 (2026-06-12); non-US candidates route to the owner or defer.
 
@@ -231,8 +266,9 @@ concrete inventory, retail-commitment, launch-budget, backlash/churn, or
 delayed-capture consequence.
 
 If results are mixed, diagnose the demand decision families separately
-(inventory/replenishment vs channel expansion vs launch/reposition vs
-tier/price) before treating the family as repeatable or non-repeatable.
+(retail/channel expansion vs launch/reposition vs inventory/purchase-depth vs
+tier/price vs defend/hold) before treating the family as repeatable or
+non-repeatable.
 
 Primary decision owner:
 
@@ -241,10 +277,10 @@ accountable for the budgeted demand-allocation decision.
 
 Economic context:
 
-The decision should have meaningful allocation risk: inventory commitment,
-purchase depth, replenishment, retail or channel commitment, launch spend,
-tier/price change, customer backlash risk, churn risk, or delayed capture of
-a real opportunity.
+The decision should have meaningful allocation risk: retail or channel
+commitment, launch spend, inventory commitment, purchase depth, replenishment,
+tier/price change, customer backlash risk, churn risk, or delayed capture of a
+real opportunity.
 
 Disqualifiers:
 
@@ -262,7 +298,9 @@ Disqualifiers:
   required for material action).
 - Buyer wants only generic research, source volume, dashboard access, trend
   feeds, or a market-monitoring feed.
-- Buyer requires private/internal data or automated collection before a manual public-signal memo can be useful.
+- Buyer requires private/internal data, data science, dashboards,
+  integrations, or automated collection before a manual public-signal memo can
+  be useful.
 - Categorical trust refusal: buyer says public-signal evidence cannot affect this decision regardless of evidence quality, explanation, examples, numbers, case logic, or proof memo.
 - Buyer attributes such as funding status, trend-darling visibility, or
   creator attention are neither qualifiers nor disqualifiers. They may be
@@ -496,7 +534,9 @@ Kill or reframe the proof if any of these conditions hold after the first proof 
 - No delivered memo is used in a real allocation decision.
 - Buyers consistently classify the memo as interesting research rather than decision support.
 - Buyers show `trust_refusal`, or the proof memo fails to move `trust_objection` enough for the public-signal basis, source cleanliness, uncertainty framing, or action-ceiling discipline to affect the decision.
-- Buyers require private/internal data, dashboards, source systems, collection pipelines, source maps, automation, or data-spine design before the memo can be useful.
+- Buyers require private/internal data, data science, dashboards, source
+  systems, collection pipelines, source maps, integrations, automation, or
+  data-spine design before the memo can be useful.
 - The strongest buyer ask is generic market monitoring, not allocation-risk reduction.
 - No buyer shows fixed-scope paid-decision-sprint-level pull or equivalent commercial next step after useful memo feedback.
 - The work only succeeds as bespoke consulting and does not repeat around a decision family.
