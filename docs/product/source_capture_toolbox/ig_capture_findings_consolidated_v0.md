@@ -38,7 +38,10 @@ reel/video view counts — remains capturable by a headless browser, and the fir
 route is still logged-out on a clean/working public egress.** The 2026-06-17 live probes refine the
 older absolute wording: current local egress can be logged-out soft-walled
 (`web_profile_info` 401 / login redirect), but later recovered after an hours-long quiet window for
-one bounded logged-out `@hyram` max-4 smoke capture. A residential proxy route returned logged-out
+one bounded logged-out `@hyram` max-4 smoke capture, then completed one current-egress logged-out
+Stage 1 slice across five prior repo-named handles with 5/5 packets, 60 enumerated items, 52 full
+call-signal captures, 8 `partial_signal` content-shape misses, 45 observed `view_count` values, and
+no warning/block/capture-failure statuses. A residential proxy route returned logged-out
 `web_profile_info` 200 and profile-grid permalinks at measured viewport(s). Owner-created session
 state on current egress also returned `web_profile_info` 200, so an own-session route is technically
 viable as a fallback/probe candidate, but it is not the default product path and its account risk and
@@ -62,11 +65,13 @@ sustained cadence remain unmeasured.
   logged-out; a session run was **byte-identical** to logged-out.
 - **2026-06-17 route refinement**: current local egress logged-out can soft-wall, but one later
   smoke-level logged-out run after an hours-long quiet window captured `@hyram` 4/4 with no packet
-  warnings; logged-out alternate egress worked and own-session current egress worked for
-  `web_profile_info`. Therefore, do not make sessions the default or use them to reach
-  private/auth-gated material; treat own-session current-egress capture as a separately authorized
-  fallback/probe lane only if clean logged-out egress/mobile/proxy paths are too costly or
-  unavailable.
+  warnings. A later no-proxy/no-session Stage 1 slice on the same current egress wrote 5/5 packets
+  across five prior repo-named handles, with no warning/block/capture-failure statuses; it is a
+  single-window slice, not repeated-window sustainability. Logged-out alternate egress worked and
+  own-session current egress worked for `web_profile_info`. Therefore, do not make sessions the
+  default or use them to reach private/auth-gated material; treat own-session current-egress capture
+  as a separately authorized fallback/probe lane only if clean logged-out egress/mobile/proxy paths
+  are too costly or unavailable.
 - **Therefore**: keep the IG runner logged-out-first. Re-open session/runtime wiring only as an
   explicit fallback decision after measured logged-out route/cadence evidence, because the sustained
   account/session risk is not characterized here.
@@ -137,10 +142,11 @@ sustained cadence remain unmeasured.
   limit is on our own capture/operating accounts, not on the number of creators tracked. See
   `ig_r_probe_results_v0.md` for the evidence record and caveats.
 - **Route/viewport evidence is still narrow.** The 2026-06-17 route probes were bounded, mostly
-  `@hyram`, and used a residential rotating proxy plus current-egress/session diagnostics and one
-  current-egress recovery smoke. They prove the failure mode, a working viewport candidate, and that
-  current egress can recover to smoke-level logged-out capture after a long quiet window; they do not
-  validate a production runner patch, mobile-data lane, sustained current-egress cadence, or sustained
+  `@hyram`, and used a residential rotating proxy plus current-egress/session diagnostics, one
+  current-egress recovery smoke, and one five-handle current-egress Stage 1 slice. They prove the
+  failure mode, a working viewport candidate, and that current egress can recover to a clean
+  single-window logged-out slice after a long quiet window; they do not validate mobile-data lane,
+  repeated-window sustainability, two-lane additivity, sustained current-egress cadence, or sustained
   account/session route.
 - **Proxy-backed packet evidence is smoke-level only.** The 2026-06-17 runner packet proves one
   `@hyram` logged-out proxy run can capture recent calls and profile-feed JSON through the patched

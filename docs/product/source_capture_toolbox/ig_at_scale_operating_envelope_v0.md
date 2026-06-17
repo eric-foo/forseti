@@ -60,6 +60,15 @@ secret recorded in durable docs):
   2 posts + 2 reels, 2 observed reel `view_count` values, no packet warnings. The first sandboxed
   attempt failed before source access because Playwright subprocess startup was denied by the local
   execution environment; the re-run outside that sandbox wrote the packet.
+- A later current-egress logged-out Stage 1 slice also completed without block signals:
+  gitignored raw root
+  `orca-harness/_test_runs/ig_stage1_current_egress_logged_out_768x1024_max12_20260617_162730/`;
+  five prior repo-named handles (`hyram`, `nikkietutorials`, `kayla.ryan1`, `theglownarrative`,
+  `milkydew_`), no proxy, no session, `768x1024`, max 12 items/handle, configured 8-12s item gaps
+  and 30s inter-profile gaps; 5/5 packets wrote, 60 items enumerated, 52 full call-signal captures,
+  8 `partial_signal` content-shape misses, 45 observed `view_count` values, no packet warnings, and
+  no `access_blocked`, `capture_failed`, or `no_signal` item statuses. This is Stage 1 slice
+  evidence only, not repeated-window sustainability.
 - Profile DOM permalink extraction is viewport-sensitive: `768x1024` and `1280x1200` returned 12
   grid permalinks; `1280x720`, `820x1180`, and `1024x1366` returned none in the same bounded route.
 
@@ -82,9 +91,10 @@ beauty-vertical IG monitoring posture.
 The durable live constraint remains per-egress-IP **pace**, not account count and not ordinary
 session volume. The 2026-06-17 successor probes add a route-selection caution: the current local
 egress can be logged-out soft-walled, but later recovered after an hours-long quiet window for one
-bounded logged-out smoke; an alternate residential egress worked logged-out, and own-session current
-egress worked for `web_profile_info`. Operate logged-out egress paths at bounded human-paced spacing,
-in bounded, human-initiated/self-terminating sessions. For the owner-selected
+bounded logged-out smoke and then completed one five-handle Stage 1 slice without block markers; an
+alternate residential egress worked logged-out, and own-session current egress worked for
+`web_profile_info`. Operate logged-out egress paths at bounded human-paced spacing, in bounded,
+human-initiated/self-terminating sessions. For the owner-selected
 **1,000 creator serious v0**, the smallest reliable operating path is still:
 
 - **Lane 1:** main laptop on home fibre/home internet.
@@ -246,17 +256,18 @@ or authorization to capture.
 
 - At-pace daily-volume ceiling remains unmeasured. The second endurance retry wrote only warm-up log
   rows and no summary.
-- Current local egress logged-out recovery is smoke-measured only after an hours-long quiet window:
-  one max-4 `@hyram` packet succeeded; sustained cadence, repeatability, exact cooldown length, and
-  daily ceiling remain unmeasured.
-- Profile-enumeration viewport behavior is only first-measured. `768x1024` is the current candidate
-  because it exposed DOM links in a bounded `@hyram` route; it is not a permanent IG guarantee.
+- Current local egress logged-out recovery has progressed from one max-4 `@hyram` smoke to one
+  five-handle Stage 1 slice; repeated-window sustainability, exact cooldown length, two-lane
+  additivity, and daily ceiling remain unmeasured.
+- Profile-enumeration viewport behavior remains first-measured but stronger: `768x1024` exposed 12
+  DOM item links across the five-handle Stage 1 slice. It is still not a permanent IG guarantee.
 - Exact pace threshold remains unpinned; known safe/unsafe shape is >=~2s clean in run 1 and sub-2s
   wall in run 2.
 - Throttle decay time remains unpinned; evidence says longer than the prior "minutes" assumption and
   not cleared by the retry pattern.
 - Average bytes per IG-request equivalent is unmeasured; needed for proxy cost precision.
-- 9s/request has not been validated; it is the next planning/probe target only.
+- Configured 8-12s item gaps have completed in one Stage 1 slice; a true end-to-end 9s/request
+  operating rate is not separately modeled or validated.
 - The second-laptop/mobile-data lane has not been isolation-tested in this repo lane.
 
 ## Non-Claims
