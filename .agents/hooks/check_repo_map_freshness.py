@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Repo-map freshness boundary check (advisory, forward-only).
+"""Repo-map freshness boundary check (forward-only, with repo-map commit interrupt).
 
 WHAT THIS ENFORCES
   The *structural* subset of the repo map's own ``stale_if:`` block - the
@@ -53,8 +53,10 @@ MODES
                                                     strict + ack from FILE)
   check_repo_map_freshness.py --message "TEXT"      ack source for CI
   check_repo_map_freshness.py --diff BASE [--strict] compare BASE...HEAD (PR diff)
-  check_repo_map_freshness.py --hook                PostToolUse hook (stdin JSON,
-                                                    always exit 0)
+  check_repo_map_freshness.py --hook                PostToolUse hook (stdin JSON):
+                                                    exits 2 when the repo map
+                                                    itself is dirty after edit;
+                                                    other notices exit 0
   check_repo_map_freshness.py --selftest            run the pure-decision cases
 
   Commit gate (local, commit-msg hook):
@@ -62,9 +64,10 @@ MODES
   CI gate (POSIX), against the PR base (fetch the base ref first):
       python3 .agents/hooks/check_repo_map_freshness.py --diff origin/main --strict --message "$PR_BODY"
 
-This checker is advisory tooling, not validation, readiness, approval, or
-source-of-truth promotion. It enforces map *shape*, never the truth of any route.
-On any internal error it fails OPEN, so a bug here can never block a commit.
+This checker is boundary tooling, not validation, readiness, approval, or
+source-of-truth promotion. It enforces map *shape* and the repo-map immediate
+commit interrupt, never the truth of any route. On any internal error it fails
+OPEN, so a bug here can never block a commit.
 """
 
 from __future__ import annotations
@@ -121,6 +124,8 @@ DEFAULT_EXCLUDE_SUBSTR = ("_dry_run", "/scores/", "/__pycache__/", "pytest_")
 IGNORED_ROOT_AREAS = {".git", ".claude", "node_modules"}
 
 _ACK_RE = re.compile(r"repo-map-ack\s*:\s*(.+)", re.I)
+_PATCH_PATH_RE = re.compile(r"^\*\*\* (?:Add|Update|Delete) File: (.+)$")
+_PATCH_MOVE_RE = re.compile(r"^\*\*\* Move to: (.+)$")
 HEAD_LINES_FOR_HOOK = None  # the map is read in full; it is the spec, not the target
 
 
@@ -140,6 +145,37 @@ def to_relposix(target: str, root: Path) -> str | None:
         return rel.as_posix()
     s = Path(target).as_posix()
     return s[2:] if s.startswith("./") else s
+
+
+def event_candidate_paths(data: dict) -> list[str]:
+    """Write-target paths from a Claude/Codex-like tool event.
+
+    Claude-style Write/Edit/MultiEdit payloads carry ``tool_input.file_path``.
+    Codex ``apply_patch`` payloads carry the patch text in ``tool_input.command``;
+    parse patch headers so the same checker can run as a Codex PostToolUse hook.
+    """
+    try:
+        tool_input = data.get("tool_input") or {}
+    except AttributeError:
+        return []
+
+    out: list[str] = []
+    file_path = tool_input.get("file_path")
+    if isinstance(file_path, str) and file_path:
+        out.append(file_path)
+
+    patch_text = tool_input.get("command") or tool_input.get("patch") or ""
+    if isinstance(patch_text, str) and patch_text:
+        for line in patch_text.splitlines():
+            match = _PATCH_PATH_RE.match(line) or _PATCH_MOVE_RE.match(line)
+            if match:
+                out.append(match.group(1).strip())
+
+    deduped: list[str] = []
+    for path in out:
+        if path not in deduped:
+            deduped.append(path)
+    return deduped
 
 
 # --- the map is the spec ----------------------------------------------------
@@ -270,6 +306,11 @@ def git_lines(root: Path, args: list[str]) -> list[str]:
     return [ln.strip() for ln in out.stdout.splitlines() if ln.strip()]
 
 
+def map_is_dirty(root: Path) -> bool:
+    """True when the repo map is staged or unstaged dirty."""
+    return bool(git_lines(root, ["status", "--porcelain", "--", MAP]))
+
+
 def _dedup(*groups: list[str]) -> list[str]:
     seen: list[str] = []
     for g in groups:
@@ -328,37 +369,56 @@ def read_ack(commit_msg_file: str | None, message: str | None) -> str | None:
 # --- run modes --------------------------------------------------------------
 
 def run_hook(root: Path) -> int:
-    """PostToolUse hook: nudge on the written file, never block, exit 0."""
+    """PostToolUse hook: block dirty repo-map edits; otherwise advise."""
     try:
         data = json.loads(sys.stdin.read() or "{}")
-        file_path = (data.get("tool_input") or {}).get("file_path")
-    except (ValueError, AttributeError):
+    except ValueError:
         return 0
-    if not file_path:
+
+    paths = event_candidate_paths(data)
+    if not paths:
         return 0
-    rel = to_relposix(file_path, root)
-    if rel is None:
-        return 0
+
     map_text = read_map_text(root)
     extra = map_excludes(map_text)
-    # Editing the map itself -> a per-edit commit reminder (its own, simpler note);
-    # structural/freshness triggers only fire on OTHER files, so these never overlap.
-    nudge = commit_nudge(rel)
-    if nudge:
-        note = "Repo-map commit reminder (advisory, not blocking): " + nudge
-    else:
+
+    notes: list[str] = []
+    block = False
+    for path in paths:
+        rel = to_relposix(path, root)
+        if rel is None:
+            continue
+        # Editing the map itself -> an immediate commit interrupt (its own,
+        # simpler note); structural/freshness triggers only fire on OTHER files.
+        nudge = commit_nudge(rel)
+        if nudge:
+            if map_is_dirty(root):
+                block = True
+                notes.append("Repo-map commit interrupt (blocking): " + nudge)
+            continue
+
         msg = structural_trigger(rel, map_text, extra) or advisory_only(rel)
-        if not msg:
-            return 0
-        note = (
+        if msg:
+            notes.append(
             "Repo-map freshness (advisory, not blocking): " + msg
             + " Update " + MAP + " (or the relevant consolidation submap), or record "
             "a `repo-map-ack: <reason>` in your commit message if it is deliberately "
             "not a navigation target. Enforced at the write boundary per " + PRINCIPLE
             + "; judgment-shaped staleness stays with " + DCP + "."
-        )
+            )
+
+    if not notes:
+        return 0
+    deduped: list[str] = []
+    for note in notes:
+        if note not in deduped:
+            deduped.append(note)
+    note = "\n".join(deduped)
     print(json.dumps({"hookSpecificOutput": {
         "hookEventName": "PostToolUse", "additionalContext": note}}))
+    if block:
+        print(note, file=sys.stderr)
+        return 2
     return 0
 
 
@@ -507,6 +567,21 @@ def selftest() -> int:
                 and commit_nudge(SOURCE_OF_TRUTH) is None)
     print(("PASS" if nudge_ok else "FAIL") + " commit-nudge")
     ok = ok and nudge_ok
+    paths_ok = (
+        event_candidate_paths({"tool_input": {"file_path": MAP}}) == [MAP]
+        and event_candidate_paths({"tool_input": {"command": (
+            "*** Begin Patch\n"
+            "*** Update File: docs/workflows/orca_repo_map_v0.md\n"
+            "@@\n"
+            "-old\n"
+            "+new\n"
+            "*** Move to: docs/workflows/orca_repo_map_v1.md\n"
+            "*** End Patch\n"
+        )}}) == [MAP, "docs/workflows/orca_repo_map_v1.md"]
+        and event_candidate_paths({"tool_input": {}}) == []
+    )
+    print(("PASS" if paths_ok else "FAIL") + " hook-paths")
+    ok = ok and paths_ok
     print("SELFTEST", "OK" if ok else "FAILED")
     return 0 if ok else 1
 
