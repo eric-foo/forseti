@@ -15,6 +15,7 @@ authority_boundary: retrieval_only
 open_next:
   - docs/decisions/orca_spine_first_workspace_structure_proposal_v0.md
   - docs/decisions/orca_repo_structure_binding_v0.md
+  - docs/migration/data_lake_spine_first_migration_plan_v0.md
   - docs/product/core_spine/core_spine_v0_data_lake_storage_contract_v0.md # nonresolving: source branch artifact, not present in this worktree
   - docs/product/core_spine/core_spine_v0_data_lake_core_contract_v0.md # nonresolving: source branch artifact, not present in this worktree
   - docs/workflows/orca_repo_map_v0.md
@@ -37,6 +38,9 @@ stale_if:
 - The structure worktree had unrelated modified Commission Signal Board files
   while this inventory was drafted; those files are not used as data-lake
   evidence.
+- Follow-on migration preparation lives in
+  `docs/migration/data_lake_spine_first_migration_plan_v0.md`; that plan is
+  still docs-only and does not make the future root live.
 
 ## Placement Recommendation
 
@@ -103,6 +107,16 @@ branch lands or is rebased into the structure migration work.
 | `docs/product/core_spine/core_spine_v0_data_lake_attachment_record_implementation_contract_v0.md` | `authority/` | migrate_later_after_branch_lands |
 | `docs/product/core_spine/core_spine_v0_data_lake_mechanics_map_v0.md` | `workflows/` or `authority/` | migrate_later |
 
+Lane mark:
+
+```yaml
+lane: data_lake
+spine_kind: shared_foundation
+owner_class: data_lake_owned
+future_root: orca/product/spines/data_lake/
+move_phase: direct_lake_contracts_first
+```
+
 The future Data Lake workspace should preserve the lake boundary recorded in
 these files: raw packet preservation, stable by-key findability, passive
 availability facts, source-family Attachment Records, append-only derived or
@@ -117,9 +131,20 @@ without an ownership decision.
 
 | Current path | Proposed target slot | Migration mark |
 | --- | --- | --- |
+| `docs/product/data_capture_spine/orca_capture_projection_storage_spine_architecture_v0.md` | Data Lake `authority/` candidate if later accepted; otherwise Capture storage-backbone history | classify_before_move |
 | `docs/product/data_capture_spine/source_capture_tenant_payload_attachment_boundary_v0.md` | Data Lake `authority/` pointer, or Capture `authority/` if Capture remains owner | classify_before_move |
 | `docs/product/data_capture_spine/source_capture_core_payload_split_explainer_v0.md` | Data Lake `authority/` pointer or Capture explanatory note | classify_before_move |
 | `docs/product/data_capture_spine/retail_pdp_typed_envelope_probe_v0.md` | `research/` or Capture/source-family probe home | classify_before_move |
+
+Lane mark:
+
+```yaml
+lane: data_lake
+spine_kind: shared_foundation
+owner_class: pointer_or_classify
+future_root: orca/product/spines/data_lake/
+move_phase: after_direct_contracts
+```
 
 Default stance: the Data Lake workspace should point to these as controlling or
 supporting sources rather than absorb them blindly. They define source-payload
@@ -137,6 +162,15 @@ workspace artifacts by default.
 | `docs/workflows/data_capture_spine_consolidation_map_v0.md` | Keep Capture route map or global map; update lake pointers if a move occurs. | keep_global_or_capture_update_refs_later |
 | `docs/workflows/ecr_spine_submap_v0.md` | Keep ECR route map or global map; update lake pointers if a move occurs. | keep_global_or_ecr_update_refs_later |
 | `docs/decisions/dcp_receipts_archive_v0.md` | Keep global receipt archive. | keep_global |
+
+Lane mark:
+
+```yaml
+lane: data_lake
+owner_class: keep_global_or_other_spine
+future_root: orca/product/spines/data_lake/
+move_phase: reference_update_only
+```
 
 ## Harness And Test Pointer Candidates
 
@@ -160,6 +194,16 @@ Class-level pointer candidates:
 | `orca-harness/tests/unit/test_signal_content_deriver.py` or future signal-statement equivalent | Signal Statement/Content re-derivation and keyed-reference tests. | keep_harness_add_test_pointer_later |
 | `orca-harness/tests/unit/test_evidence_binding.py` | Exact-key binding and anti-laundering tests. | keep_harness_add_test_pointer_later |
 
+Lane mark:
+
+```yaml
+lane: data_lake
+owner_class: pointer_only
+future_root: orca/product/spines/data_lake/
+move_phase: add_pointer_docs_after_root_acceptance
+canonical_code_stays: orca-harness/
+```
+
 ## Shared Or Adjacent - Do Not Auto-Migrate
 
 These surfaced during discovery but should not be treated as Data Lake move
@@ -172,6 +216,8 @@ targets without owner/source-boundary review:
 | ECR and Signal Statement/Content docs or prompts | Sibling derived-record lanes; data lake stores keyed state but does not own derivation semantics. |
 | Judgment review inputs/outputs containing data-boundary source snapshots | Historical review bundles; keep under review/archive rules unless a later review migration says otherwise. |
 | Python code under `orca-harness/` | Runtime/code tree; not document migration. |
+| IG creator momentum, creator monitoring, and IG capture-shape probe docs | Mixed source-family, product, and projection-store language; split or classify before any Data Lake move. |
+| Source Capture packet schema, archive timing, runner, source-quality, candidate-intake, and observability docs | Capture/source-access ownership; Data Lake may depend on packet keys and preserved-file handles by pointer. |
 
 ## Proposed Migration Sequence
 
