@@ -63,7 +63,7 @@ amendments:
 - overlay source-loading policy: `.agents/workflow-overlay/source-loading.md` (read AGENTS.md + `.agents/workflow-overlay/README.md` first, per AGENTS).
 - targets to enter the ladder:
   - docs/product/judgment_spine/judgment_quality_promotion_operating_model_v0.md — the existing backtest conductor (its invariants bound what this machinery may/may not do).
-  - docs/product/core_spine/core_spine_v0_data_and_cleaning_spine_boundary_v0.md — the canonical spine map (Judgment Spine owns Signal Integrity / Signal Use Classification / Decision Strength / Action Ceiling; core vs satellite).
+  - docs/product/foundation/core_spine_v0_data_and_cleaning_spine_boundary_v0.md — the canonical spine map (Judgment Spine owns Signal Integrity / Signal Use Classification / Decision Strength / Action Ceiling; core vs satellite).
   - docs/product/product_lead/orca_demand_read_taxonomy_v0.md — signal layers, wind callers, convergence/divergence reads, costly-behavior catalog (the proto-ontology this machinery uses).
   - docs/product/product_lead/orca_buyer_proof_packet_v0.md — the Demand-Substrate Hard Gate (the admissibility front-door) + the no-scoring/no-automated-scoring boundary this machinery must respect.
   - docs/prompts/product-planning/orca_ontology_backbone_architecture_pass_commission_prompt_v0.md — DISPATCHED ontology backbone; carries the `derived_from`/`diverges_from` link types this machinery's de-correlation + divergence rely on.
@@ -77,7 +77,7 @@ amendments:
   - decided in: this sender thread (chat-only; NOT yet in any file — this packet is its first durable capture).
   - compare target: none (no prior artifact) — treat as the sender's proposal to be re-derived/validated in goal-framing, not as settled authority.
 - **Phased distillation tail (owner-revised 2026-06-13).** Per checkpoint: **diagnose → prove → generalize → install-as-dated-card**, under the venue-card-set survival kernel (hard cap, review dates, fail-soft, dated amendments). The **PROVE** phase is an empirical gate inserted before a lesson earns generalization/installation: re-run the **same case** on a **fresh instance of the same model family**, armed with the candidate lesson, and check whether its answer is **materially better**. Same family is deliberate — it isolates the lesson's effect rather than confounding it with a model-capability change; the fresh instance avoids contamination from the original run's reasoning. Pass (materially better) → generalize → install as a dated card; fail → the "lesson" did not earn a card (no install). Output = a distillation DECK that feeds the core's weighting; the deck is the membrane between backtest (produces cards) and live (consumes cards); it is where the wind-caller calibration moat lives.
-  - verify pointer: the survival-kernel pattern is in docs/product/core_spine/beauty_venue_card_set_v0.md (compare target: sha256[:16] 65E22CDAE5EDE781 as of 2026-06-13; reread-required).
+  - verify pointer: the survival-kernel pattern is in docs/product/foundation/beauty_venue_card_set_v0.md (compare target: sha256[:16] 65E22CDAE5EDE781 as of 2026-06-13; reread-required).
 - **Three distillation checkpoints:** (1) judgment — HAVE; (2) counterfactual "what evidence would let us decide better" — the new tail; (3) **weighting** — per vertical, what weight each source/signal earns, learned from past/backtested cases (owner-set 2026-06-13; was the open slot). All three run through the diagnose → prove → generalize → install phases and feed the deck's per-vertical calibration.
 - **P2/P3/P4 are owner-RATIFIED (Task 2).** This machinery consumes the gate; it does not reopen them.
   - verify pointer: docs/product/product_lead/orca_demand_gate_definition_closures_proposal_v0.md (compare target: sha256 006CD6ACE65BF45D9E3209531ED6BFC0F4206DDB688081D40F445D5D6137FEFB; reread-required). NOTE: this file is UNTRACKED on the sender branch — a fresh lane off origin/main will NOT see it; obtain it from this branch or wait for it to land.
@@ -105,7 +105,7 @@ Design the live demand-read judgment machinery ("C") — the "one core, two shel
     - Load-bearing: yes
     - Compare target: reread-required (Round-19; large file; verify the invariants section + JSG gate table).
     - Reuse rule: read fresh; do not edit; treat as the boundary, not the host.
-  - `docs/product/core_spine/core_spine_v0_data_and_cleaning_spine_boundary_v0.md`
+  - `docs/product/foundation/core_spine_v0_data_and_cleaning_spine_boundary_v0.md`
     - Role: canonical spine map (core vs satellite; Judgment Spine ownership of integrity/signal-use/decision-strength).
     - Load-bearing: yes
     - Compare target: reread-required.

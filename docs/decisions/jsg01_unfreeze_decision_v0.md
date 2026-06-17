@@ -92,7 +92,7 @@ direction_change_propagation:
   downstream_surfaces_checked:
     - "docs/workflows/ecr_spine_submap_v0.md"  # UPDATED: downstream-consumer line, invariant 5, deferred list, stale_if
     - "docs/research/judgment-spine/judgment_spine_machinery_build_state_gap_map_v0.md"  # UPDATED: SP-5 + binding rows, corrected-gap prose
-    - "docs/product/core_spine/core_spine_v0_data_and_cleaning_spine_boundary_v0.md"  # checked, NO edit: every 'JSG-01 stays FROZEN' there sits inside dated ratification records (history, not live state); the live reserved lists never carried the unfreeze
+    - "docs/product/foundation/core_spine_v0_data_and_cleaning_spine_boundary_v0.md"  # checked, NO edit: every 'JSG-01 stays FROZEN' there sits inside dated ratification records (history, not live state); the live reserved lists never carried the unfreeze
     - ".agents/workflow-overlay/safety-rules.md"  # checked, NO edit: no JSG-01 entry; run/ECR gates unchanged
   intentionally_not_updated:
     - path: "orca-harness/evidence_binding/ (module docstrings) + orca-harness/cases/product_learning/jsg01_binding_assembly_proof_v0/README.md + docs/product/ecr/ecr_consolidation_v0_jsg01_evidence_unit_binding_slice_plan_v0.md"

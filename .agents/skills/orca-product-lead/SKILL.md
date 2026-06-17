@@ -49,7 +49,7 @@ needs its own explicit owner authorization.
 1. `AGENTS.md` and `.agents/workflow-overlay/README.md` first (authority entry).
 2. The **`S2 product anchor`** pack from
    `.agents/workflow-overlay/source-loading.md` (thesis, offer hypothesis, buyer
-   proof packet, Core Spine product contract, nearest boundary note), then only
+   proof packet, Foundation Layer product contract, nearest boundary note), then only
    the nearest controlling product doc(s) for the specific decision. Use
    `docs/workflows/orca_repo_map_v0.md` to choose among many docs.
 3. Controlling product sources, opened as the decision needs them:
@@ -130,7 +130,7 @@ needs its own explicit owner authorization.
 
 Outputs of this skill do not assert buyer validation, willingness to pay, paid
 conversion, repeatability, ROI, product / feature / implementation / commercial
-readiness, Core Spine v0 validation, or proof-lane graduation. They are
+readiness, Foundation Layer v0 validation, or proof-lane graduation. They are
 decision preparation for owner sign-off, nothing more.
 
 ## Output shape

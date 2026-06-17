@@ -20,7 +20,7 @@ adjudication_route: ICP / product-direction lane (commissioning thread) adjudica
 
 ## Commission
 
-Author `docs/product/core_spine/orca_demand_scan_core_spec_v0.md` (PROPOSED):
+Author `docs/product/foundation/orca_demand_scan_core_spec_v0.md` (PROPOSED):
 the method spec for Orca's scanning function — how an authorized scan walks a
 vertical's venues, recognizes decision-shaped demand situations, and emits
 structured candidate observations with provenance. The intended decision:
@@ -68,10 +68,10 @@ Do not APPLY it before `SOURCE_CONTEXT_READY`.
 SOURCE-LOAD (pins = sha256 first-16-hex at authoring):
 
 - `docs/product/product_lead/orca_demand_read_taxonomy_v0.md` — `BC478D890419B2B6` — the hunting grammar (PROPOSED; owner adjudication may amend it — check its Status block for a dated owner word before treating any part as fixed).
-- `docs/product/core_spine/beauty_venue_card_set_v0.md` — `65E22CDAE5EDE781` — the venue layer: 12 cards, NEWSY/SUBTLE chain, access shapes, wind-caller exemplar (card 11).
-- `docs/product/core_spine/orca_vertical_exploration_guide_v0.md` — `EF9F5C6E716E9857` — the existing screen procedure (the scanning function's working prototype; three screens already ran under it).
-- `docs/product/core_spine/orca_memorization_resistant_case_finder_frame_v0.md` — `C672C1678F98878F` — the backward-mode predecessor frame; reconcile, do not duplicate.
-- `docs/product/core_spine/consumer_demand_candidate_pool_handoff_v0.md` — `19009D43A7C29858` — backward-mode output shape (candidate observations as practiced).
+- `docs/product/foundation/beauty_venue_card_set_v0.md` — `65E22CDAE5EDE781` — the venue layer: 12 cards, NEWSY/SUBTLE chain, access shapes, wind-caller exemplar (card 11).
+- `docs/product/foundation/orca_vertical_exploration_guide_v0.md` — `EF9F5C6E716E9857` — the existing screen procedure (the scanning function's working prototype; three screens already ran under it).
+- `docs/product/foundation/orca_memorization_resistant_case_finder_frame_v0.md` — `C672C1678F98878F` — the backward-mode predecessor frame; reconcile, do not duplicate.
+- `docs/product/foundation/consumer_demand_candidate_pool_handoff_v0.md` — `19009D43A7C29858` — backward-mode output shape (candidate observations as practiced).
 - `docs/product/product_lead/orca_discovery_consumer_demand_target_selection_brief_v0.md` — `48B5534E056FD42A` — forward-mode consumer: slot columns + record homes + the pool-is-never-a-slot-source bar.
 - `docs/decisions/orca_product_thesis_consumer_demand_v0.md` — `B119E24691066E47` — costly-behavior primitive, integrity labels, US-first geography, capture risk posture (ask-1 amendment).
 - `docs/product/product_lead/orca_buyer_proof_packet_v0.md` — `732C65BEBFC31DA1` — Demand-Substrate Hard Gate (the columns scanning must make checkable).
@@ -81,7 +81,7 @@ list) before applying any method or drafting the spec.
 
 ## Scope And Deliverable
 
-One artifact: `docs/product/core_spine/orca_demand_scan_core_spec_v0.md`
+One artifact: `docs/product/foundation/orca_demand_scan_core_spec_v0.md`
 (PROPOSED), containing at minimum:
 
 1. **Hunting grammar**: how a scan recognizes each read type (convergence,

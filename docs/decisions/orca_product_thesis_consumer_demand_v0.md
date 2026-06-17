@@ -512,7 +512,7 @@ direction_change_propagation:
     - AGENTS.md                                   # no thesis/wedge content; routes to overlay — unchanged
     - CLAUDE.md                                   # shim — unchanged
     - .agents/workflow-overlay/product-proof.md   # wedge-agnostic semantics — unchanged
-    - docs/product/core_spine/core_spine_v0_product_contract.md  # senior frozen contract — unchanged
+    - docs/product/foundation/core_spine_v0_product_contract.md  # senior frozen contract — unchanged
     - docs/product/judgment_spine/judgment_spine_evidence_ladder_architecture_v0.md  # senior; one-way subordination — unchanged
     - docs/product/product_lead/orca_claim_defense_doctrine_v0.md  # owner-signed wording policy — unchanged
     - docs/product/product_lead/orca_discovery_batch_0_qualification_prep_sentry_clerk_v0.md  # already superseded-bannered; resolves via chain

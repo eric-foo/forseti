@@ -145,11 +145,11 @@ land as they run, and the batch closes with one distillation record.
 | --- | --- | --- |
 | Case index | `docs/research/judgment-spine/cases/unity-runtime-fee/case_index.md` | Created for navigation and residue tracking |
 | Reveal readout | `docs/research/judgment-spine/cases/unity-runtime-fee/reveal_readout_v0.md` | Exists |
-| Pre-cutoff source packet | `docs/product/core_spine/orca_backtest_specimen_unity_runtime_fee_source_packet_v0.md` | Exists outside case folder |
-| Sealed at-cutoff memo | `docs/product/core_spine/orca_backtest_specimen_memo_unity_runtime_fee_at_cutoff_v0.md` | Exists outside case folder |
-| Outcome calibration | `docs/product/core_spine/orca_backtest_specimen_unity_runtime_fee_outcome_calibration_v0.md` | Exists outside case folder |
+| Pre-cutoff source packet | `docs/product/foundation/orca_backtest_specimen_unity_runtime_fee_source_packet_v0.md` | Exists outside case folder |
+| Sealed at-cutoff memo | `docs/product/foundation/orca_backtest_specimen_memo_unity_runtime_fee_at_cutoff_v0.md` | Exists outside case folder |
+| Outcome calibration | `docs/product/foundation/orca_backtest_specimen_unity_runtime_fee_outcome_calibration_v0.md` | Exists outside case folder |
 | Draft v0.14 fixture pack | `docs/research/judgment-spine/harness/v0_14/fixtures/unity_runtime_fee_2023_v0_14/fixture_authoring_receipt_v0.md` | Draft docs-only pack exists; blocked before scoring and not probe-safe or score-ready |
-| Adjacent MV-04 method replay | `docs/product/core_spine/core_spine_v0_method_validation_mv04_unity_runtime_fee_replay_v0.md` | Exists outside case folder; secondary method-validation evidence |
+| Adjacent MV-04 method replay | `docs/product/foundation/core_spine_v0_method_validation_mv04_unity_runtime_fee_replay_v0.md` | Exists outside case folder; secondary method-validation evidence |
 | Participant packet | `docs/research/judgment-spine/cases/unity-runtime-fee/participant_packet_v0.md` | Missing |
 | Safety receipt | `docs/research/judgment-spine/cases/unity-runtime-fee/safety_receipt_v0.md` | Missing |
 | Consolidated blind judgments | `docs/research/judgment-spine/cases/unity-runtime-fee/blind_judgments_v0.md` | Missing |

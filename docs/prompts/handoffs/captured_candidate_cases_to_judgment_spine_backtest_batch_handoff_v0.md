@@ -155,7 +155,7 @@ Transfer the 9 captured candidate cases to the judgment-spine batch owner with t
     - Compare target: blob `94b5623325cb2f558f5858b98efdb796312351a4` on `origin/main`
     - Last checked: 2026-06-15
     - Reuse rule: re-read before any admission step; amend only by dated owner-signed note.
-  - `docs/product/core_spine/consumer_demand_candidate_pool_handoff_v0.md`
+  - `docs/product/foundation/consumer_demand_candidate_pool_handoff_v0.md`
     - Role: the candidate roster the 9 cases were drawn from (FAME/NON-US/WEAK flags).
     - Load-bearing: yes
     - Compare target: blob `b26fb9c17be91d8a52b1c5e9eb9824285a2f63cb` on `origin/main`

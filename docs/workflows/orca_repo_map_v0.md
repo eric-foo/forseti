@@ -15,7 +15,7 @@ open_next:
 stale_if:
   - New top-level folders (under the repo root or docs/) are added.
   - orca-harness/ packages, adapters, runners, fixtures, or its build authorizations are added or reorganized.
-  - Core Spine, Data Capture Spine, Cleaning Spine, Judgment Spine, offer, proof, or prompt families are materially reorganized.
+  - Foundation Layer, Data Capture Spine, Cleaning Spine, Judgment Spine, offer, proof, or prompt families are materially reorganized.
   - Reddit CloakBrowser/proxy allowance, Candidate URL Intake, Reddit Graph Frontier Lane, or Source Capture Armory routing changes.
   - .agents/workflow-overlay/source-of-truth.md changes source hierarchy or the doctrine-change propagation contract.
   - A later repo-map artifact supersedes this file.
@@ -24,7 +24,7 @@ stale_if:
 - Status: ACTIVE_RETRIEVAL_MAP (retrieval-only; source authority remains in `.agents/workflow-overlay/source-of-truth.md`)
 - Artifact type: Workflow navigation artifact
 - Scope: Repo navigation and source-pack selection
-- Refreshed: 2026-06-17 (promoted repo-map edits from advisory reminder to blocking commit interrupt in Claude/Codex hook wiring; added the neutral ChatGPT Pro beauty advisory intake route, the offline IG creator-momentum projection runner route, the local Retail/PDP projection runner route, the opt-in Retail/PDP CloakBrowser projection sidecar under `orca-harness/runners/`, and the Retail/PDP sidecar operator playbook for the Amazon/Sephora/Ulta smoke; clarified the corresponding source package routes for projection and retailer binding/residual logic). Prior: 2026-06-16 added Codex-compatible local Git-hook adapters under `.githooks/`, the local hook installer under `.github/scripts/`, and the promoted auto-merge/main-red-alert workflows under `.github/workflows/`; 2026-06-11 repo-structure binding v0 registered machine map `repo-structure.yaml` + EP-04 placement checker and quarantined root strays to `docs/_inbox/`.
+- Refreshed: 2026-06-18 (renamed the top-level Core Spine lane/home to Foundation Layer at `docs/product/foundation/`; legacy `core_spine_v0_*` artifact IDs remain for retrieval continuity). Prior: 2026-06-17 promoted repo-map edits from advisory reminder to blocking commit interrupt in Claude/Codex hook wiring; added the neutral ChatGPT Pro beauty advisory intake route, the offline IG creator-momentum projection runner route, the local Retail/PDP projection runner route, the opt-in Retail/PDP CloakBrowser projection sidecar under `orca-harness/runners/`, and the Retail/PDP sidecar operator playbook for the Amazon/Sephora/Ulta smoke; clarified the corresponding source package routes for projection and retailer binding/residual logic. Prior: 2026-06-16 added Codex-compatible local Git-hook adapters under `.githooks/`, the local hook installer under `.github/scripts/`, and the promoted auto-merge/main-red-alert workflows under `.github/workflows/`; 2026-06-11 repo-structure binding v0 registered machine map `repo-structure.yaml` + EP-04 placement checker and quarantined root strays to `docs/_inbox/`.
 - Implementation authorized: no
 
 ## How To Use This Map
@@ -351,7 +351,7 @@ nickname: "crawling graph." The runner is
 | `orca-harness/` | Bounded authorized implementation backing Data Capture source acquisition and the v0.14 Judgment Harness (capture adapters, source-observability, schemas, scoring, runners, fixtures, tests). Navigation context only; not runtime, acceptance, or readiness. See the Orca Harness section. |
 | `docs/decisions/` | Decision records. |
 | `docs/decisions/consultant_loop/` | Consultant-loop judgment records. |
-| `docs/product/` | Product contracts, Core Spine artifacts, proof plans, source/evidence standards, offer, buyer-proof, and decision artifacts. |
+| `docs/product/` | Product contracts, Foundation Layer artifacts, proof plans, source/evidence standards, offer, buyer-proof, and decision artifacts. |
 | `docs/prompts/` | Prompt artifacts, wrappers, reruns, reviews, and local templates. |
 | `docs/research/` | Research artifacts and consulting-judgment corpus material. |
 | `docs/review-inputs/` | Prepared review inputs. |
@@ -410,7 +410,7 @@ design) remain gated.
 | `orca-harness/source_capture/` | Source-capture packet core: models, writer, CLI support, plaintext receipts, bounded mechanical projection helpers, the `block_shell` honest-success classifier (block-shell / empty / content-unverified; no positive content class), the bounded Reddit screening-read entry `screening_reddit_read.py` (entitlement-gated, screen-light, adapter-not-runner: wires `fetch_direct_http_capture` only, never the packet/ECR runner; returns a screen-light record, no disk artifact / no ECR), and the cross-archive historical-capture LOCATE orchestrator `historical_capture.py` (slice E: ordered Wayback -> archive.today -> publisher-history ladder above the adapters; stops at the first verified pre-cutoff body; neutral `archives_tried`/`archive_selected` facts, INV-1). |
 | `orca-harness/source_capture/adapters/` | Bounded capture adapters (direct HTTP, media/asset, Archive.org, archive.today (`archive_today`: Memento TimeMap locate+body rung, served-time verification, no-gate-defeat STOP on a challenge), browser snapshot, authenticated browser, Reddit API where present, and a header-complete anti-blocking HTTP rung-1 adapter `anti_blocking_http`). CloakBrowser Snapshot anonymous non-persistent v0 now has a live engine and packet runner for one explicitly supplied URL; verify any adapter's presence in code before use. Reddit discovery/consolidation, proxy/session behavior, commercial fetch, broad crawling, storage, dashboards, deployment, and production runtime remain separately gated. |
 | `orca-harness/source_observability/` | Local operator-record posture checker and limitation reporter. |
-| `orca-harness/ecr/` | Evidence Candidate Record source-side integrity postures (SP-1/2/3/6): per-packet/slice derived records keyed to the `SourceCapturePacket`; bind no `EvidenceUnit`; JSG-01 frozen. Boundary context: `docs/product/core_spine/core_spine_v0_data_and_cleaning_spine_boundary_v0.md`. |
+| `orca-harness/ecr/` | Evidence Candidate Record source-side integrity postures (SP-1/2/3/6): per-packet/slice derived records keyed to the `SourceCapturePacket`; bind no `EvidenceUnit`; JSG-01 frozen. Boundary context: `docs/product/foundation/core_spine_v0_data_and_cleaning_spine_boundary_v0.md`. |
 | `orca-harness/signal_content/` | Signal Content Record (v0): the second derived-record kind (content — "what a signal says"), parallel to `ecr/`; wedge-agnostic StrictModel + validators, references packet/ECR by key, no deriver/persistence/binding. Direction: `docs/product/signal_content/core_spine_v0_signal_content_record_architecture_v0.md`. |
 | `orca-harness/schemas/` | Pydantic v2 models for cases, judgments, scoring, and probes (v0.14). |
 | `orca-harness/scoring/` | Deterministic band scorer and mapping table (v0.14 Step A); not judgment-quality proof. |
@@ -483,23 +483,24 @@ one hop to every owner. Do not pre-load the ECR/SCR owner docs from this map.
 | --- | --- |
 | `docs/workflows/ecr_spine_submap_v0.md` | **ECR source-side spine repo submap — open first.** Routes to the SCR direction + deriver plan, the ECR frame + SP-1/2/3 + SP-6 slices, the receipt-translator origin, the schema-evolution doctrine, and the built `orca-harness/ecr/` + `orca-harness/signal_content/` code. States the reference-never-merge / per-kind-grain / carry-or-residualize / re-derive-not-migrate / frozen-conductor invariants. Map only; not validation, readiness, ratification, a JSG-01 unfreeze, or Evidence-Unit binding. |
 
-## Core Spine Files
+## Foundation Layer Files
 
 | Path | Use for |
 | --- | --- |
-| `docs/product/core_spine/core_spine_v0_product_contract.md` | Core Spine product contract and eight primitives. |
-| `docs/product/core_spine/core_spine_v0_information_production_foundation_v0.md` | Manual information-production foundation and Evidence Unit standard. |
-| `docs/product/core_spine/core_spine_v0_data_and_cleaning_spine_boundary_v0.md` | Data Capture/Cleaning/Judgment boundary and Evidence Candidate Record setup context. |
+| `docs/migration/foundation_layer_rename_v0.md` | Foundation Layer rename record: resolves `docs/product/core_spine/` to `docs/product/foundation/`, preserves legacy `core_spine_v0_*` artifact IDs, and excludes Judgment demand-read core from the rename. |
+| `docs/product/foundation/core_spine_v0_product_contract.md` | Foundation Layer product contract and eight primitives. |
+| `docs/product/foundation/core_spine_v0_information_production_foundation_v0.md` | Manual information-production foundation and Evidence Unit standard. |
+| `docs/product/foundation/core_spine_v0_data_and_cleaning_spine_boundary_v0.md` | Data Capture/Cleaning/Judgment boundary and Evidence Candidate Record setup context. |
 | `docs/product/signal_content/core_spine_v0_signal_content_record_architecture_v0.md` | Signal Content Record (v0) architecture DIRECTION — the second derived-record kind ("what a signal says"), parallel to the ECR integrity postures and structuring the IPF Evidence Unit content vocabulary; records the owner carrier/lifecycle/decision-relevance-tag decisions and the bounded content-field ratification. Direction only; the final Evidence Unit field architecture stays owner-reserved and JSG-01 frozen. v0 model lives in `orca-harness/signal_content/`. |
-| `docs/product/core_spine/core_spine_v0_corroboration_vs_amplification_discipline_v0.md` | Proposed Core Spine design note on placing independent-corroboration vs artificial-amplification discipline across the Cleaning/Judgment boundary; proposed, not validated. |
+| `docs/product/foundation/core_spine_v0_corroboration_vs_amplification_discipline_v0.md` | Proposed Foundation Layer design note on placing independent-corroboration vs artificial-amplification discipline across the Cleaning/Judgment boundary; proposed, not validated. |
 | `docs/decisions/daimler_advisory_001_claim_tier_classification_decision_v0.md` | Daimler advisory claim-tier classification decision recording the current no-durable-evidence state, required product-learning receipt before any evidence claim, and blocked buyer-proof/judgment-quality claims. |
 | `docs/product/engagement_logic_registry_v0.md` | Signal-use and engagement interpretation registry. |
-| `docs/product/core_spine/core_spine_v0_proof_protocol_v0.md` | Core proof protocol. |
-| `docs/product/core_spine/core_spine_v0_proof_input_selection_v0.md` | Proof input-selection rules. |
-| `docs/product/core_spine/core_spine_v0_proof_packet_preflight_v0.md` | Proof packet preflight. |
-| `docs/product/core_spine/core_spine_v0_proof_case_selection_brief_v0.md` | Early proof case-selection brief; status BLOCKED_OWNER_CANDIDATES_NEEDED. For current case/backtest selection see the heavyweight discovery pass (`docs/product/core_spine/core_spine_v0_heavyweight_proof_case_discovery_results_v0.md` and `..._results_part_2_v0.md`), which produced the candidates the brief was blocked on. |
-| `docs/product/core_spine/orca_vertical_exploration_guide_v0.md` | WHERE-side vertical exploration guide (owner-adopted Shape C; renamed 2026-06-11 from the venue exploration procedure): batch-scoped walk steps, commons split, influence yield, promote-on-reuse trigger. Subordinate to the case-finder frame; amendments are dated notes. |
-| `docs/product/core_spine/beauty_venue_card_set_v0.md` | Beauty venue card-set (promoted 2026-06-11; the ONE maintained venue asset — 12-card hard cap, per-card review dates): read FIRST at Step 0 of any beauty/personal-care screen, fragrance included. Binding terms: `docs/decisions/beauty_venue_card_set_promotion_decision_v0.md`. |
+| `docs/product/foundation/core_spine_v0_proof_protocol_v0.md` | Foundation proof protocol. |
+| `docs/product/foundation/core_spine_v0_proof_input_selection_v0.md` | Foundation proof input-selection rules. |
+| `docs/product/foundation/core_spine_v0_proof_packet_preflight_v0.md` | Foundation proof packet preflight. |
+| `docs/product/foundation/core_spine_v0_proof_case_selection_brief_v0.md` | Early proof case-selection brief; status BLOCKED_OWNER_CANDIDATES_NEEDED. For current case/backtest selection see the heavyweight discovery pass (`docs/product/foundation/core_spine_v0_heavyweight_proof_case_discovery_results_v0.md` and `..._results_part_2_v0.md`), which produced the candidates the brief was blocked on. |
+| `docs/product/foundation/orca_vertical_exploration_guide_v0.md` | WHERE-side vertical exploration guide (owner-adopted Shape C; renamed 2026-06-11 from the venue exploration procedure): batch-scoped walk steps, commons split, influence yield, promote-on-reuse trigger. Subordinate to the case-finder frame; amendments are dated notes. |
+| `docs/product/foundation/beauty_venue_card_set_v0.md` | Beauty venue card-set (promoted 2026-06-11; the ONE maintained venue asset — 12-card hard cap, per-card review dates): read FIRST at Step 0 of any beauty/personal-care screen, fragrance included. Binding terms: `docs/decisions/beauty_venue_card_set_promotion_decision_v0.md`. |
 
 For Data Capture / Source Capture Armory detail, open the repo submap at
 `docs/workflows/data_capture_spine_consolidation_map_v0.md`; this repo map
@@ -521,16 +522,16 @@ are directly relevant. Do not include by default in Data Capture Spine CA prompt
 
 Key files:
 
-- `docs/product/core_spine/core_spine_v0_method_validation_replay_packet_v0.md`
-- `docs/product/core_spine/core_spine_v0_method_validation_rubric_v0.md`
-- `docs/product/core_spine/core_spine_v0_method_validation_case_locks_v0.md`
-- `docs/product/core_spine/core_spine_v0_method_validation_case_frame_locks_v0.md`
-- `docs/product/core_spine/core_spine_v0_method_validation_case_frame_lock_contract_v0.md`
-- `docs/product/core_spine/core_spine_v0_method_validation_mv01_intercom_zendesk_replay_v0.md`
-- `docs/product/core_spine/core_spine_v0_method_validation_mv03_stack_overflow_chatgpt_replay_v0.md`
-- `docs/product/core_spine/core_spine_v0_method_validation_mv04_unity_runtime_fee_replay_v0.md`
-- `docs/product/core_spine/core_spine_v0_method_validation_mv05_reddit_api_pricing_replay_v0.md`
-- `docs/product/core_spine/core_spine_v0_method_validation_mv09_thomson_reuters_casetext_replay_v0.md`
+- `docs/product/foundation/core_spine_v0_method_validation_replay_packet_v0.md`
+- `docs/product/foundation/core_spine_v0_method_validation_rubric_v0.md`
+- `docs/product/foundation/core_spine_v0_method_validation_case_locks_v0.md`
+- `docs/product/foundation/core_spine_v0_method_validation_case_frame_locks_v0.md`
+- `docs/product/foundation/core_spine_v0_method_validation_case_frame_lock_contract_v0.md`
+- `docs/product/foundation/core_spine_v0_method_validation_mv01_intercom_zendesk_replay_v0.md`
+- `docs/product/foundation/core_spine_v0_method_validation_mv03_stack_overflow_chatgpt_replay_v0.md`
+- `docs/product/foundation/core_spine_v0_method_validation_mv04_unity_runtime_fee_replay_v0.md`
+- `docs/product/foundation/core_spine_v0_method_validation_mv05_reddit_api_pricing_replay_v0.md`
+- `docs/product/foundation/core_spine_v0_method_validation_mv09_thomson_reuters_casetext_replay_v0.md`
 
 ## First Proof And Discovery Files
 
@@ -539,26 +540,26 @@ proof readiness questions.
 
 Key files:
 
-- `docs/product/core_spine/core_spine_v0_first_proof_packet_preparation_v0.md`
-- `docs/product/core_spine/core_spine_v0_first_proof_run_charter_v0.md`
-- `docs/product/core_spine/core_spine_v0_first_proof_run_locks_v0.md`
-- `docs/product/core_spine/core_spine_v0_first_proof_run_packet_v0.md`
-- `docs/product/core_spine/core_spine_v0_first_proof_run_jb_client0_slice_v0.md`
-- `docs/product/core_spine/core_spine_v0_first_proof_run_bt204_backtest_slice_v0.md`
-- `docs/product/core_spine/core_spine_v0_first_proof_run_sh01_shadow_slice_v0.md`
+- `docs/product/foundation/core_spine_v0_first_proof_packet_preparation_v0.md`
+- `docs/product/foundation/core_spine_v0_first_proof_run_charter_v0.md`
+- `docs/product/foundation/core_spine_v0_first_proof_run_locks_v0.md`
+- `docs/product/foundation/core_spine_v0_first_proof_run_packet_v0.md`
+- `docs/product/foundation/core_spine_v0_first_proof_run_jb_client0_slice_v0.md`
+- `docs/product/foundation/core_spine_v0_first_proof_run_bt204_backtest_slice_v0.md`
+- `docs/product/foundation/core_spine_v0_first_proof_run_sh01_shadow_slice_v0.md`
 - `docs/product/product_lead/orca_discovery_batch_0_target_selection_brief_v0.md`
 - `docs/product/product_lead/orca_discovery_batch_0_qualification_prep_sentry_clerk_v0.md`
 - `docs/product/product_lead/orca_discovery_batch_0_candidate_context_scan_v0.md`
-- `docs/product/core_spine/core_spine_v0_heavyweight_proof_case_discovery_charter_v0.md` (discovery-scope charter), `docs/product/core_spine/core_spine_v0_heavyweight_proof_case_discovery_results_v0.md` (READY_FOR_OWNER_CASE_SELECTION), and `docs/product/core_spine/core_spine_v0_heavyweight_proof_case_discovery_results_part_2_v0.md` (backtest candidates; proposes BT2-01 Chegg/ChatGPT) — the heavyweight proof-case discovery pass that produced the candidates the older case-selection brief was blocked on.
+- `docs/product/foundation/core_spine_v0_heavyweight_proof_case_discovery_charter_v0.md` (discovery-scope charter), `docs/product/foundation/core_spine_v0_heavyweight_proof_case_discovery_results_v0.md` (READY_FOR_OWNER_CASE_SELECTION), and `docs/product/foundation/core_spine_v0_heavyweight_proof_case_discovery_results_part_2_v0.md` (backtest candidates; proposes BT2-01 Chegg/ChatGPT) — the heavyweight proof-case discovery pass that produced the candidates the older case-selection brief was blocked on.
 
 ## Backtest Specimens
 
 Use when the task is specifically about historical cutoff discipline or the
 Unity runtime-fee specimen:
 
-- `docs/product/core_spine/orca_backtest_specimen_unity_runtime_fee_source_packet_v0.md`
-- `docs/product/core_spine/orca_backtest_specimen_memo_unity_runtime_fee_at_cutoff_v0.md`
-- `docs/product/core_spine/orca_backtest_specimen_unity_runtime_fee_outcome_calibration_v0.md`
+- `docs/product/foundation/orca_backtest_specimen_unity_runtime_fee_source_packet_v0.md`
+- `docs/product/foundation/orca_backtest_specimen_memo_unity_runtime_fee_at_cutoff_v0.md`
+- `docs/product/foundation/orca_backtest_specimen_unity_runtime_fee_outcome_calibration_v0.md`
 
 ## Prompt Families
 
@@ -602,7 +603,7 @@ Daimler is the selected internal advisory proof slice and first Judgment Spine
 v0.14 fixture candidate. The whole lane is facilitator-only and carries no
 durable evidence and no judgment-quality, buyer-proof, blind-use, or
 fixture-admission claim. See also the mapped Daimler claim-tier classification
-(Core Spine Files) and source registry (Research And Review Areas).
+(Foundation Layer Files) and source registry (Research And Review Areas).
 
 | Path | Use for |
 | --- | --- |
@@ -672,12 +673,12 @@ Start with:
 - `docs/decisions/orca_icp_wedge_consumer_demand_first_v0.md`
 - `.agents/workflow-overlay/product-proof.md`
 
-### Core Spine Evidence Standard Work
+### Foundation Layer Evidence Standard Work
 
 Start with:
 
-- `docs/product/core_spine/core_spine_v0_product_contract.md`
-- `docs/product/core_spine/core_spine_v0_information_production_foundation_v0.md`
+- `docs/product/foundation/core_spine_v0_product_contract.md`
+- `docs/product/foundation/core_spine_v0_information_production_foundation_v0.md`
 - **Open `docs/research/judgment-spine/judgment_spine_consolidation_map_v0.md` first** for any Judgment Spine work; it routes to the ladder, gate ownership map, conductor, JSG-08 owner contract, current-state/decomposition, and fragrance Level 1 product-learning organizers.
 - `docs/product/judgment_spine/judgment_current_state_and_decomposition_v0.md` when the work is Level 1 backtesting-first product learning: core/satellite split, commission gate, source registry, outcome labels, forecast/action/log/evaluation artifacts, satellite fill, or fragrance backtest setup.
 - `docs/product/judgment_spine/judgment_spine_evidence_ladder_architecture_v0.md` when the work classifies Judgment Spine claim tier, proof tier, buyer-proof boundary, or judgment-quality boundary.
@@ -803,7 +804,7 @@ status field. Open the owning doc for authority; this table is navigation only.
 | ECR | `docs/workflows/ecr_spine_submap_v0.md` | no status field |
 | Signal content | `docs/product/signal_content/core_spine_v0_signal_content_record_architecture_v0.md` | `OWNER_DECIDED_DIRECTION` |
 | Source capture toolbox | `docs/product/source_capture_toolbox/README.md` | `SOURCE_CAPTURE_ARMORY_README_V0` |
-| Core spine | `docs/product/core_spine/core_spine_v0_product_contract.md` | `PROPOSED_FREEZE` |
+| Foundation layer | `docs/product/foundation/core_spine_v0_product_contract.md` | `PROPOSED_FREEZE` |
 | Search lane | `docs/decisions/orca_search_product_lane_binding_v0.md` | owner-authorized v0; demand-signal intelligence (search-led): search/answer-engine surfaces + demand-scan/read/gate method |
 
 ## Not-Proven Boundaries

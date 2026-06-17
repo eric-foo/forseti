@@ -5,7 +5,7 @@ retrieval_header_version: 1
 artifact_role: Prompt artifact (review family — delegated review-and-patch commission, base-subagent, repo mode)
 scope: >
   Commission one de-correlated (non-Anthropic) controller to run an adversarial
-  artifact review of docs/product/core_spine/orca_demand_scan_core_spec_v0.md
+  artifact review of docs/product/foundation/orca_demand_scan_core_spec_v0.md
   via the portable review method, then apply a bounded working-tree patch to
   that single file, returning a unified diff + per-change neutral citations +
   advisory verdict + residual-risk note for home-model (CA) adjudication.
@@ -22,7 +22,7 @@ stale_if:
 
 ## Commission
 
-- **Target (the editable scope):** `docs/product/core_spine/orca_demand_scan_core_spec_v0.md` — PROPOSED method spec, authored 2026-06-13, untracked in the worktree below.
+- **Target (the editable scope):** `docs/product/foundation/orca_demand_scan_core_spec_v0.md` — PROPOSED method spec, authored 2026-06-13, untracked in the worktree below.
 - **Why source-read-only review is insufficient:** the artifact is a high-stakes authored method spec whose author encodes the guardrails (mode walls, anti-triggers, boundary rules) and can reintroduce exactly the failure modes those guardrails exist to prevent; a combined de-correlated review-and-patch pass collapses the review → adjudicate → instruct → patch → re-read round-trip while keeping the CA's adjudication gate.
 - **Bounded patch scope:** the single target file, working tree only, no commit. Everything else in the repository is read-only — flag, don't edit.
 - **Intended decision:** the commissioning home model (CA) adjudicates your returned diff change-by-change before anything is kept; the owner signs spec adoption separately.
@@ -52,7 +52,7 @@ stale_if:
   `1DA22088746012B474639AA8EF401ED7FCD63E65B1137D4829C6929CFA3C0856`.
   Mismatch → `BLOCKED_STALE_TARGET` (the spec changed after commissioning).
 - **Hash convention for tracked-source pins:** all pins below are SHA256 over git blob bytes (LF as stored; `git cat-file blob <rev>:<path>` or CRLF→LF-normalized working-tree bytes), first 16 hex. A raw-byte mismatch on a CRLF Windows checkout is not staleness by itself — compare like-for-like. Genuine mismatch on any pinned source → `BLOCKED_STALE_BASE`.
-- Dirty-state allowance (exactly this set may be dirty when you start): untracked `docs/product/core_spine/orca_demand_scan_core_spec_v0.md` (the target); untracked `docs/prompts/reviews/orca_demand_scan_core_spec_delegated_adversarial_review_patch_prompt_v0.md` (this prompt); modified `docs/prompts/templates/portable/adversarial_artifact_review_portable_method_v0.md` (dated re-pin, 2026-06-13). Plus, created by you: the report file and your patch to the target. Any other dirt → blocked result naming it.
+- Dirty-state allowance (exactly this set may be dirty when you start): untracked `docs/product/foundation/orca_demand_scan_core_spec_v0.md` (the target); untracked `docs/prompts/reviews/orca_demand_scan_core_spec_delegated_adversarial_review_patch_prompt_v0.md` (this prompt); modified `docs/prompts/templates/portable/adversarial_artifact_review_portable_method_v0.md` (dated re-pin, 2026-06-13). Plus, created by you: the report file and your patch to the target. Any other dirt → blocked result naming it.
 - Edit permission: **patch-only on the single target file** + **file-write for the single report file** (path below). Read-only on absolutely everything else, including the target's sources, the overlay, templates, and this prompt.
 - Output mode: `review-report` (filesystem-output at the required path below) + the working-tree unified diff (never committed). Preflight write access to the report path before starting the review; if the report cannot be written at the end, return `FAILED_REVIEW_OUTPUT_WRITE` with the failed path — chat output is courier state, not a substitute artifact.
 - Doctrine boundary: the target is a PROPOSED method spec. If a correct fix would require changing the thesis, wedge, buyer-proof packet, overlay, taxonomy, card set, guide, pool, brief, or any owner-locked record — that is off-scope: flag it; for design-level problems use the escalation valve below.
@@ -66,14 +66,14 @@ REFERENCE-LOAD first — do not APPLY before `SOURCE_CONTEXT_READY`:
 
 SOURCE-LOAD (pins = SHA256 first-16, blob-byte convention above, at `64c442a` unless noted):
 
-- THE TARGET: `docs/product/core_spine/orca_demand_scan_core_spec_v0.md` — full hash above (untracked; raw bytes).
+- THE TARGET: `docs/product/foundation/orca_demand_scan_core_spec_v0.md` — full hash above (untracked; raw bytes).
 - FITNESS REFERENCE: `docs/prompts/product-planning/consumer_demand_scanning_lane_commission_prompt_v0.md` — `92146714330AF783` — the commission the target was authored to satisfy. Goal + success signal: the target's "Scope And Deliverable" obligations (seven required sections) and "Hard Constraints", satisfied from the pinned sources without contradiction. This is an alignment axis you must also attack — never a pass-if-matches bar.
 - The target's eight pinned sources (verify, then read):
   - `docs/product/product_lead/orca_demand_read_taxonomy_v0.md` — `BC478D890419B2B6`
-  - `docs/product/core_spine/beauty_venue_card_set_v0.md` — `65E22CDAE5EDE781`
-  - `docs/product/core_spine/orca_vertical_exploration_guide_v0.md` — `EF9F5C6E716E9857`
-  - `docs/product/core_spine/orca_memorization_resistant_case_finder_frame_v0.md` — `C672C1678F98878F`
-  - `docs/product/core_spine/consumer_demand_candidate_pool_handoff_v0.md` — `19009D43A7C29858`
+  - `docs/product/foundation/beauty_venue_card_set_v0.md` — `65E22CDAE5EDE781`
+  - `docs/product/foundation/orca_vertical_exploration_guide_v0.md` — `EF9F5C6E716E9857`
+  - `docs/product/foundation/orca_memorization_resistant_case_finder_frame_v0.md` — `C672C1678F98878F`
+  - `docs/product/foundation/consumer_demand_candidate_pool_handoff_v0.md` — `19009D43A7C29858`
   - `docs/product/product_lead/orca_discovery_consumer_demand_target_selection_brief_v0.md` — `48B5534E056FD42A`
   - `docs/decisions/orca_product_thesis_consumer_demand_v0.md` — `B119E24691066E47`
   - `docs/product/product_lead/orca_buyer_proof_packet_v0.md` — `25EBD39AE95C3A07`

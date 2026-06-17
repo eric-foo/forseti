@@ -11,7 +11,7 @@ use_when:
   - Running the batch-2 admission pass (recognition checks, dev/holdout, packets).
 authority_boundary: retrieval_only
 open_next:
-  - docs/product/core_spine/consumer_demand_candidate_pool_handoff_v0.md
+  - docs/product/foundation/consumer_demand_candidate_pool_handoff_v0.md
   - docs/decisions/judgment_spine_backtest_batch1_ledger_declaration_v0.md
 stale_if:
   - A batch-2 ledger admits/rejects these candidates (it takes over those rows).
@@ -20,7 +20,7 @@ stale_if:
 
 # Judgment-Spine Batch-2 Candidate Routing (beauty-first; PENDING owner admission)
 
-Routes `docs/product/core_spine/consumer_demand_candidate_pool_handoff_v0.md` into
+Routes `docs/product/foundation/consumer_demand_candidate_pool_handoff_v0.md` into
 the batch pipeline, **beauty prioritized per owner direction (2026-06-12)**. This
 records ordering + obligations only; ADMISSION (which cases, dev/holdout, packets)
 belongs to a batch-2 ledger on owner sign-off.

@@ -1,9 +1,9 @@
 # Orca Product Docs
 
-Use this folder for docs-first product artifacts: Core Spine contracts, satellite notes, evidence standards, source maps, product proof plans, decision artifacts, memo substrates, evidence appendices, and executive-deck shape drafts.
+Use this folder for docs-first product artifacts: Foundation Layer contracts, satellite notes, evidence standards, source maps, product proof plans, decision artifacts, memo substrates, evidence appendices, and executive-deck shape drafts.
 
 Artifacts are organized by lane subfolder per
-`docs/decisions/orca_repo_structure_binding_v0.md`: `core_spine/`,
+`docs/decisions/orca_repo_structure_binding_v0.md`: `foundation/`,
 `data_capture_spine/`, `judgment_spine/`, `signal_content/`, `ecr/`,
 `product_lead/`, `source_capture_toolbox/`, and the `search/` lane
 (demand-signal intelligence, search-led: search/answer-engine surfaces + the
@@ -12,9 +12,9 @@ demand-scan/read/gate method, bound by
 in the matching lane; pre-move paths in historical records resolve via
 `docs/migration/repo_structure_phase2_consolidation_v0/moved_paths_index.md`.
 
-Keep the Core + Satellite split explicit:
+Keep the Foundation Layer + Satellite split explicit:
 
-- Core Spine: market-agnostic evidence mechanics.
+- Foundation Layer: market-agnostic evidence mechanics.
 - Satellites: decision-specific and domain-specific context.
 
 For the current first-proof direction, see

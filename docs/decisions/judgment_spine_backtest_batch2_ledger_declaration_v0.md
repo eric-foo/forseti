@@ -17,7 +17,7 @@ use_when:
   - Auditing batch-2 case selection against the anti-cherry-pick rule.
 authority_boundary: retrieval_only
 open_next:
-  - docs/product/core_spine/consumer_demand_candidate_pool_handoff_v0.md
+  - docs/product/foundation/consumer_demand_candidate_pool_handoff_v0.md
   - docs/decisions/judgment_spine_backtest_batch2_candidate_routing_v0.md
   - docs/decisions/judgment_spine_backtest_batch1_ledger_declaration_v0.md
   - orca-harness/cases/product_learning/inoreader_repricing_2019_v0/cross_vendor_blind_run_findings_v0.md
@@ -67,7 +67,7 @@ dev/holdout split below. Later changes are dated-amendment-only.
 The admitted cases are the **L1 capture corpus**: 9 cases / ~75 INV-1 units of
 pre-cutoff Wayback Source Capture evidence, built byte-faithful and merged to
 `origin/main`. They were drawn from the consumer-demand candidate roster
-(`docs/product/core_spine/consumer_demand_candidate_pool_handoff_v0.md`, blob
+(`docs/product/foundation/consumer_demand_candidate_pool_handoff_v0.md`, blob
 `b26fb9c1`) and routed into the batch pipeline, beauty-first, by
 `docs/decisions/judgment_spine_backtest_batch2_candidate_routing_v0.md` (blob
 `748b6285`). The roster's consuming-batch obligations (isolation screen first;

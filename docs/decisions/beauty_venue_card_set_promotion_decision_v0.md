@@ -15,7 +15,7 @@ use_when:
   - Deciding a future vertical's promotion (this is the precedent shape).
 authority_boundary: retrieval_only
 open_next:
-  - docs/product/core_spine/beauty_venue_card_set_v0.md            # the promoted artifact
+  - docs/product/foundation/beauty_venue_card_set_v0.md            # the promoted artifact
   - docs/decisions/orca_venue_registry_rejection_decision_v0.md    # the standing rejection (other verticals)
   - docs/decisions/beauty_subtle_decision_screen3_ledger_v0.md     # the trigger-firing screen
 stale_if:

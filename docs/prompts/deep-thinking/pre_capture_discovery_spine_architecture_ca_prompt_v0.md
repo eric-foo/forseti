@@ -17,7 +17,7 @@ use_when:
 authority_boundary: retrieval_only
 output_mode: paste-ready-chat
 open_next:
-  - docs/product/core_spine/orca_venue_exploration_procedure_v0.md # nonresolving: pending on unmerged lane
+  - docs/product/foundation/orca_venue_exploration_procedure_v0.md # nonresolving: pending on unmerged lane
   - docs/product/source_capture_toolbox/capture_recon_index_v0.md
 stale_if:
   - The commissioned lane returns its recommendation (that record supersedes this prompt as the operative source).
@@ -88,10 +88,10 @@ orientation to be re-verified against those sources, not truth.
 
 ## SOURCE-LOAD (minimum needed from these)
 
-- `docs/product/core_spine/orca_venue_exploration_procedure_v0.md` — the
+- `docs/product/foundation/orca_venue_exploration_procedure_v0.md` — the
   owner-adopted WHERE-side method (2026-06-11): exploration walk + append-only
   provenance memory + promote-on-reuse trigger.
-- `docs/product/core_spine/orca_memorization_resistant_case_finder_frame_v0.md`
+- `docs/product/foundation/orca_memorization_resistant_case_finder_frame_v0.md`
   — the must-not boundary (no source map / inventory / monitor / scraper /
   standing intake); PROPOSED, pending owner sign-off.
 - `docs/research/source_registry_practices_deep_research_report_v0.md` — the
@@ -178,7 +178,7 @@ Should pre-capture discovery be chartered as its own spine? Compare at minimum:
 ## Contained task (small; owner-gated in your thread)
 
 Propose the reverse retrieval pointer: add
-`docs/product/core_spine/orca_venue_exploration_procedure_v0.md` to the
+`docs/product/foundation/orca_venue_exploration_procedure_v0.md` to the
 `open_next` list of the finder frame's retrieval header (one header line;
 retrieval plumbing only — it changes no rule). The frame is pending owner
 sign-off, so apply the edit only on explicit owner acceptance in your thread;

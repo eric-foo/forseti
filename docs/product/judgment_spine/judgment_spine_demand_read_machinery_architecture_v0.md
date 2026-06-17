@@ -338,7 +338,7 @@ lane held no overlapping architecture).
   CONSUME the landed near-half artifacts, not re-derive. Near-half substrate
   hashes verified on `origin/main`: architecture `5faf1728f8389870`, ledger
   `388352b83bac9860` (#64 not landed; ledger is the current #54 version).
-- `docs/product/core_spine/core_spine_v0_data_and_cleaning_spine_boundary_v0.md`
+- `docs/product/foundation/core_spine_v0_data_and_cleaning_spine_boundary_v0.md`
   — Judgment-Spine ownership; scoring engines deferred; Outcome Memory
   Backtest/Live split; Decision Frame required.
 - `docs/product/product_lead/orca_buyer_proof_packet_v0.md` — Demand-Substrate

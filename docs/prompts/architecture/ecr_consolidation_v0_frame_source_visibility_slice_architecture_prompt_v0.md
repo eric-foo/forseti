@@ -13,7 +13,7 @@ use_when:
 authority_boundary: retrieval_only
 open_next:
   - docs/product/judgment_spine/jsg01_sp6_source_visibility_derivation_architecture_plan_v0.md
-  - docs/product/core_spine/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
+  - docs/product/foundation/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
   - docs/product/judgment_spine/jsg01_source_side_receipt_translator_v0.md
 input_hashes:
   docs/product/jsg01_sp6_source_visibility_derivation_architecture_plan_v0.md: 03310806D8B4475CC281FF65F2247B59702D3B4036DF6C38A9A1383EDB7102AB

@@ -25,7 +25,7 @@ explicitly authorizes implementation.
 ## Core Folders
 
 - `docs/decisions/`: accepted or proposed decision records.
-- `docs/product/`: product contracts, Core Spine notes, satellite notes, evidence standards, source maps, proof plans, decision artifacts, memo substrates, evidence appendices, and executive-deck shape drafts. Organized by lane subfolders (`core_spine/`, `data_capture_spine/`, `judgment_spine/`, `signal_content/`, `ecr/`, `product_lead/`, `source_capture_toolbox/`) per `docs/decisions/orca_repo_structure_binding_v0.md`; new product artifacts go in the matching lane. Pre-move paths in historical records resolve via `docs/migration/repo_structure_phase2_consolidation_v0/moved_paths_index.md`.
+- `docs/product/`: product contracts, Foundation Layer notes, satellite notes, evidence standards, source maps, proof plans, decision artifacts, memo substrates, evidence appendices, and executive-deck shape drafts. Organized by lane subfolders (`foundation/`, `data_capture_spine/`, `judgment_spine/`, `signal_content/`, `ecr/`, `product_lead/`, `source_capture_toolbox/`) per `docs/decisions/orca_repo_structure_binding_v0.md`; new product artifacts go in the matching lane. Pre-move paths in historical records resolve via `docs/migration/repo_structure_phase2_consolidation_v0/moved_paths_index.md`.
 - `docs/prompts/`: reusable prompt artifacts and typed prompt families.
 - `docs/research/`: public/source research artifacts, evidence-only lane outputs, synthesis reports, candidate screens, backtestability notes, and rejected-source maps.
 - `docs/review-inputs/`: artifacts prepared for review.
@@ -66,7 +66,7 @@ Use `docs/review-outputs/` for reviewer reports and verdicts. Typed child
 folders are navigation aids for durable workstreams:
 
 - `docs/review-outputs/adversarial-artifact-reviews/`: adversarial artifact review reports.
-- `docs/review-outputs/method-validation/`: Core Spine method-validation reviews.
+- `docs/review-outputs/method-validation/`: Foundation Layer method-validation reviews.
 - `docs/review-outputs/proof/`: proof-prep, proof-run, and proof-packet reviews.
 
 Other typed review-output folders must still obey the review role bindings in
@@ -86,9 +86,9 @@ The current research corpus subtree is
 
 ## Core And Satellite Product Work
 
-Use `docs/product/` for the Core + Satellite model:
+Use `docs/product/` for the Foundation Layer + Satellite model:
 
-- Core Spine artifacts define market-agnostic evidence mechanics.
+- Foundation Layer artifacts define market-agnostic evidence mechanics.
 - Satellite artifacts define decision-specific and domain-specific context.
 - Client 0 `jb` material is a satellite proof case, not the product center.
 

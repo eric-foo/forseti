@@ -19,12 +19,12 @@ use_when:
 authority_boundary: retrieval_only
 open_next:
   - docs/workflows/ecr_spine_submap_v0.md                                    # front door; cross-kind invariants
-  - docs/product/core_spine/core_spine_v0_data_and_cleaning_spine_boundary_v0.md  # ratification records; reserved decisions
+  - docs/product/foundation/core_spine_v0_data_and_cleaning_spine_boundary_v0.md  # ratification records; reserved decisions
   - docs/product/judgment_spine/judgment_quality_promotion_operating_model_v0.md  # the FROZEN conductor; JSG-01 row (~:209) — read, never edit
   - docs/decisions/ar_01_pre_decision_status_finalizer_staffing_v0.md        # SP-5 staffing authority (decided)
 input_hashes:
   docs/product/judgment_spine/judgment_quality_promotion_operating_model_v0.md: 869F41BB516731D7067092C48634E5DE047FC102805F747E9FAE62DEDBB81D6F
-  docs/product/core_spine/core_spine_v0_data_and_cleaning_spine_boundary_v0.md: 28CB338F7208DA848DB70D0B59D33AFE2DC87D96D7DBFA9F2ABF654F8AB0EAC7
+  docs/product/foundation/core_spine_v0_data_and_cleaning_spine_boundary_v0.md: 28CB338F7208DA848DB70D0B59D33AFE2DC87D96D7DBFA9F2ABF654F8AB0EAC7
   docs/research/judgment-spine/judgment_spine_machinery_build_state_gap_map_v0.md: 5E05686685635AD26E0C7A283707FB380BC91DBF0504CE3976412631B4963488
   orca-harness/schemas/finalization_models.py: 280FFEFB68092FDD37BC78FE785B8ACA78CB7E4BEE86121F54D5123AC8298FCE
   docs/decisions/ar_01_pre_decision_status_finalizer_staffing_v0.md: 85F40F1EC3D6156E282C9DA234467D4FD90FCC48B84DA20BCC8508491F1884A7

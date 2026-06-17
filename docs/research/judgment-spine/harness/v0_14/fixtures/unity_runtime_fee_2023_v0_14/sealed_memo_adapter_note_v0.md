@@ -18,7 +18,7 @@ input_hashes:
   case_construction_protocol: FDEA14A1767D135A8DD56AF073AF0E5E3206B945FB9E603F597491D795889C71
   post_authoring_review: BB1EAD239DF2A1EE5704B888BD5F1F261B0E2DD2D656E5FCB4330708A19C674C
 open_next:
-  - docs/product/core_spine/orca_backtest_specimen_memo_unity_runtime_fee_at_cutoff_v0.md
+  - docs/product/foundation/orca_backtest_specimen_memo_unity_runtime_fee_at_cutoff_v0.md
   - docs/research/judgment-spine/harness/v0_14/blind_judgement_schema_and_harness_protocol.md
   - docs/research/judgment-spine/harness/v0_14/pydantic_schema_reference.md
 ```

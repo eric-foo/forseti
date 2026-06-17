@@ -16,7 +16,7 @@ open_next:
   - docs/product/data_capture_spine/data_capture_obligation_baseline_decision_v0.md
   - docs/product/data_capture_spine/core_spine_v0_data_capture_spine_obligation_contract_v0.md
   - docs/product/data_capture_spine/data_capture_harness_product_goal_direction_signal_decision_v0.md
-  - docs/product/core_spine/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
+  - docs/product/foundation/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
 stale_if:
   - The Data Capture obligation baseline decision is amended, rejected, or superseded.
   - The Data Capture obligation contract is materially revised or superseded.

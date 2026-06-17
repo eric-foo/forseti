@@ -13,7 +13,7 @@ open_next:
   - docs/product/data_capture_spine/data_capture_harness_operating_model_architecture_v2_acceptance_decision_v0.md
   - docs/product/data_capture_spine/data_capture_harness_operating_model_architecture_v2.md
   - docs/product/data_capture_spine/core_spine_v0_data_capture_spine_obligation_contract_v0.md
-  - docs/product/core_spine/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
+  - docs/product/foundation/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
   - docs/product/data_capture_spine/data_capture_spine_pressure_test_commissioning_plan_v0.md
   - docs/product/data_capture_spine/data_capture_spine_pressure_test_execution_authorization_v0.md
 stale_if:

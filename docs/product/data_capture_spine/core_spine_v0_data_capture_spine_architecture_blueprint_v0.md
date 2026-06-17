@@ -11,7 +11,7 @@ use_when:
 authority_boundary: retrieval_only
 open_next:
   - docs/product/data_capture_spine/core_spine_v0_data_capture_spine_obligation_contract_v0.md
-  - docs/product/core_spine/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
+  - docs/product/foundation/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
   - docs/product/data_capture_spine/core_spine_v0_data_capture_context_preservation_note_v0.md
   - .agents/workflow-overlay/source-loading.md
 stale_if:

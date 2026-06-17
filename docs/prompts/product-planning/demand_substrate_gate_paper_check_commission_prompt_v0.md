@@ -71,8 +71,8 @@ SOURCE-LOAD (pins = sha256 first-16-hex at authoring):
 - `docs/product/product_lead/orca_buyer_proof_packet_v0.md` — `732C65BEBFC31DA1` — the gate text under test (the "Demand-Substrate Hard Gate" section) plus disqualifiers.
 - `docs/product/product_lead/orca_discovery_consumer_demand_target_selection_brief_v0.md` — `48B5534E056FD42A` — the slot-table columns under test + stop rules.
 - `docs/decisions/judgment_spine_backtest_batch1_ledger_declaration_v0.md` — `FCC8361C2C9A1D42` — READ-ONLY; the four beauty cases (3-6). Do not edit, do not re-declare, do not touch cases 1-2.
-- `docs/product/core_spine/consumer_demand_candidate_pool_handoff_v0.md` — `19009D43A7C29858` — READ-ONLY; the 14+2 pool rows.
-- `docs/product/core_spine/beauty_venue_card_set_v0.md` — `65E22CDAE5EDE781` — venue families and access shapes (for the "≥2 independent venue families" walks).
+- `docs/product/foundation/consumer_demand_candidate_pool_handoff_v0.md` — `19009D43A7C29858` — READ-ONLY; the 14+2 pool rows.
+- `docs/product/foundation/beauty_venue_card_set_v0.md` — `65E22CDAE5EDE781` — venue families and access shapes (for the "≥2 independent venue families" walks).
 - `docs/product/product_lead/orca_demand_read_taxonomy_v0.md` — `BC478D890419B2B6` — PROPOSED read grammar; cite as context only, flag (don't resolve) any gate-vs-taxonomy tension.
 
 Declare `SOURCE_CONTEXT_READY` / `SOURCE_CONTEXT_INCOMPLETE` before applying

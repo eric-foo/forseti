@@ -17,7 +17,7 @@ authority_boundary: retrieval_only
 gate_posture: JSG-01 stays FROZEN. This plan does not bind, ratify, build, or unfreeze anything.
 relates_to:
   conductor_predicate: docs/product/judgment_spine/judgment_quality_promotion_operating_model_v0.md  # JSG-01 row (:209) — read, never edit
-  ratified_field_schema: docs/product/core_spine/core_spine_v0_data_and_cleaning_spine_boundary_v0.md  # SP-1/2/3/6 ratification + decisions B/C; reserved decisions
+  ratified_field_schema: docs/product/foundation/core_spine_v0_data_and_cleaning_spine_boundary_v0.md  # SP-1/2/3/6 ratification + decisions B/C; reserved decisions
   ecr_frame: docs/product/ecr/ecr_consolidation_v0_frame_source_visibility_slice_architecture_plan_v0.md  # INV-1..5, three-mode binding rule (inherited verbatim)
   sp5_contract: docs/research/judgment-spine/sp5_finalization_receipt_spec_v0.md  # the receipt + validate-only consumer contract
   spine_submap: docs/workflows/ecr_spine_submap_v0.md  # cross-kind invariants 1-5 (orientation)
@@ -239,7 +239,7 @@ persistence claims verified by fresh read.
 
 After cross-family review + home-model adjudication, this slice **STOPS** for owner
 ratification: a dated amendment to
-`docs/product/core_spine/core_spine_v0_data_and_cleaning_spine_boundary_v0.md`
+`docs/product/foundation/core_spine_v0_data_and_cleaning_spine_boundary_v0.md`
 (same shape as the SP-1/2/3+SP-6 ratification records — design basis with SHA256
 pins, owner decisions, reserved-list restated) carrying its own inline
 `direction_change_propagation` receipt (trigger: `architecture_doctrine`, related:

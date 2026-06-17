@@ -20,8 +20,8 @@ use_when:
   - Deciding or executing the owner-gated dispositions proposed here.
 authority_boundary: retrieval_only
 open_next:
-  - docs/product/core_spine/orca_vertical_exploration_guide_v0.md
-  - docs/product/core_spine/orca_memorization_resistant_case_finder_frame_v0.md
+  - docs/product/foundation/orca_vertical_exploration_guide_v0.md
+  - docs/product/foundation/orca_memorization_resistant_case_finder_frame_v0.md
   - docs/product/source_capture_toolbox/capture_recon_index_v0.md
   - docs/research/source_registry_practices_deep_research_report_v0.md
 stale_if:
@@ -103,7 +103,7 @@ chartered as its own spine? Options compared:
 ## Operative ownership and relationships (no new spine)
 
 - **WHERE-side venue exploration:** owned by
-  `docs/product/core_spine/orca_vertical_exploration_guide_v0.md` (Shape C;
+  `docs/product/foundation/orca_vertical_exploration_guide_v0.md` (Shape C;
   runs only inside an authorized batch screen; subordinate to the finder
   frame; fold-or-re-home at frame sign-off).
 - **WHERE memory:** append-only `Screen Provenance` blocks in batch ledgers
@@ -149,7 +149,8 @@ hard size cap, delivery into the screen step itself).
 
 ## Home decision and amendment requirements
 
-No home change. The procedure stays in `docs/product/core_spine/`; memory
+No home change under this recommendation. The procedure stays in the Foundation
+Layer home (`docs/product/foundation/`); memory
 stays in `docs/decisions/` ledgers; recon stays in
 `docs/product/source_capture_toolbox/`. No repo-structure.yaml amendment, no
 artifact-folders.md amendment, and no direction-change-propagation receipt is
@@ -166,7 +167,7 @@ does not exist today and must be created at that point.
 
 - First promotion object (per the trigger's own language): a small owned
   card-set per vertical — e.g.
-  `docs/product/core_spine/orca_venue_card_set_<vertical>_v0.md` plus its
+  `docs/product/foundation/orca_venue_card_set_<vertical>_v0.md` plus its
   owner decision record in `docs/decisions/`.
 - Full lane (only if multi-lane reuse and operator scale demand it):
   `docs/product/<lane>/` with lane name decided then — note "discovery"
@@ -178,11 +179,11 @@ does not exist today and must be created at that point.
 
 1. **Reverse retrieval pointer** (the commissioned contained task; one header
    line, retrieval plumbing only, changes no rule). In
-   `docs/product/core_spine/orca_memorization_resistant_case_finder_frame_v0.md`,
+   `docs/product/foundation/orca_memorization_resistant_case_finder_frame_v0.md`,
    append to `open_next`:
 
    ```yaml
-   - docs/product/core_spine/orca_vertical_exploration_guide_v0.md   # WHERE-side venue procedure (owner-adopted shape, subordinate to this frame)
+   - docs/product/foundation/orca_vertical_exploration_guide_v0.md   # WHERE-side venue procedure (owner-adopted shape, subordinate to this frame)
    ```
 
    Disposition: **proposed** — the frame is pending owner sign-off and no

@@ -81,7 +81,7 @@ Current-main sources read for this spec:
 - `docs/product/data_capture_spine/orca_creator_monitoring_policy_architecture_v0.md`
 - `docs/product/source_capture_toolbox/ig_at_scale_operating_envelope_v0.md`
 - `docs/decisions/wind_caller_calibration_carveout_v0.md`
-- `docs/product/core_spine/orca_ontology_backbone_architecture_v0.md`
+- `docs/product/foundation/orca_ontology_backbone_architecture_v0.md`
 - `docs/product/source_capture_toolbox/ig_creator_discovery_spec_v0.md`
 - `docs/product/data_capture_spine/orca_creator_momentum_pipeline_architecture_v0.md`
 - `docs/product/source_capture_toolbox/source_capture_playbook_v0.md`

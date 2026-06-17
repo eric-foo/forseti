@@ -17,10 +17,10 @@ use_when:
   - Designing any future subtle-class screen (assembly model + access shapes).
 authority_boundary: retrieval_only
 open_next:
-  - docs/product/core_spine/beauty_venue_card_set_v0.md                 # the promoted card-set (this ledger's trigger outcome)
+  - docs/product/foundation/beauty_venue_card_set_v0.md                 # the promoted card-set (this ledger's trigger outcome)
   - docs/decisions/beauty_venue_card_set_promotion_decision_v0.md       # owner promotion decision + binding terms
   - docs/decisions/venue_procedure_proving_screen_beauty_ledger_v0.md   # screen 2 (hub read this screen targeted from)
-  - docs/product/core_spine/orca_vertical_exploration_guide_v0.md      # the operative method
+  - docs/product/foundation/orca_vertical_exploration_guide_v0.md      # the operative method
   - docs/decisions/orca_venue_registry_rejection_decision_v0.md         # trigger terms + survival ingredients
 stale_if:
   - The owner decides the card-set question (that decision record takes over).
@@ -225,7 +225,7 @@ threshold.
 ## Owner Direction Recorded (2026-06-11, in-thread, post-close)
 
 - Trigger question RESOLVED — PROMOTED: the owner promoted beauty's trail into
-  the bounded card-set (`docs/product/core_spine/beauty_venue_card_set_v0.md`;
+  the bounded card-set (`docs/product/foundation/beauty_venue_card_set_v0.md`;
   binding terms in
   `docs/decisions/beauty_venue_card_set_promotion_decision_v0.md`). The
   trigger section above is now historical.

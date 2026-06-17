@@ -221,7 +221,7 @@ claim inflation.
 - `docs/product/judgment_spine/near_half_backtest_learning_architecture_v0.md`
 - `docs/product/judgment_spine/near_half_signal_reliability_ledger_v0.md`
 - `docs/product/judgment_spine/prospective_decision_loop_target_architecture_v0.md`
-- `docs/product/core_spine/beauty_venue_card_set_v0.md`
+- `docs/product/foundation/beauty_venue_card_set_v0.md`
 - `docs/product/judgment_spine/fragrance_level1_product_learning_reconciliation_v0.md`
 - `docs/product/judgment_spine/fragrance_level1_product_learning_satellite_skeleton_v0.md`
 - `docs/product/judgment_spine/fragrance_level1_casebook_admission_frame_v0.md`

@@ -114,7 +114,7 @@ solves; the diagnosis selects the route. Blind climbing wastes probes and can mi
 **Screening-side consumer (reverse pointer, 2026-06-12).** These read-escalation patterns
 (Guardrail 4 + the Step 2 pointer) are distilled for *screening posture* — public pages, no logins,
 no bulk, URLs + short quotes only — into the **Walker Equipment Kit** in
-`docs/product/core_spine/orca_vertical_exploration_guide_v0.md` (discovery-lane-owned). Keep them in
+`docs/product/foundation/orca_vertical_exploration_guide_v0.md` (discovery-lane-owned). Keep them in
 sync: when a route-escalation pattern here changes, the kit's READ ESCALATION / KNOWN WALLS block may
 need a dated note. Packet-grade capture still routes through this method; the kit is screening-read
 only. (Tooling note: WebFetch-based screening agents cannot fetch `reddit.com` at all — only the

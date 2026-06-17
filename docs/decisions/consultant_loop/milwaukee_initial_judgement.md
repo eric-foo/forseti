@@ -73,6 +73,6 @@ that the new revenue directly prevented worse service and pension outcomes.
 - no feature readiness;
 - no implementation readiness;
 - no commercial readiness;
-- no Core Spine validation;
+- no Foundation Layer validation;
 - no full backtest completed;
 - no outcome calibration completed.

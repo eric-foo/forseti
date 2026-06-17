@@ -19,7 +19,7 @@ open_next:
   - docs/decisions/orca_product_thesis_consumer_demand_v0.md          # controlling thesis (costly-behavior primitive, action ceilings)
   - docs/decisions/orca_icp_wedge_consumer_demand_first_v0.md         # wedge (beauty operator first door)
   - docs/product/product_lead/orca_buyer_proof_packet_v0.md           # Demand-Substrate Hard Gate
-  - docs/product/core_spine/beauty_venue_card_set_v0.md               # venue discovery layer; card 11 = wind-caller exemplar
+  - docs/product/foundation/beauty_venue_card_set_v0.md               # venue discovery layer; card 11 = wind-caller exemplar
 stale_if:
   - The owner adjudicates (adopt / amend / reject) — fold the word in as a dated amendment.
   - The thesis or wedge is amended (re-derive against the amended text).

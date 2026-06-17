@@ -15,7 +15,7 @@ use_when:
 authority_boundary: retrieval_only
 open_next:
   - docs/product/judgment_spine/judgment_quality_promotion_operating_model_v0.md  # the FROZEN conductor; JSG-01 row — read, never edit outside the unfreeze act
-  - docs/product/core_spine/core_spine_v0_data_and_cleaning_spine_boundary_v0.md  # ratifications incl. the binding contract (2026-06-12)
+  - docs/product/foundation/core_spine_v0_data_and_cleaning_spine_boundary_v0.md  # ratifications incl. the binding contract (2026-06-12)
   - orca-harness/cases/product_learning/jsg01_binding_assembly_proof_v0/README.md # the slice-C proof packet record
 stale_if:
   - The owner performs the unfreeze (this memo is consumed; the dated decision record supersedes it).

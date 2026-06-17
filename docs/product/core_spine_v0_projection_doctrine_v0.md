@@ -15,9 +15,9 @@ use_when:
   - Deciding when Judgment must pull the raw anchor instead of trusting the view.
 authority_boundary: retrieval_only
 open_next:
-  - docs/product/core_spine/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
+  - docs/product/foundation/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
   - docs/product/data_capture_spine/core_spine_v0_data_capture_spine_obligation_contract_v0.md
-  - docs/product/core_spine/core_spine_v0_information_production_foundation_v0.md
+  - docs/product/foundation/core_spine_v0_information_production_foundation_v0.md
   - docs/workflows/ecr_spine_submap_v0.md
 stale_if:
   - The owner changes the 2026-06-16 OD-1/2/3/4/5/6/7 directions recorded here.

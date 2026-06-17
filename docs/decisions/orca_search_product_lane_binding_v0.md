@@ -112,7 +112,7 @@ mislabel them):
   durability capture profiles (`data_capture_spine/`) - different venues;
 - `reddit_candidate_intake_old_reddit_search_surface_handling_v0.md`
   (`workflows/`) - old-Reddit HTML parsing, not search-interest;
-- `consumer_demand_candidate_pool_handoff_v0.md` (`core_spine/`) - a one-shot
+- `consumer_demand_candidate_pool_handoff_v0.md` (`foundation/`) - a one-shot
   candidate roster, not method;
 - `orca_discovery_candidate_scan_beauty_neutral_chatgptpro_v0.md` (`research/`) -
   a discovery research artifact.

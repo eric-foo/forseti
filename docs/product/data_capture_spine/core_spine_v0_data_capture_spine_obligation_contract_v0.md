@@ -12,7 +12,7 @@ authority_boundary: retrieval_only
 open_next:
   - docs/product/data_capture_spine/core_spine_v0_data_capture_spine_architecture_blueprint_v0.md
   - docs/product/data_capture_spine/core_spine_v0_data_capture_context_preservation_note_v0.md
-  - docs/product/core_spine/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
+  - docs/product/foundation/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
   - docs/product/data_capture_spine/data_capture_source_access_boundary_decision_v0.md
   - docs/product/data_capture_spine/data_capture_source_access_method_plan_v0.md
 stale_if:

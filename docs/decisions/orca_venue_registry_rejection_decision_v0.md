@@ -16,7 +16,7 @@ use_when:
   - Auditing why no venue atlas exists despite the research pass.
 authority_boundary: retrieval_only
 open_next:
-  - docs/product/core_spine/orca_vertical_exploration_guide_v0.md   # the operative method
+  - docs/product/foundation/orca_vertical_exploration_guide_v0.md   # the operative method
   - docs/research/source_registry_practices_deep_research_report_v0.md   # evidence base
   - docs/decisions/pre_capture_discovery_spine_charter_recommendation_v0.md   # DO_NOT_BUILD spine outcome
 stale_if:
@@ -36,7 +36,7 @@ stale_if:
 3. **ADOPTED — shape C:** a thin exploration procedure plus append-only
    per-batch provenance memory (dated records of past walks; no maintained
    present-state asset). Operative method:
-   `docs/product/core_spine/orca_vertical_exploration_guide_v0.md`.
+   `docs/product/foundation/orca_vertical_exploration_guide_v0.md`.
 4. **No new structure:** the pre-capture discovery spine charter question
    returned `DO_NOT_BUILD` (2026-06-11, commissioned CA lane; see its
    recommendation record in `open_next`).

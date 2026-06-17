@@ -53,7 +53,7 @@ docs_roles:
 # `search` topic lane (orca_search_product_lane_binding_v0) is added planned and
 # flips to current when the search-lane migration applies.
 product_lanes:
-  - { name: core_spine, status: current }
+  - { name: foundation, status: current }
   - { name: data_capture_spine, status: current }
   - { name: judgment_spine, status: current }
   - { name: signal_content, status: current }

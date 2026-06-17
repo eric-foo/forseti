@@ -174,7 +174,7 @@ Execute the owner-signed Batch 2 batch flow at product-learning tier: for each o
   - `docs/product/judgment_spine/judgment_spine_gate_ownership_map_v0.md`
     - Role: JSG gate ownership (freezes, provenance, isolation screen, reasoning trace, tell-audit).
     - Load-bearing: yes. Compare target: blob `0135ad5a` on `origin/main`.
-  - `docs/product/core_spine/consumer_demand_candidate_pool_handoff_v0.md`
+  - `docs/product/foundation/consumer_demand_candidate_pool_handoff_v0.md`
     - Role: candidate roster (case→flags). **Spoiler-bearing** (outcome columns) — keep with the outcome-holding orchestrator; withhold from the blind builder.
     - Load-bearing: yes (orchestrator only). Compare target: blob `b26fb9c1` on `origin/main`.
   - `orca-harness/runners/run_case.py`

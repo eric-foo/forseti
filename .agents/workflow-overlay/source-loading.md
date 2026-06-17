@@ -143,7 +143,7 @@ Use source packs instead of whole-folder reads.
 | --- | --- | --- |
 | `S0 overlay` | Any Orca project work. | Current instruction, `AGENTS.md`, overlay README, source-of-truth, and source-loading when relevant. |
 | `S1 map` | Choosing files or preventing context bloat. | `S0` plus `docs/workflows/orca_repo_map_v0.md`. |
-| `S2 product anchor` | Product architecture, value proposition, offer, or CA setup. | `S1` plus product thesis, offer hypothesis, buyer proof packet, Core Spine product contract, and the nearest boundary note. |
+| `S2 product anchor` | Product architecture, value proposition, offer, or CA setup. | `S1` plus product thesis, offer hypothesis, buyer proof packet, Foundation Layer product contract, and the nearest boundary note. |
 | `S3 target deepening` | A specific artifact family needs details. | `S2` plus only the named target artifact, its `open_next` files, and targeted sections from adjacent artifacts. |
 | `S4 historical/review` | Reviewing prior outcomes, adversarial reports, replays, or method-validation history. | Explicitly named review, replay, research, or historical files only. Never default. |
 
@@ -300,11 +300,11 @@ Then open only the targeted sections needed for the CA prompt:
   hypothesis, mechanism, fit diagnostic, and non-claims sections.
 - `docs/product/product_lead/orca_buyer_proof_packet_v0.md`: proof standard,
   target buyer, signal surface, disqualifiers, and not-build boundaries.
-- `docs/product/core_spine/core_spine_v0_data_and_cleaning_spine_boundary_v0.md`:
+- `docs/product/foundation/core_spine_v0_data_and_cleaning_spine_boundary_v0.md`:
   purpose, decision, layer rules, and future ECR/Evidence Unit boundaries.
-- `docs/product/core_spine/core_spine_v0_product_contract.md`: product bet,
-  core rule, frozen primitives, and explicit non-goals only.
-- `docs/product/core_spine/core_spine_v0_information_production_foundation_v0.md`:
+- `docs/product/foundation/core_spine_v0_product_contract.md`: product bet,
+  foundation rule, frozen primitives, and explicit non-goals only.
+- `docs/product/foundation/core_spine_v0_information_production_foundation_v0.md`:
   Evidence Unit standard and boundary rules only.
 
 Do not read these files in full by default. Use the targeted sections above,
@@ -319,7 +319,7 @@ value proposition; one paragraph on the current Data Capture / ECR / Cleaning /
 Judgment boundary; one paragraph on the bounded-implementation authorization
 boundary; the targeted source pack above; the exact files and sections to read;
 the default exclusions; and the owner decisions or source gaps the CA should
-surface. Do not paste the full offer, proof packet, Core Spine contract,
+surface. Do not paste the full offer, proof packet, Foundation Layer contract,
 boundary note, or IPF. Do not include method-validation history unless the CA
 task explicitly asks how prior cases affected Data Capture Spine source loading.
 
@@ -377,7 +377,7 @@ retired `capture_investigation_playbook_v0.md` is its pre-rename name); load it 
 route, and do not re-derive the access-control gate (Step 0) or the route catalog from scratch.
 
 Scanning / screening activity reads the screening-side distillation of this method — the **Walker
-Equipment Kit** in `docs/product/core_spine/orca_vertical_exploration_guide_v0.md` (public pages,
+Equipment Kit** in `docs/product/foundation/orca_vertical_exploration_guide_v0.md` (public pages,
 no logins, URLs + short quotes) — and escalates to the full playbook only for packet-grade capture.
 
 For raw-to-Judgment projection views, also open
@@ -611,7 +611,7 @@ direction_change_propagation:
   downstream_surfaces_checked:
     - docs/product/source_capture_toolbox/source_capture_playbook_v0.md
     - docs/product/source_capture_toolbox/capture_recon_index_v0.md
-    - docs/product/core_spine/orca_vertical_exploration_guide_v0.md
+    - docs/product/foundation/orca_vertical_exploration_guide_v0.md
     - docs/workflows/orca_repo_map_v0.md
   intentionally_not_updated:
     - path: docs/product/source_capture_toolbox/source_capture_playbook_v0.md

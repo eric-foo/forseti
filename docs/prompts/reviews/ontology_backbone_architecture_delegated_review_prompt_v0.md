@@ -71,7 +71,7 @@ actor_model_family_receipt:
 
 ## Target (the only editable scope; everything else is flag-only)
 
-- `docs/product/core_spine/orca_ontology_backbone_architecture_v0.md`
+- `docs/product/foundation/orca_ontology_backbone_architecture_v0.md`
 - sha256 (pin; verify before review): `8e80e65441c316b466ab027c651fae0b5470de719a1d50186c7998ee001d0187`
 - bounded_patch_scope (repo mode): that file only. All other Orca sources, the overlay,
   canonical / frozen / hash-pinned decisions, `AGENTS.md`/`CLAUDE.md`, and every safety-rules

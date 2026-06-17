@@ -10,7 +10,7 @@ use_when:
   - Preparing future ECR or Cleaning design notes about related-chain preservation.
 open_next:
   - docs/product/data_capture_spine/core_spine_v0_data_capture_spine_obligation_contract_v0.md
-  - docs/product/core_spine/core_spine_v0_method_validation_mv05_reddit_api_pricing_replay_v0.md
+  - docs/product/foundation/core_spine_v0_method_validation_mv05_reddit_api_pricing_replay_v0.md
   - docs/product/data_capture_spine/core_spine_v0_data_capture_context_preservation_note_v0.md
 input_hashes:
   docs/product/core_spine_v0_data_capture_spine_obligation_contract_v0.md: 4F27F8D2A1099A03FC2E13457502F126DA73009B5E485F5B7B43F994D01128E5

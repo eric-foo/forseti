@@ -6,7 +6,7 @@ Review outputs do not modify source authority by themselves.
 Use typed child folders when the review belongs to a durable workstream:
 
 - `adversarial-artifact-reviews/` for adversarial artifact and code review reports (the primary, most-populated folder).
-- `method-validation/` for Core Spine method-validation reviews.
+- `method-validation/` for Foundation Layer method-validation reviews.
 - `proof/` for proof-prep, proof-run, and proof-packet reviews.
 - `prompts/`, `workflow/`, `misc/`: forward-looking conventions, created on first use (not all instantiated yet).
 

@@ -16,7 +16,7 @@ open_next:
   - docs/prompts/architecture/jsg01_sp6_source_visibility_derivation_architecture_prompt_v0.md
   - docs/product/judgment_spine/jsg01_source_side_receipt_translator_v0.md
   - docs/product/data_capture_spine/core_spine_v0_data_capture_spine_obligation_contract_v0.md
-  - docs/product/core_spine/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
+  - docs/product/foundation/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
   - docs/product/data_capture_spine/data_capture_spine_posture_vocabulary_enforcement_proposal_v0.md
 input_hashes:
   docs/product/jsg01_source_side_receipt_translator_v0.md: E8944D13FF8B3FAF62AC24209EC50FDA7C03CC9D4F906687246B2E15C01592B2

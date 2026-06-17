@@ -188,7 +188,7 @@ amendments the same day:
 ## Owner Decision Record — Fourth Addendum (2026-06-13, scan-spec adjudication + ontology commission)
 
 - **Scan-core spec returned and adjudicated (this lane's recommendation; owner signs adoption).** The scanning lane delivered
-  `docs/product/core_spine/orca_demand_scan_core_spec_v0.md` (PROPOSED, in worktree
+  `docs/product/foundation/orca_demand_scan_core_spec_v0.md` (PROPOSED, in worktree
   `orca-demand-scan-spec-wt` @ `64c442a`, sha256 `53665FA938E69C48…`, not yet on `main`),
   hardened by a cross-vendor delegated review (controller OpenAI GPT-5; author Claude Fable 5;
   report sha256 `78C3EDAB94…`). This lane verified independently: both reported hashes match,

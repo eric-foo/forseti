@@ -27,7 +27,7 @@ open_next:
   - docs/product/judgment_spine/near_half_signal_reliability_ledger_v0.md
   - docs/product/judgment_spine/near_half_backtest_learning_architecture_v0.md
   - docs/product/judgment_spine/prospective_decision_loop_target_architecture_v0.md
-  - docs/product/core_spine/beauty_venue_card_set_v0.md
+  - docs/product/foundation/beauty_venue_card_set_v0.md
 stale_if:
   - The evidence ladder changes claim tiers, closeout states, receipt minima, or promotion gates.
   - The conductor changes its no-authority invariant, by-hand cap, JSG routing, or run-authorization boundary.
@@ -408,7 +408,7 @@ Judgment and fragrance sources:
 - `docs/product/judgment_spine/near_half_signal_reliability_ledger_v0.md`
 - `docs/product/judgment_spine/near_half_backtest_learning_architecture_v0.md`
 - `docs/product/judgment_spine/prospective_decision_loop_target_architecture_v0.md`
-- `docs/product/core_spine/beauty_venue_card_set_v0.md`
+- `docs/product/foundation/beauty_venue_card_set_v0.md`
 - `C:/Users/vmon7/AppData/Local/Temp/orca_mgt_goal_v1.md`
 - `C:/Users/vmon7/AppData/Local/Temp/orca_judgement_mgt.md`
 - `C:/Users/vmon7/AppData/Local/Temp/orca_build_action_doc.md`

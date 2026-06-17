@@ -64,7 +64,7 @@ per lesson**:
 | Evidence base | `docs/product/source_capture_toolbox/capture_recon_index_v0.md` | Per-source probe findings; lessons are *born* here (e.g. Pattern 5 "archive availability != body retrieval -> PARTIAL"; Pattern 1 "blocked is a hypothesis"). |
 | Method | `docs/product/source_capture_toolbox/source_capture_playbook_v0.md` | Substrate-first diagnosis + route catalog; restates "availability != body — check both"; Guardrail 4 "blocked is a symptom". |
 | Tool manifest | `docs/product/source_capture_toolbox/README.md` (Source Capture Armory) | Adapter/runner manifest **plus its own parallel** Source-Quality Example Ladder (e.g. CW-P1 = archive availability != body). |
-| Equip block | `docs/product/core_spine/orca_vertical_exploration_guide_v0.md` (Walker Equipment Kit, ~line 120) | Self-contained WALK CONTRACT pasted into every screening/discovery walk subagent — "walkers deploy equipped, not naked"; carries READ ESCALATION + KNOWN WALLS distilled from playbook+recon. |
+| Equip block | `docs/product/foundation/orca_vertical_exploration_guide_v0.md` (Walker Equipment Kit, ~line 120) | Self-contained WALK CONTRACT pasted into every screening/discovery walk subagent — "walkers deploy equipped, not naked"; carries READ ESCALATION + KNOWN WALLS distilled from playbook+recon. |
 
 The **same two lessons** (availability != body; blocked-is-a-hypothesis) are independently restated in
 3–4 vocabularies (recon "Pattern N" / playbook route-cell / Armory "CW-P#" / kit "READ ESCALATION"),
@@ -159,7 +159,7 @@ to create a *fifth* surface that itself needs syncing.
 1. `docs/product/source_capture_toolbox/capture_recon_index_v0.md` — evidence base (lessons born here).
 2. `docs/product/source_capture_toolbox/source_capture_playbook_v0.md` — method (route catalog; Guardrails).
 3. `docs/product/source_capture_toolbox/README.md` — Source Capture Armory tool manifest + Example Ladder.
-4. `docs/product/core_spine/orca_vertical_exploration_guide_v0.md` — Walker Equipment Kit (the mirror target).
+4. `docs/product/foundation/orca_vertical_exploration_guide_v0.md` — Walker Equipment Kit (the mirror target).
 5. Overlay: `.agents/workflow-overlay/source-of-truth.md` (Doctrine Change Propagation Contract),
    `.agents/workflow-overlay/artifact-folders.md` (destinations).
 

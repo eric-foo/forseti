@@ -187,7 +187,7 @@ Orca source explicitly changes them:
 - no feature readiness;
 - no implementation readiness;
 - no commercial readiness;
-- no Core Spine v0 validation.
+- no Foundation Layer v0 validation.
 
 Customer discovery, memo usefulness, deck usefulness, or a single strong buyer
 signal does not authorize feature planning, implementation planning,

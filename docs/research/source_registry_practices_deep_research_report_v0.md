@@ -17,7 +17,7 @@ use_when:
   - Commissioning a follow-up research pass on the unanswered communities.
 authority_boundary: retrieval_only
 open_next:
-  - docs/product/core_spine/orca_memorization_resistant_case_finder_frame_v0.md
+  - docs/product/foundation/orca_memorization_resistant_case_finder_frame_v0.md
   - docs/decisions/judgment_spine_backtest_batch1_ledger_declaration_v0.md
 stale_if:
   - The owner chooses an Atlas lane (then the lane decision record supersedes this as the operative source).

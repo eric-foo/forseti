@@ -10,8 +10,8 @@ use_when:
   - Checking whether source-family adaptation is core, satellite, or deferred runtime work.
 authority_boundary: retrieval_only
 open_next:
-  - docs/product/core_spine/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
-  - docs/product/core_spine/core_spine_v0_product_contract.md
+  - docs/product/foundation/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
+  - docs/product/foundation/core_spine_v0_product_contract.md
 ```
 
 - Status: PROPOSED_NOTE

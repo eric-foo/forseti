@@ -41,6 +41,13 @@ followed (`8516cdc`); EP-04 hook wiring landed in `.claude/settings.json`
 trigger "Phase-2 consolidation applies" fired and is retired; lane statuses in
 `repo-structure.yaml` read `current` and match the migration state.
 
+Dated note — Foundation Layer rename applied (2026-06-18): owner direction
+renamed the top-level market-agnostic Core Spine lane/home to Foundation Layer
+at `docs/product/foundation/`. Legacy `core_spine_v0_*` artifact IDs are
+preserved for retrieval continuity in this pass; Judgment demand-read core is a
+separate Judgment-internal concept and is not renamed. Migration record:
+`docs/migration/foundation_layer_rename_v0.md`.
+
 ## Provenance (origin, not authority)
 
 The invariant core below is restated from an assessment of a cross-repo draft
@@ -90,7 +97,7 @@ docs/_inbox/).
   `known_top_level`.
 - `docs/` axis: role grammar exactly as bound in
   `.agents/workflow-overlay/artifact-folders.md` (unchanged by this binding).
-- `docs/product/` second-level axis: by lane. Bound lanes: `core_spine/`,
+- `docs/product/` second-level axis: by lane. Bound lanes: `foundation/`,
   `data_capture_spine/`, `judgment_spine/`, `signal_content/`, `ecr/`,
   `product_lead/`, plus the `search/` topic lane added by
   `docs/decisions/orca_search_product_lane_binding_v0.md` (a deliberate topic
@@ -160,10 +167,12 @@ their original path text and are covered by the package's moved-paths index.
 
 ## Direction change propagation
 
-The `direction_change_propagation` receipt for this change set lives inline in
-`.agents/workflow-overlay/artifact-folders.md` (the controlling overlay source
-updated), per the Doctrine Change Propagation Contract in
-`.agents/workflow-overlay/source-of-truth.md`.
+The `direction_change_propagation` receipts for repo-structure changes live
+inline in `.agents/workflow-overlay/artifact-folders.md` (the controlling
+overlay source updated), per the Doctrine Change Propagation Contract in
+`.agents/workflow-overlay/source-of-truth.md`. Older receipts are archived in
+`docs/decisions/dcp_receipts_archive_v0.md`; the Foundation Layer rename record
+is `docs/migration/foundation_layer_rename_v0.md`.
 
 ## Non-claims
 

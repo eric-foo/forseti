@@ -19,7 +19,7 @@ open_next:
   - docs/product/judgment_spine/fragrance_level1_product_learning_reconciliation_v0.md
   - docs/product/judgment_spine/judgment_current_state_and_decomposition_v0.md
   - docs/product/judgment_spine/judgment_spine_evidence_ladder_architecture_v0.md
-  - docs/product/core_spine/beauty_venue_card_set_v0.md
+  - docs/product/foundation/beauty_venue_card_set_v0.md
 stale_if:
   - The current-state/decomposition map changes its default mode, SCV loop, 25-case success condition, outcome labels, source registry, commission gate, forecast/action/log/evaluation contract, or live/client readiness gates.
   - The fragrance satellite skeleton changes its casebook, source, forecast, reveal, or receipt slots.
@@ -275,7 +275,7 @@ Judgment and fragrance sources:
 - `docs/product/judgment_spine/fragrance_level1_named_case_candidate_screen_v0.md`
 - `docs/product/judgment_spine/fragrance_level1_product_learning_reconciliation_v0.md`
 - `docs/product/judgment_spine/judgment_spine_evidence_ladder_architecture_v0.md`
-- `docs/product/core_spine/beauty_venue_card_set_v0.md`
+- `docs/product/foundation/beauty_venue_card_set_v0.md`
 
 User-supplied temp-pack sources:
 

@@ -16,8 +16,8 @@ use_when:
   - Routing Reddit access for screening agents (see the tooling discovery).
 authority_boundary: retrieval_only
 open_next:
-  - docs/product/core_spine/orca_vertical_exploration_guide_v0.md      # the guide this run proved
-  - docs/product/core_spine/beauty_venue_card_set_v0.md                # adjacent vertical's promoted deck (shared hub observed)
+  - docs/product/foundation/orca_vertical_exploration_guide_v0.md      # the guide this run proved
+  - docs/product/foundation/beauty_venue_card_set_v0.md                # adjacent vertical's promoted deck (shared hub observed)
   - docs/decisions/beauty_subtle_decision_screen3_ledger_v0.md         # prior screen (rules this run inherited)
 stale_if:
   - A backtest batch admits or rejects these candidates.

@@ -14,7 +14,7 @@ open_next:
   - docs/research/packing-phase/README.md
   - docs/research/judgment-spine/harness/v0_14/case_to_v0_14_bridge_foundation_v0.md
   - docs/research/judgment-spine/harness/v0_14/unity_v0_14_fixture_extraction_plan_v0.md
-  - docs/product/core_spine/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
+  - docs/product/foundation/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
   - docs/research/judgment-spine/harness/v0_14/band_input_labeling_rubric.md
   - docs/research/judgment-spine/harness/v0_14/pydantic_schema_reference.md
 input_hashes:

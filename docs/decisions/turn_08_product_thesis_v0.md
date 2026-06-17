@@ -95,7 +95,7 @@ For `jb`, Orca should answer:
 
 Which finance-career avatar, pain wedge, copy angle, pricing/package, and workflow bet has the strongest public market pull?
 
-This tests Orca's method, evidence discipline, signal-quality judgment, decision memo substrate, and deck-ready decision artifact shape. It does not validate external willingness to pay, buyer pull, repeatability, product readiness, commercial readiness, or Core Spine v0.
+This tests Orca's method, evidence discipline, signal-quality judgment, decision memo substrate, and deck-ready decision artifact shape. It does not validate external willingness to pay, buyer pull, repeatability, product readiness, commercial readiness, or Foundation Layer v0.
 
 ## Current Theory
 

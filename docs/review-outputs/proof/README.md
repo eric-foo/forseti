@@ -1,6 +1,6 @@
 # Proof Review Outputs
 
-Store reviews for Core Spine proof-prep, proof-run, and proof-packet artifacts
+Store reviews for Foundation Layer proof-prep, proof-run, and proof-packet artifacts
 here.
 
 Use one report artifact per review. Chat responses should summarize the report

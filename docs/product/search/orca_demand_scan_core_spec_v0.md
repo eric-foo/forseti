@@ -19,8 +19,8 @@ use_when:
 authority_boundary: retrieval_only
 open_next:
   - docs/product/search/orca_demand_read_taxonomy_v0.md          # the hunting grammar's source (PROPOSED; 3-state model)
-  - docs/product/core_spine/orca_vertical_exploration_guide_v0.md      # the walk mechanics this spec layers on
-  - docs/product/core_spine/beauty_venue_card_set_v0.md                # the venue layer (beauty)
+  - docs/product/foundation/orca_vertical_exploration_guide_v0.md      # the walk mechanics this spec layers on
+  - docs/product/foundation/beauty_venue_card_set_v0.md                # the venue layer (beauty)
   - docs/product/product_lead/orca_discovery_consumer_demand_target_selection_brief_v0.md  # forward-mode consumer
   - docs/product/product_lead/orca_buyer_proof_packet_v0.md            # the re-derived Demand-Substrate Hard Gate
   - docs/decisions/wind_caller_calibration_carveout_v0.md              # wind-caller naming boundary (owner-signed)
@@ -37,16 +37,16 @@ input_hashes:
       read, the calling sequence, divergence-as-technique, the ratified pricing
       refinement, and the wind-caller naming carve-out. §1/§3/§4/§6 are
       re-derived against this text (see Status).
-  - path: docs/product/core_spine/beauty_venue_card_set_v0.md
+  - path: docs/product/foundation/beauty_venue_card_set_v0.md
     sha256_16_lf: 65E22CDAE5EDE781
     note: Unchanged since the 2026-06-13 draft.
-  - path: docs/product/core_spine/orca_vertical_exploration_guide_v0.md
+  - path: docs/product/foundation/orca_vertical_exploration_guide_v0.md
     sha256_16_lf: EF9F5C6E716E9857
     note: Unchanged since the 2026-06-13 draft.
-  - path: docs/product/core_spine/orca_memorization_resistant_case_finder_frame_v0.md
+  - path: docs/product/foundation/orca_memorization_resistant_case_finder_frame_v0.md
     sha256_16_lf: C672C1678F98878F
     note: Unchanged since the 2026-06-13 draft.
-  - path: docs/product/core_spine/consumer_demand_candidate_pool_handoff_v0.md
+  - path: docs/product/foundation/consumer_demand_candidate_pool_handoff_v0.md
     sha256_16_lf: 19009D43A7C29858
     note: Unchanged since the 2026-06-13 draft.
   - path: docs/product/product_lead/orca_discovery_consumer_demand_target_selection_brief_v0.md

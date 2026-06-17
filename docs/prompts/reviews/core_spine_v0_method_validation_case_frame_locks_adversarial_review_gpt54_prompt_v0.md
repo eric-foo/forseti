@@ -11,7 +11,7 @@ authority_boundary: retrieval_only
 open_next:
   - .agents/workflow-overlay/prompt-orchestration.md
   - .agents/workflow-overlay/review-lanes.md
-  - docs/product/core_spine/core_spine_v0_method_validation_case_frame_locks_v0.md
+  - docs/product/foundation/core_spine_v0_method_validation_case_frame_locks_v0.md
 input_hashes:
   docs/product/core_spine_v0_method_validation_case_frame_locks_v0.md: B4018996BECC8F79B254BF5A113265B873DCB9C1AE35746DABADAA4D99D4A537
 branch_or_commit: main @ 3bf5c45cfa6879ae65c8f822eff9c185dcba8b3c

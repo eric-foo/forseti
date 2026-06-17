@@ -13,7 +13,7 @@ use_when:
   - Reviewing Retail/PDP projection boundaries before ECR, Cleaning, or Judgment sequencing.
 authority_boundary: retrieval_only
 open_next:
-  - docs/product/core_spine/core_spine_v0_data_lake_mechanics_map_v0.md
+  - docs/product/foundation/core_spine_v0_data_lake_mechanics_map_v0.md
   - docs/product/data_capture_spine/source_capture_tenant_payload_attachment_boundary_v0.md
   - docs/product/source_capture_toolbox/retail_pdp_projection_contract_v0.md
   - docs/product/source_capture_toolbox/retail_pdp_projection_playbook_v0.md
@@ -47,7 +47,7 @@ orca_start_preflight:
   edit_permission: docs-write
   target_scope:
     - docs/product/data_capture_spine/retail_pdp_typed_envelope_probe_v0.md
-    - docs/product/core_spine/core_spine_v0_data_lake_mechanics_map_v0.md
+    - docs/product/foundation/core_spine_v0_data_lake_mechanics_map_v0.md
     - docs/workflows/data_capture_spine_consolidation_map_v0.md
   dirty_state_checked: yes
   isolation: worktree branch codex/non-ig-envelope-probe-retail-pdp stacked on codex/data-lake-mechanics-map
@@ -187,11 +187,11 @@ direction_change_propagation:
     - workflow_authority
   controlling_sources_updated:
     - docs/product/data_capture_spine/retail_pdp_typed_envelope_probe_v0.md
-    - docs/product/core_spine/core_spine_v0_data_lake_mechanics_map_v0.md
+    - docs/product/foundation/core_spine_v0_data_lake_mechanics_map_v0.md
     - docs/workflows/data_capture_spine_consolidation_map_v0.md
   downstream_surfaces_checked:
     - docs/product/data_capture_spine/source_capture_tenant_payload_attachment_boundary_v0.md
-    - docs/product/core_spine/core_spine_v0_data_lake_mechanics_map_v0.md
+    - docs/product/foundation/core_spine_v0_data_lake_mechanics_map_v0.md
     - docs/product/source_capture_toolbox/README.md
     - docs/product/source_capture_toolbox/retail_pdp_projection_contract_v0.md
     - docs/product/source_capture_toolbox/retail_pdp_projection_playbook_v0.md

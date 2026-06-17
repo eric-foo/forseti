@@ -16,7 +16,7 @@ authority_boundary: retrieval_only
 open_next:
   - docs/product/source_capture_toolbox/source_capture_playbook_v0.md
   - docs/product/source_capture_toolbox/capture_recon_index_v0.md
-  - docs/product/core_spine/orca_vertical_exploration_guide_v0.md
+  - docs/product/foundation/orca_vertical_exploration_guide_v0.md
   - docs/decisions/ingestible_beauty_screen1_ledger_v0.md
 stale_if:
   - The wiring lands (record the build; flip the kit's KNOWN WALLS Reddit line by dated note in the discovery lane).

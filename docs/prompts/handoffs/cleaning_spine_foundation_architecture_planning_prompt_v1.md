@@ -13,17 +13,17 @@ use_when:
   - Commissioning directional, adversarial, and grounding architecture perspectives before owner reading.
 authority_boundary: retrieval_only
 open_next:
-  - docs/product/core_spine/core_spine_v0_cleaning_spine_foundation_v0.md
+  - docs/product/foundation/core_spine_v0_cleaning_spine_foundation_v0.md
   - docs/product/core_spine_v0_projection_doctrine_v0.md
   - docs/review-outputs/adversarial-artifact-reviews/projection_doctrine_v0_vendor_ca_closeout_v0.md
-  - docs/product/core_spine/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
-  - docs/product/core_spine/core_spine_v0_corroboration_vs_amplification_discipline_v0.md
+  - docs/product/foundation/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
+  - docs/product/foundation/core_spine_v0_corroboration_vs_amplification_discipline_v0.md
   - docs/product/data_capture_spine/core_spine_v0_data_capture_context_preservation_note_v0.md
 supersedes:
   - docs/prompts/handoffs/cleaning_spine_foundation_architecture_planning_prompt_v0.md
 branch_or_commit: codex/cleaning-spine-successor-main-codex @ 45c6fac9f57c0e9d09607875f12b19882ff34290 plus current-lane OD-4 clarification patch
 input_hashes:
-  docs/product/core_spine/core_spine_v0_cleaning_spine_foundation_v0.md: 509BA5566039351D2A534B9BCBD0AC3AA5D29BD1F4BB149DB13DDAAA75BB044B
+  docs/product/foundation/core_spine_v0_cleaning_spine_foundation_v0.md: 509BA5566039351D2A534B9BCBD0AC3AA5D29BD1F4BB149DB13DDAAA75BB044B
   docs/product/core_spine_v0_projection_doctrine_v0.md: F2764AF09786ADC0ABD0365AF470F59345DE8101EF698CF24EE5ACFB863E4FAB
   docs/prompts/handoffs/cleaning_spine_foundation_architecture_planning_prompt_v0.md: 22E90171105A23973090D505980B881183139940B27F2118BF1453B7B0222A40
 stale_if:
@@ -93,7 +93,7 @@ working views without losing raw evidence, flattening source context, or
 smuggling interpretation into Cleaning.
 
 Anchor goal: Produce a final architecture reading of
-`docs/product/core_spine/core_spine_v0_cleaning_spine_foundation_v0.md` that
+`docs/product/foundation/core_spine_v0_cleaning_spine_foundation_v0.md` that
 decides whether the draft is architecturally fit for owner reading as a
 foundation draft, and if not, names the smallest complete caveat or patch needed
 before that owner reading.
@@ -139,7 +139,7 @@ goal_handoff:
     interpretation into Cleaning.
   anchor_goal: >
     Produce a final architecture reading of
-    docs/product/core_spine/core_spine_v0_cleaning_spine_foundation_v0.md that
+    docs/product/foundation/core_spine_v0_cleaning_spine_foundation_v0.md that
     decides whether the draft is architecturally fit for owner reading as a
     foundation draft, and if not, names the smallest complete caveat or patch
     needed before that owner reading.
@@ -202,11 +202,11 @@ Follow this order exactly.
    - allowed next move;
    - disallowed next move.
 4. SOURCE-LOAD the task sources:
-   - `docs/product/core_spine/core_spine_v0_cleaning_spine_foundation_v0.md`
+   - `docs/product/foundation/core_spine_v0_cleaning_spine_foundation_v0.md`
    - `docs/product/core_spine_v0_projection_doctrine_v0.md`
    - `docs/review-outputs/adversarial-artifact-reviews/projection_doctrine_v0_vendor_ca_closeout_v0.md`
-   - `docs/product/core_spine/core_spine_v0_data_and_cleaning_spine_boundary_v0.md`
-   - `docs/product/core_spine/core_spine_v0_corroboration_vs_amplification_discipline_v0.md`
+   - `docs/product/foundation/core_spine_v0_data_and_cleaning_spine_boundary_v0.md`
+   - `docs/product/foundation/core_spine_v0_corroboration_vs_amplification_discipline_v0.md`
    - `docs/product/data_capture_spine/core_spine_v0_data_capture_context_preservation_note_v0.md`
 5. Declare `SOURCE_CONTEXT_READY` or `SOURCE_CONTEXT_INCOMPLETE`.
 6. If source context is incomplete, stop with `NEEDS_SOURCE_CONTEXT` unless the

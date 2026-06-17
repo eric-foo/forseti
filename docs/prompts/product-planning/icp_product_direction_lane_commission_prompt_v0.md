@@ -113,7 +113,7 @@ applied — trust this capsule over older summaries:
   (`2e665de`).
 - Core Spine (frozen): costly behavior is the decision-strength primitive;
   "engagement quality remains a rubric, not a primitive"
-  (`docs/product/core_spine/core_spine_v0_product_contract.md`).
+  (`docs/product/foundation/core_spine_v0_product_contract.md`).
 - Hard source limits (encoded in lane records; thesis evidence table quotes
   them verbatim): TikTok live = ToS NO-GO, archive leg only (pre-2024 window);
   LinkedIn live = policy wall (archive/entitled routes only); Beauty Pie

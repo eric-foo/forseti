@@ -15,9 +15,9 @@ use_when:
   - Preparing the owner ratification of the JSG-01 source-side field slice.
 authority_boundary: retrieval_only
 open_next:
-  - docs/product/core_spine/core_spine_v0_information_production_foundation_v0.md
+  - docs/product/foundation/core_spine_v0_information_production_foundation_v0.md
   - docs/product/data_capture_spine/core_spine_v0_data_capture_spine_obligation_contract_v0.md
-  - docs/product/core_spine/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
+  - docs/product/foundation/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
   - docs/product/judgment_spine/judgment_quality_promotion_operating_model_v0.md
   - docs/research/judgment-spine/harness/v0_14/packing_to_harness_foundation_interface_architecture_v3.md
 downstream_consumers:

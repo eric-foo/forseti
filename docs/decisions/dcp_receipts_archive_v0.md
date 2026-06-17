@@ -1122,3 +1122,145 @@ direction_change_propagation:
     - not implementation authorization
     - not source promotion
 ```
+
+## Direction Change Propagation - Orca-Local Skill Folder
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    `.agents/skills/` is now a bound Orca-local accepted/candidate workflow-skill
+    source folder, and the first Orca-local skill (`orca-product-lead`) is
+    accepted/frozen. Acceptance is a local freeze only — not deployment,
+    activation, or resolver-visibility.
+  trigger: output_authority
+  controlling_sources_updated:
+    - .agents/workflow-overlay/artifact-folders.md
+    - .agents/workflow-overlay/skill-adoption.md
+    - .agents/skills/orca-product-lead/SKILL.md
+  downstream_surfaces_checked:
+    - AGENTS.md                                      # grep: no skill/folder reference; skill rules already defer to overlay; no change
+    - .agents/workflow-overlay/README.md             # grep: no reference; no change
+    - .agents/workflow-overlay/source-of-truth.md    # grep: no reference; skill is not an authority source (it defers)
+    - .agents/workflow-overlay/project-authority.md  # grep: no reference; skill is explicitly non-authority
+  stale_language_search: 'rg -n "orca-product-lead|\.agents/skills|no accepted Orca-local" . (run 2026-06-08; only skill-adoption.md carried the stale "no accepted" status, now fixed)'
+  intentionally_not_updated:
+    - path: .agents/workflow-overlay/skill-adoption.md (Known Snapshots, 2026-05-24 line)
+      reason: dated historical observation, true as of its date.
+    - path: docs/workflows/orca_pricing_first_doc_cascade_proposal_v0.md
+      reason: historical proposal record (row 7 deferral); current acceptance state now lives in skill-adoption.md; the proposal is not retro-edited.
+    - path: docs/product/product_lead/orca_product_lead_first_icp_wedge_decision_v0.md
+      reason: already-superseded historical record; its supersede banner governs.
+    - path: docs/decisions/orca_icp_wedge_convergence_break_in_first_v0.md
+      reason: already-superseded historical record; its supersede banner governs.
+    - path: docs/prompts/product-planning/orca_product_lead_ca_first_icp_wedge_prompt_v0.md
+      reason: historical generator prompt; records a then-open question, not current state.
+    - path: docs/prompts/handoffs/jb_prompt_path_assignment_ca_settlement_prompt_v0.md
+      reason: jb-scoped non-Orca lane; its "do not edit .agents/skills" guardrail is not stale.
+  non_claims:
+    - not deployment
+    - not activation
+    - not resolver-visibility
+    - not validation
+    - not readiness
+```
+
+## Direction Change Propagation - Repo Structure Binding v0
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Orca adopts the agent-first repo-structure invariant core as Orca-owned
+    doctrine via docs/decisions/orca_repo_structure_binding_v0.md, binds the
+    docs/product/ by-lane second axis and root machine map repo-structure.yaml
+    (router-only), and authorizes the EP-04 placement substrate
+    (.agents/hooks/check_placement.py, advisory write-boundary + --strict
+    commit/CI mode). Forward-only; the docs/product flat-file consolidation is
+    packaged under docs/migration/repo_structure_phase2_consolidation_v0/ and
+    is not executed by this change.
+  trigger: output_authority
+  related_triggers:
+    - workflow_authority
+  controlling_sources_updated:
+    - .agents/workflow-overlay/artifact-folders.md
+    - docs/decisions/orca_repo_structure_binding_v0.md
+    - repo-structure.yaml
+  downstream_surfaces_checked:
+    - AGENTS.md                                      # no structure facts; defers to overlay; no change
+    - .agents/workflow-overlay/README.md             # section ownership unchanged; no change
+    - .agents/workflow-overlay/source-of-truth.md    # hierarchy/propagation mechanics unchanged; receipt inline here per contract
+    - .agents/workflow-overlay/source-loading.md     # read packs reference unchanged paths until Phase-2 apply
+    - .agents/workflow-overlay/validation-gates.md   # Enforcement Placement principle already present and generic
+    - docs/workflows/orca_repo_map_v0.md             # updated in this change set (Active Hooks + root map entry)
+    - docs/STRUCTURE.md
+  intentionally_not_updated:
+    - path: .agents/workflow-overlay/source-of-truth.md
+      reason: shared commit-once-whole file; hierarchy unchanged; DCP contract stores receipts inline in the changed artifact.
+    - path: docs/STRUCTURE.md
+      reason: narrative tier per the binding's surface tiering; gains lane detail when the Phase-2 move applies, not before.
+    - path: .agents/workflow-overlay/validation-gates.md
+      reason: the principle is already bound there; the EP-04 instance is recorded in the EP classification decision update and the repo map Active Hooks note.
+  stale_language_search: 'rg -n "repo-structure.yaml|check_placement|orca_repo_structure_binding" .agents/workflow-overlay docs/STRUCTURE.md docs/workflows/orca_repo_map_v0.md AGENTS.md (run at closeout; expected hits only in this change set)'
+  non_claims:
+    - not validation
+    - not readiness
+    - not a commit, push, or branch action
+    - not execution of the Phase-2 move
+    - hook wiring not live until session restart
+```
+
+## Direction Change Propagation - Search Product Lane v0
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Orca adds docs/product/search/ as a bound topic lane - the demand-signal
+    intelligence (search-led) vertical: search / answer-engine surfaces PLUS the
+    demand-signal discovery method (scan core, read taxonomy, demand gates) they
+    feed - bound by docs/decisions/orca_search_product_lane_binding_v0.md
+    (inclusion test + precedence rule). 10 member docs are physically co-located
+    via the migration package, applied on the lane branch. The demand-signal
+    method docs are search-led but venue-spanning (consumed across
+    judgment/capture/core spines); placing them in search/ does not narrow their
+    authority.
+  trigger: output_authority
+  related_triggers:
+    - workflow_authority
+  controlling_sources_updated:
+    - docs/decisions/orca_search_product_lane_binding_v0.md   # lane binding + inclusion test + precedence rule (expanded to demand-signal method)
+    - docs/decisions/orca_repo_structure_binding_v0.md        # bound-lanes bullet notes search/
+    - repo-structure.yaml                                     # product_lanes += { search } (current once applied)
+    - .agents/workflow-overlay/artifact-folders.md            # search accepted-folder entry + lane-subfolder list + this receipt
+    - docs/product/README.md                                  # lane list includes search/
+    - docs/product/search/README.md                          # lane front-door index (restructured for the expanded lane)
+    - docs/workflows/orca_repo_map_v0.md                      # Workstream Status Pointers: search lane row
+    - docs/migration/repo_structure_search_lane_v0/           # package: 10-row manifest + idempotent apply/reverse + runbook + reference inventory + moved-paths index
+    - the 10 moved docs + ~19 live referencing files          # apply rewrites their full-path references into search/
+  downstream_surfaces_checked:
+    - path: docs/STRUCTURE.md
+      result: no product-lane enumeration (lists only top-level docs/ roles); no change needed (narrative tier).
+    - path: .agents/workflow-overlay/source-loading.md
+      result: not a full-path referrer of the moved docs (worker sweep); no search read-pack yet; unchanged.
+    - path: .agents/hooks/check_placement.py
+      result: reads repo-structure.yaml as its only rule source; recognizes the lane via product_lanes; no code change.
+    - path: AGENTS.md
+      result: defers structure facts to the overlay; no change.
+    - path: historical referencing records (decisions/reviews/prompts/research/hygiene)
+      result: keep old paths by design (worker sweep); resolve via the package moved_paths_index.
+  intentionally_not_updated:
+    - path: docs/STRUCTURE.md
+      reason: narrative tier per the binding's surface tiering; no product-lane list to amend (same treatment as the Phase-2 move).
+    - path: the moved docs' content
+      reason: not edited except intra-set full-path references (hash-safe; no inbound hash pins); search/README.md was hand-restructured separately.
+    - path: docs/product/core_spine/orca_ontology_backbone_architecture_v0.md (bare-name "in-flight/not on main" prose)
+      reason: pre-existing stale status independent of this move (the scan-core spec is already on main); out of scope for this migration.
+  stale_language_search: >
+    The runbook's apply sequence includes a git-grep reference-resolution check
+    that must return no stale old-path hits in LIVE docs after --apply; verified
+    post-apply.
+  non_claims:
+    - not validation
+    - not readiness
+    - not product proof
+    - placement of the demand-signal method docs in search/ does not narrow their venue-spanning authority
+    - a green check_placement run is placement shape, not authority
+```

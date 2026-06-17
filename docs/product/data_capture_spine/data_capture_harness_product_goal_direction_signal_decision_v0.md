@@ -10,7 +10,7 @@ use_when:
   - Checking whether future Data Capture harness, architecture, patch, ECR, Cleaning, Judgment, or runtime work is being overclaimed.
 open_next:
   - .agents/workflow-overlay/product-proof.md
-  - docs/product/core_spine/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
+  - docs/product/foundation/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
   - docs/product/data_capture_spine/core_spine_v0_data_capture_spine_pressure_test_synthesis_usage_note_v0.md
   - docs/review-outputs/adversarial-artifact-reviews/core_spine_v0_data_capture_spine_manual_harness_bt204_dry_run_adversarial_review_v0.md
 stale_if:

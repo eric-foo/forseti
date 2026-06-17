@@ -13,7 +13,7 @@ open_next:
   - docs/product/judgment_spine/judgment_spine_evidence_ladder_architecture_v0.md
   - docs/product/judgment_spine/judgment_quality_promotion_operating_model_v0.md
   - docs/product/judgment_spine/judgment_spine_reveal_calibration_owner_contract_v0.md
-  - docs/product/core_spine/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
+  - docs/product/foundation/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
   - docs/product/data_capture_spine/core_spine_v0_data_capture_spine_obligation_contract_v0.md
   - .agents/workflow-overlay/validation-gates.md
   - docs/research/judgment-spine/harness/v0_14/contestant_no_tools_execution_contract_v0.md

@@ -19,7 +19,7 @@ expected_branch_or_source: >
   Prefer main after PR #191 lands; before merge, use PR #191 / branch
   codex/projection-reddit-enforcement and re-check the current head on intake.
 output_mode: file-write
-target_output: docs/product/core_spine/core_spine_v0_cleaning_spine_foundation_v0.md
+target_output: docs/product/foundation/core_spine_v0_cleaning_spine_foundation_v0.md
 edit_permission: docs-write only; no implementation, runtime, adapter, crawler, scraper, schema, or proof-run work.
 commit_policy: ask the owner at lane start unless the launching turn explicitly grants commit/push.
 prompt_contract: >
@@ -137,10 +137,10 @@ Task sources to load:
   `BLOCKED_MISSING_PROJECTION_DOCTRINE`.
 - `docs/review-outputs/adversarial-artifact-reviews/projection_doctrine_v0_vendor_ca_closeout_v0.md`
   - vendor-CA closeout; confirms kept candidate status and residual risk.
-- `docs/product/core_spine/core_spine_v0_data_and_cleaning_spine_boundary_v0.md`
+- `docs/product/foundation/core_spine_v0_data_and_cleaning_spine_boundary_v0.md`
   - current Data Capture / Evidence Candidate Record / Cleaning / Judgment
   boundary.
-- `docs/product/core_spine/core_spine_v0_corroboration_vs_amplification_discipline_v0.md`
+- `docs/product/foundation/core_spine_v0_corroboration_vs_amplification_discipline_v0.md`
   - dedupe/clustering versus Judgment-owned independence/amplification split.
 - `docs/product/data_capture_spine/core_spine_v0_data_capture_context_preservation_note_v0.md`
   - capture-context preservation rules Cleaning must not flatten.
@@ -155,7 +155,7 @@ Available but do not load by default:
 
 ## Receiver Task
 
-Write `docs/product/core_spine/core_spine_v0_cleaning_spine_foundation_v0.md`
+Write `docs/product/foundation/core_spine_v0_cleaning_spine_foundation_v0.md`
 as a docs-only product-method artifact. If the file already exists, choose the
 next version suffix or return a collision blocker before overwriting.
 

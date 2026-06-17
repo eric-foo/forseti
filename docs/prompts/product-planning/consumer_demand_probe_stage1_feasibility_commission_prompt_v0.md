@@ -30,11 +30,11 @@ authority_boundary: retrieval_only
 open_next:
   - docs/decisions/orca_consumer_demand_ratification_decision_memo_v0.md   # the authorization (Owner Decision Record, ask 3 + addendum)
   - docs/decisions/orca_product_thesis_consumer_demand_v0.md               # OWNER_LOCKED; central read + falsifiers the probe tests
-  - docs/product/core_spine/consumer_demand_candidate_pool_handoff_v0.md   # candidate input (facilitator-side; outcome-bearing)
+  - docs/product/foundation/consumer_demand_candidate_pool_handoff_v0.md   # candidate input (facilitator-side; outcome-bearing)
 input_hashes:
   docs/decisions/orca_consumer_demand_ratification_decision_memo_v0.md: 7911CC00BDD486DC9661632B6A9C28D097A492A176646EF4B081899F2EC13195
   docs/decisions/orca_product_thesis_consumer_demand_v0.md: B119E24691066E4772E0CFD4051C3C9C8214ED3A91F8775658E45B77DB0723F1
-  docs/product/core_spine/consumer_demand_candidate_pool_handoff_v0.md: 19009D43A7C29858A719212C5F6E2E1DECD2E63C7B263A074D4EAC5E3F9645B9
+  docs/product/foundation/consumer_demand_candidate_pool_handoff_v0.md: 19009D43A7C29858A719212C5F6E2E1DECD2E63C7B263A074D4EAC5E3F9645B9
 branch_or_commit: >
   Inputs pinned on ecr-sp3-timing-deriver-slice1 @ 641a2a6 (memo + thesis
   committed; the candidate-pool handoff is UNTRACKED there — another lane's
@@ -132,7 +132,7 @@ recheck-completed/re-kept — locate it on that branch, record its path + hash
 at intake; BLOCKED if unreadable); the candidate-pool handoff (facilitator-
 side input; see the contamination boundary below). Targeted reads: thesis
 (Central Read, Falsifiers, Proof Doctrine, Vertical And Geography Doctrine
-sections); `docs/product/core_spine/orca_memorization_resistant_case_finder_frame_v0.md`
+sections); `docs/product/foundation/orca_memorization_resistant_case_finder_frame_v0.md`
 (operative obscurity bar + probe protocol, as the pool's obligations cite
 it). Available-not-read by default: batch-1 ledger (machinery exemplar —
 open only if the spec requires its mechanics), screen ledgers (per-row

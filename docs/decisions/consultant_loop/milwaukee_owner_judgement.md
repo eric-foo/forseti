@@ -99,4 +99,4 @@ reform.
 - No feature readiness.
 - No implementation readiness.
 - No commercial readiness.
-- No Core Spine validation.
+- No Foundation Layer validation.

@@ -194,7 +194,7 @@ Not supported by this artifact:
 - feature readiness;
 - implementation readiness;
 - commercial readiness;
-- Core Spine validation;
+- Foundation Layer validation;
 - clean memorization-probe pass;
 - blind-use authorization;
 - fixture validation or admission;

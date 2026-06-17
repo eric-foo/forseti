@@ -11,8 +11,8 @@ use_when:
 authority_boundary: retrieval_only
 open_next:
   - docs/decisions/orca_product_thesis_consumer_demand_v0.md      # controlling thesis (supersedes turn_08; ratified 2026-06-12)
-  - docs/product/core_spine/core_spine_v0_product_contract.md
-  - docs/product/core_spine/core_spine_v0_information_production_foundation_v0.md
+  - docs/product/foundation/core_spine_v0_product_contract.md
+  - docs/product/foundation/core_spine_v0_information_production_foundation_v0.md
   - docs/decisions/orca_icp_wedge_consumer_demand_first_v0.md     # current wedge authority (supersedes pricing-first)
   - docs/product/product_lead/orca_product_lead_first_icp_wedge_decision_v0.md # superseded — historical
   - docs/product/product_lead/orca_buyer_proof_packet_v0.md

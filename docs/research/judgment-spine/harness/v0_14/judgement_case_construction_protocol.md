@@ -106,7 +106,7 @@ contestant-readable surface (packet body, file name, run guide, paste wrapper):
   this brief"); never an enumerated forbidden / spoiler list (an enumerated
   forbidden list is itself a leak).
 - Apply **identity masking** per the finder-frame operative bar
-  (`docs/product/core_spine/orca_memorization_resistant_case_finder_frame_v0.md`):
+  (`docs/product/foundation/orca_memorization_resistant_case_finder_frame_v0.md`):
   mask the target brand's identity only; keep third-party source identities,
   provenance, and all decision-driving numbers real; supply decision-relevant brand
   attributes as in-packet evidence; seal the pseudonym↔real-case crosswalk

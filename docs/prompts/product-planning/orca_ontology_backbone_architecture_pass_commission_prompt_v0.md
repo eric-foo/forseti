@@ -269,9 +269,9 @@ wording); if absent → `BLOCKED_STALE_BASE`. Stable docs keep their sha pins.
 - `docs/product/product_lead/orca_demand_read_taxonomy_v0.md` — LIVE (verify, don't pin) — the read grammar (Read, TrendVector, WindCaller, signal layers, read types, calling sequence); Q0–Q3 DECIDED, treat its types as DECIDED inputs (the artifact status line may still read PROPOSED).
 - `docs/product/product_lead/orca_demand_read_taxonomy_adjudication_v0.md` — LIVE (verify, don't pin) — the operative definitions (what-counts / anti-trigger / boundary per layer + read type) and the Q0–Q3 owner-decision outcomes; the firmest source for Read / WindCaller / Call definitions.
 - `docs/product/product_lead/orca_demand_gate_definition_closures_proposal_v0.md` — LIVE (verify, don't pin) — the APPLIED G1 (independence by de-correlated origination) / G2 (costly-behavior floor) / G4 (org-motion corroboration, separate from G1) gate definitions to encode as Gate actions/preconditions. Encode as live gate semantics and flag any consuming surface that still carries stale raw-venue-count wording.
-- `docs/product/core_spine/beauty_venue_card_set_v0.md` — `65E22CDAE5EDE781` — the best-engineered existing object type (Venue) + the kernel survival terms to steal.
+- `docs/product/foundation/beauty_venue_card_set_v0.md` — `65E22CDAE5EDE781` — the best-engineered existing object type (Venue) + the kernel survival terms to steal.
 - `docs/product/product_lead/orca_buyer_proof_packet_v0.md` — LIVE (verify, don't pin) — the Demand-Substrate Hard Gate (independence rests on `derived_from`, divergence/astroturf on `diverges_from`) + the never-a-feed invariant (Orca Promise) + Memo/Case semantics. (Carries some pre-2026-06-14 durable-vs-hollow wording flagged for realignment — read the current Hard Gate + Orca Promise, not the stale framing.)
-- `docs/product/core_spine/consumer_demand_candidate_pool_handoff_v0.md` — `19009D43A7C29858` — an existing Case/Candidate schema.
+- `docs/product/foundation/consumer_demand_candidate_pool_handoff_v0.md` — `19009D43A7C29858` — an existing Case/Candidate schema.
 
 Workflow-layer (Layer 2 MAP targets — READ-ONLY, never edit):
 - `.agents/workflow-overlay/artifact-roles.md` — `A9BEC91DB82E81D1`.
@@ -311,7 +311,7 @@ Write to `docs/product/ontology/orca_ontology_backbone_architecture_v0.md`
 (PROPOSED). Proposing this new `docs/product/ontology/` lane subfolder is part
 of the design; do NOT enact it in `artifact-folders.md` / `repo-structure.yaml`
 — if the folder cannot be written under current placement rules, write the
-deliverable to `docs/product/core_spine/orca_ontology_backbone_architecture_v0.md`
+deliverable to `docs/product/foundation/orca_ontology_backbone_architecture_v0.md`
 instead and flag the folder proposal in the design. The deliverable contains:
 
 1. **Goal frame** (from step 1): the end this backbone serves + success signal.
