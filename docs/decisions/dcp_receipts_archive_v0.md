@@ -18,6 +18,69 @@ This file is the single authorized standalone archive for Orca direction_change_
 ```yaml
 direction_change_propagation:
   doctrine_changed: >
+    Data Lake Storage Contract v0 now records the blocker-1 direction:
+    Attachment Records are manifest-indexed immutable attachment bodies, with
+    compact manifest/index entries pointing to hash-checkable bodies; exact
+    sidecar/bundle-member layout, serialization, manifest version, backend, and
+    migration remain deferred.
+  trigger: architecture_doctrine
+  related_triggers:
+    - lifecycle_boundary
+  controlling_sources_updated:
+    - docs/product/core_spine/core_spine_v0_data_lake_storage_contract_v0.md
+    - docs/workflows/orca_repo_map_v0.md
+  downstream_surfaces_checked:
+    - AGENTS.md
+    - .agents/workflow-overlay/README.md
+    - .agents/workflow-overlay/source-loading.md
+    - .agents/workflow-overlay/source-of-truth.md
+    - docs/product/core_spine/core_spine_v0_data_lake_core_contract_v0.md
+    - docs/product/core_spine/core_spine_v0_data_lake_mechanics_map_v0.md
+    - docs/product/data_capture_spine/source_capture_tenant_payload_attachment_boundary_v0.md
+    - docs/product/data_capture_spine/source_capture_packet_schema_evolution_architecture_v0.md
+    - orca-harness/source_capture/models.py
+    - orca-harness/source_capture/writer.py
+  intentionally_not_updated:
+    - path: docs/product/core_spine/core_spine_v0_data_lake_core_contract_v0.md
+      reason: >
+        It remains the parent/core boundary and already marks later storage,
+        manifest, sidecar, or Attachment Record serialization decisions as
+        superseding; this storage contract owns the narrower blocker-1
+        direction.
+    - path: docs/product/core_spine/core_spine_v0_data_lake_mechanics_map_v0.md
+      reason: >
+        It remains a mechanics map with the broader physicalization gate; this
+        patch records only the blocker-1 direction in the storage contract.
+    - path: docs/product/data_capture_spine/source_capture_tenant_payload_attachment_boundary_v0.md
+      reason: >
+        It remains the accepted logical attachment boundary and explicitly
+        defers physical storage; this storage contract records the
+        physicalization direction without globally renaming historical envelope
+        terminology.
+  stale_language_search: >
+    rg -n "Choose the Attachment Record physical representation|select sidecars|select Attachment Record serialization|manifest-indexed immutable|hash-pinned bundle member|immutable sidecar"
+    docs/product/core_spine/core_spine_v0_data_lake_storage_contract_v0.md
+    docs/product/core_spine/core_spine_v0_data_lake_core_contract_v0.md
+    docs/product/core_spine/core_spine_v0_data_lake_mechanics_map_v0.md
+    docs/product/data_capture_spine/source_capture_tenant_payload_attachment_boundary_v0.md
+    docs/workflows/orca_repo_map_v0.md
+  stale_language_search_result: >
+    Executed 2026-06-17 after edits. Storage contract records the new
+    manifest-indexed direction while preserving non-goals against sidecar,
+    serialization, backend, and implementation selection. The repo map routes to
+    the new direction. Core/mechanics/boundary hits remain broader deferred-gate
+    or historical logical-boundary language.
+  non_claims:
+    - not validation
+    - not readiness
+    - not implementation authorization
+    - not physical storage selection
+    - not storage-engine selection
+```
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
     Data Lake Storage Contract v0 records the non-selecting storage contract:
     five dumb record-kind slots, passive by-key availability, append-only
     derived/ack attachment, Attachment Record target terminology, and the six

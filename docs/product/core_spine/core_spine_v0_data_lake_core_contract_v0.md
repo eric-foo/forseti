@@ -235,12 +235,10 @@ for current and historical packets, but they are not precedent for adding the
 next source-family field directly to `SourceCaptureSlice` or
 `SourceCapturePacket`.
 
-Before physicalization, the incumbent field fate must be decided:
-
-- freeze as legacy/transitional;
-- dual-read with Attachment Records;
-- replay into a new packet representation;
-- or keep as core only under an explicit owner decision.
+The accepted storage-lane fate is: keep them legacy-readable and
+transitional, do not treat them as precedent for future direct source-family
+fields, and move only by future dual-read or replay under a separately
+authorized lane. They are not promoted as universal lake core.
 
 No path may mutate pinned historical packets in place.
 
@@ -252,7 +250,8 @@ the physicalization lane closes these blockers:
 
 1. Choose the Attachment Record physical representation: manifest child, immutable
    sidecar, hash-pinned bundle member, or another immutable/checkable form.
-2. Decide the fate of incumbent direct fields at slice and packet level.
+2. Follow the accepted incumbent-field fate: legacy-readable transitional
+   fields, future dual-read or replay only, and no in-place packet mutation.
 3. Govern SCR `FamilyDetailBase` so it cannot become a competing raw
    source-family payload home.
 4. Assign enforcement for write-once raw, no-cleaning-in-lake, append-only

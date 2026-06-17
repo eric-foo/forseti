@@ -134,7 +134,9 @@ until these are true:
    keyed Attachment Records work without adding new `SourceCaptureSlice` fields.
 3. The owner chooses Attachment Record physical representation: manifest, sidecar, or
    another immutable/hash-pinned form.
-4. Incumbent fields have a fate: frozen, dual-read, replayed, or legacy-only.
+4. Incumbent fields have the storage-contract fate: legacy-readable
+   transitional fields, future dual-read or replay only, and no in-place packet
+   mutation.
 5. SCR `FamilyDetailBase` is governed so it does not compete with capture-side
    Attachment Records.
 

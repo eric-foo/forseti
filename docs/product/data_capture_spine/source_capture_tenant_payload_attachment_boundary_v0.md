@@ -165,6 +165,11 @@ They are classified as:
   current under a new representation, the schema-evolution discipline points to
   replay into a new packet rather than editing the pinned original.
 
+The storage-lane blocker-2 direction accepts this transition stance: incumbent
+direct fields stay legacy-readable and transitional, are not promoted to
+universal lake core, and may move only through future dual-read or replay under
+separate authorization.
+
 ## Projection Terminology Guardrail
 
 Use two names:
@@ -220,8 +225,8 @@ This artifact does not:
 - design ECR, Signal Content, Cleaning, Evidence Binding, or Judgment schema;
 - admit fixtures, validate packets, prove source-family coverage, or claim
   readiness;
-- decide whether existing IG or demand fields should be frozen, dual-written,
-  replayed, or migrated.
+- authorize dual-writing, replay, migration, or removal of existing IG or
+  demand fields.
 
 ## Open Decisions
 
@@ -229,10 +234,8 @@ Still owner-owned or separately scoped:
 
 - Whether extension envelopes are eventually embedded in the packet manifest,
   stored as packet-bundle sidecars, or represented another way.
-- Whether current `metric_observations` remain IG-only for future captures or
-  are frozen as legacy/transitional.
-- Whether demand pins remain core capture facts, transitional fields, or later
-  move into demand-family envelopes.
+- Exact dual-read, replay, cutoff, or removal mechanics for current
+  `metric_observations`, demand pins, and packet-level demand-series fields.
 - Exact allowed envelope scopes beyond packet and slice, such as preserved file,
   series, or observation.
 - Whether one core posture enum is sufficient or families may use their own

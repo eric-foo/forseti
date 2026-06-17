@@ -33,7 +33,7 @@ authority_boundary: retrieval_only
 
 ## Status
 
-`TARGET_STORAGE_CONTRACT_RECORDED_V0; BLOCKER_1_DIRECTION_RECORDED_V0; BLOCKER_1_IMPLEMENTATION_CONTRACT_RECORDED_V0`.
+`TARGET_STORAGE_CONTRACT_RECORDED_V0; BLOCKER_1_DIRECTION_RECORDED_V0; BLOCKER_1_IMPLEMENTATION_CONTRACT_RECORDED_V0; BLOCKER_2_DIRECTION_RECORDED_V0`.
 
 This is a planning and architecture contract. It is not implementation
 authority, validation, readiness, physical storage selection, queue design,
@@ -117,18 +117,24 @@ hash-checkable attachment bodies. Use
 before scoping storage code. Exact layout, serialization, manifest version,
 backend, and migration remain deferred.
 
+Blocker 2 now has a direction, not a migration or code closeout. Existing
+direct packet/slice fields remain legacy-readable and transitional; they are
+not precedent for future direct source-family fields, not promoted to universal
+lake core, and not mutated in pinned packets. Future lanes may dual-read them
+with Attachment Records or replay them into new packet material under separate
+authorization.
+
 Remaining blockers before storage implementation:
 
-1. Decide the fate of incumbent direct fields at slice and packet level.
-2. Govern SCR `FamilyDetailBase` so it cannot become a competing raw
+1. Govern SCR `FamilyDetailBase` so it cannot become a competing raw
    source-family payload home.
-3. Assign enforcement for write-once raw, no-cleaning-in-lake, append-only
+2. Assign enforcement for write-once raw, no-cleaning-in-lake, append-only
    derived results, and no-new-core-field pressure to deterministic write or
    tool boundaries where possible.
-4. Choose the physical home and write boundary for projection receipts, ECR
+3. Choose the physical home and write boundary for projection receipts, ECR
    records, SCR records, Cleaning ledgers, Judgment outputs, and downstream
    completion/acknowledgement facts.
-5. Preserve by-key discovery as authority before any runtime event or queue
+4. Preserve by-key discovery as authority before any runtime event or queue
    engine is built.
 
 ## Blocker 1 Direction
@@ -157,6 +163,27 @@ this section remains the directional summary.
   This direction does not select WORM behavior, crypto-shredding, or any storage
   engine.
 
+## Blocker 2 Direction
+
+The accepted direction for incumbent direct fields is
+**legacy-readable transitional fields with future dual-read or replay only**.
+
+This settles the fate question without migrating or implementing storage code:
+
+- Existing direct fields at packet and slice level remain readable for current
+  and historical packets.
+- They are not precedent for adding new source-family payload fields directly
+  to `SourceCaptureSlice` or `SourceCapturePacket`.
+- They are not promoted as the future universal lake-core schema.
+- New source-family payloads target Attachment Records.
+- Future implementation may dual-read incumbent fields and Attachment Records
+  or replay old material into new packet material, but only under a separately
+  authorized implementation lane.
+- Pinned historical packets are never mutated in place to fit the new
+  representation.
+- Exact dual-read behavior, replay triggers, migration tooling, and cutoff
+  timing remain later implementation decisions.
+
 ## Non-Goals
 
 This contract does not:
@@ -171,10 +198,78 @@ This contract does not:
 - define ECR, SCR, Cleaning, Judgment, or Evidence Unit schemas;
 - define fragrance ontology or any domain ontology;
 - migrate incumbent fields;
+- promote incumbent direct fields as future universal lake core;
 - authorize implementation;
 - claim validation, readiness, approval, or acceptance.
 
 ## Direction Change Propagation
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Data Lake Storage Contract v0 now records the blocker-2 incumbent-field
+    direction: existing direct packet/slice fields remain legacy-readable and
+    transitional, are not precedent for new direct source-family fields, are not
+    promoted to universal lake core, and may only move through future dual-read
+    or replay under separate authorization; pinned packets are not mutated.
+  trigger: architecture_doctrine
+  related_triggers:
+    - lifecycle_boundary
+  controlling_sources_updated:
+    - docs/product/core_spine/core_spine_v0_data_lake_storage_contract_v0.md
+    - docs/product/core_spine/core_spine_v0_data_lake_core_contract_v0.md
+    - docs/product/core_spine/core_spine_v0_data_lake_mechanics_map_v0.md
+    - docs/product/data_capture_spine/source_capture_tenant_payload_attachment_boundary_v0.md
+    - docs/workflows/orca_repo_map_v0.md
+    - docs/decisions/dcp_receipts_archive_v0.md
+  downstream_surfaces_checked:
+    - AGENTS.md
+    - .agents/workflow-overlay/README.md
+    - .agents/workflow-overlay/source-loading.md
+    - .agents/workflow-overlay/source-of-truth.md
+    - .agents/workflow-overlay/validation-gates.md
+    - docs/product/core_spine/core_spine_v0_data_lake_attachment_record_implementation_contract_v0.md
+    - docs/product/data_capture_spine/source_capture_packet_schema_evolution_architecture_v0.md
+    - orca-harness/source_capture/models.py
+    - orca-harness/source_capture/writer.py
+    - orca-harness/source_capture/ig_projection.py
+    - orca-harness/source_capture/retail_pdp_projection.py
+  intentionally_not_updated:
+    - path: orca-harness/source_capture/models.py and writer/projection code
+      reason: >
+        This patch records architecture direction only. Existing fields and
+        readers remain live and readable; no runtime migration, dual-read
+        implementation, replay implementation, or schema mutation is authorized.
+    - path: docs/product/core_spine/core_spine_v0_data_lake_attachment_record_implementation_contract_v0.md
+      reason: >
+        It already defers the migration/replay plan for incumbent direct fields.
+        This patch settles the high-level fate in the storage/core/boundary
+        sources without choosing dual-read mechanics or replay triggers.
+  stale_language_search: >
+    rg -n "Decide the fate of incumbent direct fields|Before physicalization, the incumbent field fate must be decided|Whether current `metric_observations` remain|Whether demand pins remain|migrate incumbent fields|legacy-readable transitional|future dual-read or replay"
+    docs/product/core_spine/core_spine_v0_data_lake_storage_contract_v0.md
+    docs/product/core_spine/core_spine_v0_data_lake_core_contract_v0.md
+    docs/product/core_spine/core_spine_v0_data_lake_mechanics_map_v0.md
+    docs/product/data_capture_spine/source_capture_tenant_payload_attachment_boundary_v0.md
+    docs/product/core_spine/core_spine_v0_data_lake_attachment_record_implementation_contract_v0.md
+    docs/workflows/orca_repo_map_v0.md
+  stale_language_search_result: >
+    Executed 2026-06-18 after edits. No live target text still says incumbent
+    direct-field fate must be decided, nor that current metric observations or
+    demand pins have an open high-level fate. Hits are expected: the storage,
+    core, mechanics map, attachment-boundary, and repo-map text now state the
+    accepted legacy-readable / future-dual-read-or-replay direction; the storage
+    contract keeps "migrate incumbent fields" only as a non-goal; this receipt
+    contains the query. No hit authorizes migration, schema finalization,
+    runtime implementation, validation, readiness, or storage-engine selection.
+  non_claims:
+    - not validation
+    - not readiness
+    - not implementation authorization
+    - not migration authorization
+    - not schema finalization
+    - not storage-engine selection
+```
 
 ```yaml
 direction_change_propagation:
@@ -246,69 +341,6 @@ direction_change_propagation:
     - not implementation authorization
     - not Manifest v2 selection
     - not sidecar selection
-    - not storage-engine selection
-```
-
-```yaml
-direction_change_propagation:
-  doctrine_changed: >
-    Data Lake Storage Contract v0 now records the blocker-1 direction:
-    Attachment Records are manifest-indexed immutable attachment bodies, with
-    compact manifest/index entries pointing to hash-checkable bodies; exact
-    sidecar/bundle-member layout, serialization, manifest version, backend, and
-    migration remain deferred.
-  trigger: architecture_doctrine
-  related_triggers:
-    - lifecycle_boundary
-  controlling_sources_updated:
-    - docs/product/core_spine/core_spine_v0_data_lake_storage_contract_v0.md
-    - docs/workflows/orca_repo_map_v0.md
-  downstream_surfaces_checked:
-    - AGENTS.md
-    - .agents/workflow-overlay/README.md
-    - .agents/workflow-overlay/source-loading.md
-    - .agents/workflow-overlay/source-of-truth.md
-    - docs/product/core_spine/core_spine_v0_data_lake_core_contract_v0.md
-    - docs/product/core_spine/core_spine_v0_data_lake_mechanics_map_v0.md
-    - docs/product/data_capture_spine/source_capture_tenant_payload_attachment_boundary_v0.md
-    - docs/product/data_capture_spine/source_capture_packet_schema_evolution_architecture_v0.md
-    - orca-harness/source_capture/models.py
-    - orca-harness/source_capture/writer.py
-  intentionally_not_updated:
-    - path: docs/product/core_spine/core_spine_v0_data_lake_core_contract_v0.md
-      reason: >
-        It remains the parent/core boundary and already marks later storage,
-        manifest, sidecar, or Attachment Record serialization decisions as
-        superseding; this storage contract owns the narrower blocker-1
-        direction.
-    - path: docs/product/core_spine/core_spine_v0_data_lake_mechanics_map_v0.md
-      reason: >
-        It remains a mechanics map with the broader physicalization gate; this
-        patch records only the blocker-1 direction in the storage contract.
-    - path: docs/product/data_capture_spine/source_capture_tenant_payload_attachment_boundary_v0.md
-      reason: >
-        It remains the accepted logical attachment boundary and explicitly
-        defers physical storage; this storage contract records the
-        physicalization direction without globally renaming historical envelope
-        terminology.
-  stale_language_search: >
-    rg -n "Choose the Attachment Record physical representation|select sidecars|select Attachment Record serialization|manifest-indexed immutable|hash-pinned bundle member|immutable sidecar"
-    docs/product/core_spine/core_spine_v0_data_lake_storage_contract_v0.md
-    docs/product/core_spine/core_spine_v0_data_lake_core_contract_v0.md
-    docs/product/core_spine/core_spine_v0_data_lake_mechanics_map_v0.md
-    docs/product/data_capture_spine/source_capture_tenant_payload_attachment_boundary_v0.md
-    docs/workflows/orca_repo_map_v0.md
-  stale_language_search_result: >
-    Executed 2026-06-17 after edits. Storage contract records the new
-    manifest-indexed direction while preserving non-goals against sidecar,
-    serialization, backend, and implementation selection. The repo map routes to
-    the new direction. Core/mechanics/boundary hits remain broader deferred-gate
-    or historical logical-boundary language.
-  non_claims:
-    - not validation
-    - not readiness
-    - not implementation authorization
-    - not physical storage selection
     - not storage-engine selection
 ```
 
