@@ -50,8 +50,8 @@ docs_roles:
 
 # docs/product/ second-level lanes (binding: by-lane axis). Phase-2 consolidation
 # applied 2026-06-11 (commit 1b0f3fc): the seven lanes below read current. The
-# `search` topic lane (orca_search_product_lane_binding_v0) is added planned and
-# flips to current when the search-lane migration applies.
+# `search` topic lane (orca_search_product_lane_binding_v0) was added planned and
+# flipped to current when the search-lane migration landed (#236, 2026-06-18).
 product_lanes:
   - { name: core_spine, status: current }
   - { name: data_capture_spine, status: current }
