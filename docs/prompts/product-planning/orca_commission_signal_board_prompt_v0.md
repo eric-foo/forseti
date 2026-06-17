@@ -200,6 +200,16 @@ For backtests, apply cutoff safety:
 - if cutoff observability cannot be determined, mark `cutoff_status: uncertain`
   and keep it out of classifier handoff except as a gap.
 
+For backtests, separately check whether the source surface itself existed or
+was meaningfully observable by the cutoff. Do not mark a post-cutoff source
+surface as ordinary `to_retrieve`. If the surface, tool, or answer-engine mode
+did not exist by the cutoff, use `surface_cutoff_status: post_cutoff_surface`,
+`evidence_status: excluded_future_info`, and
+`cutoff_status: post_cutoff_excluded`. AEO / answer-engine surfaces are
+especially cutoff-sensitive: for historical cutoffs before the relevant answer
+surface existed, treat them as post-cutoff visibility only, not a normal
+retrieval route.
+
 ## Mini God Tier Target And Visible Limitations
 
 Aim for mini god tier in the limited Orca sense: most of the value of a heavier
@@ -260,12 +270,15 @@ graph_role: seed | node_candidate | edge_candidate | propagation_path | campaign
 graph_weight_hint: high | medium | low | none
 evidence_status: provided | source_backed | to_retrieve | gap | not_authorized | not_applicable | excluded_future_info
 cutoff_status: in_window | post_cutoff_excluded | uncertain | not_applicable
+surface_cutoff_status: existed_by_cutoff | post_cutoff_surface | uncertain | not_applicable
 ```
 
 `signal_role` records what kind of signal the source contributes.
 `row_purpose` records why this row exists inside the board.
 `graph_role` records how the row helps retrieval or later graph organization.
 `graph_weight_hint` is relation utility only. It is never signal strength.
+`surface_cutoff_status` records whether a source surface was available within a
+backtest cutoff, separately from whether a specific observation has evidence.
 
 Board labels are board-local. They do not map one-to-one onto demand-classifier
 families. In particular, `org_motion` here means professional / hiring /
@@ -344,7 +357,7 @@ output.
 
 Markdown table:
 
-`Source family | Subfamily / surface | Capture posture | Why check it | Expected observable | Evidence status | Cutoff status | Notes`
+`Source family | Subfamily / surface | Capture posture | Why check it | Expected observable | Evidence status | Surface cutoff status | Cutoff status | Notes`
 
 Include all relevant families. Include non-relevant families only when their
 absence is decision-relevant.
@@ -353,7 +366,7 @@ absence is decision-relevant.
 
 Markdown table:
 
-`Row ID | Source family | Subfamily | Surface | Observable | Signal role | Row purpose | Graph role | Graph weight hint | Evidence status | Provenance needed | Cutoff status | Handoff note`
+`Row ID | Source family | Subfamily | Surface | Observable | Signal role | Row purpose | Graph role | Graph weight hint | Evidence status | Provenance needed | Surface cutoff status | Cutoff status | Handoff note`
 
 Rules:
 
@@ -361,6 +374,8 @@ Rules:
 - Do not combine distinct subfamilies in one row when their access,
   provenance, noise, or graph behavior differs.
 - Mark unsupported rows as `to_retrieve` or `gap`; do not make evidence claims.
+- For backtests, set `surface_cutoff_status` before assigning `evidence_status`.
+  Post-cutoff surfaces are `excluded_future_info`, not ordinary `to_retrieve`.
 - Counterevidence rows are first-class rows, not footnotes.
 
 ### 5. Mandatory Counterevidence Paths
@@ -403,6 +418,7 @@ graph_retrieval_brief:
   edge_types_to_retrieve:
   campaign_overlap_checks:
   graph_weight_notes:
+  surface_cutoff_notes:
   forecast_targets_supported_without_probabilities:
   backtest_cutoff_date:
   future_info_exclusion_rule:
@@ -443,21 +459,36 @@ classifier families unless the dispatcher provides the classifier mapping.
 List limitations specific to this commission. Include platform, source access,
 cutoff, provenance, graph, classifier, and non-claim limitations.
 
-### 10. Next Authorized Step
+### 10. Board Status And Run Boundary
 
-Use exactly one:
+Return this YAML block:
+
+```yaml
+board_status: READY_FOR_RETRIEVAL_HANDOFF | COLLECTION_BOARD_ONLY | NEEDS_COMMISSION_INTAKE | NEEDS_CUTOFF_DATE | NEEDS_OWNER_DECISION
+run_boundary: CHAT_ONLY_BOARD_COMPLETE | INTAKE_ONLY | OWNER_DECISION_NEEDED
+next_authorized_step: <one sentence>
+```
+
+Use `board_status` for the board's usefulness:
 
 - `READY_FOR_RETRIEVAL_HANDOFF` - the board is complete enough to hand to a
-  separately authorized retrieval/extraction lane, but this is not retrieval
-  authorization, validation, or approval.
+  separately authorized retrieval/extraction lane.
+- `COLLECTION_BOARD_ONLY` - the board is useful as a collection map, but major
+  gaps or cutoff uncertainties prevent a clean retrieval handoff.
 - `NEEDS_COMMISSION_INTAKE` - required intake fields are missing; return the
   intake scaffold instead of a board.
 - `NEEDS_CUTOFF_DATE` - backtest mode lacks a cutoff date; return the intake
   scaffold instead of a board.
 - `NEEDS_OWNER_DECISION` - source access, source posture, classifier mapping,
   or graph boundary requires owner choice before retrieval.
+
+Use `run_boundary` for what happened in this invocation:
+
 - `CHAT_ONLY_BOARD_COMPLETE` - useful board returned in chat, with no file
   write or downstream execution authorized.
+- `INTAKE_ONLY` - only the intake scaffold was returned.
+- `OWNER_DECISION_NEEDED` - the next move requires owner choice before the board
+  can be used.
 
 If more than one applies, choose the most limiting status and explain the others
 in one sentence.
@@ -468,13 +499,15 @@ in one sentence.
 - Prefer explicit gaps over invented completeness.
 - Preserve source family and subfamily identity.
 - Treat AEO as visibility annotation only.
+- For backtests, treat post-cutoff source surfaces as `excluded_future_info`
+  rather than normal retrieval routes.
 - Treat Discord as noisy_deferred unless public, repeatable, bounded, and
   noise-controlled.
 - Treat LinkedIn as no-live/planning-only unless explicitly routed; prefer
   ATS/careers pages for movement.
 - Treat creator surfaces as graph-rich but never demand proof by themselves.
 - Keep graph weight separate from signal weight.
-- End with the chosen next authorized step.
+- End with the board status and run-boundary YAML block.
 
 COMMISSION INPUTS FOLLOW:
 ```
