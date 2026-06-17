@@ -24,7 +24,7 @@ stale_if:
 - Status: ACTIVE_RETRIEVAL_MAP (retrieval-only; source authority remains in `.agents/workflow-overlay/source-of-truth.md`)
 - Artifact type: Workflow navigation artifact
 - Scope: Repo navigation and source-pack selection
-- Refreshed: 2026-06-17 (promoted repo-map edits from advisory reminder to blocking commit interrupt in Claude/Codex hook wiring; added the neutral ChatGPT Pro beauty advisory intake route, the offline IG creator-momentum projection runner route, the local Retail/PDP projection runner route, the opt-in Retail/PDP CloakBrowser projection sidecar under `orca-harness/runners/`, and the Retail/PDP sidecar operator playbook for the Amazon/Sephora/Ulta smoke; clarified the corresponding source package routes for projection and retailer binding/residual logic). Prior: 2026-06-16 added Codex-compatible local Git-hook adapters under `.githooks/`, the local hook installer under `.github/scripts/`, and the promoted auto-merge/main-red-alert workflows under `.github/workflows/`; 2026-06-11 repo-structure binding v0 registered machine map `repo-structure.yaml` + EP-04 placement checker and quarantined root strays to `docs/_inbox/`.
+- Refreshed: 2026-06-18 (added the Commission Signal Board playbook and manual validator route so agents can discover the intake -> board -> validator sequence from commissioning sources). Prior: 2026-06-17 promoted repo-map edits from advisory reminder to blocking commit interrupt in Claude/Codex hook wiring; added the neutral ChatGPT Pro beauty advisory intake route, the offline IG creator-momentum projection runner route, the local Retail/PDP projection runner route, the opt-in Retail/PDP CloakBrowser projection sidecar under `orca-harness/runners/`, and the Retail/PDP sidecar operator playbook for the Amazon/Sephora/Ulta smoke; clarified the corresponding source package routes for projection and retailer binding/residual logic. 2026-06-16 added Codex-compatible local Git-hook adapters under `.githooks/`, the local hook installer under `.github/scripts/`, and the promoted auto-merge/main-red-alert workflows under `.github/workflows/`; 2026-06-11 repo-structure binding v0 registered machine map `repo-structure.yaml` + EP-04 placement checker and quarantined root strays to `docs/_inbox/`.
 - Implementation authorized: no
 
 ## How To Use This Map
@@ -46,7 +46,7 @@ downstream surfaces. That contract owns primary `trigger` plus
 to identify likely downstream surfaces; do not treat the map itself as
 propagation evidence.
 
-## Active Hooks (IMPORTANT)
+## Active Hooks And Manual Checkers (IMPORTANT)
 
 ORCA enforces load-bearing, mechanically-checkable rules at **tool
 boundaries**, not by instruction alone. The owning principle is
@@ -169,6 +169,30 @@ its `.claude/settings.json` edit was permission-denied this session
 third entry beside the two existing PostToolUse hooks:
 `{ "type": "command", "command": "python .agents/hooks/check_placement.py --hook", "timeout": 10 }`
 then restart the session (hooks load at session start).
+
+**Commission Signal Board checker - manual/local, NOT hook-wired.** The
+Commission Signal Board lane uses:
+
+```
+docs/workflows/commission_signal_board_playbook_v0.md
+docs/prompts/product-planning/orca_commission_signal_board_prompt_v0.md
+.agents/hooks/check_commission_signal_board_output.py
+```
+
+Use the playbook before running or validating a Commission Signal Board. The
+validator applies only to a full board output containing Section 4 Signal Board
+Rows and Section 8 Demand-Classifier Handoff Packet. It is expected to fail on
+intake-only outputs such as `NEEDS_COMMISSION_INTAKE`; do not run it until
+required inputs are supplied and a full board is produced.
+
+```powershell
+python -B .agents\hooks\check_commission_signal_board_output.py <board-output-file>
+python -B .agents\hooks\check_commission_signal_board_output.py --selftest
+```
+
+This is a mechanical handoff-row checker only. It is not retrieval, demand
+classification, graph construction, evidence truth validation, buyer proof, CI,
+pre-commit enforcement, or readiness.
 
 **Permission floor (protected paths + git lifecycle).** A second
 enforcement-placement substrate (EP-01 + EP-03 in
@@ -442,6 +466,8 @@ Use these before broad product architecture or CA setup:
 | `docs/decisions/orca_product_thesis_consumer_demand_v0.md` | Orca thesis (consumer-demand decision intelligence, beauty first; owner-ratified 2026-06-12; supersedes `docs/decisions/turn_08_product_thesis_v0.md`), value proposition, strategic center, product boundary. |
 | `docs/product/product_lead/orca_offer_hypothesis_v0.md` | Offer hypothesis, buyer-facing language, first proof offer, ICP boundary. |
 | `docs/product/product_lead/orca_buyer_proof_packet_v0.md` | First buyer-proof packet, proof gates, pull signals, kill/graduation criteria. |
+| `docs/workflows/commission_signal_board_playbook_v0.md` | Operating playbook for the Commission Signal Board lane: intake first, full board generation, then manual validator run before any classifier-handoff safety claim. |
+| `docs/prompts/product-planning/orca_commission_signal_board_prompt_v0.md` | Full prompt for producing a Commission Signal Board: evidence/signals-only source-family rows, graph-light retrieval brief, and demand-classifier handoff packet. Read with the playbook and validator. |
 | `docs/product/product_lead/orca_commission_signal_board_prompt_adjudication_packet_v0.md` | Decision-prep packet for whether the temporary backtesting-first commission prompt should become a durable signal-board prompt; keeps commission evidence/signals-only and separates it from demand classification, proof, and runtime work. |
 | `docs/decisions/orca_icp_wedge_consumer_demand_first_v0.md` | Current first-proof ICP wedge (beauty operator door; owner co-ratified 2026-06-12; supersedes pricing-first) and decision-family focus. |
 | `docs/product/product_lead/orca_product_proof_lead_charter_v0.md` | Product proof lead role and proof execution boundary. |

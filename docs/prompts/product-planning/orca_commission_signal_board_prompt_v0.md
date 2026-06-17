@@ -14,11 +14,14 @@ use_when:
   - Running a manual dry backtest of the Commission Signal Board concept.
 authority_boundary: retrieval_only
 open_next:
+  - docs/workflows/commission_signal_board_playbook_v0.md
   - docs/product/product_lead/orca_commission_signal_board_prompt_adjudication_packet_v0.md
+  - .agents/hooks/check_commission_signal_board_output.py
   - .agents/workflow-overlay/prompt-orchestration.md
   - .agents/workflow-overlay/source-loading.md
 stale_if:
   - The Commission Signal Board adjudication packet is superseded.
+  - The Commission Signal Board playbook or validator is superseded.
   - The owner renames or replaces the Commission Signal Board object.
   - A demand-classifier handoff contract supersedes this prompt's handoff shape.
   - A graph artifact/schema contract supersedes this prompt's graph-light contract.
@@ -28,6 +31,8 @@ stale_if:
 - Prompt family: product-planning / full prompt artifact.
 - Prompt output mode: `chat-only`.
 - Prompt authoring route: authored through `workflow-prompt-orchestrator` mechanics in the `codex/commission-gate` lane.
+- Commission lane playbook: `docs/workflows/commission_signal_board_playbook_v0.md`.
+- Validator: `.agents/hooks/check_commission_signal_board_output.py`.
 - Implementation authorized: no.
 - Retrieval, scraping, capture, graph construction, demand classification, forecasting, judgment, buyer proof, and client-facing output authorized: no.
 
@@ -40,6 +45,26 @@ This prompt is intentionally prompt-first and manual-first. It prepares a
 signal board and handoff structure. It does not retrieve sources, scrape
 platforms, build a graph, classify demand, score evidence, forecast outcomes,
 or issue a recommendation.
+
+For repo-aware runs, read
+`docs/workflows/commission_signal_board_playbook_v0.md` before dispatching the
+prompt. The playbook owns the operating sequence: intake check first, full board
+generation only after required inputs are supplied, and validator execution only
+against a full board output that contains Section 4 and Section 8. Do not run
+the validator against `NEEDS_COMMISSION_INTAKE` or `NEEDS_CUTOFF_DATE` intake
+scaffolds; those are not board outputs.
+
+Before claiming a full board is mechanically safe for classifier handoff, save
+the exact board output to a temporary or bound artifact file and run:
+
+```powershell
+python -B .agents\hooks\check_commission_signal_board_output.py <board-output-file>
+```
+
+A validator pass means only that the handoff rows are mechanically eligible
+under the board's own row table. It is not evidence truth, demand
+classification, retrieval completion, buyer proof, validation, readiness, or
+client-facing approval.
 
 If the dispatcher wants the board written as a durable repo artifact, use a
 separate wrapper or current-turn instruction that binds a file path, docs-write
@@ -138,7 +163,7 @@ produce the board sections. Return the **Missing-Input Intake Output** below
 with `next_authorized_step: NEEDS_COMMISSION_INTAKE`. If `mode: backtest` is
 present and `evidence_cutoff_at` is missing, return the same intake output with
 `next_authorized_step: NEEDS_CUTOFF_DATE`. Do not compensate by inventing a
-candidate, decision, or cutoff.
+candidate, decision, or cutoff. Intake-only output is not a validator target.
 
 ## Missing-Input Intake Output
 
@@ -521,6 +546,10 @@ in one sentence.
   ATS/careers pages for movement.
 - Treat creator surfaces as graph-rich but never demand proof by themselves.
 - Keep graph weight separate from signal weight.
+- If this is a repo-aware run that produced a full board, run the local
+  validator before claiming the board is mechanically safe for classifier
+  handoff. If this run produced only intake output, do not run the validator;
+  return the intake blocker instead.
 - End with the board status and run-boundary YAML block.
 
 COMMISSION INPUTS FOLLOW:
