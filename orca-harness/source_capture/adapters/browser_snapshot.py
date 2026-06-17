@@ -5,9 +5,10 @@ from enum import StrEnum
 from importlib import import_module
 from pathlib import Path
 from typing import Protocol, Sequence, TypeAlias
-from urllib.parse import urlparse
+from urllib.parse import unquote, urlparse, urlunparse
 
 from harness_utils import utc_now_z
+from source_capture.proxy_profiles import ProxyProfile
 
 
 DEFAULT_TIMEOUT_SECONDS = 20.0
@@ -105,6 +106,7 @@ class BrowserSnapshotEngine(Protocol):
         wait_until: str,
         viewport_width: int,
         viewport_height: int,
+        proxy_profile: ProxyProfile | None = None,
         storage_state_path: Path | None = None,
         scroll_passes: int = 0,
         scroll_step_px: int = 0,
@@ -122,6 +124,7 @@ class BrowserContextResponseEngine(Protocol):
         wait_until: str,
         viewport_width: int,
         viewport_height: int,
+        proxy_profile: ProxyProfile | None = None,
         storage_state_path: Path | None = None,
     ) -> BrowserContextResponsesSuccess:
         ...
@@ -135,6 +138,7 @@ def fetch_browser_snapshot_capture(
     viewport_width: int = DEFAULT_VIEWPORT_WIDTH,
     viewport_height: int = DEFAULT_VIEWPORT_HEIGHT,
     max_artifact_bytes: int = DEFAULT_MAX_ARTIFACT_BYTES,
+    proxy_profile: ProxyProfile | None = None,
     storage_state_path: Path | None = None,
     scroll_passes: int = 0,
     scroll_step_px: int = 0,
@@ -161,6 +165,7 @@ def fetch_browser_snapshot_capture(
             wait_until=wait_until,
             viewport_width=viewport_width,
             viewport_height=viewport_height,
+            proxy_profile=proxy_profile,
             storage_state_path=storage_state_path,
             scroll_passes=scroll_passes,
             scroll_step_px=scroll_step_px,
@@ -175,7 +180,9 @@ def fetch_browser_snapshot_capture(
         return BrowserSnapshotFailure(
             requested_url=normalized_url,
             failure_kind=_failure_kind_from_exception(exc),
-            message=f"Browser snapshot capture failed: {exc}",
+            message=_redact_proxy_secret(
+                f"Browser snapshot capture failed: {exc}", proxy_profile=proxy_profile
+            ),
         )
 
     if not engine_result.rendered_dom:
@@ -236,6 +243,7 @@ def fetch_browser_snapshot_capture(
         "rendered_dom_byte_count": artifact_sizes["rendered_dom"],
         "visible_text_byte_count": artifact_sizes["visible_text"],
         "screenshot_byte_count": artifact_sizes["screenshot_png"],
+        **_proxy_metadata(proxy_profile),
     }
 
     return BrowserSnapshotSuccess(
@@ -260,6 +268,7 @@ def fetch_browser_context_responses(
     viewport_width: int = DEFAULT_VIEWPORT_WIDTH,
     viewport_height: int = DEFAULT_VIEWPORT_HEIGHT,
     max_response_bytes: int = DEFAULT_MAX_ARTIFACT_BYTES,
+    proxy_profile: ProxyProfile | None = None,
     storage_state_path: Path | None = None,
     engine: BrowserContextResponseEngine | None = None,
 ) -> BrowserContextResponsesResult:
@@ -301,6 +310,7 @@ def fetch_browser_context_responses(
             wait_until=wait_until,
             viewport_width=viewport_width,
             viewport_height=viewport_height,
+            proxy_profile=proxy_profile,
             storage_state_path=storage_state_path,
         )
     except _BrowserSnapshotDependencyUnavailable as exc:
@@ -313,7 +323,9 @@ def fetch_browser_context_responses(
         return BrowserSnapshotFailure(
             requested_url=normalized_page_url,
             failure_kind=_failure_kind_from_exception(exc),
-            message=f"Browser context response capture failed: {exc}",
+            message=_redact_proxy_secret(
+                f"Browser context response capture failed: {exc}", proxy_profile=proxy_profile
+            ),
         )
 
     oversized = [
@@ -347,6 +359,7 @@ class _PlaywrightBrowserSnapshotEngine:
         wait_until: str,
         viewport_width: int,
         viewport_height: int,
+        proxy_profile: ProxyProfile | None = None,
         storage_state_path: Path | None = None,
         scroll_passes: int = 0,
         scroll_step_px: int = 0,
@@ -361,7 +374,10 @@ class _PlaywrightBrowserSnapshotEngine:
         timeout_ms = timeout_seconds * 1000
         with sync_api.sync_playwright() as playwright:
             try:
-                browser = playwright.chromium.launch(headless=True)
+                launch_kwargs: dict[str, object] = {}
+                if proxy_profile is not None:
+                    launch_kwargs["proxy"] = _playwright_proxy_settings(proxy_profile)
+                browser = playwright.chromium.launch(headless=True, **launch_kwargs)
             except Exception as exc:
                 if _looks_like_missing_browser_binary(exc):
                     raise _BrowserSnapshotDependencyUnavailable(
@@ -378,6 +394,10 @@ class _PlaywrightBrowserSnapshotEngine:
                 }
                 if storage_state_path is not None:
                     context_kwargs["storage_state"] = str(storage_state_path)
+                if proxy_profile is not None and proxy_profile.timezone is not None:
+                    context_kwargs["timezone_id"] = proxy_profile.timezone
+                if proxy_profile is not None and proxy_profile.locale is not None:
+                    context_kwargs["locale"] = proxy_profile.locale
                 context = browser.new_context(**context_kwargs)
                 try:
                     page = context.new_page()
@@ -429,6 +449,7 @@ class _PlaywrightBrowserSnapshotEngine:
         wait_until: str,
         viewport_width: int,
         viewport_height: int,
+        proxy_profile: ProxyProfile | None = None,
         storage_state_path: Path | None = None,
     ) -> BrowserContextResponsesSuccess:
         try:
@@ -441,7 +462,10 @@ class _PlaywrightBrowserSnapshotEngine:
         timeout_ms = timeout_seconds * 1000
         with sync_api.sync_playwright() as playwright:
             try:
-                browser = playwright.chromium.launch(headless=True)
+                launch_kwargs: dict[str, object] = {}
+                if proxy_profile is not None:
+                    launch_kwargs["proxy"] = _playwright_proxy_settings(proxy_profile)
+                browser = playwright.chromium.launch(headless=True, **launch_kwargs)
             except Exception as exc:
                 if _looks_like_missing_browser_binary(exc):
                     raise _BrowserSnapshotDependencyUnavailable(
@@ -458,6 +482,10 @@ class _PlaywrightBrowserSnapshotEngine:
                 }
                 if storage_state_path is not None:
                     context_kwargs["storage_state"] = str(storage_state_path)
+                if proxy_profile is not None and proxy_profile.timezone is not None:
+                    context_kwargs["timezone_id"] = proxy_profile.timezone
+                if proxy_profile is not None and proxy_profile.locale is not None:
+                    context_kwargs["locale"] = proxy_profile.locale
                 context = browser.new_context(**context_kwargs)
                 try:
                     page = context.new_page()
@@ -521,6 +549,7 @@ class _PlaywrightBrowserSnapshotEngine:
                         "viewport_height": viewport_height,
                         "storage_state_loaded": storage_state_path is not None,
                         "request_count": len(responses),
+                        **_proxy_metadata(proxy_profile),
                     }
                     return BrowserContextResponsesSuccess(
                         page_url=page_url,
@@ -557,6 +586,57 @@ def _validate_http_url(url: str) -> str:
     if parsed.username is not None or parsed.password is not None:
         raise ValueError("Browser snapshot capture does not accept URLs with embedded credentials")
     return parsed.geturl()
+
+
+def _playwright_proxy_settings(proxy_profile: ProxyProfile) -> dict[str, str]:
+    endpoint = proxy_profile.proxy_endpoint
+    parsed = urlparse(endpoint)
+    if not parsed.scheme or not parsed.hostname:
+        return {"server": endpoint}
+
+    host = parsed.hostname
+    if ":" in host and not host.startswith("["):
+        host = f"[{host}]"
+    netloc = f"{host}:{parsed.port}" if parsed.port is not None else host
+    server = urlunparse((parsed.scheme, netloc, "", "", "", ""))
+    settings = {"server": server}
+    if parsed.username is not None:
+        settings["username"] = unquote(parsed.username)
+    if parsed.password is not None:
+        settings["password"] = unquote(parsed.password)
+    return settings
+
+
+def _proxy_metadata(proxy_profile: ProxyProfile | None) -> dict[str, object]:
+    return {
+        "proxy_used": proxy_profile is not None,
+        "proxy_category": proxy_profile.proxy_category.value if proxy_profile is not None else None,
+        "proxy_disclosure": "category_only" if proxy_profile is not None else "none",
+        "proxy_endpoint_recorded": False,
+        "proxy_exit_ip_recorded": False,
+        "proxy_timezone": proxy_profile.timezone if proxy_profile is not None else None,
+        "proxy_locale": proxy_profile.locale if proxy_profile is not None else None,
+    }
+
+
+def _redact_proxy_secret(text: str, *, proxy_profile: ProxyProfile | None) -> str:
+    if proxy_profile is None:
+        return text
+    endpoint = proxy_profile.proxy_endpoint
+    redacted = text.replace(endpoint, "[redacted-proxy-endpoint]")
+    parsed = urlparse(endpoint)
+    if parsed.username:
+        redacted = redacted.replace(parsed.username, "[redacted-proxy-credential]")
+        redacted = redacted.replace(unquote(parsed.username), "[redacted-proxy-credential]")
+    if parsed.password:
+        redacted = redacted.replace(parsed.password, "[redacted-proxy-credential]")
+        redacted = redacted.replace(unquote(parsed.password), "[redacted-proxy-credential]")
+    host = parsed.hostname
+    if host:
+        if parsed.port is not None:
+            redacted = redacted.replace(f"{host}:{parsed.port}", "[redacted-proxy-endpoint]")
+        redacted = redacted.replace(host, "[redacted-proxy-endpoint]")
+    return redacted
 
 
 def _validate_positive_number(name: str, value: float) -> None:

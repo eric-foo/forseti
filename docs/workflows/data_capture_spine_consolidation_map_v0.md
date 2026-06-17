@@ -59,6 +59,7 @@ stale_if:
 | Project an existing Retail/PDP packet directory into local projection JSON | `orca-harness/runners/run_retail_pdp_projection.py`, `orca-harness/source_capture/retail_pdp_projection.py`, and `orca-harness/tests/unit/test_retail_pdp_projection.py` |
 | Capture one Retail/PDP CloakBrowser packet and opt into local projection sidecar | `orca-harness/runners/run_source_capture_cloakbrowser_packet.py --source-family retail_pdp --retail-pdp-projection-output <path>` and `orca-harness/tests/unit/test_source_capture_cloakbrowser_snapshot.py` |
 | Run or hand off the three-retailer Retail/PDP sidecar smoke | `docs/product/source_capture_toolbox/retail_pdp_sidecar_operator_playbook_v0.md` (canonical Amazon/Sephora/Ulta URLs, flags, output inspection, failure taxonomy, and code-enforceable follow-up flags) |
+| Project an existing IG creator-momentum packet directory into local projection JSON | `orca-harness/runners/run_ig_creator_momentum_projection.py`, `orca-harness/source_capture/ig_projection.py`, and `orca-harness/tests/unit/test_source_capture_ig_projection.py` (offline, view-only, no live IG capture, scheduler, production store, or momentum score) |
 | Check whether Reddit capture output lands usefully in ECR (real-data probe; resolved by-design) | `docs/workflows/reddit_capture_to_ecr_consumption_probe_finding_v0.md` |
 | Check packet lifecycle, retention, sensitivity, or fixture movement | `docs/decisions/source_capture_packet_fixture_retention_sensitivity_decision_v0.md` |
 | Run existing capture tools safely | `orca-harness/docs/source_capture_agent_runbook.md` |
@@ -322,6 +323,15 @@ stale_if:
 - summary: Product-facing component index, build order, current gaps, non-claims,
   and source-quality entrypoints.
 - owner: `docs/product/source_capture_toolbox/README.md`
+
+### IG creator-momentum projection helper
+
+- summary: Offline packet-directory projection surface for existing IG Source Capture
+  Packets. Materializes the view-only `metric_observations` row index from a
+  packet directory or `manifest.json`; not live IG capture, scheduler, production
+  store, momentum score, ECR, Cleaning, Judgment, or at-scale readiness.
+- owners: `docs/product/source_capture_toolbox/ig_capture_findings_consolidated_v0.md`,
+  `orca-harness/source_capture/ig_projection.py`, `orca-harness/runners/run_ig_creator_momentum_projection.py`
 
 ### Retail/PDP Projection Playbook
 

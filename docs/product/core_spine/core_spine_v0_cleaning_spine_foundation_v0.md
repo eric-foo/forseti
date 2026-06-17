@@ -27,8 +27,8 @@ stale_if:
 - Source context: `SOURCE_CONTEXT_READY` at authoring.
 - Projection doctrine source at authoring: `PR_191` / worktree source. Local `main`
   did not contain `docs/product/core_spine_v0_projection_doctrine_v0.md` on intake.
-- Implementation authorized: no
-- Runtime schema authorized: no
+- Implementation authorized: bounded_substrate_v0 (source-invariant Pydantic models + exact-identity deriver; `orca-harness/cleaning/`; does not authorize broader Cleaning, ECR, or Judgment implementation)
+- Runtime schema authorized: bounded_substrate_v0 (in-memory Pydantic schema only; not a persisted storage, API, or final object-model schema)
 - Owner OD direction installed: 2026-06-16; see `Owner Directions Installed`.
 - Proof run, capture execution, crawler, scraper, API, dashboard, or automation
   authorized: no
@@ -158,8 +158,8 @@ owner-authorized.
 | Normalization | Normalize format, units, encoding, whitespace, casing where meaning is not changed, date display, or source-native representation into a working form. | Original value, normalized value, method/rule, raw anchor, projection anchor where applicable, and conflict/residual when meaning could change. |
 | Translation | Translate source-language text for reviewer access. | Source-language text paired with translation, translator/method reference, ambiguity notes, and raw/projection anchors. |
 | Summarization | Produce a compact summary of rows, chains, bundles, or slices for navigation. | Originals remain addressable; summary links to row/slice anchors; omissions and residuals are visible; summary never replaces evidence rows. |
-| Dedupe mechanics | Record exact or near-duplicate membership, similarity basis, counts, and instance links. | Every original instance, source identity, timing, venue, chain location, count, and cluster membership. |
-| Clustering mechanics | Group related instances by a declared mechanical basis. | Membership list, grouping basis, counts, raw/projection anchors, warnings, and unresolved ambiguity. |
+| Dedupe mechanics | Record exact-identity duplicate membership, mechanical identity basis, counts, and instance links for core v0. Near-match similarity and copied-language grouping remain candidate/deferred unless separately owner-authorized. | Every original instance, source identity, timing, venue, chain location, count, and exact-identity group membership. |
+| Clustering mechanics | Candidate/deferred only: group related instances by a declared mechanical basis when separately owner-authorized or explicitly labeled as unresolved routing. | Membership list, grouping basis, counts, raw/projection anchors, warnings, unresolved ambiguity, and candidate/deferred status. |
 | Receipt / ledger propagation | Carry capture, projection, ECR, and Cleaning warnings forward. | Warning provenance, layer owner, source anchor, and whether Judgment must reopen raw. |
 
 Cleaning must not remove evidence rows because they appear low-value, low-score,
@@ -186,6 +186,8 @@ cleaning_transform_ledger_candidate:
   input_handle_id: "<stable cleaning input handle id>"
   transform:
     class: "<normalization | translation | summarization | dedupe_mechanics | clustering_mechanics | propagation>"
+    # In core v0, dedupe_mechanics is exact-identity only.
+    # Near-match grouping and clustering_mechanics are candidate/deferred unless separately owner-authorized.
     method_or_rule: "<candidate method/rule label>"
     input_grain: "<row | chain | bundle | slice | packet | cluster>"
     output_view: "<candidate cleaned working view reference>"

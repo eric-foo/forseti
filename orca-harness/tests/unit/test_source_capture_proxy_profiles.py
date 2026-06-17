@@ -13,6 +13,7 @@ from source_capture.proxy_profiles import (
     ProxyCategory,
     ProxyProfile,
     load_proxy_profile,
+    load_proxy_profile_by_label,
     proxy_profile_metadata_path_for_label,
     proxy_profile_path_for_label,
     validate_proxy_profile_file,
@@ -113,6 +114,27 @@ def test_write_metadata_then_load_returns_secret_endpoint(scratch_dir: Path) -> 
     assert profile.proxy_endpoint == "http://user:SUPER_SECRET_PROXY_VALUE@proxy.example:8080"
     assert profile.proxy_category is ProxyCategory.RESIDENTIAL_STATIC
     assert profile.geoip_enabled is True
+
+
+def test_load_proxy_profile_by_label_uses_registered_category(scratch_dir: Path) -> None:
+    profile_root = scratch_dir / "_proxy_profiles"
+    _write_profile_file(profile_root, "reddit-res")
+    write_proxy_profile_metadata(
+        "reddit-res",
+        proxy_category=ProxyCategory.RESIDENTIAL_ROTATING,
+        geoip_enabled=False,
+        timezone="America/New_York",
+        locale="en-US",
+        profile_root=profile_root,
+    )
+
+    profile = load_proxy_profile_by_label("reddit-res", profile_root=profile_root)
+
+    assert profile.proxy_endpoint == "http://user:SUPER_SECRET_PROXY_VALUE@proxy.example:8080"
+    assert profile.proxy_category is ProxyCategory.RESIDENTIAL_ROTATING
+    assert profile.geoip_enabled is False
+    assert profile.timezone == "America/New_York"
+    assert profile.locale == "en-US"
 
 
 def test_write_metadata_then_load_round_trips_declared_geo(scratch_dir: Path) -> None:

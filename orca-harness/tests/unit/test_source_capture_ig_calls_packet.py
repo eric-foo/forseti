@@ -15,6 +15,7 @@ from source_capture.ig_momentum_harvest import (
     IgMomentumResponseRecord,
     IgProfileMomentumCapture,
 )
+from source_capture.proxy_profiles import ProxyCategory, ProxyProfile
 
 
 @pytest.fixture
@@ -219,6 +220,136 @@ def test_ig_calls_runner_respects_item_cap(scratch_dir: Path, monkeypatch: pytes
     manifest = json.loads((output_dir / "manifest.json").read_text(encoding="utf-8"))
     call_slices = [s for s in manifest["source_slices"] if s["slice_id"].startswith("ig_call_")]
     assert len(call_slices) == 2  # capped at max_items, not all 3 enumerated
+
+
+def test_ig_calls_runner_defaults_to_measured_profile_grid_viewport(
+    scratch_dir: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    viewports: list[tuple[int, int]] = []
+
+    def fake_snapshot(**kw):
+        viewports.append((kw["viewport_width"], kw["viewport_height"]))
+        return _route_fake(kw["url"])
+
+    monkeypatch.setattr(ig_runner, "fetch_browser_snapshot_capture", fake_snapshot)
+    output_dir = scratch_dir / "packet"
+
+    exit_code, _ = run_source_capture_ig_calls_packet(
+        profile_url=PROFILE_URL,
+        output_directory=output_dir,
+        decision_question="q",
+        max_items=1,
+        cadence_random_seed=1,
+        capture_view_counts=False,
+        sleep_fn=lambda _s: None,
+    )
+
+    assert exit_code == 0
+    assert viewports == [
+        (ig_runner.DEFAULT_IG_PROFILE_VIEWPORT_WIDTH, ig_runner.DEFAULT_IG_PROFILE_VIEWPORT_HEIGHT),
+        (ig_runner.DEFAULT_IG_PROFILE_VIEWPORT_WIDTH, ig_runner.DEFAULT_IG_PROFILE_VIEWPORT_HEIGHT),
+    ]
+
+
+def test_ig_calls_runner_threads_proxy_profile_and_records_category_only(
+    scratch_dir: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    proxy = ProxyProfile(
+        proxy_endpoint="http://proxy_user:proxy_pass@example.proxy.test:1234",
+        proxy_category=ProxyCategory.RESIDENTIAL_ROTATING,
+        geoip_enabled=False,
+        timezone="America/New_York",
+        locale="en-US",
+    )
+    snapshot_proxy_profiles: list[ProxyProfile | None] = []
+    momentum_proxy_profiles: list[ProxyProfile | None] = []
+
+    def fake_snapshot(**kw):
+        snapshot_proxy_profiles.append(kw.get("proxy_profile"))
+        return _route_fake(kw["url"])
+
+    def fake_momentum(**kw):
+        momentum_proxy_profiles.append(kw.get("proxy_profile"))
+        return _momentum_capture(**kw)
+
+    monkeypatch.setattr(ig_runner, "fetch_browser_snapshot_capture", fake_snapshot)
+    monkeypatch.setattr(ig_runner, "fetch_ig_profile_momentum", fake_momentum)
+    output_dir = scratch_dir / "packet"
+
+    exit_code, _ = run_source_capture_ig_calls_packet(
+        profile_url=PROFILE_URL,
+        output_directory=output_dir,
+        decision_question="q",
+        max_items=1,
+        cadence_random_seed=1,
+        proxy_profile=proxy,
+        sleep_fn=lambda _s: None,
+    )
+
+    assert exit_code == 0
+    assert snapshot_proxy_profiles == [proxy, proxy]
+    assert momentum_proxy_profiles == [proxy]
+
+    raw = {p.name: json.loads(p.read_text(encoding="utf-8")) for p in (output_dir / "raw").iterdir() if p.suffix == ".json"}
+    profile = next(v for k, v in raw.items() if "ig_profile.json" in k)
+    capture_metadata = profile["capture_metadata"]
+    assert capture_metadata["proxy_used"] is True
+    assert capture_metadata["proxy_category"] == "residential_rotating"
+    assert capture_metadata["proxy_disclosure"] == "category_only"
+    assert capture_metadata["proxy_endpoint_recorded"] is False
+    assert capture_metadata["proxy_exit_ip_recorded"] is False
+
+    manifest_text = (output_dir / "manifest.json").read_text(encoding="utf-8")
+    raw_text = json.dumps(raw)
+    assert "proxy_profile_used: category=residential_rotating" in manifest_text
+    assert "example.proxy.test" not in manifest_text
+    assert "proxy_user" not in manifest_text
+    assert "proxy_pass" not in manifest_text
+    assert "example.proxy.test" not in raw_text
+    assert "proxy_user" not in raw_text
+    assert "proxy_pass" not in raw_text
+
+
+def test_ig_calls_runner_loads_proxy_by_label_without_category(monkeypatch: pytest.MonkeyPatch) -> None:
+    proxy = ProxyProfile(
+        proxy_endpoint="http://proxy_user:proxy_pass@example.proxy.test:1234",
+        proxy_category=ProxyCategory.RESIDENTIAL_ROTATING,
+        geoip_enabled=False,
+    )
+    calls: list[tuple[str, Path | None]] = []
+
+    def fake_load_by_label(*, label: str, profile_root: Path | None = None) -> ProxyProfile:
+        calls.append((label, profile_root))
+        return proxy
+
+    monkeypatch.setattr(ig_runner, "load_proxy_profile_by_label", fake_load_by_label)
+
+    result = ig_runner._load_optional_proxy_profile(
+        label="reddit-res",
+        category=None,
+        profile_root=Path("_proxy_profiles"),
+    )
+
+    assert result is proxy
+    assert calls == [("reddit-res", Path("_proxy_profiles"))]
+
+
+def test_ig_calls_runner_proxy_cli_has_short_aliases() -> None:
+    parser = ig_runner._build_parser()
+    args = parser.parse_args(
+        [
+            "--profile-url", "https://www.instagram.com/hyram/",
+            "--decision-question", "q",
+            "--output", "packet",
+            "--proxy-label", "reddit-res",
+            "--proxy-category", "residential_rotating",
+            "--proxy-root", "_proxy_profiles",
+        ]
+    )
+
+    assert args.proxy_profile_label == "reddit-res"
+    assert args.proxy_profile_category == "residential_rotating"
+    assert args.proxy_profile_root == Path("_proxy_profiles")
 
 
 def test_ig_calls_runner_rejects_item_cap_above_bounded_default(scratch_dir: Path) -> None:

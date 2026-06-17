@@ -195,6 +195,11 @@ reviews; worktree-pending). The `anti-bot / cloakbrowser + proxy/geo` route is *
 ready, not yet end-to-end capture-proven* — treat its fidelity as **expected, not demonstrated**,
 until a probe proves it. Don't cite an unproven route as evidence of capturability.
 
+Proxy profiles are shared Source Capture browser-route configuration, not CloakBrowser-owned
+state. A runner may opt into a registered proxy profile by label while keeping endpoint,
+credentials, exit IP, and store path out of packets; CloakBrowser remains one possible
+browser backend rather than the owner of proxy semantics.
+
 ### Cross-archive historical capture (the ladder + the runner)
 
 For **pre-cutoff historical state**, the three archive rows above are wired into one bounded,
