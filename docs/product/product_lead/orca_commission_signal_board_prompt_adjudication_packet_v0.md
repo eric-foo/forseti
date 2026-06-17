@@ -110,6 +110,29 @@ separate signal-board generation from demand classification
 (`docs/product/product_lead/orca_demand_gate_run_commission_criteria_v0.md`,
 `docs/product/product_lead/orca_demand_scan_gate_adjudication_packet_v0.md`).
 
+Data Capture doctrine already treats source-family adaptation as satellite
+work: source-family feasibility, blind spots, capture-fidelity heuristics,
+threaded-community conventions, review-platform conventions, and
+human-assisted-capture requirements stay source-family-specific until they
+survive comparison across non-overlapping families or the owner accepts an
+exception (`docs/product/data_capture_spine/core_spine_v0_data_capture_spine_architecture_blueprint_v0.md`).
+
+Adjacent source-family records support subfamily separation. Reddit Graph
+Frontier separates Reddit-native discovery surfaces from external web/SERP
+discovery and keeps web-discovered subreddit candidates distinct rather than
+laundering them into Reddit-source intake
+(`docs/workflows/reddit_graph_frontier_b2b_marketing_traversal_record_v0.md`).
+AEO is currently non-origin visibility corroboration only, not a gate-recordable
+or independent demand-origin surface
+(`docs/product/data_capture_spine/demand_search_interest_sourcing_and_gate_delta_spec_v0.md`).
+Creator monitoring is designed as core machinery plus per-platform profiles:
+IG fills first, while TikTok, YouTube, and Reddit creator profiles are
+named-deferred seams
+(`docs/product/data_capture_spine/orca_creator_monitoring_policy_architecture_v0.md`).
+LinkedIn is no-live, planning-only under strict privacy rails; it is not news,
+not consumer signal capture, and not live graph capture by default
+(`docs/product/data_capture_spine/data_capture_spine_linkedin_lane_index_v0.md`).
+
 Prompt policy requires any durable Orca prompt to be authored through
 prompt-orchestration or to apply that contract in full. The temporary prompt is
 not yet a durable prompt artifact.
@@ -121,32 +144,152 @@ prompt's schema names: `commission_gate_brief`, `future_information_policy`,
 cutoff posture, projections, graph-frontier patterns, and action-band Judgment
 scoring, but not a commission signal-board schema, runner, or output contract.
 
+## Mini God Tier Target
+
+Owner direction sets a **mini god tier** bar for the future commission signal
+board. Under Orca's mini-god-tier doctrine, that is a capability-target lens
+with mandatory visible limitations, not a validation, readiness, proof, or scope
+expansion claim (`docs/decisions/orca_mini_god_tier_doctrine_v0.md`).
+
+For this board, mini god tier means: most of the value of a heavier signal
+intelligence and graph-prep system, at prompt-first/manual-first speed and cost.
+The board should create a materially better handoff to retrieval, graph,
+demand-classifier, forecasting, and judgment lanes than an unstructured scan.
+
+Minimum MGT shape:
+
+- hierarchical source-family and subfamily map;
+- source posture per subfamily: available now, planned lane, deferred,
+  manual-only, not authorized, or noisy/deferred;
+- graph retrieval brief;
+- graph-ready signal rows;
+- mandatory counterevidence paths;
+- campaign-overlap and duplication risks;
+- cutoff-safe chronology for backtests;
+- visible limitations.
+
+Visible limitations:
+
+- not exhaustive web monitoring;
+- not a standing source registry;
+- not automated crawling or platform scraping authorization;
+- not Discord scraping by default;
+- not LinkedIn live access or relationship-graph analytics;
+- not a graph database;
+- not graph scoring;
+- not a demand classifier;
+- not buyer proof;
+- not validation or readiness;
+- not client-facing output.
+
+## Source-Family Map
+
+The source map should be hierarchical:
+
+```text
+source_family -> subfamily -> surface -> observable -> board_role -> graph_role
+```
+
+The board should preserve subfamily identity rather than collapsing everything
+into broad buckets. This avoids mixing source families with different access,
+noise, provenance, independence, and graph behavior.
+
+| Source family | Subfamilies / surfaces | Board role | Capture posture |
+| --- | --- | --- | --- |
+| Forums / community | Reddit, Basenotes, Fragrantica forums, specialist boards, public repeatable community threads | consumer language, objections, comparisons, repeat questions, rebuttals, corrections | Reddit is an explicit subfamily; Discord is noisy/deferred unless a public, repeatable, bounded slice exists with noise controls. |
+| Reviews | retailer reviews, marketplace reviews, brand-site reviews, specialist fragrance reviews | experience claims, recency, complaints, repeat-use hints, contradiction checks | Do not collapse to aggregate stars; preserve recency and source conventions. |
+| Creator / social video | Instagram, TikTok, YouTube, shorts/reels, affiliate/creator posts, later Reddit creator/community personalities | attention spread, creator clusters, campaign risk, audience language, propagation timing | IG has current adjacent capture/discovery work; TikTok/YouTube/Reddit creator profiles are planned/deferred seams. |
+| Retail / PDP | Sephora, Ulta, Amazon, Nordstrom, brand PDPs, retailer search/category pages | availability, assortment, stock/discounting posture, review context, retailer corroboration | Retail/PDP is corroborative and operationally useful; it is not consumer-origin by itself. |
+| Search / discovery | Google Trends, search-volume provider, SERP, marketplace search, on-site search | interest traces, query language, discovery routes, counterevidence queries | Search-interest can carry attention/interest signal; methodology and pins stay owned by the search/AEO lane. |
+| AEO / answer engines | Google AI Overviews, Gemini, ChatGPT, other answer-engine surfaces | answer visibility, cited-source ecosystem, entity association, visibility gaps | Visibility annotation only unless a later owner-approved schema amendment changes this; never an independent demand-origin surface today. |
+| News / editorial / trade | trade publications, editorial, newsletters, specialist blogs, press | launch chronology, industry framing, awareness, third-party narrative | News is a distinct family; LinkedIn reposts of news point back to the actual source. |
+| Professional / org-motion | ATS/careers pages, hiring pages, founder/executive public posts, partnership announcements, LinkedIn when explicitly routed | hiring/movement, organizational intent, operator-side propagation | ATS/careers pages are better movement sources than LinkedIn. LinkedIn remains no-live/planning-only unless separately authorized. |
+| Owned channels | brand site, brand socials, email archive, product pages, press releases | official chronology, brand claims, launch framing | High chronology value, low independence. |
+
+## Graph-Light Contract
+
+Graphing belongs in the commission ecosystem, but the signal board should carry
+only the lightest complete graph responsibility.
+
+The board owns:
+
+- seed entities;
+- adjacent brands/products/formats;
+- source families and subfamilies to check;
+- creator slices and planned/deferred creator platforms;
+- counterevidence paths;
+- node types to retrieve;
+- edge types to retrieve;
+- campaign-overlap and duplication checks;
+- cutoff-date rule for backtesting;
+- graph-ready signal rows.
+
+The board does **not** own:
+
+- graph construction;
+- graph database or persistent graph infrastructure;
+- graph scoring;
+- centrality or clustering algorithms;
+- evidence weighting;
+- demand classification;
+- forecast probabilities;
+- judgment or recommendation.
+
+Most important: **graph weight is not signal weight**.
+
+`graph_weight` means a source or row is useful for relationships, propagation,
+duplication, chronology, campaign clustering, or counterevidence routing. It
+does not mean the source is strong evidence of demand. AEO can be graph-useful
+while remaining non-origin visibility. LinkedIn can be graph-useful for
+professional/org-motion relationships while remaining weak as consumer demand
+evidence. Creator surfaces can be graph-rich while still requiring
+non-creator confirmation downstream.
+
+The future prompt should therefore separate:
+
+```yaml
+source_family: <family>
+source_subfamily: <subfamily>
+surface: <specific venue or route>
+observable: <what can be seen>
+capture_posture: available_now | planned_lane | deferred | manual_only | not_authorized | noisy_deferred
+board_role: chronology | source_route | signal_unit | contradiction | gap | classifier_handoff
+graph_role: seed | node_candidate | edge_candidate | propagation_path | campaign_overlap_check | counterevidence_path | none
+graph_weight_hint: high | medium | low | none   # relation utility only, never signal strength
+signal_role: consumer_language | review_experience | creator_attention | retail_corroboration | search_interest | aeo_visibility | org_motion | owned_claim | none
+```
+
 ## Section Adjudication Matrix
 
 | Prompt section | Decision | Rationale | Owner / next handling |
 | --- | --- | --- | --- |
 | 3. Required mode contract | Adopt with modification | The `backtest` cutoff and future-information exclusion are directionally right and align with zero-spoiler backtest doctrine. For a board, the mode controls evidence admissibility and chronology, not verdict authority. | Carry into future prompt as required evidence preflight; client-facing mode stays deferred. |
-| 4. Intake schema | Modify | The schema is useful, but it should become a signal-board brief: candidate, decision context, time window, source families, known unknowns, and evidence constraints. It should not decide buyer proof or demand. | Rewrite through prompt-orchestration if owner accepts the direction. |
+| 4. Intake schema | Modify | The schema is useful, but it should become a signal-board brief: candidate, decision context, time window, source families/subfamilies, known unknowns, and evidence constraints. It should not decide buyer proof or demand. | Rewrite through prompt-orchestration if owner accepts the direction. |
 | 5. Gate decision / allocation | Reject gate decision; keep allocation as collection guidance | The 70/20/10 allocation is useful search hygiene, not a gate rule. Commission can allocate evidence effort; it cannot pass or fail demand. | Rename this section in any future prompt to signal-collection allocation. |
 | 6. Decision-type playbooks | Adopt as signal-route cards | The playbooks are useful venue-routing cards for fragrance/beauty cases, but they are not proof doctrine or demand-classifier logic. | Keep as route cards that identify likely signal families. |
-| 7. Source registry | Adopt with guardrails | The public/repeatable/provenance admission rule fits Orca's public-first posture and Data Capture source-family discipline. | Bind each source family to capture/provenance fields before any implementation. |
-| 8. Creator routing | Adopt with guardrails | Manual creator routing is acceptable for v1 and the non-creator confirmation guardrail is important. Creator evidence should be tagged by origin and relation to non-creator signals, not treated as demand proof. | Use as source routing; no algorithmic routing now. |
+| 7. Source registry | Adopt with guardrails | The public/repeatable/provenance admission rule fits Orca's public-first posture and Data Capture source-family discipline. The registry should preserve family/subfamily/surface distinctions and capture posture. | Bind each source family and subfamily to capture/provenance fields before any implementation. |
+| 8. Creator routing | Adopt with guardrails | Manual creator routing is acceptable for v1 and the non-creator confirmation guardrail is important. Creator evidence should be tagged by platform, origin, graph role, and relation to non-creator signals, not treated as demand proof. | Use as source routing; IG can be first, TikTok/YouTube/Reddit creator profiles stay planned/deferred until their profiles are accepted. |
 | 9. Outcome labels | Defer as downstream vocabulary | The labels are valuable for forecast/evaluation design, but the signal board should prepare evidence for downstream evaluation, not score outcomes. | Owner decides whether these labels become a downstream forecast-target registry. |
-| 10. Graph-family retrieval plan | Defer as implementation/schema; keep as optional relation map | The graph vocabulary is useful for showing source relationships, duplication, propagation, and conflict. It is not backed by a commission-domain graph schema or runner. | Keep as prompt output ask only; runtime schema requires separate authorization. |
+| 10. Graph-family retrieval plan | Adopt as lightweight graph retrieval brief; defer graph construction/scoring | The graph vocabulary is useful and should carry graphing weight: source relationships, duplication, propagation, counterevidence, chronology, and campaign-overlap risks. Graph weight must remain separate from signal weight. | Future prompt should require graph-ready rows and a graph retrieval brief; runtime schema and graph artifact construction require separate authorization. |
 | 11. Redirect and stop rules | Adopt with modification | The rules correctly prevent tunnel vision, weak provenance, campaign-cluster false positives, and unavailable private-data chases. For a board, they control evidence collection quality, not demand outcome. | Carry into future prompt as signal-collection control policy. |
-| 12. Required gate output | Replace | The output should be a signal board: source-family coverage, signal units, provenance, chronology/cutoff posture, origin/de-duplication notes, conflicts, gaps, and classifier handoff notes. It should not output `admit`, `hold`, or `fail`. | Future prompt output contract after owner approval. |
+| 12. Required gate output | Replace | The output should be a signal board: source-family/subfamily coverage, signal units, provenance, chronology/cutoff posture, origin/de-duplication notes, graph retrieval brief, graph-ready rows, conflicts, gaps, and classifier handoff notes. It should not output `admit`, `hold`, or `fail`. | Future prompt output contract after owner approval. |
 | 13. Standalone sufficiency | Accept only as evidence/signal collection sufficiency | The prompt may be standalone enough to generate a first-pass signal board, but not enough for demand classification, buyer proof, runtime implementation, or client-facing use. | Keep the boundary explicit. |
 
 ## Owner Decisions Needed
 
 1. Ratify or replace the working name **Commission Signal Board**.
-2. Decide the minimum board fields for handoff to the demand classifier:
-   source-family coverage, signal units, provenance, chronology, conflicts,
+2. Decide the minimum board fields for handoff to the demand classifier and
+   graph/retrieval lanes: source-family/subfamily coverage, signal units,
+   provenance, chronology, graph retrieval brief, graph-ready rows, conflicts,
    gaps, and handoff notes are the recommended minimum.
-3. Decide whether the temporary prompt's fragrance-specific playbooks are the
+3. Ratify the initial source-family/subfamily map, including ATS/careers pages
+   as the preferred movement source, Reddit as a forums/community subfamily,
+   AEO as visibility annotation, and Discord as noisy/deferred unless a public
+   repeatable bounded slice exists.
+4. Decide whether the temporary prompt's fragrance-specific playbooks are the
    first signal-board satellite or only an example deck for a broader beauty
    signal board.
-4. Authorize a durable signal-board prompt artifact through
+5. Authorize a durable signal-board prompt artifact through
    prompt-orchestration, or explicitly defer prompt authoring.
 
 ## Recommended Owner Sign-Off Option
@@ -159,6 +302,7 @@ modes:
 
 - calling commission a gate;
 - turning signal collection into demand judgment;
+- collapsing graph weight into signal weight;
 - turning search quotas or playbooks into proof rules;
 - creating a graph/forecast/runtime contract before the owning lanes accept it.
 
@@ -173,6 +317,7 @@ prompt artifact or implementation should be created from the temp file.
 - Not a prompt artifact.
 - Not a gate.
 - Not a demand classifier.
+- Not graph construction or graph scoring.
 - Not buyer proof.
 - Not validation or readiness.
 - Not a scoring engine.
