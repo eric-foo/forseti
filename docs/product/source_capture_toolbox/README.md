@@ -73,7 +73,7 @@ packet without redefining Capture obligations.
 | `docs/product/source_capture_toolbox/retail_pdp_projection_contract_v0.md` | Retail/PDP raw-packet-to-projection contract/playbook for Amazon, Sephora, and Ulta: capture inputs, projection rows, residual semantics, retailer binding limits, target DOM price/SKU binding posture, and the no-ECR/Cleaning/Judgment boundary. |
 | `docs/product/source_capture_toolbox/retail_pdp_sidecar_operator_playbook_v0.md` | Operator procedure for the bounded Retail/PDP CloakBrowser sidecar smoke across Amazon, Sephora, and Ulta: canonical URLs, flags, scratch output shape, expected projection summaries, failure taxonomy, merge-conflict posture, and code-enforceable follow-up flags. |
 | `docs/product/source_capture_toolbox/retail_pdp_projection_playbook_v0.md` | Retail/PDP raw-packet-to-projection contract for Amazon, Sephora, and Ulta: captured inputs, projected rows, residual meanings, retailer target-binding posture, and the playbook-first boundary before auto-project wiring or ECR sequencing. |
-| `docs/product/source_capture_toolbox/ig_creator_roster_frontier_ledger_spec_v0.md` | Proposed current-main IG beauty creator roster/frontier ledger contract: append-only public-name observations, depth-1 discovery provenance, privacy invariants, ontology boundary, and current `250 -> 500 -> 1,000` roster gates. Non-authorizing. |
+| `docs/product/source_capture_toolbox/ig_creator_roster_frontier_ledger_spec_v0.md` | Proposed current-main IG beauty creator roster/frontier ledger contract: fragrance-first 250-record gate, append-only public-name observations, depth-1 discovery provenance, privacy invariants, ontology boundary, and current `250 -> 500 -> 1,000` roster gates. Non-authorizing. |
 
 ## Armory Components
 
@@ -401,7 +401,9 @@ The spec is at
 It ports only the old roster-ledger branch's still-useful
 ledger/privacy/frontier semantics and aligns roster sizing to current main:
 `250 -> 500 -> 1,000`, with the 1,000-creator serious-v0 planning target and
-10/30/60 A/B/C allocation.
+10/30/60 A/B/C allocation. Its first gate is now anchored on the fragrance
+allocation wedge; skincare is the medium-term beauty destination, and hair/scalp
+is comparator/fallback only.
 
 It is proposed docs-only context. It is not adoption, validation, readiness,
 capture authorization, outreach authorization, a crawler, a scheduler/runtime

@@ -46,7 +46,10 @@ Orca's current first commercial target is:
 > founder, head of brand, growth, insights, strategy, or equivalent decision
 > owner facing a live 30-90 day consumer-demand allocation decision where
 > internal data is not conclusive and public creator/social/review/search/retail
-> signals can be fused across at least two independent venue families.
+> evidence includes at least one gradeable costly-behavior instance in a
+> qualifying demand-origin family. Two or more effectively independent origins
+> are required for material or irreversible recommendations; one clean origin
+> caps the action ceiling at hold / low-commitment.
 
 Orca's product promise for this first proof is not "trend reports" or social
 listening. Orca should produce a decision memo/evidence appendix, and later an

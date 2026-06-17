@@ -133,41 +133,77 @@ direction_change_propagation:
     - docs/product/product_lead/orca_buyer_proof_packet_v0.md
     - docs/product/product_lead/orca_product_proof_lead_charter_v0.md
     - docs/product/product_lead/orca_discovery_consumer_demand_target_selection_brief_v0.md
+    - docs/product/source_capture_toolbox/ig_creator_roster_frontier_ledger_spec_v0.md
+    - docs/product/source_capture_toolbox/README.md
+    - docs/workflows/orca_repo_map_v0.md
+    - docs/decisions/dcp_receipts_archive_v0.md
+    - docs/prompts/product-planning/chatgptpro_beauty_subniche_research_prompt_v0.md
   downstream_surfaces_checked:
+    - AGENTS.md
+    - CLAUDE.md
+    - .agents/workflow-overlay/README.md
+    - .agents/workflow-overlay/source-loading.md
     - .agents/workflow-overlay/product-proof.md
+    - .agents/skills/orca-product-lead/SKILL.md
     - docs/research/orca_discovery_candidate_scan_beauty_neutral_chatgptpro_v0.md
+    - docs/product/product_lead/orca_offer_hypothesis_consumer_demand_revision_v0.md
+    - docs/product/product_lead/orca_demand_read_taxonomy_adjudication_v0.md
+    - docs/product/product_lead/orca_demand_gate_definition_closures_proposal_v0.md
     - docs/workflows/orca_repo_map_v0.md
   intentionally_not_updated:
+    - path: AGENTS.md / CLAUDE.md / .agents/workflow-overlay/README.md
+      reason: >
+        These route project authority and overlay sections; they carry no
+        beauty sub-niche sequence, buyer-proof floor, or creator-roster gate
+        wording to update.
+    - path: .agents/workflow-overlay/source-loading.md
+      reason: >
+        Source-loading owns read-pack budgets and routes, not the selected
+        beauty sub-niche sequence. Repo-map/product-anchor routing is updated
+        instead.
     - path: .agents/workflow-overlay/product-proof.md
       reason: >
         Product-proof semantics are wedge-agnostic and already own the trust,
         pull, claim-tier, and non-claim rules; this amendment changes sub-niche
         sequence, not proof semantics.
+    - path: .agents/skills/orca-product-lead/SKILL.md
+      reason: >
+        The Orca product-lead skill routes thesis and wedge facts through the
+        repo map/product anchors and does not hard-code the fragrance/hair/
+        skincare sequence.
     - path: docs/research/orca_discovery_candidate_scan_beauty_neutral_chatgptpro_v0.md
       reason: >
         The research intake preserves the advisory ChatGPT answer and already
         marks it not verified / not selected. Product docs now own the sequence
         decision; no research-history rewrite is needed.
-    - path: docs/workflows/orca_repo_map_v0.md
+    - path: docs/product/product_lead/orca_offer_hypothesis_consumer_demand_revision_v0.md
       reason: >
-        No new artifact or route was created; existing product-anchor and
-        product_lead rows already route to the changed docs.
+        Prepared revision package, not the live offer hypothesis; the live
+        product anchor is updated in orca_offer_hypothesis_v0.md.
+    - path: docs/product/product_lead/orca_demand_read_taxonomy_adjudication_v0.md
+      reason: >
+        Adjudication-prep companion with prepared/non-executed propagation
+        queue; live demand-gate/floor wording is owned by the buyer-proof
+        packet and current offer/wedge docs.
+    - path: docs/product/product_lead/orca_demand_gate_definition_closures_proposal_v0.md
+      reason: >
+        Applied proposal/history record; the live instruments already carry the
+        corrected buyer-proof floor/material-action ceiling wording.
   stale_language_search: >
     rg -n "at least two independent venue|two independent venue families|signals
     can be fused across at least two|Demand signal visible across at least
-    two|default second full niche" docs/decisions/orca_icp_wedge_consumer_demand_first_v0.md
-    docs/decisions/orca_product_thesis_consumer_demand_v0.md
-    docs/product/product_lead/orca_offer_hypothesis_v0.md
-    docs/product/product_lead/orca_buyer_proof_packet_v0.md
-    docs/product/product_lead/orca_product_proof_lead_charter_v0.md
-    docs/product/product_lead/orca_discovery_consumer_demand_target_selection_brief_v0.md
+    two|default second full niche|Which first commercial beauty sub-niche|fragrance
+    >|hair >|fragrance.*hair|hair.*skincare" docs .agents AGENTS.md CLAUDE.md
   stale_language_search_result: >
-    Executed 2026-06-17 after edits. The stale two-origin-floor wording remains
-    only inside a historical DCP receipt in orca_buyer_proof_packet_v0.md that
-    accurately recorded a prior residual, plus this receipt's search query; it
-    is not in live gate/qualification text. "Default second full niche" hits
-    are the new hair/scalp comparator/fallback language, not stale sequence
-    text.
+    Executed 2026-06-17 after propagation. Live product anchors and the IG
+    creator roster/frontier spec align to fragrance allocation first, skincare
+    medium-term, hair/scalp comparator/fallback. The old "which first commercial
+    beauty sub-niche" open question is replaced by a narrower fragrance-
+    allocation buyer-decision / seed-set question. Remaining two-independent-
+    venue hits are historical/proposal/adjudication surfaces, historical review
+    output, or historical DCP receipt text, not live gate/qualification text.
+    Remaining hair/fragrance/skincare hits are neutral research/prompt history
+    or the new comparator/fallback language.
   non_claims:
     - not validation
     - not readiness

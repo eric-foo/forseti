@@ -104,6 +104,12 @@ Current controlling facts for this spec:
   demand-allocation decision.
 - First decision-family bias: retail/channel expansion, launch/reposition, and
   inventory or purchase-depth commitment.
+- First roster slice: fragrance allocation, specifically minis/discovery/travel
+  formats plus scent-layering/body/hair mists, opened as a tight allocation
+  decision wedge rather than whole fragrance.
+- Medium-term beauty destination: skincare expansion and infrastructure reuse;
+  hair/scalp stays comparator/fallback unless the owner reorders or a
+  scalp/skincare overlap produces cleaner qualified slots.
 - Current beauty-first IG roster gates: `250 -> 500 -> 1,000`.
 - Current serious-v0 planning target: 1,000 creators with 10/30/60 A/B/C
   allocation.
@@ -147,9 +153,11 @@ semantics:
 
 ## Commercial Slice And Roster Gates
 
-The first roster should be commercially coherent before it is broad. Use one
-beauty sub-niche, or two tightly adjacent sub-niches only if the same qualified
-buyer decision truly needs both.
+The first roster should be commercially coherent before it is broad. Anchor the
+250-record first gate on the fragrance allocation wedge: minis/discovery/travel
+formats plus scent-layering/body/hair mists. Use two tightly adjacent sub-niches
+only if the same qualified fragrance-allocation buyer decision truly needs both;
+do not widen the first gate into whole beauty or whole fragrance.
 
 Use the current main gates:
 
@@ -597,8 +605,8 @@ checks:
 
 ## Open Questions
 
-- Which first commercial beauty sub-niche and live buyer decision should anchor
-  the 250-record first gate?
+- Which exact fragrance-allocation buyer decision and seed set should anchor the
+  250-record first gate?
 - What coarse follower bands should v0 allow?
 - Which source pointer grammar should be canonical for IG public profile reads?
 - What owner gate is required before any actual attended discovery run?

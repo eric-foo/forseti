@@ -489,87 +489,9 @@ Ratification executed per
 this receipt also covers the co-ratified wedge record's cascade — one
 ratification event, one receipt, pointed to from the wedge record).
 
-```yaml
-direction_change_propagation:
-  doctrine_changed: >
-    The controlling Orca product thesis moves to consumer-demand decision
-    intelligence (beauty first vertical) with the owner's measured-ToS-risk
-    capture posture amendment, and the first-proof wedge moves to the beauty
-    operator door, superseding turn_08 and pricing-first; subordinate
-    product-lead artifacts re-targeted via the prepared consumer-demand
-    revision packages (applied with recorded deviations).
-  trigger: product_doctrine
-  related_triggers: []
-  controlling_sources_updated:
-    - docs/decisions/orca_product_thesis_consumer_demand_v0.md
-    - docs/decisions/turn_08_product_thesis_v0.md
-    - docs/decisions/orca_icp_wedge_consumer_demand_first_v0.md
-    - docs/decisions/orca_icp_wedge_pricing_first_v0.md
-    - docs/decisions/orca_consumer_demand_ratification_decision_memo_v0.md
-    - docs/product/product_lead/orca_offer_hypothesis_v0.md
-    - docs/product/product_lead/orca_buyer_proof_packet_v0.md
-    - docs/product/product_lead/orca_product_proof_lead_charter_v0.md
-    - docs/product/product_lead/orca_discovery_consumer_demand_target_selection_brief_v0.md
-    - docs/product/product_lead/orca_discovery_batch_0_target_selection_brief_v0.md
-    - .agents/workflow-overlay/source-loading.md
-    - .agents/workflow-overlay/project-authority.md
-    - .agents/workflow-overlay/artifact-roles.md
-    - .agents/workflow-overlay/source-of-truth.md
-    - docs/workflows/orca_repo_map_v0.md
-    - docs/hygiene/queue.md
-  downstream_surfaces_checked:
-    - AGENTS.md                                   # no thesis/wedge content; routes to overlay — unchanged
-    - CLAUDE.md                                   # shim — unchanged
-    - .agents/workflow-overlay/product-proof.md   # wedge-agnostic semantics — unchanged
-    - docs/product/core_spine/core_spine_v0_product_contract.md  # senior frozen contract — unchanged
-    - docs/product/judgment_spine/judgment_spine_evidence_ladder_architecture_v0.md  # senior; one-way subordination — unchanged
-    - docs/product/product_lead/orca_claim_defense_doctrine_v0.md  # owner-signed wording policy — unchanged
-    - docs/product/product_lead/orca_discovery_batch_0_qualification_prep_sentry_clerk_v0.md  # already superseded-bannered; resolves via chain
-    - docs/product/product_lead/orca_discovery_batch_0_candidate_context_scan_v0.md  # same chain resolution
-  intentionally_not_updated:
-    - path: docs/prompts/product-planning/orca_product_proof_lead_customer_discovery_prompt_v0.md
-      reason: >
-        Prompt artifact outside the product lane's write scope; queued as
-        ORCA-HYGIENE-018 for a prompt-orchestration lane. Until realigned it
-        remains pricing-gated and must not drive consumer-demand discovery.
-    - path: .agents/skills/orca-product-lead/SKILL.md and .claude/skills/orca-product-lead/SKILL.md
-      reason: >
-        Skill source is sha-pinned under skill-adoption governance; queued as
-        ORCA-HYGIENE-019 for an authorized skill-edit lane.
-    - path: capture-lane source-access boundary decisions (LinkedIn/TikTok walls, Reddit ordering)
-      reason: >
-        The ask-1 amendment sets the product-level risk posture; per-venue
-        route bindings are owned by capture-lane decisions and are revisited
-        there, not silently rewritten by ratification.
-    - path: pre-migration flat docs/product/ paths inside product-lead docs
-      reason: >
-        Owned by the Phase-2 migration posture (forward-only resolve via
-        moved_paths_index.md; ORCA-HYGIENE-016 owner decision).
-  stale_language_search: >
-    rg -in "turn_08_product_thesis|pricing.first|PROPOSED_PENDING_OWNER_SIGNOFF"
-    docs/decisions docs/product/product_lead .agents/workflow-overlay
-    docs/workflows/orca_repo_map_v0.md
-  stale_language_search_result: >
-    Executed 2026-06-12 after the cascade edits. Overlay + repo-map hits for
-    turn_08 are all supersedes-annotations on the new thesis path; the only
-    live-routing residue is the two orca-product-lead skill copies (queued,
-    ORCA-HYGIENE-019) and the customer-discovery prompt (queued,
-    ORCA-HYGIENE-018). PROPOSED_PENDING_OWNER_SIGNOFF survives only in the
-    two anchors' "Historical: proposed as" lines and this receipt's own
-    search string. A "current wedge authority" sweep caught two stale
-    Source Use / Source Basis lines still labeling pricing-first as current
-    (offer hypothesis; charter) — both fixed in the same pass, dated.
-    Remaining pricing-first / turn_08 mentions are superseded banners,
-    historical reasoning, review records, input_hash provenance pins, and
-    the prep lane's own consistency report — intended residue, none of it a
-    live routing surface.
-  non_claims:
-    - not validation
-    - not readiness
-    - not buyer proof
-    - not judgment-quality evidence
-    - ratification locks a direction; every gated lane keeps its own authorization boundary
-```
+Older receipt archived verbatim in
+`docs/decisions/dcp_receipts_archive_v0.md` under
+"From docs/decisions/orca_product_thesis_consumer_demand_v0.md".
 
 ## Owner Sign-Off Asks (decided 2026-06-12 — outcomes in Status; retained as asked)
 
