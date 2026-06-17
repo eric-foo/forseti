@@ -9,21 +9,22 @@ scope: >
   downstream derived lanes attach results without replacing raw truth.
 use_when:
   - Deciding whether a lake, capture, projection, ECR, SCR, or Cleaning change crosses the lake boundary.
-  - Preparing the physical envelope/storage lane after the logical data-lake mechanics map.
+  - Preparing the Data Lake Storage Contract v0 after the logical data-lake mechanics map.
   - Checking whether a fragrance or other source-family consumer belongs in lake core or satellite payloads.
 open_next:
+  - docs/product/core_spine/core_spine_v0_data_lake_storage_contract_v0.md
   - docs/product/core_spine/core_spine_v0_data_lake_mechanics_map_v0.md
   - docs/product/data_capture_spine/source_capture_tenant_payload_attachment_boundary_v0.md
   - docs/product/data_capture_spine/retail_pdp_typed_envelope_probe_v0.md
   - docs/product/core_spine_v0_projection_doctrine_v0.md
   - docs/workflows/ecr_spine_submap_v0.md
 downstream_consumers:
-  - physical envelope/storage lane
+  - data lake storage contract lane
   - capture packet schema/evolution lane
   - ECR/SCR source-side derived-record lanes
   - Cleaning spine foundation lane
 stale_if:
-  - A later accepted storage, manifest, sidecar, queue, or envelope-serialization decision supersedes this contract.
+  - A later accepted storage, manifest, sidecar, queue, or Attachment Record serialization decision supersedes this contract.
   - The payload-boundary lane is rejected or materially changed.
   - Projection, ECR, SCR, Cleaning, or Judgment ownership changes in a later accepted source.
   - A later owner decision makes the lake an orchestrator rather than a by-key store.
@@ -148,7 +149,7 @@ The physical home is deferred, but the logical rule is fixed:
   sibling derived-record refs only as references.
 - Derived records do not copy raw payload bodies into a second source of truth.
 - Derived records never mutate raw bytes, raw hashes, raw manifests, packet
-  identity, or source-family payload envelopes.
+  identity, or source-family Attachment Records.
 - Each epistemic kind stays separate: projection receipt, ECR integrity record,
   SCR content record, Cleaning transform ledger, and Judgment output are
   siblings, not one merged blob.
@@ -157,7 +158,7 @@ The physical home is deferred, but the logical rule is fixed:
   lane-owned append-only derived metadata keyed back to raw, not by mutating raw
   truth or rewriting prior derived records in place.
 
-Do not infer physical separation from this section. The physical envelope and
+Do not infer physical separation from this section. Attachment Record and
 derived-record storage lane still must choose the actual manifest, sidecar,
 bundle, store, or other representation.
 
@@ -185,12 +186,14 @@ Projection means:
 The lake owns "findable." Projection owns "legible as rows." Cleaning owns
 mechanical transforms. Judgment owns interpretation and decision use.
 
-## Source Payload Envelope Boundary
+## Source Payload Attachment Boundary
 
 New source-family payloads default to packet/slice-keyed source payload
-envelopes, not new direct `SourceCaptureSlice` fields.
+Attachment Records, not new direct `SourceCaptureSlice` fields. The prior
+logical-boundary docs call this the typed-envelope boundary; this storage lane
+uses Attachment Record as the target term.
 
-At the lake boundary, the envelope carries:
+At the lake boundary, the Attachment Record carries:
 
 - packet identity;
 - slice identity when applicable;
@@ -201,7 +204,7 @@ At the lake boundary, the envelope carries:
 - source-visible payload body;
 - limitations, warnings, absence/refusal posture, or residual state.
 
-The envelope must not carry cleaned values, canonical entity decisions,
+The Attachment Record must not carry cleaned values, canonical entity decisions,
 dedupe decisions, credibility labels, Judgment labels, or downstream-use
 strength.
 
@@ -215,7 +218,7 @@ to become lake core by convenience.
 
 Fragrance-specific facts such as notes, accords, concentration, longevity,
 retailer SKU details, review substrate, or source-specific residuals belong in
-source-family payload envelopes or downstream derived records keyed to raw.
+source-family Attachment Records or downstream derived records keyed to raw.
 They do not become lake-core fields unless a later owner decision proves a
 cross-family core need under a cited source-family promotion rule or explicitly
 accepted one-off invariant. Convenience, first-consumer pressure, or one source
@@ -235,7 +238,7 @@ next source-family field directly to `SourceCaptureSlice` or
 Before physicalization, the incumbent field fate must be decided:
 
 - freeze as legacy/transitional;
-- dual-read with envelopes;
+- dual-read with Attachment Records;
 - replay into a new packet representation;
 - or keep as core only under an explicit owner decision.
 
@@ -243,11 +246,11 @@ No path may mutate pinned historical packets in place.
 
 ## Physicalization Gate
 
-Do not implement storage, manifest changes, envelope serialization, projection
+Do not implement storage, manifest changes, Attachment Record serialization, projection
 cache, queue runtime, or derived-record persistence from this contract until
 the physicalization lane closes these blockers:
 
-1. Choose the envelope physical representation: manifest child, immutable
+1. Choose the Attachment Record physical representation: manifest child, immutable
    sidecar, hash-pinned bundle member, or another immutable/checkable form.
 2. Decide the fate of incumbent direct fields at slice and packet level.
 3. Govern SCR `FamilyDetailBase` so it cannot become a competing raw
@@ -265,7 +268,7 @@ the physicalization lane closes these blockers:
 
 - Storage engine.
 - Manifest v2.
-- Envelope serialization.
+- Attachment Record serialization.
 - Sidecar contract.
 - Projection cache.
 - Runtime queue or scheduler.
@@ -281,7 +284,7 @@ direction_change_propagation:
   doctrine_changed: >
     Data Lake Core Contract v0 records the lake-owned responsibility boundary:
     raw packet preservation, stable by-key findability, content-free
-    availability facts, source-payload envelope attachment rules, and logical
+    availability facts, source-payload Attachment Record rules, and logical
     append-only downstream result attachment, while excluding Cleaning, ECR,
     SCR interpretation, Judgment, orchestration, queue authority, physical
     storage selection, and fragrance/domain ontology from lake core. Post-review
