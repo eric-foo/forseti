@@ -1,0 +1,95 @@
+{
+  "probe": "aeo_capture_feasibility_probe_phase0_v0",
+  "date": "2026-06-17",
+  "conditions": {
+    "locale": "US (hl=en&gl=us)",
+    "auth_state": "logged-out / anon",
+    "chatgpt_profile": "fresh Chrome profile not signed into ChatGPT",
+    "google_profile": "fresh logged-out profile",
+    "machine": "single machine/IP",
+    "sessions": "2 passes within same logged-out profile (anon cookie persisted); cross-date and multi-IP UNMEASURED",
+    "pacing": "human-rate, no bursting",
+    "source_access_class": "publicly-viewable, in-bounds, measured-risk/disclosable; no ToS/legal sufficiency claimed"
+  },
+  "extraction_pattern": {
+    "chatgpt": {
+      "assistant_turn_selector": "[data-message-author-role=\"assistant\"] (last)",
+      "cited_sources": "turn a[href] (present in static DOM; strip query strings -> host+path)",
+      "product_cards": "[role=\"button\"]/button innerText 'name · $price · rating', filter /\\$|\\d\\.\\d/",
+      "issued_query": "CORRECTED 2026-06-17: client-visible in streamed f/conversation body (queries + search_result_groups, ~26 results/127 url refs + model_slug); original 'server-side' reading was a read_network_requests-cannot-see-SSE-bodies artifact; capture via stream hook (DevTools EventStream / page fetch interceptor)",
+      "network": "POST backend-anon/f/conversation (SSE); conversation/init; f/conversation/prepare; sentinel/chat-requirements/{prepare,finalize}; sentinel/ping"
+    },
+    "google_aio": {
+      "detect": "div whose innerText.startsWith('AI Overview') (len 150-8000); full content in DOM even when 'Show more' collapsed",
+      "brands": "AIO container innerText",
+      "cited_sources": "AIO container a[href^='http'] minus google.*/gstatic -> hostnames",
+      "issued_query": "in page URL ?q=",
+      "poll": "wait up to ~6s for AIO to stream before declaring not_shown",
+      "selector_fragility": "anchors on visible 'AI Overview' label text (locale-dependent) + obfuscated Google classes"
+    }
+  },
+  "chatgpt_runs": [
+    {"run":"Q01a","query":"best niche fragrance brands for men 2026","search_fired":true,"cited":true,"format":"product_cards","brands":["Amouage Reflection Man Eau de Parfum ($456.38, 4.6/1.2K)","Aventus Creed ($487.47, 4.4)","ROJA Enigma Pour Homme","Xerjoff Naxos ($372.00, 4.6)","Layton / Parfums de Marly ($372)"],"source_hosts":["fragrenza.com","reddit.com/r/Colognes","reddit.com/r/Perfumes","colognecapitol.com","argosfragrances.com","youtube.com"],"link_count":10},
+    {"run":"Q02","query":"top indie perfume brands in the US","search_fired":true,"cited":true,"format":"brand_list","brands":["Imaginary Authors (Memoirs of a Trespasser, Cape Heartache, The Cobra and the Canary)","Aftelier Perfumes"],"source_hosts":["scento.com","reddit.com","youtube.com","theguardian.com"],"link_count":11},
+    {"run":"Q03","query":"best long lasting natural perfumes","search_fired":true,"cited":true,"format":"brand_list","brands":["Abel (Green Cedar)","Hiram Green (Hyde, Moon Bloom)"],"source_hosts":["prosodylondon.com","vogue.co.uk","reddit.com","nenefragrance.com"],"link_count":11},
+    {"run":"Q05","query":"best clean fragrance brands","search_fired":true,"cited":true,"format":"brand_list_with_links","brands":["Henry Rose (Queens & Monsters, Jake's House)","Clean Reserve","Skylar (Salt Air, Vanilla Sky)","Ellis Brooklyn","Phlur"],"source_hosts":["healthline.com","reddit.com","fountainof30.com","tscentral.com","the-ethos.co","byrosiejane.com","sustainablykindliving.com"],"brand_official_sites":["henryrose.com","skylar.com","ellisbrooklyn.com","phlur.com","the7virtues.com","abelodor.com","hereticparfum.com","dedcool.com"],"link_count":22},
+    {"run":"Q01b","query":"best niche fragrance brands for men 2026 (repeat)","search_fired":true,"cited":true,"format":"product_cards","brands":["Ormonde Jayne Montabaco Intensivo ($87.52)","Tom Ford Oud Wood ($465.00)","Roja Vetiver ($470.00)","Ex Nihilo Citizen X ($440.00)","narrative: Creed, Xerjoff, Amouage, Maison Francis Kurkdjian"],"source_hosts":["colognecapitol.com","youtube.com","aromatrail.com","instyle.com","reddit.com","fragrantix.com"],"link_count":11}
+  ],
+  "chatgpt_summary": {"runs":5,"search_fired":5,"not_shown":0,"extractable":5},
+  "chatgpt_stream_capture_verification_2026-06-17": {
+    "purpose": "re-probe to verify whether ChatGPT's issued query + retrieval set are client-capturable (corrects F5)",
+    "query_probed": "best small batch perfume brands USA",
+    "method": "page fetch() interceptor teeing the f/conversation event-stream (DevTools EventStream equivalent)",
+    "sse_body_bytes": 86627,
+    "issued_query_captured": "best small batch perfume brands USA niche artisanal fragrance brands United States",
+    "search_result_groups_present": true,
+    "safe_urls_present": true,
+    "results_in_stream": 26,
+    "url_refs_in_stream": 127,
+    "title_fields": 26,
+    "domains_called_upon_sample": ["eclataur.com","alurent.com","witandwest.com","zeralous.com","nectar-atelier.com"],
+    "model_slug": "gpt-5-5",
+    "result": "CONFIRMED client-capturable; F5 corrected; Google AIO not re-probed for equivalent retrieval exposure"
+  },
+  "google_aio_runs": [
+    {"run":"Q01a","query":"best niche fragrance brands for men 2026","aio_fired":true,"not_shown":false,"captcha":false,"distinct_source_domains":9,"total_links":19,"brands":["Creed/Aventus/Green Irish Tweed","Amouage/Interlude Man","Xerjoff/1861 Naxos"],"source_hosts":["prosodylondon.com","harrods.com","fluxurymagazine.com","felisafragrances.com","youtube.com","fzine.com","beautinow.com","perfumebays.com","parfumeriedaquitaine.com"]},
+    {"run":"Q02a","query":"top indie perfume brands in the US","aio_fired":true,"not_shown":false,"captcha":false,"distinct_source_domains":23,"brands":["D.S. & Durga","Imaginary Authors"],"source_hosts_sample":["fashionista.com","cafleurebon.com","theperfumestylist.com","glossy.co","reddit.com","fragrancelord.com","libertylondon.com","remezcla.com","instyle.com","tatlerasia.com","electricliterature.com","thegoodtrade.com"]},
+    {"run":"Q03","query":"best long lasting natural perfumes","aio_fired":true,"not_shown":false,"captcha":false,"distinct_source_domains":22,"source_hosts_sample":["thegoodtrade.com","prosodylondon.com","orientfragance.com","bondiwash.com.au","sensoriam.com","scentbird.com","mcaffeine.com","thewed.com","maison21g.com","scento.com","reddit.com","organicbeautylover.com"]},
+    {"run":"Q05","query":"best clean fragrance brands","aio_fired":true,"not_shown":false,"captcha":false,"distinct_source_domains":17,"source_hosts_sample":["ulta.com","cleanbeauty.com","sephora.com","organicbeautylover.com","organicallybecca.com","vogue.com","the-ethos.co","beautypackaging.com","youtube.com","crueltyfreekitty.com","reddit.com","credobeauty.com"]},
+    {"run":"Q07","query":"best unisex fragrances 2026","aio_fired":true,"not_shown":false,"captcha":false,"distinct_source_domains":13,"source_hosts_sample":["youtube.com","shoppexcorp.com","fragranceoutlet.com","absolutelymagazines.com","lemon8-app.com","prosodylondon.com","zannis.com","perfumebox.com","fragrancerackshop.com","thefashionfold.com","fragrantica.com","fragrancemarket.com"]},
+    {"run":"Q09","query":"long lasting fragrances for summer","aio_fired":true,"not_shown":false,"captcha":false,"distinct_source_domains":10,"source_hosts_sample":["youtube.com","reddit.com","theperfumeshop.com","oakcha.com","maisonmargiela-fragrances.us","newyou.com","nearstore.com","mhgboutique.com","smytten.com","blancoparfumes.com"]},
+    {"run":"Q11","query":"best fragrance subscription boxes","aio_fired":true,"not_shown":false,"captcha":false,"distinct_source_domains":13,"brands":["Scentbird","ScentBox"],"source_hosts_sample":["instyle.com","byrdie.com","scentbox.com","luxsb.com","olfactif.com","skylar.com","scentbird.com","facebook.com","reddit.com","community.sephora.com","perfume.com","youtube.com"]},
+    {"run":"Q12","query":"where to buy indie perfumes online","aio_fired":true,"not_shown":false,"captcha":false,"distinct_source_domains":15,"brands":["Luckyscent","Ministry of Scent","Twisted Lily"],"source_hosts_sample":["luckyscent.com","ministryofscent.com","twistedlily.com","indigoperfumery.com","alkemiaperfumes.com","indiescents.com","reddit.com","fragrancelord.com","cowhome.co.uk","fragrantica.com","50-ml.com","tiktok.com"]},
+    {"run":"Q01b","query":"best niche fragrance brands for men 2026 (repeat)","aio_fired":true,"not_shown":false,"captcha":false,"distinct_source_domains":12,"source_hosts_sample":["jomashop.com","maxaroma.com","beautinow.com","fragrancepassion.fr","youtube.com","harrods.com","edenperfumes.co.uk","prosodylondon.com","vitivinci.com","lemon8-app.com","mahadiperfumes.com","resident.com"]},
+    {"run":"Q02b","query":"top indie perfume brands in the US (repeat)","aio_fired":true,"not_shown":false,"captcha":false,"distinct_source_domains":21,"source_hosts_sample":["fragrancelord.com","reddit.com","fashionista.com","tigerlilyperfumery.com","scenttrunk.com","wwd.com","scento.com","perfumerflavorist.com","50-ml.com","robbreport.com","harveynichols.com","cyties.com"]}
+  ],
+  "google_aio_summary": {"runs":10,"distinct_queries":8,"repeats":2,"aio_fired":10,"not_shown":0,"captcha":0},
+  "volatility": {
+    "chatgpt_Q01": "pass A best-overall=Amouage Reflection; pass B=Ormonde Jayne Montabaco; source-host overlap ~3/5",
+    "google_aio_Q01": "source-host overlap ~4 of 9-12 across passes; AIO fired both",
+    "google_aio_Q02": "source-host overlap ~3; AIO fired both",
+    "conclusion": "firing + extractability stable; specific brand/source SET volatile run-to-run"
+  },
+  "gemini_aistudio_teardown_2026-06-17": {
+    "surface": "Gemini API / Google AI Studio (Gemini 3 Flash Preview, Grounding with Google Search ON)",
+    "query": "best niche fragrance brands for men 2026",
+    "fan_out_queries_captured": [
+      "best niche fragrance brands for men 2026 reviews trends",
+      "top niche perfume houses for men 2026 releases",
+      "best artisanal cologne brands 2026 for men",
+      "new niche fragrance brands 2026 men's grooming awards"
+    ],
+    "fan_out_source": "searchEntryPoint chips (google.com/search?q=...&client=app-vertex-grounding) in rendered DOM",
+    "grounded_sources_unmasked": {
+      "method": "groundingChunks web.uri = vertexaisearch.cloud.google.com/grounding-api-redirect/<token>; hit redirect -> 302 -> publisher; tokens ephemeral, resolve on receipt",
+      "resolved": ["beautinow.com (The Best New Niche Fragrances of 2026 So Far)", "apetogentleman.com (11 Up-and-Coming Men's Fragrance Brands For 2026)"]
+    },
+    "proxy_fidelity_vs_consumer_aio": "brands overlap (Amouage, Xerjoff in both; Creed in consumer box); BOTH unmasked sources also in consumer AIO Q01 source set; n=1",
+    "network_route": "AI Studio backend = binary protobuf RPC (clients6.google.com/$rpc/...); not readable without schema; use DOM chips or official API JSON",
+    "recursion_test": "fed back sibling 'best artisanal cologne brands 2026 for men' -> model answered from training knowledge WITHOUT grounding (terminated, no re-fan-out); free grounding flaky (internal error / permission denied); reliable mapping needs API + billing",
+    "exposed_fields_per_docs": ["webSearchQueries", "groundingChunks", "groundingSupports", "searchEntryPoint"],
+    "caveats": ["proxy not consumer AIO", "vertexaisearch URIs expire", "grounding ToS forbids analyze/index/collect", "free Gemini-3 grounding quota tightened/flaky"]
+  },
+  "verdict": "GO (qualified) for both engines; Google AI Overviews = PRIMARY automatable target; only UNMEASURED GO-criterion is >=2 dates",
+  "non_claims": ["not capture-run authorization","not sourcing authorization","not validation/readiness/buyer-proof","not ToS/legal sufficiency","deliverable PROPOSED","model_lane unbound"]
+}
