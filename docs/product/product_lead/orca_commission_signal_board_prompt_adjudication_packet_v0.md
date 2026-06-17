@@ -187,14 +187,14 @@ Visible limitations:
 The source map should be hierarchical:
 
 ```text
-source_family -> subfamily -> surface -> observable -> board_role -> graph_role
+source_family -> subfamily -> surface -> observable -> signal_role -> graph_role
 ```
 
 The board should preserve subfamily identity rather than collapsing everything
 into broad buckets. This avoids mixing source families with different access,
 noise, provenance, independence, and graph behavior.
 
-| Source family | Subfamilies / surfaces | Board role | Capture posture |
+| Source family | Subfamilies / surfaces | Signal role / content | Capture posture |
 | --- | --- | --- | --- |
 | Forums / community | Reddit, Basenotes, Fragrantica forums, specialist boards, public repeatable community threads | consumer language, objections, comparisons, repeat questions, rebuttals, corrections | Reddit is an explicit subfamily; Discord is noisy/deferred unless a public, repeatable, bounded slice exists with noise controls. |
 | Reviews | retailer reviews, marketplace reviews, brand-site reviews, specialist fragrance reviews | experience claims, recency, complaints, repeat-use hints, contradiction checks | Do not collapse to aggregate stars; preserve recency and source conventions. |
@@ -258,6 +258,26 @@ graph_role: seed | node_candidate | edge_candidate | propagation_path | campaign
 graph_weight_hint: high | medium | low | none   # relation utility only, never signal strength
 signal_role: consumer_language | review_experience | creator_attention | retail_corroboration | search_interest | aeo_visibility | org_motion | owned_claim | none
 ```
+
+Two board-local clarifications keep this taxonomy from leaking into the lanes it
+feeds:
+
+- **Board labels are board-local; they are not demand-classifier families.** The
+  source families and `signal_role` values above organize evidence for handoff;
+  they do not map one-to-one onto the demand classifier's existing families. In
+  particular, `org_motion` here means professional / hiring / partnership
+  movement, with retail presence filed separately under Retail / PDP — it is
+  **not** the existing G4 demand-classifier label, where "org-motion
+  corroboration" refers to retail presence
+  (`docs/product/data_capture_spine/demand_search_interest_sourcing_and_gate_delta_spec_v0.md`).
+  The demand classifier owns the board-`signal_role` -> classifier-family mapping; the
+  board only labels and routes, consistent with the owner correction that the
+  classifier owns the demand check.
+- **`board_role` and `signal_role` are distinct fields.** In the source-family
+  map, `signal_role` records the *signal content* a family yields. The schema's
+  separate `board_role` field is the *structural* role (`chronology |
+  source_route | signal_unit | contradiction | gap | classifier_handoff`). A
+  future prompt and the Owner Decision 2 field set should not conflate the two.
 
 ## Section Adjudication Matrix
 
