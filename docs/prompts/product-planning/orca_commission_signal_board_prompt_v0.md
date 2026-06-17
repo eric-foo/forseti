@@ -133,11 +133,48 @@ known_unknowns:
 dispatcher_non_goals:
 ```
 
-If `candidate_or_subject`, `decision_context`, or `mode` is missing, return
-`BLOCKED_MISSING_COMMISSION_INPUTS` with the missing fields. If
-`mode: backtest` and `evidence_cutoff_at` is missing, return
-`BLOCKED_MISSING_CUTOFF_DATE`. Do not compensate by inventing a candidate,
-decision, or cutoff.
+If `candidate_or_subject`, `decision_context`, or `mode` is missing, do not
+produce the board sections. Return the **Missing-Input Intake Output** below
+with `next_authorized_step: NEEDS_COMMISSION_INTAKE`. If `mode: backtest` is
+present and `evidence_cutoff_at` is missing, return the same intake output with
+`next_authorized_step: NEEDS_CUTOFF_DATE`. Do not compensate by inventing a
+candidate, decision, or cutoff.
+
+## Missing-Input Intake Output
+
+When required inputs are missing, return only this intake scaffold. Keep any
+fields already supplied and mark the rest `operator_to_fill`.
+
+```yaml
+commission_inputs_needed:
+  commission_id: optional_operator_label
+  mode: backtest | forward | operator_to_fill
+  candidate_or_subject: operator_to_fill
+  decision_context: operator_to_fill
+  market_or_geography: operator_to_fill
+  time_window: operator_to_fill
+  evidence_cutoff_at: required_if_backtest_else_not_applicable
+  known_seed_entities: []
+  known_adjacent_entities: []
+  provided_evidence_or_context: []
+  known_source_constraints: []
+  known_unknowns: []
+  dispatcher_non_goals:
+    - no retrieval unless separately authorized
+    - no demand classification
+    - no graph construction
+minimum_required_now:
+  - mode
+  - candidate_or_subject
+  - decision_context
+  - evidence_cutoff_at if mode is backtest
+example_minimum_input:
+  mode: backtest
+  candidate_or_subject: <product / brand / case>
+  decision_context: <what allocation, launch, demand, or backtest question the board supports>
+  evidence_cutoff_at: YYYY-MM-DD
+next_authorized_step: NEEDS_COMMISSION_INTAKE | NEEDS_CUTOFF_DATE
+```
 
 ## Source Boundary
 
@@ -413,15 +450,17 @@ Use exactly one:
 - `READY_FOR_RETRIEVAL_HANDOFF` - the board is complete enough to hand to a
   separately authorized retrieval/extraction lane, but this is not retrieval
   authorization, validation, or approval.
-- `BLOCKED_MISSING_COMMISSION_INPUTS` - required intake fields are missing.
-- `BLOCKED_MISSING_CUTOFF_DATE` - backtest mode lacks a cutoff date.
+- `NEEDS_COMMISSION_INTAKE` - required intake fields are missing; return the
+  intake scaffold instead of a board.
+- `NEEDS_CUTOFF_DATE` - backtest mode lacks a cutoff date; return the intake
+  scaffold instead of a board.
 - `NEEDS_OWNER_DECISION` - source access, source posture, classifier mapping,
   or graph boundary requires owner choice before retrieval.
 - `CHAT_ONLY_BOARD_COMPLETE` - useful board returned in chat, with no file
   write or downstream execution authorized.
 
-If more than one applies, choose the most blocking status and explain the
-others in one sentence.
+If more than one applies, choose the most limiting status and explain the others
+in one sentence.
 
 ## Final Rules
 
