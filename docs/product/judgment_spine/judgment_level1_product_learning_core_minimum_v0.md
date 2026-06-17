@@ -228,9 +228,14 @@ These are blockers for treating any Level 1 satellite case as run-ready or
 proof-bearing:
 
 - No named Level 1 fragrance case is admitted by the current fragrance artifacts.
-- No durable Orca commission-gate prompt or Level 1 judgment prompt has been
-  authored through `workflow-prompt-orchestrator`; uploaded prompt drafts remain
-  source inputs only.
+- Durable Orca prompt artifacts now exist for the commission gate and Level 1
+  judgment output:
+  `docs/prompts/product-planning/judgment_level1_commission_gate_prompt_v0.md`
+  and
+  `docs/prompts/product-planning/judgment_level1_judgment_prompt_v0.md`.
+  They are prompt surfaces only, not case-specific gate briefs, judgment
+  outputs, prompt approval, source-capture authority, run authorization, scoring,
+  proof, or readiness.
 - No backtest case intake form, source registry sheet, outcome-label sheet,
   graph-family template, forecast record sheet, decision log sheet, benchmark
   policy sheet, or evaluation spreadsheet exists by this artifact.
@@ -316,7 +321,7 @@ judgment_spine_claim_classification:
   weakest_missing_or_failed_gate:
     - no case-specific product_learning_receipt
     - no admitted named Level 1 case by this artifact
-    - no orchestrated durable commission-gate or Level 1 judgment prompt artifact
+    - no case-specific commission-gate brief or Level 1 judgment output by this artifact
     - no source registry, outcome-label sheet, forecast record, decision log, or evaluation sheet by this artifact
     - no source-capture authority or captured evidence packet by this artifact
     - no authorized real run by this artifact
@@ -344,9 +349,11 @@ judgment_spine_claim_classification:
 After this core minimum is map-reachable and PR #230 is accounted for, the next
 useful docs-only moves are:
 
-1. Author durable commission-gate and Level 1 judgment prompt artifacts through
-   `workflow-prompt-orchestrator`, using the uploaded prompt drafts as source
-   inputs rather than authority.
+1. Use the durable prompt artifacts at
+   `docs/prompts/product-planning/judgment_level1_commission_gate_prompt_v0.md`
+   and
+   `docs/prompts/product-planning/judgment_level1_judgment_prompt_v0.md` only
+   after the relevant case intake/admission and source boundaries are supplied.
 2. Create the backtest case intake, outcome-label sheet, source registry sheet,
    graph-family template, forecast record sheet, decision log sheet, benchmark
    policy sheet, and evaluation spreadsheet as docs/planning artifacts before

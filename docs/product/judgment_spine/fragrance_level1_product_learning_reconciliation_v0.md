@@ -65,13 +65,13 @@ contestant execution, and no completed evaluation ledger.
 ```yaml
 evaluated_surface: fragrance_level1_product_learning_reconciliation_v0
 source_quality_state: temp input pack reconciled against current repo owner sources
-execution_quality_state: no case run, no prompt promotion, no scoring, no eval receipt
+execution_quality_state: no case run, no case-specific prompt execution, no scoring, no eval receipt
 closeout_state: unreceipted_product_learning_context
 claim_cap: product-learning context only
 weakest_missing_or_failed_gate:
   - no admitted named fragrance Level 1 case
   - no source registry, forecast record, decision log, or evaluation sheet
-  - no durable prompt artifact authored through workflow-prompt-orchestrator
+  - no case-specific commission-gate brief or Level 1 judgment output
   - no authorized real or backtest case run
   - no product_learning_receipt
   - no buyer_proof_receipt
@@ -148,8 +148,8 @@ These limitations are the price of keeping the first move small and reversible.
 
 ## Next Docs-Only Moves
 
-1. If prompts are needed, author the commission-gate and Level 1 judgment prompt
-   artifacts through `workflow-prompt-orchestrator`.
+1. Use the durable commission-gate and Level 1 judgment prompt artifacts only
+   after the relevant case intake/admission and source boundaries are supplied.
 2. Create or point to the source registry, outcome-label sheet, forecast record,
    decision log, benchmark policy, and evaluation sheet required by the
    core-minimum route.

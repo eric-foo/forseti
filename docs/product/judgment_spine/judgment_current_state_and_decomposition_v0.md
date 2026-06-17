@@ -192,11 +192,11 @@ Current slice status:
    product-learning core minimum** now names the market-agnostic core pieces
    satellites must consume, what current Judgment already provides, what remains
    blocked, which slots satellites may fill, and what claims remain impossible.
-6. **Next after the propagated core minimum:** prompt-orchestrated commission
-   gate / Level 1 judgment prompts, source registry, outcome-label sheet,
+6. **Next after the propagated core minimum:** durable Level 1 prompt artifacts
+   now exist as prompt surfaces; source registry, outcome-label sheet,
    forecast/action/log/evaluation artifacts, named-case admission attempt,
-   source/evidence plan, and per-case product-learning receipt template remain
-   separate slices.
+   source/evidence plan, case-specific prompt execution, and per-case
+   product-learning receipt template remain separate slices.
 
 Top-level repo-map updates should stay thin. The repo map should route readers
 to the Judgment consolidation map; the consolidation map remains the correct

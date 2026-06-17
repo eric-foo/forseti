@@ -91,7 +91,7 @@ closeout_state: unreceipted_product_learning_context
 claim_cap: product-learning context only
 weakest_missing_or_failed_gate:
   - no admitted fragrance Level 1 casebook
-  - no durable commission-gate or Level 1 judgment prompt artifact
+  - no case-specific commission-gate brief or Level 1 judgment output
   - no source registry, outcome-label sheet, forecast record, decision log, or evaluation sheet
   - no source-capture authority or captured evidence packet
   - no sealed pre-reveal answer or run
@@ -106,7 +106,7 @@ receipt_artifact_or_gap: this skeleton is setup context; future per-case receipt
 | Slot | Fragrance satellite field | Core owner or pointer | Completion prerequisite | Do not claim |
 | --- | --- | --- | --- | --- |
 | Satellite identity | `decision_family`, Level 1 purpose, target product-learning question | Current-state/decomposition map; C0 frame | Owner accepts the first pack's purpose and case family | Judgment doctrine, proof, or readiness |
-| Backtest mode and commission gate | `mode`, cutoff, future-information policy, decision type, playbook, source priorities, confirmation/counterevidence, forecast targets | Level 1 core minimum; future prompt-orchestrated gate artifact | Durable gate brief and case intake artifact | Live/client mode, final recommendation, prompt approval, or run authorization |
+| Backtest mode and commission gate | `mode`, cutoff, future-information policy, decision type, playbook, source priorities, confirmation/counterevidence, forecast targets | Level 1 core minimum; `docs/prompts/product-planning/judgment_level1_commission_gate_prompt_v0.md` | Durable gate brief and case intake artifact | Live/client mode, final recommendation, prompt approval, or run authorization |
 | Casebook queue | Candidate cases, cutoff dates, outcome labels, exclusion reasons | Level 1 core minimum; C0 frame, case-finder gap, conductor run authorization boundary | Separate casebook admission artifact | Accepted benchmark, fixture, run authorization, readiness, or scoreable case |
 | Source-family registry | Candidate fragrance venues, source-family notes, provenance requirements, cutoff/date/SKU limits | Beauty venue card-set; source-capture owners by pointer; Level 1 source-registry contract | Owning source-capture artifact admits or authorizes source work | Capture authority, monitoring, or current-state source proof |
 | Evidence object | Source references, provenance notes, contradiction/timeline links, pre/post-cutoff separation, packet IDs | JSG-01, ECR, packing/finalization owners; Level 1 graph-family plan | Captured evidence packet and authorized packet construction | JSG clearance or gate-bearing execution |
@@ -355,8 +355,11 @@ If any fragrance prompt is needed, author it through `workflow-prompt-orchestrat
 
 ## Next Docs-Only Moves
 
-1. Author durable commission-gate and Level 1 judgment prompt artifacts through
-   `workflow-prompt-orchestrator` if prompt artifacts are needed.
+1. Use the Level 1 prompt artifacts at
+   `docs/prompts/product-planning/judgment_level1_commission_gate_prompt_v0.md`
+   and
+   `docs/prompts/product-planning/judgment_level1_judgment_prompt_v0.md` only
+   after the case intake/admission and source boundaries are supplied.
 2. Create the backtest case intake, source registry, outcome-label, forecast
    record, utility/action, decision-log, benchmark, and evaluation artifacts the
    core minimum names.
