@@ -21,6 +21,7 @@ py-modules = ["harness_utils"]
 
 [tool.setuptools.packages.find]
 include = [
+  "cleaning",
   "ecr",
   "capture_spine",
   "capture_spine.*",
