@@ -15,8 +15,8 @@ authority_boundary: retrieval_only
 open_next:
   - docs/decisions/orca_spine_first_workspace_structure_proposal_v0.md
   - docs/decisions/orca_repo_structure_binding_v0.md
-  - docs/product/core_spine/core_spine_v0_data_lake_storage_contract_v0.md
-  - docs/product/core_spine/core_spine_v0_data_lake_core_contract_v0.md
+  - docs/product/core_spine/core_spine_v0_data_lake_storage_contract_v0.md # nonresolving: source branch artifact, not present in this worktree
+  - docs/product/core_spine/core_spine_v0_data_lake_core_contract_v0.md # nonresolving: source branch artifact, not present in this worktree
   - docs/workflows/orca_repo_map_v0.md
 stale_if:
   - The spine-first workspace proposal is accepted, rejected, or materially amended.
