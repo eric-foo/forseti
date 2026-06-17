@@ -31,7 +31,7 @@ stale_if:
 ## Purpose
 
 This playbook tells agents how to run a Commission Signal Board lane without
-skipping the intake gate or overclaiming the validator.
+skipping the intake check or overclaiming the validator.
 
 The lane has three different objects:
 

@@ -30,7 +30,7 @@ stale_if:
 - Prompt artifact path: `docs/prompts/product-planning/orca_commission_signal_board_prompt_v0.md`.
 - Prompt family: product-planning / full prompt artifact.
 - Prompt output mode: `chat-only`.
-- Prompt authoring route: authored through `workflow-prompt-orchestrator` mechanics in the `codex/commission-gate` lane.
+- Prompt authoring route: authored through `workflow-prompt-orchestrator` mechanics in the legacy-named `codex/commission-gate` lane.
 - Commission lane playbook: `docs/workflows/commission_signal_board_playbook_v0.md`.
 - Validator: `.agents/hooks/check_commission_signal_board_output.py`.
 - Implementation authorized: no.
