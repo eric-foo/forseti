@@ -22,7 +22,7 @@ open_next:
 stale_if:
   - A fuller R run pins the at-pace daily-volume ceiling, exact pace threshold, or throttle decay time.
   - The carve-out is amended to authorize sessions, auto-sprints, commercial scale, or a different account cap.
-  - A later route probe shows current local egress is clean logged-out again, or that the measured
+  - A later route probe revises the current local egress cooldown/recovery posture, or the measured
     `768x1024` profile-enumeration viewport no longer exposes DOM permalinks.
   - Proxy provider pricing or acceptable-use posture materially changes.
   - IG moves the public signal behind auth, changes the block mode, or changes the logged-out read substrate.
@@ -55,6 +55,11 @@ secret recorded in durable docs):
   sufficient for that API result, so CloakBrowser was not the differentiator in this probe.
 - Owner-created session state on current egress returned `web_profile_info` 200. This is a fallback
   candidate, not a default runtime recommendation.
+- Current local egress + logged-out recovered after an hours-long quiet window in a bounded smoke:
+  `@hyram`, no proxy, no session, `768x1024`, max 4 items, 8-12s gaps, 4/4 call slices captured,
+  2 posts + 2 reels, 2 observed reel `view_count` values, no packet warnings. The first sandboxed
+  attempt failed before source access because Playwright subprocess startup was denied by the local
+  execution environment; the re-run outside that sandbox wrote the packet.
 - Profile DOM permalink extraction is viewport-sensitive: `768x1024` and `1280x1200` returned 12
   grid permalinks; `1280x720`, `820x1180`, and `1024x1366` returned none in the same bounded route.
 
@@ -76,9 +81,10 @@ beauty-vertical IG monitoring posture.
 
 The durable live constraint remains per-egress-IP **pace**, not account count and not ordinary
 session volume. The 2026-06-17 successor probes add a route-selection caution: the current local
-egress can be logged-out soft-walled, while an alternate residential egress worked logged-out and
-own-session current egress worked for `web_profile_info`. Operate logged-out egress paths at bounded
-human-paced spacing, in bounded, human-initiated/self-terminating sessions. For the owner-selected
+egress can be logged-out soft-walled, but later recovered after an hours-long quiet window for one
+bounded logged-out smoke; an alternate residential egress worked logged-out, and own-session current
+egress worked for `web_profile_info`. Operate logged-out egress paths at bounded human-paced spacing,
+in bounded, human-initiated/self-terminating sessions. For the owner-selected
 **1,000 creator serious v0**, the smallest reliable operating path is still:
 
 - **Lane 1:** main laptop on home fibre/home internet.
@@ -88,9 +94,9 @@ human-paced spacing, in bounded, human-initiated/self-terminating sessions. For 
 - **Do not treat a second laptop on the same home Wi-Fi/fibre as lane 2.** It is the same public egress.
 - **Do not rotate per request.** Assign creators/due buckets to stable lanes.
 
-If Lane 1 remains logged-out soft-walled after a fully quiet cooldown, do not conclude that IG is
-globally inaccessible. Treat it as an egress-route problem: prefer the mobile-data lane or another
-clean logged-out egress before normalizing a paid proxy or account/session runtime.
+If Lane 1 re-walls or remains logged-out soft-walled after a fully quiet cooldown, do not conclude
+that IG is globally inaccessible. Treat it as an egress-route problem: prefer the mobile-data lane
+or another clean logged-out egress before normalizing a paid proxy or account/session runtime.
 
 The ideal operating-account count for the current logged-out path is therefore:
 
@@ -240,9 +246,9 @@ or authorization to capture.
 
 - At-pace daily-volume ceiling remains unmeasured. The second endurance retry wrote only warm-up log
   rows and no summary.
-- Current local egress logged-out recovery is unmeasured after a fully quiet cooldown; latest
-  successor probes saw logged-out soft-wall on current egress but success on alternate egress and
-  own-session current egress.
+- Current local egress logged-out recovery is smoke-measured only after an hours-long quiet window:
+  one max-4 `@hyram` packet succeeded; sustained cadence, repeatability, exact cooldown length, and
+  daily ceiling remain unmeasured.
 - Profile-enumeration viewport behavior is only first-measured. `768x1024` is the current candidate
   because it exposed DOM links in a bounded `@hyram` route; it is not a permanent IG guarantee.
 - Exact pace threshold remains unpinned; known safe/unsafe shape is >=~2s clean in run 1 and sub-2s

@@ -343,6 +343,18 @@ def test_fetch_browser_snapshot_capture_classifies_timeout() -> None:
     assert result.failure_kind == BrowserSnapshotFailureKind.TIMEOUT
 
 
+def test_fetch_browser_snapshot_capture_classifies_permission_denied_as_environment_failure() -> None:
+    result = fetch_browser_snapshot_capture(
+        url="https://example.com/source",
+        engine=_FakeBrowserEngine(PermissionError(13, "Access is denied")),
+    )
+
+    assert isinstance(result, BrowserSnapshotFailure)
+    assert result.failure_kind == BrowserSnapshotFailureKind.ENVIRONMENT_PERMISSION_DENIED
+    assert "browser subprocess startup was denied" in result.message
+    assert "before source access" in result.message
+
+
 def test_fetch_browser_context_responses_classifies_fetch_abort_as_timeout() -> None:
     result = fetch_browser_context_responses(
         page_url="https://www.instagram.com/hyram/",
@@ -358,6 +370,24 @@ def test_fetch_browser_context_responses_classifies_fetch_abort_as_timeout() -> 
 
     assert isinstance(result, BrowserSnapshotFailure)
     assert result.failure_kind == BrowserSnapshotFailureKind.TIMEOUT
+
+
+def test_fetch_browser_context_responses_classifies_permission_denied_as_environment_failure() -> None:
+    result = fetch_browser_context_responses(
+        page_url="https://www.instagram.com/hyram/",
+        requests=[
+            BrowserContextRequest(
+                request_id="web_profile_info",
+                url="https://www.instagram.com/api/v1/users/web_profile_info/?username=hyram",
+            )
+        ],
+        engine=_FakeContextResponseEngine(PermissionError(13, "Access is denied")),
+    )
+
+    assert isinstance(result, BrowserSnapshotFailure)
+    assert result.failure_kind == BrowserSnapshotFailureKind.ENVIRONMENT_PERMISSION_DENIED
+    assert "browser subprocess startup was denied" in result.message
+    assert "before source access" in result.message
 
 
 def test_fetch_browser_snapshot_capture_returns_empty_rendered_dom_failure() -> None:

@@ -26,6 +26,7 @@ _MAX_SCROLL_PASSES = 40
 
 class BrowserSnapshotFailureKind(StrEnum):
     DEPENDENCY_UNAVAILABLE = "dependency_unavailable"
+    ENVIRONMENT_PERMISSION_DENIED = "environment_permission_denied"
     TIMEOUT = "timeout"
     CAPTURE_FAILED = "capture_failed"
     EMPTY_RENDERED_DOM = "empty_rendered_dom"
@@ -180,8 +181,8 @@ def fetch_browser_snapshot_capture(
         return BrowserSnapshotFailure(
             requested_url=normalized_url,
             failure_kind=_failure_kind_from_exception(exc),
-            message=_redact_proxy_secret(
-                f"Browser snapshot capture failed: {exc}", proxy_profile=proxy_profile
+            message=_capture_failure_message(
+                "Browser snapshot capture failed", exc, proxy_profile=proxy_profile
             ),
         )
 
@@ -323,8 +324,8 @@ def fetch_browser_context_responses(
         return BrowserSnapshotFailure(
             requested_url=normalized_page_url,
             failure_kind=_failure_kind_from_exception(exc),
-            message=_redact_proxy_secret(
-                f"Browser context response capture failed: {exc}", proxy_profile=proxy_profile
+            message=_capture_failure_message(
+                "Browser context response capture failed", exc, proxy_profile=proxy_profile
             ),
         )
 
@@ -651,9 +652,31 @@ def _validate_positive_int(name: str, value: int) -> None:
 
 def _failure_kind_from_exception(error: Exception) -> BrowserSnapshotFailureKind:
     text = f"{type(error).__name__}: {error}".lower()
+    if _looks_like_environment_permission_denied(error):
+        return BrowserSnapshotFailureKind.ENVIRONMENT_PERMISSION_DENIED
     if "timeout" in text or "timed out" in text or "aborterror" in text or "aborted" in text:
         return BrowserSnapshotFailureKind.TIMEOUT
     return BrowserSnapshotFailureKind.CAPTURE_FAILED
+
+
+def _capture_failure_message(
+    prefix: str,
+    error: Exception,
+    *,
+    proxy_profile: ProxyProfile | None,
+) -> str:
+    if _looks_like_environment_permission_denied(error):
+        return (
+            f"{prefix}: browser subprocess startup was denied by the local execution "
+            "environment. Run this browser capture from an environment that permits "
+            "Playwright/Chromium subprocesses; the failure happened before source access."
+        )
+    return _redact_proxy_secret(f"{prefix}: {error}", proxy_profile=proxy_profile)
+
+
+def _looks_like_environment_permission_denied(error: Exception) -> bool:
+    text = f"{type(error).__name__}: {error}".lower()
+    return isinstance(error, PermissionError) or "winerror 5" in text or "access is denied" in text
 
 
 def _looks_like_missing_browser_binary(error: Exception) -> bool:
