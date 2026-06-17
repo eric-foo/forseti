@@ -13,12 +13,14 @@ use_when:
   - Checking why this lane stays product-learning before any build or prompt promotion.
 authority_boundary: retrieval_only
 open_next:
+  - docs/product/judgment_spine/judgment_level1_product_learning_core_minimum_v0.md
   - docs/product/judgment_spine/judgment_spine_evidence_ladder_architecture_v0.md
   - docs/product/judgment_spine/judgment_quality_promotion_operating_model_v0.md
   - docs/product/judgment_spine/judgment_spine_demand_read_machinery_architecture_v0.md
   - docs/product/judgment_spine/judgment_spine_c2_ledger_read_contract_v0.md
   - docs/product/judgment_spine/judgment_spine_c3_verdict_action_ceiling_contract_v0.md
 stale_if:
+  - The Level 1 product-learning core minimum changes its MGT/SCV target, default mode, SCV loop, or live/client readiness gates.
   - The evidence ladder changes product_learning, buyer_proof, judgment_quality, or promotion gates.
   - The demand-read C0-C4 core is accepted, rejected, or materially amended.
   - A fragrance Level 1 pack is promoted into an accepted Orca docs path.
@@ -27,10 +29,11 @@ stale_if:
 
 ## Status
 
-This is a docs-only reconciliation artifact. It does not adopt the temp pack,
-change the Judgment Spine, authorize a run, authorize scoring, or promote any
-prompt. The owner confirmed in-thread on 2026-06-17 that this lane should stay
-product-learning.
+This is a docs-only reconciliation artifact. The later Level 1 core-minimum
+artifact adopts the temp pack's MGT/SCV target as a repo-local
+backtesting-first product-learning route. This artifact still does not authorize
+a run, authorize scoring, admit a named case, or promote any prompt. The owner
+confirmed in-thread on 2026-06-17 that this lane should stay product-learning.
 
 ## ELI5 Read
 
@@ -52,9 +55,10 @@ It does not fit as a replacement for the Judgment Spine conductor. The
 conductor routes, assembles, and verifies receipts; it must not compute
 judgment quality, mint tiers, author missing receipts, or authorize runs.
 
-It also does not fit as completed product-learning evidence yet. There is no
-accepted fragrance pack in repo source, no case run, no product_learning_receipt,
-no blind contestant execution, and no completed evaluation ledger.
+It also does not fit as completed product-learning evidence yet. The
+core-minimum route is accepted, but there is no admitted named fragrance case,
+no source registry, no case run, no product_learning_receipt, no blind
+contestant execution, and no completed evaluation ledger.
 
 ## Current Claim Classification
 
@@ -65,28 +69,30 @@ execution_quality_state: no case run, no prompt promotion, no scoring, no eval r
 closeout_state: unreceipted_product_learning_context
 claim_cap: product-learning context only
 weakest_missing_or_failed_gate:
-  - no accepted fragrance Level 1 pack in repo source
+  - no admitted named fragrance Level 1 case
+  - no source registry, forecast record, decision log, or evaluation sheet
+  - no durable prompt artifact authored through workflow-prompt-orchestrator
   - no authorized real or backtest case run
   - no product_learning_receipt
   - no buyer_proof_receipt
   - no judgment_quality_receipt
-receipt_artifact_or_gap: this artifact is reconciliation input; future pack and run receipts remain required
+receipt_artifact_or_gap: this artifact is reconciliation input; future per-case artifacts and run receipts remain required
 ```
 
 ## Mapping
 
 | Temp pack component | Current Orca owner or surface | Use now | Do not claim |
 | --- | --- | --- | --- |
-| MGT / SCV target | Mini God Tier doctrine plus Smallest Complete Intervention | Treat as an owner-set capability bar with visible limitations | Validation, readiness, or permission to expand scope |
-| Fragrance Level 1 MGT goal | Demand-read product-learning satellite | Use as the domain target for a bounded backtest-learning pack | Accepted Judgment Spine doctrine |
-| Commission intake and gate | Demand-read C0 decision frame and C1 allow gate | Shape the case intake, cutoff, and allowed evidence plan | Run authorization, final recommendation, or source authority |
-| Source registry and public venues | Source-capture satellite / source registry candidate material | Identify candidate source families for fragrance backtests | Durable source-capture authority without separate adoption |
-| Graph-family artifact and evidence object | Case packet / evidence packet preparation upstream of JSG-06 | Organize source facts and provenance for later sealed judgment | Conductor edit, scoring schema change, or JSG gate rewrite |
-| Evidence weighting rubric | C2 ledger read contract | Keep as qualitative weighting and reasoning trace | Numeric scoring engine, weighted model, or precise calibration |
-| Forecast record and Brier-style eval | Near-half product-learning evaluation surface | Store raw forecasts and later reveal comparisons as learning material | JSG-08 calibration, buyer proof, or judgment-quality evidence |
-| Utility and action recommendation | C3 verdict and action ceiling contract | Bind recommendations to action ceiling terms such as act, phase, narrow, hold, defend | New claim vocabulary or unconstrained live action |
-| Decision log and eval spreadsheet | Product-learning receipt candidate plus future lesson ledger | Preserve what was decided, when, from what evidence, and how it later scored | Completed product-learning evidence until receipt fields are complete |
-| Twenty-five-case fragrance casebook | Case-finder / casebook admission candidate | Use as a proposed batch for learning-loop design | Accepted batch, benchmark, or readiness screen |
+| MGT / SCV target | `judgment_level1_product_learning_core_minimum_v0.md` | Adopt as the Level 1 product-learning capability bar and build boundary: backtesting-first, tight fragrance wedge, full loop through evaluation | Validation, readiness, or permission to expand scope |
+| Fragrance Level 1 MGT goal | Demand-read product-learning satellite consuming the core minimum | Use as the domain target for a bounded public-fragrance backtest-learning pack | Buyer proof, client-facing authority, or judgment-quality claim |
+| Commission intake and gate | Level 1 core-minimum contract plus future prompt-orchestrated gate artifact | Shape case intake, cutoff, decision type, playbook, source priorities, creator slices, confirmation/counterevidence, and forecast targets | Run authorization, final recommendation, prompt approval, or source authority |
+| Source registry and public venues | Source-capture satellite / source registry candidate material | Identify candidate source families and provenance requirements for fragrance backtests | Durable source-capture authority without separate adoption |
+| Graph-family artifact and evidence object | Case packet / evidence packet preparation upstream of JSG-06 | Organize source facts, contradictions, timelines, evidence IDs, and provenance for later sealed judgment | Conductor edit, scoring schema change, ECR clearance, or JSG gate rewrite |
+| Evidence weighting rubric | C2 ledger read contract | Keep as qualitative weighting and reasoning trace over relevance, strength, independence, recency, costliness, direction, and risks | Numeric scoring engine, weighted model, or precise calibration |
+| Forecast record and Brier-style eval | Level 1 core-minimum forecast record plus near-half product-learning evaluation surface | Store raw probabilities, probability buckets, horizons, due dates, later outcome labels, and Brier hooks as learning material | JSG-08 calibration, buyer proof, or judgment-quality evidence |
+| Utility and action recommendation | C3 verdict/action ceiling contract plus Level 1 utility/action schema | Bind recommendations to bounded action family, magnitude, timing, trigger, stop condition, next action, and crux | Passive monitor, new action vocabulary, or unconstrained live action |
+| Decision log and eval spreadsheet | Product-learning receipt candidate plus future lesson ledger | Preserve what was decided, when, from what evidence, what forecasts/actions were sealed, and how it later scored | Completed product-learning evidence until receipt fields are complete |
+| Twenty-five-case fragrance casebook | Case-finder / casebook admission candidate | Use as the first success condition for a repeatable backtest-learning pack | Accepted batch, benchmark, calibration, readiness screen, or proof |
 
 ## Product-Learning Cap
 
@@ -108,7 +114,7 @@ status: READY_WITH_VERIFIED_LEDGER
 applies_to: docs-only reconciliation artifact for fragrance Level 1 product-learning
 verified_assumptions:
   - assumption: The temp pack is draft input, not current Orca authority.
-    verification: temp files live outside repo docs; current repo owner sources remain the authority.
+    verification: temp files live outside repo docs; the accepted MGT/SCV target is now repo-local only through judgment_level1_product_learning_core_minimum_v0.md.
   - assumption: Product-learning is the correct claim boundary.
     verification: owner confirmed "stay product learning"; evidence ladder and conductor cap lower-tier and by-hand work.
   - assumption: Demand-read C0-C4 is the closest current fit.
@@ -116,19 +122,20 @@ verified_assumptions:
 blocker_agents:
   - Any future artifact that claims validation, readiness, buyer proof, judgment quality, run authorization, scoring authorization, or prompt adoption.
 deferrable_owner_decisions:
-  - Whether to promote any temp-pack component into accepted repo docs.
   - Which exact fragrance cases form the first admitted casebook.
   - Whether any prompt artifact should be authored through workflow-prompt-orchestrator.
 ```
 
 ## Mini God Tier Handling
 
-The temp pack's MGT language is allowable only as an owner-invoked target lens.
-It is not a claim tier. For this product-learning reconciliation, the visible
-limitations are:
+The temp pack's MGT language is now repo-local only as the Level 1
+core-minimum capability target and SCV build boundary. It is not a claim tier.
+For this product-learning reconciliation, the visible limitations are:
 
-- No live/client workflow.
-- No accepted fragrance casebook.
+- No live/client workflow or readiness gate clearance.
+- No admitted named fragrance case.
+- No completed 25-case backtest pack.
+- No source registry, forecast record, decision log, or evaluation sheet.
 - No autonomous retrieval runner.
 - No new scoring engine or scoring authorization.
 - No numeric weighting model.
@@ -141,11 +148,12 @@ These limitations are the price of keeping the first move small and reversible.
 
 ## Next Docs-Only Moves
 
-1. If the owner accepts this reconciliation, author a repo-local fragrance Level
-   1 product-learning pack skeleton that imports the current Judgment Spine
-   boundaries instead of restating them.
-2. If prompts are needed, author them through workflow-prompt-orchestrator.
-3. If case selection is next, make a casebook admission artifact before any
+1. If prompts are needed, author the commission-gate and Level 1 judgment prompt
+   artifacts through `workflow-prompt-orchestrator`.
+2. Create or point to the source registry, outcome-label sheet, forecast record,
+   decision log, benchmark policy, and evaluation sheet required by the
+   core-minimum route.
+3. If case selection is next, make a named-case admission artifact before any
    run, score, or lesson-ledger claim.
 4. If evidence capture is next, keep source families and provenance as a
    satellite input until an owning source-capture artifact adopts them.
@@ -154,8 +162,9 @@ These limitations are the price of keeping the first move small and reversible.
 
 This artifact is not validation, readiness, buyer proof, product proof,
 judgment-quality evidence, prompt approval, run authorization, scoring
-authorization, source-capture authority, conductor amendment, or owner adoption
-of the temp pack.
+authorization, source-capture authority, conductor amendment, prompt artifact,
+`live_internal` readiness, `client_facing` readiness, or proof that the
+fragrance backtest route works.
 
 It does not assert that the fragrance Level 1 plan works. It only reconciles
 the plan to current Orca boundaries so the next document can be authored
@@ -188,6 +197,7 @@ Judgment Spine sources:
 
 - `docs/research/judgment-spine/judgment_spine_consolidation_map_v0.md`
 - `docs/research/judgment-spine/judgment_spine_machinery_build_state_gap_map_v0.md`
+- `docs/product/judgment_spine/judgment_level1_product_learning_core_minimum_v0.md`
 - `docs/product/judgment_spine/judgment_quality_promotion_operating_model_v0.md`
 - `docs/product/judgment_spine/judgment_spine_evidence_ladder_architecture_v0.md`
 - `docs/product/judgment_spine/judgment_spine_gate_ownership_map_v0.md`

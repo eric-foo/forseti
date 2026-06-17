@@ -24,7 +24,7 @@ open_next:
   - docs/product/judgment_spine/fragrance_level1_product_learning_satellite_skeleton_v0.md
   - docs/product/judgment_spine/fragrance_level1_casebook_admission_frame_v0.md
   - docs/product/judgment_spine/fragrance_level1_named_case_candidate_screen_v0.md
-  - docs/hygiene/judgment_level1_product_learning_core_minimum_handoff_v0.md
+  - docs/product/judgment_spine/judgment_level1_product_learning_core_minimum_v0.md
 stale_if:
   - The evidence ladder changes claim tiers, closeout states, receipt minima, or promotion gates.
   - The conductor changes its no-authority invariant, by-hand cap, or JSG routing.
@@ -53,6 +53,13 @@ The next Judgment work should use a core-plus-satellite shape:
 - **Satellite:** fragrance-specific source families, casebook choices,
   discriminator tells, utility/action examples, and evidence instances.
 
+For Level 1, the core-plus-satellite shape is now **backtesting-first** by
+default. The reusable core must carry the mode contract, commission intake/gate,
+source registry governance, outcome labels, graph/evidence shape, qualitative
+weighting, forecasts, utility/action object, decision log, reveal/evaluation,
+benchmark comparison, and readiness gates. The fragrance satellite fills the
+domain instances for a tight public fragrance wedge.
+
 This is the right shape because it keeps Judgment scalable without baking
 fragrance assumptions into the core. It also keeps the current move reversible:
 fragrance can be the first satellite example while the core remains
@@ -79,6 +86,7 @@ market-agnostic.
 | Fragrance Level 1 satellite skeleton | Repo-local product-learning skeleton | Reserves fragrance casebook/source/evidence/weighting/forecast/decision/reveal/lesson/receipt slots | No admitted cases, source authority, run, score, or proof |
 | Fragrance Level 1 casebook admission frame | Repo-local product-learning casebook organizer | Admits the 25-slot casebook shape, bucket allocation, selection rules, and outcome-label families | No named cases admitted, no source authority, run, score, or proof |
 | Fragrance Level 1 named-case candidate screen | Repo-local product-learning candidate screen | Ranks first admission attempts against the case-selection doctrine without selecting a case | No named cases admitted, no source authority, run, score, or proof |
+| Level 1 product-learning core minimum | Repo-local product-learning core minimum | Names the reusable market-agnostic backtesting-first SCV pieces satellites must consume before filling domain-specific cases | Product-learning context only; no case run, source authority, prompt artifact, score, proof, live/client readiness, or judgment-quality claim |
 
 ## Core Ownership
 
@@ -87,6 +95,13 @@ pointer:
 
 - Claim-tier and closeout vocabulary.
 - Receipt minima and promotion gates.
+- Backtesting-first operating contract: `mode: backtest`, frozen evidence
+  cutoff, future-information exclusion, and later-gated `live_internal` /
+  `client_facing` modes.
+- SCV loop contract: commission intake/gate, graph-family evidence plan,
+  provenance-preserving extraction, qualitative weighting, forecast records,
+  utility-bounded action, decision log, reveal, evaluation, benchmark
+  comparison, and error labels.
 - JSG conductor routing and no-authority discipline.
 - The by-hand cap and no-tools/proven-isolation boundary.
 - The market-agnostic demand-read core shape: C0 frame, C1 allow, C2 qualitative
@@ -131,12 +146,13 @@ The fragrance satellite must not own:
 | Portion | Core owner/surface | Fragrance satellite first use | Boundary |
 | --- | --- | --- | --- |
 | Case framing / admission | C0 Decision Frame, case-finder, conductor run authorization boundary | Proposed 25-case fragrance casebook and cutoff plan | Casebook proposal is not run authorization or fixture admission |
+| Commission gate / evidence plan | Level 1 core-minimum backtesting contract plus future prompt-orchestrated gate artifact | Fragrance decision type, playbook, source priorities, creator slices, confirmation/counterevidence, forecast targets | Gate brief is not final recommendation, source authority, or run authorization |
 | Evidence capture / source plan | Source-capture owners plus C1 allow gate by pointer | Fragrance source registry, public venues, beauty venue card-set consumption | Venue hints are not source authority or captured evidence |
-| Evidence object / packet | JSG-01, ECR, packing/finalization, packet construction | Fragrance evidence object schema and provenance plan | No JSG-01 clearance without authorized run evaluation |
+| Evidence object / packet | JSG-01, ECR, packing/finalization, packet construction | Fragrance graph-family artifact, evidence object schema, contradictions, timeline, and provenance plan | No JSG-01 clearance without authorized run evaluation |
 | Weighting | C2 ledger read contract and signal-reliability ledger | Qualitative fragrance weighting rubric, caveat travel, signal IDs | No numeric weight, formula, or scoring engine |
-| Forecast / expected outcome | Far-half decision object and product-learning evaluation surfaces | Raw forecast/eval fields, Brier-style learning notes if used | Outcome prediction is not a Judgment Spine claim; forecast records are learning inputs only |
-| Decision / action ceiling | C3 verdict/action ceiling contract | Fragrance utility/action recommendation mapped to act/phase/narrow/hold/defend | No new action vocabulary or unconstrained live action |
-| Reveal / evaluation | JSG-08 reveal/calibration owner contract and near-half learning shell | Fragrance outcome labels and reveal comparison | Reveal comparison does not by itself create calibration, buyer proof, or judgment quality |
+| Forecast / expected outcome | Level 1 forecast-record contract plus far-half decision object and product-learning evaluation surfaces | Raw forecast probabilities, probability bucket, horizon, due date, and Brier hook | Outcome prediction is not a Judgment Spine claim; forecast records are learning inputs only |
+| Decision / action ceiling | C3 verdict/action ceiling contract and Level 1 utility/action schema | Fragrance utility/action recommendation with target, trigger, stop condition, next action, and crux | No passive monitor, new action vocabulary, or unconstrained live action |
+| Reveal / evaluation | JSG-08 reveal/calibration owner contract and near-half learning shell | Fragrance outcome labels, benchmark comparison, regret/error labels, and reveal comparison | Reveal comparison does not by itself create calibration, buyer proof, or judgment quality |
 | Lesson capture | Near-half adversarial postmortem, validated-lesson cell, signal ledger | Candidate fragrance lessons and signal rows | Candidate lessons are N=0/unproven until promotion gates clear |
 | Decision log / receipt | Evidence ladder product_learning_receipt shape | Per-case decision log, owner readback, friction/product signals | Completed product-learning evidence requires minimum receipt fields |
 
@@ -172,18 +188,19 @@ Current slice status:
 4. **Done in this lane:** the named-case candidate screen ranks first admission
    attempts. It recommends which case to try admitting first, but still admits
    no named case.
-5. **Next:** define the reusable **Level 1 product-learning core minimum**
-   before additional satellite execution work. That artifact should name the
-   minimum core run contract, what current Judgment already provides, what
-   remains blocked, which slots satellites may fill, and what claims remain
-   impossible.
-6. **Deferred until the core minimum is named:** source/evidence binding,
-   C2/C3 weighting and decision mapping, forecast fields, reveal/eval fields,
-   and per-case product-learning receipt shape.
+5. **Done in the dependent core-minimum lane:** the reusable **Level 1
+   product-learning core minimum** now names the market-agnostic core pieces
+   satellites must consume, what current Judgment already provides, what remains
+   blocked, which slots satellites may fill, and what claims remain impossible.
+6. **Next after the propagated core minimum:** prompt-orchestrated commission
+   gate / Level 1 judgment prompts, source registry, outcome-label sheet,
+   forecast/action/log/evaluation artifacts, named-case admission attempt,
+   source/evidence plan, and per-case product-learning receipt template remain
+   separate slices.
 
 Top-level repo-map updates should stay thin. The repo map should route readers
 to the Judgment consolidation map; the consolidation map remains the correct
-local index for Judgment-specific current-state and handoff pointers.
+local index for Judgment-specific current-state and core-minimum pointers.
 
 ## Non-Claims
 
@@ -212,5 +229,12 @@ claim inflation.
 - `docs/product/judgment_spine/fragrance_level1_product_learning_satellite_skeleton_v0.md`
 - `docs/product/judgment_spine/fragrance_level1_casebook_admission_frame_v0.md`
 - `docs/product/judgment_spine/fragrance_level1_named_case_candidate_screen_v0.md`
+- `docs/product/judgment_spine/judgment_level1_product_learning_core_minimum_v0.md`
 - `docs/research/judgment-spine/judgment_spine_consolidation_map_v0.md`
-- `docs/hygiene/judgment_level1_product_learning_core_minimum_handoff_v0.md`
+- `C:/Users/vmon7/AppData/Local/Temp/orca_mgt_goal_v1.md`
+- `C:/Users/vmon7/AppData/Local/Temp/orca_judgement_mgt.md`
+- `C:/Users/vmon7/AppData/Local/Temp/orca_build_action_doc.md`
+- `C:/Users/vmon7/AppData/Local/Temp/orca_commission_gate_prompt.md`
+- `C:/Users/vmon7/AppData/Local/Temp/orca_judgement_prompt_level1.md`
+- `C:/Users/vmon7/AppData/Local/Temp/orca_open_questions_working_doc.md`
+- `C:/Users/vmon7/AppData/Local/Temp/orca_docs_split_manifest.md`

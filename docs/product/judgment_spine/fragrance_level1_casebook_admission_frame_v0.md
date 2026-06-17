@@ -13,6 +13,7 @@ use_when:
   - Preventing the 25-case backtest plan from being mistaken for run authorization, fixture admission, scoring, or proof.
 authority_boundary: retrieval_only
 open_next:
+  - docs/product/judgment_spine/judgment_level1_product_learning_core_minimum_v0.md
   - docs/product/judgment_spine/fragrance_level1_product_learning_satellite_skeleton_v0.md
   - docs/product/judgment_spine/fragrance_level1_named_case_candidate_screen_v0.md
   - docs/product/judgment_spine/fragrance_level1_product_learning_reconciliation_v0.md
@@ -20,6 +21,7 @@ open_next:
   - docs/product/judgment_spine/judgment_spine_evidence_ladder_architecture_v0.md
   - docs/product/core_spine/beauty_venue_card_set_v0.md
 stale_if:
+  - The Level 1 product-learning core minimum changes its default mode, SCV loop, 25-case success condition, outcome labels, source registry, commission gate, forecast/action/log/evaluation contract, or live/client readiness gates.
   - The fragrance satellite skeleton changes its casebook, source, forecast, reveal, or receipt slots.
   - The evidence ladder changes product-learning receipt minima, claim caps, or closeout states.
   - The beauty venue card set changes fragrance venue hints or review status.
@@ -34,6 +36,9 @@ This is a docs-only casebook admission frame.
 It admits the **casebook shape**: 25 slots, bucket allocation, minimum admission
 fields, and outcome-label families. It does **not** admit any named product,
 brand, SKU, launch, discontinuation, or retail decision as a case yet.
+Completing 25 public fragrance backtests through the core-minimum loop is the
+first success condition for product learning, not a readiness, calibration, or
+buyer-proof screen.
 
 Current case state:
 
@@ -43,6 +48,7 @@ decision_family: fragrance_level1
 casebook_shape_status: admitted_slot_frame
 named_case_status: none_admitted
 case_status_default: candidate_pending_selection
+default_mode: backtest
 claim_cap: product-learning context only
 closeout_state: unreceipted_product_learning_context
 ```
@@ -50,6 +56,9 @@ closeout_state: unreceipted_product_learning_context
 ## Operating Rule
 
 This artifact is the casebook organizer below the fragrance satellite skeleton.
+It consumes the Level 1 core-minimum backtesting-first contract: the default
+named-case mode is `backtest`, with a frozen evidence cutoff and exclusion of
+all post-cutoff information before reveal.
 
 Future work may fill slots only by adding a separate named-case admission
 artifact, row, or receipt that records the required fields below. A slot ID in
@@ -68,14 +77,19 @@ fragrance_case_admission_minimum:
   decision_family: fragrance_level1
   case_bucket:
   canonical_case_type:
+  mode: backtest
   cutoff_datetime_utc:
+  evidence_cutoff_at:
   post_cutoff_exclusion_rule:
+  future_information_policy: exclude_all_information_after_cutoff
+  commission_gate_brief_ref:
+  source_registry_or_governance_ref:
   allowed_pre_cutoff_source_families:
   prohibited_or_held_sources:
   outcome_label_plan:
+  forecast_targets:
   measurement_window:
   exclusion_criteria:
-  mode: learning_only | blind_backtest_candidate | owner_chosen_other
   benchmark_policy_that_may_disagree:
   non_claims:
     - not run authorization
@@ -84,6 +98,8 @@ fragrance_case_admission_minimum:
     - not fixture admission
     - not buyer proof
     - not judgment-quality evidence
+    - not live_internal readiness
+    - not client_facing readiness
 ```
 
 If any field is unknown, keep the named case at `candidate_pending_selection`
@@ -143,18 +159,21 @@ case artifact should bind only the labels relevant to that case.
 
 | Outcome label family | Default window | Admission note |
 | --- | --- | --- |
-| `review_velocity_sustains_60d` | 60 days | New relevant reviews exceed the working threshold and are not obvious launch-dump, duplicate, old-SKU, or wrong-SKU reviews. |
-| `creator_momentum_persists_30d` | 30 days | Post-cutoff mentions continue with non-duplicated creators or cross-segment spread. |
+| `review_velocity_sustained_60d` | 60 days | New relevant reviews exceed the working threshold and are not obvious launch-dump, duplicate, old-SKU, or wrong-SKU reviews. |
+| `creator_momentum_persisted_30d` | 30 days | Post-cutoff mentions continue with non-duplicated creators or cross-segment spread. |
 | `creator_decay_after_launch_30d` | 30 days | Days 31-60 show material decay from days 0-30 with no new non-creator confirmation. |
 | `community_confirmation_30d` | 30 days | At least three independent community/review items include usage or purchase-proxy language. |
 | `restock_or_sellout_repeats_60d` | 60 days | At least one public restock, sellout, or out-of-stock event is tied to the correct SKU or format. |
 | `discounting_or_overstock_appears_90d` | 90 days | Target SKU/product receives a 20%+ SKU-specific discount or repeated SKU-specific promotion not explained by ordinary sitewide sale. |
 | `complaint_cluster_grows_60d` | 60 days | At least three independent post-cutoff complaints share the same issue across more than one source family or review cluster. |
 | `retail_expansion_or_sku_followthrough_180d` | 180 days | A new retailer, format, SKU, restock expansion, discovery set, travel size, or adjacent product follow-through appears. |
-| `search_interest_persists_60d` | 60 days | Autocomplete, trend tool, search result ranking, marketplace search, or AEO visibility persists across at least two checks. |
+| `search_interest_persisted_60d` | 60 days | Autocomplete, trend tool, search result ranking, marketplace search, or AEO visibility persists across at least two checks. |
 
 These labels are evaluation inputs only. They do not create calibration, scoring,
 buyer-proof, or judgment-quality claims.
+
+Older shorthand labels using `sustains` or `persists` are migration aliases only;
+new records should use the canonical `sustained` / `persisted` names above.
 
 ## Source-Family Boundary
 
@@ -170,6 +189,8 @@ At this frame stage:
 - Direct access notes are dated hints, not current-state proof.
 - Any source used for a named case must preserve provenance enough to enforce
   the cutoff rule.
+- Creator evidence is early radar, not proof. A creator-led case needs
+  non-creator confirmation before any stronger action posture is recorded.
 
 ## Casebook Fill Template
 
@@ -183,11 +204,17 @@ casebook_slot:
   case_id:
   brand_or_product:
   canonical_case_type:
+  mode: backtest
   cutoff_datetime_utc:
+  evidence_cutoff_at:
   post_cutoff_exclusion_rule:
+  future_information_policy: exclude_all_information_after_cutoff
+  commission_gate_brief_ref:
+  source_registry_or_governance_ref:
   allowed_pre_cutoff_source_families: []
   prohibited_or_held_sources: []
   outcome_label_plan: []
+  forecast_targets: []
   measurement_window:
   benchmark_policy_that_may_disagree:
   admission_artifact_ref:
@@ -196,18 +223,24 @@ casebook_slot:
     - not run authorization
     - not scoring authorization
     - not source-capture authority
+    - not fixture admission
     - not buyer proof
     - not judgment-quality evidence
+    - not live_internal readiness
+    - not client_facing readiness
 ```
 
 ## Next Docs-Only Moves
 
-1. Use the named-case candidate screen to choose the first admission attempt,
+1. Create or point to the Level 1 source registry, outcome-label, commission
+   gate, forecast-record, decision-log, benchmark, and evaluation artifacts
+   before treating any slot as run-ready.
+2. Use the named-case candidate screen to choose the first admission attempt,
    then fill that candidate into an admission-minimum artifact or row while
    keeping incomplete cases at `candidate_pending_selection`.
-2. Author the fragrance source/evidence plan that binds source-family governance
+3. Author the fragrance source/evidence plan that binds source-family governance
    by pointer and does not claim source-capture authority.
-3. After at least one named case and source/evidence plan are bounded, author a
+4. After at least one named case and source/evidence plan are bounded, author a
    per-case product-learning receipt template.
 
 ## Non-Claims
@@ -215,8 +248,9 @@ casebook_slot:
 This artifact is not validation, readiness, buyer proof, product proof,
 judgment-quality evidence, source-capture authority, prompt approval, run
 authorization, scoring authorization, fixture admission, accepted benchmark,
-completed product-learning evidence, owner adoption of the temp pack, or proof
-that the fragrance plan works.
+completed product-learning evidence, `live_internal` readiness,
+`client_facing` readiness, owner adoption of any named fragrance case, wholesale
+temp-pack adoption, or proof that the fragrance plan works.
 
 It admits the casebook organizer only. Named cases still require later
 admission records before any backtest, prompt, evidence capture, or receipt can
@@ -237,6 +271,7 @@ Repo and overlay sources:
 Judgment and fragrance sources:
 
 - `docs/product/judgment_spine/fragrance_level1_product_learning_satellite_skeleton_v0.md`
+- `docs/product/judgment_spine/judgment_level1_product_learning_core_minimum_v0.md`
 - `docs/product/judgment_spine/fragrance_level1_named_case_candidate_screen_v0.md`
 - `docs/product/judgment_spine/fragrance_level1_product_learning_reconciliation_v0.md`
 - `docs/product/judgment_spine/judgment_current_state_and_decomposition_v0.md`
@@ -248,4 +283,7 @@ User-supplied temp-pack sources:
 - `C:/Users/vmon7/AppData/Local/Temp/orca_open_questions_working_doc.md`
 - `C:/Users/vmon7/AppData/Local/Temp/orca_build_action_doc.md`
 - `C:/Users/vmon7/AppData/Local/Temp/orca_judgement_mgt.md`
+- `C:/Users/vmon7/AppData/Local/Temp/orca_mgt_goal_v1.md`
+- `C:/Users/vmon7/AppData/Local/Temp/orca_commission_gate_prompt.md`
+- `C:/Users/vmon7/AppData/Local/Temp/orca_judgement_prompt_level1.md`
 - `C:/Users/vmon7/AppData/Local/Temp/orca_docs_split_manifest.md`

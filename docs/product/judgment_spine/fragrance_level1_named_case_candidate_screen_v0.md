@@ -13,10 +13,12 @@ use_when:
   - Preventing public fragrance examples from being mistaken for admitted casebook rows.
 authority_boundary: retrieval_only
 open_next:
+  - docs/product/judgment_spine/judgment_level1_product_learning_core_minimum_v0.md
   - docs/product/judgment_spine/fragrance_level1_casebook_admission_frame_v0.md
   - docs/product/judgment_spine/fragrance_level1_product_learning_satellite_skeleton_v0.md
   - docs/product/core_spine/beauty_venue_card_set_v0.md
 stale_if:
+  - The Level 1 product-learning core minimum changes default mode, SCV loop, outcome labels, or readiness gates.
   - A later artifact admits, rejects, or supersedes any named fragrance case.
   - The fragrance casebook admission frame changes its named-case admission fields, slot allocation, or selection rules.
   - The case-finder doctrine, memorization-resistant finder frame, or discovery authorization boundary changes.
@@ -68,10 +70,15 @@ This screen uses the stricter case-selection rule, not popularity.
 - Discovery may identify names, rough timelines, public inspectability,
   possible cutoffs, and eligibility blockers. It must not interpret signal
   strength, buyer behavior, backtest judgment, or proof.
-- For fragrance Level 1, a named case still needs cutoff, post-cutoff exclusion
-  rule, allowed source families, outcome-label plan, measurement window, and a
-  benchmark policy that could plausibly disagree.
+- For fragrance Level 1, a named case still needs `mode: backtest`, cutoff,
+  post-cutoff exclusion rule, commission-gate/source-registry references where
+  available, allowed source families, outcome-label plan, measurement window,
+  forecast targets, and a benchmark policy that could plausibly disagree.
 - The first named case should be a disagreement case, not an obvious winner.
+
+Older outcome-label spellings using `sustains` or `persists` are migration
+aliases only; new candidate rows should use the casebook's canonical
+`sustained` / `persisted` labels.
 
 ## Search Method
 
@@ -117,10 +124,10 @@ cutoff_basis: >
 benchmark_policy_that_may_disagree:
   - community/brand-equity benchmark: preserve original queer-coded identity and legacy scent language
   - retailer-growth benchmark: accept mainstream Gen Z Sephora reset if new customers and sell-through appear
-outcome_label_plan_candidates:
-  - complaint_cluster_grows_60d
-  - review_velocity_sustains_60d
-  - retail_expansion_or_sku_followthrough_180d
+  outcome_label_plan_candidates:
+    - complaint_cluster_grows_60d
+    - review_velocity_sustained_60d
+    - retail_expansion_or_sku_followthrough_180d
 ```
 
 Why it fits: high disagreement, clean before/after event, visible consumer
@@ -158,10 +165,10 @@ cutoff_basis: >
 benchmark_policy_that_may_disagree:
   - skin-scent/layering benchmark: keep Milk as understated layering platform
   - gourmand-trend benchmark: make the Milk franchise louder and more trend-aligned
-outcome_label_plan_candidates:
-  - restock_or_sellout_repeats_60d
-  - creator_momentum_persists_30d
-  - retail_expansion_or_sku_followthrough_180d
+  outcome_label_plan_candidates:
+    - restock_or_sellout_repeats_60d
+    - creator_momentum_persisted_30d
+    - retail_expansion_or_sku_followthrough_180d
 ```
 
 Why it fits: the case tests whether a brand should stay in an understated
@@ -198,10 +205,10 @@ cutoff_basis: >
 benchmark_policy_that_may_disagree:
   - DTC-scarcity benchmark: keep weird limited scents scarce and online-led
   - retail-productivity benchmark: scale a proven odd scent through Ulta
-outcome_label_plan_candidates:
-  - retail_expansion_or_sku_followthrough_180d
-  - review_velocity_sustains_60d
-  - discounting_or_overstock_appears_90d
+  outcome_label_plan_candidates:
+    - retail_expansion_or_sku_followthrough_180d
+    - review_velocity_sustained_60d
+    - discounting_or_overstock_appears_90d
 ```
 
 Why it fits: it tests whether playful limited-menu fragrance can become a
@@ -312,11 +319,14 @@ not pretend they are newly discovered.
 
 For the next docs-only step, do not broaden the casebook yet. Pick one of:
 
-1. Admit-attempt packet for `boy_smells_2_0_rebrand_sephora_2025` with full
+1. Create or point to the Level 1 source registry, outcome-label,
+   commission-gate, forecast-record, decision-log, benchmark, and evaluation
+   artifacts required by the core minimum.
+2. Admit-attempt packet for `boy_smells_2_0_rebrand_sephora_2025` with full
    admission-minimum fields, still no capture authority.
-2. Source/evidence plan for fragrance Level 1 that binds candidate source
+3. Source/evidence plan for fragrance Level 1 that binds candidate source
    families by pointer and routes packet-grade capture to source-capture owners.
-3. A separate benchmark/negative-control note for PHLUR, Sol de Janeiro, and
+4. A separate benchmark/negative-control note for PHLUR, Sol de Janeiro, and
    celebrity creator cases so they do not contaminate the first admissions.
 
 ## Source-Read Ledger
@@ -335,6 +345,7 @@ Local doctrine and map sources:
 - `docs/product/core_spine/orca_memorization_resistant_case_finder_frame_v0.md`
 - `docs/product/core_spine/core_spine_v0_proof_case_selection_brief_v0.md`
 - `docs/product/core_spine/core_spine_v0_heavyweight_proof_case_discovery_charter_v0.md`
+- `docs/product/judgment_spine/judgment_level1_product_learning_core_minimum_v0.md`
 - `docs/product/judgment_spine/fragrance_level1_casebook_admission_frame_v0.md`
 - `docs/product/judgment_spine/fragrance_level1_product_learning_satellite_skeleton_v0.md`
 - `docs/product/core_spine/beauty_venue_card_set_v0.md`
@@ -359,5 +370,5 @@ proof was created.
 Not validation, readiness, buyer proof, product proof, judgment-quality
 evidence, source-capture authority, prompt approval, run authorization, scoring
 authorization, fixture admission, accepted benchmark, completed
-product-learning evidence, owner adoption, or proof that any fragrance case
-works.
+product-learning evidence, `live_internal` readiness, `client_facing`
+readiness, owner adoption, or proof that any fragrance case works.
