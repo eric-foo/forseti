@@ -18,6 +18,7 @@ entry_points:
   docs_guide: docs/STRUCTURE.md
   route_card: docs/workflows/orca_repo_map_v0.md
   product: docs/product/README.md
+  commission_signal_board_spine: orca/product/spines/commission_signal_board/README.md
 
 # Exhaustive allowed top-level entries. Anything else at repo root is unplaced.
 known_top_level:
@@ -27,6 +28,7 @@ known_top_level:
     - .codex
     - .git
     - docs
+    - orca
     - orca-harness
   files:
     - .gitignore
@@ -59,6 +61,11 @@ product_lanes:
   - { name: ecr, status: current }
   - { name: product_lead, status: current }
   - { name: source_capture_toolbox, status: current }   # pre-existing bound folder
+
+# Live product-spine workspaces under orca/. This is currently pilot-scoped:
+# only Commission Signal Board is live here; global docs migration is staged.
+orca_product_spines:
+  - { name: commission_signal_board, status: live_pilot, home: orca/product/spines/commission_signal_board }
 
 # Runtime/scratch: excluded from placement evaluation wherever they sit.
 scratch_rules:

@@ -18,22 +18,23 @@ open_next:
   - .agents/workflow-overlay/artifact-folders.md
   - repo-structure.yaml
   - docs/workflows/orca_repo_map_v0.md
-  - docs/workflows/commission_signal_board_playbook_v0.md
+  - orca/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md
 stale_if:
-  - The spine-first workspace proposal is accepted, rejected, or materially amended.
-  - `repo-structure.yaml` adds `orca` as a live top-level root.
+  - The CSB pilot spine is renamed, rejected, or materially amended.
+  - Another product spine or global `orca/docs/` move is accepted.
   - Commission Signal Board artifacts move, split, or receive a new owning playbook.
   - The Commission Signal Board validator becomes CI, pre-commit, runtime, or product-owned infrastructure.
 ```
 
-- Status: MIGRATION_PLAN_ONLY.
+- Status: APPLIED_FOR_CSB_PILOT.
 - Branch basis: `codex/commission-spine-structure` at
   `14ba32adfd3082f069971d2f7a34a7a943c09804` when this plan was drafted.
 - PR observation: GitHub PR #239 is open, titled
   `docs: propose spine-first workspace structure`, with head
   `codex/commission-spine-structure` and base `codex/commission-gate`.
-- Current binding remains `docs/` plus `orca-harness/`; this file does not make
-  `orca/product/spines/commission_signal_board/` live.
+- Current binding now includes the docs-only live CSB pilot spine at
+  `orca/product/spines/commission_signal_board/`; global docs and other product
+  spine moves remain staged.
 - No file moves, runtime work, retrieval, scraping, graph construction, demand
   classification, forecast, buyer-proof claim, hook wiring, CI wiring, or
   validator behavior change is authorized by this plan.
@@ -120,11 +121,11 @@ rg --files | rg "commission_signal_board|commission-gate|commission_gate|signal_
 
 ## D3 Artifact Inventory
 
-| Current path | Role | Move decision | Proposed future spine target | Reason |
+| Original/current path | Role | Move decision | Canonical or proposed spine target | Reason |
 | --- | --- | --- | --- | --- |
-| `docs/product/product_lead/orca_commission_signal_board_prompt_adjudication_packet_v0.md` | Product decision-prep and correction packet | Move later, after accepted binding | `orca/product/spines/commission_signal_board/authority/orca_commission_signal_board_prompt_adjudication_packet_v0.md` | Authority-adjacent artifact for why CSB exists and what it is not. |
-| `docs/prompts/product-planning/orca_commission_signal_board_prompt_v0.md` | Full CSB prompt artifact | Move later, after accepted binding | `orca/product/spines/commission_signal_board/prompts/orca_commission_signal_board_prompt_v0.md` | Product-specific prompt should live with its spine once the spine is live. |
-| `docs/workflows/commission_signal_board_playbook_v0.md` | Operating playbook | Move later, after accepted binding | `orca/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md` | Agents need the prompt, validator, and execution sequence in the same product spine. |
+| `docs/product/product_lead/orca_commission_signal_board_prompt_adjudication_packet_v0.md` | Product decision-prep and correction packet | Moved; old path is a resolver stub | `orca/product/spines/commission_signal_board/authority/orca_commission_signal_board_prompt_adjudication_packet_v0.md` | Authority-adjacent artifact for why CSB exists and what it is not. |
+| `docs/prompts/product-planning/orca_commission_signal_board_prompt_v0.md` | Full CSB prompt artifact | Moved; old path is a resolver stub | `orca/product/spines/commission_signal_board/prompts/orca_commission_signal_board_prompt_v0.md` | Product-specific prompt now lives with its spine. |
+| `docs/workflows/commission_signal_board_playbook_v0.md` | Operating playbook | Moved; old path is a resolver stub | `orca/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md` | Agents need the prompt, validator, and execution sequence in the same product spine. |
 | `.agents/hooks/check_commission_signal_board_output.py` | Manual/local validator script | Keep global during pilot; add spine pointer later | `orca/product/spines/commission_signal_board/harness/validator.md` as a pointer first | Current proposal keeps `.agents/hooks` global; product-runtime validator move needs separate authorization. |
 | `orca-harness/tests/unit/test_commission_signal_board_output_validator.py` | Validator tests | Keep executable test under `orca-harness` during pilot; add spine pointer later | `orca/product/spines/commission_signal_board/tests/unit/test_commission_signal_board_output_validator.md` as a pointer or moved-path note | Shared harness code remains global until a separate code-root migration exists. |
 | `orca-harness/tests/fixtures/commission_signal_board_outputs/` | Validator fixtures | Keep executable fixtures under `orca-harness` during pilot; mirror/index later | `orca/product/spines/commission_signal_board/tests/fixtures/commission_signal_board_outputs/` | Fixtures are CSB-specific but currently bound to the executable harness tests. |
@@ -147,15 +148,15 @@ No CSB-specific adversarial review output was found in the targeted inventory.
 Recommended route:
 
 ```text
-Now: docs-only migration plan plus active wording cleanup.
-Next: owner accepts or amends the spine-first proposal.
-Then: update binding surfaces and create only the CSB pilot spine.
-Later: decide whether global docs move to `orca/docs/`.
+Now: CSB pilot spine live with old-path stubs and moved-path index.
+Next: use the CSB spine for Commission Signal Board work.
+Later: prepare lane inventories before any other spine or global docs move.
 ```
 
 ## D5 Pilot Skeleton Or Docs-Only Migration Plan
 
-Live skeleton creation is blocked. The proposed future tree is:
+Live skeleton creation is applied for the Commission Signal Board pilot. The
+current tree is:
 
 ```text
 orca/product/spines/commission_signal_board/
@@ -170,16 +171,12 @@ orca/product/spines/commission_signal_board/
   harness/
     validator.md
   tests/
-    unit/
-      test_commission_signal_board_output_validator.md
-    fixtures/
-      commission_signal_board_outputs/
+    validator_tests.md
   migrations/
     moved_paths_index.md
-  archive/
 ```
 
-Required accepted-source updates before the live tree exists:
+Accepted-source updates applied for the CSB live pilot:
 
 | Surface | Required update |
 | --- | --- |
@@ -188,9 +185,9 @@ Required accepted-source updates before the live tree exists:
 | `repo-structure.yaml` | Add `orca` to known top-level dirs and define the allowed path grammar, if the machine map is still the placement router. |
 | `docs/STRUCTURE.md` | Explain the new product-spine and global-doc split to human readers. |
 | `docs/workflows/orca_repo_map_v0.md` | Route agents to the new CSB spine and moved-path index. |
-| `.agents/hooks/check_placement.py` and tests, if needed | Teach placement checks the new `orca/product/spines/<spine>/` shape if they assert the closed root set or deeper grammar. |
+| `.agents/hooks/check_placement.py` and tests, if needed | Not changed in this pass; the checker reads `known_top_level` and accepts declared top-level roots. Deeper `orca/product/spines/<spine>/` grammar remains a future enforcement hardening step. |
 
-Move strategy after acceptance:
+Move strategy applied after acceptance:
 
 1. Create `orca/product/spines/commission_signal_board/README.md` with the current non-goals and source-loading order.
 2. Move or copy the three durable CSB docs first: adjudication packet, prompt, and playbook.
@@ -202,51 +199,53 @@ Move strategy after acceptance:
 Rollback strategy:
 
 ```text
-Because this plan performs no live move, rollback is deleting or superseding this file.
-For the future live migration, keep old-path stubs or a moved-path index until all
-source-loading prompts and validator docs point to the spine.
+Because the pilot moved only three core CSB docs, rollback is restoring those
+three docs to their old paths and deleting the three resolver stubs plus the
+CSB spine files. Do not move validator code, tests, fixtures, repo-wide maps,
+or overlay files as part of rollback unless separately authorized.
 ```
 
 ## Assumption-Gate Ledger
 
 ```yaml
-accepted_direction: docs-only Commission Signal Board spine-pilot migration plan
+accepted_direction: docs-only Commission Signal Board live pilot spine
 gate_status: READY_WITH_VERIFIED_LEDGER
 ready_for_docs_only_plan: yes
-ready_for_live_spine_creation: no
+ready_for_live_spine_creation: yes_completed_for_csb_pilot
 load_bearing_assumptions:
   - assumption: docs/migration is an accepted home for migration planning artifacts.
     status: verified_real
     basis:
       - docs/migration/ exists.
       - docs/migration/repo_structure_phase2_consolidation_v0/ exists.
-  - assumption: current binding does not make `orca/` a live root.
+  - assumption: current binding makes `orca/` live only for the CSB pilot.
     status: verified_real
     basis:
-      - docs/decisions/orca_spine_first_workspace_structure_proposal_v0.md is PROPOSED_TARGET.
-      - repo-structure.yaml known top-level dirs omit `orca`.
-      - docs/workflows/orca_repo_map_v0.md says the proposal does not make `orca/` live.
+      - docs/decisions/orca_repo_structure_binding_v0.md binds `orca/product/spines/commission_signal_board/`.
+      - repo-structure.yaml known top-level dirs include `orca`.
+      - docs/workflows/orca_repo_map_v0.md routes to the live CSB spine.
   - assumption: CSB validator behavior is out of scope.
     status: verified_real
     basis:
-      - docs/workflows/commission_signal_board_playbook_v0.md describes the checker as manual/local.
+      - orca/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md describes the checker as manual/local.
       - .agents/hooks/check_commission_signal_board_output.py states it does not retrieve, classify, or prove correctness.
-blockers_for_live_spine:
-  - owner/source acceptance of the spine-first structure proposal
+blockers_for_additional_spines_or_global_docs_move:
+  - lane-specific migration inventory and owner/source acceptance
   - binding updates across the required surfaces
-  - placement-checker expectation update if the new root/path grammar is enforced
+  - placement-checker expectation update if deeper `orca/product/spines/<spine>/` grammar is enforced
 ```
 
 ## D6 Closeout And Propagation
 
-This plan does not change repo doctrine. It records a blocker for the doctrine
-change that would be required before a live CSB spine exists.
+This plan is now an applied migration record. The doctrine-change propagation
+receipt for making `orca/` live only for the CSB pilot lives in
+`docs/decisions/orca_repo_structure_binding_v0.md`.
 
 ```yaml
-doctrine_changed_by_this_plan: no
-direction_change_propagation_blocker:
-  blocked_change: create live `orca/product/spines/commission_signal_board/`
-  blocker: no accepted repo-structure source currently binds `orca/` as a live root
+doctrine_changed_by_this_plan: yes_applied_through_binding_patch
+direction_change_propagation:
+  controlling_receipt: docs/decisions/orca_repo_structure_binding_v0.md
+  change: create live `orca/product/spines/commission_signal_board/` docs-only pilot spine
   related_triggers:
     - architecture_doctrine
     - workflow_authority
@@ -258,7 +257,8 @@ direction_change_propagation_blocker:
     - repo-structure.yaml
     - docs/STRUCTURE.md
     - docs/workflows/orca_repo_map_v0.md
-  next_authorized_step: owner accepts or amends the spine-first proposal, then a bounded binding patch can create the live CSB pilot root
+    - orca/product/spines/commission_signal_board/migrations/moved_paths_index.md
+  next_authorized_step: use the CSB spine for Commission Signal Board work; prepare separate lane inventories before moving other spines or global docs
 non_claims:
   - no Commission Signal Board case was run
   - no evidence was retrieved

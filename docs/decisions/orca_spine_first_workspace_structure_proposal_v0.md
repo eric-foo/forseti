@@ -17,19 +17,22 @@ open_next:
   - docs/decisions/orca_repo_structure_binding_v0.md
   - .agents/workflow-overlay/artifact-folders.md
   - repo-structure.yaml
-  - docs/workflows/commission_signal_board_playbook_v0.md
+  - orca/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md
 stale_if:
-  - A later accepted repo-structure decision supersedes or amends this proposal.
+  - A later accepted repo-structure decision supersedes or amends the CSB pilot scope.
   - repo-structure.yaml adds or removes a top-level product workspace root.
-  - Commission Signal Board artifacts are moved before this proposal is accepted or revised.
+  - Another product spine moves before its lane migration inventory and binding update are accepted.
 ```
 
-- Status: PROPOSED_TARGET.
-- Current binding: still `docs/` plus `orca-harness/` per
+- Status: PARTIALLY_ACCEPTED_FOR_CSB_PILOT.
+- Current binding: `docs/` plus `orca-harness/` remain current for non-migrated
+  work; `orca/product/spines/commission_signal_board/` is now the live
+  docs-only Commission Signal Board pilot spine per
   `docs/decisions/orca_repo_structure_binding_v0.md`.
-- This proposal does not authorize a bulk migration, implementation work,
-  validation claim, readiness claim, or automatic supersession of the current
-  placement checker.
+- This proposal plus current-turn owner authorization authorizes only the CSB
+  docs-only pilot spine. It does not authorize a bulk migration,
+  implementation work, validation claim, readiness claim, global `orca/docs/`
+  move, or automatic supersession of the current placement checker.
 
 ## Decision Question
 
@@ -208,25 +211,30 @@ silently breaking references.
 | Add `orca/product/spines/` plus future `orca/docs/` | Preferred target. It gives the product system a real workspace while keeping global documents separate; harness/code absorption remains separately decided. |
 | Move all spines now | Rejected. Too much reference churn and too much risk while Judgment/Capture are active. |
 
-## Required Binding Changes Before Any Move
+## Required Binding Changes Before Additional Moves
 
-Before creating `orca/product/spines/` as an accepted home, update:
+For the Commission Signal Board pilot, these surfaces were updated in the
+binding patch that created the live spine. Before creating any additional
+product spine or global `orca/docs/` home, update:
 
 - `docs/decisions/orca_repo_structure_binding_v0.md`;
 - `.agents/workflow-overlay/artifact-folders.md`;
 - `repo-structure.yaml`;
 - `docs/STRUCTURE.md`;
 - `docs/workflows/orca_repo_map_v0.md`;
-- placement-checker tests or expectations if they assert the closed root set.
+- placement-checker tests or expectations if they assert the closed root set or
+  deeper path grammar.
 
 The accepted decision should say whether `docs/product/<lane>/` becomes
 legacy-current, migration-source, or still allowed for non-migrated spines.
 
 ## Phased Migration
 
-1. Accept or amend this target decision.
-2. Add the root binding for `orca/product/spines/`.
-3. Pilot Commission Signal Board only.
+1. Accept or amend this target decision. **CSB pilot: done. Broader direction:
+   accepted in principle, staged.**
+2. Add the root binding for `orca/product/spines/`. **Done only for
+   `orca/product/spines/commission_signal_board/`.**
+3. Pilot Commission Signal Board only. **Current live pilot.**
 4. Run stale-reference searches and record a moved-path index.
 5. Update the Commission Signal Board playbook and repo map to point at the new
    spine home.

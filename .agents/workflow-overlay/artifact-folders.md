@@ -31,6 +31,8 @@ authority_boundary: retrieval_only
 - `docs/product/`: product contracts, product proof plans, core-spine notes, satellite notes, evidence standards, source maps, decision artifacts, memo substrates, evidence appendices, and executive-deck shape drafts.
 - `docs/product/source_capture_toolbox/`: product-facing Source Capture Armory design notes, scoped specs, and gap notes. Existing controlling Data Capture source-access decisions, method plans, and obligation contracts remain at their historical paths unless a later migration decision moves them.
 - `docs/product/` lane subfolders (`core_spine/`, `data_capture_spine/`, `judgment_spine/`, `signal_content/`, `ecr/`, `product_lead/`): the bound second-level axis for product artifacts per `docs/decisions/orca_repo_structure_binding_v0.md`. New product artifacts use the matching lane; files matching no lane may stay at `docs/product/` root. Existing flat files move only via the Phase-2 migration package, not ad hoc.
+- `orca/product/spines/commission_signal_board/`: live docs-only Commission Signal Board pilot spine, accepted by owner authorization on 2026-06-18. This is the only live `orca/product/spines/` product workspace in this pass; global `orca/docs/` migration and other product spines remain staged.
+- `orca/product/spines/commission_signal_board/{authority,prompts,workflows,harness,tests,migrations}/`: CSB spine-local authority docs, prompts, playbooks, pointer docs, and moved-path index. Harness and test entries are pointers only unless separate code-move authority exists.
 - `repo-structure.yaml` (repo root): the machine structure map - router only, consumed by `.agents/hooks/check_placement.py` and agents for navigation. It declares homes and never states rules; this overlay file remains the placement authority and wins on conflict.
 - `docs/research/`: public/source research artifacts, evidence-only lane outputs, synthesis reports, candidate screens, and reject-pattern maps that support Orca product or proof work without becoming product authority by default.
 - `docs/research/judgment-spine/harness/v0_14/smoke_tests/`: Judgment Harness v0.14 no-case smoke-test receipts and operator provenance records. Artifacts in this folder are plumbing evidence only and do not become real-case probe, validation, fixture-admission, product-proof, or judgment-quality evidence by location.
@@ -40,7 +42,7 @@ authority_boundary: retrieval_only
 
 ## Rules
 
-- Keep durable Orca artifacts under `docs/` unless a later Orca decision creates a narrower folder.
+- Keep durable Orca artifacts under `docs/` unless a later Orca decision creates a narrower folder. Current exception: Commission Signal Board spine-owned docs now live under `orca/product/spines/commission_signal_board/`.
 - Full prompt artifacts and thin wrappers must follow `.agents/workflow-overlay/prompt-orchestration.md`.
 - New or materially touched durable human-authored workflow artifacts must
   follow `.agents/workflow-overlay/retrieval-metadata.md` unless that contract
@@ -48,6 +50,7 @@ authority_boundary: retrieval_only
 - Treat `docs/_inbox/` as scratch only. Nothing in `_inbox` is Orca authority until promoted into an accepted docs folder or overlay file.
 - Track parked or temporary material through `docs/hygiene/queue.md` when it may need promotion, review, archiving, or deletion.
 - Keep product artifacts in `docs/product/` unless they are accepted decision records, prompt artifacts, workflow records, review artifacts, or migration records.
+- Keep non-CSB product artifacts in their current accepted homes until their own lane migration is authorized; do not use the CSB pilot to move Judgment, Capture, ECR, Signal Content, Source Capture, or global docs.
 - Keep research artifacts in `docs/research/` when the primary purpose is source discovery, corpus qualification, evidence gathering, candidate screening, or rejected-source mapping. Promote research conclusions into `docs/product/` or `docs/decisions/` only through a later accepted product or decision artifact.
 - Do not create implementation folders such as `src`, `app`, `packages`, `tests`, or automation runtimes until explicitly authorized.
 - Orca-local workflow skills live only under `.agents/skills/` and are governed by `.agents/workflow-overlay/skill-adoption.md`; acceptance there is a local freeze, not deployment, and must not edit plugin, user-level, installed, or external skill source.

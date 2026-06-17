@@ -17,9 +17,10 @@ with it.
 
 ## Rule Of Thumb
 
-Keep durable Orca artifacts under `docs/` or the overlay unless a later Orca
-decision creates a narrower location. Do not create implementation folders,
-runtimes, packages, tests, scrapers, or automation unless a later turn
+Keep durable Orca artifacts under `docs/`, the overlay, or an accepted
+spine-specific home. Current accepted spine-specific home:
+`orca/product/spines/commission_signal_board/`. Do not create implementation
+folders, runtimes, packages, tests, scrapers, or automation unless a later turn
 explicitly authorizes implementation.
 
 ## Core Folders
@@ -34,6 +35,23 @@ explicitly authorizes implementation.
 - `docs/migration/`: migration and import planning records.
 - `docs/hygiene/`: triage queues and cleanup notes.
 - `docs/_inbox/`: temporary holding area for untriaged prompts, notes, imports, and scratch material.
+- `orca/product/spines/commission_signal_board/`: live docs-only Commission Signal Board pilot spine. It owns the CSB authority packet, prompt, playbook, pointer docs, and moved-path index. The old CSB paths under `docs/` are resolver stubs.
+
+## Spine-First Direction
+
+The owner accepts the broader direction toward spine-first organization, but
+the global docs move is staged. In this pass, only Commission Signal Board is a
+live product spine under `orca/product/spines/`.
+
+Other lanes should prepare migration inventories before moving:
+
+- artifact inventory;
+- proposed future spine or folder target;
+- move risk;
+- current authority owner;
+- required binding changes;
+- paths that should not move yet;
+- validation checks required after move.
 
 ## Prompt Folders
 
@@ -86,7 +104,10 @@ The current research corpus subtree is
 
 ## Core And Satellite Product Work
 
-Use `docs/product/` for the Core + Satellite model:
+Use `docs/product/` for the Core + Satellite model except where a live
+spine-specific home has been accepted. Current exception: Commission Signal
+Board artifacts that belong to the live CSB spine use
+`orca/product/spines/commission_signal_board/`.
 
 - Core Spine artifacts define market-agnostic evidence mechanics.
 - Satellite artifacts define decision-specific and domain-specific context.
@@ -110,7 +131,7 @@ install status, resolver status, or edit permission.
 
 Use this promotion rule:
 
-- product truth -> `docs/product/` or `docs/decisions/`
+- product truth -> `docs/product/`, an accepted spine-specific home, or `docs/decisions/`
 - research evidence, shortlist screens, and reject-pattern maps -> `docs/research/`
 - prompt artifact -> `docs/prompts/`
 - workflow record -> `docs/workflows/`

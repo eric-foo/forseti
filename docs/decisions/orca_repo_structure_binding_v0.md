@@ -17,6 +17,8 @@ authority_boundary: retrieval_only
 open_next:
   - .agents/workflow-overlay/artifact-folders.md
   - repo-structure.yaml
+  - docs/decisions/orca_spine_first_workspace_structure_proposal_v0.md
+  - orca/product/spines/commission_signal_board/README.md
   - docs/migration/repo_structure_phase2_consolidation_v0/runbook.md
 stale_if:
   - repo-structure.yaml and this binding disagree on a home or parameter.
@@ -40,6 +42,14 @@ followed (`8516cdc`); EP-04 hook wiring landed in `.claude/settings.json`
 (`27bade9`) and the hooks have been observed firing in-session. The `stale_if`
 trigger "Phase-2 consolidation applies" fired and is retired; lane statuses in
 `repo-structure.yaml` read `current` and match the migration state.
+
+Dated note - Commission Signal Board pilot spine live (2026-06-18): current-turn
+owner authorization accepts the spine-first direction in principle and
+authorizes a docs-only CSB pilot under
+`orca/product/spines/commission_signal_board/`. This makes `orca/` a live
+top-level root only for the documented CSB pilot scope. The global `orca/docs/`
+move and other product-spine moves remain staged and require their own bounded
+migration steps.
 
 ## Provenance (origin, not authority)
 
@@ -84,8 +94,10 @@ docs/_inbox/).
 ## Orca parameter layer (bound)
 
 - Top-level axis (repo root): function class - governance (`.agents/`,
-  `.claude/`, `AGENTS.md`, `CLAUDE.md`), artifacts (`docs/`), code
-  (`orca-harness/`), navigation (`README.md`, `repo-structure.yaml`).
+  `.claude/`, `AGENTS.md`, `CLAUDE.md`), artifacts (`docs/`), pilot product
+  workspace (`orca/`, currently only
+  `orca/product/spines/commission_signal_board/`), code (`orca-harness/`),
+  navigation (`README.md`, `repo-structure.yaml`).
   The exhaustive allowed root set lives in `repo-structure.yaml`
   `known_top_level`.
 - `docs/` axis: role grammar exactly as bound in
@@ -111,7 +123,14 @@ docs/_inbox/).
   another lane's uncommitted work tonight.
 - Machine map: `repo-structure.yaml` at repo root, schema frozen to the keys
   `version, status, authority, entry_points, known_top_level, docs_roles,
-  product_lanes, scratch_rules, legacy_tolerated, inbox, excluded`.
+  product_lanes, orca_product_spines, scratch_rules, legacy_tolerated, inbox,
+  excluded`.
+- `orca/product/spines/commission_signal_board/`: live docs-only CSB pilot
+  spine. Its spine-local docs are canonical there; old CSB paths under `docs/`
+  are resolver stubs backed by
+  `orca/product/spines/commission_signal_board/migrations/moved_paths_index.md`.
+  Validator code, tests, fixtures, repo-wide decisions, repo maps, and overlay
+  files remain in their existing global homes.
 - `_inbox` hygiene: `inbox.max_age_days` in the map (advisory signal only,
   never a hard failure).
 
@@ -146,27 +165,90 @@ as a blocking gate by this binding.
 
 ## Forward-only adoption and Phase 2
 
-No historical tree is reorganized by this binding. The bounded exception is
-the prepared Phase-2 consolidation: `docs/product/` flat files into the bound
+No historical tree is reorganized by this binding except for explicitly
+accepted migration packages or pilots. The bounded exceptions are:
+
+- the prepared Phase-2 consolidation: `docs/product/` flat files into the bound
 lanes plus the orca-harness scratch config, packaged (manifest, apply/reverse
 script, reference inventory, runbook) under
 `docs/migration/repo_structure_phase2_consolidation_v0/`. Applying it is
 gated by the runbook's precondition (clean commit checkpoint or explicit
 owner waiver) and rewrites live references only; historical records keep
 their original path text and are covered by the package's moved-paths index.
+- the Commission Signal Board docs-only pilot spine under
+  `orca/product/spines/commission_signal_board/`, with old-path stubs and a
+  moved-path index. This pilot does not execute the global docs move.
 
 ## Direction change propagation
 
-The `direction_change_propagation` receipt for this change set lives inline in
-`.agents/workflow-overlay/artifact-folders.md` (the controlling overlay source
-updated), per the Doctrine Change Propagation Contract in
-`.agents/workflow-overlay/source-of-truth.md`.
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Orca now accepts `orca/` as a live top-level root only for the docs-only
+    Commission Signal Board pilot spine under
+    `orca/product/spines/commission_signal_board/`; global `orca/docs/` and all
+    other spine moves remain staged.
+  trigger: architecture_doctrine
+  related_triggers:
+    - workflow_authority
+    - output_authority
+    - lifecycle_boundary
+  controlling_sources_updated:
+    - docs/decisions/orca_repo_structure_binding_v0.md
+    - .agents/workflow-overlay/artifact-folders.md
+    - repo-structure.yaml
+    - docs/STRUCTURE.md
+    - docs/workflows/orca_repo_map_v0.md
+    - docs/decisions/orca_spine_first_workspace_structure_proposal_v0.md
+    - docs/migration/commission_signal_board_spine_pilot_migration_plan_v0.md
+    - orca/product/spines/commission_signal_board/migrations/moved_paths_index.md
+  downstream_surfaces_checked:
+    - AGENTS.md
+    - .agents/workflow-overlay/README.md
+    - .agents/workflow-overlay/source-of-truth.md
+    - .agents/workflow-overlay/source-loading.md
+    - .agents/hooks/check_placement.py
+    - orca/product/spines/commission_signal_board/README.md
+    - orca/product/spines/commission_signal_board/spine.yaml
+    - orca/product/spines/commission_signal_board/prompts/orca_commission_signal_board_prompt_v0.md
+    - orca/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md
+    - orca/product/spines/commission_signal_board/harness/validator.md
+    - orca/product/spines/commission_signal_board/tests/validator_tests.md
+  intentionally_not_updated:
+    - path: .agents/hooks/check_commission_signal_board_output.py
+      reason: >
+        The validator remains a manual/local shared hook substrate; this pass
+        does not move executable validator code or change validator behavior.
+    - path: orca-harness/tests/unit/test_commission_signal_board_output_validator.py
+      reason: >
+        Executable tests remain in orca-harness until separate code-root
+        migration authority exists; the spine has a pointer doc only.
+    - path: orca-harness/tests/fixtures/commission_signal_board_outputs/
+      reason: >
+        Fixtures remain bound to the executable harness test suite.
+    - path: docs/prompts/handoffs/commission_signal_board_spine_pilot_reconciliation_handoff_prompt_v0.md
+      reason: >
+        Historical handoff prompt remains in the global handoff prompt archive;
+        stubs and moved-path index cover current CSB docs.
+  stale_language_search: >
+    rg -n "docs/workflows/commission_signal_board_playbook_v0|docs/prompts/product-planning/orca_commission_signal_board_prompt_v0|docs/product/product_lead/orca_commission_signal_board_prompt_adjudication_packet_v0|orca/product/spines/commission_signal_board|orca/docs" docs .agents repo-structure.yaml orca/product/spines/commission_signal_board
+  non_claims:
+    - not validation
+    - not readiness
+    - not runtime authorization
+    - not global docs migration
+    - not movement of validator code, tests, or fixtures
+```
+
+Older receipts remain archived or stored in their original controlling surfaces
+per `.agents/workflow-overlay/source-of-truth.md`.
 
 ## Non-claims
 
 - Not validation, readiness, approval, or proof of navigation improvement.
 - Not ratification or import of the jb draft doctrine as Orca authority.
 - Not a commit, push, or branch action; nothing is staged by this binding.
+- Not the global `orca/docs/` migration or any non-CSB product-spine migration.
 - The checker's existence or a passing run is not validation, readiness, or
   authority; placement is not authority.
 - Hook wiring is not live until a session restart and is reported as such.
