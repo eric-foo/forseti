@@ -40,7 +40,7 @@ orca_start_preflight:
   edit_permission: docs-write
   target_scope: inventory-only migration record under docs/migration/
   dirty_state_checked: yes
-  blocked_if_missing: none for inventory; PR #242 state not externally verified
+  blocked_if_missing: none for inventory; PR #242 verified by gh pr view during this run
 ```
 
 Observed branch/worktree state:
@@ -53,6 +53,7 @@ Observed branch/worktree state:
 - `git merge-base --is-ancestor codex/foundation-rename HEAD` exited `1`, so the current inventory branch does not contain the pending rename branch.
 - `git merge-base --is-ancestor HEAD codex/foundation-rename` exited `0`, so the pending rename branch appears to include this branch's starting base.
 - Repository text search found no local `PR #242`, `#242`, or `foundation-rename` mention under `docs`, `.agents`, or `repo-structure.yaml`.
+- `gh pr view 242` verified PR #242 as open, draft, base `main`, head `codex/foundation-rename`, merge state `UNSTABLE`, not merged (`mergedAt: null`), URL `https://github.com/eric-foo/orca/pull/242`.
 
 ## Current Surfaces Found
 
@@ -428,8 +429,8 @@ Local branch dependency:
 PR dependency:
 
 - User named PR #242 / `codex/foundation-rename`.
-- This inventory did not externally verify PR #242 state.
-- Local repo text search found no PR #242 record.
+- `gh pr view 242` verified PR #242 as open, draft, base `main`, head `codex/foundation-rename`, merge state `UNSTABLE`, not merged (`mergedAt: null`), URL `https://github.com/eric-foo/orca/pull/242`.
+- Local repo text search found no PR #242 record inside `docs`, `.agents`, or `repo-structure.yaml`.
 - Current inventory branch does not contain the local `codex/foundation-rename` commit.
 
 Migration implication: before any follow-on migration, first check whether PR #242 has landed or been superseded. Do not duplicate the pending rename branch blindly.
@@ -486,11 +487,10 @@ Proposed allocation after owner confirmation:
 - Not source-of-truth promotion.
 - Not implementation authorization.
 - Not runtime compatibility proof.
-- Not PR #242 status verification.
+- Not a claim that PR #242 status will remain unchanged after the `gh pr view 242` check in this run.
 - Not a completed rename.
 - Not a file move.
 - Not an artifact-ID migration.
 - Not a claim that `docs/product/foundation/` exists on the current branch.
 - Not a claim that Foundation naming has landed on `main`.
 - Not a claim that generated runtime provenance should be rewritten.
-
