@@ -13,7 +13,7 @@ use_when:
   - Preventing the 25-case backtest plan from being mistaken for run authorization, fixture admission, scoring, or proof.
 authority_boundary: retrieval_only
 open_next:
-  - docs/product/judgment_spine/judgment_level1_product_learning_core_minimum_v0.md
+  - docs/product/judgment_spine/judgment_current_state_and_decomposition_v0.md
   - docs/product/judgment_spine/fragrance_level1_product_learning_satellite_skeleton_v0.md
   - docs/product/judgment_spine/fragrance_level1_named_case_candidate_screen_v0.md
   - docs/product/judgment_spine/fragrance_level1_product_learning_reconciliation_v0.md
@@ -21,7 +21,7 @@ open_next:
   - docs/product/judgment_spine/judgment_spine_evidence_ladder_architecture_v0.md
   - docs/product/core_spine/beauty_venue_card_set_v0.md
 stale_if:
-  - The Level 1 product-learning core minimum changes its default mode, SCV loop, 25-case success condition, outcome labels, source registry, commission gate, forecast/action/log/evaluation contract, or live/client readiness gates.
+  - The current-state/decomposition map changes its default mode, SCV loop, 25-case success condition, outcome labels, source registry, commission gate, forecast/action/log/evaluation contract, or live/client readiness gates.
   - The fragrance satellite skeleton changes its casebook, source, forecast, reveal, or receipt slots.
   - The evidence ladder changes product-learning receipt minima, claim caps, or closeout states.
   - The beauty venue card set changes fragrance venue hints or review status.
@@ -36,7 +36,7 @@ This is a docs-only casebook admission frame.
 It admits the **casebook shape**: 25 slots, bucket allocation, minimum admission
 fields, and outcome-label families. It does **not** admit any named product,
 brand, SKU, launch, discontinuation, or retail decision as a case yet.
-Completing 25 public fragrance backtests through the core-minimum loop is the
+Completing 25 public fragrance backtests through the Level 1 loop is the
 first success condition for product learning, not a readiness, calibration, or
 buyer-proof screen.
 
@@ -56,7 +56,7 @@ closeout_state: unreceipted_product_learning_context
 ## Operating Rule
 
 This artifact is the casebook organizer below the fragrance satellite skeleton.
-It consumes the Level 1 core-minimum backtesting-first contract: the default
+It consumes the current backtesting-first route: the default
 named-case mode is `backtest`, with a frozen evidence cutoff and exclusion of
 all post-cutoff information before reveal.
 
@@ -271,10 +271,9 @@ Repo and overlay sources:
 Judgment and fragrance sources:
 
 - `docs/product/judgment_spine/fragrance_level1_product_learning_satellite_skeleton_v0.md`
-- `docs/product/judgment_spine/judgment_level1_product_learning_core_minimum_v0.md`
+- `docs/product/judgment_spine/judgment_current_state_and_decomposition_v0.md`
 - `docs/product/judgment_spine/fragrance_level1_named_case_candidate_screen_v0.md`
 - `docs/product/judgment_spine/fragrance_level1_product_learning_reconciliation_v0.md`
-- `docs/product/judgment_spine/judgment_current_state_and_decomposition_v0.md`
 - `docs/product/judgment_spine/judgment_spine_evidence_ladder_architecture_v0.md`
 - `docs/product/core_spine/beauty_venue_card_set_v0.md`
 

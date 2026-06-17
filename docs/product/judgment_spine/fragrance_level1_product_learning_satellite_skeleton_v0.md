@@ -11,12 +11,11 @@ scope: >
 use_when:
   - Authoring or reviewing the first fragrance Level 1 product-learning pack.
   - Deciding where fragrance casebook, source, weighting, forecast, decision, reveal, and lesson fields belong.
-  - Checking whether fragrance work consumes the Level 1 core-minimum backtest contract before filling domain detail.
+  - Checking whether fragrance work consumes current Judgment boundaries before filling domain detail.
   - Checking the non-claims before any fragrance prompt, source-capture, run, scoring, or proof work.
 authority_boundary: retrieval_only
 open_next:
   - docs/product/judgment_spine/judgment_current_state_and_decomposition_v0.md
-  - docs/product/judgment_spine/judgment_level1_product_learning_core_minimum_v0.md
   - docs/product/judgment_spine/fragrance_level1_product_learning_reconciliation_v0.md
   - docs/product/judgment_spine/fragrance_level1_casebook_admission_frame_v0.md
   - docs/product/judgment_spine/fragrance_level1_named_case_candidate_screen_v0.md
@@ -32,7 +31,7 @@ open_next:
 stale_if:
   - The evidence ladder changes claim tiers, closeout states, receipt minima, or promotion gates.
   - The conductor changes its no-authority invariant, by-hand cap, JSG routing, or run-authorization boundary.
-  - The Level 1 product-learning core minimum changes its default mode, SCV loop, 25-case success condition, source registry, outcome labels, commission gate, forecast/action/log/evaluation contract, or live/client readiness gates.
+  - The current-state/decomposition map changes its default mode, SCV loop, 25-case success condition, source registry, outcome labels, commission gate, forecast/action/log/evaluation contract, or live/client readiness gates.
   - The demand-read core, C2, C3, near-half, far-half, or signal-ledger surfaces are accepted, rejected, or materially amended.
   - The fragrance casebook admission frame accepts, rejects, or materially changes the first Level 1 case slots or named cases.
   - An owning source-capture artifact admits fragrance venue/source families or authorizes capture.
@@ -60,7 +59,7 @@ Core owns the judgment machinery. Fragrance owns the domain instances.
 This skeleton must import core Judgment boundaries by pointer instead of
 restating or replacing them:
 
-- The Level 1 core minimum owns the default `mode: backtest`, frozen evidence
+- The current-state/decomposition map routes the default `mode: backtest`, frozen evidence
   cutoff, future-information exclusion, commission intake/gate, source registry,
   outcome-label, graph/evidence, forecast, utility/action, decision-log,
   reveal/evaluation, benchmark, and readiness-gate contracts.
@@ -106,8 +105,8 @@ receipt_artifact_or_gap: this skeleton is setup context; future per-case receipt
 | Slot | Fragrance satellite field | Core owner or pointer | Completion prerequisite | Do not claim |
 | --- | --- | --- | --- | --- |
 | Satellite identity | `decision_family`, Level 1 purpose, target product-learning question | Current-state/decomposition map; C0 frame | Owner accepts the first pack's purpose and case family | Judgment doctrine, proof, or readiness |
-| Backtest mode and commission gate | `mode`, cutoff, future-information policy, decision type, playbook, source priorities, confirmation/counterevidence, forecast targets | Level 1 core minimum; future prompt-orchestrated gate artifact | Durable gate brief and case intake artifact | Live/client mode, final recommendation, prompt approval, or run authorization |
-| Casebook queue | Candidate cases, cutoff dates, outcome labels, exclusion reasons | Level 1 core minimum; C0 frame, case-finder gap, conductor run authorization boundary | Separate casebook admission artifact | Accepted benchmark, fixture, run authorization, readiness, or scoreable case |
+| Backtest mode and commission gate | `mode`, cutoff, future-information policy, decision type, playbook, source priorities, confirmation/counterevidence, forecast targets | Current-state/decomposition map; future prompt-orchestrated gate artifact | Durable gate brief and case intake artifact | Live/client mode, final recommendation, prompt approval, or run authorization |
+| Casebook queue | Candidate cases, cutoff dates, outcome labels, exclusion reasons | Current-state/decomposition map; C0 frame, case-finder gap, conductor run authorization boundary | Separate casebook admission artifact | Accepted benchmark, fixture, run authorization, readiness, or scoreable case |
 | Source-family registry | Candidate fragrance venues, source-family notes, provenance requirements, cutoff/date/SKU limits | Beauty venue card-set; source-capture owners by pointer; Level 1 source-registry contract | Owning source-capture artifact admits or authorizes source work | Capture authority, monitoring, or current-state source proof |
 | Evidence object | Source references, provenance notes, contradiction/timeline links, pre/post-cutoff separation, packet IDs | JSG-01, ECR, packing/finalization owners; Level 1 graph-family plan | Captured evidence packet and authorized packet construction | JSG clearance or gate-bearing execution |
 | C1 allow read | Why the demand signal is allowed into the read, or why it is held | Demand-read core C1 | Case-specific source plan and allowed-evidence rationale | Source truth or source-family admission |
@@ -358,8 +357,8 @@ If any fragrance prompt is needed, author it through `workflow-prompt-orchestrat
 1. Author durable commission-gate and Level 1 judgment prompt artifacts through
    `workflow-prompt-orchestrator` if prompt artifacts are needed.
 2. Create the backtest case intake, source registry, outcome-label, forecast
-   record, utility/action, decision-log, benchmark, and evaluation artifacts the
-   core minimum names.
+   record, utility/action, decision-log, benchmark, and evaluation artifacts
+   named by the current-state/decomposition map and fragrance Level 1 organizers.
 3. Use the named-case candidate screen to choose the first case admission
    attempt, then fill the admission-minimum fields in the casebook lane.
 4. Author a fragrance source/evidence plan that consumes the beauty venue
@@ -399,7 +398,6 @@ Judgment and fragrance sources:
 - `docs/research/judgment-spine/judgment_spine_consolidation_map_v0.md`
 - `docs/research/judgment-spine/judgment_spine_machinery_build_state_gap_map_v0.md`
 - `docs/product/judgment_spine/judgment_current_state_and_decomposition_v0.md`
-- `docs/product/judgment_spine/judgment_level1_product_learning_core_minimum_v0.md`
 - `docs/product/judgment_spine/fragrance_level1_product_learning_reconciliation_v0.md`
 - `docs/product/judgment_spine/fragrance_level1_named_case_candidate_screen_v0.md`
 - `docs/product/judgment_spine/judgment_spine_evidence_ladder_architecture_v0.md`

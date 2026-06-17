@@ -13,12 +13,12 @@ use_when:
   - Preventing public fragrance examples from being mistaken for admitted casebook rows.
 authority_boundary: retrieval_only
 open_next:
-  - docs/product/judgment_spine/judgment_level1_product_learning_core_minimum_v0.md
+  - docs/product/judgment_spine/judgment_current_state_and_decomposition_v0.md
   - docs/product/judgment_spine/fragrance_level1_casebook_admission_frame_v0.md
   - docs/product/judgment_spine/fragrance_level1_product_learning_satellite_skeleton_v0.md
   - docs/product/core_spine/beauty_venue_card_set_v0.md
 stale_if:
-  - The Level 1 product-learning core minimum changes default mode, SCV loop, outcome labels, or readiness gates.
+  - The current-state/decomposition map changes default mode, SCV loop, outcome labels, or readiness gates.
   - A later artifact admits, rejects, or supersedes any named fragrance case.
   - The fragrance casebook admission frame changes its named-case admission fields, slot allocation, or selection rules.
   - The case-finder doctrine, memorization-resistant finder frame, or discovery authorization boundary changes.
@@ -321,7 +321,7 @@ For the next docs-only step, do not broaden the casebook yet. Pick one of:
 
 1. Create or point to the Level 1 source registry, outcome-label,
    commission-gate, forecast-record, decision-log, benchmark, and evaluation
-   artifacts required by the core minimum.
+   artifacts required by the Level 1 route.
 2. Admit-attempt packet for `boy_smells_2_0_rebrand_sephora_2025` with full
    admission-minimum fields, still no capture authority.
 3. Source/evidence plan for fragrance Level 1 that binds candidate source
@@ -345,7 +345,7 @@ Local doctrine and map sources:
 - `docs/product/core_spine/orca_memorization_resistant_case_finder_frame_v0.md`
 - `docs/product/core_spine/core_spine_v0_proof_case_selection_brief_v0.md`
 - `docs/product/core_spine/core_spine_v0_heavyweight_proof_case_discovery_charter_v0.md`
-- `docs/product/judgment_spine/judgment_level1_product_learning_core_minimum_v0.md`
+- `docs/product/judgment_spine/judgment_current_state_and_decomposition_v0.md`
 - `docs/product/judgment_spine/fragrance_level1_casebook_admission_frame_v0.md`
 - `docs/product/judgment_spine/fragrance_level1_product_learning_satellite_skeleton_v0.md`
 - `docs/product/core_spine/beauty_venue_card_set_v0.md`

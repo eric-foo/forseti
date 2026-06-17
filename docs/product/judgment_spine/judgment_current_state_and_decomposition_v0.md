@@ -24,7 +24,6 @@ open_next:
   - docs/product/judgment_spine/fragrance_level1_product_learning_satellite_skeleton_v0.md
   - docs/product/judgment_spine/fragrance_level1_casebook_admission_frame_v0.md
   - docs/product/judgment_spine/fragrance_level1_named_case_candidate_screen_v0.md
-  - docs/product/judgment_spine/judgment_level1_product_learning_core_minimum_v0.md
 stale_if:
   - The evidence ladder changes claim tiers, closeout states, receipt minima, or promotion gates.
   - The conductor changes its no-authority invariant, by-hand cap, or JSG routing.
@@ -86,7 +85,6 @@ market-agnostic.
 | Fragrance Level 1 satellite skeleton | Repo-local product-learning skeleton | Reserves fragrance casebook/source/evidence/weighting/forecast/decision/reveal/lesson/receipt slots | No admitted cases, source authority, run, score, or proof |
 | Fragrance Level 1 casebook admission frame | Repo-local product-learning casebook organizer | Admits the 25-slot casebook shape, bucket allocation, selection rules, and outcome-label families | No named cases admitted, no source authority, run, score, or proof |
 | Fragrance Level 1 named-case candidate screen | Repo-local product-learning candidate screen | Ranks first admission attempts against the case-selection doctrine without selecting a case | No named cases admitted, no source authority, run, score, or proof |
-| Level 1 product-learning core minimum | Repo-local product-learning core minimum | Names the reusable market-agnostic backtesting-first SCV pieces satellites must consume before filling domain-specific cases | Product-learning context only; no case run, source authority, prompt artifact, score, proof, live/client readiness, or judgment-quality claim |
 
 ## Core Ownership
 
@@ -146,7 +144,7 @@ The fragrance satellite must not own:
 | Portion | Core owner/surface | Fragrance satellite first use | Boundary |
 | --- | --- | --- | --- |
 | Case framing / admission | C0 Decision Frame, case-finder, conductor run authorization boundary | Proposed 25-case fragrance casebook and cutoff plan | Casebook proposal is not run authorization or fixture admission |
-| Commission gate / evidence plan | Level 1 core-minimum backtesting contract plus future prompt-orchestrated gate artifact | Fragrance decision type, playbook, source priorities, creator slices, confirmation/counterevidence, forecast targets | Gate brief is not final recommendation, source authority, or run authorization |
+| Commission gate / evidence plan | Current-state/decomposition backtesting route plus future prompt-orchestrated gate artifact | Fragrance decision type, playbook, source priorities, creator slices, confirmation/counterevidence, forecast targets | Gate brief is not final recommendation, source authority, or run authorization |
 | Evidence capture / source plan | Source-capture owners plus C1 allow gate by pointer | Fragrance source registry, public venues, beauty venue card-set consumption | Venue hints are not source authority or captured evidence |
 | Evidence object / packet | JSG-01, ECR, packing/finalization, packet construction | Fragrance graph-family artifact, evidence object schema, contradictions, timeline, and provenance plan | No JSG-01 clearance without authorized run evaluation |
 | Weighting | C2 ledger read contract and signal-reliability ledger | Qualitative fragrance weighting rubric, caveat travel, signal IDs | No numeric weight, formula, or scoring engine |
@@ -188,19 +186,18 @@ Current slice status:
 4. **Done in this lane:** the named-case candidate screen ranks first admission
    attempts. It recommends which case to try admitting first, but still admits
    no named case.
-5. **Done in the dependent core-minimum lane:** the reusable **Level 1
-   product-learning core minimum** now names the market-agnostic core pieces
-   satellites must consume, what current Judgment already provides, what remains
-   blocked, which slots satellites may fill, and what claims remain impossible.
-6. **Next after the propagated core minimum:** prompt-orchestrated commission
-   gate / Level 1 judgment prompts, source registry, outcome-label sheet,
+5. **Retired by owner request:** the separate Level 1 core artifact no longer
+   carries the backtesting route. Use this current-state/decomposition map plus
+   the fragrance satellite, casebook admission, and named-case candidate docs
+   directly.
+6. **Next after this cleanup:** prompt-orchestrated commission gate / Level 1 judgment prompts, source registry, outcome-label sheet,
    forecast/action/log/evaluation artifacts, named-case admission attempt,
    source/evidence plan, and per-case product-learning receipt template remain
    separate slices.
 
 Top-level repo-map updates should stay thin. The repo map should route readers
 to the Judgment consolidation map; the consolidation map remains the correct
-local index for Judgment-specific current-state and core-minimum pointers.
+local index for Judgment-specific current-state and Level 1 organizer pointers.
 
 ## Non-Claims
 
@@ -229,7 +226,6 @@ claim inflation.
 - `docs/product/judgment_spine/fragrance_level1_product_learning_satellite_skeleton_v0.md`
 - `docs/product/judgment_spine/fragrance_level1_casebook_admission_frame_v0.md`
 - `docs/product/judgment_spine/fragrance_level1_named_case_candidate_screen_v0.md`
-- `docs/product/judgment_spine/judgment_level1_product_learning_core_minimum_v0.md`
 - `docs/research/judgment-spine/judgment_spine_consolidation_map_v0.md`
 - `C:/Users/vmon7/AppData/Local/Temp/orca_mgt_goal_v1.md`
 - `C:/Users/vmon7/AppData/Local/Temp/orca_judgement_mgt.md`
@@ -238,3 +234,25 @@ claim inflation.
 - `C:/Users/vmon7/AppData/Local/Temp/orca_judgement_prompt_level1.md`
 - `C:/Users/vmon7/AppData/Local/Temp/orca_open_questions_working_doc.md`
 - `C:/Users/vmon7/AppData/Local/Temp/orca_docs_split_manifest.md`
+
+## Direction Change Propagation - Core Artifact Removal
+
+```yaml
+direction_change_propagation:
+  change: owner-requested removal of the separate Level 1 backtesting core artifact
+  removed_artifacts:
+    - docs/product/judgment_spine/judgment_level1_product_learning_core_minimum_v0.md
+    - docs/hygiene/judgment_level1_product_learning_post_pr_handoff_v0.md
+  propagated_to:
+    - docs/research/judgment-spine/judgment_spine_consolidation_map_v0.md
+    - docs/workflows/orca_repo_map_v0.md
+    - docs/product/judgment_spine/judgment_current_state_and_decomposition_v0.md
+    - docs/product/judgment_spine/fragrance_level1_product_learning_reconciliation_v0.md
+    - docs/product/judgment_spine/fragrance_level1_product_learning_satellite_skeleton_v0.md
+    - docs/product/judgment_spine/fragrance_level1_casebook_admission_frame_v0.md
+    - docs/product/judgment_spine/fragrance_level1_named_case_candidate_screen_v0.md
+  invariant_kept:
+    - product-learning cap only
+    - no case run, prompt approval, source authority, score, proof, live/client readiness, or judgment-quality claim
+  blocker: none for this deletion cleanup; downstream prompt artifacts that depended on the removed route need separate update before those artifacts merge
+```
