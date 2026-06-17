@@ -253,7 +253,7 @@ source_subfamily: <subfamily>
 surface: <specific venue or route>
 observable: <what can be seen>
 capture_posture: available_now | planned_lane | deferred | manual_only | not_authorized | noisy_deferred
-board_role: chronology | source_route | signal_unit | contradiction | gap | classifier_handoff
+row_purpose: chronology | source_route | signal_unit | contradiction | gap | classifier_handoff
 graph_role: seed | node_candidate | edge_candidate | propagation_path | campaign_overlap_check | counterevidence_path | none
 graph_weight_hint: high | medium | low | none   # relation utility only, never signal strength
 signal_role: consumer_language | review_experience | creator_attention | retail_corroboration | search_interest | aeo_visibility | org_motion | owned_claim | none
@@ -273,11 +273,12 @@ feeds:
   The demand classifier owns the board-`signal_role` -> classifier-family mapping; the
   board only labels and routes, consistent with the owner correction that the
   classifier owns the demand check.
-- **`board_role` and `signal_role` are distinct fields.** In the source-family
+- **`row_purpose` and `signal_role` are distinct fields.** In the source-family
   map, `signal_role` records the *signal content* a family yields. The schema's
-  separate `board_role` field is the *structural* role (`chronology |
-  source_route | signal_unit | contradiction | gap | classifier_handoff`). A
-  future prompt and the Owner Decision 2 field set should not conflate the two.
+  separate `row_purpose` field records the job of the row inside the board
+  (`chronology | source_route | signal_unit | contradiction | gap |
+  classifier_handoff`). A future prompt and the Owner Decision 2 field set should
+  not conflate the two.
 
 ## Section Adjudication Matrix
 
