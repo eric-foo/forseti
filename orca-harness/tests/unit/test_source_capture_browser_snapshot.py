@@ -21,6 +21,7 @@ from source_capture.adapters.browser_snapshot import (
     fetch_browser_context_responses,
     fetch_browser_snapshot_capture,
 )
+from source_capture.proxy_profiles import ProxyCategory, ProxyProfile
 
 
 @pytest.fixture
@@ -131,6 +132,44 @@ def test_fetch_browser_snapshot_capture_passes_storage_state_without_recording_p
     assert str(state_path) not in json.dumps(result.metadata)
 
 
+def test_fetch_browser_snapshot_capture_passes_proxy_without_recording_secret() -> None:
+    proxy = ProxyProfile(
+        proxy_endpoint="http://proxy_user:proxy_pass@example.proxy.test:1234",
+        proxy_category=ProxyCategory.RESIDENTIAL_ROTATING,
+        geoip_enabled=False,
+        timezone="America/New_York",
+        locale="en-US",
+    )
+    engine = _FakeBrowserEngine(
+        _FakeEngineResult(
+            final_url="https://example.com/rendered",
+            title="Rendered Source",
+            rendered_dom="<html><body><h1>Rendered source</h1></body></html>",
+            visible_text="Rendered source",
+            screenshot_png=b"\x89PNG\r\n\x1a\nbrowser",
+        )
+    )
+
+    result = fetch_browser_snapshot_capture(
+        url="https://example.com/source",
+        proxy_profile=proxy,
+        engine=engine,
+    )
+
+    assert isinstance(result, BrowserSnapshotSuccess)
+    assert engine.capture_kwargs is not None
+    assert engine.capture_kwargs["proxy_profile"] is proxy
+    assert result.metadata["proxy_used"] is True
+    assert result.metadata["proxy_category"] == "residential_rotating"
+    assert result.metadata["proxy_disclosure"] == "category_only"
+    assert result.metadata["proxy_endpoint_recorded"] is False
+    assert result.metadata["proxy_exit_ip_recorded"] is False
+    serialized = json.dumps(result.metadata)
+    assert "example.proxy.test" not in serialized
+    assert "proxy_user" not in serialized
+    assert "proxy_pass" not in serialized
+
+
 def test_fetch_browser_context_responses_preserves_status_and_body() -> None:
     engine = _FakeContextResponseEngine(
         BrowserContextResponsesSuccess(
@@ -172,6 +211,50 @@ def test_fetch_browser_context_responses_preserves_status_and_body() -> None:
     assert engine.capture_kwargs["requests"][0].headers == {"X-IG-App-ID": "936619743392459"}
     assert result.responses[0].status == 429
     assert result.responses[0].ok is False
+
+
+def test_fetch_browser_context_responses_threads_proxy_to_engine() -> None:
+    proxy = ProxyProfile(
+        proxy_endpoint="http://proxy_user:proxy_pass@example.proxy.test:1234",
+        proxy_category=ProxyCategory.RESIDENTIAL_ROTATING,
+        geoip_enabled=False,
+    )
+    engine = _FakeContextResponseEngine(
+        BrowserContextResponsesSuccess(
+            page_url="https://www.instagram.com/hyram/",
+            final_page_url="https://www.instagram.com/hyram/",
+            responses=[
+                BrowserContextResponse(
+                    request_id="web_profile_info",
+                    requested_url="https://www.instagram.com/api/v1/users/web_profile_info/?username=hyram",
+                    final_url="https://www.instagram.com/api/v1/users/web_profile_info/?username=hyram",
+                    status=200,
+                    ok=True,
+                    body_text="{}",
+                    response_headers={"content-type": "application/json"},
+                )
+            ],
+            metadata={},
+            warning_notes=[],
+            limitation_notes=[],
+        )
+    )
+
+    result = fetch_browser_context_responses(
+        page_url="https://www.instagram.com/hyram/",
+        requests=[
+            BrowserContextRequest(
+                request_id="web_profile_info",
+                url="https://www.instagram.com/api/v1/users/web_profile_info/?username=hyram",
+            )
+        ],
+        proxy_profile=proxy,
+        engine=engine,
+    )
+
+    assert isinstance(result, BrowserContextResponsesSuccess)
+    assert engine.capture_kwargs is not None
+    assert engine.capture_kwargs["proxy_profile"] is proxy
 
 
 def test_fetch_browser_context_responses_enforces_response_body_size_cap() -> None:

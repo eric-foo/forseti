@@ -17,6 +17,19 @@ from source_capture.models import (
 from source_capture.auth_state import AuthenticatedSessionMode
 from source_capture.proxy_profiles import ProxyCategory
 from source_capture.reddit_credentials import RedditCredentialMode
+from source_capture.ig_projection import (
+    IG_PROJECTION_CERTIFICATION,
+    IG_PROJECTION_METHOD,
+    IG_PROJECTION_VERSION,
+    IgCreatorMomentumProjectionLossLedger,
+    IgCreatorMomentumProjectionPacket,
+    IgCreatorMomentumProjectionRow,
+    IgProjectionRawAnchor,
+    IgProjectionRawRef,
+    build_ig_creator_momentum_projection,
+    build_ig_creator_momentum_projection_from_packet_directory,
+    write_ig_creator_momentum_projection,
+)
 from source_capture.reddit_projection import (
     REDDIT_PROJECTION_CERTIFICATION,
     REDDIT_PROJECTION_METHOD,
@@ -57,6 +70,14 @@ from source_capture.writer import NON_CLAIMS, render_receipt, write_local_source
 __all__ = [
     "AuthenticatedSessionMode",
     "CaptureModeCategory",
+    "IG_PROJECTION_CERTIFICATION",
+    "IG_PROJECTION_METHOD",
+    "IG_PROJECTION_VERSION",
+    "IgCreatorMomentumProjectionLossLedger",
+    "IgCreatorMomentumProjectionPacket",
+    "IgCreatorMomentumProjectionRow",
+    "IgProjectionRawAnchor",
+    "IgProjectionRawRef",
     "NON_CLAIMS",
     "OBLIGATION_CONTRACT_VERSION",
     "PacketTiming",
@@ -92,11 +113,14 @@ __all__ = [
     "RetailPdpProjectionRow",
     "RetailProjectionRawAnchor",
     "RetailProjectionRawRef",
+    "build_ig_creator_momentum_projection",
+    "build_ig_creator_momentum_projection_from_packet_directory",
     "build_reddit_api_projection",
     "build_retail_pdp_projection",
     "build_retail_pdp_projection_from_packet_directory",
     "build_source_quality_report_skeleton",
     "build_source_quality_state_census",
+    "write_ig_creator_momentum_projection",
     "known_fact",
     "not_applicable",
     "not_attempted",

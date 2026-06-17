@@ -19,6 +19,7 @@ from source_capture.adapters.browser_snapshot import (
     BrowserSnapshotFailure,
     fetch_browser_context_responses,
 )
+from source_capture.proxy_profiles import ProxyProfile
 
 IG_WEB_APP_ID = "936619743392459"
 IG_GRID_DOC_ID = "7950326061742207"
@@ -115,6 +116,7 @@ def fetch_ig_profile_momentum(
     request_gap_seconds: float = 3.0,
     timeout_seconds: float = 20.0,
     max_response_bytes: int = 5_000_000,
+    proxy_profile: ProxyProfile | None = None,
     sleep_fn: Callable[[float], None] = time.sleep,
     browser_fetcher: Callable[..., BrowserContextResponsesResult] = fetch_browser_context_responses,
 ) -> IgProfileMomentumCapture:
@@ -148,6 +150,7 @@ def fetch_ig_profile_momentum(
         timeout_seconds=timeout_seconds,
         wait_until="load",
         max_response_bytes=max_response_bytes,
+        proxy_profile=proxy_profile,
     )
     web_records = _records_from_fetch_result(web_result)
     raw_responses.extend(web_records)
@@ -187,6 +190,7 @@ def fetch_ig_profile_momentum(
             timeout_seconds=timeout_seconds,
             wait_until="load",
             max_response_bytes=max_response_bytes,
+            proxy_profile=proxy_profile,
         )
         graph_records = _records_from_fetch_result(graph_result)
         raw_responses.extend(graph_records)

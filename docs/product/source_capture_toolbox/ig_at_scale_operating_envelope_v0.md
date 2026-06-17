@@ -22,6 +22,8 @@ open_next:
 stale_if:
   - A fuller R run pins the at-pace daily-volume ceiling, exact pace threshold, or throttle decay time.
   - The carve-out is amended to authorize sessions, auto-sprints, commercial scale, or a different account cap.
+  - A later route probe shows current local egress is clean logged-out again, or that the measured
+    `768x1024` profile-enumeration viewport no longer exposes DOM permalinks.
   - Proxy provider pricing or acceptable-use posture materially changes.
   - IG moves the public signal behind auth, changes the block mode, or changes the logged-out read substrate.
 ```
@@ -45,6 +47,17 @@ Local sources reread on current `origin/main` (`73b091bc`, 2026-06-16):
 - `docs/product/source_capture_toolbox/ig_capture_findings_consolidated_v0.md`
 - `orca-harness/runners/run_source_capture_ig_calls_packet.py`
 
+Successor-lane live addendum (2026-06-17; gitignored receipts, no proxy endpoint/exit-IP/session
+secret recorded in durable docs):
+
+- Current local egress + logged-out can soft-wall (`web_profile_info` 401 / login redirect).
+- Residential rotating proxy + logged-out returned `web_profile_info` 200; vanilla Playwright was
+  sufficient for that API result, so CloakBrowser was not the differentiator in this probe.
+- Owner-created session state on current egress returned `web_profile_info` 200. This is a fallback
+  candidate, not a default runtime recommendation.
+- Profile DOM permalink extraction is viewport-sensitive: `768x1024` and `1280x1200` returned 12
+  grid permalinks; `1280x720`, `820x1180`, and `1024x1366` returned none in the same bounded route.
+
 External pricing spot-check (current enough for a v0 estimate; verify before spend):
 
 - IPRoyal official residential proxy pricing page, opened 2026-06-16:
@@ -58,12 +71,15 @@ External pricing spot-check (current enough for a v0 estimate; verify before spe
 
 ## Bottom line
 
-Do **not** buy proxies or add IG accounts for the current beauty-vertical IG monitoring posture.
+Do **not** pre-buy proxies or add IG accounts as the default architecture for the current
+beauty-vertical IG monitoring posture.
 
-The live constraint is per-egress-IP **pace**, not account count and not ordinary session volume.
-Operate logged-out egress paths at bounded human-paced spacing, in bounded,
-human-initiated/self-terminating sessions. For the owner-selected **1,000 creator serious v0**,
-the smallest reliable operating path is now:
+The durable live constraint remains per-egress-IP **pace**, not account count and not ordinary
+session volume. The 2026-06-17 successor probes add a route-selection caution: the current local
+egress can be logged-out soft-walled, while an alternate residential egress worked logged-out and
+own-session current egress worked for `web_profile_info`. Operate logged-out egress paths at bounded
+human-paced spacing, in bounded, human-initiated/self-terminating sessions. For the owner-selected
+**1,000 creator serious v0**, the smallest reliable operating path is still:
 
 - **Lane 1:** main laptop on home fibre/home internet.
 - **Lane 2:** second laptop on phone USB tether or other mobile-data upstream.
@@ -71,6 +87,10 @@ the smallest reliable operating path is now:
   cleaner. Defer VM use until a third distinct egress lane is actually needed.
 - **Do not treat a second laptop on the same home Wi-Fi/fibre as lane 2.** It is the same public egress.
 - **Do not rotate per request.** Assign creators/due buckets to stable lanes.
+
+If Lane 1 remains logged-out soft-walled after a fully quiet cooldown, do not conclude that IG is
+globally inaccessible. Treat it as an egress-route problem: prefer the mobile-data lane or another
+clean logged-out egress before normalizing a paid proxy or account/session runtime.
 
 The ideal operating-account count for the current logged-out path is therefore:
 
@@ -190,7 +210,7 @@ The account count question should be answered as egress math, not social-account
 | Current 1,000 creator serious-v0 path | 2 distinct egress paths; no session accounts | Keeps the daily monitoring window operationally comfortable without accounts, proxies, or VM complexity. |
 | First fallback after two-lane measured compliant-pace blocks | 3 distinct egress paths | Tests whether capacity is additive without burning the <=5 starting envelope. |
 | Larger fallback if one-IP session windows cannot fit roster demand | `ceil(demand / observed_per_ip_R)` distinct egress paths, capped by owner posture | Add IPs only from measured demand; do not pre-buy capacity. |
-| Session/account runtime | 0, unless owner amends carve-out | Current lane forbids cookies/sessions in committed runner paths. |
+| Session/account runtime | 0 by default; separately authorized fallback/probe only | Own-session current egress worked for `web_profile_info`, but sustained cadence/account risk is unmeasured and should not replace clean logged-out egress by default. |
 
 Do not use the full <=10 cap as a target. It is a ceiling for risk control, not an operating goal.
 The right number is the smallest number of distinct egress paths that keeps compliant-pace sessions
@@ -220,6 +240,11 @@ or authorization to capture.
 
 - At-pace daily-volume ceiling remains unmeasured. The second endurance retry wrote only warm-up log
   rows and no summary.
+- Current local egress logged-out recovery is unmeasured after a fully quiet cooldown; latest
+  successor probes saw logged-out soft-wall on current egress but success on alternate egress and
+  own-session current egress.
+- Profile-enumeration viewport behavior is only first-measured. `768x1024` is the current candidate
+  because it exposed DOM links in a bounded `@hyram` route; it is not a permanent IG guarantee.
 - Exact pace threshold remains unpinned; known safe/unsafe shape is >=~2s clean in run 1 and sub-2s
   wall in run 2.
 - Throttle decay time remains unpinned; evidence says longer than the prior "minutes" assumption and

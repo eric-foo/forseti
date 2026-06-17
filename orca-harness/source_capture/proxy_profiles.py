@@ -1,8 +1,8 @@
-"""Local, ignored proxy profile store for CloakBrowser source capture.
+"""Local, ignored proxy profile store for Source Capture browser routes.
 
 Proxy endpoints and credentials are secrets. This module keeps them behind a
 label-indirected local store and returns them only as in-memory values for the
-CloakBrowser launch call. Packets may record the non-secret method category and
+browser launch call. Packets may record the non-secret method category and
 geoip setting, never the endpoint, credentials, exit IP, store root, or file path.
 """
 
@@ -45,7 +45,7 @@ class ProxyProfile:
 
     ``timezone`` / ``locale`` are the operator-declared target geo for the proxy's
     exit country (e.g. ``America/New_York`` / ``en-US`` for a US residential exit).
-    They are NOT secret; they are passed to the CloakBrowser launch so the rendered
+    They are NOT secret; they are passed to the browser launch so the rendered
     session's timezone/locale match the proxy IP's country instead of the capture
     host's, removing a geo-congruence signal anti-bot systems flag.
     """
@@ -178,6 +178,32 @@ def load_proxy_profile(
     )
 
 
+def load_proxy_profile_by_label(
+    label: str,
+    *,
+    profile_root: Path | None = None,
+) -> ProxyProfile:
+    """Load a registered proxy profile using the category declared in its sidecar."""
+
+    root = profile_root or default_proxy_profile_root()
+    metadata_path = proxy_profile_metadata_path_for_label(label, profile_root=root)
+    if not metadata_path.exists():
+        raise ValueError(
+            "proxy-profile metadata sidecar does not exist for label: "
+            f"{label}; register the profile with an explicit proxy category"
+        )
+    sidecar = read_sidecar(metadata_path, kind=_PROXY_PROFILE_KIND, label=label)
+    registered_category = sidecar.get("proxy_category")
+    try:
+        proxy_category = ProxyCategory(registered_category)
+    except ValueError as exc:
+        raise ValueError(
+            "proxy-profile metadata proxy_category must be one of "
+            f"{[item.value for item in ProxyCategory]} for label: {label}"
+        ) from exc
+    return load_proxy_profile(label, proxy_category=proxy_category, profile_root=root)
+
+
 def _normalize_declared_geo(value: str | None) -> str | None:
     """Normalize an operator-declared timezone/locale at write time: trim, and
     treat empty/whitespace-only (or non-string) as 'not declared' (None)."""
@@ -211,7 +237,7 @@ def _validate_profile_shape(payload: dict, *, label: str) -> None:
     if unexpected:
         raise ValueError(
             f"proxy-profile file has unexpected key(s) {unexpected} for label: {label}; "
-            "the supported CloakBrowser proxy profile accepts exactly server"
+            "the supported Source Capture proxy profile accepts exactly server"
         )
 
 
@@ -221,6 +247,7 @@ __all__ = [
     "default_proxy_profile_root",
     "ensure_proxy_profile_directory",
     "load_proxy_profile",
+    "load_proxy_profile_by_label",
     "proxy_profile_metadata_path_for_label",
     "proxy_profile_path_for_label",
     "validate_proxy_profile_file",

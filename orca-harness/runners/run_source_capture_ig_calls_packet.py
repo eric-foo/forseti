@@ -44,8 +44,6 @@ from source_capture.adapters import BrowserSnapshotFailure, fetch_browser_snapsh
 from source_capture.adapters.browser_snapshot import (
     DEFAULT_MAX_ARTIFACT_BYTES,
     DEFAULT_TIMEOUT_SECONDS,
-    DEFAULT_VIEWPORT_HEIGHT,
-    DEFAULT_VIEWPORT_WIDTH,
     BrowserSnapshotFailureKind,
 )
 from source_capture.cadence import build_cadence_plan
@@ -63,13 +61,20 @@ from source_capture.ig_calls_parse import (
     parse_ig_profile_og,
 )
 from source_capture.models import CoverageWindow, MetricObservation, MetricPosture
+from source_capture.proxy_profiles import (
+    ProxyCategory,
+    ProxyProfile,
+    load_proxy_profile,
+    load_proxy_profile_by_label,
+)
 
 IG_CALLS_NON_CLAIMS = [
     "not content sufficiency proof",
     "not login or session capture",
     "not stored profile or cookie use",
     "not anti-detect behavior",
-    "not proxy or session injection",
+    "not proxy endpoint or credential disclosure",
+    "not per-request proxy rotation",
     "not CAPTCHA solving",
     "not crawler or scheduled monitoring",
     "not full-history backfill",
@@ -91,6 +96,8 @@ DEFAULT_CADENCE_MIN_GAP_SECONDS = 8.0
 DEFAULT_CADENCE_MAX_GAP_SECONDS = 45.0
 DEFAULT_XHR_REQUEST_GAP_SECONDS = 3.0
 DEFAULT_VIEW_COUNT_MAX_GRAPHQL_PAGES = 1
+DEFAULT_IG_PROFILE_VIEWPORT_WIDTH = 768
+DEFAULT_IG_PROFILE_VIEWPORT_HEIGHT = 1024
 
 
 def _detect_ig_block(*, final_url: str, title: str | None, visible_text: str, rendered_dom: str) -> str | None:
@@ -125,6 +132,7 @@ _RETRYABLE_CAPTURE_FAILURES = frozenset({
 
 def _capture_one(url: str, *, scroll_passes: int, timeout_seconds: float, viewport_width: int,
                  viewport_height: int, max_artifact_bytes: int,
+                 proxy_profile: ProxyProfile | None = None,
                  max_attempts: int = 1, retry_backoff_seconds: float = 0.0,
                  sleep_fn: Callable[[float], None] = time.sleep):
     attempt = 0
@@ -137,6 +145,7 @@ def _capture_one(url: str, *, scroll_passes: int, timeout_seconds: float, viewpo
             viewport_width=viewport_width,
             viewport_height=viewport_height,
             max_artifact_bytes=max_artifact_bytes,
+            proxy_profile=proxy_profile,
             scroll_passes=scroll_passes,
         )
         if not isinstance(result, BrowserSnapshotFailure):
@@ -327,14 +336,15 @@ def run_source_capture_ig_calls_packet(
     cadence_max_gap_seconds: float = DEFAULT_CADENCE_MAX_GAP_SECONDS,
     cadence_random_seed: int | None = None,
     timeout_seconds: float = DEFAULT_TIMEOUT_SECONDS,
-    viewport_width: int = DEFAULT_VIEWPORT_WIDTH,
-    viewport_height: int = DEFAULT_VIEWPORT_HEIGHT,
+    viewport_width: int = DEFAULT_IG_PROFILE_VIEWPORT_WIDTH,
+    viewport_height: int = DEFAULT_IG_PROFILE_VIEWPORT_HEIGHT,
     max_artifact_bytes: int = DEFAULT_MAX_ARTIFACT_BYTES,
     capture_view_counts: bool = True,
     view_count_max_graphql_pages: int = DEFAULT_VIEW_COUNT_MAX_GRAPHQL_PAGES,
     xhr_request_gap_seconds: float = DEFAULT_XHR_REQUEST_GAP_SECONDS,
     capture_retries: int = 0,
     capture_retry_backoff_seconds: float = DEFAULT_CAPTURE_RETRY_BACKOFF_SECONDS,
+    proxy_profile: ProxyProfile | None = None,
     capture_context: str = "logged-out IG wind-caller calls capture (no session); one bounded account, recent calls",
     operator_category: str = "ig_calls_browser_snapshot_cli_operator",
     session_id: str | None = None,
@@ -352,6 +362,7 @@ def run_source_capture_ig_calls_packet(
     profile = _capture_one(
         profile_url, scroll_passes=profile_scroll_passes, timeout_seconds=timeout_seconds,
         viewport_width=viewport_width, viewport_height=viewport_height, max_artifact_bytes=max_artifact_bytes,
+        proxy_profile=proxy_profile,
         max_attempts=capture_retries + 1, retry_backoff_seconds=capture_retry_backoff_seconds, sleep_fn=sleep_fn,
     )
     if isinstance(profile, BrowserSnapshotFailure):
@@ -383,6 +394,7 @@ def run_source_capture_ig_calls_packet(
             request_gap_seconds=xhr_request_gap_seconds,
             timeout_seconds=timeout_seconds,
             max_response_bytes=max_artifact_bytes,
+            proxy_profile=proxy_profile,
             sleep_fn=sleep_fn,
         )
         if permalinks:
@@ -406,6 +418,7 @@ def run_source_capture_ig_calls_packet(
         item = _capture_one(
             url, scroll_passes=0, timeout_seconds=timeout_seconds, viewport_width=viewport_width,
             viewport_height=viewport_height, max_artifact_bytes=max_artifact_bytes,
+            proxy_profile=proxy_profile,
             max_attempts=capture_retries + 1, retry_backoff_seconds=capture_retry_backoff_seconds, sleep_fn=sleep_fn,
         )
         if isinstance(item, BrowserSnapshotFailure):
@@ -470,6 +483,8 @@ def run_source_capture_ig_calls_packet(
         limitations=list(limitations),
         momentum_capture=momentum_capture,
         capture_view_counts=capture_view_counts,
+        profile_capture_metadata=profile.metadata,
+        proxy_profile=proxy_profile,
     )
 
 
@@ -503,6 +518,8 @@ def _write_packet(
     limitations: list[str],
     momentum_capture: IgProfileMomentumCapture | None,
     capture_view_counts: bool,
+    profile_capture_metadata: dict[str, object],
+    proxy_profile: ProxyProfile | None,
 ) -> tuple[int, str]:
     access, archive, media, recapture = _slice_postures()
     staging_parent = output_directory.parent
@@ -519,6 +536,23 @@ def _write_packet(
         "stats": stats_dict,
         "permalinks_enumerated": permalink_count,
         "cadence_plan": cadence_summary,
+        "capture_metadata": {
+            "viewport_width": profile_capture_metadata.get("viewport_width"),
+            "viewport_height": profile_capture_metadata.get("viewport_height"),
+            "proxy_used": proxy_profile is not None or profile_capture_metadata.get("proxy_used", False),
+            "proxy_category": (
+                proxy_profile.proxy_category.value
+                if proxy_profile is not None
+                else profile_capture_metadata.get("proxy_category")
+            ),
+            "proxy_disclosure": (
+                "category_only"
+                if proxy_profile is not None
+                else profile_capture_metadata.get("proxy_disclosure", "none")
+            ),
+            "proxy_endpoint_recorded": False,
+            "proxy_exit_ip_recorded": False,
+        },
     }
 
     # One staged file per slice: file_01 = profile, file_02.. = each item.
@@ -632,6 +666,11 @@ def _write_packet(
             run_limitations.append(
                 f"partial_capture: {captured_count}/{len(item_records)} items yielded a call signal"
             )
+        if proxy_profile is not None:
+            run_limitations.append(
+                "proxy_profile_used: category="
+                f"{proxy_profile.proxy_category.value}; endpoint, credentials, exit IP, and store path not recorded"
+            )
         view_count_observed = sum(
             1
             for source_slice in slices
@@ -708,16 +747,68 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--capture-retries", type=int, default=0,
                         help="extra retries for a TRANSIENT capture failure (timeout/capture_failed); never retries a block")
     parser.add_argument("--capture-retry-backoff-seconds", type=float, default=DEFAULT_CAPTURE_RETRY_BACKOFF_SECONDS)
+    proxy_group = parser.add_argument_group(
+        "proxy profile",
+        "Optional label-indirected proxy use. The endpoint and credentials stay in the local secret store; "
+        "packets record category-only provenance.",
+    )
+    proxy_group.add_argument(
+        "--proxy-label",
+        "--proxy-profile-label",
+        dest="proxy_profile_label",
+        default=None,
+        help="Registered proxy profile label. If --proxy-category is omitted, the runner uses the sidecar category.",
+    )
+    proxy_group.add_argument(
+        "--proxy-category",
+        "--proxy-profile-category",
+        dest="proxy_profile_category",
+        choices=[item.value for item in ProxyCategory],
+        default=None,
+        help="Optional category assertion for the selected label; rejects the run if it disagrees with the sidecar.",
+    )
+    proxy_group.add_argument(
+        "--proxy-root",
+        "--proxy-profile-root",
+        dest="proxy_profile_root",
+        type=Path,
+        default=None,
+        help="Optional local proxy profile store root. Never recorded in packet output.",
+    )
     parser.add_argument("--session-id", default=None)
     parser.add_argument("--warning", action="append", default=[])
     parser.add_argument("--limitation", action="append", default=[])
     return parser
 
 
+def _load_optional_proxy_profile(
+    *,
+    label: str | None,
+    category: str | None,
+    profile_root: Path | None,
+) -> ProxyProfile | None:
+    if not label and not category:
+        return None
+    if not label:
+        raise ValueError("proxy capture requires --proxy-label when --proxy-category is supplied")
+    if not category:
+        return load_proxy_profile_by_label(label=label, profile_root=profile_root)
+    return load_proxy_profile(
+        label=label,
+        proxy_category=ProxyCategory(category),
+        profile_root=profile_root,
+    )
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     parser = _build_parser()
     args = parser.parse_args(argv)
     try:
+        proxy_profile = _load_optional_proxy_profile(
+            label=args.proxy_profile_label,
+            category=args.proxy_profile_category,
+            profile_root=args.proxy_profile_root,
+        )
         exit_code, message = run_source_capture_ig_calls_packet(
             profile_url=args.profile_url,
             output_directory=args.output,
@@ -735,6 +826,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             xhr_request_gap_seconds=args.xhr_request_gap_seconds,
             capture_retries=args.capture_retries,
             capture_retry_backoff_seconds=args.capture_retry_backoff_seconds,
+            proxy_profile=proxy_profile,
             session_id=args.session_id,
             warnings=args.warning,
             limitations=args.limitation,
