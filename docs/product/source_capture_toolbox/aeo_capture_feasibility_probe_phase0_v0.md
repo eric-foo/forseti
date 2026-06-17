@@ -403,6 +403,29 @@ Gemini-API fidelity is unproven — assume the same underlying system, but it is
 provable by these attempts. Whether/how to adopt this venue under #228's gates is that
 lane's decision; no build or outreach is authorized here.
 
+## Proposed next step — validation bridge (routed to the demand / proof lane)
+
+**PROPOSED, not built.** The capture findings are necessary but not sufficient: a
+precise AEO metric measures the *proxy*, not demand reality. Before AEO can count
+as a consumer-demand signal (vs. just a visibility venue), the demand/proof lane
+should run a small **predictive-validity** test:
+
+- **Labeled set (~10–20 US beauty / personal-care brands)** with KNOWN public
+  outcomes — durable winners (sustained search / retail expansion / sell-through)
+  vs. faded / flash-in-the-pan — drawn from the public record.
+- **Signal:** per brand, compute the AEO metric(s) — citation frequency/share +
+  source-set stability (run-to-run and over a short window), with a **measured
+  noise floor** (repeat the same query) so "stability" isn't model randomness.
+- **Test:** does the metric *discriminate* durable vs. faded — and, the higher
+  bar, would it have flagged the outcome **early** (leading, not coincident)?
+- **Pre-registered hit/miss + kill:** define predictive success *before* looking;
+  if the metric doesn't beat a naive baseline, the demand-integrity hypothesis is
+  **killed** and AEO stays a plain visibility venue (no integrity claim).
+
+Boundaries: demand/proof-lane-owned (this is decision-prep, not that lane's
+authority); Gemini-API proxy, not the consumer box; pre-proof; not run here; no
+outreach; asserts no validation or willingness-to-pay.
+
 ## Addendum non-claims
 
 Research/feasibility only. The Gemini grounding surface is a **proxy**, not the
