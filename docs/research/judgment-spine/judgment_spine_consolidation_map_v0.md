@@ -16,6 +16,7 @@ stale_if:
   - An owner source renames/retires a spine area or its owning doc moves trees.
   - The evidence ladder changes claim tiers or closeout states.
   - The conductor changes its invariants, the five seams, or the outcome precedence.
+  - The current-state/decomposition map or fragrance Level 1 organizers change default mode, SCV loop, readiness gates, or satellite-fill contract.
   - A contestant-execution runner lands and lifts the by-hand cap (then author v1).
 ```
 
@@ -43,12 +44,18 @@ stale_if:
 | Understand no-tools isolation for JSG-04/05/06 | `harness/v0_14/contestant_no_tools_execution_contract_v0.md` | research |
 | Know what machinery is built vs a named gap (build-state) | `judgment_spine_machinery_build_state_gap_map_v0.md` | research |
 | Read the SP-5 finalization-receipt contract | `sp5_finalization_receipt_spec_v0.md` | research |
+| Orient after fragrance reconciliation and split current Judgment into core/satellite portions | `docs/product/judgment_spine/judgment_current_state_and_decomposition_v0.md` | product |
+| Plan a Level 1 backtest case through commission gate, evidence plan, forecast, utility/action, decision log, reveal, and evaluation without claiming run authority | `docs/product/judgment_spine/judgment_current_state_and_decomposition_v0.md` | product |
+| Fill the first fragrance Level 1 product-learning satellite slots without claiming proof or run authority | `docs/product/judgment_spine/fragrance_level1_product_learning_satellite_skeleton_v0.md` | product |
+| Fill or check the first fragrance Level 1 casebook slots without admitting named cases prematurely | `docs/product/judgment_spine/fragrance_level1_casebook_admission_frame_v0.md` | product |
+| Choose which named fragrance Level 1 case to try admitting first | `docs/product/judgment_spine/fragrance_level1_named_case_candidate_screen_v0.md` | product |
 
-## Current Reality Snapshot (as of v0, refreshed 2026-06-09 — verify each against its owner)
+## Current Reality Snapshot (as of v0, refreshed 2026-06-09; JSG-01 and decomposition pointer refreshed 2026-06-17 — verify each against its owner)
 
 - **Conductor exists and is test-worthy, not proven** — it routes/verifies receipts and computes nothing (→ conductor non-claims).
 - **By-hand cap is in force:** there is no contestant-execution runner, so JSG-04/05/06 run by-hand and a run **caps at product-learning** (→ conductor, Seam 3).
-- **JSG-01 stays FROZEN (`indeterminate_until_authored`)** — for narrower reasons than v0 stated. The ECR SP-1/2/3/6 derivers **are built** (`orca-harness/ecr/deriver.py`: timing / inspectability / identity / source-visibility postures off the `SourceCapturePacket`; they bind no `EvidenceUnit` and make no JSG-01 claim). AR-01 (who finalizes `pre_decision_status`) is **resolved** — distinct cross-family act, operator-for-now (→ `docs/decisions/ar_01_pre_decision_status_finalizer_staffing_v0.md`). What still gates an unfreeze: the **SP-5 finalizer mechanism built** + a **case packet carrying the derived fields** (ECR slice-2). (→ conductor JSG-01 row, **now corrected to match** — derivers built, AR-01 resolved; commit `d2cac45`.)
+- **JSG-01 is UNFROZEN / evaluable, but clears no case until an authorized run evaluates one** — the build-state map records the JSG-01-scoped `EvidenceUnit` binding as built/ratified/realized and the conductor row tracks the owner-dated unfreeze act. Missing or unresolvable owner fields still route to not-cleared; an authorized run remains separate.
+- **Level 1 product-learning now routes backtesting-first by default** — open the current-state/decomposition map and fragrance Level 1 organizers for the product-learning route: historical public fragrance case, frozen cutoff, commission gate, graph/evidence plan, qualitative weighting, forecasts, utility/action, decision log, reveal/evaluation, benchmark comparison, and 25-case first success condition. This is setup/product learning only, not live/client readiness or judgment-quality proof.
 - **Current cases are pre-cutoff** and cap at qualitative / product-learning; none is a scoreable fixture. Which cases exist → manifest (the inventory owner); what each can claim → evidence ladder. (This map does not list cases — that would inherit the manifest's drift.)
 - **Judgment-quality lane — where we are / next** (orientation, refreshed 2026-06-10; verify against the lane records, which own the detail):
   - *Tier:* capped at **product-learning** (by-hand); "almost judgment-quality" is a proximity description, **not** a minted tier → `ideal_judgment_quality_run_and_current_position_v0.md`.
@@ -93,6 +100,26 @@ stale_if:
 - summary: Phase-1 code-readiness spec — schemas, action bands, scorer, runner contracts, probe; the no-tools contract owns JSG-04/05/06 isolation.
 - status: Phase-1 spec; does not authorize implementation by itself.
 - pointer: `docs/research/judgment-spine/harness/v0_14/index.md` and `.../contestant_no_tools_execution_contract_v0.md` (research).
+
+### Current-state and decomposition frame
+- summary: Product-learning bridge from the 2026-06-17 fragrance reconciliation into a core/satellite split for future Judgment work portions.
+- status: docs-only product-learning context; not source-of-truth, validation, readiness, or proof.
+- pointer: `docs/product/judgment_spine/judgment_current_state_and_decomposition_v0.md` (product).
+
+### Fragrance Level 1 satellite skeleton
+- summary: Repo-local product-learning skeleton for fragrance-specific casebook, source, evidence, weighting, forecast, decision, reveal, lesson, and receipt slots.
+- status: docs-only product-learning context; not casebook admission, source-capture authority, run authorization, scoring, validation, readiness, buyer proof, or judgment-quality evidence.
+- pointer: `docs/product/judgment_spine/fragrance_level1_product_learning_satellite_skeleton_v0.md` (product).
+
+### Fragrance Level 1 casebook admission frame
+- summary: Repo-local product-learning frame for the first 25 fragrance case slots, bucket allocation, named-case admission gate, and outcome-label families.
+- status: admits the casebook slot shape only; no named cases admitted, source-capture authority, run authorization, scoring, validation, readiness, buyer proof, or judgment-quality evidence.
+- pointer: `docs/product/judgment_spine/fragrance_level1_casebook_admission_frame_v0.md` (product).
+
+### Fragrance Level 1 named-case candidate screen
+- summary: Repo-local product-learning screen that reconciles fanout search results against the case-selection doctrine and recommends the first admission attempt without admitting any named case.
+- status: docs-only candidate screen; all named products remain `candidate_pending_selection`, `held`, or rejected for first admission; no source-capture authority, run authorization, scoring, validation, readiness, buyer proof, or judgment-quality evidence.
+- pointer: `docs/product/judgment_spine/fragrance_level1_named_case_candidate_screen_v0.md` (product).
 
 ## Status Vocabularies (owner-defined — this map points, never redefines)
 

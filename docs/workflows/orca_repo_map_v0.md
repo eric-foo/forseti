@@ -452,7 +452,7 @@ The Judgment Spine spans **both** trees — `docs/research/judgment-spine/` (the
 
 | Path | Use for |
 | --- | --- |
-| `docs/research/judgment-spine/judgment_spine_consolidation_map_v0.md` | **Judgment Spine entry map — open first.** Per-area summary, owner-native status, and one pointer for thesis, cases/manifest, conductor, gate ownership, evidence ladder, JSG-08, and the harness; routes to the owners rather than restating them. The path toward judgment-quality evidence, not proof; by-hand runs cap at product-learning. |
+| `docs/research/judgment-spine/judgment_spine_consolidation_map_v0.md` | **Judgment Spine entry map — open first.** Per-area summary, owner-native status, and one pointer for thesis, cases/manifest, conductor, gate ownership, evidence ladder, JSG-08, harness, current decomposition, and fragrance Level 1 product-learning organizers; routes to the owners rather than restating them. Use the current-state/decomposition and fragrance Level 1 routes for backtest product-learning setup; use the conductor for the JSG run lane. Both are product-learning/not-proof unless owner gates say otherwise. |
 
 ## Data Capture Spine
 
@@ -678,7 +678,8 @@ Start with:
 
 - `docs/product/core_spine/core_spine_v0_product_contract.md`
 - `docs/product/core_spine/core_spine_v0_information_production_foundation_v0.md`
-- **Open `docs/research/judgment-spine/judgment_spine_consolidation_map_v0.md` first** for any Judgment Spine work; it routes to the ladder, gate ownership map, conductor, and JSG-08 owner contract below.
+- **Open `docs/research/judgment-spine/judgment_spine_consolidation_map_v0.md` first** for any Judgment Spine work; it routes to the ladder, gate ownership map, conductor, JSG-08 owner contract, current-state/decomposition, and fragrance Level 1 product-learning organizers.
+- `docs/product/judgment_spine/judgment_current_state_and_decomposition_v0.md` when the work is Level 1 backtesting-first product learning: core/satellite split, commission gate, source registry, outcome labels, forecast/action/log/evaluation artifacts, satellite fill, or fragrance backtest setup.
 - `docs/product/judgment_spine/judgment_spine_evidence_ladder_architecture_v0.md` when the work classifies Judgment Spine claim tier, proof tier, buyer-proof boundary, or judgment-quality boundary.
 - `docs/product/judgment_spine/judgment_spine_gate_ownership_map_v0.md` when the work needs to route or block Judgment Spine gate ownership before claim promotion.
 - `docs/product/judgment_spine/judgment_quality_promotion_operating_model_v0.md` — **the Judgment Spine conductor; open this FIRST for the judgment run lane** (running or planning any case through gates JSG-01 to JSG-10). It sequences the gates and routes to the evidence ladder, gate ownership map, and JSG-08 owner contract rather than restating them; use it to decide a run lifecycle state or check what a partial or by-hand run can claim. It is the path toward judgment-quality evidence, not proof — by-hand runs cap at product-learning.
