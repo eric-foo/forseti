@@ -135,11 +135,21 @@ status: PROPOSED — IG capture-shape contract (advisory review AR-01..AR-05 CA-
   and from one **out of window**, because the packet declares its claimed/attempted post boundary (not only
   per-metric `coverage_window`).
 
+## Later attachment-boundary update
+
+`docs/product/data_capture_spine/source_capture_tenant_payload_attachment_boundary_v0.md`
+settles the general tenant/source-family attachment target after this IG spec:
+current slice-attached `metric_observations` are transitional/incumbent, and
+new tenant/source-family payloads target packet/slice-keyed logical extension
+envelopes. This update does not authorize IG runtime changes, packet migration,
+or a physical storage shape.
+
 ## Open questions
 
-- **Deferred to scoping:** whether the typed observation attaches to `SourceCaptureSlice` or a new
-  sub-model, and the exact discriminated-union encoding — implementation shape; the contract is
-  shape-agnostic. *Safe to defer:* it does not change what must be true.
+- **Resolved by later attachment-boundary artifact:** the general target is
+  packet/slice-keyed logical extension envelopes for new tenant/source-family
+  payloads. The exact encoding of current IG fields, any dual-read/replay path,
+  and any physical storage shape remain separately gated and deferred.
 - **Deferred to build/probe:** empirical confirmation that IG's logged-out surface lets capture fill each
   posture-reason in practice. *Safe to defer:* the contract defines the reasons; the probe confirms fill.
 - **Deferred to build (gated):** the v1→v2 manifest bump + persisted-v1 read-back handling + the owner

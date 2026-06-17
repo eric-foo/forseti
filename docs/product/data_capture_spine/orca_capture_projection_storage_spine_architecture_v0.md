@@ -17,11 +17,13 @@ use_when:
   - Checking what is platform-agnostic core vs per-platform/per-consumer satellite, and what is deferred vs build-now.
 authority_boundary: retrieval_only
 open_next:
+  - docs/product/data_capture_spine/source_capture_tenant_payload_attachment_boundary_v0.md   # later accepted attachment-boundary target for tenant payloads
   - docs/product/data_capture_spine/orca_creator_momentum_pipeline_architecture_v0.md   # the IG-first instance (PROPOSED; lives on the ig-cadence-rails lane)
   - docs/decisions/wind_caller_calibration_carveout_v0.md   # capture posture / retention authority (amended 2026-06-15)
   - orca-harness/source_capture/models.py   # the packet model with the capture-shape gap
   - orca-harness/capture_spine/   # the existing satellite/projection-transform idiom to extend
 stale_if:
+  - The tenant/source-family payload attachment boundary changes.
   - The owner adopts, rejects, or modifies either reframe below (Reframe 1 / Reframe 2) or the capture-shape selection.
   - The IG capture-shape contract is specced + built (moves the next object from proposed to built).
   - A second real consumer (org-motion/EDGAR as a storage tenant, or TikTok/YouTube/Reddit) is authorized — tests the sibling-tenant seam.
@@ -48,6 +50,11 @@ review (see *Cross-vendor review disposition*).
 
 ## Relationship to existing docs (not a replacement)
 
+- **Later accepted attachment boundary.** `source_capture_tenant_payload_attachment_boundary_v0.md`
+  supersedes this PROPOSED backbone on tenant-payload attachment location:
+  current slice-attached payload fields are transitional/incumbent, while new
+  source-family payloads target packet/slice-keyed logical extension envelopes.
+  This note does not change this document's projection store/cache proposal.
 - This **sits beside and generalizes-by-reference** the creator-momentum pipeline architecture
   (`orca_creator_momentum_pipeline_architecture_v0.md`, PROPOSED on the `ig-cadence-rails` lane). It
   owns the **cross-data-type invariants**; that doc remains the worked IG instance. It does not
