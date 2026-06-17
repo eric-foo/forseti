@@ -62,6 +62,13 @@ launch/reposition, or inventory/purchase-depth commitment. Tier/price,
 taste-shift pivot, and defend/hold decisions remain eligible only when they
 pass the same qualification gates.
 
+2026-06-17 owner sequencing amendment: the first slot-fill pass should start
+with fragrance allocation contexts — minis/discovery/travel formats plus
+scent-layering/body/hair mists — as the break-in proof wedge. Skincare is the
+medium-term expansion target and infrastructure destination if fragrance earns
+paid pull or the owner explicitly advances the sequence. Hair/scalp stays a
+thin comparator/fallback, not the default second full niche.
+
 Retailer/category teams are deferred for this first 2-3 month door because
 their proprietary sell-through, basket, loyalty, and vendor data often makes
 the "internal data not conclusive" gate harder to satisfy. Agencies and
@@ -127,9 +134,12 @@ Demand-Substrate Hard Gate and disqualifiers control on any conflict.
 
 1. Confirm a live 30-90 day consumer-demand allocation decision at a
    US-market tractioned indie/DTC beauty or personal-care brand, prioritizing
-   retail/channel expansion, launch/moratorium/reposition, and
-   inventory/purchase-depth commitment; tier/price, taste-shift pivot, and
-   defend/hold remain eligible only when they pass the same gates.
+   fragrance allocation first (minis/discovery/travel plus
+   scent-layering/body/hair mists), with skincare as the medium-term expansion
+   target. Retail/channel expansion, launch/moratorium/reposition, and
+   inventory/purchase-depth commitment are the preferred decision families;
+   tier/price, taste-shift pivot, and defend/hold remain eligible only when
+   they pass the same gates.
 2. Confirm a named decision owner (founder, head of brand / insights /
    growth / strategy) and a concrete allocation consequence.
 3. Confirm the Demand-Substrate Hard Gate is satisfiable for this decision:

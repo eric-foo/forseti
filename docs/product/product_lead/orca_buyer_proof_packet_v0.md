@@ -110,6 +110,24 @@ source-system buildout before the public memo is useful remains a disqualifier.
 Public evidence relevance is treated as strong prior plausibility, not as
 buyer-proof evidence by itself.
 
+## Beauty Sub-Niche Sequencing Update (2026-06-17)
+
+Owner direction sets the first proof sub-niche sequence as fragrance first,
+skincare second:
+
+- First proof wedge: fragrance allocation — minis/discovery/travel formats plus
+  scent-layering/body/hair mists — opened as a tight allocation decision wedge.
+- Medium-term goal: skincare expansion and infrastructure reuse, especially
+  barrier-first, derm-developed, clinical/masstige, or accessible
+  science-backed skincare contexts.
+- Hair/scalp: thin comparator/fallback only, not the default second full niche.
+
+If the fragrance proof path produces paid pull, the proceeds and learning should
+compound into shared beauty-demand infrastructure and skincare-specific
+source/proof routes rather than another small niche by default. This update
+does not change the buyer-proof floor, the material-action ceiling, trust
+handling, pull standard, or the no-buyer-contact-before-full-spine-MVP gate.
+
 ## Proof Standard
 
 This packet tests one narrow first-proof claim:
@@ -126,6 +144,10 @@ fused with org-motion corroboration at brand and parent level, into
 inspectable decision evidence with an explicit action ceiling. The engine is
 outside-in market & competitive intelligence; beauty consumer-demand
 allocation is its first application.
+
+Within that application, fragrance allocation is the first proof wedge and
+skincare is the medium-term expansion target. Hair/scalp stays comparator or
+fallback unless fragrance fails or the owner re-orders.
 
 Minimum viable artifact: a manual decision memo plus evidence appendix.
 
@@ -254,6 +276,12 @@ purchase-depth commitment — where internal data is not conclusive. Tier/price
 change, pivot on a taste or preference shift, and defend/hold against
 suspected hollow or manufactured demand remain eligible when they satisfy the
 same gates.
+
+First screen inside that segment starts with fragrance allocation contexts:
+minis/discovery/travel formats and scent-layering/body/hair mists. Skincare is
+the medium-term expansion target once fragrance shows paid pull or the owner
+explicitly advances the sequence. Hair/scalp is retained only as a comparator
+or fallback.
 Geography: US-market first proof per the thesis geography doctrine
 (2026-06-12); non-US candidates route to the owner or defer.
 

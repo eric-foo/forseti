@@ -357,6 +357,15 @@ market-agnostic per the Core Spine satellite contract.
   Reddit/forums, trackers, trade press), entity hierarchies tractable, and
   the proof engine already runs there. "Good proof vertical" and "durable
   market" stay separate questions; widening is a later owner decision.
+- Within beauty, the current owner-selected sequence is fragrance first,
+  skincare next. Fragrance minis/discovery/travel plus
+  scent-layering/body/hair-mist allocation is the break-in proof wedge because
+  it should expose public costly behavior and operator decisions fastest.
+  Skincare is the medium-term expansion target and infrastructure destination;
+  paid pull from fragrance, if proven, should compound into shared
+  beauty-demand infrastructure and skincare-specific source/proof routes.
+  Hair/scalp stays a thin comparator/fallback unless the owner re-orders or it
+  produces cleaner qualified live decisions than the fragrance-to-skincare path.
 - Geography doctrine (owner-adopted 2026-06-12, "bake that into thesis";
   consistent with the same-day US-default direction already recorded in the
   discovery lane's candidate-pool handoff): the first proof runs US-market —

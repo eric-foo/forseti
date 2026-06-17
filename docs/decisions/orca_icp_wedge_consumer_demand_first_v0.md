@@ -58,7 +58,10 @@ Owner direction on 2026-06-16 confirms the first commercial target class as:
 named founder, head of brand, growth, insights, strategy, or equivalent
 decision owner facing a live 30-90 day demand-allocation decision where
 internal data is not conclusive and public creator/social/review/search/retail
-signals can be fused across at least two independent venue families.
+signals can clear the live Demand-Substrate floor (one gradeable
+costly-behavior instance in a qualifying demand-origin family) and can reach a
+material action ceiling only when two or more effectively independent origins
+converge.
 
 This sharpens the already-ratified operator-first door; it does not create
 buyer validation, outreach authority, willingness-to-pay proof, or commercial
@@ -86,6 +89,95 @@ before proprietary-data intake, data-science work, dashboards, integrations, or
 source-system buildout. Public evidence relevance is a plausibility premise,
 not a buyer-proof shortcut; Orca still has to observe decision-owner use or
 pull before making proof claims.
+
+## Beauty Sub-Niche Sequencing Amendment (2026-06-17)
+
+Owner direction on 2026-06-17 sharpens the first commercial sub-niche sequence:
+
+- **First break-in wedge:** fragrance allocation, specifically
+  minis/discovery/travel formats plus scent-layering/body/hair mists. Open it
+  as a tight allocation decision wedge, not whole fragrance.
+- **Medium-term beauty goal:** skincare expansion, especially barrier-first,
+  derm-developed, clinical/masstige, or accessible science-backed skincare
+  decision contexts where public demand evidence can matter before internal
+  data is conclusive.
+- **Hair/scalp posture:** keep a thin comparator/fallback only. Do not make
+  hair/scalp the default second full niche unless fragrance fails, the owner
+  re-orders, or a scalp/skincare overlap naturally produces cleaner qualified
+  slots than fragrance or skincare.
+
+The sequencing logic is: fragrance is the faster proof wedge; skincare is the
+larger strategic destination inside beauty. If fragrance produces paid pull,
+the proceeds and learning should compound into shared beauty-demand
+infrastructure and skincare-specific source/proof routes, not default into
+another small niche. This is a sequencing amendment only: it is not buyer
+validation, paid-pull proof, outreach authorization, capture authorization,
+commercial readiness, or proof that fragrance or skincare will win.
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Owner amendment sets the beauty sub-niche sequence to fragrance allocation
+    as the first break-in proof wedge, skincare as the medium-term expansion
+    and infrastructure destination, and hair/scalp as comparator/fallback only;
+    the live first-proof downstream docs are also reconciled from stale
+    two-independent-venue floor wording to the buyer-proof packet's
+    floor/ceiling gate.
+  trigger: product_doctrine
+  related_triggers:
+    - lifecycle_boundary
+  controlling_sources_updated:
+    - docs/decisions/orca_icp_wedge_consumer_demand_first_v0.md
+    - docs/decisions/orca_product_thesis_consumer_demand_v0.md
+    - docs/product/product_lead/orca_offer_hypothesis_v0.md
+    - docs/product/product_lead/orca_buyer_proof_packet_v0.md
+    - docs/product/product_lead/orca_product_proof_lead_charter_v0.md
+    - docs/product/product_lead/orca_discovery_consumer_demand_target_selection_brief_v0.md
+  downstream_surfaces_checked:
+    - .agents/workflow-overlay/product-proof.md
+    - docs/research/orca_discovery_candidate_scan_beauty_neutral_chatgptpro_v0.md
+    - docs/workflows/orca_repo_map_v0.md
+  intentionally_not_updated:
+    - path: .agents/workflow-overlay/product-proof.md
+      reason: >
+        Product-proof semantics are wedge-agnostic and already own the trust,
+        pull, claim-tier, and non-claim rules; this amendment changes sub-niche
+        sequence, not proof semantics.
+    - path: docs/research/orca_discovery_candidate_scan_beauty_neutral_chatgptpro_v0.md
+      reason: >
+        The research intake preserves the advisory ChatGPT answer and already
+        marks it not verified / not selected. Product docs now own the sequence
+        decision; no research-history rewrite is needed.
+    - path: docs/workflows/orca_repo_map_v0.md
+      reason: >
+        No new artifact or route was created; existing product-anchor and
+        product_lead rows already route to the changed docs.
+  stale_language_search: >
+    rg -n "at least two independent venue|two independent venue families|signals
+    can be fused across at least two|Demand signal visible across at least
+    two|default second full niche" docs/decisions/orca_icp_wedge_consumer_demand_first_v0.md
+    docs/decisions/orca_product_thesis_consumer_demand_v0.md
+    docs/product/product_lead/orca_offer_hypothesis_v0.md
+    docs/product/product_lead/orca_buyer_proof_packet_v0.md
+    docs/product/product_lead/orca_product_proof_lead_charter_v0.md
+    docs/product/product_lead/orca_discovery_consumer_demand_target_selection_brief_v0.md
+  stale_language_search_result: >
+    Executed 2026-06-17 after edits. The stale two-origin-floor wording remains
+    only inside a historical DCP receipt in orca_buyer_proof_packet_v0.md that
+    accurately recorded a prior residual, plus this receipt's search query; it
+    is not in live gate/qualification text. "Default second full niche" hits
+    are the new hair/scalp comparator/fallback language, not stale sequence
+    text.
+  non_claims:
+    - not validation
+    - not readiness
+    - not buyer proof
+    - not willingness-to-pay proof
+    - not paid-pull proof
+    - not outreach authorization
+    - not capture authorization
+    - not implementation authorization
+```
 
 ```yaml
 direction_change_propagation:
@@ -233,6 +325,19 @@ intelligence**, operator-first.
   purchase-depth commitment. Tier/price change, taste-shift pivot, and
   defend/hold against suspected hollow or manufactured demand remain eligible
   when they satisfy the buyer-proof gates.
+- First sub-niche proof wedge: fragrance allocation — minis/discovery/travel
+  formats plus scent-layering/body/hair mists — because it is the fastest
+  expected path to clean public costly-behavior evidence, named operator
+  visibility, and retail/launch allocation decisions.
+- Medium-term beauty goal: skincare expansion and infrastructure reuse,
+  especially barrier-first / derm-developed / accessible science-backed
+  skincare. Fragrance paid pull, if it appears, should fund shared
+  beauty-demand infrastructure and skincare-specific route hardening rather
+  than a default full hair/scalp wedge.
+- Hair/scalp: comparator/fallback, not the default second niche. Use it to test
+  whether fragrance is falsely winning because of hype/noise, and promote it
+  only if it produces cleaner qualified live decisions than fragrance or the
+  skincare expansion path.
 - The decision the product informs: "is this demand real, durable, and big
   enough to commit inventory, retail, or launch budget to — and at what action
   ceiling (act / phase / narrow / hold / defend)?"
@@ -270,9 +375,11 @@ intelligence**, operator-first.
 Good-proof-wedge vs durable-market (kept separate, per product-lead method):
 beauty is the proof vertical — chosen for substrate richness, running proof
 engine, and reachable-cold buyers — not a claim that beauty alone is the
-durable market. The engine and entity spine are built narrow (this wedge's
-entities) and designed to widen across consumer verticals. Widening is a later
-owner decision, not implied by ratification.
+durable market. Inside beauty, fragrance is the break-in proof wedge and
+skincare is the medium-term expansion target. The engine and entity spine are
+built narrow (this wedge's entities) and designed to widen across skincare and
+then broader consumer verticals when paid pull or owner decision justifies it.
+Widening is a later owner decision, not implied by ratification.
 
 ## Proposed Decision 2 — Value Proposition / Offer Framing
 

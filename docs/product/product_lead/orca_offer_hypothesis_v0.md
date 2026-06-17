@@ -259,6 +259,14 @@ explicit action ceiling.
 This first proof offer does not make beauty the permanent ICP. It is the
 bounded market-facing test of the broader offer.
 
+Within the first proof offer, the current owner-selected sequence is:
+fragrance allocation first, skincare expansion second, hair/scalp only as a
+thin comparator or fallback. Fragrance means minis/discovery/travel formats
+plus scent-layering/body/hair mists, opened as a tight allocation wedge rather
+than whole fragrance. If fragrance produces paid pull, the proceeds and
+learning should compound into shared beauty-demand infrastructure and
+skincare-specific source/proof routes, not default into another small niche.
+
 ## Buyer-Facing Draft
 
 Orca turns messy, noisy, and contradictory public market signals into
@@ -295,17 +303,20 @@ Selected first proof ICP / wedge (selected, not proven):
 
 US-market tractioned indie/DTC beauty / personal-care brands (geography per
 the thesis doctrine, 2026-06-12) facing a live 30-90 day consumer-demand
-allocation decision -- prioritizing retail/channel expansion, launch /
+allocation decision -- first in fragrance allocation contexts, then in
+skincare expansion contexts -- prioritizing retail/channel expansion, launch /
 moratorium / reposition, and inventory or purchase-depth commitment -- with a
 named decision owner (founder, head of brand / insights / growth / strategy,
 or equivalent operator), a concrete allocation consequence (inventory, retail
-commitment, launch budget, backlash/churn risk, or delayed capture), and
-demand signal visible across at least two independent public venue families so
-the fused, costly-behavior-anchored read is possible. Tier/price change,
-taste-shift pivot, and defend/hold against suspected hollow or manufactured
-demand remain eligible when they satisfy the same gates. Org-motion
-corroboration (brand and parent level, org-level only, through
-capture-lane-bound routes) strengthens but does not replace the demand lead.
+commitment, launch budget, backlash/churn risk, or delayed capture), and at
+least one gradeable costly-behavior instance in a qualifying demand-origin
+family. Material or irreversible recommendations need two or more effectively
+independent origins that converge; one clean origin caps the action ceiling at
+hold / low-commitment. Tier/price change, taste-shift pivot, and defend/hold
+against suspected hollow or manufactured demand remain eligible when they
+satisfy the same gates. Org-motion corroboration (brand and parent level,
+org-level only, through capture-lane-bound routes) strengthens but does not
+replace the demand lead.
 
 This updates the first proof offer, not the permanent company-wide value
 proposition. The broader Orca value proposition can still apply to other
@@ -323,12 +334,16 @@ Qualifying conditions for the first proof offer:
 
 - US-market tractioned indie/DTC beauty / personal-care brand facing a live
   30-90 day consumer-demand allocation decision (families per the
-  decision-families list below).
+  decision-families list below), starting with fragrance allocation and moving
+  to skincare expansion as the medium-term target if fragrance earns paid pull
+  or owner sign-off.
 - Named decision owner with a concrete allocation consequence: inventory,
   retail commitment, launch budget, backlash/churn risk, or delayed capture.
-- Demand signal visible across at least two independent public venue
-  families (reviews, forums/community, search interest, retail presence),
-  including costly-behavior evidence — not engagement volume alone.
+- Demand signal includes at least one gradeable costly-behavior instance in a
+  qualifying demand-origin family — not engagement volume alone. Two or more
+  effectively independent origins are required for a material action ceiling;
+  retail presence and org-motion are corroboration, not independent demand
+  origins by themselves.
 - Org-motion corroboration obtainable at org level through the capture
   lane's currently bound routes; route changes are capture-lane decisions
   under the owner's measured-ToS-risk posture (absurd-level approaches,
@@ -527,9 +542,9 @@ For the first proof offer, add these stricter gates:
 2. Is there a named decision owner or budget-accountable lead?
 3. Is the allocation consequence concrete (inventory, retail commitment,
    launch budget, backlash/churn risk, delayed capture)?
-4. Is public demand signal visible across at least two independent venue
-   families (reviews, forums/community, search interest, retail presence) so
-   the read can be fused and integrity-labeled rather than single-sourced?
+4. Is there at least one gradeable costly-behavior instance in a qualifying
+   demand-origin family, and are there two or more effectively independent
+   origins if the intended recommendation would be material or irreversible?
 5. Does the available signal include costly-behavior evidence (payment,
    switching, workarounds, churn, durable buyer pressure) — not engagement
    volume alone?
@@ -634,9 +649,10 @@ evidence for foundational strategic and hyper-competitive decisions.
 
 Use the selected ICP wedge as the first proof offer surface: indie/DTC beauty
 / personal-care brand decision owners facing a live 30-90 day consumer-demand
-allocation decision (tier/price change, retail or channel expansion, launch /
-moratorium / reposition, taste-shift pivot) where internal data is not
-conclusive.
+allocation decision where internal data is not conclusive. The first sub-niche
+surface is fragrance allocation (minis/discovery/travel plus
+scent-layering/body/hair mists); the medium-term expansion target is skincare.
+Hair/scalp remains a comparator/fallback, not the default second full niche.
 
 Do not narrow the entire Orca value proposition to this wedge. The wedge is the
 first market-facing proof container, chosen because it is specific enough to

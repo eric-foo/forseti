@@ -108,6 +108,22 @@ first proof loop remains public-first and must not require proprietary-data
 intake, data science, dashboards, integrations, or source-system buildout to
 make the memo credible.
 
+## Beauty Sub-Niche Sequencing Update (2026-06-17)
+
+Owner direction sets the first proof sub-niche sequence as fragrance first,
+skincare second. The Product Proof Lead should first qualify fragrance
+allocation contexts — minis/discovery/travel formats plus
+scent-layering/body/hair mists — as the break-in wedge. Skincare is the
+medium-term expansion target and infrastructure destination. Hair/scalp remains
+a thin comparator/fallback, not the default second full niche, unless fragrance
+fails, the owner re-orders, or a scalp/skincare overlap yields cleaner qualified
+slots.
+
+If fragrance produces paid pull, the proceeds and learning should compound into
+shared beauty-demand infrastructure and skincare-specific source/proof routes.
+This update does not authorize buyer contact, capture execution, implementation,
+commercial readiness, or a claim that paid pull exists.
+
 ## Source Basis
 
 - Current owner instruction for Orca product-proof planning.
@@ -137,6 +153,10 @@ with an explicit action ceiling?
 The engine for this work is outside-in market and competitive intelligence;
 beauty consumer-demand allocation is its first application per the ratified
 thesis and wedge (2026-06-12).
+
+Within beauty, fragrance allocation is the first break-in proof wedge and
+skincare is the medium-term expansion target. Hair/scalp is comparator/fallback
+only unless the owner re-orders or evidence forces a pivot.
 
 The minimum viable artifact is a manual decision memo plus evidence appendix. The premium buyer-facing artifact is an executive-grade decision deck derived from that memo and appendix. The first commercial next-step hypothesis is a fixed-scope paid decision sprint, not validated commercial readiness.
 
@@ -181,9 +201,15 @@ US-market tractioned indie/DTC beauty / personal-care brand decision owners
 (founder, head of brand / insights / growth / strategy, or equivalent
 operator) with a live 30-90 day demand-allocation decision and a concrete
 allocation consequence, passing the buyer-proof packet's Demand-Substrate Hard
-Gate (at least two independent venue families; costly-behavior anchoring;
-integrity labels applicable; org-motion corroboration through
-capture-lane-bound routes).
+Gate (one gradeable costly-behavior instance in a qualifying demand-origin
+family clears the floor; two or more effectively independent origins are needed
+for a material action ceiling; integrity labels applicable; org-motion
+corroboration through capture-lane-bound routes).
+
+The first screen inside that segment is fragrance allocation
+(minis/discovery/travel plus scent-layering/body/hair mists). Skincare is the
+medium-term expansion target; hair/scalp stays comparator/fallback unless
+fragrance fails or the owner re-orders.
 
 If results are mixed, diagnose the demand decision families separately
 (retail/channel expansion vs launch/reposition vs inventory/purchase-depth vs
