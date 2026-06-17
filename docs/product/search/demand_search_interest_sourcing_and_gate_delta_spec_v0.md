@@ -39,16 +39,22 @@ stale_if:
 - First target sub-niche: **US indie/DTC fragrance** — owner-set in-thread 2026-06-17; the wedge authority currently scopes "US indie/DTC beauty or personal-care," so fragrance is a **narrowing pending a durable owner-pinned record** (do not treat as wedge-sourced).
 - Engine order: **Google AI Overviews (primary)** → Gemini, ChatGPT (secondary) → others out of scope. These are **owner priorities**, not proven exposure/coverage claims (see §10).
 
-## 1. Consume-not-fork & authority ledger (pins = sha256 first-16-hex, origin/main @ ada92695)
+## 1. Consume-not-fork & authority ledger (pins = sha256 first-16-hex, origin/main @ b139fa9f)
+
+_Pins re-verified 2026-06-18 against origin/main @ b139fa9f. The four that changed
+since the prior pin (`demand_durability_indicator_search_interest_capture_profile_v0.md`,
+`orca_buyer_proof_packet_v0.md`, `orca_demand_scan_core_spec_v0.md`,
+`orca_demand_gate_definition_closures_proposal_v0.md`) drifted only via the #236
+search-lane path-rewrite — no substantive source change since this spec's derivation._
 
 | Source | Pin | Relation |
 | --- | --- | --- |
-| `demand_durability_indicator_search_interest_capture_profile_v0.md` | `58afed8650dfc53d` | CONSUME — **authority for search-interest pins/cadence/comparability** (§6 cites it; this spec adds no search-interest capture obligations). |
+| `demand_durability_indicator_search_interest_capture_profile_v0.md` | `46823c1aec5ee07a` | CONSUME — **authority for search-interest pins/cadence/comparability** (§6 cites it; this spec adds no search-interest capture obligations). |
 | `capture_envelope_durability_delta_spec_v0.md` | `afe3156a32dea4b8` | CONSUME — temporal regimes / cold-start / comparability. |
 | `core_spine_v0_data_capture_spine_obligation_contract_v0.md` | `82ff4d7517bcfd5b` | CONSUME — envelope of record; if conflict, it wins. |
-| `orca_buyer_proof_packet_v0.md` | `d4308e066e452324` | the live Demand-Substrate Hard Gate. |
-| `orca_demand_scan_core_spec_v0.md` | `77533f6c13eb674b` | candidate-observation schema; `gate_family ∈ {review_surfaces, forums_community, search_interest, none}`, `costly_behavior ∈ {gradeable, attention_only, none}` — **no AEO value** (see §7). |
-| `orca_demand_gate_definition_closures_proposal_v0.md` | `69da636721646565` | AR-04 (search-interest = G1 unsourced demand-family gap, owner-owned). |
+| `orca_buyer_proof_packet_v0.md` | `869d63ad38155f5c` | the live Demand-Substrate Hard Gate. |
+| `orca_demand_scan_core_spec_v0.md` | `4cacab489b2c8d79` | candidate-observation schema; `gate_family ∈ {review_surfaces, forums_community, search_interest, none}`, `costly_behavior ∈ {gradeable, attention_only, none}` — **no AEO value** (see §7). |
+| `orca_demand_gate_definition_closures_proposal_v0.md` | `c84e9ad6439bbbbc` | AR-04 (search-interest = G1 unsourced demand-family gap, owner-owned). |
 | `orca_demand_read_taxonomy_v0.md` | `5fe5c41e1036d1a2` | search-interest read type (read-grammar basis). |
 | `data_capture_source_access_boundary_decision_v0.md` | `4f9dd359077bf9e1` | access/ToS posture (cite, never set/narrow). |
 | `orca_icp_wedge_consumer_demand_first_v0.md` | `9e27cba9bf71cc83` | wedge target — scopes "beauty/personal-care"; fragrance is a narrowing pending pin (§2). |
