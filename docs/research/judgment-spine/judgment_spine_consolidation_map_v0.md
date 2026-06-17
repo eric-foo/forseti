@@ -46,6 +46,7 @@ stale_if:
 | Orient after fragrance reconciliation and split current Judgment into core/satellite portions | `docs/product/judgment_spine/judgment_current_state_and_decomposition_v0.md` | product |
 | Fill the first fragrance Level 1 product-learning satellite slots without claiming proof or run authority | `docs/product/judgment_spine/fragrance_level1_product_learning_satellite_skeleton_v0.md` | product |
 | Fill or check the first fragrance Level 1 casebook slots without admitting named cases prematurely | `docs/product/judgment_spine/fragrance_level1_casebook_admission_frame_v0.md` | product |
+| Choose which named fragrance Level 1 case to try admitting first | `docs/product/judgment_spine/fragrance_level1_named_case_candidate_screen_v0.md` | product |
 
 ## Current Reality Snapshot (as of v0, refreshed 2026-06-09; JSG-01 and decomposition pointer refreshed 2026-06-17 — verify each against its owner)
 
@@ -111,6 +112,11 @@ stale_if:
 - summary: Repo-local product-learning frame for the first 25 fragrance case slots, bucket allocation, named-case admission gate, and outcome-label families.
 - status: admits the casebook slot shape only; no named cases admitted, source-capture authority, run authorization, scoring, validation, readiness, buyer proof, or judgment-quality evidence.
 - pointer: `docs/product/judgment_spine/fragrance_level1_casebook_admission_frame_v0.md` (product).
+
+### Fragrance Level 1 named-case candidate screen
+- summary: Repo-local product-learning screen that reconciles fanout search results against the case-selection doctrine and recommends the first admission attempt without admitting any named case.
+- status: docs-only candidate screen; all named products remain `candidate_pending_selection`, `held`, or rejected for first admission; no source-capture authority, run authorization, scoring, validation, readiness, buyer proof, or judgment-quality evidence.
+- pointer: `docs/product/judgment_spine/fragrance_level1_named_case_candidate_screen_v0.md` (product).
 
 ## Status Vocabularies (owner-defined — this map points, never redefines)
 

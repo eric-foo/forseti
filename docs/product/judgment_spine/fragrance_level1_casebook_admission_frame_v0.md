@@ -14,6 +14,7 @@ use_when:
 authority_boundary: retrieval_only
 open_next:
   - docs/product/judgment_spine/fragrance_level1_product_learning_satellite_skeleton_v0.md
+  - docs/product/judgment_spine/fragrance_level1_named_case_candidate_screen_v0.md
   - docs/product/judgment_spine/fragrance_level1_product_learning_reconciliation_v0.md
   - docs/product/judgment_spine/judgment_current_state_and_decomposition_v0.md
   - docs/product/judgment_spine/judgment_spine_evidence_ladder_architecture_v0.md
@@ -201,9 +202,9 @@ casebook_slot:
 
 ## Next Docs-Only Moves
 
-1. Fill one to five named case candidates into this frame with cutoff and
-   outcome-label plans, keeping any incomplete case at
-   `candidate_pending_selection`.
+1. Use the named-case candidate screen to choose the first admission attempt,
+   then fill that candidate into an admission-minimum artifact or row while
+   keeping incomplete cases at `candidate_pending_selection`.
 2. Author the fragrance source/evidence plan that binds source-family governance
    by pointer and does not claim source-capture authority.
 3. After at least one named case and source/evidence plan are bounded, author a
@@ -236,6 +237,7 @@ Repo and overlay sources:
 Judgment and fragrance sources:
 
 - `docs/product/judgment_spine/fragrance_level1_product_learning_satellite_skeleton_v0.md`
+- `docs/product/judgment_spine/fragrance_level1_named_case_candidate_screen_v0.md`
 - `docs/product/judgment_spine/fragrance_level1_product_learning_reconciliation_v0.md`
 - `docs/product/judgment_spine/judgment_current_state_and_decomposition_v0.md`
 - `docs/product/judgment_spine/judgment_spine_evidence_ladder_architecture_v0.md`

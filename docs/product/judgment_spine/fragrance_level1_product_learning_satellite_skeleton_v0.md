@@ -17,6 +17,7 @@ open_next:
   - docs/product/judgment_spine/judgment_current_state_and_decomposition_v0.md
   - docs/product/judgment_spine/fragrance_level1_product_learning_reconciliation_v0.md
   - docs/product/judgment_spine/fragrance_level1_casebook_admission_frame_v0.md
+  - docs/product/judgment_spine/fragrance_level1_named_case_candidate_screen_v0.md
   - docs/product/judgment_spine/judgment_spine_evidence_ladder_architecture_v0.md
   - docs/product/judgment_spine/judgment_quality_promotion_operating_model_v0.md
   - docs/product/judgment_spine/judgment_spine_demand_read_machinery_architecture_v0.md
@@ -284,7 +285,8 @@ If any fragrance prompt is needed, author it through `workflow-prompt-orchestrat
 
 ## Next Docs-Only Moves
 
-1. Fill the first named case candidates into the casebook admission frame.
+1. Use the named-case candidate screen to choose the first case admission
+   attempt, then fill the admission-minimum fields in the casebook lane.
 2. Author a fragrance source/evidence plan that consumes the beauty venue
    card-set by pointer and routes capture authority to the source-capture owners.
 3. Create a first per-case product-learning receipt template or example only
@@ -323,6 +325,7 @@ Judgment and fragrance sources:
 - `docs/research/judgment-spine/judgment_spine_machinery_build_state_gap_map_v0.md`
 - `docs/product/judgment_spine/judgment_current_state_and_decomposition_v0.md`
 - `docs/product/judgment_spine/fragrance_level1_product_learning_reconciliation_v0.md`
+- `docs/product/judgment_spine/fragrance_level1_named_case_candidate_screen_v0.md`
 - `docs/product/judgment_spine/judgment_spine_evidence_ladder_architecture_v0.md`
 - `docs/product/judgment_spine/judgment_quality_promotion_operating_model_v0.md`
 - `docs/product/judgment_spine/judgment_spine_demand_read_machinery_architecture_v0.md`
