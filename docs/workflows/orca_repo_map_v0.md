@@ -24,7 +24,7 @@ stale_if:
 - Status: ACTIVE_RETRIEVAL_MAP (retrieval-only; source authority remains in `.agents/workflow-overlay/source-of-truth.md`)
 - Artifact type: Workflow navigation artifact
 - Scope: Repo navigation and source-pack selection
-- Refreshed: 2026-06-17 (added the neutral ChatGPT Pro beauty advisory intake route, the offline IG creator-momentum projection runner route, the local Retail/PDP projection runner route, the opt-in Retail/PDP CloakBrowser projection sidecar under `orca-harness/runners/`, and the Retail/PDP sidecar operator playbook for the Amazon/Sephora/Ulta smoke; clarified the corresponding source package routes for projection and retailer binding/residual logic). Prior: 2026-06-16 added Codex-compatible local Git-hook adapters under `.githooks/`, the local hook installer under `.github/scripts/`, and the promoted auto-merge/main-red-alert workflows under `.github/workflows/`; 2026-06-11 repo-structure binding v0 registered machine map `repo-structure.yaml` + EP-04 placement checker and quarantined root strays to `docs/_inbox/`.
+- Refreshed: 2026-06-17 (promoted repo-map edits from advisory reminder to blocking commit interrupt in Claude/Codex hook wiring; added the neutral ChatGPT Pro beauty advisory intake route, the offline IG creator-momentum projection runner route, the local Retail/PDP projection runner route, the opt-in Retail/PDP CloakBrowser projection sidecar under `orca-harness/runners/`, and the Retail/PDP sidecar operator playbook for the Amazon/Sephora/Ulta smoke; clarified the corresponding source package routes for projection and retailer binding/residual logic). Prior: 2026-06-16 added Codex-compatible local Git-hook adapters under `.githooks/`, the local hook installer under `.github/scripts/`, and the promoted auto-merge/main-red-alert workflows under `.github/workflows/`; 2026-06-11 repo-structure binding v0 registered machine map `repo-structure.yaml` + EP-04 placement checker and quarantined root strays to `docs/_inbox/`.
 - Implementation authorized: no
 
 ## How To Use This Map
@@ -54,7 +54,7 @@ boundaries**, not by instruction alone. The owning principle is
 (cross-referenced from `.agents/workflow-overlay/decision-routing.md`); the per-rule classification is
 `docs/decisions/overlay_enforcement_placement_classification_v0.md`.
 
-**Retrieval-header check.** A PostToolUse hook (matcher `Write|Edit`) in the
+**Retrieval-header check.** A PostToolUse hook (matcher `Write|Edit|MultiEdit`) in the
 tracked `.claude/settings.json` runs:
 
 ```
@@ -88,7 +88,7 @@ re-add:
 ```json
 "hooks": {
   "PostToolUse": [
-    { "matcher": "Write|Edit",
+    { "matcher": "Write|Edit|MultiEdit",
       "hooks": [ { "type": "command",
                    "command": "python .agents/hooks/check_retrieval_header.py --hook",
                    "timeout": 10 } ] } ]
@@ -101,8 +101,9 @@ Claude Code runs hooks); if your environment runs hooks from another directory,
 use an absolute path or `"$CLAUDE_PROJECT_DIR/.agents/hooks/check_retrieval_header.py"`.
 On POSIX, use `python3` if `python` is unavailable.
 
-**Repo-map freshness check.** A second PostToolUse hook (matcher `Write|Edit`)
-in the tracked `.claude/settings.json` runs:
+**Repo-map freshness check.** A second PostToolUse hook (matcher
+`Write|Edit|MultiEdit` in `.claude/settings.json`; `apply_patch|Edit|Write` in
+`.codex/hooks.json`) runs:
 
 ```
 python .agents/hooks/check_repo_map_freshness.py --hook
@@ -112,7 +113,10 @@ It reads THIS map as its own spec and, forward-only on the file just touched,
 emits a non-blocking advisory when an edit adds navigable structure this map
 does not yet cover -- the mechanically-detectable subset of the `stale_if:` block
 above: a new top-level area (#1) or a new `orca-harness/` runner/adapter (#2).
-Edits to `.agents/workflow-overlay/source-of-truth.md` get a coarser advisory nudge (#5). It stays silent
+When the file just touched IS this repo map and Git still shows it dirty after
+the edit, the hook exits 2 as a blocking commit interrupt with the explicit-path
+commit command. Edits to `.agents/workflow-overlay/source-of-truth.md` get a
+coarser advisory nudge (#5). It stays silent
 on ordinary content in already-mapped folders (a new `docs/decisions/*` is
 reachable by convention, not a map event) and cannot see judgment-shaped
 staleness -- "a spine was reorganized" (#3) or "routing doctrine changed" (#4) --
@@ -140,7 +144,8 @@ scratch ... do not enumerate" list (this checker reads that list as its exclusio
 source). Updating this map or a submap in the same change also satisfies the
 gate. The check enforces map *shape*, never the truth of a route, and fails OPEN
 on internal error. Reinstall = re-add the second PostToolUse entry beside the
-retrieval-header hook in `.claude/settings.json`, then restart the session.
+retrieval-header hook in `.claude/settings.json` and `.codex/hooks.json`, then
+restart the relevant session.
 
 **Placement check (EP-04) — built, NOT YET WIRED.** A third substrate,
 `.agents/hooks/check_placement.py`, enforces placement shape at the write
@@ -257,16 +262,18 @@ Reinstall the PreToolUse guard in `.claude/settings.json`:
 
 Restart the Claude Code session after editing settings.
 
-**Repo-map commit reminder + Stop-warn backstop.** Two complementary,
-non-blocking advisories for the high-contention commit-once-whole shared files
+**Repo-map commit interrupt + Stop-warn backstop.** Two complementary
+substrates for the high-contention commit-once-whole shared files
 (the repo map, `.claude/settings.json`, `.agents/workflow-overlay/source-of-truth.md`):
 
 - **Per-edit (PostToolUse).** The repo-map-freshness hook
-  (`.agents/hooks/check_repo_map_freshness.py`) additionally emits a non-blocking advisory when
-  the edited file IS the repo map, reminding to commit it immediately,
-  explicit-path (`git commit --only -- docs/workflows/orca_repo_map_v0.md`),
-  before other lanes' edits interleave. Distinct from its structural/freshness
-  trigger (which fires on OTHER files adding navigation).
+  (`.agents/hooks/check_repo_map_freshness.py`) exits 2 when the edited file IS
+  the repo map and Git still shows it dirty after the edit. The interrupt tells
+  the agent to commit it immediately, explicit-path
+  (`git commit --only -- docs/workflows/orca_repo_map_v0.md`), before other
+  lanes' edits interleave. Distinct from its structural/freshness trigger
+  (which fires on OTHER files adding navigation and remains advisory unless run
+  in strict commit/CI mode).
 - **Turn-end (Stop).** `.agents/hooks/check_shared_files_dirty.py` (a `Stop` hook, no matcher)
   warns when any of the three shared files is left dirty at end of turn, listing
   them plus the explicit-path commit. Exit 0, never blocks, never auto-commits
@@ -275,7 +282,8 @@ non-blocking advisories for the high-contention commit-once-whole shared files
   entry in `.claude/settings.json`, then restart the session.
 
 These put the "edit the repo map -> commit it immediately, explicit-path" norm on
-the substrate, not a heavy resident banner. Both are advisory; neither blocks.
+the substrate, not a heavy resident banner. The per-edit repo-map interrupt
+blocks; the Stop backstop only warns. Neither auto-commits.
 
 **Future agents: reuse this pattern.** To enforce the next load-bearing,
 deterministically-checkable rule, do not add another instruction -- add a

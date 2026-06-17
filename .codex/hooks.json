@@ -13,6 +13,20 @@
           }
         ]
       }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "apply_patch|Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python \"$(git rev-parse --show-toplevel)/.agents/hooks/check_repo_map_freshness.py\" --hook",
+            "commandWindows": "python \"$(git rev-parse --show-toplevel)/.agents/hooks/check_repo_map_freshness.py\" --hook",
+            "timeout": 10,
+            "statusMessage": "Checking Orca repo-map commit policy"
+          }
+        ]
+      }
     ]
   }
 }

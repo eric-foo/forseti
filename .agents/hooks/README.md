@@ -18,7 +18,7 @@ via exit code — so they are **harness-portable**: the *logic* runs anywhere; o
 | `.codex/hooks/orca_guard_codex_adapter.py` | Codex **PreToolUse** adapter | Runs `guard_protected_actions.py`, converts guard denials into Codex's native JSON `permissionDecision: deny` response, and maps Codex `apply_patch` patch targets through the existing EP-01 protected-path check. |
 | `pre_push_guard.py` | local Git **pre-push** adapter policy | Blocks pushes targeting `main`, branch deletes, non-fast-forward updates, and unverifiable update safety when `.githooks/pre-push` is installed through `core.hooksPath`. Bypassable with `--no-verify`; misses GitHub API merges. |
 | `check_retrieval_header.py` | **post-tool** (after a write) | Advisory (exit 0): warns if an in-scope artifact is missing its retrieval header. Forward-only; never blocks. |
-| `check_repo_map_freshness.py` | **post-tool** (after a write) | Advisory (exit 0): reports structural drift vs the repo map; has a `--strict` gate for commit/CI use. |
+| `check_repo_map_freshness.py` | **post-tool** (after a write) | Reports structural drift vs the repo map as advisory output; exits 2 when the repo map itself is dirty after edit so the next action is an explicit-path commit; has a `--strict` gate for commit/CI use. |
 
 Each has a `--selftest`. Rule authority lives in the overlay
 (`.agents/workflow-overlay/safety-rules.md`, `validation-gates.md`) — the scripts
@@ -31,6 +31,8 @@ reference it, they don't restate it.
 - **Output / exit code:** for the raw Orca guard, **`2` = block** the tool call
   (stderr explains why); **`0` = allow**.
   On any internal error the guard **exits 0 (fails open)** so a hook bug never bricks the agent.
+- For the repo-map PostToolUse checker, **`2` = stop and commit the dirty repo
+  map explicitly now**; **`0` = advisory or silent**.
 - Any harness that can run a command with the tool event on stdin and honor a
   blocking exit code can use these as-is (adapt field names with a tiny shim if yours differ).
 - Harnesses with their own denial protocol should use a small adapter rather than
@@ -45,13 +47,17 @@ Register in the repo's tracked `.claude/settings.json`:
 "hooks": {
   "PreToolUse":  [ { "matcher": "Bash|PowerShell|Write|Edit|MultiEdit|NotebookEdit",
                      "hooks": [ { "type": "command", "command": "python .agents/hooks/guard_protected_actions.py", "timeout": 10 } ] } ],
-  "PostToolUse": [ { "matcher": "Write|Edit",
+  "PostToolUse": [ { "matcher": "Write|Edit|MultiEdit",
                      "hooks": [ { "type": "command", "command": "python .agents/hooks/check_retrieval_header.py --hook",   "timeout": 10 },
                                 { "type": "command", "command": "python .agents/hooks/check_repo_map_freshness.py --hook", "timeout": 10 } ] } ]
 }
 ```
 Hooks load at session start — **restart the session** after editing settings.
-Verify: `python .agents/hooks/guard_protected_actions.py --selftest`.
+Verify:
+```powershell
+python .agents/hooks/guard_protected_actions.py --selftest
+python .agents/hooks/check_repo_map_freshness.py --selftest
+```
 
 ### Codex (tracked project hook)
 Codex does not read `.claude/settings.json`. Orca wires Codex through the
@@ -59,6 +65,9 @@ tracked project-local `.codex/hooks.json`, which registers:
 
 - `PreToolUse` for `Bash|PowerShell|apply_patch|Edit|Write`;
 - `.codex/hooks/orca_guard_codex_adapter.py` as the command hook.
+- `PostToolUse` for `apply_patch|Edit|Write`;
+- `.agents/hooks/check_repo_map_freshness.py --hook` as the repo-map commit
+  interrupt / freshness advisory.
 
 The adapter preserves the shared guard logic but returns Codex's native denial
 shape:
@@ -77,6 +86,11 @@ It also parses Codex `apply_patch` headers (`*** Add/Update/Delete File:` and
 because Codex reports patch edits as `tool_name: "apply_patch"` rather than
 Claude-style `Write` / `Edit` events.
 
+The repo-map checker also parses Codex `apply_patch` headers in PostToolUse
+mode. If the edited target is `docs/workflows/orca_repo_map_v0.md` and Git still
+shows that map dirty, it returns exit code 2 and tells the agent to commit that
+file immediately with `git commit --only -- docs/workflows/orca_repo_map_v0.md`.
+
 Codex only loads project-local hooks after the project `.codex/` layer is
 trusted. In a Codex session, open `/hooks` if Codex reports new or changed hooks
 that need review.
@@ -84,6 +98,7 @@ that need review.
 Verify:
 ```powershell
 python .agents/hooks/guard_protected_actions.py --selftest
+python .agents/hooks/check_repo_map_freshness.py --selftest
 python .codex/hooks/orca_guard_codex_adapter.py --selftest
 ```
 
@@ -92,8 +107,11 @@ python .codex/hooks/orca_guard_codex_adapter.py --selftest
 1. If your harness has a **pre-tool / post-tool command-hook** mechanism, register
    `guard_protected_actions.py` on the pre-tool event for shell + write tools,
    honoring **exit 2 = block**. Register the `--hook` checkers on the post-tool
-   event for write tools. Map your harness payload onto `tool_name` /
-   `tool_input` on stdin.
+   event for write tools, including your harness's multi-edit / apply-patch
+   equivalent. Map your harness payload onto `tool_name` / `tool_input` on stdin.
+   The repo-map checker intentionally exits 2 when the repo map itself remains
+   dirty after edit; honor that as a stop-and-commit interrupt if your harness
+   supports blocking post-tool hooks.
 2. If your harness has no equivalent hook API, install the tracked local Git
    hook adapters:
    ```powershell

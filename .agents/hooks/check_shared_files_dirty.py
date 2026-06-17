@@ -7,7 +7,7 @@ WHAT THIS DOES
   edited by every lane, so a dirty one blocks others from cleanly committing
   their own one-line edit (committing it would sweep the dirty pile into an
   unrelated commit). This is the turn-end backstop to the per-edit PostToolUse
-  nudge in check_repo_map_freshness.py.
+  repo-map commit interrupt in check_repo_map_freshness.py.
 
   The three shared files:
     - docs/workflows/orca_repo_map_v0.md
@@ -18,7 +18,8 @@ WHY (enforcement placement)
   "Commit the shared file immediately" was carried only by instruction. This is
   the substrate backstop, per the Enforcement Placement principle in
   .agents/workflow-overlay/validation-gates.md. Complementary to the per-edit
-  PostToolUse nudge (map-specific) — this one is turn-end and covers all three.
+  PostToolUse interrupt (map-specific) — this one is turn-end and covers all
+  three.
 
 HARD BOUNDARY — warn only, never block, never auto-commit.
   Exit 0 always. It returns a reminder via `additionalContext`; it does NOT
