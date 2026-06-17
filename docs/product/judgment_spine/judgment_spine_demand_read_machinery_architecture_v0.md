@@ -343,7 +343,7 @@ lane held no overlapping architecture).
   Backtest/Live split; Decision Frame required.
 - `docs/product/product_lead/orca_buyer_proof_packet_v0.md` — Demand-Substrate
   Hard Gate; action-ceiling vocab; no-scoring boundary; `product_learning` cap.
-- `docs/product/product_lead/orca_demand_read_taxonomy_v0.md` — signal layers,
+- `docs/product/search/orca_demand_read_taxonomy_v0.md` — signal layers,
   read types, wind-caller calibration; pipeline gap (steps 5–6).
 - **Source gaps (non-blocking for design):** the ontology-backbone commission
   prompt (`derived_from`/`diverges_from`) is branch-only, not on `origin/main` —
@@ -369,7 +369,7 @@ direction_change_propagation:
     - docs/product/judgment_spine/judgment_spine_demand_read_machinery_architecture_v0.md
     - docs/product/judgment_spine/judgment_spine_c2_ledger_read_contract_v0.md
   downstream_surfaces_checked:
-    - docs/product/product_lead/orca_demand_read_taxonomy_v0.md   # already two-axis; "hollow" hits are the retirement explanation, kept
+    - docs/product/search/orca_demand_read_taxonomy_v0.md   # already two-axis; "hollow" hits are the retirement explanation, kept
   intentionally_not_updated:
     - path: "C2 admits ... lessons" (DRP-02 line), "admission inputs" (ratified gate), "admissible at C2" (permissible)
       reason: lesson-admission and gate-admissibility are distinct from the C1 demand-signal step; the rename targets the C1 step verb + its "admitted signal" object only.

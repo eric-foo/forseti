@@ -19,7 +19,7 @@ use_when:
   - Re-grounding the stale-frame Rule 3 reasoning onto the durable/transient + real/manufactured axes.
 authority_boundary: retrieval_only
 open_next:
-  - docs/product/product_lead/orca_demand_read_taxonomy_v0.md                            # main's two-axis demand-state model (the doctrine to re-ground onto)
+  - docs/product/search/orca_demand_read_taxonomy_v0.md                            # main's two-axis demand-state model (the doctrine to re-ground onto)
   - docs/product/judgment_spine/judgment_spine_c2_ledger_read_contract_v0.md             # the live C2 read-contract (rules 1-2 landed; rule 3 OPEN) — ledger-c2-read-contract-v0 lane @ 6a04612e
   - docs/prompts/handoffs/judgment_spine_c2_read_contract_continuation_handoff_v0.md     # the live lane's own Rule-3 Open Decision — same lane
   - docs/product/judgment_spine/judgment_spine_demand_read_machinery_architecture_v0.md  # C0-C4 core; C2=Weight; C3=verdict+ceiling — judgment-spine-read-machinery-architecture-v0 lane @ 57339ea5
@@ -187,7 +187,7 @@ cross-lane drift signal; **out of scope** for this lane to edit.
 
 ## Source-Read Ledger
 
-- `origin/main:docs/product/product_lead/orca_demand_read_taxonomy_v0.md` — the
+- `origin/main:docs/product/search/orca_demand_read_taxonomy_v0.md` — the
   two-axis demand-state model (durable/transient + real/manufactured; "hollow"
   retired). Read fresh on `origin/main` (739411f4) 2026-06-15. Status:
   PROPOSED_PENDING_OWNER_ADJUDICATION; two-axis amendment landed via #78

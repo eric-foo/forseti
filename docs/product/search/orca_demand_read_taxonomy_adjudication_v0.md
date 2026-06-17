@@ -4,7 +4,7 @@
 retrieval_header_version: 1
 artifact_role: Product artifact (adjudication-prep companion to the PROPOSED demand-read taxonomy)
 scope: >
-  Brings docs/product/product_lead/orca_demand_read_taxonomy_v0.md from a
+  Brings docs/product/search/orca_demand_read_taxonomy_v0.md from a
   fleshed sketch to an owner-adjudicable state: operative definitions
   (what-counts / anti-trigger / boundary) for every signal layer and read
   type, the internal tensions named as tensions, and an explicit owner-decision
@@ -17,7 +17,7 @@ use_when:
   - Resolving the pricing-signal refinement, wind-caller primacy, or channel-vs-person boundary.
 authority_boundary: retrieval_only
 open_next:
-  - docs/product/product_lead/orca_demand_read_taxonomy_v0.md          # the PROPOSED grammar this prepares
+  - docs/product/search/orca_demand_read_taxonomy_v0.md          # the PROPOSED grammar this prepares
   - docs/decisions/orca_product_thesis_consumer_demand_v0.md          # controlling thesis (costly-behavior primitive, action ceilings)
   - docs/decisions/wind_caller_calibration_carveout_v0.md             # the carve-out reconciled in Q3 (incl. 2026-06-14 amendment)
   - docs/product/product_lead/orca_buyer_proof_packet_v0.md           # Demand-Substrate Hard Gate (anti-trigger source)
@@ -481,7 +481,7 @@ direction_change_propagation_PLAN:   # prepared only — not a completion receip
   trigger: product_doctrine
   related_triggers: []   # confirm at execution; add only if a surface-routing dimension is materially touched
   controlling_sources_to_update:
-    - path: docs/product/product_lead/orca_demand_read_taxonomy_v0.md
+    - path: docs/product/search/orca_demand_read_taxonomy_v0.md
       change: fold the adjudicated word in as v1 or a dated amendment; flip status off PROPOSED; fix the Q3 residual lines if Q3 confirmed
     - path: docs/decisions/orca_product_thesis_consumer_demand_v0.md
       change: add a dated pointer to the adopted taxonomy (the thesis's owed pointer); no thesis rewrite

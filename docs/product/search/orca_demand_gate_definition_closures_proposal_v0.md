@@ -26,7 +26,7 @@ applies_to:
   - docs/product/product_lead/orca_buyer_proof_packet_v0.md            # Demand-Substrate Hard Gate G1 + G2 (APPLIED 2026-06-14)
   - docs/product/product_lead/orca_discovery_consumer_demand_target_selection_brief_v0.md  # qualification objective #3 + slot column (APPLIED 2026-06-14)
 ripple_surfaces:
-  - docs/product/product_lead/orca_demand_read_taxonomy_v0.md          # retail = org-motion (already states it; cite, confirm before claiming)
+  - docs/product/search/orca_demand_read_taxonomy_v0.md          # retail = org-motion (already states it; cite, confirm before claiming)
   - docs/prompts/product-planning/orca_ontology_backbone_architecture_pass_commission_prompt_v0.md  # derived_from / diverges_from links (folded in 2026-06-13)
 review_report: docs/review-outputs/adversarial-artifact-reviews/demand_gate_definition_closures_cross_vendor_adversarial_artifact_review_v0.md
 open_next:

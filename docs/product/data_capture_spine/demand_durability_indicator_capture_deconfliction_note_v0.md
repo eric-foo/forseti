@@ -135,12 +135,12 @@ direction_change_propagation:
     - docs/product/data_capture_spine/demand_durability_indicator_review_velocity_corpus_capture_profile_v0.md
     - docs/product/data_capture_spine/demand_durability_indicator_capture_deconfliction_note_v0.md
   downstream_surfaces_checked:
-    - docs/product/product_lead/orca_demand_read_taxonomy_v0.md
+    - docs/product/search/orca_demand_read_taxonomy_v0.md
     - docs/product/product_lead/orca_buyer_proof_packet_v0.md
     - docs/workflows/data_capture_spine_consolidation_map_v0.md
     - docs/workflows/orca_repo_map_v0.md
   intentionally_not_updated:
-    - path: docs/product/product_lead/orca_demand_read_taxonomy_v0.md
+    - path: docs/product/search/orca_demand_read_taxonomy_v0.md
       reason: >
         Its only "proxy" is "paid-proxy spend" (manufactured-demand sense), a
         different meaning; renaming it would be wrong. The taxonomy does not name

@@ -6,7 +6,7 @@
   "auto_nudge_triggers": [
     {
       "id": "demand-scan-core-spec",
-      "trigger_path": "docs/product/core_spine/orca_demand_scan_core_spec_v0.md",
+      "trigger_path": "docs/product/search/orca_demand_scan_core_spec_v0.md",
       "condition": "exists",
       "basis": "Adopted deliverable §3 (Observation/Call backing depends on the in-flight scan-spec), §4 (forward consumer), §9 (defer Observation + TrendVector until the scan-spec lands on main). When this path exists, those types are buildable by re-expressing the scan-spec's Observation/Candidate schema in ontology terms.",
       "cards_owed": [

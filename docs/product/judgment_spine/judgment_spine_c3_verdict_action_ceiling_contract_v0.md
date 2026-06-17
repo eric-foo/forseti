@@ -22,7 +22,7 @@ open_next:
   - docs/product/judgment_spine/judgment_spine_c2_ledger_read_contract_v0.md             # the C2 step C3 consumes (weighted signals; Rule 3 routes persistence patterns here)
   - docs/product/product_lead/orca_buyer_proof_packet_v0.md                              # the action-ceiling cap rule (floor vs ceiling; >=2 converging origins; engagement-only caps)
   - docs/product/judgment_spine/prospective_decision_loop_target_architecture_v0.md      # the sealed_call output surface C3 fills (recommendation / confidence_band / signals_used / reasoning_trace)
-  - docs/product/product_lead/orca_demand_read_taxonomy_v0.md                            # the read grammar (two-axis model + calling sequence + read types) C3 verdicts in
+  - docs/product/search/orca_demand_read_taxonomy_v0.md                            # the read grammar (two-axis model + calling sequence + read types) C3 verdicts in
 stale_if:
   - The core architecture amends C3's step shape, the two-axis verdict, or the calling sequence.
   - The buyer-proof action-ceiling cap rule (floor/ceiling, >=2 converging origins, engagement-only cap) is re-derived.
@@ -306,7 +306,7 @@ spec_handoff:
 - `docs/product/judgment_spine/prospective_decision_loop_target_architecture_v0.md` —
   the sealed_call output surface (recommendation / confidence_band / signals_used /
   reasoning_trace). On `origin/main`. reread-required.
-- `docs/product/product_lead/orca_demand_read_taxonomy_v0.md` — the read grammar
+- `docs/product/search/orca_demand_read_taxonomy_v0.md` — the read grammar
   (two-axis model + calling sequence + read types) C3 verdicts in. Status
   `PROPOSED_PENDING_OWNER_ADJUDICATION` on `origin/main`. reread-required; the grammar
   is not yet owner-adjudicated as operative.

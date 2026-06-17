@@ -17,8 +17,8 @@ use_when:
   - Clearing the scan-core / gate-run / gate-architecture / sourcing decisions in one owner pass before authorizing a first scan.
 authority_boundary: retrieval_only
 open_next:
-  - docs/product/core_spine/orca_demand_scan_core_spec_v0.md
-  - docs/product/product_lead/orca_demand_gate_run_commission_criteria_v0.md
+  - docs/product/search/orca_demand_scan_core_spec_v0.md
+  - docs/product/search/orca_demand_gate_run_commission_criteria_v0.md
   - docs/product/product_lead/orca_buyer_proof_packet_v0.md
   - docs/review-outputs/adversarial-artifact-reviews/orca_demand_scan_core_spec_delegated_adversarial_review_patch_review_v0.md
 base: origin/main @ ada92695 (four cited statuses re-verified 2026-06-17; advance expected — re-confirm if the base moved)

@@ -19,7 +19,7 @@ open_next:
   - orca-harness/source_capture/models.py                                          # Capture Envelope of record (schema)
   - docs/product/data_capture_spine/core_spine_v0_data_capture_spine_obligation_contract_v0.md  # Obligation contract
   - docs/product/product_lead/orca_buyer_proof_packet_v0.md                        # INV-1, Demand-Substrate Hard Gate, costly-behavior
-  - docs/product/product_lead/orca_demand_gate_definition_closures_proposal_v0.md  # AR-04 sourcing-gap status
+  - docs/product/search/orca_demand_gate_definition_closures_proposal_v0.md  # AR-04 sourcing-gap status
 stale_if:
   - The Lane 1 envelope-delta spec (capture_envelope_durability_delta_spec_v0.md) is amended or superseded.
   - The capture envelope of record (models.py or the obligation contract) is amended in a way that covers these facts.
@@ -54,12 +54,12 @@ authoritative sources:
   as stale and open the controlling source.
 - **INV-1 and the Demand-Substrate Hard Gate:** `docs/product/product_lead/orca_buyer_proof_packet_v0.md`.
   Consumed as-is; not redefined here.
-- **Demand-Read Taxonomy:** `docs/product/product_lead/orca_demand_read_taxonomy_v0.md`
+- **Demand-Read Taxonomy:** `docs/product/search/orca_demand_read_taxonomy_v0.md`
   (PROPOSED, pending adjudication). Consumed as orientation for buy-side signal
   layer positioning; not operative until owner adjudication.
 
 **Deconfliction.** Search-interest is classified in
-`docs/product/product_lead/orca_demand_gate_definition_closures_proposal_v0.md`
+`docs/product/search/orca_demand_gate_definition_closures_proposal_v0.md`
 (AR-04) as a **G1 unsourced demand-family gap** — owner-owned, not yet sourced.
 This profile specifies capture obligations CONDITIONAL ON A SOURCE BEING SOURCED
 (see below). It does not constitute sourcing authorization and does not resolve
@@ -72,7 +72,7 @@ extends that scope for the search-interest surface type when a commission exists
 ## Conditional-On-Sourcing Statement
 
 **Search-interest sourcing is an UNSOURCED GAP (AR-04).** Per
-`docs/product/product_lead/orca_demand_gate_definition_closures_proposal_v0.md`,
+`docs/product/search/orca_demand_gate_definition_closures_proposal_v0.md`,
 search-interest is a G1 demand-family card that is currently unsourced — the
 sourcing route, vendor, API, or access method has not been authorized by the
 owner for Orca capture use.
@@ -254,8 +254,8 @@ lifecycle_verification:
     - orca-harness/source_capture/models.py                                          # Capture Envelope of record (schema, cited)
     - docs/product/data_capture_spine/core_spine_v0_data_capture_spine_obligation_contract_v0.md  # Obligation contract (cited)
     - docs/product/product_lead/orca_buyer_proof_packet_v0.md                        # INV-1, Hard Gate (consumed)
-    - docs/product/product_lead/orca_demand_gate_definition_closures_proposal_v0.md  # AR-04 (cited)
-    - docs/product/product_lead/orca_demand_read_taxonomy_v0.md                      # Signal layer orientation (consumed)
+    - docs/product/search/orca_demand_gate_definition_closures_proposal_v0.md  # AR-04 (cited)
+    - docs/product/search/orca_demand_read_taxonomy_v0.md                      # Signal layer orientation (consumed)
   inv1_preserved: yes — observables only, no scoring, weighting, ranking, or judgment
   conditional_on_sourcing: yes — AR-04 unsourced gap; sourcing not authorized by this profile
   contract_hardening_authorized: no

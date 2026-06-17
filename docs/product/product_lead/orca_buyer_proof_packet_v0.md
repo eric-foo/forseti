@@ -660,17 +660,17 @@ direction_change_propagation:
   controlling_sources_updated:
     - docs/product/product_lead/orca_buyer_proof_packet_v0.md
     - docs/product/product_lead/orca_discovery_consumer_demand_target_selection_brief_v0.md
-    - docs/product/product_lead/orca_demand_gate_definition_closures_proposal_v0.md
+    - docs/product/search/orca_demand_gate_definition_closures_proposal_v0.md
   downstream_surfaces_checked:
-    - docs/product/product_lead/orca_demand_read_taxonomy_v0.md
+    - docs/product/search/orca_demand_read_taxonomy_v0.md
     - docs/product/product_lead/orca_product_proof_lead_charter_v0.md
     - docs/product/product_lead/orca_offer_hypothesis_v0.md
     - docs/product/product_lead/orca_offer_hypothesis_consumer_demand_revision_v0.md
-    - docs/product/product_lead/orca_demand_read_taxonomy_adjudication_v0.md
+    - docs/product/search/orca_demand_read_taxonomy_adjudication_v0.md
     - docs/product/product_lead/orca_buyer_proof_packet_consumer_demand_revision_v0.md
     - docs/prompts/product-planning/demand_substrate_gate_paper_check_commission_prompt_v0.md
   intentionally_not_updated:
-    - path: docs/product/product_lead/orca_demand_read_taxonomy_v0.md
+    - path: docs/product/search/orca_demand_read_taxonomy_v0.md
       reason: >
         Already classifies retail placements as supply-side org motion
         (corroboration), consistent with the G4 reclassification (lines 104-106);
@@ -691,7 +691,7 @@ direction_change_propagation:
       reason: >
         Offer-hypothesis revision restates the same clause (line 167); FLAGGED
         residual reconcile, outside authorized scope.
-    - path: docs/product/product_lead/orca_demand_read_taxonomy_adjudication_v0.md
+    - path: docs/product/search/orca_demand_read_taxonomy_adjudication_v0.md
       reason: >
         Adjudication record restating the prior gate wording (line 138);
         historical adjudication context; FLAGGED residual, outside scope.

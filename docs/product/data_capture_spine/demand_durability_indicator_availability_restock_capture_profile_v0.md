@@ -46,7 +46,7 @@ downstream_consumers:
   `docs/product/data_capture_spine/core_spine_v0_data_capture_spine_obligation_contract_v0.md`,
   `docs/product/product_lead/orca_buyer_proof_packet_v0.md` (INV-1, costly-behavior,
   Demand-Substrate Hard Gate),
-  `docs/product/product_lead/orca_demand_read_taxonomy_v0.md`
+  `docs/product/search/orca_demand_read_taxonomy_v0.md`
 
 ---
 
@@ -162,7 +162,7 @@ stock-state surface.
 
 This profile is bound by INV-1 (the Demand-Substrate no-scoring invariant, per
 `docs/product/product_lead/orca_buyer_proof_packet_v0.md` and
-`docs/product/product_lead/orca_demand_read_taxonomy_v0.md`).
+`docs/product/search/orca_demand_read_taxonomy_v0.md`).
 
 Concretely:
 

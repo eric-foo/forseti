@@ -24,7 +24,7 @@ use_when:
 authority_boundary: retrieval_only
 open_next:
   - docs/product/judgment_spine/judgment_spine_c3_verdict_action_ceiling_contract_v0.md  # parent: the contestant-emit contract (transient-default / earned-durable; the ceiling vocabulary + cap rule the action axis grades against)
-  - docs/product/product_lead/orca_demand_read_taxonomy_v0.md                            # parent: the Calling Sequence (transient-first -> monitor -> earn durable) this rule is entailed by
+  - docs/product/search/orca_demand_read_taxonomy_v0.md                            # parent: the Calling Sequence (transient-first -> monitor -> earn durable) this rule is entailed by
   - docs/product/judgment_spine/judgment_spine_reveal_calibration_owner_contract_v0.md   # the JSG-08 reveal / tell-audit mechanics the contamination axis uses
   - docs/product/judgment_spine/judgment_spine_evidence_ladder_architecture_v0.md        # the claim-tier boundaries (product_learning vs judgment-quality) a grade may not cross on N=1
   - orca-harness/cases/product_learning/topicals_retail_expansion_2021_v0/first_demand_read_findings_v0.md  # the worked example that surfaced this rule
@@ -163,7 +163,7 @@ commissioned by a prompt artifact, not folded into this lane.
   — parent; the transient-default/earned-durable acceptance criterion and the
   floor/ceiling cap rule axis 1–2 grade against. Status `PROPOSED`. Last checked:
   2026-06-15. Reuse rule: reread before amending the rule.
-- `docs/product/product_lead/orca_demand_read_taxonomy_v0.md` — parent; the
+- `docs/product/search/orca_demand_read_taxonomy_v0.md` — parent; the
   Calling Sequence the standing rule is entailed by. Status
   `PROPOSED_PENDING_OWNER_ADJUDICATION`. Last checked: 2026-06-15. Reuse rule:
   reread; not yet owner-adjudicated as operative.

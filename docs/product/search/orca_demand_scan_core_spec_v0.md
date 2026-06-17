@@ -18,7 +18,7 @@ use_when:
   - Adjudicating this spec (commissioning ICP / product-direction lane; owner signs adoption).
 authority_boundary: retrieval_only
 open_next:
-  - docs/product/product_lead/orca_demand_read_taxonomy_v0.md          # the hunting grammar's source (PROPOSED; 3-state model)
+  - docs/product/search/orca_demand_read_taxonomy_v0.md          # the hunting grammar's source (PROPOSED; 3-state model)
   - docs/product/core_spine/orca_vertical_exploration_guide_v0.md      # the walk mechanics this spec layers on
   - docs/product/core_spine/beauty_venue_card_set_v0.md                # the venue layer (beauty)
   - docs/product/product_lead/orca_discovery_consumer_demand_target_selection_brief_v0.md  # forward-mode consumer
@@ -28,7 +28,7 @@ input_hashes:
   # sha256 first-16-hex over git BLOB bytes (LF as stored; `git cat-file blob <rev>:<path>`),
   # NOT over CRLF working-tree bytes. A Get-FileHash mismatch on a CRLF checkout is not staleness.
   # Re-pinned 2026-06-16 against origin/main @ fc51291c during the re-derivation (below).
-  - path: docs/product/product_lead/orca_demand_read_taxonomy_v0.md
+  - path: docs/product/search/orca_demand_read_taxonomy_v0.md
     sha256_16_lf: 5FE5C41E1036D1A2
     note: >
       Re-pinned 2026-06-16 (was BC478D890419B2B6). DRIFT was substantive: the

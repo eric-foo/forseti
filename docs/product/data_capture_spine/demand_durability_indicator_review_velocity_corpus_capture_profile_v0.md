@@ -19,7 +19,7 @@ open_next:
   - orca-harness/source_capture/models.py                                          # Capture Envelope of record (schema)
   - docs/product/data_capture_spine/core_spine_v0_data_capture_spine_obligation_contract_v0.md  # Obligation contract §12 (review surfaces rule)
   - docs/product/product_lead/orca_buyer_proof_packet_v0.md                        # INV-1, Demand-Substrate Hard Gate, costly-behavior, integrity labels
-  - docs/product/product_lead/orca_demand_gate_definition_closures_proposal_v0.md  # AR-04 sourcing-gap status
+  - docs/product/search/orca_demand_gate_definition_closures_proposal_v0.md  # AR-04 sourcing-gap status
   - docs/decisions/data_capture_spine_source_observability_requirements_boundary_decision_v0.md  # RQ-05 source-language-anchor status
 stale_if:
   - The Lane 1 envelope-delta spec (capture_envelope_durability_delta_spec_v0.md) is amended or superseded.
@@ -75,7 +75,7 @@ authoritative sources:
   Consumed as-is; not redefined here. Integrity labels (artificial-amplification
   risk, incentive distortion, copied/coordinated) are a pre-requisite for review
   evidence entering a fused read.
-- **Demand-Read Taxonomy:** `docs/product/product_lead/orca_demand_read_taxonomy_v0.md`
+- **Demand-Read Taxonomy:** `docs/product/search/orca_demand_read_taxonomy_v0.md`
   (PROPOSED, pending adjudication). Review velocity and content shifts are named
   as buy-side corroboration (costly behavior layer); review surfaces are also
   flagged for J-curve self-selection bias and FTC 16 CFR 465 pollution risk.
@@ -91,7 +91,7 @@ corresponding sections; this profile then becomes stale for those sections and
 §12 controls.
 
 **AR-04 deconfliction:** Review surfaces are classified in
-`docs/product/product_lead/orca_demand_gate_definition_closures_proposal_v0.md`
+`docs/product/search/orca_demand_gate_definition_closures_proposal_v0.md`
 (AR-04) as **G1 unsourced demand-family gap** — owner-owned, not yet sourced.
 This profile is CONDITIONAL ON SOURCING; see below.
 
@@ -100,7 +100,7 @@ This profile is CONDITIONAL ON SOURCING; see below.
 ## Conditional-On-Sourcing Statement
 
 **Review-surface sourcing is an UNSOURCED GAP (AR-04).** Per
-`docs/product/product_lead/orca_demand_gate_definition_closures_proposal_v0.md`,
+`docs/product/search/orca_demand_gate_definition_closures_proposal_v0.md`,
 review surfaces are a G1 demand-family card that is currently unsourced — the
 sourcing route, vendor, API, or access method has not been authorized by the
 owner for Orca capture use.
@@ -379,9 +379,9 @@ lifecycle_verification:
     - orca-harness/source_capture/models.py                                          # Capture Envelope of record (schema, cited)
     - docs/product/data_capture_spine/core_spine_v0_data_capture_spine_obligation_contract_v0.md  # Obligation contract §12 (cite-and-extend)
     - docs/product/product_lead/orca_buyer_proof_packet_v0.md                        # INV-1, Hard Gate, integrity labels (consumed)
-    - docs/product/product_lead/orca_demand_gate_definition_closures_proposal_v0.md  # AR-04 (cited)
+    - docs/product/search/orca_demand_gate_definition_closures_proposal_v0.md  # AR-04 (cited)
     - docs/decisions/data_capture_spine_source_observability_requirements_boundary_decision_v0.md  # RQ-05 carry_forward (cite-and-extend)
-    - docs/product/product_lead/orca_demand_read_taxonomy_v0.md                      # Signal layer orientation (consumed)
+    - docs/product/search/orca_demand_read_taxonomy_v0.md                      # Signal layer orientation (consumed)
   inv1_preserved: yes — observables+flag only; no credibility/integrity verdict; farm-detection is downstream Judgment
   conditional_on_sourcing: yes — AR-04 unsourced gap; sourcing not authorized by this profile
   deconfliction_section12: cite-and-extend — §12 is the floor; this profile adds velocity/corpus facts §12 does not name
