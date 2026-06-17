@@ -82,9 +82,9 @@ Nothing derived replaces raw truth.
 | Slot | Lake-side responsibility | Must not become | Physical status |
 | --- | --- | --- | --- |
 | Raw Packet Store | Preserve raw `SourceCapturePacket` bundles, stable packet/slice/file handles, `sha256`, and `hash_basis`. | Cleaned source truth, canonical identity, or mutable packet history. | Deferred. |
-| Attachment Record | Carry source-family payload body plus scope, family, kind, schema version, replay pins, and absence/refusal/residual posture. | Cleaned value, dedupe decision, credibility label, Judgment label, or downstream-use strength. | Deferred; historical docs call this the logical typed-envelope boundary. |
+| Attachment Record | Carry source-family payload body plus packet identity (`packet_id`), slice identity (`slice_id` when applicable), family, kind, schema version, replay pins, and absence/refusal/residual posture. | Cleaned value, dedupe decision, credibility label, Judgment label, or downstream-use strength. | Deferred; historical docs call this the logical typed-envelope boundary. |
 | Availability Index | Record only that packet/slice/file material is committed and readable by stable keys with checkable refs. | Event bus, scheduler, lane router, retry gate, priority system, or success tracker. | Deferred; by-key scan/query must work before any queue. |
-| Derived Result Store | Hold append-only lane-owned derived records keyed to raw: projection receipts, ECR integrity records, SCR content records, Cleaning ledgers, and Judgment outputs. | Second raw source of truth, merged cross-kind blob, or rewritten derived history. | Deferred with derived-record physical-home blocker. |
+| Derived Result Store | Hold append-only lane-owned derived records keyed to raw: projection receipts, ECR integrity records, SCR content records, Cleaning ledgers, and Judgment outputs. | Second raw source of truth, merged cross-kind blob, or rewritten or deleted derived history. | Deferred with derived-record physical-home blocker. |
 | Acknowledgement Log | Hold append-only lane-owned completion or acknowledgement facts keyed to raw. | Lake-consumed control flow for scheduling, gating, retrying, or calling another lane. | Deferred with derived-record physical-home blocker. |
 
 ## Write And Read Discipline
