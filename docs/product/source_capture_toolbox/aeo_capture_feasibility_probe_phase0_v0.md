@@ -382,6 +382,27 @@ Tooling: a local `gemini_query_graph_mapper.py` (outside this repo) that loops g
 calls, captures `webSearchQueries`, and resolves `vertexaisearch` redirects to real
 publishers. Proxy, not the consumer AIO; ToS-gray; internal research only.
 
+## Routing — search/AEO source-class lane (#228)
+
+This probe is routed as **feasibility evidence** for the search/AEO source-class
+specced in the demand scan/gate lane (PR #228, branch
+`demand-scan-gate-adjudication-v0`). Verdict for that lane: AI answer-engine
+retrieval is **capturable as a public-signal venue** for the consumer-demand
+decision-intelligence thesis, at measured-ToS-risk —
+
+- **ChatGPT:** real issued query + full pulled-source set, from the *actual consumer surface*;
+- **consumer Google AI Overview:** rendered brands + cited sources (fan-out / candidate pool server-side);
+- **Gemini API grounding:** fan-out queries + grounded sources, as a **proxy** for the consumer box.
+
+It does **not** establish a standalone AEO/GEO product — that stays **fallback-only**,
+explicitly *not* a wedge change (the consumer-demand thesis and beauty-operator wedge
+remain `OWNER_LOCKED`). AEO feeds the locked wedge as one fusable venue family; the
+Orca-native angle is the **durable / transient / manufactured demand-integrity** read on
+AI-surfaced demand (a hypothesis, not validated). **Open for #228:** the consumer-box ↔
+Gemini-API fidelity is unproven — assume the same underlying system, but it is *not*
+provable by these attempts. Whether/how to adopt this venue under #228's gates is that
+lane's decision; no build or outreach is authorized here.
+
 ## Addendum non-claims
 
 Research/feasibility only. The Gemini grounding surface is a **proxy**, not the
