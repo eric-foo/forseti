@@ -15,6 +15,7 @@ authority_boundary: retrieval_only
 open_next:
   - docs/product/data_capture_spine/source_capture_tenant_payload_attachment_boundary_v0.md
   - docs/product/data_capture_spine/source_capture_core_payload_split_explainer_v0.md
+  - docs/product/data_capture_spine/retail_pdp_typed_envelope_probe_v0.md
   - docs/workflows/ecr_spine_submap_v0.md
   - docs/product/core_spine_v0_projection_doctrine_v0.md
   - docs/product/core_spine/core_spine_v0_cleaning_spine_foundation_v0.md
@@ -22,6 +23,7 @@ branch_or_commit:
   - Based on codex/source-capture-tenant-payload-boundary at d5dcf1a4; verify landing status before relying on this boundary from another base.
 stale_if:
   - The payload-boundary lane is rejected or materially changed.
+  - The Retail/PDP typed-envelope probe is rejected or materially changed.
   - A later accepted storage/manifest/sidecar/projection-cache decision supersedes this logical map.
   - A non-IG envelope probe disproves or changes the packet/slice-keyed boundary.
   - ECR, SCR, Cleaning, or Judgment ownership changes in a later accepted source.
@@ -125,8 +127,8 @@ Do not open storage/schema/manifest/projection-cache/envelope-serialization work
 until these are true:
 
 1. The payload-boundary lane is landed or explicitly accepted as the base.
-2. One non-IG family probe shows packet/slice-keyed envelopes work without
-   adding new `SourceCaptureSlice` fields.
+2. The Retail/PDP probe, or another non-IG family probe, shows packet/slice-
+   keyed envelopes work without adding new `SourceCaptureSlice` fields.
 3. The owner chooses envelope physical representation: manifest, sidecar, or
    another immutable/hash-pinned form.
 4. Incumbent fields have a fate: frozen, dual-read, replayed, or legacy-only.
@@ -158,7 +160,8 @@ irreversible physical choices wait for the non-IG probe.
 ## Known Risks
 
 - This map depends on the payload-boundary branch until that branch lands.
-- The envelope boundary is still unbuilt and unproven by a non-IG family.
+- Retail/PDP supports the logical envelope shape only; the envelope boundary is
+  still unbuilt and unproven physically.
 - `SourceCaptureSlice` is already a fat incumbent surface; docs do not
   mechanically block field #6.
 - SCR `FamilyDetailBase` is a latent competing payload home.
@@ -180,6 +183,7 @@ direction_change_propagation:
     - workflow_authority
   controlling_sources_updated:
     - docs/product/core_spine/core_spine_v0_data_lake_mechanics_map_v0.md
+    - docs/product/data_capture_spine/retail_pdp_typed_envelope_probe_v0.md
     - docs/workflows/data_capture_spine_consolidation_map_v0.md
     - docs/workflows/ecr_spine_submap_v0.md
   downstream_surfaces_checked:

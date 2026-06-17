@@ -56,6 +56,7 @@ stale_if:
 | Check tenant/source-family payload attachment boundary | `docs/product/data_capture_spine/source_capture_tenant_payload_attachment_boundary_v0.md` |
 | Explain the core-facts vs typed-attachment split in plain language | `docs/product/data_capture_spine/source_capture_core_payload_split_explainer_v0.md` |
 | Check logical data-lake mechanics from capture through projection, ECR/SCR, Cleaning, and Judgment | `docs/product/core_spine/core_spine_v0_data_lake_mechanics_map_v0.md` |
+| Check Retail/PDP as the first non-IG typed-envelope probe | `docs/product/data_capture_spine/retail_pdp_typed_envelope_probe_v0.md` |
 | Check raw-to-Judgment projection view doctrine | `docs/product/core_spine_v0_projection_doctrine_v0.md` |
 | Check Retail/PDP projection contract for Amazon, Sephora, and Ulta | `docs/product/source_capture_toolbox/retail_pdp_projection_contract_v0.md` (target DOM price/SKU binding posture, residual vocabulary, and no-ECR/Cleaning/Judgment boundary) |
 | Check current Retail/PDP projection playbook for Amazon, Sephora, and Ulta | `docs/product/source_capture_toolbox/retail_pdp_projection_playbook_v0.md` |
@@ -202,6 +203,14 @@ stale_if:
   projection, ECR/SCR, Cleaning, and Judgment flow by key without selecting
   physical storage, schema migration, or projection cache.
 - owner: `docs/product/core_spine/core_spine_v0_data_lake_mechanics_map_v0.md`
+
+### Retail/PDP typed-envelope probe
+
+- summary: First non-IG logical fit check for the packet/slice-keyed typed-
+  envelope boundary. Retail/PDP source-family payload can live outside direct
+  `SourceCaptureSlice` fields while raw packet truth stays canonical and
+  projection stays derived. It does not select storage or authorize runtime.
+- owner: `docs/product/data_capture_spine/retail_pdp_typed_envelope_probe_v0.md`
 
 ### Source-access boundary
 
