@@ -4,10 +4,11 @@
 retrieval_header_version: 1
 artifact_role: Orca decision record
 scope: >
-  Adds `search/` as a bound docs/product/ lane (the search / answer-engine topic
-  vertical), with its inclusion test and precedence rule, and references the
-  scoped 4-file migration package that physically co-locates the search-primary
-  artifacts. Extends the docs/product/ by-lane parameter bound in
+  Binds `search/` as a docs/product/ lane: Orca's search / answer-engine
+  surfaces PLUS the demand-signal discovery method (scan, read-grammar, gates)
+  those surfaces feed. Holds the lane inclusion test + precedence rule and
+  references the migration package that physically co-locates the member docs.
+  Extends the docs/product/ by-lane parameter bound in
   docs/decisions/orca_repo_structure_binding_v0.md.
 use_when:
   - Deciding whether a doc belongs in docs/product/search/ versus a spine lane.
@@ -27,45 +28,64 @@ stale_if:
 
 ## Status
 
-Owner-authorized adoption, v0. Authorized by explicit current-turn owner
-instruction to create a consolidated Search lane and physically co-locate the
-search-primary artifacts ("full physical move", option C), reached through a
-deep-think -> assumption-gate -> re-scope -> implementation-scoping ->
-micro-decision-lock sequence this session. The inclusion test, precedence rule,
-lane name (`search`), and the 4-file move-set were owner-confirmed at the
-micro-decision lock. This binds the lane as Orca doctrine; it is not validation,
-readiness, or product proof, and it does not execute the migration (see
-Migration).
+Owner-authorized adoption, v0. Created and EXPANDED in one session, before the
+lane landed on main (PR #236, unmerged): a first move co-located the 4
+search/answer-engine-surface docs ("full physical move", option C); the owner
+then directed completing the migration to the demand-signal discovery method
+("we have to make expansion; indexing is just a crutch ... preserve integrity"),
+expanding the move by +6 demand-scan/read/gate docs and excluding 3 non-search
+docs. Reached through deep-think -> assumption-gate -> re-scope ->
+implementation-scoping -> micro-decision-lock, each step owner-confirmed. This
+binds the lane as Orca doctrine; it is not validation, readiness, or product
+proof.
 
 ## Decision
 
 `docs/product/search/` is a bound second-level lane under `docs/product/`,
 extending the by-lane axis bound in
-`docs/decisions/orca_repo_structure_binding_v0.md`. It is the home for the
-search / answer-engine topic vertical: how Orca captures, reads, and
-source-classes search-surface and answer-engine signal (web search / SERP,
-Google AI Overviews and other answer engines, zero-click, AEO/GEO, and
-search-interest / "trends" as a capture surface).
+`docs/decisions/orca_repo_structure_binding_v0.md`. It is Orca's **demand-signal
+intelligence (search-led)** vertical, holding two coherent things:
 
-This lane is a deliberate, bounded **topic** vertical placed beside the
-function (spine) lanes. See "Relationship to invariant #1."
+1. **Search / answer-engine surfaces** - how Orca captures, reads, and
+   source-classes search-surface and answer-engine signal (web search / SERP,
+   Google AI Overviews and other answer engines, zero-click, AEO/GEO,
+   search-interest / "trends").
+2. **The demand-signal discovery method** those surfaces feed - the scan method,
+   the demand-read grammar/taxonomy, and the demand gates that adjudicate
+   discovered signal.
+
+This lane is a deliberate **topic** vertical beside the function (spine) lanes
+(see "Relationship to invariant #1"). The method docs (item 2) are search-led
+but **venue-spanning**: they govern demand reads across all venues and are
+consumed by the judgment, data-capture, and core spines. They live here because
+the search/trends lane owns demand-signal discovery, not because they are
+search-only; their cross-spine references resolve into `docs/product/search/`.
 
 ## Inclusion test (bound)
 
-A doc belongs in `docs/product/search/` when its reason-to-exist IS the search /
-answer-engine surface itself - how Orca captures it, what it exposes, or its
-source-class - not a demand-integrity mechanic (scan, gate, read-taxonomy,
-durability indicator) that merely consumes search as one venue among many.
+A doc belongs in `docs/product/search/` when its reason-to-exist is either:
+
+- (a) the **search / answer-engine surface** itself - how Orca captures it, what
+  it exposes, or its source-class; OR
+- (b) the **demand-signal discovery method** that drives those reads - the scan
+  method, the demand-read grammar/taxonomy, or the demand gates that adjudicate
+  discovered signal.
+
+It excludes a doc whose primary subject is a different venue's capture (retail
+price / availability / reviews, or Reddit HTML intake), or a one-shot data
+handoff / discovery research artifact, even when it touches search.
 
 ## Precedence rule (bound)
 
-When a doc is both search-primary and spine-functional, topic-primacy wins: it
+When a doc is both in-scope here and spine-functional, topic-primacy wins: it
 lives in `search/`, not its spine lane. Every artifact keeps exactly one
 physical home (invariant #6); there is no dual placement.
 
 ## Scope - what this lane holds (v0)
 
-Move-set (search-primary; physically relocated by the migration package):
+Move-set (physically relocated by the migration package).
+
+Search / answer-engine surfaces:
 
 | New home `docs/product/search/` | Moved from |
 | --- | --- |
@@ -74,46 +94,70 @@ Move-set (search-primary; physically relocated by the migration package):
 | `demand_search_interest_sourcing_and_gate_delta_spec_v0.md` | `data_capture_spine/` |
 | `demand_durability_indicator_search_interest_capture_profile_v0.md` | `data_capture_spine/` |
 
-Stays in its spine lane, cross-linked from the lane index (demand-primary, NOT
-search-primary - moving would orphan it from its functional spine and its
-downstream consumers): the demand-scan core spec, the demand-scan / gate
-adjudication packet, gate-definition and commission-criteria records, and the
-demand-read taxonomy + adjudication.
+Demand-signal discovery method (search-led, venue-spanning):
 
-Never in scope (different venue entirely): retail availability/restock,
-price-timeseries, and review-velocity durability capture profiles.
+| New home `docs/product/search/` | Moved from |
+| --- | --- |
+| `orca_demand_scan_core_spec_v0.md` | `core_spine/` |
+| `orca_demand_read_taxonomy_v0.md` | `product_lead/` |
+| `orca_demand_read_taxonomy_adjudication_v0.md` | `product_lead/` |
+| `orca_demand_scan_gate_adjudication_packet_v0.md` | `product_lead/` |
+| `orca_demand_gate_definition_closures_proposal_v0.md` | `product_lead/` |
+| `orca_demand_gate_run_commission_criteria_v0.md` | `product_lead/` |
 
-The inclusion test governs future membership; this v0 scope is not exhaustive of
+Explicitly EXCLUDED (touches search but out of scope - moving them would
+mislabel them):
+
+- the retail availability/restock, price-timeseries, and review-velocity
+  durability capture profiles (`data_capture_spine/`) - different venues;
+- `reddit_candidate_intake_old_reddit_search_surface_handling_v0.md`
+  (`workflows/`) - old-Reddit HTML parsing, not search-interest;
+- `consumer_demand_candidate_pool_handoff_v0.md` (`core_spine/`) - a one-shot
+  candidate roster, not method;
+- `orca_discovery_candidate_scan_beauty_neutral_chatgptpro_v0.md` (`research/`) -
+  a discovery research artifact.
+
+The inclusion test governs future membership; this scope is not exhaustive of
 what may later qualify.
 
 ## Relationship to invariant #1 (one primary axis per subtree)
 
 The `docs/product/` axis is otherwise by spine-function. `search/` is a topic
-axis, so adding it beside the spine lanes bends invariant #1. The owner accepted
-this trade at the re-scope decision. It is contained, not waived: the inclusion
-test draws a narrow membership boundary, and the precedence rule preserves
-invariant #6 (single physical home) by making topic-primacy decisive for the
-small search-primary set. Any further topic vertical is a deliberate extension
-recorded by its own decision, not an open licence.
+axis, so adding it beside the spine lanes bends invariant #1 - and the expansion
+to the demand-signal method docs bends it further, since those foundations are
+consumed across the judgment, capture, and core spines yet now live in the topic
+lane. The owner accepted this trade deliberately ("indexing is just a crutch; we
+have to make expansion") for a long-term demand-signal vertical, with an explicit
+"preserve integrity" instruction. It is contained, not waived: the inclusion
+test bounds membership to search-surface + demand-signal-discovery-method (not
+the whole demand spine), the precedence rule preserves invariant #6 (single
+physical home), and the moved foundations keep their cross-spine references
+(which now resolve into `search/`). Any further topic vertical or lane expansion
+is a deliberate extension recorded by its own decision, not an open licence.
 
-## Migration (packaged, not executed here)
+## Migration (packaged + applied on the lane branch)
 
 The physical co-location is packaged under
-`docs/migration/repo_structure_search_lane_v0/` (manifest, dedicated
-apply/reverse script, runbook, reference inventory). Applying it is gated by the
-runbook precondition (clean commit checkpoint) AND an owner-coordinated freeze
-of `data_capture_spine` (the move's only contended lane). This record does not
-execute the move. `repo-structure.yaml` carries `search` at `status: planned`
-until the apply runs, then `current` (per the migration-state discipline in the
-structure binding).
+`docs/migration/repo_structure_search_lane_v0/` (10-row manifest, dedicated
+idempotent apply/reverse script, runbook, reference inventory, moved-paths
+index). The apply engine scans and rewrites all live references (the expansion
+touches ~19 live files across judgment_spine / data_capture_spine / core_spine /
+product_lead) and preserves git history via `git mv`. Historical records keep
+their old paths and resolve via the moved-paths index. The owner authorized
+applying it on the lane branch and committed to not reopening the contended
+spines during the window; `repo-structure.yaml` carries `search` at
+`status: current` once applied.
 
 ## Controlling sources updated by this change
 
-- `repo-structure.yaml` - `product_lanes` += `{ name: search, status: planned }`.
+- `repo-structure.yaml` - `product_lanes` += `{ name: search }` (current once applied).
 - `.agents/workflow-overlay/artifact-folders.md` - search-lane accepted-folder entry + lane-subfolder list + the direction-change-propagation receipt.
 - `docs/decisions/orca_repo_structure_binding_v0.md` - bound-lanes bullet notes `search/`.
 - `docs/product/README.md` - lane list includes `search/`.
-- `docs/product/search/README.md` - lane front-door index (new).
+- `docs/product/search/README.md` - lane front-door index.
+- `docs/workflows/orca_repo_map_v0.md` - Workstream Status Pointers row.
+- `docs/migration/repo_structure_search_lane_v0/` - the migration package (manifest, apply/reverse script, runbook, reference inventory, moved-paths index).
+- The 10 moved docs (search / answer-engine surfaces + demand-signal method) and the ~19 live referencing files whose paths the apply rewrites.
 
 ## Direction change propagation
 
@@ -125,7 +169,8 @@ updated), per the Doctrine Change Propagation Contract in
 ## Non-claims
 
 - Not validation, readiness, approval, or product proof; placement / doctrine only.
-- Not execution of the migration; the move is packaged and owner-freeze-gated.
+- Placement of the demand-signal method docs in `search/` does not narrow their
+  authority: they remain venue-spanning demand foundations, not search-only.
 - Not a ToS, legal, or sourcing authorization; the AEO probe's own posture and
   non-claims are unchanged by relocation.
 - A green `check_placement.py` run after apply is placement shape, not validation

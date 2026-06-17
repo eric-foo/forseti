@@ -804,7 +804,7 @@ status field. Open the owning doc for authority; this table is navigation only.
 | Signal content | `docs/product/signal_content/core_spine_v0_signal_content_record_architecture_v0.md` | `OWNER_DECIDED_DIRECTION` |
 | Source capture toolbox | `docs/product/source_capture_toolbox/README.md` | `SOURCE_CAPTURE_ARMORY_README_V0` |
 | Core spine | `docs/product/core_spine/core_spine_v0_product_contract.md` | `PROPOSED_FREEZE` |
-| Search lane | `docs/decisions/orca_search_product_lane_binding_v0.md` | owner-authorized v0; lane `planned` until the search-lane migration applies |
+| Search lane | `docs/decisions/orca_search_product_lane_binding_v0.md` | owner-authorized v0; demand-signal intelligence (search-led): search/answer-engine surfaces + demand-scan/read/gate method |
 
 ## Not-Proven Boundaries
 

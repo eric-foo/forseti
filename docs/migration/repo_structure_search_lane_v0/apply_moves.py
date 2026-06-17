@@ -1,29 +1,30 @@
 #!/usr/bin/env python3
-"""Search-lane migration: 4 search-primary docs -> docs/product/search/.
+"""Search-lane migration: search-primary + demand-signal-method docs -> docs/product/search/.
 
-Scoped, manifest-driven, reversible, dry-run-first. Owned by
+Scoped, manifest-driven, reversible, dry-run-first, IDEMPOTENT. Owned by
 docs/decisions/orca_search_product_lane_binding_v0.md (lane binding) and
 docs/migration/repo_structure_search_lane_v0/runbook.md (procedure). Cloned and
 scoped down from the Phase-2 engine
 (docs/migration/repo_structure_phase2_consolidation_v0/apply_moves.py).
 
 DESIGN INVARIANTS
-  - moves_manifest.csv is the single source for apply/reverse (4 rows).
+  - moves_manifest.csv is the single source for apply/reverse (the full lane set).
+  - IDEMPOTENT: a row whose source is already gone AND target already exists is
+    treated as already-applied and skipped (so the manifest can grow across
+    waves and --apply re-run safely).
   - Reference rewrites replace the FULL old-path string -> new-path string only.
-    Bare-filename mentions are never rewritten, so the AEO report's
-    "<evidence>.json (same folder)" note stays correct: both files move into the
-    same search/ folder together.
+    Bare-filename mentions are never rewritten.
   - Rewrites apply in CURRENT/LIVE files only. HISTORICAL records (decisions,
     reviews, prompts, research, hygiene, _inbox) and scratch keep their old-path
     text and resolve via moved_paths_index.md (written by --apply).
   - --apply refuses on a dirty tree unless --waive-dirty-tree (runbook
-    precondition: clean commit checkpoint + owner-coordinated data_capture_spine
-    freeze).
-  - --apply flips repo-structure.yaml product_lanes `search` planned -> current.
+    precondition: clean commit checkpoint).
+  - --apply flips repo-structure.yaml product_lanes `search` planned -> current
+    (idempotent: a no-op once already current).
 
 MODES
   apply_moves.py --dry-run   validate manifest, scan refs, print plan (default)
-  apply_moves.py --apply     git mv + live rewrites + moved_paths_index + status flip
+  apply_moves.py --apply     git mv pending + live rewrites + moved_paths_index + status flip
   apply_moves.py --reverse   undo the moves (content rewrites + status flip revert via git)
 
 Not validation, readiness, or authority. After --apply, run
@@ -67,6 +68,19 @@ def load_manifest():
         return list(csv.DictReader(f))
 
 
+def partition(rows):
+    """pending = source exists; done = already moved (src gone, dst exists); problem = both gone."""
+    pending, done, problem = [], [], []
+    for r in rows:
+        if (ROOT / r["old_path"]).is_file():
+            pending.append(r)
+        elif (ROOT / r["new_path"]).exists():
+            done.append(r)
+        else:
+            problem.append(r)
+    return pending, done, problem
+
+
 def iter_scan_files():
     for p in ROOT.rglob("*"):
         if not p.is_file() or p.suffix.lower() not in TEXT_SUFFIXES:
@@ -106,19 +120,19 @@ def dirty_lines():
 
 
 def dry_run(rows):
-    problems, targets = [], set()
-    for r in rows:
-        if not (ROOT / r["old_path"]).is_file():
-            problems.append(f"source missing: {r['old_path']}")
+    pending, done, problem_rows = partition(rows)
+    problems = [f"source AND target both missing: {r['old_path']}" for r in problem_rows]
+    targets = set()
+    for r in pending:
         if (ROOT / r["new_path"]).exists():
-            problems.append(f"target exists: {r['new_path']}")
+            problems.append(f"target exists for a pending move: {r['new_path']}")
         if r["new_path"] in targets:
             problems.append(f"target collision: {r['new_path']}")
         targets.add(r["new_path"])
     refs = scan_refs(rows)
     rewrite = {r: v for r, v in refs.items() if v["class"] in ("live", "moved_set")}
     hist = {r: v for r, v in refs.items() if v["class"] == "historical"}
-    print(f"DRY RUN: {len(rows)} moves -> docs/product/search/")
+    print(f"DRY RUN: {len(pending)} pending move(s), {len(done)} already-applied (skipped) -> docs/product/search/")
     print(f"  live/moved_set files to rewrite ({len(rewrite)}):")
     for rel in sorted(rewrite):
         print(f"    rewrite {refs[rel]['hits']} ref(s): {rel}  [{refs[rel]['class']}]")
@@ -158,12 +172,15 @@ def flip_status_current():
     try:
         text = MAP_FILE.read_text(encoding="utf-8")
     except OSError:
-        return False
-    needle = "{ name: search, status: planned }"
-    if needle in text:
-        MAP_FILE.write_text(text.replace(needle, "{ name: search, status: current }", 1), encoding="utf-8")
-        return True
-    return False
+        return "map-unreadable"
+    planned = "{ name: search, status: planned }"
+    current = "{ name: search, status: current }"
+    if planned in text:
+        MAP_FILE.write_text(text.replace(planned, current, 1), encoding="utf-8")
+        return "flipped planned -> current"
+    if current in text:
+        return "already current"
+    return "search lane not found in map"
 
 
 def write_index(rows):
@@ -182,8 +199,9 @@ def apply(rows, waive):
     if dry_run(rows) != 0:
         print("REFUSED: dry run found problems.")
         return 1
+    pending, done, _ = partition(rows)
     mapping = {r["old_path"]: r["new_path"] for r in rows}
-    for r in rows:
+    for r in pending:
         (ROOT / r["new_path"]).parent.mkdir(parents=True, exist_ok=True)
         if r["tracked"] == "tracked":
             code, out = git(["mv", r["old_path"], r["new_path"]])
@@ -192,13 +210,11 @@ def apply(rows, waive):
                 return 1
         else:
             (ROOT / r["old_path"]).rename(ROOT / r["new_path"])
-    print(f"moved {len(rows)} file(s) -> docs/product/search/")
+    print(f"moved {len(pending)} file(s); {len(done)} already-applied (skipped) -> docs/product/search/")
     print(f"live references rewritten: {rewrite_live(mapping)}")
     write_index(rows)
     print("moved_paths_index written")
-    print("repo-structure.yaml search lane flipped planned -> current"
-          if flip_status_current() else
-          "WARNING: could not flip search status; edit repo-structure.yaml by hand")
+    print(f"repo-structure.yaml search lane: {flip_status_current()}")
     print("\nNEXT (runbook): python .agents/hooks/check_placement.py --strict (expect exit 0); "
           "grep for stale old paths in LIVE docs; review git diff --stat; commit.")
     return 0

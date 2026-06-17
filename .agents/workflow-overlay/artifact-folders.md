@@ -30,7 +30,7 @@ authority_boundary: retrieval_only
 - `docs/migration/`: migration and import queue records.
 - `docs/product/`: product contracts, product proof plans, core-spine notes, satellite notes, evidence standards, source maps, decision artifacts, memo substrates, evidence appendices, and executive-deck shape drafts.
 - `docs/product/source_capture_toolbox/`: product-facing Source Capture Armory design notes, scoped specs, and gap notes. Existing controlling Data Capture source-access decisions, method plans, and obligation contracts remain at their historical paths unless a later migration decision moves them.
-- `docs/product/search/`: the search / answer-engine topic lane (web search / SERP, AI Overviews and other answer engines, zero-click, AEO/GEO, search-interest capture), bound by `docs/decisions/orca_search_product_lane_binding_v0.md`. Membership is set by that record's inclusion test (search-primary, not demand mechanics that merely read search); topic-primacy wins over spine placement for those docs. `planned` until the search-lane migration applies.
+- `docs/product/search/`: Orca's demand-signal intelligence (search-led) lane - search / answer-engine surfaces (web search / SERP, AI Overviews and other answer engines, zero-click, AEO/GEO, search-interest) PLUS the demand-signal discovery method (scan core, read taxonomy, demand gates) they feed, bound by `docs/decisions/orca_search_product_lane_binding_v0.md`. Membership is set by that record's inclusion test; topic-primacy wins over spine placement for those docs. The method docs are search-led but venue-spanning (consumed across judgment/capture/core spines).
 - `docs/product/` lane subfolders (`core_spine/`, `data_capture_spine/`, `judgment_spine/`, `signal_content/`, `ecr/`, `product_lead/`, `search/`): the bound second-level axis for product artifacts per `docs/decisions/orca_repo_structure_binding_v0.md` (and, for the `search/` topic lane, `docs/decisions/orca_search_product_lane_binding_v0.md`). New product artifacts use the matching lane; files matching no lane may stay at `docs/product/` root. Existing flat files move only via a migration package, not ad hoc.
 - `repo-structure.yaml` (repo root): the machine structure map - router only, consumed by `.agents/hooks/check_placement.py` and agents for navigation. It declares homes and never states rules; this overlay file remains the placement authority and wins on conflict.
 - `docs/research/`: public/source research artifacts, evidence-only lane outputs, synthesis reports, candidate screens, and reject-pattern maps that support Orca product or proof work without becoming product authority by default.
@@ -145,51 +145,56 @@ direction_change_propagation:
 ```yaml
 direction_change_propagation:
   doctrine_changed: >
-    Orca adds docs/product/search/ as a bound topic lane (the search /
-    answer-engine vertical) beside the spine lanes, with a bound inclusion test
-    and precedence rule (docs/decisions/orca_search_product_lane_binding_v0.md),
-    and packages a scoped 4-file migration to physically co-locate the
-    search-primary artifacts. Forward-only; the migration is freeze-gated and is
-    NOT executed by this change (repo-structure.yaml carries `search` at
-    status: planned until the apply runs).
+    Orca adds docs/product/search/ as a bound topic lane - the demand-signal
+    intelligence (search-led) vertical: search / answer-engine surfaces PLUS the
+    demand-signal discovery method (scan core, read taxonomy, demand gates) they
+    feed - bound by docs/decisions/orca_search_product_lane_binding_v0.md
+    (inclusion test + precedence rule). 10 member docs are physically co-located
+    via the migration package, applied on the lane branch. The demand-signal
+    method docs are search-led but venue-spanning (consumed across
+    judgment/capture/core spines); placing them in search/ does not narrow their
+    authority.
   trigger: output_authority
   related_triggers:
     - workflow_authority
   controlling_sources_updated:
-    - docs/decisions/orca_search_product_lane_binding_v0.md   # new: lane binding + inclusion test + precedence rule
+    - docs/decisions/orca_search_product_lane_binding_v0.md   # lane binding + inclusion test + precedence rule (expanded to demand-signal method)
     - docs/decisions/orca_repo_structure_binding_v0.md        # bound-lanes bullet notes search/
-    - repo-structure.yaml                                     # product_lanes += { search, planned }
+    - repo-structure.yaml                                     # product_lanes += { search } (current once applied)
     - .agents/workflow-overlay/artifact-folders.md            # search accepted-folder entry + lane-subfolder list + this receipt
     - docs/product/README.md                                  # lane list includes search/
-    - docs/product/search/README.md                          # new: lane front-door index
-    - docs/workflows/orca_repo_map_v0.md                      # Workstream Status Pointers: search lane row added
-    - docs/migration/repo_structure_search_lane_v0/           # new: manifest + apply/reverse script + runbook + reference inventory (move not executed)
+    - docs/product/search/README.md                          # lane front-door index (restructured for the expanded lane)
+    - docs/workflows/orca_repo_map_v0.md                      # Workstream Status Pointers: search lane row
+    - docs/migration/repo_structure_search_lane_v0/           # package: 10-row manifest + idempotent apply/reverse + runbook + reference inventory + moved-paths index
+    - the 10 moved docs + ~19 live referencing files          # apply rewrites their full-path references into search/
   downstream_surfaces_checked:
     - path: docs/STRUCTURE.md
       result: no product-lane enumeration (lists only top-level docs/ roles); no change needed (narrative tier).
     - path: .agents/workflow-overlay/source-loading.md
-      result: no reference to the 4 moved files; no search read-pack exists yet; unchanged until the lane is populated.
+      result: not a full-path referrer of the moved docs (worker sweep); no search read-pack yet; unchanged.
     - path: .agents/hooks/check_placement.py
       result: reads repo-structure.yaml as its only rule source; recognizes the lane via product_lanes; no code change.
     - path: AGENTS.md
       result: defers structure facts to the overlay; no change.
     - path: historical referencing records (decisions/reviews/prompts/research/hygiene)
-      result: none reference the 4 moved files (worker sweep); on apply they keep old paths and resolve via the package moved_paths_index.
+      result: keep old paths by design (worker sweep); resolve via the package moved_paths_index.
   intentionally_not_updated:
     - path: docs/STRUCTURE.md
       reason: narrative tier per the binding's surface tiering; no product-lane list to amend (same treatment as the Phase-2 move).
-    - path: the four moved files' content
-      reason: not edited by this authoring; at apply only the one #228-spec internal full-path reference is rewritten (hash-safe; that file has zero inbound references).
+    - path: the moved docs' content
+      reason: not edited except intra-set full-path references (hash-safe; no inbound hash pins); search/README.md was hand-restructured separately.
+    - path: docs/product/core_spine/orca_ontology_backbone_architecture_v0.md (bare-name "in-flight/not on main" prose)
+      reason: pre-existing stale status independent of this move (the scan-core spec is already on main); out of scope for this migration.
   stale_language_search: >
-    Pre-apply there are no LIVE references to rewrite yet (the move has not run).
     The runbook's apply sequence includes a git-grep reference-resolution check
-    that must return no stale old-path hits in LIVE docs after --apply.
+    that must return no stale old-path hits in LIVE docs after --apply; verified
+    post-apply.
   non_claims:
     - not validation
     - not readiness
     - not product proof
-    - not execution of the search-lane migration
-    - lane status is planned until the freeze-gated apply runs
+    - placement of the demand-signal method docs in search/ does not narrow their venue-spanning authority
+    - a green check_placement run is placement shape, not authority
 ```
 
 Older receipts archived verbatim in `docs/decisions/dcp_receipts_archive_v0.md`.

@@ -5,8 +5,9 @@ Use this folder for docs-first product artifacts: Core Spine contracts, satellit
 Artifacts are organized by lane subfolder per
 `docs/decisions/orca_repo_structure_binding_v0.md`: `core_spine/`,
 `data_capture_spine/`, `judgment_spine/`, `signal_content/`, `ecr/`,
-`product_lead/`, `source_capture_toolbox/`, and the `search/` topic lane
-(search / answer-engine vertical, bound by
+`product_lead/`, `source_capture_toolbox/`, and the `search/` lane
+(demand-signal intelligence, search-led: search/answer-engine surfaces + the
+demand-scan/read/gate method, bound by
 `docs/decisions/orca_search_product_lane_binding_v0.md`). New product artifacts go
 in the matching lane; pre-move paths in historical records resolve via
 `docs/migration/repo_structure_phase2_consolidation_v0/moved_paths_index.md`.
