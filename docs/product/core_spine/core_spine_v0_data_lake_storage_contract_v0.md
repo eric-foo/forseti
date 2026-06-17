@@ -11,6 +11,7 @@ use_when:
   - Checking whether a lake change accidentally selects a physical engine, queue, serialization, or schema.
   - Explaining where Capture, Projection, ECR/SCR, Cleaning, and Judgment attach without replacing raw truth.
 open_next:
+  - docs/product/core_spine/core_spine_v0_data_lake_attachment_record_implementation_contract_v0.md
   - docs/product/core_spine/core_spine_v0_data_lake_core_contract_v0.md
   - docs/product/core_spine/core_spine_v0_data_lake_mechanics_map_v0.md
   - docs/product/data_capture_spine/source_capture_tenant_payload_attachment_boundary_v0.md
@@ -32,7 +33,7 @@ authority_boundary: retrieval_only
 
 ## Status
 
-`TARGET_STORAGE_CONTRACT_RECORDED_V0; BLOCKER_1_DIRECTION_RECORDED_V0`.
+`TARGET_STORAGE_CONTRACT_RECORDED_V0; BLOCKER_1_DIRECTION_RECORDED_V0; BLOCKER_1_IMPLEMENTATION_CONTRACT_RECORDED_V0`.
 
 This is a planning and architecture contract. It is not implementation
 authority, validation, readiness, physical storage selection, queue design,
@@ -108,28 +109,26 @@ Do not implement storage, manifest changes, Attachment Record serialization,
 projection cache, queue runtime, derived-record persistence, or acknowledgement
 persistence from this contract until these blockers close:
 
-Blocker 1 now has a direction, not an implementation closeout. The accepted
-direction is manifest-indexed immutable Attachment Records: compact
-manifest/index entries point to immutable hash-checkable attachment bodies.
-Exact layout, serialization, manifest version, backend, and migration remain
-deferred.
+Blocker 1 now has a direction and an implementation-facing contract, not a
+runtime implementation closeout. The accepted direction is manifest-indexed
+immutable Attachment Records: compact manifest/index entries point to immutable
+hash-checkable attachment bodies. Use
+`docs/product/core_spine/core_spine_v0_data_lake_attachment_record_implementation_contract_v0.md`
+before scoping storage code. Exact layout, serialization, manifest version,
+backend, and migration remain deferred.
 
-1. Convert the Attachment Record direction into an implementation contract:
-   compact manifest/index entries with packet/slice/file keys, family, kind,
-   schema version, replay pins, attachment ref, hash, `hash_basis`, and posture
-   summary point to immutable/checkable attachment bodies. Exact sidecar vs
-   bundle-member layout, serialization, manifest version, backend, and migration
-   remain open.
-2. Decide the fate of incumbent direct fields at slice and packet level.
-3. Govern SCR `FamilyDetailBase` so it cannot become a competing raw
+Remaining blockers before storage implementation:
+
+1. Decide the fate of incumbent direct fields at slice and packet level.
+2. Govern SCR `FamilyDetailBase` so it cannot become a competing raw
    source-family payload home.
-4. Assign enforcement for write-once raw, no-cleaning-in-lake, append-only
+3. Assign enforcement for write-once raw, no-cleaning-in-lake, append-only
    derived results, and no-new-core-field pressure to deterministic write or
    tool boundaries where possible.
-5. Choose the physical home and write boundary for projection receipts, ECR
+4. Choose the physical home and write boundary for projection receipts, ECR
    records, SCR records, Cleaning ledgers, Judgment outputs, and downstream
    completion/acknowledgement facts.
-6. Preserve by-key discovery as authority before any runtime event or queue
+5. Preserve by-key discovery as authority before any runtime event or queue
    engine is built.
 
 ## Blocker 1 Direction
@@ -138,6 +137,10 @@ The accepted direction for Attachment Record representation is
 **manifest-indexed immutable attachment bodies**.
 
 This chooses the relationship, not the storage backend or final wire shape:
+
+Implementation-facing details are recorded in
+`docs/product/core_spine/core_spine_v0_data_lake_attachment_record_implementation_contract_v0.md`;
+this section remains the directional summary.
 
 - A compact manifest or manifest-equivalent packet index entry carries
   packet/slice/file keys, family, kind, schema version, replay pins,
@@ -172,6 +175,79 @@ This contract does not:
 - claim validation, readiness, approval, or acceptance.
 
 ## Direction Change Propagation
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Data Lake Storage Contract v0 now records the blocker-1 implementation-facing
+    Attachment Record contract: compact manifest/index entries link to immutable,
+    hash-checkable attachment bodies, while exact sidecar/member layout,
+    serialization, manifest version, backend, migration, validation, readiness,
+    and runtime implementation remain deferred.
+  trigger: architecture_doctrine
+  related_triggers:
+    - lifecycle_boundary
+  controlling_sources_updated:
+    - docs/product/core_spine/core_spine_v0_data_lake_attachment_record_implementation_contract_v0.md
+    - docs/product/core_spine/core_spine_v0_data_lake_storage_contract_v0.md
+    - docs/workflows/orca_repo_map_v0.md
+    - docs/decisions/dcp_receipts_archive_v0.md
+  downstream_surfaces_checked:
+    - AGENTS.md
+    - .agents/workflow-overlay/README.md
+    - .agents/workflow-overlay/source-loading.md
+    - .agents/workflow-overlay/source-of-truth.md
+    - .agents/workflow-overlay/validation-gates.md
+    - .agents/workflow-overlay/review-lanes.md
+    - docs/product/core_spine/core_spine_v0_data_lake_core_contract_v0.md
+    - docs/product/core_spine/core_spine_v0_data_lake_mechanics_map_v0.md
+    - docs/product/data_capture_spine/source_capture_tenant_payload_attachment_boundary_v0.md
+    - docs/product/data_capture_spine/source_capture_packet_schema_evolution_architecture_v0.md
+    - orca-harness/source_capture/models.py
+    - orca-harness/source_capture/writer.py
+  intentionally_not_updated:
+    - path: docs/product/core_spine/core_spine_v0_data_lake_core_contract_v0.md
+      reason: >
+        It remains the parent logical contract and already defers exact field
+        names and physical representation; the storage contract plus new
+        implementation contract own the narrower blocker-1 physicalization
+        direction without reopening core boundaries.
+    - path: docs/product/core_spine/core_spine_v0_data_lake_mechanics_map_v0.md
+      reason: >
+        It remains a planning-only mechanics map. Its broader physicalization
+        gate stays stale-if-superseded by later storage/manifest/sidecar
+        decisions, and this patch does not select those physical choices.
+    - path: docs/product/data_capture_spine/source_capture_tenant_payload_attachment_boundary_v0.md
+      reason: >
+        It remains the accepted logical typed-envelope boundary and explicitly
+        defers physical storage. This patch records the storage-lane
+        implementation contract without globally renaming historical envelope
+        terminology.
+  stale_language_search: >
+    rg -n "table of contents|storage engine selected|sidecar selected|Manifest v2 selected|call ECR|call SCR|call Cleaning|call Projection|call Judgment|implementation readiness|runtime implementation closeout"
+    docs/product/core_spine/core_spine_v0_data_lake_attachment_record_implementation_contract_v0.md
+    docs/product/core_spine/core_spine_v0_data_lake_storage_contract_v0.md
+    docs/product/core_spine/core_spine_v0_data_lake_core_contract_v0.md
+    docs/product/core_spine/core_spine_v0_data_lake_mechanics_map_v0.md
+    docs/product/data_capture_spine/source_capture_tenant_payload_attachment_boundary_v0.md
+    docs/workflows/orca_repo_map_v0.md
+  stale_language_search_result: >
+    Executed 2026-06-18 after edits. Hits are expected guardrails only: the
+    new implementation contract rejects "table of contents" as architecture
+    terminology and forbids the Availability Index from calling ECR, SCR,
+    Cleaning, Projection, or Judgment; the storage contract states blocker 1 is
+    not a runtime implementation closeout and contains the query in this
+    receipt; the mechanics map hit is an older receipt non-claim against
+    implementation readiness. No hit selects a backend, sidecar, Manifest v2,
+    runtime implementation, validation, or readiness.
+  non_claims:
+    - not validation
+    - not readiness
+    - not implementation authorization
+    - not Manifest v2 selection
+    - not sidecar selection
+    - not storage-engine selection
+```
 
 ```yaml
 direction_change_propagation:
@@ -234,60 +310,6 @@ direction_change_propagation:
     - not implementation authorization
     - not physical storage selection
     - not storage-engine selection
-```
-
-```yaml
-direction_change_propagation:
-  doctrine_changed: >
-    Data Lake Storage Contract v0 records the non-selecting storage contract:
-    five dumb record-kind slots, passive by-key availability, append-only
-    derived/ack attachment, Attachment Record target terminology, and the six
-    physicalization blockers, while selecting no storage engine, manifest,
-    sidecar, serialization, queue, schema, migration, validation, or readiness.
-  trigger: architecture_doctrine
-  related_triggers:
-    - workflow_authority
-  controlling_sources_updated:
-    - docs/product/core_spine/core_spine_v0_data_lake_storage_contract_v0.md
-    - docs/product/core_spine/core_spine_v0_data_lake_core_contract_v0.md
-    - docs/product/core_spine/core_spine_v0_data_lake_mechanics_map_v0.md
-    - docs/workflows/orca_repo_map_v0.md
-  downstream_surfaces_checked:
-    - AGENTS.md
-    - .agents/workflow-overlay/README.md
-    - .agents/workflow-overlay/source-loading.md
-    - .agents/workflow-overlay/source-of-truth.md
-    - docs/workflows/data_capture_spine_consolidation_map_v0.md
-    - docs/workflows/ecr_spine_submap_v0.md
-  intentionally_not_updated:
-    - path: docs/product/data_capture_spine/source_capture_tenant_payload_attachment_boundary_v0.md
-      reason: >
-        It remains the accepted logical source-family payload boundary and uses
-        historical typed-envelope terminology deliberately; this storage contract
-        translates that boundary to Attachment Record target terminology only for
-        the lake storage lane.
-    - path: docs/product/data_capture_spine/retail_pdp_typed_envelope_probe_v0.md
-      reason: >
-        It remains a historical non-IG logical fit probe for the typed-envelope
-        boundary and is not the target storage contract.
-  stale_language_search: >
-    rg -n "physical envelope|storage envelope|envelope serialization|Envelope serialization|Source Payload Envelope|Typed envelope|typed envelopes|payload envelopes|source-family payload envelopes|packet/slice envelopes|Raw \+ core facts \+ envelopes"
-    docs/product/core_spine/core_spine_v0_data_lake_core_contract_v0.md
-    docs/product/core_spine/core_spine_v0_data_lake_mechanics_map_v0.md
-    docs/product/core_spine/core_spine_v0_data_lake_storage_contract_v0.md
-    docs/workflows/orca_repo_map_v0.md
-  stale_language_search_result: >
-    Executed 2026-06-17 after edits. No target-surface hits; after recording
-    this receipt, the exact query appears only in this stale_language_search
-    field. A broader "envelope|Envelope" scan still finds only historical
-    logical-boundary/probe references, file names, explicit "not the target
-    storage name" language, and unrelated run-envelope text outside the storage
-    target surface.
-  non_claims:
-    - not validation
-    - not readiness
-    - not implementation authorization
-    - not physical storage selection
 ```
 
 Older receipts are archived in `docs/decisions/dcp_receipts_archive_v0.md`.

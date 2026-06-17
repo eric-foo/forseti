@@ -3,7 +3,7 @@
 ```yaml
 retrieval_header_version: 1
 artifact_role: DCP receipts archive
-scope: Verbatim archive of direction_change_propagation receipts that have cycled out of the two-most-recent inline limit in controlling overlay files.
+scope: Verbatim archive of direction_change_propagation receipts that have cycled out of the two-most-recent inline limit in controlling files.
 use_when:
   - Auditing the full propagation history of past doctrine changes.
   - Verifying that a stale-language search term was already handled in a prior receipt.
@@ -11,7 +11,63 @@ use_when:
 authority_boundary: retrieval_only
 ```
 
-This file is the single authorized standalone archive for Orca direction_change_propagation receipts that have been moved out of controlling overlay files under the receipt-archiving rule (at most two most-recent receipts inline per controlling file; older receipts move here verbatim). The rule that governs receipt archiving lives in `.agents/workflow-overlay/source-of-truth.md`, Doctrine Change Propagation Contract section. This file carries no source authority, validation evidence, readiness, approval, or lifecycle claims.
+This file is the single authorized standalone archive for Orca direction_change_propagation receipts that have been moved out of controlling files under the receipt-archiving rule (at most two most-recent receipts inline per controlling file; older receipts move here verbatim). The rule that governs receipt archiving lives in `.agents/workflow-overlay/source-of-truth.md`, Doctrine Change Propagation Contract section. This file carries no source authority, validation evidence, readiness, approval, or lifecycle claims.
+
+## From docs/product/core_spine/core_spine_v0_data_lake_storage_contract_v0.md
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Data Lake Storage Contract v0 records the non-selecting storage contract:
+    five dumb record-kind slots, passive by-key availability, append-only
+    derived/ack attachment, Attachment Record target terminology, and the six
+    physicalization blockers, while selecting no storage engine, manifest,
+    sidecar, serialization, queue, schema, migration, validation, or readiness.
+  trigger: architecture_doctrine
+  related_triggers:
+    - workflow_authority
+  controlling_sources_updated:
+    - docs/product/core_spine/core_spine_v0_data_lake_storage_contract_v0.md
+    - docs/product/core_spine/core_spine_v0_data_lake_core_contract_v0.md
+    - docs/product/core_spine/core_spine_v0_data_lake_mechanics_map_v0.md
+    - docs/workflows/orca_repo_map_v0.md
+  downstream_surfaces_checked:
+    - AGENTS.md
+    - .agents/workflow-overlay/README.md
+    - .agents/workflow-overlay/source-loading.md
+    - .agents/workflow-overlay/source-of-truth.md
+    - docs/workflows/data_capture_spine_consolidation_map_v0.md
+    - docs/workflows/ecr_spine_submap_v0.md
+  intentionally_not_updated:
+    - path: docs/product/data_capture_spine/source_capture_tenant_payload_attachment_boundary_v0.md
+      reason: >
+        It remains the accepted logical source-family payload boundary and uses
+        historical typed-envelope terminology deliberately; this storage contract
+        translates that boundary to Attachment Record target terminology only for
+        the lake storage lane.
+    - path: docs/product/data_capture_spine/retail_pdp_typed_envelope_probe_v0.md
+      reason: >
+        It remains a historical non-IG logical fit probe for the typed-envelope
+        boundary and is not the target storage contract.
+  stale_language_search: >
+    rg -n "physical envelope|storage envelope|envelope serialization|Envelope serialization|Source Payload Envelope|Typed envelope|typed envelopes|payload envelopes|source-family payload envelopes|packet/slice envelopes|Raw \+ core facts \+ envelopes"
+    docs/product/core_spine/core_spine_v0_data_lake_core_contract_v0.md
+    docs/product/core_spine/core_spine_v0_data_lake_mechanics_map_v0.md
+    docs/product/core_spine/core_spine_v0_data_lake_storage_contract_v0.md
+    docs/workflows/orca_repo_map_v0.md
+  stale_language_search_result: >
+    Executed 2026-06-17 after edits. No target-surface hits; after recording
+    this receipt, the exact query appears only in this stale_language_search
+    field. A broader "envelope|Envelope" scan still finds only historical
+    logical-boundary/probe references, file names, explicit "not the target
+    storage name" language, and unrelated run-envelope text outside the storage
+    target surface.
+  non_claims:
+    - not validation
+    - not readiness
+    - not implementation authorization
+    - not physical storage selection
+```
 
 ## From .agents/workflow-overlay/source-of-truth.md
 
