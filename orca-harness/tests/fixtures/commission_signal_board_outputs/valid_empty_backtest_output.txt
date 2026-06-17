@@ -1,0 +1,74 @@
+<!-- fixture_expected: pass -->
+<!-- fixture_purpose: no supplied evidence; classifier handoff remains empty -->
+
+# Commission Signal Board Fixture: valid empty backtest
+
+### 1. Commission Intake Receipt
+
+```yaml
+commission_id: fixture_valid_empty_backtest
+mode: backtest
+candidate_or_subject: Fixture Product A
+decision_context: Exercise empty handoff behavior when no evidence has been supplied.
+market_or_geography: US
+time_window: 2015-2020
+evidence_cutoff_at: 2020-12-31
+input_status: complete
+missing_required_inputs: []
+cutoff_rule: only source observations observable on or before 2020-12-31 may enter downstream handoff
+non_goals_preserved:
+  - no retrieval unless separately authorized
+  - no demand classification
+```
+
+### 4. Signal Board Rows
+
+| Row ID | Source family | Subfamily | Surface | Observable | Signal role | Row purpose | Graph role | Graph weight hint | Evidence status | Provenance needed | Surface cutoff status | Cutoff status | Handoff note |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| SBR-001 | forums_community | Reddit | public threads | dated questions and objections | consumer_language | signal_unit | node_candidate | medium | to_retrieve | URL and thread date | existed_by_cutoff | uncertain | Needs retrieval before classifier handoff |
+| SBR-002 | reviews | retailer reviews | PDP reviews | dated experience claims | review_experience | signal_unit | node_candidate | medium | to_retrieve | review URL and review date | existed_by_cutoff | uncertain | Needs retrieval before classifier handoff |
+| SBR-003 | aeo_answer_engines | answer engines | ChatGPT/Gemini/AIO | answer visibility | aeo_visibility | gap | none | none | excluded_future_info | not applicable | post_cutoff_surface | post_cutoff_excluded | Exclude from classifier handoff |
+
+### 7. Graph Retrieval Brief
+
+```yaml
+graph_retrieval_brief:
+  graph_weight_notes: relation utility only; graph weight is not signal strength
+  backtest_cutoff_date: 2020-12-31
+  future_info_exclusion_rule: exclude observations not observable on or before 2020-12-31
+```
+
+### 8. Demand-Classifier Handoff Packet
+
+```yaml
+classifier_handoff_packet:
+  candidate_or_subject: Fixture Product A
+  decision_context: Exercise empty handoff behavior when no evidence has been supplied.
+  mode: backtest
+  cutoff_date: 2020-12-31
+  signal_rows_for_handoff: []
+  counterevidence_rows_for_handoff: []
+  source_family_gaps:
+    - SBR-001 and SBR-002 require dated source-backed retrieval before classifier handoff.
+    - SBR-003 is excluded as post_cutoff_surface / excluded_future_info.
+  provenance_gaps:
+    - source URL
+    - source date
+  cutoff_uncertainties:
+    - SBR-001 and SBR-002 are cutoff-uncertain until retrieval proves in-window observability.
+  classifier_mapping_status: classifier_owned
+  prohibited_claims:
+    - no demand verdict
+    - no buyer-proof claim
+    - no validation or readiness claim
+    - no graph score
+    - no forecast probability
+```
+
+### 10. Board Status And Run Boundary
+
+```yaml
+board_status: READY_FOR_RETRIEVAL_HANDOFF
+run_boundary: CHAT_ONLY_BOARD_COMPLETE
+next_authorized_step: Use this board only as a retrieval route map.
+```
