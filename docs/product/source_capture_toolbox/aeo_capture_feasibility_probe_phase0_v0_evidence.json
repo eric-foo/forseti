@@ -16,7 +16,7 @@
       "assistant_turn_selector": "[data-message-author-role=\"assistant\"] (last)",
       "cited_sources": "turn a[href] (present in static DOM; strip query strings -> host+path)",
       "product_cards": "[role=\"button\"]/button innerText 'name · $price · rating', filter /\\$|\\d\\.\\d/",
-      "issued_query": "server-side, NOT client-visible (0 search_query/q hits in network dump)",
+      "issued_query": "CORRECTED 2026-06-17: client-visible in streamed f/conversation body (queries + search_result_groups, ~26 results/127 url refs + model_slug); original 'server-side' reading was a read_network_requests-cannot-see-SSE-bodies artifact; capture via stream hook (DevTools EventStream / page fetch interceptor)",
       "network": "POST backend-anon/f/conversation (SSE); conversation/init; f/conversation/prepare; sentinel/chat-requirements/{prepare,finalize}; sentinel/ping"
     },
     "google_aio": {
@@ -36,6 +36,21 @@
     {"run":"Q01b","query":"best niche fragrance brands for men 2026 (repeat)","search_fired":true,"cited":true,"format":"product_cards","brands":["Ormonde Jayne Montabaco Intensivo ($87.52)","Tom Ford Oud Wood ($465.00)","Roja Vetiver ($470.00)","Ex Nihilo Citizen X ($440.00)","narrative: Creed, Xerjoff, Amouage, Maison Francis Kurkdjian"],"source_hosts":["colognecapitol.com","youtube.com","aromatrail.com","instyle.com","reddit.com","fragrantix.com"],"link_count":11}
   ],
   "chatgpt_summary": {"runs":5,"search_fired":5,"not_shown":0,"extractable":5},
+  "chatgpt_stream_capture_verification_2026-06-17": {
+    "purpose": "re-probe to verify whether ChatGPT's issued query + retrieval set are client-capturable (corrects F5)",
+    "query_probed": "best small batch perfume brands USA",
+    "method": "page fetch() interceptor teeing the f/conversation event-stream (DevTools EventStream equivalent)",
+    "sse_body_bytes": 86627,
+    "issued_query_captured": "best small batch perfume brands USA niche artisanal fragrance brands United States",
+    "search_result_groups_present": true,
+    "safe_urls_present": true,
+    "results_in_stream": 26,
+    "url_refs_in_stream": 127,
+    "title_fields": 26,
+    "domains_called_upon_sample": ["eclataur.com","alurent.com","witandwest.com","zeralous.com","nectar-atelier.com"],
+    "model_slug": "gpt-5-5",
+    "result": "CONFIRMED client-capturable; F5 corrected; Google AIO not re-probed for equivalent retrieval exposure"
+  },
   "google_aio_runs": [
     {"run":"Q01a","query":"best niche fragrance brands for men 2026","aio_fired":true,"not_shown":false,"captcha":false,"distinct_source_domains":9,"total_links":19,"brands":["Creed/Aventus/Green Irish Tweed","Amouage/Interlude Man","Xerjoff/1861 Naxos"],"source_hosts":["prosodylondon.com","harrods.com","fluxurymagazine.com","felisafragrances.com","youtube.com","fzine.com","beautinow.com","perfumebays.com","parfumeriedaquitaine.com"]},
     {"run":"Q02a","query":"top indie perfume brands in the US","aio_fired":true,"not_shown":false,"captcha":false,"distinct_source_domains":23,"brands":["D.S. & Durga","Imaginary Authors"],"source_hosts_sample":["fashionista.com","cafleurebon.com","theperfumestylist.com","glossy.co","reddit.com","fragrancelord.com","libertylondon.com","remezcla.com","instyle.com","tatlerasia.com","electricliterature.com","thegoodtrade.com"]},

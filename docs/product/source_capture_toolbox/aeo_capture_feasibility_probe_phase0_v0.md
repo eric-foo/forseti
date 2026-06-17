@@ -47,6 +47,18 @@ later date closes it. See [Verdict](#go--re-route-verdict) and
 
 ---
 
+> **Correction (2026-06-17, post-publish re-probe):** finding **F5 was disproven**.
+> ChatGPT's **issued search query *and* full retrieval set ARE client-capturable** — in the
+> streamed `f/conversation` body (`queries` + `search_result_groups`: ~26 results / 127 URL
+> refs + `model_slug`), via a DevTools EventStream view or a page `fetch` interceptor. The
+> original "server-side / not client-visible" reading was an artifact of a request-only
+> network tool. §5.1, §6 (F5), §7 corrected accordingly. Google AIO retrieval-exposure was
+> **not** re-probed — its rendered cited sources remain the capturable Google signal.
+>
+> **Implication:** ChatGPT exposes privileged retrieval signal (the AI's reformulated query +
+> everything it considered) that Google's AI Overview does not — material to whether a
+> dedicated AEO capture pass is warranted per engine.
+
 ## 1. Authorization, posture, conditions
 
 - **Owner authorization:** owner confirmed the bounded live probe **at dispatch**
@@ -134,8 +146,18 @@ across 10 rapid searches.**
   official sites. **Extract host + path; strip query strings** (see Failure F1).
 - **Surfaced products (rich):** product cards render as `[role="button"]` / `button`
   whose `innerText` carries `name · $price · rating`. Filter for `/\$|\d\.\d/`.
-- **Issued search query:** **server-side, NOT client-visible** — no `search_query`
-  / `q` param in any client request (grep over the full network dump: 0 hits).
+- **Issued search query + full retrieval set — CORRECTED 2026-06-17 (post-publish re-probe):**
+  these **ARE client-visible**, in the **streamed `f/conversation` response body** (not in
+  request params). The original "server-side / not client-visible" reading was an artifact of
+  `read_network_requests` (request-only — it does **not** capture SSE bodies), not a property of
+  ChatGPT. Captured live by hooking the conversation event-stream (DevTools → Network → the
+  `conversation` EventStream, or a page `fetch` interceptor):
+  - the **issued query** under `"queries": ["..."]` — ChatGPT expands the user prompt (e.g.
+    "best small batch perfume brands USA" → "best small batch perfume brands USA niche
+    artisanal fragrance brands United States");
+  - the **full pulled set** under `search_result_groups` (`{domain, entries:[{url,title,snippet}]}`)
+    — **~26 results / 127 URL refs**, far beyond the handful cited in the box; plus `model_slug`
+    (e.g. `gpt-5-5`). Privileged signal — not reconstructable from the rendered box alone.
 - **Network signature:** main answer stream `POST backend-anon/f/conversation`
   (SSE) + `backend-anon/conversation/init`, `backend-anon/f/conversation/prepare`;
   anti-abuse `backend-anon/sentinel/chat-requirements/{prepare,finalize}` +
@@ -165,7 +187,7 @@ across 10 rapid searches.**
 | F2 | ChatGPT | "Clear current chat?" confirm modal on **New chat** (logged-out) | UI gate | Must click "Clear chat" between queries. Deterministic. |
 | F3 | ChatGPT | "Thanks for trying ChatGPT" soft login modal after ~5 logged-out queries | soft login-wall (dismissable via "Stay logged out") | Recurring; automation must detect + dismiss. Not a hard block. |
 | F4 | ChatGPT | `sentinel/chat-requirements` proof-of-work + `sentinel/ping` | anti-automation | A real browser satisfies it; a naive headless script must solve the PoW. Real engineering hurdle for headless scale. |
-| F5 | ChatGPT | issued search query not client-visible | observability gap | "Issued queries" leg not capturable for ChatGPT (server-side). Brands+sources still fully capturable. |
+| F5 | ChatGPT | **CORRECTED 2026-06-17:** issued query + retrieval set ARE client-visible in the streamed `f/conversation` body (`queries`, `search_result_groups`); the original "server-side" reading was a `read_network_requests`-can't-see-SSE-bodies artifact | ~~observability gap~~ → **capturable** | Capture via stream hook (DevTools EventStream / page `fetch` interceptor), not request params. Yields issued query + ~26-result / 127-ref pulled set + `model_slug`. |
 | F6 | both | run-to-run **volatility**: same query → partially different brands/sources | data-quality | Capture per-run; never treat a single capture as the canonical answer. Firing + extractability are stable; the *set* is not. |
 | — | Google AIO | **No** CAPTCHA, **no** consent banner, **no** `not_shown` observed | (no failure) | 0/10 over rapid human-rate searches, single IP. |
 
@@ -187,7 +209,10 @@ The real question was not "can a human see it" (yes, trivially) but "can it be
 - **ChatGPT: automatable with handled friction.** Reliable search+cite+extract,
   but automation must (a) dismiss F2/F3 modals, (b) satisfy the F4 sentinel
   proof-of-work (a real browser context does; a naive headless client does not),
-  (c) accept that issued queries are not observable (F5).
+  (c) tap the streamed `f/conversation` body via a stream hook (DevTools EventStream /
+  page `fetch` interceptor) to capture the issued query + full retrieval set — which are
+  NOT in request params (corrected F5). This retrieval visibility is a ChatGPT-specific
+  advantage over Google AIO.
 
 ## 8. GO / RE-ROUTE verdict
 
