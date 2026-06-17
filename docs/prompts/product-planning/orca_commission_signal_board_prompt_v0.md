@@ -456,11 +456,15 @@ classifier_handoff_packet:
 The classifier handoff packet is a packaging surface only. Do not map rows to
 classifier families unless the dispatcher provides the classifier mapping.
 
-For backtests: exclude rows where `surface_cutoff_status: post_cutoff_surface`,
-`cutoff_status: post_cutoff_excluded`, or
-`evidence_status: excluded_future_info` from both `signal_rows_for_handoff` and
-`counterevidence_rows_for_handoff`. Carry them to `source_family_gaps` instead,
-with a note that the surface did not exist within the evidence cutoff window.
+For backtests: include rows in `signal_rows_for_handoff` or
+`counterevidence_rows_for_handoff` only after retrieval proves
+`cutoff_status: in_window`. Exclude rows where
+`surface_cutoff_status: post_cutoff_surface`,
+`surface_cutoff_status: uncertain`, `cutoff_status: post_cutoff_excluded`,
+`cutoff_status: uncertain`, or `evidence_status: excluded_future_info`. Carry
+excluded or cutoff-uncertain rows to `source_family_gaps` and/or
+`cutoff_uncertainties` instead, with a note explaining whether the surface was
+post-cutoff or cutoff observability is not yet proven.
 
 ### 9. Visible Limitations
 
