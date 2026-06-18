@@ -26,7 +26,10 @@ jobs:
       - name: Install orca-harness (core) + pytest
         run: |
           python -m pip install --upgrade pip
-          python -m pip install -e . "pytest==9.0.3"
+          # pyyaml is pinned explicitly (not left transitive) so the strict
+          # yaml-backed gates (ontology SSOT/drift, deletion-evidence) cannot
+          # silently fail-open if a dependency edit drops it.
+          python -m pip install -e . "pytest==9.0.3" pyyaml
       - name: Run tests
         run: python -m pytest
       - name: retrieval link check

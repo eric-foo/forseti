@@ -72,9 +72,10 @@ nothing can transition a record; a phase nothing flips is a fiction. Instead:
 ## Why strict, in CI, pre-merge
 
 Report-mode gives no safety: a green CI lets the in-session self-merge guard
-(CLEAN + green + `agent-automerge`, which does not read the router's risk label)
-land an unevidenced deletion. Only a **red check** closes that path; the bot
-path is already closed by the router. The gate runs as a step in `ci.yml`'s
+(which merges a CLEAN + green + `agent-automerge` PR) land a deletion whose
+evidence is missing or mechanically false. Only a **red check** closes that path;
+a governed deletion with no complete record, or a successor that does not resolve
+in the committed tree, turns CI red. The gate runs as a step in `ci.yml`'s
 `orca-harness-tests` job (where the other strict gates run) — the green that
 every merge path requires — so it holds regardless of which merge model is live
 (self-merge, bot, human, or a future server gate), and regardless of whether
@@ -83,10 +84,43 @@ deletions in a diff it exits 0, so adopting strict matches the clean state with
 no red-main event.
 
 The gate fails **open** only on infrastructure gaps (no git, no PyYAML, base
-unresolvable). A present-but-unparseable register, a governed deletion lacking a
-complete record, or a successor that does not resolve are real findings. A
-**missing** register is treated as empty (governed deletions then fail) — a
-deleted register cannot un-govern the corpus.
+unresolvable; PyYAML is pinned in CI so its absence is not an accidental gap). A
+present-but-unparseable register, a governed deletion lacking a complete record,
+or a successor that does not resolve are real findings. A **missing** register is
+treated as empty (governed deletions then fail) — a deleted register cannot
+un-govern the corpus.
+
+## Presence vs truth, and the human adjudicator
+
+This gate enforces that evidence is **present and machine-consistent** — the
+deleted governed path is covered by a complete record, and the declared successor
+resolves to a committed file (or is the no-successor literal). It does **not**
+verify that the human-judged fields (`reverse_ref_check`, `semantic_delta`) are
+**true**. That substantive adjudication is the human merger's job, and it is
+mechanically guaranteed: the PR-risk router flags every governed-deletion PR
+`risk/manual-review-required`, and the protected-action guard
+(`.agents/hooks/guard_protected_actions.py`) **refuses to self-merge a
+manual/blocked-flagged PR** — so a governed deletion is always landed by a human
+who reads the evidence. (Previously the guard honored only CLEAN + green + label
+and could self-merge a router-flagged deletion carrying junk-but-present
+evidence; honoring the router label closes that.)
+
+## What this does NOT cover (named boundaries)
+
+- **Direct push to main.** This is a pre-merge PR gate. A direct push to main is
+  not caught (on a push event the diff against `origin/main` is empty post-push,
+  and CI runs after the push has landed). Direct-push-to-main is a separate
+  control — `.githooks/pre-push` (`pre_push_guard.py`) and the protected-action
+  guard both block it — but those are local / Claude-scoped and bypassable with
+  `--no-verify`. A named residual, not closed here.
+- **A PR that edits the gate itself.** Because CI runs the PR's own checker and
+  workflow, a PR could in principle delete a governed file and neuter the gate in
+  the same diff. Such a PR touches `.agents/` or `.github/`, which the router
+  flags `risk/manual-review-required` → the guard refuses self-merge → a human
+  lands it and sees the tampering. The residual is the same as any human-gated
+  control (a careless human merge); a server-side required check, or a
+  `pull_request_target` gate running **main's** checker against the PR, would
+  close it further and is the next hardening if warranted.
 
 ## Emergency deletions
 
@@ -106,8 +140,10 @@ waiver record, so the emergency path itself stays evidence-bearing.
   provenance's authoritative home; duplicating it invites register-vs-git drift.
 - **Report-mode now, strict in Phase-3** — report-mode leaves the self-merge path
   open during the exact phase deletions happen; it is no safety.
-- **No gate (router + PR template only)** — the self-merge guard ignores the
-  router label, so a green deletion can self-merge unevidenced.
+- **No gate (router + PR template only)** — routing a deletion to a human does
+  not guarantee a complete, machine-consistent record exists; the strict gate
+  guarantees presence + machine facts (targets match the diff, successor
+  resolves) so the human adjudicates a well-formed record, not a checklist.
 - **PreToolUse hook on the delete tool-call** — Claude-Code-scoped only (the bot
   and other harnesses are not guarded) and per-call (it cannot see the merged
   diff or a rename); the merge-time CI gate is harness-agnostic.

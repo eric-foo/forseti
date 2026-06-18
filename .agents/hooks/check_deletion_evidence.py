@@ -10,11 +10,22 @@ WHAT THIS DOES
 
   The frozen Orca rule: a governed-artifact deletion is central-adjudicated and
   carries evidence -- reverse-reference check + successor + semantic delta +
-  rollback. Adjudication is the existing router->human-merge flow (a deleting PR
-  is routed `risk/manual-review-required`); this gate makes the EVIDENCE
-  mechanically mandatory, so an unevidenced governed deletion cannot land green
-  on either merge path (the bot honors the router label; the in-session
-  self-merge guard requires a green CI rollup, which a finding here turns red).
+  rollback. This gate makes the EVIDENCE mechanically mandatory on the pre-merge
+  PR diff: a governed deletion with no complete record, or a successor that does
+  not resolve in the committed tree, turns CI red, and a red rollup blocks both
+  merge paths (the bot honors the router label; the self-merge guard requires a
+  green rollup). SUBSTANTIVE adjudication -- is the recorded evidence true? -- is
+  the human merger's job: the router routes every governed-deletion PR to
+  `risk/manual-review-required`, and the protected-action guard refuses to
+  self-merge a manual-flagged PR, so a human always reads the evidence.
+
+WHAT THIS GATE DOES NOT COVER (named boundaries)
+  - It is a PRE-MERGE PR gate. A direct push to main is NOT caught (the push-event
+    diff against origin/main is empty post-push); direct-push-to-main is a
+    separate, bypassable control (.githooks/pre-push + the protected-action guard).
+  - It enforces evidence PRESENCE + machine-checkable facts (targets match the
+    diff; successor resolves as a committed file), NOT the truth of the
+    human-judged fields -- that is the human adjudicator's job (above).
 
 WHY STRICT (not report-mode)
   Report-mode (exit 0) gives no safety here: a green CI lets the self-merge
@@ -64,7 +75,7 @@ from __future__ import annotations
 import os
 import subprocess
 import sys
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 
 # Governed scope -- code-owned SSOT (see "WHY THE GOVERNED SCOPE IS CODE-OWNED").
 # A trailing slash means "this directory and everything under it".
@@ -134,18 +145,36 @@ def record_for_target(register: object, path: str) -> dict | None:
     return found
 
 
+def _is_safe_relpath(candidate: str) -> bool:
+    """A successor must be a clean repo-relative path: not absolute, no parent
+    traversal, no drive/UNC. Rejects `/etc/passwd`, `../outside`, `C:\\x` -- which
+    would otherwise resolve to a real path outside the repo."""
+    if not candidate:
+        return False
+    if candidate.startswith("/") or candidate.startswith("\\") or ":" in candidate:
+        return False
+    p = PurePosixPath(candidate)
+    return not p.is_absolute() and ".." not in p.parts
+
+
 def successor_resolves(rec: dict, root: Path) -> bool:
     """True if the record's declared successor is the no-successor sentinel or a
-    path that exists in the working tree. A successor that names a non-existent
-    path is a machine-detectable false evidence claim."""
-    successor = (rec.get("evidence") or {}).get("successor", "")
-    successor = successor.strip()
+    clean repo-relative path that exists as a FILE (blob) in the COMMITTED tree
+    (HEAD). Checking the committed tree -- not the mutable working dir -- stops an
+    untracked file created by an earlier CI step from satisfying the claim; the
+    safe-relpath guard stops an absolute path (e.g. /etc/passwd) or `..` traversal
+    from resolving outside the repo. A successor that names a non-existent,
+    non-committed, or non-file path is a machine-detectable false evidence claim."""
+    successor = (rec.get("evidence") or {}).get("successor", "").strip()
     if successor == NO_SUCCESSOR:
         return True
     # Tolerate a successor written as a quoted/backticked path or with a trailing
     # note; resolve the first whitespace-delimited token as the candidate path.
     candidate = successor.strip("`'\" ").split()[0] if successor else ""
-    return bool(candidate) and (root / candidate).exists()
+    if not _is_safe_relpath(candidate):
+        return False
+    rc, out = _git(root, ["cat-file", "-t", "HEAD:%s" % candidate])
+    return rc == 0 and out.strip() == "blob"
 
 
 # ---------------------------------------------------------------------------
@@ -179,31 +208,50 @@ def resolve_base_ref(cli_base: str | None) -> str:
     return "origin/main"
 
 
-def parse_governed_deletions(name_status: str, roots: tuple[str, ...]) -> list[str]:
-    """Parse `git diff --diff-filter=DR --find-renames --name-status` output into
-    the list of governed paths that were DELETED (left their governed home).
+def parse_governed_deletions(z_output: str, roots: tuple[str, ...]) -> list[str]:
+    """Parse `git diff --diff-filter=DRT --find-renames -z --name-status` output
+    into the list of governed paths whose content was REMOVED.
 
-    - `D\tpath`            -> deletion of `path`.
-    - `R<score>\told\tnew` -> rename; a deletion only if `old` is governed and
-                              `new` is NOT governed (the artifact left governance).
-                              A governed->governed rename is a move (exempt).
+    `-z` gives a NUL-separated token stream with NO path quoting, so unusual
+    pathnames (non-ASCII, control chars) are preserved exactly -- the default
+    (quoted) format would wrap such a governed path in quotes and the prefix
+    check would miss it. Token shapes:
+      - `D` / `T`  : <status> <path>            (delete, or type-change that
+                     replaces the file content, e.g. file->symlink/gitlink)
+      - `R` / `C`  : <status> <oldpath> <newpath>
+
+    A governed path is counted as a deletion when:
+      - `D <path>`            and `path` is governed; or
+      - `T <path>`            and `path` is governed (its file content was removed); or
+      - `R <old> <new>`       and `old` is governed and `new` is NOT (left governance).
+    A governed->governed rename is a move (exempt); a copy (`C`) leaves the
+    original in place (not a deletion).
 
     Pure function (testable)."""
+    tokens = z_output.split("\0")
+    if tokens and tokens[-1] == "":
+        tokens.pop()  # drop the trailing empty field from the final NUL
     out: list[str] = []
-    for line in name_status.splitlines():
-        line = line.rstrip("\n")
-        if not line.strip():
+    i, n = 0, len(tokens)
+    while i < n:
+        status = tokens[i].strip()
+        i += 1
+        if not status:
             continue
-        parts = line.split("\t")
-        status = parts[0].strip()
-        if status.startswith("D") and len(parts) >= 2:
-            path = parts[1].strip()
-            if is_governed(path, roots):
-                out.append(path)
-        elif status.startswith("R") and len(parts) >= 3:
-            old, new = parts[1].strip(), parts[2].strip()
-            if is_governed(old, roots) and not is_governed(new, roots):
+        if status[0] in ("R", "C"):
+            if i + 1 >= n:
+                break
+            old, new = tokens[i], tokens[i + 1]
+            i += 2
+            if status[0] == "R" and is_governed(old, roots) and not is_governed(new, roots):
                 out.append(old)
+        else:  # D, T, or any single-path status
+            if i >= n:
+                break
+            path = tokens[i]
+            i += 1
+            if status[0] in ("D", "T") and is_governed(path, roots):
+                out.append(path)
     # De-dup, preserve order.
     seen: set[str] = set()
     deduped: list[str] = []
@@ -223,7 +271,8 @@ def deleted_governed_paths(root: Path, base_ref: str, roots: tuple[str, ...]) ->
         return None  # base ref unresolvable -> infra gap (fail-open, like header_index)
     rc, out = _git(
         root,
-        ["diff", "--diff-filter=DR", "--find-renames", "--name-status", "%s...HEAD" % base_ref],
+        ["diff", "--diff-filter=DRT", "--find-renames", "-z", "--name-status",
+         "%s...HEAD" % base_ref],
     )
     if rc != 0:
         return None
@@ -335,28 +384,39 @@ def selftest() -> int:
     check("governed root exact", is_governed("orca/product"), True)
     check("not governed", is_governed("docs/decisions/z.md"), False)
 
-    # --- parse_governed_deletions (rename-aware) ---
+    # --- parse_governed_deletions (-z NUL stream; rename + typechange aware) ---
     roots = ("orca/product/",)
-    ns = "\n".join([
-        "D\torca/product/deleted.md",                              # governed delete
-        "D\tdocs/decisions/ungoverned.md",                         # not governed -> ignored
-        "R100\torca/product/old.md\torca/product/sub/new.md",      # governed->governed move -> exempt
-        "R090\torca/product/leaving.md\tdocs/archive/leaving.md",  # governed->outside -> deletion
-        "R095\tdocs/x.md\torca/product/incoming.md",               # outside->governed -> not a deletion
-    ])
-    check("rename-aware governed deletions",
-          parse_governed_deletions(ns, roots),
-          ["orca/product/deleted.md", "orca/product/leaving.md"])
+    z = "\0".join([
+        "D", "orca/product/deleted.md",                              # governed delete
+        "D", "docs/decisions/ungoverned.md",                         # not governed -> ignored
+        "T", "orca/product/typechanged.md",                          # governed file->symlink/gitlink -> deletion
+        "T", "docs/decisions/ungoverned_typechange.md",              # not governed -> ignored
+        "R100", "orca/product/old.md", "orca/product/sub/new.md",    # governed->governed move -> exempt
+        "R090", "orca/product/leaving.md", "docs/archive/leaving.md",# governed->outside -> deletion
+        "R095", "docs/x.md", "orca/product/incoming.md",             # outside->governed -> not a deletion
+        "C100", "orca/product/src.md", "orca/product/copy.md",       # copy -> original stays -> not a deletion
+    ]) + "\0"
+    check("rename/type-aware governed deletions",
+          parse_governed_deletions(z, roots),
+          ["orca/product/deleted.md", "orca/product/typechanged.md", "orca/product/leaving.md"])
     check("empty diff -> no deletions", parse_governed_deletions("", roots), [])
 
-    # --- successor_resolves (sentinel + path resolution) ---
+    # --- _is_safe_relpath (absolute / traversal rejection) ---
+    check("safe relpath ok", _is_safe_relpath("orca/product/x_v0.md"), True)
+    check("absolute path rejected", _is_safe_relpath("/etc/passwd"), False)
+    check("parent traversal rejected", _is_safe_relpath("../outside.md"), False)
+    check("drive/colon rejected", _is_safe_relpath("C:/x.md"), False)
+
+    # --- successor_resolves (sentinel + committed-tree blob resolution) ---
     root = repo_root()
     check("successor sentinel resolves",
           successor_resolves({"evidence": {"successor": NO_SUCCESSOR}}, root), True)
-    check("successor real path resolves",
+    check("successor committed file resolves",
           successor_resolves({"evidence": {"successor": "AGENTS.md"}}, root), True)
     check("successor bogus path fails",
           successor_resolves({"evidence": {"successor": "orca/product/does_not_exist_zzz.md"}}, root), False)
+    check("successor absolute path fails",
+          successor_resolves({"evidence": {"successor": "/etc/passwd"}}, root), False)
 
     print()
     print("SELFTEST", "OK" if ok else "FAILED")
