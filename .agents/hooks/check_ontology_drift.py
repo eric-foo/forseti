@@ -12,11 +12,16 @@ For each binding it imports the runtime class and verifies:
   - the class imports and is DEFINED in (not re-exported into) its bound module;
   - `requires_fields` are present (load-bearing anchors);
   - `forbids_fields` are absent (e.g. EvidenceUnit must not expose `claim_tier`, AR-01);
-  - `not_payload_identifier`: the canonical/alias name is not a serialized type
-    discriminator -- not a field name, a `Literal` discriminator value, or a
-    serialized field alias (leak guard -- the condition under which the alias-only
-    name reconciliation is safe);
-  - `composed_with` classes also import.
+  - `not_payload_identifier`: none of the binding's interchangeable names
+    {ontology concept, runtime __name__, name_alias} is a self-identifier on the
+    runtime class's (or any `composed_with` class's) TOP-LEVEL serialized surface --
+    a field/computed-field name, a `Literal`/`Enum` discriminator value, or a
+    serialized alias (`alias`/`serialization_alias`; not `validation_alias`). SCOPE:
+    top-level class-local only; values nested inside member models are out of scope
+    (documented limitation). A discriminated-union field yields a readiness finding
+    (its nested tag value is unseeable top-level -- extend with recursion). See
+    docs/decisions/ontology_runtime_drift_check_contract_v0.md;
+  - `composed_with` classes import AND get the same top-level leak + readiness scan.
 A binding that no longer imports is real DRIFT (a dangling binding) -> a finding.
 
 Usage:
@@ -30,6 +35,7 @@ fail-open.
 """
 from __future__ import annotations
 
+import enum
 import importlib
 import sys
 import typing
@@ -72,34 +78,71 @@ def _defined_here(cls, mod: str) -> bool:
     return actual == mod
 
 
-def _literal_strings(annotation: object) -> set[str]:
-    """Every string value reachable from a `Literal[...]` inside `annotation`,
-    recursing through Optional/Union/Annotated nesting (bounded: `get_args` of a
-    leaf type returns ())."""
+def _annotation_strings(annotation: object) -> set[str]:
+    """Every string a field with this annotation can SERIALIZE as a discriminator:
+    `Literal` string values and `Enum` member `.value`s, recursing through
+    Optional/Union/Annotated. Covers `f: SomeEnum`, `Literal["x"]`,
+    `Literal[SomeEnum.X]`, and nesting thereof. Bounded: a leaf (str, NoneType, a
+    non-Enum class) has empty `get_args`, so recursion terminates; nested BaseModel
+    fields are NOT descended (top-level scope -- see the module docstring)."""
     out: set[str] = set()
+    if isinstance(annotation, type) and issubclass(annotation, enum.Enum):
+        return {m.value for m in annotation if isinstance(m.value, str)}
     for arg in typing.get_args(annotation):
-        if isinstance(arg, str):
+        if isinstance(arg, enum.Enum):            # Literal[SomeEnum.MEMBER]
+            if isinstance(arg.value, str):
+                out.add(arg.value)
+        elif isinstance(arg, str):                # Literal["x"]
             out.add(arg)
-        else:
-            out |= _literal_strings(arg)
+        else:                                     # Union/Optional/Annotated/Enum-type -> recurse
+            out |= _annotation_strings(arg)
     return out
 
 
 def _payload_identifier_surfaces(cls) -> set[str]:
-    """Lowercased names that would serialize as a TYPE DISCRIMINATOR on `cls`:
-    each field's name, any `Literal` string value in its annotation, and any
-    string alias (`alias` / `serialization_alias` / `validation_alias`). If the
-    runtime class name lands in this set the name is payload-leaking and the
-    alias-only reconciliation is no longer safe."""
+    """Lowercased names on `cls`'s TOP-LEVEL serialized surface that could carry a
+    type discriminator: each field's and computed-field's name, the discriminator
+    strings reachable in its annotation (`Literal` values + `Enum` member values),
+    and any string alias (`alias` / `serialization_alias` -- NOT `validation_alias`,
+    which is input-side). Nested member models are out of scope (see module
+    docstring + the drift-check contract)."""
     surfaces: set[str] = set()
     for fname, finfo in (getattr(cls, "model_fields", {}) or {}).items():
         surfaces.add(fname.lower())
-        surfaces |= {s.lower() for s in _literal_strings(getattr(finfo, "annotation", None))}
-        for attr in ("alias", "serialization_alias", "validation_alias"):
+        surfaces |= {s.lower() for s in _annotation_strings(getattr(finfo, "annotation", None))}
+        for attr in ("alias", "serialization_alias"):
             val = getattr(finfo, attr, None)
             if isinstance(val, str) and val.strip():
                 surfaces.add(val.lower())
+    for cname, cinfo in (getattr(cls, "model_computed_fields", {}) or {}).items():
+        surfaces.add(cname.lower())
+        surfaces |= {s.lower() for s in _annotation_strings(getattr(cinfo, "return_type", None))}
+        alias = getattr(cinfo, "alias", None)
+        if isinstance(alias, str) and alias.strip():
+            surfaces.add(alias.lower())
     return surfaces
+
+
+def _interchangeable_names(concept: str, cls, b: dict) -> set[str]:
+    """The names a binding's alias-only reconciliation treats as the-same-thing:
+    the ontology concept, the runtime class `__name__`, and the explicit
+    `name_alias` if present. None may be a leak surface (R2)."""
+    names = {str(concept), getattr(cls, "__name__", "") or str(concept)}
+    na = b.get("name_alias")
+    if isinstance(na, str) and na.strip():
+        names.add(na.strip())
+    names.discard("")
+    return names
+
+
+def _discriminator_fields(cls) -> list[str]:
+    """Field names on `cls` that declare a Pydantic discriminated union -- the one
+    nested shape whose serialized tag value the top-level scan cannot see (A4
+    readiness)."""
+    return [
+        n for n, f in (getattr(cls, "model_fields", {}) or {}).items()
+        if getattr(f, "discriminator", None)
+    ]
 
 
 def _string_list(
@@ -200,16 +243,6 @@ def check_drift(root: Path) -> list[str]:
                     "%s: forbidden field `%s` PRESENT on `%s` (intent violated, e.g. AR-01)"
                     % (concept, f, cls.__name__)
                 )
-        if b.get("not_payload_identifier"):
-            alias = str(b.get("name_alias", cls.__name__)).lower()
-            if alias in _payload_identifier_surfaces(cls):
-                findings.append(
-                    "%s: `%s` appears as a field name, `Literal` discriminator value, or serialized "
-                    "alias (payload-leaking type discriminator -- alias-only reconciliation no longer safe)"
-                    % (concept, b.get("name_alias", cls.__name__))
-                )
-        else:
-            findings.append("%s: `not_payload_identifier` missing or false (drift-check invariant vacuous)" % concept)
         composed_with = _string_list(b.get("composed_with", []), concept, "composed_with", findings)
         missing_composed_guards = set(EXPECTED_COMPOSED_WITH.get(concept, ())) - set(composed_with)
         if missing_composed_guards:
@@ -217,10 +250,36 @@ def check_drift(root: Path) -> list[str]:
                 "%s: `composed_with` missing required guard(s): %s"
                 % (concept, ", ".join(sorted(missing_composed_guards)))
             )
+        composed_classes = []
         for cspec in composed_with:
             c2, _, err2 = load(cspec)
             if c2 is None:
                 findings.append("%s: composed_with binding dangles -- cannot import `%s` (%s)" % (concept, cspec, err2))
+            else:
+                composed_classes.append(c2)
+
+        if b.get("not_payload_identifier"):
+            names = _interchangeable_names(concept, cls, b)        # R2: {concept, __name__, name_alias?}
+            for who in (cls, *composed_classes):                   # R3: composed classes share the concept set
+                surfaces = _payload_identifier_surfaces(who)
+                leaked = sorted(n for n in names if n.lower() in surfaces)
+                if leaked:
+                    findings.append(
+                        "%s: interchangeable name(s) %s appear on `%s`'s top-level serialized surface "
+                        "(field/computed name, Literal/Enum value, or serialized alias) -- payload-leaking; "
+                        "alias-only reconciliation no longer safe"
+                        % (concept, ", ".join("`%s`" % n for n in leaked), who.__name__)
+                    )
+                disc = _discriminator_fields(who)                  # A4 readiness: nested tag unseeable top-level
+                if disc:
+                    findings.append(
+                        "%s: `%s` has discriminated-union field(s) %s -- the top-level leak-scan cannot see "
+                        "nested member discriminator values; extend the guard with nested recursion "
+                        "(see docs/decisions/ontology_runtime_drift_check_contract_v0.md)"
+                        % (concept, who.__name__, ", ".join("`%s`" % d for d in sorted(disc)))
+                    )
+        else:
+            findings.append("%s: `not_payload_identifier` missing or false (drift-check invariant vacuous)" % concept)
 
     return findings
 
@@ -250,20 +309,41 @@ def selftest() -> int:
             kind: typing.Literal["SourceCapturePacket"] = "SourceCapturePacket"
             tag: str = Field(default="x", serialization_alias="EvidenceUnit")
 
+        class _Mode(enum.Enum):          # plain (non-str) Enum -> the A2 gap the review found
+            LEAK = "EvidenceUnit"
+
+        class _EnumProbe(BaseModel):
+            mode: _Mode = _Mode.LEAK
+
+        class _A(BaseModel):
+            kind: typing.Literal["a"] = "a"
+
+        class _B(BaseModel):
+            kind: typing.Literal["b"] = "b"
+
+        class _DiscProbe(BaseModel):
+            pet: typing.Union[_A, _B] = Field(discriminator="kind")
+
         class _CleanProbe(BaseModel):
             manifest_version: str = "1"
 
         leak = _payload_identifier_surfaces(_LeakProbe)
-        clean = _payload_identifier_surfaces(_CleanProbe)
-        probe_ok = (
-            "sourcecapturepacket" in leak
-            and "evidenceunit" in leak
-            and "sourcecapturepacket" not in clean
-        )
-        if not probe_ok:
-            ok = False
-        print("%s  %-32s leak=%s"
-              % ("PASS" if probe_ok else "FAIL", "leak-guard detects Literal+alias", sorted(leak)))
+        probes = [
+            ("leak-guard: Literal + serialized alias",
+             "sourcecapturepacket" in leak and "evidenceunit" in leak),
+            ("leak-guard: enum member value (A2)",
+             "evidenceunit" in _payload_identifier_surfaces(_EnumProbe)),
+            ("clean model: no false positive",
+             "sourcecapturepacket" not in _payload_identifier_surfaces(_CleanProbe)),
+            ("readiness: discriminated union detected (A4)",
+             _discriminator_fields(_DiscProbe) == ["pet"]),
+            ("readiness: clean model has no discriminated union",
+             _discriminator_fields(_CleanProbe) == []),
+        ]
+        for label, passed in probes:
+            if not passed:
+                ok = False
+            print("%s  %-46s" % ("PASS" if passed else "FAIL", label))
 
     live = check_drift(repo_root())
     status = "PASS" if not live else "FAIL"
