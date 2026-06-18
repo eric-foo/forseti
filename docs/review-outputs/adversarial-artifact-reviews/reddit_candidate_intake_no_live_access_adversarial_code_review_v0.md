@@ -4,7 +4,7 @@
 retrieval_header_version: 1
 artifact_role: Delegated adversarial code review-and-patch report
 scope: De-correlated adversarial review of the no-live-access Reddit Candidate URL Intake implementation slice (capture_spine.reddit_candidate_intake) plus its unit and contract tests.
-authority_boundary: review_decision_input_only
+authority_boundary: retrieval_only
 review_target_commit: 7d2d2310af3d72f70e326542515f2439932d52b7
 review_branch: ecr-sp3-timing-deriver-slice1
 open_next:

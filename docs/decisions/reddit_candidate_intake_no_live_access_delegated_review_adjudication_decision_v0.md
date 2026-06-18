@@ -6,7 +6,7 @@ artifact_role: Chief Architect adjudication decision
 scope: >
   Adjudicates the delegated adversarial code review-and-patch output for the
   no-live-access Reddit Candidate URL Intake implementation slice.
-authority_boundary: decision_record
+authority_boundary: retrieval_only
 open_next:
   - docs/review-outputs/adversarial-artifact-reviews/reddit_candidate_intake_no_live_access_adversarial_code_review_v0.md
   - docs/prompts/reviews/reddit_candidate_intake_no_live_access_adversarial_code_review_prompt_v0.md
