@@ -158,19 +158,14 @@ def head_lines(path: Path) -> list[str] | None:
     return text.splitlines()[:HEAD_LINES]
 
 
-def check_relpath(relposix: str, root: Path) -> list[str]:
-    """Return a list of structural problems for an in-scope file (empty == ok).
+def header_problems_for_lines(lines: list[str]) -> list[str]:
+    """Structural retrieval-header problems for already-read head lines (empty == ok).
 
-    Returns [] for out-of-scope or unreadable paths (advisory: never invent a
-    problem we cannot see).
+    Scope-INDEPENDENT: the bare validity predicate (retrieval_header_version==1 +
+    authority_boundary==retrieval_only). check_relpath applies the scope gate then
+    delegates here; the orca/ report path (header_index) applies this directly, so
+    report-mode and strict share ONE predicate definition and cannot drift.
     """
-    folder = scope_folder(relposix)
-    if folder is None:
-        return []
-    lines = head_lines(root / relposix)
-    if lines is None:
-        return []
-
     version_val = None
     boundary_val = None
     for line in lines:
@@ -196,6 +191,22 @@ def check_relpath(relposix: str, root: Path) -> list[str]:
             f"`authority_boundary` is `{boundary_val}`, must be `retrieval_only`"
         )
     return problems
+
+
+def check_relpath(relposix: str, root: Path) -> list[str]:
+    """Return a list of structural problems for an in-scope file (empty == ok).
+
+    Returns [] for out-of-scope or unreadable paths (advisory: never invent a
+    problem we cannot see). Scope gate here; structural predicate delegated to
+    header_problems_for_lines (shared with the orca/ report path).
+    """
+    folder = scope_folder(relposix)
+    if folder is None:
+        return []
+    lines = head_lines(root / relposix)
+    if lines is None:
+        return []
+    return header_problems_for_lines(lines)
 
 
 def warning_for(relposix: str, problems: list[str]) -> str:

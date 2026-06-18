@@ -13,7 +13,7 @@ use_when:
   - Reviewing Retail/PDP projection boundaries before ECR, Cleaning, or Judgment sequencing.
 authority_boundary: retrieval_only
 open_next:
-  - orca/product/shared/data_lake_mechanics/core_spine_v0_data_lake_mechanics_map_v0.md
+  - orca/product/spines/data_lake/workflows/core_spine_v0_data_lake_mechanics_map_v0.md
   - orca/product/spines/capture/packet_schema/source_capture_tenant_payload_attachment_boundary_v0.md
   - orca/product/spines/capture/source_families/retail_pdp/retail_pdp_projection_contract_v0.md
   - orca/product/spines/capture/source_families/retail_pdp/retail_pdp_projection_playbook_v0.md

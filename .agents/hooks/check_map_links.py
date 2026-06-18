@@ -411,15 +411,21 @@ def run_c1(root: Path, map_files: list[Path]) -> list[Finding]:
     return findings
 
 
-def run_c2(root: Path) -> tuple[list[Finding], int]:
+def run_c2(root: Path, search_roots: list[Path] | None = None) -> tuple[list[Finding], int]:
     """C2: every open_next path in any .md file under docs/ and .agents/ must exist.
 
     Returns (findings, total_nonresolving) where total_nonresolving is the
     sum of all annotated nonresolving entries across all scanned files.
+
+    search_roots defaults to [docs/, .agents/] -- the live strict scope, left
+    byte-for-byte unchanged. The orca/ report mode (--report-orca) passes
+    [orca/] to reuse this exact predicate over the product corpus WITHOUT
+    touching the strict path (frozen predicate = strict-minus-exit-0).
     """
     findings: list[Finding] = []
     total_nonresolving = 0
-    search_roots = [root / "docs", root / ".agents"]
+    if search_roots is None:
+        search_roots = [root / "docs", root / ".agents"]
 
     for search_root in search_roots:
         if not search_root.is_dir():
@@ -465,14 +471,24 @@ def run_c2(root: Path) -> tuple[list[Finding], int]:
     return findings, total_nonresolving
 
 
-def run_c3(root: Path, map_text: str) -> list[Finding]:
-    """C3: every docs/ subdir with >=3 .md files directly must appear in the map."""
+def run_c3(root: Path, map_text: str, scan_root: Path | None = None,
+           min_md: int = 3, check_label: str = "C3") -> list[Finding]:
+    """C3: every docs/ subdir with >=3 .md files directly must appear in the map.
+
+    scan_root defaults to docs/ and min_md to 3 -- the live strict predicate,
+    left unchanged. The orca/ report mode passes scan_root=orca/product and
+    min_md=1 (the HARDER-than-C3 coverage rule from W0: every product folder
+    that CONTAINS a .md must be map-covered). Empty structure-ahead-of-content
+    slots hold 0 .md and are skipped by the min_md floor, so they never
+    false-fail.
+    """
     findings: list[Finding] = []
-    docs_root = root / "docs"
-    if not docs_root.is_dir():
+    if scan_root is None:
+        scan_root = root / "docs"
+    if not scan_root.is_dir():
         return findings
 
-    for dirpath, dirnames, filenames in os.walk(docs_root):
+    for dirpath, dirnames, filenames in os.walk(scan_root):
         # Prune _scratch from walk (don't descend, don't report)
         dirnames[:] = [d for d in dirnames if "_scratch" not in d]
 
@@ -483,12 +499,12 @@ def run_c3(root: Path, map_text: str) -> list[Finding]:
             continue
 
         md_count = sum(1 for f in filenames if f.endswith(".md"))
-        if md_count < 3:
+        if md_count < min_md:
             continue
 
         if not dir_is_covered(rel_dir, map_text):
             findings.append(Finding(
-                check="C3",
+                check=check_label,
                 source=rel_dir,
                 detail=(
                     "folder has %d .md files but no map entry: %s"
@@ -498,7 +514,7 @@ def run_c3(root: Path, map_text: str) -> list[Finding]:
     return findings
 
 
-def run_c4(root: Path) -> tuple[list[Finding], int]:
+def run_c4(root: Path, search_roots: list[Path] | None = None) -> tuple[list[Finding], int]:
     """C4: every inline markdown link/image-link in .md files under docs/ and
     .agents/ whose target is a relative/repo path must resolve to a file on
     disk.
@@ -507,10 +523,13 @@ def run_c4(root: Path) -> tuple[list[Finding], int]:
     links annotated with '# nonresolving:<reason>' (debt, not failures).
 
     Reuses the same os.walk pass and skip rules as C2 (no second walk).
+    search_roots defaults to [docs/, .agents/] (live strict scope, unchanged);
+    the orca/ report mode passes [orca/].
     """
     findings: list[Finding] = []
     total_nonresolving = 0
-    search_roots = [root / "docs", root / ".agents"]
+    if search_roots is None:
+        search_roots = [root / "docs", root / ".agents"]
 
     for search_root in search_roots:
         if not search_root.is_dir():
@@ -596,6 +615,47 @@ def run_strict_inline(root: Path) -> int:
     Kept for caller compatibility in case downstream automation uses this flag.
     """
     return run_strict(root)
+
+
+def run_report_orca(root: Path) -> int:
+    """--report-orca: REPORT MODE over the orca/ product corpus. ALWAYS exits 0.
+
+    Frozen predicate (strict-minus-exit-0): computes EXACTLY the findings a
+    future orca/ strict gate will enforce -- C2 open_next resolution, C4 inline
+    link resolution, and the harder-than-C3 folder coverage (every orca/product/
+    folder with >=1 .md must be map-covered) -- but never gates. The live
+    docs/+.agents/ --strict scope and exit behavior are untouched; the Phase-3
+    ratchet flips the exit only. Header/orphan debt over orca/product/spines/**
+    is reported by header_index, not here.
+    """
+    orca_root = root / "orca"
+    if not orca_root.is_dir():
+        print("check_map_links --report-orca: no orca/ tree present; nothing to report")
+        return 0
+
+    roots = [orca_root]
+    map_text = load_map_text(collect_map_files(root))
+    c2_findings, c2_nr = run_c2(root, search_roots=roots)
+    c4_findings, c4_nr = run_c4(root, search_roots=roots)
+    cov_findings = run_c3(root, map_text, scan_root=root / "orca" / "product",
+                          min_md=1, check_label="COV")
+    findings = c2_findings + c4_findings + cov_findings
+    nonresolving = c2_nr + c4_nr
+
+    by_check: dict[str, int] = {}
+    for f in findings:
+        by_check[f.check] = by_check.get(f.check, 0) + 1
+
+    print("check_map_links --report-orca (REPORT MODE, exit 0; not a gate):")
+    print("  scope: orca/  |  predicate = strict-minus-exit-0 (Phase-3 flips exit only)")
+    print("  open_next unresolved (C2):                         %d" % by_check.get("C2", 0))
+    print("  inline links unresolved (C4):                      %d" % by_check.get("C4", 0))
+    print("  folders w/ >=1 .md not map-covered (COV>C3):       %d" % by_check.get("COV", 0))
+    print("  annotated nonresolving:                            %d (debt, not failures)" % nonresolving)
+    print("  total report findings:                             %d" % len(findings))
+    for f in findings:
+        print("    [%s] %s  ::  %s" % (f.check, f.source, f.detail))
+    return 0
 
 
 def run_check(root: Path) -> int:
@@ -953,11 +1013,14 @@ def main(argv: list[str]) -> int:
         return run_strict_inline(root)
     if "--strict" in argv:
         return run_strict(root)
+    if "--report-orca" in argv:
+        return run_report_orca(root)
     # Default: print usage
-    print("Usage: check_map_links.py --strict | --strict-inline | --check | --selftest")
+    print("Usage: check_map_links.py --strict | --strict-inline | --check | --report-orca | --selftest")
     print("  --strict         CI gate: exit 1 if any finding (C1/C2/C3/C4)")
     print("  --strict-inline  alias for --strict (C4 included; kept for caller compat)")
     print("  --check          human-readable report, always exit 0")
+    print("  --report-orca    REPORT MODE over orca/: measure debt, always exit 0 (not a gate)")
     print("  --selftest       pure-function self-check")
     return 1
 
