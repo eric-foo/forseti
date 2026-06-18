@@ -23,7 +23,7 @@ authority_boundary: retrieval_only
   does not authorize global, user-level, plugin, installed, or external workflow
   source mutation.
 - Do not configure remotes or perform destructive cleanup unless explicitly authorized. Commit, push, and pull-request preparation follow the work-unit completion rule in `AGENTS.md`: at the verified completion of a repo-changing work unit on the lane's own branch or worktree they proceed without a typed instruction, owner-gated by the `settings.json` permission prompts; landing to `main` stays human-gated except a guard-verified self-merge of the agent's own PR (every other state fails closed). The guard (`.agents/hooks/guard_protected_actions.py`) is the enforcement; the conditions and policy live in `docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md`.
-- **Online/external source-data capture routes through the Source Capture Armory Runner Ladder.** Any capture of online or external source data for evidence or learning goes through the armory runners + Mini God-Tier source-quality discipline (the "Runner Ladder"), not ad-hoc web fetches; captures emit inspectable Source Capture Packets that also serve as Capture-lane data. Route via the repo map (`docs/workflows/orca_repo_map_v0.md` -> Data Capture / Source Capture Armory submap) -> `orca-harness/docs/source_capture_agent_runbook.md` + `docs/product/source_capture_toolbox/source_quality_mini_god_tier_profile_v0.md`. Uncaptured scouting/diagnostic web reads (not entered as evidence) are exempt.
+- **Online/external source-data capture routes through the Source Capture Armory Runner Ladder.** Any capture of online or external source data for evidence or learning goes through the armory runners + Mini God-Tier source-quality discipline (the "Runner Ladder"), not ad-hoc web fetches; captures emit inspectable Source Capture Packets that also serve as Capture-lane data. Route via the repo map (`docs/workflows/orca_repo_map_v0.md` -> Data Capture / Source Capture Armory submap) -> `orca-harness/docs/source_capture_agent_runbook.md` + `orca/product/spines/capture/source_capture_toolbox/source_quality_mini_god_tier_profile_v0.md`. Uncaptured scouting/diagnostic web reads (not entered as evidence) are exempt.
 
 ## Scope Discipline
 
@@ -51,31 +51,31 @@ direction_change_propagation:
     - ".agents/workflow-overlay/template-registry.md"
     - ".agents/workflow-overlay/validation-gates.md"
     - ".agents/workflow-overlay/source-loading.md"
-    - "docs/product/data_capture_spine/data_capture_source_access_boundary_decision_v0.md"
-    - "docs/product/data_capture_spine/data_capture_source_access_method_plan_v0.md"
+    - "orca/product/spines/capture/contracts/source_access_boundary/data_capture_source_access_boundary_decision_v0.md"
+    - "orca/product/spines/capture/contracts/source_access_boundary/data_capture_source_access_method_plan_v0.md"
   downstream_surfaces_checked:
     - "AGENTS.md"
     - ".agents/workflow-overlay/README.md"
     - ".agents/workflow-overlay/source-of-truth.md"
     - "docs/workflows/orca_repo_map_v0.md"
     - "docs/decisions/data_capture_spine_source_access_tooling_build_authorization_v0.md"
-    - "docs/product/source_capture_toolbox/README.md"
-    - "docs/product/data_capture_spine/core_spine_v0_data_capture_spine_obligation_contract_v0.md"
+    - "orca/product/spines/capture/source_capture_toolbox/README.md"
+    - "orca/product/spines/capture/contracts/obligation_contracts/core_spine_v0_data_capture_spine_obligation_contract_v0.md"
     - "docs/decisions/data_capture_spine_source_observability_local_support_implementation_execution_authorization_v0.md"
   intentionally_not_updated:
     - path: "AGENTS.md"
       reason: "Already states Orca is no longer globally docs-first and permits bounded implementation by current turn or accepted handoff."
     - path: ".agents/workflow-overlay/source-of-truth.md"
       reason: "Source hierarchy and propagation mechanics did not change."
-    - path: "docs/product/data_capture_spine/core_spine_v0_data_capture_spine_obligation_contract_v0.md"
+    - path: "orca/product/spines/capture/contracts/obligation_contracts/core_spine_v0_data_capture_spine_obligation_contract_v0.md"
       reason: "Capture obligations did not change; implementation still requires separate bounded authorization."
     - path: "docs/decisions/data_capture_spine_source_access_tooling_build_authorization_v0.md"
       reason: "Already supplies the bounded first-tranche Source Capture Armory implementation authority."
-    - path: "docs/product/source_capture_toolbox/README.md"
+    - path: "orca/product/spines/capture/source_capture_toolbox/README.md"
       reason: "Already routes future Source Capture Armory work through the bounded first-tranche authorization and non-claims."
     - path: "docs/decisions/data_capture_spine_source_observability_local_support_implementation_execution_authorization_v0.md"
       reason: "That prior local-helper authorization remains accurate and bounded to its helper surface."
-  stale_language_search: "rg -n \"non-implementation architecture and proof setup|Orca remains in its non-implementation phase|exit the non-implementation phase|Implementation templates remain unbound while Orca is in non-implementation|direct-implementation.*unbound while Orca remains in non-implementation|No build, no install, no runtime authorized\" .agents/workflow-overlay docs/product/data_capture_spine/data_capture_source_access_boundary_decision_v0.md docs/product/data_capture_spine/data_capture_source_access_method_plan_v0.md docs/decisions/data_capture_spine_source_access_tooling_build_authorization_v0.md docs/product/source_capture_toolbox/README.md docs/workflows/orca_repo_map_v0.md"
+  stale_language_search: "rg -n \"non-implementation architecture and proof setup|Orca remains in its non-implementation phase|exit the non-implementation phase|Implementation templates remain unbound while Orca is in non-implementation|direct-implementation.*unbound while Orca remains in non-implementation|No build, no install, no runtime authorized\" .agents/workflow-overlay orca/product/spines/capture/contracts/source_access_boundary/data_capture_source_access_boundary_decision_v0.md orca/product/spines/capture/contracts/source_access_boundary/data_capture_source_access_method_plan_v0.md docs/decisions/data_capture_spine_source_access_tooling_build_authorization_v0.md orca/product/spines/capture/source_capture_toolbox/README.md docs/workflows/orca_repo_map_v0.md"
   non_claims:
     - "not validation"
     - "not readiness"
@@ -95,13 +95,13 @@ direction_change_propagation:
   downstream_surfaces_checked:
     - "docs/workflows/orca_repo_map_v0.md"
     - "orca-harness/docs/source_capture_agent_runbook.md"
-    - "docs/product/source_capture_toolbox/source_quality_mini_god_tier_profile_v0.md"
+    - "orca/product/spines/capture/source_capture_toolbox/source_quality_mini_god_tier_profile_v0.md"
   intentionally_not_updated:
     - path: "docs/workflows/orca_repo_map_v0.md"
       reason: "Already routes capture/armory work to the Data Capture submap, runbook, and runner/adapter files; this rule points to that existing route rather than forking it."
     - path: "orca-harness/docs/source_capture_agent_runbook.md"
       reason: "Owns the Runner Ladder mechanics and runner selection; this rule routes to it and changes none of it."
-    - path: "docs/product/source_capture_toolbox/source_quality_mini_god_tier_profile_v0.md"
+    - path: "orca/product/spines/capture/source_capture_toolbox/source_quality_mini_god_tier_profile_v0.md"
       reason: "Owns the Mini God-Tier rungs/result tokens; referenced, not changed."
   non_claims:
     - "not new capture authorization"

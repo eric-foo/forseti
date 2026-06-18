@@ -369,7 +369,7 @@ Older receipts (#1–#13) archived verbatim in `docs/decisions/dcp_receipts_arch
 - `docs/migration/import_queue.md`: read-only import queue state.
 - `docs/decisions/dcp_receipts_archive_v0.md`: verbatim archive of direction_change_propagation receipts cycled out of inline storage; retrieval-only, no source authority.
 - `docs/decisions/orca_product_thesis_consumer_demand_v0.md`: current Orca product thesis and value proposition (owner-ratified 2026-06-12; supersedes the earlier turn-08 thesis, retained as history).
-- `docs/product/judgment_spine/judgment_spine_evidence_ladder_architecture_v0.md`: Judgment Spine claim-tier architecture for Product-Learning, Buyer-Proof, and Judgment-Quality evidence boundaries.
-- `docs/product/judgment_spine/judgment_spine_gate_ownership_map_v0.md`: Judgment Spine gate ownership map for source identity, packet freeze, no-tools isolation, memorization probe, sealed output, scoring, reveal/calibration, classification, and closeout blockers.
-- `docs/product/judgment_spine/judgment_spine_reveal_calibration_owner_contract_v0.md`: JSG-08 owner contract for outcome reveal/calibration receipt shape, satisfaction states, scoring relationship, and claim caps.
+- `orca/product/spines/judgment/claim_ladder/judgment_spine_evidence_ladder_architecture_v0.md`: Judgment Spine claim-tier architecture for Product-Learning, Buyer-Proof, and Judgment-Quality evidence boundaries.
+- `orca/product/spines/judgment/conductor/judgment_spine_gate_ownership_map_v0.md`: Judgment Spine gate ownership map for source identity, packet freeze, no-tools isolation, memorization probe, sealed output, scoring, reveal/calibration, classification, and closeout blockers.
+- `orca/product/spines/judgment/conductor/judgment_spine_reveal_calibration_owner_contract_v0.md`: JSG-08 owner contract for outcome reveal/calibration receipt shape, satisfaction states, scoring relationship, and claim caps.
 - `docs/workflows/turn_08_workflow_bedrock_maximization.md`: docs-first maximization plan for `workflow-deep-thinking`, future `workflow-product-ultraplan`, and future `workflow-feature-ultraplan`.

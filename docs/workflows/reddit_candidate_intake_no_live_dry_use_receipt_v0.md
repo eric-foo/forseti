@@ -11,8 +11,8 @@ use_when:
   - Deciding whether to scope the next layer above foundation for Candidate URL Intake.
 authority_boundary: retrieval_only
 open_next:
-  - docs/product/data_capture_spine/data_capture_spine_candidate_url_intake_contract_v0.md
-  - docs/product/data_capture_spine/data_capture_spine_reddit_candidate_url_intake_crawler_architecture_v0.md
+  - orca/product/spines/capture/contracts/candidate_intake/data_capture_spine_candidate_url_intake_contract_v0.md
+  - orca/product/spines/capture/contracts/candidate_intake/data_capture_spine_reddit_candidate_url_intake_crawler_architecture_v0.md
   - docs/decisions/data_capture_spine_reddit_candidate_url_intake_default_policy_decision_v0.md
   - orca-harness/tests/unit/test_reddit_candidate_intake.py
   - orca-harness/tests/fixtures/reddit_candidate_intake/old_reddit_listing_noisy.html

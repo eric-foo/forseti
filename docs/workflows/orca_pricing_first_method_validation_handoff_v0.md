@@ -10,7 +10,7 @@ use_when:
 authority_boundary: retrieval_only
 open_next:
   - docs/decisions/orca_icp_wedge_pricing_first_v0.md
-  - docs/product/core_spine/core_spine_v0_method_validation_case_locks_v0.md
+  - orca/product/case_families/product_learning/other_verticals/core_spine_v0_method_validation_case_locks_v0.md
 ```
 
 ## Status

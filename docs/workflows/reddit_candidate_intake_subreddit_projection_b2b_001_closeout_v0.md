@@ -15,8 +15,8 @@ use_when:
 authority_boundary: retrieval_only
 open_next:
   - docs/workflows/reddit_candidate_intake_old_reddit_search_surface_handling_v0.md
-  - docs/product/data_capture_spine/data_capture_spine_reddit_candidate_url_intake_crawler_architecture_v0.md
-  - docs/product/data_capture_spine/data_capture_spine_candidate_url_intake_contract_v0.md
+  - orca/product/spines/capture/contracts/candidate_intake/data_capture_spine_reddit_candidate_url_intake_crawler_architecture_v0.md
+  - orca/product/spines/capture/contracts/candidate_intake/data_capture_spine_candidate_url_intake_contract_v0.md
   - orca-harness/_test_runs/reddit_candidate_subreddit_discovery_b2b_001/reddit_candidate_url_intake.json # nonresolving: gitignored run scratch
   - orca-harness/_test_runs/reddit_candidate_subreddit_discovery_b2b_001/reddit_candidate_url_intake_receipt.md # nonresolving: gitignored run scratch
 stale_if:

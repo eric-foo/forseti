@@ -167,7 +167,7 @@ Validation must be able to fail. Missing evidence is not a pass.
   buyer-proof, advisory, backtest, fixture, model-run, scoring, memo, deck,
   calibration, architecture, spec, prompt, wrapper, and runbook artifacts must
   classify the claim tier and closeout state using
-  `docs/product/judgment_spine/judgment_spine_evidence_ladder_architecture_v0.md` before
+  `orca/product/spines/judgment/claim_ladder/judgment_spine_evidence_ladder_architecture_v0.md` before
   making proof, readiness, validation, fixture-admission, scoring,
   blind-use-readiness, or judgment-quality claims. Product-Learning evidence
   cannot be reused as Buyer-Proof or Judgment-Quality evidence without the
@@ -278,7 +278,7 @@ direction_change_propagation:
       reason: >
         Out of scope and already covered by jb's own evidence/claim discipline;
         Orca must not edit jb authority.
-    - path: docs/product/judgment_spine/judgment_spine_evidence_ladder_architecture_v0.md and the JS gate/owner-contract docs
+    - path: orca/product/spines/judgment/claim_ladder/judgment_spine_evidence_ladder_architecture_v0.md and the JS gate/owner-contract docs
       reason: >
         They already encode this discipline for Judgment Spine gates (e.g., the
         no-tools contract Receipt Provenance Boundary). This overlay gate

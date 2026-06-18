@@ -17,7 +17,7 @@ entry_points:
   docs_readme: docs/README.md
   docs_guide: docs/STRUCTURE.md
   route_card: docs/workflows/orca_repo_map_v0.md
-  product: docs/product/README.md
+  product: orca/product/README.md
 
 # Exhaustive allowed top-level entries. Anything else at repo root is unplaced.
 known_top_level:
@@ -39,7 +39,7 @@ known_top_level:
 # docs/ role grammar (bound in artifact-folders.md; listed here for routing only).
 docs_roles:
   - { home: docs/decisions, entry: docs/decisions/README.md }
-  - { home: docs/product, entry: docs/product/README.md }
+  - { home: docs/product, entry: orca/product/README.md }
   - { home: docs/prompts, entry: docs/prompts }
   - { home: docs/research, entry: docs/research/README.md }
   - { home: docs/review-inputs, entry: docs/review-inputs }

@@ -81,7 +81,7 @@ direction_change_propagation:
       reason: dated historical observation, true as of its date.
     - path: docs/workflows/orca_pricing_first_doc_cascade_proposal_v0.md
       reason: historical proposal record (row 7 deferral); current acceptance state now lives in skill-adoption.md; the proposal is not retro-edited.
-    - path: docs/product/product_lead/orca_product_lead_first_icp_wedge_decision_v0.md
+    - path: orca/product/spines/product_lead/icp_wedge/orca_product_lead_first_icp_wedge_decision_v0.md
       reason: already-superseded historical record; its supersede banner governs.
     - path: docs/decisions/orca_icp_wedge_convergence_break_in_first_v0.md
       reason: already-superseded historical record; its supersede banner governs.
@@ -163,7 +163,7 @@ direction_change_propagation:
     - docs/decisions/orca_repo_structure_binding_v0.md        # bound-lanes bullet notes search/
     - repo-structure.yaml                                     # product_lanes += { search } (current once applied)
     - .agents/workflow-overlay/artifact-folders.md            # search accepted-folder entry + lane-subfolder list + this receipt
-    - docs/product/README.md                                  # lane list includes search/
+    - orca/product/README.md                                  # lane list includes search/
     - docs/product/search/README.md                          # lane front-door index (restructured for the expanded lane)
     - docs/workflows/orca_repo_map_v0.md                      # Workstream Status Pointers: search lane row
     - docs/migration/repo_structure_search_lane_v0/           # package: 10-row manifest + idempotent apply/reverse + runbook + reference inventory + moved-paths index
@@ -184,7 +184,7 @@ direction_change_propagation:
       reason: narrative tier per the binding's surface tiering; no product-lane list to amend (same treatment as the Phase-2 move).
     - path: the moved docs' content
       reason: not edited except intra-set full-path references (hash-safe; no inbound hash pins); search/README.md was hand-restructured separately.
-    - path: docs/product/core_spine/orca_ontology_backbone_architecture_v0.md (bare-name "in-flight/not on main" prose)
+    - path: orca/product/spines/foundation/ontology/orca_ontology_backbone_architecture_v0.md (bare-name "in-flight/not on main" prose)
       reason: pre-existing stale status independent of this move (the scan-core spec is already on main); out of scope for this migration.
   stale_language_search: >
     The runbook's apply sequence includes a git-grep reference-resolution check
