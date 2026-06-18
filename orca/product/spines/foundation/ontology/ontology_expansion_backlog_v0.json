@@ -2,22 +2,8 @@
   "schema": "ontology_expansion_backlog/v0",
   "purpose": "Rung-0 machine-readable deferred-ontology-expansion backlog. Read by .agents/hooks/check_ontology_expansion.py (rung 1), which nudges at session start when a trigger artifact has landed on disk while the owed card(s) are still missing. Pointers only -- the adopted deliverable is the authority for what each type is and why it is deferred. Not doctrine, validation, or readiness.",
   "authority": "orca/product/spines/foundation/ontology/orca_ontology_backbone_architecture_v0.md",
-  "cards_dir": "docs/product/core_spine/ontology_cards",
-  "auto_nudge_triggers": [
-    {
-      "id": "demand-scan-core-spec",
-      "trigger_path": "orca/product/spines/scanning/scan_core/orca_demand_scan_core_spec_v0.md",
-      "condition": "exists",
-      "basis": "Adopted deliverable §3 (Observation/Call backing depends on the in-flight scan-spec), §4 (forward consumer), §9 (defer Observation + TrendVector until the scan-spec lands on main). When this path exists, those types are buildable by re-expressing the scan-spec's Observation/Candidate schema in ontology terms.",
-      "cards_owed": [
-        {"type": "Observation", "card_glob": "observation_*.md"},
-        {"type": "TrendVector", "card_glob": "trend_*.md"},
-        {"type": "Call", "card_glob": "call_*.md"},
-        {"type": "Reading", "card_glob": "reading_*.md"}
-      ],
-      "action": "Run the ontology card-expansion lane (workflow-deep-thinking -> workflow-assumption-gate -> /fused) for the owed type(s), re-expressing the scan-spec schema in ontology terms with no new vocabulary."
-    }
-  ],
+  "cards_dir": "orca/product/spines/foundation/ontology/ontology_cards",
+  "auto_nudge_triggers": [],
   "deferred_no_auto_trigger": [
     {"type": "Org", "basis": "RESERVED (§2.2 row 17, §6.1): graduates by dated owner amendment when a real Org-object backing lands. Org-motion / EDGAR headcount data corroborates (G4) but is NOT an Org-object definition, so it does not auto-trigger a card."},
     {"type": "Buyer", "basis": "RESERVED (§2.2 row 16, §6.1): graduates by dated owner amendment when a landed backing artifact appears."},
@@ -25,6 +11,10 @@
     {"type": "Product", "basis": "No single backing artifact yet (§2.2 row 3, §3). Card when a Product backing lands."},
     {"type": "WindCaller", "basis": "No card-set asset yet (§2.2 row 5, §3); a future asset parallel to the venue cards."},
     {"type": "CapturePacket", "basis": "Backing exists (orca-harness/source_capture/models.py, §2.2 row 14). Available now; deferred for consumer pull, not a trigger to wait on."},
-    {"type": "EvidenceUnit", "basis": "Backing = IPF foundation + evidence ladder (§2.2 row 15). Available on pull, not a trigger to wait on."}
+    {"type": "EvidenceUnit", "basis": "Backing = IPF foundation + evidence ladder (§2.2 row 15). Available on pull, not a trigger to wait on."},
+    {"type": "Observation", "basis": "Backing = CapturePacket / scan-spec forward (§2.2 row 7, §3). Owner-deferred 2026-06-18: the demand-scan-core spec is PROPOSED and authorizes no scan run, so no real captured Observation instance exists yet (the candidate pool is a candidate table, not observation instances). Card on the first scan-emitted Observation; no concrete emission artifact to watch yet. Re-expressing the §3 schema alone would duplicate §2.2/§3 (cards are instances, pointer-not-restate)."},
+    {"type": "TrendVector", "basis": "Backing = demand-read taxonomy (§2.2 row 8): a grammar, not instances; resolved pool cases are brand-decision events with null trend_vector. Owner-deferred 2026-06-18: card when a real TrendVector instance is emitted by a scan; no concrete artifact path to watch yet."},
+    {"type": "Call", "basis": "Backing = scan-spec §6 wind-caller call record (forward) / read outputs (§2.2 row 6). Owner-deferred 2026-06-18: no worked wind-caller Call instance in the current case set (INCIDecoder is named as the future exemplar; scan unrun). Card when a real Call lands."},
+    {"type": "Reading", "basis": "Backing = read outputs, an explicit gap (§2.2 row 10). Owner-deferred 2026-06-18: no Read-action output exists yet. Card when a real Reading is emitted."}
   ]
 }
