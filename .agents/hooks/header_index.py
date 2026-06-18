@@ -103,6 +103,7 @@ try:
     scope_folder = _crh.scope_folder
     check_relpath = _crh.check_relpath
     head_lines = _crh.head_lines
+    header_problems_for_lines = _crh.header_problems_for_lines
     IN_SCOPE_PREFIXES = _crh.IN_SCOPE_PREFIXES
     EXCLUDED_PREFIXES = _crh.EXCLUDED_PREFIXES
     _CRH_AVAILABLE = True
@@ -695,6 +696,53 @@ def selftest() -> int:
 # Entry point
 # ---------------------------------------------------------------------------
 
+def run_report_orca(root: Path) -> int:
+    """--report-orca: REPORT MODE over orca/product/spines/**. ALWAYS exits 0.
+
+    Measures retrieval-header PRESENCE/validity using the SAME structural predicate
+    as the live header gate (header_problems_for_lines), applied directly so the
+    orca/ corpus is not masked by the live IN_SCOPE_PREFIXES scope (check_relpath
+    returns [] for out-of-scope paths). Frozen predicate = strict-minus-exit-0; the
+    Phase-3 flip changes the exit only, not the predicate.
+
+    Orphan / folder-coverage over orca/ is intentionally NOT reported here: it
+    depends on check_map_links.dir_is_covered, which is currently vacuous (F2), so
+    any count would falsely imply coverage. Coverage is the W-map / coverage-gate piece.
+    """
+    spines_root = root / "orca" / "product" / "spines"
+    if not spines_root.is_dir():
+        print("header_index --report-orca: no orca/product/spines/ tree; nothing to report")
+        return 0
+
+    missing: list[str] = []
+    total = 0
+    for dirpath, dirnames, filenames in os.walk(spines_root):
+        dirnames[:] = [
+            d for d in dirnames
+            if not (d.startswith(".git") or d == "node_modules"
+                    or d == "__pycache__" or "_scratch" in d)
+        ]
+        for fname in filenames:
+            if not fname.endswith(".md"):
+                continue
+            relposix = (Path(dirpath) / fname).relative_to(root).as_posix()
+            lines = head_lines(root / relposix)
+            if lines is None:
+                continue
+            total += 1
+            if header_problems_for_lines(lines):
+                missing.append(relposix)
+
+    print("header_index --report-orca (REPORT MODE, exit 0; not a gate):")
+    print("  scope: orca/product/spines/**  |  predicate shared with the live header gate")
+    print("  durable .md scanned:             %d" % total)
+    print("  MISSING / invalid header (debt): %d" % len(missing))
+    print("  orphan / coverage:               deferred to W-map (dir_is_covered vacuous, F2)")
+    for m in sorted(missing):
+        print("    MISSING-HEADER: %s" % m)
+    return 0
+
+
 def main(argv: list[str]) -> int:
     if not _CRH_AVAILABLE:
         print(
@@ -734,7 +782,10 @@ def main(argv: list[str]) -> int:
                 cli_base = argv[idx + 1]
         return run_strict(root, cli_base=cli_base)
 
-    print("Usage: header_index.py --index | --health [--verbose] [--oneline] | --strict [--base <ref>] | --selftest")
+    if "--report-orca" in argv:
+        return run_report_orca(root)
+
+    print("Usage: header_index.py --index | --health [--verbose] [--oneline] | --strict [--base <ref>] | --report-orca | --selftest")
     return 1
 
 
