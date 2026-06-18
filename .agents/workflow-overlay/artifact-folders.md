@@ -282,27 +282,65 @@ direction_change_propagation:
     - .agents/hooks/check_placement.py
     - .agents/hooks/check_map_links.py
   intentionally_not_updated:
-    - path: historical docs (decisions/reviews/prompts/research/hygiene/migration) open_next + body docs/product references
+    - path: historical docs (decisions/reviews/prompts/research/hygiene/migration) BODY docs/product references
       reason: >
-        Reference-model-B: preserved at old paths, resolved via the spine-first
-        moved_paths_index; not mass-rewritten per owner instruction. OPEN ISSUE:
-        this currently fails check_map_links --strict on PR #255 -- C2 (337
-        open_next findings) + C1 (repo-map docs/product retirement-prose mentions)
-        -- because that checker has no moved_paths_index awareness. Resolution is
-        an open owner decision (enhance the checker to resolve via the index, vs
-        rewrite/annotate the historical pointers). Not a passed gate.
+        Historical body prose / provenance keeps its point-in-time docs/product
+        paths by design (resolved via the spine-first moved_paths_index); not
+        mass-rewritten per owner instruction. The open_next retrieval metadata in
+        these same files WAS repointed to orca/product under the A-prime patch
+        (see the A-prime receipt below); only body prose is preserved.
+        check_map_links --strict now passes.
   stale_language_search: >
     rg -n "docs/product" repo-structure.yaml .agents/workflow-overlay/artifact-folders.md
     (run 2026-06-18, worktree orca-spine-first-execution)
   stale_language_search_result: >
     After Wave E, repo-structure.yaml + artifact-folders.md no longer DECLARE
-    docs/product as a live role/lane/accepted-folder; remaining mentions are
-    retirement/transition prose flagged as the C1 check_map_links finding pending
-    the owner decision above.
+    docs/product as a live role/lane/accepted-folder. The repo map's
+    retirement/transition prose was reworded by the A-prime patch to drop the
+    dead docs/product token (former C1 finding); historical body prose keeps its
+    point-in-time references, resolved via the moved_paths_index.
   non_claims:
     - not validation, readiness, or proof
     - not migration-complete until PR #255 merges (human-gated)
-    - the C1/C2 check_map_links findings are an open decision, not a passed gate
+    - the prior C1/C2 check_map_links findings are resolved by the A-prime patch (receipt below); a green checker run is link hygiene, not validation or authority
+```
+
+## Direction Change Propagation - Spine-First A-prime (retrieval-metadata repointing)
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    A-prime (owner-authorized 2026-06-18): retrieval metadata must resolve
+    directly; only historical BODY prose stays point-in-time. Refines
+    reference-model-B -- the migration's open_next pointers and the repo map's
+    live references are repointed from docs/product/... to their orca/product/...
+    successors via the moved_paths_index; historical body prose/provenance is
+    still NOT mass-rewritten. check_map_links.py stays strict and was NOT taught
+    index resolution.
+  trigger: workflow_authority
+  related_triggers:
+    - output_authority
+  controlling_sources_updated:
+    - docs/workflows/orca_repo_map_v0.md
+    - docs/migration/repo_structure_spine_first_v0/repoint_open_next_to_spine.py
+    - docs/migration/repo_structure_spine_first_v0/moved_paths_index.md
+  bulk_change: >
+    165 historical .md retrieval headers: 335 open_next entries repointed
+    docs/product -> orca/product (C2 surface); 3 repo-map retirement-prose
+    docs/product tokens dropped (C1 surface); docs/product/search/README.md
+    open_next occurrences (2) annotated "# nonresolving:" -> moved_paths_index
+    (retired, no successor).
+  intentionally_not_updated:
+    - path: historical docs body docs/product references (~129 files / ~680 bare refs)
+      reason: point-in-time prose/provenance, resolved via moved_paths_index; not mass-rewritten per owner instruction.
+  validation_observed:
+    - "check_map_links.py --strict: OK (0 findings); annotated nonresolving 30"
+    - "header_index.py --strict: OK (changed durable .md header-bearing + map-reachable)"
+    - "apply_moves.py --dry-run: 0 pending / 217 applied"
+    - "git diff --check: clean; check_placement --check: only pre-existing .github/.githooks/.gitattributes noise"
+  non_claims:
+    - not validation, readiness, or migration proof; link/retrieval hygiene only
+    - not migration-complete until PR #255 merges (human-gated)
 ```
 
 Older receipts archived verbatim in `docs/decisions/dcp_receipts_archive_v0.md`.
