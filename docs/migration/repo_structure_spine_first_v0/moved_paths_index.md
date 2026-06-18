@@ -1,5 +1,27 @@
 # Moved Paths Index - Spine-first migration (generated)
 
+```yaml
+retrieval_header_version: 1
+artifact_role: Orca migration index (generated path-resolution artifact)
+scope: >
+  Generated old-path -> new-path lookup for the spine-first product
+  reorganization (former docs/product lanes -> orca/product spine tree).
+  Resolves historical and residual records that keep their point-in-time
+  docs/product paths by design. Lookup table only; not authority, validation,
+  or migration proof.
+use_when:
+  - Resolving a historical docs/product path to its orca/product successor.
+  - Auditing or re-running the spine-first move or the open_next repointing.
+authority_boundary: retrieval_only
+open_next:
+  - docs/migration/spine_first_execution_route_v0.md
+  - docs/decisions/orca_spine_first_target_structure_binding_v0.md
+  - docs/migration/spine_first_target_move_table_v0.md
+stale_if:
+  - The spine-first manifest (moves_manifest.csv) changes and this index is not regenerated.
+  - A later accepted migration relocates these artifacts again.
+```
+
 Historical + residual records reference old docs/product paths by design;
 resolve them here.
 

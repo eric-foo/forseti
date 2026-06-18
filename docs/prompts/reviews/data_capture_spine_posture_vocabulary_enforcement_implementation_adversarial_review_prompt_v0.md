@@ -15,8 +15,8 @@ use_when:
   - Dispatching the independent 2nd-opinion review of the R2 implementation + doctrine amendment.
 authority_boundary: retrieval_only
 open_next:
-  - docs/product/data_capture_spine/core_spine_v0_data_capture_spine_obligation_contract_v0.md
-  - docs/product/data_capture_spine/data_capture_spine_posture_vocabulary_enforcement_proposal_v0.md
+  - orca/product/spines/capture/contracts/obligation_contracts/core_spine_v0_data_capture_spine_obligation_contract_v0.md
+  - orca/product/spines/capture/contracts/obligation_contracts/data_capture_spine_posture_vocabulary_enforcement_proposal_v0.md
   - .agents/workflow-overlay/review-lanes.md
 input_hashes:
   docs/product/core_spine_v0_data_capture_spine_obligation_contract_v0.md: 806E7CE9DC92CFB57CDFFD62AA14091DC9EA2C29BD28D23B21AE138F69DF3ED4

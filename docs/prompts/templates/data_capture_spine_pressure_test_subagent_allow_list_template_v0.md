@@ -9,9 +9,9 @@ use_when:
   - Constraining a subagent to the obligation contract's allow/forbid line.
 authority_boundary: retrieval_only
 open_next:
-  - docs/product/data_capture_spine/data_capture_spine_pressure_test_commissioning_plan_v0.md
-  - docs/product/data_capture_spine/core_spine_v0_data_capture_spine_obligation_contract_v0.md
-  - docs/product/data_capture_spine/data_capture_harness_operating_model_architecture_v2.md
+  - orca/product/spines/capture/operating_model/data_capture_spine_pressure_test_commissioning_plan_v0.md
+  - orca/product/spines/capture/contracts/obligation_contracts/core_spine_v0_data_capture_spine_obligation_contract_v0.md
+  - orca/product/spines/capture/operating_model/data_capture_harness_operating_model_architecture_v2.md
   - docs/prompts/data_capture_spine_pressure_test_llm_capture_visibility_checker_prompt_v0.md
 stale_if:
   - The Data Capture Spine pressure-test commissioning plan is materially patched or superseded.

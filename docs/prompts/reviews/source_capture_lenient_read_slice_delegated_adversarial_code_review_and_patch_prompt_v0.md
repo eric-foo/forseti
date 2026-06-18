@@ -13,7 +13,7 @@ use_when:
   - Dispatching the de-correlated review-and-patch on the lenient-read slice before it is treated as settled.
 authority_boundary: retrieval_only
 open_next:
-  - docs/product/data_capture_spine/source_capture_packet_schema_evolution_architecture_v0.md
+  - orca/product/spines/capture/packet_schema/source_capture_packet_schema_evolution_architecture_v0.md
   - .agents/workflow-overlay/delegated-review-patch.md
   - .agents/workflow-overlay/review-lanes.md
 input_hashes:   # 12-char sha256 prefixes; worktree is dirty — confirm via `git diff`, report drift

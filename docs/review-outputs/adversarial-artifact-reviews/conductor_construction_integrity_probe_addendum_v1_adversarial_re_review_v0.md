@@ -9,9 +9,9 @@ use_when:
   - Checking residual risks in the routed-out conductor construction-integrity addendum.
 authority_boundary: retrieval_only
 open_next:
-  - docs/product/judgment_spine/conductor_construction_integrity_probe_addendum_v1.md
+  - orca/product/spines/judgment/conductor/conductor_construction_integrity_probe_addendum_v1.md
   - docs/review-outputs/adversarial-artifact-reviews/conductor_construction_integrity_probe_addendum_adversarial_review_v0.md
-  - docs/product/judgment_spine/judgment_quality_promotion_operating_model_v0.md
+  - orca/product/spines/judgment/conductor/judgment_quality_promotion_operating_model_v0.md
 input_hashes:
   docs/product/judgment_spine/conductor_construction_integrity_probe_addendum_v1.md: B21CD67E34EC73AAA2DE8ABAE5EDA7B192FC28CA6D2E87BC8985F147E2DF79D1
 branch_or_commit: ecr-sp3-timing-deriver-slice1 @ f26a828; target introduced at 51b45cf

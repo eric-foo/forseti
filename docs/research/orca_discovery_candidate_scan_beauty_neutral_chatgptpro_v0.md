@@ -16,7 +16,7 @@ use_when:
 authority_boundary: retrieval_only
 open_next:
   - docs/prompts/product-planning/chatgptpro_beauty_subniche_research_prompt_v0.md
-  - docs/product/product_lead/orca_buyer_proof_packet_v0.md
+  - orca/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md
   - .agents/workflow-overlay/product-proof.md
 stale_if:
   - A direct no-contact verification scan supersedes this advisory intake.

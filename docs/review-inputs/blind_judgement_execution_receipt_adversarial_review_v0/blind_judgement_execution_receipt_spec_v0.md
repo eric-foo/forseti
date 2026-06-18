@@ -20,7 +20,7 @@ open_next:
   - docs/research/judgment-spine/harness/v0_14/contestant_no_tools_execution_contract_v0.md
   - docs/research/judgment-spine/sp5_finalization_receipt_spec_v0.md
   - docs/research/judgment-spine/judgment_spine_machinery_build_state_gap_map_v0.md
-  - docs/product/judgment_spine/judgment_spine_gate_ownership_map_v0.md
+  - orca/product/spines/judgment/conductor/judgment_spine_gate_ownership_map_v0.md
 stale_if:
   - The BlindJudgement schema gains an isolation/execution field (then the separate-record shape is reconsidered).
   - contestant_no_tools_execution_contract_v0.md changes its Required Execution Fields, isolation_result semantics, or Receipt Provenance Boundary.

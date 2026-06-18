@@ -13,8 +13,8 @@ supersedes:
   - docs/product/orca_product_lead_first_icp_wedge_decision_v0.md
 open_next:
   - docs/research/orca_icp_redo_evidence_targets_v0.md
-  - docs/product/product_lead/orca_offer_hypothesis_v0.md
-  - docs/product/product_lead/orca_product_lead_first_icp_wedge_decision_v0.md
+  - orca/product/spines/product_lead/offer/orca_offer_hypothesis_v0.md
+  - orca/product/spines/product_lead/icp_wedge/orca_product_lead_first_icp_wedge_decision_v0.md
 stale_if:
   - Owner accepts a different first-proof wedge.
   - The downstream product-doc cascade lands and this record's proposal is consumed.

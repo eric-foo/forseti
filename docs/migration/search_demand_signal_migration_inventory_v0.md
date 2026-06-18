@@ -17,7 +17,7 @@ use_when:
 authority_boundary: retrieval_only
 open_next:
   - docs/decisions/orca_search_product_lane_binding_v0.md
-  - docs/product/search/README.md
+  - docs/product/search/README.md # nonresolving: retired without successor; resolve via docs/migration/repo_structure_spine_first_v0/moved_paths_index.md
   - docs/migration/repo_structure_search_lane_v0/moved_paths_index.md
 stale_if:
   - The search-lane binding inclusion test / precedence rule is amended or superseded.

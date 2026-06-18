@@ -21,10 +21,10 @@ use_when:
     the case nonetheless carries meaningful downstream receipts.
 authority_boundary: retrieval_only
 open_next:
-  - docs/product/judgment_spine/judgment_quality_promotion_operating_model_v0.md
-  - docs/product/judgment_spine/judgment_spine_gate_ownership_map_v0.md
-  - docs/product/judgment_spine/judgment_spine_evidence_ladder_architecture_v0.md
-  - docs/product/core_spine/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
+  - orca/product/spines/judgment/conductor/judgment_quality_promotion_operating_model_v0.md
+  - orca/product/spines/judgment/conductor/judgment_spine_gate_ownership_map_v0.md
+  - orca/product/spines/judgment/claim_ladder/judgment_spine_evidence_ladder_architecture_v0.md
+  - orca/product/spines/foundation/product_contract/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
   - docs/research/judgment-spine/cases/canoo-walmart/case_index.md
   - docs/research/judgment-spine/cases/canoo-walmart/jsg_08_reveal_calibration_receipt_v0.md
   - docs/research/judgment-spine/cases/canoo-walmart/jsg_09_10_claim_classification_closeout_v0.md

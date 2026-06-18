@@ -10,8 +10,8 @@ use_when:
   - Preserving why current Canoo/Walmart material remains qualitative case-learning or product-learning context only.
 authority_boundary: retrieval_only
 open_next:
-  - docs/product/judgment_spine/judgment_spine_reveal_calibration_owner_contract_v0.md
-  - docs/product/judgment_spine/judgment_spine_gate_ownership_map_v0.md
+  - orca/product/spines/judgment/conductor/judgment_spine_reveal_calibration_owner_contract_v0.md
+  - orca/product/spines/judgment/conductor/judgment_spine_gate_ownership_map_v0.md
   - docs/research/judgment-spine/cases/canoo-walmart/case_index.md
   - docs/research/judgment-spine/cases/canoo-walmart/outcome_calibration_v0.md
 input_hashes:

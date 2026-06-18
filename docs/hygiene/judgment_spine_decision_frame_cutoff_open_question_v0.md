@@ -12,7 +12,7 @@ authority_boundary: retrieval_only
 open_next:
   - docs/hygiene/precompact_judgment_spine_v2.md # nonresolving: precompact packet, never committed
   - docs/workflows/reddit_capture_to_ecr_consumption_probe_finding_v0.md
-  - docs/product/data_capture_spine/core_spine_v0_data_capture_spine_obligation_contract_v0.md
+  - orca/product/spines/capture/contracts/obligation_contracts/core_spine_v0_data_capture_spine_obligation_contract_v0.md
 downstream_consumers:
   - The judgment-model/owner decision that frames a real case and supplies its cutoff.
 stale_if:

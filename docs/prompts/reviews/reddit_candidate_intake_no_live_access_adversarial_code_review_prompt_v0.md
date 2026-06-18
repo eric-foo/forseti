@@ -12,8 +12,8 @@ open_next:
   - .agents/workflow-overlay/delegated-review-patch.md
   - .agents/workflow-overlay/review-lanes.md
   - .agents/workflow-overlay/prompt-orchestration.md
-  - docs/product/data_capture_spine/data_capture_spine_candidate_url_intake_contract_v0.md
-  - docs/product/data_capture_spine/data_capture_spine_reddit_candidate_url_intake_crawler_architecture_v0.md
+  - orca/product/spines/capture/contracts/candidate_intake/data_capture_spine_candidate_url_intake_contract_v0.md
+  - orca/product/spines/capture/contracts/candidate_intake/data_capture_spine_reddit_candidate_url_intake_crawler_architecture_v0.md
   - docs/decisions/data_capture_spine_reddit_candidate_url_intake_default_policy_decision_v0.md
 input_hashes:
   models_py: A8A008E46D313D60A53C5921B62ED9D6BD04BAA983644031335B259F952F3572

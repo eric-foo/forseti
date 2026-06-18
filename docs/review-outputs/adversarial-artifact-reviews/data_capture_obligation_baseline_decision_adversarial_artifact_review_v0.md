@@ -10,9 +10,9 @@ use_when:
   - Routing the owner's accept/patch/reject choice on the Data Capture obligation baseline.
 authority_boundary: retrieval_only
 open_next:
-  - docs/product/data_capture_spine/data_capture_obligation_baseline_decision_v0.md
-  - docs/product/data_capture_spine/core_spine_v0_data_capture_spine_obligation_contract_v0.md
-  - docs/product/data_capture_spine/data_capture_harness_product_goal_direction_signal_decision_v0.md
+  - orca/product/spines/capture/operating_model/data_capture_obligation_baseline_decision_v0.md
+  - orca/product/spines/capture/contracts/obligation_contracts/core_spine_v0_data_capture_spine_obligation_contract_v0.md
+  - orca/product/spines/capture/operating_model/data_capture_harness_product_goal_direction_signal_decision_v0.md
 branch_or_commit: main@b7627d3 with dirty/untracked workspace sources
 stale_if:
   - The reviewed decision artifact is materially revised.

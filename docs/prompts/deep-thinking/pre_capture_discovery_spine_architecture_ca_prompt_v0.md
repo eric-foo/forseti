@@ -18,7 +18,7 @@ authority_boundary: retrieval_only
 output_mode: paste-ready-chat
 open_next:
   - docs/product/core_spine/orca_venue_exploration_procedure_v0.md # nonresolving: pending on unmerged lane
-  - docs/product/source_capture_toolbox/capture_recon_index_v0.md
+  - orca/product/spines/capture/source_capture_toolbox/capture_recon_index_v0.md
 stale_if:
   - The commissioned lane returns its recommendation (that record supersedes this prompt as the operative source).
   - The owner re-opens the registry rejection or the exploration-procedure shape (constraints below would be stale).

@@ -20,9 +20,9 @@ use_when:
   - Deciding or executing the owner-gated dispositions proposed here.
 authority_boundary: retrieval_only
 open_next:
-  - docs/product/core_spine/orca_vertical_exploration_guide_v0.md
-  - docs/product/core_spine/orca_memorization_resistant_case_finder_frame_v0.md
-  - docs/product/source_capture_toolbox/capture_recon_index_v0.md
+  - orca/product/spines/foundation/vertical_exploration/orca_vertical_exploration_guide_v0.md
+  - orca/product/spines/foundation/vertical_exploration/orca_memorization_resistant_case_finder_frame_v0.md
+  - orca/product/spines/capture/source_capture_toolbox/capture_recon_index_v0.md
   - docs/research/source_registry_practices_deep_research_report_v0.md
 stale_if:
   - The owner accepts, rejects, or amends this recommendation (that decision supersedes this record as the operative source).

@@ -17,8 +17,8 @@ authority_boundary: retrieval_only
 open_next:
   - docs/decisions/orca_product_thesis_consumer_demand_v0.md      # anchor 1: the thesis (PROPOSED; 4 owner asks)
   - docs/decisions/orca_icp_wedge_consumer_demand_first_v0.md     # anchor 2: the wedge (PROPOSED)
-  - docs/product/product_lead/orca_claim_defense_doctrine_v0.md   # OWNER_SIGNED_OPERATIVE; binds all external wording
-  - docs/product/judgment_spine/judgment_spine_evidence_ladder_architecture_v0.md  # claim caps
+  - orca/product/spines/product_lead/proof_charter/orca_claim_defense_doctrine_v0.md   # OWNER_SIGNED_OPERATIVE; binds all external wording
+  - orca/product/spines/judgment/claim_ladder/judgment_spine_evidence_ladder_architecture_v0.md  # claim caps
 input_hashes:
   docs/decisions/orca_product_thesis_consumer_demand_v0.md: 5FEA48AE8B0C0E22D24CE2194F1F17617C5C94D2C75A204AAD5CD8CC149B2B0E
   docs/decisions/orca_icp_wedge_consumer_demand_first_v0.md: C878ABEBBFFC119A032E0290E093A9EBB973BC15052B4B21FA59D285AB83C07B

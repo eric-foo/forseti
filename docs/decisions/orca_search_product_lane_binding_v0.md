@@ -21,7 +21,7 @@ open_next:
   - .agents/workflow-overlay/artifact-folders.md
   - repo-structure.yaml
   - docs/migration/repo_structure_search_lane_v0/runbook.md
-  - docs/product/search/README.md
+  - docs/product/search/README.md # nonresolving: retired without successor; resolve via docs/migration/repo_structure_spine_first_v0/moved_paths_index.md
 stale_if:
   - repo-structure.yaml and this record disagree on the search lane or its status.
   - A later accepted Orca decision supersedes the lane, its inclusion test, or its precedence rule.

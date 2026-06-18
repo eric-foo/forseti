@@ -17,7 +17,7 @@ use_when:
   - Auditing batch-2 case selection against the anti-cherry-pick rule.
 authority_boundary: retrieval_only
 open_next:
-  - docs/product/core_spine/consumer_demand_candidate_pool_handoff_v0.md
+  - orca/product/case_families/product_learning/fragrance/consumer_demand_candidate_pool_handoff_v0.md
   - docs/decisions/judgment_spine_backtest_batch2_candidate_routing_v0.md
   - docs/decisions/judgment_spine_backtest_batch1_ledger_declaration_v0.md
   - orca-harness/cases/product_learning/inoreader_repricing_2019_v0/cross_vendor_blind_run_findings_v0.md

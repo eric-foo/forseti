@@ -12,9 +12,9 @@ use_when:
   - Running or dispatching the SP-6 derivation architecture decision.
 authority_boundary: retrieval_only
 open_next:
-  - docs/product/judgment_spine/jsg01_source_side_receipt_translator_v0.md
-  - docs/product/core_spine/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
-  - docs/product/data_capture_spine/core_spine_v0_data_capture_spine_obligation_contract_v0.md
+  - orca/product/spines/judgment/source_side_receipts/jsg01_source_side_receipt_translator_v0.md
+  - orca/product/spines/foundation/product_contract/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
+  - orca/product/spines/capture/contracts/obligation_contracts/core_spine_v0_data_capture_spine_obligation_contract_v0.md
 input_hashes:
   docs/product/jsg01_source_side_receipt_translator_v0.md: E8944D13FF8B3FAF62AC24209EC50FDA7C03CC9D4F906687246B2E15C01592B2
 branch_or_commit: main @ f9b05e6 (worktree dirty; controlling sources untracked)

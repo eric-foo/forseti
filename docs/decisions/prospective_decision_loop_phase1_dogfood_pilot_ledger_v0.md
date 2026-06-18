@@ -17,8 +17,8 @@ use_when:
   - Checking what the pilot may claim and what fixing/signing it commits.
 authority_boundary: retrieval_only
 open_next:
-  - docs/product/judgment_spine/prospective_decision_loop_phase0_semantics_spec_v0.md
-  - docs/product/judgment_spine/prospective_decision_loop_target_architecture_v0.md
+  - orca/product/spines/judgment/learning_loops/far_half/prospective_decision_loop_phase0_semantics_spec_v0.md
+  - orca/product/spines/judgment/learning_loops/far_half/prospective_decision_loop_target_architecture_v0.md
 input_hashes:
   docs/product/judgment_spine/prospective_decision_loop_phase0_semantics_spec_v0.md: <FILL_AT_SIGNATURE — blob-bytes SHA256 of the spec at the signing commit>
 branch_or_commit: prospective-loop-phase1-pilot-ledger-v0 off origin/main @ d6d360e (semantics spec landed via PR #46; target architecture via PR #34)

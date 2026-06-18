@@ -15,8 +15,8 @@ use_when:
 authority_boundary: retrieval_only
 open_next:
   - docs/research/judgment-spine/decide_vs_confirm_backtest_case_frame_template_v0.md
-  - docs/product/core_spine/orca_memorization_resistant_case_finder_frame_v0.md
-  - docs/product/core_spine/core_spine_v0_heavyweight_proof_case_discovery_charter_v0.md
+  - orca/product/spines/foundation/vertical_exploration/orca_memorization_resistant_case_finder_frame_v0.md
+  - orca/product/case_families/product_learning/other_verticals/core_spine_v0_heavyweight_proof_case_discovery_charter_v0.md
   - docs/decisions/orca_moat_judgment_quality_proof_path_decision_chain_v0.md
 stale_if:
   - Owner selects / rejects candidates, or the universe is superseded by a later pass.

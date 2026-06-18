@@ -17,7 +17,7 @@ use_when:
 authority_boundary: retrieval_only
 open_next:
   - .agents/workflow-overlay/delegated-review-patch.md
-  - docs/product/judgment_spine/near_half_signal_reliability_ledger_v0.md
+  - orca/product/spines/judgment/learning_loops/near_half/near_half_signal_reliability_ledger_v0.md
 input_hashes:
   docs/product/judgment_spine/near_half_signal_reliability_ledger_v0.md: 388352b83bac9860c3b9959d93af3d04d0c9ccfb69198cd9382f2fbe0a498102 (SHA256 over git blob bytes at 3fe878c, per the bound hash convention; not CRLF working-tree bytes)
 branch_or_commit: signal-reliability-ledger-hardening-v0 off origin/main @ 700c1ba (re-pinned 2026-06-13 after #54 landed; the ledger content is unchanged — blob hash still 388352b8 — only the now-merged #54 branch pin was stale). This review is a FOLLOW-UP hardening pass on the LANDED ledger.

@@ -15,7 +15,7 @@ use_when:
   - Dispatching the independent adversarial review of the packet schema-evolution architecture routing object.
 authority_boundary: retrieval_only
 open_next:
-  - docs/product/data_capture_spine/source_capture_packet_schema_evolution_architecture_v0.md
+  - orca/product/spines/capture/packet_schema/source_capture_packet_schema_evolution_architecture_v0.md
   - docs/prompts/architecture/source_capture_packet_schema_evolution_architecture_prompt_v0.md
   - .agents/workflow-overlay/review-lanes.md
 input_hashes:

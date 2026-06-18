@@ -17,9 +17,9 @@ no_authority_invariant: >
   scores. Those remain owned by the controlling sources, the deterministic
   scorer, the memorization-probe artifact, and human authorization gates.
 open_next:
-  - docs/product/judgment_spine/judgment_spine_evidence_ladder_architecture_v0.md
-  - docs/product/judgment_spine/judgment_spine_gate_ownership_map_v0.md
-  - docs/product/judgment_spine/judgment_spine_reveal_calibration_owner_contract_v0.md
+  - orca/product/spines/judgment/claim_ladder/judgment_spine_evidence_ladder_architecture_v0.md
+  - orca/product/spines/judgment/conductor/judgment_spine_gate_ownership_map_v0.md
+  - orca/product/spines/judgment/conductor/judgment_spine_reveal_calibration_owner_contract_v0.md
   - docs/research/judgment-spine/harness/v0_14/contestant_no_tools_execution_contract_v0.md
   - docs/research/judgment-spine/harness/v0_14/memorization_probe_protocol.md
   - .agents/workflow-overlay/product-proof.md

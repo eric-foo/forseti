@@ -11,8 +11,8 @@ use_when:
   - Checking why this delegated review did not patch the target proposal.
 authority_boundary: retrieval_only
 open_next:
-  - docs/product/judgment_spine/conductor_construction_integrity_probe_addendum_proposal_v0.md
-  - docs/product/judgment_spine/judgment_quality_promotion_operating_model_v0.md
+  - orca/product/spines/judgment/conductor/conductor_construction_integrity_probe_addendum_proposal_v0.md
+  - orca/product/spines/judgment/conductor/judgment_quality_promotion_operating_model_v0.md
   - .agents/workflow-overlay/delegated-review-patch.md
   - .agents/workflow-overlay/review-lanes.md
 branch_or_commit: ecr-sp3-timing-deriver-slice1 @ 8d16bdd

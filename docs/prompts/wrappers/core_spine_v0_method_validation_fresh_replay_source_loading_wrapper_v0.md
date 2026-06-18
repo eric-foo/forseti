@@ -10,7 +10,7 @@ use_when:
 authority_boundary: retrieval_only
 open_next:
   - docs/prompts/product-planning/core_spine_v0_method_validation_replay_packet_prompt_v0.md
-  - docs/product/core_spine/core_spine_v0_method_validation_case_frame_locks_v0.md
+  - orca/product/case_families/product_learning/other_verticals/core_spine_v0_method_validation_case_frame_locks_v0.md
 input_hashes:
   docs/prompts/product-planning/core_spine_v0_method_validation_replay_packet_prompt_v0.md: 0506819EEBEB952AC8B40E2AF84A65873EFA88E52C5A08CCEB6A7FA432270469
   docs/product/core_spine_v0_method_validation_case_frame_locks_v0.md: 4C8CFE49D8BB2FDDE650C99FEBB7BFE5F0CF76125057BD1B992431027D541785

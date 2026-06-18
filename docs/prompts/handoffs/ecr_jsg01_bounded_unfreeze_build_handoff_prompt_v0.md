@@ -19,8 +19,8 @@ use_when:
 authority_boundary: retrieval_only
 open_next:
   - docs/workflows/ecr_spine_submap_v0.md                                    # front door; cross-kind invariants
-  - docs/product/core_spine/core_spine_v0_data_and_cleaning_spine_boundary_v0.md  # ratification records; reserved decisions
-  - docs/product/judgment_spine/judgment_quality_promotion_operating_model_v0.md  # the FROZEN conductor; JSG-01 row (~:209) — read, never edit
+  - orca/product/spines/foundation/product_contract/core_spine_v0_data_and_cleaning_spine_boundary_v0.md  # ratification records; reserved decisions
+  - orca/product/spines/judgment/conductor/judgment_quality_promotion_operating_model_v0.md  # the FROZEN conductor; JSG-01 row (~:209) — read, never edit
   - docs/decisions/ar_01_pre_decision_status_finalizer_staffing_v0.md        # SP-5 staffing authority (decided)
 input_hashes:
   docs/product/judgment_spine/judgment_quality_promotion_operating_model_v0.md: 869F41BB516731D7067092C48634E5DE047FC102805F747E9FAE62DEDBB81D6F

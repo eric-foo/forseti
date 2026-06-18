@@ -11,10 +11,10 @@ use_when:
 authority_boundary: retrieval_only
 open_next:
   - docs/prompts/reviews/data_capture_harness_operating_model_architecture_v0_v1_adversarial_review_prompt_v0.md
-  - docs/product/data_capture_spine/data_capture_harness_operating_model_architecture_v1.md
-  - docs/product/data_capture_spine/data_capture_harness_operating_model_architecture_v0.md
-  - docs/product/data_capture_spine/core_spine_v0_data_capture_spine_obligation_contract_v0.md
-  - docs/product/data_capture_spine/data_capture_obligation_baseline_decision_v0.md
+  - orca/product/spines/capture/operating_model/data_capture_harness_operating_model_architecture_v1.md
+  - orca/product/spines/capture/operating_model/data_capture_harness_operating_model_architecture_v0.md
+  - orca/product/spines/capture/contracts/obligation_contracts/core_spine_v0_data_capture_spine_obligation_contract_v0.md
+  - orca/product/spines/capture/operating_model/data_capture_obligation_baseline_decision_v0.md
 stale_if:
   - Either v0 or v1 architecture artifact is materially revised or superseded.
   - A later owner decision accepts, patches, rejects, or hybridizes v0/v1.

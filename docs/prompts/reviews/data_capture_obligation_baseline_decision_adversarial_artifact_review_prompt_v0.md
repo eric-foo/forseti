@@ -10,8 +10,8 @@ use_when:
   - Checking whether the proposed baseline decision overclaims authority, validation, readiness, or downstream architecture permission.
 authority_boundary: retrieval_only
 open_next:
-  - docs/product/data_capture_spine/data_capture_obligation_baseline_decision_v0.md
-  - docs/product/data_capture_spine/core_spine_v0_data_capture_spine_obligation_contract_v0.md
+  - orca/product/spines/capture/operating_model/data_capture_obligation_baseline_decision_v0.md
+  - orca/product/spines/capture/contracts/obligation_contracts/core_spine_v0_data_capture_spine_obligation_contract_v0.md
   - .agents/workflow-overlay/review-lanes.md
   - .agents/workflow-overlay/prompt-orchestration.md
 stale_if:

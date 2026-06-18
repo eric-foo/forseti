@@ -10,7 +10,7 @@ use_when:
   - Attacking hidden contract hardening, source-access widening, ECR/Cleaning/Judgment leakage, checker-validation leakage, and routing/propagation defects.
 authority_boundary: retrieval_only
 open_next:
-  - docs/product/data_capture_spine/data_capture_spine_obligation_contract_patch_proposal_v0.md
+  - orca/product/spines/capture/contracts/obligation_contracts/data_capture_spine_obligation_contract_patch_proposal_v0.md
   - docs/review-outputs/adversarial-artifact-reviews/data_capture_spine_obligation_contract_patch_proposal_adversarial_artifact_review_v0.md
 input_hashes:
   docs/product/data_capture_spine_obligation_contract_patch_proposal_v0.md: 83DB86DBDF742C11DAEED5A8E6C280CEA0C2DADA402AFAEAC31689862540F8D1

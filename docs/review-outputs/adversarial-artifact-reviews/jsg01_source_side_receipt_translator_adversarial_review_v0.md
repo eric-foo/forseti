@@ -27,7 +27,7 @@ use_when:
   - Deciding whether to ratify, patch, or reject the JSG-01 first slice.
 authority_boundary: retrieval_only
 open_next:
-  - docs/product/judgment_spine/jsg01_source_side_receipt_translator_v0.md
+  - orca/product/spines/judgment/source_side_receipts/jsg01_source_side_receipt_translator_v0.md
   - docs/prompts/reviews/jsg01_source_side_receipt_translator_adversarial_review_prompt_v0.md
   - .agents/workflow-overlay/review-lanes.md
 ```

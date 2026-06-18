@@ -10,8 +10,8 @@ use_when:
   - Re-running or extending this adversarial review against the same target bytes.
 authority_boundary: retrieval_only
 open_next:
-  - docs/product/source_capture_toolbox/source_quality_state_assembler_v0.md
-  - docs/product/source_capture_toolbox/README.md
+  - orca/product/spines/capture/source_capture_toolbox/source_quality_state_assembler_v0.md
+  - orca/product/spines/capture/source_capture_toolbox/README.md
   - .agents/workflow-overlay/source-of-truth.md
 input_hashes:
   docs/product/source_capture_toolbox/source_quality_state_assembler_v0.md: 7F606820D5861BCE4AD7D311DF3951561C5C6F062C4A80BE4D96E0401C8B9B74

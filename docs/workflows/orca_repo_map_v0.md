@@ -24,7 +24,7 @@ stale_if:
 - Status: ACTIVE_RETRIEVAL_MAP (retrieval-only; source authority remains in `.agents/workflow-overlay/source-of-truth.md`)
 - Artifact type: Workflow navigation artifact
 - Scope: Repo navigation and source-pack selection
-- Refreshed: 2026-06-18 (spine-first migration Wave E retired live `docs/product/` navigation and routes product artifacts to `orca/product/`; earlier the same day added spine-first target-structure binding and blocker-authorization routes after the owner authorized B1-B7 for the execution pass). Prior: 2026-06-17 promoted repo-map edits from advisory reminder to blocking commit interrupt in Claude/Codex hook wiring; added the neutral ChatGPT Pro beauty advisory intake route, the offline IG creator-momentum projection runner route, the local Retail/PDP projection runner route, the opt-in Retail/PDP CloakBrowser projection sidecar under `orca-harness/runners/`, and the Retail/PDP sidecar operator playbook for the Amazon/Sephora/Ulta smoke; clarified the corresponding source package routes for projection and retailer binding/residual logic. Prior: 2026-06-16 added Codex-compatible local Git-hook adapters under `.githooks/`, the local hook installer under `.github/scripts/`, and the promoted auto-merge/main-red-alert workflows under `.github/workflows/`; 2026-06-11 repo-structure binding v0 registered machine map `repo-structure.yaml` + EP-04 placement checker and quarantined root strays to `docs/_inbox/`.
+- Refreshed: 2026-06-18 (spine-first migration Wave E retired the live product-docs navigation and routes product artifacts to `orca/product/`; earlier the same day added spine-first target-structure binding and blocker-authorization routes after the owner authorized B1-B7 for the execution pass). Prior: 2026-06-17 promoted repo-map edits from advisory reminder to blocking commit interrupt in Claude/Codex hook wiring; added the neutral ChatGPT Pro beauty advisory intake route, the offline IG creator-momentum projection runner route, the local Retail/PDP projection runner route, the opt-in Retail/PDP CloakBrowser projection sidecar under `orca-harness/runners/`, and the Retail/PDP sidecar operator playbook for the Amazon/Sephora/Ulta smoke; clarified the corresponding source package routes for projection and retailer binding/residual logic. Prior: 2026-06-16 added Codex-compatible local Git-hook adapters under `.githooks/`, the local hook installer under `.github/scripts/`, and the promoted auto-merge/main-red-alert workflows under `.github/workflows/`; 2026-06-11 repo-structure binding v0 registered machine map `repo-structure.yaml` + EP-04 placement checker and quarantined root strays to `docs/_inbox/`.
 - Implementation authorized: no
 
 ## How To Use This Map
@@ -152,7 +152,7 @@ restart the relevant session.
 boundary: it reads `repo-structure.yaml` as its ONLY rule source (authority
 stays in `.agents/workflow-overlay/artifact-folders.md`; binding in
 `docs/decisions/orca_repo_structure_binding_v0.md`), WARNs on unplaced writes,
-flags `docs/product/` writes once that docs role is retired from the map, and
+flags writes to the now-retired product-docs role, and
 checks map<->tree consistency in both directions. `_inbox` age and declared legacy
 debt are WARN-only. A pass is placement shape only — never validation,
 readiness, or authority.
@@ -350,7 +350,7 @@ nickname: "crawling graph." The runner is
 | `.agents/hooks/` | Portable enforcement/checker scripts for protected actions, retrieval headers, repo-map freshness, and local Git pre-push policy. Harness adapters invoke these scripts; passing checks are not validation or readiness. |
 | `orca-harness/` | Bounded authorized implementation backing Data Capture source acquisition and the v0.14 Judgment Harness (capture adapters, source-observability, schemas, scoring, runners, fixtures, tests). Navigation context only; not runtime, acceptance, or readiness. See the Orca Harness section. |
 | `orca/` | Declared top-level product-tree root. Product substance lives under `orca/product/`; runtime remains under `orca-harness/`. |
-| `orca/product/` | Spine-first product tree: product contracts, Core Spine artifacts, proof plans, source/evidence standards, offer, buyer-proof, demand-signal method/surface docs, satellites, case families, and shared product registries. Historical `docs/product/` references resolve through `docs/migration/repo_structure_spine_first_v0/moved_paths_index.md`. |
+| `orca/product/` | Spine-first product tree: product contracts, Core Spine artifacts, proof plans, source/evidence standards, offer, buyer-proof, demand-signal method/surface docs, satellites, case families, and shared product registries. Historical product-docs references resolve through `docs/migration/repo_structure_spine_first_v0/moved_paths_index.md`. |
 | `docs/decisions/` | Decision records. |
 | `docs/decisions/consultant_loop/` | Consultant-loop judgment records. |
 | `docs/prompts/` | Prompt artifacts, wrappers, reruns, reviews, and local templates. |

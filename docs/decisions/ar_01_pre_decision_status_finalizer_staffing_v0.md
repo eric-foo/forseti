@@ -15,7 +15,7 @@ use_when:
 authority_boundary: retrieval_only
 open_next:
   - docs/research/judgment-spine/harness/v0_14/packing_to_harness_foundation_interface_architecture_v3.md
-  - docs/product/core_spine/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
+  - orca/product/spines/foundation/product_contract/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
 ```
 
 **Status:** LOCKED (owner, decided 2026-06-09).

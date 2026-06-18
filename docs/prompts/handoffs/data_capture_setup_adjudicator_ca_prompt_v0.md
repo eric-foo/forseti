@@ -12,7 +12,7 @@ authority_boundary: retrieval_only
 open_next:
   - .agents/workflow-overlay/prompt-orchestration.md
   - .agents/workflow-overlay/source-loading.md
-  - docs/product/core_spine/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
+  - orca/product/spines/foundation/product_contract/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
 stale_if:
   - Orca renames Data Capture Spine, Evidence Candidate Record, Cleaning Spine, or Judgment Spine.
   - The Data Capture Spine CA read pack changes.

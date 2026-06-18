@@ -9,10 +9,10 @@ use_when:
   - Preparing patches for offer, ICP, commercial-frame, or retrieval-metadata cleanup.
 authority_boundary: retrieval_only
 open_next:
-  - docs/product/product_lead/orca_offer_hypothesis_v0.md
+  - orca/product/spines/product_lead/offer/orca_offer_hypothesis_v0.md
   - .agents/workflow-overlay/product-proof.md
-  - docs/product/product_lead/orca_buyer_proof_packet_v0.md
-  - docs/product/product_lead/orca_product_proof_lead_charter_v0.md
+  - orca/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md
+  - orca/product/spines/product_lead/proof_charter/orca_product_proof_lead_charter_v0.md
 input_hashes:
   - path: docs/product/orca_offer_hypothesis_v0.md
     sha256: 68A3556D849A166F930150C3C2CDE5B86660BACCD51F5E983BC1E3321CD0B8F3

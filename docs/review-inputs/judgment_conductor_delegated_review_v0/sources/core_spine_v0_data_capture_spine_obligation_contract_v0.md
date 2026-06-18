@@ -10,11 +10,11 @@ use_when:
   - Pressure-testing Data Capture obligations against real commissioned captures.
 authority_boundary: retrieval_only
 open_next:
-  - docs/product/data_capture_spine/core_spine_v0_data_capture_spine_architecture_blueprint_v0.md
-  - docs/product/data_capture_spine/core_spine_v0_data_capture_context_preservation_note_v0.md
-  - docs/product/core_spine/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
-  - docs/product/data_capture_spine/data_capture_source_access_boundary_decision_v0.md
-  - docs/product/data_capture_spine/data_capture_source_access_method_plan_v0.md
+  - orca/product/spines/capture/operating_model/core_spine_v0_data_capture_spine_architecture_blueprint_v0.md
+  - orca/product/spines/capture/operating_model/core_spine_v0_data_capture_context_preservation_note_v0.md
+  - orca/product/spines/foundation/product_contract/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
+  - orca/product/spines/capture/contracts/source_access_boundary/data_capture_source_access_boundary_decision_v0.md
+  - orca/product/spines/capture/contracts/source_access_boundary/data_capture_source_access_method_plan_v0.md
 stale_if:
   - Orca authorizes standing/opportunistic corpus capture as part of Data Capture Spine.
   - Evidence Candidate Record architecture changes the handoff boundary.

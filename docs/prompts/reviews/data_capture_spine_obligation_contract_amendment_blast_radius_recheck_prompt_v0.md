@@ -11,9 +11,9 @@ use_when:
 authority_boundary: retrieval_only
 open_next:
   - docs/review-outputs/adversarial-artifact-reviews/data_capture_spine_obligation_contract_amendment_adversarial_artifact_review_v0.md
-  - docs/product/data_capture_spine/core_spine_v0_data_capture_spine_obligation_contract_v0.md
-  - docs/product/data_capture_spine/data_capture_source_access_boundary_decision_v0.md
-  - docs/product/data_capture_spine/data_capture_source_access_method_plan_v0.md
+  - orca/product/spines/capture/contracts/obligation_contracts/core_spine_v0_data_capture_spine_obligation_contract_v0.md
+  - orca/product/spines/capture/contracts/source_access_boundary/data_capture_source_access_boundary_decision_v0.md
+  - orca/product/spines/capture/contracts/source_access_boundary/data_capture_source_access_method_plan_v0.md
   - docs/prompts/templates/review/adversarial_artifact_review_v0.md
 input_hashes:
   core_spine_v0_data_capture_spine_obligation_contract_v0.md: B06BD6722F76D223E7A122B7F97B967431BDEEE5D4E41AD6DCCEF81903DAC8C5

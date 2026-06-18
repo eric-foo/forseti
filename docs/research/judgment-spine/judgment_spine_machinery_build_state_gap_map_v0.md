@@ -18,7 +18,7 @@ authority_boundary: retrieval_only
 open_next:
   - docs/research/judgment-spine/judgment_spine_consolidation_map_v0.md
   - docs/research/judgment-spine/ideal_judgment_quality_run_and_current_position_v0.md
-  - docs/product/judgment_spine/judgment_quality_promotion_operating_model_v0.md
+  - orca/product/spines/judgment/conductor/judgment_quality_promotion_operating_model_v0.md
 branch_or_commit: ecr-sp3-timing-deriver-slice1 (working tree dirty — concurrent lanes; build-state read directly from orca-harness/ on 2026-06-09)
 stale_if:
   - A contestant-execution / authorized live-run record, SP-5 finalizer, JSG-01 EvidenceUnit binding, or case-finder is built (then update the affected row).

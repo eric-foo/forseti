@@ -13,7 +13,7 @@ open_next:
   - docs/research/judgment-spine/judgment_spine_thesis_operating_contract_v0.md
   - docs/research/judgment-spine/README.md
   - docs/research/judgment-spine/harness/v0_14/index.md
-  - docs/product/core_spine/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
+  - orca/product/spines/foundation/product_contract/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
 ```
 
 - Status: WORKING_THESIS_V0

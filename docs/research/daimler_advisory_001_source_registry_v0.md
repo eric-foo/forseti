@@ -12,7 +12,7 @@ authority_boundary: retrieval_only
 open_next:
   - docs/research/daimler_advisory_001_source_fanout_consolidation_v0.md
   - docs/decisions/daimler_advisory_001_claim_tier_classification_decision_v0.md
-  - docs/product/judgment_spine/judgment_spine_toolkit_blocker_specs_from_daimler_source_fanout_v0.md
+  - orca/product/spines/judgment/toolkit_gaps/judgment_spine_toolkit_blocker_specs_from_daimler_source_fanout_v0.md
 stale_if:
   - A later source provenance pass retrieves, hashes, and dates external Daimler source bodies.
   - A participant-safe Daimler delta packet supersedes this registry.

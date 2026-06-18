@@ -12,10 +12,10 @@ authority_boundary: retrieval_only
 open_next:
   - docs/research/data_capture_spine_pressure_test_batch_synthesis_n3of3_v0.md
   - docs/review-outputs/adversarial-artifact-reviews/data_capture_spine_pressure_test_batch_synthesis_n3of3_adversarial_review_v0.md
-  - docs/product/data_capture_spine/data_capture_spine_pressure_test_commissioning_plan_v0.md
-  - docs/product/data_capture_spine/data_capture_spine_pressure_test_execution_authorization_v0.md
-  - docs/product/data_capture_spine/core_spine_v0_data_capture_spine_obligation_contract_v0.md
-  - docs/product/data_capture_spine/data_capture_source_access_method_plan_v0.md
+  - orca/product/spines/capture/operating_model/data_capture_spine_pressure_test_commissioning_plan_v0.md
+  - orca/product/spines/capture/operating_model/data_capture_spine_pressure_test_execution_authorization_v0.md
+  - orca/product/spines/capture/contracts/obligation_contracts/core_spine_v0_data_capture_spine_obligation_contract_v0.md
+  - orca/product/spines/capture/contracts/source_access_boundary/data_capture_source_access_method_plan_v0.md
 stale_if:
   - The N=3 synthesis is materially revised.
   - A later commissioner or owner decision supersedes this classification.

@@ -23,7 +23,7 @@ open_next:
   - docs/decisions/turn_08_product_thesis_v0.md
   - docs/decisions/orca_icp_wedge_consumer_demand_first_v0.md
   - docs/decisions/judgment_spine_backtest_batch1_ledger_declaration_v0.md
-  - docs/product/judgment_spine/judgment_spine_evidence_ladder_architecture_v0.md
+  - orca/product/spines/judgment/claim_ladder/judgment_spine_evidence_ladder_architecture_v0.md
 stale_if:
   - The owner amends this record (dated amendments only; no silent rewrites).
   - The consumer-demand durability probe's Stage-2 stop/go gate fails decide-grade.

@@ -16,7 +16,7 @@ use_when:
 authority_boundary: retrieval_only
 output_mode: paste-ready-chat
 open_next:
-  - docs/product/product_lead/orca_claim_defense_doctrine_v0.md   # the review target
+  - orca/product/spines/product_lead/proof_charter/orca_claim_defense_doctrine_v0.md   # the review target
   - .agents/workflow-overlay/delegated-review-patch.md            # the operating contract
 stale_if:
   - The review returns and home-model adjudication resolves (the review report + adjudication supersede this prompt as the operative record).

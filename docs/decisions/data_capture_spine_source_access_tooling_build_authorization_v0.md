@@ -10,9 +10,9 @@ use_when:
   - Distinguishing authorized first/second/third-tranche build scope from commercial fetch, broad crawling, storage, dashboard, deployment, production runtime, or downstream-spine work.
 authority_boundary: retrieval_only
 open_next:
-  - docs/product/source_capture_toolbox/README.md
-  - docs/product/data_capture_spine/data_capture_source_access_method_plan_v0.md
-  - docs/product/data_capture_spine/data_capture_spine_pressure_test_closeout_synthesis_v0.md
+  - orca/product/spines/capture/source_capture_toolbox/README.md
+  - orca/product/spines/capture/contracts/source_access_boundary/data_capture_source_access_method_plan_v0.md
+  - orca/product/spines/capture/operating_model/data_capture_spine_pressure_test_closeout_synthesis_v0.md
   - docs/decisions/data_capture_spine_source_observability_requirements_boundary_decision_v0.md
 stale_if:
   - A later owner decision supersedes the authorized build scope, selected anti-blocking backend, or Reddit pre-commercial ordering.
