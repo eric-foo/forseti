@@ -354,6 +354,19 @@ nickname: "crawling graph." The runner is
 | `orca/product/spines/data_lake/` | Data Lake shared-foundation spine (promotion-bound 2026-06-18; contracts + mechanics landed by R2). Owns cross-layer storage contracts (raw-packet preservation, keyed retrievability, Attachment Record, passive Availability Index) consumed by projection/ECR/cleaning/judgment. Binding: `docs/decisions/orca_data_lake_spine_promotion_binding_v0.md`. |
 | `orca/product/spines/data_lake/authority/` | Data Lake contracts/invariants: core, storage, and Attachment-Record implementation contracts. |
 | `orca/product/spines/data_lake/workflows/` | Data Lake operational/read-flow docs: the canonical mechanics map (supersedes the retired `shared/data_lake_mechanics/`). |
+| `orca/product/spines/foundation/` | Foundation spine: product contract, IPF/evidence standard, ontology (backbone + cards), demand-read taxonomy, vertical-exploration. |
+| `orca/product/spines/scanning/` | Scanning (discovery-side) spine: scan_core, admissibility/checkability, source_families (answer_engine, linkedin, reddit). |
+| `orca/product/spines/capture/` | Capture (acquisition-side) spine: source-access/candidate/corpus/obligation contracts, operating_model, packet_schema, Source Capture Toolbox, demand_durability_indicators, source_families (retail_pdp, instagram). Dense — submap candidate. |
+| `orca/product/spines/ecr/` | Evidence Candidate Record spine: evidence_candidate_record (SP-1/2/3/6 slices), signal_content (SCR direction + deriver). |
+| `orca/product/spines/cleaning/` | Cleaning spine: cleaning-layer contracts. |
+| `orca/product/spines/judgment/` | Judgment spine: conductor, claim_ladder, demand_read (core/c2_weighting/c3_verdict_action/grading), learning_loops (near_half/far_half), source_side_receipts, toolkit_gaps. Dense — submap candidate. |
+| `orca/product/spines/product_lead/` | Product-Lead spine: offer, buyer_proof, proof_charter, icp_wedge. |
+| `orca/product/spines/commission_signal_board/` | Commission Signal Board pilot spine: authority, dispatch_rules, harness + tests + migrations + prompts + workflows (#261). |
+| `orca/product/satellites/beauty/` | Beauty satellite: domain venue/card assets. |
+| `orca/product/satellites/fragrance/` | Fragrance satellite: Level-1 judgment organizers (casebook_admission, named_case_screens, reconciliation, satellite_skeleton). |
+| `orca/product/case_families/product_learning/` | Product-learning case corpora: fragrance + other_verticals (SaaS/tech method-validation + first-proof-run families). |
+| `orca/product/shared/engagement_registry/` | Shared engagement-logic registry. |
+| `orca/product/shared/projection_doctrine/` | Shared projection doctrine (raw->view constraint, not Cleaning/Judgment). |
 | `docs/decisions/` | Decision records. |
 | `docs/decisions/consultant_loop/` | Consultant-loop judgment records. |
 | `docs/prompts/` | Prompt artifacts, wrappers, reruns, reviews, and local templates. |

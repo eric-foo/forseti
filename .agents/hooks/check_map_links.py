@@ -528,6 +528,12 @@ def run_c3(root: Path, map_text: str, scan_root: Path | None = None,
         current = Path(dirpath)
         rel_dir = current.relative_to(root).as_posix()
 
+        # The scanned root itself is not a coverable sub-folder (no ancestor
+        # area can declare it); skip it so the orca/product README root is not
+        # spuriously flagged.
+        if current == scan_root:
+            continue
+
         if dir_is_exempt_coverage(rel_dir):
             continue
 
