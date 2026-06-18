@@ -12,8 +12,10 @@ For each binding it imports the runtime class and verifies:
   - the class imports and is DEFINED in (not re-exported into) its bound module;
   - `requires_fields` are present (load-bearing anchors);
   - `forbids_fields` are absent (e.g. EvidenceUnit must not expose `claim_tier`, AR-01);
-  - `not_payload_identifier`: the canonical/alias name is not itself a field
-    (leak guard -- the condition under which the alias-only name reconciliation is safe);
+  - `not_payload_identifier`: the canonical/alias name is not a serialized type
+    discriminator -- not a field name, a `Literal` discriminator value, or a
+    serialized field alias (leak guard -- the condition under which the alias-only
+    name reconciliation is safe);
   - `composed_with` classes also import.
 A binding that no longer imports is real DRIFT (a dangling binding) -> a finding.
 
@@ -30,6 +32,7 @@ from __future__ import annotations
 
 import importlib
 import sys
+import typing
 from pathlib import Path
 
 YAML_REL = "orca/product/spines/foundation/ontology/ontology.yaml"
@@ -67,6 +70,36 @@ def _defined_here(cls, mod: str) -> bool:
     """True if cls is defined in module `mod`."""
     actual = getattr(cls, "__module__", "") or ""
     return actual == mod
+
+
+def _literal_strings(annotation: object) -> set[str]:
+    """Every string value reachable from a `Literal[...]` inside `annotation`,
+    recursing through Optional/Union/Annotated nesting (bounded: `get_args` of a
+    leaf type returns ())."""
+    out: set[str] = set()
+    for arg in typing.get_args(annotation):
+        if isinstance(arg, str):
+            out.add(arg)
+        else:
+            out |= _literal_strings(arg)
+    return out
+
+
+def _payload_identifier_surfaces(cls) -> set[str]:
+    """Lowercased names that would serialize as a TYPE DISCRIMINATOR on `cls`:
+    each field's name, any `Literal` string value in its annotation, and any
+    string alias (`alias` / `serialization_alias` / `validation_alias`). If the
+    runtime class name lands in this set the name is payload-leaking and the
+    alias-only reconciliation is no longer safe."""
+    surfaces: set[str] = set()
+    for fname, finfo in (getattr(cls, "model_fields", {}) or {}).items():
+        surfaces.add(fname.lower())
+        surfaces |= {s.lower() for s in _literal_strings(getattr(finfo, "annotation", None))}
+        for attr in ("alias", "serialization_alias", "validation_alias"):
+            val = getattr(finfo, attr, None)
+            if isinstance(val, str) and val.strip():
+                surfaces.add(val.lower())
+    return surfaces
 
 
 def _string_list(
@@ -169,9 +202,10 @@ def check_drift(root: Path) -> list[str]:
                 )
         if b.get("not_payload_identifier"):
             alias = str(b.get("name_alias", cls.__name__)).lower()
-            if alias in {x.lower() for x in fields}:
+            if alias in _payload_identifier_surfaces(cls):
                 findings.append(
-                    "%s: `%s` appears as a field (possible payload-leaking discriminator -- alias-only no longer safe)"
+                    "%s: `%s` appears as a field name, `Literal` discriminator value, or serialized "
+                    "alias (payload-leaking type discriminator -- alias-only reconciliation no longer safe)"
                     % (concept, b.get("name_alias", cls.__name__))
                 )
         else:
@@ -202,6 +236,35 @@ def selftest() -> int:
         if got != exp:
             ok = False
         print("%s  %-32s got=%s" % (status, label, got))
+
+    # Non-vacuity probe: the leak guard MUST catch a self-naming `Literal`
+    # discriminator AND a self-naming serialized alias, and MUST NOT trip on a
+    # clean model. Skips only if pydantic is unavailable (infra gap), never on a
+    # guard defect.
+    try:
+        from pydantic import BaseModel, Field
+    except Exception:
+        print("INFO  leak-guard probe skipped (pydantic unavailable)")
+    else:
+        class _LeakProbe(BaseModel):
+            kind: typing.Literal["SourceCapturePacket"] = "SourceCapturePacket"
+            tag: str = Field(default="x", serialization_alias="EvidenceUnit")
+
+        class _CleanProbe(BaseModel):
+            manifest_version: str = "1"
+
+        leak = _payload_identifier_surfaces(_LeakProbe)
+        clean = _payload_identifier_surfaces(_CleanProbe)
+        probe_ok = (
+            "sourcecapturepacket" in leak
+            and "evidenceunit" in leak
+            and "sourcecapturepacket" not in clean
+        )
+        if not probe_ok:
+            ok = False
+        print("%s  %-32s leak=%s"
+              % ("PASS" if probe_ok else "FAIL", "leak-guard detects Literal+alias", sorted(leak)))
+
     live = check_drift(repo_root())
     status = "PASS" if not live else "FAIL"
     if live:
