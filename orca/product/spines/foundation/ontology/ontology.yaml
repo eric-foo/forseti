@@ -166,7 +166,7 @@ runtime_bindings:
     not_payload_identifier: true
   Case:
     runtime: "orca-harness/schemas/case_models.py:FacilitatorLedger"
-    composed_with: ["orca-harness/schemas/case_models.py:CaseReport"]
+    composed_with: ["orca-harness/schemas/scoring_models.py:CaseReport"]
     requires_fields: [case_id]
     forbids_fields: []
     not_payload_identifier: true
