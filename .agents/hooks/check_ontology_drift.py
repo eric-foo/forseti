@@ -29,9 +29,9 @@ Usage:
   check_ontology_drift.py --check     human-readable report; always exit 0.
   check_ontology_drift.py --selftest  self-check (live bindings clean); exit 0/1.
 
-Fail-open ONLY for infrastructure gaps (no PyYAML, missing ontology.yaml, no
-orca-harness/ tree). A present-but-changed runtime class is real drift, never
-fail-open.
+Fail-open ONLY for infrastructure gaps (no PyYAML/Pydantic, missing
+ontology.yaml, no orca-harness/ tree). A present-but-changed runtime class is
+real drift, never fail-open.
 """
 from __future__ import annotations
 
@@ -81,21 +81,29 @@ def _defined_here(cls, mod: str) -> bool:
 def _annotation_strings(annotation: object) -> set[str]:
     """Every string a field with this annotation can SERIALIZE as a discriminator:
     `Literal` string values and `Enum` member `.value`s, recursing through
-    Optional/Union/Annotated. Covers `f: SomeEnum`, `Literal["x"]`,
-    `Literal[SomeEnum.X]`, and nesting thereof. Bounded: a leaf (str, NoneType, a
-    non-Enum class) has empty `get_args`, so recursion terminates; nested BaseModel
-    fields are NOT descended (top-level scope -- see the module docstring)."""
+    Optional/Union. Covers `f: SomeEnum`, `Literal["x"]`, `Literal[SomeEnum.X]`,
+    and nesting thereof. `Annotated[...]` METADATA is ignored -- only the underlying
+    type is inspected, since metadata strings are not serialized payload (F2).
+    Bounded: a leaf (str, NoneType, a non-Enum class) has empty `get_args`, so
+    recursion terminates; nested BaseModel fields are NOT descended (top-level
+    scope -- see the module docstring)."""
     out: set[str] = set()
+    origin = typing.get_origin(annotation)
+    if origin is typing.Annotated:
+        args = typing.get_args(annotation)
+        return _annotation_strings(args[0]) if args else set()
     if isinstance(annotation, type) and issubclass(annotation, enum.Enum):
         return {m.value for m in annotation if isinstance(m.value, str)}
-    for arg in typing.get_args(annotation):
-        if isinstance(arg, enum.Enum):            # Literal[SomeEnum.MEMBER]
-            if isinstance(arg.value, str):
-                out.add(arg.value)
-        elif isinstance(arg, str):                # Literal["x"]
-            out.add(arg)
-        else:                                     # Union/Optional/Annotated/Enum-type -> recurse
-            out |= _annotation_strings(arg)
+    if origin is typing.Literal:
+        for arg in typing.get_args(annotation):
+            if isinstance(arg, enum.Enum):          # Literal[SomeEnum.MEMBER]
+                if isinstance(arg.value, str):
+                    out.add(arg.value)
+            elif isinstance(arg, str):              # Literal["x"]
+                out.add(arg)
+        return out
+    for arg in typing.get_args(annotation):         # Optional/Union/... -> recurse
+        out |= _annotation_strings(arg)
     return out
 
 
@@ -135,13 +143,33 @@ def _interchangeable_names(concept: str, cls, b: dict) -> set[str]:
     return names
 
 
+def _field_has_discriminator(f) -> bool:
+    """True if FieldInfo `f` declares a Pydantic discriminated union, via either
+    `Field(discriminator=...)` (-> FieldInfo.discriminator) OR
+    `Annotated[Union[...], Discriminator(...)]` (-> a Discriminator in
+    FieldInfo.metadata, with FieldInfo.discriminator None -- F1). Duck-typed to
+    avoid a hard Discriminator import in this leaf helper."""
+    if getattr(f, "discriminator", None):
+        return True
+    for meta in getattr(f, "metadata", ()) or ():
+        mt = type(meta)
+        if (
+            mt.__name__ == "Discriminator"
+            and mt.__module__.startswith("pydantic")
+            and getattr(meta, "discriminator", None)
+        ):
+            return True
+    return False
+
+
 def _discriminator_fields(cls) -> list[str]:
-    """Field names on `cls` that declare a Pydantic discriminated union -- the one
+    """Field names on `cls` that declare a Pydantic discriminated union (either
+    `Field(discriminator=)` or `Annotated[..., Discriminator(...)]`) -- the one
     nested shape whose serialized tag value the top-level scan cannot see (A4
     readiness)."""
     return [
         n for n, f in (getattr(cls, "model_fields", {}) or {}).items()
-        if getattr(f, "discriminator", None)
+        if _field_has_discriminator(f)
     ]
 
 
@@ -166,6 +194,10 @@ def check_drift(root: Path) -> list[str]:
     """Return drift findings (empty == ok). Fail-open (return []) only on infra gaps."""
     try:
         import yaml
+    except Exception:
+        return []
+    try:
+        import pydantic  # noqa: F401 -- missing Pydantic is an infra gap; fail-open (F3)
     except Exception:
         return []
     yp = root / YAML_REL
@@ -301,7 +333,7 @@ def selftest() -> int:
     # clean model. Skips only if pydantic is unavailable (infra gap), never on a
     # guard defect.
     try:
-        from pydantic import BaseModel, Field
+        from pydantic import BaseModel, Discriminator, Field
     except Exception:
         print("INFO  leak-guard probe skipped (pydantic unavailable)")
     else:
@@ -324,6 +356,9 @@ def selftest() -> int:
         class _DiscProbe(BaseModel):
             pet: typing.Union[_A, _B] = Field(discriminator="kind")
 
+        class _DiscMetadataProbe(BaseModel):
+            pet: typing.Annotated[typing.Union[_A, _B], Discriminator("kind")]
+
         class _CleanProbe(BaseModel):
             manifest_version: str = "1"
 
@@ -337,6 +372,10 @@ def selftest() -> int:
              "sourcecapturepacket" not in _payload_identifier_surfaces(_CleanProbe)),
             ("readiness: discriminated union detected (A4)",
              _discriminator_fields(_DiscProbe) == ["pet"]),
+            ("readiness: Annotated Discriminator detected (A4/F1)",
+             _discriminator_fields(_DiscMetadataProbe) == ["pet"]),
+            ("annotation: Annotated metadata ignored (F2)",
+             not _annotation_strings(typing.Annotated[int, "SourceCapturePacket"])),
             ("readiness: clean model has no discriminated union",
              _discriminator_fields(_CleanProbe) == []),
         ]
