@@ -147,7 +147,7 @@ on internal error. Reinstall = re-add the second PostToolUse entry beside the
 retrieval-header hook in `.claude/settings.json` and `.codex/hooks.json`, then
 restart the relevant session.
 
-**Placement check (EP-04) — built, NOT YET WIRED.** A third substrate,
+**Placement check (EP-04) — built and wired.** A third substrate,
 `.agents/hooks/check_placement.py`, enforces placement shape at the write
 boundary: it reads `repo-structure.yaml` as its ONLY rule source (authority
 stays in `.agents/workflow-overlay/artifact-folders.md`; binding in
@@ -163,29 +163,39 @@ python .agents/hooks/check_placement.py --strict     # commit/CI gate (exit 1 on
 python .agents/hooks/check_placement.py --selftest   # decision-logic self-check
 ```
 
-REGISTRATION PENDING (owner action): the PostToolUse wiring was prepared but
-its `.claude/settings.json` edit was permission-denied this session
-(self-modification needs specific owner authorization). To wire it, add a
-third entry beside the two existing PostToolUse hooks:
+WIRED as a PostToolUse (`Write|Edit|MultiEdit`) entry in `.claude/settings.json`,
+beside the other PostToolUse hooks. Reinstall (if settings were reset) = re-add
 `{ "type": "command", "command": "python .agents/hooks/check_placement.py --hook", "timeout": 10 }`
-then restart the session (hooks load at session start).
+to the PostToolUse array, then restart the session (hooks load at session start).
 
-**SCI reminder (advisory).** A PostToolUse hook (matcher `Write|Edit|MultiEdit`
+**Prompt-provenance reminder (advisory).** A PostToolUse hook (matcher
+`Write|Edit|MultiEdit` in `.claude/settings.json`,
+`python .agents/hooks/check_prompt_provenance.py --hook`): after a write under
+`docs/prompts/**`, returns a one-line reminder that prompt / handoff / wrapper /
+rerun / patch artifacts must be authored through `workflow-prompt-orchestrator`
+(rule owned by `.agents/workflow-overlay/prompt-orchestration.md`). Remind only,
+never blocks, exit 0; it cannot verify the orchestrator ran (misses paste-ready
+chat prompts that never touch disk -- named limitation).
+`python .agents/hooks/check_prompt_provenance.py --selftest` checks the decision
+logic.
+
+**SCI reminder (advisory).** A PreToolUse hook (matcher `Write|Edit|MultiEdit`
 in `.claude/settings.json`) runs:
 
 ```
 python .agents/hooks/remind_sci.py --hook
 ```
 
-When a durable artifact is created or edited (the same durable-artifact folder
-set the retrieval-header hook uses -- decisions, product, prompts, workflows,
-migration, hygiene, review-inputs/outputs, the workflow overlay, and the product
-corpus; scratch, inbox, skill copies, project config, and code are excluded), it
-re-injects a short pointer to the Smallest Complete Intervention rule
-(`AGENTS.md`) as non-blocking `additionalContext`. The RULE stays in `AGENTS.md`;
-the hook carries only a pointer at the write boundary. Forward-only, advisory,
-fails open. `python .agents/hooks/remind_sci.py --selftest` checks the scope
-logic. Reinstall = re-add the PostToolUse entry beside the others in
+RIGHT BEFORE a durable artifact is created or edited (the same durable-artifact
+folder set the retrieval-header hook uses -- decisions, product, prompts,
+workflows, migration, hygiene, review-inputs/outputs, the workflow overlay, and
+the product corpus; scratch, inbox, skill copies, project config, and code are
+excluded), it injects the Smallest Complete Intervention rule as non-blocking
+`additionalContext`. The rule is OWNED by `AGENTS.md`; the hook carries that
+section's text INLINE as a verbatim mirror (no fetch round-trip) and must be kept
+in sync with it. Forward-only, advisory, fails open.
+`python .agents/hooks/remind_sci.py --selftest` checks the scope logic. Reinstall
+= re-add the PreToolUse entry (matcher `Write|Edit|MultiEdit`) in
 `.claude/settings.json`, then restart the session.
 
 **Permission floor (protected paths + git lifecycle).** A second
