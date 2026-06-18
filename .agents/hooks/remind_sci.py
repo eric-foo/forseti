@@ -5,19 +5,21 @@ WHY THIS EXISTS
   The Smallest Complete Intervention (SCI) rule lives in AGENTS.md, near the top
   of a large instruction surface. Over a long session -- and especially while
   authoring durable artifacts, where scope creep is most tempting -- SCI can drift
-  out of active context. This hook re-injects a short SCI pointer at the write
-  boundary, right when an artifact is created or edited, so the rule stays
-  top-of-mind at the moment it matters.
+  out of active context. This hook re-injects the SCI rule at the write boundary,
+  RIGHT BEFORE a durable artifact is created or edited (PreToolUse), so the rule is
+  top-of-mind exactly when the change is being made.
 
-  The RULE is owned by AGENTS.md (-> "Smallest Complete Intervention"). This hook
-  does NOT restate or change it; it carries a pointer. If the two ever disagree,
-  AGENTS.md wins and this reminder is the stale party.
+  The rule is OWNED by AGENTS.md (-> "Smallest Complete Intervention"). To spare a
+  fetch round-trip, this hook carries the rule's text INLINE as a verbatim mirror:
+  the full definition -- including the cleanup/speculation clause -- rides in the
+  reminder. KEEP `_SCI_VERBATIM` IN SYNC with that AGENTS.md section; if the section
+  changes, update the constant.
 
 BOUNDARY
   Advisory only. Emits `additionalContext` and ALWAYS exits 0; it never blocks a
-  write and makes no validation, readiness, or correctness claim. Forward-only and
-  low-noise by design: it fires ONLY for writes under the durable artifact folders
-  and stays silent for code, scratch, skill copies, and project config.
+  write and makes no validation/readiness claim. Forward-only and low-noise: it
+  fires ONLY for writes under the durable artifact folders and stays silent for
+  code, scratch, skill copies, and project config.
 
 SCOPE (in: durable artifacts; out: code/scratch/config)
   In  : docs/{decisions,product,prompts,workflows,migration,hygiene,review-inputs,
@@ -26,7 +28,7 @@ SCOPE (in: durable artifacts; out: code/scratch/config)
         orca-harness/ (and any path not under an in-scope prefix, e.g. .agents/hooks/).
 
 MODES
-  remind_sci.py --hook       PostToolUse hook (reads stdin JSON); emit reminder; exit 0
+  remind_sci.py --hook       PreToolUse hook (reads stdin JSON); emit reminder; exit 0
   remind_sci.py --selftest   pure-function scope cases; exit 0/1
 """
 from __future__ import annotations
@@ -34,8 +36,6 @@ from __future__ import annotations
 import json
 import sys
 from pathlib import Path
-
-RULE_AUTHORITY = "AGENTS.md > Smallest Complete Intervention"
 
 # Durable artifact folders whose creation/edit warrants the SCI nudge.
 IN_SCOPE_PREFIXES = (
@@ -59,14 +59,36 @@ EXCLUDED_PREFIXES = (
     "orca-harness/",
 )
 
+# VERBATIM mirror of the "Smallest Complete Intervention" section of AGENTS.md,
+# inlined (not a pointer) so the full rule rides in the reminder with no fetch.
+# KEEP IN SYNC with AGENTS.md -- if that section changes, update this text.
+_SCI_VERBATIM = """`Complete` is load-bearing. Do not underfix to minimize diff, ceremony, or
+visible change; a slightly larger fix is correct when required for durable,
+coherent, non-fragile completion.
+
+`Smallest` is also load-bearing. Do not add unrelated cleanup, speculative
+abstractions, broad rewrites, extra workflow ceremony, or nice-to-have
+improvements.
+
+When two candidate paths both satisfy the current request under this rule,
+prefer the one with materially lower downstream lock-in -- the durable data,
+schema, interface, or workflow shape that would be irreversible, costly to
+roll back, or costly to maintain. Take the higher-lock-in path only when a
+benefit necessary to the current request outweighs that structural cost; if
+so, pause and surface the tradeoff for a decision before proceeding. This
+narrows the choice among already-complete paths only; it never authorizes
+speculative cleanup, future-proofing, or broader scope.
+
+Whenever the user or instructions say **"smallest complete X"** -- including
+phrases like **smallest complete fix, patch, edit, rewrite, refactor, review,
+or answer** -- interpret it as **X performed under the Smallest complete
+intervention rule above.**"""
+
 REMINDER = (
-    "SCI reminder (advisory, not blocking) -- a durable artifact was touched. Apply "
-    "the Smallest Complete Intervention rule (%s): solve the actual request COMPLETELY "
-    "with the NARROWEST sufficient scope. Every changed line must trace to the request "
-    "or required validation. 'Complete' -> do not underfix just to shrink the diff; "
-    "'Smallest' -> no unrelated cleanup, speculative abstractions, broad rewrites, or "
-    "nice-to-have additions."
-) % RULE_AUTHORITY
+    "SCI reminder (advisory, not blocking) -- make this a smallest complete change. "
+    "The Smallest Complete Intervention rule (verbatim from AGENTS.md):\n\n"
+    + _SCI_VERBATIM
+)
 
 
 def repo_root() -> Path:
@@ -102,8 +124,9 @@ def in_scope(relposix: str) -> bool:
 
 
 def run_hook(root: Path) -> int:
-    """PostToolUse hook: read the touched file from stdin JSON; if it is a durable
-    artifact, emit the SCI reminder as additionalContext. Always exit 0."""
+    """PreToolUse hook: read the about-to-be-written file from stdin JSON; if it is
+    a durable artifact, inject the SCI reminder as additionalContext BEFORE the
+    write proceeds. Always exit 0 (advisory; never blocks the write)."""
     try:
         data = json.loads(sys.stdin.read() or "{}")
         file_path = (data.get("tool_input") or {}).get("file_path")
@@ -118,8 +141,8 @@ def run_hook(root: Path) -> int:
         json.dumps(
             {
                 "hookSpecificOutput": {
-                    "hookEventName": "PostToolUse",
-                    "additionalContext": "%s (touched: %s)" % (REMINDER, rel),
+                    "hookEventName": "PreToolUse",
+                    "additionalContext": "%s\n\n(artifact: %s)" % (REMINDER, rel),
                 }
             }
         )
