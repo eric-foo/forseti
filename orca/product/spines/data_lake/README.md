@@ -50,19 +50,21 @@ The binding authority is
 | `harness/` | docs / pointers / specs for harness integration (not runtime code) |
 | `tests/` | test strategy / fixtures / spec docs (actual test code stays in `orca-harness/` for now) |
 
-## Status — promotion binding, not a move pass
+## Status — populated by R2 (2026-06-18)
 
-This spine is **bound but not yet populated.** No content file has moved in. The
-later R2 move pass lands:
+R2 landed the lake's authority + workflow substance:
 
-- the three lake contracts (core / storage / Attachment-Record), currently in the
-  in-flight `codex/data-lake-core-contract` lane, into `authority/`;
-- the Data Lake mechanics map, currently transitional at
-  `orca/product/shared/data_lake_mechanics/`, into `workflows/`.
+- `authority/` — the 3 lake contracts (core, storage, Attachment-Record
+  implementation), harvested from the `codex/data-lake-core-contract` lane with
+  refs repointed to `orca/product/` paths.
+- `workflows/` — the canonical mechanics map (the version co-authored with the
+  contracts, confirmed canonical via a 3-way reconciliation), which **supersedes
+  and retires** the transitional `orca/product/shared/data_lake_mechanics/` copy.
 
-R2 is gated on those lanes landing/re-basing onto this spine and on reusing the
-forward-only retrieval-metadata repoint convention. Until then, this README is the
-only file here.
+Deferred: the 2 repo-structure migration planning docs
+(`data_lake_spine_first_migration_{plan,inventory}_v0.md`) pending a placement
+decision (`docs/migration/` vs `migrations/`). `spine.yaml`, `harness/`, and
+`tests/` stay reserved until the lake is built.
 
 Non-claims: not validation, readiness, proof, or runtime authorization; placement
 shape only.

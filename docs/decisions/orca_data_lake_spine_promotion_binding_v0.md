@@ -112,7 +112,13 @@ Bound now (this pass):
   (`.agents/workflow-overlay/artifact-folders.md` spine enumeration) and the repo
   map.
 
-Deferred to the R2 move pass (NOT done here):
+Post-R2 note (2026-06-18): R2 executed — the 3 contracts landed in `authority/`,
+the canonical mechanics map in `workflows/`, and
+`orca/product/shared/data_lake_mechanics/` is retired. Only the 2 planning docs
+remain deferred (placement check-in pending). The original deferral text is
+retained below for the record.
+
+Deferred at binding time to the R2 move pass:
 
 - moving the three lake contracts
   (`core_spine_v0_data_lake_core_contract_v0.md`,
