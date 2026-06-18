@@ -1,0 +1,41 @@
+version: 1
+status: live_pilot_spine
+spine: commission_signal_board
+owner_authorization:
+  date: 2026-06-18
+  scope: docs_only_commission_signal_board_pilot_spine
+  global_docs_migration: staged_not_executed
+authority_boundary: retrieval_only_docs_structure_not_runtime
+
+canonical_artifacts:
+  readme: orca/product/spines/commission_signal_board/README.md
+  authority_packet: orca/product/spines/commission_signal_board/authority/orca_commission_signal_board_prompt_adjudication_packet_v0.md
+  prompt: orca/product/spines/commission_signal_board/prompts/orca_commission_signal_board_prompt_v0.md
+  playbook: orca/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md
+  validator_pointer: orca/product/spines/commission_signal_board/harness/validator.md
+  tests_pointer: orca/product/spines/commission_signal_board/tests/validator_tests.md
+  moved_paths_index: orca/product/spines/commission_signal_board/migrations/moved_paths_index.md
+
+legacy_resolver_stubs:
+  adjudication_packet: docs/product/product_lead/orca_commission_signal_board_prompt_adjudication_packet_v0.md
+  prompt: docs/prompts/product-planning/orca_commission_signal_board_prompt_v0.md
+  playbook: docs/workflows/commission_signal_board_playbook_v0.md
+
+shared_external_surfaces:
+  validator_script: .agents/hooks/check_commission_signal_board_output.py
+  validator_unit_tests: orca-harness/tests/unit/test_commission_signal_board_output_validator.py
+  validator_fixtures: orca-harness/tests/fixtures/commission_signal_board_outputs/
+  repo_map: docs/workflows/orca_repo_map_v0.md
+  structure_binding: docs/decisions/orca_repo_structure_binding_v0.md
+  artifact_folder_authority: .agents/workflow-overlay/artifact-folders.md
+  machine_map: repo-structure.yaml
+
+non_goals:
+  - no_global_docs_move
+  - no_validator_code_move
+  - no_test_or_fixture_move
+  - no_runtime_authorization
+  - no_retrieval_or_scraping_authorization
+  - no_demand_classification
+  - no_graph_construction
+  - no_buyer_proof_or_readiness_claim

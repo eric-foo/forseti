@@ -1,0 +1,45 @@
+<!-- fixture_expected: fail -->
+<!-- fixture_failure: classifier_handoff_packet mode is absent -->
+
+# Commission Signal Board Fixture: bad missing handoff mode
+
+### 1. Commission Intake Receipt
+
+```yaml
+commission_id: fixture_bad_missing_handoff_mode
+mode: backtest
+candidate_or_subject: Fixture Product I
+decision_context: Exercise failure when the handoff packet omits mode.
+market_or_geography: US
+time_window: 2015-2020
+evidence_cutoff_at: 2020-12-31
+input_status: complete
+missing_required_inputs: []
+cutoff_rule: backtest classifier handoff must keep mode explicit.
+non_goals_preserved:
+  - no demand classification
+```
+
+### 4. Signal Board Rows
+
+| Row ID | Source family | Subfamily | Surface | Observable | Signal role | Row purpose | Graph role | Graph weight hint | Evidence status | Provenance needed | Surface cutoff status | Cutoff status | Handoff note |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| SBR-001 | reviews | retailer reviews | PDP reviews | dated experience claims | review_experience | signal_unit | node_candidate | medium | source_backed | review URL and review date supplied | existed_by_cutoff | in_window | Would otherwise be eligible |
+
+### 8. Demand-Classifier Handoff Packet
+
+```yaml
+classifier_handoff_packet:
+  candidate_or_subject: Fixture Product I
+  decision_context: Exercise failure when the handoff packet omits mode.
+  cutoff_date: 2020-12-31
+  signal_rows_for_handoff:
+    - SBR-001
+  counterevidence_rows_for_handoff: []
+  source_family_gaps: []
+  provenance_gaps: []
+  cutoff_uncertainties: []
+  classifier_mapping_status: classifier_owned
+  prohibited_claims:
+    - no demand verdict
+```

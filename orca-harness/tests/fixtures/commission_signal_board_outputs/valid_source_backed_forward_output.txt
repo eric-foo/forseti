@@ -1,0 +1,44 @@
+<!-- fixture_expected: pass -->
+<!-- fixture_purpose: forward-mode source-backed rows are allowed without backtest cutoff checks -->
+
+# Commission Signal Board Fixture: valid source-backed forward
+
+### 1. Commission Intake Receipt
+
+```yaml
+commission_id: fixture_valid_source_backed_forward
+mode: forward
+candidate_or_subject: Fixture Product F
+decision_context: Exercise forward-mode classifier handoff after source-backed evidence is supplied.
+market_or_geography: US
+time_window: current
+input_status: complete
+missing_required_inputs: []
+non_goals_preserved:
+  - no demand classification
+```
+
+### 4. Signal Board Rows
+
+| Row ID | Source family | Subfamily | Surface | Observable | Signal role | Row purpose | Graph role | Graph weight hint | Evidence status | Provenance needed | Surface cutoff status | Cutoff status | Handoff note |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| SBR-001 | reviews | retailer reviews | PDP reviews | current experience claims | review_experience | signal_unit | node_candidate | medium | source_backed | review URL and review date supplied | not_applicable | not_applicable | Eligible for forward classifier handoff |
+
+### 8. Demand-Classifier Handoff Packet
+
+```yaml
+classifier_handoff_packet:
+  candidate_or_subject: Fixture Product F
+  decision_context: Exercise forward-mode classifier handoff after source-backed evidence is supplied.
+  mode: forward
+  cutoff_date: null
+  signal_rows_for_handoff:
+    - SBR-001
+  counterevidence_rows_for_handoff: []
+  source_family_gaps: []
+  provenance_gaps: []
+  cutoff_uncertainties: []
+  classifier_mapping_status: classifier_owned
+  prohibited_claims:
+    - no demand verdict
+```

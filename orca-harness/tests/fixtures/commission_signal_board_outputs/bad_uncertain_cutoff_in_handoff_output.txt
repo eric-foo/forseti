@@ -1,0 +1,47 @@
+<!-- fixture_expected: fail -->
+<!-- fixture_failure: cutoff_status uncertain row appears in signal_rows_for_handoff -->
+
+# Commission Signal Board Fixture: bad uncertain cutoff handoff
+
+### 1. Commission Intake Receipt
+
+```yaml
+commission_id: fixture_bad_uncertain_cutoff
+mode: backtest
+candidate_or_subject: Fixture Product C
+decision_context: Exercise failure when cutoff-uncertain row enters handoff.
+market_or_geography: US
+time_window: 2015-2020
+evidence_cutoff_at: 2020-12-31
+input_status: complete
+missing_required_inputs: []
+cutoff_rule: only source observations observable on or before 2020-12-31 may enter downstream handoff
+non_goals_preserved:
+  - no demand classification
+```
+
+### 4. Signal Board Rows
+
+| Row ID | Source family | Subfamily | Surface | Observable | Signal role | Row purpose | Graph role | Graph weight hint | Evidence status | Provenance needed | Surface cutoff status | Cutoff status | Handoff note |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| SBR-001 | reviews | retailer reviews | PDP reviews | dated experience claims | review_experience | signal_unit | node_candidate | medium | source_backed | review URL and review date supplied | existed_by_cutoff | uncertain | Must not enter classifier handoff until cutoff is proven |
+
+### 8. Demand-Classifier Handoff Packet
+
+```yaml
+classifier_handoff_packet:
+  candidate_or_subject: Fixture Product C
+  decision_context: Exercise failure when cutoff-uncertain row enters handoff.
+  mode: backtest
+  cutoff_date: 2020-12-31
+  signal_rows_for_handoff:
+    - SBR-001
+  counterevidence_rows_for_handoff: []
+  source_family_gaps: []
+  provenance_gaps: []
+  cutoff_uncertainties:
+    - SBR-001 cutoff observability not yet proven.
+  classifier_mapping_status: classifier_owned
+  prohibited_claims:
+    - no demand verdict
+```

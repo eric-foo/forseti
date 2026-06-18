@@ -1,0 +1,44 @@
+<!-- fixture_expected: fail -->
+<!-- fixture_failure: excluded_future_info row appears in forward classifier handoff -->
+
+# Commission Signal Board Fixture: bad forward excluded-future-info handoff
+
+### 1. Commission Intake Receipt
+
+```yaml
+commission_id: fixture_bad_forward_excluded_future_info
+mode: forward
+candidate_or_subject: Fixture Product G
+decision_context: Exercise failure when excluded future-info is handed to classifier in forward mode.
+market_or_geography: US
+time_window: current
+input_status: complete
+missing_required_inputs: []
+non_goals_preserved:
+  - no demand classification
+```
+
+### 4. Signal Board Rows
+
+| Row ID | Source family | Subfamily | Surface | Observable | Signal role | Row purpose | Graph role | Graph weight hint | Evidence status | Provenance needed | Surface cutoff status | Cutoff status | Handoff note |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| SBR-001 | reviews | retailer reviews | PDP reviews | unavailable future observation | review_experience | signal_unit | node_candidate | medium | excluded_future_info | not applicable | not_applicable | not_applicable | Must not enter classifier handoff |
+
+### 8. Demand-Classifier Handoff Packet
+
+```yaml
+classifier_handoff_packet:
+  candidate_or_subject: Fixture Product G
+  decision_context: Exercise failure when excluded future-info is handed to classifier in forward mode.
+  mode: forward
+  cutoff_date: null
+  signal_rows_for_handoff:
+    - SBR-001
+  counterevidence_rows_for_handoff: []
+  source_family_gaps: []
+  provenance_gaps: []
+  cutoff_uncertainties: []
+  classifier_mapping_status: classifier_owned
+  prohibited_claims:
+    - no demand verdict
+```

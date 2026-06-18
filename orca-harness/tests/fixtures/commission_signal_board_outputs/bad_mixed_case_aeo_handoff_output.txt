@@ -1,0 +1,46 @@
+<!-- fixture_expected: fail -->
+<!-- fixture_failure: mixed-case AEO vocabulary appears in classifier handoff -->
+
+# Commission Signal Board Fixture: bad mixed-case AEO handoff
+
+### 1. Commission Intake Receipt
+
+```yaml
+commission_id: fixture_bad_mixed_case_aeo
+mode: backtest
+candidate_or_subject: Fixture Product H
+decision_context: Exercise failure when mixed-case AEO vocabulary enters handoff.
+market_or_geography: US
+time_window: 2015-2020
+evidence_cutoff_at: 2020-12-31
+input_status: complete
+missing_required_inputs: []
+cutoff_rule: AEO visibility must not enter classifier handoff.
+non_goals_preserved:
+  - no demand classification
+```
+
+### 4. Signal Board Rows
+
+| Row ID | Source family | Subfamily | Surface | Observable | Signal role | Row purpose | Graph role | Graph weight hint | Evidence status | Provenance needed | Surface cutoff status | Cutoff status | Handoff note |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| SBR-001 | AEO_answer_engines | answer engines | ChatGPT/Gemini/AIO | answer visibility | AEO_Visibility | gap | none | none | source_backed | URL and date supplied | existed_by_cutoff | in_window | Must not enter classifier handoff despite source-backed status |
+
+### 8. Demand-Classifier Handoff Packet
+
+```yaml
+classifier_handoff_packet:
+  candidate_or_subject: Fixture Product H
+  decision_context: Exercise failure when mixed-case AEO vocabulary enters handoff.
+  mode: backtest
+  cutoff_date: 2020-12-31
+  signal_rows_for_handoff: []
+  counterevidence_rows_for_handoff:
+    - SBR-001
+  source_family_gaps: []
+  provenance_gaps: []
+  cutoff_uncertainties: []
+  classifier_mapping_status: classifier_owned
+  prohibited_claims:
+    - no demand verdict
+```

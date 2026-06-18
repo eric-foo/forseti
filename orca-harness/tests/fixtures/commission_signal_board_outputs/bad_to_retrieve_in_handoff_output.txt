@@ -1,0 +1,48 @@
+<!-- fixture_expected: fail -->
+<!-- fixture_failure: to_retrieve row appears in classifier handoff even though no evidence was supplied -->
+
+# Commission Signal Board Fixture: bad to-retrieve handoff
+
+### 1. Commission Intake Receipt
+
+```yaml
+commission_id: fixture_bad_to_retrieve
+mode: backtest
+candidate_or_subject: Fixture Product E
+decision_context: Exercise failure when collection routes are handed to classifier as evidence.
+market_or_geography: US
+time_window: 2015-2020
+evidence_cutoff_at: 2020-12-31
+input_status: complete
+missing_required_inputs: []
+cutoff_rule: only source-backed in-window observations may enter downstream handoff
+non_goals_preserved:
+  - no demand classification
+```
+
+### 4. Signal Board Rows
+
+| Row ID | Source family | Subfamily | Surface | Observable | Signal role | Row purpose | Graph role | Graph weight hint | Evidence status | Provenance needed | Surface cutoff status | Cutoff status | Handoff note |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| SBR-001 | forums_community | Reddit | public threads | dated questions and objections | consumer_language | signal_unit | node_candidate | medium | to_retrieve | URL and thread date needed | existed_by_cutoff | in_window | Collection route only; not evidence yet |
+
+### 8. Demand-Classifier Handoff Packet
+
+```yaml
+classifier_handoff_packet:
+  candidate_or_subject: Fixture Product E
+  decision_context: Exercise failure when collection routes are handed to classifier as evidence.
+  mode: backtest
+  cutoff_date: 2020-12-31
+  signal_rows_for_handoff:
+    - SBR-001
+  counterevidence_rows_for_handoff: []
+  source_family_gaps: []
+  provenance_gaps:
+    - source URL
+    - source date
+  cutoff_uncertainties: []
+  classifier_mapping_status: classifier_owned
+  prohibited_claims:
+    - no demand verdict
+```
