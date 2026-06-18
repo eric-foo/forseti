@@ -170,6 +170,24 @@ third entry beside the two existing PostToolUse hooks:
 `{ "type": "command", "command": "python .agents/hooks/check_placement.py --hook", "timeout": 10 }`
 then restart the session (hooks load at session start).
 
+**SCI reminder (advisory).** A PostToolUse hook (matcher `Write|Edit|MultiEdit`
+in `.claude/settings.json`) runs:
+
+```
+python .agents/hooks/remind_sci.py --hook
+```
+
+When a durable artifact is created or edited (the same durable-artifact folder
+set the retrieval-header hook uses -- decisions, product, prompts, workflows,
+migration, hygiene, review-inputs/outputs, the workflow overlay, and the product
+corpus; scratch, inbox, skill copies, project config, and code are excluded), it
+re-injects a short pointer to the Smallest Complete Intervention rule
+(`AGENTS.md`) as non-blocking `additionalContext`. The RULE stays in `AGENTS.md`;
+the hook carries only a pointer at the write boundary. Forward-only, advisory,
+fails open. `python .agents/hooks/remind_sci.py --selftest` checks the scope
+logic. Reinstall = re-add the PostToolUse entry beside the others in
+`.claude/settings.json`, then restart the session.
+
 **Permission floor (protected paths + git lifecycle).** A second
 enforcement-placement substrate (EP-01 + EP-03 in
 `docs/decisions/overlay_enforcement_placement_classification_v0.md`), built as
