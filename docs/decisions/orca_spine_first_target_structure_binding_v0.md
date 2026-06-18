@@ -18,6 +18,7 @@ use_when:
   - Reconciling the per-lane spine-first migration inventories.
 authority_boundary: retrieval_only
 open_next:
+  - docs/decisions/orca_spine_first_blocker_authorization_v0.md
   - docs/migration/spine_first_target_move_table_v0.md
   - docs/migration/spine_first_untagged_file_inventory_v0.md
   - docs/decisions/orca_repo_structure_binding_v0.md
@@ -56,6 +57,14 @@ Current placement authority remains
 `repo-structure.yaml`. Files live where they live today (`docs/product/<lane>/`)
 until a separately authorized execution pass applies the move and amends those
 surfaces.
+
+Post-merge blocker authorization:
+`docs/decisions/orca_spine_first_blocker_authorization_v0.md` settles B1-B7 for
+the next execution pass. That record authorizes the execution tranche to create
+`orca/`, dissolve `docs/product/search/`, define `docs/doctrine/`, seed CSB from
+the gate-run commission criteria doc, keep `source_capture_toolbox` as the
+folder name, treat IG/YT/TT as source families, and handle the ontology backlog
+JSON only with a paired hook-path update. It does not execute the migration.
 
 ## Base and provenance
 
@@ -346,6 +355,12 @@ When a separately authorized execution pass runs, it must amend:
 None of these are touched by this binding; they are the execution checklist.
 
 ## Blockers (load-bearing; do not bury)
+
+Post-merge status: B1-B7 are settled for execution by
+`docs/decisions/orca_spine_first_blocker_authorization_v0.md`. The historical
+blocker text below is retained to show what was blocked at target-binding time;
+execution controllers should apply the authorization record before stopping on
+these items.
 
 - **B1 — `orca/` root not authorized.** `repo-structure.yaml`
   `known_top_level.dirs` is `[.agents, .claude, .codex, .git, docs, orca-harness]`

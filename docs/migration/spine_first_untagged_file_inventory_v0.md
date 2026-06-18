@@ -16,6 +16,7 @@ use_when:
 authority_boundary: retrieval_only
 open_next:
   - docs/decisions/orca_spine_first_target_structure_binding_v0.md
+  - docs/decisions/orca_spine_first_blocker_authorization_v0.md
   - docs/migration/spine_first_target_move_table_v0.md
 stale_if:
   - The owner/main-CA tags a listed item (move it to a settled row in the move table).
@@ -32,6 +33,10 @@ stale_if:
 - "Blocks move table?" = whether the migration execution can proceed for that
   surface without the tag. Structural blockers (B1–B7) block broadly; per-file
   ambiguities usually block only their own row.
+- Post-merge blocker settlement:
+  `docs/decisions/orca_spine_first_blocker_authorization_v0.md` settles B1-B7
+  for execution and gives defaults for several per-file ambiguity classes.
+  Apply that record before treating these rows as still blocked.
 
 ## A. Structural / doctrine tags (block broadly)
 
@@ -44,6 +49,11 @@ stale_if:
 | B5 | Commission Signal Board has no doc home | CSB is "structure, not built runtime"; only precursor is the gate-run commission criteria (in `search/`) | owner | Decide: relocate the gate-run criteria into `commission_signal_board/`, or author a first CSB artifact | Partial — blocks Section 11 + the gate-run criteria row | `docs/product/search/orca_demand_gate_run_commission_criteria_v0.md:4` |
 | B6 | Toolbox-vs-Armory name + IG-lane status | Folder/title say both "Toolbox" and "Armory"; IG has 13 docs + creator specs but **no lane binding** | owner | A naming decision + an IG-lane decision (bind a lane, or keep IG under Capture/Toolbox) | Partial — blocks the toolbox-unit row + IG family row | capture inv §6,§11–12 (`docs/migration/capture_spine_source_capture_migration_inventory_v0.md:121,159`) |
 | B7 | Sibling inventories not on main | Cleaning, ecr, foundation, ontology, product-lead/buyer-proof, global-prompt-review per-lane inventories are in-flight | their lanes + controller | Those inventories landing; then re-reconcile against this binding | Advisory — does not block, but their classifications may revise rows | search inv §"Companion wave" (`docs/migration/search_demand_signal_migration_inventory_v0.md:39-43`) |
+
+Post-merge status: the structural rows above are settled by
+`docs/decisions/orca_spine_first_blocker_authorization_v0.md`. The rows remain
+visible as historical blocker origins and execution reminders, not as reasons to
+stop before applying the authorization record.
 
 ## B. Per-file placement tags (block their own row only)
 

@@ -17,6 +17,7 @@ authority_boundary: retrieval_only
 open_next:
   - .agents/workflow-overlay/artifact-folders.md
   - repo-structure.yaml
+  - docs/decisions/orca_spine_first_blocker_authorization_v0.md
   - docs/migration/repo_structure_phase2_consolidation_v0/runbook.md
 stale_if:
   - repo-structure.yaml and this binding disagree on a home or parameter.
@@ -40,6 +41,15 @@ followed (`8516cdc`); EP-04 hook wiring landed in `.claude/settings.json`
 (`27bade9`) and the hooks have been observed firing in-session. The `stale_if`
 trigger "Phase-2 consolidation applies" fired and is retired; lane statuses in
 `repo-structure.yaml` read `current` and match the migration state.
+
+Dated note — spine-first target authorized, not executed (2026-06-18):
+`docs/decisions/orca_spine_first_target_structure_binding_v0.md` binds the
+target `orca/product/` spine-first tree, and
+`docs/decisions/orca_spine_first_blocker_authorization_v0.md` authorizes the
+execution tranche to add the `orca/` root and supersede this binding's
+`docs/product/` by-lane axis. Until that execution updates `repo-structure.yaml`
+and `.agents/workflow-overlay/artifact-folders.md`, the current placement rule
+below remains true for the live tree.
 
 ## Provenance (origin, not authority)
 

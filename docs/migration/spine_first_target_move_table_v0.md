@@ -19,6 +19,7 @@ use_when:
 authority_boundary: retrieval_only
 open_next:
   - docs/decisions/orca_spine_first_target_structure_binding_v0.md
+  - docs/decisions/orca_spine_first_blocker_authorization_v0.md
   - docs/migration/spine_first_untagged_file_inventory_v0.md
   - docs/migration/capture_spine_source_capture_migration_inventory_v0.md
   - docs/migration/search_demand_signal_migration_inventory_v0.md
@@ -45,6 +46,9 @@ stale_if:
   committed inventories; core_spine 47 + judgment 29 + product_lead 14 + ecr 3 +
   signal_content 2 + 2 root + README via fresh passes) + the `docs/` top-level
   reshape + the `orca-harness/` runtime defer.
+- Post-merge blocker settlement:
+  `docs/decisions/orca_spine_first_blocker_authorization_v0.md` authorizes B1-B7
+  for execution. Apply it before stopping on a `needs_main_ca_tag` row.
 
 ## Section 0 — Root layout & docs/ reshape (highest-salience blockers)
 
@@ -283,6 +287,11 @@ capture inventory (case-family note).
 B1 `orca/` root unauthorized · B2 search-lane physical reversal · B3 `docs/doctrine/`
 boundary · B4 ontology hook coupling · B5 CSB has no doc home · B6 Toolbox-vs-Armory
 name + IG-lane status · B7 sibling inventories not on main.
+
+Post-merge status: B1-B7 are settled for execution by
+`docs/decisions/orca_spine_first_blocker_authorization_v0.md`. B4 remains a
+paired hook-path update inside the execution tranche; B7 remains a
+re-reconciliation check for any sibling inventories that have landed.
 
 ## Non-claims
 
