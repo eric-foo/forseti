@@ -1,0 +1,36 @@
+# Deletion-Evidence Register (Phase-2 deletion safety) -- append-only record set.
+#
+# Phase-2 (the bloat-cut fan-out) DELETES corpus artifacts. The frozen Orca
+# deletion doctrine requires that every deletion of a GOVERNED artifact carry an
+# evidence record here; the strict CI gate .agents/hooks/check_deletion_evidence.py
+# fails a PR that deletes a governed artifact without a complete record.
+# Doctrine: docs/decisions/deletion_evidence_doctrine_v0.md.
+#
+# WHAT IS GOVERNED is owned by the checker (GOVERNED_ROOTS in
+# check_deletion_evidence.py), NOT declared here -- a data file must not be able
+# to narrow or remove its own governance by being edited or deleted.
+#
+# PROVENANCE (who deleted what, when, in which commit) is NOT recorded here -- git
+# is its single authoritative home. This register holds only what git cannot
+# derive: the human judgment evidence and the declared successor/rollback.
+#
+# APPEND-ONLY in spirit: add records; prefer not to rewrite past records (git is
+# the audit trail). A later complete record for the same target supersedes an
+# earlier one (latest-complete wins), so a correction needs no history rewrite.
+#
+# RECORD SCHEMA (minimal -- every field is either machine-checked or human-judged):
+#   - targets: [repo-relative path, ...]      # the governed artifact(s) deleted
+#     evidence:
+#       reverse_ref_check: <non-empty>   # who/what still references the target; safe to remove (human-judged)
+#       successor:         <repo-relative path> | "none -- pure bloat"   # machine-checked: a named path must resolve
+#       semantic_delta:    <non-empty>   # what meaning is lost vs preserved (human-judged)
+#       rollback:          <non-empty>   # how to restore, e.g. git revert <executing merge sha> (human-judged)
+#
+# A deletion is adjudicated by the existing router->human-merge flow (a deleting
+# PR is routed risk/manual-review-required); this register + gate make the
+# EVIDENCE mandatory, not the adjudication mechanism.
+
+register_version: 0
+
+# Append records below. Empty at creation -- no deletions yet.
+deletions: []
