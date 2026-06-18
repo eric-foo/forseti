@@ -13,6 +13,8 @@ use_when:
   - Deciding whether a storage/schema/projection/Cleaning lane is still blocked.
 authority_boundary: retrieval_only
 open_next:
+  - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_core_contract_v0.md
+  - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_storage_contract_v0.md
   - orca/product/spines/capture/packet_schema/source_capture_tenant_payload_attachment_boundary_v0.md
   - orca/product/spines/capture/packet_schema/source_capture_core_payload_split_explainer_v0.md
   - orca/product/spines/capture/source_families/retail_pdp/retail_pdp_typed_envelope_probe_v0.md
@@ -24,7 +26,7 @@ branch_or_commit:
 stale_if:
   - The payload-boundary lane is rejected or materially changed.
   - The Retail/PDP typed-envelope probe is rejected or materially changed.
-  - A later accepted storage/manifest/sidecar/projection-cache decision supersedes this logical map.
+  - A later accepted storage/manifest/sidecar/projection-cache or Attachment Record serialization decision supersedes this logical map.
   - A non-IG envelope probe disproves or changes the packet/slice-keyed boundary.
   - ECR, SCR, Cleaning, or Judgment ownership changes in a later accepted source.
 ```
@@ -49,7 +51,7 @@ orca_start_preflight:
   source_pack: custom (payload boundary + source_capture models + ECR/SCR + projection + Cleaning)
   edit_permission: docs-write
   target_scope:
-    - orca/product/shared/data_lake_mechanics/core_spine_v0_data_lake_mechanics_map_v0.md
+    - orca/product/spines/data_lake/workflows/core_spine_v0_data_lake_mechanics_map_v0.md
     - docs/workflows/data_capture_spine_consolidation_map_v0.md
     - docs/workflows/ecr_spine_submap_v0.md
   dirty_state_checked: yes
@@ -88,8 +90,9 @@ Shared handle family:
 7. Projection and Cleaning own mechanics only.
 8. Judgment owns credibility, salience, exclusion, Signal Integrity, Signal Use,
    Decision Strength, and Action Ceiling.
-9. New source-family payloads default to packet/slice-keyed typed envelopes,
-   not new direct `SourceCaptureSlice` fields.
+9. New source-family payloads default to packet/slice-keyed Attachment Records
+   (the prior logical-boundary docs' typed-envelope boundary), not new direct
+   `SourceCaptureSlice` fields.
 10. Storage, manifest changes, projection cache, and runtime schema are not
     selected here.
 
@@ -99,8 +102,8 @@ Shared handle family:
 | --- | --- | --- | --- |
 | Source Capture | Source surface + capture method context | Immutable `SourceCapturePacket` bundle | Decide downstream meaning or use |
 | Core slice frame | Packet/slice capture facts | Stable shared facts; incumbent fields stay readable | Treat every new source detail as a core field |
-| Typed envelope | Source-family payload tied to packet/slice | Logical typed payload: family, kind, schema version, pins, body, absence/residual posture | Pick physical storage or become mutable side truth |
-| Projection | Raw + core facts + envelopes | Re-derived row view, loss ledger, receipt | Persist as source truth or decide salience |
+| Attachment Record | Source-family payload tied to packet/slice | Logical typed payload: family, kind, schema version, pins, body, absence/residual posture | Pick physical storage or become mutable side truth |
+| Projection | Raw + core facts + Attachment Records | Re-derived row view, loss ledger, receipt | Persist as source truth or decide salience |
 | ECR | Raw packet/slice/file facts | Integrity postures SP-1/2/3/6 | Depend on Cleaning/projection or bind final Evidence Unit schema |
 | SCR | Raw body material + provenance/ECR refs | Per-slice content record by key | Become a second capture-payload home |
 | Cleaning | One raw-keyed input handle + optional sibling refs | Transform ledger, cleaned working view, warnings, raw-pull triggers | Decide credibility, independence, similarity effect, exclusion, or strength |
@@ -113,7 +116,7 @@ Source Capture
   -> SourceCapturePacket [raw authority]
        |- core facts on packet/slice
        |- incumbent slice payload fields remain readable
-       |- new source payloads attach as typed envelopes
+       |- new source payloads attach as Attachment Records
   -> Projection view
   -> ECR integrity records
   -> SCR content records
@@ -123,17 +126,19 @@ Source Capture
 
 ## Gates Before Physicalization
 
-Do not open storage/schema/manifest/projection-cache/envelope-serialization work
+Do not open storage/schema/manifest/projection-cache/Attachment Record serialization work
 until these are true:
 
 1. The payload-boundary lane is landed or explicitly accepted as the base.
 2. The Retail/PDP probe, or another non-IG family probe, shows packet/slice-
-   keyed envelopes work without adding new `SourceCaptureSlice` fields.
-3. The owner chooses envelope physical representation: manifest, sidecar, or
+   keyed Attachment Records work without adding new `SourceCaptureSlice` fields.
+3. The owner chooses Attachment Record physical representation: manifest, sidecar, or
    another immutable/hash-pinned form.
-4. Incumbent fields have a fate: frozen, dual-read, replayed, or legacy-only.
+4. Incumbent fields have the storage-contract fate: legacy-readable
+   transitional fields, future dual-read or replay only, and no in-place packet
+   mutation.
 5. SCR `FamilyDetailBase` is governed so it does not compete with capture-side
-   envelopes.
+   Attachment Records.
 
 Do not open Cleaning implementation until the input handle, transform ledger,
 tag/write location, allowed mechanical warning vocabulary, and raw-pull trigger
@@ -145,7 +150,7 @@ Foregone on purpose:
 
 - no storage engine;
 - no manifest v2;
-- no envelope serialization;
+- no Attachment Record serialization;
 - no projection cache;
 - no migration of incumbent fields;
 - no direct new `SourceCaptureSlice` field;
@@ -160,13 +165,23 @@ irreversible physical choices wait for the non-IG probe.
 ## Known Risks
 
 - This map depends on the payload-boundary branch until that branch lands.
-- Retail/PDP supports the logical envelope shape only; the envelope boundary is
-  still unbuilt and unproven physically.
+- Retail/PDP supports the logical attachment shape only; the Attachment Record
+  boundary is still unbuilt and unproven physically.
 - `SourceCaptureSlice` is already a fat incumbent surface; docs do not
   mechanically block field #6.
 - SCR `FamilyDetailBase` is a latent competing payload home.
 - SP-6 archive-slice keying is implemented convention, not a general packet
   field contract.
+
+## Current Contract Pointer
+
+Use `orca/product/spines/data_lake/authority/core_spine_v0_data_lake_core_contract_v0.md` for
+the current lake-owned responsibility boundary and
+`orca/product/spines/data_lake/authority/core_spine_v0_data_lake_storage_contract_v0.md` for
+the non-selecting storage contract. This mechanics map remains the logical flow
+map; the core contract refines it by separating lake-owned findability from
+Mechanical Source Projection, keeping availability signals content-free, and
+preserving physical storage as a deferred gate.
 
 ## Direction Change Propagation
 
@@ -174,15 +189,15 @@ irreversible physical choices wait for the non-IG probe.
 direction_change_propagation:
   doctrine_changed: >
     Orca now has a minimal planning-only data-lake mechanics map: raw
-    SourceCapturePacket is canonical; packet/slice/file keys and typed
-    packet/slice envelopes feed projection, ECR/SCR, Cleaning, and Judgment by
+    SourceCapturePacket is canonical; packet/slice/file keys and source-family
+    Attachment Records feed projection, ECR/SCR, Cleaning, and Judgment by
     reference; derived layers write views, receipts, records, or ledgers only;
     physical storage/schema/migration remain deferred.
   trigger: architecture_doctrine
   related_triggers:
     - workflow_authority
   controlling_sources_updated:
-    - orca/product/shared/data_lake_mechanics/core_spine_v0_data_lake_mechanics_map_v0.md
+    - orca/product/spines/data_lake/workflows/core_spine_v0_data_lake_mechanics_map_v0.md
     - orca/product/spines/capture/source_families/retail_pdp/retail_pdp_typed_envelope_probe_v0.md
     - docs/workflows/data_capture_spine_consolidation_map_v0.md
     - docs/workflows/ecr_spine_submap_v0.md

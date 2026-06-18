@@ -64,7 +64,7 @@ The cross-kind invariants the spine runs on (stated here for orientation only â€
 | Bind what JSG-01 reads onto one case-packet evidence unit (three-key binding + composer) | `orca-harness/evidence_binding/` (ratified contract: boundary doc â†’ "JSG-01-scoped EvidenceUnit binding contract RATIFIED") |
 | Inspect the tests | `orca-harness/tests/unit/test_ecr_*`, `orca-harness/tests/unit/test_signal_content_*`, `orca-harness/tests/unit/test_finalization_models.py`, `orca-harness/tests/unit/test_run_finalization_receipt.py` |
 | Reach the upstream provenance layer (the packet this all keys to) | `docs/workflows/data_capture_spine_consolidation_map_v0.md` (capture submap) |
-| Check logical data-lake mechanics across capture, projection, ECR/SCR, Cleaning, and Judgment | `orca/product/shared/data_lake_mechanics/core_spine_v0_data_lake_mechanics_map_v0.md` |
+| Check logical data-lake mechanics across capture, projection, ECR/SCR, Cleaning, and Judgment | `orca/product/spines/data_lake/workflows/core_spine_v0_data_lake_mechanics_map_v0.md` |
 
 ## Current Reality Snapshot
 
@@ -73,7 +73,7 @@ The cross-kind invariants the spine runs on (stated here for orientation only â€
 - **Built (SP-5 finalization, judgment-lane sibling):** the `FinalizationReceipt` model + validate-only consumer (`orca-harness/schemas/finalization_models.py`, committed `a37f896`) and the operator-driven producer recording the out-of-band act (`orca-harness/runners/run_finalization_receipt.py`; cross-vendor reviewed + adjudicated). Binds no Evidence Unit; clears no case.
 - **Ratified + built (JSG-01-scoped composition layer):** the **JSG-01-scoped EvidenceUnit binding** (three-key `Jsg01EvidenceBinding` + pure no-aggregate-verdict composer; owner-ratified 2026-06-12 at the boundary doc; code in `orca-harness/evidence_binding/`, cross-vendor reviewed + adjudicated). Scoped to exactly what the JSG-01 predicate reads; the full field-by-field Evidence Unit schema stays reserved.
 - **Deferred / reserved (named, not owned here):** the field-by-field Evidence Unit schema; D2; Cleaning; Judgment; run authorization. Each separately gated. (The JSG-01 unfreeze was performed by the owner's dated act, 2026-06-12.)
-- **Cross-layer mechanics map:** `orca/product/shared/data_lake_mechanics/core_spine_v0_data_lake_mechanics_map_v0.md`
+- **Cross-layer mechanics map:** `orca/product/spines/data_lake/workflows/core_spine_v0_data_lake_mechanics_map_v0.md`
   records the planning-only by-key flow from raw capture through projection,
   ECR/SCR, Cleaning, and Judgment. It does not select storage, schema, or
   implementation.

@@ -55,7 +55,7 @@ stale_if:
 | Check Capture obligations / forbidden outputs | `orca/product/spines/capture/contracts/obligation_contracts/core_spine_v0_data_capture_spine_obligation_contract_v0.md` |
 | Check tenant/source-family payload attachment boundary | `orca/product/spines/capture/packet_schema/source_capture_tenant_payload_attachment_boundary_v0.md` |
 | Explain the core-facts vs typed-attachment split in plain language | `orca/product/spines/capture/packet_schema/source_capture_core_payload_split_explainer_v0.md` |
-| Check logical data-lake mechanics from capture through projection, ECR/SCR, Cleaning, and Judgment | `orca/product/shared/data_lake_mechanics/core_spine_v0_data_lake_mechanics_map_v0.md` |
+| Check logical data-lake mechanics from capture through projection, ECR/SCR, Cleaning, and Judgment | `orca/product/spines/data_lake/workflows/core_spine_v0_data_lake_mechanics_map_v0.md` |
 | Check Retail/PDP as the first non-IG typed-envelope probe | `orca/product/spines/capture/source_families/retail_pdp/retail_pdp_typed_envelope_probe_v0.md` |
 | Check raw-to-Judgment projection view doctrine | `orca/product/shared/projection_doctrine/core_spine_v0_projection_doctrine_v0.md` |
 | Check Retail/PDP projection contract for Amazon, Sephora, and Ulta | `orca/product/spines/capture/source_families/retail_pdp/retail_pdp_projection_contract_v0.md` (target DOM price/SKU binding posture, residual vocabulary, and no-ECR/Cleaning/Judgment boundary) |
@@ -202,7 +202,7 @@ stale_if:
   `SourceCapturePacket` truth, stable core facts, typed payload envelopes,
   projection, ECR/SCR, Cleaning, and Judgment flow by key without selecting
   physical storage, schema migration, or projection cache.
-- owner: `orca/product/shared/data_lake_mechanics/core_spine_v0_data_lake_mechanics_map_v0.md`
+- owner: `orca/product/spines/data_lake/workflows/core_spine_v0_data_lake_mechanics_map_v0.md`
 
 ### Retail/PDP typed-envelope probe
 
