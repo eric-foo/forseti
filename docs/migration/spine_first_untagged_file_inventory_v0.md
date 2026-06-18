@@ -37,6 +37,11 @@ stale_if:
   `docs/decisions/orca_spine_first_blocker_authorization_v0.md` settles B1-B7
   for execution and gives defaults for several per-file ambiguity classes.
   Apply that record before treating these rows as still blocked.
+- Post-execution status (2026-06-18): the migration **executed** (#255); these
+  tags are historical. **U-J1 is resolved** — ratified as-built to
+  `satellites/fragrance/judgment_level1/reconciliation/`. Every other ambiguous
+  row landed at its blocker-auth-default home. As-built closure is recorded in
+  `docs/migration/orca_second_pass_consolidation_plan_v0.md`.
 
 ## A. Structural / doctrine tags (block broadly)
 

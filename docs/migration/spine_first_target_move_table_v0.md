@@ -49,6 +49,12 @@ stale_if:
 - Post-merge blocker settlement:
   `docs/decisions/orca_spine_first_blocker_authorization_v0.md` authorizes B1-B7
   for execution. Apply it before stopping on a `needs_main_ca_tag` row.
+- Post-execution status (2026-06-18): the spine-first migration **executed**
+  (#255) and this table is now historical (216/218 rows moved; 2 READMEs retired).
+  U-J1 (line for `fragrance_level1_product_learning_reconciliation_v0.md`, below)
+  is **resolved** — ratified as-built to
+  `satellites/fragrance/judgment_level1/reconciliation/`. As-built closure for all
+  rows is recorded in `docs/migration/orca_second_pass_consolidation_plan_v0.md`.
 
 ## Section 0 — Root layout & docs/ reshape (highest-salience blockers)
 
