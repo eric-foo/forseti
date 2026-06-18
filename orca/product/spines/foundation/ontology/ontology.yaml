@@ -141,12 +141,32 @@ deferred_no_auto_trigger:
 # other type is SSOT-only. Name/field divergences below are reconciliation items
 # for W2b, not silent matches.
 runtime_bindings:
+  # The ONLY 3 ontology<->runtime overlaps (W2b scoped drift-check). A type NOT
+  # listed here is SSOT-only (derived). check_ontology_drift.py imports each runtime
+  # class and verifies these STRUCTURED INVARIANTS (cross-vendor reviewed 2026-06-19;
+  # not full field conformity -- the runtime types are harness-pipeline artifacts):
+  #   defined_at:  the class is DEFINED in (not re-exported into) its module;
+  #   requires_fields: load-bearing anchors that MUST exist on the runtime class;
+  #   forbids_fields:  fields whose presence would violate intent (e.g. AR-01);
+  #   name_alias:  canonical = the ontology name; the runtime name is a recorded
+  #     storage alias (ID-doctrine pattern: forward-only, both resolve, no rename;
+  #     MGT name-drift decision 2026-06-19);
+  #   not_payload_identifier: the runtime class name must NOT be a serialized type
+  #     discriminator (leak guard -- the condition that makes alias-only safe).
   CapturePacket:
     runtime: "orca-harness/source_capture/models.py:SourceCapturePacket"
-    divergence: "name drift (CapturePacket vs SourceCapturePacket)"
+    name_alias: SourceCapturePacket
+    requires_fields: [manifest_version]
+    forbids_fields: []
+    not_payload_identifier: true
   EvidenceUnit:
     runtime: "orca-harness/schemas/case_models.py:EvidenceUnit"
-    divergence: "claim_tier is a receipt outcome, not a standing runtime field"
+    requires_fields: [evidence_id, pre_decision_status]   # pre_decision_status = the claim_tier divergence mechanism
+    forbids_fields: [claim_tier]                          # AR-01: claim_tier is a receipt OUTCOME, never a standing runtime field
+    not_payload_identifier: true
   Case:
-    runtime: "orca-harness/schemas/case_models.py:FacilitatorLedger + CaseReport"
-    divergence: "no single Case runtime class; Case is composed across ledger + report"
+    runtime: "orca-harness/schemas/case_models.py:FacilitatorLedger"
+    composed_with: ["orca-harness/schemas/scoring_models.py:CaseReport"]
+    requires_fields: [case_id]
+    forbids_fields: []
+    not_payload_identifier: true

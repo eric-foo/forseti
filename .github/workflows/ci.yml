@@ -38,3 +38,6 @@ jobs:
       - name: ontology SSOT integrity
         working-directory: ${{ github.workspace }}
         run: python .agents/hooks/check_ontology_ssot.py --strict
+      - name: ontology<->runtime drift check
+        working-directory: ${{ github.workspace }}
+        run: python .agents/hooks/check_ontology_drift.py --strict
