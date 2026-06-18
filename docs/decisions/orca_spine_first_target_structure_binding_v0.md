@@ -66,6 +66,16 @@ the gate-run commission criteria doc, keep `source_capture_toolbox` as the
 folder name, treat IG/YT/TT as source families, and handle the ontology backlog
 JSON only with a paired hook-path update. It does not execute the migration.
 
+Post-execution amendment (2026-06-18): the spine-first migration executed (#255),
+so this record is now the historical target. One correction since: the Data Lake
+is promoted to its own shared-foundation spine `orca/product/spines/data_lake/` by
+`docs/decisions/orca_data_lake_spine_promotion_binding_v0.md`, which **supersedes
+the `shared/data_lake_mechanics/` entry** in the Accepted target tree below — the
+mechanics map's bound home becomes `data_lake/workflows/` and the lake contracts
+are `data_lake/authority/`-owned. Content relocation is a separate later move pass;
+`shared/projection_doctrine/` and `shared/engagement_registry/` are untouched by
+that promotion.
+
 ## Base and provenance
 
 - Read against `origin/main @ 8f19b460` (the controller worktree HEAD equals

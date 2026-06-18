@@ -28,7 +28,7 @@ authority_boundary: retrieval_only
 - `docs/review-outputs/adversarial-artifact-reviews/`: adversarial artifact review reports.
 - `docs/workflows/`: workflow records, repo maps, validation notes, and operational records owned by Orca.
 - `docs/migration/`: migration and import queue records.
-- `orca/product/` (repo root): the **spine-first product tree** for product contracts, product proof plans, core-spine notes, satellite notes, evidence standards, source maps, decision artifacts, memo substrates, evidence appendices, executive-deck shape drafts, Source Capture Toolbox design notes, and demand-signal method/surface docs. The tree is bound by `docs/decisions/orca_spine_first_target_structure_binding_v0.md` and authorized by `docs/decisions/orca_spine_first_blocker_authorization_v0.md` (#254). Second-level axis: `spines/` (`foundation/`, `commission_signal_board/`, `scanning/`, `capture/`, `ecr/`, `cleaning/`, `judgment/`, `product_lead/`), `satellites/`, `case_families/`, `shared/`. Per-spine structure is owned by the spine-first binding, not the machine map; `check_placement.py` treats `orca/` as a declared top-level area. Historical `docs/product/` references resolve through `docs/migration/repo_structure_spine_first_v0/moved_paths_index.md` by design. `docs/doctrine/` is intentionally NOT created by this migration (owner B3: index/router-only, seeded later).
+- `orca/product/` (repo root): the **spine-first product tree** for product contracts, product proof plans, core-spine notes, satellite notes, evidence standards, source maps, decision artifacts, memo substrates, evidence appendices, executive-deck shape drafts, Source Capture Toolbox design notes, and demand-signal method/surface docs. The tree is bound by `docs/decisions/orca_spine_first_target_structure_binding_v0.md` and authorized by `docs/decisions/orca_spine_first_blocker_authorization_v0.md` (#254). Second-level axis: `spines/` (`foundation/`, `commission_signal_board/`, `scanning/`, `capture/`, `ecr/`, `cleaning/`, `judgment/`, `product_lead/`, `data_lake/`), `satellites/`, `case_families/`, `shared/`. `data_lake/` is a shared-foundation spine promotion-bound 2026-06-18 by `docs/decisions/orca_data_lake_spine_promotion_binding_v0.md` (shape only; content lands in a later move pass). Per-spine structure is owned by the spine-first binding, not the machine map; `check_placement.py` treats `orca/` as a declared top-level area. Historical `docs/product/` references resolve through `docs/migration/repo_structure_spine_first_v0/moved_paths_index.md` by design. `docs/doctrine/` is intentionally NOT created by this migration (owner B3: index/router-only, seeded later).
 - `repo-structure.yaml` (repo root): the machine structure map - router only, consumed by `.agents/hooks/check_placement.py` and agents for navigation. It declares homes and never states rules; this overlay file remains the placement authority and wins on conflict.
 - `docs/research/`: public/source research artifacts, evidence-only lane outputs, synthesis reports, candidate screens, and reject-pattern maps that support Orca product or proof work without becoming product authority by default.
 - `docs/research/judgment-spine/harness/v0_14/smoke_tests/`: Judgment Harness v0.14 no-case smoke-test receipts and operator provenance records. Artifacts in this folder are plumbing evidence only and do not become real-case probe, validation, fixture-admission, product-proof, or judgment-quality evidence by location.
@@ -341,6 +341,47 @@ direction_change_propagation:
   non_claims:
     - not validation, readiness, or migration proof; link/retrieval hygiene only
     - not migration-complete until PR #255 merges (human-gated)
+```
+
+## Direction Change Propagation - Data Lake Spine Promotion
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    orca/product/spines/data_lake/ is promoted to an accepted shared_foundation
+    spine (the 9th spine), extending the spine-first target structure. It earns
+    its own home rather than orca/product/shared/data_lake_mechanics/ because it
+    owns hard cross-layer storage contracts. SHAPE/PROMOTION binding only: no
+    files moved, no docs/product re-creation, no capture/projection/engagement
+    re-org, runtime stays in orca-harness. Content relocation (3 lake contracts
+    from the codex/data-lake-core-contract lane -> authority/; mechanics map from
+    shared/data_lake_mechanics/ -> workflows/) is a separate later R2 move pass.
+  trigger: architecture_doctrine
+  related_triggers:
+    - workflow_authority
+  controlling_sources_updated:
+    - .agents/workflow-overlay/artifact-folders.md
+    - docs/decisions/orca_data_lake_spine_promotion_binding_v0.md
+    - orca/product/spines/data_lake/README.md
+    - docs/workflows/orca_repo_map_v0.md
+    - docs/decisions/orca_spine_first_target_structure_binding_v0.md
+  intentionally_not_updated:
+    - path: repo-structure.yaml
+      reason: >
+        data_lake is under orca/ (already a declared top-level area) and per-spine
+        structure is owned by the spine-first binding, not the machine map; no
+        machine-map change is needed.
+    - path: orca/product/shared/data_lake_mechanics/ + orca/product/shared/projection_doctrine/
+      reason: >
+        re-homing these is the R2 move pass (owner deferred the pinning); left in
+        place transitionally.
+  r2_preconditions:
+    - codex/data-lake-core-contract lane landed/re-based onto data_lake/authority/ (not merged at old docs/product/ paths)
+    - move set re-based onto current main (mechanics map moves from shared/, not docs/product/core_spine/)
+    - reuse the forward-only open_next repoint convention (no re-rot)
+  non_claims:
+    - not validation, readiness, or migration proof; placement/link shape only
+    - not a move pass; not ratification of the in-flight data-lake lanes as merged truth
 ```
 
 Older receipts archived verbatim in `docs/decisions/dcp_receipts_archive_v0.md`.
