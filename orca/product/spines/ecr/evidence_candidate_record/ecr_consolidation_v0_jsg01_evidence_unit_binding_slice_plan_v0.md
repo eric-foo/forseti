@@ -1,4 +1,4 @@
-# ECR Consolidation v0 — JSG-01-Scoped EvidenceUnit (EvidenceUnit) Binding Slice Plan v0
+# ECR Consolidation v0 — JSG-01-Scoped EvidenceUnit Binding Slice Plan v0
 
 ```yaml
 retrieval_header_version: 1
@@ -7,7 +7,7 @@ scope: >
   Bounded slice plan for the minimal composition object that binds, by key
   (reference-never-merge), exactly what the JSG-01 predicate reads — the four
   derived source-side postures (SP-1/2/3/6) and the current FinalizationReceipt
-  read (Reading) — onto one case-packet evidence unit (EvidenceUnit). Advisory design; recommends but
+  read — onto one case-packet evidence unit (EvidenceUnit). Advisory design; recommends but
   ratifies nothing; build gated behind owner ratification.
 status: PROPOSED_ARCHITECTURE_ROUTING_OBJECT — advisory, non-executing, POST delegated cross-vendor review-and-patch (adjudicated 2026-06-12: all reviewer changes kept), PRE owner ratification.
 use_when:
@@ -123,7 +123,7 @@ compose_jsg01_evidence_record(
   stays visible); the *read* stays exactly the bound row. Considered alternative —
   bound-slice-only carry — was rejected because it lets assembly-time slice
   selection silently drop a failing sibling posture from the inspectable record.
-- **Finalization read (Reading) (carry the consumer's verdict verbatim):** calls
+- **Finalization read (carry the consumer's verdict verbatim):** calls
   `evaluate_finalization_provenance(evidence_id, receipts, judge_model_family)`
   (`schemas/finalization_models.py`) and carries the result as a
   `Jsg01FinalizationRead` — `result` (cleared/blocked), `reason`,

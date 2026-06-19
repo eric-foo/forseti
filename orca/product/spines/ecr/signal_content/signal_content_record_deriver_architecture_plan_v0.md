@@ -77,7 +77,7 @@ derive_signal_content(
 ) -> list[SignalContentRecord]
 ```
 
-- Pure; no I/O; no mutation; binds no `EvidenceUnit` (EvidenceUnit). The file-read that produces `preserved_bodies` lives in a **thin caller** (the SP-2 "recompute at the harness, never trust here" precedent).
+- Pure; no I/O; no mutation; binds no `EvidenceUnit`. The file-read that produces `preserved_bodies` lives in a **thin caller** (the SP-2 "recompute at the harness, never trust here" precedent).
 - **Grain (D5): one record per `SourceCaptureSlice` that has a supplied body**, `references.slice_id` set on every record. A slice with **no supplied body → no record** (the emit gate — `raw_observation` is required non-empty; an empty/invented anchor is never emitted). Supersedes the v0 "per-packet length-1 list."
 
 **Per-field deltas from the v0 table** (only changed rows; all others unchanged):
@@ -195,7 +195,7 @@ The deriver runs **only after** (a) a candidate is **promoted** and (b) a `Sourc
 
 ## Re-derive lifecycle
 
-- **Derived / re-derivable from the FROZEN raw observable, never persisted-at-capture.** Re-running the deriver over the same frozen packet (and the same frozen authored core, when one exists) yields the same record. `raw_observation` is the durable anchor; the SCR is a *read* (Reading), not stored state. *(This is only true because the SPLIT kept the deriver mechanical — a live-classifier core would break it; that is the load-bearing coupling between the resolution and this lifecycle.)*
+- **Derived / re-derivable from the FROZEN raw observable, never persisted-at-capture.** Re-running the deriver over the same frozen packet (and the same frozen authored core, when one exists) yields the same record. `raw_observation` is the durable anchor; the SCR is a *read*, not stored state. *(This is only true because the SPLIT kept the deriver mechanical — a live-classifier core would break it; that is the load-bearing coupling between the resolution and this lifecycle.)*
 - **Family-taxonomy change = RE-DERIVE, not a stored-column migration.** Adding/retiring a `SignalFamily` member → re-run over the still-frozen packets; records that were `RESIDUAL_FAMILY_UNRESOLVED` may resolve to the new family on re-derive. No data migration.
 - **Read-checked `_vN`, strict-admit, no upgrade-on-load** — the `manifest_version` Literal admits only `_v0`; a `_v1` deriver is a new read, not an in-place mutation. Additive family-enum growth (records that do not fit degrade to the residual).
 - **Activating the dormant authored lane is itself a re-derive, not a migration:** when a frozen, provenance-bound authored input later exists, re-run the deriver (now passing it) over the frozen packets to fill the residualized core. The residual record is *superseded by re-derivation*, never rewritten in place.

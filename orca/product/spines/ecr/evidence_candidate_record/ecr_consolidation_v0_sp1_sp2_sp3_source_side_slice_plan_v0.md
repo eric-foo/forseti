@@ -36,14 +36,14 @@ stale_if:
 
 ---
 
-## SP-1 — `source_identity_state` (binding mode: **M2 derived-read (Reading), with M3 stops**)
+## SP-1 — `source_identity_state` (binding mode: **M2 derived-read, with M3 stops**)
 
 - **What the producer owns (inputs):** `SourceCapturePacket.source_family`, `source_surface`, `source_locator` (`models.py:164-166`); actor/audience via `actor_audience_context` (`models.py:169`) under Ob.7 ("mark when actor specificity is unavailable").
 - **What the ECR derives (the answer):** a closed identity state — the producer does not store a closed "identity state", so the ECR computes it from the inputs. → **M2**.
 - **Closed values:** `resolved` | `family_only` | `unresolved`.
 - **Clear-condition:** `clears` on `{resolved, family_only}` (`family_only` carries a visible specificity limitation); `does_not_clear` on `unresolved`.
 - **M3 stop:** `unresolved` (placeholder / withheld with no resolving id / missing) → `does_not_clear` as a named limitation; the ECR never invents an identity.
-- **D4 / AR-02:** binds the real producer fields; coins no parallel vocabulary. Actor/audience is **mark-if-unavailable** (Ob.7), not a hard field — the harness `EvidenceUnit` (EvidenceUnit) carries no actor field, so `resolved` does not require an actor value, only that actor is present *or* explicitly marked unavailable.
+- **D4 / AR-02:** binds the real producer fields; coins no parallel vocabulary. Actor/audience is **mark-if-unavailable** (Ob.7), not a hard field — the harness `EvidenceUnit` carries no actor field, so `resolved` does not require an actor value, only that actor is present *or* explicitly marked unavailable.
 - **Provenance:** evaluated against facilitator-side identity (source id + manifest), not the participant-facing string.
 
 ## SP-2 — `inspectability_state` (binding mode: **M2 derived-read over an M1-carried integrity anchor**)
