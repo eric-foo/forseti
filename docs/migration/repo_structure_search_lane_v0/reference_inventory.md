@@ -35,8 +35,7 @@ LIVE referencing files (rewritten by `--apply`):
 - `docs/product/judgment_spine/judgment_spine_demand_read_machinery_architecture_v0.md`
 - `docs/product/judgment_spine/judgment_spine_c3_verdict_action_ceiling_contract_v0.md`
 - `docs/product/judgment_spine/judgment_spine_demand_read_grading_rubric_v0.md`
-- `docs/product/judgment_spine/judgment_spine_c2_rule3_reground_phase_a_classification_finding_v0.md`
-- `docs/product/judgment_spine/judgment_spine_c2_ledger_read_contract_v0.md`
+- `docs/product/judgment_spine/judgment_spine_c2_ledger_read_contract_v0.md` (includes folded Rule 3; standalone Phase-A finding no longer live)
 - `docs/product/data_capture_spine/demand_durability_indicator_review_velocity_corpus_capture_profile_v0.md`
 - `docs/product/data_capture_spine/demand_durability_indicator_price_timeseries_capture_profile_v0.md`
 - `docs/product/data_capture_spine/demand_durability_indicator_capture_deconfliction_note_v0.md`
