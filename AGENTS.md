@@ -2,7 +2,7 @@
 
 ## Agent Behavior Kernel
 
-Surface ambiguity or risky assumptions before acting.
+Surface a risky assumption or genuine ambiguity before acting -- but do not turn that into asking permission for a clear, reversible action you can already default; see Operating Economy.
 Default to the smallest complete intervention: solve the actual request completely with the narrowest sufficient scope.
 Every changed line must trace to the user request or required validation.
 Preserve real failure visibility; never create fake success paths.
@@ -43,6 +43,35 @@ design lens, not a claim tier (asserts no validation or readiness). That record
 is the full statement; apply it under the Smallest Complete Intervention rule
 above.
 
+## Operating Economy
+
+Drive no-value latency toward zero: reach the owner with the fewest ceremony
+steps per delivered unit, losing none of the friction that catches real defects
+-- fresh-read verification, the deletion-evidence gate, the protected-action
+guard, and owner steering all stay.
+
+- **Act-default on reversible work.** Before pausing to ask, apply the test: *can
+  I pick a defensible default and proceed?* If yes, proceed and state the default;
+  do not chat-double-ask. Surface a risky assumption or genuine ambiguity (keep);
+  do not ask permission for a clear, reversible action you can default (cut).
+- **The harness permission prompts and the protected-action guard ARE the
+  irreversibility gate.** An action they gate -- push, PR, merge, protected-path
+  write, destructive git -- does not also need a chat "say go?"; a reversible
+  action they do not gate does not need one either. Verification reads and owner
+  course-corrections are the valuable friction and remain.
+- **Load each skill once per thread.** A skill whose contract is already in
+  context is not re-invoked to redo by hand what the loaded contract already
+  states; apply it.
+- **Pre-build gates and precompact are triggered-only.** The assumption-gate,
+  micro-decision-locking, Cynefin routing, and deep-thinking fire on their own
+  triggers, not by default; an untriggered gate is skipped, not performed for
+  ceremony. Precompact is a thin restore pointer (pointers plus re-confirm
+  instructions), not a max-dump of state.
+
+This economy is itself bound by Smallest Complete Intervention: right-size, never
+gut a gate that has caught a real defect, and do not over-build the economy
+itself.
+
 ## Orca Project Instructions
 
 `AGENTS.md` is the canonical shared project instruction source for Orca. `CLAUDE.md` is a Claude Code shim that imports this file and must not duplicate, fork, weaken, or override Orca project rules.
@@ -53,7 +82,7 @@ Keep Orca project facts, source hierarchy, source-loading rules, artifact folder
 
 For substantial, ambiguous, cross-thread, delegated, doctrine-changing, review/patch-affecting, infrastructure-building, or messy-worktree work, run the Orca Cynefin Routing Layer before planning or delegation; the owning rule is `.agents/workflow-overlay/decision-routing.md`.
 
-Author every prompt, handoff, wrapper, rerun, or patch prompt through the `workflow-prompt-orchestrator` skill — which owns prompt source-loading and the preflight/routing contract — and never hand-draft them; the owning rule is `.agents/workflow-overlay/prompt-orchestration.md`. In-session subagent dispatches that only gather and summarize are delegation under `.agents/workflow-overlay/decision-routing.md`, not prompt artifacts; durable or cross-lane prompt artifacts remain orchestrator-owned.
+Every durable prompt, handoff, wrapper, rerun, or patch prompt applies the prompt contract; do not author one that skips it. Routine prompts apply the **Orca Prompt Preflight** core inline (the ~12-line core in `.agents/workflow-overlay/prompt-orchestration.md`) -- no skill reload; fused, delegated-review-patch, and novel or cross-lane prompts author through the full `workflow-prompt-orchestrator` skill, which owns prompt source-loading and the full preflight/routing contract. In-session subagent dispatches that only gather and summarize are delegation under `.agents/workflow-overlay/decision-routing.md`, not prompt artifacts; durable or cross-lane prompt artifacts remain governed by this contract. The owning rule is `.agents/workflow-overlay/prompt-orchestration.md`.
 
 When starting or "spinning up" a new unit of repo-changing work, decide and state the isolation before editing: use a worktree off `main` for writing work that runs alongside other active lanes or on a dirty base; a branch off `main` for solo, sequential writing; and neither for read-only work. Land changes via the per-lane PR flow in `docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md`. When a repo-changing work unit completes verified on its own lane branch or worktree, proceed to commit, push, and PR preparation without waiting for a typed instruction; the `settings.json` permission prompts on push and PR actions are the owner gate. Landing to `main` stays human-gated, except an agent may self-merge its **own** PR under the protected-action guard's verified exception (else it fails closed to a human merge). See `docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md`.
 

@@ -168,14 +168,18 @@ beside the other PostToolUse hooks. Reinstall (if settings were reset) = re-add
 `{ "type": "command", "command": "python .agents/hooks/check_placement.py --hook", "timeout": 10 }`
 to the PostToolUse array, then restart the session (hooks load at session start).
 
-**Prompt-provenance reminder (advisory).** A PostToolUse hook (matcher
+**Prompt-preflight reminder (advisory).** A PostToolUse hook (matcher
 `Write|Edit|MultiEdit` in `.claude/settings.json`,
 `python .agents/hooks/check_prompt_provenance.py --hook`): after a write under
-`docs/prompts/**`, returns a one-line reminder that prompt / handoff / wrapper /
-rerun / patch artifacts must be authored through `workflow-prompt-orchestrator`
-(rule owned by `.agents/workflow-overlay/prompt-orchestration.md`). Remind only,
-never blocks, exit 0; it cannot verify the orchestrator ran (misses paste-ready
-chat prompts that never touch disk -- named limitation).
+`docs/prompts/**`, injects the **Orca Prompt Preflight** (output mode · template
+kind · edit-permission+targets+branch · reviews findings-first + no runtime-model
+routing · doctrine-change -> propagation receipt · destinations) so a routine
+prompt applies the contract inline with no skill reload; fused /
+delegated-review-patch / novel prompts still author through
+`workflow-prompt-orchestrator` (rule owned by
+`.agents/workflow-overlay/prompt-orchestration.md`). Remind only, never blocks,
+exit 0; it cannot verify the contract was applied (misses paste-ready chat
+prompts that never touch disk -- named limitation).
 `python .agents/hooks/check_prompt_provenance.py --selftest` checks the decision
 logic.
 
