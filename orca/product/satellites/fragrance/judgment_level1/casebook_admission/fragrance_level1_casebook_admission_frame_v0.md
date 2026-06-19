@@ -34,7 +34,7 @@ stale_if:
 This is a docs-only casebook admission frame.
 
 It admits the **casebook shape**: 25 slots, bucket allocation, minimum admission
-fields, and outcome-label families (Outcome). It does **not** admit any named product (Product),
+fields, and outcome-label families. It does **not** admit any named product (Product),
 brand (Brand), SKU (Product), launch (DecisionEvent), discontinuation (DecisionEvent), or retail decision (DecisionEvent) as a case (Case) yet.
 Completing 25 public fragrance backtests through the Level 1 loop is the
 first success condition for product learning, not a readiness, calibration, or
