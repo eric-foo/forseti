@@ -63,7 +63,7 @@ is the procedure's first as-written end-to-end run, and beauty's SECOND screen
 
 ## Candidates (screen output — admitted to NO batch)
 
-| # | Brand | Decision | Date | Flag |
+| # | Brand | Decision (DecisionEvent) | Date | Flag |
 | --- | --- | --- | --- | --- |
 | 1 | Joah Beauty (Kiss Products) | Kill: CVS-exclusive (~4,000 doors) K-beauty line wound down; socials wiped after June 2024; April 2025 closure + 50%-off liquidation | 2018 launch; closure Apr 2025 | clean (genuinely obscure) |
 | 2 | Dear, Klairs / Wishtrend | Suspend-and-replace: re-tested own bestselling sunscreen post-Purito, found SPF 28 vs labeled 50+, suspended all sunscreen sales + refunds, root-caused (texture reformulation degraded SPF), relaunched verified | Jan 2021; relaunch 2021–22 | clean |
@@ -100,7 +100,7 @@ the candidates' source-of-record):
 - Screen run 2026-06-11 by two de-correlated web-research agents
   (inherited-trail walk + cold hub-finding walk); every candidate backed by
   found URLs; no capture performed.
-- Venues that produced candidates or evidence: Beauty Independent (including
+- Venues (Venue) that produced candidates or evidence: Beauty Independent (including
   its monthly "Indie Beauty Dish" closure/launch/retail roundups — the richest
   single screen surface found; BOTH agents converged on the April 2025
   edition), Glossy, BeautyMatter, Business of Fashion / Business of Beauty,
@@ -162,7 +162,7 @@ Hubs / pointing structure:
   Basenotes' living discontinued/reformulated threads and tags timestamp
   kill/reformulation detection years before press coverage.
 
-Wind-callers (the actors whose words or actions the vertical visibly responded
+Wind-callers (WindCaller): the actors whose words or actions the vertical visibly responded
 to; receipts in the candidate source sets above plus Glossy tariff coverage):
 
 - INCIDecoder's founder — doubted Purito's filter percentages, commissioned

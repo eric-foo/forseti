@@ -1,11 +1,11 @@
-# Beauty Subtle-Decision Screen 3 Ledger v0
+# Beauty Subtle-Decision (DecisionEvent) Screen 3 Ledger v0
 
 ```yaml
 retrieval_header_version: 1
 artifact_role: Decision record (screen ledger; batch provenance home)
 scope: >
   Ledger for beauty screen 3 (2026-06-11): the subtle-decision hunt — quiet
-  price nudges, silent reformulations, unannounced SKU kills — run
+  price nudges (DecisionEvent), silent reformulations (DecisionEvent), unannounced SKU kills (DecisionEvent) — run
   origination-layer-first off screen 2's hub read. Records assembled
   candidates, completions, fragments, Screen Provenance with dated influence
   observations (detector-class wind-callers), the dry rule's first live firing
@@ -46,8 +46,7 @@ record — the promote-on-reuse trigger FIRES at this close (see below).
   2 (Reddit decay/detection boards; Basenotes trackers; MSA news+comment
   gauges) instead of trade roundups.
 - Assembly yield model (design): subtle candidates are ASSEMBLED, not found —
-  legs: (D) community detection, (A) brand action evidence, (O) outcome
-  signal; FRAGMENT = partial legs (counts as evidence-yield); CANDIDATE = all
+  legs: (D) community detection, (A) brand action evidence, (O) outcome signal (Outcome); FRAGMENT = partial legs (counts as evidence-yield); CANDIDATE = all
   three legs URL-backed.
 - Candidate target: 5 assembled subtle-class candidates (completions of screen
   2's held-back near-candidates count toward walk yield).
@@ -74,7 +73,7 @@ record — the promote-on-reuse trigger FIRES at this close (see below).
 
 ## Assembled Candidates (screen output — admitted to NO batch)
 
-| # | Brand | Decision | Date | Legs |
+| # | Brand | Decision (DecisionEvent) | Date | Legs |
 | --- | --- | --- | --- | --- |
 | 1 | Puredistance (Dutch ultra-niche fragrance house) | Discontinued original M (IFRA regulatory change stopped Roja Parfums supplying the oil) and replaced with reformulated M V2Q (new perfumer) | announced mid-2022; V2Q Sept 2022 | D: Basenotes thread 523468 (detection + stockpiling); A: brand Facebook statement (IFRA reason, V2Q plan); O: Scented Hound Oct 2022 review + specialist-blog cluster + secondary-market demand for originals |
 | 2 | Imaginary Authors (Portland indie fragrance) | Quiet SKU kills: Whispered Myths (Aug 2024, "allocating production funds toward better-selling fragrances", sales deadline Aug 18) then Telegrama; product-info page lists 8 total quiet kills | Aug 2024 onward | D: Basenotes fragrance pages + Fragrantica designer page; A: brand Facebook post + official product-info page; O: confirmed permanently discontinued; final-bottle buying in comments |
@@ -111,7 +110,7 @@ Fragments (partial assemblies worth carrying forward):
 - Screen run 2026-06-11 by two de-correlated web-research agents
   (origination-layer Reddit/blog walk + tracker-layer/completions walk);
   screening reads only; no capture.
-- Venues that produced candidates or evidence: Basenotes (megathread 341850
+- Venues (Venue) that produced candidates or evidence: Basenotes (megathread 341850
   "recently discontinued or reformulated" + brand threads 523468/477386/560510
   + discontinued tags — via search snippets only, 403 on direct fetch),
   Fragrantica (designer/product pages — snippets only, 403), brand official
@@ -142,7 +141,7 @@ Fragments (partial assemblies worth carrying forward):
 
 ### Influence Observations (dated 2026-06-11; history, never current-state claims)
 
-Detector-class wind-callers (subtle-class influence = whoever's DETECTION
+Detector-class wind-callers (WindCaller): subtle-class influence = whoever's DETECTION
 becomes the reference record):
 
 - Basenotes megathread 341850 — multi-year running

@@ -138,6 +138,19 @@ exception is a deliverable meant directly for a human with no agent acting on it
 The return dimension is distinct from subagent source-readiness (above) and from
 forked-context runtime-payload safety (`decision-routing.md`).
 
+For a subagent that introduces or materially changes a validation hook, checker,
+or CI gate, bind a validation-probe timeout in the dispatch and return contract.
+The subagent must smoke-run the new or changed command under a child-scoped
+30-second timeout before any raw full-run, repeated retry, or completion claim.
+If the smoke probe times out, the subagent stops and returns
+`VALIDATION_HOOK_TIMEOUT` with command, cwd, touched files, and observed process
+state; it must not invoke the same hung command again. The 30-second limit is a
+hang detector for new/custom validation surfaces, not the timeout for known
+repo-wide gates or CI jobs. After the smoke probe passes, run the normal required
+gate with its ordinary timeout. Cleanup may target only a process tree launched
+by the current actor; otherwise stop for owner/tooling intervention rather than
+killing inferred unrelated system processes.
+
 ## Thread Operating Target Continuity
 
 When a workflow prompt, wrapper, rerun, review prompt, patch prompt, or handoff
@@ -777,4 +790,47 @@ direction_change_propagation:
     - not implementation authorization
 ```
 
+```yaml
+direction_change_propagation:
+  change_id: subagent_validation_probe_timeout_2026_06_20
+  trigger: workflow_authority | validation_philosophy
+  changed_sources:
+    - .agents/workflow-overlay/prompt-orchestration.md
+  reason: >
+    A delegated ontology-tagging lane repeatedly invoked a newly authored
+    validation hook that hung during selftest and left background Python
+    processes. The subagent contract needed an explicit smoke-timeout stop rule
+    for new/custom validation surfaces before retry or completion claims.
+  controlling_sources_checked:
+    - AGENTS.md
+    - .agents/workflow-overlay/README.md
+    - .agents/workflow-overlay/decision-routing.md
+    - .agents/workflow-overlay/validation-gates.md
+    - .agents/workflow-overlay/source-of-truth.md
+    - .agents/workflow-overlay/prompt-orchestration.md
+  downstream_surfaces_checked:
+    - .agents/workflow-overlay/decision-routing.md
+    - .agents/workflow-overlay/validation-gates.md
+    - .agents/workflow-overlay/source-of-truth.md
+  intentionally_not_updated:
+    - path: .agents/workflow-overlay/decision-routing.md
+      reason: >
+        It already owns delegation routing and runtime-payload safety; the new
+        rule is the prompt/dispatch execution contract for subagent validation
+        probes, so it belongs in prompt-orchestration.md.
+    - path: .agents/workflow-overlay/validation-gates.md
+      reason: >
+        Known gate semantics and CI timeouts are unchanged. The new 30-second
+        limit is a smoke-probe stop condition for newly introduced or materially
+        changed validation commands, not a replacement gate timeout.
+    - path: .agents/workflow-overlay/source-of-truth.md
+      reason: >
+        Source hierarchy and propagation mechanics are unchanged; this receipt
+        consumes the existing doctrine-change propagation contract.
+  non_claims:
+    - not validation
+    - not readiness
+    - not source promotion
+    - not implementation authorization
+```
 Older receipts archived verbatim in `docs/decisions/dcp_receipts_archive_v0.md`.

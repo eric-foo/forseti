@@ -1,4 +1,4 @@
-# Wind-Caller Calibration Carve-Out v0
+# Wind-Caller (WindCaller) Calibration Carve-Out v0
 
 ```yaml
 retrieval_header_version: 1
@@ -137,12 +137,12 @@ For **internal wind-caller calibration only**, Orca may:
 
 1. Identify an individual **public-figure** creator/influencer wind-caller by their
    **public handle and public name** as the calibration subject.
-2. Record their **public outputs** — the "calls": posts, reviews, endorsements,
+2. Record their **public outputs** — the "calls" (Call): posts, reviews, endorsements,
    trend participations — as dated calibration entries.
 3. Record **public stats**: follower count, engagement rate, rank time-series,
    paid-promotion / sponsorship disclosure flags, trend-participation records.
 4. Record **Orca's internal call-vs-outcome calibration**: how each wind-caller's
-   public calls compared against observed market outcomes over time.
+   public calls compared against observed market outcomes (Outcome) over time.
 
 **Posture and constraints (non-negotiable within Tier 1):**
 

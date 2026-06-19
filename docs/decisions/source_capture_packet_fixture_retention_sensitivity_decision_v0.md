@@ -1,4 +1,4 @@
-# Source Capture Packet Fixture Retention Sensitivity Decision v0
+# Source Capture Packet (CapturePacket) Fixture Retention Sensitivity Decision v0
 
 ```yaml
 retrieval_header_version: 1
