@@ -141,3 +141,23 @@ deletions:
       semantic_delta: |
         No current proof-charter meaning is lost. The successor is the live proof-lead charter and already contains the applied consumer-demand refinement, Product Proof Lead question, first proof lane, proof artifact, ownership boundaries, pull standard, kill/graduation criteria, next docs-first work, and non-claims. The deleted package carried pre-application instructions plus its APPLIED_2026-06-12 status/deviation notes; those are historical prep, not live authority. The successor now states that the ratification cascade applied the refinement and that the live text reflects the applied deviations. Full authoring history remains recoverable from git.
       rollback: git revert <executing merge sha>
+
+  - targets:
+      - orca/product/spines/judgment/demand_read/c2_weighting/judgment_spine_c2_rule3_reground_phase_a_classification_finding_v0.md
+    evidence:
+      reverse_ref_check: |
+        W3b judgment AR-05 repo-wide reverse-ref run from the lane worktree with hidden Orca control files included and .git excluded. Searched exact current path, filename/doc-id slug, and title. Title search for "Judgment-Spine C2 Rule 3 (Risk-State Weighting)" hit only the target itself.
+
+        Exact path / filename / doc-id hits before live pointer handling:
+        - docs/migration/search_demand_signal_migration_inventory_v0.md:117 -- live consumer inventory; repointed to judgment_spine_c2_ledger_read_contract_v0.md with "includes folded Rule 3".
+        - docs/migration/repo_structure_search_lane_v0/reference_inventory.md:38 -- live referencing-files inventory; repointed to the C2 ledger contract with a note that the standalone Phase-A finding is no longer live.
+        - docs/migration/spine_first_target_move_table_v0.md:190 -- point-in-time migration placement table; left unchanged as migration history.
+        - docs/migration/repo_structure_spine_first_v0/moved_paths_index.md:163 -- moved-path history; left unchanged.
+        - docs/migration/repo_structure_spine_first_v0/moves_manifest.csv:135 -- moved-path manifest history; left unchanged.
+        - docs/migration/phase2_proposals/judgment_w3a_proposal_v0.md:143 -- prior W3a proposal candidate record; left unchanged as historical proposal provenance, not live doctrine.
+
+        Successor search confirmed the folded Rule 3 lives in orca/product/spines/judgment/demand_read/c2_weighting/judgment_spine_c2_ledger_read_contract_v0.md: status says Rule 3 folded, Required Behavior item 9 applies it, the "Rule 3 - Risk-State Weighting Across Evidentiary States" section carries the operative rule, and the DCP records the stale-frame input as superseded/retired by the reground. C3 also consumes the folded Rule 3 by pointer. No .agents hits and no live orca/product inbound refs to the target remained outside the deleted file.
+      successor: orca/product/spines/judgment/demand_read/c2_weighting/judgment_spine_c2_ledger_read_contract_v0.md
+      semantic_delta: |
+        No unique operative C2 behavior is lost. The deleted Phase-A finding's load-bearing purpose was to classify stale-frame Rule 3 as a patch and recommend folding it into the live C2 read-contract; the finding itself said the standalone artifact should not survive as an independent artifact and that Phase B should author Rule 3 into the C2 ledger read-contract. The successor now preserves the operative semantics: the C2 contract states Rule 3 was folded on 2026-06-15, item 9 applies risk-state weighting, the Rule 3 section defines the manufactured-axis cap / unconfirmed discount / absent neutral rule, persistence-axis routing to C3, discriminator requirement, and falsifiability/inherent-limit handling, and the DCP records stale-frame input superseded by the folded reground. Historical authorship and comparison detail remain recoverable from git and the prior W3a proposal.
+      rollback: git revert <executing merge sha>
