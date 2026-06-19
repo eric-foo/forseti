@@ -6,7 +6,7 @@ artifact_role: Product architecture planning artifact
 status: ARCHITECTURE_RECOMMENDATION_V0
 scope: >
   Non-executing architecture for exposing CloakBrowser to agents as a bounded
-  Source Capture Packet runner path rather than a freeform browser-control
+  Source Capture Packet (CapturePacket) runner path rather than a freeform browser-control
   surface.
 use_when:
   - Scoping the CloakBrowser adapter contract and packet runner before any

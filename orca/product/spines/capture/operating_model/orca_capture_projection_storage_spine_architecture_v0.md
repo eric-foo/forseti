@@ -150,7 +150,7 @@ the shared columns are genuinely shared, not false friends. Starting unified is 
 
 ```
 CAPTURE PLANE (satellite, per-platform / per-consumer)
-  reader → SourceCapturePacket + NEW typed Observation fields (value + posture + coverage window)
+  reader → SourceCapturePacket (CapturePacket) + NEW typed Observation fields (value + posture + coverage window)
      packets = SOLE source of truth (raw bytes, provenance, retention unit)
         ▼
 PROJECTION PLANE (core, platform-agnostic)

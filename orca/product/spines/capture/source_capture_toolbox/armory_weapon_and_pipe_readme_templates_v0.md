@@ -21,7 +21,7 @@ stale_if:
 
 The armory holds two kinds of component, each with its own succinct-but-complete README:
 
-- **Weapon** — a capture *tool* that produces a `SourceCapturePacket` (e.g. the anti-block HTTP ladder, cloakbrowser, archive.org, media-asset, reddit old-HTTP).
+- **Weapon** — a capture *tool* that produces a `SourceCapturePacket` (CapturePacket) (e.g. the anti-block HTTP ladder, cloakbrowser, archive.org, media-asset, reddit old-HTTP).
 - **Pipe** — an *access route / surface principle* (e.g. block-wall escalation, an unwalled-surface shortcut). A **welded** pipe — a tool's hardcoded route — is documented inside that weapon's README; a **cross-cutting** pipe — a route that spans weapons — gets its own pipe README.
 
 Recurring access *lessons* are **not** documented here. They become one-line distillation **cells** at a decision node (in the data-capture distillation binding). A README references its governing cell by node id via `fires_via:`; it never restates the firing rule (that would be non-firing prose). `fires_via` node ids are **proposed** until admitted to the binding, which is prepare-only and not yet on `main`.

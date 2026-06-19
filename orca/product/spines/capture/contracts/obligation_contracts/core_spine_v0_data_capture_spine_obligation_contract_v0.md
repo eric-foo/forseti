@@ -745,7 +745,7 @@ This contract does not prove buyer validation, willingness to pay, repeatable
 demand, product readiness, feature readiness, implementation readiness,
 commercial readiness, source-system feasibility, data rights, runtime
 feasibility, Core Spine validation, Judgment Spine validation, Evidence
-Candidate Record completion, or Evidence Unit design completion.
+Candidate Record completion, or Evidence Unit (EvidenceUnit) design completion.
 
 It does not authorize implementation, runtime design, source maps, schemas,
 scrapers, APIs, storage, dashboards, automation, tests, deployment, proof runs,

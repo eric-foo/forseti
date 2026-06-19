@@ -58,7 +58,7 @@ does not re-spec, re-mint, or fork it. The envelope of record is:
 
 1. **The shipped Source Capture packet schema** —
    `orca-harness/source_capture/models.py`. It already provides:
-   - `SourceCapturePacket` (the packet), `SourceCaptureSlice` (per-slice
+   - `SourceCapturePacket` (CapturePacket) (the packet), `SourceCaptureSlice` (per-slice
      facts), `PacketTiming`, `PreservedFile`, `ReceiptMetadata`;
    - timestamp / timing decomposition via `PacketTiming`:
      `source_publication_or_event`, `source_edit_or_version`, `capture_time`,

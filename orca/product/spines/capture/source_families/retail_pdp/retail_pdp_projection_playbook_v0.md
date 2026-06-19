@@ -5,7 +5,7 @@ retrieval_header_version: 1
 artifact_role: Product playbook (Retail/PDP raw-packet-to-projection contract; non-authorizing)
 scope: >
   Stabilizes the Amazon, Sephora, and Ulta Retail/PDP projection slice as a
-  repeatable view over Source Capture Packets: what raw capture must provide,
+  repeatable view over Source Capture Packets (CapturePacket): what raw capture must provide,
   what projection may emit, what residuals mean, and which retailer-specific
   target-binding limits must stay visible before ECR, Cleaning, or Judgment consume
   the view.

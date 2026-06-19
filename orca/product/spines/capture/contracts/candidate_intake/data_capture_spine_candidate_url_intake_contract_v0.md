@@ -18,7 +18,7 @@ stale_if:
   - Data Capture commissioned-capture scope or Decision Frame requirements change.
   - Source-access discovery/materiality doctrine changes.
   - Candidate URL Intake becomes owned by a broader Candidate Signal Intake or Corpus Intake contract.
-  - Source Capture Armory packet lifecycle, runner authority, or Source Capture Packet output rules move to a new owner.
+  - Source Capture Armory packet lifecycle, runner authority, or Source Capture Packet (CapturePacket) output rules move to a new owner.
 ```
 
 ## Status

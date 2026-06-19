@@ -30,7 +30,7 @@ stale_if:
 status: PROPOSED — creator monitoring policy (core machinery + per-platform profile seam); cadences illustrative + R-tunable; IG R first-measured pace-bound, at-pace ceiling still open; AWAITING owner adoption
 ```
 
-# Orca Creator Monitoring Policy — Coverage Allocator (PROPOSED, v0)
+# Orca Creator (WindCaller) Monitoring Policy — Coverage Allocator (PROPOSED, v0)
 
 ## Result
 

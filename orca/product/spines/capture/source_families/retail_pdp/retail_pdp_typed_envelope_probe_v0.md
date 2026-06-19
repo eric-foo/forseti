@@ -60,14 +60,14 @@ doctrine_propagation_expected: architecture_doctrine
 Retail/PDP passes the logical envelope fit check:
 
 ```text
-SourceCapturePacket stays canonical.
+SourceCapturePacket (CapturePacket) stays canonical.
 Retail/PDP-specific payload gets a packet/slice-keyed logical envelope.
 Projection remains a re-derivable view.
 ECR, Cleaning, and Judgment consume by key/ref instead of copying raw truth.
 ```
 
 The probe is strong because Retail/PDP is not IG-like: it has product pages,
-retailers, SKUs, prices, availability, review substrate, embedded structured
+retailers, SKUs (Product), prices, availability, review substrate, embedded structured
 JSON, carried modules, and source-specific residual traps. If that payload can
 stay out of core slice fields, the boundary is doing useful work.
 
@@ -161,7 +161,7 @@ Foregone on purpose:
 - no projection cache;
 - no migration of incumbent fields;
 - no live Retail/PDP smoke in this pass;
-- no ECR or Evidence Unit final schema;
+- no ECR or Evidence Unit (EvidenceUnit) final schema;
 - no Cleaning runtime schema;
 - no Judgment authorization;
 - no validation/readiness claim.

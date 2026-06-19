@@ -3,7 +3,7 @@ retrieval_header_version: 1
 artifact_role: consolidated capture findings (non-authorizing)
 scope: >
   Single consolidated statement of what is currently known about capturing the IG
-  (Instagram) wind-caller / creator-momentum signal — calls, profile stats, and
+  (Instagram) wind-caller (WindCaller) / creator-momentum signal — calls (Call), profile stats, and
   reel/video view counts — across the per-source recons and the shipped
   calls-capture build. Supersedes scattered per-doc claims where they conflict,
   and records the corrections made along the way. Non-authorizing: a findings

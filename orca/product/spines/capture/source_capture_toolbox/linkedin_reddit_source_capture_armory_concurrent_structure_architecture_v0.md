@@ -239,7 +239,7 @@ The shared backbone may own these primitives for both Reddit and LinkedIn:
 
 | Shared primitive | Backbone rule |
 | --- | --- |
-| Source Capture Packet | Canonical capture and provenance container before parser, source-quality, or state assembly. |
+| Source Capture Packet (CapturePacket) | Canonical capture and provenance container before parser, source-quality, or state assembly. |
 | Packet lifecycle | Reuse `scratch`, `candidate_evidence`, `recommended_fixture_admission`, `separately_admitted`; default `scratch`. |
 | Provenance | Record method, access surface, policy/access basis, operator/session posture, capture time, source time, cutoff, archive/history, packet/raw pointers, hash, warnings, and limitations. |
 | Parser boundary | Parser output is derivative and never canonical source body. |

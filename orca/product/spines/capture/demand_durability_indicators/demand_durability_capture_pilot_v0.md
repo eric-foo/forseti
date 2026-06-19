@@ -34,8 +34,8 @@ stale_if:
 
 A bounded live capture using the **existing harness** (`runners/run_source_capture_http_packet.py` → `fetch_direct_http_capture` → `stage_and_write_packet`), no new runtime built:
 
-- **Target:** Sol de Janeiro Brazilian Bum Bum Cream PDP (`https://www.soldejaneiro.com/products/brazilian-bum-bum-cream`) — a genuinely viral beauty SKU (demand-read relevant); brand DTC on Salesforce Commerce Cloud.
-- **Observations:** obs1 (cold-start) + obs2 (recapture, minutes later) → two valid `SourceCapturePacket`s (model-validated on write). Output in gitignored `_scratch/pilot/sdj_obs1`, `sdj_obs2`.
+- **Target:** Sol de Janeiro Brazilian Bum Bum Cream PDP (`https://www.soldejaneiro.com/products/brazilian-bum-bum-cream`) — a genuinely viral beauty SKU (Product) (demand-read relevant); brand DTC on Salesforce Commerce Cloud.
+- **Observations:** obs1 (cold-start) + obs2 (recapture, minutes later) → two valid `SourceCapturePacket`s (CapturePacket) (model-validated on write). Output in gitignored `_scratch/pilot/sdj_obs1`, `sdj_obs2`.
 - **Surface / rung:** `direct_http` (stdlib urllib, honest UA), `structured access` mode. HTTP 200, 810 KB real PDP, embedded price JSON. No gate hit (the page served full content; a `captcha` string on the page is an unrelated script reference, not a challenge wall — no gate was defeated).
 - **Pins recorded** (in `capture_context`, since not yet schema fields): `session_visibility_pin=logged_out_public`, `locale_pin=en-US`, `currency_pin=USD`, `variant_pin=default-on-page`, `cold_start=true` (obs1), `series_id=pilot_sdj_bumbum_001`.
 

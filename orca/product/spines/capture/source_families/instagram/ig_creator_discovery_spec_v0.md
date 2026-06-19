@@ -29,7 +29,7 @@ stale_if:
 status: PROPOSED — discovery design; suggested-accounts edge FEASIBILITY-PROVEN logged-out (Phase 1 + 2); sub-niche filter is GATING; rising-tier depth + production at-scale pending
 ```
 
-# Instagram Creator Discovery — Spec (proposed, v0)
+# Instagram Creator (WindCaller) Discovery — Spec (proposed, v0)
 
 ## Where this sits
 

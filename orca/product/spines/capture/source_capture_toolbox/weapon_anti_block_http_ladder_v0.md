@@ -19,7 +19,7 @@ stale_if:
 
 - Purpose: retrieve a public source body, escalating cost-ordered only as far as a block forces.
 - Rung / cost: rung-0 direct_http (honest baseline/control) → rung-1 anti_blocking_http (Chrome-like HTTP header profile; not browser-equivalent) → rung-3 browser_snapshot (rendered DOM, no raw bytes). [rung-2 curl_cffi gated/unbuilt; proxy/cloakbrowser are separate higher rungs.]
-- Input → Output: one URL → SourceCapturePacket (response bytes + metadata; block_shell classification; honest access_posture).
+- Input → Output: one URL → SourceCapturePacket (CapturePacket) (response bytes + metadata; block_shell classification; honest access_posture).
 - Built-in behavior (code-pole): rung-1 sends a Chrome-like HTTP header set by construction (UA Chrome/126 · Sec-CH-UA · Sec-Fetch-* · Accept-Encoding: identity). block_shell classifies every body (BLOCK_SHELL / EMPTY / encoded / uncertified); HTTP 200 is not recorded as certified source content.
 - Boundaries / non-claims: same Python TLS; no JA3/browser-TLS impersonation; not proxy/session; not anti-detect; does not certify a body as real source content; rung-3 has no raw-body path (can't capture file bytes).
 - Build status + ref: CA-verified 2026-06 — implemented + merged on `main` (source_capture/block_shell.py, source_capture/adapters/anti_blocking_http.py, the rung-0/1/3 runners, 2 unit tests); rung-3 browser_snapshot present on main + branch; Playwright 1.60 + Chromium installed.

@@ -23,7 +23,7 @@ stale_if:
 status: GO (logged-out) — Phase 1 (reachability, n=3) + Phase 2 (bounded snowball) feasibility-proven; production needs a sub-niche filter (gating) + rising-tier depth + at-scale posture
 ```
 
-# Instagram Creator Discovery — Suggested-Accounts Edge Recon (Phase 1, v0)
+# Instagram Creator (WindCaller) Discovery — Suggested-Accounts Edge Recon (Phase 1, v0)
 
 ## Headline
 

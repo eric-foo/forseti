@@ -1,4 +1,4 @@
-# IG Creator Roster And Frontier Ledger Spec v0
+# IG Creator (WindCaller) Roster And Frontier Ledger Spec v0
 
 ```yaml
 retrieval_header_version: 1

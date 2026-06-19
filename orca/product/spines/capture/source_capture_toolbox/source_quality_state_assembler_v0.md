@@ -70,7 +70,7 @@ quality-bearing conclusions back to the operator.
 ## Accepted Target Architecture
 
 The accepted v0 target is a Source Capture-owned, read-only assembler/router
-over already-bounded source-quality rows and existing Source Capture Packets.
+over already-bounded source-quality rows and existing Source Capture Packets (CapturePacket).
 
 Its only allowed flow is:
 

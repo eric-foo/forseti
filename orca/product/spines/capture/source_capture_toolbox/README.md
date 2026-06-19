@@ -42,7 +42,7 @@ cutoff posture, and acquisition receipts need to stay inspectable.
 
 If each fetcher, archive helper, browser snapshot, or media preserver writes its
 own output shape, downstream work inherits adapter-specific mess. The armory
-exists to make every capture path emit the same kind of Source Capture Packet
+exists to make every capture path emit the same kind of Source Capture Packet (CapturePacket)
 before more adapters are added.
 
 The packet is the shared capture container. The Data Capture obligation contract

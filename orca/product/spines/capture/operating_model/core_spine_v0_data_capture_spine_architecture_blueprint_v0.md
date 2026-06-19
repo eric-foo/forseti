@@ -54,7 +54,7 @@ only when it can discharge the relevant evidence-grade capture obligations for
 the decision-framed signal.
 
 Do not use stale "Data Spine" language when it implies Evidence Object Model,
-Evidence Unit content contract, source collection runtime, or generic data
+Evidence Unit (EvidenceUnit) content contract, source collection runtime, or generic data
 platform.
 
 ## Operating Scope
