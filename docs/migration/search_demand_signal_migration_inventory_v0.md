@@ -114,7 +114,7 @@ excluded by the binding.
 - `adversarial-artifact-reviews/demand_gate_definition_closures_cross_vendor_adversarial_artifact_review_v0.md` — review output for the demand-gate-definition closures.
 
 ### docs/product/judgment_spine/ — consumers of the read-taxonomy `[USE]`
-- `judgment_spine_demand_read_machinery_architecture_v0.md`, `judgment_spine_demand_read_grading_rubric_v0.md`, `judgment_spine_c3_verdict_action_ceiling_contract_v0.md`, `judgment_spine_c2_ledger_read_contract_v0.md`, `judgment_spine_c2_rule3_reground_phase_a_classification_finding_v0.md`, `judgment_spine_first_demand_read_scope_v0.md`, `demand_read_core_adoption_and_ledger_first_direction_v0.md` — Judgment Spine machinery that **consumes** the search-owned demand-read taxonomy; Judgment-owned.
+- `judgment_spine_demand_read_machinery_architecture_v0.md`, `judgment_spine_demand_read_grading_rubric_v0.md`, `judgment_spine_c3_verdict_action_ceiling_contract_v0.md`, `judgment_spine_c2_ledger_read_contract_v0.md` (includes folded Rule 3), `judgment_spine_first_demand_read_scope_v0.md`, `demand_read_core_adoption_and_ledger_first_direction_v0.md` — Judgment Spine machinery that **consumes** the search-owned demand-read taxonomy; Judgment-owned.
 
 ### docs/product/data_capture_spine/ — Capture boundary `[CAP]`/`[EXCL]`/`[FEED]`
 - `demand_durability_indicator_price_timeseries_capture_profile_v0.md`, `..._availability_restock_capture_profile_v0.md`, `..._review_velocity_corpus_capture_profile_v0.md` `[EXCL]` — the **non-search** durability indicators (retail venues); **explicitly excluded** by the binding; capture-owned; they **feed** the demand-state read.

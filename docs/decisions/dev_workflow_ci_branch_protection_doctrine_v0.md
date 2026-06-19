@@ -91,6 +91,15 @@ This record does not assert that any server-side gate is active. It is not.
    lane-start probe to Claude Code lanes whose harness already writes to their active worktree and
    reports write failures directly. Avoid relying on nested or secondary writable roots for Codex on
    Windows unless this preflight passes.
+
+   **Codex/manual patch discipline.** For Codex `apply_patch`, generated diffs, or manual textual
+   replacement flows, a corrupt patch, failed hunk, or expected-text mismatch is a stop-and-reread
+   condition: read the live target lines, then patch from observed current text before continuing. Before
+   claiming the edit is correct, inspect the changed hunks with `git diff`; `git diff --check` is only
+   whitespace/conflict-marker lint and must not be reported as content-correctness evidence. This clause
+   mainly binds Codex/manual patching; it does not add a new mandatory step to Claude Code edit flows
+   whose tool already requires live file reads, though any missed edit still routes to stop-and-reread.
+
 4. **Auto-merge** (TARGET — deferred; blocked on this private+free repo). When available, repo
    `allow_auto_merge` lets a lane set a PR to land the moment CI is green (unattended/overnight).
    `delete_branch_on_merge` **is** enabled now (it is not plan-gated); merged head branches are
@@ -137,6 +146,14 @@ This record does not assert that any server-side gate is active. It is not.
    inside a script subprocess the PreToolUse guard does **not** see (hooks fire on the agent's direct
    tool call, not on grandchild processes), so running it would **bypass the CLEAN/label
    verification**. Agents self-merge only via a direct `gh pr merge <N>`, which the guard inspects.
+
+   **GitHub API sandbox-egress classification.** A `gh` / GitHub API failure that names
+   `127.0.0.1:9`, or connection-refused to a local proxy/discard port, is sandbox egress refusal,
+   not evidence that the repository, PR, branch, or CI state failed. Prefer an available GitHub
+   connector for the read/write path; if using `gh`, network escalation is a bounded owner-gated
+   fallback for that operation only. Without a connector result or escalated readback, remote state is
+   unverified and must not be reported as failed, green, pushed, created, or merged.
+
 8. **Lane-isolation integrity — early detection, not a hard gate.** Lane isolation (the AGENTS.md
    rule, PR #9) is a *judgment* rule, so its integrity mechanism is **early detection**, not another
    hard block. A read-only detector, `.github/scripts/lane-health-check.ps1` (PR #11), surfaces drift
