@@ -12,7 +12,6 @@ authority_boundary: retrieval_only
 open_next:
   - orca/product/spines/capture/contracts/obligation_contracts/core_spine_v0_data_capture_spine_obligation_contract_v0.md
   - docs/decisions/data_capture_spine_obligation_contract_patch_proposal_owner_decision_v0.md
-  - orca/product/spines/capture/contracts/obligation_contracts/data_capture_spine_obligation_contract_patch_proposal_v0.md
   - docs/review-outputs/adversarial-artifact-reviews/data_capture_spine_obligation_contract_amendment_adversarial_artifact_review_v0.md
 input_hashes:
   docs/product/core_spine_v0_data_capture_spine_obligation_contract_v0.md: 85925ECB3429CF39CE4F287E959E75DE8944260596C798321D0E38186E6D45DC

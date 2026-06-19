@@ -33,4 +33,34 @@
 register_version: 0
 
 # Append records below. Empty at creation -- no deletions yet.
-deletions: []
+deletions:
+  - targets:
+      - orca/product/spines/capture/contracts/obligation_contracts/data_capture_spine_obligation_contract_patch_proposal_v0.md
+    evidence:
+      reverse_ref_check: |
+        Repo-wide W3b re-check run in this worktree against orca/, docs/, and .agents/ using both the exact current target path and the filename slug. No .agents/ refs and no orca/product/satellites/ refs were found.
+
+        Exact current target path hits after live pointer handling:
+        - docs/migration/repo_structure_spine_first_v0/moves_manifest.csv:80 -- historical spine-first move row; safe to leave.
+        - docs/migration/repo_structure_spine_first_v0/moved_paths_index.md:108 -- historical spine-first moved-path index; safe to leave.
+
+        Live open_next pointers found by the pre-edit exact-path search and handled:
+        - docs/decisions/data_capture_spine_obligation_contract_patch_proposal_owner_decision_v0.md:13 -- removed the deleted proposal from open_next; the successor was already listed in the same header.
+        - docs/prompts/reviews/data_capture_spine_obligation_contract_patch_proposal_adversarial_artifact_review_prompt_v0.md:13 -- repointed open_next to the successor contract and left historical prompt body/hash references intact.
+        - docs/prompts/reviews/data_capture_spine_obligation_contract_amendment_adversarial_artifact_review_prompt_v0.md:15 -- removed the deleted proposal from open_next; the successor remains listed in the same header.
+
+        Filename-slug hits classified as historical/provenance, frozen snapshots, or self-references removed with the target:
+        - docs/migration/repo_structure_phase2_consolidation_v0/reference_inventory.md:662, docs/migration/repo_structure_phase2_consolidation_v0/moves_manifest.csv:58, docs/migration/repo_structure_phase2_consolidation_v0/moved_paths_index.md:63 -- prior migration tracking for the old docs/product path; safe to leave.
+        - docs/decisions/data_capture_spine_obligation_contract_patch_proposal_owner_decision_v0.md:39,167,176,199 -- owner-decision source basis / DCP / recorded stale-language search for the accepted proposal package; historical lifecycle provenance, not a live dependency.
+        - docs/prompts/reviews/data_capture_spine_obligation_contract_patch_proposal_adversarial_artifact_review_prompt_v0.md:8,16,18,47,77,143 -- historical review prompt body/hash/source-list references; open_next was repointed to the successor.
+        - docs/prompts/reviews/data_capture_spine_obligation_contract_amendment_blast_radius_recheck_prompt_v0.md:144 and docs/prompts/reviews/data_capture_spine_obligation_contract_amendment_adversarial_artifact_review_prompt_v0.md:86,152 -- historical prompt source-list references; the amendment prompt open_next was handled.
+        - docs/review-outputs/adversarial-artifact-reviews/data_capture_spine_obligation_contract_patch_proposal_adversarial_artifact_review_v0.md:13,15,69,105; docs/review-outputs/adversarial-artifact-reviews/data_capture_spine_obligation_contract_amendment_blast_radius_recheck_v0.md:114; docs/review-outputs/adversarial-artifact-reviews/data_capture_spine_obligation_contract_amendment_adversarial_artifact_review_v0.md:85 -- frozen/historical review outputs; intentionally not edited.
+        - docs/review-inputs/judgment_conductor_delegated_review_v0/sources/core_spine_v0_data_capture_spine_obligation_contract_v0.md:29,743,756; docs/review-inputs/judgment_conductor_post_patch_recheck_v0/sources/core_spine_v0_data_capture_spine_obligation_contract_v0.md:29,743,756; docs/review-inputs/judgment_conductor_full_decorrelated_adversarial_review_v0/sources/core_spine_v0_data_capture_spine_obligation_contract_v0.md:29,743,756 -- frozen review-input snapshots; intentionally not edited.
+        - orca/product/spines/capture/contracts/obligation_contracts/core_spine_v0_data_capture_spine_obligation_contract_v0.md:29,775,788 -- parent contract provenance: source_basis / DCP downstream check / intentionally_not_updated. The DCP at lines 758 and 789 says the controlling contract operationalizes the accepted PCP-01 through PCP-08 package and the proposal remains historical candidate-language input.
+        - orca/product/spines/capture/contracts/obligation_contracts/data_capture_spine_obligation_contract_patch_proposal_v0.md:514,544 -- self-references inside the deleted target; removed with the target.
+
+        No remaining hit treats the target as current operative authority after the open_next edits. The surviving historical/provenance refs are satisfied by the parent contract's DCP receipt and the owner-decision record.
+      successor: orca/product/spines/capture/contracts/obligation_contracts/core_spine_v0_data_capture_spine_obligation_contract_v0.md
+      semantic_delta: |
+        No unique durable product-method meaning is lost. The successor contract operationalizes the accepted PCP-01 through PCP-08 package: expanded discharge states (`assessed_not_met`, `cannot_assess`, `access_failed`, and narrowed `blocked`) at lines 76-86 and 143; raw observable fidelity split at line 191; Capture-owned categorical handoff readiness at line 458; checker vocabulary/glossary at line 624; and checker posture/comparability at line 645. The successor DCP states at line 758 that it operationalizes the accepted PCP-01 through PCP-08 package and at line 789 that the proposal remains historical candidate-language input while the controlling contract consumes the accepted package. Authoring history remains recoverable from git and frozen review/decision records.
+      rollback: git revert <executing merge sha>

@@ -10,7 +10,6 @@ use_when:
   - Confirming whether this decision authorizes runtime/source-system work, source-access method-plan amendment, ECR design, Cleaning implementation, or Judgment design.
 authority_boundary: retrieval_only
 open_next:
-  - orca/product/spines/capture/contracts/obligation_contracts/data_capture_spine_obligation_contract_patch_proposal_v0.md
   - docs/review-outputs/adversarial-artifact-reviews/data_capture_spine_obligation_contract_patch_proposal_adversarial_artifact_review_v0.md
   - orca/product/spines/capture/contracts/obligation_contracts/core_spine_v0_data_capture_spine_obligation_contract_v0.md
   - orca/product/spines/capture/contracts/source_access_boundary/data_capture_source_access_method_plan_v0.md
