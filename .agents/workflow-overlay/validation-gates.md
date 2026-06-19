@@ -12,6 +12,15 @@ authority_boundary: retrieval_only
 
 Validation must be able to fail. Missing evidence is not a pass.
 
+Validation reports must preserve failure visibility by bucket:
+
+- `GATE PASS` / `GATE FAIL` are exit-code-bearing checks required for the claim.
+- `INFO` / `DEBT` is explicit allowlisted non-gating output; it never changes the gate exit code.
+- `OUT OF SCOPE` must name the owning lane or source surface; it cannot mean inconvenient or ignored.
+- Unknown nonzero exits, unknown findings, and wrapper-internal errors default to `GATE FAIL`, never
+  `INFO`. A future wrapper may encode this policy, but bucket membership is owned here; any wrapper
+  script that encodes it must exit nonzero iff any `GATE FAIL` exists.
+
 ## Current Gates
 
 - Required Orca files exist before claiming bootstrap completion.
@@ -363,4 +372,62 @@ direction_change_propagation:
     - the gate's existence does not prove any artifact passes it
     - not a kernel or jb change
     - --strict passing for a PR does not prove the whole repo is header-complete
+```
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Incident-derived workflow hardening now separates patch correctness, GitHub
+    sandbox-egress classification, and validation-result bucket semantics: Codex/manual
+    patch misses stop-and-reread and require `git diff` hunk inspection before correctness
+    claims; `127.0.0.1:9` GitHub API failures are sandbox egress refusal, not repo/CI
+    failure; validation reports classify outputs as GATE PASS/FAIL, INFO/DEBT, or OUT
+    OF SCOPE, with unknown nonzero results failing closed.
+  trigger: workflow_authority
+  related_triggers:
+    - validation_philosophy
+  controlling_sources_updated:
+    - docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md
+    - .agents/workflow-overlay/validation-gates.md
+  downstream_surfaces_checked:
+    - AGENTS.md
+    - .agents/workflow-overlay/README.md
+    - .agents/workflow-overlay/decision-routing.md
+    - .github/workflows/ci.yml
+    - .agents/hooks/check_map_links.py
+    - .agents/hooks/check_doc_terms.py
+  intentionally_not_updated:
+    - path: AGENTS.md
+      reason: >
+        AGENTS.md already routes repo-changing lane work to the dev-workflow doctrine and
+        validation claims to the overlay; duplicating these scoped rules there would bloat
+        the shared instruction surface and create drift risk.
+    - path: .github/workflows/ci.yml
+      reason: >
+        No normalized validation wrapper is introduced yet. CI continues to run existing
+        individual gates directly; wrapper enforcement is deferred until there is a concrete
+        consumer.
+    - path: .agents/hooks/check_map_links.py
+      reason: >
+        Existing strict/report modes already distinguish gate output from annotated debt;
+        the new bucket policy governs reporting and any future wrapper rather than changing
+        this checker.
+    - path: .agents/hooks/check_doc_terms.py
+      reason: >
+        Existing `--check` / `--report-orca` modes are report-only and exit 0; the new
+        bucket policy names them INFO/DEBT unless a future gate promotes them explicitly.
+  stale_language_search: >
+    rg -n "git diff --check|127\\.0\\.0\\.1:9|GATE PASS|GATE FAIL|INFO|DEBT|OUT OF SCOPE|check_doc_terms|check_map_links"
+    AGENTS.md .agents docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md .github .agents/hooks
+  stale_language_search_result: >
+    Executed 2026-06-20 during this patch. Existing and new hits are compatible: AGENTS.md already
+    routes to the owning doctrine/overlay; check_map_links and check_doc_terms document strict
+    versus report-only modes; ci.yml runs individual gates directly; no normalized wrapper consumer
+    exists today.
+  non_claims:
+    - not validation
+    - not readiness
+    - not a new hook or CI wrapper
+    - not a Claude Code edit-tool mandate
+    - the bucket policy does not prove any artifact passes a gate
 ```
