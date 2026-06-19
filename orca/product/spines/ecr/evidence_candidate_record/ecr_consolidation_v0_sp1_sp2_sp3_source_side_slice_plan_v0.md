@@ -26,7 +26,7 @@ producer_state: >
 branch_or_commit: main @ HEAD (re-verify producer citations against HEAD before ratification).
 stale_if:
   - The ECR frame (INV-1..5 / three-mode binding rule) is amended.
-  - models.py changes SourceCapturePacket identity fields, PreservedFile/hash_basis, or PacketTiming.cutoff_posture.
+  - models.py changes SourceCapturePacket (CapturePacket) identity fields, PreservedFile/hash_basis, or PacketTiming.cutoff_posture.
   - The owner ratifies, amends, or declines these three fields.
 ```
 

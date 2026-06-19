@@ -17,10 +17,10 @@ and `shared/`.
   - `cleaning/` — cleaning contracts, transformations, integrity labels, normalization
   - `judgment/` — conductor, claim ladder, source-side receipts, demand-read, product-learning machinery, learning loops, toolkit gaps
   - `product_lead/` — offer, buyer proof, ICP wedge, proof charter
-  - `data_lake/` — **shared-foundation spine**: cross-layer storage contracts (raw-packet preservation, keyed retrievability, Attachment Record, passive Availability Index) consumed by projection/ECR/cleaning/judgment. Promotion-bound; content lands in a later move pass.
+  - `data_lake/` — **shared-foundation spine**: cross-layer storage contracts (raw-packet preservation, keyed retrievability, Attachment Record, passive Availability Index) consumed by projection/ECR/cleaning/judgment. Authority and workflow content landed in the R2 move pass.
 - `satellites/` — domain-specific context (e.g. `beauty/`, `fragrance/`)
 - `case_families/` — corpora, runs, and case docs (e.g. `product_learning/`)
-- `shared/` — cross-spine registries: `engagement_registry/`, `projection_doctrine/`, `data_lake_mechanics/` (the last two are transitional, pending their own re-home decisions)
+- `shared/` — cross-spine registries: `engagement_registry/`, `projection_doctrine/` (both transitional, pending their own re-home decisions)
 
 ## Authority
 

@@ -353,8 +353,6 @@ direction_change_propagation:
   intentionally_not_updated:
     - path: "orca/product/spines/capture/source_capture_toolbox/cloakbrowser_packet_runner_architecture_v0.md"
       reason: "Historical architecture artifact; current operator method order is now carried by the playbook, planning thread, method plan, authorization decision, runbook, and Armory README."
-    - path: "orca/product/spines/capture/source_capture_toolbox/cloakbrowser_packet_runner_architecture_independent_pass_v0.md"
-      reason: "Historical independent architecture artifact; updating it would rewrite review context rather than current operator doctrine."
     - path: "orca/product/spines/capture/source_capture_toolbox/linkedin_reddit_source_capture_armory_concurrent_structure_architecture_v0.md"
       reason: "Historical concurrent-structure architecture artifact; current Reddit operator procedure is not governed there."
   stale_language_search: "rg -n \"CloakBrowser-first|CloakBrowser anti-blocking first|anti-blocking browser capture first|recommended_for_reddit_pre_commercial|method_order_observed|current order is CloakBrowser\" docs/product/source_capture_toolbox docs/product/data_capture_source_access_method_plan_v0.md docs/decisions/data_capture_spine_source_access_tooling_build_authorization_v0.md docs/workflows/data_capture_spine_consolidation_map_v0.md orca-harness/docs/source_capture_agent_runbook.md"

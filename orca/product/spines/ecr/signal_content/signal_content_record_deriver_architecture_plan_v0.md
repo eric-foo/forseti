@@ -35,7 +35,7 @@ stale_if:
 ```
 
 - Status: `PROPOSED_ARCHITECTURE_ROUTING_OBJECT` — advisory planning, **non-executing**.
-- Gate posture: **JSG-01 stays FROZEN.** This plan does not build, bind, ratify, or unfreeze anything; the final Evidence Unit field architecture stays owner-reserved.
+- Gate posture: **JSG-01 stays FROZEN.** This plan does not build, bind, ratify, or unfreeze anything; the final Evidence Unit (EvidenceUnit) field architecture stays owner-reserved.
 - Strict-claim boundary: controlling sources are pinned but the worktree is dirty (other-lane churn) → advisory only. No readiness / acceptance / validation / ratification claim. `docs-write` is authorized for this one plan doc; the deriver build is a separate, later authorization.
 - Evidence: a standard 3-subagent architecture-planning panel (3 independent lenses) + home adjudication. See the source-read ledger.
 - **Amendment v0.1 (owner-ratified).** A cross-vendor adversarial artifact review (`needs-architecture-pass`; 6 findings, all adjudicated ACCEPT) + a 3-subagent architecture-pass panel were adjudicated, and the **owner ratified** the result (D1, D2=b1, D3, D4-a, D5). See **Architecture-Pass Amendment v0.1** below. It supersedes these v0 statements: the deriver **signature** and **per-packet grain** (now per-slice), the per-field rows for `raw_observation` / `signal_event_time` / `ecr_posture_ref_ids` / `decision_relevance`, the **D1/D2/D3 owner-decision block** (now ratified), and the **"edits no model" non-claim** (one additive D2=b1 amendment is now scheduled). Still design-only; JSG-01 FROZEN.
@@ -63,7 +63,7 @@ stale_if:
 
 > **Supersedes the v0 statements named in the status header.** Installed after a cross-vendor adversarial artifact review (verdict `needs-architecture-pass`; 6 findings, all adjudicated ACCEPT), a 3-subagent architecture-pass panel, and home adjudication; **owner-ratified** (D1, D2=b1, D3, D4-a, D5). Design-only; one model amendment **scheduled, not applied**; JSG-01 FROZEN. Design basis: the cross-vendor review + the panel adjudication (recorded in the DCP receipt).
 
-**Carry-supplied-or-residualize invariant.** The deriver is a **pure function of its frozen inputs, but NOT packet-only.** It has four frozen input channels — the `SourceCapturePacket`, caller-supplied `preserved_bodies`, caller-supplied `ecr_posture_refs`, and a caller-supplied `authored_interpretation`. Every emitted value is **carried** from one of these or is a **named residual**; where a frozen input is absent → honest residual. The deriver **never synthesizes, selects, classifies, or infers an interpretive value from packet prose** (`raw_observation`, `locator`, `requested_decision_context`, any packet text). The packet records *that a capture happened* + provenance/timing; the body, the event-time anchor, the ECR posture keys, and the interpretation are inputs the **caller supplies**.
+**Carry-supplied-or-residualize invariant.** The deriver is a **pure function of its frozen inputs, but NOT packet-only.** It has four frozen input channels — the `SourceCapturePacket` (CapturePacket), caller-supplied `preserved_bodies`, caller-supplied `ecr_posture_refs`, and a caller-supplied `authored_interpretation`. Every emitted value is **carried** from one of these or is a **named residual**; where a frozen input is absent → honest residual. The deriver **never synthesizes, selects, classifies, or infers an interpretive value from packet prose** (`raw_observation`, `locator`, `requested_decision_context`, any packet text). The packet records *that a capture happened* + provenance/timing; the body, the event-time anchor, the ECR posture keys, and the interpretation are inputs the **caller supplies**.
 
 **Amended deriver contract** (supersedes §"Bounded build scope teed up"):
 
@@ -129,7 +129,7 @@ The structural fork the contract must answer: is extraction **AUTHORED**, **MECH
 
 ## Resolution: SPLIT (the load-bearing answer), alternatives compared
 
-**The deriver is a mechanical CARRY-shell over the frozen `SourceCapturePacket` that COMPOSES a bounded, residualizable authored interpretive core — and residualizes that core when the authored input is absent (the default).** It never originates family or content.
+**The deriver is a mechanical CARRY-shell over the frozen `SourceCapturePacket` (CapturePacket) that COMPOSES a bounded, residualizable authored interpretive core — and residualizes that core when the authored input is absent (the default).** It never originates family or content.
 
 | Criterion | Pure AUTHORED now | Pure MECHANICAL M2 (deriver classifies prose) | **SPLIT (carry + residual; authored lane dormant)** |
 |---|---|---|---|

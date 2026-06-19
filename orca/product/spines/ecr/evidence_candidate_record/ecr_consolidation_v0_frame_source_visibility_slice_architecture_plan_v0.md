@@ -33,7 +33,7 @@ branch_or_commit: >
 stale_if:
   - The owner ratifies, amends, or declines ECR consolidation v0 (the frame and/or the SP-6 slice).
   - The committed R2 (closed posture vocabularies + PreservedFile.hash_basis, landed at 102a171) is reverted or further amended.
-  - orca-harness/source_capture/models.py changes SourceCapturePacket posture fields, PreservedFile, or hash_basis.
+  - orca-harness/source_capture/models.py changes SourceCapturePacket (CapturePacket) posture fields, PreservedFile, or hash_basis.
   - The capture lane adds a first-class archive-snapshot-date fact or a recorded archive-vs-current comparison fact.
   - The boundary doc's reserved-consolidation status (lines 281-309) is edited to record the open.
 ```
@@ -47,7 +47,7 @@ stale_if:
 
 ## Human Summary
 
-**Decision (lane synthesis).** Recommend a **thin ECR frame** — a derived-projection layer over the upstream `SourceCapturePacket`, with one stable invariant (the ECR stores no new capture fact and authors no capture truth) and a **three-mode binding rule** — and, instantiating that frame, **SP-6 `source_visibility_posture` as the first ECR field**: an ECR-owned, **derived, non-persisted** value-or-residual reduction of the producer's already-closed facts. Architecture result: `TARGET_RECOMMENDED` for the frame + slice **design**, advisory. The full ECR field architecture stays owner-reserved and is **not** designed here.
+**Decision (lane synthesis).** Recommend a **thin ECR frame** — a derived-projection layer over the upstream `SourceCapturePacket` (CapturePacket), with one stable invariant (the ECR stores no new capture fact and authors no capture truth) and a **three-mode binding rule** — and, instantiating that frame, **SP-6 `source_visibility_posture` as the first ECR field**: an ECR-owned, **derived, non-persisted** value-or-residual reduction of the producer's already-closed facts. Architecture result: `TARGET_RECOMMENDED` for the frame + slice **design**, advisory. The full ECR field architecture stays owner-reserved and is **not** designed here.
 
 **The frame in one line.** ECR = receipt/derive layer between Capture and Cleaning; a capture fact becomes an ECR field in exactly one of three modes — **carried-by-reference** (producer owns and closes the fact; ECR points + downstream recomputes), **derived-read** (producer owns the inputs; ECR computes a recorded read), or **named-residual** (producer holds neither; ECR records the gap and stops, never coining a parallel field). The mode is chosen by *where the fact's authority already lives*, so the slice pre-commits no sibling field's shape.
 
@@ -87,7 +87,7 @@ stale_if:
 ### 1.2 Layering invariants (future work must preserve all five)
 
 ```text
-Data Capture Spine (Armory / SourceCapturePacket)  -- PRODUCES capture facts (single source-side writer)
+Data Capture Spine (Armory / SourceCapturePacket (CapturePacket))  -- PRODUCES capture facts (single source-side writer)
    v
 Evidence Candidate Record (ECR)                    -- RECEIPTS / DERIVES (authors no capture fact; stores none)
    v
@@ -134,7 +134,7 @@ Area + why deferred (from boundary `:75,163-171,285-294`). **None designed below
 | Representation | Role | What the frame does with it |
 |---|---|---|
 | **IPF Evidence Unit standard** (`core_spine_v0_information_production_foundation_v0.md`) | **Canonical-to-cite** (semantic home) | ECR field *semantics* are authored in IPF terms; boundary `:131-134` fixes IPF as the cite-home until the consolidation. |
-| **`SourceCapturePacket`** (`orca-harness/source_capture/models.py`) | **Producer** (sole source-side writer) | ECR binds to its real fields by reference/derive (D4); never writes into it. |
+| **`SourceCapturePacket`** (CapturePacket) (`orca-harness/source_capture/models.py`) | **Producer** (sole source-side writer) | ECR binds to its real fields by reference/derive (D4); never writes into it. |
 | **Harness `EvidenceUnit`** (`case_models.py` + `pydantic_schema_reference.md`) | **Downstream consumer** (carried-reference target) | ECR carried references land here; the harness recomputes, never re-authors (D3). |
 
 **Representation-drift reconciliation is DEFERRED** (named, not resolved): (a) the pydantic doc shape lacks `source_type`/`hash_basis` that the `case_models.py` impl has; (b) the producer's `cutoff_posture` (a `VisibleFact`) vs the translator's coined same-named closed enum — a same-name/different-shape collision (`jsg01_source_side_receipt_translator_v0.md:443-453`). Choosing the canonical representation and whether `source_type`/`hash_basis` become required is the **full consolidation's** job (boundary `:285`), owner-reserved. The frame's only commitment: **IPF cites, Armory produces, EvidenceUnit consumes** — and the "no parallel names" clause stops the slice from adding a fourth drift.

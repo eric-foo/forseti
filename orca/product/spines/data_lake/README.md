@@ -7,18 +7,19 @@ scope: >
   Front-door for the data_lake shared_foundation spine: the cross-layer storage
   contracts (raw-packet preservation, keyed retrievability, Attachment Record,
   passive Availability Index, append-only derived-result/ack attachment) that
-  other spines depend on. PROMOTION binding only — no content has moved in yet;
-  the R2 move pass lands the contracts and the mechanics map.
+  other spines depend on. R2 populated the spine with the lake contracts and
+  canonical mechanics map; only the two repo-structure migration planning docs
+  remain deferred pending placement.
 use_when:
   - Entering the data_lake spine or deciding whether an artifact is lake-owned.
-  - Authoring or gating the R2 Data Lake content move.
+  - Checking the R2-populated authority/workflow routing and deferred placement status.
 authority_boundary: retrieval_only
 open_next:
   - docs/decisions/orca_data_lake_spine_promotion_binding_v0.md
   - docs/decisions/orca_spine_first_target_structure_binding_v0.md
 stale_if:
   - The data_lake spine shape or its shared_foundation kind is amended.
-  - The R2 move pass populates the spine (update this front-door then).
+  - A later placement decision moves the deferred migration planning docs into the spine.
 ```
 
 ## What this spine is
