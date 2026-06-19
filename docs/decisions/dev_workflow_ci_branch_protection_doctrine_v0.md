@@ -79,6 +79,18 @@ This record does not assert that any server-side gate is active. It is not.
    - `enforce_admins: false` (the owner retains an emergency override).
 3. **Per-lane PR flow.** Each lane branches off `main`, works in its own branch/worktree, and opens
    one focused PR. No multi-workstream mega-batches (the PR #1 lesson).
+   **Codex/sandboxed lane-start writeability (harness-scoped, not a Claude Code rule).** For Codex or
+   any sandboxed harness whose writes are mediated by workspace writable roots, the lane is not ready
+   for repo-changing edits until the active worktree is the harness workspace root (or otherwise
+   owner-configured as a writable root) and a lane-start write + git-index preflight passes in that
+   worktree. The preflight writes a throwaway file, stages it, unstages it, deletes it, and reads
+   `git status --short`; failure to create, stage, unstage, or cleanly remove the probe is a stop
+   condition: reroot/reopen the harness on the active worktree, or create a new owner-configured
+   writable worktree and retry. Escalated writes are a bounded fallback for the current operation only,
+   not the normal lane path. This is Codex/sandboxed-harness scoped; it does **not** add a mandatory
+   lane-start probe to Claude Code lanes whose harness already writes to their active worktree and
+   reports write failures directly. Avoid relying on nested or secondary writable roots for Codex on
+   Windows unless this preflight passes.
 4. **Auto-merge** (TARGET — deferred; blocked on this private+free repo). When available, repo
    `allow_auto_merge` lets a lane set a PR to land the moment CI is green (unattended/overnight).
    `delete_branch_on_merge` **is** enabled now (it is not plan-gated); merged head branches are

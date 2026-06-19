@@ -1,26 +1,33 @@
 #!/usr/bin/env python3
-"""PostToolUse hook — remind that docs/prompts/** is orchestrator-owned (advisory).
+"""PostToolUse hook — inject the Orca Prompt Preflight on docs/prompts/** writes (advisory).
 
 WHAT THIS DOES
-  After a Write/Edit lands a file under docs/prompts/**, returns a one-line
-  reminder that prompt, handoff, wrapper, rerun, and patch artifacts must be
-  authored through workflow-prompt-orchestrator (or carry an applied-contract
-  record). The observed failure mode is hand-drafted prompts caught only by
-  the owner after the fact (>=4 sessions); this moves the nudge to the tool
-  boundary at the moment of the write (ratified config proposal P5,
-  2026-06-12).
+  After a Write/Edit lands a file under docs/prompts/**, injects the Orca Prompt
+  Preflight core (output mode · template kind · edit-permission+targets+branch ·
+  reviews findings-first + no runtime-model routing · doctrine-change ->
+  propagation receipt · destinations) so a routine prompt applies the prompt
+  contract INLINE with no skill reload. Fused / delegated-review-patch / novel
+  prompts still author through workflow-prompt-orchestrator.
+
+  This is the real, agent-agnostic enforcement that replaces the invoke-ritual:
+  the boundary nudge carries the checklist itself, not a bare "go reload the
+  orchestrator" pointer. It evolved in place from the ratified config-proposal-P5
+  provenance reminder (2026-06-12); the strong-mandate pointer it used to emit
+  ("must be authored through workflow-prompt-orchestrator") went stale when the
+  mandate was narrowed to routine -> preflight / novel -> full skill, so the
+  payload now carries the narrowed two-depth routing.
 
 WHY (enforcement placement)
-  The routing rule is owned by .agents/workflow-overlay/prompt-orchestration.md
-  ("Author Through The Prompt Orchestrator"). Whether the orchestrator ran is
-  not mechanically checkable from one tool call, so the checkable part — a
-  write into an orchestrator-owned folder — gets a deterministic reminder, per
-  the Enforcement Placement principle in
-  .agents/workflow-overlay/validation-gates.md.
+  The prompt contract is owned by .agents/workflow-overlay/prompt-orchestration.md
+  ("Orca Prompt Preflight" + "Author Through The Prompt Orchestrator"). Whether
+  the contract was applied is not mechanically checkable from one tool call, so
+  the checkable part — a write into the prompt surface — gets a deterministic,
+  always-fires injection of the checklist, per the Enforcement Placement
+  principle in .agents/workflow-overlay/validation-gates.md.
 
 HARD BOUNDARY — remind only, never block, never verdict.
-  Exit 0 always; fails OPEN. It cannot verify the orchestrator was or was not
-  used, so the reminder asserts no violation. It misses paste-ready-chat
+  Exit 0 always; fails OPEN. It cannot verify the contract was or was not
+  applied, so the reminder asserts no violation. It misses paste-ready-chat
   prompts that never touch disk (named, accepted limitation).
 
 MODES
@@ -39,11 +46,28 @@ import json
 import sys
 
 REMINDER = (
-    "This write landed under docs/prompts/** (orchestrator-owned). Prompt, "
-    "handoff, wrapper, rerun, and patch artifacts must be authored through "
-    "workflow-prompt-orchestrator, or carry an applied-contract record per "
-    ".agents/workflow-overlay/prompt-orchestration.md. If this artifact was "
-    "orchestrator-authored, ignore this reminder. Advisory only -- not a "
+    "Prompt preflight (advisory, not blocking) -- this write landed under "
+    "docs/prompts/**. Apply the Orca Prompt Preflight before treating the prompt "
+    "as done; state, per prompt:\n"
+    "  1. Output mode -- one of chat-only/file-write/review-report/"
+    "paste-ready-chat/patch-queue, plus its write/report destination.\n"
+    "  2. Template kind -- the bound template from template-registry.md, or none; "
+    "template targets are prompt-shaping labels, never runtime-model routing.\n"
+    "  3. Edit permission + targets + branch -- read-only/docs-write/patch-only/"
+    "implementation-authorized; target files or dirs; workspace, branch, and "
+    "dirty-state when repository state matters.\n"
+    "  4. Reviews -- findings-first by default; bind any formal verdict, severity, "
+    "or patch queue explicitly; no runtime-model recommendation, ranking, or "
+    "implication.\n"
+    "  5. Doctrine change -- product/architecture/workflow/validation/review/"
+    "output doctrine or a lifecycle boundary carries a "
+    "direction_change_propagation receipt or blocker (source-of-truth.md).\n"
+    "  6. Destinations -- the input prompt-artifact path, and the exact "
+    "output-artifact path written when the mode writes a durable artifact.\n"
+    "Routine prompts apply this core inline -- no skill reload. Fused, "
+    "delegated-review-patch, and novel/cross-lane prompts author through "
+    "workflow-prompt-orchestrator. Rule owner: "
+    ".agents/workflow-overlay/prompt-orchestration.md. Advisory only -- not a "
     "verdict that the contract was skipped."
 )
 

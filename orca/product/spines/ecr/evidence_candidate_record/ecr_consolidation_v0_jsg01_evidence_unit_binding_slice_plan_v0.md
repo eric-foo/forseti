@@ -7,7 +7,7 @@ scope: >
   Bounded slice plan for the minimal composition object that binds, by key
   (reference-never-merge), exactly what the JSG-01 predicate reads — the four
   derived source-side postures (SP-1/2/3/6) and the current FinalizationReceipt
-  read — onto one case-packet evidence unit. Advisory design; recommends but
+  read — onto one case-packet evidence unit (EvidenceUnit). Advisory design; recommends but
   ratifies nothing; build gated behind owner ratification.
 status: PROPOSED_ARCHITECTURE_ROUTING_OBJECT — advisory, non-executing, POST delegated cross-vendor review-and-patch (adjudicated 2026-06-12: all reviewer changes kept), PRE owner ratification.
 use_when:
@@ -82,7 +82,7 @@ acceptable for unfreeze or silently rewrite the frozen conductor's D2 blocker.
 | Field | Meaning |
 | --- | --- |
 | `evidence_id` | the case-packet `EvidenceUnit` being bound (`schemas/case_models.py:54`); the unit itself is **unchanged** |
-| `packet_id` | the `SourceCapturePacket` carrying the source slice (`source_capture/models.py:161`) |
+| `packet_id` | the `SourceCapturePacket` (CapturePacket) carrying the source slice (`source_capture/models.py:161`) |
 | `evidence_slice_id` | the slice within that packet whose preserved bytes carry this evidence unit's content (`source_capture/models.py:118`); resolves the per-slice grain of SP-2/SP-3 |
 
 No posture, no receipt, no content, no derived value is stored on the binding: it
