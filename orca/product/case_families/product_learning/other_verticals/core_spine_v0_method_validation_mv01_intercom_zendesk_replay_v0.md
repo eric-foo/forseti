@@ -42,7 +42,7 @@
 | Launch context contamination check | `clear`: launch context named archived contaminated output location and manifest hash only; no archived bodies, prior URLs, source notes, observations, headings, verdicts, or evidence units were provided or used. |
 | Archived artifact rule | `passed`: archived artifact bodies were not read. |
 | Search snippet handling | `snippet-noise: yes`: pre-seal search results included out-of-window or post-window snippets; no leaked fact from those snippets is preserved or used in the at-cutoff memo (Memo). |
-| Pre-seal outcome page opens | `none`: no post-window outcome page (Outcome) was opened before this seal marker. |
+| Pre-seal outcome page opens | `none`: no post-window outcome page was opened before this seal marker. |
 | Post-seal outcome page opens | `true`: four MV-01 post-window pages were opened only after the seal marker was written and checked. |
 | Failed opens | `non-evidence`: failed fetches remain blocked source rows only. |
 

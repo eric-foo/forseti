@@ -121,7 +121,7 @@ buyer-belief pressure, and demand apart.
 The BT2-04 slice replayed Shutterstock's possible response to generative image
 AI using public evidence visible on or before the 2022-09-15 cutoff. It
 explicitly separated the pre-cutoff pool and at-cutoff replay memo (Memo) from the
-post-window outcome pool (Outcome).
+post-window outcome pool.
 
 The at-cutoff evidence supported public technology availability, commercial
 creative-tool visibility, Shutterstock marketplace exposure, preexisting

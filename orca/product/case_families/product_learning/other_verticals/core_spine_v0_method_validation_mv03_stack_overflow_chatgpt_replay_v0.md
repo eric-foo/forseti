@@ -62,7 +62,7 @@
 | --- | --- | --- |
 | Search-result snippets | `snippet-noise: yes` | Later-year and post-window-looking results appeared in search output; not opened or used for at-cutoff reasoning. |
 | Current-page chrome | `page-chrome-noise: yes` | Current Stack Overflow/Meta/Techzine navigation and sidebar text included later product or current-news labels; treated as page chrome and excluded. |
-| Post-window outcome pages (Outcome) before seal | none intentionally opened | No known MV-03 outcome page was opened before this seal. |
+| Post-window outcome pages before seal | none intentionally opened | No known MV-03 outcome page was opened before this seal. |
 | Post-window outcome pages after seal | opened after seal | Four MV-03 outcome pages were opened only after the at-cutoff seal marker. |
 | Archived bodies | none read | No archived replay bodies or contaminated artifacts were read. |
 | Prior MV-01 evidence | none used | The MV-01 receipt summary was not used as MV-03 evidence. |

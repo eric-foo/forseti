@@ -60,7 +60,7 @@ Non-authority:
 Sequence note:
 
 The pre-cutoff candidate pool and at-cutoff replay memo were completed before
-the post-window outcome pool (Outcome) was inspected. Post-window sources are listed only
+the post-window outcome pool was inspected. Post-window sources are listed only
 in section 9 and are excluded from sections 3 through 8.
 
 ## 2. Locked Backtest Frame

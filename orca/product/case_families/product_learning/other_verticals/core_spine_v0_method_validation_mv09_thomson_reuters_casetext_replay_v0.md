@@ -10,7 +10,7 @@
 - Source basis: required Orca overlay reads, the accepted case-frame lock artifact, and bounded public source loading for `MV-09`.
 - Non-authority: no prior failed-run source notes, archived bodies, prior case artifact bodies, private data, source maps, implementation planning, packet synthesis, or outcome evidence before the seal.
 - Public source-loading caps before seal: 4 searches, 12 page opens, maximum 3 opened pages per source family.
-- Public source-loading caps after seal: maximum 4 post-window outcome opens (Outcome) for `MV-09`.
+- Public source-loading caps after seal: maximum 4 post-window outcome opens for `MV-09`.
 
 ## 2. Accepted Decision Frame
 

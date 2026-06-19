@@ -6,7 +6,7 @@
 - Case name: Unity Runtime Fee.
 - Current status: `MV04_COMPLETE_USEFUL_AVOIDED_FALSE_COMMIT_DOWNGRADE_REFRAME`.
 - Scope: Phase 3 only, MV-04 only.
-- Source basis: public, non-deceptive sources visible before the 2023-09-11 cutoff, plus post-window outcome sources (Outcome) opened only after seal.
+- Source basis: public, non-deceptive sources visible before the 2023-09-11 cutoff, plus post-window outcome sources opened only after seal.
 - Search/open budget used before seal: 4 searches; 11 pre-cutoff page opens attempted; 8 readable.
 - Post-window source budget used after seal: 4 outcome page opens attempted; 3 readable.
 - Non-authority: this is a method-validation replay artifact, not an accepted Unity recommendation, product-market proof, implementation plan, source map, automation plan, or validation of Core Spine v0.
