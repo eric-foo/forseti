@@ -4,7 +4,7 @@
 retrieval_header_version: 1
 artifact_role: Judgment Spine product-learning reconciliation artifact
 scope: >
-  Maps the 2026-06-17 user-supplied fragrance Level 1 backtest pack onto
+  Maps the 2026-06-17 user-supplied fragrance (Vertical) Level 1 backtest pack onto
   current Orca Judgment Spine and demand-read surfaces while preserving the
   product-learning cap and non-claims.
 use_when:
@@ -34,7 +34,7 @@ This is a docs-only reconciliation artifact. The separate Level 1 core artifact
 has been retired by owner request; the current-state/decomposition map and
 fragrance Level 1 organizers now route to the repo-local backtesting-first
 product-learning context by pointer. This artifact still does not authorize a
-run, authorize scoring, admit a named case, or promote any prompt. The owner
+run, authorize scoring, admit a named case (Case), or promote any prompt. The owner
 confirmed in-thread on 2026-06-17 that this lane should stay product-learning.
 
 ## ELI5 Read
@@ -89,13 +89,13 @@ receipt_artifact_or_gap: this artifact is reconciliation input; future per-case 
 | MGT / SCV target | `judgment_current_state_and_decomposition_v0.md` plus fragrance Level 1 organizers | Use as Level 1 product-learning context: backtesting-first, tight fragrance wedge, full loop through evaluation | Validation, readiness, or permission to expand scope |
 | Fragrance Level 1 MGT goal | Demand-read product-learning satellite consuming current Judgment boundaries by pointer | Use as the domain target for a bounded public-fragrance backtest-learning pack | Buyer proof, client-facing authority, or judgment-quality claim |
 | Commission intake and gate | Current-state/decomposition route plus future prompt-orchestrated gate artifact | Shape case intake, cutoff, decision type, playbook, source priorities, creator slices, confirmation/counterevidence, and forecast targets | Run authorization, final recommendation, prompt approval, or source authority |
-| Source registry and public venues | Source-capture satellite / source registry candidate material | Identify candidate source families and provenance requirements for fragrance backtests | Durable source-capture authority without separate adoption |
+| Source registry and public venues (Venue) | Source-capture satellite / source registry candidate material | Identify candidate source families and provenance requirements for fragrance backtests | Durable source-capture authority without separate adoption |
 | Graph-family artifact and evidence object | Case packet / evidence packet preparation upstream of JSG-06 | Organize source facts, contradictions, timelines, evidence IDs, and provenance for later sealed judgment | Conductor edit, scoring schema change, ECR clearance, or JSG gate rewrite |
 | Evidence weighting rubric | C2 ledger read contract | Keep as qualitative weighting and reasoning trace over relevance, strength, independence, recency, costliness, direction, and risks | Numeric scoring engine, weighted model, or precise calibration |
-| Forecast record and Brier-style eval | Current-state/decomposition forecast boundary plus near-half product-learning evaluation surface | Store raw probabilities, probability buckets, horizons, due dates, later outcome labels, and Brier hooks as learning material | JSG-08 calibration, buyer proof, or judgment-quality evidence |
+| Forecast record and Brier-style eval | Current-state/decomposition forecast boundary plus near-half product-learning evaluation surface | Store raw probabilities, probability buckets, horizons, due dates, later outcome labels (Outcome), and Brier hooks as learning material | JSG-08 calibration, buyer proof, or judgment-quality evidence |
 | Utility and action recommendation | C3 verdict/action ceiling contract plus current-state/decomposition utility/action boundary | Bind recommendations to bounded action family, magnitude, timing, trigger, stop condition, next action, and crux | Passive monitor, new action vocabulary, or unconstrained live action |
 | Decision log and eval spreadsheet | Product-learning receipt candidate plus future lesson ledger | Preserve what was decided, when, from what evidence, what forecasts/actions were sealed, and how it later scored | Completed product-learning evidence until receipt fields are complete |
-| Twenty-five-case fragrance casebook | Case-finder / casebook admission candidate | Use as the first success condition for a repeatable backtest-learning pack | Accepted batch, benchmark, calibration, readiness screen, or proof |
+| Twenty-five-case fragrance casebook (Case) | Case-finder / casebook admission candidate | Use as the first success condition for a repeatable backtest-learning pack | Accepted batch, benchmark, calibration, readiness screen, or proof |
 
 ## Product-Learning Cap
 

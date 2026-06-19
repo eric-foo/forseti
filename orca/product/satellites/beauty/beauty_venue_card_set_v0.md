@@ -5,7 +5,7 @@ retrieval_header_version: 1
 artifact_role: Promoted venue card-set (the ONE maintained venue asset; bounded by survival ingredients)
 scope: >
   The owner-promoted working deck for beauty/personal-care screens (fragrance
-  included): 12 cards max, each a dated hint with a review date — which venues
+  included): 12 cards max, each a dated hint with a review date — which venues (Venue)
   produce, what role each plays in the vertical's signal chain, and the access
   shape that works. Derived entirely from three screens' ledger provenance.
   Read FIRST at Step 0 of any beauty screen, then the provenance grep as usual.
@@ -34,7 +34,7 @@ S3 = subtle screen 3.
 
 - NEWSY class: Reddit boards ORIGINATE -> trade press launders into the
   citable record -> BoF/WWD terminate. Enter via trade hubs (cards 1-3).
-- SUBTLE class: nothing launders upward — the detector IS the record. Enter
+- SUBTLE class: nothing launders upward — the detector (WindCaller) IS the record. Enter
   via origination/tracker cards (4-9) and detector cards (10-12).
 
 ## Cards (12/12 — cap full)
@@ -51,7 +51,7 @@ S3 = subtle screen 3.
 | 8 | Basenotes (megathread 341850 + brand threads + discontinued tags) | tracker — THE fragrance subtle-class home | Routed both S3 fragrance candidates (Puredistance M, Imaginary Authors); detection precedes press by weeks-months (S2, S3) | HTTP 403 direct; search snippets work; archive mementos unreachable via fetch tool this run | 2026-12-11 |
 | 9 | Fragrantica (news + designer/product pages) | tracker/aggregator | Discontinued-status confirmations; second aggregation layer for fragrance (S3) | HTTP 403 direct; snippets only | 2026-12-11 |
 | 10 | Ingredient-audit blog cluster (toxinfreeclearskin "Ingredient Microscope"; thefiltery) | detector (subtle skincare/haircare) | Detected Evolvh + CLEARSTEM silent reformulations by INCI diff, 1-6mo latency, before any indexed community thread (S3) | direct fetch OK | 2026-12-11 |
-| 11 | INCIDecoder | root-receipt detector / wind-caller exemplar | Commissioned SPF tests = the root receipt the whole Purito chain cites; market-moving detection (S2) | direct fetch OK | 2026-12-11 |
+| 11 | INCIDecoder | root-receipt detector / wind-caller exemplar (WindCaller) | Commissioned SPF tests = the root receipt the whole Purito chain cites; market-moving detection (S2) | direct fetch OK | 2026-12-11 |
 | 12 | Specialist fragrance blog cluster (The Scented Hound, The Plum Girl, CaFleureBon) | outcome gauge (fragrance) | 4 blogs on one ultra-niche SKU change = outsized reception-density; V2Q outcome leg (S3) | direct fetch OK | 2026-12-11 |
 
 ## Known Dead / Thin (not cards; don't re-walk without reason)

@@ -24,7 +24,7 @@ The registry is a judgment artifact, not an implementation design. It does not
 authorize scrapers, bot detection systems, data pipelines, dashboards, scoring
 engines, or automation.
 
-Use it to classify and reason about evidence in decision memos, backtests,
+Use it to classify and reason about evidence in decision memos (Memo), backtests (Case),
 competitive intelligence, source-quality review, and satellite proof plans.
 
 ## Core Spine Relationship
@@ -34,11 +34,11 @@ surface.
 
 | Registry concern | Core Spine primitive |
 | --- | --- |
-| Pattern, source, and timestamp | Evidence Unit |
+| Pattern, source, and timestamp | Evidence Unit (EvidenceUnit) |
 | Incentives, copied language, bot-like activity, and manipulation risk | Signal Integrity |
 | Strong for, weak for, and decision use | Signal Use Classification |
 | Corroboration, discount factors, audience fit, costly behavior, and action implication | Decision Strength |
-| Backtest interpretation and later outcome | Backtesting and Outcome Memory |
+| Backtest interpretation and later outcome (Outcome) | Backtesting and Outcome Memory |
 
 ## Engagement Pattern Schema
 
