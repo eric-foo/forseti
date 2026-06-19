@@ -1122,3 +1122,69 @@ direction_change_propagation:
     - not implementation authorization
     - not source promotion
 ```
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Model-target template retrieval retired (unused; no-runtime-model-routing
+    rules retained and tightened); preflight defaults artifact
+    (docs/prompts/templates/shared/orca_preflight_defaults_v0.md) blessed for
+    referencing repo-constant preflight fields, with required per-prompt deltas
+    still mandatory in every referencing prompt.
+  trigger: workflow_authority
+  controlling_sources_updated:
+    - .agents/workflow-overlay/prompt-orchestration.md
+    - .agents/workflow-overlay/template-registry.md
+    - .agents/workflow-overlay/review-lanes.md
+    - docs/prompts/templates/shared/orca_preflight_defaults_v0.md
+  downstream_surfaces_checked:
+    - AGENTS.md
+    - .agents/workflow-overlay/README.md
+    - .agents/workflow-overlay/source-of-truth.md
+    - .agents/workflow-overlay/safety-rules.md
+    - .agents/workflow-overlay/artifact-roles.md
+    - docs/prompts/templates/README.md
+  intentionally_not_updated:
+    - path: AGENTS.md
+      reason: >
+        No model-target retrieval rule lives in AGENTS.md; the overlay-routing
+        trigger is unchanged; no edit needed.
+    - path: .agents/workflow-overlay/README.md
+      reason: >
+        The overlay index names template-registry.md as the template owner;
+        retirement lives there; no index restatement needed.
+    - path: .agents/workflow-overlay/source-of-truth.md
+      reason: >
+        Source hierarchy and propagation mechanics are unchanged; no model-target
+        retrieval rule lives here.
+    - path: .agents/workflow-overlay/safety-rules.md
+      reason: >
+        No model-target retrieval or _generic path referenced here; unaffected.
+    - path: .agents/workflow-overlay/artifact-roles.md
+      reason: >
+        No model-target retrieval or _generic path referenced here; unaffected.
+    - path: docs/prompts/templates/README.md
+      reason: >
+        Updated in 1e to remove _generic reference and note retirement; no
+        further change needed.
+  stale_language_search: >
+    rg -i -n "generic-gpt|generic-claude|model-named template|template target" .agents docs AGENTS.md
+    (run 2026-06-13 post-edit in worktree orca-template-retire-wt)
+  stale_language_search_result: >
+    Executed 2026-06-13. Live-overlay hits: template-registry.md and
+    review-lanes.md and prompt-orchestration.md carry "template target" as
+    allowed model-neutral terminology (prompt-shaping label, not routing) —
+    these are the no-routing rules themselves, not stale doctrine.
+    Non-live hits: docs/prompts/product-planning/ (1 hit — historical template
+    basis note in a prior authored prompt, not a routing instruction);
+    docs/research/judgment-spine/ (1 hit — research artifact with explicit
+    "not a runtime model claim" disclaimer); docs/review-outputs/ (multiple
+    hits — historical review records citing prior template IDs, archives only).
+    No live-doctrine surface retains an instruction that routes agents to a
+    model-target template or implies runtime model selection.
+  non_claims:
+    - not validation
+    - not readiness
+    - not source promotion
+    - not implementation authorization
+```
