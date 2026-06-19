@@ -4,7 +4,7 @@
 retrieval_header_version: 1
 artifact_role: Product artifact
 scope: >
-  Non-executing architecture routing object for the owner-opened ECR/EvidenceUnit
+  Non-executing architecture routing object for the owner-opened ECR/EvidenceUnit (EvidenceUnit)
   consolidation, BOUNDED to the smallest-complete increment: a thin Evidence
   Candidate Record (ECR) frame plus the source-visibility slice (SP-6 as the first
   authored ECR field). Designs the frame + slice only; sibling ECR fields are
@@ -33,7 +33,7 @@ branch_or_commit: >
 stale_if:
   - The owner ratifies, amends, or declines ECR consolidation v0 (the frame and/or the SP-6 slice).
   - The committed R2 (closed posture vocabularies + PreservedFile.hash_basis, landed at 102a171) is reverted or further amended.
-  - orca-harness/source_capture/models.py changes SourceCapturePacket posture fields, PreservedFile, or hash_basis.
+  - orca-harness/source_capture/models.py changes SourceCapturePacket (CapturePacket) posture fields, PreservedFile, or hash_basis.
   - The capture lane adds a first-class archive-snapshot-date fact or a recorded archive-vs-current comparison fact.
   - The boundary doc's reserved-consolidation status (lines 281-309) is edited to record the open.
 ```
@@ -47,11 +47,11 @@ stale_if:
 
 ## Human Summary
 
-**Decision (lane synthesis).** Recommend a **thin ECR frame** — a derived-projection layer over the upstream `SourceCapturePacket`, with one stable invariant (the ECR stores no new capture fact and authors no capture truth) and a **three-mode binding rule** — and, instantiating that frame, **SP-6 `source_visibility_posture` as the first ECR field**: an ECR-owned, **derived, non-persisted** value-or-residual reduction of the producer's already-closed facts. Architecture result: `TARGET_RECOMMENDED` for the frame + slice **design**, advisory. The full ECR field architecture stays owner-reserved and is **not** designed here.
+**Decision (lane synthesis).** Recommend a **thin ECR frame** — a derived-projection layer over the upstream `SourceCapturePacket` (CapturePacket), with one stable invariant (the ECR stores no new capture fact and authors no capture truth) and a **three-mode binding rule** — and, instantiating that frame, **SP-6 `source_visibility_posture` as the first ECR field**: an ECR-owned, **derived, non-persisted** value-or-residual reduction of the producer's already-closed facts. Architecture result: `TARGET_RECOMMENDED` for the frame + slice **design**, advisory. The full ECR field architecture stays owner-reserved and is **not** designed here.
 
-**The frame in one line.** ECR = receipt/derive layer between Capture and Cleaning; a capture fact becomes an ECR field in exactly one of three modes — **carried-by-reference** (producer owns and closes the fact; ECR points + downstream recomputes), **derived-read** (producer owns the inputs; ECR computes a recorded read), or **named-residual** (producer holds neither; ECR records the gap and stops, never coining a parallel field). The mode is chosen by *where the fact's authority already lives*, so the slice pre-commits no sibling field's shape.
+**The frame in one line.** ECR = receipt/derive layer between Capture and Cleaning; a capture fact becomes an ECR field in exactly one of three modes — **carried-by-reference** (producer owns and closes the fact; ECR points + downstream recomputes), **derived-read** (Reading) (producer owns the inputs; ECR computes a recorded read), or **named-residual** (producer holds neither; ECR records the gap and stops, never coining a parallel field). The mode is chosen by *where the fact's authority already lives*, so the slice pre-commits no sibling field's shape.
 
-**The slice in one line.** SP-6 is **M2-with-M3-stops today**: the adopted residual-first decision table (per slice, then an Ob.10 no-hide rollup) reads the producer's closed `archive_history_posture` / `re_capture_relationship` facts, archive-date metadata/timing convention, and `PreservedFile` references to emit one closed value *or* a named residual. The `source_visibility_posture` label is retained from the existing SP-6/ECR language, while the inputs are bound to real producer fields rather than coined in parallel; it derives from the **upstream** packet (not the downstream `EvidenceUnit`) — which is exactly the fix for the interim translator's flagged error.
+**The slice in one line.** SP-6 is **M2-with-M3-stops today**: the adopted residual-first decision table (per slice, then an Ob.10 no-hide rollup) reads the producer's closed `archive_history_posture` / `re_capture_relationship` facts, archive-date metadata/timing convention, and `PreservedFile` references to emit one closed value *or* a named residual. The `source_visibility_posture` label is retained from the existing SP-6/ECR language, while the inputs are bound to real producer fields rather than coined in parallel; it derives from the **upstream** packet (not the downstream `EvidenceUnit` (EvidenceUnit)) — which is exactly the fix for the interim translator's flagged error.
 
 **Decisive correction carried forward (verified against committed HEAD).** The prompt and the adopted SP-6 plan (both pinned at `e4e854e`) assume "no `hash_basis` on `SourceCapturePacket`." That is now superseded **in committed source**: `PreservedFile.hash_basis` exists, **closed** to `{raw_stored_bytes}` and recomputation-bound (R2 landed at `102a171`). So the SP-2-sibling verifiability basis re-points to **upstream `PreservedFile.{sha256, hash_basis}` as primary** (acquisition-receipt as fallback); this now rests on **committed** producer state (re-verified against HEAD this turn), the only residual being that R2's test suite was not re-run this turn. **D1 is unchanged**: no stored visibility posture and no recorded archive-vs-current comparison exist, so `archive_corroborated`/`archive_diverged` still route to a named residual today.
 
@@ -68,7 +68,7 @@ stale_if:
 | Question | Result | Why |
 |---|---|---|
 | Design a thin ECR frame that can host one field without pre-committing the rest? | `TARGET_RECOMMENDED` (advisory) | Selection threshold met: stable invariant (no stored capture fact; single source-side writer), clear core/satellite split (frame fixes *where authority lives*, not field shapes), known non-goals, no unresolved upstream blocker that changes the frame. |
-| Design SP-6 as the first ECR field (source-visibility slice)? | `TARGET_RECOMMENDED` (advisory) | Instantiates the frame as an M2 derived-read over producer facts where inputs exist, with M3 named-residual stops where the producer lacks a recorded comparison; reversible (deleted, not migrated); fail-safe; removes the translator's duplication/collision. |
+| Design SP-6 as the first ECR field (source-visibility slice)? | `TARGET_RECOMMENDED` (advisory) | Instantiates the frame as an M2 derived-read (Reading) over producer facts where inputs exist, with M3 named-residual stops where the producer lacks a recorded comparison; reversible (deleted, not migrated); fail-safe; removes the translator's duplication/collision. |
 | Author the full ECR field architecture (siblings) now? | `DEFER` / owner-reserved | Out of scope (overbuild). Siblings named-but-deferred only. Boundary doc :309 reserves the final field architecture. |
 | Is SP-6 fully mechanically derivable today? | **NO (D1, unchanged)** | `archive_corroborated`/`archive_diverged` need a recorded comparison the producer does not store; emit named residuals. |
 | Does the upstream producer now carry a recomputation basis (re D3)? | **YES (committed)** | `PreservedFile.hash_basis = raw_stored_bytes` exists and is enforced in committed source (R2 at `102a171`); re-points SP-2 basis primary/fallback. Residual: R2 suite not re-run this turn. |
@@ -87,13 +87,13 @@ stale_if:
 ### 1.2 Layering invariants (future work must preserve all five)
 
 ```text
-Data Capture Spine (Armory / SourceCapturePacket)  -- PRODUCES capture facts (single source-side writer)
+Data Capture Spine (Armory / SourceCapturePacket (CapturePacket))  -- PRODUCES capture facts (single source-side writer)
    v
 Evidence Candidate Record (ECR)                    -- RECEIPTS / DERIVES (authors no capture fact; stores none)
    v
 Packing (harness entry bundle)                     -- ASSEMBLES the admission bundle
    v
-Harness Foundation (EvidenceUnit)                  -- CONSUMES carried references (recomputes, never re-authors)
+Harness Foundation (EvidenceUnit (EvidenceUnit))                  -- CONSUMES carried references (recomputes, never re-authors)
 ```
 
 - **INV-1 — Single source-side writer.** The Armory (`SourceCapturePacket` and members) is the only source-side writer of capture facts. If a fact is not in the producer, the ECR records its absence as a named residual; it never invents it. (Boundary `:74-75`; the producer enforces closed posture vocabularies at write-time, `orca-harness/source_capture/models.py:90-94,129-143,185-199`.) This is the invariant the translator violated by coining `source_visibility_posture` outside the producer.
@@ -109,7 +109,7 @@ Harness Foundation (EvidenceUnit)                  -- CONSUMES carried reference
 | Mode | When to use | What the ECR field is | Source basis |
 |---|---|---|---|
 | **M1 — carried-by-reference** | The producer already owns and **closes** the fact. | A pointer + carried value; downstream **recomputes**, does not trust. | Upstream `PreservedFile.hash_basis` (`models.py:57-66,102`) plus downstream transport/recompute surfaces (`case_models.py:61`; `packing_to_harness_foundation_interface_architecture_v3.md:123,135,137,178`). |
-| **M2 — derived-read** | The producer owns the **inputs** but not the answer. | A deterministic, recorded read over producer facts (a read, never a new fact). | An archive-date class read from `selected_snapshot.timestamp` / `PacketTiming` slice timing (`source_quality.py:169,405-412,434-446`). |
+| **M2 — derived-read** (Reading) | The producer owns the **inputs** but not the answer. | A deterministic, recorded read over producer facts (a read, never a new fact). | An archive-date class read from `selected_snapshot.timestamp` / `PacketTiming` slice timing (`source_quality.py:169,405-412,434-446`). |
 | **M3 — named-residual** | The producer holds neither the fact nor derivable inputs. | `indeterminate_until_authored` / a named visible-limitation residual — then **stop**. Never coin a parallel field; never perform unauthorized capture. | The verified absence of any stored `source_visibility_posture` / comparison field -> SP-6's comparison-dependent rows are M3 today. |
 
 The rule is **concrete enough** that SP-6 instantiates it (M2 where archive/timing/current-presence inputs exist; M3 where the producer lacks the recorded comparison or date basis), yet **general enough** that it pre-commits no sibling field's shape (each sibling independently re-runs the where-does-authority-live test). The rule's own fence: M1 values are recomputed-not-trusted; M2 derivations are reads-not-facts; M3 residuals are stops-not-invitations-to-coin.
@@ -134,8 +134,8 @@ Area + why deferred (from boundary `:75,163-171,285-294`). **None designed below
 | Representation | Role | What the frame does with it |
 |---|---|---|
 | **IPF Evidence Unit standard** (`core_spine_v0_information_production_foundation_v0.md`) | **Canonical-to-cite** (semantic home) | ECR field *semantics* are authored in IPF terms; boundary `:131-134` fixes IPF as the cite-home until the consolidation. |
-| **`SourceCapturePacket`** (`orca-harness/source_capture/models.py`) | **Producer** (sole source-side writer) | ECR binds to its real fields by reference/derive (D4); never writes into it. |
-| **Harness `EvidenceUnit`** (`case_models.py` + `pydantic_schema_reference.md`) | **Downstream consumer** (carried-reference target) | ECR carried references land here; the harness recomputes, never re-authors (D3). |
+| **`SourceCapturePacket`** (CapturePacket) (`orca-harness/source_capture/models.py`) | **Producer** (sole source-side writer) | ECR binds to its real fields by reference/derive (D4); never writes into it. |
+| **Harness `EvidenceUnit`** (EvidenceUnit) (`case_models.py` + `pydantic_schema_reference.md`) | **Downstream consumer** (carried-reference target) | ECR carried references land here; the harness recomputes, never re-authors (D3). |
 
 **Representation-drift reconciliation is DEFERRED** (named, not resolved): (a) the pydantic doc shape lacks `source_type`/`hash_basis` that the `case_models.py` impl has; (b) the producer's `cutoff_posture` (a `VisibleFact`) vs the translator's coined same-named closed enum — a same-name/different-shape collision (`jsg01_source_side_receipt_translator_v0.md:443-453`). Choosing the canonical representation and whether `source_type`/`hash_basis` become required is the **full consolidation's** job (boundary `:285`), owner-reserved. The frame's only commitment: **IPF cites, Armory produces, EvidenceUnit consumes** — and the "no parallel names" clause stops the slice from adding a fourth drift.
 
@@ -214,7 +214,7 @@ This is the **SP-2 sibling read**, kept strictly separate from SP-6 (SP-6 = "are
 Severity = priority only, not a verdict. Each has a minimum closure condition.
 
 - **AF-1 — The owner-opened scope is doctrinally load-bearing and currently unwritten (critical; scope-creep / JSG-01-integrity).** Declaring an ECR field is the act the boundary doc reserves (`:292,309`; adopted plan Option-B table). The "source-visibility only" bound lives only in the prompt; the boundary doc still reads `PROPOSED_FREEZE` with the consolidation reserved. **Closure:** the design states the owner-opened scope verbatim as a fenced boundary (done: Status block + 1.4), cites that boundary `:288-290,293` stay OUT, and records that the **boundary-doc edit recording the open is itself owner-reserved/downstream** (done: §5 routing object). Without the last clause the design would leak into editing the reserved doc.
-- **AF-2 — A *stored* SP-6 field would pre-commit siblings and re-create the producer fork (critical; premature-freeze / layer-violation).** **Closure:** INV-3 (no persisted capture field; no migration); SP-6 is a derived read, deleted not migrated. Block any proposal to persist SP-6 to a packet or ECR record.
+- **AF-2 — A *stored* SP-6 field would pre-commit siblings and re-create the producer fork (critical; premature-freeze / layer-violation).** **Closure:** INV-3 (no persisted capture field; no migration); SP-6 is a derived read (Reading), deleted not migrated. Block any proposal to persist SP-6 to a packet or ECR record.
 - **AF-3 — A packet-flat 8-value enum is inconsistent with the per-slice rollup and the eventual consolidation (major; consolidation-inconsistency).** **Closure:** design the field as a per-slice vector + Ob.10 no-hide rollup (2.1); the flat-vs-structured final shape is an owner/architecture refinement (plan `not_proven`).
 - **AF-4 — `archive_corroborated`/`archive_diverged` import a comparison + materiality the producer lacks and Judgment owns (critical; layer-violation / residual-leakage).** **Closure:** rows 7-8 route to `RESIDUAL_COMPARISON_NOT_RECORDED` whenever `M` is unrecorded (today: always); state D1 as a finding the owner must ratify; the slice covers the derivable subset only.
 - **AF-5 — `access_posture` (Ob.11) free-text must never select a value (major; layer-violation).** **Closure:** `P` is a residual annotation, never an input; closing Ob.11 is a separate capture-lane decision the ECR may not make.

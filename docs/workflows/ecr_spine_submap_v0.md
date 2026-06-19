@@ -14,12 +14,12 @@ open_next:
   - orca/product/spines/ecr/evidence_candidate_record/ecr_consolidation_v0_frame_source_visibility_slice_architecture_plan_v0.md
   - orca-harness/ecr/__init__.py
 downstream_consumers:
-  - JSG-01 conductor (UNFROZEN 2026-06-12 by the owner's dated act, docs/decisions/jsg01_unfreeze_decision_v0.md; evaluable, clears no case until an authorized run) — the reader of the records this spine produces; nothing under this map authorizes runs or clears cases.
+  - JSG-01 conductor (UNFROZEN 2026-06-12 by the owner's dated act, docs/decisions/jsg01_unfreeze_decision_v0.md; evaluable, clears no case (Case) until an authorized run) — the reader of the records this spine produces; nothing under this map authorizes runs or clears cases.
 stale_if:
   - A new derived-record kind is added beside the ECR integrity postures and the Signal Content Record.
   - The shared M1/M2/M3 carry-or-residualize discipline or the per-kind grain invariant changes in an owner doc.
   - The authored-interpretation lane (signal_family + event-core) is built (activates the dormant SCR M2 seam).
-  - The owner settles the reserved final Evidence Unit field architecture, or a JSG-01 run is authorized (the unfreeze itself happened 2026-06-12).
+  - The owner settles the reserved final Evidence Unit (EvidenceUnit) field architecture, or a JSG-01 run is authorized (the unfreeze itself happened 2026-06-12).
 ```
 
 > **What this is.** A retrieval-only repo submap. It tells a cold reader which owner
@@ -35,16 +35,16 @@ stale_if:
 
 Three stacked layers over one captured source slice — **linked by key, never collapsed:**
 
-- **Provenance** — *that a capture happened* + how to trust the bytes. `SourceCapturePacket` (`orca-harness/source_capture/`).
+- **Provenance** — *that a capture happened* + how to trust the bytes. `SourceCapturePacket` (CapturePacket) (`orca-harness/source_capture/`).
 - **Integrity** — *can I trust the saying.* ECR postures: SP-1 identity / SP-2 inspectability / SP-3 timing-cutoff / SP-6 source-visibility (`orca-harness/ecr/`).
 - **Content** — *what the signal says.* The Signal Content Record (`orca-harness/signal_content/`).
 
 The cross-kind invariants the spine runs on (stated here for orientation only — the owner doc holds the authority):
 
 1. **Reference, never merge.** Content references provenance (`packet_id`/`slice_id`) and integrity (ECR posture keys) **by key**, one-directional content → provenance. Linked, never collapsed: content is "what's said," integrity is "can I trust the saying." → *SCR direction brief.*
-2. **One derived record per epistemic kind, composed by the Evidence Unit, never merged.** The integrity postures and the content row are siblings at their own grain; future kinds (e.g. corroboration) follow the same shape rather than sprawling. → *SCR direction brief.*
+2. **One derived record per epistemic kind, composed by the Evidence Unit (EvidenceUnit), never merged.** The integrity postures and the content row are siblings at their own grain; future kinds (e.g. corroboration) follow the same shape rather than sprawling. → *SCR direction brief.*
 3. **Carry-supplied-or-residualize; never author from prose.** Every source-side deriver is a pure function of its frozen inputs (the packet plus caller-supplied bodies / posture-keys / authored-interpretation). Each field is carried from an input or emitted as a **named residual**; an absent input → honest residual. No deriver classifies, selects, or infers an interpretive value from packet prose (the shared M1-carry / M2-derive / M3-residual discipline). → *SCR deriver plan (Amendment v0.1); ECR frame plan.*
-4. **Derived / re-derivable — re-derive, never migrate.** These are M2-style derived reads over the still-frozen raw observable, not persisted-at-capture columns; a taxonomy change is a re-derive, not a stored-column migration (inherits the capture-packet schema-evolution doctrine verbatim: read-checked `_vN`, additive enum growth, lenient-read/strict-admit). → *schema-evolution doctrine.*
+4. **Derived / re-derivable — re-derive, never migrate.** These are M2-style derived reads (Reading) over the still-frozen raw observable, not persisted-at-capture columns; a taxonomy change is a re-derive, not a stored-column migration (inherits the capture-packet schema-evolution doctrine verbatim: read-checked `_vN`, additive enum growth, lenient-read/strict-admit). → *schema-evolution doctrine.*
 5. **Foundation only — the conductor owns evaluation.** Everything here is source-side derivation feeding JSG-01 evaluation. JSG-01 was unfrozen by the owner's dated act (2026-06-12, `docs/decisions/jsg01_unfreeze_decision_v0.md`) and clears no case until a separately authorized run; the final Evidence Unit field architecture stays owner-reserved; nothing under this map authorizes runs or widens the reserved architecture. → *data/cleaning boundary doc; `.agents/workflow-overlay/safety-rules.md`.*
 
 ## Fast Route
@@ -61,7 +61,7 @@ The cross-kind invariants the spine runs on (stated here for orientation only �
 | Inspect the built ECR integrity derivers (SP-1/2/3/6) + models | `orca-harness/ecr/` |
 | Inspect the built Signal Content Record deriver + model | `orca-harness/signal_content/` |
 | Record an out-of-band SP-5 finalization act (`FinalizationReceipt` producer) | `orca-harness/runners/run_finalization_receipt.py` (model + validate-only consumer: `orca-harness/schemas/finalization_models.py`) |
-| Bind what JSG-01 reads onto one case-packet evidence unit (three-key binding + composer) | `orca-harness/evidence_binding/` (ratified contract: boundary doc → "JSG-01-scoped EvidenceUnit binding contract RATIFIED") |
+| Bind what JSG-01 reads onto one case-packet evidence unit (EvidenceUnit) (three-key binding + composer) | `orca-harness/evidence_binding/` (ratified contract: boundary doc → "JSG-01-scoped EvidenceUnit binding contract RATIFIED") |
 | Inspect the tests | `orca-harness/tests/unit/test_ecr_*`, `orca-harness/tests/unit/test_signal_content_*`, `orca-harness/tests/unit/test_finalization_models.py`, `orca-harness/tests/unit/test_run_finalization_receipt.py` |
 | Reach the upstream provenance layer (the packet this all keys to) | `docs/workflows/data_capture_spine_consolidation_map_v0.md` (capture submap) |
 | Check logical data-lake mechanics across capture, projection, ECR/SCR, Cleaning, and Judgment | `orca/product/spines/data_lake/workflows/core_spine_v0_data_lake_mechanics_map_v0.md` |

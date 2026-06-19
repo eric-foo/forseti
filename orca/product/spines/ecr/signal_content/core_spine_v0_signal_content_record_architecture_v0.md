@@ -14,7 +14,7 @@ open_next:
   - orca/product/spines/foundation/product_contract/core_spine_v0_information_production_foundation_v0.md
   - orca-harness/ecr/__init__.py
 stale_if:
-  - The owner settles the final Evidence Candidate Record / Evidence Unit field architecture (currently reserved).
+  - The owner settles the final Evidence Candidate Record / Evidence Unit (EvidenceUnit) field architecture (currently reserved).
   - The carrier, lifecycle, or decision_relevance posture below is changed by a later owner decision.
   - The IPF Evidence Unit Standard content vocabulary changes.
 ```
@@ -31,8 +31,8 @@ The wedge-agnostic **Signal Content Record** — the structured *"what a signal 
 
 ## Owner decisions (settled 2026-06-09)
 
-1. **Carrier — option (b), durable.** A parallel derived `SignalContentRecord`, keyed to the `SourceCapturePacket`, composed by the Evidence Unit **by reference** — the **second derived-record kind** after the ECR integrity postures. It is the next instance of the pattern the system already runs: "a parallel record the frozen conductor reads, binds no `EvidenceUnit`" (verified `orca-harness/ecr/__init__.py:26,37-38`). It folds into option (a) [content as a field on the Evidence Unit] cheaply if the owner later re-conceives the Evidence Unit as the content object; option (c) [the IPF Evidence Unit Standard] is the **vocabulary this record structures**, not a competing carrier.
-2. **Lifecycle — derived / re-derivable.** An M2-style derived-read, **not** persisted-at-capture, so a future family-taxonomy change is a *re-derive from the still-frozen raw observable*, never a stored-column migration.
+1. **Carrier — option (b), durable.** A parallel derived `SignalContentRecord`, keyed to the `SourceCapturePacket` (CapturePacket), composed by the Evidence Unit (EvidenceUnit) **by reference** — the **second derived-record kind** after the ECR integrity postures. It is the next instance of the pattern the system already runs: "a parallel record the frozen conductor reads, binds no `EvidenceUnit`" (verified `orca-harness/ecr/__init__.py:26,37-38`). It folds into option (a) [content as a field on the Evidence Unit] cheaply if the owner later re-conceives the Evidence Unit as the content object; option (c) [the IPF Evidence Unit Standard] is the **vocabulary this record structures**, not a competing carrier.
+2. **Lifecycle — derived / re-derivable.** An M2-style derived-read (Reading), **not** persisted-at-capture, so a future family-taxonomy change is a *re-derive from the still-frozen raw observable*, never a stored-column migration.
 3. **`decision_relevance` — a neutral mechanical routing tag only.** Shape-derived (`decide_candidate` / `confirm_only` / `context_only` / `unresolved`). The graded Signal Use Classification / Decision Strength / Action Ceiling stay Judgment-owned (verified boundary doc:77).
 4. **Authority — bounded content-field ratification GRANTED.** The content analogue of the SP-1/2/3/6 source-side *integrity* exception. It does **not** settle the final Evidence Unit field architecture (reserved — verified boundary doc:131-133, 253-254) and does **not** unfreeze JSG-01 (the gate stays FROZEN; the source-side fields were ratified, the gate was not — boundary doc:289, ecr `__init__`.py:26).
 
@@ -40,7 +40,7 @@ The wedge-agnostic **Signal Content Record** — the structured *"what a signal 
 
 - **Downward (content ↔ integrity):** the record **references** provenance (`packet_id` / `slice_id`) and integrity (ECR postures SP-1/2/3/6) by key; it never embeds, copies, or merges them. One-directional: content → provenance, never the reverse. Content = "what's said"; integrity = "can I trust the saying" — **linked, never collapsed.**
 - **Upward (single-row ↔ aggregate):** one record = one observed event/claim from one source slice. Any cross-source aggregate (price-sensitivity curve, sentiment trend, "switching is accelerating") is **derived and Judgment-owned**, never a field on the record (grounded in Judgment's ownership of Signal Use Classification + the Inclusion State Rule — boundary doc:77, :158).
-- **Durable structural invariant:** **one derived record per epistemic kind, composed by the Evidence Unit, never merged.** Future kinds (e.g. corroboration) follow the same shape rather than sprawling.
+- **Durable structural invariant:** **one derived record per epistemic kind, composed by the Evidence Unit (EvidenceUnit), never merged.** Future kinds (e.g. corroboration) follow the same shape rather than sprawling.
 
 ## The shape (direction, not the field-by-field schema)
 
