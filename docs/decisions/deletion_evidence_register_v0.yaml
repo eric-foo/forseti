@@ -161,3 +161,27 @@ deletions:
       semantic_delta: |
         No unique operative C2 behavior is lost. The deleted Phase-A finding's load-bearing purpose was to classify stale-frame Rule 3 as a patch and recommend folding it into the live C2 read-contract; the finding itself said the standalone artifact should not survive as an independent artifact and that Phase B should author Rule 3 into the C2 ledger read-contract. The successor now preserves the operative semantics: the C2 contract states Rule 3 was folded on 2026-06-15, item 9 applies risk-state weighting, the Rule 3 section defines the manufactured-axis cap / unconfirmed discount / absent neutral rule, persistence-axis routing to C3, discriminator requirement, and falsifiability/inherent-limit handling, and the DCP records stale-frame input superseded by the folded reground. Historical authorship and comparison detail remain recoverable from git and the prior W3a proposal.
       rollback: git revert <executing merge sha>
+
+  - targets:
+      - orca/product/case_families/product_learning/other_verticals/core_spine_v0_proof_case_selection_brief_v0.md
+    evidence:
+      reverse_ref_check: |
+        Repo-wide W3b re-check run in this worktree against .agents/, docs/, and orca/ using the exact current target path, the old docs/product path, the filename/doc-id slug, and title text ("Core Spine v0 Proof Case Selection Brief" / "proof case selection brief").
+
+        Exact current target path hits before edits:
+        - docs/workflows/orca_repo_map_v0.md:545 -- live map row; removed in this W3b edit because current case/backtest selection is routed by the heavyweight discovery results row.
+        - orca/product/satellites/fragrance/judgment_level1/named_case_screens/fragrance_level1_named_case_candidate_screen_v0.md:346 -- source-read ledger provenance only; left as historical/dead provenance because replacing it would falsely claim the screen read a successor.
+        - docs/migration/repo_structure_spine_first_v0/moves_manifest.csv:32 and docs/migration/repo_structure_spine_first_v0/moved_paths_index.md:60 -- historical spine-first migration records; safe to leave.
+        - docs/migration/phase2_proposals/case_families_w3a_proposal_v0.md:39 and docs/migration/phase2_proposals/shared_w3a_proposal_v0.md:57 -- W3a proposal/provenance records; safe to leave.
+
+        Old docs/product path hits:
+        - orca/product/case_families/product_learning/other_verticals/core_spine_v0_heavyweight_proof_case_discovery_charter_v0.md:47, core_spine_v0_heavyweight_proof_case_discovery_results_v0.md:49, and core_spine_v0_heavyweight_proof_case_discovery_results_part_2_v0.md:45 -- source-basis provenance for the discovery sequence; safe to leave as historical/dead provenance.
+        - docs/migration/repo_structure_phase2_consolidation_v0/reference_inventory.md:643, moves_manifest.csv:37, and moved_paths_index.md:42 -- historical Phase-2 consolidation migration records; safe to leave.
+
+        Slug/title hits after excluding the deleted target itself were in the same migration/proposal/source-basis/provenance set plus charter prose at core_spine_v0_heavyweight_proof_case_discovery_charter_v0.md:81 ("The proof case selection brief returned BLOCKED_OWNER_CANDIDATES_NEEDED"), which is historical rationale for the discovery pass rather than a current operative dependency.
+
+        No remaining live map/open_next/current-authority ref requires the deleted brief after the repo-map row removal. Surviving refs are historical source-basis, migration, W3a proposal, or source-read-ledger provenance and are covered by this register record plus git rollback.
+      successor: orca/product/case_families/product_learning/other_verticals/core_spine_v0_heavyweight_proof_case_discovery_results_v0.md
+      semantic_delta: |
+        The deleted brief was a blocked intermediate selection artifact: it recorded BLOCKED_OWNER_CANDIDATES_NEEDED, generic shadow/backtest selection rules, and the absence of owner-supplied cases before discovery was authorized. Current case/backtest selection is superseded by the heavyweight discovery results pair: results_v0 produced a READY_FOR_OWNER_CASE_SELECTION candidate universe and proposed SH-01/BT-01; results_part_2_v0 refreshed the backtest universe and produced READY_FOR_OWNER_BACKTEST_SELECTION with BT2 candidates. The discovery charter and first proof-run charter preserve the durable selection/anti-leakage boundaries, while the results artifacts preserve the operative candidate-selection surface. Lost from the live tree: the intermediate blocked-state artifact body and its generic placeholder tables. Preserved: current candidate universe, selection boundary, anti-leakage discipline, source-basis provenance in surviving artifacts, and full rollback via git.
+      rollback: git revert <executing merge sha>
