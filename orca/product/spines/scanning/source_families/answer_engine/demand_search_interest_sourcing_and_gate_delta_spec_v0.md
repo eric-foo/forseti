@@ -36,7 +36,7 @@ stale_if:
 - Status: `PROPOSED_PENDING_FEASIBILITY_AND_OWNER_ADJUDICATION` (revised after cross-family adversarial review — see §13 Review Adjudication)
 - Implementation / runtime / contract-hardening / scan-schema-amendment authorized: **no**
 - Sourcing authorized: **no** — owner-gated (AR-04)
-- First target sub-niche: **US indie/DTC fragrance** — owner-set in-thread 2026-06-17; the wedge authority currently scopes "US indie/DTC beauty or personal-care," so fragrance is a **narrowing pending a durable owner-pinned record** (do not treat as wedge-sourced).
+- First target sub-niche: **US indie/DTC fragrance (Vertical)** — owner-set in-thread 2026-06-17; the wedge authority currently scopes "US indie/DTC beauty or personal-care," so fragrance is a **narrowing pending a durable owner-pinned record** (do not treat as wedge-sourced).
 - Engine order: **Google AI Overviews (primary)** → Gemini, ChatGPT (secondary) → others out of scope. These are **owner priorities**, not proven exposure/coverage claims (see §10).
 - Cross-spine pointer: this is the scanning-side source-class recon for
   search-interest/AEO; capture obligations stay in
@@ -93,7 +93,7 @@ blind read; mixing them makes A circular.
 
 The wall is **not only at the evidence-row level**; the dangerous leak is upstream in
 **query-set construction** (first-party query → LLM expansion → seed set → Core
-observation → gate-facing read). "Not demand evidence" on the final row does not stop
+observation (Observation) → gate-facing read). "Not demand evidence" on the final row does not stop
 a tainted query from shaping the blind observation corpus. Therefore:
 
 - **Core seed sets** are generated **only from independent public/category sources**
@@ -156,7 +156,7 @@ amendment adds an answer-engine value.**
 - **AEO placement reasoning (corrected):** AEO is **non-origin visibility corroboration**
   with `gate_family: none` — **not** "G4." The reason it is excluded from the G1
   independent-origin count is that **AEO is a distribution/surfacing layer, not a
-  demand-origin venue** (not merely "origination is un-verifiable," which must not be
+  demand-origin venue (Venue)** (not merely "origination is un-verifiable," which must not be
   used to demote real demand families like reviews/search-interest). G4 is specifically
   **org-motion** corroboration (retail presence); AEO is not org-motion, so it is not G4.
   Calling AEO G4 — or adding any AEO scan value — requires an explicit **owner-approved
@@ -173,7 +173,7 @@ If AEO is sourced, the minimum observables an AEO capture must record are below 
 framed as a **capture-lane delta routed to the capture spine** (the capture lane owns
 hardening it into the envelope; this spec does not fork a profile): engine · query ·
 date/time · locale · session/logged-out + personalization state · Overview fired /
-`not_shown` · surfaced brands/products · cited sources · raw preserved observable
+`not_shown` · surfaced brands (Brand) / products (Product) · cited sources · raw preserved observable
 (HTML/screenshot equivalent) · visible limitations. Route to the capture lane under
 the obligation contract; do not duplicate envelope obligations here.
 

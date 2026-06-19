@@ -42,18 +42,18 @@ have it.
 
 | Piece | State | Source |
 | --- | --- | --- |
-| First commercial target class | **Locked, owner co-ratified** — US-market tractioned indie/DTC beauty & personal-care operators; named decision owner; live 30-90 day demand-allocation decision; first bias retail/channel expansion. | `docs/decisions/orca_icp_wedge_consumer_demand_first_v0.md` (Commercial Target Selection Amendment 2026-06-16); PR #203. |
+| First commercial target class | **Locked, owner co-ratified** — US-market tractioned indie/DTC beauty & personal-care operators; named decision owner; live 30-90 day demand-allocation decision (DecisionEvent); first bias retail/channel expansion. | `docs/decisions/orca_icp_wedge_consumer_demand_first_v0.md` (Commercial Target Selection Amendment 2026-06-16); PR #203. |
 | Demand-Substrate Hard Gate | **Live on main** — G1 = de-correlation by origination + verb-tiering; G2 = ≥1 gradeable costly-behavior floor; G4 org-motion corroboration; divergence/defeater. (Old "≥2 venue families" raw count is gone from the gate.) | `orca_buyer_proof_packet_v0.md`; PR #90. |
 | Scan-core spec (the hunting method) | **PROPOSED_PENDING_ADJUDICATION** — authored, re-derived against the amended gate, adversarially reviewed (2 open major findings). Authorizes no scan execution. | `orca_demand_scan_core_spec_v0.md`; PR #168. |
 | Gate-run commission criteria | **PROPOSED** — "owner ratification owed before these criteria govern an actual commission." | `orca_demand_gate_run_commission_criteria_v0.md`; PR #90. |
-| Demand-venue sourcing | **Forums/community is the only sourced G1 demand-family card.** Review-surface + search-interest are unsourced, owner-owned gaps. Retail presence is G4 corroboration, excluded from the G1 origin count. | `orca_buyer_proof_packet_v0.md` (Two distinct maintained card sets, AR-04). |
+| Demand-venue (Venue) sourcing | **Forums/community is the only sourced G1 demand-family card.** Review-surface + search-interest are unsourced, owner-owned gaps. Retail presence is G4 corroboration, excluded from the G1 origin count. | `orca_buyer_proof_packet_v0.md` (Two distinct maintained card sets, AR-04). |
 | Actual forward scan run | **None.** The only executed scan (discovery batch 0: Sentry/Clerk/Vercel/dev-tools) is SUPERSEDED / off-target. No candidate pool exists for the beauty beachhead. | `orca_discovery_batch_0_candidate_context_scan_v0.md` (SUPERSEDED banner). |
 
 ## Decision 1 — Adopt the scan-core spec
 
 The spec is the hunting method: how a scan recognizes each read type (convergence
 / divergence / brand-decision event) per venue class and walks the venue card
-set, with a candidate-observation schema. It is `PROPOSED_PENDING_ADJUDICATION`
+set, with a candidate-observation (Observation) schema. It is `PROPOSED_PENDING_ADJUDICATION`
 and went through a cross-family delegated adversarial review (controller OpenAI
 GPT-5 vs. Anthropic home; de-correlation satisfied).
 

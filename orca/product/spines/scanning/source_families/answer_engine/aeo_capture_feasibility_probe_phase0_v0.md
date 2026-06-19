@@ -6,9 +6,9 @@ artifact_role: Probe feasibility report (capture-spine Phase-0 AEO answer-captur
 scope: >
   Records a BOUNDED Phase-0 live feasibility probe of AI answer engines (ChatGPT
   logged-out, then Google AI Overviews) to determine whether the answer —
-  surfaced brands/products + cited sources + issued queries — can be reliably AND
+  surfaced brands (Brand) / products (Product) + cited sources + issued queries — can be reliably AND
   automatably captured via devtools (F12 / DOM + network) inspection for a small
-  frozen US-fragrance query set. Deliverable: GO / RE-ROUTE verdict + reusable
+  frozen US-fragrance (Vertical) query set. Deliverable: GO / RE-ROUTE verdict + reusable
   extraction pattern + failure characterization. NOT a scaled capture run; NOT
   sourcing authorization.
 use_when:
@@ -387,7 +387,7 @@ publishers. Proxy, not the consumer AIO; ToS-gray; internal research only.
 This probe is routed as **feasibility evidence** for the search/AEO source-class
 specced in the demand scan/gate lane (PR #228, branch
 `demand-scan-gate-adjudication-v0`). Verdict for that lane: AI answer-engine
-retrieval is **capturable as a public-signal venue** for the consumer-demand
+retrieval is **capturable as a public-signal venue (Venue)** for the consumer-demand
 decision-intelligence thesis, at measured-ToS-risk —
 
 - **ChatGPT:** real issued query + full pulled-source set, from the *actual consumer surface*;
@@ -410,8 +410,8 @@ precise AEO metric measures the *proxy*, not demand reality. Before AEO can coun
 as a consumer-demand signal (vs. just a visibility venue), the demand/proof lane
 should run a small **predictive-validity** test:
 
-- **Labeled set (~10–20 US beauty / personal-care brands)** with KNOWN public
-  outcomes — durable winners (sustained search / retail expansion / sell-through)
+- **Labeled set (~10–20 US beauty / personal-care brands (Brand))** with KNOWN public
+  outcomes (Outcome) — durable winners (sustained search / retail expansion / sell-through)
   vs. faded / flash-in-the-pan — drawn from the public record.
 - **Signal:** per brand, compute the AEO metric(s) — citation frequency/share +
   source-set stability (run-to-run and over a short window), with a **measured

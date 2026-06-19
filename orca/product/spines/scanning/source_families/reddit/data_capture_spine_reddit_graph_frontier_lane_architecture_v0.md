@@ -45,7 +45,7 @@ Local no-live foundation exists under:
 It can build a Graph Frontier Register from existing Candidate URL Intake output,
 record frontier decisions, prepare a next bounded run envelope with
 `execution_authorized: false`, and write JSON/receipt artifacts. It does not
-fetch Reddit, invoke Source Capture Armory, emit Source Capture Packets, persist
+fetch Reddit, invoke Source Capture Armory, emit Source Capture Packets (CapturePacket), persist
 raw HTML, run a scheduler, create storage, or operate as production runtime.
 The separate live first-contact runner is
 `orca-harness/runners/run_reddit_candidate_intake_live.py`.

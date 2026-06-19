@@ -57,8 +57,8 @@ Discovery → Bounded Watch → Graph Frontier → Semantic Projection → Promo
 - People qualify **only** on a concrete, org-chart-independent **public-actor
   basis**; junior / ordinary / non-public staff are **out**.
 - **No** contact harvesting; **no** follower/connection/commenter lists or
-  graphs; **no** profile body / post content capture; **no** Source Capture
-  Packet output or Data Capture handoff.
+  graphs; **no** profile body / post content capture; **no** Source Capture Packet (CapturePacket) output or Data Capture
+  handoff.
 - Every row is **planning-only**; **promotion is a separate gated step**.
 - Each **frontier hop = a new, separately-authorized run** (no same-run traversal).
 - No-live by default; an **owner-present attended-automation** / supervised-assist
