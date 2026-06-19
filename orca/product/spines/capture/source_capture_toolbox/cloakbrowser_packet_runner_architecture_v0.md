@@ -683,7 +683,7 @@ direction_change_propagation:
     - orca-harness/source_capture/packet_assembly.py
     - orca-harness/source_capture/adapters/browser_snapshot.py
     - orca-harness/source_capture/adapters/reddit_api.py
-    - orca/product/spines/capture/source_capture_toolbox/cloakbrowser_packet_runner_architecture_independent_pass_v0.md
+
   intentionally_not_updated:
     - path: docs/decisions/data_capture_spine_source_access_tooling_build_authorization_v0.md
       reason: >
@@ -704,23 +704,16 @@ direction_change_propagation:
         runner exit convention is preserved. A CloakBrowser-specific section
         should be added only if implementation exposes a new constraint or owner
         explicitly amends runner exit semantics.
-    - path: orca/product/spines/capture/source_capture_toolbox/cloakbrowser_packet_runner_architecture_independent_pass_v0.md
-      reason: >
-        Treated as corroboration/reference, not the canonical target. Its R1-R4
-        refinements were absorbed here instead of making the independent-pass
-        wrapper the live architecture source.
   stale_language_search: >
-    rg -n "exit `4`|exit `5`|Recommended later runner exit codes|storage_state|profile-manager state|proxy endpoint|proxy exit IP|disclosability inverse|cloakbrowser_packet_runner_architecture_independent_pass"
+    rg -n "exit `4`|exit `5`|Recommended later runner exit codes|storage_state|profile-manager state|proxy endpoint|proxy exit IP|disclosability inverse"
     orca/product/spines/capture/source_capture_toolbox/cloakbrowser_packet_runner_architecture_v0.md
-    orca/product/spines/capture/source_capture_toolbox/cloakbrowser_packet_runner_architecture_independent_pass_v0.md
     orca-harness/docs
   stale_language_search_result: >
     Executed after this patch. Live hits are expected: this canonical artifact's
     public-orientation note, no-secret/proxy boundary, anonymous-only seam,
     disclosability inverse-test, owner-decision wording, DCP receipt/search
-    string, and the independent pass preserved as a non-canonical
-    corroboration/reference artifact. No live canonical section silently
-    recommends exit `4`/`5` without owner convention amendment.
+    string. No live canonical section silently recommends exit `4`/`5` without
+    owner convention amendment.
   non_claims:
     - not validation
     - not readiness
