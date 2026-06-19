@@ -71,9 +71,8 @@ consumer-demand direction. Controlling authority:
 
 The executed `direction_change_propagation` receipt for this ratification
 event lives in `docs/decisions/orca_product_thesis_consumer_demand_v0.md`
-("Doctrine-Change Propagation — Executed"). Applied here from
-`orca/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_consumer_demand_revision_v0.md`
-(deviations recorded in that package's status).
+("Doctrine-Change Propagation — Executed"). Applied here by the ratification
+cascade; the live text reflects the applied deviations.
 
 The substantive content below (rubric grades, trust handling, pull standard,
 kill and graduation structure, exclusions, and all non-claims) is SURGICALLY

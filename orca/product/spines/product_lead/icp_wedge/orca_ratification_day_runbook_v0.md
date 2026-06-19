@@ -146,12 +146,12 @@ Execute in order. Each step names the file, the edit, and its check.
   historical reasoning are never retro-edited).
 
 **Step 5 — Adopt the three subordinate revision packages** (full pass only)
-- Apply, per each package's "Application Instruction" section:
-  - `orca_offer_hypothesis_consumer_demand_revision_v0.md` → `orca_offer_hypothesis_v0.md`
-  - `orca_buyer_proof_packet_consumer_demand_revision_v0.md` → `orca_buyer_proof_packet_v0.md`
-  - `orca_product_proof_lead_charter_consumer_demand_revision_v0.md` → `orca_product_proof_lead_charter_v0.md`
-- Then flip each package's status to `APPLIED_<date>` (or delete per owner
-  preference; applied packages are consumed prep, not live authority).
+- Completed 2026-06-12. The applied live targets are:
+  - `orca/product/spines/product_lead/offer/orca_offer_hypothesis_v0.md`
+  - `orca/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md`
+  - `orca/product/spines/product_lead/proof_charter/orca_product_proof_lead_charter_v0.md`
+- Applied packages are consumed prep, not live authority; after reverse-ref and
+  deletion-evidence checks, they may be deleted.
 - Check: each live doc's banner names the consumer-demand authorities; no
   live doc still names pricing-first as CURRENT (historical mentions stay).
 

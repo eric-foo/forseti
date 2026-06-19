@@ -18,7 +18,7 @@ use_when:
   - Checking first-contact qualification objectives for the beauty operator door before memo production.
 authority_boundary: retrieval_only
 open_next:
-  - orca/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_consumer_demand_revision_v0.md  # owns the substrate gate + disqualifiers
+  - orca/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md  # owns the live substrate gate + disqualifiers
   - docs/decisions/orca_icp_wedge_consumer_demand_first_v0.md
   - .agents/workflow-overlay/product-proof.md
 input_hashes:
@@ -27,7 +27,7 @@ input_hashes:
 branch_or_commit: ecr-sp3-timing-deriver-slice1 @ 48c00ca
 stale_if:
   - The owner amends the thesis or wedge (re-derive against the amended text).
-  - The buyer-proof packet revision's Demand-Substrate Hard Gate changes (gates below re-derive from it).
+  - The buyer-proof packet's Demand-Substrate Hard Gate changes (gates below re-derive from it).
   - The no-buyer-contact gate is reopened or changed (re-read before any use).
 ```
 
@@ -122,7 +122,7 @@ per the charter).
 
 ## Qualification Objectives (first contact, when outreach is ever opened)
 
-Derived from the wedge and the buyer-proof packet revision; the packet's
+Derived from the wedge and the live buyer-proof packet; the packet's
 Demand-Substrate Hard Gate and disqualifiers control on any conflict.
 
 1. Confirm a live 30-90 day consumer-demand allocation decision at a
@@ -148,7 +148,7 @@ Demand-Substrate Hard Gate and disqualifiers control on any conflict.
 
 ## Stop Rules (carried unchanged)
 
-- Stop at any disqualifier in the buyer-proof packet revision (B3).
+- Stop at any disqualifier in the buyer-proof packet.
 - Stop if qualification would require outreach while the no-buyer-contact
   gate is closed.
 - Stop if signal coverage would require a route outside the capture lane's

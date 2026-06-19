@@ -64,3 +64,61 @@ deletions:
       semantic_delta: |
         No unique durable product-method meaning is lost. The successor contract operationalizes the accepted PCP-01 through PCP-08 package: expanded discharge states (`assessed_not_met`, `cannot_assess`, `access_failed`, and narrowed `blocked`) at lines 76-86 and 143; raw observable fidelity split at line 191; Capture-owned categorical handoff readiness at line 458; checker vocabulary/glossary at line 624; and checker posture/comparability at line 645. The successor DCP states at line 758 that it operationalizes the accepted PCP-01 through PCP-08 package and at line 789 that the proposal remains historical candidate-language input while the controlling contract consumes the accepted package. Authoring history remains recoverable from git and frozen review/decision records.
       rollback: git revert <executing merge sha>
+
+  - targets:
+      - orca/product/spines/product_lead/offer/orca_offer_hypothesis_consumer_demand_revision_v0.md
+    evidence:
+      reverse_ref_check: |
+        Repo-wide W3b reverse-ref check run in this worktree using the exact current target path, filename slug, and document title/doc-id.
+
+        Exact current target path / filename hits found before deletion:
+        - docs/migration/spine_first_target_move_table_v0.md:215, docs/migration/repo_structure_spine_first_v0/moves_manifest.csv:156, docs/migration/repo_structure_spine_first_v0/moved_paths_index.md:184 -- historical spine-first move tracking; safe to leave.
+        - orca/product/spines/product_lead/offer/orca_offer_hypothesis_v0.md:97 -- live applied-from pointer; replaced with ratification-cascade wording that no longer points to the consumed package.
+        - orca/product/spines/product_lead/icp_wedge/orca_ratification_day_runbook_v0.md:150 -- historical step-5 package list; replaced with the applied live target path.
+        - orca/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md:668 and 690 -- historical DCP downstream-surface / intentionally-not-updated entries from the 2026-06-14 demand-gate apply; safe to leave as provenance, not a live dependency.
+        - target self-reference/title -- removed with the target.
+
+        No remaining live open_next or operational instruction depends on this consumed revision package. Surviving refs are historical migration/provenance entries or are removed with the target.
+      successor: orca/product/spines/product_lead/offer/orca_offer_hypothesis_v0.md
+      semantic_delta: |
+        No current offer meaning is lost. The successor is the live offer hypothesis and already contains the applied consumer-demand refinement, commercial target update, first-proof offer layer, ICP status, decision families, first-proof fit gates, non-claims, and recommendation. The deleted package carried pre-application instructions plus its APPLIED_2026-06-12 status/deviation notes; those are historical prep, not live authority. The successor now states that the ratification cascade applied the refinement and that the live text reflects the applied deviations. Full authoring history remains recoverable from git.
+      rollback: git revert <executing merge sha>
+
+  - targets:
+      - orca/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_consumer_demand_revision_v0.md
+    evidence:
+      reverse_ref_check: |
+        Repo-wide W3b reverse-ref check run in this worktree using the exact current target path, filename slug, and document title/doc-id.
+
+        Exact current target path / filename hits found before deletion:
+        - docs/migration/spine_first_target_move_table_v0.md:217, docs/migration/repo_structure_spine_first_v0/moves_manifest.csv:148, docs/migration/repo_structure_spine_first_v0/moved_paths_index.md:176 -- historical spine-first move tracking; safe to leave.
+        - orca/product/spines/product_lead/proof_charter/orca_product_proof_lead_charter_consumer_demand_revision_v0.md:19 -- self-contained paired-revision open_next; removed with the deleted proof-charter revision package.
+        - orca/product/spines/product_lead/icp_wedge/orca_ratification_day_runbook_v0.md:151 -- historical step-5 package list; replaced with the applied live target path.
+        - orca/product/spines/product_lead/icp_wedge/orca_discovery_consumer_demand_target_selection_brief_v0.md:21, 30, 125, 151 -- live discovery-instrument dependency on the packet revision; repointed/reworded to the live buyer-proof packet.
+        - orca/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md:75 -- live applied-from pointer; replaced with ratification-cascade wording that no longer points to the consumed package.
+        - orca/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md:670 and 698 -- historical DCP downstream-surface / intentionally-not-updated entries from the 2026-06-14 demand-gate apply; safe to leave as provenance, not a live dependency.
+        - target self-reference/title -- removed with the target.
+
+        No remaining live open_next or operational instruction depends on this consumed revision package. Surviving refs are historical migration/provenance entries or are removed with the target.
+      successor: orca/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md
+      semantic_delta: |
+        No current buyer-proof meaning is lost. The successor is the live buyer-proof packet and already contains the applied consumer-demand refinement, target-buyer and live-decision trigger language, Demand-Substrate Hard Gate, disqualifiers, memo/deck shapes, proof batch, kill/graduation criteria, non-claims, and later owner-ratified gate amendments. The deleted package carried pre-application instructions plus its APPLIED_2026-06-12 status/deviation notes; those are historical prep, not live authority. The successor now states that the ratification cascade applied the refinement and that the live text reflects the applied deviations. Full authoring history remains recoverable from git.
+      rollback: git revert <executing merge sha>
+
+  - targets:
+      - orca/product/spines/product_lead/proof_charter/orca_product_proof_lead_charter_consumer_demand_revision_v0.md
+    evidence:
+      reverse_ref_check: |
+        Repo-wide W3b reverse-ref check run in this worktree using the exact current target path, filename slug, and document title/doc-id.
+
+        Exact current target path / filename hits found before deletion:
+        - docs/migration/spine_first_target_move_table_v0.md:219, docs/migration/repo_structure_spine_first_v0/moves_manifest.csv:159, docs/migration/repo_structure_spine_first_v0/moved_paths_index.md:187 -- historical spine-first move tracking; safe to leave.
+        - orca/product/spines/product_lead/proof_charter/orca_product_proof_lead_charter_v0.md:65 -- live applied-from pointer; replaced with ratification-cascade wording that no longer points to the consumed package.
+        - orca/product/spines/product_lead/icp_wedge/orca_ratification_day_runbook_v0.md:152 -- historical step-5 package list; replaced with the applied live target path.
+        - target self-reference/title -- removed with the target.
+
+        No remaining live open_next or operational instruction depends on this consumed revision package. Surviving refs are historical migration/provenance entries or are removed with the target.
+      successor: orca/product/spines/product_lead/proof_charter/orca_product_proof_lead_charter_v0.md
+      semantic_delta: |
+        No current proof-charter meaning is lost. The successor is the live proof-lead charter and already contains the applied consumer-demand refinement, Product Proof Lead question, first proof lane, proof artifact, ownership boundaries, pull standard, kill/graduation criteria, next docs-first work, and non-claims. The deleted package carried pre-application instructions plus its APPLIED_2026-06-12 status/deviation notes; those are historical prep, not live authority. The successor now states that the ratification cascade applied the refinement and that the live text reflects the applied deviations. Full authoring history remains recoverable from git.
+      rollback: git revert <executing merge sha>
