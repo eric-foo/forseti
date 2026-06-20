@@ -140,8 +140,7 @@ so contamination can be tell-audited and lessons extracted.
 - **C3 — Verdict + Action Ceiling.** Emit the **demand-state verdict** on main's
   two-axis model — **durable / transient** (persistence), given **real** (not
   manufactured) — and the action ceiling **matched to the demand's lifespan**:
-  **act / phase / narrow / hold / defend** (long-horizon *commit* vs short-horizon
-  *move*). The ceiling is capped by the weakest load-bearing evidence — costly
+  **monitor / probe / commit / hold / scale / avoid / reduce**. The ceiling is capped by the weakest load-bearing evidence — costly
   behavior can reach Commit-grade; engagement volume alone caps lower (buyer-proof
   rule). **Persistence-axis** risk patterns (resale/flip, event/one-time,
   scarcity/panic) are classified **here** as transient, not capped at C2 (their

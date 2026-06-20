@@ -103,7 +103,7 @@ with the costly-behavior/integrity thinness named, not hidden.
    (durable | transient, given real), defaulting to **transient** unless observed
    post-trigger persistence is in the information set; classify any persistence-axis
    pattern as transient with a cited discriminator; emit an action ceiling
-   {act/phase/narrow/hold/defend} matched to horizon, capped by the floor/ceiling
+   {monitor/probe/commit/hold/scale/avoid/reduce} capped by the floor/ceiling
    rule (≥2 converging origins for a material verb; engagement-only caps; weakest
    load-bearing evidence binds). Fill the sealed_call (recommendation, qualitative
    confidence_band, signals_used, required reasoning_trace).

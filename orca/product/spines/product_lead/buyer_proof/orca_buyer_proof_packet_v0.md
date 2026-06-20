@@ -50,8 +50,8 @@ consumer-demand direction. Controlling authority:
 `input_hashes` / wedge references are superseded — reread-required. Deltas:
 
 - Proof subject: beauty consumer-demand allocation decisions (DecisionEvent) —
-  durable / transient / manufactured demand (TrendVector) discrimination (act / phase / narrow /
-  hold / defend), per the thesis's central read.
+  durable / transient / manufactured demand (TrendVector) discrimination (monitor / probe /
+  commit / hold / scale / avoid / reduce), per the thesis's central read.
 - Substrate HARD GATE RE-DERIVED (replaces "competitor prices clean, reviews
   confirmatory-only," which was derived for a pricing read and does not
   transfer): see "Demand-Substrate Hard Gate" below.
@@ -158,11 +158,10 @@ integrity rule instead of a venue allowlist:
   **enough effectively-independent origins for the commitment claimed**, tiered
   by *commitment/reversibility*, not verb name: one origin (or
   laundered/shared-origination copies of one) authorizes only **low-commitment,
-  reversible responses** (hold; a watchful or low-cost defensive posture); **any
-  material or irreversible commitment — act, phase, narrow, or a
-  costly/committing defend — requires ≥2 independent origins that converge.**
-  "Defend" is not automatically low-commitment; a costly defensive campaign is a
-  material action and needs the ≥2 bar. *(AR-02)*
+  reversible responses** (monitor / probe / hold; a watchful or low-cost posture); **any
+  material or irreversible commitment — commit or scale — requires ≥2 independent
+  origins that converge.** This is tiered by commitment/reversibility, not verb
+  name: a costly or scaling position is a material action and needs the ≥2 bar. *(AR-02)*
 - **Two distinct maintained card sets.** Maintained cards split into **G1
   demand-family cards** (today only **forums/community** is sourced;
   review-surface and search-interest are **unsourced gaps**, owner-owned) and
@@ -339,7 +338,7 @@ integrity-labeled public evidence.
 For this first proof, the promise is not "Orca predicts the trend." The promise is narrower:
 
 Orca identifies the evidence-supported action ceiling for the live demand
-decision — act, phase, narrow, hold, or defend — states what the public
+decision — monitor, probe, commit, hold, scale, avoid, or reduce — states what the public
 signal can and cannot support, and names what would change the answer.
 
 **Never-a-feed invariant (2026-06-14):** every output is a calibrated decision
@@ -392,7 +391,7 @@ Recommended memo and evidence appendix shape:
 5. Org-motion corroboration at brand and parent level, and the divergence
    read where the layers disagree.
 6. Competitor and category movement relevant to the decision.
-7. Valid action ceiling (act / phase / narrow / hold / defend) and the
+7. Valid action ceiling (monitor / probe / commit / hold / scale / avoid / reduce) and the
    unsafe overclaims explicitly declined.
 8. Decision options mapped to the ceiling, with what would change the answer.
 9. Evidence appendix with provenance-backed citations.
@@ -401,7 +400,7 @@ Recommended memo and evidence appendix shape:
 Recommended executive deck shape, if the premium layer is produced:
 
 1. Decision question and recommendation verb.
-2. Executive action ceiling: act, phase, narrow, hold, or defend.
+2. Executive action ceiling: monitor, probe, commit, hold, scale, avoid, or reduce.
 3. What public signals can and cannot support.
 4. Source-backed signal synthesis.
 5. Buyer, user, developer, partner, or ecosystem objection patterns.

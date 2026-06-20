@@ -170,7 +170,7 @@ yielding three actionable read-states. A scan does not *predict* which state a
 signal will become; it recognizes the state the receipts can currently support
 and tags it conservatively (see the calling-sequence rule below).
 
-### Durable-demand read (real + persists → commit, long horizon)
+### Durable-demand read (real + persists → commit)
 
 Trigger: at least two **effectively-independent demand-venue (Venue) origins** (§3
 independence rule) moving the same direction on the same trend vector (TrendVector) or brand (Brand),
@@ -189,7 +189,7 @@ the trigger** — optionally corroborated by org motion in the same direction.
   evidence is recognized as a **transient-spike** read, not a durable one (the
   scan never opens at "durable"; calling-sequence rule below).
 
-### Transient-spike read (real + decays → move, short horizon, time-boxed)
+### Transient-spike read (real + decays → probe / monitor, time-boxed)
 
 Trigger: real, gradeable costly behavior with a **short observed lifespan or no
 persistence yet visible** — a viral surge, a time-limited dupe wave, a seasonal
@@ -228,8 +228,8 @@ visibly imminent — launch / reposition; retail or channel entry or exit;
 restock / sellout handling; discontinuation / moratorium; defend-versus-hype;
 event-triggered pricing. The demand-state read (durable / transient /
 manufactured), wind-caller state, and integrity labels are context that makes
-the event decide-grade and set the action ceiling **and its horizon** (long-
-horizon commit vs short-horizon move).
+the event decide-grade and set the action ceiling — commit or scale when origins
+converge and persist; probe or monitor when they do not.
 
 - NEWSY recognition: brand statement or trade coverage of the decision;
   founder quotes; community detection that trade press adopts as canonical.
@@ -411,10 +411,9 @@ candidate FAILS the gate only when the **floor cannot clear** — no gradeable
 costly-behavior instance in any qualifying demand-venue family
 (engagement/attention volume alone never clears it), or no qualifying
 demand-venue origin at all. With the floor cleared on **one** independent
-origin, the read is admissible but **capped at hold / low-commitment**; **≥2
-converging independent origins** are required before any material or irreversible
-commitment (act, phase, narrow, or a costly/committing defend). A single clean
-origin is a ceiling cap, not an automatic failure.
+origin, the read is admissible but **capped at hold / low-commitment**; any material
+or irreversible commitment — **commit or scale** — requires **≥2 independent converging
+origins**. A single clean origin is a ceiling cap, not an automatic failure.
 
 `decision_owner_pointer` boundary: role-level by default; a name appears only
 when it is itself the public receipt (a founder quoted on the decision).

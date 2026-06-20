@@ -71,7 +71,7 @@ restating or replacing them:
 - Qualitative weighting comes from C2; no numeric weight, score, formula, or
   deterministic apply-rule belongs here.
 - Verdict and action ceiling come from C3; fragrance may map examples onto
-  `act`, `phase`, `narrow`, `hold`, or `defend`, but it must not mint new action
+  `monitor`, `probe`, `commit`, `scale`, `avoid`, or `reduce`, but it must not mint new action
   vocabulary.
 - Forecast, utility/action, decision-log, reveal/evaluation, and lesson fields
   are product-learning inputs unless later owner gates promote them.
@@ -111,10 +111,10 @@ receipt_artifact_or_gap: this skeleton is setup context; future per-case receipt
 | Evidence object | Source references, provenance notes, contradiction/timeline links, pre/post-cutoff separation, packet IDs | JSG-01, ECR, packing/finalization owners; Level 1 graph-family plan | Captured evidence packet and authorized packet construction | JSG clearance or gate-bearing execution |
 | C1 allow read | Why the demand signal is allowed into the read, or why it is held | Demand-read core C1 | Case-specific source plan and allowed-evidence rationale | Source truth or source-family admission |
 | C2 weighting trace | `signal_id`, direction, reasoning, caveats, no-row handling | C2 ledger read contract; signal-reliability ledger | Qualitative read over in-case evidence plus any valid ledger row | Numeric weight, formula, ranking, or score |
-| Forecast records | Target, horizon, cutoff, evidence refs, probability bucket, due date, outcome label, Brier hook | Level 1 forecast-record contract; far-half decision object; near-half eval surfaces | Pre-reveal seal before outcome lookup | Judgment-quality evidence, calibration, or buyer proof |
+| Forecast records | Target, horizon, cutoff, evidence refs, probability bucket, due date, outcome label | Level 1 forecast-record contract; far-half decision object; near-half eval surfaces | Pre-reveal seal before outcome lookup | Judgment-quality evidence, calibration, or buyer proof |
 | C3 utility/action | Bounded action family, magnitude, timing, trigger, stop condition, next action, crux, confidence bucket | Level 1 utility/action schema; C3 verdict/action ceiling contract | C2 trace and fixed action vocabulary | Passive monitor, new action vocabulary, or unconstrained live action |
 | Decision log | Evidence version, forecasts, utility assumptions, action object, limitations, due dates | Level 1 decision-log contract; evidence ladder receipt boundary | Sealed log before reveal | Completed product-learning evidence by itself |
-| Reveal/eval | Outcome record, outcome labels, benchmark comparison, regret/error labels, Brier-style note if used | JSG-08 owner contract; near-half learning shell; Level 1 evaluation record | Sealed pre-reveal call plus outcome record | JSG-08 clearance, calibration, readiness, or proof by outcome |
+| Reveal/eval | Outcome record, outcome labels, benchmark comparison, regret/error labels | JSG-08 owner contract; near-half learning shell; Level 1 evaluation record | Sealed pre-reveal call plus outcome record | JSG-08 clearance, calibration, readiness, or proof by outcome |
 | Lesson/signal rows | Candidate lesson, signal row candidate, discriminator tell | Near-half lesson architecture; signal-reliability ledger | Promotion gate and report-all K-of-N discipline | Validated lesson, source-family promotion, or causation |
 | Product-learning receipt | Case/packet ID, surface, prompt or answer handle, owner readback, friction/product signals, non-claims | Evidence ladder `product_learning_receipt` | All minimum receipt fields complete | Buyer proof, judgment quality, run readiness, or scoring authorization |
 
@@ -197,11 +197,10 @@ fragrance_level1_case:
       raw_probability_bucket:
       due_date:
       outcome_label:
-      brier_hook:
       sealed_before_reveal: yes | no | unknown
       seal_artifact_or_process_ref:
   utility_action:
-    action_family: act | phase | narrow | hold | defend | unknown
+    action_family: monitor | probe | commit | hold | scale | avoid | reduce | unknown
     magnitude:
     timing:
     trigger:
@@ -221,8 +220,7 @@ fragrance_level1_case:
   c3_decision:
     demand_state: durable | transient | unknown
     persistence_basis:
-    action_ceiling: act | phase | narrow | hold | defend | unknown
-    horizon: commit | move | unknown
+    action_ceiling: monitor | probe | commit | hold | scale | avoid | reduce | unknown
     confidence_band:
     confidence_band_basis:
     recommendation:
@@ -236,7 +234,7 @@ fragrance_level1_case:
     regret_label:
     error_label:
     reveal_comparison:
-    brier_or_forecast_note:
+    forecast_note:
     product_learning_signal:
   lesson_capture:
     candidate_lessons: []
@@ -326,7 +324,7 @@ For this satellite:
 
 - Forecasts must be sealed before reveal if they will be evaluated.
 - Forecast records should name target, horizon, cutoff, included evidence refs,
-  raw probability bucket, due date, outcome label, and Brier hook.
+  raw probability bucket, due date, and outcome label.
 - Outcome comparison may produce product-learning notes.
 - A correct outcome call does not prove the judgment was good.
 - A wrong outcome call does not automatically prove the judgment was bad.

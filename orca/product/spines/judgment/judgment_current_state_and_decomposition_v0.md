@@ -148,7 +148,7 @@ The fragrance satellite must not own:
 | Evidence capture / source plan | Source-capture owners plus C1 allow gate by pointer | Fragrance source registry, public venues, beauty venue card-set consumption | Venue hints are not source authority or captured evidence |
 | Evidence object / packet | JSG-01, ECR, packing/finalization, packet construction | Fragrance graph-family artifact, evidence object schema, contradictions, timeline, and provenance plan | No JSG-01 clearance without authorized run evaluation |
 | Weighting | C2 ledger read contract and signal-reliability ledger | Qualitative fragrance weighting rubric, caveat travel, signal IDs | No numeric weight, formula, or scoring engine |
-| Forecast / expected outcome | Level 1 forecast-record contract plus far-half decision object and product-learning evaluation surfaces | Raw forecast probabilities, probability bucket, horizon, due date, and Brier hook | Outcome prediction is not a Judgment Spine claim; forecast records are learning inputs only |
+| Forecast / expected outcome | Level 1 forecast-record contract plus far-half decision object and product-learning evaluation surfaces | Raw forecast probabilities, probability bucket, horizon, due date | Outcome prediction is not a Judgment Spine claim; forecast records are learning inputs only |
 | Decision / action ceiling | C3 verdict/action ceiling contract and Level 1 utility/action schema | Fragrance utility/action recommendation with target, trigger, stop condition, next action, and crux | No passive monitor, new action vocabulary, or unconstrained live action |
 | Reveal / evaluation | JSG-08 reveal/calibration owner contract and near-half learning shell | Fragrance outcome labels, benchmark comparison, regret/error labels, and reveal comparison | Reveal comparison does not by itself create calibration, buyer proof, or judgment quality |
 | Lesson capture | Near-half adversarial postmortem, validated-lesson cell, signal ledger | Candidate fragrance lessons and signal rows | Candidate lessons are N=0/unproven until promotion gates clear |
@@ -171,6 +171,16 @@ So the forecasting portion should be handled as:
 This prevents a common drift: turning a good or lucky outcome call into proof
 that the judgment was good, or turning an unlucky but evidence-right call into a
 false failure.
+
+**Evaluation target (sharpened 2026-06-20, owner-directed — see the
+judgment-spine thesis amendment "Optimization Target Sharpened To
+Decision-Quality Regret").** The judgment is evaluated on **decision-quality
+regret**: the qualitatively assessed gap to the best move the *contemporaneous*
+evidence supported. Right-sizing (over/under-reach) is a necessary **component**
+of this, not the whole target — a within-band call can still leave expected
+value on the table. Regret is measured at the time-of-decision evidence frontier
+(an evidence-right but unlucky call carries zero regret). Qualitative and
+product-learning-capped; it mints no scoring vocabulary.
 
 ## First Work Slices After This Map
 

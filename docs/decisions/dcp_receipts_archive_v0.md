@@ -1188,3 +1188,72 @@ direction_change_propagation:
     - not source promotion
     - not implementation authorization
 ```
+
+## From .agents/workflow-overlay/prompt-orchestration.md
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Prompt orchestration now surfaces the fitness_reference (goal + observable
+    success signal, owned by work_unit_fitness_reference_v0) for durable and
+    cross-recipient prompts in two places: the chat return for the dispatcher in
+    plain language (human-glance test), and the prompt body for the receiving
+    executor, pointer-preferred and labeled executor-target / review-axis-to-attack
+    (not a review pass bar). This EXTENDS the surfacing of
+    work_unit_fitness_reference_v0 beyond its review-only scope-lock; it reuses that
+    object (no new vocabulary) and changes none of its substance — not the review
+    back-pressure, the scoped fused gate, prompt_body_injection: no, or the
+    alignment-axis guardrail.
+  trigger: output_authority
+  related_triggers:
+    - workflow_authority
+  controlling_sources_updated:
+    - .agents/workflow-overlay/prompt-orchestration.md
+  downstream_surfaces_checked:
+    - docs/decisions/work_unit_fitness_reference_v0.md
+    - .agents/workflow-overlay/review-lanes.md
+    - .agents/workflow-overlay/communication-style.md
+    - .agents/workflow-overlay/validation-gates.md
+    - AGENTS.md
+  intentionally_not_updated:
+    - path: docs/decisions/work_unit_fitness_reference_v0.md
+      reason: >
+        The owning decision is unchanged in substance; this overlay rule extends
+        its surfacing and cites it as the concept owner. The decision's scope-lock
+        (adversarial artifact review + fused gate) remains accurate for what it
+        enacted; the extension lives in the overlay, not by re-opening the decision.
+    - path: .agents/workflow-overlay/review-lanes.md
+      reason: >
+        Its review-side fitness_reference rule (pointer-preferred, axis-to-attack,
+        name the gap when unbound) is unchanged and is explicitly preserved by the
+        new rule's executor-target / not-a-pass-bar labeling.
+    - path: .agents/workflow-overlay/communication-style.md
+      reason: >
+        It owns the general chat shape; its Decision-criteria consumption item
+        already accommodates a surfaced goal+signal. prompt-orchestration.md owns
+        output-mode behavior and carries the new surfacing requirement, so no
+        duplicate rule is added here.
+    - path: .agents/workflow-overlay/validation-gates.md
+      reason: >
+        Its prompt gates defer to prompt-orchestration.md as the prompt-mechanics
+        owner; the new surfacing rule lives there and needs no new gate.
+    - path: AGENTS.md
+      reason: >
+        Routes prompt detail to prompt-orchestration.md; the rule lives in that
+        owner file, so no root restatement is added.
+  stale_language_search: >
+    rg -i "fitness_reference|prompt_body_injection|success signal|fitness reference"
+    .agents/workflow-overlay (run 2026-06-15 in worktree orch-goal-success @ cd681d9e)
+  stale_language_search_result: >
+    Executed 2026-06-15. Hits: prompt-orchestration.md (the goal-fitness gate, the
+    review fitness_reference rule, review gate item g), review-lanes.md (the
+    review-side fitness_reference rule), skill-adoption.md (the workflow-goal-framing
+    skill entry). None states an opposing rule; all are consistent with extending
+    the same object's surfacing. No surface forbids surfacing the fitness_reference
+    in chat or carrying it pointer-preferred in a prompt body.
+  non_claims:
+    - not validation
+    - not readiness
+    - not source promotion
+    - not implementation authorization
+```
