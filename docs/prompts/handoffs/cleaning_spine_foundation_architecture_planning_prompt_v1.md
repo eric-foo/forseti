@@ -18,7 +18,7 @@ open_next:
   - docs/review-outputs/adversarial-artifact-reviews/projection_doctrine_v0_vendor_ca_closeout_v0.md
   - orca/product/spines/foundation/product_contract/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
   - orca/product/spines/cleaning/contracts/core_spine_v0_corroboration_vs_amplification_discipline_v0.md
-  - orca/product/spines/capture/operating_model/core_spine_v0_data_capture_context_preservation_note_v0.md
+  - orca/product/spines/capture/core/operating_model/core_spine_v0_data_capture_context_preservation_note_v0.md
 supersedes:
   - docs/prompts/handoffs/cleaning_spine_foundation_architecture_planning_prompt_v0.md
 branch_or_commit: codex/cleaning-spine-successor-main-codex @ 45c6fac9f57c0e9d09607875f12b19882ff34290 plus current-lane OD-4 clarification patch

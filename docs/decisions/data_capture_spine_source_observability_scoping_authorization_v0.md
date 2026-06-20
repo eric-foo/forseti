@@ -10,10 +10,10 @@ use_when:
   - Confirming that tooling, runtime, source-access implementation, contract hardening, ECR, Cleaning, and Judgment work remain out of scope.
 authority_boundary: retrieval_only
 open_next:
-  - orca/product/spines/capture/operating_model/data_capture_spine_pressure_test_all_slot_synthesis_v0.md
+  - orca/product/spines/capture/core/operating_model/data_capture_spine_pressure_test_all_slot_synthesis_v0.md
   - docs/review-outputs/adversarial-artifact-reviews/data_capture_spine_pressure_test_all_slot_synthesis_blast_radius_recheck_v0.md
-  - orca/product/spines/capture/operating_model/data_capture_spine_pressure_test_execution_authorization_v0.md
-  - orca/product/spines/capture/operating_model/data_capture_spine_pressure_test_commissioning_plan_v0.md
+  - orca/product/spines/capture/core/operating_model/data_capture_spine_pressure_test_execution_authorization_v0.md
+  - orca/product/spines/capture/core/operating_model/data_capture_spine_pressure_test_commissioning_plan_v0.md
 stale_if:
   - A later owner decision supersedes this authorization.
   - The all-slot synthesis is materially revised.

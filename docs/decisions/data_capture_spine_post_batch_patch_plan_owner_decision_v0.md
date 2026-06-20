@@ -10,11 +10,11 @@ use_when:
   - Confirming whether contract hardening, source-access implementation, runtime work, or downstream ECR/Cleaning/Judgment design is authorized.
 authority_boundary: retrieval_only
 open_next:
-  - orca/product/spines/capture/operating_model/data_capture_spine_post_batch_patch_plan_v0.md
+  - orca/product/spines/capture/core/operating_model/data_capture_spine_post_batch_patch_plan_v0.md
   - docs/review-outputs/adversarial-artifact-reviews/data_capture_spine_post_batch_patch_plan_adversarial_artifact_review_v0.md
   - docs/decisions/data_capture_spine_pressure_test_batch_classification_decision_v0.md
-  - orca/product/spines/capture/contracts/obligation_contracts/core_spine_v0_data_capture_spine_obligation_contract_v0.md
-  - orca/product/spines/capture/contracts/source_access_boundary/data_capture_source_access_method_plan_v0.md
+  - orca/product/spines/capture/core/contracts/obligation_contracts/core_spine_v0_data_capture_spine_obligation_contract_v0.md
+  - orca/product/spines/capture/core/contracts/source_access_boundary/data_capture_source_access_method_plan_v0.md
 stale_if:
   - The post-batch patch plan is materially revised after this decision.
   - A later owner decision supersedes this decision.

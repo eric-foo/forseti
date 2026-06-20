@@ -339,13 +339,13 @@ Start with:
 
 Then open the intake surface consolidation as the pressure-test anchor:
 
-- `orca/product/spines/capture/contracts/candidate_intake/data_capture_spine_intake_surface_consolidation_v0.md`
+- `orca/product/spines/capture/core/contracts/candidate_intake/data_capture_spine_intake_surface_consolidation_v0.md`
 
 Then open only the controlling source for the current claim. Key owners:
 
 - **Pressure-test closeout state and authorization-chain walk** (slot status,
   RQ status, CloakBrowser selection, Reddit ordering, tranche build authority):
-  `orca/product/spines/capture/operating_model/data_capture_spine_pressure_test_closeout_synthesis_v0.md`
+  `orca/product/spines/capture/core/operating_model/data_capture_spine_pressure_test_closeout_synthesis_v0.md`
   — the "Intake Surface / MSP Pressure-Test State" section carries the verbatim
   authorization-chain narrative relocated from this pack on 2026-06-13.
 - **Source-observability scoping / RQ boundary**: open the requirements-boundary
@@ -354,12 +354,12 @@ Then open only the controlling source for the current claim. Key owners:
   open the post-batch patch plan, patch proposal, owner decision, and review
   output named by the consolidation map.
 - **Slot 3 WSO continuation or cross-venue synthesis**: open
-  `orca/product/spines/capture/operating_model/data_capture_spine_pressure_test_slot3_reddit_subbatch_control_note_v0.md`
+  `orca/product/spines/capture/core/operating_model/data_capture_spine_pressure_test_slot3_reddit_subbatch_control_note_v0.md`
   before treating Reddit capture as complete venue coverage.
 - **Source Capture Packet lifecycle / fixture admission**:
   `docs/decisions/source_capture_packet_fixture_retention_sensitivity_decision_v0.md`
 - **Source Quality State Assembler boundary**:
-  `orca/product/spines/capture/source_capture_toolbox/source_quality_state_assembler_v0.md`
+  `orca/product/spines/capture/core/source_capture_toolbox/source_quality_state_assembler_v0.md`
 
 Capsule note: embedded state narrative (slot-by-slot history, authorization
 boundaries, CloakBrowser selection, Reddit ordering) now lives in the closeout
@@ -371,8 +371,8 @@ or Judgment behavior.
 Any capture-spine activity — onboarding a source, running or commissioning a capture probe,
 choosing or judging a capture route, or checking a "blocked" / NO-GO call — starts with the
 **canonical capture-method playbook**
-`orca/product/spines/capture/source_capture_toolbox/source_capture_playbook_v0.md` and its `open_next`
-`orca/product/spines/capture/source_capture_toolbox/capture_recon_index_v0.md`. It is the canonical method (the
+`orca/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md` and its `open_next`
+`orca/product/spines/capture/core/source_capture_toolbox/capture_recon_index_v0.md`. It is the canonical method (the
 retired `capture_investigation_playbook_v0.md` is its pre-rename name); load it before picking a
 route, and do not re-derive the access-control gate (Step 0) or the route catalog from scratch.
 
@@ -540,7 +540,7 @@ direction_change_propagation:
     - lifecycle_boundary
   controlling_sources_updated:
     - .agents/workflow-overlay/source-loading.md
-    - orca/product/spines/capture/operating_model/data_capture_spine_pressure_test_closeout_synthesis_v0.md
+    - orca/product/spines/capture/core/operating_model/data_capture_spine_pressure_test_closeout_synthesis_v0.md
   downstream_surfaces_checked:
     - .agents/workflow-overlay/prompt-orchestration.md
     - .agents/workflow-overlay/README.md
@@ -609,12 +609,12 @@ direction_change_propagation:
   controlling_sources_updated:
     - .agents/workflow-overlay/source-loading.md
   downstream_surfaces_checked:
-    - orca/product/spines/capture/source_capture_toolbox/source_capture_playbook_v0.md
-    - orca/product/spines/capture/source_capture_toolbox/capture_recon_index_v0.md
+    - orca/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md
+    - orca/product/spines/capture/core/source_capture_toolbox/capture_recon_index_v0.md
     - orca/product/spines/foundation/vertical_exploration/orca_vertical_exploration_guide_v0.md
     - docs/workflows/orca_repo_map_v0.md
   intentionally_not_updated:
-    - path: orca/product/spines/capture/source_capture_toolbox/source_capture_playbook_v0.md
+    - path: orca/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md
       reason: >
         It is the target being bound and is already canonical; no content change is needed to make
         it a start-read.

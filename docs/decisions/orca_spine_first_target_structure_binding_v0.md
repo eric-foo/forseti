@@ -8,10 +8,10 @@ scope: >
   reorganization. Binds the owner-adopted mini-god-tier target tree (rooted at
   orca/product/), the five adjudicated conventions, the Source Capture Toolbox
   shared-capability rule, the source-family phase convention, the
-  product-learning three-home rule, the search-dissolution policy, and the
-  foregone-limitations ledger. Target design only: it does NOT move files, does
-  NOT amend repo-structure.yaml yet, and is NOT validation/readiness/proof or a
-  runtime-migration authorization.
+  product-learning three-home rule, the search-dissolution policy, the
+  foregone-limitations ledger, and the later Capture `core/` internal
+  re-home. Target design and structure authority only: it is NOT
+  validation/readiness/proof or a runtime-migration authorization.
 use_when:
   - Deciding the target home of a product artifact under the spine-first tree.
   - Binding the authority a later migration-execution controller consumes.
@@ -75,6 +75,15 @@ mechanics map's bound home becomes `data_lake/workflows/` and the lake contracts
 are `data_lake/authority/`-owned. Content relocation is a separate later move pass;
 `shared/projection_doctrine/` and `shared/engagement_registry/` are untouched by
 that promotion.
+
+Post-execution Capture amendment (2026-06-21): the current Capture spine files
+were re-homed under `orca/product/spines/capture/core/`. Capture's reusable
+acquisition layer is now `capture/core/`; Retail/PDP remains
+`core/source_families/retail_pdp/`; Instagram is the first populated
+`core/source_families/social_media/instagram/` family. This amendment does not
+create satellite homes, Search/web-search capture, TikTok, YouTube, source-quality
+extraction, cadence/missingness folders, harness/runtime work, or source-access
+authorization.
 
 ## Base and provenance
 
@@ -141,27 +150,27 @@ orca/product/
         answer_engine/
 
     capture/
-      contracts/
-        source_access_boundary/
-        candidate_intake/
-        corpus_intake/
-        obligation_contracts/
-      operating_model/
-      packet_schema/
-      source_capture_toolbox/
-      demand_durability_indicators/
-        price_timeseries/
-        availability_restock/
-        search_interest/
-        review_velocity/
-      source_families/
-        retail_pdp/
-        reddit/
-        instagram/
-        youtube/
-        tiktok/
-        answer_engine/
-
+      core/
+        contracts/
+          source_access_boundary/
+          candidate_intake/
+          corpus_intake/
+          obligation_contracts/
+        operating_model/
+        packet_schema/
+        source_capture_toolbox/
+        demand_durability_indicators/
+          price_timeseries/
+          availability_restock/
+          search_interest/
+          review_velocity/
+        source_families/
+          retail_pdp/
+          social_media/
+            instagram/
+            youtube/     # future reserved; no current Capture files
+            tiktok/      # future reserved; no current Capture files
+          web_search_capture/ # future reserved; no current Capture files
     ecr/
       evidence_candidate_record/
       signal_content/
@@ -224,8 +233,8 @@ orca/product/
 
 | Convention | Status after source reads | Note |
 | --- | --- | --- |
-| #1 source-family phase separation | **accepted, verified** | `scanning/source_families/` and `capture/source_families/` are intentionally distinct phases; their member sets differ (LinkedIn is scanning-only; retail_pdp is capture-only). README/cross-pointer required. |
-| #2 capture owns `demand_durability_indicators/`; judgment owns `demand_read/grading/` | **accepted, verified** | The four capture indicator profiles stay capture-owned; the search-interest profile relocates into `capture/demand_durability_indicators/search_interest/`; the demand-read grading rubric is judgment-owned. |
+| #1 source-family phase separation | **accepted, verified; amended for Capture core** | `scanning/source_families/` and `capture/core/source_families/` are intentionally distinct phases; their member sets differ (LinkedIn is scanning-only; retail_pdp is capture-only). Social capture families group under `capture/core/source_families/social_media/`. README/cross-pointer required. |
+| #2 capture owns `demand_durability_indicators/`; judgment owns `demand_read/grading/` | **accepted, verified; amended for Capture core** | The four capture indicator profiles stay capture-owned under `capture/core/demand_durability_indicators/`; the demand-read grading rubric is judgment-owned. |
 | #3 rename `gate_run/` -> `admissibility_checkability/`; gate distribution | **accepted as structure; one clause unverified** | scanning-owns-columns ✓ (`docs/product/search/orca_demand_scan_core_spec_v0.md:614`); product-lead-owns-buyer-facing-Hard-Gate ✓ (`docs/product/product_lead/orca_buyer_proof_packet_v0.md:138`; gate-run criteria defers to it, `docs/product/search/orca_demand_gate_run_commission_criteria_v0.md:35`); judgment-consumes-only ✓. **CSB-owns-commission/work-order = UNKNOWN: no CSB artifact exists today** (Blocker B5). Hard Gate is NOT renamed to an indicator. |
 | #4 product-learning three homes | **accepted; one boundary ambiguous** | machinery/contracts -> `judgment/product_learning/`; corpora/runs -> `case_families/product_learning/`; domain frame/skeleton/registry -> `satellites/<domain>/`. The fragrance **reconciliation** artifact straddles machinery vs the `satellites/fragrance/judgment_level1/reconciliation/` slot (tagging item U-J1). |
 | #5 moved-path indexes stay in `docs/migration/` | **accepted** | Process/navigation artifacts, not product substance; never under `orca/product/shared/`. |
@@ -235,14 +244,16 @@ orca/product/
 ### Convention 1 — Source-family phase separation (not duplication)
 
 `scanning/source_families/<family>/` means **where to look / frontier /
-recognition** (discovery-side). `capture/source_families/<family>/` means **how
-to acquire admissible evidence** (acquisition-side). The repeated family names
-(`reddit`, `instagram`, `youtube`, `tiktok`, `answer_engine`) are intentional
-phase separation. The member sets are **not identical**: `linkedin` is a
-**scanning** source-family (no-live, planning-only, upstream discovery per the
-capture inventory §8) and is **not** under `capture/source_families/`;
-`retail_pdp` is a **capture** source-family and is not under scanning. Each
-populated `source_families/<family>/` directory **must carry a README that
+recognition** (discovery-side). `capture/core/source_families/<family>/` means
+**how to acquire admissible evidence** (acquisition-side). Social acquisition
+families group one level deeper at
+`capture/core/source_families/social_media/<platform>/`. The repeated family
+names across Scanning and Capture are intentional phase separation. The member
+sets are **not identical**: `linkedin` is a **scanning** source-family (no-live,
+planning-only, upstream discovery per the capture inventory §8) and is **not**
+under `capture/core/source_families/`; `retail_pdp` is a **capture** source
+family and is not under Scanning. Each populated `source_families/<family>/` or
+`source_families/social_media/<platform>/` directory **must carry a README that
 cross-points to its phase sibling** so the duplication reads as phase separation.
 
 ### Convention 2 — Capture owns `demand_durability_indicators/`; "indicator" is not a verdict owner
@@ -252,7 +263,7 @@ Capture owns the four durability indicator profiles
 `review_velocity`). Judgment owns `demand_read/` and `demand_read/grading/` and
 must **not** use "indicator" as a verdict owner. The `search_interest` profile
 (currently `docs/product/search/`) relocates into
-`capture/demand_durability_indicators/search_interest/`; the other three
+`capture/core/demand_durability_indicators/search_interest/`; the other three
 (currently `docs/product/data_capture_spine/`) relocate to their sibling slots.
 
 ### Convention 3 — Scanning area renamed `gate_run/` -> `admissibility_checkability/`; gate distribution
@@ -298,7 +309,7 @@ remain under `docs/migration/`, never under `orca/product/shared/`.
 The Source Capture Toolbox (a.k.a. Source Capture Armory) is adopted **as a named
 Capture subsystem and shared capability**, not dissolved into vague "capture
 docs" and not a peer microservice. Its home is
-`orca/product/spines/capture/source_capture_toolbox/` (canonical-name decision —
+`orca/product/spines/capture/core/source_capture_toolbox/` (canonical-name decision —
 "Toolbox" vs "Armory" — is a main-CA tagging item, Blocker B6). Scanning pays one
 declared dependency hop to the Toolbox; the dependency is explicit, not a merge.
 
@@ -316,7 +327,7 @@ The spine-first target **has no `search/` lane**. The demand-signal intelligence
   per Convention 3;
 - the **answer-engine surface** (AEO probe) -> `scanning/source_families/answer_engine/`;
 - the **search-interest** durability profile ->
-  `capture/demand_durability_indicators/search_interest/`.
+  `capture/core/demand_durability_indicators/search_interest/`.
 
 This **reverses the search-lane binding's physical placement** (topic-primacy ->
 spine-function placement). It does **not** narrow the demand-signal method's
@@ -413,6 +424,66 @@ these items.
 
 ## Direction change propagation
 
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Capture's internal product tree is amended from flat
+    `capture/{contracts,operating_model,packet_schema,source_capture_toolbox,
+    demand_durability_indicators,source_families}` to
+    `capture/core/{...}`. The execution pass re-homed the 103 current Capture
+    spine files under `capture/core/`, with Retail/PDP at
+    `capture/core/source_families/retail_pdp/` and Instagram at
+    `capture/core/source_families/social_media/instagram/`.
+  trigger: architecture_doctrine
+  related_triggers:
+    - workflow_authority
+    - output_authority
+  controlling_sources_updated:
+    - docs/decisions/orca_spine_first_target_structure_binding_v0.md
+    - docs/workflows/orca_repo_map_v0.md
+    - docs/workflows/data_capture_spine_consolidation_map_v0.md
+    - .agents/workflow-overlay/source-loading.md
+    - .agents/workflow-overlay/safety-rules.md
+  downstream_surfaces_checked:
+    - docs/workflows/orca_repo_map_v0.md
+    - docs/workflows/data_capture_spine_consolidation_map_v0.md
+    - .agents/workflow-overlay/source-loading.md
+    - .agents/workflow-overlay/safety-rules.md
+    - docs/decisions/source_capture_packet_fixture_retention_sensitivity_decision_v0.md
+    - docs/decisions/data_capture_spine_source_access_tooling_build_authorization_v0.md
+    - orca/product/spines/scanning/source_families/
+    - orca/product/spines/data_lake/workflows/
+    - orca/product/spines/cleaning/contracts/
+    - orca-harness/docs/
+  intentionally_not_updated:
+    - path: docs/migration/capture_spine_core_source_family_migration_plan_v0.md
+      reason: >
+        Retains the pre-execution planning table and old-path evidence; the
+        follow-on execution state is recorded by this receipt and the git rename
+        diff.
+    - path: docs/migration/capture_spine_source_capture_migration_inventory_v0.md
+      reason: Historical spine-first inventory body; open_next metadata was repointed, but old-path recommendations remain point-in-time evidence.
+    - path: capture/core/source_quality/, capture/core/cadence_and_missingness/, TikTok, YouTube, and web_search_capture placeholder folders
+      reason: >
+        The accepted execution pass moved only current files. Empty future homes
+        and second-wave extraction remain deferred.
+  stale_language_search: >
+    rg -n "orca/product/spines/capture/(contracts|operating_model|packet_schema|demand_durability_indicators|source_capture_toolbox|source_families/(instagram|retail_pdp))" .agents docs orca orca-harness
+  stale_language_search_result: >
+    Executed 2026-06-21 after the path rewrite and metadata repoint. Remaining
+    hits are intentionally historical body references: docs/migration/capture_spine_core_source_family_migration_plan_v0.md
+    retains the pre-execution proposed move table, and
+    docs/migration/capture_spine_source_capture_migration_inventory_v0.md retains
+    the earlier spine-first inventory/proposal evidence. No checked live map,
+    overlay, product, harness, or open_next surface retained the old current
+    Capture paths.
+  non_claims:
+    - not validation
+    - not readiness
+    - not runtime authorization
+    - not source-access authorization
+    - not satellite, Search/scanning, TikTok, YouTube, web-search-capture, source-quality extraction, or cadence/missingness migration
+```
 ```yaml
 direction_change_propagation:
   doctrine_changed: >

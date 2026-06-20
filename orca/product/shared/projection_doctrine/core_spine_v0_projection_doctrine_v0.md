@@ -16,7 +16,7 @@ use_when:
 authority_boundary: retrieval_only
 open_next:
   - orca/product/spines/foundation/product_contract/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
-  - orca/product/spines/capture/contracts/obligation_contracts/core_spine_v0_data_capture_spine_obligation_contract_v0.md
+  - orca/product/spines/capture/core/contracts/obligation_contracts/core_spine_v0_data_capture_spine_obligation_contract_v0.md
   - orca/product/spines/foundation/product_contract/core_spine_v0_information_production_foundation_v0.md
   - docs/workflows/ecr_spine_submap_v0.md
 stale_if:

@@ -88,7 +88,7 @@ evidence:
         The index explicitly marks it Dropped and carries the re-open guard
         reminder; that row would stay in the index even after the file is deleted
         as a Dropped record.
-    (3) orca/product/spines/capture/source_capture_toolbox/reddit_capture_operator_playbook_v0.md:290
+    (3) orca/product/spines/capture/core/source_capture_toolbox/reddit_capture_operator_playbook_v0.md:290
         -- references the file by path to point operators to the re-open guard.
         This is a load-bearing reference: the playbook explicitly tells operators
         "see this decision for the dropped capability and its re-open guard."
@@ -107,7 +107,7 @@ evidence:
 confidence: low
 rationale: >
   DROPPED status makes this a deletion candidate in principle, but the load-bearing
-  playbook reference at orca/product/spines/capture/source_capture_toolbox/
+  playbook reference at orca/product/spines/capture/core/source_capture_toolbox/
   reddit_capture_operator_playbook_v0.md:290 means deletion would break an active
   routing pointer. Owner must decide whether to (a) update the playbook to inline
   the re-open guard before deleting, or (b) retain this file. NOT proposed for

@@ -12,8 +12,8 @@ authority_boundary: retrieval_only
 open_next:
   - slot1_mi_CAPTURE_operator_workfile.md # nonresolving: operator workfile, never committed
   - slot2_teal_CAPTURE_operator_workfile.md # nonresolving: operator workfile, never committed
-  - orca/product/spines/capture/operating_model/data_capture_spine_pressure_test_commissioning_plan_v0.md
-  - orca/product/spines/capture/contracts/obligation_contracts/core_spine_v0_data_capture_spine_obligation_contract_v0.md
+  - orca/product/spines/capture/core/operating_model/data_capture_spine_pressure_test_commissioning_plan_v0.md
+  - orca/product/spines/capture/core/contracts/obligation_contracts/core_spine_v0_data_capture_spine_obligation_contract_v0.md
 stale_if:
   - Slot 3 runs and supersedes this interim synthesis with the full N=3 picture.
   - The commissioner renders the batch verdict or the patchable-vs-architecture classification (this synthesis then becomes historical input).

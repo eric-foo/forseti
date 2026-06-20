@@ -11,10 +11,10 @@ use_when:
 authority_boundary: retrieval_only
 open_next:
   - docs/prompts/reviews/data_capture_harness_operating_model_architecture_v2_independent_adversarial_review_prompt_v0.md
-  - orca/product/spines/capture/operating_model/data_capture_harness_operating_model_architecture_v2.md
+  - orca/product/spines/capture/core/operating_model/data_capture_harness_operating_model_architecture_v2.md
   - docs/review-outputs/adversarial-artifact-reviews/data_capture_harness_operating_model_architecture_v0_v1_adversarial_review_v0.md
-  - orca/product/spines/capture/contracts/obligation_contracts/core_spine_v0_data_capture_spine_obligation_contract_v0.md
-  - orca/product/spines/capture/operating_model/data_capture_obligation_baseline_decision_v0.md
+  - orca/product/spines/capture/core/contracts/obligation_contracts/core_spine_v0_data_capture_spine_obligation_contract_v0.md
+  - orca/product/spines/capture/core/operating_model/data_capture_obligation_baseline_decision_v0.md
 stale_if:
   - `docs/product/data_capture_harness_operating_model_architecture_v2.md` is materially revised or superseded.
   - The Data Capture obligation baseline or obligation contract is amended or superseded.

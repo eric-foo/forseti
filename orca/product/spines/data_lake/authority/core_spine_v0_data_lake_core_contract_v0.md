@@ -14,8 +14,8 @@ use_when:
 open_next:
   - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_storage_contract_v0.md
   - orca/product/spines/data_lake/workflows/core_spine_v0_data_lake_mechanics_map_v0.md
-  - orca/product/spines/capture/packet_schema/source_capture_tenant_payload_attachment_boundary_v0.md
-  - orca/product/spines/capture/source_families/retail_pdp/retail_pdp_typed_envelope_probe_v0.md
+  - orca/product/spines/capture/core/packet_schema/source_capture_tenant_payload_attachment_boundary_v0.md
+  - orca/product/spines/capture/core/source_families/retail_pdp/retail_pdp_typed_envelope_probe_v0.md
   - orca/product/shared/projection_doctrine/core_spine_v0_projection_doctrine_v0.md
   - docs/workflows/ecr_spine_submap_v0.md
 downstream_consumers:

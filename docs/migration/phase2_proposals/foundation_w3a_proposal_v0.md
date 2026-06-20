@@ -112,7 +112,7 @@ The tool scan over all of `orca/product/` (218 files) surfaced **2 new-term cand
 
 - term: `RetailPdpProjectionPacket`
 - head-noun: `Packet` (matches SSOT head-noun set; canonical alias is `SourceCapturePacket` → `CapturePacket`)
-- file: `orca/product/spines/capture/source_families/retail_pdp/retail_pdp_projection_playbook_v0.md` — 1 ref
+- file: `orca/product/spines/capture/core/source_families/retail_pdp/retail_pdp_projection_playbook_v0.md` — 1 ref
 - status: This is a capture-lane projection artifact name, not a new ontology type candidate. It follows the `CapturePacket` head-noun but is a scoped implementation label for a projection playbook's output object, not a distinct demand-world type.
 - proposed fix (read-only): No source edit — this is a capture-lane engineering label that is not in scope for ontology adoption (no backing landed, no demand-world semantic gap filled). Flag for the capture lane to clarify in the playbook whether this is an alias for `SourceCapturePacket` or a distinct construct; if distinct, surface to the ontology owner under the one-in-one-out rule before the 18-cap is approached.
 

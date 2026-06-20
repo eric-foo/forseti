@@ -11,7 +11,7 @@ use_when:
 authority_boundary: retrieval_only
 open_next:
   - docs/decisions/data_capture_spine_source_observability_local_support_implementation_scoping_authorization_v0.md
-  - orca/product/spines/capture/operating_model/data_capture_spine_source_observability_requirements_scoping_v0.md
+  - orca/product/spines/capture/core/operating_model/data_capture_spine_source_observability_requirements_scoping_v0.md
   - orca-harness/docs/source_observability_operator_records.md
   - orca-harness/docs/source_observability_scalability_note.md
   - docs/review-outputs/source_observability_helper_adversarial_implementation_review_v0.md

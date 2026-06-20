@@ -10,8 +10,8 @@ use_when:
   - Preparing later non-implementation scoping or review around Data Capture source observability.
 authority_boundary: retrieval_only
 open_next:
-  - orca/product/spines/capture/operating_model/data_capture_spine_pressure_test_all_slot_synthesis_post_slot3_recapture_delta_v0.md
-  - orca/product/spines/capture/operating_model/data_capture_spine_source_observability_requirements_scoping_v0.md
+  - orca/product/spines/capture/core/operating_model/data_capture_spine_pressure_test_all_slot_synthesis_post_slot3_recapture_delta_v0.md
+  - orca/product/spines/capture/core/operating_model/data_capture_spine_source_observability_requirements_scoping_v0.md
   - .agents/workflow-overlay/source-loading.md
 stale_if:
   - Slot 3 capture posture is reopened, downgraded, or materially recaptured again.

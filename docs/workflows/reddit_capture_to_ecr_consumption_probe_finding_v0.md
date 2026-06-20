@@ -12,7 +12,7 @@ authority_boundary: retrieval_only
 open_next:
   - orca-harness/runners/run_reddit_old_http_batch.py
   - orca-harness/ecr/deriver.py
-  - orca/product/spines/capture/source_capture_toolbox/reddit_capture_operator_playbook_v0.md
+  - orca/product/spines/capture/core/source_capture_toolbox/reddit_capture_operator_playbook_v0.md
 downstream_consumers:
   - The source-side-posture-supply decision (gap-vs-by-design) this finding tees up.
 stale_if:

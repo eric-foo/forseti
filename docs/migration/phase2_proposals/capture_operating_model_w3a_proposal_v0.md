@@ -2,7 +2,7 @@
 retrieval_header_version: 1
 artifact_role: Orca migration note
 scope: >
-  Phase-2 W3a proposal for the capture/operating_model area (orca/product/spines/capture/operating_model/):
+  Phase-2 W3a proposal for the capture/operating_model area (orca/product/spines/capture/core/operating_model/):
   bloat/deletion candidates with full deletion-evidence records and ontology/doc-term findings against the SSOT.
 use_when:
   - Owner adjudicating Phase-2 deletion candidates for the capture operating-model sub-directory.
@@ -31,17 +31,17 @@ Ontology findings: 4
 
 ```yaml
 targets:
-  - orca/product/spines/capture/operating_model/data_capture_harness_operating_model_architecture_v0.md
+  - orca/product/spines/capture/core/operating_model/data_capture_harness_operating_model_architecture_v0.md
 evidence:
   reverse_ref_check: |
     Inbound refs found (grep over orca/product/, docs/, .agents/):
 
     LIVE architectural inbound refs that still name this path (not migration-record-only):
-      orca/product/spines/capture/operating_model/data_capture_harness_operating_model_architecture_v1.md:15
+      orca/product/spines/capture/core/operating_model/data_capture_harness_operating_model_architecture_v1.md:15
         open_next lists v0 path
-      orca/product/spines/capture/operating_model/data_capture_harness_operating_model_architecture_v1.md:37,91,413
+      orca/product/spines/capture/core/operating_model/data_capture_harness_operating_model_architecture_v1.md:37,91,413
         prose references comparing v0 evidence-mode to v1; documents divergence; still says "prior proposed architecture"
-      orca/product/spines/capture/operating_model/data_capture_harness_operating_model_architecture_v2.md:17,61,82
+      orca/product/spines/capture/core/operating_model/data_capture_harness_operating_model_architecture_v2.md:17,61,82
         open_next lists v0; source ledger entry cites v0 as "Safer framing to import"; prose names v0 v-delta
       docs/review-outputs/adversarial-artifact-reviews/data_capture_harness_operating_model_architecture_v0_v1_adversarial_review_v0.md:15,82,116
         open_next lists v0; source ledger hash-matches v0; this review directly reviewed v0
@@ -80,7 +80,7 @@ evidence:
     Conservative call: 9+ live refs across review artifacts and prompts. Refs are historical/comparative,
     not operational routing. Owner adjudication required before deletion.
 
-  successor: orca/product/spines/capture/operating_model/data_capture_harness_operating_model_architecture_v2.md
+  successor: orca/product/spines/capture/core/operating_model/data_capture_harness_operating_model_architecture_v2.md
 
   semantic_delta: |
     v0 proposed a "Contract-pinned obligation-discharge operating envelope" (AO-2) under plain_model_local_fallback
@@ -105,13 +105,13 @@ evidence:
 
 ```yaml
 targets:
-  - orca/product/spines/capture/operating_model/data_capture_harness_operating_model_architecture_v1.md
+  - orca/product/spines/capture/core/operating_model/data_capture_harness_operating_model_architecture_v1.md
 evidence:
   reverse_ref_check: |
     Inbound refs found (grep over orca/product/, docs/, .agents/):
 
     LIVE architectural inbound refs that still name this path (not migration-record-only):
-      orca/product/spines/capture/operating_model/data_capture_harness_operating_model_architecture_v2.md:16,62,81
+      orca/product/spines/capture/core/operating_model/data_capture_harness_operating_model_architecture_v2.md:16,62,81
         open_next lists v1; source ledger cites v1 as "Hybrid base — v1 strengths"; prose names v1 as base
       docs/review-outputs/adversarial-artifact-reviews/data_capture_harness_operating_model_architecture_v0_v1_adversarial_review_v0.md:14,83,117
         open_next lists v1; source ledger hash-matches v1; this review directly reviewed v1
@@ -139,7 +139,7 @@ evidence:
     Conservative call: 8+ live refs across review artifacts and prompts. Same owner-question status
     as v0 per spine_first_target_move_table_v0.md:146.
 
-  successor: orca/product/spines/capture/operating_model/data_capture_harness_operating_model_architecture_v2.md
+  successor: orca/product/spines/capture/core/operating_model/data_capture_harness_operating_model_architecture_v2.md
 
   semantic_delta: |
     v1 proposed "Contract-Pinned Operating Envelope with Adversarial Reviewer Checkpoint (CPOE-ARC)"
@@ -163,7 +163,7 @@ evidence:
 
 ### Non-candidates (why the other 33 files are retained)
 
-All other 33 files in `orca/product/spines/capture/operating_model/` carry either:
+All other 33 files in `orca/product/spines/capture/core/operating_model/` carry either:
 
 - live inbound refs from active decisions, contracts, or implementation artifacts (confirmed by grep); or
 - unique content not preserved in any successor (pressure-test sessions, synthesizing artifacts, scoping records, patch plans, future-exploration backlog, projection-storage architecture); or
@@ -175,7 +175,7 @@ Notable checks:
 - `core_spine_v0_data_capture_context_preservation_note_v0.md`: 20+ live inbound refs including the cleaning-spine foundation, multiple review prompts, and fixture sessions. Retained.
 - `core_spine_v0_data_capture_spine_full_fixture_synthesis_v0.md`: 14+ live inbound refs including the obligation-baseline decision and adversarial review. Retained.
 - `core_spine_v0_data_capture_spine_remaining_fixture_plan_v0.md`: live inbound refs from 5+ fixture sessions and the full-fixture synthesis adversarial review. Retained.
-- `orca_capture_projection_storage_spine_architecture_v0.md`: live inbound refs from `orca/product/spines/capture/packet_schema/source_capture_tenant_payload_attachment_boundary_v0.md`, the IG capture shape contract, and IG monitoring policy. Status PROPOSED/AWAITING owner adoption. Retained as active proposed architecture with downstream consumers.
+- `orca_capture_projection_storage_spine_architecture_v0.md`: live inbound refs from `orca/product/spines/capture/core/packet_schema/source_capture_tenant_payload_attachment_boundary_v0.md`, the IG capture shape contract, and IG monitoring policy. Status PROPOSED/AWAITING owner adoption. Retained as active proposed architecture with downstream consumers.
 - `data_capture_spine_post_batch_patch_plan_v0.md`: live inbound refs from decisions and review prompts. Retained.
 - `data_capture_spine_source_observability_requirements_scoping_v0.md`: live inbound refs from 3 decisions. Retained.
 - `data_capture_spine_future_exploration_lanes_v0.md`: live inbound refs from wind_caller_calibration_carveout_v0.md, orca_repo_map_v0.md, and a deep-thinking prompt. Retained.
@@ -186,7 +186,7 @@ Notable checks:
 
 ## B. Ontology / doc-term findings
 
-Compared `orca/product/spines/capture/operating_model/` vocabulary against `orca/product/spines/foundation/ontology/ontology.yaml` (SSOT). Canonical types checked: `Vertical`, `Brand`, `Product`, `Venue`, `WindCaller`, `Call`, `Observation`, `TrendVector`, `DecisionEvent`, `Reading`, `Memo`, `Case`, `Outcome`, `CapturePacket`, `EvidenceUnit`, `Buyer`, `Org`. Runtime/storage aliases checked: `SourceCapturePacket`, `FacilitatorLedger`, `CaseReport`. Distinctive head nouns from multi-hump canonical types: `Caller`, `Event`, `Packet`, `Unit`, `Vector`.
+Compared `orca/product/spines/capture/core/operating_model/` vocabulary against `orca/product/spines/foundation/ontology/ontology.yaml` (SSOT). Canonical types checked: `Vertical`, `Brand`, `Product`, `Venue`, `WindCaller`, `Call`, `Observation`, `TrendVector`, `DecisionEvent`, `Reading`, `Memo`, `Case`, `Outcome`, `CapturePacket`, `EvidenceUnit`, `Buyer`, `Org`. Runtime/storage aliases checked: `SourceCapturePacket`, `FacilitatorLedger`, `CaseReport`. Distinctive head nouns from multi-hump canonical types: `Caller`, `Event`, `Packet`, `Unit`, `Vector`.
 
 **Finding 1 — `SourceCapturePacket` appears as a CamelCase type token in `orca_capture_projection_storage_spine_architecture_v0.md`**
 

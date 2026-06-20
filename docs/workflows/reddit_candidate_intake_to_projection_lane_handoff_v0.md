@@ -15,7 +15,7 @@ use_when:
     layer.
 authority_boundary: retrieval_only
 open_next:
-  - orca/product/spines/capture/contracts/candidate_intake/data_capture_spine_reddit_candidate_url_intake_crawler_architecture_v0.md
+  - orca/product/spines/capture/core/contracts/candidate_intake/data_capture_spine_reddit_candidate_url_intake_crawler_architecture_v0.md
   - orca/product/spines/scanning/source_families/reddit/data_capture_spine_reddit_graph_frontier_lane_architecture_v0.md
   - docs/workflows/reddit_candidate_intake_old_reddit_search_surface_handling_v0.md
   - docs/workflows/reddit_candidate_intake_subreddit_projection_b2b_001_closeout_v0.md

@@ -83,9 +83,9 @@ Inbound references found — NOT safe to delete without handling:
 - `orca/product/README.md:23` — live README entry
 - `orca/product/spines/cleaning/contracts/core_spine_v0_cleaning_spine_readme_v0.md:15` — live cleaning spine dependency
 - `orca/product/spines/cleaning/contracts/core_spine_v0_cleaning_spine_foundation_v0.md:16,29,77,93,396,397` — live cleaning spine foundation (6 refs)
-- `orca/product/spines/capture/source_families/retail_pdp/retail_pdp_projection_playbook_v0.md:17,223,235` — live playbook dependency
-- `orca/product/spines/capture/source_families/retail_pdp/retail_pdp_projection_contract_v0.md:17,69,244` — live contract dependency
-- `orca/product/spines/capture/packet_schema/source_capture_tenant_payload_attachment_boundary_v0.md:21,70,267,278` — live packet schema dependency
+- `orca/product/spines/capture/core/source_families/retail_pdp/retail_pdp_projection_playbook_v0.md:17,223,235` — live playbook dependency
+- `orca/product/spines/capture/core/source_families/retail_pdp/retail_pdp_projection_contract_v0.md:17,69,244` — live contract dependency
+- `orca/product/spines/capture/core/packet_schema/source_capture_tenant_payload_attachment_boundary_v0.md:21,70,267,278` — live packet schema dependency
 - `orca/product/spines/data_lake/workflows/core_spine_v0_data_lake_mechanics_map_v0.md:22,212` — live data lake map dependency
 - `orca/product/spines/data_lake/authority/core_spine_v0_data_lake_storage_contract_v0.md:18` — live lake contract dependency
 - `orca/product/spines/data_lake/authority/core_spine_v0_data_lake_core_contract_v0.md:19` — live lake contract dependency

@@ -48,14 +48,14 @@ two files — informational, no wrong-type claim).
 
 ```yaml
 targets:
-  - orca/product/spines/capture/contracts/obligation_contracts/data_capture_spine_obligation_contract_patch_proposal_v0.md
+  - orca/product/spines/capture/core/contracts/obligation_contracts/data_capture_spine_obligation_contract_patch_proposal_v0.md
 
 evidence:
   reverse_ref_check: >
     Inbound refs confirmed by grep across orca/product/, docs/, .agents/:
-    - orca/product/spines/capture/contracts/obligation_contracts/core_spine_v0_data_capture_spine_obligation_contract_v0.md:29
+    - orca/product/spines/capture/core/contracts/obligation_contracts/core_spine_v0_data_capture_spine_obligation_contract_v0.md:29
       (source_basis list — self-reference as historical input)
-    - orca/product/spines/capture/contracts/obligation_contracts/core_spine_v0_data_capture_spine_obligation_contract_v0.md:775,788
+    - orca/product/spines/capture/core/contracts/obligation_contracts/core_spine_v0_data_capture_spine_obligation_contract_v0.md:775,788
       (direction_change_propagation: intentionally_not_updated, reason "proposal
       remains historical candidate-language input; the controlling contract now
       consumes the accepted package")
@@ -80,7 +80,7 @@ evidence:
     own DCP receipt and the owner decision record.
 
   successor: >
-    orca/product/spines/capture/contracts/obligation_contracts/core_spine_v0_data_capture_spine_obligation_contract_v0.md
+    orca/product/spines/capture/core/contracts/obligation_contracts/core_spine_v0_data_capture_spine_obligation_contract_v0.md
 
   semantic_delta: >
     PCP-01 through PCP-08 (cannot_assess, assessed_not_met, access_failed,
@@ -108,15 +108,15 @@ rationale: superseded-by-parent-contract-absorbed
 
 ```yaml
 targets:
-  - orca/product/spines/capture/contracts/obligation_contracts/data_capture_spine_posture_vocabulary_enforcement_proposal_v0.md
+  - orca/product/spines/capture/core/contracts/obligation_contracts/data_capture_spine_posture_vocabulary_enforcement_proposal_v0.md
 
 evidence:
   reverse_ref_check: >
     Inbound refs confirmed by grep across orca/product/, docs/, .agents/:
-    - orca/product/spines/capture/contracts/obligation_contracts/core_spine_v0_data_capture_spine_obligation_contract_v0.md:29
+    - orca/product/spines/capture/core/contracts/obligation_contracts/core_spine_v0_data_capture_spine_obligation_contract_v0.md:29
       (source_basis list — historical input, intentionally_not_updated at line 824
       states "proposal remains historical candidate-language input")
-    - orca/product/spines/capture/contracts/obligation_contracts/core_spine_v0_data_capture_spine_obligation_contract_v0.md:824
+    - orca/product/spines/capture/core/contracts/obligation_contracts/core_spine_v0_data_capture_spine_obligation_contract_v0.md:824
       (direction_change_propagation: intentionally_not_updated, reason "review-outputs
       and source_quality_cw_p* closeouts are historical point-in-time records")
     - orca/product/spines/judgment/source_side_receipts/jsg01_sp6_source_visibility_derivation_architecture_routing_v0.md:20,60,108
@@ -145,7 +145,7 @@ evidence:
     does not constitute a live operative dependency.
 
   successor: >
-    orca/product/spines/capture/contracts/obligation_contracts/core_spine_v0_data_capture_spine_obligation_contract_v0.md
+    orca/product/spines/capture/core/contracts/obligation_contracts/core_spine_v0_data_capture_spine_obligation_contract_v0.md
 
   semantic_delta: >
     The proposal's substance (closed posture vocabularies for Ob.9 cutoff, Ob.10

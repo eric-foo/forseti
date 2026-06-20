@@ -14,8 +14,8 @@ use_when:
   - The Walker Equipment Kit's Reddit wall (KNOWN WALLS, point 4) is revisited.
 authority_boundary: retrieval_only
 open_next:
-  - orca/product/spines/capture/source_capture_toolbox/source_capture_playbook_v0.md
-  - orca/product/spines/capture/source_capture_toolbox/capture_recon_index_v0.md
+  - orca/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md
+  - orca/product/spines/capture/core/source_capture_toolbox/capture_recon_index_v0.md
   - orca/product/spines/foundation/vertical_exploration/orca_vertical_exploration_guide_v0.md
   - docs/decisions/ingestible_beauty_screen1_ledger_v0.md
 stale_if:

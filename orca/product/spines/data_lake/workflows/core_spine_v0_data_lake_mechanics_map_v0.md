@@ -15,9 +15,9 @@ authority_boundary: retrieval_only
 open_next:
   - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_core_contract_v0.md
   - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_storage_contract_v0.md
-  - orca/product/spines/capture/packet_schema/source_capture_tenant_payload_attachment_boundary_v0.md
-  - orca/product/spines/capture/packet_schema/source_capture_core_payload_split_explainer_v0.md
-  - orca/product/spines/capture/source_families/retail_pdp/retail_pdp_typed_envelope_probe_v0.md
+  - orca/product/spines/capture/core/packet_schema/source_capture_tenant_payload_attachment_boundary_v0.md
+  - orca/product/spines/capture/core/packet_schema/source_capture_core_payload_split_explainer_v0.md
+  - orca/product/spines/capture/core/source_families/retail_pdp/retail_pdp_typed_envelope_probe_v0.md
   - docs/workflows/ecr_spine_submap_v0.md
   - orca/product/shared/projection_doctrine/core_spine_v0_projection_doctrine_v0.md
   - orca/product/spines/cleaning/contracts/core_spine_v0_cleaning_spine_foundation_v0.md
@@ -198,7 +198,7 @@ direction_change_propagation:
     - workflow_authority
   controlling_sources_updated:
     - orca/product/spines/data_lake/workflows/core_spine_v0_data_lake_mechanics_map_v0.md
-    - orca/product/spines/capture/source_families/retail_pdp/retail_pdp_typed_envelope_probe_v0.md
+    - orca/product/spines/capture/core/source_families/retail_pdp/retail_pdp_typed_envelope_probe_v0.md
     - docs/workflows/data_capture_spine_consolidation_map_v0.md
     - docs/workflows/ecr_spine_submap_v0.md
   downstream_surfaces_checked:
@@ -206,8 +206,8 @@ direction_change_propagation:
     - .agents/workflow-overlay/README.md
     - .agents/workflow-overlay/source-of-truth.md
     - .agents/workflow-overlay/validation-gates.md
-    - orca/product/spines/capture/packet_schema/source_capture_tenant_payload_attachment_boundary_v0.md
-    - orca/product/spines/capture/packet_schema/source_capture_core_payload_split_explainer_v0.md
+    - orca/product/spines/capture/core/packet_schema/source_capture_tenant_payload_attachment_boundary_v0.md
+    - orca/product/spines/capture/core/packet_schema/source_capture_core_payload_split_explainer_v0.md
     - docs/workflows/ecr_spine_submap_v0.md
     - orca/product/shared/projection_doctrine/core_spine_v0_projection_doctrine_v0.md
     - orca/product/spines/cleaning/contracts/core_spine_v0_cleaning_spine_foundation_v0.md

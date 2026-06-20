@@ -76,7 +76,7 @@ Inbound refs (external):
 - `docs/workflows/ecr_spine_submap_v0.md:67,76` — cross-layer mechanics map pointer (2 lines)
 - `docs/workflows/data_capture_spine_consolidation_map_v0.md:58,205` — consolidation map (2 lines)
 - `docs/migration/orca_second_pass_consolidation_plan_v0.md:135,224,226` — consolidation plan (3 lines)
-- `orca/product/spines/capture/source_families/retail_pdp/retail_pdp_typed_envelope_probe_v0.md:16` — open_next pointer
+- `orca/product/spines/capture/core/source_families/retail_pdp/retail_pdp_typed_envelope_probe_v0.md:16` — open_next pointer
 - `docs/migration/spine_first_target_move_table_v0.md:257` — move table destination
 - `docs/migration/data_lake_spine_first_migration_plan_v0.md:19,117` — migration plan (2 lines)
 - `docs/migration/repo_structure_data_lake_r2_v0/moved_paths_index.md:29,30` — move index destinations

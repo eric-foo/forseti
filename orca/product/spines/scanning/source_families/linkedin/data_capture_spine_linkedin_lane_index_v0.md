@@ -78,7 +78,7 @@ Discovery → Bounded Watch → Graph Frontier → Semantic Projection → Promo
   deep-think + assumption-gate first (privacy-design lock-in). **Not yet decided.**
 - **Bounded Watch / influence trajectory:** `orca/product/spines/scanning/source_families/linkedin/data_capture_spine_linkedin_influence_trajectory_watch_spec_v0.md`.
 - **Out-of-lane, legally-gated future lanes** (relationship-graph analytics;
-  contact/outreach): `orca/product/spines/capture/operating_model/data_capture_spine_future_exploration_lanes_v0.md`.
+  contact/outreach): `orca/product/spines/capture/core/operating_model/data_capture_spine_future_exploration_lanes_v0.md`.
 
 ## Review provenance
 

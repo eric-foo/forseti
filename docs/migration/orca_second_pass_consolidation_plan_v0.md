@@ -220,7 +220,7 @@ Two real defects surfaced on the report's first run (both feed later phases, nei
 fixed in this increment per the locked scope boundary):
 
 - **F1 — stale inbound `open_next` (actionable, known successor).**
-  `orca/product/spines/capture/source_families/retail_pdp/retail_pdp_typed_envelope_probe_v0.md`
+  `orca/product/spines/capture/core/source_families/retail_pdp/retail_pdp_typed_envelope_probe_v0.md`
   points `open_next` at `orca/product/shared/data_lake_mechanics/core_spine_v0_data_lake_mechanics_map_v0.md`,
   retired by the data-lake promotion (#258). Successor exists:
   `orca/product/spines/data_lake/workflows/core_spine_v0_data_lake_mechanics_map_v0.md`.

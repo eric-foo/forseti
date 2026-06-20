@@ -13,8 +13,8 @@ authority_boundary: retrieval_only
 open_next:
   - docs/workflows/reddit_candidate_intake_no_live_dry_use_receipt_v0.md
   - docs/workflows/reddit_candidate_intake_operator_pilot_parameter_packet_v0.md
-  - orca/product/spines/capture/contracts/candidate_intake/data_capture_spine_candidate_url_intake_contract_v0.md
-  - orca/product/spines/capture/contracts/candidate_intake/data_capture_spine_reddit_candidate_url_intake_crawler_architecture_v0.md
+  - orca/product/spines/capture/core/contracts/candidate_intake/data_capture_spine_candidate_url_intake_contract_v0.md
+  - orca/product/spines/capture/core/contracts/candidate_intake/data_capture_spine_reddit_candidate_url_intake_crawler_architecture_v0.md
   - docs/decisions/data_capture_spine_reddit_candidate_url_intake_default_policy_decision_v0.md
 stale_if:
   - The no-live dry-use receipt is superseded.

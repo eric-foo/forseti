@@ -897,7 +897,7 @@ def selftest() -> int:
          "docs/prompts/reviews/sub",
          "| `docs/prompts/reviews/` | Review prompts. |", True),
         ("non-root spine ancestor covers",
-         "orca/product/spines/capture/operating_model",
+         "orca/product/spines/capture/core/operating_model",
          "| `orca/product/spines/capture/` | Capture spine. |", True),
         ("sibling-prefix does NOT cover",
          "docs/foo",

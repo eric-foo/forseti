@@ -24,8 +24,8 @@ open_next:
   - orca/product/spines/product_lead/icp_wedge/orca_discovery_consumer_demand_target_selection_brief_v0.md  # forward-mode consumer
   - orca/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md            # the re-derived Demand-Substrate Hard Gate
   - docs/decisions/wind_caller_calibration_carveout_v0.md              # wind-caller naming boundary (owner-signed)
-  - orca/product/spines/capture/source_capture_toolbox/source_capture_playbook_v0.md  # access-toolkit route for packet-grade capture walls
-  - orca/product/spines/capture/source_capture_toolbox/capture_recon_index_v0.md      # source-class recon catalog for access-toolkit routing
+  - orca/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md  # access-toolkit route for packet-grade capture walls
+  - orca/product/spines/capture/core/source_capture_toolbox/capture_recon_index_v0.md      # source-class recon catalog for access-toolkit routing
   - orca/product/spines/scanning/source_families/answer_engine/demand_search_interest_sourcing_and_gate_delta_spec_v0.md  # search-interest/AEO source-class recon
 input_hashes:
   # sha256 first-16-hex over git BLOB bytes (LF as stored; `git cat-file blob <rev>:<path>`),

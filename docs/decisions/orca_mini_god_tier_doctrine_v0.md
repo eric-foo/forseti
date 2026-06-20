@@ -120,8 +120,8 @@ direction_change_propagation:
     - .agents/workflow-overlay/source-loading.md
     - .agents/workflow-overlay/safety-rules.md
     - docs/workflows/orca_repo_map_v0.md
-    - orca/product/spines/capture/source_capture_toolbox/source_quality_mini_god_tier_profile_v0.md
-    - orca/product/spines/capture/source_capture_toolbox/README.md
+    - orca/product/spines/capture/core/source_capture_toolbox/source_quality_mini_god_tier_profile_v0.md
+    - orca/product/spines/capture/core/source_capture_toolbox/README.md
   intentionally_not_updated:
     - path: CLAUDE.md
       reason: >
@@ -144,13 +144,13 @@ direction_change_propagation:
         Repo map routes Source Capture Armory source-quality surfaces. The
         global Mini God Tier trigger remains AGENTS.md -> this decision record;
         no path or read-pack destination changed.
-    - path: orca/product/spines/capture/source_capture_toolbox/source_quality_mini_god_tier_profile_v0.md
+    - path: orca/product/spines/capture/core/source_capture_toolbox/source_quality_mini_god_tier_profile_v0.md
       reason: >
         The source-quality profile owns operating result tokens and the
         visible_limitations report field. Those are lower-level source/capture
         reporting vocabulary and remain valid; changing them would rewrite
         historical tokens and exceed this owner vocabulary patch.
-    - path: orca/product/spines/capture/source_capture_toolbox/README.md
+    - path: orca/product/spines/capture/core/source_capture_toolbox/README.md
       reason: >
         The README indexes the source-quality operating profile and closeouts,
         whose visible-limitations terminology remains intentionally unchanged.
@@ -158,8 +158,8 @@ direction_change_propagation:
     rg -n "mini god tier|Mini God Tier|Mini God-Tier|visible limitations|accepted residual|source_quality_mini_god_tier"
     AGENTS.md CLAUDE.md .agents/workflow-overlay docs/workflows/orca_repo_map_v0.md
     docs/decisions/orca_mini_god_tier_doctrine_v0.md
-    orca/product/spines/capture/source_capture_toolbox/source_quality_mini_god_tier_profile_v0.md
-    orca/product/spines/capture/source_capture_toolbox/README.md
+    orca/product/spines/capture/core/source_capture_toolbox/source_quality_mini_god_tier_profile_v0.md
+    orca/product/spines/capture/core/source_capture_toolbox/README.md
   stale_language_search_result: >
     Executed 2026-06-21 in branch codex/mgt-accepted-residuals-v2 after the patch.
     Remaining "visible limitations" hits in the checked source-quality surfaces

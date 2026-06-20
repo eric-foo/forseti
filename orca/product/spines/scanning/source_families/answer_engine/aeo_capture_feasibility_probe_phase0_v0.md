@@ -65,7 +65,7 @@ later date closes it. See [Verdict](#go--re-route-verdict) and
   (in-thread, 2026-06-17). Live observation was owner-gated; confirmation was
   obtained before any live request.
 - **Source-access classification** (under
-  `orca/product/spines/capture/contracts/source_access_boundary/data_capture_source_access_boundary_decision_v0.md`):
+  `orca/product/spines/capture/core/contracts/source_access_boundary/data_capture_source_access_boundary_decision_v0.md`):
   **publicly-viewable, in-bounds, measured-risk / disclosable.** The probe was
   **read-only observation** of public answer-engine surfaces (logged-out
   `chatgpt.com`; logged-out `google.com/search`). No account actions, no

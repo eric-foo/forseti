@@ -10,7 +10,7 @@ use_when:
   - Attacking overclaims, hidden contract hardening, source-access implementation drift, MSP overpromotion, checker-validation leakage, and propagation/routing defects.
 authority_boundary: retrieval_only
 open_next:
-  - orca/product/spines/capture/operating_model/data_capture_spine_post_batch_patch_plan_v0.md
+  - orca/product/spines/capture/core/operating_model/data_capture_spine_post_batch_patch_plan_v0.md
   - docs/review-outputs/adversarial-artifact-reviews/data_capture_spine_post_batch_patch_plan_adversarial_artifact_review_v0.md
 stale_if:
   - `docs/product/data_capture_spine_post_batch_patch_plan_v0.md` changes materially.

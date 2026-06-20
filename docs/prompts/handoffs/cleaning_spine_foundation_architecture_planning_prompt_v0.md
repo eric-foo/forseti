@@ -18,7 +18,7 @@ open_next:
   - docs/review-outputs/adversarial-artifact-reviews/projection_doctrine_v0_vendor_ca_closeout_v0.md
   - orca/product/spines/foundation/product_contract/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
   - orca/product/spines/cleaning/contracts/core_spine_v0_corroboration_vs_amplification_discipline_v0.md
-  - orca/product/spines/capture/operating_model/core_spine_v0_data_capture_context_preservation_note_v0.md
+  - orca/product/spines/capture/core/operating_model/core_spine_v0_data_capture_context_preservation_note_v0.md
 stale_if:
   - The Cleaning Spine foundation target path changes.
   - Projection Doctrine v0 is amended, superseded, ratified differently, or rejected.

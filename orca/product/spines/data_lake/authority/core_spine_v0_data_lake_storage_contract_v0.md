@@ -14,7 +14,7 @@ open_next:
   - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_attachment_record_implementation_contract_v0.md
   - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_core_contract_v0.md
   - orca/product/spines/data_lake/workflows/core_spine_v0_data_lake_mechanics_map_v0.md
-  - orca/product/spines/capture/packet_schema/source_capture_tenant_payload_attachment_boundary_v0.md
+  - orca/product/spines/capture/core/packet_schema/source_capture_tenant_payload_attachment_boundary_v0.md
   - orca/product/shared/projection_doctrine/core_spine_v0_projection_doctrine_v0.md
   - docs/workflows/ecr_spine_submap_v0.md
 downstream_consumers:
@@ -219,7 +219,7 @@ direction_change_propagation:
     - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_storage_contract_v0.md
     - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_core_contract_v0.md
     - orca/product/spines/data_lake/workflows/core_spine_v0_data_lake_mechanics_map_v0.md
-    - orca/product/spines/capture/packet_schema/source_capture_tenant_payload_attachment_boundary_v0.md
+    - orca/product/spines/capture/core/packet_schema/source_capture_tenant_payload_attachment_boundary_v0.md
     - docs/workflows/orca_repo_map_v0.md
     - docs/decisions/dcp_receipts_archive_v0.md
   downstream_surfaces_checked:
@@ -229,7 +229,7 @@ direction_change_propagation:
     - .agents/workflow-overlay/source-of-truth.md
     - .agents/workflow-overlay/validation-gates.md
     - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_attachment_record_implementation_contract_v0.md
-    - orca/product/spines/capture/packet_schema/source_capture_packet_schema_evolution_architecture_v0.md
+    - orca/product/spines/capture/core/packet_schema/source_capture_packet_schema_evolution_architecture_v0.md
     - orca-harness/source_capture/models.py
     - orca-harness/source_capture/writer.py
     - orca-harness/source_capture/ig_projection.py
@@ -250,7 +250,7 @@ direction_change_propagation:
     orca/product/spines/data_lake/authority/core_spine_v0_data_lake_storage_contract_v0.md
     orca/product/spines/data_lake/authority/core_spine_v0_data_lake_core_contract_v0.md
     orca/product/spines/data_lake/workflows/core_spine_v0_data_lake_mechanics_map_v0.md
-    orca/product/spines/capture/packet_schema/source_capture_tenant_payload_attachment_boundary_v0.md
+    orca/product/spines/capture/core/packet_schema/source_capture_tenant_payload_attachment_boundary_v0.md
     orca/product/spines/data_lake/authority/core_spine_v0_data_lake_attachment_record_implementation_contract_v0.md
     docs/workflows/orca_repo_map_v0.md
   stale_language_search_result: >
@@ -296,8 +296,8 @@ direction_change_propagation:
     - .agents/workflow-overlay/review-lanes.md
     - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_core_contract_v0.md
     - orca/product/spines/data_lake/workflows/core_spine_v0_data_lake_mechanics_map_v0.md
-    - orca/product/spines/capture/packet_schema/source_capture_tenant_payload_attachment_boundary_v0.md
-    - orca/product/spines/capture/packet_schema/source_capture_packet_schema_evolution_architecture_v0.md
+    - orca/product/spines/capture/core/packet_schema/source_capture_tenant_payload_attachment_boundary_v0.md
+    - orca/product/spines/capture/core/packet_schema/source_capture_packet_schema_evolution_architecture_v0.md
     - orca-harness/source_capture/models.py
     - orca-harness/source_capture/writer.py
   intentionally_not_updated:
@@ -312,7 +312,7 @@ direction_change_propagation:
         It remains a planning-only mechanics map. Its broader physicalization
         gate stays stale-if-superseded by later storage/manifest/sidecar
         decisions, and this patch does not select those physical choices.
-    - path: orca/product/spines/capture/packet_schema/source_capture_tenant_payload_attachment_boundary_v0.md
+    - path: orca/product/spines/capture/core/packet_schema/source_capture_tenant_payload_attachment_boundary_v0.md
       reason: >
         It remains the accepted logical typed-envelope boundary and explicitly
         defers physical storage. This patch records the storage-lane
@@ -324,7 +324,7 @@ direction_change_propagation:
     orca/product/spines/data_lake/authority/core_spine_v0_data_lake_storage_contract_v0.md
     orca/product/spines/data_lake/authority/core_spine_v0_data_lake_core_contract_v0.md
     orca/product/spines/data_lake/workflows/core_spine_v0_data_lake_mechanics_map_v0.md
-    orca/product/spines/capture/packet_schema/source_capture_tenant_payload_attachment_boundary_v0.md
+    orca/product/spines/capture/core/packet_schema/source_capture_tenant_payload_attachment_boundary_v0.md
     docs/workflows/orca_repo_map_v0.md
   stale_language_search_result: >
     Executed 2026-06-18 after edits. Hits are expected guardrails only: the

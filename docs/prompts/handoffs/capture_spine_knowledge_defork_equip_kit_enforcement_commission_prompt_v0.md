@@ -13,8 +13,8 @@ use_when:
 authority_boundary: retrieval_only
 branch_or_commit: ea2c79b
 open_next:
-  - orca/product/spines/capture/source_capture_toolbox/capture_recon_index_v0.md
-  - orca/product/spines/capture/source_capture_toolbox/source_capture_playbook_v0.md
+  - orca/product/spines/capture/core/source_capture_toolbox/capture_recon_index_v0.md
+  - orca/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md
 downstream_consumers:
   - The capture-consult enforcement build (a later, separately authorized turn).
   - Future capture-probe subagents (consumers of the Capture Equipment Kit).

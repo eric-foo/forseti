@@ -12,8 +12,8 @@ authority_boundary: retrieval_only
 open_next:
   - orca/product/spines/foundation/product_contract/core_spine_v0_product_contract.md
   - orca/product/spines/foundation/product_contract/core_spine_v0_information_production_foundation_v0.md
-  - orca/product/spines/capture/operating_model/core_spine_v0_data_capture_spine_architecture_blueprint_v0.md
-  - orca/product/spines/capture/operating_model/core_spine_v0_data_capture_context_preservation_note_v0.md
+  - orca/product/spines/capture/core/operating_model/core_spine_v0_data_capture_spine_architecture_blueprint_v0.md
+  - orca/product/spines/capture/core/operating_model/core_spine_v0_data_capture_context_preservation_note_v0.md
 ```
 
 - Status: PROPOSED_FREEZE

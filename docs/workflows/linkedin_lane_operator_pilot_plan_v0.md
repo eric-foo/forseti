@@ -15,8 +15,8 @@ use_when:
 authority_boundary: retrieval_only
 open_next:
   - orca/product/spines/scanning/source_families/linkedin/data_capture_spine_linkedin_discovery_planning_lane_architecture_v0.md
-  - orca/product/spines/capture/contracts/candidate_intake/data_capture_spine_candidate_url_intake_contract_v0.md
-  - orca/product/spines/capture/contracts/source_access_boundary/data_capture_source_access_boundary_decision_v0.md
+  - orca/product/spines/capture/core/contracts/candidate_intake/data_capture_spine_candidate_url_intake_contract_v0.md
+  - orca/product/spines/capture/core/contracts/source_access_boundary/data_capture_source_access_boundary_decision_v0.md
   - docs/workflows/data_capture_spine_consolidation_map_v0.md
 stale_if:
   - The LinkedIn Lane architecture changes stages, run envelope, candidate classes, row schema, source-surface matrix, bounded-watch posture, promotion gate, or hard stops.

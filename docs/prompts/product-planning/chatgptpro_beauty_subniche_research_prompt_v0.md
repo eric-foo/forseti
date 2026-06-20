@@ -18,7 +18,7 @@ open_next:
   - docs/decisions/orca_product_thesis_consumer_demand_v0.md
   - docs/decisions/orca_icp_wedge_consumer_demand_first_v0.md
   - orca/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md
-  - orca/product/spines/capture/source_families/instagram/ig_creator_roster_frontier_ledger_spec_v0.md
+  - orca/product/spines/capture/core/source_families/social_media/instagram/ig_creator_roster_frontier_ledger_spec_v0.md
 stale_if:
   - Orca's first commercial target, buyer-proof gate, demand-read taxonomy, or
     beauty creator roster/frontier spec changes.

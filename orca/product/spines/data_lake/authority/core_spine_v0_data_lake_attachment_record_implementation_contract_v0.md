@@ -13,8 +13,8 @@ use_when:
 open_next:
   - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_storage_contract_v0.md
   - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_core_contract_v0.md
-  - orca/product/spines/capture/packet_schema/source_capture_tenant_payload_attachment_boundary_v0.md
-  - orca/product/spines/capture/packet_schema/source_capture_packet_schema_evolution_architecture_v0.md
+  - orca/product/spines/capture/core/packet_schema/source_capture_tenant_payload_attachment_boundary_v0.md
+  - orca/product/spines/capture/core/packet_schema/source_capture_packet_schema_evolution_architecture_v0.md
 stale_if:
   - Data Lake Storage Contract v0 reopens or supersedes the blocker-1 direction.
   - Source Capture packet manifest/read-write mechanics change attachment or preserved-file reference semantics.
@@ -106,10 +106,10 @@ Future storage implementation must not:
 - `orca/product/spines/data_lake/authority/core_spine_v0_data_lake_core_contract_v0.md`
   defines Attachment Records as the target term for new source-family payloads
   and forbids treating them as cleaned values or downstream-use strength.
-- `orca/product/spines/capture/packet_schema/source_capture_tenant_payload_attachment_boundary_v0.md`
+- `orca/product/spines/capture/core/packet_schema/source_capture_tenant_payload_attachment_boundary_v0.md`
   preserves the older logical typed-envelope boundary while explicitly
   deferring physical storage choice.
-- `orca/product/spines/capture/packet_schema/source_capture_packet_schema_evolution_architecture_v0.md`
+- `orca/product/spines/capture/core/packet_schema/source_capture_packet_schema_evolution_architecture_v0.md`
   preserves write-once/hash-pin discipline: future currentness is replay into
   new packet material, not in-place packet mutation.
 - `orca-harness/source_capture/models.py` and

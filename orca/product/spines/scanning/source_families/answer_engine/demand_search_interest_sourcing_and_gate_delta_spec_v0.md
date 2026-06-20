@@ -18,14 +18,14 @@ use_when:
   - Checking the Core/Satellite wall and the query-set taint rule (which seed may feed the blind gate).
 authority_boundary: retrieval_only
 open_next:
-  - orca/product/spines/capture/demand_durability_indicators/search_interest/demand_durability_indicator_search_interest_capture_profile_v0.md  # CONSUME — search-interest capture obligations/pins/comparability (authority for §6 pins)
-  - orca/product/spines/capture/demand_durability_indicators/capture_envelope_durability_delta_spec_v0.md                       # CONSUME — temporal regimes, cold-start, comparability
-  - orca/product/spines/capture/contracts/obligation_contracts/core_spine_v0_data_capture_spine_obligation_contract_v0.md         # CONSUME — capture envelope of record / obligations
+  - orca/product/spines/capture/core/demand_durability_indicators/search_interest/demand_durability_indicator_search_interest_capture_profile_v0.md  # CONSUME — search-interest capture obligations/pins/comparability (authority for §6 pins)
+  - orca/product/spines/capture/core/demand_durability_indicators/capture_envelope_durability_delta_spec_v0.md                       # CONSUME — temporal regimes, cold-start, comparability
+  - orca/product/spines/capture/core/contracts/obligation_contracts/core_spine_v0_data_capture_spine_obligation_contract_v0.md         # CONSUME — capture envelope of record / obligations
   - orca/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md                                            # the live Demand-Substrate Hard Gate (G1 cards, AR-04, floor/ceiling, defeater)
   - orca/product/spines/scanning/scan_core/orca_demand_scan_core_spec_v0.md                                           # candidate-observation schema (venue_family/gate_family/costly_behavior enums)
   - orca/product/spines/scanning/admissibility_checkability/orca_demand_gate_definition_closures_proposal_v0.md                      # AR-04 unsourced-gap classification
   - orca/product/spines/foundation/demand_read_taxonomy/orca_demand_read_taxonomy_v0.md                                          # search-interest read type (read-grammar basis)
-  - orca/product/spines/capture/contracts/source_access_boundary/data_capture_source_access_boundary_decision_v0.md                 # access/ToS posture (capture-spine-owned)
+  - orca/product/spines/capture/core/contracts/source_access_boundary/data_capture_source_access_boundary_decision_v0.md                 # access/ToS posture (capture-spine-owned)
   - docs/decisions/orca_icp_wedge_consumer_demand_first_v0.md                                          # wedge target (currently "US indie/DTC beauty or personal-care"; fragrance is a narrowing — see §2)
 stale_if:
   - The capture envelope of record (obligation contract / models.py) or the scan-schema enums are amended in a way that covers these facts.
@@ -40,7 +40,7 @@ stale_if:
 - Engine order: **Google AI Overviews (primary)** → Gemini, ChatGPT (secondary) → others out of scope. These are **owner priorities**, not proven exposure/coverage claims (see §10).
 - Cross-spine pointer: this is the scanning-side source-class recon for
   search-interest/AEO; capture obligations stay in
-  `orca/product/spines/capture/demand_durability_indicators/search_interest/demand_durability_indicator_search_interest_capture_profile_v0.md`,
+  `orca/product/spines/capture/core/demand_durability_indicators/search_interest/demand_durability_indicator_search_interest_capture_profile_v0.md`,
   and demand-state interpretation routes through the taxonomy and judgment
   demand-read core.
 

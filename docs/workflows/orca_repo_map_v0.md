@@ -24,7 +24,7 @@ stale_if:
 - Status: ACTIVE_RETRIEVAL_MAP (retrieval-only; source authority remains in `.agents/workflow-overlay/source-of-truth.md`)
 - Artifact type: Workflow navigation artifact
 - Scope: Repo navigation and source-pack selection
-- Refreshed: 2026-06-20 (accuracy reconciliation pass — corrected the SCI-reminder hook matcher and the git-commit permission tier, documented the SessionStart capsule and the second Stop hook, added the built `orca-harness/evidence_binding/` and `cleaning/` packages, and de-staled `docs/prompts/patches/`). Prior: 2026-06-18 (spine-first migration Wave E retired the live product-docs navigation and routes product artifacts to `orca/product/`; earlier the same day added spine-first target-structure binding and blocker-authorization routes after the owner authorized B1-B7 for the execution pass). Prior: 2026-06-17 promoted repo-map edits from advisory reminder to blocking commit interrupt in Claude/Codex hook wiring; added the neutral ChatGPT Pro beauty advisory intake route, the offline IG creator-momentum projection runner route, the local Retail/PDP projection runner route, the opt-in Retail/PDP CloakBrowser projection sidecar under `orca-harness/runners/`, and the Retail/PDP sidecar operator playbook for the Amazon/Sephora/Ulta smoke; clarified the corresponding source package routes for projection and retailer binding/residual logic. Prior: 2026-06-16 added Codex-compatible local Git-hook adapters under `.githooks/`, the local hook installer under `.github/scripts/`, and the promoted auto-merge/main-red-alert workflows under `.github/workflows/`; 2026-06-11 repo-structure binding v0 registered machine map `repo-structure.yaml` + EP-04 placement checker and quarantined root strays to `docs/_inbox/`.
+- Refreshed: 2026-06-21 (Capture internal core migration: current Capture docs moved under `orca/product/spines/capture/core/`, with IG under `core/source_families/social_media/instagram/`; repo map and Data Capture submap route to the new paths). Prior: 2026-06-20 (accuracy reconciliation pass — corrected the SCI-reminder hook matcher and the git-commit permission tier, documented the SessionStart capsule and the second Stop hook, added the built `orca-harness/evidence_binding/` and `cleaning/` packages, and de-staled `docs/prompts/patches/`). Prior: 2026-06-18 (spine-first migration Wave E retired the live product-docs navigation and routes product artifacts to `orca/product/`; earlier the same day added spine-first target-structure binding and blocker-authorization routes after the owner authorized B1-B7 for the execution pass). Prior: 2026-06-17 promoted repo-map edits from advisory reminder to blocking commit interrupt in Claude/Codex hook wiring; added the neutral ChatGPT Pro beauty advisory intake route, the offline IG creator-momentum projection runner route, the local Retail/PDP projection runner route, the opt-in Retail/PDP CloakBrowser projection sidecar under `orca-harness/runners/`, and the Retail/PDP sidecar operator playbook for the Amazon/Sephora/Ulta smoke; clarified the corresponding source package routes for projection and retailer binding/residual logic. Prior: 2026-06-16 added Codex-compatible local Git-hook adapters under `.githooks/`, the local hook installer under `.github/scripts/`, and the promoted auto-merge/main-red-alert workflows under `.github/workflows/`; 2026-06-11 repo-structure binding v0 registered machine map `repo-structure.yaml` + EP-04 placement checker and quarantined root strays to `docs/_inbox/`.
 - Implementation authorized: no
 
 ## How To Use This Map
@@ -352,11 +352,11 @@ do not block by default. Open these in order:
 | --- | --- |
 | Is CloakBrowser/proxy-backed Reddit access allowed at all? | `docs/decisions/data_capture_spine_source_access_tooling_build_authorization_v0.md` |
 | What is the Reddit-specific capture/intake route? | `docs/workflows/data_capture_spine_consolidation_map_v0.md` |
-| Is this Candidate URL Intake rather than Armory capture? | `orca/product/spines/capture/contracts/candidate_intake/data_capture_spine_candidate_url_intake_contract_v0.md`, then `orca/product/spines/capture/contracts/candidate_intake/data_capture_spine_reddit_candidate_url_intake_crawler_architecture_v0.md` |
+| Is this Candidate URL Intake rather than Armory capture? | `orca/product/spines/capture/core/contracts/candidate_intake/data_capture_spine_candidate_url_intake_contract_v0.md`, then `orca/product/spines/capture/core/contracts/candidate_intake/data_capture_spine_reddit_candidate_url_intake_crawler_architecture_v0.md` |
 | Is bounded graph/frontier scouting accepted? | `orca/product/spines/scanning/source_families/reddit/data_capture_spine_reddit_graph_frontier_lane_architecture_v0.md` |
 | How should old Reddit search/listing HTML be saved, parsed, and interpreted? | `docs/workflows/reddit_candidate_intake_old_reddit_search_surface_handling_v0.md` |
-| What are the proxy and anti-blocking hard stops? | `orca/product/spines/capture/source_capture_toolbox/reddit_precommercial_capture_consolidation_success_signal_architecture_v0.md` |
-| What is implemented now? | `orca/product/spines/capture/source_capture_toolbox/README.md`, then `orca-harness/docs/source_capture_agent_runbook.md` and the named runner/adapter files |
+| What are the proxy and anti-blocking hard stops? | `orca/product/spines/capture/core/source_capture_toolbox/reddit_precommercial_capture_consolidation_success_signal_architecture_v0.md` |
+| What is implemented now? | `orca/product/spines/capture/core/source_capture_toolbox/README.md`, then `orca-harness/docs/source_capture_agent_runbook.md` and the named runner/adapter files |
 
 Current map-level summary: CloakBrowser is the approved primary anti-blocking
 route for bounded pre-commercial Reddit capture, and residential/rotating
@@ -403,7 +403,7 @@ nickname: "crawling graph." The runner is
 | `orca/product/spines/data_lake/workflows/` | Data Lake operational/read-flow docs: the canonical mechanics map (supersedes the retired `shared/data_lake_mechanics/`). |
 | `orca/product/spines/foundation/` | Foundation spine: product contract, IPF/evidence standard, ontology (backbone + cards), demand-read taxonomy, vertical-exploration. |
 | `orca/product/spines/scanning/` | Scanning (discovery-side) spine: scan_core, admissibility/checkability, source_families (answer_engine, linkedin, reddit). |
-| `orca/product/spines/capture/` | Capture (acquisition-side) spine: source-access/candidate/corpus/obligation contracts, operating_model, packet_schema, Source Capture Toolbox, demand_durability_indicators, source_families (retail_pdp, instagram). Dense — submap candidate. |
+| `orca/product/spines/capture/` | Capture (acquisition-side) spine: `core/` reusable acquisition layer containing source-access/candidate/corpus/obligation contracts, operating_model, packet_schema, Source Capture Toolbox, demand_durability_indicators, and source_families (`retail_pdp`, `social_media/instagram`). Dense — open the Data Capture submap. |
 | `orca/product/spines/ecr/` | Evidence Candidate Record spine: evidence_candidate_record (SP-1/2/3/6 slices), signal_content (SCR direction + deriver). |
 | `orca/product/spines/cleaning/` | Cleaning spine: cleaning-layer contracts. |
 | `orca/product/spines/judgment/` | Judgment spine: conductor, claim_ladder, demand_read (core/c2_weighting/c3_verdict_action/grading), learning_loops (near_half/far_half), source_side_receipts, toolkit_gaps. Dense — submap candidate. |
@@ -457,7 +457,7 @@ nickname: "crawling graph." The runner is
 | `docs/workflows/data_capture_spine_consolidation_map_v0.md` | Data Capture Spine repo submap. Open before enumerating capture owner docs. |
 | `docs/workflows/ecr_spine_submap_v0.md` | ECR source-side spine repo submap (integrity postures SP-1/2/3/6 + Signal Content Record). Open before enumerating ECR/SCR owner docs. |
 | `docs/research/judgment-spine/judgment_spine_consolidation_map_v0.md` | Judgment Spine submap. Open before enumerating Judgment owners across `docs/research/judgment-spine/` and `orca/product/spines/judgment/`. |
-| `orca/product/spines/capture/source_families/retail_pdp/retail_pdp_sidecar_operator_playbook_v0.md` | Operator playbook for the bounded Amazon/Sephora/Ulta Retail/PDP CloakBrowser sidecar smoke: canonical URLs, flags, scratch outputs, expected residuals, failure taxonomy, and code-enforceable follow-up flags. |
+| `orca/product/spines/capture/core/source_families/retail_pdp/retail_pdp_sidecar_operator_playbook_v0.md` | Operator playbook for the bounded Amazon/Sephora/Ulta Retail/PDP CloakBrowser sidecar smoke: canonical URLs, flags, scratch outputs, expected residuals, failure taxonomy, and code-enforceable follow-up flags. |
 
 ## Orca Harness
 
@@ -531,11 +531,11 @@ the owner sources. Do not pre-load all capture artifacts from this map.
 | Path | Use for |
 | --- | --- |
 | `docs/workflows/data_capture_spine_consolidation_map_v0.md` | **Data Capture Spine repo submap — open first.** Routes to Capture obligations, source-access boundary, build authorization, method plan, Source Capture Armory README, packet lifecycle, harness runners, source-quality support, and current Reddit pre-commercial routing. Map only; not validation, readiness, source-access permission, or implementation authority. |
-| `orca/product/spines/capture/contracts/corpus_intake/data_capture_spine_corpus_intake_obligation_contract_proposal_v0.md` | **Corpus Intake (standing-capture) obligation contract — owner-ratified 2026-06-15.** The standing sibling of the v0 commissioned obligation contract: the obligation home for recurring capture of an approved public signal into an append-only corpus before a Decision Frame. Ratified, not pressure-tested; authorizes no build, scheduler, runtime, or source access. |
+| `orca/product/spines/capture/core/contracts/corpus_intake/data_capture_spine_corpus_intake_obligation_contract_proposal_v0.md` | **Corpus Intake (standing-capture) obligation contract — owner-ratified 2026-06-15.** The standing sibling of the v0 commissioned obligation contract: the obligation home for recurring capture of an approved public signal into an append-only corpus before a Decision Frame. Ratified, not pressure-tested; authorizes no build, scheduler, runtime, or source access. |
 | `orca/product/spines/scanning/source_families/linkedin/data_capture_spine_linkedin_lane_index_v0.md` | **LinkedIn lane entry map — open first for any LinkedIn task.** THE canonical cold-start index for LinkedIn access (no-live, planning-only): ties the authority docs + the slice-1/slice-2 harness + the hard rails + deferred work + cross-vendor review provenance. |
-| `orca/product/spines/capture/operating_model/data_capture_spine_future_exploration_lanes_v0.md` | Capture-spine-level backlog of deferred, legally-gated capabilities (relationship-graph analytics; contact/outreach) surfaced during LinkedIn discovery design — non-authorizing, out of scope for all discovery lanes. |
-| `orca/product/spines/capture/source_capture_toolbox/source_capture_playbook_v0.md` | **Capture-investigation method (the playbook).** The repeatable "read the problem -> point to the route" method for deciding whether/how a NEW source is capturable, within entitlement, by the cheapest route. MVP = entitlement gate (Step 0) + read + route catalog + pointer + guardrails; per-source recipe cards are a growing tail authored BY probes. Review-hardened draft (de-correlated artifact review, AR-01..AR-07 adjudicated) with a later owner risk-posture amendment (status `RISK_POSTURE_AMENDED_V0` — check the Risk Posture section before applying); non-authorizing, not validation/readiness. |
-| `orca/product/spines/capture/source_capture_toolbox/capture_recon_index_v0.md` | Capture recon consolidation index — the per-source probe findings (forums / pricing / archive / PDF / reviews / embedded-state) the playbook distills from, incl. worktree-pending findings and the explicit TikTok/Instagram recon gap. Non-authorizing. |
+| `orca/product/spines/capture/core/operating_model/data_capture_spine_future_exploration_lanes_v0.md` | Capture-spine-level backlog of deferred, legally-gated capabilities (relationship-graph analytics; contact/outreach) surfaced during LinkedIn discovery design — non-authorizing, out of scope for all discovery lanes. |
+| `orca/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md` | **Capture-investigation method (the playbook).** The repeatable "read the problem -> point to the route" method for deciding whether/how a NEW source is capturable, within entitlement, by the cheapest route. MVP = entitlement gate (Step 0) + read + route catalog + pointer + guardrails; per-source recipe cards are a growing tail authored BY probes. Review-hardened draft (de-correlated artifact review, AR-01..AR-07 adjudicated) with a later owner risk-posture amendment (status `RISK_POSTURE_AMENDED_V0` — check the Risk Posture section before applying); non-authorizing, not validation/readiness. |
+| `orca/product/spines/capture/core/source_capture_toolbox/capture_recon_index_v0.md` | Capture recon consolidation index — the per-source probe findings (forums / pricing / archive / PDF / reviews / embedded-state) the playbook distills from, incl. worktree-pending findings and the explicit TikTok/Instagram recon gap. Non-authorizing. |
 
 ## ECR Source-Side Spine
 
@@ -781,18 +781,18 @@ direction_change_propagation:
     - ".agents/workflow-overlay/source-loading.md"
     - "docs/workflows/data_capture_spine_consolidation_map_v0.md"
     - "docs/decisions/data_capture_spine_source_access_tooling_build_authorization_v0.md"
-    - "orca/product/spines/capture/contracts/candidate_intake/data_capture_spine_candidate_url_intake_contract_v0.md"
-    - "orca/product/spines/capture/contracts/candidate_intake/data_capture_spine_reddit_candidate_url_intake_crawler_architecture_v0.md"
-    - "orca/product/spines/capture/source_capture_toolbox/reddit_precommercial_capture_consolidation_success_signal_architecture_v0.md"
-    - "orca/product/spines/capture/source_capture_toolbox/README.md"
+    - "orca/product/spines/capture/core/contracts/candidate_intake/data_capture_spine_candidate_url_intake_contract_v0.md"
+    - "orca/product/spines/capture/core/contracts/candidate_intake/data_capture_spine_reddit_candidate_url_intake_crawler_architecture_v0.md"
+    - "orca/product/spines/capture/core/source_capture_toolbox/reddit_precommercial_capture_consolidation_success_signal_architecture_v0.md"
+    - "orca/product/spines/capture/core/source_capture_toolbox/README.md"
   intentionally_not_updated:
     - path: ".agents/workflow-overlay/source-loading.md"
       reason: "The canonical read-pack still routes Data Capture work through the consolidation sub-map. This patch adds a top-level anti-friction cue, not a new source-loading pack."
-    - path: "orca/product/spines/capture/source_capture_toolbox/README.md"
+    - path: "orca/product/spines/capture/core/source_capture_toolbox/README.md"
       reason: "The Armory README already records CloakBrowser implementation limits and non-claims. This patch changes repo-map discoverability, not Armory implementation."
     - path: "docs/decisions/data_capture_spine_source_access_tooling_build_authorization_v0.md"
       reason: "The authorization already controls CloakBrowser/proxy allowance. This patch does not change the owner decision."
-  stale_language_search: "rg -n \"Reddit CloakBrowser / Proxy Allowance Quick Route|CloakBrowser is the approved primary|residential/rotating|Candidate URL Intake may record this approved downstream route|approved primary anti-blocking route|not blanket stop\" docs/workflows/orca_repo_map_v0.md docs/workflows/data_capture_spine_consolidation_map_v0.md orca/product/spines/capture/contracts/candidate_intake/data_capture_spine_candidate_url_intake_contract_v0.md orca/product/spines/capture/contracts/candidate_intake/data_capture_spine_reddit_candidate_url_intake_crawler_architecture_v0.md docs/decisions/data_capture_spine_source_access_tooling_build_authorization_v0.md orca/product/spines/capture/source_capture_toolbox/reddit_precommercial_capture_consolidation_success_signal_architecture_v0.md"
+  stale_language_search: "rg -n \"Reddit CloakBrowser / Proxy Allowance Quick Route|CloakBrowser is the approved primary|residential/rotating|Candidate URL Intake may record this approved downstream route|approved primary anti-blocking route|not blanket stop\" docs/workflows/orca_repo_map_v0.md docs/workflows/data_capture_spine_consolidation_map_v0.md orca/product/spines/capture/core/contracts/candidate_intake/data_capture_spine_candidate_url_intake_contract_v0.md orca/product/spines/capture/core/contracts/candidate_intake/data_capture_spine_reddit_candidate_url_intake_crawler_architecture_v0.md docs/decisions/data_capture_spine_source_access_tooling_build_authorization_v0.md orca/product/spines/capture/core/source_capture_toolbox/reddit_precommercial_capture_consolidation_success_signal_architecture_v0.md"
   stale_language_search_result: "Executed 2026-06-06 after this patch. Hits were the new repo-map quick route, the Data Capture sub-map allowance summary, the parent Candidate URL Intake downstream access posture, the Reddit Candidate URL Intake specialization, and controlling source-access authorization / Reddit success-signal hard-stop language. No checked surface required a new CA to block CloakBrowser or residential/rotating proxies by default for bounded pre-commercial Reddit capture."
   non_claims:
     - "not validation"
@@ -824,7 +824,7 @@ direction_change_propagation:
     - "docs/workflows/orca_repo_map_v0.md"
     - "docs/workflows/data_capture_spine_consolidation_map_v0.md"
     - "orca/product/spines/scanning/source_families/reddit/data_capture_spine_reddit_graph_frontier_lane_architecture_v0.md"
-    - "orca/product/spines/capture/contracts/candidate_intake/data_capture_spine_reddit_candidate_url_intake_crawler_architecture_v0.md"
+    - "orca/product/spines/capture/core/contracts/candidate_intake/data_capture_spine_reddit_candidate_url_intake_crawler_architecture_v0.md"
     - "docs/workflows/reddit_candidate_intake_to_projection_lane_handoff_v0.md"
   downstream_surfaces_checked:
     - "AGENTS.md"
@@ -834,11 +834,11 @@ direction_change_propagation:
     - "docs/workflows/reddit_candidate_intake_old_reddit_search_surface_handling_v0.md"
     - "docs/decisions/data_capture_spine_source_access_tooling_build_authorization_v0.md"
   intentionally_not_updated:
-    - path: "orca/product/spines/capture/source_capture_toolbox/README.md"
+    - path: "orca/product/spines/capture/core/source_capture_toolbox/README.md"
       reason: "Graph Frontier is not Source Capture Armory and does not emit Source Capture Packets."
     - path: "orca-harness/docs/source_capture_agent_runbook.md"
       reason: "No runner behavior changed and this patch does not authorize implementation execution."
-  stale_language_search: "rg -n \"Future Crawler-Graph|future crawler|may be architected|architected or rejected|candidate_graph_ledger|crawler_graph_exploration_lane|should wait for an architecture decision|Commission the separate crawler-graph|accepted Reddit Graph Frontier|Graph Frontier Register\" docs/workflows/orca_repo_map_v0.md docs/workflows/data_capture_spine_consolidation_map_v0.md orca/product/spines/capture/contracts/candidate_intake/data_capture_spine_reddit_candidate_url_intake_crawler_architecture_v0.md orca/product/spines/scanning/source_families/reddit/data_capture_spine_reddit_graph_frontier_lane_architecture_v0.md docs/workflows/reddit_candidate_intake_to_projection_lane_handoff_v0.md"
+  stale_language_search: "rg -n \"Future Crawler-Graph|future crawler|may be architected|architected or rejected|candidate_graph_ledger|crawler_graph_exploration_lane|should wait for an architecture decision|Commission the separate crawler-graph|accepted Reddit Graph Frontier|Graph Frontier Register\" docs/workflows/orca_repo_map_v0.md docs/workflows/data_capture_spine_consolidation_map_v0.md orca/product/spines/capture/core/contracts/candidate_intake/data_capture_spine_reddit_candidate_url_intake_crawler_architecture_v0.md orca/product/spines/scanning/source_families/reddit/data_capture_spine_reddit_graph_frontier_lane_architecture_v0.md docs/workflows/reddit_candidate_intake_to_projection_lane_handoff_v0.md"
   stale_language_search_result: "Executed 2026-06-08 after this patch. Active route surfaces now point to accepted Reddit Graph Frontier and Graph Frontier Register language; the old future-question wording is not present in the active route surfaces checked."
   non_claims:
     - "not validation"
@@ -858,11 +858,11 @@ status field. Open the owning doc for authority; this table is navigation only.
 | Workstream | Owning doc | Status |
 | --- | --- | --- |
 | Beauty vertical satellite | `orca/product/satellites/beauty/beauty_venue_card_set_v0.md` | venue card set promoted; no separate beauty vertical satellite owner doc exists |
-| Data capture spine | `orca/product/spines/capture/operating_model/data_capture_harness_operating_model_architecture_v2.md` | `PROPOSED_ARCHITECTURE_V2` |
+| Data capture spine | `orca/product/spines/capture/core/operating_model/data_capture_harness_operating_model_architecture_v2.md` | `PROPOSED_ARCHITECTURE_V2` |
 | Judgment spine | `orca/product/spines/judgment/claim_ladder/judgment_spine_evidence_ladder_architecture_v0.md` | no status field |
 | ECR | `docs/workflows/ecr_spine_submap_v0.md` | no status field |
 | Signal content | `orca/product/spines/ecr/signal_content/core_spine_v0_signal_content_record_architecture_v0.md` | `OWNER_DECIDED_DIRECTION` |
-| Source capture toolbox | `orca/product/spines/capture/source_capture_toolbox/README.md` | `SOURCE_CAPTURE_ARMORY_README_V0` |
+| Source capture toolbox | `orca/product/spines/capture/core/source_capture_toolbox/README.md` | `SOURCE_CAPTURE_ARMORY_README_V0` |
 | Core spine | `orca/product/spines/foundation/product_contract/core_spine_v0_product_contract.md` | `PROPOSED_FREEZE` |
 | Search lane | `docs/decisions/orca_search_product_lane_binding_v0.md` | owner-authorized v0; demand-signal intelligence (search-led): search/answer-engine surfaces + demand-scan/read/gate method |
 | Spine-first target structure | `docs/decisions/orca_spine_first_target_structure_binding_v0.md` | executed by spine-first migration; current product tree routes through `orca/product/` |

@@ -10,8 +10,8 @@ use_when:
   - Checking whether a Reddit intake run may widen, monitor, emit outbound candidates, or promote URLs.
 authority_boundary: retrieval_only
 open_next:
-  - orca/product/spines/capture/contracts/candidate_intake/data_capture_spine_candidate_url_intake_contract_v0.md
-  - orca/product/spines/capture/contracts/candidate_intake/data_capture_spine_reddit_candidate_url_intake_crawler_architecture_v0.md
+  - orca/product/spines/capture/core/contracts/candidate_intake/data_capture_spine_candidate_url_intake_contract_v0.md
+  - orca/product/spines/capture/core/contracts/candidate_intake/data_capture_spine_reddit_candidate_url_intake_crawler_architecture_v0.md
   - docs/workflows/data_capture_spine_consolidation_map_v0.md
 stale_if:
   - The parent Candidate URL Intake contract changes cap, coverage, continuation, outbound, or promotion rules.

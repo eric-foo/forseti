@@ -20,8 +20,8 @@ open_next:
   - docs/workflows/reddit_candidate_intake_subreddit_projection_b2b_001_closeout_v0.md
   - docs/workflows/reddit_candidate_intake_subreddit_projection_seo_002_closeout_v0.md
   - docs/workflows/reddit_candidate_intake_operator_pilot_parameter_packet_v0.md
-  - orca/product/spines/capture/contracts/candidate_intake/data_capture_spine_reddit_candidate_url_intake_crawler_architecture_v0.md
-  - orca/product/spines/capture/contracts/candidate_intake/data_capture_spine_candidate_url_intake_contract_v0.md
+  - orca/product/spines/capture/core/contracts/candidate_intake/data_capture_spine_reddit_candidate_url_intake_crawler_architecture_v0.md
+  - orca/product/spines/capture/core/contracts/candidate_intake/data_capture_spine_candidate_url_intake_contract_v0.md
 stale_if:
   - old Reddit search/listing HTML changes title-link classes.
   - Candidate URL Intake changes candidate row fields, cap semantics, or

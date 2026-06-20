@@ -19,7 +19,7 @@ open_next:
   - orca/product/spines/foundation/vertical_exploration/orca_memorization_resistant_case_finder_frame_v0.md
   - docs/decisions/judgment_spine_backtest_batch1_ledger_declaration_v0.md   # exemplar Screen Provenance block
   - docs/research/source_registry_practices_deep_research_report_v0.md       # evidence base for this shape
-  - orca/product/spines/capture/source_capture_toolbox/capture_recon_index_v0.md            # capture-seam counterpart (HOW-side)
+  - orca/product/spines/capture/core/source_capture_toolbox/capture_recon_index_v0.md            # capture-seam counterpart (HOW-side)
   - orca/product/satellites/beauty/beauty_venue_card_set_v0.md                      # promoted beauty card-set (Step 0 reads it FIRST for beauty screens)
 stale_if:
   - The finder frame is owner-signed (fold this procedure in or re-home it at that sign-off).
@@ -113,7 +113,7 @@ signal. Treat as hypothesis, not finding.
 The walk collects URLs and quotes as screen evidence only. When a case needs
 packet-grade capture, hand off to the capture spine's investigation doctrine —
 its evidence base today is
-`orca/product/spines/capture/source_capture_toolbox/capture_recon_index_v0.md`
+`orca/product/spines/capture/core/source_capture_toolbox/capture_recon_index_v0.md`
 (substrate-first diagnosis, escalation ladder, honest NO-GO). This procedure
 designs no capture mechanics and authorizes no capture run.
 

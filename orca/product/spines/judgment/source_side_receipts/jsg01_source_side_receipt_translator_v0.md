@@ -16,7 +16,7 @@ use_when:
 authority_boundary: retrieval_only
 open_next:
   - orca/product/spines/foundation/product_contract/core_spine_v0_information_production_foundation_v0.md
-  - orca/product/spines/capture/contracts/obligation_contracts/core_spine_v0_data_capture_spine_obligation_contract_v0.md
+  - orca/product/spines/capture/core/contracts/obligation_contracts/core_spine_v0_data_capture_spine_obligation_contract_v0.md
   - orca/product/spines/foundation/product_contract/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
   - orca/product/spines/judgment/conductor/judgment_quality_promotion_operating_model_v0.md
   - docs/research/judgment-spine/harness/v0_14/packing_to_harness_foundation_interface_architecture_v3.md

@@ -10,10 +10,10 @@ use_when:
   - Distinguishing decision-evidence discovery from future lead/outreach handling.
 authority_boundary: retrieval_only
 open_next:
-  - orca/product/spines/capture/contracts/candidate_intake/data_capture_spine_candidate_url_intake_contract_v0.md
-  - orca/product/spines/capture/source_capture_toolbox/linkedin_reddit_source_capture_armory_concurrent_structure_architecture_v0.md
+  - orca/product/spines/capture/core/contracts/candidate_intake/data_capture_spine_candidate_url_intake_contract_v0.md
+  - orca/product/spines/capture/core/source_capture_toolbox/linkedin_reddit_source_capture_armory_concurrent_structure_architecture_v0.md
   - docs/workflows/data_capture_spine_consolidation_map_v0.md
-  - orca/product/spines/capture/contracts/source_access_boundary/data_capture_source_access_boundary_decision_v0.md
+  - orca/product/spines/capture/core/contracts/source_access_boundary/data_capture_source_access_boundary_decision_v0.md
 stale_if:
   - LinkedIn platform policy, API, Sales Navigator, or source-access posture changes.
   - The Candidate URL Intake parent contract changes candidate rows, run envelopes, promotion gates, caps, or traversal stops.
@@ -461,7 +461,7 @@ direction_change_propagation:
     - output_authority
   controlling_sources_updated:
     - "docs/product/data_capture_spine_linkedin_discovery_planning_lane_architecture_v0.md"
-    - "orca/product/spines/capture/source_capture_toolbox/linkedin_reddit_source_capture_armory_concurrent_structure_architecture_v0.md"
+    - "orca/product/spines/capture/core/source_capture_toolbox/linkedin_reddit_source_capture_armory_concurrent_structure_architecture_v0.md"
     - "docs/workflows/data_capture_spine_consolidation_map_v0.md"
   downstream_surfaces_checked:
     - "AGENTS.md"
@@ -474,10 +474,10 @@ direction_change_propagation:
     - "docs/product/data_capture_source_access_method_plan_v0.md"
     - "docs/decisions/data_capture_spine_source_access_tooling_build_authorization_v0.md"
     - ".agents/workflow-overlay/safety-rules.md"
-    - "orca/product/spines/capture/source_capture_toolbox/linkedin_reddit_source_capture_armory_concurrent_structure_architecture_v0.md"
+    - "orca/product/spines/capture/core/source_capture_toolbox/linkedin_reddit_source_capture_armory_concurrent_structure_architecture_v0.md"
     - "docs/workflows/data_capture_spine_consolidation_map_v0.md"
   intentionally_not_updated:
-    - path: "orca/product/spines/capture/source_capture_toolbox/README.md"
+    - path: "orca/product/spines/capture/core/source_capture_toolbox/README.md"
       reason: "LinkedIn Lane discovery is upstream of Source Capture Armory and does not emit Source Capture Packets."
     - path: "docs/product/data_capture_spine_candidate_url_intake_contract_v0.md"
       reason: "The parent Candidate URL Intake contract already owns generic row/provenance and promotion-gate rules; this source-family artifact specializes entity/person handling."
@@ -489,7 +489,7 @@ direction_change_propagation:
       reason: "The third-tranche anti-detect/proxy/JS-challenge build authorization is unchanged; this is a docs-only lane posture edit, not a build or runtime authorization."
     - path: ".agents/workflow-overlay/safety-rules.md"
       reason: "Safety-rules preserves the third-tranche anti-detect/proxy scope and bounded-implementation gating; no hard stop or gate is weakened by this lane posture edit."
-  stale_language_search: "rg -n \"optional_poc_risk_mode|anti-detect|cloaked browser|residential|rotating prox|JS-challenge|no-entitlement gate bypass|discoverable or entitled|honest|visible operator-supervised|lead list|contact harvesting|follower graph|connection graph\" docs/product/data_capture_spine_linkedin_discovery_planning_lane_architecture_v0.md orca/product/spines/capture/source_capture_toolbox/linkedin_reddit_source_capture_armory_concurrent_structure_architecture_v0.md docs/workflows/data_capture_spine_consolidation_map_v0.md docs/product/data_capture_source_access_boundary_decision_v0.md .agents/workflow-overlay/safety-rules.md"
+  stale_language_search: "rg -n \"optional_poc_risk_mode|anti-detect|cloaked browser|residential|rotating prox|JS-challenge|no-entitlement gate bypass|discoverable or entitled|honest|visible operator-supervised|lead list|contact harvesting|follower graph|connection graph\" docs/product/data_capture_spine_linkedin_discovery_planning_lane_architecture_v0.md orca/product/spines/capture/core/source_capture_toolbox/linkedin_reddit_source_capture_armory_concurrent_structure_architecture_v0.md docs/workflows/data_capture_spine_consolidation_map_v0.md docs/product/data_capture_source_access_boundary_decision_v0.md .agents/workflow-overlay/safety-rules.md"
   non_claims:
     - "not validation"
     - "not readiness"

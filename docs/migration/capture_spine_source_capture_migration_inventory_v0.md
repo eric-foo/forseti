@@ -18,7 +18,7 @@ use_when:
 authority_boundary: retrieval_only
 open_next:
   - docs/workflows/data_capture_spine_consolidation_map_v0.md
-  - orca/product/spines/capture/source_capture_toolbox/README.md
+  - orca/product/spines/capture/core/source_capture_toolbox/README.md
   - docs/decisions/data_capture_spine_source_access_tooling_build_authorization_v0.md
 stale_if:
   - The Data Capture consolidation map or the Source Capture Armory README changes component/owner set.

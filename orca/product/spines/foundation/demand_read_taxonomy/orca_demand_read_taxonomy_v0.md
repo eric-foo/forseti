@@ -107,7 +107,7 @@ lifespan** (monitor, probe, commit, hold, scale, avoid, reduce).
    Internal judgment/calibration use only; **person-level dossiers in any sold or
    external surface remain forbidden** and the external/product boundary is
    unchanged. Audience / follower-graph analytics stay **deferred-gated**
-   (`orca/product/spines/capture/operating_model/data_capture_spine_future_exploration_lanes_v0.md`).
+   (`orca/product/spines/capture/core/operating_model/data_capture_spine_future_exploration_lanes_v0.md`).
 3. **Buy-side corroboration (primary, owner word)** — costly behavior:
    sellouts, waitlists, restock pressure, review velocity and content shifts,
    pain-point convergence, dupe-seeking and switching behavior, effortful

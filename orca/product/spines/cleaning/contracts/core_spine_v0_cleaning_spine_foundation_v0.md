@@ -16,7 +16,7 @@ open_next:
   - orca/product/shared/projection_doctrine/core_spine_v0_projection_doctrine_v0.md
   - orca/product/spines/foundation/product_contract/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
   - orca/product/spines/cleaning/contracts/core_spine_v0_corroboration_vs_amplification_discipline_v0.md
-  - orca/product/spines/capture/operating_model/core_spine_v0_data_capture_context_preservation_note_v0.md
+  - orca/product/spines/capture/core/operating_model/core_spine_v0_data_capture_context_preservation_note_v0.md
 stale_if:
   - Owner changes the 2026-06-16 OD-1 / OD-4 / OD-7 direction recorded here.
   - Projection Doctrine v0 is amended, superseded, ratified differently, or rejected.
@@ -77,7 +77,7 @@ orca_start_preflight:
     - orca/product/shared/projection_doctrine/core_spine_v0_projection_doctrine_v0.md
     - orca/product/spines/foundation/product_contract/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
     - orca/product/spines/cleaning/contracts/core_spine_v0_corroboration_vs_amplification_discipline_v0.md
-    - orca/product/spines/capture/operating_model/core_spine_v0_data_capture_context_preservation_note_v0.md
+    - orca/product/spines/capture/core/operating_model/core_spine_v0_data_capture_context_preservation_note_v0.md
 ```
 
 Sources loaded for this foundation:
@@ -94,7 +94,7 @@ Sources loaded for this foundation:
 - `docs/review-outputs/adversarial-artifact-reviews/projection_doctrine_v0_vendor_ca_closeout_v0.md`
 - `orca/product/spines/foundation/product_contract/core_spine_v0_data_and_cleaning_spine_boundary_v0.md`
 - `orca/product/spines/cleaning/contracts/core_spine_v0_corroboration_vs_amplification_discipline_v0.md`
-- `orca/product/spines/capture/operating_model/core_spine_v0_data_capture_context_preservation_note_v0.md`
+- `orca/product/spines/capture/core/operating_model/core_spine_v0_data_capture_context_preservation_note_v0.md`
 - `docs/workflows/orca_repo_map_v0.md` targeted section only, for path/map
   placement.
 
@@ -397,7 +397,7 @@ direction_change_propagation:
     - docs/review-outputs/adversarial-artifact-reviews/projection_doctrine_v0_vendor_ca_closeout_v0.md
     - orca/product/spines/foundation/product_contract/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
     - orca/product/spines/cleaning/contracts/core_spine_v0_corroboration_vs_amplification_discipline_v0.md
-    - orca/product/spines/capture/operating_model/core_spine_v0_data_capture_context_preservation_note_v0.md
+    - orca/product/spines/capture/core/operating_model/core_spine_v0_data_capture_context_preservation_note_v0.md
   intentionally_not_updated:
     - path: docs/workflows/orca_repo_map_v0.md
       reason: >
