@@ -46,7 +46,8 @@ record — the promote-on-reuse trigger FIRES at this close (see below).
   2 (Reddit decay/detection boards; Basenotes trackers; MSA news+comment
   gauges) instead of trade roundups.
 - Assembly yield model (design): subtle candidates are ASSEMBLED, not found —
-  legs: (D) community detection, (A) brand action evidence, (O) outcome signal (Outcome); FRAGMENT = partial legs (counts as evidence-yield); CANDIDATE = all
+  legs: (D) community detection, (A) brand action evidence, (O) outcome
+  signal (Outcome); FRAGMENT = partial legs (counts as evidence-yield); CANDIDATE = all
   three legs URL-backed.
 - Candidate target: 5 assembled subtle-class candidates (completions of screen
   2's held-back near-candidates count toward walk yield).
@@ -141,7 +142,7 @@ Fragments (partial assemblies worth carrying forward):
 
 ### Influence Observations (dated 2026-06-11; history, never current-state claims)
 
-Detector-class wind-callers (WindCaller): subtle-class influence = whoever's DETECTION
+Detector-class wind-callers (WindCaller) (subtle-class influence = whoever's DETECTION
 becomes the reference record):
 
 - Basenotes megathread 341850 — multi-year running

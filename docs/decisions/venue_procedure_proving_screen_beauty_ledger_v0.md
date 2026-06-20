@@ -162,7 +162,7 @@ Hubs / pointing structure:
   Basenotes' living discontinued/reformulated threads and tags timestamp
   kill/reformulation detection years before press coverage.
 
-Wind-callers (WindCaller): the actors whose words or actions the vertical visibly responded
+Wind-callers (WindCaller) (the actors whose words or actions the vertical visibly responded
 to; receipts in the candidate source sets above plus Glossy tariff coverage):
 
 - INCIDecoder's founder — doubted Purito's filter percentages, commissioned

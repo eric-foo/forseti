@@ -169,8 +169,8 @@ exist). Consequence for screening:
 ## Wedge Relevance (product-learning raw material, NOT ICP validation)
 
 The screen evidences that the consumer-demand signal substrate exists in an
-adjacent vertical: demand-forced decisions (DecisionEvent) -- pivots,
-forced reformulations, repricing -- are reconstructable outside-in, with influence structure including
+adjacent vertical: demand-forced decisions (DecisionEvent) (pivots, forced reformulations,
+repricing) are reconstructable outside-in, with influence structure including
 regulatory and retail-gatekeeper movers. This is substrate-breadth evidence
 the wedge-ratification work may consume as input. It is not validation,
 willingness-to-pay, or buyer proof.

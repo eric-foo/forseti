@@ -5,7 +5,7 @@ retrieval_header_version: 1
 artifact_role: Decision record
 scope: >
   Pre-declared ledger for product-learning backtest batch 1 (beauty /
-  personal-care consumer-demand decisions (DecisionEvent): case (Case) list with dev/holdout
+  personal-care consumer-demand decisions (DecisionEvent)): case (Case) list with dev/holdout
   marking, pinned scoring-key version, swap policy and alternates, execution
   rules, all-results reporting commitment, and screen provenance. Caps at
   product-learning; covers by-hand runs only.
