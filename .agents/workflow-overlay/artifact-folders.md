@@ -28,7 +28,7 @@ authority_boundary: retrieval_only
 - `docs/review-outputs/adversarial-artifact-reviews/`: adversarial artifact review reports.
 - `docs/workflows/`: workflow records, repo maps, validation notes, and operational records owned by Orca.
 - `docs/migration/`: migration and import queue records.
-- `orca/product/` (repo root): the **spine-first product tree** for product contracts, product proof plans, core-spine notes, satellite notes, evidence standards, source maps, decision artifacts, memo substrates, evidence appendices, executive-deck shape drafts, Source Capture Toolbox design notes, and demand-signal method/surface docs. The tree is bound by `docs/decisions/orca_spine_first_target_structure_binding_v0.md` and authorized by `docs/decisions/orca_spine_first_blocker_authorization_v0.md` (#254). Second-level axis: `spines/` (`foundation/`, `commission_signal_board/`, `scanning/`, `capture/`, `ecr/`, `cleaning/`, `judgment/`, `product_lead/`, `data_lake/`), `satellites/`, `case_families/`, `shared/`. `data_lake/` is a shared-foundation spine promotion-bound 2026-06-18 by `docs/decisions/orca_data_lake_spine_promotion_binding_v0.md` (R2 landed the contracts + mechanics into authority/+workflows/ and retired shared/data_lake_mechanics/; the 2 planning docs are pending placement). Per-spine structure is owned by the spine-first binding, not the machine map; `check_placement.py` treats `orca/` as a declared top-level area. Historical `docs/product/` references resolve through `docs/migration/repo_structure_spine_first_v0/moved_paths_index.md` by design. `docs/doctrine/` is intentionally NOT created by this migration (owner B3: index/router-only, seeded later).
+- `orca/product/` (repo root): the **spine-first product tree** for product contracts, product proof plans, core-spine notes, satellite notes, evidence standards, source maps, decision artifacts, memo substrates, evidence appendices, executive-deck shape drafts, Source Capture Toolbox design notes, and demand-signal method/surface docs. The tree is bound by `docs/decisions/orca_spine_first_target_structure_binding_v0.md` and authorized by `docs/decisions/orca_spine_first_blocker_authorization_v0.md` (#254). Second-level axis: `spines/` (`foundation/`, `commission_signal_board/`, `scanning/`, `capture/`, `ecr/`, `cleaning/`, `judgment/`, `product_lead/`, `data_lake/`), `satellites/`, `case_families/`, `shared/`. `data_lake/` is a shared-foundation spine promotion-bound 2026-06-18 by `docs/decisions/orca_data_lake_spine_promotion_binding_v0.md` (R2 landed the contracts + mechanics into authority/+workflows/ and retired shared/data_lake_mechanics/; the 2 #239 repo-structure planning docs stay in `docs/migration/` as migration records). Per-spine structure is owned by the spine-first binding, not the machine map; `check_placement.py` treats `orca/` as a declared top-level area. Historical `docs/product/` references resolve through `docs/migration/repo_structure_spine_first_v0/moved_paths_index.md` by design. `docs/doctrine/` is intentionally NOT created by this migration (owner B3: index/router-only, seeded later).
 - `repo-structure.yaml` (repo root): the machine structure map - router only, consumed by `.agents/hooks/check_placement.py` and agents for navigation. It declares homes and never states rules; this overlay file remains the placement authority and wins on conflict.
 - `docs/research/`: public/source research artifacts, evidence-only lane outputs, synthesis reports, candidate screens, and reject-pattern maps that support Orca product or proof work without becoming product authority by default.
 - `docs/research/judgment-spine/harness/v0_14/smoke_tests/`: Judgment Harness v0.14 no-case smoke-test receipts and operator provenance records. Artifacts in this folder are plumbing evidence only and do not become real-case probe, validation, fixture-admission, product-proof, or judgment-quality evidence by location.
@@ -395,9 +395,10 @@ direction_change_propagation:
     repointed to orca/product/ paths. orca/product/shared/data_lake_mechanics/ is
     RETIRED (superseded by the workflows/ copy; the #232 mechanics map was verified
     canonical via a 3-way reconciliation vs main's shared/ copy and the
-    codex/data-lake-mechanics-map lane). The 2 #239 repo-structure planning docs are
-    deferred pending an owner placement decision; data_lake/migrations|harness|tests
-    stay reserved.
+    codex/data-lake-mechanics-map lane). The 2 #239 repo-structure planning docs
+    were deferred during R2 and are now intentionally retained in docs/migration/
+    as repo-structure migration records; data_lake/migrations|harness|tests stay
+    reserved.
   trigger: architecture_doctrine
   related_triggers:
     - workflow_authority
@@ -411,7 +412,9 @@ direction_change_propagation:
     - path: codex/data-lake-core-contract (#232) + codex/data-lake-mechanics-map lanes
       reason: superseded — their data-lake content is harvested into the spine; close/adjudicate separately.
     - path: the 2 #239 planning docs (data_lake_spine_first_migration_{plan,inventory}_v0.md)
-      reason: deferred pending owner data-lake placement decision (docs/migration/ vs migrations/).
+      reason: >
+        not moved during R2; placement closeout keeps them in docs/migration/ as
+        repo-structure migration records, not lake-specific schema/data migration plans.
   non_claims:
     - not validation, readiness, or proof; placement/link shape only
     - not ratification of #232/#239 lanes as merged truth; content harvested, lanes still open

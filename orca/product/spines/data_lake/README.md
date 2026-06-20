@@ -8,18 +8,18 @@ scope: >
   contracts (raw-packet preservation, keyed retrievability, Attachment Record,
   passive Availability Index, append-only derived-result/ack attachment) that
   other spines depend on. R2 populated the spine with the lake contracts and
-  canonical mechanics map; only the two repo-structure migration planning docs
-  remain deferred pending placement.
+  canonical mechanics map; the two repo-structure migration planning docs stay
+  in docs/migration/ as repo-structure migration records.
 use_when:
   - Entering the data_lake spine or deciding whether an artifact is lake-owned.
-  - Checking the R2-populated authority/workflow routing and deferred placement status.
+  - Checking the R2-populated authority/workflow routing and placement closeout status.
 authority_boundary: retrieval_only
 open_next:
   - docs/decisions/orca_data_lake_spine_promotion_binding_v0.md
   - docs/decisions/orca_spine_first_target_structure_binding_v0.md
 stale_if:
   - The data_lake spine shape or its shared_foundation kind is amended.
-  - A later placement decision moves the deferred migration planning docs into the spine.
+  - A later accepted placement decision moves the repo-structure migration planning docs into the spine.
 ```
 
 ## What this spine is
@@ -62,10 +62,12 @@ R2 landed the lake's authority + workflow substance:
   contracts, confirmed canonical via a 3-way reconciliation), which **supersedes
   and retires** the transitional `orca/product/shared/data_lake_mechanics/` copy.
 
-Deferred: the 2 repo-structure migration planning docs
-(`data_lake_spine_first_migration_{plan,inventory}_v0.md`) pending a placement
-decision (`docs/migration/` vs `migrations/`). `spine.yaml`, `harness/`, and
-`tests/` stay reserved until the lake is built.
+Placement closeout (2026-06-20): the 2 repo-structure migration planning docs
+(`data_lake_spine_first_migration_{plan,inventory}_v0.md`) intentionally stay in
+`docs/migration/` as repo-structure migration records. They are not
+lake-specific schema/data migration plans, so they do not move into
+`data_lake/migrations/`. `spine.yaml`, `harness/`, and `tests/` stay reserved
+until the lake is built.
 
 Non-claims: not validation, readiness, proof, or runtime authorization; placement
 shape only.

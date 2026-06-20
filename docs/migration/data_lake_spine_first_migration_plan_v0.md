@@ -26,10 +26,14 @@ stale_if:
 ```
 
 - Status: MIGRATION_PLAN_ONLY.
+- Placement closeout (2026-06-20): retained in `docs/migration/` as a
+  repo-structure migration planning record. Current Data Lake authority lives in
+  `orca/product/spines/data_lake/`; this historical plan is provenance/input, not
+  current binding by itself.
 - Structure-branch basis: `codex/commission-spine-structure` at
   `8f34ccd703b79b8787bb8009a5f1e7a783c08419` when this plan was drafted.
-- Current binding remains `docs/` plus `orca-harness/`; this file does not make
-  `orca/product/spines/data_lake/` live.
+- At drafting time, binding remained `docs/` plus `orca-harness/`; this file did
+  not make `orca/product/spines/data_lake/` live.
 - No file moves, runtime storage work, backend choice, queue design,
   implementation work, harness move, test move, or reference rewrite is
   authorized by this plan.

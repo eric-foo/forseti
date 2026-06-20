@@ -36,12 +36,14 @@ content file, does not re-create `docs/product/`, does not re-organize
 capture/projection/engagement, and leaves runtime code and tests in
 `orca-harness/`.
 
-Provenance (origin, not authority): the data-lake structure analysis lives in the
-in-flight `codex/commission-spine-structure` lane at
-`docs/migration/data_lake_spine_first_migration_plan_v0.md` (+ its inventory);
-the lake contract files live in the in-flight `codex/data-lake-core-contract`
-lane. Neither is on `main`. They are consumed as **input** for the R2 move pass,
-not ratified here.
+Provenance (origin, not authority): at binding time, the data-lake structure
+analysis lived in the in-flight `codex/commission-spine-structure` lane at
+`docs/migration/data_lake_spine_first_migration_plan_v0.md` (+ its inventory),
+and the lake contract files lived in the in-flight `codex/data-lake-core-contract`
+lane. Post-R2, the #239 plan/inventory records intentionally stay in
+`docs/migration/` as repo-structure migration records, and the lake contracts
+live under `orca/product/spines/data_lake/authority/`. These records are
+provenance/input, not current binding by themselves.
 
 ## Decision
 
@@ -114,9 +116,10 @@ Bound now (this pass):
 
 Post-R2 note (2026-06-18): R2 executed — the 3 contracts landed in `authority/`,
 the canonical mechanics map in `workflows/`, and
-`orca/product/shared/data_lake_mechanics/` is retired. Only the 2 planning docs
-remain deferred (placement check-in pending). The original deferral text is
-retained below for the record.
+`orca/product/shared/data_lake_mechanics/` is retired. Placement closeout
+(2026-06-20): the 2 #239 repo-structure planning docs stay in `docs/migration/`
+as repo-structure migration records, not in `data_lake/migrations/`. The
+original binding-time deferral text is retained below for the record.
 
 Deferred at binding time to the R2 move pass:
 
