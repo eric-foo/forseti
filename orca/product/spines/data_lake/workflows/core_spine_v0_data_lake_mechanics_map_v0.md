@@ -65,7 +65,7 @@ doctrine_propagation_expected: architecture_doctrine
 Adopt the logical by-key mechanics map:
 
 ```text
-Source Capture writes raw packet truth.
+Source Capture writes raw packet (CapturePacket) truth.
 Everything downstream reads raw by key.
 Everything downstream writes a derived view, receipt, record, or ledger.
 Nothing downstream replaces raw.
@@ -81,7 +81,7 @@ Shared handle family:
 
 ## Hard Rules
 
-1. Raw `SourceCapturePacket` is canonical.
+1. Raw `SourceCapturePacket` (CapturePacket) is canonical.
 2. Reference, never merge.
 3. Re-derive, never migrate.
 4. Carry supplied facts or residualize; do not author from prose.
@@ -104,7 +104,7 @@ Shared handle family:
 | Core slice frame | Packet/slice capture facts | Stable shared facts; incumbent fields stay readable | Treat every new source detail as a core field |
 | Attachment Record | Source-family payload tied to packet/slice | Logical typed payload: family, kind, schema version, pins, body, absence/residual posture | Pick physical storage or become mutable side truth |
 | Projection | Raw + core facts + Attachment Records | Re-derived row view, loss ledger, receipt | Persist as source truth or decide salience |
-| ECR | Raw packet/slice/file facts | Integrity postures SP-1/2/3/6 | Depend on Cleaning/projection or bind final Evidence Unit schema |
+| ECR | Raw packet/slice/file facts | Integrity postures SP-1/2/3/6 | Depend on Cleaning/projection or bind final Evidence Unit (EvidenceUnit) schema |
 | SCR | Raw body material + provenance/ECR refs | Per-slice content record by key | Become a second capture-payload home |
 | Cleaning | One raw-keyed input handle + optional sibling refs | Transform ledger, cleaned working view, warnings, raw-pull triggers | Decide credibility, independence, similarity effect, exclusion, or strength |
 | Judgment | Raw + derived chain + raw pull-in | Verdicts and decision-use outputs | Rewrite raw capture truth |

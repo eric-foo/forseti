@@ -30,7 +30,7 @@ layer.
 
 - **Produced by:** capture.
 - **Consumed by:** projection, ECR, signal_statement, cleaning, judgment.
-- **Owns:** raw-packet preservation, keyed retrievability, the Attachment Record
+- **Owns:** raw-packet (CapturePacket) preservation, keyed retrievability, the Attachment Record
   contract, the passive Availability Index contract, and the append-only
   derived-result / acknowledgement attachment contract.
 - **Does not own:** the physical backend or storage engine, source-capture
