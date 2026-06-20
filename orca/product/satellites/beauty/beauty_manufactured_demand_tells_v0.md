@@ -156,8 +156,11 @@ Per the core design's **outside-in capability gap**, the *strongest* beauty inte
 mostly **not** available to Orca from the public surface:
 
 - **Reviewer-network graph (Tier 2, high value) is capture-gated.** It needs a large collected
-  corpus of reviewer histories across many products (Sephora/Ulta/Amazon) — a capture capability,
-  often platform- and ToS-limited, that Orca may or may not build.
+  corpus of reviewer histories across many products (Sephora/Ulta/Amazon) — now scoped to a
+  **within-category** ego-graph and spec'd in
+  `orca/product/spines/capture/source_families/retail_pdp/retail_pdp_review_capture_spec_v0.md`
+  (cross-industry out of scope; within-category overlap is noisier — it corroborates within the
+  convergence stack, not a verdict alone).
 - **First-party metadata is unavailable.** Bazaarvoice / PowerReviews catch fakes using IP, device
   reputation, and submission velocity — telemetry visible only to whoever runs the review pipeline,
   never on the published page. Orca cannot replicate that approach.

@@ -454,7 +454,11 @@ signal it would read is material, not reversible").
 - **Outside-in capability gap (folded from the external research).** The *strongest* detection
   evidence is largely **not available to an outside-in reader**: reimbursement/broker records and
   internal documents are off-platform or private; the high-value **shared-reviewer network** signal
-  needs a large collected corpus of reviewer histories (**capture-gated**, often platform-limited);
+  needs a large collected corpus of reviewer histories (**capture-gated** — now scoped to a
+  **within-category** ego-graph and spec'd in
+  `orca/product/spines/capture/source_families/retail_pdp/retail_pdp_review_capture_spec_v0.md`;
+  cross-industry remains out of scope, and within-category overlap is noisier so it corroborates
+  rather than verdicts alone);
   and the proprietary integrity tools (Bazaarvoice, PowerReviews) rely on **first-party metadata**
   (IP, device reputation, submission velocity) Orca does not have. Public creator-audit tools
   (HypeAuditor, Modash) are **screening, not proof**; Botometer X is limited to pre-2023 archives;

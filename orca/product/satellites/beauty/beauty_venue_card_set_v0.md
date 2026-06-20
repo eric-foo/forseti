@@ -17,6 +17,7 @@ authority_boundary: retrieval_only
 open_next:
   - docs/decisions/beauty_venue_card_set_promotion_decision_v0.md   # binding parameters + owner acceptance
   - orca/product/spines/foundation/vertical_exploration/orca_vertical_exploration_guide_v0.md  # the consuming procedure
+  - orca/product/satellites/beauty/beauty_manufactured_demand_tells_v0.md  # integrity companion (manufactured-demand tells; Step 0 see-also; a separate artifact, NOT a card)
 stale_if:
   - A card passes its review_by date (that card is a stale hint; review or retire it).
   - The promotion decision record is superseded or the set breaches its terms.
@@ -36,6 +37,11 @@ S3 = subtle screen 3.
   citable record -> BoF/WWD terminate. Enter via trade hubs (cards 1-3).
 - SUBTLE class: nothing launders upward — the detector IS the record. Enter
   via origination/tracker cards (4-9) and detector cards (10-12).
+
+**Integrity companion (Step 0 — see also):** for manufactured-demand / astroturf tells at these
+venues (and at the review/social surfaces this deck does not cover), read
+`orca/product/satellites/beauty/beauty_manufactured_demand_tells_v0.md`. It is a **separate**
+companion — this deck stays venue-production-scoped and capped at 12; the pointer adds no card.
 
 ## Cards (12/12 — cap full)
 
