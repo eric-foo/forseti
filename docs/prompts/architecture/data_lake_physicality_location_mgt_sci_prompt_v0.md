@@ -20,7 +20,13 @@ open_next:
   - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_storage_contract_v0.md
   - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_medallion_gold_readiness_contract_v0.md
   - .gitignore
-branch_or_commit: codex/data-lake-physicality-location-prompt @ ffb22cae stacked on codex/data-lake-medallion-contract
+source_base_revision: codex/data-lake-medallion-contract @ ffb22cae
+prompt_branch: codex/data-lake-physicality-location-prompt
+checkout_requirement: >
+  Strict repo-read claims require a checkout that contains this prompt's named
+  source base, especially the medallion gold-readiness contract. If the
+  medallion contract is absent, first classify whether the checkout is missing
+  the stacked source before treating the contract as absent from Orca.
 input_hashes:
   docs/decisions/orca_mini_god_tier_doctrine_v0.md: 76B624FA1173ADDDE7F8FF1A7B09C5495723D9DD3523588B42E06EA93634B68F
   orca/product/spines/data_lake/authority/core_spine_v0_data_lake_core_contract_v0.md: 4C2B4033B02F508CAB3AE73BBB8B7BB4B6ECF7B1F8714384F35E4A75442CAA78
@@ -90,7 +96,17 @@ Important clarification: treat `C:\src\orca\` as an illustrative repo path, not 
 
 ## Source Read Contract
 
-If you have repository/filesystem access, read the named source files above before making strict claims. Confirm hashes when possible. If a hash differs, report drift and reason from the current file content you read.
+If you have repository/filesystem access, first confirm the checkout contains the named source base or a descendant/equivalent revision. Then read the named source files above before making strict claims. Confirm hashes when possible. If a hash differs, report drift and reason from the current file content you read.
+
+If the medallion gold-readiness contract is absent, do not immediately infer that Orca lacks the contract. First check whether the checkout is missing the stacked source. If the checkout does not contain the named source base, set `source_readiness: PARTIAL_REPO_READ_STACK_MISMATCH`, treat medallion-specific claims as capsule-backed, and state that strict repo-grounding requires the stacked source.
+
+Use one `source_readiness` value:
+
+- `FULL_REPO_READ` — required files were read from a checkout containing the named source base; hash drift, if any, is explained from current content.
+- `PARTIAL_REPO_READ_STACK_MISMATCH` — repo access exists, but the checkout does not contain one or more stacked prompt sources; distinguish checkout mismatch from source absence.
+- `CAPSULE_ONLY` — no repo/filesystem access; cite capsule sections only.
+
+`MovementCandidateRecord` and `GoldReadyAssemblyReceipt` are proposed physicality names for logical-home analysis, not claims that repo classes already exist. Do not downgrade the architecture solely because grep finds no current code or docs using those names.
 
 If you do not have repo/filesystem access, use only the source capsule below. In that case:
 
@@ -137,9 +153,9 @@ The repo ignores local/generated state including logs, scratch, test runs, auth/
 
 1. Should Orca accept the external data-root boundary as a v0 physicality decision?
 2. Is `ORCA_DATA_ROOT=D:\orca-data` the right level of commitment, or should the contract say `ORCA_DATA_ROOT=<operator-configured external data root>` with `D:\orca-data` as the local preferred example?
-3. Should the first directory grammar be exactly `raw/ attachments/ derived/ acknowledgements/ indexes/`, or should any slot be renamed/split/deferred?
+3. Should the first directory grammar be exactly `raw/ attachments/ derived/ acknowledgements/ indexes/`, or should any slot be renamed/split/deferred? In particular, should `indexes/` be internally split into content-free availability versus rebuildable derived retrieval subslots?
 4. What does each directory own, and what must each directory not become?
-5. Where should `MovementCandidateRecord`, `GoldReadyAssemblyReceipt`, lane-owned derived retrieval artifacts, and passive availability facts logically live under that root?
+5. Where should proposed `MovementCandidateRecord`, proposed `GoldReadyAssemblyReceipt`, lane-owned derived retrieval artifacts, and passive availability facts logically live under that root, and what naming prevents derived retrieval from becoming lake authority?
 6. Should `D:\orca-data\raw\<packet_id>\...` be locked now as an eventual shape, or only as a recommended layout pending packet-admission/key-rule decisions?
 7. What minimum configuration contract is needed now: env var only, config file fallback, per-run override, test-fixture override, or something else?
 8. What must stay in the Git repo: schemas, contracts, tests, small fixtures, example manifests, config templates? What must never be committed?
@@ -152,6 +168,7 @@ The repo ignores local/generated state including logs, scratch, test runs, auth/
 - Push back hard on any physical layout that creates a hidden actor/profile/dossier system.
 - Keep Availability Index content-free.
 - Keep analytical reverse lookups as lane-owned rebuildable derived retrieval artifacts, not lake authority.
+- If `indexes/` contains both availability and derived-retrieval artifacts, require explicit subslot naming or equivalent wording that keeps content-free availability separate from analytical derived retrieval.
 - Prefer a simple filesystem root and config boundary if it satisfies MGT; do not escalate to a database/object-store architecture unless the source facts force it.
 - Distinguish **location contract** from **storage engine**. A directory grammar may be acceptable even while backend/serialization remain deferred.
 - Distinguish **eventual shape** from **implementation-ready schema**.
@@ -174,6 +191,8 @@ Return a concise architecture report with these exact headings:
 12. `contract_wording_patch`
 13. `non_claims`
 
+For every strict recommendation or contract wording change, include source citations: `file:line` when repo access exists, or capsule section names when repo access is unavailable.
+
 For `record_home_mapping`, include at least:
 
 - Raw Packet Store;
@@ -181,8 +200,8 @@ For `record_home_mapping`, include at least:
 - Availability Index;
 - Derived Result Store;
 - Acknowledgement Log;
-- MovementCandidateRecord;
-- GoldReadyAssemblyReceipt;
+- proposed MovementCandidateRecord;
+- proposed GoldReadyAssemblyReceipt;
 - lane-owned derived retrieval artifacts for commenter/reviewer timing questions.
 
 For `contract_wording_patch`, provide paste-ready wording for a later Orca decision contract. Keep it implementation-neutral.
@@ -207,8 +226,11 @@ The likely correct answer is `ACCEPT_WITH_CHANGES`:
 - accept external operational data root;
 - prefer `ORCA_DATA_ROOT=<operator-configured external data root>` with `D:\orca-data` as the owner's local default/example;
 - accept the five-directory grammar as a v0 logical data-root grammar;
+- treat `attachments/` as a logical slot while deferring whether attachment bodies are sibling files or packet members;
 - lock raw immutable, derived/ack append-only, indexes rebuildable;
+- split or explicitly label `indexes/` so content-free availability cannot be confused with rebuildable derived retrieval;
+- require fail-closed data-root resolution when the configured root is unset, unresolvable, or inside the repo;
 - keep packet_id-addressed raw layout as target direction, but gate final path grammar on packet-admission and key-rule decisions;
-- reject any wording that says candidate/receipt records are gold, Judgment, actor profile, or analytical truth in the Availability Index.
+- reject any wording that says candidate/receipt records are existing code classes, gold, Judgment, actor profile, or analytical truth in the Availability Index.
 
 You may disagree, but if you do, explain the decisive source-backed reason.
