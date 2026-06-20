@@ -21,14 +21,15 @@ stale_if:
 - Status: ACTIVE_MOVED_PATH_INDEX.
 - Scope: Commission Signal Board pilot only.
 - Global docs move: staged, not executed.
+- Current-main reconciliation: `orca/product/spines/commission_signal_board/migrations/commission_signal_board_current_main_reconciliation_v0.md`.
 
 ## Moved Canonical Docs
 
 | Old path | Canonical path | Resolution |
 | --- | --- | --- |
-| `docs/product/product_lead/orca_commission_signal_board_prompt_adjudication_packet_v0.md` | `orca/product/spines/commission_signal_board/authority/orca_commission_signal_board_prompt_adjudication_packet_v0.md` | Old path is a resolver stub. |
-| `docs/prompts/product-planning/orca_commission_signal_board_prompt_v0.md` | `orca/product/spines/commission_signal_board/prompts/orca_commission_signal_board_prompt_v0.md` | Old path is a resolver stub. |
-| `docs/workflows/commission_signal_board_playbook_v0.md` | `orca/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md` | Old path is a resolver stub. |
+| `docs/product/product_lead/orca_commission_signal_board_prompt_adjudication_packet_v0.md` | `orca/product/spines/commission_signal_board/authority/orca_commission_signal_board_prompt_adjudication_packet_v0.md` | Old path is absent on current `main`; use the canonical spine path. |
+| `docs/prompts/product-planning/orca_commission_signal_board_prompt_v0.md` | `orca/product/spines/commission_signal_board/prompts/orca_commission_signal_board_prompt_v0.md` | Old path is absent on current `main`; use the canonical spine path. |
+| `docs/workflows/commission_signal_board_playbook_v0.md` | `orca/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md` | Old path is absent on current `main`; use the canonical spine path. |
 
 ## Indexed But Not Moved
 
