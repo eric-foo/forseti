@@ -31,13 +31,14 @@ open_next:
   - orca/product/shared/engagement_registry/engagement_logic_registry_v0.md                                   # the seed pattern table (bot-like, copied-phrase, burst-after-prompt, affiliate push) this catalogue organizes by mechanism class
   - orca/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md                                # the >=2-independent-converging-origin bar + the manufactured-defeater the outburst-gate fuses
   - orca/product/satellites/beauty/beauty_venue_card_set_v0.md                                                # the satellite deck that owns the specific beauty venue tells (card 11 = INCIDecoder wind-caller exemplar)
+  - docs/research/manufactured-demand/orca_manufactured_demand_beauty_external_research_v0.md                 # external evidence-only research folded 2026-06-20 (cases, tells, reliability hierarchy, prevalence-unknown)
 stale_if:
   - The owner adjudicates the demand-read taxonomy and amends the Integrity layer or the durable/transient/manufactured states.
   - C2 Rule 3 (R3a-e), the C1 Demand-Substrate Hard Gate (G1/G2), or the C3 consume-don't-reopen boundary is re-derived.
   - The buyer-proof action-ceiling cap rule (>=2 converging origins; manufactured-defeater; engagement-only cap) changes.
   - The owner lifts the no-scoring boundary (INV-1) — a qualitative-likelihood frame may then graduate toward calibrated weighting.
   - The corroboration-vs-amplification discipline note amends the Signal-Integrity ownership or the non-destructive-dedup requirement.
-  - The owner's in-thread detection ideas or the external astroturf-detection report land and change the mechanism-class spine (not merely add tells/exemplars).
+  - A future external report or the owner's still-outstanding in-thread detection ideas name a NEW mechanism class — the 2026-06-20 report landed and HELD the spine (calibration/exemplars only; see Status), so the spine-change condition is not currently tripped.
 ```
 
 ## Status
@@ -51,16 +52,22 @@ discipline note** — it reuses all of them by pointer. Authored in the demand-r
 lane (worktree off `origin/main`) under default-allowed documentation/design authorization;
 no capture, run, or scoring authority is asserted or implied.
 
-**Input-attachment note (honest scope boundary).** The commission referenced two inputs that
-did **not** arrive in-thread: the owner's additional detection ideas (`add in-thread`) and an
-external astroturf-detection research report (`attach the ChatGPT Pro report`). Default taken
-(reversible-work act-default): the **core, market-agnostic** design below — mechanism classes,
-composition logic, pipeline placement, the outburst-gate, the limits — does **not** depend on
-those specific tells; the specific tells are **satellite-owned** (beauty deck) by doctrine
-anyway. This artifact is therefore a **core scaffold structured to ingest** the report's cases
-and the owner's ideas as **additional tells / exemplars** in the catalogue and the satellite
-deck **without restructuring**. If either input changes the mechanism-class *spine* (not just
-adds tells), re-derive §"Tell Catalogue"; that is this artifact's named `stale_if`.
+**Input-folded note (2026-06-20).** The external astroturf-detection research report **landed**
+(owner-provided in-thread 2026-06-20; external LLM-assisted synthesis, reviewed-through
+2026-06-19) and is folded in here. It is preserved as an **evidence-only** source artifact at
+`docs/research/manufactured-demand/orca_manufactured_demand_beauty_external_research_v0.md`
+(`product_learning` context, **not product authority**; citations not independently verified in
+this lane). **Spine-hold judgment (load-bearing):** the report's mechanism taxonomy (its A/B/C
+three-way distinction) is the same three buckets, and every tell it lists maps to an existing
+class A–F — so the report **adds calibration** (tell reliability gradings, the evidentiary
+hierarchy), **documented exemplars, and limits**, and does **not** change the mechanism-class
+spine. The `stale_if` spine-change condition is therefore **not** tripped; this is the clean
+fold the scaffold was built for (see §"What the External Research Adds"). The one sharpening:
+"insider / staged-independence" (employee-as-reviewer, employee-as-shopper) is named explicitly
+within the fabrication / concealed-connection families — a sub-type, not a new top-level class.
+The owner's **additional in-thread detection ideas** remain outstanding; the report stands in as
+the external input. Beauty-specific case tells (Sunday Riley/Sephora, Hismile, Charlotte Tilbury,
+…) are **satellite-owned** — queued for the beauty deck, not minted into this core note.
 
 ## Why This Exists (the differentiator, and the gap it fills)
 
@@ -147,7 +154,10 @@ duplicate it.
 Each class states: **present-fingerprint** (tells that, if seen, favour manufactured — the R3d
 present-fingerprint), **absent-clearing-check** (the observation that would clear the risk — the
 R3d clearing-check, each needing a stated *sufficiency bar* owned per vertical), **evasion** (how
-a determined amplifier defeats the tell), and the **bucket** it most implicates.
+a determined amplifier defeats the tell), and the **bucket** it most implicates. Each tell's
+**reliability tier** (near-dispositive → weak-alone) and its **documented exemplars** are folded
+in §"What the External Research Adds" (2026-06-20) — they calibrate how much weight a tell earns
+without changing the classes here.
 
 ### Class A — Fabricated accounts / bots  (bucket 1; cheap to detect, cheap to partially evade)
 - **Present-fingerprint:** thin/young account histories; identical or drip-synchronized timing
@@ -158,15 +168,22 @@ a determined amplifier defeats the tell), and the **bucket** it most implicates.
   copied-phrase tells; "drip" timing to defeat burst tells.
 - **Maps to:** engagement registry → *Bot-like activity*.
 
-### Class B — Review-stuffing / fake reviews  (bucket 1 → 2; review surfaces)
+### Class B — Review-stuffing / fake reviews (incl. insider / staged-independence)  (bucket 1 → 2; review surfaces)
 - **Present-fingerprint:** review-velocity spike **decoupled from independent traffic/sales**;
-  templated or near-duplicate language; rating bimodality (5★ wall with no middle); reviewer
-  co-occurrence across unrelated products; incentivized-without-disclosure.
+  templated or near-duplicate language; rating bimodality (5★ wall with no middle); **shared-reviewer
+  / co-review network overlap** (the same small pool across unrelated products — empirically the
+  *strongest* public-data tell, beats text; see §"What the External Research Adds"); incentivized-
+  without-disclosure. **Insider / staged-independence** sub-type: employees/managers posting as
+  ordinary customers (e.g. employee-written reviews under false identities; staffed "random shopper"
+  testimonials) — the opinion-holder may be real but the *independence* is fabricated.
 - **Clearing-check:** verified-purchase share; review cadence **tracking** independent traffic;
-  longitudinal, varied reviewer histories.
+  longitudinal, varied reviewer histories; for insider risk, identity/relationship independence
+  from the brand.
 - **Evasion:** verified-purchase fraud (buy-then-refund); staggered seeding to flatten the
-  velocity spike; **paid genuine-purchase reviews** (real money, real purchase, paid opinion —
-  largely undetectable, see Limits).
+  velocity spike; partitioning reviewer pools to defeat the network tell; **paid genuine-purchase
+  reviews** (real money, real purchase, paid opinion — largely undetectable, see Limits). Note the
+  strongest insider/fake-review evidence is usually a **whistleblower or reimbursement record**, not
+  a star-pattern (evidentiary hierarchy, Tier 1).
 
 ### Class C — Paid amplification / coordinated promotion  (bucket 2 — THE dangerous middle)
 - **Present-fingerprint:** **promotion-engagement mismatch** (a creator promotes X but engagement
@@ -217,11 +234,14 @@ a determined amplifier defeats the tell), and the **bucket** it most implicates.
   only independent switching behavior separates them. Often **transient**, not manufactured —
   route a real-but-decaying dupe surge to C3 as transient, **not** to a manufactured cap.
 
-> Catalogue extension points (where the not-yet-attached inputs land): the external report's
-> cases and the owner's in-thread ideas attach as **additional tells/exemplars inside these
-> classes**, or as a **new class** only if they name a mechanism not above (e.g. engagement-pod
-> reciprocity, marketplace rank manipulation, returns-fraud-as-demand-signal). New *tells* are a
-> satellite/illustrative add; a new *mechanism class* trips this artifact's `stale_if`.
+> Catalogue status (2026-06-20): the external research report has been **folded in** — see
+> §"What the External Research Adds" for the reliability tiers, the evidentiary hierarchy,
+> empirical backing, and documented exemplars. The report **held the spine** (its mechanisms all
+> map to classes A–F); only the **insider / staged-independence** sub-type was named (added under
+> Class B / Class A below). Still-open extension points for a future input: a genuinely new
+> mechanism (e.g. engagement-pod reciprocity, marketplace rank manipulation,
+> returns-fraud-as-demand-signal) would add a class and trip `stale_if`; new per-venue beauty
+> tells are a **satellite** (beauty-deck) add, not a core change.
 
 ## The (2)-vs-(3) Discrimination Method (the heart — detect real costly behavior under the amplification)
 
@@ -256,6 +276,61 @@ manufactured/coordinated").
 The cost-asymmetry is why this works and survives the arms-race: **faking the surface is cheap;
 faking independent costly behavior across multiple independent venue families simultaneously is
 expensive** — so the read anchors on the expensive-to-fake thing, not the cheap-to-fake surface.
+(Empirically backed by the Amazon fake-review cohort — see the section directly below.)
+
+## What the External Research Adds (folded 2026-06-20)
+
+The external research report (evidence-only;
+`docs/research/manufactured-demand/orca_manufactured_demand_beauty_external_research_v0.md`)
+corroborates this design and sharpens it. It is `product_learning` **context, not product
+authority**; its citations are not independently verified in this lane. Four load-bearing adds:
+
+- **Real, but prevalence unknown — and "hidden promotion ≠ hollow demand."** Manufactured demand
+  in beauty is documented at **high confidence** (regulator actions, internal instructions,
+  admissions, a peer-reviewed fake-review study where Beauty & Personal Care was the largest
+  category). But **no defensible base rate exists**: every sample (regulator sweeps, the Amazon
+  study) is enforcement- or group-selected, with no population denominator — an ACCC beauty
+  subsample flagged 12/16, but that is not a 75% market rate. The report's own caution **is** the
+  design's: hidden promotion proves *the origin of attention was concealed, not that every buyer
+  was inauthentic* — which is exactly the (2)-vs-(3) call. **Consequence:** the read classifies a
+  *candidate* by convergent tells; it asserts **no** category-wide manufactured rate and carries
+  **no** base-rate prior into a case (INV-1-consistent — a prior-as-number would be a score).
+
+- **Evidentiary hierarchy (reliability ordering over the catalogue — CORE).** Tells are **not
+  equal evidence**; the qualitative likelihood-strength a tell earns follows this order, and it is
+  *qualitative weight, not a score*:
+  1. **Near-dispositive (Tier 1):** internal documents / whistleblowers, payment or reimbursement
+     records, broker ads matched to the product, regulator findings, platform enforcement.
+  2. **Strong public-data (Tier 2):** a **dense shared-reviewer / co-review network** plus timing
+     + text anomalies — in direct-ground-truth research, **network features outperformed
+     review-text features**, and the network is **costlier to evade** than text.
+  3. **Moderate (Tier 3):** synchronized posting, disclosure gaps, post-campaign deterioration.
+  4. **Weak alone (Tier 4):** follower count, engagement rate, a viral hashtag, a sellout, a 5★
+     average, a single suspicious review.
+  A **Tier-4 tell never carries a manufactured disposition alone**; convergence and tier are
+  **reasoned, not summed** (INV-1 holds — the hierarchy informs the qualitative read, it is not a
+  weighted scoring table).
+
+- **Empirical backing for the strip-test ((2)-vs-(3)).** The Amazon fake-review cohort is the
+  clearest documented **amplified-but-hollow** case: manipulation produced **real but temporary**
+  rating/review/sales lift that **reverted toward pre-campaign levels within weeks**, after which
+  the **one-star share rose** — exactly "peel the layer; nothing durable survives." The report's
+  practical rule mirrors the outburst-gate almost verbatim: **require ≥2 independent persistence
+  signals before calling heavily-promoted demand durable — "an analytical safeguard, not a
+  validated statistical cutoff"** (the design's ≥2-origin + INV-1 framing, independently arrived
+  at). Persistence, price integrity, repeat behavior, and cross-venue confirmation are the four
+  named separators — the same costly-behavior-under-the-layer the strip-test looks for.
+
+- **Documented exemplars (mechanism → case; beauty-specific tells are satellite).** Concrete
+  instances of the catalogue's classes, preserved in the research artifact for the beauty deck:
+  **Class B insider/fake reviews** — *Sunday Riley* (employees posting Sephora reviews under false
+  identities; surfaced by a whistleblower, not a star-pattern → Tier-1 evidence); **Class A
+  fabricated indicators** — *Devumi* (a fake-follower/engagement market — enabling infrastructure;
+  no beauty client implied); **Class C undisclosed promotion** — *Teami*, *Charlotte Tilbury/Eliza
+  Batten*, *THG/The Fragrance Shop* (affiliate links without an upfront "Ad" label); **insider /
+  staged-independence** — *Hismile* (employees presented as random shoppers, caught by identity
+  matching). These are **satellite exemplars** — the beauty deck owns the per-venue tells; the core
+  spine is unchanged.
 
 ## Composition into a Qualitative Manufactured/Real Read
 
@@ -372,6 +447,18 @@ signal it would read is material, not reversible").
   - Honest move for all of these: a **confirmed-absent** disposition requires a clearing-check that
     was actually *run and passed*; where no clearing-check is possible, the risk is a **standing
     inherent-limit cap** (R3e) — advise the recoverable path, **do not** upgrade to "clean."
+- **Outside-in capability gap (folded from the external research).** The *strongest* detection
+  evidence is largely **not available to an outside-in reader**: reimbursement/broker records and
+  internal documents are off-platform or private; the high-value **shared-reviewer network** signal
+  needs a large collected corpus of reviewer histories (**capture-gated**, often platform-limited);
+  and the proprietary integrity tools (Bazaarvoice, PowerReviews) rely on **first-party metadata**
+  (IP, device reputation, submission velocity) Orca does not have. Public creator-audit tools
+  (HypeAuditor, Modash) are **screening, not proof**; Botometer X is limited to pre-2023 archives;
+  Fakespot was discontinued (2025). Orca therefore works mostly with the **moderate** and
+  **weak-alone** public tells — *plus* the network graph where capture allows — and **consumes** the
+  near-dispositive Tier-1 evidence (a regulator action, a whistleblower post) **when it already
+  exists**, but cannot manufacture it. This is why a confident read leans on **convergence** and on
+  **costly-behavior-under-the-layer**, not on any single high-reliability detector.
 - **Confirmed-absent ≠ positive.** Clearing the manufactured risk earns the **neutral baseline**,
   never positive demand credit (anti-gaming; AR-05 / R3c).
 - **The evasion arms-race.** Every tell, once known, is evadable, and amplification sophistication
@@ -443,20 +530,24 @@ Read fresh from the worktree off `origin/main` (capsule: branch `claude/distract
   ceiling-tiering; do-not-build list (scoring engines).
 - `orca/product/satellites/beauty/beauty_venue_card_set_v0.md` — satellite tell home; card 11
   INCIDecoder wind-caller exemplar (the legitimate-origination contrast to Class D laundering).
-- **Source gaps (non-blocking for a core design):** the owner's in-thread detection ideas and the
-  external astroturf-detection report were **not attached** — see the Status input-attachment note;
-  the catalogue is structured to ingest them as tells/exemplars.
+- `docs/research/manufactured-demand/orca_manufactured_demand_beauty_external_research_v0.md` — the
+  external astroturf-detection research report (owner-provided 2026-06-20, **evidence-only**,
+  citations not independently verified): documented beauty cases, the tell reliability gradings, the
+  evidentiary hierarchy, the Amazon post-campaign-decay finding, and the prevalence-unknown caution
+  — all folded into §"What the External Research Adds". Beauty-specific case tells route to the
+  satellite deck.
+- **Still outstanding (non-blocking):** the owner's additional in-thread detection ideas.
 
 ## Claim Classification
 
 ```yaml
 judgment_spine_claim_classification:
   evaluated_claim_surface: manufactured-demand detection design (core architecture design note)
-  source_quality_state: design/control artifacts only (thesis + taxonomy + C1/C2/C3 contracts + cleaning corroboration-vs-amplification discipline + engagement registry + buyer-proof packet + beauty deck, read fresh on the worktree off origin/main); external astroturf report and owner in-thread ideas NOT attached; no real read, no run, no detector
+  source_quality_state: design/control artifacts (thesis + taxonomy + C1/C2/C3 contracts + cleaning corroboration-vs-amplification discipline + engagement registry + buyer-proof packet + beauty deck, read fresh on the worktree off origin/main) PLUS one external evidence-only research synthesis (owner-provided 2026-06-20, product_learning context, citations not independently verified in this lane); no real read, no run, no detector
   execution_quality_state: no demand read run, no integrity disposition emitted, no discriminator executed, no case run
   closeout_state: no_durable_evidence
   claim_cap: design input / product-learning context only
-  weakest_missing_or_failed_gate: no integrity read exists to test against; manufactured detection is forward/live and not backtestable; review of this design not yet run; the two commissioned inputs (report + owner ideas) are absent
+  weakest_missing_or_failed_gate: no integrity read exists to test against; manufactured detection is forward/live and not backtestable; review of this design not yet run; the external research is unverified evidence-only context (not validation); the owner's additional in-thread ideas remain outstanding; beauty-specific case tells deferred to the satellite deck
   receipt_artifact_or_gap: first real test comes from a forward/live by-hand demand read emitting an integrity disposition against this catalogue (owner-gated; not authorized here)
   non_claims:
     - not validation unless separately proven
@@ -483,6 +574,10 @@ judgment_spine_claim_classification:
   **never produces** it (product boundary).
 - Mints no evidence-ladder or read vocabulary; reuses the two-axis model, the integrity labels,
   C2 Rule 3's evidentiary states, the action-ceiling vocabulary, and the operator ladder.
+- The folded external research is **evidence-only `product_learning` context** (owner-provided
+  2026-06-20, citations not independently verified); it **does not promote** this design's tier,
+  validate it, or supply a buyer-proof or judgment-quality claim. Research becomes product authority
+  only through a later accepted product/decision artifact (Orca source discipline).
 - `PROPOSED` only; not owner-adopted. On adoption it owes a **dated pointer** via the
   Doctrine-Change Propagation Contract (`.agents/workflow-overlay/source-of-truth.md`); it changes
   no other live doc, so no propagation receipt is owed now.
