@@ -62,7 +62,7 @@ stop does NOT fire for this intentional refinement). Deltas:
 - First-proof BEACHHEAD re-scoped: from "developer-facing SaaS" (a stale,
   convenience-derived inheritance) to the AI-MONETIZATION SLICE — B2B SaaS making
   a first-time AI-monetization or competitor-triggered repricing/repackaging
-  decision, where the competitor-pricing substrate is publicly rich and the firm
+  decision (DecisionEvent), where the competitor-pricing substrate is publicly rich and the firm
   is flying blind. Dev-facing SaaS is a strong sub-instance, not the defining
   qualifier; the wedge frame is cross-sector-open. Decision family
   (pricing/packaging/API/billing/usage/add-on/monetization) is UNCHANGED.
@@ -97,7 +97,7 @@ disqualifiers, blank target slots, intake objective, and non-claims are unchange
 
 ## Current Prep State
 
-The customer-discovery prompt has been refreshed for the sealed Orca ICP and product-proof boundary. It treats the memo plus evidence appendix as the minimum artifact and an executive deck as the premium buyer-facing layer derived from that substrate.
+The customer-discovery prompt has been refreshed for the sealed Orca ICP and product-proof boundary. It treats the memo (Memo) plus evidence appendix as the minimum artifact and an executive deck as the premium buyer-facing layer derived from that substrate.
 
 The prior adversarial review recommendation was `accept_with_friction` for the pre-refresh prompt. It remains useful caution context, but this brief does not claim a new adversarial review of the refreshed prompt.
 
@@ -161,7 +161,7 @@ Disqualify or hold before memo production if any condition applies:
 
 No public web research or researched company selection has been authorized for this run. Leave companies blank until the owner authorizes public research or supplies candidate names.
 
-| Slot | Company | Suspected decision family | Suspected trigger | Likely decision owner role | Public-signal surface to verify | Qualification status | Next intake question |
+| Slot | Company | Suspected decision family (DecisionEvent) | Suspected trigger | Likely decision owner role | Public-signal surface to verify | Qualification status | Next intake question |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | 1 | TBD | TBD | TBD | TBD | TBD | not_screened | What live 30-90 day pricing, packaging, API, billing, usage, add-on, or monetization decision is pending? |
 | 2 | TBD | TBD | TBD | TBD | TBD | not_screened | Who owns the decision and the budget or business consequence? |

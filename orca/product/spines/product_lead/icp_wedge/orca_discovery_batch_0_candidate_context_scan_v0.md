@@ -36,7 +36,7 @@ This artifact is a narrow candidate-context scan only.
 
 It does not authorize outreach, contact collection, person-level dossiers, CRM construction, memo production, executive deck production, product or feature planning, implementation planning, software, automation, source systems, dashboards, source maps, data-spine design, commits, pushes, PRs, product readiness claims, or commercial readiness claims.
 
-Candidate companies are not buyers. They are possible real-world decision contexts that may or may not qualify later. Trust posture is `unknown` throughout because no buyer has been contacted.
+Candidate companies are not buyers (Buyer). They are possible real-world decision contexts that may or may not qualify later. Trust posture is `unknown` throughout because no buyer has been contacted.
 
 Language boundary: this scan avoids treating any company as a client, lead, prospect, customer, account, or sales opportunity.
 
@@ -81,7 +81,7 @@ Opened but not used as evidence:
 
 ## Candidate Context Table
 
-| Company | Category | Suspected decision family | Visible signal | Suspected trigger | Likely decision-owner role type | Public-signal surface to verify | Trust posture | Qualification status | Why it may be worth later intake | Why it may fail qualification |
+| Company | Category | Suspected decision family (DecisionEvent) | Visible signal | Suspected trigger | Likely decision-owner role type | Public-signal surface to verify | Trust posture | Qualification status | Why it may be worth later intake | Why it may fail qualification |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | Vercel | platform | pricing, packaging, API | Pricing and docs expose Fluid compute, AI Cloud, many billable metrics, usage calculation, and spend-control mechanisms. | Compute and AI workload packaging, Pro-to-Enterprise thresholds, cost predictability for developer teams. | Platform GM, product monetization owner, pricing owner, enterprise packaging owner. | Pricing/docs changes, changelog, developer reactions to compute costs, plan limits, and spend controls. | unknown | candidate_context_only | Public developer signals may be strong enough to test whether a manual public-signal decision artifact can reduce allocation risk around compute and AI packaging. | May be too large, too noisy, already decided, or dependent on private usage and enterprise contract data. |
 | Sentry | mixed | pricing, packaging, monetization | Pricing shows telemetry quotas and pay-as-you-go rates; Seer docs show a January 2026 AI add-on model using active contributors. | AI debugging monetization, contributor-based pricing, legacy add-on transition, bundle versus add-on packaging. | AI product owner, monetization owner, observability platform PM, pricing owner. | Pricing docs, help-center updates, developer reactions to Seer, AI code review, and telemetry overage behavior. | unknown | candidate_context_only | Fresh AI add-on pricing creates a concrete public decision surface with role-based usage mechanics and likely public reaction. | May fail if Seer pricing is already locked, if internal adoption data dominates, or if public signals cannot affect the decision. |

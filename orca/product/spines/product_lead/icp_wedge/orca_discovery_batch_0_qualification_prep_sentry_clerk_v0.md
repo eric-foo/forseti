@@ -59,9 +59,9 @@ The next possible discovery step is not to pitch Orca. It is to determine whethe
 Qualification must establish:
 
 - a named decision owner or budget-accountable decision lead;
-- a live 30-90 day pricing, packaging, API, billing, usage, add-on, or monetization decision;
+- a live 30-90 day pricing, packaging, API, billing, usage, add-on, or monetization decision (DecisionEvent);
 - a concrete allocation consequence;
-- sufficient public-signal surface for a manual memo plus evidence appendix;
+- sufficient public-signal surface for a manual memo (Memo) plus evidence appendix;
 - `trust_open` or `trust_objection`, not `trust_refusal`;
 - a clear memo question;
 - readback agreement before memo production, and executive deck use tied to internal decision circulation before any deck production.

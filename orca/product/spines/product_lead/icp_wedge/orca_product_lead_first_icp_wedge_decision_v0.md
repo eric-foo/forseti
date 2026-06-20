@@ -87,7 +87,7 @@ Orca turns messy, noisy, and contradictory public market signals into
 executive-grade decision decks for high-stakes product, pricing, positioning,
 growth, and competitive moves. The buyer-facing artifact is a strategic
 decision deck and matrix. The internal substrate remains a memo-like reasoning
-artifact plus evidence appendix so the deck cannot outrun source-backed
+artifact (Memo) plus evidence appendix so the deck cannot outrun source-backed
 judgment.
 
 Current offer:
@@ -113,7 +113,7 @@ commercial readiness are not proven.
 
 ## ICP Definition For Orca
 
-ICP means the specific customer segment most likely to urgently need,
+ICP (Buyer) means the specific customer segment most likely to urgently need,
 understand, buy, and successfully use Orca's public-signal decision artifact.
 
 For Orca, an ICP must bind:
@@ -135,7 +135,7 @@ wedge; it is an invitation to generic consulting.
 
 | Candidate wedge | Fit to offer and urgency | Owner, budget, and paid-first plausibility | Signal and deck proofability | Repeatability and risk | Decision |
 | --- | --- | --- | --- | --- | --- |
-| Current first proof lane: post-revenue B2B SaaS/platform/API/data-product pricing, packaging, API, or monetization decisions | Strong fit. Pricing and package changes create immediate allocation risk, backlash risk, churn risk, sales-enablement cost, and competitive-response pressure. | Strongest visible owner map: VP Product, GM, pricing/packaging lead, growth/strategy lead, PMM, or founder/operator. Paid-first is plausible because the decision is budget-adjacent. | Strong. Existing candidate-context scan found visible pricing/docs surfaces for Sentry, Clerk, Vercel, Supabase, Neon, PostHog, Pinecone, and Algolia. A deck can compare options, risks, action ceilings, and signal limits. | Strongest near-term repeatability. Risk is private usage data dependence, but the proof lane already disqualifies private-data-first cases. | Keep as first wedge, sharpen around developer-facing usage, AI add-on, billing, or package-transition decisions. |
+| Current first proof lane: post-revenue B2B SaaS/platform/API/data-product pricing, packaging, API, or monetization decisions (DecisionEvent) | Strong fit. Pricing and package changes create immediate allocation risk, backlash risk, churn risk, sales-enablement cost, and competitive-response pressure. | Strongest visible owner map: VP Product, GM, pricing/packaging lead, growth/strategy lead, PMM, or founder/operator. Paid-first is plausible because the decision is budget-adjacent. | Strong. Existing candidate-context scan found visible pricing/docs surfaces for Sentry, Clerk, Vercel, Supabase, Neon, PostHog, Pinecone, and Algolia. A deck can compare options, risks, action ceilings, and signal limits. | Strongest near-term repeatability. Risk is private usage data dependence, but the proof lane already disqualifies private-data-first cases. | Keep as first wedge, sharpen around developer-facing usage, AI add-on, billing, or package-transition decisions. |
 | Pre-revenue founder or founding team facing positioning, category, launch, or fundraising-narrative decision | Good offer fit in theory because runway and launch focus matter before internal data exists. | Weak-to-medium. Founder urgency can be high, but budget and paid-first behavior are less certain and can slide into fundraising narrative coaching. | Medium. Public signals may exist, but many pre-revenue decisions depend on private founder intent, investor feedback, early customer calls, or unobservable strategy. | Repeatability unproven. High risk of generic strategy consulting or pitch-deck work. | Defer. Keep in broader offer boundary, not first proof wedge. |
 | Post-revenue product or strategy leader facing competitor-triggered positioning, pricing, packaging, or roadmap allocation decision | Strong fit and strong urgency, especially when competitor narrative, AI packaging, or category movement forces a response. | Strong if the owner controls roadmap, packaging, revenue, retention, or competitive-response budget. | Strong when public competitor, buyer, developer, community, and ecosystem signals are visible. The method-validation replays support action-ceiling discipline for competitive and monetization decisions. | Strong, but too broad if it includes all positioning and roadmap allocation at once. | Treat as the umbrella rationale for the selected wedge; do not broaden beyond pricing/packaging/API/monetization for first proof. |
 | Investor, operator, or portfolio context | Plausible offer fit for allocation and diligence decisions where public evidence can change a decision. | Medium. Sponsor may have budget, but the decision owner and artifact user can split across investor, operator, and company team. | Medium-to-weak from current sources. Visible signals may help, but portfolio decisions often require private diligence, company data, or investment mandate context. | Risk of bespoke advisory work and unclear buyer/user boundary. Source support is not strong enough for first proof. | Defer until a concrete paid portfolio decision and public-signal surface are supplied. |
