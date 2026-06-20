@@ -120,7 +120,7 @@ buyer-belief pressure, and demand apart.
 
 The BT2-04 slice replayed Shutterstock's possible response to generative image
 AI using public evidence visible on or before the 2022-09-15 cutoff. It
-explicitly separated the pre-cutoff pool and at-cutoff replay memo from the
+explicitly separated the pre-cutoff pool and at-cutoff replay memo (Memo) from the
 post-window outcome pool.
 
 The at-cutoff evidence supported public technology availability, commercial
@@ -153,7 +153,7 @@ core primitives.
 | Primitive | Cross-context result |
 | --- | --- |
 | Decision Frame | Each slice stayed tied to a locked decision question and allowed action verbs. |
-| Evidence Unit | Each slice used inspectable public source material and tied material claims to source basis, timing, relevance, and limitations. |
+| Evidence Unit (EvidenceUnit) | Each slice used inspectable public source material and tied material claims to source basis, timing, relevance, and limitations. |
 | Signal Integrity | Each slice labeled source limits, incentives, volatility, campaign effects, or timing risk and changed inference from those labels. |
 | Signal Use Classification | Each slice separated valid uses such as actor strategy, attention, objection, buyer belief, workflow pressure, and risk from unsupported demand claims. |
 | Decision Strength | Each slice mapped evidence quality to a qualitative action threshold rather than a numeric demand score. |
@@ -256,7 +256,7 @@ BT2-04 preserved the required pre-cutoff/post-window separation.
 
 The slice:
 
-- used the locked `BT2-04` case and 2022-09-15 cutoff;
+- used the locked `BT2-04` case (Case) and 2022-09-15 cutoff;
 - recorded a pre-cutoff candidate pool;
 - rejected post-cutoff sources from at-cutoff reasoning;
 - completed the at-cutoff replay memo before inspecting the post-window outcome

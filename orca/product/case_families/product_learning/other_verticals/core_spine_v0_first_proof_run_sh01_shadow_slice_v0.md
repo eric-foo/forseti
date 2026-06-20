@@ -26,7 +26,7 @@ Required Orca authority and Core Spine product docs were read before evidence in
 - `docs/product/core_spine_v0_first_proof_run_locks_v0.md`
 - `docs/product/core_spine_v0_heavyweight_proof_case_discovery_results_v0.md`
 
-This artifact is not broad competitor monitoring. It is one bounded shadow slice for one buyer-visible narrative pressure decision. It does not create Evidence Unit tooling, source maps, source inventories, dashboards, databases, automations, tests, feature plans, implementation plans, or generated artifacts.
+This artifact is not broad competitor monitoring. It is one bounded shadow slice for one buyer-visible narrative pressure decision (DecisionEvent). It does not create Evidence Unit tooling, source maps, source inventories, dashboards, databases, automations, tests, feature plans, implementation plans, or generated artifacts.
 
 This artifact does not claim:
 
@@ -92,7 +92,7 @@ The pool stopped at 15 candidate public sources because it was enough to test th
 | C14 | CloneDesk, [Zendesk AI vs Intercom Fin](https://clonedesk.ai/blog/zendesk-ai-vs-intercom-fin) | Published/crawled May 2026; accessed 2026-05-21 | Competitor/vendor content | Counterclaim that vendor resolution rates overstate production reality | Rejected for primary evidence due competitor incentive; retained as weak counterevidence prompt |
 | C15 | Public Reddit threads on Zendesk/Intercom/AI support pricing and setup, including [Zendesk AR pricing](https://www.reddit.com/r/Zendesk/comments/1f2v3jh/zendesks_new_ar_pricing_model/), [Zendesk vs Intercom](https://www.reddit.com/r/Zendesk/comments/1n18xj7/zendesk_vs_intercom/), [automated resolutions](https://www.reddit.com/r/Zendesk/comments/1meai4c/about_automated_resolutions_for_ai_agents/), and [Intercom bill jump](https://www.reddit.com/r/AI_CustomerService/comments/1qdbhc8/why_my_intercom_bill_jumped_from_4k_to_9kmonth/) | Threads range roughly 2024-2026; accessed 2026-05-21 | Public forum participants, possibly mixed users/vendors/resellers | Weak/source-limited objections about setup, cost predictability, and resolution definitions | Rejected for buyer pull; retained as weak objection/counterevidence only |
 
-## 4. Accepted Evidence Units
+## 4. Accepted Evidence Units (EvidenceUnit)
 
 Reconstruction note:
 
@@ -238,7 +238,7 @@ Update triggers:
 
 Boundary note:
 
-This dry run is a decision memo slice, not a final competitive strategy. It does not authorize product changes, feature plans, pricing changes, monitoring systems, or implementation.
+This dry run is a decision memo (Memo) slice, not a final competitive strategy. It does not authorize product changes, feature plans, pricing changes, monitoring systems, or implementation.
 
 ## 9. Blockers And Residual Risks
 

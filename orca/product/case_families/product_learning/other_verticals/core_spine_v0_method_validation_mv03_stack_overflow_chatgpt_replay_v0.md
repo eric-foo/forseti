@@ -20,7 +20,7 @@
 
 ## Accepted Decision Frame
 
-- Decision question: As of 2023-07-26, should Stack Overflow watch, probe, test, hold, partner, license, build, or reposition its public platform and Teams product response to ChatGPT-driven developer behavior?
+- Decision question (DecisionEvent): As of 2023-07-26, should Stack Overflow watch, probe, test, hold, partner, license, build, or reposition its public platform and Teams product response to ChatGPT-driven developer behavior?
 - Owner context: Stack Overflow product, community, data/licensing, and enterprise knowledge-product leadership.
 - Cutoff: 2023-07-26, immediately before the public OverflowAI announcement on 2023-07-27.
 - Fair-cutoff rationale: ChatGPT had been public since late 2022, Stack Overflow AI posting policy and developer AI-sentiment material were visible, and the cutoff precedes Stack Overflow's public AI roadmap announcement.
@@ -67,7 +67,7 @@
 | Archived bodies | none read | No archived replay bodies or contaminated artifacts were read. |
 | Prior MV-01 evidence | none used | The MV-01 receipt summary was not used as MV-03 evidence. |
 
-## First-Order Evidence Units And Pass Result
+## First-Order Evidence Units (EvidenceUnit) And Pass Result
 
 ### MV03-FO-1 - Stack Overflow had already chosen governance over permissive AI-content ingestion
 
@@ -174,7 +174,7 @@ Update triggers:
 - public traffic or contribution declines tied to ChatGPT-like substitution;
 - community backlash showing quality/governance costs exceed product gains.
 
-Boundary note: no post-window outcome source was used in this at-cutoff memo.
+Boundary note: no post-window outcome source was used in this at-cutoff memo (Memo).
 
 ## AT-CUTOFF SEAL MARKER
 

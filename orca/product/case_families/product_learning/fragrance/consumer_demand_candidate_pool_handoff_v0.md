@@ -44,7 +44,7 @@ bar, source-depth check required; CORR = admitted under the corroborated
 material-change A-leg (community-comparison grade, not lab grade); BORDER =
 boundary ruling recorded in the source ledger.
 
-| # | Brand | Vertical | Decision (one line) | Class | Flags | Source ledger |
+| # | Brand | Vertical | Decision (DecisionEvent) (one line) | Class | Flags | Source ledger |
 | --- | --- | --- | --- | --- | --- | --- |
 | 1 | Joah Beauty (Kiss Products) | beauty | CVS-exclusive K-beauty line killed: socials wiped June 2024, Apr 2025 closure + liquidation | newsy | — | screen 2 |
 | 2 | Dear, Klairs (Wishtrend) | beauty | Suspend-and-replace: re-tested own bestseller post-Purito (SPF 28 vs 50+), suspended all sunscreen sales + refunds, relaunched verified | newsy | NON-US (KR) | screen 2 |

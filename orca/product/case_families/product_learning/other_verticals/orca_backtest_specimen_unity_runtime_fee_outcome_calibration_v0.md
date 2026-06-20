@@ -3,9 +3,9 @@
 ```yaml
 retrieval_header_version: 1
 artifact_role: Product artifact - outcome calibration
-scope: Post-seal outcome calibration for the Unity runtime/install-based monetization backtest specimen.
+scope: Post-seal outcome (Outcome) calibration for the Unity runtime/install-based monetization backtest specimen.
 use_when:
-  - Comparing the sealed at-cutoff memo and owner blind-read decision against post-cutoff outcome evidence.
+  - Comparing the sealed at-cutoff memo (Memo) and owner blind-read decision against post-cutoff outcome evidence.
   - Assessing whether the specimen memo avoided false broad-commit risk without claiming validation.
   - Identifying improvements to future Orca decision memo specimens.
 authority_boundary: retrieval_only
@@ -88,7 +88,7 @@ Outcome relevance:
 
 - Confirms the broad category risk the memo was testing.
 - Confirms install/runtime metering was central, not peripheral.
-- Immediately moves the case from theoretical monetization pressure to live ecosystem pricing shock.
+- Immediately moves the case (Case) from theoretical monetization pressure to live ecosystem pricing shock.
 
 ### 2023-09-13 to 2023-09-17: Backlash and clarification
 

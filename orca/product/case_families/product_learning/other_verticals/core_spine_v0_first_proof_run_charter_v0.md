@@ -34,7 +34,7 @@ This charter is the permission slip for the first Core Spine v0 proof run.
 
 After explicit owner acceptance, it authorizes only one bounded manual
 docs-first proof run. It does not contain the proof itself, collected evidence,
-decision memo outputs, source maps, feature plans, implementation plans,
+decision memo (Memo) outputs, source maps, feature plans, implementation plans,
 tooling plans, or proof results.
 
 This charter resolves the prior proof-execution blocker only for the bounded
@@ -55,7 +55,7 @@ manual production sequence from the information-production foundation:
 
 ```text
 Decision Frame
--> Evidence Unit
+-> Evidence Unit (EvidenceUnit)
 -> Signal Integrity
 -> Signal Use Classification
 -> Decision Strength
@@ -115,7 +115,7 @@ blocked.
 Before evidence work begins for the competitor narrative response memo dry
 run, the runner must record:
 
-- one exact buyer-visible narrative pressure decision;
+- one exact buyer-visible narrative pressure decision (DecisionEvent);
 - decision owner or decision context;
 - buyer-visible belief or consequence;
 - costly behavior standard;
@@ -188,10 +188,10 @@ Before interpreting evidence, the run must record:
 
 - case-selection policy;
 - case-selection owner or decision source;
-- exact historical case, once selected under the policy;
+- exact historical case (Case), once selected under the policy;
 - decision context;
 - why the case is relevant to Core Spine v0;
-- why the case was not selected merely because the later outcome is
+- why the case was not selected merely because the later outcome (Outcome) is
   persuasive;
 - cutoff date;
 - why the cutoff is fair and before the outcome was obvious;

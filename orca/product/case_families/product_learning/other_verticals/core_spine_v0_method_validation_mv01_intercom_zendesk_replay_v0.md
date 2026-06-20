@@ -4,7 +4,7 @@
 
 - Status: `COMPLETE_PHASE_1_MV01`
 - Case: `MV-01` - Intercom Fin pressure on Zendesk.
-- Scope: Phase 1 only, single-case method-validation replay.
+- Scope: Phase 1 only, single-case (Case) method-validation replay.
 - Source basis: bounded public web/source research opened before the seal only for pre-cutoff first-order and second-order evidence; owner-supplied Phase 0 receipt and accepted frame hash pins; Orca overlay authority.
 - Non-authority: this artifact does not use archived contaminated-run bodies, prior failed-run prose, prior URLs, prior source notes, prior observations, or outcome evidence for at-cutoff reasoning.
 - Implementation authorized: no.
@@ -41,12 +41,12 @@
 | --- | --- |
 | Launch context contamination check | `clear`: launch context named archived contaminated output location and manifest hash only; no archived bodies, prior URLs, source notes, observations, headings, verdicts, or evidence units were provided or used. |
 | Archived artifact rule | `passed`: archived artifact bodies were not read. |
-| Search snippet handling | `snippet-noise: yes`: pre-seal search results included out-of-window or post-window snippets; no leaked fact from those snippets is preserved or used in the at-cutoff memo. |
+| Search snippet handling | `snippet-noise: yes`: pre-seal search results included out-of-window or post-window snippets; no leaked fact from those snippets is preserved or used in the at-cutoff memo (Memo). |
 | Pre-seal outcome page opens | `none`: no post-window outcome page was opened before this seal marker. |
 | Post-seal outcome page opens | `true`: four MV-01 post-window pages were opened only after the seal marker was written and checked. |
 | Failed opens | `non-evidence`: failed fetches remain blocked source rows only. |
 
-## 5. First-Order Evidence Units
+## 5. First-Order Evidence Units (EvidenceUnit)
 
 ### MV01-FE1 - Intercom made Fin a buyer-visible AI-agent wedge before cutoff
 

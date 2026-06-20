@@ -17,9 +17,9 @@
 Decision: complete this bounded evidence slice as one docs-first artifact.
 
 This artifact records a leakage-controlled replay for the locked historical
-case `BT2-04`: Shutterstock response to generative image AI. It tests whether
+case (Case) `BT2-04`: Shutterstock response to generative image AI. It tests whether
 public, inspectable, market-level evidence visible by 2022-09-15 could have
-supported a useful at-cutoff decision memo before Shutterstock's later OpenAI
+supported a useful at-cutoff decision memo (Memo) before Shutterstock's later OpenAI
 partnership, AI Image Generator launch, expanded data agreement, and later
 copyright narratives were public.
 
@@ -79,7 +79,7 @@ Cutoff date:
 
 2022-09-15.
 
-At-cutoff decision question:
+At-cutoff decision question (DecisionEvent):
 
 Given only public evidence available on or before 2022-09-15, should
 Shutterstock watch, probe, test, hold, move, or commit around generative image
@@ -139,7 +139,7 @@ The pool is sufficient to test the at-cutoff decision frame. More source
 collection would risk drifting into source-map creation or retrospective
 evidence mining without changing the valid action ceiling.
 
-## 4. Accepted Pre-Cutoff Evidence Units
+## 4. Accepted Pre-Cutoff Evidence Units (EvidenceUnit)
 
 ### EU-01 - Stable Diffusion Public Release
 

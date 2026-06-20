@@ -1,7 +1,7 @@
 # Core Spine v0 Method Validation Case Locks
 
 - Status: CASE_IDENTITIES_LOCKED_AWAITING_CUTOFF_LOCKS
-- Artifact type: Product-method validation case lock record
+- Artifact type: Product-method validation case (Case) lock record
 - Scope: Five case identities for the next Core Spine v0 method-validation pass
 - Date context: 2026-05-21, Asia/Singapore
 - Source basis: current owner instruction, `docs/product/core_spine_v0_method_validation_rubric_v0.md`, `docs/product/core_spine_v0_first_proof_run_packet_v0.md`, `docs/product/core_spine_v0_product_contract.md`

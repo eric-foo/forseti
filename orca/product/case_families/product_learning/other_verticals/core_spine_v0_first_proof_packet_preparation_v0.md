@@ -28,7 +28,7 @@ This artifact does not authorize:
 
 - proof execution;
 - proof-packet evidence collection;
-- Client 0 or shadow-satellite decision memo execution;
+- Client 0 or shadow-satellite decision memo (Memo) execution;
 - exact source maps;
 - source-family inventories beyond admissibility requirements and blind spots;
 - historical backtest execution;
@@ -73,7 +73,7 @@ pre-registration note.
 | Primitive | Preparation requirement |
 | --- | --- |
 | Decision Frame | Name the allocation question, decision owner or context, consequence, allowed recommendation verbs, success criteria, kill criteria, and what the frame does not prove. |
-| Evidence Unit | Prepare for later inspectable units with source or source-family basis, timestamp, capture/access timing, excerpt or observed pattern, raw claim, provenance, transformation history, relevance, inclusion state, and source limitations. Do not collect evidence in this artifact. |
+| Evidence Unit (EvidenceUnit) | Prepare for later inspectable units with source or source-family basis, timestamp, capture/access timing, excerpt or observed pattern, raw claim, provenance, transformation history, relevance, inclusion state, and source limitations. Do not collect evidence in this artifact. |
 | Signal Integrity | Require visible integrity labels and effect statements. Integrity must change discounting, uncertainty, exclusion, Decision Strength, or Action Ceiling. |
 | Signal Use Classification | Classify what a signal may validly inform: demand, attention, resonance, positioning, objection, distribution, buyer belief, actor strategy, manipulation risk, weak evidence, or exclusion. |
 | Decision Strength | Map evidence quality to qualitative action threshold by weighing audience fit, costly behavior, independence, integrity, counterevidence, alternatives, consequence, and reversibility. |
@@ -247,7 +247,7 @@ The shadow satellite is killed or blocked if:
 
 ## Backtest Case-Selection And Pre-Registration Note
 
-The first proof packet requires one historical case to be pre-registered before
+The first proof packet requires one historical case (Case) to be pre-registered before
 evidence interpretation.
 
 The pre-registration record must include:
@@ -256,7 +256,7 @@ The pre-registration record must include:
 - case-selection owner or decision source;
 - decision context;
 - why the case is relevant to Core Spine v0;
-- why the case was not selected merely because the later outcome is persuasive;
+- why the case was not selected merely because the later outcome (Outcome) is persuasive;
 - cutoff date;
 - why the cutoff is fair and before the outcome was obvious;
 - pre-cutoff source visibility requirement;

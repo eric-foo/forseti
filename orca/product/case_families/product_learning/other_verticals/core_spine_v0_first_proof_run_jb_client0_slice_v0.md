@@ -2,7 +2,7 @@
 
 - Status: `INCONCLUSIVE_DIRECTIONAL_TEST`
 - Artifact type: Product proof-run slice
-- Scope: `jb` Client 0 public evidence and decision memo dry run only
+- Scope: `jb` Client 0 public evidence and decision memo (Memo) dry run only
 - Date context: 2026-05-21, Asia/Singapore
 - Access timestamp for public sources: 2026-05-21, Asia/Singapore
 - Implementation authorized: no
@@ -85,7 +85,7 @@ answer.
 | C-14 | Reddit FinancialCareers, Peak Frameworks critique: https://www.reddit.com/r/FinancialCareers/comments/1mkrn5n/is_peakframweworks_really_good_for_private_equity/ | Public complaint that PE prep material may be too basic and possibly overhyped. | Accepted to EU-14 as PE integrity counterweight |
 | C-15 | Reddit account-selling posts for resold course bundles, surfaced in search results | Resale or unauthorized-account market around finance courses. | Rejected: boundary and provenance risk; not used as evidence |
 
-## 4. Accepted Evidence Units
+## 4. Accepted Evidence Units (EvidenceUnit)
 
 ### EU-01 - WSO interview prep packaging points to high-finance interview demand language
 

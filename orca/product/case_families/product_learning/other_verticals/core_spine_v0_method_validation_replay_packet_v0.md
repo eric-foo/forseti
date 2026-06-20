@@ -4,7 +4,7 @@
 
 Status: `PACKET_SYNTHESIZED_FROM_ACCEPTED_COMPACT_RECEIPTS`
 
-Scope: Orca Core Spine v0 method-validation replay Phase 6 only: cross-case packet synthesis from sealed case receipts.
+Scope: Orca Core Spine v0 method-validation replay Phase 6 only: cross-case packet synthesis from sealed case (Case) receipts.
 
 Source basis:
 

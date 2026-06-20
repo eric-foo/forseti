@@ -14,7 +14,7 @@
 ## 1. Status, Scope, Source Basis, And Non-Authority
 
 This record freezes only the proof-run starting conditions that can be locked
-before evidence work. It exists to prevent cherry-picked backtest case
+before evidence work. It exists to prevent cherry-picked backtest case (Case)
 selection, cutoff selection after seeing evidence, post-window leakage, broad
 competitor monitoring, `jb` authority leakage, and source-map or tooling drift.
 
@@ -66,7 +66,7 @@ Non-authority:
 
 - This record does not collect evidence.
 - This record does not interpret proof evidence.
-- This record does not draft a decision memo.
+- This record does not draft a decision memo (Memo).
 - This record does not execute a backtest.
 - This record does not create a source map, source system, source inventory, or
   tooling plan.
@@ -104,7 +104,7 @@ No proof evidence has been collected or interpreted for this lock record.
 
 This turn read only Orca authority files, product artifacts, the proof-run
 charter, and repository state. It did not inspect buyer-visible competitor
-evidence, `jb` market evidence, historical case evidence, post-window outcome
+evidence, `jb` market evidence, historical case evidence, post-window outcome (Outcome)
 evidence, source URLs, exact source maps, or source systems.
 
 No at-cutoff recommendation, shadow-satellite recommendation, backtest result,
@@ -154,7 +154,7 @@ Method-usefulness success criteria:
 
 - The dry run can distinguish attention, resonance, objection, distribution,
   buyer belief, and demand claims.
-- Evidence Units are inspectable enough for a skeptical reader to reconstruct
+- Evidence Units (EvidenceUnit) are inspectable enough for a skeptical reader to reconstruct
   the inference.
 - Signal Integrity labels change discounting, uncertainty, exclusion, Decision
   Strength, or Action Ceiling.
