@@ -218,14 +218,14 @@ For every evidence-like claim, distinguish:
 
 For backtests, apply cutoff safety:
 
-- include only observations that would have been observable on or before
+- include only observations (Observation) that would have been observable on or before
   `evidence_cutoff_at`;
 - record source dates separately from access dates;
 - mark any post-cutoff material as `excluded_future_info`;
 - if cutoff observability cannot be determined, mark `cutoff_status: uncertain`
   and keep it out of classifier handoff except as a gap.
 
-For backtests, separately check whether the source surface itself existed or
+For backtests, separately check whether the source surface (Venue) itself existed or
 was meaningfully observable by the cutoff. Do not mark a post-cutoff source
 surface as ordinary `to_retrieve`. If the surface, tool, or answer-engine mode
 did not exist by the cutoff, use `surface_cutoff_status: post_cutoff_surface`,
@@ -329,7 +329,7 @@ The board owns only the graph retrieval brief and graph-ready row labels.
 The board may define:
 
 - seed entities;
-- adjacent products, brands, formats, scent families, claims, or categories to
+- adjacent products (Product), brands (Brand), formats, scent families, claims, or categories to
   check;
 - creator slices and planned/deferred creator surfaces;
 - source families and subfamilies to retrieve;

@@ -91,12 +91,12 @@ and prompt-packaging questions that are not all settled.
 
 The controlling product thesis says Orca is outside-in consumer-demand decision
 intelligence for distinguishing durable demand from transient or manufactured
-demand; beauty/personal-care is the first vertical and the engine remains
+demand; beauty/personal-care is the first vertical (Vertical) and the engine remains
 vertical-portable (`docs/decisions/orca_product_thesis_consumer_demand_v0.md`).
 
 The offer hypothesis narrows the first proof offer to US-market indie/DTC beauty
 or personal-care operators facing live 30-90 day consumer-demand allocation
-decisions, while preserving Orca's broader offer boundary
+decisions (DecisionEvent), while preserving Orca's broader offer boundary
 (`docs/product/product_lead/orca_offer_hypothesis_v0.md`).
 
 The buyer-proof packet binds proof requirements, not commission-board behavior.
@@ -216,7 +216,7 @@ only the lightest complete graph responsibility.
 The board owns:
 
 - seed entities;
-- adjacent brands/products/formats;
+- adjacent brands (Brand)/products (Product)/formats;
 - source families and subfamilies to check;
 - creator slices and planned/deferred creator platforms;
 - counterevidence paths;
