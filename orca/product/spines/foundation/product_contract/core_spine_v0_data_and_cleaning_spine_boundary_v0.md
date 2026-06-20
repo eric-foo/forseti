@@ -6,7 +6,7 @@ artifact_role: Product architecture boundary note
 scope: Canonical boundary for Data Capture Spine, Evidence Candidate Record, Cleaning Spine, Judgment Spine, Decision Artifact, and Outcome Memory in Core Spine v0.
 use_when:
   - Deciding whether Data Capture Spine, Evidence Candidate Record, or Cleaning Spine work belongs in core, satellite, Judgment Spine, artifact, outcome, or a deferred runtime lane.
-  - Preparing the later Evidence Candidate Record / Evidence Unit architecture consolidation prompt.
+  - Preparing the later Evidence Candidate Record / Evidence Unit (EvidenceUnit) architecture consolidation prompt.
   - Checking whether a proposed source, capture, cleaning, memo, deck, or outcome-memory change exceeds this artifact's planning-only authority or requires separate bounded implementation authorization.
 authority_boundary: retrieval_only
 open_next:
@@ -519,7 +519,7 @@ direction_change_propagation:
 
 ```yaml
 direction_change_propagation:
-  doctrine_changed: "SP-6's archive-date class D binds to the archive slice's cutoff_posture, consumed as a closed pre/post CLASS (never converted to a timestamp -- AR-03 honored), gated on an archive snapshot body present. This SUPERSEDES the design-basis rule 'D ... never cutoff_posture' (frame doc 2.3) FOR THIS BINDING ONLY. The metadata-file I/O path is dropped: the producer does not persist the cutoff (select_snapshot applies it client-side and discards it), so the ratified timestamp-comparison D-source is unimplementable; cutoff_posture is the producer's contracted pre/post class, backed by select_snapshot's at-or-before guarantee. SP-6 is therefore a pure no-I/O deriver over SourceCapturePacket. The ratified SP-6 field, its 8-value/6-residual vocabulary, and the decision-C clears grade are UNCHANGED; corroborated/diverged still residualize (D2/M absent); JSG-01 stays FROZEN."
+  doctrine_changed: "SP-6's archive-date class D binds to the archive slice's cutoff_posture, consumed as a closed pre/post CLASS (never converted to a timestamp -- AR-03 honored), gated on an archive snapshot body present. This SUPERSEDES the design-basis rule 'D ... never cutoff_posture' (frame doc 2.3) FOR THIS BINDING ONLY. The metadata-file I/O path is dropped: the producer does not persist the cutoff (select_snapshot applies it client-side and discards it), so the ratified timestamp-comparison D-source is unimplementable; cutoff_posture is the producer's contracted pre/post class, backed by select_snapshot's at-or-before guarantee. SP-6 is therefore a pure no-I/O deriver over SourceCapturePacket (CapturePacket). The ratified SP-6 field, its 8-value/6-residual vocabulary, and the decision-C clears grade are UNCHANGED; corroborated/diverged still residualize (D2/M absent); JSG-01 stays FROZEN."
   trigger: architecture_doctrine
   related: lifecycle_boundary
   controlling_sources_updated:

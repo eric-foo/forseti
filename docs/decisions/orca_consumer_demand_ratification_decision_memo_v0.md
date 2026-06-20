@@ -1,10 +1,10 @@
-# Owner Decision Memo — Consumer-Demand Thesis Asks 1-4 (PROPOSED)
+# Owner Decision Memo (Memo) — Consumer-Demand Thesis Asks 1-4 (PROPOSED)
 
 ```yaml
 retrieval_header_version: 1
 artifact_role: Decision record (owner decision outcomes for thesis asks 1-4, 2026-06-12; lane recommendation retained as history)
 scope: >
-  The ICP / product-direction lane's recommendation on the consumer-demand
+  The ICP (Buyer) / product-direction lane's recommendation on the consumer-demand
   thesis's four owner sign-off asks, with the cheapest-test framing and the
   exact consequence boundary of each ask. The owner's word decides; this memo
   only prepares it.

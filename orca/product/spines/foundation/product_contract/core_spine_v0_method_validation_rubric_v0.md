@@ -22,7 +22,7 @@ The validation question is:
 > evidence change or sharpen the correct action ceiling?
 
 This rubric is not a new proof run. It is a validation design for selecting and
-judging future historical cases.
+judging future historical cases (Case).
 
 ## 2. Commercial Thesis Under Test
 
@@ -47,13 +47,13 @@ outcome is decision judgment.
 
 ## 3. Five-Case Validation Design
 
-Use five preselected historical cases. Do not select cases after interpreting
+Use five preselected historical cases (Case). Do not select cases after interpreting
 the evidence.
 
 Each case must have:
 
 - a real company, product, category, or competitor-response decision;
-- a plausible decision date or cutoff before the later outcome was obvious;
+- a plausible decision date or cutoff before the later outcome (Outcome) was obvious;
 - public pre-cutoff evidence that can be inspected without private access;
 - later post-window outcome evidence for calibration;
 - enough evidence pollution to stress Core Spine rather than reward simple hindsight;
@@ -64,7 +64,7 @@ The five-case set should include:
 - at least one SH-01-like competitor narrative pressure case;
 - at least one AI or technology-disruption case where a company had to decide whether to respond before demand was clean;
 - at least one pricing, packaging, or business-model disruption case;
-- at least one positive-action case where Orca should be tested on whether it would have justified a reliable `Test`, bounded `Move`, acquisition, partnership, or build path before the later outcome was obvious;
+- at least one positive-action case where Orca should be tested on whether it would have justified a reliable `Test`, bounded `Move`, acquisition, partnership, or build path before the later outcome (Outcome) was obvious;
 - at least one reverse case where a company made a visible move that later performed badly, and Orca should be tested on whether it would have advised `Hold`, `Probe`, `Test`, or a narrower move;
 - at least one case where second-order data is likely to matter more than first-order official claims.
 

@@ -41,7 +41,7 @@ the adversarial and grounding perspectives (see *What reshaped it*).
 ## The pipeline + core/satellite boundary
 
 Pipeline: **discover** (roster by sub-niche + follower band) → **deep-capture** (each creator's
-window over time) → **per-call curves** (momentum, follower trajectory, tier/promotion).
+window over time) → **per-call (Call) curves** (momentum, follower trajectory, tier/promotion).
 
 - **Satellite (per-platform; IG first; `source_capture_toolbox/`):** discovery (snowball + sub-niche
   filter), deep-capture, and the **obligation** to record, per capture, `numeric_id +

@@ -55,7 +55,7 @@ capture-lane-owned. The stop rules below are stated under that posture.
 Owner direction confirms that blank discovery slots, when a candidate-scan lane
 is separately authorized, should target US-market tractioned indie/DTC beauty
 or personal-care operators with a named decision owner and a live 30-90 day
-demand-allocation decision.
+demand-allocation decision (DecisionEvent).
 
 Prioritize candidate contexts with retail/channel expansion,
 launch/reposition, or inventory/purchase-depth commitment. Tier/price,
@@ -89,7 +89,7 @@ a separately authorized candidate-scan lane.
 
 ## Target Slots (blank by design)
 
-| Slot | Candidate context (brand + live decision) | Decision family | Independent demand-venue origins visible (laundered / shared-origination copies = one; org-motion / retail excluded — see corroboration column) | Costly-behavior evidence visible | Org-motion route available (capture-lane-bound routes) | Named decision owner | Status |
+| Slot | Candidate context (brand (Brand) + live decision) | Decision family (DecisionEvent) | Independent demand-venue origins (Venue) visible (laundered / shared-origination copies = one; org-motion / retail excluded — see corroboration column) | Costly-behavior evidence visible | Org-motion route available (capture-lane-bound routes) | Named decision owner | Status |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | T1 | `UNFILLED - requires authorized candidate scan` | — | — | — | — | — | empty |
 | T2 | `UNFILLED - requires authorized candidate scan` | — | — | — | — | — | empty |

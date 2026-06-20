@@ -77,7 +77,7 @@ It does **not** mean:
 - agents may run unattended;
 - broad scraping is allowed;
 - profile/contact/network harvesting is allowed;
-- output may become a person dossier, lead list, or captured source packet;
+- output may become a person dossier, lead list, or captured source packet (CapturePacket);
 - bypassing an entitlement gate to reach data the operator is not entitled to is
   allowed (no-entitlement gate bypass remains a hard stop);
 - anti-blocking on discoverable/entitled surfaces extends to non-entitled,

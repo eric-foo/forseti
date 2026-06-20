@@ -2,7 +2,7 @@
 
 - Status: READY_FOR_OWNER_BACKTEST_SELECTION
 - Artifact type: Product discovery results, backtest refresh
-- Scope: Bounded second heavyweight discovery pass for the first Core Spine v0 proof-run historical backtest case
+- Scope: Bounded second heavyweight discovery pass for the first Core Spine v0 proof-run historical backtest case (Case)
 - Date context: 2026-05-21, Asia/Singapore
 - Output mode: file-write
 - Edit permission used: docs-write for this target artifact only
@@ -23,8 +23,8 @@ remains `SH-01`, Intercom Fin AI Agent pressure on Zendesk customer service
 positioning.
 
 This artifact does not select the final backtest case for proof, patch locks,
-run proof, collect proof evidence, interpret evidence, create Evidence Units,
-create source maps, create source inventories, draft memos, execute the
+run proof, collect proof evidence, interpret evidence, create Evidence Units (EvidenceUnit),
+create source maps, create source inventories, draft memos (Memo), execute the
 backtest, build a data spine, create tooling, create APIs, create scrapers,
 create dashboards, create databases, create automation, create tests, create
 feature plans, or create implementation plans.
@@ -63,7 +63,7 @@ Public eligibility reference checks:
 - Public official launch, announcement, policy, earnings, acquisition, product,
   and press pages were opened only far enough to confirm candidate existence,
   rough timeline, public inspectability, plausible cutoff windows, and later
-  visible outcomes.
+  visible outcomes (Outcome).
 - Public news sources were used sparingly where an official source did not
   cover the visible outcome or context.
 - These sources are eligibility checks only. They are not Evidence Units,

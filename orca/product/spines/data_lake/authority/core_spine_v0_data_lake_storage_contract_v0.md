@@ -48,7 +48,7 @@ data lands and how derived work attaches, without making the data lake smart.
 
 This goal is successful when all of the following are true:
 
-1. A future lane can say exactly what the lake stores: raw packet truth, stable
+1. A future lane can say exactly what the lake stores: raw packet (CapturePacket) truth, stable
    handles, source-family attachment records, passive availability facts, and
    append-only derived/ack references.
 2. A future lane can say exactly what the lake does not do: clean, normalize,
@@ -69,7 +69,7 @@ This goal is successful when all of the following are true:
 ## Contract In One Screen
 
 ```text
-Capture writes raw SourceCapturePacket truth.
+Capture writes raw SourceCapturePacket (CapturePacket) truth.
 The Raw Packet Store preserves raw truth and stable handles.
 Attachment Records carry source-family payloads by packet/slice/file key.
 The Availability Index exposes only committed-by-key facts.
@@ -195,7 +195,7 @@ This contract does not:
 - select Attachment Record serialization;
 - define a projection cache;
 - define a runtime queue or scheduler;
-- define ECR, SCR, Cleaning, Judgment, or Evidence Unit schemas;
+- define ECR, SCR, Cleaning, Judgment, or Evidence Unit (EvidenceUnit) schemas;
 - define fragrance ontology or any domain ontology;
 - migrate incumbent fields;
 - promote incumbent direct fields as future universal lake core;

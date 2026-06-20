@@ -107,7 +107,7 @@ may never exceed what signal integrity supports.
 
 ### Signal Layers
 
-**Layer 1 — Trend vector** (the object of the read)
+**Layer 1 — Trend vector (TrendVector)** (the object of the read)
 - *What counts:* a directional movement in demand toward or away from an
   ingredient, category, format, or claim, carrying **direction + velocity + the
   durability question** (owner example: peptides).
@@ -118,9 +118,9 @@ may never exceed what signal integrity supports.
   and is **never reported as bare momentum** (taxonomy). Durability stays an
   open question until the buy-side layer grades it.
 
-**Layer 2 — Wind callers** (the leading indicators)
+**Layer 2 — Wind callers (WindCaller)** (the leading indicators)
 - *What counts:* per vertical × sub-niche, the specific channels, accounts,
-  communities, or detectors whose **early public calls precede the move**,
+  communities, or detectors whose **early public calls (Call) precede the move**,
   tracked through their public output and call record. Worked in-repo exemplars:
   INCIDecoder (card 11 — root-receipt detector whose commissioned SPF tests
   became the receipt the whole Purito chain cites); ingredient-audit blog
@@ -191,7 +191,7 @@ may never exceed what signal integrity supports.
 > axes — durable vs transient × real vs manufactured — yielding three actionable
 > states. Divergence is a *technique*, not a read.
 
-**Durable-demand read** — real + persists → *commit*, long horizon
+**Durable-demand (Reading) read** — real + persists → *commit*, long horizon
 - *What counts:* independent venue families + wind callers + org motion pointing
   the **same way**, costly-behavior anchored, **and persisting past the trigger**
   (owner example: peptides). The trust anchor — the one persistence backtests support.
@@ -200,7 +200,7 @@ may never exceed what signal integrity supports.
   **spike mistaken for persistence** (decay not assessed).
 - *Boundary:* must clear the Hard Gate; ceiling capped by signal integrity.
 
-**Transient-spike read** — real + decays → *move*, short horizon, time-boxed (NEW; owner equal-billing 2026-06-14)
+**Transient-spike (Reading) read** — real + decays → *move*, short horizon, time-boxed (NEW; owner equal-billing 2026-06-14)
 - *What counts:* real costly behavior with a **short expected lifespan** — a
   genuine spike that will normalize (viral surge, time-limited dupe wave, seasonal pop).
 - *Anti-trigger:* a spike treated as durable (commit long → stranded inventory);
@@ -211,7 +211,7 @@ may never exceed what signal integrity supports.
   **built-to, not proven-at** on its lifespan until a decay-curve capability
   exists (reconciled 2026-06-14, OF-01).
 
-**Manufactured-demand read** — fake / amplified → *discount / avoid*
+**Manufactured-demand (Reading) read** — fake / amplified → *discount / avoid*
 - *What counts:* demand that is not real — promotion-engagement mismatch,
   astroturf, coordinated/bot amplification, dupe-wave distortion.
 - *Anti-trigger:* a single contrarian voice promoted to "manufactured"; treating
@@ -227,8 +227,8 @@ disagrees with IG), a quality attack where marketing is loudest (Reddit attackin
 quality under a promo push) — is *evidence used to classify* a candidate as
 transient or manufactured. No longer synonymous with "hollow."
 
-**Brand-decision event read** — the monetization unit
-- *What counts:* a **named brand's** live allocation decision — launch /
+**Brand-decision event (Reading) read** — the monetization unit
+- *What counts:* a **named brand (Brand)'s** live allocation decision — launch /
   reposition; retail or channel entry; restock / sellout; discontinuation /
   moratorium; defend-versus-hype; **event-triggered pricing** (batch-1's Beauty
   Pie 2023 repricing is exactly this). Trend vector + wind-caller state +
@@ -240,9 +240,9 @@ transient or manufactured. No longer synonymous with "hollow."
   (`monitor / probe / commit / hold / scale / avoid / reduce`) capped by signal integrity; tied to a
   named decision owner + allocation consequence per the buyer-proof packet.
 
-**Wind-caller calibration** — the compounding asset
+**Wind-caller calibration (Reading)** — the compounding asset
 - *What counts:* grading each niche's wind callers' **public calls against
-  observed outcomes over time**; dated, anti-cherry-picked receipts ("who
+  observed outcomes (Outcome) over time**; dated, anti-cherry-picked receipts ("who
   actually calls beauty winds, with receipts"). The outcome-memory moat applied
   to sources.
 - *Anti-trigger:* cherry-picked hits; calibration with no dated pre-declaration;

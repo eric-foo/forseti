@@ -38,7 +38,7 @@ future implementation and architecture lanes can rely on without making the lake
 too smart.
 
 The lake is the warehouse and filing system for captured source material. It
-preserves raw packets, stable IDs, hashes, manifests, and by-key availability.
+preserves raw packets (CapturePacket), stable IDs, hashes, manifests, and by-key availability.
 It does not clean, normalize, identify entities, decide source value, or run
 downstream lanes.
 
@@ -69,7 +69,7 @@ schema finalization.
 ## Contract In One Screen
 
 ```text
-Capture writes raw SourceCapturePacket truth.
+Capture writes raw SourceCapturePacket (CapturePacket) truth.
 The lake preserves raw truth and makes it findable by stable keys.
 The lake may record that a packet is available by key.
 Projection, ECR, SCR, and Cleaning discover/read by key.
@@ -108,7 +108,7 @@ be smart about meaning.
   clustering mechanics.
 - Judgment, including credibility, salience, exclusion, Signal Integrity,
   Signal Use, Decision Strength, Action Ceiling, or source value.
-- Canonical entity identity, product identity, brand identity, creator identity,
+- Canonical entity identity, product (Product) identity, brand (Brand) identity, creator identity,
   or cross-packet dedupe.
 - Fragrance, beauty, retail, social, forum, or other domain ontology as lake
   core.
@@ -271,7 +271,7 @@ the physicalization lane closes these blockers:
 - Sidecar contract.
 - Projection cache.
 - Runtime queue or scheduler.
-- ECR, SCR, Cleaning, Judgment, or Evidence Unit schema.
+- ECR, SCR, Cleaning, Judgment, or Evidence Unit (EvidenceUnit) schema.
 - Fragrance ontology.
 - Migration mechanics for incumbent fields.
 - Validation/readiness claim.

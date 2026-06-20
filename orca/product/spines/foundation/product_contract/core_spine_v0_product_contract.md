@@ -36,12 +36,12 @@ these primitives.
 | Priority | Primitive | Core responsibility | Absorbs |
 | --- | --- | --- | --- |
 | 1 | Decision Frame | Name the allocation question, decision owner or context, consequence, allowed recommendation verbs, and kill criteria. | Decision type, owner, consequence, action boundary |
-| 2 | Evidence Unit | Capture source, timestamp, excerpt, claim, provenance, source visibility, transformation history, and relevance. | Source visibility, timing metadata, audit trail |
+| 2 | Evidence Unit (EvidenceUnit) | Capture source, timestamp, excerpt, claim, provenance, source visibility, transformation history, and relevance. | Source visibility, timing metadata, audit trail |
 | 3 | Signal Integrity | Judge credibility, incentives, independence, repetition, manipulation risk, botting, copied language, artificial amplification, and source limitations. | Source quality, fake engagement, dedupe, campaign distortion |
 | 4 | Signal Use Classification | Classify what the signal can validly inform: demand, attention, resonance, objection, distribution, buyer belief, actor strategy, manipulation risk, weak evidence, or exclusion. | Competitive intelligence, engagement interpretation, message propagation |
 | 5 | Decision Strength | Judge what action the evidence can support by weighing audience fit, costly behavior, counterevidence, alternative explanations, confidence, and action threshold. | Audience fit, costly behavior, counterevidence, confidence, recommendation threshold |
-| 6 | Decision Artifact | Produce the recommendation, evidence basis, alternatives, uncertainty, kill criteria, and what would change the answer. The minimum artifact is a decision memo plus evidence appendix; the premium buyer-facing artifact is an executive decision deck derived from that substrate. | Memo format, evidence appendix, executive deck, decision accountability |
-| 7 | Backtesting and Outcome Memory | Replay past decisions using only pre-cutoff evidence, compare with later outcomes, record misses, and update the evidence standard. | Multi-case backtesting, calibration, outcome learning |
+| 6 | Decision Artifact | Produce the recommendation, evidence basis, alternatives, uncertainty, kill criteria, and what would change the answer. The minimum artifact is a decision memo (Memo) plus evidence appendix; the premium buyer-facing artifact is an executive decision deck derived from that substrate. | Memo format, evidence appendix, executive deck, decision accountability |
+| 7 | Backtesting and Outcome Memory | Replay past decisions using only pre-cutoff evidence, compare with later outcomes (Outcome), record misses, and update the evidence standard. | Multi-case backtesting, calibration, outcome learning |
 | 8 | Boundary Rules | Preserve public, market-level, non-deceptive intelligence and prevent implementation drift. | Ethics, anti-dossier boundary, no runtime authorization, no generic OSINT platform |
 
 Competitive intelligence remains a major use case, but not a standalone core

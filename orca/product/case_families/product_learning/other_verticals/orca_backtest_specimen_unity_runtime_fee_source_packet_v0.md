@@ -36,12 +36,12 @@ stale_if: Cutoff changes, Phase 2 needs post-cutoff calibration, any outcome fac
 - case name: Unity potential runtime/install-based monetization change.
 - decision family: pricing / packaging / monetization.
 - cutoff: `2023-09-11 23:59 Pacific Time`.
-- later Phase 2 decision question: Should Unity proceed with a broad runtime/install-based fee model, narrow or phase the change, grandfather existing users, change messaging, or hold pending further evidence?
+- later Phase 2 decision question (DecisionEvent): Should Unity proceed with a broad runtime/install-based fee model, narrow or phase the change, grandfather existing users, change messaging, or hold pending further evidence?
 - assumed decision-owner role type: executive or senior monetization/package decision owner accountable for product packaging, developer trust, revenue, customer retention, and launch risk.
 - allowed source families: pre-cutoff Unity official investor filings/materials; Unity official pricing, packaging, terms, documentation, or policy pages with clear pre-cutoff visibility; pre-cutoff developer/community/customer signal pages where date and snippet do not reveal outcome; pre-cutoff market or industry context directly relevant to pricing/package/monetization risk.
 - forbidden source families: retrospective explainers; Wikipedia or summary pages; post-cutoff news; post-cutoff Unity announcements; sources with snippets or titles revealing backlash, revision, cancellation, apology, resignation, leadership change, or any later outcome; any query designed to find "what happened"; prior Unity replay artifacts or prior-thread source lists; contaminated archive bodies.
 - blocker conditions: `BLOCKED_BY_PRIOR_REPLAY_CONTAMINATION`, `BLOCKED_OUTPUT_DESTINATION_COLLISION`, `BLOCKED_SOURCE_VISIBILITY`, `FAILED_UNBOUNDED_SCAN`, `BLOCKED_COMPACTION_BEFORE_ARTIFACT_SEAL`.
-- no-outcome/no-memo boundary: This packet does not write the at-cutoff decision memo, does not recommend an action, does not define an action ceiling, and does not preserve any later outcome fact.
+- no-outcome/no-memo boundary: This packet does not write the at-cutoff decision memo (Memo), does not recommend an action, does not define an action ceiling, and does not preserve any later outcome (Outcome) fact.
 
 ## Source-Loading Plan
 
@@ -99,7 +99,7 @@ Page-open counting note: counts below are unique public URLs accessed for source
 | S-07 | <https://web.archive.org/web/20230103153058/https://www.unrealengine.com/en-US/license> | Pre-cutoff market or industry context | Archived official Unreal Engine license page | Internet Archive snapshot timestamp 2023-01-03 15:30:58 UTC, before cutoff | Load pre-cutoff public market context for alternative engine licensing/package expectations | readable | contextual evidence | Competitor context only; does not prove Unity customer behavior, Unity pricing feasibility, or legal risk |
 | S-08 | <https://web.archive.org/web/20230103153058/https://www.unrealengine.com/faq> | Pre-cutoff market or industry context | Archived official Unreal FAQ page | Internet Archive snapshot timestamp 2023-01-03, before cutoff | Attempt to load linked royalty FAQ context | excluded / not evidentiary | none | Snapshot wrapper loaded, but relevant licensing text was not extractable enough for evidence use |
 
-## Pre-Cutoff Evidence Units
+## Pre-Cutoff Evidence Units (EvidenceUnit)
 
 ### EU-01 - Unity platform has distinct create and grow monetization surfaces
 

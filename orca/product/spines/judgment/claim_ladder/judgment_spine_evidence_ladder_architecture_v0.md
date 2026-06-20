@@ -79,8 +79,8 @@ promotion gates for those tiers are satisfied.
 ## Measurement Target
 
 The Judgment Spine measures **the best move given the evidence available at the
-decision point** — not correctness against the sealed real-world outcome. The
-unit of evaluation is the quality of the decision under the case's evidence
+decision point** — not correctness against the sealed real-world outcome (Outcome). The
+unit of evaluation is the quality of the decision under the case (Case)'s evidence
 constraints (the frozen participant packet and frozen band inputs, judged on the
 case's action ladder), consistent with the thesis goal of *right-sized action
 under evidence constraints*
@@ -140,9 +140,9 @@ judgment_spine_claim_tiers:
   buyer_proof:
     purpose: Evidence that a qualified decision owner can use Orca's memo/evidence artifact for a live allocation decision.
     typical_surfaces:
-      - buyer-qualified manual memo
+      - buyer-qualified manual memo (Memo)
       - evidence appendix
-      - buyer readback tied to a live decision
+      - buyer readback tied to a live decision (DecisionEvent)
       - internal buyer circulation or budget-adjacent pull signal
     may_support:
       - buyer usefulness signal

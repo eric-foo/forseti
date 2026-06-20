@@ -15,7 +15,7 @@ proof protocol run.
 
 It does not claim Orca can run the proof yet. The current gap is that Orca has
 not yet defined the docs-first information-generation and inference foundation
-needed to produce evidence units, signal integrity judgments, signal use
+needed to produce evidence units (EvidenceUnit), signal integrity judgments, signal use
 classification, decision strength, and memo outputs.
 
 ## Selected Proof Input Set
@@ -24,7 +24,7 @@ classification, decision strength, and memo outputs.
 | --- | --- |
 | Primary non-`jb` shadow satellite | Competitor narrative response |
 | Backup shadow satellite | Buyer-objection remediation |
-| Backtest policy | One pre-registered, leakage-controlled historical case |
+| Backtest policy | One pre-registered, leakage-controlled historical case (Case) |
 | Confidence/action vocabulary | Qualitative Action Ceiling |
 | Proof-readiness verdict | End-goal selected; proof run not yet ready |
 
@@ -134,7 +134,7 @@ production foundation that defines how an operator or agent should produce:
 - signal use classifications;
 - decision strength assessments;
 - action ceilings;
-- decision memo outputs;
+- decision memo (Memo) outputs;
 - backtest records.
 
 This foundation should stay manual and docs-first. It should not design

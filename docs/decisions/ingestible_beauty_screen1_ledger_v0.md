@@ -4,10 +4,10 @@
 retrieval_header_version: 1
 artifact_role: Decision record (screen ledger; batch provenance home)
 scope: >
-  Ledger for the vertical exploration guide's first run on a second vertical
+  Ledger for the vertical exploration guide's first run on a second vertical (Vertical)
   (ingestible beauty / nutricosmetics, 2026-06-12): half-budget cold walk, one
   agent, guide as written. Records candidates, influence observations
-  (including two new wind-caller types), the stop contract's first clean
+  (including two new wind-caller (WindCaller) types), the stop contract's first clean
   in-walk firing, the WebFetch/Reddit tooling discovery, and generalization
   findings. Promote-on-reuse counter for this vertical: 1 of 3.
 use_when:
@@ -63,7 +63,7 @@ self-check (the screen-3 breach fix); first live test of venue-dry counting.
 
 ## Candidates (screen output — admitted to NO batch)
 
-| # | Brand | Decision | Date | Note |
+| # | Brand | Decision (DecisionEvent) | Date | Note |
 | --- | --- | --- | --- | --- |
 | 1 | Sundaily (ex-Sundots) | Full pivot: UV-protectant ingestible repositioned to skin-health gummy brand; Goop distribution followed | 2018–2019 | moderately obscure; clean arc |
 | 2 | Manifesto (UK eco-luxe) | Regulatory-forced reformulation: titanium dioxide removed (France E171 ban), 6-month delay accepted for EU access; Cult Beauty entry followed | ~2021 | CLEANEST: hard dated forcing function, visible tradeoff, revealed outcome; quite obscure |
@@ -78,7 +78,7 @@ amazon.com ASIN (Kalumi reformulated listing).
 
 - Screen run 2026-06-12 by one cold web-research agent; every candidate
   URL-backed; no capture.
-- Venues that produced candidates or evidence: Beauty Independent (the
+- Venues (Venue) that produced candidates or evidence: Beauty Independent (the
   brand-story hub — ALL four candidates trace through it; its ingestibles
   category page is the vertical's richest screen surface), BeautyMatter
   (corporate events: Care/of shutdown), PitchBook (funding context), Amazon
@@ -115,12 +115,12 @@ Hubs:
 
 Wind-callers — two NEW types observed:
 
-- REGULATOR-AS-WIND-CALLER: France's ANSES E171 (titanium dioxide) ban, then
+- REGULATOR-AS-WIND-CALLER (WindCaller): France's ANSES E171 (titanium dioxide) ban, then
   the EU-wide ban — a hard, dated forcing function the vertical visibly
   responded to (Manifesto's forced reformulation + delay). Regulatory events
   are clean wind-callers: dated, documented, and they move every exposed brand
   at once.
-- RETAIL-GATEKEEPER-AS-VALIDATOR: Goop's stocking decisions function as demand
+- RETAIL-GATEKEEPER-AS-VALIDATOR (WindCaller): Goop's stocking decisions function as demand
   validation that moves brand narratives and retail access (Sundaily's pivot
   outcome was evidenced BY its Goop listing).
 - Both fit the guide's existing wind-caller definition ("actors whose words or
@@ -169,7 +169,7 @@ exist). Consequence for screening:
 ## Wedge Relevance (product-learning raw material, NOT ICP validation)
 
 The screen evidences that the consumer-demand signal substrate exists in an
-adjacent vertical: demand-forced decisions (pivots, forced reformulations,
+adjacent vertical: demand-forced decisions (DecisionEvent) (pivots, forced reformulations,
 repricing) are reconstructable outside-in, with influence structure including
 regulatory and retail-gatekeeper movers. This is substrate-breadth evidence
 the wedge-ratification work may consume as input. It is not validation,

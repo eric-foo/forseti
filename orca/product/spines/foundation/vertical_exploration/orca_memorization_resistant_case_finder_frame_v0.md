@@ -57,13 +57,13 @@ screen at product-learning tier is:
   reasoning trace (JSG-08). A contestant who merely recognized the case but did
   not use the outcome is a legitimate arm, not a swap signal.
 - **Default-on identity-masking with sealed crosswalk (owner-adopted 2026-06-16).**
-  At packet construction, mask the **target brand's identity only** — its name, its
+  At packet construction, mask the **target brand (Brand)'s identity only** — its name, its
   own domain, its own theme/copy — to one neutral stand-in (with web search off no
   search-defeating decoy is needed; pick a label checked not to be a real brand, to
   avoid manufacturing a fresh false recognition). **Keep every third-party source
   identity real** (retailers, publications, platforms, forums): those carry
   provenance and do not reveal the target. **Never mask the decision-driving numbers
-  / dates / counts** (those stay real so the outcome remains ground truth), and
+  / dates / counts** (those stay real so the outcome (Outcome) remains ground truth), and
   **never blur a source's provenance** — rename the source, keep its species
   (first-party vs third-party). Beyond the brand name, genericize **decision-moment
   locators** — specific datable news events, named collaborations, distinctive launch
@@ -122,7 +122,7 @@ product-learning tier.
 ## What it is (smallest form)
 
 A **standing selection discipline** — a screen plus a cadence — that surfaces
-obscure, decision-grade decision cases for backtesting, and feeds them to the
+obscure, decision-grade decision cases (Case) for backtesting, and feeds them to the
 decide-vs-confirm case-frame template and the judgment-quality path.
 
 Its smallest complete form is **doctrine applied manually**, not a system. It

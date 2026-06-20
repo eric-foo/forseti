@@ -51,7 +51,7 @@ The protocol does not prove:
 
 Core Spine v0 proof requires all of the following:
 
-1. A Client 0 `jb` decision memo dry run.
+1. A Client 0 `jb` decision memo (Memo) dry run.
 2. One materially different non-`jb` shadow satellite decision memo dry run.
 3. A shared evidence standard based on the eight Core Spine primitives.
 4. Shared use of `orca/product/shared/engagement_registry/engagement_logic_registry_v0.md`.
@@ -65,12 +65,12 @@ Both memo dry runs and the backtest must use the same primitives:
 | Primitive | Proof role |
 | --- | --- |
 | Decision Frame | Names the allocation question, decision owner or context, consequence, allowed recommendation verbs, and kill criteria. |
-| Evidence Unit | Makes every material claim inspectable through source, timestamp, excerpt, claim, provenance, visibility, transformation history, and relevance. |
+| Evidence Unit (EvidenceUnit) | Makes every material claim inspectable through source, timestamp, excerpt, claim, provenance, visibility, transformation history, and relevance. |
 | Signal Integrity | Judges credibility, incentives, independence, repetition, manipulation risk, botting, copied language, artificial amplification, and source limitations. |
 | Signal Use Classification | Classifies what each signal can validly inform: demand, attention, resonance, objection, distribution, buyer belief, actor strategy, manipulation risk, weak evidence, or exclusion. |
 | Decision Strength | Maps evidence quality to action threshold by weighing audience fit, costly behavior, counterevidence, alternative explanations, confidence, and action boundary. |
 | Decision Memo | Turns the evidence into a recommendation, alternatives, uncertainty, kill criteria, and what would change the answer. |
-| Backtesting and Outcome Memory | Replays past decisions using only pre-cutoff evidence and records later outcome, misses, calibration, and learning. |
+| Backtesting and Outcome Memory | Replays past decisions using only pre-cutoff evidence and records later outcome (Outcome), misses, calibration, and learning. |
 | Boundary Rules | Keeps work public, market-level, non-deceptive, docs-first, and non-runtime. |
 
 ## Client 0 Memo Dry Run
@@ -211,7 +211,7 @@ The proof is blocked when:
 
 - no materially different shadow satellite is selected;
 - no decision context is selected for the shadow satellite;
-- no historical case is selected for backtesting;
+- no historical case (Case) is selected for backtesting;
 - no pre-cutoff source visibility can be established;
 - required evidence is unavailable or not inspectable;
 - owner input is needed to define confidence vocabulary, action thresholds, or

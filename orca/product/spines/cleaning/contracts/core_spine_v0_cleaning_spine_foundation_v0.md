@@ -58,7 +58,7 @@ Non-claims:
 - Not a runtime schema, storage model, API, scraper, crawler, adapter, dashboard,
   automation, test plan, or feature plan.
 - Not final object naming for "Projected Unit", "Cleaned Unit", Evidence
-  Candidate Record, or Evidence Unit.
+  Candidate Record, or Evidence Unit (EvidenceUnit).
 - Not a decision that cleaned material can replace raw or projection anchors.
 - Not authority for Cleaning to decide credibility, discounting, exclusion,
   independence, support for demand, Decision Strength, or Action Ceiling.
@@ -106,7 +106,7 @@ ledger and the cleaned working view.
 
 | Layer | Cleaning may use | Cleaning must not take over |
 | --- | --- | --- |
-| Data Capture Spine | Raw packet anchors, source identity, timing, visibility, capture context, and projection packet references. | Source acquisition, access-path decisions, source truth, capture operations, projection ownership, or source-envelope removal authority. |
+| Data Capture Spine | Raw packet anchors (CapturePacket), source identity, timing, visibility, capture context, and projection packet references. | Source acquisition, access-path decisions, source truth, capture operations, projection ownership, or source-envelope removal authority. |
 | Mechanical Source Projection | Data Capture Projection Packet row view, projection receipt, loss ledger, warnings, residuals, and raw anchors. | Projection as a standalone spine layer, projection schema ratification, or deciding salience through compactness. |
 | Evidence Candidate Record | Pre-cleaning receipt facts, categorical handoff state, raw/projection references, provenance/timing/capture-context obligations. | Final ECR schema, Evidence Unit design, integrity labels, signal-use claims, or certification that a view is normalized. |
 | Judgment Spine | Receives cleaned working material, transform ledger, warnings, residuals, and raw-pull triggers. | Credibility, independence effects, discounting, exclusion, Signal Integrity, Signal Use, Decision Strength, or Action Ceiling. |
@@ -272,7 +272,7 @@ Cleaning core v0 may record:
 - exact anchored source-text identity membership when projection or source
   material exposes an M1-carried text span;
 - the mechanical identity basis used;
-- source, venue, actor, time, chain, and packet/slice anchors for every member;
+- source, venue (Venue), actor, time, chain, and packet/slice anchors for every member;
 - duplicate counts and unresolved ambiguity;
 - whether the exact-identity group needs Judgment raw pull before independence
   can be weighed.

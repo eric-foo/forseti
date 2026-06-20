@@ -2,7 +2,7 @@
 
 - Status: FRAME_LOCK_CONTRACT_READY
 - Artifact type: Product-method validation lock contract
-- Scope: Safe pre-validation case detail for the five locked method-validation cases
+- Scope: Safe pre-validation case (Case) detail for the five locked method-validation cases
 - Date context: 2026-05-21, Asia/Singapore
 - Source basis: current owner instruction, `docs/product/core_spine_v0_method_validation_case_locks_v0.md`, `docs/product/core_spine_v0_method_validation_rubric_v0.md`, `docs/product/core_spine_v0_first_proof_run_packet_v0.md`
 - Implementation authorized: no
@@ -22,7 +22,7 @@ but not enough narrative detail to bias the at-cutoff replay.
 
 The current compounding frontier is cutoff and decision-frame discipline
 because the value proposition cannot become more proven until each locked case
-has a fair at-cutoff decision question, source boundary, second-order evidence
+has a fair at-cutoff decision question (DecisionEvent), source boundary, second-order evidence
 boundary, and post-window exclusion rule.
 
 Without that layer, a future validation run can accidentally become hindsight
@@ -55,7 +55,7 @@ use, and action-ceiling interpretation before evidence is interpreted.
 Avoid pre-validation detail that would turn the lock into a case study:
 
 - rich narrative arcs;
-- post-window outcome explanations;
+- post-window outcome (Outcome) explanations;
 - likely Orca recommendation;
 - detailed source lists that privilege one answer;
 - causal claims about what really happened;

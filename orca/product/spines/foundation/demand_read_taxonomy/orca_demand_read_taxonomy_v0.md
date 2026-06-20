@@ -74,15 +74,15 @@ lifespan** (monitor, probe, commit, hold, scale, avoid, reduce).
 
 ## Signal Layers
 
-1. **Trend vector** — the object of the read: demand moving toward or away
+1. **Trend vector (TrendVector)** — the object of the read: demand moving toward or away
    from an ingredient, category, format, or claim (owner example: peptides).
    A trend vector carries direction, velocity, **and expected lifespan** — the
    durable-vs-transient question is not a yes/no flag but "what horizon should
    you act on?"; it is never reported as bare momentum. (Computing the decay
    curve is a forward capability, likely earned from historical analogues — see
    the decay-timing confidence note in the Transient-spike read.)
-2. **Wind callers** — the leading indicators: per vertical × sub-niche, the
-   specific accounts, communities, or detectors whose early public calls
+2. **Wind callers (WindCaller)** — the leading indicators: per vertical × sub-niche, the
+   specific accounts, communities, or detectors whose early public calls (Call)
    precede the move. The owner flags influencers as possibly the main wind
    callers. The repo already holds a worked exemplar: INCIDecoder (venue card
    11, "root-receipt detector / wind-caller exemplar" — its commissioned SPF
@@ -131,21 +131,21 @@ lifespan** (monitor, probe, commit, hold, scale, avoid, reduce).
 
 ## Read Types
 
-The reads sort into the demand-state model: two independent axes — **durable vs
+The reads (Reading) sort into the demand-state model: two independent axes — **durable vs
 transient** (does it persist past its trigger?) and **real vs manufactured** (is
 there costly behavior, or is it amplified/fake?) — yielding three actionable
 states. The action ceiling is matched to the demand's lifespan: committing on a
 spike strands inventory; monitoring a durable shift leaves the compounding play
 on the table.
 
-- **Durable-demand read** (real + persists → *commit*): independent
+- **Durable-demand (Reading) read** (real + persists → *commit*): independent
   venue families + wind callers + org motion pointing the same way,
   costly-behavior anchored, and **persisting past the trigger**. Owner's example:
   demand trending toward peptides, evidenced by named influencer wind-callers,
   with companies launching ads and hiring in that direction, and reviews /
   pain-points honing in on the same thing. The trust anchor — the one persistence
   backtests can support.
-- **Transient-spike read** (real + decays → *probe / commit in-window*, time-boxed):
+- **Transient-spike (Reading) read** (real + decays → *probe / commit in-window*, time-boxed):
   real costly behavior with a **short expected lifespan** — a genuine spike that
   will normalize (a viral surge, a time-limited dupe wave, a seasonal pop). It is
   **equal billing** with the durable read (owner call, 2026-06-14): it is still a
@@ -157,20 +157,20 @@ on the table.
   persistence confirms it. Anti-trap: a transient spike can look identical to
   durable convergence in the moment; only observed persistence — not an upfront
   guess — separates them.
-- **Manufactured-demand read** (fake / amplified → *discount / avoid*): demand
+- **Manufactured-demand (Reading) read** (fake / amplified → *discount / avoid*): demand
   that is not real — promotion-engagement mismatch, astroturf, coordinated/bot
   amplification, dupe-wave distortion. Acting on someone else's manufactured
   spike commits to demand that was never yours; identifying it protects both real
   reads (owner: this ability is itself decision-critical).
-- **Brand-decision event read** (the monetization unit): a specific brand's
+- **Brand-decision event (Reading) read** (the monetization unit): a specific brand (Brand)'s
   live allocation decision — launch / reposition; retail or channel entry;
   restock / sellout; discontinuation / moratorium; defend-versus-hype;
   event-triggered pricing. The demand-state read (durable / transient /
   manufactured), wind-caller state, and integrity labels are the context that
   makes it decide-grade, and they set the action ceiling (monitor / probe / commit / hold / scale / avoid / reduce), capped by signal
   integrity and decay-timing confidence.
-- **Wind-caller calibration** (the compounding asset): grade each niche's
-  wind callers' public calls against outcomes over time — on **both** whether the
+- **Wind-caller calibration (Reading)** (the compounding asset): grade each niche's
+  wind callers' public calls against outcomes (Outcome) over time — on **both** whether the
   move happened **and how long it lasted**, since a caller good at durable shifts
   and one good at spikes are different and both valuable. This is the
   outcome-memory moat applied to sources — "we know who actually calls beauty
@@ -228,7 +228,7 @@ is strategic — thesis → Strategic Center.
   trade-down, switching with stated cause — costly behavior, gradeable, and
   in beauty the dupe culture makes this one of the most legible demand
   signals there is. This IS signal, and it is price-born.
-- **Pricing decision family: retained, event-triggered only.** A price move
+- **Pricing decision family (DecisionEvent): retained, event-triggered only.** A price move
   that happened or is visibly imminent (batch-1's Beauty Pie 2023 repricing
   is exactly this) stays a valid decision family. Complaint chatter alone
   never triggers it.

@@ -172,8 +172,8 @@ and tags it conservatively (see the calling-sequence rule below).
 
 ### Durable-demand read (real + persists → commit)
 
-Trigger: at least two **effectively-independent demand-venue origins** (§3
-independence rule) moving the same direction on the same trend vector or brand,
+Trigger: at least two **effectively-independent demand-venue (Venue) origins** (§3
+independence rule) moving the same direction on the same trend vector (TrendVector) or brand (Brand),
 with at least one **gradeable** costly-behavior signal (sellouts, waitlists,
 restock pressure, review velocity/content shifts, pain-point convergence,
 dupe-seeking, switching, effortful UGC), **and receipt-visible persistence past
@@ -221,7 +221,7 @@ manufactured — never noise to average away (thesis integrity layer).
   sits inside the same coordinated layer that divergence flags, the read is
   manufactured (the floor is defeated, not merely the ceiling capped).
 
-### Brand-decision event read (the monetization unit)
+### Brand-decision event (DecisionEvent) read (the monetization unit)
 
 Trigger: evidence that a specific brand's allocation decision happened or is
 visibly imminent — launch / reposition; retail or channel entry or exit;
@@ -238,10 +238,10 @@ converge and persist; probe or monitor when they do not.
   evidence of the change from 2+ INDEPENDENT origins PLUS a community detection
   wave. A single origin never mints a candidate.
 
-### Wind-caller calibration read (the compounding asset)
+### Wind-caller (WindCaller) calibration read (the compounding asset)
 
 Trigger: a channel (or named public-figure creator, per §6) whose dated public
-call preceded a move or event the scan can date. Calibration grades the call on
+call (Call) preceded a move or event the scan can date. Calibration grades the call on
 **both** whether the move happened **and how long it lasted** (a caller good at
 durable shifts and one good at spikes are different and both valuable). The scan
 records a calibration-ready call record (§6); grading itself is downstream
@@ -313,7 +313,7 @@ then the provenance grep (`rg -l "Screen Provenance|Venue Provenance" docs/`).
 
 ## 3. Candidate Observation Schema
 
-Two record shapes: the **observation** (one venue × one signal) and the
+Two record shapes: the **observation (Observation)** (one venue × one signal) and the
 **candidate entry** (one brand × one decision, aggregating observations).
 Both are emitted into the scan's own dated artifact (homes in §5).
 
@@ -448,7 +448,7 @@ in purpose, outcome posture, entry weighting, output home, and freshness.
 
 | | Backward (backtest case-finding) | Forward (discovery / targeted) |
 | --- | --- | --- |
-| Purpose | Surface resolved, decision-grade cases for backtest batches | Surface live/imminent decisions (for the brief's blank slots, or for a commissioned single target) |
+| Purpose | Surface resolved, decision-grade cases (Case) for backtest batches | Surface live/imminent decisions (for the brief's blank slots, or for a commissioned single target) |
 | Outcome posture | Outcome-bearing by design | Outcome-free (no outcome exists yet) |
 | Walk entry | NEWSY-first allowed (laundered record, trace back) | Origination/detector-weighted (freshness) |
 | Output home | Scan's dated ledger; pool vN consolidates | `docs/research/orca_discovery_candidate_scan_*.md` (brief record home), or a dated single-decision scan doc (targeted) |
@@ -477,7 +477,7 @@ discipline is therefore not blindness but containment: (i) the scan direction
 (vertical × decision family) is declared before walking, and every in-scope
 candidate found is recorded, hits and non-hits alike (anti-cherry-pick — no
 outcome-flattering selection); (ii) every candidate carries a
-`zero_spoiler_feasibility` note (whether a pre-cutoff packet looks buildable
+`zero_spoiler_feasibility` note (whether a pre-cutoff packet (CapturePacket) looks buildable
 without the outcome leaking) and prominence is flagged FAME for the
 case-finder bar; (iii) no candidate is minted from the scanning model's own
 memory — every claim is URL-backed (Walker Equipment Kit rule 7; the frame's

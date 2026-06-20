@@ -20,7 +20,7 @@
 
 ## Accepted Decision Frame
 
-- Decision question: As of 2023-09-11, should Unity watch, probe, test, hold, narrow, phase, grandfather, message, or commit a runtime-fee or install-based monetization change for Unity developers?
+- Decision question (DecisionEvent): As of 2023-09-11, should Unity watch, probe, test, hold, narrow, phase, grandfather, message, or commit a runtime-fee or install-based monetization change for Unity developers?
 - Owner context: Unity pricing, developer-platform, engine strategy, and executive commercial leadership.
 - Cutoff: 2023-09-11, before the public Runtime Fee announcement on 2023-09-12.
 - Fair-cutoff rationale: the cutoff sits immediately before the announcement, so public ecosystem evidence can be tested without using backlash as at-cutoff evidence.
@@ -67,7 +67,7 @@
 | Archived bodies | none read | No archived replay bodies or contaminated artifacts were read. |
 | Prior case evidence | none used | MV-01 and MV-03 receipts were not used as MV-04 evidence. |
 
-## First-Order Evidence Units And Pass Result
+## First-Order Evidence Units (EvidenceUnit) And Pass Result
 
 ### MV04-FO-1 - Unity had visible profitability and monetization pressure before cutoff
 
@@ -178,7 +178,7 @@ Update triggers:
 - revisions, grandfathering, or cancellation;
 - leadership changes or public trust-repair moves.
 
-Boundary note: no post-window outcome source was used in this at-cutoff memo.
+Boundary note: no post-window outcome source was used in this at-cutoff memo (Memo).
 
 ## AT-CUTOFF SEAL MARKER
 

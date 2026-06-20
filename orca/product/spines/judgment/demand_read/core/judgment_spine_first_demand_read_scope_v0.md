@@ -5,9 +5,9 @@ retrieval_header_version: 1
 artifact_role: Run-scope / non-executing plan (PROPOSED — scopes the first by-hand demand read under the new C0–C4 core; authorizes no capture or run by itself; each capture + the run remain owner-gated)
 scope: >
   The bounded plan for the demand-read lane's first earned-trust deliverable: one
-  honestly-graded by-hand demand read on a real historical beauty case, run under
+  honestly-graded by-hand demand read (Reading) on a real historical beauty case (Case), run under
   the new qualitative C0–C4 core (C2 ledger read-contract + C3 verdict/ceiling
-  contract), graded against a facilitator-only sealed outcome. Mode = historical
+  contract), graded against a facilitator-only sealed outcome (Outcome). Mode = historical
   BACKTEST, screened for persistence richness (owner decision 2026-06-15). Frames
   the case choice, the run procedure, the blind/isolation discipline, the
   enrichment captures needed + their authorization surface, the honest-grading
@@ -87,7 +87,7 @@ with the costly-behavior/integrity thinness named, not hidden.
 
 ## Run Procedure (C0–C4, by hand)
 
-1. **C0 Frame.** The Topicals retail-expansion decision as a Decision Frame
+1. **C0 Frame.** The Topicals retail-expansion decision (DecisionEvent) as a Decision Frame
    (decision question + live trigger + cutoff ≤ 2021-03-15).
 2. **Information set (enriched, outcome-blind).** A zero-spoiler participant packet
    built by a constructor **not holding the sealed outcome**, carrying the
@@ -112,7 +112,7 @@ with the costly-behavior/integrity thinness named, not hidden.
 ## Enrichment Captures (each owner-gated; this scope authorizes none)
 
 Built only via the Source-Capture Armory runner ladder (`archive_org` adapter →
-SourceCapturePacket → into the case dir `source_captures/`), never ad-hoc fetches;
+SourceCapturePacket (CapturePacket) → into the case dir `source_captures/`), never ad-hoc fetches;
 gate-0 by-hand reads are exempt scouting and bind nothing. Each capture is a
 **separate per-source network authorization** the owner must grant:
 

@@ -2,7 +2,7 @@
 retrieval_header_version: 1
 artifact_role: build architecture decision/plan (non-authorizing; planning-only)
 scope: >
-  Target build architecture for operationalizing IG wind-caller CALLS self-capture
+  Target build architecture for operationalizing IG wind-caller (WindCaller) CALLS (Call) self-capture
   (per-item post + reel caption + engagement) on attended, logged-in, own operating/capture
   accounts (≤10 ceiling / start-5); subject-creator roster uncapped (all creators in
   vertical). Decides how to COMPOSE the existing authenticated-browser primitives

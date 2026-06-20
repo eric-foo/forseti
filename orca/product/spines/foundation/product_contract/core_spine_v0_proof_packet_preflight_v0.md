@@ -96,7 +96,7 @@ Spine v0 proof packet.
 The proposed conditional acceptance covers:
 
 - Decision Frame requirements;
-- Evidence Unit admissibility and state rules;
+- Evidence Unit (EvidenceUnit) admissibility and state rules;
 - Signal Integrity labels and required effect statements;
 - Signal Use Classification;
 - Demand Rule;
@@ -149,7 +149,7 @@ Required packet components:
 
 The first proof packet must not contain:
 
-- full decision memos;
+- full decision memos (Memo);
 - collected evidence;
 - source maps;
 - proof results;
@@ -229,7 +229,7 @@ Preflight should bind the case-selection policy before proof preparation.
 It should not select evidence opportunistically.
 
 The first proof packet requires one pre-registered, leakage-controlled
-historical case.
+historical case (Case).
 
 The case-selection note must record:
 
@@ -237,7 +237,7 @@ The case-selection note must record:
 - case-selection owner or decision source;
 - decision context;
 - why the case is relevant to Core Spine v0;
-- why the case is not selected merely because the later outcome is persuasive;
+- why the case is not selected merely because the later outcome (Outcome) is persuasive;
 - cutoff date;
 - why the cutoff is fair and before the outcome was obvious;
 - pre-cutoff source visibility requirement;

@@ -100,7 +100,7 @@ APPROVED:
   we don't claim yet, and why. Audit us."
 - "Judgment-evidence discipline: every claim is framed, labeled, and limited
   by its receipt."
-- "Backtest results labeled product-learning, with prospective cases run under
+- "Backtest results labeled product-learning, with prospective cases (Case) run under
   pre-declared ledgers, pinned scoring keys, and per-model recognition checks;
   retro-known cases disclosed as such and quarantined/reported, not laundered
   into clean evidence."
@@ -121,8 +121,8 @@ FORBIDDEN (until the named receipt exists):
 ### Row 2 — activates on a `completed_buyer_proof_evidence` receipt
 
 ADDS (with buyer consent and the receipt attached):
-- "A qualified decision owner used Orca's memo for a live allocation
-  decision."
+- "A qualified decision owner used Orca's memo (Memo) for a live allocation
+  decision (DecisionEvent)."
 - Pull-signal and proof-memo-fit language as the buyer-proof receipt supports.
 
 STILL FORBIDDEN: every Row-1 forbidden item that lacks its receipt — buyer
@@ -133,7 +133,7 @@ a judgment-quality claim (ladder, buyer_proof `cannot_support_by_itself`).
 
 ADDS:
 - "Proven at the Standard's judgment-quality rung: sealed blind run, scored
-  under the pinned key, outcome reveal and calibration record — receipts
+  under the pinned key, outcome reveal (Outcome) and calibration record — receipts
   attached."
 - The `Rung cleared:` announcement per spine item 4.
 

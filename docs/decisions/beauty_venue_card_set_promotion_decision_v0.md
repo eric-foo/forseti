@@ -32,7 +32,7 @@ section that named the mandatory survival ingredients.
 
 ## Trigger Evidence (why this fired legitimately)
 
-Three same-vertical screens on record, each with a provenance block on disk:
+Three same-vertical (Vertical) screens on record, each with a provenance block on disk:
 
 1. Batch-1 screen (2026-06-11) — `docs/decisions/judgment_spine_backtest_batch1_ledger_declaration_v0.md` ("Screen Provenance").
 2. Proving screen 2 (2026-06-11) — `docs/decisions/venue_procedure_proving_screen_beauty_ledger_v0.md`.

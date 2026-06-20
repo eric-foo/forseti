@@ -43,8 +43,8 @@ manually," for the WHERE side only.
 
 ## What this is — and is not
 
-The walk an authorized batch screen takes from "we want cases in vertical X /
-decision family Y" to "candidate cases plus the venues that produced them."
+The walk an authorized batch screen takes from "we want cases in vertical (Vertical) X /
+decision family Y" to "candidate cases (Case) plus the venues (Venue) that produced them."
 
 - It RUNS ONLY inside an authorized batch screen: it starts when the screen
   starts and stops when the screen stops. No step may run standing.
@@ -215,7 +215,7 @@ Mints no ladder vocabulary; the Status label is doc-local.
 - 2026-06-11 (owner-accepted, in-thread; influence widening): vertical
   exploration's job includes seeing who holds influence and where they point —
   at two layers: venue topology (which venues are hubs; who cites whom) and
-  market-movers ("wind callers": the actors whose words or actions the
+  market-movers ("wind callers" (WindCaller): the actors whose words or actions the
   vertical visibly responds to; pointing chains terminate at them). Three
   changes, all batch-scoped:
   (i) yield widens — an exploration move counts productive if it produced a

@@ -186,7 +186,7 @@ projection cache engine, storage plane, materialization strategy, or runtime.
 ## Flow
 
 ```text
-Capture writes immutable SourceCapturePacket bundle
+Capture writes immutable SourceCapturePacket (CapturePacket) bundle
   -> packet has SourceCaptureSlice records
   -> current fields may still appear on slices as transitional/incumbent
   -> new tenant payloads attach as logical extension envelopes keyed to packet/slice

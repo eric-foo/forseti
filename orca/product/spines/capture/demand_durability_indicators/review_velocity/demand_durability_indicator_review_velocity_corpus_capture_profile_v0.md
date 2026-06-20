@@ -99,7 +99,7 @@ This profile is CONDITIONAL ON SOURCING; see below.
 
 ## Conditional-On-Sourcing Statement
 
-**Review-surface sourcing is an UNSOURCED GAP (AR-04).** Per
+**Review-surface (Venue) sourcing is an UNSOURCED GAP (AR-04).** Per
 `orca/product/spines/scanning/admissibility_checkability/orca_demand_gate_definition_closures_proposal_v0.md`,
 review surfaces are a G1 demand-family card that is currently unsourced — the
 sourcing route, vendor, API, or access method has not been authorized by the

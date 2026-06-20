@@ -95,7 +95,7 @@ Compact source ledger:
 | `.agents/workflow-overlay/product-proof.md` | Product-proof non-claims | No buyer validation, readiness, or commercial proof claimed | untracked |
 | `docs/product/data_capture_harness_product_goal_direction_signal_decision_v0.md` | Current status of manual harness plus BT2-04 dry run | Direction signal is accepted as demoted input, not architecture or validation | untracked |
 | `docs/product/core_spine_v0_data_and_cleaning_spine_boundary_v0.md` | Layer boundary | Data Capture records capture facts and limits; ECR, Cleaning, and Judgment remain separate | clean in named-path status |
-| `docs/product/core_spine_v0_product_contract.md` | Core Spine product rule and non-goals | Decision-frame discipline, Evidence Unit inspectability, and no runtime/platform drift | modified |
+| `docs/product/core_spine_v0_product_contract.md` | Core Spine product rule and non-goals | Decision-frame discipline, Evidence Unit (EvidenceUnit) inspectability, and no runtime/platform drift | modified |
 | `docs/product/core_spine_v0_information_production_foundation_v0.md` | Evidence Unit and downstream inference boundary | Capture must support inspectability but not perform Judgment | clean in named-path status |
 | `docs/product/core_spine_v0_data_capture_spine_architecture_blueprint_v0.md` | Data Capture architecture | Capture is the obligation; mode is subordinate; commissioned capture only | clean in named-path status |
 | `docs/product/core_spine_v0_data_capture_spine_obligation_contract_v0.md` | Baseline candidate under review | Current contract defines obligations, discharge states, layer limits, and non-claims | clean in named-path status |

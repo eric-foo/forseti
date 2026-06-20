@@ -71,7 +71,7 @@ the wedge and must stay rigorous.
   judgment), because the discrimination happens at Judgment. If any upstream layer
   flattens source identity, cluster structure, or copied-language signal, the
   discrimination becomes impossible downstream — and that discrimination is the product.
-- The Evidence Candidate Record / Evidence Unit contract must carry enough
+- The Evidence Candidate Record / Evidence Unit (EvidenceUnit) contract must carry enough
   independence / source-identity / cluster / timing signal for Signal Integrity to weigh
   corroboration against amplification.
 - Cleaning's dedupe/clustering is non-destructive and traceable by design; it surfaces

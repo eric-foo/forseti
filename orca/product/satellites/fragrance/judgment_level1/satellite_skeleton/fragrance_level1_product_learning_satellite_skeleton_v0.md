@@ -41,7 +41,7 @@ stale_if:
 
 ## Status
 
-This is a docs-only skeleton for the first fragrance satellite. It is useful
+This is a docs-only skeleton for the first fragrance (Vertical) satellite. It is useful
 because it names the slots a real fragrance pack must fill without forcing those
 slots to be filled now.
 
@@ -84,7 +84,7 @@ source_quality_state: >
   repo-local skeleton reconciled to current Judgment owner sources and the
   fragrance reconciliation artifact
 execution_quality_state: >
-  no admitted fragrance casebook, no captured source packet, no sealed answer,
+  no admitted fragrance casebook, no captured source packet (CapturePacket), no sealed answer,
   no run, no scoring, no reveal comparison, no completed receipt
 closeout_state: unreceipted_product_learning_context
 claim_cap: product-learning context only
@@ -106,8 +106,8 @@ receipt_artifact_or_gap: this skeleton is setup context; future per-case receipt
 | --- | --- | --- | --- | --- |
 | Satellite identity | `decision_family`, Level 1 purpose, target product-learning question | Current-state/decomposition map; C0 frame | Owner accepts the first pack's purpose and case family | Judgment doctrine, proof, or readiness |
 | Backtest mode and commission gate | `mode`, cutoff, future-information policy, decision type, playbook, source priorities, confirmation/counterevidence, forecast targets | Current-state/decomposition map; future prompt-orchestrated gate artifact | Durable gate brief and case intake artifact | Live/client mode, final recommendation, prompt approval, or run authorization |
-| Casebook queue | Candidate cases, cutoff dates, outcome labels, exclusion reasons | Current-state/decomposition map; C0 frame, case-finder gap, conductor run authorization boundary | Separate casebook admission artifact | Accepted benchmark, fixture, run authorization, readiness, or scoreable case |
-| Source-family registry | Candidate fragrance venues, source-family notes, provenance requirements, cutoff/date/SKU limits | Beauty venue card-set; source-capture owners by pointer; Level 1 source-registry contract | Owning source-capture artifact admits or authorizes source work | Capture authority, monitoring, or current-state source proof |
+| Casebook queue | Candidate cases (Case), cutoff dates, outcome labels, exclusion reasons | Current-state/decomposition map; C0 frame, case-finder gap, conductor run authorization boundary | Separate casebook admission artifact | Accepted benchmark, fixture, run authorization, readiness, or scoreable case |
+| Source-family registry | Candidate fragrance venues (Venue), source-family notes, provenance requirements, cutoff/date/SKU (Product) limits | Beauty venue card-set; source-capture owners by pointer; Level 1 source-registry contract | Owning source-capture artifact admits or authorizes source work | Capture authority, monitoring, or current-state source proof |
 | Evidence object | Source references, provenance notes, contradiction/timeline links, pre/post-cutoff separation, packet IDs | JSG-01, ECR, packing/finalization owners; Level 1 graph-family plan | Captured evidence packet and authorized packet construction | JSG clearance or gate-bearing execution |
 | C1 allow read | Why the demand signal is allowed into the read, or why it is held | Demand-read core C1 | Case-specific source plan and allowed-evidence rationale | Source truth or source-family admission |
 | C2 weighting trace | `signal_id`, direction, reasoning, caveats, no-row handling | C2 ledger read contract; signal-reliability ledger | Qualitative read over in-case evidence plus any valid ledger row | Numeric weight, formula, ranking, or score |
@@ -310,13 +310,13 @@ These are candidate fields for a future source/evidence slice. They are not
 current evidence, not source-family admission, and not permission to run source
 capture.
 
-Creator evidence is early radar, not proof. A creator-led case cannot reach a
+Creator (WindCaller) evidence is early radar, not proof. A creator-led case cannot reach a
 stronger action posture without non-creator confirmation.
 
 ## Forecasting Boundary
 
 Forecasting is a learning input, not the center of the Judgment claim. A
-forecast field may help compare sealed expectation to later outcome, but the
+forecast field may help compare sealed expectation to later outcome (Outcome), but the
 evidence ladder frames Judgment as the best move under the evidence available at
 the decision point.
 

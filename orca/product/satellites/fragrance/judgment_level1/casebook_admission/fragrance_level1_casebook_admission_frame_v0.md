@@ -4,7 +4,7 @@
 retrieval_header_version: 1
 artifact_role: Judgment Spine product artifact (fragrance Level 1 casebook admission frame)
 scope: >
-  Admits the first 25-slot fragrance Level 1 product-learning casebook shape,
+  Admits the first 25-slot fragrance (Vertical) Level 1 product-learning casebook shape,
   selection rules, slot allocation, and outcome-label families without admitting
   named cases, authorizing source capture, authorizing runs, or creating proof.
 use_when:
@@ -34,8 +34,8 @@ stale_if:
 This is a docs-only casebook admission frame.
 
 It admits the **casebook shape**: 25 slots, bucket allocation, minimum admission
-fields, and outcome-label families. It does **not** admit any named product,
-brand, SKU, launch, discontinuation, or retail decision as a case yet.
+fields, and outcome-label families. It does **not** admit any named product (Product),
+brand (Brand), SKU (Product), launch (DecisionEvent), discontinuation (DecisionEvent), or retail decision (DecisionEvent) as a case (Case) yet.
 Completing 25 public fragrance backtests through the Level 1 loop is the
 first success condition for product learning, not a readiness, calibration, or
 buyer-proof screen.
@@ -66,7 +66,7 @@ this artifact is not enough to treat a case as admitted.
 
 ## Admission Gate For A Named Case
 
-A proposed named case may move from `candidate_pending_selection` to `admitted`
+A proposed named case (Case) may move from `candidate_pending_selection` to `admitted`
 only when a later artifact records all of these fields:
 
 ```yaml
@@ -184,12 +184,12 @@ At this frame stage:
 
 - Basenotes, Fragrantica, specialist fragrance blogs, retailer reviews, trade
   press, brand pages, marketplace surfaces, creator surfaces, search/AEO, and
-  community forums are candidate source families only.
+  community forums are candidate source families (Venue) only.
 - A venue hint is not source-capture authority.
 - Direct access notes are dated hints, not current-state proof.
 - Any source used for a named case must preserve provenance enough to enforce
   the cutoff rule.
-- Creator evidence is early radar, not proof. A creator-led case needs
+- Creator (WindCaller) evidence is early radar, not proof. A creator-led case needs
   non-creator confirmation before any stronger action posture is recorded.
 
 ## Casebook Fill Template

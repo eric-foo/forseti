@@ -4,7 +4,7 @@
 
 - Status: `COMPLETE`
 - Case: `MV-09` - Thomson Reuters / Casetext legal AI response.
-- Scope: Phase 5 only, single-case method-validation replay for the positive-action legal AI case.
+- Scope: Phase 5 only, single-case (Case) method-validation replay for the positive-action legal AI case.
 - Workspace: `C:\Users\vmon7\Desktop\projects\orca`
 - Target artifact: `docs/product/core_spine_v0_method_validation_mv09_thomson_reuters_casetext_replay_v0.md`
 - Source basis: required Orca overlay reads, the accepted case-frame lock artifact, and bounded public source loading for `MV-09`.
@@ -72,7 +72,7 @@ Compact locator key:
 | Broad source-map or open-ended source gathering | no |
 | Post-window comparison location | after seal marker only |
 
-## 5. First-Order Evidence Units
+## 5. First-Order Evidence Units (EvidenceUnit)
 
 ### FO-1 - CoCounsel Was Public And Task-Specific Before Cutoff
 
@@ -146,7 +146,7 @@ Signal effect: modest upgrade on timing pressure; no proof of legal buyer willin
 - Post-window source basis: only `MV09-P01` and `MV09-P04` were used for outcome comparison. Both were opened after the seal marker.
 - Later outcome: Thomson Reuters completed the Casetext acquisition on 2023-08-17 for $650 million in cash. The completion release described Casetext as having more than 10,000 law-firm and corporate-legal-department customers, named CoCounsel's legal research, memo, deposition-preparation, document-review, and contract-analysis use cases, and framed the transaction as part of Thomson Reuters' `build, partner and buy` generative-AI strategy.
 - Later integration path: by 2024-10-16, Thomson Reuters announced deeper CoCounsel 2.0 integration into Westlaw and Practical Law, including CoCounsel access inside product interfaces, on-page analysis of Westlaw and Practical Law content, research-accuracy features, Practical Law summarization, and drafting-related workflow extensions.
-- Comparison to at-cutoff memo: the at-cutoff recommendation to run bounded capability-capture diligence, accelerate Westlaw/Practical Law AI integration, and require professional-grade accuracy and confidentiality controls was directionally useful. The later outcome chose the acquisition path and then product integration, which fits the bounded move/reframe more than a passive watch/probe.
+- Comparison to at-cutoff memo (Memo): the at-cutoff recommendation to run bounded capability-capture diligence, accelerate Westlaw/Practical Law AI integration, and require professional-grade accuracy and confidentiality controls was directionally useful. The later outcome chose the acquisition path and then product integration, which fits the bounded move/reframe more than a passive watch/probe.
 - Overconfidence check: the at-cutoff memo correctly did not claim public proof of acquisition price, target exclusivity, private diligence, customer pipeline, or integration success. Those details were outcome/private-domain facts, not public pre-cutoff evidence.
 - Underconfidence check: the memo was conservative in not naming acquisition as the single recommended action. That conservatism is appropriate because public evidence supported capability capture and diligence, not an unconditional acquisition mandate.
 

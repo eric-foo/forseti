@@ -87,7 +87,7 @@ Refresh read note: this refresh read `AGENTS.md`, `.agents/workflow-overlay/READ
 
 ## Case Boundary
 
-MV-05 is not a pure Data Capture artifact. It is a method-validation replay with first-order and second-order evidence units, Signal Integrity labels, Signal Use Classification, Decision Strength, Action Ceiling, an at-cutoff memo, and post-window calibration.
+MV-05 is not a pure Data Capture artifact. It is a method-validation replay with first-order and second-order evidence units (EvidenceUnit), Signal Integrity labels, Signal Use Classification, Decision Strength, Action Ceiling, an at-cutoff memo, and post-window calibration.
 
 For this pressure test, only the capture-relevant surfaces are used:
 

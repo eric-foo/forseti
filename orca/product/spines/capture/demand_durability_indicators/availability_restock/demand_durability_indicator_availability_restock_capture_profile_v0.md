@@ -88,7 +88,7 @@ scarcity theater, or supply-chain failure — that is downstream Judgment's call
 The Capture Envelope of record already exists and governs this profile:
 
 1. **Schema** — `orca-harness/source_capture/models.py`:
-   `SourceCapturePacket`, `SourceCaptureSlice`, `PacketTiming`,
+   `SourceCapturePacket` (CapturePacket), `SourceCaptureSlice`, `PacketTiming`,
    `PreservedFile`, `ReceiptMetadata`, and the closed posture vocabularies
    (Ob.9 `cutoff_posture`, Ob.10 `archive_history_posture`, Ob.15
    `re_capture_relationship`, AR-04 `hash_basis`).

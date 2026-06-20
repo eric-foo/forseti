@@ -16,9 +16,9 @@
 
 Current verdict: `READY_FOR_OWNER_CASE_SELECTION`.
 
-This artifact creates a candidate universe for owner case selection. It does
+This artifact creates a candidate universe for owner case (Case) selection. It does
 not select cases for the proof, patch the lock record, run proof, collect proof
-evidence, interpret evidence, create Evidence Units, draft a decision memo, run
+evidence, interpret evidence, create Evidence Units (EvidenceUnit), draft a decision memo (Memo), run
 a backtest, create a source map, create a source inventory, build a data spine,
 plan features, or authorize implementation.
 
@@ -401,7 +401,7 @@ workflow should stop as `BLOCKED_BY_PROOF_LEAKAGE_RISK`.
   metrics after 2016 must not shape the cutoff; "Teams beat Slack" headlines
   must not be imported into pre-cutoff reasoning.
 - Inclusion reason: clean public cutoff candidate, strong buyer-visible
-  enterprise decision context, and a later known public outcome surface.
+  enterprise decision context, and a later known public outcome (Outcome) surface.
 - Disposition: include.
 - Eligibility reference checks: Microsoft Teams unveiling
   ([Microsoft, 2016](https://news.microsoft.com/source/2016/11/02/microsoft-unveils-microsoft-teams/));

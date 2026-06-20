@@ -4,7 +4,7 @@
 retrieval_header_version: 1
 artifact_role: Judgment Spine product artifact (fragrance Level 1 named-case candidate screen)
 scope: >
-  Screens the first named fragrance Level 1 case candidates against Orca's
+  Screens the first named fragrance (Vertical) Level 1 case candidates (Case) against Orca's
   case-selection doctrine without admitting cases, authorizing source capture,
   authorizing runs, or creating proof.
 use_when:
@@ -108,7 +108,7 @@ obvious winner like PHLUR Missing Person.
 
 ## Priority Candidates
 
-### 1. Boy Smells 2.0 / Sephora rebrand
+### 1. Boy Smells (Brand) 2.0 / Sephora (Venue) rebrand (DecisionEvent)
 
 ```yaml
 case_id: boy_smells_2_0_rebrand_sephora_2025
@@ -149,7 +149,7 @@ Blockers before admission:
 - Keep identity discussion product-language and positioning focused. Do not turn
   the case into a cultural-position adjudication.
 
-### 2. DedCool Mochi Milk / Milk franchise extension
+### 2. DedCool (Brand) Mochi Milk (Product) / Milk franchise extension (DecisionEvent)
 
 ```yaml
 case_id: dedcool_mochi_milk_franchise_extension_2025
@@ -189,7 +189,7 @@ Blockers before admission:
   confirmation around the correct SKU.
 - Need exact cutoff and post-cutoff exclusion rule.
 
-### 3. Snif Crumb Couture / Secret Menu to Ulta
+### 3. Snif (Brand) Crumb Couture (Product) / Secret Menu to Ulta (DecisionEvent)
 
 ```yaml
 case_id: snif_crumb_couture_secret_menu_to_ulta_2025
@@ -229,7 +229,7 @@ Blockers before admission:
 
 ## Candidate But Held
 
-### Fine'ry Target fragrance line
+### Fine'ry (Brand) Target (Venue) fragrance line (Product)
 
 ```yaml
 case_id: finery_target_fragrance_line_2023
@@ -250,7 +250,7 @@ Candidate source pointers:
 - `https://www.businessinsider.com/le-labo-santal-33-perfume-target-finery-dupe-2024-11`
 - `https://www.realsimple.com/finery-perfume-candles-amazon-launch-january-2026-11884001`
 
-### Touchland Power Essence Mist
+### Touchland (Brand) Power Essence Mist (Product)
 
 ```yaml
 case_id: touchland_power_essence_mist_2025
@@ -270,7 +270,7 @@ Candidate source pointers:
 - `https://www.allure.com/story/touchland-power-essence-mist-review`
 - `https://www.allure.com/review/touchland-power-mist-moisturizing-hand-sanitizer`
 
-### NOYZ Mylk de Parfum
+### NOYZ (Brand) Mylk de Parfum (Product)
 
 ```yaml
 case_id: noyz_mylk_de_parfum_2026

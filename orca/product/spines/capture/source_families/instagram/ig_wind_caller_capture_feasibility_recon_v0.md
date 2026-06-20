@@ -3,8 +3,8 @@ retrieval_header_version: 1
 artifact_role: capture recon finding (non-authorizing)
 scope: >
   First IG (Instagram) capture-feasibility recon for the creator-momentum /
-  wind-caller lane. Records, for the owner's OWN account first, whether and at
-  which rung the wind-caller signal (public "calls" = post captions + public
+  wind-caller (WindCaller) lane. Records, for the owner's OWN account first, whether and at
+  which rung the wind-caller signal (public "calls" (Call) = post captions + public
   stats) is capturable via an attended, logged-in, human-mimicking automated
   session, and whether Social Blade (free) covers the stats series. Locks the IG
   capture architecture's open rung / substrate / self-capture-vs-buy choices.

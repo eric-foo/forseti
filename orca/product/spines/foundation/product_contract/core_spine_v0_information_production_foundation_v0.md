@@ -14,9 +14,9 @@ This foundation defines how Orca manually turns raw public evidence into valid
 intermediate intelligence objects before any proof run.
 
 It is the product-method layer between Core Spine v0's contract and the proof
-protocol. It gives operators or agents rules for producing Evidence Units,
+protocol. It gives operators or agents rules for producing Evidence Units (EvidenceUnit),
 Signal Integrity assessments, Signal Use Classifications, Decision Strength
-assessments, Action Ceilings, decision memo sections, and backtest records.
+assessments, Action Ceilings, decision memo (Memo) sections, and backtest records.
 
 ## Non-Authority
 
@@ -400,7 +400,7 @@ A backtest record must capture:
 - excluded post-window evidence;
 - recommendation Orca would have made at cutoff;
 - Action Ceiling at cutoff;
-- later outcome;
+- later outcome (Outcome);
 - whether Orca was early, late, wrong, overconfident, underconfident, useful,
   or inconclusive;
 - evidence-standard lesson.
@@ -411,7 +411,7 @@ calibration unless they pass leakage controls.
 
 ### Leakage Controls
 
-A backtest case passes leakage controls only when all of these are recorded:
+A backtest case (Case) passes leakage controls only when all of these are recorded:
 
 - the case was selected by a pre-stated policy before evidence interpretation;
 - the cutoff date was frozen before the at-cutoff evidence was interpreted;

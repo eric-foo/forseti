@@ -6,7 +6,7 @@ artifact_role: Decision record (controlling product thesis — owner-ratified)
 scope: >
   V1 product thesis re-centering Orca on consumer-demand decision
   intelligence (durable / transient / manufactured demand discrimination), beauty/personal-care
-  as the first vertical, on the existing outside-in engine and frozen Core
+  as the first vertical (Vertical), on the existing outside-in engine and frozen Core
   Spine foundation. Prepared 2026-06-11 after a cross-branch exploration
   sweep; ratified by the owner 2026-06-12 with the ask-1 capture-risk
   amendment folded in (see Status). Supersedes
@@ -319,7 +319,7 @@ engagement-only caps below commit — is unchanged; only the verb names change.
 Orca is a productized outside-in **consumer-demand decision intelligence**
 system. It turns messy, contradictory public demand signals — reviews, forums,
 search interest, retail presence, social chatter — fused with org-motion
-corroboration (hiring composition and headcount at brand and parent level),
+corroboration (hiring composition and headcount at brand (Brand) and parent level (Org)),
 into clean, source-backed, calibrated decision evidence that discriminates
 **durable demand from transient and manufactured demand** before internal data
 is conclusive. It
@@ -330,12 +330,12 @@ vertical; the engine, spine, and method are vertical-portable by design.
 
 ## Value Proposition
 
-For a decision owner facing a live consumer-demand allocation decision before
+For a decision owner (Buyer) facing a live consumer-demand allocation decision (DecisionEvent) before
 internal data is conclusive, Orca delivers the decided answer — "this demand is
 real-and-durable / real-but-transient / manufactured — *commit*, *move
 (time-boxed)*, or *discount*; here is what would change the answer and when" —
 as a **calibrated decision with an action ceiling, never a feed**, built from an
-inspectable memo + evidence appendix substrate, never a dashboard or source dump.
+inspectable memo (Memo) + evidence appendix substrate, never a dashboard or source dump.
 
 The differentiated mechanism is judgment discipline over a hostile substrate,
 not access to data: provenance-verified capture, integrity labels

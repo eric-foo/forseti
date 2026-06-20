@@ -50,7 +50,7 @@ and the live-packet apply to carry its DCP receipt.
   commitment (enough independent origins for the commitment claimed), not a
   binary pass.
 - **P3 (venue-family binding) — LOCKED:** bind the named families to maintained
-  venue card-set roles; only forums/community sourced today (owner-owned
+  venue (Venue) card-set roles; only forums/community sourced today (owner-owned
   sourcing gap); *retail presence is org-motion (G4 corroboration), not a G1
   demand family*.
 - **P4 (costly-behavior floor) — LOCKED:** floor = ≥1 gradeable costly-behavior

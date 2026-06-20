@@ -67,7 +67,7 @@ are superseded — reread-required. Deltas:
 
 - Engine/spine = outside-in market & competitive intelligence (unchanged);
   its first application moves from B2B SaaS pricing to beauty
-  consumer-demand allocation decisions — durable / transient / manufactured demand
+  consumer-demand allocation decisions (DecisionEvent) — durable / transient / manufactured demand (TrendVector)
   discrimination per the thesis's central read.
 - First door: a US-market tractioned indie/DTC beauty or personal-care brand
   decision owner (founder, head of brand / insights / growth / strategy, or
@@ -77,7 +77,7 @@ are superseded — reread-required. Deltas:
 - Substrate gate RE-DERIVED for the demand wedge: the differentiated read is
   multi-venue fused demand signal anchored on costly behavior (reviews,
   forums/community, search interest, retail presence) with integrity labels,
-  plus org-motion corroboration at brand AND parent level through the routes
+  plus org-motion corroboration at brand (Brand) AND parent level (Org) through the routes
   currently bound by the owning capture decisions. Engagement volume alone
   never carries a read; reviews are admissible as one fused venue with bias
   flags (J-curve self-selection; FTC 16 CFR 465) — the single-substrate
@@ -162,7 +162,7 @@ non-claims, or docs-first limits.
 The existing product docs distinguish internal proof substrate from buyer-facing
 packaging:
 
-- The decision memo plus evidence appendix is the internal reasoning substrate,
+- The decision memo (Memo) plus evidence appendix is the internal reasoning substrate,
   proof gate, and backtest artifact.
 - The executive-grade decision deck is the premium buyer-facing artifact,
   derived from that substrate.
@@ -283,10 +283,10 @@ inside the selected wedge: US-market tractioned indie/DTC beauty or
 personal-care brand decision owners with a live 30-90 day demand-allocation
 decision -- prioritizing retail/channel expansion, launch/reposition, and
 inventory or purchase-depth commitment -- where internal data is not conclusive
-and public demand signal is visible across more than one venue family. The
+and public demand signal is visible across more than one venue family (Venue). The
 fund-screen door uses the same read later; it is not the first door.
 
-## ICP Status
+## ICP (Buyer) Status
 
 The first proof ICP wedge is selected, not proven.
 

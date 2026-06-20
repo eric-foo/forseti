@@ -83,7 +83,7 @@ direction_change_propagation:
 
 Owner direction confirms the first commercial target for the proof loop as
 US-market tractioned indie/DTC beauty or personal-care operators with a named
-decision owner and a live 30-90 day consumer-demand allocation decision.
+decision owner and a live 30-90 day consumer-demand allocation decision (DecisionEvent).
 
 The Product Proof Lead should bias candidate qualification toward
 retail/channel expansion, launch/reposition, and inventory or purchase-depth
@@ -124,27 +124,27 @@ No public web research was used. Archived contaminated replay outputs were not r
 
 The Orca Product Proof Lead owns the buyer-proof loop for one narrow question:
 
-Can a real decision owner at an indie/DTC beauty / personal-care brand facing
+Can a real decision owner at an indie/DTC beauty / personal-care brand (Brand) facing
 a live consumer-demand allocation decision — where internal data is not
 conclusive — use an Orca decision artifact to reduce allocation risk before
 committing inventory, retail/channel, launch, or pricing budget, after Orca
 captures, cleans, integrity-labels, classifies (costly behavior, never
 engagement volume alone), and constrains messy public demand signals, fused
-with org-level org-motion corroboration, into inspectable decision evidence
+with org-level (Org) org-motion corroboration, into inspectable decision evidence
 with an explicit action ceiling?
 
 The engine for this work is outside-in market and competitive intelligence;
 beauty consumer-demand allocation is its first application per the ratified
 thesis and wedge (2026-06-12).
 
-The minimum viable artifact is a manual decision memo plus evidence appendix. The premium buyer-facing artifact is an executive-grade decision deck derived from that memo and appendix. The first commercial next-step hypothesis is a fixed-scope paid decision sprint, not validated commercial readiness.
+The minimum viable artifact is a manual decision memo (Memo) plus evidence appendix. The premium buyer-facing artifact is an executive-grade decision deck derived from that memo and appendix. The first commercial next-step hypothesis is a fixed-scope paid decision sprint, not validated commercial readiness.
 
 The role exists to convert bounded method signal into buyer-proof learning without prematurely turning Orca into a product organization, software system, dashboard, deck shop, research factory, or implementation program.
 
 ## What The Product Proof Lead Owns
 
 1. Buyer-proof design for the first external proof loop.
-2. Selection of one target buyer segment and one live decision family for the proof.
+2. Selection of one target buyer segment (Buyer) and one live decision family for the proof.
 3. Qualification of live decision triggers before memo production.
 4. The manual Orca decision memo, evidence appendix, and optional executive deck shape used in the proof.
 5. The proof evaluation rubric, including pull, weak signal, kill, and graduation criteria.
@@ -169,7 +169,7 @@ The Product Proof Lead does not own:
   work, agent-workflow design, or AI cost-structure analysis unless it
   presents as a qualified consumer-demand allocation decision in the first
   proof lane's families.
-- Broad market research, generic social listening, person-level dossiers (exception: internal wind-caller calibration per `docs/decisions/wind_caller_calibration_carveout_v0.md` — bounded to ≤10 own operating/capture accounts (starting ≤5); subject-creator roster uncapped (all-in-vertical); active = attended; passive = bounded self-terminating runs (carve-out 2026-06-15 amendment); pre-commercial, internal only; external/product person-level boundary unchanged), outreach lists, data-broker activity, manipulation, fake reviews, botting, or deceptive competitive tactics.
+- Broad market research, generic social listening, person-level dossiers (exception: internal wind-caller (WindCaller) calibration per `docs/decisions/wind_caller_calibration_carveout_v0.md` — bounded to ≤10 own operating/capture accounts (starting ≤5); subject-creator roster uncapped (all-in-vertical); active = attended; passive = bounded self-terminating runs (carve-out 2026-06-15 amendment); pre-commercial, internal only; external/product person-level boundary unchanged), outreach lists, data-broker activity, manipulation, fake reviews, botting, or deceptive competitive tactics.
 - Revalidation of the accepted method replay packet or use of archived contaminated replay outputs.
 
 ## First Proof Lane
@@ -180,7 +180,7 @@ US-market tractioned indie/DTC beauty / personal-care brand decision owners
 (founder, head of brand / insights / growth / strategy, or equivalent
 operator) with a live 30-90 day demand-allocation decision and a concrete
 allocation consequence, passing the buyer-proof packet's Demand-Substrate Hard
-Gate (at least two independent venue families; costly-behavior anchoring;
+Gate (at least two independent venue families (Venue); costly-behavior anchoring;
 integrity labels applicable; org-motion corroboration through
 capture-lane-bound routes).
 

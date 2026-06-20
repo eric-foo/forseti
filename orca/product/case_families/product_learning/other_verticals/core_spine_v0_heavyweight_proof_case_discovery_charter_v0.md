@@ -73,7 +73,7 @@ The lock record is blocked because it lacks:
 
 - one exact buyer-visible competitor narrative pressure decision for the
   shadow satellite;
-- one exact historical backtest case;
+- one exact historical backtest case (Case);
 - a case-selection owner or decision source;
 - a cutoff date or cutoff window;
 - case-specific anti-cherry-pick and post-window exclusion rationale.
@@ -176,8 +176,8 @@ manual, docs-first, non-deceptive, and non-runtime.
 The discovery phase must not perform or produce:
 
 - proof execution;
-- decision memo drafting;
-- Evidence Units;
+- decision memo (Memo) drafting;
+- Evidence Units (EvidenceUnit);
 - signal-strength scoring;
 - recommendation verbs;
 - backtest judgment;
@@ -198,7 +198,7 @@ The phase also must not:
 - interpret whether engagement proves demand;
 - interpret whether a competitor narrative is strong;
 - judge whether a backtest would have passed;
-- compare pre-cutoff evidence against post-window outcomes;
+- compare pre-cutoff evidence against post-window outcomes (Outcome);
 - create marketing demos;
 - package a case library;
 - use private, intrusive, deceptive, or ordinary-person dossier material;

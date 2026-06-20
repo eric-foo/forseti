@@ -70,7 +70,7 @@ lean on across cases — e.g., org-motion / hiring composition, review-venue
 candidate yield, embedded price-payload movement. It has a stable `signal_id` and
 a reliability history worth tracking.
 
-A signal is **not** a one-off claim or a single evidence unit. The harness
+A signal is **not** a one-off claim or a single evidence unit (EvidenceUnit). The harness
 `EvidenceUsed` row (`claim_id`, `claim_text`, `claim_role`, `evidence_unit_ids`)
 records *a* use of evidence in *one* judgment; the signal is the reusable family
 that use belongs to. One signal spans many `EvidenceUsed` rows across many cases.
@@ -202,7 +202,7 @@ entries here.
 
 ```yaml
 signal_id: org-motion-hiring-composition
-description: direction of public ATS hiring composition (expansion vs contraction by function) ahead of a demand decision
+description: direction of public ATS hiring composition (expansion vs contraction by function) ahead of a demand decision (DecisionEvent)
 applicable_decision_families: [beauty-consumer-demand, launch-expand]
 reliability:
   pre_committed_uses:

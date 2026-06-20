@@ -5,7 +5,7 @@ retrieval_header_version: 1
 artifact_role: Decision record
 scope: >
   Pre-declared ledger for product-learning backtest batch 1 (beauty /
-  personal-care consumer-demand decisions): case list with dev/holdout
+  personal-care consumer-demand decisions (DecisionEvent)): case (Case) list with dev/holdout
   marking, pinned scoring-key version, swap policy and alternates, execution
   rules, all-results reporting commitment, and screen provenance. Caps at
   product-learning; covers by-hand runs only.
@@ -57,7 +57,7 @@ dated-amendment-only.
 
 ## Ledger (pre-declared; every result will be reported)
 
-| # | Case | Sector / decision family | Split | Entry basis |
+| # | Case | Sector / decision family (DecisionEvent) | Split | Entry basis |
 | --- | --- | --- | --- | --- |
 | 1 | `inoreader_repricing_2019_v0` | SaaS subscription repricing | dev | RETRO — run 2026-06-10 before this ledger existed; results known; fixture `QUARANTINED` |
 | 2 | `feedhaven_repricing_2019_anon_v0` | anonymized variant of #1 | dev | RETRO — same basis |

@@ -76,7 +76,7 @@ Raw remains canonical. Projection is a re-derivable view.
 
 ### Capture Input Required
 
-Retail projection consumes an existing `SourceCapturePacket` plus preserved raw
+Retail projection consumes an existing `SourceCapturePacket` (CapturePacket) plus preserved raw
 file bytes. It does not fetch, browse, enrich, or choose sources.
 
 For a PDP slice to be projectable, the raw packet should preserve:

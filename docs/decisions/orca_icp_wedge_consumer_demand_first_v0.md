@@ -1,4 +1,4 @@
-# Orca ICP Wedge — Consumer-Demand-First (Beauty) Direction Proposal v0
+# Orca ICP (Buyer) Wedge — Consumer-Demand-First (Beauty) Direction Proposal v0
 
 ```yaml
 retrieval_header_version: 1
@@ -56,9 +56,9 @@ Owner direction on 2026-06-16 confirms the first commercial target class as:
 
 **US-market tractioned indie/DTC beauty or personal-care operators** with a
 named founder, head of brand, growth, insights, strategy, or equivalent
-decision owner facing a live 30-90 day demand-allocation decision where
+decision owner facing a live 30-90 day demand-allocation decision (DecisionEvent) where
 internal data is not conclusive and public creator/social/review/search/retail
-signals can be fused across at least two independent venue families.
+signals can be fused across at least two independent venue families (Venue).
 
 This sharpens the already-ratified operator-first door; it does not create
 buyer validation, outreach authority, willingness-to-pay proof, or commercial
@@ -228,7 +228,7 @@ intelligence**, operator-first.
   growth / strategy, or equivalent operator) facing a live 30-90 day
   consumer-demand allocation decision where internal data is not conclusive
   (US-market qualifier per the thesis geography doctrine, owner-adopted
-  2026-06-12). Priority decision families: retail/channel expansion or
+  2026-06-12). Priority decision families (DecisionEvent): retail/channel expansion or
   contraction, launch / moratorium / reposition, and inventory or
   purchase-depth commitment. Tier/price change, taste-shift pivot, and
   defend/hold against suspected hollow or manufactured demand remain eligible
@@ -280,7 +280,7 @@ The sold thing is the **decided answer on one named live decision**, not the
 platform, the consolidation, the entity spine, or a feed.
 
 - Buyer-facing artifact: an executive-grade decision deck (deck-first
-  preserved from the offer hypothesis), derived from the internal memo +
+  preserved from the offer hypothesis), derived from the internal memo (Memo) +
   evidence appendix substrate that remains the reasoning and proof gate.
 - The read it sells: the greatest evidence-supported path for the live
   consumer-demand decision, with an explicit action ceiling (monitor / probe /

@@ -88,7 +88,7 @@ owning layers. Ownership is annotated per stage.
 ```text
 Decision Frame  (required upstream; no free-floating evidence)
   -> [1] RAW CAPTURE PACKET            owner: Data Capture Spine
-        SourceCapturePacket — preserved bytes + hashes; identity/timing/visibility/
+        SourceCapturePacket (CapturePacket) — preserved bytes + hashes; identity/timing/visibility/
         cutoff/archive posture; fidelity + related-context + bundle structure. CANONICAL.
         (key: packet_id / slice_id / sha256+hash_basis)
         |-> [2] ECR RECEIPT             owner: ECR
@@ -437,7 +437,7 @@ or buyer-proof.
 This draft does not claim buyer validation, willingness-to-pay, repeatability proof,
 product readiness, feature readiness, implementation readiness, Core Spine validation,
 Cleaning Spine validation, Judgment Spine validation, Evidence Candidate Record
-completion, or Evidence Unit design completion. It does not authorize implementation,
+completion, or Evidence Unit (EvidenceUnit) design completion. It does not authorize implementation,
 runtime design, schemas, scrapers, automation, tests, deployment, proof runs, or feature
 planning. It does not amend the boundary note or the obligation contract; doctrine
 changes route through the owner and a Direction Change Propagation receipt.
