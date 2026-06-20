@@ -93,11 +93,14 @@ orca/product/spines/capture/
       price_timeseries/
       review_velocity/
       search_interest/
+    cadence_and_missingness/         # future reserved core category; no current folder
     operating_model/
     packet_schema/
+    source_quality/                  # extraction candidate, not first-wave default
     source_capture_toolbox/
     source_families/
       retail_pdp/
+      web_search_capture/            # future reserved family; no current files
       social_media/
         instagram/
         tiktok/                     # future reserved family; no current files
@@ -113,11 +116,14 @@ groups social-media source mechanics under the Capture acquisition phase. It
 does not authorize TikTok or YouTube capture behavior and does not inherit IG
 rules into those families.
 
-`source_quality/` is intentionally not extracted in the first move. Current
-source-quality files are indexed as Source Capture Toolbox components. A later
-second pass may promote a `capture/core/source_quality/` home if the owner wants
-source-quality to become a sibling to the Toolbox rather than a Toolbox
-component.
+`source_quality/` belongs in the target core vocabulary because source quality is
+not the same concern as route/tool selection. Current source-quality files are
+still indexed as Source Capture Toolbox components, so extraction should be a
+second wave unless the owner accepts a larger reference rewrite.
+
+`cadence_and_missingness/` belongs in the target core vocabulary, but no current
+Capture Spine folder maps cleanly to it. Do not invent it by moving pressure-test
+or demand-durability docs merely because those docs discuss cadence.
 
 ## Classification Rules
 
@@ -127,6 +133,7 @@ component.
 | `core_operating_model` | Capture operating model, commissioning, pressure-test operating docs, accepted operating-model versions, and current Capture backlog. | Move under `capture/core/operating_model/`; do not archive/delete in this plan. |
 | `core_indicator_profile` | Capture-owned demand-durability indicator profiles and capture envelope deltas. | Move under `capture/core/demand_durability_indicators/`. |
 | `core_toolbox` | Source Capture Toolbox/Armory route catalog, playbook, anti-block ladder, browser/archive/reddit/source-quality support, and subsystem README. | Move as a unit under `capture/core/source_capture_toolbox/` first. Internal extraction is deferred. |
+| `core_source_quality` | Reusable source-quality posture, queues, assemblers, and closeouts currently housed inside the Toolbox. | Target `capture/core/source_quality/`, but defer extraction until references and the Toolbox README are rewritten. |
 | `core_source_family` | Source-family-specific capture/projection mechanics. | Move under `capture/core/source_families/<family>/`; social platforms use `social_media/<platform>/`. |
 | `future_empty_family` | Target home for a family with no current capture-spine files. | Name in the plan only; create no empty directory unless a later execution pass accepts placeholder indexes. |
 | `non_move_current_scope` | Satellite, case-family, scanning/search, harness runtime, review output, decision record, or workflow map outside `orca/product/spines/capture/**`. | Do not move in this plan. Update references only in a future execution pass. |
@@ -143,11 +150,14 @@ this worktree.
 | `orca/product/spines/capture/packet_schema/**` | `orca/product/spines/capture/core/packet_schema/**` | 3 | direct grouped move | Keeps packet schema and typed-payload boundary under reusable core. |
 | `orca/product/spines/capture/operating_model/**` | `orca/product/spines/capture/core/operating_model/**` | 35 | direct grouped move with archive/deletion deferred | Includes v0/v1/v2 operating-model history and pressure-test/session docs. Phase-2 deletion candidates v0/v1 are not deleted by this plan. |
 | `orca/product/spines/capture/demand_durability_indicators/**` | `orca/product/spines/capture/core/demand_durability_indicators/**` | 8 | direct grouped move | Keeps `search_interest` as a Capture-owned durability indicator profile, not a Search lane. |
-| `orca/product/spines/capture/source_capture_toolbox/**` | `orca/product/spines/capture/core/source_capture_toolbox/**` | 28 | direct grouped move as subsystem unit | Preserve Toolbox as the named Capture subsystem. Do not split source-quality in first execution. |
+| `orca/product/spines/capture/source_capture_toolbox/**` | `orca/product/spines/capture/core/source_capture_toolbox/**` | 28 | direct grouped move as subsystem unit | Preserve Toolbox as the named Capture subsystem for the first wave. |
+| `orca/product/spines/capture/source_capture_toolbox/source_quality_*` | `orca/product/spines/capture/core/source_quality/` | 8 | deferred extraction candidate | Better target category, but extraction requires reference/index rewrite and should not ride the wrapper wave silently. |
 | `orca/product/spines/capture/source_families/retail_pdp/**` | `orca/product/spines/capture/core/source_families/retail_pdp/**` | 6 | direct grouped move | Retail/PDP stays a Capture source family, not a fragrance/beauty satellite. |
 | `orca/product/spines/capture/source_families/instagram/**` | `orca/product/spines/capture/core/source_families/social_media/instagram/**` | 15 | direct grouped move after structure acceptance | IG becomes the first populated social-media capture family. Do not infer TikTok/YouTube behavior from IG. |
+| none currently under Capture | `orca/product/spines/capture/core/source_families/web_search_capture/` | 0 | future reserved home only | Name is user-preferred, but current binding uses `answer_engine`; resolve naming before creation. |
 | none currently under Capture | `orca/product/spines/capture/core/source_families/social_media/tiktok/` | 0 | future reserved home only | Create only with a future TikTok recipe/recon/index artifact or accepted placeholder convention. |
 | none currently under Capture | `orca/product/spines/capture/core/source_families/social_media/youtube/` | 0 | future reserved home only | Create only with a future YouTube recipe/recon/index artifact or accepted placeholder convention. |
+| none currently under Capture | `orca/product/spines/capture/core/cadence_and_missingness/` | 0 | future reserved core category only | Do not create or populate until a file actually owns reusable cadence/missingness doctrine. |
 
 ## Ambiguous / Deferred Queue
 
@@ -156,12 +166,13 @@ execution pass:
 
 | Item | Why deferred | Recommended handling |
 | --- | --- | --- |
-| `source_quality_*` files under `source_capture_toolbox/` | User's target model includes `source_quality/` as a possible core category, but current maps index these as Toolbox components. | First execution keeps them under `core/source_capture_toolbox/`; later owner decision may extract `core/source_quality/`. |
+| `source_quality_*` files under `source_capture_toolbox/` | User's target model includes `source_quality/` as a core category, but current maps index these as Toolbox components. | First wrapper execution may keep them under `core/source_capture_toolbox/`; extraction to `core/source_quality/` should be a deliberate second wave. |
 | Operating-model v0/v1 history | Phase-2 W3a proposed deletion candidates, but deletion would sever historical prompt/review hash anchors unless adjudicated. | Retain/move in structure pass unless a separate deletion-evidence pass executes first. |
 | `data_capture_spine_posture_vocabulary_enforcement_proposal_v0.md` | Phase-2 W3a marked it as absorbed by parent contract, but it still exists in current capture spine. | Retain/move in structure pass unless a separate deletion-evidence pass executes first. |
 | IG lane vs source-family wording | Current placement has IG under Capture source families, while older inventory flagged no formal IG lane binding. | Treat IG as `social_media/instagram` source family, not a peer lane or satellite, unless a later owner decision creates an IG lane. |
 | TikTok and YouTube | Accepted target structure previously named them as capture source families, but no current capture-spine files exist. | Reserve target convention in prose only; no empty directory creation in first move. |
 | Web search / answer-engine capture | User wants "one for Search itself," but this plan is current Capture spine only and current capture files do not include a web-search source-family directory. | Defer to a later cross-spine Search/scanning/capture plan. Keep current `search_interest` indicator under `core/demand_durability_indicators/search_interest/`. |
+| `cadence_and_missingness/` | Useful target category, but current files do not cleanly map to it without semantic splitting. | Reserve in target vocabulary only; do not create in first wave. |
 
 ## Non-Moves
 
