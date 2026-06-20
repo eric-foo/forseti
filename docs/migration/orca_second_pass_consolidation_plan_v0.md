@@ -93,7 +93,7 @@ migration Wave D/E"); subsequent corrections landed in #256–#262. Verified:
 | B3 `docs/doctrine/` | **Unmaterialized — accepted.** Slot never created; nothing currently needs it (the doctrine index remains at `docs/decisions/orca_doctrine_index_v0.md`). Owner-confirmed default this turn: leave unmaterialized. Reopen by request only. |
 | B4 ontology hook coupling | **CLOSED (#262).** `check_ontology_expansion.py:49` → `orca/product/spines/foundation/ontology/ontology_expansion_backlog_v0.json`; the JSON's `cards_dir` = `orca/product/spines/foundation/ontology/ontology_cards`. |
 | B5 CSB first home | **CLOSED.** `commission_signal_board/` spine built (#261); gate-run commission criteria landed at `commission_signal_board/dispatch_rules/orca_demand_gate_run_commission_criteria_v0.md` (exact B5 settlement). |
-| B6 Toolbox name + IG | **CLOSED.** `capture/source_capture_toolbox/`; IG docs at `capture/source_families/instagram/`. |
+| B6 Toolbox name + IG | **CLOSED.** `capture/core/source_capture_toolbox/`; IG docs at `capture/core/source_families/social_media/instagram/`. |
 | B7 sibling inventories | **CLOSED (as-built consistent).** All ambiguous rows landed at blocker-auth-default-consistent homes (below). |
 
 ### Formerly `needs_main_ca_tag` rows — all landed at blocker-auth-default homes

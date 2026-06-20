@@ -29,6 +29,11 @@ stale_if:
 
 - Status: `MIGRATION_PLAN_ONLY`.
 - Scope: current files under `orca/product/spines/capture/**` only.
+- Execution note (2026-06-21): the accepted follow-on execution moved the
+  current Capture files under `capture/core/` in commit
+  `a75c337b3497d530f9b7fbfb25acb0fd230d3616`; current structure authority lives
+  in `docs/decisions/orca_spine_first_target_structure_binding_v0.md` and the
+  git rename diff. The plan text below remains historical planning evidence.
 - Current inventory basis: 103 current Capture spine files in this worktree:
   `contracts` 8, `demand_durability_indicators` 8, `operating_model` 35,
   `packet_schema` 3, `source_capture_toolbox` 28, `source_families` 21.

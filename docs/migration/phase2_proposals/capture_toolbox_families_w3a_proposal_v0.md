@@ -2,11 +2,11 @@
 retrieval_header_version: 1
 artifact_role: Orca migration note
 scope: >
-  Phase-2 W3a proposal for capture/source_capture_toolbox + capture/source_families/:
+  Phase-2 W3a proposal for capture/core/source_capture_toolbox + capture/core/source_families/:
   bloat/deletion candidates with full deletion-evidence records and ontology/doc-term
   findings against the SSOT. Covers orca/product/spines/capture/core/source_capture_toolbox/
-  (29 files) and orca/product/spines/capture/source_families/ (21 files, 2 sub-dirs:
-  instagram/ + retail_pdp/).
+  (29 files) and orca/product/spines/capture/core/source_families/ (21 files, 2 sub-dirs:
+  social_media/instagram/ + retail_pdp/).
 use_when:
   - Owner adjudicating Phase-2 deletion candidates for the capture toolbox and source-family areas.
   - Reviewing ontology/doc-term drift findings before a Phase-3 ratchet.
@@ -22,7 +22,7 @@ stale_if:
 
 ## Summary
 
-Files scanned: 50 (29 in source_capture_toolbox/ + 21 in source_families/)
+Files scanned: 50 (29 in core/source_capture_toolbox/ + 21 in core/source_families/)
 Deletion candidates: 0 high / 1 medium / 0 low
 Ontology findings: 4
 
@@ -72,7 +72,7 @@ rationale: >
 
 All remaining 48 files in the two areas are lean. Evidence summary for the higher-count files:
 
-**source_capture_toolbox/ (28 files excluding the candidate above):**
+**core/source_capture_toolbox/ (28 files excluding the candidate above):**
 - `README.md`: 12+ inbound refs from docs/workflows/, .agents/workflow-overlay/, migration inventory. Canonical Armory entrypoint. Not deletable.
 - `capture_recon_index_v0.md`: Referenced in orca/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md open_next; the recon-doctrine seed. Active.
 - `source_capture_playbook_v0.md`: Referenced from .agents/workflow-overlay/source-loading.md:376 as the canonical playbook (retired `capture_investigation_playbook_v0.md` is its pre-rename). Active doctrine.
@@ -91,7 +91,7 @@ All remaining 48 files in the two areas are lean. Evidence summary for the highe
 - `source_capture_anti_block_ladder_usage_guide_v0.md`, `source_capture_anti_blocking_http_ladder_daimler_rung_resolution_closeout_v0.md`: Cross-referenced; the usage guide is in the weapon ladder's open_next. Active pair.
 - Source-quality files (`source_quality_mini_god_tier_profile_v0.md`, `source_quality_source_unit_queue_template_v0.md`, `source_quality_state_assembler_v0.md`, `source_quality_mixed_source_trial_closeout_v0.md`, `source_quality_cw_p1/p4/p6_end_to_end_pass_closeout_v0.md`, `source_quality_slot3_post_recapture_closeout_v0.md`): All indexed in Armory README as named Armory components; referenced in README's stale-language-search and DCP receipts. The closeout set is operational evidence for the mini-god-tier profile; the profile is referenced in docs/decisions/ and review-outputs. Active.
 
-**source_families/ (21 files):**
+**core/source_families/ (21 files):**
 - All 15 instagram/ files and all 6 retail_pdp/ files have active inbound references from docs/workflows/, docs/decisions/, other orca/product/ files, or from each other's open_next chains. No abandoned orphans.
 - `ig_capture_findings_consolidated_v0.md`: 10+ inbound refs; the IG signal consolidation document.
 - `ig_creator_roster_frontier_ledger_spec_v0.md`, `ig_creator_discovery_spec_v0.md`, `orca_creator_momentum_pipeline_architecture_v0.md`, `orca_creator_monitoring_policy_architecture_v0.md`: All referenced in docs/hygiene/ig_creator_momentum_lane_handoff_v0.md and cross-referenced; active IG lane architecture.
@@ -106,7 +106,7 @@ All remaining 48 files in the two areas are lean. Evidence summary for the highe
 SSOT canonical types (from ontology.yaml): `Vertical`, `Brand`, `Product`, `Venue`, `WindCaller`, `Call`, `Observation`, `TrendVector`, `DecisionEvent`, `Reading`, `Memo`, `Case`, `Outcome`, `CapturePacket`, `EvidenceUnit`, `Buyer`, `Org`.
 Runtime/storage aliases (from runtime_bindings): `SourceCapturePacket` (alias for `CapturePacket`), `FacilitatorLedger` (alias for `Case`), `CaseReport` (composed with `Case`).
 
-**Finding 1 — `SubNiche` used as ontology-shaped term in source_families/instagram/ (not in SSOT)**
+**Finding 1 — `SubNiche` used as ontology-shaped term in core/source_families/social_media/instagram/ (not in SSOT)**
 
 - Term: `SubNiche`
 - File:line:
