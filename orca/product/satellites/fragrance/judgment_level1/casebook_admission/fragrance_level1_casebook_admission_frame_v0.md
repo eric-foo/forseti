@@ -189,7 +189,7 @@ At this frame stage:
 - Direct access notes are dated hints, not current-state proof.
 - Any source used for a named case must preserve provenance enough to enforce
   the cutoff rule.
-- Creator evidence (WindCaller) is early radar, not proof. A creator-led case needs
+- Creator (WindCaller) evidence is early radar, not proof. A creator-led case needs
   non-creator confirmation before any stronger action posture is recorded.
 
 ## Casebook Fill Template

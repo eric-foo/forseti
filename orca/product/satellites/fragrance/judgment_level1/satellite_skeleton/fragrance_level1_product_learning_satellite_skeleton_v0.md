@@ -312,7 +312,7 @@ These are candidate fields for a future source/evidence slice. They are not
 current evidence, not source-family admission, and not permission to run source
 capture.
 
-Creator evidence (WindCaller) is early radar, not proof. A creator-led case cannot reach a
+Creator (WindCaller) evidence is early radar, not proof. A creator-led case cannot reach a
 stronger action posture without non-creator confirmation.
 
 ## Forecasting Boundary
