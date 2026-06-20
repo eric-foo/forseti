@@ -237,7 +237,7 @@ transient or manufactured. No longer synonymous with "hollow."
   allocation choice; **price-complaint chatter triggering a pricing-event read**
   (see Q1).
 - *Boundary:* the monetization unit; carries an explicit action ceiling
-  (`act / phase / narrow / hold / defend`) capped by signal integrity; tied to a
+  (`monitor / probe / commit / hold / scale / avoid / reduce`) capped by signal integrity; tied to a
   named decision owner + allocation consequence per the buyer-proof packet.
 
 **Wind-caller calibration** — the compounding asset
@@ -302,8 +302,8 @@ carve-out — a conflation risk if the two person-boundaries are read as one. �
 
 **Decided (owner, in-thread):** replace **durable vs hollow** with **durable vs
 transient** (persistence) × **real vs manufactured** (integrity). Three actionable
-states — durable (commit, long horizon), transient (move, short horizon,
-time-boxed), manufactured (discount / avoid). **Transient gets equal billing**
+states — durable (commit/scale), transient (commit, reversible — reduce on decay),
+manufactured (avoid). **Transient gets equal billing**
 with durable (owner: spikes are still capital-allocation decisions and occur more
 often). Divergence becomes a **technique, not a verdict**. Identifying
 manufactured demand is **decision-critical in its own right** (owner).

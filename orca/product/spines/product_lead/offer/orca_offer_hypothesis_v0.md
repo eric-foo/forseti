@@ -247,7 +247,7 @@ owner facing a live 30-90 day consumer-demand allocation decision -- especially
 retail/channel expansion, launch/reposition, or inventory/purchase-depth
 commitment -- before internal data is conclusive, Orca offers the decided
 answer: "this demand is real and durable / this demand is transient or
-manufactured -- act, phase, narrow, hold, or defend, and here is what would
+manufactured -- monitor, probe, commit, hold, scale, avoid, or reduce, and here is what would
 change the answer." The artifact is a decision memo + evidence appendix
 substrate surfaced as an executive-grade decision deck when the proof gates
 pass: fused public demand signal (reviews, forums, search interest, retail
@@ -299,7 +299,9 @@ moratorium / reposition, and inventory or purchase-depth commitment -- with a
 named decision owner (founder, head of brand / insights / growth / strategy,
 or equivalent operator), a concrete allocation consequence (inventory, retail
 commitment, launch budget, backlash/churn risk, or delayed capture), and
-demand signal visible across at least two independent public venue families so
+demand signal visible across at least two effectively-independent public venue
+origins (de-correlated by origination, per the buyer-proof Demand-Substrate Hard
+Gate — laundered or shared-origination siblings of one event do not count) so
 the fused, costly-behavior-anchored read is possible. Tier/price change,
 taste-shift pivot, and defend/hold against suspected hollow or manufactured
 demand remain eligible when they satisfy the same gates. Org-motion
@@ -325,9 +327,11 @@ Qualifying conditions for the first proof offer:
   decision-families list below).
 - Named decision owner with a concrete allocation consequence: inventory,
   retail commitment, launch budget, backlash/churn risk, or delayed capture.
-- Demand signal visible across at least two independent public venue
-  families (reviews, forums/community, search interest, retail presence),
-  including costly-behavior evidence — not engagement volume alone.
+- Demand signal visible across at least two effectively-independent public venue
+  origins — de-correlated by origination, per the buyer-proof Demand-Substrate
+  Hard Gate (laundered/shared-origination siblings of one event do not count) —
+  across the venue families (reviews, forums/community, search interest, retail
+  presence), including costly-behavior evidence — not engagement volume alone.
 - Org-motion corroboration obtainable at org level through the capture
   lane's currently bound routes; route changes are capture-lane decisions
   under the owner's measured-ToS-risk posture (absurd-level approaches,
@@ -526,9 +530,12 @@ For the first proof offer, add these stricter gates:
 2. Is there a named decision owner or budget-accountable lead?
 3. Is the allocation consequence concrete (inventory, retail commitment,
    launch budget, backlash/churn risk, delayed capture)?
-4. Is public demand signal visible across at least two independent venue
-   families (reviews, forums/community, search interest, retail presence) so
-   the read can be fused and integrity-labeled rather than single-sourced?
+4. Is public demand signal visible across at least two effectively-independent
+   venue origins — de-correlated by origination, per the buyer-proof
+   Demand-Substrate Hard Gate (laundered siblings of one event do not count) —
+   across the venue families (reviews, forums/community, search interest, retail
+   presence), so the read can be fused and integrity-labeled rather than
+   single-sourced or laundered-double-counted?
 5. Does the available signal include costly-behavior evidence (payment,
    switching, workarounds, churn, durable buyer pressure) — not engagement
    volume alone?

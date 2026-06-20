@@ -59,7 +59,7 @@ The thesis is the north-star artifact. This contract is the operating guardrail:
 
 ## What The Thesis Optimizes For
 
-The thesis optimizes Judgment Spine work for **right-sized action under evidence constraints**.
+The thesis optimizes Judgment Spine work for the **highest-expected-value decision under evidence constraints**, evaluated qualitatively as **decision-quality regret** (the gap to the best move the evidence available at the decision point supported). **Right-sized action — avoiding overreach and underreach — is a necessary component of this, not the whole target.** Sharpened by the thesis's 2026-06-20 owner-directed amendment ("Optimization Target Sharpened To Decision-Quality Regret"); the thesis amendment is controlling and this is its faithful restatement. The "Owner Decisions Required → changing the long-term optimization target" gate below was cleared by that owner direction.
 
 Future work should improve the surrounding judgment system: case-law-quality examples, clean decision frames, sealed blind judgments, deterministic comparisons where applicable, failure logs, reveal calibration, and guarded lesson promotion.
 

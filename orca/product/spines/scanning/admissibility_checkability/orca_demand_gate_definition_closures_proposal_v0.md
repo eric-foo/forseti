@@ -76,11 +76,10 @@ and the live-packet apply to carry its DCP receipt.
 >   least two" with **enough effectively-independent origins for the commitment
 >   claimed**, tiered by *commitment/reversibility*, not verb name: one origin
 >   (or laundered/shared-origination copies of one) authorizes only
->   **low-commitment, reversible responses** (hold; a watchful or low-cost
->   defensive posture); **any material or irreversible commitment — act, phase,
->   narrow, or a costly/committing defend — requires ≥2 independent origins that
->   converge.** "Defend" is not automatically low-commitment; a costly defensive
->   campaign is a material action and needs the ≥2 bar. *(AR-02)*
+>   **low-commitment, reversible responses** (monitor / probe / hold; a watchful or low-cost
+>   posture); **any material or irreversible commitment — commit or scale — requires
+>   ≥2 independent origins that converge.** A costly or scaling position is a
+>   material action and needs the ≥2 bar. *(AR-02)*
 > - **Two distinct maintained card sets.** Maintained cards split into **G1
 >   demand-family cards** (today only **forums/community** is sourced;
 >   review-surface and search-interest are **unsourced gaps**, owner-owned) and

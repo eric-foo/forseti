@@ -212,8 +212,8 @@ Selected product promise:
 
 Orca reduces allocation risk before budget is committed by discriminating
 durable from transient and manufactured demand on fused, integrity-labeled public evidence and
-naming the evidence-supported action ceiling — act, phase, narrow, hold, or
-defend — plus what would change the answer.
+naming the evidence-supported action ceiling — monitor, probe, commit, hold, scale, avoid, or
+reduce — plus what would change the answer.
 
 Manual proof artifact:
 

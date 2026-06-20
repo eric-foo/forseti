@@ -58,6 +58,116 @@ Right-sized action means:
 - preserving uncertainty, counterevidence, and unsupported claims in a form that improves future judgment;
 - making each new case, score, failure, or lesson easier to reuse without contaminating blind evaluation.
 
+## Amendment — 2026-06-20 (owner-directed): Optimization Target Sharpened To Decision-Quality Regret (Expected Value)
+
+Owner-directed in-thread. This **sharpens, and does not replace,** the
+optimization goal above: right-sized action stays a load-bearing **component**,
+but the target is the **highest-expected-value decision under evidence
+constraints**, evaluated as **decision-quality regret**. The thesis operating
+contract's "Owner Decisions Required → changing the long-term optimization
+target" gate is cleared by this owner direction. It is consistent with the
+evidence ladder's Measurement Target ("the quality of the decision under the
+case's evidence constraints"; "no outcome/resulting bias") and adds no claim
+tier or score.
+
+- **Target = highest-EV decision, expressed qualitatively.** Expected value is
+  the conceptual north star, not a computed number; the calls are qualitative.
+  Operationally the target is **decision-quality regret**: the qualitatively
+  assessed gap between the move made and the **best move the evidence available
+  at the decision point supported**.
+- **Right-sizing is a necessary component, not the whole target.** Avoiding
+  overreach and underreach is required but not sufficient — a within-band call
+  can still leave expected value on the table by passing a better
+  evidence-supported move. Optimizing only against over/under-reach yields
+  defensibly-sized but sub-optimal decisions; the target is closing the regret
+  gap, of which gross mis-sizing is one source.
+- **Regret is measured at the contemporaneous evidence frontier.** "Could have
+  been better" means *a higher-EV move was supported by the evidence at the
+  time* — never *a different move would have had a better outcome*. An
+  evidence-right call that draws an unlucky outcome carries **zero regret**.
+  This preserves the no-outcome-bias rule (evidence ladder Measurement Target):
+  judgment is graded on the best move under the available evidence, not on
+  correctness against the later outcome.
+This refines the optimization target only. It stays qualitative (no numeric EV
+or regret score; the evidence ladder and its no-scoring boundary still govern)
+and asserts no validation, readiness, buyer proof, judgment-quality evidence, or
+run authorization.
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    The Judgment Spine long-term optimization target is sharpened from
+    "right-sized action under evidence constraints" to the highest-expected-value
+    decision under evidence constraints, evaluated qualitatively as
+    decision-quality regret (the gap to the best move the contemporaneous
+    evidence supported). Right-sized action (over/under-reach) is retained as a
+    necessary component, not the whole target. Regret is measured at the
+    time-of-decision evidence frontier (an evidence-right but unlucky call
+    carries zero regret; no outcome/resulting bias). Owner-directed; the
+    operating contract's owner-decision gate for changing the optimization target
+    is thereby cleared.
+  trigger: validation_philosophy
+  related_triggers:
+    - product_doctrine
+  controlling_sources_updated:
+    - docs/research/judgment-spine/judgment_spine_thesis_v0.md
+    - docs/research/judgment-spine/judgment_spine_thesis_operating_contract_v0.md
+    - orca/product/spines/judgment/judgment_current_state_and_decomposition_v0.md
+  downstream_surfaces_checked:
+    - orca/product/spines/judgment/claim_ladder/judgment_spine_evidence_ladder_architecture_v0.md
+    - docs/research/judgment-spine/judgment_spine_consolidation_map_v0.md
+    - docs/decisions/orca_product_thesis_consumer_demand_v0.md
+    - AGENTS.md
+    - .agents/workflow-overlay/source-of-truth.md
+    - docs/workflows/orca_repo_map_v0.md
+  intentionally_not_updated:
+    - path: orca/product/spines/judgment/claim_ladder/judgment_spine_evidence_ladder_architecture_v0.md
+      reason: >
+        Controlling claim-tier doc. Its Measurement Target already states "the
+        quality of the decision under the case's evidence constraints" and "no
+        outcome (resulting) bias"; the EV-regret sharpening is consistent with it
+        and changes no claim tier, closeout state, cap, or the measurement-target
+        principle. Checked, not changed.
+    - path: docs/research/judgment-spine/judgment_spine_consolidation_map_v0.md
+      reason: >
+        Retrieval map; its "right-sized action under evidence constraints" Frozen
+        Orientation Primitive is an excerpt that stays true (right-sized action
+        remains the named component). The map's own rule is "the source wins on
+        conflict"; a light excerpt refresh is deferred, not silently forked.
+    - path: docs/decisions/orca_product_thesis_consumer_demand_v0.md
+      reason: >
+        OWNER_LOCKED product thesis. This is lane-internal judgment-evaluation
+        doctrine, consistent with its "calibrated judgment + outcome memory" moat
+        and "best move under evidence" central read; no product-thesis edit is
+        authorized or required by this pass.
+    - path: AGENTS.md
+      reason: Behavior kernel; carries no judgment optimization-goal statement; routes lane doctrine to its owning docs.
+    - path: .agents/workflow-overlay/source-of-truth.md
+      reason: Source hierarchy + propagation contract owner; carries no judgment optimization target to update.
+    - path: docs/workflows/orca_repo_map_v0.md
+      reason: Repo map routes to the judgment consolidation map and carries no optimization-goal statement.
+  stale_language_search: >
+    rg -in "right-sized action|over.?reach|under.?reach|best move under|highest.?(expected.?value|EV)"
+    docs/research/judgment-spine orca/product/spines/judgment
+  stale_language_search_result: >
+    Executed 2026-06-20. Live judgment-doctrine surfaces carrying the
+    optimization/measurement framing: this thesis (amended), the thesis operating
+    contract (updated — "What The Thesis Optimizes For"), the evidence ladder
+    Measurement Target (consistent, no outcome bias — not changed), the
+    current-state decomposition Forecasting Boundary (note added), and the
+    consolidation-map Frozen Orientation Primitive (excerpt, source-wins, refresh
+    deferred). All other hits are historical/derived surfaces — review
+    inputs/outputs, harness fixtures, prompts, migration proposals — not live
+    controlling doctrine; none states an optimization target that now contradicts
+    the sharpened goal (right-sized action is retained as a component).
+  non_claims:
+    - not validation
+    - not readiness
+    - not buyer proof
+    - not judgment-quality evidence
+    - mints no claim-tier or scoring vocabulary; target stays qualitative (no numeric EV/regret)
+```
+
 ## What The Spine Trains
 
 The Judgment Spine does not train model weights. It trains the surrounding judgment system:

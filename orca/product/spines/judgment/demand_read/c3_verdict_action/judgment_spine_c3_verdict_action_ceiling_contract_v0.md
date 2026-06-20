@@ -7,7 +7,8 @@ scope: >
   The binding-side contract for one owner-ADOPTED-but-unspecified step: how the
   demand-read core's C3 (Verdict + Action Ceiling) turns the C2-weighted allowed
   signals into a two-axis demand-state verdict (durable / transient, given real)
-  and an action ceiling (act / phase / narrow / hold / defend) matched to the
+  and an action ceiling (one verb from monitor / probe / commit / hold / scale / avoid /
+  reduce; horizon accretes via monitoring) matched to the
   demand's lifespan, filling the far-half decision-object sealed_call. Specifies
   C3 to the depth the C2 ledger read-contract already has. Qualitative,
   LLM-in-session, explained — never a number (INV-1). Consumes the C1 gate and
@@ -44,6 +45,158 @@ lane (worktree `demand-read-first-earned-trust-slice1` off `origin/main`), under
 owner build-gate lift bounded to the first by-hand read work unit. C3 is the
 step whose output the first read's whole claim rests on; specifying it to C2's
 depth is what lets a read be run without inventing the verdict+ceiling intent.
+
+## Amendment — 2026-06-20 (owner-directed): Action-Ceiling Vocabulary Replaced (Flat Verb Set; Horizon Via Monitoring); Bayesian Reasoning Accepted
+
+Owner-directed in-thread. This **replaces the action-ceiling vocabulary**; it does
+**NOT delete this contract.** The verb×horizon model named below — verbs
+`{act, phase, narrow, hold, defend}` × horizon `{commit, move}` — is superseded by a
+single **flat verb set**, and horizon stops being a declared output. The two-axis
+verdict, the transient-default / earned-durable rule, the floor/ceiling cap rule,
+INV-1, and the consume-don't-reopen boundary are **unchanged**. Sections below that
+name the old verbs or the `horizon` field are read through this amendment (dated;
+originals preserved).
+
+**New action ceiling — exactly one verb from:**
+
+- **monitor** — observe; no position taken (was `watch`). Keep reading the signal.
+- **probe** — a small, reversible action taken to learn; not a real commitment.
+- **commit** — take a real position; the **default verb for moving in**, reversible by default.
+- **hold** — maintain the current stance: hold an existing position (neither scale up nor
+  reduce), or hold off before committing. Low-commitment — does not require the material
+  ≥2-origin bar.
+- **scale** — increase an existing commitment; **earned** via monitored persistence, or
+  taken on an exceptional initial outburst **only when the manufactured axis is cleared**
+  (bigger outburst ⇒ higher integrity bar).
+- **avoid** — do not enter / discount (manufactured demand, or not worth entering).
+- **reduce** — wind down an existing position as real demand decays.
+
+The removed verbs fold into this set: a defensive or scope-narrowed position is a
+`commit` (or `scale` to deepen it); "wait / take no position" is `monitor` or `probe`;
+staged entry is just a reversible `commit`. There is no separate `defend`, `narrow`,
+`phase`, or `move`.
+
+**Horizon is not declared.** The `horizon: commit | move` output is removed. The verb
+carries the commitment; **monitoring** then earns `scale` (the long horizon) or triggers
+`reduce` (decay) — horizon accretes from observation, never an upfront call. This makes the
+calling sequence native: open with a reversible `commit` (or `monitor` / `probe` if
+under-supported, `avoid` if manufactured); `scale` or `reduce` as persistence is observed.
+
+**Demand-state → verb:** manufactured → **avoid**; real, entering → **commit** (reversible);
+real, steady (maintain a committed position) → **hold**; real, persistence earned →
+**scale**; real, decaying → **reduce**; pre-decision / under-supported → **monitor** or
+**probe**.
+
+**Cap rule (remapped; the floor/ceiling rule is otherwise unchanged).** **commit** and
+**scale** are the material/committing verbs — each requires **≥2 independent converging
+origins** plus gradeable costly behavior; a single independent origin, or
+engagement/attention-only evidence, caps **below commit** (at `monitor` / `probe` / `hold`).
+**avoid** and **reduce** *lessen* exposure, so they carry a **lower** evidence bar (you may
+avoid or reduce on weaker evidence than you would commit or scale on). INV-1 holds: the verb
+is a qualitative classification with reasons, never a computed or score-derived output.
+
+**Bayesian reasoning — accepted as the read's grammar (qualitative).** The demand-state read
+is a qualitative Bayesian update: a prior (category base rate / momentum) updated by
+**discriminating** evidence, each signal weighed by *how much more it is expected under one
+demand-state than another*. A discipline, not a numeric engine (INV-1, no numbers): the
+`reasoning_trace` must state, per signal, **which demand-state the evidence favors and why** —
+non-discriminating evidence (predicted equally by real and manufactured, or durable and
+transient) must not move the verdict.
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    The demand-read C3 action-ceiling vocabulary is replaced: the verb×horizon model
+    {act,phase,narrow,hold,defend}×{commit,move} is superseded by a flat verb set
+    {monitor, probe, commit, scale, avoid, reduce}, with horizon no longer declared (it
+    accretes via monitoring — scale earns the long horizon, reduce handles decay). The cap
+    rule remaps so commit and scale are the material verbs (>=2 converging origins + costly
+    behavior) and avoid/reduce lessen exposure at a lower bar. INV-1, the two-axis verdict,
+    transient-default/earned-durable, and consume-don't-reopen are unchanged. Bayesian
+    qualitative reasoning is accepted as the read's grammar (prior x discriminating-likelihood,
+    stated per-signal in the reasoning_trace; no numbers). The C3 contract document is
+    retained, not deleted.
+  trigger: product_doctrine
+  related_triggers:
+    - validation_philosophy
+  controlling_sources_updated:
+    - orca/product/spines/judgment/demand_read/c3_verdict_action/judgment_spine_c3_verdict_action_ceiling_contract_v0.md
+  downstream_surfaces_checked:
+    - orca/product/spines/foundation/demand_read_taxonomy/orca_demand_read_taxonomy_v0.md
+    - docs/decisions/orca_product_thesis_consumer_demand_v0.md
+    - orca/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md
+    - orca/product/spines/judgment/demand_read/core/judgment_spine_demand_read_machinery_architecture_v0.md
+    - orca/product/satellites/fragrance/judgment_level1/satellite_skeleton/fragrance_level1_product_learning_satellite_skeleton_v0.md
+    - orca/product/spines/foundation/ontology/orca_ontology_backbone_architecture_v0.md
+    - orca/product/spines/product_lead/offer/orca_offer_hypothesis_v0.md
+    - orca/product/spines/product_lead/proof_charter/orca_product_proof_lead_charter_v0.md
+    - orca/product/spines/scanning/scan_core/orca_demand_scan_core_spec_v0.md
+    - docs/prompts/product-planning/orca_ontology_backbone_architecture_pass_commission_prompt_v0.md
+  intentionally_not_updated:
+    - path: ALL TEN DOWNSTREAM SURFACES ABOVE
+      reason: >
+        SEQUENCED REALIGNMENT, NOT SILENTLY FORKED. A repo-wide grep on
+        2026-06-20 identified these ten surfaces as carrying the old action
+        vocabulary ({act,phase,narrow,hold,defend} / {commit,move} /
+        long/short-horizon). This amendment updates the OWNER (this C3 contract)
+        only; the ten restating/referencing surfaces are named here for a
+        sequenced realignment pass (depth varies and is not yet individually
+        inspected — the foundation ontology and the owner-locked thesis Central
+        Read #4 in particular need their own careful edits). The new verb set is
+        controlling from this amendment; the old verbs in those surfaces are stale
+        pending realignment, not a competing live vocabulary.
+  stale_language_search: >
+    rg -i "phase \| narrow|narrow, hold|long-horizon|short-horizon|Move → Commit|Excluded → Watch|act \| phase" (repo-wide)
+  stale_language_search_result: >
+    Executed 2026-06-20. Eleven files carry the old action vocabulary: this C3
+    contract (owner — amended here), the demand-read taxonomy, the owner-locked
+    product thesis (Central Read #4 + the 2026-06-14 durable→commit/transient→move
+    mapping), the buyer-proof packet (cap rule — verb-name remap only; cap logic
+    unchanged), the demand-read core (C0–C4 step shape), the fragrance satellite
+    skeleton (verb lists), the foundation ontology backbone + its commission
+    prompt, the offer hypothesis, the proof charter, and the scan core spec. Owner
+    updated; the other ten are named above for sequenced realignment.
+  non_claims:
+    - not validation
+    - not readiness
+    - not buyer proof
+    - not judgment-quality evidence
+    - INV-1 unchanged; verbs are qualitative classifications, no numeric/scored ceiling
+    - C3 contract retained, not deleted; downstream realignment is sequenced, not complete
+```
+
+## Amendment Addendum — 2026-06-20 (post-adversarial-review AR-03 / AR-04; + the `hold` verb)
+
+- **Seventh verb `hold` added** (owner-directed, post-review). The action set is now
+  **monitor · probe · commit · hold · scale · avoid · reduce**. `hold` = maintain the
+  current stance (hold a position without scaling or reducing, or hold off before
+  committing); low-commitment (joins `monitor` / `probe`, not a material verb). This
+  resolves the headline/vocabulary contradiction (the thesis headline "commit, hold, or
+  avoid") and the maintain-an-existing-position gap.
+- **AR-04 (receipt honesty — correction).** The propagation receipt above states it updates
+  "the OWNER (this C3 contract) only" and lists the ten downstream surfaces for "sequenced
+  realignment." **That is corrected:** the downstream surfaces WERE updated in the same
+  session's cascade (and the follow-up `hold` pass). Read `controlling_sources_updated` as
+  also including: the demand-read taxonomy + adjudication, demand-read core +
+  first-demand-read-scope, buyer-proof packet, scan core, commission criteria, gate-closures
+  proposal, offer hypothesis, proof charter, fragrance satellite, the foundation ontology,
+  the product thesis, and the wedge — all carrying the new 7-verb set. **Genuinely not
+  updated** (named, not forked): the ontology commission prompt and the c2-read-contract
+  handoff (historical prompt artifacts), the B2B method-validation case-frames (a separate
+  verb set / context), and the offer's venue-family substrate gate (AR-06 — pre-existing,
+  separate patch). A repo-wide stale-search after this pass finds no live demand-read
+  surface on the old `{act,phase,narrow,hold,defend}` / horizon vocabulary except the
+  thesis Central Read #4 / 2026-06-14 mapping (superseded-original under their
+  amendments); the C3 body below was reconciled to the 7-verb set (AR-03).
+- **AR-03 (C3 body — RECONCILED post-review).** The **Required Behavior #4, cap rule,
+  Interfaces, Acceptance Criteria, and Downstream Handoff** sections below were
+  **reconciled** to this amendment's 7-verb flat set
+  (`monitor, probe, commit, hold, scale, avoid, reduce`) with horizon accreting via
+  monitoring — they no longer specify the superseded `{act,phase,narrow,hold,defend}` ×
+  horizon `{commit,move}` interface. The body is now **consumable** and consistent with
+  this amendment; its non-vocab logic (two-axis verdict, transient-default /
+  earned-durable, the floor/ceiling cap-rule structure, consume-don't-reopen, INV-1) is
+  unchanged.
 
 ## Input Basis (accepted)
 
@@ -92,21 +245,22 @@ manufactured) demand under an active `decision_family` and Decision Frame (C0), 
    transient** and sets a **horizon-matched, time-boxed** ceiling. It is **never**
    treated as a manufactured-axis cap (that axis is upstream). The trace must cite
    the discriminator that supports a transient classification.
-4. **Emit an action ceiling from the fixed vocabulary** `{act, phase, narrow, hold,
-   defend}`, **matched to the demand's lifespan**: durable → long-horizon **commit**;
-   transient → short-horizon **move**, time-boxed to the in-window action. The
+4. **Emit an action ceiling — exactly one verb from** `{monitor, probe, commit, hold,
+   scale, avoid, reduce}`, **matched to the demand-state**: durable → **commit** (then
+   **scale** as persistence is earned); transient → reversible **commit**, **reduce** on
+   decay; manufactured → **avoid**. Horizon is not declared — it accretes via monitoring. The
    ceiling verb is the read's interpretation, justified per-case in the trace.
 5. **Cap the ceiling by the weakest load-bearing evidence (floor/ceiling rule).**
-   - A **material/irreversible** verb (act / phase / narrow / a costly-or-committing
-     defend) requires **≥2 independent converging origins**; on a **single**
-     independent origin the ceiling caps at **hold / low-commitment**.
+   - A **material/irreversible** verb (**commit** or **scale**) requires **≥2 independent
+     converging origins**; on a **single** independent origin the ceiling caps **below
+     commit** (at **monitor / probe / hold**).
    - **Engagement / attention-only** evidence (no gradeable costly behavior) **cannot
      carry a Commit-grade** recommendation; it caps the ceiling.
    - The ceiling is **tiered by costly-behavior strength** (one gradeable instance →
-     hold/low-commitment; a corroborated pattern → higher) and is **never stronger
-     than the weakest load-bearing evidence** supports.
-   - **Defend is not automatically low-commitment**: a costly/committing defend is
-     material and takes the ≥2-origin bar.
+     low-commitment, `monitor`/`probe`/`hold`; a corroborated pattern → higher) and is
+     **never stronger than the weakest load-bearing evidence** supports.
+   - A **costly or scaling position** is material and takes the ≥2-origin bar;
+     `monitor` / `probe` / `hold` are the low-commitment band.
 6. **Consume, don't re-adjudicate, the manufactured axis and the gate.** The
    manufactured-axis defeat (and the ratified G1/G2 Demand-Substrate Hard Gate) are
    settled upstream (C1 + C2 Rule 3). C3 receives a real-or-disqualified input and
@@ -117,10 +271,10 @@ manufactured) demand under an active `decision_family` and Decision Frame (C0), 
    band**, **reusing the contestant band-claim vocabulary — not a new one**),
    `signals_used` (each tagged with its `signal_id`), and a **required
    `reasoning_trace`** carrying the verdict, the persistence basis (or its
-   absence), the horizon, the ceiling verb, and **every cap reason** (independence
+   absence), the ceiling verb, and **every cap reason** (independence
    count, costly-behavior strength, engagement-only). The sealed C3/C4 + trace is
    the JSG-06 scoreable child.
-8. **Stay qualitative (INV-1).** The verdict, horizon, ceiling verb, and
+8. **Stay qualitative (INV-1).** The verdict, ceiling verb, and
    confidence_band are **qualitative classifications with reasons** — no number,
    score, formula, or deterministic table maps an independence-count, weight band,
    or signal strength to a ceiling. (The ≥2-origin bar is the ratified gate's
@@ -161,8 +315,9 @@ manufactured) demand under an active `decision_family` and Decision Frame (C0), 
 - **Outputs:** the `sealed_call` slots — `recommendation`, `confidence_band`
   (qualitative band, contestant vocabulary), `signals_used` (each tagged
   `signal_id`), `reasoning_trace` (required) — plus the **demand-state verdict**
-  (`durable | transient`, given `real`) and the **action ceiling**
-  (`act | phase | narrow | hold | defend`) with its **horizon** (`commit | move`).
+  (`durable | transient`, given `real`) and the **action ceiling** — one verb from
+  (`monitor | probe | commit | hold | scale | avoid | reduce`); horizon is **not** a
+  separate output, it accretes via monitoring.
 - **Invariants honored:** INV-1 (qualitative, no scoring; `product_learning` cap
   travels); the **calling-sequence default** (transient unless observed persistence;
   durable earned, never asserted at t=0); INV-6 (consume the ratified gate, don't
@@ -181,11 +336,11 @@ manufactured) demand under an active `decision_family` and Decision Frame (C0), 
 - **Persistence-pattern routing:** a persistence-axis pattern (resale / event /
   scarcity) treated as a **manufactured cap** fails — it must classify the read
   **transient** with a time-boxed ceiling and **cite its discriminator**.
-- **Ceiling vocabulary:** a ceiling verb outside `{act, phase, narrow, hold, defend}`
+- **Ceiling vocabulary:** a ceiling verb outside `{monitor, probe, commit, hold, scale, avoid, reduce}`
   fails.
-- **Independence cap:** a **material/irreversible** verb (act/phase/narrow/costly-defend)
-  emitted on a **single** independent origin fails (must cap at hold/low-commitment
-  unless ≥2 converging independent origins).
+- **Independence cap:** a **material/irreversible** verb (`commit` or `scale`)
+  emitted on a **single** independent origin fails (must cap below commit at
+  `monitor`/`probe`/`hold` unless ≥2 converging independent origins).
 - **Engagement-only cap:** a **Commit-grade** ceiling carried by engagement/attention-only
   evidence (no gradeable costly behavior) fails.
 - **Weakest-evidence cap:** a ceiling stronger than the weakest load-bearing evidence
@@ -197,7 +352,7 @@ manufactured) demand under an active `decision_family` and Decision Frame (C0), 
   the confidence_band is computed from a number/formula/threshold; a computed ceiling
   fails.
 - **Trace content:** the trace carries the verdict + persistence basis (or its
-  absence) + horizon + ceiling + **every cap reason**; a verdict or ceiling that moves
+  absence) + ceiling + **every cap reason**; a verdict or ceiling that moves
   without a stated reason fails.
 - **Consume-don't-reopen:** a read that re-adjudicates the manufactured-axis defeat
   (settled at C1/C2) or reopens the G1/G2 gate fails.
@@ -226,19 +381,21 @@ spec_handoff:
   required_behavior: >
     C3 turns the C2-weighted allowed signals (for a real, not-manufactured demand)
     into a two-axis demand-state verdict (durable | transient, given real) and an
-    action ceiling (act | phase | narrow | hold | defend) matched to the demand's
-    lifespan (durable -> commit, transient -> move, time-boxed). It defaults to
+    action ceiling (one verb from monitor | probe | commit | hold | scale | avoid | reduce)
+    matched to the demand-state (durable -> commit then scale; transient -> reversible
+    commit, reduce on decay; manufactured -> avoid; horizon accretes via monitoring, not
+    declared). It defaults to
     transient unless observed post-trigger persistence is in the information set
     (durable is earned, never asserted at t=0); classifies persistence-axis patterns
     (resale / event / scarcity, routed from C2 Rule 3 with a cited discriminator) as
     transient, not as caps; caps the ceiling by the weakest load-bearing evidence
-    (>=2 independent converging origins for a material/irreversible verb; single
-    origin -> hold/low-commitment; engagement-only cannot carry Commit-grade; defend
-    is not automatically low-commitment); consumes (does not reopen) the manufactured
+    (>=2 independent converging origins for a material verb, commit or scale; single
+    origin -> below commit at monitor/probe/hold; engagement-only cannot carry
+    commit/scale-grade); consumes (does not reopen) the manufactured
     axis and the ratified G1/G2 gate; fills the sealed_call (recommendation,
     qualitative confidence_band in the contestant vocabulary, signals_used tagged
     by signal_id, required reasoning_trace carrying verdict + persistence basis +
-    horizon + ceiling + every cap reason); and stays qualitative (INV-1, no number).
+    ceiling + every cap reason); and stays qualitative (INV-1, no number).
   non_goals:
     - manufactured-axis re-adjudication or G1/G2 reopen (upstream C1 + C2 Rule 3)
     - numeric/ordinal ceiling or deterministic apply-rule from independence-count/strength (INV-1)
@@ -250,19 +407,19 @@ spec_handoff:
     - any build, row population, runner, or automated scorer beyond the authorized first by-hand read
   interfaces_contracts:
     - inputs_read_only: [active (decision_family, Decision Frame), C2-weighted allowed signals (direction + reasoning + qualitative band + signal_id + caveats), integrity disposition (real | disqualified/held) from C1+C2, persistence-axis discriminator findings from C2 Rule 3]
-    - outputs: [demand_state_verdict (durable|transient, given real), action_ceiling (act|phase|narrow|hold|defend) + horizon (commit|move), sealed_call{recommendation, confidence_band, signals_used, reasoning_trace}]
+    - outputs: [demand_state_verdict (durable|transient, given real), action_ceiling (monitor|probe|commit|hold|scale|avoid|reduce; horizon accretes via monitoring, not a declared output), sealed_call{recommendation, confidence_band, signals_used, reasoning_trace}]
     - invariants: [INV-1 (qualitative, no scoring; product_learning cap travels), calling-sequence default (transient unless observed persistence), INV-6 (consume the gate, don't reopen)]
   acceptance_criteria:
     - two-axis verdict present (no single-axis / hollow verdict)
     - transient-default / earned-durable (no durable without observed persistence in the information set)
     - persistence-pattern routed to transient with a cited discriminator (not a manufactured cap)
-    - ceiling drawn from {act, phase, narrow, hold, defend}
-    - independence cap (material verb needs >=2 converging origins; single origin -> hold/low-commitment)
+    - ceiling drawn from {monitor, probe, commit, hold, scale, avoid, reduce}
+    - independence cap (material verb commit/scale needs >=2 converging origins; single origin -> below commit at monitor/probe/hold)
     - engagement-only cap (no Commit-grade on attention-only evidence)
     - weakest-load-bearing-evidence cap
     - sealed_call filled (recommendation + qualitative confidence_band + tagged signals_used + reasoning_trace)
     - INV-1 disqualifier (no number/formula-computed ceiling or band)
-    - trace carries verdict + persistence basis + horizon + ceiling + every cap reason
+    - trace carries verdict + persistence basis + ceiling + every cap reason
     - consume-don't-reopen (no manufactured re-adjudication, no G1/G2 reopen)
   deferred_open_questions:
     - contestant confidence_band vocabulary (decision-object owned; consumer reuses by pointer)
@@ -281,7 +438,7 @@ spec_handoff:
       first-read scope relies on it.
   scoping_may_rely_on: >
     the two-axis verdict contract; the transient-default / earned-durable rule;
-    the persistence-pattern -> transient routing; the {act,phase,narrow,hold,defend}
+    the persistence-pattern -> transient routing; the {monitor,probe,commit,hold,scale,avoid,reduce}
     ceiling vocabulary; the floor/ceiling cap rule (>=2 converging origins,
     engagement-only cap, weakest-evidence cap); the consume-don't-reopen boundary;
     the sealed_call output surface; and INV-1. Open: the contestant band vocabulary,

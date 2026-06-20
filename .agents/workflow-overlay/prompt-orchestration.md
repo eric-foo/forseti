@@ -210,6 +210,24 @@ surface. The contract is applied at two depths:
   patch prompt, a cross-recipient or durable handoff/commission, or first-of-kind
   for its task.** These are the cases where the skill's depth earns its cost.
 
+**Durable and cross-recipient prompts are authored as a FILE-WRITE under
+`docs/prompts/**`, not chat-only.** A review, handoff, commission, wrapper,
+rerun, or patch prompt — and any prompt handed to another model, agent, thread,
+or worktree — is written to its accepted `docs/prompts/**` folder (Supported
+Prompt Families) as the durable artifact of record; `paste-ready-chat` then
+carries a COPY of that filed body for pasting and is **not a substitute for
+filing**. This is what makes the contract enforceable for source-loading: the
+`docs/prompts/**` PostToolUse hook (`check_prompt_provenance.py`) fires only on a
+disk write and injects the preflight — output mode, edit permission, **source
+pack / required reads**, the Source-Gated Method Contract, and the
+doctrine-change receipt — and its one named blind spot is exactly the
+"paste-ready-chat prompt that never touches disk." Filing closes that blind spot
+and routes the prompt's source-loading through the preflight. `chat-only` is
+reserved for a trivial, single-target inline prompt that routes no durable or
+cross-recipient work; a review/patch, a cross-recipient or durable
+handoff/commission, or a first-of-kind prompt is never chat-only (and, per the
+two-depth routing above, never routine).
+
 If `workflow-prompt-orchestrator` is not resolver-available when a case needs it,
 apply this file's full contract or return a visible blocker; this routing default
 does not claim the skill is an adopted or resolver-validated executable.
@@ -504,10 +522,14 @@ Highest-token actions to carve out: external web page opens, search result pages
   summary before the artifact receipt.
 - `review-report`: perform read-only review unless a patch-execution lane is explicitly assigned; write reports under `docs/review-outputs/` or a typed child folder, then return the compact YAML review summary in chat only after the report write succeeds. If the required report write fails, return `status: failed`, `review_location: chat_only_current_thread`, and `recommendation: blocked` in chat without `report_path`, name the failed path, and include enough human-readable failure detail to route.
 - `paste-ready-chat`: return one prompt, wrapper, handoff, or review request
-  body in chat for copying into another model, agent, thread, or worktree. The
-  pasted body may be the artifact, but any surrounding Chief Architect,
-  planning, overlay gate, or routing decision should still use the human-readable
-  chat shape from `.agents/workflow-overlay/communication-style.md`.
+  body in chat for copying into another model, agent, thread, or worktree. For a
+  durable or cross-recipient prompt the durable artifact of record is the filed
+  `docs/prompts/**` file (see "Author Through The Prompt Orchestrator"); the chat
+  body is a copy for pasting, not a substitute for filing — use
+  `paste-ready-chat` without a filed artifact only for a trivial single-target
+  inline prompt. Any surrounding Chief Architect, planning, overlay gate, or
+  routing decision should still use the human-readable chat shape from
+  `.agents/workflow-overlay/communication-style.md`.
 - `patch-queue`: produce stable patch units, target files, authority basis, and validation gates. Applying patches requires separate execution authority.
 
 The general human-summary / agent-detail / optional courier-state chat shape is owned by `.agents/workflow-overlay/communication-style.md`. This file owns output-mode exceptions to that shape:
@@ -592,73 +614,6 @@ Before using a generated Orca prompt, apply these gates:
 - Generic layout ideas may be reused only after binding to Orca paths, artifact roles, output modes, and validation gates.
 
 ## Direction Change Propagation
-
-```yaml
-direction_change_propagation:
-  doctrine_changed: >
-    Prompt orchestration now surfaces the fitness_reference (goal + observable
-    success signal, owned by work_unit_fitness_reference_v0) for durable and
-    cross-recipient prompts in two places: the chat return for the dispatcher in
-    plain language (human-glance test), and the prompt body for the receiving
-    executor, pointer-preferred and labeled executor-target / review-axis-to-attack
-    (not a review pass bar). This EXTENDS the surfacing of
-    work_unit_fitness_reference_v0 beyond its review-only scope-lock; it reuses that
-    object (no new vocabulary) and changes none of its substance — not the review
-    back-pressure, the scoped fused gate, prompt_body_injection: no, or the
-    alignment-axis guardrail.
-  trigger: output_authority
-  related_triggers:
-    - workflow_authority
-  controlling_sources_updated:
-    - .agents/workflow-overlay/prompt-orchestration.md
-  downstream_surfaces_checked:
-    - docs/decisions/work_unit_fitness_reference_v0.md
-    - .agents/workflow-overlay/review-lanes.md
-    - .agents/workflow-overlay/communication-style.md
-    - .agents/workflow-overlay/validation-gates.md
-    - AGENTS.md
-  intentionally_not_updated:
-    - path: docs/decisions/work_unit_fitness_reference_v0.md
-      reason: >
-        The owning decision is unchanged in substance; this overlay rule extends
-        its surfacing and cites it as the concept owner. The decision's scope-lock
-        (adversarial artifact review + fused gate) remains accurate for what it
-        enacted; the extension lives in the overlay, not by re-opening the decision.
-    - path: .agents/workflow-overlay/review-lanes.md
-      reason: >
-        Its review-side fitness_reference rule (pointer-preferred, axis-to-attack,
-        name the gap when unbound) is unchanged and is explicitly preserved by the
-        new rule's executor-target / not-a-pass-bar labeling.
-    - path: .agents/workflow-overlay/communication-style.md
-      reason: >
-        It owns the general chat shape; its Decision-criteria consumption item
-        already accommodates a surfaced goal+signal. prompt-orchestration.md owns
-        output-mode behavior and carries the new surfacing requirement, so no
-        duplicate rule is added here.
-    - path: .agents/workflow-overlay/validation-gates.md
-      reason: >
-        Its prompt gates defer to prompt-orchestration.md as the prompt-mechanics
-        owner; the new surfacing rule lives there and needs no new gate.
-    - path: AGENTS.md
-      reason: >
-        Routes prompt detail to prompt-orchestration.md; the rule lives in that
-        owner file, so no root restatement is added.
-  stale_language_search: >
-    rg -i "fitness_reference|prompt_body_injection|success signal|fitness reference"
-    .agents/workflow-overlay (run 2026-06-15 in worktree orch-goal-success @ cd681d9e)
-  stale_language_search_result: >
-    Executed 2026-06-15. Hits: prompt-orchestration.md (the goal-fitness gate, the
-    review fitness_reference rule, review gate item g), review-lanes.md (the
-    review-side fitness_reference rule), skill-adoption.md (the workflow-goal-framing
-    skill entry). None states an opposing rule; all are consistent with extending
-    the same object's surfacing. No surface forbids surfacing the fitness_reference
-    in chat or carrying it pointer-preferred in a prompt body.
-  non_claims:
-    - not validation
-    - not readiness
-    - not source promotion
-    - not implementation authorization
-```
 
 ```yaml
 direction_change_propagation:
@@ -770,6 +725,96 @@ direction_change_propagation:
     product-lane artifacts, not doctrine-routing surfaces, and stay valid (the
     full-skill path is never wrong, only sometimes more than a routine prompt needs)
     -- reconciling them is out of scope for this kernel change.
+  non_claims:
+    - not validation
+    - not readiness
+    - not source promotion
+    - not implementation authorization
+```
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Durable and cross-recipient Orca prompts (review, handoff, commission,
+    wrapper, rerun, patch — and any prompt handed to another model/agent/thread/
+    worktree) must now be authored as a FILE-WRITE under docs/prompts/**, not
+    chat-only; paste-ready-chat carries a copy of the filed body, not a substitute
+    for filing. This retracts the previously-accepted limitation that the
+    docs/prompts/** provenance hook (check_prompt_provenance.py) misses
+    paste-ready-chat prompts that never touch disk: by requiring durable prompts
+    to touch disk, the hook always fires and injects the preflight (incl. source
+    pack / required reads + the Source-Gated Method Contract), so source-loading
+    is enforced for every durable prompt. chat-only is reserved for trivial,
+    single-target inline prompts.
+  trigger: workflow_authority
+  related_triggers:
+    - output_authority
+  controlling_sources_updated:
+    - .agents/workflow-overlay/prompt-orchestration.md
+    - .agents/hooks/check_prompt_provenance.py
+  downstream_surfaces_checked:
+    - AGENTS.md
+    - .agents/workflow-overlay/validation-gates.md
+    - .agents/workflow-overlay/source-loading.md
+    - .agents/workflow-overlay/communication-style.md
+    - .agents/workflow-overlay/template-registry.md
+    - .agents/workflow-overlay/delegated-review-patch.md
+    - .claude/settings.json
+    - docs/decisions/dcp_receipts_archive_v0.md
+  intentionally_not_updated:
+    - path: AGENTS.md
+      reason: >
+        The kernel routes prompt detail to prompt-orchestration.md; the filing
+        rule lives in that owner file, so no root restatement is added.
+    - path: .agents/workflow-overlay/validation-gates.md
+      reason: >
+        Its Authoring-route precondition already requires the prompt contract to
+        have been applied at the correct depth; the filing rule is part of that
+        contract in the owner file, so the gate needs no new text.
+    - path: .agents/workflow-overlay/source-loading.md
+      reason: >
+        Owns the read-pack / orca_start_preflight the hook injects; this rule
+        routes durable prompts through that preflight and changes nothing in the
+        load-side owner.
+    - path: .agents/workflow-overlay/communication-style.md
+      reason: >
+        Owns the general chat shape; the paste-ready-chat output-mode tightening
+        lives in prompt-orchestration.md (output-mode owner), so no duplicate here.
+        Its chat-only hits are review/decision OUTPUT, not prompt authoring.
+    - path: .agents/workflow-overlay/template-registry.md
+      reason: >
+        Lists paste-ready-chat as the delivery mode of FILED docs/prompts/templates/**
+        templates; consistent with "filed artifact + paste copy." No mode removed.
+    - path: .agents/workflow-overlay/delegated-review-patch.md
+      reason: >
+        Its paste-ready-chat route-out is a cross-recipient prompt; under the new
+        rule that is a filed artifact with paste-ready-chat as its copy — consistent.
+        A one-line "filed + copy" clarification is optional, not required; flagged,
+        not silently forked.
+    - path: .claude/settings.json
+      reason: >
+        The hook wiring is unchanged (same PostToolUse Write|Edit registration);
+        only the hook docstring note is updated to reflect the doctrinal closure.
+    - path: docs/decisions/dcp_receipts_archive_v0.md
+      reason: >
+        Receipt-rotation target only — the prior 2026-06-15 fitness_reference
+        receipt was moved there verbatim to keep this file at the
+        two-most-recent-inline limit. Not a doctrine surface.
+  stale_language_search: >
+    rg -i "paste-ready-chat|never touch disk|chat-only|authored.{0,20}file-write"
+    .agents/workflow-overlay AGENTS.md (run 2026-06-20)
+  stale_language_search_result: >
+    Executed 2026-06-20; the terms appear in 5 overlay files (not 1).
+    prompt-orchestration.md carries the new filing rule + paste-ready-chat tightening
+    (the change itself). communication-style.md uses chat-only for review/decision
+    OUTPUT, not prompt authoring — consistent. template-registry.md lists
+    paste-ready-chat as the delivery mode of FILED docs/prompts/templates/** templates
+    — consistent with "filed + paste copy." validation-gates.md names the output-mode
+    enum — consistent. delegated-review-patch.md specifies a paste-ready-chat route-out
+    prompt: under the new rule a cross-recipient route-out is a filed artifact with
+    paste-ready-chat as its copy — consistent, optional one-line clarification flagged
+    (not silently forked). No live surface presents chat-only / paste-ready-without-a-file
+    as an accepted authoring path for a durable or cross-recipient prompt.
   non_claims:
     - not validation
     - not readiness

@@ -28,7 +28,11 @@ WHY (enforcement placement)
 HARD BOUNDARY — remind only, never block, never verdict.
   Exit 0 always; fails OPEN. It cannot verify the contract was or was not
   applied, so the reminder asserts no violation. It misses paste-ready-chat
-  prompts that never touch disk (named, accepted limitation).
+  prompts that never touch disk -- now a residual TECHNICAL limit, not an
+  accepted authoring path: prompt-orchestration.md ("Durable and cross-recipient
+  prompts are authored as a FILE-WRITE under docs/prompts/**") requires durable /
+  cross-recipient prompts to touch disk, so they fire this hook; chat-only is
+  reserved for trivial single-target inline prompts.
 
 MODES
   check_prompt_provenance.py --hook      PostToolUse hook (stdin JSON, exit 0)

@@ -235,7 +235,7 @@ intelligence**, operator-first.
   when they satisfy the buyer-proof gates.
 - The decision the product informs: "is this demand real, durable, and big
   enough to commit inventory, retail, or launch budget to — and at what action
-  ceiling (act / phase / narrow / hold / defend)?"
+  ceiling (monitor / probe / commit / hold / scale / avoid / reduce)?"
 - Lead signal: consumer demand (reviews, forums, social, search). Corroboration:
   org-motion (hiring composition + headcount trend at brand AND parent level),
   kept at org level — never person-level dossiers for org-motion (thesis
@@ -283,8 +283,8 @@ platform, the consolidation, the entity spine, or a feed.
   preserved from the offer hypothesis), derived from the internal memo +
   evidence appendix substrate that remains the reasoning and proof gate.
 - The read it sells: the greatest evidence-supported path for the live
-  consumer-demand decision, with an explicit action ceiling (act / phase /
-  narrow / hold / defend), what the public signal can and cannot support, and
+  consumer-demand decision, with an explicit action ceiling (monitor / probe /
+  commit / hold / scale / avoid / reduce), what the public signal can and cannot support, and
   what would change the answer.
 - The differentiated mechanism (offer-hypothesis mechanism, re-targeted):
   source-backed signal-quality judgment over the demand substrate — cleaning,

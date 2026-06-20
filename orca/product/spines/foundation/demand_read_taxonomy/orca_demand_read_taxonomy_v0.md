@@ -51,8 +51,7 @@ central axis changes from **durable vs hollow** to **two independent axes** —
 **durable vs transient** (persistence) and **real vs manufactured** (integrity).
 "Hollow" is retired: it conflated *transient* (real demand that decays — still
 valuable short-term) with *manufactured* (fake / amplified). Three actionable
-states result — **durable** (commit, long horizon), **transient** (move, short
-horizon, time-boxed to the decay window), **manufactured** (discount / avoid) —
+states result — **durable** (commit, scale as earned), **transient** (probe / commit in-window, time-boxed to the decay window), **manufactured** (avoid) —
 and the action ceiling is matched to the demand's lifespan. Transient gets
 **equal billing** with durable as a read (owner call: spikes are still
 capital-allocation decisions and occur more often than durable shifts). The
@@ -71,8 +70,7 @@ long it will last** — sorting **durable** demand (persists past its trigger) f
 amplified) — by fusing buy-side movement with supply-side org motion under
 integrity labels, identifies who calls the wind in that niche, and packages the
 evidence so judgment can set the action ceiling **matched to the demand's
-lifespan** (act, phase, narrow, hold, defend; long-horizon *commit* vs
-short-horizon *move*).
+lifespan** (monitor, probe, commit, hold, scale, avoid, reduce).
 
 ## Signal Layers
 
@@ -136,18 +134,18 @@ short-horizon *move*).
 The reads sort into the demand-state model: two independent axes — **durable vs
 transient** (does it persist past its trigger?) and **real vs manufactured** (is
 there costly behavior, or is it amplified/fake?) — yielding three actionable
-states. The action ceiling is matched to the demand's lifespan: commit on a
-spike strands inventory; "move" on a durable shift leaves the compounding play
+states. The action ceiling is matched to the demand's lifespan: committing on a
+spike strands inventory; monitoring a durable shift leaves the compounding play
 on the table.
 
-- **Durable-demand read** (real + persists → *commit*, long horizon): independent
+- **Durable-demand read** (real + persists → *commit*): independent
   venue families + wind callers + org motion pointing the same way,
   costly-behavior anchored, and **persisting past the trigger**. Owner's example:
   demand trending toward peptides, evidenced by named influencer wind-callers,
   with companies launching ads and hiring in that direction, and reviews /
   pain-points honing in on the same thing. The trust anchor — the one persistence
   backtests can support.
-- **Transient-spike read** (real + decays → *move*, short horizon, time-boxed):
+- **Transient-spike read** (real + decays → *probe / commit in-window*, time-boxed):
   real costly behavior with a **short expected lifespan** — a genuine spike that
   will normalize (a viral surge, a time-limited dupe wave, a seasonal pop). It is
   **equal billing** with the durable read (owner call, 2026-06-14): it is still a
@@ -169,9 +167,8 @@ on the table.
   restock / sellout; discontinuation / moratorium; defend-versus-hype;
   event-triggered pricing. The demand-state read (durable / transient /
   manufactured), wind-caller state, and integrity labels are the context that
-  makes it decide-grade, and they set the action ceiling **and its horizon**
-  (long-horizon commit vs short-horizon move) — never stronger than signal
-  integrity and decay-timing confidence support.
+  makes it decide-grade, and they set the action ceiling (monitor / probe / commit / hold / scale / avoid / reduce), capped by signal
+  integrity and decay-timing confidence.
 - **Wind-caller calibration** (the compounding asset): grade each niche's
   wind callers' public calls against outcomes over time — on **both** whether the
   move happened **and how long it lasted**, since a caller good at durable shifts
@@ -207,7 +204,7 @@ The reads relate over time, and that sequence is the read grammar's motion:
    *dissolves* the decay-timing problem (no decay curve to forecast at t=0). The
    spike either decays (exit, as called) or its momentum persists.
 3. **Earn the upgrade to durable.** When monitored persistence holds past the
-   trigger, the call upgrades transient → durable (commit, long horizon).
+   trigger, the call upgrades transient → durable (commit, scale as earned).
    Durable is the *earned* state, confirmed by observed momentum — never the
    opening assertion.
 
