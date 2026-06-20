@@ -86,7 +86,7 @@ Likely future tool shape: provenance/date checker.
 Do not automate first: use one manual Daimler pass to learn which publication
 date bases are reliable enough to encode.
 
-### C2: Evidence Unit Registry Spec
+### C2: Evidence Unit (EvidenceUnit) Registry Spec
 
 Blocker: sources are identified, but load-bearing claims are not mapped to
 specific evidence units.
@@ -366,7 +366,7 @@ responsibilities.
 
 Expected relationship:
 
-- C1 Cutoff Provenance may consume Source Capture Packet metadata once the
+- C1 Cutoff Provenance may consume Source Capture Packet (CapturePacket) metadata once the
   toolbox exists.
 - C2 Evidence Unit Registry may use captured source artifacts as inputs.
 - C3 through C7 remain Judgment Spine packet, reveal, execution, and calibration

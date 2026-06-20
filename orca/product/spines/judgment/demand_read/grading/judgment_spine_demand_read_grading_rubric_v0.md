@@ -4,7 +4,7 @@
 retrieval_header_version: 1
 artifact_role: >
   Grader-side standing-rule record — how a revealed/outcome-aware grader grades a
-  by-hand demand read against a sealed outcome. The deductive counterpart to the
+  by-hand demand read (Reading) against a sealed outcome (Outcome). The deductive counterpart to the
   C3 contestant-emit contract (C3 says what a read emits; this says how a grade
   reads it). Standing rules entailed by adopted doctrine, not an empirical
   distillation. Binds no row, runs nothing, edits no other live doc.

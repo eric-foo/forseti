@@ -96,7 +96,7 @@ the home.
 
 | Source | What it owns here |
 | --- | --- |
-| `core_spine_v0_information_production_foundation_v0.md` — Evidence Unit Standard | Source locator/family, actor/audience, event/publication + capture timestamps, pre-cutoff visibility, inspectable-observation requirement, Invalid/Blocked states. |
+| `core_spine_v0_information_production_foundation_v0.md` — Evidence Unit (EvidenceUnit) Standard | Source locator/family, actor/audience, event/publication + capture timestamps, pre-cutoff visibility, inspectable-observation requirement, Invalid/Blocked states. |
 | `core_spine_v0_data_capture_spine_obligation_contract_v0.md` — Ob.7 (identity/actor), Ob.8 (decomposed timing), Ob.9 (cutoff posture), Ob.10 (archive/historical posture), Ob.11 (source visibility), Ob.12 (reconstruction floor), Ob.15 (re-capture supersede/supplement/conflict), Ob.16 (categorical handoff; does **not** define ECR fields) | Capture obligations; the closed cutoff vocabulary (Ob.9); the archive-posture vocabulary and "visible posture required, success not required, sufficiency downstream" rule (Ob.10); the re-capture relationship vocabulary (Ob.15). |
 | `core_spine_v0_data_and_cleaning_spine_boundary_v0.md` — Inclusion State Rule (Receipt/content blocker = ECR-owned; Capture/preservation blocker = "archive posture missing, source visibility cannot be established") | Which blockers are source-side; the cite-IPF-until-consolidation rule. |
 | `packing_to_harness_foundation_interface_architecture_v3.md` — AR-01/03/04/05 | `pre_decision_status` is Judgment-finalized; source bytes / inspectable reference must reach the harness so a hash is verifiable; `PreDecisionStatus` enum values; provenance fields are facilitator-only. |
@@ -443,7 +443,7 @@ direction_change_propagation:
     same name, different shape. SP-6 `source_visibility_posture` is not a literal
     name collision but DUPLICATES the Armory's existing access_posture +
     archive_history_posture + re_capture_relationship VisibleFacts. The Source
-    Capture Armory (SourceCapturePacket, obligation-contract-bound) is the
+    Capture Armory (SourceCapturePacket (CapturePacket), obligation-contract-bound) is the
     implemented source-side producer; this translator coined parallel docs
     vocabulary and adapted to the downstream harness EvidenceUnit instead of
     binding the upstream SourceCapturePacket. FLAGGED as a material acceptance

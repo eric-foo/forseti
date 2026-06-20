@@ -6,7 +6,7 @@ artifact_role: PROPOSED target architecture (planning artifact; pending owner re
 scope: >
   Target architecture, dependency map, core/satellite boundary, and sequenced
   roadmap for Orca's operational decision loop: the layer that makes a LIVE
-  decision process instrumented, governable, and learnable (decision object,
+  decision process (DecisionEvent) instrumented, governable, and learnable (decision object,
   shadow mode, assisted mode, action feedback, decision memory, minimal
   governance, learning loop), beyond the retrospective backtest harness and the
   near-half postmortem/lesson loop.
@@ -77,7 +77,7 @@ screens, tell-audits — all because the outcome already exists somewhere and
 must be kept out.
 
 **A live decision gets the blind seal for free.** At recommendation time,
-nobody — not the org, not the operator, not the model — holds the outcome,
+nobody — not the org, not the operator, not the model — holds the outcome (Outcome),
 because it has not happened. Prospective evidence is therefore structurally
 cleaner at the moment of creation than any backtest can ever be.
 

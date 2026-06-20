@@ -53,7 +53,7 @@ The target architecture froze the decision-object **shape** and the firewall
 **invariants**. This spec makes them **hand-runnable**: for every field, who
 fills it, when, from what source, and what counts as filled; and for the book,
 exactly what an operator does with files, hashes, commits, and pushes. The test
-of completeness: an operator can run a real decision through the loop using
+of completeness: an operator can run a real decision (DecisionEvent) through the loop using
 only this document, with zero invented semantics.
 
 ## Vocabulary Trace Table (zero unmapped names allowed)
@@ -130,7 +130,7 @@ Format per field: **filled by / when / from what / filled means**.
 - optional re-seals / sealing actor + operator / **only before the relevant outcome/resolution signal is known** / each update is a complete new sealed-call entry embedding the prior seal's hash; it never edits or replaces an earlier scoreable call — every prior seal still resolves (adjudicated AR-03 rule).
 
 ### resolution
-- `outcome_record` — resolution actor / when `measurement_window` closes / the metric source named in `resolution_criteria`.
+- `outcome_record` (Outcome) — resolution actor / when `measurement_window` closes / the metric source named in `resolution_criteria`.
 - `score` — resolution actor / same / mechanical application: in-band / over / under per the criteria; nothing else.
 - `indicator_outcomes` — per indicator: led / did not lead / not observable, with lead time when led.
 - `trigger_outcomes` — per trigger: fired correctly / fired wrongly / should have fired / correctly silent.

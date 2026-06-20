@@ -3,7 +3,7 @@
 ```yaml
 retrieval_header_version: 1
 artifact_role: Product artifact
-scope: Case-agnostic owner contract for the JSG-08 outcome reveal/calibration receipt shape.
+scope: Case-agnostic owner contract for the JSG-08 outcome (Outcome) reveal/calibration receipt shape.
 use_when:
   - Deciding whether a Judgment Spine case has satisfied the reveal/calibration gate.
   - Authoring or reviewing reveal readouts, outcome calibration records, scoring handoffs, or claim classifications.
