@@ -8,7 +8,7 @@ scope: >
   TikTok and YouTube inheritance on source-family recon and recipe cards.
 use_when:
   - Deciding whether to patch IG browser-behavior docs before implementation scoping.
-  - Checking what browser-behavior primitives may be shared across social capture surfaces.
+  - Checking which browser-behavior primitives are only candidate-shared until each social surface has recon.
   - Deciding whether TikTok or YouTube can inherit IG-derived capture thresholds.
 authority_boundary: retrieval_only
 open_next:
@@ -137,19 +137,22 @@ The IG model is already mostly directionally correct:
 | 4. Promote run-level receipt fields | Patch sustainability plan Measurement Ledger and future scoping notes | Harness lane found slice-level states exist, but run-level access classification, modeled request count, stop reason, cooldown, lane, capture kind, and route are weak. | Makes durability evidence inspectable without hiding culling or blocks. | Too much schema too early could lock in noisy fields. | One append-only per-read/run receipt that explains all stop states. | Schema/runtime changes separately authorized. |
 | 5. Consolidate block taxonomy | Patch IG docs; optionally later generalize as source-capture receipt vocabulary after more sources | Runner already detects `redirected_to_login`, `rate_limited_429_interstitial`, and `network_security_block`; the shape contract requires distinct non-observed reasons. | Prevents login redirect, rate limit, auth gate, missing signal, and viewport failure from collapsing into generic failure. | Shared vocabulary could overreach if treated as platform-equivalent thresholds. | IG receipts that map each observed failure to one token without fake success. | Docs patch now; shared taxonomy later only after recon. |
 | 6. Keep stable-lane discipline explicit | Patch IG envelope / sustainability plan only | Current envelope says two stable egress lanes, no per-request rotation, and no multiple accounts on one egress as throughput. | Reduces bot-like run shape and false capacity assumptions. | May slow capture; that is acceptable because durability is the point. | Two-lane isolation + additivity receipts. | Owner authorizes Stage 0/3 live lane checks. |
-| 7. Recon-first TikTok/YouTube gate | Patch this note into future routing; do not patch platform thresholds | Capture playbook says recipe cards are authored by probes; recon index says TikTok has no technical recon and social cards are speculative until probed. | Blocks the dangerous shared-controller overclaim while preserving reusable primitives. | Slower cross-platform expansion. | TikTok/YouTube cards with substrate, route, access posture, request-rate ceiling, stop taxonomy, and receipts. | Separate recon commission per platform. |
+| 7. Recon-first TikTok/YouTube gate | Patch this note into future routing; do not patch platform thresholds | Capture playbook says recipe cards are authored by probes; recon index says TikTok has no technical recon and social cards are speculative until probed. | Blocks the dangerous shared-controller overclaim while preserving candidate reusable primitives. | Slower cross-platform expansion. | TikTok/YouTube probe-authored recipe cards or recon-index entries with a `GO` / `PARTIAL` / `NO-GO` / `CATALOG_GAP` verdict, source-native evidence, substrate, route, access posture, request-rate ceiling, stop taxonomy, and receipts. | Separate recon commission per platform. |
 
 ## Platform Generalization
 
 Recommended architecture:
 
-- Shared core concept: browser-behavior controller as a non-authorizing planning
-  abstraction with primitives only: bounded sessions, human-shaped pacing,
-  due-bucket batching, cluster gaps, stop-on-wall, full quiet cooldown,
-  stable-lane discipline, and receipt fields.
-- Platform profile: every threshold and route-specific behavior lives in a
-  platform profile. IG may fill initial values from current evidence.
-  TikTok/YouTube profiles remain unfilled until recon.
+- Candidate shared core concept: browser-behavior controller as a
+  non-authorizing planning hypothesis with substrate-agnostic primitives only:
+  bounded/self-terminating sessions, human-shaped pacing, due-bucket batching,
+  cluster gaps, stop-on-wall, full quiet cooldown, and honest receipt outcomes
+  with opaque stop reasons.
+- Platform profile: every threshold, viewport, enumeration route,
+  block-token taxonomy, egress/lane model, access posture, and
+  route-specific receipt field lives in a platform profile. IG may fill initial
+  values from current evidence. TikTok/YouTube profiles remain unfilled until
+  recon.
 - Do not create a shared controller implementation or universal thresholds now.
 
 | Field | IG | TikTok | YouTube |
