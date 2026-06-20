@@ -20,6 +20,7 @@ open_next:
   - docs/workflows/data_capture_spine_consolidation_map_v0.md
   - docs/workflows/orca_repo_map_v0.md
   - docs/migration/capture_spine_source_capture_migration_inventory_v0.md
+branch_or_commit: codex/capture-spine-core-migration-plan @ 35066b15
 stale_if:
   - Any file under orca/product/spines/capture/ is moved, renamed, deleted, or added.
   - A later accepted Orca decision amends the Capture spine target tree, the source-family phase convention, or the Source Capture Toolbox home.
@@ -31,7 +32,7 @@ stale_if:
 - Current inventory basis: 103 current Capture spine files in this worktree:
   `contracts` 8, `demand_durability_indicators` 8, `operating_model` 35,
   `packet_schema` 3, `source_capture_toolbox` 28, `source_families` 21.
-- This plan does not move, rename, delete, stage, commit, validate, or authorize
+- This plan does not move, rename, delete, validate, or authorize
   runtime/source-access work by itself.
 - The target paths below are proposed future paths. They are not current
   accepted placement until a later accepted execution pass updates the owning
