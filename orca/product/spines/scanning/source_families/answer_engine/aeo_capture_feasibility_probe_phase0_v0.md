@@ -6,7 +6,7 @@ artifact_role: Probe feasibility report (capture-spine Phase-0 AEO answer-captur
 scope: >
   Records a BOUNDED Phase-0 live feasibility probe of AI answer engines (ChatGPT
   logged-out, then Google AI Overviews) to determine whether the answer —
-  surfaced brands (Brand) / products (Product) + cited sources + issued queries — can be reliably AND
+  surfaced brands (Brand)/products (Product) + cited sources + issued queries — can be reliably AND
   automatably captured via devtools (F12 / DOM + network) inspection for a small
   frozen US-fragrance (Vertical) query set. Deliverable: GO / RE-ROUTE verdict + reusable
   extraction pattern + failure characterization. NOT a scaled capture run; NOT

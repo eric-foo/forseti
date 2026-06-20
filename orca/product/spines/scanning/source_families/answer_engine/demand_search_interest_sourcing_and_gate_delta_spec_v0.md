@@ -173,7 +173,7 @@ If AEO is sourced, the minimum observables an AEO capture must record are below 
 framed as a **capture-lane delta routed to the capture spine** (the capture lane owns
 hardening it into the envelope; this spec does not fork a profile): engine · query ·
 date/time · locale · session/logged-out + personalization state · Overview fired /
-`not_shown` · surfaced brands (Brand) / products (Product) · cited sources · raw preserved observable
+`not_shown` · surfaced brands (Brand)/products (Product) · cited sources · raw preserved observable
 (HTML/screenshot equivalent) · visible limitations. Route to the capture lane under
 the obligation contract; do not duplicate envelope obligations here.
 
