@@ -7,7 +7,8 @@ scope: >
   Decides whether a retail_pdp individual review_record adapter can move to
   implementation scoping by resolving or sharply routing three blockers:
   Attachment Record writer/storage binding, Sephora native Bazaarvoice review ID
-  mapping, and Ulta PowerReviews DOM ID semantics. Non-authorizing decision input.
+  mapping, and Ulta PowerReviews DOM ID semantics. Includes the 2026-06-21
+  probe-first addendum for Sephora/Ulta ID evidence. Non-authorizing decision input.
 use_when:
   - Deciding whether the retail_pdp review_record adapter is ready for implementation scoping.
   - Routing the Attachment Record blocker and the Sephora/Ulta native-ID risks to their owning lanes.
@@ -23,7 +24,7 @@ branch_or_commit: codex/retail-pdp-review-recon @ a9dadb90650c9855e93c21a0ffa24c
 stale_if:
   - The retail PDP review_record recon (input hash above) is superseded or re-patched.
   - The Attachment Record writer/storage physicalization seam is bound, implemented, or changed.
-  - A bounded run verifies Sephora Bazaarvoice display-API or Ulta PowerReviews read-API native review IDs (resolves the selector blocker).
+  - A later bounded ID probe supersedes the 2026-06-21 probe-first addendum.
   - Sephora or Ulta review DOM/API substrate is rerun or materially changes.
 ```
 
@@ -31,9 +32,18 @@ stale_if:
 
 - Status: `SCOPING_READINESS_ASSESSED`.
 - Primary recommendation label: **`PARTIAL_READY_ATTACHMENT_BLOCKED`**.
-- Secondary label: **`BLOCKED_SELECTOR_ID_VERIFICATION`** (review-identity key only; the
-  descriptive review fields are source-visible).
-- Compound form: `SELECTORS_PARTIAL__ATTACHMENT_BLOCKED__ID_VERIFICATION_REQUIRED`.
+- Secondary label: **`SELECTOR_ID_VERIFICATION_RESOLVED_FOR_CURRENT_PACKETS`**
+  (Sephora/Ulta current packet identity only; corpus breadth and Attachment Record
+  physicalization remain separate).
+- Compound form: `SELECTORS_CURRENT_PACKET_RESOLVED__ATTACHMENT_BLOCKED`.
+
+2026-06-21 probe-first addendum: the earlier selector-ID blocker is superseded
+for the current Sephora and Ulta packets. Sephora current visible rows can be
+keyed from ProductGroup JSON-LD `reviews[].@id` values matched against visible
+review text; Ulta DOM numeric suffixes are confirmed as PowerReviews
+`review_id` values by a bounded read-API probe. This does **not** make the
+adapter implementation-ready because the Attachment Record physical writer/layout
+seam remains unbound.
 
 This report is a decision input only. It is **not** implementation authorization,
 runtime authorization, source-access boundary amendment, Attachment Record
@@ -98,24 +108,23 @@ Smallest complete outcome: A non-authorizing readiness report that tells the
   can start, and if not, exactly which blocker remains and who owns it.
 Regime: Mixed (Complicated + Complex).
 Why: Blocker 1 and the source-map are reasoned from current contracts/code
-  (Complicated); the Sephora/Ulta native-ID identity is Complex — a live API
-  probe could change the route and cannot be settled from the captured packets.
+  (Complicated); the Sephora/Ulta native-ID identity was Complex before the
+  2026-06-21 addendum and is now resolved for the current packets only.
 Decomposition: Split and classify — reason the attachment binding and source-map
-  from sources; risk-first probe the two ID-identity unknowns.
-Current bottleneck: Two distinct gates — (a) the Attachment Record physical
-  writer/layout seam is unbound (Data Lake physicalization lane), and (b) the
-  native review-ID identity for Sephora non-image rows and Ulta is unverified.
-Riskiest assumption: That the Ulta `pr-rd-review-headline-<N>` numeric suffix and
-  a per-row Sephora native ID are bindable as native review IDs — unconfirmed.
-Stop or pivot condition: If a bounded read-API probe shows the DOM/photo IDs do
-  NOT map to native review IDs, the adapter identity key must be redesigned, not
-  bound to those tokens.
-Allowed next move: Write this report; recommend the two bounded ID-verification
-  runs; name the Data Lake physicalization decision; optionally scope a read-only
-  source-map design that marks the identity field as candidate/residual.
+  from sources; risk-first probe the ID-identity unknowns before adapter work.
+Current bottleneck: The Attachment Record physical writer/layout seam is unbound
+  and belongs to the Data Lake physicalization lane.
+Riskiest assumption: That current-packet ID evidence generalizes to broader
+  Sephora pagination/full-corpus coverage. Current visible/embedded rows are
+  resolved; full-corpus breadth is not proven.
+Stop or pivot condition: If a later packet/API rerun stops exposing matching
+  Sephora ProductGroup `reviews[].@id` values or Ulta `review_id` matches, the
+  adapter identity key must be redesigned for that retailer.
+Allowed next move: Scope a read-only source-map design using current native IDs,
+  and separately route the Data Lake physicalization decision.
 Disallowed next move: Start adapter implementation; run live capture without
-  explicit owner authorization; bind code to the unverified DOM/photo IDs as
-  native; or select an Attachment Record physical backend/layout.
+  explicit owner authorization; claim full-corpus coverage from current packets;
+  or select an Attachment Record physical backend/layout.
 ```
 
 ## 4. ELI5 Summary of the Three Blockers
@@ -126,14 +135,13 @@ Disallowed next move: Start adapter implementation; run live capture without
   get written — that physical decision belongs to the Data Lake lane, and no
   writer exists in the harness today. So we can design the adapter's fields, but
   we cannot finish a durable write path yet.
-- **Sephora: which ID belongs to each review.** The captured page only carries
-  native Bazaarvoice review IDs for reviews that have **photos** (in an embedded
-  blob). The plain visible review rows have no ID attached. We need one small,
-  legal API check to get a per-review ID for the non-photo rows.
+- **Sephora: which ID belongs to each review.** The visible row containers still
+  do not carry IDs, but the same packet's ProductGroup JSON-LD has review `@id`
+  values, and six visible review bodies match six of those keyed review objects.
+  That is enough for current visible rows, not for the full 22k-review corpus.
 - **Ulta: are those numbers real review IDs?** The page shows numbers like
-  `pr-rd-review-headline-580013849`. They *look* like native IDs (big, spread
-  out), but nothing else in the page confirms it, and the structured JSON has no
-  review ID at all. One small read-API check would confirm or deny it.
+  `pr-rd-review-headline-580013849`. The bounded PowerReviews read confirmed all
+  five observed suffixes are native `review_id` values for the current product.
 
 ## 5. Attachment Record Binding Analysis (Blocker 1)
 
@@ -188,38 +196,33 @@ Per the contract's Rejected Shapes, the adapter must not push payload bodies int
 new lake-core fields, create un-keyed loose sidecars, or make a mutable DB row
 the canonical body. No physical backend/layout may be selected in scoping.
 
-## 6. Sephora ID Mapping Analysis (Blocker 2)
+## 6. Sephora ID Mapping Analysis (Blocker 2; Current Packet Resolved)
 
 Packet: `sephora_pdp_review_recon_01` (lip-sleeping-mask P420652), **local-scratch**.
 
-- **Where the native ID is:** native Bazaarvoice review IDs appear **only** inside
-  the embedded `<script id="linkStore" type="text/json" data-comp="PageJSON">`
-  blob, in its `reviewImages[]` array as `{reviewId, photoId, thumbnailImageUrl}`
-  tuples (e.g. `"reviewId":"393913515"`, `"reviewId":"393764708"`). 100
-  `reviewId` occurrences / ~76 unique — all photo-bearing.
-- **Coverage = media rows only (in this packet).** The six rendered review-row
-  containers (`data-comp="Review Review BaseComponent"`) carry **no** `id`,
-  `data-review-id`, or BV token. Direct grep of the full 2.3 MB DOM confirms
-  `"Results": 0`, no BV review-object keys (`UserNickname`/`ReviewText`/`Rating`),
-  and `"reviewImages": 1` — i.e. the captured page contains the photo substrate
-  but **not** a full per-review list with IDs.
-- **Selector a future adapter would use:** descriptive fields are extractable
-  per-row from the rendered DOM; the per-review native ID is available only via
-  the photo substrate (photo rows) or, for all rows, the Bazaarvoice display API
-  (config + token are present in the PageJSON blob).
-- **Still unverified:** whether the Bazaarvoice display API returns a per-review
-  `Id` for non-photo rows (it almost certainly does, but this is not in the
-  captured packet).
-- **Smallest bounded verification:** with owner authorization, issue one read of
-  the Bazaarvoice display API for product `P420652` (the `api.bazaarvoice.com`
-  v5.4 endpoint whose config is in the PageJSON blob) and confirm `Results[].Id`
-  is present for each review. This resolves non-image-row ID coverage.
+- **Local contradiction audit result (2026-06-21):** the projection's parsed
+  ProductGroup JSON-LD row (`retail_embedded_structured_json`, `ld_json[3]`) has
+  10 `reviews[]` entries and all 10 carry `@id` values.
+- **Visible-row match:** the visible text capture says `Viewing 1-6 of 22k
+  reviews`. Six rendered review bodies in that visible section match six
+  ProductGroup `reviews[]` bodies with `@id` values:
+  `394094611`, `393943407`, `393913515`, `393901635`, `393888454`, and
+  `393764708`.
+- **What remains true from the prior analysis:** the rendered review-row
+  containers themselves still carry no `id`, `data-review-id`, or BV token.
+  The key is therefore not attached directly to each rendered container; it is
+  available from the ProductGroup JSON-LD review objects for the current
+  visible/embedded rows.
+- **Readiness impact:** Sephora no longer needs the Bazaarvoice Display API read
+  to key the current visible review rows in this packet. A live BV read is only
+  optional if the desired scope expands to pagination/full-corpus coverage beyond
+  the current visible/embedded rows.
 
-Net: the recon's `GO_WITH_NATIVE_ID_MAPPING_RISK` holds and is sharpened —
-photo-row IDs are in-packet; **non-image-row native IDs are not present in the
-captured evidence** and require one bounded API read.
+Net: Sephora moves from `GO_WITH_NATIVE_ID_MAPPING_RISK` to
+`CURRENT_PACKET_NATIVE_ID_RESOLVED`: current visible rows have native IDs, but
+full 22k-review corpus access is not proven by this packet.
 
-## 7. Ulta ID Semantics Analysis (Blocker 3)
+## 7. Ulta ID Semantics Analysis (Blocker 3; Current Packet Resolved)
 
 Packet: `ulta_pdp_review_recon_01` (night-shift-overnight-lip-mask, sku 2645443),
 **local-scratch**.
@@ -231,24 +234,32 @@ Packet: `ulta_pdp_review_recon_01` (night-shift-overnight-lip-mask, sku 2645443)
 - **No corroboration in-packet:** each number appears **only** as the headline
   element `id`, its `data-testid="headline-<N>"`, and `aria-describedby` — never
   in an href/permalink, a `review_id`/`ugc_id` field, Apollo state, or the
-  projection JSON. So the "native ID" read is suggestive but unconfirmed.
+  projection JSON. So the "native ID" read is suggestive but unconfirmed from the
+  packet alone.
 - **JSON-LD cannot key identity:** the 5 schema.org `Review` objects carry
   `name`, `datePublished`, `author.name`, `locationCreated`, `reviewRating` — and
   **no** `@id`, `url`, `identifier`, or `reviewId`. The only quasi-key
   (`datePublished + author.name + name`) is not collision-resistant. An adapter
   cannot reliably key per-review identity off JSON-LD.
-- **Verdict:** `unresolved_candidate` (moderate-high confidence it is native,
-  unconfirmed). The DOM numeric suffix is the **only** per-review identity token
-  available; binding code to it without confirmation is the risk.
-- **Smallest bounded verification:** with owner authorization, issue one read of
-  the PowerReviews read API for the product
-  (`readservices-b2c.powerreviews.com/m/6406/l/en_US/product/pimprod2046225/reviews`;
-  merchant/page IDs extracted from the DOM) and compare returned `review_id`/`id`
-  values against the five DOM suffixes. Match ⇒ native; mismatch/absence ⇒ UI id.
+- **Bounded read-API probe (2026-06-21):** the path-only read of
+  `readservices-b2c.powerreviews.com/m/6406/l/en_US/product/pimprod2046225/reviews`
+  reached PowerReviews and returned `401 api key is required for authentication`.
+  The source-visible Ulta DOM exposes `api_key: 'daa0f241-...'` and
+  `merchant_id: '6406'`, so the corrected read used the same host/path with
+  `?apikey=<source-visible DOM value>`.
+- **Probe result:** the corrected GET returned `200`, `application/json`,
+  `length=131403`, top-level keys `configuration,name,paging,results,native_filter`.
+  `paging.total_results=671`, `page_size=5`, and the first returned review has
+  `review_id=580013849`.
+- **ID comparison:** returned numeric ID candidates include all five DOM suffixes:
+  `575373729`, `576140820`, `578859756`, `579948269`, and `580013849`.
+- **Readiness impact:** Ulta `pr-rd-review-headline-<N>` suffixes are confirmed as
+  native PowerReviews `review_id` values for the current product packet. JSON-LD
+  remains unsuitable as an identity fallback because it still carries no ID field.
 
-Net: the recon's `GO_WITH_ID_SEMANTICS_RISK` holds and is sharpened — bind to the
-DOM numeric suffix only after one read-API confirmation; JSON-LD is not a fallback
-identity source.
+Net: Ulta moves from `GO_WITH_ID_SEMANTICS_RISK` to
+`CURRENT_PACKET_NATIVE_ID_RESOLVED`: bind current PowerReviews rows to the DOM
+numeric suffix as native `review_id`, subject to rerun staleness.
 
 ## 8. Amazon Partial-Scope Note (Blocker 4 / scope boundary)
 
@@ -265,7 +276,8 @@ the access probes:
 - **Recommendation:** include Amazon only as a **partial source — PDP top reviews
   only** in first scoping; hold full-corpus pagination as blocked. Amazon's
   identity risk is the lowest (ID is attached per row), but its corpus is the
-  smallest; Sephora/Ulta offer fuller row coverage pending one ID probe each.
+  smallest; Sephora/Ulta current-packet identity is now resolved by the
+  2026-06-21 addendum.
 
 ## 9. Recommendation Label
 
@@ -274,16 +286,17 @@ descriptive-field source-map + the Required-Shape body) is bounded enough to
 scope, but the durable write path is blocked because the Attachment Record
 physical writer/layout seam is an unbound Data Lake-lane decision.
 
-**Secondary: `BLOCKED_SELECTOR_ID_VERIFICATION`** — the review-**identity** key is
-unverified for Sephora non-image rows and for Ulta; each needs one bounded read-API
-confirmation before code treats those tokens as native review IDs.
+**Secondary: `SELECTOR_ID_VERIFICATION_RESOLVED_FOR_CURRENT_PACKETS`** — the
+review-**identity** key is resolved for the current Sephora and Ulta packets.
+Sephora is keyed by ProductGroup JSON-LD `reviews[].@id` matched to visible rows;
+Ulta is keyed by PowerReviews `review_id` confirmed against DOM suffixes.
 
-Ruled out: `READY_FOR_IMPLEMENTATION_SCOPING` (write seam + identity unresolved);
+Ruled out: `READY_FOR_IMPLEMENTATION_SCOPING` (write seam unresolved);
 `BLOCKED_NEEDS_DATA_LAKE_BINDING_DECISION` as *primary* (the contract already binds
 the Required Shape — what is missing is physicalization, not the binding, so the
 adapter source-map can still be scoped); `RUN_REQUIRED_NO_AUTHORITY` as the whole
-verdict (only the identity sub-question needs a run); `NO_GO_RECON_STALE` (the
-recon is the current, adjudicated, hash-stable `692aa51b…` version).
+verdict (the ID sub-question has been probed for current packets); `NO_GO_RECON_STALE`
+(the recon is the current, adjudicated, hash-stable `692aa51b…` version).
 
 ## 10. Minimal Implementation-Scoping Surface and Exact Next Blockers
 
@@ -294,10 +307,11 @@ source-map design that:
    Sephora rendered review rows, Ulta JSON-LD + PowerReviews rows.
 2. Defines the `review_record` candidate body against the Attachment Record
    Required Shape, keyed by `packet_id`/`slice_id`/retailer/product-or-SKU/source
-   URL and **native-or-candidate** review ID, raw source-visible fields only.
-3. Marks the review-identity field as `candidate` (Ulta DOM suffix; Sephora
-   non-photo rows) until a verification run promotes it, and marks absent fields
-   as per-field residuals.
+   URL and native review ID where current packets bind it, raw source-visible
+   fields only.
+3. Uses Sephora ProductGroup JSON-LD `reviews[].@id` for current visible/embedded
+   rows and Ulta PowerReviews DOM suffixes as confirmed `review_id` values; marks
+   absent fields and out-of-current-packet corpus breadth as per-field residuals.
 4. Keeps the extractor strictly packet-local.
 
 **Exact remaining blockers before full adapter implementation scoping is `READY`:**
@@ -305,10 +319,9 @@ source-map design that:
 - **B1 (upstream lane/owner):** Data Lake physicalization lane binds the
   Attachment Record writer seam (layout/serialization/backend) per the contract's
   Deferred Decisions. Until then, only candidate bodies, not durable records.
-- **B2 (bounded run, owner-authorized):** Sephora Bazaarvoice display-API read
-  confirming per-review `Id` for non-photo rows.
-- **B3 (bounded run, owner-authorized):** Ulta PowerReviews read-API read
-  confirming the `pr-rd-review-headline-<N>` suffix equals the native `review_id`.
+- **B2/B3 status:** current-packet Sephora and Ulta ID verification is resolved
+  by the 2026-06-21 addendum. A later live run is needed only if scope expands to
+  broader pagination/full-corpus coverage or the retailer substrate changes.
 
 ## 11. Evidence Table
 
@@ -318,40 +331,38 @@ source-map design that:
 | Attachment Record Required-Shape keys + immutable hash-checkable body; layout/backend/writer seam deferred | repo-verifiable | `…attachment_record_implementation_contract_v0.md` (Required Shape; Deferred Decisions) |
 | `PreservedFile` hash discipline = packet-relative path + sha256 + `hash_basis=raw_stored_bytes` | repo-verifiable | `orca-harness/source_capture/models.py:57-66,108-124` |
 | Recon is current, adjudicated, hash-stable | repo-verifiable | `git show HEAD:…recon_v0.md` sha256 `692aa51b…`; HEAD `a9dadb90` |
-| Sephora native BV IDs present for photo rows only (`reviewImages[]`); no full per-review list / `Results` in captured DOM | local-scratch | `sephora_pdp_review_recon_01` DOM (`"reviewId"`×100, `"reviewImages"`×1, `"Results"`×0) |
+| Sephora ProductGroup JSON-LD has 10 `reviews[]` entries with 10 `@id` values | local-scratch | `sephora_pdp_review_recon_01/retail_pdp_projection.json`, `ld_json[3]` |
+| Sephora visible rendered review section exposes 6 rows and all 6 body-match ProductGroup reviews with `@id` values | local-scratch | `sephora_pdp_review_recon_01/packet/raw/02_cloakbrowser_visible_text.txt` (`Viewing 1-6 of 22k reviews`) |
 | Sephora rendered review-row containers carry no ID attribute | local-scratch | `sephora_pdp_review_recon_01` DOM (`data-comp="Review Review BaseComponent"`, no `id`/`data-review-id`) |
 | Ulta DOM `pr-rd-review-headline-<N>` IDs are sparse/large; absent elsewhere in packet | local-scratch | `ulta_pdp_review_recon_01` DOM (5 unique tokens; no href/`review_id`/Apollo match) |
 | Ulta JSON-LD `Review` objects carry no `@id`/`url`/`identifier`/`reviewId` | local-scratch | `ulta_pdp_review_recon_01` DOM `ld+json[1]` (5 Review objects) |
+| Ulta PowerReviews API confirms DOM suffixes as native `review_id` values | bounded live read | `readservices-b2c.powerreviews.com/m/6406/l/en_US/product/pimprod2046225/reviews?apikey=<source-visible DOM value>` returned 200; `paging.total_results=671`; all 5 DOM suffixes matched |
 | Amazon PDP top reviews expose `data-reviewid`; all-review pagination blocked | local-scratch | recon Field Verdicts; packets `amazon_pdp_control_01`, `amazon_review_page_*` |
-| Sephora non-image-row native ID coverage | unverified | needs Bazaarvoice display-API read for P420652 (`Results[].Id`) |
-| Ulta DOM numeric suffix == native `review_id` | unverified | needs PowerReviews read-API read for `pimprod2046225` |
+| Attachment Record physical writer/layout seam | unverified upstream decision | Data Lake physicalization lane still required before durable adapter implementation |
 
 ## 12. Owner Decisions Needed
 
-1. **Authorize (or decline) the two bounded ID-verification reads** (B2, B3
-   above). They are single read-only API GETs, no auth/proxy/CAPTCHA/gate-defeat,
-   but they are live network and therefore require explicit per-run owner
-   authorization. Without them, the identity key stays `candidate`.
-2. **Sequence the Data Lake physicalization lane** (B1) that binds the Attachment
+1. **Sequence the Data Lake physicalization lane** (B1) that binds the Attachment
    Record writer seam — a separate Data Lake-lane decision, not the adapter lane's.
-3. **Confirm first-scope retailer set** — recommended: scope all three
+2. **Confirm first-scope retailer set** — recommended: scope all three
    source-maps; treat Amazon as PDP-top-reviews-only; do not commit a durable
    write path for any retailer until B1 lands.
+3. **Optional broader-corpus choice:** decide whether Sephora/Ulta first scope is
+   current visible/embedded rows only, or whether pagination/full-corpus coverage
+   should be probed before implementation scoping.
 4. **Optional hygiene:** register this report in `docs/workflows/orca_repo_map_v0.md`
    to satisfy the forward-only retrieval-header CI orphan gate. Left undone here
    because this commission's edit permission was scoped to the report file only.
 
 ## 13. Required Follow-up Prompt / Report / Run
 
-- **If owner authorizes B2/B3:** a single bounded verification-run prompt that
-  reads the two read-APIs and writes a short evidence note promoting or demoting
-  the identity key per retailer (commit the returned IDs as committed provenance,
-  resolving the recon AR-02 local-scratch durability gap for identity).
-- **In parallel/independently:** a Data Lake physicalization scoping/decision
-  prompt for the Attachment Record writer seam (B1).
-- **After B1 + (B2/B3):** an `workflow-implementation-scoping` pass producing the
+- **Required next:** a Data Lake physicalization scoping/decision prompt for the
+  Attachment Record writer seam (B1).
+- **Optional next:** a pagination/full-corpus source-access probe if the owner
+  wants more than current visible/embedded Sephora/Ulta rows in first scope.
+- **After B1:** an `workflow-implementation-scoping` pass producing the
   `STEP-*` route for the retail_pdp `review_record` adapter. Not before.
-- **No run is authorized by this report.** A read-only source-map design patch
+- **No further run is authorized by this report.** A read-only source-map design patch
   (Section 10) may proceed without a run if the owner prefers to advance scoping
   before the probes.
 
