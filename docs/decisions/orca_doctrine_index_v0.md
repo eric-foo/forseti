@@ -68,6 +68,9 @@ cap here is the doctrine-adoption ceremony itself, not a number.
 | Distillation Doctrine subset — enforcement-placement classification | overlay_enforcement_placement_classification_v0.md | PREPARE-ONLY (EP-01/03/06 substrates built) |
 | Distillation Doctrine subset — overlay-governance binding | distillation_binding_overlay_governance_v0.md | PREPARE-ONLY DRAFT |
 | Pre-sale execution evidence tiers | judgment_spine_pre_sale_execution_evidence_tier_policy_v0.md | ACTIVE |
+| Deletion-Evidence Doctrine (governed-deletion safety; register + strict gate) | deletion_evidence_doctrine_v0.md | ACTIVE — `check_deletion_evidence.py --strict` in ci.yml; register `deletion_evidence_register_v0.yaml` |
+| Ontology<->Runtime Drift-Check Contract (W2b leak-surface semantics) | ontology_runtime_drift_check_contract_v0.md | OWNER-RATIFIED 2026-06-19 — `check_ontology_drift.py --strict` in ci.yml |
+| Repo-Map Architecture (Mini God Tier) — map/submap/header tiers + coverage invariant | orca_repo_map_architecture_mgt_v0.md | OWNER-INVOKED MGT DESIGN 2026-06-19 (design lens; reachability-coverage invariant gated by `check_map_links`) |
 
 ## Product-lane doctrine (docs/product/)
 
@@ -99,5 +102,8 @@ own, owner-gated.
 Router only: registration here is not adoption, validation, or authority —
 each doctrine's own record and the overlay govern. Statuses above are as
 reported by the 2026-06-11 sweep plus this lane's own session verifications
-(MGT, retrieval-metadata, distillation index, folder binding); verify a status
+(MGT, retrieval-metadata, distillation index, folder binding, plus a 2026-06-20
+reconciliation that added the deletion-evidence, ontology<->runtime drift-check,
+and repo-map-architecture (MGT) rows from primary-source reads, with their gates
+confirmed in `.github/workflows/ci.yml`); verify a status
 against its record before relying on it for a strict claim.
