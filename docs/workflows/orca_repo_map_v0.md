@@ -580,20 +580,15 @@ Key files:
 - `orca/product/case_families/product_learning/other_verticals/core_spine_v0_method_validation_mv05_reddit_api_pricing_replay_v0.md`
 - `orca/product/case_families/product_learning/other_verticals/core_spine_v0_method_validation_mv09_thomson_reuters_casetext_replay_v0.md`
 
-## First Proof And Discovery Files
+## Proof-Case Discovery Files
 
-Use for customer discovery, target selection, first proof packet prep, or live
-proof readiness questions.
+Use for customer discovery, target selection, and proof-case candidate
+discovery. (The jb-era first-proof-run set — packet preparation, run charter,
+locks, packet, and the jb/bt204/sh01 slices — was scrapped in PR #303; a fresh
+proof rebuilds on the discovery candidates below.)
 
 Key files:
 
-- `orca/product/case_families/product_learning/other_verticals/core_spine_v0_first_proof_packet_preparation_v0.md`
-- `orca/product/case_families/product_learning/other_verticals/core_spine_v0_first_proof_run_charter_v0.md`
-- `orca/product/case_families/product_learning/other_verticals/core_spine_v0_first_proof_run_locks_v0.md`
-- `orca/product/case_families/product_learning/other_verticals/core_spine_v0_first_proof_run_packet_v0.md`
-- `orca/product/case_families/product_learning/other_verticals/core_spine_v0_first_proof_run_jb_client0_slice_v0.md`
-- `orca/product/case_families/product_learning/other_verticals/core_spine_v0_first_proof_run_bt204_backtest_slice_v0.md`
-- `orca/product/case_families/product_learning/other_verticals/core_spine_v0_first_proof_run_sh01_shadow_slice_v0.md`
 - `orca/product/spines/product_lead/icp_wedge/orca_discovery_batch_0_target_selection_brief_v0.md`
 - `orca/product/spines/product_lead/icp_wedge/orca_discovery_batch_0_qualification_prep_sentry_clerk_v0.md`
 - `orca/product/spines/product_lead/icp_wedge/orca_discovery_batch_0_candidate_context_scan_v0.md`
