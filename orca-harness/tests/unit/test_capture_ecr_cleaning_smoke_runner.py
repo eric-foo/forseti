@@ -351,6 +351,38 @@ def test_retail_missing_text_pattern_anchor_is_finding_not_failure(tmp_path: Pat
     )
 
 
+def test_retail_ambiguous_text_pattern_anchor_is_finding_not_failure(tmp_path: Path) -> None:
+    retail_packet_dir = _write_retail_packet_dir(tmp_path)
+    retail_projection_path = tmp_path / "retail_projection" / "retail_pdp_projection.json"
+    write_retail_pdp_projection(
+        packet_directory=retail_packet_dir,
+        output_path=retail_projection_path,
+    )
+    projection = _load_json(retail_projection_path)
+    for row in projection["rows"]:
+        if row["row_kind"] == "retail_review_substrate":
+            row["raw_anchor"]["anchor_kind"] = "text_pattern"
+            row["raw_anchor"]["anchor_value"] = "Reviews"
+    _write_json(retail_projection_path, projection)
+    smoke_manifest_path = _write_smoke_manifest(
+        tmp_path,
+        retail_packet_dir=retail_packet_dir,
+        retail_projection_path=retail_projection_path,
+    )
+
+    outputs = run_capture_ecr_cleaning_smoke(
+        smoke_manifest_path=smoke_manifest_path,
+        output_dir=tmp_path / "smoke_outputs",
+    )
+
+    summary = _load_json(Path(outputs["smoke_summary"]))
+    assert any(
+        finding["code"] == "retail_row_anchor_unverified"
+        and finding["reason"] == "text_pattern_ambiguous_in_raw"
+        and finding["anchor_value"] == "Reviews"
+        for finding in summary["findings"]
+    )
+
 def test_retail_missing_html_selector_anchor_is_finding_not_failure(tmp_path: Path) -> None:
     retail_packet_dir = _write_retail_packet_dir(tmp_path)
     retail_projection_path = tmp_path / "retail_projection" / "retail_pdp_projection.json"
@@ -872,6 +904,50 @@ def test_periodic_audit_flags_cleaning_projection_ref_row_unresolved(tmp_path: P
         for finding in report["findings"]
     )
 
+def test_periodic_audit_flags_cleaning_text_pattern_anchor_ambiguity(tmp_path: Path) -> None:
+    retail_packet_dir = _write_retail_packet_dir(tmp_path)
+    retail_projection_path = tmp_path / "retail_projection" / "retail_pdp_projection.json"
+    write_retail_pdp_projection(
+        packet_directory=retail_packet_dir,
+        output_path=retail_projection_path,
+    )
+    smoke_manifest_path = _write_smoke_manifest(
+        tmp_path,
+        retail_packet_dir=retail_packet_dir,
+        retail_projection_path=retail_projection_path,
+    )
+    smoke_outputs = run_capture_ecr_cleaning_smoke(
+        smoke_manifest_path=smoke_manifest_path,
+        output_dir=tmp_path / "smoke_outputs",
+    )
+    cleaning_path = Path(smoke_outputs["cleaning_packet"])
+    cleaning_payload = _load_json(cleaning_path)
+    cleaning_payload["handles"][0]["raw_anchor"]["anchor_kind"] = "text_pattern"
+    cleaning_payload["handles"][0]["raw_anchor"]["anchor_value"] = "Reviews"
+    _write_json(cleaning_path, cleaning_payload)
+    audit_manifest_path = _write_audit_manifest(
+        tmp_path,
+        smoke_manifest_path=smoke_manifest_path,
+        smoke_outputs=smoke_outputs,
+    )
+
+    audit_outputs = run_cleaning_spine_periodic_audit(
+        audit_manifest_path=audit_manifest_path,
+        output_dir=tmp_path / "audit_outputs",
+    )
+
+    report = _load_json(Path(audit_outputs["audit_report_json"]))
+    assert any(
+        finding["lane"] == "lane_a_existing_package"
+        and finding["severity"] == "minor"
+        and finding["code"] == "cleaning_text_pattern_anchor_ambiguous"
+        and finding["details"] == {
+            "anchor_kind": "text_pattern",
+            "anchor_value": "Reviews",
+            "occurrence_count": 2,
+        }
+        for finding in report["findings"]
+    )
 def test_periodic_audit_promotes_lane_a_smoke_findings_to_status(tmp_path: Path) -> None:
     retail_packet_dir = _write_retail_packet_dir(
         tmp_path,

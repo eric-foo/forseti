@@ -965,33 +965,52 @@ def _verify_anchor_specificity(
         )
         return
     raw_bytes = raw_path.read_bytes()
-    reason = _specific_anchor_unresolved_reason(
+    issue = _specific_anchor_issue(
         anchor_kind=anchor_kind,
         anchor_value=anchor_value,
         raw_bytes=raw_bytes,
     )
-    if reason is not None:
+    if issue is not None:
+        details = {
+            "anchor_kind": anchor_kind,
+            "anchor_value": anchor_value,
+            **issue.get("details", {}),
+        }
         _finding(
             findings,
             lane=lane,
-            severity="major",
-            code="cleaning_specific_anchor_unresolved",
+            severity=issue["severity"],
+            code=issue["code"],
             owner_candidate="cleaning_or_projection",
             packet_id=raw_anchor["packet_id"],
             handle_id=handle_id,
-            message=reason,
-            details={"anchor_kind": anchor_kind, "anchor_value": anchor_value},
+            message=issue["message"],
+            details=details,
         )
 
 
-def _specific_anchor_unresolved_reason(
+def _specific_anchor_issue(
     *,
     anchor_kind: str,
     anchor_value: str,
     raw_bytes: bytes,
-) -> str | None:
+) -> dict[str, Any] | None:
     if anchor_kind == "text_pattern":
-        return None if anchor_value.encode("utf-8") in raw_bytes else "text_pattern_absent_from_raw"
+        occurrence_count = raw_bytes.count(anchor_value.encode("utf-8"))
+        if occurrence_count == 0:
+            return {
+                "severity": "major",
+                "code": "cleaning_specific_anchor_unresolved",
+                "message": "text_pattern_absent_from_raw",
+            }
+        if occurrence_count > 1:
+            return {
+                "severity": "minor",
+                "code": "cleaning_text_pattern_anchor_ambiguous",
+                "message": "text_pattern_ambiguous_in_raw",
+                "details": {"occurrence_count": occurrence_count},
+            }
+        return None
     if anchor_kind == "html_selector":
         selector_ids = [match.group(1) for match in re.finditer(r"#([A-Za-z0-9_-]+)", anchor_value)]
         raw_lower = raw_bytes.lower()
@@ -1001,8 +1020,18 @@ def _specific_anchor_unresolved_reason(
                 pattern = rb"(?:id|name)\s*=\s*['\"]" + escaped + rb"['\"]"
                 if re.search(pattern.lower(), raw_lower):
                     return None
-            return "html_selector_id_or_name_absent_from_raw"
-        return None if anchor_value.encode("utf-8") in raw_bytes else "html_selector_literal_absent_from_raw"
+            return {
+                "severity": "major",
+                "code": "cleaning_specific_anchor_unresolved",
+                "message": "html_selector_id_or_name_absent_from_raw",
+            }
+        if anchor_value.encode("utf-8") in raw_bytes:
+            return None
+        return {
+            "severity": "major",
+            "code": "cleaning_specific_anchor_unresolved",
+            "message": "html_selector_literal_absent_from_raw",
+        }
     if anchor_kind == "script_index":
         raw_lower = raw_bytes.lower()
         anchor_lower = anchor_value.lower()
@@ -1013,8 +1042,18 @@ def _specific_anchor_unresolved_reason(
             probes.append(b"application/ld+json")
         if not probes:
             probes.append(anchor_value.encode("utf-8").lower())
-        return None if any(probe in raw_lower for probe in probes) else "script_anchor_substrate_absent_from_raw"
-    return "unsupported_specific_anchor_kind"
+        if any(probe in raw_lower for probe in probes):
+            return None
+        return {
+            "severity": "major",
+            "code": "cleaning_specific_anchor_unresolved",
+            "message": "script_anchor_substrate_absent_from_raw",
+        }
+    return {
+        "severity": "major",
+        "code": "cleaning_specific_anchor_unresolved",
+        "message": "unsupported_specific_anchor_kind",
+    }
 
 
 def _promote_smoke_summary_findings(

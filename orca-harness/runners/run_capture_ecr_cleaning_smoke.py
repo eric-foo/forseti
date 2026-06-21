@@ -871,7 +871,12 @@ def _retail_anchor_unverified_reason(
     if not anchor_value or not anchor_value.strip():
         return "anchor_value_absent"
     if anchor_kind == "text_pattern":
-        return None if anchor_value.encode("utf-8") in raw_bytes else "text_pattern_absent_from_raw"
+        occurrence_count = raw_bytes.count(anchor_value.encode("utf-8"))
+        if occurrence_count == 0:
+            return "text_pattern_absent_from_raw"
+        if occurrence_count > 1:
+            return "text_pattern_ambiguous_in_raw"
+        return None
     if anchor_kind == "script_index":
         return _script_anchor_unverified_reason(anchor_value=anchor_value, raw_bytes=raw_bytes)
     if anchor_kind == "html_selector":
