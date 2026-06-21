@@ -2,9 +2,10 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 from pathlib import Path
-from typing import Sequence
+from typing import TYPE_CHECKING, Sequence
 
 if __package__ in {None, ""}:
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -26,6 +27,9 @@ from source_capture.cli_support import (
 )
 from source_capture.packet_assembly import stage_and_write_packet, staged_file_id_map
 from source_capture.adapters import DirectHttpCaptureFailure, fetch_direct_http_capture
+
+if TYPE_CHECKING:
+    from data_lake.root import DataLakeRoot
 
 
 DIRECT_HTTP_NON_CLAIMS = [
@@ -49,7 +53,8 @@ def run_source_capture_http_packet(
     source_family: str,
     source_surface: str,
     decision_question: str,
-    output_directory: Path,
+    output_directory: Path | None = None,
+    data_root: "DataLakeRoot | None" = None,
     capture_context: str,
     operator_category: str,
     capture_mode: CaptureModeCategory,
@@ -124,6 +129,7 @@ def run_source_capture_http_packet(
 
     result = stage_and_write_packet(
         output_directory=output_directory,
+        data_root=data_root,
         staged_artifacts=artifacts,
         source_slices=[
             SourceCaptureSlice(
@@ -188,7 +194,12 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--source-family", default="web_page")
     parser.add_argument("--source-surface", default="direct_http")
     parser.add_argument("--decision-question", required=True)
-    parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--output", type=Path, default=None)
+    parser.add_argument(
+        "--data-root",
+        default=None,
+        help="Commit into the Orca data lake at this root (or set ORCA_DATA_ROOT); mutually exclusive with --output.",
+    )
     parser.add_argument(
         "--capture-context",
         default="direct HTTP source capture with stdlib urllib",
@@ -226,12 +237,25 @@ def main(argv: Sequence[str] | None = None) -> int:
     args = parser.parse_args(argv)
     try:
         require_series_identity(args)
+        data_root = None
+        output_directory = args.output
+        if args.data_root is not None or os.environ.get("ORCA_DATA_ROOT"):
+            from data_lake.root import DataLakeRoot
+
+            data_root = DataLakeRoot.resolve(explicit=args.data_root)
+            output_directory = None
+        if (output_directory is None) == (data_root is None):
+            parser.exit(
+                status=2,
+                message="exactly one of --output or --data-root/ORCA_DATA_ROOT is required\n",
+            )
         exit_code, message = run_source_capture_http_packet(
             url=args.url,
             source_family=args.source_family,
             source_surface=args.source_surface,
             decision_question=args.decision_question,
-            output_directory=args.output,
+            output_directory=output_directory,
+            data_root=data_root,
             capture_context=args.capture_context,
             operator_category=args.operator_category,
             capture_mode=CaptureModeCategory(args.capture_mode),

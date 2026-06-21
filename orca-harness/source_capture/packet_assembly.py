@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 import json
+import tempfile
 from pathlib import Path
-from typing import Mapping, Sequence
+from typing import TYPE_CHECKING, Mapping, Sequence
 
 from source_capture.models import (
     PacketWriteResult,
@@ -11,6 +12,9 @@ from source_capture.models import (
     VisibleFactStatus,
 )
 from source_capture.writer import write_local_source_capture_packet
+
+if TYPE_CHECKING:
+    from data_lake.root import DataLakeRoot
 
 
 _CAPTURE_POSTURE_AXES = (
@@ -94,7 +98,8 @@ def validate_capture_posture_honesty(
 
 def stage_and_write_packet(
     *,
-    output_directory: Path,
+    output_directory: Path | None = None,
+    data_root: "DataLakeRoot | None" = None,
     staged_artifacts: Sequence[tuple[str, bytes]],
     source_slices: Sequence[SourceCaptureSlice],
     enforce_posture_honesty: bool = True,
@@ -112,6 +117,31 @@ def stage_and_write_packet(
         raise ValueError("input_files and source_slices are owned by stage_and_write_packet")
     if not staged_artifacts:
         raise ValueError("at least one staged artifact is required")
+    if (output_directory is None) == (data_root is None):
+        raise ValueError("exactly one of output_directory or data_root is required")
+
+    if data_root is not None:
+        if enforce_posture_honesty:
+            raw_limitations = writer_kwargs.get("limitations")
+            limitations = raw_limitations if isinstance(raw_limitations, Sequence) else None
+            capture_postures = {axis: writer_kwargs.get(axis) for axis in _CAPTURE_POSTURE_AXES}
+            validate_capture_posture_honesty(
+                source_slices=source_slices,
+                capture_postures=capture_postures,
+                limitations=limitations,
+            )
+        # Lake commit: stage input artifacts in an isolated temp scratch; the writer
+        # copies them into <root>/raw/<packet_id>/ and we discard the scratch.
+        with tempfile.TemporaryDirectory(prefix="orca_capture_stage_") as scratch:
+            staged_paths = [Path(scratch) / filename for filename, _content in staged_artifacts]
+            for staged_path, (_filename, content) in zip(staged_paths, staged_artifacts):
+                staged_path.write_bytes(content)
+            return write_local_source_capture_packet(
+                data_root=data_root,
+                input_files=staged_paths,
+                source_slices=list(source_slices),
+                **writer_kwargs,  # type: ignore[arg-type]
+            )
 
     staging_parent = output_directory.parent
     staging_parent.mkdir(parents=True, exist_ok=True)
