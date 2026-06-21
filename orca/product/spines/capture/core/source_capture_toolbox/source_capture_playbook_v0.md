@@ -153,7 +153,7 @@ Locate **where the signal actually lives**, and name the blocker — *before* pi
   content is visible. Classify access-block posture from rendered **visible text + title** first;
   full-DOM challenge markers alone are a warning/residual signal unless the visible text is empty or
   challenge-only. Conversely, a visible interstitial ("Just a moment", "verify you are human",
-  access-block copy, etc.) is access-failed even when the browser returned artifacts.
+  access-block copy, etc.) is `access_failed` even when the browser returned artifacts.
 - **Output:** a one-line problem statement — `<signal> lives in <substrate>; blocked by <symptom>`.
 
 ## Step 2 — The pointer (problem -> route)
