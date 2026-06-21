@@ -357,7 +357,6 @@ do not block by default. Open these in order:
 | How should old Reddit search/listing HTML be saved, parsed, and interpreted? | `docs/workflows/reddit_candidate_intake_old_reddit_search_surface_handling_v0.md` |
 | What are the proxy and anti-blocking hard stops? | `orca/product/spines/capture/core/source_capture_toolbox/reddit_precommercial_capture_consolidation_success_signal_architecture_v0.md` |
 | What is implemented now? | `docs/workflows/screening_read_service_build_receipt_v0.md`, `docs/workflows/screening_read_reusable_findings_v0.md`, `orca/product/spines/capture/core/source_capture_toolbox/README.md`, then `orca-harness/README.md` and the named runner/adapter files |
-| What is the target default when a screened public venue may deserve capture but repeat visits are risky? | `docs/workflows/single_acquisition_screened_capture_probe_spec_v0.md` |
 
 Current map-level summary: CloakBrowser is the approved primary anti-blocking
 route for bounded pre-commercial Reddit capture, and residential/rotating
@@ -382,13 +381,6 @@ Judgment output.
 For same-shaped listing pages, reuse `StructuredListingExtractionSpec` and the
 row-local locator/range-sanity pattern in
 `docs/workflows/screening_read_reusable_findings_v0.md`.
-
-For uncertain public source/venue probes where screening may promote to capture,
-the target default is `docs/workflows/single_acquisition_screened_capture_probe_spec_v0.md`:
-one acquisition per URL, in-memory screen/evaluation, explicit commit-or-discard,
-and packet commit only after the gate passes. This is not implemented by
-`screening_read(...)`; screen-gated separate capture remains the fallback when a
-route cannot preserve a same-artifact delayed commit.
 
 Reddit Candidate URL Intake is also the bounded first-contact sourcing path for
 declared Reddit source surfaces when a run envelope and live access

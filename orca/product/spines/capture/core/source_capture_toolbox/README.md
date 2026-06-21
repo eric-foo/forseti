@@ -72,7 +72,6 @@ packet without redefining Capture obligations.
 | `orca/product/spines/capture/core/source_capture_toolbox/reddit_precommercial_capture_consolidation_success_signal_architecture_v0.md` | Advisory routing object that explains why the Reddit planning thread needs Decision-Frame-or-candidate classification, non-promoting success tiers, Armory vocabulary reuse, packet-contamination stops, no source-discovery expansion, and candidate-intake gap visibility. |
 | `docs/workflows/screening_read_service_build_receipt_v0.md` | Build receipt and clean-agent usage pointers for the bounded screening-read service and `screening_browser_read` wrapper: orchestrator-invoked, public-only, no packet, no manifest, no ECR. |
 | `docs/workflows/screening_read_reusable_findings_v0.md` | Cross-site reuse pattern for public browser/interstitial screening reads and same-shaped structured listing extraction: visible-text `block_shell`, row-local locators, and range sanity. |
-| `docs/workflows/single_acquisition_screened_capture_probe_spec_v0.md` | Target workflow spec for uncertain public source/venue probes that may deserve capture: acquire each URL once, screen/evaluate in memory, then explicitly commit the same artifact as a packet or discard. Not yet implemented. |
 | `orca/product/spines/capture/core/source_families/retail_pdp/retail_pdp_projection_contract_v0.md` | Retail/PDP raw-packet-to-projection contract/playbook for Amazon, Sephora, and Ulta: capture inputs, projection rows, residual semantics, retailer binding limits, target DOM price/SKU binding posture, and the no-ECR/Cleaning/Judgment boundary. |
 | `orca/product/spines/capture/core/source_families/retail_pdp/retail_pdp_sidecar_operator_playbook_v0.md` | Operator procedure for the bounded Retail/PDP CloakBrowser sidecar smoke across Amazon, Sephora, and Ulta: canonical URLs, flags, scratch output shape, expected projection summaries, failure taxonomy, merge-conflict posture, and code-enforceable follow-up flags. |
 | `orca/product/spines/capture/core/source_families/retail_pdp/retail_pdp_projection_playbook_v0.md` | Retail/PDP raw-packet-to-projection contract for Amazon, Sephora, and Ulta: captured inputs, projected rows, residual meanings, retailer target-binding posture, and the playbook-first boundary before auto-project wiring or ECR sequencing. |
@@ -104,27 +103,6 @@ classify `block_shell` on visible text, not full DOM.
 
 For the validation receipt and first-act old Reddit search-surface closure, open
 `docs/workflows/screening_read_service_build_receipt_v0.md`.
-
-### Single-Acquisition Screened Capture Probe
-
-Purpose: define the target default when a bounded public source or venue is
-uncertain, may deserve capture, and should not be visited twice for the same
-decision.
-
-The spec is at
-`docs/workflows/single_acquisition_screened_capture_probe_spec_v0.md`.
-
-It is a joint scanning/capture posture: scanning supplies the bounded question,
-frontier, and screen evaluation; capture supplies acquisition discipline and
-packet commit. The target state is one acquisition per URL, in-memory screening,
-then either discard with screen-light metadata only or explicitly commit the same
-acquired artifact to a Source Capture Packet after a gate passes.
-
-This is not current implementation. It does not change `screening_read(...)` or
-`screening_browser_read(...)`, which remain pure no-packet/no-ECR screening
-entries. It does not authorize live probes, network access, ECR, Cleaning,
-Judgment, broad crawling, standing monitoring, storage, dashboard, deployment,
-or production runtime.
 
 ### Source Capture Packet Core
 

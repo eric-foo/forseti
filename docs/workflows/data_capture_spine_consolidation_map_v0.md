@@ -49,7 +49,6 @@ stale_if:
 | Check accepted Reddit graph/frontier scouting boundaries | `orca/product/spines/scanning/source_families/reddit/data_capture_spine_reddit_graph_frontier_lane_architecture_v0.md` |
 | Check bounded Reddit candidate URL intake default policy | `docs/decisions/data_capture_spine_reddit_candidate_url_intake_default_policy_decision_v0.md` |
 | Use bounded screening-read service / browser-rung screening read | `docs/workflows/screening_read_service_build_receipt_v0.md`, `docs/workflows/screening_read_reusable_findings_v0.md`, `orca-harness/source_capture/screening_read.py`, and `orca-harness/source_capture/screening_browser_read.py` |
-| Check the target default for uncertain public source/venue probes that may deserve capture | `docs/workflows/single_acquisition_screened_capture_probe_spec_v0.md` |
 | Check LinkedIn Lane discovery, bounded watch, people/business candidate boundaries, and optional POC-risk mode | `orca/product/spines/scanning/source_families/linkedin/data_capture_spine_linkedin_discovery_planning_lane_architecture_v0.md` |
 | Handle old Reddit search/listing HTML for Candidate URL Intake pilots | `docs/workflows/reddit_candidate_intake_old_reddit_search_surface_handling_v0.md` |
 | Plan bounded pre-commercial Reddit capture/consolidation | `orca/product/spines/capture/core/source_capture_toolbox/reddit_precommercial_capture_consolidation_planning_thread_v0.md` |
@@ -98,13 +97,6 @@ stale_if:
   `StructuredListingExtractionSpec` with row-local locators and range sanity.
   Start from `docs/workflows/screening_read_service_build_receipt_v0.md` and
   `docs/workflows/screening_read_reusable_findings_v0.md`.
-- **Single-acquisition screened capture is the target probe posture, not yet
-  implemented.** For uncertain public source/venue probes where repeat visits
-  are a core risk and the page may deserve packet preservation, start from
-  `docs/workflows/single_acquisition_screened_capture_probe_spec_v0.md`. The
-  target is one bounded acquisition per URL, in-memory screening, explicit
-  commit-or-discard, and packet commit only after a promotion gate. Current
-  `screening_read(...)` entries remain pure no-packet/no-ECR screening.
 - **Build authority is bounded.** The source-access tooling authorization owns
   first/second/third-tranche build scope. It now selects CloakBrowser as the
   primary anti-blocking backend.
