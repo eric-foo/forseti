@@ -107,6 +107,17 @@ direction_change_propagation:
   stale_language_search: >
     rg -n "precursor_signal|precursor_surface|capture-needs list|crawler|monitor|registry|atlas|route binding"
     orca/product/spines/scanning docs/workflows/orca_repo_map_v0.md
+    docs/migration/repo_structure_spine_first_v0
+    plus targeted AEO path check:
+    rg -n "orca/product/spines/scanning/source_families/answer_engine/aeo_capture_feasibility_probe_phase0|docs/product/search/aeo_capture_feasibility_probe_phase0|docs/research/answer_engine/aeo_capture_feasibility_probe_phase0"
+    . --glob "!docs/review-inputs/**"
+  stale_language_search_result: >
+    CA-adjudication recheck 2026-06-21: precursor/gate/capture hits are
+    explicit "not proof" safeguards or the intentional capture_request alias;
+    current live AEO routing points to docs/research/answer_engine; old
+    docs/product/search AEO paths remain only in migration resolver/history
+    rows; the old product-spine AEO path appears only as search/audit text
+    or review snapshots, not as a live route. No stale live product-spine AEO route found.
   non_claims:
     - not validation
     - not readiness
