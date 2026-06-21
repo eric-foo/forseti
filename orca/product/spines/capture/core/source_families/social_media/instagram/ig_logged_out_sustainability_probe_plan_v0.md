@@ -368,7 +368,7 @@ Fallback analysis is a decision lane, not an automatic build path.
   comment timestamp capture. This plan records `comment_count` only as source-visible item evidence.
 - Do not prove typed capture, ECR, Cleaning, Judgment, buyer proof, validation, or readiness.
 - Do not use the probe as proof that media/video bytes are capturable.
-- Do not use the probe as proof that TikTok, YouTube, Reddit, or other platform satellites share IG's envelope.
+- Do not use the probe as proof that any non-IG platform satellite shares IG's envelope.
 
 ## Owner Authorization Needed Before Any Run
 
@@ -380,6 +380,31 @@ Before any live IG read, the owner should explicitly authorize:
 4. Ceilings: modeled request ceiling per window, time ceiling per window, total windows.
 5. Cooldown policy: minimum fully quiet cooldown after any block.
 6. Output location: gitignored scratch for raw operational receipts; durable summary only if separately requested.
+
+## Current Probe Prep Defaults - Not Executed
+
+Current owner direction authorizes preparing for a live IG probe. Execution still needs
+the run-specific bounds above in the operating thread before any network read starts.
+
+Use these defaults for the first run package unless the owner overrides them:
+
+- Stage scope: Stage 1 single-lane clean baseline first. Run Stage 0 lane-isolation only before
+  any two-lane interpretation.
+- Lane scope: one logged-out baseline egress lane; no proxy, session, cookies, login automation,
+  or anti-detect setup.
+- Subject set: 4-6 owner-supplied public IG handles, locked before the run; no discovery during
+  the run.
+- Viewport and route: start at 768x1024; record JSON shortcode fallback before classifying
+  an empty DOM grid.
+- Pace and ceiling: 2.5-4s minimum spacing with longer natural gaps; never sub-2s; about
+  80-120 modeled IG-request equivalents unless owner narrows the ceiling.
+- Stop and cooldown: stop on first login redirect, 429-like interstitial, network-security block,
+  unexpected auth wall, or operator concern; use at least 60 minutes fully quiet before any
+  recovery read.
+- Output: gitignored scratch for raw operational receipts; durable summary only after the run
+  if separately requested.
+- Comment scope: comment_count only; no full comment-thread/body capture, commenter identity
+  capture, comment graph expansion, or comment timestamp capture.
 
 Default recommendation: authorize Stage 0 and Stage 1 first. Expand to Stage 2 only after a clean
 Stage 1 receipt, and expand to Stage 3 only after at least one clean Stage 2 window plus confirmed

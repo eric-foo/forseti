@@ -183,8 +183,7 @@ shape whole sessions, not only item-to-item sleeps.
 This section is the named IG browser-session profile:
 `ig_logged_out_browser_session_shape_v0`. It binds anti-bot pacing, stop/cooldown behavior, viewport
 interpretation, and item-level data-integrity evidence as one IG-specific profile. Do not generalize
-its numeric values to TikTok, YouTube, Reddit, or any other platform satellite without source-family
-recon.
+its numeric values outside IG without source-family recon.
 
 Default session posture:
 
