@@ -83,6 +83,19 @@ _JUDGMENT_REASON_TOKENS = frozenset(
     }
 )
 
+_RAW_PULL_TRIGGER_REQUIRED_REASON_TOKENS = frozenset(
+    {
+        "access_blocked",
+        "access_failed",
+        "capture_blocked",
+        "capture_failed",
+        "capture_validity_not_supported",
+        "instagram_structure_not_preserved",
+        "retail_structure_not_preserved",
+        "source_structure_not_preserved",
+    }
+)
+
 
 def run_cleaning_spine_periodic_audit(
     audit_manifest_path: Path,
@@ -854,6 +867,15 @@ def _verify_cleaning_packet_traceability(
             findings=findings,
             lane=lane,
         )
+        _verify_failed_capture_handle_raw_pull_trigger(
+            handle_id=handle.handle_id,
+            packet_id=handle.raw_anchor.packet_id,
+            warnings=handle.warnings,
+            residuals=handle.residuals,
+            raw_pull_triggers=handle.raw_pull_triggers,
+            findings=findings,
+            lane=lane,
+        )
         _verify_no_judgment_reason_tokens(
             handle_id=handle.handle_id,
             values=[
@@ -864,6 +886,49 @@ def _verify_cleaning_packet_traceability(
             findings=findings,
             lane=lane,
         )
+
+
+def _verify_failed_capture_handle_raw_pull_trigger(
+    *,
+    handle_id: str,
+    packet_id: str,
+    warnings: Sequence[str],
+    residuals: Sequence[str],
+    raw_pull_triggers: Sequence[str],
+    findings: list[dict[str, Any]],
+    lane: str,
+) -> None:
+    triggering_reasons = _raw_pull_required_reasons([*warnings, *residuals])
+    if not triggering_reasons:
+        return
+    if any(trigger.strip() for trigger in raw_pull_triggers):
+        return
+    _finding(
+        findings,
+        lane=lane,
+        severity="major",
+        code="cleaning_failed_capture_handle_raw_pull_trigger_missing",
+        owner_candidate="cleaning",
+        packet_id=packet_id,
+        handle_id=handle_id,
+        message=(
+            "Cleaning handle carries failed or blocked capture posture without "
+            "a raw-pull trigger."
+        ),
+        details={"triggering_reasons": triggering_reasons},
+    )
+
+
+def _raw_pull_required_reasons(values: Iterable[str]) -> list[str]:
+    reasons: list[str] = []
+    for value in values:
+        normalized = value.lower()
+        if any(
+            token in normalized
+            for token in _RAW_PULL_TRIGGER_REQUIRED_REASON_TOKENS
+        ):
+            reasons.append(value)
+    return reasons
 
 
 def _verify_cleaning_raw_anchor(

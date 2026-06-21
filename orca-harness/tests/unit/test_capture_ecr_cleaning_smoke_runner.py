@@ -1134,6 +1134,64 @@ def test_periodic_audit_promotes_lane_a_smoke_findings_to_status(tmp_path: Path)
     )
 
 
+def test_periodic_audit_flags_failed_capture_handle_missing_raw_pull_trigger(tmp_path: Path) -> None:
+    retail_packet_dir = _write_retail_packet_dir(
+        tmp_path,
+        html="""
+        <html><head><title>Page Not Found</title></head>
+        <body>Sorry! We couldn't find that page.</body></html>
+        """,
+        visible_text="",
+    )
+    retail_projection_path = tmp_path / "retail_projection" / "retail_pdp_projection.json"
+    write_retail_pdp_projection(
+        packet_directory=retail_packet_dir,
+        output_path=retail_projection_path,
+    )
+    smoke_manifest_path = _write_smoke_manifest(
+        tmp_path,
+        retail_packet_dir=retail_packet_dir,
+        retail_projection_path=retail_projection_path,
+    )
+    smoke_outputs = run_capture_ecr_cleaning_smoke(
+        smoke_manifest_path=smoke_manifest_path,
+        output_dir=tmp_path / "smoke_outputs",
+    )
+    cleaning_path = Path(smoke_outputs["cleaning_packet"])
+    cleaning_payload = _load_json(cleaning_path)
+    stripped_handle_count = 0
+    for handle in cleaning_payload["handles"]:
+        if any(
+            reason.startswith("capture_validity_not_supported:")
+            for reason in handle["warnings"]
+        ):
+            handle["raw_pull_triggers"] = []
+            stripped_handle_count += 1
+    assert stripped_handle_count
+    _write_json(cleaning_path, cleaning_payload)
+    audit_manifest_path = _write_audit_manifest(
+        tmp_path,
+        smoke_manifest_path=smoke_manifest_path,
+        smoke_outputs=smoke_outputs,
+    )
+
+    audit_outputs = run_cleaning_spine_periodic_audit(
+        audit_manifest_path=audit_manifest_path,
+        output_dir=tmp_path / "audit_outputs",
+    )
+
+    report = _load_json(Path(audit_outputs["audit_report_json"]))
+    assert report["overall_status"] == "fail"
+    assert any(
+        finding["lane"] == "lane_a_existing_package"
+        and finding["code"] == "cleaning_failed_capture_handle_raw_pull_trigger_missing"
+        and finding["owner_candidate"] == "cleaning"
+        and "capture_validity_not_supported:rendered_dom_error_or_block_page_marker"
+        in finding["details"]["triggering_reasons"]
+        for finding in report["findings"]
+    )
+
+
 def test_periodic_audit_refuses_stale_rebuild_subdirectories(tmp_path: Path) -> None:
     retail_packet_dir = _write_retail_packet_dir(tmp_path)
     retail_projection_path = tmp_path / "retail_projection" / "retail_pdp_projection.json"
