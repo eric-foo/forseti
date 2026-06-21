@@ -73,6 +73,9 @@ def run_source_capture_browser_packet(
     viewport_width: int,
     viewport_height: int,
     max_artifact_bytes: int,
+    settle_seconds: float = 0.0,
+    headless: bool = True,
+    browser_channel: str | None = None,
 ) -> tuple[int, str]:
     capture_result = fetch_browser_snapshot_capture(
         url=url,
@@ -81,6 +84,9 @@ def run_source_capture_browser_packet(
         viewport_width=viewport_width,
         viewport_height=viewport_height,
         max_artifact_bytes=max_artifact_bytes,
+        settle_seconds=settle_seconds,
+        headless=headless,
+        browser_channel=browser_channel,
     )
     if isinstance(capture_result, BrowserSnapshotFailure):
         return 3, capture_result.message
@@ -126,9 +132,15 @@ def run_source_capture_browser_packet(
         media_posture = known_fact(
             "browser_snapshot preserved a viewport screenshot; linked media files were not independently preserved"
         )
-        access_posture = known_fact(
-            "browser_snapshot preserved rendered browser artifacts; content sufficiency is not asserted"
-        )
+        if capture_result.access_block_reason is not None:
+            access_posture = known_fact(
+                "browser_snapshot rendered an access-block/interstitial page instead of source content: "
+                f"{capture_result.access_block_reason}; block artifacts preserved"
+            )
+        else:
+            access_posture = known_fact(
+                "browser_snapshot preserved rendered browser artifacts; content sufficiency is not asserted"
+            )
         recapture_posture = re_capture_relationship or not_applicable(
             "no prior source capture packet was supplied for this browser snapshot capture"
         )
@@ -171,9 +183,9 @@ def run_source_capture_browser_packet(
             ],
             warnings=packet_warnings,
             limitations=packet_limitations,
-            receipt_summary=(
-                f"Browser snapshot packet for {source_family} with rendered DOM, visible text, "
-                f"viewport screenshot, and metadata preserved for one supplied URL."
+            receipt_summary=_browser_snapshot_receipt_summary(
+                source_family=source_family,
+                access_block_reason=capture_result.access_block_reason,
             ),
             receipt_non_claims=BROWSER_SNAPSHOT_NON_CLAIMS,
         )
@@ -186,13 +198,28 @@ def run_source_capture_browser_packet(
     return 0, result.output_directory
 
 
+def _browser_snapshot_receipt_summary(
+    *, source_family: str, access_block_reason: str | None
+) -> str:
+    if access_block_reason is not None:
+        return (
+            f"Browser snapshot access-block packet for {source_family}: rendered DOM, "
+            "visible text, viewport screenshot, and metadata preserved for one supplied "
+            "URL; source content was not captured."
+        )
+    return (
+        f"Browser snapshot packet for {source_family} with rendered DOM, visible text, "
+        "viewport screenshot, and metadata preserved for one supplied URL."
+    )
+
+
 def _write_text(path: Path, text: str) -> None:
     path.write_text(f"{text}\n", encoding="utf-8", newline="\n")
 
 
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description="Capture one URL through a normal headless browser and write a Source Capture Packet."
+        description="Capture one URL through a normal browser and write a Source Capture Packet."
     )
     parser.add_argument("--url", required=True)
     parser.add_argument("--source-family", default="web_page")
@@ -215,6 +242,17 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--viewport-width", type=int, default=DEFAULT_VIEWPORT_WIDTH)
     parser.add_argument("--viewport-height", type=int, default=DEFAULT_VIEWPORT_HEIGHT)
     parser.add_argument("--max-artifact-bytes", type=int, default=DEFAULT_MAX_ARTIFACT_BYTES)
+    parser.add_argument("--settle-seconds", type=float, default=0.0)
+    parser.add_argument(
+        "--headed",
+        action="store_true",
+        help="Run the standard browser visibly instead of the default headless mode.",
+    )
+    parser.add_argument(
+        "--browser-channel",
+        default=None,
+        help="Optional local Chromium channel, for example chrome or msedge.",
+    )
     parser.add_argument("--actor-audience-context", default=None)
     parser.add_argument("--actor-audience-context-unknown-reason", default=None)
     parser.add_argument("--visible-mode-change", action="append", default=[])
@@ -285,6 +323,9 @@ def main(argv: Sequence[str] | None = None) -> int:
             viewport_width=args.viewport_width,
             viewport_height=args.viewport_height,
             max_artifact_bytes=args.max_artifact_bytes,
+            settle_seconds=args.settle_seconds,
+            headless=not args.headed,
+            browser_channel=args.browser_channel,
         )
     except ValueError as exc:
         parser.exit(status=2, message=f"source capture browser snapshot failed: {exc}\n")

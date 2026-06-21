@@ -9,6 +9,7 @@ from urllib.parse import unquote, urlparse, urlunparse
 
 from harness_utils import utc_now_z
 from source_capture.proxy_profiles import ProxyProfile
+from source_capture.rendered_access import RenderedAccessClass, classify_rendered_access
 
 
 DEFAULT_TIMEOUT_SECONDS = 20.0
@@ -45,6 +46,7 @@ class BrowserSnapshotSuccess:
     metadata: dict[str, object]
     warning_notes: list[str]
     limitation_notes: list[str]
+    access_block_reason: str | None = None
 
 
 @dataclass(frozen=True)
@@ -111,6 +113,9 @@ class BrowserSnapshotEngine(Protocol):
         storage_state_path: Path | None = None,
         scroll_passes: int = 0,
         scroll_step_px: int = 0,
+        settle_seconds: float = 0.0,
+        headless: bool = True,
+        browser_channel: str | None = None,
     ) -> BrowserSnapshotEngineResult:
         ...
 
@@ -143,9 +148,13 @@ def fetch_browser_snapshot_capture(
     storage_state_path: Path | None = None,
     scroll_passes: int = 0,
     scroll_step_px: int = 0,
+    settle_seconds: float = 0.0,
+    headless: bool = True,
+    browser_channel: str | None = None,
     engine: BrowserSnapshotEngine | None = None,
 ) -> BrowserSnapshotResult:
     normalized_url = _validate_http_url(url)
+    normalized_browser_channel = _normalize_browser_channel(browser_channel)
     _validate_positive_number("timeout_seconds", timeout_seconds)
     _validate_positive_int("viewport_width", viewport_width)
     _validate_positive_int("viewport_height", viewport_height)
@@ -154,6 +163,8 @@ def fetch_browser_snapshot_capture(
         raise ValueError("scroll_passes must be zero or greater")
     if scroll_step_px < 0:
         raise ValueError("scroll_step_px must be zero or greater")
+    if settle_seconds < 0:
+        raise ValueError("settle_seconds must be zero or greater")
     if wait_until not in ALLOWED_WAIT_UNTIL:
         allowed = ", ".join(sorted(ALLOWED_WAIT_UNTIL))
         raise ValueError(f"wait_until must be one of: {allowed}")
@@ -170,6 +181,9 @@ def fetch_browser_snapshot_capture(
             storage_state_path=storage_state_path,
             scroll_passes=scroll_passes,
             scroll_step_px=scroll_step_px,
+            settle_seconds=settle_seconds,
+            headless=headless,
+            browser_channel=normalized_browser_channel,
         )
     except _BrowserSnapshotDependencyUnavailable as exc:
         return BrowserSnapshotFailure(
@@ -230,6 +244,29 @@ def fetch_browser_snapshot_capture(
         )
     warning_notes.extend(engine_result.warning_notes)
 
+    rendered_access = classify_rendered_access(
+        title=engine_result.title,
+        rendered_dom=engine_result.rendered_dom,
+        visible_text=engine_result.visible_text,
+    )
+    access_block_reason = (
+        rendered_access.signal
+        if rendered_access.classification == RenderedAccessClass.ACCESS_BLOCKED
+        else None
+    )
+    limitation_notes: list[str] = []
+    if access_block_reason is not None:
+        limitation_notes.append(
+            "access_failed: browser_snapshot rendered an access-block/interstitial page "
+            f"instead of source content: {access_block_reason}; block artifacts preserved"
+        )
+    elif rendered_access.classification == RenderedAccessClass.RESIDUAL_CHALLENGE_MARKER:
+        limitation_notes.append(
+            "rendered_access_warning: browser_snapshot rendered DOM still contains "
+            f"{rendered_access.signal}; visible text may be source content, but content "
+            "sufficiency is not asserted"
+        )
+
     metadata = {
         "requested_url": normalized_url,
         "final_url": engine_result.final_url,
@@ -237,10 +274,18 @@ def fetch_browser_snapshot_capture(
         "capture_timestamp": utc_now_z(),
         "timeout_seconds": timeout_seconds,
         "wait_until": wait_until,
+        "settle_seconds": settle_seconds,
+        "headless": headless,
+        "browser_channel": normalized_browser_channel,
         "viewport_width": viewport_width,
         "viewport_height": viewport_height,
         "screenshot_mode": "viewport",
         "storage_state_loaded": storage_state_path is not None,
+        "access_blocked": access_block_reason is not None,
+        "access_block_reason": access_block_reason,
+        "rendered_access_classification": rendered_access.classification.value,
+        "rendered_access_signal": rendered_access.signal,
+        "rendered_access_detail": rendered_access.detail,
         "rendered_dom_byte_count": artifact_sizes["rendered_dom"],
         "visible_text_byte_count": artifact_sizes["visible_text"],
         "screenshot_byte_count": artifact_sizes["screenshot_png"],
@@ -256,7 +301,8 @@ def fetch_browser_snapshot_capture(
         screenshot_png=engine_result.screenshot_png,
         metadata=metadata,
         warning_notes=warning_notes,
-        limitation_notes=[],
+        limitation_notes=limitation_notes,
+        access_block_reason=access_block_reason,
     )
 
 
@@ -364,6 +410,9 @@ class _PlaywrightBrowserSnapshotEngine:
         storage_state_path: Path | None = None,
         scroll_passes: int = 0,
         scroll_step_px: int = 0,
+        settle_seconds: float = 0.0,
+        headless: bool = True,
+        browser_channel: str | None = None,
     ) -> BrowserSnapshotEngineResult:
         try:
             sync_api = import_module("playwright.sync_api")
@@ -378,7 +427,9 @@ class _PlaywrightBrowserSnapshotEngine:
                 launch_kwargs: dict[str, object] = {}
                 if proxy_profile is not None:
                     launch_kwargs["proxy"] = _playwright_proxy_settings(proxy_profile)
-                browser = playwright.chromium.launch(headless=True, **launch_kwargs)
+                if browser_channel is not None:
+                    launch_kwargs["channel"] = browser_channel
+                browser = playwright.chromium.launch(headless=headless, **launch_kwargs)
             except Exception as exc:
                 if _looks_like_missing_browser_binary(exc):
                     raise _BrowserSnapshotDependencyUnavailable(
@@ -403,6 +454,8 @@ class _PlaywrightBrowserSnapshotEngine:
                 try:
                     page = context.new_page()
                     page.goto(url, wait_until=wait_until, timeout=timeout_ms)
+                    if settle_seconds > 0:
+                        page.wait_for_timeout(settle_seconds * 1000)
                     if scroll_step_px > 0:
                         position = 0
                         for _ in range(_MAX_SCROLL_PASSES):
@@ -638,6 +691,15 @@ def _redact_proxy_secret(text: str, *, proxy_profile: ProxyProfile | None) -> st
             redacted = redacted.replace(f"{host}:{parsed.port}", "[redacted-proxy-endpoint]")
         redacted = redacted.replace(host, "[redacted-proxy-endpoint]")
     return redacted
+
+
+def _normalize_browser_channel(browser_channel: str | None) -> str | None:
+    if browser_channel is None:
+        return None
+    normalized = browser_channel.strip()
+    if not normalized:
+        raise ValueError("browser_channel must not be blank")
+    return normalized
 
 
 def _validate_positive_number(name: str, value: float) -> None:

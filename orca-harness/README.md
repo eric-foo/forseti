@@ -132,15 +132,19 @@ python runners/run_source_capture_browser_packet.py --url "https://example.com/p
 ```
 
 This runner preserves rendered DOM, visible text, a viewport screenshot, and
-browser metadata into the packet shape. It uses a fresh anonymous/headless
-browser context and does not accept stored sessions, browser profiles, cookies,
-credentials, storage-state files, anti-detect behavior, proxy behavior, CAPTCHA
-solving, crawling, OCR, ECR, Cleaning, Judgment, buyer-proof, or
+browser metadata into the packet shape. It defaults to a fresh anonymous/headless
+browser context. For one supplied URL, operators may choose ordinary visible
+browser mode (`--headed`), a local Chromium channel such as Chrome or Edge
+(`--browser-channel`), and a bounded post-navigation settle delay
+(`--settle-seconds`). It does not accept stored sessions, browser profiles,
+cookies, credentials, storage-state files, anti-detect behavior, proxy behavior,
+CAPTCHA solving, crawling, OCR, ECR, Cleaning, Judgment, buyer-proof, or
 commercial-readiness logic.
 
 Use the CloakBrowser Snapshot runner when one supplied URL needs anonymous
-anti-blocking browser rendering because ordinary browser/headless capture is
-expected to fail or has failed:
+anti-blocking browser rendering because ordinary Browser Snapshot controls
+(`--headed`, `--browser-channel`, `--settle-seconds`) are expected to fail or
+have failed:
 
 Install the optional CloakBrowser dependency before live use:
 

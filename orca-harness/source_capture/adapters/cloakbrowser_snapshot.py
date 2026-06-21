@@ -8,6 +8,7 @@ from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse
 
 from harness_utils import utc_now_z
 from source_capture.proxy_profiles import ProxyProfile
+from source_capture.rendered_access import RenderedAccessClass, classify_rendered_access
 
 
 DEFAULT_TIMEOUT_SECONDS = 20.0
@@ -304,16 +305,27 @@ def fetch_cloakbrowser_snapshot_capture(
     warning_notes.extend(
         _sanitize_engine_warning_notes(engine_result.warning_notes, proxy_profile=proxy_profile)
     )
-    access_block_reason = _detect_access_blocked_page(
+    rendered_access = classify_rendered_access(
         title=engine_result.title,
         rendered_dom=engine_result.rendered_dom,
         visible_text=engine_result.visible_text,
+    )
+    access_block_reason = (
+        rendered_access.signal
+        if rendered_access.classification == RenderedAccessClass.ACCESS_BLOCKED
+        else None
     )
     limitation_notes: list[str] = []
     if access_block_reason is not None:
         limitation_notes.append(
             "access_failed: CloakBrowser rendered an access-block/interstitial page "
             f"instead of source content: {access_block_reason}; block artifacts preserved"
+        )
+    elif rendered_access.classification == RenderedAccessClass.RESIDUAL_CHALLENGE_MARKER:
+        limitation_notes.append(
+            "rendered_access_warning: CloakBrowser rendered DOM still contains "
+            f"{rendered_access.signal}; visible text may be source content, but content "
+            "sufficiency is not asserted"
         )
 
     # Pre-capture plugin seam: the generic adapter knows nothing about any storefront or
@@ -370,6 +382,9 @@ def fetch_cloakbrowser_snapshot_capture(
         "blocked_resource_types": sorted(HEAVY_RESOURCE_TYPES) if block_heavy_assets else [],
         "access_blocked": access_block_reason is not None,
         "access_block_reason": access_block_reason,
+        "rendered_access_classification": rendered_access.classification.value,
+        "rendered_access_signal": rendered_access.signal,
+        "rendered_access_detail": rendered_access.detail,
         # Pre-capture plugin provenance (generic; site-specific fields ride in describe()).
         # humanize_mode_active records whether the humanized launch profile was used;
         # pin_confirmed is the post-capture confirmation (None when no plugin ran), NEVER
@@ -643,25 +658,13 @@ def _detect_access_blocked_page(
     rendered_dom: str,
     visible_text: str,
 ) -> str | None:
-    title_text = (title or "").strip().lower()
-    body_text = visible_text.strip().lower()
-    probe_text = f"{title_text}\n{body_text}\n{rendered_dom[:5000].lower()}"
-    if (
-        "you've been blocked by network security" in probe_text
-        and "file a ticket" in probe_text
-    ):
-        return "reddit_network_security_block"
-    # Amazon serves a low-content bot-mitigation interstitial in place of the product
-    # page -- a near-empty page whose only action is a "Click the button below to
-    # continue shopping" button -- AT the requested URL (no redirect), carrying none of
-    # the PDP price/availability/review substrate. That button copy does not appear on a
-    # real product page, so it is a low-false-positive signal. Classifying it
-    # access_failed makes the durability runner record an un-observed gap, not a fake
-    # observation (INV-1 / no-fake-success). Other Amazon bot variants (the "Enter the
-    # characters you see below" / "Robot Check" CAPTCHA) are NOT covered here -- they
-    # were not observed and a guessed signature could mis-fire; that stays a known gap.
-    if "click the button below to continue shopping" in probe_text:
-        return "amazon_continue_shopping_interstitial"
+    rendered_access = classify_rendered_access(
+        title=title,
+        rendered_dom=rendered_dom,
+        visible_text=visible_text,
+    )
+    if rendered_access.classification == RenderedAccessClass.ACCESS_BLOCKED:
+        return rendered_access.signal
     return None
 
 
