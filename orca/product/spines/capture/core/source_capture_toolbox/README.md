@@ -70,12 +70,38 @@ packet without redefining Capture obligations.
 | `orca/product/spines/capture/core/source_capture_toolbox/reddit_capture_operator_playbook_v0.md` | Current operator procedure for bounded Reddit exact-thread capture with implemented Armory tools: old Reddit Direct HTTP batch first, quality summary, exact-URL archive fallback, CloakBrowser/proxy boundaries, warm same-context JSON as future/specialized enrichment, and no broad crawl or commercial-use claims. |
 | `orca/product/spines/capture/core/source_capture_toolbox/reddit_precommercial_capture_consolidation_planning_thread_v0.md` | Durable architectural planning thread for bounded pre-commercial Reddit capture/consolidation: exact old Reddit Direct HTTP as the current exact-thread operator default, CloakBrowser as the anti-blocking/browser-visible route when Direct HTTP is unsuitable or blocked, warm same-context Reddit JSON as a bounded enrichment path, packet-before-parser handoff, provenance-first consolidation shape, archive fallback, and non-implementation stop lines. |
 | `orca/product/spines/capture/core/source_capture_toolbox/reddit_precommercial_capture_consolidation_success_signal_architecture_v0.md` | Advisory routing object that explains why the Reddit planning thread needs Decision-Frame-or-candidate classification, non-promoting success tiers, Armory vocabulary reuse, packet-contamination stops, no source-discovery expansion, and candidate-intake gap visibility. |
+| `docs/workflows/screening_read_service_build_receipt_v0.md` | Build receipt and clean-agent usage pointers for the bounded screening-read service and `screening_browser_read` wrapper: orchestrator-invoked, public-only, no packet, no manifest, no ECR. |
 | `orca/product/spines/capture/core/source_families/retail_pdp/retail_pdp_projection_contract_v0.md` | Retail/PDP raw-packet-to-projection contract/playbook for Amazon, Sephora, and Ulta: capture inputs, projection rows, residual semantics, retailer binding limits, target DOM price/SKU binding posture, and the no-ECR/Cleaning/Judgment boundary. |
 | `orca/product/spines/capture/core/source_families/retail_pdp/retail_pdp_sidecar_operator_playbook_v0.md` | Operator procedure for the bounded Retail/PDP CloakBrowser sidecar smoke across Amazon, Sephora, and Ulta: canonical URLs, flags, scratch output shape, expected projection summaries, failure taxonomy, merge-conflict posture, and code-enforceable follow-up flags. |
 | `orca/product/spines/capture/core/source_families/retail_pdp/retail_pdp_projection_playbook_v0.md` | Retail/PDP raw-packet-to-projection contract for Amazon, Sephora, and Ulta: captured inputs, projected rows, residual meanings, retailer target-binding posture, and the playbook-first boundary before auto-project wiring or ECR sequencing. |
 | `orca/product/spines/capture/core/source_families/social_media/instagram/ig_creator_roster_frontier_ledger_spec_v0.md` | Proposed current-main IG beauty creator roster/frontier ledger contract: append-only public-name observations, depth-1 discovery provenance, privacy invariants, ontology boundary, and current `250 -> 500 -> 1,000` roster gates. Non-authorizing. |
 
 ## Armory Components
+
+### Screening Read Service
+
+Purpose: let the screen orchestrator read one public source in screening posture
+without generating a Source Capture Packet.
+
+The implementation lives in:
+
+- `orca-harness/source_capture/screening_read.py`;
+- `orca-harness/source_capture/screening_browser_read.py`;
+- `orca-harness/source_capture/screening_extraction.py`.
+
+It consolidates `reddit_screening_read`, `direct_http`, `anti_blocking_http`,
+`block_shell`, and bounded extraction into screen-light records: status, bytes,
+content class, block-shell signal/detail, and targeted extracted fields. It also
+adds `screening_browser_read`, a thin wrapper over `cloakbrowser_snapshot` that
+renders public pages and returns visible text only.
+
+Boundaries: orchestrator-invoked, not walker-direct; public logged-out content
+only; human-rate; one source / one question; no standing service, crawler,
+scheduler, packet, manifest, ECR, Cleaning, or Judgment. Browser screening reads
+classify `block_shell` on visible text, not full DOM.
+
+For the validation receipt and first-act old Reddit search-surface closure, open
+`docs/workflows/screening_read_service_build_receipt_v0.md`.
 
 ### Source Capture Packet Core
 

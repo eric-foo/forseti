@@ -19,6 +19,36 @@ records. It does not fetch sources, retrieve archives, automate browsers, call
 APIs, score source quality, validate Data Capture, or authorize downstream ECR,
 Cleaning, or Judgment behavior.
 
+## Screening Reads
+
+Use the screening-read entries when a screen orchestrator needs one bounded
+public read without creating a Source Capture Packet:
+
+```python
+from source_capture.screening_read import ScreeningReadDispatch, ScreeningReadRoute, screening_read
+
+dispatch = ScreeningReadDispatch(screen_id="screen-123", question="one bounded source question")
+result = screening_read(
+    url="https://old.reddit.com/r/beauty/search?q=moisturizer&restrict_sr=on&sort=new",
+    route=ScreeningReadRoute.REDDIT_SCREENING_READ,
+    dispatch=dispatch,
+)
+```
+
+For public pages that need the browser/interstitial rung:
+
+```python
+from source_capture.screening_browser_read import screening_browser_read
+
+result = screening_browser_read(url="https://example.com/public-page", dispatch=dispatch)
+```
+
+These entries are orchestrator-invoked, public-only, human-rate, and screen-light
+only. They do not stage packets, write manifests, return packet paths, touch ECR,
+or run as a standing service/crawler/scheduler. Browser screening reads classify
+`block_shell` on visible text, not full DOM. Build receipt:
+`docs/workflows/screening_read_service_build_receipt_v0.md`.
+
 ## Source Capture Packet
 
 Use the source-capture runner when an operator already has local source files

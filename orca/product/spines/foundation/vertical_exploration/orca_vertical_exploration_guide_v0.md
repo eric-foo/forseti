@@ -141,9 +141,13 @@ earned. It updates by dated note as ledgers learn new walls.
 >    "Blocked" is a hypothesis, not a verdict.
 > 4. KNOWN WALLS (do not burn moves rediscovering): reddit.com is unreachable
 >    via the agent fetch tool (tool-level block) AND unreliable in external
->    search indexes — snippet-mine only, and record what you needed so the
->    orchestrator can route it; basenotes.com 403s direct fetch — snippets
->    and archives work.
+>    search indexes. For Reddit real reads, record what you need and let the
+>    orchestrator invoke the capture-harness `screening_read` service; walkers
+>    never call it directly. For public pages behind an interstitial, the
+>    orchestrator may use `screening_browser_read` for visible text only. Both
+>    routes are screening posture: public-only, human-rate, no packet, no ECR.
+>    Basenotes.com 403s direct fetch - snippets and archives work; browser-rung
+>    escalation is orchestrator-mediated.
 > 5. POLICY SKIPS (hard): LinkedIn, TikTok, Instagram — record pointers,
 >    never follow. No logins anywhere. No capture: URLs + short quotes only.
 > 6. HUB ORDER: brand-story trade press FIRST (outlets covering brands and

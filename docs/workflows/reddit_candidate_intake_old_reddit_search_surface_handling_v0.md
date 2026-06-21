@@ -100,6 +100,25 @@ Reason: comment links and thumbnail links can point at the same thread, but
 they are not the visible title signal. Accepting them would inflate or duplicate
 candidate rows and make provenance weaker.
 
+## Old Reddit Post-Date (Submission Date) Rule
+
+When old Reddit search/listing HTML is used for screening extraction or
+Candidate URL Intake, post date must be taken from a targeted locator attached
+to the candidate row. The acceptable shape is the `<time>` element inside the
+same old Reddit result container (`thing` or `search-result`) as the accepted
+`title` / `search-title` thread anchor.
+
+Do not compute a blind aggregate such as `min()` over all page datetimes. Old
+Reddit pages can include sidebar or titlebox datetimes, including subreddit
+creation dates such as 2011, that are not the candidate thread's submission
+date.
+
+If the run has an expected date window, keep the candidate row but mark the
+targeted candidate submission datetime as `out_of_range` when it falls outside
+that window. Do not silently substitute another page datetime to make the row
+look sane. If no targeted row-local `<time>` exists, mark the submission date
+unknown rather than guessing from unrelated page chrome.
+
 ## Empty Result Discipline
 
 An empty result is valid only after a surface-shape sanity check.

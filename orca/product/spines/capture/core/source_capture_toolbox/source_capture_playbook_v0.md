@@ -111,14 +111,23 @@ solves; the diagnosis selects the route. Blind climbing wastes probes and can mi
    "blocked" that abandons capturable material (Daimler, Sephora, Teal, WSO); the opposite error is
    thrashing the same route forever, or escalating volume past human rate.
 
-**Screening-side consumer (reverse pointer, 2026-06-12).** These read-escalation patterns
-(Guardrail 4 + the Step 2 pointer) are distilled for *screening posture* — public pages, no logins,
-no bulk, URLs + short quotes only — into the **Walker Equipment Kit** in
-`orca/product/spines/foundation/vertical_exploration/orca_vertical_exploration_guide_v0.md` (discovery-lane-owned). Keep them in
-sync: when a route-escalation pattern here changes, the kit's READ ESCALATION / KNOWN WALLS block may
-need a dated note. Packet-grade capture still routes through this method; the kit is screening-read
-only. (Tooling note: WebFetch-based screening agents cannot fetch `reddit.com` at all — only the
-capture runner can; see `docs/decisions/screening_reddit_read_route_decision_v0.md`.)
+**Screening-side consumer (reverse pointer, 2026-06-12; updated 2026-06-21).**
+These read-escalation patterns (Guardrail 4 + the Step 2 pointer) are distilled
+for *screening posture* - public pages, no logins, URLs + short quotes - in the
+Walker Equipment Kit
+(`orca/product/spines/foundation/vertical_exploration/orca_vertical_exploration_guide_v0.md`).
+Keep them in sync: when a route-escalation pattern here changes, the kit's READ
+ESCALATION / KNOWN WALLS block may need a dated note. Packet-grade capture still
+routes through this method; the kit is screening-read only.
+
+The bounded screening-read service now gives the orchestrator a read-only
+capture-harness path for public screening reads:
+`source_capture.screening_read.screening_read(...)` for Reddit/direct/anti-block
+HTTP routes and `source_capture.screening_browser_read.screening_browser_read(...)`
+for public browser/interstitial reads. These entries return screen-light records
+or visible text; they do not stage packets, write manifests, or touch ECR. Walkers
+must not call them directly; they record the need and let the orchestrator invoke
+the bounded read.
 
 ## Step 0 — The access-control gate (run before any technical probe)
 
