@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 import shutil
 from pathlib import Path
-from typing import Sequence
+from typing import TYPE_CHECKING, Sequence
 
 from harness_utils import generate_ulid, hash_file, utc_now_z
 from source_capture.models import (
@@ -23,6 +23,9 @@ from source_capture.models import (
     unknown_with_reason,
 )
 
+if TYPE_CHECKING:
+    from data_lake.root import DataLakeRoot
+
 
 NON_CLAIMS = [
     "not source acquisition",
@@ -40,7 +43,8 @@ NON_CLAIMS = [
 
 def write_local_source_capture_packet(
     *,
-    output_directory: Path,
+    output_directory: Path | None = None,
+    data_root: "DataLakeRoot | None" = None,
     input_files: Sequence[Path],
     source_family: str,
     source_surface: str,
@@ -81,6 +85,8 @@ def write_local_source_capture_packet(
 ) -> PacketWriteResult:
     if not input_files:
         raise ValueError("at least one input file is required")
+    if (output_directory is None) == (data_root is None):
+        raise ValueError("exactly one of output_directory or data_root is required")
 
     resolved_inputs = [path.resolve() for path in input_files]
     for path in resolved_inputs:
@@ -89,11 +95,20 @@ def write_local_source_capture_packet(
         if not path.is_file():
             raise ValueError(f"input path is not a file: {path}")
 
+    packet_id = generate_ulid()
+    if data_root is not None:
+        # Go-forward raw writes are staged off-tree, then atomically published to
+        # <root>/raw/<packet_id>/ so a partial packet never appears under raw/
+        # (write-once + atomic publish per the write-boundary enforcement contract).
+        # output_directory stays available for legacy/test callers (incumbent path;
+        # migration of existing output is deferred).
+        output_directory = data_root.stage_raw_packet(packet_id)
+    assert output_directory is not None  # guaranteed by the exactly-one-target check above
+
     _prepare_output_directory(output_directory)
     raw_directory = output_directory / "raw"
     raw_directory.mkdir(parents=True, exist_ok=True)
 
-    packet_id = generate_ulid()
     session_id = session_identity or generate_ulid()
     captured_at = utc_now_z()
     preserved_files = _copy_preserved_files(raw_directory, resolved_inputs)
@@ -187,6 +202,12 @@ def write_local_source_capture_packet(
         encoding="utf-8",
     )
     receipt_path.write_text(render_receipt(packet), encoding="utf-8", newline="\n")
+
+    if data_root is not None:
+        # Atomically publish the completed staging dir to raw/<packet_id>.
+        output_directory = data_root.publish_raw_packet(output_directory, packet_id)
+        manifest_path = output_directory / "manifest.json"
+        receipt_path = output_directory / "receipt.md"
 
     return PacketWriteResult(
         output_directory=str(output_directory.resolve()),
