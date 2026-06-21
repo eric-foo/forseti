@@ -1194,6 +1194,7 @@ __all__ = [
     "RETAIL_PDP_PROJECTION_CERTIFICATION",
     "RETAIL_PDP_PROJECTION_METHOD",
     "RETAIL_PDP_PROJECTION_VERSION",
+    "PROJECTION_RETAIL_PDP_LANE",
     "RetailPdpProjectionInputError",
     "RetailPdpProjectionBinding",
     "RetailPdpProjectionLossEntry",
@@ -1204,5 +1205,6 @@ __all__ = [
     "RetailProjectionRawRef",
     "build_retail_pdp_projection",
     "build_retail_pdp_projection_from_packet_directory",
+    "project_retail_pdp_into_lake",
     "write_retail_pdp_projection",
 ]
