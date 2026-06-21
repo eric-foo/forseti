@@ -878,6 +878,47 @@ def test_periodic_audit_passes_for_fixture_capture_projection_cleaning(
     assert "not_live_capture" in report["non_claims"]
 
 
+def test_periodic_audit_execution_does_not_open_network_socket(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    retail_packet_dir = _write_retail_packet_dir(tmp_path)
+    retail_projection_path = tmp_path / "retail_projection" / "retail_pdp_projection.json"
+    write_retail_pdp_projection(
+        packet_directory=retail_packet_dir,
+        output_path=retail_projection_path,
+    )
+    smoke_manifest_path = _write_smoke_manifest(
+        tmp_path,
+        retail_packet_dir=retail_packet_dir,
+        retail_projection_path=retail_projection_path,
+    )
+    smoke_outputs = run_capture_ecr_cleaning_smoke(
+        smoke_manifest_path=smoke_manifest_path,
+        output_dir=tmp_path / "smoke_outputs",
+    )
+    audit_manifest_path = _write_audit_manifest(
+        tmp_path,
+        smoke_manifest_path=smoke_manifest_path,
+        smoke_outputs=smoke_outputs,
+    )
+
+    import socket
+
+    def fail_socket(*_args: object, **_kwargs: object) -> object:
+        raise AssertionError("periodic audit attempted to open a network socket")
+
+    monkeypatch.setattr(socket, "socket", fail_socket)
+    monkeypatch.setattr(socket, "create_connection", fail_socket)
+
+    audit_outputs = run_cleaning_spine_periodic_audit(
+        audit_manifest_path=audit_manifest_path,
+        output_dir=tmp_path / "audit_outputs",
+    )
+
+    report = _load_json(Path(audit_outputs["audit_report_json"]))
+    assert report["overall_status"] == "pass"
+
 def test_periodic_audit_flags_projection_breakpoint_drift(tmp_path: Path) -> None:
     retail_packet_dir = _write_retail_packet_dir(tmp_path)
     retail_projection_path = tmp_path / "retail_projection" / "retail_pdp_projection.json"
