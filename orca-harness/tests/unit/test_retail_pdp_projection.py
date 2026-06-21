@@ -267,6 +267,62 @@ def test_amazon_projection_pins_dom_js_review_and_asin_without_ld_json() -> None
     assert projection.loss_ledger.collapsed[0].category == "RETAIL_HERO_IMAGERY_COLLAPSED"
 
 
+def test_amazon_projection_does_not_preserve_structure_for_404_page() -> None:
+    packet = _packet(
+        retailer="amazon",
+        locator="https://www.amazon.com/Carolina-Herrera-Good-Girl-Parfum/dp/B01FIOLI2G",
+        series_id="amazon_good_girl_404_capture_us_v0",
+    )
+    html = """
+    <html><head><title>Page Not Found</title></head>
+    <body>Sorry! We couldn't find that page. Dogs of Amazon</body></html>
+    """
+
+    projection = _projection(packet=packet, html=html, visible_text="")
+
+    assert [row for row in projection.rows if row.row_kind == "retail_variant_offer"] == []
+    assert [row for row in projection.rows if row.row_kind == "retail_review_substrate"] == []
+    assert projection.loss_ledger.structure_preserved is False
+    assert "cloakbrowser_snapshot_01:amazon:variant_offer_absent" in projection.residuals
+    assert "cloakbrowser_snapshot_01:amazon:review_substrate_absent" in projection.residuals
+
+
+def test_ulta_projection_residualizes_present_offer_substrate_when_not_extracted() -> None:
+    packet = _packet(
+        retailer="ulta",
+        locator="https://www.ulta.com/p/good-girl-eau-de-parfum-pimprod2022701?sku=2573274",
+        series_id="ulta_good_girl_offer_substrate_us_v0",
+    )
+    apollo = json.dumps(
+        {
+            "ROOT_QUERY": {
+                'Page({"moduleParams":{"sku":"2573274"},"url":{"path":"/p/good-girl-eau-de-parfum-pimprod2022701"}})': {
+                    "content": {
+                        "modules": [
+                            {
+                                "skuId": "2573274",
+                                "productId": "pimprod2022701",
+                                "salePrice": "$145.00",
+                            }
+                        ]
+                    }
+                }
+            }
+        },
+        separators=(",", ":"),
+    )
+    html = f"<script>window.__APOLLO_STATE__ = {apollo}</script>"
+
+    projection = _projection(packet=packet, html=html, visible_text="Good Girl Eau de Parfum")
+
+    structured = _single_row(projection, "retail_embedded_structured_json")
+    assert structured.source_visible_fields["parse_status"] == "parsed"
+    assert [row for row in projection.rows if row.row_kind == "retail_variant_offer"] == []
+    assert "cloakbrowser_snapshot_01:ulta:variant_offer_absent" in projection.residuals
+    assert "cloakbrowser_snapshot_01:ulta:variant_offer_substrate_present_but_unextracted" in projection.residuals
+    assert projection.loss_ledger.structure_preserved is False
+
+
 def test_sephora_projection_uses_target_review_widget_not_recommendation_noise() -> None:
     packet = _packet(
         retailer="sephora",

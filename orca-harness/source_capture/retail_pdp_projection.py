@@ -514,6 +514,8 @@ def _variant_offer_fields(
     structured_fields, structured_anchor = _structured_variant_offer_fields(structured_entries)
     apollo_fields, apollo_anchor = _ulta_apollo_offer_fields(structured_entries) if retailer == "ulta" else ({}, None)
     sephora_dom_fields = _sephora_dom_offer_fields(html) if retailer == "sephora" else {}
+    if retailer == "ulta" and not apollo_fields and _ulta_apollo_offer_substrate_present(structured_entries):
+        residuals.append(f"{source_slice.slice_id}:ulta:variant_offer_substrate_present_but_unextracted")
     if sephora_dom_fields:
         structured_fields = {**structured_fields, **sephora_dom_fields}
     residuals.extend(_structured_price_residuals(retailer=retailer, structured_fields=structured_fields))
@@ -582,6 +584,8 @@ def _amazon_variant_offer_fields(
             r"/dp/([A-Z0-9]{10})",
         ),
     )
+    if asin is None:
+        return {}
     price = _first_regex(
         html,
         (
@@ -685,6 +689,16 @@ def _ulta_apollo_offer_fields(
     return {}, None
 
 
+def _ulta_apollo_offer_substrate_present(structured_entries: list[_StructuredJsonEntry]) -> bool:
+    for entry in structured_entries:
+        if entry.kind != "apollo_state":
+            continue
+        for item in _walk_dicts(entry.parsed):
+            if item.get("skuId") and (item.get("listPrice") or item.get("salePrice")):
+                return True
+    return False
+
+
 def _sephora_dom_offer_fields(html: str) -> dict[str, Any | None]:
     for match in re.finditer(r"<[^>]*data-comp=\"ProductPage[^\"]*\"[^>]*>", html, flags=re.IGNORECASE):
         tag = match.group(0)
@@ -726,11 +740,25 @@ def _amazon_review_fields(*, html: str, visible_text: str) -> dict[str, Any | No
     rating = _first_regex(visible_text, (r"Customer reviews\s+(\d+(?:\.\d+)?) out of 5", r"(\d+(?:\.\d+)?) out of 5 stars"))
     count = _first_regex(visible_text, (r"([\d,]+) global ratings", r"([\d,]+) ratings"))
     best_sellers_rank = _first_regex(visible_text, (r"(Best Sellers Rank:[^\n]+(?:\n#[^\n]+)*)",))
+    ld_json_present = bool(_extract_ld_json_texts(html))
+    average_customer_reviews_node_present = "averageCustomerReviews" in html
+    acr_customer_review_text_node_present = "acrCustomerReviewText" in html
+    if not any(
+        (
+            rating,
+            count,
+            best_sellers_rank,
+            ld_json_present,
+            average_customer_reviews_node_present,
+            acr_customer_review_text_node_present,
+        )
+    ):
+        return {}
     return {
         "review_substrate_source": "amazon_dom_js",
-        "ld_json_present": bool(_extract_ld_json_texts(html)),
-        "average_customer_reviews_node_present": "averageCustomerReviews" in html,
-        "acr_customer_review_text_node_present": "acrCustomerReviewText" in html,
+        "ld_json_present": ld_json_present,
+        "average_customer_reviews_node_present": average_customer_reviews_node_present,
+        "acr_customer_review_text_node_present": acr_customer_review_text_node_present,
         "rating": rating,
         "review_count": count,
         "best_sellers_rank_text": best_sellers_rank,

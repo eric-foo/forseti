@@ -29,11 +29,14 @@ _JUDGMENT_TOKENS = frozenset(
     {
         "action_ceiling",
         "action_supporting",
+        "artificial_amplification",
         "credible",
         "credibility",
         "decision_strength",
         "demand",
         "discount",
+        "discounted",
+        "discounting",
         "excluded",
         "independent",
         "integrity",
@@ -183,12 +186,28 @@ class CleaningInputHandle(StrictModel):
     projection_ref: CleaningProjectionRef | None = None
     ecr_ref: CleaningEcrRef | None = None
     relation: CleaningRelation = CleaningRelation.KEYED_SIBLINGS_OVER_RAW
+    residuals: list[str] = Field(default_factory=list)
+    warnings: list[str] = Field(default_factory=list)
+    raw_pull_triggers: list[str] = Field(default_factory=list)
 
     @field_validator("handle_id", "source_family", "source_surface")
     @classmethod
     def reject_blank_handle_fields(cls, value: str) -> str:
         if not value.strip():
             raise ValueError("CleaningInputHandle fields must be non-empty.")
+        return value
+
+    @field_validator("residuals", "warnings", "raw_pull_triggers")
+    @classmethod
+    def reject_judgment_handle_reasons(cls, value: list[str]) -> list[str]:
+        for item in value:
+            forbidden = _find_token_matches(item, _JUDGMENT_TOKENS)
+            if forbidden:
+                raise ValueError(
+                    "Cleaning input handle warnings/residuals/raw-pull triggers must use "
+                    "layer-owned mechanical reasons, not Judgment vocabulary: "
+                    + ", ".join(forbidden)
+                )
         return value
 
     @model_validator(mode="after")

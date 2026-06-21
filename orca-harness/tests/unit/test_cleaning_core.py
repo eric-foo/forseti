@@ -5,6 +5,7 @@ from pydantic import ValidationError
 
 from cleaning import (
     REQUIRED_NON_CLAIMS,
+    CleaningEcrRef,
     CleaningInputGrain,
     CleaningInputHandle,
     CleaningPacket,
@@ -59,6 +60,10 @@ def _handle(
     projection_certification: str = REDDIT_PROJECTION_CERTIFICATION,
     row_id: str = "row_01",
     row_kind: str = "reddit_comment",
+    ecr_ref: CleaningEcrRef | None = None,
+    residuals: list[str] | None = None,
+    warnings: list[str] | None = None,
+    raw_pull_triggers: list[str] | None = None,
 ) -> CleaningInputHandle:
     return CleaningInputHandle(
         handle_id=handle_id,
@@ -83,6 +88,10 @@ def _handle(
             row_id=row_id,
             row_kind=row_kind,
         ),
+        ecr_ref=ecr_ref,
+        residuals=residuals or [],
+        warnings=warnings or [],
+        raw_pull_triggers=raw_pull_triggers or [],
     )
 
 
@@ -117,6 +126,24 @@ def test_handles_keep_reddit_and_retail_projection_refs_distinct_from_raw() -> N
     assert packet.handles[1].projection_ref.projection_method == RETAIL_PDP_PROJECTION_METHOD
 
 
+def test_input_handle_carries_layer_owned_trace_notes() -> None:
+    handle = _handle(
+        "h_warning",
+        warnings=["capture_validity_not_supported:rendered_dom_error_or_block_page_marker"],
+        residuals=["retail_structure_not_preserved:variant_offer_absent"],
+        raw_pull_triggers=["inspect_raw_before_retail_use:capture_validity_not_supported"],
+    )
+
+    assert handle.warnings == ["capture_validity_not_supported:rendered_dom_error_or_block_page_marker"]
+    assert handle.residuals == ["retail_structure_not_preserved:variant_offer_absent"]
+    assert handle.raw_pull_triggers == ["inspect_raw_before_retail_use:capture_validity_not_supported"]
+
+
+def test_input_handle_rejects_judgment_vocabulary_in_trace_notes() -> None:
+    with pytest.raises(ValidationError, match="Judgment vocabulary"):
+        _handle("h_bad_warning", warnings=["credibility_missing"])
+
+
 def test_transform_ledger_requires_preservation_and_non_claims() -> None:
     entry = CleaningTransformLedgerEntry(
         input_handle_id="h1",
@@ -141,6 +168,29 @@ def test_transform_rejects_judgment_vocabulary_in_method() -> None:
             transform_class=CleaningTransformClass.NORMALIZATION,
             rule_scope=CleaningRuleScope.SOURCE_INVARIANT_CORE,
             method_or_rule="credibility_score_cleanup",
+            input_grain=CleaningInputGrain.ROW,
+            original_value="x",
+            transformed_value="x",
+        )
+
+
+@pytest.mark.parametrize(
+    "method_or_rule",
+    [
+        "artificial_amplification",
+        "artificial amplification risk",
+        "discounted",
+        "discounting",
+    ],
+)
+def test_transform_rejects_foundation_enumerated_judgment_reason_variants(
+    method_or_rule: str,
+) -> None:
+    with pytest.raises(ValidationError, match="Judgment vocabulary"):
+        CleaningTransform(
+            transform_class=CleaningTransformClass.NORMALIZATION,
+            rule_scope=CleaningRuleScope.SOURCE_INVARIANT_CORE,
+            method_or_rule=method_or_rule,
             input_grain=CleaningInputGrain.ROW,
             original_value="x",
             transformed_value="x",
@@ -225,6 +275,40 @@ def test_transform_ledger_rejects_judgment_vocabulary_in_warnings() -> None:
         )
 
 
+@pytest.mark.parametrize("field_name", ["omissions", "residuals", "warnings", "raw_pull_triggers"])
+def test_transform_ledger_rejects_foundation_judgment_vocabulary_in_text_fields(
+    field_name: str,
+) -> None:
+    with pytest.raises(ValidationError, match="Judgment vocabulary"):
+        CleaningTransformLedgerEntry(
+            input_handle_id="h1",
+            transform=CleaningTransform(
+                transform_class=CleaningTransformClass.PROPAGATION,
+                rule_scope=CleaningRuleScope.SOURCE_INVARIANT_CORE,
+                method_or_rule="warning_propagation",
+                input_grain=CleaningInputGrain.ROW,
+            ),
+            preservation=_preservation(),
+            **{field_name: ["artificial amplification risk"]},
+        )
+
+
+def test_transform_ledger_allows_mechanical_raw_pull_trigger() -> None:
+    entry = CleaningTransformLedgerEntry(
+        input_handle_id="h1",
+        transform=CleaningTransform(
+            transform_class=CleaningTransformClass.PROPAGATION,
+            rule_scope=CleaningRuleScope.SOURCE_INVARIANT_CORE,
+            method_or_rule="warning_propagation",
+            input_grain=CleaningInputGrain.ROW,
+        ),
+        preservation=_preservation(),
+        raw_pull_triggers=["projection anchor missing"],
+    )
+
+    assert entry.raw_pull_triggers == ["projection anchor missing"]
+
+
 def test_projection_ref_must_not_claim_cleaned_or_judgment_ready() -> None:
     with pytest.raises(ValidationError, match="not cleaned"):
         CleaningProjectionRef(
@@ -233,4 +317,30 @@ def test_projection_ref_must_not_claim_cleaned_or_judgment_ready() -> None:
             certification="cleaned; judgment_ready",
             packet_id="p1",
             row_id="r1",
+        )
+
+
+def test_ecr_ref_may_share_raw_packet_key() -> None:
+    handle = _handle(
+        "h_ecr",
+        ecr_ref=CleaningEcrRef(
+            packet_id="packet_01",
+            ref_id="ecr:packet_01:source_visibility",
+            posture_kind="source_visibility_posture",
+            status="archive_only",
+        ),
+    )
+
+    assert handle.ecr_ref is not None
+    assert handle.ecr_ref.packet_id == handle.raw_anchor.packet_id
+
+
+def test_ecr_ref_must_stay_keyed_to_raw_packet() -> None:
+    with pytest.raises(ValidationError, match="ecr_ref.packet_id"):
+        _handle(
+            "h_ecr_mismatch",
+            ecr_ref=CleaningEcrRef(
+                packet_id="other_packet",
+                ref_id="ecr:other_packet:source_visibility",
+            ),
         )
