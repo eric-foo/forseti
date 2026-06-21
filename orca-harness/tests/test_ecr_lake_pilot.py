@@ -12,7 +12,7 @@ from ecr.deriver import (
     derive_source_visibility_postures,
     derive_timing_postures,
 )
-from ecr.lake import ECR_LANES, derive_ecr_into_lake
+from ecr.lake import ECR_COMPLETION_LANE, ECR_LANES, derive_ecr_into_lake
 from ecr.models import (
     EcrIdentityPosture,
     EcrInspectabilityPosture,
@@ -166,7 +166,7 @@ def test_preflights_sibling_collision_before_any_ecr_write(tmp_path: Path) -> No
         data=b"existing sibling\n",
     )
 
-    with pytest.raises(DataLakeRootError, match="partial ECR derivation"):
+    with pytest.raises(DataLakeRootError, match="partial record set"):
         derive_ecr_into_lake(data_root=root, packet_id=pid, record_id="rec1")
 
     assert existing.read_bytes() == b"existing sibling\n"
@@ -206,3 +206,36 @@ def test_multi_slice_packet_preserves_slice_grain_for_per_slice_rows(tmp_path: P
     assert identity[0]["packet_id"] == pid
     assert len(source_visibility) == 1
     assert source_visibility[0]["packet_id"] == pid
+
+
+def test_ecr_derivation_writes_a_completion_marker_and_is_complete(tmp_path: Path) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    pid = _capture(root, tmp_path).packet.packet_id
+
+    paths = derive_ecr_into_lake(data_root=root, packet_id=pid)
+    record_name = next(iter(paths.values())).name
+
+    marker = root.path / "derived" / pid / ECR_COMPLETION_LANE / record_name
+    assert marker.is_file()
+    assert root.is_record_set_complete(
+        subtree="derived",
+        raw_anchor=pid,
+        record_id=record_name,
+        completion_lane=ECR_COMPLETION_LANE,
+    )
+
+
+def test_ecr_set_missing_marker_reads_incomplete(tmp_path: Path) -> None:
+    # A crash before the marker leaves members but no marker -> detectable incomplete.
+    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    pid = _capture(root, tmp_path).packet.packet_id
+    paths = derive_ecr_into_lake(data_root=root, packet_id=pid)
+    record_name = next(iter(paths.values())).name
+
+    (root.path / "derived" / pid / ECR_COMPLETION_LANE / record_name).unlink()
+    assert not root.is_record_set_complete(
+        subtree="derived",
+        raw_anchor=pid,
+        record_id=record_name,
+        completion_lane=ECR_COMPLETION_LANE,
+    )
