@@ -21,6 +21,7 @@ open_next:
   - docs/research/source_registry_practices_deep_research_report_v0.md       # evidence base for this shape
   - orca/product/spines/capture/core/source_capture_toolbox/capture_recon_index_v0.md            # capture-seam counterpart (HOW-side)
   - orca/product/satellites/beauty/beauty_venue_card_set_v0.md                      # promoted beauty card-set (Step 0 reads it FIRST for beauty screens)
+  - orca/product/spines/scanning/scan_core/orca_scanning_intelligent_walk_mgt_operating_model_v0.md  # MGT intelligent-walk overlay and capture-request bridge
 stale_if:
   - The finder frame is owner-signed (fold this procedure in or re-home it at that sign-off).
   - The promote-on-reuse trigger fires and the owner promotes a vertical's trail into an owned card-set.
@@ -76,9 +77,15 @@ Given a direction (vertical x decision family) from the batch plan:
 - **Step 3 — expand on signal.** When a venue yields a candidate or strong
   evidence, mine that venue (and its cross-links) before moving on. In-screen
   only: this same rule applied standing would be a monitor — forbidden.
-- **Step 4 — stop.** Stop at the first of: the batch plan's candidate target is
-  met; two consecutive exploration moves yield neither a new candidate nor a
-  new productive venue (dry rule); the screen budget the batch plan set.
+- **Step 4 — stop / pivot.** Stop at the first of: the batch plan's candidate
+  target is met; two consecutive exploration moves yield neither a new
+  candidate nor a new productive venue (dry rule); the screen budget the batch
+  plan set. For an explicitly declared MGT / intelligent-walk scan with
+  multiple frontiers, the dry rule is branch-aware: repeated dry moves close
+  the active branch, then the walk may pivot to a declared or newly surfaced
+  frontier with non-trivial expected value while the run remains inside its
+  caps. It stops globally when target, budget, policy boundary, or minimal/zero
+  remaining frontier value fires.
 - **Step 5 — output.** Deliver (a) candidates into the batch's screen/triage,
   and (b) a `Screen Provenance` block in the batch ledger: venues that produced
   candidates or evidence, the rejected negative set, and the boundary line that
@@ -126,10 +133,13 @@ earned. It updates by dated note as ledgers learn new walls.
 
 > WALK CONTRACT (non-negotiable):
 > 1. HARD STOP SELF-CHECK — keep a numbered move log; after EVERY move check
->    in order: (a) candidate target met -> STOP NOW; (b) last two moves both
->    VENUE-DRY -> STOP NOW; (c) move cap reached -> STOP NOW. Show the check
->    in the log (e.g. "a:no b:no c:no"). Continuing past a fired stop
->    violates the walk contract.
+>    in order: (a) candidate target met -> STOP NOW; (b) ordinary walk: last
+>    two moves both VENUE-DRY -> STOP NOW; explicitly declared MGT /
+>    intelligent-walk scan: last two moves on the active branch both VENUE-DRY
+>    -> close that branch and pivot only if another declared or surfaced
+>    frontier has non-trivial expected value; otherwise STOP NOW; (c) move cap
+>    reached -> STOP NOW. Show the check in the log (e.g. "a:no b:branch-close
+>    pivot:yes c:no"). Continuing past a fired stop violates the walk contract.
 > 2. YIELD CLASSES per move: CANDIDATE | EVIDENCE | INFLUENCE-OBS (hub,
 >    pointing structure, wind-caller/detector) | VENUE-DRY (venue actually
 >    read, zero yield) | ACCESS-NOTE (could not reach it — counts toward the
@@ -287,3 +297,13 @@ Mints no ladder vocabulary; the Status label is doc-local.
   capture seam before that vertical's next screen. (iii) Every walk prompt
   must include the Walker Equipment Kit (section above) — walkers deploy
   equipped, not naked.
+- 2026-06-21 (owner-invoked Mini God Tier target, in-thread; intelligent-walk
+  overlay): scanning may use the MGT operating model at
+  `orca/product/spines/scanning/scan_core/orca_scanning_intelligent_walk_mgt_operating_model_v0.md`
+  when the run is explicitly declared MGT / intelligent-walk. This adds
+  frontier selection, branch-aware signal-decay handling, minimum evidence
+  promotion, shared scanning vocabulary, and capture-request handoff language.
+  It does not authorize a generic crawler, standing monitor, registry, atlas,
+  packet-grade capture, route expansion, scan-core ratification, or live scan
+  execution. Ordinary batch walks keep the original global dry stop unless the
+  run declares the MGT branch-pivot contract up front.
