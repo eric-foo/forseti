@@ -41,6 +41,20 @@ installation, proxy/session setup, anti-detect tooling, scheduler work, account
 flows, credentials, production workers, source-access boundary changes,
 validation, readiness, legal sufficiency, or commercial use.
 
+## Post-Architecture Bloat Cut - IG Lane
+
+A later architecture pass/adjudication refined this note for the active IG lane:
+
+- Keep the IG doc-consolidation spine: session shape, stop/cooldown, viewport/fallback,
+  stable egress lanes, and receipt evidence.
+- Cut Change #5 from the active IG lane. Do not create a new shared social browser
+  controller or profile-interface artifact now. If reopened later, express the reusable
+  shape as a recon-card field list after second-platform source-family evidence exists.
+- Defer TikTok/YouTube recon, full comment-thread/body capture, commenter identity or graph
+  capture, comment timestamp capture, media/video-byte claims, runtime/code changes,
+  proxy/session fallback, and live probe execution from this docs patch.
+- In the current IG receipt patch, `comments` means source-visible `comment_count` only.
+
 ## Source Readiness
 
 `SOURCE_CONTEXT_READY` for a non-authorizing IG-first recommendation, with
@@ -261,16 +275,18 @@ Evidence needed: lane-2 non-IG isolation checks and then bounded IG receipts.
 Owner gate: paid proxy, account/session fallback, or new network setup needs
 separate owner acceptance.
 
-### 5. Add A Social Browser Controller Concept Only As A Profile Interface
+### 5. Deferred: Do Not Add A Social Browser Controller In The Active IG Lane
 
 Target surface: `source_capture_toolbox/` architecture note or future prompt,
 not runtime code.
 
-Change: describe a shared conceptual controller with only these reusable
-fields: access classification, session start/stop boundary, pacing envelope,
-cluster/idle rhythm, viewport or rendering profile, block taxonomy, receipt
-fields, and platform profile parameters. Do not include IG's numeric settings
-as defaults for other platforms.
+Current bloat-cut status: deferred from the active IG lane. Do not create a new
+controller doc, runtime controller, or profile-interface artifact now.
+
+If this seam is reopened later, describe only a recon-card field list: access
+classification, session start/stop boundary, pacing envelope, cluster/idle rhythm,
+viewport or rendering profile, block taxonomy, receipt fields, and platform profile
+parameters. Do not include IG's numeric settings as defaults for other platforms.
 
 Source-backed rationale: the monitoring policy already separates platform-
 agnostic scheduler machinery from per-platform profile values, and it leaves
@@ -336,16 +352,16 @@ small:
   viewport/fallback interpretation, and cooldown/stop rules.
 - Future implementation-scoping prompt: bind exact changes to
   `run_source_capture_ig_calls_packet.py` only after owner acceptance.
-- Optional later architecture note under `source_capture_toolbox/`: define the
-  shared conceptual profile interface only after the owner accepts that the
-  abstraction is useful.
+- No shared controller or profile-interface artifact in this IG lane. If reopened after
+  second-platform recon, express the shared shape as a recon-card field list under the
+  toolbox instead of a new controller home.
 
 No source-access boundary amendment is recommended now.
 
 ## Open Owner Questions
 
-- Should the next patch be IG-only doc tightening, or should it also add a
-  non-authorizing shared profile-interface note?
+- Which bounded live IG probe stage should run first after the IG docs patch: Stage 0/1
+  only, or Stage 0/1 with a later owner-bound Stage 2 expansion?
 - Is the owner willing to accept the throughput cost of a fully quiet cooldown
   default before exact decay is pinned?
 - Should TikTok or YouTube be the first social-platform recon card after IG?
@@ -354,9 +370,10 @@ No source-access boundary amendment is recommended now.
 
 ## Next Authorized Step
 
-Patch the two IG planning docs named above, or commission a bounded docs-only
-patch prompt for them. Do not run live capture or scope runtime behavior until
-the owner accepts this recommendation and separately authorizes the next lane.
+After the IG docs patch, run readback/validation and keep the lane closed to new
+architecture. A live IG probe is a separate bounded run: before execution, bind the
+subject set, stage scope, lane scope, ceilings, cooldown policy, and output location. Do
+not scope runtime behavior from this note.
 
 ## Non-Claims
 
