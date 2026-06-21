@@ -2,11 +2,11 @@
 retrieval_header_version: 1
 artifact_role: Orca migration note
 scope: >
-  Phase-2 W3a proposal for capture/source_capture_toolbox + capture/source_families/:
+  Phase-2 W3a proposal for capture/core/source_capture_toolbox + capture/core/source_families/:
   bloat/deletion candidates with full deletion-evidence records and ontology/doc-term
-  findings against the SSOT. Covers orca/product/spines/capture/source_capture_toolbox/
-  (29 files) and orca/product/spines/capture/source_families/ (21 files, 2 sub-dirs:
-  instagram/ + retail_pdp/).
+  findings against the SSOT. Covers orca/product/spines/capture/core/source_capture_toolbox/
+  (29 files) and orca/product/spines/capture/core/source_families/ (21 files, 2 sub-dirs:
+  social_media/instagram/ + retail_pdp/).
 use_when:
   - Owner adjudicating Phase-2 deletion candidates for the capture toolbox and source-family areas.
   - Reviewing ontology/doc-term drift findings before a Phase-3 ratchet.
@@ -22,7 +22,7 @@ stale_if:
 
 ## Summary
 
-Files scanned: 50 (29 in source_capture_toolbox/ + 21 in source_families/)
+Files scanned: 50 (29 in core/source_capture_toolbox/ + 21 in core/source_families/)
 Deletion candidates: 0 high / 1 medium / 0 low
 Ontology findings: 4
 
@@ -34,16 +34,16 @@ Ontology findings: 4
 
 ```yaml
 targets:
-  - orca/product/spines/capture/source_capture_toolbox/cloakbrowser_packet_runner_architecture_independent_pass_v0.md
+  - orca/product/spines/capture/core/source_capture_toolbox/cloakbrowser_packet_runner_architecture_independent_pass_v0.md
 evidence:
   reverse_ref_check: >
     Inbound refs found (grep orca/product/ + docs/ + .agents/):
     - docs/migration/repo_structure_spine_first_v0/moved_paths_index.md:208 (historical path-index row; migration bookkeeping)
     - docs/migration/repo_structure_phase2_consolidation_v0/reference_inventory.md:57 (reference inventory; 3 external hits listed there)
-    - orca/product/spines/capture/source_capture_toolbox/reddit_capture_operator_playbook_v0.md:356 (direction-change propagation receipt — intentionally_not_updated entry, historical)
-    - orca/product/spines/capture/source_capture_toolbox/cloakbrowser_packet_runner_architecture_v0.md:686,707,713,715 (the first-pass doc cross-references this as a corroborating artifact; these are historical cross-ref links in the first-pass DCP receipt)
+    - orca/product/spines/capture/core/source_capture_toolbox/reddit_capture_operator_playbook_v0.md:356 (direction-change propagation receipt — intentionally_not_updated entry, historical)
+    - orca/product/spines/capture/core/source_capture_toolbox/cloakbrowser_packet_runner_architecture_v0.md:686,707,713,715 (the first-pass doc cross-references this as a corroborating artifact; these are historical cross-ref links in the first-pass DCP receipt)
     All references are migration-index bookkeeping or historical DCP receipts. No live source-loading, open_next, or authority-chain pointer outside migration scaffolding. The first-pass doc (cloakbrowser_packet_runner_architecture_v0.md) explicitly absorbed the independent-pass refinements and its DCP receipt records the intentional_not_updated for this artifact. Safe to remove after successor confirmed.
-  successor: orca/product/spines/capture/source_capture_toolbox/cloakbrowser_packet_runner_architecture_v0.md
+  successor: orca/product/spines/capture/core/source_capture_toolbox/cloakbrowser_packet_runner_architecture_v0.md
   semantic_delta: >
     The independent pass was a corroboration artifact (same architecture recommendation
     TARGET_RECOMMENDED, same contract shape, same packet-before-parser boundaries). Its
@@ -72,9 +72,9 @@ rationale: >
 
 All remaining 48 files in the two areas are lean. Evidence summary for the higher-count files:
 
-**source_capture_toolbox/ (28 files excluding the candidate above):**
+**core/source_capture_toolbox/ (28 files excluding the candidate above):**
 - `README.md`: 12+ inbound refs from docs/workflows/, .agents/workflow-overlay/, migration inventory. Canonical Armory entrypoint. Not deletable.
-- `capture_recon_index_v0.md`: Referenced in orca/product/spines/capture/source_capture_toolbox/source_capture_playbook_v0.md open_next; the recon-doctrine seed. Active.
+- `capture_recon_index_v0.md`: Referenced in orca/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md open_next; the recon-doctrine seed. Active.
 - `source_capture_playbook_v0.md`: Referenced from .agents/workflow-overlay/source-loading.md:376 as the canonical playbook (retired `capture_investigation_playbook_v0.md` is its pre-rename). Active doctrine.
 - `cloakbrowser_packet_runner_architecture_v0.md`: 5+ live inbound refs (retail_pdp spec, capture recon index, reddit playbook, prompt). Canonical architecture.
 - `linkedin_reddit_source_capture_armory_concurrent_structure_architecture_v0.md`: 10 inbound refs per migration inventory; referenced by `data_capture_spine_linkedin_discovery_planning_lane_architecture_v0.md`, data_capture_spine_consolidation_map, orca_repo_map. Policy-boundary authority.
@@ -91,11 +91,11 @@ All remaining 48 files in the two areas are lean. Evidence summary for the highe
 - `source_capture_anti_block_ladder_usage_guide_v0.md`, `source_capture_anti_blocking_http_ladder_daimler_rung_resolution_closeout_v0.md`: Cross-referenced; the usage guide is in the weapon ladder's open_next. Active pair.
 - Source-quality files (`source_quality_mini_god_tier_profile_v0.md`, `source_quality_source_unit_queue_template_v0.md`, `source_quality_state_assembler_v0.md`, `source_quality_mixed_source_trial_closeout_v0.md`, `source_quality_cw_p1/p4/p6_end_to_end_pass_closeout_v0.md`, `source_quality_slot3_post_recapture_closeout_v0.md`): All indexed in Armory README as named Armory components; referenced in README's stale-language-search and DCP receipts. The closeout set is operational evidence for the mini-god-tier profile; the profile is referenced in docs/decisions/ and review-outputs. Active.
 
-**source_families/ (21 files):**
+**core/source_families/ (21 files):**
 - All 15 instagram/ files and all 6 retail_pdp/ files have active inbound references from docs/workflows/, docs/decisions/, other orca/product/ files, or from each other's open_next chains. No abandoned orphans.
 - `ig_capture_findings_consolidated_v0.md`: 10+ inbound refs; the IG signal consolidation document.
 - `ig_creator_roster_frontier_ledger_spec_v0.md`, `ig_creator_discovery_spec_v0.md`, `orca_creator_momentum_pipeline_architecture_v0.md`, `orca_creator_monitoring_policy_architecture_v0.md`: All referenced in docs/hygiene/ig_creator_momentum_lane_handoff_v0.md and cross-referenced; active IG lane architecture.
-- `ig_capture_shape_contract_spec_v0.md`: Referenced in orca/product/spines/capture/packet_schema/source_capture_tenant_payload_attachment_boundary_v0.md (3 hits). Active.
+- `ig_capture_shape_contract_spec_v0.md`: Referenced in orca/product/spines/capture/core/packet_schema/source_capture_tenant_payload_attachment_boundary_v0.md (3 hits). Active.
 - `retail_pdp_typed_envelope_probe_v0.md`: Referenced in docs/workflows/ (2 hits), orca/product/spines/data_lake/ (2 hits), consolidation plan. Active.
 - `demand_durability_multi_retailer_rendered_capture_spec_v0.md`, `demand_durability_us_storefront_pin_recon_verdict_v0.md`: Both have inbound refs from retail_pdp/retail_pdp_projection_contract_v0.md and retail_pdp_projection_playbook_v0.md. Active.
 
@@ -106,12 +106,12 @@ All remaining 48 files in the two areas are lean. Evidence summary for the highe
 SSOT canonical types (from ontology.yaml): `Vertical`, `Brand`, `Product`, `Venue`, `WindCaller`, `Call`, `Observation`, `TrendVector`, `DecisionEvent`, `Reading`, `Memo`, `Case`, `Outcome`, `CapturePacket`, `EvidenceUnit`, `Buyer`, `Org`.
 Runtime/storage aliases (from runtime_bindings): `SourceCapturePacket` (alias for `CapturePacket`), `FacilitatorLedger` (alias for `Case`), `CaseReport` (composed with `Case`).
 
-**Finding 1 — `SubNiche` used as ontology-shaped term in source_families/instagram/ (not in SSOT)**
+**Finding 1 — `SubNiche` used as ontology-shaped term in core/source_families/social_media/instagram/ (not in SSOT)**
 
 - Term: `SubNiche`
 - File:line:
-  - `orca/product/spines/capture/source_families/instagram/ig_creator_discovery_suggested_accounts_recon_v0.md:122,131` (prose: "ontology `SubNiche` / keyword filter")
-  - `orca/product/spines/capture/source_families/instagram/ig_creator_discovery_spec_v0.md:25,103,107,109` (prose: "ontology backbone is adopted and SubNiche becomes a live classifier"; "live in the ontology's `SubNiche` object type — a candidate object"; "forward owner"; "re-expressed in `SubNiche` terms on adoption")
+  - `orca/product/spines/capture/core/source_families/social_media/instagram/ig_creator_discovery_suggested_accounts_recon_v0.md:122,131` (prose: "ontology `SubNiche` / keyword filter")
+  - `orca/product/spines/capture/core/source_families/social_media/instagram/ig_creator_discovery_spec_v0.md:25,103,107,109` (prose: "ontology backbone is adopted and SubNiche becomes a live classifier"; "live in the ontology's `SubNiche` object type — a candidate object"; "forward owner"; "re-expressed in `SubNiche` terms on adoption")
 - SSOT status: NOT in ontology.yaml as a type. The backbone architecture folds SubNiche into `Vertical` (self-parent via `narrows_to`; see backbone §"Folds applied" and ontology.yaml namespaces where `vertical:` supports dotted sub-niche). `SubNiche` is a deprecated candidate folded away at design time.
 - Proposed fix (read-only): Both files should qualify uses of `SubNiche` as the deprecated candidate name (folded into `Vertical` self-parent). Preferred prose in new text: "sub-niche (`vertical:beauty.fragrance`-style Vertical)" or "sub-niche level of Vertical". The existing references are accurately flagged as forward-links to a non-adopted type, and the ig_creator_discovery_spec_v0.md correctly notes this is awaiting adoption — so the usage is epistemically honest, not a drift error. No silent rename needed; the two files already annotate the status. Future sessions authoring near these files should not coin new `SubNiche` type references as if adopted.
 
@@ -119,24 +119,24 @@ Runtime/storage aliases (from runtime_bindings): `SourceCapturePacket` (alias fo
 
 - Term: `SourceCapturePacket`
 - File:line:
-  - `orca/product/spines/capture/source_families/retail_pdp/retail_pdp_typed_envelope_probe_v0.md:63,126` ("SourceCapturePacket stays canonical", "-> SourceCapturePacket [canonical raw authority]")
-  - `orca/product/spines/capture/source_families/retail_pdp/retail_pdp_projection_playbook_v0.md:77` ("a preserved `SourceCapturePacket`")
-  - `orca/product/spines/capture/source_families/retail_pdp/retail_pdp_projection_contract_v0.md:79` ("existing `SourceCapturePacket`")
-  - `orca/product/spines/capture/source_capture_toolbox/armory_weapon_and_pipe_readme_templates_v0.md:24,35` ("produces a `SourceCapturePacket`")
-  - `orca/product/spines/capture/source_capture_toolbox/cloakbrowser_packet_runner_architecture_independent_pass_v0.md:254,255` (references `SourceCapturePacket` model)
+  - `orca/product/spines/capture/core/source_families/retail_pdp/retail_pdp_typed_envelope_probe_v0.md:63,126` ("SourceCapturePacket stays canonical", "-> SourceCapturePacket [canonical raw authority]")
+  - `orca/product/spines/capture/core/source_families/retail_pdp/retail_pdp_projection_playbook_v0.md:77` ("a preserved `SourceCapturePacket`")
+  - `orca/product/spines/capture/core/source_families/retail_pdp/retail_pdp_projection_contract_v0.md:79` ("existing `SourceCapturePacket`")
+  - `orca/product/spines/capture/core/source_capture_toolbox/armory_weapon_and_pipe_readme_templates_v0.md:24,35` ("produces a `SourceCapturePacket`")
+  - `orca/product/spines/capture/core/source_capture_toolbox/cloakbrowser_packet_runner_architecture_independent_pass_v0.md:254,255` (references `SourceCapturePacket` model)
 - SSOT status: `SourceCapturePacket` is a RECORDED STORAGE ALIAS for ontology type `CapturePacket` (per `ontology.yaml runtime_bindings.CapturePacket.name_alias`). This is a valid alias per the ID-doctrine pattern (forward-only, both resolve). NOT a non-SSOT term; not drift. Usage is correct — these files use the runtime class name.
 - Proposed fix: None required. Usage is SSOT-aligned. For clarity, new docs may prefer the canonical ontology name `CapturePacket` in prose type references and reserve `SourceCapturePacket` for code-identifier contexts (the alias pattern intent), but the current usage is not wrong.
 
 **Finding 3 — Stale internal H1 title in `source_capture_playbook_v0.md`**
 
 - Term: not a type-term finding; a doc-hygiene finding
-- File:line: `orca/product/spines/capture/source_capture_toolbox/source_capture_playbook_v0.md:33` (H1 reads "Capture-Investigation Playbook (v0, review-hardened + risk-posture-amended)")
+- File:line: `orca/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md:33` (H1 reads "Capture-Investigation Playbook (v0, review-hardened + risk-posture-amended)")
 - Context: The file was renamed from `capture_investigation_playbook_v0.md` to `source_capture_playbook_v0.md` as noted in `archive_org_refinement_and_source_family_gap_spec_v0.md:38-40` and `.agents/workflow-overlay/source-loading.md:376`. The external path is correct but the internal H1 still says "Capture-Investigation Playbook". The `archive_org_refinement_and_source_family_gap_spec_v0.md` explicitly calls this out as "title-only drift, not a content fork."
 - Proposed fix (read-only): In a future edit, update the H1 of `source_capture_playbook_v0.md` line 33 from "Capture-Investigation Playbook" to "Source Capture Playbook". Low-priority; already documented; not a deletion or authority issue.
 
 **Finding 4 — Stale inbound reference to `capture_investigation_playbook_v0.md` inside the scanned area**
 
 - Term: not an ontology term; a stale-path finding
-- File:line: `orca/product/spines/capture/source_families/instagram/ig_wind_caller_capture_feasibility_recon_v0.md:108` (names `capture_investigation_playbook_v0.md` as the commission's source-loading target, then self-corrects inline: "actual: `source_capture_playbook_v0.md`")
+- File:line: `orca/product/spines/capture/core/source_families/social_media/instagram/ig_wind_caller_capture_feasibility_recon_v0.md:108` (names `capture_investigation_playbook_v0.md` as the commission's source-loading target, then self-corrects inline: "actual: `source_capture_playbook_v0.md`")
 - Context: The recon correctly self-notes the naming gap in-document. The corrected path resolves. Additional out-of-scope refs to `capture_investigation_playbook_v0.md` exist in `docs/research/orgmotion_beautypie_capture_feasibility_v0.md:19` and `docs/hygiene/topicals_case2_lane_log_v0.md:64` (both outside this scan area); source-loading.md:376 already flags the retirement.
 - Proposed fix (read-only): The in-scope reference is self-correcting and no action blocker. For future hygiene: `ig_wind_caller_capture_feasibility_recon_v0.md:108` could be simplified to drop the old name now that the new name is confirmed. Not load-bearing; no runtime/authority impact.
