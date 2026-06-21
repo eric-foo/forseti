@@ -70,6 +70,8 @@ Key source reads for this plan:
 - `orca/product/spines/capture/core/source_families/social_media/instagram/ig_capture_rate_findings_report_v0.md`: preliminary operating guidance and pending at-pace daily ceiling.
 - `orca/product/spines/capture/core/source_families/social_media/instagram/ig_at_scale_operating_envelope_v0.md`: two-lane serious-v0 operating posture for 1,000 creators.
 - `orca/product/spines/capture/core/source_families/social_media/instagram/ig_sustained_cadence_r_probe_design_v0.md`: prior R-probe design, purity boundary, and owner-gated run posture.
+- `orca/product/spines/capture/core/source_families/social_media/instagram/ig_capture_shape_contract_spec_v0.md`: IG packet-level `capture_time` and per-post `timestamp` / `comment_count` evidence obligations.
+- `orca/product/spines/capture/core/source_families/social_media/instagram/ig_wind_caller_calls_capture_build_architecture_v0.md`: logged-out item-page evidence for caption, likes, comments, date, and sponsorship signal.
 
 ## Assumption gate result
 
@@ -152,6 +154,10 @@ classifying the failure.
 - No standing crawler, daemon, unattended scheduler, or auto-retry loop.
 - No discovery during passive monitoring windows; subject handles are locked before the run.
 - No typed `metric_observations`; this measures read sustainability, not producer/projection acceptance.
+  Still preserve receipt-level item evidence needed for anti-bot and data-integrity interpretation:
+  item locator, source item timestamp/date, visible `like_count`, visible `comment_count`, applicable
+  view/play count, and `capture_time`. These are receipt facts for this probe, not typed-capture
+  acceptance.
 - Abort on login redirect, 429-like interstitial, network-security block, unexpected auth wall, or
   operator concern.
 - After any wall, stop and use a fully quiet cooldown; do not keep probing periodically as if that
@@ -303,6 +309,10 @@ Every run must produce an append-only receipt. Minimum fields:
 | access_classification | Publicly-viewable, publicly-viewable-but-ToS-restricted, access-controlled, operator-supplied/manual-only, or unknown. |
 | subject_handle | Locked before run; no discovery during run. |
 | capture_kind | profile, item, post permalink, profile-feed, or other. |
+| capture_time | Observation timestamp for the run/window or item read; keep separate from the source item timestamp/date. |
+| item_locator | For item/post/reel reads: shortcode, permalink, or equivalent item locator; `not_applicable` for profile-only reads. |
+| item_timestamp | Source-visible post/reel timestamp or date when present; otherwise `unknown` / `hidden` / `not_attempted` with reason. Do not infer it. |
+| item_signal_receipt | For item reads, record visible `like_count`, `comment_count`, and applicable view/play count with availability/posture. Missing, hidden, blocked, or out-of-window fields are not observed zero. |
 | modeled_request_count | State modeling assumptions; do not pretend exact network requests were counted unless instrumented. |
 | cadence_min_max | Observed/read-configured spacing range. |
 | page_result | captured, no_signal, access_blocked, redirected_to_login, rate_limited_429_interstitial, network_security_block, capture_failed. |
@@ -314,6 +324,11 @@ Every run must produce an append-only receipt. Minimum fields:
 | verdict | GO, PARTIAL, NO-GO, or CATALOG_GAP as defined by the source-capture playbook. |
 
 No receipt means no strict interpretation. Chat summaries or operator memory are not enough.
+
+For this probe, `comments` means source-visible `comment_count` in the item engagement evidence.
+Full comment-thread/body capture, commenter identity capture, comment graph expansion, and comment
+timestamps are outside this logged-out sustainability plan unless a separate source-access and fidelity
+probe authorizes them.
 
 ## Decision Tree
 
@@ -349,6 +364,8 @@ Fallback analysis is a decision lane, not an automatic build path.
 - Do not test sessions, cookies, login, or stored auth state.
 - Do not test proxies, anti-detect tooling, CAPTCHA solving, or commercial-scale collection.
 - Do not test standing scheduler behavior.
+- Do not test full comment-thread/body capture, commenter identity capture, comment graph expansion, or
+  comment timestamp capture. This plan records `comment_count` only as source-visible item evidence.
 - Do not prove typed capture, ECR, Cleaning, Judgment, buyer proof, validation, or readiness.
 - Do not use the probe as proof that media/video bytes are capturable.
 - Do not use the probe as proof that TikTok, YouTube, Reddit, or other platform satellites share IG's envelope.
