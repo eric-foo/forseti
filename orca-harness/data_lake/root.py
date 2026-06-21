@@ -26,10 +26,13 @@ local single-operator deployment.
 """
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import re
-from pathlib import Path
+from dataclasses import dataclass
+from pathlib import Path, PurePosixPath, PureWindowsPath
+from typing import Any
 
 from harness_utils import generate_ulid, hash_file, utc_now_z
 
@@ -221,6 +224,40 @@ def _production_candidate(
         if value:
             return str(value)
     return None
+
+
+def _preserved_path_parts(relative_packet_path: str, *, file_id: str) -> tuple[str, ...]:
+    """Return canonical packet-relative POSIX path parts, or fail closed."""
+    windows_path = PureWindowsPath(relative_packet_path)
+    posix_path = PurePosixPath(relative_packet_path)
+    if (
+        "\\" in relative_packet_path
+        or windows_path.drive
+        or windows_path.root
+        or posix_path.is_absolute()
+        or relative_packet_path in {"", "."}
+    ):
+        raise DataLakeRootError(
+            f"preserved path for {file_id!r} must be packet-relative POSIX: {relative_packet_path!r}"
+        )
+    parts = tuple(relative_packet_path.split("/"))
+    if not parts or any(part in {"", ".", ".."} for part in parts):
+        raise DataLakeRootError(
+            f"preserved path for {file_id!r} has an unsafe segment: {relative_packet_path!r}"
+        )
+    return parts
+
+
+@dataclass(frozen=True)
+class LoadedRawPacket:
+    """Result of a verified by-key raw read. ``manifest`` is the raw manifest as
+    a plain dict -- the lake selects no spine schema, so the caller interprets
+    it. ``bodies`` maps each preserved ``file_id`` to its bytes, re-hashed
+    against the manifest sha256 on read (fail-closed on mismatch)."""
+
+    container: Path
+    manifest: dict[str, Any]
+    bodies: dict[str, bytes]
 
 
 class DataLakeRoot:
@@ -454,6 +491,89 @@ class DataLakeRoot:
         _validate_packet_id(packet_id)
         container = self._within("raw", packet_id)
         return container if container.is_dir() else None
+
+    def load_raw_packet(self, packet_id: str) -> LoadedRawPacket:
+        """Verified by-key raw read -- the read half, symmetric to the write
+        guard. Resolve ``raw/<packet_id>/``, read the manifest, and return each
+        preserved file's bytes re-hashed against the manifest sha256. Fail-closed
+        on a missing packet/manifest/file, a size or sha256 mismatch, or a
+        preserved path that is absolute or escapes the container. The lake selects
+        no spine schema: the manifest is returned as a plain dict for the caller
+        to interpret."""
+        self._reverify()
+        container = self.find_packet(packet_id)
+        if container is None:
+            raise DataLakeRootError(f"raw packet not committed: {packet_id}")
+        manifest_path = container / "manifest.json"
+        if not manifest_path.is_file():
+            raise DataLakeRootError(f"committed raw packet missing manifest.json: {packet_id}")
+        try:
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        except (OSError, ValueError) as exc:
+            raise DataLakeRootError(f"unreadable raw manifest for packet {packet_id}: {exc}") from exc
+        if not isinstance(manifest, dict):
+            raise DataLakeRootError(f"raw manifest is not a JSON object: {manifest_path}")
+        preserved_files = manifest.get("preserved_files")
+        if not isinstance(preserved_files, list) or not preserved_files:
+            raise DataLakeRootError(
+                f"raw manifest preserved_files must be a non-empty list: {packet_id}"
+            )
+        bodies: dict[str, bytes] = {}
+        container_root = container.resolve()
+        for index, preserved in enumerate(preserved_files):
+            if not isinstance(preserved, dict):
+                raise DataLakeRootError(
+                    f"raw manifest preserved_files[{index}] must be a JSON object: {packet_id}"
+                )
+            file_id = preserved.get("file_id")
+            if not isinstance(file_id, str) or not file_id:
+                raise DataLakeRootError(
+                    f"raw manifest preserved_files[{index}].file_id is missing or invalid: {packet_id}"
+                )
+            if file_id in bodies:
+                raise DataLakeRootError(f"duplicate preserved file_id {file_id!r}: {packet_id}")
+            relative_packet_path = preserved.get("relative_packet_path")
+            if not isinstance(relative_packet_path, str):
+                raise DataLakeRootError(
+                    f"raw manifest preserved file {file_id!r} missing relative_packet_path: {packet_id}"
+                )
+            parts = _preserved_path_parts(relative_packet_path, file_id=file_id)
+            file_path = self._within("raw", packet_id, *parts)
+            try:
+                file_path.relative_to(container_root)
+            except ValueError as exc:
+                raise DataLakeRootError(
+                    f"preserved path escapes raw packet container for {file_id!r}: "
+                    f"{relative_packet_path!r}"
+                ) from exc
+            if not file_path.is_file():
+                raise DataLakeRootError(
+                    f"preserved file {file_id!r} missing at {relative_packet_path!r}: {packet_id}"
+                )
+            body = file_path.read_bytes()
+            expected_size = preserved.get("size_bytes")
+            if type(expected_size) is not int or expected_size < 0:
+                raise DataLakeRootError(
+                    f"raw manifest preserved file {file_id!r} missing valid size_bytes: {packet_id}"
+                )
+            if len(body) != expected_size:
+                raise DataLakeRootError(
+                    f"preserved file size mismatch for {file_id!r} "
+                    f"(read {len(body)}, manifest {expected_size}): {packet_id}"
+                )
+            expected_sha = preserved.get("sha256")
+            if not isinstance(expected_sha, str) or not expected_sha:
+                raise DataLakeRootError(
+                    f"raw manifest preserved file {file_id!r} missing sha256: {packet_id}"
+                )
+            actual_sha = hashlib.sha256(body).hexdigest()
+            if actual_sha != expected_sha:
+                raise DataLakeRootError(
+                    f"preserved file sha256 mismatch for {file_id!r} "
+                    f"(recomputed {actual_sha}, manifest {expected_sha}): {packet_id}"
+                )
+            bodies[file_id] = body
+        return LoadedRawPacket(container=container, manifest=manifest, bodies=bodies)
 
     def read_availability(self, packet_id: str) -> dict | None:
         """Return the availability entry for a packet by key, or None."""
