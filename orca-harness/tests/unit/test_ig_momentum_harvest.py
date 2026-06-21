@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from pathlib import Path
 
 from source_capture.adapters.browser_snapshot import (
     BrowserContextResponse,
@@ -48,9 +49,12 @@ def test_fetch_ig_profile_momentum_parses_profile_and_grid_pages_without_faking_
         geoip_enabled=False,
     )
     seen_proxy_profiles: list[ProxyProfile | None] = []
+    seen_storage_state_paths: list[Path | None] = []
+    storage_state_path = Path("_auth_state/ig-free.json")
 
     def fake_fetcher(**kwargs):
         seen_proxy_profiles.append(kwargs.get("proxy_profile"))
+        seen_storage_state_paths.append(kwargs.get("storage_state_path"))
         request_id = kwargs["requests"][0].request_id
         if request_id == "web_profile_info":
             return _success(
@@ -116,12 +120,14 @@ def test_fetch_ig_profile_momentum_parses_profile_and_grid_pages_without_faking_
         max_graphql_pages=1,
         request_gap_seconds=3.0,
         proxy_profile=proxy,
+        storage_state_path=storage_state_path,
         sleep_fn=sleeps.append,
         browser_fetcher=fake_fetcher,
     )
 
     assert sleeps == [3.0]
     assert seen_proxy_profiles == [proxy, proxy]
+    assert seen_storage_state_paths == [storage_state_path, storage_state_path]
     assert capture.numeric_id == "5802114508"
     assert capture.follower_count == 723000
     assert capture.media_by_shortcode["AAA"].is_video is False

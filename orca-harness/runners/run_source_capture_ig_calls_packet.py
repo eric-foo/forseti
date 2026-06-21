@@ -1,7 +1,8 @@
-"""Bounded, logged-out IG wind-caller CALLS capture -> Source Capture Packet.
+"""Bounded IG wind-caller CALLS capture -> Source Capture Packet.
 
-Composes existing primitives (no new auth/session path, no secrets):
-- browser_snapshot (headless, LOGGED-OUT; scroll to enumerate the profile grid),
+Composes existing primitives (no cookie import, no credential flags):
+- browser_snapshot (headless by default; scroll to enumerate the profile grid),
+- optional ignored Playwright storage-state label for an operator-created session,
 - ig_calls_parse (og:description -> caption/likes/comments/date/#ad; permalinks),
 - browser-context XHR (web_profile_info + bounded grid pagination -> view counts),
 - cadence.bounded_jitter (human-mimicking variable gaps between item visits),
@@ -9,8 +10,9 @@ Composes existing primitives (no new auth/session path, no secrets):
 
 Substrate basis: the recon + 2026-06-14 headless probe found IG serves the call
 signal (caption + engagement) in the post/reel page og:description to a browser,
-LOGGED-OUT. The reel view-count path is browser-context profile-feed JSON, also
-logged-out. This runner therefore needs no session.
+logged-out by default. The reel view-count path is browser-context profile-feed
+JSON. A pre-bootstrapped own/entitled storage-state label is an explicit fallback
+path, not the default.
 
 Bounded by the wind-caller carve-out: attended, human-mimicking cadence, no
 standing/scheduled crawler, per-run item cap. This is one bounded capture unit
@@ -47,6 +49,7 @@ from source_capture.adapters.browser_snapshot import (
     DEFAULT_TIMEOUT_SECONDS,
     BrowserSnapshotFailureKind,
 )
+from source_capture.auth_state import AuthenticatedSessionMode, validate_auth_state_session_mode
 from source_capture.cadence import build_cadence_plan
 from source_capture.ig_momentum_harvest import (
     IG_ID_CONFLICT_POLICY_VERSION,
@@ -103,7 +106,14 @@ DEFAULT_IG_PROFILE_VIEWPORT_HEIGHT = 1024
 DEFAULT_PROFILE_SETTLE_SECONDS = 3.0
 DEFAULT_PROFILE_LINK_RETRIES = 1
 DEFAULT_PROFILE_LINK_RETRY_BACKOFF_SECONDS = 2.5
+DEFAULT_LOGGED_OUT_CAPTURE_CONTEXT = "logged-out IG wind-caller calls capture (no session); one bounded account, recent calls"
+IG_CIRCUIT_BREAK_EXIT_CODE = 4
 _CAPTURED_ITEM_STATUSES = frozenset({"captured", "captured_with_profile_feed_json"})
+_CIRCUIT_BREAK_BLOCK_REASONS = frozenset({
+    "redirected_to_login",
+    "rate_limited_429_interstitial",
+    "network_security_block",
+})
 
 
 def _detect_ig_block(*, final_url: str, title: str | None, visible_text: str, rendered_dom: str) -> str | None:
@@ -139,6 +149,7 @@ _RETRYABLE_CAPTURE_FAILURES = frozenset({
 def _capture_one(url: str, *, scroll_passes: int, timeout_seconds: float, viewport_width: int,
                  viewport_height: int, max_artifact_bytes: int,
                  proxy_profile: ProxyProfile | None = None,
+                 storage_state_path: Path | None = None,
                  max_attempts: int = 1, retry_backoff_seconds: float = 0.0,
                  settle_seconds: float = 0.0,
                  sleep_fn: Callable[[float], None] = time.sleep):
@@ -153,6 +164,7 @@ def _capture_one(url: str, *, scroll_passes: int, timeout_seconds: float, viewpo
             viewport_height=viewport_height,
             max_artifact_bytes=max_artifact_bytes,
             proxy_profile=proxy_profile,
+            storage_state_path=storage_state_path,
             scroll_passes=scroll_passes,
             settle_seconds=settle_seconds,
         )
@@ -238,6 +250,7 @@ def _capture_profile_with_permalink_retry(
     viewport_height: int,
     max_artifact_bytes: int,
     proxy_profile: ProxyProfile | None,
+    storage_state_path: Path | None,
     capture_retries: int,
     capture_retry_backoff_seconds: float,
     profile_settle_seconds: float,
@@ -256,6 +269,7 @@ def _capture_profile_with_permalink_retry(
             viewport_height=viewport_height,
             max_artifact_bytes=max_artifact_bytes,
             proxy_profile=proxy_profile,
+            storage_state_path=storage_state_path,
             max_attempts=capture_retries + 1,
             retry_backoff_seconds=capture_retry_backoff_seconds,
             settle_seconds=profile_settle_seconds,
@@ -281,6 +295,47 @@ def _capture_profile_with_permalink_retry(
         if attempt < profile_link_retries and profile_link_retry_backoff_seconds > 0:
             sleep_fn(profile_link_retry_backoff_seconds)
     return last_profile, last_permalinks
+
+
+def _is_circuit_break_block(reason: str | None) -> bool:
+    return reason in _CIRCUIT_BREAK_BLOCK_REASONS
+
+
+def _momentum_circuit_break_reason(momentum_capture: IgProfileMomentumCapture | None) -> str | None:
+    if momentum_capture is None:
+        return None
+    for note in momentum_capture.limitation_notes:
+        if note.startswith("web_profile_info_unavailable: status=401"):
+            return "web_profile_info_401"
+    return None
+
+
+def _authenticated_capture_context(
+    *,
+    auth_state_label: str,
+    auth_session_mode: AuthenticatedSessionMode,
+) -> str:
+    return (
+        "IG wind-caller calls capture using ignored local Playwright storage state "
+        f"label {auth_state_label} with {auth_session_mode.value}; one bounded account, "
+        "recent calls; no password automation; storage-state path not recorded"
+    )
+
+
+def _ig_calls_non_claims(auth_session_mode: AuthenticatedSessionMode | None) -> list[str]:
+    if auth_session_mode is None:
+        return IG_CALLS_NON_CLAIMS
+    removed = {"not login or session capture", "not stored profile or cookie use"}
+    out = [item for item in IG_CALLS_NON_CLAIMS if item not in removed]
+    out.extend(
+        [
+            "not password-driven login automation",
+            "not credential capture or storage",
+            "not cookie or session export",
+            "not no-entitlement bypass",
+        ]
+    )
+    return out
 
 
 def _media_for_item_url(
@@ -568,7 +623,10 @@ def run_source_capture_ig_calls_packet(
     profile_link_retries: int = DEFAULT_PROFILE_LINK_RETRIES,
     profile_link_retry_backoff_seconds: float = DEFAULT_PROFILE_LINK_RETRY_BACKOFF_SECONDS,
     proxy_profile: ProxyProfile | None = None,
-    capture_context: str = "logged-out IG wind-caller calls capture (no session); one bounded account, recent calls",
+    auth_state_label: str | None = None,
+    auth_session_mode: AuthenticatedSessionMode | None = None,
+    auth_state_root: Path | None = None,
+    capture_context: str = DEFAULT_LOGGED_OUT_CAPTURE_CONTEXT,
     operator_category: str = "ig_calls_browser_snapshot_cli_operator",
     session_id: str | None = None,
     warnings: Sequence[str] = (),
@@ -587,6 +645,23 @@ def run_source_capture_ig_calls_packet(
         raise ValueError("profile_link_retries must be zero or greater")
     if profile_link_retry_backoff_seconds < 0:
         raise ValueError("profile_link_retry_backoff_seconds must be zero or greater")
+    if (auth_state_label is None) != (auth_session_mode is None):
+        raise ValueError("authenticated IG capture requires both auth_state_label and auth_session_mode")
+
+    warnings = list(warnings)
+    limitations = list(limitations)
+    storage_state_path: Path | None = None
+    if auth_state_label is not None and auth_session_mode is not None:
+        storage_state_path = validate_auth_state_session_mode(
+            auth_state_label,
+            session_mode=auth_session_mode,
+            auth_state_root=auth_state_root,
+        )
+        if capture_context == DEFAULT_LOGGED_OUT_CAPTURE_CONTEXT:
+            capture_context = _authenticated_capture_context(
+                auth_state_label=auth_state_label,
+                auth_session_mode=auth_session_mode,
+            )
 
     profile, dom_permalinks = _capture_profile_with_permalink_retry(
         profile_url=profile_url,
@@ -596,6 +671,7 @@ def run_source_capture_ig_calls_packet(
         viewport_height=viewport_height,
         max_artifact_bytes=max_artifact_bytes,
         proxy_profile=proxy_profile,
+        storage_state_path=storage_state_path,
         capture_retries=capture_retries,
         capture_retry_backoff_seconds=capture_retry_backoff_seconds,
         profile_settle_seconds=profile_settle_seconds,
@@ -610,7 +686,9 @@ def run_source_capture_ig_calls_packet(
         visible_text=profile.visible_text, rendered_dom=profile.rendered_dom,
     )
     if block is not None:
-        return 3, f"profile access-blocked ({block}); recorded NO-GO, no packet written"
+        exit_code = IG_CIRCUIT_BREAK_EXIT_CODE if _is_circuit_break_block(block) else 3
+        prefix = "ig circuit-break recommended: " if exit_code == IG_CIRCUIT_BREAK_EXIT_CODE else ""
+        return exit_code, f"{prefix}profile access-blocked ({block}); recorded NO-GO, no packet written"
 
     profile_og = extract_meta_content(profile.rendered_dom, "og:description")
     profile_stats = parse_ig_profile_og(profile_og) if profile_og else None
@@ -626,7 +704,13 @@ def run_source_capture_ig_calls_packet(
             timeout_seconds=timeout_seconds,
             max_response_bytes=max_artifact_bytes,
             proxy_profile=proxy_profile,
+            storage_state_path=storage_state_path,
             sleep_fn=sleep_fn,
+        )
+    momentum_circuit_break_reason = _momentum_circuit_break_reason(momentum_capture)
+    if momentum_circuit_break_reason is not None:
+        limitations.append(
+            f"ig_circuit_break_recommended:{momentum_circuit_break_reason}; stop batch and cool down before next profile"
         )
 
     permalinks, enumeration_source, generated_permalink_count = _select_item_permalinks(
@@ -636,6 +720,12 @@ def run_source_capture_ig_calls_packet(
         max_items=max_items,
     )
     if not permalinks:
+        if momentum_circuit_break_reason is not None:
+            return (
+                IG_CIRCUIT_BREAK_EXIT_CODE,
+                "ig circuit-break recommended: no /p/ or /reel/ permalinks enumerated "
+                f"from profile DOM or profile-feed JSON; {momentum_circuit_break_reason}",
+            )
         return 3, "no /p/ or /reel/ permalinks enumerated from profile DOM or profile-feed JSON"
     if capture_view_counts:
         sleep_fn(xhr_request_gap_seconds)
@@ -660,6 +750,7 @@ def run_source_capture_ig_calls_packet(
             url, scroll_passes=0, timeout_seconds=timeout_seconds, viewport_width=viewport_width,
             viewport_height=viewport_height, max_artifact_bytes=max_artifact_bytes,
             proxy_profile=proxy_profile,
+            storage_state_path=storage_state_path,
             max_attempts=capture_retries + 1, retry_backoff_seconds=capture_retry_backoff_seconds, sleep_fn=sleep_fn,
         )
         if isinstance(item, BrowserSnapshotFailure):
@@ -688,6 +779,11 @@ def run_source_capture_ig_calls_packet(
                     item_page_message=f"item access-blocked ({item_block})",
                 )
             )
+            if _is_circuit_break_block(item_block):
+                limitations.append(
+                    f"ig_circuit_break_recommended:item_access_blocked:{item_block}; stopped_remaining_item_visits"
+                )
+                break
             continue
         og = extract_meta_content(item.rendered_dom, "og:description")
         parsed = parse_ig_og_description(og) if og else None
@@ -718,19 +814,27 @@ def run_source_capture_ig_calls_packet(
         capture_context=capture_context,
         operator_category=operator_category,
         session_id=session_id,
-        warnings=list(warnings),
-        limitations=list(limitations),
+        warnings=warnings,
+        limitations=limitations,
         momentum_capture=momentum_capture,
         capture_view_counts=capture_view_counts,
         profile_capture_metadata=profile.metadata,
         proxy_profile=proxy_profile,
+        auth_state_label=auth_state_label,
+        auth_session_mode=auth_session_mode,
     )
 
 
-def _slice_postures():
-    access = known_fact(
-        "ig_logged_out_browser_snapshot; public og:description; content sufficiency not asserted"
-    )
+def _slice_postures(*, auth_session_mode: AuthenticatedSessionMode | None):
+    if auth_session_mode is None:
+        access = known_fact(
+            "ig_logged_out_browser_snapshot; public og:description; content sufficiency not asserted"
+        )
+    else:
+        access = known_fact(
+            f"ig_browser_snapshot using {auth_session_mode.value} via ignored local Playwright storage state; "
+            "content sufficiency and login-wall absence are not asserted"
+        )
     archive = not_attempted("IG calls runner does not query archive or history services")
     media = known_fact(
         "og:description caption + engagement text preserved; browser-context profile-feed JSON checked for view counts; media bytes are out of scope"
@@ -763,8 +867,10 @@ def _write_packet(
     capture_view_counts: bool,
     profile_capture_metadata: dict[str, object],
     proxy_profile: ProxyProfile | None,
+    auth_state_label: str | None,
+    auth_session_mode: AuthenticatedSessionMode | None,
 ) -> tuple[int, str]:
-    access, archive, media, recapture = _slice_postures()
+    access, archive, media, recapture = _slice_postures(auth_session_mode=auth_session_mode)
     staging_parent = output_directory.parent
     staging_parent.mkdir(parents=True, exist_ok=True)
 
@@ -799,6 +905,10 @@ def _write_packet(
             ),
             "proxy_endpoint_recorded": False,
             "proxy_exit_ip_recorded": False,
+            "storage_state_loaded": auth_session_mode is not None,
+            "auth_session_mode": auth_session_mode.value if auth_session_mode is not None else None,
+            "auth_state_label": auth_state_label,
+            "auth_state_path_recorded": False,
         },
     }
 
@@ -932,17 +1042,27 @@ def _write_packet(
                 "proxy_profile_used: category="
                 f"{proxy_profile.proxy_category.value}; endpoint, credentials, exit IP, and store path not recorded"
             )
+        if auth_session_mode is not None:
+            run_limitations.append(
+                f"auth_state_used: session_mode={auth_session_mode.value}; auth_state_label={auth_state_label}; "
+                "storage_state_path_not_recorded; no_password_automation"
+            )
         view_count_observed = sum(
             1
             for source_slice in slices
             for observation in source_slice.metric_observations
             if observation.metric == "view_count" and observation.posture == MetricPosture.OBSERVED
         )
+        capture_mode_label = "logged_out" if auth_session_mode is None else auth_session_mode.value
         visible_mode_changes = [
-            f"ig_calls_logged_out_capture:items={len(item_records)}:captured={captured_count}",
+            f"ig_calls_{capture_mode_label}_capture:items={len(item_records)}:captured={captured_count}",
             f"ig_item_enumeration_source:{enumeration_source}",
             f"ig_browser_context_view_count_capture:items_observed={view_count_observed}",
         ]
+        if auth_session_mode is not None:
+            visible_mode_changes.append(
+                f"ig_browser_storage_state_loaded:{auth_session_mode.value}:{auth_state_label}"
+            )
         if not capture_view_counts:
             visible_mode_changes.append("ig_browser_context_view_count_capture:not_attempted")
 
@@ -955,7 +1075,8 @@ def _write_packet(
             decision_question=decision_question,
             capture_context=capture_context,
             actor_audience_context=known_fact(
-                "public-figure creator public profile; logged-out capture; internal wind-caller calibration"
+                "public-figure creator public profile; "
+                f"{capture_mode_label} capture; internal wind-caller calibration"
             ),
             capture_mode=CaptureModeCategory.AUTOMATED_EXTRACTION,
             operator_category=operator_category,
@@ -974,10 +1095,10 @@ def _write_packet(
             limitations=run_limitations,
             receipt_summary=(
                 f"IG calls packet for {profile_final_url}: {captured_count} of {len(item_records)} "
-                "enumerated items yielded a usable logged-out call record; "
+                f"enumerated items yielded a usable {capture_mode_label} call record; "
                 f"{view_count_observed} item(s) yielded observed IG video_view_count metric values."
             ),
-            receipt_non_claims=IG_CALLS_NON_CLAIMS,
+            receipt_non_claims=_ig_calls_non_claims(auth_session_mode),
         )
     finally:
         for path in written:
@@ -990,7 +1111,7 @@ def _write_packet(
 
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description="Capture one IG creator's recent CALLS (logged-out) into a Source Capture Packet."
+        description="Capture one IG creator's recent CALLS into a Source Capture Packet."
     )
     parser.add_argument("--profile-url", required=True)
     parser.add_argument("--decision-question", required=True)
@@ -1044,6 +1165,17 @@ def _build_parser() -> argparse.ArgumentParser:
         default=None,
         help="Optional local proxy profile store root. Never recorded in packet output.",
     )
+    auth_group = parser.add_argument_group(
+        "auth state",
+        "Optional use of an existing ignored Playwright storage-state label. No cookies, paths, or credentials are accepted on the CLI.",
+    )
+    auth_group.add_argument("--auth-state-label", default=None)
+    auth_group.add_argument(
+        "--session-mode",
+        choices=[item.value for item in AuthenticatedSessionMode],
+        default=None,
+    )
+    auth_group.add_argument("--auth-state-root", type=Path, default=None)
     parser.add_argument("--session-id", default=None)
     parser.add_argument("--warning", action="append", default=[])
     parser.add_argument("--limitation", action="append", default=[])
@@ -1099,6 +1231,9 @@ def main(argv: Sequence[str] | None = None) -> int:
             profile_link_retries=args.profile_link_retries,
             profile_link_retry_backoff_seconds=args.profile_link_retry_backoff_seconds,
             proxy_profile=proxy_profile,
+            auth_state_label=args.auth_state_label,
+            auth_session_mode=AuthenticatedSessionMode(args.session_mode) if args.session_mode else None,
+            auth_state_root=args.auth_state_root,
             session_id=args.session_id,
             warnings=args.warning,
             limitations=args.limitation,
