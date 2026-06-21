@@ -12,6 +12,7 @@ from runners.run_capture_ecr_cleaning_smoke import (
     _old_reddit_anchor_pattern,
     run_capture_ecr_cleaning_smoke,
 )
+from runners.run_cleaning_spine_periodic_audit import run_cleaning_spine_periodic_audit
 from source_capture.models import (
     CaptureModeCategory,
     CoverageWindow,
@@ -691,6 +692,306 @@ def test_runner_main_maps_validation_errors_to_cli_failure(
     assert exc_info.value.code == 2
     assert "capture/ECR/Cleaning smoke failed:" in capsys.readouterr().err
 
+
+def test_periodic_audit_passes_for_fixture_capture_projection_cleaning(
+    tmp_path: Path,
+) -> None:
+    retail_packet_dir = _write_retail_packet_dir(tmp_path)
+    retail_projection_path = tmp_path / "retail_projection" / "retail_pdp_projection.json"
+    write_retail_pdp_projection(
+        packet_directory=retail_packet_dir,
+        output_path=retail_projection_path,
+    )
+    reddit_packet_dir = _write_reddit_packet_dir(tmp_path, NORMAL_THREAD_HTML)
+    reddit_consolidation = consolidate_reddit_packet(
+        packet_or_manifest_path=reddit_packet_dir,
+        output_directory=tmp_path / "reddit_consolidation",
+    )
+    instagram_packet_dir = _write_instagram_packet_dir(tmp_path)
+    instagram_projection_path = tmp_path / "instagram_projection" / "ig_projection.json"
+    write_ig_creator_momentum_projection(
+        packet_or_manifest_path=instagram_packet_dir,
+        output_path=instagram_projection_path,
+    )
+    smoke_manifest_path = _write_smoke_manifest(
+        tmp_path,
+        retail_packet_dir=retail_packet_dir,
+        retail_projection_path=retail_projection_path,
+        reddit_packet_dir=reddit_packet_dir,
+        reddit_consolidation_path=Path(reddit_consolidation["json_path"]),
+        instagram_handle="hyram",
+        instagram_packet_dir=instagram_packet_dir,
+        instagram_projection_path=instagram_projection_path,
+    )
+    smoke_outputs = run_capture_ecr_cleaning_smoke(
+        smoke_manifest_path=smoke_manifest_path,
+        output_dir=tmp_path / "smoke_outputs",
+    )
+    audit_manifest_path = _write_audit_manifest(
+        tmp_path,
+        smoke_manifest_path=smoke_manifest_path,
+        smoke_outputs=smoke_outputs,
+    )
+
+    audit_outputs = run_cleaning_spine_periodic_audit(
+        audit_manifest_path=audit_manifest_path,
+        output_dir=tmp_path / "audit_outputs",
+    )
+
+    report = _load_json(Path(audit_outputs["audit_report_json"]))
+    assert report["overall_status"] == "pass"
+    assert report["lane_statuses"] == {
+        "capture_preflight": "pass",
+        "lane_a_existing_package": "pass",
+        "lane_b_projection_breakpoint": "pass",
+        "lane_b_cleaning_breakpoint": "pass",
+    }
+    assert report["counts"]["source_entries"] == 3
+    assert report["lane_b_cleaning_breakpoint"]["cleaning_signature_match"] is True
+    assert report["lane_b_cleaning_breakpoint"]["ecr_signature_match"] is True
+    assert "not_live_capture" in report["non_claims"]
+
+
+def test_periodic_audit_flags_projection_breakpoint_drift(tmp_path: Path) -> None:
+    retail_packet_dir = _write_retail_packet_dir(tmp_path)
+    retail_projection_path = tmp_path / "retail_projection" / "retail_pdp_projection.json"
+    write_retail_pdp_projection(
+        packet_directory=retail_packet_dir,
+        output_path=retail_projection_path,
+    )
+    smoke_manifest_path = _write_smoke_manifest(
+        tmp_path,
+        retail_packet_dir=retail_packet_dir,
+        retail_projection_path=retail_projection_path,
+    )
+    smoke_outputs = run_capture_ecr_cleaning_smoke(
+        smoke_manifest_path=smoke_manifest_path,
+        output_dir=tmp_path / "smoke_outputs",
+    )
+    projection = _load_json(retail_projection_path)
+    projection["residuals"].append("fixture_projection_drift")
+    _write_json(retail_projection_path, projection)
+    audit_manifest_path = _write_audit_manifest(
+        tmp_path,
+        smoke_manifest_path=smoke_manifest_path,
+        smoke_outputs=smoke_outputs,
+    )
+
+    audit_outputs = run_cleaning_spine_periodic_audit(
+        audit_manifest_path=audit_manifest_path,
+        output_dir=tmp_path / "audit_outputs",
+    )
+
+    report = _load_json(Path(audit_outputs["audit_report_json"]))
+    assert report["overall_status"] == "fail"
+    assert any(
+        finding["lane"] == "lane_b_projection_breakpoint"
+        and finding["code"] == "projection_rebuild_signature_mismatch"
+        and finding["owner_candidate"] == "projection_or_consolidation"
+        for finding in report["findings"]
+    )
+
+def test_periodic_audit_flags_projection_source_visible_field_drift(tmp_path: Path) -> None:
+    retail_packet_dir = _write_retail_packet_dir(tmp_path)
+    retail_projection_path = tmp_path / "retail_projection" / "retail_pdp_projection.json"
+    write_retail_pdp_projection(
+        packet_directory=retail_packet_dir,
+        output_path=retail_projection_path,
+    )
+    smoke_manifest_path = _write_smoke_manifest(
+        tmp_path,
+        retail_packet_dir=retail_packet_dir,
+        retail_projection_path=retail_projection_path,
+    )
+    smoke_outputs = run_capture_ecr_cleaning_smoke(
+        smoke_manifest_path=smoke_manifest_path,
+        output_dir=tmp_path / "smoke_outputs",
+    )
+    projection = _load_json(retail_projection_path)
+    projection["rows"][0]["source_visible_fields"]["product_name"] = "Fixture Corrupted Name"
+    _write_json(retail_projection_path, projection)
+    audit_manifest_path = _write_audit_manifest(
+        tmp_path,
+        smoke_manifest_path=smoke_manifest_path,
+        smoke_outputs=smoke_outputs,
+    )
+
+    audit_outputs = run_cleaning_spine_periodic_audit(
+        audit_manifest_path=audit_manifest_path,
+        output_dir=tmp_path / "audit_outputs",
+    )
+
+    report = _load_json(Path(audit_outputs["audit_report_json"]))
+    assert report["overall_status"] == "fail"
+    assert any(
+        finding["lane"] == "lane_b_projection_breakpoint"
+        and finding["code"] == "projection_rebuild_signature_mismatch"
+        for finding in report["findings"]
+    )
+
+
+def test_periodic_audit_promotes_lane_a_smoke_findings_to_status(tmp_path: Path) -> None:
+    retail_packet_dir = _write_retail_packet_dir(
+        tmp_path,
+        html="""
+        <html><head><title>Page Not Found</title></head>
+        <body>Sorry! We couldn't find that page.</body></html>
+        """,
+        visible_text="",
+    )
+    retail_projection_path = tmp_path / "retail_projection" / "retail_pdp_projection.json"
+    write_retail_pdp_projection(
+        packet_directory=retail_packet_dir,
+        output_path=retail_projection_path,
+    )
+    smoke_manifest_path = _write_smoke_manifest(
+        tmp_path,
+        retail_packet_dir=retail_packet_dir,
+        retail_projection_path=retail_projection_path,
+    )
+    smoke_outputs = run_capture_ecr_cleaning_smoke(
+        smoke_manifest_path=smoke_manifest_path,
+        output_dir=tmp_path / "smoke_outputs",
+    )
+    audit_manifest_path = _write_audit_manifest(
+        tmp_path,
+        smoke_manifest_path=smoke_manifest_path,
+        smoke_outputs=smoke_outputs,
+    )
+
+    audit_outputs = run_cleaning_spine_periodic_audit(
+        audit_manifest_path=audit_manifest_path,
+        output_dir=tmp_path / "audit_outputs",
+    )
+
+    report = _load_json(Path(audit_outputs["audit_report_json"]))
+    assert report["overall_status"] == "fail"
+    assert report["lane_statuses"]["lane_a_existing_package"] == "fail"
+    assert any(
+        finding["lane"] == "lane_a_existing_package"
+        and finding["code"] == "lane_a_smoke_summary_finding"
+        and finding["smoke_finding_code"] == "retail_capture_validity_not_supported"
+        for finding in report["findings"]
+    )
+
+
+def test_periodic_audit_refuses_stale_rebuild_subdirectories(tmp_path: Path) -> None:
+    retail_packet_dir = _write_retail_packet_dir(tmp_path)
+    retail_projection_path = tmp_path / "retail_projection" / "retail_pdp_projection.json"
+    write_retail_pdp_projection(
+        packet_directory=retail_packet_dir,
+        output_path=retail_projection_path,
+    )
+    smoke_manifest_path = _write_smoke_manifest(
+        tmp_path,
+        retail_packet_dir=retail_packet_dir,
+        retail_projection_path=retail_projection_path,
+    )
+    smoke_outputs = run_capture_ecr_cleaning_smoke(
+        smoke_manifest_path=smoke_manifest_path,
+        output_dir=tmp_path / "smoke_outputs",
+    )
+    audit_manifest_path = _write_audit_manifest(
+        tmp_path,
+        smoke_manifest_path=smoke_manifest_path,
+        smoke_outputs=smoke_outputs,
+    )
+    output_dir = tmp_path / "audit_outputs"
+    (output_dir / "lane_b_projection_rebuild").mkdir(parents=True)
+
+    with pytest.raises(ValueError, match="audit output already exists"):
+        run_cleaning_spine_periodic_audit(
+            audit_manifest_path=audit_manifest_path,
+            output_dir=output_dir,
+        )
+
+def test_periodic_audit_flags_cleaning_package_drift(tmp_path: Path) -> None:
+    instagram_packet_dir = _write_instagram_packet_dir(tmp_path)
+    instagram_projection_path = tmp_path / "instagram_projection" / "ig_projection.json"
+    write_ig_creator_momentum_projection(
+        packet_or_manifest_path=instagram_packet_dir,
+        output_path=instagram_projection_path,
+    )
+    smoke_manifest_path = _write_smoke_manifest(
+        tmp_path,
+        instagram_handle="hyram",
+        instagram_packet_dir=instagram_packet_dir,
+        instagram_projection_path=instagram_projection_path,
+    )
+    smoke_outputs = run_capture_ecr_cleaning_smoke(
+        smoke_manifest_path=smoke_manifest_path,
+        output_dir=tmp_path / "smoke_outputs",
+    )
+    cleaning_path = Path(smoke_outputs["cleaning_packet"])
+    cleaning_payload = _load_json(cleaning_path)
+    cleaning_payload["handles"][0]["ecr_ref"]["ref_id"] = "ecr:wrong:source_side_postures"
+    _write_json(cleaning_path, cleaning_payload)
+    audit_manifest_path = _write_audit_manifest(
+        tmp_path,
+        smoke_manifest_path=smoke_manifest_path,
+        smoke_outputs=smoke_outputs,
+    )
+
+    audit_outputs = run_cleaning_spine_periodic_audit(
+        audit_manifest_path=audit_manifest_path,
+        output_dir=tmp_path / "audit_outputs",
+    )
+
+    report = _load_json(Path(audit_outputs["audit_report_json"]))
+    assert report["overall_status"] == "fail"
+    assert any(
+        finding["lane"] == "lane_a_existing_package"
+        and finding["code"] == "cleaning_handle_ecr_ref_unresolved"
+        for finding in report["findings"]
+    )
+    assert any(
+        finding["lane"] == "lane_b_cleaning_breakpoint"
+        and finding["code"] == "cleaning_rebuild_signature_mismatch"
+        and finding["owner_candidate"] == "cleaning"
+        for finding in report["findings"]
+    )
+
+
+def test_periodic_audit_flags_capture_packet_hash_mismatch(tmp_path: Path) -> None:
+    retail_packet_dir = _write_retail_packet_dir(tmp_path)
+    retail_projection_path = tmp_path / "retail_projection" / "retail_pdp_projection.json"
+    write_retail_pdp_projection(
+        packet_directory=retail_packet_dir,
+        output_path=retail_projection_path,
+    )
+    smoke_manifest_path = _write_smoke_manifest(
+        tmp_path,
+        retail_packet_dir=retail_packet_dir,
+        retail_projection_path=retail_projection_path,
+    )
+    smoke_outputs = run_capture_ecr_cleaning_smoke(
+        smoke_manifest_path=smoke_manifest_path,
+        output_dir=tmp_path / "smoke_outputs",
+    )
+    (retail_packet_dir / "raw" / "01_cloakbrowser_rendered_dom.html").write_text(
+        "tampered after Lane A package creation",
+        encoding="utf-8",
+    )
+    audit_manifest_path = _write_audit_manifest(
+        tmp_path,
+        smoke_manifest_path=smoke_manifest_path,
+        smoke_outputs=smoke_outputs,
+    )
+
+    audit_outputs = run_cleaning_spine_periodic_audit(
+        audit_manifest_path=audit_manifest_path,
+        output_dir=tmp_path / "audit_outputs",
+    )
+
+    report = _load_json(Path(audit_outputs["audit_report_json"]))
+    assert report["overall_status"] == "fail"
+    assert any(
+        finding["lane"] == "capture_preflight"
+        and finding["code"] == "preserved_file_hash_mismatch"
+        for finding in report["findings"]
+    )
+
+
 def _write_smoke_manifest(
     tmp_path: Path,
     *,
@@ -727,6 +1028,26 @@ def _write_smoke_manifest(
             }
         ]
     path = tmp_path / f"smoke_manifest_{len(list(tmp_path.glob('smoke_manifest_*.json')))}.json"
+    path.write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    return path
+
+
+def _write_audit_manifest(
+    tmp_path: Path,
+    *,
+    smoke_manifest_path: Path,
+    smoke_outputs: dict[str, str],
+) -> Path:
+    manifest = {
+        "audit_id": "fixture_cleaning_periodic_audit",
+        "smoke_manifest": str(smoke_manifest_path),
+        "lane_a_outputs": {
+            "ecr_source_side_receipts": smoke_outputs["ecr_source_side_receipts"],
+            "cleaning_packet": smoke_outputs["cleaning_packet"],
+            "smoke_summary": smoke_outputs["smoke_summary"],
+        },
+    }
+    path = tmp_path / f"audit_manifest_{len(list(tmp_path.glob('audit_manifest_*.json')))}.json"
     path.write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     return path
 
