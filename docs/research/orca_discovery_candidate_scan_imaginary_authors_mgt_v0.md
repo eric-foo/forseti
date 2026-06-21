@@ -54,10 +54,13 @@ closeout_state: SCAN_COMPLETE
 Source context loaded: `AGENTS.md`, `.agents/workflow-overlay/README.md`,
 Orca Cynefin routing, scanning README, MGT intelligent-walk operating model,
 vertical exploration guide, targeted demand scan-core sections, Commission
-Signal Board playbook, AEO phase-0 seed evidence, and the fragrance candidate
-pool handoff. The CSB/AEO read was seed-selection context only in the original
-run; the companion CSB board now records the upstream venue map for future
-reruns. The historical Imaginary Authors pool row was used only as a
+Signal Board playbook, AEO phase-0 seed evidence, the fragrance candidate pool
+handoff, and the CSB forward board at
+`docs/research/orca_commission_signal_board_imaginary_authors_forward_v0.md`.
+This follow-up treats the CSB board as the upstream venue/source-family map;
+fresh public re-checks on 2026-06-21 found no material drift from the prior
+screen-light observations and no new independent demand-origin venue inside the
+run cap. The historical Imaginary Authors pool row was used only as a
 decision-shape precedent; it is not cited below as forward evidence.
 
 Non-goals: no crawler, monitor, registry, atlas, capture packet, ECR, Cleaning,
@@ -90,6 +93,25 @@ Declared frontiers closed:
 Stop reason: all remaining public frontiers had decayed to low expected value
 inside the move cap, and the next useful work would be Capture-owned
 preservation or orchestrator-mediated public community screening.
+
+## CSB-First Venue Evaluation
+
+| Venue eval ID | CSB row(s) checked | Venue / route | Current venue value | Capture / route decision |
+| --- | --- | --- | --- | --- |
+| VE-001 | SBR-001 | Imaginary Authors official collections and PDPs | High venue value for volatile owned chronology: official collection/all-products surfaces still show current assortment, `A LITTLE SECRET` as `New`, `Dipped in Chocolate` sold out, and PDP-level variant/restock UI. | Keep CR-001 and CR-002; Capture owns preservation and route binding. Owned state is not demand proof. |
+| VE-002 | SBR-002, SBR-006 | Ministry of Scent collection/review route | Medium venue value for retailer corroboration and review routing: collection shows 28 Imaginary Authors products, `A Little Secret` with no reviews, and `First Peach of the Season` with sample add enabled and one review. | No new capture request. Useful child route if a later lane needs review text, but aggregate counts are insufficient. |
+| VE-003 | SBR-003 | Allure peach-fragrance article | Low-to-medium venue value as current editorial/category visibility: 2026-06-19 article includes `First Peach of the Season`. | No capture request. Treat as visibility/source route and campaign-overlap check, not demand-origin evidence. |
+| VE-004 | SBR-004, SBR-010 | Livingetc / Anthropologie candle collaboration | Low venue value for this fragrance-scoped run, but useful adjacent org-motion context for home fragrance/channel expansion. | No capture request unless the subject broadens to home fragrance or partner-channel movement. |
+| VE-005 | SBR-005, SBR-006, SBR-007 | Public community, review, and exact-query discovery | Low yield inside this cap: exact public searches did not surface a better independent product-specific origin than owned/retail/editorial routes. | No hidden venue pointer promoted. Reddit/Basenotes-style reads remain orchestrator-mediated public screening if later justified. |
+| VE-006 | SBR-008 | Search/AEO seed-query family | Visibility annotation only: seed evidence explains why Imaginary Authors entered the workstream and where cited-source ecosystems may point. | Excluded from demand-origin and classifier claims. No capture request. |
+
+## Hidden Venue Pointer Decision
+
+No `hidden_venue_pointer` was promoted in this CSB-first follow-up. The only
+child routes worth preserving as follow-up notes were Ministry of Scent
+product/review pages for exact SKUs and orchestrator-mediated public community
+reads; neither met the bar for a high-yield hidden venue requiring Capture-owned
+acquisition in this run.
 
 ## Screen-Light Observations
 
