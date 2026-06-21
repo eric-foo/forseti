@@ -137,13 +137,17 @@ earned. It updates by dated note as ledgers learn new walls.
 > 3. READ ESCALATION before any ACCESS-NOTE (screening posture only — public
 >    pages, no logins, no bulk): try (i) a URL variant (old./www., mobile,
 >    print view), (ii) search-snippet mining (site:domain queries), (iii) an
->    archived copy of the SPECIFIC page. Record which shapes you tried.
->    "Blocked" is a hypothesis, not a verdict.
+>    archived copy of the SPECIFIC page, and (iv) when the orchestrator offers
+>    a screening browser route, visible-text browser read before recording a
+>    final ACCESS-NOTE. For browser reads, judge the visible text/title; hidden
+>    full-DOM challenge residue alone is not a source wall. Record which shapes
+>    you tried. "Blocked" is a hypothesis, not a verdict.
 > 4. KNOWN WALLS (do not burn moves rediscovering): reddit.com is unreachable
 >    via the agent fetch tool (tool-level block) AND unreliable in external
 >    search indexes — snippet-mine only, and record what you needed so the
->    orchestrator can route it; basenotes.com 403s direct fetch — snippets
->    and archives work.
+>    orchestrator can route it; direct-fetch Cloudflare/interstitial walls
+>    (Basenotes-class) require orchestrator-routed screening browser read if
+>    snippets/archives are not enough.
 > 5. POLICY SKIPS (hard): LinkedIn, TikTok, Instagram — record pointers,
 >    never follow. No logins anywhere. No capture: URLs + short quotes only.
 > 6. HUB ORDER: brand-story trade press FIRST (outlets covering brands and

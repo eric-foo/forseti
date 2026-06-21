@@ -59,6 +59,14 @@ profile/cookie import, credentials in flags or environment variables,
 no-entitlement bypass, proxy behavior, or CAPTCHA solving through these existing
 runners, stop with `visible_capture_limitation`.
 
+For all browser routes, diagnose rendered access from visible text and title
+before treating full-DOM challenge markers as decisive. Hidden or residual
+Cloudflare/Akamai/Kasada/DataDome/PerimeterX script/template text can remain in
+the DOM after source content is visible; record that as a limitation/warning,
+not as `access_failed`. If the visible text/title is still an interstitial,
+CAPTCHA, or access-block shell, report `access_failed` / PARTIAL even when DOM
+and screenshot artifacts were preserved.
+
 The agent cannot reliably know browser-rendering or login-wall posture before
 running a byte-preserving adapter. A Direct HTTP, Media / Asset, or Archive.org
 exit code `0` proves only that bytes were preserved into a packet. It does not
@@ -438,7 +446,10 @@ selects a local Playwright Chromium channel such as Chrome or Edge, and
 `--settle-seconds` waits after navigation before artifact capture. It does not
 use stored sessions, browser profiles, cookies, credentials, storage-state
 files, anti-detect behavior, proxy behavior, CAPTCHA solving, crawling, OCR, or
-source-meaningfulness classification.
+source-meaningfulness classification. Its rendered-access posture is a guard
+against fake success, not content sufficiency proof: visible text/title decide
+whether the browser is still showing a block shell; residual challenge markers
+in the full DOM alone are preserved as limitations.
 
 On Windows, a failure containing `WinError 5` or `Access is denied` during
 Playwright startup usually means the environment blocked Playwright's browser
