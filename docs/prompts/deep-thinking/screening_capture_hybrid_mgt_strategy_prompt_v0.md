@@ -4,16 +4,15 @@
 retrieval_header_version: 1
 artifact_role: Prompt artifact
 scope: >
-  Paste-ready strategy prompt for a ChatGPT-style reasoning lane to decide the
-  mini-god-tier shape for combining screening reads with capture: screen first,
-  capture only when the gate is satisfied, and pressure-test the tempting
-  "capture if it feels okay" boundary collapse against the current screening-read
-  build.
+  Paste-ready strategy prompt for a ChatGPT-style reasoning lane to weigh the
+  mini-god-tier shape for combining screening reads with capture, including
+  screen-gated, delayed-commit, direct-capture, and boundary-collapse variants,
+  using the current screening-read build as context.
 use_when:
   - Asking an external reasoning model to adjudicate screening-read versus capture
     hybrid architecture.
-  - Pressure-testing whether a screen-gated capture or single-read delayed-commit
-    design is the mini-god-tier target.
+  - Weighing pros and cons of screen-gated capture, single-read delayed-commit,
+    direct capture exceptions, and boundary-changing hybrids.
   - Forcing accepted residuals before adopting a hybrid source-access strategy.
 authority_boundary: retrieval_only
 output_mode: paste-ready-chat
@@ -80,9 +79,9 @@ v0 -- constants bound; deltas stated below.
 - Isolation decision: authored in the existing screening-read service PR worktree
   because this prompt is a continuation of that workstream.
 - Validation gates for the response: source-context status stated; five options
-  compared; "capture if it feels okay" either rejected or converted into explicit
-  criteria; accepted residuals named for any MGT recommendation; no validation,
-  readiness, approval, or implementation claim.
+  compared; "capture if it feels okay" evaluated with explicit pros, cons,
+  safeguards, and criteria; accepted residuals named for any MGT recommendation;
+  no validation, readiness, approval, or implementation claim.
 - Thread operating target continuity: no active thread operating target is
   carried; this is a strategy prompt for a downstream reasoning lane.
 
@@ -96,9 +95,13 @@ The owner's tempting idea is:
 > Screen, then capture if it feels okay. Maybe ignore the boundary because the
 > hybrid is cleaner.
 
-Treat that as a candidate to pressure-test, not as an instruction to obey. Push
-back hard if it creates silent over-collection, hidden ECR/packet writes, vague
-human judgment, or an untestable source-access boundary.
+Treat that as a candidate to evaluate fairly, not as an instruction to obey or
+as a flaw to dismiss upfront. Weigh its advantages -- lower latency, fewer
+duplicate reads, simpler operator flow, and exact same-page preservation --
+against its risks: silent over-collection, hidden ECR/packet writes, vague human
+judgment, and untestable source-access boundaries. If it survives, translate it
+into explicit criteria, safeguards, and accepted residuals. If it fails, explain
+which risks make it worse than the alternatives.
 
 ## Mini God Tier Bar
 
@@ -210,8 +213,11 @@ Evaluate each option against:
 
 ## Hard Constraints
 
-- Do not recommend hidden capture from inside `screening_read`.
-- Do not make "feels okay" a gate. Convert it to explicit criteria or reject it.
+- Do not hide capture side effects inside `screening_read`; if a design captures
+  from a screening entry, name it as a boundary-changing design and define the
+  explicit commit point, safeguards, and tests.
+- Do not leave "feels okay" as a gate; convert it to explicit criteria before
+  recommending any hybrid.
 - Do not create packet, manifest, ECR, Cleaning, or Judgment side effects before
   a capture gate has passed.
 - Do not weaken public-only / entitlement-first / no-auth-bypass boundaries.
@@ -226,7 +232,9 @@ Return a concise strategy memo with these sections:
 
 1. **Direct Answer**
    - Is the ideal hybrid real?
-   - Is "capture if it feels okay / ignore the boundary" acceptable?
+   - What are the pros, cons, and required safeguards for "capture if it
+     feels okay / ignore the boundary"? Under what conditions, if any, is it
+     acceptable?
 
 2. **Recommended MGT Shape**
    - Name the target architecture.
@@ -263,16 +271,18 @@ Return a concise strategy memo with these sections:
    - Name the next artifact that should be written if the owner accepts the
      strategy.
 
-## Strong Starting Hypothesis To Challenge
+## Starting Hypothesis To Evaluate
 
-The likely answer is:
+A plausible answer is:
 
 - MGT is **screen-gated capture now** plus a future **single-read delayed-commit**
   upgrade if latency becomes measured pain.
 - `screening_read` itself stays pure.
 - The orchestrator owns the gate and invokes capture.
-- "Capture if it feels okay" is not acceptable unless translated into explicit,
-  testable gate criteria.
+- "Capture if it feels okay" may be unacceptable as phrased, but could become
+  viable if translated into explicit, testable gate criteria and a clear commit
+  boundary.
 
-Do not accept this hypothesis automatically. Attack it and replace it if a better
-MGT design captures more value at lower cost with named accepted residuals.
+Do not accept or reject this hypothesis automatically. Weigh it against the
+alternatives and replace it if another MGT design captures more value at lower
+cost with named accepted residuals.
