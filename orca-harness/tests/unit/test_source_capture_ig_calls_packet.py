@@ -147,7 +147,7 @@ def test_ig_calls_runner_writes_packet_with_profile_and_call_slices(
     manifest = json.loads((output_dir / "manifest.json").read_text(encoding="utf-8"))
     assert manifest["source_surface"] == "ig_calls_browser_snapshot"
     assert manifest["capture_mode"] == "automated extraction"
-    assert "ig_browser_context_view_count_capture:observed=1" in manifest["visible_mode_changes"]
+    assert "ig_browser_context_view_count_capture:items_observed=1" in manifest["visible_mode_changes"]
     slice_ids = [s["slice_id"] for s in manifest["source_slices"]]
     assert slice_ids == ["ig_profile_00", "ig_call_01", "ig_call_02", "ig_call_03"]
     assert manifest["receipt_metadata"]["non_claims"] == ig_runner.IG_CALLS_NON_CLAIMS
@@ -188,7 +188,7 @@ def test_ig_calls_runner_writes_packet_with_profile_and_call_slices(
         obs for obs in missing_slice["metric_observations"] if obs["metric"] == "view_count"
     )
     assert missing_view_count["reason"] == (
-        "item status=no_signal; view_count not attributed because the item did not produce a captured call signal"
+        "browser-context profile-feed JSON did not include this shortcode; item status=no_signal"
     )
 
     raw = {p.name: json.loads(p.read_text(encoding="utf-8")) for p in (output_dir / "raw").iterdir() if p.suffix == ".json"}
@@ -411,6 +411,98 @@ def test_ig_calls_runner_returns_nogo_when_profile_redirects_to_login(
     assert exit_code == 3
     assert "access-blocked" in message and "redirected_to_login" in message
     assert not output_dir.exists()
+
+
+def test_ig_calls_runner_retries_profile_when_grid_initially_empty(
+    scratch_dir: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    calls: list[str] = []
+    sleeps: list[float] = []
+
+    def fake_snapshot(**kw):
+        calls.append(kw["url"])
+        if kw["url"] == PROFILE_URL and calls.count(PROFILE_URL) == 1:
+            return _success(requested_url=kw["url"], rendered_dom="<html><body>profile still loading</body></html>")
+        return _route_fake(kw["url"])
+
+    monkeypatch.setattr(ig_runner, "fetch_browser_snapshot_capture", fake_snapshot)
+    output_dir = scratch_dir / "packet"
+
+    exit_code, _ = run_source_capture_ig_calls_packet(
+        profile_url=PROFILE_URL,
+        output_directory=output_dir,
+        decision_question="q",
+        max_items=1,
+        capture_view_counts=False,
+        sleep_fn=sleeps.append,
+    )
+
+    assert exit_code == 0
+    assert calls[:2] == [PROFILE_URL, PROFILE_URL]
+    assert sleeps == [ig_runner.DEFAULT_PROFILE_LINK_RETRY_BACKOFF_SECONDS]
+
+
+def test_ig_calls_runner_uses_profile_feed_json_when_dom_grid_empty(
+    scratch_dir: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    def fake_snapshot(**kw):
+        if kw["url"] == PROFILE_URL:
+            return _success(requested_url=kw["url"], rendered_dom="<html><body>profile shell</body></html>")
+        return _success(requested_url=kw["url"], rendered_dom=_NO_OG_DOM)
+
+    def json_only_momentum(**_kwargs) -> IgProfileMomentumCapture:
+        return IgProfileMomentumCapture(
+            username="hyram",
+            numeric_id="5802114508",
+            follower_count=724000,
+            media_by_shortcode={
+                "BBB": IgMediaMetricRecord(
+                    shortcode="BBB",
+                    is_video=True,
+                    video_view_count=104700,
+                    like_count=1047,
+                    comment_count=43,
+                    caption="#ad sponsored thing",
+                    taken_at_timestamp=1726012800,
+                    typename="GraphVideo",
+                    product_type="clips",
+                )
+            },
+            raw_responses=[],
+        )
+
+    monkeypatch.setattr(ig_runner, "fetch_browser_snapshot_capture", fake_snapshot)
+    monkeypatch.setattr(ig_runner, "fetch_ig_profile_momentum", json_only_momentum)
+    output_dir = scratch_dir / "packet"
+
+    exit_code, _ = run_source_capture_ig_calls_packet(
+        profile_url=PROFILE_URL,
+        output_directory=output_dir,
+        decision_question="q",
+        max_items=1,
+        sleep_fn=lambda _s: None,
+    )
+
+    assert exit_code == 0
+    manifest = json.loads((output_dir / "manifest.json").read_text(encoding="utf-8"))
+    assert "ig_item_enumeration_source:profile_feed_json_timestamp_desc" in manifest["visible_mode_changes"]
+    assert any("profile_dom_grid_permalinks_empty" in item for item in manifest["limitations"])
+
+    raw = {p.name: json.loads(p.read_text(encoding="utf-8")) for p in (output_dir / "raw").iterdir() if p.suffix == ".json"}
+    profile = next(v for k, v in raw.items() if "ig_profile.json" in k)
+    item = next(v for k, v in raw.items() if "ig_call_01" in k)
+    assert profile["enumeration_source"] == "profile_feed_json_timestamp_desc"
+    assert profile["generated_permalink_count"] == 1
+    assert item["url"] == "https://www.instagram.com/hyram/reel/BBB/"
+    assert item["status"] == "captured_with_profile_feed_json"
+    assert item["item_page_status"] == "no_signal"
+    assert item["source_timestamp_iso"] == "2024-09-11T00:00:00Z"
+    assert item["signal_sources"] == {
+        "caption": "profile_feed_json",
+        "likes": "profile_feed_json",
+        "comments": "profile_feed_json",
+        "source_timestamp": "profile_feed_json",
+    }
 
 
 def test_ig_calls_runner_returns_nogo_when_no_permalinks(

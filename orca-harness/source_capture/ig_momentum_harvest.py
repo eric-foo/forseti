@@ -47,6 +47,8 @@ class IgMediaMetricRecord:
     comment_count: int | None
     caption: str | None
     taken_at_timestamp: int | None
+    typename: str | None = None
+    product_type: str | None = None
 
 
 @dataclass(frozen=True)
@@ -75,6 +77,8 @@ class IgProfileMomentumCapture:
                     "comment_count": item.comment_count,
                     "caption": item.caption,
                     "taken_at_timestamp": item.taken_at_timestamp,
+                    "typename": item.typename,
+                    "product_type": item.product_type,
                 }
                 for shortcode, item in sorted(self.media_by_shortcode.items())
             },
@@ -359,6 +363,8 @@ def _parse_media_node(node: dict[str, object]) -> IgMediaMetricRecord | None:
         comment_count=_edge_count(node.get("edge_media_to_comment")),
         caption=_caption_text(node.get("edge_media_to_caption")),
         taken_at_timestamp=_int_or_none(node.get("taken_at_timestamp")),
+        typename=_string_or_none(node.get("__typename")),
+        product_type=_string_or_none(node.get("product_type")),
     )
 
 
