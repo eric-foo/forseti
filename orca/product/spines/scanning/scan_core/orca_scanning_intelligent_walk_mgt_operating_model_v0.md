@@ -5,10 +5,10 @@ retrieval_header_version: 1
 artifact_role: Product method operating model (owner-invoked Mini God Tier target lens; scanning-to-capture bridge)
 scope: >
   Defines the high-signal scanning target shape the owner invoked as Mini God
-  Tier: bounded intelligent walks, frontier selection, branch decay/pivot
-  discipline, CSB-first venue-value evaluation, exact-query discovery,
-  hidden-venue discovery, precursor-signal handling, minimum evidence for
-  promotion, shared scan
+  Tier: bounded intelligent walks, default CSB broad-scout phase, frontier
+  selection, recency/current-state priority, branch decay/pivot discipline,
+  CSB-first venue-value evaluation, exact-query discovery, hidden-venue
+  discovery, precursor-signal handling, minimum evidence for promotion, shared scan
   vocabulary, and the capture-request handoff from scanning to the Capture
   spine. Bridges the
   Vertical Exploration Guide, the PROPOSED Demand Scan-Core Spec, and
@@ -17,6 +17,8 @@ scope: >
 use_when:
   - Designing or reviewing a scanning lane that should behave like a high-signal bounded walker rather than a generic crawler.
   - Evaluating whether CSB-surfaced venues are worth downstream attention and whether hidden venues were missed.
+  - Running the default bounded broad-scout phase for a CSB-first scan.
+  - Prioritizing recent and current-state source reads without treating recency as proof.
   - Running bounded exact-query discovery to test CSB rows, find hidden venues, or record decisive negatives.
   - Deciding what scanning may emit before Capture, ECR, Cleaning, Judgment, or gate-run work begins.
   - Distinguishing precursor signals and precursor surfaces from gate proof, capture authority, or standing source maps.
@@ -36,6 +38,8 @@ stale_if:
   - The Mini God Tier doctrine is amended or re-pointed.
   - The Vertical Exploration Guide changes its walk contract, dry rule, or capture seam.
   - The Demand Scan-Core Spec is owner-adjudicated or amended on walk order, observation schema, or capture-needs handoff.
+  - The default CSB broad-scout phase is amended, removed, or moved to another owner.
+  - The recency/current-state priority is amended or superseded by a richer scan freshness contract.
   - A capture-owned request/route-binding contract supersedes the capture_request fields below.
   - A venue registry, atlas, crawler, monitor, or standing source-map decision is reopened by the owner.
 ```
@@ -62,11 +66,16 @@ contradictions, high-quality pointers, decisive negatives, access notes, and
 only those precursor surfaces that change the next route. It is not optimized
 for exhaustive coverage.
 
+Every CSB-first scan includes a bounded broad-scout phase by default. The phase
+miss-checks the board before or alongside main deepening; it does not replace
+main scanning judgment, mint candidates, clear gates, or bind Capture routes.
+
 Target loop:
 
 ```text
 authorized seed / objective
 -> CSB board or owner-authorized seed
+-> bounded broad-scout phase for CSB-first scans
 -> bounded intelligent walk over venues
 -> frontier-selected venue reads and exact-query probes
 -> venue-value notes / exact-query negatives / hidden-venue pointers
@@ -81,11 +90,32 @@ The MGT bet is that this captures most of the value of a maximal crawler-like
 system without accepting the infrastructure, maintenance, policy, and
 source-drift cost of standing crawl machinery.
 
+## Default CSB Broad-Scout Phase
+
+A CSB-first scan runs a bounded broad-scout phase by default. The scout asks:
+what high-value public venues did CSB miss; which CSB-nominated venues look low
+value; which exact queries test the remaining gap; which recent/current-state
+surfaces deserve main deepening; and which access walls or decisive negatives
+should stop wasted effort.
+
+The broad-scout phase is bounded by the scan commission's run cap. A scan may
+use one route-ledger subagent for the scout when subagent support is available;
+if not, the main operator runs the scout inline. The required default is the
+bounded phase, not a hard dependency on subagent infrastructure.
+
+A broad-scout return should be small and route-shaped: `frontier` entries
+checked, `exact_query` strings used, `venue_eval`, `hidden_venue_pointer`,
+`negative`, `access_note`, recency/current-state notes, and recommended main
+deepening. It cannot emit final candidate decisions, clear demand gates, set
+Capture routes, authorize source expansion, or continue after the commission cap
+is reached.
+
 ## Hard Boundaries
 
 Scanning does not own:
 
 - standing crawlers, monitors, source maps, registries, or atlases;
+- subagent infrastructure or any requirement that broad scout run only through subagents;
 - packet-grade capture, manifests, ECR, screenshots, raw preservation, or route
   expansion;
 - capture route binding or source-access policy decisions;
@@ -120,7 +150,7 @@ High-value reasons include:
 - likely gradeable costly-behavior evidence;
 - likely contradiction, divergence, or defeater;
 - likely pointer to a better venue or origin;
-- freshness inside the decision window;
+- recent or current source state inside the decision window;
 - likely decision-owner or org-motion context;
 - low access/policy risk relative to expected value;
 - decisive negative value, where ruling it out changes the scan route.
@@ -132,6 +162,25 @@ Precursor is a venue-routing concept here. Do not relabel ordinary weak
 owned/channel/editorial evidence as a precursor just because it falls below the
 candidate bar. If the item mainly tells the operator whether a venue is useful,
 record it as venue value, pointer, negative, access note, or unknown.
+
+## Recency And Current-State Priority
+
+Recency is a hard frontier-priority rule, not proof. After source-family hard
+stops and CSB routing, choose recent or current-state URL-backed frontiers before
+older context when expected decision value is otherwise comparable.
+
+High-priority recent/current-state frontiers include current official or
+retailer state, dated buyer-language reviews, forum/community posts, stockout,
+restock, sold-out, waitlist, availability changes, and recent editorial,
+partner, or org-motion pointers. Older sources remain admissible when they
+establish origin, chronology, partnership provenance, baseline contradiction, or
+backtest cutoff. Label those as historical or contextual, and do not let them
+override fresh current-state reads.
+
+Record `retrieval_date` for each load-bearing read and the event, review,
+publication, or source-state date when available. If an older source is carried
+forward, record why it is still load-bearing and whether a re-verify or
+`stale_after` note is needed before downstream use.
 
 ## Exact Query Discovery
 
@@ -201,6 +250,11 @@ separate downstream shapes:
 - `move` - one bounded read or attempted read;
 - `exact_query` - a bounded public query string used to test a CSB row, find a
   hidden venue, reach a better origin, or produce a decisive negative;
+- `broad_scout_return` - a bounded route ledger for a CSB-first scan: checked
+  frontiers, exact queries, venue evaluations, hidden-venue pointers, negatives,
+  access notes, recency/current-state notes, and recommended main deepening;
+  not a candidate decision, gate decision, capture route, or source-expansion
+  authorization;
 - `precursor_signal` - an early, URL-backed clue that may guide a walk but is
   tied to a venue or surface worth probing; not proof, gate clearance, or
   capture authorization;
@@ -377,12 +431,70 @@ avoid the rejected maximal infrastructure.
 
 Not validation, readiness, buyer proof, gate clearance, scan authorization,
 capture authorization, scan-core ratification, source-family adoption, crawler
-approval, monitor approval, registry approval, or live web access permission.
-No implementation, scheduler, crawler, dashboard, storage layer, packet runner,
-ECR, Cleaning, Judgment, outreach, or buyer-contact work is authorized here.
+approval, monitor approval, registry approval, subagent-infrastructure mandate,
+or live web access permission. No implementation, scheduler, crawler,
+dashboard, storage layer, packet runner, ECR, Cleaning, Judgment, outreach, or
+buyer-contact work is authorized here.
 
 ## Direction Change Propagation
 
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    CSB-first scanning now includes a bounded broad-scout phase by default, and
+    MGT frontier selection now hard-prioritizes recent/current-state public
+    sources before older context when expected decision value is otherwise
+    comparable. Broad scout may be performed by one route-ledger subagent when
+    available, but the doctrine requires the bounded phase, not a subagent
+    runtime dependency.
+  trigger: product_doctrine
+  related_triggers:
+    - workflow_authority
+    - output_authority
+  controlling_sources_updated:
+    - orca/product/spines/scanning/README.md
+    - orca/product/spines/scanning/scan_core/orca_scanning_intelligent_walk_mgt_operating_model_v0.md
+    - docs/workflows/orca_repo_map_v0.md
+  downstream_surfaces_checked:
+    - AGENTS.md
+    - .agents/workflow-overlay/README.md
+    - .agents/workflow-overlay/decision-routing.md
+    - .agents/workflow-overlay/source-of-truth.md
+    - .agents/workflow-overlay/prompt-orchestration.md
+    - orca/product/spines/scanning/scan_core/orca_demand_scan_core_spec_v0.md
+    - orca/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md
+    - orca/product/spines/capture/core/source_capture_toolbox/capture_recon_index_v0.md
+  intentionally_not_updated:
+    - path: orca/product/spines/scanning/scan_core/orca_demand_scan_core_spec_v0.md
+      reason: >
+        Scan-core already controls promoted-observation freshness and 21-day
+        forward stale_after behavior. This change controls CSB-first broad-scout
+        routing and pre-promotion frontier priority in MGT.
+    - path: orca/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md
+      reason: >
+        Capture route binding remains unchanged; broad-scout output may request
+        preservation but cannot bind Capture routes or treat recency as proof.
+    - path: orca/product/spines/capture/core/source_capture_toolbox/capture_recon_index_v0.md
+      reason: >
+        Source-access routing remains capture-owned and unchanged.
+  stale_language_search: >
+    rg -n "broad scout|broad-scout|subagent|recent|recency|freshness|crawler|monitor|registry|atlas|capture route|gate proof"
+    orca/product/spines/scanning docs/workflows/orca_repo_map_v0.md
+    (run 2026-06-23)
+  stale_language_search_result: >
+    Executed 2026-06-23 after edit. Hits are this accepted broad-scout/recency
+    default, existing scan-core freshness/monitor safeguards, repo-map registry
+    route entries, or explicit no-crawler/no-monitor/no-capture-route/no-gate-proof
+    boundaries. No capless crawl, standing monitor, gate-proof leakage,
+    Capture route binding, or mandatory subagent-runtime claim was found.
+  non_claims:
+    - not validation
+    - not readiness
+    - not scan authorization
+    - not capture authorization
+    - not source-access authorization
+    - not implementation authorization
+```
 ```yaml
 direction_change_propagation:
   doctrine_changed: >
