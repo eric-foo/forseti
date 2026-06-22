@@ -38,6 +38,7 @@ class ScreeningReadRoute(StrEnum):
     REDDIT_SCREENING_READ = "reddit_screening_read"
     DIRECT_HTTP = "direct_http"
     ANTI_BLOCKING_HTTP = "anti_blocking_http"
+    BROWSER = "screening_browser_read"
 
 
 @dataclass(frozen=True)
@@ -52,7 +53,7 @@ class ScreeningReadRecord:
     requested_url: str
     final_url: str
     route: str
-    status: int
+    status: int | None
     byte_count: int
     content_class: str
     content_signal: str | None
@@ -88,6 +89,15 @@ def screening_read(
     dispatch: ScreeningReadDispatch,
     timeout_seconds: float = 20.0,
     max_bytes: int = 2_000_000,
+    browser_wait_until: str = "load",
+    browser_viewport_width: int = 1280,
+    browser_viewport_height: int = 720,
+    browser_block_heavy_assets: bool = False,
+    browser_settle_seconds: float = 0.0,
+    browser_scroll_passes: int = 0,
+    browser_load_more_selector: str | None = None,
+    browser_load_more_clicks: int = 0,
+    browser_scroll_step_px: int = 0,
     old_reddit_submission_min_datetime: str | None = None,
     old_reddit_submission_max_datetime: str | None = None,
 ) -> ScreeningReadResult:
@@ -119,6 +129,31 @@ def screening_read(
     gate_refusal = _public_url_gate(url, route=normalized_route.value)
     if gate_refusal is not None:
         return gate_refusal
+
+    if normalized_route is ScreeningReadRoute.BROWSER:
+        from source_capture.screening_browser_read import screening_browser_read as browser_screening_read
+
+        browser_result = browser_screening_read(
+            url=url,
+            dispatch=dispatch,
+            timeout_seconds=timeout_seconds,
+            wait_until=browser_wait_until,
+            viewport_width=browser_viewport_width,
+            viewport_height=browser_viewport_height,
+            max_artifact_bytes=max_bytes,
+            block_heavy_assets=browser_block_heavy_assets,
+            settle_seconds=browser_settle_seconds,
+            scroll_passes=browser_scroll_passes,
+            load_more_selector=browser_load_more_selector,
+            load_more_clicks=browser_load_more_clicks,
+            scroll_step_px=browser_scroll_step_px,
+        )
+        return _record_from_browser_result(
+            requested_url=url,
+            route=normalized_route.value,
+            result=browser_result,
+        )
+
 
     if normalized_route is ScreeningReadRoute.DIRECT_HTTP:
         fetch_result = fetch_direct_http_capture(
@@ -295,6 +330,41 @@ def _record_from_antiblock_result(
             old_reddit_submission_max_datetime=old_reddit_submission_max_datetime,
         ),
         content_type=_metadata_str(result.metadata.get("content_type")),
+        warning_notes=list(result.warning_notes),
+        limitation_notes=list(result.limitation_notes),
+    )
+
+
+def _record_from_browser_result(
+    *,
+    requested_url: str,
+    route: str,
+    result: object,
+) -> ScreeningReadResult:
+    from source_capture.screening_browser_read import BrowserScreeningReadRefused
+
+    if isinstance(result, BrowserScreeningReadRefused):
+        return ScreeningReadRefused(
+            requested_url=requested_url,
+            route=route,
+            reason=result.reason,
+            message=result.message,
+        )
+    return ScreeningReadRecord(
+        requested_url=requested_url,
+        final_url=result.final_url,
+        route=route,
+        status=None,
+        byte_count=result.visible_text_byte_count,
+        content_class=result.content_class,
+        content_signal=result.content_signal,
+        content_class_detail=result.content_class_detail,
+        extracted_fields={
+            "title": result.title,
+            "visible_text": result.visible_text,
+            "access_block_reason": result.access_block_reason,
+            "status_note": result.status_note,
+        },
         warning_notes=list(result.warning_notes),
         limitation_notes=list(result.limitation_notes),
     )

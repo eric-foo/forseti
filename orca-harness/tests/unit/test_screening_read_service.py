@@ -21,6 +21,7 @@ from source_capture.screening_read import (
     close_old_reddit_search_surface_receipt,
     screening_read,
 )
+from source_capture.screening_browser_read import BrowserScreenLight
 from source_capture.screening_reddit_read import RedditScreenLight
 
 
@@ -191,6 +192,53 @@ def test_antiblocking_route_classifies_block_shell() -> None:
     assert isinstance(result, ScreeningReadRecord)
     assert result.content_class == CaptureBodyClass.BLOCK_SHELL.value
     assert result.content_signal == "cloudflare_interstitial"
+
+
+def test_browser_route_returns_screen_light_record_with_visible_text() -> None:
+    visible_text = "Visible Basenotes discussion"
+    browser_light = BrowserScreenLight(
+        requested_url="https://www.basenotes.com/source",
+        final_url="https://www.basenotes.com/source",
+        title="Visible Source",
+        visible_text=visible_text,
+        visible_text_byte_count=len(visible_text.encode("utf-8")),
+        content_class=CaptureBodyClass.CONTENT_UNVERIFIED.value,
+        content_signal=None,
+        content_class_detail="content body retained for screening",
+        warning_notes=["screening_browser_read returned visible text only"],
+        limitation_notes=[],
+    )
+    with patch(
+        "source_capture.screening_browser_read.screening_browser_read",
+        return_value=browser_light,
+    ) as mock_browser:
+        result = screening_read(
+            url="https://www.basenotes.com/source",
+            route=ScreeningReadRoute.BROWSER,
+            dispatch=_dispatch(),
+            timeout_seconds=8,
+            max_bytes=12345,
+            browser_wait_until="domcontentloaded",
+            browser_block_heavy_assets=True,
+            browser_settle_seconds=1,
+            browser_scroll_passes=2,
+        )
+
+    mock_browser.assert_called_once()
+    _, kwargs = mock_browser.call_args
+    assert kwargs["timeout_seconds"] == 8
+    assert kwargs["max_artifact_bytes"] == 12345
+    assert kwargs["wait_until"] == "domcontentloaded"
+    assert kwargs["block_heavy_assets"] is True
+    assert kwargs["scroll_passes"] == 2
+    assert isinstance(result, ScreeningReadRecord)
+    assert result.route == ScreeningReadRoute.BROWSER.value
+    assert result.status is None
+    assert result.byte_count == len(visible_text.encode("utf-8"))
+    assert result.extracted_fields["title"] == "Visible Source"
+    assert result.extracted_fields["visible_text"] == visible_text
+    assert result.extracted_fields["status_note"] == "browser_rendered_no_http_status"
+
 
 
 def test_first_act_old_reddit_receipt_helper_uses_bounded_search_surface() -> None:
