@@ -70,6 +70,20 @@ sustained cadence remain unmeasured.
 - **Therefore**: keep the IG runner logged-out-first. Re-open session/runtime wiring only as an
   explicit fallback decision after measured logged-out route/cadence evidence, because the sustained
   account/session risk is not characterized here.
+- **Cheaper HTTP rung (rung-2, `curl_cffi` Chrome impersonation) is UN-PROBED (finding 2026-06-22).**
+  The cookieless `web_profile_info` 429 (Correction #1) was measured at the *stdlib* `direct_http`
+  rung, which carries Python's TLS/JA3 fingerprint; the browser-context 200 differs by real Chrome
+  TLS/JA3 + HTTP/2 + full Chrome headers + page-origin/JS context. A `curl_cffi` rung-2 client (real
+  Chrome TLS + the IG web headers, e.g. `X-IG-App-ID`) was never tested, and *might* bridge 429→200 —
+  which would let the JSON path (`web_profile_info`, grid `graphql/query`) **downgrade from the
+  headless browser to cheap HTTP**, dropping the per-read browser-spawn cost. It also *might not*
+  (IG's 200 may depend on the genuine browser execution context, which `curl_cffi` cannot fake).
+  **Owner decision 2026-06-22: remain on the browser rung; the rung-2 probe/build is deferred.**
+  Rationale: the binding constraint is per-IP *pace*, not fingerprint (see `ig_r_probe_results_v0.md`),
+  and a real browser already presents an authentic fingerprint, so HTTP-costume stealth is not the IG
+  bottleneck. If browser cost or a future bot-detection escalation forces a rethink, **probe rung-2
+  first** (probe-then-pin) before re-architecting; the YouTube lane has the reusable `curl_cffi`
+  transport pattern.
 
 ## Method map (where each signal lives, how to get it)
 
