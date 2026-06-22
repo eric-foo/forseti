@@ -16,8 +16,8 @@ use_when:
 authority_boundary: retrieval_only
 open_next:
   - orca/product/spines/capture/source_families/retail_pdp/retail_pdp_review_capture_spec_v0.md          # the controlling spec (what to capture; branch-only, PR #302)
-  - orca/product/spines/capture/source_families/retail_pdp/retail_pdp_projection_contract_v0.md           # the established retail lines (review-substrate row this extends)
-  - orca/product/spines/capture/source_families/retail_pdp/retail_pdp_sidecar_operator_playbook_v0.md     # current Amazon/Sephora/Ulta sidecar smoke commands + inspection
+  - orca/product/spines/capture/core/source_families/retail_pdp/retail_pdp_projection_contract_v0.md           # the established retail lines (review-substrate row this extends)
+  - orca/product/spines/capture/core/source_families/retail_pdp/retail_pdp_sidecar_operator_playbook_v0.md     # current Amazon/Sephora/Ulta sidecar smoke commands + inspection
   - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_core_contract_v0.md                   # Attachment Records (where review_record lands)
   - .agents/workflow-overlay/decision-routing.md                                                          # Cynefin routing (run before broad build)
 stale_if:
