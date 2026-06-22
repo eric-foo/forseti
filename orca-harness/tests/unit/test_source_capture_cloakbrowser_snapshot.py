@@ -1411,6 +1411,32 @@ def test_fetch_cloakbrowser_snapshot_capture_preserves_access_blocked_reddit_sec
     assert "You've been blocked by network security" in result.visible_text
 
 
+def test_fetch_cloakbrowser_snapshot_capture_marks_residual_cloudflare_challenge_without_access_failed() -> None:
+    result = fetch_cloakbrowser_snapshot_capture(
+        url="https://www.basenotes.com/fragrances/mojave-ghost-by-byredo.26143979/",
+        engine=_FakeCloakBrowserEngine(
+            _FakeEngineResult(
+                final_url="https://www.basenotes.com/fragrances/mojave-ghost-by-byredo.26143979/",
+                title="Mojave Ghost by Byredo",
+                rendered_dom=(
+                    "<html><body>Reviews 1 2 3 Basenotes source content"
+                    "<script src='/cdn-cgi/challenge-platform/scripts/jsd/main.js'></script>"
+                    "</body></html>"
+                ),
+                visible_text="Reviews 1 2 3 Basenotes source content",
+                screenshot_png=b"\x89PNG\r\n\x1a\ncloakbrowser",
+            )
+        ),
+    )
+
+    assert isinstance(result, CloakBrowserSnapshotSuccess)
+    assert result.access_block_reason is None
+    assert result.metadata["access_blocked"] is False
+    assert result.metadata["rendered_access_classification"] == "residual_challenge_marker"
+    assert result.metadata["rendered_access_signal"] == "residual_cloudflare_challenge_marker"
+    assert any("rendered_access_warning" in item for item in result.limitation_notes)
+    assert not any("access_failed" in item for item in result.limitation_notes)
+
 def test_fetch_cloakbrowser_snapshot_capture_flags_amazon_continue_shopping_interstitial() -> None:
     # Amazon serves a low-content "Continue shopping" bot interstitial AT the PDP URL
     # (no redirect) with none of the product substrate. It must be classified

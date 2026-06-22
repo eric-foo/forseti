@@ -14,6 +14,8 @@ from source_capture.adapters.direct_http import (
     DirectHttpCaptureSuccess,
     fetch_direct_http_capture,
 )
+from source_capture.block_shell import classify_capture_body
+from source_capture.screening_extraction import extract_screening_fields
 
 
 _ALLOWED_HOSTS: frozenset[str] = frozenset({"old.reddit.com", "www.reddit.com"})
@@ -44,12 +46,17 @@ class RedditScreenLight:
     status: int
     byte_count: int
     comments_marker_count: int
+    content_class: str = "content_unverified"
+    content_signal: str | None = None
+    content_class_detail: str = "not classified"
+    extracted_fields: dict[str, object] = field(default_factory=dict)
+    limitation_notes: list[str] = field(default_factory=list)
     rate_ceiling_note: str = field(default=RATE_CEILING_NOTE)
 
 
 @dataclass(frozen=True)
 class RedditScreeningReadRefused:
-    """Entitlement gate refusal or fetch failure — no network call was made for gated URLs."""
+    """Entitlement gate refusal or fetch failure; no network call was made for gated URLs."""
 
     url: str
     reason: Literal["entitlement_gated", "login_redirect", "fetch_failed"]
@@ -64,6 +71,8 @@ def reddit_screening_read(
     url: str,
     timeout_seconds: float = 20.0,
     max_bytes: int = 2_000_000,
+    old_reddit_submission_min_datetime: str | None = None,
+    old_reddit_submission_max_datetime: str | None = None,
 ) -> RedditScreeningReadResult:
     """
     Entitlement-gated, bounded screening read for public Reddit surfaces.
@@ -102,12 +111,28 @@ def reddit_screening_read(
         return post_gate
 
     marker_count = body_text.count("/comments/")
+    classification = classify_capture_body(
+        status=result.status,
+        headers=_headers_from_direct_metadata(result),
+        body=result.body,
+    )
+    extracted_fields = extract_screening_fields(
+        url=result.final_url,
+        body_text=body_text,
+        old_reddit_submission_min_datetime=old_reddit_submission_min_datetime,
+        old_reddit_submission_max_datetime=old_reddit_submission_max_datetime,
+    )
 
     return RedditScreenLight(
         final_url=result.final_url,
         status=result.status,
         byte_count=int(result.metadata["byte_count"]),
         comments_marker_count=marker_count,
+        content_class=classification.classification.value,
+        content_signal=classification.signal,
+        content_class_detail=classification.detail,
+        extracted_fields=extracted_fields,
+        limitation_notes=list(result.limitation_notes),
     )
 
 
@@ -185,7 +210,7 @@ def _post_fetch_entitlement_gate(
             reason="login_redirect",
             message=(
                 f"Reddit redirected to a login/register page (final_url={result.final_url!r}); "
-                "content is access-gated. Screen-light refused — no body consumed."
+                "content is access-gated. Screen-light refused; no body consumed."
             ),
         )
     body_lower = body_text.lower()
@@ -199,3 +224,14 @@ def _post_fetch_entitlement_gate(
             ),
         )
     return None
+
+
+def _headers_from_direct_metadata(result: DirectHttpCaptureSuccess) -> dict[str, str]:
+    headers: dict[str, str] = {}
+    content_type = result.metadata.get("content_type")
+    if content_type is not None:
+        headers["Content-Type"] = str(content_type)
+    content_encoding = result.metadata.get("content_encoding")
+    if content_encoding is not None:
+        headers["Content-Encoding"] = str(content_encoding)
+    return headers

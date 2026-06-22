@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 import argparse
+import os
 import sys
 from pathlib import Path
-from typing import Sequence
+from typing import TYPE_CHECKING, Sequence
 
 if __package__ in {None, ""}:
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -17,6 +18,9 @@ from source_capture.models import (
     unknown_with_reason,
 )
 from source_capture.writer import write_local_source_capture_packet
+
+if TYPE_CHECKING:
+    from data_lake.root import DataLakeRoot
 
 
 def build_source_locator(*, source_locator: str | None, unknown_reason: str | None) -> VisibleFact:
@@ -60,7 +64,8 @@ def run_source_capture_packet(
     source_locator: VisibleFact,
     decision_question: str,
     input_files: Sequence[Path],
-    output_directory: Path,
+    output_directory: Path | None = None,
+    data_root: "DataLakeRoot | None" = None,
     capture_context: str,
     operator_category: str,
     capture_mode: CaptureModeCategory,
@@ -80,6 +85,7 @@ def run_source_capture_packet(
 ) -> str:
     result = write_local_source_capture_packet(
         output_directory=output_directory,
+        data_root=data_root,
         input_files=input_files,
         source_family=source_family,
         source_surface=source_surface,
@@ -116,7 +122,12 @@ def _build_parser() -> argparse.ArgumentParser:
     locator_group.add_argument("--source-locator-unknown-reason")
     parser.add_argument("--decision-question", required=True)
     parser.add_argument("--input-file", type=Path, action="append", required=True)
-    parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--output", type=Path, default=None)
+    parser.add_argument(
+        "--data-root",
+        default=None,
+        help="Commit into the Orca data lake at this root (or set ORCA_DATA_ROOT); mutually exclusive with --output.",
+    )
     parser.add_argument(
         "--capture-context",
         default="local file packaging of already-local source artifacts",
@@ -156,6 +167,16 @@ def _build_parser() -> argparse.ArgumentParser:
 def main(argv: Sequence[str] | None = None) -> int:
     parser = _build_parser()
     args = parser.parse_args(argv)
+    data_root = None
+    if args.data_root is not None or os.environ.get("ORCA_DATA_ROOT"):
+        from data_lake.root import DataLakeRoot
+
+        data_root = DataLakeRoot.resolve(explicit=args.data_root)
+    if (args.output is None) == (data_root is None):
+        parser.exit(
+            status=2,
+            message="exactly one of --output or --data-root/ORCA_DATA_ROOT is required\n",
+        )
     try:
         output_directory = run_source_capture_packet(
             source_family=args.source_family,
@@ -167,6 +188,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             decision_question=args.decision_question,
             input_files=args.input_file,
             output_directory=args.output,
+            data_root=data_root,
             capture_context=args.capture_context,
             operator_category=args.operator_category,
             capture_mode=CaptureModeCategory(args.capture_mode),

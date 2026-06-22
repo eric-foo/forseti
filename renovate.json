@@ -1,0 +1,26 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended"],
+  "enabledManagers": ["pep621"],
+  "packageRules": [
+    {
+      "description": "Intentionally scoped: this repo only auto-tracks curl_cffi (fingerprint freshness). Everything else is disabled so enabling Renovate does not flood the harness with dependency PRs. To broaden later, relax this rule.",
+      "matchPackageNames": ["*"],
+      "enabled": false
+    },
+    {
+      "description": "curl_cffi is the Chrome-impersonation 'costume' for orca-harness/youtube_capture. Each release ships a newer Chrome TLS/JA3 profile; a frozen version drifts into a stale, detectable fingerprint. Track it deliberately, one reviewed PR at a time.",
+      "matchPackageNames": ["curl_cffi"],
+      "enabled": true,
+      "rangeStrategy": "bump",
+      "labels": ["dependencies", "fingerprint-freshness"],
+      "prBodyNotes": [
+        "**Manual freshness check before merging.** This bumps the Chrome-impersonation costume (`curl_cffi`). CI cannot verify the on-the-wire fingerprint — that needs a live TLS echo — so confirm it by hand:",
+        "1. `cd orca-harness/youtube_capture`",
+        "2. `pip install -e \"../[impersonate]\"` (or `pip install -U curl_cffi`) to pull this version.",
+        "3. `python verify_fingerprint_v0.py` — confirm it prints a Chrome-class JA3/JA4 distinct from Python's, and that the curl_cffi version reads as current.",
+        "Being 1-2 Chrome majors behind is fine; only a long-frozen version is a tell. Background: `orca-harness/youtube_capture/README.md` -> \"Keeping the Chrome costume fresh\"."
+      ]
+    }
+  ]
+}

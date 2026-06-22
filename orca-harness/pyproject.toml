@@ -15,6 +15,13 @@ browser = [
 cloakbrowser = [
   "cloakbrowser>=0.3.31,<0.4",
 ]
+impersonate = [
+  # Chrome TLS/JA3 + HTTP/2 "costume" for stealth public-data capture (youtube_capture/).
+  # Declared here so Renovate (renovate.json) can auto-PR each release and the fingerprint
+  # tracks current Chrome. Floor-pinned + human-reviewed; manual pre-merge freshness check:
+  # youtube_capture/verify_fingerprint_v0.py.
+  "curl_cffi>=0.15.0,<0.16",
+]
 
 [tool.setuptools]
 py-modules = ["harness_utils"]
@@ -22,6 +29,7 @@ py-modules = ["harness_utils"]
 [tool.setuptools.packages.find]
 include = [
   "cleaning",
+  "data_lake",
   "ecr",
   "capture_spine",
   "capture_spine.*",

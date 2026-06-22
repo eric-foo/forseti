@@ -17,6 +17,7 @@ authority_boundary: retrieval_only
 open_next:
   - docs/decisions/beauty_venue_card_set_promotion_decision_v0.md   # binding parameters + owner acceptance
   - orca/product/spines/foundation/vertical_exploration/orca_vertical_exploration_guide_v0.md  # the consuming procedure
+  - orca/product/satellites/beauty/beauty_manufactured_demand_tells_v0.md  # integrity companion (manufactured-demand tells; Step 0 see-also; a separate artifact, NOT a card)
 stale_if:
   - A card passes its review_by date (that card is a stale hint; review or retire it).
   - The promotion decision record is superseded or the set breaches its terms.
@@ -37,6 +38,11 @@ S3 = subtle screen 3.
 - SUBTLE class: nothing launders upward — the detector (WindCaller) IS the record. Enter
   via origination/tracker cards (4-9) and detector cards (10-12).
 
+**Integrity companion (Step 0 — see also):** for manufactured-demand / astroturf tells at these
+venues (and at the review/social surfaces this deck does not cover), read
+`orca/product/satellites/beauty/beauty_manufactured_demand_tells_v0.md`. It is a **separate**
+companion — this deck stays venue-production-scoped and capped at 12; the pointer adds no card.
+
 ## Cards (12/12 — cap full)
 
 | # | Venue | Role | What it produced (ledger) | Access shape | review_by |
@@ -44,7 +50,7 @@ S3 = subtle screen 3.
 | 1 | Beauty Independent (+ monthly "Indie Beauty Dish" roundups) | producer-hub (newsy) | Richest single screen surface; 5 of 7 S2 candidates traced through it; founder-quote closure/pricing roundups (S1, S2) | direct fetch OK | 2026-12-11 |
 | 2 | Glossy | producer (newsy) | Channel-exclusive arcs (Selfless/Target), tariff-pricing coverage incl. cocokind/Saie receipts (S1, S2, S3) | direct fetch OK | 2026-12-11 |
 | 3 | BeautyMatter | producer (newsy) | Post-mortems sourcing Reddit timelines (Kinder); byline bridge (Sandler: Glossy->BeautyMatter) (S2, S3) | direct fetch OK | 2026-12-11 |
-| 4 | Reddit r/BeautyBoxes | origination / detector-collective | Kinder pre-shutdown decay timeline that trade press adopted as canonical (S2) | direct-HTTP on old.reddit (capture recon PARTIAL→GO, 2026-06-11): `/r/<sub>/search?q=...&restrict_sr=on` (+sort/t) and `/new`, `/top?t=` listings; parse title→/comments/ anchors per `docs/workflows/reddit_candidate_intake_old_reddit_search_surface_handling_v0.md`; external search-index discovery unreliable (S3). CAVEAT (2026-06-12, ingestible-beauty screen 1): WebFetch-based SCREENING agents cannot reach reddit.com at all (tool-level domain block) — the read shape works only via the capture lane's HTTP runner; screening walks use search snippets until the cross-lane wiring is decided. Residual: search-surface live receipt + rate ceiling pending | 2026-12-11 |
+| 4 | Reddit r/BeautyBoxes | origination / detector-collective | Kinder pre-shutdown decay timeline that trade press adopted as canonical (S2) | direct-HTTP on old.reddit (capture recon PARTIAL->GO, 2026-06-11): `/r/<sub>/search?q=...&restrict_sr=on` (+sort/t) and `/new`, `/top?t=` listings; parse title->/comments/ anchors and row-local submission dates per `docs/workflows/reddit_candidate_intake_old_reddit_search_surface_handling_v0.md`; external search-index discovery unreliable (S3). CAVEAT updated 2026-06-21: WebFetch-based screening agents still cannot fetch reddit.com directly, but the capture lane now exposes orchestrator-invoked `screening_read` for bounded public screening reads (no packet/ECR). First-act old.reddit search receipt closed; `.json` rate ceiling remains a human-rate/backoff note. Walkers record the need; orchestrator routes. | 2026-12-11 |
 | 5 | Reddit r/BeautyGuruChatter | origination / detector-collective | Detected Joah's silent wind-down; credited by trade as discovery source (S2) | same read shape as card 4 | 2026-12-11 |
 | 6 | Reddit r/AsianBeauty + r/SkincareAddiction | origination | Purito trust-collapse trail; community endorsement power (Stratia calibration) (S1, S2) | same read shape as card 4 | 2026-12-11 |
 | 7 | mysubscriptionaddiction.com per-box news pages | tracker | Lifecycle logs with comment-count reaction gauges; 2024-25 signal THIN vs 2020-21 (S1, S2, S3) | direct fetch OK; category pages 404 | 2026-12-11 |

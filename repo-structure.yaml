@@ -34,6 +34,7 @@ known_top_level:
     - AGENTS.md
     - CLAUDE.md
     - README.md
+    - renovate.json      # Renovate bot config; repo root is a Renovate-recognized location (same class as .gitignore). Scoped to curl_cffi fingerprint freshness — see renovate.json + orca-harness/youtube_capture/README.md. Declared 2026-06-22.
     - repo-structure.yaml
 
 # docs/ role grammar (bound in artifact-folders.md; listed here for routing only).

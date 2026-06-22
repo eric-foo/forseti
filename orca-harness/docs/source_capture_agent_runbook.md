@@ -46,15 +46,26 @@ The agent must not:
 
 If the requested capture needs ordinary anonymous browser-rendered content,
 JavaScript rendering, or screenshot preservation for one supplied URL, use the
-Honest Browser Snapshot runner. If ordinary browser capture is expected to fail
-or has failed because the source blocks ordinary browser/headless capture, use
-the CloakBrowser Snapshot runner for one supplied URL. If it requires
+Honest Browser Snapshot runner. If an ordinary browser may pass after visible
+launch, a local Chromium channel, or a bounded post-navigation settle delay, use
+the Browser Snapshot controls first (`--headed`, `--browser-channel`,
+`--settle-seconds`). If those controls are expected to fail or have failed
+because the source blocks ordinary browser capture, use the CloakBrowser
+Snapshot runner for one supplied URL. If it requires
 login-visible or entitled content, use Authenticated Browser Snapshot only when
 the operator has supplied an allowed session mode and a previously bootstrapped
 local storage-state label. If the operator asks for password automation, direct
 profile/cookie import, credentials in flags or environment variables,
 no-entitlement bypass, proxy behavior, or CAPTCHA solving through these existing
 runners, stop with `visible_capture_limitation`.
+
+For all browser routes, diagnose rendered access from visible text and title
+before treating full-DOM challenge markers as decisive. Hidden or residual
+Cloudflare/Akamai/Kasada/DataDome/PerimeterX script/template text can remain in
+the DOM after source content is visible; record that as a limitation/warning,
+not as `access_failed`. If the visible text/title is still an interstitial,
+CAPTCHA, or access-block shell, report `access_failed` / PARTIAL even when DOM
+and screenshot artifacts were preserved.
 
 The agent cannot reliably know browser-rendering or login-wall posture before
 running a byte-preserving adapter. A Direct HTTP, Media / Asset, or Archive.org
@@ -137,7 +148,7 @@ Use the narrowest runner that matches the supplied input.
 | Original URL plus archive need | `run_source_capture_archive_packet.py` | The operator needs Archive.org availability and maybe snapshot body. |
 | Browser-rendered or screenshot-needed page | `run_source_capture_browser_packet.py` | One supplied URL needs anonymous browser rendering or screenshot preservation. |
 | Login-visible or entitled browser session content | `run_source_capture_browser_session_bootstrap.py`, then `run_source_capture_authenticated_browser_packet.py` | The operator authorizes an allowed manual-login storage-state session. |
-| Anti-blocking browser-rendered page | `run_source_capture_cloakbrowser_packet.py` | One supplied URL needs anonymous CloakBrowser rendering because ordinary browser/headless capture is expected to fail or has failed. |
+| Anti-blocking browser-rendered page | `run_source_capture_cloakbrowser_packet.py` | One supplied URL needs anonymous CloakBrowser rendering because ordinary Browser Snapshot controls (`--headed`, `--browser-channel`, `--settle-seconds`) are expected to fail or have failed. |
 | Retail/PDP anti-blocking capture plus local projection | `run_source_capture_cloakbrowser_packet.py --source-family retail_pdp --retail-pdp-projection-output <path>` | One supplied retailer PDP URL needs a Source Capture Packet and a separate no-network Retail/PDP projection JSON. For the current Amazon/Sephora/Ulta smoke commands, use `docs/product/source_capture_toolbox/retail_pdp_sidecar_operator_playbook_v0.md`. |
 | Reddit pre-commercial anti-blocking capture | `run_source_capture_cloakbrowser_packet.py` for one supplied old Reddit/thread URL only | The runner can preserve one supplied browser-visible URL through CloakBrowser; it does not discover Reddit targets, monitor threads, parse/consolidate comments, use credentials, or authorize broad crawling. |
 
@@ -428,11 +439,17 @@ python runners/run_source_capture_browser_packet.py `
   --output "<packet directory>"
 ```
 
-The Browser Snapshot runner uses an anonymous/headless browser path. It
-preserves rendered DOM, visible text, a viewport screenshot, and browser
-metadata. It does not use stored sessions, browser profiles, cookies,
-credentials, storage-state files, anti-detect behavior, proxy behavior, CAPTCHA
-solving, crawling, OCR, or source-meaningfulness classification.
+The Browser Snapshot runner defaults to an anonymous/headless browser path.
+It preserves rendered DOM, visible text, a viewport screenshot, and browser
+metadata. For one supplied URL, `--headed` runs visibly, `--browser-channel`
+selects a local Playwright Chromium channel such as Chrome or Edge, and
+`--settle-seconds` waits after navigation before artifact capture. It does not
+use stored sessions, browser profiles, cookies, credentials, storage-state
+files, anti-detect behavior, proxy behavior, CAPTCHA solving, crawling, OCR, or
+source-meaningfulness classification. Its rendered-access posture is a guard
+against fake success, not content sufficiency proof: visible text/title decide
+whether the browser is still showing a block shell; residual challenge markers
+in the full DOM alone are preserved as limitations.
 
 On Windows, a failure containing `WinError 5` or `Access is denied` during
 Playwright startup usually means the environment blocked Playwright's browser
@@ -595,7 +612,7 @@ Current runner exit-code shape:
 | Direct HTTP | `0`, `2`, `3` | Network/no-body/size-cap capture failure is exit `3`; no packet. |
 | Media / Asset | `0`, `2`, `3` | At least one preserved asset can write a packet with visible failed-asset limitations; all assets failed is exit `3`; no packet. |
 | Archive.org | `0`, `2`, `3` | Availability lookup failure is exit `3`; no packet. Metadata-only states can still be exit `0` packets with limitations. |
-| Browser Snapshot | `0`, `2`, `3` | Missing Playwright package, missing Chromium binary, navigation failure, or artifact failure is exit `3`; no packet. Exit `0` preserves browser artifacts only, not content sufficiency. |
+| Browser Snapshot | `0`, `2`, `3` | Missing Playwright package, missing Chromium/local channel binary, navigation failure, or artifact failure is exit `3`; no packet. Exit `0` preserves browser artifacts only, not content sufficiency; rendered access-block pages are packets with visible limitations, not successful source-content capture. |
 | Browser Session Bootstrap | `0`, `2`, `3` | Exit `0` writes ignored local storage-state JSON only; no packet. Missing/invalid labels are exit `2`; Playwright/browser/manual interaction failures are exit `3`. |
 | Authenticated Browser Snapshot | `0`, `2`, `3` | Missing/invalid auth state is exit `2`; missing Playwright package, missing Chromium binary, navigation failure, or artifact failure is exit `3`; no normal packet. Exit `0` preserves browser artifacts only, not content sufficiency or login-wall absence. |
 
@@ -611,7 +628,7 @@ operator authorizes the next method.
 
 ```text
 source_capture_agent_report:
-  runner: <local_file|direct_http|media_asset|archive_org|browser_snapshot|authenticated_browser_snapshot>
+  runner: <local_file|direct_http|media_asset|archive_org|browser_snapshot|cloakbrowser_snapshot|authenticated_browser_snapshot>
   exit_code: <observed exit code>
   packet_path: <path or none>
   packet_written: <yes|no>

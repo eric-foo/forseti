@@ -1,4 +1,6 @@
-"""Bounded, logged-out IG wind-caller CALLS capture -> Source Capture Packet.
+"""Legacy bounded, logged-out IG wind-caller CALLS capture -> Source Capture Packet.
+
+Legacy fallback for item-page OG metadata calibration. The default public creator-monitoring path is now `run_source_capture_ig_reels_grid_packet.py`, which avoids item-page fan-out.
 
 Composes existing primitives (no new auth/session path, no secrets):
 - browser_snapshot (headless, LOGGED-OUT; scroll to enumerate the profile grid),
@@ -728,7 +730,7 @@ def _write_packet(
 
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description="Capture one IG creator's recent CALLS (logged-out) into a Source Capture Packet."
+        description="LEGACY fallback: capture one IG creator's recent item-page CALLS (logged-out) into a Source Capture Packet. Prefer run_source_capture_ig_reels_grid_packet.py for default monitoring."
     )
     parser.add_argument("--profile-url", required=True)
     parser.add_argument("--decision-question", required=True)

@@ -264,20 +264,27 @@ def parse_governed_deletions(z_output: str, roots: tuple[str, ...]) -> list[str]
 
 def deleted_governed_paths(root: Path, base_ref: str, roots: tuple[str, ...]) -> list[str] | None:
     """Governed paths deleted in `base_ref...HEAD` (rename-aware). None on a git
-    infra gap (fail-open): no HEAD, or the diff cannot be computed against base."""
+    infra gap (fail-open): no HEAD, or the diff cannot be computed against base.
+
+    Diff only within governed roots. A repo-wide diff can pair an old governed
+    file with an outside review snapshot or archival copy instead of the real
+    governed successor, producing a false governed->outside rename. Pathspecing
+    the governed roots keeps governed->governed moves visible as renames while a
+    true governed->outside rename still appears as deletion of the governed path.
+    """
     if _git(root, ["rev-parse", "--verify", "--quiet", "HEAD"])[0] != 0:
         return None  # not a git repo / no HEAD -> infra gap
     if _git(root, ["rev-parse", "--verify", "--quiet", base_ref])[0] != 0:
         return None  # base ref unresolvable -> infra gap (fail-open, like header_index)
+    pathspecs = [r.rstrip("/") for r in roots]
     rc, out = _git(
         root,
         ["diff", "--diff-filter=DRT", "--find-renames", "-z", "--name-status",
-         "%s...HEAD" % base_ref],
+         "%s...HEAD" % base_ref, "--", *pathspecs],
     )
     if rc != 0:
         return None
     return parse_governed_deletions(out, roots)
-
 
 # ---------------------------------------------------------------------------
 # Gate

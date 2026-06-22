@@ -35,7 +35,7 @@ register_version: 0
 # Append records below. Empty at creation -- no deletions yet.
 deletions:
   - targets:
-      - orca/product/spines/capture/contracts/obligation_contracts/data_capture_spine_obligation_contract_patch_proposal_v0.md
+      - orca/product/spines/capture/core/contracts/obligation_contracts/data_capture_spine_obligation_contract_patch_proposal_v0.md
     evidence:
       reverse_ref_check: |
         Repo-wide W3b re-check run in this worktree against orca/, docs/, and .agents/ using both the exact current target path and the filename slug. No .agents/ refs and no orca/product/satellites/ refs were found.
@@ -56,30 +56,30 @@ deletions:
         - docs/prompts/reviews/data_capture_spine_obligation_contract_amendment_blast_radius_recheck_prompt_v0.md:144 and docs/prompts/reviews/data_capture_spine_obligation_contract_amendment_adversarial_artifact_review_prompt_v0.md:86,152 -- historical prompt source-list references; the amendment prompt open_next was handled.
         - docs/review-outputs/adversarial-artifact-reviews/data_capture_spine_obligation_contract_patch_proposal_adversarial_artifact_review_v0.md:13,15,69,105; docs/review-outputs/adversarial-artifact-reviews/data_capture_spine_obligation_contract_amendment_blast_radius_recheck_v0.md:114; docs/review-outputs/adversarial-artifact-reviews/data_capture_spine_obligation_contract_amendment_adversarial_artifact_review_v0.md:85 -- frozen/historical review outputs; intentionally not edited.
         - docs/review-inputs/judgment_conductor_delegated_review_v0/sources/core_spine_v0_data_capture_spine_obligation_contract_v0.md:29,743,756; docs/review-inputs/judgment_conductor_post_patch_recheck_v0/sources/core_spine_v0_data_capture_spine_obligation_contract_v0.md:29,743,756; docs/review-inputs/judgment_conductor_full_decorrelated_adversarial_review_v0/sources/core_spine_v0_data_capture_spine_obligation_contract_v0.md:29,743,756 -- frozen review-input snapshots; intentionally not edited.
-        - orca/product/spines/capture/contracts/obligation_contracts/core_spine_v0_data_capture_spine_obligation_contract_v0.md:29,775,788 -- parent contract provenance: source_basis / DCP downstream check / intentionally_not_updated. The DCP at lines 758 and 789 says the controlling contract operationalizes the accepted PCP-01 through PCP-08 package and the proposal remains historical candidate-language input.
-        - orca/product/spines/capture/contracts/obligation_contracts/data_capture_spine_obligation_contract_patch_proposal_v0.md:514,544 -- self-references inside the deleted target; removed with the target.
+        - orca/product/spines/capture/core/contracts/obligation_contracts/core_spine_v0_data_capture_spine_obligation_contract_v0.md:29,775,788 -- parent contract provenance: source_basis / DCP downstream check / intentionally_not_updated. The DCP at lines 758 and 789 says the controlling contract operationalizes the accepted PCP-01 through PCP-08 package and the proposal remains historical candidate-language input.
+        - orca/product/spines/capture/core/contracts/obligation_contracts/data_capture_spine_obligation_contract_patch_proposal_v0.md:514,544 -- self-references inside the deleted target; removed with the target.
 
         No remaining hit treats the target as current operative authority after the open_next edits. The surviving historical/provenance refs are satisfied by the parent contract's DCP receipt and the owner-decision record.
-      successor: orca/product/spines/capture/contracts/obligation_contracts/core_spine_v0_data_capture_spine_obligation_contract_v0.md
+      successor: orca/product/spines/capture/core/contracts/obligation_contracts/core_spine_v0_data_capture_spine_obligation_contract_v0.md
       semantic_delta: |
         No unique durable product-method meaning is lost. The successor contract operationalizes the accepted PCP-01 through PCP-08 package: expanded discharge states (`assessed_not_met`, `cannot_assess`, `access_failed`, and narrowed `blocked`) at lines 76-86 and 143; raw observable fidelity split at line 191; Capture-owned categorical handoff readiness at line 458; checker vocabulary/glossary at line 624; and checker posture/comparability at line 645. The successor DCP states at line 758 that it operationalizes the accepted PCP-01 through PCP-08 package and at line 789 that the proposal remains historical candidate-language input while the controlling contract consumes the accepted package. Authoring history remains recoverable from git and frozen review/decision records.
       rollback: git revert <executing merge sha>
   - targets:
-      - orca/product/spines/capture/source_capture_toolbox/cloakbrowser_packet_runner_architecture_independent_pass_v0.md
+      - orca/product/spines/capture/core/source_capture_toolbox/cloakbrowser_packet_runner_architecture_independent_pass_v0.md
     evidence:
       reverse_ref_check: |
         Repo-wide W3b re-check run in this worktree using rg --hidden over the whole repo with .git excluded for the current target path, filename slug, title/doc-id, and "independent pass" phrase.
 
         Pre-delete exact target-path hits:
-        - orca/product/spines/capture/source_capture_toolbox/cloakbrowser_packet_runner_architecture_v0.md:686,707,715 -- live canonical architecture DCP references to the independent pass. Handled in this W3b patch by removing the deleted target from downstream_surfaces_checked, intentionally_not_updated, and stale_language_search.
-        - orca/product/spines/capture/source_capture_toolbox/reddit_capture_operator_playbook_v0.md:356 -- DCP intentionally_not_updated entry for the independent pass. Handled in this W3b patch by removing the deleted target entry; the operator playbook is governed by the current playbook/planning-thread/method-plan route, not the deleted corroboration artifact.
+        - orca/product/spines/capture/core/source_capture_toolbox/cloakbrowser_packet_runner_architecture_v0.md:686,707,715 -- live canonical architecture DCP references to the independent pass. Handled in this W3b patch by removing the deleted target from downstream_surfaces_checked, intentionally_not_updated, and stale_language_search.
+        - orca/product/spines/capture/core/source_capture_toolbox/reddit_capture_operator_playbook_v0.md:356 -- DCP intentionally_not_updated entry for the independent pass. Handled in this W3b patch by removing the deleted target entry; the operator playbook is governed by the current playbook/planning-thread/method-plan route, not the deleted corroboration artifact.
         - docs/migration/repo_structure_spine_first_v0/moves_manifest.csv:180 and moved_paths_index.md:208 -- historical spine-first migration rows; safe to leave.
         - docs/migration/repo_structure_phase2_consolidation_v0/reference_inventory.md:57 -- historical reference-inventory row; safe to leave.
         - docs/migration/phase2_proposals/capture_toolbox_families_w3a_proposal_v0.md:33,37,48,59,62,64,126 -- read-only W3a proposal/adjudication record for this candidate; safe to leave as historical deletion-proposal provenance.
         - self-references inside the deleted target -- removed with the target.
 
         Broader title/phrase search hits for "independent pass" outside the exact target path were generic or unrelated, including .agents workflow guidance and Judgment Spine prose not referencing this file. No docs/.agents open_next, source-loading route, repo-map route, or active current operator surface remains that requires this target after the live orca-side references above are handled.
-      successor: orca/product/spines/capture/source_capture_toolbox/cloakbrowser_packet_runner_architecture_v0.md
+      successor: orca/product/spines/capture/core/source_capture_toolbox/cloakbrowser_packet_runner_architecture_v0.md
       semantic_delta: |
         No unique live architecture rule is lost. The deleted artifact was an independent corroboration/refinement pass, not the canonical target; its own Relationship section said the clean outcome was to treat the prior v0 as canonical and absorb R1-R4. The successor is the canonical CloakBrowser packet-runner architecture and already carries the absorbed R1-R4 refinements: preserved 0/2/3 exit convention with distinct report tokens, disclosability inverse-test, proxy category-versus-secret boundary, and anonymous-only v0 engine seam. What is removed is the duplicate corroboration narrative, source-readiness ledger, and advisory subagent receipts; those are historical planning provenance, not live authority, and remain recoverable from git and the W3a proposal summary.
       rollback: git revert <executing merge sha>
@@ -247,4 +247,20 @@ deletions:
       successor: none -- pure bloat
       semantic_delta: |
         The first-proof-run was an INCONCLUSIVE_DIRECTIONAL_TEST docs-only manual dry-run, never authorized for a full run (locks: AWAITING_PROOF_RUN_AUTHORIZATION) -- no validated proof result is lost. The durable foundation is independent: the Core Spine v0 product contract is explicitly market-agnostic (not a jb-specific finance-career tool; satellites own subject specifics), the 8 frozen primitives + the demand-ontology stand on their own basis, and a fresh proof can re-run on a new (beauty) Client 0 on the same foundation. Lost: the jb-era directional dry-run artifacts. Preserved: the market-agnostic foundation + method, and full git rollback.
+      rollback: git revert <executing merge sha>
+  - targets:
+      - orca/product/spines/scanning/source_families/answer_engine/aeo_capture_feasibility_probe_phase0_v0.md
+      - orca/product/spines/scanning/source_families/answer_engine/aeo_capture_feasibility_probe_phase0_v0_evidence.json
+    evidence:
+      reverse_ref_check: |
+        Repo-wide reverse-ref check run in this branch against docs/, orca/, and .agents/ for the old governed product-spine AEO path prefix and the new research path prefix.
+
+        Old governed path prefix hits after the rehome:
+        - orca/product/spines/scanning/README.md:112 -- stale-language/DCP search command documenting the old path as a checked stale target, not a live dependency.
+        - docs/review-outputs/adversarial-artifact-reviews/scanning_spine_bloat_cut_precursor_vocab_adversarial_review_v0.md:139 -- frozen review finding describing a prior stale-language search gap; historical review output, not live routing.
+
+        Current live successor hits route to docs/research/answer_engine/: the scanning front door, answer-engine source-class spec, repo map, review prompt, and moved-path migration rows all point at the research home. The moved files exist at docs/research/answer_engine/aeo_capture_feasibility_probe_phase0_v0.md and docs/research/answer_engine/aeo_capture_feasibility_probe_phase0_v0_evidence.json. No live open_next, map row, source-family spec, or product-spine authority route depends on the old product-spine locations.
+      successor: docs/research/answer_engine/aeo_capture_feasibility_probe_phase0_v0.md
+      semantic_delta: |
+        No AEO probe evidence is discarded. The Phase-0 report and JSON evidence sidecar were rehomed from product-spine authority into docs/research/answer_engine/, preserving the report, evidence sidecar, and source-class reference surface while removing their mistaken authority posture as scanning product-spine files. The semantic change is placement and authority: research/probe evidence remains available for the answer-engine source-family spec, but the scanning spine no longer treats the probe report itself as a core method or source-family authority document.
       rollback: git revert <executing merge sha>

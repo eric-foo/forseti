@@ -233,10 +233,10 @@ recommendation:
 - If the recommendation is IG-only:
   `orca/product/spines/capture/source_families/instagram/ig_browser_behavior_calibration_change_set_v0.md`
 - If the recommendation is a shared controller with platform profiles:
-  `orca/product/spines/capture/source_capture_toolbox/social_browser_behavior_calibration_architecture_v0.md`
+  `orca/product/spines/capture/core/source_capture_toolbox/social_browser_behavior_calibration_architecture_v0.md`
 - If the recommendation is recon-first for TikTok/YouTube with only an IG
   patch sketch:
-  `orca/product/spines/capture/source_capture_toolbox/social_browser_behavior_recon_first_calibration_note_v0.md`
+  `orca/product/spines/capture/core/source_capture_toolbox/social_browser_behavior_recon_first_calibration_note_v0.md`
 
 Use a retrieval header. Mark the artifact non-authorizing. Include source
 readiness, source gaps, recommendation label, proposed changes, platform

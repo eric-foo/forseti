@@ -15,6 +15,7 @@ scope: >
 use_when:
   - Commissioning or running an authorized demand scan (backward or forward mode).
   - Checking what a scan hunts, what it emits, to whom, and under which mode obligations.
+  - Promoting precursor signals into rich candidate observations after MGT minimum evidence is met.
   - Adjudicating this spec (commissioning ICP / product-direction lane; owner signs adoption).
 authority_boundary: retrieval_only
 open_next:
@@ -24,8 +25,8 @@ open_next:
   - orca/product/spines/product_lead/icp_wedge/orca_discovery_consumer_demand_target_selection_brief_v0.md  # forward-mode consumer
   - orca/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md            # the re-derived Demand-Substrate Hard Gate
   - docs/decisions/wind_caller_calibration_carveout_v0.md              # wind-caller naming boundary (owner-signed)
-  - orca/product/spines/capture/source_capture_toolbox/source_capture_playbook_v0.md  # access-toolkit route for packet-grade capture walls
-  - orca/product/spines/capture/source_capture_toolbox/capture_recon_index_v0.md      # source-class recon catalog for access-toolkit routing
+  - orca/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md  # access-toolkit route for packet-grade capture walls
+  - orca/product/spines/capture/core/source_capture_toolbox/capture_recon_index_v0.md      # source-class recon catalog for access-toolkit routing
   - orca/product/spines/scanning/source_families/answer_engine/demand_search_interest_sourcing_and_gate_delta_spec_v0.md  # search-interest/AEO source-class recon
 input_hashes:
   # sha256 first-16-hex over git BLOB bytes (LF as stored; `git cat-file blob <rev>:<path>`),
@@ -144,6 +145,10 @@ six-step structure. A scan is a **guide-governed walk with a recognition
 grammar and an emission schema bound on top**: the vertical exploration guide
 owns how a walk moves (steps, caps, stop rules, Walker Equipment Kit,
 provenance memory); this spec owns what the walk hunts and what it emits.
+
+The scanning README and MGT intelligent-walk operating model are the cold-start
+front door. This spec is the richer promoted-observation schema and gate-prep
+surface; it should not be forced onto every precursor or low-level move.
 
 - A scan RUNS ONLY under explicit authorization (a batch plan in backward
   mode; an authorized candidate-scan lane in forward mode). No step runs
@@ -284,6 +289,10 @@ direct a different scan-time classification rule.*
   outreach or contact lists (Tier 3, absolute); no audience / follower-graph
   analysis (Tier 2, deferred-gated); LinkedIn stays org-level (unchanged).
 
+Precursor signals may route the walk, explain a pivot, or justify a later
+`capture_request`, but they do not mint a candidate unless the promotion and
+candidate-entry rules below are met.
+
 ## 2. Walk Order
 
 How a scan consumes the venue layer. For a vertical with a promoted card set
@@ -308,10 +317,15 @@ then the provenance grep (`rg -l "Screen Provenance|Venue Provenance" docs/`).
   without stated reason.
 - **Discovery beyond the cards** follows the guide's Steps 1–3 (defaults
   pass, hub-finding, expand-on-signal) under its caps and stop rules; newly
-  productive venues land in the scan's provenance block, never appended to
-  any standing list.
+  productive precursor surfaces or venues land in the scan's provenance block,
+  never appended to any standing list.
 
 ## 3. Candidate Observation Schema
+
+Precursor signals stay in the MGT/minimum-evidence layer until they are worth
+carrying for downstream gate or capture evaluation. Promotion into this richer
+schema requires the signal to tie to a URL, decision window or candidate, and a
+possible gate role; a precursor by itself is not gate proof.
 
 Two record shapes: the **observation (Observation)** (one venue × one signal) and the
 **candidate entry** (one brand × one decision, aggregating observations).
@@ -344,7 +358,7 @@ demand_state: durable | transient | manufactured | not_applicable
 signal_layer: trend_vector | wind_caller | buy_side | org_motion | integrity
 venue:                    # card number/name, or discovered venue
 venue_class: newsy | subtle
-venue_family: review_surfaces | forums_community | search_interest | retail_presence | trade_press | tracker_detector | org_motion_surface
+venue_family: review_surfaces | forums_community | search_interest | retail_presence | trade_press | tracker_detector | org_motion_surface | creator_social
 gate_family: review_surfaces | forums_community | search_interest | none
                           # the demand families that COUNT toward independence (retail_presence excluded — it is G4 corroboration);
                           # today only forums_community is sourced; review_surfaces + search_interest are unsourced gaps (owner-owned)
@@ -367,9 +381,12 @@ re-derived Demand-Substrate Hard Gate counts independence across its demand
 families — `review_surfaces`, `forums_community`, `search_interest` — and counts
 **distinct origins**, not distinct family labels. **`retail_presence` is now G4
 org-motion corroboration, EXCLUDED from the demand-origin count** (it is neither
-a deprecated label nor a sourcing gap); `trade_press`, `tracker_detector`, and
-`org_motion_surface` are likewise evidence/corroboration venues that take
-`gate_family: none`. If a trade-press receipt launders a community-originated
+a deprecated label nor a sourcing gap); the non-demand-origin families
+`trade_press`, `tracker_detector`, `org_motion_surface`, and `creator_social` are
+likewise evidence/corroboration venues that take `gate_family: none`. Public YouTube videos/Shorts can feed
+`creator_social` when they provide a dated public call or campaign context, but
+not comments, channel/person dossiers, graphs, or monitoring. If a trade-press
+receipt launders a community-originated
 demand signal, `venue_family` stays `trade_press`, `gate_family` records the
 underlying demand family evidenced, and `origination_ref` ties it back to the
 single origin (so a laundered chain never counts as multiple origins). A
@@ -512,9 +529,10 @@ evidence.
 
 ### To capture (step 3)
 
-Per candidate entry, the scan emits a **capture-needs list**: venue + URL set
-+ which observation and which gate column the capture would support + the
-window (cutoff-bounded for backward; freshness-bounded for forward).
+Per candidate entry, the scan emits a **capture_request** (the shared scanning
+vocabulary term for the older "capture-needs list"): venue + URL set + which
+observation and which gate column the capture would support + the window
+(cutoff-bounded for backward; freshness-bounded for forward).
 Boundaries, all hard:
 
 - Per-venue route bindings are capture-lane-owned. The scan CITES the
@@ -553,8 +571,9 @@ Per sub-niche, inside any authorized scan (both modes):
 
 1. **Identification.** When a walk move yields an influence observation (the
    guide's widening: hubs, pointing structures, byline concentration), test
-   for wind-caller candidacy: a channel — or a named public-figure creator,
-   per the carve-out below — whose dated public call preceded a move or event
+   for wind-caller candidacy: a channel, including a public YouTube video or
+   Short that carries a dated public call, or a named public-figure creator,
+   per the carve-out below, whose dated public call preceded a move or event
    the scan can date, in this sub-niche, with a receipt. Pointing chains
    terminate at wind callers; INCIDecoder (card 11) is the worked exemplar —
    its commissioned tests became the root receipt an entire event chain cites.
@@ -588,6 +607,10 @@ outcome_status: resolved | open   # backward: usually resolved; forward: open
      absolute, unchanged); no outreach or contact lists; no special-category or
      private/auth-gated data; no audience / follower-graph analysis (Tier 2,
      deferred-gated). The external/product boundary is unchanged.
+   - **Public YouTube video/Shorts calls are admissible only as dated, non-login
+     public-call receipts**; no comment scraping, channel enumeration,
+     subscriber/follower graph, channel/person dossier, or standing channel
+     observation is created by the scan.
    - **The scan does only screening-grade identification + the call record
      above.** Deeper calibration capture (platform stats, Social Blade, the
      bounded passive-monitoring runs) is a **capture-lane act under the
