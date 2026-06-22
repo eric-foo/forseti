@@ -68,6 +68,14 @@ An earlier read of this probe attributed an HTTP 403 (`chrome-error://` page, ti
 
 **Conclusion: there is NO evidence TikTok detected or blocked us.** The N=1 logged-out capture (metadata + comments + cursor pagination) ran clean. Therefore the **detection ceiling at volume is untested — unknown, not "shown low."** The scaling constraint that *does* hold on first principles is request volume, not a measured block: full comments cost ~1 request per 20 comments (≈65 sequential XHRs for this 1,289-comment video) versus ~1 page load for metadata. More requests = more exposure, but where the actual ceiling sits is unmeasured.
 
+## Detection addendum (2026-06-22) — real captcha (confounded) + pivot to sessioned
+
+A second attempt to measure the logged-out ceiling hit a **genuine TikTok slider captcha** ("Drag the slider to fit the puzzle") on **first load** of a logged-out video page, in a separate browser profile on the **same IP** as the owner's main browser. The captcha was **not solved** (completing a CAPTCHA/bot-check is forbidden); the probe stopped.
+
+**Likely confound, not a clean measurement:** that browser already had a TikTok tab open and a second/duplicate session was opened concurrently — a known challenge trigger. So this does **not** cleanly measure cold logged-out detection. Combined with the three divergent logged-out sessions on record (earlier: clean full capture, no captcha; owner's main browser: captcha after ~10 scrolls; this profile: captcha on load), the honest read is that **logged-out detection is highly session-trust-dependent and unstable**, not a fixed ceiling.
+
+**Owner decision (2026-06-22): logged-out is judged too brittle for reliable sustained capture; the lane pivots to sessioned/cookied (authenticated) capture** via a dedicated account. Recorded tradeoff: sessioning shifts the failure mode from captcha/throttle (recoverable) to **account ban** (loses the account and its accumulated trust), so it requires a **dedicated, non-personal account**, **human-performed login** (agent never enters credentials), strict no-creds-in-packets hygiene, and labeling provenance as entitled-session. See the capture spec direction update.
+
 ## Capture recipe (draft, for the recipe card)
 
 1. **Real/non-headless cookied browser context** (persistent profile with warmed `ttwid` device cookies) — NOT headless. Human-rate.

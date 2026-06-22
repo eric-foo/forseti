@@ -15,7 +15,12 @@ derived_from:
   - docs/review-outputs/tiktok_capture_calibration_architecture_review_v0.md   # routes + non-claims
   - orca-harness/source_capture/  # reuse substrate (models, cadence, writer, browser_snapshot)
 priorities: [lowest_bot_detectability, scalable]
+capture_mode: sessioned_cookied (owner decision 2026-06-22; supersedes the logged-out-primary posture in C8)
 ```
+
+## Direction update (2026-06-22) — sessioned/cookied
+
+Owner decision: **logged-out capture is too brittle** (highly session-trust-dependent; captchas observed, see recon addendum). The lane now captures via an **authenticated session** (cookied), which TikTok generally trusts more and challenges less. This **supersedes C8** (logged-out-only) with the account invariants in **C8'** below. Everything else (real browser, ride the page's own requests, ≤3 requests/video, cadence, identity distribution, secret hygiene) is unchanged and applies to the authenticated session. **Tradeoff accepted:** the failure mode shifts from captcha/throttle (recoverable) to **account ban** (loses the account + its accumulated trust) — mitigated by dedicated burnable accounts, conservative pacing, and human-performed login.
 
 ## Purpose
 
@@ -51,8 +56,14 @@ Detect a genuine TikTok block — its own 403 HTML, captcha/verify interstitial,
 ### C7 — Secret hygiene (G-2 contamination stop)
 No cookies, storage-state, `msToken`, signature params, proxy endpoints/credentials, exit IPs, or device IDs may be written into any packet. Packets record category-only provenance. A packet containing any of these is contaminated scratch, not admissible.
 
-### C8 — Logged-out only
-No login, no own-account session, no private/access-controlled content. `user_is_login=false`. (Public comments are viewable logged-out in a real browser — recon-confirmed.)
+### C8' — Sessioned/cookied via a dedicated account (supersedes logged-out-only; priority-1 + safety invariant)
+Capture runs under an **authenticated session** whose cookies authenticate it. Required posture:
+- **Dedicated, non-personal account(s) only** — never a personal/primary account. Accounts are treated as **burnable** (a ban costs that account, not the operator).
+- **Human-performed login** via a headed session bootstrap; the agent **never enters credentials** (harness: `run_source_capture_browser_session_bootstrap.py` → `run_source_capture_authenticated_browser_packet.py`).
+- **No credentials, cookies, storage-state, or tokens in any packet** (C7 / G-2) — even more load-bearing now that secrets exist.
+- **Provenance labeled `entitled_session`**, not `public_logged_out`. The comment data is still real public comments; only the access path is authenticated.
+- **Public content only** — no private/DM/access-controlled surfaces; authentication buys trust/stability, not access to non-public data.
+- **Account-level stop-on-challenge** (per C6): on captcha/challenge/ban signals, stop that account, cool down, rotate; never solve a challenge.
 
 ## Data contract (fields)
 
@@ -82,5 +93,5 @@ No login, no own-account session, no private/access-controlled content. `user_is
 - **Volume + provenance target** (how many creators/videos/comments, freshness, first-party-required?) is unset and **flips the scale design** (self-capture vs vendor-for-bulk + first-party-anchor).
 - **Proxy strategy** (residential vs mobile, pool size) is a cost-vs-detectability owner decision.
 - **Detection ceiling is UNMEASURED** — N=1 ran clean; no bulk evidence. Selector/signature/field drift is expected (maintenance).
-- This is a spec only: no build authority, no validation/readiness, no deployment. Logged-out public capture under the owner Risk posture; commenter handles/uids are public comment metadata for aggregate integrity analysis, not individual dossiers. Not legal advice.
+- This is a spec only: no build authority, no validation/readiness, no deployment. **Authenticated (sessioned) public capture via a dedicated burnable account** under the owner Risk posture; carries **account-ban and ToS exposure the owner has explicitly accepted** for this lane. Commenter handles/uids are public comment metadata for aggregate integrity analysis, not individual dossiers. Not legal advice.
 ```
