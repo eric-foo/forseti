@@ -157,6 +157,38 @@ lines preserved as history.
 Downstream surfaces propagated under the `direction_change_propagation` receipt at the foot of this record
 (2026-06-22, logged-in + Tier-2 activation).
 
+## Amendment — 2026-06-23 (owner; council-confirmed): Tier-2-A council confirmation received
+
+Owner reported council confirmation 2026-06-23 (creator-momentum / fragrance lane). Dated; the
+2026-06-22 lines preserved as history.
+
+- **Tier-2-A — aggregate audience demographics: COUNCIL-CONFIRMED; activation no longer legal-gated.**
+  Council confirmed the lawful-basis (legitimate interests) + data-minimization safeguards for the
+  Tier-2-A slice. The binding posture is **UNCHANGED and now confirmed acceptable**: aggregate-only
+  (age-band / gender / geo / language), **TEXT signals only** (no facial/biometric inference),
+  legitimate-interests basis, **transient processing with NO retention of individual follower data**,
+  **NO special-category attributes**. The 2026-06-22 "activation-legal-pending" gate is **cleared**.
+- **Remaining activation gates are now BUILD/DATA, not legal:** (1) a roster-ledger
+  aggregate-audience-attribute **schema home** (the ledger currently forbids demographic fields); (2) for
+  the category→gender component specifically, the owner-adopted (2026-06-23) **defeasible documented
+  base-rate prior** is **data-first** — it needs a sourced, versioned per-category base-rate table before
+  it produces gender/age output. A general base rate is obtainable to start, refined over time.
+- **Category→gender treatment (adjudicated 2026-06-23):** a **defeasible documented base-rate prior** — a
+  Bayesian distribution that creator-specific evidence updates and overrides, with prior-dominated vs
+  evidence-dominated transparency, base rates **sourced + versioned (not model-gut)**. It is **confined to
+  the Tier-2-A slice** and never used as a hard category→gender map; the Tier-1 slice never votes gender.
+- **Tier-3 — permanent exclusions: UNCHANGED** (absolute). Person special-category data, contact/outreach/
+  lead-lists, private data, and resale/person-level product remain excluded.
+
+direction_change_propagation (2026-06-23; product_doctrine + lifecycle_boundary):
+- trigger: product_doctrine (Tier-2-A legal gate cleared) + lifecycle_boundary (gate type shifts legal → build/data).
+- downstream surfaces updated by this change:
+  - `orca/product/spines/capture/core/source_families/social_media/instagram/ig_creator_ideal_audience_inference_spec_v0.md`
+    — Tier-2-A pointers bumped "pending council" → "council-confirmed 2026-06-23; remaining gate = ledger-schema home (+ base-rate data)".
+  - `orca/product/spines/capture/core/source_families/social_media/instagram/ig_creator_roster_frontier_ledger_spec_v0.md`
+    — privacy-invariant note bumped Tier-2-A "AUTHORIZED-pending council" → "council-confirmed; gated on a ledger-schema home".
+- unchanged: Tier-2-B (already active), Tier-3 (forbidden), the ≤10/start-≤5 operating-account ceiling, logged-in posture.
+
 ## The Prior Boundary (baseline)
 
 All Orca product and capture doctrine to date has held:
@@ -247,10 +279,11 @@ Home: `docs/product/data_capture_spine/data_capture_spine_future_exploration_lan
 (reclassified from out-of-scope → sanctioned-but-deferred; see propagation below).
 
 Neither Tier 2 item is activated by this record. Each needs its own gate. Do not
-treat reclassification as authorization. *(Update — 2026-06-22 amendment above:
+treat reclassification as authorization. *(Update — 2026-06-22 + 2026-06-23 amendments above:
 **Tier-2-B is now ACTIVATED** for public-handle↔public-handle joins (council-cleared);
-**Tier-2-A is AUTHORIZED but activation-legal-pending** council confirmation. See the
-2026-06-22 amendment for the exact scope, binding posture, and residuals.)*
+**Tier-2-A is now COUNCIL-CONFIRMED** (2026-06-23) — the legal gate is cleared; activation gated only on a
+ledger-schema home (+ base-rate data for the category→gender prior). See the 2026-06-22 / 2026-06-23
+amendments for the exact scope, binding posture, and residuals.)*
 
 ## Tier 3 — Permanent Exclusions (unchanged; no carve-out)
 

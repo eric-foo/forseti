@@ -518,7 +518,8 @@ Rules:
 > and the `creator_record_id` "must not be cross-platform stitched without a separate owner-approved spec"
 > rule is now satisfied by that amendment + the linkage spec. **Aggregate audience demographics** (text-only,
 > aggregate, legitimate-interests basis, no retention of individuals, no special-category) are
-> **AUTHORIZED-pending council confirmation** (Tier-2-A) — a separate data class from the *creator's own*
+> **COUNCIL-CONFIRMED 2026-06-23** (Tier-2-A; the legal gate is cleared) — activation now gated on a
+> ledger-schema home for this data class, a separate data class from the *creator's own*
 > attributes. **Person special-category data remains absolutely forbidden** (Tier-3).
 
 Allowed in v0:

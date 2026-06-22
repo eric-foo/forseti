@@ -25,7 +25,7 @@ stale_if:
   - A labeled validation set exists (then confidence can be calibrated; uncalibrated_support_score is replaced).
   - The data lake record-set shape changes (the two derived layers ride the #341 all-or-nothing record-set rails).
   - SubNiche becomes a live ontology classifier (segment labels here re-express in SubNiche terms on adoption).
-status: PROPOSED — design only; no build authorized; assumption-gated + revised 2026-06-23. Owner-resolved 2026-06-23: v0 = Tier-1 slice only; Tier-2-A demographic slice deferred behind council + ledger-schema home; category→gender adopted as a defeasible base-rate prior (confined to the gated slice).
+status: PROPOSED — design only; no build authorized; assumption-gated + revised 2026-06-23. Owner-resolved 2026-06-23: v0 = Tier-1 slice only; Tier-2-A demographic slice deferred behind a ledger-schema home (council-confirmed 2026-06-23); category→gender adopted as a defeasible base-rate prior (confined to the gated slice).
 ```
 
 # Instagram Creator Ideal-Audience Inference — Spec (proposed, v0)
@@ -71,12 +71,12 @@ are derived (the carve-out classifies by data class; assumption-gate 2026-06-23)
   `segment`, `audience_role`, `purchase_intent`, `skill_level`, `price_tier`.
   Needs no council and no ledger-schema change; not on the ledger's forbidden list.
 - **Tier-2-A slice — GATED** (aggregate audience demographics): `gender_skew`,
-  `age_band`. These are **AUTHORIZED-pending council confirmation** (carve-out
-  2026-06-22 amendment) AND have **no home in the roster ledger**, which still
-  forbids demographic fields (`ig_creator_roster_frontier_ledger_spec_v0.md`
-  schema invariants). They cannot be produced as a durable product until BOTH
-  clear: (1) owner council confirmation, (2) a ledger aggregate-audience-attribute
-  home consistent with the amendment.
+  `age_band`. **Council-confirmed 2026-06-23** (carve-out; the legal gate is
+  cleared) BUT still have **no home in the roster ledger**, which forbids
+  demographic fields (`ig_creator_roster_frontier_ledger_spec_v0.md` schema
+  invariants). Remaining activation gates are now build/data, not legal: (1) a
+  ledger aggregate-audience-attribute home, (2) for the category→gender prior, a
+  sourced base-rate table.
 
 The earlier "Tier-1, no Tier-2-A activation needed" framing was wrong for the
 demographic fields and is corrected here.
@@ -220,8 +220,8 @@ the LLM is told not to, and the code makes sure it cannot.
 Use `women_oriented` / `men_oriented` / `mixed_or_neutral` / `undetermined` — never
 "the audience is women/men." Prefer observable **need-state / market-segment**
 labels over speculative personality traits. Fields marked `"tier": "2A_gated"`
-are produced only after the Tier-2-A council + ledger-schema gates clear; until
-then the build emits the Tier-1 fields and omits the gated ones.
+are produced only after the Tier-2-A ledger-schema gate clears (council-confirmed
+2026-06-23); until then the build emits the Tier-1 fields and omits the gated ones.
 
 **Two divergence flags (reported separately, never used to overwrite the profile):**
 
@@ -263,9 +263,9 @@ then the build emits the Tier-1 fields and omits the gated ones.
     and captions truncate ~59–86% via `og:description` (full caption needs the DOM
     node). The instructional-structure signal is weaker than the source methodology assumed.
 12. **Tier-2-A demographic slice is gated, not shipped** — `gender_skew`/`age_band`
-    cannot be produced until owner council confirmation AND a roster-ledger
-    aggregate-audience-attribute home exist; today the ledger schema forbids
-    demographic fields (`ig_creator_roster_frontier_ledger_spec_v0.md` invariants).
+    cannot be produced until a roster-ledger aggregate-audience-attribute home
+    exists (council-confirmed 2026-06-23; the legal gate is cleared); today the
+    ledger schema forbids demographic fields (`ig_creator_roster_frontier_ledger_spec_v0.md` invariants).
 
 ## Named upgrades (post-v0, each gated on a stated trigger)
 
@@ -291,12 +291,12 @@ specialist-extractor split (one text extractor in v0).
 1. **v0 ships the Tier-1 slice only** — `segment` / `audience_role` /
    `purchase_intent` / `skill_level` / `price_tier`; no council, no schema change.
    The Tier-2-A demographic slice (`gender_skew` / `age_band`) is **deferred behind
-   owner council + a ledger-schema home.** *(resolved)*
+   a ledger-schema home** (council-confirmed 2026-06-23; legal gate cleared). *(resolved)*
 2. **Category→gender = defeasible documented base-rate prior** (Bayesian) — always a
    distribution/%, never a hard category→gender map; creator evidence updates and
    overrides it; output flags prior-dominated vs evidence-dominated; base rates are
-   **sourced + versioned, not gut.** Confined to the Tier-2-A slice; rides the same
-   council gate; activates only when that slice is built. A **general** base rate is
+   **sourced + versioned, not gut.** Confined to the Tier-2-A slice; council-confirmed
+   2026-06-23; activates only when that slice is built (data-first). A **general** base rate is
    obtainable to start, refined over time. *(resolved — adopted)*
 3. **Ledger-schema home** for aggregate-audience attributes — a **deferred
    cross-lane prerequisite**, needed only when the Tier-2-A slice is activated; **not
@@ -308,7 +308,7 @@ This enrichment sits inside the already-settled posture (re-confirm against
 `docs/decisions/wind_caller_calibration_carveout_v0.md`, 2026-06-22 amendment):
 the **Tier-1 slice** (segment / role / purchase-intent / skill / price) needs no
 new activation; the **Tier-2-A demographic slice** (`gender_skew`/`age_band`) is
-aggregate-audience-demographics — **AUTHORIZED-pending council** and gated on a
+aggregate-audience-demographics — **council-confirmed 2026-06-23** and gated on a
 ledger-schema home (see Output classes + Decisions). Throughout: **no
 biometric** (CE1; no faces/bodies/voices); **aggregate comment-text only**,
 **transient, no commenter-level retention** (CE3/CE11); **need-state/segment, not
