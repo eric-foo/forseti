@@ -96,6 +96,8 @@ The board must NOT:
 
 - output `admit`, `hold`, `fail`, `pass`, `reject`, or any demand verdict;
 - decide whether demand exists;
+- label weak/attention-only evidence as transient demand;
+- emit a durable/transient/manufactured demand-state verdict;
 - decide buyer proof or readiness;
 - score evidence strength;
 - assign forecast probabilities;
@@ -469,6 +471,9 @@ classifier_handoff_packet:
   source_family_gaps:
   provenance_gaps:
   cutoff_uncertainties:
+  durability_projection_evidence_or_gap:
+  decay_lifespan_evidence_or_gap:
+  manufactured_hype_dedup_risk:
   classifier_mapping_status: classifier_owned
   prohibited_claims:
     - no demand verdict
@@ -478,8 +483,10 @@ classifier_handoff_packet:
     - no forecast probability
 ```
 
-The classifier handoff packet is a packaging surface only. Do not map rows to
-classifier families unless the dispatcher provides the classifier mapping.
+The classifier handoff packet is a packaging surface only. It may carry evidence
+or gaps relevant to a later durability projection, decay-lifespan read, or
+manufactured-hype dedupe risk, but it does not call those states. Do not map rows
+to classifier families unless the dispatcher provides the classifier mapping.
 
 For backtests: include rows in `signal_rows_for_handoff` or
 `counterevidence_rows_for_handoff` only after retrieval proves

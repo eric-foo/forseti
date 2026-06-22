@@ -121,14 +121,18 @@ called at cutoff against what actually happened — misses included.
 
 1. **Real first, then durable-or-transient.** Two questions, in order: is the
    demand *real* (costly behavior) or *manufactured* (fake/amplified →
-   avoid)? If real, does it *persist past its trigger* (durable) or is it a real
-   spike that *decays* (transient)? The product opens a **transient** call and
-   acts at the evidence-supported action ceiling, then **monitors momentum to
-   earn scale or commitment** — durable is *earned by observed persistence*,
-   never asserted up front. Horizon accretes through monitoring; `scale` earns
-   the long horizon, and `reduce` handles decay. The persistence half is what
-   the consumer-demand durability probe spec is designed to test blind against
-   momentum and category-prior baselines
+   avoid)? If real, is the strong current-window demand expected to stay strong
+   over the relevant decision horizon (**durable**) or is it strong only in the
+   current window / expected to decay (**transient**)? Durable is a
+   forward-looking demand call with a named evidence basis for projected
+   persistence, not a retrospective label that demand already stayed strong.
+   Observed persistence can be one basis; repeated costly behavior, analogue
+   history, post-trigger follow-through, and org-motion corroboration can also
+   support or contest the projection. Weak, attention-only, or manufactured
+   signals are not transient demand. Horizon accretes through monitoring;
+   `scale` earns the long horizon, and `reduce` handles decay. The persistence
+   half is what the consumer-demand durability probe spec is designed to test
+   blind against momentum and category-prior baselines
    (`consumer_demand_durability_probe_spec_v2.md`, lane `consumer-demand-probe`,
    status `PROPOSED_PROBE_SPEC_V2 — KEEP-CLEARED`; review state, not execution
    authority).

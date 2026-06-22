@@ -313,10 +313,14 @@ Five content families + one cross-cutting overlay.
 
 **Interpretation never enters projection.** Projection carries raw engagement counts,
 source-visible labels, timestamps, captions, and captured baseline facts; it must NOT
-emit an `anomaly`, `wind-caller`, independence, or demand-relevance label unless that
-label is supplied by an upstream accepted source as raw/categorical input — otherwise
-it is residualized. The "engagement anomaly," "wind-caller / call-record grade," and
-independence determinations are Judgment / outcome-memory, not projection labels.
+emit an `anomaly`, `wind-caller`, independence, demand-relevance, durable,
+transient, manufactured, weak, or strong label unless that label is supplied by an
+upstream accepted source as raw/categorical input — otherwise it is residualized.
+The "engagement anomaly," "wind-caller / call-record grade," independence,
+manufactured-hype, transient-demand, and durability-projection determinations are
+Judgment / outcome-memory, not projection labels. Projection may preserve the raw
+mechanical facts needed for Judgment to dedupe manufactured hype, call strong
+current-window transient demand, or support/contest a durability projection.
 *(Per F3.)*
 
 **Promotion discipline.** Per the boundary note, any family-specific projection rule is

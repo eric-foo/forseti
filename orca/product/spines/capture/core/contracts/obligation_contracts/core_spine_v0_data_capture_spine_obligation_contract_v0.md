@@ -504,8 +504,9 @@ For such a series, Capture must record:
   timings available via per-observation `capture_time` / `recapture_time` and gaps
   recorded as visible limitations (an un-sampled gap is never "no change").
 
-These are observed facts that fix comparability and coverage extent; they are
-never weights, scores, or a durable / transient / manufactured demand verdict (INV-1). The
+These are observed facts that fix comparability and coverage extent; they can
+support or falsify a later durability projection, but they are never weights,
+scores, or a durable / transient / manufactured demand verdict (INV-1). The
 series-level recapture-diff (Element 3) is a separate cross-observation record and
 is **deferred** — not named here; when built it keys change on the EXTRACTED
 demand-relevant values, with the raw `PreservedFile.sha256` only a coarse

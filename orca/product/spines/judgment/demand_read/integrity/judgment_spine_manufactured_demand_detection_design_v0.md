@@ -270,7 +270,7 @@ manufactured/coordinated").
 4. **Call it:**
    - **Survives → (3) genuine-with-amplification.** The amplification is marketing on top of a
      real engine. Hand C2/C3 a **real** disposition; the read proceeds on the persistence axis
-     (transient by default, durable earned by observed persistence). **The false negative is
+     (transient unless C3 can name a durability projection basis). **The false negative is
      avoided** — hype did not bury a real breakout.
    - **Nothing survives → (2) amplified-but-hollow.** Manufactured disposition → R3(a) cap →
      discount/avoid. **The false positive is avoided** — real spend did not buy a real read.
@@ -364,12 +364,12 @@ placement; it does **not** relocate or re-adjudicate it.
 ```text
   C0 Frame ─► C1 ALLOW (gross gate) ─────────► C2 WEIGHT (per-signal) ──────────► C3 VERDICT ──► C4
               Demand-Substrate Hard Gate       Rule 3 residual:                   consumes a
-              (>=2 independent venue            a known manufactured-mechanism     "real" (or
-              families + costly behavior).      risk on a signal the gate let      disqualified/
-              THE GROSS manufactured            through. Runs THIS catalogue's     held) input.
-              filter: a surge confined to       discriminator companion per        Never reopens
-              one coordinated layer fails       class (R3a cap / R3b banded        the manufactured
-              >=2 independent families.         discount / R3c neutral).           axis.
+              (origin de-correlation +         a known manufactured-mechanism     real (or
+              costly behavior). THE GROSS      risk on a signal the gate let      disqualified/
+              manufactured filter: a surge     through. Runs THIS catalogue's     held) input.
+              confined to one coordinated      discriminator companion per        Never reopens
+              layer fails the independent      class (R3a cap / R3b banded        the manufactured
+              costly-behavior floor.           discount / R3c neutral).           axis.
               Attaches integrity labels.        ▲
                     ▲                           │  per-class families + present-fingerprint /
                     │  integrity labels         │  absent-clearing-check SHAPE  ◄── THIS DESIGN
@@ -393,17 +393,17 @@ placement; it does **not** relocate or re-adjudicate it.
 ## The Integrity-Gate for "Exceptional Initial Outburst → Scale"
 
 The most dangerous moment is precisely the one the owner names: an **exceptional initial
-outburst** — a huge first-call spike — tempting an immediate **Scale-grade commitment** (scale
+outburst** — a huge first-call spike — tempting an immediate **scale-grade commitment** (scale
 inventory, spend, retail). This is where amplification is *most* likely (big spikes are what
-amplification buys) **and** the commitment is *most* irreversible. The calling sequence already
-says the first call **defaults to transient** and acts **in-window**; this gate governs whether
-that in-window action may be **material/irreversible** (= "Scale").
+amplification buys) **and** the commitment is *most* irreversible. The calling sequence now
+says a first call is current-window transient unless a durability basis is already in the
+information set; this gate governs whether that in-window action may be **material/irreversible**
+(= `scale`).
 
-**Vocabulary note (mint nothing):** "Scale" is not Orca vocabulary; it maps to a **material /
-irreversible commitment** — Commit-grade on the operator ladder (Excluded→Watch→Probe→Test→Hold→
-**Move**→**Commit**), i.e. a costly `act / phase / narrow / costly-defend` at **long horizon**
-in the C3 ceiling vocabulary `{act, phase, narrow, hold, defend}`. The gate is a *placement* of
-three existing rules onto the outburst case, not a new ceiling.
+**Vocabulary note (mint nothing):** `scale` is the flat C3 verb for increasing an
+existing commitment; it is a **material / irreversible** action and therefore needs
+the strongest integrity and independence basis. The gate is a *placement* of three
+existing rules onto the outburst case, not a new ceiling.
 
 **The gate (fuses three ratified rules):** an exceptional initial outburst may authorize a
 material / Scale-grade commitment **only if all three hold** —
@@ -440,10 +440,11 @@ confirmed qualitative, not numeric.)
 - **Low false-positive:** you do **not** Scale into bucket-(2) on a spike whose costly behavior is
   all inside the paid layer. The strictest bar applies exactly where manufacturing is most likely.
 - **Low false-negative (the breakout half — load-bearing):** hype does **not** freeze you. You take
-  the **largest +EV recoverable position** in-window (not a token), and you **monitor to earn the
-  irreversible upgrade** as independent costly behavior persists — bucket (3) is *captured*, just
-  *earned* rather than *assumed*. **Seed-then-real is explicit:** a manufactured *start* is **not a
-  permanent disqualification** — amplification can ignite real demand, so a seeded spike that
+  the **largest +EV recoverable position** in-window (not a token), and you
+  **monitor to earn or defeat the durability projection / irreversible upgrade** as
+  independent costly behavior persists — bucket (3) is *captured*, just *earned*
+  rather than *assumed*. **Seed-then-real is explicit:** a manufactured *start* is
+  **not** a permanent disqualification — amplification can ignite real demand, so a seeded spike that
   *consolidates* into real costly behavior earns its way up the ceiling rather than being discounted
   forever. **Missing a real breakout is a real cost the EV weighs**, not a free default; running the
   discriminator is the unlock for the irreversible step.

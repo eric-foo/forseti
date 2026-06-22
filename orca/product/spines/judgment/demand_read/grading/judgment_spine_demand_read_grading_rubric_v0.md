@@ -11,25 +11,25 @@ artifact_role: >
 scope: >
   The standing grading rules for a single backtest demand read: which axes a grade
   uses, which axes the sealed outcome may legitimately touch, and the two-axis
-  gradeability split that makes the persistence verdict NOT outcome-graded at t=0.
-  Derived from (not amending) the C3 verdict/ceiling contract and the taxonomy
-  Calling Sequence. Backtest-scoped (owner, 2026-06-15); the persistence-verdict
-  grade is out of scope until a full calling sequence with a monitoring window
-  exists. Also states the classifying meta-rule (deductive standing-rule vs
-  empirical generalization) that decides when a graded learning needs a proof-case.
+  gradeability split that makes the persistence verdict evidence-basis-graded,
+  not hindsight-label-graded. Derived from (not amending) the C3 verdict/ceiling
+  contract and the taxonomy Calling Sequence. Backtest-scoped (owner, 2026-06-15;
+  clarified 2026-06-23); the full live monitoring sequence remains out of scope.
+  Also states the classifying meta-rule (deductive standing-rule vs empirical
+  generalization) that decides when a graded learning needs a proof-case.
 use_when:
   - Grading a by-hand C0–C4 demand read against a revealed sealed outcome.
-  - Reviewing whether a grade respects the calling-sequence gradeability split (did it grade the persistence label against the outcome — a category error).
+  - Reviewing whether a grade respects the evidence-basis split (did it grade the persistence label by hindsight outcome alone — a category error).
   - Deciding whether a graded learning is a standing rule (entailed, no proof-case) or an empirical generalization (needs N≥K cases).
 authority_boundary: retrieval_only
 open_next:
-  - orca/product/spines/judgment/demand_read/c3_verdict_action/judgment_spine_c3_verdict_action_ceiling_contract_v0.md  # parent: the contestant-emit contract (transient-default / earned-durable; the ceiling vocabulary + cap rule the action axis grades against)
-  - orca/product/spines/foundation/demand_read_taxonomy/orca_demand_read_taxonomy_v0.md                            # parent: the Calling Sequence (transient-first -> monitor -> earn durable) this rule is entailed by
+  - orca/product/spines/judgment/demand_read/c3_verdict_action/judgment_spine_c3_verdict_action_ceiling_contract_v0.md  # parent: the contestant-emit contract (durable-projection-basis rule; ceiling vocabulary + cap rule)
+  - orca/product/spines/foundation/demand_read_taxonomy/orca_demand_read_taxonomy_v0.md                            # parent: the Calling Sequence (current-window transient unless durability basis -> monitor -> earn/revise durable) this rule is entailed by
   - orca/product/spines/judgment/conductor/judgment_spine_reveal_calibration_owner_contract_v0.md   # the JSG-08 reveal / tell-audit mechanics the contamination axis uses
   - orca/product/spines/judgment/claim_ladder/judgment_spine_evidence_ladder_architecture_v0.md        # the claim-tier boundaries (product_learning vs judgment-quality) a grade may not cross on N=1
   - orca-harness/cases/product_learning/topicals_retail_expansion_2021_v0/first_demand_read_findings_v0.md  # the worked example that surfaced this rule
 stale_if:
-  - The Calling Sequence (transient-default; durable earned via observed persistence) or the C3 transient-default acceptance criterion is amended.
+  - The Calling Sequence or the C3 durable-projection-basis criterion is amended.
   - The two-axis demand-state model (durable/transient + real/manufactured) changes.
   - The owner lifts the backtest-only scope (the persistence-verdict grade then becomes in-scope via the monitoring loop).
   - The JSG-08 reveal/calibration contract changes the contamination/tell-audit mechanics the integrity grade depends on.
@@ -52,44 +52,47 @@ proof-case (see the meta-rule below).
 
 ## Input Basis (accepted)
 
-- **Calling Sequence** (taxonomy, owner 2026-06-14): a read opens **transient**
-  (the conservative default) and acts in-window; **durable is earned via observed
-  post-trigger persistence, never asserted at the trigger.**
-- **C3 transient-default acceptance criterion** (C3 contract, PROPOSED): a read
-  whose information set shows **no observed post-trigger persistence** that
-  nonetheless calls **durable fails** — durable requires persistence evidence in
-  the information set.
+- **Calling Sequence** (taxonomy, owner 2026-06-14; clarified 2026-06-23): a read
+  opens **current-window transient unless a durability basis is already in the
+  information set**; durable is a named, evidence-supported projection that demand
+  will stay strong over the decision horizon.
+- **C3 durable-projection-basis criterion** (C3 contract, PROPOSED): a read that
+  calls **durable** without a named persistence basis fails; a read that treats
+  weak/attention-only input as transient demand also fails.
 - **Two-axis demand-state model** (settled, main #78): **durable/transient**
-  (persistence, resolved at C3) and **real/manufactured** (integrity, resolved
-  upstream at C1 + C2). "Hollow" retired.
+  (persistence horizon, resolved at C3) and **real/manufactured** (integrity,
+  resolved upstream at C1 + C2). "Hollow" retired.
 - **JSG-08 reveal/tell-audit** (reveal-calibration owner contract): contamination
   is outcome-**use**, not recognition; an outcome-aware grader runs the tell-audit
   against the sealed outcome.
-- **Owner scope** (2026-06-15): this rubric governs **single backtest reads
-  only**; the persistence-verdict grade is out of scope (it needs a monitoring
-  window a backtest lacks).
+- **Owner scope** (2026-06-15; clarified 2026-06-23): this rubric governs
+  **single backtest reads only**; it grades the information-set basis and does not
+  claim the full live monitoring sequence is exercised.
 
 ## The Standing Rule (load-bearing)
 
-**A single backtest read's persistence verdict is not graded against the realized
-outcome.** The chain is deductive:
+**A single backtest read's persistence verdict is graded against the evidence in
+its information set, not against the realized outcome label alone.** The chain is
+deductive:
 
-1. The Calling Sequence earns **durable** only via observed post-trigger
-   persistence.
-2. A single read at (or before) the trigger has **no post-trigger window** in its
-   information set.
-3. Therefore (C3) it **cannot call durable**; **transient is its only compliant
-   persistence call.**
-4. Therefore the t=0 persistence label is a **fixed output of the grammar, not a
-   prediction** — it carries no information that could be "right or wrong" about
-   the eventual state.
-5. Therefore comparing the transient label to the realized outcome **compares a
-   constant to a variable** and cannot grade the read.
+1. Durable is a forward-looking demand call: strong real demand with a named
+   evidence-supported basis for projected persistence over the decision horizon.
+2. Transient is also strong demand: real current-window demand whose durability is
+   not called, or whose evidence supports decay.
+3. Therefore a read that calls **durable** without naming a persistence basis
+   fails, and a read that labels weak/attention-only input **transient demand**
+   fails.
+4. Therefore a later durable outcome does not by itself make a compliant
+   transient call wrong; it may show what the absent live monitor would have
+   upgraded.
+5. Therefore outcome use is limited to the named driver/projection basis,
+   contamination/tell-audit, and later evidence that directly bears on the read's
+   stated counterfactual.
 
-Grading `transient` against a `durable` outcome is a **category error**: it
-penalizes the read for not doing the one thing the grammar forbids it from doing.
-The realized-durable outcome is not evidence the verdict was wrong; it is what the
-**monitoring step** (absent from a backtest) would have upgraded.
+Grading `transient` against a `durable` outcome by label match alone is a
+**category error**. The grader must ask whether the packet contained a durability
+basis the read missed, or whether the outcome merely reflects a later monitoring
+upgrade the single read did not have.
 
 ## The Two-Axis Gradeability Split
 
@@ -98,41 +101,43 @@ The two verdict axes have **opposite** gradeability at t=0:
 | Axis | Resolved | t=0 outcome-gradeable? |
 | --- | --- | --- |
 | **real / manufactured** (integrity) | upstream (C1 + C2) | **Yes** — to the extent the manufactured *marks* (astroturf, engagement anomalies) are in the captured ≤cutoff evidence. A wrong "real" call is a real failure. |
-| **durable / transient** (persistence) | C3 | **No — structurally.** Durable is the *earned* state, confirmed only post-trigger; the backtest amputates that window. |
+| **durable / transient** (persistence horizon) | C3 | **Partly.** The verdict is graded against the information-set basis and reasoning trace, not hindsight label alone. Durable requires a named projection basis; transient is compliant when strong current-window demand lacks that basis or evidence supports decay. |
 
 ## What the Sealed Outcome May and May Not Grade
 
 - **MAY grade (legitimate outcome use):** **C4 / driver-validation** (did the
-  counterfactual name the real driver the outcome later confirmed) and
-  **contamination / JSG-08 tell-audit** (did recognition leak into the call).
-- **MAY NOT grade:** the **persistence verdict label** (the standing rule above).
-- **Graded against evidence, not outcome:** **calling-sequence faithfulness**
-  (defaulted transient, did not over-claim durable), **action-appropriateness**
-  (ceiling obeys the floor/ceiling cap on the packet's evidence), and
-  **evidence-defensibility** (no *in-packet* lift signal missed).
+  counterfactual name the real driver the outcome later confirmed), the named
+  durability/decay basis when the read made one, and **contamination / JSG-08
+  tell-audit** (did recognition leak into the call).
+- **MAY NOT grade:** a transient label against a later durable outcome by hindsight
+  alone, or a durable label against later decay without examining the evidence
+  basis the read actually named.
+- **Graded against evidence, not outcome:** **persistence-basis faithfulness**,
+  **action-appropriateness** (ceiling obeys the floor/ceiling cap on the packet's
+  evidence), and **evidence-defensibility** (no *in-packet* lift signal missed).
 
 ## The Five Grading Axes
 
 | # | Axis | Graded against | Pass condition |
 | --- | --- | --- | --- |
-| 1 | **Calling-sequence faithfulness** | evidence only | Defaulted to **transient** and did not over-claim durable. Over-claiming durable at t=0 is the cardinal failure (the over-claimable label the sequence exists to prevent). *Outcome-label match is not part of this axis.* |
+| 1 | **Persistence-basis faithfulness** | evidence only | Called **durable** only with a named persistence-projection basis in the packet; called **transient** when demand was strong current-window but no durable basis was present or evidence supported decay. Weak/attention-only input was not labeled transient demand. *Hindsight outcome-label match is not part of this axis.* |
 | 2 | **Action-appropriateness** | evidence only | The action ceiling is right on the packet's evidence under the floor/ceiling cap rule (≥2 independent converging origins for a material verb; single origin → hold/low-commitment; engagement-only cannot carry Commit-grade). Correct **even if the bolder move later won**, when the read lacked the information that justified it. |
-| 3 | **C4 / driver-validation** | **outcome** (legitimate) | C4 named the *real* driver the outcome later confirmed. The one axis where the outcome grades **foresight**; it doubles as the calling-sequence-completeness check (it names the upgrade path the monitor would watch). |
+| 3 | **C4 / driver-validation** | **outcome** (legitimate) | C4 named the *real* driver the outcome later confirmed. This is where the outcome can audit foresight and whether the named durability/decay basis was directionally meaningful. |
 | 4 | **Contamination-resistance (JSG-08)** | **outcome** (legitimate) | Resolved every ambiguity *against* the known outcome (anti-tells); no non-packet knowledge; honest no-contamination attestation. |
 | 5 | **Evidence-defensibility** | evidence only | Handled every ≤cutoff signal correctly; no missed *in-packet* lift signal. (Did it use what it had — not whether it predicted what it could not see.) |
 
 ## Scope and Limits (backtest-only)
 
-- Governs **single t=0 backtest reads** (owner, 2026-06-15). The
-  **persistence-verdict grade is out of scope** — it becomes gradeable only across
-  a **full calling sequence with a monitoring window** (open transient → monitor →
-  earn or refuse the durable upgrade), which a single backtest read structurally
-  lacks.
+- Governs **single t=0 backtest reads** (owner, 2026-06-15; clarified 2026-06-23).
+  The **persistence verdict is gradeable against the information-set basis, not
+  against hindsight labels alone**. A single backtest can say whether the read had
+  enough captured evidence to call durable, or enough reason to stay transient; it
+  cannot prove the full live monitoring loop that later upgrades, scales, or reduces.
 - **Consequence:** a clean backtest grade is **never** evidence that the
   *sequence* — and therefore the product's upside-capture half — works. The
-  backtest can show the false-positive filter (don't commit broadly on thin
-  evidence); it cannot exercise the monitoring loop that captures upside. That
-  ceiling travels with every backtest claim.
+  backtest can show basis discipline and false-positive control; it cannot
+  exercise the monitoring loop that captures upside. That ceiling travels with
+  every backtest claim.
 
 ## The Classifying Meta-Rule (when a graded learning needs a proof-case)
 
@@ -160,12 +165,12 @@ commissioned by a prompt artifact, not folded into this lane.
 ## Source-Read Ledger
 
 - `orca/product/spines/judgment/demand_read/c3_verdict_action/judgment_spine_c3_verdict_action_ceiling_contract_v0.md`
-  — parent; the transient-default/earned-durable acceptance criterion and the
-  floor/ceiling cap rule axis 1–2 grade against. Status `PROPOSED`. Last checked:
-  2026-06-15. Reuse rule: reread before amending the rule.
+  — parent; the durable-projection-basis rule and the floor/ceiling cap rule
+  axis 1–2 grade against. Status `PROPOSED`. Last checked: 2026-06-23. Reuse
+  rule: reread before amending the rule.
 - `orca/product/spines/foundation/demand_read_taxonomy/orca_demand_read_taxonomy_v0.md` — parent; the
   Calling Sequence the standing rule is entailed by. Status
-  `PROPOSED_PENDING_OWNER_ADJUDICATION`. Last checked: 2026-06-15. Reuse rule:
+  `PROPOSED_PENDING_OWNER_ADJUDICATION`. Last checked: 2026-06-23. Reuse rule:
   reread; not yet owner-adjudicated as operative.
 - `orca/product/spines/judgment/conductor/judgment_spine_reveal_calibration_owner_contract_v0.md`
   — the JSG-08 reveal/tell-audit mechanics axis 4 depends on. Reread-required.
