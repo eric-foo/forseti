@@ -21,7 +21,7 @@ use_when:
   - Checking the capture/downstream boundary for reviews (what capture must NOT do).
 authority_boundary: retrieval_only
 open_next:
-  - orca/product/spines/capture/source_families/retail_pdp/retail_pdp_projection_contract_v0.md                   # current PDP projection (aggregate review substrate row this extends)
+  - orca/product/spines/capture/core/source_families/retail_pdp/retail_pdp_projection_contract_v0.md                   # current PDP projection (aggregate review substrate row this extends)
   - orca/product/spines/capture/source_families/retail_pdp/demand_durability_multi_retailer_rendered_capture_spec_v0.md  # per-retailer rendered capture, measured-ToS, one-series-per-retailer
   - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_core_contract_v0.md                           # Attachment Records (source-family payload home); lake owns no identity/dedup/judgment
   - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_storage_contract_v0.md                        # record-kind slots; raw canonical; append-only derived; physicalization deferred

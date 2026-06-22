@@ -13,9 +13,11 @@ frozen decision.
 ## Status and boundary
 
 - Status: **Orca-local, ACCEPTED (frozen) + DEPLOYED/ACTIVATED 2026-06-08;
-  refreshed + re-frozen 2026-06-12** (authorized skill-edit: thesis/wedge
-  citations re-routed after the consumer-demand ratification; sha re-pinned
-  in skill-adoption.md). Deployed for the Claude Code runtime as a PROJECT-level copy at
+  refreshed + re-frozen 2026-06-12; refreshed + re-pinned 2026-06-20**
+  (authorized skill-edits: thesis/wedge citations re-routed after the
+  consumer-demand ratification; runtime copy re-synced after the spine-first
+  product-tree migration and active-thesis integration; sha re-pinned in
+  skill-adoption.md). Deployed for the Claude Code runtime as a PROJECT-level copy at
   `.claude/skills/orca-product-lead/SKILL.md` (this project only; NOT
   user-global/personal, NOT a plugin, NOT external). This `.agents/skills/` file
   remains the canonical, cross-runtime source-of-record; the `.claude/skills/`
@@ -55,10 +57,11 @@ needs its own explicit owner authorization.
 3. Controlling product sources, opened as the decision needs them:
    - Current product thesis and first-proof wedge: resolve BOTH through the
      repo map's "Product Anchor Files" table (route, don't restate — wedge
-     facts pinned in this file have rotted before). At the 2026-06-12
+     facts pinned in this file have rotted before). As of the 2026-06-20
      refresh they are
      `docs/decisions/orca_product_thesis_consumer_demand_v0.md`
-     (consumer-demand decision intelligence; beauty first vertical; US-first
+     (evidence-backed strategic decisions for consumer-market leaders; demand
+     integrity and durability as first reads; beauty first vertical; US-first
      geography; OWNER_LOCKED) and
      `docs/decisions/orca_icp_wedge_consumer_demand_first_v0.md` (beauty
      operator first door; OWNER_LOCKED_DIRECTION) — but the repo-map row and
@@ -180,7 +183,13 @@ courier state only when useful.
 - Refresh record: 2026-06-12, owner-authorized in-thread ("go" on the
   deep-think rollout-readiness assessment) — stale thesis/wedge citations
   re-routed through the repo-map product-anchor rows (route-don't-restate),
-  pre-migration flat `docs/product/` paths updated to their `product_lead/`
-  and `judgment_spine/` homes, and the wedge guardrail generalized. Both
-  copies updated identically; new source sha256 re-pinned in
-  skill-adoption.md (closes ORCA-HYGIENE-019).
+  pre-migration product paths updated to their `product_lead/` and
+  `judgment_spine/` homes, and the wedge guardrail generalized. Both copies
+  updated identically; new source sha256 re-pinned in skill-adoption.md (closes
+  ORCA-HYGIENE-019).
+- Refresh record: 2026-06-20, owner-authorized in-thread — active thesis summary
+  repointed to the integrated evidence-backed, decision-led thesis body; product
+  source paths confirmed at the spine-first `orca/product/...` homes; `.claude`
+  runtime copy re-synced to this source; and the source sha256 re-pinned in
+  skill-adoption.md. This refresh changes skill routing/pins only; the skill
+  remains non-authority and the repo map plus controlling records govern.

@@ -90,8 +90,8 @@ first-class successful diagnosis, not a failure.
 ## Required Reads (REFERENCE-LOAD the method/playbook; SOURCE-LOAD the task sources; then declare readiness)
 
 `REFERENCE-LOAD` (procedural guidance only — do not APPLY before source readiness):
-- `orca/product/spines/capture/source_capture_toolbox/source_capture_playbook_v0.md` (probe-then-pin recon)
-- `orca/product/spines/capture/source_capture_toolbox/source_capture_anti_block_ladder_usage_guide_v0.md`
+- `orca/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md` (probe-then-pin recon)
+- `orca/product/spines/capture/core/source_capture_toolbox/source_capture_anti_block_ladder_usage_guide_v0.md`
 
 `SOURCE-LOAD` (the task sources):
 - **Controlling:** `retail_pdp_review_capture_spec_v0.md` (the field table, corpus-scope, storage, non-goals) — **branch-only, PR #302**
@@ -101,7 +101,7 @@ first-class successful diagnosis, not a failure.
 - `docs/prompts/handoffs/demand_durability_cadence_runner_step3_handoff_v0.md` (the cadence-runner seam, if a cadence is wired)
 - `core_spine_v0_data_lake_core_contract_v0.md` + `core_spine_v0_data_lake_storage_contract_v0.md` (Attachment Records; raw-canonical; physicalization deferred)
 - `data_capture_source_access_boundary_decision_v0.md` (measured-ToS / no-gate-defeat hard stops)
-- `orca/product/spines/capture/source_capture_toolbox/capture_recon_index_v0.md` (existing Sephora-Bazaarvoice / Ulta-Apollo recon)
+- `orca/product/spines/capture/core/source_capture_toolbox/capture_recon_index_v0.md` (existing Sephora-Bazaarvoice / Ulta-Apollo recon)
 - `orca/product/spines/judgment/demand_read/integrity/judgment_spine_manufactured_demand_detection_design_v0.md` (the DOWNSTREAM consumer — branch-only, PR #302)
 
 Then declare **`SOURCE_CONTEXT_READY`** (or `SOURCE_CONTEXT_INCOMPLETE` with missing/gap/conflict).

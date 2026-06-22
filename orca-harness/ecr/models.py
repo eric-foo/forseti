@@ -18,8 +18,9 @@ Design constraints (do not relax without explicit owner authorization):
 from __future__ import annotations
 
 from enum import StrEnum
+from typing import Literal
 
-from pydantic import model_validator
+from pydantic import Field, field_validator, model_validator
 
 from schemas.case_models import StrictModel
 from source_capture.models import CUTOFF_POSTURE_VALUES, VisibleFactStatus
@@ -29,6 +30,8 @@ from source_capture.models import CUTOFF_POSTURE_VALUES, VisibleFactStatus
 # recorded as a residual. Derived from the single-sourced VisibleFactStatus so
 # no status vocabulary is re-declared here.
 RESIDUAL_TIMING_STATUSES = frozenset(VisibleFactStatus) - {VisibleFactStatus.KNOWN}
+ECR_SOURCE_SIDE_REF_KIND = "source_side_postures"
+ECR_SOURCE_SIDE_RECEIPT_SCHEMA_VERSION = "capture_ecr_cleaning_smoke_ecr_receipts_v0"
 
 
 class EcrTimingResidual(StrictModel):
@@ -343,4 +346,100 @@ class EcrSourceVisibilityPosture(StrictModel):
                 "EcrSourceVisibilityPosture.reason must be None when a value is "
                 "set; reasons are carried only by residual postures."
             )
+        return self
+
+
+class EcrSourceSidePostures(StrictModel):
+    identity: list[EcrIdentityPosture] = Field(min_length=1)
+    inspectability: list[EcrInspectabilityPosture] = Field(min_length=1)
+    timing: list[EcrTimingPosture] = Field(min_length=1)
+    source_visibility: list[EcrSourceVisibilityPosture] = Field(min_length=1)
+
+
+class EcrSourceSideClears(StrictModel):
+    identity: bool
+    inspectability: bool
+    timing: bool
+    source_visibility: bool
+
+
+class EcrSourceSideReceipt(StrictModel):
+    """Aggregate ECR receipt emitted by the Capture/ECR/Cleaning smoke boundary."""
+
+    source_label: str
+    packet_id: str
+    packet_dir: str
+    ref_id: str
+    postures: EcrSourceSidePostures
+    clears: EcrSourceSideClears
+
+    @field_validator("source_label", "packet_id", "packet_dir", "ref_id")
+    @classmethod
+    def reject_blank_receipt_fields(cls, value: str) -> str:
+        if not value.strip():
+            raise ValueError("EcrSourceSideReceipt fields must be non-empty.")
+        return value
+
+    @model_validator(mode="after")
+    def validate_receipt_contract(self) -> "EcrSourceSideReceipt":
+        expected_ref_id = f"ecr:{self.packet_id}:{ECR_SOURCE_SIDE_REF_KIND}"
+        if self.ref_id != expected_ref_id:
+            raise ValueError(
+                "EcrSourceSideReceipt.ref_id must equal "
+                f"{expected_ref_id!r}; got {self.ref_id!r}."
+            )
+
+        for posture in self.postures.identity:
+            if posture.packet_id != self.packet_id:
+                raise ValueError(
+                    "identity posture packet_id must match receipt packet_id."
+                )
+        for posture in self.postures.source_visibility:
+            if posture.packet_id != self.packet_id:
+                raise ValueError(
+                    "source_visibility posture packet_id must match receipt packet_id."
+                )
+
+        expected_clears = {
+            "identity": all(posture.clears_identity for posture in self.postures.identity),
+            "inspectability": all(
+                posture.clears_inspectable for posture in self.postures.inspectability
+            ),
+            "timing": all(posture.clears_pre_cutoff for posture in self.postures.timing),
+            "source_visibility": all(
+                posture.clears_source_visibility
+                for posture in self.postures.source_visibility
+            ),
+        }
+        observed_clears = self.clears.model_dump(mode="json")
+        if observed_clears != expected_clears:
+            raise ValueError(
+                "EcrSourceSideReceipt.clears must match posture clear fields; "
+                f"expected {expected_clears}, got {observed_clears}."
+            )
+        return self
+
+
+class EcrSourceSideReceiptArtifact(StrictModel):
+    schema_version: Literal["capture_ecr_cleaning_smoke_ecr_receipts_v0"]
+    generated_at: str
+    receipts: list[EcrSourceSideReceipt] = Field(min_length=1)
+    non_claims: list[str] = Field(min_length=1)
+
+    @field_validator("generated_at")
+    @classmethod
+    def reject_blank_generated_at(cls, value: str) -> str:
+        if not value.strip():
+            raise ValueError("generated_at must be non-empty.")
+        return value
+
+    @model_validator(mode="after")
+    def validate_receipt_keys_unique(self) -> "EcrSourceSideReceiptArtifact":
+        keys = [(receipt.packet_id, receipt.ref_id) for receipt in self.receipts]
+        duplicate_keys = sorted(key for key in set(keys) if keys.count(key) > 1)
+        if duplicate_keys:
+            formatted = ", ".join(
+                f"{packet_id}/{ref_id}" for packet_id, ref_id in duplicate_keys
+            )
+            raise ValueError("ECR source-side receipt keys must be unique: " + formatted)
         return self

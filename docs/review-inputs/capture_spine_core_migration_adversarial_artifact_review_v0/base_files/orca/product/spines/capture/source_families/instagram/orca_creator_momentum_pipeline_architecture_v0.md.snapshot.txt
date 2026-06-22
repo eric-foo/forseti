@@ -5,13 +5,14 @@ scope: >
   Target architecture for the Orca creator-momentum product: a 3-capability pipeline
   (discover -> deep-capture -> per-call curves) with a capture-satellite / derivation-core
   split. Defines the core/satellite boundary, the storage doctrine, the capture-shape
-  contract (the one accepted lock-in + smallest next object), the ontology coupling, and
-  placement. PROPOSED, pre-hardening: produced by a 3-perspective architecture pass
+  contract (core typed metric substrate landed; IG satellite/coverage pieces still
+  deferred), the ontology coupling, and placement. PROPOSED, pre-hardening: produced by a
+  3-perspective architecture pass
   (directional/adversarial/grounding), pending a de-correlated cross-vendor review + owner
   adoption. Not a build-go, validation, or readiness claim.
 use_when:
   - Deciding how the IG capture satellite, the momentum-derivation core, and the ontology compose.
-  - Scoping the capture-shape contract (the next build object) or any future platform satellite.
+  - Scoping the remaining IG satellite producer, packet-level coverage claim, or any future platform satellite.
   - Checking what is core vs satellite, and what is deferred vs build-now.
 authority_boundary: retrieval_only
 open_next:
@@ -21,10 +22,10 @@ open_next:
   - docs/decisions/wind_caller_calibration_carveout_v0.md
 stale_if:
   - The ontology backbone is dispatched and Observation/TrendVector/SubNiche names/shapes land.
-  - The capture-shape contract is specced + built (moves the next-object from proposed to built).
-  - The carve-out is amended (the <=10 cap recorded) or the discovery-read posture is ruled.
+  - The remaining IG satellite producer / packet-level coverage contract lands.
+  - The carve-out is amended again or the discovery-read posture changes.
   - A second platform satellite (TikTok/YouTube) is authorized (tests the agnostic seam).
-status: PROPOSED — target architecture; cross-vendor review folded (AR-01..05 CA-adjudicated); capture-shape contract revised; owner adoption + gates pending
+status: PROPOSED — target architecture; cross-vendor review folded (AR-01..05 CA-adjudicated); core typed metric substrate landed; remaining IG satellite/coverage work, owner adoption, and hardening pending
 ```
 
 # Orca Creator-Momentum Pipeline — Target Architecture (PROPOSED, v0)
@@ -32,11 +33,13 @@ status: PROPOSED — target architecture; cross-vendor review folded (AR-01..05 
 ## Result
 
 `TARGET_RECOMMENDED` — an **IG-specific capture-satellite → derivation-core** spine, with the
-platform-agnostic generality **named but deferred**. The one decision worth making now is the
-**capture-shape contract** (what each packet preserves), because history cannot be re-captured and
-the current packet model has no typed home for the metrics. Everything else is rebuildable or
-deferrable. This was reshaped away from a "platform-agnostic-now + hard-ontology-bound" proposal by
-the adversarial and grounding perspectives (see *What reshaped it*).
+platform-agnostic generality **named but deferred**. The original critical decision was the
+**capture-shape contract** (what each packet preserves), because history cannot be re-captured. The
+core typed metric-observation substrate now exists in `SourceCaptureSlice.metric_observations`; the
+remaining non-rebuildable work is the IG satellite producer plus packet-level coverage, identity, and
+conflict metadata. Everything else is rebuildable or deferrable. This was reshaped away from a
+"platform-agnostic-now + hard-ontology-bound" proposal by the adversarial and grounding perspectives
+(see *What reshaped it*).
 
 ## The pipeline + core/satellite boundary
 
@@ -77,28 +80,32 @@ window over time) → **per-call (Call) curves** (momentum, follower trajectory,
   the parser version are audit/provenance, **not** the rebuild path. Untyped fields, or an unversioned
   identity/conflict policy, make "rebuildable" dishonest.
 
-## The capture-shape contract (smallest next object + the one accepted lock-in)
+## The capture-shape contract (core substrate landed; remaining IG lock-in)
 
-**This is the next thing to spec/build, and the only deliberate lock-in.** Each IG capture packet
-must preserve, in a **stable parseable field** (not buried only in opaque hashed bytes), **per
-metric: its value AND a typed availability posture** — `observed` / `unavailable_with_reason`
-(private, blocked, rate-limited, metric-hidden) / `out_of_capture_window` / `not_attempted` (ride the
-existing `VisibleFact` vocabulary). **A bare value is not enough** (AR-01, critical): absence, a
-null, or a missing read must **never** be storable as if it were an observed `0`, or later momentum
-curves cannot distinguish "no activity" from "not captured" — a fake-success path the kernel forbids,
-and **irreversible** because history cannot be re-captured. The packet must also carry an explicit
-**capture-coverage / window boundary** (which posts/period this capture claims to cover), so a gap is
-visible as a gap. Field set: `numeric_id`, `follower_count`, `capture_time`, and per-post
-`{shortcode, timestamp, view_count, like_count, comment_count}`, **each with its availability
-posture**.
+The contract is no longer entirely next-build: `MetricObservation`, `MetricPosture`,
+`CoverageWindow`, and `SourceCaptureSlice.metric_observations` now provide the core packet substrate.
+The remaining deliberate lock-in is the **IG satellite producer and packet-level coverage contract**.
+Each IG capture packet must preserve, in a **stable parseable field** (not buried only in opaque
+hashed bytes), **per metric: its value AND a typed availability posture** — `observed` /
+`unavailable_with_reason` (private, blocked, rate-limited, metric-hidden) /
+`out_of_capture_window` / `not_attempted` / `not_applicable`. **A bare value is not enough** (AR-01,
+critical): absence, a null, or a missing read must **never** be storable as if it were an observed
+`0`, or later momentum curves cannot distinguish "no activity" from "not captured" — a fake-success
+path the kernel forbids, and **irreversible** because history cannot be re-captured. The IG producer
+must also carry an explicit **capture-coverage / window boundary** (which posts/period this capture
+claims to cover), so a gap is visible as a gap. Field set: `numeric_id`, `follower_count`,
+`capture_time`, and per-post `{shortcode, timestamp, view_count, like_count, comment_count}`, **each
+with its availability posture**.
 
 **These typed observation fields are the CANONICAL packet data** (AR-02): the rebuild path reads
 them, **not** a future reparse. Raw bytes + the parser version are retained for **audit/provenance
 only**, never as the primary rebuild dependency — so a drifting `og:description`/`web_profile_info`
 shape can't threaten already-captured series. The current `SourceCaptureSlice`
 (`orca-harness/source_capture/models.py`) carries `locator`, `timing`, postures, `limitations`,
-`preserved_file_ids` — but **no typed metric field**; content lives inside the `PreservedFile` bytes.
-So this typed observation field *is* the core/satellite contract and it does not exist yet.
+`preserved_file_ids`, and `metric_observations`. That lands the platform-agnostic core substrate, but
+does **not** close the IG-specific contract: the satellite producer still has to emit the closed IG
+metric vocabulary, enforce count semantics such as non-negative values, pin numeric-ID identity and
+conflict-policy versions, and make the packet-level coverage claim explicit.
 
 ## Ontology coupling — adapter, not hard-bind
 
@@ -112,15 +119,16 @@ ontology is deterministic, not a re-judgment.
 
 ## Placement
 
-- IG capture satellite → `docs/product/source_capture_toolbox/` (clean; already holds the IG docs).
-- Momentum-derivation **spec** → `docs/product/data_capture_spine/` — **NOT `core_spine/`** (naming
-  collision: `core_spine/` is the decision-evidence Core Spine v0). `data_capture_spine/` already
-  holds the LinkedIn influence-trajectory-watch analog (same shape).
-- A new `creator_momentum/` lane would need a **recorded decision** (role-grammar change) — do not
-  mint ad hoc.
-- *(Placement claims are repo-verified against `.agents/workflow-overlay/artifact-folders.md` and the
-  existing `data_capture_spine/` contents — not asserted; AR-05. The external reviewer could not check
-  these, so they are cited here.)*
+- IG creator-momentum product docs now live under the spine-first product tree, with this family at
+  `orca/product/spines/capture/source_families/instagram/`.
+- Source Capture Armory / toolbox-level routing lives under
+  `orca/product/spines/capture/source_capture_toolbox/`; implementation and projection helpers live
+  in `orca-harness/source_capture/` and `orca-harness/runners/`.
+- A new durable `creator_momentum/` lane would still need a **recorded decision** (role-grammar
+  change) — do not mint ad hoc.
+- Retired `docs/product/...` body references are historical after the spine-first migration; current
+  placement resolves through `.agents/workflow-overlay/artifact-folders.md`, `docs/workflows/`, and
+  the spine-first moved-paths index when provenance needs it.
 
 ## Cross-cutting option decisions
 
@@ -130,17 +138,22 @@ ontology is deterministic, not a re-judgment.
 - **Promotion:** pure-derivation; only an acted-on promotion becomes a durable ontology `DecisionEvent`.
 - **Core scope:** IG-specific now; agnostic seams = band table + metric-availability + identity + content-unit + velocity-normalization, all **named but not built** (AR-04).
 
-## Owner gates (preconditions, not architecture)
+## Owner gates and current boundaries (preconditions, not architecture)
 
-- **Discovery-read posture ruling** — hundreds of snowball reads vs the ≤10 capture cap (both source docs flag it OPEN).
-- **Recorded ≤10 amendment** to `wind_caller_calibration_carveout_v0.md` (still reads ≤5; ≤10 is unrecorded intent).
+- **Owner adoption / hardening of this proposed target architecture** remains pending.
+- **Actual discovery or capture execution** still needs its own owner-gated run scope; this document
+  is not live IG capture, a scheduler, standing crawler, production store, or commercial-scale
+  collection authorization.
+- The 2026-06-15 carve-out amendment resolved the old cap ambiguity: the ceiling counts Orca's own
+  operating/capture accounts (≤10 ceiling; operations start ≤5), not subject creators; the subject
+  roster is all-in-vertical/uncapped under the active-attended posture.
 
 ## What reshaped it (the 4 decision-changing findings from the architecture pass)
 
-1. The "thin interface" **does not exist** — `models.py` has no typed metric field; rebuildability is conditional on a frozen parser + versioned identity/conflict policy.
+1. The "thin interface" **did not exist at architecture-pass time**; `models.py` now has the core typed metric field, so rebuildability is conditional on the IG satellite producer plus versioned identity/conflict and packet-level coverage policy.
 2. Forward-binding to the ontology → **downgrade to an adapter/mapping** (ontology is AWAITING_DISPATCH, HIGH lock-in, candidate types).
 3. **"Platform-agnostic core" is premature** — the velocity layer is platform-shaped, and the carve-out forbids cross-platform now. IG-specific core with a named-deferred seam.
-4. **Placement is not `core_spine/`** (naming collision) — derivation spec → `data_capture_spine/`.
+4. **Placement is not `core_spine/`** (naming collision) — current product placement is the spine-first `orca/product/` capture tree, not retired `docs/product/...` homes.
 
 ## Cross-vendor review disposition (2026-06-15)
 

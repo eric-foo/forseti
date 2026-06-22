@@ -1,199 +1,234 @@
-# IG Browser Behavior Calibration Note v0
+# Social Browser Behavior Recon-First Calibration Note v0
 
 ```yaml
 retrieval_header_version: 1
-artifact_role: Non-authorizing IG calibration recommendation
+artifact_role: Product architecture recommendation - social browser-behavior calibration (non-authorizing)
 scope: >
-  IG-only browser-behavior calibration note for social capture. Records the
-  completed IG docs patch boundary and prepares a bounded logged-out probe around
-  session shape, stop/cooldown, viewport/fallback, stable egress lanes, and
-  receipt evidence.
+  Recommends an IG-first browser-behavior calibration change set while gating
+  TikTok and YouTube inheritance on source-family recon and recipe cards.
 use_when:
-  - Checking the active IG browser-behavior calibration boundary.
-  - Preparing the bounded IG logged-out sustainability probe after the docs patch.
-  - Preventing this lane from drifting into runtime work, proxy/session fallback,
-    non-IG source work, media-byte capture, or full comment-thread capture.
+  - Deciding whether to patch IG browser-behavior docs before implementation scoping.
+  - Checking which browser-behavior primitives are only candidate-shared until each social surface has recon.
+  - Deciding whether TikTok or YouTube can inherit IG-derived capture thresholds.
 authority_boundary: retrieval_only
 open_next:
-  - orca/product/spines/capture/core/source_families/social_media/instagram/ig_at_scale_operating_envelope_v0.md
-  - orca/product/spines/capture/core/source_families/social_media/instagram/ig_logged_out_sustainability_probe_plan_v0.md
-  - orca/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md
-  - orca/product/spines/capture/core/source_capture_toolbox/capture_recon_index_v0.md
-  - orca/product/spines/capture/core/contracts/source_access_boundary/data_capture_source_access_boundary_decision_v0.md
-branch_or_commit: codex/social-capture-browser-calibration-core-port working tree from origin/main @ 2988c82f; later lane commits refine this artifact
+  - orca/product/spines/capture/source_families/instagram/ig_at_scale_operating_envelope_v0.md
+  - orca/product/spines/capture/source_families/instagram/ig_logged_out_sustainability_probe_plan_v0.md
+  - orca/product/spines/capture/source_capture_toolbox/source_capture_playbook_v0.md
+  - orca/product/spines/capture/source_capture_toolbox/capture_recon_index_v0.md
+  - docs/decisions/wind_caller_calibration_carveout_v0.md
+branch_or_commit: codex/social-capture-browser-calibration-prompt @ c103355c
 stale_if:
-  - IG sustained cadence, cooldown, viewport, route, or lane-isolation evidence changes.
-  - A non-IG social platform enters scope.
-  - The Source Capture playbook, source-access boundary, wind-caller carve-out, or anti-block ladder changes.
-  - Browser-behavior controls are implemented in runtime code.
+  - IG sustained-cadence, cooldown, viewport, route, or two-lane additivity evidence changes.
+  - TikTok or YouTube receive source-family recon, recipe cards, or access-posture decisions.
+  - The source-access boundary, wind-caller carve-out, capture playbook, or IG runner receipt shape changes.
 ```
 
 ## Status And Boundary
 
-Status: `NON_AUTHORIZING_IG_RECOMMENDATION`.
+Status: `RECOMMEND_RECON_FIRST_FOR_TIKTOK_YOUTUBE`; secondary label
+`IG_PATCH_NOW__TT_YT_RECON_FIRST`.
 
-Primary label: `IG_DOC_PATCH_DONE__STAGE_1_PROBE_PREP_NEXT`.
-
-This note does not by itself authorize live IG capture, runtime edits, browser
-automation installation, proxy/session setup, anti-detect tooling, scheduler
-work, account flows, credentials, production workers, source-access boundary
-changes, validation, readiness, legal sufficiency, or commercial use.
-
-## Active Scope Lock - IG Only
-
-Keep in this lane:
-
-- IG session-shape profile and anti-bot cadence discipline.
-- Stop-on-wall and fully quiet cooldown discipline.
-- Viewport/fallback interpretation before false `NO-GO`.
-- Stable egress-lane language and no per-request rotation.
-- Receipt evidence for anti-bot and data-integrity analysis.
-
-Cut from this lane:
-
-- non-IG social platform recon;
-- cross-platform abstraction artifacts;
-- full comment-thread/body capture, commenter identity capture, comment graph
-  expansion, or comment timestamp capture;
-- media/video-byte capture claims;
-- runtime/code changes;
-- proxy/session/account fallback;
-- live probe execution from this docs patch.
-
-In the current IG receipt patch, `comments` means source-visible `comment_count`
-only.
+This is a planning recommendation only. It does not authorize live IG, TikTok,
+or YouTube reads; runtime changes; browser automation setup; session/cookie use;
+proxy purchase; anti-detect tooling; CAPTCHA handling; scheduler work; or
+platform-policy claims.
 
 ## Source Readiness
 
-`SOURCE_CONTEXT_READY` for a non-authorizing IG-only recommendation.
+`SOURCE_CONTEXT_INCOMPLETE`, but sufficient for the recommendation.
 
-Loaded local sources:
+Ready:
 
-- Orca authority and prompt rules: `AGENTS.md`, `.agents/workflow-overlay/README.md`,
-  `.agents/workflow-overlay/decision-routing.md`, `.agents/workflow-overlay/source-loading.md`,
-  `.agents/workflow-overlay/source-of-truth.md`, `.agents/workflow-overlay/artifact-folders.md`,
-  `.agents/workflow-overlay/prompt-orchestration.md`, `.agents/workflow-overlay/validation-gates.md`,
-  `docs/prompts/templates/shared/orca_preflight_defaults_v0.md`, and
-  `docs/prompts/templates/shared/orca_prompt_behavior_contract_v0.md`.
-- Capture method and access boundary:
-  `docs/workflows/data_capture_spine_consolidation_map_v0.md`,
-  `orca/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md`,
-  `orca/product/spines/capture/core/source_capture_toolbox/capture_recon_index_v0.md`,
-  `orca/product/spines/capture/core/source_capture_toolbox/source_capture_anti_block_ladder_usage_guide_v0.md`,
-  `orca/product/spines/capture/core/contracts/source_access_boundary/data_capture_source_access_boundary_decision_v0.md`,
-  and `docs/decisions/wind_caller_calibration_carveout_v0.md`.
-- IG current spine:
-  `orca/product/spines/capture/core/source_families/social_media/instagram/ig_capture_findings_consolidated_v0.md`,
-  `ig_r_probe_results_v0.md`, `ig_capture_rate_findings_report_v0.md`,
-  `ig_at_scale_operating_envelope_v0.md`,
-  `ig_logged_out_sustainability_probe_plan_v0.md`,
-  `ig_sustained_cadence_r_probe_design_v0.md`,
-  `ig_capture_shape_contract_spec_v0.md`,
-  `ig_wind_caller_calls_capture_build_architecture_v0.md`, and
-  `orca-harness/runners/run_source_capture_ig_calls_packet.py`.
+- IG browser-behavior evidence is source-loaded enough for an IG-first change
+  set. The IG sources already bind logged-out-first capture, a pace-bound R
+  reading, viewport sensitivity, stable egress lanes, abort-on-wall posture, and
+  a non-authorizing sustainability probe plan.
+- The source-access and source-capture method sources are loaded enough to keep
+  access gates, receipt discipline, and honest `GO` / `PARTIAL` / `NO-GO` /
+  `CATALOG_GAP` semantics visible.
+- Three advisory subagents were used after source loading: IG spine mapper,
+  generalization skeptic, and harness/receipt mapper. Their outputs were
+  advisory inputs only, not verdicts or readiness evidence.
 
-Material IG gaps:
+Incomplete:
 
-- IG at-pace daily-volume ceiling, exact pace threshold, exact cooldown decay,
-  lane-2 isolation, and durable viewport behavior remain unproven.
-- Media/video byte capture is out of scope and unprobed for IG.
-- Full comment-thread/body capture and comment timestamp capture are out of
-  scope for this lane.
+- No durable TikTok or YouTube capture source-family recon or recipe card was
+  found under `orca/product/spines/capture/source_families/`; current source
+  family folders are `instagram` and `retail_pdp`.
+- Repository search found TikTok and YouTube mostly as planned, deferred, or
+  adjacent product/research seams, not as capture recipe cards.
+- Current TikTok and YouTube platform-policy posture was not externally
+  verified in this pass. Treat it as `UNKNOWN - requires source check`.
+
+## Cynefin Routing Result
+
+Smallest complete outcome: write one non-authorizing recommendation artifact
+that decides the browser-behavior architecture direction and names the next
+authorized step.
+
+Regime: complicated with a complex edge.
+
+Why: IG behavior is reasoned from current source-backed evidence, but
+TikTok/YouTube generalization depends on missing platform-specific recon.
+
+Decomposition: layer-based for IG; risk-first recon gate for TikTok/YouTube.
+
+Current bottleneck: absence of TikTok/YouTube capture recon and recipe cards.
+
+Riskiest assumption: that IG's logged-out pace, viewport, cooldown, and egress
+behavior transfer to TikTok or YouTube.
+
+Stop or pivot condition: a durable TikTok or YouTube source-family recon proves
+shared thresholds, route shape, or access posture, or proves a different
+substrate/control model.
+
+Allowed next move: patch IG docs / prepare implementation scoping for IG
+receipt and session-shape controls; commission TikTok/YouTube recon separately.
+
+Disallowed next move: implement or document one shared social timing model with
+IG-derived thresholds for TikTok/YouTube.
 
 ## Current IG Behavior Model
 
-IG is currently a logged-out-first capture route for the loaded signals. The
-consolidated findings say public calls, profile stats, and reel/video view
-counts remain capturable by headless browser on a clean public egress, while
-current local egress can soft-wall and later recover after quiet time
-(`ig_capture_findings_consolidated_v0.md:36-43`). Calls, profile stats, and
-reel/video view counts have distinct substrates: `og:description`, profile
-stats surfaces, and profile-feed JSON respectively
-(`ig_capture_findings_consolidated_v0.md:51-54`).
+The IG model is already mostly directionally correct:
 
-The source-backed pace rule is IG-specific: the rate report says logged-out
-reads are pace-limited, not volume-limited, with approximately 2.5-4 seconds
-between reads, never sub-2s bursts; the sub-2s failure became a sticky,
-IP-wide login redirect requiring a fully quiet cooldown longer than the
-observed failed recovery window (`ig_capture_rate_findings_report_v0.md:29-37`,
-`ig_r_probe_results_v0.md:44-48`).
+- Logged-out-first capture remains the default for current IG calls/stats and
+  reel view-count evidence. Session/account runtime is a fallback/probe lane,
+  not the default.
+- The measured constraint is pace, not ordinary volume: clean reads occurred at
+  `>=~2s`; sub-2s burst behavior tripped a sticky login redirect. The working
+  operating target is 2.5-4s minimum spacing with longer natural gaps.
+- `bounded_jitter` is necessary but too thin by itself. The envelope already
+  says to shape whole sessions: warm-up, bounded due-list batches, cluster
+  gaps, item caps, no discovery during passive monitoring, visible stop
+  reasons, and full quiet after a wall.
+- Profile enumeration is viewport-sensitive. `768x1024` is the current
+  candidate, and profile-feed JSON shortcodes must be fallback evidence before
+  an empty DOM grid becomes a source `NO-GO`.
+- Stable distinct egress lanes matter. Per-request rotation and multiple
+  accounts on one public egress must not be counted as throughput.
 
-The at-scale envelope already says whole sessions matter, not only item-to-item
-sleeps. It names bounded, human-initiated/self-terminating sessions;
-due-list-only passive monitoring; stable egress lanes; a hard no-sub-2s floor;
-stop-on-login/429/network-security blocks; cluster gaps; bounded scroll depth;
-per-run item caps; and visible block/stop receipts
-(`ig_at_scale_operating_envelope_v0.md:176-200`).
+## Failure Modes Not Covered Well Enough
 
-IG viewport behavior is not stable enough to bury. The logged-out sustainability
-plan says prefer `768x1024` for profile reads, record the viewport, and use
-`web_profile_info` / profile-feed JSON shortcodes before classifying an empty
-DOM grid as failure (`ig_logged_out_sustainability_probe_plan_v0.md:140-143`,
-`ig_logged_out_sustainability_probe_plan_v0.md:199-203`).
+1. Session shape is split across docs and runner defaults rather than named as a
+   single IG browser-behavior profile.
+2. Cooldown language says fully quiet but does not pin a minimum default beyond
+   the sustainability plan's future probe recommendation.
+3. The runner can still fail on empty DOM permalinks before using profile-feed
+   JSON shortcode fallback.
+4. Receipts preserve many slice-level states, but run-level fields are weak:
+   access classification, modeled request count, stop reason, quiet-cooldown
+   status, lane identity, capture kind, and enumeration route.
+5. Block taxonomy is partly implemented but not yet expressed as one reusable
+   receipt contract that separates login redirect, 429-like wait page, network
+   security block, missing signal, no signal, partial signal, empty DOM grid,
+   and viewport/content-shape failure.
+6. TikTok/YouTube have no source-backed route, substrate, threshold, viewport,
+   or receipt expectations to inherit from IG.
+7. Browser fingerprint and interaction-shape variables are not yet carried as
+   explicit recon dimensions: TLS/JA4/HTTP2/header parity, direct-HTTP client
+   choice, headed/headless/browser-context differences, mouse/scroll/click
+   shape, item-open ratio, dwell-time distribution, and silent empty-response
+   detection.
 
-## IG Patch State
+## Proposed Change Set
 
-The active IG docs patch should preserve these decisions:
+| Change | Target surface | Source-backed rationale | Expected benefit | Risk / tradeoff | Evidence needed | Owner gate |
+| --- | --- | --- | --- | --- | --- | --- |
+| 1. Name an `IG logged-out browser-behavior profile` | Patch `ig_at_scale_operating_envelope_v0.md`; reflect in `ig_logged_out_sustainability_probe_plan_v0.md` | The envelope already says `bounded_jitter` is too thin and names session posture, cluster gaps, warm-up, no sub-2s, and stop-on-wall behavior. | Makes session shape auditable and harder to reduce to item sleeps. | Could be mistaken for runtime authorization unless kept non-authorizing. | Clean Stage 1/2 sustainability receipts under the named profile. | Docs patch only; any run still separately authorized. |
+| 2. Tighten cooldown / abort semantics | Patch IG envelope and sustainability plan | R-probe evidence says gentle periodic probing may sustain the throttle; sustainability plan already recommends fully quiet cooldowns. | Reduces accidental throttle extension and preserves block visibility. | A default like 60 minutes is still a probe default, not proven recovery law. | Future recovery characterization: one low-density read after fully quiet intervals. | Owner authorizes any live recovery probe. |
+| 3. Add viewport and JSON-fallback route profile | Patch IG envelope and future implementation-scoping prompt; later runner scoping may implement fallback | Current evidence shows DOM profile links are viewport-sensitive; JSON shortcodes should be checked before `NO-GO`. | Avoids false empty-grid failures from responsive layout. | JSON fallback may require new harness behavior and response-body handling. | Bounded receipt showing DOM-empty/JSON-present cases and route outcome. | Runtime patch requires separate implementation authorization. |
+| 4. Promote run-level receipt fields | Patch sustainability plan Measurement Ledger and future scoping notes | Harness lane found slice-level states exist, but run-level access classification, modeled request count, stop reason, cooldown, lane, capture kind, and route are weak. | Makes durability evidence inspectable without hiding culling or blocks. | Too much schema too early could lock in noisy fields. | One append-only per-read/run receipt that explains all stop states. | Schema/runtime changes separately authorized. |
+| 5. Consolidate block taxonomy | Patch IG docs; optionally later generalize as source-capture receipt vocabulary after more sources | Runner already detects `redirected_to_login`, `rate_limited_429_interstitial`, and `network_security_block`; the shape contract requires distinct non-observed reasons. | Prevents login redirect, rate limit, auth gate, missing signal, and viewport failure from collapsing into generic failure. | Shared vocabulary could overreach if treated as platform-equivalent thresholds. | IG receipts that map each observed failure to one token without fake success. | Docs patch now; shared taxonomy later only after recon. |
+| 6. Keep stable-lane discipline explicit | Patch IG envelope / sustainability plan only | Current envelope says two stable egress lanes, no per-request rotation, and no multiple accounts on one egress as throughput. | Reduces bot-like run shape and false capacity assumptions. | May slow capture; that is acceptable because durability is the point. | Two-lane isolation + additivity receipts. | Owner authorizes Stage 0/3 live lane checks. |
+| 7. Recon-first TikTok/YouTube gate | Patch this note into future routing; do not patch platform thresholds | Capture playbook says recipe cards are authored by probes; recon index says TikTok has no technical recon and social cards are speculative until probed. | Blocks the dangerous shared-controller overclaim while preserving candidate reusable primitives. | Slower cross-platform expansion. | TikTok/YouTube probe-authored recipe cards or recon-index entries with a `GO` / `PARTIAL` / `NO-GO` / `CATALOG_GAP` verdict, source-native evidence, substrate, route, access posture, request-rate ceiling, stop taxonomy, and receipts. | Separate recon commission per platform. |
+| 8. Add fingerprint and interaction-shape recon dimensions | Patch future IG docs/scoping and TT/YT recon prompts as variables to measure, not defaults to run | Direct HTTP, browser-context XHR, headed/headless browser posture, and human interaction shape can change whether browser-behavior reads return source-native content or silent empty responses. | Prevents false NO-GO/empty-grid diagnoses and keeps burn-risk controls visible without hard-coding evasion behavior. | Can drift into anti-detect mimicry if turned into blanket defaults like fixed dwell percentages or TLS impersonation everywhere. | Tiny canary receipts comparing relevant route/client shapes, including TLS/HTTP client family, browser/runtime context, interaction shape, item-open ratio, dwell distribution, request count, and silent-empty outcome. | Docs/prompt variable only; any live probe or runtime change remains separately authorized. |
 
-1. Name the IG browser-session profile in
-   `ig_at_scale_operating_envelope_v0.md` as
-   `ig_logged_out_browser_session_shape_v0`.
-2. Treat `bounded_jitter` as necessary but insufficient; preserve warm-up,
-   due-bucket batching, cluster gaps, idle windows, per-run item caps, bounded
-   scroll depth, and abort/quiet behavior as one profile.
-3. Make stop/cooldown and block taxonomy receipt-bearing: `redirected_to_login`,
-   `rate_limited_429_interstitial`, `network_security_block`, `no_signal`, and
-   `capture_failed` must stay distinct.
-4. Bind viewport and enumeration fallback as evidence: empty DOM at an unproven
-   viewport is not automatically `NO-GO`.
-5. Preserve stable egress lanes and reject per-request rotation.
-6. Keep media/asset-byte behavior out of the patch.
-7. Record `capture_time`, source item timestamp/date, item locator, visible
-   `like_count`, visible `comment_count`, applicable view/play count, page
-   result, stop reason, viewport, enumeration route, and verdict in probe
-   receipts.
+## Platform Generalization
 
-No source-access boundary amendment is recommended now.
+Recommended architecture:
 
-## Probe Preparation
+- Candidate shared core concept: browser-behavior controller as a
+  non-authorizing planning hypothesis with substrate-agnostic primitives only:
+  bounded/self-terminating sessions, human-shaped pacing, due-bucket batching,
+  cluster gaps, stop-on-wall, full quiet cooldown, and honest receipt outcomes
+  with opaque stop reasons.
+- Platform profile: every threshold, viewport, enumeration route,
+  block-token taxonomy, egress/lane model, access posture, HTTP/TLS client
+  shape, browser/runtime context, interaction/dwell behavior, and
+  route-specific receipt field lives in a platform profile. IG may fill initial
+  values from current evidence. TikTok/YouTube profiles remain unfilled until
+  recon.
+- Do not create a shared controller implementation or universal thresholds now.
 
-Current owner direction authorizes preparing for a live IG probe, but execution
-still needs the run-specific bounds below in the operating thread before any
-network read starts.
+| Field | IG | TikTok | YouTube |
+| --- | --- | --- | --- |
+| Capture source-family recon | `known`: IG has current capture findings and operating envelope. | `unknown`: no durable capture recipe card found in this worktree. | `unknown`: no durable capture recipe card found in this worktree. |
+| Access posture | `known`: logged-out-first for current public IG signals, with own-session/proxy as fallback/probe only. | `UNKNOWN - requires source check`; do not infer from IG. | `UNKNOWN - requires source check`; do not infer from IG. |
+| Timing threshold | `known`: avoid sub-2s; target 2.5-4s minimum plus natural gaps. | `do_not_generalize`: no TT threshold source. | `do_not_generalize`: no YT threshold source. |
+| Viewport / route behavior | `known`: IG DOM grid is viewport-sensitive; JSON fallback matters. | `do_not_generalize`: substrate unknown. | `do_not_generalize`: substrate unknown. |
+| Cooldown | `known`: fully quiet after wall; exact decay unpinned. | `unknown`: recon required. | `unknown`: recon required. |
+| Receipts | `known`: must preserve blocks, partials, no-signal, request model, stop reason, and route evidence. | `known primitive only`: receipts required; fields must be source-specific after recon. | `known primitive only`: receipts required; fields must be source-specific after recon. |
+| Fingerprint / interaction shape | `unmeasured`: treat TLS/HTTP client shape, browser runtime, mouse/scroll/click shape, item-open ratio, dwell distribution, and silent-empty behavior as canary variables, not defaults. | `do_not_generalize`: no TT source. | `do_not_generalize`: no YT source. |
+| Shared controller eligibility | IG can seed primitives and IG profile. | Recon-first only. | Recon-first only. |
 
-Default first run package:
+## Required Propagation Surfaces If Accepted
 
-- Stage scope: Stage 1 single-lane clean baseline first. Run Stage 0 lane
-  isolation only before any two-lane interpretation.
-- Lane scope: one logged-out baseline egress lane; no proxy, session, cookies,
-  login automation, or anti-detect setup.
-- Subject set: 4-6 owner-supplied public IG handles, locked before the run; no
-  discovery during the run.
-- Viewport and route: start at `768x1024`; record JSON shortcode fallback before
-  classifying an empty DOM grid.
-- Pace and ceiling: 2.5-4s minimum spacing with longer natural gaps; never
-  sub-2s; about 80-120 modeled IG-request equivalents unless owner narrows the
-  ceiling.
-- Stop and cooldown: stop on first login redirect, 429-like interstitial,
-  network-security block, unexpected auth wall, or operator concern; use at
-  least 60 minutes fully quiet before any recovery read.
-- Output: gitignored scratch for raw operational receipts; durable summary only
-  after the run if separately requested.
-- Comment scope: `comment_count` only; no full comment-thread/body capture,
-  commenter identity capture, comment graph expansion, or comment timestamp
-  capture.
+Patch now, docs-only:
+
+- `orca/product/spines/capture/source_families/instagram/ig_at_scale_operating_envelope_v0.md`
+- `orca/product/spines/capture/source_families/instagram/ig_logged_out_sustainability_probe_plan_v0.md`
+
+Prepare for later implementation scoping, not now:
+
+- `orca-harness/runners/run_source_capture_ig_calls_packet.py`
+- Source Capture Packet / receipt schema surfaces if run-level fields become
+  persisted packet fields.
+- Any future IG implementation-scoping prompt for JSON fallback, per-run receipt
+  ledger, session-shape controls, or fingerprint/interaction-shape canaries.
+
+Do not patch now:
+
+- TikTok/YouTube thresholds, profile values, route defaults, access posture,
+  HTTP/TLS client defaults, or interaction/dwell defaults.
+- Source-access boundary, wind-caller carve-out, anti-block ladder, or capture
+  playbook doctrine. This recommendation consumes those sources; it does not
+  amend them.
+
+## Open Owner Questions
+
+1. Should the next docs patch be IG-only, or should it also add a short
+   source-capture-toolbox note that defines the platform-profile gate?
+2. For the IG cooldown default, should docs name the sustainability plan's
+   `at least 60 minutes` future-probe default, or keep it as `fully quiet until
+   owner-authorized recovery check`?
+3. Should the next TikTok recon target be public web profile/video pages,
+   official/commercial data routes, or a narrow source-access posture decision
+   before any technical probe?
+4. Should YouTube be handled as creator-momentum data via public pages/API/vendor
+   route first, rather than browser-behavior calibration first?
 
 ## Next Authorized Step
 
-Prepare the Stage 1 live-probe run package by binding the subject set, lane
-scope, modeled-request ceiling, time ceiling, cooldown policy, and output
-location. Do not execute the live probe from this note alone, and do not scope
-runtime behavior from this note.
+Write an IG-only docs patch that:
+
+1. names the IG logged-out browser-behavior profile;
+2. tightens cooldown / abort semantics;
+3. names viewport and JSON-fallback route discipline;
+4. adds run-level receipt fields to the sustainability-plan ledger;
+5. repeats the explicit non-generalization gate for TikTok/YouTube;
+6. records browser fingerprint and interaction-shape variables as canary
+   dimensions, not default behavior.
+
+After that, commission separate TikTok and YouTube recon prompts before filling
+any platform profile values.
 
 ## Non-Claims
 
-This note is not validation, readiness, source-access authorization, legal
-advice, platform permission, implementation authorization, runtime scoping,
-proxy/session approval, anti-detect approval, scheduler authorization, ECR,
-Cleaning, Judgment, buyer proof, commercial evidence, or proof that any non-IG
-platform can inherit IG's model.
+This artifact is not validation, readiness, legal advice, platform permission,
+source-access boundary amendment, implementation authorization, live-run
+authorization, proxy/session approval, anti-detect approval, scraper API
+approval, production runtime, scheduler authorization, ECR, Cleaning, Judgment,
+buyer proof, commercial evidence, or proof that IG behavior transfers to
+TikTok or YouTube.

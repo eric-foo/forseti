@@ -27,12 +27,17 @@ stale_if:
 ```
 
 - Status: MIGRATION_MARKING_ONLY.
+- Placement closeout (2026-06-20): retained in `docs/migration/` as a
+  repo-structure migration inventory record. Current Data Lake authority lives in
+  `orca/product/spines/data_lake/`; this historical inventory is
+  provenance/input, not current binding by itself.
 - Structure-branch basis: `codex/commission-spine-structure` at
   `07a42b04c4343c4e3b964eea11b01fc9ebefe705` when this inventory was drafted.
 - Data-Lake branch basis: `codex/data-lake-core-contract` at
   `4200b8dd9095a7006dee6e9ae6fa585fe529dd0a` when this inventory was drafted.
-- Current binding remains `docs/` plus `orca-harness/`; this file does not make
-  `orca/product/`, `orca/product/spines/data_lake/`, or `orca/data-lake/` live.
+- At drafting time, binding remained `docs/` plus `orca-harness/`; this file did
+  not make `orca/product/`, `orca/product/spines/data_lake/`, or
+  `orca/data-lake/` live.
 - No file moves, rewrites, archive decisions, runtime changes, code moves, test
   moves, or reference rewrites are authorized by this inventory.
 - The structure worktree had unrelated modified Commission Signal Board files
@@ -40,7 +45,7 @@ stale_if:
   evidence.
 - Follow-on migration preparation lives in
   `docs/migration/data_lake_spine_first_migration_plan_v0.md`; that plan is
-  still docs-only and does not make the future root live.
+  docs-only provenance and does not supersede current Data Lake authority.
 
 ## Placement Recommendation
 

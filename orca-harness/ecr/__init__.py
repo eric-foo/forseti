@@ -44,8 +44,12 @@ from ecr.deriver import (
     derive_timing_postures,
 )
 from ecr.models import (
+    ECR_SOURCE_SIDE_RECEIPT_SCHEMA_VERSION,
+    ECR_SOURCE_SIDE_REF_KIND,
     EcrIdentityPosture,
     EcrInspectabilityPosture,
+    EcrSourceSideReceipt,
+    EcrSourceSideReceiptArtifact,
     EcrSourceVisibilityPosture,
     EcrTimingPosture,
     EcrTimingResidual,
@@ -56,8 +60,12 @@ from ecr.models import (
 )
 
 __all__ = [
+    "ECR_SOURCE_SIDE_RECEIPT_SCHEMA_VERSION",
+    "ECR_SOURCE_SIDE_REF_KIND",
     "EcrIdentityPosture",
     "EcrInspectabilityPosture",
+    "EcrSourceSideReceipt",
+    "EcrSourceSideReceiptArtifact",
     "EcrSourceVisibilityPosture",
     "EcrTimingPosture",
     "EcrTimingResidual",
