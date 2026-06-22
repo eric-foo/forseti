@@ -58,7 +58,7 @@ SECTION_PATTERNS = {
     "observations": re.compile(r"^##\s+(Screen-Light Observations|Observations)\b", re.IGNORECASE | re.MULTILINE),
     "negatives_access_notes": re.compile(r"^##\s+Negatives And Access Notes\b", re.IGNORECASE | re.MULTILINE),
     "capture_request_accounting": re.compile(
-        r"(^##\s+(Capture Requests|Capture Triage)\b|capture_requests)",
+        r"^##\s+(Capture Requests|Capture Triage)\b",
         re.IGNORECASE | re.MULTILINE,
     ),
     "candidate_decision": re.compile(
@@ -200,11 +200,15 @@ def _validate_used_within_cap(
         findings.append(Finding(code, f"{used_field}={used} exceeds {cap_field}={cap}."))
 
 
-def _validate_required_receipt_parts(text: str) -> list[Finding]:
+def _validate_required_receipt_parts(text: str, intake: dict[str, Any] | None = None) -> list[Finding]:
     findings: list[Finding] = []
     for name, pattern in SECTION_PATTERNS.items():
-        if not pattern.search(text):
-            findings.append(Finding(f"missing_{name}", f"Missing required CSB-first scan receipt part: {name}."))
+        if pattern.search(text):
+            continue
+        if name == "capture_request_accounting" and isinstance(intake, dict):
+            if _as_int(intake.get("capture_requests")) == 0:
+                continue
+        findings.append(Finding(f"missing_{name}", f"Missing required CSB-first scan receipt part: {name}."))
     return findings
 
 
@@ -268,7 +272,7 @@ def validate_text(text: str) -> list[Finding]:
     else:
         findings.extend(_validate_intake(intake))
 
-    findings.extend(_validate_required_receipt_parts(text))
+    findings.extend(_validate_required_receipt_parts(text, intake))
     findings.extend(_validate_yaml_overclaims(blocks))
     findings.extend(_validate_forbidden_text(text))
     return findings

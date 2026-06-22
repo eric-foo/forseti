@@ -115,6 +115,24 @@ def test_capture_request_accounting_missing_when_section_and_intake_count_absent
     assert "missing_capture_request_accounting" in {finding.code for finding in findings}
 
 
+def test_positive_capture_request_count_requires_capture_section() -> None:
+    text = _valid_text().replace("## Capture Triage", "## Preservation Notes", 1)
+
+    findings = validator.validate_text(text)
+
+    assert "missing_capture_request_accounting" in {finding.code for finding in findings}
+
+
+def test_zero_capture_request_count_can_account_without_capture_section() -> None:
+    text = _valid_text().replace("capture_requests: 1", "capture_requests: 0", 1).replace(
+        "## Capture Triage", "## Preservation Notes", 1
+    )
+
+    findings = validator.validate_text(text)
+
+    assert "missing_capture_request_accounting" not in {finding.code for finding in findings}
+
+
 def test_missing_scan_intake_receipt_without_yaml_fails() -> None:
     findings = validator.validate_text("# Missing Intake\n\nNo YAML receipt here.")
 
