@@ -10,6 +10,7 @@ import pytest
 from runners import run_source_capture_ig_calls_packet as ig_runner
 from runners.run_source_capture_ig_calls_packet import run_source_capture_ig_calls_packet
 from source_capture.adapters.browser_snapshot import BrowserSnapshotFailure, BrowserSnapshotFailureKind, BrowserSnapshotSuccess
+from source_capture.auth_state import AuthenticatedSessionMode
 from source_capture.ig_momentum_harvest import (
     IgMediaMetricRecord,
     IgMomentumResponseRecord,
@@ -147,7 +148,7 @@ def test_ig_calls_runner_writes_packet_with_profile_and_call_slices(
     manifest = json.loads((output_dir / "manifest.json").read_text(encoding="utf-8"))
     assert manifest["source_surface"] == "ig_calls_browser_snapshot"
     assert manifest["capture_mode"] == "automated extraction"
-    assert "ig_browser_context_view_count_capture:observed=1" in manifest["visible_mode_changes"]
+    assert "ig_browser_context_view_count_capture:items_observed=1" in manifest["visible_mode_changes"]
     slice_ids = [s["slice_id"] for s in manifest["source_slices"]]
     assert slice_ids == ["ig_profile_00", "ig_call_01", "ig_call_02", "ig_call_03"]
     assert manifest["receipt_metadata"]["non_claims"] == ig_runner.IG_CALLS_NON_CLAIMS
@@ -188,7 +189,7 @@ def test_ig_calls_runner_writes_packet_with_profile_and_call_slices(
         obs for obs in missing_slice["metric_observations"] if obs["metric"] == "view_count"
     )
     assert missing_view_count["reason"] == (
-        "item status=no_signal; view_count not attributed because the item did not produce a captured call signal"
+        "browser-context profile-feed JSON did not include this shortcode; item status=no_signal"
     )
 
     raw = {p.name: json.loads(p.read_text(encoding="utf-8")) for p in (output_dir / "raw").iterdir() if p.suffix == ".json"}
@@ -408,9 +409,228 @@ def test_ig_calls_runner_returns_nogo_when_profile_redirects_to_login(
         capture_view_counts=False,
         sleep_fn=lambda _s: None,
     )
-    assert exit_code == 3
+    assert exit_code == ig_runner.IG_CIRCUIT_BREAK_EXIT_CODE
+    assert "ig circuit-break recommended" in message
     assert "access-blocked" in message and "redirected_to_login" in message
     assert not output_dir.exists()
+
+
+def test_ig_calls_runner_retries_profile_when_grid_initially_empty(
+    scratch_dir: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    calls: list[str] = []
+    sleeps: list[float] = []
+
+    def fake_snapshot(**kw):
+        calls.append(kw["url"])
+        if kw["url"] == PROFILE_URL and calls.count(PROFILE_URL) == 1:
+            return _success(requested_url=kw["url"], rendered_dom="<html><body>profile still loading</body></html>")
+        return _route_fake(kw["url"])
+
+    monkeypatch.setattr(ig_runner, "fetch_browser_snapshot_capture", fake_snapshot)
+    output_dir = scratch_dir / "packet"
+
+    exit_code, _ = run_source_capture_ig_calls_packet(
+        profile_url=PROFILE_URL,
+        output_directory=output_dir,
+        decision_question="q",
+        max_items=1,
+        capture_view_counts=False,
+        sleep_fn=sleeps.append,
+    )
+
+    assert exit_code == 0
+    assert calls[:2] == [PROFILE_URL, PROFILE_URL]
+    assert sleeps == [ig_runner.DEFAULT_PROFILE_LINK_RETRY_BACKOFF_SECONDS]
+
+
+def test_ig_calls_runner_records_circuit_break_when_wpi_returns_401_but_dom_grid_exists(
+    scratch_dir: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    def wpi_401(**_kwargs) -> IgProfileMomentumCapture:
+        return IgProfileMomentumCapture(
+            username="hyram",
+            numeric_id=None,
+            follower_count=None,
+            media_by_shortcode={},
+            raw_responses=[
+                IgMomentumResponseRecord(
+                    request_id="web_profile_info",
+                    requested_url="https://www.instagram.com/api/v1/users/web_profile_info/?username=hyram",
+                    final_url="https://www.instagram.com/api/v1/users/web_profile_info/?username=hyram",
+                    status=401,
+                    ok=False,
+                    body_text='{"message":"login_required"}',
+                )
+            ],
+            limitation_notes=["web_profile_info_unavailable: status=401 failure=None"],
+        )
+
+    monkeypatch.setattr(ig_runner, "fetch_browser_snapshot_capture", lambda **kw: _route_fake(kw["url"]))
+    monkeypatch.setattr(ig_runner, "fetch_ig_profile_momentum", wpi_401)
+    output_dir = scratch_dir / "packet"
+
+    exit_code, _ = run_source_capture_ig_calls_packet(
+        profile_url=PROFILE_URL,
+        output_directory=output_dir,
+        decision_question="q",
+        max_items=1,
+        sleep_fn=lambda _s: None,
+    )
+
+    assert exit_code == 0
+    manifest = json.loads((output_dir / "manifest.json").read_text(encoding="utf-8"))
+    assert any("ig_circuit_break_recommended:web_profile_info_401" in item for item in manifest["limitations"])
+    assert any("web_profile_info_unavailable: status=401" in item for item in manifest["limitations"])
+
+
+def test_ig_calls_runner_returns_circuit_break_when_wpi_401_and_no_permalinks(
+    scratch_dir: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(
+        ig_runner,
+        "fetch_browser_snapshot_capture",
+        lambda **kw: _success(requested_url=kw["url"], rendered_dom="<html><body>empty profile</body></html>"),
+    )
+    monkeypatch.setattr(
+        ig_runner,
+        "fetch_ig_profile_momentum",
+        lambda **_kw: IgProfileMomentumCapture(
+            username="hyram",
+            numeric_id=None,
+            follower_count=None,
+            media_by_shortcode={},
+            raw_responses=[],
+            limitation_notes=["web_profile_info_unavailable: status=401 failure=None"],
+        ),
+    )
+    output_dir = scratch_dir / "packet"
+
+    exit_code, message = run_source_capture_ig_calls_packet(
+        profile_url=PROFILE_URL,
+        output_directory=output_dir,
+        decision_question="q",
+        sleep_fn=lambda _s: None,
+    )
+
+    assert exit_code == ig_runner.IG_CIRCUIT_BREAK_EXIT_CODE
+    assert "web_profile_info_401" in message
+    assert not output_dir.exists()
+
+
+def test_ig_calls_runner_threads_auth_state_label_without_recording_path(
+    scratch_dir: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    state_path = scratch_dir / "_auth_state" / "ig-free.json"
+    snapshot_storage_paths: list[Path | None] = []
+    momentum_storage_paths: list[Path | None] = []
+
+    def fake_validate(label: str, **kwargs: object) -> Path:
+        assert label == "ig-free"
+        assert kwargs["session_mode"] == AuthenticatedSessionMode.FREE_ACCOUNT_CREATED
+        return state_path
+
+    def fake_snapshot(**kw):
+        snapshot_storage_paths.append(kw.get("storage_state_path"))
+        return _route_fake(kw["url"])
+
+    def fake_momentum(**kw):
+        momentum_storage_paths.append(kw.get("storage_state_path"))
+        return _momentum_capture(**kw)
+
+    monkeypatch.setattr(ig_runner, "validate_auth_state_session_mode", fake_validate)
+    monkeypatch.setattr(ig_runner, "fetch_browser_snapshot_capture", fake_snapshot)
+    monkeypatch.setattr(ig_runner, "fetch_ig_profile_momentum", fake_momentum)
+    output_dir = scratch_dir / "packet"
+
+    exit_code, _ = run_source_capture_ig_calls_packet(
+        profile_url=PROFILE_URL,
+        output_directory=output_dir,
+        decision_question="q",
+        max_items=1,
+        auth_state_label="ig-free",
+        auth_session_mode=AuthenticatedSessionMode.FREE_ACCOUNT_CREATED,
+        sleep_fn=lambda _s: None,
+    )
+
+    assert exit_code == 0
+    assert snapshot_storage_paths == [state_path, state_path]
+    assert momentum_storage_paths == [state_path]
+    manifest_text = (output_dir / "manifest.json").read_text(encoding="utf-8")
+    raw = {p.name: json.loads(p.read_text(encoding="utf-8")) for p in (output_dir / "raw").iterdir() if p.suffix == ".json"}
+    profile = next(v for k, v in raw.items() if "ig_profile.json" in k)
+    assert profile["capture_metadata"]["storage_state_loaded"] is True
+    assert profile["capture_metadata"]["auth_session_mode"] == "free_account_created_session"
+    assert profile["capture_metadata"]["auth_state_label"] == "ig-free"
+    assert profile["capture_metadata"]["auth_state_path_recorded"] is False
+    assert "ig_browser_storage_state_loaded:free_account_created_session:ig-free" in manifest_text
+    assert "not cookie or session export" in manifest_text
+    assert "not login or session capture" not in manifest_text
+    assert str(state_path) not in manifest_text
+    assert "ig-free.json" not in manifest_text
+
+
+def test_ig_calls_runner_uses_profile_feed_json_when_dom_grid_empty(
+    scratch_dir: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    def fake_snapshot(**kw):
+        if kw["url"] == PROFILE_URL:
+            return _success(requested_url=kw["url"], rendered_dom="<html><body>profile shell</body></html>")
+        return _success(requested_url=kw["url"], rendered_dom=_NO_OG_DOM)
+
+    def json_only_momentum(**_kwargs) -> IgProfileMomentumCapture:
+        return IgProfileMomentumCapture(
+            username="hyram",
+            numeric_id="5802114508",
+            follower_count=724000,
+            media_by_shortcode={
+                "BBB": IgMediaMetricRecord(
+                    shortcode="BBB",
+                    is_video=True,
+                    video_view_count=104700,
+                    like_count=1047,
+                    comment_count=43,
+                    caption="#ad sponsored thing",
+                    taken_at_timestamp=1726012800,
+                    typename="GraphVideo",
+                    product_type="clips",
+                )
+            },
+            raw_responses=[],
+        )
+
+    monkeypatch.setattr(ig_runner, "fetch_browser_snapshot_capture", fake_snapshot)
+    monkeypatch.setattr(ig_runner, "fetch_ig_profile_momentum", json_only_momentum)
+    output_dir = scratch_dir / "packet"
+
+    exit_code, _ = run_source_capture_ig_calls_packet(
+        profile_url=PROFILE_URL,
+        output_directory=output_dir,
+        decision_question="q",
+        max_items=1,
+        sleep_fn=lambda _s: None,
+    )
+
+    assert exit_code == 0
+    manifest = json.loads((output_dir / "manifest.json").read_text(encoding="utf-8"))
+    assert "ig_item_enumeration_source:profile_feed_json_timestamp_desc" in manifest["visible_mode_changes"]
+    assert any("profile_dom_grid_permalinks_empty" in item for item in manifest["limitations"])
+
+    raw = {p.name: json.loads(p.read_text(encoding="utf-8")) for p in (output_dir / "raw").iterdir() if p.suffix == ".json"}
+    profile = next(v for k, v in raw.items() if "ig_profile.json" in k)
+    item = next(v for k, v in raw.items() if "ig_call_01" in k)
+    assert profile["enumeration_source"] == "profile_feed_json_timestamp_desc"
+    assert profile["generated_permalink_count"] == 1
+    assert item["url"] == "https://www.instagram.com/hyram/reel/BBB/"
+    assert item["status"] == "captured_with_profile_feed_json"
+    assert item["item_page_status"] == "no_signal"
+    assert item["source_timestamp_iso"] == "2024-09-11T00:00:00Z"
+    assert item["signal_sources"] == {
+        "caption": "profile_feed_json",
+        "likes": "profile_feed_json",
+        "comments": "profile_feed_json",
+        "source_timestamp": "profile_feed_json",
+    }
 
 
 def test_ig_calls_runner_returns_nogo_when_no_permalinks(
@@ -458,11 +678,13 @@ def test_ig_calls_runner_returns_3_on_profile_capture_failure(
     assert not output_dir.exists()
 
 
-def test_ig_calls_runner_no_secret_or_session_cli_flags() -> None:
+def test_ig_calls_runner_no_secret_or_raw_storage_cli_flags() -> None:
     parser = ig_runner._build_parser()
     options = {opt for action in parser._actions for opt in action.option_strings}
-    forbidden = {"--password", "--username", "--token", "--cookie", "--storage-state-path", "--state-label", "--session-mode"}
+    forbidden = {"--password", "--username", "--token", "--cookie", "--storage-state-path", "--state-label"}
     assert options.isdisjoint(forbidden)
+    assert "--auth-state-label" in options
+    assert "--session-mode" in options
 
 
 def test_capture_one_retries_transient_failure_then_succeeds(
@@ -527,3 +749,21 @@ def test_capture_retries_cli_flag_present_default_zero() -> None:
     parser = ig_runner._build_parser()
     args = parser.parse_args(["--profile-url", "u", "--decision-question", "q", "--output", "."])
     assert args.capture_retries == 0
+
+
+def test_ig_calls_runner_auth_state_cli_flags_parse() -> None:
+    parser = ig_runner._build_parser()
+    args = parser.parse_args(
+        [
+            "--profile-url", "https://www.instagram.com/hyram/",
+            "--decision-question", "q",
+            "--output", "packet",
+            "--auth-state-label", "ig-free",
+            "--session-mode", "free_account_created_session",
+            "--auth-state-root", "_auth_state",
+        ]
+    )
+
+    assert args.auth_state_label == "ig-free"
+    assert args.session_mode == "free_account_created_session"
+    assert args.auth_state_root == Path("_auth_state")

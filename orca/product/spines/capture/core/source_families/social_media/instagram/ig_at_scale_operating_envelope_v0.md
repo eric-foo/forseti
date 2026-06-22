@@ -45,6 +45,8 @@ Local sources reread on current `origin/main` (`73b091bc`, 2026-06-16):
 - `orca/product/spines/capture/core/source_families/social_media/instagram/ig_sustained_cadence_r_probe_design_v0.md`
 - `orca/product/spines/capture/core/source_families/social_media/instagram/orca_creator_monitoring_policy_architecture_v0.md`
 - `orca/product/spines/capture/core/source_families/social_media/instagram/ig_capture_findings_consolidated_v0.md`
+- `orca/product/spines/capture/core/source_families/social_media/instagram/ig_capture_shape_contract_spec_v0.md`
+- `orca/product/spines/capture/core/source_families/social_media/instagram/ig_wind_caller_calls_capture_build_architecture_v0.md`
 - `orca-harness/runners/run_source_capture_ig_calls_packet.py`
 
 Successor-lane live addendum (2026-06-17; gitignored receipts, no proxy endpoint/exit-IP/session
@@ -178,6 +180,11 @@ the sub-2s pace wall and recovering cleanly after a wall.
 The runner's `bounded_jitter` is necessary but too thin as an operating model. The envelope should
 shape whole sessions, not only item-to-item sleeps.
 
+This section is the named IG browser-session profile:
+`ig_logged_out_browser_session_shape_v0`. It binds anti-bot pacing, stop/cooldown behavior, viewport
+interpretation, and item-level data-integrity evidence as one IG-specific profile. Do not generalize
+its numeric values outside IG without source-family recon.
+
 Default session posture:
 
 - Human-initiated, bounded, self-terminating session; no standing crawler.
@@ -198,6 +205,17 @@ Cadence shape beyond bounded_jitter:
 - Avoid tight same-handle loops unless the run is explicitly a bounded hot-post check.
 - Keep per-run item caps; full-history backfill remains out of scope.
 - Record block outcome and stop reason visibly; do not create fake success packets.
+
+Data-integrity floor:
+
+- Keep source item timing and capture timing separate: the post/reel timestamp or date is source
+  evidence; `capture_time` is the observation time.
+- For item reads that feed monitoring, anti-bot diagnosis, or data-integrity analysis, preserve the
+  item locator plus visible `like_count`, `comment_count`, and applicable view/play count with their
+  availability posture. A missing, hidden, blocked, or out-of-window field is not an observed zero.
+- `comment_count` is part of the current IG item evidence. Full comment-thread/body capture,
+  commenter identity capture, comment graph expansion, and comment timestamps are outside this
+  envelope unless separately probed and authorized.
 
 Daypart posture:
 

@@ -9,6 +9,7 @@ from __future__ import annotations
 import json
 import time
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Callable, Iterable
 from urllib.parse import quote, urlencode, urlparse
 
@@ -47,6 +48,8 @@ class IgMediaMetricRecord:
     comment_count: int | None
     caption: str | None
     taken_at_timestamp: int | None
+    typename: str | None = None
+    product_type: str | None = None
 
 
 @dataclass(frozen=True)
@@ -75,6 +78,8 @@ class IgProfileMomentumCapture:
                     "comment_count": item.comment_count,
                     "caption": item.caption,
                     "taken_at_timestamp": item.taken_at_timestamp,
+                    "typename": item.typename,
+                    "product_type": item.product_type,
                 }
                 for shortcode, item in sorted(self.media_by_shortcode.items())
             },
@@ -117,6 +122,7 @@ def fetch_ig_profile_momentum(
     timeout_seconds: float = 20.0,
     max_response_bytes: int = 5_000_000,
     proxy_profile: ProxyProfile | None = None,
+    storage_state_path: Path | None = None,
     sleep_fn: Callable[[float], None] = time.sleep,
     browser_fetcher: Callable[..., BrowserContextResponsesResult] = fetch_browser_context_responses,
 ) -> IgProfileMomentumCapture:
@@ -151,6 +157,7 @@ def fetch_ig_profile_momentum(
         wait_until="load",
         max_response_bytes=max_response_bytes,
         proxy_profile=proxy_profile,
+        storage_state_path=storage_state_path,
     )
     web_records = _records_from_fetch_result(web_result)
     raw_responses.extend(web_records)
@@ -191,6 +198,7 @@ def fetch_ig_profile_momentum(
             wait_until="load",
             max_response_bytes=max_response_bytes,
             proxy_profile=proxy_profile,
+            storage_state_path=storage_state_path,
         )
         graph_records = _records_from_fetch_result(graph_result)
         raw_responses.extend(graph_records)
@@ -359,6 +367,8 @@ def _parse_media_node(node: dict[str, object]) -> IgMediaMetricRecord | None:
         comment_count=_edge_count(node.get("edge_media_to_comment")),
         caption=_caption_text(node.get("edge_media_to_caption")),
         taken_at_timestamp=_int_or_none(node.get("taken_at_timestamp")),
+        typename=_string_or_none(node.get("__typename")),
+        product_type=_string_or_none(node.get("product_type")),
     )
 
 
