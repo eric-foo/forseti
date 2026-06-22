@@ -159,7 +159,9 @@ def _build_stated_rating(item: dict, cues: list[dict]) -> StatedRating | None:
         return None
 
 
-def parse_mentions(model_text: str, transcript: TranscriptInput) -> TranscriptExtractionResult:
+def parse_mentions(
+    model_text: str, transcript: TranscriptInput, *, model: str | None = None
+) -> TranscriptExtractionResult:
     """Map the model's JSON array to validated ProductMentions for one transcript.
 
     Identity comes from `transcript`, never the model (CE1). Each item's quote is located in
@@ -202,6 +204,7 @@ def parse_mentions(model_text: str, transcript: TranscriptInput) -> TranscriptEx
                 extractor_confidence=item.get("extractor_confidence", 0.5),
                 provenance={
                     "rubric_version": EXTRACTOR_RUBRIC_VERSION,
+                    "model_version": model,
                     "transcript_source": transcript.transcript_source,
                 },
             )
@@ -231,4 +234,4 @@ def extract_transcript_products(
     headers = build_headers(provider, api_key)
     raw = transport.post_json(url, headers, body, timeout_seconds)
     model_text = extract_model_text(provider, raw)
-    return parse_mentions(model_text, transcript)
+    return parse_mentions(model_text, transcript, model=model)

@@ -8,6 +8,7 @@ runner is idempotent (skip-if-done), and that the json3->cues parser preserves t
 from __future__ import annotations
 
 import json
+from pathlib import Path
 from typing import Any
 
 import pytest
@@ -21,7 +22,7 @@ from cleaning.transcript_product_lake import (
     extract_products_into_lake,
     mentions_record_id,
 )
-from data_lake.root import DataLakeRoot
+from data_lake.root import DataLakeRoot, DataLakeRootError
 from runners.run_transcript_product_extract import find_transcripts, run_extraction
 from source_capture.transcript.asr_packet import write_asr_transcript
 from source_capture.transcript.youtube_captions import CaptionFetch
@@ -58,6 +59,37 @@ class FakeTransport:
 
     def post_json(self, url, headers, body, timeout_seconds):  # noqa: ANN001
         return self.canned
+
+
+class RaiseThenValidTransport:
+    """Raises on the first call, returns valid JSON after — to exercise per-item isolation."""
+
+    def __init__(self, valid: str) -> None:
+        self.valid = valid
+        self.calls = 0
+
+    def post_json(self, url, headers, body, timeout_seconds):  # noqa: ANN001
+        self.calls += 1
+        if self.calls == 1:
+            raise RuntimeError("simulated provider error")
+        return self.valid
+
+
+def _caption_fetch() -> CaptionFetch:
+    json3 = json.dumps(
+        {
+            "events": [
+                {"tStartMs": 1000, "dDurationMs": 2000, "segs": [{"utf8": "Today I'm testing Dior Sauvage Elixir"}]},
+                {"tStartMs": 3000, "dDurationMs": 3000, "segs": [{"utf8": "and it is an absolute beast in the heat"}]},
+            ]
+        }
+    ).encode("utf-8")
+    return CaptionFetch(
+        video_id="vid12345678", found=True, note="ok", lang="en", caption_kind="auto",
+        json3_bytes=json3, flat_text="x", cue_count=2, title="T", channel_id="UC",
+        publish_date_iso="2026-06-20", duration_s=42,
+        tooling={"tool": "yt-dlp", "tool_version": "x", "client": "yt-dlp-default"},
+    )
 
 
 def _transcript() -> TranscriptInput:
@@ -108,18 +140,35 @@ def test_driver_refuses_duplicate_write(tmp_path) -> None:
     data_root = DataLakeRoot.for_test(tmp_path / "lake")
     kw = dict(data_root=data_root, transcript=_transcript(), transport=FakeTransport(_anthropic([_item()])),
               provider=_PROVIDER, model="test-model", api_key="k")
-    extract_products_into_lake(**kw)
-    with pytest.raises(Exception):  # write-once: append_record_set refuses an existing set
+    paths = extract_products_into_lake(**kw)
+    before = paths[PRODUCT_MENTIONS_LANE].read_text(encoding="utf-8")
+    with pytest.raises(DataLakeRootError):  # write-once: refuses an existing set
         extract_products_into_lake(**kw)
+    assert paths[PRODUCT_MENTIONS_LANE].read_text(encoding="utf-8") == before  # first record intact
+
+
+def test_driver_persists_rejected_count(tmp_path) -> None:
+    # CE8 audit trail must reach disk: one valid + one rejectable (bad enum) item.
+    data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    items = [_item(), _item(concentration="spray")]
+    paths = extract_products_into_lake(
+        data_root=data_root, transcript=_transcript(), transport=FakeTransport(_anthropic(items)),
+        provider=_PROVIDER, model="m", api_key="k",
+    )
+    record = json.loads(paths[PRODUCT_MENTIONS_LANE].read_text(encoding="utf-8"))
+    assert record["mention_count"] == 1
+    assert record["rejected_count"] == 1
+    assert record["rejected"][0]["index"] == "1"
 
 
 # --- runner: ASR path, end-to-end + idempotent --------------------------------
 
 
-def _commit_asr_transcript(data_root) -> None:
+def _commit_asr_transcript(data_root, video_id: str = "vid12345678", posture: str = "transcribed") -> None:
+    cues = _cues() if posture == "transcribed" else []
     write_asr_transcript(
-        video_id="vid12345678", audio_bytes=b"fake-audio-bytes", audio_ext="m4a",
-        transcribe_fn=lambda _path: ("transcribed", _cues(), {"tool": "faster-whisper", "model": "test"}),
+        video_id=video_id, audio_bytes=f"fake-audio-{video_id}".encode(), audio_ext="m4a",
+        transcribe_fn=lambda _path: (posture, cues, {"tool": "faster-whisper", "model": "test"}),
         data_root=data_root,
     )
 
@@ -172,3 +221,38 @@ def test_runner_extracts_caption_transcript(tmp_path) -> None:
 def test_find_transcripts_empty_lake_is_empty(tmp_path) -> None:
     data_root = DataLakeRoot.for_test(tmp_path / "lake")
     assert find_transcripts(data_root) == []
+
+
+def test_find_transcripts_skips_non_transcribed_asr(tmp_path) -> None:
+    data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    _commit_asr_transcript(data_root, "vid12345678", posture="no_speech")
+    assert find_transcripts(data_root) == []
+
+
+# --- daemon-readiness: failure isolation at both grains (review major) --------
+
+
+def test_runner_isolates_per_item_extraction_failure(tmp_path) -> None:
+    # two transcripts; the transport raises on the first -> that one 'failed', the batch continues.
+    data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    _commit_asr_transcript(data_root, "vid12345678")
+    _commit_asr_transcript(data_root, "vid87654321")
+    transport = RaiseThenValidTransport(_anthropic([_item()]))
+    results = run_extraction(data_root=data_root, transport=transport, provider=_PROVIDER, model="m", api_key="k")
+    assert sorted(r["status"] for r in results) == ["extracted", "failed"]
+
+
+def test_runner_isolates_corrupt_packet_discovery(tmp_path) -> None:
+    # a corrupt packet must not abort the batch: it -> discovery_failed, the good one still extracts.
+    data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    _commit_asr_transcript(data_root, "vid12345678")
+    write_caption_packet(_caption_fetch(), data_root=data_root, decision_question="Q")
+    json3_file = next((data_root.path / "raw").glob("**/*.json3"))
+    json3_file.write_bytes(b'{"events": "tampered"}')  # breaks the fail-closed sha/size check
+    results = run_extraction(
+        data_root=data_root, transport=FakeTransport(_anthropic([_item()])),
+        provider=_PROVIDER, model="m", api_key="k",
+    )
+    statuses = {r["status"] for r in results}
+    assert "extracted" in statuses
+    assert "discovery_failed" in statuses

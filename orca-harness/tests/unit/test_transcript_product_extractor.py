@@ -228,3 +228,47 @@ def test_prompt_carries_doctrine() -> None:
 def test_request_body_has_no_forbidden_keys() -> None:
     _, transport = _extract(_anthropic([_item()]))
     assert set(transport.last_body) <= {"model", "max_tokens", "messages"}
+
+
+# --- additional CE coverage (review-driven) ----------------------------------
+
+
+def test_stated_rating_with_bad_scale_max_is_dropped() -> None:
+    # quote is real (passes CE9) but scale_max=0 -> StatedRating rejects -> rating dropped, mention kept.
+    item = _item(stated_rating={"value": 8, "scale_max": 0, "source_pointer": "8 out of 10"})
+    transcript = _transcript(
+        cues=_cues() + [{"start_ms": 6000, "end_ms": 9000, "text": "honestly a solid 8 out of 10"}]
+    )
+    result, _ = _extract(_anthropic([item]), transcript)
+    assert len(result.mentions) == 1
+    assert result.mentions[0].stated_rating is None
+
+
+def test_provenance_stamps_model_version() -> None:
+    result, _ = _extract(_anthropic([_item()]))
+    prov = result.mentions[0].provenance
+    assert prov["model_version"] == "test-model"  # R1: per-mention model stamp
+    assert prov["rubric_version"]
+
+
+def test_locate_quote_tolerates_unicode_whitespace_and_tabs() -> None:
+    cues = [{"start_ms": 10, "end_ms": 20, "text": "beast mode\tcompliment getter"}]
+    assert locate_quote("beast mode compliment getter", cues) == (10, 20)
+
+
+def test_locate_quote_empty_cues_is_none() -> None:
+    assert locate_quote("anything", []) is None
+
+
+def test_parse_over_empty_cues_rejects_all() -> None:
+    result = parse_mentions(json.dumps([_item()]), _transcript(cues=[]))
+    assert result.mentions == []
+    assert len(result.rejected) == 1
+
+
+def test_locate_quote_multiple_matches_takes_first_span() -> None:
+    cues = [
+        {"start_ms": 100, "end_ms": 200, "text": "great scent here"},
+        {"start_ms": 5000, "end_ms": 6000, "text": "great scent here"},
+    ]
+    assert locate_quote("great scent here", cues) == (100, 200)

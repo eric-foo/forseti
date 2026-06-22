@@ -3,9 +3,10 @@
 Decoupled / choreography (not a call-chain): this independently scans the lake for committed
 transcripts and extracts any that lack a completed mentions record-set. Daemon-ready by the
 spec contract — idempotent (skip-if-done via the completion marker), stateless/resumable
-(work is re-derived from the lake each run), per-item failure isolated (one bad transcript
-does not abort the batch), single entrypoint (`run_extraction`). A cron/daemon just calls
-`run_extraction` on a timer (zero rework).
+(work is re-derived from the lake each run), per-item failure isolated at BOTH grains
+(a corrupt packet -> a `discovery_failed` status; a transcript whose extraction raises -> a
+`failed` status; the batch never aborts), single entrypoint (`run_extraction`). A cron/daemon
+just calls `run_extraction` on a timer (zero rework).
 
 No-LLM zone (`runners/`): this file imports the cleaning driver but no LLM SDK
 (`tests/contract/test_no_llm_imports.py`). The Transport is INJECTED, so the live caller
@@ -75,38 +76,54 @@ def _asr_records(data_root, audio_packet_id: str) -> list[dict]:
     return records
 
 
-def find_transcripts(data_root) -> list[TranscriptInput]:
-    """Discover committed YouTube transcripts as normalized TranscriptInputs.
-
-    Caption packets carry the transcript json3 directly (raw/bronze); audio packets carry
-    it as a derived `transcript_asr` record. Rebuilds the availability index from raw first
-    so discovery does not depend on the index being pre-populated.
-    """
+def _candidate_packet_ids(data_root) -> list[str]:
+    """Committed YouTube packet ids. Rebuilds the availability index from raw first so
+    discovery does not depend on the index being pre-populated."""
     data_root.rebuild_availability()
-    transcripts: list[TranscriptInput] = []
-    for packet_id in data_root.list_available(source_family="youtube"):
-        loaded = data_root.load_raw_packet(packet_id)
-        manifest = loaded.manifest
-        surface = manifest.get("source_surface")
-        files = _file_paths(manifest)
-        meta = _capture_metadata(loaded, files)
-        meta_video_id = str(meta.get("platform_video_id") or "")
+    return list(data_root.list_available(source_family="youtube"))
 
-        if surface == "youtube_captions":
-            json3 = _body_ending_with(loaded, files, ".json3")
-            if json3 is None:
-                continue
+
+def _transcripts_for_packet(data_root, packet_id: str) -> list[TranscriptInput]:
+    """Normalize one committed packet into TranscriptInput(s). MAY RAISE on a corrupt packet
+    (e.g. a fail-closed `load_raw_packet` sha mismatch) — the caller isolates per packet.
+
+    Caption packets carry the transcript json3 directly (bronze); audio packets carry it as a
+    derived `transcript_asr` record (only `transcribed` records with cues are used).
+    """
+    loaded = data_root.load_raw_packet(packet_id)
+    manifest = loaded.manifest
+    surface = manifest.get("source_surface")
+    files = _file_paths(manifest)
+    meta = _capture_metadata(loaded, files)
+    meta_video_id = str(meta.get("platform_video_id") or "")
+
+    transcripts: list[TranscriptInput] = []
+    if surface == "youtube_captions":
+        json3 = _body_ending_with(loaded, files, ".json3")
+        if json3 is not None:
             cues = cues_from_json3(json3)
             if cues and meta_video_id:
                 transcripts.append(TranscriptInput(meta_video_id, packet_id, "caption", cues))
-        elif surface == "youtube_audio":
-            for record in _asr_records(data_root, packet_id):
-                if record.get("posture") != "transcribed":
-                    continue
-                cues = cues_from_asr_record(record)
-                video_id = str(record.get("video_id") or meta_video_id)
-                if cues and video_id:
-                    transcripts.append(TranscriptInput(video_id, packet_id, "asr", cues))
+    elif surface == "youtube_audio":
+        for record in _asr_records(data_root, packet_id):
+            if record.get("posture") != "transcribed":
+                continue
+            cues = cues_from_asr_record(record)
+            video_id = str(record.get("video_id") or meta_video_id)
+            if cues and video_id:
+                transcripts.append(TranscriptInput(video_id, packet_id, "asr", cues))
+    return transcripts
+
+
+def find_transcripts(data_root) -> list[TranscriptInput]:
+    """Discover committed YouTube transcripts. A corrupt packet is skipped (isolated), never
+    aborts discovery — mirroring the runner's failure isolation."""
+    transcripts: list[TranscriptInput] = []
+    for packet_id in _candidate_packet_ids(data_root):
+        try:
+            transcripts.extend(_transcripts_for_packet(data_root, packet_id))
+        except Exception:  # noqa: BLE001 - a corrupt packet is skipped, never aborts discovery
+            continue
     return transcripts
 
 
@@ -121,48 +138,54 @@ def run_extraction(
 ) -> list[dict]:
     """The single daemon entrypoint: extract mentions for every not-yet-done transcript.
 
-    Idempotent (skip-if-done) and per-item failure isolated. Returns one status dict per
-    transcript: {anchor, video_id, status: extracted|skipped_done|failed, ...}.
+    Failure-isolated at both grains: a corrupt packet yields a `discovery_failed` status; a
+    transcript whose check/extraction raises yields a `failed` status — the batch always
+    continues. Idempotent (skip-if-done). Returns one status dict per packet/transcript.
     """
     results: list[dict] = []
-    for transcript in find_transcripts(data_root):
-        anchor = transcript.transcript_anchor
-        rid = mentions_record_id(transcript, model)
-        if data_root.is_record_set_complete(
-            subtree="derived",
-            raw_anchor=anchor,
-            record_id=rid,
-            completion_lane=PRODUCT_MENTIONS_SET_LANE,
-        ):
-            results.append({"anchor": anchor, "video_id": transcript.video_id, "status": "skipped_done"})
-            continue
+    for packet_id in _candidate_packet_ids(data_root):
         try:
-            paths = extract_products_into_lake(
-                data_root=data_root,
-                transcript=transcript,
-                transport=transport,
-                provider=provider,
-                model=model,
-                api_key=api_key,
-                record_id=rid,
-                max_tokens=max_tokens,
-            )
-            written = next(iter(paths.values()), None)
+            transcripts = _transcripts_for_packet(data_root, packet_id)
+        except Exception as exc:  # noqa: BLE001 - a corrupt packet -> discovery_failed, batch continues
             results.append(
-                {
-                    "anchor": anchor,
-                    "video_id": transcript.video_id,
-                    "status": "extracted",
-                    "path": str(written) if written is not None else None,
-                }
+                {"packet_id": packet_id, "status": "discovery_failed", "error": f"{type(exc).__name__}: {exc}"[:200]}
             )
-        except Exception as exc:  # noqa: BLE001 - per-item failure isolation (daemon-ready)
-            results.append(
-                {
-                    "anchor": anchor,
-                    "video_id": transcript.video_id,
-                    "status": "failed",
-                    "error": f"{type(exc).__name__}: {exc}"[:200],
-                }
-            )
+            continue
+        for transcript in transcripts:
+            anchor = transcript.transcript_anchor
+            try:
+                rid = mentions_record_id(transcript, model)
+                if data_root.is_record_set_complete(
+                    subtree="derived",
+                    raw_anchor=anchor,
+                    record_id=rid,
+                    completion_lane=PRODUCT_MENTIONS_SET_LANE,
+                ):
+                    results.append(
+                        {"anchor": anchor, "video_id": transcript.video_id, "status": "skipped_done"}
+                    )
+                    continue
+                paths = extract_products_into_lake(
+                    data_root=data_root,
+                    transcript=transcript,
+                    transport=transport,
+                    provider=provider,
+                    model=model,
+                    api_key=api_key,
+                    record_id=rid,
+                    max_tokens=max_tokens,
+                )
+                written = next(iter(paths.values()), None)
+                results.append(
+                    {
+                        "anchor": anchor,
+                        "video_id": transcript.video_id,
+                        "status": "extracted",
+                        "path": str(written) if written is not None else None,
+                    }
+                )
+            except Exception as exc:  # noqa: BLE001 - per-item failure isolation (daemon-ready)
+                results.append(
+                    {"anchor": anchor, "video_id": transcript.video_id, "status": "failed", "error": f"{type(exc).__name__}: {exc}"[:200]}
+                )
     return results

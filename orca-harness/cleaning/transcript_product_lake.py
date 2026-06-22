@@ -42,17 +42,26 @@ def cues_from_json3(raw: bytes) -> list[dict]:
     start/end so caption-sourced mentions still get a timestamp anchor (CE5). Rolling
     duplicate lines are collapsed (consecutive identical text), matching the flattener.
     """
-    data = json.loads(raw.decode("utf-8", "replace"))
+    # Fail-closed: an untrusted/corrupt json3 body yields [] (the runner then skips it),
+    # never an exception that could abort the batch.
+    try:
+        data = json.loads(raw.decode("utf-8", "replace"))
+    except ValueError:
+        return []
+    events = data.get("events", []) if isinstance(data, dict) else []
     cues: list[dict] = []
     prev: str | None = None
-    for event in data.get("events", []):
+    for event in events:
+        if not isinstance(event, dict):
+            continue
         segs = event.get("segs") or []
-        if not segs:
+        if not isinstance(segs, list) or not segs:
             continue
         text = "".join(s.get("utf8", "") for s in segs if isinstance(s, dict)).strip()
         if not text or text == prev:
             continue
-        start = int(event.get("tStartMs", 0))
+        raw_start = event.get("tStartMs", 0)
+        start = int(raw_start) if isinstance(raw_start, (int, float)) else 0
         duration = event.get("dDurationMs")
         end = start + int(duration) if isinstance(duration, (int, float)) else start
         cues.append({"start_ms": start, "end_ms": end, "text": text})
