@@ -543,8 +543,9 @@ Boundaries, all hard:
 - Scan evidence stays screening-grade. Nothing the scan collected is
   packet-grade; capture re-acquires under its own provenance discipline.
 - Unresolved access walls are the ORCHESTRATOR's close-out duty: every wall
-  routes to the capture seam (playbook / recon index) before that vertical's
-  next scan (guide rule, carried).
+  routes to the capture seam (Source Capture Playbook / Source Capture Armory
+  screening-read service / recon index) before that vertical's next scan (guide
+  rule, carried).
 
 ### To candidate recording (step 4)
 
