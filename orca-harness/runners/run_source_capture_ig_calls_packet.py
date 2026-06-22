@@ -4,7 +4,7 @@ Legacy fallback for item-page OG metadata calibration. The default public creato
 
 Composes existing primitives (no cookie import, no credential flags):
 - browser_snapshot (headless by default; scroll to enumerate the profile grid),
-- optional ignored Playwright storage-state label for an operator-created session,
+- optional ignored browser storage-state label for an operator-created session,
 - ig_calls_parse (og:description -> caption/likes/comments/date/#ad; permalinks),
 - browser-context XHR (web_profile_info + bounded grid pagination -> view counts),
 - cadence.bounded_jitter (human-mimicking variable gaps between item visits),
@@ -318,7 +318,7 @@ def _authenticated_capture_context(
     auth_session_mode: AuthenticatedSessionMode,
 ) -> str:
     return (
-        "IG wind-caller calls capture using ignored local Playwright storage state "
+        "IG wind-caller calls capture using ignored local browser storage state "
         f"label {auth_state_label} with {auth_session_mode.value}; one bounded account, "
         "recent calls; no password automation; storage-state path not recorded"
     )
@@ -834,7 +834,7 @@ def _slice_postures(*, auth_session_mode: AuthenticatedSessionMode | None):
         )
     else:
         access = known_fact(
-            f"ig_browser_snapshot using {auth_session_mode.value} via ignored local Playwright storage state; "
+            f"ig_browser_snapshot using {auth_session_mode.value} via ignored local browser storage state; "
             "content sufficiency and login-wall absence are not asserted"
         )
     archive = not_attempted("IG calls runner does not query archive or history services")
@@ -1169,7 +1169,7 @@ def _build_parser() -> argparse.ArgumentParser:
     )
     auth_group = parser.add_argument_group(
         "auth state",
-        "Optional use of an existing ignored Playwright storage-state label. No cookies, paths, or credentials are accepted on the CLI.",
+        "Optional use of an existing ignored browser storage-state label. No cookies, paths, or credentials are accepted on the CLI.",
     )
     auth_group.add_argument("--auth-state-label", default=None)
     auth_group.add_argument(
