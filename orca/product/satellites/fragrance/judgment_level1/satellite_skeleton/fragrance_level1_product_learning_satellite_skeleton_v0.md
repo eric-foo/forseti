@@ -191,7 +191,7 @@ fragrance_level1_case:
     reasoning_trace:
   forecast_records:
     - target:
-      horizon:
+      forecast_window:
       cutoff_datetime_utc:
       included_evidence_refs: []
       raw_probability_bucket:
@@ -276,9 +276,10 @@ fragrance_level1_case:
 - C2 trace fields must make caveats travel: direction reasoning, N/small-N or
   staleness, ledger row or no-row handling, and absence/ambiguity
   classification.
-- C3 trace fields must preserve the transient-default and action-ceiling logic:
-  persistence basis, C3 `confidence_band`, tagged `signals_used`, and cap
-  reasons.
+- C3 trace fields must preserve the calling-sequence verdict and action-ceiling
+  logic: transient unless a durability basis is in the information set, or
+  durable with a named persistence-projection basis; C3 `confidence_band`, tagged
+  `signals_used`, and cap reasons.
 - `utility_action` must not be a passive "monitor" answer. A hold/defend/narrow
   action still needs a target, trigger, stop condition, timebox or due date, and
   next action.

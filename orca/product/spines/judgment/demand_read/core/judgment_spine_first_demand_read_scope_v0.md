@@ -45,8 +45,8 @@ Produce the lane's first **honestly-graded** demand read: run the new qualitativ
 C0–C4 core on one real historical beauty case, **outcome-blind**, emit a sealed
 two-axis verdict + action ceiling, then **grade it against the facilitator-only
 sealed outcome**. The point is evidence about the **method** — does C0–C4 produce
-a coherent, defensible, honestly-graded durable/transient call — not a validated
-demand call and not judgment quality.
+a coherent, defensible, honestly-graded durable/transient horizon call with a
+named basis — not a validated demand call and not judgment quality.
 
 ## Case (CONFIRMED by owner 2026-06-15)
 
@@ -80,10 +80,9 @@ Better held for a later read once the method's honesty is established.
 
 Honest limit (structural, accepted): even enriched, a backtest stays **thin on the
 forward-only axes** — archives do not preserve sellouts, restock magnitude, or
-paid-promotion spend (taxonomy: durable is "the one persistence backtests can
-support"; manufactured separation is forward/live-only). The first read is framed
-as a **durable-vs-transient persistence read** on the axis backtests *can* support,
-with the costly-behavior/integrity thinness named, not hidden.
+paid-promotion spend. The first read can test whether the captured packet supports
+a durable projection basis or a transient/decay basis; manufactured separation is
+forward/live-only. The costly-behavior/integrity thinness is named, not hidden.
 
 ## Run Procedure (C0–C4, by hand)
 
@@ -92,21 +91,23 @@ with the costly-behavior/integrity thinness named, not hidden.
 2. **Information set (enriched, outcome-blind).** A zero-spoiler participant packet
    built by a constructor **not holding the sealed outcome**, carrying the
    archive-visible signals as of the cutoff (see Enrichment Captures).
-3. **C1 Allow.** Apply the ratified G1/G2 Demand-Substrate Hard Gate (≥2 independent
-   venue families; gradeable costly-behavior floor; integrity labels). Fail →
+3. **C1 Allow.** Apply the ratified G1/G2 Demand-Substrate Hard Gate (origin
+   de-correlation, gradeable costly-behavior floor, integrity labels). Fail →
    disqualify/hold.
 4. **C2 Weight.** Per the C2 contract: de-correlate (`derived_from`), map divergence
    (`diverges_from`), and read the **empty** signal-reliability ledger → record
    "no ledger track record," weight on in-case merits; carry caveats; apply Rule 3
    (manufactured-axis risk states; persistence-axis patterns routed to C3).
 5. **C3 Verdict + Ceiling.** Per the C3 contract: emit the two-axis verdict
-   (durable | transient, given real), defaulting to **transient** unless observed
-   post-trigger persistence is in the information set; classify any persistence-axis
-   pattern as transient with a cited discriminator; emit an action ceiling
-   {monitor/probe/commit/hold/scale/avoid/reduce} capped by the floor/ceiling
-   rule (≥2 converging origins for a material verb; engagement-only caps; weakest
-   load-bearing evidence binds). Fill the sealed_call (recommendation, qualitative
-   confidence_band, signals_used, required reasoning_trace).
+   (durable | transient, given real). Durable requires a named persistence-
+   projection basis in the information set; transient means strong current-window
+   demand whose durability is not called, or whose evidence supports decay.
+   Classify any persistence-axis pattern as transient with a cited discriminator;
+   emit an action ceiling {monitor/probe/commit/hold/scale/avoid/reduce} capped
+   by the floor/ceiling rule (≥2 converging origins for a material verb;
+   engagement-only caps; weakest load-bearing evidence binds). Fill the
+   sealed_call (recommendation, qualitative confidence_band, signals_used,
+   required reasoning_trace).
 6. **C4 Counterfactual.** "What evidence would change the answer?"
 
 ## Enrichment Captures (each owner-gated; this scope authorizes none)
@@ -141,8 +142,9 @@ is not archive-backtestable ≤cutoff is reported as a gap, never inflated.
 
 By hand, `product_learning`-capped:
 - Reveal the sealed outcome (delegated outcome-aware subagent); compare the sealed
-  **verdict + ceiling** against what actually happened on the **persistence axis**
-  (did the demand persist past the trigger — durable — or decay — transient).
+  **verdict + ceiling** against the captured evidence basis and what the outcome
+  later reveals about the named persistence driver. Do not grade a transient label
+  against a realized durable outcome by hindsight alone.
 - Run the **JSG-08 tell-audit** on the reasoning trace: a call that asserts the
   outcome or cites non-brief knowledge with no derivation is a confirmed tell →
   contaminated / quarantined-as-data (recognition capacity alone is not
@@ -153,8 +155,8 @@ By hand, `product_learning`-capped:
 ## What This Proves / Does Not Prove
 
 - **Proves (if it passes):** the C0–C4 method produces one coherent, defensible,
-  honestly-graded durable/transient read on a real case — first earned trust at
-  `product_learning` tier.
+  honestly-graded durable/transient horizon read on a real case, with the durable
+  or transient basis named — first earned trust at `product_learning` tier.
 - **Does NOT prove:** judgment quality (needs N≥K + running contestants + reveal /
   calibration, JSG-08); validation; readiness; buyer proof; any transient-timing /
   decay-curve claim; manufactured-separation capability (forward-only).

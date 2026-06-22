@@ -89,7 +89,7 @@ launch/reposition, and inventory or purchase-depth commitment because those
 decisions have concrete allocation stakes, short timing, and a high likelihood
 that public creator/social/review/search/retail signals remain material before
 internal data is conclusive. Tier/price, taste-shift pivot, and defend/hold
-against suspected hollow or manufactured demand remain eligible when they
+against suspected transient or manufactured demand remain eligible when they
 pass the same gates.
 
 Retailer/category teams are deferred, not killed forever: their proprietary
@@ -178,10 +178,11 @@ integrity rule instead of a venue allowlist:
   only costly signal sits inside the same coordinated layer that divergence
   flags), divergence **defeats the floor**, not merely the ceiling. Divergence
   (`diverges_from`) is preserved as signal, never averaged away. *(AR-03)*
-- **The read must anchor on COSTLY BEHAVIOR** (payment, switching, workarounds,
-  churn, durable buyer pressure — frozen Core Spine rule). Engagement volume
-  alone classifies as attention/resonance, cannot carry a Commit-grade
-  recommendation, and caps the action ceiling instead.
+- **Demand-state labels are not strength tiers.** The gate first asks whether the
+  candidate has real, gradeable demand substrate at all. Weak, attention-only,
+  or engagement-only input fails or holds; it is not transient demand. A durable
+  label is a forward persistence projection carried to Judgment/C3 with a named
+  basis; observed persistence is one possible basis, not the definition.
 - **Costly-behavior floor (clears G2), with a "gradeable" definition.** A
   costly-behavior instance is **gradeable** when it is (a) **attributable to
   identifiable buyer actions**, not aggregate mood/attention; (b) **statable with
@@ -250,7 +251,7 @@ US-market tractioned indie/DTC beauty / personal-care brands facing a live
 expansion or contraction, launch / moratorium / reposition, and inventory or
 purchase-depth commitment — where internal data is not conclusive. Tier/price
 change, pivot on a taste or preference shift, and defend/hold against
-suspected hollow or manufactured demand remain eligible when they satisfy the
+suspected transient or manufactured demand remain eligible when they satisfy the
 same gates.
 Geography: US-market first proof per the thesis geography doctrine
 (2026-06-12); non-US candidates route to the owner or defer.
@@ -326,14 +327,15 @@ The trigger must be real enough that the buyer can say what decision is pending,
 Virality, creator attention, and trend coverage are trigger and
 candidate-context ordering only. They are not buyer filters, not buyer
 validation, and not evidence of durable demand — the fused,
-costly-behavior-anchored read decides; engagement volume alone caps the
-action ceiling.
+costly-behavior-anchored read decides. Engagement volume alone does not become
+transient demand; it caps the action ceiling unless gradeable costly behavior
+and origin integrity clear the gate.
 
 ## Orca Promise
 
 Orca helps the decision owner reduce allocation risk before committing budget
-by discriminating durable demand from transient and manufactured demand on fused,
-integrity-labeled public evidence.
+by discriminating projected durable demand from strong current-window transient
+demand and manufactured demand on fused, integrity-labeled public evidence.
 
 For this first proof, the promise is not "Orca predicts the trend." The promise is narrower:
 

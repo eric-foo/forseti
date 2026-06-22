@@ -121,11 +121,11 @@ so contamination can be tell-audited and lessons extracted.
   boundary: "Decision Frame remains the required starting point") — made explicit
   here, consistent with the buyer-proof memo opening (decision question + live
   trigger) and the far-half decision-object `frame`.
-- **C1 — Allow.** Apply the **Demand-Substrate Hard Gate** (≥2 independent venue
-  families; costly-behavior anchor; integrity labels per venue). Fail →
-  disqualify/hold. The core **routes to** the gate (owned by the buyer-proof
-  packet); it does not restate it, and does not reopen the ratified gate
-  decisions.
+- **C1 — Allow.** Apply the **Demand-Substrate Hard Gate** (origin
+  de-correlation, gradeable costly-behavior floor, integrity labels, and
+  commitment-tiered action ceiling). Fail → disqualify/hold. The core **routes
+  to** the gate (owned by the buyer-proof packet); it does not restate it, and
+  does not reopen the ratified gate decisions.
 - **C2 — Weight.** Over allowed signals: **(a) de-correlate** shared-origin
   signals via `derived_from` (independence is the truth-amount, not volume);
   **(b) map divergence** via `diverges_from` (cross-venue disagreement is signal);
@@ -138,11 +138,16 @@ so contamination can be tell-audited and lessons extracted.
   *(`derived_from`/`diverges_from` semantics are owned by the dispatched
   ontology-backbone commission, currently branch-only — confirm on adoption.)*
 - **C3 — Verdict + Action Ceiling.** Emit the **demand-state verdict** on main's
-  two-axis model — **durable / transient** (persistence), given **real** (not
-  manufactured) — and the action ceiling **matched to the demand's lifespan**:
-  **monitor / probe / commit / hold / scale / avoid / reduce**. The ceiling is capped by the weakest load-bearing evidence — costly
-  behavior can reach Commit-grade; engagement volume alone caps lower (buyer-proof
-  rule). **Persistence-axis** risk patterns (resale/flip, event/one-time,
+  two-axis model — **durable / transient** (persistence horizon), given **real**
+  (not manufactured) — and the action ceiling **matched to the demand's
+  lifespan**: **monitor / probe / commit / hold / scale / avoid / reduce**.
+  Durable means the read names an evidence-supported basis for projecting strong
+  demand over the relevant decision horizon; transient means strong current-window
+  demand whose durability is not called, or whose evidence supports decay. Weak,
+  attention-only, or manufactured signals are not transient demand. The ceiling is
+  capped by the weakest load-bearing evidence — costly behavior can reach
+  Commit-grade; engagement volume alone caps lower (buyer-proof rule).
+  **Persistence-axis** risk patterns (resale/flip, event/one-time,
   scarcity/panic) are classified **here** as transient, not capped at C2 (their
   discriminator families arrive from C2 Rule 3); **manufactured-axis** integrity
   defeaters are handled upstream at C2 (Rule 3) + the C1 gate. ("Hollow" is retired

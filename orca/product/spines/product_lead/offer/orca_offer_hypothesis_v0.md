@@ -246,9 +246,9 @@ For a US-market tractioned indie/DTC beauty or personal-care brand decision
 owner facing a live 30-90 day consumer-demand allocation decision -- especially
 retail/channel expansion, launch/reposition, or inventory/purchase-depth
 commitment -- before internal data is conclusive, Orca offers the decided
-answer: "this demand is real and durable / this demand is transient or
-manufactured -- monitor, probe, commit, hold, scale, avoid, or reduce, and here is what would
-change the answer." The artifact is a decision memo + evidence appendix
+answer: "this demand is real and durable / this demand is real-but-short-window /
+manufactured -- monitor, probe, commit, hold, scale, avoid, or reduce, and here is
+what would change the answer." The artifact is a decision memo + evidence appendix
 substrate surfaced as an executive-grade decision deck when the proof gates
 pass: fused public demand signal (reviews, forums, search interest, retail
 presence) anchored on costly behavior, corroborated by org-level hiring
@@ -303,7 +303,7 @@ demand signal visible across at least two effectively-independent public venue
 origins (de-correlated by origination, per the buyer-proof Demand-Substrate Hard
 Gate — laundered or shared-origination siblings of one event do not count) so
 the fused, costly-behavior-anchored read is possible. Tier/price change,
-taste-shift pivot, and defend/hold against suspected hollow or manufactured
+taste-shift pivot, and defend/hold against suspected transient or manufactured
 demand remain eligible when they satisfy the same gates. Org-motion
 corroboration (brand and parent level, org-level only, through
 capture-lane-bound routes) strengthens but does not replace the demand lead.

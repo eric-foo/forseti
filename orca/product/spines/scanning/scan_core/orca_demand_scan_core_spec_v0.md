@@ -171,18 +171,22 @@ record; SUBTLE: nothing launders — the detector IS the record).
 
 The taxonomy's demand-state model has **two independent axes** — persistence
 (**durable** vs **transient**) and integrity (**real** vs **manufactured**) —
-yielding three actionable read-states. A scan does not *predict* which state a
-signal will become; it recognizes the state the receipts can currently support
-and tags it conservatively (see the calling-sequence rule below).
+yielding three actionable read-states. A scan does not guess which state a signal
+will become; it records what the receipts currently support. Durable requires a
+named persistence-projection basis. Transient is strong real current-window
+demand whose durability is not called, or whose evidence supports decay. Weak,
+attention-only, or manufactured signals are not transient demand.
 
-### Durable-demand read (real + persists → commit)
+### Durable-demand read (real + projected to stay strong → commit / scale as earned)
 
 Trigger: at least two **effectively-independent demand-venue (Venue) origins** (§3
 independence rule) moving the same direction on the same trend vector (TrendVector) or brand (Brand),
 with at least one **gradeable** costly-behavior signal (sellouts, waitlists,
 restock pressure, review velocity/content shifts, pain-point convergence,
-dupe-seeking, switching, effortful UGC), **and receipt-visible persistence past
-the trigger** — optionally corroborated by org motion in the same direction.
+dupe-seeking, switching, effortful UGC), plus a named basis for projecting
+persistence over the relevant decision horizon — for example observed recurrence,
+post-trigger follow-through, repeated costly behavior, analogue history, or
+org-motion corroboration in the same direction.
 
 - NEWSY recognition: origination venues (community boards) produce the move;
   trade press corroborates or launders it; org motion (ad launches, hiring
@@ -190,25 +194,25 @@ the trigger** — optionally corroborated by org motion in the same direction.
 - SUBTLE recognition: detector or tracker record plus a community wave
   agreeing — independent detection counts as an origin distinct from the
   community discussing it.
-- Durable is the **earned** state: absent receipt-visible persistence, the same
-  evidence is recognized as a **transient-spike** read, not a durable one (the
-  scan never opens at "durable"; calling-sequence rule below).
+- Durable is an **earned projection**: absent a named persistence basis, the same
+  strong current-window evidence is recognized as a **transient-spike** read, not
+  a durable one (calling-sequence rule below).
 
-### Transient-spike read (real + decays → probe / monitor, time-boxed)
+### Transient-spike read (real + strong current-window demand → probe / commit in-window)
 
-Trigger: real, gradeable costly behavior with a **short observed lifespan or no
-persistence yet visible** — a viral surge, a time-limited dupe wave, a seasonal
-pop. This is **the conservative default** for any real-demand recognition: a
-transient spike and durable convergence look identical in the moment, and only
-observed persistence — not an upfront guess — separates them.
+Trigger: real, gradeable costly behavior with a **short expected lifespan** or
+without enough evidence to project persistence — a viral surge, a time-limited
+dupe wave, a seasonal pop. This is **not** a weak/default bucket: if demand is
+not strong enough to matter, it is a candidate gap or attention signal, not
+transient demand.
 
 - NEWSY / SUBTLE recognition: identical to the durable read at the trigger; the
-  difference is *only* whether the receipts already show persistence past the
-  trigger. The scan records the in-window signal and its dates; the durable
-  upgrade is a **downstream monitored act, not the scan's** (the scan builds no
-  standing monitor).
+difference is whether the receipts already support a persistence projection. The
+scan records the in-window signal, its dates, and the durability basis or gap;
+the monitored durable upgrade/reduce decision is **downstream, not the scan's**
+(the scan builds no standing monitor).
 
-### Manufactured-demand read (fake / amplified → discount / avoid)
+### Manufactured-demand read (fake / amplified → avoid)
 
 Trigger: demand that is **not real** — promotion-engagement mismatch (promoted
 hard, engaging below the channel's own baseline), astroturf / coordinated / bot
@@ -254,17 +258,18 @@ outcome-memory machinery, never the scan's act.
 
 ### Calling-sequence rule for scans (PROPOSED absorption — adjudication surface)
 
-The taxonomy's calling sequence is "first call = transient (conservative
-default) → monitor → earn durable." For a point-in-time scan this absorbs as:
-**the scan classifies demand-state conservatively** — transient by default for
-any real-demand recognition, durable ONLY when the receipts themselves evidence
-persistence past the trigger, manufactured when the integrity/divergence
-technique defeats reality. The "observe persistence, earn the durable upgrade"
-step is a **downstream monitored act outside the scan's authority** (the scan
-builds no standing monitor; passive monitoring, where authorized, is a separate
-capture-lane act under the wind-caller carve-out's Tier-1 discipline). *This
-absorption is flagged for adjudication — the commissioning lane may accept it or
-direct a different scan-time classification rule.*
+The taxonomy's calling sequence is now: current-window transient unless a named
+durability basis is already in the information set → monitor → earn, revise, or
+reduce the durable projection. For a point-in-time scan this absorbs as: **the
+scan classifies demand-state conservatively without weakening transient** — weak
+or attention-only input is not transient demand; transient means strong real
+current-window demand whose durability is not called or whose evidence supports
+decay; durable means the receipts already support a persistence projection. The
+monitored upgrade/reduce step is a **downstream act outside the scan's authority**
+(the scan builds no standing monitor; passive monitoring, where authorized, is a
+separate capture-lane act under the wind-caller carve-out's Tier-1 discipline).
+*This absorption is flagged for adjudication — the commissioning lane may accept
+it or direct a different scan-time classification rule.*
 
 ### Anti-triggers (explicit; none of these mints a candidate)
 
@@ -508,15 +513,14 @@ in weeks. Every forward observation carries `retrieval_date`; every forward
 candidate entry carries `stale_after` = earliest load-bearing
 `retrieval_date` + 21 days. **Maximum scan-to-use age: 21 days** from
 retrieval to slot-qualification use (PROPOSED default — adjudicate or amend
-by dated note). This bounds **observation freshness**, and is distinct from
-predicting decay: per the taxonomy, durability is **observed, not predicted**
-(the scan tags transient conservatively and never forecasts a decay curve; the
-durable upgrade is earned downstream by monitored persistence). Past
-`stale_after`, the entry may not feed a slot until the load-bearing
-observations are re-verified (fresh retrieval of the same receipts, refreshing
-`retrieval_date`); re-verification is a bounded re-read, not a new scan.
-Forward entries record no predictions as outcomes; `outcome_note` stays empty
-in forward mode.
+by dated note). This bounds **observation freshness**, and is distinct from a
+full decay-curve forecast: the scan may record the basis for a durability
+projection or the absence of one, but the exact decay curve and monitored
+upgrade/reduce decision stay downstream. Past `stale_after`, the entry may not
+feed a slot until the load-bearing observations are re-verified (fresh retrieval
+of the same receipts, refreshing `retrieval_date`); re-verification is a bounded
+re-read, not a new scan. Forward entries record no predictions as outcomes;
+`outcome_note` stays empty in forward mode.
 
 **Mode wall.** The backtest candidate pool is NEVER a forward-mode slot
 source (brief rule, owner word DB-4). If a forward scan independently
@@ -625,18 +629,19 @@ outcome_status: resolved | open   # backward: usually resolved; forward: open
      through the guide's promote-on-reuse trigger, owner-decided. Call records
      are dated history, never current-state claims about a channel's
      reliability.
-   - **LinkedIn org-motion is a separate context, completely unchanged** —
-     org-level only (hiring composition, headcount), never person-level.
+   - **LinkedIn org-motion is a separate context, completely unchanged** — this
+     spec does not absorb the separate LinkedIn/org-motion decision context
+     (org-level only, never person-level).
 
 ## 7. Reconciliation Note
 
 - **Demand-read taxonomy** — this spec ABSORBS its demand-state model (durable /
-  transient / manufactured; divergence as a recognition technique; the
-  conservative transient-default classification) into the hunting grammar (§1)
-  and the schema (§3). It LEAVES with the taxonomy the model's ownership and any
-  ontology / decision-grade proof, which the taxonomy explicitly defers to a
-  separate pass. The taxonomy is PROPOSED; this spec re-derives if it is
-  adjudicated with further amendments.
+  transient / manufactured; divergence as a recognition technique; the scan-time
+  strong current-window transient / durable projection-basis classification) into
+  the hunting grammar (§1) and the schema (§3). It LEAVES with the taxonomy the
+  model's ownership and any ontology / decision-grade proof, which the taxonomy
+  explicitly defers to a separate pass. The taxonomy is PROPOSED; this spec
+  re-derives if it is adjudicated with further amendments.
 - **Demand-Substrate Hard Gate (buyer-proof packet)** — this spec ABSORBS the
   re-derived gate (origination-independence, verb-tiering by commitment, retail
   excluded, the gradeable costly-behavior floor, the divergence defeater) into
@@ -691,9 +696,10 @@ authorization boundary.
 them explicitly, not silently baked):
 
 - The 21-day forward freshness default (§4).
-- The conservative transient-default scan-time classification rule (§1) and the
-  scan-vs-capture-lane boundary for wind-caller calibration (§6).
+- The scan-time demand-state classification rule (§1): weak/attention-only input
+  is not transient demand; transient is strong current-window demand; durable
+  requires a named persistence-projection basis. The scan-vs-capture-lane
+  boundary for wind-caller calibration (§6) remains unchanged.
 - The `gate_family` demand-family set now excludes `retail_presence` and treats
-  `review_surfaces` / `search_interest` as today-unsourced gaps (§3), per the
   re-derived Hard Gate.
 - The commission-driven targeted forward entry shape (§4).

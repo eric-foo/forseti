@@ -16,7 +16,7 @@ scope: >
 use_when:
   - Scoping or running the demand-read core's C3 (emitting a verdict + action ceiling).
   - Reviewing whether a C3 reasoning trace stays within INV-1 (no scoring engine) and the buyer-proof ceiling-cap rule.
-  - Checking that a verdict obeys the calling sequence (transient-default; durable earned via observed persistence) and the two-axis model.
+  - Checking that a verdict obeys the calling sequence (durable requires a named persistence-projection basis; transient is strong current-window demand) and the two-axis model.
 authority_boundary: retrieval_only
 open_next:
   - orca/product/spines/judgment/demand_read/core/judgment_spine_demand_read_machinery_architecture_v0.md  # the demand-read core whose C3 this specifies (C3 step shape; owner-ADOPTED Decision B)
@@ -52,10 +52,11 @@ Owner-directed in-thread. This **replaces the action-ceiling vocabulary**; it do
 **NOT delete this contract.** The verb×horizon model named below — verbs
 `{act, phase, narrow, hold, defend}` × horizon `{commit, move}` — is superseded by a
 single **flat verb set**, and horizon stops being a declared output. The two-axis
-verdict, the transient-default / earned-durable rule, the floor/ceiling cap rule,
-INV-1, and the consume-don't-reopen boundary are **unchanged**. Sections below that
-name the old verbs or the `horizon` field are read through this amendment (dated;
-originals preserved).
+verdict, the floor/ceiling cap rule, INV-1, and the consume-don't-reopen boundary
+are **unchanged**. The former observed-only transient-default / earned-durable
+wording is superseded by the 2026-06-23 durable-demand projection clarification.
+Sections below that name the old verbs or the `horizon` field are read through
+this amendment (dated; originals preserved).
 
 **New action ceiling — exactly one verb from:**
 
@@ -112,10 +113,11 @@ direction_change_propagation:
     accretes via monitoring — scale earns the long horizon, reduce handles decay). The cap
     rule remaps so commit and scale are the material verbs (>=2 converging origins + costly
     behavior) and avoid/reduce lessen exposure at a lower bar. INV-1, the two-axis verdict,
-    transient-default/earned-durable, and consume-don't-reopen are unchanged. Bayesian
-    qualitative reasoning is accepted as the read's grammar (prior x discriminating-likelihood,
-    stated per-signal in the reasoning_trace; no numbers). The C3 contract document is
-    retained, not deleted.
+    floor/ceiling cap rule, and consume-don't-reopen are unchanged. The later 2026-06-23
+    clarification supersedes the observed-only transient-default / earned-durable wording by
+    requiring a named durability projection basis. Bayesian qualitative reasoning remains
+    accepted as the read's grammar (prior x discriminating-likelihood, stated per-signal in
+    the reasoning_trace; no numbers). The C3 contract document is retained, not deleted.
   trigger: product_doctrine
   related_triggers:
     - validation_philosophy
@@ -194,9 +196,80 @@ direction_change_propagation:
   (`monitor, probe, commit, hold, scale, avoid, reduce`) with horizon accreting via
   monitoring — they no longer specify the superseded `{act,phase,narrow,hold,defend}` ×
   horizon `{commit,move}` interface. The body is now **consumable** and consistent with
-  this amendment; its non-vocab logic (two-axis verdict, transient-default /
-  earned-durable, the floor/ceiling cap-rule structure, consume-don't-reopen, INV-1) is
-  unchanged.
+  this amendment; its non-vocab logic (two-axis verdict, floor/ceiling cap-rule
+  structure, consume-don't-reopen, INV-1) is unchanged. Its earlier observed-only
+  transient-default / earned-durable phrasing is superseded by the 2026-06-23
+  durable-demand projection clarification below.
+
+## Amendment — 2026-06-23 (owner-directed): Durable Demand Is A Projection Call
+
+Owner-directed in-thread. This **replaces the observed-only durable/transient
+wording** that treated durable as demand that had already stayed strong. The
+active rule is:
+
+- **transient** = real, strong current-window demand whose durability is not
+  called, or whose evidence supports decay;
+- **durable** = real, strong demand with a named evidence-supported basis for
+  projecting persistence over the relevant decision horizon;
+- weak, attention-only, insufficient, or manufactured signals are **not**
+  transient demand.
+
+Observed post-trigger persistence remains valid evidence for durability, but it
+is not the definition. Other admissible bases may include repeated costly
+behavior, analogue history, post-trigger follow-through, org-motion corroboration,
+or a monitored upgrade. C3 must state the basis in the reasoning trace; INV-1
+still forbids a numeric persistence probability or computed decay curve.
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Durable demand is now encoded as a forward demand call — strong real demand
+    with a named evidence-supported basis for projecting persistence over the
+    relevant decision horizon — rather than a retrospective "stayed strong"
+    observation. Transient demand is strong real current-window demand whose
+    durability is not called or whose evidence supports decay; weak,
+    attention-only, insufficient, or manufactured signals are not transient
+    demand.
+  trigger: product_doctrine
+  related_triggers:
+    - architecture_doctrine
+  controlling_sources_updated:
+    - docs/decisions/orca_product_thesis_consumer_demand_v0.md
+    - orca/product/spines/judgment/demand_read/c3_verdict_action/judgment_spine_c3_verdict_action_ceiling_contract_v0.md
+    - orca/product/spines/foundation/demand_read_taxonomy/orca_demand_read_taxonomy_v0.md
+  downstream_surfaces_checked:
+    - orca/product/spines/foundation/demand_read_taxonomy/orca_demand_read_taxonomy_adjudication_v0.md
+    - orca/product/spines/scanning/scan_core/orca_demand_scan_core_spec_v0.md
+    - orca/product/spines/commission_signal_board/dispatch_rules/orca_demand_gate_run_commission_criteria_v0.md
+    - orca/product/spines/commission_signal_board/prompts/orca_commission_signal_board_prompt_v0.md
+    - orca/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md
+    - orca/product/spines/judgment/demand_read/core/judgment_spine_demand_read_machinery_architecture_v0.md
+    - orca/product/spines/judgment/demand_read/c2_weighting/judgment_spine_c2_ledger_read_contract_v0.md
+    - orca/product/spines/judgment/demand_read/core/judgment_spine_first_demand_read_scope_v0.md
+    - orca/product/spines/judgment/demand_read/grading/judgment_spine_demand_read_grading_rubric_v0.md
+    - orca/product/spines/judgment/demand_read/integrity/judgment_spine_manufactured_demand_detection_design_v0.md
+    - orca/product/spines/capture/core/contracts/obligation_contracts/core_spine_v0_data_capture_spine_obligation_contract_v0.md
+    - orca/product/shared/projection_doctrine/core_spine_v0_projection_doctrine_v0.md
+    - orca/product/satellites/fragrance/judgment_level1/satellite_skeleton/fragrance_level1_product_learning_satellite_skeleton_v0.md
+  intentionally_not_updated: []
+  stale_language_search: >
+    rg -n "observed persistence|observed post-trigger|observed via monitoring|not predicted|cannot call durable|never asserted at t=0|durable is earned|persists past|stayed strong|transient-default|earned-durable"
+    docs/decisions/orca_product_thesis_consumer_demand_v0.md orca/product/spines/foundation/demand_read_taxonomy orca/product/spines/scanning/scan_core orca/product/spines/commission_signal_board orca/product/spines/product_lead/buyer_proof orca/product/spines/judgment/demand_read orca/product/spines/capture/core/contracts/obligation_contracts orca/product/shared/projection_doctrine orca/product/satellites
+  stale_language_search_result: >
+    Executed during 2026-06-23 delegated-review adjudication. The confirmed
+    active stale hit outside the original spine-scoped search was the fragrance
+    satellite skeleton's `transient-default` trace language; this patch updates
+    that line. Remaining hits are this receipt/query, supersession history, or
+    statements that observed persistence is one possible durability-projection
+    basis rather than the definition.
+  non_claims:
+    - not validation
+    - not readiness
+    - not buyer proof
+    - not judgment-quality evidence
+    - not implementation authorization
+```
+
 
 ## Input Basis (accepted)
 
@@ -206,9 +279,10 @@ direction_change_propagation:
 - **Two-axis demand-state model** (settled, main #78 `c36e09c2`): durable/transient
   (persistence) + real/manufactured (integrity); "hollow" retired. C3 verdicts on
   this model.
-- **Calling sequence** (taxonomy, owner 2026-06-14): first call defaults to
-  **transient** (the conservative default — durable is the over-claimable label);
-  **durable is earned via observed persistence, not predicted at the trigger.**
+- **Calling sequence** (taxonomy, owner 2026-06-14; clarified 2026-06-23): first
+  call is **current-window transient unless a durability basis is already in the
+  information set**; **durable is a named, evidence-supported projection that
+  demand will stay strong over the decision horizon.**
 - **C2 contract** (`SPEC_COMPLETE`, Rule 3 folded): C3 consumes C2's per-signal
   weighted reads (direction + reasoning + qualitative band + caveats) and the
   **persistence-axis discriminator findings Rule 3 routes to C3**; the
@@ -232,13 +306,13 @@ manufactured) demand under an active `decision_family` and Decision Frame (C0), 
    **durable** or **transient** — given the **real** integrity disposition resolved
    upstream. The verdict is on main's two-axis model; a single-axis or "hollow"
    verdict is non-compliant.
-2. **Default to transient unless observed persistence is in the information set.**
-   **Durable requires observed post-trigger persistence evidence in the read's
-   information set.** A read whose information set ends at (or before) the trigger —
-   no observed persistence — **cannot call durable**; it calls **transient** and
-   acts **in-window**. (A historical/backtest read whose window shows persistence
-   past the trigger may call durable; a live t=0 read may not — durability is the
-   *earned* state.)
+2. **Call durable only with a named persistence-projection basis.** **Durable
+   requires evidence in the read's information set that supports strong demand
+   persisting over the relevant decision horizon.** Observed post-trigger
+   persistence is one possible basis, not the definition. A read whose information
+   set contains strong current-window demand but no durability basis calls
+   **transient** and acts **in-window**; weak or attention-only input is not
+   transient demand.
 3. **Classify persistence-axis patterns here as transient, not as caps.** A
    persistence-axis pattern (resale/flip, event/one-time, scarcity/panic), carried
    in via C2 Rule 3 with its discriminator family, **reclassifies the read as
@@ -246,10 +320,11 @@ manufactured) demand under an active `decision_family` and Decision Frame (C0), 
    treated as a manufactured-axis cap (that axis is upstream). The trace must cite
    the discriminator that supports a transient classification.
 4. **Emit an action ceiling — exactly one verb from** `{monitor, probe, commit, hold,
-   scale, avoid, reduce}`, **matched to the demand-state**: durable → **commit** (then
-   **scale** as persistence is earned); transient → reversible **commit**, **reduce** on
-   decay; manufactured → **avoid**. Horizon is not declared — it accretes via monitoring. The
-   ceiling verb is the read's interpretation, justified per-case in the trace.
+   scale, avoid, reduce}`, **matched to the demand-state**: durable → **commit** or
+   **scale** as earned by the projection basis and ceiling; transient → reversible
+   **commit** in-window or **reduce** on decay; manufactured → **avoid**. Horizon is
+   not declared — it accretes via monitoring. The ceiling verb is the read's
+   interpretation, justified per-case in the trace.
 5. **Cap the ceiling by the weakest load-bearing evidence (floor/ceiling rule).**
    - A **material/irreversible** verb (**commit** or **scale**) requires **≥2 independent
      converging origins**; on a **single** independent origin the ceiling caps **below
@@ -270,8 +345,8 @@ manufactured) demand under an active `decision_family` and Decision Frame (C0), 
    action shape consistent with the ceiling), `confidence_band` (a **qualitative
    band**, **reusing the contestant band-claim vocabulary — not a new one**),
    `signals_used` (each tagged with its `signal_id`), and a **required
-   `reasoning_trace`** carrying the verdict, the persistence basis (or its
-   absence), the ceiling verb, and **every cap reason** (independence
+   `reasoning_trace`** carrying the verdict, the durability-projection basis or
+   transient basis, the ceiling verb, and **every cap reason** (independence
    count, costly-behavior strength, engagement-only). The sealed C3/C4 + trace is
    the JSG-06 scoreable child.
 8. **Stay qualitative (INV-1).** The verdict, ceiling verb, and
@@ -288,9 +363,10 @@ manufactured) demand under an active `decision_family` and Decision Frame (C0), 
 - **No numeric/ordinal ceiling or apply-rule.** No score, fraction, rank, threshold
   table, or formula mapping independence-count / weight band / signal strength → a
   ceiling verb. (INV-1; graduates only when the owner explicitly lifts no-scoring.)
-- **No decay-curve prediction / transient-timing forecast.** Durability is
-  **observed via monitoring, not predicted**; C3 does not forecast a decay window or
-  a persistence probability. The decay-curve capability does not exist.
+- **No unsupported decay-curve prediction / transient-timing forecast.** C3 may
+  state the qualitative basis for durable projection or transient decay, but it
+  does not compute a decay window or persistence probability. The decay-curve
+  capability does not exist.
 - **No new confidence vocabulary.** `confidence_band` reuses the contestant
   band-claim shape by pointer; C3 mints none.
 - **No beauty-specific verb-tiering.** Which verbs map to which ceiling in beauty
@@ -300,7 +376,7 @@ manufactured) demand under an active `decision_family` and Decision Frame (C0), 
 - **No C2 re-weighting.** C3 consumes C2's weighted signals; it does not re-run the
   ledger read, the de-correlate/diverge sub-steps, or Rule 3.
 - **No live-loop / monitoring behavior.** Seal-before-disclose, the monitor that
-  earns the transient→durable upgrade, and resolution are owned by the far-half
+  earns or defeats the durability projection, and resolution are owned by the far-half
   shell; C3 is the single-read verdict step that fills the sealed_call.
 - **No build/run beyond the authorized first by-hand read.** No row population, no
   runner, no automated scorer.
@@ -319,9 +395,9 @@ manufactured) demand under an active `decision_family` and Decision Frame (C0), 
   (`monitor | probe | commit | hold | scale | avoid | reduce`); horizon is **not** a
   separate output, it accretes via monitoring.
 - **Invariants honored:** INV-1 (qualitative, no scoring; `product_learning` cap
-  travels); the **calling-sequence default** (transient unless observed persistence;
-  durable earned, never asserted at t=0); INV-6 (consume the ratified gate, don't
-  reopen).
+  travels); the **durable-projection-basis rule** (no durable without a named
+  persistence basis in the information set); INV-6 (consume the ratified gate,
+  don't reopen).
 - **Boundary honored:** C3 fills the sealed surface only; it does not run the live
   monitor, predict decay, re-adjudicate the manufactured axis, promote a
   source-family, or lift a signal above its evidence ceiling.
@@ -330,9 +406,9 @@ manufactured) demand under an active `decision_family` and Decision Frame (C0), 
 
 - **Two-axis verdict:** a read that emits a single-axis or "hollow" verdict, or omits
   the persistence (durable|transient) call, fails.
-- **Transient-default / earned-durable:** a read whose information set shows **no
-  observed post-trigger persistence** that nonetheless calls **durable** fails;
-  durable requires persistence evidence in the information set.
+- **Durable-projection basis:** a read that calls **durable** without naming the
+  evidence basis for projected persistence over the relevant decision horizon
+  fails; observed persistence is one possible basis, not the definition.
 - **Persistence-pattern routing:** a persistence-axis pattern (resale / event /
   scarcity) treated as a **manufactured cap** fails — it must classify the read
   **transient** with a time-boxed ceiling and **cite its discriminator**.
@@ -368,10 +444,11 @@ manufactured) demand under an active `decision_family` and Decision Frame (C0), 
   Satellite-owned (the beauty deck). C3 owns the *requirement* that a transient
   classification cite a discriminator and that the verb→ceiling mapping be justified;
   the specific beauty tells are not core.
-- **Observed-persistence threshold for the transient→durable upgrade — DEFERRED
+- **Durability projection threshold for the transient→durable upgrade — DEFERRED
   (safe).** Owned by the far-half monitoring loop, not the single-read verdict step.
-  A first read cannot reach durable without persistence in its information set, so
-  deferring the live-monitor threshold cannot change first-read behavior.
+  A first read may call durable only when its information set already carries a
+  named persistence-projection basis; the monitored upgrade threshold remains a
+  far-half concern.
 
 ## Downstream Handoff
 
@@ -382,12 +459,13 @@ spec_handoff:
     C3 turns the C2-weighted allowed signals (for a real, not-manufactured demand)
     into a two-axis demand-state verdict (durable | transient, given real) and an
     action ceiling (one verb from monitor | probe | commit | hold | scale | avoid | reduce)
-    matched to the demand-state (durable -> commit then scale; transient -> reversible
-    commit, reduce on decay; manufactured -> avoid; horizon accretes via monitoring, not
-    declared). It defaults to
-    transient unless observed post-trigger persistence is in the information set
-    (durable is earned, never asserted at t=0); classifies persistence-axis patterns
-    (resale / event / scarcity, routed from C2 Rule 3 with a cited discriminator) as
+    matched to the demand-state (durable -> commit/scale as earned from a named
+    persistence-projection basis; transient -> reversible commit or reduce on
+    decay; manufactured -> avoid; horizon accretes via monitoring, not declared).
+    It treats transient as strong current-window demand, not weak signal; durable
+    requires a named basis in the information set (observed persistence is one
+    basis, not the definition); classifies persistence-axis patterns (resale /
+    event / scarcity, routed from C2 Rule 3 with a cited discriminator) as
     transient, not as caps; caps the ceiling by the weakest load-bearing evidence
     (>=2 independent converging origins for a material verb, commit or scale; single
     origin -> below commit at monitor/probe/hold; engagement-only cannot carry
@@ -399,7 +477,7 @@ spec_handoff:
   non_goals:
     - manufactured-axis re-adjudication or G1/G2 reopen (upstream C1 + C2 Rule 3)
     - numeric/ordinal ceiling or deterministic apply-rule from independence-count/strength (INV-1)
-    - decay-curve prediction / transient-timing forecast (durability observed, not predicted)
+    - decay-curve prediction / unsupported transient-timing forecast (durability projection basis required; exact decay timing deferred)
     - new confidence vocabulary (reuse the contestant band-claim shape)
     - beauty-specific verb-tiering and per-vertical discriminator tells (satellite)
     - C2 re-weighting (consume C2's output; do not re-run the ledger/de-correlate/diverge/Rule 3)
@@ -408,10 +486,10 @@ spec_handoff:
   interfaces_contracts:
     - inputs_read_only: [active (decision_family, Decision Frame), C2-weighted allowed signals (direction + reasoning + qualitative band + signal_id + caveats), integrity disposition (real | disqualified/held) from C1+C2, persistence-axis discriminator findings from C2 Rule 3]
     - outputs: [demand_state_verdict (durable|transient, given real), action_ceiling (monitor|probe|commit|hold|scale|avoid|reduce; horizon accretes via monitoring, not a declared output), sealed_call{recommendation, confidence_band, signals_used, reasoning_trace}]
-    - invariants: [INV-1 (qualitative, no scoring; product_learning cap travels), calling-sequence default (transient unless observed persistence), INV-6 (consume the gate, don't reopen)]
+    - invariants: [INV-1 (qualitative, no scoring; product_learning cap travels), durable-projection-basis rule, INV-6 (consume the gate, don't reopen)]
   acceptance_criteria:
     - two-axis verdict present (no single-axis / hollow verdict)
-    - transient-default / earned-durable (no durable without observed persistence in the information set)
+    - durable-projection-basis rule (no durable without a named persistence basis in the information set)
     - persistence-pattern routed to transient with a cited discriminator (not a manufactured cap)
     - ceiling drawn from {monitor, probe, commit, hold, scale, avoid, reduce}
     - independence cap (material verb commit/scale needs >=2 converging origins; single origin -> below commit at monitor/probe/hold)
@@ -424,7 +502,7 @@ spec_handoff:
   deferred_open_questions:
     - contestant confidence_band vocabulary (decision-object owned; consumer reuses by pointer)
     - per-vertical discriminator tells + verb->ceiling mapping (satellite / beauty deck)
-    - observed-persistence threshold for transient->durable upgrade (far-half monitoring loop; unreachable in a first read)
+    - durability projection threshold / monitored upgrade rule (far-half monitoring loop; first reads may call durable only with a named basis in their information set)
   review_timing_advisory:
     adversarial_review: recommended
     highest_value_checkpoint: after_artifact_pre_implementation
@@ -437,8 +515,8 @@ spec_handoff:
       "qualitative," or let a first read overclaim durable. Review before the
       first-read scope relies on it.
   scoping_may_rely_on: >
-    the two-axis verdict contract; the transient-default / earned-durable rule;
-    the persistence-pattern -> transient routing; the {monitor,probe,commit,hold,scale,avoid,reduce}
+    the two-axis verdict contract; the durable-projection-basis rule; the
+    persistence-pattern -> transient routing; the {monitor,probe,commit,hold,scale,avoid,reduce}
     ceiling vocabulary; the floor/ceiling cap rule (>=2 converging origins,
     engagement-only cap, weakest-evidence cap); the consume-don't-reopen boundary;
     the sealed_call output surface; and INV-1. Open: the contestant band vocabulary,
@@ -500,8 +578,8 @@ judgment_spine_claim_classification:
   owner-ADOPTED (Decision B); this spec specifies it to contract depth. It is PROPOSED
   and not yet owner-adopted as the operative C3 contract; on adoption it owes a dated
   pointer via the Doctrine-Change Propagation Contract
-  (`.agents/workflow-overlay/source-of-truth.md`). It changes no other live doc, so no
-  propagation receipt is owed now.
+  (`.agents/workflow-overlay/source-of-truth.md`). The 2026-06-23 durable-demand
+  projection clarification carries the propagation receipt above.
 - A C3 verdict is `product_learning` evidence about a demand read — never validated,
   decision-grade, buyer-proven, or judgment-quality.
 ```text

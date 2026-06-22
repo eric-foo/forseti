@@ -66,6 +66,9 @@ The scan must carry enough for the gate-run to be decidable:
   "gradeable" (attributable to buyer actions / direction + rough magnitude /
   corroborable);
 - observed org-motion / retail-placement signals (corroboration material);
+- any evidence bearing on durability projection or decay (observed recurrence,
+  repeated costly behavior, post-trigger follow-through, analogue/base-rate
+  support, event/seasonality, scarcity/panic, or explicit absence of such basis);
 - the named decision owner and the concrete allocation consequence (or their
   absence).
 
@@ -100,7 +103,10 @@ this order. Each step is a judgment, not a number.
    ceiling, not a binary pass: **one** independent origin (or laundered copies of
    one) → **hold / low-commitment** ceiling; **≥2 converging independent origins**
    → **material-action eligible** (commit or scale). Org-motion corroboration may
-   raise confidence but does not raise the origin count.
+   raise confidence but does not raise the origin count. Transient/durable labels
+   are not strength tiers here: weak or attention-only input fails or holds; it
+   is not transient demand. Durable remains a later Judgment horizon call that
+   needs a named persistence-projection basis.
 5. **Owner + consequence check.** A gate-run that clears the floor still requires
    the brief's other objectives for a slot to be live: a **named decision owner**
    and a **concrete allocation consequence**. Their absence is a hold/disqualify
@@ -114,8 +120,11 @@ citing the deciding step:
 - **`admit @ <ceiling>`** — floor cleared, not defeated; ceiling set by the
   origin count (`hold/low-commitment` on one origin, `material-action eligible`
   on ≥2 converging independent origins), and a named owner + consequence present.
-- **`hold`** — floor cleared but capped (single origin, or owner/consequence not
-  yet confirmed), or divergence caps without defeating.
+  If the scan carries a durability-projection basis or decay discriminator, pass
+  it through; the gate-run does not itself emit the durable/transient verdict.
+- **`hold`** — floor cleared but capped (single origin, owner/consequence not
+  yet confirmed, or no durability-projection basis for the requested material
+  horizon), or divergence caps without defeating.
 - **`fail`** — floor not cleared (no gradeable costly-behavior instance, or no
   qualifying demand-venue origin at all), defeater triggered, or signal only via
   an out-of-bounds / absurd-risk route.

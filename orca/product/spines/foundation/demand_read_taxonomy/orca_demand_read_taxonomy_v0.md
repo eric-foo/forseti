@@ -46,28 +46,35 @@ lines). No policy change. The channel-vs-person boundary itself remains an
 owner-confirmation item — see the adjudication-prep companion
 (`orca_demand_read_taxonomy_adjudication_v0.md`, Q3).
 
-Demand-state model amendment (2026-06-14, owner-authorized in-thread): the
-central axis changes from **durable vs hollow** to **two independent axes** —
-**durable vs transient** (persistence) and **real vs manufactured** (integrity).
-"Hollow" is retired: it conflated *transient* (real demand that decays — still
-valuable short-term) with *manufactured* (fake / amplified). Three actionable
-states result — **durable** (commit, scale as earned), **transient** (probe / commit in-window, time-boxed to the decay window), **manufactured** (avoid) —
+Demand-state model amendment (2026-06-14, owner-authorized in-thread; clarified
+2026-06-23): the central axis changes from **durable vs hollow** to **two
+independent axes** — **durable vs transient** (persistence horizon) and **real vs
+manufactured** (integrity). "Hollow" is retired: it conflated *transient*
+(strong real demand in the current window whose durability is not called, or
+whose evidence supports decay) with *manufactured* (fake / amplified). Three
+actionable states result — **durable** (real strong demand with a named
+evidence basis for projected persistence over the decision horizon; commit,
+then scale as earned), **transient** (real strong current-window demand; probe /
+commit in-window, time-boxed to the decay window), **manufactured** (avoid) —
 and the action ceiling is matched to the demand's lifespan. Transient gets
 **equal billing** with durable as a read (owner call: spikes are still
 capital-allocation decisions and occur more often than durable shifts). The
-decay-timing problem is **dissolved** by the calling sequence (new section
-below): open transient and act in-window, then **observe** persistence via
-monitoring and **earn** the upgrade to durable — no decay curve to predict. The
-recurring monitoring is **decision-linked retainer billing**, never a feed. The
-layers and read types below are restructured to this model; the controlling
-thesis is amended by dated pointer (see the propagation receipt at the end).
+durability problem is governed by the calling sequence (new section below): open
+current-window transient when no durability basis is present; call durable only
+when the read names the evidence-supported persistence projection; monitor to
+strengthen, revise, scale, or reduce. The recurring monitoring is
+**decision-linked retainer billing**, never a feed. The layers and read types
+below are restructured to this model; the controlling thesis is amended by dated
+pointer (see the propagation receipt at the end).
 
 ## The Function In One Sentence
 
 For a vertical and sub-niche, Orca reads where demand is actually going **and how
-long it will last** — sorting **durable** demand (persists past its trigger) from
-**transient** demand (real, but decays) and from **manufactured** demand (fake /
-amplified) — by fusing buy-side movement with supply-side org motion under
+long it is supportably expected to stay strong** — sorting **durable** demand
+(real strong demand with a named persistence-projection basis) from
+**transient** demand (real strong current-window demand whose durability is not
+called, or whose evidence supports decay) and from **manufactured** demand (fake
+/ amplified) — by fusing buy-side movement with supply-side org motion under
 integrity labels, identifies who calls the wind in that niche, and packages the
 evidence so judgment can set the action ceiling **matched to the demand's
 lifespan** (monitor, probe, commit, hold, scale, avoid, reduce).
@@ -78,23 +85,25 @@ lifespan** (monitor, probe, commit, hold, scale, avoid, reduce).
    from an ingredient, category, format, or claim (owner example: peptides).
    A trend vector carries direction, velocity, **and expected lifespan** — the
    durable-vs-transient question is not a yes/no flag but "what horizon should
-   you act on?"; it is never reported as bare momentum. (Computing the decay
-   curve is a forward capability, likely earned from historical analogues — see
-   the decay-timing confidence note in the Transient-spike read.)
+   you act on?"; it is never reported as bare momentum. A durability projection
+   must cite its basis; computing the exact decay curve is a forward capability,
+   likely earned from historical analogues — see the decay-timing confidence note
+   in the Transient-spike read.
 2. **Wind callers (WindCaller)** — the leading indicators: per vertical × sub-niche, the
    specific accounts, communities, or detectors whose early public calls (Call)
    precede the move. The owner flags influencers as possibly the main wind
    callers. The repo already holds a worked exemplar: INCIDecoder (venue card
    11, "root-receipt detector / wind-caller exemplar" — its commissioned SPF
    tests became the root receipt the entire Purito chain cites).
-   **Primacy (owner-adjudicated 2026-06-14, Q2):** wind callers are **primary at
-   the trigger** — their early call opens the transient read (the in-window
-   action) — while **buy-side costly behavior is primary at the durable upgrade**.
-   A wind-caller's standalone trigger-weight is **calibration-gated**: a proven
-   precede-the-move record earns more weight; until that evidence exists the
-   **conservative default holds** — the Demand-Substrate Hard Gate (≥2 venue
-   families + costly behavior) applies even to a transient move, so a wind-caller
-   call alone never fires one. *Evidence to prove (open, owner-flagged):* that
+   **Primacy (owner-adjudicated 2026-06-14, Q2; clarified 2026-06-23):** wind
+   callers are **primary at the trigger** — their early call can open the
+   current-window transient read (the in-window action) — while **buy-side costly
+   behavior is primary for any durable projection**. A wind-caller's standalone
+   trigger-weight is **calibration-gated**: a proven precede-the-move record
+   earns more weight; until that evidence exists the **conservative default
+   holds** — the Demand-Substrate Hard Gate (origin de-correlation + gradeable
+   costly behavior) applies even to a transient move, so a wind-caller call
+   alone never fires one. *Evidence to prove (open, owner-flagged):* that
    beauty wind-callers actually precede the move reliably — what the calibration
    ledger must demonstrate before trigger-weight shifts toward wind-callers.
    **Boundary (owner-adjudicated 2026-06-14, Q3; cap redefined 2026-06-15):** named public-figure
@@ -131,33 +140,32 @@ lifespan** (monitor, probe, commit, hold, scale, avoid, reduce).
 
 ## Read Types
 
-The reads (Reading) sort into the demand-state model: two independent axes — **durable vs
-transient** (does it persist past its trigger?) and **real vs manufactured** (is
-there costly behavior, or is it amplified/fake?) — yielding three actionable
-states. The action ceiling is matched to the demand's lifespan: committing on a
-spike strands inventory; monitoring a durable shift leaves the compounding play
-on the table.
+The reads (Reading) sort into the demand-state model: two independent axes —
+**durable vs transient** (what persistence horizon can the evidence support?) and
+**real vs manufactured** (is there costly behavior, or is it amplified/fake?) —
+yielding three actionable states. The action ceiling is matched to the demand's
+lifespan: committing beyond the supported horizon strands inventory; monitoring
+a durable shift leaves the compounding play on the table.
 
-- **Durable-demand (Reading) read** (real + persists → *commit*): independent
-  venue families + wind callers + org motion pointing the same way,
-  costly-behavior anchored, and **persisting past the trigger**. Owner's example:
-  demand trending toward peptides, evidenced by named influencer wind-callers,
-  with companies launching ads and hiring in that direction, and reviews /
-  pain-points honing in on the same thing. The trust anchor — the one persistence
-  backtests can support.
-- **Transient-spike (Reading) read** (real + decays → *probe / commit in-window*, time-boxed):
-  real costly behavior with a **short expected lifespan** — a genuine spike that
-  will normalize (a viral surge, a time-limited dupe wave, a seasonal pop). It is
+- **Durable-demand (Reading) read** (real + projected to stay strong →
+  *commit / scale as earned*): effectively independent demand origins + wind
+  callers + org motion pointing the same way, costly-behavior anchored, with a
+  named basis for projecting persistence over the decision horizon. Owner's
+  example: demand trending toward peptides, evidenced by named influencer
+  wind-callers, with companies launching ads and hiring in that direction, and
+  reviews / pain-points honing in on the same thing. Observed persistence is one
+  support path, not the definition.
+- **Transient-spike (Reading) read** (real + strong current-window demand → *probe / commit in-window*, time-boxed):
+  real strong current-window costly behavior with a **short expected lifespan**
+  or without enough basis to project persistence — a genuine spike that will
+  normalize (a viral surge, a time-limited dupe wave, a seasonal pop). It is
   **equal billing** with the durable read (owner call, 2026-06-14): it is still a
   capital-allocation decision and these occur more often than durable shifts.
-  The action is **in-window** (buy or avoid now); durability is then **observed
-  via monitoring, not predicted** (see Calling Sequence below) — which *dissolves*
-  the decay-timing problem rather than capping claims against it. The read stays
-  claim-honest (built-to, not proven-at): durable is only *called* once monitored
-  persistence confirms it. Anti-trap: a transient spike can look identical to
-  durable convergence in the moment; only observed persistence — not an upfront
-  guess — separates them.
-- **Manufactured-demand (Reading) read** (fake / amplified → *discount / avoid*): demand
+  The action is **in-window** (buy or avoid now). Anti-trap: weak/attention-only
+  input is not transient demand, and manufactured hype is not transient demand;
+  transient demand is strong real demand whose persistence horizon is not
+  supportably durable.
+- **Manufactured-demand (Reading) read** (fake / amplified → *avoid*): demand
   that is not real — promotion-engagement mismatch, astroturf, coordinated/bot
   amplification, dupe-wave distortion. Acting on someone else's manufactured
   spike commits to demand that was never yours; identifying it protects both real
@@ -191,22 +199,25 @@ quality under a promo push) — is *evidence you use to classify* a candidate as
 transient or manufactured. It is no longer synonymous with "hollow"; it is how
 you tell real-but-fading from fake.
 
-## Calling Sequence (2026-06-14, owner)
+## Calling Sequence (2026-06-14, owner; clarified 2026-06-23)
 
 The reads relate over time, and that sequence is the read grammar's motion:
 
-1. **First call = transient (the conservative default).** Durable is the
-   over-claimable label — anything can be *asserted* durable — so the read never
-   opens there. It opens transient and **acts in-window** (buy: ride the spike;
-   or avoid: a spike not worth committing to). The action is immediate; it does
-   not wait on the monitor.
-2. **Then monitor momentum.** Durability is **observed, not predicted** — this
-   *dissolves* the decay-timing problem (no decay curve to forecast at t=0). The
-   spike either decays (exit, as called) or its momentum persists.
-3. **Earn the upgrade to durable.** When monitored persistence holds past the
-   trigger, the call upgrades transient → durable (commit, scale as earned).
-   Durable is the *earned* state, confirmed by observed momentum — never the
-   opening assertion.
+1. **First call = current-window transient unless a durability basis is already
+   in the information set.** Durable is the over-claimable label — anything can
+   be *asserted* durable — so the read must name the evidence basis before it can
+   call durable. Without that basis, it opens transient and **acts in-window**
+   (buy: ride the spike; or avoid/reduce: a spike not worth committing to). The
+   action is immediate; it does not wait on the monitor.
+2. **Then monitor momentum.** Monitoring does not merely observe history; it
+   builds or defeats the persistence projection. The spike either decays (exit,
+   as called), consolidates into a durable read, or reveals manufactured
+   contamination.
+3. **Earn or revise the durable call.** When monitored evidence, repeated costly
+   behavior, analogues, and corroborating org motion support the persistence
+   projection, the call upgrades transient → durable (commit, scale as earned).
+   Durable is the *earned* projection state — not a retrospective label and not
+   an opening assertion without basis.
 
 **Re-homed 2026-06-14** (kept here only as grammar; the commercial and
 positioning consequences live where they belong): the *billing shape* (recurring

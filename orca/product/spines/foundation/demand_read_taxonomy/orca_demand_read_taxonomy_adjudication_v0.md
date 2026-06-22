@@ -191,25 +191,30 @@ may never exceed what signal integrity supports.
 > axes — durable vs transient × real vs manufactured — yielding three actionable
 > states. Divergence is a *technique*, not a read.
 
-**Durable-demand (Reading) read** — real + persists → *commit*, long horizon
-- *What counts:* independent venue families + wind callers + org motion pointing
-  the **same way**, costly-behavior anchored, **and persisting past the trigger**
-  (owner example: peptides). The trust anchor — the one persistence backtests support.
+**Durable-demand (Reading) read** — real + projected to stay strong →
+*commit / scale as earned*
+- *What counts:* effectively independent demand origins + wind callers + org
+  motion pointing the **same way**, costly-behavior anchored, with a named basis
+  for projecting persistence over the decision horizon (owner example:
+  peptides). Observed persistence is one support path, not the definition.
 - *Anti-trigger:* convergence asserted on engagement volume; single-venue
   agreement dressed up as multi-venue; convergence without costly behavior; a
   **spike mistaken for persistence** (decay not assessed).
 - *Boundary:* must clear the Hard Gate; ceiling capped by signal integrity.
 
-**Transient-spike (Reading) read** — real + decays → *move*, short horizon, time-boxed (NEW; owner equal-billing 2026-06-14)
-- *What counts:* real costly behavior with a **short expected lifespan** — a
-  genuine spike that will normalize (viral surge, time-limited dupe wave, seasonal pop).
+**Transient-spike (Reading) read** — real + strong current-window demand →
+*probe / commit in-window*, time-boxed (NEW; owner equal-billing 2026-06-14)
+- *What counts:* real strong costly behavior with a **short expected lifespan**
+  or without enough basis to project persistence — a genuine spike that will
+  normalize (viral surge, time-limited dupe wave, seasonal pop).
 - *Anti-trigger:* a spike treated as durable (commit long → stranded inventory);
   a manufactured pump mistaken for a real spike (integrity layer must clear it first).
-- *Boundary:* **equal billing as a read**; durability is **observed via the
-  calling sequence** (open transient, monitor, earn durable — not predicted, so
-  the decay-timing problem is dissolved, not a standing cap). A transient call is
-  **built-to, not proven-at** on its lifespan until a decay-curve capability
-  exists (reconciled 2026-06-14, OF-01).
+- *Boundary:* **equal billing as a read**; weak/attention-only input is not
+  transient demand, and manufactured hype is not transient demand. Durability is
+  a projected persistence call with a named evidence basis; monitoring builds or
+  defeats that basis. A transient call is **built-to, not proven-at** on its
+  exact lifespan until a decay-curve capability exists (reconciled 2026-06-14,
+  OF-01; clarified 2026-06-23).
 
 **Manufactured-demand (Reading) read** — fake / amplified → *discount / avoid*
 - *What counts:* demand that is not real — promotion-engagement mismatch,
@@ -309,14 +314,16 @@ often). Divergence becomes a **technique, not a verdict**. Identifying
 manufactured demand is **decision-critical in its own right** (owner).
 
 **Refined 2026-06-14 (owner) — the calling sequence dissolves the decay-timing
-problem:** the read opens **transient** and acts in-window (buy or avoid), then
-**observes** persistence via monitoring and **earns** the upgrade to durable — no
-decay curve to predict; the earlier decay-timing-confidence guardrail is
-superseded by observe-don't-predict. The recurring monitoring is **decision-linked
-retainer billing** (upgraded billing), never a feed — every output is a calibrated
-decision with an action ceiling, which keeps the retainer off the buyer-proof
-"monitoring-only pull" kill and out of the social-listening category. Monitored
-outcomes are also the calibration data that earns the judgment moat.
+problem; clarified 2026-06-23:** the read opens **current-window transient**
+unless a durability basis is already in the information set, acts in-window (buy
+or avoid/reduce), then uses monitoring to strengthen, revise, scale, or reduce
+the persistence projection — no decay curve to predict; the earlier
+decay-timing-confidence guardrail is superseded by basis-don't-guess. The
+recurring monitoring is **decision-linked retainer billing** (upgraded billing),
+never a feed — every output is a calibrated decision with an action ceiling,
+which keeps the retainer off the buyer-proof "monitoring-only pull" kill and out
+of the social-listening category. Monitored outcomes are also the calibration
+data that earns the judgment moat.
 
 **Differentiation floor (owner insight):** the mechanical layers (costly-behavior
 primitive, org-motion fusion, entity resolution) beat a social listener's inputs

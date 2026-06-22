@@ -138,8 +138,10 @@ Rule 3 governs how C2 weights a **known dispositive manufactured-axis (integrity
 risk** to an allowed signal across the three states evidence can leave it in. It is
 re-grounded onto main's two-axis demand-state model (durable/transient +
 real/manufactured): the **cap lives on the manufactured axis**; persistence-axis
-patterns are **transient verdicts, not caps** (routed to C3). Qualitative,
-INV-1-safe, advisory.
+patterns are **transient verdicts, not caps** (routed to C3). Transient here means
+strong current-window demand with no durable projection basis, or evidence that
+supports decay; it is not a weak-signal bucket. Qualitative, INV-1-safe,
+advisory.
 
 **Scope.** Rule 3 governs risks that, if active, mean the demand **is not real**
 (fabrication / coordination — bots, fake accounts, review-stuffing, laundered
