@@ -57,7 +57,7 @@ REQUIRED_ROW_COLUMNS = {
     "surface_cutoff_status",
     "cutoff_status",
 }
-VALID_HANDOFF_MODES = {"backtest", "forward", "unknown"}
+VALID_HANDOFF_MODES = {"backtest", "forward"}
 VALID_SOURCE_FAMILIES = {
     "forums_community",
     "reviews",

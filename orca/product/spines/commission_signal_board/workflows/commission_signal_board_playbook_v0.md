@@ -82,14 +82,16 @@ python -B -m pytest -q -p no:cacheprovider tests\unit\test_commission_signal_boa
 
 ## Validator Applicability
 
-Run the validator only when the saved output contains both:
+Run the validator only when the saved output is a full board with Sections 1-10
+in the prompt-defined order, including:
 
-- `### 4. Signal Board Rows`
-- `### 8. Demand-Classifier Handoff Packet`
+- `### 4. Signal Board Rows`;
+- `### 8. Demand-Classifier Handoff Packet`;
+- `### 10. Board Status And Run Boundary`.
 
 Do not run it against intake-only output. A `NEEDS_COMMISSION_INTAKE` or
-`NEEDS_CUTOFF_DATE` response is expected to fail with missing Section 4 and
-Section 8, because it is not a board.
+`NEEDS_CUTOFF_DATE` response is expected to fail the full-section contract,
+because it is not a board.
 
 ## What The Validator Checks
 
@@ -99,7 +101,7 @@ columns (`row_id`, `source_family`, `signal_role`, `evidence_status`,
 `surface_cutoff_status`, `cutoff_status`), Section 8 must contain a valid YAML
 `classifier_handoff_packet`, and Section 10 must contain valid board-status
 YAML. It fails malformed Section 4 rows, missing row IDs, duplicate row IDs,
-non-`SBR-001` row IDs, non-monotonic row IDs, invalid Section 4 controlled
+row IDs not matching `SBR-NNN` format, non-monotonic row IDs, invalid Section 4 controlled
 vocabulary values, missing Section 8 handoff packet fields, invalid
 `classifier_mapping_status`, invalid `prohibited_claims` shape, invalid
 `board_status`, invalid `run_boundary`, and missing `next_authorized_step`.
@@ -115,6 +117,10 @@ referenced handoff row:
 - is AEO / answer-engine visibility;
 - in backtest mode, lacks `surface_cutoff_status: existed_by_cutoff`;
 - in backtest mode, lacks `cutoff_status: in_window`.
+
+Valid handoff modes are `backtest` and `forward`; unknown or placeholder modes
+fail instead of silently bypassing cutoff enforcement.
+
 ## What A Pass Means
 
 A pass means:

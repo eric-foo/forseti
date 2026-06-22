@@ -60,6 +60,21 @@ def test_invalid_commission_signal_board_outputs_fail(
     assert (expected_code, expected_row_id) in {(finding.code, finding.row_id) for finding in findings}
 
 
+def test_unknown_handoff_mode_is_rejected_before_cutoff_bypass() -> None:
+    text = (FIXTURE_DIR / "valid_source_backed_backtest_output.txt").read_text(encoding="utf-8")
+    text, mode_replacements = re.subn(r"(?m)^(\s{2})mode: backtest\s*$", r"\1mode: unknown", text, count=1)
+    assert mode_replacements == 1
+    text = text.replace(
+        "| SBR-001 | forums_community | Reddit | public thread | dated consumer question | consumer_language | signal_unit | node_candidate | medium | source_backed | URL and thread date supplied | existed_by_cutoff | in_window | Eligible for classifier handoff |",
+        "| SBR-001 | forums_community | Reddit | public thread | dated consumer question | consumer_language | signal_unit | node_candidate | medium | source_backed | URL and thread date supplied | existed_by_cutoff | uncertain | Eligible for classifier handoff |",
+        1,
+    )
+
+    findings = validator.validate_text(text)
+
+    assert "invalid_handoff_mode" in {finding.code for finding in findings}
+
+
 def test_handoff_row_must_exist_in_signal_board_rows() -> None:
     text = (FIXTURE_DIR / "valid_source_backed_backtest_output.txt").read_text(encoding="utf-8")
     text, replacements = re.subn(r"(?m)^(\s*-\s*)SBR-001\s*$", r"\1SBR-999", text, count=1)
@@ -93,7 +108,13 @@ def test_handoff_validation_continues_with_malformed_unreferenced_row() -> None:
 
 def test_full_board_requires_sections_one_through_ten_in_order() -> None:
     text = (FIXTURE_DIR / "valid_source_backed_backtest_output.txt").read_text(encoding="utf-8")
-    text = text.replace("### 9. Visible Limitations\n\nThis fixture proves only mechanical eligibility under declared row fields.\n\n", "", 1)
+    text, replacements = re.subn(
+        r"(?ms)^### 9\. Visible Limitations\s+.*?(?=^### 10\.)",
+        "",
+        text,
+        count=1,
+    )
+    assert replacements == 1
 
     findings = validator.validate_text(text)
 
