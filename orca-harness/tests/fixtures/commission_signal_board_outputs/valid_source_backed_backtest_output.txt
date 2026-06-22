@@ -23,11 +23,11 @@ non_goals_preserved:
 
 ### 4. Signal Board Rows
 
-| Row ID | Source family | Subfamily | Surface | Observable | Signal role | Row purpose | Graph role | Graph weight hint | Evidence status | Provenance needed | Surface cutoff status | Cutoff status | Handoff note |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| SBR-001 | forums_community | Reddit | public thread | dated consumer question | consumer_language | signal_unit | node_candidate | medium | source_backed | URL and thread date supplied | existed_by_cutoff | in_window | Eligible for classifier handoff |
-| SBR-002 | reviews | retailer reviews | PDP reviews | dated complaint cluster | review_experience | contradiction | counterevidence_path | medium | source_backed | review URL and review date supplied | existed_by_cutoff | in_window | Eligible counterevidence handoff |
-| SBR-003 | aeo_answer_engines | answer engines | ChatGPT/Gemini/AIO | answer visibility | aeo_visibility | gap | none | none | excluded_future_info | not applicable | post_cutoff_surface | post_cutoff_excluded | Exclude from classifier handoff |
+| Row ID | Source family | Subfamily | Surface | Observable | Signal role | Row purpose | Recency status | Recency attention | Graph role | Graph weight hint | Evidence status | Provenance needed | Surface cutoff status | Cutoff status | Handoff note |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| SBR-001 | forums_community | Reddit | public thread | dated consumer question | consumer_language | signal_unit | recent | high | node_candidate | medium | source_backed | URL and thread date supplied | existed_by_cutoff | in_window | Eligible for classifier handoff |
+| SBR-002 | reviews | retailer reviews | PDP reviews | dated complaint cluster | review_experience | contradiction | recent | high | counterevidence_path | medium | source_backed | review URL and review date supplied | existed_by_cutoff | in_window | Eligible counterevidence handoff |
+| SBR-003 | aeo_answer_engines | answer engines | ChatGPT/Gemini/AIO | answer visibility | aeo_visibility | gap | not_applicable | low | none | none | excluded_future_info | not applicable | post_cutoff_surface | post_cutoff_excluded | Exclude from classifier handoff |
 
 ### 7. Graph Retrieval Brief
 

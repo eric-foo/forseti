@@ -23,11 +23,11 @@ non_goals_preserved:
 
 ### 4. Signal Board Rows
 
-| Row ID | Source family | Subfamily | Surface | Observable | Signal role | Row purpose | Graph role | Graph weight hint | Evidence status | Provenance needed | Surface cutoff status | Cutoff status | Handoff note |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| SBR-001 | forums_community | Reddit | public threads | dated questions and objections | consumer_language | signal_unit | node_candidate | medium | to_retrieve | URL and thread date | existed_by_cutoff | uncertain | Needs retrieval before classifier handoff |
-| SBR-002 | reviews | retailer reviews | PDP reviews | dated experience claims | review_experience | signal_unit | node_candidate | medium | to_retrieve | review URL and review date | existed_by_cutoff | uncertain | Needs retrieval before classifier handoff |
-| SBR-003 | aeo_answer_engines | answer engines | ChatGPT/Gemini/AIO | answer visibility | aeo_visibility | gap | none | none | excluded_future_info | not applicable | post_cutoff_surface | post_cutoff_excluded | Exclude from classifier handoff |
+| Row ID | Source family | Subfamily | Surface | Observable | Signal role | Row purpose | Recency status | Recency attention | Graph role | Graph weight hint | Evidence status | Provenance needed | Surface cutoff status | Cutoff status | Handoff note |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| SBR-001 | forums_community | Reddit | public threads | dated questions and objections | consumer_language | signal_unit | stale_or_unknown | unknown | node_candidate | medium | to_retrieve | URL and thread date | existed_by_cutoff | uncertain | Needs retrieval before classifier handoff |
+| SBR-002 | reviews | retailer reviews | PDP reviews | dated experience claims | review_experience | signal_unit | stale_or_unknown | unknown | node_candidate | medium | to_retrieve | review URL and review date | existed_by_cutoff | uncertain | Needs retrieval before classifier handoff |
+| SBR-003 | aeo_answer_engines | answer engines | ChatGPT/Gemini/AIO | answer visibility | aeo_visibility | gap | not_applicable | low | none | none | excluded_future_info | not applicable | post_cutoff_surface | post_cutoff_excluded | Exclude from classifier handoff |
 
 ### 7. Graph Retrieval Brief
 

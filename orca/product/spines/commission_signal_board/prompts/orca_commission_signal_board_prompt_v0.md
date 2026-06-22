@@ -62,9 +62,10 @@ python -B .agents\hooks\check_commission_signal_board_output.py <board-output-fi
 ```
 
 A validator pass means only that the handoff rows are mechanically eligible
-under the board's own row table. It is not evidence truth, demand
-classification, retrieval completion, buyer proof, validation, readiness, or
-client-facing approval.
+under the board's own row table and that Section 4 carries the required
+recency/current-state attention fields. It is not evidence truth, demand
+classification, retrieval completion, buyer proof, validation, readiness,
+attention correctness, or client-facing approval.
 
 If the dispatcher wants the board written as a durable repo artifact, use a
 separate wrapper or current-turn instruction that binds a file path, docs-write
@@ -582,6 +583,10 @@ direction_change_propagation:
   controlling_sources_updated:
     - orca/product/spines/commission_signal_board/prompts/orca_commission_signal_board_prompt_v0.md
     - orca/product/spines/commission_signal_board/authority/orca_commission_signal_board_prompt_adjudication_packet_v0.md
+    - orca/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md
+    - .agents/hooks/check_commission_signal_board_output.py
+    - orca-harness/tests/unit/test_commission_signal_board_output_validator.py
+    - orca-harness/tests/fixtures/commission_signal_board_outputs/
     - orca/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md
     - orca/product/spines/judgment/demand_read/core/judgment_spine_demand_read_machinery_architecture_v0.md
     - docs/workflows/orca_repo_map_v0.md
@@ -594,12 +599,13 @@ direction_change_propagation:
     - orca/product/spines/scanning/README.md
     - orca/product/spines/scanning/scan_core/orca_scanning_intelligent_walk_mgt_operating_model_v0.md
   intentionally_not_updated:
-    - path: .agents/hooks/check_commission_signal_board_output.py
+    - path: .agents/workflow-overlay/validation-gates.md
       reason: >
-        The validator only requires existing core row columns; recency fields are
-        optional board metadata and do not change mechanical handoff safety.
+        The CSB validator remains a manual/local checker, not a CI, pre-commit,
+        or write-hook gate. The existing enforcement-placement rule already
+        covers why mechanically checkable output shape lives in the checker.
   stale_language_search: >
-    rg -n "recency|recent|current-state|currentness|proof|graph weight|classifier mapping"
+    rg -n "recency|recent|current-state|currentness|optional board metadata|validator only requires existing core row columns|proof|graph weight|classifier mapping"
     orca/product/spines/commission_signal_board orca/product/spines/scanning docs/workflows/orca_repo_map_v0.md
     (run 2026-06-23)
   stale_language_search_result: >
@@ -607,7 +613,10 @@ direction_change_propagation:
     summaries, existing scanning safeguards, historical CSB source-family
     references, or explicit no-proof/no-classifier/no-graph-weight boundaries.
     No controlling CSB/scanning surface was found that turns recency/currentness
-    into buyer proof, demand classification, classifier mapping, or graph weight.
+    into buyer proof, demand classification, classifier mapping, or graph weight;
+    the old optional-validator wording produced only receipt search-string hits,
+    not live instructional hits, after the CSB validator began requiring recency
+    fields and enum values.
     Capture and Judgment surfaces carry their own DCP receipts for the same
     propagation, and the follow-up adversarial review ran a cross-spine leakage
     search with no proof, scoring, route-binding, or gate-clearance leakage found.

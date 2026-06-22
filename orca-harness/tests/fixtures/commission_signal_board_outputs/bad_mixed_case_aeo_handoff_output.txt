@@ -22,9 +22,9 @@ non_goals_preserved:
 
 ### 4. Signal Board Rows
 
-| Row ID | Source family | Subfamily | Surface | Observable | Signal role | Row purpose | Graph role | Graph weight hint | Evidence status | Provenance needed | Surface cutoff status | Cutoff status | Handoff note |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| SBR-001 | AEO_answer_engines | answer engines | ChatGPT/Gemini/AIO | answer visibility | AEO_Visibility | gap | none | none | source_backed | URL and date supplied | existed_by_cutoff | in_window | Must not enter classifier handoff despite source-backed status |
+| Row ID | Source family | Subfamily | Surface | Observable | Signal role | Row purpose | Recency status | Recency attention | Graph role | Graph weight hint | Evidence status | Provenance needed | Surface cutoff status | Cutoff status | Handoff note |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| SBR-001 | AEO_answer_engines | answer engines | ChatGPT/Gemini/AIO | answer visibility | AEO_Visibility | gap | not_applicable | low | none | none | source_backed | URL and date supplied | existed_by_cutoff | in_window | Must not enter classifier handoff despite source-backed status |
 
 ### 8. Demand-Classifier Handoff Packet
 

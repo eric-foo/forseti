@@ -95,10 +95,13 @@ Section 8, because it is not a board.
 
 The validator first checks Section 4 and Section 8 structure. It fails when
 Section 4 is missing its Markdown table, required columns (`row_id`,
-`source_family`, `signal_role`, `evidence_status`, `surface_cutoff_status`,
-`cutoff_status`), or has malformed rows, missing row IDs, or duplicate row IDs.
-It also fails when Section 8 is missing, lacks a YAML fence, has invalid YAML,
-or lacks `classifier_handoff_packet`.
+`source_family`, `signal_role`, `row_purpose`, `recency_status`,
+`recency_attention`, `graph_role`, `graph_weight_hint`, `evidence_status`,
+`surface_cutoff_status`, `cutoff_status`), or has malformed rows, missing row
+IDs, duplicate row IDs, or invalid `row_purpose`, `recency_status`,
+`recency_attention`, `graph_role`, or `graph_weight_hint` values. It also fails
+when Section 8 is missing, lacks a YAML fence, has invalid YAML, or lacks
+`classifier_handoff_packet`.
 
 After structure passes, the validator cross-checks rows listed in Section 8
 against the Section 4 table. It fails when the handoff packet has a missing or
@@ -117,7 +120,8 @@ A pass means:
 
 ```text
 Rows listed in the classifier handoff are mechanically eligible under the
-board's own row table.
+board's own row table, and the row table carries the required recency/current-
+state attention fields.
 ```
 
 A pass does not mean:
@@ -128,6 +132,7 @@ A pass does not mean:
 - the board is exhaustive;
 - graph construction is complete;
 - classifier mapping is correct;
+- recency/current-state attention values prove demand or evidence strength;
 - buyer proof, validation, readiness, forecast, or client-facing claims are allowed.
 
 ## How Agents Discover This Lane
@@ -161,12 +166,19 @@ direction_change_propagation:
     agents must check intake first, produce a full board only when required
     inputs are supplied, and run the manual/local validator only against full
     board outputs before making a classifier-handoff mechanical-safety claim.
+    The manual/local validator now also enforces Section 4 row-shape fields for
+    recency/current-state attention metadata, while keeping attention separate
+    from proof, classifier mapping, graph weight, or evidence truth.
   trigger: workflow_authority
   related_triggers:
     - validation_philosophy
   controlling_sources_updated:
     - orca/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md
     - orca/product/spines/commission_signal_board/prompts/orca_commission_signal_board_prompt_v0.md
+    - orca/product/spines/commission_signal_board/authority/orca_commission_signal_board_prompt_adjudication_packet_v0.md
+    - .agents/hooks/check_commission_signal_board_output.py
+    - orca-harness/tests/unit/test_commission_signal_board_output_validator.py
+    - orca-harness/tests/fixtures/commission_signal_board_outputs/
     - docs/workflows/orca_repo_map_v0.md
   downstream_surfaces_checked:
     - AGENTS.md
@@ -176,7 +188,10 @@ direction_change_propagation:
     - .agents/workflow-overlay/prompt-orchestration.md
     - .agents/workflow-overlay/validation-gates.md
     - .agents/hooks/check_commission_signal_board_output.py
+    - orca-harness/tests/unit/test_commission_signal_board_output_validator.py
     - orca-harness/tests/fixtures/commission_signal_board_outputs/
+    - orca/product/spines/scanning/README.md
+    - orca/product/spines/scanning/scan_core/orca_scanning_intelligent_walk_mgt_operating_model_v0.md
   intentionally_not_updated:
     - path: AGENTS.md
       reason: >
@@ -197,19 +212,25 @@ direction_change_propagation:
         Prompt-orchestration mechanics are unchanged; the board prompt now
         points to this playbook instead of forking prompt-policy.
   stale_language_search: >
-    rg -n "Commission Signal Board|commission_signal_board|check_commission_signal_board|NEEDS_COMMISSION_INTAKE|validator target|classifier handoff"
-    docs .agents orca-harness -S
+    rg -n "recency fields are|optional board metadata|do not change mechanical handoff safety|validator only requires existing core row columns"
+    orca/product/spines/commission_signal_board .agents/hooks/check_commission_signal_board_output.py
+    orca-harness/tests/unit/test_commission_signal_board_output_validator.py
+    orca-harness/tests/fixtures/commission_signal_board_outputs
     and
-    rg -n "run the validator|validator applies|manual/local|NOT hook-wired|intake-only"
-    docs .agents orca-harness -S
-    (executed 2026-06-18)
+    rg -n "run the validator|validator applies|manual/local|NOT hook-wired|intake-only|recency_status|recency_attention|CI|pre-commit|write-hook"
+    orca/product/spines/commission_signal_board .agents/hooks/check_commission_signal_board_output.py
+    orca-harness/tests/unit/test_commission_signal_board_output_validator.py
+    orca-harness/tests/fixtures/commission_signal_board_outputs
+    (executed 2026-06-23)
   stale_language_search_result: >
-    Live hits are the validator, fixtures/tests, the adjudication packet, the
-    updated Commission Signal Board prompt, this playbook, and the repo-map
-    discovery entries. No checked live surface instructed agents to run the
-    validator on intake-only output, skip the playbook for Commission Signal
-    Board work, treat the checker as CI/pre-commit, or treat validator pass as
-    evidence truth, demand classification, proof, or readiness.
+    The old optional-recency validator wording produced only receipt search-string
+    hits, not live instructional hits. Scoped validator
+    hits are the updated prompt, playbook, adjudication packet, validator, tests,
+    fixtures, and pointer surfaces. No checked live surface instructed agents to
+    run the validator on intake-only output, skip the playbook for Commission
+    Signal Board work, treat the checker as CI/pre-commit/write-hook enforcement,
+    omit required recency row fields, or treat validator pass as evidence truth,
+    demand classification, proof, graph weight, recency proof, or readiness.
   non_claims:
     - not validation
     - not readiness

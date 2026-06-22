@@ -4,7 +4,8 @@
 This is a local/manual checker. It does not run retrieval, classify demand,
 construct graphs, or prove a board is correct. It only checks that rows listed
 in the classifier handoff are evidence-backed and cutoff-safe according to the
-board's own row table.
+board's own row table, and that the row table carries the mechanically required
+recency/current-state attention fields.
 """
 from __future__ import annotations
 
@@ -34,11 +35,43 @@ REQUIRED_ROW_COLUMNS = {
     "row_id",
     "source_family",
     "signal_role",
+    "row_purpose",
+    "recency_status",
+    "recency_attention",
+    "graph_role",
+    "graph_weight_hint",
     "evidence_status",
     "surface_cutoff_status",
     "cutoff_status",
 }
 VALID_HANDOFF_MODES = {"backtest", "forward", "unknown"}
+VALID_ROW_PURPOSES = {
+    "chronology",
+    "source_route",
+    "signal_unit",
+    "contradiction",
+    "gap",
+    "classifier_handoff",
+    "recency_priority",
+}
+VALID_RECENCY_STATUSES = {
+    "current_state",
+    "recent",
+    "older_context",
+    "stale_or_unknown",
+    "not_applicable",
+}
+VALID_RECENCY_ATTENTIONS = {"high", "normal", "low", "unknown"}
+VALID_GRAPH_ROLES = {
+    "seed",
+    "node_candidate",
+    "edge_candidate",
+    "propagation_path",
+    "campaign_overlap_check",
+    "counterevidence_path",
+    "none",
+}
+VALID_GRAPH_WEIGHT_HINTS = {"high", "medium", "low", "none"}
 
 
 @dataclass(frozen=True)
@@ -71,6 +104,72 @@ def _extract_section(pattern: re.Pattern[str], text: str, missing_code: str, mis
     if not match:
         return "", [Finding(missing_code, missing_message)]
     return match.group("body"), []
+
+
+
+def _validate_vocab_field(
+    row_id: str,
+    row: dict[str, str],
+    field_name: str,
+    valid_values: set[str],
+    finding_code: str,
+) -> list[Finding]:
+    raw_value = row.get(field_name, "")
+    normalized = _normalize_vocab(raw_value)
+    if normalized in valid_values:
+        return []
+    valid_display = ", ".join(sorted(valid_values))
+    return [
+        Finding(
+            finding_code,
+            f"{field_name} must be one of {valid_display}, got {raw_value or '<blank>'}.",
+            row_id,
+        )
+    ]
+
+
+def _validate_signal_row_vocab(row_id: str, row: dict[str, str]) -> list[Finding]:
+    findings: list[Finding] = []
+    findings.extend(
+        _validate_vocab_field(row_id, row, "row_purpose", VALID_ROW_PURPOSES, "invalid_row_purpose")
+    )
+    findings.extend(
+        _validate_vocab_field(
+            row_id,
+            row,
+            "recency_status",
+            VALID_RECENCY_STATUSES,
+            "invalid_recency_status",
+        )
+    )
+    findings.extend(
+        _validate_vocab_field(
+            row_id,
+            row,
+            "recency_attention",
+            VALID_RECENCY_ATTENTIONS,
+            "invalid_recency_attention",
+        )
+    )
+    findings.extend(
+        _validate_vocab_field(
+            row_id,
+            row,
+            "graph_role",
+            VALID_GRAPH_ROLES,
+            "invalid_graph_role",
+        )
+    )
+    findings.extend(
+        _validate_vocab_field(
+            row_id,
+            row,
+            "graph_weight_hint",
+            VALID_GRAPH_WEIGHT_HINTS,
+            "invalid_graph_weight_hint",
+        )
+    )
+    return findings
 
 
 def parse_signal_rows(text: str) -> tuple[dict[str, dict[str, str]], list[Finding]]:
@@ -121,6 +220,7 @@ def parse_signal_rows(text: str) -> tuple[dict[str, dict[str, str]], list[Findin
         if row_id in rows:
             out_findings.append(Finding("duplicate_row_id", f"Duplicate signal board row ID {row_id}.", row_id))
             continue
+        out_findings.extend(_validate_signal_row_vocab(row_id, row))
         rows[row_id] = row
     return rows, out_findings
 

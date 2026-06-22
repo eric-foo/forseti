@@ -22,9 +22,9 @@ non_goals_preserved:
 
 ### 4. Signal Board Rows
 
-| Row ID | Source family | Subfamily | Surface | Observable | Signal role | Row purpose | Graph role | Graph weight hint | Evidence status | Provenance needed | Surface cutoff status | Cutoff status | Handoff note |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| SBR-001 | reviews | retailer reviews | PDP reviews | dated experience claims | review_experience | signal_unit | node_candidate | medium | source_backed | review URL and review date supplied | existed_by_cutoff | uncertain | Must not enter classifier handoff until cutoff is proven |
+| Row ID | Source family | Subfamily | Surface | Observable | Signal role | Row purpose | Recency status | Recency attention | Graph role | Graph weight hint | Evidence status | Provenance needed | Surface cutoff status | Cutoff status | Handoff note |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| SBR-001 | reviews | retailer reviews | PDP reviews | dated experience claims | review_experience | signal_unit | recent | high | node_candidate | medium | source_backed | review URL and review date supplied | existed_by_cutoff | uncertain | Must not enter classifier handoff until cutoff is proven |
 
 ### 8. Demand-Classifier Handoff Packet
 
