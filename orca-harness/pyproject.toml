@@ -24,10 +24,11 @@ impersonate = [
 ]
 transcribe = [
   # Transcript spine runtime deps (source_capture/transcript/). OPTIONAL + LAZY-imported: the
-  # package and its network-free unit tests do NOT require these; only real capture does.
-  # yt-dlp: caption json3 + bestaudio fetch (token-free clients). The ASR fallback adds
-  # faster-whisper here when it lands.
+  # package and its network-free unit tests do NOT require these; only real capture/ASR does.
+  # yt-dlp: caption json3 + bestaudio fetch (token-free clients). faster-whisper: VAD-gated
+  # ASR fallback for no-caption videos.
   "yt-dlp",
+  "faster-whisper",
 ]
 
 [tool.setuptools]
