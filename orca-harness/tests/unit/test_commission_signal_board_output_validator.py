@@ -89,3 +89,61 @@ def test_handoff_validation_continues_with_malformed_unreferenced_row() -> None:
 
     assert "malformed_signal_board_row" in codes
     assert ("handoff_row_cutoff_invalid", "SBR-001") in {(finding.code, finding.row_id) for finding in findings}
+
+
+def test_full_board_requires_sections_one_through_ten_in_order() -> None:
+    text = (FIXTURE_DIR / "valid_source_backed_backtest_output.txt").read_text(encoding="utf-8")
+    text = text.replace("### 9. Visible Limitations\n\nThis fixture proves only mechanical eligibility under declared row fields.\n\n", "", 1)
+
+    findings = validator.validate_text(text)
+
+    assert "invalid_section_contract" in {finding.code for finding in findings}
+
+
+def test_row_ids_must_use_sbr_format() -> None:
+    text = (FIXTURE_DIR / "valid_source_backed_backtest_output.txt").read_text(encoding="utf-8")
+    text = text.replace("| SBR-001 | forums_community |", "| ROW-001 | forums_community |", 1)
+
+    findings = validator.validate_text(text)
+
+    assert ("invalid_row_id_format", "ROW-001") in {(finding.code, finding.row_id) for finding in findings}
+
+
+def test_row_ids_must_be_monotonic() -> None:
+    text = (FIXTURE_DIR / "valid_source_backed_backtest_output.txt").read_text(encoding="utf-8")
+    text = text.replace("| SBR-002 | reviews |", "| SBR-004 | reviews |", 1)
+
+    findings = validator.validate_text(text)
+
+    assert ("non_monotonic_row_id", "SBR-004") in {(finding.code, finding.row_id) for finding in findings}
+
+
+def test_row_vocab_must_use_prompt_values() -> None:
+    text = (FIXTURE_DIR / "valid_source_backed_backtest_output.txt").read_text(encoding="utf-8")
+    text = text.replace("| SBR-001 | forums_community |", "| SBR-001 | forum-ish |", 1)
+
+    findings = validator.validate_text(text)
+
+    assert ("invalid_source_family", "SBR-001") in {(finding.code, finding.row_id) for finding in findings}
+
+
+def test_handoff_packet_requires_shape_fields() -> None:
+    text = (FIXTURE_DIR / "valid_source_backed_backtest_output.txt").read_text(encoding="utf-8")
+    text = text.replace("  classifier_mapping_status: classifier_owned\n", "", 1)
+
+    findings = validator.validate_text(text)
+
+    assert "missing_handoff_packet_fields" in {finding.code for finding in findings}
+    assert "invalid_classifier_mapping_status" in {finding.code for finding in findings}
+
+
+def test_board_status_values_are_constrained() -> None:
+    text = (FIXTURE_DIR / "valid_source_backed_backtest_output.txt").read_text(encoding="utf-8")
+    text = text.replace("board_status: READY_FOR_RETRIEVAL_HANDOFF", "board_status: READY_FOR_DEMAND_VERDICT", 1)
+    text = text.replace("run_boundary: CHAT_ONLY_BOARD_COMPLETE", "run_boundary: RAN_CLASSIFIER", 1)
+
+    findings = validator.validate_text(text)
+    codes = {finding.code for finding in findings}
+
+    assert "invalid_board_status" in codes
+    assert "invalid_run_boundary" in codes

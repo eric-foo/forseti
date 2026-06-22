@@ -21,6 +21,18 @@ non_goals_preserved:
   - no demand classification
 ```
 
+### 2. Boundary Statement
+
+This is an evidence/signals-only fixture, not a demand verdict, proof claim, graph artifact, forecast, judgment, or client output.
+
+### 3. Source-Family Coverage Plan
+
+| Source family | Subfamily / surface | Capture posture | Why check it | Expected observable | Evidence status | Surface cutoff status | Cutoff status | Notes |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| forums_community | Reddit public threads | manual_only | Possible consumer-language route | Dated questions and objections | to_retrieve | existed_by_cutoff | uncertain | Needs source-backed retrieval |
+| reviews | retailer PDP reviews | manual_only | Possible review-experience route | Dated experience claims | to_retrieve | existed_by_cutoff | uncertain | Needs source-backed retrieval |
+| aeo_answer_engines | answer engines | not_authorized | Post-cutoff visibility annotation | Answer visibility | excluded_future_info | post_cutoff_surface | post_cutoff_excluded | Excluded from handoff |
+
 ### 4. Signal Board Rows
 
 | Row ID | Source family | Subfamily | Surface | Observable | Signal role | Row purpose | Graph role | Graph weight hint | Evidence status | Provenance needed | Surface cutoff status | Cutoff status | Handoff note |
@@ -29,11 +41,40 @@ non_goals_preserved:
 | SBR-002 | reviews | retailer reviews | PDP reviews | dated experience claims | review_experience | signal_unit | node_candidate | medium | to_retrieve | review URL and review date | existed_by_cutoff | uncertain | Needs retrieval before classifier handoff |
 | SBR-003 | aeo_answer_engines | answer engines | ChatGPT/Gemini/AIO | answer visibility | aeo_visibility | gap | none | none | excluded_future_info | not applicable | post_cutoff_surface | post_cutoff_excluded | Exclude from classifier handoff |
 
+### 5. Mandatory Counterevidence Paths
+
+| Path ID | What could disconfirm or weaken the signal | Source families to check | Why it matters | Evidence status | Cutoff rule |
+| --- | --- | --- | --- | --- | --- |
+| CP-001 | No source-backed consumer or review language appears | forums_community; reviews | Empty board should remain collection-only | to_retrieve | Must be observable by cutoff |
+
+### 6. Campaign And Duplication Risk
+
+| Risk ID | Possible duplication/campaign pattern | Surfaces implicated | Required check | Evidence status | Handoff note |
+| --- | --- | --- | --- | --- | --- |
+| DR-001 | AEO visibility without origin signal | answer engines | Keep AEO out of handoff | excluded_future_info | Excluded from classifier handoff |
+
 ### 7. Graph Retrieval Brief
 
 ```yaml
 graph_retrieval_brief:
+  seed_entities:
+    - Fixture Product A
+  adjacent_entities_to_check: []
+  creator_slices: []
+  source_families:
+    - forums_community
+    - reviews
+  mandatory_counterevidence_paths:
+    - CP-001
+  node_types_to_retrieve:
+    - source_surface
+  edge_types_to_retrieve:
+    - mentions
+  campaign_overlap_checks:
+    - DR-001
   graph_weight_notes: relation utility only; graph weight is not signal strength
+  surface_cutoff_notes: AEO surface is post-cutoff
+  forecast_targets_supported_without_probabilities: []
   backtest_cutoff_date: 2020-12-31
   future_info_exclusion_rule: exclude observations not observable on or before 2020-12-31
 ```
@@ -64,6 +105,10 @@ classifier_handoff_packet:
     - no graph score
     - no forecast probability
 ```
+
+### 9. Visible Limitations
+
+No evidence has been retrieved; this fixture only exercises empty handoff mechanics.
 
 ### 10. Board Status And Run Boundary
 

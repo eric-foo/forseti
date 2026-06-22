@@ -93,16 +93,21 @@ Section 8, because it is not a board.
 
 ## What The Validator Checks
 
-The validator first checks Section 4 and Section 8 structure. It fails when
-Section 4 is missing its Markdown table, required columns (`row_id`,
-`source_family`, `signal_role`, `evidence_status`, `surface_cutoff_status`,
-`cutoff_status`), or has malformed rows, missing row IDs, or duplicate row IDs.
-It also fails when Section 8 is missing, lacks a YAML fence, has invalid YAML,
-or lacks `classifier_handoff_packet`.
+The validator first checks full-board structure: Sections 1-10 must appear in
+the prompt-defined order, Section 4 must have its Markdown table and required
+columns (`row_id`, `source_family`, `signal_role`, `evidence_status`,
+`surface_cutoff_status`, `cutoff_status`), Section 8 must contain a valid YAML
+`classifier_handoff_packet`, and Section 10 must contain valid board-status
+YAML. It fails malformed Section 4 rows, missing row IDs, duplicate row IDs,
+non-`SBR-001` row IDs, non-monotonic row IDs, invalid Section 4 controlled
+vocabulary values, missing Section 8 handoff packet fields, invalid
+`classifier_mapping_status`, invalid `prohibited_claims` shape, invalid
+`board_status`, invalid `run_boundary`, and missing `next_authorized_step`.
 
-After structure passes, the validator cross-checks rows listed in Section 8
-against the Section 4 table. It fails when the handoff packet has a missing or
-invalid `mode` field, or when a referenced handoff row:
+After structure passes far enough to parse rows and the handoff packet, the
+validator cross-checks rows listed in Section 8 against the Section 4 table. It
+fails when the handoff packet has a missing or invalid `mode` field, or when a
+referenced handoff row:
 
 - is unknown;
 - is not `source_backed`;
@@ -110,7 +115,6 @@ invalid `mode` field, or when a referenced handoff row:
 - is AEO / answer-engine visibility;
 - in backtest mode, lacks `surface_cutoff_status: existed_by_cutoff`;
 - in backtest mode, lacks `cutoff_status: in_window`.
-
 ## What A Pass Means
 
 A pass means:
