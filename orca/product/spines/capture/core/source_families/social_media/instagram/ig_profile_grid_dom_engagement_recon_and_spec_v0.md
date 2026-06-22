@@ -46,23 +46,22 @@ content sufficiency, stealth, or human-likeness claim.
 
 ## Static Comparison Policy
 
-Static image/carousel engagement is useful as a comparison signal but is not the steady-state
-monitoring default. The steady-state public creator monitoring route is `/reels/` because reels expose
-views plus likes/comments and usually carry the clearest public traction signal. Static posts may still
-matter for fragrance/beauty sponsorship and audience-baseline analysis because they can carry captions,
-tags, paid-partnership/product hints, likes, and comments, but they lack view count and should not be
-mixed into the reels traction series.
+IG creator monitoring is not reels-only. The high-cadence public monitoring route is `/reels/`
+because reels expose views plus likes/comments and usually carry the clearest public traction signal.
+Static image/carousel capture is a lower-cadence companion surface for onboarding, periodic refresh,
+and escalation because static posts can carry captions, tags, paid-partnership/product hints, likes,
+and comments. They lack view count and must not be mixed into the reels traction series.
 
-If implemented, static capture should be a separate thin source surface, not an expansion of the reels
-runner. Policy:
+Static capture must remain a separate thin source surface, not an expansion of the reels runner. Policy:
 
-- steady-state monitoring: reels-only
-- creator onboarding: reels plus one static/profile-grid comparison pass
+- high-cadence monitoring: reels traction series
+- lower-cadence companion: one static/profile-grid comparison pass during creator onboarding
 - periodic refresh: static weekly or every 2-4 monitoring cycles
 - escalation: static pass when reels signal is ambiguous or sponsor detection matters
 
 Static `view_count` must be recorded as `not_applicable`, not as missing data.
-Implementation note: the optimized reels runner filters `/p/` rows out of the reels traction series and records a limitation when such rows are observed on the reels route. The pure grid normalizer also marks static `/p/` rows with static view-count non-applicability so a future static comparison surface cannot accidentally promote a visible number into `view_count`.
+Implementation note: the optimized reels runner filters `/p/` rows out of the reels traction series and records a limitation when such rows are observed on the reels route. The pure grid normalizer also marks static `/p/` rows with static view-count non-applicability so a separate static comparison surface cannot accidentally promote a visible number into `view_count`.
+
 ## Lane Wrap-Up: Code Enforcement And Behavioral Refresh Boundary
 
 The optimized `/reels/` capture lane has two kinds of rules. Code should enforce deterministic packet honesty and privacy boundaries. Behavioral probes should refresh assumptions about Instagram's changing UI, response payloads, and block behavior. Do not move behavioral assumptions into hard correctness claims.
@@ -70,7 +69,7 @@ The optimized `/reels/` capture lane has two kinds of rules. Code should enforce
 Code-enforceable in this lane:
 
 - Exactly one output target: scratch `--output` or data-lake `--data-root` / `ORCA_DATA_ROOT`; ambient `ORCA_DATA_ROOT` must not silently override an explicit `--output`.
-- One optimized `/reels/` page-load path for the default runner; no hover, click, OCR, comment-text capture, media-byte preservation, or item-page fan-out in steady-state capture.
+- One optimized `/reels/` page-load path for the high-cadence runner; no hover, click, OCR, comment-text capture, media-byte preservation, or item-page fan-out in that runner.
 - Response preservation is limited to known passive JSON source surfaces with response-size caps.
 - Cookie / `set-cookie` headers, proxy endpoint, proxy credentials, proxy exit IP, proxy store path, and stored browser state are not serialized into packets.
 - Source slices carry typed metric observations: observed values only when present; non-observed metrics use typed posture + reason; static/non-video `view_count` is `not_applicable`.
@@ -81,10 +80,10 @@ Code-enforceable in this lane:
 
 Code-enforceable candidates for the next implementation slice:
 
-- Add an IG reels-grid projection adapter that emits caption text anchors, surface mention candidates, caption-template repetition, and per-capture `caption_surface_mention_frequency` as mechanical projection features.
+- Add an IG creator-grid projection adapter that handles high-cadence reels and lower-cadence static/profile-grid comparison rows while emitting caption text anchors, surface mention candidates, caption-template repetition, and per-capture `caption_surface_mention_frequency` as mechanical projection features.
 - Add per-row selected-source audit fields (`join_status`, chosen `source_surface`, selection policy, and selection limitations) if downstream consumers need row-level selection provenance instead of reading the preserved candidates.
 - Preserve like/comment count candidate disagreements with the same symmetry already used for view/play count candidates.
-- Implement a separate static/profile-grid comparison source surface for onboarding, periodic refresh, or escalation only; do not expand the steady-state reels runner into mixed static capture.
+- Finish the separate static/profile-grid comparison source surface for onboarding, periodic refresh, or escalation; do not expand the high-cadence reels runner into mixed static capture.
 
 Behavioral refresh required; not code-enforceable as truth:
 

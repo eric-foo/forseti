@@ -1,15 +1,16 @@
-# IG Reels Capture To Projection ECR Cleaning Handoff
+# IG Creator Grid Capture To Projection ECR Cleaning Handoff
 
 ```yaml
 retrieval_header_version: 1
 artifact_role: Workflow handoff packet
 scope: >
-  Cold-reader handoff from the Instagram public /reels/ capture lane to downstream
-  Projection, Evidence Candidate Record, and Cleaning only. TikTok/YouTube method
+  Cold-reader handoff from the Instagram public creator-grid capture lane to downstream
+  Projection, Evidence Candidate Record, and Cleaning only. Reels are the high-cadence traction route;
+  static/profile-grid capture is a lower-cadence companion surface. TikTok/YouTube method
   transfer was split into docs/workflows/social_dom_json_capture_to_youtube_tiktok_handoff_v0.md.
 use_when:
-  - Continuing IG reels-grid downstream Projection, ECR, or Cleaning work.
-  - Checking which IG reels capture facts may be carried mechanically downstream.
+  - Continuing IG creator-grid downstream Projection, ECR, or Cleaning work.
+  - Checking which IG reels and static/profile-grid capture facts may be carried mechanically downstream.
   - Preventing ad, sponsorship, demand, bot, credibility, or action-use conclusions from entering non-Judgment lanes.
 authority_boundary: retrieval_only
 open_next:
@@ -18,7 +19,7 @@ open_next:
   - docs/workflows/ecr_spine_submap_v0.md
   - orca/product/spines/foundation/product_contract/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
 stale_if:
-  - IG reels-grid runner or parser changes row identity, source surfaces, static-row handling, or candidate preservation.
+  - IG creator-grid runner, parser, row identity, source surfaces, static-row handling, or candidate preservation changes.
   - Projection doctrine changes mechanical-only, no-salience, loss-ledger, or carry-or-residualize rules.
   - ECR/SCR carry-or-residualize, reference-never-merge, or per-kind grain discipline changes.
   - Cleaning gains owner-authorized semantic classification authority.
@@ -29,7 +30,7 @@ stale_if:
 - packet_version: workflow-handoff-v1
 - mode: split-downstream-lanes
 - created_at: 2026-06-22T20:48:29.4850791+08:00
-- created_by_lane: Codex IG public reels capture closeout lane; provenance only, not authority
+- created_by_lane: Codex IG public creator-grid capture closeout lane; provenance only, not authority
 - workspace: `C:\Users\vmon7\Desktop\projects\orca`
 - handoff_path: `docs/workflows/ig_reels_capture_to_projection_ecr_cleaning_handoff_v0.md`
 - split_peer_packet: `docs/workflows/social_dom_json_capture_to_youtube_tiktok_handoff_v0.md`
@@ -50,7 +51,7 @@ stale_if:
 ## Goal Handoff
 
 - long_term_goal: Build Orca social-source capture and downstream evidence plumbing that can monitor public creator/content traction without confusing raw capture, Projection, ECR, Cleaning, or Judgment responsibilities.
-- anchor_goal: Route IG reels-grid learnings into the correct downstream lanes: Projection gets mechanical source-view enforcement, ECR gets by-key receipt/integrity/content boundaries, and Cleaning gets non-destructive normalization mechanics.
+- anchor_goal: Route IG creator-grid learnings into the correct downstream lanes: Projection gets mechanical source-view enforcement, ECR gets by-key receipt/integrity/content boundaries, and Cleaning gets non-destructive normalization mechanics.
 - success_signal: A cold downstream lane can re-open the named sources and continue only its lane's bounded work without re-learning the IG DOM/JSON findings or smuggling ad/sponsorship/demand/integrity judgment into Capture, Projection, ECR, or Cleaning.
 
 ## Open Decision / Fork
@@ -64,7 +65,7 @@ stale_if:
 
 ## Drift Guard
 
-- Static/reels separation remains Capture-owned. Projection/Cleaning consume declared `source_surface`; they do not decide whether static is captured or mix static rows into reels traction.
+- Static/reels separation remains Capture-owned. Projection/Cleaning consume declared `source_surface`; they do not decide capture cadence or mix static rows into reels traction.
 - Projection is mechanical and source-visible only. It may carry captions, timestamps, counts, source surfaces, row identity, and mechanical mention counts; it must not decide meaning.
 - ECR/SCR references by key and carries/residualizes; it does not author meaning from capture prose or merge projection fields into posture fields.
 - Cleaning may normalize and cluster mechanically, but sponsorship, credibility, artificial-amplification, exclusion, demand, and action-support effects stay Judgment-owned.
@@ -89,9 +90,9 @@ stale_if:
 
 ### Earlier-decided concepts and behaviors
 
-- IG steady-state public monitoring default is one `/reels/` page load with no hover, click, OCR, item-page fan-out, comment-text capture, or media-byte preservation.
+- IG high-cadence public monitoring default is one `/reels/` page load with no hover, click, OCR, item-page fan-out, comment-text capture, or media-byte preservation.
   - verify pointer: IG spec, SHA256 `09E3149A332625F3FDF9A4AFABD560CED07AFFFF1DA95F35EE3CF93C951CCCD9`.
-- Static `/p/` rows are not part of the reels traction series; static `view_count` is `not_applicable`, not missing.
+- Static/profile-grid capture is a lower-cadence companion surface for onboarding, refresh, and escalation. Static `/p/` rows are not part of the reels traction series; static `view_count` is `not_applicable`, not missing.
   - verify pointer: IG spec Static Comparison Policy and current runner/parser files.
 - Projection may carry raw counts, captions, timestamps, labels, and baselines, but must not emit interpretation such as anomaly, independence, demand, credibility, or action labels.
   - verify pointer: Projection doctrine, SHA256 `BE22FD65CB9D6D31682D74847631C51E766D01BD0A86063B65585CC994F6CDC0`.
@@ -102,14 +103,14 @@ stale_if:
 
 ## Active Objective
 
-Transfer IG reels-grid capture closeout into downstream Projection, ECR, and Cleaning work without lane blur. TikTok/YouTube method transfer is intentionally removed from this packet and lives in the split peer packet.
+Transfer IG creator-grid capture closeout into downstream Projection, ECR, and Cleaning work without lane blur. TikTok/YouTube method transfer is intentionally removed from this packet and lives in the split peer packet.
 
 ## Exact Next Authorized Action
 
-1. Projection lane: source-load this packet, the IG spec, and the projection doctrine; scope or implement a bounded IG reels-grid projection adapter that emits only mechanical source-visible rows: raw refs, row identity, source surfaces, selected fields, join status, selection limitations, candidate disagreements, caption anchors, timestamps, and mechanical mention frequencies.
+1. Projection lane: source-load this packet, the IG spec, and the projection doctrine; scope or implement a bounded IG creator-grid projection adapter that emits only mechanical source-visible rows: raw refs, row identity, source surfaces, selected fields, join status, selection limitations, candidate disagreements, caption anchors, timestamps, and mechanical mention frequencies.
 2. ECR lane: source-load this packet and `docs/workflows/ecr_spine_submap_v0.md`; decide whether existing ECR/SCR consumers need references to the projection row handle or whether packet/slice keys are sufficient. Do not merge projection fields into ECR posture fields.
 3. Cleaning lane: source-load this packet and the Data/Cleaning boundary; define how caption/product/brand strings and repeated mention groups may be normalized or clustered without losing originals or deciding paid/sponsored/campaign meaning.
-4. Capture-owner note: static/profile-grid comparison stays a separate future source surface if implemented; this downstream packet does not authorize mixing static rows into the reels traction series.
+4. Capture-owner note: static/profile-grid comparison is a lower-cadence companion source surface; this downstream packet does not implement that companion runner or authorize mixing static rows into the reels traction series.
 
 ## Code-Enforceable Items For This Downstream Packet
 
@@ -117,7 +118,7 @@ Transfer IG reels-grid capture closeout into downstream Projection, ECR, and Cle
 - Projection field names must stay mechanical: examples such as `caption_surface_mention_frequency` are allowed; names such as `sponsored_ad_detected`, `botter`, `fake_engagement`, `demand_signal`, or `credibility_score` are not allowed outside Judgment-owned work.
 - ECR/SCR consumers must reference packet/projection keys rather than copying projection rows into integrity posture fields.
 - Cleaning transforms must preserve originals and emit non-destructive ledgers for normalized strings, clusters, and duplicates.
-- Static `view_count = not_applicable` must remain enforced before any static comparison surface is allowed to feed downstream analysis.
+- Static `view_count = not_applicable` must remain enforced before the lower-cadence static comparison surface is allowed to feed downstream analysis.
 
 ## Behavioral Items To Refresh Outside Code Claims
 
@@ -145,7 +146,7 @@ Transfer IG reels-grid capture closeout into downstream Projection, ECR, and Cle
   - IG browser capture: SHA256 `E585BB71F2BF1E8083F1EC663F9FFE08FF886609FA23B3A6BDB1A8CB2E5DE54F`, load-bearing yes for capture privacy and passive JSON mechanics.
   - Focused parser tests: SHA256 `AE99183CC88124A20175F2A2BE69D7ECE9E0C03FFA9851ADE87818A3EAED977B`.
   - Focused runner tests: SHA256 `4848F8538421C4CB57683C3580B6FD1812171A2BB0E5C371AC244E60814B3B1B`.
-- Source gaps: no downstream IG reels-grid projection adapter was implemented in this split; ECR/Cleaning consumption of IG projection rows was not implemented or reviewed in this split.
+- Source gaps: no downstream IG creator-grid projection adapter was implemented in this split; ECR/Cleaning consumption of IG projection rows was not implemented or reviewed in this split.
 - Not-proven boundaries: no scaled monitoring durability/rate envelope; no platform-stability claim; no ad/sponsorship/bot/demand/credibility classification.
 
 ## Current Task State
@@ -156,12 +157,12 @@ Transfer IG reels-grid capture closeout into downstream Projection, ECR, and Cle
   - Focused parser/runner/source-capture tests passed before the docs-only split.
   - One proxy-backed live capture for `jeremyfragrance` was admitted to a temp data-lake root; treat it as a probe artifact, not production proof.
 - Partially completed:
-  - Projection requirements are identified but not implemented for reels-grid rows.
+  - Projection requirements are identified but not implemented for creator-grid rows.
   - ECR/Cleaning consumption boundary is identified but not patched.
 - Broken or uncertain:
   - IG DOM hidden numeric ordering remains behavioral and must be refreshed.
   - Passive JSON surfaces and fields remain behavioral; endpoint/key stability is not a correctness claim.
-  - Static/profile-grid comparison is deferred.
+  - Separate static/profile-grid companion runner is deferred; policy and row separation are recorded.
 
 ## Commands And Verification Evidence
 
@@ -197,4 +198,4 @@ Transfer IG reels-grid capture closeout into downstream Projection, ECR, and Cle
 
 ## Do Not Forget
 
-Projection can count and carry; Cleaning can normalize and cluster mechanically; ECR can reference and residualize; Judgment decides what it means. Static comparison remains Capture-owned. TikTok/YouTube inherit generic method through the split peer packet, not through this downstream IG packet.
+Projection can count and carry; Cleaning can normalize and cluster mechanically; ECR can reference and residualize; Judgment decides what it means. Static comparison cadence and capture remain Capture-owned. TikTok/YouTube inherit generic method through the split peer packet, not through this downstream IG packet.

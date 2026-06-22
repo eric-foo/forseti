@@ -2,12 +2,13 @@
 retrieval_header_version: 1
 artifact_role: Orca architecture-planning prompt
 scope: >
-  Architecture planning for an Instagram public creator `/reels/` capture spine that joins creator
-  profile metadata, reel engagement, captions, timestamps, and ad-signal fields by shortcode while
-  preserving source provenance and conflict visibility.
+  Architecture planning for an Instagram public creator grid capture spine: high-cadence `/reels/`
+  traction plus lower-cadence static/profile-grid companion capture, joined with creator profile
+  metadata, captions, timestamps, engagement, and ad-signal fields while preserving source provenance
+  and conflict visibility.
 use_when:
   - Commissioning a read-only architecture planning pass before implementation scoping.
-  - Deciding the core/satellite boundary for IG creator profile snapshot plus reel media records.
+  - Deciding the core/satellite boundary for IG creator profile snapshot plus reel media and static comparison records.
   - Comparing DOM-grid, passive page-load JSON, and viewport/zoom implications without executing a runner patch.
 authority_boundary: prompt_only
 open_next:
@@ -25,19 +26,19 @@ open_next:
   - orca/product/spines/capture/core/source_families/social_media/instagram/ig_wind_caller_capture_feasibility_recon_v0.md
   - orca/product/spines/capture/core/source_families/social_media/instagram/ig_profile_grid_dom_engagement_recon_and_spec_v0.md
 stale_if:
-  - A newer IG reels/profile metadata probe supersedes the listed scratch/test-run evidence.
+  - A newer IG creator-grid/profile metadata probe supersedes the listed scratch/test-run evidence.
   - The current user redirects from architecture planning into implementation, live capture, or ad classification.
   - Source Capture Armory or IG source-family docs are patched after this prompt is written.
 ```
 
-# Instagram Reels Profile Metadata Capture Architecture Prompt
+# Instagram Creator Grid Metadata Capture Architecture Prompt
 
 ## Orca Prompt Preflight
 
 - Output mode: `file-write` for this prompt artifact; receiving architecture pass output is `chat-only` unless the operator explicitly requests a filed architecture report.
 - Template kind: `none`; architecture prompt authored directly under Orca prompt contract.
 - Edit permission: `read-only`; no file edits, no runner patch, no live capture, no commit, no push.
-- Targets: IG-only capture-spine architecture for public creator `/reels/` profile snapshot plus reel metadata records.
+- Targets: IG-only capture-spine architecture for public creator profile snapshot plus high-cadence reel records and lower-cadence static/profile-grid comparison records.
 - Branch/workspace: use the current Orca workspace supplied by the operator; verify current branch and dirty state before making strict repo claims.
 - Reviews: not a review prompt; do not emit review findings or formal verdicts.
 - Doctrine change: do not change doctrine. If a doctrine change appears necessary, return a blocker instead of patching sources.
@@ -45,9 +46,9 @@ stale_if:
 
 ## Executor Target
 
-Produce a read-only target architecture for the IG public creator reels capture spine.
+Produce a read-only target architecture for the IG public creator grid capture spine: high-cadence reels plus lower-cadence static/profile-grid companion capture.
 
-Done looks like: a later implementation-scoping pass can implement the capture record shape and field-provenance policy without re-deciding whether the core is DOM-first, JSON-first, or hybrid.
+Done looks like: a later implementation-scoping pass can implement the capture record shape, field-provenance policy, and reels/static separation without re-deciding whether the core is DOM-first, JSON-first, or hybrid.
 
 ## Mandatory Method Handling
 
@@ -145,7 +146,7 @@ Answer these directly:
 1. What is the core architecture: JSON-first, DOM-first, or hybrid?
 2. What is the canonical identity model for creator and media records?
 3. Which fields belong in the creator profile snapshot?
-4. Which fields belong in reel media records?
+4. Which fields belong in reel media records and lower-cadence static/profile-grid comparison records?
 5. What is the field-provenance and conflict policy for views, likes, comments, captions, dates, and ad-signal fields?
 6. How should the architecture handle `/clips/user/` versus `web_profile_info` count semantics?
 7. Should viewport be a core invariant, a route parameter, or a probe-only tuning variable?
@@ -164,7 +165,7 @@ Target Architecture:
 Why This Wins:
 Core / Satellite Boundary:
 Creator Profile Snapshot:
-Reel Media Record:
+Media Records (Reels And Static Companion):
 Field Provenance / Conflict Policy:
 Viewport / Zoom Position:
 Deferred Implementation Implications:
