@@ -6,8 +6,9 @@ artifact_role: Product method operating model (owner-invoked Mini God Tier targe
 scope: >
   Defines the high-signal scanning target shape the owner invoked as Mini God
   Tier: bounded intelligent walks, frontier selection, branch decay/pivot
-  discipline, CSB-first venue-value evaluation, hidden-venue discovery,
-  precursor-signal handling, minimum evidence for promotion, shared scan
+  discipline, CSB-first venue-value evaluation, exact-query discovery,
+  hidden-venue discovery, precursor-signal handling, minimum evidence for
+  promotion, shared scan
   vocabulary, and the capture-request handoff from scanning to the Capture
   spine. Bridges the
   Vertical Exploration Guide, the PROPOSED Demand Scan-Core Spec, and
@@ -16,6 +17,7 @@ scope: >
 use_when:
   - Designing or reviewing a scanning lane that should behave like a high-signal bounded walker rather than a generic crawler.
   - Evaluating whether CSB-surfaced venues are worth downstream attention and whether hidden venues were missed.
+  - Running bounded exact-query discovery to test CSB rows, find hidden venues, or record decisive negatives.
   - Deciding what scanning may emit before Capture, ECR, Cleaning, Judgment, or gate-run work begins.
   - Distinguishing precursor signals and precursor surfaces from gate proof, capture authority, or standing source maps.
   - Normalizing source-family lane outputs into shared scanning vocabulary and capture-request handoffs.
@@ -54,10 +56,11 @@ them.
 ## Target Shape
 
 Scanning should spend most of its read budget on value-bearing or
-value-routing venues: the surfaces CSB nominated, hidden venues CSB missed,
-independent-origin leads, contradictions, high-quality pointers, decisive
-negatives, access notes, and only those precursor surfaces that change the next
-route. It is not optimized for exhaustive coverage.
+value-routing venues: the surfaces CSB nominated, exact public queries that can
+find or disqualify venues, hidden venues CSB missed, independent-origin leads,
+contradictions, high-quality pointers, decisive negatives, access notes, and
+only those precursor surfaces that change the next route. It is not optimized
+for exhaustive coverage.
 
 Target loop:
 
@@ -65,8 +68,8 @@ Target loop:
 authorized seed / objective
 -> CSB board or owner-authorized seed
 -> bounded intelligent walk over venues
--> frontier-selected venue reads
--> venue-value notes / hidden-venue pointers
+-> frontier-selected venue reads and exact-query probes
+-> venue-value notes / exact-query negatives / hidden-venue pointers
 -> lightweight observations
 -> minimum-evidence promotion
 -> capture request
@@ -110,6 +113,7 @@ High-value reasons include:
 
 - likely value of a CSB-nominated venue for this decision;
 - likely hidden venue or surface that CSB missed;
+- exact query likely to reveal a hidden venue, better origin, or decisive negative;
 - likely precursor surface that may reveal better origins or candidates;
 - likely independent demand-origin signal;
 - likely gradeable costly-behavior evidence;
@@ -127,6 +131,25 @@ Precursor is a venue-routing concept here. Do not relabel ordinary weak
 owned/channel/editorial evidence as a precursor just because it falls below the
 candidate bar. If the item mainly tells the operator whether a venue is useful,
 record it as venue value, pointer, negative, access note, or unknown.
+
+## Exact Query Discovery
+
+An `exact_query` is a bounded public query string crafted to test a CSB row,
+find a hidden venue, reach a better origin surface, or produce a decisive
+negative. Exact-query discovery belongs to scanning because it is part of
+frontier selection and venue-value evaluation.
+
+Rules:
+
+- count each exact query plus first-pass result inspection against the run cap;
+- record the query string, intent, retrieval date, result class, and next-route
+  decision when it changes the walk;
+- emit discovered venues as `hidden_venue_pointer`, weak/no-yield results as
+  `negative`, and access/policy walls as `access_note`;
+- do not treat query count, search rank, AEO visibility, or repeated SERP
+  presence as demand proof;
+- do not turn exact queries into a standing query monitor, search-volume model,
+  SEO keyword surface, crawler, or registry.
 
 ## Branch Decay, Pivot, And Stop
 
@@ -172,6 +195,8 @@ separate downstream shapes:
 
 - `frontier` - a candidate next read and its reason;
 - `move` - one bounded read or attempted read;
+- `exact_query` - a bounded public query string used to test a CSB row, find a
+  hidden venue, reach a better origin, or produce a decisive negative;
 - `precursor_signal` - an early, URL-backed clue that may guide a walk but is
   tied to a venue or surface worth probing; not proof, gate clearance, or
   capture authorization;
@@ -310,9 +335,9 @@ replace the gate with raw source counts.
 Reddit, LinkedIn, answer-engine/search, trade press, forums, trackers, review
 surfaces, and future source families may keep local guardrails. Their
 downstream scanning output should still map into the same shared terms:
-`frontier`, `move`, `precursor_signal`, `precursor_surface`, `observation`,
-`pointer`, `venue_eval`, `hidden_venue_pointer`, `negative`, `access_note`,
-`capture_request`, and `gate_role`.
+`frontier`, `move`, `exact_query`, `precursor_signal`, `precursor_surface`,
+`observation`, `pointer`, `venue_eval`, `hidden_venue_pointer`, `negative`,
+`access_note`, `capture_request`, and `gate_role`.
 
 Local restrictions always carry. Examples:
 

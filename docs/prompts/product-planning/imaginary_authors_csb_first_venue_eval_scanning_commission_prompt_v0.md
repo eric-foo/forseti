@@ -5,8 +5,8 @@ retrieval_header_version: 1
 artifact_role: Prompt artifact (fresh CSB-first scanning commission; product-planning family)
 scope: >
   Commissions a fresh bounded MGT intelligent-walk scan of Imaginary Authors
-  from the durable CSB board, with scanning focused on venue-value evaluation
-  and hidden-venue discovery. This prompt does not revise the prior executed
+  from the durable CSB board, with scanning focused on venue-value evaluation,
+  exact-query discovery, and hidden-venue discovery. This prompt does not revise the prior executed
   scan artifact and does not authorize capture, crawling, gate clearance,
   judgment, or buyer proof.
 use_when:
@@ -23,7 +23,7 @@ open_next:
   - docs/research/orca_discovery_candidate_scan_imaginary_authors_mgt_v0.md
 stale_if:
   - The CSB board is superseded, rejected, or re-run.
-  - The MGT operating model changes CSB-first, venue_eval, hidden_venue_pointer, run-cap, or capture_request rules.
+  - The MGT operating model changes CSB-first, exact_query, venue_eval, hidden_venue_pointer, run-cap, or capture_request rules.
   - The prior scan artifact is amended by a later accepted correction.
   - The owner changes the target from Imaginary Authors or rejects a fresh rerun.
 ```
@@ -53,11 +53,13 @@ reviews: findings-first if this prompt or downstream scan is reviewed
 ## Fitness Reference
 
 Goal: run a fresh, bounded scanning rehearsal in the corrected order: CSB first,
-then scanning as venue-value evaluation and hidden-venue discovery.
+then scanning as venue-value evaluation, exact-query discovery, and hidden-venue
+discovery.
 
 Success signal: the receiver writes a new dated scan artifact that maps each
-CSB row or source family to one of: valuable venue, low-value venue, access
-note, hidden venue pointer, observation, negative, or justified capture_request.
+CSB row or source family to one of: valuable venue, low-value venue,
+exact-query result, access note, hidden venue pointer, observation, negative, or
+justified capture_request.
 The receiver must not edit the prior scan artifact.
 
 ## Commission
@@ -92,6 +94,7 @@ Hard caps:
 - maximum 18 screening moves total;
 - maximum 5 active venue/frontier branches;
 - maximum 4 promoted observations;
+- maximum 6 exact queries within the total move cap;
 - maximum 4 hidden venue pointers;
 - maximum 2 capture requests;
 - maximum 2 short quotes per source;
@@ -136,7 +139,7 @@ Use the CSB board as the upstream route map. At minimum, evaluate:
 | SBR-003/SBR-004 editorial/trade | Test whether editorial venues reveal better origin venues or only visibility. | Visibility is not demand-origin proof. |
 | SBR-005 forums/community | Determine whether public community venues are reachable and valuable or access-walled/noisy. | No login, scraping, or direct capture. |
 | SBR-006 reviews | Determine whether review venues expose dated experience language or only aggregate listing context. | Preserve recency and source conventions. |
-| SBR-007 search discovery | Look for hidden venues CSB missed and decisive negatives. | Search is route discovery, not proof. |
+| SBR-007 exact-query discovery | Run bounded exact public queries to find hidden venues CSB missed and decisive negatives. | Exact queries are route discovery, not proof, search-volume, or monitoring. |
 | SBR-008 AEO | Treat as visibility provenance only; use only to find better source routes. | Excluded from classifier handoff. |
 | SBR-009 creator/social | Do not run live creator/social access unless separately authorized. | Record planned/deferred only. |
 | SBR-010 org motion | Prefer original partner/official surfaces over LinkedIn live access. | No LinkedIn live read. |
@@ -154,15 +157,17 @@ Minimum sections:
 2. **CSB Board Intake**: CSB board path, rows consumed, rows skipped, and why.
 3. **Venue Evaluation Ledger**: each CSB row or discovered venue, moves tried,
    value class, dry/blocked state, and stop reason.
-4. **Hidden Venue Pointers** if any, using `hidden_venue_pointer` language.
-5. **Screen-Light Observations** using MGT minimum shape with
+4. **Exact Query Discovery Ledger**: each `exact_query`, intent, retrieval date,
+   result class, hidden venue or negative produced, and next-route decision.
+5. **Hidden Venue Pointers** if any, using `hidden_venue_pointer` language.
+6. **Screen-Light Observations** using MGT minimum shape with
    `signal_stage: venue_value | precursor | candidate_support | contradiction | negative | access_note | unknown`.
-6. **Candidate Observation Decision**: either no candidate minted, or a minimal
+7. **Candidate Observation Decision**: either no candidate minted, or a minimal
    candidate observation that explains why promotion meets scan-core rules.
-7. **Capture Requests** only if the capture-request promotion bar is met.
-8. **Negatives And Access Notes**: decisive low/no-yield venues and public
+8. **Capture Requests** only if the capture-request promotion bar is met.
+9. **Negatives And Access Notes**: decisive low/no-yield venues and public
    access walls tried.
-9. **Closeout**: `SCAN_COMPLETE`, `SCAN_BLOCKED`, or `SCAN_HOLD`, with what the
+10. **Closeout**: `SCAN_COMPLETE`, `SCAN_BLOCKED`, or `SCAN_HOLD`, with what the
    next lane may do.
 
 ## Capture Request Bar
@@ -192,8 +197,9 @@ At least one must be true:
   live access, TikTok/Instagram live read, or person dossier.
 - No route binding. Scanning may cite a known route state or say `unknown`;
   Capture owns route selection and packet-grade acquisition.
-- No demand verdict. Venue value, hidden venue pointers, and precursor surfaces
-  do not prove demand, clear a gate, or mint a candidate without promotion.
+- No demand verdict. Exact queries, venue value, hidden venue pointers, and
+  precursor surfaces do not prove demand, clear a gate, or mint a candidate
+  without promotion.
 
 ## Validation And Closeout
 
@@ -214,8 +220,8 @@ rg -n "route binding|capture owns|packet-grade|capture_request|gate clearance|de
 ```
 
 Return a concise closeout: path written, source context status, move count,
-CSB rows evaluated, hidden venue pointers, observations promoted, capture
-requests emitted, validations run/not run, and blockers.
+CSB rows evaluated, exact queries used, hidden venue pointers, observations
+promoted, capture requests emitted, validations run/not run, and blockers.
 
 ## Non-Claims
 
