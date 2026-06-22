@@ -26,9 +26,22 @@ import sys
 import tempfile
 from dataclasses import dataclass, field
 
-import yt_dlp
-
 _VIDEO_ID = re.compile(r"[A-Za-z0-9_-]{11}")
+
+
+def _ytdlp_version() -> str:
+    import yt_dlp  # lazy: only needed at real runtime, not at import/test-collection time
+
+    return yt_dlp.version.__version__
+
+
+def _extract_info(url: str) -> dict:
+    """yt-dlp metadata extraction (no download). Imported lazily so the package + network-free
+    tests don't require yt-dlp; install the `transcribe` extra for real runtime. (Test seam.)"""
+    import yt_dlp
+
+    with yt_dlp.YoutubeDL({"quiet": True, "skip_download": True, "no_warnings": True}) as ydl:
+        return ydl.extract_info(url, download=False)
 
 
 @dataclass
@@ -82,18 +95,15 @@ def fetch_youtube_caption_artifacts(video_id: str) -> CaptionFetch:
     url = f"https://www.youtube.com/watch?v={video_id}"
     tooling = {
         "tool": "yt-dlp",
-        "tool_version": yt_dlp.version.__version__,
+        "tool_version": _ytdlp_version(),
         # yt-dlp default selects a token-free client (android_vr) for subs+info; validated this
         # session. NOTE: android_vr excludes made-for-kids content (v0 residual for non-kids creators).
         "client": "yt-dlp-default",
         "sub_format": "json3",
     }
 
-    # 1) extract_info (no download): original language + identity + available tracks.
-    with yt_dlp.YoutubeDL(
-        {"quiet": True, "skip_download": True, "no_warnings": True}
-    ) as ydl:
-        info = ydl.extract_info(url, download=False)
+    # 1) extract_info (no download): original language + identity + available tracks (yt-dlp, lazy).
+    info = _extract_info(url)
 
     base = dict(
         video_id=video_id,

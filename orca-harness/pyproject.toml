@@ -22,6 +22,13 @@ impersonate = [
   # youtube_capture/verify_fingerprint_v0.py.
   "curl_cffi>=0.15.0,<0.16",
 ]
+transcribe = [
+  # Transcript spine runtime deps (source_capture/transcript/). OPTIONAL + LAZY-imported: the
+  # package and its network-free unit tests do NOT require these; only real capture does.
+  # yt-dlp: caption json3 + bestaudio fetch (token-free clients). The ASR fallback adds
+  # faster-whisper here when it lands.
+  "yt-dlp",
+]
 
 [tool.setuptools]
 py-modules = ["harness_utils"]

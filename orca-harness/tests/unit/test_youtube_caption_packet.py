@@ -95,31 +95,19 @@ def test_fetch_rejects_malformed_video_id():
 
 def test_fetch_rejects_translated_en_as_original(monkeypatch):
     # Spanish-original video exposing ONLY auto-translated English must NOT be accepted as
-    # original-language captions (review F2). extract_info mocked -> no network/subprocess.
+    # original-language captions (review F2). The yt-dlp seam is mocked -> no yt-dlp/network needed.
     from source_capture.transcript import youtube_captions as yc
 
-    class _FakeYDL:
-        def __init__(self, opts):
-            pass
-
-        def __enter__(self):
-            return self
-
-        def __exit__(self, *a):
-            return False
-
-        def extract_info(self, url, download=False):
-            return {
-                "language": "es",
-                "subtitles": {},
-                "automatic_captions": {"en": [{"ext": "json3", "url": "x"}]},
-                "title": "T",
-                "channel_id": "UC",
-                "upload_date": "20260101",
-                "duration": 30,
-            }
-
-    monkeypatch.setattr(yc.yt_dlp, "YoutubeDL", _FakeYDL)
+    monkeypatch.setattr(yc, "_ytdlp_version", lambda: "test")
+    monkeypatch.setattr(yc, "_extract_info", lambda url: {
+        "language": "es",
+        "subtitles": {},
+        "automatic_captions": {"en": [{"ext": "json3", "url": "x"}]},
+        "title": "T",
+        "channel_id": "UC",
+        "upload_date": "20260101",
+        "duration": 30,
+    })
     cap = yc.fetch_youtube_caption_artifacts("abcdefghijk")
     assert cap.found is False
     assert "original-language" in cap.note
