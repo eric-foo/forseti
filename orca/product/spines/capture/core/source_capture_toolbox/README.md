@@ -53,6 +53,7 @@ packet without redefining Capture obligations.
 
 | Source | What It Controls |
 | --- | --- |
+| `orca/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md` | Canonical capture method: Step 0 access gate, route catalog/selection, receipt discipline, and recency/current-state preservation priority. Recent/current high-attention markers raise preservation urgency only; they do not prove demand, change access, or bind a route. |
 | `docs/decisions/data_capture_spine_source_access_tooling_build_authorization_v0.md` | Whether bounded source-access tooling builds are authorized, including first/second/third-tranche scope, selected anti-blocking backend, and which adapters remain separately gated. |
 | `docs/product/data_capture_source_access_method_plan_v0.md` | Candidate methods, sequence discipline, source-family method notes, and risk posture. |
 | `docs/product/data_capture_source_access_boundary_decision_v0.md` | Source-access boundary, entitlement/disclosability standard, and hard stops. |

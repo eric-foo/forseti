@@ -87,6 +87,8 @@ API use, API registration, commercial fetch services, or source-access tooling m
 
 This preference does not authorize any build, runtime, API call, app registration, credential setup, scraper, crawler, fetch service, or source-access system.
 
+Recency/current-state handoff markers from Commission Signal Board or Scanning do not change this access-method sequence. They may increase urgency to preserve the current visible state once the target is otherwise inside the source-access boundary and route-matched, but they do not authorize a new source-access method, bypass the access gate, or select a route by themselves.
+
 ---
 
 ## Blocked Sources and Root Problems

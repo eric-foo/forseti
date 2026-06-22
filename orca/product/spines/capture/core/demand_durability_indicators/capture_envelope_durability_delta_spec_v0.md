@@ -116,6 +116,16 @@ open the controlling source.
 This delta specs ONLY the five elements below. Each is a capture FACT or a
 capture DOCTRINE — never a weight, score, threshold, or judgment.
 
+### Recency / Current-State Priority Is Preservation Urgency Only
+
+When a Commission Signal Board or Scanning handoff marks a source as recent or
+current-state high-attention, demand-durability capture applies the Source
+Capture Playbook's preservation-priority rule. The marker can raise urgency to
+preserve the current visible state after commissioning, source-access boundary,
+and route-match conditions are satisfied. It does not create standing capture,
+authorize access, select a route, or convert observed change into proof, score,
+weight, or durability verdict.
+
 ### Element 1 — First-Class Pinning Facts (logged-out / locale / currency / variant)
 
 **Problem the envelope of record leaves open.** Today the conditions under which

@@ -88,6 +88,12 @@ Minimum input for Retail/PDP projection:
 | Structured payloads | Preserve embedded `application/ld+json` and `window.__APOLLO_STATE__` verbatim when present. Parsed values may guide row fields, but raw JSON text remains carried. |
 | Capture/recon posture | Capture decides access, tool route, and block limits. Projection must not fetch, retry, bypass, or decide capturability. |
 
+If a Retail/PDP packet was commissioned because Commission Signal Board or
+Scanning marked a product URL recent/current-state high-attention, that marker is
+projection provenance only. Carry capture time, source-visible state, and
+residuals; do not fetch, retry, change access/route posture, or treat
+current-state capture as buyer proof or Judgment readiness.
+
 ## Projection Output Contract
 
 The current helper emits `RetailPdpProjectionPacket` with:
