@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Independent TLS/HTTP-2 fingerprint verification (gitignored scratch).
+"""Independent TLS/HTTP-2 fingerprint verification (tracked code).
 
 Confirms the stealth client's Chrome impersonation actually changes the on-the-wire fingerprint
 vs stdlib Python, observed by a neutral third-party TLS-echo service. Read-only. Owner-authorized

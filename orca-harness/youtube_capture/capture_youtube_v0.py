@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-"""Bounded YouTube public-metadata capture v0 (gitignored scratch).
+"""Bounded YouTube public-metadata capture v0 (tracked code; captured data gitignored).
 
 Proven route (see source_families/social_media/youtube/youtube_capture_recon_v0.md):
   - metadata: embedded `ytInitialPlayerResponse` in served HTML (logged-out, no JS)
   - comments: `youtubei/v1/next` panel-scoped continuation (same route long-form + Shorts)
 
 Persists one packet per video to ./packets/<video_id>/. Public read-only; no auth; no scheduler.
-NOT committed (under _scratch/). Helpers here are reused by shorts_scroll_capture_v0.py.
+Tracked at orca-harness/youtube_capture/. Helpers here are reused by shorts_scroll_capture_v0.py.
 """
 import re, json, os, hashlib, datetime, urllib.request
 

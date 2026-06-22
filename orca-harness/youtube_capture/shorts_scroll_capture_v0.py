@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-"""Shorts-scroll VOLUME capture (gitignored scratch).
+"""Shorts-scroll VOLUME capture (tracked code; captured data gitignored).
 
 Captures Shorts end-to-end (metadata + a comments page) at ~CADENCE s each for ~DURATION s.
 Doubles as a load/stress test of the raw route at realistic volume: stops on the FIRST wall and
 records where it broke (the route-health signal at volume — no separate canary needed).
 
 Lean packets (fields + comment sample + receipts incl. raw-body sha256; raw HTML NOT persisted).
-Public read-only, logged-out. NOT committed. Env overrides: SHORTS_DURATION, SHORTS_CADENCE.
+Public read-only, logged-out. Tracked at orca-harness/youtube_capture/. Env overrides: SHORTS_DURATION, SHORTS_CADENCE.
 """
 import re, json, os, time, random, hashlib, datetime, urllib.error
 from collections import Counter

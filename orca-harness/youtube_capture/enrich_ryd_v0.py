@@ -3,7 +3,7 @@
 
 Adds a clearly-labeled `dislikes_estimate` block to each packet (NOT YouTube ground truth).
 Per integrity guidance: carry rawLikes/rawDislikes, retrieval time, and video era; treat the
-estimate as low-weight, never a hard authenticity threshold. Gitignored scratch; data not committed.
+estimate as low-weight, never a hard authenticity threshold. Tracked code; captured data gitignored.
 """
 import os, json, datetime, urllib.request
 
