@@ -91,7 +91,8 @@ Scanning does not own:
 - capture route binding or source-access policy decisions;
 - replacing the demand gate with collection quotas;
 - full-schema burden on every exploratory move;
-- contact, outreach, lead-list, follower-graph, or person-dossier work.
+- contact, outreach, lead-list, follower-graph, comment-scraping,
+  channel-dossier, person-dossier, or standing creator-monitoring work.
 
 Scanning owns, inside an authorized run:
 
@@ -144,6 +145,9 @@ Rules:
 - count each exact query plus first-pass result inspection against the run cap;
 - record the query string, intent, retrieval date, result class, and next-route
   decision when it changes the walk;
+- when the row is creator/social or influence-related, public YouTube video and
+  Shorts result pages are allowed screening routes if reachable without login
+  and selected inside the run cap;
 - emit discovered venues as `hidden_venue_pointer`, weak/no-yield results as
   `negative`, and access/policy walls as `access_note`;
 - do not treat query count, search rank, AEO visibility, or repeated SERP
@@ -216,7 +220,8 @@ separate downstream shapes:
   the next read;
 - `negative` - checked path with decisive low/no yield;
 - `access_note` - public access constraint and shapes tried;
-- `influence_obs` - hub, pointing structure, wind-caller, or detector signal;
+- `influence_obs` - hub, pointing structure, public creator-video pointer,
+  wind-caller, or detector signal;
 - `gate_role` - what demand-gate role the observation might support, if any;
 - `capture_request` - scanning's request for Capture to inspect specified
   URLs for specified observations.
@@ -346,6 +351,12 @@ Local restrictions always carry. Examples:
   unless a separate owner-authorized mode applies.
 - Search-interest / AEO remains proposed and gap-bound until owner-approved
   sourcing and schema placement land.
+- Public YouTube videos and Shorts are allowed as screen-light creator/social
+  routes when reachable without login and chosen by frontier/exact-query logic;
+  record the video or Short URL, retrieval date, visible dated call/context, and
+  campaign/affiliate caveat. Do not scrape comments, enumerate channels, build
+  subscriber/follower graphs, create channel/person dossiers, or monitor
+  creators. TikTok/Instagram live reads remain separately authorized.
 
 ## Accepted Residuals
 
@@ -369,3 +380,78 @@ capture authorization, scan-core ratification, source-family adoption, crawler
 approval, monitor approval, registry approval, or live web access permission.
 No implementation, scheduler, crawler, dashboard, storage layer, packet runner,
 ECR, Cleaning, Judgment, outreach, or buyer-contact work is authorized here.
+
+## Direction Change Propagation
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Scanning core now treats public YouTube videos/Shorts as bounded non-login
+    creator-video routes for creator/social exact-query and frontier reads,
+    while preserving no TikTok/Instagram live read without separate authorization,
+    no comment scraping, no channel/person dossier, no graph, and no standing
+    creator monitoring.
+  trigger: product_doctrine
+  related_triggers:
+    - workflow_authority
+  controlling_sources_updated:
+    - orca/product/spines/scanning/scan_core/orca_scanning_intelligent_walk_mgt_operating_model_v0.md
+    - orca/product/spines/scanning/scan_core/orca_demand_scan_core_spec_v0.md
+  downstream_surfaces_checked:
+    - AGENTS.md
+    - .agents/workflow-overlay/README.md
+    - .agents/workflow-overlay/source-of-truth.md
+    - .agents/workflow-overlay/prompt-orchestration.md
+    - orca/product/spines/scanning/README.md
+    - docs/workflows/orca_repo_map_v0.md
+    - orca/product/spines/capture/core/source_capture_toolbox/capture_recon_index_v0.md
+    - orca/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md
+  intentionally_not_updated:
+    - path: AGENTS.md
+      reason: >
+        Agent kernel rules are unchanged; this is scanning-method routing, not a
+        global behavior rule.
+    - path: .agents/workflow-overlay/prompt-orchestration.md
+      reason: >
+        Prompt authoring contract is unchanged; future scanning prompts inherit
+        this through the scanning core source pack.
+    - path: orca/product/spines/scanning/README.md
+      reason: >
+        The front-door already routes cold scanning starts through this MGT model
+        and the proposed Demand Scan-Core Spec; duplicating the YouTube/Shorts
+        rule there would create a second wording surface.
+    - path: docs/workflows/orca_repo_map_v0.md
+      reason: >
+        Repo-map routing is unchanged: scanning tasks still open the scanning
+        README, which opens this MGT operating model.
+    - path: docs/prompts/product-planning/imaginary_authors_core_satellite_csb_recommission_prompt_v0.md
+      reason: >
+        The owner clarified the target as the reusable core for future asks, so
+        the one-off executed IA commission was restored instead of silently
+        rewriting that historical prompt.
+  stale_language_search: >
+    rg -n "YouTube|Shorts|creator-video|creator/social|comment scraping|comment-scraping|channel/person|channel-dossier|creator graph|standing creator|TikTok/Instagram live"
+    orca/product/spines/scanning docs/prompts/product-planning docs/workflows/orca_repo_map_v0.md
+    orca/product/spines/capture/core/source_capture_toolbox/capture_recon_index_v0.md
+    orca/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md
+    (run 2026-06-22)
+  stale_language_search_result: >
+    Executed 2026-06-22 after edit. In the scanning core, hits are this accepted
+    bounded-route rule, the proposed schema alignment, or the receipt itself. In
+    product-planning prompts, older subject-specific prompts still carry their
+    prior TikTok/Instagram live-read boundaries; the IA recommission prompt is
+    restored to its pre-correction state. Repo-map hits only route to the scanning
+    spine. The capture recon index/playbook in this worktree do not contain a
+    YouTube source-family route; this change creates no capture route, comments
+    route, channel/person dossier, graph, monitoring, or TikTok/Instagram live
+    access authorization.
+  non_claims:
+    - not validation
+    - not readiness
+    - not scan authorization
+    - not capture authorization
+    - not source-access authorization
+    - not implementation authorization
+```
+
+Older receipts archived verbatim in `docs/decisions/dcp_receipts_archive_v0.md`.

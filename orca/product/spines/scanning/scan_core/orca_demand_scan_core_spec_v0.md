@@ -358,7 +358,7 @@ demand_state: durable | transient | manufactured | not_applicable
 signal_layer: trend_vector | wind_caller | buy_side | org_motion | integrity
 venue:                    # card number/name, or discovered venue
 venue_class: newsy | subtle
-venue_family: review_surfaces | forums_community | search_interest | retail_presence | trade_press | tracker_detector | org_motion_surface
+venue_family: review_surfaces | forums_community | search_interest | retail_presence | trade_press | tracker_detector | org_motion_surface | creator_social
 gate_family: review_surfaces | forums_community | search_interest | none
                           # the demand families that COUNT toward independence (retail_presence excluded — it is G4 corroboration);
                           # today only forums_community is sourced; review_surfaces + search_interest are unsourced gaps (owner-owned)
@@ -381,9 +381,12 @@ re-derived Demand-Substrate Hard Gate counts independence across its demand
 families — `review_surfaces`, `forums_community`, `search_interest` — and counts
 **distinct origins**, not distinct family labels. **`retail_presence` is now G4
 org-motion corroboration, EXCLUDED from the demand-origin count** (it is neither
-a deprecated label nor a sourcing gap); `trade_press`, `tracker_detector`, and
-`org_motion_surface` are likewise evidence/corroboration venues that take
-`gate_family: none`. If a trade-press receipt launders a community-originated
+a deprecated label nor a sourcing gap); the non-demand-origin families
+`trade_press`, `tracker_detector`, `org_motion_surface`, and `creator_social` are
+likewise evidence/corroboration venues that take `gate_family: none`. Public YouTube videos/Shorts can feed
+`creator_social` when they provide a dated public call or campaign context, but
+not comments, channel/person dossiers, graphs, or monitoring. If a trade-press
+receipt launders a community-originated
 demand signal, `venue_family` stays `trade_press`, `gate_family` records the
 underlying demand family evidenced, and `origination_ref` ties it back to the
 single origin (so a laundered chain never counts as multiple origins). A
@@ -568,8 +571,9 @@ Per sub-niche, inside any authorized scan (both modes):
 
 1. **Identification.** When a walk move yields an influence observation (the
    guide's widening: hubs, pointing structures, byline concentration), test
-   for wind-caller candidacy: a channel — or a named public-figure creator,
-   per the carve-out below — whose dated public call preceded a move or event
+   for wind-caller candidacy: a channel, including a public YouTube video or
+   Short that carries a dated public call, or a named public-figure creator,
+   per the carve-out below, whose dated public call preceded a move or event
    the scan can date, in this sub-niche, with a receipt. Pointing chains
    terminate at wind callers; INCIDecoder (card 11) is the worked exemplar —
    its commissioned tests became the root receipt an entire event chain cites.
@@ -603,6 +607,10 @@ outcome_status: resolved | open   # backward: usually resolved; forward: open
      absolute, unchanged); no outreach or contact lists; no special-category or
      private/auth-gated data; no audience / follower-graph analysis (Tier 2,
      deferred-gated). The external/product boundary is unchanged.
+   - **Public YouTube video/Shorts calls are admissible only as dated, non-login
+     public-call receipts**; no comment scraping, channel enumeration,
+     subscriber/follower graph, channel/person dossier, or standing channel
+     observation is created by the scan.
    - **The scan does only screening-grade identification + the call record
      above.** Deeper calibration capture (platform stats, Social Blade, the
      bounded passive-monitoring runs) is a **capture-lane act under the

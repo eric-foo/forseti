@@ -93,9 +93,8 @@ decision_context: >
   discontinuation decisions. The CSB core must ask the source-family question
   set broadly, but retrieval should stay conditional: main specialist retailers
   and major retailers/marketplaces are default channel checks; historical,
-  creator/social including public YouTube/Shorts creator-video routes,
-  announcement, resale/decant, stockist/local boutique, and control-venue
-  satellites are pulled only when their decision trigger fires.
+  creator/social, announcement, resale/decant, stockist/local boutique, and
+  control-venue satellites are pulled only when their decision trigger fires.
 evidence_cutoff_at: not_applicable
 scan_date: current run date
 ```
@@ -182,7 +181,7 @@ At minimum, ask these core questions:
 | Major retailers / marketplaces | Do major retailers or marketplaces show scale-channel presence, price, availability, broad review volume, or absence where the decision specifically concerns major-channel expansion? | Retrieve now, capped. Check Sephora, Ulta, Amazon, and only relevant major/partner routes such as Anthropologie if surfaced. | Major-retailer absence is not negative by default for indie fragrance. |
 | Buyer-language venues | Do forums, detailed reviews, specialist communities, or retailer review text expose dated product-specific experience, objections, repeat-use/full-bottle language, comparisons, or unmet questions? | Retrieve when public and reachable inside caps; prioritize detailed review text over aggregate stars. | No login, scraping, Discord, or direct platform capture. |
 | Exact-query discovery | Which exact SKU/brand queries reveal hidden venues, better origin routes, or decisive negatives? | Retrieve now, capped. | Exact queries are route discovery and logged negatives, not search volume or proof. |
-| Creator/social influence | Is there SKU-specific creator/social momentum, and does it look organic, PR/affiliate, retailer-amplified, or brand-reposted? | Core question always; retrieve only authorized public/non-login web routes, including public YouTube videos/Shorts when reachable without login, or record deferred/blocked. | No live TikTok/Instagram read unless separately authorized; no comment scraping, channel/person dossier, or creator graph. |
+| Creator/social influence | Is there SKU-specific creator/social momentum, and does it look organic, PR/affiliate, retailer-amplified, or brand-reposted? | Core question always; retrieve only authorized public/non-login web routes or record deferred/blocked. | No live TikTok/Instagram read unless separately authorized; no person dossier. |
 | Announcement / campaign archive | Are launch, sale, restock, event, newsletter, or public post archives needed to establish chronology or duplication/campaign risk? | Satellite only. | Announcement archives are chronology/duplication context, not demand evidence. |
 | Historical inventory / pricing | Are archived PDPs, Wayback snapshots, clearance pages, promotion history, or repeated stock checks needed to distinguish sell-through from temporary stockout, launch spike, or promotion? | Satellite only, high value when triggered. | Wayback is coarse corroboration, not a reliable restock monitor. |
 | Resale / decant / interest proxies | Do completed resale, sample/decant availability, shopping surfaces, Trends, or exact-SKU suggestions matter for durability or unmet demand? | Satellite only. | Proxy signals require corroboration and do not prove demand alone. |
@@ -196,7 +195,7 @@ Pull a satellite only when one of its triggers fires:
 | Satellite | Trigger | Output if pulled |
 | --- | --- | --- |
 | Historical inventory / pricing / restock | Current sold-out/restock/price/promo/discontinuation clue, reorder/allocation question, durability question, or need to distinguish sustained movement from launch/promo noise. | dated historical trace, reliability limit, corroboration need, and whether Capture should preserve source state. |
-| Creator/social / announcement archive | Influence or campaign-risk question, public YouTube/Shorts video pointer, launch/restock/promo chronology gap, PR/affiliate duplication concern, or high-signal public pointer from exact-query discovery. | dated visibility/campaign/duplication note, not demand proof. |
+| Creator/social / announcement archive | Influence or campaign-risk question, launch/restock/promo chronology gap, PR/affiliate duplication concern, or high-signal public pointer from exact-query discovery. | visibility/campaign/duplication note, not demand proof. |
 | Resale / decant / sample / interest proxy | Durability, unmet demand, secondary-market, trial-behavior, or post-launch-interest question. | proxy observation or negative with corroboration limits. |
 | Official stockist / local boutique expansion | Channel expansion, local allocation, or stockist network question not answered by main specialist and major retailer checks. | channel pointer or negative; not a full census. |
 | Comparable-brand controls | Optimistic signal needs pressure-testing against similar brands or expected venues. | control negative/contrast, not a blanket disqualifier. |
@@ -214,8 +213,6 @@ decision modifier to find hidden venues or decisive negatives. Examples:
 "Imaginary Authors" discontinued
 "A Little Secret" +"LuckyScent"
 "Dipped in Chocolate" +decant
-"Imaginary Authors" +"A Little Secret" YouTube
-"Dipped in Chocolate" +"Shorts"
 ```
 
 Each exact query must record: query text, intent, retrieval date, result class,
@@ -259,7 +256,7 @@ core/satellite contract above. At minimum, evaluate:
 | SBR-006 reviews | Prioritize detailed review text, not aggregate stars. | Preserve recency and source conventions. |
 | SBR-007 exact-query discovery | Run bounded exact public queries for hidden venues and decisive negatives. | Search is route discovery, not proof or monitoring. |
 | SBR-008 AEO | Treat as visibility provenance only; use only to find better source routes if already visible. | Excluded from classifier handoff. |
-| SBR-009 creator/social | Ask the influence/campaign question; retrieve only authorized public/non-login routes, including public YouTube videos/Shorts when reachable without login, or defer. | No live TikTok/Instagram read, comment scraping, or channel/person dossier. |
+| SBR-009 creator/social | Ask the influence/campaign question; retrieve only authorized public/non-login routes or defer. | No live TikTok/Instagram read. |
 | SBR-010 org motion | Prefer original partner/official surfaces and public stockist/wholesale context when decision-relevant. | No LinkedIn live read. |
 
 ## Output Shape
@@ -322,9 +319,6 @@ At least one must be true:
   Judgment, gate verdict, buyer proof, or client-facing output.
 - No login, private/auth-gated access, bulk scrape, Discord scraping, LinkedIn
   live access, TikTok/Instagram live read, or person dossier.
-- Public YouTube videos/Shorts are allowed only as bounded non-login source
-  routes: no comment scraping, channel/person dossier, subscriber/follower
-  graph, or standing creator monitoring.
 - No route binding. Scanning may cite a known route state or say `unknown`;
   Capture owns route selection and packet-grade acquisition.
 - No demand verdict. Exact queries, channel presence, specialist-retailer
