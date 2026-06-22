@@ -37,6 +37,12 @@ stale_if:
 | Test pointer | `orca/product/spines/commission_signal_board/tests/validator_tests.md` |
 | Moved-path index | `orca/product/spines/commission_signal_board/migrations/moved_paths_index.md` |
 
+## Legacy Non-Controlling Artifacts
+
+| Artifact | Status | Current authority |
+| --- | --- | --- |
+| `orca/product/spines/commission_signal_board/dispatch_rules/orca_demand_gate_run_commission_criteria_v0.md` | Historical only; not a live CSB dispatch rule | Use the CSB prompt and playbook. CSB is an evidence/signals-only board and must not emit admit/hold/fail gate verdicts. |
+
 ## Boundaries
 
 This spine does not authorize retrieval, scraping, capture, graph construction,

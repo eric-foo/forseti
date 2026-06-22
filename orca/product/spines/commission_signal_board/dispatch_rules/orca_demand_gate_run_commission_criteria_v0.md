@@ -1,25 +1,45 @@
-# Orca Demand-Gate Run Commission Criteria — PROPOSED v0
+# Orca Demand-Gate Run Commission Criteria - LEGACY NON-CONTROLLING v0
 
 ```yaml
 retrieval_header_version: 1
-artifact_role: Product artifact (gate-run commission criteria — the scan → gate-run → filled-slot shape for taking one candidate through the live Demand-Substrate Hard Gate)
+artifact_role: Legacy non-controlling product artifact (superseded gate-run criteria)
+status: legacy_non_controlling
 scope: >
-  Defines the criteria and runnable shape for commissioning a single candidate
-  to be taken through the now-live Demand-Substrate Hard Gate, producing a
-  determinate admit/hold/fail verdict with a verb-tiered ceiling that either
-  fills a discovery-brief target slot or routes to the proof-batch notes.
-  Operationalizes discovery qualification objective #3. Qualitative,
-  LLM-in-session judgment only — explicitly NOT a scoring engine.
+  Preserved historical gate-run criteria from before the Commission Signal
+  Board was corrected into an evidence/signals-only board. This artifact is not
+  a live CSB dispatch rule and must not be used to run a CSB board, produce a
+  CSB classifier handoff, or infer current CSB admit/hold/fail behavior.
 use_when:
-  - Commissioning or running one candidate through the Demand-Substrate Hard Gate.
-  - Deciding whether a dated candidate scan clears the gate enough to fill a discovery slot.
+  - Historical comparison only when investigating pre-CSB gate-run language.
+  - Understanding why current CSB prompt/playbook artifacts explicitly reject gate verdicts.
 authority_boundary: retrieval_only
+superseded_by:
+  - orca/product/spines/commission_signal_board/prompts/orca_commission_signal_board_prompt_v0.md
+  - orca/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md
 open_next:
-  - orca/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md
-  - orca/product/spines/product_lead/icp_wedge/orca_discovery_consumer_demand_target_selection_brief_v0.md
+  - orca/product/spines/commission_signal_board/prompts/orca_commission_signal_board_prompt_v0.md
+  - orca/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md
 ```
 
+## Supersession Notice
+
+This file is retained only as historical context. It is not a live Commission
+Signal Board authority surface.
+
+Current CSB authority lives in the prompt and playbook listed above. Current CSB
+behavior is an evidence/signals-only board plus graph retrieval brief and
+demand-classifier handoff packet. The board must not output `admit`, `hold`,
+`fail`, `pass`, `reject`, demand verdicts, buyer-proof claims, readiness claims,
+forecast probabilities, graph scores, or judgment recommendations.
+
+Any future demand-gate run belongs to the product-lead / buyer-proof surfaces
+under their own authority. It does not live in the CSB spine unless the owner
+explicitly re-authorizes that boundary in a new artifact.
+
 ## What This Is (and Is Not)
+
+Historical content below is intentionally left intact for comparison. It is
+non-controlling for current CSB work.
 
 This artifact defines the **gate-run commission criteria**: the input, procedure,
 and output shape for taking **one** candidate through the live Demand-Substrate

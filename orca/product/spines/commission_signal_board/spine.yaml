@@ -16,6 +16,15 @@ canonical_artifacts:
   tests_pointer: orca/product/spines/commission_signal_board/tests/validator_tests.md
   moved_paths_index: orca/product/spines/commission_signal_board/migrations/moved_paths_index.md
 
+legacy_non_controlling_artifacts:
+  demand_gate_run_commission_criteria:
+    path: orca/product/spines/commission_signal_board/dispatch_rules/orca_demand_gate_run_commission_criteria_v0.md
+    status: historical_only_not_live_csb_dispatch
+    current_authority:
+      - orca/product/spines/commission_signal_board/prompts/orca_commission_signal_board_prompt_v0.md
+      - orca/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md
+    reason: csb_is_signal_board_not_demand_gate
+
 legacy_absent_paths:
   adjudication_packet: docs/product/product_lead/orca_commission_signal_board_prompt_adjudication_packet_v0.md
   prompt: docs/prompts/product-planning/orca_commission_signal_board_prompt_v0.md
