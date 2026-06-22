@@ -98,6 +98,12 @@ def test_fetch_browser_snapshot_capture_with_fake_engine_preserves_browser_artif
     assert result.metadata["viewport_width"] == 1024
     assert result.metadata["viewport_height"] == 768
     assert result.metadata["screenshot_mode"] == "viewport"
+    assert result.metadata["settle_seconds"] == 0.0
+    assert result.metadata["headless"] is True
+    assert result.metadata["browser_channel"] is None
+    assert result.metadata["access_blocked"] is False
+    assert result.metadata["access_block_reason"] is None
+    assert result.metadata["rendered_access_classification"] == "no_block_marker"
     assert result.metadata["storage_state_loaded"] is False
     assert result.metadata["rendered_dom_byte_count"] == len(result.rendered_dom.encode("utf-8"))
     assert result.metadata["visible_text_byte_count"] == len(result.visible_text.encode("utf-8"))
@@ -472,6 +478,50 @@ def test_fetch_browser_snapshot_capture_scroll_defaults_to_zero_preserving_singl
     assert engine.capture_kwargs is not None
     assert engine.capture_kwargs["scroll_passes"] == 0
     assert engine.capture_kwargs["scroll_step_px"] == 0
+    assert engine.capture_kwargs["settle_seconds"] == 0.0
+    assert engine.capture_kwargs["headless"] is True
+    assert engine.capture_kwargs["browser_channel"] is None
+
+
+def test_fetch_browser_snapshot_capture_threads_standard_browser_controls_to_engine() -> None:
+    engine = _ok_engine()
+    result = fetch_browser_snapshot_capture(
+        url="https://example.com/source",
+        settle_seconds=4.5,
+        headless=False,
+        browser_channel=" chrome ",
+        engine=engine,
+    )
+
+    assert isinstance(result, BrowserSnapshotSuccess)
+    assert engine.capture_kwargs is not None
+    assert engine.capture_kwargs["settle_seconds"] == 4.5
+    assert engine.capture_kwargs["headless"] is False
+    assert engine.capture_kwargs["browser_channel"] == "chrome"
+    assert result.metadata["settle_seconds"] == 4.5
+    assert result.metadata["headless"] is False
+    assert result.metadata["browser_channel"] == "chrome"
+
+
+def test_fetch_browser_snapshot_capture_flags_rendered_cloudflare_interstitial() -> None:
+    result = fetch_browser_snapshot_capture(
+        url="https://example.com/source",
+        engine=_FakeBrowserEngine(
+            _FakeEngineResult(
+                final_url="https://example.com/source",
+                title="Just a moment...",
+                rendered_dom="<html><script>window.__cf_chl_tk = 'token'</script></html>",
+                visible_text="Enable JavaScript and cookies to continue",
+                screenshot_png=b"\x89PNG\r\n\x1a\nbrowser",
+            )
+        ),
+    )
+
+    assert isinstance(result, BrowserSnapshotSuccess)
+    assert result.access_block_reason == "cloudflare_interstitial"
+    assert result.metadata["access_blocked"] is True
+    assert result.metadata["rendered_access_classification"] == "access_blocked"
+    assert any("access_failed" in item for item in result.limitation_notes)
 
 
 def test_fetch_browser_snapshot_capture_rejects_negative_scroll() -> None:
@@ -479,6 +529,10 @@ def test_fetch_browser_snapshot_capture_rejects_negative_scroll() -> None:
         fetch_browser_snapshot_capture(url="https://example.com/source", scroll_passes=-1, engine=_ok_engine())
     with pytest.raises(ValueError, match="scroll_step_px must be zero or greater"):
         fetch_browser_snapshot_capture(url="https://example.com/source", scroll_step_px=-5, engine=_ok_engine())
+    with pytest.raises(ValueError, match="settle_seconds must be zero or greater"):
+        fetch_browser_snapshot_capture(url="https://example.com/source", settle_seconds=-1, engine=_ok_engine())
+    with pytest.raises(ValueError, match="browser_channel must not be blank"):
+        fetch_browser_snapshot_capture(url="https://example.com/source", browser_channel="  ", engine=_ok_engine())
 
 
 def test_browser_snapshot_runner_writes_packet_with_four_artifacts(
@@ -486,8 +540,10 @@ def test_browser_snapshot_runner_writes_packet_with_four_artifacts(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     output_dir = scratch_dir / "packet"
+    captured_kwargs: dict[str, object] = {}
 
     def fake_capture(**kwargs: object) -> BrowserSnapshotSuccess:
+        captured_kwargs.update(kwargs)
         return BrowserSnapshotSuccess(
             requested_url="https://example.com/source",
             final_url="https://example.com/source",
@@ -539,8 +595,14 @@ def test_browser_snapshot_runner_writes_packet_with_four_artifacts(
         viewport_width=1280,
         viewport_height=720,
         max_artifact_bytes=5_000,
+        settle_seconds=2.0,
+        headless=False,
+        browser_channel="chrome",
     )
 
+    assert captured_kwargs["settle_seconds"] == 2.0
+    assert captured_kwargs["headless"] is False
+    assert captured_kwargs["browser_channel"] == "chrome"
     assert exit_code == 0
     assert message == str(output_dir.resolve())
     manifest = json.loads((output_dir / "manifest.json").read_text(encoding="utf-8"))
@@ -570,6 +632,85 @@ def test_browser_snapshot_runner_writes_packet_with_four_artifacts(
     for non_claim in BROWSER_SNAPSHOT_NON_CLAIMS:
         assert non_claim in receipt_text
 
+
+def test_browser_snapshot_runner_writes_access_blocked_packet(
+    scratch_dir: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    output_dir = scratch_dir / "packet"
+
+    def fake_capture(**kwargs: object) -> BrowserSnapshotSuccess:
+        return BrowserSnapshotSuccess(
+            requested_url="https://example.com/source",
+            final_url="https://example.com/source",
+            title="Just a moment...",
+            rendered_dom="<html><script>window.__cf_chl_tk = 'token'</script></html>",
+            visible_text="Enable JavaScript and cookies to continue",
+            screenshot_png=b"\x89PNG\r\n\x1a\nbrowser",
+            metadata={
+                "requested_url": "https://example.com/source",
+                "final_url": "https://example.com/source",
+                "title": "Just a moment...",
+                "capture_timestamp": "2026-06-03T01:02:03Z",
+                "timeout_seconds": kwargs["timeout_seconds"],
+                "wait_until": kwargs["wait_until"],
+                "viewport_width": kwargs["viewport_width"],
+                "viewport_height": kwargs["viewport_height"],
+                "screenshot_mode": "viewport",
+                "access_blocked": True,
+                "access_block_reason": "cloudflare_interstitial",
+                "rendered_access_classification": "access_blocked",
+                "rendered_access_signal": "cloudflare_interstitial",
+                "rendered_access_detail": "rendered challenge shell",
+                "rendered_dom_byte_count": 64,
+                "visible_text_byte_count": 41,
+                "screenshot_byte_count": 15,
+            },
+            warning_notes=[],
+            limitation_notes=[
+                "access_failed: browser_snapshot rendered an access-block/interstitial page instead of source content: cloudflare_interstitial; block artifacts preserved"
+            ],
+            access_block_reason="cloudflare_interstitial",
+        )
+
+    monkeypatch.setattr(browser_runner, "fetch_browser_snapshot_capture", fake_capture)
+
+    exit_code, message = browser_runner.run_source_capture_browser_packet(
+        url="https://example.com/source",
+        source_family="web_page",
+        source_surface="browser_snapshot",
+        decision_question="What rendered source was visible before cutoff?",
+        output_directory=output_dir,
+        capture_context="test browser snapshot",
+        operator_category="browser_snapshot_cli_operator",
+        capture_mode=CaptureModeCategory.MULTIMODAL,
+        session_id=None,
+        actor_audience_context=None,
+        visible_mode_changes=[],
+        source_publication_or_event=None,
+        source_edit_or_version=None,
+        cutoff_posture=None,
+        recapture_time=None,
+        re_capture_relationship=None,
+        warnings=[],
+        limitations=[],
+        timeout_seconds=20,
+        wait_until="load",
+        viewport_width=1280,
+        viewport_height=720,
+        max_artifact_bytes=5_000,
+    )
+
+    assert exit_code == 0
+    assert message == str(output_dir.resolve())
+    manifest = json.loads((output_dir / "manifest.json").read_text(encoding="utf-8"))
+    assert "source content was not captured" in manifest["receipt_metadata"]["summary"]
+    assert any("access_failed" in item for item in manifest["limitations"])
+    metadata = json.loads(
+        (output_dir / "raw" / "04_browser_snapshot_metadata.json").read_text(encoding="utf-8")
+    )
+    assert metadata["access_blocked"] is True
+    assert metadata["access_block_reason"] == "cloudflare_interstitial"
 
 def test_browser_snapshot_runner_returns_3_without_packet_on_capture_failure(
     scratch_dir: Path,

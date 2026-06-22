@@ -4,11 +4,12 @@ from dataclasses import dataclass, field
 from enum import StrEnum
 from importlib import import_module
 from pathlib import Path
-from typing import Protocol, Sequence, TypeAlias
+from typing import Callable, Protocol, Sequence, TypeAlias
 from urllib.parse import unquote, urlparse, urlunparse
 
 from harness_utils import utc_now_z
 from source_capture.proxy_profiles import ProxyProfile
+from source_capture.rendered_access import RenderedAccessClass, classify_rendered_access
 
 
 DEFAULT_TIMEOUT_SECONDS = 20.0
@@ -45,6 +46,7 @@ class BrowserSnapshotSuccess:
     metadata: dict[str, object]
     warning_notes: list[str]
     limitation_notes: list[str]
+    access_block_reason: str | None = None
 
 
 @dataclass(frozen=True)
@@ -86,7 +88,32 @@ class BrowserContextResponsesSuccess:
     limitation_notes: list[str]
 
 
+@dataclass(frozen=True)
+class BrowserPageResponse:
+    requested_url: str
+    final_url: str
+    status: int
+    ok: bool
+    body_text: str
+    response_headers: dict[str, str]
+    limitation_notes: list[str] = field(default_factory=list)
+
+
+@dataclass(frozen=True)
+class BrowserPageObservationSuccess:
+    requested_url: str
+    final_url: str
+    title: str | None
+    visible_text: str
+    dom_observation: object
+    responses: list[BrowserPageResponse]
+    metadata: dict[str, object]
+    warning_notes: list[str]
+    limitation_notes: list[str]
+
+
 BrowserContextResponsesResult: TypeAlias = BrowserContextResponsesSuccess | BrowserSnapshotFailure
+BrowserPageObservationResult: TypeAlias = BrowserPageObservationSuccess | BrowserSnapshotFailure
 
 
 class BrowserSnapshotEngineResult(Protocol):
@@ -111,6 +138,9 @@ class BrowserSnapshotEngine(Protocol):
         storage_state_path: Path | None = None,
         scroll_passes: int = 0,
         scroll_step_px: int = 0,
+        settle_seconds: float = 0.0,
+        headless: bool = True,
+        browser_channel: str | None = None,
     ) -> BrowserSnapshotEngineResult:
         ...
 
@@ -131,6 +161,31 @@ class BrowserContextResponseEngine(Protocol):
         ...
 
 
+class BrowserPageObservationEngine(Protocol):
+    def capture_page_observation(
+        self,
+        *,
+        url: str,
+        timeout_seconds: float,
+        wait_until: str,
+        viewport_width: int,
+        viewport_height: int,
+        dom_extract_script: str,
+        dom_extract_arg: object,
+        response_url_predicate: Callable[[str], bool],
+        selector: str | None = None,
+        selector_timeout_seconds: float = 5.0,
+        max_response_bytes: int = DEFAULT_MAX_ARTIFACT_BYTES,
+        settle_seconds: float = 0.0,
+        block_resource_types: Sequence[str] = (),
+        proxy_profile: ProxyProfile | None = None,
+        storage_state_path: Path | None = None,
+        headless: bool = True,
+        browser_channel: str | None = None,
+    ) -> BrowserPageObservationSuccess:
+        ...
+
+
 def fetch_browser_snapshot_capture(
     *,
     url: str,
@@ -143,9 +198,13 @@ def fetch_browser_snapshot_capture(
     storage_state_path: Path | None = None,
     scroll_passes: int = 0,
     scroll_step_px: int = 0,
+    settle_seconds: float = 0.0,
+    headless: bool = True,
+    browser_channel: str | None = None,
     engine: BrowserSnapshotEngine | None = None,
 ) -> BrowserSnapshotResult:
     normalized_url = _validate_http_url(url)
+    normalized_browser_channel = _normalize_browser_channel(browser_channel)
     _validate_positive_number("timeout_seconds", timeout_seconds)
     _validate_positive_int("viewport_width", viewport_width)
     _validate_positive_int("viewport_height", viewport_height)
@@ -154,6 +213,8 @@ def fetch_browser_snapshot_capture(
         raise ValueError("scroll_passes must be zero or greater")
     if scroll_step_px < 0:
         raise ValueError("scroll_step_px must be zero or greater")
+    if settle_seconds < 0:
+        raise ValueError("settle_seconds must be zero or greater")
     if wait_until not in ALLOWED_WAIT_UNTIL:
         allowed = ", ".join(sorted(ALLOWED_WAIT_UNTIL))
         raise ValueError(f"wait_until must be one of: {allowed}")
@@ -170,6 +231,9 @@ def fetch_browser_snapshot_capture(
             storage_state_path=storage_state_path,
             scroll_passes=scroll_passes,
             scroll_step_px=scroll_step_px,
+            settle_seconds=settle_seconds,
+            headless=headless,
+            browser_channel=normalized_browser_channel,
         )
     except _BrowserSnapshotDependencyUnavailable as exc:
         return BrowserSnapshotFailure(
@@ -230,6 +294,29 @@ def fetch_browser_snapshot_capture(
         )
     warning_notes.extend(engine_result.warning_notes)
 
+    rendered_access = classify_rendered_access(
+        title=engine_result.title,
+        rendered_dom=engine_result.rendered_dom,
+        visible_text=engine_result.visible_text,
+    )
+    access_block_reason = (
+        rendered_access.signal
+        if rendered_access.classification == RenderedAccessClass.ACCESS_BLOCKED
+        else None
+    )
+    limitation_notes: list[str] = []
+    if access_block_reason is not None:
+        limitation_notes.append(
+            "access_failed: browser_snapshot rendered an access-block/interstitial page "
+            f"instead of source content: {access_block_reason}; block artifacts preserved"
+        )
+    elif rendered_access.classification == RenderedAccessClass.RESIDUAL_CHALLENGE_MARKER:
+        limitation_notes.append(
+            "rendered_access_warning: browser_snapshot rendered DOM still contains "
+            f"{rendered_access.signal}; visible text may be source content, but content "
+            "sufficiency is not asserted"
+        )
+
     metadata = {
         "requested_url": normalized_url,
         "final_url": engine_result.final_url,
@@ -237,10 +324,18 @@ def fetch_browser_snapshot_capture(
         "capture_timestamp": utc_now_z(),
         "timeout_seconds": timeout_seconds,
         "wait_until": wait_until,
+        "settle_seconds": settle_seconds,
+        "headless": headless,
+        "browser_channel": normalized_browser_channel,
         "viewport_width": viewport_width,
         "viewport_height": viewport_height,
         "screenshot_mode": "viewport",
         "storage_state_loaded": storage_state_path is not None,
+        "access_blocked": access_block_reason is not None,
+        "access_block_reason": access_block_reason,
+        "rendered_access_classification": rendered_access.classification.value,
+        "rendered_access_signal": rendered_access.signal,
+        "rendered_access_detail": rendered_access.detail,
         "rendered_dom_byte_count": artifact_sizes["rendered_dom"],
         "visible_text_byte_count": artifact_sizes["visible_text"],
         "screenshot_byte_count": artifact_sizes["screenshot_png"],
@@ -256,9 +351,82 @@ def fetch_browser_snapshot_capture(
         screenshot_png=engine_result.screenshot_png,
         metadata=metadata,
         warning_notes=warning_notes,
-        limitation_notes=[],
+        limitation_notes=limitation_notes,
+        access_block_reason=access_block_reason,
     )
 
+
+def fetch_browser_page_observation_capture(
+    *,
+    url: str,
+    dom_extract_script: str,
+    dom_extract_arg: object,
+    response_url_predicate: Callable[[str], bool],
+    timeout_seconds: float = DEFAULT_TIMEOUT_SECONDS,
+    wait_until: str = "load",
+    viewport_width: int = DEFAULT_VIEWPORT_WIDTH,
+    viewport_height: int = DEFAULT_VIEWPORT_HEIGHT,
+    max_response_bytes: int = DEFAULT_MAX_ARTIFACT_BYTES,
+    settle_seconds: float = 0.0,
+    selector: str | None = None,
+    selector_timeout_seconds: float = 5.0,
+    block_resource_types: Sequence[str] = (),
+    proxy_profile: ProxyProfile | None = None,
+    storage_state_path: Path | None = None,
+    headless: bool = True,
+    browser_channel: str | None = None,
+    engine: BrowserPageObservationEngine | None = None,
+) -> BrowserPageObservationResult:
+    """Capture a rendered page observation plus selected same-load responses."""
+    normalized_url = _validate_http_url(url)
+    normalized_browser_channel = _normalize_browser_channel(browser_channel)
+    _validate_positive_number("timeout_seconds", timeout_seconds)
+    _validate_positive_int("viewport_width", viewport_width)
+    _validate_positive_int("viewport_height", viewport_height)
+    _validate_positive_int("max_response_bytes", max_response_bytes)
+    if settle_seconds < 0:
+        raise ValueError("settle_seconds must be zero or greater")
+    if selector_timeout_seconds < 0:
+        raise ValueError("selector_timeout_seconds must be zero or greater")
+    if wait_until not in ALLOWED_WAIT_UNTIL:
+        allowed = ", ".join(sorted(ALLOWED_WAIT_UNTIL))
+        raise ValueError(f"wait_until must be one of: {allowed}")
+
+    observation_engine = engine or _PlaywrightBrowserSnapshotEngine()
+    try:
+        return observation_engine.capture_page_observation(
+            url=normalized_url,
+            timeout_seconds=timeout_seconds,
+            wait_until=wait_until,
+            viewport_width=viewport_width,
+            viewport_height=viewport_height,
+            dom_extract_script=dom_extract_script,
+            dom_extract_arg=dom_extract_arg,
+            response_url_predicate=response_url_predicate,
+            selector=selector,
+            selector_timeout_seconds=selector_timeout_seconds,
+            max_response_bytes=max_response_bytes,
+            settle_seconds=settle_seconds,
+            block_resource_types=tuple(block_resource_types),
+            proxy_profile=proxy_profile,
+            storage_state_path=storage_state_path,
+            headless=headless,
+            browser_channel=normalized_browser_channel,
+        )
+    except _BrowserSnapshotDependencyUnavailable as exc:
+        return BrowserSnapshotFailure(
+            requested_url=normalized_url,
+            failure_kind=BrowserSnapshotFailureKind.DEPENDENCY_UNAVAILABLE,
+            message=str(exc),
+        )
+    except Exception as exc:
+        return BrowserSnapshotFailure(
+            requested_url=normalized_url,
+            failure_kind=_failure_kind_from_exception(exc),
+            message=_capture_failure_message(
+                "Browser page observation capture failed", exc, proxy_profile=proxy_profile
+            ),
+        )
 
 def fetch_browser_context_responses(
     *,
@@ -364,6 +532,9 @@ class _PlaywrightBrowserSnapshotEngine:
         storage_state_path: Path | None = None,
         scroll_passes: int = 0,
         scroll_step_px: int = 0,
+        settle_seconds: float = 0.0,
+        headless: bool = True,
+        browser_channel: str | None = None,
     ) -> BrowserSnapshotEngineResult:
         try:
             sync_api = import_module("playwright.sync_api")
@@ -378,7 +549,9 @@ class _PlaywrightBrowserSnapshotEngine:
                 launch_kwargs: dict[str, object] = {}
                 if proxy_profile is not None:
                     launch_kwargs["proxy"] = _playwright_proxy_settings(proxy_profile)
-                browser = playwright.chromium.launch(headless=True, **launch_kwargs)
+                if browser_channel is not None:
+                    launch_kwargs["channel"] = browser_channel
+                browser = playwright.chromium.launch(headless=headless, **launch_kwargs)
             except Exception as exc:
                 if _looks_like_missing_browser_binary(exc):
                     raise _BrowserSnapshotDependencyUnavailable(
@@ -403,6 +576,8 @@ class _PlaywrightBrowserSnapshotEngine:
                 try:
                     page = context.new_page()
                     page.goto(url, wait_until=wait_until, timeout=timeout_ms)
+                    if settle_seconds > 0:
+                        page.wait_for_timeout(settle_seconds * 1000)
                     if scroll_step_px > 0:
                         position = 0
                         for _ in range(_MAX_SCROLL_PASSES):
@@ -435,6 +610,151 @@ class _PlaywrightBrowserSnapshotEngine:
                         visible_text=visible_text,
                         screenshot_png=screenshot_png,
                         warning_notes=warning_notes,
+                    )
+                finally:
+                    context.close()
+            finally:
+                browser.close()
+
+    def capture_page_observation(
+        self,
+        *,
+        url: str,
+        timeout_seconds: float,
+        wait_until: str,
+        viewport_width: int,
+        viewport_height: int,
+        dom_extract_script: str,
+        dom_extract_arg: object,
+        response_url_predicate: Callable[[str], bool],
+        selector: str | None = None,
+        selector_timeout_seconds: float = 5.0,
+        max_response_bytes: int = DEFAULT_MAX_ARTIFACT_BYTES,
+        settle_seconds: float = 0.0,
+        block_resource_types: Sequence[str] = (),
+        proxy_profile: ProxyProfile | None = None,
+        storage_state_path: Path | None = None,
+        headless: bool = True,
+        browser_channel: str | None = None,
+    ) -> BrowserPageObservationSuccess:
+        try:
+            sync_api = import_module("playwright.sync_api")
+        except ModuleNotFoundError as exc:
+            raise _BrowserSnapshotDependencyUnavailable(
+                "Playwright is not installed. Install the browser optional dependency before running browser page observations."
+            ) from exc
+
+        timeout_ms = timeout_seconds * 1000
+        selector_timeout_ms = selector_timeout_seconds * 1000
+        blocked_resource_types = set(block_resource_types)
+        selected_responses: list[object] = []
+        with sync_api.sync_playwright() as playwright:
+            try:
+                launch_kwargs: dict[str, object] = {}
+                if proxy_profile is not None:
+                    launch_kwargs["proxy"] = _playwright_proxy_settings(proxy_profile)
+                if browser_channel is not None:
+                    launch_kwargs["channel"] = browser_channel
+                browser = playwright.chromium.launch(headless=headless, **launch_kwargs)
+            except Exception as exc:
+                if _looks_like_missing_browser_binary(exc):
+                    raise _BrowserSnapshotDependencyUnavailable(
+                        "Playwright Chromium browser binary is not installed. "
+                        "Run `python -m playwright install chromium` before running browser page observations."
+                    ) from exc
+                raise
+            try:
+                context_kwargs: dict[str, object] = {
+                    "viewport": {
+                        "width": viewport_width,
+                        "height": viewport_height,
+                    }
+                }
+                if storage_state_path is not None:
+                    context_kwargs["storage_state"] = str(storage_state_path)
+                if proxy_profile is not None and proxy_profile.timezone is not None:
+                    context_kwargs["timezone_id"] = proxy_profile.timezone
+                if proxy_profile is not None and proxy_profile.locale is not None:
+                    context_kwargs["locale"] = proxy_profile.locale
+                context = browser.new_context(**context_kwargs)
+                try:
+                    page = context.new_page()
+                    if blocked_resource_types:
+                        page.route(
+                            "**/*",
+                            lambda route: route.abort()
+                            if route.request.resource_type in blocked_resource_types
+                            else route.continue_(),
+                        )
+                    page.on(
+                        "response",
+                        lambda response: selected_responses.append(response)
+                        if response_url_predicate(str(response.url))
+                        else None,
+                    )
+                    page.goto(url, wait_until=wait_until, timeout=timeout_ms)
+                    if settle_seconds > 0:
+                        page.wait_for_timeout(settle_seconds * 1000)
+
+                    warning_notes: list[str] = []
+                    if selector is not None:
+                        try:
+                            page.wait_for_selector(selector, timeout=selector_timeout_ms)
+                        except Exception as exc:
+                            warning_notes.append(
+                                f"browser_page_observation selector wait failed: {exc}"
+                            )
+                    try:
+                        visible_text = page.locator("body").inner_text(timeout=timeout_ms)
+                    except Exception as exc:
+                        visible_text = ""
+                        warning_notes.append(
+                            f"browser_page_observation visible_text extraction failed: {exc}"
+                        )
+                    dom_observation = page.evaluate(dom_extract_script, dom_extract_arg)
+                    responses = _read_observed_page_responses(
+                        selected_responses,
+                        max_response_bytes=max_response_bytes,
+                    )
+                    final_url = page.url
+                    title = page.title()
+                    if final_url != url:
+                        warning_notes.append(
+                            f"browser_page_observation landed at {final_url} from requested URL {url}"
+                        )
+                    limitation_notes = [
+                        note
+                        for response in responses
+                        for note in response.limitation_notes
+                    ]
+                    metadata = {
+                        "requested_url": url,
+                        "final_url": final_url,
+                        "title": title,
+                        "capture_timestamp": utc_now_z(),
+                        "timeout_seconds": timeout_seconds,
+                        "wait_until": wait_until,
+                        "settle_seconds": settle_seconds,
+                        "headless": headless,
+                        "browser_channel": browser_channel,
+                        "viewport_width": viewport_width,
+                        "viewport_height": viewport_height,
+                        "storage_state_loaded": storage_state_path is not None,
+                        "blocked_resource_types": sorted(blocked_resource_types),
+                        "max_response_bytes": max_response_bytes,
+                        "response_count": len(responses),
+                        **_proxy_metadata(proxy_profile),
+                    }
+                    return BrowserPageObservationSuccess(
+                        requested_url=url,
+                        final_url=final_url,
+                        title=title,
+                        visible_text=visible_text,
+                        dom_observation=dom_observation,
+                        responses=responses,
+                        metadata=metadata,
+                        warning_notes=warning_notes,
+                        limitation_notes=limitation_notes,
                     )
                 finally:
                     context.close()
@@ -589,6 +909,52 @@ def _validate_http_url(url: str) -> str:
     return parsed.geturl()
 
 
+def _read_observed_page_responses(
+    responses: Sequence[object],
+    *,
+    max_response_bytes: int,
+) -> list[BrowserPageResponse]:
+    preserved: list[BrowserPageResponse] = []
+    seen: set[tuple[str, int]] = set()
+    for response in responses:
+        url = str(response.url)
+        status = int(response.status)
+        identity = (url, status)
+        if identity in seen:
+            continue
+        seen.add(identity)
+        headers = {
+            str(key): str(value)
+            for key, value in response.headers.items()
+            if str(key).lower() not in {"set-cookie", "cookie"}
+        }
+        limitations: list[str] = []
+        body_text = ""
+        try:
+            candidate = response.text()
+        except Exception as exc:
+            limitations.append(f"observed_response_body_unavailable: {type(exc).__name__}: {exc}")
+        else:
+            size = len(candidate.encode("utf-8"))
+            if size > max_response_bytes:
+                limitations.append(
+                    f"observed_response_body_exceeded_cap: {size} > {max_response_bytes}; body omitted"
+                )
+            else:
+                body_text = candidate
+        preserved.append(
+            BrowserPageResponse(
+                requested_url=url,
+                final_url=url,
+                status=status,
+                ok=bool(response.ok),
+                body_text=body_text,
+                response_headers=headers,
+                limitation_notes=limitations,
+            )
+        )
+    return preserved
+
 def _playwright_proxy_settings(proxy_profile: ProxyProfile) -> dict[str, str]:
     endpoint = proxy_profile.proxy_endpoint
     parsed = urlparse(endpoint)
@@ -638,6 +1004,15 @@ def _redact_proxy_secret(text: str, *, proxy_profile: ProxyProfile | None) -> st
             redacted = redacted.replace(f"{host}:{parsed.port}", "[redacted-proxy-endpoint]")
         redacted = redacted.replace(host, "[redacted-proxy-endpoint]")
     return redacted
+
+
+def _normalize_browser_channel(browser_channel: str | None) -> str | None:
+    if browser_channel is None:
+        return None
+    normalized = browser_channel.strip()
+    if not normalized:
+        raise ValueError("browser_channel must not be blank")
+    return normalized
 
 
 def _validate_positive_number(name: str, value: float) -> None:

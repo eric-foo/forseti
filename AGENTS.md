@@ -37,11 +37,10 @@ intervention rule above.**
 
 Whenever the user or instructions say **"mini god tier"** (including "god tier
 but small"), interpret it as the owner-invoked capability-target lens in
-`docs/decisions/orca_mini_god_tier_doctrine_v0.md` — name every foregone
-limitation; owner-invoked only (never agent grounds for scope expansion); a
-design lens, not a claim tier (asserts no validation or readiness). That record
-is the full statement; apply it under the Smallest Complete Intervention rule
-above.
+`docs/decisions/orca_mini_god_tier_doctrine_v0.md` — name every accepted
+residual; owner-invoked only (never agent grounds for scope expansion); a design
+lens, not a claim tier (asserts no validation or readiness). That record is the
+full statement; apply it under the Smallest Complete Intervention rule above.
 
 ## Operating Economy
 

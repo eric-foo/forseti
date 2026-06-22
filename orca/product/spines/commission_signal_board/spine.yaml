@@ -16,7 +16,7 @@ canonical_artifacts:
   tests_pointer: orca/product/spines/commission_signal_board/tests/validator_tests.md
   moved_paths_index: orca/product/spines/commission_signal_board/migrations/moved_paths_index.md
 
-legacy_resolver_stubs:
+legacy_absent_paths:
   adjudication_packet: docs/product/product_lead/orca_commission_signal_board_prompt_adjudication_packet_v0.md
   prompt: docs/prompts/product-planning/orca_commission_signal_board_prompt_v0.md
   playbook: docs/workflows/commission_signal_board_playbook_v0.md

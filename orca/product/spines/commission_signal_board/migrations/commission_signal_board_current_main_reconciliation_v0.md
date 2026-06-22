@@ -38,8 +38,10 @@ orca_start_preflight:
 
 ## Current-Main State
 
-Observed baseline: `origin/main` at
+Observed authoring baseline: `origin/main` at
 `bc950cdfeeb3a02f33bf52217d71e049aa9093f2`, the merge commit for PR #307.
+Current landed baseline after PR #310: `origin/main` at
+`780091959c778562a19984596b9d45645c8c1edf`, the merge commit for PR #310.
 
 The live CSB spine path remains:
 
@@ -55,6 +57,7 @@ orca/product/spines/commission_signal_board/spine.yaml
 orca/product/spines/commission_signal_board/authority/orca_commission_signal_board_prompt_adjudication_packet_v0.md
 orca/product/spines/commission_signal_board/dispatch_rules/orca_demand_gate_run_commission_criteria_v0.md
 orca/product/spines/commission_signal_board/harness/validator.md
+orca/product/spines/commission_signal_board/migrations/commission_signal_board_current_main_reconciliation_v0.md
 orca/product/spines/commission_signal_board/migrations/moved_paths_index.md
 orca/product/spines/commission_signal_board/prompts/orca_commission_signal_board_prompt_v0.md
 orca/product/spines/commission_signal_board/tests/validator_tests.md

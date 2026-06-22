@@ -20,8 +20,8 @@ open_next:
   - docs/workflows/reddit_candidate_intake_subreddit_projection_b2b_001_closeout_v0.md
   - docs/workflows/reddit_candidate_intake_subreddit_projection_seo_002_closeout_v0.md
   - docs/workflows/reddit_candidate_intake_operator_pilot_parameter_packet_v0.md
-  - orca/product/spines/capture/contracts/candidate_intake/data_capture_spine_reddit_candidate_url_intake_crawler_architecture_v0.md
-  - orca/product/spines/capture/contracts/candidate_intake/data_capture_spine_candidate_url_intake_contract_v0.md
+  - orca/product/spines/capture/core/contracts/candidate_intake/data_capture_spine_reddit_candidate_url_intake_crawler_architecture_v0.md
+  - orca/product/spines/capture/core/contracts/candidate_intake/data_capture_spine_candidate_url_intake_contract_v0.md
 stale_if:
   - old Reddit search/listing HTML changes title-link classes.
   - Candidate URL Intake changes candidate row fields, cap semantics, or
@@ -99,6 +99,25 @@ Candidate URL Intake should not treat these as candidate title anchors:
 Reason: comment links and thumbnail links can point at the same thread, but
 they are not the visible title signal. Accepting them would inflate or duplicate
 candidate rows and make provenance weaker.
+
+## Old Reddit Post-Date (Submission Date) Rule
+
+When old Reddit search/listing HTML is used for screening extraction or
+Candidate URL Intake, post date must be taken from a targeted locator attached
+to the candidate row. The acceptable shape is the `<time>` element inside the
+same old Reddit result container (`thing` or `search-result`) as the accepted
+`title` / `search-title` thread anchor.
+
+Do not compute a blind aggregate such as `min()` over all page datetimes. Old
+Reddit pages can include sidebar or titlebox datetimes, including subreddit
+creation dates such as 2011, that are not the candidate thread's submission
+date.
+
+If the run has an expected date window, keep the candidate row but mark the
+targeted candidate submission datetime as `out_of_range` when it falls outside
+that window. Do not silently substitute another page datetime to make the row
+look sane. If no targeted row-local `<time>` exists, mark the submission date
+unknown rather than guessing from unrelated page chrome.
 
 ## Empty Result Discipline
 

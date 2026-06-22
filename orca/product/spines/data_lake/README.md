@@ -6,10 +6,11 @@ artifact_role: Spine front-door (Data Lake shared-foundation spine)
 scope: >
   Front-door for the data_lake shared_foundation spine: the cross-layer storage
   contracts (raw-packet preservation, keyed retrievability, Attachment Record,
-  passive Availability Index, append-only derived-result/ack attachment) that
-  other spines depend on. R2 populated the spine with the lake contracts and
-  canonical mechanics map; only the two repo-structure migration planning docs
-  remain deferred pending placement.
+  passive Availability Index, append-only derived-result/ack attachment) and
+  medallion/gold-readiness contract that other spines depend on. R2 populated
+  the spine with the lake contracts and canonical mechanics map; the medallion
+  contract now locks the non-physical bronze/silver/pre-gold/gold-ready/gold
+  semantics. Only the two repo-structure migration planning docs remain deferred pending placement.
 use_when:
   - Entering the data_lake spine or deciding whether an artifact is lake-owned.
   - Checking the R2-populated authority/workflow routing and deferred placement status.
@@ -18,6 +19,7 @@ open_next:
   - docs/decisions/orca_data_lake_spine_promotion_binding_v0.md
   - docs/decisions/orca_spine_first_target_structure_binding_v0.md
 stale_if:
+  - The Data Lake medallion/gold-readiness contract is amended.
   - The data_lake spine shape or its shared_foundation kind is amended.
   - A later placement decision moves the deferred migration planning docs into the spine.
 ```
@@ -31,11 +33,14 @@ layer.
 - **Produced by:** capture.
 - **Consumed by:** projection, ECR, signal_statement, cleaning, judgment.
 - **Owns:** raw-packet (CapturePacket) preservation, keyed retrievability, the Attachment Record
-  contract, the passive Availability Index contract, and the append-only
-  derived-result / acknowledgement attachment contract.
+  contract, the passive Availability Index contract, the append-only
+  derived-result / acknowledgement attachment contract, the medallion /
+  gold-readiness contract, and the physicality-location contract (external data
+  root + directory grammar, not a storage engine).
 - **Does not own:** the physical backend or storage engine, source-capture
   execution, Mechanical Source Projection semantics, ECR derivation, Signal
-  Statement interpretation, Cleaning transforms, Judgment interpretation, or
+  Statement interpretation, Cleaning transforms, Spike Alert implementation,
+  Gold-ready evidence assembly implementation, Judgment interpretation, or
   queue / retry / scheduling / lane orchestration.
 
 The binding authority is
@@ -56,8 +61,13 @@ The binding authority is
 R2 landed the lake's authority + workflow substance:
 
 - `authority/` — the 3 lake contracts (core, storage, Attachment-Record
-  implementation), harvested from the `codex/data-lake-core-contract` lane with
-  refs repointed to `orca/product/` paths.
+  implementation), the additive medallion/gold-readiness contract that
+  locks bronze/silver/pre-gold/gold-ready/gold semantics, the
+  physicality-location contract (external data root, directory grammar, location
+  invariants, durable record names, fail-closed resolution), and the three
+  blocker-resolution decision contracts (raw admission + key grammar; write-boundary
+  enforcement; derived layout + index rebuild) that close the gating physicalization
+  blockers — all without authorizing backend, queue, runtime, or Judgment behavior.
 - `workflows/` — the canonical mechanics map (the version co-authored with the
   contracts, confirmed canonical via a 3-way reconciliation), which **supersedes
   and retires** the transitional `orca/product/shared/data_lake_mechanics/` copy.

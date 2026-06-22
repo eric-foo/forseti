@@ -1,20 +1,22 @@
-# Data Capture Spine Reddit Graph Frontier Lane Architecture v0
+# Reddit Graph Frontier Scanning Adapter Architecture v0
 
 ```yaml
 retrieval_header_version: 1
-artifact_role: Product architecture contract
-scope: Defines the accepted bounded Reddit Graph Frontier Lane as an agent-mediated frontier-selection and graph-receipt lane downstream of Reddit Candidate URL Intake and upstream of any later bounded intake run.
+artifact_role: Product architecture contract (legacy data-capture filename; scanning source-family adapter)
+scope: Defines the accepted bounded Reddit Graph Frontier Lane as an agent-mediated frontier-selection and graph-receipt lane downstream of Reddit Candidate URL Intake and upstream of any later bounded intake run, now mapped into shared scanning vocabulary.
 use_when:
   - Deciding whether Reddit candidate rows may be chained through graph/frontier scouting.
   - Checking what a Graph Frontier Register may persist.
+  - Mapping Reddit graph/frontier outputs into shared scanning vocabulary.
   - Preventing bounded Reddit exploration from becoming same-run traversal, broad crawling, Source Capture, Data Capture, or production crawl infrastructure.
 authority_boundary: retrieval_only
 open_next:
-  - orca/product/spines/capture/contracts/candidate_intake/data_capture_spine_reddit_candidate_url_intake_crawler_architecture_v0.md
+  - orca/product/spines/scanning/README.md
+  - orca/product/spines/capture/core/contracts/candidate_intake/data_capture_spine_reddit_candidate_url_intake_crawler_architecture_v0.md
   - docs/workflows/reddit_candidate_intake_to_projection_lane_handoff_v0.md
   - docs/workflows/data_capture_spine_consolidation_map_v0.md
   - docs/decisions/data_capture_spine_source_access_tooling_build_authorization_v0.md
-  - orca/product/spines/capture/contracts/source_access_boundary/data_capture_source_access_boundary_decision_v0.md
+  - orca/product/spines/capture/core/contracts/source_access_boundary/data_capture_source_access_boundary_decision_v0.md
 stale_if:
   - Candidate URL Intake changes row outputs, provenance fields, same-run traversal rules, promotion gates, or Reddit source-surface policy.
   - Reddit source-access authority changes robots.txt handling, old Reddit posture, broad-crawler authorization, API/commercial requirements, or anti-blocking hard stops.
@@ -35,6 +37,21 @@ crawling, and not production crawl infrastructure. Bounded live first-contact
 fetch belongs to Reddit Candidate URL Intake, not to the Graph Frontier Register.
 
 Recommended durable record shape: **Graph Frontier Register**.
+
+## Scanning Vocabulary Alignment
+
+This source-family adapter keeps Reddit-specific guardrails but emits into the
+shared scanning vocabulary from the scanning README and MGT operating model:
+
+- next candidate seed or selected graph node -> `frontier`;
+- subreddit, thread, outbound URL, or source surface -> `precursor_surface` when
+  it may reveal early signal inside a bounded run;
+- visible relation, recommendation, prior pointer, or outbound link -> `pointer`;
+- URL-backed clue from a node or relation -> `precursor_signal` until promoted;
+- blocked, empty, duplicate-heavy, or rejected path -> `negative` or
+  `access_note`;
+- any future downstream acquisition ask -> `capture_request`; this register
+  normally prepares next-run envelopes and does not itself request Capture.
 
 ## Implementation Status
 
@@ -336,7 +353,7 @@ direction_change_propagation:
     - docs/decisions/data_capture_spine_source_access_tooling_build_authorization_v0.md
     - docs/product/data_capture_source_access_boundary_decision_v0.md
   intentionally_not_updated:
-    - path: orca/product/spines/capture/source_capture_toolbox/README.md
+    - path: orca/product/spines/capture/core/source_capture_toolbox/README.md
       reason: >
         The Graph Frontier Lane is not Source Capture Armory and does not emit
         Source Capture Packets; adding it to the Armory README would blur

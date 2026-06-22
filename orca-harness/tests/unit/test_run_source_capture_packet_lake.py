@@ -1,0 +1,70 @@
+from __future__ import annotations
+
+from pathlib import Path
+
+import pytest
+
+from data_lake.root import DataLakeRoot
+from runners.run_source_capture_packet import main, run_source_capture_packet
+from source_capture.models import CaptureModeCategory, known_fact
+
+
+def _run(root: DataLakeRoot, tmp_path: Path, source_family: str = "reddit"):
+    src = tmp_path / "artifact.json"
+    src.write_text('{"x": 1}', encoding="utf-8")
+    return run_source_capture_packet(
+        source_family=source_family,
+        source_surface="r/test",
+        source_locator=known_fact("https://www.reddit.com/r/test/comments/x/"),
+        decision_question="q",
+        input_files=[src],
+        data_root=root,
+        capture_context="generic runner lake test",
+        operator_category="local_cli_operator",
+        capture_mode=CaptureModeCategory.AGENT_ASSISTED,
+        session_id=None,
+        actor_audience_context=None,
+        visible_mode_changes=[],
+        source_publication_or_event=None,
+        source_edit_or_version=None,
+        cutoff_posture=None,
+        recapture_time=None,
+        access_posture=None,
+        archive_history_posture=None,
+        media_modality_posture=None,
+        re_capture_relationship=None,
+        warnings=[],
+        limitations=[],
+    )
+
+
+def test_generic_runner_routes_to_lake(tmp_path: Path) -> None:
+    # The generic envelope runner, given a data_root, commits into the lake and is
+    # retrievable + verified by key -- the same seam the HTTP runner uses.
+    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    out_path = Path(_run(root, tmp_path))
+    pid = out_path.name
+
+    assert out_path == root.path / "raw" / pid
+    assert root.find_packet(pid) is not None
+    assert root.read_availability(pid) is not None
+    assert root.load_raw_packet(pid).manifest["packet_id"] == pid
+
+
+def test_cli_requires_exactly_one_target(tmp_path: Path) -> None:
+    # Neither --output nor --data-root -> fail closed (exactly-one guard).
+    src = tmp_path / "a.json"
+    src.write_text("{}", encoding="utf-8")
+    with pytest.raises(SystemExit):
+        main(
+            [
+                "--source-family",
+                "reddit",
+                "--source-locator",
+                "https://www.reddit.com/r/test/comments/x/",
+                "--decision-question",
+                "q",
+                "--input-file",
+                str(src),
+            ]
+        )

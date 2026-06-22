@@ -49,8 +49,8 @@ and fixtures remain under `orca-harness/tests/`.
 
 ## Old Paths
 
-The old CSB doc paths under `docs/` are resolver stubs. Use the moved-path
-index before following historical links:
+The old CSB doc paths under `docs/` are absent on current `main`. Use the
+moved-path index before following historical links or older handoff packets:
 
 ```text
 orca/product/spines/commission_signal_board/migrations/moved_paths_index.md

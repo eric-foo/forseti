@@ -2,11 +2,12 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Any, Literal, Mapping
+from typing import TYPE_CHECKING, Any, Literal, Mapping
 from urllib.parse import urlparse
 
 from pydantic import Field, field_validator, model_validator
 
+from harness_utils import generate_ulid
 from schemas.case_models import StrictModel
 from source_capture.models import (
     CoverageWindow,
@@ -17,10 +18,16 @@ from source_capture.models import (
     VisibleFactStatus,
 )
 
+if TYPE_CHECKING:
+    from data_lake.root import DataLakeRoot
+
 
 IG_PROJECTION_METHOD = "ig_creator_momentum_mechanical_projection"
 IG_PROJECTION_VERSION = "v0"
 IG_PROJECTION_CERTIFICATION = "view_only; not_cleaned; not_normalized; not_judgment_ready"
+
+# Append-only derived lane namespace for the IG creator-momentum projection's Silver record.
+PROJECTION_IG_LANE = "projection_ig"
 
 _IG_SOURCE_FAMILY = "instagram_creator"
 _FORBIDDEN_SOURCE_VISIBLE_FIELD_NAMES = frozenset(
@@ -221,6 +228,40 @@ def write_ig_creator_momentum_projection(
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(_projection_json_text(projection), encoding="utf-8")
     return projection
+
+
+def project_ig_creator_momentum_into_lake(
+    *,
+    data_root: "DataLakeRoot",
+    packet_id: str,
+    record_id: str | None = None,
+) -> tuple[IgCreatorMomentumProjectionPacket, Path]:
+    """Project a committed raw packet -- read by key from the lake and
+    hash-verified -- into an IG creator-momentum projection, and append it as a
+    derived record at ``derived/<packet_id>/projection_ig/<record_id>.json``
+    (append-only; re-derive = new sibling).
+
+    The verified read is the lake loader (``DataLakeRoot.load_raw_packet``), which
+    closes the unverified-read gap of the directory path; the extraction is
+    byte-identical to ``build_ig_creator_momentum_projection_from_packet_directory``.
+    This adds no capture, fetch, Cleaning, ECR, or Judgment. Returns the
+    projection and the derived record path.
+    """
+    loaded = data_root.load_raw_packet(packet_id)
+    packet = SourceCapturePacket.model_validate(loaded.manifest)
+    projection = build_ig_creator_momentum_projection(
+        packet=packet,
+        raw_file_bytes_by_file_id=loaded.bodies,
+    )
+    record = record_id if record_id is not None else generate_ulid()
+    derived_path = data_root.append_record(
+        subtree="derived",
+        raw_anchor=packet_id,
+        lane=PROJECTION_IG_LANE,
+        record_id=f"{record}.json",
+        data=_projection_json_text(projection).encode("utf-8"),
+    )
+    return projection, derived_path
 
 
 def _read_packet_directory(packet_or_manifest_path: Path) -> tuple[SourceCapturePacket, dict[str, bytes]]:
@@ -496,6 +537,7 @@ __all__ = [
     "IG_PROJECTION_CERTIFICATION",
     "IG_PROJECTION_METHOD",
     "IG_PROJECTION_VERSION",
+    "PROJECTION_IG_LANE",
     "IgCreatorMomentumProjectionLossLedger",
     "IgCreatorMomentumProjectionPacket",
     "IgCreatorMomentumProjectionRow",
@@ -503,5 +545,6 @@ __all__ = [
     "IgProjectionRawRef",
     "build_ig_creator_momentum_projection",
     "build_ig_creator_momentum_projection_from_packet_directory",
+    "project_ig_creator_momentum_into_lake",
     "write_ig_creator_momentum_projection",
 ]

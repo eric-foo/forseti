@@ -46,7 +46,11 @@ every governed root** (`R`, governed -> non-governed: it left its governed
 home). A rename that keeps it under a governed root is a **move**, not a
 deletion, and needs no record. Base resolution mirrors `header_index.py`
 (`$GITHUB_BASE_REF` -> `origin/main`); there is no `HEAD~1` fallback (which would
-see only the last commit of a multi-commit lane).
+see only the last commit of a multi-commit lane). The gate computes the diff with
+a governed-root pathspec so non-governed review snapshots or archival copies
+cannot steal rename pairing from a real governed successor; a true governed ->
+non-governed rename still appears as deletion of the governed path under that
+pathspec.
 
 ## The four evidence elements (all required, non-empty)
 
@@ -150,6 +154,54 @@ waiver record, so the emergency path itself stays evidence-bearing.
 - **`governed_roots` declared in the register** — a data file must not own its own
   governance scope (it could narrow or delete it). `GOVERNED_ROOTS` is
   code-owned, in the checker, which the router protects as an `.agents/` surface.
+
+## Direction Change Propagation
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    The deletion-evidence strict gate now computes rename-aware deletion detection
+    with a governed-root pathspec so non-governed review snapshots or archival
+    copies cannot steal rename pairing from a real governed successor; the
+    governed-deletion rule is unchanged.
+  trigger: validation_philosophy
+  related_triggers:
+    - workflow_authority
+  controlling_sources_updated:
+    - docs/decisions/deletion_evidence_doctrine_v0.md
+    - .agents/hooks/check_deletion_evidence.py
+  downstream_surfaces_checked:
+    - AGENTS.md
+    - .agents/workflow-overlay/validation-gates.md
+    - .github/workflows/ci.yml
+  intentionally_not_updated:
+    - path: AGENTS.md
+      reason: >
+        It already names the deletion-evidence gate as protected friction and
+        does not own checker implementation details.
+    - path: .agents/workflow-overlay/validation-gates.md
+      reason: >
+        It owns validation bucket semantics; the strict gate command and
+        gate-status meaning are unchanged.
+    - path: .github/workflows/ci.yml
+      reason: >
+        CI still invokes the same strict checker command; only the checker's
+        rename-pairing implementation changed.
+  stale_language_search: >
+    rg -n "rename-aware|governed-root|governed roots|review snapshot|check_deletion_evidence|deletion-evidence"
+    docs/decisions/deletion_evidence_doctrine_v0.md .agents/hooks/check_deletion_evidence.py
+    .agents/workflow-overlay/validation-gates.md .github/workflows/ci.yml AGENTS.md
+  stale_language_search_result: >
+    Executed 2026-06-21 during PR #316 CI repair. Hits either define the same
+    governed deletion rule, point at the same strict checker, or document the new
+    pathspec implementation detail; no checked surface requires repo-wide rename
+    pairing for deletion-evidence detection.
+  non_claims:
+    - not validation
+    - not readiness
+    - not deletion approval
+    - not a narrowed governed scope
+```
 
 ## Worked skeleton (illustrative)
 

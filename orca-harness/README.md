@@ -19,6 +19,39 @@ records. It does not fetch sources, retrieve archives, automate browsers, call
 APIs, score source quality, validate Data Capture, or authorize downstream ECR,
 Cleaning, or Judgment behavior.
 
+## Screening Reads
+
+Use the screening-read entries when a screen orchestrator needs one bounded
+public read without creating a Source Capture Packet:
+
+```python
+from source_capture.screening_read import ScreeningReadDispatch, ScreeningReadRoute, screening_read
+
+dispatch = ScreeningReadDispatch(screen_id="screen-123", question="one bounded source question")
+result = screening_read(
+    url="https://old.reddit.com/r/beauty/search?q=moisturizer&restrict_sr=on&sort=new",
+    route=ScreeningReadRoute.REDDIT_SCREENING_READ,
+    dispatch=dispatch,
+)
+```
+
+For public pages that need the browser/interstitial rung:
+
+```python
+from source_capture.screening_browser_read import screening_browser_read
+
+result = screening_browser_read(url="https://example.com/public-page", dispatch=dispatch)
+```
+
+These entries are orchestrator-invoked, public-only, human-rate, and screen-light
+only. They do not stage packets, write manifests, return packet paths, touch ECR,
+or run as a standing service/crawler/scheduler. Browser screening reads classify
+`block_shell` on visible text, not full DOM. Same-shaped listing pages can reuse
+`StructuredListingExtractionSpec` and `extract_structured_listing_candidates(...)` for
+row-local title/date extraction. Build receipt:
+`docs/workflows/screening_read_service_build_receipt_v0.md`; reusable findings:
+`docs/workflows/screening_read_reusable_findings_v0.md`.
+
 ## Source Capture Packet
 
 Use the source-capture runner when an operator already has local source files
@@ -132,15 +165,19 @@ python runners/run_source_capture_browser_packet.py --url "https://example.com/p
 ```
 
 This runner preserves rendered DOM, visible text, a viewport screenshot, and
-browser metadata into the packet shape. It uses a fresh anonymous/headless
-browser context and does not accept stored sessions, browser profiles, cookies,
-credentials, storage-state files, anti-detect behavior, proxy behavior, CAPTCHA
-solving, crawling, OCR, ECR, Cleaning, Judgment, buyer-proof, or
+browser metadata into the packet shape. It defaults to a fresh anonymous/headless
+browser context. For one supplied URL, operators may choose ordinary visible
+browser mode (`--headed`), a local Chromium channel such as Chrome or Edge
+(`--browser-channel`), and a bounded post-navigation settle delay
+(`--settle-seconds`). It does not accept stored sessions, browser profiles,
+cookies, credentials, storage-state files, anti-detect behavior, proxy behavior,
+CAPTCHA solving, crawling, OCR, ECR, Cleaning, Judgment, buyer-proof, or
 commercial-readiness logic.
 
 Use the CloakBrowser Snapshot runner when one supplied URL needs anonymous
-anti-blocking browser rendering because ordinary browser/headless capture is
-expected to fail or has failed:
+anti-blocking browser rendering because ordinary Browser Snapshot controls
+(`--headed`, `--browser-channel`, `--settle-seconds`) are expected to fail or
+have failed:
 
 Install the optional CloakBrowser dependency before live use:
 

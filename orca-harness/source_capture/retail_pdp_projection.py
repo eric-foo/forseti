@@ -4,17 +4,24 @@ import hashlib
 import json
 import re
 from pathlib import Path
-from typing import Any, Literal, Mapping, Sequence
+from typing import TYPE_CHECKING, Any, Literal, Mapping, Sequence
 
 from pydantic import Field, field_validator, model_validator
 
+from harness_utils import generate_ulid
 from schemas.case_models import StrictModel
 from source_capture.models import PreservedFile, SourceCapturePacket, SourceCaptureSlice, VisibleFactStatus
+
+if TYPE_CHECKING:
+    from data_lake.root import DataLakeRoot
 
 
 RETAIL_PDP_PROJECTION_METHOD = "retail_pdp_mechanical_projection"
 RETAIL_PDP_PROJECTION_VERSION = "v0"
 RETAIL_PDP_PROJECTION_CERTIFICATION = "view_only; not_cleaned; not_normalized; not_judgment_ready"
+
+# Append-only derived lane namespace for the Retail/PDP projection's Silver record.
+PROJECTION_RETAIL_PDP_LANE = "projection_retail_pdp"
 
 _FORBIDDEN_SOURCE_VISIBLE_FIELD_NAMES = frozenset(
     {
@@ -182,6 +189,43 @@ def write_retail_pdp_projection(*, packet_directory: Path, output_path: Path) ->
         encoding="utf-8",
     )
     return projection
+
+
+def project_retail_pdp_into_lake(
+    *,
+    data_root: "DataLakeRoot",
+    packet_id: str,
+    record_id: str | None = None,
+) -> tuple[RetailPdpProjectionPacket, Path]:
+    """Project a committed raw packet -- read by key from the lake and
+    hash-verified -- into a Retail/PDP projection, and append it as a derived
+    record at ``derived/<packet_id>/projection_retail_pdp/<record_id>.json``
+    (append-only; re-derive = new sibling).
+
+    The verified read is the lake loader (``DataLakeRoot.load_raw_packet``); the
+    extraction is byte-identical to the legacy directory path
+    (``build_retail_pdp_projection_from_packet_directory``). This adds no capture,
+    fetch, Cleaning, ECR, or Judgment. Returns the projection and the derived
+    record path.
+    """
+    loaded = data_root.load_raw_packet(packet_id)
+    packet = SourceCapturePacket.model_validate(loaded.manifest)
+    projection = build_retail_pdp_projection(
+        packet=packet,
+        raw_file_bytes_by_file_id=loaded.bodies,
+    )
+    record = record_id if record_id is not None else generate_ulid()
+    data = (
+        f"{json.dumps(projection.model_dump(mode='json'), indent=2, sort_keys=True)}\n"
+    ).encode("utf-8")
+    derived_path = data_root.append_record(
+        subtree="derived",
+        raw_anchor=packet_id,
+        lane=PROJECTION_RETAIL_PDP_LANE,
+        record_id=f"{record}.json",
+        data=data,
+    )
+    return projection, derived_path
 
 
 def build_retail_pdp_projection(
@@ -1150,6 +1194,7 @@ __all__ = [
     "RETAIL_PDP_PROJECTION_CERTIFICATION",
     "RETAIL_PDP_PROJECTION_METHOD",
     "RETAIL_PDP_PROJECTION_VERSION",
+    "PROJECTION_RETAIL_PDP_LANE",
     "RetailPdpProjectionInputError",
     "RetailPdpProjectionBinding",
     "RetailPdpProjectionLossEntry",
@@ -1160,5 +1205,6 @@ __all__ = [
     "RetailProjectionRawRef",
     "build_retail_pdp_projection",
     "build_retail_pdp_projection_from_packet_directory",
+    "project_retail_pdp_into_lake",
     "write_retail_pdp_projection",
 ]
