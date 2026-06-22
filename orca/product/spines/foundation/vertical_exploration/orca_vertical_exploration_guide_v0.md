@@ -19,13 +19,15 @@ open_next:
   - orca/product/spines/foundation/vertical_exploration/orca_memorization_resistant_case_finder_frame_v0.md
   - docs/decisions/judgment_spine_backtest_batch1_ledger_declaration_v0.md   # exemplar Screen Provenance block
   - docs/research/source_registry_practices_deep_research_report_v0.md       # evidence base for this shape
+  - orca/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md            # canonical capture-method playbook (HOW-side)
   - orca/product/spines/capture/core/source_capture_toolbox/capture_recon_index_v0.md            # capture-seam counterpart (HOW-side)
+  - orca/product/spines/capture/core/source_capture_toolbox/README.md            # Source Capture Armory entrypoint and screening-read service pointer
   - orca/product/satellites/beauty/beauty_venue_card_set_v0.md                      # promoted beauty card-set (Step 0 reads it FIRST for beauty screens)
   - orca/product/spines/scanning/scan_core/orca_scanning_intelligent_walk_mgt_operating_model_v0.md  # MGT intelligent-walk overlay and capture-request bridge
 stale_if:
   - The finder frame is owner-signed (fold this procedure in or re-home it at that sign-off).
   - The promote-on-reuse trigger fires and the owner promotes a vertical's trail into an owned card-set.
-  - The capture-investigation doctrine lands (re-point the capture seam at it).
+  - The canonical Source Capture Playbook, Source Capture Armory screening-read service, or capture recon index materially changes screening read-escalation rules.
 ```
 
 ## Status
@@ -118,18 +120,23 @@ signal. Treat as hypothesis, not finding.
 ## Capture seam
 
 The walk collects URLs and quotes as screen evidence only. When a case needs
-packet-grade capture, hand off to the capture spine's investigation doctrine —
-its evidence base today is
+packet-grade capture, hand off to the capture spine's canonical Source Capture
+Playbook:
+`orca/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md`.
+Its recon evidence base today is
 `orca/product/spines/capture/core/source_capture_toolbox/capture_recon_index_v0.md`
-(substrate-first diagnosis, escalation ladder, honest NO-GO). This procedure
+(substrate-first diagnosis, route selection, honest NO-GO). The Source Capture
+Armory README defines the orchestrator-only `screening_read` /
+`screening_browser_read` seam for screen-light public reads. This procedure
 designs no capture mechanics and authorizes no capture run.
 
 ## Walker Equipment Kit (canonical block — paste into every walk prompt)
 
-No walker deploys without this block (2026-06-12 amendment). It distills the
-capture lane's read-escalation patterns (capture investigation playbook +
-recon index) for screening use, plus the rules this guide's own screens
-earned. It updates by dated note as ledgers learn new walls.
+No walker deploys without this block (2026-06-12 amendment; capture-seam sync
+2026-06-22). It distills the capture lane's read-escalation patterns from the
+canonical Source Capture Playbook, capture recon index, and Source Capture
+Armory screening-read service for screening use, plus the rules this guide's
+own screens earned. It updates by dated note as ledgers learn new walls.
 
 > WALK CONTRACT (non-negotiable):
 > 1. HARD STOP SELF-CHECK — keep a numbered move log; after EVERY move check
@@ -145,25 +152,33 @@ earned. It updates by dated note as ledgers learn new walls.
 >    read, zero yield) | ACCESS-NOTE (could not reach it — counts toward the
 >    move cap, never toward the dry stop).
 > 3. READ ESCALATION before any ACCESS-NOTE (screening posture only — public
->    pages, no logins, no bulk): try (i) a URL variant (old./www., mobile,
->    print view), (ii) search-snippet mining (site:domain queries), (iii) an
->    archived copy of the SPECIFIC page, and (iv) when the orchestrator offers
->    a screening browser route, visible-text browser read before recording a
->    final ACCESS-NOTE. For browser reads, judge the visible text/title; hidden
->    full-DOM challenge residue alone is not a source wall. Record which shapes
->    you tried. "Blocked" is a hypothesis, not a verdict.
+>    logged-out pages, no logins, no bulk, URLs + short quotes): first classify
+>    whether the target is public or access-controlled. If it is private,
+>    paywalled, login-only, or still unknown after a good-faith look, record the
+>    access boundary and stop that read. For public targets, try (i) a URL
+>    variant (old./www., mobile, print view), (ii) search-snippet mining
+>    (site:domain queries), (iii) an archived copy of the SPECIFIC page, and
+>    (iv) when the orchestrator offers a bounded screening route,
+>    `screening_read` or visible-text `screening_browser_read` before recording
+>    a final ACCESS-NOTE. For browser reads, judge the visible text/title;
+>    hidden full-DOM challenge residue alone is not a source wall. Record which
+>    shapes you tried. "Blocked" is a hypothesis, not a verdict.
 > 4. KNOWN WALLS (do not burn moves rediscovering): reddit.com is unreachable
 >    via the agent fetch tool (tool-level block) AND unreliable in external
->    search indexes. For Reddit real reads, record what you need and let the
->    orchestrator invoke the capture-harness `screening_read` service; walkers
->    never call it directly. For direct-fetch Cloudflare/interstitial walls
->    (Basenotes-class), snippet-mine and try archives first; if that is not
->    enough, the orchestrator may route `screening_browser_read` for visible
->    text only. Both routes are screening posture: public-only, human-rate, no
->    packet, no ECR. Basenotes.com 403s direct fetch - snippets and archives
->    work; browser-rung escalation is orchestrator-mediated.
+>    search indexes. For Reddit real reads, record the needed public locator or
+>    query and let the orchestrator invoke the capture-harness
+>    `screening_read` service; walkers never call it directly. For direct-fetch
+>    Cloudflare/interstitial walls (Basenotes-class), snippet-mine and try
+>    archives first; if that is not enough, the orchestrator may route
+>    `screening_browser_read` for visible text only. Both services are
+>    screening posture: public-only, logged-out, human-rate, one source / one
+>    question, no packet, no manifest, no ECR. Basenotes.com 403s direct fetch
+>    - snippets and archives work; browser-rung escalation is
+>    orchestrator-mediated.
 > 5. POLICY SKIPS (hard): LinkedIn, TikTok, Instagram — record pointers,
->    never follow. No logins anywhere. No capture: URLs + short quotes only.
+>    never follow in this walker. Capture-lane or source-family playbooks may
+>    authorize separate public social capture/screening routes, but they do not
+>    relax this kit. No logins anywhere. No capture: URLs + short quotes only.
 > 6. HUB ORDER: brand-story trade press FIRST (outlets covering brands and
 >    their decisions); ingredient/market trade press ONLY when hunting
 >    regulatory forcing functions. US brands / US ecosystem by default (owner
@@ -174,9 +189,9 @@ earned. It updates by dated note as ledgers learn new walls.
 
 Orchestrator obligations (the contract's other half): supply direction,
 targets, caps, and the exclusion list; collect access notes at batch close
-and consult the capture seam (playbook / recon index) on every unresolved
-wall BEFORE that vertical's next screen; fold newly-diagnosed walls into this
-kit by dated note.
+and consult the capture seam (Source Capture Playbook / Source Capture Armory
+screening-read service / recon index) on every unresolved wall BEFORE that
+vertical's next screen; fold newly-diagnosed walls into this kit by dated note.
 
 ## Promote-on-reuse trigger
 
@@ -311,3 +326,12 @@ Mints no ladder vocabulary; the Status label is doc-local.
   packet-grade capture, route expansion, scan-core ratification, or live scan
   execution. Ordinary batch walks keep the original global dry stop unless the
   run declares the MGT branch-pivot contract up front.
+- 2026-06-22 (capture-seam reconciliation): the Walker Equipment Kit now points
+  at the canonical Source Capture Playbook, Source Capture Armory screening-read
+  service, and capture recon index rather than the older capture-investigation
+  wording alone. The kit adopts the playbook's Step 0 public-vs-access-control
+  classification, problem-indexed route selection, visible-text browser honesty,
+  and "blocked is a hypothesis" discipline for screening posture only. This
+  does not import packet-grade capture, proxy/geo setup, packet-stage anti-bot
+  routes, social live reads, logins, manifests, ECR, or capture authority
+  into Walker work.
