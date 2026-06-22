@@ -468,6 +468,110 @@ class DataLakeRoot:
         _atomic_create(target, data)
         return target
 
+    def append_record_set(
+        self,
+        *,
+        subtree: str,
+        raw_anchor: str,
+        record_id: str,
+        members: dict[str, bytes],
+        completion_lane: str,
+    ) -> dict[str, Path]:
+        """Append a set of sibling records as one derivation with all-or-nothing
+        completion semantics. Writes every member record, then a completion marker
+        (in ``completion_lane``) listing the member lanes -- the marker is the last
+        create in process order. A crash before the marker leaves no marker; a
+        filesystem crash around final publish may still leave any subset of
+        directory entries durable, so consumers must use
+        ``is_record_set_complete`` to reject marker-present/member-missing sets.
+        Fail-closed preflight: none of the member targets nor the
+        marker may already exist, so a colliding ``record_id`` never produces a new
+        partial. Returns ``{member_lane: path}`` (the marker path is not returned).
+
+        This gives DETECTABLE completeness, not crash-atomic publication: each
+        member file is individually create-only and a consumer must consult the
+        marker (or ``is_record_set_complete``) to trust the set; true cross-file
+        atomic publish is not available for siblings in distinct lane dirs."""
+        if subtree not in _APPENDABLE_SUBTREES:
+            raise DataLakeRootError(
+                f"append_record_set subtree must be one of {_APPENDABLE_SUBTREES}: {subtree!r}"
+            )
+        if not members:
+            raise DataLakeRootError("append_record_set requires at least one member record")
+        if completion_lane in members:
+            raise DataLakeRootError(
+                f"completion_lane {completion_lane!r} must not collide with a member lane"
+            )
+        self._reverify()
+        _validate_segment(raw_anchor, role="raw_anchor")
+        _validate_segment(record_id, role="record_id")
+        _validate_segment(completion_lane, role="completion_lane")
+        for lane in members:
+            _validate_segment(lane, role="lane")
+
+        member_targets = {
+            lane: self._within(subtree, raw_anchor, lane, record_id) for lane in members
+        }
+        marker_target = self._within(subtree, raw_anchor, completion_lane, record_id)
+        existing = [t for t in (*member_targets.values(), marker_target) if t.exists()]
+        if existing:
+            raise DataLakeRootError(
+                "refusing partial record set; a member or marker already exists for "
+                f"record_id {record_id!r}: {', '.join(str(p) for p in existing)}"
+            )
+
+        written: dict[str, Path] = {}
+        for lane, data in members.items():
+            _atomic_create(member_targets[lane], data)
+            written[lane] = member_targets[lane]
+        marker_body = (
+            json.dumps(
+                {"record_id": record_id, "member_lanes": sorted(members)},
+                indent=2,
+                sort_keys=True,
+            )
+            + "\n"
+        )
+        _atomic_create(marker_target, marker_body.encode("utf-8"))
+        return written
+
+    def is_record_set_complete(
+        self, *, subtree: str, raw_anchor: str, record_id: str, completion_lane: str
+    ) -> bool:
+        """True iff the completion marker for this set exists AND every member lane
+        it names has its record present. Lets a consumer reject a partial
+        (crash-interrupted or in-flight) derivation; fail-closed on any anomaly."""
+        if subtree not in _APPENDABLE_SUBTREES:
+            raise DataLakeRootError(
+                f"is_record_set_complete subtree must be one of {_APPENDABLE_SUBTREES}: {subtree!r}"
+            )
+        self._reverify()
+        _validate_segment(raw_anchor, role="raw_anchor")
+        _validate_segment(record_id, role="record_id")
+        _validate_segment(completion_lane, role="completion_lane")
+        marker = self._within(subtree, raw_anchor, completion_lane, record_id)
+        if not marker.is_file():
+            return False
+        try:
+            body = json.loads(marker.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            return False
+        if not isinstance(body, dict) or body.get("record_id") != record_id:
+            return False
+        member_lanes = body.get("member_lanes")
+        if not isinstance(member_lanes, list) or not member_lanes:
+            return False
+        for lane in member_lanes:
+            if not isinstance(lane, str):
+                return False
+            try:
+                _validate_segment(lane, role="lane")
+            except DataLakeRootError:
+                return False
+            if not self._within(subtree, raw_anchor, lane, record_id).is_file():
+                return False
+        return True
+
     # -- availability index (content-free, rebuildable) ---------------------
 
     def record_availability(self, packet_id: str) -> Path:

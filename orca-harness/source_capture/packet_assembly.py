@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 import json
-import tempfile
+import shutil
 from pathlib import Path
 from typing import TYPE_CHECKING, Mapping, Sequence
 
+from harness_utils import generate_ulid
 from source_capture.models import (
     PacketWriteResult,
     SourceCaptureSlice,
@@ -130,10 +131,13 @@ def stage_and_write_packet(
                 capture_postures=capture_postures,
                 limitations=limitations,
             )
-        # Lake commit: stage input artifacts in an isolated temp scratch; the writer
-        # copies them into <root>/raw/<packet_id>/ and we discard the scratch.
-        with tempfile.TemporaryDirectory(prefix="orca_capture_stage_") as scratch:
-            staged_paths = [Path(scratch) / filename for filename, _content in staged_artifacts]
+        # Lake commit: stage input artifacts under the lake-owned .staging/ tree,
+        # then let the writer publish its own completed raw/<packet_id>/ staging
+        # directory. Do not depend on the host OS temp directory here; managed
+        # Windows sandboxes may deny writes there.
+        input_staging = data_root.stage_raw_packet(generate_ulid())
+        try:
+            staged_paths = [input_staging / filename for filename, _content in staged_artifacts]
             for staged_path, (_filename, content) in zip(staged_paths, staged_artifacts):
                 staged_path.write_bytes(content)
             return write_local_source_capture_packet(
@@ -142,6 +146,8 @@ def stage_and_write_packet(
                 source_slices=list(source_slices),
                 **writer_kwargs,  # type: ignore[arg-type]
             )
+        finally:
+            shutil.rmtree(input_staging, ignore_errors=True)
 
     staging_parent = output_directory.parent
     staging_parent.mkdir(parents=True, exist_ok=True)
