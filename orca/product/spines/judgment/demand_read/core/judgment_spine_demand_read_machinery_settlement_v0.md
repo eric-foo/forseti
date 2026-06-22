@@ -296,6 +296,26 @@ What remains gated:
 - Runtime feasibility, capture feasibility, source-system feasibility, and
   automation readiness are not proven.
 
+## Proof-Side Demand Read
+
+The proof side does read demand; it just reads demand under a buyer-proof gate.
+The buyer-proof packet owns the target buyer, live decision trigger,
+Demand-Substrate Hard Gate, memo/evidence appendix, readback, pull standard,
+kill criteria, and graduation criteria. The demand-read machinery supplies the
+substantive read inside that proof artifact:
+
+- Is the visible demand real or manufactured?
+- If real, is it durable or real-but-short-window?
+- What evidence-supported action ceiling can the buyer use now?
+- What would change the answer after monitoring or outcome memory?
+
+Proof-side language should therefore translate internal `transient demand` as
+`real-but-short-window demand` or `short-window demand` in buyer-facing prose,
+while technical proof artifacts may retain `transient demand` when naming the
+internal state. A buyer using a memo is buyer-proof evidence only when the
+buyer-proof packet's live-decision, memo, readback, and pull gates are satisfied;
+it is not proof that the demand-read model is validated.
+
 ## Monitoring And Durability Rule
 
 A read can upgrade from transient to durable only when the monitoring loop
@@ -365,44 +385,35 @@ Judgment-only:
 - Whether buyer behavior is pull rather than praise.
 - Whether a satellite's vertical tell is strong enough to matter.
 
-## Patch Plan If Accepted
+## Propagation Result
 
-Mandatory coherence patches:
+Applied in this lane after owner follow-up:
 
 - `orca/product/spines/foundation/demand_read_taxonomy/orca_demand_read_taxonomy_v0.md`:
-  replace the manufactured-demand read action parenthetical `discount / avoid`
-  with the live action vocabulary, normally `avoid`; retain "discount" only if
-  rewritten as C2 risk-weighting language, not an action verb.
+  manufactured-demand read action parenthetical changed from `discount / avoid`
+  to `avoid`.
 - `orca/product/spines/scanning/scan_core/orca_demand_scan_core_spec_v0.md`:
-  replace the manufactured-demand heading `discount / avoid` with `avoid` or
-  another seven-verb-compliant action path.
+  manufactured-demand heading changed from `discount / avoid` to `avoid`.
 - `orca/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md`:
-  replace live `suspected hollow or manufactured demand` wording with
-  `suspected transient or manufactured demand` in the target-selection passages.
+  live target-selection wording changed from `suspected hollow or manufactured
+  demand` to `suspected transient or manufactured demand`.
 - `orca/product/spines/product_lead/offer/orca_offer_hypothesis_v0.md`:
-  replace live `suspected hollow or manufactured demand` wording with
-  `suspected transient or manufactured demand`.
-
-Optional or inspect-before-patching cleanup:
-
+  live target-selection wording changed from `suspected hollow or manufactured
+  demand` to `suspected transient or manufactured demand`, and the first-proof
+  buyer-facing answer now uses `real-but-short-window` instead of internal-only
+  `transient`.
 - `orca/product/satellites/fragrance/judgment_level1/satellite_skeleton/fragrance_level1_product_learning_satellite_skeleton_v0.md`:
-  inspect `forecast_records.horizon`. If it means C3 action horizon, remove or
-  rename it. If it means forecast window, keep it or rename to
-  `forecast_window` to avoid confusion.
+  `forecast_records.horizon` renamed to `forecast_window` after inspection
+  showed the field belongs to forecast records, not the C3 action-ceiling
+  horizon removed by the C3 contract.
+
+Remaining inspect-before-patching item:
+
 - `orca/product/spines/judgment/demand_read/integrity/judgment_spine_manufactured_demand_detection_design_v0.md`:
-  inspect `hollow` usages before patching. Some may be historical or integrity
-  design shorthand; do not mechanically replace them without preserving the
-  manufactured-axis distinction.
-- `orca/product/spines/product_lead/offer/orca_offer_hypothesis_v0.md` and
-  `orca/product/spines/product_lead/proof_charter/orca_product_proof_lead_charter_v0.md`:
-  inspect `defend/hold` wording. It appears to describe decision families, not
-  old C3 action verbs, so it is not a mandatory action-vocabulary patch.
-
-No patch needed:
-
-- C2 references to `discount` as Rule 3 risk-state weighting.
-- C3 historical amendment text that explicitly names superseded vocabulary.
-- Core and taxonomy history text that explicitly says `hollow` was retired.
+  `hollow` usages are in manufactured-demand integrity design language outside
+  the settlement's required read pack. They need a separate source-loaded pass
+  before mechanical replacement because some may distinguish manufactured
+  demand subtypes.
 
 ## Direction Change Propagation
 
@@ -420,6 +431,11 @@ direction_change_propagation:
     - architecture_doctrine
   controlling_sources_updated:
     - orca/product/spines/judgment/demand_read/core/judgment_spine_demand_read_machinery_settlement_v0.md
+    - orca/product/spines/foundation/demand_read_taxonomy/orca_demand_read_taxonomy_v0.md
+    - orca/product/spines/scanning/scan_core/orca_demand_scan_core_spec_v0.md
+    - orca/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md
+    - orca/product/spines/product_lead/offer/orca_offer_hypothesis_v0.md
+    - orca/product/satellites/fragrance/judgment_level1/satellite_skeleton/fragrance_level1_product_learning_satellite_skeleton_v0.md
   downstream_surfaces_checked:
     - docs/decisions/orca_product_thesis_consumer_demand_v0.md
     - orca/product/spines/foundation/demand_read_taxonomy/orca_demand_read_taxonomy_v0.md
@@ -433,11 +449,11 @@ direction_change_propagation:
     - orca/product/spines/scanning/scan_core/orca_demand_scan_core_spec_v0.md
     - orca/product/satellites/fragrance/judgment_level1/satellite_skeleton/fragrance_level1_product_learning_satellite_skeleton_v0.md
   intentionally_not_updated:
-    - path: downstream product and satellite files
+    - path: orca/product/spines/judgment/demand_read/integrity/judgment_spine_manufactured_demand_detection_design_v0.md
       reason: >
-        This prompt commissioned a settlement artifact plus patch implications.
-        Coherence edits are separated into the Patch Plan If Accepted section
-        rather than applied silently in this lane.
+        Outside the required read pack for this settlement; its `hollow` usages
+        appear in manufactured-demand integrity design and need a separate
+        source-loaded pass to preserve subtype distinctions.
   stale_language_search: >
     rg -n -i "act \| phase|phase \||narrow, hold|defend\}|long-horizon|short-horizon|horizon:|commit \| move|Excluded .* Watch|durable vs hollow|durable-vs-hollow|trendy|trendiness"
     docs/decisions/orca_product_thesis_consumer_demand_v0.md
@@ -452,13 +468,14 @@ direction_change_propagation:
     orca/product/spines/scanning/scan_core/orca_demand_scan_core_spec_v0.md
     orca/product/satellites/fragrance/judgment_level1/satellite_skeleton/fragrance_level1_product_learning_satellite_skeleton_v0.md
   stale_language_search_result: >
-    Executed 2026-06-22 in branch codex/demand-read-machinery-settlement-prompt.
-    Hits on old verb/horizon vocabulary are C3's preserved supersession receipt
-    and amendment text, plus one `forecast_records.horizon` field in the
-    fragrance satellite skeleton that needs inspect-before-patching. Hits on
-    durable-vs-hollow are retirement/history notes except live `hollow` wording
-    in buyer-proof and offer surfaces, named in the mandatory patch plan.
-    No `trendy` / `trendiness` hits appeared in the searched surfaces.
+    Executed 2026-06-22 in branch codex/demand-read-machinery-settlement-prompt
+    before and after propagation. Pre-propagation live hits were
+    `discount / avoid` in taxonomy + scan-core, `suspected hollow` in
+    buyer-proof + offer, and `forecast_records.horizon` in the fragrance
+    skeleton. Those were patched in this lane. Remaining hits are preserved
+    history/retirement text, C2 risk-weighting `discount` language, C3
+    supersession text, and this settlement's own rejected-term / propagation
+    evidence.
   non_claims:
     - not validation
     - not readiness
@@ -471,9 +488,9 @@ direction_change_propagation:
 
 ## Next Authorized Action
 
-If the owner accepts this settlement, the next authorized action is a bounded
-docs patch lane applying the mandatory coherence patches above and rerunning the
-same stale-language search plus repository validation gates. No runtime,
+After this propagation pass, the next authorized action is owner review of the
+updated draft PR or a separate source-loaded pass on manufactured-demand
+integrity wording if that surface should also retire `hollow`. No runtime,
 capture, automation, dashboard, source-system, scheduler, database, API, or
 scoring work follows from this artifact.
 

@@ -191,7 +191,7 @@ fragrance_level1_case:
     reasoning_trace:
   forecast_records:
     - target:
-      horizon:
+      forecast_window:
       cutoff_datetime_utc:
       included_evidence_refs: []
       raw_probability_bucket:

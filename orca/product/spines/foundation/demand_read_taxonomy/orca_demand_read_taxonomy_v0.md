@@ -157,7 +157,7 @@ on the table.
   persistence confirms it. Anti-trap: a transient spike can look identical to
   durable convergence in the moment; only observed persistence — not an upfront
   guess — separates them.
-- **Manufactured-demand (Reading) read** (fake / amplified → *discount / avoid*): demand
+- **Manufactured-demand (Reading) read** (fake / amplified → *avoid*): demand
   that is not real — promotion-engagement mismatch, astroturf, coordinated/bot
   amplification, dupe-wave distortion. Acting on someone else's manufactured
   spike commits to demand that was never yours; identifying it protects both real

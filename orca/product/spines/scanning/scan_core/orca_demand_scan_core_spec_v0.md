@@ -208,7 +208,7 @@ observed persistence — not an upfront guess — separates them.
   upgrade is a **downstream monitored act, not the scan's** (the scan builds no
   standing monitor).
 
-### Manufactured-demand read (fake / amplified → discount / avoid)
+### Manufactured-demand read (fake / amplified → avoid)
 
 Trigger: demand that is **not real** — promotion-engagement mismatch (promoted
 hard, engaging below the channel's own baseline), astroturf / coordinated / bot

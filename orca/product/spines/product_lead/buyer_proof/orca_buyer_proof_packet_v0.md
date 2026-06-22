@@ -89,7 +89,7 @@ launch/reposition, and inventory or purchase-depth commitment because those
 decisions have concrete allocation stakes, short timing, and a high likelihood
 that public creator/social/review/search/retail signals remain material before
 internal data is conclusive. Tier/price, taste-shift pivot, and defend/hold
-against suspected hollow or manufactured demand remain eligible when they
+against suspected transient or manufactured demand remain eligible when they
 pass the same gates.
 
 Retailer/category teams are deferred, not killed forever: their proprietary
@@ -250,7 +250,7 @@ US-market tractioned indie/DTC beauty / personal-care brands facing a live
 expansion or contraction, launch / moratorium / reposition, and inventory or
 purchase-depth commitment — where internal data is not conclusive. Tier/price
 change, pivot on a taste or preference shift, and defend/hold against
-suspected hollow or manufactured demand remain eligible when they satisfy the
+suspected transient or manufactured demand remain eligible when they satisfy the
 same gates.
 Geography: US-market first proof per the thesis geography doctrine
 (2026-06-12); non-US candidates route to the owner or defer.
