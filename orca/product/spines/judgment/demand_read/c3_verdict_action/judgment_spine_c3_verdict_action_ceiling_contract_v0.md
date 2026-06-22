@@ -250,9 +250,18 @@ direction_change_propagation:
     - orca/product/spines/judgment/demand_read/integrity/judgment_spine_manufactured_demand_detection_design_v0.md
     - orca/product/spines/capture/core/contracts/obligation_contracts/core_spine_v0_data_capture_spine_obligation_contract_v0.md
     - orca/product/shared/projection_doctrine/core_spine_v0_projection_doctrine_v0.md
+    - orca/product/satellites/fragrance/judgment_level1/satellite_skeleton/fragrance_level1_product_learning_satellite_skeleton_v0.md
+  intentionally_not_updated: []
   stale_language_search: >
     rg -n "observed persistence|observed post-trigger|observed via monitoring|not predicted|cannot call durable|never asserted at t=0|durable is earned|persists past|stayed strong|transient-default|earned-durable"
-    docs/decisions/orca_product_thesis_consumer_demand_v0.md orca/product/spines/foundation/demand_read_taxonomy orca/product/spines/scanning/scan_core orca/product/spines/commission_signal_board orca/product/spines/product_lead/buyer_proof orca/product/spines/judgment/demand_read orca/product/spines/capture/core/contracts/obligation_contracts orca/product/shared/projection_doctrine
+    docs/decisions/orca_product_thesis_consumer_demand_v0.md orca/product/spines/foundation/demand_read_taxonomy orca/product/spines/scanning/scan_core orca/product/spines/commission_signal_board orca/product/spines/product_lead/buyer_proof orca/product/spines/judgment/demand_read orca/product/spines/capture/core/contracts/obligation_contracts orca/product/shared/projection_doctrine orca/product/satellites
+  stale_language_search_result: >
+    Executed during 2026-06-23 delegated-review adjudication. The confirmed
+    active stale hit outside the original spine-scoped search was the fragrance
+    satellite skeleton's `transient-default` trace language; this patch updates
+    that line. Remaining hits are this receipt/query, supersession history, or
+    statements that observed persistence is one possible durability-projection
+    basis rather than the definition.
   non_claims:
     - not validation
     - not readiness
@@ -367,7 +376,7 @@ manufactured) demand under an active `decision_family` and Decision Frame (C0), 
 - **No C2 re-weighting.** C3 consumes C2's weighted signals; it does not re-run the
   ledger read, the de-correlate/diverge sub-steps, or Rule 3.
 - **No live-loop / monitoring behavior.** Seal-before-disclose, the monitor that
-  earns the transient→durable upgrade, and resolution are owned by the far-half
+  earns or defeats the durability projection, and resolution are owned by the far-half
   shell; C3 is the single-read verdict step that fills the sealed_call.
 - **No build/run beyond the authorized first by-hand read.** No row population, no
   runner, no automated scorer.
@@ -377,6 +386,8 @@ manufactured) demand under an active `decision_family` and Decision Frame (C0), 
 - **Inputs (read-only, by pointer):** the active `(decision_family, Decision Frame)`
   (C0); the **C2-weighted allowed signals** (each: direction, per-case reasoning,
   qualitative weight band, `signal_id`, travelled caveats); the **integrity
+  disposition** (real / disqualified-or-held) from C1 + C2 Rule 3; the
+  **persistence-axis discriminator findings** routed from C2 Rule 3.
 - **Outputs:** the `sealed_call` slots — `recommendation`, `confidence_band`
   (qualitative band, contestant vocabulary), `signals_used` (each tagged
   `signal_id`), `reasoning_trace` (required) — plus the **demand-state verdict**
@@ -512,6 +523,8 @@ spec_handoff:
     the per-vertical discriminator tells, and the live-monitor persistence threshold
     (all deferred-safe, none blocking a first read).
 ```
+
+## Source-Read Ledger
 
 - `orca/product/spines/judgment/demand_read/core/judgment_spine_demand_read_machinery_architecture_v0.md`
   — the core whose C3 this specifies (C3 step shape; two-axis C3 verdict; persistence

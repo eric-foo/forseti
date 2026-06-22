@@ -314,14 +314,16 @@ often). Divergence becomes a **technique, not a verdict**. Identifying
 manufactured demand is **decision-critical in its own right** (owner).
 
 **Refined 2026-06-14 (owner) — the calling sequence dissolves the decay-timing
-problem:** the read opens **transient** and acts in-window (buy or avoid), then
-**observes** persistence via monitoring and **earns** the upgrade to durable — no
-decay curve to predict; the earlier decay-timing-confidence guardrail is
-superseded by observe-don't-predict. The recurring monitoring is **decision-linked
-retainer billing** (upgraded billing), never a feed — every output is a calibrated
-decision with an action ceiling, which keeps the retainer off the buyer-proof
-"monitoring-only pull" kill and out of the social-listening category. Monitored
-outcomes are also the calibration data that earns the judgment moat.
+problem; clarified 2026-06-23:** the read opens **current-window transient**
+unless a durability basis is already in the information set, acts in-window (buy
+or avoid/reduce), then uses monitoring to strengthen, revise, scale, or reduce
+the persistence projection — no decay curve to predict; the earlier
+decay-timing-confidence guardrail is superseded by basis-don't-guess. The
+recurring monitoring is **decision-linked retainer billing** (upgraded billing),
+never a feed — every output is a calibrated decision with an action ceiling,
+which keeps the retainer off the buyer-proof "monitoring-only pull" kill and out
+of the social-listening category. Monitored outcomes are also the calibration
+data that earns the judgment moat.
 
 **Differentiation floor (owner insight):** the mechanical layers (costly-behavior
 primitive, org-motion fusion, entity resolution) beat a social listener's inputs

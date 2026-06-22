@@ -629,7 +629,10 @@ outcome_status: resolved | open   # backward: usually resolved; forward: open
      are dated history, never current-state claims about a channel's
      reliability.
    - **LinkedIn org-motion is a separate context, completely unchanged** — this
-     spec does not absorb the separate LinkedIn/org-motion decision context.
+     spec does not absorb the separate LinkedIn/org-motion decision context
+     (org-level only, never person-level).
+
+## 7. Reconciliation Note
 
 - **Demand-read taxonomy** — this spec ABSORBS its demand-state model (durable /
   transient / manufactured; divergence as a recognition technique; the scan-time
