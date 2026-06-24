@@ -209,11 +209,29 @@ noise, provenance, independence, and graph behavior.
 | Reviews | retailer reviews, marketplace reviews, brand-site reviews, specialist fragrance reviews | experience claims, recency, complaints, repeat-use hints, contradiction checks | Do not collapse to aggregate stars; preserve recency and source conventions. |
 | Creator / social video | Instagram, TikTok, YouTube, shorts/reels, affiliate/creator posts, later Reddit creator/community personalities | attention spread, creator clusters, campaign risk, audience language, propagation timing | IG has current adjacent capture/discovery work; TikTok/YouTube/Reddit creator profiles are planned/deferred seams. |
 | Retail / PDP | Sephora, Ulta, Amazon, Nordstrom, brand PDPs, retailer search/category pages | availability, assortment, stock/discounting posture, review context, retailer corroboration | Retail/PDP is corroborative and operationally useful; it is not consumer-origin by itself. |
-| Search / discovery | Google Trends, search-volume provider, SERP, marketplace search, on-site search | interest traces, query language, discovery routes, counterevidence queries | Search-interest can carry attention/interest signal; methodology and pins stay owned by the search/AEO lane. |
+| Search / discovery | Google Trends, search-volume provider, SERP, preserved SERP packets, marketplace search, on-site search | interest traces, query language, discovery routes, hidden-venue pointers, counterevidence queries | Search-interest can carry attention/interest signal. Search-Surface MGT is a source-route scout only; methodology and pins stay with owning search-interest/AEO specs, while execution routes to Scanning frontier/exact-query work or Capture direct-source requests. |
 | AEO / answer engines | Google AI Overviews, Gemini, ChatGPT, other answer-engine surfaces | answer visibility, cited-source ecosystem, entity association, visibility gaps | Visibility annotation only unless a later owner-approved schema amendment changes this; never an independent demand-origin surface today. |
 | News / editorial / trade | trade publications, editorial, newsletters, specialist blogs, press | launch chronology, industry framing, awareness, third-party narrative | News is a distinct family; LinkedIn reposts of news point back to the actual source. |
 | Professional / org-motion | ATS/careers pages, hiring pages, founder/executive public posts, partnership announcements, LinkedIn when explicitly routed | hiring/movement, organizational intent, operator-side propagation | ATS/careers pages are better movement sources than LinkedIn. LinkedIn remains no-live/planning-only unless separately authorized. |
 | Owned channels | brand site, brand socials, email archive, product pages, press releases | official chronology, brand claims, launch framing | High chronology value, low independence. |
+
+### Search-Surface MGT Routing Note
+
+When a commission needs market-language, comparison/confusion, hidden-venue,
+or counterevidence-query discovery, it may name Search-Surface MGT under
+`source_family: search_discovery` and `row_purpose: source_route`.
+
+CSB may point to preserved SERP packets as routing evidence, but it does not run
+Google capture, score search demand, or treat query count, rank, repeated SERP
+presence, PAA/PAS, product modules, or autocomplete as proof.
+
+Preferred handoff:
+
+```text
+CSB source-route note
+-> Scanning exact-query / frontier selection
+-> Capture P1 direct-source acquisition when concrete URLs or surfaces exist
+```
 
 ## Graph-Light Contract
 
