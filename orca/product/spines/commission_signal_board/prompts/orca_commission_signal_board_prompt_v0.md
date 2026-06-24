@@ -282,11 +282,22 @@ requires them.
 | Professional / org-motion | ATS/careers pages, hiring pages, founder/executive public posts, partnership announcements, LinkedIn when explicitly routed | hiring/movement, organizational intent, operator-side propagation | ATS/careers pages are better movement sources than LinkedIn. LinkedIn remains no-live/planning-only unless separately authorized. |
 | Owned channels | brand site, brand socials, email archive, product pages, press releases | official chronology, brand claims, launch framing | High chronology value, low independence. |
 
-### Search-Surface MGT Routing Note
+### Search-Surface MGT Standing Route Card
 
-When a commission needs market-language, comparison/confusion, hidden-venue,
-or counterevidence-query discovery, it may name Search-Surface MGT under
-`source_family: search_discovery` and `row_purpose: source_route`.
+Standing behavior: when a commission has an open question about market language,
+comparison/confusion, hidden venues, or counterevidence queries, the board should
+consider a Search-Surface MGT route row rather than leaving search discovery as
+background prose.
+
+Use this row pattern:
+
+```yaml
+source_family: search_discovery
+source_subfamily: search_surface_mgt
+signal_role: search_interest
+row_purpose: source_route
+evidence_status: provided | source_backed | to_retrieve | gap
+```
 
 CSB may point to preserved SERP packets as routing evidence, but it does not run
 Google capture, score search demand, or treat query count, rank, repeated SERP
@@ -295,7 +306,7 @@ presence, PAA/PAS, product modules, or autocomplete as proof.
 Preferred handoff:
 
 ```text
-CSB source-route note
+CSB source-route row
 -> Scanning exact-query / frontier selection
 -> Capture P1 direct-source acquisition when concrete URLs or surfaces exist
 ```
@@ -415,6 +426,11 @@ Markdown table:
 Include all relevant families. Include non-relevant families only when their
 absence is decision-relevant.
 
+When the commission has unresolved market-language,
+comparison/confusion, hidden-venue, or counterevidence-query questions, include
+`search_discovery / search_surface_mgt` in this plan even if no SERP packet exists
+yet; mark evidence status `to_retrieve` or `gap`.
+
 ### 4. Signal Board Rows
 
 Markdown table:
@@ -424,6 +440,13 @@ Markdown table:
 Rules:
 
 - Use stable row IDs: `SBR-001`, `SBR-002`, etc.
+- When the Search-Surface MGT standing route card is triggered, include a route
+  row rather than only prose. Use source family `search_discovery`, subfamily
+  `search_surface_mgt`, signal role `search_interest`, and row purpose
+  `source_route`. Use `Handoff note` to route Scanning exact-query/frontier
+  work or Capture P1 direct-source acquisition. Do not list such rows in
+  classifier handoff unless later retrieval produces source-backed, eligible
+  evidence under Section 8.
 - Do not combine distinct subfamilies in one row when their access,
   provenance, noise, or graph behavior differs.
 - Mark unsupported rows as `to_retrieve` or `gap`; do not make evidence claims.
@@ -587,10 +610,10 @@ in one sentence.
 - Keep graph weight separate from signal weight.
 - Keep recency attention separate from proof, classifier mapping, and graph
   weight; it routes attention, not truth.
-- Treat Search-Surface MGT as a search_discovery source-route scout; route
-  execution to Scanning/Capture, never to CSB-owned search capture, and never
-  count SERP rank, query count, module recurrence, or autocomplete as demand
-  proof.
+- Apply the Search-Surface MGT standing route card whenever its trigger is
+  relevant; route execution to Scanning/Capture, never to CSB-owned search
+  capture, and never count SERP rank, query count, module recurrence, or
+  autocomplete as demand proof.
 - If this is a repo-aware run that produced a full board, run the local
   validator before claiming the board is mechanically safe for classifier
   handoff. If this run produced only intake output, do not run the validator;
@@ -605,10 +628,10 @@ COMMISSION INPUTS FOLLOW:
 ```yaml
 direction_change_propagation:
   doctrine_changed: >
-    Commission Signal Board now names Search-Surface MGT as a search_discovery
-    source-route scout: CSB may point to preserved SERP/search-language packets,
-    but execution routes through Scanning/Capture and no SERP/rank/module signal
-    becomes proof.
+    Commission Signal Board now has a standing Search-Surface MGT route-card
+    behavior: relevant future boards should emit search_discovery/source_route
+    rows, while execution routes through Scanning/Capture and no SERP/rank/module
+    signal becomes proof.
   trigger: workflow_authority
   related_triggers:
     - product_doctrine
@@ -637,23 +660,23 @@ direction_change_propagation:
     - path: .agents/hooks/check_commission_signal_board_output.py
       reason: >
         The existing `search_discovery`, `source_route`, and `search_interest`
-        values cover this route note; no new field or enum is introduced.
+        values cover this standing route card; no new field or enum is introduced.
     - path: docs/workflows/orca_repo_map_v0.md
       reason: >
         Canonical CSB entry points are unchanged. The new P0 efficacy review is
-        a branch-local research input for this route note, not a repo-map
+        a branch-local research input for this route-card behavior, not a repo-map
         navigation entry.
   stale_language_search: >
-    rg -n "search/AEO lane|Search-Surface|search-surface|SERP rank|query count|repeated SERP|source-route scout"
+    rg -n "search/AEO lane|Search-Surface|search-surface|SERP rank|query count|repeated SERP|source-route scout|standing route card|route-card"
     orca/product/spines/commission_signal_board orca/product/spines/scanning
     docs/research/search_surface_mgt_pilot_p0_receipts_v0
     (run 2026-06-25)
   stale_language_search_result: >
-    Executed 2026-06-25. No live `search/AEO lane` hits remain. Hits are the new
-    CSB source-route note/DCP/final rule, the scanning guardrail against query
-    count/search-rank/repeated-SERP proof, and the P0 receipt/review/run files.
-    No checked surface turns Search-Surface MGT into proof, scoring,
-    CSB-owned capture, or a standalone Search lane.
+    Executed 2026-06-25 after route-card hardening. Hits are the standing CSB
+    route card, prompt output rules, final rule, DCP text, the scanning guardrail
+    against query-count/search-rank/repeated-SERP proof, and the P0 receipt,
+    review, and run files. No checked surface turns Search-Surface MGT into
+    proof, scoring, CSB-owned capture, or a standalone Search lane.
   non_claims:
     - not validation
     - not readiness

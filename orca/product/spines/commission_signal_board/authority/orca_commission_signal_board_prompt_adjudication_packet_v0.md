@@ -215,11 +215,22 @@ noise, provenance, independence, and graph behavior.
 | Professional / org-motion | ATS/careers pages, hiring pages, founder/executive public posts, partnership announcements, LinkedIn when explicitly routed | hiring/movement, organizational intent, operator-side propagation | ATS/careers pages are better movement sources than LinkedIn. LinkedIn remains no-live/planning-only unless separately authorized. |
 | Owned channels | brand site, brand socials, email archive, product pages, press releases | official chronology, brand claims, launch framing | High chronology value, low independence. |
 
-### Search-Surface MGT Routing Note
+### Search-Surface MGT Standing Route Card
 
-When a commission needs market-language, comparison/confusion, hidden-venue,
-or counterevidence-query discovery, it may name Search-Surface MGT under
-`source_family: search_discovery` and `row_purpose: source_route`.
+Standing behavior: when a commission has an open question about market language,
+comparison/confusion, hidden venues, or counterevidence queries, the board should
+consider a Search-Surface MGT route row rather than leaving search discovery as
+background prose.
+
+Use this row pattern:
+
+```yaml
+source_family: search_discovery
+source_subfamily: search_surface_mgt
+signal_role: search_interest
+row_purpose: source_route
+evidence_status: provided | source_backed | to_retrieve | gap
+```
 
 CSB may point to preserved SERP packets as routing evidence, but it does not run
 Google capture, score search demand, or treat query count, rank, repeated SERP
@@ -228,7 +239,7 @@ presence, PAA/PAS, product modules, or autocomplete as proof.
 Preferred handoff:
 
 ```text
-CSB source-route note
+CSB source-route row
 -> Scanning exact-query / frontier selection
 -> Capture P1 direct-source acquisition when concrete URLs or surfaces exist
 ```
