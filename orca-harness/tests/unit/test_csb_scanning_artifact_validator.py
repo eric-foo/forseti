@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import importlib.util
 from pathlib import Path
+import re
 import sys
 
 import pytest
@@ -32,6 +33,10 @@ def _codes(text: str) -> set[str]:
     return {finding.code for finding in validator.validate_text(text)}
 
 
+def _code_list(text: str) -> list[str]:
+    return [finding.code for finding in validator.validate_text(text)]
+
+
 def test_valid_csb_first_scan_artifact_passes() -> None:
     assert validator.validate_text(_valid_text()) == []
 
@@ -39,7 +44,7 @@ def test_valid_csb_first_scan_artifact_passes() -> None:
 def test_fixture_expected_fail_has_broad_scout_error() -> None:
     findings = validator.validate_text((FIXTURE_DIR / "bad_missing_broad_scout.md").read_text(encoding="utf-8"))
 
-    assert ("missing_broad_scout_accounting",) in {(finding.code,) for finding in findings}
+    assert [finding.code for finding in findings] == ["missing_broad_scout_accounting"]
 
 
 @pytest.mark.parametrize(
@@ -82,6 +87,18 @@ def test_broad_scout_section_requires_route_ledger_parts() -> None:
     text = _valid_text().replace("access notes, and current-state", "current-state", 1)
 
     assert "missing_broad_scout_detail" in _codes(text)
+
+
+def test_empty_broad_scout_section_requires_detail() -> None:
+    text = re.sub(r"## Broad Scout Return\n\n.*?\n\n## CSB Board Intake", "## Broad Scout Return\n\n## CSB Board Intake", _valid_text(), count=1, flags=re.DOTALL)
+
+    assert "missing_broad_scout_detail" in _codes(text)
+
+
+def test_broad_scout_deepening_vocab_allows_natural_phrase() -> None:
+    text = _valid_text().replace("Recommended main deepening:", "Deepening recommendation:", 1)
+
+    assert "missing_broad_scout_detail" not in _codes(text)
 
 
 def test_csb_row_accounting_requires_sbr_ids() -> None:
@@ -137,6 +154,15 @@ def test_observation_required_fields_enforced() -> None:
 )
 def test_observation_field_values_enforced(old: str, new: str, expected_code: str) -> None:
     assert expected_code in _codes(_valid_text().replace(old, new, 1))
+
+
+def test_missing_observation_vocab_fields_do_not_emit_invalid_enum_codes() -> None:
+    text = _valid_text().replace("signal_stage: access_note\n", "", 1).replace("gate_role: none\n", "", 1)
+    codes = _codes(text)
+
+    assert "missing_observation_fields" in codes
+    assert "invalid_signal_stage" not in codes
+    assert "invalid_gate_role" not in codes
 
 
 def test_candidate_observation_schema_enforced_when_present() -> None:
@@ -196,6 +222,12 @@ def test_closeout_section_must_repeat_intake_closeout() -> None:
     text = _valid_text().replace("`no_candidate_after_discovery`", "`capture_preservation_only`", 1)
 
     assert "closeout_state_not_in_closeout_section" in _codes(text)
+
+
+def test_closeout_section_accepts_natural_normalized_state_text() -> None:
+    text = _valid_text().replace("`no_candidate_after_discovery`", "No candidate after discovery.", 1)
+
+    assert "closeout_state_not_in_closeout_section" not in _codes(text)
 
 
 def test_capture_preservation_only_requires_capture_request() -> None:
@@ -262,6 +294,12 @@ def test_non_mgt_route_binding_states_fail(state: str) -> None:
     text = _valid_text().replace("route_binding_state: unknown", replacement, 1)
 
     assert "invalid_capture_route_binding_state" in _codes(text)
+
+
+def test_invalid_route_binding_state_emits_once_per_field() -> None:
+    text = _valid_text().replace("route_binding_state: unknown", "route_binding_state: not_bound", 1)
+
+    assert _code_list(text).count("invalid_capture_route_binding_state") == 1
 
 
 def test_missing_scan_intake_receipt_without_yaml_fails() -> None:

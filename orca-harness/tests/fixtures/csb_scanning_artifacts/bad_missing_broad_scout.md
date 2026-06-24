@@ -24,8 +24,8 @@ source_context_status: SOURCE_CONTEXT_READY
 run_caps:
   max_screening_moves_total: 8
   max_exact_queries_total: 3
-screening_moves_used: 4
-exact_queries_used: 2
+screening_moves_used: 1
+exact_queries_used: 1
 hidden_venue_pointers: 0
 capture_requests: 0
 closeout_state: no_candidate_after_discovery
@@ -58,7 +58,13 @@ observation_id: OBS-001
 source_move_id: M01
 url: https://example.test/fixture-product
 retrieval_date: 2026-06-23
+short_quote_or_summary: >
+  Fixture official PDP had current-state availability.
 signal_stage: access_note
+claim_it_might_support: preservation pressure only
+gate_role: none
+independence_hypothesis: owned source only; no independent demand origin
+uncertainty_or_limits: fixture text is not buyer-origin support
 ```
 
 ## Negatives And Access Notes

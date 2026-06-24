@@ -144,7 +144,10 @@ BROAD_SCOUT_DETAIL_PATTERNS = {
     "negative": re.compile(r"\bnegatives?\b", re.IGNORECASE),
     "access_note": re.compile(r"\b(access notes?|access walls?)\b", re.IGNORECASE),
     "recency_current_state": re.compile(r"\b(recency|recent|currentness|current-state|current state)\b", re.IGNORECASE),
-    "main_deepening": re.compile(r"\b(main deepening|recommended deepening|recommended main deepening)\b", re.IGNORECASE),
+    "main_deepening": re.compile(
+        r"\b(main deepening|recommended(?: main)? deepening|recommended for deepening|targeted deepening|deepening (?:phase|path|direction|recommendation)|deepen(?:ing)?)\b",
+        re.IGNORECASE,
+    ),
 }
 
 FORBIDDEN_TEXT_PATTERNS = {
@@ -363,9 +366,9 @@ def _validate_required_receipt_parts(text: str, intake: dict[str, Any] | None = 
 
 
 def _validate_broad_scout_detail(text: str) -> list[Finding]:
-    body = _section_body(text, SECTION_PATTERNS["broad_scout_accounting"])
-    if not body:
+    if not SECTION_PATTERNS["broad_scout_accounting"].search(text):
         return []
+    body = _section_body(text, SECTION_PATTERNS["broad_scout_accounting"])
     missing = sorted(name for name, pattern in BROAD_SCOUT_DETAIL_PATTERNS.items() if not pattern.search(body))
     if missing:
         return [Finding("missing_broad_scout_detail", "Broad Scout section is missing: " + ", ".join(missing))]
@@ -412,16 +415,18 @@ def _validate_observations(blocks: list[Any]) -> list[Finding]:
             findings.append(Finding("invalid_observation_url", f"Observation {obs_id} url must be http(s)."))
         if "retrieval_date" in observation and not _is_iso_date(observation.get("retrieval_date")):
             findings.append(Finding("invalid_observation_retrieval_date", f"Observation {obs_id} retrieval_date must be YYYY-MM-DD."))
-        signal_stage = _normalize_vocab(observation.get("signal_stage"))
-        if signal_stage not in VALID_SIGNAL_STAGES:
-            findings.append(
-                Finding("invalid_signal_stage", f"Observation {obs_id} signal_stage must be one of {', '.join(sorted(VALID_SIGNAL_STAGES))}.")
-            )
-        gate_role = _normalize_vocab(observation.get("gate_role"))
-        if gate_role not in VALID_GATE_ROLES:
-            findings.append(
-                Finding("invalid_gate_role", f"Observation {obs_id} gate_role must be one of {', '.join(sorted(VALID_GATE_ROLES))}.")
-            )
+        if "signal_stage" in observation:
+            signal_stage = _normalize_vocab(observation.get("signal_stage"))
+            if signal_stage not in VALID_SIGNAL_STAGES:
+                findings.append(
+                    Finding("invalid_signal_stage", f"Observation {obs_id} signal_stage must be one of {', '.join(sorted(VALID_SIGNAL_STAGES))}.")
+                )
+        if "gate_role" in observation:
+            gate_role = _normalize_vocab(observation.get("gate_role"))
+            if gate_role not in VALID_GATE_ROLES:
+                findings.append(
+                    Finding("invalid_gate_role", f"Observation {obs_id} gate_role must be one of {', '.join(sorted(VALID_GATE_ROLES))}.")
+                )
     return findings
 
 
@@ -511,7 +516,7 @@ def _validate_closeout(text: str, blocks: list[Any], intake: dict[str, Any] | No
     capture_request_count = len(_records(blocks, "capture_request_id"))
 
     body = _section_body(text, SECTION_PATTERNS["closeout"])
-    if closeout and closeout not in body:
+    if closeout and closeout not in _normalize_vocab(body):
         findings.append(Finding("closeout_state_not_in_closeout_section", "Closeout section must repeat the intake closeout_state."))
 
     for decision in _mapping_values(blocks, "candidate_decision"):
@@ -559,13 +564,6 @@ def _validate_yaml_overclaims(blocks: list[Any]) -> list[Finding]:
                 "candidate_authorization",
             }:
                 findings.append(Finding("invalid_signal_stage_overclaim", f"{path} must not use {value!r}."))
-            if key_norm == "route_binding_state" and value_norm not in VALID_ROUTE_BINDING_STATES:
-                findings.append(
-                    Finding(
-                        "invalid_capture_route_binding_state",
-                        f"{path} must stay one of {', '.join(sorted(VALID_ROUTE_BINDING_STATES))}, got {value!r}.",
-                    )
-                )
     return findings
 
 
