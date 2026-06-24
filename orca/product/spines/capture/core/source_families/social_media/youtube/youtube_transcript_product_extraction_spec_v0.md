@@ -81,9 +81,12 @@ derived/<video-packet>/gold__judgment__product_verdict/<id>    🥇 gold   (Pass
 derived/<video-packet>/gold__judgment__transcript_summary/<id> 🥇 gold   (summary pass)
 ```
 
-**Anchor rule:** all of one video's derived records cluster under that video's
-**raw capture packet id** (`raw_anchor`) — the caption packet id (caption path) or
-the audio packet id (ASR path). One prefix retrieves everything about a video.
+**Anchor rule:** a video's transcript-derived records (silver mentions, gold verdict)
+cluster under its **transcript raw-packet id** (`raw_anchor`) — the caption packet
+(caption path) or the audio packet (ASR path); that transcript packet is the "primary"
+envelope (Decision 10). NOTE (capture-unification refinement): a video has multiple
+per-surface packets (watch / captions / audio) that share **no** raw anchor, so
+"everything about a video" is resolved via a **per-video index**, not a single prefix.
 
 **Retrievability + traceability (the load-bearing property — "then we scale"):**
 - Retrievable: every record is fetched **by key** (`load_raw_packet`, lane lookup) +
@@ -415,6 +418,14 @@ targeted: the model is paid for judgment, not formatting.
    the primitives; the deferred scale-only lake item is populating
    `indexes/derived_retrieval`; our runner is the daemon-ready reference; a
    per-runner re-run idempotency test enforces it. *(resolved 2026-06-23)*
+10. **Per-video gold anchors on the transcript (primary) envelope** — the per-video
+    gold verdict hangs off the caption/audio packet it is computed from (the same
+    packet its silver mentions live on), NOT a synthetic `video_id` anchor: keeps
+    consistent packet-id anchoring and is naturally versioned-with-capture (re-capture
+    → that capture gets its own gold). Capture-unification refinement: a video has
+    multiple per-surface packets (watch / captions / audio) that share no raw anchor,
+    so cross-surface correlation is a per-video index, not a shared prefix.
+    *(resolved 2026-06-23)*
 
 ## Non-claims
 
