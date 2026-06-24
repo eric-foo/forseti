@@ -85,10 +85,34 @@ class PostInput(StrictModel):
     pillar_label: str | None = None
 
 
+@dataclass(frozen=True)
+class DeferredDemographicSignal:
+    """A demographic-shaped label the model emitted, HELD transiently as a deferred
+    Tier-2-A signal -- NOT a Tier-1 EvidenceRecord (the "reminder base").
+
+    Tier-1 forbids audience demographics (gender/age), so these stay OUT of
+    `records`: they never reach Pass-2 fusion and are never written to the silver
+    lake. They are retained only in-process so that, once the gated Tier-2-A slice
+    (gender_skew/age_band) has a ledger-schema home + a sourced base-rate table,
+    this carry-out can feed it as evidence instead of being silently dropped.
+    Transient by construction -- no persistence path serializes this dataclass.
+    """
+
+    creator_id: str
+    platform: str
+    post_id: str
+    attempted_target_field: str
+    label: str
+    source_pointer: str
+
+
 @dataclass
 class ExtractionResult:
     records: list[EvidenceRecord] = field(default_factory=list)
     rejected: list[dict[str, str]] = field(default_factory=list)
+    # Transient Tier-2-A carry-out (the "reminder base"): demographic-shaped labels
+    # held in-process for the gated Tier-2-A slice. Never fused, never persisted.
+    deferred_signals: list[DeferredDemographicSignal] = field(default_factory=list)
 
 
 def build_extraction_prompt(post: PostInput) -> str:
@@ -204,11 +228,14 @@ def extract_model_text(provider: RawApiProvider, raw_response_body: str) -> str:
 
 # --- demographic-label + source-pointer guards (Slice B review hardening) ---
 # `label` is free-form, so a model could smuggle an AUDIENCE demographic into a
-# Tier-1 field's label (e.g. segment="women_oriented" / "men_18_24"). These guards
-# reject that at the extractor (the only Pass-1 producer), while still allowing
-# legit content topics like "mens_grooming". RESIDUAL: a denylist leaks; the
-# durable class-wide fix is a label allow-list / SubNiche ontology binding
-# (deferred), plus a schema-level guard if a second EvidenceRecord producer appears.
+# Tier-1 field's label (e.g. segment="women_oriented" / "men_18_24"). The
+# source-pointer guard REJECTS any fabricated quote at the extractor; the
+# demographic-label guard detects audience demographics but no longer drops them
+# silently -- parse_evidence QUARANTINES them as transient DeferredDemographicSignals
+# (the "reminder base") for the gated Tier-2-A slice -- while still allowing legit
+# content topics like "mens_grooming". RESIDUAL: a denylist leaks; the durable
+# class-wide fix is a label allow-list / SubNiche ontology binding (deferred), plus
+# a schema-level guard if a second EvidenceRecord producer appears.
 _AGE_RANGE = re.compile(r"\d{2}[_\- ]\d{2}")
 _AGE_PHRASE = re.compile(r"(?:over|under)[_\- ]?\d{2}|\d{2}[_\- ]?plus")
 _AGE_TOKENS = {
@@ -226,7 +253,7 @@ _KNOWN_GENDER_LABELS = {
 
 
 def _is_demographic_label(label: str) -> bool:
-    """True if a Tier-1 label is actually an audience-demographic claim (reject it)."""
+    """True if a Tier-1 label is actually an audience-demographic claim (quarantine it)."""
     norm = label.strip().lower()
     if norm in _KNOWN_GENDER_LABELS:
         return True
@@ -261,7 +288,10 @@ def parse_evidence(model_text: str, post: PostInput) -> ExtractionResult:
     Identity (creator/platform/post/pillar) comes from `post`, never the model
     (injection guard). Each item is constructed field-by-field — extra model keys
     are ignored, and any item that fails schema validation (e.g. a gender field,
-    a missing source_pointer, an out-of-range vote) is REJECTED, not stored.
+    a missing source_pointer, an out-of-range vote) is REJECTED, not stored. A
+    demographic-shaped label on a (verified-pointer) item is not rejected but
+    QUARANTINED into `deferred_signals` — a transient Tier-2-A carry-out kept out
+    of `records`, fusion, and the silver lake (the "reminder base").
     """
     result = ExtractionResult()
     try:
@@ -275,12 +305,26 @@ def parse_evidence(model_text: str, post: PostInput) -> ExtractionResult:
         if not isinstance(item, dict):
             result.rejected.append({"index": str(index), "reason": "item is not an object"})
             continue
-        label = item.get("label")
-        if isinstance(label, str) and _is_demographic_label(label):
-            result.rejected.append({"index": str(index), "reason": "demographic_label"})
-            continue
+        # Pointer guard first, so a quarantined demographic signal always carries a
+        # verified (non-fabricated) verbatim quote from the creator's own text.
         if not _pointer_in_source(str(item.get("source_pointer", "")), post):
             result.rejected.append({"index": str(index), "reason": "unverified_source_pointer"})
+            continue
+        label = item.get("label")
+        if isinstance(label, str) and _is_demographic_label(label):
+            # Reminder base: hold the demographic-shaped label as a transient deferred
+            # Tier-2-A signal instead of dropping it. It stays OUT of `records`, so it
+            # never reaches Pass-2 fusion and is never persisted to silver.
+            result.deferred_signals.append(
+                DeferredDemographicSignal(
+                    creator_id=post.creator_id,
+                    platform=post.platform,
+                    post_id=post.post_id,
+                    attempted_target_field=str(item.get("target_field", "")),
+                    label=label,
+                    source_pointer=str(item.get("source_pointer", "")),
+                )
+            )
             continue
         try:
             record = EvidenceRecord(
