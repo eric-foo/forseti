@@ -9,7 +9,9 @@ authority_boundary: retrieval_only_docs_structure_not_runtime
 
 canonical_artifacts:
   readme: orca/product/spines/commission_signal_board/README.md
+  # User-facing role: Prompt Structure Rules. Historical key retained for path stability.
   authority_packet: orca/product/spines/commission_signal_board/authority/orca_commission_signal_board_prompt_adjudication_packet_v0.md
+  # User-facing role: Prompt Structure. Historical key retained for path stability.
   prompt: orca/product/spines/commission_signal_board/prompts/orca_commission_signal_board_prompt_v0.md
   playbook: orca/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md
   validator_pointer: orca/product/spines/commission_signal_board/harness/validator.md

@@ -30,12 +30,14 @@ stale_if:
 | Role | Path |
 | --- | --- |
 | Spine manifest | `orca/product/spines/commission_signal_board/spine.yaml` |
-| Authority packet | `orca/product/spines/commission_signal_board/authority/orca_commission_signal_board_prompt_adjudication_packet_v0.md` |
-| Prompt | `orca/product/spines/commission_signal_board/prompts/orca_commission_signal_board_prompt_v0.md` |
+| Prompt Structure Rules | `orca/product/spines/commission_signal_board/authority/orca_commission_signal_board_prompt_adjudication_packet_v0.md` |
+| Prompt Structure | `orca/product/spines/commission_signal_board/prompts/orca_commission_signal_board_prompt_v0.md` |
 | Playbook | `orca/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md` |
 | Validator pointer | `orca/product/spines/commission_signal_board/harness/validator.md` |
 | Test pointer | `orca/product/spines/commission_signal_board/tests/validator_tests.md` |
 | Moved-path index | `orca/product/spines/commission_signal_board/migrations/moved_paths_index.md` |
+
+Naming note: **Prompt Structure** is the runnable CSB prompt/template. **Prompt Structure Rules** is the durable authority/rules doc for that prompt structure. File paths keep their historical names until a dedicated migration renames paths.
 
 ## Boundaries
 

@@ -23,7 +23,8 @@ stale_if:
 ```
 
 - Playbook path: `orca/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md`.
-- Prompt path: `orca/product/spines/commission_signal_board/prompts/orca_commission_signal_board_prompt_v0.md`.
+- Prompt Structure path: `orca/product/spines/commission_signal_board/prompts/orca_commission_signal_board_prompt_v0.md`.
+- Prompt Structure Rules path: `orca/product/spines/commission_signal_board/authority/orca_commission_signal_board_prompt_adjudication_packet_v0.md`.
 - Validator path: `.agents/hooks/check_commission_signal_board_output.py`.
 - Validator fixture path: `orca-harness/tests/fixtures/commission_signal_board_outputs/`.
 - Current enforcement posture: manual/local checker. Not CI, not pre-commit, not a write hook.
@@ -225,7 +226,7 @@ direction_change_propagation:
   stale_language_search_result: >
     The old optional-recency validator wording produced only receipt search-string
     hits, not live instructional hits. Scoped validator
-    hits are the updated prompt, playbook, adjudication packet, validator, tests,
+    hits are the updated Prompt Structure, playbook, Prompt Structure Rules doc, validator, tests,
     fixtures, and pointer surfaces. No checked live surface instructed agents to
     run the validator on intake-only output, skip the playbook for Commission
     Signal Board work, treat the checker as CI/pre-commit/write-hook enforcement,

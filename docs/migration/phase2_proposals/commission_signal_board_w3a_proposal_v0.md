@@ -46,12 +46,12 @@ Evidence per file:
   Removing it breaks the manifest contract for the pilot spine.
 - Verdict: not a candidate.
 
-**authority/orca_commission_signal_board_prompt_adjudication_packet_v0.md**
+**Prompt Structure Rules: authority/orca_commission_signal_board_prompt_adjudication_packet_v0.md**
 - External inbound:
   `docs/migration/phase2_proposals/scanning_w3a_proposal_v0.md:31` (reverse-ref
   check on scanning area); `scanning_w3a_proposal_v0.md:36` (second cite for
-  LinkedIn lane index); `spine.yaml:12`; `README.md:33`; `prompts/...prompt_v0.md:18`.
-- Role: owner-adjudication packet establishing the signal-board boundary vs gate
+  LinkedIn lane index); `spine.yaml:13`; `README.md:33`; `prompts/...prompt_v0.md:18`.
+- Role: Prompt Structure Rules document establishing the signal-board boundary vs gate
   semantics. Referenced by the scanning area proposal as an active outbound
   authority pointer; not superseded.
 - Verdict: not a candidate.
@@ -85,8 +85,8 @@ Evidence per file:
   `docs/` into the spine. Active reverse plan documented.
 - Verdict: not a candidate.
 
-**prompts/orca_commission_signal_board_prompt_v0.md**
-- External inbound: `spine.yaml:13`; `README.md:34`; `workflows/...playbook_v0.md:16,25,26,169`.
+**Prompt Structure: prompts/orca_commission_signal_board_prompt_v0.md**
+- External inbound: `spine.yaml:15`; `README.md:34`; `workflows/...playbook_v0.md:16,26,178`.
 - Role: the full v0 durable prompt artifact (chat-only mode). No v1 or
   successor exists; still the live dispatching artifact.
 - Verdict: not a candidate.
@@ -115,8 +115,8 @@ were found repo-wide (`FailureEvent` -- 13 refs in 2 files; `RetailPdpProjection
 (confirmed by targeted regex scan over `orca/product/spines/commission_signal_board/**/*.md`).
 
 SSOT-known ontology type references (e.g. `EvidenceUnit`, `SourceCapturePacket`,
-`DecisionEvent`) are used in the adjudication packet and prompt in contextually
-correct ways (the prompt explicitly routes evidence and provenance language
+`DecisionEvent`) are used contextually correctly in both the Prompt Structure Rules document
+and the Prompt Structure (the prompt explicitly routes evidence and provenance language
 consistent with the SSOT's adopted type roster). No deprecated aliases, no
 non-SSOT type coinages, no new-term candidates in this area.
 

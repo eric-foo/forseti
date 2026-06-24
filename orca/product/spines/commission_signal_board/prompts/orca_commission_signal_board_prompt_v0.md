@@ -1,4 +1,4 @@
-# Orca Commission Signal Board Prompt v0
+# Orca Commission Signal Board Prompt Structure v0
 
 ```yaml
 retrieval_header_version: 1
@@ -20,15 +20,15 @@ open_next:
   - .agents/workflow-overlay/prompt-orchestration.md
   - .agents/workflow-overlay/source-loading.md
 stale_if:
-  - The Commission Signal Board adjudication packet is superseded.
+  - The Commission Signal Board Prompt Structure Rules doc is superseded.
   - The Commission Signal Board playbook or validator is superseded.
   - The owner renames or replaces the Commission Signal Board object.
   - A demand-classifier handoff contract supersedes this prompt's handoff shape.
   - A graph artifact/schema contract supersedes this prompt's graph-light contract.
 ```
 
-- Prompt artifact path: `orca/product/spines/commission_signal_board/prompts/orca_commission_signal_board_prompt_v0.md`.
-- Prompt family: product-planning / full prompt artifact.
+- Prompt Structure path: `orca/product/spines/commission_signal_board/prompts/orca_commission_signal_board_prompt_v0.md`.
+- Prompt family: product-planning / Prompt Structure.
 - Prompt output mode: `chat-only`.
 - Prompt authoring route: authored through `workflow-prompt-orchestrator` mechanics in the legacy-named `codex/commission-gate` lane.
 - Commission lane playbook: `orca/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md`.

@@ -1,15 +1,14 @@
-# Orca Commission Signal Board Prompt Adjudication Packet v0
+# Orca Commission Signal Board Prompt Structure Rules v0
 
 ```yaml
 retrieval_header_version: 1
-artifact_role: Product artifact (decision-prep / correction packet)
+artifact_role: Prompt Structure Rules
 scope: >
-  Recasts the temporary backtesting-first Orca commission prompt as a signal
-  and evidence board candidate, not a gate, demand check, proof step, or
-  classifier. Maps prompt sections to the corrected commission boundary before
-  any durable prompt or implementation work.
+  Durable rules for the Commission Signal Board Prompt Structure: the board is
+  a signal and evidence routing structure, not a gate, demand check, proof step,
+  classifier, retrieval process, or implementation authorization.
 use_when:
-  - Deciding whether to turn the temporary commission prompt into an Orca durable signal-board prompt.
+  - Checking the durable rules behind the Commission Signal Board Prompt Structure.
   - Checking which prompt sections are adopted, modified, deferred, or rejected under the evidence/signals-only boundary.
   - Preparing owner sign-off on commission signal-board naming, source-routing, and classifier handoff.
 authority_boundary: retrieval_only
@@ -22,7 +21,7 @@ open_next:
   - orca/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md
 stale_if:
   - The owner chooses a different durable name for the commission signal/evidence object.
-  - A durable commission signal-board prompt is authored through prompt-orchestration.
+  - A later Commission Signal Board Prompt Structure supersedes this rules doc.
   - A demand-classifier handoff contract supersedes this evidence/signals-only boundary.
 ```
 
@@ -34,7 +33,7 @@ orca_start_preflight:
   overlay_read: yes
   source_pack: custom S2 product anchor plus target prompt, adjacent classifier/proof context, and historical gate-named artifacts
   edit_permission: docs-write
-  target_scope: product-lead decision-prep artifact; no prompt artifact, no implementation, no runtime authorization
+  target_scope: product-lead Prompt Structure Rules artifact; no prompt artifact, no implementation, no runtime authorization
   dirty_state_checked: yes
   blocked_if_missing: AGENTS.md, overlay README, source-loading, prompt-orchestration, buyer-proof packet, adjacent demand/gate context artifacts, temporary prompt
 ```
