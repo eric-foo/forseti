@@ -67,10 +67,11 @@ This contract locks **where** Data Lake material physically lives and how the re
 points at it, so later implementation cannot drift the boundary, hard-code a drive,
 silently write into the repo, or let a convenience index become lake authority.
 
-It settles the location boundary and directory grammar. It deliberately does not
-settle the storage engine, serialization, manifest version, cache, queue,
-scheduler, runtime, or migration mechanics, which remain owned by the Storage
-Contract physicalization gate.
+It settles the location boundary and directory grammar. It does not itself select
+the storage engine, serialization, manifest version, cache, queue, scheduler,
+runtime, or migration mechanics. Engine/backend selection now belongs to the
+Storage Contract physicalization boundary; if a selected backend replaces the
+external-root model, this contract must be explicitly superseded.
 
 ## The Boundary In One Screen
 
@@ -88,9 +89,9 @@ The lake is strict about where bytes land. It is not smart about what they mean.
 
 ## Physical Root Contract
 
-- The boundary is a **location contract**, not a storage-engine choice. A directory
-  grammar is acceptable while backend, serialization, and manifest version remain
-  deferred to the Storage Contract.
+- The boundary is a **location contract**, not itself a storage-engine choice. A
+  directory grammar remains acceptable; engine/backend selection is delegated to
+  the Storage Contract physicalization boundary.
 - A single configured root pointer locates all operational data. The medium
   (internal disk, fixed letter, portable drive, future network path) is an operator
   deployment choice; the contract names no drive letter and requires no HDD.
@@ -248,10 +249,11 @@ Owner-invoked Mini God Tier shape (see `docs/decisions/orca_mini_god_tier_doctri
 This intentionally captures most of the useful physical organization now and names
 what it foregoes:
 
-- **No storage engine / queue / scheduler / runtime.** A filesystem root + config
-  satisfies by-key discovery. Risk: scan latency at scale. Upgrade trigger: by-key
-  scan latency becomes unacceptable -> add a queue/index engine as an optimization
-  over committed state, never as authority.
+- **No engine selected by this contract.** A filesystem root + config remains
+  the incumbent v0 foundation and satisfies by-key discovery. Risk: scan latency
+  at scale. Upgrade path: the Storage Contract physicalization lane may choose a
+  query/storage/queue/index engine as an optimization over committed state, never
+  as authority.
 - **Exact raw path grammar unfrozen.** Packet-admission and key rules are undecided.
   Risk: later raw-tree reshape. Mitigated: raw immutable + rebuildable indexes make a
   reshape a replay/rebuild, not a mutation. Upgrade trigger: packet-admission/key-rule
@@ -305,7 +307,8 @@ Resolution status (updated as blocker-resolution decisions land 2026-06-21):
 
 ## What This Does Not Select
 
-- Storage engine or backend.
+- Storage engine or backend inside this contract; engine/backend choice belongs
+  to the Storage Contract physicalization boundary.
 - Serialization, Manifest v2, or sidecar vs packet-member layout.
 - Projection cache, runtime queue, or scheduler.
 - ECR, SCR, Cleaning, Judgment, or Evidence Unit (EvidenceUnit) schema.
@@ -325,7 +328,8 @@ Resolution status (updated as blocker-resolution decisions land 2026-06-21):
 4. Gold interpretation is Judgment-only and never leaks into a pre-Judgment layer,
    path, or stored record name.
 5. Physical backend, serialization, manifest version, queue, cache, scheduler,
-   persistence, and migration remain outside this contract.
+   persistence, and migration remain outside this contract unless a Storage
+   Contract physicalization decision explicitly selects or supersedes them.
 
 ## Direction Change Propagation
 
@@ -395,8 +399,8 @@ direction_change_propagation:
 ## Non-Claims
 
 Records a location boundary, directory grammar, location invariants, durable record
-names, and fail-closed configuration intent only. Authorizes no build, no backend or
-storage-engine selection, no serialization or schema finalization, no queue/runtime
-design, and no migration. Not validation, readiness, proof, or approval for
+names, and fail-closed configuration intent only. Authorizes no build and does not
+itself select a backend or storage engine, serialization, schema, queue/runtime
+design, or migration. Not validation, readiness, proof, or approval for
 implementation. Proposed record names are durable naming decisions; their
 field-level schemas remain deferred.

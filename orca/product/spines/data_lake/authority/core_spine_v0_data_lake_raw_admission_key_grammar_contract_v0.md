@@ -142,16 +142,18 @@ separate owner-gated migration.)
 
 ## Deferred / Out Of Scope
 
-Storage engine, object store/database, manifest version, member-vs-sidecar layout,
-attachment serialization, queue/event runtime, derived-record physical home,
-migration/replay tooling, canonical identity, cross-packet dedupe, semantic
-object/event identity, validation suite, and implementation route.
+Storage engine/backend (object store, database, SQL-capable embedded engine,
+or equivalent), manifest version, member-vs-sidecar layout, attachment
+serialization, queue/event runtime, derived-record physical home, migration/replay
+tooling, canonical identity, cross-packet dedupe, semantic object/event identity,
+validation suite, and implementation route.
 
 ## Non-Claims
 
 Not validation, readiness, approval, or implementation authorization. Not
-serialization, manifest, or backend selection. Not canonical identity or dedupe. Not
-ECR/SCR/Cleaning/Judgment design. Records an addressing + admission decision only.
+serialization, manifest, or engine/backend selection by this artifact. Not canonical
+identity or dedupe. Not ECR/SCR/Cleaning/Judgment design. Records an addressing +
+admission decision only.
 
 ## Direction Change Propagation
 

@@ -1257,3 +1257,79 @@ direction_change_propagation:
     - not source promotion
     - not implementation authorization
 ```
+
+
+## From orca/product/spines/data_lake/authority/core_spine_v0_data_lake_storage_contract_v0.md
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Data Lake Storage Contract v0 now records the blocker-1 implementation-facing
+    Attachment Record contract: compact manifest/index entries link to immutable,
+    hash-checkable attachment bodies, while exact sidecar/member layout,
+    serialization, manifest version, backend, migration, validation, readiness,
+    and runtime implementation remain deferred.
+  trigger: architecture_doctrine
+  related_triggers:
+    - lifecycle_boundary
+  controlling_sources_updated:
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_attachment_record_implementation_contract_v0.md
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_storage_contract_v0.md
+    - docs/workflows/orca_repo_map_v0.md
+    - docs/decisions/dcp_receipts_archive_v0.md
+  downstream_surfaces_checked:
+    - AGENTS.md
+    - .agents/workflow-overlay/README.md
+    - .agents/workflow-overlay/source-loading.md
+    - .agents/workflow-overlay/source-of-truth.md
+    - .agents/workflow-overlay/validation-gates.md
+    - .agents/workflow-overlay/review-lanes.md
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_core_contract_v0.md
+    - orca/product/spines/data_lake/workflows/core_spine_v0_data_lake_mechanics_map_v0.md
+    - orca/product/spines/capture/core/packet_schema/source_capture_tenant_payload_attachment_boundary_v0.md
+    - orca/product/spines/capture/core/packet_schema/source_capture_packet_schema_evolution_architecture_v0.md
+    - orca-harness/source_capture/models.py
+    - orca-harness/source_capture/writer.py
+  intentionally_not_updated:
+    - path: orca/product/spines/data_lake/authority/core_spine_v0_data_lake_core_contract_v0.md
+      reason: >
+        It remains the parent logical contract and already defers exact field
+        names and physical representation; the storage contract plus new
+        implementation contract own the narrower blocker-1 physicalization
+        direction without reopening core boundaries.
+    - path: orca/product/spines/data_lake/workflows/core_spine_v0_data_lake_mechanics_map_v0.md
+      reason: >
+        It remains a planning-only mechanics map. Its broader physicalization
+        gate stays stale-if-superseded by later storage/manifest/sidecar
+        decisions, and this patch does not select those physical choices.
+    - path: orca/product/spines/capture/core/packet_schema/source_capture_tenant_payload_attachment_boundary_v0.md
+      reason: >
+        It remains the accepted logical typed-envelope boundary and explicitly
+        defers physical storage. This patch records the storage-lane
+        implementation contract without globally renaming historical envelope
+        terminology.
+  stale_language_search: >
+    rg -n "table of contents|storage engine selected|sidecar selected|Manifest v2 selected|call ECR|call SCR|call Cleaning|call Projection|call Judgment|implementation readiness|runtime implementation closeout"
+    orca/product/spines/data_lake/authority/core_spine_v0_data_lake_attachment_record_implementation_contract_v0.md
+    orca/product/spines/data_lake/authority/core_spine_v0_data_lake_storage_contract_v0.md
+    orca/product/spines/data_lake/authority/core_spine_v0_data_lake_core_contract_v0.md
+    orca/product/spines/data_lake/workflows/core_spine_v0_data_lake_mechanics_map_v0.md
+    orca/product/spines/capture/core/packet_schema/source_capture_tenant_payload_attachment_boundary_v0.md
+    docs/workflows/orca_repo_map_v0.md
+  stale_language_search_result: >
+    Executed 2026-06-18 after edits. Hits are expected guardrails only: the
+    new implementation contract rejects "table of contents" as architecture
+    terminology and forbids the Availability Index from calling ECR, SCR,
+    Cleaning, Projection, or Judgment; the storage contract states blocker 1 is
+    not a runtime implementation closeout and contains the query in this
+    receipt; the mechanics map hit is an older receipt non-claim against
+    implementation readiness. No hit selects a backend, sidecar, Manifest v2,
+    runtime implementation, validation, or readiness.
+  non_claims:
+    - not validation
+    - not readiness
+    - not implementation authorization
+    - not Manifest v2 selection
+    - not sidecar selection
+    - not storage-engine selection
+```

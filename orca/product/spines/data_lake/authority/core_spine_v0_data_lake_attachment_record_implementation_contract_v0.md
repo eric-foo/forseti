@@ -29,7 +29,9 @@ authority_boundary: retrieval_only
 This artifact converts the accepted blocker-1 direction into an
 implementation-facing contract. It is not code, implementation authority,
 validation, readiness, Manifest v2 selection, packet serialization, sidecar
-selection, migration authority, queue design, or storage-engine selection.
+selection, migration authority, queue design, or engine/backend selection by
+this artifact. Engine/backend choice is delegated to the Storage Contract
+physicalization boundary.
 
 ## Contract Summary
 
@@ -145,8 +147,8 @@ This contract deliberately leaves the following decisions open:
 - exact packet member versus sidecar versus equivalent layout;
 - exact manifest/index serialization;
 - Manifest v2 or other versioning mechanics;
-- physical backend, database, object store, warehouse, lakehouse, queue, or
-  storage engine;
+- selected physical backend/engine, including database, object store,
+  warehouse/lakehouse, DuckDB or another SQL-capable embedded engine, or queue;
 - migration or replay plan for incumbent direct fields;
 - SCR `FamilyDetailBase` governance;
 - lawful erasure, retention, WORM, or crypto-shredding mechanics;
@@ -155,7 +157,7 @@ This contract deliberately leaves the following decisions open:
 
 ## Non-Goals
 
-This artifact does not authorize runtime implementation, storage-engine
+This artifact does not authorize runtime implementation, engine/backend
 selection, packet mutation, manifest migration, source-family schema design,
 derived-record persistence, queue runtime, validation, approval, readiness, or
 architecture completion.
