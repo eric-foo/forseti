@@ -212,7 +212,8 @@ media_observation:
   grid_index_observed:
   kind: reel | post | unknown
   shortcode:
-  pinned_marker_present: true | false | unknown
+  pinned_on_clips_tab: true | false | null    # reels-tab pin from /clips/user clips_tab_pinned_user_ids (passive JSON, not a DOM marker)
+  pinned_on_timeline: true | false | null     # main-grid pin from timeline_pinned_user_ids / web_profile_info pinned_for_users
   rendered_anchor_text:
   visible_numeric_texts:
   hidden_leaf_numeric_texts:
@@ -273,13 +274,20 @@ them, or a field is promoted then. Derivable-not-emitted in v0:
   metric values are emitted as typed `metric_observations`; the selection is recomputable by
   re-running the capture-level `selection_policy_version` over the preserved candidates.
 
-`pinned_marker_present` is the exception: it is a point-in-time fact (a creator pins/unpins) that is
-**not** derivable from the JSON candidates, so the runner captures it now. Detection is best-effort
-and selector-honest: a positive "Pinned" accessible label is trusted (`true`); a non-detection is
-reported as `unknown` (null), never a confident `false`, because the `/reels/` pinned-marker DOM
-shape is not yet probe-verified (`capture_metadata.pinned_marker_detection =
-best_effort_accessible_pinned_label_v0`). A live `/reels/` probe is required to confirm the marker
-selector before a confident `false` is emitted.
+Pinned posture is captured from passive JSON, **not** the DOM. A 2026-06-25 logged-out probe of a
+public `/reels/` grid found no "Pinned" text/aria marker anywhere in the rendered DOM, but the pin
+posture is exposed reliably in the JSON the runner already preserves, as typed candidate fields:
+
+- `pinned_on_clips_tab` — reels-tab pin, from `/clips/user` `clips_tab_pinned_user_ids` (non-empty
+  list = pinned; empty = not pinned; null = field absent on this surface).
+- `pinned_on_timeline` — main-grid / timeline pin, from `timeline_pinned_user_ids` or
+  `web_profile_info` `pinned_for_users`.
+
+This is point-in-time (a creator pins/unpins) and not otherwise re-capturable, so it is captured now.
+Probe caveat: on the probed profile the only pins were main-grid posts (`pinned_for_users` non-empty),
+which did **not** appear in the `/reels/` capture at all (a main-grid pin is not a reels-tab pin); the
+reels-tab positive (`clips_tab_pinned_user_ids` non-empty) is inferred by symmetry with that
+directly-observed positive and not yet directly observed on a reels-pinned profile.
 
 `caption_text` is allowed only when it is directly present in joined JSON or a later explicitly
 configured item-page source. If absent, it stays null. The capture runner must not infer topic,

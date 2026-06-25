@@ -47,21 +47,29 @@ def test_normalize_dom_grid_rows_preserves_no_hover_hidden_engagement() -> None:
 
 
 
-def test_normalize_dom_grid_rows_carries_best_effort_pinned_marker() -> None:
-    rows = normalize_dom_grid_rows(
-        [
-            {"path": "/liv_cos/reel/PINNED1/", "visibleNumericTexts": ["1,234"], "pinned": True},
-            {"path": "/liv_cos/reel/NOTPIN/", "visibleNumericTexts": ["500"], "pinned": False},
-            {"path": "/liv_cos/reel/NOFIELD/", "visibleNumericTexts": ["12"]},
-        ],
-        final_url="https://www.instagram.com/liv_cos/reels/",
-        profile_handle="liv_cos",
-    )
+def test_iter_json_media_candidates_reads_pinned_flag_from_json() -> None:
+    payload = {
+        "items": [
+            {"media": {"code": "PINREEL", "clips_tab_pinned_user_ids": [123], "timeline_pinned_user_ids": []}},
+            {"media": {"code": "PLAINREEL", "clips_tab_pinned_user_ids": [], "timeline_pinned_user_ids": []}},
+            {"media": {"code": "NOFIELDS"}},
+        ]
+    }
+    by_code = {c.shortcode: c for c in iter_json_media_candidates(payload, source_surface=CLIPS_USER_JSON_METADATA)}
+    # Non-empty list = pinned; empty list = not pinned; absent field = unknown (None).
+    assert by_code["PINREEL"].pinned_on_clips_tab is True
+    assert by_code["PINREEL"].pinned_on_timeline is False
+    assert by_code["PLAINREEL"].pinned_on_clips_tab is False
+    assert by_code["NOFIELDS"].pinned_on_clips_tab is None
+    assert by_code["NOFIELDS"].pinned_on_timeline is None
 
-    # Positive detection is trusted; non-detection (False or missing) is reported
-    # as unknown (None), never a confident "not pinned", because the pinned-marker
-    # selector is not probe-verified.
-    assert [row.pinned_marker_present for row in rows] == [True, None, None]
+    # web_profile_info marks main-grid/timeline pins via pinned_for_users.
+    [web] = iter_json_media_candidates(
+        {"shortcode": "GRIDPIN", "pinned_for_users": [123]},
+        source_surface=WEB_PROFILE_INFO_JSON_METADATA,
+    )
+    assert web.pinned_on_timeline is True
+    assert web.pinned_on_clips_tab is None
 
 
 def test_static_profile_post_never_promotes_visible_number_to_view_count() -> None:

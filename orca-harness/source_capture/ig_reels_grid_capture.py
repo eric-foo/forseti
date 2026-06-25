@@ -139,7 +139,6 @@ def fetch_ig_reels_grid_capture(
         "max_rows": max_rows,
         "dom_row_count": len(dom_rows),
         "passive_json_response_count": len(passive_json_responses),
-        "pinned_marker_detection": "best_effort_accessible_pinned_label_v0",
     }
     limitation_notes = list(observation.limitation_notes)
     return IgReelsGridCaptureSuccess(
@@ -232,23 +231,6 @@ _DOM_ROW_EXTRACT_SCRIPT = r"""
     return path.includes("/reel/") || path.includes("/p/");
   }
 
-  function detectPinnedMarker(root) {
-    // Best-effort only: the /reels/ pinned-marker DOM shape is not probe-verified.
-    // Select by accessible text (aria-label / title / svg <title>), never by CSS
-    // class (unstable). A positive "Pinned" match is trusted; the parser maps a
-    // false here to unknown, so this never asserts a confident "not pinned".
-    const labelled = root.querySelectorAll("[aria-label], [title]");
-    for (const el of labelled) {
-      const label = (el.getAttribute("aria-label") || el.getAttribute("title") || "").trim().toLowerCase();
-      if (label === "pinned") return true;
-    }
-    const svgTitles = root.querySelectorAll("svg title");
-    for (const node of svgTitles) {
-      if ((node.textContent || "").trim().toLowerCase() === "pinned") return true;
-    }
-    return false;
-  }
-
   const handle = (profileHandle || "").toLowerCase();
   const rows = [];
   const seen = new Set();
@@ -274,7 +256,6 @@ _DOM_ROW_EXTRACT_SCRIPT = r"""
       visibleText,
       visibleNumericTexts: numericTexts(visibleText),
       leafNumericTexts: leafNumericTexts(anchor),
-      pinned: detectPinnedMarker(anchor),
       rect: {
         x: rect.x,
         y: rect.y,

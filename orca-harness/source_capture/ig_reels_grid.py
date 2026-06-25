@@ -50,11 +50,6 @@ class IgReelsGridDomRow:
     comments_text: str | None
     parse_status: str
     rect: dict[str, object] | None = None
-    # Best-effort pinned-marker signal. True = a "Pinned" accessible label was
-    # detected in the tile DOM; None = not detected. The /reels/ pinned-marker
-    # selector is NOT probe-verified, so absence is reported as unknown (None),
-    # never a confident False. See capture_metadata.pinned_marker_detection.
-    pinned_marker_present: bool | None = None
 
     def to_dict(self) -> dict[str, object]:
         return asdict(self)
@@ -80,6 +75,11 @@ class IgReelsJsonCandidate:
     is_affiliate: bool | None = None
     sponsor_users: tuple[str, ...] = ()
     ad_term_candidates: tuple[str, ...] = ()
+    # Pinned signal from passive JSON (probe-grounded 2026-06-25). Reels-tab pin =
+    # clips_tab_pinned_user_ids non-empty; main-grid/timeline pin = pinned_for_users
+    # or timeline_pinned_user_ids non-empty. None when the surface omits the field.
+    pinned_on_clips_tab: bool | None = None
+    pinned_on_timeline: bool | None = None
     raw_node_keys_sample: tuple[str, ...] = ()
 
     def to_dict(self) -> dict[str, object]:
@@ -173,10 +173,6 @@ def normalize_dom_grid_rows(
             hidden_candidates=hidden_candidates,
             ambiguous_hidden=ambiguous_hidden,
         )
-        # Trust a positive detection; treat non-detection as unknown (None) until
-        # the pinned-marker selector is confirmed by a live probe -- never assert
-        # a confident "not pinned" under an unverified selector.
-        pinned_marker_present = True if raw.get("pinned") is True else None
         rows.append(
             IgReelsGridDomRow(
                 index=len(rows),
@@ -193,7 +189,6 @@ def normalize_dom_grid_rows(
                 comments_text=comments_text,
                 parse_status=parse_status,
                 rect=raw.get("rect") if isinstance(raw.get("rect"), dict) else None,
-                pinned_marker_present=pinned_marker_present,
             )
         )
         if max_rows is not None and len(rows) >= max_rows:
@@ -276,12 +271,25 @@ def _candidate_from_node(node: dict[str, object], *, source_surface: str) -> IgR
         is_affiliate=node.get("is_affiliate") if isinstance(node.get("is_affiliate"), bool) else None,
         sponsor_users=sponsors,
         ad_term_candidates=ad_terms,
+        pinned_on_clips_tab=_pinned_flag(node, "clips_tab_pinned_user_ids"),
+        pinned_on_timeline=_pinned_flag(node, "timeline_pinned_user_ids", "pinned_for_users"),
         raw_node_keys_sample=tuple(sorted(str(key) for key in node.keys())[:80]),
     )
 
 
 def _node_shortcode(node: dict[str, object]) -> str | None:
     return _shortcode_string_or_none(node.get("shortcode")) or _shortcode_string_or_none(node.get("code"))
+
+
+def _pinned_flag(node: dict[str, object], *keys: str) -> bool | None:
+    """Pinned posture from a media node's pinned-user-id list (first present key
+    wins): a non-empty list means pinned (the creator's own id is listed), an empty
+    list means not pinned, and None means the surface did not expose the field."""
+    for key in keys:
+        value = node.get(key)
+        if isinstance(value, list):
+            return len(value) > 0
+    return None
 
 
 def _caption_text(node: dict[str, object]) -> str | None:
