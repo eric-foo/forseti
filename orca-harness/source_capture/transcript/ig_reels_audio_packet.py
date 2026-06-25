@@ -37,6 +37,7 @@ import sys
 import tempfile
 from dataclasses import dataclass
 from typing import Callable
+from urllib.parse import urlparse
 
 from source_capture import (
     CaptureModeCategory,
@@ -51,8 +52,9 @@ from source_capture.packet_assembly import stage_and_write_packet, staged_file_i
 # IG shortcodes are base64url handles (the probe targets were 11 chars: DZ69knlsDb1, DaALKgOsWn0).
 # Bounded + URL/path-safe; NOT the YouTube 11-char-exact regex.
 _IG_SHORTCODE = re.compile(r"[A-Za-z0-9_-]{5,32}")
-# Accept either /reel/<shortcode>/ or /p/<shortcode>/ (IG serves Reels under both permalink forms).
-_IG_URL_SHORTCODE = re.compile(r"instagram\.com/(?:reel|p|tv)/([A-Za-z0-9_-]{5,32})")
+_IG_PATH_KINDS = {"reel", "p", "tv"}
+_AUDIO_EXT = re.compile(r"[A-Za-z0-9][A-Za-z0-9_-]{0,15}")
+_MAX_MODEL_TOKEN = 96
 
 # transcribe_fn(audio_path) -> (posture, cues, model_info)
 TranscribeFn = Callable[[str], "tuple[str, list[dict], dict]"]
@@ -85,12 +87,36 @@ class IgAudioFetch:
 
 def ig_shortcode_from_url(url_or_shortcode: str) -> str | None:
     """Extract the IG shortcode from a /reel/, /p/, or /tv/ URL, or pass through a bare shortcode."""
-    if not url_or_shortcode:
+    target = (url_or_shortcode or "").strip()
+    if not target:
         return None
-    match = _IG_URL_SHORTCODE.search(url_or_shortcode)
-    if match:
-        return match.group(1)
-    return url_or_shortcode if _IG_SHORTCODE.fullmatch(url_or_shortcode) else None
+    if _IG_SHORTCODE.fullmatch(target):
+        return target
+
+    parse_target = target
+    if "://" not in parse_target and parse_target.lower().startswith(
+        ("instagram.com/", "www.instagram.com/", "m.instagram.com/")
+    ):
+        parse_target = f"https://{parse_target}"
+    parsed = urlparse(parse_target)
+    host = (parsed.hostname or "").lower()
+    if host != "instagram.com" and not host.endswith(".instagram.com"):
+        return None
+    parts = [part for part in parsed.path.split("/") if part]
+    if len(parts) != 2 or parts[0] not in _IG_PATH_KINDS:
+        return None
+    shortcode = parts[1]
+    return shortcode if _IG_SHORTCODE.fullmatch(shortcode) else None
+
+
+def _safe_audio_ext(audio_ext: str | None) -> str | None:
+    ext = (audio_ext or "").lstrip(".")
+    return ext if _AUDIO_EXT.fullmatch(ext) else None
+
+
+def _bounded_model_token(model: object) -> str:
+    token = re.sub(r"[^A-Za-z0-9_-]", "-", str(model or "asr"))
+    return (token or "asr")[:_MAX_MODEL_TOKEN]
 
 
 def classify_ig_fetch_failure(stderr: str) -> str:
@@ -98,14 +124,17 @@ def classify_ig_fetch_failure(stderr: str) -> str:
     skip (`access_gated`); everything else -> `unavailable`. Pure (offline-testable)."""
     low = (stderr or "").lower()
     gated_markers = (
-        "available to everyone",          # "isn't available to everyone"
+        "isn't available to everyone",
+        "not available to everyone",
         "certain audiences",              # "can't be seen by certain audiences"
         "login required",
         "requires login",
         "log in",
         "sign in",
-        "private",
         "this account is private",
+        "this video is private",
+        "content is private",
+        "media is private",
         "you need to log in",
     )
     if any(marker in low for marker in gated_markers):
@@ -133,7 +162,9 @@ def download_ig_reel_audio(shortcode: str) -> IgAudioFetch:
                 classify_ig_fetch_failure(proc.stderr), None, None, (proc.stderr or "").strip()[:200]
             )
         path = max(files, key=os.path.getsize)
-        ext = os.path.splitext(path)[1].lstrip(".") or "bin"
+        ext = _safe_audio_ext(os.path.splitext(path)[1].lstrip(".") or "bin")
+        if ext is None:
+            return IgAudioFetch("unavailable", None, None, "invalid audio extension from yt-dlp")
         with open(path, "rb") as handle:
             return IgAudioFetch("ok", handle.read(), ext, "ok")
 
@@ -153,6 +184,9 @@ def write_ig_reels_asr_transcript(
     no YouTube coupling."""
     if not _IG_SHORTCODE.fullmatch(shortcode or ""):
         return 5, f"refusing: invalid ig shortcode {shortcode!r}"
+    safe_ext = _safe_audio_ext(audio_ext)
+    if safe_ext is None:
+        return 5, f"refusing: invalid audio extension {audio_ext!r}"
     if not audio_bytes:
         return 6, "refusing: no audio bytes"
 
@@ -160,13 +194,13 @@ def write_ig_reels_asr_transcript(
     audio_sha = hashlib.sha256(audio_bytes).hexdigest()
     canonical = f"https://www.instagram.com/reel/{shortcode}/"
     identity = {
+        **(identity_extra or {}),
         "platform": "instagram",
         "platform_shortcode": shortcode,
         "canonical_url": canonical,
         "capture_timestamp": ts,
-        **(identity_extra or {}),
     }
-    audio_name = f"{shortcode}.audio.{audio_ext}"
+    audio_name = f"{shortcode}.audio.{safe_ext}"
     artifacts: list[tuple[str, bytes]] = [
         (audio_name, audio_bytes),
         ("capture_metadata.json", (json.dumps(identity, indent=2, sort_keys=True) + "\n").encode("utf-8")),
@@ -228,7 +262,7 @@ def write_ig_reels_asr_transcript(
     audio_packet_id = result.packet.packet_id
 
     # Run the injected transcriber on a temp file (Windows-safe: write, close, transcribe, unlink).
-    fd, tmp_audio = tempfile.mkstemp(suffix=f".{audio_ext}", prefix="orca_ig_asr_")
+    fd, tmp_audio = tempfile.mkstemp(suffix=f".{safe_ext}", prefix="orca_ig_asr_")
     try:
         with os.fdopen(fd, "wb") as handle:
             handle.write(audio_bytes)
@@ -264,14 +298,14 @@ def write_ig_reels_asr_transcript(
         "cue_count": len(cues),
         "cues": cues,                     # each: {start_ms, end_ms, text}; empty unless transcribed
         "provenance": {
+            **model_info,
             "source_packet_id": audio_packet_id,
             "source_file_id": file_ids[audio_name],
             "source_sha256": audio_sha,
-            **model_info,
         },
         "retrieval_time_utc": ts,
     }
-    model_token = re.sub(r"[^A-Za-z0-9_-]", "-", str(model_info.get("model", "asr")))
+    model_token = _bounded_model_token(model_info.get("model", "asr"))
     record_id = f"asr_{model_token}__{audio_sha[:16]}"
     data_root.append_record(
         subtree="derived",
