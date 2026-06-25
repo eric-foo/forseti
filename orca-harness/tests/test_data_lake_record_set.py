@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from data_lake.root import DataLakeRoot, DataLakeRootError
+from data_lake.root import DataLakeRoot, DataLakeRootError, raw_shard
 
 _RA = "anchor01"  # a valid raw-anchor segment; the set API validates the segment, not packet existence
 
@@ -25,10 +25,10 @@ def test_append_record_set_writes_members_and_marker_complete(tmp_path: Path) ->
     )
     assert set(written) == {"lane_a", "lane_b"}
     for lane, path in written.items():
-        assert path == root.path / "derived" / _RA / lane / "r1.json"
+        assert path == root.path / "derived" / raw_shard(_RA) / _RA / lane / "r1.json"
         assert path.is_file()
     # marker written (last) and the set reads complete
-    assert (root.path / "derived" / _RA / "set_marker" / "r1.json").is_file()
+    assert (root.path / "derived" / raw_shard(_RA) / _RA / "set_marker" / "r1.json").is_file()
     assert root.is_record_set_complete(
         subtree="derived", raw_anchor=_RA, record_id="r1.json", completion_lane="set_marker"
     )
@@ -46,7 +46,7 @@ def test_append_record_set_preflight_refuses_partial(tmp_path: Path) -> None:
             members={"lane_a": b"a\n", "lane_b": b"b\n"},
             completion_lane="set_marker",
         )
-    assert not (root.path / "derived" / _RA / "lane_b" / "r1.json").exists()
+    assert not (root.path / "derived" / raw_shard(_RA) / _RA / "lane_b" / "r1.json").exists()
 
 
 def test_append_record_set_rejects_completion_lane_collision(tmp_path: Path) -> None:
@@ -87,7 +87,7 @@ def test_missing_member_reads_incomplete(tmp_path: Path) -> None:
         members={"lane_a": b"a\n", "lane_b": b"b\n"},
         completion_lane="set_marker",
     )
-    (root.path / "derived" / _RA / "lane_a" / "r1.json").unlink()
+    (root.path / "derived" / raw_shard(_RA) / _RA / "lane_a" / "r1.json").unlink()
     assert not root.is_record_set_complete(
         subtree="derived", raw_anchor=_RA, record_id="r1.json", completion_lane="set_marker"
     )
@@ -102,7 +102,7 @@ def test_marker_record_id_mismatch_reads_incomplete(tmp_path: Path) -> None:
         members={"lane_a": b"a\n", "lane_b": b"b\n"},
         completion_lane="set_marker",
     )
-    marker = root.path / "derived" / _RA / "set_marker" / "r1.json"
+    marker = root.path / "derived" / raw_shard(_RA) / _RA / "set_marker" / "r1.json"
     marker.write_text(
         json.dumps({"record_id": "other.json", "member_lanes": ["lane_a", "lane_b"]}) + "\n",
         encoding="utf-8",
@@ -122,7 +122,7 @@ def test_marker_invalid_member_lane_reads_incomplete(tmp_path: Path) -> None:
         members={"lane_a": b"a\n"},
         completion_lane="set_marker",
     )
-    marker = root.path / "derived" / _RA / "set_marker" / "r1.json"
+    marker = root.path / "derived" / raw_shard(_RA) / _RA / "set_marker" / "r1.json"
     marker.write_text(
         json.dumps({"record_id": "r1.json", "member_lanes": ["../escape"]}) + "\n",
         encoding="utf-8",

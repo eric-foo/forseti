@@ -98,7 +98,8 @@ def write_local_source_capture_packet(
     packet_id = generate_ulid()
     if data_root is not None:
         # Go-forward raw writes are staged off-tree, then atomically published to
-        # <root>/raw/<packet_id>/ so a partial packet never appears under raw/
+        # the sharded write-once container <root>/raw/<packet_shard>/<packet_id>/ so
+        # a partial packet never appears under raw/
         # (write-once + atomic publish per the write-boundary enforcement contract).
         # output_directory stays available for legacy/test callers (incumbent path;
         # migration of existing output is deferred).
@@ -204,7 +205,7 @@ def write_local_source_capture_packet(
     receipt_path.write_text(render_receipt(packet), encoding="utf-8", newline="\n")
 
     if data_root is not None:
-        # Atomically publish the completed staging dir to raw/<packet_id>, then
+        # Atomically publish the completed staging dir to raw/<packet_shard>/<packet_id>, then
         # record the content-free availability fact (rebuildable from raw).
         output_directory = data_root.publish_raw_packet(output_directory, packet_id)
         manifest_path = output_directory / "manifest.json"

@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from data_lake.root import DataLakeRoot
+from data_lake.root import DataLakeRoot, raw_shard
 from runners.run_source_capture_packet import main, run_source_capture_packet
 from source_capture.models import CaptureModeCategory, known_fact
 
@@ -45,7 +45,7 @@ def test_generic_runner_routes_to_lake(tmp_path: Path) -> None:
     out_path = Path(_run(root, tmp_path))
     pid = out_path.name
 
-    assert out_path == root.path / "raw" / pid
+    assert out_path == root.path / "raw" / raw_shard(pid) / pid
     assert root.find_packet(pid) is not None
     assert root.read_availability(pid) is not None
     assert root.load_raw_packet(pid).manifest["packet_id"] == pid

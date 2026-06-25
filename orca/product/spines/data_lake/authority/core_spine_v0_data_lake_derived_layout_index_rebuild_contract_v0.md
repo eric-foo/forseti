@@ -60,11 +60,19 @@ assembly receipts referencing a set of refs -- not as new lake structure.
 Lock the relationship (not serialization):
 
 ```text
-derived/<raw-anchor>/<lane-namespace>/<record-id>
+derived/<anchor_shard>/<raw-anchor>/<lane-namespace>/<record-id>
 ```
 
 - `<raw-anchor>` includes `packet_id` and may narrow to `slice_id`, `file_id`, or
-  `attachment_key`.
+  `attachment_key`. It remains the authoritative by-anchor key.
+- `<anchor_shard>` is an opaque physical fanout prefix derived SOLELY from the
+  `packet_id` component of the raw anchor (incumbent: the first 3 hex chars of
+  `sha256(packet_id)`, 4096 buckets -- the same scheme as the raw container), so no
+  single directory grows unbounded. It carries no semantic meaning and is never
+  authority; by-anchor lookup recomputes it, never an index. For v0 every
+  `<raw-anchor>` is a `packet_id`, so the shard is `sha256(raw-anchor)[:3]`; a future
+  lane that narrows the anchor below packet depth MUST define the packet_id component
+  as the shard key before writing.
 - `<lane-namespace>` is lane-owned and collision-safe, but the contract must not
   enumerate or freeze the lane taxonomy into the lake path.
 - `<record-id>` is create-only, one-record-per-file (not a mutable append log); the
@@ -99,10 +107,12 @@ capability and has a home **without new lake structure**:
 ## Acknowledgement Addressing
 
 ```text
-acknowledgements/<raw-anchor>/<ack-namespace>/<ack-record-id>
+acknowledgements/<anchor_shard>/<raw-anchor>/<ack-namespace>/<ack-record-id>
 ```
 
-Acknowledgements are lane-owned facts keyed to raw, one create-only record per fact;
+`<anchor_shard>` is the same opaque packet_id-derived fanout prefix as the derived
+grammar above (shard adopted 2026-06-25). Acknowledgements are lane-owned facts keyed
+to raw, one create-only record per fact;
 correction is a new ack record. The lake must not consume acks as control flow for
 scheduling, gating, retry, or downstream calls.
 
@@ -198,4 +208,31 @@ direction_change_propagation:
     - not implementation authorization
     - not serialization, backend, or per-lane schema selection
     - not derived_retrieval population
+```
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Amended 2026-06-25: derived and acknowledgement records gain the same opaque
+    fanout prefix as raw -- derived/<anchor_shard>/<raw-anchor>/<lane>/<record-id>
+    and acknowledgements/<anchor_shard>/<raw-anchor>/<ack-namespace>/<ack-record-id>.
+    <anchor_shard> is derived SOLELY from the packet_id component of the raw anchor
+    (incumbent sha256(packet_id)[:3]); for v0 every raw-anchor is a packet_id.
+    By-anchor lookup recomputes the shard, never an index. Completion-marker
+    (marker-last) and by-anchor grouping semantics are unchanged -- members + marker
+    stay under one sharded anchor. A future anchor that narrows below packet depth
+    must define the packet_id shard key before writing.
+  trigger: architecture_doctrine
+  related_triggers:
+    - lifecycle_boundary
+  controlling_sources_updated:
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_derived_layout_index_rebuild_contract_v0.md
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_raw_admission_key_grammar_contract_v0.md
+  implementation_landed:
+    - orca-harness/data_lake/root.py (append_record / append_record_set / is_record_set_complete / record_path / lane_dir)
+  non_claims:
+    - not validation
+    - not readiness
+    - not derived_retrieval population
+    - not a per-lane schema or serialization selection
 ```

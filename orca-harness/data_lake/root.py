@@ -8,8 +8,12 @@ Implements the foundation slice of the adopted decision contracts:
 - write-boundary enforcement: a single deterministic writer; write-once raw;
   append-only derived/ack; per-root UUID marker; atomic no-overwrite create.
 - raw admission + key grammar: ``packet_id`` is an opaque Crockford-26 handle;
-  raw container is ``raw/<packet_id>/`` at packet depth, published atomically.
-- derived layout: ``derived/<raw-anchor>/<lane>/<record-id>`` and the split
+  raw container is ``raw/<packet_shard>/<packet_id>/`` -- an opaque deterministic
+  shard prefix (``sha256(packet_id)[:3]``, 4096 buckets) physically fans the
+  write-once packets out so no single directory grows unbounded; by-key reads
+  recompute the shard, never look it up.
+- derived layout: ``derived/<anchor_shard>/<raw-anchor>/<lane>/<record-id>``
+  (acknowledgements likewise) -- the same opaque fanout -- and the split
   ``indexes/availability`` (content-free) vs ``indexes/derived_retrieval``
   (rebuildable, non-authoritative; created empty, population build-deferred).
 
@@ -420,8 +424,9 @@ class DataLakeRoot:
     # -- guarded writes -----------------------------------------------------
 
     def allocate_raw_packet_dir(self, packet_id: str) -> Path:
-        """Create the write-once raw packet container ``raw/<packet_id>/`` and
-        return it. Create-only: fails if it already exists. For atomic packet
+        """Create the write-once raw packet container
+        ``raw/<packet_shard>/<packet_id>/`` and return it. Create-only: fails if it
+        already exists. For atomic packet
         publication (a partial packet never appears under ``raw/``), prefer
         ``stage_raw_packet`` + ``publish_raw_packet`` instead."""
         self._reverify()
@@ -438,9 +443,9 @@ class DataLakeRoot:
 
     def stage_raw_packet(self, packet_id: str) -> Path:
         """Reserve a non-authoritative staging directory for an incumbent packet.
-        The completed staging dir is published atomically to ``raw/<packet_id>``
-        by ``publish_raw_packet``, so a partial packet never appears under
-        ``raw/`` (DL-002)."""
+        The completed staging dir is published atomically to
+        ``raw/<packet_shard>/<packet_id>`` by ``publish_raw_packet``, so a partial
+        packet never appears under ``raw/`` (DL-002)."""
         self._reverify()
         _validate_packet_id(packet_id)
         final = self._within("raw", raw_shard(packet_id), packet_id)
@@ -454,7 +459,7 @@ class DataLakeRoot:
 
     def publish_raw_packet(self, staging_dir: Path, packet_id: str) -> Path:
         """Atomically publish a completed staging directory to
-        ``raw/<packet_id>`` (write-once)."""
+        ``raw/<packet_shard>/<packet_id>`` (write-once)."""
         self._reverify()
         _validate_packet_id(packet_id)
         final = self._within("raw", raw_shard(packet_id), packet_id)
@@ -471,7 +476,8 @@ class DataLakeRoot:
         self, *, subtree: str, raw_anchor: str, lane: str, record_id: str, data: bytes
     ) -> Path:
         """Append-only create of a derived or acknowledgement record at
-        ``<subtree>/<raw_anchor>/<lane>/<record_id>``. Refuses overwrite."""
+        ``<subtree>/<anchor_shard>/<raw_anchor>/<lane>/<record_id>`` (the anchor
+        shard is recomputed from ``raw_anchor``). Refuses overwrite."""
         if subtree not in _APPENDABLE_SUBTREES:
             raise DataLakeRootError(
                 f"append_record subtree must be one of {_APPENDABLE_SUBTREES}: {subtree!r}"
@@ -480,7 +486,7 @@ class DataLakeRoot:
         _validate_segment(raw_anchor, role="raw_anchor")
         _validate_segment(lane, role="lane")
         _validate_segment(record_id, role="record_id")
-        target = self._within(subtree, raw_anchor, lane, record_id)
+        target = self._within(subtree, raw_shard(raw_anchor), raw_anchor, lane, record_id)
         _atomic_create(target, data)
         return target
 
@@ -525,10 +531,12 @@ class DataLakeRoot:
         for lane in members:
             _validate_segment(lane, role="lane")
 
+        anchor_shard = raw_shard(raw_anchor)
         member_targets = {
-            lane: self._within(subtree, raw_anchor, lane, record_id) for lane in members
+            lane: self._within(subtree, anchor_shard, raw_anchor, lane, record_id)
+            for lane in members
         }
-        marker_target = self._within(subtree, raw_anchor, completion_lane, record_id)
+        marker_target = self._within(subtree, anchor_shard, raw_anchor, completion_lane, record_id)
         existing = [t for t in (*member_targets.values(), marker_target) if t.exists()]
         if existing:
             raise DataLakeRootError(
@@ -565,7 +573,8 @@ class DataLakeRoot:
         _validate_segment(raw_anchor, role="raw_anchor")
         _validate_segment(record_id, role="record_id")
         _validate_segment(completion_lane, role="completion_lane")
-        marker = self._within(subtree, raw_anchor, completion_lane, record_id)
+        anchor_shard = raw_shard(raw_anchor)
+        marker = self._within(subtree, anchor_shard, raw_anchor, completion_lane, record_id)
         if not marker.is_file():
             return False
         try:
@@ -584,9 +593,33 @@ class DataLakeRoot:
                 _validate_segment(lane, role="lane")
             except DataLakeRootError:
                 return False
-            if not self._within(subtree, raw_anchor, lane, record_id).is_file():
+            if not self._within(subtree, anchor_shard, raw_anchor, lane, record_id).is_file():
                 return False
         return True
+
+    def record_path(self, *, subtree: str, raw_anchor: str, lane: str, record_id: str) -> Path:
+        """Resolve a derived/ack record's on-disk path BY KEY (sharded), without
+        writing. The anchor shard is recomputed from ``raw_anchor`` (never looked
+        up); the returned path may or may not exist, so callers must check it."""
+        if subtree not in _APPENDABLE_SUBTREES:
+            raise DataLakeRootError(
+                f"record_path subtree must be one of {_APPENDABLE_SUBTREES}: {subtree!r}"
+            )
+        _validate_segment(raw_anchor, role="raw_anchor")
+        _validate_segment(lane, role="lane")
+        _validate_segment(record_id, role="record_id")
+        return self._within(subtree, raw_shard(raw_anchor), raw_anchor, lane, record_id)
+
+    def lane_dir(self, *, subtree: str, raw_anchor: str, lane: str) -> Path:
+        """Resolve a derived/ack lane DIRECTORY by key (sharded), without writing.
+        Callers iterate it to read the lane's records; it may not exist."""
+        if subtree not in _APPENDABLE_SUBTREES:
+            raise DataLakeRootError(
+                f"lane_dir subtree must be one of {_APPENDABLE_SUBTREES}: {subtree!r}"
+            )
+        _validate_segment(raw_anchor, role="raw_anchor")
+        _validate_segment(lane, role="lane")
+        return self._within(subtree, raw_shard(raw_anchor), raw_anchor, lane)
 
     # -- availability index (content-free, rebuildable) ---------------------
 
@@ -735,33 +768,51 @@ class DataLakeRoot:
                     if (
                         container.is_dir()
                         and _CROCKFORD_26.fullmatch(container.name)
+                        # A packet sitting in the wrong shard dir is corruption/
+                        # misplacement: skip it rather than record a wrong-path
+                        # availability entry (failure stays visible as absence).
+                        and shard_dir.name == raw_shard(container.name)
                         and (container / "manifest.json").is_file()
                     ):
                         self.record_availability(container.name)
                         count += 1
         return count
 
-    def relocate_raw_to_sharded(self) -> int:
-        """One-time migration to the sharded raw layout: move any legacy flat
-        ``raw/<packet_id>/`` container to ``raw/<packet_shard>/<packet_id>/``.
-        Idempotent and re-runnable: already-sharded packets are untouched, and a
-        packet whose sharded target already exists is left in place (never
-        overwritten — write-once raw). Returns the count relocated. Run
-        ``rebuild_availability`` afterwards so the index points at the new paths."""
+    def relocate_to_sharded(self) -> int:
+        """One-time migration to the sharded layout: move any legacy flat
+        ``<subtree>/<key>/`` container -- a raw packet under ``raw/``, or a
+        raw-anchor-first ``derived/``/``acknowledgements/`` subtree -- to
+        ``<subtree>/<shard>/<key>/``. Idempotent and re-runnable: already-sharded
+        entries are not direct children, so they are skipped. A flat entry whose
+        sharded target ALSO exists is a collision and FAILS CLOSED (write-once
+        material is never overwritten and a hidden duplicate is never tolerated).
+        Returns the total relocated. Run ``rebuild_availability`` afterwards so the
+        index points at the new paths."""
         self._reverify()
-        raw_dir = self._path / "raw"
-        if not raw_dir.is_dir():
+        return sum(
+            self._relocate_subtree_to_sharded(subtree)
+            for subtree in ("raw", *_APPENDABLE_SUBTREES)
+        )
+
+    def _relocate_subtree_to_sharded(self, subtree: str) -> int:
+        base = self._path / subtree
+        if not base.is_dir():
             return 0
         moved = 0
-        for child in sorted(raw_dir.iterdir()):
-            # A legacy flat packet is a direct child of raw/ whose name is a full
-            # packet_id (Crockford-26). Shard dirs are short hex and are skipped.
+        for child in sorted(base.iterdir()):
+            # A legacy flat entry is a direct child whose name is a full key
+            # (Crockford-26 packet_id / raw-anchor). Shard dirs are short hex,
+            # so they are not Crockford-26 and are skipped.
             if not (child.is_dir() and _CROCKFORD_26.fullmatch(child.name)):
                 continue
-            packet_id = child.name
-            target = self._within("raw", raw_shard(packet_id), packet_id)
+            key = child.name
+            target = self._within(subtree, raw_shard(key), key)
             if target.exists():
-                continue  # already migrated / collision -> never overwrite
+                raise DataLakeRootError(
+                    f"relocate collision under {subtree}/: both flat {subtree}/{key}/ "
+                    f"and sharded {target} exist; resolve the duplicate before "
+                    f"migrating (write-once material is never overwritten)"
+                )
             target.parent.mkdir(parents=True, exist_ok=True)
             os.rename(child, target)  # atomic same-fs move; bytes/hashes unchanged
             moved += 1

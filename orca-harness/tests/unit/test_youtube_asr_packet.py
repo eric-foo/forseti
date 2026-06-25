@@ -10,7 +10,7 @@ import hashlib
 import json
 from pathlib import Path
 
-from data_lake.root import DataLakeRoot
+from data_lake.root import DataLakeRoot, raw_shard
 from source_capture.models import SourceCapturePacket
 from source_capture.transcript import write_asr_transcript
 
@@ -33,12 +33,12 @@ def _lake(tmp_path: Path) -> DataLakeRoot:
 
 
 def _packet_id_from_msg(msg: str) -> str:
-    # msg: "derived/<packet_id>/transcript_asr/<record_id> [posture, N cues]"
-    return msg.split("/")[1]
+    # msg: "derived/<shard>/<packet_id>/transcript_asr/<record_id> [posture, N cues]"
+    return msg.split("/")[2]
 
 
 def _load_derived(root: DataLakeRoot, msg: str) -> dict:
-    rel = msg.split(" ")[0]  # derived/<pid>/transcript_asr/<rid>
+    rel = msg.split(" ")[0]  # derived/<shard>/<pid>/transcript_asr/<rid>
     return json.loads((root.path / rel).read_text(encoding="utf-8"))
 
 
@@ -56,7 +56,7 @@ def test_transcribed_writes_audio_packet_and_derived_record(tmp_path):
     pid = _packet_id_from_msg(msg)
 
     # audio packet: contract-valid, raw-only, no transcript laundered in
-    manifest = json.loads((root.path / "raw" / pid / "manifest.json").read_text(encoding="utf-8"))
+    manifest = json.loads((root.path / "raw" / raw_shard(pid) / pid / "manifest.json").read_text(encoding="utf-8"))
     packet = SourceCapturePacket(**manifest)
     assert packet.source_surface == "youtube_audio"
     assert len(packet.preserved_files) == 2
@@ -95,7 +95,7 @@ def test_no_speech_records_posture_without_cues(tmp_path):
     assert rec["cues"] == []
     # audio still captured
     pid = _packet_id_from_msg(msg)
-    assert (root.path / "raw" / pid / "manifest.json").is_file()
+    assert (root.path / "raw" / raw_shard(pid) / pid / "manifest.json").is_file()
 
 
 def test_invalid_video_id_refused(tmp_path):
@@ -136,7 +136,8 @@ def test_transcriber_exception_records_failed_posture(tmp_path):
     assert rec["cues"] == []
     assert "failure_message" in rec["provenance"]
     # the raw audio packet was still captured
-    assert (root.path / "raw" / _packet_id_from_msg(msg) / "manifest.json").is_file()
+    _pid = _packet_id_from_msg(msg)
+    assert (root.path / "raw" / raw_shard(_pid) / _pid / "manifest.json").is_file()
 
 
 def test_transcribed_without_cues_normalizes_to_no_speech(tmp_path):
@@ -160,7 +161,7 @@ def test_rerun_is_a_new_observation_not_an_overwrite(tmp_path):
     c1, _ = write_asr_transcript(video_id="abcdefghijk", audio_bytes=_AUDIO, audio_ext="webm", transcribe_fn=t, data_root=root)
     c2, _ = write_asr_transcript(video_id="abcdefghijk", audio_bytes=_AUDIO, audio_ext="webm", transcribe_fn=t, data_root=root)
     assert c1 == 0 and c2 == 0
-    assert len(list((root.path / "raw").iterdir())) == 2  # two distinct audio packets, not a refusal
+    assert len(list((root.path / "raw").glob("*/*"))) == 2  # two distinct audio packets (shard/packet), not a refusal
 
 
 def test_download_audio_rejects_bad_id_pre_network():
