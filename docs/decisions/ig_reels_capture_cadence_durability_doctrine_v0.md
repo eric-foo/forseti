@@ -36,10 +36,11 @@ asked for during the 2026-06-25 IG reels capture lane work; it does not build th
 A **single** `/reels/` capture is already complete and honest: the runner either writes a
 clean packet or **fails closed** -- `_detect_ig_block` returns a typed reason (login redirect,
 429 "please wait" interstitial, "you've been blocked", challenge route) and the run exits
-without writing a garbage packet (exit `5`); other failures exit `3`. What is missing is the
-**durability envelope** for running this repeatedly across many creators to produce the
-momentum timepoints: how often, how spaced, what to do on a soft failure, and how to degrade
-without either hammering the platform or silently dropping data.
+without writing a garbage packet (exit `5`); runner/capture failures exit `3` for bounded
+retry; CLI/configuration failures exit `2` and are not retry cadence events. What is missing
+is the **durability envelope** for running this repeatedly across many creators to produce
+the momentum timepoints: how often, how spaced, what to do on a soft failure, and how to
+degrade without either hammering the platform or silently dropping data.
 
 This matters because momentum is built from **per-timepoint deltas**, and a timepoint missed
 or corrupted at capture time is a **permanent** hole in that creator's series.
@@ -73,16 +74,22 @@ mechanism, never an evasion trigger.
    - Recorded as configuration/doctrine, not hard-coded into the runner.
 
 2. **Transient-vs-block response (reads the signals already emitted).**
-   - Exit `5` (hard block: login/429/challenge) -> back off that creator/panel; do **not**
-     immediately retry; widen spacing or pause the run. A hard block is a rate signal to slow
-     down, never a prompt to retry harder.
-   - Exit `3` (transient: timeout, browser/launch error) -> bounded retry with backoff, capped
-     attempts.
+   - Exit `5` (access block: login redirect, 429 interstitial, network-security block, or
+     challenge route) -> back off that creator/panel; do **not** immediately retry, retry
+     harder, or route around the block. Widen spacing or pause the run. A hard block is a
+     rate signal to slow down, never a prompt to force the missing timepoint.
+   - Exit `3` (runner/capture failure: timeout, browser/launch error, or surfaced runtime
+     exception) -> bounded retry with backoff, capped attempts; if the cap is exhausted,
+     record the scheduled timepoint as a gap.
+   - Exit `2` (CLI/configuration error) -> stop the wrapper for operator correction; do not
+     consume retry budget or fabricate a monitoring observation.
 
 3. **Graceful degradation.**
    - On a block mid-panel, slow or pause the remaining panel rather than continue at speed.
    - A skipped or blocked creator records an **explicit gap** for that timepoint (so the series
-     carries an honest hole), never a silent omission and never a fabricated value.
+     carries an honest hole), never a silent omission and never a fabricated value. If the
+     runner did not write a raw packet, the gap record is not a fake `SourceCapturePacket`
+     value; it must carry the planned creator/timepoint plus the observed outcome/reason.
 
 4. **Thin scheduler wrapper (higher lock-in -- do when a real panel is scheduled).**
    - Enforces 1-3 around the per-invocation runner. The runner itself is unchanged.
@@ -92,19 +99,23 @@ mechanism, never an evasion trigger.
 
 ## Relationship to the rest of the pipeline
 
-The durability layer produces the **timepoints**; the Data Lake **retains** them write-once and
-serves them by key; a downstream **pre-gold momentum/Spike-Alert lane** diffs them into
-"usual-range threshold crossed" candidate records keyed to raw; **Judgment** alone interprets
-those (gold). Durability is upstream of all of that -- it only governs how the timepoints are
-generated.
+The durability layer produces successful capture **timepoints** plus explicit gap records for
+scheduled observations that did not produce raw packets. The Data Lake **retains** successful
+raw packets write-once and serves them by key; a downstream **pre-gold momentum/Spike-Alert
+lane** diffs raw-keyed observations and carries missingness as missingness into "usual-range
+threshold crossed" candidate records keyed to raw; **Judgment** alone interprets those (gold).
+Durability is upstream of all of that -- it only governs how scheduled timepoints are
+attempted, slowed, paused, or recorded as gaps.
 
 ## Open owner decisions / blockers
 
 - The concrete cadence numbers (captures/hour, spacing, per-creator interval) -- owner-set per
   the monitoring decision question; this note does not pick them.
 - Scheduler/runtime selection -- deferred; not chosen here.
-- Whether the gap-recording for a skipped/blocked timepoint is a capture-side artifact or a
-  downstream-series-side annotation -- resolve when the momentum lane is scoped.
+- Whether the gap-recording home for a skipped/blocked timepoint is a capture-side artifact or
+  a downstream-series-side annotation -- resolve when the momentum lane is scoped. The
+  obligation to record the gap and its minimum planned-timepoint/outcome/reason contents is not
+  deferred.
 
 ## Non-claims
 
@@ -114,3 +125,4 @@ generated.
 - not a platform-stability or block-rate guarantee
 - not stealth, anti-detection, or evasion guidance
 - not a momentum, demand, credibility, or Judgment claim
+- not a retry policy for configuration/usage errors
