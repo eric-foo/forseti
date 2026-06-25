@@ -427,7 +427,7 @@ nickname: "crawling graph." The runner is
 | `orca/product/spines/foundation/` | Foundation spine: product contract, IPF/evidence standard, ontology (backbone + cards), demand-read taxonomy, vertical-exploration. |
 | `orca/product/spines/scanning/` | Scanning (discovery-side) spine: open `orca/product/spines/scanning/README.md` first. It routes to the MGT intelligent-walk model, default CSB broad-scout phase, recency/current-state frontier priority, proposed scan-core schema, admissibility/checkability surfaces, and source-family adapters. |
 | `orca/product/spines/capture/` | Capture (acquisition-side) spine: `core/` reusable acquisition layer containing source-access/candidate/corpus/obligation contracts, operating_model, packet_schema, Source Capture Toolbox, demand_durability_indicators, and source_families (`retail_pdp`, `social_media/instagram`). Dense — open the Data Capture submap. |
-| `orca/product/spines/ecr/` | Evidence Candidate Record spine: evidence_candidate_record (SP-1/2/3/6 slices), signal_content (SCR direction + deriver). |
+| `orca/product/spines/ecr/` | Evidence Candidate Record spine: evidence_candidate_record (SP-1/2/3/6 slices), signal_content (SCR direction + deriver, now deprecated/dormant as default pre-Judgment layer). |
 | `orca/product/spines/cleaning/` | Cleaning spine: cleaning-layer contracts. |
 | `orca/product/spines/judgment/` | Judgment spine: conductor, claim_ladder, demand_read (core/c2_weighting/c3_verdict_action/grading), learning_loops (near_half/far_half), source_side_receipts, toolkit_gaps. Demand-read C2 treats recency/currentness as qualitative attention/relevance, not proof or scoring. Dense — submap candidate. |
 | `orca/product/spines/product_lead/` | Product-Lead spine: offer, buyer_proof, proof_charter, icp_wedge. |
@@ -478,7 +478,7 @@ nickname: "crawling graph." The runner is
 | `docs/decisions/orca_doctrine_index_v0.md` | **Doctrine index (router, not authority)** — one place to find every binding doctrine across the kernel, overlay, decision records, and product lanes, with explicit doctrine naming and subset grouping. On conflict the doctrine's own record wins. |
 | `docs/workflows/orca_repo_map_v0.md` | Compact navigation map for bounded source-pack selection and prompt setup. |
 | `docs/workflows/data_capture_spine_consolidation_map_v0.md` | Data Capture Spine repo submap. Open before enumerating capture owner docs. |
-| `docs/workflows/ecr_spine_submap_v0.md` | ECR source-side spine repo submap (integrity postures SP-1/2/3/6 + Signal Content Record). Open before enumerating ECR/SCR owner docs. |
+| `docs/workflows/ecr_spine_submap_v0.md` | ECR source-side spine repo submap (integrity postures SP-1/2/3/6 + deprecated/dormant Signal Content Record contract). Open before enumerating ECR/SCR owner docs. |
 | `docs/workflows/cleaning_contract_to_code_reconciliation_checklist_v0.md` | Contract-to-code checklist for the bounded Cleaning substrate in `orca-harness/cleaning/` against the Cleaning README/foundation/boundary/projection sources. Retrieval-only; not validation, readiness, or production Cleaning authorization. |
 | `docs/research/judgment-spine/judgment_spine_consolidation_map_v0.md` | Judgment Spine submap. Open before enumerating Judgment owners across `docs/research/judgment-spine/` and `orca/product/spines/judgment/`. |
 | `orca/product/spines/capture/core/source_families/retail_pdp/retail_pdp_sidecar_operator_playbook_v0.md` | Operator playbook for the bounded Amazon/Sephora/Ulta Retail/PDP CloakBrowser sidecar smoke: canonical URLs, flags, scratch outputs, expected residuals, failure taxonomy, and code-enforceable follow-up flags. |
@@ -500,7 +500,7 @@ design) remain gated.
 | `orca-harness/source_capture/transcript/` | Cross-source transcript ACQUISITION (Capture layer): per-platform fetchers returning RAW artifacts + capture metadata for SourceCapturePacket staging (`youtube_captions.py`: YouTube captions via yt-dlp default token-free client; `caption_packet.py`: network-free packet builder; `audio_asr.py` + `asr_packet.py`: VAD-gated faster-whisper ASR fallback when captions are absent, writing the transcript as a `transcript_asr` derived record keyed to the audio packet). The readable/clean transcript is a downstream Cleaning transform. Navigation context only; not Cleaning, Judgment, or readiness. |
 | `orca-harness/source_observability/` | Local operator-record posture checker and limitation reporter. |
 | `orca-harness/ecr/` | Evidence Candidate Record source-side integrity postures (SP-1/2/3/6): per-packet/slice derived records keyed to the `SourceCapturePacket`; bind no `EvidenceUnit`; JSG-01 frozen. Boundary context: `orca/product/spines/foundation/product_contract/core_spine_v0_data_and_cleaning_spine_boundary_v0.md`. |
-| `orca-harness/signal_content/` | Signal Content Record (v0): the second derived-record kind (content — "what a signal says"), parallel to `ecr/`; wedge-agnostic StrictModel + validators, references packet/ECR by key, no deriver/persistence/binding. Direction: `orca/product/spines/ecr/signal_content/core_spine_v0_signal_content_record_architecture_v0.md`. |
+| `orca-harness/signal_content/` | Signal Content Record (v0): retained compatibility/history code for the deprecated/dormant content contract; not default pre-Judgment generation. Direction + deprecation posture: `orca/product/spines/ecr/signal_content/core_spine_v0_signal_content_record_architecture_v0.md`. |
 | `orca-harness/evidence_binding/` | JSG-01-scoped EvidenceUnit binding (owner-ratified 2026-06-12): the three-key `Jsg01EvidenceBinding` + the pure `compose_jsg01_evidence_record` composer + verifier; references packet/ECR/receipt by key, binds no posture/value, computes no aggregate verdict. Design basis: `orca/product/spines/ecr/evidence_candidate_record/ecr_consolidation_v0_jsg01_evidence_unit_binding_slice_plan_v0.md`. Navigation context only; not a JSG-01 unfreeze, validation, or readiness. |
 | `orca-harness/cleaning/` | Bounded local Cleaning-layer code (models, core, projection) and the YouTube transcript→product Pass-1 LLM lane (`transcript_product_extractor.py`: mention extraction with the CE5/CE9 quote-locator — the model gives a quote, code locates it in the cues to both verify it and assign the timestamp; `transcript_product_lake.py`: silver mentions persist + timing-preserving json3→cues). Navigation context only — not the gated production Cleaning lane, acceptance, or readiness. |
 | `orca-harness/schemas/` | Pydantic v2 models for cases, judgments, scoring, and probes (v0.14), plus the YouTube transcript→product extraction models (`product_mention_models.py`: `ProductMention` / `StatedRating`, finite-guarded floats, verdict-free by construction). |
@@ -565,14 +565,15 @@ the owner sources. Do not pre-load all capture artifacts from this map.
 ## ECR Source-Side Spine
 
 The ECR source-side spine spans the integrity postures (ECR SP-1/2/3/6) and the
-sibling content layer (Signal Content Record), their shared deriver discipline,
-and the frozen boundary to the JSG-01 conductor. **Open the repo submap first**:
-it is the `retrieval_only` entry that states the cross-kind invariants and routes
-one hop to every owner. Do not pre-load the ECR/SCR owner docs from this map.
+deprecated/dormant sibling content contract (Signal Content Record), their shared
+deriver discipline, and the boundary to the JSG-01 conductor. **Open the repo
+submap first**: it is the `retrieval_only` entry that states the cross-kind
+invariants and routes one hop to every owner. Do not pre-load the ECR/SCR owner
+docs from this map.
 
 | Path | Use for |
 | --- | --- |
-| `docs/workflows/ecr_spine_submap_v0.md` | **ECR source-side spine repo submap — open first.** Routes to the SCR direction + deriver plan, the ECR frame + SP-1/2/3 + SP-6 slices, the receipt-translator origin, the schema-evolution doctrine, and the built `orca-harness/ecr/` + `orca-harness/signal_content/` code. States the reference-never-merge / per-kind-grain / carry-or-residualize / re-derive-not-migrate / frozen-conductor invariants. Map only; not validation, readiness, ratification, a JSG-01 unfreeze, or Evidence-Unit binding. |
+| `docs/workflows/ecr_spine_submap_v0.md` | **ECR source-side spine repo submap — open first.** Routes to the SCR deprecation/direction + deriver plan, the ECR frame + SP-1/2/3 + SP-6 slices, the receipt-translator origin, the schema-evolution doctrine, and the built `orca-harness/ecr/` + retained `orca-harness/signal_content/` code. States the reference-never-merge / per-kind-grain / carry-or-residualize / re-derive-not-migrate / conductor-boundary invariants. Map only; not validation, readiness, ratification, a JSG-01 unfreeze, or Evidence-Unit binding. |
 
 ## Core Spine Files
 
@@ -581,7 +582,7 @@ one hop to every owner. Do not pre-load the ECR/SCR owner docs from this map.
 | `orca/product/spines/foundation/product_contract/core_spine_v0_product_contract.md` | Core Spine product contract and eight primitives. |
 | `orca/product/spines/foundation/product_contract/core_spine_v0_information_production_foundation_v0.md` | Manual information-production foundation and Evidence Unit standard. |
 | `orca/product/spines/foundation/product_contract/core_spine_v0_data_and_cleaning_spine_boundary_v0.md` | Data Capture/Cleaning/Judgment boundary and Evidence Candidate Record setup context. |
-| `orca/product/spines/ecr/signal_content/core_spine_v0_signal_content_record_architecture_v0.md` | Signal Content Record (v0) architecture DIRECTION — the second derived-record kind ("what a signal says"), parallel to the ECR integrity postures and structuring the IPF Evidence Unit content vocabulary; records the owner carrier/lifecycle/decision-relevance-tag decisions and the bounded content-field ratification. Direction only; the final Evidence Unit field architecture stays owner-reserved and JSG-01 frozen. v0 model lives in `orca-harness/signal_content/`. |
+| `orca/product/spines/ecr/signal_content/core_spine_v0_signal_content_record_architecture_v0.md` | Signal Content Record (v0) architecture DIRECTION + deprecation posture — retained compatibility/future-revival contract for the content object, no longer a default standalone pre-Judgment generated layer. Current default route is evidence pack -> Judgment-authored signal interpretation. Direction only; the final Evidence Unit field architecture stays owner-reserved. v0 model lives in `orca-harness/signal_content/`. |
 | `orca/product/spines/cleaning/contracts/core_spine_v0_corroboration_vs_amplification_discipline_v0.md` | Proposed Core Spine design note on placing independent-corroboration vs artificial-amplification discipline across the Cleaning/Judgment boundary; proposed, not validated. |
 | `docs/decisions/daimler_advisory_001_claim_tier_classification_decision_v0.md` | Daimler advisory claim-tier classification decision recording the current no-durable-evidence state, required product-learning receipt before any evidence claim, and blocked buyer-proof/judgment-quality claims. |
 | `orca/product/shared/engagement_registry/engagement_logic_registry_v0.md` | Signal-use and engagement interpretation registry. |
@@ -888,7 +889,7 @@ status field. Open the owning doc for authority; this table is navigation only.
 | Data capture spine | `orca/product/spines/capture/core/operating_model/data_capture_harness_operating_model_architecture_v2.md` | `PROPOSED_ARCHITECTURE_V2` |
 | Judgment spine | `orca/product/spines/judgment/claim_ladder/judgment_spine_evidence_ladder_architecture_v0.md` | no status field |
 | ECR | `docs/workflows/ecr_spine_submap_v0.md` | no status field |
-| Signal content | `orca/product/spines/ecr/signal_content/core_spine_v0_signal_content_record_architecture_v0.md` | `OWNER_DECIDED_DIRECTION` |
+| Signal content | `orca/product/spines/ecr/signal_content/core_spine_v0_signal_content_record_architecture_v0.md` | `OWNER_DECIDED_DIRECTION`; `DEPRECATED_AS_STANDALONE_PRE_JUDGMENT_LAYER` |
 | Source capture toolbox | `orca/product/spines/capture/core/source_capture_toolbox/README.md` | `SOURCE_CAPTURE_ARMORY_README_V0` |
 | Core spine | `orca/product/spines/foundation/product_contract/core_spine_v0_product_contract.md` | `PROPOSED_FREEZE` |
 | Search lane | `docs/decisions/orca_search_product_lane_binding_v0.md` | owner-authorized v0; demand-signal intelligence (search-led): search/answer-engine surfaces + demand-scan/read/gate method |

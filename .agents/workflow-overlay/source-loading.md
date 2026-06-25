@@ -387,16 +387,19 @@ as a view over raw, not Cleaning, Judgment, or a new spine layer.
 ## ECR Source-Side Spine Read Pack
 
 Use this pack when the task touches the ECR source-side derived-record spine —
-the integrity postures (ECR SP-1/2/3/6) or the Signal Content Record — including
-their plans, models, or deriver code.
+the integrity postures (ECR SP-1/2/3/6) or the Signal Content Record
+(deprecated/dormant as a default standalone pre-Judgment layer; retained for
+compatibility/history or explicit future revival) — including their plans,
+models, or deriver code.
 
 Start with:
 
 - `docs/workflows/ecr_spine_submap_v0.md` for orientation. It is the
   `retrieval_only` front door: it states the cross-kind invariants and routes one
-  hop to every owner (the SCR direction + deriver plan, the ECR frame + SP-1/2/3
-  and SP-6 slices, the receipt-translator origin, the schema-evolution doctrine,
-  and the built `orca-harness/ecr/` + `orca-harness/signal_content/` code).
+  hop to every owner (the SCR deprecation/direction + deriver plan, the ECR frame
+  + SP-1/2/3 and SP-6 slices, the receipt-translator origin, the
+  schema-evolution doctrine, and the built `orca-harness/ecr/` + retained
+  `orca-harness/signal_content/` code).
 
 Then open only the controlling owner doc named by the submap for the current
 claim. Do not bulk-load every ECR/SCR plan or all derived-record code from this

@@ -3,11 +3,11 @@
 ```yaml
 retrieval_header_version: 1
 artifact_role: Product architecture direction brief
-scope: Owner-decided DIRECTION for the wedge-agnostic Signal Content Record — the structured "what a signal says" layer atop the existing provenance (SourceCapturePacket) and integrity (ECR postures) layers. Locks direction + invariants + shape, not the field-by-field schema.
+scope: Owner-decided DIRECTION for the wedge-agnostic Signal Content Record — now deprecated/dormant as a default standalone pre-Judgment layer, retained as a compatibility/future-revival contract over the existing provenance (SourceCapturePacket) and integrity (ECR postures) layers. Locks direction + invariants + shape, not the field-by-field schema.
 use_when:
-  - Scoping or reviewing the signal-content layer of the Data/Cleaning/ECR spine.
+  - Scoping or reviewing the deprecated/dormant signal-content contract of the Data/Cleaning/ECR spine.
   - Checking what the bounded content-field ratification does and does not authorize.
-  - Routing the field-by-field schema slice to the ECR-consolidation lane.
+  - Checking why current SCR v0 is not a default generated handoff layer before Judgment.
 authority_boundary: retrieval_only
 open_next:
   - orca/product/spines/foundation/product_contract/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
@@ -15,7 +15,7 @@ open_next:
   - orca-harness/ecr/__init__.py
 stale_if:
   - The owner settles the final Evidence Candidate Record / Evidence Unit (EvidenceUnit) field architecture (currently reserved).
-  - The carrier, lifecycle, or decision_relevance posture below is changed by a later owner decision.
+  - The carrier, lifecycle, decision_relevance posture, deprecation/dormancy, revival, or deletion posture below is changed by a later owner decision.
   - The IPF Evidence Unit Standard content vocabulary changes.
 ```
 
@@ -23,15 +23,37 @@ stale_if:
 
 `OWNER_DECIDED_DIRECTION` — recorded 2026-06-09. Bounded content-field ratification GRANTED.
 
+`DEPRECATED_AS_STANDALONE_PRE_JUDGMENT_LAYER` — amended by current owner direction. The original SCR contract remains as retained compatibility/future-revival surface, but current v0 SCR must not be treated as a default generated layer between an evidence pack and Judgment.
+
 This is **not** the final Evidence Unit field architecture (owner-reserved), **not** a schema, **not** code, and **not** a JSG-01 unfreeze (the gate stays FROZEN). It is a direction record + a bounded authorization, for owner sign-off and later commit.
+
+## Current Demotion
+
+Current owner decision: **deprecate and demote SCR as a standalone pre-Judgment artifact; do not delete it yet.**
+
+Default route:
+
+```text
+Evidence pack -> Judgment-authored signal interpretation
+```
+
+Cleaning may prepare traceable working views, transformations, summaries, translations, dedupe mechanics, warnings, residuals, and raw-pull triggers. Cleaning must not secretly decide signal meaning, graded relevance, Signal Use, Decision Strength, or Action Ceiling.
+
+SCR remains available only as:
+
+- a retained compatibility contract for existing docs/code/tests/imports;
+- a historical boundary showing why a deriver must carry or residualize and must not author from prose;
+- a possible future revival surface if Orca needs a frozen reusable source-side content object shared across multiple Judgment runs.
+
+Deletion condition: delete SCR only after no active docs/code/tests/runners consume it and Judgment's evidence-pack path has cleanly replaced it. If a future rich SCR becomes worth feeding whole into Judgment, that is a revival case, not a deletion trigger.
 
 ## What this locks
 
-The wedge-agnostic **Signal Content Record** — the structured *"what a signal says"* layer. Today content exists only as prose (the IPF Evidence Unit Standard fields, collapsed at the harness into the single `EvidenceUnit.summary: str` — verified `orca-harness/schemas/case_models.py:64`) and as a human rubric (Engagement Logic Registry, not a machine row schema). The gap is a structured, family-typed, judgment-decoupled content row that can be aggregated, compared, and fed to a decision.
+Historically, this locked the wedge-agnostic **Signal Content Record** — the structured *"what a signal says"* layer. That contract is now retained as a deprecated/dormant compatibility surface, not as a default pre-Judgment handoff. The current product route is that Judgment determines the signal interpretation from the evidence pack; SCR is revived only if a separately accepted need appears for a frozen reusable source-side content object.
 
 ## Owner decisions (settled 2026-06-09)
 
-1. **Carrier — option (b), durable.** A parallel derived `SignalContentRecord`, keyed to the `SourceCapturePacket` (CapturePacket), composed by the Evidence Unit (EvidenceUnit) **by reference** — the **second derived-record kind** after the ECR integrity postures. It is the next instance of the pattern the system already runs: "a parallel record the frozen conductor reads, binds no `EvidenceUnit`" (verified `orca-harness/ecr/__init__.py:26,37-38`). It folds into option (a) [content as a field on the Evidence Unit] cheaply if the owner later re-conceives the Evidence Unit as the content object; option (c) [the IPF Evidence Unit Standard] is the **vocabulary this record structures**, not a competing carrier.
+1. **Carrier — option (b), durable, now dormant for default routing.** A parallel derived `SignalContentRecord`, keyed to the `SourceCapturePacket` (CapturePacket), composed by the Evidence Unit (EvidenceUnit) **by reference** — the **second derived-record kind** after the ECR integrity postures. This carrier is retained for compatibility and possible revival, but current default Judgment routing does not require SCR generation.
 2. **Lifecycle — derived / re-derivable.** An M2-style derived-read, **not** persisted-at-capture, so a future family-taxonomy change is a *re-derive from the still-frozen raw observable*, never a stored-column migration.
 3. **`decision_relevance` — a neutral mechanical routing tag only.** Shape-derived (`decide_candidate` / `confirm_only` / `context_only` / `unresolved`). The graded Signal Use Classification / Decision Strength / Action Ceiling stay Judgment-owned (verified boundary doc:77).
 4. **Authority — bounded content-field ratification GRANTED.** The content analogue of the SP-1/2/3/6 source-side *integrity* exception. It does **not** settle the final Evidence Unit field architecture (reserved — verified boundary doc:131-133, 253-254) and does **not** unfreeze JSG-01 (the gate stays FROZEN; the source-side fields were ratified, the gate was not — boundary doc:289, ecr `__init__`.py:26).
@@ -61,6 +83,8 @@ The wedge-agnostic **Signal Content Record** — the structured *"what a signal 
 Follow the ECR convention: derived-record **code** as a sibling module beside `orca-harness/ecr/` (it is the same kind of thing); the **contract** doc in `docs/product/` (this file), referencing the IPF standard rather than restating it.
 
 ## Deferred — NOT authorized here
+
+- Default SCR generation before Judgment is no longer the route; the current default is evidence pack -> Judgment-authored signal interpretation.
 
 - The field-by-field schema (an ADR / implementation slice), routed to the **ECR-consolidation lane** as the next derived-record kind after SP-6, using the `M1`/`M2`/`M3` binding rule.
 - The interpretive extraction step (raw text → `signal_family` + event-core): like SP-5's deferred finalizer, it likely needs a provenance-bound **authored** input, residualized when absent — never invent family or content.
@@ -97,6 +121,55 @@ direction_change_propagation:
     - not a JSG-01 unfreeze (stays FROZEN)
     - not a schema, not code, not validation, not readiness, not implementation authorization
 ```
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    SCR v0 is deprecated/dormant as a standalone pre-Judgment generated layer:
+    the default route is evidence pack -> Judgment-authored signal interpretation;
+    Cleaning may prepare traceable working views but must not decide signal meaning;
+    SCR is retained only for compatibility/history or future explicit revival as a
+    frozen reusable source-side content object.
+  trigger: architecture_doctrine
+  related_triggers:
+    - workflow_authority
+    - lifecycle_boundary
+  controlling_sources_updated:
+    - orca/product/spines/ecr/signal_content/core_spine_v0_signal_content_record_architecture_v0.md
+    - orca/product/spines/ecr/signal_content/signal_content_record_deriver_architecture_plan_v0.md
+    - docs/workflows/ecr_spine_submap_v0.md
+    - .agents/workflow-overlay/source-loading.md
+    - docs/workflows/orca_repo_map_v0.md
+  downstream_surfaces_checked:
+    - orca/product/spines/foundation/product_contract/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
+    - orca/product/spines/cleaning/contracts/core_spine_v0_cleaning_spine_foundation_v0.md
+  intentionally_not_updated:
+    - path: orca-harness/signal_content/
+      reason: >
+        Code/tests/imports are retained for compatibility and historical validation.
+        This patch changes routing/default-use doctrine only; deletion requires the
+        separate no-active-consumer condition recorded above.
+  stale_language_search: >
+    rg -n "Build/review the SCR deriver|default SCR|SCR generation|first_build_slice|The v0 build this tees up|TARGET_RECOMMENDED|second derived-record kind|routes to the SCR direction|built Signal Content Record|default pre-Judgment|standalone pre-Judgment"
+    .agents/workflow-overlay/source-loading.md docs/workflows/ecr_spine_submap_v0.md
+    docs/workflows/orca_repo_map_v0.md orca/product/spines/ecr/signal_content/core_spine_v0_signal_content_record_architecture_v0.md
+    orca/product/spines/ecr/signal_content/signal_content_record_deriver_architecture_plan_v0.md
+  stale_language_search_result: >
+    Executed in the scr-deprecation worktree after edits. No active route surface
+    keeps "Build/review the SCR deriver", "first_build_slice", "The v0 build this
+    tees up", "routes to the SCR direction", or "built Signal Content Record".
+    Remaining hits are intentional deprecation/default-route language, the older
+    historical receipt recording the original second-derived-record decision, and
+    deriver-plan TARGET_RECOMMENDED rows that are now paired with current demotion
+    language or renamed TARGET_RECOMMENDED_HISTORICAL.
+  non_claims:
+    - not validation
+    - not readiness
+    - not implementation authorization
+    - not deletion of SCR code/tests/docs
+```
+
+Older direction-change receipts, if any, are archived in `docs/decisions/dcp_receipts_archive_v0.md`.
 
 ## Non-Claims
 

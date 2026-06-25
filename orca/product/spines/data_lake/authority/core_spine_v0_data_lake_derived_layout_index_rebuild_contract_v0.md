@@ -44,6 +44,17 @@ layout blocker-resolution lane report, FULL_REPO_READ). Architecture decision co
 only: not implementation authority, validation, readiness, serialization, backend, or
 per-lane schema selection.
 
+`DERIVED_RETRIEVAL_GATE_OPENED_V0` (owner-ratified 2026-06-25). The governed-consumer
+trigger in Accepted Residuals is met, so the `derived_retrieval` population gate is
+OPENED for three OBJECT-LEVEL reverse-lookup views — `by_creator` (per-platform observed
+public handle), `by_mention` (brand/line entity), and `undone` (committed − done work
+discovery) — per `docs/decisions/orca_data_lake_derived_retrieval_activation_proposal_v0.md`
+(#372). Opening the gate is a governance act ONLY: it selects no engine (by-key discovery
+stays authority; the SQL query-lens stays deferred to the scan/query-latency trigger),
+authorizes no implementation here (the builder is a separate bounded work unit), opens no
+other view, and unifies no cross-platform identity (per the medallion contract's given-up
+limitation). Actor/commenter retrieval stays out of scope (separately governed).
+
 ## Decision In One Screen
 
 ```text
@@ -157,8 +168,12 @@ lake indexes rebuild --root <ORCA_DATA_ROOT> --target availability|derived_retri
   lane needs a durable namespace-registration rule.
 - No backend/queue/scheduler/engine (by-key discovery is authority); trigger: scan/query
   latency proves insufficient.
-- `derived_retrieval` population deferred (rebuildable, non-authoritative,
-  governance-gated); trigger: a governed consumer needs a reverse lookup.
+- `derived_retrieval` gate OPENED 2026-06-25 for three object-level views (`by_creator`
+  per-platform, `by_mention`, `undone`) — the governed-consumer trigger is met (see
+  Status). The views stay rebuildable, non-authoritative, and object-level; the
+  builder/implementation is a separate bounded work unit, not authorized here. Other
+  reverse-lookup views stay governance-gated; trigger to widen: a further governed
+  consumer needs a different reverse lookup.
 - No per-lane record schemas (only the physical relationship is locked); trigger: each
   lane's own record contract.
 
@@ -171,9 +186,12 @@ validation suite, and implementation route.
 ## Non-Claims
 
 Not validation, readiness, approval, or implementation authorization. Not serialization,
-manifest, backend, or per-lane schema selection. No queue/engine. No `derived_retrieval`
-population. No Judgment/gold semantics in receipts. No actor-retrieval design. Records a
-derived-layout + index-rebuild decision only.
+manifest, backend, or per-lane schema selection. No queue/engine selected (by-key stays
+authority; the query-lens stays deferred to the latency trigger). The 2026-06-25 amendment
+opens the `derived_retrieval` governance gate only — it writes no builder or population
+code (a separate authorized work unit). No Judgment/gold semantics in receipts. No
+actor-retrieval design; no cross-platform identity. Records a derived-layout +
+index-rebuild decision plus the 2026-06-25 gate-opening.
 
 ## Direction Change Propagation
 
@@ -235,4 +253,38 @@ direction_change_propagation:
     - not readiness
     - not derived_retrieval population
     - not a per-lane schema or serialization selection
+```
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    derived_retrieval gate OPENED (owner-ratified 2026-06-25): the governed-consumer trigger
+    is met, so the derived_retrieval population gate is opened for three OBJECT-LEVEL
+    reverse-lookup views -- by_creator (per-platform observed handle), by_mention (brand/line),
+    and undone (committed - done discovery). Opening is governance ONLY: no engine is selected
+    (by-key discovery stays authority; the SQL query-lens stays deferred to the scan/query-
+    latency trigger), no builder/population code is written here (a separate bounded work unit),
+    and other views + cross-platform identity + actor-retrieval stay out of scope.
+  trigger: architecture_doctrine
+  related_triggers:
+    - lifecycle_boundary
+  adopts:
+    - docs/decisions/orca_data_lake_derived_retrieval_activation_proposal_v0.md  # PROPOSED (#372) ratified into the residual above
+  controlling_sources_updated:
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_derived_layout_index_rebuild_contract_v0.md
+  downstream_surfaces_checked:
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_storage_contract_v0.md            # engine residual unchanged (engine staged, not selected)
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_medallion_gold_readiness_contract_v0.md  # per-platform-only honors the given-up cross-platform identity limitation; object-level, not actor retrieval
+    - docs/decisions/orca_data_lake_derived_retrieval_activation_proposal_v0.md
+  build_preconditions_noted:
+    - by_mention + undone may build first (transcript silver is already lake-wired)
+    - by_creator follows the audience-silver lake wiring (Slice C), which is not yet built
+    - the hardened audience extractor is on main (#368, e1d6d633), so by_creator would index quarantine-clean evidence
+    - implementation is a separate bounded work unit off main, not authorized by this amendment
+  non_claims:
+    - not validation, readiness, or implementation authorization
+    - not engine selection (engine staged; by-key authority retained)
+    - not derived_retrieval builder/population code
+    - not cross-platform identity resolution
+    - not actor-retrieval design
 ```

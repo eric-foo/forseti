@@ -187,6 +187,7 @@ creator_profile_snapshot:
   display_name:
   bio:
   external_url:
+  bio_links:                   # list of {title, url} public link-in-bio destinations (not just a count)
   follower_count:
   following_count:
   post_or_media_count:
@@ -211,7 +212,8 @@ media_observation:
   grid_index_observed:
   kind: reel | post | unknown
   shortcode:
-  pinned_marker_present: true | false | unknown
+  pinned_on_clips_tab: true | false | null    # reels-tab pin from /clips/user clips_tab_pinned_user_ids (passive JSON, not a DOM marker)
+  pinned_on_timeline: true | false | null     # main-grid pin from timeline_pinned_user_ids / web_profile_info pinned_for_users
   rendered_anchor_text:
   visible_numeric_texts:
   hidden_leaf_numeric_texts:
@@ -252,6 +254,40 @@ media_observation:
     selection_limitations:
   limitations:
 ```
+
+### v0 emit posture (derivable vs. captured)
+
+The `media_observation` shape above is the full conceptual record. The v0 optimized runner
+(`run_source_capture_ig_reels_grid_packet.py`) does **not** separately emit the typed restatement
+fields below, because they are losslessly **derivable** from evidence the packet already preserves
+(`dom_rows[].parse_status`, the full `joined_rows[].source_surface_candidates` list, and the
+capture-level `selection_policy_version`). Deferring them keeps the shared Source Capture Packet
+schema small until a downstream consumer (projection/ECR) pins its contract; the consumer derives
+them, or a field is promoted then. Derivable-not-emitted in v0:
+
+- `join_status` — derive from a row's candidate set: candidates present -> `joined_by_shortcode`,
+  empty -> `missing_json`, `parse_status == ambiguous_hidden_numeric` -> `ambiguous`. The runner also
+  records the missing-join case as the slice limitation `no_passive_json_join_for_shortcode`.
+- `extraction_mode` — constant `no_hover_dom` for this single route.
+- `route_status` — implied by the runner exit code and `capture_metadata`.
+- `selected_fields` / per-row `selection_policy_version` / `selection_limitations` — the selected
+  metric values are emitted as typed `metric_observations`; the selection is recomputable by
+  re-running the capture-level `selection_policy_version` over the preserved candidates.
+
+Pinned posture is captured from passive JSON, **not** the DOM. A 2026-06-25 logged-out probe of a
+public `/reels/` grid found no "Pinned" text/aria marker anywhere in the rendered DOM, but the pin
+posture is exposed reliably in the JSON the runner already preserves, as typed candidate fields:
+
+- `pinned_on_clips_tab` — reels-tab pin, from `/clips/user` `clips_tab_pinned_user_ids` (non-empty
+  list = pinned; empty = not pinned; null = field absent on this surface).
+- `pinned_on_timeline` — main-grid / timeline pin, from `timeline_pinned_user_ids` or
+  `web_profile_info` `pinned_for_users`.
+
+This is point-in-time (a creator pins/unpins) and not otherwise re-capturable, so it is captured now.
+Probe caveat: on the probed profile the only pins were main-grid posts (`pinned_for_users` non-empty),
+which did **not** appear in the `/reels/` capture at all (a main-grid pin is not a reels-tab pin); the
+reels-tab positive (`clips_tab_pinned_user_ids` non-empty) is inferred by symmetry with that
+directly-observed positive and not yet directly observed on a reels-pinned profile.
 
 `caption_text` is allowed only when it is directly present in joined JSON or a later explicitly
 configured item-page source. If absent, it stays null. The capture runner must not infer topic,
@@ -294,7 +330,8 @@ These are appropriate for runner checks, assertions, or tests:
 - Do not record `video_url`, fetch media bytes, or treat thumbnail/display URLs as proof of content
   topic by default.
 - Join JSON metadata only by shortcode. If a shortcode is absent from JSON, leave date/caption fields
-  null and record `join_status: missing_json`; do not extrapolate exact dates from grid order.
+  null and surface the missing join (v0 runner: the slice limitation `no_passive_json_join_for_shortcode`,
+  from which `join_status: missing_json` is derivable); do not extrapolate exact dates from grid order.
 - Record `source_surface` for every numeric/count candidate. Do not collapse DOM views,
   `/clips/user` play/view counts, and `web_profile_info` video/play counts into one unqualified value.
 - Preserve all count candidates when source surfaces disagree; selection/reconciliation is a versioned
