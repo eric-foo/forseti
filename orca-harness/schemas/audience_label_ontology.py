@@ -73,16 +73,6 @@ CANONICAL_LABELS: dict[OutputField, frozenset[str]] = {
     OutputField.PRICE_TIER: frozenset(
         {"budget", "midrange", "premium", "luxury", "mixed_price"}
     ),
-    OutputField.AESTHETIC_VIBE: frozenset(
-        {
-            "clean_minimal",
-            "soft_romantic",
-            "glam_luxury",
-            "cozy_everyday",
-            "edgy_dark",
-            "playful_retro",
-        }
-    ),
 }
 
 # Synonyms -> canonical, per field. Hand-maintained starter set; an un-aliased
@@ -132,17 +122,6 @@ ALIASES: dict[OutputField, dict[str, str]] = {
         "high_end": "premium",
         "designer": "premium",
         "luxe": "luxury",
-    },
-    OutputField.AESTHETIC_VIBE: {
-        "minimal": "clean_minimal",
-        "clean_girl": "clean_minimal",
-        "romantic": "soft_romantic",
-        "glam": "glam_luxury",
-        "cozy": "cozy_everyday",
-        "dark": "edgy_dark",
-        "edgy": "edgy_dark",
-        "retro": "playful_retro",
-        "playful": "playful_retro",
     },
 }
 

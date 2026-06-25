@@ -24,18 +24,18 @@ def test_every_output_field_has_a_nonempty_canonical_set() -> None:
 
 def test_canonical_label_passes_through() -> None:
     assert canonicalize(OutputField.SKILL_LEVEL, "beginner") == "beginner"
-    assert canonicalize(OutputField.AESTHETIC_VIBE, "glam_luxury") == "glam_luxury"
+    assert canonicalize(OutputField.PRICE_TIER, "luxury") == "luxury"
 
 
 def test_alias_maps_to_canonical() -> None:
     assert canonicalize(OutputField.SKILL_LEVEL, "newbie") == "beginner"
     assert canonicalize(OutputField.PURCHASE_INTENT, "conversion") == "ready_to_buy"
-    assert canonicalize(OutputField.AESTHETIC_VIBE, "glam") == "glam_luxury"
+    assert canonicalize(OutputField.PRICE_TIER, "affordable") == "budget"
 
 
 def test_normalization_is_case_and_separator_insensitive() -> None:
     assert canonicalize(OutputField.SKILL_LEVEL, " Just Starting ") == "beginner"
-    assert canonicalize(OutputField.AESTHETIC_VIBE, "Clean-Girl") == "clean_minimal"
+    assert canonicalize(OutputField.PRICE_TIER, "High-End") == "premium"
     assert normalize_label("  Mid-Range ") == "mid_range"
 
 

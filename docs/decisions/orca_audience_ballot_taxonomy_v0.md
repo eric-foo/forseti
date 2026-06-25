@@ -45,10 +45,10 @@ that leaks on novel phrasings. Both weaken the inference.
 
 ## Decision (adopted)
 
-1. **Bucket set = 6 Tier-1 fields.** The existing five (`segment`, `audience_role`,
-   `purchase_intent`, `skill_level`, `price_tier`) plus **`aesthetic_vibe`** (content
-   style/tone). Aesthetic gets its own field because, folded under `segment`, it
-   collides with topical labels in the exact-label tally.
+1. **Bucket set = the 5 existing Tier-1 fields** (`segment`, `audience_role`,
+   `purchase_intent`, `skill_level`, `price_tier`). A 6th `aesthetic_vibe` field was
+   considered (ChatGPT-proposed) but **deferred** — see Deferred. The canonical-label +
+   router hardening below stands on its own and is the value of this change.
 2. **Canonical label vocabulary + alias map** (`schemas/audience_label_ontology.py`).
    The deciding tallies only canonical labels; synonyms are aliased to a canonical key,
    never independent tally keys. Vertical-scoped (fragrance/beauty v0); other verticals
@@ -87,8 +87,11 @@ lets a vibe's age-coding be *used* (as Tier-2-A evidence) instead of *leaked* (i
   miss novel phrasings — they are the SECOND line behind the positive allow-list.
 - **SubNiche hierarchy + `use_context` field:** deferred until evidence volume justifies
   them. Canonical+alias is the complete minimum now.
-- **`aesthetic_vibe` as a possible age proxy:** any audience-age it implies is routed to
-  Tier-2-A, never read off the Tier-1 label; the field is sparse and will often abstain early.
+- **`aesthetic_vibe` field — deferred (not shipped v0).** Considered, then cut: it would be
+  the thinnest field (frequent abstain), it overlaps `segment`/`price_tier`, and a text-only
+  v0 cannot read a visual *aesthetic* reliably. Admission is left to evidence — the router's
+  `other_candidates` telemetry surfaces mood-ish labels that don't fit the buckets, so a future
+  mood field (or a Tier-2-A slang→age register signal) is admitted on data, not a guess.
 
 ## Tier-2-A demographics — sequencing to "live"
 

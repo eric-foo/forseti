@@ -239,17 +239,6 @@ def test_alias_label_is_canonicalized_in_record() -> None:
     assert [r.label for r in result.records] == ["beginner"]
 
 
-def test_aesthetic_vibe_canonical_label_records() -> None:
-    result, _ = _extract(
-        _anthropic(
-            [_item(target_field="aesthetic_vibe", label="clean_minimal", source_pointer="clean beauty")]
-        )
-    )
-    assert [(r.target_field.value, r.label) for r in result.records] == [
-        ("aesthetic_vibe", "clean_minimal")
-    ]
-
-
 def test_non_canonical_label_is_other_candidate_not_record() -> None:
     # Not demographic, not special-category, not in the allow-list/alias map: held as
     # review telemetry only -- never tallied, never rejected, never deferred.
@@ -329,9 +318,9 @@ def test_prompt_carries_doctrine() -> None:
 
 def test_prompt_carries_label_vocabulary() -> None:
     prompt = build_extraction_prompt(_post())
-    # the controlled vocabulary + the aesthetic_vibe field + the other_candidate escape
+    # the controlled vocabulary + the other_candidate escape
     assert "fragrance_discovery" in prompt
-    assert "aesthetic_vibe" in prompt and "clean_minimal" in prompt
+    assert "skill_level" in prompt and "beginner" in prompt
     assert "other_candidate" in prompt
 
 
