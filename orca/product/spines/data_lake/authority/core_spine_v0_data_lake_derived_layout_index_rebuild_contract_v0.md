@@ -41,8 +41,8 @@ rebuild governance-gated/build-deferred).
 
 Owner-adopted 2026-06-21 (owner "lets adopt that" after adjudication of the derived-
 layout blocker-resolution lane report, FULL_REPO_READ). Architecture decision contract
-only: not implementation authority, validation, readiness, serialization, backend, or
-per-lane schema selection.
+only: not implementation authority, validation, readiness, serialization,
+engine/backend, or per-lane schema selection by this artifact.
 
 `DERIVED_RETRIEVAL_GATE_OPENED_V0` (owner-ratified 2026-06-25). The governed-consumer
 trigger in Accepted Residuals is met, so the `derived_retrieval` population gate is
@@ -166,8 +166,9 @@ lake indexes rebuild --root <ORCA_DATA_ROOT> --target availability|derived_retri
   manifest/record-writer implementation scoping.
 - Lane namespaces not globally enumerated (avoid taxonomy lock-in); trigger: the first
   lane needs a durable namespace-registration rule.
-- No backend/queue/scheduler/engine (by-key discovery is authority); trigger: scan/query
-  latency proves insufficient.
+- No backend/queue/scheduler/engine selected by this contract (by-key discovery
+  is authority); engine/backend choice belongs to the Storage Contract
+  physicalization boundary. Trigger: scan/query latency proves insufficient.
 - `derived_retrieval` gate OPENED 2026-06-25 for three object-level views (`by_creator`
   per-platform, `by_mention`, `undone`) — the governed-consumer trigger is met (see
   Status). The views stay rebuildable, non-authoritative, and object-level; the
@@ -179,19 +180,19 @@ lake indexes rebuild --root <ORCA_DATA_ROOT> --target availability|derived_retri
 
 ## Deferred / Out Of Scope
 
-Exact serialization, manifest/version shape, sidecar/member layout, backend,
-queue/scheduler, per-lane record schemas, the `derived_retrieval` builder/population,
-validation suite, and implementation route.
+Exact serialization, manifest/version shape, sidecar/member layout,
+engine/backend, queue/scheduler, per-lane record schemas, the `derived_retrieval`
+builder/population, validation suite, and implementation route.
 
 ## Non-Claims
 
 Not validation, readiness, approval, or implementation authorization. Not serialization,
-manifest, backend, or per-lane schema selection. No queue/engine selected (by-key stays
-authority; the query-lens stays deferred to the latency trigger). The 2026-06-25 amendment
-opens the `derived_retrieval` governance gate only — it writes no builder or population
-code (a separate authorized work unit). No Judgment/gold semantics in receipts. No
-actor-retrieval design; no cross-platform identity. Records a derived-layout +
-index-rebuild decision plus the 2026-06-25 gate-opening.
+manifest, engine/backend, queue, scheduler, or per-lane schema selection by this
+artifact. The 2026-06-25 amendment opens the `derived_retrieval` governance gate
+only — it writes no builder or population code (a separate authorized work unit).
+No Judgment/gold semantics in receipts. No actor-retrieval design; no
+cross-platform identity. Records a derived-layout + index-rebuild decision plus
+the 2026-06-25 gate-opening.
 
 ## Direction Change Propagation
 

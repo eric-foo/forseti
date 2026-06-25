@@ -17,8 +17,9 @@ Implements the foundation slice of the adopted decision contracts:
   ``indexes/availability`` (content-free) vs ``indexes/derived_retrieval``
   (rebuildable, non-authoritative; created empty, population build-deferred).
 
-This module is filesystem-incumbent and selects no storage engine,
-serialization, or queue.
+This module is the current filesystem-incumbent foundation. It is not the
+engine/backend selection record; that choice belongs to the Data Lake Storage
+Contract physicalization boundary.
 
 Threat model / accepted residual (DL-003): the write guard re-verifies the
 root marker identity and rejects symlinked components immediately before each

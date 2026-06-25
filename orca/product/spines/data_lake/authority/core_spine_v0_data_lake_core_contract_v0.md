@@ -47,8 +47,9 @@ downstream lanes.
 `TARGET_CONTRACT_RECORDED_V0`.
 
 This is a planning and architecture contract. It is not implementation
-authority, validation, readiness, physical storage selection, queue design, or
-schema finalization.
+authority, validation, readiness, physical storage selection, queue design,
+schema finalization, or engine/backend selection by this contract. Engine/backend
+choice is delegated to the Storage Contract physicalization boundary.
 
 ## Source Basis
 
@@ -265,7 +266,8 @@ the physicalization lane closes these blockers:
 
 ## What This Does Not Select
 
-- Storage engine.
+- Storage engine inside this contract; engine/backend choice is delegated to
+  the Storage Contract physicalization boundary.
 - Manifest v2.
 - Attachment Record serialization.
 - Sidecar contract.

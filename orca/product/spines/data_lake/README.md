@@ -38,10 +38,13 @@ layer.
   contract, the passive Availability Index contract, the append-only
   derived-result / acknowledgement attachment contract, the medallion /
   gold-readiness contract, and the physicality-location contract (external data
-  root + directory grammar, not a storage engine).
-- **Does not own:** the physical backend or storage engine, source-capture
-  execution, Mechanical Source Projection semantics, ECR derivation, Signal
-  Statement interpretation, Cleaning transforms, Spike Alert implementation,
+  root + directory grammar, not an engine selection).
+- **Owns engine posture:** the storage contract does not select an engine today,
+  but it now owns the boundary for a later filesystem/database/DuckDB/object-store/
+  warehouse/lakehouse or hybrid selection.
+- **Does not own:** source-capture execution, Mechanical Source Projection
+  semantics, ECR derivation, Signal Statement interpretation, Cleaning
+  transforms, Spike Alert implementation,
   Gold-ready evidence assembly implementation, Judgment interpretation, or
   queue / retry / scheduling / lane orchestration.
 
@@ -69,7 +72,8 @@ R2 landed the lake's authority + workflow substance:
   invariants, durable record names, fail-closed resolution), and the three
   blocker-resolution decision contracts (raw admission + key grammar; write-boundary
   enforcement; derived layout + index rebuild) that close the gating physicalization
-  blockers — all without authorizing backend, queue, runtime, or Judgment behavior.
+  blockers — all without selecting an engine/backend, queue, runtime, or Judgment
+  behavior.
 - `workflows/` — the canonical mechanics map (the version co-authored with the
   contracts, confirmed canonical via a 3-way reconciliation), which **supersedes
   and retires** the transitional `orca/product/shared/data_lake_mechanics/` copy.
