@@ -419,6 +419,7 @@ def _profile_snapshot_from_passive_responses(
         "bio": None,
         "external_url": None,
         "bio_links_count": None,
+        "bio_links": None,
         "profile_pic_url_present": None,
         "is_verified": None,
         "is_private": None,
@@ -448,6 +449,7 @@ def _profile_snapshot_from_passive_responses(
                 "bio": _string_or_none(user.get("biography")),
                 "external_url": _string_or_none(user.get("external_url")),
                 "bio_links_count": _list_count(user.get("bio_links")),
+                "bio_links": _bio_links(user.get("bio_links")),
                 "profile_pic_url_present": bool(user.get("profile_pic_url")),
                 "is_verified": user.get("is_verified") if isinstance(user.get("is_verified"), bool) else None,
                 "is_private": user.get("is_private") if isinstance(user.get("is_private"), bool) else None,
@@ -471,6 +473,28 @@ def _profile_user(payload: object) -> dict[str, object] | None:
     if isinstance(payload.get("user"), dict):
         return payload["user"]
     return None
+
+
+def _bio_links(value: object) -> list[dict[str, object]] | None:
+    """Capture the public link-in-bio destinations (title + url), not just a count.
+
+    IG ``web_profile_info`` exposes ``bio_links`` as a list of public link objects;
+    we preserve each link's title and destination URL (``url`` or ``lynx_url``).
+    These are public profile fields -- no redaction. Returns None when the source
+    did not expose a ``bio_links`` list at all (distinct from an empty list).
+    """
+    if not isinstance(value, list):
+        return None
+    links: list[dict[str, object]] = []
+    for item in value:
+        if not isinstance(item, dict):
+            continue
+        url = _string_or_none(item.get("url")) or _string_or_none(item.get("lynx_url"))
+        title = _string_or_none(item.get("title"))
+        if url is None and title is None:
+            continue
+        links.append({"title": title, "url": url})
+    return links
 
 
 def _profile_metric_observations(

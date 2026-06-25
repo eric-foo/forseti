@@ -7,6 +7,7 @@ from pathlib import Path
 import pytest
 
 from data_lake.root import DataLakeRoot
+from runners.run_source_capture_ig_reels_grid_packet import _bio_links
 from runners.run_source_capture_ig_reels_grid_packet import main as reels_grid_main
 from runners.run_source_capture_ig_reels_grid_packet import run_source_capture_ig_reels_grid_packet
 from source_capture.ig_reels_grid_capture import IgReelsGridCaptureSuccess, IgReelsGridPassiveResponse
@@ -20,7 +21,7 @@ def _fake_capture(**_kwargs):
                 "full_name": "Hyram",
                 "biography": "Just your average skin care addict",
                 "external_url": "https://example.test/video",
-                "bio_links": [{"title": "Video"}],
+                "bio_links": [{"title": "Video", "url": "https://example.test/video"}],
                 "profile_pic_url": "https://example.test/pic.jpg",
                 "is_verified": True,
                 "is_private": False,
@@ -139,6 +140,9 @@ def test_reels_grid_runner_writes_packet_without_item_page_fanout(tmp_path: Path
     }
     payload = json.loads((output / "raw" / "01_ig_reels_grid_capture.json").read_text(encoding="utf-8"))
     assert payload["creator_profile_snapshot"]["bio"] == "Just your average skin care addict"
+    assert payload["creator_profile_snapshot"]["bio_links"] == [
+        {"title": "Video", "url": "https://example.test/video"}
+    ]
     assert payload["joined_rows"][0]["dom_row"]["shortcode"] == "REEL123"
     captions = {item["caption_text"] for item in payload["joined_rows"][0]["source_surface_candidates"]}
     assert "Clips caption #ad" in captions
@@ -305,3 +309,19 @@ def test_reels_grid_main_rejects_output_when_orca_data_root_is_set(
 
     assert excinfo.value.code == 2
     assert not output.exists()
+
+
+def test_bio_links_captures_title_and_url_with_lynx_fallback() -> None:
+    assert _bio_links(
+        [
+            {"title": "Shop", "url": "https://example.test/shop"},
+            {"title": "Linktree", "lynx_url": "https://lynx.test/abc"},
+            {"title": None, "url": None},
+            "not-a-dict",
+        ]
+    ) == [
+        {"title": "Shop", "url": "https://example.test/shop"},
+        {"title": "Linktree", "url": "https://lynx.test/abc"},
+    ]
+    assert _bio_links(None) is None
+    assert _bio_links([]) == []
