@@ -150,17 +150,23 @@ bar.
 
 ```yaml
 direction_change_propagation_blocker:
-  doctrine_changed:
-    - product: moat / end-state framing + judgment-quality-as-gate + pricing-first-as-first-deposit-path (refines existing thesis/wedge; pricing #1 unchanged).
-    - judgment_spine_harness: no-tools contestant contract dropped in favor of a tooled pipeline + fresh-thread isolation + middle-rung evidence path + memorization-resistance case criterion.
+  doctrine_changed: >
+    Two coupled direction changes captured here: (product) moat / end-state
+    framing + judgment-quality-as-gate + pricing-first-as-first-deposit-path
+    (refines existing thesis/wedge; pricing #1 unchanged); and
+    (judgment_spine_harness) the no-tools contestant contract is dropped in favor
+    of a tooled pipeline + fresh-thread isolation + middle-rung evidence path +
+    memorization-resistance case criterion.
   trigger: architecture_doctrine
   related_triggers: [product_doctrine, validation_philosophy]
-  blocking_surface:
-    - docs/research/judgment-spine/harness/v0_14/contestant_no_tools_execution_contract_v0.md
-    - docs/research/judgment-spine/harness/v0_14/ (JSG-04/05/06 isolation semantics; case-construction + memorization-probe protocols)
-    - docs/product/judgment_spine_evidence_ladder_architecture_v0.md (judgment_quality definition)
-    - docs/product/judgment_quality_promotion_operating_model_v0.md (by-hand cap framing)
-    - docs/decisions/orca_icp_wedge_pricing_first_v0.md and the product thesis (moat-gate framing)
+  blocking_surface: >
+    No controlling source amended; the affected surfaces are
+    docs/research/judgment-spine/harness/v0_14/contestant_no_tools_execution_contract_v0.md,
+    the v0_14 harness JSG-04/05/06 isolation + case-construction + memorization-probe
+    protocols, docs/product/judgment_spine_evidence_ladder_architecture_v0.md
+    (judgment_quality definition), docs/product/judgment_quality_promotion_operating_model_v0.md
+    (by-hand cap framing), and docs/decisions/orca_icp_wedge_pricing_first_v0.md plus the
+    product thesis (moat-gate framing).
   attempted_check: captured the chain in this record; no controlling source amended.
   allowed_next_step: >
     Owner-authorized routing to the architecture/implementation lane plus the

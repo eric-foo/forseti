@@ -37,6 +37,11 @@ direction_change_propagation:
     entirely; contamination = outcome-USE, not recognition-capacity.
   trigger: product_doctrine
   related_triggers: [review_authority]
+  controlling_sources_updated:
+    - docs/decisions/r5_whitelist_decision_framing_propagation_v0.md
+  non_claims:
+    - not validation
+    - not readiness
   status: PARTIALLY ENACTED (conductor addendum v1 owner-RATIFIED 2026-06-16). The
     finder-frame operative bar + the judgement case construction protocol are
     enacted, and a default-on identity-masking-with-sealed-crosswalk rule (mask the

@@ -324,7 +324,11 @@ direction_change_propagation:
     per-slice grain (D5); D2=(b1) event-time residual-default; decision_relevance v0-UNRESOLVED.
     One additive model amendment (D2=b1 to SignalEventTimeReference) is SCHEDULED for the build, not applied.
     Still design-only; no build; JSG-01 FROZEN.
-  trigger: architecture_doctrine + lifecycle_boundary
+  trigger: architecture_doctrine
+  related_triggers:
+    - lifecycle_boundary
+  controlling_sources_updated:
+    - orca/product/spines/ecr/signal_content/signal_content_record_deriver_architecture_plan_v0.md
   related: the next derived-record kind after ECR SP-1/2/3/6; steps toward Cleaning/binding
   evidence:
     - core_spine_v0_signal_content_record_architecture_v0.md (834c930) — brief :66 "like SP-5's deferred finalizer… authored input, residualized when absent"
