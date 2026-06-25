@@ -24,7 +24,7 @@ authority_boundary: retrieval_only
 
 `PROCEED_TO_P1_CAPTURE_EFFICACY`.
 
-The P0 search-surface capture set is materially better than generic search research for one job: deciding what Capture and Scanning should inspect next. It exposes market language, SERP module shape, comparison language, product/retailer surfaces, forum/video surfaces, and follow-up query vectors in one bounded packet.
+The P0 search-surface capture set is materially better than generic search research for one job: deciding what Capture and Scanning should inspect next. It exposes market language, SERP module shape, AI answer-surface visibility, comparison language, product/retailer surfaces, forum/video surfaces, and follow-up query vectors in one bounded packet.
 
 It is not complete enough for Judgment, Product Lead, buyer proof, willingness-to-pay proof, durable-demand proof, search scoring, or market-size claims. Its value is routing value.
 
@@ -37,6 +37,7 @@ It is not complete enough for Judgment, Product Lead, buyer proof, willingness-t
 | Comparison/confusion map | Dupe queries surfaced alternatives such as Dossier, Fine'ry, Maison Louis Marie, Cremo, Armaf, Lattafa, Zara, Ariana Grande Cloud, and Sol de Janeiro. | Reveals substitution language, price anchoring, and competitor sets that a brand-level scan may miss. |
 | Format/offer surface | Discovery/sample queries exposed discovery sets, vouchers, decants, travel sprays, tiny vials vs. 5-10ml trials, and retailer sampling routes. | Useful for identifying decision surfaces around trial, conversion, full-bottle purchase, and mini/travel formats. |
 | Currentness cues | Examples include a 2026 sample-buying guide, Jan. 21 2026 dupe coverage, 7-10 month video/forum surfaces, and fresh short-video modules. | Helps prioritize next reads, while staying inside the rule that recency is attention priority, not proof. |
+| AI answer-surface state | Q01, Q02, Q05 show `ai_overview_shown`; Q06 shows `ai_overview_shown_no_ai_mode_tab`; Q03 and Q04 show `ai_mode_tab_only_no_ai_overview`. | Makes both the AI Overview box and its absence first-class routing observations, and gives a bounded reason to compare against search-interest/Trends later without treating either as proof. |
 
 ## Comparison To Existing Inputs
 
@@ -53,7 +54,8 @@ Complete enough for:
 - choosing a P1 direct-source capture route;
 - generating exact-query/frontier candidates for Scanning;
 - identifying which surfaces are likely worth capture: forums, video/short-video, retailer/product modules, editorial lists, and community/social surfaces;
-- comparing whether search-surface capture adds information beyond generic search research.
+- comparing whether search-surface capture adds information beyond generic search research;
+- selecting which query clusters deserve a bounded search-interest/Trends correlation probe against AI-answer-surface shown/not-shown state.
 
 Not complete enough for:
 
@@ -61,6 +63,7 @@ Not complete enough for:
 - product readiness or Product Lead action;
 - willingness-to-pay evidence;
 - market sizing or search-volume inference;
+- explaining why Google did or did not show an AI Overview box without a separate bounded Trends/search-interest probe and repeated capture;
 - proving US physical locality;
 - classifying whether a surfaced result is real demand, SEO/editorial content, paid placement, affiliate content, or seeded launch amplification without direct source reads.
 
@@ -71,6 +74,7 @@ Not complete enough for:
 - The P0 query set is small and intentionally shaped. It does not cover the full fragrance search universe.
 - SERP modules are forward snapshots. They decay and can change with Google rendering, localization, personalization controls, or time.
 - Search/AEO surfaces remain attention/routing surfaces. Under the search-interest and AEO source spec, they do not clear the demand floor.
+- AI Overview `not_shown` / no-box states are visibility observations only; they are not absence-of-demand and do not reveal Google internal trigger logic by themselves.
 
 ## P1 Route
 
@@ -86,7 +90,11 @@ Run P1 as direct-source capture, not more broad Google recapture.
    - Preserve direct reads for the top Reddit threads, product alternative surfaces, and one short-video/video surface where visible metadata is accessible.
    - Goal: determine whether dupe language exposes substitution pressure, price anchors, and independent buyer-origin comparison behavior.
 
-3. Trend-note cluster, optional:
+3. AI-answer / Trends correlation cluster, optional but now first-class:
+   - Compare Q03 and Q04 (`ai_mode_tab_only_no_ai_overview`) against Q01/Q02/Q05/Q06 (`ai_overview_shown*`) using a bounded Google Trends/search-interest read if sourcing is authorized.
+   - Goal: test whether search-interest posture, query ambiguity, category maturity, or commercial-result density helps explain no-AI-box state. Do not infer Google causality, demand absence, or score priority.
+
+4. Trend-note cluster, optional:
    - Use Q03 and Q04 only if P1 needs a trend-language/control cluster.
    - Goal: compare note/trend language (`pistachio`, `vanilla skin`) against format/comparison language without over-expanding the pilot.
 

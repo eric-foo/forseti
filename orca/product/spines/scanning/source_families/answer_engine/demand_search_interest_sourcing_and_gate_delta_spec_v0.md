@@ -187,15 +187,33 @@ amendment adds an answer-engine value.**
 - De-correlation applies to both: a branded-campaign search spike or coordinated AEO
   surfacing = **one origin**; `origination_ref`/`derived_from` carry the laundering trace.
 
-## 8. AEO capture-observable minimum (routed to the capture lane — not owned here)
+## 8. AEO capture-observable minimum (routed to the capture lane - not owned here)
 
-If AEO is sourced, the minimum observables an AEO capture must record are below —
+If AEO is sourced, the minimum observables an AEO capture must record are below,
 framed as a **capture-lane delta routed to the capture spine** (the capture lane owns
-hardening it into the envelope; this spec does not fork a profile): engine · query ·
-date/time · locale · session/logged-out + personalization state · Overview fired /
-`not_shown` · surfaced brands (Brand)/products (Product) · cited sources · raw preserved observable
-(HTML/screenshot equivalent) · visible limitations. Route to the capture lane under
-the obligation contract; do not duplicate envelope obligations here.
+hardening it into the envelope; this spec does not fork a profile): engine, query,
+date/time, locale, session/logged-out + personalization state, raw preserved observable
+(HTML/screenshot equivalent), visible limitations, and a first-class
+`ai_answer_surface_module`.
+
+`ai_answer_surface_module` records the answer-surface state, not a score:
+
+- `ai_overview_shown`: AI Overview box observed.
+- `ai_mode_tab_only_no_ai_overview`: AI Mode tab observed, but no AI Overview box observed.
+- `ai_overview_shown_no_ai_mode_tab`: AI Overview box observed while AI Mode tab text was not observed.
+- `no_ai_answer_surface_observed`: neither AI Overview nor AI Mode tab observed.
+
+When an AI Overview box is observed, preserve surfaced brands/products, cited sources
+where visible, and the visible box text/context. When no box is observed, preserve the
+no-box state with the same session/location pins. `not_shown` is an observation state,
+not absence-of-demand, not buyer proof, and not a claim about Google's internal trigger.
+
+A bounded search-interest/Trends correlation may be run only as an explanatory probe:
+compare trend/search-interest posture with shown/not-shown states to form hypotheses
+about query maturity, ambiguity, commercial density, or freshness. It must not become a
+ranking score, demand proof, absence-of-demand proof, or causal claim about Google.
+Route to the capture lane under the obligation contract; do not duplicate envelope
+obligations here.
 
 ## 9. Phase 0 — AI-Overview feasibility/automatability gate (FIRST; itself owner-authorized)
 
@@ -207,7 +225,7 @@ spec. With that authorization, categorical **GO** criteria:
 - **pins:** US, logged-out, fixed session/method;
 - **repeated captures** across sessions and dates (volatility check);
 - **raw observable preserved** (HTML/screenshot equivalent);
-- **Overview shown / `not_shown`** state recorded;
+- **AI Overview shown / `not_shown` plus AI Mode/no-box state** recorded;
 - **cited-source extraction**;
 - **failure taxonomy** logged (bot detection, DOM change, not-shown rate);
 - **source-access classified under** `data_capture_source_access_boundary_decision_v0.md`

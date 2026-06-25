@@ -8,6 +8,15 @@
     "visible_batch_partial_run_index.json"
   ],
   "hash_ledger": "hashes_sha256.txt",
+  "post_capture_enrichments": [
+    {
+      "added_at_date": "2026-06-25",
+      "module": "ai_answer_surface_module_v0",
+      "method": "derived from preserved serp_top/serp_full txt and screenshot pointers; no recapture and no live Trends pull",
+      "purpose": "make AI Overview shown/not_shown/AI Mode-tab-only states first-class capture observations",
+      "boundary": "visibility or absence state only; not demand proof, not absence-of-demand, not Google internal trigger explanation"
+    }
+  ],
   "queries": [
     {
       "id": "01_niche_perfume_discovery_set",
@@ -46,7 +55,34 @@
         "video": true,
         "forums": true,
         "discussions_and_forums": false,
-        "images": true
+        "images": true,
+        "ai_mode_tab": true,
+        "ai_overview": true,
+        "ai_answer_surface_module": "ai_overview_shown"
+      },
+      "ai_answer_surface_module": {
+        "schema": "ai_answer_surface_module_v0",
+        "observed_state": "ai_overview_shown",
+        "ai_mode_tab_visible": true,
+        "ai_overview_box_visible": true,
+        "evidence_from_preserved_text": {
+          "serp_top_txt_contains_ai_mode": true,
+          "serp_full_txt_contains_ai_mode": true,
+          "serp_top_txt_contains_ai_overview": true,
+          "serp_full_txt_contains_ai_overview": true
+        },
+        "evidence_files": {
+          "serp_top_txt": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\01_niche_perfume_discovery_set\\serp_top.txt",
+          "serp_full_txt": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\01_niche_perfume_discovery_set\\serp_full.txt",
+          "serp_top_png": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\01_niche_perfume_discovery_set\\serp_top.png",
+          "serp_full_png": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\01_niche_perfume_discovery_set\\serp_full.png"
+        },
+        "trend_correlation": {
+          "status": "not_run",
+          "allowed_question": "Does search-interest/trend posture help form hypotheses for why AI Overview was shown or not shown for this query cluster?",
+          "non_claim": "No Trends correlation may prove Google internal trigger causality, demand, buyer proof, or absence-of-demand."
+        },
+        "interpretation_boundary": "visibility_state_only_not_absence_of_demand_not_buyer_proof_not_gate_evidence"
       },
       "autocomplete_suggestions": [
         "niche perfume discovery set",
@@ -198,7 +234,34 @@
         "video": true,
         "forums": true,
         "discussions_and_forums": false,
-        "images": true
+        "images": true,
+        "ai_mode_tab": true,
+        "ai_overview": true,
+        "ai_answer_surface_module": "ai_overview_shown"
+      },
+      "ai_answer_surface_module": {
+        "schema": "ai_answer_surface_module_v0",
+        "observed_state": "ai_overview_shown",
+        "ai_mode_tab_visible": true,
+        "ai_overview_box_visible": true,
+        "evidence_from_preserved_text": {
+          "serp_top_txt_contains_ai_mode": true,
+          "serp_full_txt_contains_ai_mode": true,
+          "serp_top_txt_contains_ai_overview": true,
+          "serp_full_txt_contains_ai_overview": true
+        },
+        "evidence_files": {
+          "serp_top_txt": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\02_perfume_samples_before_buying_full_bottle\\serp_top.txt",
+          "serp_full_txt": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\02_perfume_samples_before_buying_full_bottle\\serp_full.txt",
+          "serp_top_png": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\02_perfume_samples_before_buying_full_bottle\\serp_top.png",
+          "serp_full_png": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\02_perfume_samples_before_buying_full_bottle\\serp_full.png"
+        },
+        "trend_correlation": {
+          "status": "not_run",
+          "allowed_question": "Does search-interest/trend posture help form hypotheses for why AI Overview was shown or not shown for this query cluster?",
+          "non_claim": "No Trends correlation may prove Google internal trigger causality, demand, buyer proof, or absence-of-demand."
+        },
+        "interpretation_boundary": "visibility_state_only_not_absence_of_demand_not_buyer_proof_not_gate_evidence"
       },
       "autocomplete_suggestions": null,
       "people_also_ask_lines": [
@@ -342,7 +405,34 @@
         "video": true,
         "forums": true,
         "discussions_and_forums": false,
-        "images": true
+        "images": true,
+        "ai_mode_tab": true,
+        "ai_overview": false,
+        "ai_answer_surface_module": "ai_mode_tab_only_no_ai_overview"
+      },
+      "ai_answer_surface_module": {
+        "schema": "ai_answer_surface_module_v0",
+        "observed_state": "ai_mode_tab_only_no_ai_overview",
+        "ai_mode_tab_visible": true,
+        "ai_overview_box_visible": false,
+        "evidence_from_preserved_text": {
+          "serp_top_txt_contains_ai_mode": true,
+          "serp_full_txt_contains_ai_mode": true,
+          "serp_top_txt_contains_ai_overview": false,
+          "serp_full_txt_contains_ai_overview": false
+        },
+        "evidence_files": {
+          "serp_top_txt": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\03_pistachio_perfume\\serp_top.txt",
+          "serp_full_txt": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\03_pistachio_perfume\\serp_full.txt",
+          "serp_top_png": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\03_pistachio_perfume\\serp_top.png",
+          "serp_full_png": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\03_pistachio_perfume\\serp_full.png"
+        },
+        "trend_correlation": {
+          "status": "not_run",
+          "allowed_question": "Does search-interest/trend posture help form hypotheses for why AI Overview was shown or not shown for this query cluster?",
+          "non_claim": "No Trends correlation may prove Google internal trigger causality, demand, buyer proof, or absence-of-demand."
+        },
+        "interpretation_boundary": "visibility_state_only_not_absence_of_demand_not_buyer_proof_not_gate_evidence"
       },
       "autocomplete_suggestions": null,
       "people_also_ask_lines": [
@@ -489,7 +579,34 @@
         "video": true,
         "forums": true,
         "discussions_and_forums": false,
-        "images": true
+        "images": true,
+        "ai_mode_tab": true,
+        "ai_overview": false,
+        "ai_answer_surface_module": "ai_mode_tab_only_no_ai_overview"
+      },
+      "ai_answer_surface_module": {
+        "schema": "ai_answer_surface_module_v0",
+        "observed_state": "ai_mode_tab_only_no_ai_overview",
+        "ai_mode_tab_visible": true,
+        "ai_overview_box_visible": false,
+        "evidence_from_preserved_text": {
+          "serp_top_txt_contains_ai_mode": true,
+          "serp_full_txt_contains_ai_mode": true,
+          "serp_top_txt_contains_ai_overview": false,
+          "serp_full_txt_contains_ai_overview": false
+        },
+        "evidence_files": {
+          "serp_top_txt": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\04_vanilla_skin_perfume\\serp_top.txt",
+          "serp_full_txt": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\04_vanilla_skin_perfume\\serp_full.txt",
+          "serp_top_png": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\04_vanilla_skin_perfume\\serp_top.png",
+          "serp_full_png": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\04_vanilla_skin_perfume\\serp_full.png"
+        },
+        "trend_correlation": {
+          "status": "not_run",
+          "allowed_question": "Does search-interest/trend posture help form hypotheses for why AI Overview was shown or not shown for this query cluster?",
+          "non_claim": "No Trends correlation may prove Google internal trigger causality, demand, buyer proof, or absence-of-demand."
+        },
+        "interpretation_boundary": "visibility_state_only_not_absence_of_demand_not_buyer_proof_not_gate_evidence"
       },
       "autocomplete_suggestions": null,
       "people_also_ask_lines": [
@@ -622,7 +739,34 @@
         "video": true,
         "forums": true,
         "discussions_and_forums": true,
-        "images": true
+        "images": true,
+        "ai_mode_tab": true,
+        "ai_overview": true,
+        "ai_answer_surface_module": "ai_overview_shown"
+      },
+      "ai_answer_surface_module": {
+        "schema": "ai_answer_surface_module_v0",
+        "observed_state": "ai_overview_shown",
+        "ai_mode_tab_visible": true,
+        "ai_overview_box_visible": true,
+        "evidence_from_preserved_text": {
+          "serp_top_txt_contains_ai_mode": true,
+          "serp_full_txt_contains_ai_mode": true,
+          "serp_top_txt_contains_ai_overview": true,
+          "serp_full_txt_contains_ai_overview": true
+        },
+        "evidence_files": {
+          "serp_top_txt": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\05_le_labo_santal_33_dupe\\serp_top.txt",
+          "serp_full_txt": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\05_le_labo_santal_33_dupe\\serp_full.txt",
+          "serp_top_png": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\05_le_labo_santal_33_dupe\\serp_top.png",
+          "serp_full_png": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\05_le_labo_santal_33_dupe\\serp_full.png"
+        },
+        "trend_correlation": {
+          "status": "not_run",
+          "allowed_question": "Does search-interest/trend posture help form hypotheses for why AI Overview was shown or not shown for this query cluster?",
+          "non_claim": "No Trends correlation may prove Google internal trigger causality, demand, buyer proof, or absence-of-demand."
+        },
+        "interpretation_boundary": "visibility_state_only_not_absence_of_demand_not_buyer_proof_not_gate_evidence"
       },
       "autocomplete_suggestions": null,
       "people_also_ask_lines": [
@@ -769,7 +913,34 @@
         "video": true,
         "forums": true,
         "discussions_and_forums": false,
-        "images": true
+        "images": true,
+        "ai_mode_tab": false,
+        "ai_overview": true,
+        "ai_answer_surface_module": "ai_overview_shown_no_ai_mode_tab"
+      },
+      "ai_answer_surface_module": {
+        "schema": "ai_answer_surface_module_v0",
+        "observed_state": "ai_overview_shown_no_ai_mode_tab",
+        "ai_mode_tab_visible": false,
+        "ai_overview_box_visible": true,
+        "evidence_from_preserved_text": {
+          "serp_top_txt_contains_ai_mode": false,
+          "serp_full_txt_contains_ai_mode": false,
+          "serp_top_txt_contains_ai_overview": true,
+          "serp_full_txt_contains_ai_overview": true
+        },
+        "evidence_files": {
+          "serp_top_txt": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\06_baccarat_rouge_540_dupe\\serp_top.txt",
+          "serp_full_txt": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\06_baccarat_rouge_540_dupe\\serp_full.txt",
+          "serp_top_png": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\06_baccarat_rouge_540_dupe\\serp_top.png",
+          "serp_full_png": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\06_baccarat_rouge_540_dupe\\serp_full.png"
+        },
+        "trend_correlation": {
+          "status": "not_run",
+          "allowed_question": "Does search-interest/trend posture help form hypotheses for why AI Overview was shown or not shown for this query cluster?",
+          "non_claim": "No Trends correlation may prove Google internal trigger causality, demand, buyer proof, or absence-of-demand."
+        },
+        "interpretation_boundary": "visibility_state_only_not_absence_of_demand_not_buyer_proof_not_gate_evidence"
       },
       "autocomplete_suggestions": null,
       "people_also_ask_lines": [
