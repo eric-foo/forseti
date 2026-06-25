@@ -4,10 +4,12 @@ Data shapes shared by Pass 1 (LLM extraction -> EvidenceRecord, built later as
 Slice B in the `cleaning/` LLM lane) and Pass 2 (deterministic fusion ->
 IdealAudienceProfile, `scoring/audience_fusion.py`).
 
-Tier-1 ONLY: segment / audience_role / purchase_intent / skill_level / price_tier.
-The Tier-2-A demographic slice (gender_skew / age_band) is gated (owner council +
-ledger-schema home) and is deliberately NOT representable here in v0; extend
-``OutputField`` when that slice is activated.
+Tier-1 ONLY: segment / audience_role / purchase_intent / skill_level / price_tier /
+aesthetic_vibe (content style/tone -- the audience-AGE it culturally implies is a
+Tier-2-A inference, never read off the Tier-1 aesthetic label). The Tier-2-A
+demographic slice (gender_skew / age_band) is gated (owner council + ledger-schema
+home) and is deliberately NOT representable here in v0; extend ``OutputField`` when
+that slice is activated.
 
 Spec: orca/product/spines/capture/core/source_families/social_media/instagram/
 ig_creator_ideal_audience_inference_spec_v0.md (CE1-CE12 / D1-D7).
@@ -29,6 +31,7 @@ TIER1_FIELDS: tuple[str, ...] = (
     "purchase_intent",
     "skill_level",
     "price_tier",
+    "aesthetic_vibe",
 )
 
 
@@ -49,6 +52,9 @@ class OutputField(StrEnum):
     PURCHASE_INTENT = "purchase_intent"
     SKILL_LEVEL = "skill_level"
     PRICE_TIER = "price_tier"
+    # Content style/tone (clean_minimal, glam_luxury, ...). The audience-age this
+    # aesthetic culturally implies is Tier-2-A, never read off this Tier-1 label.
+    AESTHETIC_VIBE = "aesthetic_vibe"
 
 
 class SupportBand(StrEnum):

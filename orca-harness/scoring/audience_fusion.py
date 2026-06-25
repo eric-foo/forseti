@@ -62,6 +62,14 @@ _MODALITY_CAPS: dict[OutputField, dict[ModalityFamily, float]] = {
         ModalityFamily.STRUCTURAL: 0.15,
         ModalityFamily.COMMENT: 0.00,
     },
+    # Aesthetic/vibe is stated in the creator's own words (caption/bio), with
+    # hashtags as a secondary structural signal -> text-dominant, like skill_level.
+    OutputField.AESTHETIC_VIBE: {
+        ModalityFamily.TEXT: 0.55,
+        ModalityFamily.COMMERCIAL: 0.15,
+        ModalityFamily.STRUCTURAL: 0.20,
+        ModalityFamily.COMMENT: 0.05,
+    },
 }
 
 _GAIN = 2.0  # squash gain: score = tanh(_GAIN * raw)
