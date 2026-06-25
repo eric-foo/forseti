@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from data_lake.root import DataLakeRoot, DataLakeRootError, LoadedRawPacket
+from data_lake.root import DataLakeRoot, DataLakeRootError, LoadedRawPacket, raw_shard
 from harness_utils import generate_ulid
 from source_capture.models import known_fact
 from source_capture.writer import write_local_source_capture_packet
@@ -52,7 +52,7 @@ def test_load_raw_packet_returns_verified_bodies(tmp_path: Path) -> None:
 
     loaded = root.load_raw_packet(pid)
     assert isinstance(loaded, LoadedRawPacket)
-    assert loaded.container == root.path / "raw" / pid
+    assert loaded.container == root.path / "raw" / raw_shard(pid) / pid
     assert loaded.manifest["packet_id"] == pid
     assert list(loaded.bodies.values()) == [body]
     # bodies are keyed exactly by the manifest's preserved-file ids

@@ -3,7 +3,7 @@ from __future__ import annotations
 import shutil
 from pathlib import Path
 
-from data_lake.root import DataLakeRoot
+from data_lake.root import DataLakeRoot, raw_shard
 from source_capture.models import known_fact
 from source_capture.writer import write_local_source_capture_packet
 
@@ -34,7 +34,7 @@ def test_reddit_capture_round_trip_by_key(tmp_path: Path) -> None:
 
     # raw committed and findable by key
     container = root.find_packet(pid)
-    assert container is not None and container == root.path / "raw" / pid
+    assert container is not None and container == root.path / "raw" / raw_shard(pid) / pid
     assert (container / "manifest.json").is_file()
 
     # the derived (content-free availability) record is findable by key
@@ -42,7 +42,7 @@ def test_reddit_capture_round_trip_by_key(tmp_path: Path) -> None:
     assert entry is not None
     assert entry["source_family"] == "reddit"
     assert entry["source_surface"] == "r/B2BMarketing"
-    assert entry["raw_path"] == f"raw/{pid}"
+    assert entry["raw_path"] == f"raw/{raw_shard(pid)}/{pid}"
     assert entry["manifest_sha256"]
 
     # discoverable by family
@@ -133,7 +133,7 @@ def test_stage_and_write_packet_routes_to_lake(tmp_path: Path) -> None:
         re_capture_relationship=not_applicable_fact(),
     )
     pid = result.packet.packet_id
-    assert Path(result.output_directory) == root.path / "raw" / pid
+    assert Path(result.output_directory) == root.path / "raw" / raw_shard(pid) / pid
     assert root.find_packet(pid) is not None
     entry = root.read_availability(pid)
     assert entry is not None and entry["source_family"] == "reddit"

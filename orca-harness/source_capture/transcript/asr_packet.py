@@ -176,11 +176,12 @@ def write_asr_transcript(
     # refusal; the refusal only fires when the SAME audio packet is re-derived with the same model.
     model_token = re.sub(r"[^A-Za-z0-9_-]", "-", str(model_info.get("model", "asr")))
     record_id = f"asr_{model_token}__{audio_sha[:16]}"
-    data_root.append_record(
+    written = data_root.append_record(
         subtree="derived",
         raw_anchor=audio_packet_id,
         lane="transcript_asr",
         record_id=record_id,
         data=(json.dumps(record, ensure_ascii=False, indent=2) + "\n").encode("utf-8"),
     )
-    return 0, f"derived/{audio_packet_id}/transcript_asr/{record_id} [{posture}, {len(cues)} cues]"
+    rel = written.relative_to(data_root.path.resolve()).as_posix()
+    return 0, f"{rel} [{posture}, {len(cues)} cues]"

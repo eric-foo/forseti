@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from data_lake.root import DataLakeRoot
+from data_lake.root import DataLakeRoot, raw_shard
 from runners.run_source_capture_ig_reels_grid_packet import _bio_links
 from runners.run_source_capture_ig_reels_grid_packet import main as reels_grid_main
 from runners.run_source_capture_ig_reels_grid_packet import run_source_capture_ig_reels_grid_packet
@@ -201,7 +201,7 @@ def test_reels_grid_runner_can_commit_to_data_lake(tmp_path: Path) -> None:
 
     assert exit_code == 0
     packet_dir = Path(message)
-    assert packet_dir.parent == root.path / "raw"
+    assert packet_dir.parent == root.path / "raw" / raw_shard(packet_dir.name)
     assert root.find_packet(packet_dir.name) is not None
     assert root.read_availability(packet_dir.name) is not None
 

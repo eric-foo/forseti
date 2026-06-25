@@ -11,6 +11,7 @@ from data_lake.root import (
     LAKE_SUBDIRECTORIES,
     ROOT_MARKER_CONTRACT_VERSION,
     ROOT_MARKER_FILENAME,
+    raw_shard,
 )
 from harness_utils import generate_ulid
 from source_capture.models import known_fact
@@ -107,7 +108,7 @@ def test_allocate_raw_packet_dir_is_create_only(tmp_path: Path) -> None:
     pid = generate_ulid()
     container = root.allocate_raw_packet_dir(pid)
     assert container.is_dir()
-    assert container == root.path / "raw" / pid
+    assert container == root.path / "raw" / raw_shard(pid) / pid
     with pytest.raises(DataLakeRootError):
         root.allocate_raw_packet_dir(pid)  # write-once: second allocation fails
 
@@ -128,7 +129,7 @@ def test_append_record_is_append_only(tmp_path: Path) -> None:
         subtree="derived", raw_anchor=pid, lane="projection", record_id="rec_01", data=b"{}"
     )
     assert target.read_bytes() == b"{}"
-    assert target == root.path / "derived" / pid / "projection" / "rec_01"
+    assert target == root.path / "derived" / raw_shard(pid) / pid / "projection" / "rec_01"
     with pytest.raises(DataLakeRootError):
         root.append_record(
             subtree="derived", raw_anchor=pid, lane="projection", record_id="rec_01", data=b"{}"
@@ -179,7 +180,7 @@ def test_writer_routes_go_forward_writes_through_root(tmp_path: Path) -> None:
     src.write_text("hello", encoding="utf-8")
     result = write_local_source_capture_packet(data_root=root, **_writer_common(src))
     out = Path(result.output_directory)
-    assert out == root.path / "raw" / result.packet.packet_id
+    assert out == root.path / "raw" / raw_shard(result.packet.packet_id) / result.packet.packet_id
     assert (out / "manifest.json").is_file()
 
 
@@ -215,7 +216,7 @@ def test_data_root_write_publishes_atomically_no_staging_leftover(tmp_path: Path
     src.write_text("hello", encoding="utf-8")
     result = write_local_source_capture_packet(data_root=root, **_writer_common(src))
     out = Path(result.output_directory)
-    assert out == root.path / "raw" / result.packet.packet_id
+    assert out == root.path / "raw" / raw_shard(result.packet.packet_id) / result.packet.packet_id
     assert (out / "manifest.json").is_file()
     staging = root.path / ".staging"
     assert not staging.exists() or not any(staging.iterdir())
@@ -228,7 +229,7 @@ def test_publish_raw_packet_is_write_once(tmp_path: Path) -> None:
     staging = root.stage_raw_packet(pid)
     (staging / "x").write_text("1", encoding="utf-8")
     published = root.publish_raw_packet(staging, pid)
-    assert published == root.path / "raw" / pid
+    assert published == root.path / "raw" / raw_shard(pid) / pid
     with pytest.raises(DataLakeRootError):
         root.stage_raw_packet(pid)  # final already exists -> write-once
 
@@ -276,7 +277,10 @@ def test_within_rejects_symlinked_component(tmp_path: Path) -> None:
     root = _init(tmp_path)
     outside = tmp_path / "outside"
     outside.mkdir()
-    link = root.path / "derived" / "linked"
+    # append_record now resolves to derived/<shard>/linked/l/r, so symlink the
+    # shard component the traversal actually crosses (DL-003 rejects any symlinked
+    # lake-owned component along the path).
+    link = root.path / "derived" / raw_shard("linked")
     try:
         link.symlink_to(outside, target_is_directory=True)
     except (OSError, NotImplementedError):
