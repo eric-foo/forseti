@@ -196,11 +196,15 @@ def write_audience_post_packet(
     return 0, result.output_directory
 
 
-def body_by_suffix(loaded, suffix: str) -> bytes | None:
-    """Return the preserved-file bytes whose packet-relative path ends with ``suffix``.
+def bodies_by_suffix(loaded, suffix: str) -> list[bytes]:
+    """Return the bodies of ALL preserved files whose packet-relative path ends with
+    ``suffix``.
 
-    A pure read helper over a ``data_lake.root.LoadedRawPacket`` (manifest + bodies);
-    the cleaning-lane adapter uses it to locate the caption + metadata bodies by key."""
+    A pure read helper over a ``data_lake.root.LoadedRawPacket`` (manifest + bodies).
+    It returns every match (not just the first) so the cleaning-lane adapter can fail
+    closed on a zero-or-many ambiguity rather than silently picking order-dependent
+    bytes from a malformed packet."""
+    out: list[bytes] = []
     for preserved in loaded.manifest.get("preserved_files", []):
         if not isinstance(preserved, dict):
             continue
@@ -208,5 +212,5 @@ def body_by_suffix(loaded, suffix: str) -> bytes | None:
         if isinstance(rel, str) and rel.endswith(suffix):
             file_id = preserved.get("file_id")
             if isinstance(file_id, str) and file_id in loaded.bodies:
-                return loaded.bodies[file_id]
-    return None
+                out.append(loaded.bodies[file_id])
+    return out

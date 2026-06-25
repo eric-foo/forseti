@@ -7,6 +7,7 @@ and the adapter's packet-shape check. Deterministic; no LLM, no transcription.
 
 from __future__ import annotations
 
+import json
 from typing import Any
 
 import pytest
@@ -37,12 +38,15 @@ def _write(root: DataLakeRoot, **over: Any) -> tuple[int, str]:
     return write_audience_post_packet(AudiencePostFetch(**base), data_root=root, decision_question=_DQ)
 
 
-def _only_post_input(root: DataLakeRoot, **adapter_kwargs: Any):
+def _load_one(root: DataLakeRoot):
     root.rebuild_availability()
     ids = root.list_available()
     assert len(ids) == 1, ids
-    loaded = root.load_raw_packet(ids[0])
-    return post_input_from_packet(loaded, **adapter_kwargs)
+    return root.load_raw_packet(ids[0])
+
+
+def _only_post_input(root: DataLakeRoot, **adapter_kwargs: Any):
+    return post_input_from_packet(_load_one(root), **adapter_kwargs)
 
 
 # --- round trips ----------------------------------------------------------
@@ -51,7 +55,10 @@ def _only_post_input(root: DataLakeRoot, **adapter_kwargs: Any):
 def test_round_trip_youtube_with_bio(tmp_path) -> None:
     root = _root(tmp_path)
     assert _write(root)[0] == 0
-    pi = _only_post_input(root)
+    loaded = _load_one(root)
+    # bio present -> no bio-gap limitation recorded in the manifest
+    assert "profile bio not captured" not in json.dumps(loaded.manifest)
+    pi = post_input_from_packet(loaded)
     assert (pi.creator_id, pi.platform, pi.post_id) == ("jeremyfragrance", "youtube", "vid123")
     assert "Best fragrances" in pi.caption
     assert pi.bio == "fragrance reviews + recommendations"
@@ -70,7 +77,10 @@ def test_round_trip_instagram_no_bio(tmp_path) -> None:
         publish_date_iso=None,
     )
     assert code == 0
-    pi = _only_post_input(root)
+    loaded = _load_one(root)
+    # bio absent -> the gap is recorded as a capture-level limitation in the manifest
+    assert "profile bio not captured" in json.dumps(loaded.manifest)
+    pi = post_input_from_packet(loaded)
     assert pi.platform == "instagram"
     assert pi.bio is None
     assert "SUPERZ" in pi.caption
@@ -108,13 +118,71 @@ def test_empty_creator_handle_rejected(tmp_path) -> None:
     assert _write(_root(tmp_path), creator_handle="")[0] == 5
 
 
-# --- adapter guard --------------------------------------------------------
+# --- adapter fail-closed guards (fake packets) ----------------------------
 
 
-def test_adapter_rejects_non_audience_packet() -> None:
-    class _Fake:
-        manifest = {"source_surface": "youtube_captions", "preserved_files": []}
-        bodies: dict[str, bytes] = {}
+class _FakePacket:
+    """Minimal LoadedRawPacket stand-in: manifest + bodies; file_ids assigned in order."""
 
+    def __init__(self, surface: str, files: list[tuple[str, bytes]]) -> None:
+        self.manifest = {
+            "source_surface": surface,
+            "preserved_files": [
+                {"file_id": f"file_{i:02d}", "relative_packet_path": rel}
+                for i, (rel, _b) in enumerate(files, start=1)
+            ],
+        }
+        self.bodies = {f"file_{i:02d}": b for i, (_rel, b) in enumerate(files, start=1)}
+
+
+def _meta(**over: Any) -> bytes:
+    base: dict[str, Any] = {"creator_handle": "c", "platform": "youtube", "post_id": "p", "bio": None}
+    base.update(over)
+    return json.dumps(base).encode("utf-8")
+
+
+_CAP = ("a.post_caption.txt", b"hello fragrance world")
+_META = ("capture_metadata.json", _meta())
+
+
+def test_adapter_rejects_non_audience_surface() -> None:
     with pytest.raises(ValueError):
-        post_input_from_packet(_Fake())
+        post_input_from_packet(_FakePacket("youtube_captions", [_CAP, _META]))
+
+
+def test_adapter_rejects_foreign_post_text_surface() -> None:
+    # a foreign `<other>_post_text` packet must NOT be adapted (exact-surface gate, not suffix).
+    with pytest.raises(ValueError):
+        post_input_from_packet(
+            _FakePacket("reddit_post_text", [_CAP, ("capture_metadata.json", _meta(platform="reddit"))])
+        )
+
+
+def test_adapter_rejects_platform_surface_mismatch() -> None:
+    with pytest.raises(ValueError):
+        post_input_from_packet(
+            _FakePacket("youtube_post_text", [_CAP, ("capture_metadata.json", _meta(platform="instagram"))])
+        )
+
+
+def test_adapter_rejects_duplicate_caption() -> None:
+    with pytest.raises(ValueError):
+        post_input_from_packet(
+            _FakePacket("youtube_post_text", [_CAP, ("b.post_caption.txt", b"second"), _META])
+        )
+
+
+def test_adapter_rejects_missing_caption() -> None:
+    with pytest.raises(ValueError):
+        post_input_from_packet(_FakePacket("youtube_post_text", [_META]))
+
+
+def test_adapter_rejects_non_dict_metadata() -> None:
+    with pytest.raises(ValueError):
+        post_input_from_packet(_FakePacket("youtube_post_text", [_CAP, ("capture_metadata.json", b"[]")]))
+
+
+def test_adapter_rejects_non_string_identity() -> None:
+    bad = json.dumps({"creator_handle": 123, "platform": "youtube", "post_id": "p"}).encode("utf-8")
+    with pytest.raises(ValueError):
+        post_input_from_packet(_FakePacket("youtube_post_text", [_CAP, ("capture_metadata.json", bad)]))
