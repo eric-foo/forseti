@@ -1,0 +1,116 @@
+# IG Reels Capture Cadence And Durability Doctrine (v0)
+
+```yaml
+retrieval_header_version: 1
+artifact_role: capture-ops cadence/durability design proposal (non-authorizing)
+scope: >
+  How to run the public IG `/reels/` capture at scale over time for creator-traction
+  monitoring: a rate/cadence budget, transient-vs-block response policy, graceful
+  degradation, and honest gap recording. Operate within platform limits and fail
+  honestly; this is NOT stealth, anti-detection, or evasion guidance.
+use_when:
+  - Scoping a scheduled multi-creator reels monitoring panel.
+  - Deciding retry/backoff and degradation behavior around the per-invocation runner.
+  - Checking what produces the timepoints the downstream momentum/Spike-Alert lane consumes.
+open_next:
+  - orca/product/spines/capture/core/source_families/social_media/instagram/ig_profile_grid_dom_engagement_recon_and_spec_v0.md
+  - docs/workflows/ig_reels_capture_to_projection_ecr_cleaning_handoff_v0.md
+  - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_core_contract_v0.md
+  - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_medallion_gold_readiness_contract_v0.md
+authority_boundary: retrieval_only
+status: PROPOSAL_RECORDED_V0
+stale_if:
+  - The per-invocation runner stops returning typed block/transient exit codes.
+  - An owner decision selects a scheduler/runtime, which this note does not.
+  - The data-lake scheduling/retry exclusion boundary changes.
+```
+
+## Status
+
+`PROPOSAL_RECORDED_V0`. This is a design note, not implementation authority, validation,
+readiness, scheduler/runtime selection, or a platform-stability claim. It records the "how"
+asked for during the 2026-06-25 IG reels capture lane work; it does not build the scheduler.
+
+## Problem
+
+A **single** `/reels/` capture is already complete and honest: the runner either writes a
+clean packet or **fails closed** -- `_detect_ig_block` returns a typed reason (login redirect,
+429 "please wait" interstitial, "you've been blocked", challenge route) and the run exits
+without writing a garbage packet (exit `5`); other failures exit `3`. What is missing is the
+**durability envelope** for running this repeatedly across many creators to produce the
+momentum timepoints: how often, how spaced, what to do on a soft failure, and how to degrade
+without either hammering the platform or silently dropping data.
+
+This matters because momentum is built from **per-timepoint deltas**, and a timepoint missed
+or corrupted at capture time is a **permanent** hole in that creator's series.
+
+## Ownership
+
+This is a **new ops/scheduler lane**, owned by neither Capture nor the Data Lake:
+
+- The Data Lake core contract explicitly **excludes** "downstream scheduling, retry, completion
+  gating". The lake only retains write-once raw timepoints and offers them by key.
+- The capture runner is **per-invocation** by design and already fails closed; it must stay that
+  way (no scheduling/retry inside the runner).
+
+The durability layer is therefore a **thin wrapper around the unchanged runner** plus this
+operating doctrine.
+
+## What it is NOT
+
+This is rate-respect and honest degradation, **not** stealth, fingerprint, anti-detection, or
+account-evasion guidance. The goal is to operate **within** platform limits and surface failure,
+not to circumvent limits or hide automation. Block detection stays a fail-closed honesty
+mechanism, never an evasion trigger.
+
+## Design (smallest-complete first)
+
+1. **Rate / cadence budget (doctrine, low lock-in -- do first).**
+   - A declared budget: max captures per hour, minimum spacing between captures, and a
+     per-creator re-capture interval (the monitoring cadence). The cadence is the knob that
+     sets how dense each creator's momentum series is; pick it per the decision question, not
+     maximally.
+   - Recorded as configuration/doctrine, not hard-coded into the runner.
+
+2. **Transient-vs-block response (reads the signals already emitted).**
+   - Exit `5` (hard block: login/429/challenge) -> back off that creator/panel; do **not**
+     immediately retry; widen spacing or pause the run. A hard block is a rate signal to slow
+     down, never a prompt to retry harder.
+   - Exit `3` (transient: timeout, browser/launch error) -> bounded retry with backoff, capped
+     attempts.
+
+3. **Graceful degradation.**
+   - On a block mid-panel, slow or pause the remaining panel rather than continue at speed.
+   - A skipped or blocked creator records an **explicit gap** for that timepoint (so the series
+     carries an honest hole), never a silent omission and never a fabricated value.
+
+4. **Thin scheduler wrapper (higher lock-in -- do when a real panel is scheduled).**
+   - Enforces 1-3 around the per-invocation runner. The runner itself is unchanged.
+   - This is the durable workflow-shape piece; defer it until a concrete panel run justifies the
+     lock-in. Until then, the budget doctrine + the runner's existing fail-closed behavior are
+     enough for ad-hoc monitoring.
+
+## Relationship to the rest of the pipeline
+
+The durability layer produces the **timepoints**; the Data Lake **retains** them write-once and
+serves them by key; a downstream **pre-gold momentum/Spike-Alert lane** diffs them into
+"usual-range threshold crossed" candidate records keyed to raw; **Judgment** alone interprets
+those (gold). Durability is upstream of all of that -- it only governs how the timepoints are
+generated.
+
+## Open owner decisions / blockers
+
+- The concrete cadence numbers (captures/hour, spacing, per-creator interval) -- owner-set per
+  the monitoring decision question; this note does not pick them.
+- Scheduler/runtime selection -- deferred; not chosen here.
+- Whether the gap-recording for a skipped/blocked timepoint is a capture-side artifact or a
+  downstream-series-side annotation -- resolve when the momentum lane is scoped.
+
+## Non-claims
+
+- not validation
+- not readiness or production-fitness
+- not scheduler/runtime/backend selection
+- not a platform-stability or block-rate guarantee
+- not stealth, anti-detection, or evasion guidance
+- not a momentum, demand, credibility, or Judgment claim

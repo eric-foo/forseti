@@ -226,6 +226,44 @@ def join_dom_rows_with_json_candidates(
     ]
 
 
+def infer_pinned_shortcodes_by_recency(
+    grid_rows: Iterable[tuple[str, int | None]],
+    *,
+    max_pinned: int = 3,
+) -> tuple[str, ...]:
+    """Infer pinned reels from *grid*-order recency inversion.
+
+    On the reels tab IG hoists up to ``max_pinned`` (3) pinned reels to the top
+    of the visible grid out of recency order; the rest of the grid is recency-
+    descending. ``grid_rows`` is ``(shortcode, taken_at_timestamp)`` in grid (DOM)
+    order -- NOT ``clips/user`` feed order, which is observed to stay purely
+    recency-ordered and never hoists pins (2026-06-25 live probe). A leading reel
+    is inferred-pinned when a strictly-later reel has a strictly-newer
+    ``taken_at`` -- an older reel sitting above a newer one, which only a pin
+    produces. Bounded to the leading ``max_pinned`` positions and a contiguous
+    leading prefix; a row without a ``taken_at`` ends the leading scan.
+
+    This corroborates -- it does not replace -- the explicit ``pinned_on_clips_tab``
+    reels-tab flag. Blind spot: a pin of the most-recent reel is not out of order,
+    so inversion cannot see it; only the explicit flag can.
+    """
+    rows = list(grid_rows)
+    pinned: list[str] = []
+    for index, (shortcode, taken_at) in enumerate(rows):
+        if index >= max_pinned:
+            break
+        if taken_at is None:
+            break
+        later_is_newer = any(
+            other_taken_at is not None and other_taken_at > taken_at
+            for _, other_taken_at in rows[index + 1 :]
+        )
+        if not later_is_newer:
+            break
+        pinned.append(shortcode)
+    return tuple(pinned)
+
+
 def _iter_media_nodes(value: object) -> Iterable[dict[str, object]]:
     if isinstance(value, dict):
         if _node_shortcode(value) is not None:

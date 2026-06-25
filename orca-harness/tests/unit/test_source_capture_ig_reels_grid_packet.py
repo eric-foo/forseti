@@ -151,6 +151,67 @@ def test_reels_grid_runner_writes_packet_without_item_page_fanout(tmp_path: Path
 
 
 
+def _fake_capture_with_pinned_reel(**_kwargs):
+    result = _fake_capture(**_kwargs)
+    web_response = result.passive_json_responses[0]
+    clips = {
+        "items": [
+            {
+                "media": {
+                    "code": "PINOLD",
+                    "taken_at": 1000,
+                    "ig_play_count": 10,
+                    "clips_tab_pinned_user_ids": [5802114508],
+                    "timeline_pinned_user_ids": [],
+                }
+            },
+            {"media": {"code": "NEWEST", "taken_at": 9000, "ig_play_count": 20}},
+            {"media": {"code": "OLDER", "taken_at": 8000, "ig_play_count": 30}},
+        ]
+    }
+    clips_response = IgReelsGridPassiveResponse(
+        source_surface="clips_user_json_metadata",
+        requested_url="https://www.instagram.com/api/v1/clips/user/?target_user_id=5802114508",
+        final_url="https://www.instagram.com/api/v1/clips/user/?target_user_id=5802114508",
+        status=200,
+        ok=True,
+        body_text=json.dumps(clips),
+        response_headers={"content-type": "application/json"},
+    )
+    return replace(
+        result,
+        dom_rows=[
+            {
+                "path": f"/hyram/reel/{code}/",
+                "visibleNumericTexts": ["10"],
+                "rect": {"x": 0, "y": 0, "width": 200, "height": 300},
+            }
+            for code in ("PINOLD", "NEWEST", "OLDER")
+        ],
+        passive_json_responses=[web_response, clips_response],
+    )
+
+
+def test_reels_grid_runner_emits_pinned_inference_cross_check(tmp_path: Path) -> None:
+    output = tmp_path / "ig_reels_pinned_packet"
+
+    exit_code, message = run_source_capture_ig_reels_grid_packet(
+        handle="hyram",
+        output_directory=output,
+        decision_question="capture hyram reels grid",
+        capture_fetcher=_fake_capture_with_pinned_reel,
+    )
+
+    assert exit_code == 0
+    payload = json.loads((output / "raw" / "01_ig_reels_grid_capture.json").read_text(encoding="utf-8"))
+    inference = payload["pinned_inference"]
+    # In grid order the pinned reel is older yet sits above newer reels -> recency
+    # inversion flags it, and it independently agrees with the explicit clips_tab flag.
+    assert inference["reels_tab_inferred_pinned_by_recency"] == ["PINOLD"]
+    assert inference["reels_tab_explicit_pinned_shortcodes"] == ["PINOLD"]
+    assert inference["recency_matches_explicit"] is True
+
+
 def _fake_capture_with_static_post_row(**_kwargs):
     result = _fake_capture(**_kwargs)
     return replace(

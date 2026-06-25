@@ -284,10 +284,33 @@ posture is exposed reliably in the JSON the runner already preserves, as typed c
   `web_profile_info` `pinned_for_users`.
 
 This is point-in-time (a creator pins/unpins) and not otherwise re-capturable, so it is captured now.
-Probe caveat: on the probed profile the only pins were main-grid posts (`pinned_for_users` non-empty),
-which did **not** appear in the `/reels/` capture at all (a main-grid pin is not a reels-tab pin); the
-reels-tab positive (`clips_tab_pinned_user_ids` non-empty) is inferred by symmetry with that
-directly-observed positive and not yet directly observed on a reels-pinned profile.
+
+The packet also emits a packet-level `pinned_inference` summary that cross-checks two **independent**
+reels-tab pin signals, scoped to the reels grid only (main-grid/`timeline` pins stay out of it):
+
+- `reels_tab_explicit_pinned_shortcodes` — the authoritative `pinned_on_clips_tab` flag.
+- `reels_tab_inferred_pinned_by_recency` — a corroborating heuristic: IG hoists up to 3 pinned reels
+  to the top of the *visible grid* out of recency order, so a leading grid row whose `taken_at` is
+  older than a later row is inferred-pinned (`infer_pinned_shortcodes_by_recency`).
+- `recency_matches_explicit` — whether the two agreed this capture (informational, not a correctness
+  claim; inversion is blind to a pin of the most-recent reel, which only the explicit flag catches).
+
+The inversion runs over **grid (DOM) order, not `/clips/user` feed order**: the 2026-06-25
+esthertakumi probe showed the `/clips/user` feed stays purely recency-descending and never hoists
+pins, so only the visible grid carries the positional pin signal.
+
+Probe caveat (still open): on both probed profiles the only pins observed were main-grid posts
+(`pinned_for_users` / `timeline` positive — now directly observed) which do **not** appear in the
+`/reels/` capture at all (a main-grid pin is not a reels-tab pin). The reels-tab positive
+(`clips_tab_pinned_user_ids` non-empty, and a grid-order recency inversion) remains **inferred, not
+yet directly observed** on a reels-pinned profile; both reels-tab signals correctly read empty and
+agree on a profile with no reels-tab pin.
+
+Join yield: the same probe captured 12/12 grid rows joined to passive JSON; an earlier 2/12 miss was
+not reproduced and is treated as a transient race between the `/clips/user` XHR and the DOM snapshot.
+The default post-load settle window was widened (`DEFAULT_IG_REELS_SETTLE_SECONDS` 2.5 -> 4.0s) to
+reduce that race; a row that still misses the join is recorded as the honest
+`no_passive_json_join_for_shortcode` gap, never faked.
 
 `caption_text` is allowed only when it is directly present in joined JSON or a later explicitly
 configured item-page source. If absent, it stays null. The capture runner must not infer topic,
