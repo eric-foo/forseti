@@ -112,8 +112,16 @@ def run_capture_ecr_cleaning_smoke(
     retail_entries = _entry_list(manifest, "retail")
     reddit_entries = _entry_list(manifest, "reddit")
     instagram_entries = _entry_list(manifest, "instagram")
-    if not retail_entries and not reddit_entries and not instagram_entries:
-        raise ValueError("smoke manifest must name at least one retail, reddit, or instagram source")
+    youtube_entries = _entry_list(manifest, "youtube")
+    if (
+        not retail_entries
+        and not reddit_entries
+        and not instagram_entries
+        and not youtube_entries
+    ):
+        raise ValueError(
+            "smoke manifest must name at least one retail, reddit, instagram, or youtube source"
+        )
 
     output_dir = output_dir.resolve()
     output_paths = {
@@ -171,6 +179,17 @@ def run_capture_ecr_cleaning_smoke(
         receipts.append(result["ecr_receipt"])
         source_summaries.append(result["source_summary"])
 
+    for index, entry in enumerate(youtube_entries, start=1):
+        result = _process_youtube_entry(
+            entry=entry,
+            index=index,
+            manifest_dir=manifest_dir,
+            findings=findings,
+        )
+        handles.extend(result["handles"])
+        receipts.append(result["ecr_receipt"])
+        source_summaries.append(result["source_summary"])
+
     transform_ledger = (
         _cleaning_transform_smoke_entries(transform_candidates)
         if include_cleaning_transform_smoke
@@ -194,6 +213,7 @@ def run_capture_ecr_cleaning_smoke(
             "retail_sources": len(retail_entries),
             "reddit_sources": len(reddit_entries),
             "instagram_sources": len(instagram_entries),
+            "youtube_sources": len(youtube_entries),
             "ecr_receipts": len(receipts),
             "cleaning_handles": len(cleaning_packet.handles),
             "cleaning_transform_entries": len(cleaning_packet.transform_ledger),
@@ -776,6 +796,91 @@ def _old_reddit_fullname_candidates(
     if normalized.startswith(("t1_", "t3_")):
         return (normalized,)
     return (f"{fullname_prefix}_{normalized}",)
+
+def _process_youtube_entry(
+    *,
+    entry: dict[str, Any],
+    index: int,
+    manifest_dir: Path,
+    findings: list[dict[str, Any]],
+) -> dict[str, Any]:
+    """Wire a YouTube caption packet through ECR into a single cleaning handle.
+
+    YouTube captures straight to the raw lake -- there is no projection/consolidation view
+    (unlike retail/reddit/instagram), so this mirrors the reddit *receipt* derivation but
+    builds ONE projection-less ``file``-anchor handle over the preserved ``.json3`` caption
+    track. Cue-span resolution is deferred to Pass-1 cleaning, which re-reads the json3.
+    """
+    source_label = _optional_text(entry, "source_label") or f"youtube:{index}"
+    packet_dir = _resolve_manifest_path(manifest_dir, entry, "packet_dir")
+
+    packet = _load_packet(packet_dir)
+    if (packet.source_family, packet.source_surface) != ("youtube", "youtube_captions"):
+        # No projection/consolidation cross-check exists for YouTube, so guard on identity:
+        # refuse to route a non-YouTube packet through the caption branch (fail closed).
+        raise ValueError(
+            f"{source_label} packet {packet.packet_id} is not a YouTube caption packet "
+            f"(source_family={packet.source_family!r}, source_surface={packet.source_surface!r})"
+        )
+
+    ecr_receipt, ecr_ref = _derive_ecr_receipt(
+        packet=packet,
+        packet_dir=packet_dir,
+        source_label=source_label,
+    )
+
+    # The single evidence artifact is the preserved caption track. Select it
+    # deterministically and fail closed on zero or multiple matches (no silent coverage).
+    caption_files = [
+        preserved
+        for preserved in packet.preserved_files
+        if preserved.relative_packet_path.endswith(".json3")
+    ]
+    if len(caption_files) != 1:
+        raise ValueError(
+            f"{source_label} packet {packet.packet_id} must preserve exactly one .json3 "
+            f"caption track; found {len(caption_files)}"
+        )
+    caption_file = caption_files[0]
+    raw_path = _contained_packet_path(packet_dir, caption_file.relative_packet_path)
+    actual_sha256 = hash_file(raw_path)
+    if actual_sha256 != caption_file.sha256:
+        raise ValueError(
+            f"{source_label} packet {packet.packet_id} caption file "
+            f"{caption_file.file_id!r} hash mismatch against manifest"
+        )
+    slice_id = _slice_id_for_file(packet, caption_file.file_id)
+
+    handle = CleaningInputHandle(
+        handle_id=f"{source_label}:{packet.packet_id}:{caption_file.file_id}",
+        source_family=packet.source_family,
+        source_surface=packet.source_surface,
+        raw_anchor=CleaningRawAnchor(
+            packet_id=packet.packet_id,
+            slice_id=slice_id,
+            file_id=caption_file.file_id,
+            relative_packet_path=caption_file.relative_packet_path,
+            sha256=caption_file.sha256,
+            hash_basis=caption_file.hash_basis,
+            anchor_kind="file",
+            anchor_value=None,
+        ),
+        # Projection-less / direct-artifact: no projection_ref (there is no derived view).
+        ecr_ref=ecr_ref,
+    )
+
+    return {
+        "handles": [handle],
+        "ecr_receipt": ecr_receipt,
+        "source_summary": {
+            "source_label": source_label,
+            "packet_id": packet.packet_id,
+            "packet_dir": str(packet_dir),
+            "handle_count": 1,
+            "caption_file_id": caption_file.file_id,
+        },
+    }
+
 
 def _derive_ecr_receipt(
     *,
