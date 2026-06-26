@@ -14,6 +14,7 @@ from cleaning.audience_extractor import RawApiProvider
 from cleaning.transcript_product_lake import PRODUCT_MENTIONS_LANE, PRODUCT_MENTIONS_SET_LANE
 from data_lake.root import DataLakeRoot
 from runners.run_ig_reels_product_extract import (
+    count_partial_extractions,
     count_pending_extractions,
     main,
     run_extraction,
@@ -164,6 +165,7 @@ def test_check_count_tracks_completed_mentions_for_model(tmp_path) -> None:
         provider=_PROVIDER, model="m", api_key="k",
     )
     assert count_pending_extractions(data_root=data_root, model="m") == 0
+    assert count_partial_extractions(data_root=data_root, model="m") == 0
     assert count_pending_extractions(data_root=data_root, model="other-model") == 1
 
 
@@ -179,6 +181,11 @@ def test_check_cli_prints_pending_count(tmp_path, monkeypatch, capsys) -> None:
     assert main(["--check", "--model", "m"]) == 0
     captured = capsys.readouterr()
     assert captured.out == "1\n"
+    assert captured.err == ""
+
+    assert main(["--check-partials", "--model", "m"]) == 0
+    captured = capsys.readouterr()
+    assert captured.out == "0\n"
     assert captured.err == ""
 
 
@@ -231,6 +238,8 @@ def test_runner_reports_partial_needs_cleanup(tmp_path) -> None:
     assert first[0]["status"] == "extracted"
     marker = next((data_root.path / "derived").glob(f"**/{PRODUCT_MENTIONS_SET_LANE}/*"))
     marker.unlink()
+    assert count_pending_extractions(data_root=data_root, model="m") == 0
+    assert count_partial_extractions(data_root=data_root, model="m") == 1
     second = run_extraction(data_root=data_root, transport=transport, provider=_PROVIDER, model="m", api_key="k")
     assert second[0]["status"] == "partial_needs_cleanup"
 

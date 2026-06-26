@@ -12,7 +12,7 @@ $RepoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..\..")).Path
 $HarnessPath = Join-Path $RepoRoot "orca-harness"
 $PromptPath = Join-Path $RepoRoot "docs\prompts\handoffs\ig_reels_product_extract_codex_exec_prompt_v0.md"
 $PromptSha256 = "68243EF7DC57A8B3C08DF4D6A918453CAA5A98B61F2A3C1C5A0873E962B7A332"
-$LogDir = Join-Path $HarnessPath "_scratch\ig_reels_extract_routine"
+$LogDir = Join-Path ([System.IO.Path]::GetTempPath()) "orca_ig_reels_extract_routine"
 
 function Get-OrcaDriveLetters {
     try {
@@ -42,21 +42,40 @@ function Resolve-OrcaLake {
     return $null
 }
 
-function Invoke-PendingCheck {
-    $raw = & python -m runners.run_ig_reels_product_extract --check --model $Model 2>&1
+function Invoke-CheckCount {
+    param([string]$Mode)
+
+    $checkArgs = @("-m", "runners.run_ig_reels_product_extract", "--model", $Model)
+    if ($Mode -eq "partials") {
+        $checkArgs += "--check-partials"
+    } else {
+        $checkArgs += "--check"
+    }
+
+    $raw = & python @checkArgs 2>&1
     $code = $LASTEXITCODE
     if ($code -ne 0) {
         Write-Output ("check_exit={0}" -f $code)
+        Write-Output ("check_mode={0}" -f $Mode)
         Write-Output ("check_output={0}" -f (($raw | Out-String).Trim()))
         exit $code
     }
     $text = (($raw | Out-String).Trim())
     if ($text -notmatch "^\d+$") {
         Write-Output "check_exit=2"
+        Write-Output ("check_mode={0}" -f $Mode)
         Write-Output ("check_output={0}" -f $text)
         exit 2
     }
     return [int]$text
+}
+
+function Invoke-PendingCheck {
+    return Invoke-CheckCount -Mode "pending"
+}
+
+function Invoke-PartialCheck {
+    return Invoke-CheckCount -Mode "partials"
 }
 
 $root = Resolve-OrcaLake
@@ -74,9 +93,17 @@ $env:PYTHONPATH = $HarnessPath
 Push-Location $RepoRoot
 try {
     $pending = Invoke-PendingCheck
+    $partials = Invoke-PartialCheck
     Write-Output ("pending_before={0}" -f $pending)
+    if ($partials -gt 0) {
+        Write-Output ("partial_needs_cleanup={0}" -f $partials)
+    }
     if ($pending -le 0) {
-        Write-Output "status=skipped_done"
+        if ($partials -gt 0) {
+            Write-Output "status=skipped_partial_needs_cleanup"
+        } else {
+            Write-Output "status=skipped_done"
+        }
         exit 0
     }
 
@@ -126,9 +153,17 @@ try {
     }
 
     $after = Invoke-PendingCheck
+    $afterPartials = Invoke-PartialCheck
     Write-Output ("pending_after={0}" -f $after)
+    if ($afterPartials -gt 0) {
+        Write-Output ("partial_needs_cleanup_after={0}" -f $afterPartials)
+    }
     if ($after -eq 0) {
-        Write-Output "status=done"
+        if ($afterPartials -gt 0) {
+            Write-Output "status=done_with_partial_needs_cleanup"
+        } else {
+            Write-Output "status=done"
+        }
     } else {
         Write-Output "status=remaining"
     }
