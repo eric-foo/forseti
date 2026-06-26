@@ -1,5 +1,18 @@
 # YouTube Shorts fragrance tone labeling run v0
 
+```yaml
+retrieval_header_version: 1
+artifact_role: Review input / single-pass label run
+scope: First single-pass transcript-only tone labels for the hard-30 YouTube Shorts fragrance fixture.
+use_when:
+  - Comparing first-pass labels against the second-pass or adjudication artifacts.
+  - Inspecting early label-space viability before benchmark claims.
+authority_boundary: retrieval_only
+open_next:
+  - docs/review-inputs/youtube_shorts_fragrance_tone_labeling_run_v0.json
+  - docs/review-inputs/youtube_shorts_fragrance_tone_fixture_hard30_v0.md
+```
+
 Generated: `2026-06-26T09:37:24Z`
 
 Input fixture: `docs/review-inputs/youtube_shorts_fragrance_tone_fixture_hard30_v0.json`

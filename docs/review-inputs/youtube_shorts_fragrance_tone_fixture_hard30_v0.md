@@ -1,5 +1,18 @@
 # YouTube Shorts fragrance tone hard-30 fixture v0
 
+```yaml
+retrieval_header_version: 1
+artifact_role: Review input / hard-30 fixture summary
+scope: Canonical hard-30 transcript-bearing YouTube Shorts fragrance fixture summary.
+use_when:
+  - Inspecting the hard-30 fixture behind tone-label viability work.
+  - Tracing durable transcript pointers for the first balanced fixture.
+authority_boundary: retrieval_only
+open_next:
+  - docs/review-inputs/youtube_shorts_fragrance_tone_fixture_hard30_v0.json
+  - docs/review-inputs/youtube_shorts_fragrance_transcript_tone_rubric_v0.md
+```
+
 Generated: `2026-06-26T09:29:45Z`
 
 Decision: `ADMIT_HARD30_TEXT_BEARING_BALANCED_DURABLE_LAKE_FIXTURE_V0`

@@ -1,5 +1,18 @@
 # YouTube Shorts fragrance transcript tone rubric v0
 
+```yaml
+retrieval_header_version: 1
+artifact_role: Review input / transcript tone labeling rubric
+scope: Transcript-only rhetorical-tone rubric for YouTube Shorts fragrance fixture labeling.
+use_when:
+  - Labeling or reviewing transcript-only tone fields.
+  - Checking the energy/prosody exclusion and stable-field boundaries.
+authority_boundary: retrieval_only
+open_next:
+  - docs/review-outputs/youtube_shorts_fragrance_tone_label_adjudication_v0.md
+  - docs/review-inputs/youtube_shorts_fragrance_tone_labeling_run_v1.md
+```
+
 Purpose: label transcript-rhetorical tone for the hard-30 YouTube Shorts fragrance viability fixture.
 
 Scope:

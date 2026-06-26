@@ -1,5 +1,17 @@
 # YouTube Shorts fragrance tone fixture admission v0
 
+```yaml
+retrieval_header_version: 1
+artifact_role: Review input / fixture admission summary
+scope: Admission decision for the initial YouTube Shorts fragrance transcript-bearing fixture candidates.
+use_when:
+  - Checking how early fixture candidates were admitted or abstained.
+  - Tracing pre-hard30 fixture-admission residuals.
+authority_boundary: retrieval_only
+open_next:
+  - docs/review-inputs/youtube_shorts_fragrance_tone_fixture_admission_v0.json
+```
+
 Generated: `2026-06-26T09:01:20Z`
 
 Decision: `ADMIT_28_TEXT_BEARING_ROWS_ABSTAIN_2_NO_SPEECH_ROWS`

@@ -1,5 +1,18 @@
 # YouTube Shorts fragrance transcript probe summary v0
 
+```yaml
+retrieval_header_version: 1
+artifact_role: Review input / transcript availability probe summary
+scope: Early transcript availability probe for YouTube Shorts fragrance fixture candidates.
+use_when:
+  - Auditing the first transcript-readiness probe and ASR fallback residuals.
+  - Understanding why later durable hard-30 recapture superseded scratch paths.
+authority_boundary: retrieval_only
+open_next:
+  - docs/review-inputs/youtube_shorts_fragrance_tone_fixture_candidates_v0.json
+  - docs/review-inputs/youtube_shorts_fragrance_tone_fixture_hard30_v0.md
+```
+
 Generated: `2026-06-26T08:55:02Z`
 
 Purpose: transcript availability probe for the YouTube Shorts fragrance rhetorical-tone fixture spike. This is a capture-readiness artifact only; it does not admit fixtures or label tone.
