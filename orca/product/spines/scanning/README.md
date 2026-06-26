@@ -94,9 +94,9 @@ resonance context by default and may use them to prioritize a frontier, explain
 venue value, or request Capture preservation. Direction, visible audience fit,
 baseline context, manipulation risk, and ambiguity decide how much routing
 priority the context deserves. Scanning must not turn those metrics into demand
-proof, credibility, independence,
-amplification, gate clearance, graph weight, final resonance weight, or Action
-Ceiling.
+proof, credibility, independence, amplification, gate clearance, graph weight,
+final resonance weight, or Action Ceiling. Source-family adapters with explicit
+counts, visibility, rank, or influence fields inherit this boundary.
 
 Before closeout, a fresh CSB-first scan artifact must pass
 `.agents/hooks/check_csb_scanning_artifact.py` or record why the checker was not

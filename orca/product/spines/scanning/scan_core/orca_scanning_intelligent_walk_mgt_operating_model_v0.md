@@ -201,7 +201,9 @@ fit, source baseline, manipulation risk, and ambiguity decide how much priority
 the context deserves. This is a route-priority and resonance-hypothesis claim
 only. Scanning must not use engagement context to decide demand, credibility,
 independence, artificial amplification, gate clearance, graph weight, final
-resonance weight, or Action Ceiling.
+resonance weight, or Action Ceiling. Source-family adapters with explicit
+engagement, visibility, rank, or influence fields inherit the same boundary.
+
 ## Exact Query Discovery
 
 An `exact_query` is a bounded public query string crafted to test a CSB row,

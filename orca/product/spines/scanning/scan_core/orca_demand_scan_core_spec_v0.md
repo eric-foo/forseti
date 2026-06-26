@@ -284,7 +284,9 @@ it or direct a different scan-time classification rule.*
 - **Attention/engagement/resonance volume alone** — resonance and look-here
   context for the walk, but still below proof; a candidate requires gradeable costly-behavior or decision-event
   evidence (thesis costly-behavior primitive). Absence of demand ("velocity
-  miss," falling engagement) is never a costly-behavior pass.
+  miss," falling engagement) is never a costly-behavior pass. Use these signals
+  to route inspection, preserve context, or explain uncertainty; do not use them
+  to clear the floor, bind Capture, or assign a score.
 - **Availability alone** — movement over availability (owner word); presence
   on a shelf is not a read.
 - **Prominence** — fame is not relevance; in backward mode it is a FAME flag

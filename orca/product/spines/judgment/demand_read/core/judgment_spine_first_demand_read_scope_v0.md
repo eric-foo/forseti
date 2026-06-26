@@ -105,9 +105,12 @@ forward/live-only. The costly-behavior/integrity thinness is named, not hidden.
    Classify any persistence-axis pattern as transient with a cited discriminator;
    emit an action ceiling {monitor/probe/commit/hold/scale/avoid/reduce} capped
    by the floor/ceiling rule (≥2 converging origins for a material verb;
-   engagement/resonance-only caps; weakest load-bearing evidence binds). Fill the
-   sealed_call (recommendation, qualitative confidence_band, signals_used,
-   required reasoning_trace).
+   engagement/resonance-only caps; weakest load-bearing evidence binds). Public-
+   reaction engagement may shape qualitative resonance weight and attention in
+   the reasoning trace, but it does not become buyer proof, Commit-grade support,
+   numeric weight, validation, readiness, or a claim-tier promotion by itself.
+   Fill the sealed_call (recommendation, qualitative confidence_band,
+   signals_used, required reasoning_trace).
 6. **C4 Counterfactual.** "What evidence would change the answer?"
 
 ## Enrichment Captures (each owner-gated; this scope authorizes none)

@@ -43,7 +43,10 @@ Naming note: **Prompt Structure** is the runnable CSB prompt/template. **Prompt 
 
 This spine does not authorize retrieval, scraping, capture, graph construction,
 demand classification, forecasting, judgment, buyer proof, validation,
-readiness, CI, hook wiring, or runtime work.
+readiness, CI, hook wiring, or runtime work. Public-reaction engagement belongs
+in CSB as resonance/routing context only; the authority and prompt artifacts keep
+it separate from proof, Commit/Scale support, graph weight, classifier mapping,
+final resonance weight, and Action Ceiling.
 
 The executable validator remains at
 `.agents/hooks/check_commission_signal_board_output.py`. The executable tests

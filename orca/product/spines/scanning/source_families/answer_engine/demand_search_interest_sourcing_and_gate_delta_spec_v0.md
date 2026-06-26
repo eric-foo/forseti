@@ -137,6 +137,11 @@ for Decision A.
 
 Both reads are **attention/visibility-class**. The gate rule: a mention/interest
 signal **caps the CEILING**; only **gradeable costly behavior clears the FLOOR**.
+This is the search/AEO expression of the engagement-resonance boundary:
+visibility, surfacing, query interest, and repeated answer-engine presence may
+route inspection or preserve a context clue, but they are not demand proof,
+buyer proof, credibility, independence, graph weight, source-access
+authorization, readiness, validation, or a scoring input.
 
 **Floor guard (mechanical):** every search-interest and AEO observation carries
 `costly_behavior: attention_only` by default. It can clear the floor **only** if a

@@ -257,17 +257,21 @@ original de-correlated review's scope.
 ## Recency / Current-State Preservation Priority
 
 When a scanning or CSB handoff marks a URL or venue as recent/current-state
-high-attention, Capture treats that as preservation urgency and source-drift
-risk. Prefer preserving the current visible state before older context when the
-request is otherwise within scope and route-matched. Same-strength newer/current
-source states may deserve earlier capture than older source states, especially
-for stockout/restock, waitlist, review text, availability, price, or changing PDP
-/ social / forum surfaces.
+high-attention, or when a handoff or the source itself exposes source-visible
+public-reaction engagement/resonance facts, Capture treats that as preservation
+urgency and source-drift risk. Prefer preserving the current visible state before
+older context when the request is otherwise within scope and route-matched.
+Same-strength newer/current source states, or source states with more
+source-visible reaction context, may deserve earlier capture than older or
+lower-context source states, especially for stockout/restock, waitlist, review
+text, availability, price, or changing PDP / social / forum surfaces.
 
 This priority does not prove demand, change the access-control gate, select a
-route by itself, or let scanning bind Capture's route. Capture still runs Step 0,
-chooses the cheapest matching route, and records the captured state as source
-facts, not proof.
+route by itself, or let scanning bind Capture's route. Engagement counts,
+source-native scores, visible rank/order, comments, likes, views, shares,
+helpful votes, or official-response markers stay source facts. Capture still
+runs Step 0, chooses the cheapest matching route, and records the captured state
+as source facts, not proof.
 
 ## Step 3 — The verdict + receipt
 
