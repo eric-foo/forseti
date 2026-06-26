@@ -1,10 +1,14 @@
 """Offline tests for the Phase B calibration answer-key machinery.
 
 All synthetic, no LLM, no network, no live capture. Covers the label schema, the structural
-blindness of the worklist (it must never carry a machine verdict), grouping/determinism, the
-build -> fill -> load round-trip, and coverage/validity enforcement on load.
+blindness of the worklist (it must never carry or import a machine verdict), grouping/determinism,
+the build -> fill -> load round-trip, and the strict load enforcement: explicit provenance, strict
+row shape, full coverage, and valid/non-blank verdicts.
 """
 from __future__ import annotations
+
+import ast
+import pathlib
 
 import pytest
 import yaml
@@ -83,19 +87,23 @@ def test_label_schema_accepts_valid_and_rejects_bad() -> None:
 # --- blindness (the calibration-correctness invariant) ----------------------
 
 
-def test_worklist_is_structurally_blind() -> None:
-    # The builder must never pre-fill a verdict, and the module must not even reference the fusion
-    # verdict -- otherwise the owner's labels would correlate with the machine (circular calibration).
+def test_worklist_builder_never_prefills_a_verdict() -> None:
     worklist = build_blind_labeling_worklist([_m("m1", brand="Dior", line="Sauvage")], creator_id="c1")
     doc = yaml.safe_load(worklist)
     assert all(product["gold_verdict"] == "" for product in doc["products"])
     assert doc["products"][0]["quotes"] == ["quote text"]
     assert doc["products"][0]["evidence_pointer"] == ["m1"]
-    # structural blindness: the module never imports the fusion's verdict machinery, so it cannot
-    # leak a machine verdict into the worklist (the shared Verdict enum vocabulary is not a leak;
-    # referencing product_fusion's grouping in a comment is documentation, not a leak).
-    assert "fuse_product_verdicts" not in dir(calibration_corpus)
-    assert "ProductVerdict" not in dir(calibration_corpus)
+
+
+def test_module_never_imports_the_fusion_verdict() -> None:
+    # Structural blindness: importing the fusion verdict (under ANY alias) would let a worklist
+    # correlate with the machine. An AST scan is robust to aliasing where a name check is not.
+    source = pathlib.Path(calibration_corpus.__file__).read_text(encoding="utf-8")
+    for node in ast.walk(ast.parse(source)):
+        if isinstance(node, ast.ImportFrom):
+            assert not (node.module or "").startswith("scoring.product_fusion")
+        elif isinstance(node, ast.Import):
+            assert all(not alias.name.startswith("scoring.product_fusion") for alias in node.names)
 
 
 # --- grouping + determinism -------------------------------------------------
@@ -120,7 +128,7 @@ def test_build_requires_creator_id() -> None:
         build_blind_labeling_worklist([_m("a")], creator_id="   ")
 
 
-# --- round-trip + load enforcement ------------------------------------------
+# --- round-trip -------------------------------------------------------------
 
 
 def test_roundtrip_build_fill_load() -> None:
@@ -138,20 +146,72 @@ def test_roundtrip_build_fill_load() -> None:
     assert all(label.labeler == "owner" and label.creator_id == "c1" for label in labels)
 
 
+# --- load: provenance (F3) --------------------------------------------------
+
+
+def test_load_requires_explicit_labeler() -> None:
+    filled = _fill(build_blind_labeling_worklist([_m("a")], creator_id="c1"), "positive")
+    with pytest.raises(TypeError):  # labeler has no default
+        load_labels_from_worklist(filled)
+    with pytest.raises(ValueError):  # blank labeler rejected
+        load_labels_from_worklist(filled, labeler="  ")
+    assert load_labels_from_worklist(filled, labeler="eric")[0].labeler == "eric"
+
+
+# --- load: coverage (F1) ----------------------------------------------------
+
+
 def test_load_rejects_unlabeled_product() -> None:
     worklist = build_blind_labeling_worklist([_m("a")], creator_id="c1")
     with pytest.raises(ValueError):  # gold_verdict still blank -> coverage failure
-        load_labels_from_worklist(worklist)
+        load_labels_from_worklist(worklist, labeler="owner")
+
+
+def test_load_rejects_deleted_product() -> None:
+    mentions = [_m("a", brand="Dior", line="Sauvage"), _m("b", brand="Chanel", line="Bleu")]
+    doc = yaml.safe_load(build_blind_labeling_worklist(mentions, creator_id="c1"))
+    for product in doc["products"]:
+        product["gold_verdict"] = "positive"
+    del doc["products"][0]  # owner dropped a surfaced product
+    with pytest.raises(ValueError):
+        load_labels_from_worklist(yaml.safe_dump(doc), labeler="owner")
+
+
+def test_load_rejects_duplicate_product() -> None:
+    doc = yaml.safe_load(build_blind_labeling_worklist([_m("a", brand="Dior", line="Sauvage")], creator_id="c1"))
+    doc["products"][0]["gold_verdict"] = "positive"
+    doc["products"].append(dict(doc["products"][0]))  # duplicate normalized product
+    with pytest.raises(ValueError):
+        load_labels_from_worklist(yaml.safe_dump(doc), labeler="owner")
+
+
+# --- load: row strictness (F2) ----------------------------------------------
+
+
+def test_load_rejects_contaminated_machine_output_field() -> None:
+    doc = yaml.safe_load(build_blind_labeling_worklist([_m("a")], creator_id="c1"))
+    doc["products"][0]["gold_verdict"] = "positive"
+    doc["products"][0]["fusion_verdict"] = "positive"  # leaked machine output
+    with pytest.raises(ValidationError):
+        load_labels_from_worklist(yaml.safe_dump(doc), labeler="owner")
+
+
+def test_load_rejects_malformed_evidence_pointer() -> None:
+    doc = yaml.safe_load(build_blind_labeling_worklist([_m("a")], creator_id="c1"))
+    doc["products"][0]["gold_verdict"] = "positive"
+    doc["products"][0]["evidence_pointer"] = "m1"  # bare string, not a list
+    with pytest.raises(ValidationError):
+        load_labels_from_worklist(yaml.safe_dump(doc), labeler="owner")
 
 
 def test_load_rejects_invalid_verdict() -> None:
     worklist = build_blind_labeling_worklist([_m("a")], creator_id="c1")
     with pytest.raises(ValueError):
-        load_labels_from_worklist(_fill(worklist, "great"))
+        load_labels_from_worklist(_fill(worklist, "great"), labeler="owner")
 
 
 def test_load_rejects_malformed_worklist() -> None:
     with pytest.raises(ValueError):
-        load_labels_from_worklist("not: a worklist")
+        load_labels_from_worklist("not: a worklist", labeler="owner")
     with pytest.raises(ValueError):
-        load_labels_from_worklist("products: []")
+        load_labels_from_worklist("expected_products: []\nproducts: []", labeler="owner")
