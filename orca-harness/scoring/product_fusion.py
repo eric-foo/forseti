@@ -64,13 +64,15 @@ def _fuse_product(brand: str, line: str, items: list[ProductMention]) -> Product
     oppose_ids: list[str] = []
 
     for mention in items:
-        # A creator-stated rating ("8/10") is a witnessed, explicit evaluation: treat it as
-        # creator-authored and not ironic. Magnitude still comes from stance_vote (the
-        # extractor sets it consistent with the rating). Calibration deferred.
+        # A creator-stated rating ("8/10") is a witnessed, explicit evaluation: it carries
+        # creator-authored weight. But the extractor's irony flag is STILL honored — a flagged
+        # rating is not assumed sincere (a sarcastic "10/10" must not flip to a confident
+        # positive). Magnitude comes from stance_vote (the extractor sets it consistent with the
+        # rating). Calibration deferred.
         witnessed = mention.stated_rating is not None
         authored = mention.creator_authored or witnessed
         mult = _CREATOR_AUTHORED_MULT if authored else _IMPLICIT_MULT
-        if mention.possible_negation_or_irony and not witnessed:
+        if mention.possible_negation_or_irony:
             mult *= _NEGATION_MULT
         dep = 1.0 / sqrt(per_video[mention.video_id])
         contribution = mention.stance_vote * mention.extractor_confidence * mult * dep
@@ -82,8 +84,10 @@ def _fuse_product(brand: str, line: str, items: list[ProductMention]) -> Product
             oppose_ids.append(mention.mention_id)
         # contribution == 0 (neutral / zero-confidence): counted in mention_count only.
 
-    support = _material(support_raw)
-    oppose = _material(oppose_raw)
+    # Round once and use the SAME value for the materiality test and the stored score, so a
+    # reported score can never contradict the verdict at the boundary (e.g. stored 0.4 + unknown).
+    support = round(_material(support_raw), 4)
+    oppose = round(_material(oppose_raw), 4)
     support_material = support >= _MATERIAL_MIN
     oppose_material = oppose >= _MATERIAL_MIN
 
@@ -103,7 +107,7 @@ def _fuse_product(brand: str, line: str, items: list[ProductMention]) -> Product
         mention_count=len(items),
         evidence_ids=sorted(support_ids),
         counterevidence_ids=sorted(oppose_ids),
-        uncalibrated_support_score=round(support, 4),
+        uncalibrated_support_score=support,
     )
 
 

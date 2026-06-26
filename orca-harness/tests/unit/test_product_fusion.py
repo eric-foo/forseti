@@ -192,15 +192,37 @@ def test_determinism_same_input_same_output() -> None:
 # --- schema invariant ------------------------------------------------------
 
 
-def test_schema_decided_verdict_needs_evidence_either_side() -> None:
+def test_schema_decided_verdict_needs_side_correct_evidence() -> None:
+    # positive must cite supporting evidence (not just *any* side)
     with pytest.raises(ValidationError):
-        ProductVerdict(brand="dior", line="sauvage", verdict=Verdict.POSITIVE, mention_count=1)
-    # negative citing only counterevidence is valid
+        ProductVerdict(brand="d", line="s", verdict=Verdict.POSITIVE, mention_count=1)
+    with pytest.raises(ValidationError):  # positive with only counterevidence is unsound
+        ProductVerdict(brand="d", line="s", verdict=Verdict.POSITIVE, mention_count=1, counterevidence_ids=["n1"])
+    with pytest.raises(ValidationError):  # negative with only support is unsound
+        ProductVerdict(brand="d", line="s", verdict=Verdict.NEGATIVE, mention_count=1, evidence_ids=["p1"])
+    with pytest.raises(ValidationError):  # mixed with one side is unsound
+        ProductVerdict(brand="d", line="s", verdict=Verdict.MIXED, mention_count=1, evidence_ids=["p1"])
+    # valid shapes: positive+support, negative+counter, mixed+both, unknown+none
+    ProductVerdict(brand="d", line="s", verdict=Verdict.POSITIVE, mention_count=1, evidence_ids=["p1"])
+    ProductVerdict(brand="d", line="s", verdict=Verdict.NEGATIVE, mention_count=1, counterevidence_ids=["n1"])
     ProductVerdict(
-        brand="dior", line="sauvage", verdict=Verdict.NEGATIVE, mention_count=1, counterevidence_ids=["n1"]
+        brand="d", line="s", verdict=Verdict.MIXED, mention_count=2, evidence_ids=["p1"], counterevidence_ids=["n1"]
     )
-    # unknown needs no evidence
-    ProductVerdict(brand="dior", line="sauvage", verdict=Verdict.UNKNOWN, mention_count=0)
+    ProductVerdict(brand="d", line="s", verdict=Verdict.UNKNOWN, mention_count=0)
+
+
+def test_negated_rating_is_still_discounted() -> None:
+    # A rating gives authored weight but does NOT cancel the extractor's irony flag:
+    # a weak, flagged-ironic, rated mention must not flip to a confident positive (F2).
+    rating = StatedRating(value=10, scale_max=10, source_pointer="ten out of ten")
+    v = _verdict(
+        fuse_product_verdicts(
+            [_m("a", stance=0.5, authored=False, negation=True, rating=rating)],
+            creator_id="c1", generated_at="t",
+        ),
+        "dior", "sauvage",
+    )
+    assert v.verdict == Verdict.UNKNOWN
 
 
 # Materiality floor mirrored from the fusion module for readable assertions.

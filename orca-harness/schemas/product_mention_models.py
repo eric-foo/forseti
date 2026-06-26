@@ -175,10 +175,14 @@ class ProductVerdict(ProductMentionModel):
 
     @model_validator(mode="after")
     def _decided_needs_evidence(self) -> ProductVerdict:
-        # A non-unknown verdict must cite at least one supporting OR opposing mention
-        # (a negative verdict cites only counterevidence).
-        if self.verdict != Verdict.UNKNOWN and not (self.evidence_ids or self.counterevidence_ids):
-            raise ValueError("a decided verdict must cite evidence_ids or counterevidence_ids")
+        # Per-verdict-type evidence invariant: positive cites supporting evidence, negative
+        # cites counterevidence, mixed cites both. (unknown cites nothing.) This rejects
+        # side-unsound verdicts (e.g. positive with only counterevidence), not just "no
+        # evidence at all".
+        if self.verdict in (Verdict.POSITIVE, Verdict.MIXED) and not self.evidence_ids:
+            raise ValueError(f"a {self.verdict.value} verdict must cite supporting evidence_ids")
+        if self.verdict in (Verdict.NEGATIVE, Verdict.MIXED) and not self.counterevidence_ids:
+            raise ValueError(f"a {self.verdict.value} verdict must cite counterevidence_ids")
         return self
 
 
