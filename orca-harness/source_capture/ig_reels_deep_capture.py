@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass
+from typing import Callable
 from urllib.parse import urlparse
 
 from schemas.audience_comment_models import AudienceComment
@@ -158,3 +159,68 @@ def parse_reel_deep_capture_from_rendered_dom(dom: str, *, shortcode: str) -> Re
         comments=tuple(comments),
         media_urls=tuple(media_urls),
     )
+
+
+# --- live orchestration (PURE: all network/CPU I/O is injected, so offline-testable) ---
+
+RenderFn = Callable[[str], "str | None"]                        # shortcode -> rendered DOM (None on fail/gate)
+DownloadFn = Callable[[str], "str | None"]                      # media url -> local audio path (None on fail)
+TranscribeFn = Callable[[str], "tuple[str, list[dict], dict]"]  # audio path -> (posture, cues, model_info)
+
+
+@dataclass(frozen=True)
+class ReelDeepCaptureResult:
+    """The payoff of ONE render: the audience comments AND the creator transcript.
+
+    ``media_url_used`` is the transient handle that was downloaded (never persisted).
+    ``transcript_posture`` is the transcriber's 'ok'/'no_speech'/'failed', or a runner
+    status ('render_unavailable' / 'no_audio_handle' / 'download_failed') when an
+    earlier step did not yield audio. Comments are still returned whenever the render
+    succeeded, even if the audio leg failed.
+    """
+
+    reel_shortcode: str
+    comments: tuple[AudienceComment, ...]
+    transcript_posture: str
+    transcript_cues: tuple[dict, ...]
+    media_url_used: str | None
+    notes: tuple[str, ...] = ()
+
+
+def run_reel_deep_capture(
+    shortcode: str,
+    *,
+    render_fn: RenderFn,
+    download_fn: DownloadFn,
+    transcribe_fn: TranscribeFn,
+) -> ReelDeepCaptureResult:
+    """Render ONCE, then derive BOTH voices from that single render: the audience
+    comments (parsed from the DOM) and the creator transcript (by downloading and
+    transcribing the same render's audio handle) -- no second fetch.
+
+    Every side-effecting step is injected, so the control flow is deterministic and
+    offline-testable; the runner CLI supplies the real render/download/transcribe.
+    """
+    if not shortcode or not shortcode.strip():
+        raise ValueError("run_reel_deep_capture requires a non-empty shortcode")
+    code = shortcode.strip()
+
+    dom = render_fn(code)
+    if not dom:
+        return ReelDeepCaptureResult(code, (), "render_unavailable", (), None, ("render returned no DOM",))
+
+    capture = parse_reel_deep_capture_from_rendered_dom(dom, shortcode=code)
+    if not capture.media_urls:
+        return ReelDeepCaptureResult(
+            code, capture.comments, "no_audio_handle", (), None, ("no media handle in the rendered DOM",)
+        )
+
+    media_url = capture.media_urls[0]
+    audio_path = download_fn(media_url)
+    if not audio_path:
+        return ReelDeepCaptureResult(
+            code, capture.comments, "download_failed", (), media_url, ("audio handle did not download",)
+        )
+
+    posture, cues, _model_info = transcribe_fn(audio_path)
+    return ReelDeepCaptureResult(code, capture.comments, posture, tuple(cues), media_url)

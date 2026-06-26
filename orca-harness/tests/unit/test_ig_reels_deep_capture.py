@@ -11,8 +11,10 @@ import pytest
 
 from source_capture.ig_reels_deep_capture import (
     ReelDeepCapture,
+    ReelDeepCaptureResult,
     parse_reel_deep_capture_from_rendered_dom,
     parse_reel_media_urls_from_rendered_dom,
+    run_reel_deep_capture,
 )
 
 MEDIA_FIXTURE = r'''
@@ -112,3 +114,70 @@ def test_one_dom_yields_both_voices() -> None:
 def test_deep_capture_blank_shortcode_rejected() -> None:
     with pytest.raises(ValueError):
         parse_reel_deep_capture_from_rendered_dom(BOTH_FIXTURE, shortcode="  ")
+
+
+# --- live orchestration (offline: render/download/transcribe are injected fakes) ---
+
+
+def test_run_reel_deep_capture_happy_path() -> None:
+    seen: dict[str, str] = {}
+
+    def render(code: str) -> str:
+        seen["render"] = code
+        return BOTH_FIXTURE
+
+    def download(url: str) -> str:
+        seen["download"] = url
+        return "/tmp/fake.mp4"
+
+    def transcribe(path: str):
+        seen["transcribe"] = path
+        return ("ok", [{"text": "hi", "start_ms": 0, "end_ms": 90}], {"model": "small"})
+
+    res = run_reel_deep_capture("ABC123", render_fn=render, download_fn=download, transcribe_fn=transcribe)
+    assert isinstance(res, ReelDeepCaptureResult)
+    assert res.reel_shortcode == "ABC123"
+    assert len(res.comments) == 1 and res.comments[0].author_username == "zoe"
+    assert res.transcript_posture == "ok" and len(res.transcript_cues) == 1
+    assert res.media_url_used == "https://scontent.cdninstagram.com/o1/v/clip.mp4?e=1"
+    # downloaded exactly the extracted handle, then transcribed that file
+    assert seen["download"] == res.media_url_used and seen["transcribe"] == "/tmp/fake.mp4"
+
+
+def test_run_reel_deep_capture_render_unavailable_returns_no_comments() -> None:
+    res = run_reel_deep_capture(
+        "ABC",
+        render_fn=lambda c: None,
+        download_fn=lambda u: pytest.fail("must not download when render failed"),
+        transcribe_fn=lambda p: pytest.fail("must not transcribe when render failed"),
+    )
+    assert res.transcript_posture == "render_unavailable"
+    assert res.comments == () and res.media_url_used is None
+
+
+def test_run_reel_deep_capture_no_audio_handle_still_returns_comments() -> None:
+    dom = r'''<script>{"node":{"pk":"c1","user":{"username":"zoe"},"text":"hi","created_at":1,"comment_like_count":1,"id":"c1","__typename":"XIGComment"}}</script>'''
+    res = run_reel_deep_capture(
+        "ABC",
+        render_fn=lambda c: dom,
+        download_fn=lambda u: pytest.fail("must not download with no media handle"),
+        transcribe_fn=lambda p: ("ok", [], {}),
+    )
+    assert res.transcript_posture == "no_audio_handle"
+    assert len(res.comments) == 1 and res.media_url_used is None
+
+
+def test_run_reel_deep_capture_download_failed_keeps_comments() -> None:
+    res = run_reel_deep_capture(
+        "ABC",
+        render_fn=lambda c: BOTH_FIXTURE,
+        download_fn=lambda u: None,
+        transcribe_fn=lambda p: pytest.fail("must not transcribe when download failed"),
+    )
+    assert res.transcript_posture == "download_failed"
+    assert res.media_url_used is not None and len(res.comments) == 1
+
+
+def test_run_reel_deep_capture_blank_shortcode_rejected() -> None:
+    with pytest.raises(ValueError):
+        run_reel_deep_capture("  ", render_fn=lambda c: "", download_fn=lambda u: "", transcribe_fn=lambda p: ("ok", [], {}))
