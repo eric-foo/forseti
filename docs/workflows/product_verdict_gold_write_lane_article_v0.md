@@ -22,7 +22,7 @@ open_next:
   - orca-harness/ecr/lake.py
   - orca-harness/data_lake/root.py
 stale_if:
-  - The fusion's input (ProductMention) or output (ProductVerdict / ProductVerdictSet) shape changes.
+  - The fusion's input schema ProductMention, or its output ProductVerdict / ProductVerdictSet, changes shape.
   - The data lake record-set / append-only / completion-marker contract changes.
   - The owner authorizes the deferred cross-creator / cross-video aggregation (then its section is built).
 status: DEFERRED — owner-deferred 2026-06-26 pending IG + YT lane structural sync; REFERENCE ONLY, this article authorizes no build.
