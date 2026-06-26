@@ -167,6 +167,7 @@ Every engagement signal should be classified by decision use:
 - demand evidence;
 - attention evidence;
 - resonance evidence;
+- resonance-direction evidence;
 - positioning evidence;
 - objection evidence;
 - competitor-strategy evidence;
@@ -225,6 +226,12 @@ direction_change_propagation:
   related_triggers:
     - architecture_doctrine
     - workflow_authority
+  reviewed_by: >
+    Cross-vendor delegated adversarial artifact review
+    docs/review-outputs/adversarial-artifact-reviews/engagement_resonance_weight_propagation_delegated_adversarial_artifact_review_patch_v0.md.
+    Home-model adjudication accepted/applied AR-01 (restatement
+    desynchronization) and AR-02 (archive-pointer receipt hygiene); no
+    critical/major findings.
   controlling_sources_updated:
     - orca/product/shared/engagement_registry/engagement_logic_registry_v0.md
     - orca/product/spines/foundation/product_contract/core_spine_v0_information_production_foundation_v0.md
@@ -379,3 +386,5 @@ direction_change_propagation:
     - not a scoring engine
     - not buyer proof
 ```
+
+Older receipts archived verbatim in `docs/decisions/dcp_receipts_archive_v0.md`.

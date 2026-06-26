@@ -95,7 +95,8 @@ venue value, or request Capture preservation. Direction, visible audience fit,
 baseline context, manipulation risk, and ambiguity decide how much routing
 priority the context deserves. Scanning must not turn those metrics into demand
 proof, credibility, independence,
-amplification, gate clearance, graph weight, or Action Ceiling.
+amplification, gate clearance, graph weight, final resonance weight, or Action
+Ceiling.
 
 Before closeout, a fresh CSB-first scan artifact must pass
 `.agents/hooks/check_csb_scanning_artifact.py` or record why the checker was not

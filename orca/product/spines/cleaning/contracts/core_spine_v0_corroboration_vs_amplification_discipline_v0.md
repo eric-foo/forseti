@@ -83,9 +83,9 @@ the wedge and must stay rigorous.
   reply depth, repetition, and disagreement structure, but only as context for
   Judgment to inspect. High source-visible engagement should be carried forward
   as possible resonance weight with its direction, visible audience fit, baseline
-  context, and discount reasons, but Cleaning must not decide that resonance
-  weight, high engagement equals independent corroboration, or low engagement
-  makes the signal useless.
+  context, and discount reasons, but Cleaning must not decide the final
+  resonance weight, whether high engagement equals independent corroboration, or
+  whether low engagement makes the signal useless.
 
 ## Non-Claims
 

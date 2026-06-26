@@ -117,8 +117,8 @@ Public-reaction engagement handling:
   distribution, manipulation-risk, or social-proof context when supplied or
   source-backed;
 - do not treat engagement counts, source rank, or high/low reaction volume as a
-  demand verdict, proof, graph weight, classifier result, Commit/Scale support,
-  credibility label, or Action Ceiling.
+  demand verdict, proof, graph weight, classifier result, final resonance
+  weight, Commit/Scale support, credibility label, or Action Ceiling.
 
 ## Start Preflight
 
