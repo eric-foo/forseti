@@ -1,0 +1,945 @@
+{
+  "generated_at_utc": "2026-06-26T20:03:03Z",
+  "purpose": "Row-level advisory pass over the product-talk pilot to separate product identity, source-visible commercial signals, and independent-opinion evidence value.",
+  "placement_decision": {
+    "current_repo_home": "docs/review-inputs",
+    "reason": "review-input/Judgment-prep artifact over a pilot fixture; not an accepted recurring data-lake derived record",
+    "future_silver_home_for_mechanical_mentions": "derived/<transcript-packet>/silver__cleaning__product_mentions/<id>",
+    "boundary": "product mentions and source-visible commercial signals may become silver features; opinion evidence value is interpretive and must not be treated as silver/gold truth without a later Judgment/assembly contract"
+  },
+  "input_artifacts": {
+    "product_talk_posture_pilot30": "docs/review-inputs/youtube_shorts_fragrance_product_talk_posture_pilot30_v0.json",
+    "hard30_fixture": "docs/review-inputs/youtube_shorts_fragrance_tone_fixture_hard30_v0.json",
+    "data_lake_medallion_contract": "orca/product/spines/data_lake/authority/core_spine_v0_data_lake_medallion_gold_readiness_contract_v0.md",
+    "youtube_transcript_product_extraction_spec": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_transcript_product_extraction_spec_v0.md"
+  },
+  "input_hashes": {
+    "product_talk_posture_pilot30_sha256": "9568070a0e81662b2a0eee391ca8fbaee1baba48e6da14d935ac730c5a69b989",
+    "hard30_fixture_sha256": "b83c4688f9dfce0b0febf33b9141e6ebc9bce4961f4ade5847db2a684f15d78d",
+    "data_lake_medallion_contract_sha256": "5664051651b348959254ae6913f9274eaf67280022b42bbc618bc5a375d4d5ee",
+    "youtube_transcript_product_extraction_spec_sha256": "e1eb4c29525d9ebdc21fab1545e92715ce76c11c4fdd1fc268ab04ef7060b8b5"
+  },
+  "field_contract": {
+    "source_visible_commercial_signal": "observed transcript/title/context signal only; not proof of sponsorship unless explicit source text says it",
+    "independent_opinion_evidence_tier": {
+      "tier_0_not_product_evaluation": "exclude from product-opinion analysis",
+      "tier_1_commercial_positive_low_independent_value": "commercially shaped positive; exclude or heavily down-weight for independent preference",
+      "tier_2_organic_positive_language": "organic positive; useful for demand/promise language but lower diagnostic value than tradeoff/negative rows",
+      "tier_3_organic_qualified_tradeoff": "organic mixed/qualified; high value for conditions, objections, and fit boundaries",
+      "tier_4_negative_diagnostic": "organic or no-sponsor-observed negative/anti-buy; highest diagnostic value when product identity is reliable"
+    },
+    "strong_vs_good_rule": [
+      "strong_endorsement requires action language, superlative/top-tier language, repeated personal-use proof, or multiple concrete benefit frames with no material caveat",
+      "positive_recommendation/good means favorable inclusion or mild praise without enough action, personal proof, or concrete benefit density",
+      "qualified_or_mixed means material praise and material caveat both affect the product read",
+      "critical_or_warning means the dominant product guidance is negative, anti-buy, disappointment, or caution"
+    ]
+  },
+  "counts": {
+    "rows_total": 30,
+    "by_independent_opinion_evidence_tier": {
+      "tier_0_not_product_evaluation": 1,
+      "tier_1_commercial_positive_low_independent_value": 9,
+      "tier_2_organic_positive_language": 14,
+      "tier_3_organic_qualified_tradeoff": 4,
+      "tier_4_negative_diagnostic": 2
+    },
+    "by_source_visible_commercial_signal": {
+      "brand_sent_plus_discount_or_stock_cta": 1,
+      "creator_brand_or_affinity_ambiguous": 2,
+      "creator_directed_product_mentioned": 1,
+      "creator_own_brand_or_affinity_ambiguous": 1,
+      "direct_cta_no_sponsor_observed": 2,
+      "event_discovery_no_sponsor_observed": 1,
+      "explicit_partner_or_sponsored_transcript": 1,
+      "explicit_sponsored_transcript": 1,
+      "non_commercial_update": 1,
+      "none_observed": 18,
+      "title_or_metadata_ad_signal_only": 1
+    },
+    "by_dominant_product_posture": {
+      "None": 1,
+      "critical_or_warning": 2,
+      "positive_recommendation": 6,
+      "qualified_or_mixed": 5,
+      "strong_endorsement": 16
+    },
+    "by_product_identity_confidence": {
+      "high": 25,
+      "low": 2,
+      "medium": 3
+    },
+    "clean_independent_rows": 18,
+    "commercially_downweighted_rows": 9,
+    "negative_or_qualified_rows": 6
+  },
+  "rows": [
+    {
+      "opinion_value_row_id": "ytshorts-fragrance-opinion-value-pilot30-v0-001",
+      "source_product_talk_artifact": "docs/review-inputs/youtube_shorts_fragrance_product_talk_posture_pilot30_v0.json",
+      "source_fixture_id": "ytshorts-fragrance-tone-hard30-v0-001",
+      "creator_handle_query": "JeremyFragrance",
+      "author": "Jeremy Fragrance",
+      "video_id": "as7hye0qgYc",
+      "shorts_url": "https://www.youtube.com/shorts/as7hye0qgYc",
+      "title": "UNIQUE BLUE, By SUPERZ: #jeremyfragrance #fragrance #cologne #perfume #parfum",
+      "products_evaluated": [
+        "SUPERZ Unique Blue"
+      ],
+      "product_identity_confidence": "high",
+      "dominant_product_posture": "strong_endorsement",
+      "recommendation_strength": "descriptive_or_observational",
+      "commercial_context": "soft_personal_context",
+      "source_visible_commercial_signal": "none_observed",
+      "independent_opinion_evidence_tier": "tier_2_organic_positive_language",
+      "recommended_use_in_demand_learning": "weak organic positive language only; do not overweight because transcript is very short",
+      "strong_vs_good_boundary": "strong because it names the product as scent of the day with a direct positive descriptor, but low-confidence because there is almost no product argument",
+      "commercial_positive_handling": "use according to evidence tier; do not infer sponsorship beyond observed signals",
+      "rationale": "Positive but thin. Useful as a weak positive mention, not as robust independent preference.",
+      "residual_flags": [
+        "asr_derived_text",
+        "short_transcript",
+        "near_minimum_word_count"
+      ]
+    },
+    {
+      "opinion_value_row_id": "ytshorts-fragrance-opinion-value-pilot30-v0-002",
+      "source_product_talk_artifact": "docs/review-inputs/youtube_shorts_fragrance_product_talk_posture_pilot30_v0.json",
+      "source_fixture_id": "ytshorts-fragrance-tone-hard30-v0-002",
+      "creator_handle_query": "GentsScents",
+      "author": "Gents Scents",
+      "video_id": "ljZ7_JHXNdw",
+      "shorts_url": "https://www.youtube.com/shorts/ljZ7_JHXNdw",
+      "title": "Ultra Male For Ultra Cheap - Lattafa Ramz Silver",
+      "products_evaluated": [
+        "Lattafa Ramz Silver"
+      ],
+      "product_identity_confidence": "high",
+      "dominant_product_posture": "qualified_or_mixed",
+      "recommendation_strength": "soft_recommendation",
+      "commercial_context": "organic_review",
+      "source_visible_commercial_signal": "none_observed",
+      "independent_opinion_evidence_tier": "tier_3_organic_qualified_tradeoff",
+      "recommended_use_in_demand_learning": "use for tradeoff learning: value/clone appeal versus packaging and atomizer negatives",
+      "strong_vs_good_boundary": "not strong endorsement because the praise is materially qualified by product-format complaints",
+      "commercial_positive_handling": "use according to evidence tier; do not infer sponsorship beyond observed signals",
+      "rationale": "High-value qualified organic review: it names what works and what weakens the product.",
+      "residual_flags": [
+        "auto_caption_text",
+        "negative_packaging_positive_scent"
+      ]
+    },
+    {
+      "opinion_value_row_id": "ytshorts-fragrance-opinion-value-pilot30-v0-003",
+      "source_product_talk_artifact": "docs/review-inputs/youtube_shorts_fragrance_product_talk_posture_pilot30_v0.json",
+      "source_fixture_id": "ytshorts-fragrance-tone-hard30-v0-003",
+      "creator_handle_query": "GentsScents",
+      "author": "Gents Scents",
+      "video_id": "VOGZUccarFc",
+      "shorts_url": "https://www.youtube.com/shorts/VOGZUccarFc",
+      "title": "Top 10 Spring Designer Fragrances For Men 2023",
+      "products_evaluated": [
+        "Lolita Lempicka Green Lover",
+        "Carolina Herrera Bad Boy Cobalt",
+        "Azzaro Pour Homme Cologne Intense",
+        "YSL Y Eau de Parfum Intense",
+        "Burberry Hero Eau de Toilette",
+        "Guerlain Homme Eau de Parfum",
+        "Lacoste L.12.12 Blanc Eau Fraiche",
+        "Givenchy Gentleman Society",
+        "Paco Rabanne 1 Million Lucky",
+        "Dior Homme Sport"
+      ],
+      "product_identity_confidence": "high",
+      "dominant_product_posture": "positive_recommendation",
+      "recommendation_strength": "soft_recommendation",
+      "commercial_context": "organic_review",
+      "source_visible_commercial_signal": "none_observed",
+      "independent_opinion_evidence_tier": "tier_2_organic_positive_language",
+      "recommended_use_in_demand_learning": "use as list-inclusion demand language only; low per-product specificity",
+      "strong_vs_good_boundary": "good rather than strong because products are included in a top list without concrete per-product proof",
+      "commercial_positive_handling": "use according to evidence tier; do not infer sponsorship beyond observed signals",
+      "rationale": "Useful for category/list presence, weak for product-specific conviction.",
+      "residual_flags": [
+        "auto_caption_text",
+        "list_inclusion_only"
+      ]
+    },
+    {
+      "opinion_value_row_id": "ytshorts-fragrance-opinion-value-pilot30-v0-004",
+      "source_product_talk_artifact": "docs/review-inputs/youtube_shorts_fragrance_product_talk_posture_pilot30_v0.json",
+      "source_fixture_id": "ytshorts-fragrance-tone-hard30-v0-004",
+      "creator_handle_query": "GentsScents",
+      "author": "Gents Scents",
+      "video_id": "sy-rczzFrYg",
+      "shorts_url": "https://www.youtube.com/shorts/sy-rczzFrYg",
+      "title": "The Best Blue Fragrances For The Classy Modern Man",
+      "products_evaluated": [
+        "Dior Sauvage Eau de Parfum",
+        "Herronova",
+        "Givenchy Gentleman Eau de Toilette Intense",
+        "Ferragamo Uomo Urban Feel",
+        "Roja Parfums Elysium",
+        "Ralph Lauren Polo Blue Parfum",
+        "Bleu de Chanel",
+        "Y Eau de Toilette",
+        "Prada Luna Rossa Ocean",
+        "Scent Montabaco Verano"
+      ],
+      "product_identity_confidence": "high",
+      "dominant_product_posture": "positive_recommendation",
+      "recommendation_strength": "soft_recommendation",
+      "commercial_context": "organic_review",
+      "source_visible_commercial_signal": "creator_directed_product_mentioned",
+      "independent_opinion_evidence_tier": "tier_2_organic_positive_language",
+      "recommended_use_in_demand_learning": "use for promise-frame extraction across a list: classy, versatile, quality, strength",
+      "strong_vs_good_boundary": "positive recommendation rather than strong endorsement because this is a multi-product list and one product has creator involvement",
+      "commercial_positive_handling": "use according to evidence tier; do not infer sponsorship beyond observed signals",
+      "rationale": "Useful for product promise vocabulary, but not a clean independent preference record for every listed product.",
+      "residual_flags": [
+        "auto_caption_text",
+        "creator_directed_product_mentioned"
+      ]
+    },
+    {
+      "opinion_value_row_id": "ytshorts-fragrance-opinion-value-pilot30-v0-005",
+      "source_product_talk_artifact": "docs/review-inputs/youtube_shorts_fragrance_product_talk_posture_pilot30_v0.json",
+      "source_fixture_id": "ytshorts-fragrance-tone-hard30-v0-005",
+      "creator_handle_query": "ThePerfumeGuy",
+      "author": "The Perfume Guy",
+      "video_id": "rmDwkTrzNxo",
+      "shorts_url": "https://www.youtube.com/shorts/rmDwkTrzNxo",
+      "title": "$88 for the BEST La Vie Est Belle Flanker?! 😍",
+      "products_evaluated": [
+        "La Vie Est Belle flanker; exact surface line uncertain from auto-caption"
+      ],
+      "product_identity_confidence": "medium",
+      "dominant_product_posture": "strong_endorsement",
+      "recommendation_strength": "explicit_purchase_or_try_cta",
+      "commercial_context": "organic_review",
+      "source_visible_commercial_signal": "none_observed",
+      "independent_opinion_evidence_tier": "tier_2_organic_positive_language",
+      "recommended_use_in_demand_learning": "use as organic strong-positive promise language: discount, density, longevity, worth trying",
+      "strong_vs_good_boundary": "strong because it combines explicit try/own language with concrete value and wear-quality reasons",
+      "commercial_positive_handling": "use according to evidence tier; do not infer sponsorship beyond observed signals",
+      "rationale": "Strong positive organic evidence, with product identity residual from caption ambiguity.",
+      "residual_flags": [
+        "auto_caption_text"
+      ]
+    },
+    {
+      "opinion_value_row_id": "ytshorts-fragrance-opinion-value-pilot30-v0-006",
+      "source_product_talk_artifact": "docs/review-inputs/youtube_shorts_fragrance_product_talk_posture_pilot30_v0.json",
+      "source_fixture_id": "ytshorts-fragrance-tone-hard30-v0-006",
+      "creator_handle_query": "ThePerfumeGuy",
+      "author": "The Perfume Guy",
+      "video_id": "5QDcTenklxg",
+      "shorts_url": "https://www.youtube.com/shorts/5QDcTenklxg",
+      "title": "The Best Fruity Oud You’re Not Wearing!",
+      "products_evaluated": [
+        "Montal Oudmazing"
+      ],
+      "product_identity_confidence": "high",
+      "dominant_product_posture": "strong_endorsement",
+      "recommendation_strength": "strong_recommendation_no_purchase_cta",
+      "commercial_context": "organic_review",
+      "source_visible_commercial_signal": "none_observed",
+      "independent_opinion_evidence_tier": "tier_2_organic_positive_language",
+      "recommended_use_in_demand_learning": "use as organic positive promise language: discounted price, easy wear, compliments, strength",
+      "strong_vs_good_boundary": "strong because it frames the product as a favorite and gives multiple concrete benefit reasons",
+      "commercial_positive_handling": "use according to evidence tier; do not infer sponsorship beyond observed signals",
+      "rationale": "Strong organic endorsement; valuable for promise language, less diagnostic than a negative/qualified row.",
+      "residual_flags": [
+        "auto_caption_text"
+      ]
+    },
+    {
+      "opinion_value_row_id": "ytshorts-fragrance-opinion-value-pilot30-v0-007",
+      "source_product_talk_artifact": "docs/review-inputs/youtube_shorts_fragrance_product_talk_posture_pilot30_v0.json",
+      "source_fixture_id": "ytshorts-fragrance-tone-hard30-v0-007",
+      "creator_handle_query": "ThePerfumeGuy",
+      "author": "The Perfume Guy",
+      "video_id": "hfyoVdOAYt4",
+      "shorts_url": "https://www.youtube.com/shorts/hfyoVdOAYt4",
+      "title": "$25 Men’s Fragrance That Smells Like Luxury | Bentley for Men Intense 👑",
+      "products_evaluated": [
+        "Bentley for Men Intense"
+      ],
+      "product_identity_confidence": "high",
+      "dominant_product_posture": "strong_endorsement",
+      "recommendation_strength": "explicit_purchase_or_try_cta",
+      "commercial_context": "organic_review",
+      "source_visible_commercial_signal": "none_observed",
+      "independent_opinion_evidence_tier": "tier_2_organic_positive_language",
+      "recommended_use_in_demand_learning": "use as organic strong-positive with personal-use support and direct try recommendation",
+      "strong_vs_good_boundary": "strong because it includes long-term repeated use plus explicit try language",
+      "commercial_positive_handling": "use according to evidence tier; do not infer sponsorship beyond observed signals",
+      "rationale": "One of the stronger organic positives because the speaker cites own repeated use.",
+      "residual_flags": [
+        "auto_caption_text"
+      ]
+    },
+    {
+      "opinion_value_row_id": "ytshorts-fragrance-opinion-value-pilot30-v0-008",
+      "source_product_talk_artifact": "docs/review-inputs/youtube_shorts_fragrance_product_talk_posture_pilot30_v0.json",
+      "source_fixture_id": "ytshorts-fragrance-tone-hard30-v0-008",
+      "creator_handle_query": "SchoolofScent",
+      "author": "School of Scent",
+      "video_id": "vl-QUTwtneY",
+      "shorts_url": "https://www.youtube.com/shorts/vl-QUTwtneY",
+      "title": "The Best Summer Fragrance For Each Age Group",
+      "products_evaluated": [
+        "Reyhaneh Aquatica",
+        "Dior Homme Sport 2021",
+        "Roja Burlington 1819"
+      ],
+      "product_identity_confidence": "high",
+      "dominant_product_posture": "strong_endorsement",
+      "recommendation_strength": "strong_recommendation_no_purchase_cta",
+      "commercial_context": "organic_review",
+      "source_visible_commercial_signal": "none_observed",
+      "independent_opinion_evidence_tier": "tier_2_organic_positive_language",
+      "recommended_use_in_demand_learning": "use for segment-specific promise language: age, maturity, performance, value, luxury",
+      "strong_vs_good_boundary": "strong because each segment recommendation is backed by concrete use-case and performance/value reasons",
+      "commercial_positive_handling": "use according to evidence tier; do not infer sponsorship beyond observed signals",
+      "rationale": "Useful for mapping promises to audience segments.",
+      "residual_flags": [
+        "auto_caption_text"
+      ]
+    },
+    {
+      "opinion_value_row_id": "ytshorts-fragrance-opinion-value-pilot30-v0-009",
+      "source_product_talk_artifact": "docs/review-inputs/youtube_shorts_fragrance_product_talk_posture_pilot30_v0.json",
+      "source_fixture_id": "ytshorts-fragrance-tone-hard30-v0-009",
+      "creator_handle_query": "SchoolofScent",
+      "author": "School of Scent",
+      "video_id": "WEqUWKA4FUI",
+      "shorts_url": "https://www.youtube.com/shorts/WEqUWKA4FUI",
+      "title": "The Highest Rated Summer Fragrances At Each Price Range",
+      "products_evaluated": [
+        "Armaf Infinity Silver Oud Parfum",
+        "Issey Miyake L'Eau d'Issey Eau de Toilette",
+        "Sospiro Vibrato"
+      ],
+      "product_identity_confidence": "high",
+      "dominant_product_posture": "strong_endorsement",
+      "recommendation_strength": "strong_recommendation_no_purchase_cta",
+      "commercial_context": "organic_review",
+      "source_visible_commercial_signal": "none_observed",
+      "independent_opinion_evidence_tier": "tier_2_organic_positive_language",
+      "recommended_use_in_demand_learning": "use for price-tier promise language: hype, projection, longevity, luxury quality",
+      "strong_vs_good_boundary": "strong because products are defended with performance and comparison reasons, not mere list inclusion",
+      "commercial_positive_handling": "use according to evidence tier; do not infer sponsorship beyond observed signals",
+      "rationale": "Useful organic positive language by price range.",
+      "residual_flags": [
+        "auto_caption_text"
+      ]
+    },
+    {
+      "opinion_value_row_id": "ytshorts-fragrance-opinion-value-pilot30-v0-010",
+      "source_product_talk_artifact": "docs/review-inputs/youtube_shorts_fragrance_product_talk_posture_pilot30_v0.json",
+      "source_fixture_id": "ytshorts-fragrance-tone-hard30-v0-010",
+      "creator_handle_query": "SchoolofScent",
+      "author": "School of Scent",
+      "video_id": "uaCSynFfPpc",
+      "shorts_url": "https://www.youtube.com/shorts/uaCSynFfPpc",
+      "title": "This Fragrance Or SHL God Of Fire? - Mykonos Perfume Top 3 Buying Guide",
+      "products_evaluated": [
+        "Micallef Reflection",
+        "Micallef Inception",
+        "Micallef Dreamscape"
+      ],
+      "product_identity_confidence": "high",
+      "dominant_product_posture": "positive_recommendation",
+      "recommendation_strength": "explicit_purchase_or_try_cta",
+      "commercial_context": "brand_sent_or_affiliate_ambiguous",
+      "source_visible_commercial_signal": "brand_sent_plus_discount_or_stock_cta",
+      "independent_opinion_evidence_tier": "tier_1_commercial_positive_low_independent_value",
+      "recommended_use_in_demand_learning": "exclude or heavily down-weight for independent preference; keep only as commercially shaped positive context if needed",
+      "strong_vs_good_boundary": "positive recommendation rather than strong endorsement because brand-sent and CTA/stock language contaminate independence despite product reasons",
+      "commercial_positive_handling": "down-weight strongly for independent opinion; do not treat as organic demand signal",
+      "rationale": "Brand-sent plus discount/stock CTA makes it poor independent preference evidence.",
+      "residual_flags": [
+        "auto_caption_text",
+        "brand_sent_products",
+        "discount_code_cta",
+        "stock_level_claim"
+      ]
+    },
+    {
+      "opinion_value_row_id": "ytshorts-fragrance-opinion-value-pilot30-v0-011",
+      "source_product_talk_artifact": "docs/review-inputs/youtube_shorts_fragrance_product_talk_posture_pilot30_v0.json",
+      "source_fixture_id": "ytshorts-fragrance-tone-hard30-v0-011",
+      "creator_handle_query": "CurlyScents",
+      "author": "Curly Scents",
+      "video_id": "MN3AI-mrPWk",
+      "shorts_url": "https://www.youtube.com/shorts/MN3AI-mrPWk",
+      "title": "Top 10 Best Spring Perfumes for WOMEN.",
+      "products_evaluated": [
+        "Louis Vuitton Stellar Times",
+        "Balmain Rouge",
+        "Nishane Tuberosa",
+        "Initio Musk Therapy",
+        "Escentric Molecules Molecule 04",
+        "Parfums de Marly Valaya",
+        "Creed Aventus",
+        "Amouage Guidance 46",
+        "House of Bo Shushu",
+        "Dolce & Gabbana The One Eau de Parfum Intense",
+        "Bvlgari In Ciame"
+      ],
+      "product_identity_confidence": "medium",
+      "dominant_product_posture": "positive_recommendation",
+      "recommendation_strength": "soft_recommendation",
+      "commercial_context": "organic_review",
+      "source_visible_commercial_signal": "none_observed",
+      "independent_opinion_evidence_tier": "tier_2_organic_positive_language",
+      "recommended_use_in_demand_learning": "use as social/identity promise language, not product-specific evidence",
+      "strong_vs_good_boundary": "good rather than strong because most products are list names with sparse product-specific support",
+      "commercial_positive_handling": "use according to evidence tier; do not infer sponsorship beyond observed signals",
+      "rationale": "Useful for identity/social-attention framing; weak per-product conviction.",
+      "residual_flags": [
+        "auto_caption_text",
+        "rapid_list_sparse_detail"
+      ]
+    },
+    {
+      "opinion_value_row_id": "ytshorts-fragrance-opinion-value-pilot30-v0-012",
+      "source_product_talk_artifact": "docs/review-inputs/youtube_shorts_fragrance_product_talk_posture_pilot30_v0.json",
+      "source_fixture_id": "ytshorts-fragrance-tone-hard30-v0-012",
+      "creator_handle_query": "CurlyScents",
+      "author": "Curly Scents",
+      "video_id": "FqTrOZbh_DE",
+      "shorts_url": "https://www.youtube.com/shorts/FqTrOZbh_DE",
+      "title": "TOP 10 SEXIEST SPRING FRAGRANCES FOR MEN!",
+      "products_evaluated": [
+        "Louis Vuitton Lovers",
+        "YSL L'Homme",
+        "Rasasi Parfums The Gentleman's Code",
+        "YSL Myself L'Absolu",
+        "Essential Parfums Bois Imperial",
+        "House of Noya Ocean's Luminescence",
+        "Creed Silver Mountain Water",
+        "Armaf Infinity Silver",
+        "Dunhill Icon",
+        "Carolina Herrera 212 Men"
+      ],
+      "product_identity_confidence": "medium",
+      "dominant_product_posture": "positive_recommendation",
+      "recommendation_strength": "soft_recommendation",
+      "commercial_context": "organic_review",
+      "source_visible_commercial_signal": "none_observed",
+      "independent_opinion_evidence_tier": "tier_2_organic_positive_language",
+      "recommended_use_in_demand_learning": "use as identity/taste framing, not product-specific evidence",
+      "strong_vs_good_boundary": "good rather than strong because it is a status-framed list without detailed product proof",
+      "commercial_positive_handling": "use according to evidence tier; do not infer sponsorship beyond observed signals",
+      "rationale": "Useful for identity-language extraction; weak as product-level opinion.",
+      "residual_flags": [
+        "auto_caption_text",
+        "rapid_list_sparse_detail"
+      ]
+    },
+    {
+      "opinion_value_row_id": "ytshorts-fragrance-opinion-value-pilot30-v0-013",
+      "source_product_talk_artifact": "docs/review-inputs/youtube_shorts_fragrance_product_talk_posture_pilot30_v0.json",
+      "source_fixture_id": "ytshorts-fragrance-tone-hard30-v0-013",
+      "creator_handle_query": "funmimonet",
+      "author": "Funmi Monet",
+      "video_id": "bPJCH9iQUhI",
+      "shorts_url": "https://www.youtube.com/shorts/bPJCH9iQUhI",
+      "title": "#DovePartner The best smelling skin on the block starts with @dove Serum+ Oil Body Wash",
+      "products_evaluated": [
+        "Dove Serum + Oil Body Wash line: Radiance, Dewy, Soothing"
+      ],
+      "product_identity_confidence": "high",
+      "dominant_product_posture": "strong_endorsement",
+      "recommendation_strength": "explicit_purchase_or_try_cta",
+      "commercial_context": "explicit_sponsored_partner",
+      "source_visible_commercial_signal": "explicit_partner_or_sponsored_transcript",
+      "independent_opinion_evidence_tier": "tier_1_commercial_positive_low_independent_value",
+      "recommended_use_in_demand_learning": "exclude from independent preference rollup; retain only as sponsor-disclosed product-claim example if needed",
+      "strong_vs_good_boundary": "strong endorsement in language, but not independent endorsement because sponsorship is explicit",
+      "commercial_positive_handling": "exclude from independent opinion; sponsorship is explicit",
+      "rationale": "Explicit partner disclosure makes this low-value for independent demand learning.",
+      "residual_flags": [
+        "auto_caption_text",
+        "sponsor_explicit_in_transcript",
+        "body_wash_not_perfume_primary"
+      ]
+    },
+    {
+      "opinion_value_row_id": "ytshorts-fragrance-opinion-value-pilot30-v0-014",
+      "source_product_talk_artifact": "docs/review-inputs/youtube_shorts_fragrance_product_talk_posture_pilot30_v0.json",
+      "source_fixture_id": "ytshorts-fragrance-tone-hard30-v0-014",
+      "creator_handle_query": "funmimonet",
+      "author": "Funmi Monet",
+      "video_id": "Uj4bVTM6dm8",
+      "shorts_url": "https://www.youtube.com/shorts/Uj4bVTM6dm8",
+      "title": "Notes Shanghai 2025 #notesshanghai #perfume #notesshanghai2025 #fragrance",
+      "products_evaluated": [
+        "Documents fragrance brand",
+        "No Duet fragrance brand",
+        "Mobius fragrance oils"
+      ],
+      "product_identity_confidence": "high",
+      "dominant_product_posture": "positive_recommendation",
+      "recommendation_strength": "descriptive_or_observational",
+      "commercial_context": "soft_personal_context",
+      "source_visible_commercial_signal": "event_discovery_no_sponsor_observed",
+      "independent_opinion_evidence_tier": "tier_2_organic_positive_language",
+      "recommended_use_in_demand_learning": "use as event discovery / novelty signal, not purchase recommendation",
+      "strong_vs_good_boundary": "positive but not strong because it describes discoveries and impressions without purchase or direct preference proof",
+      "commercial_positive_handling": "use according to evidence tier; do not infer sponsorship beyond observed signals",
+      "rationale": "Useful for discovery/novelty language; not an independent buy recommendation.",
+      "residual_flags": [
+        "auto_caption_text",
+        "event_story_primary"
+      ]
+    },
+    {
+      "opinion_value_row_id": "ytshorts-fragrance-opinion-value-pilot30-v0-015",
+      "source_product_talk_artifact": "docs/review-inputs/youtube_shorts_fragrance_product_talk_posture_pilot30_v0.json",
+      "source_fixture_id": "ytshorts-fragrance-tone-hard30-v0-015",
+      "creator_handle_query": "SokiLondon",
+      "author": "Soki London",
+      "video_id": "XDscn2sgW3w",
+      "shorts_url": "https://www.youtube.com/shorts/XDscn2sgW3w",
+      "title": "Which Is The Best Version Of The New CK Euphoria Elixir Perfumes...? | Soki London",
+      "products_evaluated": [
+        "CK Euphoria Bold",
+        "CK Euphoria Magnetic",
+        "CK Euphoria Solar Elixir"
+      ],
+      "product_identity_confidence": "high",
+      "dominant_product_posture": "qualified_or_mixed",
+      "recommendation_strength": "descriptive_or_observational",
+      "commercial_context": "organic_review",
+      "source_visible_commercial_signal": "none_observed",
+      "independent_opinion_evidence_tier": "tier_3_organic_qualified_tradeoff",
+      "recommended_use_in_demand_learning": "use for comparison and mild caveat learning across variants",
+      "strong_vs_good_boundary": "qualified/mixed because the speaker compares variants with mild likes and caveats rather than clear endorsement",
+      "commercial_positive_handling": "use according to evidence tier; do not infer sponsorship beyond observed signals",
+      "rationale": "Good tradeoff row: shows preference boundaries among flankers.",
+      "residual_flags": [
+        "auto_caption_text"
+      ]
+    },
+    {
+      "opinion_value_row_id": "ytshorts-fragrance-opinion-value-pilot30-v0-016",
+      "source_product_talk_artifact": "docs/review-inputs/youtube_shorts_fragrance_product_talk_posture_pilot30_v0.json",
+      "source_fixture_id": "ytshorts-fragrance-tone-hard30-v0-016",
+      "creator_handle_query": "SokiLondon",
+      "author": "Soki London",
+      "video_id": "Fd-aChpt_Ss",
+      "shorts_url": "https://www.youtube.com/shorts/Fd-aChpt_Ss",
+      "title": "@EmiBudhabhai Tries The Soki London Ophelia Travel Spray 🌸❤️",
+      "products_evaluated": [
+        "Soki London Ophelia"
+      ],
+      "product_identity_confidence": "high",
+      "dominant_product_posture": "strong_endorsement",
+      "recommendation_strength": "strong_recommendation_no_purchase_cta",
+      "commercial_context": "creator_brand_or_affinity_ambiguous",
+      "source_visible_commercial_signal": "creator_brand_or_affinity_ambiguous",
+      "independent_opinion_evidence_tier": "tier_1_commercial_positive_low_independent_value",
+      "recommended_use_in_demand_learning": "down-weight as independent preference until creator-brand relationship is resolved",
+      "strong_vs_good_boundary": "strong language, but commercial/creator-affinity ambiguity blocks treating it as independent",
+      "commercial_positive_handling": "down-weight strongly pending creator-brand relationship check",
+      "rationale": "Likely useful only after relationship provenance is clarified.",
+      "residual_flags": [
+        "auto_caption_text",
+        "possible_creator_brand_context"
+      ]
+    },
+    {
+      "opinion_value_row_id": "ytshorts-fragrance-opinion-value-pilot30-v0-017",
+      "source_product_talk_artifact": "docs/review-inputs/youtube_shorts_fragrance_product_talk_posture_pilot30_v0.json",
+      "source_fixture_id": "ytshorts-fragrance-tone-hard30-v0-017",
+      "creator_handle_query": "TLTGReviews",
+      "author": "TLTG Reviews",
+      "video_id": "7S40eU8FDCY",
+      "shorts_url": "https://www.youtube.com/shorts/7S40eU8FDCY",
+      "title": "Spectrum Chill is definitely one of THE BEST Clone Releases of 2026",
+      "products_evaluated": [
+        "Spectrum Chill"
+      ],
+      "product_identity_confidence": "high",
+      "dominant_product_posture": "strong_endorsement",
+      "recommendation_strength": "strong_recommendation_no_purchase_cta",
+      "commercial_context": "organic_review",
+      "source_visible_commercial_signal": "none_observed",
+      "independent_opinion_evidence_tier": "tier_2_organic_positive_language",
+      "recommended_use_in_demand_learning": "use as organic strong-positive promise language: value, strength, clone-release quality",
+      "strong_vs_good_boundary": "strong because it uses top-tier language and concrete cheap/strong/release-quality reasons",
+      "commercial_positive_handling": "use according to evidence tier; do not infer sponsorship beyond observed signals",
+      "rationale": "Useful organic positive with concrete value/performance frames.",
+      "residual_flags": [
+        "auto_caption_text",
+        "review_video_cta_secondary"
+      ]
+    },
+    {
+      "opinion_value_row_id": "ytshorts-fragrance-opinion-value-pilot30-v0-018",
+      "source_product_talk_artifact": "docs/review-inputs/youtube_shorts_fragrance_product_talk_posture_pilot30_v0.json",
+      "source_fixture_id": "ytshorts-fragrance-tone-hard30-v0-018",
+      "creator_handle_query": "TLTGReviews",
+      "author": "TLTG Reviews",
+      "video_id": "-V7MN2IWMpA",
+      "shorts_url": "https://www.youtube.com/shorts/-V7MN2IWMpA",
+      "title": "The Fragrance to Celebrate a Successful Show",
+      "products_evaluated": [
+        "Sunkissed Island"
+      ],
+      "product_identity_confidence": "high",
+      "dominant_product_posture": "strong_endorsement",
+      "recommendation_strength": "strong_recommendation_no_purchase_cta",
+      "commercial_context": "soft_personal_context",
+      "source_visible_commercial_signal": "creator_own_brand_or_affinity_ambiguous",
+      "independent_opinion_evidence_tier": "tier_1_commercial_positive_low_independent_value",
+      "recommended_use_in_demand_learning": "down-weight for independent preference; may be own-brand advocacy",
+      "strong_vs_good_boundary": "strong product language, but personal/own-brand context contaminates independence",
+      "commercial_positive_handling": "down-weight strongly pending creator-brand relationship check",
+      "rationale": "Do not treat as clean independent demand evidence without relationship resolution.",
+      "residual_flags": [
+        "auto_caption_text",
+        "long_personal_update",
+        "creator_own_brand_or_affinity_ambiguous"
+      ]
+    },
+    {
+      "opinion_value_row_id": "ytshorts-fragrance-opinion-value-pilot30-v0-019",
+      "source_product_talk_artifact": "docs/review-inputs/youtube_shorts_fragrance_product_talk_posture_pilot30_v0.json",
+      "source_fixture_id": "ytshorts-fragrance-tone-hard30-v0-019",
+      "creator_handle_query": "TLTGReviews",
+      "author": "TLTG Reviews",
+      "video_id": "Ln1LUflj8d0",
+      "shorts_url": "https://www.youtube.com/shorts/Ln1LUflj8d0",
+      "title": "Lattafa Khamrah Waha can be worn in ANY SEASON!",
+      "products_evaluated": [
+        "Lattafa Khamrah Waha"
+      ],
+      "product_identity_confidence": "high",
+      "dominant_product_posture": "qualified_or_mixed",
+      "recommendation_strength": "soft_recommendation",
+      "commercial_context": "organic_review",
+      "source_visible_commercial_signal": "none_observed",
+      "independent_opinion_evidence_tier": "tier_3_organic_qualified_tradeoff",
+      "recommended_use_in_demand_learning": "use for condition and objection learning: seasonality challenge, good but not exceptional",
+      "strong_vs_good_boundary": "qualified/mixed because it recommends for a fit case while explicitly denying exceptional status",
+      "commercial_positive_handling": "use according to evidence tier; do not infer sponsorship beyond observed signals",
+      "rationale": "High-value qualified organic row: shows where the product is good enough and where it is not.",
+      "residual_flags": [
+        "auto_caption_text",
+        "profanity_in_auto_caption"
+      ]
+    },
+    {
+      "opinion_value_row_id": "ytshorts-fragrance-opinion-value-pilot30-v0-020",
+      "source_product_talk_artifact": "docs/review-inputs/youtube_shorts_fragrance_product_talk_posture_pilot30_v0.json",
+      "source_fixture_id": "ytshorts-fragrance-tone-hard30-v0-020",
+      "creator_handle_query": "Redolessence",
+      "author": "Redolessence",
+      "video_id": "JMmEIv_oG4o",
+      "shorts_url": "https://www.youtube.com/shorts/JMmEIv_oG4o",
+      "title": "Rasasi Hawas Reina Perfume Review!",
+      "products_evaluated": [
+        "Rasasi Hawas Reina"
+      ],
+      "product_identity_confidence": "high",
+      "dominant_product_posture": "strong_endorsement",
+      "recommendation_strength": "strong_recommendation_no_purchase_cta",
+      "commercial_context": "organic_review",
+      "source_visible_commercial_signal": "none_observed",
+      "independent_opinion_evidence_tier": "tier_2_organic_positive_language",
+      "recommended_use_in_demand_learning": "use as organic positive promise language: elegance, sensuality, longevity, occasion fit",
+      "strong_vs_good_boundary": "strong because it stacks concrete sensory, occasion, and longevity claims",
+      "commercial_positive_handling": "use according to evidence tier; do not infer sponsorship beyond observed signals",
+      "rationale": "Useful organic positive language.",
+      "residual_flags": [
+        "auto_caption_text"
+      ]
+    },
+    {
+      "opinion_value_row_id": "ytshorts-fragrance-opinion-value-pilot30-v0-021",
+      "source_product_talk_artifact": "docs/review-inputs/youtube_shorts_fragrance_product_talk_posture_pilot30_v0.json",
+      "source_fixture_id": "ytshorts-fragrance-tone-hard30-v0-021",
+      "creator_handle_query": "Redolessence",
+      "author": "Redolessence",
+      "video_id": "_Gp2AmN74E8",
+      "shorts_url": "https://www.youtube.com/shorts/_Gp2AmN74E8",
+      "title": "Stallion 53 Donna Intense Perfume Review!",
+      "products_evaluated": [
+        "Stallion 53 Donna Intense"
+      ],
+      "product_identity_confidence": "high",
+      "dominant_product_posture": "strong_endorsement",
+      "recommendation_strength": "explicit_purchase_or_try_cta",
+      "commercial_context": "direct_cta",
+      "source_visible_commercial_signal": "direct_cta_no_sponsor_observed",
+      "independent_opinion_evidence_tier": "tier_1_commercial_positive_low_independent_value",
+      "recommended_use_in_demand_learning": "down-weight for independent preference because click/link CTA makes it commercially shaped",
+      "strong_vs_good_boundary": "strong endorsement because it has explicit CTA and benefit claims, but CTA lowers independent-opinion value",
+      "commercial_positive_handling": "down-weight for independent opinion; direct CTA without disclosure remains commercially shaped",
+      "rationale": "Direct CTA makes this poor independent preference evidence even without explicit sponsor disclosure.",
+      "residual_flags": [
+        "auto_caption_text",
+        "explicit_link_cta"
+      ]
+    },
+    {
+      "opinion_value_row_id": "ytshorts-fragrance-opinion-value-pilot30-v0-022",
+      "source_product_talk_artifact": "docs/review-inputs/youtube_shorts_fragrance_product_talk_posture_pilot30_v0.json",
+      "source_fixture_id": "ytshorts-fragrance-tone-hard30-v0-022",
+      "creator_handle_query": "Redolessence",
+      "author": "Redolessence",
+      "video_id": "Tb-_V-JVNfk",
+      "shorts_url": "https://www.youtube.com/shorts/Tb-_V-JVNfk",
+      "title": "House of Dastan Love Flame Perfume Review!",
+      "products_evaluated": [
+        "House of Dastan Love Flame"
+      ],
+      "product_identity_confidence": "high",
+      "dominant_product_posture": "strong_endorsement",
+      "recommendation_strength": "strong_recommendation_no_purchase_cta",
+      "commercial_context": "organic_review",
+      "source_visible_commercial_signal": "none_observed",
+      "independent_opinion_evidence_tier": "tier_2_organic_positive_language",
+      "recommended_use_in_demand_learning": "use as organic positive promise language: sensuality, elegance, romance, longevity",
+      "strong_vs_good_boundary": "strong because it gives multiple concrete product qualities and longevity support",
+      "commercial_positive_handling": "use according to evidence tier; do not infer sponsorship beyond observed signals",
+      "rationale": "Useful organic positive language.",
+      "residual_flags": [
+        "auto_caption_text"
+      ]
+    },
+    {
+      "opinion_value_row_id": "ytshorts-fragrance-opinion-value-pilot30-v0-023",
+      "source_product_talk_artifact": "docs/review-inputs/youtube_shorts_fragrance_product_talk_posture_pilot30_v0.json",
+      "source_fixture_id": "ytshorts-fragrance-tone-hard30-v0-023",
+      "creator_handle_query": "TheFragranceApprentice",
+      "author": "The Fragrance Apprentice",
+      "video_id": "6k8ebJw50tU",
+      "shorts_url": "https://www.youtube.com/shorts/6k8ebJw50tU",
+      "title": "5th September 2026 will be the end of the Fragrance Apprentice",
+      "products_evaluated": [],
+      "product_identity_confidence": "high",
+      "dominant_product_posture": null,
+      "recommendation_strength": "no_scoreable_product_talk",
+      "commercial_context": "non_commercial_update",
+      "source_visible_commercial_signal": "non_commercial_update",
+      "independent_opinion_evidence_tier": "tier_0_not_product_evaluation",
+      "recommended_use_in_demand_learning": "exclude from product-opinion analysis",
+      "strong_vs_good_boundary": "not applicable: no current product evaluation",
+      "commercial_positive_handling": "use according to evidence tier; do not infer sponsorship beyond observed signals",
+      "rationale": "No scoreable product opinion.",
+      "residual_flags": [
+        "auto_caption_text",
+        "no_current_product_evaluation"
+      ]
+    },
+    {
+      "opinion_value_row_id": "ytshorts-fragrance-opinion-value-pilot30-v0-024",
+      "source_product_talk_artifact": "docs/review-inputs/youtube_shorts_fragrance_product_talk_posture_pilot30_v0.json",
+      "source_fixture_id": "ytshorts-fragrance-tone-hard30-v0-024",
+      "creator_handle_query": "TheFragranceApprentice",
+      "author": "The Fragrance Apprentice",
+      "video_id": "5e4y5yNagRI",
+      "shorts_url": "https://www.youtube.com/shorts/5e4y5yNagRI",
+      "title": "I STILL forbid you to buy this fragrance.",
+      "products_evaluated": [
+        "unresolved fragrance; product not recoverable from transcript/title"
+      ],
+      "product_identity_confidence": "low",
+      "dominant_product_posture": "critical_or_warning",
+      "recommendation_strength": "anti_purchase_or_warning",
+      "commercial_context": "negative_purchase_guidance",
+      "source_visible_commercial_signal": "none_observed",
+      "independent_opinion_evidence_tier": "tier_4_negative_diagnostic",
+      "recommended_use_in_demand_learning": "use cautiously as negative/anti-buy signal; product identity unresolved",
+      "strong_vs_good_boundary": "critical/warning because the transcript-visible act is forbidding purchase, but low-confidence due to fragmentary comedy",
+      "commercial_positive_handling": "use according to evidence tier; do not infer sponsorship beyond observed signals",
+      "rationale": "Potentially valuable negative signal, but only after product identity recovery.",
+      "residual_flags": [
+        "auto_caption_text",
+        "short_transcript",
+        "comedic_fragment"
+      ]
+    },
+    {
+      "opinion_value_row_id": "ytshorts-fragrance-opinion-value-pilot30-v0-025",
+      "source_product_talk_artifact": "docs/review-inputs/youtube_shorts_fragrance_product_talk_posture_pilot30_v0.json",
+      "source_fixture_id": "ytshorts-fragrance-tone-hard30-v0-025",
+      "creator_handle_query": "TheFragranceApprentice",
+      "author": "The Fragrance Apprentice",
+      "video_id": "WcSRnnwSAJM",
+      "shorts_url": "https://www.youtube.com/shorts/WcSRnnwSAJM",
+      "title": "The Fragrance That Smells of Christmas and Horse Poop",
+      "products_evaluated": [
+        "unresolved fragrance; transcript describes Christmas/animalic composition"
+      ],
+      "product_identity_confidence": "low",
+      "dominant_product_posture": "qualified_or_mixed",
+      "recommendation_strength": "descriptive_or_observational",
+      "commercial_context": "organic_review",
+      "source_visible_commercial_signal": "none_observed",
+      "independent_opinion_evidence_tier": "tier_3_organic_qualified_tradeoff",
+      "recommended_use_in_demand_learning": "use for unusual sensory-positioning and polarizing-language analysis, not clean product identity",
+      "strong_vs_good_boundary": "qualified/mixed because negative/gross imagery is ultimately folded into appreciation",
+      "commercial_positive_handling": "use according to evidence tier; do not infer sponsorship beyond observed signals",
+      "rationale": "Useful for polarizing sensory language; product identity unresolved.",
+      "residual_flags": [
+        "auto_caption_text",
+        "contrarian_gross_descriptor_used_positively"
+      ]
+    },
+    {
+      "opinion_value_row_id": "ytshorts-fragrance-opinion-value-pilot30-v0-026",
+      "source_product_talk_artifact": "docs/review-inputs/youtube_shorts_fragrance_product_talk_posture_pilot30_v0.json",
+      "source_fixture_id": "ytshorts-fragrance-tone-hard30-v0-026",
+      "creator_handle_query": "JeremyFragrance",
+      "author": "Jeremy Fragrance",
+      "video_id": "doNVRDk0X_Y",
+      "shorts_url": "https://www.youtube.com/shorts/doNVRDk0X_Y",
+      "title": "Game Of Spades EMERALD &amp; REFRESH #jeremyfragrance #fragrance #cologne #perfume #parfum",
+      "products_evaluated": [
+        "Game of Spades Emerald",
+        "Game of Spades Refresh"
+      ],
+      "product_identity_confidence": "high",
+      "dominant_product_posture": "strong_endorsement",
+      "recommendation_strength": "explicit_purchase_or_try_cta",
+      "commercial_context": "direct_cta",
+      "source_visible_commercial_signal": "direct_cta_no_sponsor_observed",
+      "independent_opinion_evidence_tier": "tier_1_commercial_positive_low_independent_value",
+      "recommended_use_in_demand_learning": "down-weight for independent preference because it pushes a new release and check-out CTA",
+      "strong_vs_good_boundary": "strong endorsement because it includes direct CTA, performance and compliment claims",
+      "commercial_positive_handling": "down-weight for independent opinion; direct CTA/new-release push",
+      "rationale": "Commercially shaped positive; keep out of clean independent preference rollup.",
+      "residual_flags": [
+        "auto_caption_text",
+        "new_release_cta"
+      ]
+    },
+    {
+      "opinion_value_row_id": "ytshorts-fragrance-opinion-value-pilot30-v0-027",
+      "source_product_talk_artifact": "docs/review-inputs/youtube_shorts_fragrance_product_talk_posture_pilot30_v0.json",
+      "source_fixture_id": "ytshorts-fragrance-tone-hard30-v0-027",
+      "creator_handle_query": "JeremyFragrance",
+      "author": "Jeremy Fragrance",
+      "video_id": "DUafgG-TLms",
+      "shorts_url": "https://www.youtube.com/shorts/DUafgG-TLms",
+      "title": "Game Of Spades EMERALD &amp; REFRESH #jeremyfragrance #fragrance #cologne #perfume #parfum",
+      "products_evaluated": [
+        "Game of Spades Full House Refresh",
+        "Game of Spades Emerald"
+      ],
+      "product_identity_confidence": "high",
+      "dominant_product_posture": "qualified_or_mixed",
+      "recommendation_strength": "soft_recommendation",
+      "commercial_context": "organic_review",
+      "source_visible_commercial_signal": "creator_brand_or_affinity_ambiguous",
+      "independent_opinion_evidence_tier": "tier_1_commercial_positive_low_independent_value",
+      "recommended_use_in_demand_learning": "down-weight pending relationship provenance",
+      "strong_vs_good_boundary": "qualified/mixed because the new release is positive but compared against an existing favorite",
+      "commercial_positive_handling": "down-weight strongly pending creator-brand relationship check",
+      "rationale": "Positive but not clean independent evidence because creator-brand affinity is ambiguous.",
+      "residual_flags": [
+        "auto_caption_text",
+        "creator_brand_affinity_ambiguous"
+      ]
+    },
+    {
+      "opinion_value_row_id": "ytshorts-fragrance-opinion-value-pilot30-v0-028",
+      "source_product_talk_artifact": "docs/review-inputs/youtube_shorts_fragrance_product_talk_posture_pilot30_v0.json",
+      "source_fixture_id": "ytshorts-fragrance-tone-hard30-v0-028",
+      "creator_handle_query": "CurlyScents",
+      "author": "Curly Scents",
+      "video_id": "oFSnzMS8yxA",
+      "shorts_url": "https://www.youtube.com/shorts/oFSnzMS8yxA",
+      "title": "The New Carolina Herrera Good Girl Jasmine Absolute 😍 #ad #goodgirlcarolinaherrera #carolinaherrera",
+      "products_evaluated": [
+        "Carolina Herrera Good Girl Jasmine Absolute"
+      ],
+      "product_identity_confidence": "high",
+      "dominant_product_posture": "strong_endorsement",
+      "recommendation_strength": "descriptive_or_observational",
+      "commercial_context": "metadata_ad_context_only",
+      "source_visible_commercial_signal": "title_or_metadata_ad_signal_only",
+      "independent_opinion_evidence_tier": "tier_1_commercial_positive_low_independent_value",
+      "recommended_use_in_demand_learning": "exclude or heavily down-weight from independent preference unless description/paid-promotion metadata is checked",
+      "strong_vs_good_boundary": "strong ad-copy-style endorsement in words, but ad signal is metadata-only and transcript is very short",
+      "commercial_positive_handling": "down-weight strongly; ad signal is title/metadata, not transcript",
+      "rationale": "Useful as flagged commercial-positive only; not clean independent opinion.",
+      "residual_flags": [
+        "auto_caption_text",
+        "short_transcript",
+        "title_ad_metadata_not_transcript"
+      ]
+    },
+    {
+      "opinion_value_row_id": "ytshorts-fragrance-opinion-value-pilot30-v0-029",
+      "source_product_talk_artifact": "docs/review-inputs/youtube_shorts_fragrance_product_talk_posture_pilot30_v0.json",
+      "source_fixture_id": "ytshorts-fragrance-tone-hard30-v0-029",
+      "creator_handle_query": "funmimonet",
+      "author": "Funmi Monet",
+      "video_id": "zJVS5UnoHIY",
+      "shorts_url": "https://www.youtube.com/shorts/zJVS5UnoHIY",
+      "title": "NYX Fat Oil Collection #nyxcosmeticspartner",
+      "products_evaluated": [
+        "NYX Fat Oil collection: lotion, body butter, body oil, hair and body mist"
+      ],
+      "product_identity_confidence": "high",
+      "dominant_product_posture": "strong_endorsement",
+      "recommendation_strength": "strong_recommendation_no_purchase_cta",
+      "commercial_context": "explicit_sponsored_partner",
+      "source_visible_commercial_signal": "explicit_sponsored_transcript",
+      "independent_opinion_evidence_tier": "tier_1_commercial_positive_low_independent_value",
+      "recommended_use_in_demand_learning": "exclude from independent preference rollup; retain only if commercial-claim examples are needed",
+      "strong_vs_good_boundary": "strong endorsement in language, but explicit sponsorship means low independent preference value",
+      "commercial_positive_handling": "exclude from independent opinion; sponsorship is explicit",
+      "rationale": "Explicit sponsorship makes this low-value for independent demand learning.",
+      "residual_flags": [
+        "auto_caption_text",
+        "sponsor_explicit_in_transcript",
+        "beauty_bodycare_primary"
+      ]
+    },
+    {
+      "opinion_value_row_id": "ytshorts-fragrance-opinion-value-pilot30-v0-030",
+      "source_product_talk_artifact": "docs/review-inputs/youtube_shorts_fragrance_product_talk_posture_pilot30_v0.json",
+      "source_fixture_id": "ytshorts-fragrance-tone-hard30-v0-030",
+      "creator_handle_query": "SokiLondon",
+      "author": "Soki London",
+      "video_id": "XTgiBsIaokI",
+      "shorts_url": "https://www.youtube.com/shorts/XTgiBsIaokI",
+      "title": "Why Am I So Disappointed In The New Khloe Kardashian Perfumes :( | Soki London",
+      "products_evaluated": [
+        "Khloe Kardashian Almost Always",
+        "XO Khloe comparison context"
+      ],
+      "product_identity_confidence": "high",
+      "dominant_product_posture": "critical_or_warning",
+      "recommendation_strength": "anti_purchase_or_warning",
+      "commercial_context": "negative_purchase_guidance",
+      "source_visible_commercial_signal": "none_observed",
+      "independent_opinion_evidence_tier": "tier_4_negative_diagnostic",
+      "recommended_use_in_demand_learning": "high diagnostic value for product objection learning: boring, not unique, identity mismatch despite price caveat",
+      "strong_vs_good_boundary": "critical/warning because negative evaluation dominates despite limited positives",
+      "commercial_positive_handling": "use according to evidence tier; do not infer sponsorship beyond observed signals",
+      "rationale": "High-value organic negative: likely more diagnostic than most positives.",
+      "residual_flags": [
+        "auto_caption_text",
+        "positive_price_caveat_inside_negative_review"
+      ]
+    }
+  ],
+  "non_claims": [
+    "not buyer proof",
+    "not a sponsorship truth label",
+    "not a paid-activity, credibility, or Signal Integrity judgment",
+    "not data-lake silver output despite using silver placement language for future mechanical mentions",
+    "not inter-rater reliability",
+    "not creator-level generalization",
+    "not a final weighting algorithm"
+  ]
+}
