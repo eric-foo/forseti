@@ -13,7 +13,11 @@ from typing import Any
 from cleaning.audience_extractor import RawApiProvider
 from cleaning.transcript_product_lake import PRODUCT_MENTIONS_LANE, PRODUCT_MENTIONS_SET_LANE
 from data_lake.root import DataLakeRoot
-from runners.run_ig_reels_product_extract import run_extraction
+from runners.run_ig_reels_product_extract import (
+    count_pending_extractions,
+    main,
+    run_extraction,
+)
 from source_capture import (
     CaptureModeCategory,
     PacketTiming,
@@ -148,6 +152,34 @@ def test_runner_extracts_ig_transcript_then_skips_on_rerun(tmp_path) -> None:
     second = run_extraction(data_root=data_root, transport=transport, provider=_PROVIDER, model="m", api_key="k")
     assert len(second) == 1
     assert second[0]["status"] == "skipped_done"
+
+
+def test_check_count_tracks_completed_mentions_for_model(tmp_path) -> None:
+    data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    _commit_ig_audio_transcript(data_root)
+    assert count_pending_extractions(data_root=data_root, model="m") == 1
+
+    run_extraction(
+        data_root=data_root, transport=FakeTransport(_anthropic([_item()])),
+        provider=_PROVIDER, model="m", api_key="k",
+    )
+    assert count_pending_extractions(data_root=data_root, model="m") == 0
+    assert count_pending_extractions(data_root=data_root, model="other-model") == 1
+
+
+def test_check_cli_prints_pending_count(tmp_path, monkeypatch, capsys) -> None:
+    data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    _commit_ig_audio_transcript(data_root)
+
+    def fake_resolve(cls, *, explicit=None, **_kwargs):  # noqa: ANN001
+        assert explicit is None
+        return data_root
+
+    monkeypatch.setattr(DataLakeRoot, "resolve", classmethod(fake_resolve))
+    assert main(["--check", "--model", "m"]) == 0
+    captured = capsys.readouterr()
+    assert captured.out == "1\n"
+    assert captured.err == ""
 
 
 def test_runner_skips_grid_metadata_packet_in_same_family(tmp_path) -> None:
