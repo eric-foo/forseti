@@ -84,6 +84,23 @@ _CLEANING_SOURCE_FAMILY_TO_AUDIT_SOURCE = {
     "reddit_thread": "reddit",
     "instagram_creator": "instagram",
 }
+# Projection-less / direct-artifact source families: directly-captured sources with no
+# external projection view (no projection_ref, no projection rows to resolve), e.g. YouTube
+# captions whose json3 IS the raw capture. Audited by raw-anchor integrity
+# (_verify_cleaning_raw_anchor) plus the allowed direct-artifact anchor kind(s) below -- NOT
+# by the projection-row adapters above. Kept disjoint from the projection-backed mapping so a
+# source_family is never both classes (enforced by _validate_source_family_adapter_contract).
+_PROJECTION_LESS_SOURCE_FAMILIES: dict[str, frozenset[str]] = {
+    "youtube": frozenset({"file"}),
+}
+# Source types the periodic audit reads from the smoke manifest into packet_index: the
+# projection-backed families PLUS the projection-less ones. A projection-less packet must still
+# enter packet_index so its cleaning handle's raw anchor resolves in _verify_cleaning_raw_anchor,
+# even though it has no projection to rebuild (lane-B records it as not-applicable).
+_AUDIT_ENTRY_SOURCE_TYPES: tuple[str, ...] = (
+    *SUPPORTED_SOURCE_FAMILIES,
+    *_PROJECTION_LESS_SOURCE_FAMILIES,
+)
 
 NON_CLAIMS = [
     "not_live_capture",
@@ -468,6 +485,20 @@ def _run_lane_b_projection_breakpoint(
                 rebuilt_signature = _reddit_consolidation_signature(
                     _load_json_object(rebuilt_path, f"{source_label} rebuilt consolidation")
                 )
+            elif source_type == "youtube":
+                # Projection-less / direct-artifact source: there is no projection to rebuild, so
+                # the projection-breakpoint check is NOT APPLICABLE. Record it as skipped (no
+                # finding) rather than treating an absent rebuild as a failure.
+                entries.append(
+                    {
+                        "source_label": source_label,
+                        "source_type": source_type,
+                        "rebuilt_path": None,
+                        "signature_match": None,
+                        "projection_less": True,
+                    }
+                )
+                continue
             else:
                 raise ValueError(f"unsupported source type: {source_type}")
 
@@ -661,6 +692,26 @@ def _validate_source_family_adapter_contract() -> None:
             raise ValueError(
                 f"source-family audit adapter {source_family!r} names anchor kind(s) "
                 f"without validators: {unsupported_anchor_kinds}"
+            )
+    # Projection-less / direct-artifact families are a SECOND, disjoint class: no row_kinds
+    # (they have no projection rows), audited via raw-anchor integrity plus their allowed
+    # direct-artifact anchor kinds. They must not overlap the projection-backed mapping.
+    overlap = set(_PROJECTION_LESS_SOURCE_FAMILIES) & set(_CLEANING_SOURCE_FAMILY_TO_AUDIT_SOURCE)
+    if overlap:
+        raise ValueError(
+            "a source_family cannot be both projection-backed and projection-less: "
+            f"{sorted(overlap)}"
+        )
+    for source_family, anchor_kinds in _PROJECTION_LESS_SOURCE_FAMILIES.items():
+        if not anchor_kinds:
+            raise ValueError(
+                f"projection-less source-family adapter {source_family!r} has no anchor_kinds"
+            )
+        unsupported_anchor_kinds = sorted(anchor_kinds - _ANCHOR_VALIDATOR_KINDS)
+        if unsupported_anchor_kinds:
+            raise ValueError(
+                f"projection-less source-family adapter {source_family!r} names anchor "
+                f"kind(s) without validators: {unsupported_anchor_kinds}"
             )
 
 
@@ -910,6 +961,32 @@ def _verify_source_family_anchor_adapter_coverage(
     findings: list[dict[str, Any]],
     lane: str,
 ) -> None:
+    direct_artifact_anchor_kinds = _PROJECTION_LESS_SOURCE_FAMILIES.get(source_family)
+    if direct_artifact_anchor_kinds is not None:
+        # Projection-less / direct-artifact source (e.g. YouTube captions): no projection view
+        # to resolve, so coverage IS the allowed direct-artifact anchor kind(s). Raw-anchor
+        # integrity (file/path/sha256) is verified separately by _verify_cleaning_raw_anchor.
+        anchor_kind = raw_anchor["anchor_kind"]
+        if anchor_kind not in direct_artifact_anchor_kinds:
+            _finding(
+                findings,
+                lane=lane,
+                severity="major",
+                code="cleaning_anchor_kind_unsupported_for_source_family",
+                owner_candidate="cleaning_or_audit_adapter",
+                packet_id=raw_anchor["packet_id"],
+                handle_id=handle_id,
+                message=(
+                    "Cleaning raw anchor kind is not covered by the projection-less "
+                    "source-family adapter."
+                ),
+                details={
+                    "source_family": source_family,
+                    "anchor_kind": anchor_kind,
+                    "allowed_anchor_kinds": sorted(direct_artifact_anchor_kinds),
+                },
+            )
+        return
     source_type = _CLEANING_SOURCE_FAMILY_TO_AUDIT_SOURCE.get(source_family)
     if source_type is None:
         _finding(
@@ -1683,7 +1760,7 @@ def _source_entries(
     smoke_manifest_dir: Path,
 ) -> list[dict[str, Any]]:
     entries: list[dict[str, Any]] = []
-    for source_type in SUPPORTED_SOURCE_FAMILIES:
+    for source_type in _AUDIT_ENTRY_SOURCE_TYPES:
         raw_entries = smoke_manifest.get(source_type, [])
         if raw_entries is None:
             continue
@@ -1732,6 +1809,8 @@ def _source_label(*, source_type: str, entry: dict[str, Any], index: int) -> str
     if source_type == "instagram":
         handle = entry.get("handle")
         return f"instagram:{handle.strip()}" if isinstance(handle, str) and handle.strip() else f"instagram:{index}"
+    if source_type == "youtube":
+        return f"youtube:{index}"
     return f"reddit:{index}"
 
 
