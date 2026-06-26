@@ -75,6 +75,7 @@ def test_runner_writes_ecr_receipts_and_cleaning_packet_for_retail_and_reddit(
         "reddit_sources": 1,
         "instagram_sources": 0,
         "youtube_sources": 0,
+        "youtube_asr_sources": 0,
         "ecr_receipts": 2,
         "cleaning_handles": len(cleaning_packet.handles),
         "cleaning_transform_entries": 0,
@@ -172,6 +173,7 @@ def test_runner_writes_ecr_receipts_and_cleaning_packet_for_instagram(
         "reddit_sources": 0,
         "instagram_sources": 1,
         "youtube_sources": 0,
+        "youtube_asr_sources": 0,
         "ecr_receipts": 1,
         "cleaning_handles": len(instagram_projection.rows),
         "cleaning_transform_entries": 0,
@@ -231,6 +233,7 @@ def test_runner_writes_ecr_receipts_and_cleaning_packet_for_youtube(tmp_path: Pa
         "reddit_sources": 0,
         "instagram_sources": 0,
         "youtube_sources": 1,
+        "youtube_asr_sources": 0,
         "ecr_receipts": 1,
         "cleaning_handles": 1,
         "cleaning_transform_entries": 0,
@@ -795,7 +798,10 @@ def test_runner_refuses_empty_manifest_and_existing_outputs(tmp_path: Path) -> N
         encoding="utf-8",
     )
 
-    with pytest.raises(ValueError, match="at least one retail, reddit, instagram, or youtube source"):
+    with pytest.raises(
+        ValueError,
+        match="at least one retail, reddit, instagram, youtube, or youtube_asr source",
+    ):
         run_capture_ecr_cleaning_smoke(
             smoke_manifest_path=empty_manifest,
             output_dir=tmp_path / "empty_outputs",
@@ -1074,9 +1080,12 @@ def test_periodic_audit_supported_source_families_have_adapter_coverage() -> Non
 
 def test_periodic_audit_accepts_projection_less_youtube_file_anchor() -> None:
     # The projection-less set is well-formed and disjoint from the projection-backed mapping
-    # (otherwise this raises), and YouTube allows only the direct-artifact "file" anchor.
+    # (otherwise this raises). YouTube allows the direct-artifact "file" anchor (captions) and the
+    # "derived_record" anchor (ASR transcript record).
     audit_runner._validate_source_family_adapter_contract()
-    assert audit_runner._PROJECTION_LESS_SOURCE_FAMILIES["youtube"] == frozenset({"file"})
+    assert audit_runner._PROJECTION_LESS_SOURCE_FAMILIES["youtube"] == frozenset(
+        {"file", "derived_record"}
+    )
 
     # A projection-less YouTube file-anchor handle clears coverage with no finding.
     ok_findings: list[dict[str, object]] = []

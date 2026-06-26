@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import re
 import sys
@@ -16,6 +17,7 @@ if __package__ in {None, ""}:
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from cleaning.models import (  # noqa: E402
+    CleaningDerivedRecordRef,
     CleaningEcrRef,
     CleaningInputGrain,
     CleaningInputHandle,
@@ -29,6 +31,7 @@ from cleaning.models import (  # noqa: E402
     CleaningTransformLedgerEntry,
 )
 from cleaning.projection import cleaning_input_handles_from_projection_rows  # noqa: E402
+from data_lake.root import DataLakeRoot  # noqa: E402
 from ecr.deriver import (  # noqa: E402
     derive_identity_postures,
     derive_inspectability_postures,
@@ -67,6 +70,8 @@ NON_CLAIMS = [
     "not_content_validity",
 ]
 
+_ASR_LANE = "transcript_asr"
+
 CAPTURE_VALIDITY_NOT_SUPPORTED_REASON = "capture_validity_not_supported"
 INSTAGRAM_STRUCTURE_NOT_PRESERVED_REASON = "instagram_structure_not_preserved"
 RETAIL_STRUCTURE_NOT_PRESERVED_REASON = "retail_structure_not_preserved"
@@ -102,8 +107,15 @@ def run_capture_ecr_cleaning_smoke(
     output_dir: Path,
     *,
     include_cleaning_transform_smoke: bool = False,
+    data_root: DataLakeRoot | None = None,
 ) -> dict[str, str]:
-    """Build smoke outputs from already-captured packet/projection artifacts."""
+    """Build smoke outputs from already-captured packet/projection artifacts.
+
+    ``data_root`` (injected, optional) supplies lake read access for lake-resident sources --
+    ``youtube_asr`` audio packets and their derived transcript records. It is None for the
+    packet-dir-only families (retail/reddit/instagram/youtube captions); a ``youtube_asr``
+    entry with no ``data_root`` fails closed (no silent skip).
+    """
 
     manifest_path = smoke_manifest_path.resolve()
     manifest = _load_json_object(manifest_path, "smoke manifest")
@@ -113,14 +125,24 @@ def run_capture_ecr_cleaning_smoke(
     reddit_entries = _entry_list(manifest, "reddit")
     instagram_entries = _entry_list(manifest, "instagram")
     youtube_entries = _entry_list(manifest, "youtube")
+    youtube_asr_entries = _entry_list(manifest, "youtube_asr")
     if (
         not retail_entries
         and not reddit_entries
         and not instagram_entries
         and not youtube_entries
+        and not youtube_asr_entries
     ):
         raise ValueError(
-            "smoke manifest must name at least one retail, reddit, instagram, or youtube source"
+            "smoke manifest must name at least one retail, reddit, instagram, youtube, "
+            "or youtube_asr source"
+        )
+    if youtube_asr_entries and data_root is None:
+        # Fail closed: a derived-record (ASR) source needs the lake to load the audio packet and
+        # resolve the transcript record. Never silently skip a named source.
+        raise ValueError(
+            "smoke manifest names youtube_asr source(s) but no data_root was injected; "
+            "a derived-record source requires lake read access (fail-closed)."
         )
 
     output_dir = output_dir.resolve()
@@ -190,6 +212,17 @@ def run_capture_ecr_cleaning_smoke(
         receipts.append(result["ecr_receipt"])
         source_summaries.append(result["source_summary"])
 
+    for index, entry in enumerate(youtube_asr_entries, start=1):
+        result = _process_youtube_asr_entry(
+            entry=entry,
+            index=index,
+            data_root=data_root,
+            findings=findings,
+        )
+        handles.extend(result["handles"])
+        receipts.append(result["ecr_receipt"])
+        source_summaries.append(result["source_summary"])
+
     transform_ledger = (
         _cleaning_transform_smoke_entries(transform_candidates)
         if include_cleaning_transform_smoke
@@ -214,6 +247,7 @@ def run_capture_ecr_cleaning_smoke(
             "reddit_sources": len(reddit_entries),
             "instagram_sources": len(instagram_entries),
             "youtube_sources": len(youtube_entries),
+            "youtube_asr_sources": len(youtube_asr_entries),
             "ecr_receipts": len(receipts),
             "cleaning_handles": len(cleaning_packet.handles),
             "cleaning_transform_entries": len(cleaning_packet.transform_ledger),
@@ -878,6 +912,103 @@ def _process_youtube_entry(
             "packet_dir": str(packet_dir),
             "handle_count": 1,
             "caption_file_id": caption_file.file_id,
+        },
+    }
+
+
+def _process_youtube_asr_entry(
+    *,
+    entry: dict[str, Any],
+    index: int,
+    data_root: DataLakeRoot | None,
+    findings: list[dict[str, Any]],
+) -> dict[str, Any]:
+    """Wire a lake-resident YouTube AUDIO packet + its transcript_asr derived record into a
+    single cleaning handle anchored by ``derived_record``.
+
+    Unlike the caption ``youtube`` entry (a plain packet directory), the ASR artifact set lives
+    entirely in the lake: the audio is a preserved file under ``raw/`` and the transcript is a
+    DERIVED record under ``derived/<audio_packet_id>/transcript_asr/``. The cleaning input is the
+    transcript record's bytes, which are not a preserved file, so the handle carries a
+    ``derived_record`` anchor (re-verified against the record bytes by the periodic audit).
+    """
+    if data_root is None:
+        # Defensive: the entry-point already fails closed, but never let this path silently no-op.
+        raise ValueError("youtube_asr entry requires an injected data_root (fail-closed).")
+    audio_packet_id = _required_text(entry, "audio_packet_id", f"youtube_asr[{index}]")
+    source_label = _optional_text(entry, "source_label") or f"youtube_asr:{index}"
+
+    loaded = data_root.load_raw_packet(audio_packet_id)
+    packet = SourceCapturePacket.model_validate(loaded.manifest)
+    if (packet.source_family, packet.source_surface) != ("youtube", "youtube_audio"):
+        # No projection/consolidation cross-check exists for the ASR path, so guard on identity:
+        # refuse to route a non-audio packet through the ASR branch (fail closed).
+        raise ValueError(
+            f"{source_label} packet {packet.packet_id} is not a YouTube audio packet "
+            f"(source_family={packet.source_family!r}, source_surface={packet.source_surface!r})"
+        )
+
+    ecr_receipt, ecr_ref = _derive_ecr_receipt(
+        packet=packet,
+        packet_dir=loaded.container,
+        source_label=source_label,
+    )
+
+    # Locate the transcript records in the lake. Derived records carry no by-key hash, so read
+    # each record's bytes directly (mirrors run_transcript_product_extract._asr_records).
+    lane_dir = data_root.lane_dir(
+        subtree="derived", raw_anchor=audio_packet_id, lane=_ASR_LANE
+    )
+    transcribed: list[tuple[str, bytes]] = []
+    if lane_dir.is_dir():
+        # transcript_asr record ids carry no extension (asr_packet.py), so read every file.
+        for record_file in sorted(lane_dir.iterdir()):
+            if not record_file.is_file():
+                continue
+            record_bytes = record_file.read_bytes()
+            try:
+                record = json.loads(record_bytes.decode("utf-8"))
+            except (ValueError, UnicodeDecodeError):
+                continue
+            if isinstance(record, dict) and record.get("posture") == "transcribed":
+                transcribed.append((record_file.name, record_bytes))
+
+    # Fail-closed selection (mirrors _process_youtube_entry's len(...) != 1 discipline): exactly
+    # one transcribed record, else raise on zero or many (no silent coverage gap).
+    if len(transcribed) != 1:
+        raise ValueError(
+            f"{source_label} audio packet {audio_packet_id} must have exactly one transcribed "
+            f"transcript_asr record; found {len(transcribed)}"
+        )
+    record_id, record_bytes = transcribed[0]
+
+    handle = CleaningInputHandle(
+        handle_id=f"{source_label}:{audio_packet_id}:{record_id}",
+        source_family=packet.source_family,
+        source_surface=packet.source_surface,
+        raw_anchor=CleaningRawAnchor(
+            packet_id=audio_packet_id,
+            sha256=hashlib.sha256(record_bytes).hexdigest(),
+            hash_basis="derived_record_bytes",
+            anchor_kind="derived_record",
+            derived_record_ref=CleaningDerivedRecordRef(
+                lane=_ASR_LANE,
+                record_id=record_id,
+            ),
+        ),
+        # Derived record: no projection_ref (it is not a projection view of a preserved file).
+        ecr_ref=ecr_ref,
+    )
+
+    return {
+        "handles": [handle],
+        "ecr_receipt": ecr_receipt,
+        "source_summary": {
+            "source_label": source_label,
+            "packet_id": audio_packet_id,
+            "handle_count": 1,
+            "transcript_record_id": record_id,
+            "transcript_lane": _ASR_LANE,
         },
     }
 

@@ -98,31 +98,57 @@ class CleaningDedupeBasis(StrEnum):
     RAW_ANCHOR_IDENTITY = "raw_anchor_identity"
 
 
+class CleaningDerivedRecordRef(StrictModel):
+    """Locates a DERIVED lake record (``derived/<raw_anchor>/<lane>/<record_id>``) that has no
+    preserved-file substrate -- the cleaning-input form for ASR transcripts and future derived
+    sources. Carried by a ``CleaningRawAnchor`` with ``anchor_kind="derived_record"``. The lake's
+    segment grammar (``data_lake.root``) is enforced at resolution time, so a malformed
+    lane/record_id surfaces as a fail-closed audit finding rather than a crash."""
+
+    subtree: Literal["derived"] = "derived"
+    lane: str
+    record_id: str
+
+    @field_validator("lane", "record_id")
+    @classmethod
+    def reject_blank_ref_fields(cls, value: str) -> str:
+        if not value.strip():
+            raise ValueError("CleaningDerivedRecordRef lane/record_id must be non-empty.")
+        return value
+
+
 class CleaningRawAnchor(StrictModel):
+    # A preserved-file anchor (the default) keys to a packet's preserved file via
+    # slice_id/file_id/relative_packet_path. A ``derived_record`` anchor instead keys to a derived
+    # lake record via ``derived_record_ref`` and carries NONE of the preserved-file fields.
     packet_id: str
-    slice_id: str
-    file_id: str
-    relative_packet_path: str
+    slice_id: str | None = None
+    file_id: str | None = None
+    relative_packet_path: str | None = None
     sha256: str
     hash_basis: str
-    anchor_kind: Literal["file", "json_pointer", "html_selector", "script_index", "text_pattern"] = (
-        "file"
-    )
+    anchor_kind: Literal[
+        "file", "json_pointer", "html_selector", "script_index", "text_pattern", "derived_record"
+    ] = "file"
     anchor_value: str | None = None
     json_pointer: str | None = None
+    derived_record_ref: CleaningDerivedRecordRef | None = None
 
-    @field_validator(
-        "packet_id",
-        "slice_id",
-        "file_id",
-        "relative_packet_path",
-        "sha256",
-        "hash_basis",
-    )
+    @field_validator("packet_id", "sha256", "hash_basis")
     @classmethod
     def reject_blank_anchor_fields(cls, value: str) -> str:
         if not value.strip():
             raise ValueError("CleaningRawAnchor fields must be non-empty.")
+        return value
+
+    @field_validator("slice_id", "file_id", "relative_packet_path")
+    @classmethod
+    def reject_blank_optional_anchor_fields(cls, value: str | None) -> str | None:
+        # Optional: absent (None) for a derived_record anchor; non-empty when present. WHICH kinds
+        # require them is enforced in validate_anchor_substrate. This field validator runs BEFORE
+        # the model validators, so it must tolerate None or a derived_record anchor cannot construct.
+        if value is not None and not value.strip():
+            raise ValueError("CleaningRawAnchor preserved-file fields must be non-empty when set.")
         return value
 
     @model_validator(mode="after")
@@ -131,10 +157,39 @@ class CleaningRawAnchor(StrictModel):
             self.json_pointer and self.json_pointer.strip()
         ):
             raise ValueError("json_pointer anchors require json_pointer.")
-        if self.anchor_kind not in {"file", "json_pointer"} and not (
+        # "file" and "derived_record" take the whole artifact -- no anchor_value; the remaining
+        # specific kinds require one.
+        if self.anchor_kind not in {"file", "json_pointer", "derived_record"} and not (
             self.anchor_value and self.anchor_value.strip()
         ):
             raise ValueError(f"{self.anchor_kind} anchors require anchor_value.")
+        return self
+
+    @model_validator(mode="after")
+    def validate_anchor_substrate(self) -> "CleaningRawAnchor":
+        """Enforce the two anchor shapes are never mixed: a ``derived_record`` anchor references a
+        lake record (``derived_record_ref``, no preserved-file fields, no anchor_value/json_pointer);
+        every other kind references a preserved file (slice_id/file_id/relative_packet_path present,
+        no derived_record_ref)."""
+        preserved_fields = (self.slice_id, self.file_id, self.relative_packet_path)
+        if self.anchor_kind == "derived_record":
+            if self.derived_record_ref is None:
+                raise ValueError("derived_record anchors require derived_record_ref.")
+            if any(field is not None for field in preserved_fields):
+                raise ValueError(
+                    "derived_record anchors must not carry slice_id/file_id/relative_packet_path."
+                )
+            if self.anchor_value is not None or self.json_pointer is not None:
+                raise ValueError(
+                    "derived_record anchors must not carry anchor_value or json_pointer."
+                )
+        else:
+            if self.derived_record_ref is not None:
+                raise ValueError(f"{self.anchor_kind} anchors must not carry derived_record_ref.")
+            if any(field is None or not field.strip() for field in preserved_fields):
+                raise ValueError(
+                    f"{self.anchor_kind} anchors require slice_id, file_id, and relative_packet_path."
+                )
         return self
 
 

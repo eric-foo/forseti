@@ -8,6 +8,7 @@ to a data lake, or make Judgment/readiness claims.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import re
 import sys
@@ -20,6 +21,7 @@ if __package__ in {None, ""}:
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from cleaning.models import CleaningPacket  # noqa: E402
+from data_lake.root import DataLakeRoot, DataLakeRootError  # noqa: E402
 from ecr.models import EcrSourceSideReceiptArtifact  # noqa: E402
 from harness_utils import hash_file, utc_now_z  # noqa: E402
 from runners.run_capture_ecr_cleaning_smoke import (  # noqa: E402
@@ -53,7 +55,7 @@ SCHEMA_VERSION = "cleaning_spine_periodic_audit_v0"
 BLOCKING_SEVERITIES = frozenset({"blocker", "major"})
 SUPPORTED_SOURCE_FAMILIES = ("retail", "reddit", "instagram")
 _ANCHOR_VALIDATOR_KINDS = frozenset(
-    {"file", "json_pointer", "html_selector", "script_index", "text_pattern"}
+    {"file", "json_pointer", "html_selector", "script_index", "text_pattern", "derived_record"}
 )
 _SOURCE_FAMILY_AUDIT_ADAPTERS: dict[str, dict[str, frozenset[str]]] = {
     "retail": {
@@ -91,15 +93,23 @@ _CLEANING_SOURCE_FAMILY_TO_AUDIT_SOURCE = {
 # by the projection-row adapters above. Kept disjoint from the projection-backed mapping so a
 # source_family is never both classes (enforced by _validate_source_family_adapter_contract).
 _PROJECTION_LESS_SOURCE_FAMILIES: dict[str, frozenset[str]] = {
-    "youtube": frozenset({"file"}),
+    # youtube captions anchor by preserved "file" (#401); youtube ASR anchors its derived
+    # transcript record by "derived_record" (no preserved-file substrate).
+    "youtube": frozenset({"file", "derived_record"}),
 }
-# Source types the periodic audit reads from the smoke manifest into packet_index: the
-# projection-backed families PLUS the projection-less ones. A projection-less packet must still
-# enter packet_index so its cleaning handle's raw anchor resolves in _verify_cleaning_raw_anchor,
-# even though it has no projection to rebuild (lane-B records it as not-applicable).
+# Manifest ENTRY TYPES the periodic audit reads into packet_index: the projection-backed
+# families, the projection-less family (youtube), PLUS the lake-resident entry type
+# ``youtube_asr`` (a youtube_audio packet whose transcript is a DERIVED record, loaded from the
+# injected lake -- not a packet_dir). A projection-less / lake-resident packet must still enter
+# packet_index so its cleaning handle's raw anchor resolves in _verify_cleaning_raw_anchor, even
+# though it has no projection to rebuild (lane-B records it as not-applicable). ``youtube_asr``
+# is an entry type, NOT a source_family: it maps to source_family "youtube" + surface
+# "youtube_audio", and _PROJECTION_LESS_SOURCE_FAMILIES stays keyed by family "youtube".
+_LAKE_RESIDENT_ENTRY_SOURCE_TYPES: tuple[str, ...] = ("youtube_asr",)
 _AUDIT_ENTRY_SOURCE_TYPES: tuple[str, ...] = (
     *SUPPORTED_SOURCE_FAMILIES,
     *_PROJECTION_LESS_SOURCE_FAMILIES,
+    *_LAKE_RESIDENT_ENTRY_SOURCE_TYPES,
 )
 
 NON_CLAIMS = [
@@ -153,8 +163,17 @@ _RAW_PULL_TRIGGER_REQUIRED_REASON_TOKENS = frozenset(
 def run_cleaning_spine_periodic_audit(
     audit_manifest_path: Path,
     output_dir: Path,
+    *,
+    data_root: DataLakeRoot | None = None,
 ) -> dict[str, str]:
-    """Run the bounded no-network Cleaning periodic audit."""
+    """Run the bounded no-network Cleaning periodic audit.
+
+    ``data_root`` (injected, optional) supplies lake read access used ONLY for lake-resident
+    sources: ``youtube_asr`` manifest entries (the audio packet is loaded from the lake) and
+    ``derived_record`` cleaning anchors (the transcript record is resolved + re-hashed). It is
+    None for the existing packet-dir-only audit; a ``derived_record`` anchor encountered with no
+    ``data_root`` is a blocking finding (never a silent skip). The CLI ``main`` constructs it via
+    ``DataLakeRoot.resolve()`` -- resolution is never baked into this runner body."""
 
     manifest_path = audit_manifest_path.resolve()
     manifest = _load_json_object(manifest_path, "audit manifest")
@@ -191,7 +210,7 @@ def run_cleaning_spine_periodic_audit(
     packet_index: dict[str, dict[str, Any]] = {}
     _validate_source_family_adapter_contract()
 
-    source_entries = _source_entries(smoke_manifest, smoke_manifest_dir)
+    source_entries = _source_entries(smoke_manifest, smoke_manifest_dir, data_root=data_root)
     if not source_entries:
         raise ValueError("smoke manifest must name at least one supported source entry")
 
@@ -199,6 +218,7 @@ def run_cleaning_spine_periodic_audit(
         source_entries=source_entries,
         packet_index=packet_index,
         findings=findings,
+        data_root=data_root,
     )
 
     lane_a_outputs = _resolve_lane_a_outputs(
@@ -210,6 +230,7 @@ def run_cleaning_spine_periodic_audit(
         packet_index=packet_index,
         source_entries=source_entries,
         findings=findings,
+        data_root=data_root,
     )
 
     lane_b_projection = _run_lane_b_projection_breakpoint(
@@ -224,6 +245,7 @@ def run_cleaning_spine_periodic_audit(
         baseline_cleaning=lane_a.get("cleaning_packet"),
         baseline_ecr_receipts=lane_a.get("ecr_receipts"),
         findings=findings,
+        data_root=data_root,
     )
 
     lane_statuses = {
@@ -285,14 +307,27 @@ def _run_capture_preflight(
     source_entries: Sequence[dict[str, Any]],
     packet_index: dict[str, dict[str, Any]],
     findings: list[dict[str, Any]],
+    data_root: DataLakeRoot | None = None,
 ) -> dict[str, Any]:
     packets_checked = 0
     packet_summaries: list[dict[str, Any]] = []
     for entry in source_entries:
         source_label = entry["source_label"]
-        packet_dir = entry["packet_dir"]
         try:
-            packet = _load_packet(packet_dir)
+            if entry["source_type"] == "youtube_asr":
+                # Lake-resident audio packet: load it from the injected lake and treat the lake
+                # container exactly as a packet_dir-loaded one, so the existing preserved-file
+                # checks + the ECR receipt run unchanged.
+                if data_root is None:
+                    raise ValueError(
+                        "youtube_asr entry requires an injected data_root (fail-closed)."
+                    )
+                loaded = data_root.load_raw_packet(entry["audio_packet_id"])
+                packet = SourceCapturePacket.model_validate(loaded.manifest)
+                packet_dir = loaded.container
+            else:
+                packet_dir = entry["packet_dir"]
+                packet = _load_packet(packet_dir)
             packets_checked += 1
             _verify_packet_preserved_files(
                 source_label=source_label,
@@ -338,6 +373,7 @@ def _run_lane_a_existing_package_checks(
     packet_index: dict[str, dict[str, Any]],
     source_entries: Sequence[dict[str, Any]],
     findings: list[dict[str, Any]],
+    data_root: DataLakeRoot | None = None,
 ) -> dict[str, Any]:
     result: dict[str, Any] = {}
     try:
@@ -385,6 +421,7 @@ def _run_lane_a_existing_package_checks(
             projection_row_index=projection_row_index,
             findings=findings,
             lane="lane_a_existing_package",
+            data_root=data_root,
         )
     except Exception as exc:
         _finding(
@@ -485,10 +522,11 @@ def _run_lane_b_projection_breakpoint(
                 rebuilt_signature = _reddit_consolidation_signature(
                     _load_json_object(rebuilt_path, f"{source_label} rebuilt consolidation")
                 )
-            elif source_type == "youtube":
-                # Projection-less / direct-artifact source: there is no projection to rebuild, so
-                # the projection-breakpoint check is NOT APPLICABLE. Record it as skipped (no
-                # finding) rather than treating an absent rebuild as a failure.
+            elif source_type in {"youtube", "youtube_asr"}:
+                # Projection-less / direct-artifact (youtube captions) or lake-resident derived
+                # source (youtube_asr): there is no projection to rebuild, so the
+                # projection-breakpoint check is NOT APPLICABLE. Record it as skipped (no finding)
+                # rather than treating an absent rebuild as a failure.
                 entries.append(
                     {
                         "source_label": source_label,
@@ -549,11 +587,13 @@ def _run_lane_b_cleaning_breakpoint(
     baseline_cleaning: Any,
     baseline_ecr_receipts: Any,
     findings: list[dict[str, Any]],
+    data_root: DataLakeRoot | None = None,
 ) -> dict[str, Any]:
     try:
         outputs = run_capture_ecr_cleaning_smoke(
             smoke_manifest_path=smoke_manifest_path,
             output_dir=output_dir,
+            data_root=data_root,
         )
         rebuilt_cleaning = CleaningPacket.model_validate(
             _load_json_object(Path(outputs["cleaning_packet"]), "rebuilt CleaningPacket")
@@ -1030,6 +1070,7 @@ def _verify_cleaning_packet_traceability(
     projection_row_index: dict[str, dict[str, dict[str, Any]]],
     findings: list[dict[str, Any]],
     lane: str,
+    data_root: DataLakeRoot | None = None,
 ) -> None:
     receipt_keys = {
         (receipt.get("packet_id"), receipt.get("ref_id"))
@@ -1095,6 +1136,7 @@ def _verify_cleaning_packet_traceability(
             packet_index=packet_index,
             findings=findings,
             lane=lane,
+            data_root=data_root,
         )
         _verify_failed_capture_handle_raw_pull_trigger(
             handle_id=handle.handle_id,
@@ -1321,6 +1363,7 @@ def _verify_cleaning_raw_anchor(
     packet_index: dict[str, dict[str, Any]],
     findings: list[dict[str, Any]],
     lane: str,
+    data_root: DataLakeRoot | None = None,
 ) -> None:
     packet_id = raw_anchor["packet_id"]
     packet_record = packet_index.get(packet_id)
@@ -1334,6 +1377,20 @@ def _verify_cleaning_raw_anchor(
             packet_id=packet_id,
             handle_id=handle_id,
             message="Cleaning raw anchor packet_id is absent from audit packet index.",
+        )
+        return
+
+    # A derived_record anchor references a DERIVED lake record (no preserved-file substrate), so
+    # it is resolved + re-hashed against the lake -- NOT the packet/slice/file resolution below.
+    # This branch is taken FIRST (before slice_by_id/preserved_by_id are built) so a derived
+    # record never falls through to a misleading slice/file finding, and it always returns.
+    if raw_anchor.get("anchor_kind") == "derived_record":
+        _verify_derived_record_anchor(
+            handle_id=handle_id,
+            raw_anchor=raw_anchor,
+            data_root=data_root,
+            findings=findings,
+            lane=lane,
         )
         return
 
@@ -1417,6 +1474,92 @@ def _verify_cleaning_raw_anchor(
         )
 
 
+def _verify_derived_record_anchor(
+    *,
+    handle_id: str,
+    raw_anchor: dict[str, Any],
+    data_root: DataLakeRoot | None,
+    findings: list[dict[str, Any]],
+    lane: str,
+) -> None:
+    """Resolve the derived transcript record from the lake and re-hash its bytes against the
+    anchor's recorded sha256. Fail-closed: no lake -> blocking; path absent -> unresolved; bytes
+    differ -> hash_mismatch; any read/segment error (DataLakeRootError, decode, OS) -> unreadable.
+    This is the audit's real verification of a derived-record input -- never a silent skip."""
+    packet_id = raw_anchor["packet_id"]
+    if data_root is None:
+        _finding(
+            findings,
+            lane=lane,
+            severity="blocker",
+            code="cleaning_derived_record_anchor_lake_unavailable",
+            owner_candidate="audit_fixture_or_wiring",
+            packet_id=packet_id,
+            handle_id=handle_id,
+            message=(
+                "Cleaning derived_record anchor cannot be verified: no data_root was injected "
+                "(the audit cannot reach the lake to re-hash the derived record)."
+            ),
+        )
+        return
+    ref = raw_anchor.get("derived_record_ref") or {}
+    lane_name = ref.get("lane")
+    record_id = ref.get("record_id")
+    try:
+        record_path = data_root.record_path(
+            subtree="derived",
+            raw_anchor=packet_id,
+            lane=lane_name,
+            record_id=record_id,
+        )
+        if not record_path.is_file():
+            _finding(
+                findings,
+                lane=lane,
+                severity="major",
+                code="cleaning_derived_record_anchor_unresolved",
+                owner_candidate="cleaning_or_fixture",
+                packet_id=packet_id,
+                handle_id=handle_id,
+                message="Cleaning derived_record anchor path is absent from the lake.",
+                details={"lane": lane_name, "record_id": record_id},
+            )
+            return
+        actual_sha256 = hashlib.sha256(record_path.read_bytes()).hexdigest()
+    except (DataLakeRootError, OSError, ValueError, TypeError) as exc:
+        # A malformed lane/record_id segment, a path escape, or an unreadable file surfaces as a
+        # fail-closed finding -- never a crash mid-audit.
+        _finding(
+            findings,
+            lane=lane,
+            severity="major",
+            code="cleaning_derived_record_anchor_unreadable",
+            owner_candidate="cleaning_or_fixture",
+            packet_id=packet_id,
+            handle_id=handle_id,
+            message=str(exc),
+            details={"lane": lane_name, "record_id": record_id},
+        )
+        return
+    if actual_sha256 != raw_anchor["sha256"]:
+        _finding(
+            findings,
+            lane=lane,
+            severity="major",
+            code="cleaning_derived_record_anchor_hash_mismatch",
+            owner_candidate="cleaning_or_fixture",
+            packet_id=packet_id,
+            handle_id=handle_id,
+            message="Cleaning derived_record anchor sha256 differs from the lake record bytes.",
+            details={
+                "lane": lane_name,
+                "record_id": record_id,
+                "expected_sha256": raw_anchor["sha256"],
+                "actual_sha256": actual_sha256,
+            },
+        )
+
+
 def _verify_anchor_specificity(
     *,
     handle_id: str,
@@ -1426,7 +1569,9 @@ def _verify_anchor_specificity(
     lane: str,
 ) -> None:
     anchor_kind = raw_anchor["anchor_kind"]
-    if anchor_kind == "file":
+    if anchor_kind in {"file", "derived_record"}:
+        # "file" and "derived_record" take the whole artifact -- no anchor_value to verify, and a
+        # derived_record is integrity-checked by _verify_derived_record_anchor, not here.
         return
     if anchor_kind == "json_pointer":
         pointer = raw_anchor.get("json_pointer")
@@ -1758,6 +1903,8 @@ def _ecr_signature(ecr_receipts: dict[str, Any]) -> list[dict[str, Any]]:
 def _source_entries(
     smoke_manifest: dict[str, Any],
     smoke_manifest_dir: Path,
+    *,
+    data_root: DataLakeRoot | None = None,
 ) -> list[dict[str, Any]]:
     entries: list[dict[str, Any]] = []
     for source_type in _AUDIT_ENTRY_SOURCE_TYPES:
@@ -1769,6 +1916,28 @@ def _source_entries(
         for index, entry in enumerate(raw_entries, start=1):
             if not isinstance(entry, dict):
                 raise ValueError(f"smoke manifest {source_type}[{index}] must be an object")
+            if source_type == "youtube_asr":
+                # Lake-resident: keyed by audio_packet_id, not a packet_dir. The preflight loads
+                # the audio packet from the injected lake. Fail closed if the lake is unwired so
+                # a named source is never silently dropped.
+                if data_root is None:
+                    raise ValueError(
+                        "smoke manifest names a youtube_asr source but no data_root was injected; "
+                        "a lake-resident source requires lake read access (fail-closed)."
+                    )
+                audio_packet_id = _required_text(
+                    entry, "audio_packet_id", f"{source_type}[{index}]"
+                )
+                entries.append(
+                    {
+                        "source_type": source_type,
+                        "source_label": _source_label(
+                            source_type=source_type, entry=entry, index=index
+                        ),
+                        "audio_packet_id": audio_packet_id,
+                    }
+                )
+                continue
             packet_dir = _resolve_manifest_path(
                 smoke_manifest_dir,
                 entry,
@@ -1811,7 +1980,16 @@ def _source_label(*, source_type: str, entry: dict[str, Any], index: int) -> str
         return f"instagram:{handle.strip()}" if isinstance(handle, str) and handle.strip() else f"instagram:{index}"
     if source_type == "youtube":
         return f"youtube:{index}"
+    if source_type == "youtube_asr":
+        return f"youtube_asr:{index}"
     return f"reddit:{index}"
+
+
+def _required_text(mapping: dict[str, Any], field_name: str, label: str) -> str:
+    value = mapping.get(field_name)
+    if not isinstance(value, str) or not value.strip():
+        raise ValueError(f"{label} field {field_name!r} must be a non-empty string")
+    return value
 
 
 def _resolve_lane_a_outputs(
@@ -2042,12 +2220,32 @@ def main(argv: Sequence[str] | None = None) -> int:
         type=Path,
         help="Directory where audit reports and Lane B rebuild outputs will be written.",
     )
+    parser.add_argument(
+        "--data-root",
+        type=Path,
+        default=None,
+        help=(
+            "Optional Orca data-lake root for verifying lake-resident sources (youtube_asr "
+            "entries / derived_record anchors). Resolved via DataLakeRoot.resolve(); when unset "
+            "and ORCA_DATA_ROOT is unconfigured, lake-resident sources fail closed in the audit."
+        ),
+    )
     args = parser.parse_args(argv)
+
+    # Construct the lake here (never in the runner body). resolve() fails closed when no root is
+    # configured; for the existing packet-dir-only audit that is fine -- pass None and let any
+    # lake-resident source fail closed inside the runner with an explicit finding.
+    data_root: DataLakeRoot | None
+    try:
+        data_root = DataLakeRoot.resolve(explicit=args.data_root)
+    except DataLakeRootError:
+        data_root = None
 
     try:
         outputs = run_cleaning_spine_periodic_audit(
             audit_manifest_path=args.audit_manifest,
             output_dir=args.output_dir,
+            data_root=data_root,
         )
         report = _load_json_object(Path(outputs["audit_report_json"]), "audit report")
     except (ValueError, ValidationError) as exc:
