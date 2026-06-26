@@ -1,0 +1,3956 @@
+{
+  "generated_at_utc": "2026-06-26T09:52:50Z",
+  "purpose": "Step 5 bounded expansion pool for YouTube Shorts transcript-only tone work; capture/admission only, no additional tone labels.",
+  "decision": "Admit up to 30 additional public YouTube Shorts with durable caption packets to expand the data foundation while delegated rubric review is pending.",
+  "data_root": "F:\\orca-data-lake",
+  "data_root_uuid": "01KW1E6N133JT0XCN2KCN0V5A4",
+  "target_new_admitted": 30,
+  "min_word_count": 20,
+  "capture_policy": {
+    "route": "caption-first YouTube public captions via yt-dlp into SourceCapturePacket",
+    "asr_fallback": "deferred in this expansion to avoid heavy relabel churn while rubric review is pending",
+    "labels": "not run; expansion is capture/admission only",
+    "energy_policy": "energy/pace/volume/prosodic excitement are not transcript labels; require audio feature capture"
+  },
+  "source_inputs": {
+    "hard30_fixture": "docs/review-inputs/youtube_shorts_fragrance_tone_fixture_hard30_v0.json",
+    "prior_candidate_pool": "docs/review-inputs/youtube_shorts_fragrance_tone_fixture_candidates_v0.json",
+    "delegated_rubric_review_prompt": "docs/prompts/reviews/youtube_shorts_transcript_tone_rubric_delegated_adversarial_artifact_review_patch_prompt_v0.md"
+  },
+  "skip_policy": {
+    "skip_prior_fixture_and_probe_ids": true,
+    "skip_count": 35
+  },
+  "handles_attempted": [
+    {
+      "handle_query": "Aromatix",
+      "cohort": "exploratory_extra_handle"
+    },
+    {
+      "handle_query": "ChaosFragrances",
+      "cohort": "exploratory_extra_handle"
+    },
+    {
+      "handle_query": "FragranceKnowledge",
+      "cohort": "exploratory_extra_handle"
+    },
+    {
+      "handle_query": "BowTieFragranceGuy",
+      "cohort": "exploratory_extra_handle"
+    },
+    {
+      "handle_query": "JustinCopeland",
+      "cohort": "exploratory_extra_handle"
+    },
+    {
+      "handle_query": "TheTopNotes",
+      "cohort": "exploratory_extra_handle"
+    },
+    {
+      "handle_query": "CeeChronicles",
+      "cohort": "exploratory_extra_handle"
+    },
+    {
+      "handle_query": "Scenteno",
+      "cohort": "exploratory_extra_handle"
+    },
+    {
+      "handle_query": "TiffBenson",
+      "cohort": "exploratory_extra_handle"
+    },
+    {
+      "handle_query": "Ksenja",
+      "cohort": "exploratory_extra_handle"
+    },
+    {
+      "handle_query": "MilaLeBlanc",
+      "cohort": "exploratory_extra_handle"
+    },
+    {
+      "handle_query": "PaulinaSchar",
+      "cohort": "exploratory_extra_handle"
+    },
+    {
+      "handle_query": "MelissaNacional",
+      "cohort": "exploratory_extra_handle"
+    },
+    {
+      "handle_query": "Scentbird",
+      "cohort": "exploratory_extra_handle"
+    },
+    {
+      "handle_query": "ThePerfumeNest",
+      "cohort": "exploratory_extra_handle"
+    },
+    {
+      "handle_query": "ProfessorPerfume",
+      "cohort": "exploratory_extra_handle"
+    },
+    {
+      "handle_query": "JeremyFragrance",
+      "cohort": "existing_verified_fragrance_creator"
+    },
+    {
+      "handle_query": "GentsScents",
+      "cohort": "existing_verified_fragrance_creator"
+    },
+    {
+      "handle_query": "ThePerfumeGuy",
+      "cohort": "existing_verified_fragrance_creator"
+    },
+    {
+      "handle_query": "SchoolofScent",
+      "cohort": "existing_verified_fragrance_creator"
+    },
+    {
+      "handle_query": "CurlyScents",
+      "cohort": "existing_verified_fragrance_creator"
+    },
+    {
+      "handle_query": "funmimonet",
+      "cohort": "existing_verified_fragrance_creator"
+    },
+    {
+      "handle_query": "SokiLondon",
+      "cohort": "existing_verified_fragrance_creator"
+    },
+    {
+      "handle_query": "TLTGReviews",
+      "cohort": "existing_verified_fragrance_creator"
+    },
+    {
+      "handle_query": "Redolessence",
+      "cohort": "existing_verified_fragrance_creator"
+    },
+    {
+      "handle_query": "TheFragranceApprentice",
+      "cohort": "existing_verified_fragrance_creator"
+    }
+  ],
+  "enumerations": [
+    {
+      "handle_query": "Aromatix",
+      "cohort": "exploratory_extra_handle",
+      "url": "https://www.youtube.com/@Aromatix/shorts",
+      "retrieval_time_utc": "2026-06-26T09:52:50Z",
+      "http_status": 200,
+      "final_url": "https://www.youtube.com/@Aromatix/shorts",
+      "byte_size": 992874,
+      "short_ids_found": 0,
+      "page_sha256": "dd42ad2d7138c0e955f7ce28c92db640c47800eb34006b0587029dfde32c8f81"
+    },
+    {
+      "handle_query": "ChaosFragrances",
+      "cohort": "exploratory_extra_handle",
+      "url": "https://www.youtube.com/@ChaosFragrances/shorts",
+      "retrieval_time_utc": "2026-06-26T09:52:50Z",
+      "http_status": 200,
+      "final_url": "https://www.youtube.com/chaosfragrances/shorts",
+      "byte_size": 1112307,
+      "short_ids_found": 48,
+      "page_sha256": "c1fcc094c5a8f0b7d684390b0398952f1c36dc1139b516690892d04c9aab8a9e"
+    },
+    {
+      "handle_query": "FragranceKnowledge",
+      "cohort": "exploratory_extra_handle",
+      "url": "https://www.youtube.com/@FragranceKnowledge/shorts",
+      "retrieval_time_utc": "2026-06-26T09:52:51Z",
+      "http_status": 200,
+      "final_url": "https://www.youtube.com/@FragranceKnowledge/shorts",
+      "byte_size": 1105346,
+      "short_ids_found": 48,
+      "page_sha256": "14044ab151615eb88f3181e6ed49f5f83eab1185a0a3c3db0ce3a377e912c31c"
+    },
+    {
+      "handle_query": "BowTieFragranceGuy",
+      "cohort": "exploratory_extra_handle",
+      "url": "https://www.youtube.com/@BowTieFragranceGuy/shorts",
+      "retrieval_time_utc": "2026-06-26T09:52:52Z",
+      "http_status": 200,
+      "final_url": "https://www.youtube.com/@BowTieFragranceGuy/shorts",
+      "byte_size": 1054560,
+      "short_ids_found": 48,
+      "page_sha256": "dc26a9b9eb999fff529b4c3aca67661f78cdd3c06bd74b847ffd923df2e7939d"
+    },
+    {
+      "handle_query": "JustinCopeland",
+      "cohort": "exploratory_extra_handle",
+      "url": "https://www.youtube.com/@JustinCopeland/shorts",
+      "retrieval_time_utc": "2026-06-26T09:52:52Z",
+      "http_status": 200,
+      "final_url": "https://www.youtube.com/@JustinCopeland/shorts",
+      "byte_size": 787665,
+      "short_ids_found": 0,
+      "page_sha256": "5218258c9a59908aad3ecdde6a25f0f48bcfe7ccc7162453b79a92af8d38d995"
+    },
+    {
+      "handle_query": "TheTopNotes",
+      "cohort": "exploratory_extra_handle",
+      "url": "https://www.youtube.com/@TheTopNotes/shorts",
+      "retrieval_time_utc": "2026-06-26T09:52:52Z",
+      "http_status": 200,
+      "final_url": "https://www.youtube.com/@TheTopNotes/shorts",
+      "byte_size": 723356,
+      "short_ids_found": 0,
+      "page_sha256": "adb9971b38956aa0d01e97d3614c8890ebb453487de174fd9993c8b693c21cf3"
+    },
+    {
+      "handle_query": "CeeChronicles",
+      "cohort": "exploratory_extra_handle",
+      "url": "https://www.youtube.com/@CeeChronicles/shorts",
+      "retrieval_time_utc": "2026-06-26T09:52:53Z",
+      "http_status": 404,
+      "final_url": "https://www.youtube.com/@CeeChronicles/shorts",
+      "byte_size": 755,
+      "short_ids_found": 0,
+      "page_sha256": "6922703cce24d565f555e5f021a11806ebc26ce064a858461a12c9d8b23fb525"
+    },
+    {
+      "handle_query": "Scenteno",
+      "cohort": "exploratory_extra_handle",
+      "url": "https://www.youtube.com/@Scenteno/shorts",
+      "retrieval_time_utc": "2026-06-26T09:52:53Z",
+      "http_status": 200,
+      "final_url": "https://www.youtube.com/@Scenteno/shorts",
+      "byte_size": 1112271,
+      "short_ids_found": 48,
+      "page_sha256": "e337c3195cac372270a613ac430a0d1c52cb37bec9f845050c1808f7953b1e07"
+    },
+    {
+      "handle_query": "TiffBenson",
+      "cohort": "exploratory_extra_handle",
+      "url": "https://www.youtube.com/@TiffBenson/shorts",
+      "retrieval_time_utc": "2026-06-26T09:52:54Z",
+      "http_status": 200,
+      "final_url": "https://www.youtube.com/@TiffBenson/shorts",
+      "byte_size": 1112083,
+      "short_ids_found": 48,
+      "page_sha256": "4682dd20f7dd0884a0d97d4f62f1bb3d2a430c5c2c7c6cc2a52f7e768e2dd887"
+    },
+    {
+      "handle_query": "Ksenja",
+      "cohort": "exploratory_extra_handle",
+      "url": "https://www.youtube.com/@Ksenja/shorts",
+      "retrieval_time_utc": "2026-06-26T09:52:54Z",
+      "http_status": 404,
+      "final_url": "https://www.youtube.com/@Ksenja/shorts",
+      "byte_size": 755,
+      "short_ids_found": 0,
+      "page_sha256": "a92a211a5389f0e074d849918173b0b284e772ba1ddf92ca74249a1e7747d80a"
+    },
+    {
+      "handle_query": "MilaLeBlanc",
+      "cohort": "exploratory_extra_handle",
+      "url": "https://www.youtube.com/@MilaLeBlanc/shorts",
+      "retrieval_time_utc": "2026-06-26T09:52:54Z",
+      "http_status": 200,
+      "final_url": "https://www.youtube.com/@MilaLeBlanc/shorts",
+      "byte_size": 796378,
+      "short_ids_found": 12,
+      "page_sha256": "bab4174bc99e8ff12add4602696e62fe4b31ec588ba222314a9557d7530656f9"
+    },
+    {
+      "handle_query": "PaulinaSchar",
+      "cohort": "exploratory_extra_handle",
+      "url": "https://www.youtube.com/@PaulinaSchar/shorts",
+      "retrieval_time_utc": "2026-06-26T09:52:55Z",
+      "http_status": 404,
+      "final_url": "https://www.youtube.com/@PaulinaSchar/shorts",
+      "byte_size": 755,
+      "short_ids_found": 0,
+      "page_sha256": "b83ae19aad995cb3bbe1a907bd84c3fb6607908ac0c1252d5bf5bcdbe0adcaab"
+    },
+    {
+      "handle_query": "MelissaNacional",
+      "cohort": "exploratory_extra_handle",
+      "url": "https://www.youtube.com/@MelissaNacional/shorts",
+      "retrieval_time_utc": "2026-06-26T09:52:55Z",
+      "http_status": 200,
+      "final_url": "https://www.youtube.com/@MelissaNacional/shorts",
+      "byte_size": 723974,
+      "short_ids_found": 0,
+      "page_sha256": "7c481c39a8c55a06b27cb77c6842bcd6ecb7325ab37f9d952c07443780e0e970"
+    },
+    {
+      "handle_query": "Scentbird",
+      "cohort": "exploratory_extra_handle",
+      "url": "https://www.youtube.com/@Scentbird/shorts",
+      "retrieval_time_utc": "2026-06-26T09:52:55Z",
+      "http_status": 200,
+      "final_url": "https://www.youtube.com/@Scentbird/shorts",
+      "byte_size": 1115644,
+      "short_ids_found": 48,
+      "page_sha256": "a0c06b21902cbead6305f78d73060794fd5168cd075c34b5e4de2de971200109"
+    },
+    {
+      "handle_query": "ThePerfumeNest",
+      "cohort": "exploratory_extra_handle",
+      "url": "https://www.youtube.com/@ThePerfumeNest/shorts",
+      "retrieval_time_utc": "2026-06-26T09:52:56Z",
+      "http_status": 200,
+      "final_url": "https://www.youtube.com/@ThePerfumeNest/shorts",
+      "byte_size": 1110342,
+      "short_ids_found": 48,
+      "page_sha256": "e2dbd129a44135d9c14f91f41071430c57790a53e5e3154e3d55467006718f06"
+    },
+    {
+      "handle_query": "ProfessorPerfume",
+      "cohort": "exploratory_extra_handle",
+      "url": "https://www.youtube.com/@ProfessorPerfume/shorts",
+      "retrieval_time_utc": "2026-06-26T09:52:57Z",
+      "http_status": 200,
+      "final_url": "https://www.youtube.com/@ProfessorPerfume/shorts",
+      "byte_size": 735123,
+      "short_ids_found": 1,
+      "page_sha256": "0031b7987d0e9898353e7e6a12d234e3c5e166f1054a4ab97ee3af29f4aa8f06"
+    },
+    {
+      "handle_query": "JeremyFragrance",
+      "cohort": "existing_verified_fragrance_creator",
+      "url": "https://www.youtube.com/@JeremyFragrance/shorts",
+      "retrieval_time_utc": "2026-06-26T09:52:57Z",
+      "http_status": 200,
+      "final_url": "https://www.youtube.com/@JeremyFragrance/shorts",
+      "byte_size": 1115335,
+      "short_ids_found": 48,
+      "page_sha256": "f0226ce0f8af467aa4a60dd4c64a19c1a58f2bc1930dc884389bcc87173d4d7a"
+    },
+    {
+      "handle_query": "GentsScents",
+      "cohort": "existing_verified_fragrance_creator",
+      "url": "https://www.youtube.com/@GentsScents/shorts",
+      "retrieval_time_utc": "2026-06-26T09:52:57Z",
+      "http_status": 200,
+      "final_url": "https://www.youtube.com/@GentsScents/shorts",
+      "byte_size": 813251,
+      "short_ids_found": 13,
+      "page_sha256": "5351f1e8cf0f03b3099998a837d8c20ec0b81f741545fe5753e8e7b5f853d0fe"
+    },
+    {
+      "handle_query": "ThePerfumeGuy",
+      "cohort": "existing_verified_fragrance_creator",
+      "url": "https://www.youtube.com/@ThePerfumeGuy/shorts",
+      "retrieval_time_utc": "2026-06-26T09:52:58Z",
+      "http_status": 200,
+      "final_url": "https://www.youtube.com/@ThePerfumeGuy/shorts",
+      "byte_size": 1122533,
+      "short_ids_found": 48,
+      "page_sha256": "51865b2b0f718b7681f82364e8594d6b1810a282971b8a50008fc674ba9afb98"
+    },
+    {
+      "handle_query": "SchoolofScent",
+      "cohort": "existing_verified_fragrance_creator",
+      "url": "https://www.youtube.com/@SchoolofScent/shorts",
+      "retrieval_time_utc": "2026-06-26T09:52:58Z",
+      "http_status": 200,
+      "final_url": "https://www.youtube.com/@SchoolofScent/shorts",
+      "byte_size": 1114915,
+      "short_ids_found": 48,
+      "page_sha256": "5a40f7dd6d87c0b18354b6e93317334ea77b14708eb6ebf9d6d93ce99ab5e0f9"
+    },
+    {
+      "handle_query": "CurlyScents",
+      "cohort": "existing_verified_fragrance_creator",
+      "url": "https://www.youtube.com/@CurlyScents/shorts",
+      "retrieval_time_utc": "2026-06-26T09:52:59Z",
+      "http_status": 200,
+      "final_url": "https://www.youtube.com/@CurlyScents/shorts",
+      "byte_size": 1111601,
+      "short_ids_found": 48,
+      "page_sha256": "22680ce4db6c0d2de9ace7af4fea9f842cc49d4bb80637dabc16ae6661981e55"
+    },
+    {
+      "handle_query": "funmimonet",
+      "cohort": "existing_verified_fragrance_creator",
+      "url": "https://www.youtube.com/@funmimonet/shorts",
+      "retrieval_time_utc": "2026-06-26T09:52:59Z",
+      "http_status": 200,
+      "final_url": "https://www.youtube.com/@funmimonet/shorts",
+      "byte_size": 1113600,
+      "short_ids_found": 48,
+      "page_sha256": "ef1d54062714f333a03b3c7637eeb48032408c06a8f0bfdb50e6e512c6f2e001"
+    },
+    {
+      "handle_query": "SokiLondon",
+      "cohort": "existing_verified_fragrance_creator",
+      "url": "https://www.youtube.com/@SokiLondon/shorts",
+      "retrieval_time_utc": "2026-06-26T09:53:00Z",
+      "http_status": 200,
+      "final_url": "https://www.youtube.com/@SokiLondon/shorts",
+      "byte_size": 1116422,
+      "short_ids_found": 48,
+      "page_sha256": "fccd4ceb4772e15caefe11b1b8f0c2b4e077c496336278f93cbf448f31dce908"
+    },
+    {
+      "handle_query": "TLTGReviews",
+      "cohort": "existing_verified_fragrance_creator",
+      "url": "https://www.youtube.com/@TLTGReviews/shorts",
+      "retrieval_time_utc": "2026-06-26T09:53:00Z",
+      "http_status": 200,
+      "final_url": "https://www.youtube.com/@TLTGReviews/shorts",
+      "byte_size": 1110053,
+      "short_ids_found": 48,
+      "page_sha256": "1e1caa3cc4e84c2615128e5d6e3ccfffd45a3eccf68a1f71dee01c01914fedc1"
+    },
+    {
+      "handle_query": "Redolessence",
+      "cohort": "existing_verified_fragrance_creator",
+      "url": "https://www.youtube.com/@Redolessence/shorts",
+      "retrieval_time_utc": "2026-06-26T09:53:02Z",
+      "http_status": 200,
+      "final_url": "https://www.youtube.com/@Redolessence/shorts",
+      "byte_size": 1115318,
+      "short_ids_found": 48,
+      "page_sha256": "95adddc759c647f563e0417af80a3812bfed5c7ed4ade5515d219f1b043a9253"
+    },
+    {
+      "handle_query": "TheFragranceApprentice",
+      "cohort": "existing_verified_fragrance_creator",
+      "url": "https://www.youtube.com/@TheFragranceApprentice/shorts",
+      "retrieval_time_utc": "2026-06-26T09:53:02Z",
+      "http_status": 200,
+      "final_url": "https://www.youtube.com/@TheFragranceApprentice/shorts",
+      "byte_size": 800502,
+      "short_ids_found": 12,
+      "page_sha256": "38526697bd23d0ab6520531383aec5152c1e9f138e190ae52925900c818f6698"
+    }
+  ],
+  "attempts": [
+    {
+      "handle_query": "ChaosFragrances",
+      "cohort": "exploratory_extra_handle",
+      "video_id": "xZ6vd9fyBbw",
+      "rank_on_shorts_page": 1,
+      "attempted_at_utc": "2026-06-26T09:53:03Z",
+      "shorts_url": "https://www.youtube.com/shorts/xZ6vd9fyBbw",
+      "watch_url": "https://www.youtube.com/watch?v=xZ6vd9fyBbw",
+      "surface_verification": {
+        "shorts_http_status": 200,
+        "shorts_final_url": "https://www.youtube.com/shorts/xZ6vd9fyBbw",
+        "serving_surface": "shorts"
+      },
+      "watch_http_status": 200,
+      "watch_final_url": "https://www.youtube.com/watch?v=xZ6vd9fyBbw",
+      "wall_marker": false,
+      "author": "Chaos Fragrances",
+      "channel_id": "UC0fOGtvT1x8irPUZOFdF2mA",
+      "title": "The BEST Fragrance Flankers EVER MADE \u2014 BETTER Than The Original",
+      "length_seconds": 127,
+      "publish_date": "2026-05-26T09:00:03-07:00",
+      "view_count": 5564,
+      "watch_html_sha256": "f490bdf9d4d1e8195ac96a8793e3c1e589008d54b9ff37c4c1d3e726b3c60c3e",
+      "shorts_html_sha256": "1b7b8b8ba5f467cb6533757d983cb699c79b61c521240841b40da5b484e97d71",
+      "watch_byte_size": 1323189,
+      "shorts_byte_size": 1815053,
+      "relevance_match": true,
+      "caption_fetch": {
+        "found": true,
+        "note": "ok",
+        "lang": "en",
+        "caption_kind": "auto",
+        "original_language_assumed": false,
+        "cue_count": 113,
+        "tooling": {
+          "tool": "yt-dlp",
+          "tool_version": "2026.06.09",
+          "client": "yt-dlp-default",
+          "sub_format": "json3"
+        }
+      },
+      "word_count": 402,
+      "caption_packet_write": {
+        "exit_code": 0,
+        "message": "F:\\orca-data-lake\\raw\\3a0\\01KW1NHYXWWYWJ3N7QNR2629FF"
+      },
+      "admission_status": "admitted",
+      "expansion_id": "ytshorts-fragrance-tone-expansion30-v0-001"
+    },
+    {
+      "handle_query": "FragranceKnowledge",
+      "cohort": "exploratory_extra_handle",
+      "video_id": "xK8bmugSpgQ",
+      "rank_on_shorts_page": 1,
+      "attempted_at_utc": "2026-06-26T09:53:11Z",
+      "shorts_url": "https://www.youtube.com/shorts/xK8bmugSpgQ",
+      "watch_url": "https://www.youtube.com/watch?v=xK8bmugSpgQ",
+      "surface_verification": {
+        "shorts_http_status": 200,
+        "shorts_final_url": "https://www.youtube.com/shorts/xK8bmugSpgQ",
+        "serving_surface": "shorts"
+      },
+      "watch_http_status": 200,
+      "watch_final_url": "https://www.youtube.com/watch?v=xK8bmugSpgQ",
+      "wall_marker": false,
+      "author": "FragranceKnowledge",
+      "channel_id": "UCzH0Tal9pApj-F6KSGZHo4Q",
+      "title": "How many sprays are in the viral MYKONOS 50ML Bottles #fragranceknowledge",
+      "length_seconds": 86,
+      "publish_date": "2026-06-25T13:43:40-07:00",
+      "view_count": 2603,
+      "watch_html_sha256": "ff6504d7c2241d4bc5f5233df439b894bc5ec94c9bfa3469cb95bd56ea87684f",
+      "shorts_html_sha256": "a4cf550726e361b3b86c9d3bf60791be7ebad85dd86e1c45b5237dd073823147",
+      "watch_byte_size": 1165353,
+      "shorts_byte_size": 1640066,
+      "relevance_match": true,
+      "caption_fetch": {
+        "found": true,
+        "note": "ok",
+        "lang": "en",
+        "caption_kind": "auto",
+        "original_language_assumed": false,
+        "cue_count": 35,
+        "tooling": {
+          "tool": "yt-dlp",
+          "tool_version": "2026.06.09",
+          "client": "yt-dlp-default",
+          "sub_format": "json3"
+        }
+      },
+      "word_count": 105,
+      "caption_packet_write": {
+        "exit_code": 0,
+        "message": "F:\\orca-data-lake\\raw\\df9\\01KW1NJ4BDW8C7684QPJXQ3GYH"
+      },
+      "admission_status": "admitted",
+      "expansion_id": "ytshorts-fragrance-tone-expansion30-v0-002"
+    },
+    {
+      "handle_query": "BowTieFragranceGuy",
+      "cohort": "exploratory_extra_handle",
+      "video_id": "XwhNlmksBOY",
+      "rank_on_shorts_page": 1,
+      "attempted_at_utc": "2026-06-26T09:53:17Z",
+      "shorts_url": "https://www.youtube.com/shorts/XwhNlmksBOY",
+      "watch_url": "https://www.youtube.com/watch?v=XwhNlmksBOY",
+      "surface_verification": {
+        "shorts_http_status": 200,
+        "shorts_final_url": "https://www.youtube.com/shorts/XwhNlmksBOY",
+        "serving_surface": "shorts"
+      },
+      "watch_http_status": 200,
+      "watch_final_url": "https://www.youtube.com/watch?v=XwhNlmksBOY",
+      "wall_marker": false,
+      "author": "BowTie FragranceGuy",
+      "channel_id": "UCVvzGrPSok_sf8hfDhvTg7w",
+      "title": "It\u2019s GOING DOWN!",
+      "length_seconds": 56,
+      "publish_date": "2026-06-22T19:15:56-07:00",
+      "view_count": 9666,
+      "watch_html_sha256": "844df49fd1326a15e02cd5310cbde223c899507288f2303440d1acfd598c0d23",
+      "shorts_html_sha256": "1e97225cd2d3f7e73757ea33f4a764543240300c5e5adfd2aa81beafb953cea9",
+      "watch_byte_size": 1244695,
+      "shorts_byte_size": 1652393,
+      "relevance_match": false,
+      "admission_status": "dropped_relevance_title_no_match"
+    },
+    {
+      "handle_query": "Scenteno",
+      "cohort": "exploratory_extra_handle",
+      "video_id": "YswlmadDzW8",
+      "rank_on_shorts_page": 1,
+      "attempted_at_utc": "2026-06-26T09:53:19Z",
+      "shorts_url": "https://www.youtube.com/shorts/YswlmadDzW8",
+      "watch_url": "https://www.youtube.com/watch?v=YswlmadDzW8",
+      "surface_verification": {
+        "shorts_http_status": 200,
+        "shorts_final_url": "https://www.youtube.com/shorts/YswlmadDzW8",
+        "serving_surface": "shorts"
+      },
+      "watch_http_status": 200,
+      "watch_final_url": "https://www.youtube.com/watch?v=YswlmadDzW8",
+      "wall_marker": false,
+      "author": "Scenteno",
+      "channel_id": "UC8gjOYz9aonQqd5HwoTu2NQ",
+      "title": "Calvin Klein Defy EDT vs EDP | Worth it in 2026?",
+      "length_seconds": 54,
+      "publish_date": "2026-06-25T05:00:21-07:00",
+      "view_count": 1609,
+      "watch_html_sha256": "8300acf72bd0647c611411a0fdee0e3d17baa5a5881a79060028c5839eb4ea95",
+      "shorts_html_sha256": "2378c59d7fe22fc7ebc2390b4d9ca8543733a3ea9a0c4e42deb26e95fe912172",
+      "watch_byte_size": 1206308,
+      "shorts_byte_size": 1458450,
+      "relevance_match": false,
+      "admission_status": "dropped_relevance_title_no_match"
+    },
+    {
+      "handle_query": "TiffBenson",
+      "cohort": "exploratory_extra_handle",
+      "video_id": "Otv9sHbqDug",
+      "rank_on_shorts_page": 1,
+      "attempted_at_utc": "2026-06-26T09:53:22Z",
+      "shorts_url": "https://www.youtube.com/shorts/Otv9sHbqDug",
+      "watch_url": "https://www.youtube.com/watch?v=Otv9sHbqDug",
+      "surface_verification": {
+        "shorts_http_status": 200,
+        "shorts_final_url": "https://www.youtube.com/shorts/Otv9sHbqDug",
+        "serving_surface": "shorts"
+      },
+      "watch_http_status": 200,
+      "watch_final_url": "https://www.youtube.com/watch?v=Otv9sHbqDug",
+      "wall_marker": false,
+      "author": "Tiff Benson",
+      "channel_id": "UC4lKHUYqvm74znBF6qSnYig",
+      "title": "Nordstrom Finds: Dresses, Shoes &amp; Accessories for Summer",
+      "length_seconds": 56,
+      "publish_date": "2026-06-04T11:41:39-07:00",
+      "view_count": 2653,
+      "watch_html_sha256": "8bb1e5951ed4c9aaddcc1fe2be9a5143c98d091de76f1b3ace0f557d6f29e6c2",
+      "shorts_html_sha256": "843845add75f7cc3a36400e9c4f8f7fa9a82fb4b822e16dbfaf5aabf5c839485",
+      "watch_byte_size": 1191005,
+      "shorts_byte_size": 1396191,
+      "relevance_match": false,
+      "admission_status": "dropped_relevance_title_no_match"
+    },
+    {
+      "handle_query": "MilaLeBlanc",
+      "cohort": "exploratory_extra_handle",
+      "video_id": "FH7tXWeLuRc",
+      "rank_on_shorts_page": 1,
+      "attempted_at_utc": "2026-06-26T09:53:24Z",
+      "shorts_url": "https://www.youtube.com/shorts/FH7tXWeLuRc",
+      "watch_url": "https://www.youtube.com/watch?v=FH7tXWeLuRc",
+      "surface_verification": {
+        "shorts_http_status": 200,
+        "shorts_final_url": "https://www.youtube.com/shorts/FH7tXWeLuRc",
+        "serving_surface": "shorts"
+      },
+      "watch_http_status": 200,
+      "watch_final_url": "https://www.youtube.com/watch?v=FH7tXWeLuRc",
+      "wall_marker": false,
+      "author": "Mila Le Blanc",
+      "channel_id": "UCta4sjQtsMUtBCkI811ocfA",
+      "title": "HUGE ZARA HAUL! SPRING 2026 ( VIRAL ITEMS \ud83d\udd25 ) I WAS NOT EXPECTING THIS \ud83d\ude33",
+      "length_seconds": 130,
+      "publish_date": "2026-04-18T09:00:21-07:00",
+      "view_count": 5147,
+      "watch_html_sha256": "8335cd8272377e0712fe646d720ab5128ad3d75ff24a78842f2ea1996a706074",
+      "shorts_html_sha256": "19d9c0867dc798e7605cff91439a5dc9f9565611b02fa004d99f166842fe59c7",
+      "watch_byte_size": 1185915,
+      "shorts_byte_size": 1546752,
+      "relevance_match": false,
+      "admission_status": "dropped_relevance_title_no_match"
+    },
+    {
+      "handle_query": "Scentbird",
+      "cohort": "exploratory_extra_handle",
+      "video_id": "QCpD1YGdYdY",
+      "rank_on_shorts_page": 1,
+      "attempted_at_utc": "2026-06-26T09:53:27Z",
+      "shorts_url": "https://www.youtube.com/shorts/QCpD1YGdYdY",
+      "watch_url": "https://www.youtube.com/watch?v=QCpD1YGdYdY",
+      "surface_verification": {
+        "shorts_http_status": 200,
+        "shorts_final_url": "https://www.youtube.com/shorts/QCpD1YGdYdY",
+        "serving_surface": "shorts"
+      },
+      "watch_http_status": 200,
+      "watch_final_url": "https://www.youtube.com/watch?v=QCpD1YGdYdY",
+      "wall_marker": false,
+      "author": "Scentbird",
+      "channel_id": "UCqyZ36l5SkZrbaqWH0cxB1A",
+      "title": "And thats on being cohesive\ud83d\ude0c #perfumetok #atomizers #scentbird #fragrancecollection",
+      "length_seconds": 10,
+      "publish_date": "2026-06-01T13:30:49-07:00",
+      "view_count": 892,
+      "watch_html_sha256": "4430e6ec55d11268aa793c20dc597f28a4e8210c496ea2d9b93e8c5942c77cfb",
+      "shorts_html_sha256": "05007d8b6403fbe0ef95d782ddf451479681a69a478668f229ea270a3b3599e7",
+      "watch_byte_size": 1137634,
+      "shorts_byte_size": 1333636,
+      "relevance_match": true,
+      "caption_fetch": {
+        "found": true,
+        "note": "ok",
+        "lang": "en",
+        "caption_kind": "auto",
+        "original_language_assumed": false,
+        "cue_count": 9,
+        "tooling": {
+          "tool": "yt-dlp",
+          "tool_version": "2026.06.09",
+          "client": "yt-dlp-default",
+          "sub_format": "json3"
+        }
+      },
+      "word_count": 13,
+      "admission_status": "dropped_transcript_under_min_word_count"
+    },
+    {
+      "handle_query": "ThePerfumeNest",
+      "cohort": "exploratory_extra_handle",
+      "video_id": "B21sHeyL060",
+      "rank_on_shorts_page": 1,
+      "attempted_at_utc": "2026-06-26T09:53:33Z",
+      "shorts_url": "https://www.youtube.com/shorts/B21sHeyL060",
+      "watch_url": "https://www.youtube.com/watch?v=B21sHeyL060",
+      "surface_verification": {
+        "shorts_http_status": 200,
+        "shorts_final_url": "https://www.youtube.com/shorts/B21sHeyL060",
+        "serving_surface": "shorts"
+      },
+      "watch_http_status": 200,
+      "watch_final_url": "https://www.youtube.com/watch?v=B21sHeyL060",
+      "wall_marker": false,
+      "author": null,
+      "channel_id": "UCyU1XUvAFqV2X1NVCcRqRNA",
+      "title": null,
+      "length_seconds": null,
+      "publish_date": null,
+      "view_count": null,
+      "watch_html_sha256": "9dff9e53c8381772366e7add0462be6ff537f725c09c1300a4ec435e7dec2d51",
+      "shorts_html_sha256": "ca82f99ebab77742eed9e2e86b785266d2f8c3ae40c06119c20463a3a3472aca",
+      "watch_byte_size": 1058468,
+      "shorts_byte_size": 1846136,
+      "relevance_match": false,
+      "admission_status": "dropped_relevance_title_no_match"
+    },
+    {
+      "handle_query": "ProfessorPerfume",
+      "cohort": "exploratory_extra_handle",
+      "video_id": "vtwo-iaOszA",
+      "rank_on_shorts_page": 1,
+      "attempted_at_utc": "2026-06-26T09:53:42Z",
+      "shorts_url": "https://www.youtube.com/shorts/vtwo-iaOszA",
+      "watch_url": "https://www.youtube.com/watch?v=vtwo-iaOszA",
+      "surface_verification": {
+        "shorts_http_status": 200,
+        "shorts_final_url": "https://www.youtube.com/shorts/vtwo-iaOszA",
+        "serving_surface": "shorts"
+      },
+      "watch_http_status": 200,
+      "watch_final_url": "https://www.youtube.com/watch?v=vtwo-iaOszA",
+      "wall_marker": false,
+      "author": "Professor Perfume",
+      "channel_id": "UC_1GYaGHE0luMX0j6utkeHg",
+      "title": "A Combination You NEED to Try!! #shorts #perfume #scentsiblespraying #fragrance",
+      "length_seconds": 57,
+      "publish_date": "2021-05-24T13:51:14-07:00",
+      "view_count": 107,
+      "watch_html_sha256": "c0d5199b1997e7a605e9e18e6a520bbcb4a6ae7ea4b6f73fd5af2b2ea0c0b42b",
+      "shorts_html_sha256": "19b70c30aa37e5fb2e05de7b4edc72cdad085db61e66ca3661c2266b188ca4cb",
+      "watch_byte_size": 1182264,
+      "shorts_byte_size": 1387542,
+      "relevance_match": true,
+      "caption_fetch": {
+        "found": true,
+        "note": "ok",
+        "lang": "en",
+        "caption_kind": "auto",
+        "original_language_assumed": false,
+        "cue_count": 55,
+        "tooling": {
+          "tool": "yt-dlp",
+          "tool_version": "2026.06.09",
+          "client": "yt-dlp-default",
+          "sub_format": "json3"
+        }
+      },
+      "word_count": 169,
+      "caption_packet_write": {
+        "exit_code": 0,
+        "message": "F:\\orca-data-lake\\raw\\a87\\01KW1NK2KV4E7ZC17WX0GQMJXP"
+      },
+      "admission_status": "admitted",
+      "expansion_id": "ytshorts-fragrance-tone-expansion30-v0-003"
+    },
+    {
+      "handle_query": "JeremyFragrance",
+      "cohort": "existing_verified_fragrance_creator",
+      "video_id": "JcwT5rvhXIc",
+      "rank_on_shorts_page": 3,
+      "attempted_at_utc": "2026-06-26T09:53:48Z",
+      "shorts_url": "https://www.youtube.com/shorts/JcwT5rvhXIc",
+      "watch_url": "https://www.youtube.com/watch?v=JcwT5rvhXIc",
+      "surface_verification": {
+        "shorts_http_status": 200,
+        "shorts_final_url": "https://www.youtube.com/shorts/JcwT5rvhXIc",
+        "serving_surface": "shorts"
+      },
+      "watch_http_status": 200,
+      "watch_final_url": "https://www.youtube.com/watch?v=JcwT5rvhXIc",
+      "wall_marker": false,
+      "author": "Jeremy Fragrance",
+      "channel_id": "UCzKrJ5NSA9o7RHYRG12kHZw",
+      "title": "Game Of Spades EMERALD &amp; REFRESH #jeremyfragrance #fragrance #cologne #perfume #parfum",
+      "length_seconds": 56,
+      "publish_date": "2026-06-26T02:09:21-07:00",
+      "view_count": 76,
+      "watch_html_sha256": "138e43158bf32c3729b7bc0ff91e75b48e096bc3bedb21deeaba3432c02202cc",
+      "shorts_html_sha256": "0a35300ddd9237eb7d83d762f6a1c3191cb4f4afdfe021e3c3f4a101f941e946",
+      "watch_byte_size": 1203416,
+      "shorts_byte_size": 1379490,
+      "relevance_match": true,
+      "caption_fetch": {
+        "found": true,
+        "note": "ok",
+        "lang": "en",
+        "caption_kind": "auto",
+        "original_language_assumed": false,
+        "cue_count": 43,
+        "tooling": {
+          "tool": "yt-dlp",
+          "tool_version": "2026.06.09",
+          "client": "yt-dlp-default",
+          "sub_format": "json3"
+        }
+      },
+      "word_count": 141,
+      "caption_packet_write": {
+        "exit_code": 0,
+        "message": "F:\\orca-data-lake\\raw\\e48\\01KW1NK8B9QZVJNBX6MJTZJ02Q"
+      },
+      "admission_status": "admitted",
+      "expansion_id": "ytshorts-fragrance-tone-expansion30-v0-004"
+    },
+    {
+      "handle_query": "GentsScents",
+      "cohort": "existing_verified_fragrance_creator",
+      "video_id": "jo03W7cBwBM",
+      "rank_on_shorts_page": 4,
+      "attempted_at_utc": "2026-06-26T09:53:54Z",
+      "shorts_url": "https://www.youtube.com/shorts/jo03W7cBwBM",
+      "watch_url": "https://www.youtube.com/watch?v=jo03W7cBwBM",
+      "surface_verification": {
+        "shorts_http_status": 200,
+        "shorts_final_url": "https://www.youtube.com/shorts/jo03W7cBwBM",
+        "serving_surface": "shorts"
+      },
+      "watch_http_status": 200,
+      "watch_final_url": "https://www.youtube.com/watch?v=jo03W7cBwBM",
+      "wall_marker": false,
+      "author": "Gents Scents",
+      "channel_id": "UC9IImcLkUdmURWtQhxu8VwQ",
+      "title": "When You Want Mugler Pure Malt But You Don&#39;t Want To Pay Much Money",
+      "length_seconds": 48,
+      "publish_date": "2023-03-08T11:00:31-08:00",
+      "view_count": 51534,
+      "watch_html_sha256": "a093ab98c8fe17e97386aa080e933642dfd8260ac20dc71d2d4702353780c5da",
+      "shorts_html_sha256": "5e06351f5306cbfed367836cf382c943419ee7ffd5ea544c3fd4f9cbe174c168",
+      "watch_byte_size": 1358557,
+      "shorts_byte_size": 1544580,
+      "relevance_match": true,
+      "caption_fetch": {
+        "found": true,
+        "note": "ok",
+        "lang": "en",
+        "caption_kind": "auto",
+        "original_language_assumed": false,
+        "cue_count": 35,
+        "tooling": {
+          "tool": "yt-dlp",
+          "tool_version": "2026.06.09",
+          "client": "yt-dlp-default",
+          "sub_format": "json3"
+        }
+      },
+      "word_count": 138,
+      "caption_packet_write": {
+        "exit_code": 0,
+        "message": "F:\\orca-data-lake\\raw\\8fb\\01KW1NKDQP9C278GM95767QRYX"
+      },
+      "admission_status": "admitted",
+      "expansion_id": "ytshorts-fragrance-tone-expansion30-v0-005"
+    },
+    {
+      "handle_query": "ThePerfumeGuy",
+      "cohort": "existing_verified_fragrance_creator",
+      "video_id": "17mhHUkRLvg",
+      "rank_on_shorts_page": 4,
+      "attempted_at_utc": "2026-06-26T09:53:59Z",
+      "shorts_url": "https://www.youtube.com/shorts/17mhHUkRLvg",
+      "watch_url": "https://www.youtube.com/watch?v=17mhHUkRLvg",
+      "surface_verification": {
+        "shorts_http_status": 200,
+        "shorts_final_url": "https://www.youtube.com/shorts/17mhHUkRLvg",
+        "serving_surface": "shorts"
+      },
+      "watch_http_status": 200,
+      "watch_final_url": "https://www.youtube.com/watch?v=17mhHUkRLvg",
+      "wall_marker": false,
+      "author": "The Perfume Guy",
+      "channel_id": "UCFarEEFsV90-pvUU0XdUdgQ",
+      "title": "This MUSKY \u201cPheromone\u201d Fragrance Gets Compliments Like Crazy! \ud83d\ude33",
+      "length_seconds": 105,
+      "publish_date": "2025-10-22T17:37:12-07:00",
+      "view_count": 16545,
+      "watch_html_sha256": "db982712b17111ab31f3581521efa314cec1bcec9ec4427d3d1ad5f2631f4f67",
+      "shorts_html_sha256": "4d97a8b937d64e557575dcfecad622c2f28b157fa6b6a7160e3b24dcc9990662",
+      "watch_byte_size": 1123675,
+      "shorts_byte_size": 1279128,
+      "relevance_match": true,
+      "caption_fetch": {
+        "found": true,
+        "note": "ok",
+        "lang": "en",
+        "caption_kind": "auto",
+        "original_language_assumed": false,
+        "cue_count": 101,
+        "tooling": {
+          "tool": "yt-dlp",
+          "tool_version": "2026.06.09",
+          "client": "yt-dlp-default",
+          "sub_format": "json3"
+        }
+      },
+      "word_count": 345,
+      "caption_packet_write": {
+        "exit_code": 0,
+        "message": "F:\\orca-data-lake\\raw\\769\\01KW1NKKC9VGFWSGC8Z6C2AW7X"
+      },
+      "admission_status": "admitted",
+      "expansion_id": "ytshorts-fragrance-tone-expansion30-v0-006"
+    },
+    {
+      "handle_query": "SchoolofScent",
+      "cohort": "existing_verified_fragrance_creator",
+      "video_id": "1K9ej-6aP6g",
+      "rank_on_shorts_page": 4,
+      "attempted_at_utc": "2026-06-26T09:54:05Z",
+      "shorts_url": "https://www.youtube.com/shorts/1K9ej-6aP6g",
+      "watch_url": "https://www.youtube.com/watch?v=1K9ej-6aP6g",
+      "surface_verification": {
+        "shorts_http_status": 200,
+        "shorts_final_url": "https://www.youtube.com/shorts/1K9ej-6aP6g",
+        "serving_surface": "shorts"
+      },
+      "watch_http_status": 200,
+      "watch_final_url": "https://www.youtube.com/watch?v=1K9ej-6aP6g",
+      "wall_marker": false,
+      "author": "School of Scent",
+      "channel_id": "UC7yWwH6peQbpfLMVKKuR-xg",
+      "title": "Project Kiwi Part 1 : The Impossible Fantasy Accord \ud83e\udd5d",
+      "length_seconds": 55,
+      "publish_date": "2026-06-21T06:21:17-07:00",
+      "view_count": 6548,
+      "watch_html_sha256": "e240ee84cad592a60fb608d5066852d250f3aab19545d3a95afba9cc42413e6f",
+      "shorts_html_sha256": "51390209eb3ea3b93dac8908a8ddf64a7dca337d253384d6fc902e89eac4854b",
+      "watch_byte_size": 1230667,
+      "shorts_byte_size": 1575360,
+      "relevance_match": true,
+      "caption_fetch": {
+        "found": true,
+        "note": "ok",
+        "lang": "en",
+        "caption_kind": "auto",
+        "original_language_assumed": false,
+        "cue_count": 65,
+        "tooling": {
+          "tool": "yt-dlp",
+          "tool_version": "2026.06.09",
+          "client": "yt-dlp-default",
+          "sub_format": "json3"
+        }
+      },
+      "word_count": 219,
+      "caption_packet_write": {
+        "exit_code": 0,
+        "message": "F:\\orca-data-lake\\raw\\411\\01KW1NKTNJ469PQ1V8DQK3G4AW"
+      },
+      "admission_status": "admitted",
+      "expansion_id": "ytshorts-fragrance-tone-expansion30-v0-007"
+    },
+    {
+      "handle_query": "CurlyScents",
+      "cohort": "existing_verified_fragrance_creator",
+      "video_id": "ekaQONEC2ys",
+      "rank_on_shorts_page": 5,
+      "attempted_at_utc": "2026-06-26T09:54:12Z",
+      "shorts_url": "https://www.youtube.com/shorts/ekaQONEC2ys",
+      "watch_url": "https://www.youtube.com/watch?v=ekaQONEC2ys",
+      "surface_verification": {
+        "shorts_http_status": 200,
+        "shorts_final_url": "https://www.youtube.com/shorts/ekaQONEC2ys",
+        "serving_surface": "shorts"
+      },
+      "watch_http_status": 200,
+      "watch_final_url": "https://www.youtube.com/watch?v=ekaQONEC2ys",
+      "wall_marker": false,
+      "author": "Curly Scents",
+      "channel_id": "UCIfiNVTfW49L7Z3lGLfIOeA",
+      "title": "10 Affordable Middle Eastern Colognes that smell EXPENSIVE.",
+      "length_seconds": 90,
+      "publish_date": "2026-03-03T07:35:20-08:00",
+      "view_count": 39873,
+      "watch_html_sha256": "ff42a3d3744da8b99b39ed8c7ea4f60ee0008deb6e4e2b30dff4304f99b61545",
+      "shorts_html_sha256": "62196e06b63d5c0b439ca2b160c5ad536552b519a7237d0bc8bc87e52c2bf1ab",
+      "watch_byte_size": 1112570,
+      "shorts_byte_size": 1553843,
+      "relevance_match": true,
+      "caption_fetch": {
+        "found": true,
+        "note": "ok",
+        "lang": "en",
+        "caption_kind": "auto",
+        "original_language_assumed": false,
+        "cue_count": 93,
+        "tooling": {
+          "tool": "yt-dlp",
+          "tool_version": "2026.06.09",
+          "client": "yt-dlp-default",
+          "sub_format": "json3"
+        }
+      },
+      "word_count": 297,
+      "caption_packet_write": {
+        "exit_code": 0,
+        "message": "F:\\orca-data-lake\\raw\\ba4\\01KW1NM06A1P2MCZZVJA2QM39D"
+      },
+      "admission_status": "admitted",
+      "expansion_id": "ytshorts-fragrance-tone-expansion30-v0-008"
+    },
+    {
+      "handle_query": "funmimonet",
+      "cohort": "existing_verified_fragrance_creator",
+      "video_id": "DIMlwC1LsHg",
+      "rank_on_shorts_page": 3,
+      "attempted_at_utc": "2026-06-26T09:54:18Z",
+      "shorts_url": "https://www.youtube.com/shorts/DIMlwC1LsHg",
+      "watch_url": "https://www.youtube.com/watch?v=DIMlwC1LsHg",
+      "surface_verification": {
+        "shorts_http_status": 200,
+        "shorts_final_url": "https://www.youtube.com/shorts/DIMlwC1LsHg",
+        "serving_surface": "shorts"
+      },
+      "watch_http_status": 200,
+      "watch_final_url": "https://www.youtube.com/watch?v=DIMlwC1LsHg",
+      "wall_marker": false,
+      "author": "Funmi Monet",
+      "channel_id": "UCULGc5bSAoCIUMc-hQpjCXw",
+      "title": "#NYXProfessionalMakep",
+      "length_seconds": 32,
+      "publish_date": "2026-04-13T15:12:04-07:00",
+      "view_count": 1876,
+      "watch_html_sha256": "dd2fb21ef3537ae0f31001e09d28b200fb44fbd873f661323d0a01944b2b2cce",
+      "shorts_html_sha256": "2a02625c5e0af01d50e1e586a27f423a848f62e7b40e7609d21d96f0ca89852c",
+      "watch_byte_size": 1166627,
+      "shorts_byte_size": 1445756,
+      "relevance_match": true,
+      "caption_fetch": {
+        "found": true,
+        "note": "ok",
+        "lang": "en",
+        "caption_kind": "auto",
+        "original_language_assumed": false,
+        "cue_count": 33,
+        "tooling": {
+          "tool": "yt-dlp",
+          "tool_version": "2026.06.09",
+          "client": "yt-dlp-default",
+          "sub_format": "json3"
+        }
+      },
+      "word_count": 112,
+      "caption_packet_write": {
+        "exit_code": 0,
+        "message": "F:\\orca-data-lake\\raw\\fa6\\01KW1NM68SQ5060ADP61YQ1QPE"
+      },
+      "admission_status": "admitted",
+      "expansion_id": "ytshorts-fragrance-tone-expansion30-v0-009"
+    },
+    {
+      "handle_query": "SokiLondon",
+      "cohort": "existing_verified_fragrance_creator",
+      "video_id": "frHbes9NwZI",
+      "rank_on_shorts_page": 5,
+      "attempted_at_utc": "2026-06-26T09:54:24Z",
+      "shorts_url": "https://www.youtube.com/shorts/frHbes9NwZI",
+      "watch_url": "https://www.youtube.com/watch?v=frHbes9NwZI",
+      "surface_verification": {
+        "shorts_http_status": 200,
+        "shorts_final_url": "https://www.youtube.com/shorts/frHbes9NwZI",
+        "serving_surface": "shorts"
+      },
+      "watch_http_status": 200,
+      "watch_final_url": "https://www.youtube.com/watch?v=frHbes9NwZI",
+      "wall_marker": false,
+      "author": "Soki London",
+      "channel_id": "UCtBpe765Fy-USxg_L8hGDPg",
+      "title": "WHICH IS THE BEST VERSION OF KYLIE COSMIC? | Soki London",
+      "length_seconds": 57,
+      "publish_date": "2026-05-22T23:25:44-07:00",
+      "view_count": 2044,
+      "watch_html_sha256": "f4a80e90c85cf7fed725c88160758c2d362e41eb1f16448de9da294abee81c56",
+      "shorts_html_sha256": "9b880b1c4af10808f0c5c79f70626a87bb0332d0b7acf471a61552753ee8f7c0",
+      "watch_byte_size": 1499779,
+      "shorts_byte_size": 1775155,
+      "relevance_match": true,
+      "caption_fetch": {
+        "found": true,
+        "note": "ok",
+        "lang": "en",
+        "caption_kind": "auto",
+        "original_language_assumed": false,
+        "cue_count": 49,
+        "tooling": {
+          "tool": "yt-dlp",
+          "tool_version": "2026.06.09",
+          "client": "yt-dlp-default",
+          "sub_format": "json3"
+        }
+      },
+      "word_count": 180,
+      "caption_packet_write": {
+        "exit_code": 0,
+        "message": "F:\\orca-data-lake\\raw\\58e\\01KW1NMDKXJMTB4X8724CTPF5T"
+      },
+      "admission_status": "admitted",
+      "expansion_id": "ytshorts-fragrance-tone-expansion30-v0-010"
+    },
+    {
+      "handle_query": "TLTGReviews",
+      "cohort": "existing_verified_fragrance_creator",
+      "video_id": "rnJjtCdMZyo",
+      "rank_on_shorts_page": 3,
+      "attempted_at_utc": "2026-06-26T09:54:32Z",
+      "shorts_url": "https://www.youtube.com/shorts/rnJjtCdMZyo",
+      "watch_url": "https://www.youtube.com/watch?v=rnJjtCdMZyo",
+      "surface_verification": {
+        "shorts_http_status": 200,
+        "shorts_final_url": "https://www.youtube.com/shorts/rnJjtCdMZyo",
+        "serving_surface": "shorts"
+      },
+      "watch_http_status": 200,
+      "watch_final_url": "https://www.youtube.com/watch?v=rnJjtCdMZyo",
+      "wall_marker": false,
+      "author": "TLTG Reviews",
+      "channel_id": "UCmYZrY_MVZy5Iiwlua029kg",
+      "title": "Just Happy to have a shot at the overall championship. no chance beating this giant though \ud83d\ude02",
+      "length_seconds": 134,
+      "publish_date": "2026-06-20T19:02:26-07:00",
+      "view_count": 2294,
+      "watch_html_sha256": "d62451ec1c075b68f8042c4082cea5113685c7ea4f4d166e2b8396ec53a0978e",
+      "shorts_html_sha256": "ef209a167cfdfc93807b4e33f64c7930a02c2f87eed26cf8f4ef2b239f89962f",
+      "watch_byte_size": 1279548,
+      "shorts_byte_size": 1341278,
+      "relevance_match": true,
+      "caption_fetch": {
+        "found": true,
+        "note": "ok",
+        "lang": "en",
+        "caption_kind": "auto",
+        "original_language_assumed": false,
+        "cue_count": 85,
+        "tooling": {
+          "tool": "yt-dlp",
+          "tool_version": "2026.06.09",
+          "client": "yt-dlp-default",
+          "sub_format": "json3"
+        }
+      },
+      "word_count": 117,
+      "caption_packet_write": {
+        "exit_code": 0,
+        "message": "F:\\orca-data-lake\\raw\\343\\01KW1NMPFREDCP1VQA3PEQ68CW"
+      },
+      "admission_status": "admitted",
+      "expansion_id": "ytshorts-fragrance-tone-expansion30-v0-011"
+    },
+    {
+      "handle_query": "Redolessence",
+      "cohort": "existing_verified_fragrance_creator",
+      "video_id": "I_IBUdYJQ6U",
+      "rank_on_shorts_page": 4,
+      "attempted_at_utc": "2026-06-26T09:54:41Z",
+      "shorts_url": "https://www.youtube.com/shorts/I_IBUdYJQ6U",
+      "watch_url": "https://www.youtube.com/watch?v=I_IBUdYJQ6U",
+      "surface_verification": {
+        "shorts_http_status": 200,
+        "shorts_final_url": "https://www.youtube.com/shorts/I_IBUdYJQ6U",
+        "serving_surface": "shorts"
+      },
+      "watch_http_status": 200,
+      "watch_final_url": "https://www.youtube.com/watch?v=I_IBUdYJQ6U",
+      "wall_marker": false,
+      "author": "Redolessence",
+      "channel_id": "UCuSy0Z5UwvkMQ7lXRbUdOnQ",
+      "title": "Mind Games Castling Perfume Review!",
+      "length_seconds": 60,
+      "publish_date": "2026-06-25T10:00:03-07:00",
+      "view_count": 1624,
+      "watch_html_sha256": "8670509135ee9eaf1e5a62104ac85548e6a6f58df5e7cadcd29e316765346583",
+      "shorts_html_sha256": "010bc7fd164475e9b0f79f19cef8e9d964551d0891a6b4c77b74155bb3bd39bd",
+      "watch_byte_size": 1170494,
+      "shorts_byte_size": 1450689,
+      "relevance_match": true,
+      "caption_fetch": {
+        "found": true,
+        "note": "ok",
+        "lang": "en",
+        "caption_kind": "auto",
+        "original_language_assumed": false,
+        "cue_count": 53,
+        "tooling": {
+          "tool": "yt-dlp",
+          "tool_version": "2026.06.09",
+          "client": "yt-dlp-default",
+          "sub_format": "json3"
+        }
+      },
+      "word_count": 170,
+      "caption_packet_write": {
+        "exit_code": 0,
+        "message": "F:\\orca-data-lake\\raw\\6a4\\01KW1NMY2REBWN31H9JMBV1M7A"
+      },
+      "admission_status": "admitted",
+      "expansion_id": "ytshorts-fragrance-tone-expansion30-v0-012"
+    },
+    {
+      "handle_query": "TheFragranceApprentice",
+      "cohort": "existing_verified_fragrance_creator",
+      "video_id": "EPcHN1WaGBY",
+      "rank_on_shorts_page": 1,
+      "attempted_at_utc": "2026-06-26T09:54:49Z",
+      "shorts_url": "https://www.youtube.com/shorts/EPcHN1WaGBY",
+      "watch_url": "https://www.youtube.com/watch?v=EPcHN1WaGBY",
+      "surface_verification": {
+        "shorts_http_status": 200,
+        "shorts_final_url": "https://www.youtube.com/shorts/EPcHN1WaGBY",
+        "serving_surface": "shorts"
+      },
+      "watch_http_status": 200,
+      "watch_final_url": "https://www.youtube.com/watch?v=EPcHN1WaGBY",
+      "wall_marker": false,
+      "author": "The Fragrance Apprentice",
+      "channel_id": "UCMz0tE1qg5SwmrAF3Cshe0A",
+      "title": "GIVE THANKS TO YOUR FINAL PREACHER.",
+      "length_seconds": 74,
+      "publish_date": "2025-07-05T01:35:49-07:00",
+      "view_count": 6749,
+      "watch_html_sha256": "8a66b2a55f89e5d8bd2efd87bb5cf3379b2a26a9978e46996a0333dcb663aa99",
+      "shorts_html_sha256": "edfd6cba2e4d832bf67c3a56da52148a80e555ef26c7f02e7a1fed6a0e327f71",
+      "watch_byte_size": 1118047,
+      "shorts_byte_size": 1587867,
+      "relevance_match": true,
+      "caption_fetch": {
+        "found": true,
+        "note": "ok",
+        "lang": "en",
+        "caption_kind": "auto",
+        "original_language_assumed": false,
+        "cue_count": 43,
+        "tooling": {
+          "tool": "yt-dlp",
+          "tool_version": "2026.06.09",
+          "client": "yt-dlp-default",
+          "sub_format": "json3"
+        }
+      },
+      "word_count": 136,
+      "caption_packet_write": {
+        "exit_code": 0,
+        "message": "F:\\orca-data-lake\\raw\\43a\\01KW1NN49GW67Q1CJTHRFY4X3R"
+      },
+      "admission_status": "admitted",
+      "expansion_id": "ytshorts-fragrance-tone-expansion30-v0-013"
+    },
+    {
+      "handle_query": "ChaosFragrances",
+      "cohort": "exploratory_extra_handle",
+      "video_id": "54Ue3UL7XU4",
+      "rank_on_shorts_page": 2,
+      "attempted_at_utc": "2026-06-26T09:54:55Z",
+      "shorts_url": "https://www.youtube.com/shorts/54Ue3UL7XU4",
+      "watch_url": "https://www.youtube.com/watch?v=54Ue3UL7XU4",
+      "surface_verification": {
+        "shorts_http_status": 200,
+        "shorts_final_url": "https://www.youtube.com/shorts/54Ue3UL7XU4",
+        "serving_surface": "shorts"
+      },
+      "watch_http_status": 200,
+      "watch_final_url": "https://www.youtube.com/watch?v=54Ue3UL7XU4",
+      "wall_marker": false,
+      "author": "Chaos Fragrances",
+      "channel_id": "UC0fOGtvT1x8irPUZOFdF2mA",
+      "title": "This Is What A Perfect Summer Fragrance Smells Like #fragrance #cologne",
+      "length_seconds": 168,
+      "publish_date": "2026-03-19T14:23:14-07:00",
+      "view_count": 23109,
+      "watch_html_sha256": "15f4eb73a8e24c511366adccdd0bd0b2852152544c7400113caf9d10cc7fc437",
+      "shorts_html_sha256": "257e82344b129c3a19cb3ab02944793d9c274a39beebeb1c76d3e42a9d89c6c2",
+      "watch_byte_size": 1230912,
+      "shorts_byte_size": 1358414,
+      "relevance_match": true,
+      "caption_fetch": {
+        "found": true,
+        "note": "ok",
+        "lang": "en",
+        "caption_kind": "auto",
+        "original_language_assumed": false,
+        "cue_count": 159,
+        "tooling": {
+          "tool": "yt-dlp",
+          "tool_version": "2026.06.09",
+          "client": "yt-dlp-default",
+          "sub_format": "json3"
+        }
+      },
+      "word_count": 609,
+      "caption_packet_write": {
+        "exit_code": 0,
+        "message": "F:\\orca-data-lake\\raw\\62a\\01KW1NNA09DCW780Y2DXQ2AAR8"
+      },
+      "admission_status": "admitted",
+      "expansion_id": "ytshorts-fragrance-tone-expansion30-v0-014"
+    },
+    {
+      "handle_query": "FragranceKnowledge",
+      "cohort": "exploratory_extra_handle",
+      "video_id": "weBLSbBqBbs",
+      "rank_on_shorts_page": 2,
+      "attempted_at_utc": "2026-06-26T09:55:01Z",
+      "shorts_url": "https://www.youtube.com/shorts/weBLSbBqBbs",
+      "watch_url": "https://www.youtube.com/watch?v=weBLSbBqBbs",
+      "surface_verification": {
+        "shorts_http_status": 200,
+        "shorts_final_url": "https://www.youtube.com/shorts/weBLSbBqBbs",
+        "serving_surface": "shorts"
+      },
+      "watch_http_status": 200,
+      "watch_final_url": "https://www.youtube.com/watch?v=weBLSbBqBbs",
+      "wall_marker": false,
+      "author": "FragranceKnowledge",
+      "channel_id": "UCzH0Tal9pApj-F6KSGZHo4Q",
+      "title": "Dumont Soprano ICE \ud83e\uddca Summer Belter #fragranceknowledge",
+      "length_seconds": 62,
+      "publish_date": "2026-06-25T09:16:23-07:00",
+      "view_count": 1597,
+      "watch_html_sha256": "9d73dc47e121f0b85d22ed955e4a949a0fb03563ee62ff0b7a88f64b96c1bd24",
+      "shorts_html_sha256": "661490e4bb232ba4cb3519d088608ec92b2b9c6f68d5613a96b18b320ba0f47c",
+      "watch_byte_size": 1175311,
+      "shorts_byte_size": 1648178,
+      "relevance_match": true,
+      "caption_fetch": {
+        "found": true,
+        "note": "ok",
+        "lang": "en",
+        "caption_kind": "auto",
+        "original_language_assumed": false,
+        "cue_count": 59,
+        "tooling": {
+          "tool": "yt-dlp",
+          "tool_version": "2026.06.09",
+          "client": "yt-dlp-default",
+          "sub_format": "json3"
+        }
+      },
+      "word_count": 206,
+      "caption_packet_write": {
+        "exit_code": 0,
+        "message": "F:\\orca-data-lake\\raw\\942\\01KW1NNFP7FE1TRS73QAAQWX0B"
+      },
+      "admission_status": "admitted",
+      "expansion_id": "ytshorts-fragrance-tone-expansion30-v0-015"
+    },
+    {
+      "handle_query": "BowTieFragranceGuy",
+      "cohort": "exploratory_extra_handle",
+      "video_id": "hiAWZwgYwQA",
+      "rank_on_shorts_page": 2,
+      "attempted_at_utc": "2026-06-26T09:55:07Z",
+      "shorts_url": "https://www.youtube.com/shorts/hiAWZwgYwQA",
+      "watch_url": "https://www.youtube.com/watch?v=hiAWZwgYwQA",
+      "surface_verification": {
+        "shorts_http_status": 200,
+        "shorts_final_url": "https://www.youtube.com/shorts/hiAWZwgYwQA",
+        "serving_surface": "shorts"
+      },
+      "watch_http_status": 200,
+      "watch_final_url": "https://www.youtube.com/watch?v=hiAWZwgYwQA",
+      "wall_marker": false,
+      "author": "BowTie FragranceGuy",
+      "channel_id": "UCVvzGrPSok_sf8hfDhvTg7w",
+      "title": "3 Fragrances That Make The Ladies Want To Get CLOSER!",
+      "length_seconds": 100,
+      "publish_date": "2026-06-16T19:23:46-07:00",
+      "view_count": 14916,
+      "watch_html_sha256": "914b971b7acce7d7500a4156374ccb66da5fc5e69a2dd5b7028c36a62a5c8076",
+      "shorts_html_sha256": "8d19f9d3ce4d0c493a72a2a3b8afbdd20e80ce6f5a7f9c7545ece037a7ef026a",
+      "watch_byte_size": 1198278,
+      "shorts_byte_size": 1461048,
+      "relevance_match": true,
+      "caption_fetch": {
+        "found": true,
+        "note": "ok",
+        "lang": "en",
+        "caption_kind": "auto",
+        "original_language_assumed": false,
+        "cue_count": 87,
+        "tooling": {
+          "tool": "yt-dlp",
+          "tool_version": "2026.06.09",
+          "client": "yt-dlp-default",
+          "sub_format": "json3"
+        }
+      },
+      "word_count": 311,
+      "caption_packet_write": {
+        "exit_code": 0,
+        "message": "F:\\orca-data-lake\\raw\\1d5\\01KW1NNNSFVAHGAB0Y6P6CZZAW"
+      },
+      "admission_status": "admitted",
+      "expansion_id": "ytshorts-fragrance-tone-expansion30-v0-016"
+    },
+    {
+      "handle_query": "Scenteno",
+      "cohort": "exploratory_extra_handle",
+      "video_id": "ZfnELNzwGiI",
+      "rank_on_shorts_page": 2,
+      "attempted_at_utc": "2026-06-26T09:55:13Z",
+      "shorts_url": "https://www.youtube.com/shorts/ZfnELNzwGiI",
+      "watch_url": "https://www.youtube.com/watch?v=ZfnELNzwGiI",
+      "surface_verification": {
+        "shorts_http_status": 200,
+        "shorts_final_url": "https://www.youtube.com/shorts/ZfnELNzwGiI",
+        "serving_surface": "shorts"
+      },
+      "watch_http_status": 200,
+      "watch_final_url": "https://www.youtube.com/watch?v=ZfnELNzwGiI",
+      "wall_marker": false,
+      "author": "Scenteno",
+      "channel_id": "UC8gjOYz9aonQqd5HwoTu2NQ",
+      "title": "Bad Boy Extreme by Carolina Herrera | is it worth it in 2026?",
+      "length_seconds": 47,
+      "publish_date": "2026-06-21T07:30:15-07:00",
+      "view_count": 2936,
+      "watch_html_sha256": "6620776f780f893cac68056007c98448803c54aa7df847ad8d57ef128720d96d",
+      "shorts_html_sha256": "4d48f913e41103b3e75f5ff85fafc2391a650b5788df3cf8617a333b08fdd5ad",
+      "watch_byte_size": 1196862,
+      "shorts_byte_size": 1773196,
+      "relevance_match": false,
+      "admission_status": "dropped_relevance_title_no_match"
+    },
+    {
+      "handle_query": "TiffBenson",
+      "cohort": "exploratory_extra_handle",
+      "video_id": "76QnnvHvnHg",
+      "rank_on_shorts_page": 2,
+      "attempted_at_utc": "2026-06-26T09:55:16Z",
+      "shorts_url": "https://www.youtube.com/shorts/76QnnvHvnHg",
+      "watch_url": "https://www.youtube.com/watch?v=76QnnvHvnHg",
+      "surface_verification": {
+        "shorts_http_status": 200,
+        "shorts_final_url": "https://www.youtube.com/shorts/76QnnvHvnHg",
+        "serving_surface": "shorts"
+      },
+      "watch_http_status": 200,
+      "watch_final_url": "https://www.youtube.com/watch?v=76QnnvHvnHg",
+      "wall_marker": false,
+      "author": "Tiff Benson",
+      "channel_id": "UC4lKHUYqvm74znBF6qSnYig",
+      "title": "I tried the Augustinus Bader Overnight Cream for 10 days, here&#39;s what happened",
+      "length_seconds": 38,
+      "publish_date": "2026-06-03T04:05:51-07:00",
+      "view_count": 606,
+      "watch_html_sha256": "cd165bf4bf89d28b1b172c42b9aa1077d23584e2730ffcc1df72bb102e6ab8ec",
+      "shorts_html_sha256": "56c4226a15455794a70c755f5eedbc6e55ae7b09a0d2ba42d594356d58084f1a",
+      "watch_byte_size": 1152832,
+      "shorts_byte_size": 1768332,
+      "relevance_match": false,
+      "admission_status": "dropped_relevance_title_no_match"
+    },
+    {
+      "handle_query": "MilaLeBlanc",
+      "cohort": "exploratory_extra_handle",
+      "video_id": "WLjJ0J4QFBo",
+      "rank_on_shorts_page": 2,
+      "attempted_at_utc": "2026-06-26T09:55:18Z",
+      "shorts_url": "https://www.youtube.com/shorts/WLjJ0J4QFBo",
+      "watch_url": "https://www.youtube.com/watch?v=WLjJ0J4QFBo",
+      "surface_verification": {
+        "shorts_http_status": 200,
+        "shorts_final_url": "https://www.youtube.com/shorts/WLjJ0J4QFBo",
+        "serving_surface": "shorts"
+      },
+      "watch_http_status": 200,
+      "watch_final_url": "https://www.youtube.com/watch?v=WLjJ0J4QFBo",
+      "wall_marker": false,
+      "author": "Mila Le Blanc",
+      "channel_id": "UCta4sjQtsMUtBCkI811ocfA",
+      "title": "\ud83d\udc49 DON\u2019T MISS THIS PERFUME \ud83d\ude33\ud83d\udd25 IT\u2019S INSANE",
+      "length_seconds": 37,
+      "publish_date": "2026-04-16T11:49:16-07:00",
+      "view_count": 6393,
+      "watch_html_sha256": "e95e914cc9150421228aca26818a62962a6f0ee88f1587ec32321de8570f8cb1",
+      "shorts_html_sha256": "1953d9d5b83361563b65a48f2ce0f0e8821785ca6d16be0778f52b7016a85f29",
+      "watch_byte_size": 1157000,
+      "shorts_byte_size": 1440819,
+      "relevance_match": true,
+      "caption_fetch": {
+        "found": true,
+        "note": "ok",
+        "lang": "en",
+        "caption_kind": "auto",
+        "original_language_assumed": false,
+        "cue_count": 29,
+        "tooling": {
+          "tool": "yt-dlp",
+          "tool_version": "2026.06.09",
+          "client": "yt-dlp-default",
+          "sub_format": "json3"
+        }
+      },
+      "word_count": 66,
+      "caption_packet_write": {
+        "exit_code": 0,
+        "message": "F:\\orca-data-lake\\raw\\0ce\\01KW1NNZHMR56ZPQVYY8D208F6"
+      },
+      "admission_status": "admitted",
+      "expansion_id": "ytshorts-fragrance-tone-expansion30-v0-017"
+    },
+    {
+      "handle_query": "Scentbird",
+      "cohort": "exploratory_extra_handle",
+      "video_id": "gWBvy9rUCcU",
+      "rank_on_shorts_page": 2,
+      "attempted_at_utc": "2026-06-26T09:55:23Z",
+      "shorts_url": "https://www.youtube.com/shorts/gWBvy9rUCcU",
+      "watch_url": "https://www.youtube.com/watch?v=gWBvy9rUCcU",
+      "surface_verification": {
+        "shorts_http_status": 200,
+        "shorts_final_url": "https://www.youtube.com/shorts/gWBvy9rUCcU",
+        "serving_surface": "shorts"
+      },
+      "watch_http_status": 200,
+      "watch_final_url": "https://www.youtube.com/watch?v=gWBvy9rUCcU",
+      "wall_marker": false,
+      "author": "Scentbird",
+      "channel_id": "UCqyZ36l5SkZrbaqWH0cxB1A",
+      "title": "GRWM &amp; Yap\ud83e\udd29 #scentbird #fragrance #perfume",
+      "length_seconds": 6,
+      "publish_date": "2026-06-01T13:10:29-07:00",
+      "view_count": 962,
+      "watch_html_sha256": "b4eba70625254f916f650732b4a74873fb5d7d6b08cd2820388ba762cf2b7dfd",
+      "shorts_html_sha256": "109447a03bfa970875915a6068f065184ad0d51dc27cfdb0dd6227893e32348f",
+      "watch_byte_size": 1058222,
+      "shorts_byte_size": 1498014,
+      "relevance_match": true,
+      "caption_fetch": {
+        "found": false,
+        "note": "no_caption_track: original language undetected and no en track",
+        "lang": null,
+        "caption_kind": null,
+        "original_language_assumed": false,
+        "cue_count": 0,
+        "tooling": {
+          "tool": "yt-dlp",
+          "tool_version": "2026.06.09",
+          "client": "yt-dlp-default",
+          "sub_format": "json3"
+        }
+      },
+      "admission_status": "dropped_no_caption_asr_deferred"
+    },
+    {
+      "handle_query": "ThePerfumeNest",
+      "cohort": "exploratory_extra_handle",
+      "video_id": "vDvnnG2iaGQ",
+      "rank_on_shorts_page": 2,
+      "attempted_at_utc": "2026-06-26T09:55:26Z",
+      "shorts_url": "https://www.youtube.com/shorts/vDvnnG2iaGQ",
+      "watch_url": "https://www.youtube.com/watch?v=vDvnnG2iaGQ",
+      "surface_verification": {
+        "shorts_http_status": 200,
+        "shorts_final_url": "https://www.youtube.com/shorts/vDvnnG2iaGQ",
+        "serving_surface": "shorts"
+      },
+      "watch_http_status": 200,
+      "watch_final_url": "https://www.youtube.com/watch?v=vDvnnG2iaGQ",
+      "wall_marker": false,
+      "author": "The Perfume Nest",
+      "channel_id": "UCyU1XUvAFqV2X1NVCcRqRNA",
+      "title": "Fragrances That Are Nice But Way Overpriced | Expensive and Not Worth The Money | #ytshorts #shorts",
+      "length_seconds": 122,
+      "publish_date": "2026-01-25T08:01:27-08:00",
+      "view_count": 8926,
+      "watch_html_sha256": "a55a7ab9c2085a11c24d17c3e63a01804ab6145924f2f7f03659d4929f89783a",
+      "shorts_html_sha256": "7664084bb8b59125c7c782142367abb22e255545042016f30d8d97c47fbbf4e7",
+      "watch_byte_size": 1130852,
+      "shorts_byte_size": 1612651,
+      "relevance_match": true,
+      "caption_fetch": {
+        "found": true,
+        "note": "ok",
+        "lang": "en",
+        "caption_kind": "auto",
+        "original_language_assumed": false,
+        "cue_count": 109,
+        "tooling": {
+          "tool": "yt-dlp",
+          "tool_version": "2026.06.09",
+          "client": "yt-dlp-default",
+          "sub_format": "json3"
+        }
+      },
+      "word_count": 401,
+      "caption_packet_write": {
+        "exit_code": 0,
+        "message": "F:\\orca-data-lake\\raw\\f9d\\01KW1NP9YETHV164MGQ33Z2J8T"
+      },
+      "admission_status": "admitted",
+      "expansion_id": "ytshorts-fragrance-tone-expansion30-v0-018"
+    },
+    {
+      "handle_query": "JeremyFragrance",
+      "cohort": "existing_verified_fragrance_creator",
+      "video_id": "tQ0RKdd1o9g",
+      "rank_on_shorts_page": 4,
+      "attempted_at_utc": "2026-06-26T09:55:34Z",
+      "shorts_url": "https://www.youtube.com/shorts/tQ0RKdd1o9g",
+      "watch_url": "https://www.youtube.com/watch?v=tQ0RKdd1o9g",
+      "surface_verification": {
+        "shorts_http_status": 200,
+        "shorts_final_url": "https://www.youtube.com/shorts/tQ0RKdd1o9g",
+        "serving_surface": "shorts"
+      },
+      "watch_http_status": 200,
+      "watch_final_url": "https://www.youtube.com/watch?v=tQ0RKdd1o9g",
+      "wall_marker": false,
+      "author": "Jeremy Fragrance",
+      "channel_id": "UCzKrJ5NSA9o7RHYRG12kHZw",
+      "title": "Game Of Spades EMERALD &amp; REFRESH #jeremyfragrance #fragrance #cologne #perfume #parfum",
+      "length_seconds": 54,
+      "publish_date": "2026-06-26T02:09:18-07:00",
+      "view_count": 61,
+      "watch_html_sha256": "80efcde9a9d24c3113280754ba99ce553af60771156b8fba359d5c2cdf363946",
+      "shorts_html_sha256": "111abb95aacb1155b226f73cacca7d0cf310586fffb23a45de3ccb7189e8b02e",
+      "watch_byte_size": 1269512,
+      "shorts_byte_size": 1445690,
+      "relevance_match": true,
+      "caption_fetch": {
+        "found": true,
+        "note": "ok",
+        "lang": "en",
+        "caption_kind": "auto",
+        "original_language_assumed": false,
+        "cue_count": 39,
+        "tooling": {
+          "tool": "yt-dlp",
+          "tool_version": "2026.06.09",
+          "client": "yt-dlp-default",
+          "sub_format": "json3"
+        }
+      },
+      "word_count": 135,
+      "caption_packet_write": {
+        "exit_code": 0,
+        "message": "F:\\orca-data-lake\\raw\\5b5\\01KW1NPFQNXAYY8PAF4P4M77YM"
+      },
+      "admission_status": "admitted",
+      "expansion_id": "ytshorts-fragrance-tone-expansion30-v0-019"
+    },
+    {
+      "handle_query": "GentsScents",
+      "cohort": "existing_verified_fragrance_creator",
+      "video_id": "KorM3KkSUrs",
+      "rank_on_shorts_page": 5,
+      "attempted_at_utc": "2026-06-26T09:55:39Z",
+      "shorts_url": "https://www.youtube.com/shorts/KorM3KkSUrs",
+      "watch_url": "https://www.youtube.com/watch?v=KorM3KkSUrs",
+      "surface_verification": {
+        "shorts_http_status": 200,
+        "shorts_final_url": "https://www.youtube.com/shorts/KorM3KkSUrs",
+        "serving_surface": "shorts"
+      },
+      "watch_http_status": 200,
+      "watch_final_url": "https://www.youtube.com/watch?v=KorM3KkSUrs",
+      "wall_marker": false,
+      "author": "Gents Scents",
+      "channel_id": "UC9IImcLkUdmURWtQhxu8VwQ",
+      "title": "Where Did The Iris Go?  - Givenchy Gentleman Society",
+      "length_seconds": 58,
+      "publish_date": "2023-03-02T12:00:05-08:00",
+      "view_count": 63038,
+      "watch_html_sha256": "c3a96a0cbf1719cf15a0dafac1d22af3ed2567b3746e45384367e63b19a14b53",
+      "shorts_html_sha256": "4e43b8eee05118e727220426be0fc4c490ab741a64723c3fdd693eb5f0a8881a",
+      "watch_byte_size": 1356965,
+      "shorts_byte_size": 1546135,
+      "relevance_match": true,
+      "caption_fetch": {
+        "found": true,
+        "note": "ok",
+        "lang": "en",
+        "caption_kind": "auto",
+        "original_language_assumed": false,
+        "cue_count": 53,
+        "tooling": {
+          "tool": "yt-dlp",
+          "tool_version": "2026.06.09",
+          "client": "yt-dlp-default",
+          "sub_format": "json3"
+        }
+      },
+      "word_count": 187,
+      "caption_packet_write": {
+        "exit_code": 0,
+        "message": "F:\\orca-data-lake\\raw\\d57\\01KW1NPV3TN6KWKAXXH5X7PM9Z"
+      },
+      "admission_status": "admitted",
+      "expansion_id": "ytshorts-fragrance-tone-expansion30-v0-020"
+    },
+    {
+      "handle_query": "ThePerfumeGuy",
+      "cohort": "existing_verified_fragrance_creator",
+      "video_id": "BhA4y28lmt0",
+      "rank_on_shorts_page": 5,
+      "attempted_at_utc": "2026-06-26T09:55:51Z",
+      "shorts_url": "https://www.youtube.com/shorts/BhA4y28lmt0",
+      "watch_url": "https://www.youtube.com/watch?v=BhA4y28lmt0",
+      "surface_verification": {
+        "shorts_http_status": 200,
+        "shorts_final_url": "https://www.youtube.com/shorts/BhA4y28lmt0",
+        "serving_surface": "shorts"
+      },
+      "watch_http_status": 200,
+      "watch_final_url": "https://www.youtube.com/watch?v=BhA4y28lmt0",
+      "wall_marker": false,
+      "author": "The Perfume Guy",
+      "channel_id": "UCFarEEFsV90-pvUU0XdUdgQ",
+      "title": "L\u2019OCCITANE Eau des Baux Is GONE?! \ud83d\ude33",
+      "length_seconds": 89,
+      "publish_date": "2025-10-20T17:30:13-07:00",
+      "view_count": 19106,
+      "watch_html_sha256": "91990e428d21cbc2f0b3ea4903229392b15b574c53a6a94dd48f4355f85cfb9c",
+      "shorts_html_sha256": "4682015f6b5e7fd0fc1016c53a8a05a4f64843ed537aa20f51be411238ed4e28",
+      "watch_byte_size": 1165669,
+      "shorts_byte_size": 1311871,
+      "relevance_match": true,
+      "caption_fetch": {
+        "found": true,
+        "note": "ok",
+        "lang": "en",
+        "caption_kind": "manual",
+        "original_language_assumed": false,
+        "cue_count": 14,
+        "tooling": {
+          "tool": "yt-dlp",
+          "tool_version": "2026.06.09",
+          "client": "yt-dlp-default",
+          "sub_format": "json3"
+        }
+      },
+      "word_count": 246,
+      "caption_packet_write": {
+        "exit_code": 0,
+        "message": "F:\\orca-data-lake\\raw\\12c\\01KW1NQ09RHYSAHRQGPA787RWT"
+      },
+      "admission_status": "admitted",
+      "expansion_id": "ytshorts-fragrance-tone-expansion30-v0-021"
+    },
+    {
+      "handle_query": "SchoolofScent",
+      "cohort": "existing_verified_fragrance_creator",
+      "video_id": "cc7MLqJl9SY",
+      "rank_on_shorts_page": 5,
+      "attempted_at_utc": "2026-06-26T09:55:56Z",
+      "shorts_url": "https://www.youtube.com/shorts/cc7MLqJl9SY",
+      "watch_url": "https://www.youtube.com/watch?v=cc7MLqJl9SY",
+      "surface_verification": {
+        "shorts_http_status": 200,
+        "shorts_final_url": "https://www.youtube.com/shorts/cc7MLqJl9SY",
+        "serving_surface": "shorts"
+      },
+      "watch_http_status": 200,
+      "watch_final_url": "https://www.youtube.com/watch?v=cc7MLqJl9SY",
+      "wall_marker": false,
+      "author": "School of Scent",
+      "channel_id": "UC7yWwH6peQbpfLMVKKuR-xg",
+      "title": "Perfumer Sam Macer Reveals What Prices Popular Fragrances SHOULD Be? @sammacer",
+      "length_seconds": 58,
+      "publish_date": "2026-06-19T06:21:38-07:00",
+      "view_count": 7822,
+      "watch_html_sha256": "cd17329d42e35f01f7e99e6e334901b62dcd652aac31abb679dafa13298c117f",
+      "shorts_html_sha256": "5dac905d9c9d8d6bf7c2f490b19630a6324fac31fca53b91463e04696310d11b",
+      "watch_byte_size": 1251061,
+      "shorts_byte_size": 1871711,
+      "relevance_match": true,
+      "caption_fetch": {
+        "found": true,
+        "note": "ok",
+        "lang": "en",
+        "caption_kind": "auto",
+        "original_language_assumed": false,
+        "cue_count": 73,
+        "tooling": {
+          "tool": "yt-dlp",
+          "tool_version": "2026.06.09",
+          "client": "yt-dlp-default",
+          "sub_format": "json3"
+        }
+      },
+      "word_count": 227,
+      "caption_packet_write": {
+        "exit_code": 0,
+        "message": "F:\\orca-data-lake\\raw\\f71\\01KW1NQ6FKZXV068KQNDQGWF55"
+      },
+      "admission_status": "admitted",
+      "expansion_id": "ytshorts-fragrance-tone-expansion30-v0-022"
+    },
+    {
+      "handle_query": "CurlyScents",
+      "cohort": "existing_verified_fragrance_creator",
+      "video_id": "vLiFRCQhV0s",
+      "rank_on_shorts_page": 6,
+      "attempted_at_utc": "2026-06-26T09:56:03Z",
+      "shorts_url": "https://www.youtube.com/shorts/vLiFRCQhV0s",
+      "watch_url": "https://www.youtube.com/watch?v=vLiFRCQhV0s",
+      "surface_verification": {
+        "shorts_http_status": 200,
+        "shorts_final_url": "https://www.youtube.com/shorts/vLiFRCQhV0s",
+        "serving_surface": "shorts"
+      },
+      "watch_http_status": 200,
+      "watch_final_url": "https://www.youtube.com/watch?v=vLiFRCQhV0s",
+      "wall_marker": false,
+      "author": "Curly Scents",
+      "channel_id": "UCIfiNVTfW49L7Z3lGLfIOeA",
+      "title": "Top 3 Affordable Middle Eastern Perfumes!",
+      "length_seconds": 73,
+      "publish_date": "2026-03-02T06:53:52-08:00",
+      "view_count": 58691,
+      "watch_html_sha256": "da1a2202af639dd4eba172eeaf87af4c18085c4c1ff4148cf1e59c1d799a8034",
+      "shorts_html_sha256": "41be2be7aae31280ddeeffe5136463cd3b9691a77db511f852d5f243e5bbe01b",
+      "watch_byte_size": 1140706,
+      "shorts_byte_size": 1559230,
+      "relevance_match": true,
+      "caption_fetch": {
+        "found": true,
+        "note": "ok",
+        "lang": "en",
+        "caption_kind": "auto",
+        "original_language_assumed": false,
+        "cue_count": 71,
+        "tooling": {
+          "tool": "yt-dlp",
+          "tool_version": "2026.06.09",
+          "client": "yt-dlp-default",
+          "sub_format": "json3"
+        }
+      },
+      "word_count": 260,
+      "caption_packet_write": {
+        "exit_code": 0,
+        "message": "F:\\orca-data-lake\\raw\\230\\01KW1NQBRX7DTEWX0Z17H2SSS6"
+      },
+      "admission_status": "admitted",
+      "expansion_id": "ytshorts-fragrance-tone-expansion30-v0-023"
+    },
+    {
+      "handle_query": "funmimonet",
+      "cohort": "existing_verified_fragrance_creator",
+      "video_id": "GcAIds8HW38",
+      "rank_on_shorts_page": 4,
+      "attempted_at_utc": "2026-06-26T09:56:08Z",
+      "shorts_url": "https://www.youtube.com/shorts/GcAIds8HW38",
+      "watch_url": "https://www.youtube.com/watch?v=GcAIds8HW38",
+      "surface_verification": {
+        "shorts_http_status": 200,
+        "shorts_final_url": "https://www.youtube.com/shorts/GcAIds8HW38",
+        "serving_surface": "shorts"
+      },
+      "watch_http_status": 200,
+      "watch_final_url": "https://www.youtube.com/watch?v=GcAIds8HW38",
+      "wall_marker": false,
+      "author": "Funmi Monet",
+      "channel_id": "UCULGc5bSAoCIUMc-hQpjCXw",
+      "title": "Pacifica Beauty Vanilla Whip",
+      "length_seconds": 42,
+      "publish_date": "2026-03-15T18:46:18-07:00",
+      "view_count": 2360,
+      "watch_html_sha256": "96a957e5ec879a3e8183f012e0185046e19c671f946fdc35c192be782ce87fa2",
+      "shorts_html_sha256": "5462e299cd4bafdf8c427e1920eba08fc585e8f04a13fc0c5b40374af017cc92",
+      "watch_byte_size": 1160919,
+      "shorts_byte_size": 1608115,
+      "relevance_match": true,
+      "caption_fetch": {
+        "found": true,
+        "note": "ok",
+        "lang": "en",
+        "caption_kind": "auto",
+        "original_language_assumed": false,
+        "cue_count": 49,
+        "tooling": {
+          "tool": "yt-dlp",
+          "tool_version": "2026.06.09",
+          "client": "yt-dlp-default",
+          "sub_format": "json3"
+        }
+      },
+      "word_count": 177,
+      "caption_packet_write": {
+        "exit_code": 0,
+        "message": "F:\\orca-data-lake\\raw\\189\\01KW1NQGS90FX17N71Y28WW20B"
+      },
+      "admission_status": "admitted",
+      "expansion_id": "ytshorts-fragrance-tone-expansion30-v0-024"
+    },
+    {
+      "handle_query": "SokiLondon",
+      "cohort": "existing_verified_fragrance_creator",
+      "video_id": "3Abc0p30r9c",
+      "rank_on_shorts_page": 6,
+      "attempted_at_utc": "2026-06-26T09:56:13Z",
+      "shorts_url": "https://www.youtube.com/shorts/3Abc0p30r9c",
+      "watch_url": "https://www.youtube.com/watch?v=3Abc0p30r9c",
+      "surface_verification": {
+        "shorts_http_status": 200,
+        "shorts_final_url": "https://www.youtube.com/shorts/3Abc0p30r9c",
+        "serving_surface": "shorts"
+      },
+      "watch_http_status": 200,
+      "watch_final_url": "https://www.youtube.com/watch?v=3Abc0p30r9c",
+      "wall_marker": false,
+      "author": "Soki London",
+      "channel_id": "UCtBpe765Fy-USxg_L8hGDPg",
+      "title": "@alltheperfume4983 Reviews Soki London Ophelia - the ultimate Peony perfume \ud83e\ude77\ud83c\udf38",
+      "length_seconds": 52,
+      "publish_date": "2026-05-12T22:55:15-07:00",
+      "view_count": 1312,
+      "watch_html_sha256": "40f639e6add6db93bfe5cb2be7ddf4495e677fce2a5d1de78f049dba76699ff3",
+      "shorts_html_sha256": "e7d6570a2349b5857ca1c74cf814e12567b39db35ff476d79ef452a9845367b4",
+      "watch_byte_size": 1322007,
+      "shorts_byte_size": 1808756,
+      "relevance_match": true,
+      "caption_fetch": {
+        "found": true,
+        "note": "ok",
+        "lang": "en",
+        "caption_kind": "auto",
+        "original_language_assumed": false,
+        "cue_count": 55,
+        "tooling": {
+          "tool": "yt-dlp",
+          "tool_version": "2026.06.09",
+          "client": "yt-dlp-default",
+          "sub_format": "json3"
+        }
+      },
+      "word_count": 201,
+      "caption_packet_write": {
+        "exit_code": 0,
+        "message": "F:\\orca-data-lake\\raw\\350\\01KW1NQP8SG5EPS98RJ94CQY8Z"
+      },
+      "admission_status": "admitted",
+      "expansion_id": "ytshorts-fragrance-tone-expansion30-v0-025"
+    },
+    {
+      "handle_query": "TLTGReviews",
+      "cohort": "existing_verified_fragrance_creator",
+      "video_id": "wBzGGKsOdyY",
+      "rank_on_shorts_page": 4,
+      "attempted_at_utc": "2026-06-26T09:56:19Z",
+      "shorts_url": "https://www.youtube.com/shorts/wBzGGKsOdyY",
+      "watch_url": "https://www.youtube.com/watch?v=wBzGGKsOdyY",
+      "surface_verification": {
+        "shorts_http_status": 200,
+        "shorts_final_url": "https://www.youtube.com/shorts/wBzGGKsOdyY",
+        "serving_surface": "shorts"
+      },
+      "watch_http_status": 200,
+      "watch_final_url": "https://www.youtube.com/watch?v=wBzGGKsOdyY",
+      "wall_marker": false,
+      "author": "TLTG Reviews",
+      "channel_id": "UCmYZrY_MVZy5Iiwlua029kg",
+      "title": "Success!",
+      "length_seconds": 75,
+      "publish_date": "2026-06-20T18:16:27-07:00",
+      "view_count": 10927,
+      "watch_html_sha256": "0ced459107fa9a19f2325fb6a43aac7de9b6e70ee627bb698bdad3870d184b15",
+      "shorts_html_sha256": "9868aee2d48bc9f726df0f212cbf90a2ba0800dbf7a12bf648f7b603e5156561",
+      "watch_byte_size": 1416932,
+      "shorts_byte_size": 1390968,
+      "relevance_match": true,
+      "caption_fetch": {
+        "found": true,
+        "note": "ok",
+        "lang": "en",
+        "caption_kind": "auto",
+        "original_language_assumed": false,
+        "cue_count": 61,
+        "tooling": {
+          "tool": "yt-dlp",
+          "tool_version": "2026.06.09",
+          "client": "yt-dlp-default",
+          "sub_format": "json3"
+        }
+      },
+      "word_count": 193,
+      "caption_packet_write": {
+        "exit_code": 0,
+        "message": "F:\\orca-data-lake\\raw\\395\\01KW1NQWFVEZWMEABGKSZDGQP9"
+      },
+      "admission_status": "admitted",
+      "expansion_id": "ytshorts-fragrance-tone-expansion30-v0-026"
+    },
+    {
+      "handle_query": "Redolessence",
+      "cohort": "existing_verified_fragrance_creator",
+      "video_id": "Az4cCq5L0NE",
+      "rank_on_shorts_page": 5,
+      "attempted_at_utc": "2026-06-26T09:56:25Z",
+      "shorts_url": "https://www.youtube.com/shorts/Az4cCq5L0NE",
+      "watch_url": "https://www.youtube.com/watch?v=Az4cCq5L0NE",
+      "surface_verification": {
+        "shorts_http_status": 200,
+        "shorts_final_url": "https://www.youtube.com/shorts/Az4cCq5L0NE",
+        "serving_surface": "shorts"
+      },
+      "watch_http_status": 200,
+      "watch_final_url": "https://www.youtube.com/watch?v=Az4cCq5L0NE",
+      "wall_marker": false,
+      "author": "Redolessence",
+      "channel_id": "UCuSy0Z5UwvkMQ7lXRbUdOnQ",
+      "title": "Top 10 Masterpiece Perfumes!",
+      "length_seconds": 100,
+      "publish_date": "2026-06-25T08:01:19-07:00",
+      "view_count": 19079,
+      "watch_html_sha256": "672a4b1db9397f83d36fd304f56584164bbe692ae9ae45fb894dbbacbbe54a2f",
+      "shorts_html_sha256": "9be50d45122210119b635dacdd5c2c44205753ec8cc103bff0093f087fed5574",
+      "watch_byte_size": 1221782,
+      "shorts_byte_size": 1394313,
+      "relevance_match": true,
+      "caption_fetch": {
+        "found": true,
+        "note": "ok",
+        "lang": "en",
+        "caption_kind": "auto",
+        "original_language_assumed": false,
+        "cue_count": 87,
+        "tooling": {
+          "tool": "yt-dlp",
+          "tool_version": "2026.06.09",
+          "client": "yt-dlp-default",
+          "sub_format": "json3"
+        }
+      },
+      "word_count": 293,
+      "caption_packet_write": {
+        "exit_code": 0,
+        "message": "F:\\orca-data-lake\\raw\\107\\01KW1NR1KMTQ20HMWPDRFSHEGW"
+      },
+      "admission_status": "admitted",
+      "expansion_id": "ytshorts-fragrance-tone-expansion30-v0-027"
+    },
+    {
+      "handle_query": "TheFragranceApprentice",
+      "cohort": "existing_verified_fragrance_creator",
+      "video_id": "YWnj7wFOqO0",
+      "rank_on_shorts_page": 3,
+      "attempted_at_utc": "2026-06-26T09:56:31Z",
+      "shorts_url": "https://www.youtube.com/shorts/YWnj7wFOqO0",
+      "watch_url": "https://www.youtube.com/watch?v=YWnj7wFOqO0",
+      "surface_verification": {
+        "shorts_http_status": 200,
+        "shorts_final_url": "https://www.youtube.com/shorts/YWnj7wFOqO0",
+        "serving_surface": "shorts"
+      },
+      "watch_http_status": 200,
+      "watch_final_url": "https://www.youtube.com/watch?v=YWnj7wFOqO0",
+      "wall_marker": false,
+      "author": "The Fragrance Apprentice",
+      "channel_id": "UCMz0tE1qg5SwmrAF3Cshe0A",
+      "title": "Announcement of Millesime Imp\u00e9rial Review",
+      "length_seconds": 37,
+      "publish_date": "2025-04-14T11:00:29-07:00",
+      "view_count": 4993,
+      "watch_html_sha256": "46d61102b9b00fb20d08aeef80ac583a82760b10d8b49373babb57d288ae22c5",
+      "shorts_html_sha256": "aa982c28efc06a6b91c204b195c8e0e39b5566a9513accaad819a32ff77050d7",
+      "watch_byte_size": 1115510,
+      "shorts_byte_size": 1312544,
+      "relevance_match": true,
+      "caption_fetch": {
+        "found": true,
+        "note": "ok",
+        "lang": "en",
+        "caption_kind": "auto",
+        "original_language_assumed": false,
+        "cue_count": 27,
+        "tooling": {
+          "tool": "yt-dlp",
+          "tool_version": "2026.06.09",
+          "client": "yt-dlp-default",
+          "sub_format": "json3"
+        }
+      },
+      "word_count": 105,
+      "caption_packet_write": {
+        "exit_code": 0,
+        "message": "F:\\orca-data-lake\\raw\\f57\\01KW1NR6CPF791X59VC2Z6K1KQ"
+      },
+      "admission_status": "admitted",
+      "expansion_id": "ytshorts-fragrance-tone-expansion30-v0-028"
+    },
+    {
+      "handle_query": "BowTieFragranceGuy",
+      "cohort": "exploratory_extra_handle",
+      "video_id": "v4XVnLGD_Dk",
+      "rank_on_shorts_page": 3,
+      "attempted_at_utc": "2026-06-26T09:56:35Z",
+      "shorts_url": "https://www.youtube.com/shorts/v4XVnLGD_Dk",
+      "watch_url": "https://www.youtube.com/watch?v=v4XVnLGD_Dk",
+      "surface_verification": {
+        "shorts_http_status": 200,
+        "shorts_final_url": "https://www.youtube.com/shorts/v4XVnLGD_Dk",
+        "serving_surface": "shorts"
+      },
+      "watch_http_status": 200,
+      "watch_final_url": "https://www.youtube.com/watch?v=v4XVnLGD_Dk",
+      "wall_marker": false,
+      "author": "BowTie FragranceGuy",
+      "channel_id": "UCVvzGrPSok_sf8hfDhvTg7w",
+      "title": "A Summer Banger! A Wondrous Flight from the brand of Mes Bisous! Check this one out! #mesbisous",
+      "length_seconds": 60,
+      "publish_date": "2026-06-03T04:22:23-07:00",
+      "view_count": 8689,
+      "watch_html_sha256": "0798dcdf729630ddd6ee017331bdda94af7aba1bfb9bd3a0dae137e5bf3834db",
+      "shorts_html_sha256": "3232aa229251f87598842068ea0d2049b0a875d2cf80433e87f56d46ef0c52fa",
+      "watch_byte_size": 1170944,
+      "shorts_byte_size": 1452210,
+      "relevance_match": false,
+      "admission_status": "dropped_relevance_title_no_match"
+    },
+    {
+      "handle_query": "Scenteno",
+      "cohort": "exploratory_extra_handle",
+      "video_id": "tgM0PVOjYQw",
+      "rank_on_shorts_page": 3,
+      "attempted_at_utc": "2026-06-26T09:56:38Z",
+      "shorts_url": "https://www.youtube.com/shorts/tgM0PVOjYQw",
+      "watch_url": "https://www.youtube.com/watch?v=tgM0PVOjYQw",
+      "surface_verification": {
+        "shorts_http_status": 200,
+        "shorts_final_url": "https://www.youtube.com/shorts/tgM0PVOjYQw",
+        "serving_surface": "shorts"
+      },
+      "watch_http_status": 200,
+      "watch_final_url": "https://www.youtube.com/watch?v=tgM0PVOjYQw",
+      "wall_marker": false,
+      "author": "Scenteno",
+      "channel_id": "UC8gjOYz9aonQqd5HwoTu2NQ",
+      "title": "YOU? | is it worth it in 2026?",
+      "length_seconds": 52,
+      "publish_date": "2026-06-18T06:00:12-07:00",
+      "view_count": 1616,
+      "watch_html_sha256": "2c8b2ad0cd9e63f8e69b9efa1ac8ab918721ce0f9110da951266638915febc67",
+      "shorts_html_sha256": "1921a5aa4821771f2a08f56b1f9eaf3064617ab2efd8874ad6cf955b12f84e0e",
+      "watch_byte_size": 1190914,
+      "shorts_byte_size": 1440028,
+      "relevance_match": false,
+      "admission_status": "dropped_relevance_title_no_match"
+    },
+    {
+      "handle_query": "TiffBenson",
+      "cohort": "exploratory_extra_handle",
+      "video_id": "YcsTQkuuIRE",
+      "rank_on_shorts_page": 3,
+      "attempted_at_utc": "2026-06-26T09:56:40Z",
+      "shorts_url": "https://www.youtube.com/shorts/YcsTQkuuIRE",
+      "watch_url": "https://www.youtube.com/watch?v=YcsTQkuuIRE",
+      "surface_verification": {
+        "shorts_http_status": 200,
+        "shorts_final_url": "https://www.youtube.com/shorts/YcsTQkuuIRE",
+        "serving_surface": "shorts"
+      },
+      "watch_http_status": 200,
+      "watch_final_url": "https://www.youtube.com/watch?v=YcsTQkuuIRE",
+      "wall_marker": false,
+      "author": "Tiff Benson",
+      "channel_id": "UC4lKHUYqvm74znBF6qSnYig",
+      "title": "April 23, 2026",
+      "length_seconds": 60,
+      "publish_date": "2026-04-23T09:08:00-07:00",
+      "view_count": 1663,
+      "watch_html_sha256": "9789238d46988b70b8d8f56b7c2c58e2adb1fea658c31469546724caa1971afc",
+      "shorts_html_sha256": "7f18e9a17d298416acfcb1f1db1be3eafa6bc7e88f26956898a4fd6a29c86d83",
+      "watch_byte_size": 1158946,
+      "shorts_byte_size": 1435703,
+      "relevance_match": false,
+      "admission_status": "dropped_relevance_title_no_match"
+    },
+    {
+      "handle_query": "MilaLeBlanc",
+      "cohort": "exploratory_extra_handle",
+      "video_id": "hwRSgl1RUL8",
+      "rank_on_shorts_page": 3,
+      "attempted_at_utc": "2026-06-26T09:56:42Z",
+      "shorts_url": "https://www.youtube.com/shorts/hwRSgl1RUL8",
+      "watch_url": "https://www.youtube.com/watch?v=hwRSgl1RUL8",
+      "surface_verification": {
+        "shorts_http_status": 200,
+        "shorts_final_url": "https://www.youtube.com/shorts/hwRSgl1RUL8",
+        "serving_surface": "shorts"
+      },
+      "watch_http_status": 200,
+      "watch_final_url": "https://www.youtube.com/watch?v=hwRSgl1RUL8",
+      "wall_marker": false,
+      "author": "Mila Le Blanc",
+      "channel_id": "UCta4sjQtsMUtBCkI811ocfA",
+      "title": "AKRO RISE PERFUME ( BANGER )",
+      "length_seconds": 24,
+      "publish_date": "2026-03-21T12:51:29-07:00",
+      "view_count": 5342,
+      "watch_html_sha256": "50864b15921481b715287630f48d602c558f63e30a9a3f83784b5063355a4918",
+      "shorts_html_sha256": "79f9ade4d97b1214889e267887e83550d697898999a1e9b15fa17a874606afd1",
+      "watch_byte_size": 1147569,
+      "shorts_byte_size": 1584594,
+      "relevance_match": true,
+      "caption_fetch": {
+        "found": true,
+        "note": "ok",
+        "lang": "en",
+        "caption_kind": "auto",
+        "original_language_assumed": false,
+        "cue_count": 17,
+        "tooling": {
+          "tool": "yt-dlp",
+          "tool_version": "2026.06.09",
+          "client": "yt-dlp-default",
+          "sub_format": "json3"
+        }
+      },
+      "word_count": 55,
+      "caption_packet_write": {
+        "exit_code": 0,
+        "message": "F:\\orca-data-lake\\raw\\944\\01KW1NRK234WWM6HPYYRSRWPF7"
+      },
+      "admission_status": "admitted",
+      "expansion_id": "ytshorts-fragrance-tone-expansion30-v0-029"
+    },
+    {
+      "handle_query": "Scentbird",
+      "cohort": "exploratory_extra_handle",
+      "video_id": "47SdvXBOUaw",
+      "rank_on_shorts_page": 3,
+      "attempted_at_utc": "2026-06-26T09:56:48Z",
+      "shorts_url": "https://www.youtube.com/shorts/47SdvXBOUaw",
+      "watch_url": "https://www.youtube.com/watch?v=47SdvXBOUaw",
+      "surface_verification": {
+        "shorts_http_status": 200,
+        "shorts_final_url": "https://www.youtube.com/shorts/47SdvXBOUaw",
+        "serving_surface": "shorts"
+      },
+      "watch_http_status": 200,
+      "watch_final_url": "https://www.youtube.com/watch?v=47SdvXBOUaw",
+      "wall_marker": false,
+      "author": "Scentbird",
+      "channel_id": "UCqyZ36l5SkZrbaqWH0cxB1A",
+      "title": "There\u2019s always room for one more scent! #FragranceAddict #PerfumeObsession",
+      "length_seconds": 7,
+      "publish_date": "2026-06-01T08:26:37-07:00",
+      "view_count": 1167,
+      "watch_html_sha256": "886603ce2d4f3b4c7002bf09283a41e3c35b472446294bf19ac6d4319d83bdc1",
+      "shorts_html_sha256": "3cc64fe0be8a88490494d74da32bfc747ef1b2715fee776b3f98cb57b8d27142",
+      "watch_byte_size": 1153463,
+      "shorts_byte_size": 1326066,
+      "relevance_match": true,
+      "caption_fetch": {
+        "found": true,
+        "note": "ok",
+        "lang": "en",
+        "caption_kind": "auto",
+        "original_language_assumed": false,
+        "cue_count": 5,
+        "tooling": {
+          "tool": "yt-dlp",
+          "tool_version": "2026.06.09",
+          "client": "yt-dlp-default",
+          "sub_format": "json3"
+        }
+      },
+      "word_count": 5,
+      "admission_status": "dropped_transcript_under_min_word_count"
+    },
+    {
+      "handle_query": "ThePerfumeNest",
+      "cohort": "exploratory_extra_handle",
+      "video_id": "W3HTpUsaHiA",
+      "rank_on_shorts_page": 3,
+      "attempted_at_utc": "2026-06-26T09:56:53Z",
+      "shorts_url": "https://www.youtube.com/shorts/W3HTpUsaHiA",
+      "watch_url": "https://www.youtube.com/watch?v=W3HTpUsaHiA",
+      "surface_verification": {
+        "shorts_http_status": 200,
+        "shorts_final_url": "https://www.youtube.com/shorts/W3HTpUsaHiA",
+        "serving_surface": "shorts"
+      },
+      "watch_http_status": 200,
+      "watch_final_url": "https://www.youtube.com/watch?v=W3HTpUsaHiA",
+      "wall_marker": false,
+      "author": "The Perfume Nest",
+      "channel_id": "UCyU1XUvAFqV2X1NVCcRqRNA",
+      "title": "Best Perfume Releases of 2025 | These New Perfumes Stood Out Among The Crowd | #shorts #ytshorts",
+      "length_seconds": 145,
+      "publish_date": "2026-01-17T11:39:20-08:00",
+      "view_count": 8606,
+      "watch_html_sha256": "7fdd3c2ce1b7bcfa1d5d8a872145b777513317efbeba70904c2df906948dd6e9",
+      "shorts_html_sha256": "bc1e97efb2d9b9499d254ef3eae7897affb040eecca02b92448788210eef1ae7",
+      "watch_byte_size": 1150427,
+      "shorts_byte_size": 1428336,
+      "relevance_match": true,
+      "caption_fetch": {
+        "found": true,
+        "note": "ok",
+        "lang": "en",
+        "caption_kind": "auto",
+        "original_language_assumed": false,
+        "cue_count": 137,
+        "tooling": {
+          "tool": "yt-dlp",
+          "tool_version": "2026.06.09",
+          "client": "yt-dlp-default",
+          "sub_format": "json3"
+        }
+      },
+      "word_count": 481,
+      "caption_packet_write": {
+        "exit_code": 0,
+        "message": "F:\\orca-data-lake\\raw\\af3\\01KW1NRXEWZQYMYV6KG8EQFMX4"
+      },
+      "admission_status": "admitted",
+      "expansion_id": "ytshorts-fragrance-tone-expansion30-v0-030"
+    }
+  ],
+  "admitted": [
+    {
+      "expansion_id": "ytshorts-fragrance-tone-expansion30-v0-001",
+      "origin": "step5_expansion_caption_capture",
+      "creator_handle_query": "ChaosFragrances",
+      "creator_cohort": "exploratory_extra_handle",
+      "rank_on_shorts_page": 1,
+      "author": "Chaos Fragrances",
+      "channel_id": "UC0fOGtvT1x8irPUZOFdF2mA",
+      "video_id": "xZ6vd9fyBbw",
+      "title": "The BEST Fragrance Flankers EVER MADE \u2014 BETTER Than The Original",
+      "shorts_url": "https://www.youtube.com/shorts/xZ6vd9fyBbw",
+      "watch_url": "https://www.youtube.com/watch?v=xZ6vd9fyBbw",
+      "serving_surface": "shorts",
+      "length_seconds": 127,
+      "publish_date": "2026-05-26T09:00:03-07:00",
+      "view_count_at_capture": 5564,
+      "watch_html_sha256": "f490bdf9d4d1e8195ac96a8793e3c1e589008d54b9ff37c4c1d3e726b3c60c3e",
+      "shorts_html_sha256": "1b7b8b8ba5f467cb6533757d983cb699c79b61c521240841b40da5b484e97d71",
+      "transcript_status": "caption_captured",
+      "transcript_route": "youtube_caption_packet",
+      "transcript_source": "youtube_caption_auto",
+      "caption_lang": "en",
+      "original_language_assumed": false,
+      "word_count": 402,
+      "cue_count": 113,
+      "admission_gates": {
+        "verified_shorts_serving_surface": true,
+        "durable_data_lake_pointer": true,
+        "word_count_at_least_minimum": true,
+        "cue_count_positive": true,
+        "known_transcript_route": true
+      },
+      "transcript_pointer": {
+        "kind": "raw_caption_packet",
+        "path": "F:\\orca-data-lake\\raw\\3a0\\01KW1NHYXWWYWJ3N7QNR2629FF",
+        "source_packet_id": "01KW1NHYXWWYWJ3N7QNR2629FF",
+        "caption_kind": "auto",
+        "caption_lang": "en",
+        "tool": "yt-dlp",
+        "tool_version": "2026.06.09",
+        "client": "yt-dlp-default",
+        "sub_format": "json3"
+      },
+      "scoreable_dimensions_pending_rubric_review": [
+        "transcript_rhetorical_tone"
+      ],
+      "forbidden_dimensions_without_audio_feature_capture": [
+        "energy",
+        "pace",
+        "volume",
+        "prosodic_excitement"
+      ]
+    },
+    {
+      "expansion_id": "ytshorts-fragrance-tone-expansion30-v0-002",
+      "origin": "step5_expansion_caption_capture",
+      "creator_handle_query": "FragranceKnowledge",
+      "creator_cohort": "exploratory_extra_handle",
+      "rank_on_shorts_page": 1,
+      "author": "FragranceKnowledge",
+      "channel_id": "UCzH0Tal9pApj-F6KSGZHo4Q",
+      "video_id": "xK8bmugSpgQ",
+      "title": "How many sprays are in the viral MYKONOS 50ML Bottles #fragranceknowledge",
+      "shorts_url": "https://www.youtube.com/shorts/xK8bmugSpgQ",
+      "watch_url": "https://www.youtube.com/watch?v=xK8bmugSpgQ",
+      "serving_surface": "shorts",
+      "length_seconds": 86,
+      "publish_date": "2026-06-25T13:43:40-07:00",
+      "view_count_at_capture": 2603,
+      "watch_html_sha256": "ff6504d7c2241d4bc5f5233df439b894bc5ec94c9bfa3469cb95bd56ea87684f",
+      "shorts_html_sha256": "a4cf550726e361b3b86c9d3bf60791be7ebad85dd86e1c45b5237dd073823147",
+      "transcript_status": "caption_captured",
+      "transcript_route": "youtube_caption_packet",
+      "transcript_source": "youtube_caption_auto",
+      "caption_lang": "en",
+      "original_language_assumed": false,
+      "word_count": 105,
+      "cue_count": 35,
+      "admission_gates": {
+        "verified_shorts_serving_surface": true,
+        "durable_data_lake_pointer": true,
+        "word_count_at_least_minimum": true,
+        "cue_count_positive": true,
+        "known_transcript_route": true
+      },
+      "transcript_pointer": {
+        "kind": "raw_caption_packet",
+        "path": "F:\\orca-data-lake\\raw\\df9\\01KW1NJ4BDW8C7684QPJXQ3GYH",
+        "source_packet_id": "01KW1NJ4BDW8C7684QPJXQ3GYH",
+        "caption_kind": "auto",
+        "caption_lang": "en",
+        "tool": "yt-dlp",
+        "tool_version": "2026.06.09",
+        "client": "yt-dlp-default",
+        "sub_format": "json3"
+      },
+      "scoreable_dimensions_pending_rubric_review": [
+        "transcript_rhetorical_tone"
+      ],
+      "forbidden_dimensions_without_audio_feature_capture": [
+        "energy",
+        "pace",
+        "volume",
+        "prosodic_excitement"
+      ]
+    },
+    {
+      "expansion_id": "ytshorts-fragrance-tone-expansion30-v0-003",
+      "origin": "step5_expansion_caption_capture",
+      "creator_handle_query": "ProfessorPerfume",
+      "creator_cohort": "exploratory_extra_handle",
+      "rank_on_shorts_page": 1,
+      "author": "Professor Perfume",
+      "channel_id": "UC_1GYaGHE0luMX0j6utkeHg",
+      "video_id": "vtwo-iaOszA",
+      "title": "A Combination You NEED to Try!! #shorts #perfume #scentsiblespraying #fragrance",
+      "shorts_url": "https://www.youtube.com/shorts/vtwo-iaOszA",
+      "watch_url": "https://www.youtube.com/watch?v=vtwo-iaOszA",
+      "serving_surface": "shorts",
+      "length_seconds": 57,
+      "publish_date": "2021-05-24T13:51:14-07:00",
+      "view_count_at_capture": 107,
+      "watch_html_sha256": "c0d5199b1997e7a605e9e18e6a520bbcb4a6ae7ea4b6f73fd5af2b2ea0c0b42b",
+      "shorts_html_sha256": "19b70c30aa37e5fb2e05de7b4edc72cdad085db61e66ca3661c2266b188ca4cb",
+      "transcript_status": "caption_captured",
+      "transcript_route": "youtube_caption_packet",
+      "transcript_source": "youtube_caption_auto",
+      "caption_lang": "en",
+      "original_language_assumed": false,
+      "word_count": 169,
+      "cue_count": 55,
+      "admission_gates": {
+        "verified_shorts_serving_surface": true,
+        "durable_data_lake_pointer": true,
+        "word_count_at_least_minimum": true,
+        "cue_count_positive": true,
+        "known_transcript_route": true
+      },
+      "transcript_pointer": {
+        "kind": "raw_caption_packet",
+        "path": "F:\\orca-data-lake\\raw\\a87\\01KW1NK2KV4E7ZC17WX0GQMJXP",
+        "source_packet_id": "01KW1NK2KV4E7ZC17WX0GQMJXP",
+        "caption_kind": "auto",
+        "caption_lang": "en",
+        "tool": "yt-dlp",
+        "tool_version": "2026.06.09",
+        "client": "yt-dlp-default",
+        "sub_format": "json3"
+      },
+      "scoreable_dimensions_pending_rubric_review": [
+        "transcript_rhetorical_tone"
+      ],
+      "forbidden_dimensions_without_audio_feature_capture": [
+        "energy",
+        "pace",
+        "volume",
+        "prosodic_excitement"
+      ]
+    },
+    {
+      "expansion_id": "ytshorts-fragrance-tone-expansion30-v0-004",
+      "origin": "step5_expansion_caption_capture",
+      "creator_handle_query": "JeremyFragrance",
+      "creator_cohort": "existing_verified_fragrance_creator",
+      "rank_on_shorts_page": 3,
+      "author": "Jeremy Fragrance",
+      "channel_id": "UCzKrJ5NSA9o7RHYRG12kHZw",
+      "video_id": "JcwT5rvhXIc",
+      "title": "Game Of Spades EMERALD &amp; REFRESH #jeremyfragrance #fragrance #cologne #perfume #parfum",
+      "shorts_url": "https://www.youtube.com/shorts/JcwT5rvhXIc",
+      "watch_url": "https://www.youtube.com/watch?v=JcwT5rvhXIc",
+      "serving_surface": "shorts",
+      "length_seconds": 56,
+      "publish_date": "2026-06-26T02:09:21-07:00",
+      "view_count_at_capture": 76,
+      "watch_html_sha256": "138e43158bf32c3729b7bc0ff91e75b48e096bc3bedb21deeaba3432c02202cc",
+      "shorts_html_sha256": "0a35300ddd9237eb7d83d762f6a1c3191cb4f4afdfe021e3c3f4a101f941e946",
+      "transcript_status": "caption_captured",
+      "transcript_route": "youtube_caption_packet",
+      "transcript_source": "youtube_caption_auto",
+      "caption_lang": "en",
+      "original_language_assumed": false,
+      "word_count": 141,
+      "cue_count": 43,
+      "admission_gates": {
+        "verified_shorts_serving_surface": true,
+        "durable_data_lake_pointer": true,
+        "word_count_at_least_minimum": true,
+        "cue_count_positive": true,
+        "known_transcript_route": true
+      },
+      "transcript_pointer": {
+        "kind": "raw_caption_packet",
+        "path": "F:\\orca-data-lake\\raw\\e48\\01KW1NK8B9QZVJNBX6MJTZJ02Q",
+        "source_packet_id": "01KW1NK8B9QZVJNBX6MJTZJ02Q",
+        "caption_kind": "auto",
+        "caption_lang": "en",
+        "tool": "yt-dlp",
+        "tool_version": "2026.06.09",
+        "client": "yt-dlp-default",
+        "sub_format": "json3"
+      },
+      "scoreable_dimensions_pending_rubric_review": [
+        "transcript_rhetorical_tone"
+      ],
+      "forbidden_dimensions_without_audio_feature_capture": [
+        "energy",
+        "pace",
+        "volume",
+        "prosodic_excitement"
+      ]
+    },
+    {
+      "expansion_id": "ytshorts-fragrance-tone-expansion30-v0-005",
+      "origin": "step5_expansion_caption_capture",
+      "creator_handle_query": "GentsScents",
+      "creator_cohort": "existing_verified_fragrance_creator",
+      "rank_on_shorts_page": 4,
+      "author": "Gents Scents",
+      "channel_id": "UC9IImcLkUdmURWtQhxu8VwQ",
+      "video_id": "jo03W7cBwBM",
+      "title": "When You Want Mugler Pure Malt But You Don&#39;t Want To Pay Much Money",
+      "shorts_url": "https://www.youtube.com/shorts/jo03W7cBwBM",
+      "watch_url": "https://www.youtube.com/watch?v=jo03W7cBwBM",
+      "serving_surface": "shorts",
+      "length_seconds": 48,
+      "publish_date": "2023-03-08T11:00:31-08:00",
+      "view_count_at_capture": 51534,
+      "watch_html_sha256": "a093ab98c8fe17e97386aa080e933642dfd8260ac20dc71d2d4702353780c5da",
+      "shorts_html_sha256": "5e06351f5306cbfed367836cf382c943419ee7ffd5ea544c3fd4f9cbe174c168",
+      "transcript_status": "caption_captured",
+      "transcript_route": "youtube_caption_packet",
+      "transcript_source": "youtube_caption_auto",
+      "caption_lang": "en",
+      "original_language_assumed": false,
+      "word_count": 138,
+      "cue_count": 35,
+      "admission_gates": {
+        "verified_shorts_serving_surface": true,
+        "durable_data_lake_pointer": true,
+        "word_count_at_least_minimum": true,
+        "cue_count_positive": true,
+        "known_transcript_route": true
+      },
+      "transcript_pointer": {
+        "kind": "raw_caption_packet",
+        "path": "F:\\orca-data-lake\\raw\\8fb\\01KW1NKDQP9C278GM95767QRYX",
+        "source_packet_id": "01KW1NKDQP9C278GM95767QRYX",
+        "caption_kind": "auto",
+        "caption_lang": "en",
+        "tool": "yt-dlp",
+        "tool_version": "2026.06.09",
+        "client": "yt-dlp-default",
+        "sub_format": "json3"
+      },
+      "scoreable_dimensions_pending_rubric_review": [
+        "transcript_rhetorical_tone"
+      ],
+      "forbidden_dimensions_without_audio_feature_capture": [
+        "energy",
+        "pace",
+        "volume",
+        "prosodic_excitement"
+      ]
+    },
+    {
+      "expansion_id": "ytshorts-fragrance-tone-expansion30-v0-006",
+      "origin": "step5_expansion_caption_capture",
+      "creator_handle_query": "ThePerfumeGuy",
+      "creator_cohort": "existing_verified_fragrance_creator",
+      "rank_on_shorts_page": 4,
+      "author": "The Perfume Guy",
+      "channel_id": "UCFarEEFsV90-pvUU0XdUdgQ",
+      "video_id": "17mhHUkRLvg",
+      "title": "This MUSKY \u201cPheromone\u201d Fragrance Gets Compliments Like Crazy! \ud83d\ude33",
+      "shorts_url": "https://www.youtube.com/shorts/17mhHUkRLvg",
+      "watch_url": "https://www.youtube.com/watch?v=17mhHUkRLvg",
+      "serving_surface": "shorts",
+      "length_seconds": 105,
+      "publish_date": "2025-10-22T17:37:12-07:00",
+      "view_count_at_capture": 16545,
+      "watch_html_sha256": "db982712b17111ab31f3581521efa314cec1bcec9ec4427d3d1ad5f2631f4f67",
+      "shorts_html_sha256": "4d97a8b937d64e557575dcfecad622c2f28b157fa6b6a7160e3b24dcc9990662",
+      "transcript_status": "caption_captured",
+      "transcript_route": "youtube_caption_packet",
+      "transcript_source": "youtube_caption_auto",
+      "caption_lang": "en",
+      "original_language_assumed": false,
+      "word_count": 345,
+      "cue_count": 101,
+      "admission_gates": {
+        "verified_shorts_serving_surface": true,
+        "durable_data_lake_pointer": true,
+        "word_count_at_least_minimum": true,
+        "cue_count_positive": true,
+        "known_transcript_route": true
+      },
+      "transcript_pointer": {
+        "kind": "raw_caption_packet",
+        "path": "F:\\orca-data-lake\\raw\\769\\01KW1NKKC9VGFWSGC8Z6C2AW7X",
+        "source_packet_id": "01KW1NKKC9VGFWSGC8Z6C2AW7X",
+        "caption_kind": "auto",
+        "caption_lang": "en",
+        "tool": "yt-dlp",
+        "tool_version": "2026.06.09",
+        "client": "yt-dlp-default",
+        "sub_format": "json3"
+      },
+      "scoreable_dimensions_pending_rubric_review": [
+        "transcript_rhetorical_tone"
+      ],
+      "forbidden_dimensions_without_audio_feature_capture": [
+        "energy",
+        "pace",
+        "volume",
+        "prosodic_excitement"
+      ]
+    },
+    {
+      "expansion_id": "ytshorts-fragrance-tone-expansion30-v0-007",
+      "origin": "step5_expansion_caption_capture",
+      "creator_handle_query": "SchoolofScent",
+      "creator_cohort": "existing_verified_fragrance_creator",
+      "rank_on_shorts_page": 4,
+      "author": "School of Scent",
+      "channel_id": "UC7yWwH6peQbpfLMVKKuR-xg",
+      "video_id": "1K9ej-6aP6g",
+      "title": "Project Kiwi Part 1 : The Impossible Fantasy Accord \ud83e\udd5d",
+      "shorts_url": "https://www.youtube.com/shorts/1K9ej-6aP6g",
+      "watch_url": "https://www.youtube.com/watch?v=1K9ej-6aP6g",
+      "serving_surface": "shorts",
+      "length_seconds": 55,
+      "publish_date": "2026-06-21T06:21:17-07:00",
+      "view_count_at_capture": 6548,
+      "watch_html_sha256": "e240ee84cad592a60fb608d5066852d250f3aab19545d3a95afba9cc42413e6f",
+      "shorts_html_sha256": "51390209eb3ea3b93dac8908a8ddf64a7dca337d253384d6fc902e89eac4854b",
+      "transcript_status": "caption_captured",
+      "transcript_route": "youtube_caption_packet",
+      "transcript_source": "youtube_caption_auto",
+      "caption_lang": "en",
+      "original_language_assumed": false,
+      "word_count": 219,
+      "cue_count": 65,
+      "admission_gates": {
+        "verified_shorts_serving_surface": true,
+        "durable_data_lake_pointer": true,
+        "word_count_at_least_minimum": true,
+        "cue_count_positive": true,
+        "known_transcript_route": true
+      },
+      "transcript_pointer": {
+        "kind": "raw_caption_packet",
+        "path": "F:\\orca-data-lake\\raw\\411\\01KW1NKTNJ469PQ1V8DQK3G4AW",
+        "source_packet_id": "01KW1NKTNJ469PQ1V8DQK3G4AW",
+        "caption_kind": "auto",
+        "caption_lang": "en",
+        "tool": "yt-dlp",
+        "tool_version": "2026.06.09",
+        "client": "yt-dlp-default",
+        "sub_format": "json3"
+      },
+      "scoreable_dimensions_pending_rubric_review": [
+        "transcript_rhetorical_tone"
+      ],
+      "forbidden_dimensions_without_audio_feature_capture": [
+        "energy",
+        "pace",
+        "volume",
+        "prosodic_excitement"
+      ]
+    },
+    {
+      "expansion_id": "ytshorts-fragrance-tone-expansion30-v0-008",
+      "origin": "step5_expansion_caption_capture",
+      "creator_handle_query": "CurlyScents",
+      "creator_cohort": "existing_verified_fragrance_creator",
+      "rank_on_shorts_page": 5,
+      "author": "Curly Scents",
+      "channel_id": "UCIfiNVTfW49L7Z3lGLfIOeA",
+      "video_id": "ekaQONEC2ys",
+      "title": "10 Affordable Middle Eastern Colognes that smell EXPENSIVE.",
+      "shorts_url": "https://www.youtube.com/shorts/ekaQONEC2ys",
+      "watch_url": "https://www.youtube.com/watch?v=ekaQONEC2ys",
+      "serving_surface": "shorts",
+      "length_seconds": 90,
+      "publish_date": "2026-03-03T07:35:20-08:00",
+      "view_count_at_capture": 39873,
+      "watch_html_sha256": "ff42a3d3744da8b99b39ed8c7ea4f60ee0008deb6e4e2b30dff4304f99b61545",
+      "shorts_html_sha256": "62196e06b63d5c0b439ca2b160c5ad536552b519a7237d0bc8bc87e52c2bf1ab",
+      "transcript_status": "caption_captured",
+      "transcript_route": "youtube_caption_packet",
+      "transcript_source": "youtube_caption_auto",
+      "caption_lang": "en",
+      "original_language_assumed": false,
+      "word_count": 297,
+      "cue_count": 93,
+      "admission_gates": {
+        "verified_shorts_serving_surface": true,
+        "durable_data_lake_pointer": true,
+        "word_count_at_least_minimum": true,
+        "cue_count_positive": true,
+        "known_transcript_route": true
+      },
+      "transcript_pointer": {
+        "kind": "raw_caption_packet",
+        "path": "F:\\orca-data-lake\\raw\\ba4\\01KW1NM06A1P2MCZZVJA2QM39D",
+        "source_packet_id": "01KW1NM06A1P2MCZZVJA2QM39D",
+        "caption_kind": "auto",
+        "caption_lang": "en",
+        "tool": "yt-dlp",
+        "tool_version": "2026.06.09",
+        "client": "yt-dlp-default",
+        "sub_format": "json3"
+      },
+      "scoreable_dimensions_pending_rubric_review": [
+        "transcript_rhetorical_tone"
+      ],
+      "forbidden_dimensions_without_audio_feature_capture": [
+        "energy",
+        "pace",
+        "volume",
+        "prosodic_excitement"
+      ]
+    },
+    {
+      "expansion_id": "ytshorts-fragrance-tone-expansion30-v0-009",
+      "origin": "step5_expansion_caption_capture",
+      "creator_handle_query": "funmimonet",
+      "creator_cohort": "existing_verified_fragrance_creator",
+      "rank_on_shorts_page": 3,
+      "author": "Funmi Monet",
+      "channel_id": "UCULGc5bSAoCIUMc-hQpjCXw",
+      "video_id": "DIMlwC1LsHg",
+      "title": "#NYXProfessionalMakep",
+      "shorts_url": "https://www.youtube.com/shorts/DIMlwC1LsHg",
+      "watch_url": "https://www.youtube.com/watch?v=DIMlwC1LsHg",
+      "serving_surface": "shorts",
+      "length_seconds": 32,
+      "publish_date": "2026-04-13T15:12:04-07:00",
+      "view_count_at_capture": 1876,
+      "watch_html_sha256": "dd2fb21ef3537ae0f31001e09d28b200fb44fbd873f661323d0a01944b2b2cce",
+      "shorts_html_sha256": "2a02625c5e0af01d50e1e586a27f423a848f62e7b40e7609d21d96f0ca89852c",
+      "transcript_status": "caption_captured",
+      "transcript_route": "youtube_caption_packet",
+      "transcript_source": "youtube_caption_auto",
+      "caption_lang": "en",
+      "original_language_assumed": false,
+      "word_count": 112,
+      "cue_count": 33,
+      "admission_gates": {
+        "verified_shorts_serving_surface": true,
+        "durable_data_lake_pointer": true,
+        "word_count_at_least_minimum": true,
+        "cue_count_positive": true,
+        "known_transcript_route": true
+      },
+      "transcript_pointer": {
+        "kind": "raw_caption_packet",
+        "path": "F:\\orca-data-lake\\raw\\fa6\\01KW1NM68SQ5060ADP61YQ1QPE",
+        "source_packet_id": "01KW1NM68SQ5060ADP61YQ1QPE",
+        "caption_kind": "auto",
+        "caption_lang": "en",
+        "tool": "yt-dlp",
+        "tool_version": "2026.06.09",
+        "client": "yt-dlp-default",
+        "sub_format": "json3"
+      },
+      "scoreable_dimensions_pending_rubric_review": [
+        "transcript_rhetorical_tone"
+      ],
+      "forbidden_dimensions_without_audio_feature_capture": [
+        "energy",
+        "pace",
+        "volume",
+        "prosodic_excitement"
+      ]
+    },
+    {
+      "expansion_id": "ytshorts-fragrance-tone-expansion30-v0-010",
+      "origin": "step5_expansion_caption_capture",
+      "creator_handle_query": "SokiLondon",
+      "creator_cohort": "existing_verified_fragrance_creator",
+      "rank_on_shorts_page": 5,
+      "author": "Soki London",
+      "channel_id": "UCtBpe765Fy-USxg_L8hGDPg",
+      "video_id": "frHbes9NwZI",
+      "title": "WHICH IS THE BEST VERSION OF KYLIE COSMIC? | Soki London",
+      "shorts_url": "https://www.youtube.com/shorts/frHbes9NwZI",
+      "watch_url": "https://www.youtube.com/watch?v=frHbes9NwZI",
+      "serving_surface": "shorts",
+      "length_seconds": 57,
+      "publish_date": "2026-05-22T23:25:44-07:00",
+      "view_count_at_capture": 2044,
+      "watch_html_sha256": "f4a80e90c85cf7fed725c88160758c2d362e41eb1f16448de9da294abee81c56",
+      "shorts_html_sha256": "9b880b1c4af10808f0c5c79f70626a87bb0332d0b7acf471a61552753ee8f7c0",
+      "transcript_status": "caption_captured",
+      "transcript_route": "youtube_caption_packet",
+      "transcript_source": "youtube_caption_auto",
+      "caption_lang": "en",
+      "original_language_assumed": false,
+      "word_count": 180,
+      "cue_count": 49,
+      "admission_gates": {
+        "verified_shorts_serving_surface": true,
+        "durable_data_lake_pointer": true,
+        "word_count_at_least_minimum": true,
+        "cue_count_positive": true,
+        "known_transcript_route": true
+      },
+      "transcript_pointer": {
+        "kind": "raw_caption_packet",
+        "path": "F:\\orca-data-lake\\raw\\58e\\01KW1NMDKXJMTB4X8724CTPF5T",
+        "source_packet_id": "01KW1NMDKXJMTB4X8724CTPF5T",
+        "caption_kind": "auto",
+        "caption_lang": "en",
+        "tool": "yt-dlp",
+        "tool_version": "2026.06.09",
+        "client": "yt-dlp-default",
+        "sub_format": "json3"
+      },
+      "scoreable_dimensions_pending_rubric_review": [
+        "transcript_rhetorical_tone"
+      ],
+      "forbidden_dimensions_without_audio_feature_capture": [
+        "energy",
+        "pace",
+        "volume",
+        "prosodic_excitement"
+      ]
+    },
+    {
+      "expansion_id": "ytshorts-fragrance-tone-expansion30-v0-011",
+      "origin": "step5_expansion_caption_capture",
+      "creator_handle_query": "TLTGReviews",
+      "creator_cohort": "existing_verified_fragrance_creator",
+      "rank_on_shorts_page": 3,
+      "author": "TLTG Reviews",
+      "channel_id": "UCmYZrY_MVZy5Iiwlua029kg",
+      "video_id": "rnJjtCdMZyo",
+      "title": "Just Happy to have a shot at the overall championship. no chance beating this giant though \ud83d\ude02",
+      "shorts_url": "https://www.youtube.com/shorts/rnJjtCdMZyo",
+      "watch_url": "https://www.youtube.com/watch?v=rnJjtCdMZyo",
+      "serving_surface": "shorts",
+      "length_seconds": 134,
+      "publish_date": "2026-06-20T19:02:26-07:00",
+      "view_count_at_capture": 2294,
+      "watch_html_sha256": "d62451ec1c075b68f8042c4082cea5113685c7ea4f4d166e2b8396ec53a0978e",
+      "shorts_html_sha256": "ef209a167cfdfc93807b4e33f64c7930a02c2f87eed26cf8f4ef2b239f89962f",
+      "transcript_status": "caption_captured",
+      "transcript_route": "youtube_caption_packet",
+      "transcript_source": "youtube_caption_auto",
+      "caption_lang": "en",
+      "original_language_assumed": false,
+      "word_count": 117,
+      "cue_count": 85,
+      "admission_gates": {
+        "verified_shorts_serving_surface": true,
+        "durable_data_lake_pointer": true,
+        "word_count_at_least_minimum": true,
+        "cue_count_positive": true,
+        "known_transcript_route": true
+      },
+      "transcript_pointer": {
+        "kind": "raw_caption_packet",
+        "path": "F:\\orca-data-lake\\raw\\343\\01KW1NMPFREDCP1VQA3PEQ68CW",
+        "source_packet_id": "01KW1NMPFREDCP1VQA3PEQ68CW",
+        "caption_kind": "auto",
+        "caption_lang": "en",
+        "tool": "yt-dlp",
+        "tool_version": "2026.06.09",
+        "client": "yt-dlp-default",
+        "sub_format": "json3"
+      },
+      "scoreable_dimensions_pending_rubric_review": [
+        "transcript_rhetorical_tone"
+      ],
+      "forbidden_dimensions_without_audio_feature_capture": [
+        "energy",
+        "pace",
+        "volume",
+        "prosodic_excitement"
+      ]
+    },
+    {
+      "expansion_id": "ytshorts-fragrance-tone-expansion30-v0-012",
+      "origin": "step5_expansion_caption_capture",
+      "creator_handle_query": "Redolessence",
+      "creator_cohort": "existing_verified_fragrance_creator",
+      "rank_on_shorts_page": 4,
+      "author": "Redolessence",
+      "channel_id": "UCuSy0Z5UwvkMQ7lXRbUdOnQ",
+      "video_id": "I_IBUdYJQ6U",
+      "title": "Mind Games Castling Perfume Review!",
+      "shorts_url": "https://www.youtube.com/shorts/I_IBUdYJQ6U",
+      "watch_url": "https://www.youtube.com/watch?v=I_IBUdYJQ6U",
+      "serving_surface": "shorts",
+      "length_seconds": 60,
+      "publish_date": "2026-06-25T10:00:03-07:00",
+      "view_count_at_capture": 1624,
+      "watch_html_sha256": "8670509135ee9eaf1e5a62104ac85548e6a6f58df5e7cadcd29e316765346583",
+      "shorts_html_sha256": "010bc7fd164475e9b0f79f19cef8e9d964551d0891a6b4c77b74155bb3bd39bd",
+      "transcript_status": "caption_captured",
+      "transcript_route": "youtube_caption_packet",
+      "transcript_source": "youtube_caption_auto",
+      "caption_lang": "en",
+      "original_language_assumed": false,
+      "word_count": 170,
+      "cue_count": 53,
+      "admission_gates": {
+        "verified_shorts_serving_surface": true,
+        "durable_data_lake_pointer": true,
+        "word_count_at_least_minimum": true,
+        "cue_count_positive": true,
+        "known_transcript_route": true
+      },
+      "transcript_pointer": {
+        "kind": "raw_caption_packet",
+        "path": "F:\\orca-data-lake\\raw\\6a4\\01KW1NMY2REBWN31H9JMBV1M7A",
+        "source_packet_id": "01KW1NMY2REBWN31H9JMBV1M7A",
+        "caption_kind": "auto",
+        "caption_lang": "en",
+        "tool": "yt-dlp",
+        "tool_version": "2026.06.09",
+        "client": "yt-dlp-default",
+        "sub_format": "json3"
+      },
+      "scoreable_dimensions_pending_rubric_review": [
+        "transcript_rhetorical_tone"
+      ],
+      "forbidden_dimensions_without_audio_feature_capture": [
+        "energy",
+        "pace",
+        "volume",
+        "prosodic_excitement"
+      ]
+    },
+    {
+      "expansion_id": "ytshorts-fragrance-tone-expansion30-v0-013",
+      "origin": "step5_expansion_caption_capture",
+      "creator_handle_query": "TheFragranceApprentice",
+      "creator_cohort": "existing_verified_fragrance_creator",
+      "rank_on_shorts_page": 1,
+      "author": "The Fragrance Apprentice",
+      "channel_id": "UCMz0tE1qg5SwmrAF3Cshe0A",
+      "video_id": "EPcHN1WaGBY",
+      "title": "GIVE THANKS TO YOUR FINAL PREACHER.",
+      "shorts_url": "https://www.youtube.com/shorts/EPcHN1WaGBY",
+      "watch_url": "https://www.youtube.com/watch?v=EPcHN1WaGBY",
+      "serving_surface": "shorts",
+      "length_seconds": 74,
+      "publish_date": "2025-07-05T01:35:49-07:00",
+      "view_count_at_capture": 6749,
+      "watch_html_sha256": "8a66b2a55f89e5d8bd2efd87bb5cf3379b2a26a9978e46996a0333dcb663aa99",
+      "shorts_html_sha256": "edfd6cba2e4d832bf67c3a56da52148a80e555ef26c7f02e7a1fed6a0e327f71",
+      "transcript_status": "caption_captured",
+      "transcript_route": "youtube_caption_packet",
+      "transcript_source": "youtube_caption_auto",
+      "caption_lang": "en",
+      "original_language_assumed": false,
+      "word_count": 136,
+      "cue_count": 43,
+      "admission_gates": {
+        "verified_shorts_serving_surface": true,
+        "durable_data_lake_pointer": true,
+        "word_count_at_least_minimum": true,
+        "cue_count_positive": true,
+        "known_transcript_route": true
+      },
+      "transcript_pointer": {
+        "kind": "raw_caption_packet",
+        "path": "F:\\orca-data-lake\\raw\\43a\\01KW1NN49GW67Q1CJTHRFY4X3R",
+        "source_packet_id": "01KW1NN49GW67Q1CJTHRFY4X3R",
+        "caption_kind": "auto",
+        "caption_lang": "en",
+        "tool": "yt-dlp",
+        "tool_version": "2026.06.09",
+        "client": "yt-dlp-default",
+        "sub_format": "json3"
+      },
+      "scoreable_dimensions_pending_rubric_review": [
+        "transcript_rhetorical_tone"
+      ],
+      "forbidden_dimensions_without_audio_feature_capture": [
+        "energy",
+        "pace",
+        "volume",
+        "prosodic_excitement"
+      ]
+    },
+    {
+      "expansion_id": "ytshorts-fragrance-tone-expansion30-v0-014",
+      "origin": "step5_expansion_caption_capture",
+      "creator_handle_query": "ChaosFragrances",
+      "creator_cohort": "exploratory_extra_handle",
+      "rank_on_shorts_page": 2,
+      "author": "Chaos Fragrances",
+      "channel_id": "UC0fOGtvT1x8irPUZOFdF2mA",
+      "video_id": "54Ue3UL7XU4",
+      "title": "This Is What A Perfect Summer Fragrance Smells Like #fragrance #cologne",
+      "shorts_url": "https://www.youtube.com/shorts/54Ue3UL7XU4",
+      "watch_url": "https://www.youtube.com/watch?v=54Ue3UL7XU4",
+      "serving_surface": "shorts",
+      "length_seconds": 168,
+      "publish_date": "2026-03-19T14:23:14-07:00",
+      "view_count_at_capture": 23109,
+      "watch_html_sha256": "15f4eb73a8e24c511366adccdd0bd0b2852152544c7400113caf9d10cc7fc437",
+      "shorts_html_sha256": "257e82344b129c3a19cb3ab02944793d9c274a39beebeb1c76d3e42a9d89c6c2",
+      "transcript_status": "caption_captured",
+      "transcript_route": "youtube_caption_packet",
+      "transcript_source": "youtube_caption_auto",
+      "caption_lang": "en",
+      "original_language_assumed": false,
+      "word_count": 609,
+      "cue_count": 159,
+      "admission_gates": {
+        "verified_shorts_serving_surface": true,
+        "durable_data_lake_pointer": true,
+        "word_count_at_least_minimum": true,
+        "cue_count_positive": true,
+        "known_transcript_route": true
+      },
+      "transcript_pointer": {
+        "kind": "raw_caption_packet",
+        "path": "F:\\orca-data-lake\\raw\\62a\\01KW1NNA09DCW780Y2DXQ2AAR8",
+        "source_packet_id": "01KW1NNA09DCW780Y2DXQ2AAR8",
+        "caption_kind": "auto",
+        "caption_lang": "en",
+        "tool": "yt-dlp",
+        "tool_version": "2026.06.09",
+        "client": "yt-dlp-default",
+        "sub_format": "json3"
+      },
+      "scoreable_dimensions_pending_rubric_review": [
+        "transcript_rhetorical_tone"
+      ],
+      "forbidden_dimensions_without_audio_feature_capture": [
+        "energy",
+        "pace",
+        "volume",
+        "prosodic_excitement"
+      ]
+    },
+    {
+      "expansion_id": "ytshorts-fragrance-tone-expansion30-v0-015",
+      "origin": "step5_expansion_caption_capture",
+      "creator_handle_query": "FragranceKnowledge",
+      "creator_cohort": "exploratory_extra_handle",
+      "rank_on_shorts_page": 2,
+      "author": "FragranceKnowledge",
+      "channel_id": "UCzH0Tal9pApj-F6KSGZHo4Q",
+      "video_id": "weBLSbBqBbs",
+      "title": "Dumont Soprano ICE \ud83e\uddca Summer Belter #fragranceknowledge",
+      "shorts_url": "https://www.youtube.com/shorts/weBLSbBqBbs",
+      "watch_url": "https://www.youtube.com/watch?v=weBLSbBqBbs",
+      "serving_surface": "shorts",
+      "length_seconds": 62,
+      "publish_date": "2026-06-25T09:16:23-07:00",
+      "view_count_at_capture": 1597,
+      "watch_html_sha256": "9d73dc47e121f0b85d22ed955e4a949a0fb03563ee62ff0b7a88f64b96c1bd24",
+      "shorts_html_sha256": "661490e4bb232ba4cb3519d088608ec92b2b9c6f68d5613a96b18b320ba0f47c",
+      "transcript_status": "caption_captured",
+      "transcript_route": "youtube_caption_packet",
+      "transcript_source": "youtube_caption_auto",
+      "caption_lang": "en",
+      "original_language_assumed": false,
+      "word_count": 206,
+      "cue_count": 59,
+      "admission_gates": {
+        "verified_shorts_serving_surface": true,
+        "durable_data_lake_pointer": true,
+        "word_count_at_least_minimum": true,
+        "cue_count_positive": true,
+        "known_transcript_route": true
+      },
+      "transcript_pointer": {
+        "kind": "raw_caption_packet",
+        "path": "F:\\orca-data-lake\\raw\\942\\01KW1NNFP7FE1TRS73QAAQWX0B",
+        "source_packet_id": "01KW1NNFP7FE1TRS73QAAQWX0B",
+        "caption_kind": "auto",
+        "caption_lang": "en",
+        "tool": "yt-dlp",
+        "tool_version": "2026.06.09",
+        "client": "yt-dlp-default",
+        "sub_format": "json3"
+      },
+      "scoreable_dimensions_pending_rubric_review": [
+        "transcript_rhetorical_tone"
+      ],
+      "forbidden_dimensions_without_audio_feature_capture": [
+        "energy",
+        "pace",
+        "volume",
+        "prosodic_excitement"
+      ]
+    },
+    {
+      "expansion_id": "ytshorts-fragrance-tone-expansion30-v0-016",
+      "origin": "step5_expansion_caption_capture",
+      "creator_handle_query": "BowTieFragranceGuy",
+      "creator_cohort": "exploratory_extra_handle",
+      "rank_on_shorts_page": 2,
+      "author": "BowTie FragranceGuy",
+      "channel_id": "UCVvzGrPSok_sf8hfDhvTg7w",
+      "video_id": "hiAWZwgYwQA",
+      "title": "3 Fragrances That Make The Ladies Want To Get CLOSER!",
+      "shorts_url": "https://www.youtube.com/shorts/hiAWZwgYwQA",
+      "watch_url": "https://www.youtube.com/watch?v=hiAWZwgYwQA",
+      "serving_surface": "shorts",
+      "length_seconds": 100,
+      "publish_date": "2026-06-16T19:23:46-07:00",
+      "view_count_at_capture": 14916,
+      "watch_html_sha256": "914b971b7acce7d7500a4156374ccb66da5fc5e69a2dd5b7028c36a62a5c8076",
+      "shorts_html_sha256": "8d19f9d3ce4d0c493a72a2a3b8afbdd20e80ce6f5a7f9c7545ece037a7ef026a",
+      "transcript_status": "caption_captured",
+      "transcript_route": "youtube_caption_packet",
+      "transcript_source": "youtube_caption_auto",
+      "caption_lang": "en",
+      "original_language_assumed": false,
+      "word_count": 311,
+      "cue_count": 87,
+      "admission_gates": {
+        "verified_shorts_serving_surface": true,
+        "durable_data_lake_pointer": true,
+        "word_count_at_least_minimum": true,
+        "cue_count_positive": true,
+        "known_transcript_route": true
+      },
+      "transcript_pointer": {
+        "kind": "raw_caption_packet",
+        "path": "F:\\orca-data-lake\\raw\\1d5\\01KW1NNNSFVAHGAB0Y6P6CZZAW",
+        "source_packet_id": "01KW1NNNSFVAHGAB0Y6P6CZZAW",
+        "caption_kind": "auto",
+        "caption_lang": "en",
+        "tool": "yt-dlp",
+        "tool_version": "2026.06.09",
+        "client": "yt-dlp-default",
+        "sub_format": "json3"
+      },
+      "scoreable_dimensions_pending_rubric_review": [
+        "transcript_rhetorical_tone"
+      ],
+      "forbidden_dimensions_without_audio_feature_capture": [
+        "energy",
+        "pace",
+        "volume",
+        "prosodic_excitement"
+      ]
+    },
+    {
+      "expansion_id": "ytshorts-fragrance-tone-expansion30-v0-017",
+      "origin": "step5_expansion_caption_capture",
+      "creator_handle_query": "MilaLeBlanc",
+      "creator_cohort": "exploratory_extra_handle",
+      "rank_on_shorts_page": 2,
+      "author": "Mila Le Blanc",
+      "channel_id": "UCta4sjQtsMUtBCkI811ocfA",
+      "video_id": "WLjJ0J4QFBo",
+      "title": "\ud83d\udc49 DON\u2019T MISS THIS PERFUME \ud83d\ude33\ud83d\udd25 IT\u2019S INSANE",
+      "shorts_url": "https://www.youtube.com/shorts/WLjJ0J4QFBo",
+      "watch_url": "https://www.youtube.com/watch?v=WLjJ0J4QFBo",
+      "serving_surface": "shorts",
+      "length_seconds": 37,
+      "publish_date": "2026-04-16T11:49:16-07:00",
+      "view_count_at_capture": 6393,
+      "watch_html_sha256": "e95e914cc9150421228aca26818a62962a6f0ee88f1587ec32321de8570f8cb1",
+      "shorts_html_sha256": "1953d9d5b83361563b65a48f2ce0f0e8821785ca6d16be0778f52b7016a85f29",
+      "transcript_status": "caption_captured",
+      "transcript_route": "youtube_caption_packet",
+      "transcript_source": "youtube_caption_auto",
+      "caption_lang": "en",
+      "original_language_assumed": false,
+      "word_count": 66,
+      "cue_count": 29,
+      "admission_gates": {
+        "verified_shorts_serving_surface": true,
+        "durable_data_lake_pointer": true,
+        "word_count_at_least_minimum": true,
+        "cue_count_positive": true,
+        "known_transcript_route": true
+      },
+      "transcript_pointer": {
+        "kind": "raw_caption_packet",
+        "path": "F:\\orca-data-lake\\raw\\0ce\\01KW1NNZHMR56ZPQVYY8D208F6",
+        "source_packet_id": "01KW1NNZHMR56ZPQVYY8D208F6",
+        "caption_kind": "auto",
+        "caption_lang": "en",
+        "tool": "yt-dlp",
+        "tool_version": "2026.06.09",
+        "client": "yt-dlp-default",
+        "sub_format": "json3"
+      },
+      "scoreable_dimensions_pending_rubric_review": [
+        "transcript_rhetorical_tone"
+      ],
+      "forbidden_dimensions_without_audio_feature_capture": [
+        "energy",
+        "pace",
+        "volume",
+        "prosodic_excitement"
+      ]
+    },
+    {
+      "expansion_id": "ytshorts-fragrance-tone-expansion30-v0-018",
+      "origin": "step5_expansion_caption_capture",
+      "creator_handle_query": "ThePerfumeNest",
+      "creator_cohort": "exploratory_extra_handle",
+      "rank_on_shorts_page": 2,
+      "author": "The Perfume Nest",
+      "channel_id": "UCyU1XUvAFqV2X1NVCcRqRNA",
+      "video_id": "vDvnnG2iaGQ",
+      "title": "Fragrances That Are Nice But Way Overpriced | Expensive and Not Worth The Money | #ytshorts #shorts",
+      "shorts_url": "https://www.youtube.com/shorts/vDvnnG2iaGQ",
+      "watch_url": "https://www.youtube.com/watch?v=vDvnnG2iaGQ",
+      "serving_surface": "shorts",
+      "length_seconds": 122,
+      "publish_date": "2026-01-25T08:01:27-08:00",
+      "view_count_at_capture": 8926,
+      "watch_html_sha256": "a55a7ab9c2085a11c24d17c3e63a01804ab6145924f2f7f03659d4929f89783a",
+      "shorts_html_sha256": "7664084bb8b59125c7c782142367abb22e255545042016f30d8d97c47fbbf4e7",
+      "transcript_status": "caption_captured",
+      "transcript_route": "youtube_caption_packet",
+      "transcript_source": "youtube_caption_auto",
+      "caption_lang": "en",
+      "original_language_assumed": false,
+      "word_count": 401,
+      "cue_count": 109,
+      "admission_gates": {
+        "verified_shorts_serving_surface": true,
+        "durable_data_lake_pointer": true,
+        "word_count_at_least_minimum": true,
+        "cue_count_positive": true,
+        "known_transcript_route": true
+      },
+      "transcript_pointer": {
+        "kind": "raw_caption_packet",
+        "path": "F:\\orca-data-lake\\raw\\f9d\\01KW1NP9YETHV164MGQ33Z2J8T",
+        "source_packet_id": "01KW1NP9YETHV164MGQ33Z2J8T",
+        "caption_kind": "auto",
+        "caption_lang": "en",
+        "tool": "yt-dlp",
+        "tool_version": "2026.06.09",
+        "client": "yt-dlp-default",
+        "sub_format": "json3"
+      },
+      "scoreable_dimensions_pending_rubric_review": [
+        "transcript_rhetorical_tone"
+      ],
+      "forbidden_dimensions_without_audio_feature_capture": [
+        "energy",
+        "pace",
+        "volume",
+        "prosodic_excitement"
+      ]
+    },
+    {
+      "expansion_id": "ytshorts-fragrance-tone-expansion30-v0-019",
+      "origin": "step5_expansion_caption_capture",
+      "creator_handle_query": "JeremyFragrance",
+      "creator_cohort": "existing_verified_fragrance_creator",
+      "rank_on_shorts_page": 4,
+      "author": "Jeremy Fragrance",
+      "channel_id": "UCzKrJ5NSA9o7RHYRG12kHZw",
+      "video_id": "tQ0RKdd1o9g",
+      "title": "Game Of Spades EMERALD &amp; REFRESH #jeremyfragrance #fragrance #cologne #perfume #parfum",
+      "shorts_url": "https://www.youtube.com/shorts/tQ0RKdd1o9g",
+      "watch_url": "https://www.youtube.com/watch?v=tQ0RKdd1o9g",
+      "serving_surface": "shorts",
+      "length_seconds": 54,
+      "publish_date": "2026-06-26T02:09:18-07:00",
+      "view_count_at_capture": 61,
+      "watch_html_sha256": "80efcde9a9d24c3113280754ba99ce553af60771156b8fba359d5c2cdf363946",
+      "shorts_html_sha256": "111abb95aacb1155b226f73cacca7d0cf310586fffb23a45de3ccb7189e8b02e",
+      "transcript_status": "caption_captured",
+      "transcript_route": "youtube_caption_packet",
+      "transcript_source": "youtube_caption_auto",
+      "caption_lang": "en",
+      "original_language_assumed": false,
+      "word_count": 135,
+      "cue_count": 39,
+      "admission_gates": {
+        "verified_shorts_serving_surface": true,
+        "durable_data_lake_pointer": true,
+        "word_count_at_least_minimum": true,
+        "cue_count_positive": true,
+        "known_transcript_route": true
+      },
+      "transcript_pointer": {
+        "kind": "raw_caption_packet",
+        "path": "F:\\orca-data-lake\\raw\\5b5\\01KW1NPFQNXAYY8PAF4P4M77YM",
+        "source_packet_id": "01KW1NPFQNXAYY8PAF4P4M77YM",
+        "caption_kind": "auto",
+        "caption_lang": "en",
+        "tool": "yt-dlp",
+        "tool_version": "2026.06.09",
+        "client": "yt-dlp-default",
+        "sub_format": "json3"
+      },
+      "scoreable_dimensions_pending_rubric_review": [
+        "transcript_rhetorical_tone"
+      ],
+      "forbidden_dimensions_without_audio_feature_capture": [
+        "energy",
+        "pace",
+        "volume",
+        "prosodic_excitement"
+      ]
+    },
+    {
+      "expansion_id": "ytshorts-fragrance-tone-expansion30-v0-020",
+      "origin": "step5_expansion_caption_capture",
+      "creator_handle_query": "GentsScents",
+      "creator_cohort": "existing_verified_fragrance_creator",
+      "rank_on_shorts_page": 5,
+      "author": "Gents Scents",
+      "channel_id": "UC9IImcLkUdmURWtQhxu8VwQ",
+      "video_id": "KorM3KkSUrs",
+      "title": "Where Did The Iris Go?  - Givenchy Gentleman Society",
+      "shorts_url": "https://www.youtube.com/shorts/KorM3KkSUrs",
+      "watch_url": "https://www.youtube.com/watch?v=KorM3KkSUrs",
+      "serving_surface": "shorts",
+      "length_seconds": 58,
+      "publish_date": "2023-03-02T12:00:05-08:00",
+      "view_count_at_capture": 63038,
+      "watch_html_sha256": "c3a96a0cbf1719cf15a0dafac1d22af3ed2567b3746e45384367e63b19a14b53",
+      "shorts_html_sha256": "4e43b8eee05118e727220426be0fc4c490ab741a64723c3fdd693eb5f0a8881a",
+      "transcript_status": "caption_captured",
+      "transcript_route": "youtube_caption_packet",
+      "transcript_source": "youtube_caption_auto",
+      "caption_lang": "en",
+      "original_language_assumed": false,
+      "word_count": 187,
+      "cue_count": 53,
+      "admission_gates": {
+        "verified_shorts_serving_surface": true,
+        "durable_data_lake_pointer": true,
+        "word_count_at_least_minimum": true,
+        "cue_count_positive": true,
+        "known_transcript_route": true
+      },
+      "transcript_pointer": {
+        "kind": "raw_caption_packet",
+        "path": "F:\\orca-data-lake\\raw\\d57\\01KW1NPV3TN6KWKAXXH5X7PM9Z",
+        "source_packet_id": "01KW1NPV3TN6KWKAXXH5X7PM9Z",
+        "caption_kind": "auto",
+        "caption_lang": "en",
+        "tool": "yt-dlp",
+        "tool_version": "2026.06.09",
+        "client": "yt-dlp-default",
+        "sub_format": "json3"
+      },
+      "scoreable_dimensions_pending_rubric_review": [
+        "transcript_rhetorical_tone"
+      ],
+      "forbidden_dimensions_without_audio_feature_capture": [
+        "energy",
+        "pace",
+        "volume",
+        "prosodic_excitement"
+      ]
+    },
+    {
+      "expansion_id": "ytshorts-fragrance-tone-expansion30-v0-021",
+      "origin": "step5_expansion_caption_capture",
+      "creator_handle_query": "ThePerfumeGuy",
+      "creator_cohort": "existing_verified_fragrance_creator",
+      "rank_on_shorts_page": 5,
+      "author": "The Perfume Guy",
+      "channel_id": "UCFarEEFsV90-pvUU0XdUdgQ",
+      "video_id": "BhA4y28lmt0",
+      "title": "L\u2019OCCITANE Eau des Baux Is GONE?! \ud83d\ude33",
+      "shorts_url": "https://www.youtube.com/shorts/BhA4y28lmt0",
+      "watch_url": "https://www.youtube.com/watch?v=BhA4y28lmt0",
+      "serving_surface": "shorts",
+      "length_seconds": 89,
+      "publish_date": "2025-10-20T17:30:13-07:00",
+      "view_count_at_capture": 19106,
+      "watch_html_sha256": "91990e428d21cbc2f0b3ea4903229392b15b574c53a6a94dd48f4355f85cfb9c",
+      "shorts_html_sha256": "4682015f6b5e7fd0fc1016c53a8a05a4f64843ed537aa20f51be411238ed4e28",
+      "transcript_status": "caption_captured",
+      "transcript_route": "youtube_caption_packet",
+      "transcript_source": "youtube_caption_manual",
+      "caption_lang": "en",
+      "original_language_assumed": false,
+      "word_count": 246,
+      "cue_count": 14,
+      "admission_gates": {
+        "verified_shorts_serving_surface": true,
+        "durable_data_lake_pointer": true,
+        "word_count_at_least_minimum": true,
+        "cue_count_positive": true,
+        "known_transcript_route": true
+      },
+      "transcript_pointer": {
+        "kind": "raw_caption_packet",
+        "path": "F:\\orca-data-lake\\raw\\12c\\01KW1NQ09RHYSAHRQGPA787RWT",
+        "source_packet_id": "01KW1NQ09RHYSAHRQGPA787RWT",
+        "caption_kind": "manual",
+        "caption_lang": "en",
+        "tool": "yt-dlp",
+        "tool_version": "2026.06.09",
+        "client": "yt-dlp-default",
+        "sub_format": "json3"
+      },
+      "scoreable_dimensions_pending_rubric_review": [
+        "transcript_rhetorical_tone"
+      ],
+      "forbidden_dimensions_without_audio_feature_capture": [
+        "energy",
+        "pace",
+        "volume",
+        "prosodic_excitement"
+      ]
+    },
+    {
+      "expansion_id": "ytshorts-fragrance-tone-expansion30-v0-022",
+      "origin": "step5_expansion_caption_capture",
+      "creator_handle_query": "SchoolofScent",
+      "creator_cohort": "existing_verified_fragrance_creator",
+      "rank_on_shorts_page": 5,
+      "author": "School of Scent",
+      "channel_id": "UC7yWwH6peQbpfLMVKKuR-xg",
+      "video_id": "cc7MLqJl9SY",
+      "title": "Perfumer Sam Macer Reveals What Prices Popular Fragrances SHOULD Be? @sammacer",
+      "shorts_url": "https://www.youtube.com/shorts/cc7MLqJl9SY",
+      "watch_url": "https://www.youtube.com/watch?v=cc7MLqJl9SY",
+      "serving_surface": "shorts",
+      "length_seconds": 58,
+      "publish_date": "2026-06-19T06:21:38-07:00",
+      "view_count_at_capture": 7822,
+      "watch_html_sha256": "cd17329d42e35f01f7e99e6e334901b62dcd652aac31abb679dafa13298c117f",
+      "shorts_html_sha256": "5dac905d9c9d8d6bf7c2f490b19630a6324fac31fca53b91463e04696310d11b",
+      "transcript_status": "caption_captured",
+      "transcript_route": "youtube_caption_packet",
+      "transcript_source": "youtube_caption_auto",
+      "caption_lang": "en",
+      "original_language_assumed": false,
+      "word_count": 227,
+      "cue_count": 73,
+      "admission_gates": {
+        "verified_shorts_serving_surface": true,
+        "durable_data_lake_pointer": true,
+        "word_count_at_least_minimum": true,
+        "cue_count_positive": true,
+        "known_transcript_route": true
+      },
+      "transcript_pointer": {
+        "kind": "raw_caption_packet",
+        "path": "F:\\orca-data-lake\\raw\\f71\\01KW1NQ6FKZXV068KQNDQGWF55",
+        "source_packet_id": "01KW1NQ6FKZXV068KQNDQGWF55",
+        "caption_kind": "auto",
+        "caption_lang": "en",
+        "tool": "yt-dlp",
+        "tool_version": "2026.06.09",
+        "client": "yt-dlp-default",
+        "sub_format": "json3"
+      },
+      "scoreable_dimensions_pending_rubric_review": [
+        "transcript_rhetorical_tone"
+      ],
+      "forbidden_dimensions_without_audio_feature_capture": [
+        "energy",
+        "pace",
+        "volume",
+        "prosodic_excitement"
+      ]
+    },
+    {
+      "expansion_id": "ytshorts-fragrance-tone-expansion30-v0-023",
+      "origin": "step5_expansion_caption_capture",
+      "creator_handle_query": "CurlyScents",
+      "creator_cohort": "existing_verified_fragrance_creator",
+      "rank_on_shorts_page": 6,
+      "author": "Curly Scents",
+      "channel_id": "UCIfiNVTfW49L7Z3lGLfIOeA",
+      "video_id": "vLiFRCQhV0s",
+      "title": "Top 3 Affordable Middle Eastern Perfumes!",
+      "shorts_url": "https://www.youtube.com/shorts/vLiFRCQhV0s",
+      "watch_url": "https://www.youtube.com/watch?v=vLiFRCQhV0s",
+      "serving_surface": "shorts",
+      "length_seconds": 73,
+      "publish_date": "2026-03-02T06:53:52-08:00",
+      "view_count_at_capture": 58691,
+      "watch_html_sha256": "da1a2202af639dd4eba172eeaf87af4c18085c4c1ff4148cf1e59c1d799a8034",
+      "shorts_html_sha256": "41be2be7aae31280ddeeffe5136463cd3b9691a77db511f852d5f243e5bbe01b",
+      "transcript_status": "caption_captured",
+      "transcript_route": "youtube_caption_packet",
+      "transcript_source": "youtube_caption_auto",
+      "caption_lang": "en",
+      "original_language_assumed": false,
+      "word_count": 260,
+      "cue_count": 71,
+      "admission_gates": {
+        "verified_shorts_serving_surface": true,
+        "durable_data_lake_pointer": true,
+        "word_count_at_least_minimum": true,
+        "cue_count_positive": true,
+        "known_transcript_route": true
+      },
+      "transcript_pointer": {
+        "kind": "raw_caption_packet",
+        "path": "F:\\orca-data-lake\\raw\\230\\01KW1NQBRX7DTEWX0Z17H2SSS6",
+        "source_packet_id": "01KW1NQBRX7DTEWX0Z17H2SSS6",
+        "caption_kind": "auto",
+        "caption_lang": "en",
+        "tool": "yt-dlp",
+        "tool_version": "2026.06.09",
+        "client": "yt-dlp-default",
+        "sub_format": "json3"
+      },
+      "scoreable_dimensions_pending_rubric_review": [
+        "transcript_rhetorical_tone"
+      ],
+      "forbidden_dimensions_without_audio_feature_capture": [
+        "energy",
+        "pace",
+        "volume",
+        "prosodic_excitement"
+      ]
+    },
+    {
+      "expansion_id": "ytshorts-fragrance-tone-expansion30-v0-024",
+      "origin": "step5_expansion_caption_capture",
+      "creator_handle_query": "funmimonet",
+      "creator_cohort": "existing_verified_fragrance_creator",
+      "rank_on_shorts_page": 4,
+      "author": "Funmi Monet",
+      "channel_id": "UCULGc5bSAoCIUMc-hQpjCXw",
+      "video_id": "GcAIds8HW38",
+      "title": "Pacifica Beauty Vanilla Whip",
+      "shorts_url": "https://www.youtube.com/shorts/GcAIds8HW38",
+      "watch_url": "https://www.youtube.com/watch?v=GcAIds8HW38",
+      "serving_surface": "shorts",
+      "length_seconds": 42,
+      "publish_date": "2026-03-15T18:46:18-07:00",
+      "view_count_at_capture": 2360,
+      "watch_html_sha256": "96a957e5ec879a3e8183f012e0185046e19c671f946fdc35c192be782ce87fa2",
+      "shorts_html_sha256": "5462e299cd4bafdf8c427e1920eba08fc585e8f04a13fc0c5b40374af017cc92",
+      "transcript_status": "caption_captured",
+      "transcript_route": "youtube_caption_packet",
+      "transcript_source": "youtube_caption_auto",
+      "caption_lang": "en",
+      "original_language_assumed": false,
+      "word_count": 177,
+      "cue_count": 49,
+      "admission_gates": {
+        "verified_shorts_serving_surface": true,
+        "durable_data_lake_pointer": true,
+        "word_count_at_least_minimum": true,
+        "cue_count_positive": true,
+        "known_transcript_route": true
+      },
+      "transcript_pointer": {
+        "kind": "raw_caption_packet",
+        "path": "F:\\orca-data-lake\\raw\\189\\01KW1NQGS90FX17N71Y28WW20B",
+        "source_packet_id": "01KW1NQGS90FX17N71Y28WW20B",
+        "caption_kind": "auto",
+        "caption_lang": "en",
+        "tool": "yt-dlp",
+        "tool_version": "2026.06.09",
+        "client": "yt-dlp-default",
+        "sub_format": "json3"
+      },
+      "scoreable_dimensions_pending_rubric_review": [
+        "transcript_rhetorical_tone"
+      ],
+      "forbidden_dimensions_without_audio_feature_capture": [
+        "energy",
+        "pace",
+        "volume",
+        "prosodic_excitement"
+      ]
+    },
+    {
+      "expansion_id": "ytshorts-fragrance-tone-expansion30-v0-025",
+      "origin": "step5_expansion_caption_capture",
+      "creator_handle_query": "SokiLondon",
+      "creator_cohort": "existing_verified_fragrance_creator",
+      "rank_on_shorts_page": 6,
+      "author": "Soki London",
+      "channel_id": "UCtBpe765Fy-USxg_L8hGDPg",
+      "video_id": "3Abc0p30r9c",
+      "title": "@alltheperfume4983 Reviews Soki London Ophelia - the ultimate Peony perfume \ud83e\ude77\ud83c\udf38",
+      "shorts_url": "https://www.youtube.com/shorts/3Abc0p30r9c",
+      "watch_url": "https://www.youtube.com/watch?v=3Abc0p30r9c",
+      "serving_surface": "shorts",
+      "length_seconds": 52,
+      "publish_date": "2026-05-12T22:55:15-07:00",
+      "view_count_at_capture": 1312,
+      "watch_html_sha256": "40f639e6add6db93bfe5cb2be7ddf4495e677fce2a5d1de78f049dba76699ff3",
+      "shorts_html_sha256": "e7d6570a2349b5857ca1c74cf814e12567b39db35ff476d79ef452a9845367b4",
+      "transcript_status": "caption_captured",
+      "transcript_route": "youtube_caption_packet",
+      "transcript_source": "youtube_caption_auto",
+      "caption_lang": "en",
+      "original_language_assumed": false,
+      "word_count": 201,
+      "cue_count": 55,
+      "admission_gates": {
+        "verified_shorts_serving_surface": true,
+        "durable_data_lake_pointer": true,
+        "word_count_at_least_minimum": true,
+        "cue_count_positive": true,
+        "known_transcript_route": true
+      },
+      "transcript_pointer": {
+        "kind": "raw_caption_packet",
+        "path": "F:\\orca-data-lake\\raw\\350\\01KW1NQP8SG5EPS98RJ94CQY8Z",
+        "source_packet_id": "01KW1NQP8SG5EPS98RJ94CQY8Z",
+        "caption_kind": "auto",
+        "caption_lang": "en",
+        "tool": "yt-dlp",
+        "tool_version": "2026.06.09",
+        "client": "yt-dlp-default",
+        "sub_format": "json3"
+      },
+      "scoreable_dimensions_pending_rubric_review": [
+        "transcript_rhetorical_tone"
+      ],
+      "forbidden_dimensions_without_audio_feature_capture": [
+        "energy",
+        "pace",
+        "volume",
+        "prosodic_excitement"
+      ]
+    },
+    {
+      "expansion_id": "ytshorts-fragrance-tone-expansion30-v0-026",
+      "origin": "step5_expansion_caption_capture",
+      "creator_handle_query": "TLTGReviews",
+      "creator_cohort": "existing_verified_fragrance_creator",
+      "rank_on_shorts_page": 4,
+      "author": "TLTG Reviews",
+      "channel_id": "UCmYZrY_MVZy5Iiwlua029kg",
+      "video_id": "wBzGGKsOdyY",
+      "title": "Success!",
+      "shorts_url": "https://www.youtube.com/shorts/wBzGGKsOdyY",
+      "watch_url": "https://www.youtube.com/watch?v=wBzGGKsOdyY",
+      "serving_surface": "shorts",
+      "length_seconds": 75,
+      "publish_date": "2026-06-20T18:16:27-07:00",
+      "view_count_at_capture": 10927,
+      "watch_html_sha256": "0ced459107fa9a19f2325fb6a43aac7de9b6e70ee627bb698bdad3870d184b15",
+      "shorts_html_sha256": "9868aee2d48bc9f726df0f212cbf90a2ba0800dbf7a12bf648f7b603e5156561",
+      "transcript_status": "caption_captured",
+      "transcript_route": "youtube_caption_packet",
+      "transcript_source": "youtube_caption_auto",
+      "caption_lang": "en",
+      "original_language_assumed": false,
+      "word_count": 193,
+      "cue_count": 61,
+      "admission_gates": {
+        "verified_shorts_serving_surface": true,
+        "durable_data_lake_pointer": true,
+        "word_count_at_least_minimum": true,
+        "cue_count_positive": true,
+        "known_transcript_route": true
+      },
+      "transcript_pointer": {
+        "kind": "raw_caption_packet",
+        "path": "F:\\orca-data-lake\\raw\\395\\01KW1NQWFVEZWMEABGKSZDGQP9",
+        "source_packet_id": "01KW1NQWFVEZWMEABGKSZDGQP9",
+        "caption_kind": "auto",
+        "caption_lang": "en",
+        "tool": "yt-dlp",
+        "tool_version": "2026.06.09",
+        "client": "yt-dlp-default",
+        "sub_format": "json3"
+      },
+      "scoreable_dimensions_pending_rubric_review": [
+        "transcript_rhetorical_tone"
+      ],
+      "forbidden_dimensions_without_audio_feature_capture": [
+        "energy",
+        "pace",
+        "volume",
+        "prosodic_excitement"
+      ]
+    },
+    {
+      "expansion_id": "ytshorts-fragrance-tone-expansion30-v0-027",
+      "origin": "step5_expansion_caption_capture",
+      "creator_handle_query": "Redolessence",
+      "creator_cohort": "existing_verified_fragrance_creator",
+      "rank_on_shorts_page": 5,
+      "author": "Redolessence",
+      "channel_id": "UCuSy0Z5UwvkMQ7lXRbUdOnQ",
+      "video_id": "Az4cCq5L0NE",
+      "title": "Top 10 Masterpiece Perfumes!",
+      "shorts_url": "https://www.youtube.com/shorts/Az4cCq5L0NE",
+      "watch_url": "https://www.youtube.com/watch?v=Az4cCq5L0NE",
+      "serving_surface": "shorts",
+      "length_seconds": 100,
+      "publish_date": "2026-06-25T08:01:19-07:00",
+      "view_count_at_capture": 19079,
+      "watch_html_sha256": "672a4b1db9397f83d36fd304f56584164bbe692ae9ae45fb894dbbacbbe54a2f",
+      "shorts_html_sha256": "9be50d45122210119b635dacdd5c2c44205753ec8cc103bff0093f087fed5574",
+      "transcript_status": "caption_captured",
+      "transcript_route": "youtube_caption_packet",
+      "transcript_source": "youtube_caption_auto",
+      "caption_lang": "en",
+      "original_language_assumed": false,
+      "word_count": 293,
+      "cue_count": 87,
+      "admission_gates": {
+        "verified_shorts_serving_surface": true,
+        "durable_data_lake_pointer": true,
+        "word_count_at_least_minimum": true,
+        "cue_count_positive": true,
+        "known_transcript_route": true
+      },
+      "transcript_pointer": {
+        "kind": "raw_caption_packet",
+        "path": "F:\\orca-data-lake\\raw\\107\\01KW1NR1KMTQ20HMWPDRFSHEGW",
+        "source_packet_id": "01KW1NR1KMTQ20HMWPDRFSHEGW",
+        "caption_kind": "auto",
+        "caption_lang": "en",
+        "tool": "yt-dlp",
+        "tool_version": "2026.06.09",
+        "client": "yt-dlp-default",
+        "sub_format": "json3"
+      },
+      "scoreable_dimensions_pending_rubric_review": [
+        "transcript_rhetorical_tone"
+      ],
+      "forbidden_dimensions_without_audio_feature_capture": [
+        "energy",
+        "pace",
+        "volume",
+        "prosodic_excitement"
+      ]
+    },
+    {
+      "expansion_id": "ytshorts-fragrance-tone-expansion30-v0-028",
+      "origin": "step5_expansion_caption_capture",
+      "creator_handle_query": "TheFragranceApprentice",
+      "creator_cohort": "existing_verified_fragrance_creator",
+      "rank_on_shorts_page": 3,
+      "author": "The Fragrance Apprentice",
+      "channel_id": "UCMz0tE1qg5SwmrAF3Cshe0A",
+      "video_id": "YWnj7wFOqO0",
+      "title": "Announcement of Millesime Imp\u00e9rial Review",
+      "shorts_url": "https://www.youtube.com/shorts/YWnj7wFOqO0",
+      "watch_url": "https://www.youtube.com/watch?v=YWnj7wFOqO0",
+      "serving_surface": "shorts",
+      "length_seconds": 37,
+      "publish_date": "2025-04-14T11:00:29-07:00",
+      "view_count_at_capture": 4993,
+      "watch_html_sha256": "46d61102b9b00fb20d08aeef80ac583a82760b10d8b49373babb57d288ae22c5",
+      "shorts_html_sha256": "aa982c28efc06a6b91c204b195c8e0e39b5566a9513accaad819a32ff77050d7",
+      "transcript_status": "caption_captured",
+      "transcript_route": "youtube_caption_packet",
+      "transcript_source": "youtube_caption_auto",
+      "caption_lang": "en",
+      "original_language_assumed": false,
+      "word_count": 105,
+      "cue_count": 27,
+      "admission_gates": {
+        "verified_shorts_serving_surface": true,
+        "durable_data_lake_pointer": true,
+        "word_count_at_least_minimum": true,
+        "cue_count_positive": true,
+        "known_transcript_route": true
+      },
+      "transcript_pointer": {
+        "kind": "raw_caption_packet",
+        "path": "F:\\orca-data-lake\\raw\\f57\\01KW1NR6CPF791X59VC2Z6K1KQ",
+        "source_packet_id": "01KW1NR6CPF791X59VC2Z6K1KQ",
+        "caption_kind": "auto",
+        "caption_lang": "en",
+        "tool": "yt-dlp",
+        "tool_version": "2026.06.09",
+        "client": "yt-dlp-default",
+        "sub_format": "json3"
+      },
+      "scoreable_dimensions_pending_rubric_review": [
+        "transcript_rhetorical_tone"
+      ],
+      "forbidden_dimensions_without_audio_feature_capture": [
+        "energy",
+        "pace",
+        "volume",
+        "prosodic_excitement"
+      ]
+    },
+    {
+      "expansion_id": "ytshorts-fragrance-tone-expansion30-v0-029",
+      "origin": "step5_expansion_caption_capture",
+      "creator_handle_query": "MilaLeBlanc",
+      "creator_cohort": "exploratory_extra_handle",
+      "rank_on_shorts_page": 3,
+      "author": "Mila Le Blanc",
+      "channel_id": "UCta4sjQtsMUtBCkI811ocfA",
+      "video_id": "hwRSgl1RUL8",
+      "title": "AKRO RISE PERFUME ( BANGER )",
+      "shorts_url": "https://www.youtube.com/shorts/hwRSgl1RUL8",
+      "watch_url": "https://www.youtube.com/watch?v=hwRSgl1RUL8",
+      "serving_surface": "shorts",
+      "length_seconds": 24,
+      "publish_date": "2026-03-21T12:51:29-07:00",
+      "view_count_at_capture": 5342,
+      "watch_html_sha256": "50864b15921481b715287630f48d602c558f63e30a9a3f83784b5063355a4918",
+      "shorts_html_sha256": "79f9ade4d97b1214889e267887e83550d697898999a1e9b15fa17a874606afd1",
+      "transcript_status": "caption_captured",
+      "transcript_route": "youtube_caption_packet",
+      "transcript_source": "youtube_caption_auto",
+      "caption_lang": "en",
+      "original_language_assumed": false,
+      "word_count": 55,
+      "cue_count": 17,
+      "admission_gates": {
+        "verified_shorts_serving_surface": true,
+        "durable_data_lake_pointer": true,
+        "word_count_at_least_minimum": true,
+        "cue_count_positive": true,
+        "known_transcript_route": true
+      },
+      "transcript_pointer": {
+        "kind": "raw_caption_packet",
+        "path": "F:\\orca-data-lake\\raw\\944\\01KW1NRK234WWM6HPYYRSRWPF7",
+        "source_packet_id": "01KW1NRK234WWM6HPYYRSRWPF7",
+        "caption_kind": "auto",
+        "caption_lang": "en",
+        "tool": "yt-dlp",
+        "tool_version": "2026.06.09",
+        "client": "yt-dlp-default",
+        "sub_format": "json3"
+      },
+      "scoreable_dimensions_pending_rubric_review": [
+        "transcript_rhetorical_tone"
+      ],
+      "forbidden_dimensions_without_audio_feature_capture": [
+        "energy",
+        "pace",
+        "volume",
+        "prosodic_excitement"
+      ]
+    },
+    {
+      "expansion_id": "ytshorts-fragrance-tone-expansion30-v0-030",
+      "origin": "step5_expansion_caption_capture",
+      "creator_handle_query": "ThePerfumeNest",
+      "creator_cohort": "exploratory_extra_handle",
+      "rank_on_shorts_page": 3,
+      "author": "The Perfume Nest",
+      "channel_id": "UCyU1XUvAFqV2X1NVCcRqRNA",
+      "video_id": "W3HTpUsaHiA",
+      "title": "Best Perfume Releases of 2025 | These New Perfumes Stood Out Among The Crowd | #shorts #ytshorts",
+      "shorts_url": "https://www.youtube.com/shorts/W3HTpUsaHiA",
+      "watch_url": "https://www.youtube.com/watch?v=W3HTpUsaHiA",
+      "serving_surface": "shorts",
+      "length_seconds": 145,
+      "publish_date": "2026-01-17T11:39:20-08:00",
+      "view_count_at_capture": 8606,
+      "watch_html_sha256": "7fdd3c2ce1b7bcfa1d5d8a872145b777513317efbeba70904c2df906948dd6e9",
+      "shorts_html_sha256": "bc1e97efb2d9b9499d254ef3eae7897affb040eecca02b92448788210eef1ae7",
+      "transcript_status": "caption_captured",
+      "transcript_route": "youtube_caption_packet",
+      "transcript_source": "youtube_caption_auto",
+      "caption_lang": "en",
+      "original_language_assumed": false,
+      "word_count": 481,
+      "cue_count": 137,
+      "admission_gates": {
+        "verified_shorts_serving_surface": true,
+        "durable_data_lake_pointer": true,
+        "word_count_at_least_minimum": true,
+        "cue_count_positive": true,
+        "known_transcript_route": true
+      },
+      "transcript_pointer": {
+        "kind": "raw_caption_packet",
+        "path": "F:\\orca-data-lake\\raw\\af3\\01KW1NRXEWZQYMYV6KG8EQFMX4",
+        "source_packet_id": "01KW1NRXEWZQYMYV6KG8EQFMX4",
+        "caption_kind": "auto",
+        "caption_lang": "en",
+        "tool": "yt-dlp",
+        "tool_version": "2026.06.09",
+        "client": "yt-dlp-default",
+        "sub_format": "json3"
+      },
+      "scoreable_dimensions_pending_rubric_review": [
+        "transcript_rhetorical_tone"
+      ],
+      "forbidden_dimensions_without_audio_feature_capture": [
+        "energy",
+        "pace",
+        "volume",
+        "prosodic_excitement"
+      ]
+    }
+  ],
+  "counts": {
+    "enumerations_attempted": 26,
+    "candidate_queue_size_after_skips": 723,
+    "attempts": 43,
+    "admitted": 30,
+    "target_met": true,
+    "admission_status_counts": {
+      "admitted": 30,
+      "dropped_relevance_title_no_match": 10,
+      "dropped_transcript_under_min_word_count": 2,
+      "dropped_no_caption_asr_deferred": 1
+    },
+    "admitted_by_handle": {
+      "BowTieFragranceGuy": 1,
+      "ChaosFragrances": 2,
+      "CurlyScents": 2,
+      "FragranceKnowledge": 2,
+      "GentsScents": 2,
+      "JeremyFragrance": 2,
+      "MilaLeBlanc": 2,
+      "ProfessorPerfume": 1,
+      "Redolessence": 2,
+      "SchoolofScent": 2,
+      "SokiLondon": 2,
+      "TLTGReviews": 2,
+      "TheFragranceApprentice": 2,
+      "ThePerfumeGuy": 2,
+      "ThePerfumeNest": 2,
+      "funmimonet": 2
+    },
+    "admitted_by_cohort": {
+      "exploratory_extra_handle": 10,
+      "existing_verified_fragrance_creator": 20
+    },
+    "word_count_min": 55,
+    "word_count_max": 609,
+    "cue_count_min": 14,
+    "cue_count_max": 159
+  },
+  "accepted_residuals": [
+    "Caption-only expansion biases toward Shorts with usable caption tracks; no-caption ASR candidates are deferred, not treated as nonexistent.",
+    "No tone labels are added in this step because the delegated rubric review may change the instrument.",
+    "The exploratory handle list is opportunistic and handle-verified at capture time; failed handles are logged, not silently replaced.",
+    "No transcript text bodies are stored in this repo artifact; durable transcript pointers resolve to the external data lake."
+  ],
+  "non_claims": [
+    "not benchmark validation",
+    "not inter-rater reliability",
+    "not buyer proof",
+    "not a tone-label expansion",
+    "not an energy/prosody measure",
+    "not a claim that the rubric survived delegated review"
+  ]
+}
