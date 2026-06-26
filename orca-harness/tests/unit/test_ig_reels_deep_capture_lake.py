@@ -7,6 +7,7 @@ from pathlib import Path
 import pytest
 
 from data_lake.root import DataLakeRoot, DataLakeRootError
+from runners import run_source_capture_ig_reels_deep_capture as deep_capture_runner
 from schemas.audience_comment_models import AudienceComment
 from source_capture.ig_reels_deep_capture import ReelDeepCaptureResult
 from source_capture.ig_reels_deep_capture_lake import (
@@ -68,6 +69,33 @@ def test_transient_signed_url_is_never_persisted(tmp_path: Path) -> None:
     assert doc["media_provenance"] == {"audio_handle_used": True, "media_host": "x.fbcdn.net"}
 
 
+def test_transient_signed_url_redacted_from_comment_and_cue_payloads(tmp_path: Path) -> None:
+    root = _root(tmp_path)
+    signed = "https://x.fbcdn.net/o1/v/clip.mp4?oh=SECRET_SIGNATURE_TOKEN&oe=DEADBEEF"
+    comment = _comment().model_copy(update={"text": f"watch {signed} token SECRET_SIGNATURE_TOKEN"})
+    result = ReelDeepCaptureResult(
+        reel_shortcode="DaA8n7EhqTR",
+        comments=(comment,),
+        transcript_posture="transcribed",
+        transcript_cues=(
+            {"start_ms": 0, "end_ms": 90, "text": "heard DEADBEEF", "debug_media_url": signed},
+        ),
+        media_url_used=signed,
+    )
+
+    written = write_reel_deep_capture_into_lake(data_root=root, result=result, generated_at="t")
+
+    raw = written[AUDIENCE_COMMENTS_LANE].read_bytes() + written[REEL_TRANSCRIPT_LANE].read_bytes()
+    for forbidden in (signed, "SECRET_SIGNATURE_TOKEN", "DEADBEEF"):
+        assert forbidden.encode("utf-8") not in raw
+    comments_doc = json.loads(written[AUDIENCE_COMMENTS_LANE].read_text(encoding="utf-8"))
+    transcript_doc = json.loads(written[REEL_TRANSCRIPT_LANE].read_text(encoding="utf-8"))
+    assert "[redacted_transient_media_url]" in comments_doc["comments"][0]["text"]
+    assert transcript_doc["cues"][0]["debug_media_url"] == "[redacted_transient_media_url]"
+    assert "[redacted_transient_media_url]" in transcript_doc["cues"][0]["text"]
+    assert comments_doc["media_provenance"] == {"audio_handle_used": True, "media_host": "x.fbcdn.net"}
+
+
 def test_no_audio_handle_provenance(tmp_path: Path) -> None:
     root = _root(tmp_path)
     result = ReelDeepCaptureResult("DaA8n7EhqTR", (_comment(),), "no_audio_handle", (), None)
@@ -82,3 +110,24 @@ def test_rewrite_same_record_is_refused_write_once(tmp_path: Path) -> None:
     write_reel_deep_capture_into_lake(data_root=root, result=result, generated_at="t")
     with pytest.raises(DataLakeRootError):
         write_reel_deep_capture_into_lake(data_root=root, result=result, generated_at="t")
+
+
+def test_persist_helper_allows_env_resolution(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    root = _root(tmp_path)
+    result = _result()
+    seen: dict[str, object] = {}
+
+    def resolve(*, explicit=None):  # noqa: ANN001
+        seen["explicit"] = explicit
+        return root
+
+    monkeypatch.setattr(deep_capture_runner.DataLakeRoot, "resolve", staticmethod(resolve))
+
+    status = deep_capture_runner._persist_deep_capture(result, data_root_arg=None)
+
+    rid = deep_capture_record_id(result)
+    assert seen == {"explicit": None}
+    assert status.startswith("persisted:")
+    assert root.is_record_set_complete(
+        subtree="derived", raw_anchor="DaA8n7EhqTR", record_id=rid, completion_lane=DEEP_CAPTURE_SET_LANE
+    )

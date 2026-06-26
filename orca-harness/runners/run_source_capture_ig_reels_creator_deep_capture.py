@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 import tempfile
 from dataclasses import dataclass
@@ -35,6 +36,7 @@ from runners.run_source_capture_ig_reels_deep_capture import (
     _persist_deep_capture,
     _render,
 )
+from runners.run_source_capture_ig_reels_grid_packet import _detect_ig_block
 from source_capture.ig_reels_deep_capture import ReelDeepCaptureResult, run_reel_deep_capture
 from source_capture.ig_reels_grid import (
     MEDIA_KIND_REEL,
@@ -45,8 +47,11 @@ from source_capture.ig_reels_grid import (
     normalize_dom_grid_rows,
 )
 from source_capture.ig_reels_grid_capture import (
+    DEFAULT_IG_REELS_MAX_RESPONSE_BYTES,
     DEFAULT_IG_REELS_SETTLE_SECONDS,
     DEFAULT_IG_REELS_TIMEOUT_SECONDS,
+    DEFAULT_IG_REELS_VIEWPORT_HEIGHT,
+    DEFAULT_IG_REELS_VIEWPORT_WIDTH,
     IgReelsGridCaptureFailure,
     IgReelsGridCaptureResult,
     IgReelsGridCaptureSuccess,
@@ -242,11 +247,22 @@ def scan_creator_reels_ranked(
         reels_url=reels_url,
         profile_handle=profile_handle,
         timeout_seconds=timeout_seconds,
+        viewport_width=DEFAULT_IG_REELS_VIEWPORT_WIDTH,
+        viewport_height=DEFAULT_IG_REELS_VIEWPORT_HEIGHT,
         settle_seconds=settle_seconds,
+        max_response_bytes=DEFAULT_IG_REELS_MAX_RESPONSE_BYTES,
         max_rows=max_rows,
+        block_heavy_assets=True,
+        proxy_profile=None,
+        storage_state_path=None,
+        headless=True,
+        browser_channel=None,
     )
     if isinstance(capture, IgReelsGridCaptureFailure):
         raise IgReelsGridCaptureError(capture.message)
+    block_reason = _detect_ig_block(final_url=capture.final_url, title=capture.title, visible_text=capture.visible_text)
+    if block_reason is not None:
+        raise IgReelsGridCaptureError(f"profile access-blocked ({block_reason}); no reels ranked")
 
     dom_rows = normalize_dom_grid_rows(
         capture.dom_rows,
@@ -324,7 +340,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         return 2
 
     persist_fn: PersistFn | None = None
-    if args.data_root is not None:
+    if args.data_root is not None or os.environ.get("ORCA_DATA_ROOT"):
         persist_fn = lambda result, _ranked: _persist_deep_capture(result, data_root_arg=args.data_root)
 
     with tempfile.TemporaryDirectory(prefix="orca_creator_deepcap_") as scratch:

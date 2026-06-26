@@ -12,6 +12,9 @@ import json
 
 import pytest
 
+from data_lake.root import DataLakeRoot
+from runners import run_source_capture_ig_reels_creator_deep_capture as creator_runner
+from runners import run_source_capture_ig_reels_deep_capture as deep_capture_runner
 from runners.run_source_capture_ig_reels_creator_deep_capture import (
     CapturedReel,
     IgReelsGridCaptureError,
@@ -21,6 +24,7 @@ from runners.run_source_capture_ig_reels_creator_deep_capture import (
     select_and_capture_top_reels,
 )
 from source_capture.ig_reels_deep_capture import ReelDeepCaptureResult
+from source_capture.ig_reels_deep_capture_lake import DEEP_CAPTURE_SET_LANE, deep_capture_record_id
 from source_capture.ig_reels_grid import (
     CLIPS_USER_JSON_METADATA,
     iter_json_media_candidates,
@@ -280,6 +284,24 @@ def test_scan_creator_reels_ranked_ranks_from_a_faked_grid_capture() -> None:
     ]
 
 
+def test_scan_creator_reels_ranked_uses_grid_packet_capture_defaults() -> None:
+    seen: dict[str, object] = {}
+
+    def _recording(**kwargs) -> IgReelsGridCaptureSuccess:
+        seen.update(kwargs)
+        return _fake_grid_capture()
+
+    scan_creator_reels_ranked(handle="creator", capture_fetcher=_recording)
+
+    assert seen["viewport_width"] == 1080
+    assert seen["viewport_height"] == 1920
+    assert seen["max_response_bytes"] == 5_000_000
+    assert seen["block_heavy_assets"] is True
+    assert seen["storage_state_path"] is None
+    assert seen["headless"] is True
+    assert seen["browser_channel"] is None
+
+
 def test_scan_creator_reels_ranked_raises_typed_error_on_grid_capture_failure() -> None:
     def _failing(**_kwargs) -> IgReelsGridCaptureFailure:
         return IgReelsGridCaptureFailure(
@@ -294,6 +316,25 @@ def test_scan_creator_reels_ranked_raises_typed_error_on_grid_capture_failure() 
     assert "capture failed" in str(excinfo.value).lower()
 
 
+def test_scan_creator_reels_ranked_raises_typed_error_on_access_block() -> None:
+    def _blocked(**_kwargs) -> IgReelsGridCaptureSuccess:
+        return IgReelsGridCaptureSuccess(
+            requested_url="https://www.instagram.com/creator/reels/",
+            final_url="https://www.instagram.com/accounts/login/?next=%2Fcreator%2Freels%2F",
+            title="Login - Instagram",
+            visible_text="Log in to continue",
+            dom_rows=[],
+            passive_json_responses=[],
+            metadata={"capture_timestamp": "2026-06-22T10:00:00Z"},
+        )
+
+    with pytest.raises(IgReelsGridCaptureError) as excinfo:
+        scan_creator_reels_ranked(handle="creator", capture_fetcher=_blocked)
+
+    assert "access-blocked" in str(excinfo.value)
+    assert "redirected_to_login" in str(excinfo.value)
+
+
 def test_scan_then_select_end_to_end_offline() -> None:
     # Full offline path: scan a faked grid -> rank -> capture top-N with a fake capture_fn.
     ranked, _capture = scan_creator_reels_ranked(handle="creator", capture_fetcher=_fake_grid_capture)
@@ -304,3 +345,50 @@ def test_scan_then_select_end_to_end_offline() -> None:
     assert calls == ["TOP", "MIDDLE"]
     assert [c.ranked.shortcode for c in captured] == ["TOP", "MIDDLE"]
     assert all(isinstance(c, CapturedReel) and c.ok for c in captured)
+
+
+def test_creator_main_persists_when_orca_data_root_env_set(
+    tmp_path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    scratch = tmp_path / "scratch"
+    scratch.mkdir()
+    seen: dict[str, object] = {}
+
+    class _TempDir:
+        def __init__(self, *_, **__) -> None:  # noqa: ANN002, ANN003
+            pass
+
+        def __enter__(self) -> str:
+            return str(scratch)
+
+        def __exit__(self, *_exc: object) -> bool:
+            return False
+
+    def resolve(*, explicit=None):  # noqa: ANN001
+        seen["explicit"] = explicit
+        return root
+
+    monkeypatch.setenv("ORCA_DATA_ROOT", str(root.path))
+    monkeypatch.setattr(deep_capture_runner.DataLakeRoot, "resolve", staticmethod(resolve))
+    monkeypatch.setattr(creator_runner.tempfile, "TemporaryDirectory", _TempDir)
+    monkeypatch.setattr(
+        creator_runner,
+        "scan_creator_reels_ranked",
+        lambda **_kwargs: ([_ranked("A", 1, rank=1)], _fake_grid_capture()),
+    )
+    monkeypatch.setattr(
+        creator_runner,
+        "_make_capture_fn",
+        lambda _scratch, *, model: (lambda shortcode: _fake_result(shortcode)),
+    )
+
+    assert creator_runner.main(["--handle", "creator", "--top-n", "1"]) == 0
+
+    result = _fake_result("A")
+    rid = deep_capture_record_id(result)
+    assert seen == {"explicit": None}
+    assert "persisted:" in capsys.readouterr().out
+    assert root.is_record_set_complete(
+        subtree="derived", raw_anchor="A", record_id=rid, completion_lane=DEEP_CAPTURE_SET_LANE
+    )

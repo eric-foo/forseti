@@ -225,12 +225,12 @@ def main(argv: Sequence[str] | None = None) -> int:
     for note in result.notes:
         print(f"  note: {note}")
 
-    if args.data_root is not None:
+    if args.data_root is not None or os.environ.get("ORCA_DATA_ROOT"):
         print(f"  {_persist_deep_capture(result, data_root_arg=args.data_root)}")
     return 0
 
 
-def _persist_deep_capture(result, *, data_root_arg: str) -> str:
+def _persist_deep_capture(result, *, data_root_arg: str | None) -> str:
     """Persist the deep-capture record-set; idempotent (skips an already-complete reel)."""
     root = DataLakeRoot.resolve(explicit=data_root_arg)
     record_id = deep_capture_record_id(result)

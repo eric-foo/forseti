@@ -18,13 +18,14 @@ from __future__ import annotations
 
 import hashlib
 import json
-from urllib.parse import urlparse
+from urllib.parse import parse_qsl, unquote, urlparse
 
 from source_capture.ig_reels_deep_capture import ReelDeepCaptureResult
 
 AUDIENCE_COMMENTS_LANE = "silver__capture__audience_comments"
 REEL_TRANSCRIPT_LANE = "silver__capture__reel_transcript"
 DEEP_CAPTURE_SET_LANE = "silver__capture__reel_deep_capture__set"
+_REDACTED_TRANSIENT_MEDIA = "[redacted_transient_media_url]"
 
 
 def deep_capture_record_id(result: ReelDeepCaptureResult) -> str:
@@ -49,6 +50,47 @@ def _media_provenance(media_url_used: str | None) -> dict:
     return {"audio_handle_used": True, "media_host": host}
 
 
+def _transient_media_redactions(media_url_used: str | None) -> tuple[str, ...]:
+    """Strings from the transient signed media URL that must not reach disk."""
+    if not media_url_used:
+        return ()
+    parsed = urlparse(media_url_used)
+    needles: list[str] = [media_url_used]
+    if parsed.query and len(parsed.query) >= 8:
+        needles.append(parsed.query)
+    for token in (parsed.username, parsed.password):
+        if token and len(token) >= 8:
+            needles.append(token)
+    for _key, value in parse_qsl(parsed.query, keep_blank_values=False):
+        for token in (value, unquote(value)):
+            if token and len(token) >= 8:
+                needles.append(token)
+    return tuple(dict.fromkeys(needles))
+
+
+def _redact_text(value: str, needles: tuple[str, ...]) -> str:
+    for needle in needles:
+        value = value.replace(needle, _REDACTED_TRANSIENT_MEDIA)
+    return value
+
+
+def _redact_transient_media(value: object, needles: tuple[str, ...]) -> object:
+    if not needles:
+        return value
+    if isinstance(value, str):
+        return _redact_text(value, needles)
+    if isinstance(value, list):
+        return [_redact_transient_media(item, needles) for item in value]
+    if isinstance(value, tuple):
+        return tuple(_redact_transient_media(item, needles) for item in value)
+    if isinstance(value, dict):
+        return {
+            _redact_text(key, needles) if isinstance(key, str) else key: _redact_transient_media(item, needles)
+            for key, item in value.items()
+        }
+    return value
+
+
 def write_reel_deep_capture_into_lake(
     *,
     data_root,
@@ -63,6 +105,7 @@ def write_reel_deep_capture_into_lake(
     """
     rid = record_id or deep_capture_record_id(result)
     provenance = _media_provenance(result.media_url_used)
+    redactions = _transient_media_redactions(result.media_url_used)
     comments_payload = {
         "reel_shortcode": result.reel_shortcode,
         "generated_at": generated_at,
@@ -78,6 +121,8 @@ def write_reel_deep_capture_into_lake(
         "cues": [dict(cue) for cue in result.transcript_cues],
         "media_provenance": provenance,
     }
+    comments_payload = _redact_transient_media(comments_payload, redactions)
+    transcript_payload = _redact_transient_media(transcript_payload, redactions)
     members = {
         # allow_nan=False: a non-finite float fails closed rather than writing invalid JSON.
         AUDIENCE_COMMENTS_LANE: (
