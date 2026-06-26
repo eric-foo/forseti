@@ -57,6 +57,28 @@ def _fake_result(shortcode: str, *, comments: int = 0, posture: str = "ok") -> R
 # --- ranking: engagement = (likes + comments), descending --------------------------
 
 
+def test_rank_falls_back_to_views_when_likes_are_hidden() -> None:
+    # IG serves the public grid anonymously WITHOUT like counts; ranking must fall back to views
+    # (which IG still exposes) + flag likes_hidden, NOT rank on near-zero comment counts.
+    dom_rows = normalize_dom_grid_rows(
+        [
+            {"path": "/creator/reel/FEW/", "visibleNumericTexts": ["1"]},
+            {"path": "/creator/reel/MANY/", "visibleNumericTexts": ["1"]},
+        ],
+        final_url="https://www.instagram.com/creator/reels/",
+        profile_handle="creator",
+    )
+    candidates = (
+        list(iter_json_media_candidates({"code": "FEW", "comment_count": 9, "play_count": 100}, source_surface=CLIPS_USER_JSON_METADATA))
+        + list(iter_json_media_candidates({"code": "MANY", "comment_count": 1, "play_count": 50000}, source_surface=CLIPS_USER_JSON_METADATA))
+    )
+    ranked = rank_reels_by_engagement(join_dom_rows_with_json_candidates(dom_rows, candidates))
+    # Views win despite FEW having more comments -- the old likes+comments rule would invert this.
+    assert [r.shortcode for r in ranked] == ["MANY", "FEW"]
+    assert all(r.likes_hidden for r in ranked)
+    assert ranked[0].view_count == 50000 and ranked[0].like_count is None
+
+
 def test_rank_reels_orders_by_likes_plus_comments_descending() -> None:
     # Build joined rows through the real grid pipeline so ranking is exercised end-to-end.
     dom_rows = normalize_dom_grid_rows(

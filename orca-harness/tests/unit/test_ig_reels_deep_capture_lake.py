@@ -131,3 +131,23 @@ def test_persist_helper_allows_env_resolution(tmp_path: Path, monkeypatch: pytes
     assert root.is_record_set_complete(
         subtree="derived", raw_anchor="DaA8n7EhqTR", record_id=rid, completion_lane=DEEP_CAPTURE_SET_LANE
     )
+
+
+def test_media_host_survives_when_url_carries_it_in_a_query_param(tmp_path: Path) -> None:
+    # Regression: IG media URLs carry the host in _nc_ht=<host>, which was being picked up as a
+    # redaction needle and clobbered the media_host provenance field to the marker.
+    root = _root(tmp_path)
+    signed = (
+        "https://scontent.cdninstagram.com/o1/v/clip.mp4"
+        "?_nc_ht=scontent.cdninstagram.com&oh=SECRET_SIGNATURE_TOKEN&oe=DEADBEEF"
+    )
+    written = write_reel_deep_capture_into_lake(
+        data_root=root, result=_result(media_url=signed), generated_at="t"
+    )
+    doc = json.loads(written[AUDIENCE_COMMENTS_LANE].read_text(encoding="utf-8"))
+    assert doc["media_provenance"] == {
+        "audio_handle_used": True,
+        "media_host": "scontent.cdninstagram.com",
+    }
+    raw = written[AUDIENCE_COMMENTS_LANE].read_bytes() + written[REEL_TRANSCRIPT_LANE].read_bytes()
+    assert b"SECRET_SIGNATURE_TOKEN" not in raw and b"DEADBEEF" not in raw

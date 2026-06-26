@@ -68,8 +68,10 @@ DEFAULT_GRID_MAX_ROWS = 12
 class RankedReel:
     """One ranked reel-grid row: the shortcode plus the engagement it ranked on.
 
-    ``engagement`` = ``(like_count or 0) + (comment_count or 0)``; the raw counts are
-    kept for the per-reel summary line. ``rank`` is 1-based after the descending sort.
+    ``engagement`` = ``(like_count or 0) + (comment_count or 0)``. When IG serves the grid
+    anonymously WITHOUT any like counts (``likes_hidden`` true), that signal collapses to comments
+    only, so the grid is ranked by ``view_count`` instead (IG usually still exposes views). The raw
+    counts are kept for the per-reel summary line. ``rank`` is 1-based after the descending sort.
     """
 
     rank: int
@@ -77,6 +79,8 @@ class RankedReel:
     engagement: int
     like_count: int | None
     comment_count: int | None
+    view_count: int | None = None
+    likes_hidden: bool = False
 
 
 @dataclass(frozen=True)
@@ -120,7 +124,10 @@ def _best_engagement_candidate(
     """
     if not candidates:
         return None
-    return max(candidates, key=lambda candidate: _candidate_engagement(candidate))
+    return max(
+        candidates,
+        key=lambda candidate: (_candidate_engagement(candidate), candidate.video_or_play_count or 0),
+    )
 
 
 def _candidate_engagement(candidate: IgReelsJsonCandidate) -> int:
@@ -128,12 +135,16 @@ def _candidate_engagement(candidate: IgReelsJsonCandidate) -> int:
 
 
 def rank_reels_by_engagement(joined_rows: Sequence[IgReelsJoinedRow]) -> list[RankedReel]:
-    """Rank joined reel-grid rows by engagement = (likes + comments) DESCENDING.
+    """Rank joined reel-grid rows by engagement DESCENDING.
 
-    None likes/comments count as 0. Rows without a shortcode cannot be deep-captured
-    and are dropped. The sort is STABLE, so ties keep grid (DOM) order -- deterministic.
+    Engagement = ``(likes + comments)``. But IG serves the public ``/reels/`` grid anonymously
+    WITHOUT like counts inconsistently; when NO reel in the grid carries a like count
+    (``likes_hidden``), that signal collapses to comments only, so the grid is instead ranked by
+    ``view_count`` -- the engagement signal IG usually still exposes -- rather than on near-zero
+    comment counts. None counts are 0. Rows without a shortcode are dropped. The sort is STABLE, so
+    ties keep grid (DOM) order -- deterministic.
     """
-    scored: list[tuple[str, int, int | None, int | None]] = []
+    scored: list[tuple[str, int, int | None, int | None, int | None]] = []
     for joined in joined_rows:
         shortcode = (joined.dom_row.shortcode or "").strip()
         if not shortcode:
@@ -141,9 +152,14 @@ def rank_reels_by_engagement(joined_rows: Sequence[IgReelsJoinedRow]) -> list[Ra
         best = _best_engagement_candidate(joined.source_surface_candidates)
         like_count = best.like_count if best is not None else None
         comment_count = best.comment_count if best is not None else None
+        view_count = best.video_or_play_count if best is not None else None
         engagement = (like_count or 0) + (comment_count or 0)
-        scored.append((shortcode, engagement, like_count, comment_count))
-    scored.sort(key=lambda item: item[1], reverse=True)
+        scored.append((shortcode, engagement, like_count, comment_count, view_count))
+    likes_hidden = not any(item[2] is not None for item in scored)
+    if likes_hidden:
+        scored.sort(key=lambda item: ((item[4] or 0), item[1]), reverse=True)  # views, then comments
+    else:
+        scored.sort(key=lambda item: item[1], reverse=True)  # likes + comments
     return [
         RankedReel(
             rank=index,
@@ -151,8 +167,10 @@ def rank_reels_by_engagement(joined_rows: Sequence[IgReelsJoinedRow]) -> list[Ra
             engagement=engagement,
             like_count=like_count,
             comment_count=comment_count,
+            view_count=view_count,
+            likes_hidden=likes_hidden,
         )
-        for index, (shortcode, engagement, like_count, comment_count) in enumerate(scored, start=1)
+        for index, (shortcode, engagement, like_count, comment_count, view_count) in enumerate(scored, start=1)
     ]
 
 
@@ -291,19 +309,26 @@ def _make_capture_fn(scratch: str, *, model: str) -> CaptureFn:
     return _capture
 
 
+def _rank_basis(ranked: RankedReel) -> str:
+    """How the reel was ranked -- views (with a 'likes hidden' note) when IG hid like counts."""
+    if ranked.likes_hidden:
+        return f"views={ranked.view_count} (likes hidden by IG; ranked on views)"
+    return f"engagement={ranked.engagement}"
+
+
 def _summary_line(captured: CapturedReel) -> str:
     ranked = captured.ranked
     if not captured.ok:
         return (
             f"rank={ranked.rank} shortcode={ranked.shortcode} "
-            f"engagement={ranked.engagement} deep_capture=failed ({captured.error})"
+            f"{_rank_basis(ranked)} deep_capture=failed ({captured.error})"
         )
     result = captured.result
     assert result is not None
     persisted = "n/a" if captured.persisted is None else captured.persisted
     return (
         f"rank={ranked.rank} shortcode={ranked.shortcode} "
-        f"engagement={ranked.engagement} comments={len(result.comments)} "
+        f"{_rank_basis(ranked)} comments={len(result.comments)} "
         f"transcript_posture={result.transcript_posture} persisted={persisted}"
     )
 

@@ -51,10 +51,17 @@ def _media_provenance(media_url_used: str | None) -> dict:
 
 
 def _transient_media_redactions(media_url_used: str | None) -> tuple[str, ...]:
-    """Strings from the transient signed media URL that must not reach disk."""
+    """Strings from the transient signed media URL that must not reach disk.
+
+    The CDN host is deliberately KEPT (in ``media_provenance``) and is NOT a secret. IG media URLs
+    carry the host in a query parameter (e.g. ``_nc_ht=<host>``), so without this guard the host
+    would be picked up as a needle and clobber the very ``media_host`` field it is meant to preserve
+    -- therefore a needle equal to the host is never redacted (a real signature never equals the host).
+    """
     if not media_url_used:
         return ()
     parsed = urlparse(media_url_used)
+    host = (parsed.hostname or "").lower()
     needles: list[str] = [media_url_used]
     if parsed.query and len(parsed.query) >= 8:
         needles.append(parsed.query)
@@ -65,7 +72,7 @@ def _transient_media_redactions(media_url_used: str | None) -> tuple[str, ...]:
         for token in (value, unquote(value)):
             if token and len(token) >= 8:
                 needles.append(token)
-    return tuple(dict.fromkeys(needles))
+    return tuple(needle for needle in dict.fromkeys(needles) if needle.lower() != host)
 
 
 def _redact_text(value: str, needles: tuple[str, ...]) -> str:
