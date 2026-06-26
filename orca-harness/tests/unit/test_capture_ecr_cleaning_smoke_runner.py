@@ -6,6 +6,7 @@ from pathlib import Path
 
 import pytest
 
+from data_lake.root import DataLakeRoot, raw_shard
 from cleaning.models import CleaningPacket
 from runners import run_capture_ecr_cleaning_smoke as smoke_runner
 from runners import run_cleaning_spine_periodic_audit as audit_runner
@@ -32,6 +33,7 @@ from source_capture.models import (
 from source_capture.ig_projection import write_ig_creator_momentum_projection
 from source_capture.reddit_consolidation import consolidate_reddit_packet
 from source_capture.retail_pdp_projection import write_retail_pdp_projection
+from source_capture.transcript.asr_packet import write_asr_transcript
 from source_capture.transcript.caption_packet import write_caption_packet
 from source_capture.transcript.youtube_captions import CaptionFetch
 from source_capture.writer import write_local_source_capture_packet
@@ -283,6 +285,62 @@ def test_runner_writes_ecr_receipts_and_cleaning_packet_for_youtube(
     assert summary["findings"] == []
 
 
+def test_runner_writes_ecr_receipts_and_cleaning_packet_for_youtube_asr(tmp_path: Path) -> None:
+    youtube_packet_dir = _write_youtube_asr_packet_dir(tmp_path)
+    smoke_manifest_path = _write_smoke_manifest(
+        tmp_path,
+        youtube_packet_dir=youtube_packet_dir,
+        youtube_source_label="youtube:asr",
+    )
+
+    outputs = run_capture_ecr_cleaning_smoke(
+        smoke_manifest_path=smoke_manifest_path,
+        output_dir=tmp_path / "smoke_outputs",
+    )
+
+    ecr_receipts = _load_json(Path(outputs["ecr_source_side_receipts"]))
+    cleaning_packet = CleaningPacket.model_validate(
+        _load_json(Path(outputs["cleaning_packet"]))
+    )
+    summary = _load_json(Path(outputs["smoke_summary"]))
+
+    assert summary["counts"] == {
+        "retail_sources": 0,
+        "reddit_sources": 0,
+        "instagram_sources": 0,
+        "youtube_sources": 1,
+        "ecr_receipts": 1,
+        "cleaning_handles": 2,
+        "cleaning_transform_entries": 0,
+    }
+    receipt = ecr_receipts["receipts"][0]
+    assert receipt["source_label"] == "youtube:asr"
+    assert receipt["clears"]["identity"] is True
+    assert receipt["clears"]["inspectability"] is True
+    assert receipt["clears"]["timing"] is False
+    assert receipt["clears"]["source_visibility"] is False
+
+    youtube_handles = [
+        handle
+        for handle in cleaning_packet.handles
+        if handle.handle_id.startswith("youtube:asr:")
+    ]
+    assert len(youtube_handles) == 2
+    assert all(handle.source_family == "youtube" for handle in youtube_handles)
+    assert all(handle.source_surface == "youtube_audio" for handle in youtube_handles)
+    assert all(handle.raw_anchor.anchor_kind == "file" for handle in youtube_handles)
+    assert all(handle.projection_ref is None for handle in youtube_handles)
+    assert all(handle.ecr_ref is not None for handle in youtube_handles)
+    youtube_source = next(
+        source for source in summary["sources"] if source["source_label"] == "youtube:asr"
+    )
+    assert youtube_source["source_surface"] == "youtube_audio"
+    assert youtube_source["slice_count"] == 1
+    assert youtube_source["preserved_file_count"] == 2
+    assert youtube_source["handle_count"] == 2
+    assert summary["findings"] == []
+
+
 def test_youtube_source_family_mismatch_refuses(tmp_path: Path) -> None:
     youtube_packet_dir = _write_youtube_caption_packet_dir(tmp_path)
     manifest = _load_json(youtube_packet_dir / "manifest.json")
@@ -300,17 +358,17 @@ def test_youtube_source_family_mismatch_refuses(tmp_path: Path) -> None:
         )
 
 
-def test_youtube_source_surface_mismatch_refuses(tmp_path: Path) -> None:
+def test_youtube_unsupported_source_surface_refuses(tmp_path: Path) -> None:
     youtube_packet_dir = _write_youtube_caption_packet_dir(tmp_path)
     manifest = _load_json(youtube_packet_dir / "manifest.json")
-    manifest["source_surface"] = "youtube_audio"
+    manifest["source_surface"] = "youtube_comments"
     _write_json(youtube_packet_dir / "manifest.json", manifest)
     smoke_manifest_path = _write_smoke_manifest(
         tmp_path,
         youtube_packet_dir=youtube_packet_dir,
     )
 
-    with pytest.raises(ValueError, match="source_surface must be 'youtube_captions'"):
+    with pytest.raises(ValueError, match="source_surface must be one of"):
         run_capture_ecr_cleaning_smoke(
             smoke_manifest_path=smoke_manifest_path,
             output_dir=tmp_path / "smoke_outputs",
@@ -2034,6 +2092,35 @@ def _write_youtube_caption_packet_dir(tmp_path: Path) -> Path:
     )
     assert code == 0
     return Path(msg)
+
+
+def _write_youtube_asr_packet_dir(tmp_path: Path) -> Path:
+    lake = DataLakeRoot.for_test(tmp_path / "youtube_asr_lake")
+
+    def fake_transcribe(_audio_path: str) -> tuple[str, list[dict], dict]:
+        return (
+            "transcribed",
+            [{"start_ms": 0, "end_ms": 1200, "text": "Dior Sauvage in the drydown"}],
+            {
+                "tool": "fixture-asr",
+                "tool_version": "test",
+                "model": "fixture",
+                "model_digest": None,
+                "model_digest_basis": "unit-test fixture",
+            },
+        )
+
+    code, msg = write_asr_transcript(
+        video_id="aud12345678",
+        audio_bytes=b"fixture audio bytes",
+        audio_ext="webm",
+        transcribe_fn=fake_transcribe,
+        data_root=lake,
+        now_iso="2026-06-20T00:00:00Z",
+    )
+    assert code == 0
+    packet_id = msg.split("/")[2]
+    return lake.path / "raw" / raw_shard(packet_id) / packet_id
 
 
 def _write_instagram_packet_dir(tmp_path: Path) -> Path:

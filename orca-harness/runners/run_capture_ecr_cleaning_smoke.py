@@ -73,7 +73,7 @@ RETAIL_STRUCTURE_NOT_PRESERVED_REASON = "retail_structure_not_preserved"
 SOURCE_STRUCTURE_NOT_PRESERVED_REASON = "source_structure_not_preserved"
 INSTAGRAM_RAW_PULL_TRIGGER_PREFIX = "inspect_raw_before_instagram_use"
 RETAIL_RAW_PULL_TRIGGER_PREFIX = "inspect_raw_before_retail_use"
-YOUTUBE_CAPTION_SOURCE_SURFACE = "youtube_captions"
+YOUTUBE_SOURCE_SURFACES = frozenset({"youtube_captions", "youtube_audio"})
 
 _RETAIL_TRANSFORM_CONTEXT_ROW_KINDS = frozenset({"retail_pdp_product"})
 _RETAIL_TRANSFORM_METADATA_FIELDS = frozenset(
@@ -241,10 +241,10 @@ def _process_youtube_entry(
         raise ValueError(
             f"{source_label} packet source_family must be 'youtube'; got {packet.source_family!r}"
         )
-    if packet.source_surface != YOUTUBE_CAPTION_SOURCE_SURFACE:
+    if packet.source_surface not in YOUTUBE_SOURCE_SURFACES:
         raise ValueError(
-            f"{source_label} packet source_surface must be {YOUTUBE_CAPTION_SOURCE_SURFACE!r}; "
-            f"got {packet.source_surface!r}"
+            f"{source_label} packet source_surface must be one of "
+            f"{sorted(YOUTUBE_SOURCE_SURFACES)!r}; got {packet.source_surface!r}"
         )
 
     ecr_receipt, ecr_ref = _derive_ecr_receipt(
