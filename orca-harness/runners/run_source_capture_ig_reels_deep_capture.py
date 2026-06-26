@@ -26,11 +26,18 @@ from urllib.parse import urljoin, urlparse
 if __package__ in {None, ""}:
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
+from data_lake.root import DataLakeRoot
+from harness_utils import utc_now_z
 from source_capture.adapters.browser_snapshot import (
     BrowserSnapshotFailure,
     fetch_browser_snapshot_capture,
 )
 from source_capture.ig_reels_deep_capture import _is_ig_media_url, run_reel_deep_capture
+from source_capture.ig_reels_deep_capture_lake import (
+    DEEP_CAPTURE_SET_LANE,
+    deep_capture_record_id,
+    write_reel_deep_capture_into_lake,
+)
 from source_capture.transcript.audio_asr import transcribe_audio
 
 # A realistic desktop UA: the signed fbcdn handle is served to the same anonymous
@@ -191,6 +198,12 @@ def main(argv: Sequence[str] | None = None) -> int:
     )
     parser.add_argument("--shortcode", required=True, help="IG Reel shortcode (e.g. DaA8n7EhqTR).")
     parser.add_argument("--model", default="small", help="faster-whisper model size.")
+    parser.add_argument(
+        "--data-root",
+        default=None,
+        help="Orca data lake root (or ORCA_DATA_ROOT). When set, persists the silver "
+        "deep-capture record-set (comments + transcript); omit for stdout-only.",
+    )
     args = parser.parse_args(argv)
 
     with tempfile.TemporaryDirectory(prefix="orca_deepcap_") as scratch:
@@ -211,7 +224,27 @@ def main(argv: Sequence[str] | None = None) -> int:
     )
     for note in result.notes:
         print(f"  note: {note}")
+
+    if args.data_root is not None:
+        print(f"  {_persist_deep_capture(result, data_root_arg=args.data_root)}")
     return 0
+
+
+def _persist_deep_capture(result, *, data_root_arg: str) -> str:
+    """Persist the deep-capture record-set; idempotent (skips an already-complete reel)."""
+    root = DataLakeRoot.resolve(explicit=data_root_arg)
+    record_id = deep_capture_record_id(result)
+    if root.is_record_set_complete(
+        subtree="derived",
+        raw_anchor=result.reel_shortcode,
+        record_id=record_id,
+        completion_lane=DEEP_CAPTURE_SET_LANE,
+    ):
+        return f"persisted: already complete, skipped ({record_id})"
+    written = write_reel_deep_capture_into_lake(
+        data_root=root, result=result, generated_at=utc_now_z(), record_id=record_id
+    )
+    return f"persisted: {len(written)} silver lanes under derived/.../{result.reel_shortcode}/ ({record_id})"
 
 
 if __name__ == "__main__":

@@ -24,6 +24,7 @@ open_next:
 stale_if:
   - The fusion's input schema ProductMention, or its output ProductVerdict / ProductVerdictSet, changes shape.
   - The data lake record-set / append-only / completion-marker contract changes.
+  - The audience-comment capture lane silver__capture__audience_comments changes shape (the downstream-brain section references it as the brain's second input).
   - The owner authorizes the deferred cross-creator / cross-video aggregation (then its section is built).
 status: DEFERRED — owner-deferred 2026-06-26 pending IG + YT lane structural sync; REFERENCE ONLY, this article authorizes no build.
 ```
@@ -65,6 +66,17 @@ Keep the **pure fusion** (`scoring/product_fusion.py`) separate from the **I/O a
 - The gold verdict is **observed-stance sentiment** ("what the creator said about this product"), **never** demand / credibility / independence / Action-Ceiling — those are **Judgment**.
 - **No engagement/resonance input** — that is the Engagement Logic Registry's domain (`orca/product/shared/engagement_registry/engagement_logic_registry_v0.md`), joined at Judgment, not here.
 - LLM-free (`scoring/` no-LLM zone; keep the contract test green).
+
+## Downstream brain (Judgment) — the two inputs it now joins
+
+Since this article was first written, the **audience voice is now captured and persisted** alongside the creator voice: the one-render reel deep-capture (`source_capture/ig_reels_deep_capture.py` + `ig_reels_deep_capture_lake.py`; `runners/run_source_capture_ig_reels_deep_capture.py`) renders a reel ONCE and lands BOTH the creator transcript and the audience comments. So the downstream brain (Judgment) now has **two** silver inputs to join per creator+product, not one:
+
+1. **Creator stance** — the GOLD verdict this article persists (`gold__scoring__product_verdicts`): "what the creator said about this product," deterministic, no engagement.
+2. **Audience signal** — the persisted comments (`silver__capture__audience_comments`, per reel): what viewers said plus each comment's like count. This is **audience voice and engagement-weighted**, so its interpretation — within-reel ranking, demand weighting, sponsored/affiliate discount — is the **Engagement Logic Registry / Judgment** domain (`orca/product/shared/engagement_registry/engagement_logic_registry_v0.md`). Captured here, **scored there**.
+
+The brain combines them: the creator verdict says *the creator endorsed it*; the audience signal says *the crowd amplified it*; the engagement registry says *how much that counts*. **Neither the audience-signal ranking nor the join is built** — both are deferred Judgment work.
+
+**What this changes for the gold-write build: nothing in its own scope.** The gold record stays cleanly creator-stance-only; it must NOT fold in the audience signal (that would smuggle engagement into the no-engagement gold layer). The only new fact for the picking-up agent is that the audience signal already exists as a **sibling silver lane the brain reads in parallel** — so keep the join in Judgment, not in the gold write.
 
 ## Build steps (for the picking-up agent)
 
