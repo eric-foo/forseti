@@ -121,10 +121,11 @@ Use when available:
 When an Evidence Unit is based on public reactions such as comments, replies,
 reviews, social/video engagement, or source-native vote/helpfulness systems, the
 Evidence Unit must carry engagement context availability rather than a bare text
-summary. At minimum, record whether source-visible counts, score state, sort
-order, reply depth, helpful votes, views/likes/comments, pinned/hearted/official
-markers, and metric missingness were preserved, unavailable, hidden, approximate,
-or not attempted.
+summary. At minimum, for each relevant metric family, record whether the source
+posture was `observed`, `hidden`, `approximate`, `unavailable_with_reason`, or
+`not_attempted`, and whether observed or approximate facts were preserved into
+the unit. This uses the same canonical `metric_posture` vocabulary as Cleaning's
+`engagement_context` candidate.
 
 This context is not a score. It may inform attention, resonance, objection,
 distribution, manipulation-risk, or social-proof analysis. Judgment still owns

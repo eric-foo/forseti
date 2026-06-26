@@ -199,13 +199,20 @@ standard unless they pass leakage controls.
 direction_change_propagation:
   doctrine_changed: >
     Public-reaction engagement facts now have a cross-layer handling rule:
-    Capture preserves visible metrics/context, Projection and Cleaning may carry
-    mechanical context, Data Lake places raw facts in Bronze and mechanical
-    context in Silver, and Judgment alone interprets meaning or action effect.
+    Capture preserves visible metrics/context, Projection may carry mechanical
+    rows, owner-authorized Cleaning may produce mechanical engagement_context,
+    Data Lake places raw facts in Bronze and mechanical context in Silver, and
+    Judgment alone interprets meaning or action effect.
   trigger: product_doctrine
   related_triggers:
     - architecture_doctrine
     - workflow_authority
+  reviewed_by: >
+    Cross-vendor delegated adversarial artifact review
+    docs/review-outputs/adversarial-artifact-reviews/public_reaction_engagement_context_delegated_adversarial_artifact_review_patch_v0.md.
+    Home-model adjudication accepted/applied AR-02 (Cleaning authorization
+    posture) and AR-03 (canonical metric_posture vocabulary), deferred AR-01 and
+    AR-04, and dropped/batched AR-05.
   controlling_sources_updated:
     - orca/product/shared/engagement_registry/engagement_logic_registry_v0.md
     - orca/product/spines/capture/core/contracts/obligation_contracts/core_spine_v0_data_capture_spine_obligation_contract_v0.md
@@ -251,12 +258,21 @@ direction_change_propagation:
     orca/product/spines/commission_signal_board
     orca/product/spines/scanning
     orca/product/spines/foundation/product_contract
+    AND post-review adjudication query
+    rg -n "metric_posture|metric posture|preserved, unavailable|unavailable_with_reason|not_attempted|owner-authorized|standing automation|lake writer"
+    orca/product/shared/engagement_registry
+    orca/product/spines/cleaning
+    orca/product/spines/foundation/product_contract
   stale_language_search_result: >
     Executed during the patch. Live edited surfaces now route public-reaction
     engagement through the registry, Capture preservation, Projection/Cleaning
     mechanical context, Data Lake medallion placement, CSB/Scanning attention
     routing, and Judgment-owned interpretation. Existing no-score/no-proof
-    boundaries were preserved.
+    boundaries were preserved. Post-review adjudication executed 2026-06-26:
+    Cleaning and Information Production Foundation now share canonical
+    metric_posture vocabulary; Cleaning engagement_context now states the
+    owner-authorized/deferred posture and non-authorization of Cleaning build,
+    lake writer, standing automation, or cross-packet derivation.
   non_claims:
     - not validation
     - not readiness

@@ -165,15 +165,18 @@ owner-authorized.
 ### Public-Reaction Engagement Context
 
 Cleaning may produce an `engagement_context` working view for public-reaction
-sources when Capture or Projection preserved source-visible engagement facts.
-This is a mechanical context view, not a new Projection layer and not a Judgment
-read.
+sources only in a separately owner-authorized Cleaning pass, or when explicitly
+labeled as unresolved routing, and only when Capture or Projection preserved
+source-visible engagement facts. This section defines the allowed shape for that
+mechanic; it does not by itself authorize a Cleaning build, lake writer, standing
+automation, or cross-packet derivation. This is a mechanical context view, not a
+new Projection layer and not a Judgment read.
 
 Allowed `engagement_context` contents include:
 
 - input handle, raw anchor, projection row, and ECR reference when present;
-- metric basis and posture, such as observed, hidden, approximate,
-  unavailable-with-reason, or not-attempted;
+- metric basis and canonical `metric_posture` (`observed`, `hidden`,
+  `approximate`, `unavailable_with_reason`, or `not_attempted`);
 - row-bound source-visible values, such as upvotes, helpful votes, likes, views,
   shares, comment counts, reply counts, source-native score state, visible
   sort/rank/order, and pinned/hearted/official-response markers;
