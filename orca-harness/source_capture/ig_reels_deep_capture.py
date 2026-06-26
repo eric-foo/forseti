@@ -25,10 +25,11 @@ from source_capture.ig_reels_comments import parse_comments_from_rendered_dom
 _VIDEO_VERSIONS_KEY = '"video_versions"'
 _WS = " \t\r\n"
 _DECODER = json.JSONDecoder()
-# Instagram media CDNs. Matched on the parsed host's registrable suffix (endswith),
-# never a bare substring, so "x.fbcdn.net.attacker.com" does NOT pass.
+# Instagram media CDNs. Matched on the normalized parsed host's registrable
+# suffix, never a bare substring, so "x.fbcdn.net.attacker.com" does NOT pass.
 _MEDIA_HOST_SUFFIXES = (".fbcdn.net", ".cdninstagram.com")
 _MEDIA_HOSTS_EXACT = ("fbcdn.net", "cdninstagram.com")
+_MEDIA_SCHEMES = {"http", "https"}
 
 
 def _skip_ws(text: str, index: int) -> int:
@@ -37,30 +38,48 @@ def _skip_ws(text: str, index: int) -> int:
     return index
 
 
+def _previous_non_ws(text: str, index: int) -> str | None:
+    index -= 1
+    while index >= 0 and text[index] in _WS:
+        index -= 1
+    return text[index] if index >= 0 else None
+
+
+def _quote_is_escaped(text: str, index: int) -> bool:
+    slash_count = 0
+    index -= 1
+    while index >= 0 and text[index] == "\\":
+        slash_count += 1
+        index -= 1
+    return slash_count % 2 == 1
+
+
+def _normalised_media_host(hostname: str | None) -> str | None:
+    if not hostname:
+        return None
+    host = hostname.rstrip(".").lower()
+    if not host:
+        return None
+    try:
+        host.encode("ascii")
+    except UnicodeEncodeError:
+        return None
+    return host
+
+
 def _is_ig_media_url(url: str) -> bool:
-    if not isinstance(url, str) or not url.startswith(("http://", "https://")):
+    if not isinstance(url, str):
         return False
     try:
-        host = (urlparse(url).hostname or "").lower()
+        parsed = urlparse(url)
     except ValueError:
         return False
+    if parsed.scheme.lower() not in _MEDIA_SCHEMES:
+        return False
+    host = _normalised_media_host(parsed.hostname)
+    if host is None:
+        return False
     return host in _MEDIA_HOSTS_EXACT or host.endswith(_MEDIA_HOST_SUFFIXES)
-
-
-def _find_json_string_end(text: str, start: int) -> int | None:
-    """Index just past the closing quote of the JSON string opening at ``start``."""
-    escaped = False
-    index = start + 1
-    while index < len(text):
-        char = text[index]
-        if escaped:
-            escaped = False
-        elif char == "\\":
-            escaped = True
-        elif char == '"':
-            return index + 1
-        index += 1
-    return None
 
 
 def parse_reel_media_urls_from_rendered_dom(dom: str) -> list[str]:
@@ -69,39 +88,45 @@ def parse_reel_media_urls_from_rendered_dom(dom: str) -> list[str]:
     TRANSIENT handles -- signed + expiring; download immediately, never persist.
     Returns IG-CDN-host-validated URLs in document order, de-duplicated.
 
-    String-aware: the scan skips over JSON string CONTENTS, so a ``video_versions``
-    literal embedded inside comment text is never parsed as structure -- it cannot
-    inject a media URL.
+    String-data-safe: the scan only accepts unescaped ``"video_versions"`` object
+    keys after ``{`` or ``,`` and before a JSON array. A literal embedded inside
+    JSON string data is escaped and is not parsed as structure, so comment text
+    cannot inject a media URL. Malformed earlier strings do not desync the scan.
     """
     urls: list[str] = []
     seen: set[str] = set()
     n = len(dom)
-    index = 0
-    while index < n:
-        if dom[index] != '"':
-            index += 1
-            continue
-        end = _find_json_string_end(dom, index)
-        if end is None:
+    search = 0
+    while search < n:
+        key_start = dom.find(_VIDEO_VERSIONS_KEY, search)
+        if key_start == -1:
             break
-        if dom[index:end] == _VIDEO_VERSIONS_KEY:
-            colon = _skip_ws(dom, end)
-            if colon < n and dom[colon] == ":":
-                bracket = _skip_ws(dom, colon + 1)
-                if bracket < n and dom[bracket] == "[":
-                    try:
-                        versions, _ = _DECODER.raw_decode(dom, bracket)
-                    except json.JSONDecodeError:
-                        versions = None
-                    if isinstance(versions, list):
-                        for item in versions:
-                            if not isinstance(item, dict):
-                                continue
-                            url = item.get("url")
-                            if _is_ig_media_url(url) and url not in seen:
-                                seen.add(url)
-                                urls.append(url)
-        index = end  # advance past the whole string (its contents are never re-scanned)
+        key_end = key_start + len(_VIDEO_VERSIONS_KEY)
+        search = key_end
+        if _quote_is_escaped(dom, key_start):
+            continue
+        if _previous_non_ws(dom, key_start) not in {"{", ","}:
+            continue
+        colon = _skip_ws(dom, key_end)
+        if colon >= n or dom[colon] != ":":
+            continue
+        bracket = _skip_ws(dom, colon + 1)
+        if bracket >= n or dom[bracket] != "[":
+            continue
+        try:
+            versions, array_end = _DECODER.raw_decode(dom, bracket)
+        except json.JSONDecodeError:
+            continue
+        if not isinstance(versions, list):
+            continue
+        search = max(search, array_end)
+        for item in versions:
+            if not isinstance(item, dict):
+                continue
+            url = item.get("url")
+            if _is_ig_media_url(url) and url not in seen:
+                seen.add(url)
+                urls.append(url)
     return urls
 
 

@@ -5,6 +5,8 @@ of ``{type,url}`` and ``XIGComment`` nodes, in a single DOM.
 """
 from __future__ import annotations
 
+import json
+
 import pytest
 
 from source_capture.ig_reels_deep_capture import (
@@ -29,6 +31,10 @@ BOTH_FIXTURE = r'''
 '''
 
 
+def _media_dom_for_url(url: str) -> str:
+    return json.dumps({"video_versions": [{"type": 101, "url": url}]})
+
+
 def test_extracts_only_ig_host_media_urls() -> None:
     urls = parse_reel_media_urls_from_rendered_dom(MEDIA_FIXTURE)
     # evil.attacker.com and the "x.fbcdn.net.attacker.com" suffix-spoof are rejected
@@ -51,6 +57,41 @@ def test_duplicate_media_urls_deduped() -> None:
     u = "https://scontent.cdninstagram.com/o1/v/dup.mp4"
     dom = f'{{"video_versions":[{{"type":1,"url":"{u}"}},{{"type":2,"url":"{u}"}}]}}'
     assert parse_reel_media_urls_from_rendered_dom(dom) == [u]
+
+
+@pytest.mark.parametrize(
+    "url",
+    [
+        "https://real.fbcdn.net@evil.com/x.mp4",
+        "https://fbcdn.net.evil.com/x.mp4",
+        "https://x.fbcdn.net.attacker.com/spoof.mp4",
+        "data:text/plain,https://x.fbcdn.net/a.mp4",
+        "blob:https://x.fbcdn.net/a.mp4",
+        "https:///x.mp4",
+        "https://fbcdn.net\u3002evil.com/x.mp4",
+    ],
+)
+def test_rejects_media_url_host_bypasses(url: str) -> None:
+    assert parse_reel_media_urls_from_rendered_dom(_media_dom_for_url(url)) == []
+
+
+@pytest.mark.parametrize(
+    "url",
+    [
+        "HTTPS://SCONTENT.CDNINSTAGRAM.COM/o1/v/clip.mp4",
+        "https://scontent.cdninstagram.com./o1/v/clip.mp4",
+        "https://scontent.cdninstagram.com:443/o1/v/clip.mp4",
+        "https://fbcdn.net/o1/v/clip.mp4",
+    ],
+)
+def test_accepts_legitimate_ig_cdn_host_forms(url: str) -> None:
+    assert parse_reel_media_urls_from_rendered_dom(_media_dom_for_url(url)) == [url]
+
+
+def test_unterminated_string_before_media_does_not_desync_scan() -> None:
+    url = "https://scontent.cdninstagram.com/o1/v/recovered.mp4"
+    dom = f'"unterminated user text <script>{_media_dom_for_url(url)}</script>'
+    assert parse_reel_media_urls_from_rendered_dom(dom) == [url]
 
 
 def test_video_versions_inside_comment_text_cannot_inject() -> None:
