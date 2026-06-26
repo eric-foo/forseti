@@ -15,6 +15,7 @@ open_next:
   - orca-harness/source_capture/transcript/asr_packet.py
   - orca-harness/signal_content/models.py
   - orca/product/spines/capture/core/source_families/social_media/youtube/youtube_transcript_product_extraction_spec_v0.md
+  - docs/review-inputs/youtube_shorts_tone_viability_source_pack_manifest_v0.md
 branch_or_commit: codex/youtube-shorts-tone-viability-prompt; source-read base main @ 077efda1
 ```
 
@@ -37,7 +38,8 @@ edit_permission: read-only for the receiver
 target_workspace: C:\Users\vmon7\Desktop\projects\orca\.codex\worktrees\youtube-shorts-tone-viability-prompt
 target_branch: codex/youtube-shorts-tone-viability-prompt
 source_read_base_commit: 077efda1
-dirty_state_allowance: none required for repo-capable review; if no repo access, use the embedded source capsule
+dirty_state_allowance: none required for repo-capable review; if no repo access, use the attached source zip plus embedded source capsule
+no_repo_source_pack: docs/review-inputs/youtube_shorts_tone_viability_source_pack_v0.zip
 doctrine_change: none; request is advisory viability only
 receiver: ChatGPT Pro or another external reasoning reviewer
 ```
@@ -49,6 +51,8 @@ You are stress-testing a proposed Orca capability before we build it.
 Question: is a YouTube Shorts-specific tone-measurement lane actually viable, given that Orca already has YouTube caption acquisition, audio download, and ASR fallback?
 
 Be adversarial. If the idea is weak, say so. Do not produce a polite roadmap for a bad metric. The intended output is a viability decision and a smallest credible v0 shape, not implementation code.
+
+If you received `youtube_shorts_tone_viability_source_pack_v0.zip`, treat it as the source pack. Open `README.md` first, then inspect only the included files needed to answer this question. If you have no repo access and no zip is attached, use the source capsule below and mark repo verification gaps explicitly.
 
 ### Context
 
