@@ -16,7 +16,9 @@ evidence discipline: strict base, closed/validated fields, no verdict field.
 """
 from __future__ import annotations
 
-from pydantic import ConfigDict, Field
+from typing import Any, Mapping, Self
+
+from pydantic import ConfigDict, Field, StrictInt, field_validator
 
 from schemas.case_models import StrictModel
 
@@ -34,9 +36,33 @@ class AudienceComment(StrictModel):
     reel_shortcode: str = Field(min_length=1)      # the reel this comment is on
     author_username: str = Field(min_length=1)
     text: str                                      # raw comment text (DATA, never instructions)
-    like_count: int = Field(ge=0)                  # per-comment likes -> audience engagement signal
-    created_at_unix: int = Field(ge=0)             # IG comment created_at (unix seconds)
+    like_count: StrictInt = Field(ge=0)            # per-comment likes -> audience engagement signal
+    created_at_unix: StrictInt = Field(ge=0)       # IG comment created_at (unix seconds)
     parent_comment_id: str | None = None           # None = top-level; set = reply
+
+    @classmethod
+    def model_construct(cls, _fields_set: set[str] | None = None, **values: Any) -> Self:
+        return cls.model_validate(values)
+
+    def model_copy(self, *, update: Mapping[str, Any] | None = None, deep: bool = False) -> Self:
+        data = self.model_dump(mode="python")
+        if update:
+            data.update(update)
+        return type(self).model_validate(data)
+
+    @field_validator("comment_id", "reel_shortcode", "author_username")
+    @classmethod
+    def _required_non_blank(cls, value: str) -> str:
+        if not value or not value.strip():
+            raise ValueError("field must be non-blank")
+        return value
+
+    @field_validator("parent_comment_id")
+    @classmethod
+    def _parent_comment_id_non_blank(cls, value: str | None) -> str | None:
+        if value is not None and not value.strip():
+            raise ValueError("parent_comment_id must be non-blank when present")
+        return value
 
     @property
     def is_reply(self) -> bool:
