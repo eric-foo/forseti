@@ -157,6 +157,7 @@ ENGAGEMENT_SIGNAL_RE = (
     r"views?|shares?|comments?|reply\s+counts?|source[- ]native\s+scores?|"
     r"source\s+rank|source\s+order|visible\s+sort|visible\s+rank|resonance)"
 )
+ENGAGEMENT_CLAIM_GAP = r"[^.\n;]{0,80}"
 NEGATED_OVERCLAIM_RE = re.compile(
     r"\b(?:no|not|never|without|cannot|can't|must\s+not|does\s+not|do\s+not|"
     r"don't|is\s+not|are\s+not|not\s+enough\s+to)\b",
@@ -164,66 +165,66 @@ NEGATED_OVERCLAIM_RE = re.compile(
 )
 ENGAGEMENT_OVERCLAIM_PATTERNS = {
     "engagement_as_proof": re.compile(
-        rf"(?:\b{ENGAGEMENT_SIGNAL_RE}\b.{{0,80}}\b(?:proves?|proof|validates?|confirms?|"
-        rf"establishes|demonstrates|clears?|means|counts\s+as)\b.{{0,80}}\b(?:demand|buyer\s+pull|"
+        rf"(?:\b{ENGAGEMENT_SIGNAL_RE}\b{ENGAGEMENT_CLAIM_GAP}\b(?:proves?|proof|validates?|confirms?|"
+        rf"establishes|demonstrates|clears?|means|counts\s+as)\b{ENGAGEMENT_CLAIM_GAP}\b(?:demand|buyer\s+pull|"
         rf"willingness\s+to\s+pay|market\s+pull|purchase\s+intent)\b|"
         rf"\b(?:demand|buyer\s+pull|willingness\s+to\s+pay|market\s+pull|purchase\s+intent)\b"
-        rf".{{0,80}}\b(?:is\s+)?(?:proven|proved|validated|confirmed|established|demonstrated|cleared|"
-        rf"proof)\b.{{0,80}}\b(?:by|from|because\s+of|due\s+to|through|via)\b.{{0,80}}\b"
+        rf"{ENGAGEMENT_CLAIM_GAP}\b(?:is\s+)?(?:proven|proved|validated|confirmed|established|demonstrated|cleared|"
+        rf"proof)\b{ENGAGEMENT_CLAIM_GAP}\b(?:by|from|because\s+of|due\s+to|through|via)\b{ENGAGEMENT_CLAIM_GAP}\b"
         rf"{ENGAGEMENT_SIGNAL_RE}\b)",
         re.IGNORECASE,
     ),
     "engagement_gate_clearance_shortcut": re.compile(
-        rf"(?:\b{ENGAGEMENT_SIGNAL_RE}\b.{{0,80}}\b(?:clears?|passes?|satisfies|unlocks?|"
-        rf"establishes|justifies?|means|counts\s+as)\b.{{0,80}}\b(?:gate(?:\s+clearance)?|"
+        rf"(?:\b{ENGAGEMENT_SIGNAL_RE}\b{ENGAGEMENT_CLAIM_GAP}\b(?:clears?|passes?|satisfies|unlocks?|"
+        rf"establishes|justifies?|means|counts\s+as)\b{ENGAGEMENT_CLAIM_GAP}\b(?:gate(?:\s+clearance)?|"
         rf"demand\s+gate|admissibility|candidate\s+clearance)\b|"
         rf"\b(?:gate(?:\s+clearance)?|demand\s+gate|admissibility|candidate\s+clearance)\b"
-        rf".{{0,80}}\b(?:is|was|cleared|passed|satisfied|unlocked|established|justified|"
-        rf"because\s+of|due\s+to|from|by|based\s+on)\b.{{0,80}}\b{ENGAGEMENT_SIGNAL_RE}\b)",
+        rf"{ENGAGEMENT_CLAIM_GAP}\b(?:is|was|cleared|passed|satisfied|unlocked|established|justified|"
+        rf"because\s+of|due\s+to|from|by|based\s+on)\b{ENGAGEMENT_CLAIM_GAP}\b{ENGAGEMENT_SIGNAL_RE}\b)",
         re.IGNORECASE,
     ),
     "engagement_route_binding_shortcut": re.compile(
-        rf"(?:\b{ENGAGEMENT_SIGNAL_RE}\b.{{0,80}}\b(?:binds?|sets?|selects?|authorizes?|clears?|"
-        rf"recommends?|establishes)\b.{{0,80}}\b(?:Capture\s+route|capture\s+method|"
+        rf"(?:\b{ENGAGEMENT_SIGNAL_RE}\b{ENGAGEMENT_CLAIM_GAP}\b(?:binds?|sets?|selects?|authorizes?|clears?|"
+        rf"recommends?|establishes)\b{ENGAGEMENT_CLAIM_GAP}\b(?:Capture\s+route|capture\s+method|"
         rf"route[_ -]?binding(?:[_ -]?state)?|source[- ]access\s+route|capture[- ]owned\s+route)\b|"
         rf"\b(?:Capture\s+route|capture\s+method|route[_ -]?binding(?:[_ -]?state)?|"
-        rf"source[- ]access\s+route|capture[- ]owned\s+route)\b.{{0,80}}\b(?:is|was|bound|set|"
+        rf"source[- ]access\s+route|capture[- ]owned\s+route)\b{ENGAGEMENT_CLAIM_GAP}\b(?:is|was|bound|set|"
         rf"selected|authorized|cleared|recommended|established|because\s+of|due\s+to|from|by|"
-        rf"based\s+on)\b.{{0,80}}\b{ENGAGEMENT_SIGNAL_RE}\b)",
+        rf"based\s+on)\b{ENGAGEMENT_CLAIM_GAP}\b{ENGAGEMENT_SIGNAL_RE}\b)",
         re.IGNORECASE,
     ),
     "engagement_graph_weight_shortcut": re.compile(
-        rf"(?:\b{ENGAGEMENT_SIGNAL_RE}\b.{{0,80}}\b(?:sets?|determines|drives|raises|"
-        rf"increases|justifies|supports?|becomes|is|means|counts\s+as)\b.{{0,80}}\b(?:graph[_ -]?weight"
+        rf"(?:\b{ENGAGEMENT_SIGNAL_RE}\b{ENGAGEMENT_CLAIM_GAP}\b(?:sets?|determines|drives|raises|"
+        rf"increases|justifies|supports?|becomes|is|means|counts\s+as)\b{ENGAGEMENT_CLAIM_GAP}\b(?:graph[_ -]?weight"
         rf"(?:[_ -]?hint)?|graph\s+score|graph\s+strength)\b|"
         rf"\b(?:graph[_ -]?weight(?:[_ -]?hint)?|graph\s+score|graph\s+strength)\b"
-        rf".{{0,80}}\b(?:is|was|becomes|sets?|determined|driven|raised|increased|justified|supported|"
-        rf"because\s+of|due\s+to|from|by|based\s+on)\b.{{0,80}}\b{ENGAGEMENT_SIGNAL_RE}\b)",
+        rf"{ENGAGEMENT_CLAIM_GAP}\b(?:is|was|becomes|sets?|determined|driven|raised|increased|justified|supported|"
+        rf"because\s+of|due\s+to|from|by|based\s+on)\b{ENGAGEMENT_CLAIM_GAP}\b{ENGAGEMENT_SIGNAL_RE}\b)",
         re.IGNORECASE,
     ),
     "engagement_credibility_shortcut": re.compile(
-        rf"(?:\b{ENGAGEMENT_SIGNAL_RE}\b.{{0,80}}\b(?:proves?|confirms?|establishes|"
-        rf"supports?|justifies?|sets?|labels?|means|counts\s+as)\b.{{0,80}}\b(?:credibility|credible|"
+        rf"(?:\b{ENGAGEMENT_SIGNAL_RE}\b{ENGAGEMENT_CLAIM_GAP}\b(?:proves?|confirms?|establishes|"
+        rf"supports?|justifies?|sets?|labels?|means|counts\s+as)\b{ENGAGEMENT_CLAIM_GAP}\b(?:credibility|credible|"
         rf"independence|trustworthy|trust)\b|"
         rf"\b(?:credibility|credible|independence|trustworthy|trust)\b"
-        rf".{{0,80}}\b(?:is|was|proven|confirmed|established|supported|justified|set|labeled|"
-        rf"because\s+of|due\s+to|from|by|based\s+on)\b.{{0,80}}\b{ENGAGEMENT_SIGNAL_RE}\b)",
+        rf"{ENGAGEMENT_CLAIM_GAP}\b(?:is|was|proven|confirmed|established|supported|justified|set|labeled|"
+        rf"because\s+of|due\s+to|from|by|based\s+on)\b{ENGAGEMENT_CLAIM_GAP}\b{ENGAGEMENT_SIGNAL_RE}\b)",
         re.IGNORECASE,
     ),
     "engagement_amplification_shortcut": re.compile(
-        rf"(?:\b{ENGAGEMENT_SIGNAL_RE}\b.{{0,80}}\b(?:proves?|confirms?|establishes|"
-        rf"decides|labels?|sets?|means|counts\s+as)\b.{{0,80}}\b(?:artificial\s+amplification|"
+        rf"(?:\b{ENGAGEMENT_SIGNAL_RE}\b{ENGAGEMENT_CLAIM_GAP}\b(?:proves?|confirms?|establishes|"
+        rf"decides|labels?|sets?|means|counts\s+as)\b{ENGAGEMENT_CLAIM_GAP}\b(?:artificial\s+amplification|"
         rf"amplification|manipulation|bot(?:-like)?\s+activity)\b|"
         rf"\b(?:artificial\s+amplification|amplification|manipulation|bot(?:-like)?\s+activity)\b"
-        rf".{{0,80}}\b(?:is|was|proven|confirmed|established|decided|labeled|set|because\s+of|"
-        rf"due\s+to|from|by|based\s+on)\b.{{0,80}}\b{ENGAGEMENT_SIGNAL_RE}\b)",
+        rf"{ENGAGEMENT_CLAIM_GAP}\b(?:is|was|proven|confirmed|established|decided|labeled|set|because\s+of|"
+        rf"due\s+to|from|by|based\s+on)\b{ENGAGEMENT_CLAIM_GAP}\b{ENGAGEMENT_SIGNAL_RE}\b)",
         re.IGNORECASE,
     ),
     "engagement_action_ceiling_shortcut": re.compile(
-        rf"(?:\b{ENGAGEMENT_SIGNAL_RE}\b.{{0,80}}\b(?:clears?|sets?|raises|supports?|"
-        rf"justifies?|establishes|means|counts\s+as)\b.{{0,80}}\bAction\s+Ceiling\b|"
-        rf"\bAction\s+Ceiling\b.{{0,80}}\b(?:is|was|cleared|set|raised|supported|justified|"
-        rf"established|because\s+of|due\s+to|from|by|based\s+on)\b.{{0,80}}\b"
+        rf"(?:\b{ENGAGEMENT_SIGNAL_RE}\b{ENGAGEMENT_CLAIM_GAP}\b(?:clears?|sets?|raises|supports?|"
+        rf"justifies?|establishes|means|counts\s+as)\b{ENGAGEMENT_CLAIM_GAP}\bAction\s+Ceiling\b|"
+        rf"\bAction\s+Ceiling\b{ENGAGEMENT_CLAIM_GAP}\b(?:is|was|cleared|set|raised|supported|justified|"
+        rf"established|because\s+of|due\s+to|from|by|based\s+on)\b{ENGAGEMENT_CLAIM_GAP}\b"
         rf"{ENGAGEMENT_SIGNAL_RE}\b)",
         re.IGNORECASE,
     ),

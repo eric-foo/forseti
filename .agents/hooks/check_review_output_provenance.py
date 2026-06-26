@@ -49,6 +49,10 @@ NON_APPROVAL_RE = re.compile(
     r"executor[- ]ready|patch\s+authority|readiness)\b",
     re.IGNORECASE | re.DOTALL,
 )
+FINDINGS_RE = re.compile(r"\bfindings?\b", re.IGNORECASE)
+REVIEW_USE_BOUNDARY_FIELD_RE = re.compile(
+    r"(?mis)^\s*review_use_boundary\s*:\s*(?:>\s*)?(?P<value>.*?)(?=^\S|\Z)"
+)
 
 
 @dataclass(frozen=True)
@@ -117,7 +121,9 @@ def _load_retrieval_header_checker():
 
 
 def is_review_output_scope(relposix: str) -> bool:
-    return relposix.startswith(REVIEW_OUTPUT_PREFIX) and relposix.endswith(".md")
+    if not relposix.startswith(REVIEW_OUTPUT_PREFIX) or not relposix.endswith(".md"):
+        return False
+    return Path(relposix).name != "README.md"
 
 
 def _field_value(pattern: re.Pattern[str], text: str) -> str | None:
@@ -127,8 +133,17 @@ def _field_value(pattern: re.Pattern[str], text: str) -> str | None:
     return match.group("value").strip().strip("'\"")
 
 
+def _review_use_boundary_candidates(text: str) -> list[str]:
+    candidates = [match.group("value") for match in REVIEW_USE_BOUNDARY_FIELD_RE.finditer(text)]
+    candidates.extend(block for block in re.split(r"\n\s*\n", text) if FINDINGS_RE.search(block))
+    return candidates
+
+
 def _has_review_use_boundary(text: str) -> bool:
-    return DECISION_INPUT_RE.search(text) is not None and NON_APPROVAL_RE.search(text) is not None
+    for candidate in _review_use_boundary_candidates(text):
+        if DECISION_INPUT_RE.search(candidate) is not None and NON_APPROVAL_RE.search(candidate) is not None:
+            return True
+    return False
 
 
 def check_text(relposix: str, text: str) -> list[Finding]:

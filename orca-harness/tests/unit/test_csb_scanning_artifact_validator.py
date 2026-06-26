@@ -155,6 +155,16 @@ def test_engagement_nonclaim_text_passes() -> None:
     assert validator.validate_text(text) == []
 
 
+
+def test_engagement_overclaim_does_not_cross_sentence_boundary() -> None:
+    text = _valid_text().replace(
+        "It did not decide candidates.",
+        "Engagement is high. Our research proves demand.",
+        1,
+    )
+
+    assert "engagement_as_proof" not in _codes(text)
+
 def test_engagement_nonclaim_sentence_does_not_mask_later_overclaim() -> None:
     text = _valid_text().replace(
         "It did not decide candidates.",

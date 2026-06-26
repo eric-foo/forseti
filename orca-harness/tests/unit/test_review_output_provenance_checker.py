@@ -66,6 +66,17 @@ def test_no_nonclaim_wording_passes_review_use_boundary() -> None:
     assert validator.check_text(SCOPE_PREFIX + "valid_review_output.md", text) == []
 
 
+
+def test_unrelated_decision_input_and_nonapproval_do_not_pass_boundary() -> None:
+    assert "missing_review_use_boundary" in _codes("bad_unrelated_boundary.md")
+
+
+def test_review_output_readmes_are_skipped() -> None:
+    text = _text("bad_missing_provenance.md")
+
+    assert validator.check_text("docs/review-outputs/README.md", text) == []
+    assert validator.check_text("docs/review-outputs/adversarial-artifact-reviews/README.md", text) == []
+
 @pytest.mark.parametrize(
     "relpath",
     [

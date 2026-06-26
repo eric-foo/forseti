@@ -83,6 +83,7 @@ ENGAGEMENT_SIGNAL_RE = (
     r"views?|shares?|comments?|reply\s+counts?|source[- ]native\s+scores?|"
     r"source\s+rank|source\s+order|resonance)"
 )
+ENGAGEMENT_CLAIM_GAP = r"[^.\n;]{0,80}"
 NEGATED_OVERCLAIM_RE = re.compile(
     r"\b(?:no|not|never|without|cannot|can't|must\s+not|does\s+not|do\s+not|"
     r"don't|is\s+not|are\s+not|not\s+enough\s+to)\b",
@@ -90,47 +91,47 @@ NEGATED_OVERCLAIM_RE = re.compile(
 )
 FORBIDDEN_ENGAGEMENT_OVERCLAIMS = {
     "engagement_as_proof": re.compile(
-        rf"(?:\b{ENGAGEMENT_SIGNAL_RE}\b.{{0,80}}\b(?:proves?|proof|validates?|confirms?|"
-        rf"establishes|demonstrates|clears?|means|counts\s+as)\b.{{0,80}}\b(?:demand|buyer\s+pull|"
+        rf"(?:\b{ENGAGEMENT_SIGNAL_RE}\b{ENGAGEMENT_CLAIM_GAP}\b(?:proves?|proof|validates?|confirms?|"
+        rf"establishes|demonstrates|clears?|means|counts\s+as)\b{ENGAGEMENT_CLAIM_GAP}\b(?:demand|buyer\s+pull|"
         rf"willingness\s+to\s+pay|market\s+pull|purchase\s+intent)\b|"
         rf"\b(?:demand|buyer\s+pull|willingness\s+to\s+pay|market\s+pull|purchase\s+intent)\b"
-        rf".{{0,80}}\b(?:is\s+)?(?:proven|proved|validated|confirmed|established|demonstrated|cleared|"
-        rf"proof)\b.{{0,80}}\b(?:by|from|because\s+of|due\s+to|through|via)\b.{{0,80}}\b"
+        rf"{ENGAGEMENT_CLAIM_GAP}\b(?:is\s+)?(?:proven|proved|validated|confirmed|established|demonstrated|cleared|"
+        rf"proof)\b{ENGAGEMENT_CLAIM_GAP}\b(?:by|from|because\s+of|due\s+to|through|via)\b{ENGAGEMENT_CLAIM_GAP}\b"
         rf"{ENGAGEMENT_SIGNAL_RE}\b)",
         re.IGNORECASE,
     ),
     "engagement_graph_weight_shortcut": re.compile(
-        rf"(?:\b{ENGAGEMENT_SIGNAL_RE}\b.{{0,80}}\b(?:sets?|determines|drives|raises|"
-        rf"increases|justifies|supports?|becomes|is|means|counts\s+as)\b.{{0,80}}\b(?:graph[_ -]?weight"
+        rf"(?:\b{ENGAGEMENT_SIGNAL_RE}\b{ENGAGEMENT_CLAIM_GAP}\b(?:sets?|determines|drives|raises|"
+        rf"increases|justifies|supports?|becomes|is|means|counts\s+as)\b{ENGAGEMENT_CLAIM_GAP}\b(?:graph[_ -]?weight"
         rf"(?:[_ -]?hint)?|graph\s+score|graph\s+strength)\b|"
         rf"\b(?:graph[_ -]?weight(?:[_ -]?hint)?|graph\s+score|graph\s+strength)\b"
-        rf".{{0,80}}\b(?:is|was|becomes|sets?|determined|driven|raised|increased|justified|supported|"
-        rf"because\s+of|due\s+to|from|by|based\s+on)\b.{{0,80}}\b{ENGAGEMENT_SIGNAL_RE}\b)",
+        rf"{ENGAGEMENT_CLAIM_GAP}\b(?:is|was|becomes|sets?|determined|driven|raised|increased|justified|supported|"
+        rf"because\s+of|due\s+to|from|by|based\s+on)\b{ENGAGEMENT_CLAIM_GAP}\b{ENGAGEMENT_SIGNAL_RE}\b)",
         re.IGNORECASE,
     ),
     "engagement_commit_scale_shortcut": re.compile(
-        rf"(?:\b{ENGAGEMENT_SIGNAL_RE}\b.{{0,80}}\b(?:clears?|supports?|justifies?|passes?|"
-        rf"unlocks?|establishes|means|counts\s+as)\b.{{0,80}}\b(?:Commit/Scale|Commit|Scale|buyer\s+proof|"
+        rf"(?:\b{ENGAGEMENT_SIGNAL_RE}\b{ENGAGEMENT_CLAIM_GAP}\b(?:clears?|supports?|justifies?|passes?|"
+        rf"unlocks?|establishes|means|counts\s+as)\b{ENGAGEMENT_CLAIM_GAP}\b(?:Commit/Scale|Commit|Scale|buyer\s+proof|"
         rf"demand\s+gate)\b|"
         rf"\b(?:Commit/Scale|Commit|Scale|buyer\s+proof|demand\s+gate)\b"
-        rf".{{0,80}}\b(?:is|was|cleared|supported|justified|passed|unlocked|established|"
-        rf"because\s+of|due\s+to|from|by|based\s+on)\b.{{0,80}}\b{ENGAGEMENT_SIGNAL_RE}\b)",
+        rf"{ENGAGEMENT_CLAIM_GAP}\b(?:is|was|cleared|supported|justified|passed|unlocked|established|"
+        rf"because\s+of|due\s+to|from|by|based\s+on)\b{ENGAGEMENT_CLAIM_GAP}\b{ENGAGEMENT_SIGNAL_RE}\b)",
         re.IGNORECASE,
     ),
     "engagement_credibility_shortcut": re.compile(
-        rf"(?:\b{ENGAGEMENT_SIGNAL_RE}\b.{{0,80}}\b(?:proves?|confirms?|establishes|"
-        rf"supports?|justifies?|sets?|labels?|means|counts\s+as)\b.{{0,80}}\b(?:credibility|credible|"
+        rf"(?:\b{ENGAGEMENT_SIGNAL_RE}\b{ENGAGEMENT_CLAIM_GAP}\b(?:proves?|confirms?|establishes|"
+        rf"supports?|justifies?|sets?|labels?|means|counts\s+as)\b{ENGAGEMENT_CLAIM_GAP}\b(?:credibility|credible|"
         rf"independence|trustworthy|trust)\b|"
         rf"\b(?:credibility|credible|independence|trustworthy|trust)\b"
-        rf".{{0,80}}\b(?:is|was|proven|confirmed|established|supported|justified|set|labeled|"
-        rf"because\s+of|due\s+to|from|by|based\s+on)\b.{{0,80}}\b{ENGAGEMENT_SIGNAL_RE}\b)",
+        rf"{ENGAGEMENT_CLAIM_GAP}\b(?:is|was|proven|confirmed|established|supported|justified|set|labeled|"
+        rf"because\s+of|due\s+to|from|by|based\s+on)\b{ENGAGEMENT_CLAIM_GAP}\b{ENGAGEMENT_SIGNAL_RE}\b)",
         re.IGNORECASE,
     ),
     "engagement_action_ceiling_shortcut": re.compile(
-        rf"(?:\b{ENGAGEMENT_SIGNAL_RE}\b.{{0,80}}\b(?:clears?|sets?|raises|supports?|"
-        rf"justifies?|establishes|means|counts\s+as)\b.{{0,80}}\bAction\s+Ceiling\b|"
-        rf"\bAction\s+Ceiling\b.{{0,80}}\b(?:is|was|cleared|set|raised|supported|justified|"
-        rf"established|because\s+of|due\s+to|from|by|based\s+on)\b.{{0,80}}\b"
+        rf"(?:\b{ENGAGEMENT_SIGNAL_RE}\b{ENGAGEMENT_CLAIM_GAP}\b(?:clears?|sets?|raises|supports?|"
+        rf"justifies?|establishes|means|counts\s+as)\b{ENGAGEMENT_CLAIM_GAP}\bAction\s+Ceiling\b|"
+        rf"\bAction\s+Ceiling\b{ENGAGEMENT_CLAIM_GAP}\b(?:is|was|cleared|set|raised|supported|justified|"
+        rf"established|because\s+of|due\s+to|from|by|based\s+on)\b{ENGAGEMENT_CLAIM_GAP}\b"
         rf"{ENGAGEMENT_SIGNAL_RE}\b)",
         re.IGNORECASE,
     ),
@@ -168,7 +169,11 @@ def _excerpt(value: str, limit: int = 120) -> str:
 
 
 def _is_nonclaim_context(text: str, start: int, end: int) -> bool:
-    window = text[max(0, start - 50) : min(len(text), end + 50)]
+    left_bounds = [text.rfind(boundary, 0, start) for boundary in (".", "\n", ";")]
+    right_bounds = [idx for idx in (text.find(boundary, end) for boundary in (".", "\n", ";")) if idx != -1]
+    left = max(left_bounds) + 1
+    right = min(right_bounds) if right_bounds else min(len(text), end + 80)
+    window = text[left:right]
     return NEGATED_OVERCLAIM_RE.search(window) is not None
 
 
@@ -426,6 +431,7 @@ def validate_text(text: str) -> list[Finding]:
     rows, row_findings = parse_signal_rows(text)
     packet, packet_findings = parse_classifier_handoff(text)
     findings = [*row_findings, *packet_findings]
+    findings.extend(_validate_engagement_overclaims(text))
     if packet_findings or not rows:
         return findings
 
@@ -444,7 +450,6 @@ def validate_text(text: str) -> list[Finding]:
     counter_ids, counter_findings = _handoff_ids(packet, "counterevidence_rows_for_handoff")
     findings.extend(signal_findings)
     findings.extend(counter_findings)
-    findings.extend(_validate_engagement_overclaims(text))
 
     all_ids = [*signal_ids, *counter_ids]
     seen: set[str] = set()
