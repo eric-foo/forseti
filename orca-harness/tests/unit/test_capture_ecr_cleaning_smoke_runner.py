@@ -282,6 +282,77 @@ def test_runner_writes_ecr_receipts_and_cleaning_packet_for_youtube(
     assert youtube_source["handle_count"] == 2
     assert summary["findings"] == []
 
+
+def test_youtube_source_family_mismatch_refuses(tmp_path: Path) -> None:
+    youtube_packet_dir = _write_youtube_caption_packet_dir(tmp_path)
+    manifest = _load_json(youtube_packet_dir / "manifest.json")
+    manifest["source_family"] = "instagram_creator"
+    _write_json(youtube_packet_dir / "manifest.json", manifest)
+    smoke_manifest_path = _write_smoke_manifest(
+        tmp_path,
+        youtube_packet_dir=youtube_packet_dir,
+    )
+
+    with pytest.raises(ValueError, match="source_family must be 'youtube'"):
+        run_capture_ecr_cleaning_smoke(
+            smoke_manifest_path=smoke_manifest_path,
+            output_dir=tmp_path / "smoke_outputs",
+        )
+
+
+def test_youtube_source_surface_mismatch_refuses(tmp_path: Path) -> None:
+    youtube_packet_dir = _write_youtube_caption_packet_dir(tmp_path)
+    manifest = _load_json(youtube_packet_dir / "manifest.json")
+    manifest["source_surface"] = "youtube_audio"
+    _write_json(youtube_packet_dir / "manifest.json", manifest)
+    smoke_manifest_path = _write_smoke_manifest(
+        tmp_path,
+        youtube_packet_dir=youtube_packet_dir,
+    )
+
+    with pytest.raises(ValueError, match="source_surface must be 'youtube_captions'"):
+        run_capture_ecr_cleaning_smoke(
+            smoke_manifest_path=smoke_manifest_path,
+            output_dir=tmp_path / "smoke_outputs",
+        )
+
+
+def test_youtube_missing_preserved_file_bytes_refuses(tmp_path: Path) -> None:
+    youtube_packet_dir = _write_youtube_caption_packet_dir(tmp_path)
+    manifest = _load_json(youtube_packet_dir / "manifest.json")
+    preserved_file = manifest["preserved_files"][0]
+    raw_path = youtube_packet_dir / preserved_file["relative_packet_path"]
+    raw_path.unlink()
+    smoke_manifest_path = _write_smoke_manifest(
+        tmp_path,
+        youtube_packet_dir=youtube_packet_dir,
+    )
+
+    with pytest.raises(ValueError, match="preserved file not found"):
+        run_capture_ecr_cleaning_smoke(
+            smoke_manifest_path=smoke_manifest_path,
+            output_dir=tmp_path / "smoke_outputs",
+        )
+
+
+def test_youtube_preserved_file_hash_mismatch_refuses(tmp_path: Path) -> None:
+    youtube_packet_dir = _write_youtube_caption_packet_dir(tmp_path)
+    manifest = _load_json(youtube_packet_dir / "manifest.json")
+    preserved_file = manifest["preserved_files"][0]
+    raw_path = youtube_packet_dir / preserved_file["relative_packet_path"]
+    raw_path.write_text("tampered", encoding="utf-8")
+    smoke_manifest_path = _write_smoke_manifest(
+        tmp_path,
+        youtube_packet_dir=youtube_packet_dir,
+    )
+
+    with pytest.raises(ValueError, match="hash mismatch against manifest"):
+        run_capture_ecr_cleaning_smoke(
+            smoke_manifest_path=smoke_manifest_path,
+            output_dir=tmp_path / "smoke_outputs",
+        )
+
+
 def test_retail_capture_validity_flags_error_page_without_blocking(tmp_path: Path) -> None:
     retail_packet_dir = _write_retail_packet_dir(
         tmp_path,
