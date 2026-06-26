@@ -1,17 +1,20 @@
-# YouTube Shorts Creator Index Decision Path v0
+# YouTube Shorts Creator Infrastructure Decision Path v0
 
 ```yaml
 retrieval_header_version: 1
 artifact_role: Workflow record
-scope: Source-backed placement and field-contract recommendation for YouTube Shorts creator ledger/index artifacts.
+scope: Source-backed placement and field-contract recommendation for planned creator-ledger infrastructure across YouTube Shorts and future social creator source families.
 use_when:
-  - Deciding where future YouTube Shorts creator-analysis lanes should route observed handle/channel evidence.
-  - Checking whether the 200-row fragrance creator ledger can be reused as a cross-lane creator index.
-  - Designing the minimum fields and non-claims for a cross-lane creator index.
+  - Deciding where recurring creator-ledger infrastructure should live across Scanning, Capture, Data Lake, and projection surfaces.
+  - Checking whether the 200-row fragrance creator ledger can be reused as infrastructure evidence.
+  - Designing the minimum creator-observation, niche membership, stats, and non-claim boundaries for a future creator ledger.
 open_next:
   - docs/review-inputs/youtube_shorts_fragrance_creator_ledger_v0.md
   - docs/review-inputs/youtube_shorts_fragrance_creator_ledger_v0.json
   - docs/review-inputs/youtube_shorts_fragrance_tone_expansion200_capture_v0.md
+  - orca/product/spines/capture/core/source_families/social_media/youtube/youtube_video_capture_surface_findings_v0.md
+  - orca/product/spines/capture/core/packet_schema/source_capture_tenant_payload_attachment_boundary_v0.md
+  - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_core_contract_v0.md
   - .agents/workflow-overlay/artifact-folders.md
 input_hashes:
   - path: docs/review-inputs/youtube_shorts_fragrance_creator_ledger_v0.json
@@ -20,24 +23,27 @@ input_hashes:
   - path: docs/review-inputs/youtube_shorts_fragrance_tone_expansion200_capture_v0.json
     sha256: e1d74fe107d0ad416becb7df19cd115364ab69c46c7a3c66ed08a4b182837d0a
     size: 791926
-branch_or_commit: codex/youtube-shorts-tone-viability-prompt @ 36b32cfa61b421dd32f4994b78c47379bfbae843
+branch_or_commit: codex/youtube-shorts-tone-viability-prompt @ 36b32cfa61b421dd32f4994b78c47379bfbae843; amended after owner clarification on same branch
 stale_if:
   - docs/review-inputs/youtube_shorts_fragrance_creator_ledger_v0.json changes.
   - docs/review-inputs/youtube_shorts_fragrance_tone_expansion200_capture_v0.json changes.
   - .agents/workflow-overlay/artifact-folders.md changes accepted folder rules for docs/review-inputs, docs/workflows, or orca/product/.
   - .agents/workflow-overlay/artifact-roles.md changes review-input or workflow-record role bindings.
+  - Data Lake core/storage or Capture source-family attachment boundaries change.
 authority_boundary: retrieval_only
 ```
 
 ## Source-Loading Surface
 
-Purpose: record the smallest source-backed path for deciding creator-ledger/index placement before creator-analysis lanes cite the current pool ledger as a stable cross-lane creator substrate.
+Purpose: record the corrected placement path for a creator ledger that is intended to become real infrastructure: a ledger of creators under a niche or sub-niche, with important observed stats and source-backed residuals.
+
+Owner clarification, 2026-06-27: this is not a one-off workflow routing helper. The durable target is creator-ledger infrastructure for niche/sub-niche coverage and creator stats. That premise supersedes the earlier lower-lock-in recommendation that treated `docs/workflows/` as the likely durable index home.
 
 Do not use for: creator identity verification, cross-platform identity linking, creator quality ranking, buyer proof, energy/prosody claims, runtime capture, crawler design, or transcript storage.
 
-Authority boundary: this is a workflow recommendation and routing record. `AGENTS.md` and `.agents/workflow-overlay/` control Orca project rules. The source JSON artifacts control observed pool and ledger facts. Owner acceptance is still required before treating a cross-lane index placement as final product or capture-spine authority.
+Authority boundary: this is a workflow recommendation and routing record. `AGENTS.md` and `.agents/workflow-overlay/` control Orca project rules. The source JSON artifacts control observed pool and ledger facts. Product-spine contracts must own recurring infrastructure before runtime implementation or stronger source-of-truth claims.
 
-Recheck recipe: re-hash the two JSON inputs in the retrieval header, re-run the count assertions in "Verified Inputs", and re-read `.agents/workflow-overlay/artifact-folders.md` plus `.agents/workflow-overlay/artifact-roles.md` before promoting or materially changing this route.
+Recheck recipe: re-hash the two JSON inputs in the retrieval header, re-run the count assertions in "Verified Inputs", and re-read Capture/Data Lake boundary sources before promoting, implementing, or materially changing this route.
 
 Non-claims: not approval, not validation, not readiness, not source-of-truth promotion, not identity verification, not implementation authorization, not buyer proof.
 
@@ -47,9 +53,9 @@ orca_start_preflight:
   overlay_read: yes
   source_pack: custom S3 target deepening
   edit_permission: docs-write
-  target_scope: docs-only workflow record for YouTube Shorts creator ledger/index placement and schema boundaries
+  target_scope: docs-only workflow record for creator-ledger infrastructure placement and schema boundaries
   dirty_state_checked: yes
-  blocked_if_missing: AGENTS.md; overlay README/source-of-truth/source-loading/artifact-folders/artifact-roles/retrieval-metadata; creator ledger md/json; expansion200 capture md/json
+  blocked_if_missing: AGENTS.md; overlay README/source-of-truth/source-loading/artifact-folders/artifact-roles/retrieval-metadata; creator ledger md/json; expansion200 capture md/json; Capture/Data Lake boundary sources
 ```
 
 ## Verified Inputs
@@ -61,71 +67,65 @@ orca_start_preflight:
 | `docs/review-inputs/youtube_shorts_fragrance_tone_expansion200_capture_v0.json` | Counts are `prior_admitted_total=100`, `new_admitted=100`, `cumulative_admitted_total=200`, `attempts=152`; the cumulative pool has 200 objects and 200 unique video IDs. |
 | `docs/review-inputs/youtube_shorts_fragrance_tone_expansion200_capture_v0.md` | The pool is admitted as a 200-Short capture expansion, not a labeled benchmark; transcript bodies remain outside the repo; the companion creator ledger is observed handle/channel evidence only. |
 | `docs/review-inputs/youtube_shorts_fragrance_transcript_tone_rubric_v0.md` | Energy, pace, volume, and prosody are excluded from transcript-only labels; stable coarse tone fields are not creator-index fields. |
-| `.agents/workflow-overlay/artifact-folders.md` and `.agents/workflow-overlay/artifact-roles.md` | `docs/review-inputs/` is the accepted home for prepared review inputs; `docs/workflows/` is the accepted home for workflow records, operational notes, and repo maps; `orca/product/` is the product tree with stronger governance expectations. |
+| `orca/product/spines/capture/core/source_families/social_media/youtube/youtube_video_capture_surface_findings_v0.md` | YouTube creator/channel surfaces expose channel identity and recent stats from public surfaces; this is recon-grade, not packet-grade or build authorization. |
+| `orca/product/spines/capture/core/packet_schema/source_capture_tenant_payload_attachment_boundary_v0.md` | New tenant/source-family typed payloads target packet/slice-keyed extension envelopes; source-family satellites own platform-specific payload schema and meaning. |
+| `orca/product/spines/data_lake/authority/core_spine_v0_data_lake_core_contract_v0.md` | Data Lake owns raw packet preservation, stable by-key findability, source-payload Attachment Record rules, and logical append-only downstream result attachment; it must not own canonical creator identity, domain ontology, or downstream orchestration. |
+| `.agents/workflow-overlay/artifact-folders.md` and `.agents/workflow-overlay/artifact-roles.md` | `docs/review-inputs/` is the accepted home for prepared review inputs; `docs/workflows/` is the accepted home for workflow records; `orca/product/` is the product tree for product/capture/data-lake contracts. |
+
+## Corrected Decision
+
+The durable creator ledger is infrastructure. The final recurring owner should not be a generic workflow index. Use this split:
+
+1. **Scanning owns discovery and candidate frontier.** It finds which creators/channels may matter for a niche/sub-niche and emits bounded candidate or capture-request surfaces. It does not own captured stats or persistent creator rows.
+2. **Capture owns the creator-observation contract.** The Capture source-family layer should define what must be preserved for a YouTube/social creator observation: platform keys, handle/display name, channel ID when available, observed stats, niche/sub-niche basis, capture time/window, source URLs, packet refs, residuals, and identity boundary.
+3. **Data Lake owns raw storage and keyed attachment.** It stores raw packets and creator-observation Attachment Records by packet/slice/source-family keys. It should not decide creator identity, niche semantics, ranking, or creator quality.
+4. **Projection owns the queryable ledger view.** A later projection can materialize "all creators under niche/sub-niche with important stats" from raw packets plus creator-observation attachment records and versioned niche/stat registries. That view is rebuildable, not source truth.
+5. **`docs/workflows/` owns only the transition record.** This file can route the next architecture move, but it is not the durable infrastructure home.
+
+Hard rule: do not make creator or handle the Data Lake placement key. Handles are mutable, channel IDs can be missing in prior fixtures, and creator identity is not verified. Lake placement should stay stable-keyed by source family, packet/slice/file refs, hashes, and attachment records. Creator becomes an observed payload and projected query view, not the lake root.
 
 ## Placement Comparison
 
 | Placement | Fit | Cost / risk | Recommendation |
 | --- | --- | --- | --- |
-| Keep only `docs/review-inputs/youtube_shorts_fragrance_creator_ledger_v0.*` | Correct for the 200-row fragrance pool evidence ledger. It preserves the observed source facts beside the capture review input. | Weak cross-lane reuse. Future creator lanes could overread a corpus-specific ledger as universal creator coverage. | Keep it as the source evidence ledger only. Do not rename it into the cross-lane index. |
-| Add a cross-lane index under `docs/workflows/` | Best fit for a non-authoritative routing/index object that points to one or more pool ledgers, records lifecycle rules, and carries non-claims. | Requires one more durable artifact and disciplined source-hash refresh when ledgers change. It must not become a hidden source of truth. | Recommended next durable object if creator lanes need a stable join surface. Call it an index, not a ledger, because it routes evidence ledgers rather than becoming evidence itself. |
-| Promote now into `orca/product/spines/capture/...` or another product/capture spine | Could become appropriate if recurring creator-ledger operations become part of the accepted capture operating model. | Highest lock-in. Product/capture placement implies stronger governance expectations, source-quality gates, and possible confusion with identity/linking authority. | Defer. Promote only after the owner accepts a recurring creator-ledger operating contract and identity/linking gates. |
-| Split evidence ledger plus workflow index | Preserves the current corpus-local evidence while giving future lanes a stable non-authoritative routing surface. | Requires clear lifecycle and non-claim language in both artifacts. | Preferred architecture. |
+| `docs/review-inputs/youtube_shorts_fragrance_creator_ledger_v0.*` | Correct for the 200-row fragrance pool evidence ledger. | Corpus-specific; cannot be the universal creator infrastructure. | Keep as source evidence only. |
+| `docs/workflows/` | Good for this decision path and interim routing while the infrastructure contract is being authored. | Too weak as final home for recurring creator ledger infrastructure. | Keep this record here, but do not make the future creator ledger a workflow-only artifact. |
+| Capture source-family spine under `orca/product/spines/capture/core/source_families/social_media/...` | Best owner for creator-observation capture contract, source-family field semantics, metric posture, source access, and packet attachment requirements. | Higher governance burden than workflow docs; requires a real product architecture contract before implementation. | Primary recommended next durable home for the infrastructure contract. Start YouTube/social first, generalize only after another platform proves the shared fields. |
+| Data Lake spine under `orca/product/spines/data_lake/` | Owns raw packet preservation, keyed findability, Attachment Records, and storage/physicalization boundaries. | Wrong owner for creator semantics, identity, niche taxonomy, or ledger ranking. A Data Lake-first creator table would overfit storage around unstable identity. | Use for storage/attachment contract updates only after the Capture contract defines the creator-observation payload. Do not make Data Lake the semantic owner. |
+| Scanning spine under `orca/product/spines/scanning/` | Owns niche/sub-niche discovery, candidate route, frontier, and capture-request generation. | Not the place to preserve captured stats or raw evidence. | Use for creator discovery and candidate frontier, not as the ledger store. |
+| Domain satellite, e.g. fragrance | Can own niche/sub-niche taxonomy, domain-specific inclusion criteria, and domain-specific stat relevance. | Domain-specific; should not become social creator infrastructure core. | Use for fragrance-specific taxonomy and downstream interpretation, not for shared creator-ledger mechanics. |
+| Projection / projected view contract | Best fit for queryable "all creators under X niche/sub-niche with stats" views derived from raw packet keys. | Must stay rebuildable and non-authoritative; needs capture and lake inputs first. | Define after the Capture creator-observation contract. |
 
-## Recommended Architecture
+## Field Contract Direction
 
-Use a split architecture:
+Minimum field inclusion test: every field must support discovery, joining, provenance, lifecycle, residual visibility, or stats interpretation. Exclude fields whose main purpose is creator quality ranking, inferred identity, buyer proof, or engagement prediction without a source-backed metric contract.
 
-1. Keep `docs/review-inputs/youtube_shorts_fragrance_creator_ledger_v0.md` and `.json` as the pool-specific evidence ledger for the 200-row fragrance Shorts pool.
-2. If downstream creator-analysis lanes need a stable cross-lane surface, create a separate workflow index under `docs/workflows/`, for example `docs/workflows/youtube_shorts_creator_index_v0.md`.
-3. The cross-lane object should be an index, not a ledger. A ledger records observed evidence for one corpus or pool. An index routes across ledgers, carries join keys and lifecycle rules, and repeats only the minimum observed-handle facts needed for routing.
-4. Product/capture-spine promotion stays deferred until a later accepted operating contract defines recurring source quality, update cadence, identity verification gates, and cross-platform linking boundaries.
+A future Capture creator-observation contract should define at least:
 
-This recommendation intentionally chooses the lower-lock-in complete path. It gives creator lanes a durable routing surface without prematurely promoting corpus-specific observations into product/capture authority.
-
-## Field Contract
-
-Minimum field inclusion test: every field must support joining, provenance, lifecycle, or residual visibility. Exclude fields whose main purpose is ranking, scoring, creator quality assessment, inferred identity, tone generalization, or engagement prediction.
-
-Required fields for a future cross-lane creator index:
-
-| Field | Purpose | Boundary |
+| Field group | Purpose | Boundary |
 | --- | --- | --- |
-| `index_entry_id` | Stable row key for the index entry. | Must be deterministic from observed platform keys; not a person ID. |
-| `platform` | Source platform, initially `youtube_shorts` or `youtube`. | Not cross-platform linking. |
-| `observed_handle` | Handle/query string as observed in source artifacts. | Not legal identity or ownership. |
-| `observed_author_names` | Author/channel names seen in source artifacts. | May be aliases or display names; not verified person names. |
-| `observed_channel_ids` | Channel IDs when retained by source artifacts. | `UNKNOWN` remains valid when prior fixtures lack the field. |
-| `creator_classification` | `creator_or_channel_observed`, `brand_or_platform_account_observed`, or a future explicit residual value. | Classification is observation posture, not creator quality. |
-| `identity_verification_status` | Default `not_verified`; future stronger values require accepted gates. | Must not be self-certified by the index. |
-| `evidence_ledgers` | Paths, hashes, and counts for source ledgers that support the entry. | Points to evidence; does not copy transcript bodies. |
-| `corpus_memberships` | Pool IDs, row IDs, video IDs, counts, and relevance residuals by corpus. | Corpus coverage is not creator coverage. |
-| `join_keys` | Video IDs, pool IDs, channel IDs, handles, and source URLs needed for joins. | No transcript text bodies. |
-| `residual_flags` | Unknown channel IDs, brand/platform account, abstain/off-topic residuals, low-evidence rows, or source gaps. | Residuals travel with the row instead of being smoothed away. |
-| `lifecycle` | Created/updated timestamps, source hashes, supersedes/superseded-by, stale conditions. | Lifecycle metadata is routing support, not validation. |
-| `non_claims` | Identity, independence, ranking, buyer proof, energy/prosody, and benchmark boundaries. | Must stay visible in every durable index artifact. |
+| Stable observed subject key | Platform, platform subject key type, platform subject key, channel ID or equivalent when available. | Prefer stable platform IDs over handles; never a verified person ID. |
+| Mutable visible labels | Handle, display name, channel title, observed URL, observed-at timestamp. | Mutable labels are observations, not identity truth. |
+| Niche/sub-niche membership | Niche ID, sub-niche ID, assignment source, assignment basis, assignment time/window, residuals. | Membership is routing/classification posture, not proof of creator identity or quality. |
+| Observed stats | Metric name, value, unit, posture, source surface, capture time/window, metric registry version. | Absence/hidden/blocked/not-attempted must not be stored as observed zero. |
+| Source refs | Packet ID, slice ID, video IDs, source URLs, preserved file refs, hashes. | No transcript bodies in the ledger/index. |
+| Lifecycle and policies | Source hashes, schema version, identity/conflict policy version, metric registry version, supersession/stale rules. | Required before recurring capture or projection. |
+| Non-claims and residuals | Identity not verified, brand/platform accounts, unknown channel IDs, off-topic/abstain residuals, low-evidence flags. | Residuals travel with rows; they are not smoothed into clean creator truth. |
 
-Pool-specific creator ledgers should keep richer evidence-local fields such as `pool_ids`, `video_ids`, `sample_shorts_urls`, word-count ranges, source artifact counts, and known label-status counts. The cross-lane index may point to those fields but should not duplicate every row-level detail unless a future join requires it.
-
-Forbidden index fields without a new accepted source gate:
-
-- transcript bodies or transcript excerpts;
-- audio energy, pace, volume, prosody, or excitement;
-- creator quality scores, trust scores, rankings, or "best creator" labels;
-- person identity, ownership, independence, agency representation, or cross-platform same-entity assertions;
-- buyer-proof, validation, benchmark-readiness, or judgment-quality status.
+The current pool-specific creator ledger can seed the first evidence set. It should not be treated as the recurring schema itself.
 
 ## Lifecycle Boundary
 
-- Create or update the cross-lane index only when a source evidence ledger is created, materially changed, or intentionally admitted into the index.
-- Each update must re-hash source ledger and pool JSON files, re-derive row counts, and carry changed residuals forward.
-- Index updates are docs-only unless a later accepted handoff explicitly authorizes bounded implementation.
-- If source artifacts drift, prefer updating the evidence ledger first and then refreshing the index from that ledger; do not silently patch the index as the only copy of evidence.
-- Retire or supersede this workflow-level route only after an owner-accepted product/capture operating contract defines stronger placement.
+- Author a Capture source-family creator-observation infrastructure contract before creating runtime capture or a permanent cross-lane creator ledger table.
+- Use the current 200-row fragrance creator ledger as evidence input to that contract, not as the canonical infrastructure surface.
+- After the Capture contract is accepted, decide Data Lake attachment representation: manifest child, immutable sidecar, or another hash-pinned Attachment Record form.
+- After Data Lake attachment is decided, define a rebuildable projection view for niche/sub-niche creator lookup and stat queries.
+- Do not promote creator identity, niche membership, or creator ranking into Data Lake core.
+- Do not build scheduler/crawler/runtime capture from this decision-path artifact.
 
 ## Next Authorized Actions
 
-- Current lane: close after this recommendation is written, source-checked, and the consumed handoff checkpoint is retired.
-- If owner accepts this route: create `docs/workflows/youtube_shorts_creator_index_v0.md` as a retrieval-only cross-lane index that points to the fragrance creator ledger and any future source ledgers.
-- If owner wants stronger authority now: first author an operating contract for creator-ledger lifecycle, identity verification gates, and source-quality requirements; do not promote by moving the current pool ledger alone.
-- Tone-labeling continuation may use this record as routing context, but it must still cite the source pool and ledger directly for observed facts.
+- Patch complete: this record now reflects the owner-stated premise that creator ledger is real infrastructure.
+- Next architecture artifact: author a Capture source-family creator-observation contract, likely under `orca/product/spines/capture/core/source_families/social_media/youtube/` for the YouTube-first version, or a sibling `social_media/` contract if the owner wants platform-shared infrastructure from the start.
+- After that contract: author the Data Lake attachment/physicalization decision for creator-observation records.
+- After that: author the projection/view contract for the queryable creator ledger by niche/sub-niche and observed stats.
