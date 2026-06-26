@@ -30,7 +30,7 @@ stale_if:
   - The data lake record-set shape changes (the derived layers ride the all-or-nothing record-set + completion-marker rails).
   - The no-LLM-zone enforcement test (tests/contract/test_no_llm_imports.py) changes its covered packages or forbidden set.
   - The subscription-routed transport seam is wired live (the deferred live caller is implemented).
-status: PROPOSED — design only; no build authorized; assumption-gated + owner-confirmed 2026-06-23. Owner-resolved 2026-06-23: hybrid LLM-reads/code-decides; v0 = Pass 1 silver mentions only (gold verdict fusion deferred); tiered medallion lane naming; open-world brand/line (no catalog); subscription-routed transport now, metered API as the scale fallback; daemon-ready runner now, cron/daemon deferred.
+status: PROPOSED — design only; no build authorized; assumption-gated + owner-confirmed 2026-06-23. Owner-resolved 2026-06-23: hybrid LLM-reads/code-decides; v0 = Pass 1 silver mentions only (gold verdict fusion deferred at authoring); tiered medallion lane naming; open-world brand/line (no catalog); subscription-routed transport now, metered API as the scale fallback; daemon-ready runner now, cron/daemon deferred. BUILD UPDATE 2026-06-26: `stale_if` #2 has fired — Pass-2 gold verdict fusion is now BUILT as `scoring/product_fusion.py` (deterministic, LLM-free, source-agnostic for YouTube + IG; owner-authorized; eric-foo/orca#394). The "Pass 2 deferred / v0 = Pass 1 only" framing below is therefore historical; the built module is `product_fusion.py` (not the predicted `product_verdict_fusion.py`).
 ```
 
 # YouTube Transcript → Product/Verdict Extraction — Spec (proposed, v0)

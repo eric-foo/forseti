@@ -142,8 +142,8 @@ class ProductMention(ProductMentionModel):
         return self
 
 
-# --- Deferred Pass-2 shapes (gold verdict). Declared for the schema's completeness;
-# the fusion that produces them lives in scoring/ and is NOT built in v0. ---
+# --- Pass-2 shapes (gold verdict). Consumed by the deterministic, LLM-free fusion in
+# scoring/product_fusion.py (fuse_product_verdicts). ---
 
 
 class Verdict(StrEnum):
@@ -154,16 +154,56 @@ class Verdict(StrEnum):
 
 
 class ProductVerdict(ProductMentionModel):
-    """Per-product verdict for one video (Pass 2, DEFERRED) — deterministic, evidence-cited."""
+    """Per-product verdict for one creator across their videos (Pass 2) — deterministic,
+    evidence-cited. Produced by ``scoring/product_fusion.py`` from the creator's
+    ``ProductMention``s. Carries NO engagement/resonance signal: engagement interpretation
+    is the Judgment-owned Engagement Logic Registry's domain
+    (``orca/product/shared/engagement_registry/engagement_logic_registry_v0.md``), never this
+    fusion. The verdict answers only "what the creator said about this product."
+    """
 
     brand: str
     line: str
     verdict: Verdict
     mention_count: int = Field(ge=0)
+    # Supporting (positive-contribution) vs opposing (negative-contribution) mention_ids,
+    # kept separate so a ``mixed`` verdict is auditable from evidence on both sides.
     evidence_ids: list[str] = Field(default_factory=list)
+    counterevidence_ids: list[str] = Field(default_factory=list)
+    # Squashed positive-direction support strength in [0, 1] (uncalibrated; calibration deferred).
+    uncalibrated_support_score: float = Field(ge=0.0, le=1.0, default=0.0)
 
     @model_validator(mode="after")
     def _decided_needs_evidence(self) -> ProductVerdict:
-        if self.verdict != Verdict.UNKNOWN and not self.evidence_ids:
-            raise ValueError("a decided verdict must cite evidence_ids")
+        # Per-verdict-type evidence invariant: positive cites supporting evidence, negative
+        # cites counterevidence, mixed cites both. (unknown cites nothing.) This rejects
+        # side-unsound verdicts (e.g. positive with only counterevidence), not just "no
+        # evidence at all".
+        if self.verdict in (Verdict.POSITIVE, Verdict.MIXED) and not self.evidence_ids:
+            raise ValueError(f"a {self.verdict.value} verdict must cite supporting evidence_ids")
+        if self.verdict in (Verdict.NEGATIVE, Verdict.MIXED) and not self.counterevidence_ids:
+            raise ValueError(f"a {self.verdict.value} verdict must cite counterevidence_ids")
         return self
+
+
+class ProductVerdictSet(ProductMentionModel):
+    """All Pass-2 product verdicts for ONE creator — the container ``fuse_product_verdicts``
+    returns. Mirrors ``IdealAudienceProfile``: carries the creator id, the per-product
+    verdicts, the products that abstained to ``unknown``, the fusion config version, a
+    timestamp, and provenance, so a run is re-derivable and auditable. ``creator_id`` is
+    supplied by the caller (``ProductMention`` carries none) and scopes input to one creator.
+    """
+
+    creator_id: str
+    verdicts: list[ProductVerdict] = Field(default_factory=list)
+    abstentions: list[str] = Field(default_factory=list)
+    fusion_config_version: str
+    generated_at: str
+    provenance: dict = Field(default_factory=dict)
+
+    @field_validator("creator_id", "fusion_config_version", "generated_at")
+    @classmethod
+    def _required_non_empty(cls, value: str) -> str:
+        if not value or not value.strip():
+            raise ValueError("field must be non-empty")
+        return value
