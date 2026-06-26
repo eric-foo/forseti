@@ -67,11 +67,12 @@ mechanism, never an evasion trigger.
 ## Design (smallest-complete first)
 
 1. **Rate / cadence budget (doctrine, low lock-in -- do first).**
-   - A declared budget: max captures per hour, minimum spacing between captures, and a
+   - A declared budget: capture throughput, minimum spacing between captures, and a
      per-creator re-capture interval (the monitoring cadence). The cadence is the knob that
      sets how dense each creator's momentum series is; pick it per the decision question, not
      maximally.
    - Recorded as configuration/doctrine, not hard-coded into the runner.
+   - Concrete owner-set v0 values: see **v0 Cadence Budget** below.
 
 2. **Transient-vs-block response (reads the signals already emitted).**
    - Exit `5` (access block: login redirect, 429 interstitial, network-security block, or
@@ -97,6 +98,41 @@ mechanism, never an evasion trigger.
      lock-in. Until then, the budget doctrine + the runner's existing fail-closed behavior are
      enough for ad-hoc monitoring.
 
+## v0 Cadence Budget (owner-set 2026-06-26)
+
+Concrete v0 values for Design rule 1, set by the owner. They supersede "cadence numbers
+deferred" for the cadence knobs only; scheduler/runtime selection and the gap-record storage
+home stay deferred. These are starting values to operate and tune against observed block
+rate, not a platform guarantee or a final lock.
+
+- **Active window:** captures run inside a daily active window of about **8 hours**, NOT 24/7.
+  The cap is therefore NOT `panel_size / 24h`; throughput is bounded by the window x spacing
+  ceiling below.
+- **Minimum spacing:** **30 seconds** between any two captures. This is the block-safe floor;
+  do not drop below it to force more throughput.
+- **Per-creator interval (two tiers):**
+  - **Tier 1 baseline:** **1x/day** for every creator. This yields spike *detection* at roughly
+    one-day latency -- a jump shows at the next daily capture.
+  - **Tier 2 escalated:** **2-4x/day**, only for creators with an active Spike Alert. This
+    *tracks* a spike once detected; de-escalate when the creator returns to usual range.
+- **Throughput ceiling (derived, not a separate knob):** `active_window / spacing` =
+  `8h x 3600 / 30s` = **~960 captures/day** per 8h/30s window.
+- **Capacity vs. panel size:**
+  - A 1x/day baseline fits comfortably up to ~**750-800 creators** in an 8h/30s window
+    (~20% headroom for Tier-2 escalation).
+  - The **1,000-creator target exceeds a single 8h/30s window**: 1,000 baseline alone is
+    `1000 x 30s` = 8.3h, before any escalation. At 1k, relieve by **widening the daily window**
+    (~10-11h covers 1k + modest escalation), adding a **second window**, or **splitting the
+    panel** -- NOT by dropping spacing below the 30s floor.
+
+**Spike model (explicit accepted limit).** Real-time spike catching is out of reach: it would
+require hourly monitoring of the whole panel, which does not fit the window/spacing budget at
+1k. The accepted model is **detect-then-escalate**: the Tier-1 daily baseline detects a spike at
+~1-day latency (via the downstream Spike-Alert lane), which flags that creator for Tier-2
+escalation; the escalation pool stays small (only currently-flagged creators), so it fits in the
+headroom. Loop: cadence -> daily timepoints -> Spike-Alert detection -> Tier-2 flag back into
+cadence.
+
 ## Relationship to the rest of the pipeline
 
 The durability layer produces successful capture **timepoints** plus explicit gap records for
@@ -109,8 +145,10 @@ attempted, slowed, paused, or recorded as gaps.
 
 ## Open owner decisions / blockers
 
-- The concrete cadence numbers (captures/hour, spacing, per-creator interval) -- owner-set per
-  the monitoring decision question; this note does not pick them.
+- The concrete cadence numbers are now **set as owner v0 (2026-06-26)** -- see "v0 Cadence
+  Budget" above. They are starting values to tune against observed block rate, not a final
+  lock; the **1k panel's window/throughput relief** (longer window, second window, or panel
+  split) is the open sub-decision to make when the panel actually approaches that size.
 - Scheduler/runtime selection -- deferred; not chosen here.
 - Whether the gap-recording home for a skipped/blocked timepoint is a capture-side artifact or
   a downstream-series-side annotation -- resolve when the momentum lane is scoped. The
