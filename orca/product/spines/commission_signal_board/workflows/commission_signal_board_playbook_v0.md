@@ -104,6 +104,11 @@ IDs, duplicate row IDs, or invalid `row_purpose`, `recency_status`,
 when Section 8 is missing, lacks a YAML fence, has invalid YAML, or lacks
 `classifier_handoff_packet`.
 
+Before the handoff-row cross-check, it also fails on mechanical
+engagement/resonance overclaim language that turns public reaction into proof,
+graph weight, Commit/Scale support, credibility, Action Ceiling, or final
+resonance weight.
+
 After structure passes, the validator cross-checks rows listed in Section 8
 against the Section 4 table. It fails when the handoff packet has a missing or
 invalid `mode` field, or when a referenced handoff row:

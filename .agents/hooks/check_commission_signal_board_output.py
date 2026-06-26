@@ -4,8 +4,9 @@
 This is a local/manual checker. It does not run retrieval, classify demand,
 construct graphs, or prove a board is correct. It only checks that rows listed
 in the classifier handoff are evidence-backed and cutoff-safe according to the
-board's own row table, and that the row table carries the mechanically required
-recency/current-state attention fields.
+board's own row table, that the row table carries the mechanically required
+recency/current-state attention fields, and that the output does not turn
+engagement/resonance language into a mechanical proof or authority shortcut.
 """
 from __future__ import annotations
 
@@ -72,6 +73,70 @@ VALID_GRAPH_ROLES = {
     "none",
 }
 VALID_GRAPH_WEIGHT_HINTS = {"high", "medium", "low", "none"}
+ENGAGEMENT_RULE_AUTHORITY = (
+    "orca/product/spines/commission_signal_board/authority/"
+    "orca_commission_signal_board_prompt_structure_rules_v0.md"
+)
+ENGAGEMENT_SIGNAL_RE = (
+    r"(?:engagement(?:\s+counts?)?|public[- ]reaction|reaction\s+volume|"
+    r"high[- ]engagement|low[- ]engagement|upvotes?|helpful\s+votes?|likes?|"
+    r"views?|shares?|comments?|reply\s+counts?|source[- ]native\s+scores?|"
+    r"source\s+rank|source\s+order|resonance)"
+)
+NEGATED_OVERCLAIM_RE = re.compile(
+    r"\b(?:no|not|never|without|cannot|can't|must\s+not|does\s+not|do\s+not|"
+    r"don't|is\s+not|are\s+not|not\s+enough\s+to)\b",
+    re.IGNORECASE,
+)
+FORBIDDEN_ENGAGEMENT_OVERCLAIMS = {
+    "engagement_as_proof": re.compile(
+        rf"(?:\b{ENGAGEMENT_SIGNAL_RE}\b.{{0,80}}\b(?:proves?|proof|validates?|confirms?|"
+        rf"establishes|demonstrates|clears?|means|counts\s+as)\b.{{0,80}}\b(?:demand|buyer\s+pull|"
+        rf"willingness\s+to\s+pay|market\s+pull|purchase\s+intent)\b|"
+        rf"\b(?:demand|buyer\s+pull|willingness\s+to\s+pay|market\s+pull|purchase\s+intent)\b"
+        rf".{{0,80}}\b(?:is\s+)?(?:proven|proved|validated|confirmed|established|demonstrated|cleared|"
+        rf"proof)\b.{{0,80}}\b(?:by|from|because\s+of|due\s+to|through|via)\b.{{0,80}}\b"
+        rf"{ENGAGEMENT_SIGNAL_RE}\b)",
+        re.IGNORECASE,
+    ),
+    "engagement_graph_weight_shortcut": re.compile(
+        rf"(?:\b{ENGAGEMENT_SIGNAL_RE}\b.{{0,80}}\b(?:sets?|determines|drives|raises|"
+        rf"increases|justifies|supports?|becomes|is|means|counts\s+as)\b.{{0,80}}\b(?:graph[_ -]?weight"
+        rf"(?:[_ -]?hint)?|graph\s+score|graph\s+strength)\b|"
+        rf"\b(?:graph[_ -]?weight(?:[_ -]?hint)?|graph\s+score|graph\s+strength)\b"
+        rf".{{0,80}}\b(?:is|was|becomes|sets?|determined|driven|raised|increased|justified|supported|"
+        rf"because\s+of|due\s+to|from|by|based\s+on)\b.{{0,80}}\b{ENGAGEMENT_SIGNAL_RE}\b)",
+        re.IGNORECASE,
+    ),
+    "engagement_commit_scale_shortcut": re.compile(
+        rf"(?:\b{ENGAGEMENT_SIGNAL_RE}\b.{{0,80}}\b(?:clears?|supports?|justifies?|passes?|"
+        rf"unlocks?|establishes|means|counts\s+as)\b.{{0,80}}\b(?:Commit/Scale|Commit|Scale|buyer\s+proof|"
+        rf"demand\s+gate)\b|"
+        rf"\b(?:Commit/Scale|Commit|Scale|buyer\s+proof|demand\s+gate)\b"
+        rf".{{0,80}}\b(?:is|was|cleared|supported|justified|passed|unlocked|established|"
+        rf"because\s+of|due\s+to|from|by|based\s+on)\b.{{0,80}}\b{ENGAGEMENT_SIGNAL_RE}\b)",
+        re.IGNORECASE,
+    ),
+    "engagement_credibility_shortcut": re.compile(
+        rf"(?:\b{ENGAGEMENT_SIGNAL_RE}\b.{{0,80}}\b(?:proves?|confirms?|establishes|"
+        rf"supports?|justifies?|sets?|labels?|means|counts\s+as)\b.{{0,80}}\b(?:credibility|credible|"
+        rf"independence|trustworthy|trust)\b|"
+        rf"\b(?:credibility|credible|independence|trustworthy|trust)\b"
+        rf".{{0,80}}\b(?:is|was|proven|confirmed|established|supported|justified|set|labeled|"
+        rf"because\s+of|due\s+to|from|by|based\s+on)\b.{{0,80}}\b{ENGAGEMENT_SIGNAL_RE}\b)",
+        re.IGNORECASE,
+    ),
+    "engagement_action_ceiling_shortcut": re.compile(
+        rf"(?:\b{ENGAGEMENT_SIGNAL_RE}\b.{{0,80}}\b(?:clears?|sets?|raises|supports?|"
+        rf"justifies?|establishes|means|counts\s+as)\b.{{0,80}}\bAction\s+Ceiling\b|"
+        rf"\bAction\s+Ceiling\b.{{0,80}}\b(?:is|was|cleared|set|raised|supported|justified|"
+        rf"established|because\s+of|due\s+to|from|by|based\s+on)\b.{{0,80}}\b"
+        rf"{ENGAGEMENT_SIGNAL_RE}\b)",
+        re.IGNORECASE,
+    ),
+    "engagement_final_resonance_weight": re.compile(r"\bfinal\s+resonance\s+weight\b", re.IGNORECASE),
+}
+
 
 
 @dataclass(frozen=True)
@@ -89,6 +154,45 @@ def _normalize_vocab(value: Any) -> str:
     if value is None:
         return ""
     return re.sub(r"[^a-z0-9]+", "_", str(value).strip().lower()).strip("_")
+
+
+def _line_number(text: str, offset: int) -> int:
+    return text.count("\n", 0, offset) + 1
+
+
+def _excerpt(value: str, limit: int = 120) -> str:
+    compact = " ".join(value.split())
+    if len(compact) <= limit:
+        return compact
+    return compact[: limit - 3] + "..."
+
+
+def _is_nonclaim_context(text: str, start: int, end: int) -> bool:
+    window = text[max(0, start - 50) : min(len(text), end + 50)]
+    return NEGATED_OVERCLAIM_RE.search(window) is not None
+
+
+def _validate_engagement_overclaims(text: str) -> list[Finding]:
+    findings: list[Finding] = []
+    seen: set[tuple[str, int, str]] = set()
+    for code, pattern in FORBIDDEN_ENGAGEMENT_OVERCLAIMS.items():
+        for match in pattern.finditer(text):
+            if _is_nonclaim_context(text, match.start(), match.end()):
+                continue
+            line = _line_number(text, match.start())
+            excerpt = _excerpt(match.group(0))
+            key = (code, line, excerpt)
+            if key in seen:
+                continue
+            seen.add(key)
+            findings.append(
+                Finding(
+                    code,
+                    "Forbidden engagement/resonance overclaim language "
+                    f"near line {line}: {excerpt!r}. See {ENGAGEMENT_RULE_AUTHORITY}.",
+                )
+            )
+    return findings
 
 
 def _split_table_row(line: str) -> list[str]:
@@ -340,6 +444,7 @@ def validate_text(text: str) -> list[Finding]:
     counter_ids, counter_findings = _handoff_ids(packet, "counterevidence_rows_for_handoff")
     findings.extend(signal_findings)
     findings.extend(counter_findings)
+    findings.extend(_validate_engagement_overclaims(text))
 
     all_ids = [*signal_ids, *counter_ids]
     seen: set[str] = set()
