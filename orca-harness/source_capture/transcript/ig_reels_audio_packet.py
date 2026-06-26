@@ -52,7 +52,7 @@ from source_capture.packet_assembly import stage_and_write_packet, staged_file_i
 # IG shortcodes are base64url handles (the probe targets were 11 chars: DZ69knlsDb1, DaALKgOsWn0).
 # Bounded + URL/path-safe; NOT the YouTube 11-char-exact regex.
 _IG_SHORTCODE = re.compile(r"[A-Za-z0-9_-]{5,32}")
-_IG_PATH_KINDS = {"reel", "p", "tv"}
+_IG_PATH_KINDS = {"reel", "reels", "p", "tv"}  # "reels" = the plural share-URL form IG hands out
 _AUDIO_EXT = re.compile(r"[A-Za-z0-9][A-Za-z0-9_-]{0,15}")
 _MAX_MODEL_TOKEN = 96
 
@@ -86,7 +86,7 @@ class IgAudioFetch:
 
 
 def ig_shortcode_from_url(url_or_shortcode: str) -> str | None:
-    """Extract the IG shortcode from a /reel/, /p/, or /tv/ URL, or pass through a bare shortcode."""
+    """Extract the IG shortcode from a /reel/, /reels/, /p/, or /tv/ URL, or pass through a bare shortcode."""
     target = (url_or_shortcode or "").strip()
     if not target:
         return None

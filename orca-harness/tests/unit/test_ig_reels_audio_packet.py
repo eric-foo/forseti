@@ -285,6 +285,7 @@ def test_ig_shortcode_from_url_parses_permalink_forms():
     assert ig_shortcode_from_url("https://www.instagram.com/reel/DZ69knlsDb1/") == "DZ69knlsDb1"
     assert ig_shortcode_from_url("https://www.instagram.com/p/DaALKgOsWn0/") == "DaALKgOsWn0"
     assert ig_shortcode_from_url("https://www.instagram.com/tv/DZ69knlsDb1/") == "DZ69knlsDb1"
+    assert ig_shortcode_from_url("https://www.instagram.com/reels/DYCkRNsAXrY/") == "DYCkRNsAXrY"  # /reels/ plural share form
     assert ig_shortcode_from_url("www.instagram.com/reel/DZ69knlsDb1/") == "DZ69knlsDb1"
     assert ig_shortcode_from_url("https://m.instagram.com/reel/DZ69knlsDb1/?utm_source=ig_web_copy_link") == "DZ69knlsDb1"
     assert ig_shortcode_from_url("DZ69knlsDb1") == "DZ69knlsDb1"  # bare shortcode passthrough
