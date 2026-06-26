@@ -79,7 +79,7 @@ calibration data and do not pick any value):
 
 ```text
 Config: gain=2 material_min=0.4 authored=1 implicit=0.6 negation=0.3 dependence_exp=0.5
-Single-witness bar (min stance*conf that decides a lone authored verdict): 0.2118
+Single-witness bar [idealized, pre-rounding] (min stance*conf that decides a lone authored verdict): 0.2118
 
 ## material_min sweep (one borderline implicit mention, stance 0.5 x conf 0.6)
 | material_min | verdict | support | oppose |
@@ -129,14 +129,18 @@ Single-witness bar (min stance*conf that decides a lone authored verdict): 0.211
 Three findings fall out:
 
 1. **It is a single-witness system at a low bar.** One authored mention with stance x confidence
-   >= 0.2118 already decides a confident verdict — no corroboration required (authored boundary
+   at about 0.2118 (idealized; the 4-dp rounding puts the operational bar a hair lower) already
+   decides a confident verdict — no corroboration required (authored boundary
    grid: stance 0.3 x conf 1.0 -> positive). Whether one creator statement should be enough is
    the biggest owner call buried in `material_min` / `gain`.
 2. **The irony flag alone does not abstain a strong mention.** At `negation_mult` 0.3 a
    flagged-ironic but max-stance/-confidence mention still scores 0.537 -> positive (irony grid:
    only the stance 1.0 x conf 1.0 corner clears). The discount works only because the *extractor*
    is also expected to lower `stance_vote` for sarcasm; the deterministic floor does not enforce
-   it. To make the flag alone abstain a max mention, `negation_mult` would need to be <= ~0.15.
+   it. To make the flag alone abstain a max mention, `negation_mult` would need to fall below the
+   single-witness bar (~0.2118, pre-rounding): at max stance x confidence the contribution equals
+   `negation_mult`, so it clears exactly when that bar is exceeded. (0.15 is merely the nearest
+   sampled point below it in the harness sweep, not the boundary.)
 3. **Saturation hides corroboration.** 1 strong mention -> 0.964; 2 -> 0.999; 3 -> 1.0. Past the
    first strong mention more evidence barely moves the score, so `uncalibrated_support_score` is
    near-binary, not an "endorsement intensity" signal. If Judgment wants intensity it needs
@@ -157,12 +161,14 @@ Three findings fall out:
   re-encodes our priors — the "synthetic data is worthless" trap. Real calibration must run on
   real extracted mentions.
 
-## Known provenance gap (for Phase C)
+## Provenance honesty
 
-`ProductVerdictSet.provenance` records only `fusion_config_version` (a string, default "0.1"), not
-the actual `FusionConfig` values. If the owner calibrates and changes values but not the version
-string, provenance would misreport the run. Left as-is for this behavior-preserving Phase A; when
-constants actually change, the version string must bump (or provenance should carry the values).
+`ProductVerdictSet.provenance` records `fusion_config_version`. Because the new public `config`
+parameter could otherwise let a non-default run be mislabelled by the version string alone,
+provenance now ALSO records the actual `FusionConfig` values whenever `config` differs from
+`DEFAULT_FUSION_CONFIG` (the default path is unchanged, preserving Phase A behaviour). Still owed
+in Phase C: when the DEFAULT constants are recalibrated, bump `FUSION_CONFIG_VERSION` so the
+default-path version string stays meaningful.
 
 ## Sequencing
 

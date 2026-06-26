@@ -102,12 +102,16 @@ class CorroborationPoint:
 
 
 def min_clearing_raw(config: FusionConfig = DEFAULT_FUSION_CONFIG) -> float:
-    """Minimum per-side raw contribution that clears ``material_min``: ``atanh(material_min)/gain``.
+    """Idealized (pre-rounding) per-side raw where UNROUNDED support equals ``material_min``:
+    ``atanh(material_min)/gain``.
 
     The "single-witness bar": for a lone authored mention (mult 1.0, dependence 1.0) the raw
-    contribution is ``stance_vote * extractor_confidence``, so any product of the two at or
-    above this value already decides a confident verdict. Returns ``inf`` if the side can never
-    clear (``material_min >= 1``) and ``0.0`` if it always clears (``material_min <= 0``).
+    contribution is ``stance_vote * extractor_confidence``, so a product at or above this value
+    decides a confident verdict. NOTE: fusion rounds support to 4 decimals BEFORE the
+    ``>= material_min`` test, so the OPERATIONAL bar is marginally below this idealized value (and
+    at ``material_min >= 1`` a large enough raw can still round up to 1.0000 and clear). Returns
+    ``inf`` when unrounded support can never reach ``material_min`` (``material_min >= 1``) and
+    ``0.0`` when it always does (``material_min <= 0``).
     """
     if config.material_min >= 1.0:
         return inf
@@ -147,12 +151,22 @@ def _demo_mention(
 def _single_product_verdict(
     mentions: list[ProductMention], *, config: FusionConfig, creator_id: str = "sensitivity"
 ):
-    """Fuse a SINGLE-product mention set and return the one verdict (or ``None`` if empty)."""
+    """Fuse a SINGLE-product mention set and return the one verdict (``None`` if empty).
+
+    Raises ``ValueError`` if the mentions span more than one ``(brand, line)`` product: the
+    sweep/boundary tables describe ONE product, so silently reporting whichever sorts first would
+    misrepresent a multi-product input (e.g. a real Phase C corpus).
+    """
     verdict_set = fuse_product_verdicts(
         mentions, creator_id=creator_id, generated_at="sweep", config=config
     )
     if not verdict_set.verdicts:
         return None
+    if len(verdict_set.verdicts) > 1:
+        raise ValueError(
+            f"sensitivity probes require a single-product mention set; got "
+            f"{len(verdict_set.verdicts)} products"
+        )
     return verdict_set.verdicts[0]
 
 
@@ -324,8 +338,8 @@ def build_default_report(config: FusionConfig = DEFAULT_FUSION_CONFIG) -> str:
         f"Config: gain={config.gain:g} material_min={config.material_min:g} "
         f"authored={config.creator_authored_mult:g} implicit={config.implicit_mult:g} "
         f"negation={config.negation_mult:g} dependence_exp={config.dependence_exponent:g}",
-        f"Single-witness bar (min stance*conf that decides a lone authored verdict): "
-        f"{min_clearing_raw(config):.4f}",
+        f"Single-witness bar [idealized, pre-rounding] (min stance*conf that decides a lone "
+        f"authored verdict): {min_clearing_raw(config):.4f}",
         "",
         "## material_min sweep (one borderline implicit mention, stance 0.5 x conf 0.6)",
         render_knob_sweep(

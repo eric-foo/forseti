@@ -174,3 +174,105 @@ def test_render_helpers_produce_tables_and_handle_empty() -> None:
     assert render_knob_sweep([]) == "(empty sweep)"
     assert render_boundary_scan([]) == "(empty scan)"
     assert render_corroboration_curve([]) == "(empty curve)"
+
+
+# --- review-driven hardening: equivalence golden + closure of F3 / F4 ------
+
+
+def _old_formula_verdict(mentions: list[ProductMention]):
+    """Faithful re-implementation of the PRE-FusionConfig constants/expressions.
+
+    Independent golden for the behaviour-preservation headline: the new default-config fusion
+    must match this byte-for-byte (verdict + both scores) across varied inputs.
+    """
+    from collections import defaultdict
+    from math import sqrt, tanh
+
+    per_video: dict[str, int] = defaultdict(int)
+    for m in mentions:
+        per_video[m.video_id] += 1
+    support_raw = 0.0
+    oppose_raw = 0.0
+    for m in mentions:
+        authored = m.creator_authored or (m.stated_rating is not None)
+        mult = 1.0 if authored else 0.6
+        if m.possible_negation_or_irony:
+            mult *= 0.3
+        dep = 1.0 / sqrt(per_video[m.video_id])
+        contribution = m.stance_vote * m.extractor_confidence * mult * dep
+        if contribution > 0:
+            support_raw += contribution
+        elif contribution < 0:
+            oppose_raw += abs(contribution)
+    support = round(max(0.0, tanh(2.0 * support_raw)), 4)
+    oppose = round(max(0.0, tanh(2.0 * oppose_raw)), 4)
+    sm = support >= 0.40
+    om = oppose >= 0.40
+    if sm and om:
+        verdict = Verdict.MIXED
+    elif sm:
+        verdict = Verdict.POSITIVE
+    elif om:
+        verdict = Verdict.NEGATIVE
+    else:
+        verdict = Verdict.UNKNOWN
+    return verdict, support, oppose
+
+
+def test_default_config_matches_original_formula() -> None:
+    # The headline guarantee: lifting constants into FusionConfig changed no output. Assert the
+    # new default path equals an independent re-implementation of the old expressions.
+    cases = [
+        [_mention(1.0, 1.0, authored=True)],
+        [_mention(0.5, 0.6, authored=False)],
+        [_mention(1.0, 1.0, authored=True, negated=True)],
+        [_mention(0.3, 0.7, authored=True)],
+        [_mention(-1.0, 1.0, authored=True)],
+        [_mention(0.5, 1.0, authored=False, mid=f"a{i}", vid="v1") for i in range(5)],
+        [_mention(0.5, 1.0, authored=False, mid=f"b{i}", vid=f"v{i}") for i in range(5)],
+        [
+            _mention(1.0, 1.0, authored=True, mid="p", vid="v1"),
+            _mention(-1.0, 1.0, authored=True, mid="n", vid="v2"),
+        ],
+    ]
+    for mentions in cases:
+        v = _verdict(mentions, DEFAULT_FUSION_CONFIG)
+        assert (
+            v.verdict,
+            v.uncalibrated_support_score,
+            v.uncalibrated_oppose_score,
+        ) == _old_formula_verdict(mentions)
+
+
+def test_sweep_rejects_multi_product_input() -> None:
+    # F3: a multi-product set must fail loudly, not silently report whichever product sorts first.
+    multi = [
+        _mention(1.0, 1.0, authored=True, mid="a"),
+        ProductMention(
+            mention_id="b",
+            video_id="v",
+            transcript_anchor="asr:v",
+            transcript_source=TranscriptSource.ASR,
+            brand="other",
+            line="line2",
+            concentration=Concentration.UNKNOWN,
+            stance_vote=1.0,
+            source_pointer="x",
+            start_ms=0,
+            end_ms=1,
+            creator_authored=True,
+            extractor_confidence=1.0,
+        ),
+    ]
+    with pytest.raises(ValueError):
+        sweep_knob(multi, "gain", (2.0,))
+
+
+def test_provenance_records_config_only_when_non_default() -> None:
+    # F4: default-path provenance is unchanged; a non-default config is recorded so it can't lie.
+    m = [_mention(1.0, 1.0, authored=True)]
+    default_set = fuse_product_verdicts(m, creator_id="c", generated_at="t")
+    assert default_set.provenance == {"fusion_config_version": default_set.fusion_config_version}
+    custom = replace(DEFAULT_FUSION_CONFIG, material_min=0.5)
+    custom_set = fuse_product_verdicts(m, creator_id="c", generated_at="t", config=custom)
+    assert custom_set.provenance["fusion_config"]["material_min"] == 0.5

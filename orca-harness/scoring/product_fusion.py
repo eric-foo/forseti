@@ -18,7 +18,7 @@ ig_reels_transcript_product_extraction_spec_v0.md (reuse).
 from __future__ import annotations
 
 from collections import defaultdict
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from math import sqrt, tanh
 
 from harness_utils import utc_now_z
@@ -208,11 +208,17 @@ def fuse_product_verdicts(
         if verdict.verdict == Verdict.UNKNOWN:
             abstentions.append(f"{brand}:{line}")
 
+    provenance = {"fusion_config_version": fusion_config_version}
+    if config != DEFAULT_FUSION_CONFIG:
+        # Default-path provenance is unchanged (behaviour-preserving). A NON-default config would
+        # otherwise be mislabelled by fusion_config_version alone, so record the actual constants
+        # so a non-default run stays re-derivable rather than silently misreported.
+        provenance["fusion_config"] = asdict(config)
     return ProductVerdictSet(
         creator_id=creator_id,
         verdicts=verdicts,
         abstentions=sorted(abstentions),
         fusion_config_version=fusion_config_version,
         generated_at=generated_at or utc_now_z(),
-        provenance={"fusion_config_version": fusion_config_version},
+        provenance=provenance,
     )
