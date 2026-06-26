@@ -52,8 +52,10 @@ def _fuse_product(brand: str, line: str, items: list[ProductMention]) -> Product
     """Fuse one product's mentions into a verdict. Support and opposition accumulate
     separately, so a genuinely divided product lands on ``mixed`` rather than netting to
     ``unknown``."""
-    # Dependence discount: a product repeated within ONE video is one creative, not N
-    # independent endorsements (cluster = video_id).
+    # Dependence discount (SOFT): repeats within ONE video are down-weighted by 1/sqrt(N) per
+    # mention (cluster = video_id), mirroring audience_fusion. It is a graceful discount toward
+    # "one creative", NOT a hard one-video-one-vote cap -- several strong in-video mentions still
+    # accumulate (see test_dependence_discount_one_video_not_n_endorsements).
     per_video: dict[str, int] = defaultdict(int)
     for mention in items:
         per_video[mention.video_id] += 1
@@ -108,6 +110,7 @@ def _fuse_product(brand: str, line: str, items: list[ProductMention]) -> Product
         evidence_ids=sorted(support_ids),
         counterevidence_ids=sorted(oppose_ids),
         uncalibrated_support_score=support,
+        uncalibrated_oppose_score=oppose,
     )
 
 
@@ -120,9 +123,15 @@ def fuse_product_verdicts(
 ) -> ProductVerdictSet:
     """Fuse ONE creator's ``ProductMention``s into per-``(brand, line)`` ``ProductVerdict``s.
 
-    Deterministic and LLM-free. ``creator_id`` is supplied by the caller (``ProductMention``
-    carries none) and also scopes the input to one creator. Verdicts and their cited mention
-    ids are sorted for a stable, re-derivable result.
+    Deterministic and LLM-free. Verdicts and their cited mention ids are sorted for a stable,
+    re-derivable result.
+
+    PRECONDITION (caller-enforced): every mention in ``mentions`` MUST belong to the one creator
+    named by ``creator_id``. ``ProductMention`` carries no creator field, so -- unlike
+    ``audience_fusion`` (which rejects multi-creator input) -- this function CANNOT detect and
+    will SILENTLY fuse across creators if a caller batches them. The durable guard (a
+    ``creator_id`` on ``ProductMention``, asserted here like audience_fusion) is part of the
+    deferred cross-creator work; until it lands, the caller owns single-creator scoping.
     """
     if not creator_id or not creator_id.strip():
         raise ValueError("fuse_product_verdicts requires a non-empty creator_id")

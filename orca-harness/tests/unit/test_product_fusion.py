@@ -166,6 +166,27 @@ def test_stated_rating_treated_as_witnessed_authored() -> None:
     assert rated.uncalibrated_support_score > plain.uncalibrated_support_score
 
 
+def test_oppose_score_carried_for_negative_and_mixed() -> None:
+    # Judgment needs opposition MAGNITUDE + asymmetry, not just polarity (review finding F-rev-1).
+    neg = _verdict(
+        fuse_product_verdicts([_m("n1", stance=-1.0)], creator_id="c1", generated_at="t"),
+        "dior", "sauvage",
+    )
+    assert neg.verdict == Verdict.NEGATIVE
+    assert neg.uncalibrated_oppose_score > _MATERIAL_MIN_FOR_TEST
+    assert neg.uncalibrated_support_score == 0.0
+    mixed = _verdict(
+        fuse_product_verdicts(
+            [_m("p1", video_id="v1", stance=1.0), _m("n1", video_id="v2", stance=-1.0)],
+            creator_id="c1", generated_at="t",
+        ),
+        "dior", "sauvage",
+    )
+    assert mixed.verdict == Verdict.MIXED
+    assert mixed.uncalibrated_support_score > _MATERIAL_MIN_FOR_TEST
+    assert mixed.uncalibrated_oppose_score > _MATERIAL_MIN_FOR_TEST
+
+
 # --- grouping + determinism ------------------------------------------------
 
 

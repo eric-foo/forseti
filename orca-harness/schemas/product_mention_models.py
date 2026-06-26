@@ -172,6 +172,10 @@ class ProductVerdict(ProductMentionModel):
     counterevidence_ids: list[str] = Field(default_factory=list)
     # Squashed positive-direction support strength in [0, 1] (uncalibrated; calibration deferred).
     uncalibrated_support_score: float = Field(ge=0.0, le=1.0, default=0.0)
+    # Squashed opposition strength in [0, 1] — carried so Judgment sees a negative/mixed verdict's
+    # MAGNITUDE and the support-vs-oppose asymmetry, not just polarity (uncalibrated). A pure
+    # negative reports support 0.0 / oppose high; mixed reports both high.
+    uncalibrated_oppose_score: float = Field(ge=0.0, le=1.0, default=0.0)
 
     @model_validator(mode="after")
     def _decided_needs_evidence(self) -> ProductVerdict:
