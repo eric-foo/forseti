@@ -2,11 +2,12 @@
 
 Stages the RAW audio as a SourceCapturePacket (audio = raw_stored_bytes PreservedFile), then
 writes the transcript as a DERIVED RECORD at derived/<audio-packet_id>/transcript_asr/<record_id>
-via DataLakeRoot.append_record (append-only). Generated transcript bytes live ONLY under derived/
-— never a capture PreservedFile (no laundering, no manifest change). The transcriber is INJECTED
-(`transcribe_fn(audio_path)`), so this module needs no faster-whisper/yt-dlp import and is
-unit-testable from canned audio bytes + a fake transcriber. Data-lake mode only (append_record
-is a DataLakeRoot method).
+via DataLakeRoot.append_record_set (append-only, with a completion marker in transcript_asr__set
+that commits the transcript's derivation-time content sha256). Generated transcript bytes live ONLY
+under derived/ — never a capture PreservedFile (no laundering, no manifest change). The transcriber
+is INJECTED (`transcribe_fn(audio_path)`), so this module needs no faster-whisper/yt-dlp import and
+is unit-testable from canned audio bytes + a fake transcriber. Data-lake mode only
+(append_record_set is a DataLakeRoot method).
 """
 from __future__ import annotations
 
@@ -176,12 +177,17 @@ def write_asr_transcript(
     # refusal; the refusal only fires when the SAME audio packet is re-derived with the same model.
     model_token = re.sub(r"[^A-Za-z0-9_-]", "-", str(model_info.get("model", "asr")))
     record_id = f"asr_{model_token}__{audio_sha[:16]}"
-    written = data_root.append_record(
+    record_bytes = (json.dumps(record, ensure_ascii=False, indent=2) + "\n").encode("utf-8")
+    # Write the transcript as a record SET so its derivation-time content sha256 is committed in the
+    # completion marker (a sibling in ``transcript_asr__set``); the member record's path + record_id
+    # are unchanged (still ``derived/<anchor>/transcript_asr/<record_id>``). append_record_set
+    # returns ``{lane: Path}``, so take the transcript member's path for the rel-path.
+    written = data_root.append_record_set(
         subtree="derived",
         raw_anchor=audio_packet_id,
-        lane="transcript_asr",
         record_id=record_id,
-        data=(json.dumps(record, ensure_ascii=False, indent=2) + "\n").encode("utf-8"),
+        members={"transcript_asr": record_bytes},
+        completion_lane="transcript_asr__set",
     )
-    rel = written.relative_to(data_root.path.resolve()).as_posix()
+    rel = written["transcript_asr"].relative_to(data_root.path.resolve()).as_posix()
     return 0, f"{rel} [{posture}, {len(cues)} cues]"

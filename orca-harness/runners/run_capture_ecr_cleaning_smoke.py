@@ -71,6 +71,13 @@ NON_CLAIMS = [
 ]
 
 _ASR_LANE = "transcript_asr"
+# Completion lane carrying the transcript record set's derivation-time content sha256 (see
+# source_capture/transcript/asr_packet.py). A record written via the new append_record_set path has
+# this marker; a legacy append_record record does not.
+_ASR_COMPLETION_LANE = "transcript_asr__set"
+# hash_basis tags: which integrity guarantee the anchor.sha256 carries.
+_HASH_BASIS_MARKER = "derived_record_marker_sha256"  # derivation-time commitment (new records)
+_HASH_BASIS_BYTES = "derived_record_bytes"  # stitch-time fallback (legacy markerless records, #405)
 
 CAPTURE_VALIDITY_NOT_SUPPORTED_REASON = "capture_validity_not_supported"
 INSTAGRAM_STRUCTURE_NOT_PRESERVED_REASON = "instagram_structure_not_preserved"
@@ -981,6 +988,34 @@ def _process_youtube_asr_entry(
             f"transcript_asr record; found {len(transcribed)}"
         )
     record_id, record_bytes = transcribed[0]
+    stitch_sha256 = hashlib.sha256(record_bytes).hexdigest()
+
+    # Bind the anchor to the DERIVATION-TIME content sha committed in the record-set marker when
+    # present (the stronger guarantee), else fall back to the stitch-time sha for a legacy markerless
+    # record. read_record_set_member_sha256 returns None ONLY when the marker is ABSENT; a
+    # present-but-corrupt marker RAISES DataLakeRootError, which we let PROPAGATE (fail closed) --
+    # a new record whose marker is unreadable is corruption, never a silent stitch-time downgrade.
+    marker_sha256 = data_root.read_record_set_member_sha256(
+        subtree="derived",
+        raw_anchor=audio_packet_id,
+        record_id=record_id,
+        completion_lane=_ASR_COMPLETION_LANE,
+        member_lane=_ASR_LANE,
+    )
+    if marker_sha256 is not None:
+        # Defensively re-check the derivation-time commitment against the bytes at stitch: a marker
+        # sha that disagrees with the record bytes is corruption -- raise, never trust either side.
+        if marker_sha256 != stitch_sha256:
+            raise ValueError(
+                f"{source_label} audio packet {audio_packet_id} transcript record {record_id!r} "
+                f"marker sha256 {marker_sha256} disagrees with record bytes {stitch_sha256} "
+                "(derivation-time/stitch-time mismatch; fail closed)"
+            )
+        anchor_sha256 = marker_sha256
+        anchor_hash_basis = _HASH_BASIS_MARKER
+    else:
+        anchor_sha256 = stitch_sha256
+        anchor_hash_basis = _HASH_BASIS_BYTES
 
     handle = CleaningInputHandle(
         handle_id=f"{source_label}:{audio_packet_id}:{record_id}",
@@ -988,8 +1023,8 @@ def _process_youtube_asr_entry(
         source_surface=packet.source_surface,
         raw_anchor=CleaningRawAnchor(
             packet_id=audio_packet_id,
-            sha256=hashlib.sha256(record_bytes).hexdigest(),
-            hash_basis="derived_record_bytes",
+            sha256=anchor_sha256,
+            hash_basis=anchor_hash_basis,
             anchor_kind="derived_record",
             derived_record_ref=CleaningDerivedRecordRef(
                 lane=_ASR_LANE,

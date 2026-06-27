@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 from pathlib import Path
 
@@ -217,10 +218,17 @@ def test_ecr_derivation_writes_a_completion_marker_and_is_complete(tmp_path: Pat
 
     marker = root.path / "derived" / raw_shard(pid) / pid / ECR_COMPLETION_LANE / record_name
     assert marker.is_file()
-    assert json.loads(marker.read_text(encoding="utf-8")) == {
-        "member_lanes": sorted(ECR_LANES.values()),
-        "record_id": record_name,
-    }
+    marker_body = json.loads(marker.read_text(encoding="utf-8"))
+    # ADDITIVE: the marker now also carries member_sha256 (the lake-computed content hash per
+    # member). The original member_lanes + record_id fields are unchanged.
+    assert marker_body["member_lanes"] == sorted(ECR_LANES.values())
+    assert marker_body["record_id"] == record_name
+    assert set(marker_body["member_sha256"]) == set(ECR_LANES.values())
+    for lane, member_path in paths.items():
+        assert (
+            marker_body["member_sha256"][lane]
+            == hashlib.sha256(member_path.read_bytes()).hexdigest()
+        )
     assert root.is_record_set_complete(
         subtree="derived",
         raw_anchor=pid,

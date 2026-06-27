@@ -169,3 +169,46 @@ def test_download_audio_rejects_bad_id_pre_network():
     from source_capture.transcript.audio_asr import download_audio
 
     assert download_audio("../etc/passwd") is None
+
+
+def test_transcript_write_commits_derivation_time_marker_sha(tmp_path):
+    # The transcript now writes via append_record_set: the completion marker (transcript_asr__set)
+    # records the transcript record's derivation-time content sha256, while the member record stays
+    # at the UNCHANGED derived/<anchor>/transcript_asr/<record_id> path and the (code, message)
+    # string still parses the member rel-path.
+    root = _lake(tmp_path)
+
+    def fake_transcribe(_audio_path):
+        return "transcribed", [{"start_ms": 0, "end_ms": 1500, "text": "hello world"}], _MODEL_INFO
+
+    code, msg = write_asr_transcript(
+        video_id="abcdefghijk", audio_bytes=_AUDIO, audio_ext="webm",
+        transcribe_fn=fake_transcribe, data_root=root, now_iso="2026-06-20T00:00:00Z",
+    )
+    assert code == 0
+
+    # (code, message) format unchanged: rel-path is the MEMBER record (transcript_asr), and it exists.
+    rel = msg.split(" ")[0]
+    pid = msg.split("/")[2]
+    record_path = root.path / rel
+    assert record_path.is_file()
+    assert rel.split("/")[3] == "transcript_asr"  # member lane segment unchanged
+    record_id = rel.split("/")[4]
+
+    # The sibling completion marker commits the member's sha256 == the actual record bytes.
+    marker = root.path / "derived" / raw_shard(pid) / pid / "transcript_asr__set" / record_id
+    assert marker.is_file()
+    body = json.loads(marker.read_text(encoding="utf-8"))
+    assert body["member_lanes"] == ["transcript_asr"]
+    assert body["member_sha256"]["transcript_asr"] == hashlib.sha256(
+        record_path.read_bytes()
+    ).hexdigest()
+
+    # The reader returns that committed derivation-time sha for the member.
+    assert root.read_record_set_member_sha256(
+        subtree="derived",
+        raw_anchor=pid,
+        record_id=record_id,
+        completion_lane="transcript_asr__set",
+        member_lane="transcript_asr",
+    ) == hashlib.sha256(record_path.read_bytes()).hexdigest()

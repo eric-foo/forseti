@@ -23,7 +23,7 @@ from cleaning.models import (
     CleaningRawAnchor,
     CleaningDerivedRecordRef,
 )
-from data_lake.root import DataLakeRoot
+from data_lake.root import DataLakeRoot, DataLakeRootError
 from runners.run_capture_ecr_cleaning_smoke import run_capture_ecr_cleaning_smoke
 from runners.run_cleaning_spine_periodic_audit import run_cleaning_spine_periodic_audit
 from source_capture.transcript import write_asr_transcript
@@ -75,6 +75,16 @@ def _record_dir(data_root: DataLakeRoot, audio_packet_id: str) -> Path:
     return data_root.lane_dir(
         subtree="derived", raw_anchor=audio_packet_id, lane="transcript_asr"
     )
+
+
+def _marker_file(data_root: DataLakeRoot, audio_packet_id: str) -> Path:
+    """The single transcript_asr__set completion marker for the (one) transcript record."""
+    marker_dir = data_root.lane_dir(
+        subtree="derived", raw_anchor=audio_packet_id, lane="transcript_asr__set"
+    )
+    markers = [path for path in marker_dir.iterdir() if path.is_file()]
+    assert len(markers) == 1, markers
+    return markers[0]
 
 
 def _write_smoke_manifest(tmp_path: Path, audio_packet_id: str) -> Path:
@@ -152,7 +162,9 @@ def test_asr_smoke_builds_receipt_clears_profile_and_derived_record_handle(tmp_p
     assert handle.projection_ref is None
     assert handle.raw_anchor.anchor_kind == "derived_record"
     assert handle.raw_anchor.packet_id == audio_packet_id
-    assert handle.raw_anchor.hash_basis == "derived_record_bytes"
+    # Derivation-time commitment: the ASR write now records the sha in the record-set marker, so the
+    # smoke binds the anchor to that marker sha (not the stitch-time bytes sha).
+    assert handle.raw_anchor.hash_basis == "derived_record_marker_sha256"
     assert handle.raw_anchor.derived_record_ref is not None
     assert handle.raw_anchor.derived_record_ref.lane == "transcript_asr"
     assert handle.ecr_ref is not None
@@ -444,3 +456,61 @@ def test_asr_audit_malformed_segment_is_unreadable_finding_not_crash(tmp_path: P
     assert any(
         finding["code"] == "cleaning_derived_record_anchor_unreadable" for finding in findings
     )
+
+
+# -- [F3] New-record corrupt marker -> smoke fails closed (no silent stitch-time downgrade) --------
+
+
+def test_asr_smoke_fails_closed_on_corrupt_set_marker(tmp_path: Path) -> None:
+    # A freshly written ASR record HAS a __set marker. If that marker is corrupted, the smoke runner
+    # must RAISE (the integrity crux), never silently emit a derived_record_bytes handle.
+    data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    audio_packet_id = _write_audio_packet_with_transcript(data_root)
+    # Corrupt the present marker (malformed JSON) -> read_record_set_member_sha256 RAISES.
+    _marker_file(data_root, audio_packet_id).write_text("{not valid json", encoding="utf-8")
+    smoke_manifest_path = _write_smoke_manifest(tmp_path, audio_packet_id)
+
+    with pytest.raises(DataLakeRootError, match="malformed"):
+        run_capture_ecr_cleaning_smoke(
+            smoke_manifest_path=smoke_manifest_path,
+            output_dir=tmp_path / "smoke_outputs",
+            data_root=data_root,
+        )
+
+
+# -- [F1 / acceptance #5] Backward-compat: legacy markerless record -> stitch-time fallback --------
+
+
+def test_asr_smoke_falls_back_to_stitch_time_for_markerless_record(tmp_path: Path) -> None:
+    # A record written before this lane has NO __set marker. The smoke must fall back to the
+    # stitch-time bytes sha (hash_basis="derived_record_bytes"), and the audit must still pass.
+    data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    audio_packet_id = _write_audio_packet_with_transcript(data_root)
+    # Simulate a legacy markerless record: remove the marker so the reader returns None (marker
+    # ABSENT) while the transcript member record stays in place.
+    _marker_file(data_root, audio_packet_id).unlink()
+    smoke_manifest_path = _write_smoke_manifest(tmp_path, audio_packet_id)
+
+    outputs = run_capture_ecr_cleaning_smoke(
+        smoke_manifest_path=smoke_manifest_path,
+        output_dir=tmp_path / "smoke_outputs",
+        data_root=data_root,
+    )
+    cleaning_packet = CleaningPacket.model_validate(_load_json(Path(outputs["cleaning_packet"])))
+    handle = cleaning_packet.handles[0]
+    assert handle.raw_anchor.hash_basis == "derived_record_bytes"
+    # The fallback sha is the stitch-time bytes sha.
+    record_file = next(_record_dir(data_root, audio_packet_id).iterdir())
+    assert handle.raw_anchor.sha256 == hashlib.sha256(record_file.read_bytes()).hexdigest()
+
+    # The full-path audit still verifies + passes against the stitch-time anchor.
+    audit_manifest_path = _write_audit_manifest(
+        tmp_path, smoke_manifest_path=smoke_manifest_path, smoke_outputs=outputs
+    )
+    audit_outputs = run_cleaning_spine_periodic_audit(
+        audit_manifest_path=audit_manifest_path,
+        output_dir=tmp_path / "audit_outputs",
+        data_root=data_root,
+    )
+    report = _load_json(Path(audit_outputs["audit_report_json"]))
+    assert report["overall_status"] == "pass", report["findings"]
