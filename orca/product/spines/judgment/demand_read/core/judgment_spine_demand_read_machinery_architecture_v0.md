@@ -439,7 +439,7 @@ direction_change_propagation:
   downstream_surfaces_checked:
     - orca/product/spines/foundation/demand_read_taxonomy/orca_demand_read_taxonomy_v0.md   # already two-axis; "hollow" hits are the retirement explanation, kept
   intentionally_not_updated:
-    - path: "C2 admits ... lessons" (DRP-02 line), "admission inputs" (ratified gate), "admissible at C2" (permissible)
+    - path: '"C2 admits ... lessons" (DRP-02 line), "admission inputs" (ratified gate), "admissible at C2" (permissible)'
       reason: lesson-admission and gate-admissibility are distinct from the C1 demand-signal step; the rename targets the C1 step verb + its "admitted signal" object only.
   stale_language_search: >
     rg -i "admit|admitt|admiss|hollow" on the two edited docs (2026-06-15): no "C1

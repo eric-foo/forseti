@@ -24,8 +24,11 @@ WHY THIS EXISTS (enforcement placement)
   write-time hook + this portable checker), not left to end-of-thread memory.
 
   Honest boundary: this catches STRUCTURAL omission (new top-level folder, new
-  harness runner/adapter) - ``stale_if`` #1 and #2 - with a hard commit gate, and
-  nudges (advisory only) on source-of-truth edits (#5). It does NOT judge whether
+  harness runner/adapter) - ``stale_if`` #1 and #2 - with a hard commit gate,
+  nudges (advisory only) on source-of-truth edits (#5), and nudges (advisory
+  only) when new files land under a map-described directory without a map update,
+  so a stale directory description can be caught before it silently rots
+  (#3, partial). It does NOT judge whether
   an ordinary content file "deserves" a route, and it cannot detect "a spine was
   materially reorganized" (#3) or "routing doctrine changed" (#4): those stay
   judgment, backstopped by the Doctrine Change Propagation contract in
@@ -205,6 +208,26 @@ def map_excludes(map_text: str) -> tuple[str, ...]:
                  for t in re.findall(r"`([^`]+)`", m.group(1)) if t.strip())
 
 
+def mapped_dirs(map_text: str) -> tuple[str, ...]:
+    """Repo-relative directory paths the map names (backtick'd tokens ending in
+    '/'). These are the directories whose one-line description can silently go
+    stale when their contents change. Over-matching is harmless: this feeds an
+    advisory nudge only, never the gate. Returned longest-first so the most
+    specific mapped directory wins when several are prefixes of one file."""
+    if not map_text:
+        return ()
+    out: set[str] = set()
+    for tok in re.findall(r"`([^`]+/)`", map_text):
+        t = tok.strip()
+        if any(ch in t for ch in "*?[]"):  # globs are scratch/exclusion tokens
+            continue
+        t = t[2:] if t.startswith("./") else t
+        if t.startswith("/") or "/" not in t.rstrip("/"):
+            continue  # absolute, or a bare top-level name with no nesting
+        out.add(t)
+    return tuple(sorted(out, key=len, reverse=True))
+
+
 def is_excluded(relposix: str, extra: tuple[str, ...]) -> bool:
     low = relposix.lower()
     if any(low.startswith(p) for p in DEFAULT_EXCLUDES):
@@ -278,6 +301,44 @@ def advisory_only(relposix: str) -> str | None:
                 "propagation contract changed, the repo map's stale_if #5 may "
                 "have tripped; confirm the map still routes correctly." % relposix)
     return None
+
+
+def description_drift(added: list[str], map_text: str, extra: tuple[str, ...],
+                      map_touched: bool) -> list[str]:
+    """Advisory (never blocking): one or more NEW files were added under a
+    directory the map describes, but no map/submap was updated in the same change
+    - so that directory's one-line description may no longer match what now lives
+    there (the silent-drift class: e.g. a new ASR module under transcript/ while
+    the row still says ASR 'is not present'). Stays silent when the map was
+    touched (the author is presumably refreshing it), for scratch/__init__ paths,
+    and for additions the structural gate already reports (new area/harness unit)."""
+    if map_touched or not map_text:
+        return []
+    dirs = mapped_dirs(map_text)
+    if not dirs:
+        return []
+    flagged: dict[str, list[str]] = {}
+    for rel in added:
+        if not rel or rel in MAP_SURFACES:
+            continue
+        if is_excluded(rel, extra) or Path(rel).name == "__init__.py":
+            continue
+        if new_top_level_area(rel, map_text) or new_harness_unit(rel, map_text):
+            continue  # already reported by the structural gate
+        for d in dirs:  # longest-first: most specific mapped dir wins
+            if rel != d and rel.startswith(d):
+                flagged.setdefault(d, []).append(rel)
+                break
+    out: list[str] = []
+    for d in sorted(flagged):
+        files = sorted(flagged[d])
+        shown = ", ".join(files[:3]) + ("" if len(files) <= 3
+                                        else " (+%d more)" % (len(files) - 3))
+        out.append(
+            "new file(s) under map-described `%s` (%s) but no map/submap was "
+            "updated - verify that directory's description still matches what now "
+            "lives there (advisory; stale_if #3)." % (d, shown))
+    return out
 
 
 def commit_nudge(relposix: str) -> str | None:
@@ -442,6 +503,7 @@ def evaluate(root: Path, relpaths_added: list[str], relpaths_touched: list[str],
         if a:
             advisory.append(a)
     map_touched = any(p in MAP_SURFACES for p in relpaths_touched)
+    advisory.extend(description_drift(relpaths_added, map_text, extra, map_touched))
     return structural, advisory, map_touched, ack
 
 
@@ -582,6 +644,23 @@ def selftest() -> int:
     )
     print(("PASS" if paths_ok else "FAIL") + " hook-paths")
     ok = ok and paths_ok
+    # description-drift advisory: new file under a map-described dir, map untouched
+    drift_map = ("| `orca-harness/schemas/` | models |\n"
+                 "| `orca-harness/cleaning/` | cleaning |\n")
+    d_extra = map_excludes(drift_map)
+    drift_ok = (
+        len(description_drift(["orca-harness/schemas/new_model.py"],
+                              drift_map, d_extra, False)) == 1
+        and description_drift(["orca-harness/schemas/new_model.py"],
+                              drift_map, d_extra, True) == []           # map touched
+        and description_drift(["orca-harness/schemas/__init__.py"],
+                              drift_map, d_extra, False) == []          # package init
+        and description_drift(["tooling/x.py"], drift_map, d_extra, False) == []  # unmapped
+        and mapped_dirs(drift_map) == ("orca-harness/cleaning/",
+                                       "orca-harness/schemas/")
+    )
+    print(("PASS" if drift_ok else "FAIL") + " description-drift")
+    ok = ok and drift_ok
     print("SELFTEST", "OK" if ok else "FAILED")
     return 0 if ok else 1
 

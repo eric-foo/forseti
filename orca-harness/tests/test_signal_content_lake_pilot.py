@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from data_lake.root import DataLakeRoot, DataLakeRootError
+from data_lake.root import DataLakeRoot, DataLakeRootError, raw_shard
 from signal_content.deriver import derive_signal_content
 from signal_content.lake import SIGNAL_CONTENT_LANE, derive_signal_content_into_lake
 from source_capture.models import SourceCapturePacket, known_fact
@@ -39,7 +39,7 @@ def test_derives_signal_content_record_into_lake(tmp_path: Path) -> None:
 
     derived_path = derive_signal_content_into_lake(data_root=root, packet_id=pid)
 
-    assert derived_path.parent == root.path / "derived" / pid / SIGNAL_CONTENT_LANE
+    assert derived_path.parent == root.path / "derived" / raw_shard(pid) / pid / SIGNAL_CONTENT_LANE
     assert derived_path.suffix == ".json"
     assert derived_path.is_file()
 
@@ -64,7 +64,7 @@ def test_re_derive_appends_a_sibling_not_overwrite(tmp_path: Path) -> None:
     _first = derive_signal_content_into_lake(data_root=root, packet_id=pid)
     _second = derive_signal_content_into_lake(data_root=root, packet_id=pid)
 
-    lane_dir = root.path / "derived" / pid / SIGNAL_CONTENT_LANE
+    lane_dir = root.path / "derived" / raw_shard(pid) / pid / SIGNAL_CONTENT_LANE
     assert _first != _second
     assert len(list(lane_dir.glob("*.json"))) == 2
 

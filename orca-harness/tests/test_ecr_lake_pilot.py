@@ -1,11 +1,12 @@
 from __future__ import annotations
 
+import hashlib
 import json
 from pathlib import Path
 
 import pytest
 
-from data_lake.root import DataLakeRoot, DataLakeRootError
+from data_lake.root import DataLakeRoot, DataLakeRootError, raw_shard
 from ecr.deriver import (
     derive_identity_postures,
     derive_inspectability_postures,
@@ -115,7 +116,7 @@ def test_derives_four_sibling_ecr_records(tmp_path: Path) -> None:
     assert set(paths) == set(ECR_LANES.values())
     assert len({path.name for path in paths.values()}) == 1
     for lane, path in paths.items():
-        assert path.parent == root.path / "derived" / pid / lane
+        assert path.parent == root.path / "derived" / raw_shard(pid) / pid / lane
         assert path.suffix == ".json"
         assert path.is_file()
 
@@ -143,7 +144,7 @@ def test_re_derive_appends_new_siblings(tmp_path: Path) -> None:
 
     for lane in ECR_LANES.values():
         assert first[lane] != second[lane]
-        assert len(list((root.path / "derived" / pid / lane).glob("*.json"))) == 2
+        assert len(list((root.path / "derived" / raw_shard(pid) / pid / lane).glob("*.json"))) == 2
 
 
 def test_explicit_record_id_is_create_only(tmp_path: Path) -> None:
@@ -171,7 +172,7 @@ def test_preflights_sibling_collision_before_any_ecr_write(tmp_path: Path) -> No
 
     assert existing.read_bytes() == b"existing sibling\n"
     for lane in ECR_LANES.values():
-        path = root.path / "derived" / pid / lane / "rec1.json"
+        path = root.path / "derived" / raw_shard(pid) / pid / lane / "rec1.json"
         assert path.exists() is (lane == ECR_LANES["inspectability"])
 
 
@@ -215,12 +216,19 @@ def test_ecr_derivation_writes_a_completion_marker_and_is_complete(tmp_path: Pat
     paths = derive_ecr_into_lake(data_root=root, packet_id=pid)
     record_name = next(iter(paths.values())).name
 
-    marker = root.path / "derived" / pid / ECR_COMPLETION_LANE / record_name
+    marker = root.path / "derived" / raw_shard(pid) / pid / ECR_COMPLETION_LANE / record_name
     assert marker.is_file()
-    assert json.loads(marker.read_text(encoding="utf-8")) == {
-        "member_lanes": sorted(ECR_LANES.values()),
-        "record_id": record_name,
-    }
+    marker_body = json.loads(marker.read_text(encoding="utf-8"))
+    # ADDITIVE: the marker now also carries member_sha256 (the lake-computed content hash per
+    # member). The original member_lanes + record_id fields are unchanged.
+    assert marker_body["member_lanes"] == sorted(ECR_LANES.values())
+    assert marker_body["record_id"] == record_name
+    assert set(marker_body["member_sha256"]) == set(ECR_LANES.values())
+    for lane, member_path in paths.items():
+        assert (
+            marker_body["member_sha256"][lane]
+            == hashlib.sha256(member_path.read_bytes()).hexdigest()
+        )
     assert root.is_record_set_complete(
         subtree="derived",
         raw_anchor=pid,
@@ -236,7 +244,7 @@ def test_ecr_set_missing_marker_reads_incomplete(tmp_path: Path) -> None:
     paths = derive_ecr_into_lake(data_root=root, packet_id=pid)
     record_name = next(iter(paths.values())).name
 
-    (root.path / "derived" / pid / ECR_COMPLETION_LANE / record_name).unlink()
+    (root.path / "derived" / raw_shard(pid) / pid / ECR_COMPLETION_LANE / record_name).unlink()
     assert not root.is_record_set_complete(
         subtree="derived",
         raw_anchor=pid,

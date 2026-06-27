@@ -11,7 +11,7 @@ scope: >
   FamilyDetailBase kept off the raw-payload path; and no-new-core-field pressure.
 use_when:
   - Scoping the lake write path, data-root resolution, or availability rebuild.
-  - Checking whether a write path bypasses the deterministic boundary or selects a queue/engine.
+  - Checking whether a write path preserves the deterministic boundary while selecting a queue/engine.
 open_next:
   - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_physicality_location_contract_v0.md
   - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_storage_contract_v0.md
@@ -120,23 +120,24 @@ not precedent.
 
 ## Accepted Residuals
 
-No storage backend, no queue/engine, no derived/ack physical home, no
-manifest/version serialization, no runtime implementation, no readiness claim — each
-named and accepted now (MGT). Upgrade triggers: physical-store selection;
-derived-record physical-home decision; storage-code implementation scoping.
+No storage backend or queue/engine selected by this contract, no derived/ack
+physical home selected here, no manifest/version serialization, no runtime
+implementation, no readiness claim — each named and accepted now (MGT). Upgrade
+triggers: Storage Contract physicalization selection; derived-record physical-home
+decision; storage-code implementation scoping.
 
 ## Deferred / Out Of Scope
 
-Storage backend, manifest version, member/sidecar layout, lawful erasure/WORM,
-queue/engine, derived-record and acknowledgement physical homes, migration/replay for
-incumbent fields, and runtime tests.
+Storage backend/engine, manifest version, member/sidecar layout, lawful
+erasure/WORM, queue/engine, derived-record and acknowledgement physical homes,
+migration/replay for incumbent fields, and runtime tests.
 
 ## Non-Claims
 
-Not implementation authorization, validation, or readiness. Not storage-engine,
-queue, or scheduler selection. Not raw key grammar (owned by the raw admission + key
-grammar contract). Not schema finalization. Records an enforcement + resolution
-decision only.
+Not implementation authorization, validation, or readiness. Not this artifact's
+selection of a storage engine, queue, or scheduler. Not raw key grammar (owned by
+the raw admission + key grammar contract). Not schema finalization. Records an
+enforcement + resolution decision only.
 
 ## Direction Change Propagation
 

@@ -75,6 +75,11 @@ class IgReelsJsonCandidate:
     is_affiliate: bool | None = None
     sponsor_users: tuple[str, ...] = ()
     ad_term_candidates: tuple[str, ...] = ()
+    # Pinned signal from passive JSON (probe-grounded 2026-06-25). Reels-tab pin =
+    # clips_tab_pinned_user_ids non-empty; main-grid/timeline pin = pinned_for_users
+    # or timeline_pinned_user_ids non-empty. None when the surface omits the field.
+    pinned_on_clips_tab: bool | None = None
+    pinned_on_timeline: bool | None = None
     raw_node_keys_sample: tuple[str, ...] = ()
 
     def to_dict(self) -> dict[str, object]:
@@ -221,6 +226,44 @@ def join_dom_rows_with_json_candidates(
     ]
 
 
+def infer_pinned_shortcodes_by_recency(
+    grid_rows: Iterable[tuple[str, int | None]],
+    *,
+    max_pinned: int = 3,
+) -> tuple[str, ...]:
+    """Infer pinned reels from *grid*-order recency inversion.
+
+    On the reels tab IG hoists up to ``max_pinned`` (3) pinned reels to the top
+    of the visible grid out of recency order; the rest of the grid is recency-
+    descending. ``grid_rows`` is ``(shortcode, taken_at_timestamp)`` in grid (DOM)
+    order -- NOT ``clips/user`` feed order, which is observed to stay purely
+    recency-ordered and never hoists pins (2026-06-25 live probe). A leading reel
+    is inferred-pinned when a strictly-later reel has a strictly-newer
+    ``taken_at`` -- an older reel sitting above a newer one, which only a pin
+    produces. Bounded to the leading ``max_pinned`` positions and a contiguous
+    leading prefix; a row without a ``taken_at`` ends the leading scan.
+
+    This corroborates -- it does not replace -- the explicit ``pinned_on_clips_tab``
+    reels-tab flag. Blind spot: a pin of the most-recent reel is not out of order,
+    so inversion cannot see it; only the explicit flag can.
+    """
+    rows = list(grid_rows)
+    pinned: list[str] = []
+    for index, (shortcode, taken_at) in enumerate(rows):
+        if index >= max_pinned:
+            break
+        if taken_at is None:
+            break
+        later_is_newer = any(
+            other_taken_at is not None and other_taken_at > taken_at
+            for _, other_taken_at in rows[index + 1 :]
+        )
+        if not later_is_newer:
+            break
+        pinned.append(shortcode)
+    return tuple(pinned)
+
+
 def _iter_media_nodes(value: object) -> Iterable[dict[str, object]]:
     if isinstance(value, dict):
         if _node_shortcode(value) is not None:
@@ -266,12 +309,25 @@ def _candidate_from_node(node: dict[str, object], *, source_surface: str) -> IgR
         is_affiliate=node.get("is_affiliate") if isinstance(node.get("is_affiliate"), bool) else None,
         sponsor_users=sponsors,
         ad_term_candidates=ad_terms,
+        pinned_on_clips_tab=_pinned_flag(node, "clips_tab_pinned_user_ids"),
+        pinned_on_timeline=_pinned_flag(node, "timeline_pinned_user_ids", "pinned_for_users"),
         raw_node_keys_sample=tuple(sorted(str(key) for key in node.keys())[:80]),
     )
 
 
 def _node_shortcode(node: dict[str, object]) -> str | None:
     return _shortcode_string_or_none(node.get("shortcode")) or _shortcode_string_or_none(node.get("code"))
+
+
+def _pinned_flag(node: dict[str, object], *keys: str) -> bool | None:
+    """Pinned posture from a media node's pinned-user-id list (first present key
+    wins): a non-empty list means pinned (the creator's own id is listed), an empty
+    list means not pinned, and None means the surface did not expose the field."""
+    for key in keys:
+        value = node.get(key)
+        if isinstance(value, list):
+            return len(value) > 0
+    return None
 
 
 def _caption_text(node: dict[str, object]) -> str | None:

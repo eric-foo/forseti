@@ -1,0 +1,970 @@
+{
+  "retrieval_time_utc": "2026-06-26T08:29:59.565404Z",
+  "route": "public @handle/shorts enumeration + /shorts/<id> serving-surface verification + /watch metadata",
+  "backend": "curl_cffi:chrome",
+  "target_candidates": 30,
+  "max_per_handle": 3,
+  "candidate_filter": "title must match fragrance/perfume/cologne/scent/related keyword regex",
+  "handles_attempted": [
+    {
+      "handle_query": "JeremyFragrance",
+      "url": "https://www.youtube.com/@JeremyFragrance/shorts",
+      "http_status": 200,
+      "final_url": "https://www.youtube.com/@JeremyFragrance/shorts",
+      "byte_size": 1111999,
+      "short_ids_found": 48
+    },
+    {
+      "handle_query": "GentsScents",
+      "url": "https://www.youtube.com/@GentsScents/shorts",
+      "http_status": 200,
+      "final_url": "https://www.youtube.com/@GentsScents/shorts",
+      "byte_size": 809825,
+      "short_ids_found": 13
+    },
+    {
+      "handle_query": "ThePerfumeGuy",
+      "url": "https://www.youtube.com/@ThePerfumeGuy/shorts",
+      "http_status": 200,
+      "final_url": "https://www.youtube.com/@ThePerfumeGuy/shorts",
+      "byte_size": 1115429,
+      "short_ids_found": 48
+    },
+    {
+      "handle_query": "SchoolofScent",
+      "url": "https://www.youtube.com/@SchoolofScent/shorts",
+      "http_status": 200,
+      "final_url": "https://www.youtube.com/@SchoolofScent/shorts",
+      "byte_size": 1111167,
+      "short_ids_found": 48
+    },
+    {
+      "handle_query": "CurlyScents",
+      "url": "https://www.youtube.com/@CurlyScents/shorts",
+      "http_status": 200,
+      "final_url": "https://www.youtube.com/@CurlyScents/shorts",
+      "byte_size": 1108688,
+      "short_ids_found": 48
+    },
+    {
+      "handle_query": "funmimonet",
+      "url": "https://www.youtube.com/@funmimonet/shorts",
+      "http_status": 200,
+      "final_url": "https://www.youtube.com/@funmimonet/shorts",
+      "byte_size": 1106195,
+      "short_ids_found": 48
+    },
+    {
+      "handle_query": "SokiLondon",
+      "url": "https://www.youtube.com/@SokiLondon/shorts",
+      "http_status": 200,
+      "final_url": "https://www.youtube.com/@SokiLondon/shorts",
+      "byte_size": 1113491,
+      "short_ids_found": 48
+    },
+    {
+      "handle_query": "TLTGReviews",
+      "url": "https://www.youtube.com/@TLTGReviews/shorts",
+      "http_status": 200,
+      "final_url": "https://www.youtube.com/@TLTGReviews/shorts",
+      "byte_size": 1106896,
+      "short_ids_found": 48
+    },
+    {
+      "handle_query": "Redolessence",
+      "url": "https://www.youtube.com/@Redolessence/shorts",
+      "http_status": 200,
+      "final_url": "https://www.youtube.com/@Redolessence/shorts",
+      "byte_size": 1112397,
+      "short_ids_found": 48
+    },
+    {
+      "handle_query": "TheFragranceApprentice",
+      "url": "https://www.youtube.com/@TheFragranceApprentice/shorts",
+      "http_status": 200,
+      "final_url": "https://www.youtube.com/@TheFragranceApprentice/shorts",
+      "byte_size": 797518,
+      "short_ids_found": 12
+    }
+  ],
+  "candidates": [
+    {
+      "video_id": "as7hye0qgYc",
+      "shorts_url": "https://www.youtube.com/shorts/as7hye0qgYc",
+      "watch_url": "https://www.youtube.com/watch?v=as7hye0qgYc",
+      "creator_handle_query": "JeremyFragrance",
+      "surface_verification": {
+        "shorts_http_status": 200,
+        "shorts_final_url": "https://www.youtube.com/shorts/as7hye0qgYc",
+        "serving_surface": "shorts"
+      },
+      "watch_http_status": 200,
+      "watch_final_url": "https://www.youtube.com/watch?v=as7hye0qgYc",
+      "wall_marker": false,
+      "author": "Jeremy Fragrance",
+      "channel_id": "UCzKrJ5NSA9o7RHYRG12kHZw",
+      "title": "UNIQUE BLUE, By SUPERZ: #jeremyfragrance #fragrance #cologne #perfume #parfum",
+      "length_seconds": 16,
+      "publish_date": "2026-06-26T01:09:58-07:00",
+      "view_count": 136,
+      "html_sha256": "b2ae1d5e235406ee2269f3717d521d42d408545e75c919d5573f5ce85bc976a1",
+      "byte_size": 1263389,
+      "relevance_match": true
+    },
+    {
+      "video_id": "t4mAPmthgO0",
+      "shorts_url": "https://www.youtube.com/shorts/t4mAPmthgO0",
+      "watch_url": "https://www.youtube.com/watch?v=t4mAPmthgO0",
+      "creator_handle_query": "JeremyFragrance",
+      "surface_verification": {
+        "shorts_http_status": 200,
+        "shorts_final_url": "https://www.youtube.com/shorts/t4mAPmthgO0",
+        "serving_surface": "shorts"
+      },
+      "watch_http_status": 200,
+      "watch_final_url": "https://www.youtube.com/watch?v=t4mAPmthgO0",
+      "wall_marker": false,
+      "author": "Jeremy Fragrance",
+      "channel_id": "UCzKrJ5NSA9o7RHYRG12kHZw",
+      "title": "FRAGRANCE Video: #jeremyfragrance #fragrance #cologne #perfume #parfum",
+      "length_seconds": 17,
+      "publish_date": "2026-06-26T01:09:14-07:00",
+      "view_count": 60,
+      "html_sha256": "98f4046748a22c71937591a10701d8a9bdb759e97d6480bc16a14278bd0fae4c",
+      "byte_size": 1185018,
+      "relevance_match": true
+    },
+    {
+      "video_id": "s7F2VDKEIPk",
+      "shorts_url": "https://www.youtube.com/shorts/s7F2VDKEIPk",
+      "watch_url": "https://www.youtube.com/watch?v=s7F2VDKEIPk",
+      "creator_handle_query": "JeremyFragrance",
+      "surface_verification": {
+        "shorts_http_status": 200,
+        "shorts_final_url": "https://www.youtube.com/shorts/s7F2VDKEIPk",
+        "serving_surface": "shorts"
+      },
+      "watch_http_status": 200,
+      "watch_final_url": "https://www.youtube.com/watch?v=s7F2VDKEIPk",
+      "wall_marker": false,
+      "author": "Jeremy Fragrance",
+      "channel_id": "UCzKrJ5NSA9o7RHYRG12kHZw",
+      "title": "final70 70% FRAGRANCE Discount, At 700USD/EUR at www.fragrance.one #jeremyfragrance #fragrance",
+      "length_seconds": 40,
+      "publish_date": "2026-06-26T01:08:28-07:00",
+      "view_count": 225,
+      "html_sha256": "56ef8efa85ae18e01d93cc3cb9eac18af237a28b5a0b9a8246ce92d6d368cdc1",
+      "byte_size": 1074019,
+      "relevance_match": true
+    },
+    {
+      "video_id": "ljZ7_JHXNdw",
+      "shorts_url": "https://www.youtube.com/shorts/ljZ7_JHXNdw",
+      "watch_url": "https://www.youtube.com/watch?v=ljZ7_JHXNdw",
+      "creator_handle_query": "GentsScents",
+      "surface_verification": {
+        "shorts_http_status": 200,
+        "shorts_final_url": "https://www.youtube.com/shorts/ljZ7_JHXNdw",
+        "serving_surface": "shorts"
+      },
+      "watch_http_status": 200,
+      "watch_final_url": "https://www.youtube.com/watch?v=ljZ7_JHXNdw",
+      "wall_marker": false,
+      "author": "Gents Scents",
+      "channel_id": "UC9IImcLkUdmURWtQhxu8VwQ",
+      "title": "Ultra Male For Ultra Cheap - Lattafa Ramz Silver",
+      "length_seconds": 54,
+      "publish_date": "2023-03-23T15:12:41-07:00",
+      "view_count": 240199,
+      "html_sha256": "9f340ba2ff41b187e0d163c5d19b92a469639357b317dacc31de46cbd07a4c96",
+      "byte_size": 1376798,
+      "relevance_match": true
+    },
+    {
+      "video_id": "VOGZUccarFc",
+      "shorts_url": "https://www.youtube.com/shorts/VOGZUccarFc",
+      "watch_url": "https://www.youtube.com/watch?v=VOGZUccarFc",
+      "creator_handle_query": "GentsScents",
+      "surface_verification": {
+        "shorts_http_status": 200,
+        "shorts_final_url": "https://www.youtube.com/shorts/VOGZUccarFc",
+        "serving_surface": "shorts"
+      },
+      "watch_http_status": 200,
+      "watch_final_url": "https://www.youtube.com/watch?v=VOGZUccarFc",
+      "wall_marker": false,
+      "author": "Gents Scents",
+      "channel_id": "UC9IImcLkUdmURWtQhxu8VwQ",
+      "title": "Top 10 Spring Designer Fragrances For Men 2023",
+      "length_seconds": 52,
+      "publish_date": "2023-03-18T11:30:33-07:00",
+      "view_count": 83392,
+      "html_sha256": "9de54d859dfd646d4bfd19d24780c93beaff701ac02f780fd9c5996837ffdf72",
+      "byte_size": 1397683,
+      "relevance_match": true
+    },
+    {
+      "video_id": "sy-rczzFrYg",
+      "shorts_url": "https://www.youtube.com/shorts/sy-rczzFrYg",
+      "watch_url": "https://www.youtube.com/watch?v=sy-rczzFrYg",
+      "creator_handle_query": "GentsScents",
+      "surface_verification": {
+        "shorts_http_status": 200,
+        "shorts_final_url": "https://www.youtube.com/shorts/sy-rczzFrYg",
+        "serving_surface": "shorts"
+      },
+      "watch_http_status": 200,
+      "watch_final_url": "https://www.youtube.com/watch?v=sy-rczzFrYg",
+      "wall_marker": false,
+      "author": "Gents Scents",
+      "channel_id": "UC9IImcLkUdmURWtQhxu8VwQ",
+      "title": "The Best Blue Fragrances For The Classy Modern Man",
+      "length_seconds": 58,
+      "publish_date": "2023-03-13T12:00:20-07:00",
+      "view_count": 198078,
+      "html_sha256": "06f92a1c3d88bcd4ceb54ac9408209dd898bcb1a7653c1bd91649d988ada0f6f",
+      "byte_size": 1431636,
+      "relevance_match": true
+    },
+    {
+      "video_id": "rmDwkTrzNxo",
+      "shorts_url": "https://www.youtube.com/shorts/rmDwkTrzNxo",
+      "watch_url": "https://www.youtube.com/watch?v=rmDwkTrzNxo",
+      "creator_handle_query": "ThePerfumeGuy",
+      "surface_verification": {
+        "shorts_http_status": 200,
+        "shorts_final_url": "https://www.youtube.com/shorts/rmDwkTrzNxo",
+        "serving_surface": "shorts"
+      },
+      "watch_http_status": 200,
+      "watch_final_url": "https://www.youtube.com/watch?v=rmDwkTrzNxo",
+      "wall_marker": false,
+      "author": "The Perfume Guy",
+      "channel_id": "UCFarEEFsV90-pvUU0XdUdgQ",
+      "title": "$88 for the BEST La Vie Est Belle Flanker?! 😍",
+      "length_seconds": 119,
+      "publish_date": "2025-10-30T17:30:56-07:00",
+      "view_count": 15449,
+      "html_sha256": "8d722c7f28044592918b124ec579ec7e308520e87568425b059527b69ec47950",
+      "byte_size": 1149048,
+      "relevance_match": true
+    },
+    {
+      "video_id": "5QDcTenklxg",
+      "shorts_url": "https://www.youtube.com/shorts/5QDcTenklxg",
+      "watch_url": "https://www.youtube.com/watch?v=5QDcTenklxg",
+      "creator_handle_query": "ThePerfumeGuy",
+      "surface_verification": {
+        "shorts_http_status": 200,
+        "shorts_final_url": "https://www.youtube.com/shorts/5QDcTenklxg",
+        "serving_surface": "shorts"
+      },
+      "watch_http_status": 200,
+      "watch_final_url": "https://www.youtube.com/watch?v=5QDcTenklxg",
+      "wall_marker": false,
+      "author": "The Perfume Guy",
+      "channel_id": "UCFarEEFsV90-pvUU0XdUdgQ",
+      "title": "The Best Fruity Oud You’re Not Wearing!",
+      "length_seconds": 90,
+      "publish_date": "2025-10-28T17:30:09-07:00",
+      "view_count": 17917,
+      "html_sha256": "01f6fbbd29ca4fefee5e36b905a31aff10699d916a5d3c8d60d0fd12886c6d09",
+      "byte_size": 1130291,
+      "relevance_match": true
+    },
+    {
+      "video_id": "hfyoVdOAYt4",
+      "shorts_url": "https://www.youtube.com/shorts/hfyoVdOAYt4",
+      "watch_url": "https://www.youtube.com/watch?v=hfyoVdOAYt4",
+      "creator_handle_query": "ThePerfumeGuy",
+      "surface_verification": {
+        "shorts_http_status": 200,
+        "shorts_final_url": "https://www.youtube.com/shorts/hfyoVdOAYt4",
+        "serving_surface": "shorts"
+      },
+      "watch_http_status": 200,
+      "watch_final_url": "https://www.youtube.com/watch?v=hfyoVdOAYt4",
+      "wall_marker": false,
+      "author": "The Perfume Guy",
+      "channel_id": "UCFarEEFsV90-pvUU0XdUdgQ",
+      "title": "$25 Men’s Fragrance That Smells Like Luxury | Bentley for Men Intense 👑",
+      "length_seconds": 90,
+      "publish_date": "2025-10-26T17:29:46-07:00",
+      "view_count": 10379,
+      "html_sha256": "567ef2f42220a97681898f15d86941449df6988cd791408f386be02afea6fbd4",
+      "byte_size": 1138803,
+      "relevance_match": true
+    },
+    {
+      "video_id": "vl-QUTwtneY",
+      "shorts_url": "https://www.youtube.com/shorts/vl-QUTwtneY",
+      "watch_url": "https://www.youtube.com/watch?v=vl-QUTwtneY",
+      "creator_handle_query": "SchoolofScent",
+      "surface_verification": {
+        "shorts_http_status": 200,
+        "shorts_final_url": "https://www.youtube.com/shorts/vl-QUTwtneY",
+        "serving_surface": "shorts"
+      },
+      "watch_http_status": 200,
+      "watch_final_url": "https://www.youtube.com/watch?v=vl-QUTwtneY",
+      "wall_marker": false,
+      "author": "School of Scent",
+      "channel_id": "UC7yWwH6peQbpfLMVKKuR-xg",
+      "title": "The Best Summer Fragrance For Each Age Group",
+      "length_seconds": 53,
+      "publish_date": "2026-06-25T07:13:18-07:00",
+      "view_count": 7788,
+      "html_sha256": "f07a43e5bdcccf81bcae4d788f76381ffc59fd5ccaee2da2ceb604d562ace3bb",
+      "byte_size": 1243061,
+      "relevance_match": true
+    },
+    {
+      "video_id": "WEqUWKA4FUI",
+      "shorts_url": "https://www.youtube.com/shorts/WEqUWKA4FUI",
+      "watch_url": "https://www.youtube.com/watch?v=WEqUWKA4FUI",
+      "creator_handle_query": "SchoolofScent",
+      "surface_verification": {
+        "shorts_http_status": 200,
+        "shorts_final_url": "https://www.youtube.com/shorts/WEqUWKA4FUI",
+        "serving_surface": "shorts"
+      },
+      "watch_http_status": 200,
+      "watch_final_url": "https://www.youtube.com/watch?v=WEqUWKA4FUI",
+      "wall_marker": false,
+      "author": "School of Scent",
+      "channel_id": "UC7yWwH6peQbpfLMVKKuR-xg",
+      "title": "The Highest Rated Summer Fragrances At Each Price Range",
+      "length_seconds": 56,
+      "publish_date": "2026-06-24T08:52:53-07:00",
+      "view_count": 13632,
+      "html_sha256": "e4a8e5b894d0a62b0542996da499bbbb0a951e271388fe32ba4d6c1a103a7a4d",
+      "byte_size": 1246304,
+      "relevance_match": true
+    },
+    {
+      "video_id": "uaCSynFfPpc",
+      "shorts_url": "https://www.youtube.com/shorts/uaCSynFfPpc",
+      "watch_url": "https://www.youtube.com/watch?v=uaCSynFfPpc",
+      "creator_handle_query": "SchoolofScent",
+      "surface_verification": {
+        "shorts_http_status": 200,
+        "shorts_final_url": "https://www.youtube.com/shorts/uaCSynFfPpc",
+        "serving_surface": "shorts"
+      },
+      "watch_http_status": 200,
+      "watch_final_url": "https://www.youtube.com/watch?v=uaCSynFfPpc",
+      "wall_marker": false,
+      "author": "School of Scent",
+      "channel_id": "UC7yWwH6peQbpfLMVKKuR-xg",
+      "title": "This Fragrance Or SHL God Of Fire? - Mykonos Perfume Top 3 Buying Guide",
+      "length_seconds": 67,
+      "publish_date": "2026-06-23T05:55:38-07:00",
+      "view_count": 7375,
+      "html_sha256": "0b146d1c5237a7f04a8179d0950015907c6c7ef0ad3752218641b7b25d63c209",
+      "byte_size": 1261175,
+      "relevance_match": true
+    },
+    {
+      "video_id": "t2ZqtfUc56k",
+      "shorts_url": "https://www.youtube.com/shorts/t2ZqtfUc56k",
+      "watch_url": "https://www.youtube.com/watch?v=t2ZqtfUc56k",
+      "creator_handle_query": "CurlyScents",
+      "surface_verification": {
+        "shorts_http_status": 200,
+        "shorts_final_url": "https://www.youtube.com/shorts/t2ZqtfUc56k",
+        "serving_surface": "shorts"
+      },
+      "watch_http_status": 200,
+      "watch_final_url": "https://www.youtube.com/watch?v=t2ZqtfUc56k",
+      "wall_marker": false,
+      "author": "Curly Scents",
+      "channel_id": "UCIfiNVTfW49L7Z3lGLfIOeA",
+      "title": "Turning my scent of the day into a VIDEO GAME! 👾 🎮",
+      "length_seconds": 27,
+      "publish_date": "2026-03-19T08:26:16-07:00",
+      "view_count": 17881,
+      "html_sha256": "322b2820ba95dade02b8d0c79491a7600775e416a1e0be2acca8713b82558bf5",
+      "byte_size": 1147390,
+      "relevance_match": true
+    },
+    {
+      "video_id": "MN3AI-mrPWk",
+      "shorts_url": "https://www.youtube.com/shorts/MN3AI-mrPWk",
+      "watch_url": "https://www.youtube.com/watch?v=MN3AI-mrPWk",
+      "creator_handle_query": "CurlyScents",
+      "surface_verification": {
+        "shorts_http_status": 200,
+        "shorts_final_url": "https://www.youtube.com/shorts/MN3AI-mrPWk",
+        "serving_surface": "shorts"
+      },
+      "watch_http_status": 200,
+      "watch_final_url": "https://www.youtube.com/watch?v=MN3AI-mrPWk",
+      "wall_marker": false,
+      "author": "Curly Scents",
+      "channel_id": "UCIfiNVTfW49L7Z3lGLfIOeA",
+      "title": "Top 10 Best Spring Perfumes for WOMEN.",
+      "length_seconds": 35,
+      "publish_date": "2026-03-15T07:55:58-07:00",
+      "view_count": 73103,
+      "html_sha256": "f9b30546c7449ee2e0ff1f309fe34e1775fffbf3ab3e4089cea6dd301ea8ad15",
+      "byte_size": 1150396,
+      "relevance_match": true
+    },
+    {
+      "video_id": "FqTrOZbh_DE",
+      "shorts_url": "https://www.youtube.com/shorts/FqTrOZbh_DE",
+      "watch_url": "https://www.youtube.com/watch?v=FqTrOZbh_DE",
+      "creator_handle_query": "CurlyScents",
+      "surface_verification": {
+        "shorts_http_status": 200,
+        "shorts_final_url": "https://www.youtube.com/shorts/FqTrOZbh_DE",
+        "serving_surface": "shorts"
+      },
+      "watch_http_status": 200,
+      "watch_final_url": "https://www.youtube.com/watch?v=FqTrOZbh_DE",
+      "wall_marker": false,
+      "author": "Curly Scents",
+      "channel_id": "UCIfiNVTfW49L7Z3lGLfIOeA",
+      "title": "TOP 10 SEXIEST SPRING FRAGRANCES FOR MEN!",
+      "length_seconds": 29,
+      "publish_date": "2026-03-05T07:54:50-08:00",
+      "view_count": 87160,
+      "html_sha256": "29b8084e8ff8567965985e36fffecf656f65aa26b3d40a94e35530ff6d83e264",
+      "byte_size": 1155734,
+      "relevance_match": true
+    },
+    {
+      "video_id": "bPJCH9iQUhI",
+      "shorts_url": "https://www.youtube.com/shorts/bPJCH9iQUhI",
+      "watch_url": "https://www.youtube.com/watch?v=bPJCH9iQUhI",
+      "creator_handle_query": "funmimonet",
+      "surface_verification": {
+        "shorts_http_status": 200,
+        "shorts_final_url": "https://www.youtube.com/shorts/bPJCH9iQUhI",
+        "serving_surface": "shorts"
+      },
+      "watch_http_status": 200,
+      "watch_final_url": "https://www.youtube.com/watch?v=bPJCH9iQUhI",
+      "wall_marker": false,
+      "author": "Funmi Monet",
+      "channel_id": "UCULGc5bSAoCIUMc-hQpjCXw",
+      "title": "#DovePartner The best smelling skin on the block starts with @dove Serum+ Oil Body Wash",
+      "length_seconds": 57,
+      "publish_date": "2026-06-15T15:53:42-07:00",
+      "view_count": 924,
+      "html_sha256": "a7b8c6f9eeebf95c48a36c13acbf3b1c9b4111cb4a08cb0ea560ba8b1541844f",
+      "byte_size": 1139749,
+      "relevance_match": true
+    },
+    {
+      "video_id": "Uj4bVTM6dm8",
+      "shorts_url": "https://www.youtube.com/shorts/Uj4bVTM6dm8",
+      "watch_url": "https://www.youtube.com/watch?v=Uj4bVTM6dm8",
+      "creator_handle_query": "funmimonet",
+      "surface_verification": {
+        "shorts_http_status": 200,
+        "shorts_final_url": "https://www.youtube.com/shorts/Uj4bVTM6dm8",
+        "serving_surface": "shorts"
+      },
+      "watch_http_status": 200,
+      "watch_final_url": "https://www.youtube.com/watch?v=Uj4bVTM6dm8",
+      "wall_marker": false,
+      "author": "Funmi Monet",
+      "channel_id": "UCULGc5bSAoCIUMc-hQpjCXw",
+      "title": "Notes Shanghai 2025 #notesshanghai #perfume #notesshanghai2025 #fragrance",
+      "length_seconds": 45,
+      "publish_date": "2025-04-07T19:17:59-07:00",
+      "view_count": 2642,
+      "html_sha256": "af7d19ae485776869077083b644fc8185865864b403e2b819586b25e44081622",
+      "byte_size": 1071299,
+      "relevance_match": true
+    },
+    {
+      "video_id": "ddGipRGnWrI",
+      "shorts_url": "https://www.youtube.com/shorts/ddGipRGnWrI",
+      "watch_url": "https://www.youtube.com/watch?v=ddGipRGnWrI",
+      "creator_handle_query": "funmimonet",
+      "surface_verification": {
+        "shorts_http_status": 200,
+        "shorts_final_url": "https://www.youtube.com/shorts/ddGipRGnWrI",
+        "serving_surface": "shorts"
+      },
+      "watch_http_status": 200,
+      "watch_final_url": "https://www.youtube.com/watch?v=ddGipRGnWrI",
+      "wall_marker": false,
+      "author": "Funmi Monet",
+      "channel_id": "UCULGc5bSAoCIUMc-hQpjCXw",
+      "title": "How I safely packed 48lbs of perfume back to the US #perfumecollection #nicheperfume",
+      "length_seconds": 33,
+      "publish_date": "2024-08-05T16:45:02-07:00",
+      "view_count": 13286,
+      "html_sha256": "751e38731e50a8e6f1901b6e41d41d4ec5f210b8456835487838e0ee4bc65475",
+      "byte_size": 1081138,
+      "relevance_match": true
+    },
+    {
+      "video_id": "XDscn2sgW3w",
+      "shorts_url": "https://www.youtube.com/shorts/XDscn2sgW3w",
+      "watch_url": "https://www.youtube.com/watch?v=XDscn2sgW3w",
+      "creator_handle_query": "SokiLondon",
+      "surface_verification": {
+        "shorts_http_status": 200,
+        "shorts_final_url": "https://www.youtube.com/shorts/XDscn2sgW3w",
+        "serving_surface": "shorts"
+      },
+      "watch_http_status": 200,
+      "watch_final_url": "https://www.youtube.com/watch?v=XDscn2sgW3w",
+      "wall_marker": false,
+      "author": "Soki London",
+      "channel_id": "UCtBpe765Fy-USxg_L8hGDPg",
+      "title": "Which Is The Best Version Of The New CK Euphoria Elixir Perfumes...? | Soki London",
+      "length_seconds": 56,
+      "publish_date": "2026-06-25T02:39:18-07:00",
+      "view_count": 735,
+      "html_sha256": "3f63b6b26c9ee794d7125249065544c2c3b20472a8700af30fc7b04f6948c76d",
+      "byte_size": 1509965,
+      "relevance_match": true
+    },
+    {
+      "video_id": "Rxufi0kOFaM",
+      "shorts_url": "https://www.youtube.com/shorts/Rxufi0kOFaM",
+      "watch_url": "https://www.youtube.com/watch?v=Rxufi0kOFaM",
+      "creator_handle_query": "SokiLondon",
+      "surface_verification": {
+        "shorts_http_status": 200,
+        "shorts_final_url": "https://www.youtube.com/shorts/Rxufi0kOFaM",
+        "serving_surface": "shorts"
+      },
+      "watch_http_status": 200,
+      "watch_final_url": "https://www.youtube.com/watch?v=Rxufi0kOFaM",
+      "wall_marker": false,
+      "author": "Soki London",
+      "channel_id": "UCtBpe765Fy-USxg_L8hGDPg",
+      "title": "Cleopatra was a finalist last week for Best Fragrance 2026 💛 👑  | Soki London",
+      "length_seconds": 11,
+      "publish_date": "2026-06-15T05:13:50-07:00",
+      "view_count": 1970,
+      "html_sha256": "b97848104314f0700ec9018358d479b173a928e4cc75929040201596856f38bc",
+      "byte_size": 1372499,
+      "relevance_match": true
+    },
+    {
+      "video_id": "Fd-aChpt_Ss",
+      "shorts_url": "https://www.youtube.com/shorts/Fd-aChpt_Ss",
+      "watch_url": "https://www.youtube.com/watch?v=Fd-aChpt_Ss",
+      "creator_handle_query": "SokiLondon",
+      "surface_verification": {
+        "shorts_http_status": 200,
+        "shorts_final_url": "https://www.youtube.com/shorts/Fd-aChpt_Ss",
+        "serving_surface": "shorts"
+      },
+      "watch_http_status": 200,
+      "watch_final_url": "https://www.youtube.com/watch?v=Fd-aChpt_Ss",
+      "wall_marker": false,
+      "author": "Soki London",
+      "channel_id": "UCtBpe765Fy-USxg_L8hGDPg",
+      "title": "@EmiBudhabhai Tries The Soki London Ophelia Travel Spray 🌸❤️",
+      "length_seconds": 34,
+      "publish_date": "2026-06-08T06:20:51-07:00",
+      "view_count": 1187,
+      "html_sha256": "ec7c86125a96213e9481737277111be393882114cf42083c5b0930502d1fc2ef",
+      "byte_size": 1259207,
+      "relevance_match": true
+    },
+    {
+      "video_id": "7S40eU8FDCY",
+      "shorts_url": "https://www.youtube.com/shorts/7S40eU8FDCY",
+      "watch_url": "https://www.youtube.com/watch?v=7S40eU8FDCY",
+      "creator_handle_query": "TLTGReviews",
+      "surface_verification": {
+        "shorts_http_status": 200,
+        "shorts_final_url": "https://www.youtube.com/shorts/7S40eU8FDCY",
+        "serving_surface": "shorts"
+      },
+      "watch_http_status": 200,
+      "watch_final_url": "https://www.youtube.com/watch?v=7S40eU8FDCY",
+      "wall_marker": false,
+      "author": "TLTG Reviews",
+      "channel_id": "UCmYZrY_MVZy5Iiwlua029kg",
+      "title": "Spectrum Chill is definitely one of THE BEST Clone Releases of 2026",
+      "length_seconds": 48,
+      "publish_date": "2026-06-24T12:33:43-07:00",
+      "view_count": 2778,
+      "html_sha256": "e0e940c6c1306daff5a518810931293a1022758f51efa3c537156d4519bad892",
+      "byte_size": 1388600,
+      "relevance_match": true
+    },
+    {
+      "video_id": "-V7MN2IWMpA",
+      "shorts_url": "https://www.youtube.com/shorts/-V7MN2IWMpA",
+      "watch_url": "https://www.youtube.com/watch?v=-V7MN2IWMpA",
+      "creator_handle_query": "TLTGReviews",
+      "surface_verification": {
+        "shorts_http_status": 200,
+        "shorts_final_url": "https://www.youtube.com/shorts/-V7MN2IWMpA",
+        "serving_surface": "shorts"
+      },
+      "watch_http_status": 200,
+      "watch_final_url": "https://www.youtube.com/watch?v=-V7MN2IWMpA",
+      "wall_marker": false,
+      "author": "TLTG Reviews",
+      "channel_id": "UCmYZrY_MVZy5Iiwlua029kg",
+      "title": "The Fragrance to Celebrate a Successful Show",
+      "length_seconds": 177,
+      "publish_date": "2026-06-21T07:06:00-07:00",
+      "view_count": 6549,
+      "html_sha256": "fdbd5c620d6930ee5b01315831d25382ae58e236df1848956b3a4041026c484a",
+      "byte_size": 1397678,
+      "relevance_match": true
+    },
+    {
+      "video_id": "Ln1LUflj8d0",
+      "shorts_url": "https://www.youtube.com/shorts/Ln1LUflj8d0",
+      "watch_url": "https://www.youtube.com/watch?v=Ln1LUflj8d0",
+      "creator_handle_query": "TLTGReviews",
+      "surface_verification": {
+        "shorts_http_status": 200,
+        "shorts_final_url": "https://www.youtube.com/shorts/Ln1LUflj8d0",
+        "serving_surface": "shorts"
+      },
+      "watch_http_status": 200,
+      "watch_final_url": "https://www.youtube.com/watch?v=Ln1LUflj8d0",
+      "wall_marker": false,
+      "author": "TLTG Reviews",
+      "channel_id": "UCmYZrY_MVZy5Iiwlua029kg",
+      "title": "Lattafa Khamrah Waha can be worn in ANY SEASON!",
+      "length_seconds": 90,
+      "publish_date": "2026-06-15T15:27:01-07:00",
+      "view_count": 5257,
+      "html_sha256": "51df84bfb21841214cd31d822d40ead41b60dd16b8c6520646e3ed5e5ad35eed",
+      "byte_size": 1378115,
+      "relevance_match": true
+    },
+    {
+      "video_id": "JMmEIv_oG4o",
+      "shorts_url": "https://www.youtube.com/shorts/JMmEIv_oG4o",
+      "watch_url": "https://www.youtube.com/watch?v=JMmEIv_oG4o",
+      "creator_handle_query": "Redolessence",
+      "surface_verification": {
+        "shorts_http_status": 200,
+        "shorts_final_url": "https://www.youtube.com/shorts/JMmEIv_oG4o",
+        "serving_surface": "shorts"
+      },
+      "watch_http_status": 200,
+      "watch_final_url": "https://www.youtube.com/watch?v=JMmEIv_oG4o",
+      "wall_marker": false,
+      "author": "Redolessence",
+      "channel_id": "UCuSy0Z5UwvkMQ7lXRbUdOnQ",
+      "title": "Rasasi Hawas Reina Perfume Review!",
+      "length_seconds": 55,
+      "publish_date": "2026-06-25T20:24:31-07:00",
+      "view_count": 2768,
+      "html_sha256": "31864af0c6161ae59cc73adcd7d56f2822755841bf093828a9690f40c44e5dc4",
+      "byte_size": 1170339,
+      "relevance_match": true
+    },
+    {
+      "video_id": "_Gp2AmN74E8",
+      "shorts_url": "https://www.youtube.com/shorts/_Gp2AmN74E8",
+      "watch_url": "https://www.youtube.com/watch?v=_Gp2AmN74E8",
+      "creator_handle_query": "Redolessence",
+      "surface_verification": {
+        "shorts_http_status": 200,
+        "shorts_final_url": "https://www.youtube.com/shorts/_Gp2AmN74E8",
+        "serving_surface": "shorts"
+      },
+      "watch_http_status": 200,
+      "watch_final_url": "https://www.youtube.com/watch?v=_Gp2AmN74E8",
+      "wall_marker": false,
+      "author": "Redolessence",
+      "channel_id": "UCuSy0Z5UwvkMQ7lXRbUdOnQ",
+      "title": "Stallion 53 Donna Intense Perfume Review!",
+      "length_seconds": 50,
+      "publish_date": "2026-06-25T17:17:21-07:00",
+      "view_count": 1115,
+      "html_sha256": "b951701d7c3c207fc888563108a081a43b6cb0562c9008028afec5a1cf660bfc",
+      "byte_size": 1289442,
+      "relevance_match": true
+    },
+    {
+      "video_id": "Tb-_V-JVNfk",
+      "shorts_url": "https://www.youtube.com/shorts/Tb-_V-JVNfk",
+      "watch_url": "https://www.youtube.com/watch?v=Tb-_V-JVNfk",
+      "creator_handle_query": "Redolessence",
+      "surface_verification": {
+        "shorts_http_status": 200,
+        "shorts_final_url": "https://www.youtube.com/shorts/Tb-_V-JVNfk",
+        "serving_surface": "shorts"
+      },
+      "watch_http_status": 200,
+      "watch_final_url": "https://www.youtube.com/watch?v=Tb-_V-JVNfk",
+      "wall_marker": false,
+      "author": "Redolessence",
+      "channel_id": "UCuSy0Z5UwvkMQ7lXRbUdOnQ",
+      "title": "House of Dastan Love Flame Perfume Review!",
+      "length_seconds": 60,
+      "publish_date": "2026-06-25T14:16:38-07:00",
+      "view_count": 1669,
+      "html_sha256": "7cda6692482e7242728b1dcda51b4dd129008c1b5b1c0729013bd7438b8716ab",
+      "byte_size": 1184857,
+      "relevance_match": true
+    },
+    {
+      "video_id": "6k8ebJw50tU",
+      "shorts_url": "https://www.youtube.com/shorts/6k8ebJw50tU",
+      "watch_url": "https://www.youtube.com/watch?v=6k8ebJw50tU",
+      "creator_handle_query": "TheFragranceApprentice",
+      "surface_verification": {
+        "shorts_http_status": 200,
+        "shorts_final_url": "https://www.youtube.com/shorts/6k8ebJw50tU",
+        "serving_surface": "shorts"
+      },
+      "watch_http_status": 200,
+      "watch_final_url": "https://www.youtube.com/watch?v=6k8ebJw50tU",
+      "wall_marker": false,
+      "author": "The Fragrance Apprentice",
+      "channel_id": "UCMz0tE1qg5SwmrAF3Cshe0A",
+      "title": "5th September 2026 will be the end of the Fragrance Apprentice",
+      "length_seconds": 37,
+      "publish_date": "2025-04-14T11:09:41-07:00",
+      "view_count": 10678,
+      "html_sha256": "94284dc51a6a899501e210b201681cac4e30cf6e9ef7e5c64703b050f717401d",
+      "byte_size": 1113511,
+      "relevance_match": true
+    },
+    {
+      "video_id": "5e4y5yNagRI",
+      "shorts_url": "https://www.youtube.com/shorts/5e4y5yNagRI",
+      "watch_url": "https://www.youtube.com/watch?v=5e4y5yNagRI",
+      "creator_handle_query": "TheFragranceApprentice",
+      "surface_verification": {
+        "shorts_http_status": 200,
+        "shorts_final_url": "https://www.youtube.com/shorts/5e4y5yNagRI",
+        "serving_surface": "shorts"
+      },
+      "watch_http_status": 200,
+      "watch_final_url": "https://www.youtube.com/watch?v=5e4y5yNagRI",
+      "wall_marker": false,
+      "author": "The Fragrance Apprentice",
+      "channel_id": "UCMz0tE1qg5SwmrAF3Cshe0A",
+      "title": "I STILL forbid you to buy this fragrance.",
+      "length_seconds": 19,
+      "publish_date": "2023-12-16T08:51:42-08:00",
+      "view_count": 10758,
+      "html_sha256": "9e4f1f2a35e2879ab6fe8efe94c7f3d2accf13d1a33f3fb4811419c808f7888c",
+      "byte_size": 1078261,
+      "relevance_match": true
+    },
+    {
+      "video_id": "WcSRnnwSAJM",
+      "shorts_url": "https://www.youtube.com/shorts/WcSRnnwSAJM",
+      "watch_url": "https://www.youtube.com/watch?v=WcSRnnwSAJM",
+      "creator_handle_query": "TheFragranceApprentice",
+      "surface_verification": {
+        "shorts_http_status": 200,
+        "shorts_final_url": "https://www.youtube.com/shorts/WcSRnnwSAJM",
+        "serving_surface": "shorts"
+      },
+      "watch_http_status": 200,
+      "watch_final_url": "https://www.youtube.com/watch?v=WcSRnnwSAJM",
+      "wall_marker": false,
+      "author": "The Fragrance Apprentice",
+      "channel_id": "UCMz0tE1qg5SwmrAF3Cshe0A",
+      "title": "The Fragrance That Smells of Christmas and Horse Poop",
+      "length_seconds": 55,
+      "publish_date": "2023-12-10T07:00:21-08:00",
+      "view_count": 7750,
+      "html_sha256": "13e73112ce134656c3dce2049ee8b63685a5c02813e86121c836b8f14fff9d21",
+      "byte_size": 1139547,
+      "relevance_match": true
+    }
+  ],
+  "skipped_non_relevant": [
+    {
+      "video_id": "oFSnzMS8yxA",
+      "creator_handle_query": "CurlyScents",
+      "author": "Curly Scents",
+      "title": "The New Carolina Herrera Good Girl Jasmine Absolute 😍 #ad #goodgirlcarolinaherrera #carolinaherrera",
+      "length_seconds": 11,
+      "publish_date": "2026-03-30T08:09:13-07:00"
+    },
+    {
+      "video_id": "zJVS5UnoHIY",
+      "creator_handle_query": "funmimonet",
+      "author": "Funmi Monet",
+      "title": "NYX Fat Oil Collection #nyxcosmeticspartner",
+      "length_seconds": 56,
+      "publish_date": "2026-05-04T14:00:41-07:00"
+    },
+    {
+      "video_id": "DIMlwC1LsHg",
+      "creator_handle_query": "funmimonet",
+      "author": "Funmi Monet",
+      "title": "#NYXProfessionalMakep",
+      "length_seconds": 32,
+      "publish_date": "2026-04-13T15:12:04-07:00"
+    },
+    {
+      "video_id": "GcAIds8HW38",
+      "creator_handle_query": "funmimonet",
+      "author": "Funmi Monet",
+      "title": "Pacifica Beauty Vanilla Whip",
+      "length_seconds": 42,
+      "publish_date": "2026-03-15T18:46:18-07:00"
+    },
+    {
+      "video_id": "moiH3xaltg0",
+      "creator_handle_query": "funmimonet",
+      "author": "Funmi Monet",
+      "title": "Clarins Total Repair Eye Lift",
+      "length_seconds": 51,
+      "publish_date": "2025-10-24T14:06:25-07:00"
+    },
+    {
+      "video_id": "ieDgm6dPS3s",
+      "creator_handle_query": "funmimonet",
+      "author": "Funmi Monet",
+      "title": "Clarins Total Repair Eye Lift",
+      "length_seconds": 43,
+      "publish_date": "2025-10-24T14:02:36-07:00"
+    },
+    {
+      "video_id": "KAZ5vxzIunA",
+      "creator_handle_query": "funmimonet",
+      "author": "Funmi Monet",
+      "title": "Olay Strawberry Fizz body wash! 🍓",
+      "length_seconds": 35,
+      "publish_date": "2025-06-23T10:57:20-07:00"
+    },
+    {
+      "video_id": "xYrzzqaOO8c",
+      "creator_handle_query": "funmimonet",
+      "author": "Funmi Monet",
+      "title": "Nautica Mother’s Day gift!",
+      "length_seconds": 56,
+      "publish_date": "2025-05-05T21:08:57-07:00"
+    },
+    {
+      "video_id": "IVSFg1mD2Mk",
+      "creator_handle_query": "funmimonet",
+      "author": "Funmi Monet",
+      "title": "Notes Shanghai vlog  #notesshanghai, #notesshanghai2025",
+      "length_seconds": 38,
+      "publish_date": "2025-04-02T20:11:07-07:00"
+    },
+    {
+      "video_id": "djskjcat9dM",
+      "creator_handle_query": "funmimonet",
+      "author": "Funmi Monet",
+      "title": "EOS Vanilla Cashmere",
+      "length_seconds": 59,
+      "publish_date": "2025-02-24T15:49:19-08:00"
+    },
+    {
+      "video_id": "1oC-b-agw3I",
+      "creator_handle_query": "funmimonet",
+      "author": "Funmi Monet",
+      "title": "Laneige Cream Skin",
+      "length_seconds": 32,
+      "publish_date": "2024-11-07T08:35:30-08:00"
+    },
+    {
+      "video_id": "ayeu1FXH-vg",
+      "creator_handle_query": "funmimonet",
+      "author": "Funmi Monet",
+      "title": "SAVE MONEY ON LUXURY IN ITALY #luxuryshopping",
+      "length_seconds": 53,
+      "publish_date": "2024-08-05T19:30:02-07:00"
+    },
+    {
+      "video_id": "rnJjtCdMZyo",
+      "creator_handle_query": "TLTGReviews",
+      "author": "TLTG Reviews",
+      "title": "Just Happy to have a shot at the overall championship. no chance beating this giant though 😂",
+      "length_seconds": 134,
+      "publish_date": "2026-06-20T19:02:26-07:00"
+    },
+    {
+      "video_id": "wBzGGKsOdyY",
+      "creator_handle_query": "TLTGReviews",
+      "author": "TLTG Reviews",
+      "title": "Success!",
+      "length_seconds": 75,
+      "publish_date": "2026-06-20T18:16:27-07:00"
+    },
+    {
+      "video_id": "zHTuK2_Ouf0",
+      "creator_handle_query": "TLTGReviews",
+      "author": "TLTG Reviews",
+      "title": "Master's Men's Physique 40+ Awards | NPC Riptide Classic 2026",
+      "length_seconds": 18,
+      "publish_date": "2026-06-20T17:59:03-07:00"
+    },
+    {
+      "video_id": "Km3iAZVrkQ0",
+      "creator_handle_query": "TLTGReviews",
+      "author": "TLTG Reviews",
+      "title": "Men's Physique Posing Routine | NPC Riptide Classic 2026",
+      "length_seconds": 34,
+      "publish_date": "2026-06-20T17:20:29-07:00"
+    },
+    {
+      "video_id": "UX8jzQCLpEY",
+      "creator_handle_query": "TLTGReviews",
+      "author": "TLTG Reviews",
+      "title": "Men's Physique Open Class A Prejudging | NPC Riptide Classic 2026",
+      "length_seconds": 56,
+      "publish_date": "2026-06-20T11:50:25-07:00"
+    },
+    {
+      "video_id": "7I1Te3BMZd8",
+      "creator_handle_query": "TLTGReviews",
+      "author": "TLTG Reviews",
+      "title": "Men's Physique Masters 40+ Prejudging | NPC Riptide Classic 2026",
+      "length_seconds": 55,
+      "publish_date": "2026-06-20T11:36:39-07:00"
+    },
+    {
+      "video_id": "-a9ZmGVYR4Y",
+      "creator_handle_query": "TLTGReviews",
+      "author": "TLTG Reviews",
+      "title": "2 Days Out from show 1 of 3",
+      "length_seconds": 60,
+      "publish_date": "2026-06-18T19:09:31-07:00"
+    },
+    {
+      "video_id": "L5676ERG1-Q",
+      "creator_handle_query": "TLTGReviews",
+      "author": "TLTG Reviews",
+      "title": "4 Days Out from Show 1 of 3",
+      "length_seconds": 58,
+      "publish_date": "2026-06-16T13:32:07-07:00"
+    },
+    {
+      "video_id": "EPcHN1WaGBY",
+      "creator_handle_query": "TheFragranceApprentice",
+      "author": "The Fragrance Apprentice",
+      "title": "GIVE THANKS TO YOUR FINAL PREACHER.",
+      "length_seconds": 74,
+      "publish_date": "2025-07-05T01:35:49-07:00"
+    },
+    {
+      "video_id": "YWnj7wFOqO0",
+      "creator_handle_query": "TheFragranceApprentice",
+      "author": "The Fragrance Apprentice",
+      "title": "Announcement of Millesime Impérial Review",
+      "length_seconds": 37,
+      "publish_date": "2025-04-14T11:00:29-07:00"
+    }
+  ],
+  "residuals": [],
+  "non_claims": [
+    "not packet-grade capture",
+    "not transcript capture",
+    "not ASR",
+    "not tone labels",
+    "not fixture admission",
+    "not validation/readiness",
+    "comments not captured"
+  ]
+}

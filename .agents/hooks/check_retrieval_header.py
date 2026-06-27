@@ -48,6 +48,7 @@ MODES
   check_retrieval_header.py --changed [--strict]   check changed + untracked
   check_retrieval_header.py --hook                 PostToolUse hook (reads
                                                    stdin JSON, always exit 0)
+  check_retrieval_header.py --selftest             pure-function cases; exit 0/1
 
   Commit/CI gate (POSIX):   python3 .agents/hooks/check_retrieval_header.py --staged --strict
   Commit/CI gate (Windows): python  .agents/hooks/check_retrieval_header.py --staged --strict
@@ -97,6 +98,31 @@ HEAD_LINES = 80  # the header sits near the top, just after the H1 title
 
 _VERSION_RE = re.compile(r"^\s*retrieval_header_version\s*:\s*(.+?)\s*$")
 _BOUNDARY_RE = re.compile(r"^\s*authority_boundary\s*:\s*(.+?)\s*$")
+_TOP_KEY_RE = re.compile(r"^([A-Za-z_][A-Za-z0-9_]*)\s*:")
+
+# Forbidden header keys (lifecycle / approval / validation STATUS leak). The
+# retrieval header stays retrieval-only: it must not carry approval, validation,
+# readiness, lifecycle, deployment, install, resolver, publication, or
+# source-of-truth STATUS. Authority (not restated here):
+#     .agents/workflow-overlay/retrieval-metadata.md  ("Forbidden Header Fields")
+# Deliberately NOT included: edit_permission, review verdict, executor, status.
+# Review-output and prompt frontmatter legitimately carry edit_permission /
+# verdict / status under the review-lanes and prompt-orchestration conventions
+# (verified against the corpus); this scan targets ONLY the status-leak keys,
+# which no current in-scope header uses (born-green). Matching is exact-key,
+# lowercased, against the header block's top-level keys -- never a body mention,
+# a nested value, or a substring.
+FORBIDDEN_HEADER_KEYS = frozenset({
+    "approval", "approval_status", "approved",
+    "validation", "validation_status", "validated", "proof_result",
+    "readiness", "readiness_status",
+    "lifecycle", "lifecycle_state", "lifecycle_status",
+    "deployment", "deployment_status", "deployed",
+    "install_status", "installed",
+    "resolver", "resolver_status",
+    "publication", "publication_status", "published",
+    "source_of_truth", "source_of_truth_status", "sot_status",
+})
 
 
 def repo_root() -> Path:
@@ -158,13 +184,50 @@ def head_lines(path: Path) -> list[str] | None:
     return text.splitlines()[:HEAD_LINES]
 
 
+def header_block_top_keys(lines: list[str]) -> set[str]:
+    """Top-level (column-0) keys, lowercased, inside the first ```yaml fence that
+    contains `retrieval_header_version`. Empty set if there is no such header.
+
+    Fence-scoped and column-0 only: a key nested under `use_when:`, a body
+    heading, or a prose mention is never returned. Pure function (testable)."""
+    in_yaml = False
+    block: list[str] = []
+    has_version = False
+    for line in lines:
+        s = line.strip()
+        if s.startswith("```"):
+            if not in_yaml and "yaml" in s.lower():
+                in_yaml, block, has_version = True, [], False
+                continue
+            if in_yaml:
+                if has_version:
+                    break  # captured the header block
+                in_yaml = False  # a different yaml block; keep looking
+                continue
+            continue
+        if in_yaml:
+            block.append(line)
+            if line.strip().startswith("retrieval_header_version"):
+                has_version = True
+    if not has_version:
+        return set()
+    keys: set[str] = set()
+    for line in block:
+        if line[:1] not in (" ", "\t", "", "-", "#"):
+            m = _TOP_KEY_RE.match(line)
+            if m:
+                keys.add(m.group(1).strip().lower())
+    return keys
+
+
 def header_problems_for_lines(lines: list[str]) -> list[str]:
     """Structural retrieval-header problems for already-read head lines (empty == ok).
 
-    Scope-INDEPENDENT: the bare validity predicate (retrieval_header_version==1 +
-    authority_boundary==retrieval_only). check_relpath applies the scope gate then
-    delegates here; the orca/ report path (header_index) applies this directly, so
-    report-mode and strict share ONE predicate definition and cannot drift.
+    Scope-INDEPENDENT predicate: retrieval_header_version==1, authority_boundary==
+    retrieval_only, and no forbidden status-leak key in the header block.
+    check_relpath applies the scope gate then delegates here; the orca/ report path
+    (header_index) applies this directly, so report-mode and strict share ONE
+    predicate definition and cannot drift.
     """
     version_val = None
     boundary_val = None
@@ -189,6 +252,15 @@ def header_problems_for_lines(lines: list[str]) -> list[str]:
     elif boundary_val != "retrieval_only":
         problems.append(
             f"`authority_boundary` is `{boundary_val}`, must be `retrieval_only`"
+        )
+    forbidden = sorted(FORBIDDEN_HEADER_KEYS & header_block_top_keys(lines))
+    if forbidden:
+        problems.append(
+            "forbidden header field(s) %s -- the retrieval header stays "
+            "retrieval-only (no approval/validation/readiness/lifecycle/deployment/"
+            "install/resolver/publication/source-of-truth status; put such state in "
+            "the artifact body, not the header)"
+            % ", ".join("`%s`" % k for k in forbidden)
         )
     return problems
 
@@ -294,7 +366,65 @@ def run_hook(root: Path) -> int:
     return 0
 
 
+def selftest() -> int:
+    """Pure-function cases for the shared header predicate. Exit 0 on pass, 1 on fail."""
+    ok = True
+
+    def check(label: str, got, exp):
+        nonlocal ok
+        status = "PASS" if got == exp else "FAIL"
+        if got != exp:
+            ok = False
+        print("%s  %-52s got=%r" % (status, label, got))
+
+    def hdr(*body: str) -> list[str]:
+        return ["# Title", "", "```yaml", "retrieval_header_version: 1",
+                *body, "authority_boundary: retrieval_only", "```"]
+
+    # --- existing predicate still holds ---
+    check("valid header passes",
+          header_problems_for_lines(hdr("artifact_role: x", "scope: y", "use_when:", "  - a")), [])
+    check("no header flagged",
+          bool(header_problems_for_lines(["# T", "", "no yaml here"])), True)
+    check("bad version flagged",
+          any("version" in p for p in header_problems_for_lines(
+              ["# T", "", "```yaml", "retrieval_header_version: 2",
+               "authority_boundary: retrieval_only", "```"])), True)
+    check("bad boundary flagged",
+          any("authority_boundary" in p for p in header_problems_for_lines(
+              ["# T", "", "```yaml", "retrieval_header_version: 1",
+               "authority_boundary: open", "```"])), True)
+
+    # --- new forbidden-status-key scan ---
+    check("forbidden approval flagged",
+          any("forbidden" in p for p in header_problems_for_lines(hdr("approval: granted"))), True)
+    check("forbidden readiness flagged",
+          any("forbidden" in p for p in header_problems_for_lines(hdr("readiness: ready"))), True)
+    check("forbidden source_of_truth flagged",
+          any("forbidden" in p for p in header_problems_for_lines(hdr("source_of_truth: yes"))), True)
+    # legit review/prompt frontmatter keys are NOT forbidden (corpus reality)
+    check("review/prompt keys not forbidden",
+          header_problems_for_lines(hdr("artifact_role: x", "edit_permission: read-only",
+                                        "reviewed_by: m", "status: done", "verdict: accept",
+                                        "de_correlation_bar: cross_vendor_discovery")), [])
+    # a forbidden WORD nested under use_when (not a top-level key) is NOT flagged
+    check("nested mention not flagged",
+          header_problems_for_lines(hdr("use_when:", "  - approval matters here")), [])
+
+    # --- header_block_top_keys ---
+    check("top key extracted", "approval" in header_block_top_keys(hdr("approval: x")), True)
+    check("nested key not a top key",
+          header_block_top_keys(hdr("use_when:", "  - approval matters")) & {"approval"}, set())
+    check("no header -> empty keys", header_block_top_keys(["# T", "", "plain"]), set())
+
+    print()
+    print("SELFTEST", "OK" if ok else "FAILED")
+    return 0 if ok else 1
+
+
 def main(argv: list[str]) -> int:
+    if "--selftest" in argv:
+        return selftest()
     parser = argparse.ArgumentParser(
         description="Advisory, forward-only retrieval-header check. "
         f"Rule authority: {RULE_AUTHORITY}",
@@ -309,6 +439,9 @@ def main(argv: list[str]) -> int:
     )
     parser.add_argument(
         "--hook", action="store_true", help="PostToolUse hook mode (stdin JSON)"
+    )
+    parser.add_argument(
+        "--selftest", action="store_true", help="run pure-function self-tests"
     )
     args = parser.parse_args(argv)
 

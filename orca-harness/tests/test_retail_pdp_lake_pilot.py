@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from data_lake.root import DataLakeRoot, DataLakeRootError
+from data_lake.root import DataLakeRoot, DataLakeRootError, raw_shard
 from source_capture.models import known_fact
 from source_capture.retail_pdp_projection import (
     PROJECTION_RETAIL_PDP_LANE,
@@ -52,7 +52,7 @@ def test_projects_committed_raw_into_a_derived_record(tmp_path: Path) -> None:
     projection, derived_path = project_retail_pdp_into_lake(data_root=root, packet_id=pid)
 
     # the Silver record landed under derived/<pid>/projection_retail_pdp/<ulid>.json
-    assert derived_path.parent == root.path / "derived" / pid / PROJECTION_RETAIL_PDP_LANE
+    assert derived_path.parent == root.path / "derived" / raw_shard(pid) / pid / PROJECTION_RETAIL_PDP_LANE
     assert derived_path.suffix == ".json"
     assert derived_path.is_file()
     assert projection.packet_id == pid
@@ -78,7 +78,7 @@ def test_re_derive_appends_a_sibling_not_overwrite(tmp_path: Path) -> None:
     _, first = project_retail_pdp_into_lake(data_root=root, packet_id=pid)
     _, second = project_retail_pdp_into_lake(data_root=root, packet_id=pid)
 
-    lane_dir = root.path / "derived" / pid / PROJECTION_RETAIL_PDP_LANE
+    lane_dir = root.path / "derived" / raw_shard(pid) / pid / PROJECTION_RETAIL_PDP_LANE
     assert first != second
     assert sorted(p.name for p in lane_dir.glob("*.json")) == sorted([first.name, second.name])
     assert len(list(lane_dir.glob("*.json"))) == 2

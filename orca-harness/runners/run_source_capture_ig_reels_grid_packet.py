@@ -31,8 +31,10 @@ from source_capture import (
     unknown_with_reason,
 )
 from source_capture.ig_reels_grid import (
+    IgReelsJoinedRow,
     IgReelsJsonCandidate,
     MEDIA_KIND_REEL,
+    infer_pinned_shortcodes_by_recency,
     iter_json_media_candidates,
     join_dom_rows_with_json_candidates,
     normalize_dom_grid_rows,
@@ -168,6 +170,7 @@ def run_source_capture_ig_reels_grid_packet(
         "dom_rows": [row.to_dict() for row in dom_rows],
         "json_candidates": [candidate.to_dict() for candidate in candidates],
         "joined_rows": [row.to_dict() for row in joined_rows],
+        "pinned_inference": _pinned_inference(joined_rows),
         "passive_json_responses": [response.to_dict() for response in capture.passive_json_responses],
         "warning_notes": list(capture.warning_notes),
         "limitation_notes": list(capture.limitation_notes) + json_limitations,
@@ -419,6 +422,7 @@ def _profile_snapshot_from_passive_responses(
         "bio": None,
         "external_url": None,
         "bio_links_count": None,
+        "bio_links": None,
         "profile_pic_url_present": None,
         "is_verified": None,
         "is_private": None,
@@ -448,6 +452,7 @@ def _profile_snapshot_from_passive_responses(
                 "bio": _string_or_none(user.get("biography")),
                 "external_url": _string_or_none(user.get("external_url")),
                 "bio_links_count": _list_count(user.get("bio_links")),
+                "bio_links": _bio_links(user.get("bio_links")),
                 "profile_pic_url_present": bool(user.get("profile_pic_url")),
                 "is_verified": user.get("is_verified") if isinstance(user.get("is_verified"), bool) else None,
                 "is_private": user.get("is_private") if isinstance(user.get("is_private"), bool) else None,
@@ -471,6 +476,28 @@ def _profile_user(payload: object) -> dict[str, object] | None:
     if isinstance(payload.get("user"), dict):
         return payload["user"]
     return None
+
+
+def _bio_links(value: object) -> list[dict[str, object]] | None:
+    """Capture the public link-in-bio destinations (title + url), not just a count.
+
+    IG ``web_profile_info`` exposes ``bio_links`` as a list of public link objects;
+    we preserve each link's title and destination URL (``url`` or ``lynx_url``).
+    These are public profile fields -- no redaction. Returns None when the source
+    did not expose a ``bio_links`` list at all (distinct from an empty list).
+    """
+    if not isinstance(value, list):
+        return None
+    links: list[dict[str, object]] = []
+    for item in value:
+        if not isinstance(item, dict):
+            continue
+        url = _string_or_none(item.get("url")) or _string_or_none(item.get("lynx_url"))
+        title = _string_or_none(item.get("title"))
+        if url is None and title is None:
+            continue
+        links.append({"title": title, "url": url})
+    return links
 
 
 def _profile_metric_observations(
@@ -575,6 +602,40 @@ def _preferred_candidate(candidates: Sequence[IgReelsJsonCandidate]) -> IgReelsJ
         "profile_feed_json_metadata": 2,
     }
     return sorted(candidates, key=lambda item: preference.get(item.source_surface, 99))[0]
+
+
+def _pinned_inference(joined_rows: Sequence[IgReelsJoinedRow]) -> dict[str, object]:
+    """Two independent reels-tab pinned signals over the reels grid, surfaced for
+    cross-check rather than as a correctness assertion: the explicit
+    ``pinned_on_clips_tab`` JSON flag vs the grid-order recency-inversion
+    heuristic. Both are scoped to the reels grid only -- main-grid/timeline pins
+    (``pinned_on_timeline``, which leak in via ``web_profile_info``) are a
+    different surface and stay out of this summary, visible per-candidate instead.
+    The two can legitimately differ: inversion is blind to a pinned *newest* reel,
+    so ``recency_matches_explicit`` only reports whether they agreed this capture;
+    downstream decides which to trust."""
+    grid_rows: list[tuple[str, int | None]] = []
+    explicit: set[str] = set()
+    for joined in joined_rows:
+        shortcode = joined.dom_row.shortcode or ""
+        taken_at = next(
+            (
+                candidate.taken_at_timestamp
+                for candidate in joined.source_surface_candidates
+                if candidate.taken_at_timestamp is not None
+            ),
+            None,
+        )
+        grid_rows.append((shortcode, taken_at))
+        if any(candidate.pinned_on_clips_tab for candidate in joined.source_surface_candidates):
+            explicit.add(shortcode)
+    inferred = list(infer_pinned_shortcodes_by_recency(grid_rows))
+    explicit_sorted = sorted(explicit)
+    return {
+        "reels_tab_inferred_pinned_by_recency": inferred,
+        "reels_tab_explicit_pinned_shortcodes": explicit_sorted,
+        "recency_matches_explicit": sorted(inferred) == explicit_sorted,
+    }
 
 
 def _observed_metric(metric: str, value: int, *, capture_timestamp: str | None) -> MetricObservation:

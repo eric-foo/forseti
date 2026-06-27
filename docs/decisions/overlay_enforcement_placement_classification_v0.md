@@ -29,6 +29,94 @@ Prepare-only **proposal + classification**. It inventories and classifies rules 
 
 Scope guard: this is the **enforcement-placement step only**. Binding the shared distillation doctrine to Orca is a separate later task and is explicitly out of scope here (see § Step 4).
 
+## Update — 2026-06-28: EP-34 (session HEAD-drift guard) considered → kept resident (premise verified-false; owner-declined the stateful version)
+
+A new Enforcement Placement handle — **EP-34, beyond the EP-01..EP-33 set** — recorded as
+**considered and NOT built.** Proposed this session as a `PreToolUse` warn when the worktree
+HEAD has drifted since session start, to harden the recurring confirm-don't-trust freshness
+miss (a stale session snapshot let a concurrent lane-rewrite go unnoticed before a commit).
+
+- **A pre-build assumption gate found the premise false.** The guard was scoped to compare the
+  current HEAD against the session-start snapshot from `session_context_capsule.py`. But that
+  hook **prints** HEAD to stdout and **persists nothing** (`run_hook` -> `print(gather(...))`; no
+  file write), and a `PreToolUse` hook cannot read session context. There is **no stored
+  session-start HEAD** for a write-time guard to read — the cheap mechanical proxy the proposal
+  assumed does not exist (the canonical "reference computed in memory and discarded" failure).
+- **Classification: JUDGMENT (kept resident).** Coding it would require the guard to **own** a
+  persisted per-session HEAD baseline (a state file written at SessionStart, read at `PreToolUse`,
+  plus resume/compact re-fire and cross-worktree staleness handling) — standing state inside a
+  currently-stateless, fail-open governance layer. Per **PLACEMENT IS NOT AUTHORITY** and the
+  mini-god-tier line, that stateful substrate is the rejected maximal shape, not a free
+  always-fires check; the rule stays resident.
+- **Owner decision (2026-06-28): not worth the lock-in — keep as doctrine.** **Named residual:**
+  no coded HEAD-drift guard; *re-verify HEAD before a write/commit/push* remains a judgment rule
+  (confirm-don't-trust), and the capsule already re-emits HEAD on resume/compact. **Revisit
+  trigger:** if stale-HEAD / concurrent-edit damage recurs materially, reconsider a stateful
+  version (a session-keyed HEAD state file, or a "last HEAD I acted on" guard).
+- Like EP-33 (deferred) and EP-02 (declined), this records a *not-built* decision: no overlay
+  rule changed, placement is not authority, so **no `direction_change_propagation` receipt is
+  owed.** Not validation, readiness, or approval.
+
+## Update — 2026-06-25: "zero governance substrate" finding superseded; EP-07 + EP-09 built; live-registry pointer
+
+This record's **§ "Method and the load-bearing finding" claim that "Orca has
+zero governance substrate today" is STALE and superseded.** Since it was written,
+a substantial deterministic substrate was built and wired. A census this session,
+cross-checked against `.claude/settings.json`, `.github/workflows/ci.yml`, and the
+repo map's "Active Hooks" note, observed:
+
+- **9 wired Claude Code hooks** (`.claude/settings.json`): PreToolUse
+  `guard_protected_actions.py` (EP-01/03, the one blocking guard) + `remind_sci.py`;
+  PostToolUse `check_retrieval_header.py` (EP-06/07), `check_repo_map_freshness.py`
+  (EP-32), `check_placement.py` (EP-04), `check_prompt_provenance.py`; Stop
+  `check_shared_files_dirty.py` + `check_token_burn.py`; SessionStart
+  `session_context_capsule.py`.
+- **7 governance `--strict` CI gates** (`.github/workflows/ci.yml`):
+  `check_map_links`, `header_index`, `check_ontology_ssot`,
+  `check_ontology_tag_validity`, `check_ontology_drift`, `check_deletion_evidence`,
+  and (new this update) `check_dcp_receipt`; plus the `orca-harness` `pytest`
+  contract suite (~18 `tests/contract/` governance tests, e.g. the no-LLM-import
+  and no-runtime-import boundary bans).
+
+So the "the moved column is empty by construction" framing no longer holds:
+several SUBSTRATE/PARTIAL rows are now built. The **EP-01..EP-33 table below stays
+the point-in-time inventory it declares itself to be — it is not the live
+registry.** The authoritative current registry is `.claude/settings.json` +
+`.github/workflows/ci.yml` + the repo map's "Active Hooks" note + validation-gates
+"Enforcement Placement".
+
+Built this update (owner-authorized: the "rule-change form checker" + "upgrade the
+header checker" picks):
+
+- **EP-09 (shape subset) — `.agents/hooks/check_dcp_receipt.py`**: a diff-scoped,
+  forward-only CI gate (sibling to the deletion-evidence gate) validating the
+  SHAPE of any real `direction_change_propagation` receipt or `_blocker` in
+  changed `.md` files — required keys, the trigger vocabulary, non-empty
+  `non_claims`. It does NOT decide doctrine-ness (so it never requires a receipt
+  to be *present* — the EP-09 over-edge stays resident) and never asserts a
+  surface was truly checked; contract templates and note-markers are skipped; the
+  inline-cap / archive-pointer / no-standalone-files rules are intentionally NOT
+  gated (not born-green — several controlling files already hold >2 inline
+  receipts). A `--audit` pass surfaced a small genuine forward-only backlog
+  (~7 files: an invalid `trigger` such as `implementation_boundary`, a missing
+  `non_claims`/`controlling_sources_updated`, or a YAML-quoting bug) — left for
+  forward-only cleanup, flagged when those files are next touched, not fixed here.
+- **EP-07 (forbidden-field subset, previously deferred) —
+  `.agents/hooks/check_retrieval_header.py`**: the shared header predicate now
+  also rejects status-leak header keys (approval / validation / readiness /
+  lifecycle / deployment / install / resolver / publication / source-of-truth),
+  flowing through both the write-time `--hook` and the `header_index --strict` CI
+  gate. Born-green. `edit_permission` / `verdict` / `status` are intentionally
+  allowed (review and prompt frontmatter use them). The `use_when` 1–3 count and
+  a closed allowed-key set were assessed and intentionally NOT enforced: the
+  corpus mixes retrieval-header fields with required review/prompt-provenance
+  frontmatter in one block, so neither is born-green.
+
+This is built substrate (advisory + CI tooling), not a doctrine change — no
+overlay rule changed and placement is not authority — so no
+`direction_change_propagation` receipt is owed (consistent with the
+EP-06/EP-32/EP-04 builds below). Not validation, readiness, or approval.
+
 ## Update — 2026-06-09: EP-06 substrate built and wired
 
 The retrieval-header substrate proposed here (EP-06) has since been

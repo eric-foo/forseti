@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from data_lake.root import DataLakeRoot, DataLakeRootError
+from data_lake.root import DataLakeRoot, DataLakeRootError, raw_shard
 from source_capture.ig_projection import (
     PROJECTION_IG_LANE,
     build_ig_creator_momentum_projection_from_packet_directory,
@@ -163,7 +163,7 @@ def test_projects_committed_ig_raw_into_a_derived_record(tmp_path: Path) -> None
 
     projection, derived_path = project_ig_creator_momentum_into_lake(data_root=root, packet_id=pid)
 
-    assert derived_path.parent == root.path / "derived" / pid / PROJECTION_IG_LANE
+    assert derived_path.parent == root.path / "derived" / raw_shard(pid) / pid / PROJECTION_IG_LANE
     assert derived_path.suffix == ".json"
     assert derived_path.is_file()
     assert projection.packet_id == pid
@@ -188,7 +188,7 @@ def test_re_derive_appends_a_sibling_not_overwrite(tmp_path: Path) -> None:
     _, first = project_ig_creator_momentum_into_lake(data_root=root, packet_id=pid)
     _, second = project_ig_creator_momentum_into_lake(data_root=root, packet_id=pid)
 
-    lane_dir = root.path / "derived" / pid / PROJECTION_IG_LANE
+    lane_dir = root.path / "derived" / raw_shard(pid) / pid / PROJECTION_IG_LANE
     assert first != second
     assert len(list(lane_dir.glob("*.json"))) == 2
 

@@ -25,7 +25,12 @@ from source_capture.proxy_profiles import ProxyProfile
 
 DEFAULT_IG_REELS_VIEWPORT_WIDTH = 1080
 DEFAULT_IG_REELS_VIEWPORT_HEIGHT = 1920
-DEFAULT_IG_REELS_SETTLE_SECONDS = 2.5
+# Widen the post-load settle window so the passive ``clips/user`` XHR (which
+# populates per-reel engagement) more reliably lands before the DOM snapshot.
+# A short window loses a race against a slow XHR and drops grid rows to the
+# honest ``no_passive_json_join_for_shortcode`` gap -- a permanent per-timepoint
+# hole in any momentum series. A late XHR is still recorded as a gap, not faked.
+DEFAULT_IG_REELS_SETTLE_SECONDS = 4.0
 DEFAULT_IG_REELS_TIMEOUT_SECONDS = 25.0
 DEFAULT_IG_REELS_MAX_RESPONSE_BYTES = 5_000_000
 

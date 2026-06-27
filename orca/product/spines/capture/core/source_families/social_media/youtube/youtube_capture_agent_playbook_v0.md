@@ -33,19 +33,23 @@ It is a costume, not a lockpick: it accesses nothing gated and defeats no authen
 
 - **Metadata:** parse the embedded `ytInitialPlayerResponse` JSON in the served `/watch?v=` HTML
   (exact `viewCount`/`lengthSeconds`/absolute-ISO `publishDate`/`channelId`/`author`/description).
+  Record the source path for exact counts: prefer `videoDetails.viewCount`, and fall back to
+  `microformat.playerMicroformatRenderer.viewCount` when the current Shorts shape omits the
+  `videoDetails` count.
 - **Comments:** POST the comments engagement-panel continuation token to `youtubei/v1/next`
   (anonymous, API key from the page). Same route for long-form and Shorts. `publishedTime` is
   **relative** ("2 days ago"); infer absolute time from publish-date floor + retrieval-time − offset.
-- **Surfaces unified:** long-form and Shorts share substrate, field paths, and comments route ->
-  one runner + `surface_type` switch. Discriminate by **serving surface** (does `/shorts/<id>` stay
-  on `/shorts/` vs redirect to `/watch`), not duration alone (Shorts run up to ~180s).
+- **Surfaces unified:** long-form and Shorts share substrate, field semantics, and comments route ->
+  one runner + `surface_type` switch, with per-field path fallbacks where YouTube varies the embedded
+  state shape. Discriminate by **serving surface** (does `/shorts/<id>` stay on `/shorts/` vs redirect
+  to `/watch`), not duration alone (Shorts run up to ~180s).
 - **Dislikes:** not publicly capturable. Ground truth only via **creator-OAuth** (consent-based);
   otherwise the **Return YouTube Dislike** API as a **low-weight labeled estimate** (accurate
   pre-2021-11-10, ±15-25% after); never a hard authenticity threshold.
 
 ## ENFORCED BY CODE (the implementation guarantees these)
 
-Current implementation: `orca-harness/_scratch/youtube_capture/` (gitignored scratch).
+Current implementation: `orca-harness/youtube_capture/` (tracked code; captured data gitignored).
 - **Single network entry point:** all fetches go through `stealth_client.http_get`; capture +
   shorts scripts import it. Don't call `urllib`/`requests` directly for YouTube.
 - **Chrome impersonation:** `stealth_client` uses `curl_cffi` `impersonate="chrome"` (matched
@@ -53,7 +57,8 @@ Current implementation: `orca-harness/_scratch/youtube_capture/` (gitignored scr
   `t13d1516h2_…` / h2, distinct from Python's `a1ebe7f9…` / `t13d1713h1_` / HTTP/1.1.
 - **Anonymous only:** a persistent Session carries anonymous cookies (CONSENT/visitor_data); **no
   account login**, no auth cookies injected.
-- **Proxy from env only:** `YT_PROXY`/`HTTPS_PROXY`; never hardcoded, never logged.
+- **No proxy in the default transport:** proxy / residential rotation is a separate higher rung;
+  never hardcode or log proxy endpoints when that rung is used.
 - **Loud non-stealth guard:** `STEALTH_OK` is false and a stderr WARNING fires if it falls back to
   urllib (detectable as Python) — never run the fallback at volume silently.
 - **Route-health from receipts, not a canary:** each packet records `comments_posture`
@@ -89,12 +94,10 @@ Current implementation: `orca-harness/_scratch/youtube_capture/` (gitignored scr
 
 ## Where the code lives / reuse
 
-The implementation is in **gitignored scratch** (`orca-harness/_scratch/youtube_capture/`): usable
-on this machine/worktree, but **not committed** — so it is not yet reusable across fresh clones.
-Promoting it to tracked `orca-harness/` code is a separate, higher-lock-in decision (committing
-scraping/anti-detect tooling) and should be made explicitly by the owner, with the legal-counsel
-caveat above in view. Until then, this playbook is the durable doctrine; the code is rebuildable
-from the recon card + this doc.
+The implementation is tracked at `orca-harness/youtube_capture/`; generated packets and route outputs
+remain gitignored (`orca-harness/youtube_capture/packets/`, `shorts_scroll_runs/`, `route_guard.json`).
+The durable code can be reused across fresh clones, but public YouTube capture still stays bounded,
+anonymous, human-rate, and subject to per-operation network approval.
 
 ## Non-claims
 

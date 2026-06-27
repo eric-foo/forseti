@@ -6,6 +6,10 @@ from typing import Any, Literal
 
 from cleaning.models import CleaningInputHandle, CleaningProjectionRef, CleaningRawAnchor
 
+# Preserved-file anchor kinds ONLY. Deliberately excludes "derived_record": projection rows are
+# views over preserved files, so a derived_record anchor must never originate from a projection
+# (a derived record has no preserved-file substrate). Pinned by
+# test_projection_never_emits_derived_record_anchor.
 _CLEANING_ANCHOR_KINDS = frozenset(
     {"file", "json_pointer", "html_selector", "script_index", "text_pattern"}
 )

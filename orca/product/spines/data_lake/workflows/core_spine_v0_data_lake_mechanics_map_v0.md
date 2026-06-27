@@ -93,8 +93,9 @@ Shared handle family:
 9. New source-family payloads default to packet/slice-keyed Attachment Records
    (the prior logical-boundary docs' typed-envelope boundary), not new direct
    `SourceCaptureSlice` fields.
-10. Storage, manifest changes, projection cache, and runtime schema are not
-    selected here.
+10. Storage engine/backend, manifest changes, projection cache, and runtime
+    schema are not selected here; engine/backend choice belongs to the Storage
+    Contract physicalization boundary.
 
 ## Layer Contract
 
@@ -126,8 +127,10 @@ Source Capture
 
 ## Gates Before Physicalization
 
-Do not open storage/schema/manifest/projection-cache/Attachment Record serialization work
-until these are true:
+Before selecting or implementing storage engine/backend, cite the later Storage,
+Physicality, Raw Admission, Write Boundary, and Derived Layout contracts that
+close or supersede these gates. Do not treat this older map's prior no-engine
+posture as a standing prohibition. Re-check these gates:
 
 1. The payload-boundary lane is landed or explicitly accepted as the base.
 2. The Retail/PDP probe, or another non-IG family probe, shows packet/slice-
@@ -148,7 +151,8 @@ shape are decided.
 
 Foregone on purpose:
 
-- no storage engine;
+- no storage engine selected by this map; the Storage Contract now permits a
+  later bounded engine/backend selection;
 - no manifest v2;
 - no Attachment Record serialization;
 - no projection cache;
@@ -178,7 +182,7 @@ irreversible physical choices wait for the non-IG probe.
 Use `orca/product/spines/data_lake/authority/core_spine_v0_data_lake_core_contract_v0.md` for
 the current lake-owned responsibility boundary and
 `orca/product/spines/data_lake/authority/core_spine_v0_data_lake_storage_contract_v0.md` for
-the non-selecting storage contract. This mechanics map remains the logical flow
+the storage contract and engine-selection boundary. This mechanics map remains the logical flow
 map; the core contract refines it by separating lake-owned findability from
 Mechanical Source Projection, keeping availability signals content-free, and
 preserving physical storage as a deferred gate.

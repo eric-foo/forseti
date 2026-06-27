@@ -35,11 +35,10 @@ direction_change_propagation:
     envelope and explicit live-access authorization are present. This does not
     move sourcing into Source Capture Armory, does not authorize same-run
     traversal, and does not authorize Source Capture Packet output.
-  trigger: implementation_boundary
+  trigger: lifecycle_boundary
   related_triggers:
-    - source_access_boundary
+    - architecture_doctrine
     - workflow_authority
-    - lifecycle_boundary
     - output_authority
   controlling_sources_updated:
     - "docs/product/data_capture_spine_reddit_candidate_url_intake_crawler_architecture_v0.md"

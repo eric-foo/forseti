@@ -62,7 +62,7 @@ def _capture_metadata(loaded, files: dict[str, str]) -> dict:
 
 def _asr_records(data_root, audio_packet_id: str) -> list[dict]:
     """Read transcript_asr derived records by path (derived records carry no by-key hash)."""
-    lane_dir = data_root.path / "derived" / audio_packet_id / _ASR_LANE
+    lane_dir = data_root.lane_dir(subtree="derived", raw_anchor=audio_packet_id, lane=_ASR_LANE)
     if not lane_dir.is_dir():
         return []
     records: list[dict] = []
@@ -162,7 +162,9 @@ def run_extraction(
                         {"anchor": anchor, "video_id": transcript.video_id, "status": "skipped_done"}
                     )
                     continue
-                member_path = data_root.path / "derived" / anchor / PRODUCT_MENTIONS_LANE / rid
+                member_path = data_root.record_path(
+                    subtree="derived", raw_anchor=anchor, lane=PRODUCT_MENTIONS_LANE, record_id=rid
+                )
                 if member_path.exists():
                     # Member record written but the completion marker is absent: a crash between the
                     # two writes. The deterministic record_id would re-collide on every rerun, so

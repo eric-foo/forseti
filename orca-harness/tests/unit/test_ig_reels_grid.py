@@ -7,6 +7,7 @@ from source_capture.ig_reels_grid import (
     STATIC_POST_VIEW_COUNT_NOT_APPLICABLE,
     MEDIA_KIND_REEL,
     WEB_PROFILE_INFO_JSON_METADATA,
+    infer_pinned_shortcodes_by_recency,
     iter_json_media_candidates,
     join_dom_rows_with_json_candidates,
     normalize_dom_grid_rows,
@@ -45,6 +46,61 @@ def test_normalize_dom_grid_rows_preserves_no_hover_hidden_engagement() -> None:
     assert row.parse_status == PARSED_NO_HOVER_GRID_ENGAGEMENT
 
 
+
+
+def test_iter_json_media_candidates_reads_pinned_flag_from_json() -> None:
+    payload = {
+        "items": [
+            {"media": {"code": "PINREEL", "clips_tab_pinned_user_ids": [123], "timeline_pinned_user_ids": []}},
+            {"media": {"code": "PLAINREEL", "clips_tab_pinned_user_ids": [], "timeline_pinned_user_ids": []}},
+            {"media": {"code": "NOFIELDS"}},
+        ]
+    }
+    by_code = {c.shortcode: c for c in iter_json_media_candidates(payload, source_surface=CLIPS_USER_JSON_METADATA)}
+    # Non-empty list = pinned; empty list = not pinned; absent field = unknown (None).
+    assert by_code["PINREEL"].pinned_on_clips_tab is True
+    assert by_code["PINREEL"].pinned_on_timeline is False
+    assert by_code["PLAINREEL"].pinned_on_clips_tab is False
+    assert by_code["NOFIELDS"].pinned_on_clips_tab is None
+    assert by_code["NOFIELDS"].pinned_on_timeline is None
+
+    # web_profile_info marks main-grid/timeline pins via pinned_for_users.
+    [web] = iter_json_media_candidates(
+        {"shortcode": "GRIDPIN", "pinned_for_users": [123]},
+        source_surface=WEB_PROFILE_INFO_JSON_METADATA,
+    )
+    assert web.pinned_on_timeline is True
+    assert web.pinned_on_clips_tab is None
+
+
+def test_infer_pinned_by_recency_flags_leading_out_of_order_reels() -> None:
+    # Reels grid (DOM) order: two older reels hoisted above the recency tail.
+    grid_rows = [
+        ("PIN1", 1000),
+        ("PIN2", 1500),
+        ("NEWEST", 9000),
+        ("OLDER", 8000),
+        ("OLDEST", 7000),
+    ]
+    assert infer_pinned_shortcodes_by_recency(grid_rows) == ("PIN1", "PIN2")
+
+
+def test_infer_pinned_by_recency_caps_at_three_and_needs_contiguous_prefix() -> None:
+    # Four leading out-of-order reels, but IG allows at most 3 pins -> cap.
+    grid_rows = [("P1", 10), ("P2", 20), ("P3", 30), ("P4", 40), ("NEWEST", 9000)]
+    assert infer_pinned_shortcodes_by_recency(grid_rows) == ("P1", "P2", "P3")
+
+
+def test_infer_pinned_by_recency_no_false_positive_blind_to_newest_and_stops_on_missing_date() -> None:
+    # Pure recency-descending grid -> no pins inferred.
+    assert infer_pinned_shortcodes_by_recency([("A", 9000), ("B", 8000), ("C", 7000)]) == ()
+
+    # Documented blind spot: a pin of the most-recent reel is not out of order,
+    # so recency inversion cannot see it (only the explicit JSON flag can).
+    assert infer_pinned_shortcodes_by_recency([("PINNED_NEWEST", 9000), ("OLDER", 8000)]) == ()
+
+    # A leading row with no joined taken_at cannot be ordered and ends the scan.
+    assert infer_pinned_shortcodes_by_recency([("NO_DATE", None), ("X", 9000)]) == ()
 
 
 def test_static_profile_post_never_promotes_visible_number_to_view_count() -> None:

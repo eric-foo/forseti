@@ -6,10 +6,16 @@ from pathlib import Path
 
 import pytest
 
-from data_lake.root import DataLakeRoot
+from data_lake.root import DataLakeRoot, raw_shard
+from runners.run_source_capture_ig_reels_grid_packet import _bio_links
+from runners.run_source_capture_ig_reels_grid_packet import _detect_ig_block
 from runners.run_source_capture_ig_reels_grid_packet import main as reels_grid_main
 from runners.run_source_capture_ig_reels_grid_packet import run_source_capture_ig_reels_grid_packet
-from source_capture.ig_reels_grid_capture import IgReelsGridCaptureSuccess, IgReelsGridPassiveResponse
+from source_capture.ig_reels_grid_capture import (
+    IgReelsGridCaptureFailure,
+    IgReelsGridCaptureSuccess,
+    IgReelsGridPassiveResponse,
+)
 
 
 def _fake_capture(**_kwargs):
@@ -20,7 +26,7 @@ def _fake_capture(**_kwargs):
                 "full_name": "Hyram",
                 "biography": "Just your average skin care addict",
                 "external_url": "https://example.test/video",
-                "bio_links": [{"title": "Video"}],
+                "bio_links": [{"title": "Video", "url": "https://example.test/video"}],
                 "profile_pic_url": "https://example.test/pic.jpg",
                 "is_verified": True,
                 "is_private": False,
@@ -139,12 +145,76 @@ def test_reels_grid_runner_writes_packet_without_item_page_fanout(tmp_path: Path
     }
     payload = json.loads((output / "raw" / "01_ig_reels_grid_capture.json").read_text(encoding="utf-8"))
     assert payload["creator_profile_snapshot"]["bio"] == "Just your average skin care addict"
+    assert payload["creator_profile_snapshot"]["bio_links"] == [
+        {"title": "Video", "url": "https://example.test/video"}
+    ]
     assert payload["joined_rows"][0]["dom_row"]["shortcode"] == "REEL123"
     captions = {item["caption_text"] for item in payload["joined_rows"][0]["source_surface_candidates"]}
     assert "Clips caption #ad" in captions
     assert "Web profile caption" in captions
 
 
+
+
+def _fake_capture_with_pinned_reel(**_kwargs):
+    result = _fake_capture(**_kwargs)
+    web_response = result.passive_json_responses[0]
+    clips = {
+        "items": [
+            {
+                "media": {
+                    "code": "PINOLD",
+                    "taken_at": 1000,
+                    "ig_play_count": 10,
+                    "clips_tab_pinned_user_ids": [5802114508],
+                    "timeline_pinned_user_ids": [],
+                }
+            },
+            {"media": {"code": "NEWEST", "taken_at": 9000, "ig_play_count": 20}},
+            {"media": {"code": "OLDER", "taken_at": 8000, "ig_play_count": 30}},
+        ]
+    }
+    clips_response = IgReelsGridPassiveResponse(
+        source_surface="clips_user_json_metadata",
+        requested_url="https://www.instagram.com/api/v1/clips/user/?target_user_id=5802114508",
+        final_url="https://www.instagram.com/api/v1/clips/user/?target_user_id=5802114508",
+        status=200,
+        ok=True,
+        body_text=json.dumps(clips),
+        response_headers={"content-type": "application/json"},
+    )
+    return replace(
+        result,
+        dom_rows=[
+            {
+                "path": f"/hyram/reel/{code}/",
+                "visibleNumericTexts": ["10"],
+                "rect": {"x": 0, "y": 0, "width": 200, "height": 300},
+            }
+            for code in ("PINOLD", "NEWEST", "OLDER")
+        ],
+        passive_json_responses=[web_response, clips_response],
+    )
+
+
+def test_reels_grid_runner_emits_pinned_inference_cross_check(tmp_path: Path) -> None:
+    output = tmp_path / "ig_reels_pinned_packet"
+
+    exit_code, message = run_source_capture_ig_reels_grid_packet(
+        handle="hyram",
+        output_directory=output,
+        decision_question="capture hyram reels grid",
+        capture_fetcher=_fake_capture_with_pinned_reel,
+    )
+
+    assert exit_code == 0
+    payload = json.loads((output / "raw" / "01_ig_reels_grid_capture.json").read_text(encoding="utf-8"))
+    inference = payload["pinned_inference"]
+    # In grid order the pinned reel is older yet sits above newer reels -> recency
+    # inversion flags it, and it independently agrees with the explicit clips_tab flag.
+    assert inference["reels_tab_inferred_pinned_by_recency"] == ["PINOLD"]
+    assert inference["reels_tab_explicit_pinned_shortcodes"] == ["PINOLD"]
+    assert inference["recency_matches_explicit"] is True
 
 
 def _fake_capture_with_static_post_row(**_kwargs):
@@ -197,7 +267,7 @@ def test_reels_grid_runner_can_commit_to_data_lake(tmp_path: Path) -> None:
 
     assert exit_code == 0
     packet_dir = Path(message)
-    assert packet_dir.parent == root.path / "raw"
+    assert packet_dir.parent == root.path / "raw" / raw_shard(packet_dir.name)
     assert root.find_packet(packet_dir.name) is not None
     assert root.read_availability(packet_dir.name) is not None
 
@@ -305,3 +375,177 @@ def test_reels_grid_main_rejects_output_when_orca_data_root_is_set(
 
     assert excinfo.value.code == 2
     assert not output.exists()
+
+
+def test_bio_links_captures_title_and_url_with_lynx_fallback() -> None:
+    assert _bio_links(
+        [
+            {"title": "Shop", "url": "https://example.test/shop"},
+            {"title": "Linktree", "lynx_url": "https://lynx.test/abc"},
+            {"title": None, "url": None},
+            "not-a-dict",
+        ]
+    ) == [
+        {"title": "Shop", "url": "https://example.test/shop"},
+        {"title": "Linktree", "url": "https://lynx.test/abc"},
+    ]
+    assert _bio_links(None) is None
+    assert _bio_links([]) == []
+
+
+# --- Exit-code contract (the typed signals the durability wrapper branches on) ---
+
+
+def _fake_capture_blocked(**_kwargs):
+    result = _fake_capture(**_kwargs)
+    return replace(result, visible_text="Please wait a few minutes before you try again.")
+
+
+def test_run_returns_exit_5_and_writes_no_packet_on_access_block(tmp_path: Path) -> None:
+    output = tmp_path / "ig_reels_blocked_packet"
+
+    exit_code, message = run_source_capture_ig_reels_grid_packet(
+        handle="hyram",
+        output_directory=output,
+        decision_question="capture hyram reels grid",
+        capture_fetcher=_fake_capture_blocked,
+    )
+
+    # Durability contract: a detected access block fails closed with exit 5 and NO packet.
+    assert exit_code == 5
+    assert "access-blocked" in message
+    assert not (output / "manifest.json").exists()
+
+
+def _fake_capture_failure(**_kwargs):
+    return IgReelsGridCaptureFailure(
+        requested_url="https://www.instagram.com/hyram/reels/",
+        failure_kind="capture_failed",
+        message="browser page observation capture failed",
+        final_url="https://www.instagram.com/hyram/reels/",
+    )
+
+
+def test_run_returns_exit_3_and_writes_no_packet_on_capture_failure(tmp_path: Path) -> None:
+    output = tmp_path / "ig_reels_capture_failed_packet"
+
+    exit_code, message = run_source_capture_ig_reels_grid_packet(
+        handle="hyram",
+        output_directory=output,
+        decision_question="capture hyram reels grid",
+        capture_fetcher=_fake_capture_failure,
+    )
+
+    # Durability contract: a capture failure is the bounded-retry signal, exit 3 (not a block).
+    assert exit_code == 3
+    assert "capture failed" in message.lower()
+    assert not (output / "manifest.json").exists()
+
+
+def test_detect_ig_block_covers_each_access_block_reason() -> None:
+    # The exit-5 contract the durability doctrine depends on: every block reason maps,
+    # including network_security_block (the de-correlated review's catch). A clean page is None.
+    assert (
+        _detect_ig_block(
+            final_url="https://www.instagram.com/accounts/login/", title=None, visible_text=""
+        )
+        == "redirected_to_login"
+    )
+    assert (
+        _detect_ig_block(
+            final_url="https://www.instagram.com/hyram/reels/",
+            title=None,
+            visible_text="Please wait a few minutes before you try again.",
+        )
+        == "rate_limited_429_interstitial"
+    )
+    assert (
+        _detect_ig_block(
+            final_url="https://www.instagram.com/hyram/reels/",
+            title="Instagram",
+            visible_text="You've been blocked from accessing this content.",
+        )
+        == "network_security_block"
+    )
+    assert (
+        _detect_ig_block(
+            final_url="https://www.instagram.com/challenge/action/", title=None, visible_text=""
+        )
+        == "challenge_route"
+    )
+    assert (
+        _detect_ig_block(
+            final_url="https://www.instagram.com/hyram/reels/", title="Hyram", visible_text="reels"
+        )
+        is None
+    )
+
+
+# --- Reels-tab scoping of pinned_inference (main-grid/timeline pins stay out) ---
+
+
+def _fake_capture_with_timeline_pin(**_kwargs):
+    result = _fake_capture(**_kwargs)
+    web_response = result.passive_json_responses[0]
+    clips = {
+        "items": [
+            {"media": {"code": "RECENT1", "taken_at": 9000, "ig_play_count": 10, "clips_tab_pinned_user_ids": []}},
+            {"media": {"code": "RECENT2", "taken_at": 8000, "ig_play_count": 20, "clips_tab_pinned_user_ids": []}},
+            {
+                "media": {
+                    "code": "GRIDPIN",
+                    "taken_at": 100,
+                    "ig_play_count": 30,
+                    "clips_tab_pinned_user_ids": [],
+                    "timeline_pinned_user_ids": [5802114508],
+                }
+            },
+        ]
+    }
+    clips_response = IgReelsGridPassiveResponse(
+        source_surface="clips_user_json_metadata",
+        requested_url="https://www.instagram.com/api/v1/clips/user/?target_user_id=5802114508",
+        final_url="https://www.instagram.com/api/v1/clips/user/?target_user_id=5802114508",
+        status=200,
+        ok=True,
+        body_text=json.dumps(clips),
+        response_headers={"content-type": "application/json"},
+    )
+    return replace(
+        result,
+        dom_rows=[
+            {
+                "path": f"/hyram/reel/{code}/",
+                "visibleNumericTexts": ["10"],
+                "rect": {"x": 0, "y": 0, "width": 200, "height": 300},
+            }
+            for code in ("RECENT1", "RECENT2", "GRIDPIN")
+        ],
+        passive_json_responses=[web_response, clips_response],
+    )
+
+
+def test_pinned_inference_excludes_main_grid_timeline_pins(tmp_path: Path) -> None:
+    output = tmp_path / "ig_reels_timeline_pin_packet"
+
+    exit_code, message = run_source_capture_ig_reels_grid_packet(
+        handle="hyram",
+        output_directory=output,
+        decision_question="capture hyram reels grid",
+        capture_fetcher=_fake_capture_with_timeline_pin,
+    )
+
+    assert exit_code == 0
+    payload = json.loads((output / "raw" / "01_ig_reels_grid_capture.json").read_text(encoding="utf-8"))
+    inference = payload["pinned_inference"]
+    # A main-grid/timeline pin (pinned_on_timeline) is NOT a reels-tab pin: it stays out of the
+    # reels summary's explicit and inferred sets, while remaining visible per-candidate.
+    assert inference["reels_tab_explicit_pinned_shortcodes"] == []
+    assert inference["reels_tab_inferred_pinned_by_recency"] == []
+    gridpin = next(
+        candidate
+        for joined in payload["joined_rows"]
+        for candidate in joined["source_surface_candidates"]
+        if candidate["shortcode"] == "GRIDPIN"
+    )
+    assert gridpin["pinned_on_timeline"] is True

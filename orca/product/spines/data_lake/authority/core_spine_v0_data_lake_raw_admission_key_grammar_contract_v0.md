@@ -42,7 +42,7 @@ selection, backend selection, canonical identity, or dedupe.
 ```text
 Lake keys are addressing handles, not identities.
 Raw admission is structural and hash-checkable, never semantic.
-The raw container path is locked at packet depth only: raw/<packet_id>/.
+The raw container is sharded for physical fanout: raw/<packet_shard>/<packet_id>/ (shard = sha256(packet_id)[:3]); by-key reads recompute the shard.
 Inner layout, serialization, canonical identity, and dedupe stay deferred/out-of-scope.
 ```
 
@@ -94,17 +94,27 @@ Lake keys are an addressing family only:
 
 ## Raw Path Grammar
 
-Locked only at packet depth:
+Locked at packet depth, under an opaque physical shard prefix:
 
 ```text
-raw/<packet_id>/
+raw/<packet_shard>/<packet_id>/
 ```
 
-`<packet_id>` must equal the manifest `packet_id`. The primary raw path must not
-encode source family, date, source URL, canonical entity/product/creator, or content
-hash. Inner packet layout (member vs sidecar vs equivalent), manifest/index
-serialization, and backend remain deferred to physicalization; incumbent
-packet-relative body paths inside the container remain acceptable.
+`<packet_id>` must equal the manifest `packet_id` and remains the authoritative raw
+by-key handle. `<packet_shard>` is a fixed-width lowercase-hex shard derived SOLELY
+from `<packet_id>` for physical fanout (incumbent: the first 3 hex chars of
+`sha256(packet_id)`, 4096 buckets), so no single directory accumulates an unbounded
+packet count at scale. It carries no source-family, date, source URL, canonical
+entity/product/creator, content-hash, or dedupe meaning, and is never lake authority;
+the primary raw path must not encode any of those meanings. **By-key lookup MUST
+recompute the shard from `packet_id`; it MUST NOT require an Availability Index,
+locator, queue, scan, or runtime event to find committed raw.** A duplicate
+`packet_id` or an existing sharded target is a collision/refusal path, never an
+overwrite or dedupe. Inner packet layout (member vs sidecar vs equivalent),
+manifest/index serialization, the exact shard width, and backend remain deferred to
+physicalization; incumbent packet-relative body paths inside the container remain
+acceptable. (Shard prefix adopted 2026-06-25; a future shard-width change is a
+separate owner-gated migration.)
 
 ## Identity Invariants
 
@@ -132,16 +142,18 @@ packet-relative body paths inside the container remain acceptable.
 
 ## Deferred / Out Of Scope
 
-Storage engine, object store/database, manifest version, member-vs-sidecar layout,
-attachment serialization, queue/event runtime, derived-record physical home,
-migration/replay tooling, canonical identity, cross-packet dedupe, semantic
-object/event identity, validation suite, and implementation route.
+Storage engine/backend (object store, database, SQL-capable embedded engine,
+or equivalent), manifest version, member-vs-sidecar layout, attachment
+serialization, queue/event runtime, derived-record physical home, migration/replay
+tooling, canonical identity, cross-packet dedupe, semantic object/event identity,
+validation suite, and implementation route.
 
 ## Non-Claims
 
 Not validation, readiness, approval, or implementation authorization. Not
-serialization, manifest, or backend selection. Not canonical identity or dedupe. Not
-ECR/SCR/Cleaning/Judgment design. Records an addressing + admission decision only.
+serialization, manifest, or engine/backend selection by this artifact. Not canonical
+identity or dedupe. Not ECR/SCR/Cleaning/Judgment design. Records an addressing +
+admission decision only.
 
 ## Direction Change Propagation
 
@@ -171,4 +183,38 @@ direction_change_propagation:
     - not implementation authorization
     - not serialization or backend selection
     - not canonical identity or dedupe
+```
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Amended 2026-06-25: the raw container path gains an opaque deterministic
+    physical shard prefix -- raw/<packet_shard>/<packet_id>/ -- with
+    <packet_shard> = sha256(packet_id)[:3] (4096 buckets), physical fanout ONLY
+    (no family/date/identity/content/dedupe meaning, never authority). <packet_id>
+    stays the authoritative by-key handle; by-key lookup recomputes the shard and
+    needs no index/locator. A duplicate packet_id or an existing sharded target
+    stays a collision/refusal. Exact shard width and backend remain deferred; a
+    future width change is a separate owner-gated migration.
+  trigger: architecture_doctrine
+  owner_directive: >
+    Owner adopted raw + derived/ack directory sharding to prevent a future
+    flat-directory reorg (standing principle: long-term structure overrides
+    ratified authority); a de-correlated different-family review (Codex) verified
+    by-key preservation, the relocate migration, and collision/rebuild handling.
+  related_triggers:
+    - lifecycle_boundary
+  controlling_sources_updated:
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_raw_admission_key_grammar_contract_v0.md
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_derived_layout_index_rebuild_contract_v0.md
+  implementation_landed:
+    - orca-harness/data_lake/root.py
+  downstream_surfaces_checked:
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_physicality_location_contract_v0.md
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_storage_contract_v0.md
+  non_claims:
+    - not validation
+    - not readiness
+    - not a storage-engine/backend selection
+    - not a shard-width finalization (incumbent 3-hex; a change is an owner-gated migration)
 ```
