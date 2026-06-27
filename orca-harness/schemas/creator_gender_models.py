@@ -7,10 +7,11 @@ DEFERRED; this file is the deterministic contract the no-LLM fusion (`scoring/cr
 consumes.
 
 Minimization posture (owner-decided): store ONLY a signed soft lean + confidence + the cue + a
-short verbatim basis + inferred provenance. There is deliberately NO categorical gender field, so
-a hard label is UNREPRESENTABLE; no commenter gender is stored. Binary male-vs-female axis;
-non-binary creators are an accepted residual handled by abstention (lean ~0 / low confidence),
-never a forced label.
+short verbatim basis + typed inferred provenance. There is deliberately NO categorical gender
+field, and provenance is a TYPED model (not an open dict) so a hard label or commenter gender
+cannot hide inside it — a hard label is genuinely UNREPRESENTABLE. No commenter gender. Binary
+male-vs-female axis; non-binary creators are an accepted residual handled by abstention (lean ~0 /
+low confidence), never a forced label.
 
 Scope/intent: docs/decisions/ig_creator_gender_demographic_signal_lane_scope_defer_v0.md.
 """
@@ -19,7 +20,7 @@ from __future__ import annotations
 
 import math
 from enum import StrEnum
-from typing import Any, Mapping, Self
+from typing import Any, Literal, Mapping, Self
 
 from pydantic import ConfigDict, Field, field_validator, model_validator
 
@@ -30,9 +31,10 @@ class GenderCueKind(StrEnum):
     """How a per-reel gender lean was cued, so the fusion can weight cues by trust.
 
     `self_presentation` is the trusted, circularity-free spine (explicit first-person/self-
-    reference). `product_marketed_gender` is a NOISY proxy held to a low weight: it risks
-    circularity with the downstream gender x product-stance cut (inferring gender from the
-    products reviewed, then cutting product-stance by gender) and cross-gender reviewing is common.
+    reference). `product_marketed_gender` is RETAINED as an auditable cue kind but EXCLUDED from
+    decisive fusion in this slice: inferring gender from the products a creator reviews, then
+    cutting product-stance by gender, is circular (and cross-gender reviewing is common). A
+    non-circular, owner-approved use would re-enable it.
     """
 
     SELF_PRESENTATION = "self_presentation"
@@ -56,14 +58,43 @@ class CreatorGenderModel(StrictModel):
         return type(self).model_validate(data)
 
 
+# A short cue is enough to audit a self-presentation read; bound it so the verbatim `basis` cannot
+# smuggle a transcript or extra free-text payload past the minimization posture.
+CREATOR_GENDER_BASIS_MAX_CHARS = 160
+
+
+class CreatorGenderSignalProvenance(CreatorGenderModel):
+    """Typed, minimal provenance for a per-reel signal.
+
+    Closes the untyped-`dict` back door: with `extra="forbid"`, a categorical gender or
+    commenter-gender key cannot hide inside provenance (e.g. `{"gender": "male"}` is rejected).
+    """
+
+    inference_origin: Literal["agent_in_the_loop"] = "agent_in_the_loop"
+    source_zone: Literal["cleaning"] = "cleaning"
+
+
+class CreatorGenderLeanProvenance(CreatorGenderModel):
+    """Typed, minimal provenance for the fused creator-level lean."""
+
+    fusion_config_version: str
+
+    @field_validator("fusion_config_version")
+    @classmethod
+    def _required_non_empty(cls, value: str) -> str:
+        if not value or not value.strip():
+            raise ValueError("field must be non-empty")
+        return value
+
+
 class CreatorGenderSignal(CreatorGenderModel):
     """One per-reel creator-gender lean cue (Pass 1, silver).
 
-    What the DEFERRED agent-in-the-loop cleaning inference will produce per reel. `gender_lean`
-    is a signed SOFT lean in [-1, 1] (convention: negative = female-leaning, positive =
-    male-leaning, ~0 = neutral / insufficient). There is NO categorical gender field, so a hard
-    label is unrepresentable. `basis` is a short verbatim self-presentation (or product-mix) cue,
-    kept for auditability; `provenance` marks the read inferred.
+    What the DEFERRED agent-in-the-loop cleaning inference will produce per reel. `gender_lean` is
+    a signed SOFT lean in [-1, 1] (convention: negative = female-leaning, positive = male-leaning,
+    ~0 = neutral / insufficient). There is NO categorical gender field and provenance is typed, so
+    a hard label is unrepresentable. `basis` is a short, length-bounded verbatim cue, kept for
+    auditability; provenance marks the read inferred.
     """
 
     creator_id: str
@@ -72,8 +103,8 @@ class CreatorGenderSignal(CreatorGenderModel):
     gender_lean: float = Field(ge=-1.0, le=1.0)
     confidence: float = Field(ge=0.0, le=1.0)
     cue_kind: GenderCueKind
-    basis: str
-    provenance: dict = Field(default_factory=dict)
+    basis: str = Field(max_length=CREATOR_GENDER_BASIS_MAX_CHARS)
+    provenance: CreatorGenderSignalProvenance = Field(default_factory=CreatorGenderSignalProvenance)
 
     @field_validator("creator_id", "signal_id", "reel_ref", "basis")
     @classmethod
@@ -98,6 +129,11 @@ class CreatorGenderLean(CreatorGenderModel):
     in [0, 1]. `abstained` True means the net signal was too weak/contested to call: `gender_lean`
     is reported 0.0 while `confidence` retains the sub-floor strength for audit. NO categorical
     label. UNCALIBRATED v0 (see `scoring/creator_gender_fusion.py`).
+
+    ACCEPTED RESIDUAL: `abstained` conflates several distinct cases — no signal, weak signal,
+    contested/net-zero signal, and outside-the-binary-axis (non-binary). That may be the right
+    minimization tradeoff for now, but it is an accepted residual, not a solved one; a future
+    `abstain_reason` could disambiguate.
     """
 
     creator_id: str
@@ -107,7 +143,7 @@ class CreatorGenderLean(CreatorGenderModel):
     evidence_ids: list[str] = Field(default_factory=list)
     fusion_config_version: str
     generated_at: str
-    provenance: dict = Field(default_factory=dict)
+    provenance: CreatorGenderLeanProvenance
 
     @field_validator("creator_id", "fusion_config_version", "generated_at")
     @classmethod

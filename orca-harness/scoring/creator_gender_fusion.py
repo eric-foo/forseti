@@ -7,9 +7,10 @@ DECIDES/COMBINES deterministically. Sibling to `audience_fusion` / `product_fusi
 folded into product-stance.
 
 Cues are weighted by kind (see `GenderCueKind`): self-presentation is trusted and circularity-
-free; product-marketed-gender is a noisy proxy held LOW (it risks circularity with the downstream
-gender x product-stance cut). The lean is signed and SOFT, abstaining below a confidence floor;
-never a hard label.
+free; product-marketed-gender is EXCLUDED from decisive fusion in this slice because it risks
+circularity with the downstream gender x product-stance cut (a single confident product cue at a
+low-but-nonzero weight could otherwise clear the floor and decide a lean by itself). The lean is
+signed and SOFT, abstaining below a confidence floor; never a hard label.
 
 UNCALIBRATED v0: the constants below are OWN constants, deliberately NOT the shared
 audience/product prior (the gender-lean distribution differs; an independent calibration is a
@@ -34,11 +35,12 @@ FUSION_CONFIG_VERSION = "0.1"
 # UNCALIBRATED v0 — OWN constants (independent of the shared audience/product prior).
 _GAIN = 2.0  # tanh squash speed on the accumulated signed lean.
 _CONFIDENCE_FLOOR = 0.40  # abstain when the squashed strength < this (the risk dial).
-# Per-cue weights: self-presentation trusted; product-marketed-gender a noisy proxy held LOW to
-# limit noise AND circularity with the gender x product-stance cut.
+# Per-cue weights: self-presentation trusted; product-marketed-gender is input-auditable but
+# NON-DECISIVE (0.0) until a non-circular, owner-approved use exists — at any nonzero weight a
+# confident product cue can clear the floor alone, which is the circularity we are avoiding.
 _CUE_WEIGHTS: dict[GenderCueKind, float] = {
     GenderCueKind.SELF_PRESENTATION: 1.0,
-    GenderCueKind.PRODUCT_MARKETED_GENDER: 0.3,
+    GenderCueKind.PRODUCT_MARKETED_GENDER: 0.0,
 }
 
 
@@ -58,7 +60,8 @@ def fuse_creator_gender(
     Each cue contributes ``gender_lean * confidence * cue_weight``; contributions accumulate, the
     signed total is squashed with tanh, and the result ABSTAINS (lean reported 0.0) when the
     squashed strength is below the confidence floor, when cues net out (genuinely contested), or
-    when there is no usable signal. Deterministic and re-runnable; evidence_ids are sorted.
+    when there is no usable signal. Cue kinds with weight 0 (currently product-marketed-gender)
+    contribute nothing and are not cited. Deterministic and re-runnable; evidence_ids are sorted.
 
     PRECONDITION: every signal must belong to ``creator_id`` (``CreatorGenderSignal`` carries
     ``creator_id``, so it is asserted here, unlike ``product_fusion``'s caller-only contract).
