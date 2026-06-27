@@ -77,6 +77,7 @@ packet without redefining Capture obligations.
 | `orca/product/spines/capture/core/source_families/retail_pdp/retail_pdp_sidecar_operator_playbook_v0.md` | Operator procedure for the bounded Retail/PDP CloakBrowser sidecar smoke across Amazon, Sephora, and Ulta: canonical URLs, flags, scratch output shape, expected projection summaries, failure taxonomy, merge-conflict posture, and code-enforceable follow-up flags. |
 | `orca/product/spines/capture/core/source_families/retail_pdp/retail_pdp_projection_playbook_v0.md` | Retail/PDP raw-packet-to-projection contract for Amazon, Sephora, and Ulta: captured inputs, projected rows, residual meanings, retailer target-binding posture, and the playbook-first boundary before auto-project wiring or ECR sequencing. |
 | `orca/product/spines/capture/core/source_families/social_media/instagram/ig_creator_roster_frontier_ledger_spec_v0.md` | Proposed current-main IG beauty creator roster/frontier ledger contract: append-only public-name observations, depth-1 discovery provenance, privacy invariants, ontology boundary, and current `250 -> 500 -> 1,000` roster gates. Non-authorizing. |
+| `orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_spec_v0.md` | Dedicated Tier-2-B public-handle linkage contract across Instagram, TikTok, and YouTube: static table-shaped ledger, declared/probable/candidate/rejected link states, public evidence thresholds, validator expectations, and non-claims. No live capture, no contact/outreach, no person identity proof. |
 
 ## Armory Components
 
@@ -434,6 +435,15 @@ ledger/privacy/frontier semantics and aligns roster sizing to current main:
 It is proposed docs-only context. It is not adoption, validation, readiness,
 capture authorization, outreach authorization, a crawler, a scheduler/runtime
 spec, an ontology amendment, or a public person-level product surface.
+
+### Creator Public-Handle Linkage Ledger Spec
+
+Purpose: define the dedicated Tier-2-B public-handle-to-public-handle linkage shape for creator accounts across Instagram, TikTok, and YouTube before any SQLite/runtime promotion.
+
+The spec is at
+`orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_spec_v0.md`. The local validator is `orca-harness/capture_spine/creator_public_handle_linkage/` with synthetic/adversarial tests under `orca-harness/tests/unit/test_creator_public_handle_linkage.py`.
+
+It is static ledger/validator work only. It is not live capture, contact/outreach authorization, non-public-handle joining, real-world identity proof, SQLite adoption, or a public person-level product surface.
 
 ### Source-Quality Example Ladder
 
