@@ -13,12 +13,12 @@
     "source_inputs": [
       {
         "source_pointer": "docs/review-inputs/youtube_shorts_fragrance_creator_ledger_v0.json",
-        "sha256": "abc788fa4e6dde0d5aa189166e7176d109c0a0c82fcf29462e31c621a2ca026b",
+        "sha256": "b534303ef0c06f611c293a376ffa93780be8a330a39195da9f34b34006828d67",
         "role": "creator grouping, handle-query labels, observed author names, pool membership, and transcript word-count bounds"
       },
       {
         "source_pointer": "docs/review-inputs/youtube_shorts_fragrance_tone_expansion200_capture_v0.json",
-        "sha256": "e1d74fe107d0ad416becb7df19cd115364ab69c46c7a3c66ed08a4b182837d0a",
+        "sha256": "66ea50d578a2503d53d1caee677173e42e9b69d7786697f68541db0a7eb3fe0f",
         "role": "200-row admitted Shorts pool provenance"
       },
       {

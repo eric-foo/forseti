@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import json
 import re
+import subprocess
 from collections import Counter
 from collections.abc import Mapping, Sequence
 from pathlib import Path
@@ -432,9 +433,29 @@ def _validate_source_input_hashes(wrapper: Mapping[str, Any]) -> None:
         source_path = _resolve_repo_relative_path(source_pointer)
         if source_path is None:
             _fail("source_input_hash_file_missing", f"source input is not a local file: {source_pointer}")
-        actual = hashlib.sha256(source_path.read_bytes()).hexdigest()
+        actual = hashlib.sha256(_read_source_input_bytes(source_pointer, source_path)).hexdigest()
         if actual != sha256:
             _fail("source_input_hash_mismatch", f"source input sha256 mismatch for {source_pointer}")
+
+
+def _read_source_input_bytes(source_pointer: str, source_path: Path) -> bytes:
+    if Path(source_pointer).is_absolute():
+        return source_path.read_bytes()
+    try:
+        root_result = subprocess.run(
+            ["git", "-C", str(source_path.parent), "rev-parse", "--show-toplevel"],
+            check=True,
+            capture_output=True,
+        )
+        repo_root = Path(root_result.stdout.decode("utf-8").strip()).resolve()
+        relpath = source_path.resolve().relative_to(repo_root).as_posix()
+        return subprocess.run(
+            ["git", "-C", str(repo_root), "cat-file", "blob", f"HEAD:{relpath}"],
+            check=True,
+            capture_output=True,
+        ).stdout
+    except (OSError, subprocess.SubprocessError, UnicodeDecodeError, ValueError):
+        return source_path.read_bytes()
 
 
 def _resolve_repo_relative_path(source_pointer: str) -> Path | None:
