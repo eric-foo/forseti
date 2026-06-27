@@ -19,6 +19,17 @@ FIXTURE_PATH = (
     / "creator_public_handle_linkage"
     / "valid_synthetic_ledger.json"
 )
+PRODUCT_LEDGER_PATH = (
+    Path(__file__).resolve().parents[3]
+    / "orca"
+    / "product"
+    / "spines"
+    / "capture"
+    / "core"
+    / "source_families"
+    / "social_media"
+    / "creator_public_handle_linkage_ledger_v0.json"
+)
 
 
 def _fixture() -> dict:
@@ -46,6 +57,16 @@ def test_valid_synthetic_fixture_loads_and_validates() -> None:
         "rejected_public_account_link",
         "candidate_public_account_link",
     }
+
+
+def test_product_public_handle_ledger_scaffold_loads_and_validates() -> None:
+    loaded = load_creator_public_handle_linkage_ledger(PRODUCT_LEDGER_PATH)
+
+    wrapper = _wrapper(loaded)
+    assert wrapper["ledger_mode"] == "public_handle_ledger"
+    assert wrapper["platform_accounts"] == []
+    assert wrapper["account_link_evidence"] == []
+    assert wrapper["creator_records"] == []
 
 
 def test_unknown_top_level_sibling_key_raises() -> None:

@@ -1,0 +1,22 @@
+{
+  "creator_public_handle_linkage_ledger": {
+    "schema_version": "creator_public_handle_linkage_ledger_v0",
+    "ledger_id": "creator_public_handle_linkage_ledger_v0",
+    "ledger_mode": "public_handle_ledger",
+    "authority_pointers": [
+      "docs/decisions/wind_caller_calibration_carveout_v0.md",
+      "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_spec_v0.md"
+    ],
+    "source_policy_posture": "Tier-2-B public-handle-to-public-handle linkage only; no non-public-handle joins; no live platform capture; no contact, outreach, audience, follower, or person-identity surface.",
+    "platform_accounts": [],
+    "account_link_evidence": [],
+    "creator_records": [],
+    "non_claims": [
+      "not real-world identity proof",
+      "not non-public-handle join",
+      "not contact or outreach authorization",
+      "not follower or audience graph",
+      "not public person-level product surface"
+    ]
+  }
+}

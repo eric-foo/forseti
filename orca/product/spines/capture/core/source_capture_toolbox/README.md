@@ -78,6 +78,7 @@ packet without redefining Capture obligations.
 | `orca/product/spines/capture/core/source_families/retail_pdp/retail_pdp_projection_playbook_v0.md` | Retail/PDP raw-packet-to-projection contract for Amazon, Sephora, and Ulta: captured inputs, projected rows, residual meanings, retailer target-binding posture, and the playbook-first boundary before auto-project wiring or ECR sequencing. |
 | `orca/product/spines/capture/core/source_families/social_media/instagram/ig_creator_roster_frontier_ledger_spec_v0.md` | Proposed current-main IG beauty creator roster/frontier ledger contract: append-only public-name observations, depth-1 discovery provenance, privacy invariants, ontology boundary, and current `250 -> 500 -> 1,000` roster gates. Non-authorizing. |
 | `orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_spec_v0.md` | Dedicated Tier-2-B public-handle linkage contract across Instagram, TikTok, and YouTube: static table-shaped ledger, declared/probable/candidate/rejected link states, public evidence thresholds, validator expectations, and non-claims. No live capture, no contact/outreach, no person identity proof. |
+| `orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json` | Empty static `public_handle_ledger` scaffold for source-backed Instagram/TikTok/YouTube public-handle joins. Validated by the creator public-handle linkage validator; no invented rows, live capture, contact/outreach, SQLite, or person identity proof. |
 
 ## Armory Components
 
@@ -441,7 +442,7 @@ spec, an ontology amendment, or a public person-level product surface.
 Purpose: define the dedicated Tier-2-B public-handle-to-public-handle linkage shape for creator accounts across Instagram, TikTok, and YouTube before any SQLite/runtime promotion.
 
 The spec is at
-`orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_spec_v0.md`. The local validator is `orca-harness/capture_spine/creator_public_handle_linkage/` with synthetic/adversarial tests under `orca-harness/tests/unit/test_creator_public_handle_linkage.py`.
+`orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_spec_v0.md`; the current empty product ledger scaffold is at `orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json`. The local validator is `orca-harness/capture_spine/creator_public_handle_linkage/` with synthetic/adversarial tests under `orca-harness/tests/unit/test_creator_public_handle_linkage.py`.
 
 It is static ledger/validator work only. It is not live capture, contact/outreach authorization, non-public-handle joining, real-world identity proof, SQLite adoption, or a public person-level product surface.
 

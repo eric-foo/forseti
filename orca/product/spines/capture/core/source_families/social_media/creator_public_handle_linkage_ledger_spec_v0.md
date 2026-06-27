@@ -14,6 +14,7 @@ use_when:
   - Checking the evidence threshold for declared, probable, candidate, or rejected public-handle links.
   - Validating a static creator public-handle linkage fixture before any database migration.
 open_next:
+  - orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json
   - docs/decisions/wind_caller_calibration_carveout_v0.md
   - orca/product/spines/capture/core/source_families/social_media/instagram/ig_creator_roster_frontier_ledger_spec_v0.md
   - orca-harness/capture_spine/creator_public_handle_linkage/validation.py
@@ -32,9 +33,13 @@ wind-caller carve-out. The controlling decision says Tier-2-B public-handle
 stitching is activated for public-handle-to-public-handle joins, while
 non-public-handle joins remain gated and Tier-3 exclusions remain absolute.
 
-This spec does not populate any real creator rows. The first implementation
-uses a synthetic fixture and validator so the linkage semantics can be tested
-hard before promoting the shape to SQLite or a runtime store.
+This spec does not authorize inventing or capturing real creator rows. The
+first implementation uses a synthetic fixture and validator so the linkage
+semantics can be tested hard before promoting the shape to SQLite or a runtime
+store. The static product ledger artifact starts as an empty
+`public_handle_ledger` scaffold at
+`orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json`;
+rows require source-backed public-handle evidence before entry.
 
 ## Source Reconciliation
 
