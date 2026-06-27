@@ -92,7 +92,8 @@ may be explored, but the observable behavior contract below must remain stable.
 A YouTube candidate row should carry, when observed:
 
 - `platform`: `youtube`;
-- `platform_video_id`;
+- `platform_video_id`, which is the video-level correlation join key across
+  YouTube behavioral surfaces;
 - `surface_type`: `shorts | long_form | unknown`;
 - `canonical_url` or watch URL;
 - `channel_id` and author/channel handle when observed;
@@ -140,13 +141,18 @@ YouTube transcript output must normalize captions and ASR into one downstream
 shape:
 
 - `platform`: `youtube`;
-- `platform_video_id`;
+- `platform_video_id`, which is the video-level correlation join key across
+  YouTube behavioral surfaces;
 - `source_kind`: `caption | asr`;
 - `caption_kind`: `manual | auto | null`;
 - `language` and `original_language_assumed` when caption-based;
 - raw anchor: caption packet id or audio packet id;
 - cue list with millisecond timing;
-- posture: `transcribed | no_caption_track | invalid_caption | download_failed | no_speech | failed` or a narrower compatible enum;
+- posture: `caption_ready | transcribed | no_caption_track | invalid_caption | download_failed | no_speech | failed`
+  or a narrower compatible enum. `caption_ready` means usable caption cues are
+  preserved; `transcribed` means usable ASR cues are available. A later
+  implementation may collapse both success states only if `source_kind` remains
+  explicit.
 - provenance: tool, tool version, model/tooling metadata, source packet id, and
   source file id or sha when available;
 - limitations, including non-authoritative flat-text views.
@@ -160,9 +166,24 @@ The completed YouTube behavioral lane must define a durable way to correlate:
 - transcript derived record;
 - product-extraction record set.
 
-The implementation may choose a bridge record, an index, or a packet/lake
-normalization path, but it must not leave these surfaces discoverable only by
-human convention.
+The video-level correlation anchor is `platform_video_id`. Persistence may
+remain per capture packet: one video can have many caption packets, audio
+packets, transcript records, and extraction record sets across reruns and source
+kinds. Correlation must represent that one-video-to-many-packets shape instead
+of forcing one packet per video.
+
+The packet-anchored links already exist for caption/audio packet -> transcript
+record -> extraction record set. The missing bridge is metadata/comment output
+to the packet-anchored transcript/lake surfaces. The implementation may choose a
+bridge record, an index, or a packet/lake normalization path, but it must not
+leave these surfaces discoverable only by human convention.
+
+When a downstream consumer needs one transcript selection for a video, the
+default canonical transcript order is manual caption, then auto caption, then
+usable ASR. Preserve all observed transcript sources and record the selection
+reason. When multiple successful captures of the same source kind exist for the
+same `platform_video_id`, select the latest successful capture by capture time
+unless an implementation spec binds a stronger quality rule.
 
 ### ExtractionFeed
 
@@ -191,14 +212,19 @@ Do not borrow these IG mechanics into YouTube:
 - shortcode-anchored persistence as the default YouTube anchor;
 - IG runner shape or DOM parser assumptions.
 
+IG source disambiguation: `ig_reels_grid.py` is the ranking-signal/parser source
+for the IG behavior borrowed here; `ig_reels_grid_capture.py` is the
+browser-render/enumeration capture source named by the parent planning note.
+
 ## Acceptance Criteria
 
 Implementation scoping may treat this spec as complete only if it can route a
 YouTube-only pass that would make the following testable:
 
-1. A YouTube video or Short has one behavioral record tying candidate identity,
-   metadata, comments posture, transcript source, persistence anchors, and
-   extraction status together.
+1. A YouTube video or Short has one behavioral record keyed by
+   `platform_video_id`, tying candidate identity, metadata, comments posture,
+   transcript source selection, one-or-more persistence anchors, and extraction
+   status together.
 2. Caption and ASR transcript paths both normalize into the same
    `TranscriptSource` contract, while preserving caption-vs-ASR provenance.
 3. YouTube comments report one of the explicit comment postures and do not imply
@@ -206,11 +232,17 @@ YouTube-only pass that would make the following testable:
 4. Selection and ranking basis is explicit, including `unknown_or_weak` when the
    current YouTube lane lacks IG-grade funnel signals.
 5. Metadata/comment legacy packets are either bridged into the correlation
-   contract or explicitly kept as a named residual with a safe lookup path.
+   contract or explicitly kept as a named residual with a deterministic
+   programmatic lookup path keyed by `platform_video_id`; manual convention is
+   not an acceptable lookup path.
 6. Existing no-LLM capture/scoring boundaries remain intact.
 7. Existing transcript product extraction behavior remains compatible for both
    YouTube and IG.
-8. No implementation claims shared acquisition machinery, production readiness,
+8. Given a `platform_video_id`, correlation resolves deterministically to that
+   video's metadata/comment capture, available caption/audio packet anchors,
+   transcript sources, extraction record-set anchors, and canonical transcript
+   selection reason.
+9. No implementation claims shared acquisition machinery, production readiness,
    live-scale validation, or TikTok coverage.
 
 ## MGT Accepted Residuals
@@ -250,7 +282,9 @@ persistence, and tests.
 
 Implementation scoping may rely on the following without reopening intent:
 
-- one fused implementation pass may scope YouTube behavioral completion only;
+- a fused pass may scope or author implementation-facing docs for YouTube
+  behavioral completion only;
+- source-changing implementation remains separately authorized;
 - use IG as a behavioral comparison prompt, not a machinery template;
 - defer IG back-fix and shared contract extraction until after YouTube behavior
   is complete and reviewed;
