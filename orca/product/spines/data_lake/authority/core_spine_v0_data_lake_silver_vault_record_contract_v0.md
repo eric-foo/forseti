@@ -75,8 +75,10 @@ and operator explanation; they are not path changes.
 | `indexes/derived_retrieval/silver_vault/creator_vault/` | Silver Retrieval / Creator Vault | Generated client-facing creator/account/content read layer. |
 | Judgment outputs | Gold | Judgment-owned interpretation, recommendations, durability/manufactured-demand verdicts, and action meaning. |
 
-Do not rename folders to `bronze/`, `silver/`, or `gold/`. The lake contract remains
-`raw/`, `derived/`, `acknowledgements/`, and `indexes/`.
+Do not rename folders to `bronze/`, `silver/`, or `gold/`. The canonical v4.1 lake
+slots are `raw/`, `attachments/`, `derived/`, `acknowledgements/`, and `indexes/`,
+owned by the v4.1 forward-epoch and physicality-location contracts; this contract
+restates them for orientation only and does not redefine the folder grammar.
 
 ## Required Behavior
 
@@ -371,15 +373,22 @@ Generated read models live under:
 indexes/derived_retrieval/silver_vault/
   core/
     query_tables/
+    manifests/
   creator_vault/
     accounts/<platform>/<account_id>/envelope.json
     content/<platform>/<content_kind>/<content_id>/envelope.json
     query_tables/
+    manifests/
 ```
 
 Read-model rules:
 
 - Generated read models are not authority.
+- By-key discovery over committed `derived/` records is the current retrieval
+  authority. Query tables and the wider `derived_retrieval` population are
+  rebuildable, non-authoritative views whose build is governance- and
+  scan/query-latency-gated by the Derived Layout + Index Rebuild Contract; SQL is
+  the selected query lens when that trigger fires, not an unconditional v0 path.
 - Query tables must be rebuildable from committed raw + derived records.
 - Query tables must expose posture and coverage fields needed to prevent SQL
   from treating missing evidence as zero.
@@ -476,17 +485,44 @@ The contract is satisfied when downstream scoping can prove, in principle, that:
 
 This contract deliberately stops short of maximal infrastructure.
 
-Accepted residuals:
+Each residual names the foregone slice, why it is acceptable now, the remaining
+risk, and the upgrade trigger (per `docs/decisions/orca_mini_god_tier_doctrine_v0.md`):
 
-- No graph/vector engine selection in v0. SQL/query tables are the proving path.
-- No cross-platform person identity in Creator Vault v0.
-- No Creator Vault recommendations or Gold/Judgment outputs.
-- No full review/retail/SEO implementation implied by the schema.
-- No universal metric arbitration. IG v0 uses grid-primary selection policy.
-- Partial comment/transcript coverage is allowed only when posture and coverage
-  state make the limitation visible.
-- No client replica implementation in this contract; replicas must remain
-  generated, read-only, manifest-backed consumers when built.
+- **No graph/vector engine in v0.** By-key discovery plus SQL query tables prove
+  the foundation without engine/maintenance burden. Risk: relationship-heavy or
+  semantic queries may scan slowly at scale. Upgrade trigger: scan/query latency
+  proves insufficient, routing engine choice to the Storage Contract
+  physicalization boundary (never as authority).
+- **No cross-platform person identity in Creator Vault v0.** Per-platform public
+  identity avoids dossier and identity-merge risk and honors the medallion
+  give-up. Risk: a unified cross-platform creator view must be stitched
+  downstream. Upgrade trigger: owner authorizes cross-platform person identity
+  (see `stale_if`).
+- **No Creator Vault recommendations or Gold/Judgment outputs.** Keeps Creator
+  Vault pre-Judgment Silver and preserves the Gold boundary. Risk: client-facing
+  "who to partner with" framing waits for Judgment. Upgrade trigger: Judgment
+  consumes Creator Vault by reference and emits Gold separately.
+- **No full review/retail/SEO implementation implied by the schema.** The generic
+  record schema spans these domains without committing per-domain producers now.
+  Risk: each domain still needs its own producer lane and per-lane record
+  contract before capture. Upgrade trigger: a domain's first proving slice is
+  scoped.
+- **No universal metric arbitration; IG v0 uses grid-primary selection policy.**
+  One platform's selection policy is enough to prove metric selection. Risk: each
+  further platform/metric family needs its own `selection_policy_version`; no
+  global arbiter exists. Upgrade trigger: a second platform/metric family needs a
+  selection policy (added as a new `selection_policy_version`, never a global
+  `metric_policy_id` as lake authority).
+- **No guaranteed comment/transcript coverage in v0.** Partial coverage is allowed
+  only when posture and coverage state make the gap visible (no fake
+  completeness). Risk: time-series or sentiment consumers over comments/
+  transcripts may see gaps and must read posture/coverage. Upgrade trigger: a
+  consumer needs guaranteed coverage, scoping a capture-completeness obligation.
+- **No client replica implementation in this contract.** It defines the read
+  layer, not its physical client replication. Risk: replica sync and freshness
+  are undefined until a replica lane is scoped. Upgrade trigger: a client carveout
+  replica is commissioned, and must remain a generated, read-only, manifest-backed
+  consumer.
 
 ## Downstream Handoff
 
