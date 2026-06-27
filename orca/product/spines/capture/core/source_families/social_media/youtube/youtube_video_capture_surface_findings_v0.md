@@ -69,8 +69,8 @@ surfaces. (See the DOM-vs-JSON comparison run this session.)
    full descriptions**. No pagination, no comments, no captions. This is the best minimal-request
    source for **recent** exact stats — 1 request replaces 15 `/watch` fetches.
 3. **`/watch?v=<id>`** — one GET of the served HTML carries `ytInitialPlayerResponse`: **exact
-   `viewCount`, absolute `publishDate`, full `shortDescription`, `keywords`, `category`,
-   `lengthSeconds`, channel identity**, plus the **exact like count** (`"likeCount"` field /
+   `viewCount` (source path can vary by surface/serving variant), absolute `publishDate`, full
+   `shortDescription`, `keywords`, `category`, `lengthSeconds`, channel identity**, plus the **exact like count** (`"likeCount"` field /
    accessibility "N likes") and the caption **track list**. Comments need one more POST to
    `youtubei/v1/next`. The same `/watch?v=<id>` URL serves long-form **and** Shorts.
 
@@ -111,8 +111,9 @@ surfaces. (See the DOM-vs-JSON comparison run this session.)
 | comments | captured; no total | captured; no total |
 | caption tracks | 1 (`en/asr`); text gated | 0 (fresh 13 s Short — none yet) |
 
-**Conclusion:** route, JSON field paths, and extraction are **identical** for long-form and Shorts —
-confirming the recon's **one-runner + `surface_type` switch**. The only differences are **content**
+**Conclusion:** route and field semantics are unified for long-form and Shorts, but individual JSON
+field paths are not a stable contract. Use one runner + `surface_type` switch, with path-tolerant
+extraction that records the observed source path. The only domain differences are **content**
 (Shorts often have empty descriptions, no tags, and a fresh/short Short may have no caption track
 yet) and the **surface discriminator**. Discriminate by **serving surface**, not duration: a
 1:57 (117 s) Jeremy upload (`Qu5rbwa5iNg`) **redirected to `/watch` = `long_form`**, so duration
@@ -132,9 +133,13 @@ alone is not a Short signal.
 
 - **Channel enumeration renderer:** recon P3 enumerated via `videoRenderer`; YouTube has since
   migrated the channel grid to **`lockupViewModel`** (`contentId` = video id). The recon's
-  enumeration *example* is stale; its route *conclusion* is unaffected. (Separately, the agent
-  playbook's "code in `_scratch/` / not committed" and "Proxy from env only" lines are stale vs the
-  tracked, proxy-stripped code — tracked in the YouTube capture lane handoff, out of scope here.)
+  enumeration *example* is stale; its route *conclusion* is unaffected.
+- **View-count field path (2026-06-27):** a fresh Shorts re-probe returned exact `viewCount` at
+  `microformat.playerMicroformatRenderer.viewCount` while `videoDetails.viewCount` was absent. The
+  one-runner conclusion stands, but extraction must be path-tolerant and record the observed path.
+- **Playbook implementation location:** the agent playbook has been updated from the old scratch-code
+  note to the tracked `orca-harness/youtube_capture/` implementation; captured outputs remain
+  gitignored.
 
 ## Non-claims
 

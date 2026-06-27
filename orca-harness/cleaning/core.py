@@ -13,16 +13,22 @@ from cleaning.models import (
 
 
 def _raw_anchor_identity(anchor: CleaningRawAnchor) -> tuple[str, ...]:
+    # Coerce the now-optional preserved-file fields (None for a derived_record anchor) so the
+    # identity is always str-only -- _group_id_for_identity joins it, which would crash on None.
+    # Fold derived_record_ref so distinct derived records never collide into one dedupe group.
+    ref = anchor.derived_record_ref
     return (
         anchor.packet_id,
-        anchor.slice_id,
-        anchor.file_id,
-        anchor.relative_packet_path,
+        anchor.slice_id or "",
+        anchor.file_id or "",
+        anchor.relative_packet_path or "",
         anchor.sha256,
         anchor.hash_basis,
         anchor.anchor_kind,
         anchor.anchor_value or "",
         anchor.json_pointer or "",
+        ref.lane if ref else "",
+        ref.record_id if ref else "",
     )
 
 

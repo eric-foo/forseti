@@ -1,0 +1,1893 @@
+{
+  "generated_at_utc": "2026-06-26T18:52:15Z",
+  "purpose": "Creator ledger for the 200-row YouTube Shorts fragrance transcript-bearing pool.",
+  "scope": "Observed handles/channels represented in the admitted pool; cross-lane joining aid only.",
+  "source_inputs": {
+    "expansion200_capture": "docs/review-inputs/youtube_shorts_fragrance_tone_expansion200_capture_v0.json",
+    "hard30_second_pass_labels": "docs/review-inputs/youtube_shorts_fragrance_tone_labeling_run_v1.json",
+    "remaining70_labels": "docs/review-inputs/youtube_shorts_fragrance_tone_labeling_remaining70_v0.json"
+  },
+  "ledger_policy": {
+    "join_keys": [
+      "creator_handle_query",
+      "observed_channel_ids.channel_id",
+      "pool_ids",
+      "video_ids"
+    ],
+    "identity_posture": "observed YouTube channel/handle evidence only",
+    "brand_account_posture": "brand/platform accounts stay in the ledger but are not called independent creators",
+    "transcript_policy": "no transcript bodies are stored in this ledger"
+  },
+  "counts": {
+    "creators_observed": 31,
+    "pool_rows_total": 200,
+    "brand_or_platform_accounts_observed": 1,
+    "creator_or_channel_observed": 30
+  },
+  "creators": [
+    {
+      "ledger_id": "ytshorts-fragrance-creator-ledger-v0-001",
+      "creator_handle_query": "BowTieFragranceGuy",
+      "creator_classification": "creator_or_channel_observed",
+      "identity_boundary": "observed YouTube handle/channel in the Shorts pool; not verified person identity, ownership, or independence",
+      "admitted_rows_total": 5,
+      "observed_author_names": [
+        {
+          "author": "BowTie FragranceGuy",
+          "count": 5
+        }
+      ],
+      "observed_channel_ids": [
+        {
+          "channel_id": "UCVvzGrPSok_sf8hfDhvTg7w",
+          "count": 5
+        }
+      ],
+      "source_artifact_counts": [
+        {
+          "source_artifact": "docs/review-inputs/youtube_shorts_fragrance_tone_expansion100_capture_v0.json",
+          "count": 2
+        },
+        {
+          "source_artifact": "docs/review-inputs/youtube_shorts_fragrance_tone_expansion200_capture_v0.json",
+          "count": 2
+        },
+        {
+          "source_artifact": "docs/review-inputs/youtube_shorts_fragrance_tone_expansion30_capture_v0.json",
+          "count": 1
+        }
+      ],
+      "pool_ids": [
+        "ytshorts-fragrance-tone-pool200-v0-046",
+        "ytshorts-fragrance-tone-pool200-v0-072",
+        "ytshorts-fragrance-tone-pool200-v0-092",
+        "ytshorts-fragrance-tone-pool200-v0-149",
+        "ytshorts-fragrance-tone-pool200-v0-167"
+      ],
+      "video_ids": [
+        "hiAWZwgYwQA",
+        "n9U1c-QRSO8",
+        "G74XHCSr_CQ",
+        "IE9zy--St_I",
+        "KFv8wOy5JiI"
+      ],
+      "sample_shorts_urls": [
+        "https://www.youtube.com/shorts/hiAWZwgYwQA",
+        "https://www.youtube.com/shorts/n9U1c-QRSO8",
+        "https://www.youtube.com/shorts/G74XHCSr_CQ"
+      ],
+      "word_count_min": 67,
+      "word_count_max": 398,
+      "known_label_status_counts_100_pool_only": {
+        "labeled": 3
+      },
+      "unlabeled_rows_in_pool200": 2
+    },
+    {
+      "ledger_id": "ytshorts-fragrance-creator-ledger-v0-002",
+      "creator_handle_query": "ChaosFragrances",
+      "creator_classification": "creator_or_channel_observed",
+      "identity_boundary": "observed YouTube handle/channel in the Shorts pool; not verified person identity, ownership, or independence",
+      "admitted_rows_total": 9,
+      "observed_author_names": [
+        {
+          "author": "Chaos Fragrances",
+          "count": 9
+        }
+      ],
+      "observed_channel_ids": [
+        {
+          "channel_id": "UC0fOGtvT1x8irPUZOFdF2mA",
+          "count": 9
+        }
+      ],
+      "source_artifact_counts": [
+        {
+          "source_artifact": "docs/review-inputs/youtube_shorts_fragrance_tone_expansion100_capture_v0.json",
+          "count": 2
+        },
+        {
+          "source_artifact": "docs/review-inputs/youtube_shorts_fragrance_tone_expansion200_capture_v0.json",
+          "count": 5
+        },
+        {
+          "source_artifact": "docs/review-inputs/youtube_shorts_fragrance_tone_expansion30_capture_v0.json",
+          "count": 2
+        }
+      ],
+      "pool_ids": [
+        "ytshorts-fragrance-tone-pool200-v0-031",
+        "ytshorts-fragrance-tone-pool200-v0-044",
+        "ytshorts-fragrance-tone-pool200-v0-070",
+        "ytshorts-fragrance-tone-pool200-v0-090",
+        "ytshorts-fragrance-tone-pool200-v0-107",
+        "ytshorts-fragrance-tone-pool200-v0-129",
+        "ytshorts-fragrance-tone-pool200-v0-148",
+        "ytshorts-fragrance-tone-pool200-v0-166",
+        "ytshorts-fragrance-tone-pool200-v0-187"
+      ],
+      "video_ids": [
+        "xZ6vd9fyBbw",
+        "54Ue3UL7XU4",
+        "vjzHIMn3b4w",
+        "NJmP-Otw57s",
+        "mCUCoxt-rZI",
+        "xOsoS19CbGw",
+        "U6udcCN59bQ",
+        "Zp3l5dXDTRA",
+        "kFP9htAwpUY"
+      ],
+      "sample_shorts_urls": [
+        "https://www.youtube.com/shorts/xZ6vd9fyBbw",
+        "https://www.youtube.com/shorts/54Ue3UL7XU4",
+        "https://www.youtube.com/shorts/vjzHIMn3b4w"
+      ],
+      "word_count_min": 344,
+      "word_count_max": 609,
+      "known_label_status_counts_100_pool_only": {
+        "labeled": 4
+      },
+      "unlabeled_rows_in_pool200": 5
+    },
+    {
+      "ledger_id": "ytshorts-fragrance-creator-ledger-v0-003",
+      "creator_handle_query": "Cubaknow",
+      "creator_classification": "creator_or_channel_observed",
+      "identity_boundary": "observed YouTube handle/channel in the Shorts pool; not verified person identity, ownership, or independence",
+      "admitted_rows_total": 3,
+      "observed_author_names": [
+        {
+          "author": "Cubaknow",
+          "count": 3
+        }
+      ],
+      "observed_channel_ids": [
+        {
+          "channel_id": "UCzhBUw8MLmUl8cPMx63sFuw",
+          "count": 3
+        }
+      ],
+      "source_artifact_counts": [
+        {
+          "source_artifact": "docs/review-inputs/youtube_shorts_fragrance_tone_expansion200_capture_v0.json",
+          "count": 3
+        }
+      ],
+      "pool_ids": [
+        "ytshorts-fragrance-tone-pool200-v0-120",
+        "ytshorts-fragrance-tone-pool200-v0-141",
+        "ytshorts-fragrance-tone-pool200-v0-176"
+      ],
+      "video_ids": [
+        "6o6A5eaHASg",
+        "eGTJ0-DMo78",
+        "zi0XLDb_PPw"
+      ],
+      "sample_shorts_urls": [
+        "https://www.youtube.com/shorts/6o6A5eaHASg",
+        "https://www.youtube.com/shorts/eGTJ0-DMo78",
+        "https://www.youtube.com/shorts/zi0XLDb_PPw"
+      ],
+      "word_count_min": 105,
+      "word_count_max": 364,
+      "known_label_status_counts_100_pool_only": {},
+      "unlabeled_rows_in_pool200": 3
+    },
+    {
+      "ledger_id": "ytshorts-fragrance-creator-ledger-v0-004",
+      "creator_handle_query": "CurlyFragrance",
+      "creator_classification": "creator_or_channel_observed",
+      "identity_boundary": "observed YouTube handle/channel in the Shorts pool; not verified person identity, ownership, or independence",
+      "admitted_rows_total": 1,
+      "observed_author_names": [
+        {
+          "author": "CurlyFragrance",
+          "count": 1
+        }
+      ],
+      "observed_channel_ids": [
+        {
+          "channel_id": "UCcwPIKNTMO5S-Vd7z-RrIhg",
+          "count": 1
+        }
+      ],
+      "source_artifact_counts": [
+        {
+          "source_artifact": "docs/review-inputs/youtube_shorts_fragrance_tone_expansion200_capture_v0.json",
+          "count": 1
+        }
+      ],
+      "pool_ids": [
+        "ytshorts-fragrance-tone-pool200-v0-200"
+      ],
+      "video_ids": [
+        "HqhdDretITA"
+      ],
+      "sample_shorts_urls": [
+        "https://www.youtube.com/shorts/HqhdDretITA"
+      ],
+      "word_count_min": 463,
+      "word_count_max": 463,
+      "known_label_status_counts_100_pool_only": {},
+      "unlabeled_rows_in_pool200": 1
+    },
+    {
+      "ledger_id": "ytshorts-fragrance-creator-ledger-v0-005",
+      "creator_handle_query": "CurlyScents",
+      "creator_classification": "creator_or_channel_observed",
+      "identity_boundary": "observed YouTube handle/channel in the Shorts pool; not verified person identity, ownership, or independence",
+      "admitted_rows_total": 10,
+      "observed_author_names": [
+        {
+          "author": "Curly Scents",
+          "count": 10
+        }
+      ],
+      "observed_channel_ids": [
+        {
+          "channel_id": "UCIfiNVTfW49L7Z3lGLfIOeA",
+          "count": 7
+        },
+        {
+          "channel_id": "UNKNOWN",
+          "count": 3
+        }
+      ],
+      "source_artifact_counts": [
+        {
+          "source_artifact": "docs/review-inputs/youtube_shorts_fragrance_tone_expansion100_capture_v0.json",
+          "count": 1
+        },
+        {
+          "source_artifact": "docs/review-inputs/youtube_shorts_fragrance_tone_expansion200_capture_v0.json",
+          "count": 4
+        },
+        {
+          "source_artifact": "docs/review-inputs/youtube_shorts_fragrance_tone_expansion30_capture_v0.json",
+          "count": 2
+        },
+        {
+          "source_artifact": "docs/review-inputs/youtube_shorts_fragrance_tone_fixture_hard30_v0.json",
+          "count": 3
+        }
+      ],
+      "pool_ids": [
+        "ytshorts-fragrance-tone-pool200-v0-011",
+        "ytshorts-fragrance-tone-pool200-v0-012",
+        "ytshorts-fragrance-tone-pool200-v0-028",
+        "ytshorts-fragrance-tone-pool200-v0-038",
+        "ytshorts-fragrance-tone-pool200-v0-053",
+        "ytshorts-fragrance-tone-pool200-v0-085",
+        "ytshorts-fragrance-tone-pool200-v0-127",
+        "ytshorts-fragrance-tone-pool200-v0-146",
+        "ytshorts-fragrance-tone-pool200-v0-162",
+        "ytshorts-fragrance-tone-pool200-v0-184"
+      ],
+      "video_ids": [
+        "MN3AI-mrPWk",
+        "FqTrOZbh_DE",
+        "oFSnzMS8yxA",
+        "ekaQONEC2ys",
+        "vLiFRCQhV0s",
+        "usFrt5XnBic",
+        "5Zm0H43FZYo",
+        "bXC5K1ti4yM",
+        "JeEyRK8Lb_E",
+        "KVvyF6RUwQY"
+      ],
+      "sample_shorts_urls": [
+        "https://www.youtube.com/shorts/MN3AI-mrPWk",
+        "https://www.youtube.com/shorts/FqTrOZbh_DE",
+        "https://www.youtube.com/shorts/oFSnzMS8yxA"
+      ],
+      "word_count_min": 30,
+      "word_count_max": 610,
+      "known_label_status_counts_100_pool_only": {
+        "labeled": 6
+      },
+      "unlabeled_rows_in_pool200": 4
+    },
+    {
+      "ledger_id": "ytshorts-fragrance-creator-ledger-v0-006",
+      "creator_handle_query": "DemiRawling",
+      "creator_classification": "creator_or_channel_observed",
+      "identity_boundary": "observed YouTube handle/channel in the Shorts pool; not verified person identity, ownership, or independence",
+      "admitted_rows_total": 6,
+      "observed_author_names": [
+        {
+          "author": "Demi Rawling",
+          "count": 6
+        }
+      ],
+      "observed_channel_ids": [
+        {
+          "channel_id": "UC88iYYngvMLb_3obJKMCI3w",
+          "count": 6
+        }
+      ],
+      "source_artifact_counts": [
+        {
+          "source_artifact": "docs/review-inputs/youtube_shorts_fragrance_tone_expansion100_capture_v0.json",
+          "count": 1
+        },
+        {
+          "source_artifact": "docs/review-inputs/youtube_shorts_fragrance_tone_expansion200_capture_v0.json",
+          "count": 5
+        }
+      ],
+      "pool_ids": [
+        "ytshorts-fragrance-tone-pool200-v0-097",
+        "ytshorts-fragrance-tone-pool200-v0-111",
+        "ytshorts-fragrance-tone-pool200-v0-132",
+        "ytshorts-fragrance-tone-pool200-v0-152",
+        "ytshorts-fragrance-tone-pool200-v0-170",
+        "ytshorts-fragrance-tone-pool200-v0-191"
+      ],
+      "video_ids": [
+        "qP0WyLE4Brc",
+        "_BTBlKLMptw",
+        "Pe5dwQ4Z0bs",
+        "Rf1ko3gn7uw",
+        "QMkcLt3_Lz8",
+        "n9vklEyQbk4"
+      ],
+      "sample_shorts_urls": [
+        "https://www.youtube.com/shorts/qP0WyLE4Brc",
+        "https://www.youtube.com/shorts/_BTBlKLMptw",
+        "https://www.youtube.com/shorts/Pe5dwQ4Z0bs"
+      ],
+      "word_count_min": 49,
+      "word_count_max": 103,
+      "known_label_status_counts_100_pool_only": {
+        "labeled": 1
+      },
+      "unlabeled_rows_in_pool200": 5
+    },
+    {
+      "ledger_id": "ytshorts-fragrance-creator-ledger-v0-007",
+      "creator_handle_query": "FragranceKnowledge",
+      "creator_classification": "creator_or_channel_observed",
+      "identity_boundary": "observed YouTube handle/channel in the Shorts pool; not verified person identity, ownership, or independence",
+      "admitted_rows_total": 7,
+      "observed_author_names": [
+        {
+          "author": "FragranceKnowledge",
+          "count": 7
+        }
+      ],
+      "observed_channel_ids": [
+        {
+          "channel_id": "UCzH0Tal9pApj-F6KSGZHo4Q",
+          "count": 7
+        }
+      ],
+      "source_artifact_counts": [
+        {
+          "source_artifact": "docs/review-inputs/youtube_shorts_fragrance_tone_expansion100_capture_v0.json",
+          "count": 2
+        },
+        {
+          "source_artifact": "docs/review-inputs/youtube_shorts_fragrance_tone_expansion200_capture_v0.json",
+          "count": 3
+        },
+        {
+          "source_artifact": "docs/review-inputs/youtube_shorts_fragrance_tone_expansion30_capture_v0.json",
+          "count": 2
+        }
+      ],
+      "pool_ids": [
+        "ytshorts-fragrance-tone-pool200-v0-032",
+        "ytshorts-fragrance-tone-pool200-v0-045",
+        "ytshorts-fragrance-tone-pool200-v0-071",
+        "ytshorts-fragrance-tone-pool200-v0-091",
+        "ytshorts-fragrance-tone-pool200-v0-108",
+        "ytshorts-fragrance-tone-pool200-v0-130",
+        "ytshorts-fragrance-tone-pool200-v0-188"
+      ],
+      "video_ids": [
+        "xK8bmugSpgQ",
+        "weBLSbBqBbs",
+        "9wB39dxIL6M",
+        "uRzXOOZeTSE",
+        "jMTtpG8H_mI",
+        "1wWElbY3320",
+        "WCpQz3c_9hM"
+      ],
+      "sample_shorts_urls": [
+        "https://www.youtube.com/shorts/xK8bmugSpgQ",
+        "https://www.youtube.com/shorts/weBLSbBqBbs",
+        "https://www.youtube.com/shorts/9wB39dxIL6M"
+      ],
+      "word_count_min": 36,
+      "word_count_max": 255,
+      "known_label_status_counts_100_pool_only": {
+        "labeled": 4
+      },
+      "unlabeled_rows_in_pool200": 3
+    },
+    {
+      "ledger_id": "ytshorts-fragrance-creator-ledger-v0-008",
+      "creator_handle_query": "FragranceView",
+      "creator_classification": "creator_or_channel_observed",
+      "identity_boundary": "observed YouTube handle/channel in the Shorts pool; not verified person identity, ownership, or independence",
+      "admitted_rows_total": 4,
+      "observed_author_names": [
+        {
+          "author": "FragranceView",
+          "count": 4
+        }
+      ],
+      "observed_channel_ids": [
+        {
+          "channel_id": "UC_Zj9atmpE2MQBtzTfqDFfw",
+          "count": 4
+        }
+      ],
+      "source_artifact_counts": [
+        {
+          "source_artifact": "docs/review-inputs/youtube_shorts_fragrance_tone_expansion200_capture_v0.json",
+          "count": 4
+        }
+      ],
+      "pool_ids": [
+        "ytshorts-fragrance-tone-pool200-v0-142",
+        "ytshorts-fragrance-tone-pool200-v0-157",
+        "ytshorts-fragrance-tone-pool200-v0-177",
+        "ytshorts-fragrance-tone-pool200-v0-198"
+      ],
+      "video_ids": [
+        "AOiv2vVPsp4",
+        "ADJiPcUWfEo",
+        "V8c4fasUTr4",
+        "SuqNH9oQ3Rw"
+      ],
+      "sample_shorts_urls": [
+        "https://www.youtube.com/shorts/AOiv2vVPsp4",
+        "https://www.youtube.com/shorts/ADJiPcUWfEo",
+        "https://www.youtube.com/shorts/V8c4fasUTr4"
+      ],
+      "word_count_min": 20,
+      "word_count_max": 337,
+      "known_label_status_counts_100_pool_only": {},
+      "unlabeled_rows_in_pool200": 4
+    },
+    {
+      "ledger_id": "ytshorts-fragrance-creator-ledger-v0-009",
+      "creator_handle_query": "funmimonet",
+      "creator_classification": "creator_or_channel_observed",
+      "identity_boundary": "observed YouTube handle/channel in the Shorts pool; not verified person identity, ownership, or independence",
+      "admitted_rows_total": 8,
+      "observed_author_names": [
+        {
+          "author": "Funmi Monet",
+          "count": 8
+        }
+      ],
+      "observed_channel_ids": [
+        {
+          "channel_id": "UCULGc5bSAoCIUMc-hQpjCXw",
+          "count": 5
+        },
+        {
+          "channel_id": "UNKNOWN",
+          "count": 3
+        }
+      ],
+      "source_artifact_counts": [
+        {
+          "source_artifact": "docs/review-inputs/youtube_shorts_fragrance_tone_expansion100_capture_v0.json",
+          "count": 2
+        },
+        {
+          "source_artifact": "docs/review-inputs/youtube_shorts_fragrance_tone_expansion200_capture_v0.json",
+          "count": 1
+        },
+        {
+          "source_artifact": "docs/review-inputs/youtube_shorts_fragrance_tone_expansion30_capture_v0.json",
+          "count": 2
+        },
+        {
+          "source_artifact": "docs/review-inputs/youtube_shorts_fragrance_tone_fixture_hard30_v0.json",
+          "count": 3
+        }
+      ],
+      "pool_ids": [
+        "ytshorts-fragrance-tone-pool200-v0-013",
+        "ytshorts-fragrance-tone-pool200-v0-014",
+        "ytshorts-fragrance-tone-pool200-v0-029",
+        "ytshorts-fragrance-tone-pool200-v0-039",
+        "ytshorts-fragrance-tone-pool200-v0-054",
+        "ytshorts-fragrance-tone-pool200-v0-065",
+        "ytshorts-fragrance-tone-pool200-v0-086",
+        "ytshorts-fragrance-tone-pool200-v0-163"
+      ],
+      "video_ids": [
+        "bPJCH9iQUhI",
+        "Uj4bVTM6dm8",
+        "zJVS5UnoHIY",
+        "DIMlwC1LsHg",
+        "GcAIds8HW38",
+        "moiH3xaltg0",
+        "ieDgm6dPS3s",
+        "djskjcat9dM"
+      ],
+      "sample_shorts_urls": [
+        "https://www.youtube.com/shorts/bPJCH9iQUhI",
+        "https://www.youtube.com/shorts/Uj4bVTM6dm8",
+        "https://www.youtube.com/shorts/zJVS5UnoHIY"
+      ],
+      "word_count_min": 112,
+      "word_count_max": 228,
+      "known_label_status_counts_100_pool_only": {
+        "abstain": 1,
+        "labeled": 6
+      },
+      "unlabeled_rows_in_pool200": 1
+    },
+    {
+      "ledger_id": "ytshorts-fragrance-creator-ledger-v0-010",
+      "creator_handle_query": "GentsScents",
+      "creator_classification": "creator_or_channel_observed",
+      "identity_boundary": "observed YouTube handle/channel in the Shorts pool; not verified person identity, ownership, or independence",
+      "admitted_rows_total": 12,
+      "observed_author_names": [
+        {
+          "author": "Gents Scents",
+          "count": 12
+        }
+      ],
+      "observed_channel_ids": [
+        {
+          "channel_id": "UC9IImcLkUdmURWtQhxu8VwQ",
+          "count": 9
+        },
+        {
+          "channel_id": "UNKNOWN",
+          "count": 3
+        }
+      ],
+      "source_artifact_counts": [
+        {
+          "source_artifact": "docs/review-inputs/youtube_shorts_fragrance_tone_expansion100_capture_v0.json",
+          "count": 2
+        },
+        {
+          "source_artifact": "docs/review-inputs/youtube_shorts_fragrance_tone_expansion200_capture_v0.json",
+          "count": 5
+        },
+        {
+          "source_artifact": "docs/review-inputs/youtube_shorts_fragrance_tone_expansion30_capture_v0.json",
+          "count": 2
+        },
+        {
+          "source_artifact": "docs/review-inputs/youtube_shorts_fragrance_tone_fixture_hard30_v0.json",
+          "count": 3
+        }
+      ],
+      "pool_ids": [
+        "ytshorts-fragrance-tone-pool200-v0-002",
+        "ytshorts-fragrance-tone-pool200-v0-003",
+        "ytshorts-fragrance-tone-pool200-v0-004",
+        "ytshorts-fragrance-tone-pool200-v0-035",
+        "ytshorts-fragrance-tone-pool200-v0-050",
+        "ytshorts-fragrance-tone-pool200-v0-062",
+        "ytshorts-fragrance-tone-pool200-v0-082",
+        "ytshorts-fragrance-tone-pool200-v0-102",
+        "ytshorts-fragrance-tone-pool200-v0-124",
+        "ytshorts-fragrance-tone-pool200-v0-144",
+        "ytshorts-fragrance-tone-pool200-v0-159",
+        "ytshorts-fragrance-tone-pool200-v0-181"
+      ],
+      "video_ids": [
+        "ljZ7_JHXNdw",
+        "VOGZUccarFc",
+        "sy-rczzFrYg",
+        "jo03W7cBwBM",
+        "KorM3KkSUrs",
+        "sNQKEWZ6rTM",
+        "inl7gtQd4EM",
+        "fFWwETz72jk",
+        "mUXNqYZdcg8",
+        "BTUCQByXTqc",
+        "Ht9EY5ZRjMk",
+        "u42iSPG_VUI"
+      ],
+      "sample_shorts_urls": [
+        "https://www.youtube.com/shorts/ljZ7_JHXNdw",
+        "https://www.youtube.com/shorts/VOGZUccarFc",
+        "https://www.youtube.com/shorts/sy-rczzFrYg"
+      ],
+      "word_count_min": 91,
+      "word_count_max": 187,
+      "known_label_status_counts_100_pool_only": {
+        "labeled": 7
+      },
+      "unlabeled_rows_in_pool200": 5
+    },
+    {
+      "ledger_id": "ytshorts-fragrance-creator-ledger-v0-011",
+      "creator_handle_query": "JeremyFragrance",
+      "creator_classification": "creator_or_channel_observed",
+      "identity_boundary": "observed YouTube handle/channel in the Shorts pool; not verified person identity, ownership, or independence",
+      "admitted_rows_total": 10,
+      "observed_author_names": [
+        {
+          "author": "Jeremy Fragrance",
+          "count": 10
+        }
+      ],
+      "observed_channel_ids": [
+        {
+          "channel_id": "UCzKrJ5NSA9o7RHYRG12kHZw",
+          "count": 7
+        },
+        {
+          "channel_id": "UNKNOWN",
+          "count": 3
+        }
+      ],
+      "source_artifact_counts": [
+        {
+          "source_artifact": "docs/review-inputs/youtube_shorts_fragrance_tone_expansion100_capture_v0.json",
+          "count": 2
+        },
+        {
+          "source_artifact": "docs/review-inputs/youtube_shorts_fragrance_tone_expansion200_capture_v0.json",
+          "count": 3
+        },
+        {
+          "source_artifact": "docs/review-inputs/youtube_shorts_fragrance_tone_expansion30_capture_v0.json",
+          "count": 2
+        },
+        {
+          "source_artifact": "docs/review-inputs/youtube_shorts_fragrance_tone_fixture_hard30_v0.json",
+          "count": 3
+        }
+      ],
+      "pool_ids": [
+        "ytshorts-fragrance-tone-pool200-v0-001",
+        "ytshorts-fragrance-tone-pool200-v0-026",
+        "ytshorts-fragrance-tone-pool200-v0-027",
+        "ytshorts-fragrance-tone-pool200-v0-034",
+        "ytshorts-fragrance-tone-pool200-v0-049",
+        "ytshorts-fragrance-tone-pool200-v0-061",
+        "ytshorts-fragrance-tone-pool200-v0-081",
+        "ytshorts-fragrance-tone-pool200-v0-101",
+        "ytshorts-fragrance-tone-pool200-v0-123",
+        "ytshorts-fragrance-tone-pool200-v0-180"
+      ],
+      "video_ids": [
+        "as7hye0qgYc",
+        "doNVRDk0X_Y",
+        "DUafgG-TLms",
+        "JcwT5rvhXIc",
+        "tQ0RKdd1o9g",
+        "syjxpoKWbRM",
+        "iohVc61b9Bk",
+        "ynjAOe4E3yY",
+        "biRWOkRX1oM",
+        "ZRxgla8xoM8"
+      ],
+      "sample_shorts_urls": [
+        "https://www.youtube.com/shorts/as7hye0qgYc",
+        "https://www.youtube.com/shorts/doNVRDk0X_Y",
+        "https://www.youtube.com/shorts/DUafgG-TLms"
+      ],
+      "word_count_min": 20,
+      "word_count_max": 149,
+      "known_label_status_counts_100_pool_only": {
+        "labeled": 7
+      },
+      "unlabeled_rows_in_pool200": 3
+    },
+    {
+      "ledger_id": "ytshorts-fragrance-creator-ledger-v0-012",
+      "creator_handle_query": "JusDeRose",
+      "creator_classification": "creator_or_channel_observed",
+      "identity_boundary": "observed YouTube handle/channel in the Shorts pool; not verified person identity, ownership, or independence",
+      "admitted_rows_total": 7,
+      "observed_author_names": [
+        {
+          "author": "Jus de Rose",
+          "count": 7
+        }
+      ],
+      "observed_channel_ids": [
+        {
+          "channel_id": "UCflkhyQuNBeiw3__1TUXXNg",
+          "count": 7
+        }
+      ],
+      "source_artifact_counts": [
+        {
+          "source_artifact": "docs/review-inputs/youtube_shorts_fragrance_tone_expansion100_capture_v0.json",
+          "count": 2
+        },
+        {
+          "source_artifact": "docs/review-inputs/youtube_shorts_fragrance_tone_expansion200_capture_v0.json",
+          "count": 5
+        }
+      ],
+      "pool_ids": [
+        "ytshorts-fragrance-tone-pool200-v0-077",
+        "ytshorts-fragrance-tone-pool200-v0-098",
+        "ytshorts-fragrance-tone-pool200-v0-112",
+        "ytshorts-fragrance-tone-pool200-v0-133",
+        "ytshorts-fragrance-tone-pool200-v0-153",
+        "ytshorts-fragrance-tone-pool200-v0-171",
+        "ytshorts-fragrance-tone-pool200-v0-192"
+      ],
+      "video_ids": [
+        "G9fk8bgFv8k",
+        "mxS8HENWII8",
+        "lopKFyja1zk",
+        "HdTxGjz1HW0",
+        "AzkdSEdu3Wc",
+        "fcPtowOt_x4",
+        "nE3LgYFM_Lg"
+      ],
+      "sample_shorts_urls": [
+        "https://www.youtube.com/shorts/G9fk8bgFv8k",
+        "https://www.youtube.com/shorts/mxS8HENWII8",
+        "https://www.youtube.com/shorts/lopKFyja1zk"
+      ],
+      "word_count_min": 43,
+      "word_count_max": 189,
+      "known_label_status_counts_100_pool_only": {
+        "labeled": 2
+      },
+      "unlabeled_rows_in_pool200": 5
+    },
+    {
+      "ledger_id": "ytshorts-fragrance-creator-ledger-v0-013",
+      "creator_handle_query": "MilaLeBlanc",
+      "creator_classification": "creator_or_channel_observed",
+      "identity_boundary": "observed YouTube handle/channel in the Shorts pool; not verified person identity, ownership, or independence",
+      "admitted_rows_total": 8,
+      "observed_author_names": [
+        {
+          "author": "Mila Le Blanc",
+          "count": 8
+        }
+      ],
+      "observed_channel_ids": [
+        {
+          "channel_id": "UCta4sjQtsMUtBCkI811ocfA",
+          "count": 8
+        }
+      ],
+      "source_artifact_counts": [
+        {
+          "source_artifact": "docs/review-inputs/youtube_shorts_fragrance_tone_expansion100_capture_v0.json",
+          "count": 2
+        },
+        {
+          "source_artifact": "docs/review-inputs/youtube_shorts_fragrance_tone_expansion200_capture_v0.json",
+          "count": 4
+        },
+        {
+          "source_artifact": "docs/review-inputs/youtube_shorts_fragrance_tone_expansion30_capture_v0.json",
+          "count": 2
+        }
+      ],
+      "pool_ids": [
+        "ytshorts-fragrance-tone-pool200-v0-047",
+        "ytshorts-fragrance-tone-pool200-v0-059",
+        "ytshorts-fragrance-tone-pool200-v0-073",
+        "ytshorts-fragrance-tone-pool200-v0-093",
+        "ytshorts-fragrance-tone-pool200-v0-109",
+        "ytshorts-fragrance-tone-pool200-v0-150",
+        "ytshorts-fragrance-tone-pool200-v0-168",
+        "ytshorts-fragrance-tone-pool200-v0-189"
+      ],
+      "video_ids": [
+        "WLjJ0J4QFBo",
+        "hwRSgl1RUL8",
+        "kgSCH6-SN_A",
+        "hK8RaqDTqo8",
+        "xzCCRtlvVzU",
+        "n1IqsKklH_Y",
+        "0S4XNBakgIk",
+        "bDHR_1JZBSQ"
+      ],
+      "sample_shorts_urls": [
+        "https://www.youtube.com/shorts/WLjJ0J4QFBo",
+        "https://www.youtube.com/shorts/hwRSgl1RUL8",
+        "https://www.youtube.com/shorts/kgSCH6-SN_A"
+      ],
+      "word_count_min": 43,
+      "word_count_max": 94,
+      "known_label_status_counts_100_pool_only": {
+        "labeled": 4
+      },
+      "unlabeled_rows_in_pool200": 4
+    },
+    {
+      "ledger_id": "ytshorts-fragrance-creator-ledger-v0-014",
+      "creator_handle_query": "MonikaCioch",
+      "creator_classification": "creator_or_channel_observed",
+      "identity_boundary": "observed YouTube handle/channel in the Shorts pool; not verified person identity, ownership, or independence",
+      "admitted_rows_total": 5,
+      "observed_author_names": [
+        {
+          "author": "Monika Cioch",
+          "count": 5
+        }
+      ],
+      "observed_channel_ids": [
+        {
+          "channel_id": "UCi42yeT0_OLeouUQhDBVZjQ",
+          "count": 5
+        }
+      ],
+      "source_artifact_counts": [
+        {
+          "source_artifact": "docs/review-inputs/youtube_shorts_fragrance_tone_expansion100_capture_v0.json",
+          "count": 1
+        },
+        {
+          "source_artifact": "docs/review-inputs/youtube_shorts_fragrance_tone_expansion200_capture_v0.json",
+          "count": 4
+        }
+      ],
+      "pool_ids": [
+        "ytshorts-fragrance-tone-pool200-v0-079",
+        "ytshorts-fragrance-tone-pool200-v0-114",
+        "ytshorts-fragrance-tone-pool200-v0-135",
+        "ytshorts-fragrance-tone-pool200-v0-154",
+        "ytshorts-fragrance-tone-pool200-v0-173"
+      ],
+      "video_ids": [
+        "2tuGZN1vtUw",
+        "DnE0_jvsbIE",
+        "5FPTyaAtaUU",
+        "H48OhdYh_Es",
+        "0WPDt_ZL5aY"
+      ],
+      "sample_shorts_urls": [
+        "https://www.youtube.com/shorts/2tuGZN1vtUw",
+        "https://www.youtube.com/shorts/DnE0_jvsbIE",
+        "https://www.youtube.com/shorts/5FPTyaAtaUU"
+      ],
+      "word_count_min": 22,
+      "word_count_max": 347,
+      "known_label_status_counts_100_pool_only": {
+        "labeled": 1
+      },
+      "unlabeled_rows_in_pool200": 4
+    },
+    {
+      "ledger_id": "ytshorts-fragrance-creator-ledger-v0-015",
+      "creator_handle_query": "OliviaOlfactory",
+      "creator_classification": "creator_or_channel_observed",
+      "identity_boundary": "observed YouTube handle/channel in the Shorts pool; not verified person identity, ownership, or independence",
+      "admitted_rows_total": 5,
+      "observed_author_names": [
+        {
+          "author": "Olivia Olfactory",
+          "count": 5
+        }
+      ],
+      "observed_channel_ids": [
+        {
+          "channel_id": "UCRGkzuXpYq4hCDGKe-9P50g",
+          "count": 5
+        }
+      ],
+      "source_artifact_counts": [
+        {
+          "source_artifact": "docs/review-inputs/youtube_shorts_fragrance_tone_expansion100_capture_v0.json",
+          "count": 1
+        },
+        {
+          "source_artifact": "docs/review-inputs/youtube_shorts_fragrance_tone_expansion200_capture_v0.json",
+          "count": 4
+        }
+      ],
+      "pool_ids": [
+        "ytshorts-fragrance-tone-pool200-v0-078",
+        "ytshorts-fragrance-tone-pool200-v0-113",
+        "ytshorts-fragrance-tone-pool200-v0-134",
+        "ytshorts-fragrance-tone-pool200-v0-172",
+        "ytshorts-fragrance-tone-pool200-v0-193"
+      ],
+      "video_ids": [
+        "8iyV0R5D9B4",
+        "zL3-O1DRo5w",
+        "xPfrk0L77Q8",
+        "HBYfgnXGjx0",
+        "74Btp3z6S5I"
+      ],
+      "sample_shorts_urls": [
+        "https://www.youtube.com/shorts/8iyV0R5D9B4",
+        "https://www.youtube.com/shorts/zL3-O1DRo5w",
+        "https://www.youtube.com/shorts/xPfrk0L77Q8"
+      ],
+      "word_count_min": 142,
+      "word_count_max": 356,
+      "known_label_status_counts_100_pool_only": {
+        "labeled": 1
+      },
+      "unlabeled_rows_in_pool200": 4
+    },
+    {
+      "ledger_id": "ytshorts-fragrance-creator-ledger-v0-016",
+      "creator_handle_query": "PostCologne",
+      "creator_classification": "creator_or_channel_observed",
+      "identity_boundary": "observed YouTube handle/channel in the Shorts pool; not verified person identity, ownership, or independence",
+      "admitted_rows_total": 5,
+      "observed_author_names": [
+        {
+          "author": "Post Cologne",
+          "count": 5
+        }
+      ],
+      "observed_channel_ids": [
+        {
+          "channel_id": "UCArpB-dspQ5Ax3pJnj0Rnog",
+          "count": 5
+        }
+      ],
+      "source_artifact_counts": [
+        {
+          "source_artifact": "docs/review-inputs/youtube_shorts_fragrance_tone_expansion200_capture_v0.json",
+          "count": 5
+        }
+      ],
+      "pool_ids": [
+        "ytshorts-fragrance-tone-pool200-v0-119",
+        "ytshorts-fragrance-tone-pool200-v0-140",
+        "ytshorts-fragrance-tone-pool200-v0-156",
+        "ytshorts-fragrance-tone-pool200-v0-175",
+        "ytshorts-fragrance-tone-pool200-v0-197"
+      ],
+      "video_ids": [
+        "aFIDu_KEWL4",
+        "yA4_B0PfdWw",
+        "6LNdYQBpiL0",
+        "XQmKy-y8wY4",
+        "b84JZYXiyxc"
+      ],
+      "sample_shorts_urls": [
+        "https://www.youtube.com/shorts/aFIDu_KEWL4",
+        "https://www.youtube.com/shorts/yA4_B0PfdWw",
+        "https://www.youtube.com/shorts/6LNdYQBpiL0"
+      ],
+      "word_count_min": 138,
+      "word_count_max": 470,
+      "known_label_status_counts_100_pool_only": {},
+      "unlabeled_rows_in_pool200": 5
+    },
+    {
+      "ledger_id": "ytshorts-fragrance-creator-ledger-v0-017",
+      "creator_handle_query": "ProfessorPerfume",
+      "creator_classification": "creator_or_channel_observed",
+      "identity_boundary": "observed YouTube handle/channel in the Shorts pool; not verified person identity, ownership, or independence",
+      "admitted_rows_total": 1,
+      "observed_author_names": [
+        {
+          "author": "Professor Perfume",
+          "count": 1
+        }
+      ],
+      "observed_channel_ids": [
+        {
+          "channel_id": "UC_1GYaGHE0luMX0j6utkeHg",
+          "count": 1
+        }
+      ],
+      "source_artifact_counts": [
+        {
+          "source_artifact": "docs/review-inputs/youtube_shorts_fragrance_tone_expansion30_capture_v0.json",
+          "count": 1
+        }
+      ],
+      "pool_ids": [
+        "ytshorts-fragrance-tone-pool200-v0-033"
+      ],
+      "video_ids": [
+        "vtwo-iaOszA"
+      ],
+      "sample_shorts_urls": [
+        "https://www.youtube.com/shorts/vtwo-iaOszA"
+      ],
+      "word_count_min": 169,
+      "word_count_max": 169,
+      "known_label_status_counts_100_pool_only": {
+        "labeled": 1
+      },
+      "unlabeled_rows_in_pool200": 0
+    },
+    {
+      "ledger_id": "ytshorts-fragrance-creator-ledger-v0-018",
+      "creator_handle_query": "Redolessence",
+      "creator_classification": "creator_or_channel_observed",
+      "identity_boundary": "observed YouTube handle/channel in the Shorts pool; not verified person identity, ownership, or independence",
+      "admitted_rows_total": 12,
+      "observed_author_names": [
+        {
+          "author": "Redolessence",
+          "count": 12
+        }
+      ],
+      "observed_channel_ids": [
+        {
+          "channel_id": "UCuSy0Z5UwvkMQ7lXRbUdOnQ",
+          "count": 9
+        },
+        {
+          "channel_id": "UNKNOWN",
+          "count": 3
+        }
+      ],
+      "source_artifact_counts": [
+        {
+          "source_artifact": "docs/review-inputs/youtube_shorts_fragrance_tone_expansion100_capture_v0.json",
+          "count": 2
+        },
+        {
+          "source_artifact": "docs/review-inputs/youtube_shorts_fragrance_tone_expansion200_capture_v0.json",
+          "count": 5
+        },
+        {
+          "source_artifact": "docs/review-inputs/youtube_shorts_fragrance_tone_expansion30_capture_v0.json",
+          "count": 2
+        },
+        {
+          "source_artifact": "docs/review-inputs/youtube_shorts_fragrance_tone_fixture_hard30_v0.json",
+          "count": 3
+        }
+      ],
+      "pool_ids": [
+        "ytshorts-fragrance-tone-pool200-v0-020",
+        "ytshorts-fragrance-tone-pool200-v0-021",
+        "ytshorts-fragrance-tone-pool200-v0-022",
+        "ytshorts-fragrance-tone-pool200-v0-042",
+        "ytshorts-fragrance-tone-pool200-v0-057",
+        "ytshorts-fragrance-tone-pool200-v0-068",
+        "ytshorts-fragrance-tone-pool200-v0-088",
+        "ytshorts-fragrance-tone-pool200-v0-105",
+        "ytshorts-fragrance-tone-pool200-v0-128",
+        "ytshorts-fragrance-tone-pool200-v0-147",
+        "ytshorts-fragrance-tone-pool200-v0-165",
+        "ytshorts-fragrance-tone-pool200-v0-186"
+      ],
+      "video_ids": [
+        "JMmEIv_oG4o",
+        "_Gp2AmN74E8",
+        "Tb-_V-JVNfk",
+        "I_IBUdYJQ6U",
+        "Az4cCq5L0NE",
+        "gvRng8Hkwyw",
+        "Ifa-qYlGEfM",
+        "0Ym-iX_z7YM",
+        "PkkvfJyBBLw",
+        "1iE5B35c9vU",
+        "OCjdJb8N6iw",
+        "gD0MizuZ6NI"
+      ],
+      "sample_shorts_urls": [
+        "https://www.youtube.com/shorts/JMmEIv_oG4o",
+        "https://www.youtube.com/shorts/_Gp2AmN74E8",
+        "https://www.youtube.com/shorts/Tb-_V-JVNfk"
+      ],
+      "word_count_min": 153,
+      "word_count_max": 293,
+      "known_label_status_counts_100_pool_only": {
+        "labeled": 7
+      },
+      "unlabeled_rows_in_pool200": 5
+    },
+    {
+      "ledger_id": "ytshorts-fragrance-creator-ledger-v0-019",
+      "creator_handle_query": "Scentbird",
+      "creator_classification": "brand_or_platform_account_observed",
+      "identity_boundary": "observed YouTube handle/channel in the Shorts pool; not verified person identity, ownership, or independence",
+      "admitted_rows_total": 4,
+      "observed_author_names": [
+        {
+          "author": "Scentbird",
+          "count": 4
+        }
+      ],
+      "observed_channel_ids": [
+        {
+          "channel_id": "UCqyZ36l5SkZrbaqWH0cxB1A",
+          "count": 4
+        }
+      ],
+      "source_artifact_counts": [
+        {
+          "source_artifact": "docs/review-inputs/youtube_shorts_fragrance_tone_expansion100_capture_v0.json",
+          "count": 2
+        },
+        {
+          "source_artifact": "docs/review-inputs/youtube_shorts_fragrance_tone_expansion200_capture_v0.json",
+          "count": 2
+        }
+      ],
+      "pool_ids": [
+        "ytshorts-fragrance-tone-pool200-v0-075",
+        "ytshorts-fragrance-tone-pool200-v0-095",
+        "ytshorts-fragrance-tone-pool200-v0-115",
+        "ytshorts-fragrance-tone-pool200-v0-136"
+      ],
+      "video_ids": [
+        "m3Tnv4p7TAg",
+        "hy443hJNeu8",
+        "N3qy8SBGzhQ",
+        "4zmPW2mcy1w"
+      ],
+      "sample_shorts_urls": [
+        "https://www.youtube.com/shorts/m3Tnv4p7TAg",
+        "https://www.youtube.com/shorts/hy443hJNeu8",
+        "https://www.youtube.com/shorts/N3qy8SBGzhQ"
+      ],
+      "word_count_min": 22,
+      "word_count_max": 84,
+      "known_label_status_counts_100_pool_only": {
+        "abstain": 2
+      },
+      "unlabeled_rows_in_pool200": 2
+    },
+    {
+      "ledger_id": "ytshorts-fragrance-creator-ledger-v0-020",
+      "creator_handle_query": "ScentedMoments",
+      "creator_classification": "creator_or_channel_observed",
+      "identity_boundary": "observed YouTube handle/channel in the Shorts pool; not verified person identity, ownership, or independence",
+      "admitted_rows_total": 3,
+      "observed_author_names": [
+        {
+          "author": "Scented Moments",
+          "count": 3
+        }
+      ],
+      "observed_channel_ids": [
+        {
+          "channel_id": "UCd7OAY06IuwYsUoWsn3gbuQ",
+          "count": 3
+        }
+      ],
+      "source_artifact_counts": [
+        {
+          "source_artifact": "docs/review-inputs/youtube_shorts_fragrance_tone_expansion100_capture_v0.json",
+          "count": 2
+        },
+        {
+          "source_artifact": "docs/review-inputs/youtube_shorts_fragrance_tone_expansion200_capture_v0.json",
+          "count": 1
+        }
+      ],
+      "pool_ids": [
+        "ytshorts-fragrance-tone-pool200-v0-080",
+        "ytshorts-fragrance-tone-pool200-v0-099",
+        "ytshorts-fragrance-tone-pool200-v0-174"
+      ],
+      "video_ids": [
+        "bGFqsPZ7bWc",
+        "QGh0xaigTvo",
+        "ss1HX00gQTY"
+      ],
+      "sample_shorts_urls": [
+        "https://www.youtube.com/shorts/bGFqsPZ7bWc",
+        "https://www.youtube.com/shorts/QGh0xaigTvo",
+        "https://www.youtube.com/shorts/ss1HX00gQTY"
+      ],
+      "word_count_min": 105,
+      "word_count_max": 119,
+      "known_label_status_counts_100_pool_only": {
+        "labeled": 2
+      },
+      "unlabeled_rows_in_pool200": 1
+    },
+    {
+      "ledger_id": "ytshorts-fragrance-creator-ledger-v0-021",
+      "creator_handle_query": "Scenteno",
+      "creator_classification": "creator_or_channel_observed",
+      "identity_boundary": "observed YouTube handle/channel in the Shorts pool; not verified person identity, ownership, or independence",
+      "admitted_rows_total": 6,
+      "observed_author_names": [
+        {
+          "author": "Scenteno",
+          "count": 6
+        }
+      ],
+      "observed_channel_ids": [
+        {
+          "channel_id": "UC8gjOYz9aonQqd5HwoTu2NQ",
+          "count": 6
+        }
+      ],
+      "source_artifact_counts": [
+        {
+          "source_artifact": "docs/review-inputs/youtube_shorts_fragrance_tone_expansion100_capture_v0.json",
+          "count": 2
+        },
+        {
+          "source_artifact": "docs/review-inputs/youtube_shorts_fragrance_tone_expansion200_capture_v0.json",
+          "count": 4
+        }
+      ],
+      "pool_ids": [
+        "ytshorts-fragrance-tone-pool200-v0-076",
+        "ytshorts-fragrance-tone-pool200-v0-096",
+        "ytshorts-fragrance-tone-pool200-v0-116",
+        "ytshorts-fragrance-tone-pool200-v0-137",
+        "ytshorts-fragrance-tone-pool200-v0-155",
+        "ytshorts-fragrance-tone-pool200-v0-194"
+      ],
+      "video_ids": [
+        "7_kbaCJR_o0",
+        "ZUnhHKu-cgk",
+        "WcUT14n93ic",
+        "queVnhn2wmU",
+        "EnJsAPKDVhY",
+        "QdD_K7VcWnI"
+      ],
+      "sample_shorts_urls": [
+        "https://www.youtube.com/shorts/7_kbaCJR_o0",
+        "https://www.youtube.com/shorts/ZUnhHKu-cgk",
+        "https://www.youtube.com/shorts/WcUT14n93ic"
+      ],
+      "word_count_min": 47,
+      "word_count_max": 143,
+      "known_label_status_counts_100_pool_only": {
+        "labeled": 2
+      },
+      "unlabeled_rows_in_pool200": 4
+    },
+    {
+      "ledger_id": "ytshorts-fragrance-creator-ledger-v0-022",
+      "creator_handle_query": "SchoolofScent",
+      "creator_classification": "creator_or_channel_observed",
+      "identity_boundary": "observed YouTube handle/channel in the Shorts pool; not verified person identity, ownership, or independence",
+      "admitted_rows_total": 12,
+      "observed_author_names": [
+        {
+          "author": "School of Scent",
+          "count": 12
+        }
+      ],
+      "observed_channel_ids": [
+        {
+          "channel_id": "UC7yWwH6peQbpfLMVKKuR-xg",
+          "count": 9
+        },
+        {
+          "channel_id": "UNKNOWN",
+          "count": 3
+        }
+      ],
+      "source_artifact_counts": [
+        {
+          "source_artifact": "docs/review-inputs/youtube_shorts_fragrance_tone_expansion100_capture_v0.json",
+          "count": 2
+        },
+        {
+          "source_artifact": "docs/review-inputs/youtube_shorts_fragrance_tone_expansion200_capture_v0.json",
+          "count": 5
+        },
+        {
+          "source_artifact": "docs/review-inputs/youtube_shorts_fragrance_tone_expansion30_capture_v0.json",
+          "count": 2
+        },
+        {
+          "source_artifact": "docs/review-inputs/youtube_shorts_fragrance_tone_fixture_hard30_v0.json",
+          "count": 3
+        }
+      ],
+      "pool_ids": [
+        "ytshorts-fragrance-tone-pool200-v0-008",
+        "ytshorts-fragrance-tone-pool200-v0-009",
+        "ytshorts-fragrance-tone-pool200-v0-010",
+        "ytshorts-fragrance-tone-pool200-v0-037",
+        "ytshorts-fragrance-tone-pool200-v0-052",
+        "ytshorts-fragrance-tone-pool200-v0-064",
+        "ytshorts-fragrance-tone-pool200-v0-084",
+        "ytshorts-fragrance-tone-pool200-v0-104",
+        "ytshorts-fragrance-tone-pool200-v0-126",
+        "ytshorts-fragrance-tone-pool200-v0-145",
+        "ytshorts-fragrance-tone-pool200-v0-161",
+        "ytshorts-fragrance-tone-pool200-v0-183"
+      ],
+      "video_ids": [
+        "vl-QUTwtneY",
+        "WEqUWKA4FUI",
+        "uaCSynFfPpc",
+        "1K9ej-6aP6g",
+        "cc7MLqJl9SY",
+        "ZVU5kePvD2w",
+        "3UE8ZN1I8zM",
+        "AH_dvrV1NJ0",
+        "cwWxnZEOrBc",
+        "aqpNhTTYEpE",
+        "EmpTsCc11Mc",
+        "z9OAKSSI--4"
+      ],
+      "sample_shorts_urls": [
+        "https://www.youtube.com/shorts/vl-QUTwtneY",
+        "https://www.youtube.com/shorts/WEqUWKA4FUI",
+        "https://www.youtube.com/shorts/uaCSynFfPpc"
+      ],
+      "word_count_min": 120,
+      "word_count_max": 235,
+      "known_label_status_counts_100_pool_only": {
+        "labeled": 7
+      },
+      "unlabeled_rows_in_pool200": 5
+    },
+    {
+      "ledger_id": "ytshorts-fragrance-creator-ledger-v0-023",
+      "creator_handle_query": "SimplyPutScents",
+      "creator_classification": "creator_or_channel_observed",
+      "identity_boundary": "observed YouTube handle/channel in the Shorts pool; not verified person identity, ownership, or independence",
+      "admitted_rows_total": 5,
+      "observed_author_names": [
+        {
+          "author": "Simply Put Scents",
+          "count": 5
+        }
+      ],
+      "observed_channel_ids": [
+        {
+          "channel_id": "UCwpmex-DKwi6ARQlVa3-KcA",
+          "count": 5
+        }
+      ],
+      "source_artifact_counts": [
+        {
+          "source_artifact": "docs/review-inputs/youtube_shorts_fragrance_tone_expansion200_capture_v0.json",
+          "count": 5
+        }
+      ],
+      "pool_ids": [
+        "ytshorts-fragrance-tone-pool200-v0-121",
+        "ytshorts-fragrance-tone-pool200-v0-143",
+        "ytshorts-fragrance-tone-pool200-v0-158",
+        "ytshorts-fragrance-tone-pool200-v0-178",
+        "ytshorts-fragrance-tone-pool200-v0-199"
+      ],
+      "video_ids": [
+        "OG1MpeV31xM",
+        "pXWm5biQUik",
+        "QNlZ-pzV_Ag",
+        "z15MdpzcdIQ",
+        "xFUwll4sT9k"
+      ],
+      "sample_shorts_urls": [
+        "https://www.youtube.com/shorts/OG1MpeV31xM",
+        "https://www.youtube.com/shorts/pXWm5biQUik",
+        "https://www.youtube.com/shorts/QNlZ-pzV_Ag"
+      ],
+      "word_count_min": 89,
+      "word_count_max": 167,
+      "known_label_status_counts_100_pool_only": {},
+      "unlabeled_rows_in_pool200": 5
+    },
+    {
+      "ledger_id": "ytshorts-fragrance-creator-ledger-v0-024",
+      "creator_handle_query": "SokiLondon",
+      "creator_classification": "creator_or_channel_observed",
+      "identity_boundary": "observed YouTube handle/channel in the Shorts pool; not verified person identity, ownership, or independence",
+      "admitted_rows_total": 9,
+      "observed_author_names": [
+        {
+          "author": "Soki London",
+          "count": 9
+        }
+      ],
+      "observed_channel_ids": [
+        {
+          "channel_id": "UCtBpe765Fy-USxg_L8hGDPg",
+          "count": 6
+        },
+        {
+          "channel_id": "UNKNOWN",
+          "count": 3
+        }
+      ],
+      "source_artifact_counts": [
+        {
+          "source_artifact": "docs/review-inputs/youtube_shorts_fragrance_tone_expansion100_capture_v0.json",
+          "count": 2
+        },
+        {
+          "source_artifact": "docs/review-inputs/youtube_shorts_fragrance_tone_expansion200_capture_v0.json",
+          "count": 2
+        },
+        {
+          "source_artifact": "docs/review-inputs/youtube_shorts_fragrance_tone_expansion30_capture_v0.json",
+          "count": 2
+        },
+        {
+          "source_artifact": "docs/review-inputs/youtube_shorts_fragrance_tone_fixture_hard30_v0.json",
+          "count": 3
+        }
+      ],
+      "pool_ids": [
+        "ytshorts-fragrance-tone-pool200-v0-015",
+        "ytshorts-fragrance-tone-pool200-v0-016",
+        "ytshorts-fragrance-tone-pool200-v0-030",
+        "ytshorts-fragrance-tone-pool200-v0-040",
+        "ytshorts-fragrance-tone-pool200-v0-055",
+        "ytshorts-fragrance-tone-pool200-v0-066",
+        "ytshorts-fragrance-tone-pool200-v0-087",
+        "ytshorts-fragrance-tone-pool200-v0-164",
+        "ytshorts-fragrance-tone-pool200-v0-185"
+      ],
+      "video_ids": [
+        "XDscn2sgW3w",
+        "Fd-aChpt_Ss",
+        "XTgiBsIaokI",
+        "frHbes9NwZI",
+        "3Abc0p30r9c",
+        "dhFp3M6oMc8",
+        "wf8wjYjytuI",
+        "af9cI-rVLe4",
+        "HN_EY29j59w"
+      ],
+      "sample_shorts_urls": [
+        "https://www.youtube.com/shorts/XDscn2sgW3w",
+        "https://www.youtube.com/shorts/Fd-aChpt_Ss",
+        "https://www.youtube.com/shorts/XTgiBsIaokI"
+      ],
+      "word_count_min": 100,
+      "word_count_max": 279,
+      "known_label_status_counts_100_pool_only": {
+        "labeled": 7
+      },
+      "unlabeled_rows_in_pool200": 2
+    },
+    {
+      "ledger_id": "ytshorts-fragrance-creator-ledger-v0-025",
+      "creator_handle_query": "TheFragranceApprentice",
+      "creator_classification": "creator_or_channel_observed",
+      "identity_boundary": "observed YouTube handle/channel in the Shorts pool; not verified person identity, ownership, or independence",
+      "admitted_rows_total": 8,
+      "observed_author_names": [
+        {
+          "author": "The Fragrance Apprentice",
+          "count": 8
+        }
+      ],
+      "observed_channel_ids": [
+        {
+          "channel_id": "UCMz0tE1qg5SwmrAF3Cshe0A",
+          "count": 5
+        },
+        {
+          "channel_id": "UNKNOWN",
+          "count": 3
+        }
+      ],
+      "source_artifact_counts": [
+        {
+          "source_artifact": "docs/review-inputs/youtube_shorts_fragrance_tone_expansion100_capture_v0.json",
+          "count": 2
+        },
+        {
+          "source_artifact": "docs/review-inputs/youtube_shorts_fragrance_tone_expansion200_capture_v0.json",
+          "count": 1
+        },
+        {
+          "source_artifact": "docs/review-inputs/youtube_shorts_fragrance_tone_expansion30_capture_v0.json",
+          "count": 2
+        },
+        {
+          "source_artifact": "docs/review-inputs/youtube_shorts_fragrance_tone_fixture_hard30_v0.json",
+          "count": 3
+        }
+      ],
+      "pool_ids": [
+        "ytshorts-fragrance-tone-pool200-v0-023",
+        "ytshorts-fragrance-tone-pool200-v0-024",
+        "ytshorts-fragrance-tone-pool200-v0-025",
+        "ytshorts-fragrance-tone-pool200-v0-043",
+        "ytshorts-fragrance-tone-pool200-v0-058",
+        "ytshorts-fragrance-tone-pool200-v0-069",
+        "ytshorts-fragrance-tone-pool200-v0-089",
+        "ytshorts-fragrance-tone-pool200-v0-106"
+      ],
+      "video_ids": [
+        "6k8ebJw50tU",
+        "5e4y5yNagRI",
+        "WcSRnnwSAJM",
+        "EPcHN1WaGBY",
+        "YWnj7wFOqO0",
+        "fnAGBzFSQnw",
+        "mCNfOHwUYt4",
+        "GmM1VNI95P8"
+      ],
+      "sample_shorts_urls": [
+        "https://www.youtube.com/shorts/6k8ebJw50tU",
+        "https://www.youtube.com/shorts/5e4y5yNagRI",
+        "https://www.youtube.com/shorts/WcSRnnwSAJM"
+      ],
+      "word_count_min": 33,
+      "word_count_max": 211,
+      "known_label_status_counts_100_pool_only": {
+        "labeled": 7
+      },
+      "unlabeled_rows_in_pool200": 1
+    },
+    {
+      "ledger_id": "ytshorts-fragrance-creator-ledger-v0-026",
+      "creator_handle_query": "ThePerfumeGuy",
+      "creator_classification": "creator_or_channel_observed",
+      "identity_boundary": "observed YouTube handle/channel in the Shorts pool; not verified person identity, ownership, or independence",
+      "admitted_rows_total": 11,
+      "observed_author_names": [
+        {
+          "author": "The Perfume Guy",
+          "count": 11
+        }
+      ],
+      "observed_channel_ids": [
+        {
+          "channel_id": "UCFarEEFsV90-pvUU0XdUdgQ",
+          "count": 8
+        },
+        {
+          "channel_id": "UNKNOWN",
+          "count": 3
+        }
+      ],
+      "source_artifact_counts": [
+        {
+          "source_artifact": "docs/review-inputs/youtube_shorts_fragrance_tone_expansion100_capture_v0.json",
+          "count": 2
+        },
+        {
+          "source_artifact": "docs/review-inputs/youtube_shorts_fragrance_tone_expansion200_capture_v0.json",
+          "count": 4
+        },
+        {
+          "source_artifact": "docs/review-inputs/youtube_shorts_fragrance_tone_expansion30_capture_v0.json",
+          "count": 2
+        },
+        {
+          "source_artifact": "docs/review-inputs/youtube_shorts_fragrance_tone_fixture_hard30_v0.json",
+          "count": 3
+        }
+      ],
+      "pool_ids": [
+        "ytshorts-fragrance-tone-pool200-v0-005",
+        "ytshorts-fragrance-tone-pool200-v0-006",
+        "ytshorts-fragrance-tone-pool200-v0-007",
+        "ytshorts-fragrance-tone-pool200-v0-036",
+        "ytshorts-fragrance-tone-pool200-v0-051",
+        "ytshorts-fragrance-tone-pool200-v0-063",
+        "ytshorts-fragrance-tone-pool200-v0-083",
+        "ytshorts-fragrance-tone-pool200-v0-103",
+        "ytshorts-fragrance-tone-pool200-v0-125",
+        "ytshorts-fragrance-tone-pool200-v0-160",
+        "ytshorts-fragrance-tone-pool200-v0-182"
+      ],
+      "video_ids": [
+        "rmDwkTrzNxo",
+        "5QDcTenklxg",
+        "hfyoVdOAYt4",
+        "17mhHUkRLvg",
+        "BhA4y28lmt0",
+        "ESyg9QXm8MU",
+        "-wS9yaoumW8",
+        "yL5b44KBD_0",
+        "gXTvb8CgAbo",
+        "iVfrnPwItv4",
+        "dsRsi7lPjds"
+      ],
+      "sample_shorts_urls": [
+        "https://www.youtube.com/shorts/rmDwkTrzNxo",
+        "https://www.youtube.com/shorts/5QDcTenklxg",
+        "https://www.youtube.com/shorts/hfyoVdOAYt4"
+      ],
+      "word_count_min": 220,
+      "word_count_max": 370,
+      "known_label_status_counts_100_pool_only": {
+        "labeled": 7
+      },
+      "unlabeled_rows_in_pool200": 4
+    },
+    {
+      "ledger_id": "ytshorts-fragrance-creator-ledger-v0-027",
+      "creator_handle_query": "ThePerfumeNest",
+      "creator_classification": "creator_or_channel_observed",
+      "identity_boundary": "observed YouTube handle/channel in the Shorts pool; not verified person identity, ownership, or independence",
+      "admitted_rows_total": 9,
+      "observed_author_names": [
+        {
+          "author": "The Perfume Nest",
+          "count": 9
+        }
+      ],
+      "observed_channel_ids": [
+        {
+          "channel_id": "UCyU1XUvAFqV2X1NVCcRqRNA",
+          "count": 9
+        }
+      ],
+      "source_artifact_counts": [
+        {
+          "source_artifact": "docs/review-inputs/youtube_shorts_fragrance_tone_expansion100_capture_v0.json",
+          "count": 2
+        },
+        {
+          "source_artifact": "docs/review-inputs/youtube_shorts_fragrance_tone_expansion200_capture_v0.json",
+          "count": 5
+        },
+        {
+          "source_artifact": "docs/review-inputs/youtube_shorts_fragrance_tone_expansion30_capture_v0.json",
+          "count": 2
+        }
+      ],
+      "pool_ids": [
+        "ytshorts-fragrance-tone-pool200-v0-048",
+        "ytshorts-fragrance-tone-pool200-v0-060",
+        "ytshorts-fragrance-tone-pool200-v0-074",
+        "ytshorts-fragrance-tone-pool200-v0-094",
+        "ytshorts-fragrance-tone-pool200-v0-110",
+        "ytshorts-fragrance-tone-pool200-v0-131",
+        "ytshorts-fragrance-tone-pool200-v0-151",
+        "ytshorts-fragrance-tone-pool200-v0-169",
+        "ytshorts-fragrance-tone-pool200-v0-190"
+      ],
+      "video_ids": [
+        "vDvnnG2iaGQ",
+        "W3HTpUsaHiA",
+        "7EdjxOC-MNI",
+        "_zQeVk1r3fg",
+        "5OKgUA5QiNs",
+        "DvJEkb4hYnA",
+        "z_syvxnGcnA",
+        "kgY9lx0SPBI",
+        "BKRnLvtygSw"
+      ],
+      "sample_shorts_urls": [
+        "https://www.youtube.com/shorts/vDvnnG2iaGQ",
+        "https://www.youtube.com/shorts/W3HTpUsaHiA",
+        "https://www.youtube.com/shorts/7EdjxOC-MNI"
+      ],
+      "word_count_min": 204,
+      "word_count_max": 541,
+      "known_label_status_counts_100_pool_only": {
+        "labeled": 4
+      },
+      "unlabeled_rows_in_pool200": 5
+    },
+    {
+      "ledger_id": "ytshorts-fragrance-creator-ledger-v0-028",
+      "creator_handle_query": "TheScented",
+      "creator_classification": "creator_or_channel_observed",
+      "identity_boundary": "observed YouTube handle/channel in the Shorts pool; not verified person identity, ownership, or independence",
+      "admitted_rows_total": 2,
+      "observed_author_names": [
+        {
+          "author": "The Scented",
+          "count": 2
+        }
+      ],
+      "observed_channel_ids": [
+        {
+          "channel_id": "UCHqrJNnjF_3yHfVDatKl-NA",
+          "count": 2
+        }
+      ],
+      "source_artifact_counts": [
+        {
+          "source_artifact": "docs/review-inputs/youtube_shorts_fragrance_tone_expansion200_capture_v0.json",
+          "count": 2
+        }
+      ],
+      "pool_ids": [
+        "ytshorts-fragrance-tone-pool200-v0-122",
+        "ytshorts-fragrance-tone-pool200-v0-179"
+      ],
+      "video_ids": [
+        "L_V4z_VkDVQ",
+        "Rf3KCzjvwMs"
+      ],
+      "sample_shorts_urls": [
+        "https://www.youtube.com/shorts/L_V4z_VkDVQ",
+        "https://www.youtube.com/shorts/Rf3KCzjvwMs"
+      ],
+      "word_count_min": 188,
+      "word_count_max": 377,
+      "known_label_status_counts_100_pool_only": {},
+      "unlabeled_rows_in_pool200": 2
+    },
+    {
+      "ledger_id": "ytshorts-fragrance-creator-ledger-v0-029",
+      "creator_handle_query": "TheScentinel",
+      "creator_classification": "creator_or_channel_observed",
+      "identity_boundary": "observed YouTube handle/channel in the Shorts pool; not verified person identity, ownership, or independence",
+      "admitted_rows_total": 4,
+      "observed_author_names": [
+        {
+          "author": "The Scentinel",
+          "count": 4
+        }
+      ],
+      "observed_channel_ids": [
+        {
+          "channel_id": "UCCyE5usoGzgd_FNuqC1pkHQ",
+          "count": 4
+        }
+      ],
+      "source_artifact_counts": [
+        {
+          "source_artifact": "docs/review-inputs/youtube_shorts_fragrance_tone_expansion100_capture_v0.json",
+          "count": 1
+        },
+        {
+          "source_artifact": "docs/review-inputs/youtube_shorts_fragrance_tone_expansion200_capture_v0.json",
+          "count": 3
+        }
+      ],
+      "pool_ids": [
+        "ytshorts-fragrance-tone-pool200-v0-100",
+        "ytshorts-fragrance-tone-pool200-v0-117",
+        "ytshorts-fragrance-tone-pool200-v0-138",
+        "ytshorts-fragrance-tone-pool200-v0-195"
+      ],
+      "video_ids": [
+        "fDtI1QsNNqY",
+        "CkYI0Aceeik",
+        "WsDv2UYDQOw",
+        "08KKTawHeUQ"
+      ],
+      "sample_shorts_urls": [
+        "https://www.youtube.com/shorts/fDtI1QsNNqY",
+        "https://www.youtube.com/shorts/CkYI0Aceeik",
+        "https://www.youtube.com/shorts/WsDv2UYDQOw"
+      ],
+      "word_count_min": 31,
+      "word_count_max": 134,
+      "known_label_status_counts_100_pool_only": {
+        "abstain": 1
+      },
+      "unlabeled_rows_in_pool200": 3
+    },
+    {
+      "ledger_id": "ytshorts-fragrance-creator-ledger-v0-030",
+      "creator_handle_query": "TiffBenson",
+      "creator_classification": "creator_or_channel_observed",
+      "identity_boundary": "observed YouTube handle/channel in the Shorts pool; not verified person identity, ownership, or independence",
+      "admitted_rows_total": 3,
+      "observed_author_names": [
+        {
+          "author": "Tiff Benson",
+          "count": 3
+        }
+      ],
+      "observed_channel_ids": [
+        {
+          "channel_id": "UC4lKHUYqvm74znBF6qSnYig",
+          "count": 3
+        }
+      ],
+      "source_artifact_counts": [
+        {
+          "source_artifact": "docs/review-inputs/youtube_shorts_fragrance_tone_expansion200_capture_v0.json",
+          "count": 3
+        }
+      ],
+      "pool_ids": [
+        "ytshorts-fragrance-tone-pool200-v0-118",
+        "ytshorts-fragrance-tone-pool200-v0-139",
+        "ytshorts-fragrance-tone-pool200-v0-196"
+      ],
+      "video_ids": [
+        "mrXyKjkwBRc",
+        "pWmdISiovo0",
+        "5WwfT2Awx2w"
+      ],
+      "sample_shorts_urls": [
+        "https://www.youtube.com/shorts/mrXyKjkwBRc",
+        "https://www.youtube.com/shorts/pWmdISiovo0",
+        "https://www.youtube.com/shorts/5WwfT2Awx2w"
+      ],
+      "word_count_min": 109,
+      "word_count_max": 116,
+      "known_label_status_counts_100_pool_only": {},
+      "unlabeled_rows_in_pool200": 3
+    },
+    {
+      "ledger_id": "ytshorts-fragrance-creator-ledger-v0-031",
+      "creator_handle_query": "TLTGReviews",
+      "creator_classification": "creator_or_channel_observed",
+      "identity_boundary": "observed YouTube handle/channel in the Shorts pool; not verified person identity, ownership, or independence",
+      "admitted_rows_total": 6,
+      "observed_author_names": [
+        {
+          "author": "TLTG Reviews",
+          "count": 6
+        }
+      ],
+      "observed_channel_ids": [
+        {
+          "channel_id": "UCmYZrY_MVZy5Iiwlua029kg",
+          "count": 3
+        },
+        {
+          "channel_id": "UNKNOWN",
+          "count": 3
+        }
+      ],
+      "source_artifact_counts": [
+        {
+          "source_artifact": "docs/review-inputs/youtube_shorts_fragrance_tone_expansion100_capture_v0.json",
+          "count": 1
+        },
+        {
+          "source_artifact": "docs/review-inputs/youtube_shorts_fragrance_tone_expansion30_capture_v0.json",
+          "count": 2
+        },
+        {
+          "source_artifact": "docs/review-inputs/youtube_shorts_fragrance_tone_fixture_hard30_v0.json",
+          "count": 3
+        }
+      ],
+      "pool_ids": [
+        "ytshorts-fragrance-tone-pool200-v0-017",
+        "ytshorts-fragrance-tone-pool200-v0-018",
+        "ytshorts-fragrance-tone-pool200-v0-019",
+        "ytshorts-fragrance-tone-pool200-v0-041",
+        "ytshorts-fragrance-tone-pool200-v0-056",
+        "ytshorts-fragrance-tone-pool200-v0-067"
+      ],
+      "video_ids": [
+        "7S40eU8FDCY",
+        "-V7MN2IWMpA",
+        "Ln1LUflj8d0",
+        "rnJjtCdMZyo",
+        "wBzGGKsOdyY",
+        "zHTuK2_Ouf0"
+      ],
+      "sample_shorts_urls": [
+        "https://www.youtube.com/shorts/7S40eU8FDCY",
+        "https://www.youtube.com/shorts/-V7MN2IWMpA",
+        "https://www.youtube.com/shorts/Ln1LUflj8d0"
+      ],
+      "word_count_min": 20,
+      "word_count_max": 608,
+      "known_label_status_counts_100_pool_only": {
+        "abstain": 3,
+        "labeled": 3
+      },
+      "unlabeled_rows_in_pool200": 0
+    }
+  ],
+  "accepted_residuals": [
+    "The ledger records observed YouTube handles/channels, not legal identity, ownership, or independent-creator status.",
+    "Some prior admitted rows have label abstains/off-topic residuals; the ledger does not certify row relevance.",
+    "Channel IDs are unavailable for some hard-30 rows because that fixture did not retain the field in git metadata.",
+    "Brand/platform accounts are kept for pool traceability and marked separately from creator/channel observations."
+  ],
+  "non_claims": [
+    "not creator identity verification",
+    "not a creator quality ranking",
+    "not benchmark validation",
+    "not buyer proof",
+    "not an energy/prosody measure"
+  ]
+}

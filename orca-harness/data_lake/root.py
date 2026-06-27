@@ -546,12 +546,21 @@ class DataLakeRoot:
             )
 
         written: dict[str, Path] = {}
+        member_sha256: dict[str, str] = {}
         for lane, data in members.items():
             _atomic_create(member_targets[lane], data)
             written[lane] = member_targets[lane]
+            # The lake computes each member's content sha256 from the bytes IT writes (never
+            # caller-supplied): the marker becomes a derivation-time content-integrity manifest,
+            # trustworthy by construction.
+            member_sha256[lane] = hashlib.sha256(data).hexdigest()
         marker_body = (
             json.dumps(
-                {"record_id": record_id, "member_lanes": sorted(members)},
+                {
+                    "record_id": record_id,
+                    "member_lanes": sorted(members),
+                    "member_sha256": member_sha256,
+                },
                 indent=2,
                 sort_keys=True,
             )
@@ -597,6 +606,62 @@ class DataLakeRoot:
             if not self._within(subtree, anchor_shard, raw_anchor, lane, record_id).is_file():
                 return False
         return True
+
+    def read_record_set_member_sha256(
+        self,
+        *,
+        subtree: str,
+        raw_anchor: str,
+        record_id: str,
+        completion_lane: str,
+        member_lane: str,
+    ) -> str | None:
+        """Return a record-set member's derivation-time content sha256 committed in the completion
+        marker, or ``None`` ONLY when the marker file is ABSENT (a legitimate legacy
+        ``append_record`` record that never wrote a marker -- the caller's stitch-time fallback).
+
+        Fail-closed on corruption -- this is the integrity crux (never collapse a damaged marker
+        into the "old record" None): a marker that is PRESENT but malformed (unreadable / not a JSON
+        object / wrong ``record_id``), or present but whose ``member_sha256`` is missing, not a
+        mapping, lacks ``member_lane``, or carries a non-string sha, RAISES ``DataLakeRootError``.
+        Every record written via ``append_record_set`` has a well-formed marker, so a new record
+        whose marker cannot yield its sha must surface, never silently downgrade. Validates segments
+        like the sibling marker methods."""
+        if subtree not in _APPENDABLE_SUBTREES:
+            raise DataLakeRootError(
+                f"read_record_set_member_sha256 subtree must be one of {_APPENDABLE_SUBTREES}: {subtree!r}"
+            )
+        self._reverify()
+        _validate_segment(raw_anchor, role="raw_anchor")
+        _validate_segment(record_id, role="record_id")
+        _validate_segment(completion_lane, role="completion_lane")
+        _validate_segment(member_lane, role="member_lane")
+        anchor_shard = raw_shard(raw_anchor)
+        marker = self._within(subtree, anchor_shard, raw_anchor, completion_lane, record_id)
+        if not marker.is_file():
+            # Marker ABSENT: the only legitimate None (legacy markerless record).
+            return None
+        try:
+            body = json.loads(marker.read_text(encoding="utf-8"))
+        except (OSError, ValueError) as exc:
+            raise DataLakeRootError(
+                f"record-set marker present but unreadable/malformed: {marker}: {exc}"
+            ) from exc
+        if not isinstance(body, dict) or body.get("record_id") != record_id:
+            raise DataLakeRootError(
+                f"record-set marker present but malformed (record_id mismatch or non-object): {marker}"
+            )
+        member_sha256 = body.get("member_sha256")
+        if not isinstance(member_sha256, dict):
+            raise DataLakeRootError(
+                f"record-set marker present but missing a member_sha256 mapping: {marker}"
+            )
+        sha = member_sha256.get(member_lane)
+        if not isinstance(sha, str) or not sha:
+            raise DataLakeRootError(
+                f"record-set marker present but missing member_sha256 for lane {member_lane!r}: {marker}"
+            )
+        return sha
 
     def record_path(self, *, subtree: str, raw_anchor: str, lane: str, record_id: str) -> Path:
         """Resolve a derived/ack record's on-disk path BY KEY (sharded), without

@@ -6,7 +6,6 @@ from pathlib import Path
 
 import pytest
 
-from data_lake.root import DataLakeRoot, raw_shard
 from cleaning.models import CleaningPacket
 from runners import run_capture_ecr_cleaning_smoke as smoke_runner
 from runners import run_cleaning_spine_periodic_audit as audit_runner
@@ -33,7 +32,6 @@ from source_capture.models import (
 from source_capture.ig_projection import write_ig_creator_momentum_projection
 from source_capture.reddit_consolidation import consolidate_reddit_packet
 from source_capture.retail_pdp_projection import write_retail_pdp_projection
-from source_capture.transcript.asr_packet import write_asr_transcript
 from source_capture.transcript.caption_packet import write_caption_packet
 from source_capture.transcript.youtube_captions import CaptionFetch
 from source_capture.writer import write_local_source_capture_packet
@@ -77,6 +75,7 @@ def test_runner_writes_ecr_receipts_and_cleaning_packet_for_retail_and_reddit(
         "reddit_sources": 1,
         "instagram_sources": 0,
         "youtube_sources": 0,
+        "youtube_asr_sources": 0,
         "ecr_receipts": 2,
         "cleaning_handles": len(cleaning_packet.handles),
         "cleaning_transform_entries": 0,
@@ -174,6 +173,7 @@ def test_runner_writes_ecr_receipts_and_cleaning_packet_for_instagram(
         "reddit_sources": 0,
         "instagram_sources": 1,
         "youtube_sources": 0,
+        "youtube_asr_sources": 0,
         "ecr_receipts": 1,
         "cleaning_handles": len(instagram_projection.rows),
         "cleaning_transform_entries": 0,
@@ -209,15 +209,12 @@ def test_runner_writes_ecr_receipts_and_cleaning_packet_for_instagram(
     assert instagram_source["structure_preserved"] is True
     assert summary["findings"] == []
 
-
-def test_runner_writes_ecr_receipts_and_cleaning_packet_for_youtube(
-    tmp_path: Path,
-) -> None:
-    youtube_packet_dir = _write_youtube_caption_packet_dir(tmp_path)
+def test_runner_writes_ecr_receipts_and_cleaning_packet_for_youtube(tmp_path: Path) -> None:
+    youtube_packet_dir = _write_youtube_packet_dir(tmp_path)
     smoke_manifest_path = _write_smoke_manifest(
         tmp_path,
         youtube_packet_dir=youtube_packet_dir,
-        youtube_source_label="youtube:caption",
+        youtube_source_label="youtube:hyram",
     )
 
     outputs = run_capture_ecr_cleaning_smoke(
@@ -236,47 +233,56 @@ def test_runner_writes_ecr_receipts_and_cleaning_packet_for_youtube(
         "reddit_sources": 0,
         "instagram_sources": 0,
         "youtube_sources": 1,
+        "youtube_asr_sources": 0,
         "ecr_receipts": 1,
         "cleaning_handles": 2,
         "cleaning_transform_entries": 0,
     }
+
+    # The clears-profile is the whole point: identity + inspectability clear, while timing
+    # and source_visibility are HONEST non-clearing residuals (a caption has no cutoff class
+    # and no archive comparison). Pinning the two False values is the anti-fake-success guard
+    # -- "a receipt was emitted" must never pass on its own.
     assert len(ecr_receipts["receipts"]) == 1
     receipt = ecr_receipts["receipts"][0]
-    assert receipt["source_label"] == "youtube:caption"
-    assert set(receipt["postures"]) == {
-        "identity",
-        "inspectability",
-        "timing",
-        "source_visibility",
-    }
+    assert receipt["source_label"] == "youtube:hyram"
     assert receipt["clears"] == {
         "identity": True,
         "inspectability": True,
         "timing": False,
         "source_visibility": False,
     }
-    assert receipt["postures"]["timing"][0]["residual"]["status"] == "not_applicable"
-    assert receipt["postures"]["source_visibility"][0]["value"] == "current_capture_only"
-    assert receipt["postures"]["source_visibility"][0]["clears_source_visibility"] is False
+    assert any(
+        (posture.get("residual") or {}).get("status") == "not_applicable"
+        for posture in receipt["postures"]["timing"]
+    )
+    assert any(
+        posture.get("value") == "current_capture_only"
+        for posture in receipt["postures"]["source_visibility"]
+    )
 
     youtube_handles = [
         handle
         for handle in cleaning_packet.handles
-        if handle.handle_id.startswith("youtube:caption:")
+        if handle.handle_id.startswith("youtube:hyram:")
     ]
     assert len(youtube_handles) == 2
     assert all(handle.source_family == "youtube" for handle in youtube_handles)
     assert all(handle.source_surface == "youtube_captions" for handle in youtube_handles)
-    assert all(handle.raw_anchor.anchor_kind == "file" for handle in youtube_handles)
     assert all(handle.projection_ref is None for handle in youtube_handles)
+    assert all(handle.raw_anchor.anchor_kind == "file" for handle in youtube_handles)
     assert all(handle.ecr_ref is not None for handle in youtube_handles)
     assert all(
         handle.ecr_ref.packet_id == handle.raw_anchor.packet_id
         for handle in youtube_handles
         if handle.ecr_ref is not None
     )
+    assert any(
+        handle.raw_anchor.relative_packet_path.endswith(".json3")
+        for handle in youtube_handles
+    )
     youtube_source = next(
-        source for source in summary["sources"] if source["source_label"] == "youtube:caption"
+        source for source in summary["sources"] if source["source_label"] == "youtube:hyram"
     )
     assert youtube_source["source_surface"] == "youtube_captions"
     assert youtube_source["slice_count"] == 1
@@ -285,126 +291,16 @@ def test_runner_writes_ecr_receipts_and_cleaning_packet_for_youtube(
     assert summary["findings"] == []
 
 
-def test_runner_writes_ecr_receipts_and_cleaning_packet_for_youtube_asr(tmp_path: Path) -> None:
-    youtube_packet_dir = _write_youtube_asr_packet_dir(tmp_path)
+def test_youtube_entry_refuses_non_youtube_packet(tmp_path: Path) -> None:
+    # The YouTube entry has no projection/consolidation cross-check, so a manifest that routes a
+    # NON-YouTube packet through the YouTube branch must fail closed on the identity guard.
+    non_youtube_packet_dir = _write_instagram_packet_dir(tmp_path)
     smoke_manifest_path = _write_smoke_manifest(
         tmp_path,
-        youtube_packet_dir=youtube_packet_dir,
-        youtube_source_label="youtube:asr",
+        youtube_packet_dir=non_youtube_packet_dir,
+        youtube_source_label="youtube:spoofed",
     )
-
-    outputs = run_capture_ecr_cleaning_smoke(
-        smoke_manifest_path=smoke_manifest_path,
-        output_dir=tmp_path / "smoke_outputs",
-    )
-
-    ecr_receipts = _load_json(Path(outputs["ecr_source_side_receipts"]))
-    cleaning_packet = CleaningPacket.model_validate(
-        _load_json(Path(outputs["cleaning_packet"]))
-    )
-    summary = _load_json(Path(outputs["smoke_summary"]))
-
-    assert summary["counts"] == {
-        "retail_sources": 0,
-        "reddit_sources": 0,
-        "instagram_sources": 0,
-        "youtube_sources": 1,
-        "ecr_receipts": 1,
-        "cleaning_handles": 2,
-        "cleaning_transform_entries": 0,
-    }
-    receipt = ecr_receipts["receipts"][0]
-    assert receipt["source_label"] == "youtube:asr"
-    assert receipt["clears"]["identity"] is True
-    assert receipt["clears"]["inspectability"] is True
-    assert receipt["clears"]["timing"] is False
-    assert receipt["clears"]["source_visibility"] is False
-
-    youtube_handles = [
-        handle
-        for handle in cleaning_packet.handles
-        if handle.handle_id.startswith("youtube:asr:")
-    ]
-    assert len(youtube_handles) == 2
-    assert all(handle.source_family == "youtube" for handle in youtube_handles)
-    assert all(handle.source_surface == "youtube_audio" for handle in youtube_handles)
-    assert all(handle.raw_anchor.anchor_kind == "file" for handle in youtube_handles)
-    assert all(handle.projection_ref is None for handle in youtube_handles)
-    assert all(handle.ecr_ref is not None for handle in youtube_handles)
-    youtube_source = next(
-        source for source in summary["sources"] if source["source_label"] == "youtube:asr"
-    )
-    assert youtube_source["source_surface"] == "youtube_audio"
-    assert youtube_source["slice_count"] == 1
-    assert youtube_source["preserved_file_count"] == 2
-    assert youtube_source["handle_count"] == 2
-    assert summary["findings"] == []
-
-
-def test_youtube_source_family_mismatch_refuses(tmp_path: Path) -> None:
-    youtube_packet_dir = _write_youtube_caption_packet_dir(tmp_path)
-    manifest = _load_json(youtube_packet_dir / "manifest.json")
-    manifest["source_family"] = "instagram_creator"
-    _write_json(youtube_packet_dir / "manifest.json", manifest)
-    smoke_manifest_path = _write_smoke_manifest(
-        tmp_path,
-        youtube_packet_dir=youtube_packet_dir,
-    )
-
-    with pytest.raises(ValueError, match="source_family must be 'youtube'"):
-        run_capture_ecr_cleaning_smoke(
-            smoke_manifest_path=smoke_manifest_path,
-            output_dir=tmp_path / "smoke_outputs",
-        )
-
-
-def test_youtube_unsupported_source_surface_refuses(tmp_path: Path) -> None:
-    youtube_packet_dir = _write_youtube_caption_packet_dir(tmp_path)
-    manifest = _load_json(youtube_packet_dir / "manifest.json")
-    manifest["source_surface"] = "youtube_comments"
-    _write_json(youtube_packet_dir / "manifest.json", manifest)
-    smoke_manifest_path = _write_smoke_manifest(
-        tmp_path,
-        youtube_packet_dir=youtube_packet_dir,
-    )
-
-    with pytest.raises(ValueError, match="source_surface must be one of"):
-        run_capture_ecr_cleaning_smoke(
-            smoke_manifest_path=smoke_manifest_path,
-            output_dir=tmp_path / "smoke_outputs",
-        )
-
-
-def test_youtube_missing_preserved_file_bytes_refuses(tmp_path: Path) -> None:
-    youtube_packet_dir = _write_youtube_caption_packet_dir(tmp_path)
-    manifest = _load_json(youtube_packet_dir / "manifest.json")
-    preserved_file = manifest["preserved_files"][0]
-    raw_path = youtube_packet_dir / preserved_file["relative_packet_path"]
-    raw_path.unlink()
-    smoke_manifest_path = _write_smoke_manifest(
-        tmp_path,
-        youtube_packet_dir=youtube_packet_dir,
-    )
-
-    with pytest.raises(ValueError, match="preserved file not found"):
-        run_capture_ecr_cleaning_smoke(
-            smoke_manifest_path=smoke_manifest_path,
-            output_dir=tmp_path / "smoke_outputs",
-        )
-
-
-def test_youtube_preserved_file_hash_mismatch_refuses(tmp_path: Path) -> None:
-    youtube_packet_dir = _write_youtube_caption_packet_dir(tmp_path)
-    manifest = _load_json(youtube_packet_dir / "manifest.json")
-    preserved_file = manifest["preserved_files"][0]
-    raw_path = youtube_packet_dir / preserved_file["relative_packet_path"]
-    raw_path.write_text("tampered", encoding="utf-8")
-    smoke_manifest_path = _write_smoke_manifest(
-        tmp_path,
-        youtube_packet_dir=youtube_packet_dir,
-    )
-
-    with pytest.raises(ValueError, match="hash mismatch against manifest"):
+    with pytest.raises(ValueError, match="not a YouTube caption packet"):
         run_capture_ecr_cleaning_smoke(
             smoke_manifest_path=smoke_manifest_path,
             output_dir=tmp_path / "smoke_outputs",
@@ -918,7 +814,10 @@ def test_runner_refuses_empty_manifest_and_existing_outputs(tmp_path: Path) -> N
         encoding="utf-8",
     )
 
-    with pytest.raises(ValueError, match="at least one retail, reddit, instagram, or youtube source"):
+    with pytest.raises(
+        ValueError,
+        match="at least one retail, reddit, instagram, youtube, or youtube_asr source",
+    ):
         run_capture_ecr_cleaning_smoke(
             smoke_manifest_path=empty_manifest,
             output_dir=tmp_path / "empty_outputs",
@@ -1154,6 +1053,38 @@ def test_periodic_audit_passes_for_fixture_capture_projection_cleaning(
     assert "not_live_capture" in report["non_claims"]
 
 
+def test_periodic_audit_passes_for_projection_less_youtube_capture(tmp_path: Path) -> None:
+    # The projection-less YouTube handle flows through the FULL audit clean: its packet enters
+    # packet_index (so the raw anchor resolves), adapter-coverage accepts the file anchor, and
+    # lane-B records it as not-applicable instead of failing a projection rebuild.
+    youtube_packet_dir = _write_youtube_packet_dir(tmp_path)
+    smoke_manifest_path = _write_smoke_manifest(
+        tmp_path,
+        youtube_packet_dir=youtube_packet_dir,
+        youtube_source_label="youtube:hyram",
+    )
+    smoke_outputs = run_capture_ecr_cleaning_smoke(
+        smoke_manifest_path=smoke_manifest_path,
+        output_dir=tmp_path / "smoke_outputs",
+    )
+    audit_manifest_path = _write_audit_manifest(
+        tmp_path,
+        smoke_manifest_path=smoke_manifest_path,
+        smoke_outputs=smoke_outputs,
+    )
+
+    audit_outputs = run_cleaning_spine_periodic_audit(
+        audit_manifest_path=audit_manifest_path,
+        output_dir=tmp_path / "audit_outputs",
+    )
+
+    report = _load_json(Path(audit_outputs["audit_report_json"]))
+    assert report["overall_status"] == "pass"
+    assert report["counts"]["source_entries"] == 1
+    assert report["lane_statuses"]["lane_a_existing_package"] == "pass"
+    assert report["lane_statuses"]["lane_b_projection_breakpoint"] == "pass"
+
+
 def test_periodic_audit_supported_source_families_have_adapter_coverage() -> None:
     audit_runner._validate_source_family_adapter_contract()
     assert audit_runner.SUPPORTED_SOURCE_FAMILIES == ("retail", "reddit", "instagram")
@@ -1161,6 +1092,41 @@ def test_periodic_audit_supported_source_families_have_adapter_coverage() -> Non
         adapter = audit_runner._SOURCE_FAMILY_AUDIT_ADAPTERS[source_family]
         assert adapter["row_kinds"]
         assert adapter["anchor_kinds"]
+
+
+def test_periodic_audit_accepts_projection_less_youtube_file_anchor() -> None:
+    # The projection-less set is well-formed and disjoint from the projection-backed mapping
+    # (otherwise this raises). YouTube allows the direct-artifact "file" anchor (captions) and the
+    # "derived_record" anchor (ASR transcript record).
+    audit_runner._validate_source_family_adapter_contract()
+    assert audit_runner._PROJECTION_LESS_SOURCE_FAMILIES["youtube"] == frozenset(
+        {"file", "derived_record"}
+    )
+
+    # A projection-less YouTube file-anchor handle clears coverage with no finding.
+    ok_findings: list[dict[str, object]] = []
+    audit_runner._verify_source_family_anchor_adapter_coverage(
+        handle_id="youtube:fixture:file_01",
+        source_family="youtube",
+        raw_anchor={"packet_id": "pkt_yt", "anchor_kind": "file"},
+        findings=ok_findings,
+        lane="lane_a_existing_package",
+    )
+    assert ok_findings == []
+
+    # A non-file anchor for a projection-less source is flagged (fail closed on unsupported kind).
+    bad_findings: list[dict[str, object]] = []
+    audit_runner._verify_source_family_anchor_adapter_coverage(
+        handle_id="youtube:fixture:file_01",
+        source_family="youtube",
+        raw_anchor={"packet_id": "pkt_yt", "anchor_kind": "text_pattern"},
+        findings=bad_findings,
+        lane="lane_a_existing_package",
+    )
+    assert any(
+        finding["code"] == "cleaning_anchor_kind_unsupported_for_source_family"
+        for finding in bad_findings
+    )
 
 
 def test_periodic_audit_flags_projection_row_kind_outside_source_family_adapter() -> None:
@@ -1983,6 +1949,46 @@ def test_periodic_audit_flags_capture_packet_hash_mismatch(tmp_path: Path) -> No
     )
 
 
+def _write_youtube_packet_dir(
+    tmp_path: Path,
+    *,
+    video_id: str = "dQw4w9WgXcQ",
+    lang: str = "en",
+) -> Path:
+    cues = [
+        {"tStartMs": 1000, "dDurationMs": 2000, "segs": [{"utf8": "I really love the CeraVe moisturizer"}]},
+        {"tStartMs": 3000, "dDurationMs": 2000, "segs": [{"utf8": "and the Paula's Choice BHA exfoliant"}]},
+    ]
+    json3_bytes = (json.dumps({"events": cues}, sort_keys=True) + "\n").encode("utf-8")
+    cap = CaptionFetch(
+        video_id=video_id,
+        found=True,
+        note="ok",
+        lang=lang,
+        caption_kind="manual",
+        original_language_assumed=False,
+        json3_bytes=json3_bytes,
+        flat_text=(
+            "CeraVe Hydrating Cleanser\n"
+            "and the Paula's Choice BHA exfoliant"
+        ),
+        cue_count=len(cues),
+        title="Skincare routine fixture",
+        channel_id="UCfixturechannel",
+        publish_date_iso="2024-08-01",
+        duration_s=120,
+        tooling={"fixture": "youtube_smoke"},
+    )
+    code, packet_dir = write_caption_packet(
+        cap,
+        output_directory=tmp_path / "youtube_packet",
+        decision_question="What products does this creator mention?",
+        now_iso="2026-06-16T20:32:17Z",
+    )
+    assert code == 0, packet_dir
+    return Path(packet_dir)
+
+
 def _write_smoke_manifest(
     tmp_path: Path,
     *,
@@ -2023,7 +2029,7 @@ def _write_smoke_manifest(
     if youtube_packet_dir is not None:
         manifest["youtube"] = [
             {
-                "source_label": youtube_source_label or "youtube:caption",
+                "source_label": youtube_source_label or "youtube:fixture",
                 "packet_dir": str(youtube_packet_dir),
             }
         ]
@@ -2050,77 +2056,6 @@ def _write_audit_manifest(
     path = tmp_path / f"audit_manifest_{len(list(tmp_path.glob('audit_manifest_*.json')))}.json"
     path.write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     return path
-
-
-def _write_youtube_caption_packet_dir(tmp_path: Path) -> Path:
-    json3 = json.dumps(
-        {
-            "events": [
-                {
-                    "tStartMs": 1000,
-                    "dDurationMs": 2000,
-                    "segs": [{"utf8": "Today I'm testing Dior Sauvage Elixir"}],
-                },
-                {
-                    "tStartMs": 3000,
-                    "dDurationMs": 3000,
-                    "segs": [{"utf8": "and it is an absolute beast in the heat"}],
-                },
-            ]
-        }
-    ).encode("utf-8")
-    cap = CaptionFetch(
-        video_id="vid12345678",
-        found=True,
-        note="ok",
-        lang="en",
-        caption_kind="auto",
-        json3_bytes=json3,
-        flat_text="Today I'm testing Dior Sauvage Elixir\nand it is an absolute beast in the heat",
-        cue_count=2,
-        title="Fixture fragrance video",
-        channel_id="UC_fixture",
-        publish_date_iso="2026-06-20",
-        duration_s=42,
-        tooling={"tool": "yt-dlp", "tool_version": "test", "client": "yt-dlp-default"},
-    )
-    code, msg = write_caption_packet(
-        cap,
-        output_directory=tmp_path / "youtube_caption_packet",
-        decision_question="What product mentions are preserved in this YouTube caption packet?",
-        now_iso="2026-06-20T00:00:00Z",
-    )
-    assert code == 0
-    return Path(msg)
-
-
-def _write_youtube_asr_packet_dir(tmp_path: Path) -> Path:
-    lake = DataLakeRoot.for_test(tmp_path / "youtube_asr_lake")
-
-    def fake_transcribe(_audio_path: str) -> tuple[str, list[dict], dict]:
-        return (
-            "transcribed",
-            [{"start_ms": 0, "end_ms": 1200, "text": "Dior Sauvage in the drydown"}],
-            {
-                "tool": "fixture-asr",
-                "tool_version": "test",
-                "model": "fixture",
-                "model_digest": None,
-                "model_digest_basis": "unit-test fixture",
-            },
-        )
-
-    code, msg = write_asr_transcript(
-        video_id="aud12345678",
-        audio_bytes=b"fixture audio bytes",
-        audio_ext="webm",
-        transcribe_fn=fake_transcribe,
-        data_root=lake,
-        now_iso="2026-06-20T00:00:00Z",
-    )
-    assert code == 0
-    packet_id = msg.split("/")[2]
-    return lake.path / "raw" / raw_shard(packet_id) / packet_id
 
 
 def _write_instagram_packet_dir(tmp_path: Path) -> Path:

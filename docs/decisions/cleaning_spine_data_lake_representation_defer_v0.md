@@ -12,6 +12,7 @@ use_when:
   - Checking the un-defer triggers before building a Cleaning lake writer or a derived_retrieval view.
   - Confirming the per-packet vs cross-packet representation boundary for cleaned records.
 open_next:
+  - docs/decisions/cleaning_derived_record_anchor_contract_v0.md
   - orca/product/spines/cleaning/contracts/core_spine_v0_cleaning_spine_foundation_v0.md
   - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_derived_layout_index_rebuild_contract_v0.md
 stale_if:
@@ -23,11 +24,17 @@ authority_boundary: retrieval_only
 
 ## Status
 
-`RECOMMENDATION_PENDING_OWNER_SIGNOFF`. Produced by an architecture-planning pass (standard profile, 3 option subagents) and hardened by a de-correlated (non-Claude) adversarial artifact review (verdict: SOUND; findings AR-01/AR-02/AR-03 adjudicated and folded in). Recommends DEFER. Does not authorize any Cleaning build -- Cleaning stays separately gated per `.agents/workflow-overlay/safety-rules.md`.
+`RECOMMENDATION_PENDING_OWNER_SIGNOFF`, `PARTIALLY_UN-DEFERRED_2026-06-27` (cleaning INPUT-anchor for derived records only; see Amendment below). Produced by an architecture-planning pass (standard profile, 3 option subagents) and hardened by a de-correlated (non-Claude) adversarial artifact review (verdict: SOUND; findings AR-01/AR-02/AR-03 adjudicated and folded in). Recommends DEFER. Does not authorize any Cleaning build -- Cleaning stays separately gated per `.agents/workflow-overlay/safety-rules.md`.
 
 ## Decision
 
 **Defer wiring the Cleaning spine into the Data Lake in v0. Lock the representation architecture now so the lake home is pre-decided, and un-defer on the triggers below.**
+
+## Amendment 2026-06-27 -- partial un-defer (cleaning INPUT-anchor for derived records)
+
+The owner un-deferred **only** the cleaning INPUT-anchor for derived records: a first-class `derived_record` Cleaning input anchor for lake-resident derived records that have no preserved-file substrate (the ASR `youtube_audio` -> `transcript_asr` surface), plus the injected `DataLakeRoot` read access the periodic audit + smoke runner need to resolve and re-hash that derived record. This is the read-side input-anchor slice only; its full contract, integrity framing, and acceptance criteria are in `cleaning_derived_record_anchor_contract_v0.md`.
+
+What this amendment does **not** un-defer (still deferred by this doc): the cleaning->lake **WRITER** (Gate 1's `orca-harness/cleaning/lake.py` per-packet producer), **cross-packet dedupe** (Gate 2's drop-`packet_id` semantic + governed-consumer requirement), and the **`derived_retrieval` view** (Satellite B). Those remain gated as written below; the un-defer is bounded to the input-anchor + audit lake-read coupling and does not satisfy Gate 1 or Gate 2.
 
 ## Why Defer
 
@@ -72,3 +79,75 @@ Building either alone materializes emptiness; require both.
 ## Provenance
 
 Architecture-planning pass (3 option subagents: A assembly-receipt / B derived_retrieval-view / C per-packet-only) -> home-model synthesis -> de-correlated non-Claude adversarial artifact review (deep-thinking). Review verdict: SOUND. Adjudicated findings folded in: AR-01 (cross-packet exact-identity is contract-allowed but unimplemented), AR-02 (per-packet split required at the lake boundary), AR-03 (a handle adapter exists; the gap is the transform-ledger / cleaned-record / writer producer).
+
+## Direction Change Propagation
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    The v0 "defer wiring the Cleaning spine into the Data Lake" architecture
+    decision is partially reversed: the owner un-deferred (2026-06-27) ONLY the
+    cleaning INPUT-anchor for derived records -- a first-class `derived_record`
+    Cleaning input anchor for lake-resident derived records with no
+    preserved-file substrate (ASR youtube_audio -> transcript_asr), plus the
+    injected DataLakeRoot lake-READ coupling the periodic audit + smoke runner
+    need to resolve and re-hash that record -- while the cleaning->lake WRITER,
+    cross-packet dedupe, and derived_retrieval view this doc defers REMAIN
+    deferred.
+  trigger: architecture_doctrine
+  related_triggers:
+    - lifecycle_boundary
+  controlling_sources_updated:
+    - docs/decisions/cleaning_spine_data_lake_representation_defer_v0.md
+    - docs/decisions/cleaning_derived_record_anchor_contract_v0.md
+  downstream_surfaces_checked:
+    - docs/workflows/orca_repo_map_v0.md
+    - .agents/workflow-overlay/source-of-truth.md
+    - orca/product/spines/cleaning/contracts/core_spine_v0_cleaning_spine_foundation_v0.md
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_derived_layout_index_rebuild_contract_v0.md
+  intentionally_not_updated:
+    - path: docs/workflows/orca_repo_map_v0.md
+      reason: >
+        Not a repo-map event: the change added a manifest ENTRY TYPE
+        (`youtube_asr`) and behavior INSIDE the already-mapped runners
+        run_capture_ecr_cleaning_smoke.py / run_cleaning_spine_periodic_audit.py,
+        plus new audit functions, two new orca-harness/tests/unit/ files, and one
+        new docs/decisions/ doc -- no new top-level area and no new
+        orca-harness/ runner/adapter FILE (the two mechanical staleness criteria
+        the freshness hook checks). The `transcript_asr` derived-record concept
+        and both runners are already on the map; new tests + a new decisions doc
+        are reachable by convention.
+    - path: orca/product/spines/cleaning/contracts/core_spine_v0_cleaning_spine_foundation_v0.md
+      reason: >
+        The Cleaning foundation contract's anchor/handle semantics are unchanged
+        in doctrine; the `derived_record` anchor is an additive implementation
+        slice specified in the AO-2 contract doc, not a foundation-contract
+        amendment. Cross-packet dedupe (OD-4) is untouched and stays deferred.
+    - path: orca/product/spines/data_lake/authority/core_spine_v0_data_lake_derived_layout_index_rebuild_contract_v0.md
+      reason: >
+        The lake's derived layout + append_record write-once contract is
+        unchanged; this slice READS existing derived records and adds no lake
+        writer or layout change. The named derivation-time-hash enhancement is a
+        future shared-lake-contract change, deferred and out of this slice.
+  stale_language_search: >
+    rg -n "still deferred|build-deferred|no persisted Cleaning lake writer|neither the smoke runner nor the audit has any .DataLakeRoot|REMAIN deferred|un-defer"
+    docs/decisions/cleaning_spine_data_lake_representation_defer_v0.md
+    docs/decisions/cleaning_derived_record_anchor_contract_v0.md
+  stale_language_search_result: >
+    Executed 2026-06-27 in worktree asr-ecr-derived-anchor (lane branch). Hits
+    were the deferral doc's Why-Defer / Un-Defer-Triggers prose (the WRITER +
+    cross-packet machinery that correctly STAYS deferred), this doc's new
+    Amendment + receipt naming the bounded un-defer, and the contract doc's
+    Problem statement recording the pre-change "neither runner has DataLakeRoot
+    access" fact (a historical statement of the gap this slice closes, not a
+    live deferral). No surface was left asserting that the derived-record INPUT
+    anchor or the audit lake-read coupling is still deferred.
+  non_claims:
+    - not validation
+    - not readiness
+    - not acceptance
+    - not a cleaning->lake WRITER authorization
+    - not a cross-packet dedupe or similarity (OD-4) authorization
+    - not a derived_retrieval view authorization
+    - not a lake-contract (derivation-time hash) change
+```

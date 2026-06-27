@@ -29,6 +29,34 @@ Prepare-only **proposal + classification**. It inventories and classifies rules 
 
 Scope guard: this is the **enforcement-placement step only**. Binding the shared distillation doctrine to Orca is a separate later task and is explicitly out of scope here (see § Step 4).
 
+## Update — 2026-06-28: EP-34 (session HEAD-drift guard) considered → kept resident (premise verified-false; owner-declined the stateful version)
+
+A new Enforcement Placement handle — **EP-34, beyond the EP-01..EP-33 set** — recorded as
+**considered and NOT built.** Proposed this session as a `PreToolUse` warn when the worktree
+HEAD has drifted since session start, to harden the recurring confirm-don't-trust freshness
+miss (a stale session snapshot let a concurrent lane-rewrite go unnoticed before a commit).
+
+- **A pre-build assumption gate found the premise false.** The guard was scoped to compare the
+  current HEAD against the session-start snapshot from `session_context_capsule.py`. But that
+  hook **prints** HEAD to stdout and **persists nothing** (`run_hook` -> `print(gather(...))`; no
+  file write), and a `PreToolUse` hook cannot read session context. There is **no stored
+  session-start HEAD** for a write-time guard to read — the cheap mechanical proxy the proposal
+  assumed does not exist (the canonical "reference computed in memory and discarded" failure).
+- **Classification: JUDGMENT (kept resident).** Coding it would require the guard to **own** a
+  persisted per-session HEAD baseline (a state file written at SessionStart, read at `PreToolUse`,
+  plus resume/compact re-fire and cross-worktree staleness handling) — standing state inside a
+  currently-stateless, fail-open governance layer. Per **PLACEMENT IS NOT AUTHORITY** and the
+  mini-god-tier line, that stateful substrate is the rejected maximal shape, not a free
+  always-fires check; the rule stays resident.
+- **Owner decision (2026-06-28): not worth the lock-in — keep as doctrine.** **Named residual:**
+  no coded HEAD-drift guard; *re-verify HEAD before a write/commit/push* remains a judgment rule
+  (confirm-don't-trust), and the capsule already re-emits HEAD on resume/compact. **Revisit
+  trigger:** if stale-HEAD / concurrent-edit damage recurs materially, reconsider a stateful
+  version (a session-keyed HEAD state file, or a "last HEAD I acted on" guard).
+- Like EP-33 (deferred) and EP-02 (declined), this records a *not-built* decision: no overlay
+  rule changed, placement is not authority, so **no `direction_change_propagation` receipt is
+  owed.** Not validation, readiness, or approval.
+
 ## Update — 2026-06-25: "zero governance substrate" finding superseded; EP-07 + EP-09 built; live-registry pointer
 
 This record's **§ "Method and the load-bearing finding" claim that "Orca has

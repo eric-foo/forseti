@@ -83,7 +83,7 @@ Read the YouTube spec (`open_next`) for those; they are NOT restated here.
   `no_speech_prob` / `avg_logprob`. Owner-accepted deferral, 2026-06-25.
 - **Live LLM extraction caller.** The Transport is injected; the live (subscription- or API-routed)
   caller stays owner-gated/deferred (YouTube spec D5). v0 is offline-testable with a fake transport.
-- **Pass-2 verdict fusion** — deferred for IG exactly as for YouTube (CE4 / D2).
+- **Pass-2 verdict fusion** — now BUILT 2026-06-26 (was: deferred for IG exactly as for YouTube, CE4 / D2): the source-agnostic `scoring/product_fusion.py` serves IG + YouTube (deterministic, LLM-free; eric-foo/orca#394).
 
 ## Standing constraints (bind every line)
 

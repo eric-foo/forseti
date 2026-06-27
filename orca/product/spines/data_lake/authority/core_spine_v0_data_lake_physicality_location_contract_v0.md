@@ -45,6 +45,26 @@ This is a planning and architecture contract. It is not implementation authority
 validation, readiness, backend selection, storage-engine selection, queue design,
 serialization, schema finalization, or migration authority.
 
+## v4.1 Forward Epoch Note
+
+This contract records the canonical location boundary and slot semantics. Its
+external-root, fail-closed, raw-immutable, append-only-derived, and rebuildable-
+index rules carry forward into v4.1.
+
+The v4.1 forward-epoch contract changes the epoch policy and record/ref shape; it
+does not replace canonical physical folder names with generic medallion storage
+tiers. Medallion terms remain semantic labels.
+
+Forward v4.1 committed slot names remain:
+
+```text
+raw/ attachments/ derived/ acknowledgements/ indexes/
+```
+
+Operational markers and `.staging/` are specified by the v4.1 forward-epoch
+contract. Do not introduce `bronze/`, `silver/`, or `gold/` as generic
+data-lake storage folders unless a later accepted physicality contract
+explicitly supersedes this rule.
 Owner direction recorded 2026-06-21:
 
 - Real Orca operational data does not live in the Git repository; it lives under a
