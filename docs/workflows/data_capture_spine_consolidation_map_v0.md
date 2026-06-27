@@ -52,6 +52,7 @@ stale_if:
 | Check LinkedIn Lane discovery, bounded watch, people/business candidate boundaries, and optional POC-risk mode | `orca/product/spines/scanning/source_families/linkedin/data_capture_spine_linkedin_discovery_planning_lane_architecture_v0.md` |
 | Check public-handle creator account linkage across IG/TikTok/YouTube | `orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_spec_v0.md`, `orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json`, `orca-harness/capture_spine/creator_public_handle_linkage/`, and `orca-harness/tests/unit/test_creator_public_handle_linkage.py` (static ledger/validator only; empty until source-backed public-handle evidence; no live capture, no contact/outreach, no SQLite) |
 | Check the one-stop creator profile current view / dashboard-ready creator intelligence boundary | `orca/product/spines/capture/core/source_families/social_media/creator_profile_current_view_spec_v0.md` (derived view over identity, metric observations, metric rollups, and ideal-audience snapshots; no one giant ledger, no SQLite adoption, no dashboard implementation, no live capture) |
+| Check product/buyer presentation over the current creator profile | `orca/product/spines/creator_signal/creator_intelligence_profile_surface_v0.md` (Creator Signal surface contract; presentation/claim language over Capture-owned records; no storage, dashboard runtime, outreach, or public directory) |
 | Handle old Reddit search/listing HTML for Candidate URL Intake pilots | `docs/workflows/reddit_candidate_intake_old_reddit_search_surface_handling_v0.md` |
 | Plan bounded pre-commercial Reddit capture/consolidation | `orca/product/spines/capture/core/source_capture_toolbox/reddit_precommercial_capture_consolidation_planning_thread_v0.md` |
 | Check Reddit capture/consolidation success-signal hardening rationale | `orca/product/spines/capture/core/source_capture_toolbox/reddit_precommercial_capture_consolidation_success_signal_architecture_v0.md` |
@@ -381,6 +382,17 @@ stale_if:
   influence rollups, and ideal-audience snapshots without turning the identity
   ledger into one giant ledger.
 - owner: `orca/product/spines/capture/core/source_families/social_media/creator_profile_current_view_spec_v0.md`
+
+### Creator Signal cross-spine surface
+
+- summary: Product-facing creator intelligence surface over the Capture-owned
+  `creator_profile_current` view. It owns operator/buyer presentation, aggregate
+  influence display, ideal/content-fit audience display, freshness, limitations,
+  and source drill-back. It does not own Capture identity rows, metric
+  observations, metric rollup computation, ideal-audience inference schemas,
+  SQLite/data-lake storage, dashboard runtime, live capture, outreach, lead-list
+  export, or a public creator directory.
+- owner: `orca/product/spines/creator_signal/creator_intelligence_profile_surface_v0.md`
 
 ### Retail/PDP Projection Playbook
 

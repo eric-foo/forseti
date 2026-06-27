@@ -21,9 +21,10 @@ open_next:
   - orca/product/spines/capture/core/source_families/social_media/instagram/ig_profile_grid_dom_engagement_recon_and_spec_v0.md
   - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_storage_contract_v0.md
   - orca/product/spines/capture/core/packet_schema/source_capture_tenant_payload_attachment_boundary_v0.md
+  - orca/product/spines/creator_signal/creator_intelligence_profile_surface_v0.md
 stale_if:
   - The creator public-handle linkage ledger moves to SQLite or another database schema.
-  - A later accepted artifact defines a different creator profile view, dashboard contract, or creator-intelligence surface.
+  - A later accepted artifact defines a different creator profile view, dashboard contract, or creator-intelligence surface without explicitly reconciling with this spec and the Creator Signal surface.
   - Metric rollup storage, ideal-audience schema home, or Data Lake physicalization is adopted in a way that supersedes this view contract.
   - The wind-caller carve-out changes public stats, aggregate audience, or person-level surface boundaries.
 authority_boundary: retrieval_only
@@ -298,6 +299,21 @@ Forbidden dashboard use:
 - actual audience demographics unless a later accepted schema home and data
   gate authorize the aggregate slice;
 - unstamped, sourceless, or LLM-only influence claims.
+
+## Creator Signal Boundary
+
+The promoted Creator Signal surface lives at:
+
+`orca/product/spines/creator_signal/creator_intelligence_profile_surface_v0.md`
+
+This Capture spec still owns `creator_profile_current`, sibling record shapes,
+join/denormalization mechanics, and capture-side dashboard allowed/forbidden use.
+Creator Signal owns the product-facing interpretation and presentation of that
+view: which facts matter to an Orca operator or buyer, how they are grouped, what
+claims the surface may make, and which limitations must remain visible.
+
+The Creator Signal surface must reconcile with this `Dashboard Boundary` and
+inherit rather than relax its forbidden-use set.
 
 ## SQLite And Data Lake Boundary
 
