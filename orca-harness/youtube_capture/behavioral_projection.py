@@ -10,6 +10,8 @@ from __future__ import annotations
 import json
 from typing import Any, Iterable, Mapping, Sequence
 
+from data_lake.root import DataLakeRootError
+
 
 YOUTUBE_BEHAVIORAL_PROJECTION_METHOD = "youtube_behavioral_projection"
 YOUTUBE_BEHAVIORAL_PROJECTION_VERSION = "v0"
@@ -26,7 +28,11 @@ EXTRACTION_PROBLEM_STATUSES = {
     "discovery_failed",
     "ambiguous_anchor_result",
 }
-SOURCE_COMPLETION_PROBLEMS = {"partial_needs_cleanup", "missing_derived_record"}
+SOURCE_COMPLETION_PROBLEMS = {
+    "partial_needs_cleanup",
+    "missing_derived_record",
+    "discovery_failed",
+}
 SOURCE_POSTURE_PROBLEMS = {"failed"}
 SOURCE_NON_ELIGIBLE_PROBLEMS = SOURCE_COMPLETION_PROBLEMS | SOURCE_POSTURE_PROBLEMS
 
@@ -111,7 +117,17 @@ def transcript_sources_for_video(
 
     sources: list[dict[str, Any]] = []
     for packet_id in data_root.list_available(source_family="youtube"):
-        loaded = data_root.load_raw_packet(packet_id)
+        try:
+            loaded = data_root.load_raw_packet(packet_id)
+        except DataLakeRootError as exc:
+            sources.append(
+                _discovery_failure_source(
+                    platform_video_id=platform_video_id,
+                    packet_id=packet_id,
+                    error=str(exc),
+                )
+            )
+            continue
         surface = loaded.manifest.get("source_surface")
         files = _file_paths(loaded.manifest)
         meta = _capture_metadata(loaded, files)
@@ -152,6 +168,20 @@ def transcript_sources_for_video(
                     )
                 )
     return sorted(sources, key=_source_sort_key)
+
+
+def _discovery_failure_source(*, platform_video_id: str, packet_id: str, error: str) -> dict[str, Any]:
+    return _base_transcript_source(
+        platform_video_id=platform_video_id,
+        transcript_anchor=packet_id,
+        source_kind="discovery",
+        source_route="youtube_packet_discovery",
+        source_status="discovery_failed",
+        posture="discovery_failed",
+        cue_count=0,
+        capture_timestamp=None,
+        discovery_error=error,
+    )
 
 
 def project_youtube_behavioral_item(

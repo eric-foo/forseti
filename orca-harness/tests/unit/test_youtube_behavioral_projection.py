@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from pathlib import Path
 from typing import Any
 
 from data_lake.root import DataLakeRoot
@@ -44,9 +45,9 @@ def _metadata_packet(**overrides: Any) -> dict[str, Any]:
     return packet
 
 
-def _commit_caption(data_root: DataLakeRoot) -> None:
+def _commit_caption(data_root: DataLakeRoot, *, video_id: str = _VIDEO_ID) -> str:
     cap = CaptionFetch(
-        video_id=_VIDEO_ID,
+        video_id=video_id,
         found=True,
         note="ok",
         lang="en",
@@ -61,13 +62,14 @@ def _commit_caption(data_root: DataLakeRoot) -> None:
         duration_s=42,
         tooling={"fixture": "youtube_behavioral_projection"},
     )
-    code, _ = write_caption_packet(
+    code, output_dir = write_caption_packet(
         cap,
         data_root=data_root,
         decision_question="What products are mentioned?",
         now_iso="2026-06-21T00:00:00Z",
     )
     assert code == 0
+    return Path(output_dir).name
 
 
 def _commit_asr(data_root: DataLakeRoot, *, posture: str = "transcribed") -> None:
@@ -140,6 +142,43 @@ def test_projection_correlates_metadata_comments_transcripts_and_extraction_resu
     assert projection["transcript"]["extraction_rollup"]["status"] == "complete"
     assert projection["behavioral_completeness"]["complete"] is True
     assert {source["extraction_status"] for source in projection["transcript"]["sources"]} == {"extracted"}
+
+
+def test_transcript_discovery_residualizes_corrupt_youtube_packet_without_aborting_healthy_video(tmp_path) -> None:
+    data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    _commit_caption(data_root)
+    corrupt_packet_id = _commit_caption(data_root, video_id="other000000")
+    corrupt_packet_dir = data_root.find_packet(corrupt_packet_id)
+    assert corrupt_packet_dir is not None
+    (corrupt_packet_dir / "manifest.json").write_text("{not-json", encoding="utf-8")
+
+    sources = transcript_sources_for_video(data_root, _VIDEO_ID)
+
+    caption_sources = [source for source in sources if source["source_kind"] == "caption"]
+    assert len(caption_sources) == 1
+    discovery_problem = next(
+        source for source in sources if source["transcript_anchor"] == corrupt_packet_id
+    )
+    assert discovery_problem["source_kind"] == "discovery"
+    assert discovery_problem["source_status"] == "discovery_failed"
+    assert discovery_problem["posture"] == "discovery_failed"
+    assert discovery_problem["extraction_eligible"] is False
+
+    projection = project_youtube_behavioral_item_from_lake(
+        data_root=data_root,
+        platform_video_id=_VIDEO_ID,
+        metadata_packet=_metadata_packet(),
+        extraction_results=[
+            {"anchor": caption_sources[0]["transcript_anchor"], "video_id": _VIDEO_ID, "status": "extracted"}
+        ],
+    )
+
+    assert projection["transcript"]["extraction_rollup"]["status"] == "complete_with_residuals"
+    assert projection["transcript"]["extraction_rollup"]["source_problem_count"] == 1
+    assert any(
+        residual.startswith(f"youtube_transcript_source_discovery_failed:{corrupt_packet_id}:discovery")
+        for residual in projection["behavioral_completeness"]["residuals"]
+    )
 
 
 def test_projection_does_not_mark_video_complete_when_observed_asr_is_unextracted(tmp_path) -> None:
@@ -245,3 +284,17 @@ def test_projection_preserves_metadata_only_comment_postures_without_claiming_tr
     assert projection["transcript"]["source_count"] == 0
     assert projection["transcript"]["extraction_rollup"]["status"] == "no_extraction_eligible_sources"
     assert projection["behavioral_completeness"]["complete"] is False
+
+
+def test_transcript_discovery_requires_explicit_availability_rebuild_for_stale_index(tmp_path) -> None:
+    data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    _commit_caption(data_root)
+    availability_dir = data_root.path / "indexes" / "availability"
+    for entry in availability_dir.glob("*.json"):
+        entry.unlink()
+
+    assert transcript_sources_for_video(data_root, _VIDEO_ID) == []
+
+    rebuilt_sources = transcript_sources_for_video(data_root, _VIDEO_ID, rebuild_availability=True)
+
+    assert [source["source_kind"] for source in rebuilt_sources] == ["caption"]
