@@ -48,7 +48,7 @@ to become one giant ledger.
 
 ## Current Accepted Base
 
-Already in place:
+Already authored as source contracts/scaffold:
 
 - Low-level current-view contract:
   `orca/product/spines/capture/core/source_families/social_media/creator_profile_current_view_spec_v0.md`
@@ -57,7 +57,7 @@ Already in place:
 - Static identity ledger scaffold:
   `orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json`
 
-The low-level Capture contract already separates:
+The low-level Capture contract defines the intended separation:
 
 - identity linkage;
 - per-content metric observations;
@@ -118,6 +118,27 @@ Creator Signal should not own:
 - public person-level directories;
 - contact enrichment, outreach authorization, or lead-list export.
 
+## Boundary Against The Existing Current-View Contract
+
+The low-level `creator_profile_current_view_spec_v0.md` already defines
+`creator_profile_current` as the dashboard-ready surface and already carries a
+`Dashboard Boundary` section (allowed and forbidden dashboard use, freshness,
+limitations, and source drill-back). The proposed creator-intelligence surface
+overlaps that section heavily, so the split must be stated explicitly rather
+than left implicit:
+
+- Low-level Capture keeps `creator_profile_current`, its join and
+  denormalization mechanics, and the capture-side allowed/forbidden
+  dashboard-use rules.
+- High-level Creator Signal owns only the product and buyer interpretation of
+  that surface: which creator facts matter, how they are grouped for an operator
+  or buyer decision, what the surface may claim, and which limits stay visible.
+- The promoted surface contract must reconcile with, and not duplicate or fork,
+  the low-level `Dashboard Boundary`, and it inherits rather than relaxes that
+  section's forbidden-use set (no contact, outreach, lead-list, public
+  person-level directory, follower graph, actual-audience demographics, or
+  unsourced influence claims).
+
 ## Candidate Surface Contract
 
 A promoted `creator_intelligence_profile_surface_v0.md` should define:
@@ -142,6 +163,12 @@ surfaces:
 - create `orca/product/spines/creator_signal/creator_intelligence_profile_surface_v0.md`;
 - update `orca/product/README.md` to list the new spine;
 - update `.agents/workflow-overlay/artifact-folders.md` to list the new spine;
+- update `docs/decisions/orca_spine_first_target_structure_binding_v0.md`, which
+  owns the accepted spine set, to admit `creator_signal` into the target tree;
+- add a dedicated spine-promotion binding decision under `docs/decisions/`,
+  following the `orca_data_lake_spine_promotion_binding_v0.md` precedent for
+  adding a spine, so the spine folder is admitted by a binding decision rather
+  than created unbound;
 - update `docs/workflows/orca_repo_map_v0.md` to route the spine;
 - update `docs/workflows/data_capture_spine_consolidation_map_v0.md` only if it
   needs a cross-pointer back from Capture;
@@ -160,6 +187,10 @@ Review should focus on these questions:
   language, Capture surface language, or a satellite?
 - Does the proposal preserve the low-level Capture/Data Lake boundary, or does
   it sneak in storage, capture, or runtime obligations?
+- Does the proposed surface overlap the existing `creator_profile_current`
+  Dashboard Boundary in `creator_profile_current_view_spec_v0.md`, and is the
+  presentation-versus-derived-view split drawn cleanly enough to avoid a second,
+  forking owner of that surface?
 - Is the surface too early before real-row tests prove the metric and audience
   shapes?
 - Does the naming imply public-facing creator directory, outreach, or person
