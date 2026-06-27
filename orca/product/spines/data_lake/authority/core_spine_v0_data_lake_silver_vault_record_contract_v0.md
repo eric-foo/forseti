@@ -135,6 +135,8 @@ schema-versioned envelope with the same fields.
   "producer_id": "producer-or-builder-id",
   "schema_version": "silver_vault_record_v0",
   "producer_schema_version": "producer_schema_v0",
+  "content_hash": "sha256:...",
+  "content_hash_basis": "canonical_json_excluding_content_hash",
   "record_kind": "entity | relationship | observation",
   "payload_kind": "ProductEntity | MetricObservation | TextObservation | CorrectionEdge | ...",
   "producer_row_kind": "ig_media_metric | retail_variant_offer | ...",
@@ -153,9 +155,10 @@ Header invariants:
 | `record_kind` | Closed v0 enum: `entity`, `relationship`, `observation`. |
 | `payload_kind` | Silver payload discriminator. Must not replace producer/source-family row kind. |
 | `producer_row_kind` | Carries source-family subtype when present, such as IG projection `row_kind`. |
+| `content_hash` | Required durable integrity hash for the canonical record content; hash basis must be explicit and must not include the `content_hash` field itself. |
 | `observed_at` | Time the fact was observed at or about the source. Nullable only for internal relationship records with no source observation time. |
 | `captured_at` | Time Orca captured the source material or producer input. |
-| `raw_refs` | Required for source-backed records; each ref must be enough to resolve packet/slice/file and verify sha/hash basis where applicable. |
+| `raw_refs` | Required for source-backed records; each ref must resolve packet/slice/file and carry `sha256` plus `hash_basis` where the source material is hash-checkable. |
 | `derived_refs` | Required when a record corrects, supersedes, conflicts with, or is generated from prior derived records. |
 
 ## Entity Records
@@ -452,19 +455,21 @@ The contract is satisfied when downstream scoping can prove, in principle, that:
 3. Every record has `record_kind` and `payload_kind`; source-family row subtype is
    preserved separately when present.
 4. Entity records contain stable identity only; mutable facts are observations.
-5. Metric observations obey posture/value/reason coupling and preserve
+5. Every record carries a durable `content_hash` with explicit hash basis, and
+   source refs preserve `sha256` plus `hash_basis` when hash-checkable.
+6. Metric observations obey posture/value/reason coupling and preserve
    coverage_window where time-series meaning depends on a window.
-6. Missing, blocked, hidden, not-attempted, not-applicable, and outside-window
+7. Missing, blocked, hidden, not-attempted, not-applicable, and outside-window
    metrics cannot be read as numeric zero.
-7. Corrections, supersessions, tombstones, and conflicts are append-only
+8. Corrections, supersessions, tombstones, and conflicts are append-only
    relationship records.
-8. Campaign/coordination entities or edges are excluded from Silver v0 unless a
+9. Campaign/coordination entities or edges are excluded from Silver v0 unless a
    future source-captured campaign object contract defines them mechanically.
-9. Generated read models and Creator Vault envelopes are manifest-backed,
+10. Generated read models and Creator Vault envelopes are manifest-backed,
    rebuildable, and non-authoritative.
-10. Creator Vault envelopes are per-platform, public-evidence-only, and contain no
+11. Creator Vault envelopes are per-platform, public-evidence-only, and contain no
    Gold/Judgment fields.
-11. IG grid-primary metrics cannot be silently overwritten by per-reel detail
+12. IG grid-primary metrics cannot be silently overwritten by per-reel detail
     captures under the same selection policy version.
 
 ## Mini God Tier Accepted Residuals
