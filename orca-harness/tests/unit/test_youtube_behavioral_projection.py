@@ -1,0 +1,247 @@
+from __future__ import annotations
+
+import json
+from typing import Any
+
+from data_lake.root import DataLakeRoot
+from source_capture.transcript.asr_packet import write_asr_transcript
+from source_capture.transcript.caption_packet import write_caption_packet
+from source_capture.transcript.youtube_captions import CaptionFetch
+from youtube_capture.behavioral_projection import (
+    project_youtube_behavioral_item,
+    project_youtube_behavioral_item_from_lake,
+    transcript_sources_for_video,
+)
+
+_VIDEO_ID = "vid12345678"
+
+
+def _json3_bytes() -> bytes:
+    return json.dumps(
+        {
+            "events": [
+                {"tStartMs": 1000, "dDurationMs": 1000, "segs": [{"utf8": "Dior Sauvage Elixir"}]},
+                {"tStartMs": 2000, "dDurationMs": 1000, "segs": [{"utf8": "absolute beast"}]},
+            ]
+        }
+    ).encode("utf-8")
+
+
+def _metadata_packet(**overrides: Any) -> dict[str, Any]:
+    packet = {
+        "video_id": _VIDEO_ID,
+        "surface_type": "watch",
+        "watch_url": f"https://www.youtube.com/watch?v={_VIDEO_ID}",
+        "channel": {"channel_id": "UC_fixture", "author": "Reviewer"},
+        "metadata": {"title": "Fragrance review", "length_seconds": 42, "publish_date": "2026-06-20"},
+        "engagement": {"view_count": 1200, "view_count_source_path": "player.microformat"},
+        "comments_posture": "captured",
+        "comment_count_text": "12 comments",
+        "comments": [{"author": "A", "text": "wear test?", "published_time": "1 day ago"}],
+        "receipts": {"http_status": 200, "retrieval_time_utc": "2026-06-21T00:00:00Z"},
+    }
+    packet.update(overrides)
+    return packet
+
+
+def _commit_caption(data_root: DataLakeRoot) -> None:
+    cap = CaptionFetch(
+        video_id=_VIDEO_ID,
+        found=True,
+        note="ok",
+        lang="en",
+        caption_kind="manual",
+        original_language_assumed=False,
+        json3_bytes=_json3_bytes(),
+        flat_text="Dior Sauvage Elixir\nabsolute beast",
+        cue_count=2,
+        title="Fragrance review",
+        channel_id="UC_fixture",
+        publish_date_iso="2026-06-20",
+        duration_s=42,
+        tooling={"fixture": "youtube_behavioral_projection"},
+    )
+    code, _ = write_caption_packet(
+        cap,
+        data_root=data_root,
+        decision_question="What products are mentioned?",
+        now_iso="2026-06-21T00:00:00Z",
+    )
+    assert code == 0
+
+
+def _commit_asr(data_root: DataLakeRoot, *, posture: str = "transcribed") -> None:
+    def transcribe(_path):
+        cues = [
+            {"start_ms": 1000, "end_ms": 2000, "text": "Dior Sauvage Elixir"},
+            {"start_ms": 2000, "end_ms": 3000, "text": "absolute beast"},
+        ] if posture == "transcribed" else []
+        return posture, cues, {"tool": "faster-whisper", "model": "tiny"}
+
+    code, _ = write_asr_transcript(
+        video_id=_VIDEO_ID,
+        audio_bytes=f"fake-audio-{posture}".encode(),
+        audio_ext="webm",
+        transcribe_fn=transcribe,
+        data_root=data_root,
+        now_iso="2026-06-21T00:01:00Z",
+    )
+    assert code == 0
+
+
+def _extracted_results_for_sources(sources: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    return [
+        {"anchor": source["transcript_anchor"], "video_id": _VIDEO_ID, "status": "extracted"}
+        for source in sources
+    ]
+
+
+def _synthetic_source(*, anchor: str, source_kind: str, asr_record_id: str | None = None) -> dict[str, Any]:
+    source = {
+        "platform": "youtube",
+        "platform_video_id": _VIDEO_ID,
+        "transcript_anchor": anchor,
+        "source_kind": source_kind,
+        "source_route": "youtube_audio_asr" if source_kind == "asr" else "youtube_captions",
+        "source_status": "complete",
+        "posture": "transcribed" if source_kind == "asr" else "caption_ready",
+        "cue_count": 2,
+        "extraction_eligible": True,
+        "non_eligible_reason": None,
+        "capture_timestamp": "2026-06-21T00:00:00Z",
+    }
+    if asr_record_id is not None:
+        source["asr_record_id"] = asr_record_id
+        source["transcript_source_key"] = f"{anchor}:asr:{asr_record_id}"
+    else:
+        source["transcript_source_key"] = f"{anchor}:{source_kind}"
+    return source
+
+
+def test_projection_correlates_metadata_comments_transcripts_and_extraction_results(tmp_path) -> None:
+    data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    _commit_caption(data_root)
+    _commit_asr(data_root)
+    sources = transcript_sources_for_video(data_root, _VIDEO_ID)
+
+    projection = project_youtube_behavioral_item_from_lake(
+        data_root=data_root,
+        platform_video_id=_VIDEO_ID,
+        metadata_packet=_metadata_packet(),
+        extraction_results=_extracted_results_for_sources(sources),
+    )
+
+    assert projection["platform_video_id"] == _VIDEO_ID
+    assert projection["metadata_capture"]["comments"]["posture"] == "captured"
+    assert projection["metadata_capture"]["comments"]["sample_count"] == 1
+    assert projection["transcript"]["source_count"] == 2
+    assert projection["transcript"]["canonical_source"]["source_kind"] == "caption"
+    assert projection["transcript"]["canonical_source"]["caption_kind"] == "manual"
+    assert projection["transcript"]["extraction_rollup"]["status"] == "complete"
+    assert projection["behavioral_completeness"]["complete"] is True
+    assert {source["extraction_status"] for source in projection["transcript"]["sources"]} == {"extracted"}
+
+
+def test_projection_does_not_mark_video_complete_when_observed_asr_is_unextracted(tmp_path) -> None:
+    data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    _commit_caption(data_root)
+    _commit_asr(data_root)
+    sources = transcript_sources_for_video(data_root, _VIDEO_ID)
+    caption_anchor = next(source["transcript_anchor"] for source in sources if source["source_kind"] == "caption")
+
+    projection = project_youtube_behavioral_item(
+        metadata_packet=_metadata_packet(),
+        transcript_sources=sources,
+        extraction_results=[{"anchor": caption_anchor, "video_id": _VIDEO_ID, "status": "extracted"}],
+    )
+
+    assert projection["transcript"]["extraction_rollup"]["status"] == "partial"
+    assert projection["behavioral_completeness"]["complete"] is False
+    asr_source = next(source for source in projection["transcript"]["sources"] if source["source_kind"] == "asr")
+    assert asr_source["extraction_status"] == "not_attempted"
+
+
+def test_projection_rejects_anchor_only_result_for_duplicate_eligible_asr_sources() -> None:
+    sources = [
+        _synthetic_source(anchor="AUDIOPACKET00000000000000", source_kind="asr", asr_record_id="asr_model_a"),
+        _synthetic_source(anchor="AUDIOPACKET00000000000000", source_kind="asr", asr_record_id="asr_model_b"),
+    ]
+
+    projection = project_youtube_behavioral_item(
+        metadata_packet=_metadata_packet(),
+        transcript_sources=sources,
+        extraction_results=[{"anchor": "AUDIOPACKET00000000000000", "video_id": _VIDEO_ID, "status": "extracted"}],
+    )
+
+    assert projection["transcript"]["extraction_rollup"]["status"] == "failed"
+    assert projection["behavioral_completeness"]["complete"] is False
+    assert {source["extraction_status"] for source in projection["transcript"]["sources"]} == {
+        "ambiguous_anchor_result"
+    }
+
+
+def test_projection_counts_failed_asr_posture_as_source_problem(tmp_path) -> None:
+    data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    _commit_caption(data_root)
+    _commit_asr(data_root, posture="failed")
+    sources = transcript_sources_for_video(data_root, _VIDEO_ID)
+    caption_anchor = next(source["transcript_anchor"] for source in sources if source["source_kind"] == "caption")
+
+    projection = project_youtube_behavioral_item(
+        metadata_packet=_metadata_packet(),
+        transcript_sources=sources,
+        extraction_results=[{"anchor": caption_anchor, "video_id": _VIDEO_ID, "status": "extracted"}],
+    )
+
+    assert projection["transcript"]["extraction_rollup"]["status"] == "complete_with_residuals"
+    assert projection["transcript"]["extraction_rollup"]["source_problem_count"] == 1
+    assert projection["behavioral_completeness"]["complete"] is False
+    assert any(
+        residual.startswith("youtube_transcript_source_failed:")
+        for residual in projection["behavioral_completeness"]["residuals"]
+    )
+
+
+def test_projection_residualizes_mismatched_metadata_packet() -> None:
+    projection = project_youtube_behavioral_item(
+        metadata_packet=_metadata_packet(video_id="other000000"),
+        transcript_sources=[],
+        platform_video_id=_VIDEO_ID,
+    )
+
+    assert projection["metadata_capture"] is None
+    assert "youtube_metadata_packet_video_mismatch:other000000" in projection["behavioral_completeness"]["residuals"]
+
+
+def test_projection_keeps_failed_extraction_visible_with_other_not_attempted_source() -> None:
+    sources = [
+        _synthetic_source(anchor="CAPTIONPACKET000000000000", source_kind="caption"),
+        _synthetic_source(anchor="AUDIOPACKET00000000000000", source_kind="asr", asr_record_id="asr_model_a"),
+    ]
+
+    projection = project_youtube_behavioral_item(
+        metadata_packet=_metadata_packet(),
+        transcript_sources=sources,
+        extraction_results=[{"anchor": "CAPTIONPACKET000000000000", "video_id": _VIDEO_ID, "status": "failed"}],
+    )
+
+    assert projection["transcript"]["extraction_rollup"]["status"] == "failed"
+    assert projection["transcript"]["extraction_rollup"]["extraction_problem_count"] == 1
+    assert projection["behavioral_completeness"]["complete"] is False
+    assert any(
+        residual.startswith("youtube_transcript_extraction_failed:")
+        for residual in projection["behavioral_completeness"]["residuals"]
+    )
+
+
+def test_projection_preserves_metadata_only_comment_postures_without_claiming_transcript_completion() -> None:
+    projection = project_youtube_behavioral_item(
+        metadata_packet=_metadata_packet(comments_posture="disabled", comments=[]),
+        platform_video_id=_VIDEO_ID,
+    )
+
+    assert projection["metadata_capture"]["comments"]["posture"] == "disabled"
+    assert projection["metadata_capture"]["comments"]["sample_count"] == 0
+    assert projection["transcript"]["source_count"] == 0
+    assert projection["transcript"]["extraction_rollup"]["status"] == "no_extraction_eligible_sources"
+    assert projection["behavioral_completeness"]["complete"] is False
