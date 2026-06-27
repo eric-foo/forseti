@@ -126,7 +126,9 @@ class IgReelsGridProjectionRow(StrictModel):
     # --- reels enrichment: source-surface provenance + disagreement + selection audit ---
     chosen_source_surface: str | None = None
     source_surface_count_candidates: list[IgReelsSurfaceCountCandidate] = Field(default_factory=list)
-    join_status: Literal["joined_by_shortcode", "missing_json", "not_applicable"]
+    join_status: Literal[
+        "joined_by_shortcode", "missing_json", "missing_shortcode", "ambiguous", "not_applicable"
+    ]
     selection_policy_version: str | None = None
     selection_limitations: list[str] = Field(default_factory=list)
     capture_time: str | None = None
@@ -249,18 +251,32 @@ def build_ig_reels_grid_projection(
                     selection_policy_version=selection_policy_version,
                 )
                 rows.append(row)
+                for residual in row.residuals:
+                    _append_residual_once(residuals, residual)
                 _record_surfaces(surfaces_observed, row)
             continue
 
         shortcode = _shortcode_from_locator(source_slice.locator)
         joined_index = joined_index_by_shortcode.get(shortcode or "")
-        joined_row = _joined_row_at(joined_rows, joined_index)
+        join_status_override: Literal["missing_shortcode", "missing_json", "ambiguous"] | None = None
+        row_residuals: list[str] = []
         if shortcode is None:
-            residuals.append(f"ig_reels_locator_shortcode_absent:{source_slice.slice_id}")
+            residual = f"ig_reels_locator_shortcode_absent:{source_slice.slice_id}"
+            _append_residual_once(residuals, residual)
+            row_residuals.append(residual)
+            join_status_override = "missing_shortcode"
         elif joined_index is None:
-            residuals.append(f"ig_reels_joined_row_absent:{shortcode}")
+            residual = f"ig_reels_joined_row_absent:{shortcode}"
+            _append_residual_once(residuals, residual)
+            row_residuals.append(residual)
+            join_status_override = "missing_json"
         elif shortcode in duplicate_shortcodes:
-            residuals.append(f"ig_reels_ambiguous_shortcode_join:{shortcode}")
+            residual = f"ig_reels_ambiguous_shortcode_join:{shortcode}"
+            _append_residual_once(residuals, residual)
+            row_residuals.append(residual)
+            join_status_override = "ambiguous"
+            joined_index = None
+        joined_row = _joined_row_at(joined_rows, joined_index)
         content_kind = _media_content_kind(source_slice=source_slice, joined_row=joined_row)
         for observation in source_slice.metric_observations:
             row, forced_static = _project_media_observation(
@@ -274,6 +290,8 @@ def build_ig_reels_grid_projection(
                 content_kind=content_kind,
                 username=_string_or_none(username),
                 selection_policy_version=selection_policy_version,
+                join_status_override=join_status_override,
+                row_residuals=row_residuals,
             )
             rows.append(row)
             _record_surfaces(surfaces_observed, row)
@@ -344,11 +362,12 @@ def _project_profile_observation(
                 )
             )
     source_fields = _profile_source_visible_fields(snapshot)
+    anchor_pointer, residuals = _profile_anchor_pointer(snapshot=snapshot, metric=observation.metric)
     return IgReelsGridProjectionRow(
         row_id=_row_id(packet_id=raw_ref.packet_id, slice_id=source_slice.slice_id, metric=observation.metric),
         row_kind="ig_creator_metric",
         raw_ref=raw_ref,
-        raw_anchor=_anchor(capture_file, json_pointer=f"/creator_profile_snapshot/{observation.metric}"),
+        raw_anchor=_anchor(capture_file, json_pointer=anchor_pointer),
         username=username,
         content_kind="profile",
         metric=observation.metric,
@@ -364,7 +383,7 @@ def _project_profile_observation(
         capture_time=_known_value(source_slice.timing.capture_time),
         source_publication_or_event=_known_value(source_slice.timing.source_publication_or_event),
         source_visible_fields=source_fields,
-        residuals=[],
+        residuals=residuals,
     )
 
 
@@ -380,6 +399,8 @@ def _project_media_observation(
     content_kind: Literal["profile", "post", "reel", "unknown"],
     username: str | None,
     selection_policy_version: str | None,
+    join_status_override: Literal["missing_shortcode", "missing_json", "ambiguous"] | None = None,
+    row_residuals: list[str] | None = None,
 ) -> tuple[IgReelsGridProjectionRow, bool]:
     dom_row = joined_row.get("dom_row") if isinstance(joined_row, dict) else None
     json_candidates = joined_row.get("source_surface_candidates") if isinstance(joined_row, dict) else None
@@ -389,9 +410,13 @@ def _project_media_observation(
         dom_row=dom_row if isinstance(dom_row, dict) else None,
         json_candidates=json_candidates,
     )
-    join_status: Literal["joined_by_shortcode", "missing_json", "not_applicable"] = (
-        "joined_by_shortcode" if json_candidates else "missing_json"
-    )
+    join_status: Literal[
+        "joined_by_shortcode", "missing_json", "missing_shortcode", "ambiguous", "not_applicable"
+    ]
+    if join_status_override is not None:
+        join_status = join_status_override
+    else:
+        join_status = "joined_by_shortcode" if json_candidates else "missing_json"
 
     posture = observation.posture
     value = observation.value
@@ -431,7 +456,7 @@ def _project_media_observation(
         capture_time=_known_value(source_slice.timing.capture_time),
         source_publication_or_event=_known_value(source_slice.timing.source_publication_or_event),
         source_visible_fields=_media_source_visible_fields(json_candidates),
-        residuals=[],
+        residuals=list(row_residuals or []),
     )
     return row, forced_static
 
@@ -446,14 +471,13 @@ def _media_surface_candidates(
     dom_key = _DOM_TEXT_KEY_BY_METRIC.get(metric)
     if dom_row is not None and dom_key is not None:
         dom_text = _string_or_none(dom_row.get(dom_key))
-        if dom_text is not None:
-            candidates.append(
-                IgReelsSurfaceCountCandidate(
-                    source_surface=DOM_GRID_ENGAGEMENT,
-                    value=_int_or_none(dom_text),
-                    raw_text=dom_text,
-                )
+        candidates.append(
+            IgReelsSurfaceCountCandidate(
+                source_surface=DOM_GRID_ENGAGEMENT,
+                value=_int_or_none(dom_text),
+                raw_text=dom_text,
             )
+        )
     json_key = _JSON_KEY_BY_METRIC.get(metric)
     if json_key is not None:
         for candidate in json_candidates:
@@ -546,6 +570,16 @@ def _profile_source_visible_fields(snapshot: dict[str, Any | None] | None) -> di
         "parse_status": _string_or_none(snapshot.get("parse_status")),
     }
     return {key: value for key, value in fields.items() if value is not None}
+
+
+def _profile_anchor_pointer(
+    *, snapshot: dict[str, Any | None] | None, metric: str
+) -> tuple[str | None, list[str]]:
+    if snapshot is None:
+        return None, [f"ig_reels_profile_snapshot_absent:{metric}"]
+    if metric in snapshot:
+        return f"/creator_profile_snapshot/{_escape_json_pointer_token(metric)}", []
+    return "/creator_profile_snapshot", [f"ig_reels_profile_metric_field_absent:{metric}"]
 
 
 def _preferred_candidate(json_candidates: list[Any]) -> dict[str, Any] | None:
@@ -644,6 +678,11 @@ def _record_surfaces(surfaces_observed: set[str], row: IgReelsGridProjectionRow)
         surfaces_observed.add(candidate.source_surface)
 
 
+def _append_residual_once(residuals: list[str], residual: str) -> None:
+    if residual not in residuals:
+        residuals.append(residual)
+
+
 def _anchor(preserved_file: PreservedFile, *, json_pointer: str | None) -> IgProjectionRawAnchor:
     return IgProjectionRawAnchor(
         file_id=preserved_file.file_id,
@@ -664,6 +703,10 @@ def _known_value(fact) -> str | None:
 
 def _projection_json_text(projection: IgReelsGridProjectionPacket) -> str:
     return f"{json.dumps(projection.model_dump(mode='json'), indent=2, sort_keys=True)}\n"
+
+
+def _escape_json_pointer_token(value: str) -> str:
+    return value.replace("~", "~0").replace("/", "~1")
 
 
 def _string_or_none(value: object) -> str | None:

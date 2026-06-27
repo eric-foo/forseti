@@ -192,6 +192,103 @@ def test_projection_carries_present_but_null_json_surface() -> None:
     assert view.chosen_source_surface == "clips_user_json_metadata"
 
 
+def test_projection_carries_dom_surface_when_metric_text_absent() -> None:
+    # The DOM row is present but exposes no comment count. The absent DOM value is
+    # still part of the source-surface disagreement and must be carried as None.
+    joined = [
+        {
+            "dom_row": _dom_row(0, "DZdomnull00", "reel", "2,984", "30", None),
+            "source_surface_candidates": [
+                _json_candidate("clips_user_json_metadata", "DZdomnull00", 2984, 30, 7),
+            ],
+        }
+    ]
+    slices = [
+        _slice(
+            "ig_reels_grid_01",
+            f"https://www.instagram.com/{HANDLE}/reel/DZdomnull00/",
+            [_observed("comment_count", 7)],
+        )
+    ]
+    packet, raw = _packet_with(joined_rows=joined, slices=slices)
+
+    projection = build_ig_reels_grid_projection(packet=packet, raw_file_bytes_by_file_id=raw)
+
+    comment = _row(projection, "ig_reels_grid_01", "comment_count")
+    by_surface = {c.source_surface: c.value for c in comment.source_surface_count_candidates}
+    assert by_surface == {"dom_grid_engagement": None, "clips_user_json_metadata": 7}
+    dom_candidate = next(
+        c for c in comment.source_surface_count_candidates if c.source_surface == "dom_grid_engagement"
+    )
+    assert dom_candidate.raw_text is None
+
+
+def test_projection_duplicate_shortcode_does_not_anchor_first_joined_row() -> None:
+    shortcode = "DZdupe0000"
+    residual = f"ig_reels_ambiguous_shortcode_join:{shortcode}"
+    joined = [
+        {
+            "dom_row": _dom_row(0, shortcode, "reel", "111", "10", "1"),
+            "source_surface_candidates": [_json_candidate("clips_user_json_metadata", shortcode, 111, 10, 1)],
+        },
+        {
+            "dom_row": _dom_row(1, shortcode, "reel", "222", "20", "2"),
+            "source_surface_candidates": [_json_candidate("web_profile_info_json_metadata", shortcode, 222, 20, 2)],
+        },
+    ]
+    slices = [
+        _slice(
+            "ig_reels_grid_01",
+            f"https://www.instagram.com/{HANDLE}/reel/{shortcode}/",
+            [_observed("view_count", 111)],
+        )
+    ]
+    packet, raw = _packet_with(joined_rows=joined, slices=slices)
+
+    projection = build_ig_reels_grid_projection(packet=packet, raw_file_bytes_by_file_id=raw)
+
+    view = _row(projection, "ig_reels_grid_01", "view_count")
+    assert view.value == 111  # selected slice value is still carried verbatim
+    assert view.join_status == "ambiguous"
+    assert view.raw_anchor.json_pointer is None
+    assert view.source_surface_count_candidates == []
+    assert view.chosen_source_surface is None
+    assert residual in view.residuals
+    assert residual in projection.residuals
+    assert projection.loss_ledger.structure_preserved is False
+
+
+def test_projection_profile_missing_metric_field_anchors_snapshot_object() -> None:
+    residual = "ig_reels_profile_metric_field_absent:follower_count"
+    slices = [
+        _slice(
+            "ig_reels_profile_00",
+            FINAL_URL,
+            [
+                MetricObservation(
+                    metric="follower_count",
+                    posture=MetricPosture.UNAVAILABLE_WITH_REASON,
+                    reason="web_profile_info passive JSON did not yield exact follower_count",
+                    coverage_window=CoverageWindow(end=CAPTURE_TIME),
+                )
+            ],
+        )
+    ]
+    packet, raw = _packet_with(
+        joined_rows=[],
+        slices=slices,
+        snapshot={"source_profile": HANDLE, "parse_status": "parsed_web_profile_info_json_metadata"},
+    )
+
+    projection = build_ig_reels_grid_projection(packet=packet, raw_file_bytes_by_file_id=raw)
+
+    follower = _row(projection, "ig_reels_profile_00", "follower_count")
+    assert follower.raw_anchor.json_pointer == "/creator_profile_snapshot"
+    assert residual in follower.residuals
+    assert residual in projection.residuals
+    assert projection.loss_ledger.structure_preserved is False
+
+
 def test_projection_chosen_source_surface_is_never_dom() -> None:
     # The carried value matches ONLY the DOM candidate (no JSON surface holds it). DOM is
     # carried for disagreement but must never be reported as the value's source surface.
@@ -246,12 +343,13 @@ def test_projection_static_already_not_applicable_is_preserved() -> None:
 
 
 def _packet_with(*, joined_rows, slices, snapshot=None) -> tuple[SourceCapturePacket, dict[str, bytes]]:
+    default_snapshot = {"source_profile": HANDLE, "follower_count": 123456}
     cap = {
         "capture_metadata": {
             "source_surface": "ig_reels_grid_dom_passive_json",
             "selection_policy_version": SELECTION_POLICY_VERSION,
         },
-        "creator_profile_snapshot": snapshot or {"source_profile": HANDLE, "follower_count": 123456},
+        "creator_profile_snapshot": default_snapshot if snapshot is None else snapshot,
         "joined_rows": joined_rows,
     }
     raw = {"file_01": _json_bytes(cap)}
