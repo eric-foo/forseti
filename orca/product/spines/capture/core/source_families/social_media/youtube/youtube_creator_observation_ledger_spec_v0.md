@@ -18,6 +18,7 @@ open_next:
   - orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_spec_v0.md
   - orca/product/spines/capture/core/source_families/social_media/creator_profile_current_view_spec_v0.md
   - orca/product/spines/capture/core/source_families/social_media/youtube/youtube_video_capture_surface_findings_v0.md
+  - orca-harness/capture_spine/youtube_creator_observation/validation.py
 stale_if:
   - The YouTube Shorts fragrance creator source ledger changes.
   - Data Lake raw packet layout or source-family metadata changes.
@@ -162,7 +163,7 @@ This spec and its seed ledger are not:
 
 ```yaml
 direction_change_propagation:
-  trigger: product_contract
+  trigger: product_doctrine
   doctrine_changed: >
     Adds a YouTube-first creator/channel observation contract and seed ledger
     so the existing 200-Shorts pool can become source-backed creator
@@ -171,6 +172,7 @@ direction_change_propagation:
   controlling_sources_updated:
     - orca/product/spines/capture/core/source_families/social_media/youtube/youtube_creator_observation_ledger_spec_v0.md
     - orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_observation_ledger_v0.json
+    - orca-harness/capture_spine/youtube_creator_observation/validation.py
     - orca-harness/tests/unit/test_youtube_creator_observation_ledger.py
   downstream_surfaces_checked:
     - docs/workflows/youtube_shorts_creator_index_decision_path_v0.md
