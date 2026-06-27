@@ -20,18 +20,44 @@ from stealth_client import http_get, BACKEND  # Chrome-impersonating client (cur
 
 
 def ytinit(html):
-    try:
-        s = html.split("ytInitialData = ", 1)[1]
-        d = 0
-        for i, c in enumerate(s):
-            if c == "{":
-                d += 1
-            elif c == "}":
-                d -= 1
-                if d == 0:
-                    return json.loads(s[: i + 1])
-    except Exception:
+    return embedded_json(html, "ytInitialData")
+
+
+def ytplayer(html):
+    return embedded_json(html, "ytInitialPlayerResponse")
+
+
+def embedded_json(html, marker):
+    idx = html.find(marker)
+    if idx < 0:
         return None
+    start = html.find("{", idx)
+    if start < 0:
+        return None
+    depth = 0
+    in_string = False
+    escape = False
+    for i, c in enumerate(html[start:], start=start):
+        if in_string:
+            if escape:
+                escape = False
+            elif c == "\\":
+                escape = True
+            elif c == '"':
+                in_string = False
+        else:
+            if c == '"':
+                in_string = True
+            elif c == "{":
+                depth += 1
+            elif c == "}":
+                depth -= 1
+                if depth == 0:
+                    try:
+                        return json.loads(html[start : i + 1])
+                    except Exception:
+                        return None
+    return None
 
 
 def _rec(x, pred, out):
@@ -80,6 +106,36 @@ def first(pattern, text, cast=str):
     return cast(m.group(1)) if m else None
 
 
+def _integer(value):
+    if isinstance(value, int):
+        return value
+    if isinstance(value, str) and value.isdigit():
+        return int(value)
+    return None
+
+
+def player_view_count(player):
+    video_details = (player or {}).get("videoDetails") or {}
+    count = _integer(video_details.get("viewCount"))
+    if count is not None:
+        return count, "ytInitialPlayerResponse.videoDetails.viewCount"
+
+    microformat = ((player or {}).get("microformat") or {}).get("playerMicroformatRenderer") or {}
+    count = _integer(microformat.get("viewCount"))
+    if count is not None:
+        return count, "ytInitialPlayerResponse.microformat.playerMicroformatRenderer.viewCount"
+
+    return None, None
+
+
+def extract_view_count(html):
+    count, source_path = player_view_count(ytplayer(html))
+    if count is not None:
+        return count, source_path
+    count = first(r'"viewCount":"([0-9]+)"', html, int)
+    return count, "served_html.regex.first_viewCount" if count is not None else None
+
+
 def detect_surface(vid):
     try:
         _, final, _ = http_get(f"https://www.youtube.com/shorts/{vid}")
@@ -91,6 +147,7 @@ def detect_surface(vid):
 def capture(vid):
     status, final_url, raw = http_get(f"https://www.youtube.com/watch?v={vid}")
     html = raw.decode("utf-8", "replace")
+    view_count, view_count_source_path = extract_view_count(html)
     pkt = {
         "video_id": vid,
         "surface_type": detect_surface(vid),
@@ -105,7 +162,8 @@ def capture(vid):
             "short_description": (first(r'"shortDescription":"((?:[^"\\]|\\.)*)"', html) or "")[:500],
         },
         "engagement": {
-            "view_count": first(r'"viewCount":"([0-9]+)"', html, int),
+            "view_count": view_count,
+            "view_count_source_path": view_count_source_path,
             "like_count_text": first(r'"accessibilityText":"([0-9,.KMB]+ likes?)"', html),
         },
         "comments_posture": None,

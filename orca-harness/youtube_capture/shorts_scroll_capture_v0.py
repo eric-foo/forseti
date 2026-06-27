@@ -10,7 +10,7 @@ Public read-only, logged-out. Tracked at orca-harness/youtube_capture/. Env over
 """
 import re, json, os, time, random, hashlib, datetime, urllib.error
 from collections import Counter
-from capture_youtube_v0 import http_get, ytinit, comment_panel_token, collect, youtubei_next, first
+from capture_youtube_v0 import http_get, ytinit, comment_panel_token, collect, youtubei_next, first, extract_view_count
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(HERE, "shorts_scroll_runs")
@@ -38,11 +38,13 @@ def capture_short(vid):
     status, final_url, raw = http_get(f"https://www.youtube.com/watch?v={vid}")
     html = raw.decode("utf-8", "replace")
     wall = (status != 200) or ("consent.youtube.com" in final_url) or ("Sign in to confirm you" in html)
+    view_count, view_count_source_path = extract_view_count(html)
     pkt = {"video_id": vid, "surface_type": "shorts", "http_status": status,
            "channel_id": first(r'"channelId":"([A-Za-z0-9_-]+)"', html),
            "author": first(r'"author":"([^"]*)"', html),
            "title": first(r'<meta property="og:title" content="([^"]*)"', html),
-           "view_count": first(r'"viewCount":"([0-9]+)"', html, int),
+           "view_count": view_count,
+           "view_count_source_path": view_count_source_path,
            "length_seconds": first(r'"lengthSeconds":"([0-9]+)"', html, int),
            "publish_date": first(r'"publishDate":"([^"]*)"', html),
            "retrieval_time_utc": datetime.datetime.utcnow().isoformat() + "Z",

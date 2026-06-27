@@ -62,7 +62,7 @@ no login, single egress IP, 2026-06-21. **Recon-grade evidence** (field anchors)
 ### P4 — genuine Short `/shorts/-0FVExAgmps`
 - ACCESS: HTTP 200, stays on `/shorts/` (no redirect). 1,323,395 bytes.
 - SUBSTRATE: `ytInitialPlayerResponse` present (2) — **same route as long-form**.
-- EXACT FIELDS (same JSON paths as long-form): `viewCount:"31993"` (exact), `lengthSeconds:"39"` (Shorts duration band), `publishDate:"2026-05-11T10:54:13-07:00"` (**absolute ISO — same semantics as long-form, not relative**), `channelId` (same channel), `author`.
+- EXACT FIELDS (same embedded player-state route as long-form): `viewCount:"31993"` (exact), `lengthSeconds:"39"` (Shorts duration band), `publishDate:"2026-05-11T10:54:13-07:00"` (**absolute ISO — same semantics as long-form, not relative**), `channelId` (same channel), `author`. **2026-06-27 drift note:** a fresh Shorts re-probe still yielded exact `viewCount`, but at `microformat.playerMicroformatRenderer.viewCount` while `videoDetails.viewCount` was absent; do not treat one JSON path as the contract.
 - COMMENTS: `commentCount`=0 in initial HTML (same posture as long-form).
 
 ### P5 — comments via `youtubei/v1/next` continuation (both surfaces)
@@ -77,7 +77,7 @@ no login, single egress IP, 2026-06-21. **Recon-grade evidence** (field anchors)
 | Surface | Route | Verdict |
 | --- | --- | --- |
 | long-form `/watch` | embedded-state (`ytInitialPlayerResponse`) in served HTML | **GO** for video+channel identity, exact view count, exact duration, absolute publish date, description, thumbnail |
-| Shorts `/shorts` | same embedded-state route, same JSON paths | **GO** for the same field set |
+| Shorts `/shorts` | same embedded-state route, same field semantics with per-field path fallback | **GO** for the same field set |
 | both | comments via `youtubei/v1/next` (panel-scoped continuation) | **GO** — same route/shape/parser both surfaces; 20/page, pagination token present |
 | both | like count | **PARTIAL** — abbreviated at scale ("257K"); exact for small counts (27) |
 | both | comment `publishedTime` | **relative-only** ("1 year ago") — minute-resolution windows NOT defensible from comment time alone |
@@ -85,12 +85,12 @@ no login, single egress IP, 2026-06-21. **Recon-grade evidence** (field anchors)
 ## Split-decision update (evidence-based)
 
 The probe **strengthens the unified decision** (one runner, `surface_type` switch). Against the split triggers:
-- (a) different fields/timestamp semantics → **refuted for embedded-state fields**: long-form and Shorts expose the same JSON paths and **both** carry absolute-ISO `publishDate`. (Comment timestamps still untested.)
-- (e) one parser misleading across surfaces → **refuted for metadata**: a single `ytInitialPlayerResponse` parser reads both.
+- (a) different fields/timestamp semantics → **refuted for embedded-state fields**: long-form and Shorts both carry exact counts/duration/channel identity and absolute-ISO `publishDate`; individual JSON paths are not guaranteed identical after later field-path drift. (Comment timestamps still untested.)
+- (e) one parser misleading across surfaces → **refuted for metadata** if the parser is path-tolerant inside `ytInitialPlayerResponse` and records the observed source path.
 - (b) incompatible comments route → **refuted**: both surfaces use the same `youtubei/v1/next` panel-scoped continuation, same payload shape, same parser, same pagination.
 - (d) divergent per-surface verdict → not observed; both GO on metadata and comments.
 
-**Conclusion: no observed split trigger fires.** All probed signals (substrate, field paths, video-timestamp semantics, comments route, comment-timestamp semantics) are identical across long-form and Shorts. The **unified one-runner + `surface_type` switch** design is probe-supported; a two-runner split is not indicated by any observed evidence (subject to the small-n caveat). `surface_type` discriminator: **duration band** (+ id-type redirect behavior), not URL form.
+**Conclusion: no observed split trigger fires.** Probed signals share substrate, field semantics, video-timestamp semantics, comments route, and comment-timestamp semantics across long-form and Shorts; field-path identity is not a contract. The **unified one-runner + `surface_type` switch** design is probe-supported when extraction is path-tolerant and records the source path; a two-runner split is not indicated by any observed evidence (subject to the small-n caveat). `surface_type` discriminator: **duration band** (+ id-type redirect behavior), not URL form.
 
 ## Broadened sample (n=10: 5 creators × 2 surfaces)
 
@@ -122,7 +122,7 @@ Edge cases observed (runner must handle):
 
 - Sample now n=10 across 5 creators × 2 surfaces; the unified-route conclusion held 10/10. **Rare edge cases not yet sampled**: live/premiere, age-restricted, members-only, region-blocked, EU-consent-wall egress.
 - Comments route, pagination, and timestamp semantics **tested** and consistent across both surfaces; comment `publishedTime` is **relative-only** (no absolute comment time observed) → minute-resolution comment windows not defensible from comment time alone.
-- like count abbreviated at scale; `watch_time` not present in embedded state (consistent with creator-analytics-only; not hard-checked).
+- like count abbreviated at scale; exact view-count path can vary inside `ytInitialPlayerResponse` (`videoDetails.viewCount` vs `microformat.playerMicroformatRenderer.viewCount` observed); `watch_time` not present in embedded state (consistent with creator-analytics-only; not hard-checked).
 - Comment samples were read **in-memory for feasibility only — not captured/persisted** as a corpus.
 - Single logged-out egress IP; EU/other egresses may hit a `consent.youtube.com` interstitial not seen here.
 - Recon-grade field anchors, not packet-grade raw-body preservation.
