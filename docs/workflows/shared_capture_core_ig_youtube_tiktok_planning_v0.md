@@ -374,10 +374,12 @@ the recommended thin-core target.
 4. IG back-fix pass: use completed YouTube behavior to normalize IG
    transcript-source fields, completion semantics, run receipts, and persistence
    correlation. Do not force YouTube's caption-first priority or HTTP shape onto
-   IG.
+   IG. Step-3 planning spec:
+   `docs/workflows/ig_backfix_against_youtube_behavioral_contract_spec_v0.md`.
 5. Shared contract extraction: after both lanes express the same behavior,
    extract the stable `TranscriptSource`, receipt, persistence-completion, and
-   extraction-feed contracts into the thin core.
+   extraction-feed contracts into the thin core. Step-4 planning spec:
+   `docs/workflows/shared_capture_behavioral_contract_extraction_spec_v0.md`.
 6. Contract-test plan: after implementation is authorized, add tests around the
    shared `TranscriptSource` and persistence-completion contract, plus existing
    no-LLM and product-extraction tests. Do not use current passing extraction
