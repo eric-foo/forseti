@@ -39,6 +39,59 @@ stale_if:
 - expected_dirty_state_before_split_edit: dirty working tree with unrelated pre-existing modified/untracked files; this split must touch only the two docs/workflows handoff packets unless the current user redirects.
 - load_rule: confirm-don't-trust; re-verify every load-bearing fact against its compare target before acting; sender claims are hypotheses, not authority.
 
+## Refresh 2026-06-25 (read first; supersedes the drifted facts below)
+
+This packet was authored 2026-06-22 and is structurally current -- the lane boundaries,
+drift guards, and Projection -> ECR -> Cleaning routing still hold. Several facts have
+drifted; trust this block over the stale originals below, and run the confirm-don't-trust
+pass over both.
+
+- **Capture output (bio_links + JSON-sourced pinned) is now MERGED in `main` (PR #378).**
+  - `creator_profile_snapshot.bio_links`: list of public link-in-bio `{title, url}` destinations
+    (web_profile_info `bio_links`, `lynx_url` fallback), not just `bio_links_count`.
+  - per-candidate `pinned_on_clips_tab` / `pinned_on_timeline` on `IgReelsJsonCandidate`:
+    reels-tab pin = `/clips/user` `clips_tab_pinned_user_ids`; main-grid/timeline pin =
+    `timeline_pinned_user_ids` / web_profile_info `pinned_for_users`; non-empty list = pinned,
+    empty = not, absent = null. The pin is NOT in the rendered DOM (no accessible marker), only
+    in passive JSON. Projection carries these mechanically -- pinned is a source-visible flag,
+    NOT a credibility/quality/demand judgment.
+- **A second capture-lane change is in PR #383 (reader + pinned identification).**
+  - Reader: `DEFAULT_IG_REELS_SETTLE_SECONDS` widened 2.5 -> 4.0s so the passive `/clips/user`
+    XHR more reliably lands before the DOM snapshot (a 2026-06-25 esthertakumi probe joined
+    12/12 rows; an earlier 2/12 miss was a transient race). A row that still misses is the
+    honest `no_passive_json_join_for_shortcode` gap, never faked.
+  - Pinned identification: a packet-level `pinned_inference` summary cross-checks the explicit
+    `pinned_on_clips_tab` flag against a grid-order recency-inversion heuristic
+    (`infer_pinned_shortcodes_by_recency`), scoped to the reels tab. Live finding: `/clips/user`
+    is purely recency-ordered and never hoists pins (inversion keys on GRID order, not feed
+    order); main-grid/`timeline` pins are held out of the reels summary. The reels-tab pin
+    POSITIVE remains inferred, not yet observed on a reels-pinned profile. Projection carries
+    `pinned_inference` mechanically; it is a source-visible cross-check, not a verdict.
+- **Momentum/traction is PRE-GOLD -- not gold, not Capture.** Per the Data Lake medallion
+  contract (`core_spine_v0_data_lake_medallion_gold_readiness_contract_v0.md`): the mechanical
+  delta over repeated captures is SILVER; a threshold crossing ("Spike Alert / Movement Alert /
+  usual-range threshold crossed") is a PRE-GOLD mechanical candidate record -- source-object
+  movement is the named first precomputed candidate class -- written append-only and keyed to
+  raw. Judgment alone owns the GOLD interpretation (real demand / credible / artificial). The
+  momentum/Spike-Alert lane therefore lives DOWNSTREAM of Projection, not in Capture, and its
+  records MUST use usual-range vocabulary, never viral/suspicious/bot/paid. Capture's only job
+  is to emit clean, durably-keyed timepoints (numeric_id + shortcode + capture_timestamp +
+  typed posture), which it now does.
+- **SCR is deprecated/dormant (`#375`).** The Signal Content Record (`orca-harness/signal_content/`)
+  is retained but dormant as a default pre-Judgment layer; the default route is evidence pack
+  -> Judgment-authored signal interpretation. Read every "ECR/SCR" pairing below as
+  "ECR (SCR dormant -- do not build an SCR consumer unless explicitly revived; see
+  `docs/workflows/ecr_spine_submap_v0.md`)".
+- **Durability/cadence is the next ops lane (NOT Capture, NOT lake).** A scaled-monitoring
+  rate/cadence + graceful-degradation envelope is required before a real creator panel runs;
+  it is owned by a new ops/scheduler lane (the lake contract excludes scheduling/retry, and the
+  runner is per-invocation and already fails closed on blocks). See
+  `docs/decisions/ig_reels_capture_cadence_durability_doctrine_v0.md`.
+- **State / ledger.** The capture lane is merged in `main` (well past this packet's
+  `expected_head 088b8d39`); the source-ledger SHA256s below (IG runner/parser/capture/tests/spec
+  and the ECR submap, which `#375` changed) are SUPERSEDED -> treat as `reread-required` against
+  current `main` + PR #383 before any strict claim.
+
 ## Authoring Preflight
 
 - output_mode: `file-write`; destination `docs/workflows/ig_reels_capture_to_projection_ecr_cleaning_handoff_v0.md`.

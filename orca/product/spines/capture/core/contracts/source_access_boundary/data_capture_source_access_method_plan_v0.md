@@ -782,6 +782,9 @@ direction_change_propagation:
     - path: "docs/workflows/orca_repo_map_v0.md"
       reason: "The repo map entry already describes the artifact as a docs-only source-access method plan with no build/runtime authorization; no discoverability/status change was needed."
   stale_language_search: "rg -n \"never API|API.*disallowed|APIs.*out-of-bounds|API-first|Reddit API registration.*parallel|highest-priority build|API registration.*can proceed|official API.*primary|API.*authorized now|build.*authorized|runtime.*authorized|tooling.*authorized\" docs/product/data_capture_source_access_method_plan_v0.md"
+  non_claims:
+    - "not validation"
+    - "not readiness"
 ```
 
 ## Direction Change Propagation - 2026-06-02 Build Authority Patch

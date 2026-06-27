@@ -38,7 +38,7 @@ from cleaning.audience_extractor import (
 )
 from schemas.product_mention_models import Concentration, ProductMention, StatedRating, TranscriptSource
 
-EXTRACTOR_RUBRIC_VERSION = "0.1"
+EXTRACTOR_RUBRIC_VERSION = "0.4"
 _DEFAULT_MAX_TOKENS = 2048
 
 _ALLOWED_CONCENTRATIONS = tuple(c.value for c in Concentration)
@@ -122,9 +122,28 @@ HARD RULES — do not violate:
 - DO NOT output timestamps — code assigns them from the transcript.
 - concentration MUST be one of: {concentrations}. Use "unknown" if not stated.
 - brand may be "unknown" if the speaker does not state it.
-- stance_vote is a number in [-1, 1]: + if the speaker is positive about the product,
-  - if negative, 0 if neutral. This is YOUR read of THEIR stance — it is evidence, not a
-  verdict; never output your own rating.
+- stance_vote is a number in [-1, 1]: + if the speaker EVALUATES the product positively,
+  - if negative, 0 if neutral or merely descriptive. This is YOUR read of THEIR stance — it is
+  evidence, not a verdict; never output your own rating.
+- ACTIONABLE-STANCE RULE — separate DESCRIBING a fragrance from EVALUATING it, and check the SCOPE
+  of any flattering / critical word (is it the PRODUCT, or just one NOTE / accord within it?):
+  DESCRIBING (NOT stance, set stance_vote ~0, HOWEVER flattering the words) =
+    * what it smells like — its notes / accord / character: "fresh, dewy, musky", "sweet mango",
+      "a bit powdery", "smells like bubblegum";
+    * a bare performance fact: "it's strong", "lasts a few hours";
+    * a flattering adjective sitting ON A NOTE / accord (not the product): "terrific fresh",
+      "classy clean rose", "a beautiful jasmine note", "fun, yummy strawberry milkshake" — these
+      praise the NOTE, not the fragrance. (Contrast: "the FRAGRANCE itself is beautiful / a
+      masterpiece" judges the whole product -> stance. Same words, different scope.)
+  EVALUATING (IS stance) = a verdict on the FRAGRANCE AS A WHOLE (including its overall impression,
+    opening, or drydown taken as a whole): a quality judgment ("it is stunning / elegant /
+    wonderful / unique / a masterpiece"), a recommendation or preference ("my favorite", "the
+    best", "I reach for it", "must-have"), an evaluative performance claim ("incredible
+    longevity"), or an explicit rating. The mirror holds for negatives ("dead last", "not good").
+  SCOPE TEST when unsure: "is the speaker saying the PRODUCT is good, or describing what one
+  note / part smells like?" Product verdict -> stance; a flattering adjective on a note -> ~0.
+  Mere naming, and anticipation of an UNTRIED product ("can't wait to try"), are neutral (~0);
+  "can't wait to reach for / wear this" after experiencing it is a mild preference (+).
 - stated_rating: ONLY if the SPEAKER gives an explicit score (e.g. "8 out of 10"), include
   {{"value": <number>, "scale_max": <number>, "source_pointer": <verbatim quote of the score>}};
   otherwise omit it. Never invent a score.

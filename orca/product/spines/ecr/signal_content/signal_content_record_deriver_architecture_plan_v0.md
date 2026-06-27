@@ -7,13 +7,14 @@ scope: >
   Non-executing architecture routing object for the Signal Content Record (SCR)
   deriver: the extraction contract (raw_observation -> a filled SignalContentRecord),
   the per-field M1/M2/M3 mapping, the honesty/residualize rules, the re-derive
-  lifecycle, and the authored-input (signal_family + event-core) resolution. The
-  next derived-record kind after the ECR SP-1/2/3/6 source-side derivers. Advisory
+  lifecycle, and the authored-input (signal_family + event-core) resolution. SCR
+  is now deprecated/dormant as a default standalone pre-Judgment layer; this plan
+  is retained for compatibility/history or future explicit revival only. Advisory
   planning only; recommends a target shape and surfaces owner-reserved decisions;
   builds nothing.
 use_when:
-  - Building or reviewing the SCR deriver against the v0 SignalContentRecord model.
-  - Deciding the extraction/authored-input contract before any deriver build.
+  - Understanding retained SCR v0 model/deriver behavior after deprecation.
+  - Reviewing compatibility or an explicitly owner-authorized future revival of SCR.
   - Resolving the signal_event_time honesty gap and the authorship boundary.
 authority_boundary: retrieval_only
 open_next:
@@ -26,7 +27,8 @@ input_pins:
   orca-harness/signal_content/models.py: committed 834c930 (the v0 model derived INTO; 17 model tests green)
   orca-harness/ecr/ (SP-6 source-visibility deriver): committed 6329d71 (the pattern reused)
 downstream_consumers:
-  - The SCR deriver build (separately authorized) — receives this as its behavior spec.
+  - Retained `orca-harness/signal_content/` compatibility code/tests.
+  - A future explicit SCR revival lane, if the owner later needs a frozen reusable source-side content object.
 stale_if:
   - signal_content/models.py changes the SignalContentRecord fields, SignalFamily / DecisionRelevance vocabularies, or the SignalEventTimeReference shape.
   - An authored signal-classification input record / SP-5-style finalizer is built (activates the dormant M2 lane).
@@ -35,6 +37,7 @@ stale_if:
 ```
 
 - Status: `PROPOSED_ARCHITECTURE_ROUTING_OBJECT` — advisory planning, **non-executing**.
+- Current posture: `DEPRECATED_AS_STANDALONE_PRE_JUDGMENT_LAYER` — do not use this plan to commission default SCR generation between evidence packs and Judgment.
 - Gate posture: **JSG-01 stays FROZEN.** This plan does not build, bind, ratify, or unfreeze anything; the final Evidence Unit (EvidenceUnit) field architecture stays owner-reserved.
 - Strict-claim boundary: controlling sources are pinned but the worktree is dirty (other-lane churn) → advisory only. No readiness / acceptance / validation / ratification claim. `docs-write` is authorized for this one plan doc; the deriver build is a separate, later authorization.
 - Evidence: a standard 3-subagent architecture-planning panel (3 independent lenses) + home adjudication. See the source-read ledger.
@@ -43,6 +46,8 @@ stale_if:
 ---
 
 ## Human Summary
+
+**Current demotion.** SCR v0 is retained but deprecated/dormant as a default pre-Judgment generated artifact. The current route is evidence pack -> Judgment-authored signal interpretation. This plan remains useful for compatibility, for understanding why the deriver must never author from prose, and for a future explicit revival if Orca needs a frozen reusable source-side content object shared across Judgment runs.
 
 **Decision (lane judgment).** The SCR extraction is a **SPLIT**: a **mechanical carry-shell** (M1-carry of keys / raw text / timing-reference + M2 of a neutral routing tag) that **composes** an authored interpretive core (`signal_family` + the event-core), and **residualizes that core when the authored input is absent** — which is the **default today**, because no authored-classification input record and no SP-5-style finalizer exist in source (grep-confirmed, all three lenses). The deriver **carries-or-residualizes; it never authors.** The authored interpretive lane is **declared-but-dormant** (a named, typed seam — not built), exactly as SP-6's `archive_corroborated` / `archive_diverged` rows are declared-but-dormant behind a missing producer fact. `TARGET_RECOMMENDED`.
 
@@ -56,6 +61,8 @@ stale_if:
 **Next action (smallest complete).** An **owner decision request** (not an artifact, not a build): accept the residualize-default finding (D1), decide the `signal_event_time` honesty amendment (D2), confirm the authorship boundary (D3) — after which the mechanical carry-shell + residualize path is a clean, separately-authorized build slice (the direct sibling of `ecr/deriver.py`). A de-correlated adversarial *artifact* review is recommended before that build.
 
 **What remains blocked.** The authored-classification input record + its provenance binding (the SP-5-style first deferred slice); the M2 interpretive activation; the deriver build; persistence/finalizer; any packet→EvidenceUnit binding; Cleaning; Judgment; commits/pushes; JSG-01 unfreeze.
+
+**Default-use supersession.** The prior "first build slice" recommendation is no longer a default route. It is compatibility/future-revival guidance only unless the owner explicitly re-authorizes SCR as a needed source-side content object.
 
 ---
 
@@ -213,9 +220,9 @@ The deriver runs **only after** (a) a candidate is **promoted** and (b) a `Sourc
 
 ---
 
-## Bounded build scope teed up + what stays deferred
+## Retained Build-Shape Reference + What Stays Deferred
 
-**The v0 build this tees up (smallest complete; a separate, later authorization):**
+**Retained v0 build shape (compatibility/future-revival only; not a default route):**
 - One module `orca-harness/signal_content/deriver.py` (sibling to `ecr/deriver.py`), exposing the **Amendment v0.1** signature `derive_signal_content(packet, *, preserved_bodies, ecr_posture_refs=(), authored_interpretation=None) -> list[SignalContentRecord]` — pure, no I/O, no mutation, binds no `EvidenceUnit`. *(v0's packet-only signature is superseded: `raw_observation` is carried from the caller-supplied body, not the packet.)*
 - v0 behavior = M1-carry + M2-neutral (`content_id`, `decision_relevance`, the event-time reference) + **M3-residualize the authored core.** With `authored_interpretation=None` (the only state that exists), it emits a **structurally complete, honestly-residual** record.
 - The `authored_interpretation` parameter is **declared and dormant** (typed `| None`, defaulted `None`), with a docstring stating it is unbuilt — the named seam.
@@ -233,16 +240,16 @@ The deriver runs **only after** (a) a candidate is **promoted** and (b) a `Sourc
 
 ```yaml
 next_routing_object:
-  type: amendment_ratified              # owner ratified D1-D5 (b1) via Architecture-Pass Amendment v0.1; still design-only
-  primary_result: TARGET_RECOMMENDED    # SPLIT: mechanical carry-shell + residualizing authored core
+  type: retained_historical_routing_object # owner ratified D1-D5 (b1); current default-use route is superseded by SCR deprecation
+  primary_result: TARGET_RECOMMENDED_HISTORICAL # SPLIT remains the retained shape only if SCR is explicitly revived
   recommend_to_owner:
     deriver_shape: >
       A mechanical CARRY-shell over the frozen SourceCapturePacket that COMPOSES a
       bounded, residualizable authored interpretive core by reference; residualizes
       that core (RESIDUAL_FAMILY_UNRESOLVED / VisibleFact unknown-with-reason) when
       the authored input is absent -- the default, since no authored input exists today.
-    first_build_slice: >
-      Build the carry-shell + residualize path FIRST, with zero authored input
+    retained_build_shape_if_revived: >
+      If SCR is explicitly revived, use the carry-shell + residualize path first, with zero authored input
       (emits honest all-residual-core records keyed to a packet) -- the direct
       sibling of ecr/deriver.py and the smallest complete mechanical slice.
     authored_core_carrier: >
@@ -317,7 +324,11 @@ direction_change_propagation:
     per-slice grain (D5); D2=(b1) event-time residual-default; decision_relevance v0-UNRESOLVED.
     One additive model amendment (D2=b1 to SignalEventTimeReference) is SCHEDULED for the build, not applied.
     Still design-only; no build; JSG-01 FROZEN.
-  trigger: architecture_doctrine + lifecycle_boundary
+  trigger: architecture_doctrine
+  related_triggers:
+    - lifecycle_boundary
+  controlling_sources_updated:
+    - orca/product/spines/ecr/signal_content/signal_content_record_deriver_architecture_plan_v0.md
   related: the next derived-record kind after ECR SP-1/2/3/6; steps toward Cleaning/binding
   evidence:
     - core_spine_v0_signal_content_record_architecture_v0.md (834c930) — brief :66 "like SP-5's deferred finalizer… authored input, residualized when absent"

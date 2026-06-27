@@ -248,6 +248,37 @@ Companion to EP-06. Adds three non-blocking surfaces and one CI gate:
   back to whole-repo strict.
 Registered in `.github/workflows/ci.yml` after the existing link-check step.
 
+**Retrieval-header forbidden-field scan** (`.agents/hooks/check_retrieval_header.py`,
+EP-07 forbidden-field subset — the part previously deferred). The shared header
+predicate (`header_problems_for_lines`, used by both the write-time `--hook` and
+the `header_index.py --strict` CI gate) now also rejects status-leak keys in a
+retrieval header — approval / validation / readiness / lifecycle / deployment /
+install / resolver / publication / source-of-truth status — referencing
+`retrieval-metadata.md` ("Forbidden Header Fields"), never restating it.
+Born-green (no current in-scope header uses these keys). `edit_permission` /
+`verdict` / `status` are intentionally NOT banned: review-output and prompt
+frontmatter legitimately carry them. A `use_when` 1–3 count and a closed
+allowed-key set were assessed and intentionally NOT enforced — the corpus mixes
+retrieval-header fields with required review/prompt-provenance frontmatter in one
+block, so neither is born-green. Placement enforces header shape, never truth.
+
+**Doctrine-change receipt-shape gate** (`.agents/hooks/check_dcp_receipt.py`,
+EP-09 shape subset). Diff-scoped, forward-only CI gate (a sibling to the
+deletion-evidence gate): for changed `.md` files it validates that any real
+`direction_change_propagation` receipt or `direction_change_propagation_blocker`
+present is shape-valid — required keys present, `trigger` / `related_triggers`
+drawn only from the seven controlled trigger values, `non_claims` a non-empty
+list — referencing `source-of-truth.md` (Doctrine Change Propagation Contract),
+never restating it. It validates SHAPE only: it does NOT decide whether an edit
+is doctrine-changing, so it never requires a receipt to be *present* (the EP-09
+over-edge stays resident judgment), and it never asserts a listed
+controlling/downstream surface was truly updated or checked. Contract template
+blocks and non-receipt note-markers are skipped. The inline-receipt cap, archive
+pointer, and "no standalone receipt files" rules are deliberately NOT gated here
+(not born-green; several controlling files already hold >2 inline receipts).
+Registered in `.github/workflows/ci.yml`; whole-repo advisory backlog via
+`--audit`; `--selftest` present.
+
 ## Future Gates
 
 - Orca independence dry run: UNKNOWN - requires owner input.

@@ -2,8 +2,9 @@
 
 Foundation slice of the adopted Data Lake decision contracts: the external
 data-root resolver, the per-root identity marker, the directory skeleton, and
-the deterministic write-boundary guard. Selects no storage engine,
-serialization, or queue.
+the deterministic write-boundary guard. This package is the current
+filesystem-incumbent foundation; engine/backend selection belongs to the Data
+Lake Storage Contract physicalization boundary.
 """
 from __future__ import annotations
 

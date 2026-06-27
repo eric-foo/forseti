@@ -4,11 +4,12 @@
 retrieval_header_version: 1
 artifact_role: Product architecture contract
 scope: >
-  Non-selecting storage contract for Orca's data lake: dumb record-kind slots,
-  write/read disciplines, success signals, and physicalization blockers.
+  Storage contract for Orca's data lake: dumb record-kind slots, write/read
+  disciplines, success signals, physicalization blockers, and the boundary for
+  deliberate engine/backend selection.
 use_when:
   - Preparing data-lake storage, manifest, index, or derived-result work after the logical lake contract.
-  - Checking whether a lake change accidentally selects a physical engine, queue, serialization, or schema.
+  - Checking whether a lake change deliberately selects a physical engine/backend under the physicalization gate, or accidentally bypasses that gate.
   - Explaining where Capture, Projection, ECR/SCR, Cleaning, and Judgment attach without replacing raw truth.
 open_next:
   - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_attachment_record_implementation_contract_v0.md
@@ -37,12 +38,16 @@ authority_boundary: retrieval_only
 
 This is a planning and architecture contract. It is not implementation
 authority, validation, readiness, physical storage selection, queue design,
-schema finalization, migration authority, or storage-engine selection.
+schema finalization, migration authority, or storage-engine selection. It does
+not itself choose the engine/backend. Engine/backend selection is now permitted
+only as a separately scoped physicalization or implementation decision that
+preserves the lake invariants below.
 
 ## Goal
 
 Define the smallest complete storage contract that lets later lanes know where
-data lands and how derived work attaches, without making the data lake smart.
+data lands and how derived work attaches, without making the data lake smart,
+while allowing a later bounded lane to choose the concrete physical engine.
 
 ## Success Signals
 
@@ -59,9 +64,11 @@ This goal is successful when all of the following are true:
    Acknowledgement Log.
 4. By-key discovery remains the authority before any queue: downstream lanes
    can find committed work by key even if an event message is missed.
-5. Physical choices remain visibly deferred: no storage engine, manifest v2,
+5. Physical choices are not selected in this contract: storage engine/backend
+   (including filesystem-only, SQL-capable embedded engines such as DuckDB,
+   databases, object stores, warehouses/lakehouses, or hybrids), manifest v2,
    sidecar contract, serialization, projection cache, queue runtime, schema,
-   migration, or validation/readiness claim is selected here.
+   migration, or validation/readiness claim.
 6. Historical "typed extension envelope" wording does not become the target
    storage name. In this lane, use Attachment Record; cite envelope language
    only as prior logical-boundary terminology.
@@ -137,6 +144,34 @@ Remaining blockers before storage implementation:
 4. Preserve by-key discovery as authority before any runtime event or queue
    engine is built.
 
+## Engine Selection Boundary
+
+The earlier blanket **no storage engine** posture is retired. This contract
+still selects no engine by itself, but engine/backend choice is now an allowed
+downstream physicalization decision.
+
+Valid candidates may include the incumbent filesystem-only layout, a concrete
+SQL-capable embedded engine such as DuckDB, a conventional database, an object
+store, a warehouse/lakehouse, or a hybrid. Treat "SQL" as a query/interface
+property unless the lane names a concrete engine.
+
+A selection is acceptable only if the lane proves these invariants:
+
+- raw packet material remains immutable/create-only and hash-checkable;
+- derived records and acknowledgements remain append-only;
+- `indexes/` remains rebuildable and non-authoritative;
+- by-key discovery works without relying on a queue/event message as truth;
+- the Availability Index stays content-free and passive;
+- source-family payloads stay out of lake-core fields unless a later owner
+  decision cites a cross-family promotion rule;
+- the lake does not clean, dedupe, score, judge, schedule, retry, route, or call
+  downstream lanes;
+- operational data stays outside the Git repo, or the physicality-location
+  contract is explicitly superseded for a different external backend model;
+- tests or equivalent deterministic checks prove write-once, append-only,
+  read-by-key, hash verification, and index-rebuild behavior for the selected
+  engine.
+
 ## Blocker 1 Direction
 
 The accepted direction for Attachment Record representation is
@@ -188,7 +223,9 @@ This settles the fate question without migrating or implementing storage code:
 
 This contract does not:
 
-- select a storage engine;
+- select a storage engine inside this artifact; engine/backend selection is now
+  a permitted downstream physicalization decision, not a forbidden doctrine
+  change;
 - select Manifest v2;
 - select sidecars;
 - select exact packet-member vs sidecar layout;
@@ -203,6 +240,71 @@ This contract does not:
 - claim validation, readiness, approval, or acceptance.
 
 ## Direction Change Propagation
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Data Lake Storage Contract v0 retires the blanket no-storage-engine posture:
+    the contract still selects no engine itself, but a bounded data-lake
+    physicalization or implementation lane may now choose a concrete
+    filesystem/database/SQL-capable embedded engine (for example DuckDB),
+    object-store, warehouse/lakehouse, or hybrid backend when it preserves raw
+    immutability, append-only derived/ack records, rebuildable non-authoritative
+    indexes, by-key discovery, the no-smart-lake boundary, and external
+    operational-data placement or an explicit supersession of that placement
+    model.
+  trigger: architecture_doctrine
+  related_triggers:
+    - lifecycle_boundary
+  controlling_sources_updated:
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_storage_contract_v0.md
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_core_contract_v0.md
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_physicality_location_contract_v0.md
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_attachment_record_implementation_contract_v0.md
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_derived_layout_index_rebuild_contract_v0.md
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_write_boundary_enforcement_contract_v0.md
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_raw_admission_key_grammar_contract_v0.md
+    - orca/product/spines/data_lake/workflows/core_spine_v0_data_lake_mechanics_map_v0.md
+    - orca/product/spines/data_lake/README.md
+    - docs/workflows/orca_repo_map_v0.md
+    - orca-harness/data_lake/__init__.py
+    - orca-harness/data_lake/root.py
+    - docs/decisions/dcp_receipts_archive_v0.md
+  downstream_surfaces_checked:
+    - AGENTS.md
+    - .agents/workflow-overlay/README.md
+    - .agents/workflow-overlay/source-loading.md
+    - .agents/workflow-overlay/source-of-truth.md
+    - .agents/workflow-overlay/validation-gates.md
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_medallion_gold_readiness_contract_v0.md
+  intentionally_not_updated:
+    - path: orca/product/spines/data_lake/authority/core_spine_v0_data_lake_medallion_gold_readiness_contract_v0.md
+      reason: >
+        It governs bronze/silver/pre-gold/gold-ready/gold semantics, not storage
+        engine choice. Its backend non-claims remain correct as "not selected by
+        this contract" and do not block a storage-contract physicalization lane.
+  stale_language_search: >
+    rg -n "no storage engine|No storage engine|selects no storage engine|select a storage engine|storage-engine selection|No backend/queue/scheduler/engine|No queue/engine|non-selecting storage contract|physical engine"
+    orca/product/spines/data_lake orca-harness/data_lake docs/workflows/orca_repo_map_v0.md
+  stale_language_search_result: >
+    Executed 2026-06-25 after edits. Remaining hits are expected and
+    non-blocking: the new storage contract rule retires the old blanket no-engine
+    posture and names the deliberate engine-selection boundary; mechanics,
+    derived-layout, and physicality contracts now say no engine is selected by
+    that artifact or map; storage and physicality prior DCP/non-claim hits are
+    historical/non-authorizing receipts; the query appears in this receipt. No
+    live current surface still says the Data Lake selects no storage engine,
+    uses a non-selecting storage contract, or forbids a bounded downstream
+    engine/backend selection.
+  non_claims:
+    - not validation
+    - not readiness
+    - not implementation authorization
+    - not a selected engine/backend
+    - not Manifest v2 selection
+    - not sidecar selection
+    - not queue/runtime selection
+```
 
 ```yaml
 direction_change_propagation:
@@ -271,77 +373,5 @@ direction_change_propagation:
     - not storage-engine selection
 ```
 
-```yaml
-direction_change_propagation:
-  doctrine_changed: >
-    Data Lake Storage Contract v0 now records the blocker-1 implementation-facing
-    Attachment Record contract: compact manifest/index entries link to immutable,
-    hash-checkable attachment bodies, while exact sidecar/member layout,
-    serialization, manifest version, backend, migration, validation, readiness,
-    and runtime implementation remain deferred.
-  trigger: architecture_doctrine
-  related_triggers:
-    - lifecycle_boundary
-  controlling_sources_updated:
-    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_attachment_record_implementation_contract_v0.md
-    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_storage_contract_v0.md
-    - docs/workflows/orca_repo_map_v0.md
-    - docs/decisions/dcp_receipts_archive_v0.md
-  downstream_surfaces_checked:
-    - AGENTS.md
-    - .agents/workflow-overlay/README.md
-    - .agents/workflow-overlay/source-loading.md
-    - .agents/workflow-overlay/source-of-truth.md
-    - .agents/workflow-overlay/validation-gates.md
-    - .agents/workflow-overlay/review-lanes.md
-    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_core_contract_v0.md
-    - orca/product/spines/data_lake/workflows/core_spine_v0_data_lake_mechanics_map_v0.md
-    - orca/product/spines/capture/core/packet_schema/source_capture_tenant_payload_attachment_boundary_v0.md
-    - orca/product/spines/capture/core/packet_schema/source_capture_packet_schema_evolution_architecture_v0.md
-    - orca-harness/source_capture/models.py
-    - orca-harness/source_capture/writer.py
-  intentionally_not_updated:
-    - path: orca/product/spines/data_lake/authority/core_spine_v0_data_lake_core_contract_v0.md
-      reason: >
-        It remains the parent logical contract and already defers exact field
-        names and physical representation; the storage contract plus new
-        implementation contract own the narrower blocker-1 physicalization
-        direction without reopening core boundaries.
-    - path: orca/product/spines/data_lake/workflows/core_spine_v0_data_lake_mechanics_map_v0.md
-      reason: >
-        It remains a planning-only mechanics map. Its broader physicalization
-        gate stays stale-if-superseded by later storage/manifest/sidecar
-        decisions, and this patch does not select those physical choices.
-    - path: orca/product/spines/capture/core/packet_schema/source_capture_tenant_payload_attachment_boundary_v0.md
-      reason: >
-        It remains the accepted logical typed-envelope boundary and explicitly
-        defers physical storage. This patch records the storage-lane
-        implementation contract without globally renaming historical envelope
-        terminology.
-  stale_language_search: >
-    rg -n "table of contents|storage engine selected|sidecar selected|Manifest v2 selected|call ECR|call SCR|call Cleaning|call Projection|call Judgment|implementation readiness|runtime implementation closeout"
-    orca/product/spines/data_lake/authority/core_spine_v0_data_lake_attachment_record_implementation_contract_v0.md
-    orca/product/spines/data_lake/authority/core_spine_v0_data_lake_storage_contract_v0.md
-    orca/product/spines/data_lake/authority/core_spine_v0_data_lake_core_contract_v0.md
-    orca/product/spines/data_lake/workflows/core_spine_v0_data_lake_mechanics_map_v0.md
-    orca/product/spines/capture/core/packet_schema/source_capture_tenant_payload_attachment_boundary_v0.md
-    docs/workflows/orca_repo_map_v0.md
-  stale_language_search_result: >
-    Executed 2026-06-18 after edits. Hits are expected guardrails only: the
-    new implementation contract rejects "table of contents" as architecture
-    terminology and forbids the Availability Index from calling ECR, SCR,
-    Cleaning, Projection, or Judgment; the storage contract states blocker 1 is
-    not a runtime implementation closeout and contains the query in this
-    receipt; the mechanics map hit is an older receipt non-claim against
-    implementation readiness. No hit selects a backend, sidecar, Manifest v2,
-    runtime implementation, validation, or readiness.
-  non_claims:
-    - not validation
-    - not readiness
-    - not implementation authorization
-    - not Manifest v2 selection
-    - not sidecar selection
-    - not storage-engine selection
-```
 
 Older receipts are archived in `docs/decisions/dcp_receipts_archive_v0.md`.

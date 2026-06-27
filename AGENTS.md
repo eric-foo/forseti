@@ -15,6 +15,14 @@ Before reporting work as committed, written, pushed, or otherwise persisted, ver
 visible change; a slightly larger fix is correct when required for durable,
 coherent, non-fragile completion.
 
+Prefer the biggest COMPLETE move you can still fully verify and the owner
+can still steer in one pass -- not a thin smoke-test slice that proves
+plumbing and defers the real capability. Over-slicing is its own
+compounding cost: the deferrals pile up and rot, and each slice burns a
+full plan/review/steer cycle. Slice deliberately only when the move is
+high-lock-in or irreversible (probe first) or you genuinely need real
+output to design the rest (harvest before cook) -- never just to look safe.
+
 `Smallest` is also load-bearing. Do not add unrelated cleanup, speculative
 abstractions, broad rewrites, extra workflow ceremony, or nice-to-have
 improvements.
@@ -32,6 +40,24 @@ Whenever the user or instructions say **"smallest complete X"** -- including
 phrases like **smallest complete fix, patch, edit, rewrite, refactor, review,
 or answer** -- interpret it as **X performed under the Smallest complete
 intervention rule above.**
+
+## Decision Priority
+
+When design options conflict and each already passes the always-on rules
+above (real failure visibility / no fake success, and smallest complete),
+break the tie in this order:
+
+1. **Least compounded risk** -- prefer the reversible, contained,
+   low-lock-in option that fails loud and local; surface irreversible,
+   high-lock-in, or doctrine-changing forks to the owner rather than
+   auto-deciding (this is the lock-in tiebreaker in Smallest Complete
+   Intervention, applied first).
+2. **Structural integrity** -- model reality as it is and teach the next
+   agent the truth: name a limitation over faking a fit; prefer one true
+   rule over a clever special-case.
+
+When 1 and 2 pull apart, default to 1 and surface the tradeoff --
+recoverability beats elegance when the owner cannot easily course-correct.
 
 ## Mini God Tier
 

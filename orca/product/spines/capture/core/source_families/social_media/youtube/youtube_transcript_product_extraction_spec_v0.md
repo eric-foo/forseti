@@ -30,7 +30,7 @@ stale_if:
   - The data lake record-set shape changes (the derived layers ride the all-or-nothing record-set + completion-marker rails).
   - The no-LLM-zone enforcement test (tests/contract/test_no_llm_imports.py) changes its covered packages or forbidden set.
   - The subscription-routed transport seam is wired live (the deferred live caller is implemented).
-status: PROPOSED — design only; no build authorized; assumption-gated + owner-confirmed 2026-06-23. Owner-resolved 2026-06-23: hybrid LLM-reads/code-decides; v0 = Pass 1 silver mentions only (gold verdict fusion deferred); tiered medallion lane naming; open-world brand/line (no catalog); subscription-routed transport now, metered API as the scale fallback; daemon-ready runner now, cron/daemon deferred.
+status: PROPOSED — design only; no build authorized; assumption-gated + owner-confirmed 2026-06-23. Owner-resolved 2026-06-23: hybrid LLM-reads/code-decides; v0 = Pass 1 silver mentions only (gold verdict fusion deferred at authoring); tiered medallion lane naming; open-world brand/line (no catalog); subscription-routed transport now, metered API as the scale fallback; daemon-ready runner now, cron/daemon deferred. BUILD UPDATE 2026-06-26: `stale_if` #2 has fired — Pass-2 gold verdict fusion is now BUILT as `scoring/product_fusion.py` (deterministic, LLM-free, source-agnostic for YouTube + IG; owner-authorized; eric-foo/orca#394). The "Pass 2 deferred / v0 = Pass 1 only" framing below is therefore historical; the built module is `product_fusion.py` (not the predicted `product_verdict_fusion.py`).
 ```
 
 # YouTube Transcript → Product/Verdict Extraction — Spec (proposed, v0)
@@ -81,9 +81,12 @@ derived/<video-packet>/gold__judgment__product_verdict/<id>    🥇 gold   (Pass
 derived/<video-packet>/gold__judgment__transcript_summary/<id> 🥇 gold   (summary pass)
 ```
 
-**Anchor rule:** all of one video's derived records cluster under that video's
-**raw capture packet id** (`raw_anchor`) — the caption packet id (caption path) or
-the audio packet id (ASR path). One prefix retrieves everything about a video.
+**Anchor rule:** a video's transcript-derived records (silver mentions, gold verdict)
+cluster under its **transcript raw-packet id** (`raw_anchor`) — the caption packet
+(caption path) or the audio packet (ASR path); that transcript packet is the "primary"
+envelope (Decision 10). NOTE (capture-unification refinement): a video has multiple
+per-surface packets (watch / captions / audio) that share **no** raw anchor, so
+"everything about a video" is resolved via a **per-video index**, not a single prefix.
 
 **Retrievability + traceability (the load-bearing property — "then we scale"):**
 - Retrievable: every record is fetched **by key** (`load_raw_packet`, lane lookup) +
@@ -415,6 +418,14 @@ targeted: the model is paid for judgment, not formatting.
    the primitives; the deferred scale-only lake item is populating
    `indexes/derived_retrieval`; our runner is the daemon-ready reference; a
    per-runner re-run idempotency test enforces it. *(resolved 2026-06-23)*
+10. **Per-video gold anchors on the transcript (primary) envelope** — the per-video
+    gold verdict hangs off the caption/audio packet it is computed from (the same
+    packet its silver mentions live on), NOT a synthetic `video_id` anchor: keeps
+    consistent packet-id anchoring and is naturally versioned-with-capture (re-capture
+    → that capture gets its own gold). Capture-unification refinement: a video has
+    multiple per-surface packets (watch / captions / audio) that share no raw anchor,
+    so cross-surface correlation is a per-video index, not a shared prefix.
+    *(resolved 2026-06-23)*
 
 ## Non-claims
 

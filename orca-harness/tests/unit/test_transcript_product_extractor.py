@@ -225,6 +225,49 @@ def test_prompt_carries_doctrine() -> None:
     assert "elixir" in prompt  # closed concentration set surfaced
 
 
+_RULE_EXAMPLES = [
+    # DESCRIBING the fragrance -> NOT stance (neutral)
+    ("fresh, dewy, musky", "neutral"), ("sweet mango", "neutral"), ("a bit powdery", "neutral"),
+    ("it's strong", "neutral"), ("lasts a few hours", "neutral"), ("can't wait to try", "neutral"),
+    # a flattering adjective ON A NOTE (scope = note, not product) -> neutral
+    ("terrific fresh", "neutral"), ("classy clean rose", "neutral"), ("a beautiful jasmine note", "neutral"),
+    # EVALUATING the fragrance as a whole -> stance
+    ("stunning", "stance"), ("elegant", "stance"), ("unique", "stance"), ("a masterpiece", "stance"),
+    ("the best", "stance"), ("incredible longevity", "stance"),
+]
+
+
+def test_prompt_carries_actionable_stance_rule() -> None:
+    # Calibration fix (rubric 0.4): separate DESCRIBING a fragrance (notes / character / bare
+    # performance -> neutral) from EVALUATING it (quality judgment / recommendation / rating ->
+    # stance), and check the SCOPE of praise. Pins the distinctions so the rule cannot be weakened.
+    prompt = " ".join(build_extraction_prompt(_transcript()).lower().split())  # normalize line-wraps
+    assert "describing" in prompt and "evaluating" in prompt   # the core distinction
+    assert "however flattering" in prompt                       # flattery alone is not stance
+    assert "lasts a few hours" in prompt                        # bare performance = description
+    assert "incredible longevity" in prompt                     # evaluative performance = stance
+    assert "can't wait to try" in prompt                        # untried anticipation = neutral
+    assert "quality judgment" in prompt                         # evaluation anchor
+    assert "scope" in prompt                                    # check the scope of the praise
+    assert "a beautiful jasmine note" in prompt                 # flattering adjective on a NOTE = neutral
+
+
+def test_rule_examples_bound_to_correct_section() -> None:
+    # No automated extractor exists (Pass-1 is agent/LLM-in-the-loop), so this fixture documents the
+    # rule's INTENT and BINDS each example to its section: a neutral example must NOT sit inside the
+    # EVALUATING block, and a stance example MUST. Moving a neutral example under EVALUATING fails here.
+    prompt = " ".join(build_extraction_prompt(_transcript()).lower().split())  # normalize line-wraps
+    assert "evaluating (is stance" in prompt and "scope test" in prompt
+    eval_block = prompt.split("evaluating (is stance", 1)[1].split("scope test", 1)[0]
+    for phrase, cls in _RULE_EXAMPLES:
+        p = phrase.lower()
+        assert p in prompt, f"rule example missing from rubric: {phrase!r}"
+        if cls == "stance":
+            assert p in eval_block, f"stance example not in EVALUATING block: {phrase!r}"
+        else:
+            assert p not in eval_block, f"neutral example wrongly inside EVALUATING block: {phrase!r}"
+
+
 def test_request_body_has_no_forbidden_keys() -> None:
     _, transport = _extract(_anthropic([_item()]))
     assert set(transport.last_body) <= {"model", "max_tokens", "messages"}
