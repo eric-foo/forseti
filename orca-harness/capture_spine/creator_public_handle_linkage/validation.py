@@ -5,6 +5,7 @@ import re
 from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlparse
 
 from capture_spine.creator_public_handle_linkage.models import (
     CREATOR_PUBLIC_HANDLE_LINKAGE_LEDGER_SCHEMA_VERSION,
@@ -209,6 +210,11 @@ def validate_creator_public_handle_linkage_ledger(ledger: Mapping[str, Any]) -> 
         ),
         "ledger",
     )
+    _require_str(
+        wrapper,
+        ("schema_version", "ledger_id", "ledger_mode", "source_policy_posture"),
+        "ledger",
+    )
     if wrapper.get("schema_version") != CREATOR_PUBLIC_HANDLE_LINKAGE_LEDGER_SCHEMA_VERSION:
         _fail(
             "invalid_schema_version",
@@ -264,7 +270,7 @@ def _validate_platform_accounts(value: Any, ledger_mode: str) -> dict[str, Mappi
         if not isinstance(account, Mapping):
             _fail("invalid_platform_account", "platform account entries must be mappings")
         _reject_unknown_keys(account, _ALLOWED_ACCOUNT_KEYS, "platform_account")
-        _require(
+        _require_str(
             account,
             (
                 "platform_account_id",
@@ -273,6 +279,16 @@ def _validate_platform_accounts(value: Any, ledger_mode: str) -> dict[str, Mappi
                 "public_profile_url",
                 "handle_source_pointer",
                 "handle_observed_at",
+            ),
+            "platform_account",
+        )
+        _validate_optional_str(
+            account,
+            (
+                "platform_public_account_id_or_none",
+                "public_display_name_or_none",
+                "display_name_source_pointer_or_none",
+                "display_name_source_field_or_none",
             ),
             "platform_account",
         )
@@ -287,10 +303,14 @@ def _validate_platform_accounts(value: Any, ledger_mode: str) -> dict[str, Mappi
         _validate_https_url(account["public_profile_url"], "public_profile_url")
 
         display_name = account.get("public_display_name_or_none")
-        if display_name:
-            _require(
+        if display_name is not None:
+            _require_str(
                 account,
-                ("display_name_source_pointer_or_none", "display_name_source_field_or_none"),
+                (
+                    "public_display_name_or_none",
+                    "display_name_source_pointer_or_none",
+                    "display_name_source_field_or_none",
+                ),
                 "platform_account public display name",
             )
         if ledger_mode == SYNTHETIC_FIXTURE_MODE:
@@ -323,6 +343,20 @@ def _validate_link_evidence(
                 "observed_at",
                 "review_actor",
                 "llm_assisted",
+                "independence_key",
+            ),
+            "account_link_evidence",
+        )
+        _require_str(
+            record,
+            (
+                "evidence_id",
+                "evidence_type",
+                "evidence_strength",
+                "source_pointer",
+                "source_field",
+                "observed_at",
+                "review_actor",
                 "independence_key",
             ),
             "account_link_evidence",
@@ -374,6 +408,19 @@ def _validate_creator_records(
             ),
             "creator_record",
         )
+        _require_str(
+            record,
+            (
+                "creator_record_id",
+                "link_state",
+                "review_state",
+                "link_rationale",
+                "limitations",
+                "created_at",
+                "updated_at",
+            ),
+            "creator_record",
+        )
         creator_id = str(record["creator_record_id"])
         if creator_id in creator_ids:
             _fail("duplicate_creator_record_id", f"duplicate creator_record_id: {creator_id}")
@@ -416,11 +463,19 @@ def _validate_link_state_evidence(
     elif link_state == LinkState.PROBABLE.value:
         if review_state != ReviewState.HUMAN_REVIEWED_PROBABLE.value:
             _fail("probable_link_requires_human_review", "probable links require human_reviewed_probable")
-        weak_types = {evidence_type for evidence_type in evidence_types if evidence_type in _WEAK_EVIDENCE_TYPES}
+        weak_rows = [row for row in evidence_rows if str(row["evidence_type"]) in _WEAK_EVIDENCE_TYPES]
+        weak_types = {str(row["evidence_type"]) for row in weak_rows}
         if len(weak_types) < 3:
             _fail(
                 "probable_link_needs_three_independent_weak_evidence_types",
                 "probable links require at least three independent weak evidence types",
+            )
+        weak_independence_keys = {str(row["independence_key"]) for row in weak_rows}
+        if len(weak_independence_keys) < 3:
+            _fail(
+                "probable_link_needs_three_independent_evidence_families",
+                "probable links require at least three independent weak evidence families "
+                "(distinct independence_key)",
             )
     elif link_state == LinkState.CANDIDATE.value:
         if review_state != ReviewState.CANDIDATE_NEEDS_REVIEW.value:
@@ -505,8 +560,9 @@ def _validate_synthetic_account(account: Mapping[str, Any]) -> None:
     handle = str(account["public_handle"])
     if not handle.startswith(("synthetic_", "fixture_")):
         _fail("synthetic_fixture_handle_required", "synthetic fixture handles must start synthetic_ or fixture_")
-    if "example.test" not in str(account["public_profile_url"]):
-        _fail("synthetic_fixture_url_required", "synthetic fixture profile URLs must use example.test")
+    host = (urlparse(str(account["public_profile_url"])).hostname or "").lower()
+    if host != "example.test" and not host.endswith(".example.test"):
+        _fail("synthetic_fixture_url_required", "synthetic fixture profile URLs must use the example.test host")
     _validate_synthetic_source_pointer(account["handle_source_pointer"], "handle_source_pointer")
     display_name = account.get("public_display_name_or_none")
     if display_name:
@@ -541,6 +597,29 @@ def _require(value_map: Mapping[str, Any], field_names: Sequence[str], label: st
         value = value_map.get(field_name)
         if value is None or (isinstance(value, str) and not value.strip()):
             _fail(f"missing_{field_name}", f"{label} missing required field: {field_name}")
+
+
+def _require_str(value_map: Mapping[str, Any], field_names: Sequence[str], label: str) -> None:
+    """Require a present, non-empty string. Rejects nested objects/lists in scalar
+    fields so a metadata blob cannot bypass the allowlist envelope under a
+    non-denylisted key name."""
+    for field_name in field_names:
+        value = value_map.get(field_name)
+        if value is None or (isinstance(value, str) and not value.strip()):
+            _fail(f"missing_{field_name}", f"{label} missing required field: {field_name}")
+        if not isinstance(value, str):
+            _fail(f"non_string_{field_name}", f"{label} field must be a string: {field_name}")
+
+
+def _validate_optional_str(value_map: Mapping[str, Any], field_names: Sequence[str], label: str) -> None:
+    for field_name in field_names:
+        if field_name not in value_map:
+            continue
+        value = value_map[field_name]
+        if value is None:
+            continue
+        if not isinstance(value, str) or not value.strip():
+            _fail(f"non_string_{field_name}", f"{label} field must be null or a non-empty string: {field_name}")
 
 
 def _validate_https_url(value: Any, label: str) -> None:

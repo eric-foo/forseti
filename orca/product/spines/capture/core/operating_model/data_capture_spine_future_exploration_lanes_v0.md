@@ -45,6 +45,12 @@ under the current wind-caller carve-out only in the narrow aggregate/text-only
 posture named there. Follower, connection, commenter, or audience graph
 analytics remain gated and outside discovery lanes.
 
+**Schema-home boundary.** The carve-out's remaining Tier-2-A activation gate is a
+separate aggregate-audience-attribute schema home; that home is its own
+architecture decision and is **not** the public-handle linkage ledger, whose
+validator forbids demographic/audience fields. Do not add aggregate-audience or
+ideal-audience attributes to the linkage ledger rows.
+
 **The idea.** Apply data science to follower / connection / commenter relationship
 graphs — network analysis, influence mapping, community detection — which is
 genuinely useful analytically.

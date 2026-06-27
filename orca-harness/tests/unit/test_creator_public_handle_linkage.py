@@ -170,3 +170,59 @@ def test_hollow_non_claims_raise() -> None:
     _raises_code(ledger, "missing_required_non_claim")
 
 
+def test_nested_blob_in_wrapper_scalar_field_is_rejected() -> None:
+    # A metadata blob hidden under a non-denylisted key would bypass the
+    # exact-match forbidden-field sweep; the scalar field must be a string.
+    ledger = _fixture()
+    _wrapper(ledger)["source_policy_posture"] = {
+        "aggregate_audience": {"age_band_18_24_pct": 40, "gender_skew": "f"}
+    }
+
+    _raises_code(ledger, "non_string_source_policy_posture")
+
+
+def test_nested_blob_in_nullable_account_scalar_field_is_rejected() -> None:
+    ledger = _fixture()
+    _wrapper(ledger)["platform_accounts"][0]["platform_public_account_id_or_none"] = {
+        "aggregate_audience": {"age_band_18_24_pct": 40}
+    }
+
+    _raises_code(ledger, "non_string_platform_public_account_id_or_none")
+
+
+def test_falsy_nested_blob_in_nullable_display_name_field_is_rejected() -> None:
+    ledger = _fixture()
+    _wrapper(ledger)["platform_accounts"][0]["public_display_name_or_none"] = []
+
+    _raises_code(ledger, "non_string_public_display_name_or_none")
+
+
+def test_nested_blob_in_creator_record_free_text_is_rejected() -> None:
+    ledger = _fixture()
+    _wrapper(ledger)["creator_records"][0]["link_rationale"] = {"smuggled": "data"}
+
+    _raises_code(ledger, "non_string_link_rationale")
+
+
+def test_probable_link_requires_three_independent_evidence_families() -> None:
+    # Three distinct weak TYPES but only two independence families (two rows
+    # share one independence_key) must not satisfy the probable threshold.
+    ledger = _fixture()
+    for evidence in _wrapper(ledger)["account_link_evidence"]:
+        if evidence["evidence_id"] == "ev_barrier_bio_overlap":
+            evidence["independence_key"] = "handle_family"
+
+    _raises_code(ledger, "probable_link_needs_three_independent_evidence_families")
+
+
+def test_synthetic_fixture_rejects_lookalike_host_url() -> None:
+    # Substring "example.test" inside a real host must not pass; the host itself
+    # must be example.test (or a subdomain of it).
+    ledger = _fixture()
+    _wrapper(ledger)["platform_accounts"][0]["public_profile_url"] = (
+        "https://example.test.evil.com/instagram/synthetic_glow_lab_ig"
+    )
+
+    _raises_code(ledger, "synthetic_fixture_url_required")
+
+
