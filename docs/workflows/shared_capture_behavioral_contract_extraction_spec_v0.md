@@ -72,7 +72,8 @@ The shared item contract is the comparable behavioral row. It should carry:
 - observed metadata and engagement signals, with source paths and limitations;
 - comments posture;
 - transcript availability and canonical transcript selection reason;
-- persistence anchors and extraction status;
+- persistence anchors, canonical extraction status, per-source extraction
+  statuses, and per-item extraction rollup;
 - non-authoritative, estimated, partial, or weak fields labeled explicitly.
 
 The core must not require one physical storage unit per item. One item can map to
@@ -111,9 +112,13 @@ Platform adapters own how comments are acquired: IG rendered DOM / embedded
 GraphQL nodes, YouTube `youtubei` continuations, or future platform-specific
 routes.
 
-### TranscriptSource
+### TranscriptSourceRecord
 
-The shared transcript contract should carry:
+The shared transcript-source record contract should carry the fields below. This rich behavior-
+layer record is distinct from the existing
+`schemas.product_mention_models.TranscriptSource` enum, which is only the
+current product-mention field type for `asr | caption`; future implementation
+must not shadow or overload that enum without an explicit migration decision.
 
 - `platform`;
 - `platform_item_id` and `platform_item_id_kind`;
@@ -170,6 +175,14 @@ The thin core may specify this feed and test adapters against it. It must not
 move LLM/model calls into capture. Product extraction remains downstream of
 source capture and transcript normalization.
 
+Extraction completion is per transcript anchor. The shared item must expose
+`source_extraction_statuses` keyed by transcript anchor and a per-item rollup.
+The rollup may read `complete` only when every extraction-eligible observed
+transcript source for that item is `extracted` or `skipped_done`, or is
+explicitly residualized or marked `not_extraction_eligible` with reason.
+Canonical-only completion must be named `canonical_extraction_status`, not the
+whole-item `extraction_status`.
+
 ### SourceArtifactPersistence
 
 The shared persistence preference is SourceCapturePacket raw artifacts plus
@@ -211,7 +224,7 @@ A future source-changing extraction pass should not begin until the owner accept
 or revises this spec after review. If authorized, sequence narrowly:
 
 1. Define testable contract fixtures for `PlatformBehavioralItem`,
-   `TranscriptSource`, `CommentSet`, `PersistenceCorrelation`, and
+   `TranscriptSourceRecord`, `CommentSet`, `PersistenceCorrelation`, and
    `ExtractionFeed` using existing IG/YT fixture patterns.
 2. Add platform adapters that project existing lane outputs into the contracts;
    do not move acquisition code.
@@ -229,13 +242,15 @@ are testable:
 
 1. Both IG and YouTube can produce or project a behavioral item keyed by
    `platform_item_id` without changing their acquisition methods.
-2. Comment posture, transcript posture, receipt status, and extraction status are
+2. Comment posture, transcript posture, receipt status, canonical extraction
+   status, per-source extraction statuses, and per-item extraction rollup are
    comparable but retain platform-specific route details.
 3. Correlation resolves programmatically from item id to candidate, comments,
-   transcript sources, extraction anchors, and selection reason.
+   transcript sources, source-level extraction statuses, extraction anchors, and
+   selection reason.
 4. One-item-to-many-anchors is first-class; no contract path assumes one packet or
    one transcript per item.
-5. `TranscriptSource` preserves caption-vs-ASR, route, posture, provenance,
+5. `TranscriptSourceRecord` preserves caption-vs-ASR, route, posture, provenance,
    timing cues, and transient-media limits.
 6. Extraction feed remains source-family agnostic and does not import capture or
    model calls into the wrong layer.
@@ -248,7 +263,8 @@ are testable:
 
 - The first shared core may be a contract plus adapter projection, not a shared
   code package. Acceptable because it avoids locking in a framework before the
-  lane loop proves one is needed.
+  lane loop proves one is needed; upgrade only if projection cannot express both
+  lanes without duplicate correlation defects or observable behavior divergence.
 - Physical persistence can stay uneven in v0. Acceptable only when deterministic
   correlation prevents human-convention lookup.
 - `video_id` may remain the extractor's runtime field name while the behavior
@@ -256,6 +272,11 @@ are testable:
   authorized; upgrade if the name causes platform-mixing bugs.
 - TikTok remains excluded. Acceptable because no TikTok source-family analysis is
   present in this pass.
+- The patched YouTube behavioral spec has not been adversarially re-reviewed
+  after its adjudication patch. Acceptable for planning only; before source-
+  changing shared contract extraction uses it as implementation authority,
+  either run a post-patch YouTube re-review or record explicit owner acceptance
+  of that dependency.
 
 ## Review Checkpoint
 

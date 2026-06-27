@@ -238,7 +238,7 @@ Shape:
 - Shared policy/receipt envelope for capture runs.
 - Shared cadence plan.
 - Shared packet/lake persistence contract.
-- Shared `TranscriptSource` contract.
+- Shared transcript-source record contract.
 - Shared extraction feed into the existing transcript product extractor.
 - Fat IG, YouTube, and later TikTok adapters own enumeration, fetch/render,
   comments, platform transcript acquisition, and surface-specific persistence
@@ -318,7 +318,7 @@ Core responsibilities:
 - `SourceArtifactPersistence`: prefer SourceCapturePacket-shaped raw artifacts
   and DataLakeRoot derived record sets with completion markers where the lane
   needs durable completion semantics.
-- `TranscriptSource`: normalized transcript feed with platform id, source
+- `TranscriptSourceRecord`: normalized transcript-source record with platform id, source
   family/surface, caption-or-ASR source, packet/raw anchor, cue list,
   transcript posture, tool/model provenance, and limitations.
 - `ExtractionFeed`: feed `TranscriptInput` into the existing product extractor;
@@ -377,11 +377,11 @@ the recommended thin-core target.
    IG. Step-3 planning spec:
    `docs/workflows/ig_backfix_against_youtube_behavioral_contract_spec_v0.md`.
 5. Shared contract extraction: after both lanes express the same behavior,
-   extract the stable `TranscriptSource`, receipt, persistence-completion, and
-   extraction-feed contracts into the thin core. Step-4 planning spec:
+   extract the stable transcript-source record, receipt, persistence-completion,
+   and extraction-feed contracts into the thin core. Step-4 planning spec:
    `docs/workflows/shared_capture_behavioral_contract_extraction_spec_v0.md`.
 6. Contract-test plan: after implementation is authorized, add tests around the
-   shared `TranscriptSource` and persistence-completion contract, plus existing
+   shared transcript-source record and persistence-completion contract, plus existing
    no-LLM and product-extraction tests. Do not use current passing extraction
    tests as proof that the capture core is validated.
 7. Framework reconsideration gate: consider runner or scheduler consolidation

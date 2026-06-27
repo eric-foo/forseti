@@ -40,8 +40,10 @@ Target: `IG_BACKFIX_BEHAVIORAL_SPEC_READY`.
 This spec is planning-only. It does not authorize source edits, runtime capture,
 network access, persistence migration, shared machinery, production readiness, or
 TikTok coverage. It also does not claim the YouTube runtime lane is already
-implemented. It uses the reviewed/adjudicated YouTube behavioral spec as the
-reference contract for a future IG scoping pass.
+implemented. It uses the patched YouTube behavioral spec as the reference
+contract for a future IG scoping pass. Reviewed/adjudicated here means
+pre-patch review plus post-review adjudication; the patched YouTube spec has not
+been adversarially re-reviewed.
 
 ## Source Basis
 
@@ -134,7 +136,7 @@ contract does not require full corpus exhaustiveness.
 ### IGTranscriptSource
 
 IG has ASR-only transcript reality today. A future back-fix must express both
-transcript-bearing IG surfaces as `TranscriptSource` candidates or explicitly
+transcript-bearing IG surfaces as `TranscriptSourceRecord` candidates or explicitly
 name one as a non-canonical residual with deterministic lookup.
 
 Required fields:
@@ -214,12 +216,21 @@ feed product extraction are visible through the normalized extraction feed.
 Minimum closure:
 
 - standalone audio-packet ASR continues to feed the existing shared extractor;
-- deep-capture transcript records are either adapted into `TranscriptSource` and
+- deep-capture transcript records are either adapted into `TranscriptSourceRecord` and
   eligible for extraction, or named as a non-canonical residual with deterministic
   lookup and no hidden extraction-complete claim;
 - extraction remains downstream of capture; no LLM/model calls move into capture;
 - extraction records keep transcript anchor, source route, model/rubric
   provenance, rejected quote evidence, and completion state.
+
+Extraction completion is per transcript-source anchor, not inherently per item.
+The behavioral record must expose `source_extraction_statuses` keyed by
+transcript anchor plus a per-item rollup. The rollup may read `complete` only
+when every extraction-eligible observed transcript source for that item is
+`extracted` or `skipped_done`, or is explicitly residualized or marked
+`not_extraction_eligible` with a reason. If a future implementation wants
+canonical-only completion, it must name that field `canonical_extraction_status`
+and keep non-canonical source statuses visible.
 
 ## Sequencing
 
@@ -248,12 +259,13 @@ following testable:
 
 1. A reel has one behavioral record keyed by `platform_item_id` / shortcode that
    ties candidate identity, ranking basis, comments posture, transcript source
-   selection, persistence anchors, and extraction status together.
+   selection, persistence anchors, canonical extraction status, per-source
+   extraction statuses, and per-item extraction rollup together.
 2. IG grid ranking and metric limitations are explicit; hidden likes or weak
    engagement cannot silently pass as strong ranking evidence.
 3. Deep-capture comments can be represented as a comment set with a posture and
    route receipt.
-4. Both IG transcript-bearing surfaces are either normalized to `TranscriptSource`
+4. Both IG transcript-bearing surfaces are either normalized to `TranscriptSourceRecord`
    candidates or one is explicitly residualized with deterministic lookup and no
    hidden completeness claim.
 5. Canonical transcript selection preserves all observed sources and records the
@@ -263,7 +275,12 @@ following testable:
 7. Transient media URLs remain non-durable; only redacted provenance may persist.
 8. Extraction remains downstream and source-family agnostic; no LLM/model import
    moves into capture.
-9. No implementation claims YouTube acquisition shape, caption priority, shared
+9. Per-item `extraction_status` cannot read complete while any
+   extraction-eligible observed transcript source is unextracted, failed, or
+   partial unless that source is explicitly residualized or marked
+   `not_extraction_eligible` with reason; canonical-only status uses a separate
+   field name.
+10. No implementation claims YouTube acquisition shape, caption priority, shared
    runner/framework, production readiness, live-scale validation, or TikTok coverage.
 
 ## MGT Accepted Residuals
@@ -277,8 +294,17 @@ following testable:
 - Deep-capture transcript extraction may be a scoped implementation residual if
   standalone audio already covers the canonical transcript. Acceptable only when
   the residual is named and discoverable; not acceptable as silent omission.
+  Upgrade when canonical selection depends on same-render comment/transcript
+  provenance or when product extraction needs deep-capture transcript evidence.
 - Grid and deep-capture runners may remain separate. Acceptable because runner
-  consolidation is higher lock-in than behavioral contract parity.
+  consolidation is higher lock-in than behavioral contract parity; upgrade only
+  if separate runners produce inconsistent receipts, correlation, or extraction
+  completion visibility.
+- The patched YouTube behavioral spec has not been adversarially re-reviewed
+  after its adjudication patch. Acceptable for planning only; before source-
+  changing IG parity or shared-core extraction uses it as implementation
+  authority, either run a post-patch YouTube re-review or record explicit owner
+  acceptance of that dependency.
 
 ## Review Checkpoint
 
