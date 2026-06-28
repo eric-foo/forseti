@@ -21,12 +21,16 @@ FORBIDDEN_IMPORT_ROOTS = {
 FORBIDDEN_URLLIB_SUBMODULES = {"request", "error"}
 
 
-def test_ig_reels_behavioral_projection_has_no_runtime_acquisition_or_llm_imports() -> None:
+def test_ig_reels_behavioral_projection_modules_have_no_runtime_acquisition_or_llm_imports() -> None:
     project_root = Path(__file__).resolve().parents[2]
-    target = project_root / "source_capture" / "ig_reels_behavioral_projection.py"
+    targets = [
+        project_root / "source_capture" / "ig_reels_behavioral_projection.py",
+        project_root / "source_capture" / "ig_reels_behavioral_lake.py",
+    ]
 
-    assert target.is_file(), "IG reels behavioral projection module must exist"
-    assert not _forbidden_import_roots(target), f"Forbidden import in {target}"
+    for target in targets:
+        assert target.is_file(), f"{target.name} must exist"
+        assert not _forbidden_import_roots(target), f"Forbidden import in {target}"
 
 
 def test_forbidden_import_detector_catches_runtime_acquisition_import(tmp_path: Path) -> None:
