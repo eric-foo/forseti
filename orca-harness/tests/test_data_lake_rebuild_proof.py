@@ -34,15 +34,15 @@ def test_indexes_rebuild_byte_identical_from_authoritative_truth(tmp_path: Path)
     # Prove-rebuildability for every populated index kind in this fixture:
     # indexes/availability holds no unique truth. Wiping the ENTIRE cache tier
     # and rebuilding from authoritative raw/ yields byte-identical entries.
-    # indexes/derived_retrieval is build-deferred and empty here; if it starts
-    # carrying files, this test must grow a rebuilder before the claim survives.
+    # indexes/derived_retrieval is build-deferred here; v4.1 creates its
+    # directory skeleton, but any files must have a rebuilder before the claim survives.
     root = DataLakeRoot.for_test(tmp_path / "orca-data")
     packet_ids = [_capture(root, tmp_path, body).packet.packet_id for body in ("alpha", "beta", "gamma")]
 
     indexes = root.path / "indexes"
     derived_retrieval = indexes / "derived_retrieval"
     assert derived_retrieval.is_dir()
-    assert not any(derived_retrieval.rglob("*")), (
+    assert not any(p.is_file() for p in derived_retrieval.rglob("*")), (
         "derived_retrieval has no current rebuilder; populate and rebuild it before claiming coverage"
     )
     before = _snapshot(indexes)
