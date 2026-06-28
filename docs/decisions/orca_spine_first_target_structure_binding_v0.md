@@ -85,6 +85,14 @@ create satellite homes, Search/web-search capture, TikTok, YouTube, source-quali
 extraction, cadence/missingness folders, harness/runtime work, or source-access
 authorization.
 
+Post-execution Creator Signal amendment (2026-06-28):
+`orca/product/spines/creator_signal/` is promoted as a product_signal spine by
+`docs/decisions/orca_creator_signal_spine_promotion_binding_v0.md`. It owns the
+product-facing creator-intelligence surface over the Capture-owned
+`creator_profile_current` view. It does not own identity linkage rows, metric
+rollup computation, ideal-audience inference schemas, storage, runtime, capture,
+outreach, or public-directory authority.
+
 ## Base and provenance
 
 - Read against `origin/main @ 8f19b460` (the controller worktree HEAD equals
@@ -205,6 +213,8 @@ orca/product/
       buyer_proof/
       icp_wedge/
       proof_charter/
+
+    creator_signal/
 
   satellites/
     beauty/
