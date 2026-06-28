@@ -247,7 +247,18 @@ def _text_from_youtube_runs(value):
 def parse_exact_count_text(text):
     if not isinstance(text, str):
         return None
-    match = re.search(r"(?<![\d.])(\d[\d,]*)\s*(?:comments?|likes?|views?)?\b", text, re.IGNORECASE)
+    stripped = text.strip()
+    if not stripped:
+        return None
+    if re.search(r"(?<!\d)\d[\d,]*\.\d+\s*[kmb]?\b", stripped, re.IGNORECASE):
+        return None
+    if re.search(r"(?<!\d)\d[\d,]*\s*[kmb]\b", stripped, re.IGNORECASE):
+        return None
+    match = re.search(
+        r"(?<![\d.])(\d{1,3}(?:,\d{3})+|\d+)\s*(?:comments?|likes?|views?)?\b",
+        stripped,
+        re.IGNORECASE,
+    )
     if not match:
         return None
     return _integer(match.group(1))
@@ -267,7 +278,9 @@ def _playability_reason(player):
 
 def detect_video_state(*, status, final_url, html, player):
     final_low = (final_url or "").lower()
-    probe = f"{_playability_reason(player)}\n{html[:200000]}".lower()
+    playability_probe = _playability_reason(player).lower()
+    served_probe = (html or "")[:200000].lower()
+    probe = f"{playability_probe}\n{served_probe}"
     play_status = (((player or {}).get("playabilityStatus") or {}).get("status") or "").upper()
     if play_status == "OK":
         return "playable", "ytInitialPlayerResponse.playabilityStatus.status=OK"
@@ -277,10 +290,21 @@ def detect_video_state(*, status, final_url, html, player):
         return "private", "playability or served HTML reports private video"
     if "age-restricted" in probe or "confirm your age" in probe:
         return "age_restricted", "playability or served HTML reports age restriction"
-    if "sign in" in probe or "login" in probe or "consent.youtube.com" in final_low:
-        return "login_required", "served route requires sign-in/consent before metadata is exposed"
-    if "not available in your country" in probe or "not available in this country" in probe or "region" in probe:
+    if (
+        "not available in your country" in probe
+        or "not available in this country" in probe
+        or "blocked in your country" in probe
+        or "unavailable in your location" in probe
+        or "not available in your region" in probe
+    ):
         return "region_blocked", "playability or served HTML reports region restriction"
+    if (
+        play_status == "LOGIN_REQUIRED"
+        or "sign in" in playability_probe
+        or "login" in playability_probe
+        or "consent.youtube.com" in final_low
+    ):
+        return "login_required", "served route requires sign-in/consent before metadata is exposed"
     if status == 200 and player:
         return "playable", "ytInitialPlayerResponse present; no blocking playability reason found"
     return "unknown", "could not classify video availability from served route"

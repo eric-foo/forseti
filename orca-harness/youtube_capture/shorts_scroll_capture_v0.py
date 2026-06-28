@@ -19,6 +19,10 @@ CADENCE = int(os.environ.get("SHORTS_CADENCE", "10"))     # seconds per short
 DURATION = int(os.environ.get("SHORTS_DURATION", "1800"))  # 30 min
 
 
+def captured_with_comments_count(postures):
+    return postures.get("comments_sample_captured", 0)
+
+
 def enumerate_shorts(handles):
     pool = []
     for h in handles:
@@ -107,7 +111,7 @@ def main():
     summ = {"start_utc": start_iso, "elapsed_s": round(time.time() - start), "attempted": len(rows),
             "pool_size": len(pool), "cadence_s": CADENCE, "wall_hit": wall_hit,
             "posture_counts": dict(postures), "errors": errors,
-            "captured_with_comments": postures.get("captured", 0),
+            "captured_with_comments": captured_with_comments_count(postures),
             "approx_requests": len(rows) * 2 + len(CHANNELS)}
     path = os.path.join(OUT, "_summary_" + start_iso.replace(":", "-") + ".json")
     json.dump({**summ, "rows": rows}, open(path, "w", encoding="utf-8"), ensure_ascii=False, indent=2)
