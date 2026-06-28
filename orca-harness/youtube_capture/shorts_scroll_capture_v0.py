@@ -10,7 +10,7 @@ Public read-only, logged-out. Tracked at orca-harness/youtube_capture/. Env over
 """
 import re, json, os, time, random, hashlib, datetime, urllib.error
 from collections import Counter
-from capture_youtube_v0 import http_get, ytinit, comment_panel_token, collect, youtubei_next, first, extract_view_count
+from capture_youtube_v0 import http_get, ytinit, comment_panel_token, collect, youtubei_next, first, extract_view_count, comments_disabled_signal
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(HERE, "shorts_scroll_runs")
@@ -49,13 +49,13 @@ def capture_short(vid):
            "publish_date": first(r'"publishDate":"([^"]*)"', html),
            "retrieval_time_utc": datetime.datetime.utcnow().isoformat() + "Z",
            "raw_body_sha256": hashlib.sha256(raw).hexdigest(), "byte_size": len(raw),
-           "comments_posture": None, "comments": []}
+           "comments_posture": None, "comment_sample_count": None, "comments": []}
     if not wall:
         key = first(r'"INNERTUBE_API_KEY":"([^"]+)"', html)
         ver = first(r'"INNERTUBE_CONTEXT_CLIENT_VERSION":"([^"]+)"', html)
         token = comment_panel_token(ytinit(html) or {})
         if not token:
-            pkt["comments_posture"] = "disabled"
+            pkt["comments_posture"] = "comments_disabled" if comments_disabled_signal(html, ytinit(html) or {}) else "comments_not_exposed"
         elif key and ver:
             got = []
             for p in collect(youtubei_next(key, ver, token), "commentEntityPayload"):
@@ -64,7 +64,8 @@ def capture_short(vid):
                             "text": (props.get("content", {}) or {}).get("content", "")[:200],
                             "published_time": props.get("publishedTime"), "like_count": tb.get("likeCountNotliked")})
             pkt["comments"] = got
-            pkt["comments_posture"] = "captured" if got else "empty"
+            pkt["comment_sample_count"] = len(got)
+            pkt["comments_posture"] = "comments_sample_captured" if got else "comments_not_exposed"
     return pkt, wall
 
 

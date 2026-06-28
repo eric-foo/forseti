@@ -35,7 +35,17 @@ def _metadata_packet(**overrides: Any) -> dict[str, Any]:
         "watch_url": f"https://www.youtube.com/watch?v={_VIDEO_ID}",
         "channel": {"channel_id": "UC_fixture", "author": "Reviewer"},
         "metadata": {"title": "Fragrance review", "length_seconds": 42, "publish_date": "2026-06-20"},
-        "engagement": {"view_count": 1200, "view_count_source_path": "player.microformat"},
+        "engagement": {
+            "view_count": 1200,
+            "view_count_source_path": "player.microformat",
+            "like_count": 34,
+            "comment_sample_count": 1,
+        },
+        "availability": {"video_state": "playable", "comments_state": "comments_sample_captured"},
+        "metric_receipts": {
+            "view_count": {"posture": "observed", "source_route": "ytInitialPlayerResponse.microformat"},
+            "like_count": {"posture": "observed", "source_route": "ytInitialPlayerResponse.microformat"},
+        },
         "comments_posture": "captured",
         "comment_count_text": "12 comments",
         "comments": [{"author": "A", "text": "wear test?", "published_time": "1 day ago"}],
@@ -136,6 +146,9 @@ def test_projection_correlates_metadata_comments_transcripts_and_extraction_resu
     assert projection["platform_video_id"] == _VIDEO_ID
     assert projection["metadata_capture"]["comments"]["posture"] == "captured"
     assert projection["metadata_capture"]["comments"]["sample_count"] == 1
+    assert projection["metadata_capture"]["availability"]["comments_state"] == "comments_sample_captured"
+    assert projection["metadata_capture"]["engagement"]["like_count"] == 34
+    assert projection["metadata_capture"]["metric_receipts"]["view_count"]["source_route"] == "ytInitialPlayerResponse.microformat"
     assert projection["transcript"]["source_count"] == 2
     assert projection["transcript"]["canonical_source"]["source_kind"] == "caption"
     assert projection["transcript"]["canonical_source"]["caption_kind"] == "manual"
