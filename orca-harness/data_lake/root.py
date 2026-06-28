@@ -26,7 +26,7 @@ root marker identity and rejects symlinked components immediately before each
 write session, which catches a swapped/remounted root and static symlink
 escapes. It does NOT fully exclude an *active* adversary racing same-host
 symlink/reparse swaps between the check and the syscall; full exclusion needs
-OS-level no-follow / directory-handle primitives and is out of scope for the v0
+OS-level no-follow / directory-handle primitives and is out of scope for the v4.1
 local single-operator deployment.
 """
 from __future__ import annotations
@@ -42,19 +42,29 @@ from typing import Any
 from harness_utils import generate_ulid, hash_file, utc_now_z
 
 ROOT_MARKER_FILENAME = ".orca-data-root"
-ROOT_MARKER_CONTRACT_VERSION = "v0"
+ROOT_MARKER_CONTRACT_VERSION = "v4.1"
+ROOT_MARKER_DEFAULT_LABEL = "orca-canonical-v4-1"
+EPOCH_MARKER_FILENAME = ".orca-lake-epoch.json"
+LAKE_EPOCH = "v4.1"
+LAKE_EPOCH_POLICY = "clean_forward_epoch"
 _STAGING_DIRNAME = ".staging"
 
-# v0 logical directory grammar. ``indexes/`` is split into a content-free
+# v4.1 logical directory grammar. ``indexes/`` is split into a content-free
 # availability subslot and a rebuildable, non-authoritative derived_retrieval
-# subslot (created empty here; population is governance-gated/build-deferred).
+# subslot. Silver Vault folders are generated read-model homes, not authority.
 LAKE_SUBDIRECTORIES: tuple[str, ...] = (
+    _STAGING_DIRNAME,
     "raw",
     "attachments",
     "derived",
     "acknowledgements",
     "indexes/availability",
-    "indexes/derived_retrieval",
+    "indexes/derived_retrieval/silver_vault/core/query_tables",
+    "indexes/derived_retrieval/silver_vault/core/manifests",
+    "indexes/derived_retrieval/silver_vault/creator_vault/accounts",
+    "indexes/derived_retrieval/silver_vault/creator_vault/content",
+    "indexes/derived_retrieval/silver_vault/creator_vault/query_tables",
+    "indexes/derived_retrieval/silver_vault/creator_vault/manifests",
 )
 
 # packet_id grammar: incumbent Crockford base32, 26 chars (harness generate_ulid).
@@ -137,6 +147,13 @@ def _read_marker(root: Path) -> dict:
         raise DataLakeRootError(f"unreadable root marker at {marker}: {exc}") from exc
     if not isinstance(data, dict) or "root_uuid" not in data or "contract_version" not in data:
         raise DataLakeRootError(f"malformed root marker at {marker}")
+    if data["contract_version"] != ROOT_MARKER_CONTRACT_VERSION:
+        raise DataLakeRootError(
+            "unsupported Orca data root contract_version "
+            f"{data['contract_version']!r} at {marker}; expected "
+            f"{ROOT_MARKER_CONTRACT_VERSION!r}. Archive or abandon the legacy root "
+            "and initialize a clean v4.1 root."
+        )
     return data
 
 
@@ -144,10 +161,51 @@ def _write_marker(root: Path, *, root_uuid: str, label: str | None) -> None:
     payload = {
         "root_uuid": root_uuid,
         "contract_version": ROOT_MARKER_CONTRACT_VERSION,
-        "label": label,
+        "label": label if label is not None else ROOT_MARKER_DEFAULT_LABEL,
         "created_at": utc_now_z(),
     }
     (root / ROOT_MARKER_FILENAME).write_text(
+        json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
+
+
+def _read_epoch_marker(root: Path) -> dict:
+    marker = root / EPOCH_MARKER_FILENAME
+    if not marker.is_file():
+        raise DataLakeRootError(
+            f"missing epoch marker {EPOCH_MARKER_FILENAME!r}; not a forward v4.1 Orca data root: {root}"
+        )
+    try:
+        data = json.loads(marker.read_text(encoding="utf-8"))
+    except (OSError, ValueError) as exc:
+        raise DataLakeRootError(f"unreadable epoch marker at {marker}: {exc}") from exc
+    if not isinstance(data, dict):
+        raise DataLakeRootError(f"malformed epoch marker at {marker}")
+    if data.get("lake_epoch") != LAKE_EPOCH:
+        raise DataLakeRootError(
+            f"unsupported lake_epoch {data.get('lake_epoch')!r} at {marker}; expected {LAKE_EPOCH!r}"
+        )
+    if data.get("epoch_policy") != LAKE_EPOCH_POLICY:
+        raise DataLakeRootError(
+            f"unsupported epoch_policy {data.get('epoch_policy')!r} at {marker}; "
+            f"expected {LAKE_EPOCH_POLICY!r}"
+        )
+    if data.get("compatibility_migration") is not False:
+        raise DataLakeRootError(f"v4.1 root must declare compatibility_migration=false at {marker}")
+    if not isinstance(data.get("legacy_roots"), list):
+        raise DataLakeRootError(f"v4.1 root epoch marker must carry legacy_roots list at {marker}")
+    return data
+
+
+def _write_epoch_marker(root: Path, *, legacy_roots: list[str] | None) -> None:
+    payload = {
+        "lake_epoch": LAKE_EPOCH,
+        "epoch_policy": LAKE_EPOCH_POLICY,
+        "legacy_roots": list(legacy_roots or []),
+        "compatibility_migration": False,
+        "created_at": utc_now_z(),
+    }
+    (root / EPOCH_MARKER_FILENAME).write_text(
         json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8"
     )
 
@@ -291,6 +349,7 @@ class DataLakeRoot:
         self._path = path
         # Identity captured at construction; re-checked before every write (DL-003).
         self._root_uuid = _read_marker(path)["root_uuid"]
+        _read_epoch_marker(path)
 
     @property
     def path(self) -> Path:
@@ -350,6 +409,7 @@ class DataLakeRoot:
         path: str | os.PathLike[str],
         *,
         label: str | None = None,
+        legacy_roots: list[str] | None = None,
         root_uuid: str | None = None,
         repo_root: Path | None = _ORCA_REPO_ROOT,
     ) -> "DataLakeRoot":
@@ -361,7 +421,7 @@ class DataLakeRoot:
             raise DataLakeRootError(f"data root must be an absolute path: {path}")
         if _is_inside_repo(path, repo_root):
             raise DataLakeRootError(f"data root must be OUTSIDE the repo working tree: {path}")
-        return cls._init_at(path, label=label, root_uuid=root_uuid)
+        return cls._init_at(path, label=label, legacy_roots=legacy_roots, root_uuid=root_uuid)
 
     @classmethod
     def for_test(cls, path: str | os.PathLike[str], *, label: str = "test") -> "DataLakeRoot":
@@ -372,25 +432,38 @@ class DataLakeRoot:
         path = Path(path)
         if not path.is_absolute():
             raise DataLakeRootError(f"for_test path must be absolute: {path}")
-        return cls._init_at(path, label=label, root_uuid=None)
+        return cls._init_at(path, label=label, legacy_roots=None, root_uuid=None)
 
     @classmethod
-    def _init_at(cls, path: Path, *, label: str | None, root_uuid: str | None) -> "DataLakeRoot":
+    def _init_at(
+        cls,
+        path: Path,
+        *,
+        label: str | None,
+        legacy_roots: list[str] | None,
+        root_uuid: str | None,
+    ) -> "DataLakeRoot":
         marker = path / ROOT_MARKER_FILENAME
+        epoch_marker = path / EPOCH_MARKER_FILENAME
         if path.exists():
             if not path.is_dir():
                 raise DataLakeRootError(f"data root path is not a directory: {path}")
             if marker.is_file():
                 _read_marker(path)  # verify the existing marker is well-formed
+                _read_epoch_marker(path)  # v4.1 forward roots must carry the epoch marker
             elif any(path.iterdir()):
                 raise DataLakeRootError(
                     f"refusing to initialize a non-empty directory that lacks a root marker: {path}"
                 )
             else:
                 _write_marker(path, root_uuid=root_uuid or generate_ulid(), label=label)
+                _write_epoch_marker(path, legacy_roots=legacy_roots)
         else:
             path.mkdir(parents=True, exist_ok=False)
             _write_marker(path, root_uuid=root_uuid or generate_ulid(), label=label)
+            _write_epoch_marker(path, legacy_roots=legacy_roots)
+        if marker.is_file() and not epoch_marker.is_file():
+            raise DataLakeRootError(f"refusing to use root without {EPOCH_MARKER_FILENAME!r}: {path}")
         for sub in LAKE_SUBDIRECTORIES:
             (path / sub).mkdir(parents=True, exist_ok=True)
         return cls(path, _verified=True)
@@ -406,6 +479,7 @@ class DataLakeRoot:
             raise DataLakeRootError(f"data root is no longer a directory: {self._path}")
         if _read_marker(self._path).get("root_uuid") != self._root_uuid:
             raise DataLakeRootError(f"data root identity changed since resolution: {self._path}")
+        _read_epoch_marker(self._path)
 
     def _within(self, *parts: str) -> Path:
         """Resolve a lake-owned path and assert containment, rejecting symlinked

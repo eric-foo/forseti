@@ -11,15 +11,23 @@ from __future__ import annotations
 from data_lake.root import (
     DataLakeRoot,
     DataLakeRootError,
+    EPOCH_MARKER_FILENAME,
+    LAKE_EPOCH,
+    LAKE_EPOCH_POLICY,
     LAKE_SUBDIRECTORIES,
     ROOT_MARKER_CONTRACT_VERSION,
+    ROOT_MARKER_DEFAULT_LABEL,
     ROOT_MARKER_FILENAME,
 )
 
 __all__ = [
     "DataLakeRoot",
     "DataLakeRootError",
+    "EPOCH_MARKER_FILENAME",
+    "LAKE_EPOCH",
+    "LAKE_EPOCH_POLICY",
     "LAKE_SUBDIRECTORIES",
     "ROOT_MARKER_CONTRACT_VERSION",
+    "ROOT_MARKER_DEFAULT_LABEL",
     "ROOT_MARKER_FILENAME",
 ]

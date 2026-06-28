@@ -8,8 +8,12 @@ import pytest
 from data_lake.root import (
     DataLakeRoot,
     DataLakeRootError,
+    EPOCH_MARKER_FILENAME,
+    LAKE_EPOCH,
+    LAKE_EPOCH_POLICY,
     LAKE_SUBDIRECTORIES,
     ROOT_MARKER_CONTRACT_VERSION,
+    ROOT_MARKER_DEFAULT_LABEL,
     ROOT_MARKER_FILENAME,
     raw_shard,
 )
@@ -91,6 +95,60 @@ def test_initialize_creates_skeleton_and_marker(tmp_path: Path) -> None:
     marker = json.loads((root.path / ROOT_MARKER_FILENAME).read_text(encoding="utf-8"))
     assert marker["root_uuid"]
     assert marker["contract_version"] == ROOT_MARKER_CONTRACT_VERSION
+    epoch = json.loads((root.path / EPOCH_MARKER_FILENAME).read_text(encoding="utf-8"))
+    assert epoch["lake_epoch"] == LAKE_EPOCH
+    assert epoch["epoch_policy"] == LAKE_EPOCH_POLICY
+    assert epoch["compatibility_migration"] is False
+    assert epoch["legacy_roots"] == []
+
+
+def test_initialize_creates_default_v4_1_label_and_legacy_roots(tmp_path: Path) -> None:
+    legacy = "F:\\orca-data-lake"
+    root = DataLakeRoot.initialize(tmp_path / "forward", repo_root=None, legacy_roots=[legacy])
+    marker = json.loads((root.path / ROOT_MARKER_FILENAME).read_text(encoding="utf-8"))
+    assert marker["label"] == ROOT_MARKER_DEFAULT_LABEL
+    epoch = json.loads((root.path / EPOCH_MARKER_FILENAME).read_text(encoding="utf-8"))
+    assert epoch["legacy_roots"] == [legacy]
+
+
+def test_resolve_missing_epoch_marker_rejected(tmp_path: Path) -> None:
+    root = _init(tmp_path)
+    (root.path / EPOCH_MARKER_FILENAME).unlink()
+    with pytest.raises(DataLakeRootError, match="epoch marker"):
+        DataLakeRoot.resolve(explicit=root.path, env={}, repo_root=None)
+
+
+@pytest.mark.parametrize(
+    ("field", "value", "match"),
+    [
+        ("lake_epoch", "v4.0", "lake_epoch"),
+        ("epoch_policy", "compatibility_migration", "epoch_policy"),
+        ("compatibility_migration", True, "compatibility_migration=false"),
+        ("legacy_roots", "F:\\orca-data-lake", "legacy_roots list"),
+    ],
+)
+def test_resolve_malformed_epoch_marker_values_rejected(
+    tmp_path: Path, field: str, value: object, match: str
+) -> None:
+    root = _init(tmp_path)
+    marker_path = root.path / EPOCH_MARKER_FILENAME
+    epoch = json.loads(marker_path.read_text(encoding="utf-8"))
+    epoch[field] = value
+    marker_path.write_text(json.dumps(epoch), encoding="utf-8")
+
+    with pytest.raises(DataLakeRootError, match=match):
+        DataLakeRoot.resolve(explicit=root.path, env={}, repo_root=None)
+
+
+def test_resolve_legacy_v0_marker_rejected(tmp_path: Path) -> None:
+    legacy = tmp_path / "legacy"
+    legacy.mkdir()
+    (legacy / ROOT_MARKER_FILENAME).write_text(
+        json.dumps({"root_uuid": "LEGACYROOT", "contract_version": "v0"}),
+        encoding="utf-8",
+    )
+    with pytest.raises(DataLakeRootError, match="contract_version"):
+        DataLakeRoot.resolve(explicit=legacy, env={}, repo_root=None)
 
 
 def test_initialize_refuses_nonempty_foreign_dir(tmp_path: Path) -> None:
@@ -260,8 +318,10 @@ def test_reverify_catches_root_identity_change(tmp_path: Path) -> None:
     # DL-003: a swapped/remounted root (same path, different marker identity) is
     # caught before any write.
     root = _init(tmp_path)
+    marker = json.loads((root.path / ROOT_MARKER_FILENAME).read_text(encoding="utf-8"))
+    marker["root_uuid"] = "DIFFERENTIDENTITY"
     (root.path / ROOT_MARKER_FILENAME).write_text(
-        json.dumps({"root_uuid": "DIFFERENTIDENTITY", "contract_version": "v0"}),
+        json.dumps(marker),
         encoding="utf-8",
     )
     with pytest.raises(DataLakeRootError):
