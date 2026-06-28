@@ -1,8 +1,18 @@
 from __future__ import annotations
 
+from copy import deepcopy
 import hashlib
 import json
 from pathlib import Path
+
+import pytest
+
+from capture_spine.creator_profile_current.validation import (
+    CREATOR_PROFILE_CURRENT_VIEW_SCHEMA_VERSION,
+    CreatorProfileCurrentError,
+    load_creator_profile_current_view,
+    validate_creator_profile_current_view,
+)
 
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -46,8 +56,12 @@ def _json(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8-sig"))
 
 
+def _view_document() -> dict:
+    return _json(VIEW_PATH)
+
+
 def _view() -> dict:
-    return _json(VIEW_PATH)["creator_profile_current_view"]
+    return _view_document()["creator_profile_current_view"]
 
 
 def _account_ledger() -> dict:
@@ -62,8 +76,24 @@ def _sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+def _bad_view_document() -> dict:
+    return deepcopy(_view_document())
+
+
+def _assert_validation_code(document: dict, code: str) -> None:
+    with pytest.raises(CreatorProfileCurrentError) as exc_info:
+        validate_creator_profile_current_view(document)
+    assert exc_info.value.code == code
+
+
+def test_creator_profile_current_reusable_validator_accepts_current_fixture() -> None:
+    document = load_creator_profile_current_view(VIEW_PATH)
+    assert document["creator_profile_current_view"]["schema_version"] == CREATOR_PROFILE_CURRENT_VIEW_SCHEMA_VERSION
+
+
 def test_creator_profile_current_counts_and_boundaries() -> None:
     view = _view()
+    validate_creator_profile_current_view(_view_document())
 
     assert view["schema_version"] == "creator_profile_current_view_v0"
     assert view["counts"] == {
@@ -178,3 +208,35 @@ def test_creator_profile_current_does_not_smuggle_forbidden_scope() -> None:
         assert rollup["metric_rollups"]["average_like_count"]["value_or_none"] is None
         assert rollup["metric_rollups"]["average_comment_count"]["value_or_none"] is None
         assert rollup["metric_rollups"]["engagement_rate"]["value_or_none"] is None
+
+
+def test_creator_profile_validator_rejects_non_observed_metric_zero_fill() -> None:
+    document = _bad_view_document()
+    rollup = document["creator_profile_current_view"]["profiles"][0]["current_metric_rollups"][0]
+    rollup["metric_rollups"]["engagement_rate"]["value_or_none"] = 0
+
+    _assert_validation_code(document, "metric_value_for_non_observed_posture")
+
+
+def test_creator_profile_validator_rejects_missing_sample_support() -> None:
+    document = _bad_view_document()
+    rollup = document["creator_profile_current_view"]["profiles"][0]["current_metric_rollups"][0]
+    del rollup["sample_support"]
+
+    _assert_validation_code(document, "missing_sample_support")
+
+
+def test_creator_profile_validator_rejects_metric_smuggling_into_identity_account() -> None:
+    document = _bad_view_document()
+    account = document["creator_profile_current_view"]["profiles"][0]["platform_accounts"][0]
+    account["average_views"] = 123
+
+    _assert_validation_code(document, "unknown_field")
+
+
+def test_creator_profile_validator_rejects_cross_platform_rollup_without_promoted_linkage() -> None:
+    document = _bad_view_document()
+    rollup = document["creator_profile_current_view"]["profiles"][0]["current_metric_rollups"][0]
+    rollup["platform_scope"] = "cross_platform"
+
+    _assert_validation_code(document, "cross_platform_rollup_without_promoted_linkage")
