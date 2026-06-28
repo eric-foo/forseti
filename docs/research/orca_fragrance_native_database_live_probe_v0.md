@@ -216,8 +216,113 @@ capture_requests:
       - ECR, Cleaning, or Judgment work
 ```
 
-## Route Pins
+## Packet Completeness Addendum
 
+```yaml
+packet_check_date: 2026-06-29
+operator_request: Check Fragrantica and Parfumo completeness; run full CloakBrowser for Basenotes.
+packet_scope:
+  - one Fragrantica product URL
+  - one Parfumo product URL
+  - one Basenotes search URL
+not_claimed:
+  - full fragrance database capture
+  - all-product review corpus completion
+  - ECR, Cleaning, Judgment, buyer proof, monitoring, or commercial readiness
+```
+
+### Fragrantica Direct HTTP Packet
+
+```yaml
+packet_id: 01KW7SGXRZHFTS372X391Z8GHV
+packet_lifecycle_note: >
+  This packet was written to the configured ORCA_DATA_ROOT path observed as
+  F:/orca-data-lake/raw/930/01KW7SGXRZHFTS372X391Z8GHV because the environment
+  variable overrode the requested scratch output. Treat this as a generated
+  packet fact, not fixture admission, not routine Data Lake handoff, and not a
+  source-completeness claim.
+source_surface: fragrantica_product_page_direct_http
+url: https://www.fragrantica.com/perfume/Maison-Francis-Kurkdjian/Baccarat-Rouge-540-33519.html
+http_status: 200
+preserved_body_bytes: 1806640
+title: Baccarat Rouge 540 Maison Francis Kurkdjian perfume - a fragrance for women and men 2015
+observed_source_visible_counts:
+  rating_votes: 28808
+  inline_review_ids: 210
+  review_read_more_components: 210
+  perfume_id_refs:
+    - "33519"
+completeness_verdict: partial_product_page_body
+why_not_complete: >
+  The packet preserves the current Direct HTTP response body and 210 inline
+  review bodies, but it does not prove the full Fragrantica review universe was
+  exhausted. The preserved body contains component and load-more vocabulary, so
+  a separate endpoint/browser-exhaustion pass is required before claiming full
+  review completeness.
+```
+
+### Parfumo Direct HTTP Packet
+
+```yaml
+packet_id: 01KW7SJ8F4M6ZTGVWMBB9ZVXCR
+packet_lifecycle_note: Local ignored scratch packet, not fixture-admitted.
+scratch_path: orca-harness/_test_runs/fragrance_native_20260629/parfumo_direct_http_packet
+source_surface: parfumo_product_page_direct_http
+url: https://www.parfumo.com/Perfumes/Maison_Francis_Kurkdjian/Baccarat_Rouge_540_Eau_de_Parfum
+http_status: 200
+preserved_body_bytes: 116651
+title: Baccarat Rouge 540 by Maison Francis Kurkdjian (Eau de Parfum) & Perfume Facts
+observed_source_visible_counts:
+  rating_count: 5176
+  declared_reviews: 369
+  declared_statements: 1390
+  inline_review_articles: 5
+  perfume_id_refs:
+    - "67720"
+completeness_verdict: partial_initial_page_body
+why_not_complete: >
+  The packet preserves the initial Direct HTTP product page and source-visible
+  aggregate counts, but not the complete review or statement corpus. The body
+  declares 369 reviews and 1390 statements, embeds only 5 review articles in the
+  initial page, and includes JavaScript that loads more reviews through
+  /action/perfume/get_reviews.php in 5-review increments.
+```
+
+### Basenotes Full CloakBrowser Packet
+
+```yaml
+packet_id: 01KW7SJNGK7PCDVTBG3XA1S4NW
+packet_lifecycle_note: Local ignored scratch packet, not fixture-admitted.
+scratch_path: orca-harness/_test_runs/fragrance_native_20260629/basenotes_cloakbrowser_packet
+source_surface: basenotes_search_cloakbrowser_snapshot
+url_requested: https://basenotes.com/search?q=Baccarat%20Rouge%20540
+url_landed: https://basenotes.com/search?q=Baccarat+Rouge+540
+rendered_dom_bytes: 27444
+visible_text_bytes: 261
+viewport_screenshot_bytes: 26357
+title: Just a moment...
+visible_text_result: Cloudflare security verification page, not Basenotes source content.
+fragrance_markers_seen:
+  review: 0
+  longevity: 0
+  sillage: 0
+  Baccarat Rouge 540: 0
+  Maison Francis Kurkdjian: 0
+packet_limitation: >
+  Rendered DOM still contained a residual Cloudflare challenge marker; visible
+  text was an interstitial/security-verification page. Full anonymous
+  CloakBrowser without proxy, stored session, credentials, or CAPTCHA solving
+  did not reach Basenotes source content in this environment.
+completeness_verdict: access_block_packet_only
+next_route_condition: >
+  Do not repeat direct HTTP, anti-block HTTP, screening browser, or anonymous
+  full CloakBrowser without a new route fact. Useful new facts would be an exact
+  Basenotes product URL, an approved proxy/profile route, a manual visible
+  browser success, a usable archive/snippet route, or owner-supplied entitled
+  bytes.
+```
+
+## Route Pins
 | Pin ID | Source | Step 0 access classification | Signal substrate | Cheapest working route | Verdict | Re-probe trigger |
 | --- | --- | --- | --- | --- | --- | --- |
 | PIN-001 | Fragrantica | publicly-viewable public web content | large product-page HTML plus search HTML | `direct_http` with at least 2 MB cap for product pages | pinned_for_capture_probe | route returns block shell, body degrades, product markers disappear, or packet field extraction cannot preserve source-visible content |
@@ -243,4 +348,4 @@ candidate_decision:
 
 `capture_preservation_only`.
 
-Fragrantica and Parfumo are pinned as direct-HTTP capture-probe candidates. Basenotes is explicitly not pinned in this environment; repeating direct HTTP, anti-block HTTP, visible browser, or the same public snippet route is forbidden without a new fact. Capture remains packet-grade and bounded to the cited product URLs; Data Lake, ECR, Cleaning, Judgment, monitoring, and full-database crawling are out of scope.
+Fragrantica and Parfumo are pinned as direct-HTTP product-page preservation routes, but neither is complete review-corpus capture. Basenotes is explicitly not pinned in this environment; direct HTTP, anti-block HTTP, screening browser, and full anonymous CloakBrowser all failed to reach source content. One Fragrantica packet landed in the configured ORCA data root during the completeness check; that is a generated packet fact only, not fixture admission, routine Data Lake handoff, ECR, Cleaning, Judgment, monitoring, commercial readiness, or full-database crawling.
