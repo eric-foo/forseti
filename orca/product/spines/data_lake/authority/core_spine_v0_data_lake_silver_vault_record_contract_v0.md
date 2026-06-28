@@ -397,6 +397,60 @@ Read-model rules:
   high-watermark, selection policy versions used, generated_at, and stale/drift
   detection fields.
 
+## Creator Vault Placement And Sync Clarifications
+
+Creator Vault account and content envelopes use sibling physical homes. The
+examples below are platform-specific read-model keys, not platform-specific
+authority:
+
+```text
+creator_vault/
+  accounts/
+    instagram/<account_id>/envelope.json
+    tiktok/<account_id>/envelope.json
+    youtube/<channel_id>/envelope.json
+  content/
+    instagram/reel/<media_id>/envelope.json
+    tiktok/video/<video_id>/envelope.json
+    youtube/short/<video_id>/envelope.json
+```
+
+Placement rules:
+
+- Keep `accounts/` and `content/` as sibling generated read-model homes. Do not
+  nest content physically under accounts.
+- Account-scoped content pages are generated views built from account keys,
+  content keys, and `content_published_by_account` relationship edges. Physical
+  placement is not ownership authority.
+- `acknowledgements/` is lane-level append-only processing/audit receipt space
+  keyed by raw anchor and acknowledgement namespace. Creator Vault envelopes may
+  point to relevant acknowledgement refs or manifest ids, but acknowledgements
+  are not embedded in envelopes as authority.
+- A client carveout is a filtered Creator Vault replica or export generated from
+  the same Silver records and read-model manifests. It must preserve manifest
+  ids, source high-watermarks, raw refs, derived refs, and selection-policy
+  versions so Orca full can consume the same evidence without a special request
+  path. The replica is not a duplicate capture source by default; duplicate
+  capture is only needed when the carveout has independent freshness, SLA, or
+  source-access constraints.
+
+Relationship/source-ref examples:
+
+- Instagram reel `public_content_object` `content_published_by_account`
+  Instagram `platform_public_account`.
+- TikTok video `public_content_object` `content_published_by_account` TikTok
+  `platform_public_account`.
+- YouTube short `public_content_object` `content_published_by_account` YouTube
+  channel `platform_public_account`.
+- `review` `review_of_product` `product`.
+- `retailer_listing` `listing_of_product` `product`.
+- Caption, comment, transcript, or review text `text_mentions_product` or
+  `text_mentions_claim`.
+- Grid metric observation `conflicts_with_record` per-reel metric observation
+  when the source surface, timestamp, posture, or value disagrees. Silver
+  preserves the conflict; generated selection policy may choose the read-model
+  value, and Gold/Judgment decides meaning only when a downstream question asks.
+
 ## Creator Vault Envelope Guardrails
 
 Creator Vault is a first-class generated Silver read layer. Its envelopes may
@@ -480,6 +534,12 @@ The contract is satisfied when downstream scoping can prove, in principle, that:
    Gold/Judgment fields.
 12. IG grid-primary metrics cannot be silently overwritten by per-reel detail
     captures under the same selection policy version.
+13. Creator Vault account and content envelopes keep sibling physical placement;
+    account-scoped displays are generated from relationship edges, not physical
+    nesting.
+14. Client carveout replicas or exports are generated from Silver records and
+    read-model manifests, preserve refs/high-watermarks, and are not a separate
+    source of truth.
 
 ## Mini God Tier Accepted Residuals
 
@@ -518,11 +578,13 @@ risk, and the upgrade trigger (per `docs/decisions/orca_mini_god_tier_doctrine_v
   completeness). Risk: time-series or sentiment consumers over comments/
   transcripts may see gaps and must read posture/coverage. Upgrade trigger: a
   consumer needs guaranteed coverage, scoping a capture-completeness obligation.
-- **No client replica implementation in this contract.** It defines the read
-  layer, not its physical client replication. Risk: replica sync and freshness
-  are undefined until a replica lane is scoped. Upgrade trigger: a client carveout
-  replica is commissioned, and must remain a generated, read-only, manifest-backed
-  consumer.
+- **No client replica implementation in this contract.** It defines replica sync
+  semantics only: any client carveout replica/export is generated from Silver
+  records and read-model manifests, not a separate source of truth or duplicate
+  capture source by default. Risk: physical replication, freshness, and SLA
+  mechanics remain undefined until a replica lane is scoped. Upgrade trigger: a
+  client carveout replica is commissioned, and must remain a generated,
+  read-only, manifest-backed consumer.
 
 ## Downstream Handoff
 
@@ -536,7 +598,9 @@ Implementation scoping may rely on:
 - correction/conflict semantics as relationship records;
 - metric observations as posture/value/reason/coverage-window coupled;
 - Creator Vault as generated per-platform public evidence, not authority or
-  Judgment.
+  Judgment;
+- Creator Vault account/content sibling placement, acknowledgement-ref boundary,
+  and carveout sync semantics as generated read-layer concerns.
 
 Deferred to scoping:
 
@@ -583,3 +647,67 @@ spec_handoff:
     generated read models. Creator Vault is the first client-facing read layer,
     but remains generated, per-platform, public-evidence-only, and non-Gold.
 ```
+
+## Direction Change Propagation
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Silver Vault v4.1 now explicitly clarifies Creator Vault generated read-model
+    placement and sync semantics: account/content envelopes stay sibling read
+    homes, TikTok/Youtube/Instagram path examples are read-model keys only,
+    acknowledgement refs remain lane receipts/manifests rather than envelope
+    authority, relationship/source-ref examples are concrete for future
+    read-model scoping, and client carveout replicas/exports are generated from
+    Silver records and read-model manifests rather than separate capture sources
+    by default.
+  trigger: architecture_doctrine
+  related_triggers:
+    - product_doctrine
+  controlling_sources_updated:
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_silver_vault_record_contract_v0.md
+  downstream_surfaces_checked:
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_v4_1_forward_epoch_contract_v0.md
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_physicality_location_contract_v0.md
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_derived_layout_index_rebuild_contract_v0.md
+    - orca-harness/data_lake/root.py
+    - orca-harness/tests/test_data_lake_root.py
+    - docs/review-outputs/adversarial-artifact-reviews/data_lake_v4_1_root_epoch_mixed_artifact_code_review_v0.md
+  intentionally_not_updated:
+    - path: orca/product/spines/data_lake/authority/core_spine_v0_data_lake_v4_1_forward_epoch_contract_v0.md
+      reason: >
+        Already owns only the generic v4.1 folder grammar and states Creator
+        Vault is generated/non-authoritative; platform examples and carveout sync
+        belong in the Silver Vault record/read-model contract.
+    - path: orca/product/spines/data_lake/authority/core_spine_v0_data_lake_physicality_location_contract_v0.md
+      reason: >
+        Owns physical slot invariants and does not enumerate Creator Vault
+        platform keys or client-replica semantics.
+    - path: orca/product/spines/data_lake/authority/core_spine_v0_data_lake_derived_layout_index_rebuild_contract_v0.md
+      reason: >
+        Owns derived/ack addressing and rebuildability; this patch uses that
+        boundary without changing addressing or opening new derived_retrieval
+        view classes.
+    - path: orca-harness/data_lake/root.py
+      reason: >
+        Runtime already creates only the generic Creator Vault account/content
+        homes; no platform-specific folders, builder code, runner changes, or
+        live data-root mutation are authorized by this contract clarification.
+    - path: orca-harness/tests/test_data_lake_root.py
+      reason: >
+        Existing tests verify the generic skeleton from LAKE_SUBDIRECTORIES; no
+        runtime path list changed.
+  stale_language_search: >
+    rg -n "Creator Vault|creator_vault|carveout|replica|acknowledgement|tiktok|TikTok"
+    orca/product/spines/data_lake/authority orca-harness/data_lake/root.py
+    orca-harness/tests/test_data_lake_root.py
+  non_claims:
+    - not validation
+    - not readiness
+    - not implementation authorization
+    - not runner PR work
+    - not client replica implementation
+    - not live external data-root mutation
+```
+
+Older receipts archived verbatim in `docs/decisions/dcp_receipts_archive_v0.md`.
