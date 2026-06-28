@@ -852,7 +852,12 @@ class DataLakeRoot:
                 raise DataLakeRootError(
                     f"preserved file {file_id!r} missing at {relative_packet_path!r}: {packet_id}"
                 )
-            body = file_path.read_bytes()
+            try:
+                body = file_path.read_bytes()
+            except OSError as exc:
+                raise DataLakeRootError(
+                    f"unreadable preserved file {file_id!r} at {relative_packet_path!r}: {packet_id}: {exc}"
+                ) from exc
             expected_size = preserved.get("size_bytes")
             if type(expected_size) is not int or expected_size < 0:
                 raise DataLakeRootError(
