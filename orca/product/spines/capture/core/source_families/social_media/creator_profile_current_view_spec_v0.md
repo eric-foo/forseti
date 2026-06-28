@@ -17,6 +17,7 @@ use_when:
   - Checking the boundary between the public-handle identity ledger, metric observations, metric rollups, ideal-audience enrichment, and future SQLite/data-lake storage.
 open_next:
   - orca/product/spines/capture/core/source_families/social_media/creator_profile_current_view_v0.json
+  - orca/product/spines/capture/core/source_families/social_media/creator_profile_current_lake_native_record_mapping_v0.md
   - orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_spec_v0.md
   - orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json
   - orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json
@@ -419,8 +420,13 @@ When physicalized, SQLite tables can map directly from the sibling shapes:
 - `creator_profile_current`
 
 Data Lake owns storage/derived-result mechanics when adopted. This product
-contract owns the view boundary and source-family semantics. A data-lake job may
-compute the rollups later, but this document does not create that job.
+contract owns the view boundary and source-family semantics. The lake-native
+record mapping in `creator_profile_current_lake_native_record_mapping_v0.md`
+clarifies that durable creator metric observations should be Silver Vault
+`MetricObservation` records, while creator metric rollups should derive from
+those observations with recipe, window, sample-support, freshness, and
+limitation fields. A data-lake job may compute the rollups later, but this
+document does not create that job.
 
 ## Non-Goals
 
