@@ -99,11 +99,13 @@ The surface must show or make available:
 - calculation recipe/version;
 - `computed_at`;
 - freshness state;
-- limitations and missing-data posture.
+- limitations and missing-data posture;
+- sample support and representativeness posture.
 
 The surface must withhold or downgrade an influence summary when source windows
-are stale, input rows are blocked/hidden/absent, rollup recipe is missing, or the
-claim would be unstamped, sourceless, or LLM-only.
+are stale, input rows are blocked/hidden/absent, rollup recipe is missing, sample
+support is thin, the rollup is admitted-pool-only without visible limitation, or
+the claim would be unstamped, sourceless, or LLM-only.
 
 ## Ideal-audience rules
 

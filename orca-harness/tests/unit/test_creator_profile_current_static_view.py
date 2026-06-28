@@ -93,6 +93,8 @@ def test_creator_profile_current_counts_and_boundaries() -> None:
         assert rollup["metric_rollups"]["average_views"]["posture"] == "observed"
         assert rollup["metric_rollups"]["median_views"]["posture"] == "observed"
         assert rollup["metric_rollups"]["engagement_rate"]["posture"] == "unavailable_with_reason"
+        assert rollup["sample_support"]["representativeness_posture"] == "admitted_pool_only_not_representative_creator_average"
+        assert any("not a representative creator average" in item for item in rollup["limitations"])
 
 
 def test_creator_profile_current_rebuilds_from_identity_and_metric_seed() -> None:
@@ -127,6 +129,8 @@ def test_creator_profile_current_rebuilds_from_identity_and_metric_seed() -> Non
         assert actual_rollup["rollup_window_description"] == expected_rollup["rollup_window_description"]
         assert actual_rollup["metric_rollups"] == expected_rollup["metric_rollups"]
         assert actual_rollup["source_metric_observation_ids"] == expected_rollup["source_metric_observation_ids"]
+        assert actual_rollup["sample_support"] == expected_rollup["sample_support"]
+        assert actual_rollup["limitations"] == expected_rollup["limitations"]
         assert actual_rollup["observation_count"] == expected_rollup["observation_count"]
         assert actual_rollup["computed_at"] == expected_rollup["computed_at"]
         assert profile["freshness"]["identity_updated_at"] == account["handle_observed_at"]
@@ -168,6 +172,8 @@ def test_creator_profile_current_does_not_smuggle_forbidden_scope() -> None:
             assert fragment in non_claims
 
         assert "not SQLite or data-lake physicalization" in profile["non_claims"]
+        assert any("sample_support" in item for item in profile["limitations"])
+        assert any("selection can bias view averages" in item for item in profile["limitations"])
         rollup = profile["current_metric_rollups"][0]
         assert rollup["metric_rollups"]["average_like_count"]["value_or_none"] is None
         assert rollup["metric_rollups"]["average_comment_count"]["value_or_none"] is None

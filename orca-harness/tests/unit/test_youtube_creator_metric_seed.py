@@ -75,6 +75,20 @@ def _pool_index(pool_id: str) -> int:
     return int(pool_id.rsplit("-", 1)[-1])
 
 
+def _sample_support_label(observation_count: int) -> str:
+    if observation_count <= 3:
+        return "thin_n_1_to_3"
+    if observation_count <= 7:
+        return "limited_n_4_to_7"
+    return "stronger_admitted_pool_n_8_plus"
+
+
+def _surface_handling(observation_count: int) -> str:
+    if observation_count <= 3:
+        return "downgrade_or_withhold_summary_claim"
+    return "show_only_with_visible_admitted_pool_limitation"
+
+
 def _source_metric_rows() -> dict[str, dict]:
     rows: dict[str, dict] = {}
     for relpath in SOURCE_FILES:
@@ -140,6 +154,19 @@ def test_youtube_creator_metric_seed_counts_and_boundaries() -> None:
     assert "not channel-wide creator average" in seed["non_claims"]
     assert "not engagement rate" in seed["non_claims"]
     assert "not cross-platform identity linkage" in seed["non_claims"]
+    assert "representative creator or channel averages" in seed["selection_policy"]["representativeness_rule"]
+    assert any("sample_support names thin rows" in residual for residual in seed["accepted_residuals"])
+    assert any("admission-filter selection" in residual for residual in seed["accepted_residuals"])
+    assert seed["source_packet_pointer_posture"] == {
+        "source_packet_pointer_or_none": "optional local-only drill-back pointer copied from the capture environment; not portable provenance",
+        "portable_provenance_fields": [
+            "source_pointer",
+            "source_field",
+            "source_file",
+            "source_packet_id_or_none",
+        ],
+        "non_claim": "absolute local lake paths are not required to resolve outside the capture host",
+    }
 
     for observation in observations:
         assert observation["profile_subject_kind"] == "platform_account"
@@ -212,6 +239,14 @@ def test_youtube_creator_metric_seed_rollups_recompute_from_observations() -> No
             observation["metric_observation_id"] for observation in observations
         ]
         assert rollup["observation_count"] == len(observations)
+        assert rollup["sample_support"] == {
+            "observation_count": len(observations),
+            "sample_adequacy": _sample_support_label(len(observations)),
+            "representativeness_posture": "admitted_pool_only_not_representative_creator_average",
+            "surface_handling": _surface_handling(len(observations)),
+        }
+        assert any("not a representative creator average" in item for item in rollup["limitations"])
+        assert any("selection can bias view averages" in item for item in rollup["limitations"])
         assert rollup["view_count_min"] == min(values)
         assert rollup["view_count_max"] == max(values)
         assert rollup["metric_rollups"]["average_views"]["value_or_none"] == round(

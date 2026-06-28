@@ -69,7 +69,8 @@
       "included": "creator_or_channel_observed rows from the YouTube Shorts fragrance creator observation ledger with source-visible view_count in the checked-in capture artifacts",
       "excluded": "brand_or_platform_account_observed rows, currently Scentbird, are preserved only as exclusions and do not enter creator rollups",
       "rollup_scope": "platform_account only; no creator_record or cross-platform rollups",
-      "metric_value_rule": "only observed source-visible numeric view_count values are stored; absent metrics are not zero-filled"
+      "metric_value_rule": "only observed source-visible numeric view_count values are stored; absent metrics are not zero-filled",
+      "representativeness_rule": "Average and median view rollups are directional admitted-pool statistics only. They must carry sample_support and must not be presented as representative creator or channel averages."
     },
     "counts": {
       "source_metric_rows_total": 200,
@@ -8979,8 +8980,16 @@
           "Rollup covers the admitted fragrance Shorts pool only; it is not a channel-wide average.",
           "View counts are capture-time observations and may have changed since capture.",
           "Engagement rate is unavailable because like/comment/subscriber inputs are absent.",
-          "Cross-platform rollups are not authorized without promoted public-handle linkage evidence."
-        ]
+          "Cross-platform rollups are not authorized without promoted public-handle linkage evidence.",
+          "Average/median views are computed over 5 admitted Shorts; sample adequacy is limited_n_4_to_7 and the value is not a representative creator average.",
+          "The admitted pool is fragrance and transcript-bearing, so selection can bias view averages relative to the creator's full Shorts or channel output."
+        ],
+        "sample_support": {
+          "observation_count": 5,
+          "sample_adequacy": "limited_n_4_to_7",
+          "representativeness_posture": "admitted_pool_only_not_representative_creator_average",
+          "surface_handling": "show_only_with_visible_admitted_pool_limitation"
+        }
       },
       {
         "metric_rollup_id": "yt_fragrance_account_view_rollup_v0_002",
@@ -9060,8 +9069,16 @@
           "Rollup covers the admitted fragrance Shorts pool only; it is not a channel-wide average.",
           "View counts are capture-time observations and may have changed since capture.",
           "Engagement rate is unavailable because like/comment/subscriber inputs are absent.",
-          "Cross-platform rollups are not authorized without promoted public-handle linkage evidence."
-        ]
+          "Cross-platform rollups are not authorized without promoted public-handle linkage evidence.",
+          "Average/median views are computed over 9 admitted Shorts; sample adequacy is stronger_admitted_pool_n_8_plus and the value is not a representative creator average.",
+          "The admitted pool is fragrance and transcript-bearing, so selection can bias view averages relative to the creator's full Shorts or channel output."
+        ],
+        "sample_support": {
+          "observation_count": 9,
+          "sample_adequacy": "stronger_admitted_pool_n_8_plus",
+          "representativeness_posture": "admitted_pool_only_not_representative_creator_average",
+          "surface_handling": "show_only_with_visible_admitted_pool_limitation"
+        }
       },
       {
         "metric_rollup_id": "yt_fragrance_account_view_rollup_v0_003",
@@ -9135,8 +9152,16 @@
           "Rollup covers the admitted fragrance Shorts pool only; it is not a channel-wide average.",
           "View counts are capture-time observations and may have changed since capture.",
           "Engagement rate is unavailable because like/comment/subscriber inputs are absent.",
-          "Cross-platform rollups are not authorized without promoted public-handle linkage evidence."
-        ]
+          "Cross-platform rollups are not authorized without promoted public-handle linkage evidence.",
+          "Average/median views are computed over 3 admitted Shorts; sample adequacy is thin_n_1_to_3 and the value is not a representative creator average.",
+          "The admitted pool is fragrance and transcript-bearing, so selection can bias view averages relative to the creator's full Shorts or channel output."
+        ],
+        "sample_support": {
+          "observation_count": 3,
+          "sample_adequacy": "thin_n_1_to_3",
+          "representativeness_posture": "admitted_pool_only_not_representative_creator_average",
+          "surface_handling": "downgrade_or_withhold_summary_claim"
+        }
       },
       {
         "metric_rollup_id": "yt_fragrance_account_view_rollup_v0_004",
@@ -9208,8 +9233,16 @@
           "Rollup covers the admitted fragrance Shorts pool only; it is not a channel-wide average.",
           "View counts are capture-time observations and may have changed since capture.",
           "Engagement rate is unavailable because like/comment/subscriber inputs are absent.",
-          "Cross-platform rollups are not authorized without promoted public-handle linkage evidence."
-        ]
+          "Cross-platform rollups are not authorized without promoted public-handle linkage evidence.",
+          "Average/median views are computed over 1 admitted Shorts; sample adequacy is thin_n_1_to_3 and the value is not a representative creator average.",
+          "The admitted pool is fragrance and transcript-bearing, so selection can bias view averages relative to the creator's full Shorts or channel output."
+        ],
+        "sample_support": {
+          "observation_count": 1,
+          "sample_adequacy": "thin_n_1_to_3",
+          "representativeness_posture": "admitted_pool_only_not_representative_creator_average",
+          "surface_handling": "downgrade_or_withhold_summary_claim"
+        }
       },
       {
         "metric_rollup_id": "yt_fragrance_account_view_rollup_v0_005",
@@ -9290,8 +9323,16 @@
           "Rollup covers the admitted fragrance Shorts pool only; it is not a channel-wide average.",
           "View counts are capture-time observations and may have changed since capture.",
           "Engagement rate is unavailable because like/comment/subscriber inputs are absent.",
-          "Cross-platform rollups are not authorized without promoted public-handle linkage evidence."
-        ]
+          "Cross-platform rollups are not authorized without promoted public-handle linkage evidence.",
+          "Average/median views are computed over 10 admitted Shorts; sample adequacy is stronger_admitted_pool_n_8_plus and the value is not a representative creator average.",
+          "The admitted pool is fragrance and transcript-bearing, so selection can bias view averages relative to the creator's full Shorts or channel output."
+        ],
+        "sample_support": {
+          "observation_count": 10,
+          "sample_adequacy": "stronger_admitted_pool_n_8_plus",
+          "representativeness_posture": "admitted_pool_only_not_representative_creator_average",
+          "surface_handling": "show_only_with_visible_admitted_pool_limitation"
+        }
       },
       {
         "metric_rollup_id": "yt_fragrance_account_view_rollup_v0_006",
@@ -9368,8 +9409,16 @@
           "Rollup covers the admitted fragrance Shorts pool only; it is not a channel-wide average.",
           "View counts are capture-time observations and may have changed since capture.",
           "Engagement rate is unavailable because like/comment/subscriber inputs are absent.",
-          "Cross-platform rollups are not authorized without promoted public-handle linkage evidence."
-        ]
+          "Cross-platform rollups are not authorized without promoted public-handle linkage evidence.",
+          "Average/median views are computed over 6 admitted Shorts; sample adequacy is limited_n_4_to_7 and the value is not a representative creator average.",
+          "The admitted pool is fragrance and transcript-bearing, so selection can bias view averages relative to the creator's full Shorts or channel output."
+        ],
+        "sample_support": {
+          "observation_count": 6,
+          "sample_adequacy": "limited_n_4_to_7",
+          "representativeness_posture": "admitted_pool_only_not_representative_creator_average",
+          "surface_handling": "show_only_with_visible_admitted_pool_limitation"
+        }
       },
       {
         "metric_rollup_id": "yt_fragrance_account_view_rollup_v0_007",
@@ -9447,8 +9496,16 @@
           "Rollup covers the admitted fragrance Shorts pool only; it is not a channel-wide average.",
           "View counts are capture-time observations and may have changed since capture.",
           "Engagement rate is unavailable because like/comment/subscriber inputs are absent.",
-          "Cross-platform rollups are not authorized without promoted public-handle linkage evidence."
-        ]
+          "Cross-platform rollups are not authorized without promoted public-handle linkage evidence.",
+          "Average/median views are computed over 7 admitted Shorts; sample adequacy is limited_n_4_to_7 and the value is not a representative creator average.",
+          "The admitted pool is fragrance and transcript-bearing, so selection can bias view averages relative to the creator's full Shorts or channel output."
+        ],
+        "sample_support": {
+          "observation_count": 7,
+          "sample_adequacy": "limited_n_4_to_7",
+          "representativeness_posture": "admitted_pool_only_not_representative_creator_average",
+          "surface_handling": "show_only_with_visible_admitted_pool_limitation"
+        }
       },
       {
         "metric_rollup_id": "yt_fragrance_account_view_rollup_v0_008",
@@ -9523,8 +9580,16 @@
           "Rollup covers the admitted fragrance Shorts pool only; it is not a channel-wide average.",
           "View counts are capture-time observations and may have changed since capture.",
           "Engagement rate is unavailable because like/comment/subscriber inputs are absent.",
-          "Cross-platform rollups are not authorized without promoted public-handle linkage evidence."
-        ]
+          "Cross-platform rollups are not authorized without promoted public-handle linkage evidence.",
+          "Average/median views are computed over 4 admitted Shorts; sample adequacy is limited_n_4_to_7 and the value is not a representative creator average.",
+          "The admitted pool is fragrance and transcript-bearing, so selection can bias view averages relative to the creator's full Shorts or channel output."
+        ],
+        "sample_support": {
+          "observation_count": 4,
+          "sample_adequacy": "limited_n_4_to_7",
+          "representativeness_posture": "admitted_pool_only_not_representative_creator_average",
+          "surface_handling": "show_only_with_visible_admitted_pool_limitation"
+        }
       },
       {
         "metric_rollup_id": "yt_fragrance_account_view_rollup_v0_009",
@@ -9603,8 +9668,16 @@
           "Rollup covers the admitted fragrance Shorts pool only; it is not a channel-wide average.",
           "View counts are capture-time observations and may have changed since capture.",
           "Engagement rate is unavailable because like/comment/subscriber inputs are absent.",
-          "Cross-platform rollups are not authorized without promoted public-handle linkage evidence."
-        ]
+          "Cross-platform rollups are not authorized without promoted public-handle linkage evidence.",
+          "Average/median views are computed over 8 admitted Shorts; sample adequacy is stronger_admitted_pool_n_8_plus and the value is not a representative creator average.",
+          "The admitted pool is fragrance and transcript-bearing, so selection can bias view averages relative to the creator's full Shorts or channel output."
+        ],
+        "sample_support": {
+          "observation_count": 8,
+          "sample_adequacy": "stronger_admitted_pool_n_8_plus",
+          "representativeness_posture": "admitted_pool_only_not_representative_creator_average",
+          "surface_handling": "show_only_with_visible_admitted_pool_limitation"
+        }
       },
       {
         "metric_rollup_id": "yt_fragrance_account_view_rollup_v0_010",
@@ -9687,8 +9760,16 @@
           "Rollup covers the admitted fragrance Shorts pool only; it is not a channel-wide average.",
           "View counts are capture-time observations and may have changed since capture.",
           "Engagement rate is unavailable because like/comment/subscriber inputs are absent.",
-          "Cross-platform rollups are not authorized without promoted public-handle linkage evidence."
-        ]
+          "Cross-platform rollups are not authorized without promoted public-handle linkage evidence.",
+          "Average/median views are computed over 12 admitted Shorts; sample adequacy is stronger_admitted_pool_n_8_plus and the value is not a representative creator average.",
+          "The admitted pool is fragrance and transcript-bearing, so selection can bias view averages relative to the creator's full Shorts or channel output."
+        ],
+        "sample_support": {
+          "observation_count": 12,
+          "sample_adequacy": "stronger_admitted_pool_n_8_plus",
+          "representativeness_posture": "admitted_pool_only_not_representative_creator_average",
+          "surface_handling": "show_only_with_visible_admitted_pool_limitation"
+        }
       },
       {
         "metric_rollup_id": "yt_fragrance_account_view_rollup_v0_011",
@@ -9769,8 +9850,16 @@
           "Rollup covers the admitted fragrance Shorts pool only; it is not a channel-wide average.",
           "View counts are capture-time observations and may have changed since capture.",
           "Engagement rate is unavailable because like/comment/subscriber inputs are absent.",
-          "Cross-platform rollups are not authorized without promoted public-handle linkage evidence."
-        ]
+          "Cross-platform rollups are not authorized without promoted public-handle linkage evidence.",
+          "Average/median views are computed over 10 admitted Shorts; sample adequacy is stronger_admitted_pool_n_8_plus and the value is not a representative creator average.",
+          "The admitted pool is fragrance and transcript-bearing, so selection can bias view averages relative to the creator's full Shorts or channel output."
+        ],
+        "sample_support": {
+          "observation_count": 10,
+          "sample_adequacy": "stronger_admitted_pool_n_8_plus",
+          "representativeness_posture": "admitted_pool_only_not_representative_creator_average",
+          "surface_handling": "show_only_with_visible_admitted_pool_limitation"
+        }
       },
       {
         "metric_rollup_id": "yt_fragrance_account_view_rollup_v0_012",
@@ -9848,8 +9937,16 @@
           "Rollup covers the admitted fragrance Shorts pool only; it is not a channel-wide average.",
           "View counts are capture-time observations and may have changed since capture.",
           "Engagement rate is unavailable because like/comment/subscriber inputs are absent.",
-          "Cross-platform rollups are not authorized without promoted public-handle linkage evidence."
-        ]
+          "Cross-platform rollups are not authorized without promoted public-handle linkage evidence.",
+          "Average/median views are computed over 7 admitted Shorts; sample adequacy is limited_n_4_to_7 and the value is not a representative creator average.",
+          "The admitted pool is fragrance and transcript-bearing, so selection can bias view averages relative to the creator's full Shorts or channel output."
+        ],
+        "sample_support": {
+          "observation_count": 7,
+          "sample_adequacy": "limited_n_4_to_7",
+          "representativeness_posture": "admitted_pool_only_not_representative_creator_average",
+          "surface_handling": "show_only_with_visible_admitted_pool_limitation"
+        }
       },
       {
         "metric_rollup_id": "yt_fragrance_account_view_rollup_v0_013",
@@ -9928,8 +10025,16 @@
           "Rollup covers the admitted fragrance Shorts pool only; it is not a channel-wide average.",
           "View counts are capture-time observations and may have changed since capture.",
           "Engagement rate is unavailable because like/comment/subscriber inputs are absent.",
-          "Cross-platform rollups are not authorized without promoted public-handle linkage evidence."
-        ]
+          "Cross-platform rollups are not authorized without promoted public-handle linkage evidence.",
+          "Average/median views are computed over 8 admitted Shorts; sample adequacy is stronger_admitted_pool_n_8_plus and the value is not a representative creator average.",
+          "The admitted pool is fragrance and transcript-bearing, so selection can bias view averages relative to the creator's full Shorts or channel output."
+        ],
+        "sample_support": {
+          "observation_count": 8,
+          "sample_adequacy": "stronger_admitted_pool_n_8_plus",
+          "representativeness_posture": "admitted_pool_only_not_representative_creator_average",
+          "surface_handling": "show_only_with_visible_admitted_pool_limitation"
+        }
       },
       {
         "metric_rollup_id": "yt_fragrance_account_view_rollup_v0_014",
@@ -10005,8 +10110,16 @@
           "Rollup covers the admitted fragrance Shorts pool only; it is not a channel-wide average.",
           "View counts are capture-time observations and may have changed since capture.",
           "Engagement rate is unavailable because like/comment/subscriber inputs are absent.",
-          "Cross-platform rollups are not authorized without promoted public-handle linkage evidence."
-        ]
+          "Cross-platform rollups are not authorized without promoted public-handle linkage evidence.",
+          "Average/median views are computed over 5 admitted Shorts; sample adequacy is limited_n_4_to_7 and the value is not a representative creator average.",
+          "The admitted pool is fragrance and transcript-bearing, so selection can bias view averages relative to the creator's full Shorts or channel output."
+        ],
+        "sample_support": {
+          "observation_count": 5,
+          "sample_adequacy": "limited_n_4_to_7",
+          "representativeness_posture": "admitted_pool_only_not_representative_creator_average",
+          "surface_handling": "show_only_with_visible_admitted_pool_limitation"
+        }
       },
       {
         "metric_rollup_id": "yt_fragrance_account_view_rollup_v0_015",
@@ -10082,8 +10195,16 @@
           "Rollup covers the admitted fragrance Shorts pool only; it is not a channel-wide average.",
           "View counts are capture-time observations and may have changed since capture.",
           "Engagement rate is unavailable because like/comment/subscriber inputs are absent.",
-          "Cross-platform rollups are not authorized without promoted public-handle linkage evidence."
-        ]
+          "Cross-platform rollups are not authorized without promoted public-handle linkage evidence.",
+          "Average/median views are computed over 5 admitted Shorts; sample adequacy is limited_n_4_to_7 and the value is not a representative creator average.",
+          "The admitted pool is fragrance and transcript-bearing, so selection can bias view averages relative to the creator's full Shorts or channel output."
+        ],
+        "sample_support": {
+          "observation_count": 5,
+          "sample_adequacy": "limited_n_4_to_7",
+          "representativeness_posture": "admitted_pool_only_not_representative_creator_average",
+          "surface_handling": "show_only_with_visible_admitted_pool_limitation"
+        }
       },
       {
         "metric_rollup_id": "yt_fragrance_account_view_rollup_v0_016",
@@ -10159,8 +10280,16 @@
           "Rollup covers the admitted fragrance Shorts pool only; it is not a channel-wide average.",
           "View counts are capture-time observations and may have changed since capture.",
           "Engagement rate is unavailable because like/comment/subscriber inputs are absent.",
-          "Cross-platform rollups are not authorized without promoted public-handle linkage evidence."
-        ]
+          "Cross-platform rollups are not authorized without promoted public-handle linkage evidence.",
+          "Average/median views are computed over 5 admitted Shorts; sample adequacy is limited_n_4_to_7 and the value is not a representative creator average.",
+          "The admitted pool is fragrance and transcript-bearing, so selection can bias view averages relative to the creator's full Shorts or channel output."
+        ],
+        "sample_support": {
+          "observation_count": 5,
+          "sample_adequacy": "limited_n_4_to_7",
+          "representativeness_posture": "admitted_pool_only_not_representative_creator_average",
+          "surface_handling": "show_only_with_visible_admitted_pool_limitation"
+        }
       },
       {
         "metric_rollup_id": "yt_fragrance_account_view_rollup_v0_017",
@@ -10232,8 +10361,16 @@
           "Rollup covers the admitted fragrance Shorts pool only; it is not a channel-wide average.",
           "View counts are capture-time observations and may have changed since capture.",
           "Engagement rate is unavailable because like/comment/subscriber inputs are absent.",
-          "Cross-platform rollups are not authorized without promoted public-handle linkage evidence."
-        ]
+          "Cross-platform rollups are not authorized without promoted public-handle linkage evidence.",
+          "Average/median views are computed over 1 admitted Shorts; sample adequacy is thin_n_1_to_3 and the value is not a representative creator average.",
+          "The admitted pool is fragrance and transcript-bearing, so selection can bias view averages relative to the creator's full Shorts or channel output."
+        ],
+        "sample_support": {
+          "observation_count": 1,
+          "sample_adequacy": "thin_n_1_to_3",
+          "representativeness_posture": "admitted_pool_only_not_representative_creator_average",
+          "surface_handling": "downgrade_or_withhold_summary_claim"
+        }
       },
       {
         "metric_rollup_id": "yt_fragrance_account_view_rollup_v0_018",
@@ -10316,8 +10453,16 @@
           "Rollup covers the admitted fragrance Shorts pool only; it is not a channel-wide average.",
           "View counts are capture-time observations and may have changed since capture.",
           "Engagement rate is unavailable because like/comment/subscriber inputs are absent.",
-          "Cross-platform rollups are not authorized without promoted public-handle linkage evidence."
-        ]
+          "Cross-platform rollups are not authorized without promoted public-handle linkage evidence.",
+          "Average/median views are computed over 12 admitted Shorts; sample adequacy is stronger_admitted_pool_n_8_plus and the value is not a representative creator average.",
+          "The admitted pool is fragrance and transcript-bearing, so selection can bias view averages relative to the creator's full Shorts or channel output."
+        ],
+        "sample_support": {
+          "observation_count": 12,
+          "sample_adequacy": "stronger_admitted_pool_n_8_plus",
+          "representativeness_posture": "admitted_pool_only_not_representative_creator_average",
+          "surface_handling": "show_only_with_visible_admitted_pool_limitation"
+        }
       },
       {
         "metric_rollup_id": "yt_fragrance_account_view_rollup_v0_019",
@@ -10391,8 +10536,16 @@
           "Rollup covers the admitted fragrance Shorts pool only; it is not a channel-wide average.",
           "View counts are capture-time observations and may have changed since capture.",
           "Engagement rate is unavailable because like/comment/subscriber inputs are absent.",
-          "Cross-platform rollups are not authorized without promoted public-handle linkage evidence."
-        ]
+          "Cross-platform rollups are not authorized without promoted public-handle linkage evidence.",
+          "Average/median views are computed over 3 admitted Shorts; sample adequacy is thin_n_1_to_3 and the value is not a representative creator average.",
+          "The admitted pool is fragrance and transcript-bearing, so selection can bias view averages relative to the creator's full Shorts or channel output."
+        ],
+        "sample_support": {
+          "observation_count": 3,
+          "sample_adequacy": "thin_n_1_to_3",
+          "representativeness_posture": "admitted_pool_only_not_representative_creator_average",
+          "surface_handling": "downgrade_or_withhold_summary_claim"
+        }
       },
       {
         "metric_rollup_id": "yt_fragrance_account_view_rollup_v0_020",
@@ -10469,8 +10622,16 @@
           "Rollup covers the admitted fragrance Shorts pool only; it is not a channel-wide average.",
           "View counts are capture-time observations and may have changed since capture.",
           "Engagement rate is unavailable because like/comment/subscriber inputs are absent.",
-          "Cross-platform rollups are not authorized without promoted public-handle linkage evidence."
-        ]
+          "Cross-platform rollups are not authorized without promoted public-handle linkage evidence.",
+          "Average/median views are computed over 6 admitted Shorts; sample adequacy is limited_n_4_to_7 and the value is not a representative creator average.",
+          "The admitted pool is fragrance and transcript-bearing, so selection can bias view averages relative to the creator's full Shorts or channel output."
+        ],
+        "sample_support": {
+          "observation_count": 6,
+          "sample_adequacy": "limited_n_4_to_7",
+          "representativeness_posture": "admitted_pool_only_not_representative_creator_average",
+          "surface_handling": "show_only_with_visible_admitted_pool_limitation"
+        }
       },
       {
         "metric_rollup_id": "yt_fragrance_account_view_rollup_v0_021",
@@ -10553,8 +10714,16 @@
           "Rollup covers the admitted fragrance Shorts pool only; it is not a channel-wide average.",
           "View counts are capture-time observations and may have changed since capture.",
           "Engagement rate is unavailable because like/comment/subscriber inputs are absent.",
-          "Cross-platform rollups are not authorized without promoted public-handle linkage evidence."
-        ]
+          "Cross-platform rollups are not authorized without promoted public-handle linkage evidence.",
+          "Average/median views are computed over 12 admitted Shorts; sample adequacy is stronger_admitted_pool_n_8_plus and the value is not a representative creator average.",
+          "The admitted pool is fragrance and transcript-bearing, so selection can bias view averages relative to the creator's full Shorts or channel output."
+        ],
+        "sample_support": {
+          "observation_count": 12,
+          "sample_adequacy": "stronger_admitted_pool_n_8_plus",
+          "representativeness_posture": "admitted_pool_only_not_representative_creator_average",
+          "surface_handling": "show_only_with_visible_admitted_pool_limitation"
+        }
       },
       {
         "metric_rollup_id": "yt_fragrance_account_view_rollup_v0_022",
@@ -10630,8 +10799,16 @@
           "Rollup covers the admitted fragrance Shorts pool only; it is not a channel-wide average.",
           "View counts are capture-time observations and may have changed since capture.",
           "Engagement rate is unavailable because like/comment/subscriber inputs are absent.",
-          "Cross-platform rollups are not authorized without promoted public-handle linkage evidence."
-        ]
+          "Cross-platform rollups are not authorized without promoted public-handle linkage evidence.",
+          "Average/median views are computed over 5 admitted Shorts; sample adequacy is limited_n_4_to_7 and the value is not a representative creator average.",
+          "The admitted pool is fragrance and transcript-bearing, so selection can bias view averages relative to the creator's full Shorts or channel output."
+        ],
+        "sample_support": {
+          "observation_count": 5,
+          "sample_adequacy": "limited_n_4_to_7",
+          "representativeness_posture": "admitted_pool_only_not_representative_creator_average",
+          "surface_handling": "show_only_with_visible_admitted_pool_limitation"
+        }
       },
       {
         "metric_rollup_id": "yt_fragrance_account_view_rollup_v0_023",
@@ -10711,8 +10888,16 @@
           "Rollup covers the admitted fragrance Shorts pool only; it is not a channel-wide average.",
           "View counts are capture-time observations and may have changed since capture.",
           "Engagement rate is unavailable because like/comment/subscriber inputs are absent.",
-          "Cross-platform rollups are not authorized without promoted public-handle linkage evidence."
-        ]
+          "Cross-platform rollups are not authorized without promoted public-handle linkage evidence.",
+          "Average/median views are computed over 9 admitted Shorts; sample adequacy is stronger_admitted_pool_n_8_plus and the value is not a representative creator average.",
+          "The admitted pool is fragrance and transcript-bearing, so selection can bias view averages relative to the creator's full Shorts or channel output."
+        ],
+        "sample_support": {
+          "observation_count": 9,
+          "sample_adequacy": "stronger_admitted_pool_n_8_plus",
+          "representativeness_posture": "admitted_pool_only_not_representative_creator_average",
+          "surface_handling": "show_only_with_visible_admitted_pool_limitation"
+        }
       },
       {
         "metric_rollup_id": "yt_fragrance_account_view_rollup_v0_024",
@@ -10791,8 +10976,16 @@
           "Rollup covers the admitted fragrance Shorts pool only; it is not a channel-wide average.",
           "View counts are capture-time observations and may have changed since capture.",
           "Engagement rate is unavailable because like/comment/subscriber inputs are absent.",
-          "Cross-platform rollups are not authorized without promoted public-handle linkage evidence."
-        ]
+          "Cross-platform rollups are not authorized without promoted public-handle linkage evidence.",
+          "Average/median views are computed over 8 admitted Shorts; sample adequacy is stronger_admitted_pool_n_8_plus and the value is not a representative creator average.",
+          "The admitted pool is fragrance and transcript-bearing, so selection can bias view averages relative to the creator's full Shorts or channel output."
+        ],
+        "sample_support": {
+          "observation_count": 8,
+          "sample_adequacy": "stronger_admitted_pool_n_8_plus",
+          "representativeness_posture": "admitted_pool_only_not_representative_creator_average",
+          "surface_handling": "show_only_with_visible_admitted_pool_limitation"
+        }
       },
       {
         "metric_rollup_id": "yt_fragrance_account_view_rollup_v0_025",
@@ -10874,8 +11067,16 @@
           "Rollup covers the admitted fragrance Shorts pool only; it is not a channel-wide average.",
           "View counts are capture-time observations and may have changed since capture.",
           "Engagement rate is unavailable because like/comment/subscriber inputs are absent.",
-          "Cross-platform rollups are not authorized without promoted public-handle linkage evidence."
-        ]
+          "Cross-platform rollups are not authorized without promoted public-handle linkage evidence.",
+          "Average/median views are computed over 11 admitted Shorts; sample adequacy is stronger_admitted_pool_n_8_plus and the value is not a representative creator average.",
+          "The admitted pool is fragrance and transcript-bearing, so selection can bias view averages relative to the creator's full Shorts or channel output."
+        ],
+        "sample_support": {
+          "observation_count": 11,
+          "sample_adequacy": "stronger_admitted_pool_n_8_plus",
+          "representativeness_posture": "admitted_pool_only_not_representative_creator_average",
+          "surface_handling": "show_only_with_visible_admitted_pool_limitation"
+        }
       },
       {
         "metric_rollup_id": "yt_fragrance_account_view_rollup_v0_026",
@@ -10955,8 +11156,16 @@
           "Rollup covers the admitted fragrance Shorts pool only; it is not a channel-wide average.",
           "View counts are capture-time observations and may have changed since capture.",
           "Engagement rate is unavailable because like/comment/subscriber inputs are absent.",
-          "Cross-platform rollups are not authorized without promoted public-handle linkage evidence."
-        ]
+          "Cross-platform rollups are not authorized without promoted public-handle linkage evidence.",
+          "Average/median views are computed over 9 admitted Shorts; sample adequacy is stronger_admitted_pool_n_8_plus and the value is not a representative creator average.",
+          "The admitted pool is fragrance and transcript-bearing, so selection can bias view averages relative to the creator's full Shorts or channel output."
+        ],
+        "sample_support": {
+          "observation_count": 9,
+          "sample_adequacy": "stronger_admitted_pool_n_8_plus",
+          "representativeness_posture": "admitted_pool_only_not_representative_creator_average",
+          "surface_handling": "show_only_with_visible_admitted_pool_limitation"
+        }
       },
       {
         "metric_rollup_id": "yt_fragrance_account_view_rollup_v0_027",
@@ -11029,8 +11238,16 @@
           "Rollup covers the admitted fragrance Shorts pool only; it is not a channel-wide average.",
           "View counts are capture-time observations and may have changed since capture.",
           "Engagement rate is unavailable because like/comment/subscriber inputs are absent.",
-          "Cross-platform rollups are not authorized without promoted public-handle linkage evidence."
-        ]
+          "Cross-platform rollups are not authorized without promoted public-handle linkage evidence.",
+          "Average/median views are computed over 2 admitted Shorts; sample adequacy is thin_n_1_to_3 and the value is not a representative creator average.",
+          "The admitted pool is fragrance and transcript-bearing, so selection can bias view averages relative to the creator's full Shorts or channel output."
+        ],
+        "sample_support": {
+          "observation_count": 2,
+          "sample_adequacy": "thin_n_1_to_3",
+          "representativeness_posture": "admitted_pool_only_not_representative_creator_average",
+          "surface_handling": "downgrade_or_withhold_summary_claim"
+        }
       },
       {
         "metric_rollup_id": "yt_fragrance_account_view_rollup_v0_028",
@@ -11105,8 +11322,16 @@
           "Rollup covers the admitted fragrance Shorts pool only; it is not a channel-wide average.",
           "View counts are capture-time observations and may have changed since capture.",
           "Engagement rate is unavailable because like/comment/subscriber inputs are absent.",
-          "Cross-platform rollups are not authorized without promoted public-handle linkage evidence."
-        ]
+          "Cross-platform rollups are not authorized without promoted public-handle linkage evidence.",
+          "Average/median views are computed over 4 admitted Shorts; sample adequacy is limited_n_4_to_7 and the value is not a representative creator average.",
+          "The admitted pool is fragrance and transcript-bearing, so selection can bias view averages relative to the creator's full Shorts or channel output."
+        ],
+        "sample_support": {
+          "observation_count": 4,
+          "sample_adequacy": "limited_n_4_to_7",
+          "representativeness_posture": "admitted_pool_only_not_representative_creator_average",
+          "surface_handling": "show_only_with_visible_admitted_pool_limitation"
+        }
       },
       {
         "metric_rollup_id": "yt_fragrance_account_view_rollup_v0_029",
@@ -11180,8 +11405,16 @@
           "Rollup covers the admitted fragrance Shorts pool only; it is not a channel-wide average.",
           "View counts are capture-time observations and may have changed since capture.",
           "Engagement rate is unavailable because like/comment/subscriber inputs are absent.",
-          "Cross-platform rollups are not authorized without promoted public-handle linkage evidence."
-        ]
+          "Cross-platform rollups are not authorized without promoted public-handle linkage evidence.",
+          "Average/median views are computed over 3 admitted Shorts; sample adequacy is thin_n_1_to_3 and the value is not a representative creator average.",
+          "The admitted pool is fragrance and transcript-bearing, so selection can bias view averages relative to the creator's full Shorts or channel output."
+        ],
+        "sample_support": {
+          "observation_count": 3,
+          "sample_adequacy": "thin_n_1_to_3",
+          "representativeness_posture": "admitted_pool_only_not_representative_creator_average",
+          "surface_handling": "downgrade_or_withhold_summary_claim"
+        }
       },
       {
         "metric_rollup_id": "yt_fragrance_account_view_rollup_v0_030",
@@ -11258,8 +11491,16 @@
           "Rollup covers the admitted fragrance Shorts pool only; it is not a channel-wide average.",
           "View counts are capture-time observations and may have changed since capture.",
           "Engagement rate is unavailable because like/comment/subscriber inputs are absent.",
-          "Cross-platform rollups are not authorized without promoted public-handle linkage evidence."
-        ]
+          "Cross-platform rollups are not authorized without promoted public-handle linkage evidence.",
+          "Average/median views are computed over 6 admitted Shorts; sample adequacy is limited_n_4_to_7 and the value is not a representative creator average.",
+          "The admitted pool is fragrance and transcript-bearing, so selection can bias view averages relative to the creator's full Shorts or channel output."
+        ],
+        "sample_support": {
+          "observation_count": 6,
+          "sample_adequacy": "limited_n_4_to_7",
+          "representativeness_posture": "admitted_pool_only_not_representative_creator_average",
+          "surface_handling": "show_only_with_visible_admitted_pool_limitation"
+        }
       }
     ],
     "brand_or_platform_exclusions": [
@@ -11309,7 +11550,10 @@
       "View counts can drift after capture; the live probe observed drift and one missing current view field on a three-video sample.",
       "No like_count, total comment_count, subscriber_count, average_like_count, average_comment_count, or engagement_rate is supported by the 200-row checked-in source artifacts.",
       "The current local/external lake does not contain typed metric_observations for these rows; this seed is a static product artifact over checked-in capture records.",
-      "Cross-platform rollups remain blocked until public-handle linkage is promoted beyond candidate/rejected states."
+      "Cross-platform rollups remain blocked until public-handle linkage is promoted beyond candidate/rejected states.",
+      "Per-account average_views and median_views may be based on as few as one admitted Short; sample_support names thin rows and the values must be treated as directional, not representative creator averages.",
+      "The admitted pool is fragrance and transcript-bearing Shorts, so admission-filter selection can bias view averages relative to the creator's full Shorts or channel output.",
+      "source_packet_pointer_or_none values are local-only capture-environment drill-back paths; portable provenance comes from source_pointer/source_field/source_file and source_packet_id_or_none."
     ],
     "non_claims": [
       "not channel-wide creator average",
@@ -11324,6 +11568,16 @@
       "not dashboard implementation",
       "not live capture authorization",
       "not contact or outreach authorization"
-    ]
+    ],
+    "source_packet_pointer_posture": {
+      "source_packet_pointer_or_none": "optional local-only drill-back pointer copied from the capture environment; not portable provenance",
+      "portable_provenance_fields": [
+        "source_pointer",
+        "source_field",
+        "source_file",
+        "source_packet_id_or_none"
+      ],
+      "non_claim": "absolute local lake paths are not required to resolve outside the capture host"
+    }
   }
 }

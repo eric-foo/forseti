@@ -252,6 +252,11 @@ creator_metric_rollup:
     posting_cadence: nullable number with posture
     recent_velocity: nullable number with posture
   source_metric_observation_ids: required list
+  sample_support:
+    observation_count: required count of source observations feeding the rollup
+    sample_adequacy: required enum thin_n_1_to_3, limited_n_4_to_7, stronger_admitted_pool_n_8_plus
+    representativeness_posture: required literal admitted_pool_only_not_representative_creator_average unless a later validated window proves representativeness
+    surface_handling: required presentation instruction for downgrade/withhold/visible-limitation behavior
   calculation_recipe_version: required version
   computed_at: required timestamp
   freshness_state: required enum current, stale, partial, blocked
@@ -329,6 +334,9 @@ Minimum rollup rules:
 - Always state the window: 7d, 30d, 90d, or custom.
 - Always state the platform scope: one platform or cross-platform.
 - Always state which observation rows fed the rollup.
+- Always carry sample support and a representativeness posture. Small-n rollups
+  and admitted-pool-only rollups must remain directional signals, not
+  representative creator averages.
 - Before a promoted public-handle link, aggregate influence attaches to
   `platform_account_id`; candidate and rejected linkage rows may appear only as
   identity/drill-back context.
