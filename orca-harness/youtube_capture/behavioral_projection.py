@@ -71,6 +71,12 @@ def normalize_youtube_metadata_packet(
         }
     comments = packet.get("comments")
     comment_rows = comments if isinstance(comments, list) else []
+    availability = packet.get("availability")
+    if not isinstance(availability, Mapping):
+        availability = {}
+    metric_receipts = packet.get("metric_receipts")
+    if not isinstance(metric_receipts, Mapping):
+        metric_receipts = {}
     receipts = packet.get("receipts")
     if not isinstance(receipts, Mapping):
         receipts = {
@@ -91,6 +97,8 @@ def normalize_youtube_metadata_packet(
         "channel": _compact_dict(dict(channel)),
         "metadata": _compact_dict(dict(metadata)),
         "engagement": _compact_dict(dict(engagement)),
+        "availability": _compact_dict(dict(availability)),
+        "metric_receipts": _compact_dict(dict(metric_receipts)),
         "comments": {
             "posture": _string_or_none(packet.get("comments_posture")) or "unknown",
             "comment_count_text": _string_or_none(packet.get("comment_count_text")),
