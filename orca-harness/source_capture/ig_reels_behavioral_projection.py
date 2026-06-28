@@ -197,30 +197,36 @@ def _comment_projection(
         }
 
     total = sum(_int_or_none(item.get("comment_count")) or 0 for item in sets)
-    if "render_unavailable" in deep_postures:
-        posture = "render_unavailable"
-    elif total > 0:
+    if total > 0:
         posture = "captured"
+    elif "render_unavailable" in deep_postures:
+        posture = "render_unavailable"
     else:
         posture = "empty"
     if posture in {"render_unavailable", "parse_failed", "blocked"}:
         _append_residual_once(residuals, f"ig_comments_{posture}:{shortcode}")
 
-    return {
-        "posture": posture,
-        "comment_count": total,
-        "sources": [
+    sources: list[dict[str, Any]] = []
+    for item in sets:
+        record_id = _string_or_none(item.get("record_id"))
+        if record_id is None:
+            _append_residual_once(residuals, f"ig_comment_record_id_absent:{shortcode}")
+        sources.append(
             _compact_dict(
                 {
                     "source_route": "deep_capture_render",
-                    "record_id": _string_or_none(item.get("record_id")),
+                    "record_id": record_id,
                     "generated_at": _string_or_none(item.get("generated_at")),
                     "comment_count": _int_or_none(item.get("comment_count")) or 0,
                     "media_provenance": _mapping_or_none(item.get("media_provenance")),
                 }
             )
-            for item in sets
-        ],
+        )
+
+    return {
+        "posture": posture,
+        "comment_count": total,
+        "sources": sources,
     }
 
 
@@ -274,6 +280,11 @@ def _standalone_audio_source(
         or "unknown_audio_packet"
     )
     asr_record_id = _string_or_none(record.get("record_id") or record.get("asr_record_id"))
+    if asr_record_id is None:
+        _append_residual_once(
+            residuals,
+            f"ig_transcript_source_record_id_absent:standalone_audio_packet:{transcript_anchor}",
+        )
     source = _base_transcript_source(
         platform_item_id=shortcode,
         transcript_anchor=transcript_anchor,
@@ -296,13 +307,25 @@ def _deep_capture_source(
     residuals: list[str],
 ) -> dict[str, Any] | None:
     record_shortcode = _string_or_none(record.get("reel_shortcode"))
+    if record_shortcode is None:
+        _append_residual_once(
+            residuals,
+            f"ig_transcript_source_shortcode_absent:deep_capture_render_audio:{shortcode}",
+        )
+        return None
     if record_shortcode and record_shortcode != shortcode:
         _append_residual_once(residuals, f"ig_transcript_source_shortcode_mismatch:{record_shortcode}")
         return None
+    asr_record_id = _string_or_none(record.get("record_id") or record.get("asr_record_id"))
+    if asr_record_id is None:
+        _append_residual_once(
+            residuals,
+            f"ig_transcript_source_record_id_absent:deep_capture_render_audio:{shortcode}",
+        )
     source = _base_transcript_source(
         platform_item_id=shortcode,
         transcript_anchor=shortcode,
-        asr_record_id=_string_or_none(record.get("record_id") or record.get("asr_record_id")),
+        asr_record_id=asr_record_id,
         source_route="deep_capture_render_audio",
         source_status=_string_or_none(record.get("source_status")) or "complete",
         posture=_normalise_deep_posture(_string_or_none(record.get("transcript_posture"))),

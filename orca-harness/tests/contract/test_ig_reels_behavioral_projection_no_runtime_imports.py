@@ -29,6 +29,20 @@ def test_ig_reels_behavioral_projection_has_no_runtime_acquisition_or_llm_import
     assert not _forbidden_import_roots(target), f"Forbidden import in {target}"
 
 
+def test_forbidden_import_detector_catches_runtime_acquisition_import(tmp_path: Path) -> None:
+    path = tmp_path / "bad_import.py"
+    path.write_text("from urllib import request\n", encoding="utf-8")
+
+    assert _forbidden_import_roots(path) == {"urllib.request"}
+
+
+def test_forbidden_import_detector_catches_llm_import(tmp_path: Path) -> None:
+    path = tmp_path / "bad_llm_import.py"
+    path.write_text("import openai\n", encoding="utf-8")
+
+    assert _forbidden_import_roots(path) == {"openai"}
+
+
 def _forbidden_import_roots(path: Path) -> set[str]:
     tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
     forbidden: set[str] = set()
