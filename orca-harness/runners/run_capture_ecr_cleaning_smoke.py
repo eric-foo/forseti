@@ -845,13 +845,7 @@ def _process_youtube_entry(
     manifest_dir: Path,
     findings: list[dict[str, Any]],
 ) -> dict[str, Any]:
-    """Wire a YouTube caption packet through ECR into a single cleaning handle.
-
-    YouTube captures straight to the raw lake -- there is no projection/consolidation view
-    (unlike retail/reddit/instagram), so this mirrors the reddit *receipt* derivation but
-    builds ONE projection-less ``file``-anchor handle over the preserved ``.json3`` caption
-    track. Cue-span resolution is deferred to Pass-1 cleaning, which re-reads the json3.
-    """
+    """Wire a YouTube caption packet through ECR into file-anchor cleaning handles."""
     source_label = _optional_text(entry, "source_label") or f"youtube:{index}"
     packet_dir = _resolve_manifest_path(manifest_dir, entry, "packet_dir")
 
@@ -870,55 +864,56 @@ def _process_youtube_entry(
         source_label=source_label,
     )
 
-    # The single evidence artifact is the preserved caption track. Select it
-    # deterministically and fail closed on zero or multiple matches (no silent coverage).
-    caption_files = [
-        preserved
-        for preserved in packet.preserved_files
-        if preserved.relative_packet_path.endswith(".json3")
-    ]
-    if len(caption_files) != 1:
-        raise ValueError(
-            f"{source_label} packet {packet.packet_id} must preserve exactly one .json3 "
-            f"caption track; found {len(caption_files)}"
-        )
-    caption_file = caption_files[0]
-    raw_path = _contained_packet_path(packet_dir, caption_file.relative_packet_path)
-    actual_sha256 = hash_file(raw_path)
-    if actual_sha256 != caption_file.sha256:
-        raise ValueError(
-            f"{source_label} packet {packet.packet_id} caption file "
-            f"{caption_file.file_id!r} hash mismatch against manifest"
-        )
-    slice_id = _slice_id_for_file(packet, caption_file.file_id)
-
-    handle = CleaningInputHandle(
-        handle_id=f"{source_label}:{packet.packet_id}:{caption_file.file_id}",
-        source_family=packet.source_family,
-        source_surface=packet.source_surface,
-        raw_anchor=CleaningRawAnchor(
-            packet_id=packet.packet_id,
-            slice_id=slice_id,
-            file_id=caption_file.file_id,
-            relative_packet_path=caption_file.relative_packet_path,
-            sha256=caption_file.sha256,
-            hash_basis=caption_file.hash_basis,
-            anchor_kind="file",
-            anchor_value=None,
-        ),
-        # Projection-less / direct-artifact: no projection_ref (there is no derived view).
-        ecr_ref=ecr_ref,
-    )
+    handles: list[CleaningInputHandle] = []
+    files_by_id = {preserved.file_id: preserved for preserved in packet.preserved_files}
+    for source_slice in packet.source_slices:
+        for file_id in source_slice.preserved_file_ids:
+            raw_file = files_by_id.get(file_id)
+            if raw_file is None:
+                raise ValueError(
+                    f"{source_label} packet {packet.packet_id} slice {source_slice.slice_id!r} "
+                    f"references absent preserved file {file_id!r}"
+                )
+            verified_file, _raw_path = _verified_preserved_file(
+                packet_dir=packet_dir,
+                packet=packet,
+                file_id=raw_file.file_id,
+                expected_relative_packet_path=raw_file.relative_packet_path,
+                expected_sha256=raw_file.sha256,
+            )
+            handles.append(
+                CleaningInputHandle(
+                    handle_id=(
+                        f"{source_label}:{packet.packet_id}:{source_slice.slice_id}:"
+                        f"{verified_file.file_id}"
+                    ),
+                    source_family=packet.source_family,
+                    source_surface=packet.source_surface,
+                    raw_anchor=CleaningRawAnchor(
+                        packet_id=packet.packet_id,
+                        slice_id=source_slice.slice_id,
+                        file_id=verified_file.file_id,
+                        relative_packet_path=verified_file.relative_packet_path,
+                        sha256=verified_file.sha256,
+                        hash_basis=verified_file.hash_basis,
+                        anchor_kind="file",
+                    ),
+                    # Projection-less / direct-artifact: no projection_ref.
+                    ecr_ref=ecr_ref,
+                )
+            )
 
     return {
-        "handles": [handle],
+        "handles": handles,
         "ecr_receipt": ecr_receipt,
         "source_summary": {
             "source_label": source_label,
             "packet_id": packet.packet_id,
             "packet_dir": str(packet_dir),
-            "handle_count": 1,
-            "caption_file_id": caption_file.file_id,
+            "source_surface": packet.source_surface,
+            "slice_count": len(packet.source_slices),
+            "preserved_file_count": len(packet.preserved_files),
+            "handle_count": len(handles),
         },
     }
 

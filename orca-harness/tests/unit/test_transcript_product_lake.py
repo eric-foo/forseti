@@ -262,6 +262,16 @@ def test_runner_extracts_caption_transcript(tmp_path) -> None:
     assert len(results) == 1
     assert results[0]["status"] == "extracted"
 
+    record_path = next((data_root.path / "derived").glob(f"**/{PRODUCT_MENTIONS_LANE}/*"))
+    record = json.loads(record_path.read_text(encoding="utf-8"))
+    assert record["mention_count"] == 1
+    mention = record["mentions"][0]
+    assert mention["video_id"] == "vid12345678"
+    assert mention["transcript_source"] == "caption"
+    assert mention["source_pointer"] == "absolute beast in the heat"
+    assert mention["start_ms"] == 3000
+    assert mention["end_ms"] == 6000
+
 
 def test_runner_empty_lake_yields_no_results(tmp_path) -> None:
     data_root = DataLakeRoot.for_test(tmp_path / "lake")
