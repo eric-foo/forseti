@@ -288,6 +288,92 @@ why_not_complete: >
   /action/perfume/get_reviews.php in 5-review increments.
 ```
 
+### Parfumo Pagination Diagnosis Addendum
+
+```yaml
+pagination_check_date: 2026-06-29
+operator_request: Diagnose Parfumo after Fragrantica current-window diagnosis.
+source_packet:
+  packet_id: 01KW7SJ8F4M6ZTGVWMBB9ZVXCR
+  scratch_path: orca-harness/_test_runs/fragrance_native_20260629/parfumo_direct_http_packet
+  preserved_body_bytes: 116651
+  source_family: fragrance_native_database
+  source_surface: parfumo_product_page_direct_http
+product_locator: https://www.parfumo.com/Perfumes/Maison_Francis_Kurkdjian/Baccarat_Rouge_540_Eau_de_Parfum
+product_id: "67720"
+page_hash_parameter: 7536fa6f9c01a6637a935e7717b53101
+initial_page_observations:
+  declared_reviews: 369
+  declared_statements: 1390
+  inline_review_articles: 5
+  rating_count: 5176
+  scent_rating: 7.7
+  longevity_rating: 8.7
+  sillage_rating: 8.5
+  first_party_review_endpoint: /action/perfume/get_reviews.php
+  first_party_statement_endpoint: /action/perfume/get_statements.php
+endpoint_shape:
+  reviews_post_fields:
+    - f
+    - n
+    - t
+    - o
+    - full
+    - p_id
+    - append
+    - h
+  statements_post_fields:
+    - f
+    - n
+    - t
+    - o
+    - p_id
+    - append
+    - h
+  default_order: order_relevance_desc
+live_probe_results:
+  - route: reviews f=5 n=5
+    http_status: 200
+    response_bytes: 17039
+    unique_review_articles: 5
+    cloudflare_or_login_marker_seen: false
+  - route: statements f=5 n=5
+    http_status: 200
+    response_bytes: 11475
+    unique_statement_ids: 5
+    cloudflare_or_login_marker_seen: false
+  - route: reviews f=5 n=20
+    http_status: 200
+    response_bytes: 69691
+    unique_review_articles: 20
+    cloudflare_or_login_marker_seen: false
+  - route: statements f=5 n=20
+    http_status: 200
+    response_bytes: 44897
+    unique_statement_ids: 20
+    cloudflare_or_login_marker_seen: false
+  - route: reviews f=5 n=100
+    http_status: 200
+    response_bytes: 371298
+    unique_review_articles: 100
+    cloudflare_or_login_marker_seen: false
+  - route: statements f=5 n=100
+    http_status: 200
+    response_bytes: 214799
+    unique_statement_ids: 100
+    cloudflare_or_login_marker_seen: false
+capture_route_verdict: pinned_completeable_with_first_party_ajax_batches
+recommended_capture_route: >
+  Preserve the initial direct product page, then preserve paginated first-party
+  POST responses for reviews and statements as raw batch bodies plus request
+  metadata. `n=100` worked in this diagnosis and would make the 369-review /
+  1390-statement corpus practical, but a future capture runner should retain a
+  conservative fallback to `n=20` if the route degrades.
+not_complete_yet:
+  - No full 369-review or 1390-statement Parfumo corpus was captured in this addendum.
+  - No endpoint response bodies from the live pagination probes were admitted as packets.
+  - No ECR, Cleaning, Judgment, monitoring, or commercial-readiness claim is created.
+```
 ### Basenotes Full CloakBrowser Packet
 
 ```yaml
@@ -348,4 +434,4 @@ candidate_decision:
 
 `capture_preservation_only`.
 
-Fragrantica and Parfumo are pinned as direct-HTTP product-page preservation routes, but neither is complete review-corpus capture. Basenotes is explicitly not pinned in this environment; direct HTTP, anti-block HTTP, screening browser, and full anonymous CloakBrowser all failed to reach source content. One Fragrantica packet landed in the configured ORCA data root during the completeness check; that is a generated packet fact only, not fixture admission, routine Data Lake handoff, ECR, Cleaning, Judgment, monitoring, commercial readiness, or full-database crawling.
+Fragrantica is pinned as a direct-HTTP product-page preservation route and current-window review substrate, but it is not complete review-corpus capture. Parfumo is pinned as a direct product-page plus first-party AJAX pagination route for a future complete reviews/statements capture, but this addendum did not run the full 369-review / 1390-statement corpus. Basenotes is explicitly not pinned in this environment; direct HTTP, anti-block HTTP, screening browser, and full anonymous CloakBrowser all failed to reach source content. One Fragrantica packet landed in the configured ORCA data root during the completeness check; that is a generated packet fact only, not fixture admission, routine Data Lake handoff, ECR, Cleaning, Judgment, monitoring, commercial readiness, or full-database crawling.
