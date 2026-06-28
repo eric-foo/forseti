@@ -6,7 +6,7 @@ scope: Single-fixture source-capture recon for niche fragrance retailer PDP purc
 use_when:
   - Capturing purchase reviews from fragrance-specialist retailers.
   - Deciding whether to use Direct HTTP or CloakBrowser before downstream review integrity analysis.
-  - Explaining why a sampled retailer is GO, PARTIAL, or not yet pinned for row-level review capture.
+  - Explaining why a sampled retailer is GO, PARTIAL, or fixture-positive for row-level review capture.
 authority_boundary: Retrieval-only. This artifact does not score review integrity, infer sentiment, normalize products, or certify source-wide completeness.
 open_next:
   - orca/product/spines/capture/core/source_families/retail_pdp/fragrance_purchase_review_site_registry_v0.md
@@ -17,7 +17,7 @@ open_next:
 stale_if:
   - Retailer review vendor, PDP template, or anti-bot posture changes materially.
   - CloakBrowser or Direct HTTP packet schema changes.
-  - A second fixture contradicts the sampled verdict below.
+  - A later fixture contradicts the sampled verdict below.
 ```
 
 ## Boundary
@@ -55,6 +55,8 @@ Out of scope:
 
 ## Probe Inputs
 
+Original sampled PDPs:
+
 | Retailer | Sampled PDP |
 | --- | --- |
 | Luckyscent / Scent Bar | `https://www.luckyscent.com/products/memoirs-of-a-trespasser-by-imaginary-authors` |
@@ -63,14 +65,26 @@ Out of scope:
 | Indigo Perfumery | `https://indigoperfumery.com/products/memoirs-of-a-trespasser` |
 | Ministry of Scent | `https://ministryofscent.com/products/memoirs-of-a-trespasser` |
 
+Known-reviewed fixture re-probe PDPs:
+
+| Retailer | Capture fixture |
+| --- | --- |
+| ZGO Perfumery | `https://zgoperfumery.com/products/d-s-durga-concrete-lightning-eau-de-parfum` |
+| Indigo Perfumery | `https://indigoperfumery.com/products/indigo-perfumery-sampler-set` |
+
+The re-probe used bounded public-site fixture discovery: Shopify search-suggest
+queries for candidate products, exact PDP reads for candidates, then one packeted
+known-reviewed fixture per rescue site. It was not a crawl, scaled scrape, auth
+bypass, or challenge-solving run.
+
 ## Observed Verdicts
 
 | Retailer | Direct HTTP observation | Rendered observation | Verdict | Route pin |
 | --- | --- | --- | --- | --- |
 | Luckyscent / Scent Bar | HTTP 200 PDP body preserved. Static HTML exposed aggregate JSON-LD review substrate (`ratingValue: 3.71`, `reviewCount: 14`) and review anchors, but no review-body rows. | CloakBrowser render plus progressive scroll exposed row-level review text and metadata: sampled DOM/text showed 10 review bodies, titles, dates, reviewer names, country labels, variant labels, `data-verified-buyer`, and store-invitation labels. | `GO_ROW_LEVEL_RENDERED` | CloakBrowser packet with `--settle-seconds 5 --scroll-step-px 500 --scroll-passes 4`. |
 | Twisted Lily | HTTP 200 PDP body preserved. Static HTML exposed Shopify/vendor review config and aggregate count substrate, but not usable row text. | CloakBrowser render plus progressive scroll exposed row-level review text and metadata: sampled visible text showed 6 reviews, rating summary, reviewer names, dates, verified labels, locations, and Shop App labels. | `GO_ROW_LEVEL_RENDERED` | CloakBrowser packet with `--settle-seconds 5 --scroll-step-px 500 --scroll-passes 4`. Variant URL normalization may append `?variant=...`; record actual final URL. |
-| ZGO Perfumery | HTTP 200 PDP body preserved. Static HTML exposed Yotpo/widget config with sampled product count/rating at zero, but no review rows. | CloakBrowser preserved the rendered PDP shell, but sampled page still had no visible review rows or customer-review section text. | `PARTIAL_SAMPLED_EMPTY` | Keep a PDP shell packet. Do not claim row-level capture until another product fixture exposes rows. |
-| Indigo Perfumery | Direct HTTP failed before packet write with local certificate verification error: `CERTIFICATE_VERIFY_FAILED`. | CloakBrowser preserved the rendered PDP shell and `CUSTOMER REVIEW` / `shopify-product-reviews` container posture, but sampled page had no visible review rows. | `PARTIAL_SAMPLED_EMPTY` | Use CloakBrowser for access. Do not claim row-level capture until another product fixture exposes rows. |
+| ZGO Perfumery | Original sampled fixture: HTTP 200 PDP body preserved, but Yotpo/widget config had zero-count/no row bodies. Known-reviewed fixture: Direct HTTP packet preserved static HTML with a Yotpo review section containing one review body, reviewer label, rating, and aggregate count. The section did not expose a review date in the extracted text. | CloakBrowser was not needed for the known-reviewed fixture after Direct HTTP exposed the row body. Original rendered fixture remained row-empty. | `GO_ROW_LEVEL_DIRECT_HTTP_KNOWN_REVIEWED_FIXTURE` | Direct HTTP on `https://zgoperfumery.com/products/d-s-durga-concrete-lightning-eau-de-parfum`; do not reuse the original Orpheon zero-count fixture for row capture. |
+| Indigo Perfumery | Original sampled fixture: Direct HTTP failed before packet write with local certificate verification error. curl_cffi reached HTTP 200 during diagnosis but did not expose row bodies on the original fixture. | Known-reviewed fixture: CloakBrowser render+scroll preserved rendered DOM with five JSON-LD / Judge.me `Review` objects carrying `reviewBody`, rating, date, author, review title/name, and product binding. Visible text still showed only the `CUSTOMER REVIEW` section label and no visible row bodies. | `GO_ROW_LEVEL_RENDERED_SCHEMA_ONLY_KNOWN_REVIEWED_FIXTURE` | CloakBrowser packet with `--settle-seconds 5 --scroll-step-px 500 --scroll-passes 4` on `https://indigoperfumery.com/products/indigo-perfumery-sampler-set`; carry a visible-row residual. |
 | Ministry of Scent | HTTP 200 PDP body preserved. Static HTML exposed Judge.me review rows directly, including `jdgm-rev__body`, titles, verified-buyer labels, dates, product title, review source labels, and thumbs counts. | Not needed for the sampled fixture. | `GO_ROW_LEVEL_DIRECT_HTTP` | Direct HTTP packet is sufficient first rung. Escalate to CloakBrowser only if a later product uses lazy-loaded rows. |
 
 ## Rung-1 / Rung-2 Recheck
@@ -80,39 +94,52 @@ intermediate rungs were checked explicitly:
 
 | Rung | Status in this lane | Result |
 | --- | --- | --- |
-| `anti_blocking_http` rung 1 | Built packet runner. Wrote scratch packets for Luckyscent, Twisted Lily, ZGO, and Ministry; Indigo failed with the same local certificate verification error as Direct HTTP. | Did not add row-level signal beyond the original verdicts. Luckyscent remained aggregate-only; Twisted Lily exposed review-widget/Judge.me configuration strings but not review rows; ZGO remained zero-count/widget-shell; Ministry still exposed Judge.me rows. |
-| `curl_cffi` rung 2 | Installed locally, but no shared Source Capture packet runner is built in this branch; the documented shared rung is gated/unbuilt. A read-only ad hoc `curl_cffi` diagnostic was run with Chrome impersonation, so it is diagnostic evidence, not packeted Armory output. | HTTP 200 for all five. It did not expose additional row bodies: Luckyscent remained aggregate-only, Twisted Lily remained config-only, ZGO remained widget/zero-count only, Indigo returned the Shopify review container but no rows, and Ministry still exposed rows. |
+| `anti_blocking_http` rung 1 | Built packet runner. Wrote scratch packets for Luckyscent, Twisted Lily, ZGO, and Ministry; Indigo failed with the same local certificate verification error as Direct HTTP. | Did not add row-level signal beyond the original verdicts. Luckyscent remained aggregate-only; Twisted Lily exposed review-widget/Judge.me configuration strings but not review rows; original ZGO fixture remained zero-count/widget-shell; Ministry still exposed Judge.me rows. |
+| `curl_cffi` rung 2 | Installed locally, but no shared Source Capture packet runner is built in this branch; the documented shared rung is gated/unbuilt. A read-only ad hoc `curl_cffi` diagnostic was run with Chrome impersonation, so it is diagnostic evidence, not packeted Armory output. | HTTP 200 for all five original sampled fixtures. It did not expose additional row bodies: Luckyscent remained aggregate-only, Twisted Lily remained config-only, original ZGO remained widget/zero-count only, original Indigo returned the Shopify review container but no rows, and Ministry still exposed rows. |
 
-Impact: the ZGO/Indigo diagnosis is stronger after the recheck. They are not
-"worthless" as source families, but the sampled PDPs are not useful row-level
-purchase-review fixtures. Keep them as known-reviewed-SKU follow-up targets, not
-as immediate row-capture sources.
+Impact: rung 1 and the ad hoc rung 2 diagnostic did not unlock the original
+ZGO/Indigo fixtures. The correct next move was known-reviewed fixture discovery,
+not declaring those sites worthless. That re-probe found row-positive fixtures
+for both sites.
+
+## Fixture Evidence Packets
+
+Scratch packet evidence was written under
+`orca-harness/_test_runs/fragrance_purchase_review_probe_20260629/`:
+
+| Retailer | Packet path | Fresh-read row evidence |
+| --- | --- | --- |
+| ZGO Perfumery | `zgo_known_reviewed/direct_http_packet` | Raw HTTP body existed at 439706 bytes; `#yotpo-reviews-section-data` extracted to 734 characters and contained one review body plus reviewer/rating/aggregate count. |
+| Indigo Perfumery | `indigo_known_review_candidate/cloakbrowser_packet` | Rendered DOM existed at 390136 bytes; visible text existed at 1092 bytes; DOM contained five `reviewBody` occurrences inside JSON-LD / Judge.me `Review` objects and zero visible review-row markers. |
 
 ## Recipe Notes
 
 1. Start with Direct HTTP when the page body is the target. For this lane, Direct
-   HTTP is enough for Ministry of Scent and useful for detecting aggregate-only
-   substrates on Luckyscent, Twisted Lily, and ZGO.
-2. Escalate to CloakBrowser for rendered review widgets. For Luckyscent and
-   Twisted Lily, the working sampled recipe is a rendered packet with
-   `--settle-seconds 5 --scroll-step-px 500 --scroll-passes 4`.
-3. Treat ZGO and Indigo as sampled partials, not source-wide failures. The
-   sampled PDPs preserved product/review-widget shells but did not expose row
-   bodies. A second product fixture with known reviews is required before a
-   row-level GO/NO-GO claim.
+   HTTP is enough for Ministry of Scent and the selected ZGO known-reviewed
+   fixture, and useful for detecting aggregate-only substrates on Luckyscent,
+   Twisted Lily, and the original ZGO fixture.
+2. Escalate to CloakBrowser for rendered review widgets or rendered structured
+   review rows. For Luckyscent, Twisted Lily, and the selected Indigo fixture,
+   the working recipe is a rendered packet with `--settle-seconds 5
+   --scroll-step-px 500 --scroll-passes 4`.
+3. Treat zero-count sampled PDPs as bad fixtures, not source-wide failures. The
+   original ZGO and Indigo fixtures were row-empty; known-reviewed fixture
+   selection changed the operating status.
 4. Keep `--recapture-relationship` to an accepted enum such as `supplement`.
    Prose in that field fails runner validation and is an operator error, not a
    source-access fact.
-5. Clear `ORCA_DATA_ROOT` for scratch probes when an explicit `--output` path is
+5. Keep `--cutoff-posture` to accepted closed values such as `pre_cutoff`.
+   Prose belongs in `capture_context`.
+6. Clear `ORCA_DATA_ROOT` for scratch probes when an explicit `--output` path is
    intended. The Direct HTTP runner honors the environment data root ahead of
    the supplied scratch output path.
 
 ## Non-Claims
 
 - This recon does not say the five retailers are the best sources for review
-  quality. It says which sampled retailer PDP surfaces can currently be captured
+  quality. It says which sampled retailer PDP fixtures can currently be captured
   with enough row-level purchase-review data for downstream integrity and
   pain/pleasure-point analysis.
 - This recon does not certify broad retailer coverage. It pins the observed
-  route for one sampled PDP per retailer.
+  route for one row-producing fixture per retailer.
 - This recon does not authorize scaled scraping or any challenge bypass.
