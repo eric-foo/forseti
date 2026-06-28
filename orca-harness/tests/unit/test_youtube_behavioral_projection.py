@@ -181,6 +181,44 @@ def test_transcript_discovery_residualizes_corrupt_youtube_packet_without_aborti
     )
 
 
+def test_transcript_discovery_residualizes_preserved_file_read_error_without_aborting_healthy_video(monkeypatch, tmp_path) -> None:
+    data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    _commit_caption(data_root)
+    unreadable_packet_id = _commit_caption(data_root, video_id="other000000")
+    unreadable_packet_dir = data_root.find_packet(unreadable_packet_id)
+    assert unreadable_packet_dir is not None
+    original_read_bytes = Path.read_bytes
+
+    def fail_only_unreadable_packet_body(path: Path) -> bytes:
+        if path.name.endswith(".json3") and unreadable_packet_dir in path.parents:
+            raise OSError("simulated body read failure")
+        return original_read_bytes(path)
+
+    monkeypatch.setattr(Path, "read_bytes", fail_only_unreadable_packet_body)
+
+    sources = transcript_sources_for_video(data_root, _VIDEO_ID)
+
+    caption_sources = [source for source in sources if source["source_kind"] == "caption"]
+    assert len(caption_sources) == 1
+    discovery_problem = next(
+        source for source in sources if source["transcript_anchor"] == unreadable_packet_id
+    )
+    assert discovery_problem["source_status"] == "discovery_failed"
+    assert "unreadable preserved file" in discovery_problem["discovery_error"]
+
+    projection = project_youtube_behavioral_item_from_lake(
+        data_root=data_root,
+        platform_video_id=_VIDEO_ID,
+        metadata_packet=_metadata_packet(),
+        extraction_results=[
+            {"anchor": caption_sources[0]["transcript_anchor"], "video_id": _VIDEO_ID, "status": "extracted"}
+        ],
+    )
+
+    assert projection["transcript"]["extraction_rollup"]["status"] == "complete_with_residuals"
+    assert projection["transcript"]["extraction_rollup"]["source_problem_count"] == 1
+
+
 def test_projection_does_not_mark_video_complete_when_observed_asr_is_unextracted(tmp_path) -> None:
     data_root = DataLakeRoot.for_test(tmp_path / "lake")
     _commit_caption(data_root)
