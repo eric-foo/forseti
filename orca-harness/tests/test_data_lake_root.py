@@ -118,6 +118,28 @@ def test_resolve_missing_epoch_marker_rejected(tmp_path: Path) -> None:
         DataLakeRoot.resolve(explicit=root.path, env={}, repo_root=None)
 
 
+@pytest.mark.parametrize(
+    ("field", "value", "match"),
+    [
+        ("lake_epoch", "v4.0", "lake_epoch"),
+        ("epoch_policy", "compatibility_migration", "epoch_policy"),
+        ("compatibility_migration", True, "compatibility_migration=false"),
+        ("legacy_roots", "F:\\orca-data-lake", "legacy_roots list"),
+    ],
+)
+def test_resolve_malformed_epoch_marker_values_rejected(
+    tmp_path: Path, field: str, value: object, match: str
+) -> None:
+    root = _init(tmp_path)
+    marker_path = root.path / EPOCH_MARKER_FILENAME
+    epoch = json.loads(marker_path.read_text(encoding="utf-8"))
+    epoch[field] = value
+    marker_path.write_text(json.dumps(epoch), encoding="utf-8")
+
+    with pytest.raises(DataLakeRootError, match=match):
+        DataLakeRoot.resolve(explicit=root.path, env={}, repo_root=None)
+
+
 def test_resolve_legacy_v0_marker_rejected(tmp_path: Path) -> None:
     legacy = tmp_path / "legacy"
     legacy.mkdir()
