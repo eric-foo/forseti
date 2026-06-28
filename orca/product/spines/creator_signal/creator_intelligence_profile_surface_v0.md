@@ -5,9 +5,10 @@ retrieval_header_version: 1
 artifact_role: product_signal_surface_contract
 scope: >
   Product-facing surface contract for the one-stop creator intelligence profile:
-  how Orca operators or buyers may view linked creator accounts, aggregate
-  influence, ideal/content-fit audience signal, freshness, limitations, and
-  source drill-back over the Capture-owned creator_profile_current view.
+  how Orca operators or buyers may view observed public accounts or linked
+  creator/account clusters, aggregate influence, ideal/content-fit audience
+  signal, freshness, limitations, and source drill-back over the Capture-owned
+  creator_profile_current view.
 use_when:
   - Designing or reviewing the creator profile product surface.
   - Deciding what aggregate creator influence or ideal-audience fields may appear in a buyer/operator view.
@@ -35,11 +36,11 @@ creator rows, buyer proof, or runtime implementation.
 
 ## Product job
 
-The surface gives an Orca operator or buyer one current, source-backed profile for
-a creator/account cluster:
+The surface gives an Orca operator or buyer one current, source-backed profile
+for an observed public account or creator/account cluster:
 
 ```text
-Who is this creator/account cluster?
+Who is this observed account or creator/account cluster?
 Where are the public accounts?
 What aggregate influence is source-backed and fresh enough to show?
 What ideal/content-fit audience signal is allowed to show?
@@ -77,7 +78,7 @@ functional equivalent:
 
 | Section | Required contents | Source owner |
 | --- | --- | --- |
-| Identity and account cluster | `creator_record_id`, link state, review state, public platform handles, linkage evidence summary | Capture identity linkage |
+| Identity and account cluster | `profile_subject_kind`, `profile_subject_id`, `identity_state`, `platform_account_id` when account-scoped, `creator_record_id_or_none` when linked, link/review state when present, public platform handles, linkage evidence summary | Capture identity linkage |
 | Aggregate influence | Latest allowed rollups by platform/window: average views, engagement rate, median views, cadence, recent velocity when present | Capture metric rollups |
 | Ideal/content-fit audience | Latest allowed Tier-1 ideal-audience profile fields: segment, audience_role, purchase_intent, skill_level, price_tier, with support bands and evidence pointers | Capture ideal-audience inference + ballot taxonomy |
 | Freshness | identity update timestamp, metric computation timestamp, audience computation timestamp, profile view computation timestamp, stale/partial/blocked state | Capture current view |
@@ -128,6 +129,7 @@ actual audience demographics from this surface.
 Allowed claim shape:
 
 - source-backed linked public accounts;
+- source-backed observed single-platform public accounts labeled as account-scoped;
 - source-backed aggregate influence for a named platform/window;
 - current or stale posture for identity, metrics, and audience fields;
 - ideal/content-fit audience profile with support band and evidence pointers;
@@ -152,6 +154,8 @@ The surface must not provide or imply:
   authorize an aggregate slice;
 - unstamped, sourceless, or LLM-only influence claims;
 - hidden/blocked/not-applicable metrics as observed zeroes;
+- candidate public-account links as final linked creator identities before
+  human review promotes or rejects them;
 - buyer proof, validation, readiness, commercial usefulness, or guaranteed
   creator performance;
 - live capture, source-access, dashboard, SQLite, or data-lake job readiness.
@@ -160,7 +164,7 @@ The surface must not provide or imply:
 
 A first screen should favor scanability over completeness:
 
-1. Creator/account cluster and review state.
+1. Profile subject, identity state, and review/link state.
 2. Platform accounts.
 3. Aggregate influence snapshot by platform/window.
 4. Ideal/content-fit audience snapshot.

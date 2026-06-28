@@ -141,7 +141,7 @@ semantics:
 - v0 frontier depth is 1;
 - candidates never become automatic seeds;
 - promotion preserves a link from frontier provenance to roster entry;
-- `creator_record_id` is ledger-local;
+- `ig_roster_record_id` is ledger-local and distinct from the public-handle linkage ledger `creator_record_id`;
 - `ontology_windcaller_id` is nullable and separately earned;
 - no `Creator` ontology type is created.
 
@@ -177,10 +177,11 @@ work together without creating a person dossier or current relationship graph.
 
 ## Identity Model
 
-### Ledger-Local Creator Record
+### Ledger-Local IG Roster Record
 
-`creator_record_id` is a ledger-local stable identifier minted only when a
-candidate is promoted into the roster. It is not an ontology ID.
+`ig_roster_record_id` is a ledger-local stable identifier minted only when a
+candidate is promoted into the IG roster. It is not an ontology ID and not the
+public-handle linkage ledger `creator_record_id`.
 
 Required behavior:
 
@@ -189,8 +190,8 @@ Required behavior:
 - It may use normalized handle as a fallback only when stable platform ID is
   unavailable, with the limitation recorded.
 - It must not be exposed as proof that the person is a real-world identity.
-- It must not be cross-platform stitched without a separate owner-approved
-  spec.
+- It must not itself be used for cross-platform stitching; public-handle joins
+  must go through the separate public-handle linkage ledger.
 
 ### Public Name
 
@@ -236,7 +237,7 @@ This spec is ontology-compatible, not ontology-authoritative.
 
 Ledger concepts:
 
-- `creator_record_id`: local roster ID.
+- `ig_roster_record_id`: local IG roster ID, distinct from the public-handle linkage ledger `creator_record_id`.
 - `candidate_platform_id`: local frontier dedupe key.
 - `tier`: roster monitoring priority.
 - `signal_state`: operational state used by source capture and monitoring.
@@ -274,7 +275,7 @@ Suggested fields:
 
 ```yaml
 creator_roster_entry:
-  creator_record_id: required stable ledger-local id
+  ig_roster_record_id: required stable ledger-local id
   platform: required enum, v0 ig only
   platform_creator_id: preferred stable public platform id when available
   handle: required public handle at time of latest roster refresh
@@ -302,7 +303,7 @@ creator_roster_entry:
 
 Field invariants:
 
-- `creator_record_id` is minted only at roster promotion.
+- `ig_roster_record_id` is minted only at roster promotion.
 - `current_public_display_name` is a cache, not the source of truth.
 - `primary_sub_niche` must be ontology-compatible, but this ledger does not own
   the sub-niche taxonomy.
@@ -319,7 +320,7 @@ Suggested fields:
 ```yaml
 creator_name_observation:
   name_observation_id: required stable ledger-local id
-  creator_record_id: required roster id
+  ig_roster_record_id: required roster id
   observed_public_display_name: required public string
   observed_at: required timestamp
   name_source_pointer: required source pointer
@@ -349,7 +350,7 @@ Suggested fields:
 ```yaml
 roster_lifecycle_event:
   roster_event_id: required stable ledger-local id
-  creator_record_id: required roster id
+  ig_roster_record_id: required roster id
   event_type: required enum
   from_value: nullable prior state
   to_value: nullable new state
@@ -456,7 +457,7 @@ Suggested fields:
 candidate_promotion_link:
   promotion_link_id: required stable ledger-local id
   frontier_observation_id: required frontier observation id
-  creator_record_id: required new or existing roster id
+  ig_roster_record_id: required new or existing roster id
   promoted_at: required timestamp
   promotion_reason: required short text
   actor: required operator or system lane id
@@ -465,7 +466,7 @@ candidate_promotion_link:
 Rules:
 
 - Promotion does not mutate the frontier row into a roster row.
-- Promotion mints `creator_record_id` only if no matching roster entry already
+- Promotion mints `ig_roster_record_id` only if no matching roster entry already
   exists.
 - Prior frontier observations for the same candidate should be linked or
   suppressed from re-promotion review.
@@ -515,8 +516,8 @@ Rules:
 > `docs/decisions/wind_caller_calibration_carveout_v0.md`): **cross-platform PUBLIC-handle stitching is now
 > ACTIVATED** (Tier-2-B; public-handle↔public-handle, via `orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_spec_v0.md`; non-public-handle joins still
 > gated) — so the "Cross-platform identity stitching" forbiddance below is **lifted for public-handle joins**,
-> and the `creator_record_id` "must not be cross-platform stitched without a separate owner-approved spec"
-> rule is now satisfied by that amendment + the linkage spec. **Aggregate audience demographics** (text-only,
+> and public-handle cross-platform stitching must use the separate linkage-ledger
+> `creator_record_id`, not this roster-local `ig_roster_record_id`. **Aggregate audience demographics** (text-only,
 > aggregate, legitimate-interests basis, no retention of individuals, no special-category) are
 > **COUNCIL-CONFIRMED 2026-06-23** (Tier-2-A; the legal gate is cleared) — activation now gated on a
 > ledger-schema home for this data class, a separate data class from the *creator's own*
@@ -547,7 +548,7 @@ Forbidden in v0:
 - Exact follower count when a coarse band is sufficient.
 - Employer, school, agency, or management details unless separately approved as
   public brand/business context for a non-person entity.
-- Cross-platform identity stitching.
+- Cross-platform identity stitching inside this IG roster ledger.
 - Private, auth-gated, purchased, leaked, or enriched data.
 - Resale, lead-list, data-broker, outreach, or targeting use.
 - Public person-level product surface.
@@ -592,13 +593,13 @@ checks:
 - It keeps roster current-name fields as caches derived from observations.
 - It rejects name rows without source pointer and source field.
 - It rejects contact, demographic, private, inferred, or cross-platform
-  identity fields.
+  identity fields inside this roster schema.
 - It keeps frontier rows append-only and provenance-only.
 - It uses `discovery_adjacency_type`, not `relationship_type`.
 - It caps v0 depth at 1.
 - It prevents automatic candidate-as-seed behavior.
 - It uses `disposition` and `disposition_reason`.
-- It treats `creator_record_id` as ledger-local, not ontology ID.
+- It treats `ig_roster_record_id` as ledger-local, not ontology ID or public-handle linkage ID.
 - It maps to ontology `WindCaller` only through a nullable pointer after
   separate acceptance.
 - It preserves failed, blocked, and empty discovery receipts.

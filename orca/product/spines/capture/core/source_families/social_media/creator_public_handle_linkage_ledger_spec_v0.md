@@ -61,7 +61,8 @@ Fresh source read on current main:
 
 Use a static table-shaped ledger first:
 
-- `creator_records`: ledger-local public account clusters.
+- `creator_records`: ledger-local public account clusters, including reversible
+  candidate clusters that have not yet passed human review.
 - `platform_accounts`: one row per public platform account.
 - `account_link_evidence`: append-only evidence rows supporting or defeating a
   proposed account link.
@@ -74,6 +75,27 @@ ledger. Use `creator_profile_current_view_spec_v0.md` for the dashboard-ready
 join over identity, metric observations, metric rollups, and ideal-audience
 profile snapshots. Average views, engagement rate, and other influence rollups
 must not be added to `creator_records`.
+
+Single-platform accounts are not `creator_records`. They live as
+`platform_account` subjects in the current profile view until public-handle
+linkage evidence spans at least two platforms.
+
+## Soft-Link Candidate Boundary
+
+`candidate_public_account_link` is the soft-link state. Use it when similar
+public accounts should stay bundled for review before Orca may call the cluster
+probable or declared.
+
+A candidate link may preserve the same `platform_account_ids` and evidence rows
+that a human reviewer later promotes to `probable_public_account_link` or
+`declared_public_account_link`. That makes the transition seamless: review
+updates the link state and review state rather than rebuilding the account
+cluster from scratch.
+
+A candidate link remains provisional. It must use `candidate_needs_review`; it
+must not be presented as a final creator identity; it must not authorize
+cross-platform aggregate rollups, outreach, real-world identity, or a public
+person-level surface.
 
 ## Creator Record Contract
 
@@ -103,7 +125,8 @@ Allowed `link_state` values:
 - `probable_public_account_link`: no declaring source, but at least three
   independent weak public evidence families point the same way and a human
   reviewer accepts the probability.
-- `candidate_public_account_link`: interesting but not final.
+- `candidate_public_account_link`: soft-linked account cluster preserved for
+  review; interesting but not final.
 - `rejected_public_account_link`: preserved rejected link with disconfirming
   evidence.
 
@@ -186,6 +209,7 @@ The v0 validator must fail closed on:
 - any legal name, inferred real name, contact, private, demographic, audience
   graph, follower graph, raw capture, session, or downstream-stage field;
 - a creator record that links only one platform;
+- a candidate link whose review state is not `candidate_needs_review`;
 - a declared link with no strong public evidence;
 - a probable link with fewer than three independent weak evidence types;
 - any declared/probable link that includes disconfirming evidence;
@@ -251,4 +275,3 @@ direction_change_propagation:
     - not runtime capture authorization
     - not validation or readiness
 ```
-

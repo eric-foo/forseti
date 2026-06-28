@@ -5,13 +5,14 @@ retrieval_header_version: 1
 artifact_role: source_capture_family_architecture_contract
 scope: >
   Owner-directed architecture contract for the current creator profile view: a
-  one-stop operator/dashboard surface that joins public-handle identity linkage,
-  per-content metric observations, aggregate metric rollups, and ideal-audience
-  profile snapshots without turning the identity ledger into one giant ledger.
+  one-stop operator/dashboard surface that joins channel-neutral public account
+  subjects, optional public-handle identity linkage, per-content metric
+  observations, aggregate metric rollups, and ideal-audience profile snapshots
+  without turning the identity ledger into one giant ledger.
   This is not runtime storage, not SQLite adoption, not a live dashboard, not
   capture execution, and not a public person-level product surface.
 use_when:
-  - Designing the one-stop creator profile surface for internal creator intelligence.
+  - Designing the one-stop creator/account profile surface for internal creator intelligence.
   - Deciding where average views, engagement rate, and other aggregate creator metrics belong.
   - Checking the boundary between the public-handle identity ledger, metric observations, metric rollups, ideal-audience enrichment, and future SQLite/data-lake storage.
 open_next:
@@ -38,6 +39,11 @@ The owner accepted the split: not one giant ledger; individual reels/videos and
 their metrics belong in metric observation records; average/aggregate influence
 belongs in rollups; the operator needs a one-stop current profile that can later
 become a dashboard.
+
+The owner later accepted the channel-neutral correction: any supported public
+platform account may seed the current profile before cross-platform linkage.
+`creator_record_id` is earned only after public-handle linkage evidence joins at
+least two platforms.
 
 This document records the target view and placement. It does not add real
 creator rows, choose SQLite, create runtime tables, authorize live capture,
@@ -125,7 +131,7 @@ creator_ideal_audience_profile_snapshots
   -> actual audience remains not_estimated unless separately authorized
 
 creator_profile_current
-  -> current one-stop joined view for operator/dashboard use
+  -> current one-stop joined view for one platform_account or linked creator_record
 ```
 
 The first three layers keep truth and provenance separate. The last layer is the
@@ -135,9 +141,11 @@ surface the operator opens.
 
 Core identity spine:
 
-- `creator_record_id` from the public-handle linkage ledger is the join key for
-  creator-level views.
-- `platform_account_id` is the join key for account-level metric rollups.
+- `platform_account_id` is the always-present join key for public account-level
+  observations, metric observations, and account-level metric rollups.
+- `creator_record_id` from the public-handle linkage ledger is optional until
+  at least two platform accounts are linked by evidence. It is the join key for
+  linked creator-cluster views only.
 - Identity rows record account linkage evidence only.
 - Identity rows must not absorb metric values, audience labels, follower graphs,
   contact fields, outreach fields, or person-identity claims.
@@ -164,10 +172,30 @@ Current profile view:
 
 - `creator_profile_current` is a derived view, materialized view, JSON export,
   dashboard query, or equivalent current snapshot.
+- It may target either a `platform_account` subject or a linked
+  `creator_record` subject.
 - It may denormalize for operator convenience.
 - It must preserve pointers back to the source sibling rows, versions, and
   freshness fields.
 - It is not the source of truth for identity, metrics, or audience inference.
+
+## Subject And Soft-Link Boundary
+
+`creator_profile_current` supports two subject kinds:
+
+- `platform_account`: one public account on one supported platform. This is the
+  pre-linkage subject and may carry account-level metric rollups, ideal-audience
+  snapshots, limitations, and source drill-back.
+- `creator_record`: a linked public account cluster from the public-handle
+  linkage ledger. This subject exists only when account-link evidence spans at
+  least two platforms.
+
+Soft links live in the public-handle linkage ledger as
+`candidate_public_account_link` rows with `candidate_needs_review`. A candidate
+link is a reversible pre-review bridge so the transition from similar unlinked
+accounts to a linked cluster can be seamless after human review. It is not a
+final creator identity, not a real-world identity claim, and not enough by
+itself for cross-platform aggregate rollups.
 
 ## Suggested Record Shapes
 
@@ -176,8 +204,8 @@ These are architecture contracts, not implemented schemas.
 ```yaml
 creator_metric_observation:
   metric_observation_id: required stable id
-  creator_record_id: required linkage-ledger id
   platform_account_id: required platform account id
+  creator_record_id_or_none: nullable linkage-ledger id, present only after public-handle linkage
   platform: required enum instagram, tiktok, youtube
   content_id_or_none: nullable platform-local content id
   content_url_or_none: nullable public content URL
@@ -199,7 +227,7 @@ creator_metric_observation:
 ```yaml
 creator_metric_rollup:
   metric_rollup_id: required stable id
-  creator_record_id: required linkage-ledger id
+  creator_record_id_or_none: nullable linkage-ledger id, required only for cross_platform rollups
   platform_scope: required enum instagram, tiktok, youtube, cross_platform
   platform_account_ids: required list
   rollup_window: required enum 7d, 30d, 90d, lifetime_known, custom
@@ -221,7 +249,10 @@ creator_metric_rollup:
 ```yaml
 creator_ideal_audience_profile_snapshot:
   audience_profile_snapshot_id: required stable id
-  creator_record_id: required linkage-ledger id
+  profile_subject_kind: required enum platform_account, creator_record
+  profile_subject_id: required subject id matching profile_subject_kind
+  platform_account_ids: required list
+  creator_record_id_or_none: nullable linkage-ledger id, present only after public-handle linkage
   platform_scope: required enum instagram, tiktok, youtube, cross_platform
   observation_window_start: required timestamp
   observation_window_end: required timestamp
@@ -241,9 +272,13 @@ creator_ideal_audience_profile_snapshot:
 
 ```yaml
 creator_profile_current:
-  creator_record_id: required linkage-ledger id
-  link_state: required from identity ledger
-  review_state: required from identity ledger
+  profile_subject_kind: required enum platform_account, creator_record
+  profile_subject_id: required subject id matching profile_subject_kind
+  platform_account_id_or_none: required when profile_subject_kind is platform_account
+  creator_record_id_or_none: required when profile_subject_kind is creator_record
+  identity_state: required enum single_platform_observed, cross_platform_candidate, probable_public_account_link, declared_public_account_link, rejected_public_account_link
+  link_state_or_none: nullable from identity ledger
+  review_state_or_none: nullable from identity ledger
   platform_accounts: required joined public handles
   identity_evidence_summary: required short summary and pointers
   current_metric_rollups: required latest non-stale rollups by platform/window
@@ -268,6 +303,13 @@ Minimum rollup rules:
 - Always state the window: 7d, 30d, 90d, or custom.
 - Always state the platform scope: one platform or cross-platform.
 - Always state which observation rows fed the rollup.
+- Before public-handle linkage, aggregate influence attaches to
+  `platform_account_id`.
+- After public-handle linkage, cross-platform aggregate influence attaches to
+  `creator_record_id` and lists the linked `platform_account_ids`.
+- Cross-platform rollups must recompute from source metric observations or an
+  equivalent deduplicated observation set; they must not sum stored
+  account-level rollups as if those were independent raw observations.
 - Always carry `computed_at` and `freshness_state`.
 - Never treat hidden, blocked, absent, or not-applicable metrics as observed
   zeroes.
@@ -282,7 +324,7 @@ Minimum rollup rules:
 
 Allowed dashboard use:
 
-- show one creator with linked public accounts;
+- show one observed platform account or one linked creator/account cluster;
 - show latest average/aggregate influence metrics;
 - show the source window and freshness for each aggregate;
 - show the ideal-audience/content-fit profile when available;
@@ -358,6 +400,54 @@ This spec does not:
 - claim buyer proof, validation, readiness, or commercial usefulness.
 
 ## Direction Change Propagation
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Channel-neutral creator profile patch: single-platform public accounts may seed
+    creator_profile_current as platform_account subjects; soft links live as
+    candidate_public_account_link rows until human review; metric observations and
+    account rollups are account-primary before linkage, and creator-cluster rollups
+    require linked creator_record evidence.
+  trigger: architecture_doctrine
+  related_triggers:
+    - product_doctrine
+    - lifecycle_boundary
+  controlling_sources_updated:
+    - orca/product/spines/capture/core/source_families/social_media/creator_profile_current_view_spec_v0.md
+    - orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_spec_v0.md
+    - orca/product/spines/capture/core/source_families/social_media/youtube/youtube_creator_observation_ledger_spec_v0.md
+    - orca/product/spines/capture/core/source_families/social_media/instagram/ig_creator_roster_frontier_ledger_spec_v0.md
+    - orca/product/spines/creator_signal/creator_intelligence_profile_surface_v0.md
+  downstream_surfaces_checked:
+    - AGENTS.md
+    - .agents/workflow-overlay/README.md
+    - .agents/workflow-overlay/source-of-truth.md
+    - .agents/workflow-overlay/validation-gates.md
+    - orca-harness/capture_spine/creator_public_handle_linkage/validation.py
+    - orca-harness/tests/unit/test_creator_public_handle_linkage.py
+  intentionally_not_updated:
+    - path: orca-harness/capture_spine/creator_public_handle_linkage/
+      reason: >
+        Existing validator already enforces candidate_needs_review for candidate
+        links, human/non-LLM evidence for final links, and the at-least-two-platform
+        creator_record rule.
+    - path: orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json
+      reason: >
+        Product ledger scaffold stays empty; this patch changes contract semantics
+        only and adds no real rows.
+  stale_language_search: >
+    rg -n "creator_record_id|candidate_public_account_link|candidate_needs_review|profile_subject_kind|platform_account_id"
+    orca/product/spines/capture/core/source_families/social_media orca/product/spines/creator_signal orca-harness
+  non_claims:
+    - not validation
+    - not readiness
+    - not implementation authorization
+    - not SQLite adoption
+    - not live capture authorization
+    - not dashboard implementation
+    - not real-world identity proof
+```
 
 ```yaml
 direction_change_propagation:

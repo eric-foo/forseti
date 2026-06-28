@@ -9,7 +9,7 @@ scope: >
   rollups, creator profile projection, SQLite, or cross-platform linkage.
 use_when:
   - Populating source-backed YouTube creator/channel observations from admitted Shorts pools.
-  - Checking whether a YouTube creator/channel row may seed creator_profile_current inputs.
+  - Checking whether a YouTube creator/channel row may seed platform_account inputs for creator_profile_current.
   - Distinguishing one-platform creator observations from IG/TikTok/YouTube public-handle linkage.
 open_next:
   - orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_observation_ledger_v0.json
@@ -59,6 +59,11 @@ This ledger is not the public-handle linkage ledger.
 
 Do not force YouTube-only rows into `creator_records` in the linkage ledger.
 Those rows require at least two platforms and account-link evidence.
+
+A YouTube observation row may seed a `platform_account` subject for
+`creator_profile_current`. Similar YouTube, Instagram, or TikTok accounts may be
+soft-linked only as `candidate_public_account_link` rows in the public-handle
+linkage ledger until human review promotes or rejects the link.
 
 ## Ledger Shape
 
@@ -154,6 +159,7 @@ This spec and its seed ledger are not:
 - buyer proof;
 - contact, outreach, or lead-list authorization;
 - follower or audience graph work;
+- platform authority for cross-platform identity;
 - metric rollup storage;
 - SQLite migration;
 - live capture authorization;
