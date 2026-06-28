@@ -12,11 +12,13 @@ authority_boundary: retrieval_only; no Attachment Record storage, ECR, Cleaning,
 open_next:
   - orca/product/spines/capture/core/source_families/retail_pdp/fragrance_purchase_review_row_contract_v0.md
   - orca/product/spines/capture/core/source_families/retail_pdp/fragrance_purchase_review_site_registry_v0.md
+  - orca/product/spines/capture/core/source_families/retail_pdp/fragrance_purchase_review_widget_expansion_probe_v0.md
   - orca/product/spines/capture/core/source_families/retail_pdp/fragrance_purchase_review_retailer_recon_v0.md
 stale_if:
   - The ignored row-corpus artifact is regenerated.
   - Any locked fixture, packet path, row contract, or source route changes.
-  - Pagination expansion or durable Attachment Record physicalization is authorized.
+  - This packet-window receipt is used as current full fixture coverage after the widget expansion probe.
+  - Durable Attachment Record physicalization is authorized.
 ```
 
 ## Decision
@@ -57,6 +59,24 @@ lane explicitly binding that next step.
 | `fragrance_retail_zgo` | 1 |
 | `fragrance_retail_indigo` | 5 |
 | **Total** | **25** |
+
+## Later Widget Probe
+
+This receipt remains the original 25-row packet-window pilot. A later bounded
+widget-expansion probe found better current row-completion routes for four
+Judge.me fixtures, but did not rewrite this raw JSONL corpus.
+
+| Source ID | Original emitted rows | Widget fixture total observed later | Current interpretation |
+| --- | ---: | ---: | --- |
+| `fragrance_retail_ministry_of_scent` | 4 | 4 | Widget route confirms no pagination gain. |
+| `fragrance_retail_luckyscent` | 10 | 14 | Widget page 2 exposes 4 missing rows. |
+| `fragrance_retail_twisted_lily` | 5 | 6 | Widget page 2 exposes 1 missing row. |
+| `fragrance_retail_zgo` | 1 | 1 | Public Yotpo widget API returned zero rows; keep Direct HTTP static PDP section. |
+| `fragrance_retail_indigo` | 5 | 13 | Direct Judge.me widget endpoint supersedes schema-only row completion. |
+
+For current pagination, rating-filter, media-filter, and widget-route posture,
+open `fragrance_purchase_review_widget_expansion_probe_v0.md`. Do not treat
+the 25-row JSONL as full known fixture coverage after that probe.
 
 ## Steps Performed
 

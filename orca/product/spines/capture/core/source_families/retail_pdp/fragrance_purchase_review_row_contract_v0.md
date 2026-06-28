@@ -13,6 +13,7 @@ open_next:
   - orca/product/spines/capture/core/source_families/retail_pdp/fragrance_purchase_review_site_registry_v0.md
   - orca/product/spines/capture/core/source_families/retail_pdp/fragrance_purchase_review_retailer_recon_v0.md
   - orca/product/spines/capture/core/source_families/retail_pdp/fragrance_purchase_review_row_capture_pilot_v0.md
+  - orca/product/spines/capture/core/source_families/retail_pdp/fragrance_purchase_review_widget_expansion_probe_v0.md
   - orca/product/spines/capture/core/source_families/retail_pdp/retail_pdp_projection_contract_v0.md
   - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_attachment_record_implementation_contract_v0.md
 stale_if:
@@ -120,6 +121,33 @@ This companion substrate may reuse the existing `retail_review_substrate` postur
 but it must not be collapsed into individual row fields and must not stand in for
 missing row bodies.
 
+## Mechanical Filter View
+
+A downstream agent may need to reduce context before reading review language. The
+allowed v0 filter view is mechanical or source-visible only. It may be derived
+from candidate rows, but it must not replace the raw row and must not become a
+pain/pleasure, authenticity, buyer-proof, demand, or sentiment label.
+
+| Field | How to derive | Boundary |
+| --- | --- | --- |
+| `review_month` | `YYYY-MM` from source-visible review date when date precision supports it. | Mechanical recency window only; keep date residuals when date is absent or relative. |
+| `review_body_word_count` | Count words in `review_body_verbatim`. | Context-budget aid only; not quality, credibility, or salience. |
+| `review_length_bucket` | `<20`, `20_39`, `40_74`, or `75_plus` from word count. | Use to prioritize rows; do not discard raw rows without recording the filter. |
+| `rating_exact` / `rating_bucket` | Source-visible `rating_value`; bucket may include exact `1`..`5`, `low_1_2`, `mixed_or_negative_le_3`, and `positive_ge_4`. | Include 4-star and 5-star rows, not only negative rows. |
+| `media_attached_flag` | Source-visible review media indicator or widget media arrays/filter result. | Product gallery images do not count as review media. Absence is `unknown` unless the widget says the media-filter row count is zero. |
+| `verified_purchase_flag` | Explicit source label or widget field only. | Never infer false from a missing verified label. |
+| `comment_scope_hint` | Optional thin pre-filter from the review body: `product_related`, `fulfillment_or_service`, `sample_discovery_or_gift`, `non_product_or_unclear`, or `mixed`. | A routing hint only; not a Cleaning/Judgment label. Preserve the raw body and scope residual. |
+
+Default context-window posture for review-reading agents:
+
+- Always include rows with `review_body_word_count >= 75` when within the bounded fixture window.
+- Include `40_74` rows when recent or carrying useful rating/media/verified/source-app fields.
+- Include `20_39` rows only when recent or needed for rating balance.
+- Ignore `<20` rows by default unless they are very recent low-rating rows or the fixture is otherwise too sparse.
+
+Scent-profile tags are intentionally out of the capture row/filter contract unless
+the source explicitly displays them as source-visible review metadata.
+
 ## Candidate Key Rule
 
 When `source_native_review_id` is absent, a pilot may use a packet-local
@@ -142,6 +170,8 @@ later. If the body text is absent, do not produce a usable row.
 - Do not infer `verified_purchase_flag=false` from a missing verified label.
 - Do not normalize reviewer identity, product identity, or cross-retailer product
   equivalence.
+- Do not add inferred scent-profile tags, unless the source explicitly displays
+  them as review metadata.
 - Do not assign pain point, pleasure point, sentiment, integrity, authenticity,
   salience, demand, or buyer-proof labels.
 - Do not fetch pagination, reviewer profiles, or adjacent products from this row
