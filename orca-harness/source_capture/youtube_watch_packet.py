@@ -36,6 +36,7 @@ SOURCE_SURFACE = "youtube_watch_metadata_comments"
 CAPTURE_SCHEMA_VERSION = "youtube_watch_metadata_comments_capture_v0"
 WATCH_HTML_NAME = "raw_watch.html"
 CAPTURE_JSON_NAME = "youtube_watch_capture.json"
+YOUTUBE_WATCH_METRIC_NAMES = ("view_count", "like_count", "comment_sample_count", "total_comment_count")
 
 YOUTUBE_WATCH_NON_CLAIMS = [
     "not video media byte preservation",
@@ -92,6 +93,11 @@ def write_youtube_watch_packet(
     comments_state = _string_or_none(availability.get("comments_state")) or _string_or_none(
         packet.get("comments_posture")
     ) or "comments_not_exposed"
+    try:
+        metric_observations = _metric_observations(packet, capture_timestamp=capture_ts)
+    except ValueError as exc:
+        return 5, f"refusing to build packet: {exc}"
+    metric_receipts = packet.get("metric_receipts") if isinstance(packet.get("metric_receipts"), Mapping) else {}
 
     payload = {
         "capture_schema_version": CAPTURE_SCHEMA_VERSION,
@@ -100,7 +106,7 @@ def write_youtube_watch_packet(
         "watch_url": watch_url,
         "capture_timestamp": capture_ts,
         "availability": availability,
-        "metric_receipts": packet.get("metric_receipts") if isinstance(packet.get("metric_receipts"), Mapping) else {},
+        "metric_receipts": metric_receipts,
         "packet": packet,
         "comment_page_filenames": [page.filename for page in fetch.comment_page_bodies],
     }
@@ -130,20 +136,14 @@ def write_youtube_watch_packet(
     media = known_fact("served watch HTML and youtubei comment JSON preserved; video media bytes are out of scope")
     recapture = not_applicable("no prior YouTube watch packet supplied")
 
-    metadata_metrics = [
-        _metric_observation(packet, "view_count", capture_timestamp=capture_ts),
-        _metric_observation(packet, "like_count", capture_timestamp=capture_ts),
-    ]
-    comments_metrics = [
-        _metric_observation(packet, "comment_sample_count", capture_timestamp=capture_ts),
-        _metric_observation(packet, "total_comment_count", capture_timestamp=capture_ts),
-    ]
+    metadata_metrics = [metric_observations["view_count"], metric_observations["like_count"]]
+    comments_metrics = [metric_observations["comment_sample_count"], metric_observations["total_comment_count"]]
     comments_file_ids = [file_ids[CAPTURE_JSON_NAME]] + [file_ids[page.filename] for page in fetch.comment_page_bodies]
     if not fetch.comment_page_bodies:
         comments_file_ids.append(file_ids[WATCH_HTML_NAME])
 
-    slice_limitations = _slice_limitations(packet)
-    comments_limitations = _comments_limitations(packet)
+    slice_limitations = _slice_limitations(packet, metric_observations)
+    comments_limitations = _comments_limitations(packet, metric_observations)
     run_limitations = slice_limitations + comments_limitations
 
     source_slices = [
@@ -175,7 +175,6 @@ def write_youtube_watch_packet(
         ),
     ]
 
-    observed = _observed_metric_counts(source_slices)
     result = stage_and_write_packet(
         output_directory=output_directory,
         data_root=data_root,
@@ -199,13 +198,7 @@ def write_youtube_watch_packet(
                 f"comments=youtubei_next;comment_pages={len(fetch.comment_page_bodies)}"
             ),
             f"youtube_watch_states:video={video_state};comments={comments_state}",
-            (
-                "youtube_watch_metrics:"
-                f"view_count={observed.get('view_count', 0)};"
-                f"like_count={observed.get('like_count', 0)};"
-                f"comment_sample_count={observed.get('comment_sample_count', 0)};"
-                f"total_comment_count={observed.get('total_comment_count', 0)}"
-            ),
+            f"youtube_watch_metric_postures:{_metric_posture_summary(metric_observations)}",
         ],
         source_publication_or_event=timing.source_publication_or_event,
         source_edit_or_version=timing.source_edit_or_version,
@@ -226,31 +219,66 @@ def write_youtube_watch_packet(
     return 0, result.output_directory
 
 
+def _metric_observations(packet: Mapping[str, Any], *, capture_timestamp: str) -> dict[str, MetricObservation]:
+    return {
+        metric: _metric_observation(packet, metric, capture_timestamp=capture_timestamp)
+        for metric in YOUTUBE_WATCH_METRIC_NAMES
+    }
+
+
 def _metric_observation(packet: Mapping[str, Any], metric: str, *, capture_timestamp: str) -> MetricObservation:
     receipts = packet.get("metric_receipts") if isinstance(packet.get("metric_receipts"), Mapping) else {}
     receipt = receipts.get(metric) if isinstance(receipts.get(metric), Mapping) else None
-    engagement = packet.get("engagement") if isinstance(packet.get("engagement"), Mapping) else {}
+    if receipt is None:
+        raise ValueError(f"missing metric receipt for {metric}")
 
-    if receipt is not None and receipt.get("posture") == "observed":
+    engagement = packet.get("engagement") if isinstance(packet.get("engagement"), Mapping) else {}
+    engagement_value = _int_or_none(engagement.get(metric))
+    posture = _string_or_none(receipt.get("posture"))
+
+    if posture == "observed":
         value = _int_or_none(receipt.get("value"))
-        if value is not None:
-            return _observed_metric(metric, value, capture_timestamp=capture_timestamp)
-    value = _int_or_none(engagement.get(metric))
-    if value is not None:
+        if value is None:
+            raise ValueError(f"observed metric receipt for {metric} requires an integer value")
+        source_route = _string_or_none(receipt.get("source_route"))
+        source_path = _string_or_none(receipt.get("source_path"))
+        artifact = _string_or_none(receipt.get("artifact"))
+        missing = [
+            name
+            for name, field_value in (
+                ("source_route", source_route),
+                ("source_path", source_path),
+                ("artifact", artifact),
+            )
+            if field_value is None
+        ]
+        if missing:
+            raise ValueError(f"observed metric receipt for {metric} missing {', '.join(missing)}")
+        if engagement_value is not None and engagement_value != value:
+            raise ValueError(
+                f"metric receipt for {metric} value {value} does not match engagement value {engagement_value}"
+            )
         return _observed_metric(metric, value, capture_timestamp=capture_timestamp)
 
-    reason = None
-    if receipt is not None:
-        reason = _string_or_none(receipt.get("reason"))
+    if engagement_value is not None:
+        raise ValueError(
+            f"{metric} has engagement value {engagement_value} but metric receipt posture is {posture!r}"
+        )
+    if posture != "unavailable_with_reason":
+        raise ValueError(f"metric receipt for {metric} has unsupported posture {posture!r}")
+
+    reason = _string_or_none(receipt.get("reason"))
     if reason is None:
-        reason = f"{metric} was not exposed by the captured YouTube route; no zero-filled value recorded"
+        raise ValueError(f"unavailable metric receipt for {metric} requires a reason")
+    routes_checked = receipt.get("routes_checked")
+    if not _nonempty_string_sequence(routes_checked):
+        raise ValueError(f"unavailable metric receipt for {metric} requires non-empty routes_checked")
     return MetricObservation(
         metric=metric,
         posture=MetricPosture.UNAVAILABLE_WITH_REASON,
         reason=reason,
         coverage_window=_coverage_window(capture_timestamp),
     )
-
 
 def _observed_metric(metric: str, value: int, *, capture_timestamp: str) -> MetricObservation:
     return MetricObservation(
@@ -265,39 +293,36 @@ def _coverage_window(capture_timestamp: str) -> CoverageWindow:
     return CoverageWindow(end=capture_timestamp)
 
 
-def _slice_limitations(packet: Mapping[str, Any]) -> list[str]:
+def _slice_limitations(packet: Mapping[str, Any], metric_observations: Mapping[str, MetricObservation]) -> list[str]:
     availability = packet.get("availability") if isinstance(packet.get("availability"), Mapping) else {}
     state = _string_or_none(availability.get("video_state")) or "unknown"
     limitations: list[str] = []
     if state != "playable":
         limitations.append(f"video_availability_state:{state}")
     for metric in ("view_count", "like_count"):
-        obs = _metric_observation(packet, metric, capture_timestamp="1970-01-01T00:00:00Z")
+        obs = metric_observations[metric]
         if obs.posture != MetricPosture.OBSERVED:
             limitations.append(f"{metric}_not_exposed:no_zero_fill")
     return limitations
 
 
-def _comments_limitations(packet: Mapping[str, Any]) -> list[str]:
+def _comments_limitations(packet: Mapping[str, Any], metric_observations: Mapping[str, MetricObservation]) -> list[str]:
     availability = packet.get("availability") if isinstance(packet.get("availability"), Mapping) else {}
     state = _string_or_none(availability.get("comments_state")) or _string_or_none(packet.get("comments_posture"))
     limitations: list[str] = []
     if state != "comments_sample_captured":
         limitations.append(f"comments_state:{state or 'comments_not_exposed'}")
     for metric in ("comment_sample_count", "total_comment_count"):
-        obs = _metric_observation(packet, metric, capture_timestamp="1970-01-01T00:00:00Z")
+        obs = metric_observations[metric]
         if obs.posture != MetricPosture.OBSERVED:
             limitations.append(f"{metric}_not_exposed:no_zero_fill")
     return limitations
 
 
-def _observed_metric_counts(source_slices: Sequence[SourceCaptureSlice]) -> dict[str, int]:
-    counts: dict[str, int] = {}
-    for source_slice in source_slices:
-        for observation in source_slice.metric_observations:
-            if observation.posture == MetricPosture.OBSERVED:
-                counts[observation.metric] = counts.get(observation.metric, 0) + 1
-    return counts
+def _metric_posture_summary(metric_observations: Mapping[str, MetricObservation]) -> str:
+    return ";".join(
+        f"{metric}={metric_observations[metric].posture.value}" for metric in YOUTUBE_WATCH_METRIC_NAMES
+    )
 
 
 def _validate_comment_page(page: YoutubeWatchCommentPage) -> None:
@@ -309,6 +334,12 @@ def _validate_comment_page(page: YoutubeWatchCommentPage) -> None:
 
 def _json_safe_dict(value: Mapping[str, Any]) -> dict[str, Any]:
     return json.loads(json.dumps(dict(value), ensure_ascii=False))
+
+
+def _nonempty_string_sequence(value: object) -> bool:
+    if isinstance(value, (str, bytes)) or not isinstance(value, Sequence):
+        return False
+    return any(_string_or_none(item) is not None for item in value)
 
 
 def _int_or_none(value: object) -> int | None:
@@ -342,6 +373,7 @@ __all__ = [
     "CAPTURE_SCHEMA_VERSION",
     "SOURCE_SURFACE",
     "WATCH_HTML_NAME",
+    "YOUTUBE_WATCH_METRIC_NAMES",
     "YOUTUBE_WATCH_NON_CLAIMS",
     "YoutubeWatchCommentPage",
     "YoutubeWatchFetch",

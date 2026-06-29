@@ -1,24 +1,34 @@
-"""Coverage flag: a packet-producing capture runner must either carry the Data
-Lake seam (``--data-root`` / ``data_root`` -> commit into the lake) or be
-explicitly acknowledged as not-yet-synced.
+"""Coverage flag: packet-producing capture runners must carry the Data Lake seam.
 
-This is the enforced version of the manual "which runners route into the lake?"
-survey. Adding a NEW packet runner without the seam -- and without an entry in
-``KNOWN_UNSYNCED`` -- fails this test on purpose. That is the nudge: wire the
-seam (mirror ``run_source_capture_http_packet.py``) or acknowledge the gap with a
-reason. The test also fails if a runner gains the seam but is left in the
-allowlist, so the allowlist cannot rot.
+A runner that writes a SourceCapturePacket must either route into the lake
+(``--data-root`` / ``data_root`` -> commit into the lake) or be explicitly
+acknowledged as not-yet-synced. This is the enforced version of the manual
+"which runners route into the lake?" survey.
+
+The detector follows imported packet-writer names from ``source_capture.*`` so
+new thin wrappers such as ``write_youtube_watch_packet`` cannot bypass the seam
+contract just because they do not call ``stage_and_write_packet`` directly.
 """
 from __future__ import annotations
 
 import ast
+import re
 from dataclasses import dataclass
 from pathlib import Path
 
 _RUNNERS_DIR = Path(__file__).resolve().parents[2] / "runners"
 
-# A runner is a raw-packet PRODUCER if it writes a SourceCapturePacket.
-_PRODUCER_TOKENS = ("write_local_source_capture_packet", "stage_and_write_packet")
+_DIRECT_PACKET_WRITER_TOKENS = {"write_local_source_capture_packet", "stage_and_write_packet"}
+_PACKET_WRITER_NAME_RE = re.compile(r"write_.*_packet$")
+_ENV_OUTPUT_OMITTED_TOKENS = (
+    'args.output is None and os.environ.get("ORCA_DATA_ROOT")',
+    'output_directory is None and os.environ.get("ORCA_DATA_ROOT")',
+)
+_EXPLICIT_PAIR_REJECT_TOKENS = (
+    "args.output is not None and args.data_root is not None",
+    "output_directory is not None and args.data_root is not None",
+    "add_mutually_exclusive_group",
+)
 
 # Packet-producing runners that intentionally do NOT route into the lake yet.
 # Each MUST carry a reason. Remove an entry when you wire its seam. Adding a new
@@ -35,9 +45,12 @@ class _ProducerCall:
 
 @dataclass(frozen=True)
 class _RunnerSeam:
+    exposes_output_arg: bool
     exposes_data_root_arg: bool
     exposes_env_fallback: bool
     resolves_data_root: bool
+    rejects_output_and_data_root: bool
+    env_fallback_uses_output_omitted: bool
     producer_calls: tuple[_ProducerCall, ...]
 
     @property
@@ -53,7 +66,13 @@ class _RunnerSeam:
             and self.forwards_data_root
         )
 
-    def missing_parts(self) -> list[str]:
+    @property
+    def has_exclusive_output_mode(self) -> bool:
+        if not self.exposes_output_arg:
+            return True
+        return self.rejects_output_and_data_root and self.env_fallback_uses_output_omitted
+
+    def missing_seam_parts(self) -> list[str]:
         missing: list[str] = []
         if not self.exposes_data_root_arg:
             missing.append("--data-root argument")
@@ -65,6 +84,20 @@ class _RunnerSeam:
             missing.append("data_root= forwarded into packet writer")
         return missing
 
+    def missing_output_mode_parts(self) -> list[str]:
+        if not self.exposes_output_arg:
+            return []
+        missing: list[str] = []
+        if not self.rejects_output_and_data_root:
+            missing.append("explicit --output + --data-root rejection")
+        if not self.env_fallback_uses_output_omitted:
+            missing.append("ORCA_DATA_ROOT gated on --output being omitted")
+        return missing
+
+
+def _has_any_token(src: str, tokens: tuple[str, ...]) -> bool:
+    return any(token in src for token in tokens)
+
 
 def _call_name(node: ast.Call) -> str | None:
     if isinstance(node.func, ast.Name):
@@ -74,13 +107,27 @@ def _call_name(node: ast.Call) -> str | None:
     return None
 
 
-def _producer_calls(tree: ast.AST) -> tuple[_ProducerCall, ...]:
+def _imported_packet_writer_names(tree: ast.AST) -> set[str]:
+    writer_names = set(_DIRECT_PACKET_WRITER_TOKENS)
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.ImportFrom):
+            continue
+        if not (node.module or "").startswith("source_capture"):
+            continue
+        for alias in node.names:
+            imported_name = alias.name
+            if imported_name in _DIRECT_PACKET_WRITER_TOKENS or _PACKET_WRITER_NAME_RE.fullmatch(imported_name):
+                writer_names.add(alias.asname or imported_name)
+    return writer_names
+
+
+def _producer_calls(tree: ast.AST, writer_names: set[str]) -> tuple[_ProducerCall, ...]:
     calls: list[_ProducerCall] = []
     for node in ast.walk(tree):
         if not isinstance(node, ast.Call):
             continue
         name = _call_name(node)
-        if name not in _PRODUCER_TOKENS:
+        if name not in writer_names:
             continue
         calls.append(
             _ProducerCall(
@@ -98,12 +145,15 @@ def _packet_producers() -> dict[str, _RunnerSeam]:
     for path in sorted(_RUNNERS_DIR.glob("run_*.py")):
         src = path.read_text(encoding="utf-8")
         tree = ast.parse(src, filename=str(path))
-        calls = _producer_calls(tree)
+        calls = _producer_calls(tree, _imported_packet_writer_names(tree))
         if calls:
             producers[path.name] = _RunnerSeam(
+                exposes_output_arg="--output" in src,
                 exposes_data_root_arg="--data-root" in src,
                 exposes_env_fallback="ORCA_DATA_ROOT" in src,
                 resolves_data_root="DataLakeRoot.resolve" in src,
+                rejects_output_and_data_root=_has_any_token(src, _EXPLICIT_PAIR_REJECT_TOKENS),
+                env_fallback_uses_output_omitted=_has_any_token(src, _ENV_OUTPUT_OMITTED_TOKENS),
                 producer_calls=calls,
             )
     return producers
@@ -120,7 +170,7 @@ def test_every_packet_runner_is_lake_wired_or_acknowledged() -> None:
         "Packet-producing runner(s) missing a real lake seam.\n"
         "Wire the seam (mirror run_source_capture_http_packet.py) OR add to KNOWN_UNSYNCED with a reason:\n"
         + "\n".join(
-            f"  {name}: {', '.join(producers[name].missing_parts())}"
+            f"  {name}: {', '.join(producers[name].missing_seam_parts())}"
             for name in sorted(new_unsynced)
         )
     )
@@ -130,6 +180,20 @@ def test_every_packet_runner_is_lake_wired_or_acknowledged() -> None:
         "KNOWN_UNSYNCED lists runner(s) that now carry the seam (or are no longer packet producers).\n"
         "Remove them from KNOWN_UNSYNCED:\n"
         f"  {sorted(stale_ack)}"
+    )
+
+
+def test_packet_runner_output_modes_are_exclusive() -> None:
+    producers = _packet_producers()
+    ambiguous = {
+        name: seam.missing_output_mode_parts()
+        for name, seam in producers.items()
+        if name not in KNOWN_UNSYNCED and not seam.has_exclusive_output_mode
+    }
+
+    assert not ambiguous, (
+        "Packet-producing runner(s) with --output must keep local-output and lake-output modes exclusive: "
+        f"{ambiguous}"
     )
 
 
