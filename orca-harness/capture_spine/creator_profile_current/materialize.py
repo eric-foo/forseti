@@ -16,7 +16,7 @@ from capture_spine.creator_profile_current.validation import (
 
 WRAPPER_KEY = "creator_profile_current_view"
 ACCOUNT_LEDGER_POINTER = (
-    "orca/product/spines/capture/core/source_families/social_media/"
+    "orca/product/spines/capture/core/source_families/social_media/creator_registry/"
     "creator_public_handle_linkage_ledger_v0.json"
 )
 YOUTUBE_METRIC_SEED_POINTER = (
@@ -156,9 +156,9 @@ def build_creator_profile_current_view_document(
             "are account-scoped unless promoted public-handle linkage exists."
         ),
         "authority_pointers": [
-            "orca/product/spines/capture/core/source_families/social_media/creator_profile_current_view_spec_v0.md",
+            "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_profile_current_view_spec_v0.md",
             "orca/product/spines/creator_signal/creator_intelligence_profile_surface_v0.md",
-            "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_spec_v0.md",
+            "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_spec_v0.md",
         ],
         "source_inputs": [
             {

@@ -23,8 +23,8 @@ open_next:
   - .agents/workflow-overlay/prompt-orchestration.md
   - docs/decisions/orca_mini_god_tier_doctrine_v0.md
   - orca/product/spines/capture/core/source_families/social_media/youtube/youtube_creator_observation_ledger_spec_v0.md
-  - orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_spec_v0.md
-  - orca/product/spines/capture/core/source_families/social_media/creator_profile_current_view_spec_v0.md
+  - orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_spec_v0.md
+  - orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_profile_current_view_spec_v0.md
   - orca/product/spines/creator_signal/creator_intelligence_profile_surface_v0.md
 stale_if:
   - The creator observation, public-handle linkage, creator profile current view, or Creator Signal surface contracts are superseded.

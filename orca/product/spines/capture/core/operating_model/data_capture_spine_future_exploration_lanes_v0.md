@@ -14,7 +14,7 @@ use_when:
 authority_boundary: retrieval_only
 open_next:
   - docs/decisions/wind_caller_calibration_carveout_v0.md
-  - orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_spec_v0.md
+  - orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_spec_v0.md
 ```
 
 # Data Capture Spine — Future Exploration Lanes (v0)
@@ -27,7 +27,7 @@ stitching were sanctioned-but-deferred. Later amendments in
 `docs/decisions/wind_caller_calibration_carveout_v0.md` supersede that historical
 state for one narrow case: Tier-2-B public-handle-to-public-handle joins are now
 activated and route through
-`orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_spec_v0.md`.
+`orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_spec_v0.md`.
 
 This file remains the warning surface for the residuals: audience/follower
 analytics, non-public-handle joins, and contact/outreach. It is not legal
@@ -83,7 +83,7 @@ sanctioned-but-deferred on 2026-06-13, then activated for
 public-handle-to-public-handle joins by the 2026-06-22 amendment in
 `docs/decisions/wind_caller_calibration_carveout_v0.md`. The build route is the
 dedicated linkage spec at
-`orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_spec_v0.md`.
+`orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_spec_v0.md`.
 
 **The idea.** Link the same wind-caller's public handles across IG, TikTok,
 YouTube, and other platforms into a unified calibration record for

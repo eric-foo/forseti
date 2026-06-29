@@ -32,6 +32,7 @@ ACCOUNT_LEDGER_PATH = (
     / "core"
     / "source_families"
     / "social_media"
+    / "creator_registry"
     / "creator_public_handle_linkage_ledger_v0.json"
 )
 _SHA256_RE = re.compile(r"[0-9a-f]{64}")

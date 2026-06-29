@@ -25,8 +25,8 @@ open_next:
   - orca-harness/capture_spine/linkedin_lane/shared_validation.py
   - orca-harness/tests/unit/test_creator_profile_current_static_view.py
   - orca-harness/tests/unit/test_youtube_creator_metric_seed.py
-  - orca/product/spines/capture/core/source_families/social_media/creator_profile_current_view_spec_v0.md
-  - orca/product/spines/capture/core/source_families/social_media/creator_profile_current_lake_native_record_mapping_v0.md
+  - orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_profile_current_view_spec_v0.md
+  - orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_profile_current_lake_native_record_mapping_v0.md
   - docs/review-outputs/creator_profile_current_validator_adversarial_code_review_v0.md
 source_base_revision: codex/creator-metric-source-audit @ ad2e18869005ff2db983310e7022c554b23de169
 stale_if:
