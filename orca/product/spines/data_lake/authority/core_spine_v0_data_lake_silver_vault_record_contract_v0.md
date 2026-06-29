@@ -163,6 +163,34 @@ Header invariants:
 | `raw_refs` | Required for source-backed records; each ref must resolve packet/slice/file and carry `sha256` plus `hash_basis` where the source material is hash-checkable. |
 | `derived_refs` | Required when a record corrects, supersedes, conflicts with, or is generated from prior derived records. |
 
+## Not Silver: Cleaning Audit Packs
+
+A full Cleaning transformation ledger (the complete `CleaningPacket` / transform
+ledger) is **processing evidence, not a Silver fact record**. It must not be
+stored as a Silver Vault record under any `record_kind`: `record_kind` stays
+closed to `entity | relationship | observation`, and an `observation` payload
+must carry an observation object (subject/posture/value or text semantics), which
+a transform ledger does not.
+
+Instead the ledger persists as a **derived processing-audit sibling** in a
+Cleaning-produced lane (for example `cleaning_fragrantica_audit`), addressed and
+stored under the Data Lake's derived-record grammar. Its
+`schema_version: cleaning_audit_pack_v0` is the shared derived envelope for
+Cleaning audit packs — reusable by any Cleaning lane — with
+`record_family: processing_audit` and a per-source `producer_schema_version`
+flavor. That `record_family` / `audit_kind` are
+**local descriptive fields of `cleaning_audit_pack_v0` only and carry no
+Data-Lake-wide dispatch authority** unless and until a generic derived-record
+envelope is separately ratified.
+
+Post-cleaned cleaned-working-view facts (for example a review-body
+`TextObservation`) may be emitted as ordinary Silver records. Because such a
+record is generated from a prior derived record, its audit-pack lineage goes in
+the standard `derived_refs` header (edge `derived_from_record`, carrying the
+audit lane namespace, record id, and content hash) — not a producer-private
+sidecar field. Silver records reference the audit pack; they do not embed the
+transform ledger.
+
 ## Entity Records
 
 Entity records define stable source-backed identity only.
@@ -708,6 +736,63 @@ direction_change_propagation:
     - not runner PR work
     - not client replica implementation
     - not live external data-root mutation
+```
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    FCR-04 closure: a full Cleaning transformation ledger is processing evidence,
+    not a Silver fact record. Silver record_kind stays closed to
+    entity/relationship/observation and a Cleaning ledger is not an observation
+    payload. The ledger persists as a derived processing-audit sibling under the
+    Data Lake derived-record grammar (shared envelope schema_version
+    cleaning_audit_pack_v0 with a per-source producer_schema_version flavor,
+    record_family processing_audit), filed in a Cleaning-produced lane;
+    post-cleaned cleaned-working-view facts
+    are ordinary Silver records carrying a one-way provenance pointer (lane,
+    record id, content hash) to that audit pack. The audit pack's
+    record_family/audit_kind are local descriptive fields with no Data-Lake-wide
+    dispatch authority unless a generic derived-record envelope is separately
+    ratified.
+  trigger: architecture_doctrine
+  controlling_sources_updated:
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_silver_vault_record_contract_v0.md
+    - orca/product/spines/cleaning/contracts/core_spine_v0_cleaning_spine_foundation_v0.md
+  downstream_surfaces_checked:
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_derived_layout_index_rebuild_contract_v0.md
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_storage_contract_v0.md
+    - orca-harness/cleaning/fragrantica_lake.py
+    - orca-harness/tests/test_fragrantica_cleaning_lake_pilot.py
+    - docs/review-outputs/fragrantica_cleaning_adversarial_code_review_v0.md
+  intentionally_not_updated:
+    - path: orca/product/spines/data_lake/authority/core_spine_v0_data_lake_derived_layout_index_rebuild_contract_v0.md
+      reason: >
+        Owns derived addressing and explicitly supports new lane-owned derived
+        kinds without enumeration ("New analysis types are added as new derived
+        records"); cleaning_audit_pack_v0 exercises that grammar without changing
+        addressing, so no amendment is needed.
+    - path: orca/product/spines/data_lake/authority/core_spine_v0_data_lake_storage_contract_v0.md
+      reason: >
+        Derived Result Store slot already lists "Cleaning ledgers" as a derived
+        sibling; the audit pack is that sibling and needs no new slot.
+  stale_language_search: >
+    rg -n "FragranticaCleaningPacket|silver_vault_record_v0" orca-harness/cleaning orca-harness/tests
+  stale_language_search_result: >
+    Executed 2026-06-29 in worktree codex/fragrantica-cleaning after the writer
+    and test edits (rg over orca-harness *.py). FragranticaCleaningPacket now
+    appears only in the test's negative absence assertion
+    (test_fragrantica_cleaning_lake_pilot.py:112); the FCR-04 mis-fit wrapper is
+    gone from the writer. silver_vault_record_v0 now appears only as the
+    legitimate post-cleaned Silver TextObservation envelope: the writer constant
+    (fragrantica_lake.py:55) and the test assertions (lines 81, 113). No record
+    persists the full CleaningPacket as a Silver vault record.
+  non_claims:
+    - not validation
+    - not readiness
+    - not implementation authorization
+    - not a generic derived-record envelope ratification
+    - not migration of other derived/Cleaning lanes
+    - not landed (lane branch only; no commit/push/PR)
 ```
 
 Older receipts archived verbatim in `docs/decisions/dcp_receipts_archive_v0.md`.
