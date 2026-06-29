@@ -116,6 +116,24 @@ Use when available:
 - visibility class such as buyer-visible, market-visible,
   analyst-discoverable, archive-visible, or post-window.
 
+### Public-Reaction Evidence Unit Rule
+
+When an Evidence Unit is based on public reactions such as comments, replies,
+reviews, social/video engagement, or source-native vote/helpfulness systems, the
+Evidence Unit must carry engagement context availability rather than a bare text
+summary. At minimum, for each relevant metric family, record whether the source
+posture was `observed`, `hidden`, `approximate`, `unavailable_with_reason`, or
+`not_attempted`, and whether observed or approximate facts were preserved into
+the unit. This uses the same canonical `metric_posture` vocabulary as Cleaning's
+`engagement_context` candidate.
+
+This context is not a score. Source-visible public reaction should be
+interpreted as qualitative resonance weight by default, attached to the specific
+claim, frame, pain, objection, or artifact receiving the reaction. Direction,
+audience fit, baseline context, manipulation risk, and ambiguity decide how much
+weight it carries. Judgment still owns whether the context affects Signal
+Integrity, Signal Use, Decision Strength, Action Ceiling, credibility,
+independence, artificial amplification, exclusion, or demand support.
 ### Evidence Unit States
 
 | State | Meaning |
@@ -253,6 +271,7 @@ Use these categories:
 - demand evidence;
 - attention evidence;
 - resonance evidence;
+- resonance-direction evidence;
 - positioning evidence;
 - objection evidence;
 - distribution evidence;

@@ -161,8 +161,8 @@ a durable shift leaves the compounding play on the table.
   normalize (a viral surge, a time-limited dupe wave, a seasonal pop). It is
   **equal billing** with the durable read (owner call, 2026-06-14): it is still a
   capital-allocation decision and these occur more often than durable shifts.
-  The action is **in-window** (buy or avoid now). Anti-trap: weak/attention-only
-  input is not transient demand, and manufactured hype is not transient demand;
+  The action is **in-window** (buy or avoid now). Anti-trap: weak,
+  attention-only, or resonance-only input is not transient demand, and manufactured hype is not transient demand;
   transient demand is strong real demand whose persistence horizon is not
   supportably durable.
 - **Manufactured-demand (Reading) read** (fake / amplified → *avoid*): demand

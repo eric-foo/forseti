@@ -86,15 +86,30 @@ used to test CSB rows, find hidden venues, and record pointers, negatives, or
 access notes. It is not search-volume proof, AEO proof, SEO keyword research,
 a standing query monitor, or a crawler substitute.
 
+Public-reaction engagement context is a scan-routing input. If a scan observes
+source-visible upvotes, helpful votes, likes, views, shares, comment counts,
+reply counts, source-native score state, visible sort/rank/order, or
+pinned/hearted/official-response markers, it should treat them as qualitative
+resonance context by default and may use them to prioritize a frontier, explain
+venue value, or request Capture preservation. Direction, visible audience fit,
+baseline context, manipulation risk, and ambiguity decide how much routing
+priority the context deserves. Scanning must not turn those metrics into demand
+proof, credibility, independence, amplification, gate clearance, graph weight,
+final resonance weight, or Action Ceiling. Source-family adapters with explicit
+counts, visibility, rank, or influence fields inherit this boundary.
+
 Before closeout, a fresh CSB-first scan artifact must pass
 `.agents/hooks/check_csb_scanning_artifact.py` or record why the checker was not
 run. CI also runs the checker in forward-only diff mode for changed
 `docs/research/` artifacts that look like CSB-first scan outputs. The checker
-enforces receipt shape only: source context, caps, broad-scout accounting,
-CSB-row accountability, exact-query accounting, venue/hidden-venue accounting,
-observations, negatives/access notes, capture-request accounting, and candidate
-closeout. It does not grade signal quality, prove buyer demand, validate
-candidates, or bind Capture routes.
+enforces receipt shape and mechanical public-reaction overclaim language only:
+source context, caps, broad-scout accounting, CSB-row accountability,
+exact-query accounting, venue/hidden-venue accounting, observations,
+negatives/access notes, capture-request accounting, candidate closeout, and
+explicit engagement/resonance shortcuts into proof, gate clearance, route
+binding, graph weight, credibility, amplification, Action Ceiling, or final
+resonance weight. It does not grade signal quality, prove buyer demand,
+validate candidates, or bind Capture routes.
 
 `precursor_signal` and `precursor_surface` are routing inputs. They may steer a
 walk or explain why a venue deserves inspection. They are not a generic label
@@ -240,3 +255,5 @@ direction_change_propagation:
     - not source-access authorization
     - not implementation authorization
 ```
+
+Older receipts archived verbatim in `docs/decisions/dcp_receipts_archive_v0.md`.

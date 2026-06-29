@@ -1,0 +1,149 @@
+{
+  "kind": "autocomplete",
+  "requested_query": "niche perfume discovery set",
+  "extracted_at_browser_iso": "2026-06-24T15:06:55.117Z",
+  "location_href": "https://www.google.com/?hl=en&gl=us&pws=0",
+  "document_title": "Google",
+  "viewport": {
+    "width": 1264,
+    "height": 625,
+    "device_pixel_ratio": 1
+  },
+  "navigator": {
+    "language": "en-US",
+    "languages": [
+      "en-US",
+      "en"
+    ],
+    "platform": "Win32",
+    "webdriver": false,
+    "timezone": "Asia/Singapore"
+  },
+  "session_state": {
+    "sign_in_text_visible": true,
+    "google_account_text_visible": false,
+    "captcha_or_unusual_traffic_visible": false,
+    "consent_text_visible": false
+  },
+  "modules": {
+    "people_also_ask": false,
+    "people_also_search_for": false,
+    "related_searches": false,
+    "shopping_or_products": false,
+    "popular_products": false,
+    "more_products": false,
+    "sponsored_or_ads": false,
+    "video": false,
+    "forums": true,
+    "discussions_and_forums": false,
+    "images": true
+  },
+  "autocomplete_suggestions": [
+    "niche perfume discovery set",
+    "niche perfume discovery set sale",
+    "niche perfume discovery set men",
+    "niche perfume discovery sets reddit",
+    "niche perfume discovery kit",
+    "best niche perfume discovery sets",
+    "niche perfume house discovery set",
+    "men's niche fragrance discovery set",
+    "shop deals on niche perfume discovery sets",
+    "niche parfum discovery set"
+  ],
+  "organic_results": [],
+  "people_also_ask_lines": [],
+  "people_also_search_lines": [],
+  "related_search_lines": [],
+  "product_or_shopping_lines": [
+    "niche perfume discovery set sale",
+    "shop deals on niche perfume discovery sets"
+  ],
+  "video_or_forum_lines": [
+    "niche perfume discovery sets reddit"
+  ],
+  "footer_or_location_lines": [
+    "Privacy",
+    "Terms",
+    "Settings"
+  ],
+  "possible_non_us_storefront_or_locale_signals": [],
+  "all_links_sample": [
+    {
+      "text": "About",
+      "href": "https://about.google/?fg=1&utm_source=google-US&utm_medium=referral&utm_campaign=hp-header"
+    },
+    {
+      "text": "Store",
+      "href": "https://store.google.com/US?utm_source=hp_header&utm_medium=google_ooo&utm_campaign=GS100042&hl=en-US"
+    },
+    {
+      "text": "Gmail",
+      "href": "https://mail.google.com/mail/&ogbl"
+    },
+    {
+      "text": "Images",
+      "href": "https://www.google.com/imghp?hl=en&ogbl"
+    },
+    {
+      "text": "Google apps",
+      "href": "https://www.google.com.sg/intl/en/about/products"
+    },
+    {
+      "text": "Sign in",
+      "href": "https://accounts.google.com/ServiceLogin?hl=en&passive=true&continue=https://www.google.com/%3Fhl%3Den%26gl%3Dus%26pws%3D0&ec=futura_exp_og_so_72776762_e"
+    },
+    {
+      "text": "Go to Google home",
+      "href": "https://www.google.com/webhp?hl=en&ictx=0&sa=X&ved=0ahUKEwiU46fNk6CVAxX4zTgGHb8SB0cQPAgE"
+    },
+    {
+      "text": "",
+      "href": "https://www.google.com/search?sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&q=What+records+have+been+broken+so+far+this+World+Cup%3F&udm=50&oi=ddle&noiga=1&ct=460194320&peek_pws=0&aep=84&sa=X&ved=0ahUKEwiU46fNk6CVAxX4zTgGHb8SB0cQPQgG"
+    },
+    {
+      "text": "Advertising",
+      "href": "https://www.google.com/intl/en_us/ads/?subid=ww-ww-et-g-awa-a-g_hpafoot1_1!o2&utm_source=google.com&utm_medium=referral&utm_campaign=google_hpafooter&fg=1"
+    },
+    {
+      "text": "Business",
+      "href": "https://www.google.com/services/?subid=ww-ww-et-g-awa-a-g_hpbfoot1_1!o2&utm_source=google.com&utm_medium=referral&utm_campaign=google_hpbfooter&fg=1"
+    },
+    {
+      "text": "How Search works",
+      "href": "https://google.com/search/howsearchworks/?fg=1"
+    },
+    {
+      "text": "Build, create, and do more with AI tools from Google",
+      "href": "https://ai.google/helpful-tools/?utm_source=googlehpfooter&utm_medium=housepromos&utm_campaign=bottom-footer"
+    },
+    {
+      "text": "Privacy",
+      "href": "https://policies.google.com/privacy?hl=en&fg=1"
+    },
+    {
+      "text": "Terms",
+      "href": "https://policies.google.com/terms?hl=en&fg=1"
+    },
+    {
+      "text": "Search settings",
+      "href": "https://www.google.com/preferences?hl=en&fg=1"
+    },
+    {
+      "text": "Advanced search",
+      "href": "https://www.google.com/advanced_search?hl=en&fg=1"
+    },
+    {
+      "text": "Your data in Search",
+      "href": "https://www.google.com/history/privacyadvisor/search/unauth?utm_source=googlemenu&fg=1&cctld=com"
+    },
+    {
+      "text": "Search history",
+      "href": "https://www.google.com/history/optout?hl=en&fg=1"
+    },
+    {
+      "text": "Search help",
+      "href": "https://support.google.com/websearch/?p=ws_results_help&hl=en&fg=1"
+    }
+  ],
+  "visible_text_line_count": 23
+}

@@ -145,6 +145,16 @@ lane may train inference, build a case backlog, compare solved cases, and
 sharpen judgment rubrics. This note reserves the layer boundary; it does not
 claim Judgment Spine is trained, validated, accepted, or ready.
 
+### Public-reaction engagement boundary
+
+For public-reaction sources, Capture preserves source-visible reaction facts and
+row binding; Projection may carry those facts in mechanical rows; Cleaning may
+produce an `engagement_context` working view that preserves reaction structure,
+metric posture, residuals, and raw-pull triggers. None of those layers may decide
+credibility, independence, artificial amplification, demand support, Decision
+Strength, or Action Ceiling from the engagement facts. Those effects belong to
+Judgment.
+
 Decision Artifact splits into Reasoning Artifact and Communication Artifact.
 The memo plus evidence appendix are the reasoning substrate. The executive deck
 is derived communication; every material deck claim should trace back to the

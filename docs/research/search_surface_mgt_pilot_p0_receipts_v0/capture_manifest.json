@@ -1,0 +1,1051 @@
+{
+  "generated_at_iso": "2026-06-24T15:18:16.1978875Z",
+  "timezone": "Asia/Singapore",
+  "status_boundary": "capture_only_not_judgment_evidence_not_product_lead_action_not_durable_demand_proof",
+  "successful_capture_route": "fresh visible Chrome profile per query or short batch, logged-out Sign in visible, hl=en&gl=us&pws=0",
+  "blocked_route_logs": [
+    "headless_batch_blocked_run_index.json",
+    "visible_batch_partial_run_index.json"
+  ],
+  "hash_ledger": "hashes_sha256.txt",
+  "post_capture_enrichments": [
+    {
+      "added_at_date": "2026-06-25",
+      "module": "ai_answer_surface_module_v0",
+      "method": "derived from preserved serp_top/serp_full txt and screenshot pointers; no recapture and no live Trends pull",
+      "purpose": "make AI Overview shown/not_shown/AI Mode-tab-only states first-class capture observations",
+      "boundary": "visibility or absence state only; not demand proof, not absence-of-demand, not Google internal trigger explanation"
+    }
+  ],
+  "queries": [
+    {
+      "id": "01_niche_perfume_discovery_set",
+      "query": "niche perfume discovery set",
+      "final_url": "https://www.google.com/search?q=niche+perfume+discovery+set&hl=en&gl=us&pws=0&sei=j_I7au_9GKqhseMPx92nsQY",
+      "title": "niche perfume discovery set - Google Search",
+      "viewport": {
+        "width": 1264,
+        "height": 625,
+        "device_pixel_ratio": 1
+      },
+      "navigator": {
+        "language": "en-US",
+        "languages": [
+          "en-US",
+          "en"
+        ],
+        "platform": "Win32",
+        "webdriver": false,
+        "timezone": "Asia/Singapore"
+      },
+      "session_state": {
+        "sign_in_text_visible": true,
+        "google_account_text_visible": false,
+        "captcha_or_unusual_traffic_visible": false,
+        "consent_text_visible": false
+      },
+      "modules": {
+        "people_also_ask": false,
+        "people_also_search_for": true,
+        "related_searches": false,
+        "shopping_or_products": true,
+        "popular_products": true,
+        "more_products": true,
+        "sponsored_or_ads": false,
+        "video": true,
+        "forums": true,
+        "discussions_and_forums": false,
+        "images": true,
+        "ai_mode_tab": true,
+        "ai_overview": true,
+        "ai_answer_surface_module": "ai_overview_shown"
+      },
+      "ai_answer_surface_module": {
+        "schema": "ai_answer_surface_module_v0",
+        "observed_state": "ai_overview_shown",
+        "ai_mode_tab_visible": true,
+        "ai_overview_box_visible": true,
+        "evidence_from_preserved_text": {
+          "serp_top_txt_contains_ai_mode": true,
+          "serp_full_txt_contains_ai_mode": true,
+          "serp_top_txt_contains_ai_overview": true,
+          "serp_full_txt_contains_ai_overview": true
+        },
+        "evidence_files": {
+          "serp_top_txt": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\01_niche_perfume_discovery_set\\serp_top.txt",
+          "serp_full_txt": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\01_niche_perfume_discovery_set\\serp_full.txt",
+          "serp_top_png": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\01_niche_perfume_discovery_set\\serp_top.png",
+          "serp_full_png": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\01_niche_perfume_discovery_set\\serp_full.png"
+        },
+        "trend_correlation": {
+          "status": "not_run",
+          "allowed_question": "Does search-interest/trend posture help form hypotheses for why AI Overview was shown or not shown for this query cluster?",
+          "non_claim": "No Trends correlation may prove Google internal trigger causality, demand, buyer proof, or absence-of-demand."
+        },
+        "interpretation_boundary": "visibility_state_only_not_absence_of_demand_not_buyer_proof_not_gate_evidence"
+      },
+      "autocomplete_suggestions": [
+        "niche perfume discovery set",
+        "niche perfume discovery set sale",
+        "niche perfume discovery set men",
+        "niche perfume discovery sets reddit",
+        "niche perfume discovery kit",
+        "best niche perfume discovery sets",
+        "niche perfume house discovery set",
+        "men's niche fragrance discovery set",
+        "shop deals on niche perfume discovery sets",
+        "niche parfum discovery set"
+      ],
+      "people_also_ask_lines": [],
+      "people_also_search_lines": [
+        "Where to buy niche perfume discovery set",
+        "Niche perfume discovery set price",
+        "Niche perfume discovery set review",
+        "Best niche perfume discovery set",
+        "Fragrance Discovery Set for him",
+        "Niche perfume discovery set for her",
+        "Fragrance discovery Set for her",
+        "Perfume Discovery Set with voucher",
+        "Page Navigation",
+        "1"
+      ],
+      "related_search_lines": [],
+      "top_organic_results": [
+        {
+          "title": "Discovery Sets Twisted Lily https://twistedlily.com › samples-discovery-sets",
+          "href": "https://twistedlily.com/collections/samples-discovery-sets?srsltid=AfmBOoo6263hSxsu2rjcEIVaV02gnvNXhDxO6m4lhFzJsoK-uMNip97L",
+          "snippet_or_container_text": "Discovery Sets Twisted Lily https://twistedlily.com › samples-discovery-sets"
+        },
+        {
+          "title": "Indie Perfume & Niche Fragrance Gifts Under $100 Ministry of Scent https://ministryofscent.com › discovery-sets-sample-sets",
+          "href": "https://ministryofscent.com/collections/gifts-under-100/discovery-sets-sample-sets?srsltid=AfmBOorICEi2DdVxJIVKHI3klIbEUs3vehIq2a2ObJp1fM7hQVwRZkG3",
+          "snippet_or_container_text": "Indie Perfume & Niche Fragrance Gifts Under $100 Ministry of Scent https://ministryofscent.com › discovery-sets-sample-sets"
+        },
+        {
+          "title": "Good niche discovery sets from switching to designer? Reddit · r/fragrance 20+ comments · 4 years ago",
+          "href": "https://www.reddit.com/r/fragrance/comments/ohv50f/good_niche_discovery_sets_from_switching_to/",
+          "snippet_or_container_text": "Good niche discovery sets from switching to designer? Reddit · r/fragrance 20+ comments · 4 years ago"
+        },
+        {
+          "title": "Perfume sampler sets » buy online NICHE BEAUTY https://www.niche-beauty.com › Perfume › Shop by",
+          "href": "https://www.niche-beauty.com/en-us/perfume/shop-by/perfume-sampler-sets-2958",
+          "snippet_or_container_text": "Perfume sampler sets » buy online NICHE BEAUTY https://www.niche-beauty.com › Perfume › Shop by"
+        },
+        {
+          "title": "Niche Fragrance Sets Smallflower https://www.smallflower.com › collections › niche-fragra...",
+          "href": "https://www.smallflower.com/collections/niche-fragrance-sets?srsltid=AfmBOoq2U35rV5KfSwCOq1XEm5bwNvqqVWWLFKJrqtNViEPJyAEW8Xuy",
+          "snippet_or_container_text": "Niche Fragrance Sets Smallflower https://www.smallflower.com › collections › niche-fragra..."
+        }
+      ],
+      "product_or_shopping_lines": [
+        "Shopping",
+        "On sale",
+        "Sephora",
+        "Buy",
+        "Ulta Beauty",
+        "For Sale",
+        "Under $100",
+        "4.3 store rating (15) · $35 to $70 · Free delivery over $150 · 14-day returns",
+        "Indie Perfume & Niche Fragrance Gifts Under $100",
+        "Discovery sets & sample sets. Discovery Set—Deep, woody, resinous, musky, spicy. Discovery Set 5 deep, woody, resinous scents Liis $ 42.00. Discovery Set—Fresh ...",
+        "5.0 store rating (11) · $20 to $80 · Free delivery over $75 · 30-day returns",
+        "Perfume sampler sets » buy online",
+        "https://www.niche-beauty.com › Perfume › Shop by",
+        "Fragrance Discovery Set $ 60.00 / 1.50 ml $ 40,000.00. Fragrance Discovery Set $ 74.00 / 14 ml $ 5,285.71 / 1 / 1 piece $",
+        "4.7 store rating (17) · $18 to $377 · Free delivery over $200",
+        "Simone Andreoli: Discover modern Italian luxury through The Icons Discovery Kit, featuring fan-favorites like Malibu - Party in the Bay (approx. $43)."
+      ],
+      "video_or_forum_lines": [
+        "Short videos",
+        "Videos",
+        "Reddit · r/fragrance",
+        "Niche discovery sets : r/NichePerfumes - Reddit",
+        "More results from www.reddit.com",
+        "YouTube · CREATE WITH JONATHAN",
+        "8 key moments in this video",
+        "YouTube · Interbeauty",
+        "YouTube · orenmeetsworld"
+      ],
+      "footer_or_location_lines": [
+        "Unknown - Can't determine location",
+        "- Update location",
+        "HelpSend feedbackPrivacyTerms"
+      ],
+      "possible_non_us_storefront_or_locale_signals": [
+        "www.perfumelounge.eu (+4) - View related links https://www.perfumelounge.eu/scent-stories/discover-the-magic-of-scent-tasting-with-discovery-sets",
+        " https://www.perfumelounge.eu/scent-stories/discover-the-magic-of-scent-tasting-with-discovery-sets",
+        "Try Before You Buy: The Nicest Niche Perfume Discovery Sets. Opens in new tab. https://www.perfumelounge.eu/scent-stories/discover-the-magic-of-scent-tasting-with-discovery-sets"
+      ],
+      "files": {
+        "autocomplete": {
+          "png": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\01_niche_perfume_discovery_set\\autocomplete.png",
+          "html": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\01_niche_perfume_discovery_set\\autocomplete.html",
+          "txt": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\01_niche_perfume_discovery_set\\autocomplete.txt",
+          "json": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\01_niche_perfume_discovery_set\\autocomplete.json"
+        },
+        "serp_top": {
+          "png": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\01_niche_perfume_discovery_set\\serp_top.png",
+          "html": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\01_niche_perfume_discovery_set\\serp_top.html",
+          "txt": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\01_niche_perfume_discovery_set\\serp_top.txt",
+          "json": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\01_niche_perfume_discovery_set\\serp_top.json"
+        },
+        "serp_full": {
+          "png": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\01_niche_perfume_discovery_set\\serp_full.png",
+          "html": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\01_niche_perfume_discovery_set\\serp_full.html",
+          "txt": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\01_niche_perfume_discovery_set\\serp_full.txt",
+          "json": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\01_niche_perfume_discovery_set\\serp_full.json"
+        }
+      }
+    },
+    {
+      "id": "02_perfume_samples_before_buying_full_bottle",
+      "query": "perfume samples before buying full bottle",
+      "final_url": "https://www.google.com/search?q=perfume+samples+before+buying+full+bottle&hl=en&gl=us&pws=0",
+      "title": "perfume samples before buying full bottle - Google Search",
+      "viewport": {
+        "width": 1264,
+        "height": 625,
+        "device_pixel_ratio": 1
+      },
+      "navigator": {
+        "language": "en-US",
+        "languages": [
+          "en-US",
+          "en"
+        ],
+        "platform": "Win32",
+        "webdriver": false,
+        "timezone": "Asia/Singapore"
+      },
+      "session_state": {
+        "sign_in_text_visible": true,
+        "google_account_text_visible": false,
+        "captcha_or_unusual_traffic_visible": false,
+        "consent_text_visible": false
+      },
+      "modules": {
+        "people_also_ask": true,
+        "people_also_search_for": true,
+        "related_searches": false,
+        "shopping_or_products": true,
+        "popular_products": false,
+        "more_products": false,
+        "sponsored_or_ads": false,
+        "video": true,
+        "forums": true,
+        "discussions_and_forums": false,
+        "images": true,
+        "ai_mode_tab": true,
+        "ai_overview": true,
+        "ai_answer_surface_module": "ai_overview_shown"
+      },
+      "ai_answer_surface_module": {
+        "schema": "ai_answer_surface_module_v0",
+        "observed_state": "ai_overview_shown",
+        "ai_mode_tab_visible": true,
+        "ai_overview_box_visible": true,
+        "evidence_from_preserved_text": {
+          "serp_top_txt_contains_ai_mode": true,
+          "serp_full_txt_contains_ai_mode": true,
+          "serp_top_txt_contains_ai_overview": true,
+          "serp_full_txt_contains_ai_overview": true
+        },
+        "evidence_files": {
+          "serp_top_txt": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\02_perfume_samples_before_buying_full_bottle\\serp_top.txt",
+          "serp_full_txt": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\02_perfume_samples_before_buying_full_bottle\\serp_full.txt",
+          "serp_top_png": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\02_perfume_samples_before_buying_full_bottle\\serp_top.png",
+          "serp_full_png": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\02_perfume_samples_before_buying_full_bottle\\serp_full.png"
+        },
+        "trend_correlation": {
+          "status": "not_run",
+          "allowed_question": "Does search-interest/trend posture help form hypotheses for why AI Overview was shown or not shown for this query cluster?",
+          "non_claim": "No Trends correlation may prove Google internal trigger causality, demand, buyer proof, or absence-of-demand."
+        },
+        "interpretation_boundary": "visibility_state_only_not_absence_of_demand_not_buyer_proof_not_gate_evidence"
+      },
+      "autocomplete_suggestions": null,
+      "people_also_ask_lines": [
+        "What is the 3 1 1 rule for perfume?",
+        "How can I get a sample of a perfume before buying it?",
+        "What is the 50/30/20 rule for perfume?",
+        "Is fragrance bad for rosacea?",
+        "Web results",
+        "Women's Perfume Samples",
+        "FragranceX.com",
+        "https://www.fragrancex.com › shopping › type › perfum..."
+      ],
+      "people_also_search_lines": [
+        "Perfume samples before buying full bottle reddit",
+        "Perfume samples before buying full bottle near me",
+        "Best perfume samples before buying full bottle",
+        "Free perfume samples before buying full bottle",
+        "Perfume samples before buying full bottle amazon",
+        "Luxury perfume samples free",
+        "How to test perfume before buying online",
+        "Where can I buy perfume samples",
+        "Page Navigation",
+        "1"
+      ],
+      "related_search_lines": [],
+      "top_organic_results": [
+        {
+          "title": "How do you test a fragrance before buying? Reddit · r/FragranceStories 40+ comments · 10 months ago",
+          "href": "https://www.reddit.com/r/FragranceStories/comments/1mydzqk/how_do_you_test_a_fragrance_before_buying/",
+          "snippet_or_container_text": "How do you test a fragrance before buying? Reddit · r/FragranceStories 40+ comments · 10 months ago"
+        },
+        {
+          "title": "Your Ultimate Guide to Buy Perfume Samples Online in 2026 Fragrancelord.com https://fragrancelord.com › blogs › articles › buy-perfu...",
+          "href": "https://fragrancelord.com/blogs/articles/buy-perfume-samples-online?srsltid=AfmBOookGMdvYyUeH4J63AKQZKzoI4pzklJfNZh2KUwhG8yJwc_VvuxF",
+          "snippet_or_container_text": "Your Ultimate Guide to Buy Perfume Samples Online in 2026 Fragrancelord.com https://fragrancelord.com › blogs › articles › buy-perfu..."
+        },
+        {
+          "title": "How to Score Fragrance Samples For Free or Cheap Byrdie https://www.byrdie.com › where-to-get-fragrance-samp...",
+          "href": "https://www.byrdie.com/where-to-get-fragrance-samples-4766994",
+          "snippet_or_container_text": "How to Score Fragrance Samples For Free or Cheap Byrdie https://www.byrdie.com › where-to-get-fragrance-samp..."
+        },
+        {
+          "title": "JRoBeauty Perfume High End Fragrance Samples Set for ... Amazon.com https://www.amazon.com › JRoBeauty-Perfume-Designer...",
+          "href": "https://www.amazon.com/JRoBeauty-Perfume-Designer-Fragrance-Sampler/dp/B0D3Z1L186",
+          "snippet_or_container_text": "JRoBeauty Perfume High End Fragrance Samples Set for ... Amazon.com https://www.amazon.com › JRoBeauty-Perfume-Designer..."
+        },
+        {
+          "title": "How to Sample Perfumes Properly | Avoiding Costly Mistakes! YouTube · The Fragrant Lounge 1.2K+ views · 1 year ago",
+          "href": "https://www.youtube.com/watch?v=kX4kQAveJYY",
+          "snippet_or_container_text": "How to Sample Perfumes Properly | Avoiding Costly Mistakes! YouTube · The Fragrant Lounge 1.2K+ views · 1 year ago"
+        }
+      ],
+      "product_or_shopping_lines": [
+        "Shopping",
+        "Department stores and specialty beauty retailers like Sephora, Nordstrom, and Macy's are excellent places to try before you buy.",
+        "How to do it: Approach the fragrance counter and ask a sales associate to create a sample for you. Most stores will happily make custom decants of 2-3 fragrances per visit so you can test them with your unique skin chemistry.",
+        "Pro Tip: Never buy a fragrance immediately upon smelling it in the store. Apply it to your pulse points, leave the store, and wait a few hours to let the base notes fully develop.",
+        "Sephora: Offers curated sets like the Sephora Favorites Samplers. These kits allow you to test multiple popular or trending scents, and the cost of the kit can usually be applied toward the purchase of your favorite full-sized bottle.",
+        "If you want to wear a scent for a week or two before fully committing, skip the tiny 1ml vials and opt for official Travel Sprays (usually 5ml - 10ml). These are sold directly by brands or at retailers like Sephora Travel Size Fragrance and offer the best evaluation of how long a fragrance actually lasts on your skin.",
+        "Your Ultimate Guide to Buy Perfume Samples Online in 2026",
+        "How To Try A Costly Perfume Before You Buy It?",
+        "Try costly perfumes by getting official samples first. Comment \"link\" for a website to buy samples.",
+        "How do you test a fragrance before buying?",
+        "GUIDE: Where to buy fragrance samples in the ...",
+        "https://fragrancelord.com › blogs › articles › buy-perfu...",
+        "Amazon.com",
+        "https://www.amazon.com › JRoBeauty-Perfume-Designer...",
+        "Please note that these are sample vials, not mini bottles. Perfect for travel or to try before you buy! All fragrances are brand new, never used or tested. Due ...Read more",
+        "$18.04"
+      ],
+      "video_or_forum_lines": [
+        "Short videos",
+        "Videos",
+        "YouTube",
+        "YouTube · Dedrick Hicks Jr",
+        "YouTube · The Perfume Journal",
+        "YouTube · Fragrance Jam",
+        "Reddit · r/FragranceStories",
+        "How do you get perfume samples? : r/fragrance - Reddit",
+        "More results from www.reddit.com",
+        "YouTube · The Fragrant Lounge",
+        "In this video, I'll break down the best methods for testing perfumes, from test strips to decants and even the different decant sizes and their ...",
+        "Fragrantica"
+      ],
+      "footer_or_location_lines": [
+        "Unknown - Can't determine location",
+        "- Update location",
+        "HelpSend feedbackPrivacyTerms"
+      ],
+      "possible_non_us_storefront_or_locale_signals": [],
+      "files": {
+        "autocomplete": null,
+        "serp_top": {
+          "png": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\02_perfume_samples_before_buying_full_bottle\\serp_top.png",
+          "html": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\02_perfume_samples_before_buying_full_bottle\\serp_top.html",
+          "txt": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\02_perfume_samples_before_buying_full_bottle\\serp_top.txt",
+          "json": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\02_perfume_samples_before_buying_full_bottle\\serp_top.json"
+        },
+        "serp_full": {
+          "png": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\02_perfume_samples_before_buying_full_bottle\\serp_full.png",
+          "html": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\02_perfume_samples_before_buying_full_bottle\\serp_full.html",
+          "txt": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\02_perfume_samples_before_buying_full_bottle\\serp_full.txt",
+          "json": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\02_perfume_samples_before_buying_full_bottle\\serp_full.json"
+        }
+      }
+    },
+    {
+      "id": "03_pistachio_perfume",
+      "query": "pistachio perfume",
+      "final_url": "https://www.google.com/search?q=pistachio%20perfume&hl=en&gl=us&pws=0&sei=1PM7asqPHYGE4-EPhOf6-A0",
+      "title": "pistachio perfume - Google Search",
+      "viewport": {
+        "width": 1264,
+        "height": 625,
+        "device_pixel_ratio": 1
+      },
+      "navigator": {
+        "language": "en-US",
+        "languages": [
+          "en-US",
+          "en"
+        ],
+        "platform": "Win32",
+        "webdriver": false,
+        "timezone": "Asia/Singapore"
+      },
+      "session_state": {
+        "sign_in_text_visible": true,
+        "google_account_text_visible": false,
+        "captcha_or_unusual_traffic_visible": false,
+        "consent_text_visible": false
+      },
+      "modules": {
+        "people_also_ask": true,
+        "people_also_search_for": true,
+        "related_searches": false,
+        "shopping_or_products": true,
+        "popular_products": true,
+        "more_products": true,
+        "sponsored_or_ads": false,
+        "video": true,
+        "forums": true,
+        "discussions_and_forums": false,
+        "images": true,
+        "ai_mode_tab": true,
+        "ai_overview": false,
+        "ai_answer_surface_module": "ai_mode_tab_only_no_ai_overview"
+      },
+      "ai_answer_surface_module": {
+        "schema": "ai_answer_surface_module_v0",
+        "observed_state": "ai_mode_tab_only_no_ai_overview",
+        "ai_mode_tab_visible": true,
+        "ai_overview_box_visible": false,
+        "evidence_from_preserved_text": {
+          "serp_top_txt_contains_ai_mode": true,
+          "serp_full_txt_contains_ai_mode": true,
+          "serp_top_txt_contains_ai_overview": false,
+          "serp_full_txt_contains_ai_overview": false
+        },
+        "evidence_files": {
+          "serp_top_txt": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\03_pistachio_perfume\\serp_top.txt",
+          "serp_full_txt": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\03_pistachio_perfume\\serp_full.txt",
+          "serp_top_png": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\03_pistachio_perfume\\serp_top.png",
+          "serp_full_png": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\03_pistachio_perfume\\serp_full.png"
+        },
+        "trend_correlation": {
+          "status": "not_run",
+          "allowed_question": "Does search-interest/trend posture help form hypotheses for why AI Overview was shown or not shown for this query cluster?",
+          "non_claim": "No Trends correlation may prove Google internal trigger causality, demand, buyer proof, or absence-of-demand."
+        },
+        "interpretation_boundary": "visibility_state_only_not_absence_of_demand_not_buyer_proof_not_gate_evidence"
+      },
+      "autocomplete_suggestions": null,
+      "people_also_ask_lines": [
+        "What is the best pistachio perfume?",
+        "What does pistachio in perfume smell like?",
+        "What is the most attractive smell in perfume?",
+        "Is pistachio a good perfume?",
+        "Web results",
+        "Pistachio",
+        "Fragrantica",
+        "https://www.fragrantica.com › notes › Pistachio-221"
+      ],
+      "people_also_search_lines": [
+        "Pistachio perfume Lattafa",
+        "PISTACHIO perfume Zara",
+        "Pistachio perfume arabic",
+        "Pistachio perfume KAYALI",
+        "Pistachio perfume Khair",
+        "Pistachio perfume ds&durga",
+        "Pistachio perfume Fine'ry",
+        "Pistachio perfume sephora",
+        "Page Navigation",
+        "1"
+      ],
+      "related_search_lines": [],
+      "top_organic_results": [
+        {
+          "title": "Pistachio Eau de Parfum D.S. & DURGA https://www.dsanddurga.com › products › pistachio",
+          "href": "https://www.dsanddurga.com/products/pistachio?srsltid=AfmBOorHvjwywtK3ILNCQozLILSPGClzlARFFM5NgPYTepVM6sSDK9W2",
+          "snippet_or_container_text": "Pistachio Eau de Parfum D.S. & DURGA https://www.dsanddurga.com › products › pistachio"
+        },
+        {
+          "title": "Best pistachio scent? : r/Perfumes Reddit · r/Perfumes 50+ comments · 1 year ago",
+          "href": "https://www.reddit.com/r/Perfumes/comments/1ds4mtk/best_pistachio_scent/",
+          "snippet_or_container_text": "Best pistachio scent? : r/Perfumes Reddit · r/Perfumes 50+ comments · 1 year ago"
+        },
+        {
+          "title": "Pistachio Brûlée Eau de Parfum Le Monde Gourmand https://www.gourmandbeauty.com › products › pistachi...",
+          "href": "https://www.gourmandbeauty.com/products/pistachio-brulee-eau-de-parfum?srsltid=AfmBOopOecK3uO3OKeNVWvuE3cfuj_GPnkCb52ms4I3Wh4J-X55M6RJb",
+          "snippet_or_container_text": "Pistachio Brûlée Eau de Parfum Le Monde Gourmand https://www.gourmandbeauty.com › products › pistachi..."
+        },
+        {
+          "title": "Team Tries: the 5 best pistachio perfumes - Get the GlossGet the Glosshttps://www.getthegloss.com › Fragrance",
+          "href": "https://www.getthegloss.com/beauty/fragrance/team-tries-best-pistachio-perfumes/#:~:text=But%20what%20do%20pistachio%20scents,notes%2C%20such%20as%20vanilla.%E2%80%9D",
+          "snippet_or_container_text": "Team Tries: the 5 best pistachio perfumes - Get the GlossGet the Glosshttps://www.getthegloss.com › FragranceGet the Glosshttps://www.getthegloss.com › Fragrance"
+        },
+        {
+          "title": "Pistachio Fragrantica https://www.fragrantica.com › notes › Pistachio-221",
+          "href": "https://www.fragrantica.com/notes/Pistachio-221.html",
+          "snippet_or_container_text": "Pistachio Fragrantica https://www.fragrantica.com › notes › Pistachio-221"
+        }
+      ],
+      "product_or_shopping_lines": [
+        "Shopping",
+        "Target",
+        "Walmart",
+        "Ulta Beauty",
+        "Price",
+        "On sale",
+        "Buy",
+        "Under $70",
+        "For Sale",
+        "Popular products",
+        "$28.00",
+        "$12.00",
+        "$25",
+        "Free delivery on $75+",
+        "$29.60",
+        "$47"
+      ],
+      "video_or_forum_lines": [
+        "Short videos",
+        "Videos",
+        "Reddit · r/Perfumes",
+        "More results from www.reddit.com",
+        "Fragrantica",
+        "https://www.fragrantica.com › notes › Pistachio-221",
+        "YouTube · Ai_TheGreat",
+        "A Strong, Sexy Pistachio Fit For A King! | Mind Games Kingside Review #perfume #fragrance #tiktok",
+        "Daniel Rene Music · YouTube",
+        "Reddit",
+        "please give these baddies a long winter's nap 😴 #perfumetiktok #perfumetok #fragrancetiktok #greenscreen",
+        "PL Smells · TikTok"
+      ],
+      "footer_or_location_lines": [
+        "Unknown - Can't determine location",
+        "- Update location",
+        "HelpSend feedbackPrivacyTerms"
+      ],
+      "possible_non_us_storefront_or_locale_signals": [
+        "Pistachio, cardamom, roasted almond, vanilla crÃ¨me, and patchouli. Rich, creamy, and true â€” it's pistachio, and that's exactly all it needs to be.",
+        "Mar 30, 2026 — Team Tries: the 5 best pistachio perfumes · DS & Durga Pistachio EDP, £155 for 50ml · M&S Sweet Pistachio EDP, £16 for 50ml · Kayali Yum Pistachio ...Read more"
+      ],
+      "files": {
+        "autocomplete": null,
+        "serp_top": {
+          "png": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\03_pistachio_perfume\\serp_top.png",
+          "html": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\03_pistachio_perfume\\serp_top.html",
+          "txt": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\03_pistachio_perfume\\serp_top.txt",
+          "json": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\03_pistachio_perfume\\serp_top.json"
+        },
+        "serp_full": {
+          "png": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\03_pistachio_perfume\\serp_full.png",
+          "html": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\03_pistachio_perfume\\serp_full.html",
+          "txt": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\03_pistachio_perfume\\serp_full.txt",
+          "json": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\03_pistachio_perfume\\serp_full.json"
+        }
+      }
+    },
+    {
+      "id": "04_vanilla_skin_perfume",
+      "query": "vanilla skin perfume",
+      "final_url": "https://www.google.com/search?q=vanilla%20skin%20perfume&hl=en&gl=us&pws=0&sei=GvQ7asGQJZfb4-EPubHZ6QQ",
+      "title": "vanilla skin perfume - Google Search",
+      "viewport": {
+        "width": 1264,
+        "height": 625,
+        "device_pixel_ratio": 1
+      },
+      "navigator": {
+        "language": "en-US",
+        "languages": [
+          "en-US",
+          "en"
+        ],
+        "platform": "Win32",
+        "webdriver": false,
+        "timezone": "Asia/Singapore"
+      },
+      "session_state": {
+        "sign_in_text_visible": true,
+        "google_account_text_visible": false,
+        "captcha_or_unusual_traffic_visible": false,
+        "consent_text_visible": false
+      },
+      "modules": {
+        "people_also_ask": true,
+        "people_also_search_for": false,
+        "related_searches": false,
+        "shopping_or_products": true,
+        "popular_products": true,
+        "more_products": true,
+        "sponsored_or_ads": false,
+        "video": true,
+        "forums": true,
+        "discussions_and_forums": false,
+        "images": true,
+        "ai_mode_tab": true,
+        "ai_overview": false,
+        "ai_answer_surface_module": "ai_mode_tab_only_no_ai_overview"
+      },
+      "ai_answer_surface_module": {
+        "schema": "ai_answer_surface_module_v0",
+        "observed_state": "ai_mode_tab_only_no_ai_overview",
+        "ai_mode_tab_visible": true,
+        "ai_overview_box_visible": false,
+        "evidence_from_preserved_text": {
+          "serp_top_txt_contains_ai_mode": true,
+          "serp_full_txt_contains_ai_mode": true,
+          "serp_top_txt_contains_ai_overview": false,
+          "serp_full_txt_contains_ai_overview": false
+        },
+        "evidence_files": {
+          "serp_top_txt": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\04_vanilla_skin_perfume\\serp_top.txt",
+          "serp_full_txt": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\04_vanilla_skin_perfume\\serp_full.txt",
+          "serp_top_png": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\04_vanilla_skin_perfume\\serp_top.png",
+          "serp_full_png": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\04_vanilla_skin_perfume\\serp_full.png"
+        },
+        "trend_correlation": {
+          "status": "not_run",
+          "allowed_question": "Does search-interest/trend posture help form hypotheses for why AI Overview was shown or not shown for this query cluster?",
+          "non_claim": "No Trends correlation may prove Google internal trigger causality, demand, buyer proof, or absence-of-demand."
+        },
+        "interpretation_boundary": "visibility_state_only_not_absence_of_demand_not_buyer_proof_not_gate_evidence"
+      },
+      "autocomplete_suggestions": null,
+      "people_also_ask_lines": [
+        "What does vanilla skin perfume smell like?",
+        "What is the best smelling vanilla fragrance?",
+        "Where can I buy Phlur vanilla skin?",
+        "Why does vanilla perfume turn guys on?",
+        "Things to know",
+        "Scent Notes",
+        ".",
+        "What are the scent notes of Vanilla Skin perfume?"
+      ],
+      "people_also_search_lines": [],
+      "related_search_lines": [],
+      "top_organic_results": [
+        {
+          "title": "PHLUR Vanilla Skin Body Mist, 8 Fl Oz Amazon.com https://www.amazon.com › PHLUR-Vanilla-Skin-Body-...",
+          "href": "https://www.amazon.com/PHLUR-Vanilla-Skin-Body-Mist/dp/B0D3FK6KCB",
+          "snippet_or_container_text": "PHLUR Vanilla Skin Body Mist, 8 Fl Oz Amazon.com https://www.amazon.com › PHLUR-Vanilla-Skin-Body-..."
+        },
+        {
+          "title": "Vanilla Skin Perfume & Body Mist Phlur https://phlur.com › collections › vanilla-skin",
+          "href": "https://phlur.com/collections/vanilla-skin?srsltid=AfmBOoocR3hLtF78nE0ub4nIYj0S0oVN8c8KGztYrB37VzizEQ8dJ1FX",
+          "snippet_or_container_text": "Vanilla Skin Perfume & Body Mist Phlur https://phlur.com › collections › vanilla-skin"
+        },
+        {
+          "title": "How do y'all feel about Phlur Vanilla skin? I finally purchased! Reddit · r/Perfumes 20+ comments · 1 year ago",
+          "href": "https://www.reddit.com/r/Perfumes/comments/1igxp3x/how_do_yall_feel_about_phlur_vanilla_skin_i/",
+          "snippet_or_container_text": "How do y'all feel about Phlur Vanilla skin? I finally purchased! Reddit · r/Perfumes 20+ comments · 1 year ago"
+        },
+        {
+          "title": "Vanilla Skin Phlur for women and men Fragrantica https://www.fragrantica.com › perfume › Vanilla-Skin-...",
+          "href": "https://www.fragrantica.com/perfume/Phlur/Vanilla-Skin-95817.html",
+          "snippet_or_container_text": "Vanilla Skin Phlur for women and men Fragrantica https://www.fragrantica.com › perfume › Vanilla-Skin-..."
+        },
+        {
+          "title": "VANILLA SKIN REVIEW & COMPARISON! DO YOU NEED ... YouTube · Brittany I PocketsandBowsTV 21.1K+ views · 1 year ago",
+          "href": "https://www.youtube.com/watch?v=yZ8x12QTRuw",
+          "snippet_or_container_text": "VANILLA SKIN REVIEW & COMPARISON! DO YOU NEED ... YouTube · Brittany I PocketsandBowsTV 21.1K+ views · 1 year ago"
+        }
+      ],
+      "product_or_shopping_lines": [
+        "Shopping",
+        "Price",
+        "Under $20",
+        "$20 - $60",
+        "Over $60",
+        "$",
+        "Price: low to high",
+        "Price: high to low",
+        "Buy",
+        "On sale",
+        "For Sale",
+        "Ulta Beauty",
+        "Target",
+        "Sephora",
+        "Amazon.com",
+        "https://www.amazon.com › PHLUR-Vanilla-Skin-Body-..."
+      ],
+      "video_or_forum_lines": [
+        "Short videos",
+        "Videos",
+        "Reddit · r/Perfumes",
+        "More results from www.reddit.com",
+        "Fragrantica",
+        "https://www.fragrantica.com › perfume › Vanilla-Skin-...",
+        "YouTube · Brittany I PocketsandBowsTV",
+        "https://www.amazon.com › live › video",
+        "Shop with expert advice from Sloane Vosen in their latest video PHLUR vanilla smoke, vanilla skin, perfume #fragrance.",
+        "KiraKirby · TikTok",
+        "Reddit",
+        "Sibylle · TikTok"
+      ],
+      "footer_or_location_lines": [
+        "Unknown - Can't determine location",
+        "- Update location",
+        "HelpSend feedbackPrivacyTerms"
+      ],
+      "possible_non_us_storefront_or_locale_signals": [],
+      "files": {
+        "autocomplete": null,
+        "serp_top": {
+          "png": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\04_vanilla_skin_perfume\\serp_top.png",
+          "html": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\04_vanilla_skin_perfume\\serp_top.html",
+          "txt": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\04_vanilla_skin_perfume\\serp_top.txt",
+          "json": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\04_vanilla_skin_perfume\\serp_top.json"
+        },
+        "serp_full": {
+          "png": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\04_vanilla_skin_perfume\\serp_full.png",
+          "html": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\04_vanilla_skin_perfume\\serp_full.html",
+          "txt": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\04_vanilla_skin_perfume\\serp_full.txt",
+          "json": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\04_vanilla_skin_perfume\\serp_full.json"
+        }
+      }
+    },
+    {
+      "id": "05_le_labo_santal_33_dupe",
+      "query": "Le Labo Santal 33 dupe",
+      "final_url": "https://www.google.com/search?q=Le+Labo+Santal+33+dupe&hl=en&gl=us&pws=0&sei=YPQ7aprbHarE4-EPm8yZuQE",
+      "title": "Le Labo Santal 33 dupe - Google Search",
+      "viewport": {
+        "width": 1264,
+        "height": 625,
+        "device_pixel_ratio": 1
+      },
+      "navigator": {
+        "language": "en-US",
+        "languages": [
+          "en-US",
+          "en"
+        ],
+        "platform": "Win32",
+        "webdriver": false,
+        "timezone": "Asia/Singapore"
+      },
+      "session_state": {
+        "sign_in_text_visible": true,
+        "google_account_text_visible": false,
+        "captcha_or_unusual_traffic_visible": false,
+        "consent_text_visible": false
+      },
+      "modules": {
+        "people_also_ask": true,
+        "people_also_search_for": true,
+        "related_searches": false,
+        "shopping_or_products": true,
+        "popular_products": true,
+        "more_products": false,
+        "sponsored_or_ads": false,
+        "video": true,
+        "forums": true,
+        "discussions_and_forums": true,
+        "images": true,
+        "ai_mode_tab": true,
+        "ai_overview": true,
+        "ai_answer_surface_module": "ai_overview_shown"
+      },
+      "ai_answer_surface_module": {
+        "schema": "ai_answer_surface_module_v0",
+        "observed_state": "ai_overview_shown",
+        "ai_mode_tab_visible": true,
+        "ai_overview_box_visible": true,
+        "evidence_from_preserved_text": {
+          "serp_top_txt_contains_ai_mode": true,
+          "serp_full_txt_contains_ai_mode": true,
+          "serp_top_txt_contains_ai_overview": true,
+          "serp_full_txt_contains_ai_overview": true
+        },
+        "evidence_files": {
+          "serp_top_txt": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\05_le_labo_santal_33_dupe\\serp_top.txt",
+          "serp_full_txt": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\05_le_labo_santal_33_dupe\\serp_full.txt",
+          "serp_top_png": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\05_le_labo_santal_33_dupe\\serp_top.png",
+          "serp_full_png": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\05_le_labo_santal_33_dupe\\serp_full.png"
+        },
+        "trend_correlation": {
+          "status": "not_run",
+          "allowed_question": "Does search-interest/trend posture help form hypotheses for why AI Overview was shown or not shown for this query cluster?",
+          "non_claim": "No Trends correlation may prove Google internal trigger causality, demand, buyer proof, or absence-of-demand."
+        },
+        "interpretation_boundary": "visibility_state_only_not_absence_of_demand_not_buyer_proof_not_gate_evidence"
+      },
+      "autocomplete_suggestions": null,
+      "people_also_ask_lines": [
+        "What scent is similar to Santal 33?",
+        "What is Michelle Obama's favorite perfume?",
+        "How much is Le Labo Santal 33 at Costco?",
+        "Is there a fake Santal 33?",
+        "Web results",
+        "Tested and Reviewed: The 9 Best Santal 33 Perfume Dupes",
+        "Cosmopolitan",
+        "https://www.cosmopolitan.com › Beauty & Style › Beauty"
+      ],
+      "people_also_search_lines": [
+        "Le labo santal 33 dupe zara",
+        "Le labo santal 33 dupe reddit",
+        "Le labo santal 33 dupe amazon",
+        "Le labo santal 33 dupe smells like",
+        "Le Labo Santal 33 dupe middle eastern",
+        "Best Le Labo Santal 33 dupe reddit",
+        "Le Labo dupe Another 13",
+        "Le Labo dupe body wash",
+        "Page Navigation",
+        "1"
+      ],
+      "related_search_lines": [],
+      "top_organic_results": [
+        {
+          "title": "What is the best alternative to Santal 33 by Le labo? Reddit · r/fragrance 70+ comments · 2 years ago",
+          "href": "https://www.reddit.com/r/fragrance/comments/15fp22s/what_is_the_best_alternative_to_santal_33_by_le/",
+          "snippet_or_container_text": "What is the best alternative to Santal 33 by Le labo? Reddit · r/fragrance 70+ comments · 2 years ago"
+        },
+        {
+          "title": "When You Break Up Le Labo's Santal 33, Wear This Into The Gloss https://intothegloss.com › Home › Misc.",
+          "href": "https://intothegloss.com/2018/05/le-labo-santal-33-dupe/",
+          "snippet_or_container_text": "When You Break Up Le Labo's Santal 33, Wear This Into The Gloss https://intothegloss.com › Home › Misc."
+        },
+        {
+          "title": "Best Ever Le Labo Santal 33 Dupes Kaitlin Madden https://kaitlinmadden.com › Blog",
+          "href": "https://kaitlinmadden.com/le-labo-santal-33-dupes/",
+          "snippet_or_container_text": "Best Ever Le Labo Santal 33 Dupes Kaitlin Madden https://kaitlinmadden.com › Blog"
+        },
+        {
+          "title": "Tested and Reviewed: The 9 Best Santal 33 Perfume Dupes Cosmopolitan https://www.cosmopolitan.com › Beauty & Style › Beauty",
+          "href": "https://www.cosmopolitan.com/style-beauty/beauty/g64513771/santal-33-dupes/",
+          "snippet_or_container_text": "Tested and Reviewed: The 9 Best Santal 33 Perfume Dupes Cosmopolitan https://www.cosmopolitan.com › Beauty & Style › Beauty"
+        },
+        {
+          "title": "What's the best Santal 33 dupe? I tried 3 different ones. # ... YouTube · Will Hinson 11.9K+ views · 10 months ago",
+          "href": "https://www.youtube.com/shorts/CrLaX0UiTOg",
+          "snippet_or_container_text": "What's the best Santal 33 dupe? I tried 3 different ones. # ... YouTube · Will Hinson 11.9K+ views · 10 months ago"
+        }
+      ],
+      "product_or_shopping_lines": [
+        "Shopping",
+        "Sephora",
+        "On sale",
+        "Under $60",
+        "Walmart",
+        "Buy",
+        "Finding a perfect dupe for Le Labo Santal 33 depends on the price point you are looking for. The most popular exact-match perfume alternatives are Dossier Woody Sandalwood and Fine'ry Jungle Santal (found at Target). For something with a very similar, slightly sweeter woodsy profile, try Maison Louis Marie No. 4 Bois de Balincourt.",
+        "Fine'ry Jungle Santal: Available at Target, this $30 perfume captures the same spicy, woody, and musky character as Santal 33.",
+        "Maison Louis Marie No. 4 Bois de Balincourt: At roughly $18 to $35, this leans a bit sweeter and spicier with nutmeg and cinnamon but offers the same gorgeous \"forest and leather\" vibe.",
+        "Cremo Palo Santo: A massively popular drugstore body wash and cologne that features cardamom and sandalwood. It is highly regarded as one of the best budget alternatives under $25.",
+        "I Compared Le Labo's Santal 33 Perfume to a $30 Target Fine'ry Dupe",
+        "Target's version isn't exactly the same — but it's close enough. Fine'ry doesn't claim to make dupes, as it told Fast Company in A...",
+        "Le Labo Santal 33 Dupes from Amazon, Sephora and More · 1. AromaTech Santal Diffuser · 2. Method Vetiver & Amber Hand Soap · 3. Maison Louis Marie No. 4 Bois de ...Read more",
+        "Jan 21, 2026 — Love the iconic scent of Le Labo's Santal 33 but not the price tag? These are the best Santal 33 dupes with the same sandalwood ...",
+        "My honest to god favorite dupe of Santel 33 is this right here Kremo Palos Santo it's under $25 it's just as good of a performance.",
+        "Dupeshop Beauty"
+      ],
+      "video_or_forum_lines": [
+        "Short videos",
+        "Videos",
+        "TikTok",
+        "YouTube · Aug 9, 2025",
+        "Reddit · r/fragrance",
+        "More results from www.reddit.com",
+        "YouTube · Will Hinson",
+        "Discussions and forums",
+        "Reddit ·",
+        "Fragrantica ·",
+        "TikTok · alishamarie",
+        "Reddit"
+      ],
+      "footer_or_location_lines": [
+        "Unknown - Can't determine location",
+        "- Update location",
+        "HelpSend feedbackPrivacyTerms"
+      ],
+      "possible_non_us_storefront_or_locale_signals": [
+        "Beauty editor of ELLE & Harper's Bazaar UK",
+        "Looking for Le Labo Santal 33 clone in India"
+      ],
+      "files": {
+        "autocomplete": null,
+        "serp_top": {
+          "png": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\05_le_labo_santal_33_dupe\\serp_top.png",
+          "html": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\05_le_labo_santal_33_dupe\\serp_top.html",
+          "txt": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\05_le_labo_santal_33_dupe\\serp_top.txt",
+          "json": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\05_le_labo_santal_33_dupe\\serp_top.json"
+        },
+        "serp_full": {
+          "png": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\05_le_labo_santal_33_dupe\\serp_full.png",
+          "html": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\05_le_labo_santal_33_dupe\\serp_full.html",
+          "txt": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\05_le_labo_santal_33_dupe\\serp_full.txt",
+          "json": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\05_le_labo_santal_33_dupe\\serp_full.json"
+        }
+      }
+    },
+    {
+      "id": "06_baccarat_rouge_540_dupe",
+      "query": "Baccarat Rouge 540 dupe",
+      "final_url": "https://www.google.com/search?q=Baccarat%20Rouge%20540%20dupe&hl=en&gl=us&pws=0&sei=ofQ7avHENfCHjuMP18n0uA0",
+      "title": "Baccarat Rouge 540 dupe - Google Search",
+      "viewport": {
+        "width": 1264,
+        "height": 625,
+        "device_pixel_ratio": 1
+      },
+      "navigator": {
+        "language": "en-US",
+        "languages": [
+          "en-US",
+          "en"
+        ],
+        "platform": "Win32",
+        "webdriver": false,
+        "timezone": "Asia/Singapore"
+      },
+      "session_state": {
+        "sign_in_text_visible": true,
+        "google_account_text_visible": false,
+        "captcha_or_unusual_traffic_visible": false,
+        "consent_text_visible": false
+      },
+      "modules": {
+        "people_also_ask": true,
+        "people_also_search_for": true,
+        "related_searches": false,
+        "shopping_or_products": true,
+        "popular_products": false,
+        "more_products": true,
+        "sponsored_or_ads": false,
+        "video": true,
+        "forums": true,
+        "discussions_and_forums": false,
+        "images": true,
+        "ai_mode_tab": false,
+        "ai_overview": true,
+        "ai_answer_surface_module": "ai_overview_shown_no_ai_mode_tab"
+      },
+      "ai_answer_surface_module": {
+        "schema": "ai_answer_surface_module_v0",
+        "observed_state": "ai_overview_shown_no_ai_mode_tab",
+        "ai_mode_tab_visible": false,
+        "ai_overview_box_visible": true,
+        "evidence_from_preserved_text": {
+          "serp_top_txt_contains_ai_mode": false,
+          "serp_full_txt_contains_ai_mode": false,
+          "serp_top_txt_contains_ai_overview": true,
+          "serp_full_txt_contains_ai_overview": true
+        },
+        "evidence_files": {
+          "serp_top_txt": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\06_baccarat_rouge_540_dupe\\serp_top.txt",
+          "serp_full_txt": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\06_baccarat_rouge_540_dupe\\serp_full.txt",
+          "serp_top_png": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\06_baccarat_rouge_540_dupe\\serp_top.png",
+          "serp_full_png": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\06_baccarat_rouge_540_dupe\\serp_full.png"
+        },
+        "trend_correlation": {
+          "status": "not_run",
+          "allowed_question": "Does search-interest/trend posture help form hypotheses for why AI Overview was shown or not shown for this query cluster?",
+          "non_claim": "No Trends correlation may prove Google internal trigger causality, demand, buyer proof, or absence-of-demand."
+        },
+        "interpretation_boundary": "visibility_state_only_not_absence_of_demand_not_buyer_proof_not_gate_evidence"
+      },
+      "autocomplete_suggestions": null,
+      "people_also_ask_lines": [
+        "What dupe smells most like Baccarat Rouge 540?",
+        "What perfume smells like Baccarat Rouge?",
+        "What is the best dupe for Baccarat Rouge 540 Maison Francis Kurkdjian?",
+        "What is Baccarat Rouge 540 compared to?",
+        "Web results",
+        "Battle between 10+ Maison Francis Kurkdjian Baccarat Rouge ...",
+        "scentgourmand.com",
+        "http://www.scentgourmand.com › battle-between-10-m..."
+      ],
+      "people_also_search_lines": [
+        "Baccarat Rouge 540 dupe Zara",
+        "Baccarat rouge 540 dupe reddit",
+        "Baccarat Rouge 540 dupe price",
+        "Baccarat Rouge 540 dupe Amazon",
+        "Baccarat Rouge 540 dupe Bath and Body Works",
+        "Baccarat Rouge 540 dupe men",
+        "Baccarat Rouge 540 dupe Dossier",
+        "Baccarat rouge 540 dupe sephora",
+        "Page Navigation",
+        "1"
+      ],
+      "related_search_lines": [],
+      "top_organic_results": [
+        {
+          "title": "I'm looking for close dupes of Baccarat Rouge 540. Can ... Reddit · r/Colognes 170+ comments · 8 months ago",
+          "href": "https://www.reddit.com/r/Colognes/comments/1nwmudi/im_looking_for_close_dupes_of_baccarat_rouge_540/",
+          "snippet_or_container_text": "I'm looking for close dupes of Baccarat Rouge 540. Can ... Reddit · r/Colognes 170+ comments · 8 months ago"
+        },
+        {
+          "title": "Battle between 10+ Maison Francis Kurkdjian Baccarat Rouge ... scentgourmand.com http://www.scentgourmand.com › battle-between-10-m...",
+          "href": "http://www.scentgourmand.com/battle-between-10-maison-francis-kurkdjian-baccarat-rouge-540-dupes-which-wins/",
+          "snippet_or_container_text": "Battle between 10+ Maison Francis Kurkdjian Baccarat Rouge ... scentgourmand.com http://www.scentgourmand.com › battle-between-10-m..."
+        },
+        {
+          "title": "7 Best Baccarat Rouge 540 Dupes, Tested and Reviewed ... Cosmopolitan https://www.cosmopolitan.com › Beauty & Style › Beauty",
+          "href": "https://www.cosmopolitan.com/style-beauty/beauty/g69098218/best-bacarrat-rouge-dupes/",
+          "snippet_or_container_text": "7 Best Baccarat Rouge 540 Dupes, Tested and Reviewed ... Cosmopolitan https://www.cosmopolitan.com › Beauty & Style › Beauty"
+        },
+        {
+          "title": "Smells Like Baccarat Rouge... But Budget Friendly! Designer ... YouTube · Jaheisha 1.2K+ views · 7 months ago",
+          "href": "https://www.youtube.com/watch?v=Cb8zcAAXV60",
+          "snippet_or_container_text": "Smells Like Baccarat Rouge... But Budget Friendly! Designer ... YouTube · Jaheisha 1.2K+ views · 7 months ago"
+        },
+        {
+          "title": "Beauty in Review: Baccarat Rouge 540 Dupes Royally Pink https://www.royallypink.com › 2022/04 › beauty-in-re...",
+          "href": "https://www.royallypink.com/2022/04/beauty-in-review-baccarat-rouge-540.html",
+          "snippet_or_container_text": "Beauty in Review: Baccarat Rouge 540 Dupes Royally Pink https://www.royallypink.com › 2022/04 › beauty-in-re..."
+        }
+      ],
+      "product_or_shopping_lines": [
+        "Shopping",
+        "Dossier Ambery Saffron: Priced around $49, this is widely regarded as one of the best 1-to-1 matches, mimicking the original's airy, sweet, and woody aura perfectly.",
+        "Armaf Club de Nuit Untold: Available for around $40-$50, this Eau de Parfum is frequently praised by fragrance enthusiasts as borderline identical to BR540 with incredible projection.",
+        "Lattafa Ana Abiyedh Rouge: A budget-friendly option (usually $20-$30) that gives you the luminous, cotton-candy and amber warmth of BR540, though it can have a slight sharpness upon initial spray.",
+        "Zara Red Temptation: At around $30, this remains one of the most accessible and popular high-street alternatives that flawlessly hits those saffron, jasmine, and woody amber notes.",
+        "Ariana Grande Cloud: Priced around $35-$45, this is a softer, sweeter, and more coconut/praline-forward take on the DNA. While not an exact clone, it shares the same woody, airy base that makes BR540 so universally loved.",
+        "Sol de Janeiro Cheirosa 68: A beautiful, floral and vanilla-forward body mist version that provides that same intoxicating jasmine and amber warmth for roughly $24.",
+        "Lattafa Ana Abiyedh First Impression ($15 Baccarat Rouge 540 Dupe)",
+        "Jul 16, 2022 — For an all-rounder dupe, I would say Al Haramain's is worth it. I think it's the closest-smelling at a reasonable price point.Read more",
+        "More products",
+        "$65.80",
+        "$20.95",
+        "Free delivery on $100+",
+        "$19.95",
+        "$59.00",
+        "$69"
+      ],
+      "video_or_forum_lines": [
+        "Videos",
+        "Short videos",
+        "YouTube",
+        "I'm looking for close dupes of Baccarat Rouge 540. Can you ... - Reddit",
+        "Reddit",
+        "Reddit · r/Colognes",
+        "More results from www.reddit.com",
+        "YouTube · Fragrance House",
+        "YouTube · Scentkollectionz",
+        "Would you buy a dupe perfume? My deep dive reminded me of my conversation with Marc Chaya, former CEO of @Maison Francis Kurkdjian … link in profile for full video. #bacarratrouge540 #baccaratrouge540 #dupeparfum",
+        "Sir Candle Man · TikTok",
+        "TikTok"
+      ],
+      "footer_or_location_lines": [
+        "Unknown - Can't determine location",
+        "- Update location",
+        "HelpSend feedbackPrivacyTerms"
+      ],
+      "possible_non_us_storefront_or_locale_signals": [],
+      "files": {
+        "autocomplete": null,
+        "serp_top": {
+          "png": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\06_baccarat_rouge_540_dupe\\serp_top.png",
+          "html": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\06_baccarat_rouge_540_dupe\\serp_top.html",
+          "txt": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\06_baccarat_rouge_540_dupe\\serp_top.txt",
+          "json": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\06_baccarat_rouge_540_dupe\\serp_top.json"
+        },
+        "serp_full": {
+          "png": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\06_baccarat_rouge_540_dupe\\serp_full.png",
+          "html": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\06_baccarat_rouge_540_dupe\\serp_full.html",
+          "txt": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\06_baccarat_rouge_540_dupe\\serp_full.txt",
+          "json": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\06_baccarat_rouge_540_dupe\\serp_full.json"
+        }
+      }
+    }
+  ]
+}

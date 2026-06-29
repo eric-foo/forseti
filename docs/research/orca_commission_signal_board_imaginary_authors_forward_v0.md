@@ -15,7 +15,7 @@ use_when:
   - Comparing CSB-nominated venues against hidden venues discovered by scanning.
 authority_boundary: retrieval_only
 open_next:
-  - orca/product/spines/commission_signal_board/prompts/orca_commission_signal_board_prompt_v0.md
+  - orca/product/spines/commission_signal_board/prompts/orca_commission_signal_board_prompt_structure_v0.md
   - orca/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md
   - docs/research/orca_discovery_candidate_scan_imaginary_authors_mgt_v0.md
   - orca/product/spines/scanning/README.md

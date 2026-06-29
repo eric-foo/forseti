@@ -119,7 +119,7 @@ decision — where internal data is not conclusive — will use an Orca decision
 artifact to reduce allocation risk before committing inventory,
 retail/channel, launch, or pricing budget. Orca
 creates that artifact by capturing, cleaning, integrity-labeling, classifying
-(costly behavior, never engagement volume alone), and constraining messy
+(costly behavior, never engagement/resonance volume alone), and constraining messy
 public demand signals — reviews, forums, search interest, retail presence —
 fused with org-motion corroboration at brand and parent level (Org), into
 inspectable decision evidence with an explicit action ceiling. The engine is
@@ -180,9 +180,11 @@ integrity rule instead of a venue allowlist:
   (`diverges_from`) is preserved as signal, never averaged away. *(AR-03)*
 - **Demand-state labels are not strength tiers.** The gate first asks whether the
   candidate has real, gradeable demand substrate at all. Weak, attention-only,
-  or engagement-only input fails or holds; it is not transient demand. A durable
-  label is a forward persistence projection carried to Judgment/C3 with a named
-  basis; observed persistence is one possible basis, not the definition.
+  engagement-only, or resonance-only input fails or holds; it is not transient
+  demand. Public engagement should still be read as qualitative resonance weight
+  by default; it just does not clear the costly-behavior floor. A durable label
+  is a forward persistence projection carried to Judgment/C3 with a named basis;
+  observed persistence is one possible basis, not the definition.
 - **Costly-behavior floor (clears G2), with a "gradeable" definition.** A
   costly-behavior instance is **gradeable** when it is (a) **attributable to
   identifiable buyer actions**, not aggregate mood/attention; (b) **statable with
@@ -224,9 +226,9 @@ integrity rule instead of a venue allowlist:
   capture-lane decisions, never per-proof stretches.
 - **Gate outcome by tier, not a single hard count.** The candidate **FAILS the
   gate** only when the floor cannot be cleared — **no gradeable costly-behavior
-  instance** in any qualifying demand-venue family (engagement/attention volume
-  alone never clears it), or **no qualifying demand-venue origin at all** — in
-  which case disqualify or hold, and do not run an engagement-only memo. With the
+  instance** in any qualifying demand-venue family (engagement/attention/resonance
+  volume alone never clears it), or **no qualifying demand-venue origin at all** — in
+  which case disqualify or hold, and do not run an engagement/resonance-only memo. With the
   floor cleared on **one** independent origin, the read is **admissible but
   capped at hold / low-commitment**; **≥2 converging independent origins** are
   required before any material or irreversible commitment. A single clean origin
@@ -288,7 +290,8 @@ Disqualifiers:
 - No live 30-90 day consumer-demand allocation decision in the families above.
 - No budget or allocation consequence.
 - Candidate fails the Demand-Substrate Hard Gate (no gradeable costly-behavior
-  instance clearing the floor — engagement-volume-only or attention-only signal;
+  instance clearing the floor — engagement/resonance-volume-only, attention-only,
+  or resonance-only signal;
   no qualifying demand-venue origin at all; or signal obtainable only through a
   route outside the capture lane's current bindings or only at absurd risk level
   — route expansion is a capture-lane decision, not a per-candidate stretch). A
@@ -327,9 +330,10 @@ The trigger must be real enough that the buyer can say what decision is pending,
 Virality, creator attention, and trend coverage are trigger and
 candidate-context ordering only. They are not buyer filters, not buyer
 validation, and not evidence of durable demand — the fused,
-costly-behavior-anchored read decides. Engagement volume alone does not become
-transient demand; it caps the action ceiling unless gradeable costly behavior
-and origin integrity clear the gate.
+costly-behavior-anchored read decides. Engagement/resonance volume alone does not become
+transient demand; it should be read as qualitative resonance weight, but it caps
+the action ceiling unless gradeable costly behavior and origin integrity clear
+the gate.
 
 ## Orca Promise
 
