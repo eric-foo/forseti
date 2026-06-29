@@ -115,6 +115,24 @@ _DOM_EXTRACT_SCRIPT = r"""
   for (const text of jsonLdTexts) {
     try { walk(JSON.parse(text)); } catch (_) {}
   }
+  const yotpoStoreIds = [];
+  const yotpoWidgetStoreIds = [];
+  const yotpoProductIds = [];
+  const yotpoWidgetProductIds = [];
+  for (const match of html.matchAll(/api-cdn\.yotpo\.com\/v3\/storefront\/store[s]?\/([A-Za-z0-9_-]{6,64})\/product[s]?\/([A-Za-z0-9_-]{1,64})\//gi)) {
+    yotpoWidgetStoreIds.push(match[1]);
+    yotpoStoreIds.push(match[1]);
+    yotpoWidgetProductIds.push(match[2]);
+    yotpoProductIds.push(match[2]);
+  }
+  for (const match of html.matchAll(/cdn-widgetsrepository\.yotpo\.com\/v1\/loader\/([A-Za-z0-9_-]{6,64})/gi)) {
+    yotpoStoreIds.push(match[1]);
+  }
+  for (const match of html.matchAll(/data-yotpo-product-id=["']([A-Za-z0-9_-]{1,64})["']/gi)) {
+    yotpoWidgetProductIds.push(match[1]);
+    yotpoProductIds.push(match[1]);
+  }
+  yotpoProductIds.push(...productIds);
   return {
     title: document.title,
     url: location.href,
@@ -132,6 +150,15 @@ _DOM_EXTRACT_SCRIPT = r"""
         rating_value: aggregateRating ? aggregateRating.ratingValue || null : null,
         review_count: aggregateRating ? aggregateRating.reviewCount || null : null,
       },
+      yotpo: {
+        present: /yotpo/i.test(html),
+        store_ids: uniq(yotpoStoreIds),
+        widget_store_ids: uniq(yotpoWidgetStoreIds),
+        product_ids: uniq(yotpoProductIds),
+        widget_product_ids: uniq(yotpoWidgetProductIds),
+        rating_value: aggregateRating ? aggregateRating.ratingValue || null : null,
+        review_count: aggregateRating ? aggregateRating.reviewCount || null : null,
+      },
     },
   };
 }
@@ -141,6 +168,8 @@ _REVIEW_RESPONSE_KINDS = frozenset({"judgeme_reviews_for_widget", "yotpo_v3_revi
 _UNPARSED_REVIEW_RESPONSE_KINDS: frozenset[str] = frozenset()
 _AUTO_JUDGEME_FALLBACK_PER_PAGE = 10
 _AUTO_JUDGEME_FALLBACK_MAX_PAGES = 5
+_AUTO_YOTPO_FALLBACK_PER_PAGE = 10
+_AUTO_YOTPO_FALLBACK_MAX_PAGES = 5
 
 
 class FragranceRenderedWidgetCompanionInputError(ValueError):
@@ -268,11 +297,15 @@ def capture_fragrance_rendered_widget_companion(
             f"rendered widget companion capture failed: {observation.failure_kind.value}: {observation.message}"
         )
 
-    auto_widget_route, auto_fallback_widget_urls = _derive_judgeme_fallback_from_dom_observation(
+    auto_judgeme_route, auto_judgeme_fallback_widget_urls = _derive_judgeme_fallback_from_dom_observation(
         observation.dom_observation,
         widget_route=widget_route,
     )
-    effective_widget_route = {**dict(widget_route or {}), **auto_widget_route}
+    auto_yotpo_route, auto_yotpo_fallback_widget_urls = _derive_yotpo_fallback_from_dom_observation(
+        observation.dom_observation,
+        widget_route=widget_route,
+    )
+    effective_widget_route = {**dict(widget_route or {}), **auto_judgeme_route, **auto_yotpo_route}
     effective_fallback_widget_urls = list(fallback_widget_urls)
 
     initial_receipt = build_fragrance_rendered_widget_companion_from_observation(
@@ -286,7 +319,7 @@ def capture_fragrance_rendered_widget_companion(
         source_media_filter_count=source_media_filter_count,
     )
     if initial_receipt.fallback_needed and not effective_fallback_widget_urls:
-        effective_fallback_widget_urls = auto_fallback_widget_urls
+        effective_fallback_widget_urls = list(auto_judgeme_fallback_widget_urls) + list(auto_yotpo_fallback_widget_urls)
     if not initial_receipt.fallback_needed or not effective_fallback_widget_urls:
         return initial_receipt
 
@@ -658,13 +691,96 @@ def _derive_judgeme_fallback_from_dom_observation(
     ]
     return route, urls
 
+def _derive_yotpo_fallback_from_dom_observation(
+    dom_observation: object,
+    *,
+    widget_route: Mapping[str, Any | None] | None = None,
+) -> tuple[dict[str, Any | None], list[str]]:
+    dom = _dom_mapping(dom_observation)
+    provider_metadata = dom.get("provider_metadata")
+    if not isinstance(provider_metadata, Mapping):
+        return {}, []
+    yotpo = provider_metadata.get("yotpo")
+    if not isinstance(yotpo, Mapping) or yotpo.get("present") is not True:
+        return {}, []
+    route: dict[str, Any | None] = {"auto_yotpo_detected": True}
+    residuals: list[str] = []
+    operator_route = widget_route if isinstance(widget_route, Mapping) else {}
+    operator_store_id = _first_yotpo_store_token(operator_route.get("yotpo_store_id"))
+    operator_product_id = _first_yotpo_product_token(operator_route.get("yotpo_product_id"))
+    if operator_product_id is None:
+        operator_product_id = _first_yotpo_product_token(operator_route.get("product_id"))
+    widget_store_ids = _yotpo_store_token_list(yotpo.get("widget_store_ids"))
+    all_store_ids = _yotpo_store_token_list(yotpo.get("store_ids"))
+    widget_product_ids = _yotpo_product_token_list(yotpo.get("widget_product_ids"))
+    all_product_ids = _yotpo_product_token_list(yotpo.get("product_ids"))
+    store_id = operator_store_id
+    product_id = operator_product_id
+    source = "operator_widget_route" if store_id and product_id else "rendered_dom"
+    if not store_id:
+        store_candidates = widget_store_ids or all_store_ids
+        if len(store_candidates) == 1:
+            store_id = store_candidates[0]
+        elif len(store_candidates) > 1:
+            residuals.append("auto_yotpo_multiple_store_id_candidates")
+    if not product_id:
+        product_candidates = widget_product_ids or all_product_ids
+        if len(product_candidates) == 1:
+            product_id = product_candidates[0]
+        elif len(product_candidates) > 1:
+            residuals.append("auto_yotpo_multiple_product_id_candidates")
+    if widget_store_ids:
+        route["auto_yotpo_widget_store_id_candidates"] = widget_store_ids
+    if all_store_ids:
+        route["auto_yotpo_store_id_candidates"] = all_store_ids
+    if widget_product_ids:
+        route["auto_yotpo_widget_product_id_candidates"] = widget_product_ids
+    if all_product_ids:
+        route["auto_yotpo_product_id_candidates"] = all_product_ids
+    if not store_id or not product_id:
+        residuals.append("auto_yotpo_fallback_underivable")
+        route["auto_yotpo_residuals"] = _dedup(residuals)
+        return route, []
+    review_count = _int_or_none(yotpo.get("review_count"))
+    page_count = 1
+    if review_count is not None and review_count > 0:
+        page_count = max(1, (review_count + _AUTO_YOTPO_FALLBACK_PER_PAGE - 1) // _AUTO_YOTPO_FALLBACK_PER_PAGE)
+    bounded_page_count = min(page_count, _AUTO_YOTPO_FALLBACK_MAX_PAGES)
+    route.update(
+        {
+            "auto_yotpo_source": source,
+            "auto_yotpo_store_id": store_id,
+            "auto_yotpo_product_id": product_id,
+            "auto_yotpo_review_count": review_count,
+            "auto_yotpo_per_page": _AUTO_YOTPO_FALLBACK_PER_PAGE,
+            "auto_yotpo_page_count": bounded_page_count,
+        }
+    )
+    if residuals:
+        route["auto_yotpo_residuals"] = _dedup(residuals)
+    if page_count > bounded_page_count:
+        route["auto_yotpo_page_count_capped"] = page_count
+    urls = [
+        "https://api-cdn.yotpo.com/v3/storefront/store/"
+        + store_id
+        + "/product/"
+        + product_id
+        + "/reviews?"
+        + urlencode({"page": str(page), "perPage": str(_AUTO_YOTPO_FALLBACK_PER_PAGE)})
+        for page in range(1, bounded_page_count + 1)
+    ]
+    return route, urls
+
 def _widget_route_residuals(widget_route: Mapping[str, Any | None] | None) -> list[str]:
     if not isinstance(widget_route, Mapping):
         return []
-    residuals = widget_route.get("auto_judgeme_residuals")
-    if not isinstance(residuals, list):
-        return []
-    return [str(residual) for residual in residuals if str(residual).strip()]
+    collected: list[str] = []
+    for key in ("auto_judgeme_residuals", "auto_yotpo_residuals"):
+        residuals = widget_route.get(key)
+        if not isinstance(residuals, list):
+            continue
+        collected.extend(str(residual) for residual in residuals if str(residual).strip())
+    return collected
 
 def _pdp_html_from_dom_observation(dom_observation: object) -> str | None:
     dom = _dom_mapping(dom_observation)
@@ -749,6 +865,52 @@ def _numeric_string(value: object) -> str | None:
         return None
     text = str(value).strip()
     return text if re.fullmatch(r"\d{6,14}", text) else None
+
+def _first_yotpo_store_token(value: object) -> str | None:
+    if isinstance(value, list):
+        for item in value:
+            parsed = _yotpo_store_token(item)
+            if parsed:
+                return parsed
+    return _yotpo_store_token(value)
+
+def _yotpo_store_token_list(value: object) -> list[str]:
+    tokens: list[str] = []
+    values = value if isinstance(value, list) else [value]
+    for item in values:
+        parsed = _yotpo_store_token(item)
+        if parsed:
+            tokens.append(parsed)
+    return _dedup(tokens)
+
+def _yotpo_store_token(value: object) -> str | None:
+    if value is None:
+        return None
+    text = str(value).strip()
+    return text if re.fullmatch(r"[A-Za-z0-9_-]{6,64}", text) else None
+
+def _first_yotpo_product_token(value: object) -> str | None:
+    if isinstance(value, list):
+        for item in value:
+            parsed = _yotpo_product_token(item)
+            if parsed:
+                return parsed
+    return _yotpo_product_token(value)
+
+def _yotpo_product_token_list(value: object) -> list[str]:
+    tokens: list[str] = []
+    values = value if isinstance(value, list) else [value]
+    for item in values:
+        parsed = _yotpo_product_token(item)
+        if parsed:
+            tokens.append(parsed)
+    return _dedup(tokens)
+
+def _yotpo_product_token(value: object) -> str | None:
+    if value is None:
+        return None
+    text = str(value).strip()
+    return text if re.fullmatch(r"[A-Za-z0-9_-]{1,64}", text) else None
 
 def _normalize_items(value: object) -> list[dict[str, Any | None]]:
     if not isinstance(value, list):

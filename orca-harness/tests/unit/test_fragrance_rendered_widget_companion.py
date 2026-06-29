@@ -23,6 +23,12 @@ PRODUCT_URL = "https://example.test/products/fragrance"
 WIDGET_URL = "https://api.judge.me/reviews/reviews_for_widget?shop_domain=example.myshopify.com&platform=shopify&page=1"
 WIDGET_URL_PAGE_2 = "https://api.judge.me/reviews/reviews_for_widget?shop_domain=example.myshopify.com&platform=shopify&page=2"
 YOTPO_REVIEWS_URL = "https://api-cdn.yotpo.com/v3/storefront/store/key/product/123/reviews?page=1&perPage=10"
+YOTPO_STORE_GUID = "LotcNgdZUJLtOh7iQPZPMJPRTLfGpWs2nlS5U8eh"
+YOTPO_PRODUCT_ID = "7891234567890"
+YOTPO_PASSIVE_REVIEWS_URL = (
+    f"https://api-cdn.yotpo.com/v3/storefront/store/{YOTPO_STORE_GUID}"
+    f"/product/{YOTPO_PRODUCT_ID}/reviews?page=1&perPage=5"
+)
 
 
 def _words(prefix: str, count: int) -> str:
@@ -34,6 +40,7 @@ def _observation(
     response_body: str | None,
     total_count: int = 2,
     provider_metadata: dict[str, object] | None = None,
+    response_url: str = WIDGET_URL,
 ) -> BrowserPageObservationSuccess:
     aggregate = {
         "@context": "https://schema.org",
@@ -43,7 +50,7 @@ def _observation(
     }
     responses = []
     if response_body is not None:
-        responses.append(_widget_response(response_body, url=WIDGET_URL))
+        responses.append(_widget_response(response_body, url=response_url))
     dom_observation = {
         "viewport": {"width": 1365, "height": 900},
         "items": [
@@ -106,6 +113,27 @@ def _reviews(review_count: int) -> list[dict[str, object]]:
             }
         )
     return reviews
+
+
+def _yotpo_widget_body(*, total: int, review_count: int, page: int = 1, per_page: int = 10) -> str:
+    reviews = []
+    for index in range(review_count):
+        reviews.append(
+            {
+                "id": f"yotpo-{index}",
+                "score": 4 if index == 0 else 5,
+                "createdAt": "2026-06-01",
+                "content": _words(f"yotpo{index}", 30),
+                "verifiedBuyer": index == 0,
+            }
+        )
+    return json.dumps(
+        {
+            "pagination": {"page": page, "perPage": per_page, "total": total},
+            "bottomline": {"totalReview": total, "averageScore": 5.0},
+            "reviews": reviews,
+        }
+    )
 
 
 def test_combined_companion_builds_rendered_signals_and_widget_review_coverage() -> None:
@@ -418,6 +446,170 @@ def test_capture_auto_judgeme_prefers_operator_pinned_widget_route() -> None:
     assert "shop_domain=pinned.myshopify.com" in captured_urls[0]
     assert "product_id=1234567890123" in captured_urls[0]
     assert receipt.widget_route["auto_judgeme_source"] == "operator_widget_route"
+
+
+def test_capture_auto_derives_yotpo_fallback_from_dom_metadata() -> None:
+    captured_urls: list[str] = []
+
+    def fake_observation_fetcher(**_: object) -> BrowserPageObservationSuccess:
+        return _observation(
+            response_body=None,
+            total_count=6,
+            provider_metadata={
+                "yotpo": {
+                    "present": True,
+                    "store_ids": [YOTPO_STORE_GUID],
+                    "product_ids": [YOTPO_PRODUCT_ID],
+                    "review_count": 6,
+                }
+            },
+        )
+
+    def fake_fallback_fetcher(**kwargs: object) -> list[BrowserPageResponse]:
+        captured_urls.extend(kwargs["urls"])  # type: ignore[arg-type]
+        return [_widget_response(_yotpo_widget_body(total=6, review_count=6), url=captured_urls[0])]
+
+    receipt = capture_fragrance_rendered_widget_companion(
+        url=PRODUCT_URL,
+        source_id="fragrance_retail_example",
+        source_site="Example",
+        as_of_date=date(2026, 6, 29),
+        observation_fetcher=fake_observation_fetcher,
+        fallback_fetcher=fake_fallback_fetcher,
+    )
+
+    assert len(captured_urls) == 1
+    assert f"/store/{YOTPO_STORE_GUID}/product/{YOTPO_PRODUCT_ID}/reviews?" in captured_urls[0]
+    assert "page=1" in captured_urls[0]
+    assert "perPage=10" in captured_urls[0]
+    assert is_fragrance_widget_response_url(captured_urls[0]) is True
+    assert receipt.widget_route["auto_yotpo_detected"] is True
+    assert receipt.widget_route["auto_yotpo_store_id"] == YOTPO_STORE_GUID
+    assert receipt.widget_route["auto_yotpo_product_id"] == YOTPO_PRODUCT_ID
+    assert receipt.widget_route["auto_yotpo_source"] == "rendered_dom"
+    assert receipt.widget_route["auto_yotpo_page_count"] == 1
+    assert [response.response_origin for response in receipt.widget_responses] == ["bounded_fallback"]
+    assert receipt.focused_review_coverage is not None
+    assert receipt.focused_review_coverage.coverage_summary.total_rows == 6
+    assert receipt.fallback_needed is False
+
+
+def test_capture_auto_yotpo_completes_row_short_passive_capture() -> None:
+    captured_urls: list[str] = []
+
+    def fake_observation_fetcher(**_: object) -> BrowserPageObservationSuccess:
+        return _observation(
+            response_body=_yotpo_widget_body(total=6, review_count=5, per_page=5),
+            total_count=6,
+            response_url=YOTPO_PASSIVE_REVIEWS_URL,
+            provider_metadata={
+                "yotpo": {
+                    "present": True,
+                    "widget_store_ids": [YOTPO_STORE_GUID],
+                    "widget_product_ids": [YOTPO_PRODUCT_ID],
+                    "store_ids": [YOTPO_STORE_GUID],
+                    "product_ids": [YOTPO_PRODUCT_ID],
+                    "review_count": 6,
+                }
+            },
+        )
+
+    def fake_fallback_fetcher(**kwargs: object) -> list[BrowserPageResponse]:
+        captured_urls.extend(kwargs["urls"])  # type: ignore[arg-type]
+        return [_widget_response(_yotpo_widget_body(total=6, review_count=6), url=captured_urls[0])]
+
+    receipt = capture_fragrance_rendered_widget_companion(
+        url=PRODUCT_URL,
+        source_id="fragrance_retail_example",
+        source_site="Example",
+        as_of_date=date(2026, 6, 29),
+        observation_fetcher=fake_observation_fetcher,
+        fallback_fetcher=fake_fallback_fetcher,
+    )
+
+    assert len(captured_urls) == 1
+    assert captured_urls[0].endswith("perPage=10")
+    assert [response.response_origin for response in receipt.widget_responses] == [
+        "render_passive",
+        "bounded_fallback",
+    ]
+    assert receipt.focused_review_coverage is not None
+    assert receipt.focused_review_coverage.coverage_summary.total_rows == 6
+    assert receipt.focused_review_coverage.coverage_summary.widget_total_count == 6
+    assert receipt.fallback_needed is False
+    assert "bounded_direct_widget_fallback_needed_for_row_completion" not in receipt.residuals
+
+
+def test_capture_auto_yotpo_multiple_candidates_are_residualized_without_fetch() -> None:
+    def fake_observation_fetcher(**_: object) -> BrowserPageObservationSuccess:
+        return _observation(
+            response_body=None,
+            total_count=2,
+            provider_metadata={
+                "yotpo": {
+                    "present": True,
+                    "store_ids": [YOTPO_STORE_GUID, "OtherStoreOtherStoreOtherStore0000000000"],
+                    "product_ids": [YOTPO_PRODUCT_ID, "1234567890123"],
+                    "review_count": 2,
+                }
+            },
+        )
+
+    def fake_fallback_fetcher(**_: object) -> list[BrowserPageResponse]:
+        raise AssertionError("ambiguous Yotpo route should not fetch fallback URLs")
+
+    receipt = capture_fragrance_rendered_widget_companion(
+        url=PRODUCT_URL,
+        source_id="fragrance_retail_example",
+        source_site="Example",
+        as_of_date=date(2026, 6, 29),
+        observation_fetcher=fake_observation_fetcher,
+        fallback_fetcher=fake_fallback_fetcher,
+    )
+
+    assert receipt.fallback_needed is True
+    assert receipt.widget_route["auto_yotpo_detected"] is True
+    assert "auto_yotpo_multiple_store_id_candidates" in receipt.residuals
+    assert "auto_yotpo_multiple_product_id_candidates" in receipt.residuals
+    assert "auto_yotpo_fallback_underivable" in receipt.residuals
+    assert "parseable_widget_review_responses_absent" in receipt.residuals
+
+
+def test_capture_auto_yotpo_prefers_operator_pinned_widget_route() -> None:
+    captured_urls: list[str] = []
+
+    def fake_observation_fetcher(**_: object) -> BrowserPageObservationSuccess:
+        return _observation(
+            response_body=None,
+            total_count=2,
+            provider_metadata={
+                "yotpo": {
+                    "present": True,
+                    "store_ids": ["WrongStoreWrongStoreWrongStore0000000000"],
+                    "product_ids": ["9999999999999"],
+                    "review_count": 2,
+                }
+            },
+        )
+
+    def fake_fallback_fetcher(**kwargs: object) -> list[BrowserPageResponse]:
+        captured_urls.extend(kwargs["urls"])  # type: ignore[arg-type]
+        return [_widget_response(_yotpo_widget_body(total=1, review_count=1), url=captured_urls[0])]
+
+    receipt = capture_fragrance_rendered_widget_companion(
+        url=PRODUCT_URL,
+        source_id="fragrance_retail_example",
+        source_site="Example",
+        widget_route={"yotpo_store_id": YOTPO_STORE_GUID, "yotpo_product_id": YOTPO_PRODUCT_ID},
+        as_of_date=date(2026, 6, 29),
+        observation_fetcher=fake_observation_fetcher,
+        fallback_fetcher=fake_fallback_fetcher,
+    )
+
+    assert f"/store/{YOTPO_STORE_GUID}/product/{YOTPO_PRODUCT_ID}/reviews?" in captured_urls[0]
+    assert receipt.widget_route["auto_yotpo_source"] == "operator_widget_route"
+    assert receipt.widget_route["auto_yotpo_store_id"] == YOTPO_STORE_GUID
+    assert receipt.widget_route["auto_yotpo_product_id"] == YOTPO_PRODUCT_ID
 
 
 def test_companion_surfaces_body_absence_and_nested_coverage_residuals() -> None:
