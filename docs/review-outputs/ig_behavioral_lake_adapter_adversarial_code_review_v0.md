@@ -1,6 +1,20 @@
 # IG Behavioral Lake Adapter — Delegated Adversarial Code Review v0
 
 ```yaml
+retrieval_header_version: 1
+artifact_role: Delegated adversarial code review report
+scope: Review of PR #441 IG behavioral lake adapter against YouTube behavioral parity and failure-visibility expectations.
+use_when:
+  - Adjudicating or auditing PR #441 review findings and patch closure.
+  - Checking why IG lake adapter failures now surface packet, grid, ASR, and product residuals.
+authority_boundary: retrieval_only
+branch_or_commit: codex/ig-behavioral-lake-adapter @ 0265c0275bd30e7309f6ef53b287149c730058c9
+open_next:
+  - orca-harness/source_capture/ig_reels_behavioral_lake.py
+  - orca-harness/tests/unit/test_ig_reels_behavioral_lake.py
+```
+
+```yaml
 review_summary:
   status: completed
   report_path: docs/review-outputs/ig_behavioral_lake_adapter_adversarial_code_review_v0.md
