@@ -23,6 +23,7 @@ open_next:
   - orca-harness/source_capture/ig_reels_deep_capture_lake.py
   - orca-harness/runners/run_ig_reels_product_extract.py
 branch_or_commit: origin/main @ 9767eefdd9afff38c141b8387334b2ada988a2c2 after PR #441 merge
+working_patch: codex/ig-deep-capture-e2e extends deep-capture transcript extraction feed (unmerged at edit time)
 stale_if:
   - PR #441 is reverted or superseded by a different IG behavioral adapter.
   - Any named IG grid, deep-capture, audio transcript, persistence, extraction, or focused test source changes.
@@ -32,6 +33,8 @@ stale_if:
 ## Status
 
 Patch decision: `IMPLEMENTED_FIRST_ADAPTER_PATCH`.
+
+Current working patch decision: `IMPLEMENTED_DEEP_CAPTURE_TRANSCRIPT_EXTRACTION_FEED_PATCH`.
 
 Post-merge closeout: PR #441 merged on 2026-06-29 as merge commit
 `9767eefdd9afff38c141b8387334b2ada988a2c2`. The first IG behavior-sync patch
@@ -51,12 +54,15 @@ Current adapter-level closure:
 - Hidden failures from raw packet load, grid projection, ASR record parsing, and
   product-record parsing are residualized instead of silently dropped.
 
-Accepted residuals after PR #441:
+Accepted residuals after PR #441 plus the current deep-capture e2e patch:
 
 - No shared IG/YT core has been introduced.
 - No live IG capture has been run or validated in this closeout.
-- Deep-capture transcript records remain visible but not extraction-eligible in
-  the current product-extraction feed.
+- Completed cue-bearing deep-capture transcript records are now eligible for the
+  product-extraction feed through the IG runner.
+- Multiple eligible deep-capture transcript records under one shortcode can still
+  require stronger exact source-key disambiguation if product records share the
+  shortcode anchor.
 - Deep-capture run receipt normalization remains a future patch candidate.
 - Downstream consumer integration is not proven by this ledger.
 
@@ -166,17 +172,17 @@ The reference behavior to compare is:
 | Transient media handling | Deep-capture media URLs are transient handles and are redacted from persisted payloads; only provenance such as host and handle-used status persists. Sources: `ig_reels_deep_capture.py:135-139`, `ig_reels_deep_capture_lake.py:113-132`; tests at `test_ig_reels_deep_capture_lake.py:60-69`. | Persistence can differ by platform if non-durable/transient artifacts are not laundered into evidence. | Matches. Keep IG-specific redaction and do not copy YouTube packet anchors or caption artifacts into IG. |
 | Run receipts | Grid packets carry packet receipt metadata, limitations, warnings, visible mode changes, non-claims, and access/media/archive postures. Audio runner has typed exit statuses for access-gated, unavailable, and ASR failure visibility. Deep-capture runner prints per-run comments/transcript/audio-handle posture and optionally persists a record set. Sources: `run_source_capture_ig_reels_grid_packet.py:183-217`, `run_source_capture_ig_reels_grid_packet.py:297-334`, `run_source_capture_ig_reels_audio_packet.py:55-77`, `run_source_capture_ig_reels_deep_capture.py:218-247`. | Completeness should be inspectable from durable records, not stdout or human convention. | Gap remains. Grid/audio have stronger receipt surfaces than deep capture. Deep-capture stdout is not enough for a behavior-level run receipt; persisted record-set completion is not a complete run receipt. |
 | Persistence correlation | Grid projection reads raw packet bytes and projects rows; audio transcript is a derived record under the audio packet id; deep capture is a shortcode-anchored derived record set; product mentions are under transcript anchors. Sources: `ig_reels_grid_projection.py:198-316`, `ig_reels_audio_packet.py:310-318`, `ig_reels_deep_capture_lake.py:142-148`, `run_ig_reels_product_extract.py:164-203`. | A future reader should resolve item -> transcript/comment/extraction anchors programmatically. | Gap remains. Current surfaces are deterministic individually, but there is no single shortcode-to-all-anchors bridge/index. Do not pretend packet id, shortcode, and record-set anchors are one physical shape. |
-| Extraction feed | IG extraction discovers `instagram_creator` packets but only uses `source_surface="ig_reels_audio"`; it skips grid packets, reads `transcript_asr` derived records, uses only `transcribed` records with cues, and returns statuses `extracted`, `skipped_done`, `partial_needs_cleanup`, `failed`, and `discovery_failed`. Sources: `run_ig_reels_product_extract.py:112-136`, `run_ig_reels_product_extract.py:139-209`; tests at `test_ig_reels_product_extract.py:133-212`. | Source extraction statuses should feed a per-item rollup and avoid hidden complete claims. | Partial match. Status vocabulary exists at transcript-anchor level for standalone audio only. Deep-capture transcript records are currently outside this extraction feed. There is no per-item extraction rollup comparable to YouTube `behavioral_completeness`. |
+| Extraction feed | IG extraction discovers standalone audio packet transcripts and completed deep-capture transcript record sets. Standalone audio uses packet anchors; deep capture uses the shortcode anchor and only `transcribed`/`ok` cue-bearing records. It skips grid packets and returns statuses `extracted`, `skipped_done`, `partial_needs_cleanup`, `failed`, and `discovery_failed`. Sources: `run_ig_reels_product_extract.py`, `ig_reels_behavioral_projection.py`; tests at `test_ig_reels_product_extract.py`, `test_ig_reels_behavioral_projection.py`, and `test_ig_reels_behavioral_lake.py`. | Source extraction statuses should feed a per-item rollup and avoid hidden complete claims. | Adapter-level match for single eligible sources per anchor. Residual: product mention records still do not carry an exact deep-capture source key, so multiple eligible deep-capture records sharing the shortcode anchor can require ambiguity residuals rather than exact attachment. |
 | Residual visibility | Current IG residuals/failures include missing shortcode, missing JSON, ambiguous shortcode join, no passive JSON join, static view-count not applicable, access-gated audio, unavailable audio, transcriber failure posture, render unavailable, no audio handle, download failed, discovery failed, extraction failed, and partial cleanup. Sources above. | Residuals should be centralized enough that an item cannot claim complete while a source failed or was skipped silently. | Gap remains. Residuals are real but distributed across packet limitations, projection residuals, runner exit statuses, transcript posture, and extraction result rows. A behavior projection/index should centralize them before any per-item completeness claim. |
-| Focused tests | Focused tests cover grid projection disagreement/static handling, audio identity/provenance/postures, deep-capture comments/audio-handle outcomes, deep-capture lake completion/redaction, and audio-only extraction statuses. | Tests should prove the behavior contract that future source-changing patches depend on. | Existing tests support current source facts. Missing tests: single IG behavioral record, comment posture normalization, transcript-source record normalization across standalone/deep capture, deterministic shortcode-to-anchor correlation, deep-capture extraction residualization, and per-item extraction rollup. |
+| Focused tests | Focused tests cover grid projection disagreement/static handling, audio identity/provenance/postures, deep-capture comments/audio-handle outcomes, deep-capture lake completion/redaction, standalone-audio extraction, deep-capture extraction, and behavioral projection/lake rollup attachment. | Tests should prove the behavior contract that future source-changing patches depend on. | Existing tests support current adapter behavior. Missing proofs: live IG capture validation, downstream consumer integration, deeper run receipt normalization, and exact source-key disambiguation for multiple deep-capture records under one shortcode. |
 
 ## Accepted Residuals
 
 - IG can remain ASR-only in v0.
 - IG can keep separate grid, deep-capture, standalone-audio, and extraction runners.
-- IG can keep shortcode-anchored deep-capture record sets and packet-id-anchored audio transcripts if a deterministic bridge/index is added before any whole-item completeness claim.
-- Deep-capture transcript extraction can remain a named residual only if the behavior record makes it discoverable and prevents hidden `complete` claims.
-- YouTube PR #432 can remain the planning reference while open, but it is not merged-main authority.
+- IG can keep shortcode-anchored deep-capture record sets and packet-id-anchored audio transcripts because the behavioral adapter bridges them by shortcode before whole-item completeness claims.
+- Deep-capture transcript extraction is no longer a blanket residual for completed cue-bearing records; the remaining residual is exact disambiguation when several eligible deep-capture records share one shortcode anchor.
+- YouTube PR #432 is merged-main behavioral reference only; this patch still does not copy YouTube acquisition mechanics into IG.
 
 ## Patch Decision
 
@@ -193,8 +199,8 @@ are narrower follow-ons:
 1. fixture/live-data validation of IG behavior records on representative lake
    data;
 2. downstream consumer integration against the IG behavior record;
-3. deep-capture transcript extraction eligibility or explicit permanent
-   non-eligibility policy;
+3. exact source-key disambiguation if multiple deep-capture transcripts under
+   one shortcode need independent product-record attachment;
 4. deeper run receipt normalization for deep capture.
 
 Still do not copy YouTube's HTTP/youtubei route, caption priority, packet
@@ -217,6 +223,20 @@ $env:PYTHONDONTWRITEBYTECODE=1; python -m pytest -p no:cacheprovider --no-header
 ......................................................................   [100%]
 214 passed, 1511 deselected in 11.14s
 ```
+Current deep-capture e2e patch validation observed on branch
+`codex/ig-deep-capture-e2e`:
+
+```text
+$env:PYTHONDONTWRITEBYTECODE=1; python -m pytest -p no:cacheprovider -q orca-harness/tests/unit/test_ig_reels_product_extract.py orca-harness/tests/unit/test_ig_reels_behavioral_projection.py orca-harness/tests/unit/test_ig_reels_behavioral_lake.py orca-harness/tests/unit/test_ig_reels_deep_capture_lake.py
+....................................                                     [100%]
+
+$env:PYTHONDONTWRITEBYTECODE=1; python -m pytest -p no:cacheprovider -q orca-harness/tests/contract/test_ig_reels_behavioral_projection_no_runtime_imports.py
+...                                                                      [100%]
+
+$env:PYTHONDONTWRITEBYTECODE=1; python -m pytest -p no:cacheprovider -q orca-harness/tests/contract/test_no_llm_imports.py
+.                                                                        [100%]
+```
+
 Focused tests passed in the isolated worktree:
 
 ```text

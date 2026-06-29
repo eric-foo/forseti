@@ -1,8 +1,8 @@
 """Daemon-ready runner: extract product mentions from every committed Instagram Reel transcript.
 
 The IG analogue of `run_transcript_product_extract` (YouTube). Decoupled / choreography (not a
-call-chain): independently scans the lake for committed IG-Reel audio packets and extracts any
-whose transcript lacks a completed mentions record-set. Daemon-ready by the same contract —
+call-chain): independently scans the lake for committed IG-Reel transcript sources and extracts any
+whose transcript lacks a completed mentions record-set. Daemon-ready by the same contract -
 idempotent (skip-if-done via the completion marker), stateless/resumable, per-item failure
 isolated at BOTH grains (a corrupt packet -> `discovery_failed`; a transcript whose extraction
 raises -> `failed`; the batch never aborts), single entrypoint (`run_extraction`).
@@ -39,6 +39,10 @@ from cleaning.transcript_product_lake import (
     cues_from_asr_record,
     extract_products_into_lake,
     mentions_record_id,
+)
+from source_capture.ig_reels_deep_capture_lake import (
+    DEEP_CAPTURE_SET_LANE,
+    REEL_TRANSCRIPT_LANE,
 )
 
 _ASR_LANE = "transcript_asr"
@@ -106,6 +110,31 @@ def _asr_records(data_root, audio_packet_id: str) -> list[dict]:
     return records
 
 
+def _read_json_record(path: Path) -> dict:
+    data = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(data, dict):
+        raise ValueError(f"record is not a JSON object: {path}")
+    return data
+
+
+def _iter_derived_lane_records(data_root, lane: str):
+    derived = data_root.path / "derived"
+    if not derived.is_dir():
+        return
+    for shard_dir in sorted(derived.iterdir()):
+        if not shard_dir.is_dir():
+            continue
+        for anchor_dir in sorted(shard_dir.iterdir()):
+            if not anchor_dir.is_dir():
+                continue
+            lane_dir = anchor_dir / lane
+            if not lane_dir.is_dir():
+                continue
+            for record_file in sorted(lane_dir.iterdir()):
+                if record_file.is_file():
+                    yield anchor_dir.name, record_file.name
+
+
 def _candidate_packet_ids(data_root) -> list[str]:
     """Committed instagram_creator packet ids. Rebuilds availability from raw first so discovery
     does not depend on a pre-populated index. Best-effort: a single corrupt manifest must not
@@ -115,6 +144,10 @@ def _candidate_packet_ids(data_root) -> list[str]:
     except Exception:  # noqa: BLE001 - a corrupt manifest must not abort the run; index is best-effort
         pass
     return list(data_root.list_available(source_family=_IG_SOURCE_FAMILY))
+
+
+def _candidate_deep_capture_keys(data_root) -> list[tuple[str, str]]:
+    return list(_iter_derived_lane_records(data_root, DEEP_CAPTURE_SET_LANE))
 
 
 def _transcripts_for_packet(data_root, packet_id: str) -> list[TranscriptInput]:
@@ -142,6 +175,40 @@ def _transcripts_for_packet(data_root, packet_id: str) -> list[TranscriptInput]:
         if cues and shortcode:
             transcripts.append(TranscriptInput(shortcode, packet_id, "asr", cues))
     return transcripts
+
+
+def _transcript_for_deep_capture(data_root, shortcode: str, record_id: str) -> TranscriptInput | None:
+    """Normalize one completed deep-capture transcript record into an extraction input.
+
+    Deep capture persists the transcript under the reel shortcode anchor, with the deep-capture
+    record id serving as the ASR record identity for behavioral correlation. Only transcribed,
+    cue-bearing records are extractable.
+    """
+    if not data_root.is_record_set_complete(
+        subtree="derived",
+        raw_anchor=shortcode,
+        record_id=record_id,
+        completion_lane=DEEP_CAPTURE_SET_LANE,
+    ):
+        raise ValueError(f"incomplete deep-capture record set: {shortcode}:{record_id}")
+
+    record = _read_json_record(
+        _record_path(
+            data_root,
+            raw_anchor=shortcode,
+            lane=REEL_TRANSCRIPT_LANE,
+            record_id=record_id,
+        )
+    )
+    record_shortcode = str(record.get("reel_shortcode") or "")
+    if record_shortcode != shortcode:
+        raise ValueError(f"deep-capture shortcode mismatch: {record_shortcode!r} != {shortcode!r}")
+    if record.get("transcript_posture") not in {"transcribed", "ok"}:
+        return None
+    cues = cues_from_asr_record(record)
+    if not cues:
+        return None
+    return TranscriptInput(shortcode, shortcode, "asr", cues)
 
 
 def _mentions_set_state(data_root, transcript: TranscriptInput, model: str) -> str:
@@ -181,6 +248,16 @@ def pending_extraction_counts(*, data_root, model: str = DEFAULT_EXTRACTION_MODE
             state = _mentions_set_state(data_root, transcript, model)
             if state in counts:
                 counts[state] += 1
+    for shortcode, record_id in _candidate_deep_capture_keys(data_root):
+        try:
+            transcript = _transcript_for_deep_capture(data_root, shortcode, record_id)
+        except Exception:  # noqa: BLE001 - corrupt deep-capture discovery must not abort the poll
+            continue
+        if transcript is None:
+            continue
+        state = _mentions_set_state(data_root, transcript, model)
+        if state in counts:
+            counts[state] += 1
     return counts
 
 
@@ -264,6 +341,72 @@ def run_extraction(
                 results.append(
                     {"anchor": anchor, "video_id": transcript.video_id, "status": "failed", "error": f"{type(exc).__name__}: {exc}"[:200]}
                 )
+    for shortcode, record_id in _candidate_deep_capture_keys(data_root):
+        try:
+            transcript = _transcript_for_deep_capture(data_root, shortcode, record_id)
+        except Exception as exc:  # noqa: BLE001 - corrupt deep-capture set -> discovery_failed, batch continues
+            results.append(
+                {
+                    "anchor": shortcode,
+                    "record_id": record_id,
+                    "status": "discovery_failed",
+                    "error": f"{type(exc).__name__}: {exc}"[:200],
+                }
+            )
+            continue
+        if transcript is None:
+            continue
+        anchor = transcript.transcript_anchor
+        try:
+            rid = mentions_record_id(transcript, model)
+            if data_root.is_record_set_complete(
+                subtree="derived",
+                raw_anchor=anchor,
+                record_id=rid,
+                completion_lane=PRODUCT_MENTIONS_SET_LANE,
+            ):
+                results.append(
+                    {"anchor": anchor, "record_id": record_id, "video_id": transcript.video_id, "status": "skipped_done"}
+                )
+                continue
+            member_path = _record_path(
+                data_root, raw_anchor=anchor, lane=PRODUCT_MENTIONS_LANE, record_id=rid
+            )
+            if member_path.exists():
+                results.append(
+                    {"anchor": anchor, "record_id": record_id, "video_id": transcript.video_id, "status": "partial_needs_cleanup"}
+                )
+                continue
+            paths = extract_products_into_lake(
+                data_root=data_root,
+                transcript=transcript,
+                transport=transport,
+                provider=provider,
+                model=model,
+                api_key=api_key,
+                record_id=rid,
+                max_tokens=max_tokens,
+            )
+            written = next(iter(paths.values()), None)
+            results.append(
+                {
+                    "anchor": anchor,
+                    "record_id": record_id,
+                    "video_id": transcript.video_id,
+                    "status": "extracted",
+                    "path": str(written) if written is not None else None,
+                }
+            )
+        except Exception as exc:  # noqa: BLE001 - per-item failure isolation (daemon-ready)
+            results.append(
+                {
+                    "anchor": anchor,
+                    "record_id": record_id,
+                    "video_id": transcript.video_id,
+                    "status": "failed",
+                    "error": f"{type(exc).__name__}: {exc}"[:200],
+                }
+            )
     return results
 
 

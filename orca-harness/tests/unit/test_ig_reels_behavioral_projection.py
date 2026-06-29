@@ -126,14 +126,20 @@ def test_projects_complete_audio_backed_ig_behavior_record() -> None:
     ]
 
 
-def test_deep_capture_transcript_is_visible_but_residualized_until_feed_adapter_exists() -> None:
+def test_deep_capture_transcript_is_extraction_eligible_and_can_complete() -> None:
     projection = project_ig_reels_behavioral_item(
         platform_item_id=_SHORTCODE,
         grid_rows=[_grid_row()],
         comment_sets=[_comment_set()],
-        standalone_audio_transcript_records=[_audio_transcript()],
         deep_capture_transcript_records=[_deep_transcript()],
-        extraction_results=[{"anchor": "audio-packet-1", "video_id": _SHORTCODE, "status": "extracted"}],
+        extraction_results=[
+            {
+                "anchor": _SHORTCODE,
+                "video_id": _SHORTCODE,
+                "status": "extracted",
+                "path": f"derived/{_SHORTCODE}/product_mentions/r1",
+            }
+        ],
     )
 
     deep_source = [
@@ -142,16 +148,15 @@ def test_deep_capture_transcript_is_visible_but_residualized_until_feed_adapter_
         if source["source_route"] == "deep_capture_render_audio"
     ][0]
     assert deep_source["posture"] == "transcribed"
-    assert deep_source["extraction_eligible"] is False
-    assert deep_source["non_eligible_reason"] == "deep_capture_not_in_extraction_feed"
-    assert deep_source["extraction_status"] == "not_extraction_eligible"
+    assert deep_source["extraction_eligible"] is True
+    assert deep_source["non_eligible_reason"] is None
+    assert deep_source["extraction_status"] == "extracted"
     assert projection["transcript"]["canonical_source"]["source_route"] == "deep_capture_render_audio"
-    assert projection["behavioral_completeness"]["status"] == "complete_with_residuals"
-    assert projection["behavioral_completeness"]["complete"] is False
-    assert (
-        "ig_transcript_source_not_extraction_eligible:"
-        f"{_SHORTCODE}:asr:deepcap_1.json"
-    ) in projection["behavioral_completeness"]["residuals"]
+    assert projection["behavioral_completeness"] == {
+        "status": "complete",
+        "complete": True,
+        "residuals": [],
+    }
 
 
 def test_failed_extraction_stays_visible_and_blocks_complete_claim() -> None:
