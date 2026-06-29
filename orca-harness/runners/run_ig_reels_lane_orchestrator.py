@@ -57,6 +57,7 @@ def run_ig_reels_lane_orchestrator(
 ) -> LaneRunSummary:
     requested = _ordered_lanes(lanes)
     receipts: list[LaneReceipt] = []
+    explicit_platform_item_id = platform_item_id
     target_shortcode = platform_item_id
     target_transcript_source_key = transcript_source_key
 
@@ -79,11 +80,17 @@ def run_ig_reels_lane_orchestrator(
             asr_model=asr_model,
             deep_capture_runner=deep_capture_runner,
         )
-        receipts.append(receipt)
         if target_shortcode is None and captured_source_key is not None:
             target_shortcode = captured_target
-        if target_transcript_source_key is None:
-            target_transcript_source_key = captured_source_key
+        if target_transcript_source_key is None and captured_source_key is not None:
+            if explicit_platform_item_id is None or captured_target == explicit_platform_item_id:
+                target_transcript_source_key = captured_source_key
+            else:
+                receipt = _receipt_with_residual(
+                    receipt,
+                    f"deep_capture_target_differs_from_explicit_platform_item:{explicit_platform_item_id}:{captured_target}",
+                )
+        receipts.append(receipt)
 
     if "product_extract" in requested:
         receipts.append(
@@ -195,6 +202,10 @@ def _run_deep_capture_lane(
     selected_shortcode = selected_item[0].result.reel_shortcode if selected_item and selected_item[0].result else None
     selected_record_id = selected_item[1] if selected_item else None
     selected_source_key = selected_item[2] if selected_item else None
+    if selected_shortcode is not None and len(complete_items) > 1:
+        residuals.append(
+            f"orchestrator_product_projection_single_target:{selected_shortcode}:persisted_count={len(complete_items)}"
+        )
     status = "succeeded" if not failures and len(complete_items) == len([item for item in captured if item.ok]) and (captured or top_n == 0) else "failed"
     return (
         LaneReceipt(
@@ -316,6 +327,27 @@ def _run_projection_lane(
     )
 
 
+def _receipt_with_residual(receipt: LaneReceipt, residual: str) -> LaneReceipt:
+    return LaneReceipt(
+        receipt.lane,
+        receipt.status,
+        receipt.message,
+        outputs=dict(receipt.outputs),
+        residuals=[*receipt.residuals, residual],
+    )
+
+
+def _summary_exit_code(summary: LaneRunSummary) -> int:
+    if summary.complete:
+        return 0
+    statuses = {receipt.status for receipt in summary.receipts}
+    if "failed" in statuses:
+        return 3
+    if "blocked_operator_action_required" in statuses:
+        return 4
+    return 1
+
+
 def _captured_to_dict(item: CapturedReel) -> dict[str, Any]:
     return {
         "rank": item.ranked.rank,
@@ -378,7 +410,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         parser.exit(status=3, message=f"ig reels lane orchestrator failed: {type(exc).__name__}: {exc}\n")
 
     print(json.dumps(summary.to_dict(), ensure_ascii=False, indent=2, sort_keys=True))
-    return 0
+    return _summary_exit_code(summary)
 
 
 if __name__ == "__main__":
