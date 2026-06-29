@@ -121,8 +121,8 @@ direction_change_propagation:
     - orca-harness/tests/unit/test_instagram_reels_creator_metric_seed.py
     - orca-harness/tests/unit/test_youtube_creator_metric_seed.py
   intentionally_not_updated:
-    - path: docs/prompts/ and docs/review-outputs/ historical prompt/review files
-      reason: Historical commission/review artifacts keep point-in-time source paths by design; active product, map, code, and test surfaces were updated.
+    - path: docs/prompts/, docs/review-inputs/, and docs/review-outputs/ historical prompt/review body prose
+      reason: Historical commission/review artifacts keep point-in-time source paths in their body narrative by design; their open_next retrieval headers were repointed to the new creator_registry/ paths so the strict retrieval link gate stays green, and active product, map, code, and test surfaces were updated.
   non_claims:
     - not validation
     - not readiness

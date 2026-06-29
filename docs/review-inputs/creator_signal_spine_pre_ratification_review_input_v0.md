@@ -13,8 +13,8 @@ use_when:
   - Preparing the post-review promotion patch if the delegated review is adjudicated as keep.
 authority_boundary: retrieval_only
 open_next:
-  - orca/product/spines/capture/core/source_families/social_media/creator_profile_current_view_spec_v0.md
-  - orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_spec_v0.md
+  - orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_profile_current_view_spec_v0.md
+  - orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_spec_v0.md
   - .agents/workflow-overlay/artifact-folders.md
   - .agents/workflow-overlay/source-of-truth.md
   - orca/product/README.md

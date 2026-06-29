@@ -16,8 +16,8 @@ open_next:
   - .agents/workflow-overlay/review-lanes.md
   - .agents/workflow-overlay/prompt-orchestration.md
   - docs/prompts/templates/review/adversarial_artifact_review_v0.md
-  - orca/product/spines/capture/core/source_families/social_media/creator_profile_current_view_spec_v0.md
-  - orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_spec_v0.md
+  - orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_profile_current_view_spec_v0.md
+  - orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_spec_v0.md
 stale_if:
   - PR #431 is rebased, amended, merged, or closed before review.
   - Any target file hash below no longer matches the checked-out tree.
