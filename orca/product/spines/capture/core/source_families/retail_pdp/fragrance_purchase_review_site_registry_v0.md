@@ -13,6 +13,7 @@ open_next:
   - orca/product/spines/capture/core/source_families/retail_pdp/fragrance_purchase_review_row_contract_v0.md
   - orca/product/spines/capture/core/source_families/retail_pdp/fragrance_purchase_review_row_capture_pilot_v0.md
   - orca/product/spines/capture/core/source_families/retail_pdp/fragrance_purchase_review_widget_expansion_probe_v0.md
+  - orca/product/spines/capture/core/source_families/retail_pdp/fragrance_purchase_review_focused_coverage_mgt_v0.md
   - orca/product/spines/capture/core/source_families/retail_pdp/fragrance_purchase_review_retailer_recon_v0.md
   - orca/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md
   - orca/product/spines/capture/core/source_capture_toolbox/capture_recon_index_v0.md
@@ -23,6 +24,8 @@ stale_if:
   - A widget endpoint, product id, Shopify shop domain, app key, or response
     shape changes for any source below.
   - The review-row contract changes the minimum fields needed for v0 capture.
+  - The focused review-coverage MGT policy changes source selection, row
+    selection, or coverage-receipt expectations.
 ```
 
 ## Decision

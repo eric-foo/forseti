@@ -13,11 +13,14 @@ open_next:
   - orca/product/spines/capture/core/source_families/retail_pdp/fragrance_purchase_review_site_registry_v0.md
   - orca/product/spines/capture/core/source_families/retail_pdp/fragrance_purchase_review_row_contract_v0.md
   - orca/product/spines/capture/core/source_families/retail_pdp/fragrance_purchase_review_row_capture_pilot_v0.md
+  - orca/product/spines/capture/core/source_families/retail_pdp/fragrance_purchase_review_focused_coverage_mgt_v0.md
 stale_if:
   - Any widget endpoint, product id, Shopify shop domain, app key, or response shape changes.
   - A fixture is replaced or a review count changes materially.
   - A row adapter physicalizes widget responses into durable Attachment Records.
   - A later probe finds source-visible review media on these fixtures.
+  - The focused review-coverage MGT policy changes row-selection or receipt
+    expectations for this lane.
 ```
 
 ## Decision
