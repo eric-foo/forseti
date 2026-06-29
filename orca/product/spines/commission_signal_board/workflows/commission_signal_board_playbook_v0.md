@@ -13,7 +13,7 @@ use_when:
   - Diagnosing validator failures on Commission Signal Board outputs.
 authority_boundary: retrieval_only
 open_next:
-  - orca/product/spines/commission_signal_board/prompts/orca_commission_signal_board_prompt_v0.md
+  - orca/product/spines/commission_signal_board/prompts/orca_commission_signal_board_prompt_structure_v0.md
   - .agents/hooks/check_commission_signal_board_output.py
   - orca-harness/tests/fixtures/commission_signal_board_outputs/
 stale_if:
@@ -23,7 +23,8 @@ stale_if:
 ```
 
 - Playbook path: `orca/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md`.
-- Prompt path: `orca/product/spines/commission_signal_board/prompts/orca_commission_signal_board_prompt_v0.md`.
+- Prompt Structure path: `orca/product/spines/commission_signal_board/prompts/orca_commission_signal_board_prompt_structure_v0.md`.
+- Prompt Structure Rules path: `orca/product/spines/commission_signal_board/authority/orca_commission_signal_board_prompt_structure_rules_v0.md`.
 - Validator path: `.agents/hooks/check_commission_signal_board_output.py`.
 - Validator fixture path: `orca-harness/tests/fixtures/commission_signal_board_outputs/`.
 - Current enforcement posture: manual/local checker. Not CI, not pre-commit, not a write hook.
@@ -108,6 +109,11 @@ vocabulary values including recency/current-state fields, missing Section 8 hand
 `classifier_mapping_status`, invalid `prohibited_claims` shape, invalid
 `board_status`, invalid `run_boundary`, and missing `next_authorized_step`.
 
+Before the handoff-row cross-check, it also fails on mechanical
+engagement/resonance overclaim language that turns public reaction into proof,
+graph weight, Commit/Scale support, credibility, Action Ceiling, or final
+resonance weight.
+
 After structure passes far enough to parse rows and the handoff packet, the
 validator cross-checks rows listed in Section 8 against the Section 4 table. It
 fails when the handoff packet has a missing or invalid `mode` field, or when a
@@ -178,7 +184,11 @@ direction_change_propagation:
     - validation_philosophy
   controlling_sources_updated:
     - orca/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md
-    - orca/product/spines/commission_signal_board/prompts/orca_commission_signal_board_prompt_v0.md
+    - orca/product/spines/commission_signal_board/prompts/orca_commission_signal_board_prompt_structure_v0.md
+    - orca/product/spines/commission_signal_board/authority/orca_commission_signal_board_prompt_structure_rules_v0.md
+    - .agents/hooks/check_commission_signal_board_output.py
+    - orca-harness/tests/unit/test_commission_signal_board_output_validator.py
+    - orca-harness/tests/fixtures/commission_signal_board_outputs/
     - docs/workflows/orca_repo_map_v0.md
   downstream_surfaces_checked:
     - AGENTS.md
@@ -216,12 +226,15 @@ direction_change_propagation:
     docs .agents orca-harness -S
     (executed 2026-06-18)
   stale_language_search_result: >
-    Live hits are the validator, fixtures/tests, the adjudication packet, the
-    updated Commission Signal Board prompt, this playbook, and the repo-map
-    discovery entries. No checked live surface instructed agents to run the
-    validator on intake-only output, skip the playbook for Commission Signal
-    Board work, treat the checker as CI/pre-commit, or treat validator pass as
-    evidence truth, demand classification, proof, or readiness.
+    The old optional-recency validator wording produced only receipt search-string
+    hits, not live instructional hits. Scoped validator hits are the updated
+    Prompt Structure, playbook, Prompt Structure Rules doc, validator, tests,
+    fixtures, adjudication packet, and repo-map discovery entries. No checked
+    live surface instructed agents to run the validator on intake-only output,
+    skip the playbook for Commission Signal Board work, treat the checker as
+    CI/pre-commit/write-hook enforcement, omit required recency row fields, or
+    treat validator pass as evidence truth, demand classification, proof, graph
+    weight, recency proof, or readiness.
   non_claims:
     - not validation
     - not readiness

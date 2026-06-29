@@ -36,7 +36,7 @@ open_next:
 stale_if:
   - The owner adjudicates the demand-read taxonomy and amends the Integrity layer or the durable/transient/manufactured states.
   - C2 Rule 3 (R3a-e), the C1 Demand-Substrate Hard Gate (G1/G2), or the C3 consume-don't-reopen boundary is re-derived.
-  - The buyer-proof action-ceiling cap rule (>=2 converging origins; manufactured-defeater; engagement-only cap) changes.
+  - The buyer-proof action-ceiling cap rule (>=2 converging origins; manufactured-defeater; engagement/resonance-only cap) changes.
   - The owner lifts the no-scoring boundary (INV-1) — a qualitative-likelihood frame may then graduate toward calibrated weighting.
   - The corroboration-vs-amplification discipline note amends the Signal-Integrity ownership or the non-destructive-dedup requirement.
   - A future external report or the owner's still-outstanding in-thread detection ideas name a NEW mechanism class — the 2026-06-20 report landed and HELD the spine (calibration/exemplars only; see Status), so the spine-change condition is not currently tripped.
@@ -535,7 +535,7 @@ confirmed qualitative, not numeric.)
 - **Consumes (read-only):** the two-axis demand-state model + Integrity layer (taxonomy); the
   C1 Demand-Substrate Hard Gate G1/G2 (buyer-proof packet, ratified — consumed, not reopened);
   C2 Rule 3 R3(a–e) + the R3d discriminator-companion requirement (C2 contract); the buyer-proof
-  ≥2-independent-converging-origin bar + manufactured-defeater + engagement-only cap; the
+  ≥2-independent-converging-origin bar + manufactured-defeater + engagement/resonance-only cap; the
   corroboration-vs-amplification Signal-Integrity ownership + non-destructive-dedup requirement
   (cleaning discipline note); the engagement-registry seed pattern table.
 - **Provides:** the per-class manufactured-mechanism **families** + **present-fingerprint /

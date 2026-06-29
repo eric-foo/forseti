@@ -1,8 +1,8 @@
-# Orca Commission Signal Board Prompt v0
+# Orca Commission Signal Board Prompt Structure v0
 
 ```yaml
 retrieval_header_version: 1
-artifact_role: Full prompt artifact
+artifact_role: Prompt Structure
 scope: >
   Reusable prompt for producing an Orca Commission Signal Board: an
   evidence/signals-only board, graph retrieval brief, and classifier handoff
@@ -15,20 +15,20 @@ use_when:
 authority_boundary: retrieval_only
 open_next:
   - orca/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md
-  - orca/product/spines/commission_signal_board/authority/orca_commission_signal_board_prompt_adjudication_packet_v0.md
+  - orca/product/spines/commission_signal_board/authority/orca_commission_signal_board_prompt_structure_rules_v0.md
   - .agents/hooks/check_commission_signal_board_output.py
   - .agents/workflow-overlay/prompt-orchestration.md
   - .agents/workflow-overlay/source-loading.md
 stale_if:
-  - The Commission Signal Board adjudication packet is superseded.
+  - The Commission Signal Board Prompt Structure Rules doc is superseded.
   - The Commission Signal Board playbook or validator is superseded.
   - The owner renames or replaces the Commission Signal Board object.
   - A demand-classifier handoff contract supersedes this prompt's handoff shape.
   - A graph artifact/schema contract supersedes this prompt's graph-light contract.
 ```
 
-- Prompt artifact path: `orca/product/spines/commission_signal_board/prompts/orca_commission_signal_board_prompt_v0.md`.
-- Prompt family: product-planning / full prompt artifact.
+- Prompt Structure path: `orca/product/spines/commission_signal_board/prompts/orca_commission_signal_board_prompt_structure_v0.md`.
+- Prompt family: product-planning / Prompt Structure.
 - Prompt output mode: `chat-only`.
 - Prompt authoring route: authored through `workflow-prompt-orchestrator` mechanics in the legacy-named `codex/commission-gate` lane.
 - Commission lane playbook: `orca/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md`.
@@ -97,7 +97,7 @@ The board must NOT:
 
 - output `admit`, `hold`, `fail`, `pass`, `reject`, or any demand verdict;
 - decide whether demand exists;
-- label weak/attention-only evidence as transient demand;
+- label weak, attention-only, or resonance-only evidence as transient demand;
 - emit a durable/transient/manufactured demand-state verdict;
 - decide buyer proof or readiness;
 - score evidence strength;
@@ -105,6 +105,20 @@ The board must NOT:
 - build, infer, or score a graph;
 - treat graph usefulness as signal strength;
 - invent evidence that was not supplied or source-backed.
+
+Public-reaction engagement handling:
+
+- preserve visible reaction context such as upvotes, helpful votes, likes,
+  views, shares, comment counts, reply counts, source-native score state, sort
+  order, and pinned/hearted/official-response markers when supplied or
+  source-backed;
+- use those facts as qualitative resonance context by default, preserving
+  direction, visible audience-fit basis, baseline context, objection,
+  distribution, manipulation-risk, or social-proof context when supplied or
+  source-backed;
+- do not treat engagement counts, source rank, or high/low reaction volume as a
+  demand verdict, proof, graph weight, classifier result, final resonance
+  weight, Commit/Scale support, credibility label, or Action Ceiling.
 
 ## Start Preflight
 
@@ -276,11 +290,40 @@ requires them.
 | Reviews | retailer reviews, marketplace reviews, brand-site reviews, specialist fragrance reviews | experience claims, recency, complaints, repeat-use hints, contradiction checks | Do not collapse to aggregate stars; preserve recency and source conventions. |
 | Creator / social video | Instagram, TikTok, YouTube, shorts/reels, affiliate/creator posts, later Reddit creator/community personalities | attention spread, creator clusters, campaign risk, audience language, propagation timing | Instagram has current adjacent capture/discovery work. TikTok, YouTube, and Reddit creator profiles are planned/deferred seams unless separately authorized. |
 | Retail / PDP | Sephora, Ulta, Amazon, Nordstrom, brand PDPs, retailer search/category pages | availability, assortment, stock/discounting posture, review context, retailer corroboration | Retail/PDP is corroborative and operationally useful; it is not consumer-origin by itself. |
-| Search / discovery | Google Trends, search-volume provider, SERP, marketplace search, on-site search | interest traces, query language, discovery routes, counterevidence queries | Search-interest can carry attention/interest signal; methodology and pins stay owned by the search/AEO lane. |
+| Search / discovery | Google Trends, search-volume provider, SERP, preserved SERP packets, marketplace search, on-site search | interest traces, query language, discovery routes, hidden-venue pointers, counterevidence queries | Search-interest can carry attention/interest signal. Search-Surface MGT is a source-route scout only; methodology and pins stay with owning search-interest/AEO specs, while execution routes to Scanning frontier/exact-query work or Capture direct-source requests. |
 | AEO / answer engines | Google AI Overviews, Gemini, ChatGPT, other answer-engine surfaces | answer visibility, cited-source ecosystem, entity association, visibility gaps | Visibility annotation only; never an independent demand-origin surface. Any change to this posture requires an Orca owner decision, not a per-run dispatcher override. |
 | News / editorial / trade | trade publications, editorial, newsletters, specialist blogs, press | launch chronology, industry framing, awareness, third-party narrative | News is a distinct family; LinkedIn reposts of news point back to the actual source. |
 | Professional / org-motion | ATS/careers pages, hiring pages, founder/executive public posts, partnership announcements, LinkedIn when explicitly routed | hiring/movement, organizational intent, operator-side propagation | ATS/careers pages are better movement sources than LinkedIn. LinkedIn remains no-live/planning-only unless separately authorized. |
 | Owned channels | brand site, brand socials, email archive, product pages, press releases | official chronology, brand claims, launch framing | High chronology value, low independence. |
+
+### Search-Surface MGT Standing Route Card
+
+Standing behavior: when a commission has an open question about market language,
+comparison/confusion, hidden venues, or counterevidence queries, the board should
+consider a Search-Surface MGT route row rather than leaving search discovery as
+background prose.
+
+Use this row pattern:
+
+```yaml
+source_family: search_discovery
+source_subfamily: search_surface_mgt
+signal_role: search_interest
+row_purpose: source_route
+evidence_status: provided | source_backed | to_retrieve | gap
+```
+
+CSB may point to preserved SERP packets as routing evidence, but it does not run
+Google capture, score search demand, or treat query count, rank, repeated SERP
+presence, PAA/PAS, product modules, or autocomplete as proof.
+
+Preferred handoff:
+
+```text
+CSB source-route row
+-> Scanning exact-query / frontier selection
+-> Capture P1 direct-source acquisition when concrete URLs or surfaces exist
+```
 
 ## Field Vocabulary
 
@@ -397,6 +440,11 @@ Markdown table:
 Include all relevant families. Include non-relevant families only when their
 absence is decision-relevant.
 
+When the commission has unresolved market-language,
+comparison/confusion, hidden-venue, or counterevidence-query questions, include
+`search_discovery / search_surface_mgt` in this plan even if no SERP packet exists
+yet; mark evidence status `to_retrieve` or `gap`.
+
 ### 4. Signal Board Rows
 
 Markdown table:
@@ -406,6 +454,13 @@ Markdown table:
 Rules:
 
 - Use stable row IDs: `SBR-001`, `SBR-002`, etc.
+- When the Search-Surface MGT standing route card is triggered, include a route
+  row rather than only prose. Use source family `search_discovery`, subfamily
+  `search_surface_mgt`, signal role `search_interest`, and row purpose
+  `source_route`. Use `Handoff note` to route Scanning exact-query/frontier
+  work or Capture P1 direct-source acquisition. Do not list such rows in
+  classifier handoff unless later retrieval produces source-backed, eligible
+  evidence under Section 8.
 - Do not combine distinct subfamilies in one row when their access,
   provenance, noise, or graph behavior differs.
 - Mark unsupported rows as `to_retrieve` or `gap`; do not make evidence claims.
@@ -569,6 +624,10 @@ in one sentence.
 - Keep graph weight separate from signal weight.
 - Keep recency attention separate from proof, classifier mapping, and graph
   weight; it routes attention, not truth.
+- Apply the Search-Surface MGT standing route card whenever its trigger is
+  relevant; route execution to Scanning/Capture, never to CSB-owned search
+  capture, and never count SERP rank, query count, module recurrence, or
+  autocomplete as demand proof.
 - If this is a repo-aware run that produced a full board, run the local
   validator before claiming the board is mechanically safe for classifier
   handoff. If this run produced only intake output, do not run the validator;
@@ -583,6 +642,67 @@ COMMISSION INPUTS FOLLOW:
 ```yaml
 direction_change_propagation:
   doctrine_changed: >
+    Commission Signal Board now has a standing Search-Surface MGT route-card
+    behavior: relevant future boards should emit search_discovery/source_route
+    rows, while execution routes through Scanning/Capture and no SERP/rank/module
+    signal becomes proof.
+  trigger: workflow_authority
+  related_triggers:
+    - product_doctrine
+    - output_authority
+  controlling_sources_updated:
+    - orca/product/spines/commission_signal_board/prompts/orca_commission_signal_board_prompt_structure_v0.md
+    - orca/product/spines/commission_signal_board/authority/orca_commission_signal_board_prompt_structure_rules_v0.md
+  downstream_surfaces_checked:
+    - AGENTS.md
+    - .agents/workflow-overlay/README.md
+    - .agents/workflow-overlay/decision-routing.md
+    - .agents/workflow-overlay/source-loading.md
+    - .agents/workflow-overlay/source-of-truth.md
+    - .agents/workflow-overlay/prompt-orchestration.md
+    - orca/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md
+    - orca/product/spines/scanning/scan_core/orca_scanning_intelligent_walk_mgt_operating_model_v0.md
+    - orca/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md
+    - orca/product/spines/scanning/source_families/answer_engine/demand_search_interest_sourcing_and_gate_delta_spec_v0.md
+    - docs/research/search_surface_mgt_pilot_p0_receipts_v0/search_surface_mgt_pilot_p0_capture_efficacy_review_v0.md
+  intentionally_not_updated:
+    - path: orca/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md
+      reason: >
+        The playbook owns run sequence and validator use, not source-family route
+        semantics. No operating-sequence or validator applicability change is
+        needed.
+    - path: .agents/hooks/check_commission_signal_board_output.py
+      reason: >
+        The existing `search_discovery`, `source_route`, and `search_interest`
+        values cover this standing route card; no new field or enum is introduced.
+    - path: docs/workflows/orca_repo_map_v0.md
+      reason: >
+        Canonical CSB entry points are unchanged. The new P0 efficacy review is
+        a branch-local research input for this route-card behavior, not a repo-map
+        navigation entry.
+  stale_language_search: >
+    rg -n "search/AEO lane|Search-Surface|search-surface|SERP rank|query count|repeated SERP|source-route scout|standing route card|route-card"
+    orca/product/spines/commission_signal_board orca/product/spines/scanning
+    docs/research/search_surface_mgt_pilot_p0_receipts_v0
+    (run 2026-06-25)
+  stale_language_search_result: >
+    Executed 2026-06-25 after route-card hardening. Hits are the standing CSB
+    route card, prompt output rules, final rule, DCP text, the scanning guardrail
+    against query-count/search-rank/repeated-SERP proof, and the P0 receipt,
+    review, and run files. No checked surface turns Search-Surface MGT into
+    proof, scoring, CSB-owned capture, or a standalone Search lane.
+  non_claims:
+    - not validation
+    - not readiness
+    - not demand classification
+    - not buyer proof
+    - not source-access authorization
+    - not capture authorization
+```
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
     Commission Signal Board rows now carry recency/currentness as source-route
     attention metadata: same-strength newer/current URL-backed signals normally
     deserve more downstream scan attention than older context, without becoming
@@ -591,8 +711,8 @@ direction_change_propagation:
   related_triggers:
     - output_authority
   controlling_sources_updated:
-    - orca/product/spines/commission_signal_board/prompts/orca_commission_signal_board_prompt_v0.md
-    - orca/product/spines/commission_signal_board/authority/orca_commission_signal_board_prompt_adjudication_packet_v0.md
+    - orca/product/spines/commission_signal_board/prompts/orca_commission_signal_board_prompt_structure_v0.md
+    - orca/product/spines/commission_signal_board/authority/orca_commission_signal_board_prompt_structure_rules_v0.md
     - orca/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md
     - .agents/hooks/check_commission_signal_board_output.py
     - orca-harness/tests/unit/test_commission_signal_board_output_validator.py

@@ -148,15 +148,16 @@ may never exceed what signal integrity supports.
   review velocity and content shifts, pain-point convergence, dupe-seeking and
   switching **with stated cause**, effortful UGC. Per the thesis costly-behavior
   primitive: payment, switching, workarounds, churn, durable buyer pressure.
-- *Anti-trigger:* **attention/engagement volume standing alone** (likes, views,
+- *Anti-trigger:* **attention/engagement/resonance volume standing alone** (likes, views,
   comment counts, coverage volume) — it *caps* the action ceiling and can never
-  carry a Commit; virality / creator attention used as a buyer filter (per the
+  carry a Commit; public engagement should still be read as qualitative resonance
+  weight below proof. Virality / creator attention used as a buyer filter (per the
   Hard Gate these are **trigger and candidate-context ordering only**).
 - *Boundary:* the **primary** layer (owner word). Must clear the **Demand-
   Substrate Hard Gate** (buyer-proof packet, re-derived 2026-06-12): at least
   **two independent venue families** + costly-behavior anchoring + applicable
   integrity labels, else **disqualify or hold** — never a single-venue or
-  engagement-only memo.
+  engagement/resonance-only memo.
 
 **Layer 4 — Supply-side org motion** (SUPPLEMENT — owner word)
 - *What counts:* operators' revealed bets — ad launches, hiring direction and
@@ -197,7 +198,7 @@ may never exceed what signal integrity supports.
   motion pointing the **same way**, costly-behavior anchored, with a named basis
   for projecting persistence over the decision horizon (owner example:
   peptides). Observed persistence is one support path, not the definition.
-- *Anti-trigger:* convergence asserted on engagement volume; single-venue
+- *Anti-trigger:* convergence asserted on engagement/resonance volume; single-venue
   agreement dressed up as multi-venue; convergence without costly behavior; a
   **spike mistaken for persistence** (decay not assessed).
 - *Boundary:* must clear the Hard Gate; ceiling capped by signal integrity.
@@ -209,8 +210,8 @@ may never exceed what signal integrity supports.
   normalize (viral surge, time-limited dupe wave, seasonal pop).
 - *Anti-trigger:* a spike treated as durable (commit long → stranded inventory);
   a manufactured pump mistaken for a real spike (integrity layer must clear it first).
-- *Boundary:* **equal billing as a read**; weak/attention-only input is not
-  transient demand, and manufactured hype is not transient demand. Durability is
+- *Boundary:* **equal billing as a read**; weak, attention-only, or resonance-only
+  input is not transient demand, and manufactured hype is not transient demand. Durability is
   a projected persistence call with a named evidence basis; monitoring builds or
   defeats that basis. A transient call is **built-to, not proven-at** on its
   exact lifespan until a decay-curve capability exists (reconciled 2026-06-14,

@@ -94,7 +94,7 @@ stale_if:
 ### Earlier-decided concepts and behaviors (inline gist plus verify pointer)
 
 - decision, framing, profile, or convention: Commission Signal Board rows now carry `recency_status` and `recency_attention` as source-route priority metadata, not truth or proof.
-  - decided in: `orca/product/spines/commission_signal_board/prompts/orca_commission_signal_board_prompt_v0.md`
+  - decided in: `orca/product/spines/commission_signal_board/prompts/orca_commission_signal_board_prompt_structure_v0.md`
   - compare target: git hash `c39a9868db8329bd1aea8c6ba5b75bf8a95b8b7e`; targeted excerpt lines 293-307 define recency fields and source-route priority.
   - verify before: strict claim about what Commission Signal Board emits.
 - decision, framing, profile, or convention: Scanning uses a default bounded broad-scout phase for CSB-first scans and treats recency/currentness as a hard attention-priority rule, not proof.
@@ -213,7 +213,7 @@ Fresh Capture lane should determine whether Capture-controlled surfaces need nar
     - Compare target: git hash `3af159ba2b0042d487d956a377c0c01592c57f04`.
     - Last checked: 2026-06-23.
     - Reuse rule: open only if review scope must be audited.
-  - `orca/product/spines/commission_signal_board/prompts/orca_commission_signal_board_prompt_v0.md`
+  - `orca/product/spines/commission_signal_board/prompts/orca_commission_signal_board_prompt_structure_v0.md`
     - Role: CSB row schema and DCP receipt for recency/currentness.
     - Load-bearing: yes for cross-spine package semantics.
     - Compare target: git hash `c39a9868db8329bd1aea8c6ba5b75bf8a95b8b7e`; lines 293-307 and 605-613.
@@ -289,7 +289,7 @@ Fresh Capture lane should determine whether Capture-controlled surfaces need nar
   - Role: adversarial review support.
   - Important observations: found no leakage; minor findings patched/adjudicated in later commit.
   - Symbols or sections: `### Non-Finding: No proof, gate, scoring, classifier, or route-binding leakage`, `### AR-01`.
-- `orca/product/spines/commission_signal_board/prompts/orca_commission_signal_board_prompt_v0.md`
+- `orca/product/spines/commission_signal_board/prompts/orca_commission_signal_board_prompt_structure_v0.md`
   - Status: inspected targeted lines 286-310 and 598-620.
   - Role: CSB row metadata semantics.
   - Important observations: recency fields are source-route priority metadata, not truth.

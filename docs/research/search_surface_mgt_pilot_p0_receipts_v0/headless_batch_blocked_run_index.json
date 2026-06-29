@@ -1,0 +1,1123 @@
+{
+  "target": "US indie/DTC fragrance search-surface receipts",
+  "purpose": "preserve direct Google-like search-native surfaces for Search-Surface MGT P0 clusters",
+  "status_boundary": "capture_request_only_not_judgment_evidence_not_product_lead_action_not_durable_demand_proof",
+  "started_at_iso": "2026-06-24T15:04:37.875Z",
+  "operator_timezone": "Asia/Singapore",
+  "host_timezone_offset_minutes": -480,
+  "host": {
+    "platform": "win32",
+    "release": "10.0.26200",
+    "node": "v24.15.0",
+    "chrome_exe": "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
+    "browser_profile": "fresh temporary Chrome profile under docs/_inbox/search_surface_capture_tmp",
+    "browser_mode": "headless=new",
+    "requested_viewport": "desktop 1280x720 window-size, no mobile emulation",
+    "google_params": "hl=en&gl=us&pws=0"
+  },
+  "queries": [
+    {
+      "id": "01_niche_perfume_discovery_set",
+      "query": "niche perfume discovery set",
+      "reason": "strongest discovery-set action/evaluation surface",
+      "required_focus": [
+        "autocomplete",
+        "SERP",
+        "product modules",
+        "PAS/related searches",
+        "Popular products",
+        "More products"
+      ],
+      "capture_started_at_iso": "2026-06-24T15:04:37.894Z",
+      "files": {
+        "autocomplete": {
+          "png": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\01_niche_perfume_discovery_set\\autocomplete.png",
+          "html": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\01_niche_perfume_discovery_set\\autocomplete.html",
+          "txt": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\01_niche_perfume_discovery_set\\autocomplete.txt",
+          "json": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\01_niche_perfume_discovery_set\\autocomplete.json"
+        },
+        "serp_top": {
+          "png": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\01_niche_perfume_discovery_set\\serp_top.png",
+          "html": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\01_niche_perfume_discovery_set\\serp_top.html",
+          "txt": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\01_niche_perfume_discovery_set\\serp_top.txt",
+          "json": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\01_niche_perfume_discovery_set\\serp_top.json"
+        },
+        "serp_full": {
+          "png": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\01_niche_perfume_discovery_set\\serp_full.png",
+          "html": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\01_niche_perfume_discovery_set\\serp_full.html",
+          "txt": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\01_niche_perfume_discovery_set\\serp_full.txt",
+          "json": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\01_niche_perfume_discovery_set\\serp_full.json"
+        }
+      },
+      "autocomplete": {
+        "kind": "autocomplete",
+        "requested_query": "niche perfume discovery set",
+        "extracted_at_browser_iso": "2026-06-24T15:04:42.355Z",
+        "location_href": "https://www.google.com/?hl=en&gl=us&pws=0",
+        "document_title": "Google",
+        "viewport": {
+          "width": 1264,
+          "height": 625,
+          "device_pixel_ratio": 1
+        },
+        "navigator": {
+          "language": "en-US",
+          "languages": [
+            "en-US",
+            "en"
+          ],
+          "platform": "Win32",
+          "webdriver": false,
+          "timezone": "Asia/Singapore"
+        },
+        "session_state": {
+          "sign_in_text_visible": true,
+          "google_account_text_visible": false,
+          "captcha_or_unusual_traffic_visible": false,
+          "consent_text_visible": false
+        },
+        "modules": {
+          "people_also_ask": false,
+          "people_also_search_for": false,
+          "related_searches": false,
+          "shopping_or_products": false,
+          "popular_products": false,
+          "more_products": false,
+          "sponsored_or_ads": false,
+          "video": false,
+          "forums": true,
+          "discussions_and_forums": false,
+          "images": true
+        },
+        "autocomplete_suggestions": [
+          "niche perfume discovery set",
+          "niche perfume discovery set sale",
+          "niche perfume discovery set men",
+          "niche perfume discovery sets reddit",
+          "niche perfume discovery kit",
+          "best niche perfume discovery sets",
+          "niche perfume house discovery set",
+          "men's niche fragrance discovery set",
+          "shop deals on niche perfume discovery sets",
+          "niche parfum discovery set"
+        ],
+        "organic_results": [],
+        "people_also_ask_lines": [],
+        "people_also_search_lines": [],
+        "related_search_lines": [],
+        "product_or_shopping_lines": [
+          "niche perfume discovery set sale",
+          "shop deals on niche perfume discovery sets"
+        ],
+        "video_or_forum_lines": [
+          "niche perfume discovery sets reddit"
+        ],
+        "footer_or_location_lines": [
+          "Privacy",
+          "Terms",
+          "Settings"
+        ],
+        "possible_non_us_storefront_or_locale_signals": [],
+        "all_links_sample": [
+          {
+            "text": "About",
+            "href": "https://about.google/?fg=1&utm_source=google-US&utm_medium=referral&utm_campaign=hp-header"
+          },
+          {
+            "text": "Store",
+            "href": "https://store.google.com/US?utm_source=hp_header&utm_medium=google_ooo&utm_campaign=GS100042&hl=en-US"
+          },
+          {
+            "text": "Gmail",
+            "href": "https://mail.google.com/mail/&ogbl"
+          },
+          {
+            "text": "Images",
+            "href": "https://www.google.com/imghp?hl=en&ogbl"
+          },
+          {
+            "text": "Google apps",
+            "href": "https://www.google.com.sg/intl/en/about/products"
+          },
+          {
+            "text": "Sign in",
+            "href": "https://accounts.google.com/ServiceLogin?hl=en&passive=true&continue=https://www.google.com/%3Fhl%3Den%26gl%3Dus%26pws%3D0&ec=futura_exp_og_so_72776762_e"
+          },
+          {
+            "text": "",
+            "href": "https://www.google.com/search?sca_esv=d5a5f35ee25e06b2&gl=us&pws=0&q=FIFA+World+Cup+2026+Standings&oi=ddle&noiga=1&ct=460194320&hl=en&stick=H4sIAAAAAAAA_-Mwe8SYyC3w8sc9YamISWtOXmMM4pIMLsgvKikOyS8tykvMTc0rCS5JzEvJzEsvFjLlYg1Ozi9IFdIR0uISgKjzTSxJznAvyi8tEBLjYvNJTUwvTRXikeLi4tDP1TcwNig05wEAOVMbw2YAAAA&sa=X&ved=0ahUKEwiv0PqNk6CVAxUJ1TgGHfAeNOAQPQgE"
+          },
+          {
+            "text": "Advertising",
+            "href": "https://www.google.com/intl/en_us/ads/?subid=ww-ww-et-g-awa-a-g_hpafoot1_1!o2&utm_source=google.com&utm_medium=referral&utm_campaign=google_hpafooter&fg=1"
+          },
+          {
+            "text": "Business",
+            "href": "https://www.google.com/services/?subid=ww-ww-et-g-awa-a-g_hpbfoot1_1!o2&utm_source=google.com&utm_medium=referral&utm_campaign=google_hpbfooter&fg=1"
+          },
+          {
+            "text": "How Search works",
+            "href": "https://google.com/search/howsearchworks/?fg=1"
+          },
+          {
+            "text": "Build, create, and do more with AI tools from Google",
+            "href": "https://ai.google/helpful-tools/?utm_source=googlehpfooter&utm_medium=housepromos&utm_campaign=bottom-footer"
+          },
+          {
+            "text": "Privacy",
+            "href": "https://policies.google.com/privacy?hl=en&fg=1"
+          },
+          {
+            "text": "Terms",
+            "href": "https://policies.google.com/terms?hl=en&fg=1"
+          },
+          {
+            "text": "Search settings",
+            "href": "https://www.google.com/preferences?hl=en&fg=1"
+          },
+          {
+            "text": "Advanced search",
+            "href": "https://www.google.com/advanced_search?hl=en&fg=1"
+          },
+          {
+            "text": "Your data in Search",
+            "href": "https://www.google.com/history/privacyadvisor/search/unauth?utm_source=googlemenu&fg=1&cctld=com"
+          },
+          {
+            "text": "Search history",
+            "href": "https://www.google.com/history/optout?hl=en&fg=1"
+          },
+          {
+            "text": "Search help",
+            "href": "https://support.google.com/websearch/?p=ws_results_help&hl=en&fg=1"
+          }
+        ],
+        "visible_text_line_count": 22
+      },
+      "serp_top": {
+        "kind": "serp_top",
+        "requested_query": "niche perfume discovery set",
+        "extracted_at_browser_iso": "2026-06-24T15:04:44.755Z",
+        "location_href": "https://www.google.com/sorry/index?continue=https://www.google.com/search%3Fq%3Dniche%2520perfume%2520discovery%2520set%26hl%3Den%26gl%3Dus%26pws%3D0%26sei%3DCvI7asKtJ5D14-EPn_SdyQc&hl=en&q=EgR5B_dyGIrk79EGIjBZO_igE53thd0cML6x2nLu-3wlgKjxXzZr4TUxrLr8I8yjB57GMzlKTOyO4UhecRUyAVJaAUM",
+        "document_title": "https://www.google.com/search?q=niche%20perfume%20discovery%20set&hl=en&gl=us&pws=0&sei=CvI7asKtJ5D14-EPn_SdyQc",
+        "viewport": {
+          "width": 1264,
+          "height": 625,
+          "device_pixel_ratio": 1
+        },
+        "navigator": {
+          "language": "en-US",
+          "languages": [
+            "en-US",
+            "en"
+          ],
+          "platform": "Win32",
+          "webdriver": false,
+          "timezone": "Asia/Singapore"
+        },
+        "session_state": {
+          "sign_in_text_visible": false,
+          "google_account_text_visible": false,
+          "captcha_or_unusual_traffic_visible": true,
+          "consent_text_visible": false
+        },
+        "modules": {
+          "people_also_ask": false,
+          "people_also_search_for": false,
+          "related_searches": false,
+          "shopping_or_products": false,
+          "popular_products": false,
+          "more_products": false,
+          "sponsored_or_ads": false,
+          "video": false,
+          "forums": false,
+          "discussions_and_forums": false,
+          "images": false
+        },
+        "autocomplete_suggestions": [],
+        "organic_results": [],
+        "people_also_ask_lines": [],
+        "people_also_search_lines": [],
+        "related_search_lines": [],
+        "product_or_shopping_lines": [],
+        "video_or_forum_lines": [],
+        "footer_or_location_lines": [],
+        "possible_non_us_storefront_or_locale_signals": [],
+        "all_links_sample": [
+          {
+            "text": "Why did this happen?",
+            "href": "https://www.google.com/sorry/index?continue=https://www.google.com/search%3Fq%3Dniche%2520perfume%2520discovery%2520set%26hl%3Den%26gl%3Dus%26pws%3D0%26sei%3DCvI7asKtJ5D14-EPn_SdyQc&hl=en&q=EgR5B_dyGIrk79EGIjBZO_igE53thd0cML6x2nLu-3wlgKjxXzZr4TUxrLr8I8yjB57GMzlKTOyO4UhecRUyAVJaAUM#"
+          },
+          {
+            "text": "Terms of Service",
+            "href": "https://www.google.com/policies/terms/"
+          },
+          {
+            "text": "Learn more",
+            "href": "https://support.google.com/websearch/answer/86640"
+          }
+        ],
+        "visible_text_line_count": 5
+      },
+      "serp_full": {
+        "kind": "serp_full",
+        "requested_query": "niche perfume discovery set",
+        "extracted_at_browser_iso": "2026-06-24T15:04:45.717Z",
+        "location_href": "https://www.google.com/sorry/index?continue=https://www.google.com/search%3Fq%3Dniche%2520perfume%2520discovery%2520set%26hl%3Den%26gl%3Dus%26pws%3D0%26sei%3DCvI7asKtJ5D14-EPn_SdyQc&hl=en&q=EgR5B_dyGIrk79EGIjBZO_igE53thd0cML6x2nLu-3wlgKjxXzZr4TUxrLr8I8yjB57GMzlKTOyO4UhecRUyAVJaAUM",
+        "document_title": "https://www.google.com/search?q=niche%20perfume%20discovery%20set&hl=en&gl=us&pws=0&sei=CvI7asKtJ5D14-EPn_SdyQc",
+        "viewport": {
+          "width": 1264,
+          "height": 625,
+          "device_pixel_ratio": 1
+        },
+        "navigator": {
+          "language": "en-US",
+          "languages": [
+            "en-US",
+            "en"
+          ],
+          "platform": "Win32",
+          "webdriver": false,
+          "timezone": "Asia/Singapore"
+        },
+        "session_state": {
+          "sign_in_text_visible": false,
+          "google_account_text_visible": false,
+          "captcha_or_unusual_traffic_visible": true,
+          "consent_text_visible": false
+        },
+        "modules": {
+          "people_also_ask": false,
+          "people_also_search_for": false,
+          "related_searches": false,
+          "shopping_or_products": false,
+          "popular_products": false,
+          "more_products": false,
+          "sponsored_or_ads": false,
+          "video": false,
+          "forums": false,
+          "discussions_and_forums": false,
+          "images": false
+        },
+        "autocomplete_suggestions": [],
+        "organic_results": [],
+        "people_also_ask_lines": [],
+        "people_also_search_lines": [],
+        "related_search_lines": [],
+        "product_or_shopping_lines": [],
+        "video_or_forum_lines": [],
+        "footer_or_location_lines": [],
+        "possible_non_us_storefront_or_locale_signals": [],
+        "all_links_sample": [
+          {
+            "text": "Why did this happen?",
+            "href": "https://www.google.com/sorry/index?continue=https://www.google.com/search%3Fq%3Dniche%2520perfume%2520discovery%2520set%26hl%3Den%26gl%3Dus%26pws%3D0%26sei%3DCvI7asKtJ5D14-EPn_SdyQc&hl=en&q=EgR5B_dyGIrk79EGIjBZO_igE53thd0cML6x2nLu-3wlgKjxXzZr4TUxrLr8I8yjB57GMzlKTOyO4UhecRUyAVJaAUM#"
+          },
+          {
+            "text": "Terms of Service",
+            "href": "https://www.google.com/policies/terms/"
+          },
+          {
+            "text": "Learn more",
+            "href": "https://support.google.com/websearch/answer/86640"
+          }
+        ],
+        "visible_text_line_count": 5
+      },
+      "capture_finished_at_iso": "2026-06-24T15:04:45.719Z"
+    },
+    {
+      "id": "02_perfume_samples_before_buying_full_bottle",
+      "query": "perfume samples before buying full bottle",
+      "reason": "pre-purchase sampling problem",
+      "required_focus": [
+        "SERP",
+        "PAA",
+        "PAS/related searches",
+        "video/forum blocks"
+      ],
+      "capture_started_at_iso": "2026-06-24T15:04:45.719Z",
+      "files": {
+        "serp_top": {
+          "png": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\02_perfume_samples_before_buying_full_bottle\\serp_top.png",
+          "html": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\02_perfume_samples_before_buying_full_bottle\\serp_top.html",
+          "txt": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\02_perfume_samples_before_buying_full_bottle\\serp_top.txt",
+          "json": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\02_perfume_samples_before_buying_full_bottle\\serp_top.json"
+        },
+        "serp_full": {
+          "png": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\02_perfume_samples_before_buying_full_bottle\\serp_full.png",
+          "html": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\02_perfume_samples_before_buying_full_bottle\\serp_full.html",
+          "txt": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\02_perfume_samples_before_buying_full_bottle\\serp_full.txt",
+          "json": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\02_perfume_samples_before_buying_full_bottle\\serp_full.json"
+        }
+      },
+      "serp_top": {
+        "kind": "serp_top",
+        "requested_query": "perfume samples before buying full bottle",
+        "extracted_at_browser_iso": "2026-06-24T15:04:48.008Z",
+        "location_href": "https://www.google.com/sorry/index?continue=https://www.google.com/search%3Fq%3Dperfume%2520samples%2520before%2520buying%2520full%2520bottle%26hl%3Den%26gl%3Dus%26pws%3D0%26sei%3DDfI7aqTiPOyc4-EPjKKv-A4&hl=en&q=EgR5B_dyGI7k79EGIjAcxfeGfmEosMjAl4SujEb_HSF11gkbATsfUTK_oFXNm2g-aW0XCKkfxo_3WAoxViAyAVJaAUM",
+        "document_title": "https://www.google.com/search?q=perfume%20samples%20before%20buying%20full%20bottle&hl=en&gl=us&pws=0&sei=DfI7aqTiPOyc4-EPjKKv-A4",
+        "viewport": {
+          "width": 1264,
+          "height": 625,
+          "device_pixel_ratio": 1
+        },
+        "navigator": {
+          "language": "en-US",
+          "languages": [
+            "en-US",
+            "en"
+          ],
+          "platform": "Win32",
+          "webdriver": false,
+          "timezone": "Asia/Singapore"
+        },
+        "session_state": {
+          "sign_in_text_visible": false,
+          "google_account_text_visible": false,
+          "captcha_or_unusual_traffic_visible": true,
+          "consent_text_visible": false
+        },
+        "modules": {
+          "people_also_ask": false,
+          "people_also_search_for": false,
+          "related_searches": false,
+          "shopping_or_products": false,
+          "popular_products": false,
+          "more_products": false,
+          "sponsored_or_ads": false,
+          "video": false,
+          "forums": false,
+          "discussions_and_forums": false,
+          "images": false
+        },
+        "autocomplete_suggestions": [],
+        "organic_results": [],
+        "people_also_ask_lines": [],
+        "people_also_search_lines": [],
+        "related_search_lines": [],
+        "product_or_shopping_lines": [
+          "URL: https://www.google.com/search?q=perfume%20samples%20before%20buying%20full%20bottle&hl=en&gl=us&pws=0&sei=DfI7aqTiPOyc4-EPjKKv-A4"
+        ],
+        "video_or_forum_lines": [],
+        "footer_or_location_lines": [],
+        "possible_non_us_storefront_or_locale_signals": [],
+        "all_links_sample": [
+          {
+            "text": "Why did this happen?",
+            "href": "https://www.google.com/sorry/index?continue=https://www.google.com/search%3Fq%3Dperfume%2520samples%2520before%2520buying%2520full%2520bottle%26hl%3Den%26gl%3Dus%26pws%3D0%26sei%3DDfI7aqTiPOyc4-EPjKKv-A4&hl=en&q=EgR5B_dyGI7k79EGIjAcxfeGfmEosMjAl4SujEb_HSF11gkbATsfUTK_oFXNm2g-aW0XCKkfxo_3WAoxViAyAVJaAUM#"
+          },
+          {
+            "text": "Terms of Service",
+            "href": "https://www.google.com/policies/terms/"
+          },
+          {
+            "text": "Learn more",
+            "href": "https://support.google.com/websearch/answer/86640"
+          }
+        ],
+        "visible_text_line_count": 5
+      },
+      "serp_full": {
+        "kind": "serp_full",
+        "requested_query": "perfume samples before buying full bottle",
+        "extracted_at_browser_iso": "2026-06-24T15:04:48.957Z",
+        "location_href": "https://www.google.com/sorry/index?continue=https://www.google.com/search%3Fq%3Dperfume%2520samples%2520before%2520buying%2520full%2520bottle%26hl%3Den%26gl%3Dus%26pws%3D0%26sei%3DDfI7aqTiPOyc4-EPjKKv-A4&hl=en&q=EgR5B_dyGI7k79EGIjAcxfeGfmEosMjAl4SujEb_HSF11gkbATsfUTK_oFXNm2g-aW0XCKkfxo_3WAoxViAyAVJaAUM",
+        "document_title": "https://www.google.com/search?q=perfume%20samples%20before%20buying%20full%20bottle&hl=en&gl=us&pws=0&sei=DfI7aqTiPOyc4-EPjKKv-A4",
+        "viewport": {
+          "width": 1264,
+          "height": 625,
+          "device_pixel_ratio": 1
+        },
+        "navigator": {
+          "language": "en-US",
+          "languages": [
+            "en-US",
+            "en"
+          ],
+          "platform": "Win32",
+          "webdriver": false,
+          "timezone": "Asia/Singapore"
+        },
+        "session_state": {
+          "sign_in_text_visible": false,
+          "google_account_text_visible": false,
+          "captcha_or_unusual_traffic_visible": true,
+          "consent_text_visible": false
+        },
+        "modules": {
+          "people_also_ask": false,
+          "people_also_search_for": false,
+          "related_searches": false,
+          "shopping_or_products": false,
+          "popular_products": false,
+          "more_products": false,
+          "sponsored_or_ads": false,
+          "video": false,
+          "forums": false,
+          "discussions_and_forums": false,
+          "images": false
+        },
+        "autocomplete_suggestions": [],
+        "organic_results": [],
+        "people_also_ask_lines": [],
+        "people_also_search_lines": [],
+        "related_search_lines": [],
+        "product_or_shopping_lines": [
+          "URL: https://www.google.com/search?q=perfume%20samples%20before%20buying%20full%20bottle&hl=en&gl=us&pws=0&sei=DfI7aqTiPOyc4-EPjKKv-A4"
+        ],
+        "video_or_forum_lines": [],
+        "footer_or_location_lines": [],
+        "possible_non_us_storefront_or_locale_signals": [],
+        "all_links_sample": [
+          {
+            "text": "Why did this happen?",
+            "href": "https://www.google.com/sorry/index?continue=https://www.google.com/search%3Fq%3Dperfume%2520samples%2520before%2520buying%2520full%2520bottle%26hl%3Den%26gl%3Dus%26pws%3D0%26sei%3DDfI7aqTiPOyc4-EPjKKv-A4&hl=en&q=EgR5B_dyGI7k79EGIjAcxfeGfmEosMjAl4SujEb_HSF11gkbATsfUTK_oFXNm2g-aW0XCKkfxo_3WAoxViAyAVJaAUM#"
+          },
+          {
+            "text": "Terms of Service",
+            "href": "https://www.google.com/policies/terms/"
+          },
+          {
+            "text": "Learn more",
+            "href": "https://support.google.com/websearch/answer/86640"
+          }
+        ],
+        "visible_text_line_count": 5
+      },
+      "capture_finished_at_iso": "2026-06-24T15:04:48.959Z"
+    },
+    {
+      "id": "03_pistachio_perfume",
+      "query": "pistachio perfume",
+      "reason": "strong note-led shopping/currentness surface",
+      "required_focus": [
+        "SERP",
+        "PAA",
+        "product modules",
+        "PAS/related searches",
+        "short-video modules"
+      ],
+      "capture_started_at_iso": "2026-06-24T15:04:48.961Z",
+      "files": {
+        "serp_top": {
+          "png": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\03_pistachio_perfume\\serp_top.png",
+          "html": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\03_pistachio_perfume\\serp_top.html",
+          "txt": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\03_pistachio_perfume\\serp_top.txt",
+          "json": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\03_pistachio_perfume\\serp_top.json"
+        },
+        "serp_full": {
+          "png": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\03_pistachio_perfume\\serp_full.png",
+          "html": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\03_pistachio_perfume\\serp_full.html",
+          "txt": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\03_pistachio_perfume\\serp_full.txt",
+          "json": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\03_pistachio_perfume\\serp_full.json"
+        }
+      },
+      "serp_top": {
+        "kind": "serp_top",
+        "requested_query": "pistachio perfume",
+        "extracted_at_browser_iso": "2026-06-24T15:04:51.174Z",
+        "location_href": "https://www.google.com/sorry/index?continue=https://www.google.com/search%3Fq%3Dpistachio%2520perfume%26hl%3Den%26gl%3Dus%26pws%3D0%26sei%3DEfI7aqu7Dp684-EPvMq96AU&hl=en&q=EgR5B_dyGJHk79EGIjDXWDsdU1los5Fxktosvsg9eRg3OCeRVnbLYQtDOhklJ_GfbXy1_IdZaPg3ituPwewyAVJaAUM",
+        "document_title": "https://www.google.com/search?q=pistachio%20perfume&hl=en&gl=us&pws=0&sei=EfI7aqu7Dp684-EPvMq96AU",
+        "viewport": {
+          "width": 1264,
+          "height": 625,
+          "device_pixel_ratio": 1
+        },
+        "navigator": {
+          "language": "en-US",
+          "languages": [
+            "en-US",
+            "en"
+          ],
+          "platform": "Win32",
+          "webdriver": false,
+          "timezone": "Asia/Singapore"
+        },
+        "session_state": {
+          "sign_in_text_visible": false,
+          "google_account_text_visible": false,
+          "captcha_or_unusual_traffic_visible": true,
+          "consent_text_visible": false
+        },
+        "modules": {
+          "people_also_ask": false,
+          "people_also_search_for": false,
+          "related_searches": false,
+          "shopping_or_products": false,
+          "popular_products": false,
+          "more_products": false,
+          "sponsored_or_ads": false,
+          "video": false,
+          "forums": false,
+          "discussions_and_forums": false,
+          "images": false
+        },
+        "autocomplete_suggestions": [],
+        "organic_results": [],
+        "people_also_ask_lines": [],
+        "people_also_search_lines": [],
+        "related_search_lines": [],
+        "product_or_shopping_lines": [],
+        "video_or_forum_lines": [],
+        "footer_or_location_lines": [],
+        "possible_non_us_storefront_or_locale_signals": [],
+        "all_links_sample": [
+          {
+            "text": "Why did this happen?",
+            "href": "https://www.google.com/sorry/index?continue=https://www.google.com/search%3Fq%3Dpistachio%2520perfume%26hl%3Den%26gl%3Dus%26pws%3D0%26sei%3DEfI7aqu7Dp684-EPvMq96AU&hl=en&q=EgR5B_dyGJHk79EGIjDXWDsdU1los5Fxktosvsg9eRg3OCeRVnbLYQtDOhklJ_GfbXy1_IdZaPg3ituPwewyAVJaAUM#"
+          },
+          {
+            "text": "Terms of Service",
+            "href": "https://www.google.com/policies/terms/"
+          },
+          {
+            "text": "Learn more",
+            "href": "https://support.google.com/websearch/answer/86640"
+          }
+        ],
+        "visible_text_line_count": 5
+      },
+      "serp_full": {
+        "kind": "serp_full",
+        "requested_query": "pistachio perfume",
+        "extracted_at_browser_iso": "2026-06-24T15:04:52.113Z",
+        "location_href": "https://www.google.com/sorry/index?continue=https://www.google.com/search%3Fq%3Dpistachio%2520perfume%26hl%3Den%26gl%3Dus%26pws%3D0%26sei%3DEfI7aqu7Dp684-EPvMq96AU&hl=en&q=EgR5B_dyGJHk79EGIjDXWDsdU1los5Fxktosvsg9eRg3OCeRVnbLYQtDOhklJ_GfbXy1_IdZaPg3ituPwewyAVJaAUM",
+        "document_title": "https://www.google.com/search?q=pistachio%20perfume&hl=en&gl=us&pws=0&sei=EfI7aqu7Dp684-EPvMq96AU",
+        "viewport": {
+          "width": 1264,
+          "height": 625,
+          "device_pixel_ratio": 1
+        },
+        "navigator": {
+          "language": "en-US",
+          "languages": [
+            "en-US",
+            "en"
+          ],
+          "platform": "Win32",
+          "webdriver": false,
+          "timezone": "Asia/Singapore"
+        },
+        "session_state": {
+          "sign_in_text_visible": false,
+          "google_account_text_visible": false,
+          "captcha_or_unusual_traffic_visible": true,
+          "consent_text_visible": false
+        },
+        "modules": {
+          "people_also_ask": false,
+          "people_also_search_for": false,
+          "related_searches": false,
+          "shopping_or_products": false,
+          "popular_products": false,
+          "more_products": false,
+          "sponsored_or_ads": false,
+          "video": false,
+          "forums": false,
+          "discussions_and_forums": false,
+          "images": false
+        },
+        "autocomplete_suggestions": [],
+        "organic_results": [],
+        "people_also_ask_lines": [],
+        "people_also_search_lines": [],
+        "related_search_lines": [],
+        "product_or_shopping_lines": [],
+        "video_or_forum_lines": [],
+        "footer_or_location_lines": [],
+        "possible_non_us_storefront_or_locale_signals": [],
+        "all_links_sample": [
+          {
+            "text": "Why did this happen?",
+            "href": "https://www.google.com/sorry/index?continue=https://www.google.com/search%3Fq%3Dpistachio%2520perfume%26hl%3Den%26gl%3Dus%26pws%3D0%26sei%3DEfI7aqu7Dp684-EPvMq96AU&hl=en&q=EgR5B_dyGJHk79EGIjDXWDsdU1los5Fxktosvsg9eRg3OCeRVnbLYQtDOhklJ_GfbXy1_IdZaPg3ituPwewyAVJaAUM#"
+          },
+          {
+            "text": "Terms of Service",
+            "href": "https://www.google.com/policies/terms/"
+          },
+          {
+            "text": "Learn more",
+            "href": "https://support.google.com/websearch/answer/86640"
+          }
+        ],
+        "visible_text_line_count": 5
+      },
+      "capture_finished_at_iso": "2026-06-24T15:04:52.114Z"
+    },
+    {
+      "id": "04_vanilla_skin_perfume",
+      "query": "vanilla skin perfume",
+      "reason": "texture/format crossover: EDP/body mist/oil",
+      "required_focus": [
+        "SERP",
+        "product modules",
+        "PAA",
+        "PAS/related searches"
+      ],
+      "capture_started_at_iso": "2026-06-24T15:04:52.115Z",
+      "files": {
+        "serp_top": {
+          "png": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\04_vanilla_skin_perfume\\serp_top.png",
+          "html": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\04_vanilla_skin_perfume\\serp_top.html",
+          "txt": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\04_vanilla_skin_perfume\\serp_top.txt",
+          "json": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\04_vanilla_skin_perfume\\serp_top.json"
+        },
+        "serp_full": {
+          "png": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\04_vanilla_skin_perfume\\serp_full.png",
+          "html": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\04_vanilla_skin_perfume\\serp_full.html",
+          "txt": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\04_vanilla_skin_perfume\\serp_full.txt",
+          "json": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\04_vanilla_skin_perfume\\serp_full.json"
+        }
+      },
+      "serp_top": {
+        "kind": "serp_top",
+        "requested_query": "vanilla skin perfume",
+        "extracted_at_browser_iso": "2026-06-24T15:04:54.288Z",
+        "location_href": "https://www.google.com/sorry/index?continue=https://www.google.com/search%3Fq%3Dvanilla%2520skin%2520perfume%26hl%3Den%26gl%3Dus%26pws%3D0%26sei%3DFPI7au_sF9CO4-EP9PSqoQQ&hl=en&q=EgR5B_dyGJTk79EGIjCopHtpqahrJbyKl0lC0Kqy9F6KbycYVjxiFAwSw3qQYBINe8TnPAn0N8hUWAcxICwyAVJaAUM",
+        "document_title": "https://www.google.com/search?q=vanilla%20skin%20perfume&hl=en&gl=us&pws=0&sei=FPI7au_sF9CO4-EP9PSqoQQ",
+        "viewport": {
+          "width": 1264,
+          "height": 625,
+          "device_pixel_ratio": 1
+        },
+        "navigator": {
+          "language": "en-US",
+          "languages": [
+            "en-US",
+            "en"
+          ],
+          "platform": "Win32",
+          "webdriver": false,
+          "timezone": "Asia/Singapore"
+        },
+        "session_state": {
+          "sign_in_text_visible": false,
+          "google_account_text_visible": false,
+          "captcha_or_unusual_traffic_visible": true,
+          "consent_text_visible": false
+        },
+        "modules": {
+          "people_also_ask": false,
+          "people_also_search_for": false,
+          "related_searches": false,
+          "shopping_or_products": false,
+          "popular_products": false,
+          "more_products": false,
+          "sponsored_or_ads": false,
+          "video": false,
+          "forums": false,
+          "discussions_and_forums": false,
+          "images": false
+        },
+        "autocomplete_suggestions": [],
+        "organic_results": [],
+        "people_also_ask_lines": [],
+        "people_also_search_lines": [],
+        "related_search_lines": [],
+        "product_or_shopping_lines": [],
+        "video_or_forum_lines": [],
+        "footer_or_location_lines": [],
+        "possible_non_us_storefront_or_locale_signals": [],
+        "all_links_sample": [
+          {
+            "text": "Why did this happen?",
+            "href": "https://www.google.com/sorry/index?continue=https://www.google.com/search%3Fq%3Dvanilla%2520skin%2520perfume%26hl%3Den%26gl%3Dus%26pws%3D0%26sei%3DFPI7au_sF9CO4-EP9PSqoQQ&hl=en&q=EgR5B_dyGJTk79EGIjCopHtpqahrJbyKl0lC0Kqy9F6KbycYVjxiFAwSw3qQYBINe8TnPAn0N8hUWAcxICwyAVJaAUM#"
+          },
+          {
+            "text": "Terms of Service",
+            "href": "https://www.google.com/policies/terms/"
+          },
+          {
+            "text": "Learn more",
+            "href": "https://support.google.com/websearch/answer/86640"
+          }
+        ],
+        "visible_text_line_count": 5
+      },
+      "serp_full": {
+        "kind": "serp_full",
+        "requested_query": "vanilla skin perfume",
+        "extracted_at_browser_iso": "2026-06-24T15:04:55.233Z",
+        "location_href": "https://www.google.com/sorry/index?continue=https://www.google.com/search%3Fq%3Dvanilla%2520skin%2520perfume%26hl%3Den%26gl%3Dus%26pws%3D0%26sei%3DFPI7au_sF9CO4-EP9PSqoQQ&hl=en&q=EgR5B_dyGJTk79EGIjCopHtpqahrJbyKl0lC0Kqy9F6KbycYVjxiFAwSw3qQYBINe8TnPAn0N8hUWAcxICwyAVJaAUM",
+        "document_title": "https://www.google.com/search?q=vanilla%20skin%20perfume&hl=en&gl=us&pws=0&sei=FPI7au_sF9CO4-EP9PSqoQQ",
+        "viewport": {
+          "width": 1264,
+          "height": 625,
+          "device_pixel_ratio": 1
+        },
+        "navigator": {
+          "language": "en-US",
+          "languages": [
+            "en-US",
+            "en"
+          ],
+          "platform": "Win32",
+          "webdriver": false,
+          "timezone": "Asia/Singapore"
+        },
+        "session_state": {
+          "sign_in_text_visible": false,
+          "google_account_text_visible": false,
+          "captcha_or_unusual_traffic_visible": true,
+          "consent_text_visible": false
+        },
+        "modules": {
+          "people_also_ask": false,
+          "people_also_search_for": false,
+          "related_searches": false,
+          "shopping_or_products": false,
+          "popular_products": false,
+          "more_products": false,
+          "sponsored_or_ads": false,
+          "video": false,
+          "forums": false,
+          "discussions_and_forums": false,
+          "images": false
+        },
+        "autocomplete_suggestions": [],
+        "organic_results": [],
+        "people_also_ask_lines": [],
+        "people_also_search_lines": [],
+        "related_search_lines": [],
+        "product_or_shopping_lines": [],
+        "video_or_forum_lines": [],
+        "footer_or_location_lines": [],
+        "possible_non_us_storefront_or_locale_signals": [],
+        "all_links_sample": [
+          {
+            "text": "Why did this happen?",
+            "href": "https://www.google.com/sorry/index?continue=https://www.google.com/search%3Fq%3Dvanilla%2520skin%2520perfume%26hl%3Den%26gl%3Dus%26pws%3D0%26sei%3DFPI7au_sF9CO4-EP9PSqoQQ&hl=en&q=EgR5B_dyGJTk79EGIjCopHtpqahrJbyKl0lC0Kqy9F6KbycYVjxiFAwSw3qQYBINe8TnPAn0N8hUWAcxICwyAVJaAUM#"
+          },
+          {
+            "text": "Terms of Service",
+            "href": "https://www.google.com/policies/terms/"
+          },
+          {
+            "text": "Learn more",
+            "href": "https://support.google.com/websearch/answer/86640"
+          }
+        ],
+        "visible_text_line_count": 5
+      },
+      "capture_finished_at_iso": "2026-06-24T15:04:55.234Z"
+    },
+    {
+      "id": "05_le_labo_santal_33_dupe",
+      "query": "Le Labo Santal 33 dupe",
+      "reason": "strong substitution/search-action signal",
+      "required_focus": [
+        "SERP",
+        "PAA",
+        "product modules",
+        "forums",
+        "PAS/related searches"
+      ],
+      "capture_started_at_iso": "2026-06-24T15:04:55.234Z",
+      "files": {
+        "serp_top": {
+          "png": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\05_le_labo_santal_33_dupe\\serp_top.png",
+          "html": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\05_le_labo_santal_33_dupe\\serp_top.html",
+          "txt": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\05_le_labo_santal_33_dupe\\serp_top.txt",
+          "json": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\05_le_labo_santal_33_dupe\\serp_top.json"
+        },
+        "serp_full": {
+          "png": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\05_le_labo_santal_33_dupe\\serp_full.png",
+          "html": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\05_le_labo_santal_33_dupe\\serp_full.html",
+          "txt": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\05_le_labo_santal_33_dupe\\serp_full.txt",
+          "json": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\05_le_labo_santal_33_dupe\\serp_full.json"
+        }
+      },
+      "serp_top": {
+        "kind": "serp_top",
+        "requested_query": "Le Labo Santal 33 dupe",
+        "extracted_at_browser_iso": "2026-06-24T15:04:57.311Z",
+        "location_href": "https://www.google.com/sorry/index?continue=https://www.google.com/search%3Fq%3DLe%2520Labo%2520Santal%252033%2520dupe%26hl%3Den%26gl%3Dus%26pws%3D0%26sei%3DF_I7aqaOH76Y4-EP7LjRkQk&hl=en&q=EgR5B_dyGJfk79EGIjD5LoeY6ntf14Q-UEiHcUte-PtFgwiZo6FLd5NzqfhS1UmsPTg1CQxo4ty4w1yNM14yAVJaAUM",
+        "document_title": "https://www.google.com/search?q=Le%20Labo%20Santal%2033%20dupe&hl=en&gl=us&pws=0&sei=F_I7aqaOH76Y4-EP7LjRkQk",
+        "viewport": {
+          "width": 1264,
+          "height": 625,
+          "device_pixel_ratio": 1
+        },
+        "navigator": {
+          "language": "en-US",
+          "languages": [
+            "en-US",
+            "en"
+          ],
+          "platform": "Win32",
+          "webdriver": false,
+          "timezone": "Asia/Singapore"
+        },
+        "session_state": {
+          "sign_in_text_visible": false,
+          "google_account_text_visible": false,
+          "captcha_or_unusual_traffic_visible": true,
+          "consent_text_visible": false
+        },
+        "modules": {
+          "people_also_ask": false,
+          "people_also_search_for": false,
+          "related_searches": false,
+          "shopping_or_products": false,
+          "popular_products": false,
+          "more_products": false,
+          "sponsored_or_ads": false,
+          "video": false,
+          "forums": false,
+          "discussions_and_forums": false,
+          "images": false
+        },
+        "autocomplete_suggestions": [],
+        "organic_results": [],
+        "people_also_ask_lines": [],
+        "people_also_search_lines": [],
+        "related_search_lines": [],
+        "product_or_shopping_lines": [],
+        "video_or_forum_lines": [],
+        "footer_or_location_lines": [],
+        "possible_non_us_storefront_or_locale_signals": [],
+        "all_links_sample": [
+          {
+            "text": "Why did this happen?",
+            "href": "https://www.google.com/sorry/index?continue=https://www.google.com/search%3Fq%3DLe%2520Labo%2520Santal%252033%2520dupe%26hl%3Den%26gl%3Dus%26pws%3D0%26sei%3DF_I7aqaOH76Y4-EP7LjRkQk&hl=en&q=EgR5B_dyGJfk79EGIjD5LoeY6ntf14Q-UEiHcUte-PtFgwiZo6FLd5NzqfhS1UmsPTg1CQxo4ty4w1yNM14yAVJaAUM#"
+          },
+          {
+            "text": "Terms of Service",
+            "href": "https://www.google.com/policies/terms/"
+          },
+          {
+            "text": "Learn more",
+            "href": "https://support.google.com/websearch/answer/86640"
+          }
+        ],
+        "visible_text_line_count": 5
+      },
+      "serp_full": {
+        "kind": "serp_full",
+        "requested_query": "Le Labo Santal 33 dupe",
+        "extracted_at_browser_iso": "2026-06-24T15:04:58.258Z",
+        "location_href": "https://www.google.com/sorry/index?continue=https://www.google.com/search%3Fq%3DLe%2520Labo%2520Santal%252033%2520dupe%26hl%3Den%26gl%3Dus%26pws%3D0%26sei%3DF_I7aqaOH76Y4-EP7LjRkQk&hl=en&q=EgR5B_dyGJfk79EGIjD5LoeY6ntf14Q-UEiHcUte-PtFgwiZo6FLd5NzqfhS1UmsPTg1CQxo4ty4w1yNM14yAVJaAUM",
+        "document_title": "https://www.google.com/search?q=Le%20Labo%20Santal%2033%20dupe&hl=en&gl=us&pws=0&sei=F_I7aqaOH76Y4-EP7LjRkQk",
+        "viewport": {
+          "width": 1264,
+          "height": 625,
+          "device_pixel_ratio": 1
+        },
+        "navigator": {
+          "language": "en-US",
+          "languages": [
+            "en-US",
+            "en"
+          ],
+          "platform": "Win32",
+          "webdriver": false,
+          "timezone": "Asia/Singapore"
+        },
+        "session_state": {
+          "sign_in_text_visible": false,
+          "google_account_text_visible": false,
+          "captcha_or_unusual_traffic_visible": true,
+          "consent_text_visible": false
+        },
+        "modules": {
+          "people_also_ask": false,
+          "people_also_search_for": false,
+          "related_searches": false,
+          "shopping_or_products": false,
+          "popular_products": false,
+          "more_products": false,
+          "sponsored_or_ads": false,
+          "video": false,
+          "forums": false,
+          "discussions_and_forums": false,
+          "images": false
+        },
+        "autocomplete_suggestions": [],
+        "organic_results": [],
+        "people_also_ask_lines": [],
+        "people_also_search_lines": [],
+        "related_search_lines": [],
+        "product_or_shopping_lines": [],
+        "video_or_forum_lines": [],
+        "footer_or_location_lines": [],
+        "possible_non_us_storefront_or_locale_signals": [],
+        "all_links_sample": [
+          {
+            "text": "Why did this happen?",
+            "href": "https://www.google.com/sorry/index?continue=https://www.google.com/search%3Fq%3DLe%2520Labo%2520Santal%252033%2520dupe%26hl%3Den%26gl%3Dus%26pws%3D0%26sei%3DF_I7aqaOH76Y4-EP7LjRkQk&hl=en&q=EgR5B_dyGJfk79EGIjD5LoeY6ntf14Q-UEiHcUte-PtFgwiZo6FLd5NzqfhS1UmsPTg1CQxo4ty4w1yNM14yAVJaAUM#"
+          },
+          {
+            "text": "Terms of Service",
+            "href": "https://www.google.com/policies/terms/"
+          },
+          {
+            "text": "Learn more",
+            "href": "https://support.google.com/websearch/answer/86640"
+          }
+        ],
+        "visible_text_line_count": 5
+      },
+      "capture_finished_at_iso": "2026-06-24T15:04:58.259Z"
+    },
+    {
+      "id": "06_baccarat_rouge_540_dupe",
+      "query": "Baccarat Rouge 540 dupe",
+      "reason": "strong dupe action signal",
+      "required_focus": [
+        "SERP",
+        "PAA",
+        "product modules",
+        "forums",
+        "PAS/related searches"
+      ],
+      "capture_started_at_iso": "2026-06-24T15:04:58.260Z",
+      "files": {
+        "serp_top": {
+          "png": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\06_baccarat_rouge_540_dupe\\serp_top.png",
+          "html": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\06_baccarat_rouge_540_dupe\\serp_top.html",
+          "txt": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\06_baccarat_rouge_540_dupe\\serp_top.txt",
+          "json": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\06_baccarat_rouge_540_dupe\\serp_top.json"
+        },
+        "serp_full": {
+          "png": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\06_baccarat_rouge_540_dupe\\serp_full.png",
+          "html": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\06_baccarat_rouge_540_dupe\\serp_full.html",
+          "txt": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\06_baccarat_rouge_540_dupe\\serp_full.txt",
+          "json": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\06_baccarat_rouge_540_dupe\\serp_full.json"
+        }
+      },
+      "serp_top": {
+        "kind": "serp_top",
+        "requested_query": "Baccarat Rouge 540 dupe",
+        "extracted_at_browser_iso": "2026-06-24T15:05:00.434Z",
+        "location_href": "https://www.google.com/sorry/index?continue=https://www.google.com/search%3Fq%3DBaccarat%2520Rouge%2520540%2520dupe%26hl%3Den%26gl%3Dus%26pws%3D0%26sei%3DGvI7aq3xIJmJ4-EP5LOIuQc&hl=en&q=EgR5B_dyGJrk79EGIjDrYBYcwMHkEn6HUZEqN16eq9axYjwCd_eANOvS4-zOvIvz60dlEB5gdrc7oTHD_GAyAVJaAUM",
+        "document_title": "https://www.google.com/search?q=Baccarat%20Rouge%20540%20dupe&hl=en&gl=us&pws=0&sei=GvI7aq3xIJmJ4-EP5LOIuQc",
+        "viewport": {
+          "width": 1264,
+          "height": 625,
+          "device_pixel_ratio": 1
+        },
+        "navigator": {
+          "language": "en-US",
+          "languages": [
+            "en-US",
+            "en"
+          ],
+          "platform": "Win32",
+          "webdriver": false,
+          "timezone": "Asia/Singapore"
+        },
+        "session_state": {
+          "sign_in_text_visible": false,
+          "google_account_text_visible": false,
+          "captcha_or_unusual_traffic_visible": true,
+          "consent_text_visible": false
+        },
+        "modules": {
+          "people_also_ask": false,
+          "people_also_search_for": false,
+          "related_searches": false,
+          "shopping_or_products": false,
+          "popular_products": false,
+          "more_products": false,
+          "sponsored_or_ads": false,
+          "video": false,
+          "forums": false,
+          "discussions_and_forums": false,
+          "images": false
+        },
+        "autocomplete_suggestions": [],
+        "organic_results": [],
+        "people_also_ask_lines": [],
+        "people_also_search_lines": [],
+        "related_search_lines": [],
+        "product_or_shopping_lines": [],
+        "video_or_forum_lines": [],
+        "footer_or_location_lines": [],
+        "possible_non_us_storefront_or_locale_signals": [],
+        "all_links_sample": [
+          {
+            "text": "Why did this happen?",
+            "href": "https://www.google.com/sorry/index?continue=https://www.google.com/search%3Fq%3DBaccarat%2520Rouge%2520540%2520dupe%26hl%3Den%26gl%3Dus%26pws%3D0%26sei%3DGvI7aq3xIJmJ4-EP5LOIuQc&hl=en&q=EgR5B_dyGJrk79EGIjDrYBYcwMHkEn6HUZEqN16eq9axYjwCd_eANOvS4-zOvIvz60dlEB5gdrc7oTHD_GAyAVJaAUM#"
+          },
+          {
+            "text": "Terms of Service",
+            "href": "https://www.google.com/policies/terms/"
+          },
+          {
+            "text": "Learn more",
+            "href": "https://support.google.com/websearch/answer/86640"
+          }
+        ],
+        "visible_text_line_count": 5
+      },
+      "serp_full": {
+        "kind": "serp_full",
+        "requested_query": "Baccarat Rouge 540 dupe",
+        "extracted_at_browser_iso": "2026-06-24T15:05:01.376Z",
+        "location_href": "https://www.google.com/sorry/index?continue=https://www.google.com/search%3Fq%3DBaccarat%2520Rouge%2520540%2520dupe%26hl%3Den%26gl%3Dus%26pws%3D0%26sei%3DGvI7aq3xIJmJ4-EP5LOIuQc&hl=en&q=EgR5B_dyGJrk79EGIjDrYBYcwMHkEn6HUZEqN16eq9axYjwCd_eANOvS4-zOvIvz60dlEB5gdrc7oTHD_GAyAVJaAUM",
+        "document_title": "https://www.google.com/search?q=Baccarat%20Rouge%20540%20dupe&hl=en&gl=us&pws=0&sei=GvI7aq3xIJmJ4-EP5LOIuQc",
+        "viewport": {
+          "width": 1264,
+          "height": 625,
+          "device_pixel_ratio": 1
+        },
+        "navigator": {
+          "language": "en-US",
+          "languages": [
+            "en-US",
+            "en"
+          ],
+          "platform": "Win32",
+          "webdriver": false,
+          "timezone": "Asia/Singapore"
+        },
+        "session_state": {
+          "sign_in_text_visible": false,
+          "google_account_text_visible": false,
+          "captcha_or_unusual_traffic_visible": true,
+          "consent_text_visible": false
+        },
+        "modules": {
+          "people_also_ask": false,
+          "people_also_search_for": false,
+          "related_searches": false,
+          "shopping_or_products": false,
+          "popular_products": false,
+          "more_products": false,
+          "sponsored_or_ads": false,
+          "video": false,
+          "forums": false,
+          "discussions_and_forums": false,
+          "images": false
+        },
+        "autocomplete_suggestions": [],
+        "organic_results": [],
+        "people_also_ask_lines": [],
+        "people_also_search_lines": [],
+        "related_search_lines": [],
+        "product_or_shopping_lines": [],
+        "video_or_forum_lines": [],
+        "footer_or_location_lines": [],
+        "possible_non_us_storefront_or_locale_signals": [],
+        "all_links_sample": [
+          {
+            "text": "Why did this happen?",
+            "href": "https://www.google.com/sorry/index?continue=https://www.google.com/search%3Fq%3DBaccarat%2520Rouge%2520540%2520dupe%26hl%3Den%26gl%3Dus%26pws%3D0%26sei%3DGvI7aq3xIJmJ4-EP5LOIuQc&hl=en&q=EgR5B_dyGJrk79EGIjDrYBYcwMHkEn6HUZEqN16eq9axYjwCd_eANOvS4-zOvIvz60dlEB5gdrc7oTHD_GAyAVJaAUM#"
+          },
+          {
+            "text": "Terms of Service",
+            "href": "https://www.google.com/policies/terms/"
+          },
+          {
+            "text": "Learn more",
+            "href": "https://support.google.com/websearch/answer/86640"
+          }
+        ],
+        "visible_text_line_count": 5
+      },
+      "capture_finished_at_iso": "2026-06-24T15:05:01.377Z"
+    }
+  ],
+  "finished_at_iso": "2026-06-24T15:05:01.377Z"
+}

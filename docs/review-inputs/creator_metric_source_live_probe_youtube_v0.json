@@ -1,0 +1,107 @@
+{
+  "probe_id": "creator_metric_source_live_probe_youtube_v0",
+  "route": "direct_http_logged_out_youtube_watch_served_html",
+  "source_capture_playbook_receipt": {
+    "access_classification": "publicly-viewable-but-ToS-restricted",
+    "routes_tried": [
+      "direct-HTTP"
+    ],
+    "routes_considered_but_skipped": [
+      {
+        "route": "real browser",
+        "reason": "not needed for first probe because served HTML exposed ytInitialPlayerResponse"
+      },
+      {
+        "route": "anti-bot",
+        "reason": "not needed; no access wall observed in direct route"
+      }
+    ],
+    "request_rate": "3 videos, ~2s gap, logged-out public reads",
+    "verdict": "GO_FOR_YOUTUBE_VIEW_COUNT_PROBE_ONLY",
+    "non_claims": [
+      "not a crawler",
+      "not broad capture",
+      "not rollup computation",
+      "not cross-platform metrics"
+    ]
+  },
+  "targets": [
+    {
+      "creator_observation_id": "yts_fragrance_creator_observation_v0_001",
+      "creator_handle_query": "BowTieFragranceGuy",
+      "channel_id": "UCVvzGrPSok_sf8hfDhvTg7w",
+      "video_id": "hiAWZwgYwQA"
+    },
+    {
+      "creator_observation_id": "yts_fragrance_creator_observation_v0_011",
+      "creator_handle_query": "JeremyFragrance",
+      "channel_id": "UCzKrJ5NSA9o7RHYRG12kHZw",
+      "video_id": "as7hye0qgYc"
+    },
+    {
+      "creator_observation_id": "yts_fragrance_creator_observation_v0_031",
+      "creator_handle_query": "TLTGReviews",
+      "channel_id": "UCmYZrY_MVZy5Iiwlua029kg",
+      "video_id": "7S40eU8FDCY"
+    }
+  ],
+  "results": [
+    {
+      "creator_observation_id": "yts_fragrance_creator_observation_v0_001",
+      "creator_handle_query": "BowTieFragranceGuy",
+      "channel_id": "UCVvzGrPSok_sf8hfDhvTg7w",
+      "video_id": "hiAWZwgYwQA",
+      "http_status": 200,
+      "final_url": "https://www.youtube.com/watch?v=hiAWZwgYwQA",
+      "byte_size": 1210368,
+      "raw_body_sha256": "a5b5739a42b4f48c2635fd3030cf9d14b21ccdc11a3a67b9d39904eae8c0050e",
+      "surface_type": "shorts",
+      "view_count": 15597,
+      "view_count_source_path": "ytInitialPlayerResponse.videoDetails.viewCount",
+      "like_count_text": null,
+      "comment_count_text": null,
+      "comments_posture": "captured",
+      "comments_sample_count": 10,
+      "packet_path": "orca-harness\\youtube_capture\\packets\\hiAWZwgYwQA\\packet.json",
+      "raw_watch_path": "orca-harness\\youtube_capture\\packets\\hiAWZwgYwQA\\raw_watch.html"
+    },
+    {
+      "creator_observation_id": "yts_fragrance_creator_observation_v0_011",
+      "creator_handle_query": "JeremyFragrance",
+      "channel_id": "UCzKrJ5NSA9o7RHYRG12kHZw",
+      "video_id": "as7hye0qgYc",
+      "http_status": 200,
+      "final_url": "https://www.youtube.com/watch?v=as7hye0qgYc",
+      "byte_size": 724622,
+      "raw_body_sha256": "f7d973914ca0a93e4c068a62c45df3fd76ad638e18311a1de30dbcf1ed5da021",
+      "surface_type": "shorts",
+      "view_count": null,
+      "view_count_source_path": null,
+      "like_count_text": null,
+      "comment_count_text": null,
+      "comments_posture": "disabled",
+      "comments_sample_count": 0,
+      "packet_path": "orca-harness\\youtube_capture\\packets\\as7hye0qgYc\\packet.json",
+      "raw_watch_path": "orca-harness\\youtube_capture\\packets\\as7hye0qgYc\\raw_watch.html"
+    },
+    {
+      "creator_observation_id": "yts_fragrance_creator_observation_v0_031",
+      "creator_handle_query": "TLTGReviews",
+      "channel_id": "UCmYZrY_MVZy5Iiwlua029kg",
+      "video_id": "7S40eU8FDCY",
+      "http_status": 200,
+      "final_url": "https://www.youtube.com/watch?v=7S40eU8FDCY",
+      "byte_size": 1384574,
+      "raw_body_sha256": "b53605ebaca3b94f5be16e4a076c759150344c59e61943766ab3d6d939d26a44",
+      "surface_type": "shorts",
+      "view_count": 3993,
+      "view_count_source_path": "ytInitialPlayerResponse.videoDetails.viewCount",
+      "like_count_text": null,
+      "comment_count_text": null,
+      "comments_posture": "captured",
+      "comments_sample_count": 12,
+      "packet_path": "orca-harness\\youtube_capture\\packets\\7S40eU8FDCY\\packet.json",
+      "raw_watch_path": "orca-harness\\youtube_capture\\packets\\7S40eU8FDCY\\raw_watch.html"
+    }
+  ]
+}

@@ -168,6 +168,68 @@ def test_recency_overclaim_text_fails() -> None:
     assert "recency_as_proof" in _codes(text)
 
 
+def test_fixture_expected_fail_has_engagement_overclaim_errors() -> None:
+    findings = validator.validate_text((FIXTURE_DIR / "bad_engagement_overclaim.md").read_text(encoding="utf-8"))
+    codes = {finding.code for finding in findings}
+
+    assert "engagement_as_proof" in codes
+    assert "engagement_gate_clearance_shortcut" in codes
+    assert "engagement_route_binding_shortcut" in codes
+    assert "engagement_final_resonance_weight" in codes
+
+
+def test_engagement_nonclaim_text_passes() -> None:
+    text = _valid_text().replace(
+        "It did not decide candidates.",
+        "Engagement does not prove demand, clear gates, bind Capture routes, or set final resonance weight.",
+        1,
+    )
+
+    assert validator.validate_text(text) == []
+
+
+
+def test_engagement_overclaim_does_not_cross_sentence_boundary() -> None:
+    text = _valid_text().replace(
+        "It did not decide candidates.",
+        "Engagement is high. Our research proves demand.",
+        1,
+    )
+
+    assert "engagement_as_proof" not in _codes(text)
+
+def test_engagement_nonclaim_sentence_does_not_mask_later_overclaim() -> None:
+    text = _valid_text().replace(
+        "It did not decide candidates.",
+        "Engagement does not prove demand. High engagement proves demand.",
+        1,
+    )
+
+    assert "engagement_as_proof" in _codes(text)
+
+
+@pytest.mark.parametrize(
+    ("phrase", "expected_code"),
+    [
+        ("High engagement proves demand", "engagement_as_proof"),
+        ("Demand is proven by high engagement", "engagement_as_proof"),
+        ("High engagement clears demand gate", "engagement_gate_clearance_shortcut"),
+        ("Gate clearance is justified by high engagement", "engagement_gate_clearance_shortcut"),
+        ("High engagement binds the Capture route", "engagement_route_binding_shortcut"),
+        ("Capture route is selected by high engagement", "engagement_route_binding_shortcut"),
+        ("High engagement sets graph weight", "engagement_graph_weight_shortcut"),
+        ("Public reaction confirms credibility", "engagement_credibility_shortcut"),
+        ("High engagement proves artificial amplification", "engagement_amplification_shortcut"),
+        ("Reaction volume clears Action Ceiling", "engagement_action_ceiling_shortcut"),
+        ("This scan assigns final resonance weight", "engagement_final_resonance_weight"),
+    ],
+)
+def test_engagement_overclaim_text_fails(phrase: str, expected_code: str) -> None:
+    text = _valid_text().replace("It did not decide candidates.", phrase, 1)
+
+    assert expected_code in _codes(text)
+
+
 def test_observation_record_required() -> None:
     assert "missing_observation_records" in _codes(_valid_text().replace("observation_id: OBS-001", "observation_note: OBS-001", 1))
 

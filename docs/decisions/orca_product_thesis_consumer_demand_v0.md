@@ -128,8 +128,8 @@ called at cutoff against what actually happened — misses included.
    persistence, not a retrospective label that demand already stayed strong.
    Observed persistence can be one basis; repeated costly behavior, analogue
    history, post-trigger follow-through, and org-motion corroboration can also
-   support or contest the projection. Weak, attention-only, or manufactured
-   signals are not transient demand. Horizon accretes through monitoring;
+   support or contest the projection. Weak, attention-only, resonance-only, or
+   manufactured signals are not transient demand. Horizon accretes through monitoring;
    `scale` earns the long horizon, and `reduce` handles decay. The persistence
    half is what the consumer-demand durability probe spec is designed to test
    blind against momentum and category-prior baselines
@@ -138,8 +138,8 @@ called at cutoff against what actually happened — misses included.
    authority).
 2. **Demand means costly behavior.** Per the frozen Core Spine rule, demand is
    evidenced by payment, switching, workarounds, churn, durable buyer
-   pressure — never engagement volume alone. Engagement classifies as
-   attention/resonance and cannot carry a Commit. This single rule is the
+   pressure — never engagement/resonance volume alone. Engagement should be
+   interpreted as qualitative resonance weight, and still cannot carry a Commit. This single rule is the
    structural separation from social-listening and trend dashboards.
 3. **Divergence reads are the premium element.** Demand and org-motion are
    read together: demand↑ + staffing↑ (durable conviction), demand↑ +
@@ -149,7 +149,7 @@ called at cutoff against what actually happened — misses included.
 4. **Every read carries an action ceiling.** Outputs bind to the active flat
    action vocabulary — monitor, probe, commit, hold, scale, avoid, reduce — and
    the recommendation verb may not exceed what signal integrity supports. The
-   cap logic is unchanged: engagement-only caps below material commitment, and
+   cap logic is unchanged: engagement/resonance-only caps below material commitment, and
    any material or irreversible commitment requires enough effectively
    independent origins for that commitment.
 5. **Manufactured-vs-organic is scoped honestly.** Backtests can test

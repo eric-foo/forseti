@@ -21,12 +21,12 @@ authority_boundary: retrieval_only
 open_next:
   - orca/product/spines/judgment/demand_read/core/judgment_spine_demand_read_machinery_architecture_v0.md  # the demand-read core whose C3 this specifies (C3 step shape; owner-ADOPTED Decision B)
   - orca/product/spines/judgment/demand_read/c2_weighting/judgment_spine_c2_ledger_read_contract_v0.md             # the C2 step C3 consumes (weighted signals; Rule 3 routes persistence patterns here)
-  - orca/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md                              # the action-ceiling cap rule (floor vs ceiling; >=2 converging origins; engagement-only caps)
+  - orca/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md                              # the action-ceiling cap rule (floor vs ceiling; >=2 converging origins; engagement/resonance-only caps)
   - orca/product/spines/judgment/learning_loops/far_half/prospective_decision_loop_target_architecture_v0.md      # the sealed_call output surface C3 fills (recommendation / confidence_band / signals_used / reasoning_trace)
   - orca/product/spines/foundation/demand_read_taxonomy/orca_demand_read_taxonomy_v0.md                            # the read grammar (two-axis model + calling sequence + read types) C3 verdicts in
 stale_if:
   - The core architecture amends C3's step shape, the two-axis verdict, or the calling sequence.
-  - The buyer-proof action-ceiling cap rule (floor/ceiling, >=2 converging origins, engagement-only cap) is re-derived.
+  - The buyer-proof action-ceiling cap rule (floor/ceiling, >=2 converging origins, engagement/resonance-only cap) is re-derived.
   - The far-half decision-object sealed_call slot shape or the contestant confidence-band vocabulary changes.
   - The owner lifts the no-scoring boundary (INV-1); a numeric/ordinal ceiling mapping then becomes admissible and the INV-1 disqualifiers below relax.
   - The taxonomy/read-grammar is owner-adjudicated and amends the read types or the durable/transient/manufactured states.
@@ -91,7 +91,7 @@ real, steady (maintain a committed position) → **hold**; real, persistence ear
 **Cap rule (remapped; the floor/ceiling rule is otherwise unchanged).** **commit** and
 **scale** are the material/committing verbs — each requires **≥2 independent converging
 origins** plus gradeable costly behavior; a single independent origin, or
-engagement/attention-only evidence, caps **below commit** (at `monitor` / `probe` / `hold`).
+engagement/attention/resonance-only evidence, caps **below commit** (at `monitor` / `probe` / `hold`).
 **avoid** and **reduce** *lessen* exposure, so they carry a **lower** evidence bar (you may
 avoid or reduce on weaker evidence than you would commit or scale on). INV-1 holds: the verb
 is a qualitative classification with reasons, never a computed or score-derived output.
@@ -211,8 +211,8 @@ active rule is:
   called, or whose evidence supports decay;
 - **durable** = real, strong demand with a named evidence-supported basis for
   projecting persistence over the relevant decision horizon;
-- weak, attention-only, insufficient, or manufactured signals are **not**
-  transient demand.
+- weak, attention-only, resonance-only, insufficient, or manufactured signals
+  are **not** transient demand.
 
 Observed post-trigger persistence remains valid evidence for durability, but it
 is not the definition. Other admissible bases may include repeated costly
@@ -228,8 +228,8 @@ direction_change_propagation:
     relevant decision horizon — rather than a retrospective "stayed strong"
     observation. Transient demand is strong real current-window demand whose
     durability is not called or whose evidence supports decay; weak,
-    attention-only, insufficient, or manufactured signals are not transient
-    demand.
+    attention-only, resonance-only, insufficient, or manufactured signals are
+    not transient demand.
   trigger: product_doctrine
   related_triggers:
     - architecture_doctrine
@@ -241,7 +241,7 @@ direction_change_propagation:
     - orca/product/spines/foundation/demand_read_taxonomy/orca_demand_read_taxonomy_adjudication_v0.md
     - orca/product/spines/scanning/scan_core/orca_demand_scan_core_spec_v0.md
     - orca/product/spines/commission_signal_board/dispatch_rules/orca_demand_gate_run_commission_criteria_v0.md
-    - orca/product/spines/commission_signal_board/prompts/orca_commission_signal_board_prompt_v0.md
+    - orca/product/spines/commission_signal_board/prompts/orca_commission_signal_board_prompt_structure_v0.md
     - orca/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md
     - orca/product/spines/judgment/demand_read/core/judgment_spine_demand_read_machinery_architecture_v0.md
     - orca/product/spines/judgment/demand_read/c2_weighting/judgment_spine_c2_ledger_read_contract_v0.md
@@ -291,8 +291,8 @@ direction_change_propagation:
 - **Action-ceiling cap rule** (buyer-proof packet, ratified): **floor** = gradeable
   costly behavior (can you act at all); **ceiling** = integrity/independence (how
   bold); material/irreversible commitment requires **≥2 independent converging
-  origins**; single origin caps at hold/low-commitment; engagement/attention alone
-  cannot carry Commit-grade and caps the ceiling.
+  origins**; single origin caps at hold/low-commitment; engagement/attention/resonance
+  alone cannot carry Commit-grade and caps the ceiling.
 - **Output surface** (far-half decision-object): C3 fills the `sealed_call`
   (`recommendation`, `confidence_band`, `signals_used`, `reasoning_trace`); the
   sealed C3/C4 + trace is the JSG-06 scoreable child.
@@ -311,8 +311,8 @@ manufactured) demand under an active `decision_family` and Decision Frame (C0), 
    persisting over the relevant decision horizon.** Observed post-trigger
    persistence is one possible basis, not the definition. A read whose information
    set contains strong current-window demand but no durability basis calls
-   **transient** and acts **in-window**; weak or attention-only input is not
-   transient demand.
+   **transient** and acts **in-window**; weak, attention-only, or resonance-only
+   input is not transient demand.
 3. **Classify persistence-axis patterns here as transient, not as caps.** A
    persistence-axis pattern (resale/flip, event/one-time, scarcity/panic), carried
    in via C2 Rule 3 with its discriminator family, **reclassifies the read as
@@ -329,8 +329,8 @@ manufactured) demand under an active `decision_family` and Decision Frame (C0), 
    - A **material/irreversible** verb (**commit** or **scale**) requires **≥2 independent
      converging origins**; on a **single** independent origin the ceiling caps **below
      commit** (at **monitor / probe / hold**).
-   - **Engagement / attention-only** evidence (no gradeable costly behavior) **cannot
-     carry a Commit-grade** recommendation; it caps the ceiling.
+   - **Engagement / attention / resonance-only** evidence (no gradeable costly
+     behavior) **cannot carry a Commit-grade** recommendation; it caps the ceiling.
    - The ceiling is **tiered by costly-behavior strength** (one gradeable instance →
      low-commitment, `monitor`/`probe`/`hold`; a corroborated pattern → higher) and is
      **never stronger than the weakest load-bearing evidence** supports.
@@ -347,7 +347,7 @@ manufactured) demand under an active `decision_family` and Decision Frame (C0), 
    `signals_used` (each tagged with its `signal_id`), and a **required
    `reasoning_trace`** carrying the verdict, the durability-projection basis or
    transient basis, the ceiling verb, and **every cap reason** (independence
-   count, costly-behavior strength, engagement-only). The sealed C3/C4 + trace is
+   count, costly-behavior strength, engagement/resonance-only). The sealed C3/C4 + trace is
    the JSG-06 scoreable child.
 8. **Stay qualitative (INV-1).** The verdict, ceiling verb, and
    confidence_band are **qualitative classifications with reasons** — no number,
@@ -417,8 +417,9 @@ manufactured) demand under an active `decision_family` and Decision Frame (C0), 
 - **Independence cap:** a **material/irreversible** verb (`commit` or `scale`)
   emitted on a **single** independent origin fails (must cap below commit at
   `monitor`/`probe`/`hold` unless ≥2 converging independent origins).
-- **Engagement-only cap:** a **Commit-grade** ceiling carried by engagement/attention-only
-  evidence (no gradeable costly behavior) fails.
+- **Engagement/resonance-only cap:** a **Commit-grade** ceiling carried by
+  engagement, attention, or resonance-only evidence (no gradeable costly
+  behavior) fails.
 - **Weakest-evidence cap:** a ceiling stronger than the weakest load-bearing evidence
   supports fails.
 - **Sealed_call fill:** a read that omits `recommendation`, `confidence_band`,
@@ -468,7 +469,7 @@ spec_handoff:
     event / scarcity, routed from C2 Rule 3 with a cited discriminator) as
     transient, not as caps; caps the ceiling by the weakest load-bearing evidence
     (>=2 independent converging origins for a material verb, commit or scale; single
-    origin -> below commit at monitor/probe/hold; engagement-only cannot carry
+    origin -> below commit at monitor/probe/hold; engagement/resonance-only cannot carry
     commit/scale-grade); consumes (does not reopen) the manufactured
     axis and the ratified G1/G2 gate; fills the sealed_call (recommendation,
     qualitative confidence_band in the contestant vocabulary, signals_used tagged
@@ -493,7 +494,7 @@ spec_handoff:
     - persistence-pattern routed to transient with a cited discriminator (not a manufactured cap)
     - ceiling drawn from {monitor, probe, commit, hold, scale, avoid, reduce}
     - independence cap (material verb commit/scale needs >=2 converging origins; single origin -> below commit at monitor/probe/hold)
-    - engagement-only cap (no Commit-grade on attention-only evidence)
+    - engagement/resonance-only cap (no Commit-grade on attention/resonance-only evidence)
     - weakest-load-bearing-evidence cap
     - sealed_call filled (recommendation + qualitative confidence_band + tagged signals_used + reasoning_trace)
     - INV-1 disqualifier (no number/formula-computed ceiling or band)
@@ -518,7 +519,7 @@ spec_handoff:
     the two-axis verdict contract; the durable-projection-basis rule; the
     persistence-pattern -> transient routing; the {monitor,probe,commit,hold,scale,avoid,reduce}
     ceiling vocabulary; the floor/ceiling cap rule (>=2 converging origins,
-    engagement-only cap, weakest-evidence cap); the consume-don't-reopen boundary;
+    engagement/resonance-only cap, weakest-evidence cap); the consume-don't-reopen boundary;
     the sealed_call output surface; and INV-1. Open: the contestant band vocabulary,
     the per-vertical discriminator tells, and the live-monitor persistence threshold
     (all deferred-safe, none blocking a first read).
@@ -535,7 +536,7 @@ spec_handoff:
   `Rule 3 — Risk-State Weighting` present on `origin/main` (#124 squash `3ccc86ef`).
   reread-required.
 - `orca/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md` — the action-ceiling cap
-  rule (floor vs ceiling; ≥2 converging origins for material commitment; engagement-only
+  rule (floor vs ceiling; ≥2 converging origins for material commitment; engagement/resonance-only
   caps the ceiling; defend not auto-low-commitment; Scoring engines on the do-not-build
   list). On `origin/main` (re-grounded #130). reread-required.
 - `orca/product/spines/judgment/learning_loops/far_half/prospective_decision_loop_target_architecture_v0.md` —

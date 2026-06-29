@@ -81,6 +81,29 @@ Only Judgment writes gold interpretation.
 Do not collapse these into generic bronze/silver/gold storage tiers. In Orca,
 the layer name is an epistemic boundary first and a storage convenience second.
 
+## Public-Reaction Engagement Placement
+
+Public-reaction engagement follows the same epistemic boundary:
+
+- **Bronze:** source-visible raw facts such as upvotes, helpful votes, likes,
+  views, shares, comment counts, reply counts, score state, visible sort/rank,
+  metric posture, and source-exposed missingness in raw packets or attachment
+  material.
+- **Silver:** Projection rows, ECR/SCR records, Cleaning ledgers/views, or
+  mechanical `engagement_context` records that normalize, preserve, summarize,
+  or group those raw facts without deciding meaning. Silver may preserve
+  source-visible resonance qualifiers such as direction, visible audience-fit
+  basis, baseline context, and discount reasons, but not their Judgment effect.
+- **Pre-gold:** mechanical candidate alerts only, such as an outside-usual-range
+  engagement movement, resonance-context candidate, or Spike/Movement Alert,
+  still with explicit non-claims.
+- **Gold-ready:** a decision-bounded evidence assembly that gathers raw,
+  Silver, and any Pre-gold engagement evidence for a specific Judgment question
+  with `judgment_status: not_evaluated` or equivalent.
+- **Gold:** Judgment-owned interpretation of what the engagement means for
+  resonance weight, credibility, independence, Signal Integrity, Signal Use,
+  Decision Strength, Action Ceiling, demand support, or exclusion.
+
 ## Spike Alert Contract
 
 Use this vocabulary:

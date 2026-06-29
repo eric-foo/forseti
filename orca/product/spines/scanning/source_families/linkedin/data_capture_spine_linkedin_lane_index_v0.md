@@ -83,6 +83,9 @@ Discovery → Bounded Watch → Graph Frontier → Semantic Projection → Promo
   bottom-level data **without** building any individual's dossier or row. Needs a
   deep-think + assumption-gate first (privacy-design lock-in). **Not yet decided.**
 - **Bounded Watch / influence trajectory:** `orca/product/spines/scanning/source_families/linkedin/data_capture_spine_linkedin_influence_trajectory_watch_spec_v0.md`.
+  Visible influence and engagement counts are resonance/routing context for watch
+  priority only; they are not promotion proof, source-access permission, or a
+  Capture route.
 - **Out-of-lane, legally-gated future lanes** (relationship-graph analytics;
   contact/outreach): `orca/product/spines/capture/core/operating_model/data_capture_spine_future_exploration_lanes_v0.md`.
 
