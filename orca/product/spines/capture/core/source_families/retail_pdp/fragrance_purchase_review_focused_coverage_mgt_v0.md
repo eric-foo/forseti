@@ -132,7 +132,7 @@ Always select:
 
 Usually select:
 
-- 5-star rows when recent or `review_body_word_count >= 40`;
+- 5-star rows when recent or `review_body_word_count >= 75`;
 - 2-star and 3-star controls when recent or `review_body_word_count >= 75`;
 - `40_74` rows when they add rating balance, verified-purchase evidence, media,
   or recency.
@@ -142,7 +142,7 @@ Usually skip from the reader body set, while retaining metadata in the receipt:
 - `<20` rows unless they are recent low-rating rows or the product has too few
   rows;
 - older `20_39` rows unless needed for rating balance;
-- older 5-star rows below the length threshold when the product already has
+- older 5-star rows below the `75_plus` length threshold when the product already has
   enough positive coverage.
 
 Month windows are derived after capture from source-visible review dates. Do not

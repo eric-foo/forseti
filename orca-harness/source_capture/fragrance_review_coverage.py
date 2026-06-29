@@ -423,17 +423,26 @@ def build_fragrance_review_coverage(
         route_health.append("widget_total_count_present")
     if widget_total_count is not None and widget_total_count != len(rows):
         residuals.append("widget_total_count_deduped_row_count_mismatch")
+    if (
+        widget_total_count is not None
+        and aggregate.review_count is not None
+        and aggregate.review_count != widget_total_count
+    ):
+        residuals.append("aggregate_review_count_widget_total_count_mismatch")
     if rows and all(row.source_native_review_id for row in rows):
         route_health.append("native_review_ids_present")
     if rows and all(row.rating_value is not None for row in rows):
         route_health.append("ratings_present")
     if rows and all(row.review_month is not None for row in rows):
         route_health.append("review_months_present")
+    media_true_count = sum(1 for row in rows if row.media_attached_flag)
     if source_media_filter_count == 0:
-        if any(row.media_attached_flag for row in rows):
+        if media_true_count:
             residuals.append("media_filter_row_scan_mismatch")
         else:
             route_health.append("media_absence_confirmed_by_filter_and_rows")
+    elif source_media_filter_count is not None and source_media_filter_count > 0 and media_true_count == 0:
+        residuals.append("media_filter_row_scan_mismatch")
 
     summary = _coverage_summary(
         selected_rows,
@@ -494,7 +503,8 @@ def _normalize_reviews(
     product_url: str,
 ) -> list[FragranceReviewCoverageRow]:
     rows: list[FragranceReviewCoverageRow] = []
-    for ordinal, review in enumerate(reviews, start=1):
+    for review in reviews:
+        ordinal = review.ordinal
         body = _compact_text(" ".join(review.text["body"]))
         title = _compact_text(" ".join(review.text["title"])) or None
         author = _compact_text(" ".join(review.text["author"])) or None
@@ -513,6 +523,30 @@ def _normalize_reviews(
         row_id = _row_token(native_id or candidate_key)
         word_count = _word_count(body)
         verified = _bool_or_none(review.attrs.get("data-verified-buyer"))
+        source_visible_fields = {
+            key: value
+            for key, value in {
+                "source_widget": "judge_me",
+                "data_review_id": native_id,
+                "data_verified_buyer": verified,
+                "data_product_title": review.attrs.get("data-product-title") or None,
+                "data_product_url": review.attrs.get("data-product-url") or None,
+                "data_badge_type": review.transparency_badge_type,
+            }.items()
+            if value is not None
+        }
+        residuals = [] if body else ["review_body_absent"]
+        if not native_id:
+            source_visible_fields["candidate_key_basis"] = {
+                "source_id": source_id,
+                "product_url": product_url,
+                "row_ordinal": ordinal,
+                "review_timestamp_source": timestamp,
+                "reviewer_display_label": author,
+                "rating_value": review.rating_value,
+                "review_body_sha256": body_hash,
+            }
+            residuals.append("candidate_key_only_weaker_than_native_id")
         rows.append(
             FragranceReviewCoverageRow(
                 row_id=row_id,
@@ -537,19 +571,8 @@ def _normalize_reviews(
                 transparency_badge_type=review.transparency_badge_type,
                 product_title=review.attrs.get("data-product-title") or None,
                 product_url=review.attrs.get("data-product-url") or None,
-                source_visible_fields={
-                    key: value
-                    for key, value in {
-                        "source_widget": "judge_me",
-                        "data_review_id": native_id,
-                        "data_verified_buyer": verified,
-                        "data_product_title": review.attrs.get("data-product-title") or None,
-                        "data_product_url": review.attrs.get("data-product-url") or None,
-                        "data_badge_type": review.transparency_badge_type,
-                    }.items()
-                    if value is not None
-                },
-                residuals=[] if body else ["review_body_absent"],
+                source_visible_fields=source_visible_fields,
+                residuals=residuals,
             )
         )
     return rows
@@ -584,6 +607,7 @@ def _apply_selection_policy(
                 "selected_for_reader": selected,
                 "selection_reasons": reasons,
                 "skip_reasons": [] if selected else ["below_focused_policy_threshold"],
+                "review_title_verbatim": row.review_title_verbatim if selected else None,
                 "review_body_verbatim": row.review_body_verbatim if selected else None,
             }
         )
@@ -607,6 +631,7 @@ def _apply_selection_policy(
                         update={
                             "selected_for_reader": False,
                             "skip_reasons": ["adaptive_cap_excluded"],
+                            "review_title_verbatim": None,
                             "review_body_verbatim": None,
                         }
                     )
@@ -638,8 +663,8 @@ def _selection_reasons(
         reasons.append("control_rating_2_3_recent_or_75_plus")
     if row.rating_value == 2 and not has_one_star and recent and "recent_low_rating_without_1_star" not in reasons:
         reasons.append("recent_low_rating_without_1_star")
-    if row.rating_value == 5 and (recent or row.review_body_word_count >= 40):
-        reasons.append("rating_5_recent_or_40_plus")
+    if row.rating_value == 5 and (recent or row.review_body_word_count >= 75):
+        reasons.append("rating_5_recent_or_75_plus")
     if recent and reasons:
         reasons.append("recent_12m")
     return reasons
@@ -652,7 +677,7 @@ def _selection_priority(row: FragranceReviewCoverageRow, *, as_of_date: date) ->
         "review_media_attached": 2,
         "length_75_plus": 3,
         "recent_low_rating_without_1_star": 4,
-        "rating_5_recent_or_40_plus": 6,
+        "rating_5_recent_or_75_plus": 6,
         "control_rating_2_3_recent_or_75_plus": 7,
         "recent_12m": 8,
     }
@@ -708,7 +733,7 @@ def _aggregate_from_pdp_html(pdp_html: str | None) -> FragranceReviewAggregateCo
                     review_count=_int_or_none(aggregate.get("reviewCount")),
                     best_rating=_int_or_none(aggregate.get("bestRating")),
                     worst_rating=_int_or_none(aggregate.get("worstRating")),
-                    residuals=[],
+                    residuals=list(residuals),
                 )
     residuals.append("aggregate_rating_absent")
     return FragranceReviewAggregateCompanion(residuals=residuals)
@@ -852,9 +877,8 @@ def _row_token(value: str) -> str:
 
 def _is_forbidden_field_name(key: str) -> bool:
     normalized = key.lower().replace("-", "_")
-    parts = normalized.split("_")
     return any(
-        token == normalized or token in parts or token in normalized
+        token == normalized or normalized.startswith(f"{token}_")
         for token in _FORBIDDEN_SOURCE_VISIBLE_FIELD_NAMES
     )
 
