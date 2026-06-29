@@ -1442,3 +1442,256 @@ direction_change_propagation:
     - not sidecar selection
     - not storage-engine selection
 ```
+
+
+## From .agents/workflow-overlay/prompt-orchestration.md
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Operating Economy reform -- reduce no-value latency without losing any
+    defect-catching friction. (1) AGENTS.md adds an "Operating Economy" section
+    (act-default on reversible work; the "can I pick a defensible default and
+    proceed?" test; the harness permission prompts / protected-action guard ARE
+    the irreversibility gate, so no chat double-ask; surface a risky assumption
+    [keep] != ask permission for a clear reversible action [cut]; load each skill
+    once per thread; pre-build gates and precompact are triggered-only and
+    precompact is a thin restore pointer) and refines the kernel "surface
+    ambiguity" line accordingly. (2) The orchestrator mandate is NARROWED:
+    routine prompts apply the new ~12-line "Orca Prompt Preflight" core inline
+    (no skill reload); fused, delegated-review-patch, and novel/cross-lane prompts
+    still author through the full workflow-prompt-orchestrator skill. The full
+    Required Preflight Fields / Review Prompt Defaults / Output Modes obligations
+    are unchanged -- the core is an additive fast-path, not a reduced obligation.
+    (3) The existing docs/prompts/** PostToolUse hook (check_prompt_provenance.py,
+    config-proposal P5) is evolved to INJECT the preflight core instead of a bare
+    "use the orchestrator" pointer -- the real, agent-agnostic enforcement that
+    replaces the invoke-ritual; its now-stale strong-mandate message is corrected
+    to the narrowed two-depth routing.
+  trigger: workflow_authority
+  related_triggers:
+    - output_authority
+  reviewed_by: >
+    Cross-vendor delegated adversarial artifact review (non-Claude / GPT-family,
+    provisional convention) run and CA-adjudicated 2026-06-19; findings AR-01
+    (six-point core readable as the whole contract), AR-02 (routine/novel boundary
+    self-classifying), AR-03 (irreversibility-gate wording overclaims for ungated
+    hard-to-reverse actions), AR-04 (edit-permission enum inconsistent across
+    surfaces) all accepted and folded in pre-merge. Decision input only, not a
+    bound-lane verdict.
+  controlling_sources_updated:
+    - AGENTS.md
+    - .agents/workflow-overlay/prompt-orchestration.md
+    - .agents/hooks/check_prompt_provenance.py
+    - docs/workflows/orca_repo_map_v0.md     # Active Hooks note: faithful restatement of the evolved hook
+    - docs/decisions/dcp_receipts_archive_v0.md  # receipt rotation target (older receipt moved here verbatim)
+  downstream_surfaces_checked:
+    - .agents/workflow-overlay/README.md
+    - .agents/workflow-overlay/source-of-truth.md
+    - .agents/workflow-overlay/validation-gates.md
+    - .agents/workflow-overlay/decision-routing.md
+    - .agents/workflow-overlay/delegated-review-patch.md
+    - .agents/workflow-overlay/skill-adoption.md
+    - .claude/settings.json
+    - .agents/hooks/remind_sci.py
+  intentionally_not_updated:
+    - path: .agents/workflow-overlay/README.md
+      reason: >
+        The overlay index already names prompt-orchestration.md as the prompt /
+        preflight owner and AGENTS.md as the kernel; the preflight core and the
+        Operating Economy section live in those owners, so no index restatement
+        is needed.
+    - path: .agents/workflow-overlay/source-of-truth.md
+      reason: >
+        Source hierarchy and the propagation contract are unchanged; this change
+        consumes that contract (receipt + rotation), it does not alter it.
+    - path: .agents/workflow-overlay/validation-gates.md
+      reason: >
+        Its Prompt Orchestration Gates defer to prompt-orchestration.md as the
+        prompt-mechanics owner and carry no "must author through the orchestrator"
+        text (verified by grep); the narrowed two-depth routing lives in the owner
+        file, so no gate text changes.
+    - path: .agents/workflow-overlay/decision-routing.md
+      reason: >
+        Its Enforcement Placement pointer and Cynefin triggers are unchanged; the
+        evolved hook is the same boundary substrate it already describes in
+        principle, not a new gate.
+    - path: .agents/workflow-overlay/delegated-review-patch.md
+      reason: >
+        Its incomplete-commission route-out through workflow-prompt-orchestrator
+        is exactly a "use the full skill" case under the narrowed routing --
+        preserved, not stale; no edit.
+    - path: .agents/workflow-overlay/skill-adoption.md
+      reason: >
+        Its orchestrator references are adoption cautions, not the authoring
+        mandate (verified by grep); unaffected by the narrowing.
+    - path: .claude/settings.json
+      reason: >
+        The hook is evolved in place (same file, same PostToolUse Write|Edit
+        wiring); no registration change, so settings.json is unchanged.
+    - path: .agents/hooks/remind_sci.py
+      reason: >
+        Its _SCI_VERBATIM mirrors the AGENTS.md "Smallest Complete Intervention"
+        section, which is untouched (only the kernel "surface ambiguity" line, the
+        mandate line, and a new Operating Economy section change); the mirror stays
+        in sync. Verified by selftest.
+  stale_language_search: >
+    rg -i -n "through.{0,40}workflow-prompt-orchestrator|never hand-draft|must be authored through"
+    .agents docs AGENTS.md (run 2026-06-19 in worktree cranky-driscoll-c4e109)
+  stale_language_search_result: >
+    Executed 2026-06-19 post-edit. In scope (.agents, docs, AGENTS.md) every hit is
+    reconciled: AGENTS.md and prompt-orchestration.md ("Author Through" +
+    "Authoring-route precondition") now carry the narrowed two-depth routing
+    (novel-case "author through the full skill"); the repo map "Active Hooks" note
+    and check_prompt_provenance.py (docstring + the line recording that the prior
+    strong-mandate message went stale) carry the corrected wording;
+    prompt-orchestration.md's other hits are this receipt's own reason text and query
+    string; and delegated-review-patch.md "Route the request through
+    workflow-prompt-orchestrator" is the explicit full-skill route-out for an
+    incomplete commission -- one of the "use the full skill" cases, consistent with
+    the narrowing (not stale). No in-scope surface retains an unqualified "author
+    every prompt through the orchestrator" mandate. A whole-repo sweep additionally
+    finds restatements under orca/product/** (fragrance satellite, capture and
+    commission-board artifacts) saying "author through the orchestrator"; these are
+    product-lane artifacts, not doctrine-routing surfaces, and stay valid (the
+    full-skill path is never wrong, only sometimes more than a routine prompt needs)
+    -- reconciling them is out of scope for this kernel change.
+  non_claims:
+    - not validation
+    - not readiness
+    - not source promotion
+    - not implementation authorization
+```
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Durable and cross-recipient Orca prompts (review, handoff, commission,
+    wrapper, rerun, patch — and any prompt handed to another model/agent/thread/
+    worktree) must now be authored as a FILE-WRITE under docs/prompts/**, not
+    chat-only; paste-ready-chat carries a copy of the filed body, not a substitute
+    for filing. This retracts the previously-accepted limitation that the
+    docs/prompts/** provenance hook (check_prompt_provenance.py) misses
+    paste-ready-chat prompts that never touch disk: by requiring durable prompts
+    to touch disk, the hook always fires and injects the preflight (incl. source
+    pack / required reads + the Source-Gated Method Contract), so source-loading
+    is enforced for every durable prompt. chat-only is reserved for trivial,
+    single-target inline prompts.
+  trigger: workflow_authority
+  related_triggers:
+    - output_authority
+  controlling_sources_updated:
+    - .agents/workflow-overlay/prompt-orchestration.md
+    - .agents/hooks/check_prompt_provenance.py
+  downstream_surfaces_checked:
+    - AGENTS.md
+    - .agents/workflow-overlay/validation-gates.md
+    - .agents/workflow-overlay/source-loading.md
+    - .agents/workflow-overlay/communication-style.md
+    - .agents/workflow-overlay/template-registry.md
+    - .agents/workflow-overlay/delegated-review-patch.md
+    - .claude/settings.json
+    - docs/decisions/dcp_receipts_archive_v0.md
+  intentionally_not_updated:
+    - path: AGENTS.md
+      reason: >
+        The kernel routes prompt detail to prompt-orchestration.md; the filing
+        rule lives in that owner file, so no root restatement is added.
+    - path: .agents/workflow-overlay/validation-gates.md
+      reason: >
+        Its Authoring-route precondition already requires the prompt contract to
+        have been applied at the correct depth; the filing rule is part of that
+        contract in the owner file, so the gate needs no new text.
+    - path: .agents/workflow-overlay/source-loading.md
+      reason: >
+        Owns the read-pack / orca_start_preflight the hook injects; this rule
+        routes durable prompts through that preflight and changes nothing in the
+        load-side owner.
+    - path: .agents/workflow-overlay/communication-style.md
+      reason: >
+        Owns the general chat shape; the paste-ready-chat output-mode tightening
+        lives in prompt-orchestration.md (output-mode owner), so no duplicate here.
+        Its chat-only hits are review/decision OUTPUT, not prompt authoring.
+    - path: .agents/workflow-overlay/template-registry.md
+      reason: >
+        Lists paste-ready-chat as the delivery mode of FILED docs/prompts/templates/**
+        templates; consistent with "filed artifact + paste copy." No mode removed.
+    - path: .agents/workflow-overlay/delegated-review-patch.md
+      reason: >
+        Its paste-ready-chat route-out is a cross-recipient prompt; under the new
+        rule that is a filed artifact with paste-ready-chat as its copy — consistent.
+        A one-line "filed + copy" clarification is optional, not required; flagged,
+        not silently forked.
+    - path: .claude/settings.json
+      reason: >
+        The hook wiring is unchanged (same PostToolUse Write|Edit registration);
+        only the hook docstring note is updated to reflect the doctrinal closure.
+    - path: docs/decisions/dcp_receipts_archive_v0.md
+      reason: >
+        Receipt-rotation target only — the prior 2026-06-15 fitness_reference
+        receipt was moved there verbatim to keep this file at the
+        two-most-recent-inline limit. Not a doctrine surface.
+  stale_language_search: >
+    rg -i "paste-ready-chat|never touch disk|chat-only|authored.{0,20}file-write"
+    .agents/workflow-overlay AGENTS.md (run 2026-06-20)
+  stale_language_search_result: >
+    Executed 2026-06-20; the terms appear in 5 overlay files (not 1).
+    prompt-orchestration.md carries the new filing rule + paste-ready-chat tightening
+    (the change itself). communication-style.md uses chat-only for review/decision
+    OUTPUT, not prompt authoring — consistent. template-registry.md lists
+    paste-ready-chat as the delivery mode of FILED docs/prompts/templates/** templates
+    — consistent with "filed + paste copy." validation-gates.md names the output-mode
+    enum — consistent. delegated-review-patch.md specifies a paste-ready-chat route-out
+    prompt: under the new rule a cross-recipient route-out is a filed artifact with
+    paste-ready-chat as its copy — consistent, optional one-line clarification flagged
+    (not silently forked). No live surface presents chat-only / paste-ready-without-a-file
+    as an accepted authoring path for a durable or cross-recipient prompt.
+  non_claims:
+    - not validation
+    - not readiness
+    - not source promotion
+    - not implementation authorization
+```
+
+```yaml
+direction_change_propagation:
+  change_id: subagent_validation_probe_timeout_2026_06_20
+  trigger: workflow_authority | validation_philosophy
+  changed_sources:
+    - .agents/workflow-overlay/prompt-orchestration.md
+  reason: >
+    A delegated ontology-tagging lane repeatedly invoked a newly authored
+    validation hook that hung during selftest and left background Python
+    processes. The subagent contract needed an explicit smoke-timeout stop rule
+    for new/custom validation surfaces before retry or completion claims.
+  controlling_sources_checked:
+    - AGENTS.md
+    - .agents/workflow-overlay/README.md
+    - .agents/workflow-overlay/decision-routing.md
+    - .agents/workflow-overlay/validation-gates.md
+    - .agents/workflow-overlay/source-of-truth.md
+    - .agents/workflow-overlay/prompt-orchestration.md
+  downstream_surfaces_checked:
+    - .agents/workflow-overlay/decision-routing.md
+    - .agents/workflow-overlay/validation-gates.md
+    - .agents/workflow-overlay/source-of-truth.md
+  intentionally_not_updated:
+    - path: .agents/workflow-overlay/decision-routing.md
+      reason: >
+        It already owns delegation routing and runtime-payload safety; the new
+        rule is the prompt/dispatch execution contract for subagent validation
+        probes, so it belongs in prompt-orchestration.md.
+    - path: .agents/workflow-overlay/validation-gates.md
+      reason: >
+        Known gate semantics and CI timeouts are unchanged. The new 30-second
+        limit is a smoke-probe stop condition for newly introduced or materially
+        changed validation commands, not a replacement gate timeout.
+    - path: .agents/workflow-overlay/source-of-truth.md
+      reason: >
+        Source hierarchy and propagation mechanics are unchanged; this receipt
+        consumes the existing doctrine-change propagation contract.
+  non_claims:
+    - not validation
+    - not readiness
+    - not source promotion
+    - not implementation authorization
+```

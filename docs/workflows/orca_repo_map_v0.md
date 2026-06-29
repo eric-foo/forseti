@@ -170,16 +170,18 @@ to the PostToolUse array, then restart the session (hooks load at session start)
 
 **Prompt-preflight reminder (advisory).** A PostToolUse hook (matcher
 `Write|Edit|MultiEdit` in `.claude/settings.json`,
-`python .agents/hooks/check_prompt_provenance.py --hook`): after a write under
-`docs/prompts/**`, injects the **Orca Prompt Preflight** (output mode · template
-kind · edit-permission+targets+branch · reviews findings-first + no runtime-model
-routing · doctrine-change -> propagation receipt · destinations) so a routine
-prompt applies the contract inline with no skill reload; fused /
-delegated-review-patch / novel prompts still author through
-`workflow-prompt-orchestrator` (rule owned by
+`python .agents/hooks/check_prompt_provenance.py --hook`): after a canonical
+prompt write under `docs/prompts/**`, injects the **Orca Prompt Preflight**
+(output mode · template kind · edit-permission+targets+branch · reviews
+findings-first + no runtime-model routing · doctrine-change -> propagation
+receipt · destinations) so a routine prompt applies the contract inline with no
+skill reload; fused / delegated-review-patch / novel prompts still author
+through `workflow-prompt-orchestrator` (rule owned by
 `.agents/workflow-overlay/prompt-orchestration.md`). Remind only, never blocks,
-exit 0; it cannot verify the contract was applied (misses paste-ready chat
-prompts that never touch disk -- named limitation).
+exit 0; it cannot verify the contract was applied. It does not fire for
+lane-scoped prompts attached to a lane PR body/comment or kept in ignored
+`docs/_inbox/` scratch; those are accepted only under prompt-orchestration.md
+classification and must carry preflight manually.
 `python .agents/hooks/check_prompt_provenance.py --selftest` checks the decision
 logic.
 
