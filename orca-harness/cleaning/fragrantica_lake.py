@@ -44,6 +44,7 @@ from source_capture.fragrantica_projection import (
     build_fragrantica_projection,
 )
 from source_capture.models import SourceCapturePacket, VisibleFactStatus
+from data_lake.silver_record import append_silver_record
 
 if TYPE_CHECKING:
     from data_lake.root import DataLakeRoot
@@ -154,13 +155,17 @@ def derive_fragrantica_cleaning_into_lake(
     )
     silver_paths: list[Path] = []
     for silver_record in silver_records:
+        # Route every Silver record through the validating front-door: a blurred
+        # record (bad record_kind, a ledger inside a fact, broken metric posture)
+        # raises before any bytes are written. The audit pack above stays on the
+        # generic writer because it is intentionally NOT a Silver record.
         silver_paths.append(
-            data_root.append_record(
-                subtree="derived",
+            append_silver_record(
+                data_root,
                 raw_anchor=packet_id,
                 lane=FRAGRANTICA_CLEANING_SILVER_LANE,
                 record_id=silver_record["record_id"],
-                data=_json_bytes(silver_record),
+                record=silver_record,
             )
         )
 
