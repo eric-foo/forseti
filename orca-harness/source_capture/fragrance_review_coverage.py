@@ -73,7 +73,7 @@ class FragranceReviewCoverageInputError(ValueError):
 
 
 class FragranceReviewAggregateCompanion(StrictModel):
-    source: Literal["pdp_json_ld", "absent"] = "absent"
+    source: Literal["pdp_json_ld", "widget_json", "absent"] = "absent"
     rating_value: float | None = None
     review_count: int | None = None
     best_rating: int | None = None
@@ -84,7 +84,7 @@ class FragranceReviewAggregateCompanion(StrictModel):
 class FragranceReviewCoverageRow(StrictModel):
     row_id: str
     row_ordinal: int
-    row_source: Literal["judgeme_widget_html", "widget_json_review"]
+    row_source: Literal["judgeme_widget_html", "widget_json_review", "yotpo_v3_review"]
     source_native_review_id: str | None = None
     candidate_review_key: str
     review_key_status: Literal["native_id_present", "candidate_key_only"]
@@ -175,7 +175,7 @@ class FragranceReviewCoverageReceipt(StrictModel):
 class _MutableReview:
     attrs: dict[str, str]
     ordinal: int
-    row_source: Literal["judgeme_widget_html", "widget_json_review"]
+    row_source: Literal["judgeme_widget_html", "widget_json_review", "yotpo_v3_review"]
     text: dict[str, list[str]] = field(default_factory=lambda: {"title": [], "body": [], "author": [], "timestamp": []})
     rating_value: int | None = None
     timestamp_source: str | None = None
@@ -309,6 +309,19 @@ class _JsonLdScriptParser(HTMLParser):
             self._buffer = []
 
 
+class _TextOnlyHtmlParser(HTMLParser):
+    def __init__(self) -> None:
+        super().__init__(convert_charrefs=True)
+        self.parts: list[str] = []
+
+    def handle_data(self, data: str) -> None:
+        if data.strip():
+            self.parts.append(data)
+
+    def text(self) -> str:
+        return _compact_text(" ".join(self.parts))
+
+
 def build_fragrance_review_coverage_from_files(
     *,
     widget_response_paths: Sequence[Path],
@@ -384,6 +397,7 @@ def build_fragrance_review_coverage(
     residuals: list[str] = []
     raw_reviews: list[_MutableReview] = []
     widget_total_count: int | None = None
+    widget_aggregate: FragranceReviewAggregateCompanion | None = None
 
     for index, raw_response in enumerate(widget_responses, start=1):
         try:
@@ -392,14 +406,24 @@ def build_fragrance_review_coverage(
             raise FragranceReviewCoverageInputError(f"widget response {index} is not parseable JSON") from exc
         if not isinstance(parsed, dict):
             raise FragranceReviewCoverageInputError(f"widget response {index} is not a JSON object")
-        if parsed.get("total_count") is not None:
-            widget_total_count = max(widget_total_count or 0, int(parsed["total_count"]))
+        parsed_total_count = _widget_total_count_from_response(parsed)
+        if parsed_total_count is not None:
+            widget_total_count = max(widget_total_count or 0, parsed_total_count)
+        parsed_aggregate = _widget_aggregate_from_response(parsed)
+        if parsed_aggregate is not None:
+            widget_aggregate = parsed_aggregate
         if isinstance(parsed.get("html"), str):
             route_health.append(f"widget_response_{index}:html_present")
             raw_reviews.extend(_parse_judgeme_html_reviews(parsed["html"]))
         elif isinstance(parsed.get("reviews"), list):
             route_health.append(f"widget_response_{index}:reviews_json_present")
-            raw_reviews.extend(_parse_json_reviews(parsed["reviews"], start_ordinal=len(raw_reviews) + 1))
+            raw_reviews.extend(
+                _parse_json_reviews(
+                    parsed["reviews"],
+                    start_ordinal=len(raw_reviews) + 1,
+                    row_source=_json_review_row_source(parsed),
+                )
+            )
         else:
             residuals.append(f"widget_response_{index}:review_rows_absent")
 
@@ -417,6 +441,8 @@ def build_fragrance_review_coverage(
     )
 
     aggregate = _aggregate_from_pdp_html(pdp_html) if pdp_html is not None else FragranceReviewAggregateCompanion()
+    if aggregate.source == "absent" and widget_aggregate is not None:
+        aggregate = widget_aggregate
     if aggregate.source == "absent":
         residuals.append("aggregate_companion_absent")
     if widget_total_count is not None:
@@ -472,28 +498,48 @@ def _parse_judgeme_html_reviews(html: str) -> list[_MutableReview]:
     return parser.reviews
 
 
-def _parse_json_reviews(reviews: Sequence[object], *, start_ordinal: int) -> list[_MutableReview]:
+def _parse_json_reviews(
+    reviews: Sequence[object],
+    *,
+    start_ordinal: int,
+    row_source: Literal["widget_json_review", "yotpo_v3_review"] = "widget_json_review",
+) -> list[_MutableReview]:
     parsed: list[_MutableReview] = []
     for offset, item in enumerate(reviews):
         if not isinstance(item, Mapping):
             continue
+        native_id = item.get("id") or item.get("review_id") or item.get("uuid") or item.get("sourceReviewId")
+        verified = item.get("verified_buyer")
+        if verified is None:
+            verified = item.get("verifiedBuyer")
+        user = item.get("user") if isinstance(item.get("user"), Mapping) else {}
         attrs = {
-            "data-review-id": _string_or_empty(item.get("id") or item.get("review_id")),
-            "data-verified-buyer": _string_or_empty(item.get("verified_buyer")),
+            "data-review-id": _string_or_empty(native_id),
+            "data-verified-buyer": _string_or_empty(verified),
             "data-product-title": _string_or_empty(item.get("product_title")),
             "data-product-url": _string_or_empty(item.get("product_url")),
         }
+        body = item.get("body") or item.get("content") or item.get("body_html")
+        if item.get("body_html") is not None:
+            body = _html_to_text(_string_or_empty(item.get("body_html")))
         review = _MutableReview(
             attrs=attrs,
             ordinal=start_ordinal + offset,
-            row_source="widget_json_review",
+            row_source=row_source,
             rating_value=_int_or_none(item.get("rating") or item.get("score")),
-            timestamp_source=_string_or_none(item.get("created_at") or item.get("date")),
-            media_attached=bool(item.get("pictures") or item.get("videos")),
+            timestamp_source=_string_or_none(item.get("created_at") or item.get("createdAt") or item.get("date")),
+            media_attached=_json_review_has_media(item),
+            helpful_positive_count=_int_or_none(item.get("thumb_up") or item.get("votesUp")),
+            helpful_negative_count=_int_or_none(item.get("thumb_down") or item.get("votesDown")),
         )
         review.text["title"].append(_string_or_empty(item.get("title")))
-        review.text["body"].append(_string_or_empty(item.get("body") or item.get("content")))
-        review.text["author"].append(_string_or_empty(item.get("reviewer_name") or item.get("user_name")))
+        review.text["body"].append(_string_or_empty(body))
+        review.text["author"].append(
+            _string_or_empty(item.get("reviewer_name") or item.get("user_name") or user.get("displayName"))
+        )
+        badges = item.get("transparency_badges")
+        if isinstance(badges, list) and badges:
+            review.transparency_badge_type = _string_or_none(badges[0])
         parsed.append(review)
     return parsed
 
@@ -528,7 +574,7 @@ def _normalize_reviews(
         source_visible_fields = {
             key: value
             for key, value in {
-                "source_widget": "judge_me",
+                "source_widget": _source_widget_label(review.row_source),
                 "data_review_id": native_id,
                 "data_verified_buyer": verified,
                 "data_product_title": review.attrs.get("data-product-title") or None,
@@ -739,6 +785,76 @@ def _aggregate_from_pdp_html(pdp_html: str | None) -> FragranceReviewAggregateCo
                 )
     residuals.append("aggregate_rating_absent")
     return FragranceReviewAggregateCompanion(residuals=residuals)
+
+
+def _widget_total_count_from_response(parsed: Mapping[str, object]) -> int | None:
+    for key in ("total_count", "number_of_reviews"):
+        value = _int_or_none(parsed.get(key))
+        if value is not None:
+            return value
+    pagination = parsed.get("pagination")
+    if isinstance(pagination, Mapping):
+        value = _int_or_none(pagination.get("total"))
+        if value is not None:
+            return value
+    bottomline = parsed.get("bottomline")
+    if isinstance(bottomline, Mapping):
+        for key in ("totalReview", "totalReviews"):
+            value = _int_or_none(bottomline.get(key))
+            if value is not None:
+                return value
+    return None
+
+
+def _widget_aggregate_from_response(parsed: Mapping[str, object]) -> FragranceReviewAggregateCompanion | None:
+    if parsed.get("average_rating") is not None or parsed.get("number_of_reviews") is not None:
+        return FragranceReviewAggregateCompanion(
+            source="widget_json",
+            rating_value=_float_or_none(parsed.get("average_rating")),
+            review_count=_int_or_none(parsed.get("number_of_reviews")),
+        )
+    bottomline = parsed.get("bottomline")
+    if isinstance(bottomline, Mapping):
+        return FragranceReviewAggregateCompanion(
+            source="widget_json",
+            rating_value=_float_or_none(bottomline.get("averageScore")),
+            review_count=_int_or_none(bottomline.get("totalReview") or bottomline.get("totalReviews")),
+        )
+    return None
+
+
+def _json_review_row_source(parsed: Mapping[str, object]) -> Literal["widget_json_review", "yotpo_v3_review"]:
+    if isinstance(parsed.get("bottomline"), Mapping) and isinstance(parsed.get("pagination"), Mapping):
+        return "yotpo_v3_review"
+    return "widget_json_review"
+
+
+def _json_review_has_media(item: Mapping[str, object]) -> bool:
+    for key in (
+        "pictures",
+        "pictures_urls",
+        "videos",
+        "video_external_ids",
+        "imagesData",
+        "videosData",
+        "media_platform_hosted_video_infos",
+    ):
+        value = item.get(key)
+        if isinstance(value, list) and value:
+            return True
+    return False
+
+
+def _html_to_text(html: str) -> str:
+    parser = _TextOnlyHtmlParser()
+    parser.feed(html)
+    return parser.text()
+
+
+def _source_widget_label(row_source: str) -> str:
+    if row_source == "yotpo_v3_review":
+        return "yotpo"
+    return "judge_me"
 
 
 def _walk_dicts(value: object) -> list[dict[str, object]]:

@@ -29,7 +29,12 @@ def _words(prefix: str, count: int) -> str:
     return " ".join(f"{prefix}{index}" for index in range(count))
 
 
-def _observation(*, response_body: str | None, total_count: int = 2) -> BrowserPageObservationSuccess:
+def _observation(
+    *,
+    response_body: str | None,
+    total_count: int = 2,
+    provider_metadata: dict[str, object] | None = None,
+) -> BrowserPageObservationSuccess:
     aggregate = {
         "@context": "https://schema.org",
         "@type": "Product",
@@ -39,23 +44,27 @@ def _observation(*, response_body: str | None, total_count: int = 2) -> BrowserP
     responses = []
     if response_body is not None:
         responses.append(_widget_response(response_body, url=WIDGET_URL))
+    dom_observation = {
+        "viewport": {"width": 1365, "height": 900},
+        "items": [
+            {"tag": "h1", "text": "Example Fragrance", "top": 100, "left": 600, "width": 500, "height": 40},
+            {"tag": "div", "text": "4.5 (2)", "top": 150, "left": 600, "width": 120, "height": 20},
+            {"tag": "div", "text": "$120", "top": 190, "left": 600, "width": 80, "height": 20},
+            {"tag": "button", "text": "Add to Cart", "top": 240, "left": 600, "width": 180, "height": 45},
+            {"tag": "div", "text": "Size 50ml 2ml Sample", "top": 300, "left": 600, "width": 300, "height": 30},
+            {"tag": "div", "text": "Customer Reviews", "top": 760, "left": 600, "width": 220, "height": 30},
+        ],
+        "json_ld_texts": [json.dumps(aggregate)],
+    }
+    if provider_metadata is not None:
+        dom_observation["provider_metadata"] = provider_metadata
+
     return BrowserPageObservationSuccess(
         requested_url=PRODUCT_URL,
         final_url=PRODUCT_URL,
         title="Example Fragrance",
         visible_text="Example Fragrance 4.5 (2) $120 Add to Cart Customer Reviews",
-        dom_observation={
-            "viewport": {"width": 1365, "height": 900},
-            "items": [
-                {"tag": "h1", "text": "Example Fragrance", "top": 100, "left": 600, "width": 500, "height": 40},
-                {"tag": "div", "text": "4.5 (2)", "top": 150, "left": 600, "width": 120, "height": 20},
-                {"tag": "div", "text": "$120", "top": 190, "left": 600, "width": 80, "height": 20},
-                {"tag": "button", "text": "Add to Cart", "top": 240, "left": 600, "width": 180, "height": 45},
-                {"tag": "div", "text": "Size 50ml 2ml Sample", "top": 300, "left": 600, "width": 300, "height": 30},
-                {"tag": "div", "text": "Customer Reviews", "top": 760, "left": 600, "width": 220, "height": 30},
-            ],
-            "json_ld_texts": [json.dumps(aggregate)],
-        },
+        dom_observation=dom_observation,
         responses=responses,
         metadata={"viewport_width": 1365, "viewport_height": 900, "response_count": len(responses)},
         warning_notes=[],
@@ -186,6 +195,47 @@ def test_capture_uses_bounded_fallback_when_render_does_not_expose_widget_rows()
     assert "bounded_fallback_widget_response_count:1" in receipt.route_health
 
 
+def test_capture_auto_derives_judgeme_fallback_from_dom_metadata() -> None:
+    captured_urls: list[str] = []
+
+    def fake_observation_fetcher(**_: object) -> BrowserPageObservationSuccess:
+        return _observation(
+            response_body=None,
+            total_count=13,
+            provider_metadata={
+                "judge_me": {
+                    "present": True,
+                    "myshopify_domains": ["example.myshopify.com"],
+                    "product_ids": ["1234567890123"],
+                    "review_count": 13,
+                }
+            },
+        )
+
+    def fake_fallback_fetcher(**kwargs: object) -> list[BrowserPageResponse]:
+        captured_urls.extend(kwargs["urls"])  # type: ignore[arg-type]
+        return [_widget_response(_widget_body(total_count=2, review_count=2), url=captured_urls[0])]
+
+    receipt = capture_fragrance_rendered_widget_companion(
+        url=PRODUCT_URL,
+        source_id="fragrance_retail_example",
+        source_site="Example",
+        as_of_date=date(2026, 6, 29),
+        observation_fetcher=fake_observation_fetcher,
+        fallback_fetcher=fake_fallback_fetcher,
+    )
+
+    assert len(captured_urls) == 2
+    assert "shop_domain=example.myshopify.com" in captured_urls[0]
+    assert "product_id=1234567890123" in captured_urls[0]
+    assert "page=2" in captured_urls[1]
+    assert receipt.widget_route["auto_judgeme_detected"] is True
+    assert receipt.widget_route["auto_judgeme_page_count"] == 2
+    assert [response.response_origin for response in receipt.widget_responses] == ["bounded_fallback"]
+    assert receipt.focused_review_coverage is not None
+    assert receipt.fallback_needed is False
+
+
 
 def test_capture_threads_lazy_load_scroll_controls_to_observation_fetcher() -> None:
     captured_kwargs: dict[str, object] = {}
@@ -280,17 +330,20 @@ def test_companion_combines_passive_and_fallback_rows_without_flagging_complete_
     assert receipt.fallback_needed is False
 
 
-def test_yotpo_review_body_is_preserved_but_not_parsed_until_shape_is_verified() -> None:
+def test_yotpo_review_body_is_parsed_from_v3_response() -> None:
     yotpo_body = json.dumps(
         {
+            "pagination": {"page": 1, "perPage": 5, "total": 1},
+            "bottomline": {"totalReview": 1, "averageScore": 5.0},
             "reviews": [
                 {
                     "id": "yotpo-1",
                     "score": 5,
-                    "date": "2026-06-01",
+                    "createdAt": "2026-06-01",
                     "content": _words("yotpo", 30),
+                    "verifiedBuyer": True,
                 }
-            ]
+            ],
         }
     )
     receipt = build_fragrance_rendered_widget_companion_from_observation(
@@ -304,10 +357,13 @@ def test_yotpo_review_body_is_preserved_but_not_parsed_until_shape_is_verified()
 
     assert receipt.widget_responses[0].response_kind == "yotpo_v3_reviews"
     assert receipt.widget_responses[0].body_sha256 is not None
-    assert receipt.focused_review_coverage is None
-    assert receipt.fallback_needed is True
-    assert "yotpo_v3_reviews_preserved_not_parsed" in receipt.residuals
-    assert "parseable_widget_review_responses_absent" in receipt.residuals
+    assert receipt.focused_review_coverage is not None
+    assert receipt.focused_review_coverage.coverage_summary.total_rows == 1
+    assert receipt.focused_review_coverage.aggregate_companion.rating_value == 4.5
+    assert receipt.focused_review_coverage.rows[0].row_source == "yotpo_v3_review"
+    assert receipt.fallback_needed is False
+    assert "yotpo_v3_reviews_preserved_not_parsed" not in receipt.residuals
+    assert "parseable_widget_review_responses_absent" not in receipt.residuals
 
 
 def test_malformed_fallback_body_is_visible_and_keeps_fallback_needed() -> None:

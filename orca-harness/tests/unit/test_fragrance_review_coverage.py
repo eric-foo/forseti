@@ -249,6 +249,122 @@ def test_widget_json_route_covers_candidate_key_native_dedup_and_media() -> None
     assert "candidate_key_only_weaker_than_native_id" in candidate.residuals
 
 
+def test_judgeme_json_list_preserves_body_uuid_verified_media_and_widget_aggregate() -> None:
+    widget = json.dumps(
+        {
+            "number_of_reviews": 2,
+            "average_rating": "4.50",
+            "reviews": [
+                {
+                    "uuid": "59a40313-8002-52bd-9f67-ce9907d0d6a8",
+                    "title": "Special, every one",
+                    "rating": 5,
+                    "body_html": "<p>Great scents with enough detail to parse.</p>",
+                    "verified_buyer": True,
+                    "created_at": "2026-06-23T13:49:27.000Z",
+                    "reviewer_name": "Allen",
+                    "pictures_urls": ["https://cdn.example/review.jpg"],
+                    "thumb_up": 2,
+                    "thumb_down": 1,
+                    "transparency_badges": ["review_written_in_shop_app"],
+                    "product_title": "Essential Parfums Discovery Set",
+                    "product_url": "/products/essential-parfums-discovery-set-1",
+                },
+                {
+                    "uuid": "second-review",
+                    "rating": 4,
+                    "body_html": "<p>Balanced.</p>",
+                    "verified_buyer": False,
+                    "created_at": "2026-04-01T00:00:00.000Z",
+                },
+            ],
+        }
+    )
+
+    receipt = build_fragrance_review_coverage(
+        widget_responses=[widget],
+        pdp_html=None,
+        source_id="fragrance_retail_twisted_lily",
+        source_site="Twisted Lily",
+        product_url=PRODUCT_URL,
+        as_of_date=date(2026, 6, 29),
+    )
+
+    assert receipt.aggregate_companion.source == "widget_json"
+    assert receipt.aggregate_companion.rating_value == 4.5
+    assert receipt.aggregate_companion.review_count == 2
+    assert receipt.coverage_summary.total_rows == 2
+    assert receipt.coverage_summary.widget_total_count == 2
+    assert receipt.coverage_summary.native_review_id_count == 2
+    assert receipt.coverage_summary.media_true_count == 1
+
+    row = next(row for row in receipt.rows if row.source_native_review_id == "59a40313-8002-52bd-9f67-ce9907d0d6a8")
+    assert row.row_source == "widget_json_review"
+    assert row.review_body_verbatim == "Great scents with enough detail to parse."
+    assert row.review_body_word_count == 7
+    assert row.media_attached_flag is True
+    assert row.verified_purchase_flag is True
+    assert row.helpful_positive_count == 2
+    assert row.helpful_negative_count == 1
+    assert row.source_visible_fields["source_widget"] == "judge_me"
+    assert row.transparency_badge_type == "review_written_in_shop_app"
+
+
+def test_yotpo_v3_reviews_parse_rows_and_widget_bottomline() -> None:
+    widget = json.dumps(
+        {
+            "pagination": {"page": 1, "perPage": 5, "total": 1},
+            "bottomline": {
+                "totalReview": 1,
+                "averageScore": 5.0,
+                "starDistribution": {"1": 0, "2": 0, "3": 0, "4": 0, "5": 1},
+            },
+            "reviews": [
+                {
+                    "id": 833318480,
+                    "score": 5,
+                    "votesUp": 0,
+                    "votesDown": 0,
+                    "content": _words("concrete", 96),
+                    "title": None,
+                    "createdAt": "2026-04-24T03:03:33",
+                    "verifiedBuyer": True,
+                    "imagesData": [],
+                    "user": {"displayName": "Helen"},
+                }
+            ],
+        }
+    )
+
+    receipt = build_fragrance_review_coverage(
+        widget_responses=[widget],
+        pdp_html=None,
+        source_id="fragrance_retail_zgo",
+        source_site="ZGO Perfumery",
+        product_url=PRODUCT_URL,
+        as_of_date=date(2026, 6, 29),
+    )
+
+    assert receipt.aggregate_companion.source == "widget_json"
+    assert receipt.aggregate_companion.rating_value == 5.0
+    assert receipt.aggregate_companion.review_count == 1
+    assert receipt.coverage_summary.total_rows == 1
+    assert receipt.coverage_summary.widget_total_count == 1
+    assert receipt.coverage_summary.selected_count == 1
+
+    row = receipt.rows[0]
+    assert row.row_source == "yotpo_v3_review"
+    assert row.source_native_review_id == "833318480"
+    assert row.review_body_word_count == 96
+    assert row.review_length_bucket == "75_plus"
+    assert row.review_month == "2026-04"
+    assert row.verified_purchase_flag is True
+    assert row.reviewer_display_label == "Helen"
+    assert row.helpful_positive_count == 0
+    assert row.helpful_negative_count == 0
+    assert row.source_visible_fields["source_widget"] == "yotpo"
+
+
 def test_residuals_cover_media_and_aggregate_disagreements() -> None:
     widget = json.dumps(
         {

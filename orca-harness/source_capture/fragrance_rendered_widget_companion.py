@@ -8,7 +8,7 @@ import urllib.request
 from datetime import date
 from pathlib import Path
 from typing import Any, Callable, Iterable, Literal, Mapping, Sequence
-from urllib.parse import urlparse
+from urllib.parse import urlencode, urlparse
 
 from pydantic import Field
 
@@ -31,7 +31,7 @@ FRAGRANCE_RENDERED_WIDGET_COMPANION_CERTIFICATION = (
     "rendered_widget_companion; passive_first_bounded_fallback; not_judgment_ready"
 )
 
-_DOM_EXTRACT_SCRIPT = """
+_DOM_EXTRACT_SCRIPT = r"""
 () => {
   const vw = window.innerWidth;
   const vh = window.innerHeight;
@@ -63,6 +63,50 @@ _DOM_EXTRACT_SCRIPT = """
   const jsonLdTexts = Array.from(document.querySelectorAll('script[type="application/ld+json"]'))
     .map((node) => node.textContent || '')
     .filter((text) => text.trim().length > 0);
+  const html = document.documentElement ? document.documentElement.outerHTML : '';
+  const uniq = (values) => Array.from(new Set(values.filter(Boolean)));
+  const matchAll = (regex) => {
+    const values = [];
+    let match;
+    while ((match = regex.exec(html)) !== null) values.push(match[1] || match[0]);
+    return values;
+  };
+  const productIds = [];
+  for (const el of Array.from(document.querySelectorAll('.jdgm-widget, [data-widget-name="review_widget"]'))) {
+    for (const attr of ['data-product', 'data-id', 'data-product-id']) {
+      const value = el.getAttribute(attr);
+      if (value && /^\d{6,14}$/.test(value)) productIds.push(value);
+    }
+  }
+  for (const el of Array.from(document.querySelectorAll('[data-product-id]'))) {
+    const value = el.getAttribute('data-product-id');
+    if (value && /^\d{6,14}$/.test(value)) productIds.push(value);
+  }
+  for (const regex of [
+    /data-product=["'](\d{6,14})["']/gi,
+    /data-product-id=["'](\d{6,14})["']/gi,
+    /gid:\/\/shopify\/Product\/(\d{6,14})/gi,
+    /productId["'\s:=]+["']?(\d{6,14})/gi,
+    /product_id["'\s:=]+["']?(\d{6,14})/gi,
+    /ProductID:\s*(\d{6,14})/gi,
+  ]) {
+    productIds.push(...matchAll(regex));
+  }
+  let aggregateRating = null;
+  const walk = (value) => {
+    if (!value || typeof value !== 'object') return;
+    if (value.aggregateRating && typeof value.aggregateRating === 'object') {
+      aggregateRating = value.aggregateRating;
+    }
+    if (Array.isArray(value)) {
+      for (const child of value) walk(child);
+    } else {
+      for (const child of Object.values(value)) walk(child);
+    }
+  };
+  for (const text of jsonLdTexts) {
+    try { walk(JSON.parse(text)); } catch (_) {}
+  }
   return {
     title: document.title,
     url: location.href,
@@ -70,12 +114,23 @@ _DOM_EXTRACT_SCRIPT = """
     scroll_y: window.scrollY,
     items: seen.slice(0, 160),
     json_ld_texts: jsonLdTexts,
+    provider_metadata: {
+      judge_me: {
+        present: /judge\.me|judgeme|jdgm/i.test(html),
+        myshopify_domains: uniq(matchAll(/[A-Za-z0-9_-]+\.myshopify\.com/gi)),
+        product_ids: uniq(productIds),
+        rating_value: aggregateRating ? aggregateRating.ratingValue || null : null,
+        review_count: aggregateRating ? aggregateRating.reviewCount || null : null,
+      },
+    },
   };
 }
 """
 
-_REVIEW_RESPONSE_KINDS = frozenset({"judgeme_reviews_for_widget"})
-_UNPARSED_REVIEW_RESPONSE_KINDS = frozenset({"yotpo_v3_reviews"})
+_REVIEW_RESPONSE_KINDS = frozenset({"judgeme_reviews_for_widget", "yotpo_v3_reviews"})
+_UNPARSED_REVIEW_RESPONSE_KINDS: frozenset[str] = frozenset()
+_AUTO_JUDGEME_FALLBACK_PER_PAGE = 10
+_AUTO_JUDGEME_FALLBACK_MAX_PAGES = 5
 
 
 class FragranceRenderedWidgetCompanionInputError(ValueError):
@@ -204,23 +259,31 @@ def capture_fragrance_rendered_widget_companion(
             f"rendered widget companion capture failed: {observation.failure_kind.value}: {observation.message}"
         )
 
+    auto_widget_route, auto_fallback_widget_urls = _derive_judgeme_fallback_from_dom_observation(
+        observation.dom_observation
+    )
+    effective_widget_route = {**dict(widget_route or {}), **auto_widget_route}
+    effective_fallback_widget_urls = list(fallback_widget_urls)
+
     initial_receipt = build_fragrance_rendered_widget_companion_from_observation(
         observation,
         source_id=source_id,
         source_site=source_site,
         product_url=product_url or url,
-        widget_route=widget_route,
+        widget_route=effective_widget_route,
         as_of_date=as_of_date,
         max_selected_rows=max_selected_rows,
         source_media_filter_count=source_media_filter_count,
     )
-    if not initial_receipt.fallback_needed or not fallback_widget_urls:
+    if initial_receipt.fallback_needed and not effective_fallback_widget_urls:
+        effective_fallback_widget_urls = auto_fallback_widget_urls
+    if not initial_receipt.fallback_needed or not effective_fallback_widget_urls:
         return initial_receipt
 
     fetcher = fallback_fetcher or fetch_fragrance_widget_fallback_responses
     fallback_responses = list(
         fetcher(
-            urls=fallback_widget_urls,
+            urls=effective_fallback_widget_urls,
             timeout_seconds=timeout_seconds,
             max_response_bytes=max_response_bytes,
         )
@@ -230,7 +293,7 @@ def capture_fragrance_rendered_widget_companion(
         source_id=source_id,
         source_site=source_site,
         product_url=product_url or url,
-        widget_route=widget_route,
+        widget_route=effective_widget_route,
         as_of_date=as_of_date,
         max_selected_rows=max_selected_rows,
         source_media_filter_count=source_media_filter_count,
@@ -566,6 +629,50 @@ def _widget_response_kind(
     return None
 
 
+def _derive_judgeme_fallback_from_dom_observation(dom_observation: object) -> tuple[dict[str, Any | None], list[str]]:
+    dom = _dom_mapping(dom_observation)
+    provider_metadata = dom.get("provider_metadata")
+    if not isinstance(provider_metadata, Mapping):
+        return {}, []
+    judge_me = provider_metadata.get("judge_me")
+    if not isinstance(judge_me, Mapping) or judge_me.get("present") is not True:
+        return {}, []
+    shop_domain = _first_string(judge_me.get("myshopify_domains"))
+    product_id = _first_numeric_string(judge_me.get("product_ids"))
+    if not shop_domain or not product_id:
+        return {"auto_judgeme_detected": True}, []
+    review_count = _int_or_none(judge_me.get("review_count"))
+    page_count = 1
+    if review_count is not None and review_count > 0:
+        page_count = max(1, (review_count + _AUTO_JUDGEME_FALLBACK_PER_PAGE - 1) // _AUTO_JUDGEME_FALLBACK_PER_PAGE)
+    bounded_page_count = min(page_count, _AUTO_JUDGEME_FALLBACK_MAX_PAGES)
+    route = {
+        "auto_judgeme_detected": True,
+        "auto_judgeme_shop_domain": shop_domain,
+        "auto_judgeme_product_id": product_id,
+        "auto_judgeme_review_count": review_count,
+        "auto_judgeme_per_page": _AUTO_JUDGEME_FALLBACK_PER_PAGE,
+        "auto_judgeme_page_count": bounded_page_count,
+    }
+    if page_count > bounded_page_count:
+        route["auto_judgeme_page_count_capped"] = page_count
+    urls = [
+        "https://api.judge.me/reviews/reviews_for_widget?"
+        + urlencode(
+            {
+                "url": shop_domain,
+                "shop_domain": shop_domain,
+                "platform": "shopify",
+                "product_id": product_id,
+                "per_page": str(_AUTO_JUDGEME_FALLBACK_PER_PAGE),
+                "page": str(page),
+            }
+        )
+        for page in range(1, bounded_page_count + 1)
+    ]
+    return route, urls
+
+
 def _pdp_html_from_dom_observation(dom_observation: object) -> str | None:
     dom = _dom_mapping(dom_observation)
     raw_texts = dom.get("json_ld_texts")
@@ -594,6 +701,32 @@ def _dom_mapping(value: object) -> Mapping[str, object]:
     if not isinstance(value, Mapping):
         raise FragranceRenderedWidgetCompanionInputError("DOM observation must be an object")
     return value
+
+
+def _first_string(value: object) -> str | None:
+    if isinstance(value, list):
+        for item in value:
+            if isinstance(item, str) and item.strip():
+                return item.strip()
+    if isinstance(value, str) and value.strip():
+        return value.strip()
+    return None
+
+
+def _first_numeric_string(value: object) -> str | None:
+    if isinstance(value, list):
+        for item in value:
+            parsed = _numeric_string(item)
+            if parsed:
+                return parsed
+    return _numeric_string(value)
+
+
+def _numeric_string(value: object) -> str | None:
+    if value is None:
+        return None
+    text = str(value).strip()
+    return text if re.fullmatch(r"\d{6,14}", text) else None
 
 
 def _normalize_items(value: object) -> list[dict[str, Any | None]]:
