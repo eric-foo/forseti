@@ -31,7 +31,6 @@ SOURCE_POSTURE_PROBLEMS = {
     "no_audio_handle",
     "download_failed",
 }
-NON_ELIGIBLE_RESIDUAL_REASONS: set[str] = set()
 SOURCE_NON_ELIGIBLE_PROBLEMS = SOURCE_COMPLETION_PROBLEMS | SOURCE_POSTURE_PROBLEMS
 
 
@@ -384,7 +383,8 @@ def _eligibility(
     if cue_count <= 0:
         return False, "zero_cues"
     if not extraction_feed_eligible:
-        return False, "deep_capture_not_in_extraction_feed"
+        # Retained for future source kinds; current IG transcript sources are feed-eligible.
+        return False, "source_not_in_extraction_feed"
     return True, None
 
 
@@ -441,11 +441,7 @@ def _extraction_rollup(
             _append_residual_once(residuals, f"ig_transcript_source_{source_status}:{source_key}")
         if posture in SOURCE_POSTURE_PROBLEMS:
             _append_residual_once(residuals, f"ig_transcript_source_{posture}:{source_key}")
-        if non_eligible_reason in NON_ELIGIBLE_RESIDUAL_REASONS:
-            _append_residual_once(
-                residuals,
-                f"ig_transcript_source_not_extraction_eligible:{source_key}",
-            )
+
         if (
             source.get("extraction_eligible") is False
             and non_eligible_reason in SOURCE_NON_ELIGIBLE_PROBLEMS
@@ -582,7 +578,6 @@ def _result_for_source(
     for key in (
         _source_key(source),
         _string_or_none(source.get("transcript_source_key")),
-        _string_or_none(source.get("source_key")),
     ):
         if key is not None and key in exact_results:
             return exact_results[key]
@@ -604,7 +599,7 @@ def _extraction_result_indexes(
     by_anchor: dict[str, list[Mapping[str, Any]]] = {}
     for item in extraction_results:
         result = _as_mapping(item)
-        for key_name in ("transcript_source_key", "source_key"):
+        for key_name in ("transcript_source_key",):
             key = _string_or_none(result.get(key_name))
             if key is not None:
                 exact[key] = result
@@ -633,7 +628,6 @@ def _source_has_problem(source: Mapping[str, Any]) -> bool:
     return (
         _string_or_none(source.get("source_status")) in SOURCE_COMPLETION_PROBLEMS
         or _string_or_none(source.get("posture")) in SOURCE_POSTURE_PROBLEMS
-        or _string_or_none(source.get("non_eligible_reason")) in NON_ELIGIBLE_RESIDUAL_REASONS
         or _string_or_none(source.get("non_eligible_reason")) in SOURCE_NON_ELIGIBLE_PROBLEMS
     )
 

@@ -4,9 +4,9 @@ The IG analogue of `run_transcript_product_extract` (YouTube). Decoupled / chore
 call-chain): independently scans the lake for committed IG-Reel audio packets and deep-capture
 transcript records, then extracts any transcript lacking a completed mentions record-set.
 Daemon-ready by the same contract — idempotent (skip-if-done via the completion marker),
-stateless/resumable, per-item failure isolated at BOTH grains (a corrupt packet ->
-`discovery_failed`; a transcript whose extraction raises -> `failed`; the batch never aborts),
-single entrypoint (`run_extraction`).
+stateless/resumable, and per-item failure isolated after candidate enumeration at BOTH grains
+(a corrupt packet -> `discovery_failed`; a transcript whose extraction raises -> `failed`).
+Enumeration-time filesystem failures still surface instead of being laundered into fake success.
 
 IG is its OWN runner (not an edit to the YouTube runner, which hardcodes
 `list_available(source_family="youtube")`): packet discovery keys on source_family=instagram_creator
@@ -52,6 +52,8 @@ _IG_SOURCE_FAMILY = "instagram_creator"
 _IG_AUDIO_SURFACE = "ig_reels_audio"
 DEFAULT_EXTRACTION_MODEL = "codex-extraction-v0"
 _DEEP_CAPTURE_ROUTE = "deep_capture_render_audio"
+# Production ASR emits "transcribed"; "ok" is accepted for older deep-capture records.
+_DEEP_CAPTURE_SUCCESS_POSTURES = {"transcribed", "ok"}
 
 
 def _file_paths(manifest: dict) -> dict[str, str]:
@@ -205,7 +207,7 @@ def _deep_capture_transcripts(data_root) -> list[TranscriptInput]:
             lane=REEL_TRANSCRIPT_LANE,
             record_id=record_id,
         )
-        if not record or record.get("transcript_posture") not in {"ok", "transcribed"}:
+        if not record or record.get("transcript_posture") not in _DEEP_CAPTURE_SUCCESS_POSTURES:
             continue
         cues = cues_from_asr_record(record)
         record_shortcode = str(record.get("reel_shortcode") or shortcode)

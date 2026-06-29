@@ -220,6 +220,19 @@ def test_runner_extracts_deep_capture_transcript_records(tmp_path) -> None:
     assert second[0]["transcript_source_key"] == deep_key
 
 
+def test_runner_extracts_legacy_ok_deep_capture_transcript_records(tmp_path) -> None:
+    data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    deep_record_id = _commit_ig_deep_capture(data_root, posture="ok")
+    deep_key = f"DZ69knlsDb1:asr:{deep_record_id}"
+    assert count_pending_extractions(data_root=data_root, model="m") == 1
+
+    transport = FakeTransport(_anthropic([_item()]))
+    first = run_extraction(data_root=data_root, transport=transport, provider=_PROVIDER, model="m", api_key="k")
+    assert len(first) == 1
+    assert first[0]["status"] == "extracted"
+    assert first[0]["transcript_source_key"] == deep_key
+
+
 def test_check_count_tracks_completed_mentions_for_model(tmp_path) -> None:
     data_root = DataLakeRoot.for_test(tmp_path / "lake")
     _commit_ig_audio_transcript(data_root)

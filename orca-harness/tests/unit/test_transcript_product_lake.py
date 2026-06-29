@@ -7,6 +7,7 @@ runner is idempotent (skip-if-done), and that the json3->cues parser preserves t
 
 from __future__ import annotations
 
+import hashlib
 import json
 from pathlib import Path
 from typing import Any
@@ -316,6 +317,8 @@ def test_mentions_record_id_keys_on_content_model_and_optional_source_key() -> N
         _cues(),
         transcript_source_key="vid12345678:asr:deepcap-b",
     )
+    expected_no_key_id = f"mentions_m__{hashlib.sha256(t1.joined_text.encode('utf-8')).hexdigest()[:16]}.json"
+    assert mentions_record_id(t1, "m") == expected_no_key_id  # no-key legacy formula
     assert mentions_record_id(t1, "m") == mentions_record_id(t1, "m")  # stable across calls
     assert mentions_record_id(t1, "m") != mentions_record_id(t2, "m")  # content-keyed
     assert mentions_record_id(t1, "m1") != mentions_record_id(t1, "m2")  # model-keyed (R1 backfill)
