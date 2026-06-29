@@ -5,6 +5,11 @@ from pathlib import Path
 from typing import Any
 
 from data_lake.root import DataLakeRoot
+from source_capture.youtube_watch_packet import (
+    YoutubeWatchCommentPage,
+    YoutubeWatchFetch,
+    write_youtube_watch_packet,
+)
 from source_capture.transcript.asr_packet import write_asr_transcript
 from source_capture.transcript.caption_packet import write_caption_packet
 from source_capture.transcript.youtube_captions import CaptionFetch
@@ -28,6 +33,16 @@ def _json3_bytes() -> bytes:
     ).encode("utf-8")
 
 
+def _metric_observed(value: int, path: str, artifact: str) -> dict[str, Any]:
+    return {
+        "posture": "observed",
+        "value": value,
+        "source_route": path.rsplit(".", 1)[0],
+        "source_path": path,
+        "artifact": artifact,
+    }
+
+
 def _metadata_packet(**overrides: Any) -> dict[str, Any]:
     packet = {
         "video_id": _VIDEO_ID,
@@ -40,19 +55,54 @@ def _metadata_packet(**overrides: Any) -> dict[str, Any]:
             "view_count_source_path": "player.microformat",
             "like_count": 34,
             "comment_sample_count": 1,
+            "total_comment_count": 12,
         },
         "availability": {"video_state": "playable", "comments_state": "comments_sample_captured"},
         "metric_receipts": {
-            "view_count": {"posture": "observed", "source_route": "ytInitialPlayerResponse.microformat"},
-            "like_count": {"posture": "observed", "source_route": "ytInitialPlayerResponse.microformat"},
+            "view_count": _metric_observed(1200, "ytInitialPlayerResponse.videoDetails.viewCount", "raw_watch.html"),
+            "like_count": _metric_observed(
+                34, "ytInitialPlayerResponse.microformat.playerMicroformatRenderer.likeCount", "raw_watch.html"
+            ),
+            "comment_sample_count": _metric_observed(
+                1, "youtubei_next.commentEntityPayload", "youtubei_next_page_01.json"
+            ),
+            "total_comment_count": _metric_observed(
+                12, "youtubei_next.commentsHeaderRenderer.countText", "youtubei_next_page_01.json"
+            ),
         },
-        "comments_posture": "captured",
+        "comments_posture": "comments_sample_captured",
         "comment_count_text": "12 comments",
-        "comments": [{"author": "A", "text": "wear test?", "published_time": "1 day ago"}],
+        "comments": [{"author": "A", "text": "wear test?", "published_time": "1 day ago", "like_count": 2}],
         "receipts": {"http_status": 200, "retrieval_time_utc": "2026-06-21T00:00:00Z"},
     }
     packet.update(overrides)
     return packet
+
+
+def _commit_watch_metadata(
+    data_root: DataLakeRoot,
+    *,
+    now_iso: str = "2026-06-21T00:00:00Z",
+    title: str = "Fragrance review",
+) -> str:
+    packet = _metadata_packet()
+    packet["metadata"] = {**packet["metadata"], "title": title}
+    packet["receipts"] = {**packet["receipts"], "retrieval_time_utc": now_iso}
+    code, output_dir = write_youtube_watch_packet(
+        YoutubeWatchFetch(
+            video_id=_VIDEO_ID,
+            raw_watch_html=b"<html>ytInitialPlayerResponse</html>",
+            packet=packet,
+            comment_page_bodies=(
+                YoutubeWatchCommentPage(filename="youtubei_next_page_01.json", raw_json_bytes=b"{}"),
+            ),
+        ),
+        data_root=data_root,
+        decision_question="capture YouTube watch metrics",
+        now_iso=now_iso,
+    )
+    assert code == 0
+    return Path(output_dir).name
 
 
 def _commit_caption(data_root: DataLakeRoot, *, video_id: str = _VIDEO_ID) -> str:
@@ -144,17 +194,55 @@ def test_projection_correlates_metadata_comments_transcripts_and_extraction_resu
     )
 
     assert projection["platform_video_id"] == _VIDEO_ID
-    assert projection["metadata_capture"]["comments"]["posture"] == "captured"
+    assert projection["metadata_capture"]["comments"]["posture"] == "comments_sample_captured"
     assert projection["metadata_capture"]["comments"]["sample_count"] == 1
     assert projection["metadata_capture"]["availability"]["comments_state"] == "comments_sample_captured"
     assert projection["metadata_capture"]["engagement"]["like_count"] == 34
-    assert projection["metadata_capture"]["metric_receipts"]["view_count"]["source_route"] == "ytInitialPlayerResponse.microformat"
+    assert projection["metadata_capture"]["metric_receipts"]["view_count"]["source_route"] == "ytInitialPlayerResponse.videoDetails"
     assert projection["transcript"]["source_count"] == 2
     assert projection["transcript"]["canonical_source"]["source_kind"] == "caption"
     assert projection["transcript"]["canonical_source"]["caption_kind"] == "manual"
     assert projection["transcript"]["extraction_rollup"]["status"] == "complete"
     assert projection["behavioral_completeness"]["complete"] is True
     assert {source["extraction_status"] for source in projection["transcript"]["sources"]} == {"extracted"}
+
+
+def test_projection_from_lake_discovers_watch_metadata_packet_by_video_id(tmp_path) -> None:
+    data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    watch_packet_id = _commit_watch_metadata(data_root)
+    _commit_caption(data_root)
+    sources = transcript_sources_for_video(data_root, _VIDEO_ID)
+
+    projection = project_youtube_behavioral_item_from_lake(
+        data_root=data_root,
+        platform_video_id=_VIDEO_ID,
+        extraction_results=_extracted_results_for_sources(sources),
+    )
+
+    metadata = projection["metadata_capture"]
+    assert metadata["capture_packet_id"] == watch_packet_id
+    assert metadata["source_surface"] == "youtube_watch_metadata_comments"
+    assert metadata["capture_schema_version"] == "youtube_watch_metadata_comments_capture_v0"
+    assert metadata["metadata"]["title"] == "Fragrance review"
+    assert metadata["comments"]["posture"] == "comments_sample_captured"
+    assert metadata["comments"]["sample_count"] == 1
+    assert metadata["engagement"]["total_comment_count"] == 12
+    assert metadata["metric_receipts"]["total_comment_count"]["source_route"] == "youtubei_next.commentsHeaderRenderer"
+    assert "youtube_metadata_packet_absent" not in projection["behavioral_completeness"]["residuals"]
+
+
+def test_projection_from_lake_uses_latest_watch_metadata_packet_for_video(tmp_path) -> None:
+    data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    _commit_watch_metadata(data_root, now_iso="2026-06-21T00:00:00Z", title="Old title")
+    latest_packet_id = _commit_watch_metadata(data_root, now_iso="2026-06-21T00:02:00Z", title="Latest title")
+
+    projection = project_youtube_behavioral_item_from_lake(
+        data_root=data_root,
+        platform_video_id=_VIDEO_ID,
+    )
+
+    assert projection["metadata_capture"]["capture_packet_id"] == latest_packet_id
+    assert projection["metadata_capture"]["metadata"]["title"] == "Latest title"
 
 
 def test_transcript_discovery_residualizes_corrupt_youtube_packet_without_aborting_healthy_video(tmp_path) -> None:
