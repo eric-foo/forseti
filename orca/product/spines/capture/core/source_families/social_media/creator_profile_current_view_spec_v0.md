@@ -16,8 +16,11 @@ use_when:
   - Deciding where average views, engagement rate, and other aggregate creator metrics belong.
   - Checking the boundary between the public-handle identity ledger, metric observations, metric rollups, ideal-audience enrichment, and future SQLite/data-lake storage.
 open_next:
+  - orca/product/spines/capture/core/source_families/social_media/creator_profile_current_view_v0.json
+  - orca/product/spines/capture/core/source_families/social_media/creator_profile_current_lake_native_record_mapping_v0.md
   - orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_spec_v0.md
   - orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json
+  - orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json
   - orca/product/spines/capture/core/source_families/social_media/instagram/ig_creator_ideal_audience_inference_spec_v0.md
   - orca/product/spines/capture/core/source_families/social_media/instagram/ig_profile_grid_dom_engagement_recon_and_spec_v0.md
   - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_storage_contract_v0.md
@@ -100,14 +103,13 @@ The public-handle identity ledger remains at:
 
 `orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json`
 
-A future static/manual creator-profile artifact, if needed before SQLite, should
-live beside this spec, for example:
+The first static creator-profile export lives beside this spec:
 
 `orca/product/spines/capture/core/source_families/social_media/creator_profile_current_view_v0.json`
 
-That future artifact should be derived from source-backed identity, metric, and
-audience records. It should not be manually edited as a second source of truth
-once a data-lake/SQLite physicalization exists.
+That artifact is derived from source-backed identity and metric records. It is a
+static export of the current profile view, not a second source of truth. It
+should not be manually edited once a data-lake/SQLite physicalization exists.
 
 ## Architecture Result
 
@@ -251,6 +253,11 @@ creator_metric_rollup:
     posting_cadence: nullable number with posture
     recent_velocity: nullable number with posture
   source_metric_observation_ids: required list
+  sample_support:
+    observation_count: required count of source observations feeding the rollup
+    sample_adequacy: required enum thin_n_1_to_3, limited_n_4_to_7, stronger_admitted_pool_n_8_plus
+    representativeness_posture: required literal admitted_pool_only_not_representative_creator_average unless a later validated window proves representativeness
+    surface_handling: required presentation instruction for downgrade/withhold/visible-limitation behavior
   calculation_recipe_version: required version
   computed_at: required timestamp
   freshness_state: required enum current, stale, partial, blocked
@@ -328,6 +335,9 @@ Minimum rollup rules:
 - Always state the window: 7d, 30d, 90d, or custom.
 - Always state the platform scope: one platform or cross-platform.
 - Always state which observation rows fed the rollup.
+- Always carry sample support and a representativeness posture. Small-n rollups
+  and admitted-pool-only rollups must remain directional signals, not
+  representative creator averages.
 - Before a promoted public-handle link, aggregate influence attaches to
   `platform_account_id`; candidate and rejected linkage rows may appear only as
   identity/drill-back context.
@@ -410,8 +420,13 @@ When physicalized, SQLite tables can map directly from the sibling shapes:
 - `creator_profile_current`
 
 Data Lake owns storage/derived-result mechanics when adopted. This product
-contract owns the view boundary and source-family semantics. A data-lake job may
-compute the rollups later, but this document does not create that job.
+contract owns the view boundary and source-family semantics. The lake-native
+record mapping in `creator_profile_current_lake_native_record_mapping_v0.md`
+clarifies that durable creator metric observations should be Silver Vault
+`MetricObservation` records, while creator metric rollups should derive from
+those observations with recipe, window, sample-support, freshness, and
+limitation fields. A data-lake job may compute the rollups later, but this
+document does not create that job.
 
 ## Non-Goals
 
