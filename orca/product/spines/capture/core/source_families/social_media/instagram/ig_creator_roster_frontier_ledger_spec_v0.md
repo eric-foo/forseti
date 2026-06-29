@@ -514,7 +514,7 @@ Rules:
 
 > **Carve-out 2026-06-22 amendment supersedes part of this list** (the carve-out is the authority —
 > `docs/decisions/wind_caller_calibration_carveout_v0.md`): **cross-platform PUBLIC-handle stitching is now
-> ACTIVATED** (Tier-2-B; public-handle↔public-handle, via `orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_spec_v0.md`; non-public-handle joins still
+> ACTIVATED** (Tier-2-B; public-handle↔public-handle, via `orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_spec_v0.md`; non-public-handle joins still
 > gated) — so the "Cross-platform identity stitching" forbiddance below is **lifted for public-handle joins**,
 > and public-handle cross-platform stitching must use the separate linkage-ledger
 > `creator_record_id`, not this roster-local `ig_roster_record_id`. **Aggregate audience demographics** (text-only,

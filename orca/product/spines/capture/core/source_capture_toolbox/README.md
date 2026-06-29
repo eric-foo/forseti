@@ -79,9 +79,9 @@ packet without redefining Capture obligations.
 | `orca/product/spines/capture/core/source_families/social_media/youtube/youtube_creator_observation_ledger_spec_v0.md` | YouTube-first creator/channel observation ledger contract for admitted Shorts pools: one-platform source-backed observations, data-lake packet refs, metric absence posture, and explicit non-linkage/non-metric boundaries before profile projection or SQLite. |
 | `orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_observation_ledger_v0.json` | Static source-backed seed ledger for the full 200-row fragrance Shorts pool: 31 observed YouTube creator/channel groups, 200 matched raw lake packets, no cross-platform linkage, no metric rollups, no transcript bodies. Verifier: `orca-harness/capture_spine/youtube_creator_observation/`. |
 | `orca/product/spines/capture/core/source_families/social_media/instagram/ig_creator_roster_frontier_ledger_spec_v0.md` | Proposed current-main IG beauty creator roster/frontier ledger contract: append-only public-name observations, depth-1 discovery provenance, privacy invariants, ontology boundary, and current `250 -> 500 -> 1,000` roster gates. Non-authorizing. |
-| `orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_spec_v0.md` | Dedicated Tier-2-B public-handle linkage contract across Instagram, TikTok, and YouTube: static table-shaped ledger, declared/probable/candidate/rejected link states, public evidence thresholds, validator expectations, and non-claims. No live capture, no contact/outreach, no person identity proof. |
-| `orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json` | Empty static `public_handle_ledger` scaffold for source-backed Instagram/TikTok/YouTube public-handle joins. Validated by the creator public-handle linkage validator; no invented rows, live capture, contact/outreach, SQLite, or person identity proof. |
-| `orca/product/spines/capture/core/source_families/social_media/creator_profile_current_view_spec_v0.md` | Owner-directed target view for a one-stop current creator profile: joins public-handle identity, per-content metric observations, aggregate metric rollups, and ideal-audience snapshots without turning the identity ledger into one giant ledger. No SQLite adoption, dashboard implementation, live capture, or public person-level surface. |
+| `orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_spec_v0.md` | Dedicated Tier-2-B public-handle linkage contract across Instagram, TikTok, and YouTube: static table-shaped ledger, declared/probable/candidate/rejected link states, public evidence thresholds, validator expectations, and non-claims. No live capture, no contact/outreach, no person identity proof. |
+| `orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json` | Populated static `public_handle_ledger` seed for source-backed YouTube and Instagram public platform accounts, with creator records still empty until public-handle linkage evidence is admitted. Validated by the creator public-handle linkage validator; no invented rows, live capture, contact/outreach, SQLite, or person identity proof. |
+| `orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_profile_current_view_spec_v0.md` | Owner-directed target view for a one-stop current creator profile: joins public-handle identity, per-content metric observations, aggregate metric rollups, and ideal-audience snapshots without turning the identity ledger into one giant ledger. No SQLite adoption, dashboard implementation, live capture, or public person-level surface. |
 
 ## Armory Components
 
@@ -445,7 +445,7 @@ spec, an ontology amendment, or a public person-level product surface.
 Purpose: define the dedicated Tier-2-B public-handle-to-public-handle linkage shape for creator accounts across Instagram, TikTok, and YouTube before any SQLite/runtime promotion.
 
 The spec is at
-`orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_spec_v0.md`; the current empty product ledger scaffold is at `orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json`. The local validator is `orca-harness/capture_spine/creator_public_handle_linkage/` with synthetic/adversarial tests under `orca-harness/tests/unit/test_creator_public_handle_linkage.py`.
+`orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_spec_v0.md`; the current populated product ledger seed is at `orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json`. The local validator is `orca-harness/capture_spine/creator_public_handle_linkage/` with synthetic/adversarial tests under `orca-harness/tests/unit/test_creator_public_handle_linkage.py`.
 
 It is static ledger/validator work only. It is not live capture, contact/outreach authorization, non-public-handle joining, real-world identity proof, SQLite adoption, or a public person-level product surface.
 
@@ -456,7 +456,7 @@ identity, aggregate influence rollups, and ideal-audience enrichment without
 putting mutable metrics or audience fields into the identity linkage ledger.
 
 The spec is at
-`orca/product/spines/capture/core/source_families/social_media/creator_profile_current_view_spec_v0.md`.
+`orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_profile_current_view_spec_v0.md`.
 It treats average views and engagement rate as metric rollups keyed to the
 creator/account spine; individual reels/videos stay in metric observations.
 SQLite or another storage engine can physicalize the sibling tables later, after

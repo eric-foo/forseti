@@ -15,8 +15,8 @@ open_next:
   - orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_observation_ledger_v0.json
   - docs/review-inputs/youtube_shorts_fragrance_creator_ledger_v0.json
   - docs/workflows/youtube_shorts_creator_index_decision_path_v0.md
-  - orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_spec_v0.md
-  - orca/product/spines/capture/core/source_families/social_media/creator_profile_current_view_spec_v0.md
+  - orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_spec_v0.md
+  - orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_profile_current_view_spec_v0.md
   - orca/product/spines/capture/core/source_families/social_media/youtube/youtube_video_capture_surface_findings_v0.md
   - orca-harness/capture_spine/youtube_creator_observation/validation.py
 stale_if:
@@ -182,13 +182,13 @@ direction_change_propagation:
     - orca-harness/tests/unit/test_youtube_creator_observation_ledger.py
   downstream_surfaces_checked:
     - docs/workflows/youtube_shorts_creator_index_decision_path_v0.md
-    - orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_spec_v0.md
-    - orca/product/spines/capture/core/source_families/social_media/creator_profile_current_view_spec_v0.md
+    - orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_spec_v0.md
+    - orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_profile_current_view_spec_v0.md
     - orca/product/spines/capture/core/source_capture_toolbox/README.md
     - docs/workflows/data_capture_spine_consolidation_map_v0.md
     - docs/workflows/orca_repo_map_v0.md
   intentionally_not_updated:
-    - path: orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json
+    - path: orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json
       reason: Current evidence is YouTube-only observation evidence, not cross-platform account-link evidence.
   non_claims:
     - not cross-platform identity linkage

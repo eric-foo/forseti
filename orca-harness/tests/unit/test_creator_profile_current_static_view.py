@@ -29,6 +29,7 @@ VIEW_PATH = (
     / "core"
     / "source_families"
     / "social_media"
+    / "creator_registry"
     / "creator_profile_current_view_v0.json"
 )
 ACCOUNT_LEDGER_PATH = (
@@ -40,6 +41,7 @@ ACCOUNT_LEDGER_PATH = (
     / "core"
     / "source_families"
     / "social_media"
+    / "creator_registry"
     / "creator_public_handle_linkage_ledger_v0.json"
 )
 YOUTUBE_METRIC_SEED_PATH = (
@@ -227,7 +229,7 @@ def test_creator_profile_current_source_hashes_are_current() -> None:
     }
 
     expected_paths = {
-        "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json": ACCOUNT_LEDGER_PATH,
+        "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json": ACCOUNT_LEDGER_PATH,
         "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json": YOUTUBE_METRIC_SEED_PATH,
         "orca/product/spines/capture/core/source_families/social_media/instagram/instagram_reels_creator_metric_seed_v0.json": INSTAGRAM_METRIC_SEED_PATH,
     }

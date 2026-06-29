@@ -38,6 +38,7 @@ DEFAULT_ACCOUNT_LEDGER = (
     / "core"
     / "source_families"
     / "social_media"
+    / "creator_registry"
     / "creator_public_handle_linkage_ledger_v0.json"
 )
 
