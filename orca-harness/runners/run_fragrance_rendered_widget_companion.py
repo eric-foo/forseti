@@ -29,6 +29,8 @@ def run_fragrance_rendered_widget_companion(
     viewport_height: int = 900,
     max_response_bytes: int = 5_000_000,
     settle_seconds: float = 3.0,
+    lazy_load_scroll_passes: int = 0,
+    lazy_load_scroll_step_px: int = 0,
     selector: str | None = None,
     selector_timeout_seconds: float = 5.0,
     block_heavy_assets: bool = False,
@@ -51,6 +53,8 @@ def run_fragrance_rendered_widget_companion(
         viewport_height=viewport_height,
         max_response_bytes=max_response_bytes,
         settle_seconds=settle_seconds,
+        lazy_load_scroll_passes=lazy_load_scroll_passes,
+        lazy_load_scroll_step_px=lazy_load_scroll_step_px,
         selector=selector,
         selector_timeout_seconds=selector_timeout_seconds,
         block_heavy_assets=block_heavy_assets,
@@ -102,6 +106,21 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--viewport-height", type=int, default=900)
     parser.add_argument("--max-response-bytes", type=int, default=5_000_000)
     parser.add_argument("--settle-seconds", type=float, default=3.0)
+    parser.add_argument(
+        "--lazy-load-scroll-passes",
+        type=int,
+        default=0,
+        help=(
+            "After preserving no-scroll above-fold DOM facts, perform this many bounded "
+            "scroll passes to trigger lazy review widgets and preserve newly observed responses."
+        ),
+    )
+    parser.add_argument(
+        "--lazy-load-scroll-step-px",
+        type=int,
+        default=0,
+        help="Optional pixel step for lazy-load scroll passes; default scrolls to page bottom per pass.",
+    )
     parser.add_argument("--selector", help="Optional selector to wait for before extracting DOM geometry.")
     parser.add_argument("--selector-timeout-seconds", type=float, default=5.0)
     parser.add_argument("--block-heavy-assets", action="store_true")
@@ -141,6 +160,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             viewport_height=args.viewport_height,
             max_response_bytes=args.max_response_bytes,
             settle_seconds=args.settle_seconds,
+            lazy_load_scroll_passes=args.lazy_load_scroll_passes,
+            lazy_load_scroll_step_px=args.lazy_load_scroll_step_px,
             selector=args.selector,
             selector_timeout_seconds=args.selector_timeout_seconds,
             block_heavy_assets=args.block_heavy_assets,

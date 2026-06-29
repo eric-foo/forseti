@@ -8,6 +8,7 @@ from pathlib import Path
 
 import pytest
 
+import source_capture.adapters.browser_snapshot as browser_snapshot_module
 from runners import run_source_capture_browser_packet as browser_runner
 from runners.run_source_capture_browser_packet import BROWSER_SNAPSHOT_NON_CLAIMS
 from source_capture import CaptureModeCategory
@@ -15,10 +16,13 @@ from source_capture.adapters.browser_snapshot import (
     BrowserContextRequest,
     BrowserContextResponse,
     BrowserContextResponsesSuccess,
+    BrowserPageObservationSuccess,
+    BrowserPageResponse,
     BrowserSnapshotFailure,
     BrowserSnapshotFailureKind,
     BrowserSnapshotSuccess,
     fetch_browser_context_responses,
+    fetch_browser_page_observation_capture,
     fetch_browser_snapshot_capture,
 )
 from source_capture.proxy_profiles import ProxyCategory, ProxyProfile
@@ -67,6 +71,36 @@ class _FakeContextResponseEngine:
         if isinstance(self.result, Exception):
             raise self.result
         return self.result
+
+
+class _FakePageObservationEngine:
+    def __init__(self, result: BrowserPageObservationSuccess | Exception) -> None:
+        self.result = result
+        self.capture_kwargs: dict[str, object] | None = None
+
+    def capture_page_observation(self, **kwargs: object) -> BrowserPageObservationSuccess:
+        self.capture_kwargs = dict(kwargs)
+        if isinstance(self.result, Exception):
+            raise self.result
+        return self.result
+
+
+class _FakeLazyScrollPage:
+    def __init__(self, *, height: int = 3_000) -> None:
+        self.height = height
+        self.scrolled_to: list[object] = []
+        self.waits: list[int] = []
+
+    def evaluate(self, script: str, arg: object | None = None) -> int | None:
+        if "scrollTo" in script:
+            self.scrolled_to.append(arg if arg is not None else "bottom")
+            return None
+        if "scrollHeight" in script:
+            return self.height
+        return None
+
+    def wait_for_timeout(self, timeout_ms: int) -> None:
+        self.waits.append(timeout_ms)
 
 
 def test_fetch_browser_snapshot_capture_with_fake_engine_preserves_browser_artifacts() -> None:
@@ -460,6 +494,98 @@ def _ok_engine() -> _FakeBrowserEngine:
             screenshot_png=b"\x89PNG\r\n\x1a\nbrowser",
         )
     )
+
+
+def _ok_page_observation_engine() -> _FakePageObservationEngine:
+    return _FakePageObservationEngine(
+        BrowserPageObservationSuccess(
+            requested_url="https://example.com/source",
+            final_url="https://example.com/source",
+            title="Rendered Source",
+            visible_text="Rendered source",
+            dom_observation={"items": []},
+            responses=[
+                BrowserPageResponse(
+                    requested_url="https://api.example.test/widget",
+                    final_url="https://api.example.test/widget",
+                    status=200,
+                    ok=True,
+                    body_text="{}",
+                    response_headers={},
+                )
+            ],
+            metadata={"response_count": 1},
+            warning_notes=[],
+            limitation_notes=[],
+        )
+    )
+
+
+def test_fetch_browser_page_observation_capture_threads_lazy_load_scroll_controls_to_engine() -> None:
+    engine = _ok_page_observation_engine()
+
+    result = fetch_browser_page_observation_capture(
+        url="https://example.com/source",
+        dom_extract_script="() => ({items: []})",
+        dom_extract_arg={},
+        response_url_predicate=lambda url: "widget" in url,
+        lazy_load_scroll_passes=2,
+        lazy_load_scroll_step_px=650,
+        engine=engine,
+    )
+
+    assert isinstance(result, BrowserPageObservationSuccess)
+    assert engine.capture_kwargs is not None
+    assert engine.capture_kwargs["lazy_load_scroll_passes"] == 2
+    assert engine.capture_kwargs["lazy_load_scroll_step_px"] == 650
+
+
+def test_fetch_browser_page_observation_capture_rejects_negative_lazy_load_scroll_controls() -> None:
+    with pytest.raises(ValueError, match="lazy_load_scroll_passes must be zero or greater"):
+        fetch_browser_page_observation_capture(
+            url="https://example.com/source",
+            dom_extract_script="() => ({items: []})",
+            dom_extract_arg={},
+            response_url_predicate=lambda _: False,
+            lazy_load_scroll_passes=-1,
+            engine=_ok_page_observation_engine(),
+        )
+    with pytest.raises(ValueError, match="lazy_load_scroll_step_px must be zero or greater"):
+        fetch_browser_page_observation_capture(
+            url="https://example.com/source",
+            dom_extract_script="() => ({items: []})",
+            dom_extract_arg={},
+            response_url_predicate=lambda _: False,
+            lazy_load_scroll_step_px=-1,
+            engine=_ok_page_observation_engine(),
+        )
+
+
+def test_bounded_lazy_load_scrolls_stepwise_after_observation_extraction() -> None:
+    page = _FakeLazyScrollPage(height=2_000)
+
+    executed = browser_snapshot_module._run_bounded_lazy_load_scrolls(
+        page,
+        scroll_passes=3,
+        scroll_step_px=500,
+    )
+
+    assert executed == 3
+    assert page.scrolled_to == [500, 1_000, 1_500]
+    assert page.waits == [browser_snapshot_module._SCROLL_PASS_SETTLE_MS] * 3
+
+
+def test_bounded_lazy_load_scrolls_cap_pass_count() -> None:
+    page = _FakeLazyScrollPage()
+
+    executed = browser_snapshot_module._run_bounded_lazy_load_scrolls(
+        page,
+        scroll_passes=browser_snapshot_module._MAX_SCROLL_PASSES + 5,
+        scroll_step_px=0,
+    )
+
+    assert executed == browser_snapshot_module._MAX_SCROLL_PASSES
+    assert len(page.scrolled_to) == browser_snapshot_module._MAX_SCROLL_PASSES
 
 
 def test_fetch_browser_snapshot_capture_threads_scroll_params_to_engine() -> None:

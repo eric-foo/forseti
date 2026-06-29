@@ -166,6 +166,8 @@ def capture_fragrance_rendered_widget_companion(
     viewport_height: int = 900,
     max_response_bytes: int = 5_000_000,
     settle_seconds: float = 3.0,
+    lazy_load_scroll_passes: int = 0,
+    lazy_load_scroll_step_px: int = 0,
     selector: str | None = None,
     selector_timeout_seconds: float = 5.0,
     block_heavy_assets: bool = False,
@@ -189,6 +191,8 @@ def capture_fragrance_rendered_widget_companion(
         viewport_height=viewport_height,
         max_response_bytes=max_response_bytes,
         settle_seconds=settle_seconds,
+        lazy_load_scroll_passes=lazy_load_scroll_passes,
+        lazy_load_scroll_step_px=lazy_load_scroll_step_px,
         selector=selector,
         selector_timeout_seconds=selector_timeout_seconds,
         block_resource_types=("image", "media", "font") if block_heavy_assets else (),
@@ -267,6 +271,11 @@ def build_fragrance_rendered_widget_companion_from_observation(
         route_health.append("above_fold_geometry_present")
     else:
         residuals.append("above_fold_geometry_absent")
+    lazy_requested = _int_or_none(observation.metadata.get("lazy_load_scroll_passes")) or 0
+    if lazy_requested > 0:
+        lazy_executed = _int_or_none(observation.metadata.get("lazy_load_scroll_passes_executed")) or 0
+        route_health.append(f"lazy_load_scroll_passes_requested:{lazy_requested}")
+        route_health.append(f"lazy_load_scroll_passes_executed:{lazy_executed}")
 
     passive_responses = _widget_response_captures(observation.responses, response_origin="render_passive")
     fallback_response_captures = _widget_response_captures(

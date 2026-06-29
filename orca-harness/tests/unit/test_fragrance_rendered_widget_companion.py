@@ -1,11 +1,13 @@
 from __future__ import annotations
 
 import json
+from dataclasses import replace
 from datetime import date
 
 import pytest
 
 import source_capture.fragrance_rendered_widget_companion as companion_module
+from runners import run_fragrance_rendered_widget_companion as runner_module
 from source_capture.adapters.browser_snapshot import BrowserPageObservationSuccess, BrowserPageResponse
 from source_capture.fragrance_rendered_widget_companion import (
     FRAGRANCE_RENDERED_WIDGET_COMPANION_CERTIFICATION,
@@ -183,6 +185,66 @@ def test_capture_uses_bounded_fallback_when_render_does_not_expose_widget_rows()
     assert "passive_widget_not_observed_during_render" in receipt.residuals
     assert "bounded_fallback_widget_response_count:1" in receipt.route_health
 
+
+
+def test_capture_threads_lazy_load_scroll_controls_to_observation_fetcher() -> None:
+    captured_kwargs: dict[str, object] = {}
+
+    def fake_observation_fetcher(**kwargs: object) -> BrowserPageObservationSuccess:
+        captured_kwargs.update(kwargs)
+        observation = _observation(response_body=_widget_body(total_count=2, review_count=2), total_count=2)
+        return replace(
+            observation,
+            metadata={
+                **observation.metadata,
+                "lazy_load_scroll_passes": 2,
+                "lazy_load_scroll_passes_executed": 1,
+            },
+        )
+
+    receipt = capture_fragrance_rendered_widget_companion(
+        url=PRODUCT_URL,
+        source_id="fragrance_retail_example",
+        source_site="Example",
+        as_of_date=date(2026, 6, 29),
+        observation_fetcher=fake_observation_fetcher,
+        lazy_load_scroll_passes=2,
+        lazy_load_scroll_step_px=650,
+    )
+
+    assert captured_kwargs["lazy_load_scroll_passes"] == 2
+    assert captured_kwargs["lazy_load_scroll_step_px"] == 650
+    assert "lazy_load_scroll_passes_requested:2" in receipt.route_health
+    assert "lazy_load_scroll_passes_executed:1" in receipt.route_health
+    assert receipt.fallback_needed is False
+
+
+def test_runner_threads_lazy_load_scroll_controls(monkeypatch: pytest.MonkeyPatch, tmp_path: object) -> None:
+    captured_kwargs: dict[str, object] = {}
+
+    def fake_write_fragrance_rendered_widget_companion(**kwargs: object) -> object:
+        captured_kwargs.update(kwargs)
+        return object()
+
+    monkeypatch.setattr(
+        runner_module,
+        "write_fragrance_rendered_widget_companion",
+        fake_write_fragrance_rendered_widget_companion,
+    )
+    output_path = tmp_path / "receipt.json"  # type: ignore[operator]
+
+    result = runner_module.run_fragrance_rendered_widget_companion(
+        url=PRODUCT_URL,
+        output_path=output_path,
+        source_id="fragrance_retail_example",
+        source_site="Example",
+        lazy_load_scroll_passes=3,
+        lazy_load_scroll_step_px=700,
+    )
+
+    assert result == output_path
+    assert captured_kwargs["lazy_load_scroll_passes"] == 3
+    assert captured_kwargs["lazy_load_scroll_step_px"] == 700
 
 def test_companion_combines_passive_and_fallback_rows_without_flagging_complete_rows() -> None:
     receipt = build_fragrance_rendered_widget_companion_from_observation(
