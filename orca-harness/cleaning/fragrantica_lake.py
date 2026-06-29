@@ -45,6 +45,7 @@ from source_capture.fragrantica_projection import (
 )
 from source_capture.models import SourceCapturePacket, VisibleFactStatus
 from data_lake.silver_record import append_silver_record
+from data_lake.canonical_json import canonical_record_bytes as _json_bytes
 
 if TYPE_CHECKING:
     from data_lake.root import DataLakeRoot
@@ -578,13 +579,6 @@ def _canonical_json_bytes(value: Any) -> bytes:
         sort_keys=True,
         separators=(",", ":"),
         allow_nan=False,
-    ).encode("utf-8")
-
-
-def _json_bytes(value: Any) -> bytes:
-    return (
-        json.dumps(value, ensure_ascii=False, indent=2, sort_keys=True, allow_nan=False)
-        + "\n"
     ).encode("utf-8")
 
 

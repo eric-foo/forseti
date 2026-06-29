@@ -22,9 +22,10 @@ through the raw writer is not yet structurally blocked).
 """
 from __future__ import annotations
 
-import json
 from collections.abc import Mapping
 from typing import TYPE_CHECKING, Any
+
+from data_lake.canonical_json import canonical_record_bytes
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -155,14 +156,8 @@ def append_silver_record(
         raw_anchor=raw_anchor,
         lane=lane,
         record_id=record_id,
-        data=_canonical_record_bytes(record),
+        data=canonical_record_bytes(record),
     )
-
-
-def _canonical_record_bytes(record: Mapping[str, Any]) -> bytes:
-    return (
-        json.dumps(record, ensure_ascii=False, indent=2, sort_keys=True, allow_nan=False) + "\n"
-    ).encode("utf-8")
 
 
 __all__ = [
