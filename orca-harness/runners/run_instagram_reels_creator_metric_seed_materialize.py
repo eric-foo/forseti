@@ -9,9 +9,9 @@ from typing import Sequence
 if __package__ in {None, ""}:
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from capture_spine.creator_profile_current.materialize import (
-    build_creator_profile_current_view_from_files,
-    dump_creator_profile_current_view,
+from capture_spine.creator_profile_current.instagram_metric_seed import (
+    build_instagram_reels_creator_metric_seed_from_files,
+    dump_instagram_reels_creator_metric_seed,
     load_json,
 )
 
@@ -26,7 +26,8 @@ DEFAULT_OUTPUT = (
     / "core"
     / "source_families"
     / "social_media"
-    / "creator_profile_current_view_v0.json"
+    / "instagram"
+    / "instagram_reels_creator_metric_seed_v0.json"
 )
 DEFAULT_ACCOUNT_LEDGER = (
     ROOT
@@ -39,52 +40,24 @@ DEFAULT_ACCOUNT_LEDGER = (
     / "social_media"
     / "creator_public_handle_linkage_ledger_v0.json"
 )
-DEFAULT_YOUTUBE_METRIC_SEED = (
-    ROOT
-    / "orca"
-    / "product"
-    / "spines"
-    / "capture"
-    / "core"
-    / "source_families"
-    / "social_media"
-    / "youtube"
-    / "youtube_shorts_fragrance_creator_metric_seed_v0.json"
-)
-DEFAULT_INSTAGRAM_METRIC_SEED = (
-    ROOT
-    / "orca"
-    / "product"
-    / "spines"
-    / "capture"
-    / "core"
-    / "source_families"
-    / "social_media"
-    / "instagram"
-    / "instagram_reels_creator_metric_seed_v0.json"
-)
-DEFAULT_METRIC_SEEDS = (DEFAULT_YOUTUBE_METRIC_SEED, DEFAULT_INSTAGRAM_METRIC_SEED)
 
 
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description=(
-            "Materialize the static creator_profile_current view from the public-handle "
-            "account ledger and creator metric seeds."
-        )
+        description="Materialize the static Instagram reels creator metric seed from IG projection JSON files."
     )
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
     parser.add_argument("--account-ledger", type=Path, default=DEFAULT_ACCOUNT_LEDGER)
     parser.add_argument(
-        "--metric-seed",
+        "--projection",
         type=Path,
         action="append",
-        dest="metric_seeds",
-        help="Metric seed JSON file. Repeat for multiple platform seeds. Defaults to current YouTube + Instagram seeds.",
+        required=True,
+        help="IG reels-grid projection JSON file. Repeat for multiple projections.",
     )
     parser.add_argument(
         "--generated-at-utc",
-        help="Timestamp for profile_view_computed_at. Defaults to the existing output timestamp when present.",
+        help="Timestamp for generated_at_utc. Defaults to the existing output timestamp when present.",
     )
     parser.add_argument("--check", action="store_true", help="Fail if the output is stale.")
     parser.add_argument("--write", action="store_true", help="Write the materialized output JSON.")
@@ -98,20 +71,20 @@ def main(argv: Sequence[str] | None = None) -> int:
         parser.error("choose exactly one of --check or --write")
 
     generated_at = args.generated_at_utc or _existing_generated_at(args.output) or _now_utc()
-    metric_seeds = tuple(args.metric_seeds) if args.metric_seeds else DEFAULT_METRIC_SEEDS
     try:
-        document = build_creator_profile_current_view_from_files(
-            account_ledger_path=args.account_ledger,
-            metric_seed_paths=metric_seeds,
+        account_document = load_json(args.account_ledger)
+        document = build_instagram_reels_creator_metric_seed_from_files(
+            projection_paths=args.projection,
+            account_ledger=account_document["creator_public_handle_linkage_ledger"],
             generated_at_utc=generated_at,
         )
-        rendered = dump_creator_profile_current_view(document)
+        rendered = dump_instagram_reels_creator_metric_seed(document)
         if args.check:
             if not args.output.exists():
                 raise ValueError(f"output does not exist: {args.output}")
             current = args.output.read_text(encoding="utf-8")
             if current != rendered:
-                raise ValueError(f"creator profile current view is stale: {args.output}")
+                raise ValueError(f"instagram reels creator metric seed is stale: {args.output}")
             print(f"up to date: {args.output}")
             return 0
 
@@ -120,7 +93,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         print(args.output)
         return 0
     except Exception as exc:
-        parser.exit(status=2, message=f"creator profile materialization failed: {exc}\n")
+        parser.exit(status=2, message=f"instagram reels creator metric seed materialization failed: {exc}\n")
 
 
 def _existing_generated_at(path: Path) -> str | None:
@@ -128,7 +101,7 @@ def _existing_generated_at(path: Path) -> str | None:
         return None
     try:
         document = load_json(path)
-        value = document["creator_profile_current_view"]["generated_at_utc"]
+        value = document["instagram_reels_creator_metric_seed"]["generated_at_utc"]
     except (KeyError, TypeError, ValueError):
         return None
     return value if isinstance(value, str) and value.strip() else None

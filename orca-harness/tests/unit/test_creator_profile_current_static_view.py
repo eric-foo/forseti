@@ -42,7 +42,7 @@ ACCOUNT_LEDGER_PATH = (
     / "social_media"
     / "creator_public_handle_linkage_ledger_v0.json"
 )
-METRIC_SEED_PATH = (
+YOUTUBE_METRIC_SEED_PATH = (
     ROOT
     / "orca"
     / "product"
@@ -54,6 +54,19 @@ METRIC_SEED_PATH = (
     / "youtube"
     / "youtube_shorts_fragrance_creator_metric_seed_v0.json"
 )
+INSTAGRAM_METRIC_SEED_PATH = (
+    ROOT
+    / "orca"
+    / "product"
+    / "spines"
+    / "capture"
+    / "core"
+    / "source_families"
+    / "social_media"
+    / "instagram"
+    / "instagram_reels_creator_metric_seed_v0.json"
+)
+METRIC_SEED_PATHS = (YOUTUBE_METRIC_SEED_PATH, INSTAGRAM_METRIC_SEED_PATH)
 
 
 def _json(path: Path) -> dict:
@@ -72,8 +85,11 @@ def _account_ledger() -> dict:
     return _json(ACCOUNT_LEDGER_PATH)["creator_public_handle_linkage_ledger"]
 
 
-def _metric_seed() -> dict:
-    return _json(METRIC_SEED_PATH)["youtube_shorts_fragrance_creator_metric_seed"]
+def _metric_seeds() -> list[dict]:
+    return [
+        _json(YOUTUBE_METRIC_SEED_PATH)["youtube_shorts_fragrance_creator_metric_seed"],
+        _json(INSTAGRAM_METRIC_SEED_PATH)["instagram_reels_creator_metric_seed"],
+    ]
 
 
 def _sha256(path: Path) -> str:
@@ -101,6 +117,14 @@ def _assert_validation_code(document: dict, code: str) -> None:
     assert exc_info.value.code == code
 
 
+def _rollups_by_subject() -> dict[str, dict]:
+    rollups: dict[str, dict] = {}
+    for seed in _metric_seeds():
+        for rollup in seed["metric_rollups"]:
+            rollups[rollup["profile_subject_id"]] = rollup
+    return rollups
+
+
 def test_creator_profile_current_reusable_validator_accepts_current_fixture() -> None:
     document = load_creator_profile_current_view(VIEW_PATH)
     assert document["creator_profile_current_view"]["schema_version"] == CREATOR_PROFILE_CURRENT_VIEW_SCHEMA_VERSION
@@ -112,16 +136,18 @@ def test_creator_profile_current_counts_and_boundaries() -> None:
 
     assert view["schema_version"] == "creator_profile_current_view_v0"
     assert view["counts"] == {
-        "profiles_total": 30,
-        "platform_account_profiles": 30,
+        "profiles_total": 33,
+        "platform_account_profiles": 33,
         "creator_record_profiles": 0,
-        "profiles_with_metric_rollups": 30,
+        "profiles_with_metric_rollups": 33,
         "profiles_with_ideal_audience_profiles": 0,
-        "engagement_rate_observed_profiles": 0,
+        "engagement_rate_observed_profiles": 3,
         "cross_platform_rollup_profiles": 0,
     }
+    assert {profile["platform_accounts"][0]["platform"] for profile in view["profiles"]} == {"youtube", "instagram"}
 
     for profile in view["profiles"]:
+        platform = profile["platform_accounts"][0]["platform"]
         assert profile["profile_subject_kind"] == "platform_account"
         assert profile["profile_subject_id"] == profile["platform_account_id_or_none"]
         assert profile["creator_record_id_or_none"] is None
@@ -133,27 +159,28 @@ def test_creator_profile_current_counts_and_boundaries() -> None:
         assert len(profile["current_metric_rollups"]) == 1
 
         rollup = profile["current_metric_rollups"][0]
-        assert rollup["platform_scope"] == "youtube"
+        assert rollup["platform_scope"] == platform
         assert rollup["freshness_state"] == "partial"
         assert rollup["metric_rollups"]["average_views"]["posture"] == "observed"
         assert rollup["metric_rollups"]["median_views"]["posture"] == "observed"
-        assert rollup["metric_rollups"]["engagement_rate"]["posture"] == "unavailable_with_reason"
         assert rollup["sample_support"]["representativeness_posture"] == "admitted_pool_only_not_representative_creator_average"
         assert any("not a representative creator average" in item for item in rollup["limitations"])
+        if platform == "instagram":
+            assert rollup["metric_rollups"]["engagement_rate"]["posture"] == "observed"
+            assert rollup["metric_rollups"]["average_like_count"]["posture"] == "observed"
+            assert rollup["metric_rollups"]["average_comment_count"]["posture"] == "observed"
+        else:
+            assert rollup["metric_rollups"]["engagement_rate"]["posture"] == "unavailable_with_reason"
 
 
-def test_creator_profile_current_rebuilds_from_identity_and_metric_seed() -> None:
+def test_creator_profile_current_rebuilds_from_identity_and_metric_seeds() -> None:
     view = _view()
     account_ledger = _account_ledger()
-    metric_seed = _metric_seed()
+    rollups_by_subject = _rollups_by_subject()
 
     accounts_by_id = {
         account["platform_account_id"]: account
         for account in account_ledger["platform_accounts"]
-    }
-    rollups_by_subject = {
-        rollup["profile_subject_id"]: rollup
-        for rollup in metric_seed["metric_rollups"]
     }
 
     assert set(accounts_by_id) == set(rollups_by_subject)
@@ -185,7 +212,7 @@ def test_creator_profile_current_rebuilds_from_identity_and_metric_seed() -> Non
 def test_creator_profile_current_materializer_matches_checked_in_view() -> None:
     generated = build_creator_profile_current_view_from_files(
         account_ledger_path=ACCOUNT_LEDGER_PATH,
-        metric_seed_path=METRIC_SEED_PATH,
+        metric_seed_paths=METRIC_SEED_PATHS,
         generated_at_utc=_view()["generated_at_utc"],
     )
 
@@ -199,22 +226,24 @@ def test_creator_profile_current_source_hashes_are_current() -> None:
         for source_input in view["source_inputs"]
     }
 
-    account_pointer = (
-        "orca/product/spines/capture/core/source_families/social_media/"
-        "creator_public_handle_linkage_ledger_v0.json"
-    )
-    metric_pointer = (
-        "orca/product/spines/capture/core/source_families/social_media/youtube/"
-        "youtube_shorts_fragrance_creator_metric_seed_v0.json"
-    )
+    expected_paths = {
+        "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json": ACCOUNT_LEDGER_PATH,
+        "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json": YOUTUBE_METRIC_SEED_PATH,
+        "orca/product/spines/capture/core/source_families/social_media/instagram/instagram_reels_creator_metric_seed_v0.json": INSTAGRAM_METRIC_SEED_PATH,
+    }
 
-    assert inputs_by_pointer[account_pointer]["sha256"] == _sha256(ACCOUNT_LEDGER_PATH)
-    assert inputs_by_pointer[metric_pointer]["sha256"] == _sha256(METRIC_SEED_PATH)
+    assert set(inputs_by_pointer) == set(expected_paths)
+    for pointer, path in expected_paths.items():
+        assert inputs_by_pointer[pointer]["sha256"] == _sha256(path)
 
 
 def test_creator_profile_source_input_files_are_lf_repo_text() -> None:
     source_pointers = {source["source_pointer"] for source in _view()["source_inputs"]}
-    source_pointers.update(source["source_pointer"] for source in _metric_seed()["source_inputs"])
+    for seed in _metric_seeds():
+        for source in seed["source_inputs"]:
+            source_pointer = source["source_pointer"]
+            if source_pointer.startswith(("docs/", "orca/")):
+                source_pointers.add(source_pointer)
 
     for source_pointer in sorted(source_pointers):
         source_path = ROOT / source_pointer.split("#", 1)[0]
@@ -233,17 +262,22 @@ def test_creator_profile_current_does_not_smuggle_forbidden_scope() -> None:
     )
 
     for profile in view["profiles"]:
+        platform = profile["platform_accounts"][0]["platform"]
         non_claims = " ".join(profile["non_claims"])
         for fragment in forbidden_claim_fragments:
             assert fragment in non_claims
 
         assert "not SQLite or data-lake physicalization" in profile["non_claims"]
         assert any("sample_support" in item for item in profile["limitations"])
-        assert any("selection can bias view averages" in item for item in profile["limitations"])
         rollup = profile["current_metric_rollups"][0]
-        assert rollup["metric_rollups"]["average_like_count"]["value_or_none"] is None
-        assert rollup["metric_rollups"]["average_comment_count"]["value_or_none"] is None
-        assert rollup["metric_rollups"]["engagement_rate"]["value_or_none"] is None
+        if platform == "instagram":
+            assert rollup["metric_rollups"]["average_like_count"]["value_or_none"] is not None
+            assert rollup["metric_rollups"]["average_comment_count"]["value_or_none"] is not None
+            assert rollup["metric_rollups"]["engagement_rate"]["value_or_none"] is not None
+        else:
+            assert rollup["metric_rollups"]["average_like_count"]["value_or_none"] is None
+            assert rollup["metric_rollups"]["average_comment_count"]["value_or_none"] is None
+            assert rollup["metric_rollups"]["engagement_rate"]["value_or_none"] is None
 
 
 def test_creator_profile_validator_rejects_non_observed_metric_zero_fill() -> None:

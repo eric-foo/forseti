@@ -3,8 +3,8 @@
     "schema_version": "creator_profile_current_view_v0",
     "view_id": "creator_profile_current_view_v0",
     "view_mode": "source_backed_static_json_export",
-    "generated_at_utc": "2026-06-28T19:07:16Z",
-    "source_policy_posture": "Static creator-profile-current export derived from the public-handle platform-account ledger and the YouTube creator metric seed. Profiles are account-scoped unless promoted public-handle linkage exists.",
+    "generated_at_utc": "2026-06-29T14:50:03Z",
+    "source_policy_posture": "Static creator-profile-current export derived from the public-handle platform-account ledger and platform creator metric seeds. Profiles are account-scoped unless promoted public-handle linkage exists.",
     "authority_pointers": [
       "orca/product/spines/capture/core/source_families/social_media/creator_profile_current_view_spec_v0.md",
       "orca/product/spines/creator_signal/creator_intelligence_profile_surface_v0.md",
@@ -13,22 +13,27 @@
     "source_inputs": [
       {
         "source_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json",
-        "sha256": "2adb9e66827d424240eeae170e1935862d649d7625cdea02b8988a3b3820b00c",
+        "sha256": "9fb0fb48695d8d978a5ed09b69bde42325b0d964b9a8e4e89510c439324b0c2c",
         "role": "source-backed platform accounts and identity state"
       },
       {
         "source_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json",
-        "sha256": "28291c344b4141a705cf01ad1b5b4f22c52d4cf266394fff1501d2bfcebf78d5",
-        "role": "source-backed metric observations and admitted-pool metric rollups"
+        "sha256": "8fa9e7e3389a68517e1051144d260fcb892f892cdcafd0f3f7af4df1db733cce",
+        "role": "source-backed metric observations and admitted-pool YouTube metric rollups"
+      },
+      {
+        "source_pointer": "orca/product/spines/capture/core/source_families/social_media/instagram/instagram_reels_creator_metric_seed_v0.json",
+        "sha256": "a4a93031f0e666eb93d98779defcede9f0cb87e61b59acf02aa1992d2b5cf287",
+        "role": "source-backed metric observations and selected-grid Instagram metric rollups"
       }
     ],
     "counts": {
-      "profiles_total": 30,
-      "platform_account_profiles": 30,
+      "profiles_total": 33,
+      "platform_account_profiles": 33,
       "creator_record_profiles": 0,
-      "profiles_with_metric_rollups": 30,
+      "profiles_with_metric_rollups": 33,
       "profiles_with_ideal_audience_profiles": 0,
-      "engagement_rate_observed_profiles": 0,
+      "engagement_rate_observed_profiles": 3,
       "cross_platform_rollup_profiles": 0
     },
     "profiles": [
@@ -55,7 +60,7 @@
           }
         ],
         "identity_evidence_summary": {
-          "summary": "Single-platform YouTube public account observed from source-backed creator observation rows; no promoted cross-platform public-handle linkage exists in this ledger.",
+          "summary": "Single-platform youtube public account observed from source-backed creator metric or observation rows; no promoted cross-platform public-handle linkage exists in this ledger.",
           "account_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/0",
           "source_pointers": [
             "docs/review-inputs/youtube_shorts_fragrance_creator_ledger_v0.json#/creators/0/creator_handle_query",
@@ -150,7 +155,7 @@
           "identity_updated_at": "2026-06-27T18:23:26Z",
           "metrics_computed_at_or_none": "2026-06-28T18:44:56Z",
           "audience_computed_at_or_none": null,
-          "profile_view_computed_at": "2026-06-28T19:07:16Z"
+          "profile_view_computed_at": "2026-06-29T14:50:03Z"
         },
         "source_drill_back": {
           "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/0",
@@ -165,8 +170,8 @@
           ]
         },
         "limitations": [
-          "Profile is account-scoped to one YouTube platform account; it is not a linked creator_record.",
-          "Metric rollup covers the admitted fragrance Shorts source pool only; it is not a channel-wide average.",
+          "Profile is account-scoped to one youtube platform account; it is not a linked creator_record.",
+          "Metric rollup covers the admitted/selected source pool only; it is not a channel-wide average.",
           "Engagement rate, average likes, and average total comments are unavailable until source-backed numerator fields exist.",
           "Ideal/content-fit audience profile is not joined in this static view.",
           "Cross-platform aggregate influence is blocked until promoted public-handle linkage evidence exists.",
@@ -175,7 +180,7 @@
         ],
         "non_claims": [
           "not channel-wide creator influence",
-          "not engagement rate",
+          "not platform-wide engagement rate",
           "not buyer proof",
           "not public person-level identity",
           "not contact or outreach authorization",
@@ -207,7 +212,7 @@
           }
         ],
         "identity_evidence_summary": {
-          "summary": "Single-platform YouTube public account observed from source-backed creator observation rows; no promoted cross-platform public-handle linkage exists in this ledger.",
+          "summary": "Single-platform youtube public account observed from source-backed creator metric or observation rows; no promoted cross-platform public-handle linkage exists in this ledger.",
           "account_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/1",
           "source_pointers": [
             "docs/review-inputs/youtube_shorts_fragrance_creator_ledger_v0.json#/creators/1/creator_handle_query",
@@ -306,7 +311,7 @@
           "identity_updated_at": "2026-06-27T18:23:26Z",
           "metrics_computed_at_or_none": "2026-06-28T18:44:56Z",
           "audience_computed_at_or_none": null,
-          "profile_view_computed_at": "2026-06-28T19:07:16Z"
+          "profile_view_computed_at": "2026-06-29T14:50:03Z"
         },
         "source_drill_back": {
           "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/1",
@@ -325,8 +330,8 @@
           ]
         },
         "limitations": [
-          "Profile is account-scoped to one YouTube platform account; it is not a linked creator_record.",
-          "Metric rollup covers the admitted fragrance Shorts source pool only; it is not a channel-wide average.",
+          "Profile is account-scoped to one youtube platform account; it is not a linked creator_record.",
+          "Metric rollup covers the admitted/selected source pool only; it is not a channel-wide average.",
           "Engagement rate, average likes, and average total comments are unavailable until source-backed numerator fields exist.",
           "Ideal/content-fit audience profile is not joined in this static view.",
           "Cross-platform aggregate influence is blocked until promoted public-handle linkage evidence exists.",
@@ -335,7 +340,7 @@
         ],
         "non_claims": [
           "not channel-wide creator influence",
-          "not engagement rate",
+          "not platform-wide engagement rate",
           "not buyer proof",
           "not public person-level identity",
           "not contact or outreach authorization",
@@ -367,7 +372,7 @@
           }
         ],
         "identity_evidence_summary": {
-          "summary": "Single-platform YouTube public account observed from source-backed creator observation rows; no promoted cross-platform public-handle linkage exists in this ledger.",
+          "summary": "Single-platform youtube public account observed from source-backed creator metric or observation rows; no promoted cross-platform public-handle linkage exists in this ledger.",
           "account_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/2",
           "source_pointers": [
             "docs/review-inputs/youtube_shorts_fragrance_creator_ledger_v0.json#/creators/2/creator_handle_query",
@@ -460,7 +465,7 @@
           "identity_updated_at": "2026-06-27T18:23:26Z",
           "metrics_computed_at_or_none": "2026-06-28T18:44:56Z",
           "audience_computed_at_or_none": null,
-          "profile_view_computed_at": "2026-06-28T19:07:16Z"
+          "profile_view_computed_at": "2026-06-29T14:50:03Z"
         },
         "source_drill_back": {
           "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/2",
@@ -473,8 +478,8 @@
           ]
         },
         "limitations": [
-          "Profile is account-scoped to one YouTube platform account; it is not a linked creator_record.",
-          "Metric rollup covers the admitted fragrance Shorts source pool only; it is not a channel-wide average.",
+          "Profile is account-scoped to one youtube platform account; it is not a linked creator_record.",
+          "Metric rollup covers the admitted/selected source pool only; it is not a channel-wide average.",
           "Engagement rate, average likes, and average total comments are unavailable until source-backed numerator fields exist.",
           "Ideal/content-fit audience profile is not joined in this static view.",
           "Cross-platform aggregate influence is blocked until promoted public-handle linkage evidence exists.",
@@ -483,7 +488,7 @@
         ],
         "non_claims": [
           "not channel-wide creator influence",
-          "not engagement rate",
+          "not platform-wide engagement rate",
           "not buyer proof",
           "not public person-level identity",
           "not contact or outreach authorization",
@@ -515,7 +520,7 @@
           }
         ],
         "identity_evidence_summary": {
-          "summary": "Single-platform YouTube public account observed from source-backed creator observation rows; no promoted cross-platform public-handle linkage exists in this ledger.",
+          "summary": "Single-platform youtube public account observed from source-backed creator metric or observation rows; no promoted cross-platform public-handle linkage exists in this ledger.",
           "account_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/3",
           "source_pointers": [
             "docs/review-inputs/youtube_shorts_fragrance_creator_ledger_v0.json#/creators/3/creator_handle_query",
@@ -606,7 +611,7 @@
           "identity_updated_at": "2026-06-27T18:23:26Z",
           "metrics_computed_at_or_none": "2026-06-28T18:44:56Z",
           "audience_computed_at_or_none": null,
-          "profile_view_computed_at": "2026-06-28T19:07:16Z"
+          "profile_view_computed_at": "2026-06-29T14:50:03Z"
         },
         "source_drill_back": {
           "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/3",
@@ -617,8 +622,8 @@
           ]
         },
         "limitations": [
-          "Profile is account-scoped to one YouTube platform account; it is not a linked creator_record.",
-          "Metric rollup covers the admitted fragrance Shorts source pool only; it is not a channel-wide average.",
+          "Profile is account-scoped to one youtube platform account; it is not a linked creator_record.",
+          "Metric rollup covers the admitted/selected source pool only; it is not a channel-wide average.",
           "Engagement rate, average likes, and average total comments are unavailable until source-backed numerator fields exist.",
           "Ideal/content-fit audience profile is not joined in this static view.",
           "Cross-platform aggregate influence is blocked until promoted public-handle linkage evidence exists.",
@@ -627,7 +632,7 @@
         ],
         "non_claims": [
           "not channel-wide creator influence",
-          "not engagement rate",
+          "not platform-wide engagement rate",
           "not buyer proof",
           "not public person-level identity",
           "not contact or outreach authorization",
@@ -659,7 +664,7 @@
           }
         ],
         "identity_evidence_summary": {
-          "summary": "Single-platform YouTube public account observed from source-backed creator observation rows; no promoted cross-platform public-handle linkage exists in this ledger.",
+          "summary": "Single-platform youtube public account observed from source-backed creator metric or observation rows; no promoted cross-platform public-handle linkage exists in this ledger.",
           "account_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/4",
           "source_pointers": [
             "docs/review-inputs/youtube_shorts_fragrance_creator_ledger_v0.json#/creators/4/creator_handle_query",
@@ -759,7 +764,7 @@
           "identity_updated_at": "2026-06-27T18:23:26Z",
           "metrics_computed_at_or_none": "2026-06-28T18:44:56Z",
           "audience_computed_at_or_none": null,
-          "profile_view_computed_at": "2026-06-28T19:07:16Z"
+          "profile_view_computed_at": "2026-06-29T14:50:03Z"
         },
         "source_drill_back": {
           "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/4",
@@ -779,8 +784,8 @@
           ]
         },
         "limitations": [
-          "Profile is account-scoped to one YouTube platform account; it is not a linked creator_record.",
-          "Metric rollup covers the admitted fragrance Shorts source pool only; it is not a channel-wide average.",
+          "Profile is account-scoped to one youtube platform account; it is not a linked creator_record.",
+          "Metric rollup covers the admitted/selected source pool only; it is not a channel-wide average.",
           "Engagement rate, average likes, and average total comments are unavailable until source-backed numerator fields exist.",
           "Ideal/content-fit audience profile is not joined in this static view.",
           "Cross-platform aggregate influence is blocked until promoted public-handle linkage evidence exists.",
@@ -789,7 +794,7 @@
         ],
         "non_claims": [
           "not channel-wide creator influence",
-          "not engagement rate",
+          "not platform-wide engagement rate",
           "not buyer proof",
           "not public person-level identity",
           "not contact or outreach authorization",
@@ -821,7 +826,7 @@
           }
         ],
         "identity_evidence_summary": {
-          "summary": "Single-platform YouTube public account observed from source-backed creator observation rows; no promoted cross-platform public-handle linkage exists in this ledger.",
+          "summary": "Single-platform youtube public account observed from source-backed creator metric or observation rows; no promoted cross-platform public-handle linkage exists in this ledger.",
           "account_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/5",
           "source_pointers": [
             "docs/review-inputs/youtube_shorts_fragrance_creator_ledger_v0.json#/creators/5/creator_handle_query",
@@ -917,7 +922,7 @@
           "identity_updated_at": "2026-06-27T18:23:26Z",
           "metrics_computed_at_or_none": "2026-06-28T18:44:56Z",
           "audience_computed_at_or_none": null,
-          "profile_view_computed_at": "2026-06-28T19:07:16Z"
+          "profile_view_computed_at": "2026-06-29T14:50:03Z"
         },
         "source_drill_back": {
           "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/5",
@@ -933,8 +938,8 @@
           ]
         },
         "limitations": [
-          "Profile is account-scoped to one YouTube platform account; it is not a linked creator_record.",
-          "Metric rollup covers the admitted fragrance Shorts source pool only; it is not a channel-wide average.",
+          "Profile is account-scoped to one youtube platform account; it is not a linked creator_record.",
+          "Metric rollup covers the admitted/selected source pool only; it is not a channel-wide average.",
           "Engagement rate, average likes, and average total comments are unavailable until source-backed numerator fields exist.",
           "Ideal/content-fit audience profile is not joined in this static view.",
           "Cross-platform aggregate influence is blocked until promoted public-handle linkage evidence exists.",
@@ -943,7 +948,7 @@
         ],
         "non_claims": [
           "not channel-wide creator influence",
-          "not engagement rate",
+          "not platform-wide engagement rate",
           "not buyer proof",
           "not public person-level identity",
           "not contact or outreach authorization",
@@ -975,7 +980,7 @@
           }
         ],
         "identity_evidence_summary": {
-          "summary": "Single-platform YouTube public account observed from source-backed creator observation rows; no promoted cross-platform public-handle linkage exists in this ledger.",
+          "summary": "Single-platform youtube public account observed from source-backed creator metric or observation rows; no promoted cross-platform public-handle linkage exists in this ledger.",
           "account_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/6",
           "source_pointers": [
             "docs/review-inputs/youtube_shorts_fragrance_creator_ledger_v0.json#/creators/6/creator_handle_query",
@@ -1072,7 +1077,7 @@
           "identity_updated_at": "2026-06-27T18:23:26Z",
           "metrics_computed_at_or_none": "2026-06-28T18:44:56Z",
           "audience_computed_at_or_none": null,
-          "profile_view_computed_at": "2026-06-28T19:07:16Z"
+          "profile_view_computed_at": "2026-06-29T14:50:03Z"
         },
         "source_drill_back": {
           "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/6",
@@ -1089,8 +1094,8 @@
           ]
         },
         "limitations": [
-          "Profile is account-scoped to one YouTube platform account; it is not a linked creator_record.",
-          "Metric rollup covers the admitted fragrance Shorts source pool only; it is not a channel-wide average.",
+          "Profile is account-scoped to one youtube platform account; it is not a linked creator_record.",
+          "Metric rollup covers the admitted/selected source pool only; it is not a channel-wide average.",
           "Engagement rate, average likes, and average total comments are unavailable until source-backed numerator fields exist.",
           "Ideal/content-fit audience profile is not joined in this static view.",
           "Cross-platform aggregate influence is blocked until promoted public-handle linkage evidence exists.",
@@ -1099,7 +1104,7 @@
         ],
         "non_claims": [
           "not channel-wide creator influence",
-          "not engagement rate",
+          "not platform-wide engagement rate",
           "not buyer proof",
           "not public person-level identity",
           "not contact or outreach authorization",
@@ -1131,7 +1136,7 @@
           }
         ],
         "identity_evidence_summary": {
-          "summary": "Single-platform YouTube public account observed from source-backed creator observation rows; no promoted cross-platform public-handle linkage exists in this ledger.",
+          "summary": "Single-platform youtube public account observed from source-backed creator metric or observation rows; no promoted cross-platform public-handle linkage exists in this ledger.",
           "account_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/7",
           "source_pointers": [
             "docs/review-inputs/youtube_shorts_fragrance_creator_ledger_v0.json#/creators/7/creator_handle_query",
@@ -1225,7 +1230,7 @@
           "identity_updated_at": "2026-06-27T18:23:26Z",
           "metrics_computed_at_or_none": "2026-06-28T18:44:56Z",
           "audience_computed_at_or_none": null,
-          "profile_view_computed_at": "2026-06-28T19:07:16Z"
+          "profile_view_computed_at": "2026-06-29T14:50:03Z"
         },
         "source_drill_back": {
           "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/7",
@@ -1239,8 +1244,8 @@
           ]
         },
         "limitations": [
-          "Profile is account-scoped to one YouTube platform account; it is not a linked creator_record.",
-          "Metric rollup covers the admitted fragrance Shorts source pool only; it is not a channel-wide average.",
+          "Profile is account-scoped to one youtube platform account; it is not a linked creator_record.",
+          "Metric rollup covers the admitted/selected source pool only; it is not a channel-wide average.",
           "Engagement rate, average likes, and average total comments are unavailable until source-backed numerator fields exist.",
           "Ideal/content-fit audience profile is not joined in this static view.",
           "Cross-platform aggregate influence is blocked until promoted public-handle linkage evidence exists.",
@@ -1249,7 +1254,7 @@
         ],
         "non_claims": [
           "not channel-wide creator influence",
-          "not engagement rate",
+          "not platform-wide engagement rate",
           "not buyer proof",
           "not public person-level identity",
           "not contact or outreach authorization",
@@ -1281,7 +1286,7 @@
           }
         ],
         "identity_evidence_summary": {
-          "summary": "Single-platform YouTube public account observed from source-backed creator observation rows; no promoted cross-platform public-handle linkage exists in this ledger.",
+          "summary": "Single-platform youtube public account observed from source-backed creator metric or observation rows; no promoted cross-platform public-handle linkage exists in this ledger.",
           "account_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/8",
           "source_pointers": [
             "docs/review-inputs/youtube_shorts_fragrance_creator_ledger_v0.json#/creators/8/creator_handle_query",
@@ -1379,7 +1384,7 @@
           "identity_updated_at": "2026-06-27T18:23:26Z",
           "metrics_computed_at_or_none": "2026-06-28T18:44:56Z",
           "audience_computed_at_or_none": null,
-          "profile_view_computed_at": "2026-06-28T19:07:16Z"
+          "profile_view_computed_at": "2026-06-29T14:50:03Z"
         },
         "source_drill_back": {
           "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/8",
@@ -1397,8 +1402,8 @@
           ]
         },
         "limitations": [
-          "Profile is account-scoped to one YouTube platform account; it is not a linked creator_record.",
-          "Metric rollup covers the admitted fragrance Shorts source pool only; it is not a channel-wide average.",
+          "Profile is account-scoped to one youtube platform account; it is not a linked creator_record.",
+          "Metric rollup covers the admitted/selected source pool only; it is not a channel-wide average.",
           "Engagement rate, average likes, and average total comments are unavailable until source-backed numerator fields exist.",
           "Ideal/content-fit audience profile is not joined in this static view.",
           "Cross-platform aggregate influence is blocked until promoted public-handle linkage evidence exists.",
@@ -1407,7 +1412,7 @@
         ],
         "non_claims": [
           "not channel-wide creator influence",
-          "not engagement rate",
+          "not platform-wide engagement rate",
           "not buyer proof",
           "not public person-level identity",
           "not contact or outreach authorization",
@@ -1439,7 +1444,7 @@
           }
         ],
         "identity_evidence_summary": {
-          "summary": "Single-platform YouTube public account observed from source-backed creator observation rows; no promoted cross-platform public-handle linkage exists in this ledger.",
+          "summary": "Single-platform youtube public account observed from source-backed creator metric or observation rows; no promoted cross-platform public-handle linkage exists in this ledger.",
           "account_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/9",
           "source_pointers": [
             "docs/review-inputs/youtube_shorts_fragrance_creator_ledger_v0.json#/creators/9/creator_handle_query",
@@ -1541,7 +1546,7 @@
           "identity_updated_at": "2026-06-27T18:23:26Z",
           "metrics_computed_at_or_none": "2026-06-28T18:44:56Z",
           "audience_computed_at_or_none": null,
-          "profile_view_computed_at": "2026-06-28T19:07:16Z"
+          "profile_view_computed_at": "2026-06-29T14:50:03Z"
         },
         "source_drill_back": {
           "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/9",
@@ -1563,8 +1568,8 @@
           ]
         },
         "limitations": [
-          "Profile is account-scoped to one YouTube platform account; it is not a linked creator_record.",
-          "Metric rollup covers the admitted fragrance Shorts source pool only; it is not a channel-wide average.",
+          "Profile is account-scoped to one youtube platform account; it is not a linked creator_record.",
+          "Metric rollup covers the admitted/selected source pool only; it is not a channel-wide average.",
           "Engagement rate, average likes, and average total comments are unavailable until source-backed numerator fields exist.",
           "Ideal/content-fit audience profile is not joined in this static view.",
           "Cross-platform aggregate influence is blocked until promoted public-handle linkage evidence exists.",
@@ -1573,7 +1578,7 @@
         ],
         "non_claims": [
           "not channel-wide creator influence",
-          "not engagement rate",
+          "not platform-wide engagement rate",
           "not buyer proof",
           "not public person-level identity",
           "not contact or outreach authorization",
@@ -1605,7 +1610,7 @@
           }
         ],
         "identity_evidence_summary": {
-          "summary": "Single-platform YouTube public account observed from source-backed creator observation rows; no promoted cross-platform public-handle linkage exists in this ledger.",
+          "summary": "Single-platform youtube public account observed from source-backed creator metric or observation rows; no promoted cross-platform public-handle linkage exists in this ledger.",
           "account_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/10",
           "source_pointers": [
             "docs/review-inputs/youtube_shorts_fragrance_creator_ledger_v0.json#/creators/10/creator_handle_query",
@@ -1705,7 +1710,7 @@
           "identity_updated_at": "2026-06-27T18:23:26Z",
           "metrics_computed_at_or_none": "2026-06-28T18:44:56Z",
           "audience_computed_at_or_none": null,
-          "profile_view_computed_at": "2026-06-28T19:07:16Z"
+          "profile_view_computed_at": "2026-06-29T14:50:03Z"
         },
         "source_drill_back": {
           "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/10",
@@ -1725,8 +1730,8 @@
           ]
         },
         "limitations": [
-          "Profile is account-scoped to one YouTube platform account; it is not a linked creator_record.",
-          "Metric rollup covers the admitted fragrance Shorts source pool only; it is not a channel-wide average.",
+          "Profile is account-scoped to one youtube platform account; it is not a linked creator_record.",
+          "Metric rollup covers the admitted/selected source pool only; it is not a channel-wide average.",
           "Engagement rate, average likes, and average total comments are unavailable until source-backed numerator fields exist.",
           "Ideal/content-fit audience profile is not joined in this static view.",
           "Cross-platform aggregate influence is blocked until promoted public-handle linkage evidence exists.",
@@ -1735,7 +1740,7 @@
         ],
         "non_claims": [
           "not channel-wide creator influence",
-          "not engagement rate",
+          "not platform-wide engagement rate",
           "not buyer proof",
           "not public person-level identity",
           "not contact or outreach authorization",
@@ -1767,7 +1772,7 @@
           }
         ],
         "identity_evidence_summary": {
-          "summary": "Single-platform YouTube public account observed from source-backed creator observation rows; no promoted cross-platform public-handle linkage exists in this ledger.",
+          "summary": "Single-platform youtube public account observed from source-backed creator metric or observation rows; no promoted cross-platform public-handle linkage exists in this ledger.",
           "account_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/11",
           "source_pointers": [
             "docs/review-inputs/youtube_shorts_fragrance_creator_ledger_v0.json#/creators/11/creator_handle_query",
@@ -1864,7 +1869,7 @@
           "identity_updated_at": "2026-06-27T18:23:26Z",
           "metrics_computed_at_or_none": "2026-06-28T18:44:56Z",
           "audience_computed_at_or_none": null,
-          "profile_view_computed_at": "2026-06-28T19:07:16Z"
+          "profile_view_computed_at": "2026-06-29T14:50:03Z"
         },
         "source_drill_back": {
           "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/11",
@@ -1881,8 +1886,8 @@
           ]
         },
         "limitations": [
-          "Profile is account-scoped to one YouTube platform account; it is not a linked creator_record.",
-          "Metric rollup covers the admitted fragrance Shorts source pool only; it is not a channel-wide average.",
+          "Profile is account-scoped to one youtube platform account; it is not a linked creator_record.",
+          "Metric rollup covers the admitted/selected source pool only; it is not a channel-wide average.",
           "Engagement rate, average likes, and average total comments are unavailable until source-backed numerator fields exist.",
           "Ideal/content-fit audience profile is not joined in this static view.",
           "Cross-platform aggregate influence is blocked until promoted public-handle linkage evidence exists.",
@@ -1891,7 +1896,7 @@
         ],
         "non_claims": [
           "not channel-wide creator influence",
-          "not engagement rate",
+          "not platform-wide engagement rate",
           "not buyer proof",
           "not public person-level identity",
           "not contact or outreach authorization",
@@ -1923,7 +1928,7 @@
           }
         ],
         "identity_evidence_summary": {
-          "summary": "Single-platform YouTube public account observed from source-backed creator observation rows; no promoted cross-platform public-handle linkage exists in this ledger.",
+          "summary": "Single-platform youtube public account observed from source-backed creator metric or observation rows; no promoted cross-platform public-handle linkage exists in this ledger.",
           "account_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/12",
           "source_pointers": [
             "docs/review-inputs/youtube_shorts_fragrance_creator_ledger_v0.json#/creators/12/creator_handle_query",
@@ -2021,7 +2026,7 @@
           "identity_updated_at": "2026-06-27T18:23:26Z",
           "metrics_computed_at_or_none": "2026-06-28T18:44:56Z",
           "audience_computed_at_or_none": null,
-          "profile_view_computed_at": "2026-06-28T19:07:16Z"
+          "profile_view_computed_at": "2026-06-29T14:50:03Z"
         },
         "source_drill_back": {
           "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/12",
@@ -2039,8 +2044,8 @@
           ]
         },
         "limitations": [
-          "Profile is account-scoped to one YouTube platform account; it is not a linked creator_record.",
-          "Metric rollup covers the admitted fragrance Shorts source pool only; it is not a channel-wide average.",
+          "Profile is account-scoped to one youtube platform account; it is not a linked creator_record.",
+          "Metric rollup covers the admitted/selected source pool only; it is not a channel-wide average.",
           "Engagement rate, average likes, and average total comments are unavailable until source-backed numerator fields exist.",
           "Ideal/content-fit audience profile is not joined in this static view.",
           "Cross-platform aggregate influence is blocked until promoted public-handle linkage evidence exists.",
@@ -2049,7 +2054,7 @@
         ],
         "non_claims": [
           "not channel-wide creator influence",
-          "not engagement rate",
+          "not platform-wide engagement rate",
           "not buyer proof",
           "not public person-level identity",
           "not contact or outreach authorization",
@@ -2081,7 +2086,7 @@
           }
         ],
         "identity_evidence_summary": {
-          "summary": "Single-platform YouTube public account observed from source-backed creator observation rows; no promoted cross-platform public-handle linkage exists in this ledger.",
+          "summary": "Single-platform youtube public account observed from source-backed creator metric or observation rows; no promoted cross-platform public-handle linkage exists in this ledger.",
           "account_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/13",
           "source_pointers": [
             "docs/review-inputs/youtube_shorts_fragrance_creator_ledger_v0.json#/creators/13/creator_handle_query",
@@ -2176,7 +2181,7 @@
           "identity_updated_at": "2026-06-27T18:23:26Z",
           "metrics_computed_at_or_none": "2026-06-28T18:44:56Z",
           "audience_computed_at_or_none": null,
-          "profile_view_computed_at": "2026-06-28T19:07:16Z"
+          "profile_view_computed_at": "2026-06-29T14:50:03Z"
         },
         "source_drill_back": {
           "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/13",
@@ -2191,8 +2196,8 @@
           ]
         },
         "limitations": [
-          "Profile is account-scoped to one YouTube platform account; it is not a linked creator_record.",
-          "Metric rollup covers the admitted fragrance Shorts source pool only; it is not a channel-wide average.",
+          "Profile is account-scoped to one youtube platform account; it is not a linked creator_record.",
+          "Metric rollup covers the admitted/selected source pool only; it is not a channel-wide average.",
           "Engagement rate, average likes, and average total comments are unavailable until source-backed numerator fields exist.",
           "Ideal/content-fit audience profile is not joined in this static view.",
           "Cross-platform aggregate influence is blocked until promoted public-handle linkage evidence exists.",
@@ -2201,7 +2206,7 @@
         ],
         "non_claims": [
           "not channel-wide creator influence",
-          "not engagement rate",
+          "not platform-wide engagement rate",
           "not buyer proof",
           "not public person-level identity",
           "not contact or outreach authorization",
@@ -2233,7 +2238,7 @@
           }
         ],
         "identity_evidence_summary": {
-          "summary": "Single-platform YouTube public account observed from source-backed creator observation rows; no promoted cross-platform public-handle linkage exists in this ledger.",
+          "summary": "Single-platform youtube public account observed from source-backed creator metric or observation rows; no promoted cross-platform public-handle linkage exists in this ledger.",
           "account_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/14",
           "source_pointers": [
             "docs/review-inputs/youtube_shorts_fragrance_creator_ledger_v0.json#/creators/14/creator_handle_query",
@@ -2328,7 +2333,7 @@
           "identity_updated_at": "2026-06-27T18:23:26Z",
           "metrics_computed_at_or_none": "2026-06-28T18:44:56Z",
           "audience_computed_at_or_none": null,
-          "profile_view_computed_at": "2026-06-28T19:07:16Z"
+          "profile_view_computed_at": "2026-06-29T14:50:03Z"
         },
         "source_drill_back": {
           "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/14",
@@ -2343,8 +2348,8 @@
           ]
         },
         "limitations": [
-          "Profile is account-scoped to one YouTube platform account; it is not a linked creator_record.",
-          "Metric rollup covers the admitted fragrance Shorts source pool only; it is not a channel-wide average.",
+          "Profile is account-scoped to one youtube platform account; it is not a linked creator_record.",
+          "Metric rollup covers the admitted/selected source pool only; it is not a channel-wide average.",
           "Engagement rate, average likes, and average total comments are unavailable until source-backed numerator fields exist.",
           "Ideal/content-fit audience profile is not joined in this static view.",
           "Cross-platform aggregate influence is blocked until promoted public-handle linkage evidence exists.",
@@ -2353,7 +2358,7 @@
         ],
         "non_claims": [
           "not channel-wide creator influence",
-          "not engagement rate",
+          "not platform-wide engagement rate",
           "not buyer proof",
           "not public person-level identity",
           "not contact or outreach authorization",
@@ -2385,7 +2390,7 @@
           }
         ],
         "identity_evidence_summary": {
-          "summary": "Single-platform YouTube public account observed from source-backed creator observation rows; no promoted cross-platform public-handle linkage exists in this ledger.",
+          "summary": "Single-platform youtube public account observed from source-backed creator metric or observation rows; no promoted cross-platform public-handle linkage exists in this ledger.",
           "account_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/15",
           "source_pointers": [
             "docs/review-inputs/youtube_shorts_fragrance_creator_ledger_v0.json#/creators/15/creator_handle_query",
@@ -2480,7 +2485,7 @@
           "identity_updated_at": "2026-06-27T18:23:26Z",
           "metrics_computed_at_or_none": "2026-06-28T18:44:56Z",
           "audience_computed_at_or_none": null,
-          "profile_view_computed_at": "2026-06-28T19:07:16Z"
+          "profile_view_computed_at": "2026-06-29T14:50:03Z"
         },
         "source_drill_back": {
           "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/15",
@@ -2495,8 +2500,8 @@
           ]
         },
         "limitations": [
-          "Profile is account-scoped to one YouTube platform account; it is not a linked creator_record.",
-          "Metric rollup covers the admitted fragrance Shorts source pool only; it is not a channel-wide average.",
+          "Profile is account-scoped to one youtube platform account; it is not a linked creator_record.",
+          "Metric rollup covers the admitted/selected source pool only; it is not a channel-wide average.",
           "Engagement rate, average likes, and average total comments are unavailable until source-backed numerator fields exist.",
           "Ideal/content-fit audience profile is not joined in this static view.",
           "Cross-platform aggregate influence is blocked until promoted public-handle linkage evidence exists.",
@@ -2505,7 +2510,7 @@
         ],
         "non_claims": [
           "not channel-wide creator influence",
-          "not engagement rate",
+          "not platform-wide engagement rate",
           "not buyer proof",
           "not public person-level identity",
           "not contact or outreach authorization",
@@ -2537,7 +2542,7 @@
           }
         ],
         "identity_evidence_summary": {
-          "summary": "Single-platform YouTube public account observed from source-backed creator observation rows; no promoted cross-platform public-handle linkage exists in this ledger.",
+          "summary": "Single-platform youtube public account observed from source-backed creator metric or observation rows; no promoted cross-platform public-handle linkage exists in this ledger.",
           "account_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/16",
           "source_pointers": [
             "docs/review-inputs/youtube_shorts_fragrance_creator_ledger_v0.json#/creators/16/creator_handle_query",
@@ -2628,7 +2633,7 @@
           "identity_updated_at": "2026-06-27T18:23:26Z",
           "metrics_computed_at_or_none": "2026-06-28T18:44:56Z",
           "audience_computed_at_or_none": null,
-          "profile_view_computed_at": "2026-06-28T19:07:16Z"
+          "profile_view_computed_at": "2026-06-29T14:50:03Z"
         },
         "source_drill_back": {
           "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/16",
@@ -2639,8 +2644,8 @@
           ]
         },
         "limitations": [
-          "Profile is account-scoped to one YouTube platform account; it is not a linked creator_record.",
-          "Metric rollup covers the admitted fragrance Shorts source pool only; it is not a channel-wide average.",
+          "Profile is account-scoped to one youtube platform account; it is not a linked creator_record.",
+          "Metric rollup covers the admitted/selected source pool only; it is not a channel-wide average.",
           "Engagement rate, average likes, and average total comments are unavailable until source-backed numerator fields exist.",
           "Ideal/content-fit audience profile is not joined in this static view.",
           "Cross-platform aggregate influence is blocked until promoted public-handle linkage evidence exists.",
@@ -2649,7 +2654,7 @@
         ],
         "non_claims": [
           "not channel-wide creator influence",
-          "not engagement rate",
+          "not platform-wide engagement rate",
           "not buyer proof",
           "not public person-level identity",
           "not contact or outreach authorization",
@@ -2681,7 +2686,7 @@
           }
         ],
         "identity_evidence_summary": {
-          "summary": "Single-platform YouTube public account observed from source-backed creator observation rows; no promoted cross-platform public-handle linkage exists in this ledger.",
+          "summary": "Single-platform youtube public account observed from source-backed creator metric or observation rows; no promoted cross-platform public-handle linkage exists in this ledger.",
           "account_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/17",
           "source_pointers": [
             "docs/review-inputs/youtube_shorts_fragrance_creator_ledger_v0.json#/creators/17/creator_handle_query",
@@ -2783,7 +2788,7 @@
           "identity_updated_at": "2026-06-27T18:23:26Z",
           "metrics_computed_at_or_none": "2026-06-28T18:44:56Z",
           "audience_computed_at_or_none": null,
-          "profile_view_computed_at": "2026-06-28T19:07:16Z"
+          "profile_view_computed_at": "2026-06-29T14:50:03Z"
         },
         "source_drill_back": {
           "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/17",
@@ -2805,8 +2810,8 @@
           ]
         },
         "limitations": [
-          "Profile is account-scoped to one YouTube platform account; it is not a linked creator_record.",
-          "Metric rollup covers the admitted fragrance Shorts source pool only; it is not a channel-wide average.",
+          "Profile is account-scoped to one youtube platform account; it is not a linked creator_record.",
+          "Metric rollup covers the admitted/selected source pool only; it is not a channel-wide average.",
           "Engagement rate, average likes, and average total comments are unavailable until source-backed numerator fields exist.",
           "Ideal/content-fit audience profile is not joined in this static view.",
           "Cross-platform aggregate influence is blocked until promoted public-handle linkage evidence exists.",
@@ -2815,7 +2820,7 @@
         ],
         "non_claims": [
           "not channel-wide creator influence",
-          "not engagement rate",
+          "not platform-wide engagement rate",
           "not buyer proof",
           "not public person-level identity",
           "not contact or outreach authorization",
@@ -2847,7 +2852,7 @@
           }
         ],
         "identity_evidence_summary": {
-          "summary": "Single-platform YouTube public account observed from source-backed creator observation rows; no promoted cross-platform public-handle linkage exists in this ledger.",
+          "summary": "Single-platform youtube public account observed from source-backed creator metric or observation rows; no promoted cross-platform public-handle linkage exists in this ledger.",
           "account_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/18",
           "source_pointers": [
             "docs/review-inputs/youtube_shorts_fragrance_creator_ledger_v0.json#/creators/19/creator_handle_query",
@@ -2940,7 +2945,7 @@
           "identity_updated_at": "2026-06-27T18:23:26Z",
           "metrics_computed_at_or_none": "2026-06-28T18:44:56Z",
           "audience_computed_at_or_none": null,
-          "profile_view_computed_at": "2026-06-28T19:07:16Z"
+          "profile_view_computed_at": "2026-06-29T14:50:03Z"
         },
         "source_drill_back": {
           "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/18",
@@ -2953,8 +2958,8 @@
           ]
         },
         "limitations": [
-          "Profile is account-scoped to one YouTube platform account; it is not a linked creator_record.",
-          "Metric rollup covers the admitted fragrance Shorts source pool only; it is not a channel-wide average.",
+          "Profile is account-scoped to one youtube platform account; it is not a linked creator_record.",
+          "Metric rollup covers the admitted/selected source pool only; it is not a channel-wide average.",
           "Engagement rate, average likes, and average total comments are unavailable until source-backed numerator fields exist.",
           "Ideal/content-fit audience profile is not joined in this static view.",
           "Cross-platform aggregate influence is blocked until promoted public-handle linkage evidence exists.",
@@ -2963,7 +2968,7 @@
         ],
         "non_claims": [
           "not channel-wide creator influence",
-          "not engagement rate",
+          "not platform-wide engagement rate",
           "not buyer proof",
           "not public person-level identity",
           "not contact or outreach authorization",
@@ -2995,7 +3000,7 @@
           }
         ],
         "identity_evidence_summary": {
-          "summary": "Single-platform YouTube public account observed from source-backed creator observation rows; no promoted cross-platform public-handle linkage exists in this ledger.",
+          "summary": "Single-platform youtube public account observed from source-backed creator metric or observation rows; no promoted cross-platform public-handle linkage exists in this ledger.",
           "account_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/19",
           "source_pointers": [
             "docs/review-inputs/youtube_shorts_fragrance_creator_ledger_v0.json#/creators/20/creator_handle_query",
@@ -3091,7 +3096,7 @@
           "identity_updated_at": "2026-06-27T18:23:26Z",
           "metrics_computed_at_or_none": "2026-06-28T18:44:56Z",
           "audience_computed_at_or_none": null,
-          "profile_view_computed_at": "2026-06-28T19:07:16Z"
+          "profile_view_computed_at": "2026-06-29T14:50:03Z"
         },
         "source_drill_back": {
           "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/19",
@@ -3107,8 +3112,8 @@
           ]
         },
         "limitations": [
-          "Profile is account-scoped to one YouTube platform account; it is not a linked creator_record.",
-          "Metric rollup covers the admitted fragrance Shorts source pool only; it is not a channel-wide average.",
+          "Profile is account-scoped to one youtube platform account; it is not a linked creator_record.",
+          "Metric rollup covers the admitted/selected source pool only; it is not a channel-wide average.",
           "Engagement rate, average likes, and average total comments are unavailable until source-backed numerator fields exist.",
           "Ideal/content-fit audience profile is not joined in this static view.",
           "Cross-platform aggregate influence is blocked until promoted public-handle linkage evidence exists.",
@@ -3117,7 +3122,7 @@
         ],
         "non_claims": [
           "not channel-wide creator influence",
-          "not engagement rate",
+          "not platform-wide engagement rate",
           "not buyer proof",
           "not public person-level identity",
           "not contact or outreach authorization",
@@ -3149,7 +3154,7 @@
           }
         ],
         "identity_evidence_summary": {
-          "summary": "Single-platform YouTube public account observed from source-backed creator observation rows; no promoted cross-platform public-handle linkage exists in this ledger.",
+          "summary": "Single-platform youtube public account observed from source-backed creator metric or observation rows; no promoted cross-platform public-handle linkage exists in this ledger.",
           "account_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/20",
           "source_pointers": [
             "docs/review-inputs/youtube_shorts_fragrance_creator_ledger_v0.json#/creators/21/creator_handle_query",
@@ -3251,7 +3256,7 @@
           "identity_updated_at": "2026-06-27T18:23:26Z",
           "metrics_computed_at_or_none": "2026-06-28T18:44:56Z",
           "audience_computed_at_or_none": null,
-          "profile_view_computed_at": "2026-06-28T19:07:16Z"
+          "profile_view_computed_at": "2026-06-29T14:50:03Z"
         },
         "source_drill_back": {
           "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/20",
@@ -3273,8 +3278,8 @@
           ]
         },
         "limitations": [
-          "Profile is account-scoped to one YouTube platform account; it is not a linked creator_record.",
-          "Metric rollup covers the admitted fragrance Shorts source pool only; it is not a channel-wide average.",
+          "Profile is account-scoped to one youtube platform account; it is not a linked creator_record.",
+          "Metric rollup covers the admitted/selected source pool only; it is not a channel-wide average.",
           "Engagement rate, average likes, and average total comments are unavailable until source-backed numerator fields exist.",
           "Ideal/content-fit audience profile is not joined in this static view.",
           "Cross-platform aggregate influence is blocked until promoted public-handle linkage evidence exists.",
@@ -3283,7 +3288,7 @@
         ],
         "non_claims": [
           "not channel-wide creator influence",
-          "not engagement rate",
+          "not platform-wide engagement rate",
           "not buyer proof",
           "not public person-level identity",
           "not contact or outreach authorization",
@@ -3315,7 +3320,7 @@
           }
         ],
         "identity_evidence_summary": {
-          "summary": "Single-platform YouTube public account observed from source-backed creator observation rows; no promoted cross-platform public-handle linkage exists in this ledger.",
+          "summary": "Single-platform youtube public account observed from source-backed creator metric or observation rows; no promoted cross-platform public-handle linkage exists in this ledger.",
           "account_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/21",
           "source_pointers": [
             "docs/review-inputs/youtube_shorts_fragrance_creator_ledger_v0.json#/creators/22/creator_handle_query",
@@ -3410,7 +3415,7 @@
           "identity_updated_at": "2026-06-27T18:23:26Z",
           "metrics_computed_at_or_none": "2026-06-28T18:44:56Z",
           "audience_computed_at_or_none": null,
-          "profile_view_computed_at": "2026-06-28T19:07:16Z"
+          "profile_view_computed_at": "2026-06-29T14:50:03Z"
         },
         "source_drill_back": {
           "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/21",
@@ -3425,8 +3430,8 @@
           ]
         },
         "limitations": [
-          "Profile is account-scoped to one YouTube platform account; it is not a linked creator_record.",
-          "Metric rollup covers the admitted fragrance Shorts source pool only; it is not a channel-wide average.",
+          "Profile is account-scoped to one youtube platform account; it is not a linked creator_record.",
+          "Metric rollup covers the admitted/selected source pool only; it is not a channel-wide average.",
           "Engagement rate, average likes, and average total comments are unavailable until source-backed numerator fields exist.",
           "Ideal/content-fit audience profile is not joined in this static view.",
           "Cross-platform aggregate influence is blocked until promoted public-handle linkage evidence exists.",
@@ -3435,7 +3440,7 @@
         ],
         "non_claims": [
           "not channel-wide creator influence",
-          "not engagement rate",
+          "not platform-wide engagement rate",
           "not buyer proof",
           "not public person-level identity",
           "not contact or outreach authorization",
@@ -3467,7 +3472,7 @@
           }
         ],
         "identity_evidence_summary": {
-          "summary": "Single-platform YouTube public account observed from source-backed creator observation rows; no promoted cross-platform public-handle linkage exists in this ledger.",
+          "summary": "Single-platform youtube public account observed from source-backed creator metric or observation rows; no promoted cross-platform public-handle linkage exists in this ledger.",
           "account_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/22",
           "source_pointers": [
             "docs/review-inputs/youtube_shorts_fragrance_creator_ledger_v0.json#/creators/23/creator_handle_query",
@@ -3566,7 +3571,7 @@
           "identity_updated_at": "2026-06-27T18:23:26Z",
           "metrics_computed_at_or_none": "2026-06-28T18:44:56Z",
           "audience_computed_at_or_none": null,
-          "profile_view_computed_at": "2026-06-28T19:07:16Z"
+          "profile_view_computed_at": "2026-06-29T14:50:03Z"
         },
         "source_drill_back": {
           "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/22",
@@ -3585,8 +3590,8 @@
           ]
         },
         "limitations": [
-          "Profile is account-scoped to one YouTube platform account; it is not a linked creator_record.",
-          "Metric rollup covers the admitted fragrance Shorts source pool only; it is not a channel-wide average.",
+          "Profile is account-scoped to one youtube platform account; it is not a linked creator_record.",
+          "Metric rollup covers the admitted/selected source pool only; it is not a channel-wide average.",
           "Engagement rate, average likes, and average total comments are unavailable until source-backed numerator fields exist.",
           "Ideal/content-fit audience profile is not joined in this static view.",
           "Cross-platform aggregate influence is blocked until promoted public-handle linkage evidence exists.",
@@ -3595,7 +3600,7 @@
         ],
         "non_claims": [
           "not channel-wide creator influence",
-          "not engagement rate",
+          "not platform-wide engagement rate",
           "not buyer proof",
           "not public person-level identity",
           "not contact or outreach authorization",
@@ -3627,7 +3632,7 @@
           }
         ],
         "identity_evidence_summary": {
-          "summary": "Single-platform YouTube public account observed from source-backed creator observation rows; no promoted cross-platform public-handle linkage exists in this ledger.",
+          "summary": "Single-platform youtube public account observed from source-backed creator metric or observation rows; no promoted cross-platform public-handle linkage exists in this ledger.",
           "account_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/23",
           "source_pointers": [
             "docs/review-inputs/youtube_shorts_fragrance_creator_ledger_v0.json#/creators/24/creator_handle_query",
@@ -3725,7 +3730,7 @@
           "identity_updated_at": "2026-06-27T18:23:26Z",
           "metrics_computed_at_or_none": "2026-06-28T18:44:56Z",
           "audience_computed_at_or_none": null,
-          "profile_view_computed_at": "2026-06-28T19:07:16Z"
+          "profile_view_computed_at": "2026-06-29T14:50:03Z"
         },
         "source_drill_back": {
           "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/23",
@@ -3743,8 +3748,8 @@
           ]
         },
         "limitations": [
-          "Profile is account-scoped to one YouTube platform account; it is not a linked creator_record.",
-          "Metric rollup covers the admitted fragrance Shorts source pool only; it is not a channel-wide average.",
+          "Profile is account-scoped to one youtube platform account; it is not a linked creator_record.",
+          "Metric rollup covers the admitted/selected source pool only; it is not a channel-wide average.",
           "Engagement rate, average likes, and average total comments are unavailable until source-backed numerator fields exist.",
           "Ideal/content-fit audience profile is not joined in this static view.",
           "Cross-platform aggregate influence is blocked until promoted public-handle linkage evidence exists.",
@@ -3753,7 +3758,7 @@
         ],
         "non_claims": [
           "not channel-wide creator influence",
-          "not engagement rate",
+          "not platform-wide engagement rate",
           "not buyer proof",
           "not public person-level identity",
           "not contact or outreach authorization",
@@ -3785,7 +3790,7 @@
           }
         ],
         "identity_evidence_summary": {
-          "summary": "Single-platform YouTube public account observed from source-backed creator observation rows; no promoted cross-platform public-handle linkage exists in this ledger.",
+          "summary": "Single-platform youtube public account observed from source-backed creator metric or observation rows; no promoted cross-platform public-handle linkage exists in this ledger.",
           "account_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/24",
           "source_pointers": [
             "docs/review-inputs/youtube_shorts_fragrance_creator_ledger_v0.json#/creators/25/creator_handle_query",
@@ -3886,7 +3891,7 @@
           "identity_updated_at": "2026-06-27T18:23:26Z",
           "metrics_computed_at_or_none": "2026-06-28T18:44:56Z",
           "audience_computed_at_or_none": null,
-          "profile_view_computed_at": "2026-06-28T19:07:16Z"
+          "profile_view_computed_at": "2026-06-29T14:50:03Z"
         },
         "source_drill_back": {
           "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/24",
@@ -3907,8 +3912,8 @@
           ]
         },
         "limitations": [
-          "Profile is account-scoped to one YouTube platform account; it is not a linked creator_record.",
-          "Metric rollup covers the admitted fragrance Shorts source pool only; it is not a channel-wide average.",
+          "Profile is account-scoped to one youtube platform account; it is not a linked creator_record.",
+          "Metric rollup covers the admitted/selected source pool only; it is not a channel-wide average.",
           "Engagement rate, average likes, and average total comments are unavailable until source-backed numerator fields exist.",
           "Ideal/content-fit audience profile is not joined in this static view.",
           "Cross-platform aggregate influence is blocked until promoted public-handle linkage evidence exists.",
@@ -3917,7 +3922,7 @@
         ],
         "non_claims": [
           "not channel-wide creator influence",
-          "not engagement rate",
+          "not platform-wide engagement rate",
           "not buyer proof",
           "not public person-level identity",
           "not contact or outreach authorization",
@@ -3949,7 +3954,7 @@
           }
         ],
         "identity_evidence_summary": {
-          "summary": "Single-platform YouTube public account observed from source-backed creator observation rows; no promoted cross-platform public-handle linkage exists in this ledger.",
+          "summary": "Single-platform youtube public account observed from source-backed creator metric or observation rows; no promoted cross-platform public-handle linkage exists in this ledger.",
           "account_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/25",
           "source_pointers": [
             "docs/review-inputs/youtube_shorts_fragrance_creator_ledger_v0.json#/creators/26/creator_handle_query",
@@ -4048,7 +4053,7 @@
           "identity_updated_at": "2026-06-27T18:23:26Z",
           "metrics_computed_at_or_none": "2026-06-28T18:44:56Z",
           "audience_computed_at_or_none": null,
-          "profile_view_computed_at": "2026-06-28T19:07:16Z"
+          "profile_view_computed_at": "2026-06-29T14:50:03Z"
         },
         "source_drill_back": {
           "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/25",
@@ -4067,8 +4072,8 @@
           ]
         },
         "limitations": [
-          "Profile is account-scoped to one YouTube platform account; it is not a linked creator_record.",
-          "Metric rollup covers the admitted fragrance Shorts source pool only; it is not a channel-wide average.",
+          "Profile is account-scoped to one youtube platform account; it is not a linked creator_record.",
+          "Metric rollup covers the admitted/selected source pool only; it is not a channel-wide average.",
           "Engagement rate, average likes, and average total comments are unavailable until source-backed numerator fields exist.",
           "Ideal/content-fit audience profile is not joined in this static view.",
           "Cross-platform aggregate influence is blocked until promoted public-handle linkage evidence exists.",
@@ -4077,7 +4082,7 @@
         ],
         "non_claims": [
           "not channel-wide creator influence",
-          "not engagement rate",
+          "not platform-wide engagement rate",
           "not buyer proof",
           "not public person-level identity",
           "not contact or outreach authorization",
@@ -4109,7 +4114,7 @@
           }
         ],
         "identity_evidence_summary": {
-          "summary": "Single-platform YouTube public account observed from source-backed creator observation rows; no promoted cross-platform public-handle linkage exists in this ledger.",
+          "summary": "Single-platform youtube public account observed from source-backed creator metric or observation rows; no promoted cross-platform public-handle linkage exists in this ledger.",
           "account_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/26",
           "source_pointers": [
             "docs/review-inputs/youtube_shorts_fragrance_creator_ledger_v0.json#/creators/27/creator_handle_query",
@@ -4201,7 +4206,7 @@
           "identity_updated_at": "2026-06-27T18:23:26Z",
           "metrics_computed_at_or_none": "2026-06-28T18:44:56Z",
           "audience_computed_at_or_none": null,
-          "profile_view_computed_at": "2026-06-28T19:07:16Z"
+          "profile_view_computed_at": "2026-06-29T14:50:03Z"
         },
         "source_drill_back": {
           "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/26",
@@ -4213,8 +4218,8 @@
           ]
         },
         "limitations": [
-          "Profile is account-scoped to one YouTube platform account; it is not a linked creator_record.",
-          "Metric rollup covers the admitted fragrance Shorts source pool only; it is not a channel-wide average.",
+          "Profile is account-scoped to one youtube platform account; it is not a linked creator_record.",
+          "Metric rollup covers the admitted/selected source pool only; it is not a channel-wide average.",
           "Engagement rate, average likes, and average total comments are unavailable until source-backed numerator fields exist.",
           "Ideal/content-fit audience profile is not joined in this static view.",
           "Cross-platform aggregate influence is blocked until promoted public-handle linkage evidence exists.",
@@ -4223,7 +4228,7 @@
         ],
         "non_claims": [
           "not channel-wide creator influence",
-          "not engagement rate",
+          "not platform-wide engagement rate",
           "not buyer proof",
           "not public person-level identity",
           "not contact or outreach authorization",
@@ -4255,7 +4260,7 @@
           }
         ],
         "identity_evidence_summary": {
-          "summary": "Single-platform YouTube public account observed from source-backed creator observation rows; no promoted cross-platform public-handle linkage exists in this ledger.",
+          "summary": "Single-platform youtube public account observed from source-backed creator metric or observation rows; no promoted cross-platform public-handle linkage exists in this ledger.",
           "account_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/27",
           "source_pointers": [
             "docs/review-inputs/youtube_shorts_fragrance_creator_ledger_v0.json#/creators/28/creator_handle_query",
@@ -4349,7 +4354,7 @@
           "identity_updated_at": "2026-06-27T18:23:26Z",
           "metrics_computed_at_or_none": "2026-06-28T18:44:56Z",
           "audience_computed_at_or_none": null,
-          "profile_view_computed_at": "2026-06-28T19:07:16Z"
+          "profile_view_computed_at": "2026-06-29T14:50:03Z"
         },
         "source_drill_back": {
           "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/27",
@@ -4363,8 +4368,8 @@
           ]
         },
         "limitations": [
-          "Profile is account-scoped to one YouTube platform account; it is not a linked creator_record.",
-          "Metric rollup covers the admitted fragrance Shorts source pool only; it is not a channel-wide average.",
+          "Profile is account-scoped to one youtube platform account; it is not a linked creator_record.",
+          "Metric rollup covers the admitted/selected source pool only; it is not a channel-wide average.",
           "Engagement rate, average likes, and average total comments are unavailable until source-backed numerator fields exist.",
           "Ideal/content-fit audience profile is not joined in this static view.",
           "Cross-platform aggregate influence is blocked until promoted public-handle linkage evidence exists.",
@@ -4373,7 +4378,7 @@
         ],
         "non_claims": [
           "not channel-wide creator influence",
-          "not engagement rate",
+          "not platform-wide engagement rate",
           "not buyer proof",
           "not public person-level identity",
           "not contact or outreach authorization",
@@ -4405,7 +4410,7 @@
           }
         ],
         "identity_evidence_summary": {
-          "summary": "Single-platform YouTube public account observed from source-backed creator observation rows; no promoted cross-platform public-handle linkage exists in this ledger.",
+          "summary": "Single-platform youtube public account observed from source-backed creator metric or observation rows; no promoted cross-platform public-handle linkage exists in this ledger.",
           "account_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/28",
           "source_pointers": [
             "docs/review-inputs/youtube_shorts_fragrance_creator_ledger_v0.json#/creators/29/creator_handle_query",
@@ -4498,7 +4503,7 @@
           "identity_updated_at": "2026-06-27T18:23:26Z",
           "metrics_computed_at_or_none": "2026-06-28T18:44:56Z",
           "audience_computed_at_or_none": null,
-          "profile_view_computed_at": "2026-06-28T19:07:16Z"
+          "profile_view_computed_at": "2026-06-29T14:50:03Z"
         },
         "source_drill_back": {
           "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/28",
@@ -4511,8 +4516,8 @@
           ]
         },
         "limitations": [
-          "Profile is account-scoped to one YouTube platform account; it is not a linked creator_record.",
-          "Metric rollup covers the admitted fragrance Shorts source pool only; it is not a channel-wide average.",
+          "Profile is account-scoped to one youtube platform account; it is not a linked creator_record.",
+          "Metric rollup covers the admitted/selected source pool only; it is not a channel-wide average.",
           "Engagement rate, average likes, and average total comments are unavailable until source-backed numerator fields exist.",
           "Ideal/content-fit audience profile is not joined in this static view.",
           "Cross-platform aggregate influence is blocked until promoted public-handle linkage evidence exists.",
@@ -4521,7 +4526,7 @@
         ],
         "non_claims": [
           "not channel-wide creator influence",
-          "not engagement rate",
+          "not platform-wide engagement rate",
           "not buyer proof",
           "not public person-level identity",
           "not contact or outreach authorization",
@@ -4553,7 +4558,7 @@
           }
         ],
         "identity_evidence_summary": {
-          "summary": "Single-platform YouTube public account observed from source-backed creator observation rows; no promoted cross-platform public-handle linkage exists in this ledger.",
+          "summary": "Single-platform youtube public account observed from source-backed creator metric or observation rows; no promoted cross-platform public-handle linkage exists in this ledger.",
           "account_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/29",
           "source_pointers": [
             "docs/review-inputs/youtube_shorts_fragrance_creator_ledger_v0.json#/creators/30/creator_handle_query",
@@ -4649,7 +4654,7 @@
           "identity_updated_at": "2026-06-27T18:23:26Z",
           "metrics_computed_at_or_none": "2026-06-28T18:44:56Z",
           "audience_computed_at_or_none": null,
-          "profile_view_computed_at": "2026-06-28T19:07:16Z"
+          "profile_view_computed_at": "2026-06-29T14:50:03Z"
         },
         "source_drill_back": {
           "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/29",
@@ -4665,8 +4670,8 @@
           ]
         },
         "limitations": [
-          "Profile is account-scoped to one YouTube platform account; it is not a linked creator_record.",
-          "Metric rollup covers the admitted fragrance Shorts source pool only; it is not a channel-wide average.",
+          "Profile is account-scoped to one youtube platform account; it is not a linked creator_record.",
+          "Metric rollup covers the admitted/selected source pool only; it is not a channel-wide average.",
           "Engagement rate, average likes, and average total comments are unavailable until source-backed numerator fields exist.",
           "Ideal/content-fit audience profile is not joined in this static view.",
           "Cross-platform aggregate influence is blocked until promoted public-handle linkage evidence exists.",
@@ -4675,7 +4680,640 @@
         ],
         "non_claims": [
           "not channel-wide creator influence",
-          "not engagement rate",
+          "not platform-wide engagement rate",
+          "not buyer proof",
+          "not public person-level identity",
+          "not contact or outreach authorization",
+          "not cross-platform rollup",
+          "not dashboard readiness",
+          "not SQLite or data-lake physicalization"
+        ]
+      },
+      {
+        "profile_subject_kind": "platform_account",
+        "profile_subject_id": "acct_ig_reels_001",
+        "platform_account_id_or_none": "acct_ig_reels_001",
+        "creator_record_id_or_none": null,
+        "identity_state": "single_platform_observed",
+        "link_state_or_none": null,
+        "review_state_or_none": null,
+        "platform_accounts": [
+          {
+            "platform_account_id": "acct_ig_reels_001",
+            "platform": "instagram",
+            "platform_public_account_id_or_none": null,
+            "public_handle": "hyram",
+            "public_profile_url": "https://www.instagram.com/hyram/",
+            "handle_source_pointer": "F:\\orca-data-lake\\derived\\01KW9T4ESARHD545RRPGCWWY1P\\projection_ig_reels_grid\\01KW9TYBFCV1Y6K3FVRJAPANQ3.json#/rows/0",
+            "handle_observed_at": "2026-06-29T13:47:06Z",
+            "public_display_name_or_none": null,
+            "display_name_source_pointer_or_none": null,
+            "display_name_source_field_or_none": null
+          }
+        ],
+        "identity_evidence_summary": {
+          "summary": "Single-platform instagram public account observed from source-backed creator metric or observation rows; no promoted cross-platform public-handle linkage exists in this ledger.",
+          "account_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/30",
+          "source_pointers": [
+            "F:\\orca-data-lake\\derived\\01KW9T4ESARHD545RRPGCWWY1P\\projection_ig_reels_grid\\01KW9TYBFCV1Y6K3FVRJAPANQ3.json#/rows/0"
+          ]
+        },
+        "current_metric_rollups": [
+          {
+            "metric_rollup_id": "ig_reels_account_engagement_rollup_v0_001",
+            "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/instagram/instagram_reels_creator_metric_seed_v0.json#/instagram_reels_creator_metric_seed/metric_rollups/0",
+            "platform_scope": "instagram",
+            "platform_account_ids": [
+              "acct_ig_reels_001"
+            ],
+            "rollup_window": "custom",
+            "rollup_window_description": "selected_latest_ig_reels_grid_projection_v0; not a full-account history window",
+            "content_kind_inclusion_rule": "Instagram Reels from the selected /reels/ grid projection only; static posts and profile follower_count are excluded from rollup math",
+            "metric_rollups": {
+              "average_views": {
+                "value_or_none": 145593.33,
+                "posture": "observed",
+                "metric_unit": "count"
+              },
+              "median_views": {
+                "value_or_none": 58963.5,
+                "posture": "observed",
+                "metric_unit": "count"
+              },
+              "engagement_rate": {
+                "value_or_none": 0.024189,
+                "posture": "observed",
+                "metric_unit": "rate"
+              },
+              "average_like_count": {
+                "value_or_none": 3455.75,
+                "posture": "observed",
+                "metric_unit": "count"
+              },
+              "average_comment_count": {
+                "value_or_none": 66,
+                "posture": "observed",
+                "metric_unit": "count"
+              },
+              "posting_cadence": {
+                "value_or_none": null,
+                "posture": "not_attempted",
+                "posture_reason_or_none": "cadence recipe is out of scope for this IG metric seed",
+                "metric_unit": "rate"
+              },
+              "recent_velocity": {
+                "value_or_none": null,
+                "posture": "not_attempted",
+                "posture_reason_or_none": "velocity recipe is out of scope for this IG metric seed",
+                "metric_unit": "rate"
+              }
+            },
+            "source_metric_observation_ids": [
+              "ig_reels_metric_obs_v0_002",
+              "ig_reels_metric_obs_v0_003",
+              "ig_reels_metric_obs_v0_004",
+              "ig_reels_metric_obs_v0_005",
+              "ig_reels_metric_obs_v0_006",
+              "ig_reels_metric_obs_v0_007",
+              "ig_reels_metric_obs_v0_008",
+              "ig_reels_metric_obs_v0_009",
+              "ig_reels_metric_obs_v0_010",
+              "ig_reels_metric_obs_v0_011",
+              "ig_reels_metric_obs_v0_012",
+              "ig_reels_metric_obs_v0_013",
+              "ig_reels_metric_obs_v0_014",
+              "ig_reels_metric_obs_v0_015",
+              "ig_reels_metric_obs_v0_016",
+              "ig_reels_metric_obs_v0_017",
+              "ig_reels_metric_obs_v0_018",
+              "ig_reels_metric_obs_v0_019",
+              "ig_reels_metric_obs_v0_020",
+              "ig_reels_metric_obs_v0_021",
+              "ig_reels_metric_obs_v0_022",
+              "ig_reels_metric_obs_v0_023",
+              "ig_reels_metric_obs_v0_024",
+              "ig_reels_metric_obs_v0_025",
+              "ig_reels_metric_obs_v0_026",
+              "ig_reels_metric_obs_v0_027",
+              "ig_reels_metric_obs_v0_028",
+              "ig_reels_metric_obs_v0_029",
+              "ig_reels_metric_obs_v0_030",
+              "ig_reels_metric_obs_v0_031",
+              "ig_reels_metric_obs_v0_032",
+              "ig_reels_metric_obs_v0_033",
+              "ig_reels_metric_obs_v0_034",
+              "ig_reels_metric_obs_v0_035",
+              "ig_reels_metric_obs_v0_036",
+              "ig_reels_metric_obs_v0_037"
+            ],
+            "observation_count": 36,
+            "view_count_min": 32183,
+            "view_count_max": 741197,
+            "calculation_recipe_version": "creator_metric_rollup_instagram_reels_grid_engagement_v0",
+            "computed_at": "2026-06-29T14:50:03Z",
+            "freshness_state": "partial",
+            "limitations": [
+              "Rollup covers selected Instagram Reels grid rows only; it is not a full-account average.",
+              "View, like, and comment counts are capture-time observations and may have changed since capture.",
+              "Cross-platform rollups are not authorized without promoted public-handle linkage evidence.",
+              "Average/median views are computed over 12 selected reels and 36 metric observations for @hyram; sample adequacy is stronger_admitted_pool_n_8_plus and the value is not a representative creator average.",
+              "The selected IG reels grid selection can bias view averages relative to the creator's full Instagram output.",
+              "Engagement rate is computed only from source-backed selected-grid view, like, and comment counts.",
+              "Profile follower_count is not included in rollup math."
+            ],
+            "sample_support": {
+              "observation_count": 36,
+              "sample_adequacy": "stronger_admitted_pool_n_8_plus",
+              "representativeness_posture": "admitted_pool_only_not_representative_creator_average",
+              "surface_handling": "show_only_with_visible_admitted_pool_limitation"
+            }
+          }
+        ],
+        "ideal_audience_profile": null,
+        "wind_calling_summary": null,
+        "freshness": {
+          "identity_updated_at": "2026-06-29T13:47:06Z",
+          "metrics_computed_at_or_none": "2026-06-29T14:50:03Z",
+          "audience_computed_at_or_none": null,
+          "profile_view_computed_at": "2026-06-29T14:50:03Z"
+        },
+        "source_drill_back": {
+          "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/30",
+          "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/instagram/instagram_reels_creator_metric_seed_v0.json#/instagram_reels_creator_metric_seed/metric_rollups/0",
+          "metric_seed_pointer": "orca/product/spines/capture/core/source_families/social_media/instagram/instagram_reels_creator_metric_seed_v0.json",
+          "source_metric_observation_ids": [
+            "ig_reels_metric_obs_v0_002",
+            "ig_reels_metric_obs_v0_003",
+            "ig_reels_metric_obs_v0_004",
+            "ig_reels_metric_obs_v0_005",
+            "ig_reels_metric_obs_v0_006",
+            "ig_reels_metric_obs_v0_007",
+            "ig_reels_metric_obs_v0_008",
+            "ig_reels_metric_obs_v0_009",
+            "ig_reels_metric_obs_v0_010",
+            "ig_reels_metric_obs_v0_011",
+            "ig_reels_metric_obs_v0_012",
+            "ig_reels_metric_obs_v0_013",
+            "ig_reels_metric_obs_v0_014",
+            "ig_reels_metric_obs_v0_015",
+            "ig_reels_metric_obs_v0_016",
+            "ig_reels_metric_obs_v0_017",
+            "ig_reels_metric_obs_v0_018",
+            "ig_reels_metric_obs_v0_019",
+            "ig_reels_metric_obs_v0_020",
+            "ig_reels_metric_obs_v0_021",
+            "ig_reels_metric_obs_v0_022",
+            "ig_reels_metric_obs_v0_023",
+            "ig_reels_metric_obs_v0_024",
+            "ig_reels_metric_obs_v0_025",
+            "ig_reels_metric_obs_v0_026",
+            "ig_reels_metric_obs_v0_027",
+            "ig_reels_metric_obs_v0_028",
+            "ig_reels_metric_obs_v0_029",
+            "ig_reels_metric_obs_v0_030",
+            "ig_reels_metric_obs_v0_031",
+            "ig_reels_metric_obs_v0_032",
+            "ig_reels_metric_obs_v0_033",
+            "ig_reels_metric_obs_v0_034",
+            "ig_reels_metric_obs_v0_035",
+            "ig_reels_metric_obs_v0_036",
+            "ig_reels_metric_obs_v0_037"
+          ]
+        },
+        "limitations": [
+          "Profile is account-scoped to one instagram platform account; it is not a linked creator_record.",
+          "Metric rollup covers the admitted/selected source pool only; it is not a channel-wide average.",
+          "Engagement rate is source-backed only for the admitted/selected source pool; it is not a platform-wide engagement benchmark.",
+          "Ideal/content-fit audience profile is not joined in this static view.",
+          "Cross-platform aggregate influence is blocked until promoted public-handle linkage evidence exists.",
+          "Average/median view rollups are directional admitted-pool statistics; sample_support must be shown or used to downgrade thin rows before influence-summary presentation.",
+          "The admitted pool is fragrance and transcript-bearing, so selection can bias view averages relative to the creator's full Shorts or channel output."
+        ],
+        "non_claims": [
+          "not channel-wide creator influence",
+          "not platform-wide engagement rate",
+          "not buyer proof",
+          "not public person-level identity",
+          "not contact or outreach authorization",
+          "not cross-platform rollup",
+          "not dashboard readiness",
+          "not SQLite or data-lake physicalization"
+        ]
+      },
+      {
+        "profile_subject_kind": "platform_account",
+        "profile_subject_id": "acct_ig_reels_002",
+        "platform_account_id_or_none": "acct_ig_reels_002",
+        "creator_record_id_or_none": null,
+        "identity_state": "single_platform_observed",
+        "link_state_or_none": null,
+        "review_state_or_none": null,
+        "platform_accounts": [
+          {
+            "platform_account_id": "acct_ig_reels_002",
+            "platform": "instagram",
+            "platform_public_account_id_or_none": null,
+            "public_handle": "jeremyfragrance",
+            "public_profile_url": "https://www.instagram.com/jeremyfragrance/",
+            "handle_source_pointer": "F:\\orca-data-lake\\derived\\01KW9T5SGKBYD8HRVP3154F4Y8\\projection_ig_reels_grid\\01KW9TYSZA4A4Z4XQXW91S0VVY.json#/rows/0",
+            "handle_observed_at": "2026-06-29T13:47:50Z",
+            "public_display_name_or_none": null,
+            "display_name_source_pointer_or_none": null,
+            "display_name_source_field_or_none": null
+          }
+        ],
+        "identity_evidence_summary": {
+          "summary": "Single-platform instagram public account observed from source-backed creator metric or observation rows; no promoted cross-platform public-handle linkage exists in this ledger.",
+          "account_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/31",
+          "source_pointers": [
+            "F:\\orca-data-lake\\derived\\01KW9T5SGKBYD8HRVP3154F4Y8\\projection_ig_reels_grid\\01KW9TYSZA4A4Z4XQXW91S0VVY.json#/rows/0"
+          ]
+        },
+        "current_metric_rollups": [
+          {
+            "metric_rollup_id": "ig_reels_account_engagement_rollup_v0_002",
+            "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/instagram/instagram_reels_creator_metric_seed_v0.json#/instagram_reels_creator_metric_seed/metric_rollups/1",
+            "platform_scope": "instagram",
+            "platform_account_ids": [
+              "acct_ig_reels_002"
+            ],
+            "rollup_window": "custom",
+            "rollup_window_description": "selected_latest_ig_reels_grid_projection_v0; not a full-account history window",
+            "content_kind_inclusion_rule": "Instagram Reels from the selected /reels/ grid projection only; static posts and profile follower_count are excluded from rollup math",
+            "metric_rollups": {
+              "average_views": {
+                "value_or_none": 27470.5,
+                "posture": "observed",
+                "metric_unit": "count"
+              },
+              "median_views": {
+                "value_or_none": 16994.0,
+                "posture": "observed",
+                "metric_unit": "count"
+              },
+              "engagement_rate": {
+                "value_or_none": 0.01238,
+                "posture": "observed",
+                "metric_unit": "rate"
+              },
+              "average_like_count": {
+                "value_or_none": 319.08,
+                "posture": "observed",
+                "metric_unit": "count"
+              },
+              "average_comment_count": {
+                "value_or_none": 21,
+                "posture": "observed",
+                "metric_unit": "count"
+              },
+              "posting_cadence": {
+                "value_or_none": null,
+                "posture": "not_attempted",
+                "posture_reason_or_none": "cadence recipe is out of scope for this IG metric seed",
+                "metric_unit": "rate"
+              },
+              "recent_velocity": {
+                "value_or_none": null,
+                "posture": "not_attempted",
+                "posture_reason_or_none": "velocity recipe is out of scope for this IG metric seed",
+                "metric_unit": "rate"
+              }
+            },
+            "source_metric_observation_ids": [
+              "ig_reels_metric_obs_v0_039",
+              "ig_reels_metric_obs_v0_040",
+              "ig_reels_metric_obs_v0_041",
+              "ig_reels_metric_obs_v0_042",
+              "ig_reels_metric_obs_v0_043",
+              "ig_reels_metric_obs_v0_044",
+              "ig_reels_metric_obs_v0_045",
+              "ig_reels_metric_obs_v0_046",
+              "ig_reels_metric_obs_v0_047",
+              "ig_reels_metric_obs_v0_048",
+              "ig_reels_metric_obs_v0_049",
+              "ig_reels_metric_obs_v0_050",
+              "ig_reels_metric_obs_v0_051",
+              "ig_reels_metric_obs_v0_052",
+              "ig_reels_metric_obs_v0_053",
+              "ig_reels_metric_obs_v0_054",
+              "ig_reels_metric_obs_v0_055",
+              "ig_reels_metric_obs_v0_056",
+              "ig_reels_metric_obs_v0_057",
+              "ig_reels_metric_obs_v0_058",
+              "ig_reels_metric_obs_v0_059",
+              "ig_reels_metric_obs_v0_060",
+              "ig_reels_metric_obs_v0_061",
+              "ig_reels_metric_obs_v0_062",
+              "ig_reels_metric_obs_v0_063",
+              "ig_reels_metric_obs_v0_064",
+              "ig_reels_metric_obs_v0_065",
+              "ig_reels_metric_obs_v0_066",
+              "ig_reels_metric_obs_v0_067",
+              "ig_reels_metric_obs_v0_068",
+              "ig_reels_metric_obs_v0_069",
+              "ig_reels_metric_obs_v0_070",
+              "ig_reels_metric_obs_v0_071",
+              "ig_reels_metric_obs_v0_072",
+              "ig_reels_metric_obs_v0_073",
+              "ig_reels_metric_obs_v0_074"
+            ],
+            "observation_count": 36,
+            "view_count_min": 4960,
+            "view_count_max": 147919,
+            "calculation_recipe_version": "creator_metric_rollup_instagram_reels_grid_engagement_v0",
+            "computed_at": "2026-06-29T14:50:03Z",
+            "freshness_state": "partial",
+            "limitations": [
+              "Rollup covers selected Instagram Reels grid rows only; it is not a full-account average.",
+              "View, like, and comment counts are capture-time observations and may have changed since capture.",
+              "Cross-platform rollups are not authorized without promoted public-handle linkage evidence.",
+              "Average/median views are computed over 12 selected reels and 36 metric observations for @jeremyfragrance; sample adequacy is stronger_admitted_pool_n_8_plus and the value is not a representative creator average.",
+              "The selected IG reels grid selection can bias view averages relative to the creator's full Instagram output.",
+              "Engagement rate is computed only from source-backed selected-grid view, like, and comment counts.",
+              "Profile follower_count is not included in rollup math."
+            ],
+            "sample_support": {
+              "observation_count": 36,
+              "sample_adequacy": "stronger_admitted_pool_n_8_plus",
+              "representativeness_posture": "admitted_pool_only_not_representative_creator_average",
+              "surface_handling": "show_only_with_visible_admitted_pool_limitation"
+            }
+          }
+        ],
+        "ideal_audience_profile": null,
+        "wind_calling_summary": null,
+        "freshness": {
+          "identity_updated_at": "2026-06-29T13:47:50Z",
+          "metrics_computed_at_or_none": "2026-06-29T14:50:03Z",
+          "audience_computed_at_or_none": null,
+          "profile_view_computed_at": "2026-06-29T14:50:03Z"
+        },
+        "source_drill_back": {
+          "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/31",
+          "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/instagram/instagram_reels_creator_metric_seed_v0.json#/instagram_reels_creator_metric_seed/metric_rollups/1",
+          "metric_seed_pointer": "orca/product/spines/capture/core/source_families/social_media/instagram/instagram_reels_creator_metric_seed_v0.json",
+          "source_metric_observation_ids": [
+            "ig_reels_metric_obs_v0_039",
+            "ig_reels_metric_obs_v0_040",
+            "ig_reels_metric_obs_v0_041",
+            "ig_reels_metric_obs_v0_042",
+            "ig_reels_metric_obs_v0_043",
+            "ig_reels_metric_obs_v0_044",
+            "ig_reels_metric_obs_v0_045",
+            "ig_reels_metric_obs_v0_046",
+            "ig_reels_metric_obs_v0_047",
+            "ig_reels_metric_obs_v0_048",
+            "ig_reels_metric_obs_v0_049",
+            "ig_reels_metric_obs_v0_050",
+            "ig_reels_metric_obs_v0_051",
+            "ig_reels_metric_obs_v0_052",
+            "ig_reels_metric_obs_v0_053",
+            "ig_reels_metric_obs_v0_054",
+            "ig_reels_metric_obs_v0_055",
+            "ig_reels_metric_obs_v0_056",
+            "ig_reels_metric_obs_v0_057",
+            "ig_reels_metric_obs_v0_058",
+            "ig_reels_metric_obs_v0_059",
+            "ig_reels_metric_obs_v0_060",
+            "ig_reels_metric_obs_v0_061",
+            "ig_reels_metric_obs_v0_062",
+            "ig_reels_metric_obs_v0_063",
+            "ig_reels_metric_obs_v0_064",
+            "ig_reels_metric_obs_v0_065",
+            "ig_reels_metric_obs_v0_066",
+            "ig_reels_metric_obs_v0_067",
+            "ig_reels_metric_obs_v0_068",
+            "ig_reels_metric_obs_v0_069",
+            "ig_reels_metric_obs_v0_070",
+            "ig_reels_metric_obs_v0_071",
+            "ig_reels_metric_obs_v0_072",
+            "ig_reels_metric_obs_v0_073",
+            "ig_reels_metric_obs_v0_074"
+          ]
+        },
+        "limitations": [
+          "Profile is account-scoped to one instagram platform account; it is not a linked creator_record.",
+          "Metric rollup covers the admitted/selected source pool only; it is not a channel-wide average.",
+          "Engagement rate is source-backed only for the admitted/selected source pool; it is not a platform-wide engagement benchmark.",
+          "Ideal/content-fit audience profile is not joined in this static view.",
+          "Cross-platform aggregate influence is blocked until promoted public-handle linkage evidence exists.",
+          "Average/median view rollups are directional admitted-pool statistics; sample_support must be shown or used to downgrade thin rows before influence-summary presentation.",
+          "The admitted pool is fragrance and transcript-bearing, so selection can bias view averages relative to the creator's full Shorts or channel output."
+        ],
+        "non_claims": [
+          "not channel-wide creator influence",
+          "not platform-wide engagement rate",
+          "not buyer proof",
+          "not public person-level identity",
+          "not contact or outreach authorization",
+          "not cross-platform rollup",
+          "not dashboard readiness",
+          "not SQLite or data-lake physicalization"
+        ]
+      },
+      {
+        "profile_subject_kind": "platform_account",
+        "profile_subject_id": "acct_ig_reels_003",
+        "platform_account_id_or_none": "acct_ig_reels_003",
+        "creator_record_id_or_none": null,
+        "identity_state": "single_platform_observed",
+        "link_state_or_none": null,
+        "review_state_or_none": null,
+        "platform_accounts": [
+          {
+            "platform_account_id": "acct_ig_reels_003",
+            "platform": "instagram",
+            "platform_public_account_id_or_none": null,
+            "public_handle": "vanzzcoser",
+            "public_profile_url": "https://www.instagram.com/vanzzcoser/",
+            "handle_source_pointer": "F:\\orca-data-lake\\derived\\01KW9WD600VE4NXCKF364N8ZH9\\projection_ig_reels_grid\\01KW9WDN2BSPC5RM6X7EMC4HE8.json#/rows/0",
+            "handle_observed_at": "2026-06-29T14:26:49Z",
+            "public_display_name_or_none": null,
+            "display_name_source_pointer_or_none": null,
+            "display_name_source_field_or_none": null
+          }
+        ],
+        "identity_evidence_summary": {
+          "summary": "Single-platform instagram public account observed from source-backed creator metric or observation rows; no promoted cross-platform public-handle linkage exists in this ledger.",
+          "account_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/32",
+          "source_pointers": [
+            "F:\\orca-data-lake\\derived\\01KW9WD600VE4NXCKF364N8ZH9\\projection_ig_reels_grid\\01KW9WDN2BSPC5RM6X7EMC4HE8.json#/rows/0"
+          ]
+        },
+        "current_metric_rollups": [
+          {
+            "metric_rollup_id": "ig_reels_account_engagement_rollup_v0_003",
+            "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/instagram/instagram_reels_creator_metric_seed_v0.json#/instagram_reels_creator_metric_seed/metric_rollups/2",
+            "platform_scope": "instagram",
+            "platform_account_ids": [
+              "acct_ig_reels_003"
+            ],
+            "rollup_window": "custom",
+            "rollup_window_description": "selected_latest_ig_reels_grid_projection_v0; not a full-account history window",
+            "content_kind_inclusion_rule": "Instagram Reels from the selected /reels/ grid projection only; static posts and profile follower_count are excluded from rollup math",
+            "metric_rollups": {
+              "average_views": {
+                "value_or_none": 208089.17,
+                "posture": "observed",
+                "metric_unit": "count"
+              },
+              "median_views": {
+                "value_or_none": 25208.0,
+                "posture": "observed",
+                "metric_unit": "count"
+              },
+              "engagement_rate": {
+                "value_or_none": 0.054612,
+                "posture": "observed",
+                "metric_unit": "rate"
+              },
+              "average_like_count": {
+                "value_or_none": 11306.75,
+                "posture": "observed",
+                "metric_unit": "count"
+              },
+              "average_comment_count": {
+                "value_or_none": 57.5,
+                "posture": "observed",
+                "metric_unit": "count"
+              },
+              "posting_cadence": {
+                "value_or_none": null,
+                "posture": "not_attempted",
+                "posture_reason_or_none": "cadence recipe is out of scope for this IG metric seed",
+                "metric_unit": "rate"
+              },
+              "recent_velocity": {
+                "value_or_none": null,
+                "posture": "not_attempted",
+                "posture_reason_or_none": "velocity recipe is out of scope for this IG metric seed",
+                "metric_unit": "rate"
+              }
+            },
+            "source_metric_observation_ids": [
+              "ig_reels_metric_obs_v0_076",
+              "ig_reels_metric_obs_v0_077",
+              "ig_reels_metric_obs_v0_078",
+              "ig_reels_metric_obs_v0_079",
+              "ig_reels_metric_obs_v0_080",
+              "ig_reels_metric_obs_v0_081",
+              "ig_reels_metric_obs_v0_082",
+              "ig_reels_metric_obs_v0_083",
+              "ig_reels_metric_obs_v0_084",
+              "ig_reels_metric_obs_v0_085",
+              "ig_reels_metric_obs_v0_086",
+              "ig_reels_metric_obs_v0_087",
+              "ig_reels_metric_obs_v0_088",
+              "ig_reels_metric_obs_v0_089",
+              "ig_reels_metric_obs_v0_090",
+              "ig_reels_metric_obs_v0_091",
+              "ig_reels_metric_obs_v0_092",
+              "ig_reels_metric_obs_v0_093",
+              "ig_reels_metric_obs_v0_094",
+              "ig_reels_metric_obs_v0_095",
+              "ig_reels_metric_obs_v0_096",
+              "ig_reels_metric_obs_v0_097",
+              "ig_reels_metric_obs_v0_098",
+              "ig_reels_metric_obs_v0_099",
+              "ig_reels_metric_obs_v0_100",
+              "ig_reels_metric_obs_v0_101",
+              "ig_reels_metric_obs_v0_102",
+              "ig_reels_metric_obs_v0_103",
+              "ig_reels_metric_obs_v0_104",
+              "ig_reels_metric_obs_v0_105",
+              "ig_reels_metric_obs_v0_106",
+              "ig_reels_metric_obs_v0_107",
+              "ig_reels_metric_obs_v0_108",
+              "ig_reels_metric_obs_v0_109",
+              "ig_reels_metric_obs_v0_110",
+              "ig_reels_metric_obs_v0_111"
+            ],
+            "observation_count": 36,
+            "view_count_min": 9753,
+            "view_count_max": 1482520,
+            "calculation_recipe_version": "creator_metric_rollup_instagram_reels_grid_engagement_v0",
+            "computed_at": "2026-06-29T14:50:03Z",
+            "freshness_state": "partial",
+            "limitations": [
+              "Rollup covers selected Instagram Reels grid rows only; it is not a full-account average.",
+              "View, like, and comment counts are capture-time observations and may have changed since capture.",
+              "Cross-platform rollups are not authorized without promoted public-handle linkage evidence.",
+              "Average/median views are computed over 12 selected reels and 36 metric observations for @vanzzcoser; sample adequacy is stronger_admitted_pool_n_8_plus and the value is not a representative creator average.",
+              "The selected IG reels grid selection can bias view averages relative to the creator's full Instagram output.",
+              "Engagement rate is computed only from source-backed selected-grid view, like, and comment counts.",
+              "Profile follower_count is not included in rollup math."
+            ],
+            "sample_support": {
+              "observation_count": 36,
+              "sample_adequacy": "stronger_admitted_pool_n_8_plus",
+              "representativeness_posture": "admitted_pool_only_not_representative_creator_average",
+              "surface_handling": "show_only_with_visible_admitted_pool_limitation"
+            }
+          }
+        ],
+        "ideal_audience_profile": null,
+        "wind_calling_summary": null,
+        "freshness": {
+          "identity_updated_at": "2026-06-29T14:26:49Z",
+          "metrics_computed_at_or_none": "2026-06-29T14:50:03Z",
+          "audience_computed_at_or_none": null,
+          "profile_view_computed_at": "2026-06-29T14:50:03Z"
+        },
+        "source_drill_back": {
+          "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/32",
+          "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/instagram/instagram_reels_creator_metric_seed_v0.json#/instagram_reels_creator_metric_seed/metric_rollups/2",
+          "metric_seed_pointer": "orca/product/spines/capture/core/source_families/social_media/instagram/instagram_reels_creator_metric_seed_v0.json",
+          "source_metric_observation_ids": [
+            "ig_reels_metric_obs_v0_076",
+            "ig_reels_metric_obs_v0_077",
+            "ig_reels_metric_obs_v0_078",
+            "ig_reels_metric_obs_v0_079",
+            "ig_reels_metric_obs_v0_080",
+            "ig_reels_metric_obs_v0_081",
+            "ig_reels_metric_obs_v0_082",
+            "ig_reels_metric_obs_v0_083",
+            "ig_reels_metric_obs_v0_084",
+            "ig_reels_metric_obs_v0_085",
+            "ig_reels_metric_obs_v0_086",
+            "ig_reels_metric_obs_v0_087",
+            "ig_reels_metric_obs_v0_088",
+            "ig_reels_metric_obs_v0_089",
+            "ig_reels_metric_obs_v0_090",
+            "ig_reels_metric_obs_v0_091",
+            "ig_reels_metric_obs_v0_092",
+            "ig_reels_metric_obs_v0_093",
+            "ig_reels_metric_obs_v0_094",
+            "ig_reels_metric_obs_v0_095",
+            "ig_reels_metric_obs_v0_096",
+            "ig_reels_metric_obs_v0_097",
+            "ig_reels_metric_obs_v0_098",
+            "ig_reels_metric_obs_v0_099",
+            "ig_reels_metric_obs_v0_100",
+            "ig_reels_metric_obs_v0_101",
+            "ig_reels_metric_obs_v0_102",
+            "ig_reels_metric_obs_v0_103",
+            "ig_reels_metric_obs_v0_104",
+            "ig_reels_metric_obs_v0_105",
+            "ig_reels_metric_obs_v0_106",
+            "ig_reels_metric_obs_v0_107",
+            "ig_reels_metric_obs_v0_108",
+            "ig_reels_metric_obs_v0_109",
+            "ig_reels_metric_obs_v0_110",
+            "ig_reels_metric_obs_v0_111"
+          ]
+        },
+        "limitations": [
+          "Profile is account-scoped to one instagram platform account; it is not a linked creator_record.",
+          "Metric rollup covers the admitted/selected source pool only; it is not a channel-wide average.",
+          "Engagement rate is source-backed only for the admitted/selected source pool; it is not a platform-wide engagement benchmark.",
+          "Ideal/content-fit audience profile is not joined in this static view.",
+          "Cross-platform aggregate influence is blocked until promoted public-handle linkage evidence exists.",
+          "Average/median view rollups are directional admitted-pool statistics; sample_support must be shown or used to downgrade thin rows before influence-summary presentation.",
+          "The admitted pool is fragrance and transcript-bearing, so selection can bias view averages relative to the creator's full Shorts or channel output."
+        ],
+        "non_claims": [
+          "not channel-wide creator influence",
+          "not platform-wide engagement rate",
           "not buyer proof",
           "not public person-level identity",
           "not contact or outreach authorization",
@@ -4687,9 +5325,9 @@
     ],
     "accepted_residuals": [
       "Profiles are static JSON export rows, not a runtime database or dashboard.",
-      "All current rows are YouTube platform_account subjects; creator_record subjects remain absent until promoted cross-platform linkage exists.",
-      "Aggregate views are admitted-pool rollups, not full-channel or all-content creator averages.",
-      "Missing engagement inputs remain explicit missingness rather than zero-filled metrics."
+      "Current rows are platform_account subjects; creator_record subjects remain absent until promoted cross-platform linkage exists.",
+      "Aggregate views are admitted-pool or selected-grid rollups, not full-channel or all-content creator averages.",
+      "Engagement inputs remain platform/source limited; missing inputs stay explicit missingness rather than zero-filled metrics."
     ],
     "non_claims": [
       "not SQLite adoption",
@@ -4698,7 +5336,7 @@
       "not buyer proof",
       "not live capture authorization",
       "not cross-platform identity proof",
-      "not engagement-rate support",
+      "not universal engagement-rate support",
       "not channel-wide influence"
     ]
   }
