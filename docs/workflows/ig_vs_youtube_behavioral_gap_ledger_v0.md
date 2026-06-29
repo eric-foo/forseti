@@ -3,42 +3,66 @@
 ```yaml
 retrieval_header_version: 1
 artifact_role: Workflow record
-scope: Source-backed Instagram/Reels gap ledger against the PR #432 YouTube behavioral contract reference.
+scope: Source-backed Instagram/Reels gap ledger against the YouTube behavioral contract, with post-PR #441 implementation closeout.
 use_when:
   - Deciding the next IG behavior-sync patch after the YouTube behavioral contract adjudication lane.
   - Checking which IG behavior should match the YouTube completeness contract without copying YouTube acquisition mechanics.
-  - Recovering accepted IG residuals before a future implementation-scoping or review pass.
+  - Recovering accepted IG residuals after the first IG behavioral lake adapter patch.
 authority_boundary: retrieval_only
 open_next:
   - docs/workflows/ig_behavioral_sync_from_youtube_contract_handoff_v0.md
   - docs/workflows/youtube_behavioral_contract_from_merged_main_v0.md
   - docs/workflows/shared_capture_core_ig_youtube_tiktok_planning_v0.md
   - docs/workflows/ig_backfix_against_youtube_behavioral_contract_spec_v0.md
+  - orca-harness/source_capture/ig_reels_behavioral_lake.py
+  - orca-harness/tests/unit/test_ig_reels_behavioral_lake.py
+  - docs/review-outputs/ig_behavioral_lake_adapter_adversarial_code_review_v0.md
   - orca-harness/source_capture/ig_reels_grid_projection.py
   - orca-harness/source_capture/transcript/ig_reels_audio_packet.py
   - orca-harness/source_capture/ig_reels_deep_capture.py
   - orca-harness/source_capture/ig_reels_deep_capture_lake.py
   - orca-harness/runners/run_ig_reels_product_extract.py
-branch_or_commit: codex/ig-behavioral-sync-gap-ledger @ 5afa4660, branched from PR #432 head
+branch_or_commit: origin/main @ 9767eefdd9afff38c141b8387334b2ada988a2c2 after PR #441 merge
 stale_if:
-  - PR #432 closes without merge or is superseded by a different YouTube behavioral contract.
+  - PR #441 is reverted or superseded by a different IG behavioral adapter.
   - Any named IG grid, deep-capture, audio transcript, persistence, extraction, or focused test source changes.
-  - The owner authorizes implementation and a later implementation-scoping record supersedes this ledger.
+  - A later IG behavioral validation or downstream-consumer closeout supersedes this post-merge status.
 ```
 
 ## Status
 
-Patch decision: `DOCS_PATCH_ONLY`.
+Patch decision: `IMPLEMENTED_FIRST_ADAPTER_PATCH`.
 
-This ledger completes the source refresh requested by
-`docs/workflows/ig_behavioral_sync_from_youtube_contract_handoff_v0.md`. It does
-not authorize IG runtime edits, live capture, shared-core implementation, or
-YouTube acquisition-shape copying.
+Post-merge closeout: PR #441 merged on 2026-06-29 as merge commit
+`9767eefdd9afff38c141b8387334b2ada988a2c2`. The first IG behavior-sync patch
+is now implemented at the lake-adapter/projection layer over existing persisted
+IG grid, standalone audio ASR, deep-capture, and product-extraction records.
 
-Implementation remains blocked until the owner explicitly authorizes bounded
-source-changing IG parity work. If that happens, run the assumption gate and
-fused implementation path against this ledger and the fresh source files before
-editing.
+Current adapter-level closure:
+
+- IG now has a shortcode-keyed behavioral item/index adapter over existing lake
+  records.
+- The adapter feeds grid candidate/ranking rows, comment sets, standalone audio
+  transcript records, deep-capture transcript records, and product extraction
+  results into the IG behavioral projection.
+- Persistence correlation is programmatic at the adapter/projection layer for
+  grid packet ids, audio packet ids, deep-capture/comment record ids, and
+  extraction record paths.
+- Hidden failures from raw packet load, grid projection, ASR record parsing, and
+  product-record parsing are residualized instead of silently dropped.
+
+Accepted residuals after PR #441:
+
+- No shared IG/YT core has been introduced.
+- No live IG capture has been run or validated in this closeout.
+- Deep-capture transcript records remain visible but not extraction-eligible in
+  the current product-extraction feed.
+- Deep-capture run receipt normalization remains a future patch candidate.
+- Downstream consumer integration is not proven by this ledger.
+
+The detailed gap table below is retained as historical pre-implementation
+evidence from the source-refresh lane. Do not read its "gap remains" language as
+current when it conflicts with this post-merge status.
 
 ## Start Preflight
 
@@ -53,20 +77,25 @@ orca_start_preflight:
   blocked_if_missing: PR #432 live state, YouTube behavioral contract, IG source/test reread, capture playbook/recon reread
 ```
 
-Cynefin route: complicated with one complex dependency. PR #432 is open draft,
-so the YouTube contract is a PR-branch reference, not merged-main authority. The
-safe decomposition is source refresh -> gap ledger -> patch decision.
+Post-merge route note: the original source-refresh lane ran while PR #432 was
+an open draft. Current closeout checks observed both the YouTube contract PR and
+the IG adapter PR merged, so future work should use merged `origin/main` unless
+a later PR supersedes these commits.
 
 ## Confirmed Reference State
 
-Live PR check observed by `gh pr view 432 --json state,isDraft,baseRefName,headRefName,headRefOid,mergedAt,url`:
+Live PR checks observed during post-merge closeout:
 
-- PR #432: `OPEN`, draft, base `main`, head `codex/youtube-contract-review-adjudication`.
-- Head OID: `5afa46609549d384235ffc9072680f44919e933b`.
-- `mergedAt`: `null`.
+- PR #432: `MERGED` at `2026-06-28T18:26:36Z`, merge commit
+  `658ac473c2164bc3f4da4840ee80c3f568733d03`, CI `orca-harness-tests`
+  `SUCCESS`.
+- PR #441: `MERGED` at `2026-06-29T08:37:31Z`, merge commit
+  `9767eefdd9afff38c141b8387334b2ada988a2c2`, CI `orca-harness-tests`
+  `SUCCESS`.
 
-Implication: use the PR #432 branch/head as the YouTube behavioral reference for
-this ledger. Do not claim the YouTube contract is merged into `origin/main`.
+Implication: the YouTube behavioral contract and first IG behavioral lake
+adapter patch are now merged-main references. The source-read ledger below is
+retained as historical evidence from the pre-implementation source refresh.
 
 ## Source Read Ledger
 
@@ -151,20 +180,43 @@ The reference behavior to compare is:
 
 ## Patch Decision
 
-Decision: `DOCS_PATCH_ONLY`.
+Decision: `IMPLEMENTED_BY_PR_441_FOR_ADAPTER_LEVEL_BEHAVIOR`.
 
-The older IG back-fix spec remains broadly aligned with current source reads,
-but it should not authorize implementation by itself. This ledger is the fresh
-source-backed patch decision:
+The older IG back-fix spec remains useful for residuals and future sequencing,
+but its pre-implementation gate has been closed for the first adapter-level
+slice. PR #441 implemented the bounded source-changing patch over existing lake
+surfaces without copying YouTube acquisition mechanics.
 
-1. No IG runtime patch in this lane without explicit bounded implementation authorization.
-2. The next implementation target, if authorized, should be an IG behavioral projection/index over existing surfaces, not an acquisition rewrite.
-3. The first implementation patch should make item-level behavior inspectable:
-   shortcode identity, ranking limitations, comments posture, transcript-source records, run receipts, persistence anchors, extraction source statuses, per-item rollup, and residuals.
-4. Do not copy YouTube's HTTP/youtubei route, caption priority, packet anchors, runner structure, or acquisition method into IG.
+Next patch candidates, if authorized, are no longer "create the adapter". They
+are narrower follow-ons:
+
+1. fixture/live-data validation of IG behavior records on representative lake
+   data;
+2. downstream consumer integration against the IG behavior record;
+3. deep-capture transcript extraction eligibility or explicit permanent
+   non-eligibility policy;
+4. deeper run receipt normalization for deep capture.
+
+Still do not copy YouTube's HTTP/youtubei route, caption priority, packet
+anchors, runner structure, or acquisition method into IG.
 
 ## Validation
 
+Post-merge closeout validation observed on branch
+`codex/ig-behavioral-postmerge-closeout` from `origin/main` at merge commit
+`9767eefdd9afff38c141b8387334b2ada988a2c2`:
+
+```text
+$env:PYTHONDONTWRITEBYTECODE=1; python -m pytest -p no:cacheprovider --no-header tests/unit/test_ig_reels_behavioral_projection.py tests/unit/test_ig_reels_behavioral_lake.py tests/contract/test_ig_reels_behavioral_projection_no_runtime_imports.py tests/unit/test_youtube_behavioral_projection.py tests/contract/test_youtube_behavioral_projection_no_runtime_imports.py
+...................................                                      [100%]
+35 passed in 2.01s
+
+$env:PYTHONDONTWRITEBYTECODE=1; python -m pytest -p no:cacheprovider --no-header tests/unit tests/contract -k "ig_reels or ig_"
+........................................................................ [ 33%]
+........................................................................ [ 67%]
+......................................................................   [100%]
+214 passed, 1511 deselected in 11.14s
+```
 Focused tests passed in the isolated worktree:
 
 ```text
@@ -182,8 +234,8 @@ separate `codex/ig-behavioral-sync-gap-ledger` worktree.
 
 This ledger does not claim:
 
-- PR #432 is merged;
-- IG parity is implemented;
+- PR #432 or PR #441 prove live capture, shared-core, downstream readiness, or full platform parity;
+- IG parity beyond adapter-level behavioral projection over existing lake surfaces is implemented;
 - live IG capture was run;
 - shared capture core implementation is authorized;
 - YouTube acquisition coverage is complete;
