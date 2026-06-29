@@ -36,13 +36,23 @@ Vault schema redesign. Those are accepted residuals in the genericity check.
 from __future__ import annotations
 
 from enum import StrEnum
-from typing import Literal
+from typing import Literal, Mapping
 
-from pydantic import Field, model_validator
+from pydantic import Field, ValidationError, model_validator
 
 from schemas.case_models import StrictModel
 
 SILVER_LINEAGE_SCHEMA_VERSION = "silver_lineage_v0"
+SOURCE_BACKED_COMPLETE_STATUS = "source_backed_complete"
+SOURCE_LINEAGE_MISSING_STATUS = "source_lineage_missing"
+SOURCE_LINEAGE_INCOMPLETE_STATUS = "source_lineage_incomplete"
+SOURCE_LINEAGE_INVALID_STATUS = "source_lineage_invalid"
+SourceBackedStatus = Literal[
+    "source_backed_complete",
+    "source_lineage_missing",
+    "source_lineage_incomplete",
+    "source_lineage_invalid",
+]
 
 # Open relation vocabularies from the genericity check grammar. Kept as Literals
 # (not closed enums) because the grammar calls them illustrative-but-bounded; a
@@ -308,3 +318,39 @@ def validate_silver_lineage(lineage: SilverLineage) -> SilverLineage:
     make at the write boundary to assert a lineage block is well-formed before it is
     persisted."""
     return SilverLineage.model_validate(lineage.model_dump(mode="json"))
+
+
+def silver_record_source_backed_status(record: Mapping[str, object]) -> SourceBackedStatus:
+    """Read-side eligibility gate for persisted Silver record fields.
+
+    Writers persist lineage as top-level header-shaped fields, not a nested object.
+    Consumers that make source-backed completeness decisions can use this helper to
+    reconstruct and validate that block before treating a record as complete evidence.
+    """
+    if "lineage_schema_version" not in record:
+        return SOURCE_LINEAGE_MISSING_STATUS
+    if record.get("lineage_schema_version") != SILVER_LINEAGE_SCHEMA_VERSION:
+        return SOURCE_LINEAGE_INVALID_STATUS
+    try:
+        lineage = SilverLineage(
+            schema_version=record.get("lineage_schema_version"),
+            producer_id=record.get("producer_id"),
+            producer_schema_version=record.get("producer_schema_version"),
+            source_surface=record.get("source_surface"),
+            source_object=record.get("source_object"),
+            observed_at=record.get("observed_at"),
+            captured_at=record.get("captured_at"),
+            raw_refs=record.get("raw_refs") or [],
+            derived_refs=record.get("derived_refs") or [],
+            lineage_limitations=record.get("lineage_limitations") or [],
+        )
+    except (TypeError, ValueError, ValidationError):
+        return SOURCE_LINEAGE_INVALID_STATUS
+    if not lineage.is_source_backed_complete():
+        return SOURCE_LINEAGE_INCOMPLETE_STATUS
+    return SOURCE_BACKED_COMPLETE_STATUS
+
+
+def is_silver_record_source_backed_complete(record: Mapping[str, object]) -> bool:
+    """Boolean wrapper for consumers that only need pass/fail source-backed status."""
+    return silver_record_source_backed_status(record) == SOURCE_BACKED_COMPLETE_STATUS
