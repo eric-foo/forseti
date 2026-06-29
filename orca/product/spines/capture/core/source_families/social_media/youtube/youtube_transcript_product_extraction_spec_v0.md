@@ -97,6 +97,12 @@ per-surface packets (watch / captions / audio) that share **no** raw anchor, so
   read, fail-closed on mismatch**. A verdict traces to the exact spoken second and
   the exact captured bytes. (The cue timestamp is the traceability win transcripts
   have that captions-as-text alone do not.)
+- Read-side lineage eligibility: downstream consumers that treat
+  `silver__cleaning__product_mentions` as complete evidence must also require
+  `silver_record_source_backed_status(record) == "source_backed_complete"`.
+  A completion marker proves record-set membership only; it does not grandfather
+  old no-lineage, invalid-lineage, or limitations-only records into source-backed
+  evidence.
 - Scale-ready: records are append-only / write-once with completion markers, so
   re-runs and parallel workers cannot corrupt or double-write.
 
