@@ -23,9 +23,12 @@ from __future__ import annotations
 import json
 import re
 from dataclasses import dataclass, field
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from pydantic import ValidationError
+
+if TYPE_CHECKING:
+    from data_lake.silver_lineage import SilverLineage
 
 from cleaning.audience_extractor import (
     RawApiProvider,
@@ -62,6 +65,10 @@ class TranscriptInput:
     transcript_anchor: str
     transcript_source: str  # "asr" | "caption"
     cues: list[dict]
+    # Exact source the cues came from, threaded by the runner so the product-mention
+    # record can reference the precise consumed transcript (closing same-shortcode
+    # ambiguity). Optional/additive: a producer that has not adopted lineage passes None.
+    source_lineage: "SilverLineage | None" = None
 
     @property
     def joined_text(self) -> str:
