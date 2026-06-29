@@ -12,6 +12,8 @@ import hashlib
 import json
 from pathlib import Path
 
+import pytest
+
 from capture_spine.creator_profile_current.silver_metric_producer import (
     METRIC_OBSERVATION_LANE,
     METRIC_OBSERVATION_PAYLOAD_KIND,
@@ -185,6 +187,12 @@ def test_rollup_record_lineage_and_no_drift(tmp_path: Path) -> None:
 
     # no-drift: the rollup record's numbers equal the reused seed computation.
     payload = rollup["payload"]["observation"]
+    assert payload["derivation"] == {
+        "kind": "computed_metric_rollup",
+        "source_record_ref_kind": "derived_refs",
+        "metric_posture_semantics": "source_input_support_not_raw_aggregate_visibility",
+        "calculation_recipe_version": seed_rollup["calculation_recipe_version"],
+    }
     assert payload["observation_count"] == seed_rollup["observation_count"] == 6
     assert payload["view_count_min"] == seed_rollup["view_count_min"] == 100
     assert payload["view_count_max"] == seed_rollup["view_count_max"] == 300
@@ -214,3 +222,19 @@ def test_rollup_metric_posture_value_coupling(tmp_path: Path) -> None:
         else:
             assert metric["metric_value"] is None
             assert posture["reason_detail"]
+
+
+def test_content_subject_missing_native_id_fails_closed(tmp_path: Path) -> None:
+    rows = _projection_rows()
+    rows[1] = dict(rows[1], content_shortcode=None)
+    projection = tmp_path / "projection.json"
+    projection.write_text(json.dumps({"packet_id": PACKET_ID, "rows": rows}), encoding="utf-8")
+    data_root = DataLakeRoot.for_test(tmp_path / "lake")
+
+    with pytest.raises(ValueError, match="content subject requires a non-empty entity_key native_id"):
+        derive_creator_metric_silver_records_from_projections(
+            data_root=data_root,
+            projection_paths=[projection],
+            account_ledger=_account_ledger(),
+            generated_at_utc=GENERATED_AT,
+        )

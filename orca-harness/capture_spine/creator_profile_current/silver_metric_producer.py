@@ -291,6 +291,12 @@ def build_metric_rollup_record(
                 "rollup_window": seed_rollup["rollup_window"],
                 "rollup_window_description": seed_rollup["rollup_window_description"],
                 "content_kind_inclusion_rule": seed_rollup["content_kind_inclusion_rule"],
+                "derivation": {
+                    "kind": "computed_metric_rollup",
+                    "source_record_ref_kind": "derived_refs",
+                    "metric_posture_semantics": "source_input_support_not_raw_aggregate_visibility",
+                    "calculation_recipe_version": seed_rollup["calculation_recipe_version"],
+                },
                 "metric_rollups": {
                     name: _rollup_metric(metric, what=f"rollup {seed_rollup.get('metric_rollup_id')!r} metric {name!r}")
                     for name, metric in seed_rollup["metric_rollups"].items()
@@ -322,14 +328,23 @@ def _observation_subject(seed_observation: Mapping[str, Any]) -> dict[str, Any]:
         ref: dict[str, Any] = {
             "namespace": _PLATFORM_NAMESPACE,
             "kind": "platform_public_account",
-            "native_id": seed_observation["platform_subject_key"],
+            "native_id": _required_subject_native_id(
+                seed_observation.get("platform_subject_key"),
+                what=f"observation {seed_observation.get('metric_observation_id')!r} account subject",
+            ),
         }
     else:
         ref = {
             "namespace": _PLATFORM_NAMESPACE,
             "kind": "public_content_object",
-            "native_id": seed_observation.get("content_id_or_none"),
-            "published_by_account_native_id": seed_observation["platform_subject_key"],
+            "native_id": _required_subject_native_id(
+                seed_observation.get("content_id_or_none"),
+                what=f"observation {seed_observation.get('metric_observation_id')!r} content subject",
+            ),
+            "published_by_account_native_id": _required_subject_native_id(
+                seed_observation.get("platform_subject_key"),
+                what=f"observation {seed_observation.get('metric_observation_id')!r} publisher subject",
+            ),
         }
     ref["orca_platform_account_id"] = seed_observation["platform_account_id"]
     return {"ref_type": "entity_key", "ref": ref}
@@ -339,10 +354,19 @@ def _rollup_subject(seed_rollup: Mapping[str, Any], account_handle: str | None) 
     ref: dict[str, Any] = {
         "namespace": _PLATFORM_NAMESPACE,
         "kind": "platform_public_account",
-        "native_id": account_handle,
+        "native_id": _required_subject_native_id(
+            account_handle,
+            what=f"rollup {seed_rollup.get('metric_rollup_id')!r} account subject",
+        ),
         "orca_platform_account_id": seed_rollup["profile_subject_id"],
     }
     return {"ref_type": "entity_key", "ref": ref}
+
+
+def _required_subject_native_id(value: Any, *, what: str) -> str:
+    if not isinstance(value, str) or not value.strip():
+        raise ValueError(f"{what} requires a non-empty entity_key native_id")
+    return value
 
 
 def _metric_posture(kind: str, reason: str | None) -> dict[str, Any]:

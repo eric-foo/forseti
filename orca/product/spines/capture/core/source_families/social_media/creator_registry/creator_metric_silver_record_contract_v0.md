@@ -70,9 +70,9 @@ Anchored to its source projection's raw packet via `raw_refs`.
 
 `payload.observation` carries: `subject` (the platform-account `entity_key`),
 `rollup_kind`, `platform_scope`, `platform_account_ids`, `rollup_window`,
-`rollup_window_description`, `content_kind_inclusion_rule`, `metric_rollups`
-(named aggregates, each `{metric_value, metric_posture, unit}`),
-`observation_count`, `view_count_min`/`view_count_max`,
+`rollup_window_description`, `content_kind_inclusion_rule`, `derivation`,
+`metric_rollups` (named aggregates, each `{metric_value, metric_posture,
+unit}`), `observation_count`, `view_count_min`/`view_count_max`,
 `calculation_recipe_version`, `computed_at`, `freshness_state`,
 `sample_support`, `limitations`, `source_metric_observation_ids`. Lane
 `creator_metric_rollup_silver`. The rollup's `derived_refs` carry one
@@ -91,8 +91,16 @@ This reuses the posture model the existing seeds and `validation.py` already
 apply to the same aggregates (Instagram `average_views`/`engagement_rate:
 observed`; YouTube `engagement_rate: unavailable_with_reason`). It is the
 load-bearing contract choice in this v0 — applying the *observed* posture,
-defined for source-visible facts, to a *computed* aggregate. It is named here
-for the delegated review rather than assumed silently.
+defined for source-visible facts, to a *computed* aggregate. To prevent that
+posture from being mistaken for raw aggregate visibility, every
+MetricRollupObservation also carries `payload.observation.derivation` with:
+
+- `kind: computed_metric_rollup`;
+- `source_record_ref_kind: derived_refs`;
+- `metric_posture_semantics: source_input_support_not_raw_aggregate_visibility`;
+- `calculation_recipe_version` matching the rollup recipe.
+
+That marker is part of the v0 payload contract, not optional prose.
 
 ## Conformance and no-drift
 
@@ -107,7 +115,8 @@ for the delegated review rather than assumed silently.
 - v0 emits MetricObservation + MetricRollupObservation only. It does NOT emit
   PlatformAccountEntity / public_content_object entity records or the
   `content_published_by_account` relationship; the metric subject is carried as
-  a self-describing `entity_key` reference.
+  a self-describing `entity_key` reference. The producer must fail closed rather
+  than emit an `entity_key` whose `native_id` is absent or blank.
 - Observations carry `raw_refs` to the raw packet; the intermediate IG
   reels-grid projection is recorded in `provenance`, not a formal `derived_refs`
   edge, because the reused seed observation does not carry the projection
