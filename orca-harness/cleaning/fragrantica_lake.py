@@ -57,6 +57,19 @@ FRAGRANTICA_AUDIT_PACK_PRODUCER_SCHEMA_VERSION = "fragrantica_cleaning_audit_pac
 FRAGRANTICA_SILVER_PRODUCER_SCHEMA_VERSION = "fragrantica_cleaning_silver_textobservation_v0"
 FRAGRANTICA_CLEANING_METHOD_ID = "fragrantica_cleaning_method_v0"
 REVIEW_TEXT_NORMALIZATION_RULE = "fragrantica_review_text_whitespace_normalization"
+REVIEW_VOTE_CARRY_RULE = "fragrantica_source_visible_vote_field_carry"
+FRAGRANTICA_SILVER_METRIC_PRODUCER_SCHEMA_VERSION = (
+    "fragrantica_cleaning_silver_metricobservation_v0"
+)
+
+# Review-vote metrics emitted as post-cleaned Silver MetricObservations:
+# (vote_field, metric_name, unit). Non-numeric votes (gender/relation) and the
+# season/day/night votes are deferred as named residuals.
+_REVIEW_VOTE_METRIC_SPECS: tuple[tuple[str, str, str], ...] = (
+    ("rating", "review_rating", "fragrantica_rating"),
+    ("longevity", "review_longevity_vote", "fragrantica_vote_ordinal"),
+    ("sillage", "review_sillage_vote", "fragrantica_vote_ordinal"),
+)
 
 # Reviewer-driven anti-lock-in guard (FCR-04 closure): the audit pack's
 # discriminator fields are local to cleaning_audit_pack_v0 and confer no lake-wide
@@ -127,6 +140,17 @@ def derive_fragrantica_cleaning_into_lake(
         audit_lane=FRAGRANTICA_CLEANING_AUDIT_LANE,
         audit_record_id=audit_record_name,
         audit_content_hash=audit_record["content_hash"],
+    )
+    # Text observations first, then per-review vote MetricObservations, so callers
+    # and tests can rely on a TextObservation leading the list.
+    silver_records.extend(
+        fragrantica_post_cleaned_silver_metric_records(
+            packet=packet,
+            cleaning_packet=cleaning_packet,
+            audit_lane=FRAGRANTICA_CLEANING_AUDIT_LANE,
+            audit_record_id=audit_record_name,
+            audit_content_hash=audit_record["content_hash"],
+        )
     )
     silver_paths: list[Path] = []
     for silver_record in silver_records:
@@ -246,6 +270,60 @@ def fragrantica_post_cleaned_silver_records(
     return records
 
 
+def fragrantica_post_cleaned_silver_metric_records(
+    *,
+    packet: SourceCapturePacket,
+    cleaning_packet: CleaningPacket,
+    audit_lane: str,
+    audit_record_id: str,
+    audit_content_hash: str,
+) -> list[dict[str, Any]]:
+    """Return post-cleaned Silver ``MetricObservation`` records for review votes.
+
+    One record per numeric review vote carried through Cleaning (rating,
+    longevity, sillage), read from the source-visible vote-carry ledger entry so
+    each metric is a post-cleaned fact linking back to the same audit pack as its
+    review's text observation. Non-numeric votes (gender/relation), the
+    season/day/night votes, and the product-level aggregate rating (not carried
+    through Cleaning) are deferred as named residuals.
+    """
+    capture_time = _known_capture_time(packet)
+    handle_by_id = {handle.handle_id: handle for handle in cleaning_packet.handles}
+    records: list[dict[str, Any]] = []
+    for entry in cleaning_packet.transform_ledger:
+        if entry.transform.method_or_rule != REVIEW_VOTE_CARRY_RULE:
+            continue
+        handle = handle_by_id.get(entry.input_handle_id)
+        carried = entry.transform.transformed_value
+        if handle is None or carried is None:
+            continue
+        try:
+            votes = json.loads(carried)
+        except (TypeError, ValueError):
+            continue
+        if not isinstance(votes, dict):
+            continue
+        for vote_field, metric_name, unit in _REVIEW_VOTE_METRIC_SPECS:
+            value = votes.get(vote_field)
+            if isinstance(value, bool) or not isinstance(value, (int, float)):
+                continue
+            records.append(
+                _post_cleaned_metric_record(
+                    packet=packet,
+                    handle=handle,
+                    metric_name=metric_name,
+                    metric_value=value,
+                    unit=unit,
+                    record_id=f"{generate_ulid()}.json",
+                    capture_time=capture_time,
+                    audit_lane=audit_lane,
+                    audit_record_id=audit_record_id,
+                    audit_content_hash=audit_content_hash,
+                )
+            )
+    return records
+
+
 def _post_cleaned_silver_record(
     *,
     packet: SourceCapturePacket,
@@ -297,6 +375,80 @@ def _post_cleaned_silver_record(
                     "reason_detail": None,
                 },
                 "coverage_window": {"start": None, "end": None},
+            }
+        },
+        "provenance": {
+            "cleaning_method_id": FRAGRANTICA_CLEANING_METHOD_ID,
+        },
+        "non_claims": sorted(
+            {
+                "not_archive_completeness",
+                "not_demand_signal",
+                "not_judgment",
+                "not_sentiment_analysis",
+            }
+        ),
+    }
+    record["content_hash"] = f"sha256:{_content_hash(record)}"
+    return record
+
+
+def _post_cleaned_metric_record(
+    *,
+    packet: SourceCapturePacket,
+    handle: CleaningInputHandle,
+    metric_name: str,
+    metric_value: float,
+    unit: str,
+    record_id: str,
+    capture_time: str,
+    audit_lane: str,
+    audit_record_id: str,
+    audit_content_hash: str,
+) -> dict[str, Any]:
+    record: dict[str, Any] = {
+        "record_id": record_id,
+        "raw_anchor": packet.packet_id,
+        "lane_namespace": FRAGRANTICA_CLEANING_SILVER_LANE,
+        "producer_id": _SILVER_PRODUCER_ID,
+        "schema_version": SILVER_VAULT_RECORD_SCHEMA_VERSION,
+        "producer_schema_version": FRAGRANTICA_SILVER_METRIC_PRODUCER_SCHEMA_VERSION,
+        "content_hash": "",
+        "content_hash_basis": _CONTENT_HASH_BASIS,
+        "record_kind": "observation",
+        "payload_kind": "MetricObservation",
+        "producer_row_kind": "fragrantica_review_vote",
+        "source_family": packet.source_family,
+        "source_surface": packet.source_surface,
+        "observed_at": capture_time,
+        "captured_at": capture_time,
+        "raw_refs": [_handle_raw_ref(handle)],
+        # Same standard-header lineage as the TextObservation: generated from the
+        # audit pack, so the link lives in derived_refs.
+        "derived_refs": [
+            {
+                "edge_type": "derived_from_record",
+                "lane_namespace": audit_lane,
+                "record_id": audit_record_id,
+                "content_hash": audit_content_hash,
+                "content_hash_basis": _CONTENT_HASH_BASIS,
+            }
+        ],
+        "payload": {
+            "observation": {
+                "subject": _silver_subject(handle),
+                "metric_name": metric_name,
+                "metric_value": metric_value,
+                "metric_posture": {
+                    "kind": "observed",
+                    "reason_code": None,
+                    "reason_detail": None,
+                },
+                "coverage_window": {"start": None, "end": None},
+                "source_surface": packet.source_surface,
+                "source_publication_or_event": None,
+                "source_surface_count_candidates": [],
+                "unit": unit,
             }
         },
         "provenance": {
@@ -441,4 +593,5 @@ __all__ = [
     "derive_fragrantica_cleaning_into_lake",
     "fragrantica_cleaning_audit_pack_payload",
     "fragrantica_post_cleaned_silver_records",
+    "fragrantica_post_cleaned_silver_metric_records",
 ]

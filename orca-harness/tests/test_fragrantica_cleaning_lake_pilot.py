@@ -77,7 +77,10 @@ def test_derives_fragrantica_cleaning_into_audit_pack_and_silver(tmp_path: Path)
             root.path / "derived" / raw_shard(packet_id) / packet_id / FRAGRANTICA_CLEANING_SILVER_LANE
         )
 
-    silver = json.loads(result.silver_paths[0].read_text(encoding="utf-8"))
+    silver_records = [
+        json.loads(p.read_text(encoding="utf-8")) for p in result.silver_paths
+    ]
+    silver = next(r for r in silver_records if r["payload_kind"] == "TextObservation")
     assert silver["schema_version"] == "silver_vault_record_v0"
     assert silver["record_kind"] == "observation"
     assert silver["payload_kind"] == "TextObservation"
@@ -115,7 +118,7 @@ def test_fragrantica_cleaning_emits_no_silver_wrapped_full_packet(tmp_path: Path
         record = json.loads(path.read_text(encoding="utf-8"))
         assert record.get("payload_kind") != "FragranticaCleaningPacket"
         if record.get("schema_version") == "silver_vault_record_v0":
-            assert record["payload_kind"] == "TextObservation"
+            assert record["payload_kind"] in {"TextObservation", "MetricObservation"}
             assert "cleaning_packet" not in record.get("payload", {})
 
 
@@ -199,18 +202,54 @@ def test_fragrantica_cleaning_emits_one_silver_per_review_card(tmp_path: Path) -
     result = derive_fragrantica_cleaning_into_lake(data_root=root, packet_id=packet_id)
 
     # One post-cleaned Silver TextObservation per review-card handle (here: 2),
-    # each linking to the SAME single audit pack.
-    assert len(result.silver_paths) == 2
+    # plus per-review vote MetricObservations; all link to the SAME audit pack.
     audit = json.loads(result.audit_path.read_text(encoding="utf-8"))
-    texts: set[str] = set()
-    for silver_path in result.silver_paths:
-        record = json.loads(silver_path.read_text(encoding="utf-8"))
-        assert record["payload_kind"] == "TextObservation"
-        texts.add(record["payload"]["observation"]["text_value"])
+    records = [json.loads(p.read_text(encoding="utf-8")) for p in result.silver_paths]
+    text_records = [r for r in records if r["payload_kind"] == "TextObservation"]
+    metric_records = [r for r in records if r["payload_kind"] == "MetricObservation"]
+
+    assert len(text_records) == 2  # one TextObservation per review card
+    assert metric_records  # each review card also yields vote MetricObservations
+    for record in records:
+        assert record["payload_kind"] in {"TextObservation", "MetricObservation"}
         refs = [r for r in record["derived_refs"] if r["record_id"] == audit["record_id"]]
         assert len(refs) == 1
         assert refs[0]["content_hash"] == audit["content_hash"]
+
+    texts = {r["payload"]["observation"]["text_value"] for r in text_records}
     assert texts == {"This perfume died young.", "Smells like heaven all day."}
+
+
+def test_fragrantica_cleaning_emits_review_vote_metric_observations(tmp_path: Path) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    packet_id = _commit_fragrantica_packet(root, tmp_path)
+
+    result = derive_fragrantica_cleaning_into_lake(data_root=root, packet_id=packet_id)
+    audit = json.loads(result.audit_path.read_text(encoding="utf-8"))
+
+    metrics: dict[str, dict[str, Any]] = {}
+    for silver_path in result.silver_paths:
+        record = json.loads(silver_path.read_text(encoding="utf-8"))
+        if record["payload_kind"] != "MetricObservation":
+            continue
+        assert record["record_kind"] == "observation"
+        observation = record["payload"]["observation"]
+        # MetricObservation discipline: observed -> value present, reason null.
+        assert observation["metric_posture"]["kind"] == "observed"
+        assert observation["metric_posture"]["reason_code"] is None
+        # Same audit-pack lineage as the review's text observation.
+        refs = [r for r in record["derived_refs"] if r["record_id"] == audit["record_id"]]
+        assert len(refs) == 1
+        assert refs[0]["content_hash"] == audit["content_hash"]
+        metrics[observation["metric_name"]] = observation
+
+    # The single fixture review carries rating 5, longevity 3, sillage 2.
+    assert metrics["review_rating"]["metric_value"] == 5
+    assert metrics["review_longevity_vote"]["metric_value"] == 3
+    assert metrics["review_sillage_vote"]["metric_value"] == 2
+    # Non-numeric votes (gender/relation) are deferred residuals, not metrics.
+    assert "review_gender" not in metrics
+    assert "review_relation" not in metrics
 
 
 def _commit_fragrantica_packet(root: DataLakeRoot, tmp_path: Path, html: str | None = None) -> str:

@@ -92,8 +92,12 @@ def test_capture_to_silver_persists_four_distinct_layers(tmp_path: Path) -> None
     assert "not_silver_fact" in audit["non_claims"]
     assert "cleaning_packet" in audit["payload"]  # carries the transform ledger
 
-    # SILVER: a fact record, NOT evidence.
-    silver = json.loads(result.silver_paths[0].read_text(encoding="utf-8"))
+    # SILVER: a fact record, NOT evidence. Find the review-body TextObservation
+    # (the lane now also emits vote MetricObservations).
+    silver_records = [
+        json.loads(p.read_text(encoding="utf-8")) for p in result.silver_paths
+    ]
+    silver = next(r for r in silver_records if r["payload_kind"] == "TextObservation")
     assert silver["record_kind"] == "observation"
     assert silver["payload_kind"] == "TextObservation"
     assert "cleaning_packet" not in silver["payload"]
@@ -117,7 +121,10 @@ def test_capture_to_silver_threads_one_lineage_end_to_end(tmp_path: Path) -> Non
     result = derive_fragrantica_cleaning_into_lake(data_root=root, packet_id=packet_id)
 
     audit = json.loads(result.audit_path.read_text(encoding="utf-8"))
-    silver = json.loads(result.silver_paths[0].read_text(encoding="utf-8"))
+    silver_records = [
+        json.loads(p.read_text(encoding="utf-8")) for p in result.silver_paths
+    ]
+    silver = next(r for r in silver_records if r["payload_kind"] == "TextObservation")
 
     # The same raw anchor appears at every layer.
     assert projection.packet_id == packet_id
