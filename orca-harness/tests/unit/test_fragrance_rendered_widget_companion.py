@@ -238,6 +238,43 @@ def test_capture_auto_derives_judgeme_fallback_from_dom_metadata() -> None:
 
 
 
+def test_capture_auto_judgeme_collapses_escaped_shopify_domain_duplicate() -> None:
+    captured_urls: list[str] = []
+
+    def fake_observation_fetcher(**_: object) -> BrowserPageObservationSuccess:
+        return _observation(
+            response_body=None,
+            total_count=2,
+            provider_metadata={
+                "judge_me": {
+                    "present": True,
+                    "myshopify_domains": ["example.myshopify.com", "x3dexample.myshopify.com"],
+                    "widget_product_ids": ["1234567890123"],
+                    "review_count": 2,
+                }
+            },
+        )
+
+    def fake_fallback_fetcher(**kwargs: object) -> list[BrowserPageResponse]:
+        captured_urls.extend(kwargs["urls"])  # type: ignore[arg-type]
+        return [_widget_response(_widget_body(total_count=1, review_count=1), url=captured_urls[0])]
+
+    receipt = capture_fragrance_rendered_widget_companion(
+        url=PRODUCT_URL,
+        source_id="fragrance_retail_example",
+        source_site="Example",
+        as_of_date=date(2026, 6, 29),
+        observation_fetcher=fake_observation_fetcher,
+        fallback_fetcher=fake_fallback_fetcher,
+    )
+
+    assert len(captured_urls) == 1
+    assert "shop_domain=example.myshopify.com" in captured_urls[0]
+    assert "auto_judgeme_multiple_shop_domain_candidates" not in receipt.residuals
+    assert receipt.widget_route["auto_judgeme_shop_domain_candidates"] == ["example.myshopify.com"]
+    assert receipt.fallback_needed is False
+
+
 def test_capture_auto_judgeme_multiple_page_candidates_are_residualized_without_fetch() -> None:
     def fake_observation_fetcher(**_: object) -> BrowserPageObservationSuccess:
         return _observation(
@@ -498,6 +535,15 @@ def test_companion_combines_passive_and_fallback_rows_without_flagging_complete_
     assert receipt.focused_review_coverage is not None
     assert receipt.focused_review_coverage.coverage_summary.total_rows == 3
     assert receipt.focused_review_coverage.coverage_summary.widget_total_count == 3
+    rows = {row.source_native_review_id: row for row in receipt.focused_review_coverage.rows}
+    assert rows["json-0"].capture_route == "render_passive"
+    assert rows["json-0"].source_response_origin == "render_passive"
+    assert rows["json-0"].source_response_index == 1
+    assert rows["json-0"].source_response_kind == "judgeme_reviews_for_widget"
+    assert rows["json-1"].capture_route == "bounded_fallback"
+    assert rows["json-1"].source_response_origin == "bounded_fallback"
+    assert rows["json-1"].source_response_index == 2
+    assert rows["json-1"].source_visible_fields["capture_route"] == "bounded_fallback"
     assert receipt.fallback_needed is False
 
 

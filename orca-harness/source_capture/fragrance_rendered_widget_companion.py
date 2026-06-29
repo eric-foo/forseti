@@ -366,10 +366,21 @@ def build_fragrance_rendered_widget_companion_from_observation(
     if not passive_responses:
         residuals.append("passive_widget_not_observed_during_render")
 
-    review_response_bodies = [
-        response.body_text
+    review_response_captures = [
+        response
         for response in widget_responses
         if response.response_kind in _REVIEW_RESPONSE_KINDS and response.body_text
+    ]
+    review_response_bodies = [response.body_text for response in review_response_captures if response.body_text]
+    review_response_sources = [
+        {
+            "response_index": response.response_index,
+            "response_origin": response.response_origin,
+            "response_kind": response.response_kind,
+            "requested_url": response.requested_url,
+            "final_url": response.final_url,
+        }
+        for response in review_response_captures
     ]
     unparsed_review_response_kinds = sorted(
         {
@@ -387,6 +398,7 @@ def build_fragrance_rendered_widget_companion_from_observation(
         try:
             focused_review_coverage = build_fragrance_review_coverage(
                 widget_responses=review_response_bodies,
+                widget_response_sources=review_response_sources,
                 pdp_html=pdp_html,
                 source_id=source_id,
                 source_site=source_site,
@@ -767,7 +779,7 @@ def _myshopify_domain(value: object) -> str | None:
     if not text:
         return None
     match = re.search(r"[A-Za-z0-9_-]+\.myshopify\.com", text)
-    return match.group(0) if match else None
+    return _canonical_myshopify_domain(match.group(0)) if match else None
 
 def _myshopify_domain_list(value: object) -> list[str]:
     domains: list[str] = []
@@ -777,6 +789,15 @@ def _myshopify_domain_list(value: object) -> list[str]:
         if parsed:
             domains.append(parsed)
     return _dedup(domains)
+
+def _canonical_myshopify_domain(domain: str) -> str:
+    # Some rendered Shopify snippets expose "\x3dshop.myshopify.com"; the regex starts at x3d.
+    for prefix in ("x3d", "u003d"):
+        if domain.lower().startswith(prefix):
+            candidate = domain[len(prefix) :]
+            if re.fullmatch(r"[A-Za-z0-9_-]+\.myshopify\.com", candidate):
+                return candidate
+    return domain
 
 def _first_numeric_string(value: object) -> str | None:
     if isinstance(value, list):

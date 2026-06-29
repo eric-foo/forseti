@@ -86,6 +86,13 @@ class FragranceReviewCoverageRow(StrictModel):
     row_id: str
     row_ordinal: int
     row_source: Literal["judgeme_widget_html", "widget_json_review", "yotpo_v3_review"]
+    capture_route: Literal["render_passive", "bounded_fallback", "unattributed_widget_response"] = (
+        "unattributed_widget_response"
+    )
+    source_response_index: int | None = Field(default=None, ge=1)
+    source_response_origin: Literal["render_passive", "bounded_fallback"] | None = None
+    source_response_kind: str | None = None
+    source_response_url: str | None = None
     source_native_review_id: str | None = None
     candidate_review_key: str
     review_key_status: Literal["native_id_present", "candidate_key_only"]
@@ -180,6 +187,10 @@ class _MutableReview:
     attrs: dict[str, str]
     ordinal: int
     row_source: Literal["judgeme_widget_html", "widget_json_review", "yotpo_v3_review"]
+    source_response_index: int | None = None
+    source_response_origin: Literal["render_passive", "bounded_fallback"] | None = None
+    source_response_kind: str | None = None
+    source_response_url: str | None = None
     text: dict[str, list[str]] = field(default_factory=lambda: {"title": [], "body": [], "author": [], "timestamp": []})
     rating_value: int | None = None
     timestamp_source: str | None = None
@@ -394,6 +405,7 @@ def write_fragrance_review_coverage(
 def build_fragrance_review_coverage(
     *,
     widget_responses: Sequence[str],
+    widget_response_sources: Sequence[Mapping[str, Any | None]] = (),
     pdp_html: str | None = None,
     source_id: str,
     source_site: str,
@@ -410,6 +422,7 @@ def build_fragrance_review_coverage(
     widget_aggregate: FragranceReviewAggregateCompanion | None = None
 
     for index, raw_response in enumerate(widget_responses, start=1):
+        response_context = _widget_response_context(index, widget_response_sources)
         try:
             parsed = json.loads(raw_response)
         except json.JSONDecodeError as exc:
@@ -424,14 +437,17 @@ def build_fragrance_review_coverage(
             widget_aggregate = parsed_aggregate
         if isinstance(parsed.get("html"), str):
             route_health.append(f"widget_response_{index}:html_present")
-            raw_reviews.extend(_parse_judgeme_html_reviews(parsed["html"]))
+            raw_reviews.extend(_attach_response_context(_parse_judgeme_html_reviews(parsed["html"]), response_context))
         elif isinstance(parsed.get("reviews"), list):
             route_health.append(f"widget_response_{index}:reviews_json_present")
             raw_reviews.extend(
-                _parse_json_reviews(
-                    parsed["reviews"],
-                    start_ordinal=len(raw_reviews) + 1,
-                    row_source=_json_review_row_source(parsed),
+                _attach_response_context(
+                    _parse_json_reviews(
+                        parsed["reviews"],
+                        start_ordinal=len(raw_reviews) + 1,
+                        row_source=_json_review_row_source(parsed),
+                    ),
+                    response_context,
                 )
             )
         else:
@@ -512,6 +528,42 @@ def _parse_judgeme_html_reviews(html: str) -> list[_MutableReview]:
     parser.feed(html)
     return parser.reviews
 
+
+def _widget_response_context(
+    index: int,
+    sources: Sequence[Mapping[str, Any | None]],
+) -> dict[str, Any | None]:
+    if index > len(sources):
+        return {}
+    source = sources[index - 1]
+    if not isinstance(source, Mapping):
+        return {}
+    origin = source.get("response_origin")
+    if origin not in {"render_passive", "bounded_fallback"}:
+        origin = None
+    return {
+        "source_response_index": _int_or_none(source.get("response_index")),
+        "source_response_origin": origin,
+        "source_response_kind": _string_or_none(source.get("response_kind")),
+        "source_response_url": _string_or_none(source.get("requested_url") or source.get("final_url")),
+    }
+
+
+def _attach_response_context(
+    reviews: list[_MutableReview],
+    context: Mapping[str, Any | None],
+) -> list[_MutableReview]:
+    if not context:
+        return reviews
+    for review in reviews:
+        review.source_response_index = _int_or_none(context.get("source_response_index"))
+        origin = context.get("source_response_origin")
+        if origin in {"render_passive", "bounded_fallback"}:
+            review.source_response_origin = origin  # type: ignore[assignment]
+        review.source_response_kind = _string_or_none(context.get("source_response_kind"))
+        review.source_response_url = _string_or_none(context.get("source_response_url"))
+    return reviews
+
 def _parse_json_reviews(
     reviews: Sequence[object],
     *,
@@ -586,10 +638,16 @@ def _normalize_reviews(
         row_id = _row_token(native_id or candidate_key)
         word_count = _word_count(body)
         verified = _bool_or_none(review.attrs.get("data-verified-buyer"))
+        capture_route = review.source_response_origin or "unattributed_widget_response"
         source_visible_fields = {
             key: value
             for key, value in {
                 "source_widget": _source_widget_label(review.row_source),
+                "capture_route": capture_route,
+                "source_response_index": review.source_response_index,
+                "source_response_origin": review.source_response_origin,
+                "source_response_kind": review.source_response_kind,
+                "source_response_url": review.source_response_url,
                 "data_review_id": native_id,
                 "data_verified_buyer": verified,
                 "data_product_title": review.attrs.get("data-product-title") or None,
@@ -615,6 +673,11 @@ def _normalize_reviews(
                 row_id=row_id,
                 row_ordinal=ordinal,
                 row_source=review.row_source,
+                capture_route=capture_route,
+                source_response_index=review.source_response_index,
+                source_response_origin=review.source_response_origin,
+                source_response_kind=review.source_response_kind,
+                source_response_url=review.source_response_url,
                 source_native_review_id=native_id,
                 candidate_review_key=candidate_key,
                 review_key_status="native_id_present" if native_id else "candidate_key_only",
