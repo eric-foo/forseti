@@ -56,3 +56,6 @@ jobs:
       - name: dcp receipt shape (changed docs carry well-formed receipts)
         working-directory: ${{ github.workspace }}
         run: python .agents/hooks/check_dcp_receipt.py --strict
+      - name: silver-lane write contract (no-blur binding)
+        working-directory: ${{ github.workspace }}
+        run: python .agents/hooks/check_silver_lane_registry.py --strict

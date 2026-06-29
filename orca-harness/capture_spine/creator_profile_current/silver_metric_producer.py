@@ -45,6 +45,7 @@ from capture_spine.creator_profile_current.instagram_metric_seed import (
     build_instagram_reels_creator_metric_seed_from_files,
 )
 from harness_utils import generate_ulid
+from data_lake.canonical_json import canonical_record_bytes as _json_bytes
 
 if TYPE_CHECKING:
     from data_lake.root import DataLakeRoot
@@ -454,10 +455,6 @@ def _canonical_json_bytes(value: Any) -> bytes:
         separators=(",", ":"),
         allow_nan=False,
     ).encode("utf-8")
-
-
-def _json_bytes(value: Any) -> bytes:
-    return (json.dumps(value, ensure_ascii=False, indent=2, sort_keys=True, allow_nan=False) + "\n").encode("utf-8")
 
 
 __all__ = [
