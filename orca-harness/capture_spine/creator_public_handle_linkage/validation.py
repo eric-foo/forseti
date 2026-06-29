@@ -639,5 +639,3 @@ def _assert_no_forbidden_output_value(value: str, *, path: str) -> None:
 
 def _fail(code: str, message: str) -> None:
     raise CreatorPublicHandleLinkageError(code, message)
-
-

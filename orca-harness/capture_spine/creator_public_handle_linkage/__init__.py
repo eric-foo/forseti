@@ -21,4 +21,3 @@ __all__ = [
     "load_creator_public_handle_linkage_ledger",
     "validate_creator_public_handle_linkage_ledger",
 ]
-

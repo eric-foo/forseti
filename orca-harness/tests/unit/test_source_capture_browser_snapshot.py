@@ -8,6 +8,7 @@ from pathlib import Path
 
 import pytest
 
+import source_capture.adapters.browser_snapshot as browser_snapshot_module
 from runners import run_source_capture_browser_packet as browser_runner
 from runners.run_source_capture_browser_packet import BROWSER_SNAPSHOT_NON_CLAIMS
 from source_capture import CaptureModeCategory
@@ -15,10 +16,13 @@ from source_capture.adapters.browser_snapshot import (
     BrowserContextRequest,
     BrowserContextResponse,
     BrowserContextResponsesSuccess,
+    BrowserPageObservationSuccess,
+    BrowserPageResponse,
     BrowserSnapshotFailure,
     BrowserSnapshotFailureKind,
     BrowserSnapshotSuccess,
     fetch_browser_context_responses,
+    fetch_browser_page_observation_capture,
     fetch_browser_snapshot_capture,
 )
 from source_capture.proxy_profiles import ProxyCategory, ProxyProfile
@@ -67,6 +71,168 @@ class _FakeContextResponseEngine:
         if isinstance(self.result, Exception):
             raise self.result
         return self.result
+
+
+class _FakePageObservationEngine:
+    def __init__(self, result: BrowserPageObservationSuccess | Exception) -> None:
+        self.result = result
+        self.capture_kwargs: dict[str, object] | None = None
+
+    def capture_page_observation(self, **kwargs: object) -> BrowserPageObservationSuccess:
+        self.capture_kwargs = dict(kwargs)
+        if isinstance(self.result, Exception):
+            raise self.result
+        return self.result
+
+
+class _FakeLazyScrollPage:
+    def __init__(self, *, height: int = 3_000) -> None:
+        self.height = height
+        self.scrolled_to: list[object] = []
+        self.waits: list[int] = []
+
+    def evaluate(self, script: str, arg: object | None = None) -> int | None:
+        if "scrollTo" in script:
+            self.scrolled_to.append(arg if arg is not None else "bottom")
+            return None
+        if "scrollHeight" in script:
+            return self.height
+        return None
+
+    def wait_for_timeout(self, timeout_ms: int) -> None:
+        self.waits.append(timeout_ms)
+
+
+class _FakeObservationResponse:
+    def __init__(self, event_log: list[str]) -> None:
+        self.event_log = event_log
+        self.url = "https://api.example.test/widget"
+        self.status = 200
+        self.ok = True
+        self.headers = {"content-type": "application/json"}
+
+    def text(self) -> str:
+        self.event_log.append("response_text")
+        return "{}"
+
+
+class _FakeObservationLocator:
+    def __init__(self, event_log: list[str]) -> None:
+        self.event_log = event_log
+
+    def inner_text(self, *, timeout: float) -> str:
+        self.event_log.append("inner_text")
+        return "before scroll"
+
+
+class _FakeObservationPage:
+    def __init__(self, event_log: list[str], *, height: int = 3_000) -> None:
+        self.event_log = event_log
+        self.height = height
+        self.url = "https://example.com/source"
+        self.response_callback: object | None = None
+        self.response_emitted = False
+
+    def route(self, *_args: object, **_kwargs: object) -> None:
+        self.event_log.append("route")
+
+    def on(self, event: str, callback: object) -> None:
+        assert event == "response"
+        self.response_callback = callback
+
+    def goto(self, *_args: object, **_kwargs: object) -> None:
+        self.event_log.append("goto")
+
+    def wait_for_timeout(self, timeout_ms: float) -> None:
+        self.event_log.append(f"wait:{int(timeout_ms)}")
+
+    def wait_for_selector(self, *_args: object, **_kwargs: object) -> None:
+        self.event_log.append("wait_for_selector")
+
+    def locator(self, selector: str) -> _FakeObservationLocator:
+        assert selector == "body"
+        return _FakeObservationLocator(self.event_log)
+
+    def evaluate(self, script: str, arg: object | None = None) -> object:
+        if "scrollTo" in script:
+            self.event_log.append("scroll")
+            if self.response_callback is not None and not self.response_emitted:
+                self.response_callback(_FakeObservationResponse(self.event_log))  # type: ignore[operator]
+                self.response_emitted = True
+            return None
+        if "scrollHeight" in script:
+            self.event_log.append("scroll_height")
+            return self.height
+        self.event_log.append("dom_extract")
+        return {"items": [{"text": "before scroll"}]}
+
+    def title(self) -> str:
+        return "Rendered Source"
+
+
+class _FakeObservationContext:
+    def __init__(self, page: _FakeObservationPage) -> None:
+        self.page = page
+
+    def new_page(self) -> _FakeObservationPage:
+        return self.page
+
+    def close(self) -> None:
+        self.page.event_log.append("context_close")
+
+
+class _FakeObservationBrowser:
+    def __init__(self, page: _FakeObservationPage) -> None:
+        self.page = page
+
+    def new_context(self, **_kwargs: object) -> _FakeObservationContext:
+        return _FakeObservationContext(self.page)
+
+    def close(self) -> None:
+        self.page.event_log.append("browser_close")
+
+
+class _FakeObservationChromium:
+    def __init__(self, page: _FakeObservationPage) -> None:
+        self.page = page
+
+    def launch(self, **_kwargs: object) -> _FakeObservationBrowser:
+        return _FakeObservationBrowser(self.page)
+
+
+class _FakeObservationPlaywright:
+    def __init__(self, page: _FakeObservationPage) -> None:
+        self.chromium = _FakeObservationChromium(page)
+
+
+class _FakeSyncPlaywright:
+    def __init__(self, page: _FakeObservationPage) -> None:
+        self.page = page
+
+    def __enter__(self) -> _FakeObservationPlaywright:
+        return _FakeObservationPlaywright(self.page)
+
+    def __exit__(self, *_args: object) -> None:
+        return None
+
+
+class _FakePlaywrightSyncApi:
+    def __init__(self, page: _FakeObservationPage) -> None:
+        self.page = page
+
+    def sync_playwright(self) -> _FakeSyncPlaywright:
+        return _FakeSyncPlaywright(self.page)
+
+
+def _install_fake_playwright(monkeypatch: pytest.MonkeyPatch, page: _FakeObservationPage) -> None:
+    original_import_module = browser_snapshot_module.import_module
+
+    def fake_import_module(name: str) -> object:
+        if name == "playwright.sync_api":
+            return _FakePlaywrightSyncApi(page)
+        return original_import_module(name)
+
+    monkeypatch.setattr(browser_snapshot_module, "import_module", fake_import_module)
 
 
 def test_fetch_browser_snapshot_capture_with_fake_engine_preserves_browser_artifacts() -> None:
@@ -460,6 +626,191 @@ def _ok_engine() -> _FakeBrowserEngine:
             screenshot_png=b"\x89PNG\r\n\x1a\nbrowser",
         )
     )
+
+
+def _ok_page_observation_engine() -> _FakePageObservationEngine:
+    return _FakePageObservationEngine(
+        BrowserPageObservationSuccess(
+            requested_url="https://example.com/source",
+            final_url="https://example.com/source",
+            title="Rendered Source",
+            visible_text="Rendered source",
+            dom_observation={"items": []},
+            responses=[
+                BrowserPageResponse(
+                    requested_url="https://api.example.test/widget",
+                    final_url="https://api.example.test/widget",
+                    status=200,
+                    ok=True,
+                    body_text="{}",
+                    response_headers={},
+                )
+            ],
+            metadata={"response_count": 1},
+            warning_notes=[],
+            limitation_notes=[],
+        )
+    )
+
+
+def test_fetch_browser_page_observation_capture_threads_lazy_load_scroll_controls_to_engine() -> None:
+    engine = _ok_page_observation_engine()
+
+    result = fetch_browser_page_observation_capture(
+        url="https://example.com/source",
+        dom_extract_script="() => ({items: []})",
+        dom_extract_arg={},
+        response_url_predicate=lambda url: "widget" in url,
+        lazy_load_scroll_passes=2,
+        lazy_load_scroll_step_px=650,
+        engine=engine,
+    )
+
+    assert isinstance(result, BrowserPageObservationSuccess)
+    assert engine.capture_kwargs is not None
+    assert engine.capture_kwargs["lazy_load_scroll_passes"] == 2
+    assert engine.capture_kwargs["lazy_load_scroll_step_px"] == 650
+
+
+def test_fetch_browser_page_observation_capture_rejects_negative_lazy_load_scroll_controls() -> None:
+    with pytest.raises(ValueError, match="lazy_load_scroll_passes must be zero or greater"):
+        fetch_browser_page_observation_capture(
+            url="https://example.com/source",
+            dom_extract_script="() => ({items: []})",
+            dom_extract_arg={},
+            response_url_predicate=lambda _: False,
+            lazy_load_scroll_passes=-1,
+            engine=_ok_page_observation_engine(),
+        )
+    with pytest.raises(ValueError, match="lazy_load_scroll_step_px must be zero or greater"):
+        fetch_browser_page_observation_capture(
+            url="https://example.com/source",
+            dom_extract_script="() => ({items: []})",
+            dom_extract_arg={},
+            response_url_predicate=lambda _: False,
+            lazy_load_scroll_step_px=-1,
+            engine=_ok_page_observation_engine(),
+        )
+
+
+
+
+def test_playwright_page_observation_extracts_dom_before_lazy_load_scroll_and_reads_responses_after(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    event_log: list[str] = []
+    page = _FakeObservationPage(event_log)
+    _install_fake_playwright(monkeypatch, page)
+
+    result = browser_snapshot_module._PlaywrightBrowserSnapshotEngine().capture_page_observation(
+        url="https://example.com/source",
+        timeout_seconds=1,
+        wait_until="load",
+        viewport_width=1280,
+        viewport_height=720,
+        dom_extract_script="() => ({items: []})",
+        dom_extract_arg={},
+        response_url_predicate=lambda url: "widget" in url,
+        lazy_load_scroll_passes=1,
+        lazy_load_scroll_step_px=500,
+    )
+
+    assert result.metadata["dom_observation_stage"] == "pre_lazy_load_scroll"
+    assert result.metadata["lazy_load_scroll_passes_executed"] == 1
+    assert result.metadata["lazy_load_scroll_stop_reason"] == "requested_passes_complete"
+    assert result.dom_observation == {"items": [{"text": "before scroll"}]}
+    assert result.responses[0].body_text == "{}"
+    assert event_log.index("inner_text") < event_log.index("dom_extract")
+    assert event_log.index("dom_extract") < event_log.index("scroll")
+    assert event_log.index("scroll") < event_log.index("response_text")
+
+
+def test_playwright_page_observation_reports_lazy_load_cap_warning(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    event_log: list[str] = []
+    page = _FakeObservationPage(event_log)
+    _install_fake_playwright(monkeypatch, page)
+
+    result = browser_snapshot_module._PlaywrightBrowserSnapshotEngine().capture_page_observation(
+        url="https://example.com/source",
+        timeout_seconds=1,
+        wait_until="load",
+        viewport_width=1280,
+        viewport_height=720,
+        dom_extract_script="() => ({items: []})",
+        dom_extract_arg={},
+        response_url_predicate=lambda url: "widget" in url,
+        lazy_load_scroll_passes=browser_snapshot_module._MAX_SCROLL_PASSES + 2,
+        lazy_load_scroll_step_px=0,
+    )
+
+    assert (
+        result.metadata["lazy_load_scroll_passes_executed"]
+        == browser_snapshot_module._MAX_SCROLL_PASSES
+    )
+    assert result.metadata["lazy_load_scroll_stop_reason"] == "capped_pass_limit"
+    assert result.warning_notes == [
+        "browser_page_observation lazy_load_scroll_passes capped "
+        f"from {browser_snapshot_module._MAX_SCROLL_PASSES + 2} "
+        f"to {browser_snapshot_module._MAX_SCROLL_PASSES}"
+    ]
+    assert event_log.count("scroll") == browser_snapshot_module._MAX_SCROLL_PASSES
+
+
+def test_bounded_lazy_load_scrolls_stepwise_after_observation_extraction() -> None:
+    page = _FakeLazyScrollPage(height=2_000)
+
+    result = browser_snapshot_module._run_bounded_lazy_load_scrolls(
+        page,
+        scroll_passes=3,
+        scroll_step_px=500,
+    )
+
+    assert result.executed_passes == 3
+    assert result.stop_reason == "requested_passes_complete"
+    assert page.scrolled_to == [500, 1_000, 1_500]
+    assert page.waits == [browser_snapshot_module._SCROLL_PASS_SETTLE_MS] * 3
+
+
+def test_bounded_lazy_load_scrolls_cap_pass_count() -> None:
+    page = _FakeLazyScrollPage()
+
+    result = browser_snapshot_module._run_bounded_lazy_load_scrolls(
+        page,
+        scroll_passes=browser_snapshot_module._MAX_SCROLL_PASSES + 5,
+        scroll_step_px=0,
+    )
+
+    assert result.executed_passes == browser_snapshot_module._MAX_SCROLL_PASSES
+    assert result.stop_reason == "capped_pass_limit"
+    assert len(page.scrolled_to) == browser_snapshot_module._MAX_SCROLL_PASSES
+
+
+def test_bounded_lazy_load_scrolls_reports_page_end_and_zero_noop() -> None:
+    page = _FakeLazyScrollPage(height=900)
+
+    page_end = browser_snapshot_module._run_bounded_lazy_load_scrolls(
+        page,
+        scroll_passes=3,
+        scroll_step_px=500,
+    )
+
+    assert page_end.executed_passes == 2
+    assert page_end.stop_reason == "page_end"
+    assert page.scrolled_to == [500, 1_000]
+
+    no_scroll_page = _FakeLazyScrollPage()
+    no_scroll = browser_snapshot_module._run_bounded_lazy_load_scrolls(
+        no_scroll_page,
+        scroll_passes=0,
+        scroll_step_px=500,
+    )
+
+    assert no_scroll.executed_passes == 0
+    assert no_scroll.stop_reason is None
+    assert no_scroll_page.scrolled_to == []
+    assert no_scroll_page.waits == []
 
 
 def test_fetch_browser_snapshot_capture_threads_scroll_params_to_engine() -> None:
