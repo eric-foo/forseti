@@ -73,19 +73,29 @@ def test_projection_carries_source_surface_disagreement() -> None:
     assert "clips_user_json_metadata" in projection.loss_ledger.source_surfaces_observed
 
 
-def test_projection_missing_json_join_is_marked() -> None:
+def test_projection_missing_json_join_promotes_parseable_dom_grid_metric() -> None:
     packet, raw = _reels_packet()
 
     projection = build_ig_reels_grid_projection(packet=packet, raw_file_bytes_by_file_id=raw)
 
     view = _row(projection, "ig_reels_grid_02", "view_count")
     assert view.join_status == "missing_json"
-    assert view.posture is MetricPosture.UNAVAILABLE_WITH_REASON
-    assert view.value is None
-    assert view.chosen_source_surface is None
-    # DOM still carried even with no JSON join.
-    assert [c.source_surface for c in view.source_surface_count_candidates] == ["dom_grid_engagement"]
+    assert view.posture is MetricPosture.OBSERVED
+    assert view.value == 1630
+    assert view.reason is None
+    assert view.chosen_source_surface == "dom_grid_engagement"
+    assert "metric_value_from_dom_grid_no_passive_json_join" in view.selection_limitations
+    assert "ig_reels_dom_grid_metric_promoted:view_count" in view.residuals
+    assert [(c.source_surface, c.value, c.raw_text) for c in view.source_surface_count_candidates] == [
+        ("dom_grid_engagement", 1630, "1,630")
+    ]
 
+    like = _row(projection, "ig_reels_grid_02", "like_count")
+    comment = _row(projection, "ig_reels_grid_02", "comment_count")
+    assert like.value == 9
+    assert like.chosen_source_surface == "dom_grid_engagement"
+    assert comment.value == 0
+    assert comment.chosen_source_surface == "dom_grid_engagement"
 
 def test_projection_forces_static_post_view_count_not_applicable() -> None:
     packet, raw = _reels_packet()
@@ -209,6 +219,7 @@ def test_project_reels_grid_explicit_record_id_is_create_only(tmp_path) -> None:
     project_ig_reels_grid_into_lake(data_root=root, packet_id=packet_id, record_id="rec1")
     with pytest.raises(DataLakeRootError):
         project_ig_reels_grid_into_lake(data_root=root, packet_id=packet_id, record_id="rec1")
+
 
 def test_projection_carries_present_but_null_json_surface() -> None:
     # web_profile_info joined the shortcode but exposed no video/play count for THIS row;
@@ -340,9 +351,10 @@ def test_projection_profile_missing_metric_field_anchors_snapshot_object() -> No
     assert projection.loss_ledger.structure_preserved is False
 
 
-def test_projection_chosen_source_surface_is_never_dom() -> None:
-    # The carried value matches ONLY the DOM candidate (no JSON surface holds it). DOM is
-    # carried for disagreement but must never be reported as the value's source surface.
+def test_projection_does_not_reattribute_json_selected_value_to_dom() -> None:
+    # This is already an observed upstream value, so projection does not infer DOM source
+    # provenance merely because the number matches only DOM. DOM fallback is only for
+    # unavailable metrics where JSON did not join.
     joined = [
         {
             "dom_row": _dom_row(0, "DZdomonly00", "reel", "655", "9", "0"),
@@ -363,6 +375,35 @@ def test_projection_chosen_source_surface_is_never_dom() -> None:
         "clips_user_json_metadata": 999,
     }
 
+
+def test_projection_dom_grid_fallback_parses_compact_k_m_counts() -> None:
+    joined = [
+        {
+            "dom_row": _dom_row(0, "DZcompact00", "reel", "1.4M", "73.5K", "536"),
+            "source_surface_candidates": [],
+        }
+    ]
+    slices = [
+        _slice(
+            "ig_reels_grid_01",
+            f"https://www.instagram.com/{HANDLE}/reel/DZcompact00/",
+            [_gap("view_count"), _gap("like_count"), _gap("comment_count")],
+            limitations=["no_passive_json_join_for_shortcode"],
+        )
+    ]
+    packet, raw = _packet_with(joined_rows=joined, slices=slices)
+
+    projection = build_ig_reels_grid_projection(packet=packet, raw_file_bytes_by_file_id=raw)
+
+    view = _row(projection, "ig_reels_grid_01", "view_count")
+    like = _row(projection, "ig_reels_grid_01", "like_count")
+    comment = _row(projection, "ig_reels_grid_01", "comment_count")
+    assert view.value == 1400000
+    assert like.value == 73500
+    assert comment.value == 536
+    assert {view.chosen_source_surface, like.chosen_source_surface, comment.chosen_source_surface} == {
+        "dom_grid_engagement"
+    }
 
 def test_projection_static_already_not_applicable_is_preserved() -> None:
     # A static /p/ row whose view_count is ALREADY not_applicable passes through unchanged
