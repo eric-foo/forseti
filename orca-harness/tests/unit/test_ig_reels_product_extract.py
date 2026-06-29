@@ -89,20 +89,16 @@ def _commit_ig_audio_transcript(data_root, shortcode: str = "DZ69knlsDb1", postu
     )
 
 
-def _commit_ig_deep_capture_transcript(
-    data_root,
-    shortcode: str = "DZ69knlsDb1",
-    posture: str = "transcribed",
-) -> str:
-    cues = tuple(_cues()) if posture in {"transcribed", "ok"} else ()
+def _commit_ig_deep_capture(data_root, shortcode: str = "DZ69knlsDb1", posture: str = "transcribed") -> str:
+    cues = tuple(_cues() if posture in {"ok", "transcribed"} else [])
     result = ReelDeepCaptureResult(
         reel_shortcode=shortcode,
         comments=(
             AudienceComment(
-                comment_id="c1",
+                comment_id=f"comment-{shortcode}",
                 reel_shortcode=shortcode,
                 author_username="zoe",
-                text="deep capture comment",
+                text="works",
                 like_count=1,
                 created_at_unix=1782400000,
             ),
@@ -191,28 +187,50 @@ def test_runner_extracts_ig_transcript_then_skips_on_rerun(tmp_path) -> None:
     assert second[0]["status"] == "skipped_done"
 
 
-def test_runner_extracts_deep_capture_transcript_then_skips_on_rerun(tmp_path) -> None:
+def test_runner_extracts_deep_capture_transcript_records(tmp_path) -> None:
     data_root = DataLakeRoot.for_test(tmp_path / "lake")
-    record_id = _commit_ig_deep_capture_transcript(data_root)
+    deep_record_id = _commit_ig_deep_capture(data_root)
+    deep_key = f"DZ69knlsDb1:asr:{deep_record_id}"
+    assert count_pending_extractions(data_root=data_root, model="m") == 1
+
+    transport = FakeTransport(_anthropic([_item()]))
+    first = run_extraction(data_root=data_root, transport=transport, provider=_PROVIDER, model="m", api_key="k")
+    assert first == [
+        {
+            "anchor": "DZ69knlsDb1",
+            "video_id": "DZ69knlsDb1",
+            "transcript_source_key": deep_key,
+            "source_route": "deep_capture_render_audio",
+            "asr_record_id": deep_record_id,
+            "status": "extracted",
+            "path": first[0]["path"],
+        }
+    ]
+
+    written = json.loads((data_root.path / first[0]["path"]).read_text(encoding="utf-8"))
+    assert written["transcript_anchor"] == "DZ69knlsDb1"
+    assert written["transcript_source"] == "asr"
+    assert written["transcript_source_key"] == deep_key
+    assert written["source_route"] == "deep_capture_render_audio"
+    assert written["asr_record_id"] == deep_record_id
+
+    second = run_extraction(data_root=data_root, transport=transport, provider=_PROVIDER, model="m", api_key="k")
+    assert len(second) == 1
+    assert second[0]["status"] == "skipped_done"
+    assert second[0]["transcript_source_key"] == deep_key
+
+
+def test_runner_extracts_legacy_ok_deep_capture_transcript_records(tmp_path) -> None:
+    data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    deep_record_id = _commit_ig_deep_capture(data_root, posture="ok")
+    deep_key = f"DZ69knlsDb1:asr:{deep_record_id}"
+    assert count_pending_extractions(data_root=data_root, model="m") == 1
 
     transport = FakeTransport(_anthropic([_item()]))
     first = run_extraction(data_root=data_root, transport=transport, provider=_PROVIDER, model="m", api_key="k")
     assert len(first) == 1
     assert first[0]["status"] == "extracted"
-    assert first[0]["anchor"] == "DZ69knlsDb1"
-    assert first[0]["record_id"] == record_id
-    assert first[0]["video_id"] == "DZ69knlsDb1"
-
-    written = json.loads((data_root.path / first[0]["path"]).read_text(encoding="utf-8"))
-    assert written["transcript_anchor"] == "DZ69knlsDb1"
-    assert written["transcript_source"] == "asr"
-    assert written["mention_count"] == 1
-    assert written["mentions"][0]["video_id"] == "DZ69knlsDb1"
-
-    second = run_extraction(data_root=data_root, transport=transport, provider=_PROVIDER, model="m", api_key="k")
-    assert len(second) == 1
-    assert second[0]["status"] == "skipped_done"
-    assert second[0]["record_id"] == record_id
+    assert first[0]["transcript_source_key"] == deep_key
 
 
 def test_check_count_tracks_completed_mentions_for_model(tmp_path) -> None:

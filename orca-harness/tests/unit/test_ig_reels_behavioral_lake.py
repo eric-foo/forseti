@@ -43,7 +43,13 @@ def test_lake_adapter_injects_durable_record_ids_from_real_lake_paths(tmp_path: 
     audio_packet_id, asr_record_id = _write_audio_transcript(root)
     deep_record_id = _write_deep_capture(root)
     _write_product_mentions(root, raw_anchor=audio_packet_id)
-    _write_product_mentions(root, raw_anchor=_SHORTCODE)
+    _write_product_mentions(
+        root,
+        raw_anchor=_SHORTCODE,
+        transcript_source_key=f"{_SHORTCODE}:asr:{deep_record_id}",
+        source_route="deep_capture_render_audio",
+        asr_record_id=deep_record_id,
+    )
 
     projection = project_ig_reels_behavioral_item_from_lake(
         data_root=root,
@@ -395,11 +401,21 @@ def _write_corrupt_product_mentions(root: DataLakeRoot, *, raw_anchor: str) -> N
     )
 
 
-def _write_product_mentions(root: DataLakeRoot, *, raw_anchor: str) -> None:
+def _write_product_mentions(
+    root: DataLakeRoot,
+    *,
+    raw_anchor: str,
+    transcript_source_key: str | None = None,
+    source_route: str | None = None,
+    asr_record_id: str | None = None,
+) -> None:
     payload = {
         "video_id": _SHORTCODE,
         "transcript_anchor": raw_anchor,
         "transcript_source": "asr",
+        "transcript_source_key": transcript_source_key,
+        "source_route": source_route,
+        "asr_record_id": asr_record_id,
         "model": "test",
         "rubric_version": "test",
         "mention_count": 0,

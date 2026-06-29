@@ -126,19 +126,23 @@ def test_projects_complete_audio_backed_ig_behavior_record() -> None:
     ]
 
 
-def test_deep_capture_transcript_is_extraction_eligible_and_can_complete() -> None:
+def test_deep_capture_transcript_is_extraction_eligible_and_exact_keyed() -> None:
+    deep_key = f"{_SHORTCODE}:asr:deepcap_1.json"
     projection = project_ig_reels_behavioral_item(
         platform_item_id=_SHORTCODE,
         grid_rows=[_grid_row()],
         comment_sets=[_comment_set()],
+        standalone_audio_transcript_records=[_audio_transcript()],
         deep_capture_transcript_records=[_deep_transcript()],
         extraction_results=[
+            {"anchor": "audio-packet-1", "video_id": _SHORTCODE, "status": "extracted"},
             {
                 "anchor": _SHORTCODE,
                 "video_id": _SHORTCODE,
                 "status": "extracted",
-                "path": f"derived/{_SHORTCODE}/product_mentions/r1",
-            }
+                "transcript_source_key": deep_key,
+                "path": "derived/shortcode/product_mentions/deep",
+            },
         ],
     )
 
@@ -150,6 +154,7 @@ def test_deep_capture_transcript_is_extraction_eligible_and_can_complete() -> No
     assert deep_source["posture"] == "transcribed"
     assert deep_source["extraction_eligible"] is True
     assert deep_source["non_eligible_reason"] is None
+    assert deep_source["transcript_source_key"] == deep_key
     assert deep_source["extraction_status"] == "extracted"
     assert projection["transcript"]["canonical_source"]["source_route"] == "deep_capture_render_audio"
     assert projection["behavioral_completeness"] == {
@@ -157,6 +162,27 @@ def test_deep_capture_transcript_is_extraction_eligible_and_can_complete() -> No
         "complete": True,
         "residuals": [],
     }
+
+
+def test_unextracted_deep_capture_transcript_blocks_complete_claim() -> None:
+    projection = project_ig_reels_behavioral_item(
+        platform_item_id=_SHORTCODE,
+        grid_rows=[_grid_row()],
+        comment_sets=[_comment_set()],
+        standalone_audio_transcript_records=[_audio_transcript()],
+        deep_capture_transcript_records=[_deep_transcript()],
+        extraction_results=[{"anchor": "audio-packet-1", "video_id": _SHORTCODE, "status": "extracted"}],
+    )
+
+    deep_source = [
+        source
+        for source in projection["transcript"]["sources"]
+        if source["source_route"] == "deep_capture_render_audio"
+    ][0]
+    assert deep_source["extraction_eligible"] is True
+    assert deep_source["extraction_status"] == "not_attempted"
+    assert projection["behavioral_completeness"]["status"] == "partial"
+    assert projection["behavioral_completeness"]["complete"] is False
 
 
 def test_failed_extraction_stays_visible_and_blocks_complete_claim() -> None:
