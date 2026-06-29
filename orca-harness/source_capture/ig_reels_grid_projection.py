@@ -359,7 +359,7 @@ def project_ig_reels_grid_into_lake(
 
     The packet is read by key through ``DataLakeRoot.load_raw_packet``, so preserved
     files are re-hashed against the manifest before projection. The derived record
-    is appended at ``derived/<packet_id>/projection_ig_reels_grid/<record-id>.json``.
+    is appended at ``derived/<shard>/<packet_id>/projection_ig_reels_grid/<record-id>.json``.
     This adds no capture, Cleaning, ECR, Judgment, or creator-profile rollup.
     """
     loaded = data_root.load_raw_packet(packet_id)

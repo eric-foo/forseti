@@ -185,7 +185,12 @@ def test_project_reels_grid_into_lake_appends_verified_projection(tmp_path) -> N
         record_id="rec1",
     )
 
-    assert derived_path == root.path / "derived" / packet_id / PROJECTION_IG_REELS_GRID_LANE / "rec1.json"
+    assert derived_path == root.record_path(
+        subtree="derived",
+        raw_anchor=packet_id,
+        lane=PROJECTION_IG_REELS_GRID_LANE,
+        record_id="rec1.json",
+    )
     assert derived_path.is_file()
     assert projection.packet_id == packet_id
 
@@ -207,7 +212,11 @@ def test_project_reels_grid_rederive_appends_sibling_not_overwrite(tmp_path) -> 
     _, first = project_ig_reels_grid_into_lake(data_root=root, packet_id=packet_id)
     _, second = project_ig_reels_grid_into_lake(data_root=root, packet_id=packet_id)
 
-    lane_dir = root.path / "derived" / packet_id / PROJECTION_IG_REELS_GRID_LANE
+    lane_dir = root.lane_dir(
+        subtree="derived",
+        raw_anchor=packet_id,
+        lane=PROJECTION_IG_REELS_GRID_LANE,
+    )
     assert first != second
     assert len(list(lane_dir.glob("*.json"))) == 2
 
