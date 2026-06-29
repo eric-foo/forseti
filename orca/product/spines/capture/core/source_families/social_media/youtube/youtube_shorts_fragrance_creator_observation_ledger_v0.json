@@ -8,7 +8,7 @@
     "authority_pointers": [
       "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_creator_observation_ledger_spec_v0.md",
       "docs/workflows/youtube_shorts_creator_index_decision_path_v0.md",
-      "orca/product/spines/capture/core/source_families/social_media/creator_profile_current_view_spec_v0.md"
+      "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_profile_current_view_spec_v0.md"
     ],
     "source_inputs": [
       {

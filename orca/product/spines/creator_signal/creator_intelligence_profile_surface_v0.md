@@ -16,10 +16,13 @@ use_when:
 authority_boundary: retrieval_only
 open_next:
   - docs/decisions/orca_creator_signal_spine_promotion_binding_v0.md
-  - orca/product/spines/capture/core/source_families/social_media/creator_profile_current_view_spec_v0.md
-  - orca/product/spines/capture/core/source_families/social_media/creator_profile_current_view_v0.json
-  - orca/product/spines/capture/core/source_families/social_media/creator_profile_current_lake_native_record_mapping_v0.md
-  - orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_spec_v0.md
+  - orca/product/spines/capture/core/source_families/social_media/creator_registry/README.md
+  - orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_registry_index_v0.json
+  - orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_registry_index_spec_v0.md
+  - orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_profile_current_view_spec_v0.md
+  - orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_profile_current_view_v0.json
+  - orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_profile_current_lake_native_record_mapping_v0.md
+  - orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_spec_v0.md
   - orca/product/spines/capture/core/source_families/social_media/instagram/ig_creator_ideal_audience_inference_spec_v0.md
   - docs/decisions/orca_audience_ballot_taxonomy_v0.md
 stale_if:
@@ -57,7 +60,8 @@ of truth.
 
 Capture owns:
 
-- `creator_public_handle_linkage_ledger_v0.json` and account-link evidence;
+- `creator_registry/creator_registry_index_v0.json` as the known-account preflight and dedupe index;
+- `creator_registry/creator_public_handle_linkage_ledger_v0.json` and account-link evidence;
 - metric observation rows for individual reels/videos/profile facts;
 - metric rollup records for average views, engagement rate, cadence, velocity,
   and similar aggregate measures;

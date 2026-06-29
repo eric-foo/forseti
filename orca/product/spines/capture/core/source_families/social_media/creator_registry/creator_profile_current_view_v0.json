@@ -6,19 +6,19 @@
     "generated_at_utc": "2026-06-28T19:07:16Z",
     "source_policy_posture": "Static creator-profile-current export derived from the public-handle platform-account ledger and the YouTube creator metric seed. Profiles are account-scoped unless promoted public-handle linkage exists.",
     "authority_pointers": [
-      "orca/product/spines/capture/core/source_families/social_media/creator_profile_current_view_spec_v0.md",
+      "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_profile_current_view_spec_v0.md",
       "orca/product/spines/creator_signal/creator_intelligence_profile_surface_v0.md",
-      "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_spec_v0.md"
+      "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_spec_v0.md"
     ],
     "source_inputs": [
       {
-        "source_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json",
-        "sha256": "2adb9e66827d424240eeae170e1935862d649d7625cdea02b8988a3b3820b00c",
+        "source_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json",
+        "sha256": "4e36313acb4dbe3b598accb1df03b04d67cd3ea21203344c86529fa0832d4911",
         "role": "source-backed platform accounts and identity state"
       },
       {
         "source_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json",
-        "sha256": "28291c344b4141a705cf01ad1b5b4f22c52d4cf266394fff1501d2bfcebf78d5",
+        "sha256": "4b667a4e4f6f1923a4b1a1b61551964fe01a9d1dcefc4c74dbdd7efcccb59787",
         "role": "source-backed metric observations and admitted-pool metric rollups"
       }
     ],
@@ -56,7 +56,7 @@
         ],
         "identity_evidence_summary": {
           "summary": "Single-platform YouTube public account observed from source-backed creator observation rows; no promoted cross-platform public-handle linkage exists in this ledger.",
-          "account_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/0",
+          "account_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/0",
           "source_pointers": [
             "docs/review-inputs/youtube_shorts_fragrance_creator_ledger_v0.json#/creators/0/creator_handle_query",
             "docs/review-inputs/youtube_shorts_fragrance_creator_ledger_v0.json#/creators/0/observed_author_names"
@@ -153,7 +153,7 @@
           "profile_view_computed_at": "2026-06-28T19:07:16Z"
         },
         "source_drill_back": {
-          "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/0",
+          "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/0",
           "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json#/youtube_shorts_fragrance_creator_metric_seed/metric_rollups/0",
           "metric_seed_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json",
           "source_metric_observation_ids": [
@@ -208,7 +208,7 @@
         ],
         "identity_evidence_summary": {
           "summary": "Single-platform YouTube public account observed from source-backed creator observation rows; no promoted cross-platform public-handle linkage exists in this ledger.",
-          "account_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/1",
+          "account_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/1",
           "source_pointers": [
             "docs/review-inputs/youtube_shorts_fragrance_creator_ledger_v0.json#/creators/1/creator_handle_query",
             "docs/review-inputs/youtube_shorts_fragrance_creator_ledger_v0.json#/creators/1/observed_author_names"
@@ -309,7 +309,7 @@
           "profile_view_computed_at": "2026-06-28T19:07:16Z"
         },
         "source_drill_back": {
-          "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/1",
+          "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/1",
           "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json#/youtube_shorts_fragrance_creator_metric_seed/metric_rollups/1",
           "metric_seed_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json",
           "source_metric_observation_ids": [
@@ -368,7 +368,7 @@
         ],
         "identity_evidence_summary": {
           "summary": "Single-platform YouTube public account observed from source-backed creator observation rows; no promoted cross-platform public-handle linkage exists in this ledger.",
-          "account_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/2",
+          "account_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/2",
           "source_pointers": [
             "docs/review-inputs/youtube_shorts_fragrance_creator_ledger_v0.json#/creators/2/creator_handle_query",
             "docs/review-inputs/youtube_shorts_fragrance_creator_ledger_v0.json#/creators/2/observed_author_names"
@@ -463,7 +463,7 @@
           "profile_view_computed_at": "2026-06-28T19:07:16Z"
         },
         "source_drill_back": {
-          "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/2",
+          "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/2",
           "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json#/youtube_shorts_fragrance_creator_metric_seed/metric_rollups/2",
           "metric_seed_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json",
           "source_metric_observation_ids": [
@@ -516,7 +516,7 @@
         ],
         "identity_evidence_summary": {
           "summary": "Single-platform YouTube public account observed from source-backed creator observation rows; no promoted cross-platform public-handle linkage exists in this ledger.",
-          "account_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/3",
+          "account_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/3",
           "source_pointers": [
             "docs/review-inputs/youtube_shorts_fragrance_creator_ledger_v0.json#/creators/3/creator_handle_query",
             "docs/review-inputs/youtube_shorts_fragrance_creator_ledger_v0.json#/creators/3/observed_author_names"
@@ -609,7 +609,7 @@
           "profile_view_computed_at": "2026-06-28T19:07:16Z"
         },
         "source_drill_back": {
-          "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/3",
+          "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/3",
           "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json#/youtube_shorts_fragrance_creator_metric_seed/metric_rollups/3",
           "metric_seed_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json",
           "source_metric_observation_ids": [
@@ -660,7 +660,7 @@
         ],
         "identity_evidence_summary": {
           "summary": "Single-platform YouTube public account observed from source-backed creator observation rows; no promoted cross-platform public-handle linkage exists in this ledger.",
-          "account_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/4",
+          "account_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/4",
           "source_pointers": [
             "docs/review-inputs/youtube_shorts_fragrance_creator_ledger_v0.json#/creators/4/creator_handle_query",
             "docs/review-inputs/youtube_shorts_fragrance_creator_ledger_v0.json#/creators/4/observed_author_names"
@@ -762,7 +762,7 @@
           "profile_view_computed_at": "2026-06-28T19:07:16Z"
         },
         "source_drill_back": {
-          "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/4",
+          "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/4",
           "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json#/youtube_shorts_fragrance_creator_metric_seed/metric_rollups/4",
           "metric_seed_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json",
           "source_metric_observation_ids": [
@@ -822,7 +822,7 @@
         ],
         "identity_evidence_summary": {
           "summary": "Single-platform YouTube public account observed from source-backed creator observation rows; no promoted cross-platform public-handle linkage exists in this ledger.",
-          "account_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/5",
+          "account_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/5",
           "source_pointers": [
             "docs/review-inputs/youtube_shorts_fragrance_creator_ledger_v0.json#/creators/5/creator_handle_query",
             "docs/review-inputs/youtube_shorts_fragrance_creator_ledger_v0.json#/creators/5/observed_author_names"
@@ -920,7 +920,7 @@
           "profile_view_computed_at": "2026-06-28T19:07:16Z"
         },
         "source_drill_back": {
-          "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/5",
+          "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/5",
           "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json#/youtube_shorts_fragrance_creator_metric_seed/metric_rollups/5",
           "metric_seed_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json",
           "source_metric_observation_ids": [
@@ -976,7 +976,7 @@
         ],
         "identity_evidence_summary": {
           "summary": "Single-platform YouTube public account observed from source-backed creator observation rows; no promoted cross-platform public-handle linkage exists in this ledger.",
-          "account_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/6",
+          "account_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/6",
           "source_pointers": [
             "docs/review-inputs/youtube_shorts_fragrance_creator_ledger_v0.json#/creators/6/creator_handle_query",
             "docs/review-inputs/youtube_shorts_fragrance_creator_ledger_v0.json#/creators/6/observed_author_names"
@@ -1075,7 +1075,7 @@
           "profile_view_computed_at": "2026-06-28T19:07:16Z"
         },
         "source_drill_back": {
-          "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/6",
+          "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/6",
           "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json#/youtube_shorts_fragrance_creator_metric_seed/metric_rollups/6",
           "metric_seed_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json",
           "source_metric_observation_ids": [
@@ -1132,7 +1132,7 @@
         ],
         "identity_evidence_summary": {
           "summary": "Single-platform YouTube public account observed from source-backed creator observation rows; no promoted cross-platform public-handle linkage exists in this ledger.",
-          "account_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/7",
+          "account_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/7",
           "source_pointers": [
             "docs/review-inputs/youtube_shorts_fragrance_creator_ledger_v0.json#/creators/7/creator_handle_query",
             "docs/review-inputs/youtube_shorts_fragrance_creator_ledger_v0.json#/creators/7/observed_author_names"
@@ -1228,7 +1228,7 @@
           "profile_view_computed_at": "2026-06-28T19:07:16Z"
         },
         "source_drill_back": {
-          "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/7",
+          "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/7",
           "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json#/youtube_shorts_fragrance_creator_metric_seed/metric_rollups/7",
           "metric_seed_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json",
           "source_metric_observation_ids": [
@@ -1282,7 +1282,7 @@
         ],
         "identity_evidence_summary": {
           "summary": "Single-platform YouTube public account observed from source-backed creator observation rows; no promoted cross-platform public-handle linkage exists in this ledger.",
-          "account_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/8",
+          "account_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/8",
           "source_pointers": [
             "docs/review-inputs/youtube_shorts_fragrance_creator_ledger_v0.json#/creators/8/creator_handle_query",
             "docs/review-inputs/youtube_shorts_fragrance_creator_ledger_v0.json#/creators/8/observed_author_names"
@@ -1382,7 +1382,7 @@
           "profile_view_computed_at": "2026-06-28T19:07:16Z"
         },
         "source_drill_back": {
-          "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/8",
+          "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/8",
           "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json#/youtube_shorts_fragrance_creator_metric_seed/metric_rollups/8",
           "metric_seed_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json",
           "source_metric_observation_ids": [
@@ -1440,7 +1440,7 @@
         ],
         "identity_evidence_summary": {
           "summary": "Single-platform YouTube public account observed from source-backed creator observation rows; no promoted cross-platform public-handle linkage exists in this ledger.",
-          "account_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/9",
+          "account_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/9",
           "source_pointers": [
             "docs/review-inputs/youtube_shorts_fragrance_creator_ledger_v0.json#/creators/9/creator_handle_query",
             "docs/review-inputs/youtube_shorts_fragrance_creator_ledger_v0.json#/creators/9/observed_author_names"
@@ -1544,7 +1544,7 @@
           "profile_view_computed_at": "2026-06-28T19:07:16Z"
         },
         "source_drill_back": {
-          "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/9",
+          "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/9",
           "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json#/youtube_shorts_fragrance_creator_metric_seed/metric_rollups/9",
           "metric_seed_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json",
           "source_metric_observation_ids": [
@@ -1606,7 +1606,7 @@
         ],
         "identity_evidence_summary": {
           "summary": "Single-platform YouTube public account observed from source-backed creator observation rows; no promoted cross-platform public-handle linkage exists in this ledger.",
-          "account_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/10",
+          "account_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/10",
           "source_pointers": [
             "docs/review-inputs/youtube_shorts_fragrance_creator_ledger_v0.json#/creators/10/creator_handle_query",
             "docs/review-inputs/youtube_shorts_fragrance_creator_ledger_v0.json#/creators/10/observed_author_names"
@@ -1708,7 +1708,7 @@
           "profile_view_computed_at": "2026-06-28T19:07:16Z"
         },
         "source_drill_back": {
-          "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/10",
+          "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/10",
           "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json#/youtube_shorts_fragrance_creator_metric_seed/metric_rollups/10",
           "metric_seed_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json",
           "source_metric_observation_ids": [
@@ -1768,7 +1768,7 @@
         ],
         "identity_evidence_summary": {
           "summary": "Single-platform YouTube public account observed from source-backed creator observation rows; no promoted cross-platform public-handle linkage exists in this ledger.",
-          "account_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/11",
+          "account_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/11",
           "source_pointers": [
             "docs/review-inputs/youtube_shorts_fragrance_creator_ledger_v0.json#/creators/11/creator_handle_query",
             "docs/review-inputs/youtube_shorts_fragrance_creator_ledger_v0.json#/creators/11/observed_author_names"
@@ -1867,7 +1867,7 @@
           "profile_view_computed_at": "2026-06-28T19:07:16Z"
         },
         "source_drill_back": {
-          "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/11",
+          "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/11",
           "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json#/youtube_shorts_fragrance_creator_metric_seed/metric_rollups/11",
           "metric_seed_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json",
           "source_metric_observation_ids": [
@@ -1924,7 +1924,7 @@
         ],
         "identity_evidence_summary": {
           "summary": "Single-platform YouTube public account observed from source-backed creator observation rows; no promoted cross-platform public-handle linkage exists in this ledger.",
-          "account_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/12",
+          "account_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/12",
           "source_pointers": [
             "docs/review-inputs/youtube_shorts_fragrance_creator_ledger_v0.json#/creators/12/creator_handle_query",
             "docs/review-inputs/youtube_shorts_fragrance_creator_ledger_v0.json#/creators/12/observed_author_names"
@@ -2024,7 +2024,7 @@
           "profile_view_computed_at": "2026-06-28T19:07:16Z"
         },
         "source_drill_back": {
-          "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/12",
+          "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/12",
           "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json#/youtube_shorts_fragrance_creator_metric_seed/metric_rollups/12",
           "metric_seed_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json",
           "source_metric_observation_ids": [
@@ -2082,7 +2082,7 @@
         ],
         "identity_evidence_summary": {
           "summary": "Single-platform YouTube public account observed from source-backed creator observation rows; no promoted cross-platform public-handle linkage exists in this ledger.",
-          "account_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/13",
+          "account_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/13",
           "source_pointers": [
             "docs/review-inputs/youtube_shorts_fragrance_creator_ledger_v0.json#/creators/13/creator_handle_query",
             "docs/review-inputs/youtube_shorts_fragrance_creator_ledger_v0.json#/creators/13/observed_author_names"
@@ -2179,7 +2179,7 @@
           "profile_view_computed_at": "2026-06-28T19:07:16Z"
         },
         "source_drill_back": {
-          "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/13",
+          "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/13",
           "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json#/youtube_shorts_fragrance_creator_metric_seed/metric_rollups/13",
           "metric_seed_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json",
           "source_metric_observation_ids": [
@@ -2234,7 +2234,7 @@
         ],
         "identity_evidence_summary": {
           "summary": "Single-platform YouTube public account observed from source-backed creator observation rows; no promoted cross-platform public-handle linkage exists in this ledger.",
-          "account_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/14",
+          "account_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/14",
           "source_pointers": [
             "docs/review-inputs/youtube_shorts_fragrance_creator_ledger_v0.json#/creators/14/creator_handle_query",
             "docs/review-inputs/youtube_shorts_fragrance_creator_ledger_v0.json#/creators/14/observed_author_names"
@@ -2331,7 +2331,7 @@
           "profile_view_computed_at": "2026-06-28T19:07:16Z"
         },
         "source_drill_back": {
-          "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/14",
+          "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/14",
           "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json#/youtube_shorts_fragrance_creator_metric_seed/metric_rollups/14",
           "metric_seed_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json",
           "source_metric_observation_ids": [
@@ -2386,7 +2386,7 @@
         ],
         "identity_evidence_summary": {
           "summary": "Single-platform YouTube public account observed from source-backed creator observation rows; no promoted cross-platform public-handle linkage exists in this ledger.",
-          "account_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/15",
+          "account_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/15",
           "source_pointers": [
             "docs/review-inputs/youtube_shorts_fragrance_creator_ledger_v0.json#/creators/15/creator_handle_query",
             "docs/review-inputs/youtube_shorts_fragrance_creator_ledger_v0.json#/creators/15/observed_author_names"
@@ -2483,7 +2483,7 @@
           "profile_view_computed_at": "2026-06-28T19:07:16Z"
         },
         "source_drill_back": {
-          "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/15",
+          "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/15",
           "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json#/youtube_shorts_fragrance_creator_metric_seed/metric_rollups/15",
           "metric_seed_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json",
           "source_metric_observation_ids": [
@@ -2538,7 +2538,7 @@
         ],
         "identity_evidence_summary": {
           "summary": "Single-platform YouTube public account observed from source-backed creator observation rows; no promoted cross-platform public-handle linkage exists in this ledger.",
-          "account_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/16",
+          "account_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/16",
           "source_pointers": [
             "docs/review-inputs/youtube_shorts_fragrance_creator_ledger_v0.json#/creators/16/creator_handle_query",
             "docs/review-inputs/youtube_shorts_fragrance_creator_ledger_v0.json#/creators/16/observed_author_names"
@@ -2631,7 +2631,7 @@
           "profile_view_computed_at": "2026-06-28T19:07:16Z"
         },
         "source_drill_back": {
-          "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/16",
+          "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/16",
           "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json#/youtube_shorts_fragrance_creator_metric_seed/metric_rollups/16",
           "metric_seed_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json",
           "source_metric_observation_ids": [
@@ -2682,7 +2682,7 @@
         ],
         "identity_evidence_summary": {
           "summary": "Single-platform YouTube public account observed from source-backed creator observation rows; no promoted cross-platform public-handle linkage exists in this ledger.",
-          "account_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/17",
+          "account_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/17",
           "source_pointers": [
             "docs/review-inputs/youtube_shorts_fragrance_creator_ledger_v0.json#/creators/17/creator_handle_query",
             "docs/review-inputs/youtube_shorts_fragrance_creator_ledger_v0.json#/creators/17/observed_author_names"
@@ -2786,7 +2786,7 @@
           "profile_view_computed_at": "2026-06-28T19:07:16Z"
         },
         "source_drill_back": {
-          "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/17",
+          "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/17",
           "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json#/youtube_shorts_fragrance_creator_metric_seed/metric_rollups/17",
           "metric_seed_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json",
           "source_metric_observation_ids": [
@@ -2848,7 +2848,7 @@
         ],
         "identity_evidence_summary": {
           "summary": "Single-platform YouTube public account observed from source-backed creator observation rows; no promoted cross-platform public-handle linkage exists in this ledger.",
-          "account_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/18",
+          "account_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/18",
           "source_pointers": [
             "docs/review-inputs/youtube_shorts_fragrance_creator_ledger_v0.json#/creators/19/creator_handle_query",
             "docs/review-inputs/youtube_shorts_fragrance_creator_ledger_v0.json#/creators/19/observed_author_names"
@@ -2943,7 +2943,7 @@
           "profile_view_computed_at": "2026-06-28T19:07:16Z"
         },
         "source_drill_back": {
-          "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/18",
+          "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/18",
           "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json#/youtube_shorts_fragrance_creator_metric_seed/metric_rollups/18",
           "metric_seed_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json",
           "source_metric_observation_ids": [
@@ -2996,7 +2996,7 @@
         ],
         "identity_evidence_summary": {
           "summary": "Single-platform YouTube public account observed from source-backed creator observation rows; no promoted cross-platform public-handle linkage exists in this ledger.",
-          "account_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/19",
+          "account_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/19",
           "source_pointers": [
             "docs/review-inputs/youtube_shorts_fragrance_creator_ledger_v0.json#/creators/20/creator_handle_query",
             "docs/review-inputs/youtube_shorts_fragrance_creator_ledger_v0.json#/creators/20/observed_author_names"
@@ -3094,7 +3094,7 @@
           "profile_view_computed_at": "2026-06-28T19:07:16Z"
         },
         "source_drill_back": {
-          "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/19",
+          "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/19",
           "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json#/youtube_shorts_fragrance_creator_metric_seed/metric_rollups/19",
           "metric_seed_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json",
           "source_metric_observation_ids": [
@@ -3150,7 +3150,7 @@
         ],
         "identity_evidence_summary": {
           "summary": "Single-platform YouTube public account observed from source-backed creator observation rows; no promoted cross-platform public-handle linkage exists in this ledger.",
-          "account_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/20",
+          "account_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/20",
           "source_pointers": [
             "docs/review-inputs/youtube_shorts_fragrance_creator_ledger_v0.json#/creators/21/creator_handle_query",
             "docs/review-inputs/youtube_shorts_fragrance_creator_ledger_v0.json#/creators/21/observed_author_names"
@@ -3254,7 +3254,7 @@
           "profile_view_computed_at": "2026-06-28T19:07:16Z"
         },
         "source_drill_back": {
-          "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/20",
+          "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/20",
           "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json#/youtube_shorts_fragrance_creator_metric_seed/metric_rollups/20",
           "metric_seed_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json",
           "source_metric_observation_ids": [
@@ -3316,7 +3316,7 @@
         ],
         "identity_evidence_summary": {
           "summary": "Single-platform YouTube public account observed from source-backed creator observation rows; no promoted cross-platform public-handle linkage exists in this ledger.",
-          "account_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/21",
+          "account_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/21",
           "source_pointers": [
             "docs/review-inputs/youtube_shorts_fragrance_creator_ledger_v0.json#/creators/22/creator_handle_query",
             "docs/review-inputs/youtube_shorts_fragrance_creator_ledger_v0.json#/creators/22/observed_author_names"
@@ -3413,7 +3413,7 @@
           "profile_view_computed_at": "2026-06-28T19:07:16Z"
         },
         "source_drill_back": {
-          "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/21",
+          "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/21",
           "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json#/youtube_shorts_fragrance_creator_metric_seed/metric_rollups/21",
           "metric_seed_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json",
           "source_metric_observation_ids": [
@@ -3468,7 +3468,7 @@
         ],
         "identity_evidence_summary": {
           "summary": "Single-platform YouTube public account observed from source-backed creator observation rows; no promoted cross-platform public-handle linkage exists in this ledger.",
-          "account_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/22",
+          "account_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/22",
           "source_pointers": [
             "docs/review-inputs/youtube_shorts_fragrance_creator_ledger_v0.json#/creators/23/creator_handle_query",
             "docs/review-inputs/youtube_shorts_fragrance_creator_ledger_v0.json#/creators/23/observed_author_names"
@@ -3569,7 +3569,7 @@
           "profile_view_computed_at": "2026-06-28T19:07:16Z"
         },
         "source_drill_back": {
-          "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/22",
+          "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/22",
           "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json#/youtube_shorts_fragrance_creator_metric_seed/metric_rollups/22",
           "metric_seed_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json",
           "source_metric_observation_ids": [
@@ -3628,7 +3628,7 @@
         ],
         "identity_evidence_summary": {
           "summary": "Single-platform YouTube public account observed from source-backed creator observation rows; no promoted cross-platform public-handle linkage exists in this ledger.",
-          "account_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/23",
+          "account_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/23",
           "source_pointers": [
             "docs/review-inputs/youtube_shorts_fragrance_creator_ledger_v0.json#/creators/24/creator_handle_query",
             "docs/review-inputs/youtube_shorts_fragrance_creator_ledger_v0.json#/creators/24/observed_author_names"
@@ -3728,7 +3728,7 @@
           "profile_view_computed_at": "2026-06-28T19:07:16Z"
         },
         "source_drill_back": {
-          "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/23",
+          "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/23",
           "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json#/youtube_shorts_fragrance_creator_metric_seed/metric_rollups/23",
           "metric_seed_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json",
           "source_metric_observation_ids": [
@@ -3786,7 +3786,7 @@
         ],
         "identity_evidence_summary": {
           "summary": "Single-platform YouTube public account observed from source-backed creator observation rows; no promoted cross-platform public-handle linkage exists in this ledger.",
-          "account_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/24",
+          "account_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/24",
           "source_pointers": [
             "docs/review-inputs/youtube_shorts_fragrance_creator_ledger_v0.json#/creators/25/creator_handle_query",
             "docs/review-inputs/youtube_shorts_fragrance_creator_ledger_v0.json#/creators/25/observed_author_names"
@@ -3889,7 +3889,7 @@
           "profile_view_computed_at": "2026-06-28T19:07:16Z"
         },
         "source_drill_back": {
-          "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/24",
+          "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/24",
           "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json#/youtube_shorts_fragrance_creator_metric_seed/metric_rollups/24",
           "metric_seed_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json",
           "source_metric_observation_ids": [
@@ -3950,7 +3950,7 @@
         ],
         "identity_evidence_summary": {
           "summary": "Single-platform YouTube public account observed from source-backed creator observation rows; no promoted cross-platform public-handle linkage exists in this ledger.",
-          "account_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/25",
+          "account_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/25",
           "source_pointers": [
             "docs/review-inputs/youtube_shorts_fragrance_creator_ledger_v0.json#/creators/26/creator_handle_query",
             "docs/review-inputs/youtube_shorts_fragrance_creator_ledger_v0.json#/creators/26/observed_author_names"
@@ -4051,7 +4051,7 @@
           "profile_view_computed_at": "2026-06-28T19:07:16Z"
         },
         "source_drill_back": {
-          "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/25",
+          "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/25",
           "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json#/youtube_shorts_fragrance_creator_metric_seed/metric_rollups/25",
           "metric_seed_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json",
           "source_metric_observation_ids": [
@@ -4110,7 +4110,7 @@
         ],
         "identity_evidence_summary": {
           "summary": "Single-platform YouTube public account observed from source-backed creator observation rows; no promoted cross-platform public-handle linkage exists in this ledger.",
-          "account_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/26",
+          "account_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/26",
           "source_pointers": [
             "docs/review-inputs/youtube_shorts_fragrance_creator_ledger_v0.json#/creators/27/creator_handle_query",
             "docs/review-inputs/youtube_shorts_fragrance_creator_ledger_v0.json#/creators/27/observed_author_names"
@@ -4204,7 +4204,7 @@
           "profile_view_computed_at": "2026-06-28T19:07:16Z"
         },
         "source_drill_back": {
-          "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/26",
+          "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/26",
           "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json#/youtube_shorts_fragrance_creator_metric_seed/metric_rollups/26",
           "metric_seed_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json",
           "source_metric_observation_ids": [
@@ -4256,7 +4256,7 @@
         ],
         "identity_evidence_summary": {
           "summary": "Single-platform YouTube public account observed from source-backed creator observation rows; no promoted cross-platform public-handle linkage exists in this ledger.",
-          "account_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/27",
+          "account_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/27",
           "source_pointers": [
             "docs/review-inputs/youtube_shorts_fragrance_creator_ledger_v0.json#/creators/28/creator_handle_query",
             "docs/review-inputs/youtube_shorts_fragrance_creator_ledger_v0.json#/creators/28/observed_author_names"
@@ -4352,7 +4352,7 @@
           "profile_view_computed_at": "2026-06-28T19:07:16Z"
         },
         "source_drill_back": {
-          "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/27",
+          "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/27",
           "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json#/youtube_shorts_fragrance_creator_metric_seed/metric_rollups/27",
           "metric_seed_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json",
           "source_metric_observation_ids": [
@@ -4406,7 +4406,7 @@
         ],
         "identity_evidence_summary": {
           "summary": "Single-platform YouTube public account observed from source-backed creator observation rows; no promoted cross-platform public-handle linkage exists in this ledger.",
-          "account_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/28",
+          "account_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/28",
           "source_pointers": [
             "docs/review-inputs/youtube_shorts_fragrance_creator_ledger_v0.json#/creators/29/creator_handle_query",
             "docs/review-inputs/youtube_shorts_fragrance_creator_ledger_v0.json#/creators/29/observed_author_names"
@@ -4501,7 +4501,7 @@
           "profile_view_computed_at": "2026-06-28T19:07:16Z"
         },
         "source_drill_back": {
-          "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/28",
+          "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/28",
           "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json#/youtube_shorts_fragrance_creator_metric_seed/metric_rollups/28",
           "metric_seed_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json",
           "source_metric_observation_ids": [
@@ -4554,7 +4554,7 @@
         ],
         "identity_evidence_summary": {
           "summary": "Single-platform YouTube public account observed from source-backed creator observation rows; no promoted cross-platform public-handle linkage exists in this ledger.",
-          "account_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/29",
+          "account_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/29",
           "source_pointers": [
             "docs/review-inputs/youtube_shorts_fragrance_creator_ledger_v0.json#/creators/30/creator_handle_query",
             "docs/review-inputs/youtube_shorts_fragrance_creator_ledger_v0.json#/creators/30/observed_author_names"
@@ -4652,7 +4652,7 @@
           "profile_view_computed_at": "2026-06-28T19:07:16Z"
         },
         "source_drill_back": {
-          "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/29",
+          "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/29",
           "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json#/youtube_shorts_fragrance_creator_metric_seed/metric_rollups/29",
           "metric_seed_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json",
           "source_metric_observation_ids": [

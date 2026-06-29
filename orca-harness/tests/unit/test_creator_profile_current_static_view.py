@@ -29,6 +29,7 @@ VIEW_PATH = (
     / "core"
     / "source_families"
     / "social_media"
+    / "creator_registry"
     / "creator_profile_current_view_v0.json"
 )
 ACCOUNT_LEDGER_PATH = (
@@ -40,6 +41,7 @@ ACCOUNT_LEDGER_PATH = (
     / "core"
     / "source_families"
     / "social_media"
+    / "creator_registry"
     / "creator_public_handle_linkage_ledger_v0.json"
 )
 METRIC_SEED_PATH = (
@@ -200,7 +202,7 @@ def test_creator_profile_current_source_hashes_are_current() -> None:
     }
 
     account_pointer = (
-        "orca/product/spines/capture/core/source_families/social_media/"
+        "orca/product/spines/capture/core/source_families/social_media/creator_registry/"
         "creator_public_handle_linkage_ledger_v0.json"
     )
     metric_pointer = (

@@ -26,6 +26,7 @@ DEFAULT_OUTPUT = (
     / "core"
     / "source_families"
     / "social_media"
+    / "creator_registry"
     / "creator_profile_current_view_v0.json"
 )
 DEFAULT_ACCOUNT_LEDGER = (
@@ -37,6 +38,7 @@ DEFAULT_ACCOUNT_LEDGER = (
     / "core"
     / "source_families"
     / "social_media"
+    / "creator_registry"
     / "creator_public_handle_linkage_ledger_v0.json"
 )
 DEFAULT_METRIC_SEED = (

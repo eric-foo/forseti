@@ -14,8 +14,11 @@ use_when:
   - Checking the evidence threshold for declared, probable, candidate, or rejected public-handle links.
   - Validating a static creator public-handle linkage fixture before any database migration.
 open_next:
-  - orca/product/spines/capture/core/source_families/social_media/creator_profile_current_view_spec_v0.md
-  - orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json
+  - orca/product/spines/capture/core/source_families/social_media/creator_registry/README.md
+  - orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_registry_index_spec_v0.md
+  - orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_registry_index_v0.json
+  - orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_profile_current_view_spec_v0.md
+  - orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json
   - docs/decisions/wind_caller_calibration_carveout_v0.md
   - orca/product/spines/capture/core/source_families/social_media/instagram/ig_creator_roster_frontier_ledger_spec_v0.md
   - orca-harness/capture_spine/creator_public_handle_linkage/validation.py
@@ -36,7 +39,7 @@ non-public-handle joins remain gated and Tier-3 exclusions remain absolute.
 
 This spec does not authorize inventing or live-capturing creator rows. Synthetic
 fixtures remain test-only validator fixtures. The product ledger artifact at
-`orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json`
+`orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json`
 may be populated from source-backed archive/lake artifacts, and each admitted
 row must point back to its source. Single-platform account observations may seed
 `platform_accounts`; `creator_records` require source-backed public-handle
@@ -70,11 +73,13 @@ Use a static table-shaped ledger first:
 The ledger is intentionally relational even when stored as JSON. SQLite can
 come later by mapping each list to a table without changing the core contract.
 
-The one-stop operator surface is a separate derived view, not this identity
-ledger. Use `creator_profile_current_view_spec_v0.md` for the dashboard-ready
-join over identity, metric observations, metric rollups, and ideal-audience
-profile snapshots. Average views, engagement rate, and other influence rollups
-must not be added to `creator_records`.
+The check-before-work list is a separate registry index, not this identity
+ledger. Use `creator_registry_index_v0.json` for Discovery/Capture dedupe and
+routing. The one-stop operator surface is also a separate derived view. Use
+`creator_profile_current_view_spec_v0.md` for the dashboard-ready join over
+identity, metric observations, metric rollups, and ideal-audience profile
+snapshots. Average views, engagement rate, and other influence rollups must not
+be added to `creator_records`.
 
 Single-platform accounts are not `creator_records`. They live as
 `platform_account` subjects in the current profile view until public-handle
@@ -247,13 +252,13 @@ direction_change_propagation:
     keeping creator_records empty until two-platform public-handle linkage
     evidence exists.
   controlling_sources_updated:
-    - orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_spec_v0.md
-    - orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json
+    - orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_spec_v0.md
+    - orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json
     - orca-harness/tests/unit/test_creator_public_handle_linkage.py
   downstream_surfaces_checked:
     - orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_observation_ledger_v0.json
     - docs/review-inputs/youtube_shorts_fragrance_creator_ledger_v0.json
-    - orca/product/spines/capture/core/source_families/social_media/creator_profile_current_view_spec_v0.md
+    - orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_profile_current_view_spec_v0.md
   intentionally_not_updated:
     - path: orca-harness/tests/fixtures/creator_public_handle_linkage/valid_synthetic_ledger.json
       reason: >
@@ -284,7 +289,7 @@ direction_change_propagation:
     wind-caller carve-out and binds the first implementation to a static
     table-shaped ledger plus validator before any SQLite/runtime promotion.
   controlling_sources_updated:
-    - orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_spec_v0.md
+    - orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_spec_v0.md
     - orca-harness/capture_spine/creator_public_handle_linkage/
     - orca-harness/tests/unit/test_creator_public_handle_linkage.py
     - orca-harness/tests/fixtures/creator_public_handle_linkage/valid_synthetic_ledger.json

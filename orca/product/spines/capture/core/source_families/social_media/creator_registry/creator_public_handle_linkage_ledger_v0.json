@@ -5,7 +5,7 @@
     "ledger_mode": "public_handle_ledger",
     "authority_pointers": [
       "docs/decisions/wind_caller_calibration_carveout_v0.md",
-      "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_spec_v0.md",
+      "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_spec_v0.md",
       "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_observation_ledger_v0.json",
       "docs/review-inputs/youtube_shorts_fragrance_creator_ledger_v0.json"
     ],

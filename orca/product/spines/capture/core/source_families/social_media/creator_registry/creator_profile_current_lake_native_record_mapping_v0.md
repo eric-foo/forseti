@@ -16,8 +16,11 @@ use_when:
     support should be computed without making the identity ledger one giant ledger.
 authority_boundary: retrieval_only
 open_next:
-  - orca/product/spines/capture/core/source_families/social_media/creator_profile_current_view_spec_v0.md
-  - orca/product/spines/capture/core/source_families/social_media/creator_profile_current_view_v0.json
+  - orca/product/spines/capture/core/source_families/social_media/creator_registry/README.md
+  - orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_registry_index_spec_v0.md
+  - orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_registry_index_v0.json
+  - orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_profile_current_view_spec_v0.md
+  - orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_profile_current_view_v0.json
   - orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json
   - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_silver_vault_record_contract_v0.md
   - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_v4_1_forward_epoch_contract_v0.md
@@ -64,6 +67,7 @@ new physical folders and not a global path taxonomy.
 | Creator profile layer | Lake-native home | Authority posture |
 | --- | --- | --- |
 | Public platform account | Silver `entity`, `payload_kind: PlatformAccountEntity` | Stable per-platform public account identity only; no person dossier. |
+| Creator registry index | Generated read model under `indexes/derived_retrieval/silver_vault/creator_vault/` plus Capture `creator_registry_index` contract | Known-account dedupe/routing surface for Discovery/Capture; rebuildable view, not metric authority. |
 | Public content object | Silver `entity`, e.g. Short/Reel/Post/Video content object | Stable platform content key; mutable counts stay observations. |
 | Account publishes content | Silver `relationship`, `content_published_by_account` | Connects content entity to platform account entity. |
 | Per-content metric fact | Silver `observation`, `payload_kind: MetricObservation` | Source-visible value or explicit posture/reason; missing is never zero. |

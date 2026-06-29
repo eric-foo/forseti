@@ -16,10 +16,13 @@ use_when:
   - Deciding where average views, engagement rate, and other aggregate creator metrics belong.
   - Checking the boundary between the public-handle identity ledger, metric observations, metric rollups, ideal-audience enrichment, and future SQLite/data-lake storage.
 open_next:
-  - orca/product/spines/capture/core/source_families/social_media/creator_profile_current_view_v0.json
-  - orca/product/spines/capture/core/source_families/social_media/creator_profile_current_lake_native_record_mapping_v0.md
-  - orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_spec_v0.md
-  - orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json
+  - orca/product/spines/capture/core/source_families/social_media/creator_registry/README.md
+  - orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_registry_index_spec_v0.md
+  - orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_registry_index_v0.json
+  - orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_profile_current_view_v0.json
+  - orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_profile_current_lake_native_record_mapping_v0.md
+  - orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_spec_v0.md
+  - orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json
   - orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json
   - orca/product/spines/capture/core/source_families/social_media/instagram/ig_creator_ideal_audience_inference_spec_v0.md
   - orca/product/spines/capture/core/source_families/social_media/instagram/ig_profile_grid_dom_engagement_recon_and_spec_v0.md
@@ -63,8 +66,8 @@ orca_start_preflight:
   edit_permission: docs_write
   isolation: existing clean worktree codex/creator-ledger-static-fixture
   target_scope:
-    - orca/product/spines/capture/core/source_families/social_media/creator_profile_current_view_spec_v0.md
-    - orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_spec_v0.md
+    - orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_profile_current_view_spec_v0.md
+    - orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_spec_v0.md
     - orca/product/spines/capture/core/source_capture_toolbox/README.md
     - docs/workflows/data_capture_spine_consolidation_map_v0.md
     - docs/workflows/orca_repo_map_v0.md
@@ -75,7 +78,7 @@ orca_start_preflight:
     - .agents/workflow-overlay/decision-routing.md
     - .agents/workflow-overlay/validation-gates.md
     - docs/decisions/wind_caller_calibration_carveout_v0.md
-    - orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_spec_v0.md
+    - orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_spec_v0.md
     - orca/product/spines/capture/core/source_families/social_media/instagram/ig_creator_ideal_audience_inference_spec_v0.md
     - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_storage_contract_v0.md
     - orca/product/spines/capture/core/packet_schema/source_capture_tenant_payload_attachment_boundary_v0.md
@@ -83,10 +86,14 @@ orca_start_preflight:
 
 ## Placement Decision
 
-The one-stop creator profile contract lives at the social-media source-family
-level:
+The creator-ledger artifacts live together in the social-media source-family
+creator registry folder:
 
-`orca/product/spines/capture/core/source_families/social_media/creator_profile_current_view_spec_v0.md`
+`orca/product/spines/capture/core/source_families/social_media/creator_registry/`
+
+The one-stop creator profile contract lives there at:
+
+`orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_profile_current_view_spec_v0.md`
 
 Why this home:
 
@@ -99,13 +106,17 @@ Why this home:
   are implementation/storage homes; they are not the source of truth for this
   product view contract.
 
+The small list/check-before-work index for all known public accounts lives at:
+
+`orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_registry_index_v0.json`
+
 The public-handle identity ledger remains at:
 
-`orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json`
+`orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json`
 
 The first static creator-profile export lives beside this spec:
 
-`orca/product/spines/capture/core/source_families/social_media/creator_profile_current_view_v0.json`
+`orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_profile_current_view_v0.json`
 
 That artifact is derived from source-backed identity and metric records. It is a
 static export of the current profile view, not a second source of truth. It
@@ -116,6 +127,10 @@ should not be manually edited once a data-lake/SQLite physicalization exists.
 Use a **view over siblings**, not one giant ledger.
 
 ```text
+creator_registry_index
+  -> current known-account preflight list for Discovery/Capture dedupe
+  -> routing/freshness hints, not raw facts or metrics
+
 creator_public_handle_linkage_ledger
   -> stable public creator/account cluster ids
   -> platform accounts and link evidence
@@ -461,8 +476,8 @@ direction_change_propagation:
     - product_doctrine
     - lifecycle_boundary
   controlling_sources_updated:
-    - orca/product/spines/capture/core/source_families/social_media/creator_profile_current_view_spec_v0.md
-    - orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_spec_v0.md
+    - orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_profile_current_view_spec_v0.md
+    - orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_spec_v0.md
     - orca/product/spines/capture/core/source_families/social_media/youtube/youtube_creator_observation_ledger_spec_v0.md
     - orca/product/spines/capture/core/source_families/social_media/instagram/ig_creator_roster_frontier_ledger_spec_v0.md
     - orca/product/spines/creator_signal/creator_intelligence_profile_surface_v0.md
@@ -479,7 +494,7 @@ direction_change_propagation:
         Existing validator already enforces candidate_needs_review for candidate
         links, human/non-LLM evidence for final links, and the at-least-two-platform
         creator_record rule.
-    - path: orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json
+    - path: orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json
       reason: >
         Product ledger scaffold stays empty; this patch changes contract semantics
         only and adds no real rows.
@@ -511,8 +526,8 @@ direction_change_propagation:
     - product_doctrine
     - lifecycle_boundary
   controlling_sources_updated:
-    - orca/product/spines/capture/core/source_families/social_media/creator_profile_current_view_spec_v0.md
-    - orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_spec_v0.md
+    - orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_profile_current_view_spec_v0.md
+    - orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_spec_v0.md
     - orca/product/spines/capture/core/source_capture_toolbox/README.md
     - docs/workflows/data_capture_spine_consolidation_map_v0.md
     - docs/workflows/orca_repo_map_v0.md
