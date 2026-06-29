@@ -121,15 +121,30 @@ _ALLOWED_FRESHNESS_KEYS = frozenset(
         "profile_view_computed_at",
     }
 )
+_ALLOWED_IDENTITY_EVIDENCE_SUMMARY_KEYS = frozenset(
+    {"summary", "account_pointer", "source_pointers"}
+)
+_ALLOWED_SOURCE_DRILL_BACK_KEYS = frozenset(
+    {
+        "identity_ledger_pointer",
+        "metric_rollup_pointer",
+        "metric_seed_pointer",
+        "source_metric_observation_ids",
+    }
+)
 _ALLOWED_PROFILE_SUBJECT_KINDS = frozenset({"platform_account", "creator_record"})
 _PROMOTED_LINK_STATES = frozenset({"probable_public_account_link", "declared_public_account_link"})
 _UNPROMOTED_LINK_STATES = frozenset({"candidate_public_account_link", "rejected_public_account_link"})
 _ALLOWED_IDENTITY_STATES = frozenset({"single_platform_observed", *_PROMOTED_LINK_STATES, *_UNPROMOTED_LINK_STATES})
 _REQUIRED_NON_CLAIM_FRAGMENTS = (
+    "channel-wide creator influence",
+    "engagement rate",
     "buyer proof",
     "public person-level identity",
     "contact or outreach authorization",
+    "cross-platform rollup",
     "dashboard readiness",
+    "not SQLite or data-lake physicalization",
 )
 _SHA256_RE = re.compile(r"[0-9a-f]{64}")
 
@@ -225,9 +240,13 @@ def _validate_profiles(value: Any) -> list[Mapping[str, Any]]:
         profile_ids.add(subject_id)
         _validate_identity_boundary(profile, subject_kind, subject_id)
         _validate_platform_accounts(profile["platform_accounts"], subject_kind, profile)
+        _validate_identity_evidence_summary(profile["identity_evidence_summary"])
         _validate_profile_non_claims(profile["non_claims"])
         _validate_str_list(profile["limitations"], "profile_limitations", allow_empty=False)
-        _validate_rollups(profile["current_metric_rollups"], profile)
+        rollups = _validate_rollups(profile["current_metric_rollups"], profile)
+        _validate_unjoined_profile_surface(profile["ideal_audience_profile"], "ideal_audience_profile")
+        _validate_unjoined_profile_surface(profile["wind_calling_summary"], "wind_calling_summary")
+        _validate_source_drill_back(profile["source_drill_back"], profile["identity_evidence_summary"], rollups)
         _validate_freshness(profile["freshness"])
         profiles.append(profile)
     return profiles
@@ -293,9 +312,25 @@ def _validate_platform_accounts(value: Any, subject_kind: str, profile: Mapping[
         _fail("platform_account_profile_account_mismatch", "platform_account profile must list only its own platform account")
 
 
-def _validate_rollups(value: Any, profile: Mapping[str, Any]) -> None:
+def _validate_identity_evidence_summary(value: Any) -> None:
+    if not isinstance(value, Mapping):
+        _fail("invalid_identity_evidence_summary", "identity_evidence_summary must be a mapping")
+    _reject_unknown_keys(value, _ALLOWED_IDENTITY_EVIDENCE_SUMMARY_KEYS, "identity_evidence_summary")
+    _require(value, tuple(_ALLOWED_IDENTITY_EVIDENCE_SUMMARY_KEYS), "identity_evidence_summary")
+    _validate_non_empty_str(value["summary"], "identity_evidence_summary.summary")
+    _validate_non_empty_str(value["account_pointer"], "identity_evidence_summary.account_pointer")
+    _validate_str_list(value["source_pointers"], "identity_evidence_summary.source_pointers", allow_empty=False)
+
+
+def _validate_unjoined_profile_surface(value: Any, context: str) -> None:
+    if value is not None:
+        _fail(f"unsupported_{context}", f"{context} is not joined into creator_profile_current_view_v0")
+
+
+def _validate_rollups(value: Any, profile: Mapping[str, Any]) -> list[Mapping[str, Any]]:
     if not _is_list(value):
         _fail("invalid_current_metric_rollups", "current_metric_rollups must be a list")
+    rollups: list[Mapping[str, Any]] = []
     for rollup in value:
         if not isinstance(rollup, Mapping):
             _fail("invalid_metric_rollup", "current_metric_rollups entries must be mappings")
@@ -307,6 +342,42 @@ def _validate_rollups(value: Any, profile: Mapping[str, Any]) -> None:
         _validate_source_observation_ids(rollup)
         _validate_sample_support(rollup)
         _validate_rollup_limitations(rollup["limitations"])
+        rollups.append(rollup)
+    return rollups
+
+
+def _validate_source_drill_back(
+    value: Any,
+    identity_evidence_summary: Mapping[str, Any],
+    rollups: Sequence[Mapping[str, Any]],
+) -> None:
+    if not isinstance(value, Mapping):
+        _fail("invalid_source_drill_back", "source_drill_back must be a mapping")
+    _reject_unknown_keys(value, _ALLOWED_SOURCE_DRILL_BACK_KEYS, "source_drill_back")
+    _require(value, tuple(_ALLOWED_SOURCE_DRILL_BACK_KEYS), "source_drill_back")
+    identity_pointer = _validate_non_empty_str(value["identity_ledger_pointer"], "source_drill_back.identity_ledger_pointer")
+    if identity_pointer != identity_evidence_summary["account_pointer"]:
+        _fail(
+            "source_drill_back_identity_pointer_mismatch",
+            "source_drill_back identity pointer must match identity evidence account pointer",
+        )
+    _validate_non_empty_str(value["metric_rollup_pointer"], "source_drill_back.metric_rollup_pointer")
+    _validate_non_empty_str(value["metric_seed_pointer"], "source_drill_back.metric_seed_pointer")
+    source_ids = _validate_str_list(
+        value["source_metric_observation_ids"],
+        "source_drill_back.source_metric_observation_ids",
+        allow_empty=False,
+    )
+    expected_source_ids = [
+        source_id
+        for rollup in rollups
+        for source_id in rollup["source_metric_observation_ids"]
+    ]
+    if source_ids != expected_source_ids:
+        _fail(
+            "source_drill_back_observation_ids_mismatch",
+            "source_drill_back source_metric_observation_ids must match rollup observation ids",
+        )
 
 
 def _validate_rollup_identity(rollup: Mapping[str, Any], profile: Mapping[str, Any]) -> None:
@@ -338,7 +409,7 @@ def _validate_metric_values(value: Any) -> None:
         observed = posture == "observed"
         metric_value = metric["value_or_none"]
         if observed:
-            if not isinstance(metric_value, (int, float)):
+            if isinstance(metric_value, bool) or not isinstance(metric_value, (int, float)):
                 _fail("observed_metric_missing_value", f"observed metric {metric_name} requires a numeric value")
             if metric.get("posture_reason_or_none") not in (None, ""):
                 _fail("observed_metric_has_reason", f"observed metric {metric_name} must not carry a reason")
@@ -351,7 +422,7 @@ def _validate_metric_values(value: Any) -> None:
 
 
 def _validate_observation_count(value: Any) -> None:
-    if not isinstance(value, int) or value <= 0:
+    if isinstance(value, bool) or not isinstance(value, int) or value <= 0:
         _fail("invalid_observation_count", "observation_count must be a positive integer")
 
 

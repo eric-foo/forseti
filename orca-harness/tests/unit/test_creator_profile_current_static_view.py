@@ -234,6 +234,65 @@ def test_creator_profile_validator_rejects_metric_smuggling_into_identity_accoun
     _assert_validation_code(document, "unknown_field")
 
 
+def test_creator_profile_validator_rejects_metric_smuggling_into_source_drill_back() -> None:
+    document = _bad_view_document()
+    drill_back = document["creator_profile_current_view"]["profiles"][0]["source_drill_back"]
+    drill_back["average_views"] = 123
+
+    _assert_validation_code(document, "unknown_field")
+
+
+def test_creator_profile_validator_rejects_metric_smuggling_into_identity_evidence_summary() -> None:
+    document = _bad_view_document()
+    identity_summary = document["creator_profile_current_view"]["profiles"][0]["identity_evidence_summary"]
+    identity_summary["engagement_rate"] = 0.42
+
+    _assert_validation_code(document, "unknown_field")
+
+
+def test_creator_profile_validator_rejects_unjoined_ideal_audience_profile() -> None:
+    document = _bad_view_document()
+    document["creator_profile_current_view"]["profiles"][0]["ideal_audience_profile"] = {"freeform": "young buyers"}
+    document["creator_profile_current_view"]["counts"]["profiles_with_ideal_audience_profiles"] = 1
+
+    _assert_validation_code(document, "unsupported_ideal_audience_profile")
+
+
+def test_creator_profile_validator_rejects_unjoined_wind_calling_summary() -> None:
+    document = _bad_view_document()
+    document["creator_profile_current_view"]["profiles"][0]["wind_calling_summary"] = {"summary": "high"}
+
+    _assert_validation_code(document, "unsupported_wind_calling_summary")
+
+
+def test_creator_profile_validator_rejects_source_drill_back_observation_id_drift() -> None:
+    document = _bad_view_document()
+    drill_back = document["creator_profile_current_view"]["profiles"][0]["source_drill_back"]
+    drill_back["source_metric_observation_ids"] = ["unrelated_observation_id"]
+
+    _assert_validation_code(document, "source_drill_back_observation_ids_mismatch")
+
+
+def test_creator_profile_validator_rejects_bool_observed_metric_value() -> None:
+    document = _bad_view_document()
+    rollup = document["creator_profile_current_view"]["profiles"][0]["current_metric_rollups"][0]
+    rollup["metric_rollups"]["average_views"]["value_or_none"] = True
+
+    _assert_validation_code(document, "observed_metric_missing_value")
+
+
+def test_creator_profile_validator_requires_full_profile_non_claim_set() -> None:
+    document = _bad_view_document()
+    profile = document["creator_profile_current_view"]["profiles"][0]
+    profile["non_claims"] = [
+        non_claim
+        for non_claim in profile["non_claims"]
+        if non_claim != "not SQLite or data-lake physicalization"
+    ]
+
+    _assert_validation_code(document, "missing_required_non_claim")
+
+
 def test_creator_profile_validator_rejects_cross_platform_rollup_without_promoted_linkage() -> None:
     document = _bad_view_document()
     rollup = document["creator_profile_current_view"]["profiles"][0]["current_metric_rollups"][0]
