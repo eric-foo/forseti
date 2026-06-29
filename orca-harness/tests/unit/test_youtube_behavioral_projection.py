@@ -121,6 +121,41 @@ def _rewrite_preserved_body(packet_dir: Path, suffix: str, body: bytes) -> None:
     raise AssertionError(f"preserved file ending with {suffix!r} not found")
 
 
+def _watch_capture_manifest_entry(packet_dir: Path) -> tuple[Path, dict[str, Any], dict[str, Any]]:
+    manifest_path = packet_dir / "manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    for preserved in manifest["preserved_files"]:
+        relative_path = preserved.get("relative_packet_path")
+        if isinstance(relative_path, str) and relative_path.endswith("youtube_watch_capture.json"):
+            return manifest_path, manifest, preserved
+    raise AssertionError("youtube_watch_capture.json preserved file not found")
+
+
+def _project_with_mutated_watch_capture(tmp_path, mutate):
+    data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    watch_packet_id = _commit_watch_metadata(data_root)
+    _commit_caption(data_root)
+    watch_packet_dir = data_root.find_packet(watch_packet_id)
+    assert watch_packet_dir is not None
+    mutate(watch_packet_dir)
+    sources = transcript_sources_for_video(data_root, _VIDEO_ID)
+
+    projection = project_youtube_behavioral_item_from_lake(
+        data_root=data_root,
+        platform_video_id=_VIDEO_ID,
+        extraction_results=_extracted_results_for_sources(sources),
+    )
+    return watch_packet_id, projection
+
+
+def _assert_metadata_discovery_failure(projection: dict[str, Any], watch_packet_id: str, reason: str) -> None:
+    residuals = projection["behavioral_completeness"]["residuals"]
+    assert projection["metadata_capture"] is None
+    assert f"youtube_metadata_packet_discovery_failed:{watch_packet_id}:{reason}" in residuals
+    assert "youtube_metadata_packet_absent" in residuals
+    assert projection["behavioral_completeness"]["complete"] is True
+
+
 def _commit_caption(data_root: DataLakeRoot, *, video_id: str = _VIDEO_ID) -> str:
     cap = CaptionFetch(
         video_id=video_id,
@@ -262,25 +297,56 @@ def test_projection_from_lake_uses_latest_watch_metadata_packet_for_video(tmp_pa
 
 
 def test_projection_from_lake_residualizes_uninterpretable_watch_metadata_packet(tmp_path) -> None:
-    data_root = DataLakeRoot.for_test(tmp_path / "lake")
-    watch_packet_id = _commit_watch_metadata(data_root)
-    _commit_caption(data_root)
-    watch_packet_dir = data_root.find_packet(watch_packet_id)
-    assert watch_packet_dir is not None
-    _rewrite_preserved_body(watch_packet_dir, "youtube_watch_capture.json", b"{not-json")
-    sources = transcript_sources_for_video(data_root, _VIDEO_ID)
-
-    projection = project_youtube_behavioral_item_from_lake(
-        data_root=data_root,
-        platform_video_id=_VIDEO_ID,
-        extraction_results=_extracted_results_for_sources(sources),
+    watch_packet_id, projection = _project_with_mutated_watch_capture(
+        tmp_path,
+        lambda packet_dir: _rewrite_preserved_body(packet_dir, "youtube_watch_capture.json", b"{not-json"),
     )
 
-    residuals = projection["behavioral_completeness"]["residuals"]
-    assert projection["metadata_capture"] is None
-    assert f"youtube_metadata_packet_discovery_failed:{watch_packet_id}:invalid_capture_json" in residuals
-    assert "youtube_metadata_packet_absent" in residuals
-    assert projection["behavioral_completeness"]["complete"] is True
+    _assert_metadata_discovery_failure(projection, watch_packet_id, "invalid_capture_json")
+
+
+def test_projection_from_lake_residualizes_non_object_watch_metadata_payload(tmp_path) -> None:
+    watch_packet_id, projection = _project_with_mutated_watch_capture(
+        tmp_path,
+        lambda packet_dir: _rewrite_preserved_body(packet_dir, "youtube_watch_capture.json", b"[]"),
+    )
+
+    _assert_metadata_discovery_failure(projection, watch_packet_id, "capture_payload_not_object")
+
+
+def test_projection_from_lake_residualizes_missing_watch_capture_json(tmp_path) -> None:
+    def rename_capture_json(packet_dir: Path) -> None:
+        manifest_path, manifest, preserved = _watch_capture_manifest_entry(packet_dir)
+        relative_path = preserved["relative_packet_path"]
+        replacement_path = relative_path.replace("youtube_watch_capture.json", "youtube_watch_capture_missing.json")
+        packet_dir.joinpath(*relative_path.split("/")).rename(packet_dir.joinpath(*replacement_path.split("/")))
+        preserved["relative_packet_path"] = replacement_path
+        manifest_path.write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+
+    watch_packet_id, projection = _project_with_mutated_watch_capture(tmp_path, rename_capture_json)
+
+    _assert_metadata_discovery_failure(projection, watch_packet_id, "missing_capture_json")
+
+
+def test_projection_from_lake_residualizes_watch_metadata_packet_missing_video_id(tmp_path) -> None:
+    def remove_video_id(packet_dir: Path) -> None:
+        _, _, preserved = _watch_capture_manifest_entry(packet_dir)
+        target = packet_dir.joinpath(*preserved["relative_packet_path"].split("/"))
+        payload = json.loads(target.read_text(encoding="utf-8"))
+        payload.pop("platform_video_id", None)
+        nested_packet = payload.get("packet")
+        assert isinstance(nested_packet, dict)
+        nested_packet.pop("platform_video_id", None)
+        nested_packet.pop("video_id", None)
+        _rewrite_preserved_body(
+            packet_dir,
+            "youtube_watch_capture.json",
+            (json.dumps(payload, indent=2, sort_keys=True) + "\n").encode("utf-8"),
+        )
+
+    watch_packet_id, projection = _project_with_mutated_watch_capture(tmp_path, remove_video_id)
+
+    _assert_metadata_discovery_failure(projection, watch_packet_id, "missing_platform_video_id")
 
 
 def test_transcript_discovery_residualizes_corrupt_youtube_packet_without_aborting_healthy_video(tmp_path) -> None:
