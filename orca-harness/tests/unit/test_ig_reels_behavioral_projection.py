@@ -164,6 +164,29 @@ def test_deep_capture_transcript_is_extraction_eligible_and_exact_keyed() -> Non
     }
 
 
+def test_non_extraction_residual_blocks_complete_behavior_claim() -> None:
+    deep_key = f"{_SHORTCODE}:asr:deepcap_1.json"
+    projection = project_ig_reels_behavioral_item(
+        platform_item_id=_SHORTCODE,
+        comment_sets=[_comment_set()],
+        deep_capture_transcript_records=[_deep_transcript()],
+        extraction_results=[
+            {
+                "anchor": _SHORTCODE,
+                "video_id": _SHORTCODE,
+                "status": "extracted",
+                "transcript_source_key": deep_key,
+                "path": "derived/shortcode/product_mentions/deep",
+            },
+        ],
+    )
+
+    assert projection["transcript"]["extraction_rollup"]["status"] == "complete"
+    assert projection["behavioral_completeness"]["status"] == "complete_with_residuals"
+    assert projection["behavioral_completeness"]["complete"] is False
+    assert f"ig_grid_candidate_absent:{_SHORTCODE}" in projection["behavioral_completeness"]["residuals"]
+
+
 def test_unextracted_deep_capture_transcript_blocks_complete_claim() -> None:
     projection = project_ig_reels_behavioral_item(
         platform_item_id=_SHORTCODE,
@@ -242,7 +265,9 @@ def test_canonical_standalone_audio_prefers_latest_capture_time() -> None:
     )
 
     assert projection["transcript"]["canonical_source"]["transcript_anchor"] == "audio-new"
-    assert projection["behavioral_completeness"]["status"] == "complete"
+    assert projection["transcript"]["extraction_rollup"]["status"] == "complete"
+    assert projection["behavioral_completeness"]["status"] == "complete_with_residuals"
+    assert projection["behavioral_completeness"]["complete"] is False
 
 
 def test_real_shape_records_without_in_body_record_ids_are_residualized() -> None:
