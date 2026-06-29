@@ -54,14 +54,18 @@ def _norm(text: str) -> str:
 class TranscriptInput:
     """The unit Pass 1 reads: a transcript's identity + its ms-timed cues.
 
-    `cues` is a list of {start_ms, end_ms, text}. Identity (video_id/anchor/source) is
-    authoritative and flows into every record (CE1) — the model never supplies it.
+    `cues` is a list of {start_ms, end_ms, text}. Identity (video_id/anchor/source,
+    plus optional exact source key) is authoritative and flows into every record
+    (CE1) — the model never supplies it.
     """
 
     video_id: str
     transcript_anchor: str
     transcript_source: str  # "asr" | "caption"
     cues: list[dict]
+    transcript_source_key: str | None = None
+    source_route: str | None = None
+    asr_record_id: str | None = None
 
     @property
     def joined_text(self) -> str:

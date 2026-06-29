@@ -255,6 +255,10 @@ def _collect_product_extraction_results(
                 "video_id": shortcode,
                 "status": status,
                 "path": str(record_path),
+                "transcript_source_key": _string_or_none(body.get("transcript_source_key")),
+                "source_key": _string_or_none(body.get("source_key")),
+                "source_route": _string_or_none(body.get("source_route")),
+                "asr_record_id": _string_or_none(body.get("asr_record_id")),
             }
         )
 

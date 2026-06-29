@@ -78,13 +78,16 @@ def cues_from_json3(raw: bytes) -> list[dict]:
 
 
 def mentions_record_id(transcript: TranscriptInput, model: str) -> str:
-    """Deterministic per (transcript content, model) so re-runs check/skip the same record.
+    """Deterministic per transcript source/content/model so re-runs check/skip the same record.
 
     The model token is bounded so the id stays within the lake's 128-char _SAFE_SEGMENT limit
     for any model string; the full model is still recorded in the record payload + provenance.
     """
     token = re.sub(r"[^A-Za-z0-9_-]", "-", str(model))[:48]
-    digest = hashlib.sha256(transcript.joined_text.encode("utf-8")).hexdigest()
+    digest_input = transcript.joined_text
+    if transcript.transcript_source_key:
+        digest_input = f"{transcript.transcript_source_key}\x00{digest_input}"
+    digest = hashlib.sha256(digest_input.encode("utf-8")).hexdigest()
     return f"mentions_{token}__{digest[:16]}.json"
 
 
@@ -116,6 +119,9 @@ def extract_products_into_lake(
     payload = {
         "video_id": transcript.video_id,
         "transcript_anchor": transcript.transcript_anchor,
+        "transcript_source_key": transcript.transcript_source_key,
+        "source_route": transcript.source_route,
+        "asr_record_id": transcript.asr_record_id,
         "transcript_source": transcript.transcript_source,
         "model": model,
         "rubric_version": EXTRACTOR_RUBRIC_VERSION,

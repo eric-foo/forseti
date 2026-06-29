@@ -13,6 +13,7 @@ from typing import Any
 from cleaning.audience_extractor import RawApiProvider
 from cleaning.transcript_product_lake import PRODUCT_MENTIONS_LANE, PRODUCT_MENTIONS_SET_LANE
 from data_lake.root import DataLakeRoot
+from schemas.audience_comment_models import AudienceComment
 from runners.run_ig_reels_product_extract import (
     count_partial_extractions,
     count_pending_extractions,
@@ -26,6 +27,11 @@ from source_capture import (
     known_fact,
     not_applicable,
     not_attempted,
+)
+from source_capture.ig_reels_deep_capture import ReelDeepCaptureResult
+from source_capture.ig_reels_deep_capture_lake import (
+    deep_capture_record_id,
+    write_reel_deep_capture_into_lake,
 )
 from source_capture.packet_assembly import staged_file_id_map, stage_and_write_packet
 from source_capture.transcript.ig_reels_audio_packet import write_ig_reels_asr_transcript
@@ -81,6 +87,32 @@ def _commit_ig_audio_transcript(data_root, shortcode: str = "DZ69knlsDb1", postu
         transcribe_fn=lambda _path: (posture, cues, {"tool": "faster-whisper", "model": "test"}),
         data_root=data_root,
     )
+
+
+def _commit_ig_deep_capture(data_root, shortcode: str = "DZ69knlsDb1", posture: str = "transcribed") -> str:
+    cues = tuple(_cues() if posture in {"ok", "transcribed"} else [])
+    result = ReelDeepCaptureResult(
+        reel_shortcode=shortcode,
+        comments=(
+            AudienceComment(
+                comment_id=f"comment-{shortcode}",
+                reel_shortcode=shortcode,
+                author_username="zoe",
+                text="works",
+                like_count=1,
+                created_at_unix=1782400000,
+            ),
+        ),
+        transcript_posture=posture,
+        transcript_cues=cues,
+        media_url_used="https://x.fbcdn.net/o1/v/clip.mp4",
+    )
+    write_reel_deep_capture_into_lake(
+        data_root=data_root,
+        result=result,
+        generated_at="2026-06-29T00:01:00Z",
+    )
+    return deep_capture_record_id(result)
 
 
 def _commit_ig_grid_packet(data_root) -> None:
@@ -153,6 +185,39 @@ def test_runner_extracts_ig_transcript_then_skips_on_rerun(tmp_path) -> None:
     second = run_extraction(data_root=data_root, transport=transport, provider=_PROVIDER, model="m", api_key="k")
     assert len(second) == 1
     assert second[0]["status"] == "skipped_done"
+
+
+def test_runner_extracts_deep_capture_transcript_records(tmp_path) -> None:
+    data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    deep_record_id = _commit_ig_deep_capture(data_root)
+    deep_key = f"DZ69knlsDb1:asr:{deep_record_id}"
+    assert count_pending_extractions(data_root=data_root, model="m") == 1
+
+    transport = FakeTransport(_anthropic([_item()]))
+    first = run_extraction(data_root=data_root, transport=transport, provider=_PROVIDER, model="m", api_key="k")
+    assert first == [
+        {
+            "anchor": "DZ69knlsDb1",
+            "video_id": "DZ69knlsDb1",
+            "transcript_source_key": deep_key,
+            "source_route": "deep_capture_render_audio",
+            "asr_record_id": deep_record_id,
+            "status": "extracted",
+            "path": first[0]["path"],
+        }
+    ]
+
+    written = json.loads((data_root.path / first[0]["path"]).read_text(encoding="utf-8"))
+    assert written["transcript_anchor"] == "DZ69knlsDb1"
+    assert written["transcript_source"] == "asr"
+    assert written["transcript_source_key"] == deep_key
+    assert written["source_route"] == "deep_capture_render_audio"
+    assert written["asr_record_id"] == deep_record_id
+
+    second = run_extraction(data_root=data_root, transport=transport, provider=_PROVIDER, model="m", api_key="k")
+    assert len(second) == 1
+    assert second[0]["status"] == "skipped_done"
+    assert second[0]["transcript_source_key"] == deep_key
 
 
 def test_check_count_tracks_completed_mentions_for_model(tmp_path) -> None:

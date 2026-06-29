@@ -299,12 +299,27 @@ def test_cues_from_asr_record_guards_non_list() -> None:
     assert cues_from_asr_record({"cues": good}) == good
 
 
-def test_mentions_record_id_keys_on_content_and_model() -> None:
+def test_mentions_record_id_keys_on_content_model_and_optional_source_key() -> None:
     t1 = _transcript()
     t2 = TranscriptInput("vid12345678", _ANCHOR, "asr", [{"start_ms": 0, "end_ms": 1, "text": "totally other words"}])
+    t3 = TranscriptInput(
+        "vid12345678",
+        _ANCHOR,
+        "asr",
+        _cues(),
+        transcript_source_key="vid12345678:asr:deepcap-a",
+    )
+    t4 = TranscriptInput(
+        "vid12345678",
+        _ANCHOR,
+        "asr",
+        _cues(),
+        transcript_source_key="vid12345678:asr:deepcap-b",
+    )
     assert mentions_record_id(t1, "m") == mentions_record_id(t1, "m")  # stable across calls
     assert mentions_record_id(t1, "m") != mentions_record_id(t2, "m")  # content-keyed
     assert mentions_record_id(t1, "m1") != mentions_record_id(t1, "m2")  # model-keyed (R1 backfill)
+    assert mentions_record_id(t3, "m") != mentions_record_id(t4, "m")  # exact source-keyed when present
 
 
 def test_runner_marks_zero_mention_transcript_done(tmp_path) -> None:
