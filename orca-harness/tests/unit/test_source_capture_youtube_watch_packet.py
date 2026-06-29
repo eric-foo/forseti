@@ -215,6 +215,74 @@ def test_unavailable_metric_receipt_requires_reason_and_routes_checked(tmp_path:
     assert "unavailable metric receipt for like_count requires non-empty routes_checked" in message
     assert not output.exists()
 
+
+def test_metric_receipt_value_must_match_engagement_value(tmp_path: Path) -> None:
+    output = tmp_path / "yt_watch_mismatched_metric"
+    packet = _packet()
+    packet["engagement"]["view_count"] = 9999
+
+    code, message = write_youtube_watch_packet(
+        YoutubeWatchFetch(
+            video_id=_VIDEO_ID,
+            raw_watch_html=b"<html>ytInitialPlayerResponse</html>",
+            packet=packet,
+            comment_page_bodies=(),
+        ),
+        output_directory=output,
+        decision_question="capture YouTube watch metrics",
+    )
+
+    assert code == 5
+    assert "metric receipt for view_count value 1200 does not match engagement value 9999" in message
+    assert not output.exists()
+
+
+def test_unavailable_metric_receipt_rejects_stale_engagement_value(tmp_path: Path) -> None:
+    output = tmp_path / "yt_watch_stale_metric"
+    packet = _packet()
+    packet["metric_receipts"]["like_count"] = _metric_gap("microformat.likeCount was not exposed")
+
+    code, message = write_youtube_watch_packet(
+        YoutubeWatchFetch(
+            video_id=_VIDEO_ID,
+            raw_watch_html=b"<html>ytInitialPlayerResponse</html>",
+            packet=packet,
+            comment_page_bodies=(),
+        ),
+        output_directory=output,
+        decision_question="capture YouTube watch metrics",
+    )
+
+    assert code == 5
+    assert "like_count has engagement value 34 but metric receipt posture is 'unavailable_with_reason'" in message
+    assert not output.exists()
+
+
+def test_metric_receipt_rejects_unsupported_posture(tmp_path: Path) -> None:
+    output = tmp_path / "yt_watch_bad_posture"
+    packet = _packet(like=None)
+    packet["metric_receipts"]["like_count"] = {
+        "posture": "not_applicable",
+        "reason": "not needed",
+        "routes_checked": ["fixture_route"],
+    }
+
+    code, message = write_youtube_watch_packet(
+        YoutubeWatchFetch(
+            video_id=_VIDEO_ID,
+            raw_watch_html=b"<html>ytInitialPlayerResponse</html>",
+            packet=packet,
+            comment_page_bodies=(),
+        ),
+        output_directory=output,
+        decision_question="capture YouTube watch metrics",
+    )
+
+    assert code == 5
+    assert "metric receipt for like_count has unsupported posture 'not_applicable'" in message
+    assert not output.exists()
+
+
 @dataclass(frozen=True)
 class _Fetched:
     packet: dict[str, object]

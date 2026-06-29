@@ -107,31 +107,48 @@ def _call_name(node: ast.Call) -> str | None:
     return None
 
 
-def _imported_packet_writer_names(tree: ast.AST) -> set[str]:
+def _is_packet_writer_name(name: str | None) -> bool:
+    return bool(name) and (name in _DIRECT_PACKET_WRITER_TOKENS or _PACKET_WRITER_NAME_RE.fullmatch(name))
+
+
+def _source_capture_imports(tree: ast.AST) -> tuple[set[str], set[str]]:
     writer_names = set(_DIRECT_PACKET_WRITER_TOKENS)
+    module_aliases: set[str] = set()
     for node in ast.walk(tree):
-        if not isinstance(node, ast.ImportFrom):
-            continue
-        if not (node.module or "").startswith("source_capture"):
-            continue
-        for alias in node.names:
-            imported_name = alias.name
-            if imported_name in _DIRECT_PACKET_WRITER_TOKENS or _PACKET_WRITER_NAME_RE.fullmatch(imported_name):
-                writer_names.add(alias.asname or imported_name)
-    return writer_names
+        if isinstance(node, ast.ImportFrom):
+            if not (node.module or "").startswith("source_capture"):
+                continue
+            for alias in node.names:
+                if _is_packet_writer_name(alias.name):
+                    writer_names.add(alias.asname or alias.name)
+        elif isinstance(node, ast.Import):
+            for alias in node.names:
+                if alias.name.startswith("source_capture."):
+                    module_aliases.add(alias.asname or alias.name.split(".")[-1])
+    return writer_names, module_aliases
 
 
-def _producer_calls(tree: ast.AST, writer_names: set[str]) -> tuple[_ProducerCall, ...]:
+def _is_imported_module_writer_call(node: ast.Call, module_aliases: set[str]) -> bool:
+    if not isinstance(node.func, ast.Attribute):
+        return False
+    if not _is_packet_writer_name(node.func.attr):
+        return False
+    return isinstance(node.func.value, ast.Name) and node.func.value.id in module_aliases
+
+
+def _producer_calls(
+    tree: ast.AST, writer_names: set[str], module_aliases: set[str]
+) -> tuple[_ProducerCall, ...]:
     calls: list[_ProducerCall] = []
     for node in ast.walk(tree):
         if not isinstance(node, ast.Call):
             continue
         name = _call_name(node)
-        if name not in writer_names:
+        if name not in writer_names and not _is_imported_module_writer_call(node, module_aliases):
             continue
         calls.append(
             _ProducerCall(
-                name=name,
+                name=name or "<unknown>",
                 line=node.lineno,
                 forwards_data_root=any(keyword.arg == "data_root" for keyword in node.keywords),
             )
@@ -145,7 +162,8 @@ def _packet_producers() -> dict[str, _RunnerSeam]:
     for path in sorted(_RUNNERS_DIR.glob("run_*.py")):
         src = path.read_text(encoding="utf-8")
         tree = ast.parse(src, filename=str(path))
-        calls = _producer_calls(tree, _imported_packet_writer_names(tree))
+        writer_names, module_aliases = _source_capture_imports(tree)
+        calls = _producer_calls(tree, writer_names, module_aliases)
         if calls:
             producers[path.name] = _RunnerSeam(
                 exposes_output_arg="--output" in src,
@@ -158,6 +176,23 @@ def _packet_producers() -> dict[str, _RunnerSeam]:
             )
     return producers
 
+
+def test_detector_follows_source_capture_module_import_packet_writer_alias() -> None:
+    tree = ast.parse(
+        """
+import source_capture.youtube_watch_packet as ywp
+
+def main(root):
+    return ywp.write_youtube_watch_packet(fetch, data_root=root)
+"""
+    )
+
+    writer_names, module_aliases = _source_capture_imports(tree)
+    calls = _producer_calls(tree, writer_names, module_aliases)
+
+    assert len(calls) == 1
+    assert calls[0].name == "write_youtube_watch_packet"
+    assert calls[0].forwards_data_root is True
 
 def test_every_packet_runner_is_lake_wired_or_acknowledged() -> None:
     producers = _packet_producers()
