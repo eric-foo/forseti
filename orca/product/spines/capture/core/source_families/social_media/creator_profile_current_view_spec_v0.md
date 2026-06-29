@@ -21,6 +21,7 @@ open_next:
   - orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_spec_v0.md
   - orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json
   - orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json
+  - orca/product/spines/capture/core/source_families/social_media/instagram/instagram_reels_creator_metric_seed_v0.json
   - orca/product/spines/capture/core/source_families/social_media/instagram/ig_creator_ideal_audience_inference_spec_v0.md
   - orca/product/spines/capture/core/source_families/social_media/instagram/ig_profile_grid_dom_engagement_recon_and_spec_v0.md
   - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_storage_contract_v0.md
@@ -48,9 +49,11 @@ platform account may seed the current profile before cross-platform linkage.
 `creator_record_id` is earned only after public-handle linkage evidence joins at
 least two platforms.
 
-This document records the target view and placement. It does not add real
-creator rows, choose SQLite, create runtime tables, authorize live capture,
-start a data-lake job, or claim validation/readiness.
+This document records the target view and placement. The current static proof
+export now includes source-backed YouTube fragrance accounts plus selected-grid
+Instagram account rows, but the contract still does not choose SQLite, create
+runtime tables, authorize live capture, start a data-lake job, or claim
+validation/readiness.
 
 ## Start Preflight
 

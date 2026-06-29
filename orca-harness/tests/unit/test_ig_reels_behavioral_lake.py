@@ -76,8 +76,10 @@ def test_lake_adapter_injects_durable_record_ids_from_real_lake_paths(tmp_path: 
     residuals = projection["behavioral_completeness"]["residuals"]
     assert "unknown_record" not in json.dumps(projection, sort_keys=True)
     assert not any("record_id_absent" in residual for residual in residuals)
-    assert projection["behavioral_completeness"]["status"] == "complete"
-    assert projection["behavioral_completeness"]["complete"] is True
+    assert projection["transcript"]["extraction_rollup"]["status"] == "complete"
+    assert projection["behavioral_completeness"]["status"] == "complete_with_residuals"
+    assert projection["behavioral_completeness"]["complete"] is False
+    assert f"ig_grid_candidate_absent:{_SHORTCODE}" in residuals
 
 
 def test_lake_adapter_projects_requested_missing_item_without_hidden_success(tmp_path: Path) -> None:

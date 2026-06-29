@@ -78,6 +78,7 @@ def project_ig_reels_behavioral_item(
     canonical = _canonical_transcript_source(enriched_sources)
     correlation = _persistence_correlation(candidate, comments, enriched_sources)
 
+    behavioral_status = _behavioral_status(rollup["status"], residuals)
     return {
         "projection_method": IG_REELS_BEHAVIORAL_PROJECTION_METHOD,
         "projection_version": IG_REELS_BEHAVIORAL_PROJECTION_VERSION,
@@ -99,11 +100,17 @@ def project_ig_reels_behavioral_item(
         },
         "persistence_correlation": correlation,
         "behavioral_completeness": {
-            "status": rollup["status"],
-            "complete": rollup["status"] == "complete",
+            "status": behavioral_status,
+            "complete": behavioral_status == "complete",
             "residuals": residuals,
         },
     }
+
+
+def _behavioral_status(extraction_status: str, residuals: Sequence[str]) -> str:
+    if extraction_status == "complete" and residuals:
+        return "complete_with_residuals"
+    return extraction_status
 
 
 def _candidate_projection(

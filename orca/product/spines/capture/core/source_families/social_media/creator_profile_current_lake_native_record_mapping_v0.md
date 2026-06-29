@@ -19,6 +19,7 @@ open_next:
   - orca/product/spines/capture/core/source_families/social_media/creator_profile_current_view_spec_v0.md
   - orca/product/spines/capture/core/source_families/social_media/creator_profile_current_view_v0.json
   - orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json
+  - orca/product/spines/capture/core/source_families/social_media/instagram/instagram_reels_creator_metric_seed_v0.json
   - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_silver_vault_record_contract_v0.md
   - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_v4_1_forward_epoch_contract_v0.md
   - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_derived_layout_index_rebuild_contract_v0.md
@@ -43,7 +44,7 @@ old lake, or claim readiness.
 Yes: durable creator metric observations should derive from the Data Lake v4.1
 Silver lane.
 
-The static JSON seed is a source-backed proof artifact. The durable shape is:
+The static JSON seeds are source-backed proof artifacts. The durable shape is:
 
 ```text
 Bronze/raw packets
@@ -128,10 +129,13 @@ their source-specific metric observations obey the Silver posture/value contract
   Risk: query ergonomics remain abstract. Upgrade trigger: scan/query latency or
   producer implementation requires backend selection under the Data Lake storage
   physicalization boundary.
-- **No engagement-rate data yet.** The current YouTube seed lacks source-backed
-  likes/comments/subscribers. Risk: creator influence remains view-count-only.
-  Upgrade trigger: a platform producer emits observed numerator/denominator
-  metric observations with posture and recipe-compatible windows.
+- **Platform-limited engagement-rate data.** The Instagram reels-grid seed now
+  has source-backed selected-grid view/like/comment inputs and observed
+  engagement-rate rollups; the current YouTube seed still lacks source-backed
+  likes/comments/subscribers. Risk: creator influence is inconsistent by
+  platform/source family. Upgrade trigger: a second platform/source family emits
+  observed numerator/denominator metric observations with posture and
+  recipe-compatible windows.
 - **No cross-platform identity rollup.** Creator Vault remains per-platform until
   public-handle linkage is promoted. Risk: the one-stop profile is account-level.
   Upgrade trigger: human-reviewed probable or declared public-account linkage
@@ -144,5 +148,5 @@ their source-specific metric observations obey the Silver posture/value contract
 
 Not validation, readiness, buyer proof, SQLite adoption, backend selection,
 data-lake writer implementation, live capture authorization, dashboard
-implementation, cross-platform identity resolution, engagement-rate support, or
-contact/outreach authorization.
+implementation, cross-platform identity resolution, universal engagement-rate
+support, or contact/outreach authorization.

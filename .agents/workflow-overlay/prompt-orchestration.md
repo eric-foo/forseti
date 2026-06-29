@@ -355,6 +355,18 @@ thinking improves the reviewer's risk framing; the final answer remains a
 review report with findings, non-findings, not-proven boundaries, and next
 authorized step.
 
+Every Orca review prompt and any review-return or courier prompt must also
+instruct the *adjudicator* -- the reviewer in a self-review, the commissioning
+Chief Architect in a delegated pass, never the delegate mid-review -- to close,
+after the verdict, with a next-moves pass: batch all admin/lifecycle follow-ups
+(commit, push, PR, merge) into one named step with no deep-thinking, and
+deep-think only the material moves, the few substantive next steps that need
+judgment. This is the tail mirror of the deep-thinking-first rule above: it runs
+after adjudication, does not widen review scope or authorize patching, and
+produces the closeout's next step. The exact admin/material shape is owned by
+`.agents/workflow-overlay/communication-style.md` (Review Adjudication Next
+Step); do not restate it here.
+
 Review prompts, wrappers, handoffs, and closeouts must not recommend,
 prescribe, rank, or imply runtime model choice for review lanes. They may route
 by review lane, method/skill, target, authority, output mode, destination, and

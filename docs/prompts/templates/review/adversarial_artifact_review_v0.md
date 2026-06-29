@@ -52,6 +52,19 @@ Default review source pack:
   applying prompt templates;
 - [FILL_ADDITIONAL_TASK_SOURCES]
 
+Source-read budget (default, not a gate):
+Before the heavy reads, record a one-line-per-source disposition in your
+source-read ledger: `full`, `targeted <section>`, `grep <token>`, or
+`skip: <reason>`.
+Default to targeted-section or grep-to-claim reads for confirmatory
+sources; use full reads for the review target (or bound target excerpt) and
+whenever a source could materially change a finding, non-finding, strict claim,
+route, or blocker. This is the High-Context Guard in
+`.agents/workflow-overlay/source-loading.md` applied to review; it is not a cap
+on thoroughness -- expand to a full read the moment a source could materially
+change the current review judgment, noting why. Under-reading a material source
+is a worse failure than over-reading a confirmatory one.
+
 Edit permission:
 Read-only unless the launch instruction explicitly assigns patch execution.
 
@@ -153,6 +166,12 @@ binds patch-queue review or patch/integration execution authority. A
 advice.
 
 If no issues are found, say so and list residual risks or test gaps.
+
+Read-budget audit (one line):
+Close with a one-line read-budget audit -- initial versus actual dispositions
+(full / targeted / skipped) and why any source expanded beyond its initial
+disposition. It records budget fit; it is not a validation, readiness, or
+coverage claim.
 
 Review-use boundary:
 This is a read-only review. Treat findings and non-findings as decision input
