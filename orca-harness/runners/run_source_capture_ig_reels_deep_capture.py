@@ -17,10 +17,11 @@ import http.client
 import os
 import sys
 import tempfile
+import time
 import urllib.error
 import urllib.request
 from pathlib import Path
-from typing import Sequence
+from typing import Callable, Sequence
 from urllib.parse import urljoin, urlparse
 
 if __package__ in {None, ""}:
@@ -30,6 +31,8 @@ from data_lake.root import DataLakeRoot
 from harness_utils import utc_now_z
 from source_capture.adapters.browser_snapshot import (
     BrowserSnapshotFailure,
+    BrowserSnapshotFailureKind,
+    BrowserSnapshotResult,
     fetch_browser_snapshot_capture,
 )
 from source_capture.ig_reels_deep_capture import _is_ig_media_url, run_reel_deep_capture
@@ -70,20 +73,68 @@ class _MediaDownloadTooLargeError(ValueError):
     pass
 
 
-def _render(shortcode: str) -> str | None:
+# A single reel-page render fails transiently more often than IG hard-gates the reel: a
+# nav timeout, a momentary empty DOM, or a soft logged-out interstitial -- and the SAME reel
+# renders fine on a later attempt (observed live: a reel that came back `render_unavailable`
+# on one pass `transcribed` on the next). So render with a bounded retry + linear backoff, and
+# wait on `load` -- NOT `networkidle`, which almost never settles on Instagram's chatty SPA and
+# just times out (every other browser caller already uses `load`). Permanent failures (missing
+# browser binary, denied subprocess, deterministic size cap) are not retried.
+_RENDER_ATTEMPTS = 3
+_RENDER_BACKOFF_SECONDS = 2.0
+_RETRYABLE_RENDER_FAILURES = frozenset(
+    {
+        BrowserSnapshotFailureKind.TIMEOUT,
+        BrowserSnapshotFailureKind.CAPTURE_FAILED,
+        BrowserSnapshotFailureKind.EMPTY_RENDERED_DOM,
+        BrowserSnapshotFailureKind.EMPTY_SCREENSHOT,
+    }
+)
+
+
+def _render(
+    shortcode: str,
+    *,
+    attempts: int = _RENDER_ATTEMPTS,
+    capture_fn: Callable[..., BrowserSnapshotResult] = fetch_browser_snapshot_capture,
+    sleep_fn: Callable[[float], None] = time.sleep,
+    backoff_seconds: float = _RENDER_BACKOFF_SECONDS,
+) -> str | None:
+    """Render a public reel page to DOM, retrying transient browser-snapshot failures.
+
+    Returns the rendered DOM, or None once retries are exhausted (the caller collapses
+    that to a `render_unavailable` posture). Only transient failures are retried; a
+    permanent failure stops immediately. The last failure reason is emitted to stderr,
+    since the caller would otherwise record a bare `render_unavailable` with no cause.
+    """
     url = f"https://www.instagram.com/reel/{shortcode}/"
-    res = fetch_browser_snapshot_capture(
-        url=url,
-        wait_until="networkidle",
-        timeout_seconds=60.0,
-        viewport_width=1280,
-        viewport_height=2200,
-        settle_seconds=6.0,
-        headless=True,
-    )
-    if isinstance(res, BrowserSnapshotFailure):
-        return None
-    return res.rendered_dom or None
+    total = max(1, attempts)
+    last_failure: BrowserSnapshotFailure | None = None
+    attempt = 0
+    for attempt in range(1, total + 1):
+        res = capture_fn(
+            url=url,
+            wait_until="load",
+            timeout_seconds=60.0,
+            viewport_width=1280,
+            viewport_height=2200,
+            settle_seconds=6.0,
+            headless=True,
+        )
+        if not isinstance(res, BrowserSnapshotFailure):
+            return res.rendered_dom or None
+        last_failure = res
+        if res.failure_kind not in _RETRYABLE_RENDER_FAILURES:
+            break
+        if attempt < total:
+            sleep_fn(backoff_seconds * attempt)
+    if last_failure is not None:
+        print(
+            f"  render failed for {shortcode} after {attempt} attempt(s): "
+            f"{last_failure.failure_kind.value}: {last_failure.message}",
+            file=sys.stderr,
+        )
+    return None
 
 
 def _is_downloadable_ig_media_url(url: str) -> bool:
