@@ -175,7 +175,7 @@ yielding three actionable read-states. A scan does not guess which state a signa
 will become; it records what the receipts currently support. Durable requires a
 named persistence-projection basis. Transient is strong real current-window
 demand whose durability is not called, or whose evidence supports decay. Weak,
-attention-only, or manufactured signals are not transient demand.
+attention-only, resonance-only, or manufactured signals are not transient demand.
 
 ### Durable-demand read (real + projected to stay strong → commit / scale as earned)
 
@@ -261,8 +261,8 @@ outcome-memory machinery, never the scan's act.
 The taxonomy's calling sequence is now: current-window transient unless a named
 durability basis is already in the information set → monitor → earn, revise, or
 reduce the durable projection. For a point-in-time scan this absorbs as: **the
-scan classifies demand-state conservatively without weakening transient** — weak
-or attention-only input is not transient demand; transient means strong real
+scan classifies demand-state conservatively without weakening transient** — weak,
+attention-only, or resonance-only input is not transient demand; transient means strong real
 current-window demand whose durability is not called or whose evidence supports
 decay; durable means the receipts already support a persistence projection. The
 monitored upgrade/reduce step is a **downstream act outside the scan's authority**
@@ -281,10 +281,12 @@ it or direct a different scan-time classification rule.*
   to a cheaper brand (the read classifies which). An event-triggered pricing
   decision (happened or visibly imminent) IS a brand-decision event. Complaint
   chatter alone triggers neither.
-- **Attention/engagement volume alone** — at most a look-here cue for the
-  walk; a candidate requires gradeable costly-behavior or decision-event
+- **Attention/engagement/resonance volume alone** — resonance and look-here
+  context for the walk, but still below proof; a candidate requires gradeable costly-behavior or decision-event
   evidence (thesis costly-behavior primitive). Absence of demand ("velocity
-  miss," falling engagement) is never a costly-behavior pass.
+  miss," falling engagement) is never a costly-behavior pass. Use these signals
+  to route inspection, preserve context, or explain uncertainty; do not use them
+  to clear the floor, bind Capture, or assign a score.
 - **Availability alone** — movement over availability (owner word); presence
   on a shelf is not a read.
 - **Prominence** — fame is not relevance; in backward mode it is a FAME flag
@@ -696,8 +698,8 @@ authorization boundary.
 them explicitly, not silently baked):
 
 - The 21-day forward freshness default (§4).
-- The scan-time demand-state classification rule (§1): weak/attention-only input
-  is not transient demand; transient is strong current-window demand; durable
+- The scan-time demand-state classification rule (§1): weak, attention-only, or
+  resonance-only input is not transient demand; transient is strong current-window demand; durable
   requires a named persistence-projection basis. The scan-vs-capture-lane
   boundary for wind-caller calibration (§6) remains unchanged.
 - The `gate_family` demand-family set now excludes `retail_presence` and treats

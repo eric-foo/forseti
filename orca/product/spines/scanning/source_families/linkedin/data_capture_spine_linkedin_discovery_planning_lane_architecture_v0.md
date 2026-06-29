@@ -206,6 +206,10 @@ themselves a qualifying basis; a small-but-fast-rising ("meteoric") actor may be
 flagged for watch on the trajectory of visible numbers, not on the social graph.
 Trajectory tracking is a deferred Bounded Watch capability — see
 `docs/product/data_capture_spine_linkedin_influence_trajectory_watch_spec_v0.md`.
+Treat these numbers as public-reaction resonance context: they may explain why a
+frontier, actor, or watch item deserves more inspection, but they do not prove
+demand, buyer pull, credibility, independence, source quality, readiness,
+validation, or downstream source-access / Capture permission.
 
 ## Candidate Row Schema
 
@@ -251,6 +255,9 @@ promotion_required: yes
 Allowed influence numbers are visible counts or coarse visible bands only. They
 are influence context, not network capture. The lane must not persist follower
 lists, connection lists, commenter lists, or relationship graphs.
+`engagement_count_or_none` stays a source-visible planning fact tied to its
+surface and timestamp; it is not a score, promotion verdict, demand-origin
+surrogate, or automatic basis for a capture request.
 
 ## Graph Frontier Register Additions
 

@@ -9,7 +9,7 @@ use_when:
   - Reconstructing why this lane starts from CSB instead of a retailer PDP implementation or routine lake check.
 authority_boundary: retrieval_only
 open_next:
-  - orca/product/spines/commission_signal_board/prompts/orca_commission_signal_board_prompt_v0.md
+  - orca/product/spines/commission_signal_board/prompts/orca_commission_signal_board_prompt_structure_v0.md
   - orca/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md
   - orca/product/spines/scanning/README.md
 stale_if:
@@ -29,7 +29,7 @@ objective_intended_decision: >
   Capture or Data Lake expansion.
 output_mode: file-write
 template_kind: thin-wrapper
-referenced_full_prompt: orca/product/spines/commission_signal_board/prompts/orca_commission_signal_board_prompt_v0.md
+referenced_full_prompt: orca/product/spines/commission_signal_board/prompts/orca_commission_signal_board_prompt_structure_v0.md
 referenced_full_prompt_revision: main@190e1ef2
 prompt_artifact_path: docs/prompts/wrappers/specialist_fragrance_precursor_surface_csb_commission_wrapper_v0.md
 downstream_output_artifact_path: docs/research/orca_specialist_fragrance_precursor_surface_csb_board_v0.md
@@ -87,7 +87,7 @@ Read these before producing the CSB board:
 1. `AGENTS.md`
 2. `.agents/workflow-overlay/README.md`
 3. `orca/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md`
-4. `orca/product/spines/commission_signal_board/prompts/orca_commission_signal_board_prompt_v0.md`
+4. `orca/product/spines/commission_signal_board/prompts/orca_commission_signal_board_prompt_structure_v0.md`
 5. `orca/product/spines/scanning/README.md`
 6. `orca/product/spines/scanning/scan_core/orca_scanning_intelligent_walk_mgt_operating_model_v0.md`
 7. `orca/product/satellites/beauty/beauty_venue_card_set_v0.md`

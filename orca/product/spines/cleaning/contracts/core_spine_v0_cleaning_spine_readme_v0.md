@@ -79,6 +79,15 @@ video surfaces, official/package documents, support-style review surfaces, and
 browser-visible access overlays enter the same Cleaning contract without turning
 each source family into a separate spine.
 
+Public-reaction engagement context is one named working view inside this generic
+contract. When Capture or Projection preserves visible reaction metrics, Cleaning
+may surface `engagement_context` for navigation and traceability. It must keep
+raw/projection refs, metric posture, row binding, residuals, and non-claims; it
+may preserve direction, visible audience-fit basis, baseline context, and
+discount reasons as resonance context; it must not decide final resonance
+weight, credibility, independence, amplification, demand support, or Action
+Ceiling.
+
 ## What Is Not Generic
 
 Cleaning should not be built as a broad all-purpose data-cleaning platform.

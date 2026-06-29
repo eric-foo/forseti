@@ -94,7 +94,7 @@ Review these changed files:
 - `orca/product/shared/projection_doctrine/core_spine_v0_projection_doctrine_v0.md`
 - `orca/product/spines/capture/core/contracts/obligation_contracts/core_spine_v0_data_capture_spine_obligation_contract_v0.md`
 - `orca/product/spines/commission_signal_board/dispatch_rules/orca_demand_gate_run_commission_criteria_v0.md`
-- `orca/product/spines/commission_signal_board/prompts/orca_commission_signal_board_prompt_v0.md`
+- `orca/product/spines/commission_signal_board/prompts/orca_commission_signal_board_prompt_structure_v0.md`
 - `orca/product/spines/foundation/demand_read_taxonomy/orca_demand_read_taxonomy_adjudication_v0.md`
 - `orca/product/spines/foundation/demand_read_taxonomy/orca_demand_read_taxonomy_v0.md`
 - `orca/product/spines/judgment/demand_read/c2_weighting/judgment_spine_c2_ledger_read_contract_v0.md`

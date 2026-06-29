@@ -1,0 +1,69 @@
+<!-- fixture_expected: fail -->
+<!-- fixture_purpose: zero-row board still checks document-level engagement overclaims -->
+
+# Commission Signal Board Fixture: valid source-backed backtest
+
+### 1. Commission Intake Receipt
+
+```yaml
+commission_id: fixture_valid_source_backed_backtest
+mode: backtest
+candidate_or_subject: Fixture Product B
+decision_context: Exercise non-empty handoff after retrieval proves in-window evidence.
+market_or_geography: US
+time_window: 2018-2020
+evidence_cutoff_at: 2020-12-31
+input_status: complete
+missing_required_inputs: []
+cutoff_rule: only source observations observable on or before 2020-12-31 may enter downstream handoff
+non_goals_preserved:
+  - no demand classification
+  - no graph construction
+```
+
+### 4. Signal Board Rows
+
+| Row ID | Source family | Subfamily | Surface | Observable | Signal role | Row purpose | Recency status | Recency attention | Graph role | Graph weight hint | Evidence status | Provenance needed | Surface cutoff status | Cutoff status | Handoff note |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+
+### 7. Graph Retrieval Brief
+
+```yaml
+graph_retrieval_brief:
+  graph_weight_notes: High engagement proves demand
+  backtest_cutoff_date: 2020-12-31
+  future_info_exclusion_rule: exclude observations not observable on or before 2020-12-31
+```
+
+### 8. Demand-Classifier Handoff Packet
+
+```yaml
+classifier_handoff_packet:
+  candidate_or_subject: Fixture Product B
+  decision_context: Exercise non-empty handoff after retrieval proves in-window evidence.
+  mode: backtest
+  cutoff_date: 2020-12-31
+  signal_rows_for_handoff:
+    - SBR-001
+  counterevidence_rows_for_handoff:
+    - SBR-002
+  source_family_gaps:
+    - SBR-003 excluded as post_cutoff_surface / excluded_future_info.
+  provenance_gaps: []
+  cutoff_uncertainties: []
+  classifier_mapping_status: classifier_owned
+  prohibited_claims:
+    - no demand verdict
+    - no buyer-proof claim
+    - no validation or readiness claim
+    - no graph score
+    - no forecast probability
+```
+
+### 10. Board Status And Run Boundary
+
+```yaml
+board_status: READY_FOR_RETRIEVAL_HANDOFF
+run_boundary: CHAT_ONLY_BOARD_COMPLETE
+next_authorized_step: Classifier use still requires separate classifier authority.
+```

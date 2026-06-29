@@ -112,7 +112,7 @@ this order. Each step is a judgment, not a number.
    mood/attention), statable with a direction and rough magnitude, and
    corroborable — **evidenced in ≥1 qualifying demand-venue family**,
    distinguishable from attention volume? If **no**, the candidate **FAILS**
-   (floor not cleared); engagement/attention volume alone never clears it.
+   (floor not cleared); engagement/attention/resonance volume alone never clears it.
 3. **Integrity + divergence + defeater.** Apply integrity labels to each venue's
    evidence. Read divergence (`diverges_from`). Apply the **defeater**: if the
    divergence pattern indicates the costly-behavior instance is itself likely
@@ -124,8 +124,8 @@ this order. Each step is a judgment, not a number.
    one) → **hold / low-commitment** ceiling; **≥2 converging independent origins**
    → **material-action eligible** (commit or scale). Org-motion corroboration may
    raise confidence but does not raise the origin count. Transient/durable labels
-   are not strength tiers here: weak or attention-only input fails or holds; it
-   is not transient demand. Durable remains a later Judgment horizon call that
+   are not strength tiers here: weak, attention-only, or resonance-only input
+   fails or holds; it is not transient demand. Durable remains a later Judgment horizon call that
    needs a named persistence-projection basis.
 5. **Owner + consequence check.** A gate-run that clears the floor still requires
    the brief's other objectives for a slot to be live: a **named decision owner**

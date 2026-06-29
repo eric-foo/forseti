@@ -129,7 +129,7 @@ a live consumer-demand allocation decision — where internal data is not
 conclusive — use an Orca decision artifact to reduce allocation risk before
 committing inventory, retail/channel, launch, or pricing budget, after Orca
 captures, cleans, integrity-labels, classifies (costly behavior, never
-engagement volume alone), and constrains messy public demand signals, fused
+engagement/resonance volume alone), and constrains messy public demand signals, fused
 with org-level (Org) org-motion corroboration, into inspectable decision evidence
 with an explicit action ceiling?
 

@@ -331,7 +331,7 @@ def _deep_capture_source(
         posture=_normalise_deep_posture(_string_or_none(record.get("transcript_posture"))),
         cue_count=_int_or_none(record.get("cue_count")) or len(_list(record.get("cues"))),
         capture_timestamp=_string_or_none(record.get("generated_at")),
-        extraction_feed_eligible=False,
+        extraction_feed_eligible=True,
     )
     source["media_provenance"] = _mapping_or_none(record.get("media_provenance")) or {}
     return source

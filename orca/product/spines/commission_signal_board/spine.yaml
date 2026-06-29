@@ -9,8 +9,8 @@ authority_boundary: retrieval_only_docs_structure_not_runtime
 
 canonical_artifacts:
   readme: orca/product/spines/commission_signal_board/README.md
-  authority_packet: orca/product/spines/commission_signal_board/authority/orca_commission_signal_board_prompt_adjudication_packet_v0.md
-  prompt: orca/product/spines/commission_signal_board/prompts/orca_commission_signal_board_prompt_v0.md
+  prompt_structure_rules: orca/product/spines/commission_signal_board/authority/orca_commission_signal_board_prompt_structure_rules_v0.md
+  prompt_structure: orca/product/spines/commission_signal_board/prompts/orca_commission_signal_board_prompt_structure_v0.md
   playbook: orca/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md
   validator_pointer: orca/product/spines/commission_signal_board/harness/validator.md
   tests_pointer: orca/product/spines/commission_signal_board/tests/validator_tests.md
@@ -26,8 +26,8 @@ legacy_non_controlling_artifacts:
     reason: csb_is_signal_board_not_demand_gate
 
 legacy_absent_paths:
-  adjudication_packet: docs/product/product_lead/orca_commission_signal_board_prompt_adjudication_packet_v0.md
-  prompt: docs/prompts/product-planning/orca_commission_signal_board_prompt_v0.md
+  old_prompt_adjudication_packet: docs/product/product_lead/orca_commission_signal_board_prompt_adjudication_packet_v0.md
+  old_prompt: docs/prompts/product-planning/orca_commission_signal_board_prompt_v0.md
   playbook: docs/workflows/commission_signal_board_playbook_v0.md
 
 shared_external_surfaces:

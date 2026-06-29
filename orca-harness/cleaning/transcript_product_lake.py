@@ -24,10 +24,50 @@ from cleaning.transcript_product_extractor import (
     TranscriptInput,
     extract_transcript_products,
 )
+from data_lake.silver_lineage import (
+    SilverDerivedRef,
+    SilverLineage,
+    SilverLineageLimitation,
+    SilverRawRef,
+    SilverSourceObject,
+    validate_silver_lineage,
+)
 
 # Silver lane (tiered medallion name) + its sibling completion-marker lane.
 PRODUCT_MENTIONS_LANE = "silver__cleaning__product_mentions"
 PRODUCT_MENTIONS_SET_LANE = "silver__cleaning__product_mentions__set"
+
+# Producer identity stamped into the Silver lineage block of every product-mention
+# record (the producer is this Pass-1 extractor; its schema version is the rubric).
+PRODUCT_MENTIONS_PRODUCER_ID = "cleaning.transcript_product_extractor"
+
+
+def build_transcript_source_lineage(
+    *,
+    namespace: str,
+    source_surface: str,
+    video_id: str,
+    derived_ref: SilverDerivedRef | None = None,
+    raw_ref: SilverRawRef | None = None,
+    limitations: list[SilverLineageLimitation] | None = None,
+    captured_at: str | None = None,
+) -> SilverLineage:
+    """Assemble the Silver lineage block for a product-mention record from the exact
+    transcript source the runner discovered. Stamps this producer's identity and the
+    transcript's source-local identity (``namespace + kind=transcript + native_id``);
+    the caller supplies exactly one of a ``derived_ref`` (ASR -> the consumed
+    ``transcript_asr`` derived record) or a ``raw_ref`` (caption -> the json3
+    preserved file). Validated on construction (fail-closed)."""
+    return SilverLineage(
+        producer_id=PRODUCT_MENTIONS_PRODUCER_ID,
+        producer_schema_version=EXTRACTOR_RUBRIC_VERSION,
+        source_surface=source_surface,
+        source_object=SilverSourceObject(namespace=namespace, kind="transcript", native_id=video_id),
+        captured_at=captured_at,
+        raw_refs=[raw_ref] if raw_ref is not None else [],
+        derived_refs=[derived_ref] if derived_ref is not None else [],
+        lineage_limitations=list(limitations or []),
+    )
 
 
 def cues_from_asr_record(record: dict) -> list[dict]:
@@ -124,6 +164,14 @@ def extract_products_into_lake(
         "mentions": [m.model_dump(mode="json") for m in result.mentions],
         "rejected": result.rejected,
     }
+    # Silver lineage (additive): when the runner threaded the exact consumed source
+    # (the transcript_asr derived record for ASR, or the json3 preserved file for
+    # caption), populate the record's lineage fields IN PLACE so a downstream agent
+    # can resolve the exact source consumed -- closing the same-shortcode ambiguity.
+    # AR-01: these are top-level header-shaped fields, never a nested silver_lineage
+    # block. Re-validated at this write boundary (fail-closed) before persistence.
+    if transcript.source_lineage is not None:
+        payload.update(validate_silver_lineage(transcript.source_lineage).to_record_fields())
     members = {
         # allow_nan=False: a non-finite float fails closed (the runner records `failed`) rather
         # than writing a literal NaN/Infinity token that is invalid RFC-8259 JSON.
