@@ -8,6 +8,9 @@ import subprocess
 
 import pytest
 
+from capture_spine.creator_profile_current.materialize import (
+    build_creator_profile_current_view_from_files,
+)
 from capture_spine.creator_profile_current.validation import (
     CREATOR_PROFILE_CURRENT_VIEW_SCHEMA_VERSION,
     CreatorProfileCurrentError,
@@ -177,6 +180,16 @@ def test_creator_profile_current_rebuilds_from_identity_and_metric_seed() -> Non
         assert actual_rollup["computed_at"] == expected_rollup["computed_at"]
         assert profile["freshness"]["identity_updated_at"] == account["handle_observed_at"]
         assert profile["freshness"]["metrics_computed_at_or_none"] == expected_rollup["computed_at"]
+
+
+def test_creator_profile_current_materializer_matches_checked_in_view() -> None:
+    generated = build_creator_profile_current_view_from_files(
+        account_ledger_path=ACCOUNT_LEDGER_PATH,
+        metric_seed_path=METRIC_SEED_PATH,
+        generated_at_utc=_view()["generated_at_utc"],
+    )
+
+    assert generated == _view_document()
 
 
 def test_creator_profile_current_source_hashes_are_current() -> None:
