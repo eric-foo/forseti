@@ -310,6 +310,60 @@ def test_judgeme_json_list_preserves_body_uuid_verified_media_and_widget_aggrega
     assert row.transparency_badge_type == "review_written_in_shop_app"
 
 
+
+def test_json_review_body_absence_html_sanitizing_and_product_mismatch_are_visible() -> None:
+    widget = json.dumps(
+        {
+            "total_count": 3,
+            "reviews": [
+                {
+                    "id": "plain-body-fallback",
+                    "rating": 4,
+                    "created_at": "2026-06-01",
+                    "body": "Plain fallback body survives empty html.",
+                    "body_html": "",
+                },
+                {
+                    "id": "script-style-html",
+                    "rating": 4,
+                    "created_at": "2026-06-02",
+                    "body_html": "<p>Readable text.</p><script>bad()</script><style>.x{color:red}</style>",
+                },
+                {
+                    "id": "rating-only-other-product",
+                    "rating": 4,
+                    "created_at": "2026-06-03",
+                    "product_url": "/products/other-fragrance",
+                },
+            ],
+        }
+    )
+
+    receipt = build_fragrance_review_coverage(
+        widget_responses=[widget],
+        pdp_html=None,
+        source_id="fragrance_retail_example",
+        source_site="Example",
+        product_url=PRODUCT_URL,
+        as_of_date=date(2026, 6, 29),
+    )
+
+    summary = receipt.coverage_summary
+    assert summary.total_rows == 3
+    assert summary.review_body_captured_count == 2
+    assert summary.review_body_absent_count == 1
+    assert summary.selected_review_body_absent_count == 1
+    assert "review_body_absent_rows_present" in receipt.residuals
+    assert "selected_review_body_absent_rows_present" in receipt.residuals
+    assert "review_product_url_mismatch" in receipt.residuals
+
+    rows = {row.source_native_review_id: row for row in receipt.rows}
+    assert rows["plain-body-fallback"].review_body_verbatim == "Plain fallback body survives empty html."
+    assert rows["script-style-html"].review_body_verbatim == "Readable text."
+    assert "bad" not in rows["script-style-html"].review_body_verbatim
+    assert rows["rating-only-other-product"].review_body_verbatim is None
+    assert "review_body_absent" in rows["rating-only-other-product"].residuals
+
 def test_yotpo_v3_reviews_parse_rows_and_widget_bottomline() -> None:
     widget = json.dumps(
         {

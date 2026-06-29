@@ -10,6 +10,7 @@ from datetime import date
 from html.parser import HTMLParser
 from pathlib import Path
 from typing import Any, Literal, Mapping, Sequence
+from urllib.parse import urlparse
 
 from pydantic import Field, field_validator, model_validator
 
@@ -141,6 +142,9 @@ class FragranceReviewCoverageSummary(StrictModel):
     native_review_id_count: int = Field(ge=0)
     verified_true_count: int = Field(ge=0)
     media_true_count: int = Field(ge=0)
+    review_body_captured_count: int = Field(ge=0)
+    review_body_absent_count: int = Field(ge=0)
+    selected_review_body_absent_count: int = Field(ge=0)
     source_media_filter_count: int | None = None
 
 
@@ -313,14 +317,22 @@ class _TextOnlyHtmlParser(HTMLParser):
     def __init__(self) -> None:
         super().__init__(convert_charrefs=True)
         self.parts: list[str] = []
+        self._skip_depth = 0
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        if tag.lower() in {"script", "style"}:
+            self._skip_depth += 1
+
+    def handle_endtag(self, tag: str) -> None:
+        if tag.lower() in {"script", "style"} and self._skip_depth:
+            self._skip_depth -= 1
 
     def handle_data(self, data: str) -> None:
-        if data.strip():
+        if not self._skip_depth and data.strip():
             self.parts.append(data)
 
     def text(self) -> str:
         return _compact_text(" ".join(self.parts))
-
 
 def build_fragrance_review_coverage_from_files(
     *,
@@ -347,7 +359,6 @@ def build_fragrance_review_coverage_from_files(
         max_selected_rows=max_selected_rows,
         source_media_filter_count=source_media_filter_count,
     )
-
 
 def write_fragrance_review_coverage(
     *,
@@ -379,7 +390,6 @@ def write_fragrance_review_coverage(
         encoding="utf-8",
     )
     return receipt
-
 
 def build_fragrance_review_coverage(
     *,
@@ -451,6 +461,8 @@ def build_fragrance_review_coverage(
         residuals.append("widget_total_count_absent_completeness_unverified")
     if widget_total_count is not None and widget_total_count != len(rows):
         residuals.append("widget_total_count_deduped_row_count_mismatch")
+    if any(_product_url_mismatch(row.product_url, product_url) for row in rows):
+        residuals.append("review_product_url_mismatch")
     if (
         widget_total_count is not None
         and aggregate.review_count is not None
@@ -477,6 +489,10 @@ def build_fragrance_review_coverage(
         widget_total_count=widget_total_count,
         source_media_filter_count=source_media_filter_count,
     )
+    if summary.review_body_absent_count:
+        residuals.append("review_body_absent_rows_present")
+    if summary.selected_review_body_absent_count:
+        residuals.append("selected_review_body_absent_rows_present")
     return FragranceReviewCoverageReceipt(
         source_id=source_id,
         source_site=source_site,
@@ -491,12 +507,10 @@ def build_fragrance_review_coverage(
         residuals=residuals,
     )
 
-
 def _parse_judgeme_html_reviews(html: str) -> list[_MutableReview]:
     parser = _JudgeMeReviewParser()
     parser.feed(html)
     return parser.reviews
-
 
 def _parse_json_reviews(
     reviews: Sequence[object],
@@ -519,9 +533,11 @@ def _parse_json_reviews(
             "data-product-title": _string_or_empty(item.get("product_title")),
             "data-product-url": _string_or_empty(item.get("product_url")),
         }
-        body = item.get("body") or item.get("content") or item.get("body_html")
+        body = item.get("body") or item.get("content")
         if item.get("body_html") is not None:
-            body = _html_to_text(_string_or_empty(item.get("body_html")))
+            html_body = _html_to_text(_string_or_empty(item.get("body_html")))
+            if html_body:
+                body = html_body
         review = _MutableReview(
             attrs=attrs,
             ordinal=start_ordinal + offset,
@@ -542,7 +558,6 @@ def _parse_json_reviews(
             review.transparency_badge_type = _string_or_none(badges[0])
         parsed.append(review)
     return parsed
-
 
 def _normalize_reviews(
     reviews: Sequence[_MutableReview],
@@ -625,7 +640,6 @@ def _normalize_reviews(
         )
     return rows
 
-
 def _dedupe_rows(rows: Sequence[FragranceReviewCoverageRow]) -> list[FragranceReviewCoverageRow]:
     deduped: list[FragranceReviewCoverageRow] = []
     seen: set[str] = set()
@@ -636,7 +650,6 @@ def _dedupe_rows(rows: Sequence[FragranceReviewCoverageRow]) -> list[FragranceRe
         seen.add(key)
         deduped.append(row)
     return deduped
-
 
 def _apply_selection_policy(
     rows: Sequence[FragranceReviewCoverageRow],
@@ -690,7 +703,6 @@ def _apply_selection_policy(
 
     return rows_with_reasons
 
-
 def _selection_reasons(
     row: FragranceReviewCoverageRow,
     *,
@@ -717,7 +729,6 @@ def _selection_reasons(
         reasons.append("recent_12m")
     return reasons
 
-
 def _selection_priority(row: FragranceReviewCoverageRow, *, as_of_date: date) -> tuple[int, int, int, str]:
     reason_priority = {
         "core_rating_1": 0,
@@ -733,7 +744,6 @@ def _selection_priority(row: FragranceReviewCoverageRow, *, as_of_date: date) ->
     verified_rank = 0 if row.verified_purchase_flag is True else 1
     month_rank = -_month_index(row.review_month) if row.review_month else 0
     return (priority, verified_rank, month_rank, row.row_id)
-
 
 def _coverage_summary(
     rows: Sequence[FragranceReviewCoverageRow],
@@ -756,9 +766,13 @@ def _coverage_summary(
         native_review_id_count=sum(1 for row in rows if row.source_native_review_id),
         verified_true_count=sum(1 for row in rows if row.verified_purchase_flag is True),
         media_true_count=sum(1 for row in rows if row.media_attached_flag),
+        review_body_captured_count=sum(1 for row in rows if row.review_body_sha256),
+        review_body_absent_count=sum(1 for row in rows if not row.review_body_sha256),
+        selected_review_body_absent_count=sum(
+            1 for row in rows if row.selected_for_reader and not row.review_body_sha256
+        ),
         source_media_filter_count=source_media_filter_count,
     )
-
 
 def _aggregate_from_pdp_html(pdp_html: str | None) -> FragranceReviewAggregateCompanion:
     if not pdp_html:
@@ -786,7 +800,6 @@ def _aggregate_from_pdp_html(pdp_html: str | None) -> FragranceReviewAggregateCo
     residuals.append("aggregate_rating_absent")
     return FragranceReviewAggregateCompanion(residuals=residuals)
 
-
 def _widget_total_count_from_response(parsed: Mapping[str, object]) -> int | None:
     for key in ("total_count", "number_of_reviews"):
         value = _int_or_none(parsed.get(key))
@@ -805,7 +818,6 @@ def _widget_total_count_from_response(parsed: Mapping[str, object]) -> int | Non
                 return value
     return None
 
-
 def _widget_aggregate_from_response(parsed: Mapping[str, object]) -> FragranceReviewAggregateCompanion | None:
     if parsed.get("average_rating") is not None or parsed.get("number_of_reviews") is not None:
         return FragranceReviewAggregateCompanion(
@@ -822,12 +834,10 @@ def _widget_aggregate_from_response(parsed: Mapping[str, object]) -> FragranceRe
         )
     return None
 
-
 def _json_review_row_source(parsed: Mapping[str, object]) -> Literal["widget_json_review", "yotpo_v3_review"]:
     if isinstance(parsed.get("bottomline"), Mapping) and isinstance(parsed.get("pagination"), Mapping):
         return "yotpo_v3_review"
     return "widget_json_review"
-
 
 def _json_review_has_media(item: Mapping[str, object]) -> bool:
     for key in (
@@ -844,18 +854,31 @@ def _json_review_has_media(item: Mapping[str, object]) -> bool:
             return True
     return False
 
-
 def _html_to_text(html: str) -> str:
     parser = _TextOnlyHtmlParser()
     parser.feed(html)
     return parser.text()
 
+def _product_url_mismatch(row_url: str | None, target_url: str) -> bool:
+    if not row_url:
+        return False
+    row_text = row_url.strip()
+    if not row_text:
+        return False
+    target = urlparse(target_url)
+    row = urlparse(row_text)
+    if row.netloc and target.netloc and row.netloc.lower() != target.netloc.lower():
+        return True
+    row_path = row.path if row.scheme or row.netloc else row_text.split("?", 1)[0].split("#", 1)[0]
+    target_path = target.path
+    if not row_path or not target_path:
+        return False
+    return row_path.rstrip("/") != target_path.rstrip("/")
 
 def _source_widget_label(row_source: str) -> str:
     if row_source == "yotpo_v3_review":
         return "yotpo"
     return "judge_me"
-
 
 def _walk_dicts(value: object) -> list[dict[str, object]]:
     found: list[dict[str, object]] = []
@@ -868,7 +891,6 @@ def _walk_dicts(value: object) -> list[dict[str, object]]:
             found.extend(_walk_dicts(child))
     return found
 
-
 def _text_targets(classes: set[str]) -> tuple[str, ...]:
     targets: list[str] = []
     if "jdgm-rev__title" in classes:
@@ -880,7 +902,6 @@ def _text_targets(classes: set[str]) -> tuple[str, ...]:
     if "jdgm-rev__timestamp" in classes:
         targets.append("timestamp")
     return tuple(targets)
-
 
 def _candidate_review_key(
     *,
@@ -905,7 +926,6 @@ def _candidate_review_key(
     )
     return hashlib.sha256(basis.encode("utf-8")).hexdigest()
 
-
 def _review_month(timestamp: str | None) -> str | None:
     if timestamp is None:
         return None
@@ -914,13 +934,11 @@ def _review_month(timestamp: str | None) -> str | None:
         return f"{match.group(1)}-{match.group(2)}"
     return None
 
-
 def _is_recent(review_month: str | None, *, as_of_date: date, months: int) -> bool:
     if review_month is None:
         return False
     delta = _month_index(f"{as_of_date.year:04d}-{as_of_date.month:02d}") - _month_index(review_month)
     return 0 <= delta <= months
-
 
 def _month_index(review_month: str | None) -> int:
     if not review_month:
@@ -928,10 +946,8 @@ def _month_index(review_month: str | None) -> int:
     year, month = review_month.split("-", 1)
     return int(year) * 12 + int(month)
 
-
 def _word_count(text: str) -> int:
     return len(re.findall(r"[A-Za-z0-9]+(?:'[A-Za-z0-9]+)?", text))
-
 
 def _length_bucket(word_count: int) -> Literal["lt20", "20_39", "40_74", "75_plus"]:
     if word_count < 20:
@@ -942,10 +958,8 @@ def _length_bucket(word_count: int) -> Literal["lt20", "20_39", "40_74", "75_plu
         return "40_74"
     return "75_plus"
 
-
 def _compact_text(text: str) -> str:
     return " ".join(text.split())
-
 
 def _bool_or_none(value: object) -> bool | None:
     if value is None or value == "":
@@ -959,7 +973,6 @@ def _bool_or_none(value: object) -> bool | None:
         return False
     return None
 
-
 def _int_or_none(value: object) -> int | None:
     if value is None or value == "":
         return None
@@ -967,7 +980,6 @@ def _int_or_none(value: object) -> int | None:
         return int(float(str(value).replace(",", "")))
     except (TypeError, ValueError):
         return None
-
 
 def _float_or_none(value: object) -> float | None:
     if value is None or value == "":
@@ -977,21 +989,17 @@ def _float_or_none(value: object) -> float | None:
     except (TypeError, ValueError):
         return None
 
-
 def _string_or_none(value: object) -> str | None:
     if value is None:
         return None
     text = str(value)
     return text if text else None
 
-
 def _string_or_empty(value: object) -> str:
     return "" if value is None else str(value)
 
-
 def _row_token(value: str) -> str:
     return re.sub(r"[^A-Za-z0-9_.:-]+", "_", value) or "unknown"
-
 
 def _is_forbidden_field_name(key: str) -> bool:
     normalized = key.lower().replace("-", "_")
@@ -999,7 +1007,6 @@ def _is_forbidden_field_name(key: str) -> bool:
         token == normalized or normalized.startswith(f"{token}_")
         for token in _FORBIDDEN_SOURCE_VISIBLE_FIELD_NAMES
     )
-
 
 def parse_as_of_date(value: str | None) -> date | None:
     if value is None:

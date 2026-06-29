@@ -71,11 +71,18 @@ _DOM_EXTRACT_SCRIPT = r"""
     while ((match = regex.exec(html)) !== null) values.push(match[1] || match[0]);
     return values;
   };
+  const widgetProductIds = [];
+  const widgetShopDomains = [];
   const productIds = [];
   for (const el of Array.from(document.querySelectorAll('.jdgm-widget, [data-widget-name="review_widget"]'))) {
+    const widgetHtml = el.outerHTML || '';
+    widgetShopDomains.push(...Array.from(widgetHtml.matchAll(/[A-Za-z0-9_-]+\.myshopify\.com/gi)).map((match) => match[0]));
     for (const attr of ['data-product', 'data-id', 'data-product-id']) {
       const value = el.getAttribute(attr);
-      if (value && /^\d{6,14}$/.test(value)) productIds.push(value);
+      if (value && /^\d{6,14}$/.test(value)) {
+        widgetProductIds.push(value);
+        productIds.push(value);
+      }
     }
   }
   for (const el of Array.from(document.querySelectorAll('[data-product-id]'))) {
@@ -118,6 +125,8 @@ _DOM_EXTRACT_SCRIPT = r"""
       judge_me: {
         present: /judge\.me|judgeme|jdgm/i.test(html),
         myshopify_domains: uniq(matchAll(/[A-Za-z0-9_-]+\.myshopify\.com/gi)),
+        widget_myshopify_domains: uniq(widgetShopDomains),
+        widget_product_ids: uniq(widgetProductIds),
         product_ids: uniq(productIds),
         rating_value: aggregateRating ? aggregateRating.ratingValue || null : null,
         review_count: aggregateRating ? aggregateRating.reviewCount || null : null,
@@ -204,7 +213,6 @@ class FragranceRenderedWidgetCompanionReceipt(StrictModel):
         ]
     )
 
-
 def capture_fragrance_rendered_widget_companion(
     *,
     url: str,
@@ -260,7 +268,8 @@ def capture_fragrance_rendered_widget_companion(
         )
 
     auto_widget_route, auto_fallback_widget_urls = _derive_judgeme_fallback_from_dom_observation(
-        observation.dom_observation
+        observation.dom_observation,
+        widget_route=widget_route,
     )
     effective_widget_route = {**dict(widget_route or {}), **auto_widget_route}
     effective_fallback_widget_urls = list(fallback_widget_urls)
@@ -300,7 +309,6 @@ def capture_fragrance_rendered_widget_companion(
         fallback_responses=fallback_responses,
     )
 
-
 def write_fragrance_rendered_widget_companion(
     *,
     output_path: Path,
@@ -313,7 +321,6 @@ def write_fragrance_rendered_widget_companion(
         encoding="utf-8",
     )
     return receipt
-
 
 def build_fragrance_rendered_widget_companion_from_observation(
     observation: BrowserPageObservationSuccess,
@@ -329,6 +336,7 @@ def build_fragrance_rendered_widget_companion_from_observation(
 ) -> FragranceRenderedWidgetCompanionReceipt:
     residuals: list[str] = []
     route_health: list[str] = ["rendered_page_observation_present"]
+    residuals.extend(_widget_route_residuals(widget_route))
     rendered = _rendered_companion_from_observation(observation)
     if rendered.item_count:
         route_health.append("above_fold_geometry_present")
@@ -397,6 +405,15 @@ def build_fragrance_rendered_widget_companion_from_observation(
                 residuals.append("widget_responses_did_not_yield_review_rows")
             elif summary.widget_total_count is None:
                 residuals.append("widget_total_count_absent_completeness_unverified")
+            if summary.review_body_absent_count:
+                residuals.append("review_body_absent_rows_present")
+            if summary.selected_review_body_absent_count:
+                residuals.append("selected_review_body_absent_rows_present")
+            if focused_review_coverage.residuals:
+                residuals.append("focused_review_coverage_residuals_present")
+                residuals.extend(
+                    f"focused_review_coverage:{residual}" for residual in focused_review_coverage.residuals
+                )
     else:
         residuals.append("parseable_widget_review_responses_absent")
 
@@ -419,15 +436,12 @@ def build_fragrance_rendered_widget_companion_from_observation(
         limitation_notes=list(observation.limitation_notes),
     )
 
-
 def is_fragrance_widget_response_url(url: str) -> bool:
     return _widget_response_kind(url) is not None
-
 
 def validate_fragrance_widget_fallback_urls(*, urls: Sequence[str]) -> None:
     for url in urls:
         _validate_fallback_widget_url(url)
-
 
 def fetch_fragrance_widget_fallback_responses(
     *,
@@ -451,7 +465,6 @@ def fetch_fragrance_widget_fallback_responses(
             )
         )
     return responses
-
 
 def _rendered_companion_from_observation(observation: BrowserPageObservationSuccess) -> FragranceAboveFoldCompanion:
     dom = _dom_mapping(observation.dom_observation)
@@ -479,7 +492,6 @@ def _rendered_companion_from_observation(observation: BrowserPageObservationSucc
         size_or_variant_visible=_contains_any(text_blob, ("size", "ml", "sample", "traveler")),
         residuals=residuals,
     )
-
 
 def _widget_response_captures(
     responses: Sequence[BrowserPageResponse],
@@ -515,7 +527,6 @@ def _widget_response_captures(
             )
         )
     return preserved
-
 
 def _fetch_fallback_widget_response(
     url: str,
@@ -571,7 +582,6 @@ def _fetch_fallback_widget_response(
             limitation_notes=[f"bounded_fallback_fetch_failed:{type(exc).__name__}:{exc}"],
         )
 
-
 def _read_response_body_with_cap(response: Any, *, max_response_bytes: int) -> tuple[str, list[str]]:
     raw = response.read(max_response_bytes + 1)
     if len(raw) > max_response_bytes:
@@ -579,14 +589,12 @@ def _read_response_body_with_cap(response: Any, *, max_response_bytes: int) -> t
     charset = response.headers.get_content_charset() if response.headers else None
     return raw.decode(charset or "utf-8", errors="replace"), []
 
-
 def _headers_without_cookies(items: Iterable[tuple[str, str]]) -> dict[str, str]:
     return {
         str(key): str(value)
         for key, value in items
         if str(key).lower() not in {"set-cookie", "cookie"}
     }
-
 
 def _validate_fallback_widget_url(url: str) -> None:
     parsed = urlparse(url)
@@ -602,7 +610,6 @@ def _validate_fallback_widget_url(url: str) -> None:
         raise FragranceRenderedWidgetCompanionInputError(
             f"fallback widget URL is not a supported fragrance widget endpoint: {url}"
         )
-
 
 def _widget_response_kind(
     url: str,
@@ -628,8 +635,11 @@ def _widget_response_kind(
         return "unknown_widget_response"
     return None
 
-
-def _derive_judgeme_fallback_from_dom_observation(dom_observation: object) -> tuple[dict[str, Any | None], list[str]]:
+def _derive_judgeme_fallback_from_dom_observation(
+    dom_observation: object,
+    *,
+    widget_route: Mapping[str, Any | None] | None = None,
+) -> tuple[dict[str, Any | None], list[str]]:
     dom = _dom_mapping(dom_observation)
     provider_metadata = dom.get("provider_metadata")
     if not isinstance(provider_metadata, Mapping):
@@ -637,23 +647,59 @@ def _derive_judgeme_fallback_from_dom_observation(dom_observation: object) -> tu
     judge_me = provider_metadata.get("judge_me")
     if not isinstance(judge_me, Mapping) or judge_me.get("present") is not True:
         return {}, []
-    shop_domain = _first_string(judge_me.get("myshopify_domains"))
-    product_id = _first_numeric_string(judge_me.get("product_ids"))
+    route: dict[str, Any | None] = {"auto_judgeme_detected": True}
+    residuals: list[str] = []
+    operator_route = widget_route if isinstance(widget_route, Mapping) else {}
+    operator_shop_domain = _myshopify_domain(_first_string(operator_route.get("shop_domain")))
+    operator_product_id = _first_numeric_string(operator_route.get("product_id"))
+    widget_shop_domains = _myshopify_domain_list(judge_me.get("widget_myshopify_domains"))
+    all_shop_domains = _myshopify_domain_list(judge_me.get("myshopify_domains"))
+    widget_product_ids = _numeric_string_list(judge_me.get("widget_product_ids"))
+    all_product_ids = _numeric_string_list(judge_me.get("product_ids"))
+    shop_domain = operator_shop_domain
+    product_id = operator_product_id
+    source = "operator_widget_route" if shop_domain and product_id else "rendered_dom"
+    if not shop_domain:
+        shop_candidates = widget_shop_domains or all_shop_domains
+        if len(shop_candidates) == 1:
+            shop_domain = shop_candidates[0]
+        elif len(shop_candidates) > 1:
+            residuals.append("auto_judgeme_multiple_shop_domain_candidates")
+    if not product_id:
+        product_candidates = widget_product_ids or all_product_ids
+        if len(product_candidates) == 1:
+            product_id = product_candidates[0]
+        elif len(product_candidates) > 1:
+            residuals.append("auto_judgeme_multiple_product_id_candidates")
+    if widget_shop_domains:
+        route["auto_judgeme_widget_shop_domain_candidates"] = widget_shop_domains
+    if all_shop_domains:
+        route["auto_judgeme_shop_domain_candidates"] = all_shop_domains
+    if widget_product_ids:
+        route["auto_judgeme_widget_product_id_candidates"] = widget_product_ids
+    if all_product_ids:
+        route["auto_judgeme_product_id_candidates"] = all_product_ids
     if not shop_domain or not product_id:
-        return {"auto_judgeme_detected": True}, []
+        residuals.append("auto_judgeme_fallback_underivable")
+        route["auto_judgeme_residuals"] = _dedup(residuals)
+        return route, []
     review_count = _int_or_none(judge_me.get("review_count"))
     page_count = 1
     if review_count is not None and review_count > 0:
         page_count = max(1, (review_count + _AUTO_JUDGEME_FALLBACK_PER_PAGE - 1) // _AUTO_JUDGEME_FALLBACK_PER_PAGE)
     bounded_page_count = min(page_count, _AUTO_JUDGEME_FALLBACK_MAX_PAGES)
-    route = {
-        "auto_judgeme_detected": True,
-        "auto_judgeme_shop_domain": shop_domain,
-        "auto_judgeme_product_id": product_id,
-        "auto_judgeme_review_count": review_count,
-        "auto_judgeme_per_page": _AUTO_JUDGEME_FALLBACK_PER_PAGE,
-        "auto_judgeme_page_count": bounded_page_count,
-    }
+    route.update(
+        {
+            "auto_judgeme_source": source,
+            "auto_judgeme_shop_domain": shop_domain,
+            "auto_judgeme_product_id": product_id,
+            "auto_judgeme_review_count": review_count,
+            "auto_judgeme_per_page": _AUTO_JUDGEME_FALLBACK_PER_PAGE,
+            "auto_judgeme_page_count": bounded_page_count,
+        }
+    )
+    if residuals:
+        route["auto_judgeme_residuals"] = _dedup(residuals)
     if page_count > bounded_page_count:
         route["auto_judgeme_page_count_capped"] = page_count
     urls = [
@@ -672,6 +718,13 @@ def _derive_judgeme_fallback_from_dom_observation(dom_observation: object) -> tu
     ]
     return route, urls
 
+def _widget_route_residuals(widget_route: Mapping[str, Any | None] | None) -> list[str]:
+    if not isinstance(widget_route, Mapping):
+        return []
+    residuals = widget_route.get("auto_judgeme_residuals")
+    if not isinstance(residuals, list):
+        return []
+    return [str(residual) for residual in residuals if str(residual).strip()]
 
 def _pdp_html_from_dom_observation(dom_observation: object) -> str | None:
     dom = _dom_mapping(dom_observation)
@@ -682,7 +735,6 @@ def _pdp_html_from_dom_observation(dom_observation: object) -> str | None:
     if not scripts:
         return None
     return "\n".join(f'<script type="application/ld+json">{script}</script>' for script in scripts)
-
 
 def _fallback_needed(coverage: FragranceReviewCoverageReceipt | None) -> bool:
     if coverage is None:
@@ -696,12 +748,10 @@ def _fallback_needed(coverage: FragranceReviewCoverageReceipt | None) -> bool:
         return True
     return False
 
-
 def _dom_mapping(value: object) -> Mapping[str, object]:
     if not isinstance(value, Mapping):
         raise FragranceRenderedWidgetCompanionInputError("DOM observation must be an object")
     return value
-
 
 def _first_string(value: object) -> str | None:
     if isinstance(value, list):
@@ -712,6 +762,21 @@ def _first_string(value: object) -> str | None:
         return value.strip()
     return None
 
+def _myshopify_domain(value: object) -> str | None:
+    text = _first_string(value)
+    if not text:
+        return None
+    match = re.search(r"[A-Za-z0-9_-]+\.myshopify\.com", text)
+    return match.group(0) if match else None
+
+def _myshopify_domain_list(value: object) -> list[str]:
+    domains: list[str] = []
+    values = value if isinstance(value, list) else [value]
+    for item in values:
+        parsed = _myshopify_domain(item)
+        if parsed:
+            domains.append(parsed)
+    return _dedup(domains)
 
 def _first_numeric_string(value: object) -> str | None:
     if isinstance(value, list):
@@ -721,13 +786,20 @@ def _first_numeric_string(value: object) -> str | None:
                 return parsed
     return _numeric_string(value)
 
+def _numeric_string_list(value: object) -> list[str]:
+    numbers: list[str] = []
+    values = value if isinstance(value, list) else [value]
+    for item in values:
+        parsed = _numeric_string(item)
+        if parsed:
+            numbers.append(parsed)
+    return _dedup(numbers)
 
 def _numeric_string(value: object) -> str | None:
     if value is None:
         return None
     text = str(value).strip()
     return text if re.fullmatch(r"\d{6,14}", text) else None
-
 
 def _normalize_items(value: object) -> list[dict[str, Any | None]]:
     if not isinstance(value, list):
@@ -751,19 +823,15 @@ def _normalize_items(value: object) -> list[dict[str, Any | None]]:
         )
     return normalized
 
-
 def _contains_any(text: str, needles: Sequence[str]) -> bool:
     lowered = text.casefold()
     return any(needle.casefold() in lowered for needle in needles)
 
-
 def _price_pattern(text: str) -> bool:
     return bool(re.search(r"(?:\$|s\$|usd|sgd|regular price)", text, re.IGNORECASE))
 
-
 def _rating_count_pattern(text: str) -> bool:
     return bool(re.search(r"\b\d(?:\.\d{1,2})?\s*\(\d+\)", text))
-
 
 def _int_or_none(value: object) -> int | None:
     if value is None or value == "":
@@ -773,11 +841,9 @@ def _int_or_none(value: object) -> int | None:
     except (TypeError, ValueError):
         return None
 
-
 def _int_or_default(value: object, default: int) -> int:
     parsed = _int_or_none(value)
     return parsed if parsed is not None and parsed > 0 else default
-
 
 def _dedup(values: Sequence[str]) -> list[str]:
     seen: set[str] = set()

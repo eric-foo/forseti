@@ -237,6 +237,177 @@ def test_capture_auto_derives_judgeme_fallback_from_dom_metadata() -> None:
 
 
 
+
+def test_capture_auto_judgeme_multiple_page_candidates_are_residualized_without_fetch() -> None:
+    def fake_observation_fetcher(**_: object) -> BrowserPageObservationSuccess:
+        return _observation(
+            response_body=None,
+            total_count=2,
+            provider_metadata={
+                "judge_me": {
+                    "present": True,
+                    "myshopify_domains": ["example.myshopify.com", "other.myshopify.com"],
+                    "product_ids": ["1234567890123", "9999999999999"],
+                    "review_count": 2,
+                }
+            },
+        )
+
+    def fake_fallback_fetcher(**_: object) -> list[BrowserPageResponse]:
+        raise AssertionError("ambiguous Judge.me route should not fetch fallback URLs")
+
+    receipt = capture_fragrance_rendered_widget_companion(
+        url=PRODUCT_URL,
+        source_id="fragrance_retail_example",
+        source_site="Example",
+        as_of_date=date(2026, 6, 29),
+        observation_fetcher=fake_observation_fetcher,
+        fallback_fetcher=fake_fallback_fetcher,
+    )
+
+    assert receipt.fallback_needed is True
+    assert receipt.widget_route["auto_judgeme_detected"] is True
+    assert "auto_judgeme_multiple_shop_domain_candidates" in receipt.residuals
+    assert "auto_judgeme_multiple_product_id_candidates" in receipt.residuals
+    assert "auto_judgeme_fallback_underivable" in receipt.residuals
+    assert "parseable_widget_review_responses_absent" in receipt.residuals
+
+
+def test_capture_auto_judgeme_prefers_widget_scoped_product_id_over_page_candidates() -> None:
+    captured_urls: list[str] = []
+
+    def fake_observation_fetcher(**_: object) -> BrowserPageObservationSuccess:
+        return _observation(
+            response_body=None,
+            total_count=2,
+            provider_metadata={
+                "judge_me": {
+                    "present": True,
+                    "myshopify_domains": ["example.myshopify.com", "other.myshopify.com"],
+                    "widget_myshopify_domains": ["example.myshopify.com"],
+                    "widget_product_ids": ["1234567890123"],
+                    "product_ids": ["1234567890123", "9999999999999"],
+                    "review_count": 2,
+                }
+            },
+        )
+
+    def fake_fallback_fetcher(**kwargs: object) -> list[BrowserPageResponse]:
+        captured_urls.extend(kwargs["urls"])  # type: ignore[arg-type]
+        return [_widget_response(_widget_body(total_count=1, review_count=1), url=captured_urls[0])]
+
+    receipt = capture_fragrance_rendered_widget_companion(
+        url=PRODUCT_URL,
+        source_id="fragrance_retail_example",
+        source_site="Example",
+        as_of_date=date(2026, 6, 29),
+        observation_fetcher=fake_observation_fetcher,
+        fallback_fetcher=fake_fallback_fetcher,
+    )
+
+    assert len(captured_urls) == 1
+    assert "shop_domain=example.myshopify.com" in captured_urls[0]
+    assert "product_id=1234567890123" in captured_urls[0]
+    assert "auto_judgeme_multiple_product_id_candidates" not in receipt.residuals
+    assert receipt.fallback_needed is False
+
+
+def test_capture_auto_judgeme_caps_pages_and_records_uncapped_page_count() -> None:
+    captured_urls: list[str] = []
+
+    def fake_observation_fetcher(**_: object) -> BrowserPageObservationSuccess:
+        return _observation(
+            response_body=None,
+            total_count=57,
+            provider_metadata={
+                "judge_me": {
+                    "present": True,
+                    "myshopify_domains": ["example.myshopify.com"],
+                    "product_ids": ["1234567890123"],
+                    "review_count": 57,
+                }
+            },
+        )
+
+    def fake_fallback_fetcher(**kwargs: object) -> list[BrowserPageResponse]:
+        captured_urls.extend(kwargs["urls"])  # type: ignore[arg-type]
+        return [_widget_response(_widget_body(total_count=1, review_count=1), url=captured_urls[0])]
+
+    receipt = capture_fragrance_rendered_widget_companion(
+        url=PRODUCT_URL,
+        source_id="fragrance_retail_example",
+        source_site="Example",
+        as_of_date=date(2026, 6, 29),
+        observation_fetcher=fake_observation_fetcher,
+        fallback_fetcher=fake_fallback_fetcher,
+    )
+
+    assert len(captured_urls) == 5
+    assert receipt.widget_route["auto_judgeme_page_count"] == 5
+    assert receipt.widget_route["auto_judgeme_page_count_capped"] == 6
+
+
+def test_capture_auto_judgeme_prefers_operator_pinned_widget_route() -> None:
+    captured_urls: list[str] = []
+
+    def fake_observation_fetcher(**_: object) -> BrowserPageObservationSuccess:
+        return _observation(
+            response_body=None,
+            total_count=2,
+            provider_metadata={
+                "judge_me": {
+                    "present": True,
+                    "myshopify_domains": ["wrong.myshopify.com"],
+                    "product_ids": ["9999999999999"],
+                    "review_count": 2,
+                }
+            },
+        )
+
+    def fake_fallback_fetcher(**kwargs: object) -> list[BrowserPageResponse]:
+        captured_urls.extend(kwargs["urls"])  # type: ignore[arg-type]
+        return [_widget_response(_widget_body(total_count=1, review_count=1), url=captured_urls[0])]
+
+    receipt = capture_fragrance_rendered_widget_companion(
+        url=PRODUCT_URL,
+        source_id="fragrance_retail_example",
+        source_site="Example",
+        widget_route={"shop_domain": "pinned.myshopify.com", "product_id": "1234567890123"},
+        as_of_date=date(2026, 6, 29),
+        observation_fetcher=fake_observation_fetcher,
+        fallback_fetcher=fake_fallback_fetcher,
+    )
+
+    assert "shop_domain=pinned.myshopify.com" in captured_urls[0]
+    assert "product_id=1234567890123" in captured_urls[0]
+    assert receipt.widget_route["auto_judgeme_source"] == "operator_widget_route"
+
+
+def test_companion_surfaces_body_absence_and_nested_coverage_residuals() -> None:
+    body_empty_widget = json.dumps(
+        {
+            "total_count": 1,
+            "reviews": [{"id": "rating-only-four", "rating": 4, "created_at": "2026-06-01"}],
+        }
+    )
+    receipt = build_fragrance_rendered_widget_companion_from_observation(
+        _observation(response_body=body_empty_widget, total_count=2),
+        source_id="fragrance_retail_example",
+        source_site="Example",
+        product_url=PRODUCT_URL,
+        as_of_date=date(2026, 6, 29),
+    )
+
+    assert receipt.focused_review_coverage is not None
+    summary = receipt.focused_review_coverage.coverage_summary
+    assert summary.review_body_absent_count == 1
+    assert summary.selected_review_body_absent_count == 1
+    assert "review_body_absent_rows_present" in receipt.residuals
+    assert "selected_review_body_absent_rows_present" in receipt.residuals
+    assert "focused_review_coverage_residuals_present" in receipt.residuals
+    assert "focused_review_coverage:review_body_absent_rows_present" in receipt.residuals
+    assert "focused_review_coverage:aggregate_review_count_widget_total_count_mismatch" in receipt.residuals
+
 def test_capture_threads_lazy_load_scroll_controls_to_observation_fetcher() -> None:
     captured_kwargs: dict[str, object] = {}
 
