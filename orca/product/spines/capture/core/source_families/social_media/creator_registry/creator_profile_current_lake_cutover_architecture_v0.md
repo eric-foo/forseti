@@ -40,9 +40,11 @@ All seven findings were adjudicated `ACCEPT` by the home model. A subsequent
 **in-house Sonnet closure re-review returned `BLOCKERS_SURVIVE`** — the now-MERGED
 YouTube producer anchors rollups to `platform_account_id`, defeating the first
 AR-01 discovery fix — which drove a **second revision** (platform-aware
-discovery) that closes it. A fresh **cross-vendor** re-review of the YT discovery
-+ fail-closed guard remains advisable. NOT a ratified contract; asserts no
-validation, readiness, or implementation authority.
+discovery) that closes it. An in-house recheck then verified the corrected
+discovery design `SOUND`, and a **cross-vendor 2nd opinion** on the cross-lane
+fork recommended **Option 1**, now **adopted** (see *Open owner decisions §3* and
+*Moving to Option 3 later*). NOT a ratified contract; asserts no validation,
+readiness, or implementation authority.
 
 ### Review-response map (what changed)
 
@@ -240,9 +242,52 @@ Verified raw families: IG raw = `source_family="instagram_creator"`
 (`youtube_watch_packet.py`, `caption_packet.py`). The producers' derived
 `_SOURCE_FAMILY="social_media"` is record metadata, never the raw availability key.
 
-Deferred cleaner option (named, not chosen): a first-class derived-record
-discovery index would remove the per-platform special-case as platforms grow;
-larger and not needed for v0. See also the cross-lane harmonization fork below.
+**Operational residual (availability index):** IG discovery via `list_available`
+depends on the availability index being populated — the IG capture pipeline does
+this at commit time (`writer.py` → `record_availability`), so a normally-captured
+lake is covered; a fresh or cleared lake needs `rebuild_availability()` first. A
+missing index makes IG accounts unresolvable, at which point the fail-closed guard
+fires (no silent wrong data). Name this in the operational runbook.
+
+**Deferred: Option 3 (a derived-record discovery index).** Not built for v0; the
+conditions for moving to it — and why the switch is cheap — are in *Moving to
+Option 3 later* below. We do **not** harmonize the producers (Option 2): that
+would rewrite append-only records.
+
+## Moving to Option 3 later (the derived-record discovery index) — conditions & cost
+
+**Decision:** v0 ships **Option 1** (platform-aware discovery, above), chosen per a
+cross-vendor 2nd opinion and an in-house recheck that verified the design `SOUND`.
+**Option 2 (harmonize the producers to a uniform anchor) is rejected** — the
+anchoring is part of each append-only record's path, so changing it would rewrite
+or orphan existing records (a real data migration), not just patch a producer.
+
+**Why deferring Option 3 is safe — the switching cost is low, not a record
+migration.** The rollup records are the append-only authoritative layer; discovery
+is a *swappable layer on top*. A derived-record discovery index lives in
+`indexes/derived_retrieval/...`, which is **rebuildable and non-authoritative by
+design** — *derived from* the records, not depended on by them. So moving
+Option 1 → Option 3 is: build an index-builder that **scans the existing records
+read-only** and emits index entries, then point the reader at the index. The
+records **never move**; the view output is unchanged (same rollups → same view →
+tests/receipts unbroken); Option 1's per-platform enumeration can *become* the
+indexer's record-finder. Indexing N records is a one-time read-scan, **not** an
+"update N documents" migration (that expensive migration belongs to Option 2).
+
+**Build Option 3 when ANY of these triggers fire:**
+
+- a **second consumer** beyond this snapshot reader needs content-addressed
+  derived-record lookup;
+- a **third+ platform** lands with yet another rollup-anchoring shape, making the
+  per-platform special-case unwieldy;
+- discovery logic starts being **duplicated** across readers, or leaks into
+  materialization / provenance surfaces.
+
+**Explicitly NOT a trigger:** record count alone. 100k+ records do not make the
+switch expensive — they are read once to build the index, never rewritten.
+
+**Cost when triggered:** build the index-builder + rebuild semantics + a query
+contract + switch the reader; a one-time O(N) read-scan, no record rewrite.
 
 ## Reader gaps to build
 
@@ -292,16 +337,13 @@ The cut-over reverts as a set, not "one input swap":
    modest operator-box scheduler + `gh issue` on drift. Owner-confirmed direction
    is the non-optional mechanism above; the honest alternative (if no scheduler)
    is to downgrade the claim to "lake-verifiable snapshot".
-3. **Cross-lane rollup-anchoring (surfaced by the re-review):** the two MERGED
-   producers diverge on rollup `raw_anchor` (IG = packet, YT = account). v0
-   absorbs this with platform-aware discovery (above; in-lane, no producer
-   change). The cleaner long-term contract is to **harmonize** both producers to
-   a uniform account-anchored rollup (IG rollups are single-account, so
-   account-anchoring fits IG too) → uniform account-based discovery, no
-   special-case. That changes the MERGED IG producer, so it is an
-   **owner/architecture call**, not a unilateral reader-lane edit. Recommendation:
-   ship platform-aware discovery now; harmonize later only if the special-case
-   proves costly.
+3. **Cross-lane rollup-anchoring — RESOLVED → Option 1.** The two MERGED producers
+   diverge on rollup `raw_anchor` (IG = packet, YT = account); v0 absorbs this with
+   platform-aware discovery (above), no producer change. Chosen per a cross-vendor
+   2nd opinion + an in-house recheck (`SOUND`). Harmonizing the producers
+   (Option 2) is **rejected** — it would rewrite append-only records. Conditions
+   and the (low) cost for a later move to a discovery index (Option 3) are in
+   *Moving to Option 3 later*.
 
 ## Migration (smallest-first)
 
