@@ -99,10 +99,23 @@ def run_ig_reels_lane_orchestrator(
     receipts: list[LaneReceipt] = []
     explicit_platform_item_id = platform_item_id
     # An explicit selector pins ONE downstream target; otherwise the deep-capture lane fans out to
-    # every extraction-eligible reel it persisted.
+    # every extraction-eligible reel it persisted. Product extraction and projection must then target
+    # the SAME reel, so derive the shortcode from the transcript key when only the key is given, and
+    # reject an id+key pair naming two different reels (else product would extract one reel while
+    # projection built another -- a silent split-brain).
     explicit_selector = platform_item_id is not None or transcript_source_key is not None
+    explicit_shortcode = platform_item_id
+    if transcript_source_key is not None:
+        key_shortcode = transcript_source_key.split(":", 1)[0] or None
+        if platform_item_id is not None and key_shortcode != platform_item_id:
+            raise ValueError(
+                "explicit selectors name different reels: "
+                f"--platform-item-id={platform_item_id} vs --transcript-source-key={transcript_source_key}"
+            )
+        if explicit_shortcode is None:
+            explicit_shortcode = key_shortcode
     targets: list[_DownstreamTarget] = (
-        [_DownstreamTarget(platform_item_id, transcript_source_key)] if explicit_selector else []
+        [_DownstreamTarget(explicit_shortcode, transcript_source_key)] if explicit_selector else []
     )
 
     if "grid" in requested:
@@ -384,15 +397,23 @@ def _run_product_lane(
         results.append(result)
 
     exported = [r for r in results if r.get("status") == "operator_packet_exported"]
+    needs_cleanup = [r for r in results if r.get("status") == "partial_needs_cleanup"]
     if any_failed:
         status = "failed"
-    elif exported:
+    elif exported or needs_cleanup:
+        # operator_packet_exported -> operator must produce a response; partial_needs_cleanup ->
+        # operator must clear a crash-partial mention set. Both are operator-action states, not hard
+        # failures (mirrors run_ig_reels_operator_product_extract._status_exit_code's exit 4), so they
+        # must not collapse into "failed"/exit 3.
         status = "blocked_operator_action_required"
     elif statuses and all(s == "complete" for s in statuses):
         status = "skipped"
     else:
         status = "failed"
-    message = f"targets={len(export_targets)} exported={len(exported)} failed={'yes' if any_failed else 'no'}"
+    message = (
+        f"targets={len(export_targets)} exported={len(exported)} "
+        f"needs_cleanup={len(needs_cleanup)} failed={'yes' if any_failed else 'no'}"
+    )
     return LaneReceipt("product_extract", status, message, outputs={"targets": results})
 
 

@@ -320,8 +320,8 @@ def test_orchestrator_fans_out_every_extraction_eligible_reel(tmp_path) -> None:
     assert any(r.startswith("deep_capture_complete_not_extraction_eligible:RANK3NOSPCH:") for r in residuals)
     assert "orchestrator_product_projection_fan_out_targets:RANK2TRANS,RANK4TRANS" in residuals
 
-    # Both eligible reels are projected and packet-exported; the empty top reel is neither.
-    assert sorted(projected) == ["RANK2TRANS", "RANK4TRANS"]
+    # Both eligible reels are projected and packet-exported, in rank order; the empty top reel is neither.
+    assert projected == ["RANK2TRANS", "RANK4TRANS"]
     assert receipts["product_extract"]["status"] == "blocked_operator_action_required"
     product_ids = {t["video_id"] for t in receipts["product_extract"]["outputs"]["targets"]}
     assert product_ids == {"RANK2TRANS", "RANK4TRANS"}
@@ -371,6 +371,64 @@ def test_orchestrator_fan_out_keeps_content_empty_when_no_reel_is_eligible(tmp_p
     assert receipts["product_extract"]["residuals"] == ["ig_product_selector_absent"]
     assert receipts["projection"]["status"] == "not_attempted"
     assert not any(p.name.startswith("operator_packet") for p in tmp_path.iterdir() if p.is_file())
+
+
+def test_orchestrator_rejects_mismatched_explicit_selectors(tmp_path) -> None:
+    data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    with pytest.raises(ValueError, match="different reels"):
+        run_ig_reels_lane_orchestrator(
+            data_root=data_root,
+            handle="creator",
+            lanes=("product_extract",),
+            platform_item_id="AAA111",
+            transcript_source_key="BBB222:asr:deepcap_BBB222__x.json",
+        )
+
+
+def test_orchestrator_source_key_only_targets_one_consistent_reel(tmp_path) -> None:
+    data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    projected: list[str] = []
+
+    def projection_builder(**kwargs):  # noqa: ANN001
+        projected.append(kwargs["platform_item_id"])
+        return {"behavioral_completeness": {"status": "complete", "complete": True, "residuals": []}}
+
+    summary = run_ig_reels_lane_orchestrator(
+        data_root=data_root,
+        handle="creator",
+        lanes=("projection",),
+        transcript_source_key="ZZZ123:asr:deepcap_ZZZ123__abc.json",
+        projection_builder=projection_builder,
+    )
+
+    receipts = {receipt["lane"]: receipt for receipt in summary.to_dict()["receipts"]}
+    # Source-key-only used to leave projection not_attempted (no shortcode); the orchestrator now
+    # derives the shortcode from the key so product extraction and projection target the same reel.
+    assert projected == ["ZZZ123"]
+    assert receipts["projection"]["status"] == "succeeded"
+
+
+def test_orchestrator_product_lane_treats_partial_cleanup_as_operator_action(tmp_path, monkeypatch) -> None:
+    data_root = DataLakeRoot.for_test(tmp_path / "lake")
+
+    def fake_export(**kwargs):  # noqa: ANN001
+        return {"video_id": kwargs.get("platform_item_id"), "status": "partial_needs_cleanup"}
+
+    monkeypatch.setattr(orchestrator_runner, "export_operator_packet", fake_export)
+    summary = run_ig_reels_lane_orchestrator(
+        data_root=data_root,
+        handle="creator",
+        lanes=("product_extract",),
+        platform_item_id="PARTIAL1",
+        operator_packet_out=tmp_path / "operator_packet.json",
+    )
+
+    receipt = summary.to_dict()["receipts"][0]
+    # partial_needs_cleanup is an operator-action state (standalone runner exit 4), not a hard
+    # failure -- it must not collapse into "failed"/exit 3.
+    assert receipt["lane"] == "product_extract"
+    assert receipt["status"] == "blocked_operator_action_required"
+    assert receipt["outputs"]["targets"][0]["status"] == "partial_needs_cleanup"
 
 
 def test_orchestrator_main_returns_nonzero_when_operator_action_required(tmp_path, monkeypatch, capsys) -> None:
