@@ -8,8 +8,8 @@ scope: >
   lake-sourced metrics: a committed, operator-regenerated rollup snapshot that materialize reads in
   place of the hand-kept seed rollups, verified lake-free in CI and reconciled against the live
   external lake by a NON-OPTIONAL freshness mechanism (write-time receipt gate + scheduled drift
-  check). Synthesized from a three-architect pass; revised per adversarial review (gpt-5-codex,
-  needs_architecture_rework); PENDING re-review; NOT ratified.
+  check). Synthesized from a three-architect pass; revised twice per review (gpt-5-codex
+  needs_architecture_rework, then an in-house closure recheck); PENDING re-review; NOT ratified.
 use_when:
   - Reviewing or implementing the creator_profile_current lake cut-over.
   - Deciding the committed-vs-operator-regenerated split, the discovery contract, the latest-rollup-per-account rule, and the freshness mechanism.
@@ -27,7 +27,7 @@ open_next:
 stale_if:
   - The cut-over is implemented and ratified (this proposal becomes the record or is superseded).
   - materialize's rollup-input contract or the Silver MetricRollupObservation shape changes.
-  - The discovery raw families (instagram_creator, youtube) or DataLakeRoot availability/discovery semantics change.
+  - The producers' rollup anchoring (IG=packet, YT=account) or DataLakeRoot availability/discovery semantics change.
 ```
 
 ## Status
@@ -36,26 +36,29 @@ stale_if:
 **revised to address the adversarial review** (`gpt-5-codex`, verdict
 `needs_architecture_rework`, 2 blockers / 4 majors / 1 minor; report:
 `docs/review-outputs/adversarial-artifact-reviews/creator_profile_current_lake_cutover_architecture_adversarial_review_v0.md`).
-All seven findings were adjudicated `ACCEPT` by the home model; the blockers
-(AR-01 discovery, AR-02 freshness) are resolved below. Pending re-review. NOT a
-ratified contract; asserts no validation, readiness, or implementation authority.
+All seven findings were adjudicated `ACCEPT` by the home model. A subsequent
+**in-house Sonnet closure re-review returned `BLOCKERS_SURVIVE`** — the now-MERGED
+YouTube producer anchors rollups to `platform_account_id`, defeating the first
+AR-01 discovery fix — which drove a **second revision** (platform-aware
+discovery) that closes it. A fresh **cross-vendor** re-review of the YT discovery
++ fail-closed guard remains advisable. NOT a ratified contract; asserts no
+validation, readiness, or implementation authority.
 
 ### Review-response map (what changed)
 
-- **AR-01 (blocker, discovery):** discovery binds the real raw families
-  (`instagram_creator`, `youtube`), not `"social_media"` — see *Discovery*.
-- **AR-02 (blocker, freshness):** freshness is now a **non-optional** mechanism
-  (write-time receipt gate + scheduled drift check), not a follow-on — see
-  *Freshness mechanism*.
-- **AR-03 (major):** the CI gate is renamed `snapshot_seed_equivalence_gate` and
-  is explicitly internal-consistency only, not a freshness/correctness proof.
-- **AR-04 (major):** latest-per-account no longer trusts semantic `computed_at`
-  alone — see *Latest-rollup-per-account*.
-- **AR-05 (major):** the exact view provenance/schema delta is named — see *How
-  materialize consumes it*.
-- **AR-06 (major):** YouTube is a separate **fold-in stage**, not "zero registry
-  changes" — see *YouTube fold-in stage*.
-- **AR-07 (minor):** a *Reversibility / rollback* section is added.
+- **AR-01 (blocker, discovery):** discovery is now **platform-aware** (IG by
+  packet, YT by account-id) and fail-closed on the ledger account set — see
+  *Discovery*. (Revised twice: the first fix bound the right raw families but
+  missed the merged YT producer's account-anchored rollups.)
+- **AR-02 (blocker, freshness):** non-optional mechanism (write-time receipt gate
+  + scheduled drift check) — see *Freshness mechanism*.
+- **AR-03 (major):** CI gate renamed `snapshot_seed_equivalence_gate` (internal
+  consistency only, not a freshness/correctness proof).
+- **AR-04 (major):** latest-per-account by run-order, not semantic `computed_at`.
+- **AR-05 (major):** the exact view provenance/schema delta is named.
+- **AR-06 (major):** YouTube is a separate fold-in **stage** (its producer is now
+  merged) — see *YouTube fold-in stage*.
+- **AR-07 (minor):** *Reversibility / rollback* section added.
 
 ## Problem
 
@@ -74,8 +77,9 @@ production uses the reader. Hard constraints:
 3. The seed carries metadata **not** in the Silver records — the seed file
    cannot be byte-regenerated from records.
 4. The view consumes only `seed["metric_rollups"]` plus the seed file sha256.
-5. Only Instagram has a producer today; the YouTube producer (30 accounts) is in
-   a parallel lane (PR #487) and will emit the **same** record shapes.
+5. The YouTube producer (30 accounts) is now **merged to `main`** (PR #487) and
+   emits the same record shapes as IG, except it anchors rollups to the account
+   id (see *Discovery*).
 
 ## Convergent architecture (all three lenses independently agreed)
 
@@ -89,7 +93,8 @@ production uses the reader. Hard constraints:
 - The **operator regenerates** from the real lake; provenance ties each number
   to a content-addressed Silver record; **a non-optional freshness mechanism**
   ensures drift is never silent (AR-02).
-- The reader needs **discovery bound to the real raw families** and
+- The reader needs **platform-aware discovery driven by the expected account
+  set** (the two merged producers anchor rollups differently) and
   **latest-rollup-per-account selection** that cannot be fooled by a regressed
   timestamp (AR-01, AR-04).
 - **YouTube is a distinct fold-in stage** (AR-06).
@@ -121,7 +126,8 @@ explicitly** (not "just flip the pointer"):
 - The view's `source_drill_back` field `metric_seed_pointer` is **renamed**
   `metric_snapshot_pointer` (it would be semantically false pointing at a
   snapshot). This requires updating `validation.py`'s `_ALLOWED_SOURCE_DRILL_BACK_KEYS`
-  and the view spec/tests — a real, bounded schema delta, not a free swap.
+  **and** the `_validate_source_drill_back` field reference, plus the view
+  spec/tests — a real, bounded schema delta, not a free swap.
 - **Lake record provenance (`source_record` / `content_hash`) lives INSIDE the
   snapshot, not in the view.** The view points at the snapshot; a consumer
   resolves lake-record drill-back by opening the snapshot. So the view schema
@@ -199,36 +205,52 @@ so it cannot be the sole "latest" key. Rule:
   for v0.)
 - Lives in `select_latest_rollup_per_account` in the reader.
 
-## Discovery (AR-01 — bind the real raw families)
+## Discovery (AR-01 — platform-aware, account-set fail-closed)
 
-Discovery binds the **actual raw packet families**, verified in source:
-IG raw = `source_family="instagram_creator"`
-(`ig_reels_grid_projection.py`), YouTube raw = `source_family="youtube"`
-(`youtube_watch_packet.py`, `caption_packet.py`). The snapshot runner iterates
-the known platform families and, per packet, scans the rollup lane:
+The two MERGED producers anchor rollup records **differently** (verified against
+`origin/main`), forced by their data shapes:
 
-```
-for family in ("instagram_creator", "youtube"):
-    for packet_id in data_root.list_available(source_family=family):
-        lane_dir(subtree="derived", raw_anchor=packet_id, lane="creator_metric_rollup_silver")
-```
+- IG rollup `raw_anchor` = the single source **packet id** (one reels-grid
+  projection packet per account) — `silver_metric_producer.py::_rollup_raw_anchor`.
+- YT rollup `raw_anchor` = the **`platform_account_id`**, because a YT rollup
+  aggregates observations spanning many per-Short packets, so there is no single
+  source packet to anchor to — `youtube_silver_metric_producer.py::_rollup_raw_anchor`
+  (on `origin/main`).
 
-This mirrors the existing precedent `ig_reels_behavioral_lake.py:123`
-(`list_available(source_family=_IG_SOURCE_FAMILY)`), so **"no new lake API"
-remains true** and **no producer change is required** (the producer's
-`_SOURCE_FAMILY="social_media"` is derived-record metadata, never the raw
-availability key). The live gate **fails closed on a missing/incomplete expected
-account set** — "no discovered rollups" is never treated as a valid latest set.
+So discovery is **platform-aware and driven by the expected account set** (the
+creator public-handle linkage ledger), using only existing lake APIs (no new lake
+API, no producer change):
 
-Deferred alternative (named, not chosen): a first-class derived-record discovery
-index would avoid hardcoding the family list as platforms grow, but it is a
-larger, cross-lane change; the raw-family binding is the smallest-complete v0 fix.
+- **Expected accounts** come from the account ledger, per platform — this is the
+  fail-closed key.
+- **Instagram** (packet-anchored): `list_available(source_family="instagram_creator")`
+  → packet ids → `lane_dir(subtree="derived", raw_anchor=<packet_id>, lane="creator_metric_rollup_silver")`;
+  map each rollup to its account via `subject.ref.orca_platform_account_id`. (Mirrors
+  the `ig_reels_behavioral_lake.py:123` precedent.)
+- **YouTube** (account-anchored): for each expected YT account id,
+  `lane_dir(subtree="derived", raw_anchor=<platform_account_id>, lane="creator_metric_rollup_silver")`.
+- **Fail closed on the expected account set:** every ledger account must resolve to
+  exactly one latest rollup, else discovery fails (`missing_account_rollup`).
+  Because the guard checks the KNOWN expected accounts (not "did we find any
+  packets"), it **cannot be fooled** by a non-empty *packet* set that holds
+  observations but no rollups — the prior design's hole (surfaced by the recheck).
+
+Verified raw families: IG raw = `source_family="instagram_creator"`
+(`ig_reels_grid_projection.py`), YT raw = `source_family="youtube"`
+(`youtube_watch_packet.py`, `caption_packet.py`). The producers' derived
+`_SOURCE_FAMILY="social_media"` is record metadata, never the raw availability key.
+
+Deferred cleaner option (named, not chosen): a first-class derived-record
+discovery index would remove the per-platform special-case as platforms grow;
+larger and not needed for v0. See also the cross-lane harmonization fork below.
 
 ## Reader gaps to build
 
 1. `select_latest_rollup_per_account` (+ run-order selection, `computed_at`
    regression fail-closed, `ambiguous_latest_rollup`).
-2. Discovery over the bound raw families (above).
+2. Platform-aware discovery driven by the ledger account set (above): IG via
+   `list_available(instagram_creator)` → packet → `lane_dir`; YT via per-account
+   `lane_dir(raw_anchor=<account_id>)`; fail-closed on the expected account set.
 3. Snapshot emission + the snapshot-run manifest (new `silver_metric_snapshot.py`).
 4. The `live_lake_freshness_gate` runner + freshness-receipt emission.
 5. Observation reconstruction: **deferred non-goal** (registry consumes rollups).
@@ -238,12 +260,14 @@ larger, cross-lane change; the raw-family binding is the smallest-complete v0 fi
 YouTube is a **separate fold-in stage**, accepted independently of IG v0. It is
 **not** "zero registry changes": it changes default runner inputs, source hashes,
 the view's `source_inputs`, the drift-witness/oracle strategy (once the YT seed
-is no longer authoritative for rollups), and it depends on the YouTube producer
-(**PR #487**) landing first. The stage carries its own producer contract,
-snapshot, `snapshot_seed_equivalence_gate` + `live_lake_freshness_gate`, and a
+is no longer authoritative for rollups), and it builds on the YouTube producer
+(**PR #487, now MERGED to `main`**), which anchors rollups to `platform_account_id`
+(see *Discovery*). The stage carries its own producer contract, snapshot,
+`snapshot_seed_equivalence_gate` + `live_lake_freshness_gate`, and a
 seed-retirement rule naming what evidence replaces the YT seed oracle. The only
 thing that is genuinely automatic is rollup *consumption* (`materialize` stays
-platform-agnostic at the rollup layer); everything else is staged work.
+platform-agnostic at the rollup layer); discovery is explicitly account-aware for
+YT (above), and everything else is staged work.
 
 ## Reversibility / rollback (AR-07)
 
@@ -267,14 +291,25 @@ The cut-over reverts as a set, not "one input swap":
 2. **Freshness operating cost (AR-02):** the scheduled drift check implies a
    modest operator-box scheduler + `gh issue` on drift. Owner-confirmed direction
    is the non-optional mechanism above; the honest alternative (if no scheduler)
-   is to downgrade the claim to "lake-verifiable snapshot."
+   is to downgrade the claim to "lake-verifiable snapshot".
+3. **Cross-lane rollup-anchoring (surfaced by the re-review):** the two MERGED
+   producers diverge on rollup `raw_anchor` (IG = packet, YT = account). v0
+   absorbs this with platform-aware discovery (above; in-lane, no producer
+   change). The cleaner long-term contract is to **harmonize** both producers to
+   a uniform account-anchored rollup (IG rollups are single-account, so
+   account-anchoring fits IG too) → uniform account-based discovery, no
+   special-case. That changes the MERGED IG producer, so it is an
+   **owner/architecture call**, not a unilateral reader-lane edit. Recommendation:
+   ship platform-aware discovery now; harmonize later only if the special-case
+   proves costly.
 
 ## Migration (smallest-first)
 
 1. `select_latest_rollup_per_account` + run-order selection + tests (multiple
    runs, regressed-timestamp case); no production wiring.
-2. Discovery (bound raw families) + `silver_metric_snapshot.py` + snapshot +
-   run-manifest schema/validator; temp-lake tested.
+2. Platform-aware discovery (IG packet-based, YT account-based via the ledger) +
+   `silver_metric_snapshot.py` + snapshot + run-manifest schema/validator;
+   temp-lake tested incl. an account-anchored (YT-shaped) rollup.
 3. Operator runner `run_creator_metric_rollup_snapshot.py` (`DataLakeRoot.resolve`)
    + freshness-receipt emission + the write-time receipt gate.
 4. Operator generates the first IG snapshot; assert == today's seed rollups
@@ -285,8 +320,8 @@ The cut-over reverts as a set, not "one input swap":
 6. Add the `live_lake_freshness_gate` + the scheduled drift check + its failure
    surface.
 7. Flip the CI tests' expected paths (seed → snapshot) and `--check`.
-8. **YouTube fold-in stage** (after PR #487 lands): its own producer, snapshot,
-   gates, and seed-retirement.
+8. **YouTube fold-in stage** (the producer is merged): its own snapshot, gates,
+   account-aware discovery, and seed-retirement.
 
 ## Non-Goals
 
@@ -294,6 +329,8 @@ The cut-over reverts as a set, not "one input swap":
 - No dual read-lake-or-snapshot path in `materialize` (a fake-success dual path).
 - No byte-regeneration of the seed file from records; no deleting the seeds.
 - No Creator Vault envelopes / query tables / content objects / derived-retrieval
-  discovery index yet (the raw-family binding defers the latter).
+  discovery index yet (the platform-aware discovery defers the latter).
+- No unilateral change to the merged producers' rollup anchoring (cross-lane /
+  owner call — see Open owner decisions §3).
 - Not validation, readiness, buyer proof, backend selection, or live-capture
   authorization.
