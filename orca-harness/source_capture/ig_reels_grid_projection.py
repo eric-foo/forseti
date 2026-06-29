@@ -17,17 +17,17 @@ disagreement (e.g. DOM 2,984 vs web_profile_info 655 vs /clips/user 2,984). The
 disagreement survives only in the preserved ``ig_reels_grid_capture.json``.
 
 This projection re-unites the two: it carries the slice's selected value+posture
-verbatim AND re-attaches every source surface's value for that metric from the
-preserved capture file, so a downstream reader sees the disagreement instead of
-one unqualified number. It is mechanical and re-derivable: it carries raw facts
-and anchors, computes ``chosen_source_surface`` by matching the carried value to
-a surface (it does NOT re-run selection), and enforces the spec's static
-``view_count = not_applicable`` rule. It is not Cleaning, ECR, Judgment, a
-momentum/traction score, or a capture path.
+verbatim when JSON joined, promotes parseable DOM-grid counts only when JSON did
+not join, and re-attaches every source surface's value for that metric from the
+preserved capture file. It is mechanical and re-derivable: it carries raw facts
+and anchors, computes ``chosen_source_surface`` from the chosen source, and
+enforces the spec's static ``view_count = not_applicable`` rule. It is not
+Cleaning, ECR, Judgment, a momentum/traction score, or a capture path.
 """
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal, Mapping
 from urllib.parse import urlparse
@@ -458,6 +458,9 @@ def _project_media_observation(
     value = observation.value
     reason = observation.reason
     forced_static = False
+    dom_grid_fallback = False
+    row_residuals = list(row_residuals or [])
+    selection_limitations = list(source_slice.limitations)
     # Static-post enforcement (spec: static view_count is not_applicable, never a number).
     # Belt-and-suspenders: the reels runner already filters /p/ rows out of the traction
     # series, so this normally never fires; it keeps a static row that slips through from
@@ -467,6 +470,15 @@ def _project_media_observation(
         value = None
         reason = _STATIC_VIEW_COUNT_NOT_APPLICABLE_REASON
         forced_static = True
+    elif posture == MetricPosture.UNAVAILABLE_WITH_REASON and content_kind == "reel":
+        dom_value = _dom_grid_candidate_value(candidates)
+        if dom_value is not None:
+            posture = MetricPosture.OBSERVED
+            value = dom_value
+            reason = None
+            dom_grid_fallback = True
+            selection_limitations.append("metric_value_from_dom_grid_no_passive_json_join")
+            row_residuals.append(f"ig_reels_dom_grid_metric_promoted:{observation.metric}")
 
     content_url = _known_value(source_slice.locator)
     pointer = f"/joined_rows/{joined_index}" if joined_index is not None else None
@@ -484,15 +496,17 @@ def _project_media_observation(
         value=value,
         reason=reason,
         coverage_window=observation.coverage_window,
-        chosen_source_surface=_chosen_surface(value if posture == MetricPosture.OBSERVED else None, candidates),
+        chosen_source_surface=DOM_GRID_ENGAGEMENT
+        if dom_grid_fallback
+        else _chosen_surface(value if posture == MetricPosture.OBSERVED else None, candidates),
         source_surface_count_candidates=candidates,
         join_status=join_status,
         selection_policy_version=selection_policy_version,
-        selection_limitations=list(source_slice.limitations),
+        selection_limitations=selection_limitations,
         capture_time=_known_value(source_slice.timing.capture_time),
         source_publication_or_event=_known_value(source_slice.timing.source_publication_or_event),
         source_visible_fields=_media_source_visible_fields(json_candidates),
-        residuals=list(row_residuals or []),
+        residuals=row_residuals,
     )
     return row, forced_static
 
@@ -531,6 +545,13 @@ def _media_surface_candidates(
     return candidates
 
 
+def _dom_grid_candidate_value(candidates: list[IgReelsSurfaceCountCandidate]) -> int | None:
+    for candidate in candidates:
+        if candidate.source_surface == DOM_GRID_ENGAGEMENT and candidate.value is not None:
+            return candidate.value
+    return None
+
+
 def _chosen_surface(selected_value: int | None, candidates: list[IgReelsSurfaceCountCandidate]) -> str | None:
     """Attribute the carried (already-selected) value to the surface it matches.
 
@@ -540,15 +561,14 @@ def _chosen_surface(selected_value: int | None, candidates: list[IgReelsSurfaceC
     """
     if selected_value is None:
         return None
-    # Attribute to the surface the upstream selection would have used: JSON surfaces in
-    # the capture's preference order first, DOM/unknown last. This resolves value ties
-    # (e.g. DOM == /clips/user, the jeremyfragrance case) to the same JSON surface the
-    # runner sourced the value from, without re-running selection.
+    # Attribute upstream JSON-selected values to the surface the runner would have used:
+    # JSON surfaces in the capture's preference order first, DOM/unknown last. DOM-grid
+    # fallback is handled explicitly before this helper.
     for candidate in sorted(
         candidates, key=lambda item: _SURFACE_PREFERENCE.get(item.source_surface, 99)
     ):
-        # The runner sources every metric value from a JSON source_surface_candidate, never
-        # from DOM; DOM is carried for disagreement but is never the value's source surface.
+        # For an already-observed upstream value, DOM is carried for disagreement but is not
+        # attributed as the JSON-selected source surface.
         if candidate.source_surface == DOM_GRID_ENGAGEMENT:
             continue
         if candidate.value == selected_value:
@@ -763,9 +783,13 @@ def _int_or_none(value: object) -> int | None:
         return int(value)
     if isinstance(value, str):
         stripped = value.replace(",", "").strip()
-        return int(stripped) if stripped.isdigit() else None
+        if stripped.isdigit():
+            return int(stripped)
+        compact = re.fullmatch(r"([0-9]+(?:\.[0-9]+)?)([KkMm])", stripped)
+        if compact:
+            multiplier = 1000 if compact.group(2).lower() == "k" else 1000000
+            return int(float(compact.group(1)) * multiplier)
     return None
-
 
 def _list_len(value: object) -> int | None:
     if isinstance(value, (list, tuple)):
