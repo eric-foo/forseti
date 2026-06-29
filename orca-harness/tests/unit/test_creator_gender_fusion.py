@@ -15,6 +15,7 @@ from pydantic import ValidationError
 
 from schemas.creator_gender_models import (
     CREATOR_GENDER_BASIS_MAX_CHARS,
+    CREATOR_GENDER_DECISIVE_CONFIDENCE_FLOOR,
     CreatorGenderLean,
     CreatorGenderSignal,
     GenderCueKind,
@@ -135,6 +136,14 @@ def test_conflicting_cues_net_to_abstain() -> None:
     assert r.abstained is True and r.gender_lean == 0.0
 
 
+def test_weak_self_presentation_abstains_but_keeps_audit_evidence() -> None:
+    r = _fuse([_sig(signal_id="weak", gender_lean=0.1, confidence=0.5)])
+    assert r.abstained is True
+    assert r.gender_lean == 0.0
+    assert 0.0 < r.confidence < CREATOR_GENDER_DECISIVE_CONFIDENCE_FLOOR
+    assert r.evidence_ids == ["weak"]
+
+
 # --- fusion: product-marketed-gender is EXCLUDED from decisive fusion (F2) -----
 
 
@@ -179,3 +188,45 @@ def test_output_is_creator_gender_lean_with_provenance() -> None:
     assert r.creator_id == "c1"
     assert r.fusion_config_version == FUSION_CONFIG_VERSION
     assert r.provenance.fusion_config_version == FUSION_CONFIG_VERSION
+
+
+def test_lean_schema_rejects_incoherent_output_states() -> None:
+    base = {
+        "creator_id": "c1",
+        "fusion_config_version": FUSION_CONFIG_VERSION,
+        "generated_at": "2026-06-28T00:00:00Z",
+        "provenance": {"fusion_config_version": FUSION_CONFIG_VERSION},
+    }
+    with pytest.raises(ValidationError):
+        CreatorGenderLean(
+            **base, gender_lean=0.9, confidence=0.9, abstained=True, evidence_ids=[],
+        )
+    with pytest.raises(ValidationError):
+        CreatorGenderLean(
+            **base, gender_lean=0.9, confidence=0.9, abstained=False, evidence_ids=[],
+        )
+    with pytest.raises(ValidationError):
+        CreatorGenderLean(
+            **base, gender_lean=0.0, confidence=0.0, abstained=False, evidence_ids=["s1"],
+        )
+    with pytest.raises(ValidationError):
+        CreatorGenderLean(
+            **base, gender_lean=0.9, confidence=0.9, abstained=False, evidence_ids=[""],
+        )
+
+
+def test_lean_schema_revalidates_copy_and_construct_paths() -> None:
+    result = _fuse([_sig(signal_id="self", gender_lean=1.0, confidence=1.0)])
+    with pytest.raises(ValidationError):
+        result.model_copy(update={"evidence_ids": []})
+    with pytest.raises(ValidationError):
+        CreatorGenderLean.model_construct(
+            creator_id="c1",
+            gender_lean=0.0,
+            confidence=0.0,
+            abstained=False,
+            evidence_ids=["s1"],
+            fusion_config_version=FUSION_CONFIG_VERSION,
+            generated_at="2026-06-28T00:00:00Z",
+            provenance={"fusion_config_version": FUSION_CONFIG_VERSION},
+        )

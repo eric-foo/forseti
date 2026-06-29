@@ -62,6 +62,10 @@ class CreatorGenderModel(StrictModel):
 # smuggle a transcript or extra free-text payload past the minimization posture.
 CREATOR_GENDER_BASIS_MAX_CHARS = 160
 
+# Output contract for a decisive fused lean. Sub-floor signals may still be kept as abstained
+# audit evidence, but they must not become decisive output records.
+CREATOR_GENDER_DECISIVE_CONFIDENCE_FLOOR = 0.40
+
 
 class CreatorGenderSignalProvenance(CreatorGenderModel):
     """Typed, minimal provenance for a per-reel signal.
@@ -152,8 +156,25 @@ class CreatorGenderLean(CreatorGenderModel):
             raise ValueError("field must be non-empty")
         return value
 
+    @field_validator("evidence_ids")
+    @classmethod
+    def _evidence_ids_non_empty(cls, value: list[str]) -> list[str]:
+        if any(not item or not item.strip() for item in value):
+            raise ValueError("evidence_ids must contain only non-empty IDs")
+        return value
+
     @model_validator(mode="after")
-    def _finite(self) -> Self:
+    def _coherent_output_state(self) -> Self:
         if not (math.isfinite(self.gender_lean) and math.isfinite(self.confidence)):
             raise ValueError("gender_lean and confidence must be finite")
+        if self.abstained:
+            if self.gender_lean != 0.0:
+                raise ValueError("abstained output must report gender_lean as 0.0")
+            return self
+        if self.gender_lean == 0.0:
+            raise ValueError("non-abstained output must carry a non-zero gender_lean")
+        if self.confidence < CREATOR_GENDER_DECISIVE_CONFIDENCE_FLOOR:
+            raise ValueError("non-abstained output must meet the decisive confidence floor")
+        if not self.evidence_ids:
+            raise ValueError("non-abstained output must carry evidence_ids")
         return self

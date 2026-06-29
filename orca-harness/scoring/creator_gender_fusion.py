@@ -25,6 +25,7 @@ from math import tanh
 
 from harness_utils import utc_now_z
 from schemas.creator_gender_models import (
+    CREATOR_GENDER_DECISIVE_CONFIDENCE_FLOOR,
     CreatorGenderLean,
     CreatorGenderSignal,
     GenderCueKind,
@@ -34,7 +35,7 @@ FUSION_CONFIG_VERSION = "0.1"
 
 # UNCALIBRATED v0 — OWN constants (independent of the shared audience/product prior).
 _GAIN = 2.0  # tanh squash speed on the accumulated signed lean.
-_CONFIDENCE_FLOOR = 0.40  # abstain when the squashed strength < this (the risk dial).
+_CONFIDENCE_FLOOR = CREATOR_GENDER_DECISIVE_CONFIDENCE_FLOOR
 # Per-cue weights: self-presentation trusted; product-marketed-gender is input-auditable but
 # NON-DECISIVE (0.0) until a non-circular, owner-approved use exists — at any nonzero weight a
 # confident product cue can clear the floor alone, which is the circularity we are avoiding.
