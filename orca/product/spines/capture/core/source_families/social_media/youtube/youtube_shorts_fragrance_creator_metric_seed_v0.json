@@ -14,42 +14,42 @@
     "source_inputs": [
       {
         "source_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_observation_ledger_v0.json",
-        "sha256": "145f5f2fa7193027d69502e82b456a48ae4c659a5c8c0aa6fee67ef9141c059c",
+        "sha256": "43c48985f044eb4c5efcb58a1584bdc8419776640270841e1af55d2a635586b9",
         "role": "maps admitted video ids to source-backed YouTube creator/channel observations and brand exclusion posture"
       },
       {
         "source_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json",
-        "sha256": "7420d81628bbb93f34f5df694f9aa1ef7c34b31a56b04d437c5277365f89d251",
+        "sha256": "2adb9e66827d424240eeae170e1935862d649d7625cdea02b8988a3b3820b00c",
         "role": "maps YouTube channel ids to platform_account ids for account-scoped profile subjects"
       },
       {
         "source_pointer": "docs/review-inputs/youtube_shorts_fragrance_retained_recapture_v0.json",
-        "sha256": "68b6d2a803297d5484d26cb09dcf49254fc3b00d7587506b812cff1830751c64",
+        "sha256": "9b8bf7fa6f9f6cec5d8194848db50c408bb4bb7500acc2d3b958597152cb03de",
         "role": "source-visible YouTube view_count rows for admitted fragrance Shorts"
       },
       {
         "source_pointer": "docs/review-inputs/youtube_shorts_fragrance_replacement_capture_v0.json",
-        "sha256": "d55f98fd0f7c84612a4498162796f76d5f300283725514ceabc71d37f7f2a243",
+        "sha256": "831a775ff0d74bdcdf9d6fd2c38a3ef8e07e8f3d905b8fecd92593443861c4dc",
         "role": "source-visible YouTube view_count rows for admitted fragrance Shorts"
       },
       {
         "source_pointer": "docs/review-inputs/youtube_shorts_fragrance_tone_expansion30_capture_v0.json",
-        "sha256": "461ec8fa56bf12e48fec99989a900b4d363fc1533c1fa644157b9565bf1e99a3",
+        "sha256": "c32387d26ad52a68207a221c44a33f09a9d94378699fef951464dce9ba613a0c",
         "role": "source-visible YouTube view_count rows for admitted fragrance Shorts"
       },
       {
         "source_pointer": "docs/review-inputs/youtube_shorts_fragrance_tone_expansion100_capture_v0.json",
-        "sha256": "7e2a5c4407790a5dde2b9bd2a3268a2bedc490fb0f3a045b8691d7a662f74a2b",
+        "sha256": "bf68dea49e5263de39789994f12b2e520ce90c756d77d47e3ebc9029ff94f24a",
         "role": "source-visible YouTube view_count rows for admitted fragrance Shorts"
       },
       {
         "source_pointer": "docs/review-inputs/youtube_shorts_fragrance_tone_expansion200_capture_v0.json",
-        "sha256": "e1d74fe107d0ad416becb7df19cd115364ab69c46c7a3c66ed08a4b182837d0a",
+        "sha256": "66ea50d578a2503d53d1caee677173e42e9b69d7786697f68541db0a7eb3fe0f",
         "role": "source-visible YouTube view_count rows for admitted fragrance Shorts"
       },
       {
         "source_pointer": "docs/review-inputs/creator_metric_source_live_probe_youtube_v0.json",
-        "sha256": "efd936b0a50cd153bea7a7f2e7bcbcc8a0b5218355820be4b2c26c273f44984f",
+        "sha256": "3a46318721e0d6bae19f4407004c75c61c314d2032a089b92d7405614b693453",
         "role": "bounded live route receipt confirming direct-HTTP watch HTML can expose YouTube view_count for some Shorts; not used as the 200-row seed source"
       }
     ],

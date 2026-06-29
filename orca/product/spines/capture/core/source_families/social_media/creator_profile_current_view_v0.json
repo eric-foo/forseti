@@ -13,12 +13,12 @@
     "source_inputs": [
       {
         "source_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json",
-        "sha256": "7420d81628bbb93f34f5df694f9aa1ef7c34b31a56b04d437c5277365f89d251",
+        "sha256": "2adb9e66827d424240eeae170e1935862d649d7625cdea02b8988a3b3820b00c",
         "role": "source-backed platform accounts and identity state"
       },
       {
         "source_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json",
-        "sha256": "e98fa3554109774230ed29432130059c5331093f23f72994ca92b86b22889832",
+        "sha256": "28291c344b4141a705cf01ad1b5b4f22c52d4cf266394fff1501d2bfcebf78d5",
         "role": "source-backed metric observations and admitted-pool metric rollups"
       }
     ],
