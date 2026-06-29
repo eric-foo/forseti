@@ -11,8 +11,7 @@ scope: >
   visibility.
 use_when:
   - Deciding whether a Data Lake, raw packet runner, YouTube, Instagram, TikTok, projection, ECR, Cleaning, or downstream consumer change requires same-class checks elsewhere.
-  - Preventing packet-runner lake-seam enforcement from becoming a rule about every runner.
-  - Preventing platform-specific acquisition routes from becoming generic Data Lake doctrine.
+  - Preventing packet-runner lake-seam enforcement from becoming a rule about every runner, or platform-specific acquisition routes from becoming generic Data Lake doctrine.
   - Preserving residual/completeness visibility and Judgment-owned gold semantics when lake/capture-facing surfaces change.
 open_next:
   - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_core_contract_v0.md
