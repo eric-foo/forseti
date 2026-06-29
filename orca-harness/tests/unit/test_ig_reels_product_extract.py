@@ -7,6 +7,7 @@ skipped (surface filter), and that failure is isolated at both grains.
 """
 from __future__ import annotations
 
+import hashlib
 import json
 from typing import Any
 
@@ -146,6 +147,13 @@ def test_runner_extracts_ig_transcript_then_skips_on_rerun(tmp_path) -> None:
     assert first[0]["video_id"] == "DZ69knlsDb1"
 
     written = json.loads((data_root.path / first[0]["path"]).read_text(encoding="utf-8"))
+    source_record_path = next((data_root.path / "derived").glob("**/transcript_asr/*"))
+    source_ref = written["derived_refs"][0]
+    assert source_ref["lane"] == "transcript_asr"
+    assert source_ref["record_id"] == source_record_path.name
+    assert source_ref["hash_basis"] == "derived_record_bytes"
+    assert source_ref["sha256"] == hashlib.sha256(source_record_path.read_bytes()).hexdigest()
+    assert "record_set_completion_lane" not in source_ref
     assert written["mention_count"] == 1
     assert written["mentions"][0]["start_ms"] == 3000  # CE5 timestamp from the cue
     assert written["mentions"][0]["video_id"] == "DZ69knlsDb1"

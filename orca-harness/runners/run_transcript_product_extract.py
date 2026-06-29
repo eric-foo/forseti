@@ -217,6 +217,7 @@ def _transcripts_for_packet(data_root, packet_id: str) -> list[TranscriptInput]:
                         source_namespace="youtube",
                         source_surface="youtube_audio",
                         derived_refs=[derived_ref],
+                        observed_at=observed_at,
                         captured_at=str(record.get("retrieval_time_utc") or captured_at or "") or None,
                     )
                 )

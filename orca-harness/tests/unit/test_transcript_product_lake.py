@@ -251,18 +251,24 @@ def test_driver_persists_rejected_count(tmp_path) -> None:
 # --- runner: ASR path, end-to-end + idempotent --------------------------------
 
 
-def _commit_asr_transcript(data_root, video_id: str = "vid12345678", posture: str = "transcribed") -> None:
+def _commit_asr_transcript(
+    data_root,
+    video_id: str = "vid12345678",
+    posture: str = "transcribed",
+    identity_extra: dict[str, Any] | None = None,
+) -> None:
     cues = _cues() if posture == "transcribed" else []
     write_asr_transcript(
         video_id=video_id, audio_bytes=f"fake-audio-{video_id}".encode(), audio_ext="m4a",
         transcribe_fn=lambda _path: (posture, cues, {"tool": "faster-whisper", "model": "test"}),
         data_root=data_root,
+        identity_extra=identity_extra,
     )
 
 
 def test_runner_extracts_asr_transcript_then_skips_on_rerun(tmp_path) -> None:
     data_root = DataLakeRoot.for_test(tmp_path / "lake")
-    _commit_asr_transcript(data_root)
+    _commit_asr_transcript(data_root, identity_extra={"publish_date_iso": "2026-06-20"})
 
     transport = FakeTransport(_anthropic([_item()]))
     first = run_extraction(data_root=data_root, transport=transport, provider=_PROVIDER, model="m", api_key="k")
@@ -275,6 +281,7 @@ def test_runner_extracts_asr_transcript_then_skips_on_rerun(tmp_path) -> None:
     assert source_ref["lane"] == "transcript_asr"
     assert source_ref["record_id"] == source_record_path.name
     assert source_ref["hash_basis"] == "derived_record_marker_sha256"
+    assert record["observed_at"] == "2026-06-20"
     assert source_ref["record_set_completion_lane"] == "transcript_asr__set"
     assert source_ref["sha256"] == data_root.read_record_set_member_sha256(
         subtree="derived",
