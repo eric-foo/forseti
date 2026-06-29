@@ -2,14 +2,17 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
+import shutil
 import sys
 from datetime import datetime
 from pathlib import Path
-from typing import Sequence
+from typing import TYPE_CHECKING, Sequence
 
 if __package__ in {None, ""}:
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
+from harness_utils import generate_ulid
 from source_capture import (
     CaptureModeCategory,
     PacketTiming,
@@ -20,6 +23,10 @@ from source_capture import (
     unknown_with_reason,
     write_local_source_capture_packet,
 )
+
+if TYPE_CHECKING:
+    from data_lake.root import DataLakeRoot
+
 from source_capture.adapters.archive_org import (
     DEFAULT_CDX_ENDPOINT,
     DEFAULT_MAX_ATTEMPTS,
@@ -69,7 +76,8 @@ def run_source_capture_historical_packet(
     *,
     original_url: str,
     decision_question: str,
-    output_directory: Path,
+    output_directory: Path | None = None,
+    data_root: "DataLakeRoot | None" = None,
     source_family: str,
     source_surface: str | None,
     capture_context: str,
@@ -97,6 +105,9 @@ def run_source_capture_historical_packet(
     max_attempts: int = DEFAULT_MAX_ATTEMPTS,
     retry_backoff_seconds: float = DEFAULT_RETRY_BACKOFF_SECONDS,
 ) -> tuple[int, str]:
+    if (output_directory is None) == (data_root is None):
+        raise ValueError("exactly one of output_directory or data_root is required")
+
     capture = fetch_historical_capture(
         original_url=original_url,
         cutoff_timestamp_iso=cutoff_timestamp_iso,
@@ -115,8 +126,14 @@ def run_source_capture_historical_packet(
     payload = _selected_payload(capture.selected_outcome)
     verified = payload is not None
 
-    staging_parent = output_directory.parent
-    staging_parent.mkdir(parents=True, exist_ok=True)
+    staging_root: Path | None = None
+    if data_root is not None:
+        staging_parent = data_root.stage_raw_packet(generate_ulid())
+        staging_root = staging_parent
+    else:
+        assert output_directory is not None
+        staging_parent = output_directory.parent
+        staging_parent.mkdir(parents=True, exist_ok=True)
     staged_paths: list[Path] = []
     packet_warnings = list(warnings)
     packet_limitations = list(limitations)
@@ -213,6 +230,7 @@ def run_source_capture_historical_packet(
 
         result = write_local_source_capture_packet(
             output_directory=output_directory,
+            data_root=data_root,
             input_files=staged_paths,
             source_family=source_family,
             source_surface=source_surface or f"cross_archive::{capture.archive_selected or 'no_go'}",
@@ -246,6 +264,8 @@ def run_source_capture_historical_packet(
                 staging_path.unlink()
             except FileNotFoundError:
                 pass
+        if staging_root is not None:
+            shutil.rmtree(staging_root, ignore_errors=True)
     return 0, result.output_directory
 
 
@@ -516,7 +536,12 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--url", required=True)
     parser.add_argument("--cutoff-timestamp", default=None, help="ISO-8601 cutoff (e.g. 2024-06-01T00:00:00Z)")
     parser.add_argument("--decision-question", required=True)
-    parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--output", type=Path, default=None)
+    parser.add_argument(
+        "--data-root",
+        default=None,
+        help="Commit into the Orca data lake at this root; explicit --data-root is mutually exclusive with --output. ORCA_DATA_ROOT is used only when --output is omitted.",
+    )
     parser.add_argument("--source-family", default="historical_capture")
     parser.add_argument("--source-surface", default=None)
     parser.add_argument(
@@ -575,10 +600,27 @@ def main(argv: Sequence[str] | None = None) -> int:
     try:
         publisher_history_rung = _publisher_history_rung_from_args(args)
         archive_today_hosts = frozenset(args.archive_today_host) if args.archive_today_host else None
+        data_root = None
+        data_root_requested = args.data_root is not None or (args.output is None and os.environ.get("ORCA_DATA_ROOT"))
+        if args.output is not None and args.data_root is not None:
+            parser.exit(
+                status=2,
+                message="source capture historical failed: exactly one of --output or --data-root/ORCA_DATA_ROOT is required\n",
+            )
+        if args.output is None and not data_root_requested:
+            parser.exit(
+                status=2,
+                message="source capture historical failed: exactly one of --output or --data-root/ORCA_DATA_ROOT is required\n",
+            )
+        if data_root_requested:
+            from data_lake.root import DataLakeRoot
+
+            data_root = DataLakeRoot.resolve(explicit=args.data_root)
         exit_code, message = run_source_capture_historical_packet(
             original_url=args.url,
             decision_question=args.decision_question,
-            output_directory=args.output,
+            output_directory=args.output if data_root is None else None,
+            data_root=data_root,
             source_family=args.source_family,
             source_surface=args.source_surface,
             capture_context=args.capture_context,

@@ -69,6 +69,24 @@ def test_resolve_success_with_env(tmp_path: Path) -> None:
     assert resolved.root_uuid == root.root_uuid
 
 
+def test_resolve_rejects_legacy_v0_root(tmp_path: Path) -> None:
+    legacy = tmp_path / "legacy"
+    legacy.mkdir()
+    (legacy / ROOT_MARKER_FILENAME).write_text(
+        json.dumps({"root_uuid": "LEGACY", "contract_version": "v0"}),
+        encoding="utf-8",
+    )
+    with pytest.raises(DataLakeRootError, match="contract_version"):
+        DataLakeRoot.resolve(explicit=legacy, env={}, repo_root=None)
+
+
+def test_resolve_rejects_missing_epoch_marker(tmp_path: Path) -> None:
+    root = _init(tmp_path)
+    (root.path / EPOCH_MARKER_FILENAME).unlink()
+    with pytest.raises(DataLakeRootError, match="missing epoch marker"):
+        DataLakeRoot.resolve(explicit=root.path, env={}, repo_root=None)
+
+
 def test_resolve_precedence_explicit_over_env(tmp_path: Path) -> None:
     a = _init(tmp_path, "a")
     b = _init(tmp_path, "b")
@@ -111,13 +129,6 @@ def test_initialize_creates_default_v4_1_label_and_legacy_roots(tmp_path: Path) 
     assert epoch["legacy_roots"] == [legacy]
 
 
-def test_resolve_missing_epoch_marker_rejected(tmp_path: Path) -> None:
-    root = _init(tmp_path)
-    (root.path / EPOCH_MARKER_FILENAME).unlink()
-    with pytest.raises(DataLakeRootError, match="epoch marker"):
-        DataLakeRoot.resolve(explicit=root.path, env={}, repo_root=None)
-
-
 @pytest.mark.parametrize(
     ("field", "value", "match"),
     [
@@ -138,17 +149,6 @@ def test_resolve_malformed_epoch_marker_values_rejected(
 
     with pytest.raises(DataLakeRootError, match=match):
         DataLakeRoot.resolve(explicit=root.path, env={}, repo_root=None)
-
-
-def test_resolve_legacy_v0_marker_rejected(tmp_path: Path) -> None:
-    legacy = tmp_path / "legacy"
-    legacy.mkdir()
-    (legacy / ROOT_MARKER_FILENAME).write_text(
-        json.dumps({"root_uuid": "LEGACYROOT", "contract_version": "v0"}),
-        encoding="utf-8",
-    )
-    with pytest.raises(DataLakeRootError, match="contract_version"):
-        DataLakeRoot.resolve(explicit=legacy, env={}, repo_root=None)
 
 
 def test_initialize_refuses_nonempty_foreign_dir(tmp_path: Path) -> None:

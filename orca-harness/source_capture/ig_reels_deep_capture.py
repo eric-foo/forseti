@@ -173,10 +173,11 @@ class ReelDeepCaptureResult:
     """The payoff of ONE render: the audience comments AND the creator transcript.
 
     ``media_url_used`` is the transient handle that was downloaded (never persisted).
-    ``transcript_posture`` is the transcriber's 'ok'/'no_speech'/'failed', or a runner
-    status ('render_unavailable' / 'no_audio_handle' / 'download_failed') when an
-    earlier step did not yield audio. Comments are still returned whenever the render
-    succeeded, even if the audio leg failed.
+    ``transcript_posture`` is the transcriber's 'transcribed'/'no_speech'/'failed', or
+    a runner status ('render_unavailable' / 'no_audio_handle' / 'download_failed') when
+    an earlier step did not yield audio. Older records and fixtures may use 'ok' for a
+    successful transcript; downstream readers normalize that legacy token to 'transcribed'. Comments
+    are still returned whenever the render succeeded, even if the audio leg failed.
     """
 
     reel_shortcode: str

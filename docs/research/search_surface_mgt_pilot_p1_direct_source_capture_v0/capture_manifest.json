@@ -1,0 +1,81 @@
+{
+  "schema": "search_surface_mgt_p1_direct_source_capture_manifest_v0",
+  "generated_at": "2026-06-25T21:16:35+08:00",
+  "status_boundary": "direct_source_capture_routing_not_judgment_not_buyer_proof_not_durable_demand_proof",
+  "scope": "P1 direct-source capture for the five Priority A Search-Surface MGT sources selected by decision effect.",
+  "source_set": [
+    {
+      "source_id": "p1_s01_reddit_fragrance_testing",
+      "cluster": "discovery_sampling",
+      "url": "https://www.reddit.com/r/FragranceStories/comments/1mydzqk/how_do_you_test_a_fragrance_before_buying/",
+      "capture_state": "browser_web_observed_direct_http_blocked",
+      "local_raw_files": [],
+      "access_note": "Direct Invoke-WebRequest route returned a Reddit network-policy block. Browser/web read exposed thread title, prompt, and visible comments enough for screen-light decision extraction, but no local raw HTML/TXT receipt was preserved."
+    },
+    {
+      "source_id": "p1_s02_ministry_sample_sets",
+      "cluster": "discovery_sampling",
+      "url": "https://ministryofscent.com/collections/sample-sets-1",
+      "capture_state": "local_raw_html_text_and_products_json_preserved",
+      "local_raw_files": [
+        "docs/research/search_surface_mgt_pilot_p1_direct_source_capture_v0/source_receipts/p1_s02_ministry_sample_sets.html.gz",
+        "docs/research/search_surface_mgt_pilot_p1_direct_source_capture_v0/source_receipts/p1_s02_ministry_sample_sets.txt",
+        "docs/research/search_surface_mgt_pilot_p1_direct_source_capture_v0/source_receipts/p1_s02_ministry_sample_sets_products.json"
+      ],
+      "observed_counts": {
+        "products_json_count": 97
+      }
+    },
+    {
+      "source_id": "p1_s03_twisted_lily_discovery_sets",
+      "cluster": "discovery_sampling",
+      "url": "https://twistedlily.com/collections/samples-discovery-sets",
+      "capture_state": "local_raw_html_text_and_products_json_preserved",
+      "local_raw_files": [
+        "docs/research/search_surface_mgt_pilot_p1_direct_source_capture_v0/source_receipts/p1_s03_twisted_lily_discovery_sets.html.gz",
+        "docs/research/search_surface_mgt_pilot_p1_direct_source_capture_v0/source_receipts/p1_s03_twisted_lily_discovery_sets.txt",
+        "docs/research/search_surface_mgt_pilot_p1_direct_source_capture_v0/source_receipts/p1_s03_twisted_lily_discovery_sets_products.json"
+      ],
+      "observed_counts": {
+        "products_json_count": 59
+      },
+      "access_note": "HTML text extraction omitted visible product rows, so a bounded Shopify products.json endpoint for the same collection was preserved."
+    },
+    {
+      "source_id": "p1_s04_reddit_santal_33_dupes",
+      "cluster": "dupe_comparison",
+      "url": "https://www.reddit.com/r/fragrance/comments/15fp22s/what_is_the_best_alternative_to_santal_33_by_le/",
+      "capture_state": "browser_web_observed_direct_http_blocked",
+      "local_raw_files": [],
+      "access_note": "Direct Invoke-WebRequest route returned a Reddit network-policy block. Browser/web read exposed the thread title, motive, and visible comments enough for screen-light decision extraction, but no local raw HTML/TXT receipt was preserved."
+    },
+    {
+      "source_id": "p1_s05_reddit_br540_dupes",
+      "cluster": "dupe_comparison",
+      "url": "https://www.reddit.com/r/Colognes/comments/1nwmudi/im_looking_for_close_dupes_of_baccarat_rouge_540/",
+      "capture_state": "browser_web_observed_direct_http_blocked",
+      "local_raw_files": [],
+      "access_note": "Direct Invoke-WebRequest route returned a Reddit network-policy block. Browser/web read exposed the thread title and visible comments enough for screen-light decision extraction, but no local raw HTML/TXT receipt was preserved."
+    }
+  ],
+  "outputs": [
+    {
+      "cluster": "discovery_sampling",
+      "classification": "scanning_frontier_plus_capture_request",
+      "reason": "Buyer-origin testing language plus retailer sample/discovery shelf mechanics can affect Capture questions and Scanning frontiers."
+    },
+    {
+      "cluster": "dupe_comparison",
+      "classification": "scanning_frontier_plus_capture_request",
+      "reason": "Buyer-origin substitution language plus repeated alternatives can affect competitor/substitute Capture requests and Scanning comparison frontiers."
+    }
+  ],
+  "non_claims": [
+    "not_judgment_evidence",
+    "not_durable_demand_proof",
+    "not_buyer_proof",
+    "not_product_lead_action",
+    "not_market_size",
+    "not_ai_overview_causality"
+  ]
+}

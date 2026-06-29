@@ -43,13 +43,19 @@ Observed authoring baseline: `origin/main` at
 Current landed baseline after PR #310: `origin/main` at
 `780091959c778562a19984596b9d45645c8c1edf`, the merge commit for PR #310.
 
+Branch-local note: the later `codex/search-surface-mgt-p0-captures-ws`
+rename to Prompt Structure / Prompt Structure Rules has not landed on
+`origin/main` at these pins. This section intentionally records the filenames
+present on the pinned main commits; re-pin and update it after that rename
+lands.
+
 The live CSB spine path remains:
 
 ```text
 orca/product/spines/commission_signal_board/
 ```
 
-The current tree contains these CSB spine files:
+The pinned current-main tree contains these CSB spine files:
 
 ```text
 orca/product/spines/commission_signal_board/README.md
@@ -64,8 +70,10 @@ orca/product/spines/commission_signal_board/tests/validator_tests.md
 orca/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md
 ```
 
-The old canonical doc paths under `docs/` are absent on current `main`; the
-canonical spine paths in `moved_paths_index.md` are the current resolution.
+At those pinned main baselines, the old canonical doc paths under `docs/` are
+absent; resolution from `docs/` paths went to the then-current spine filenames
+listed above. This branch's later rename is a forward branch-local change until
+merged.
 
 ## Historical Paths Not Live
 

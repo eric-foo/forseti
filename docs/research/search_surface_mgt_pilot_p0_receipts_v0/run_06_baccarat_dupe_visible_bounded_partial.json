@@ -1,0 +1,1360 @@
+{
+  "target": "US indie/DTC fragrance search-surface receipts",
+  "purpose": "preserve direct Google-like search-native surfaces for Search-Surface MGT P0 clusters",
+  "status_boundary": "capture_request_only_not_judgment_evidence_not_product_lead_action_not_durable_demand_proof",
+  "started_at_iso": "2026-06-24T15:15:45.591Z",
+  "operator_timezone": "Asia/Singapore",
+  "host_timezone_offset_minutes": -480,
+  "host": {
+    "platform": "win32",
+    "release": "10.0.26200",
+    "node": "v24.15.0",
+    "chrome_exe": "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
+    "browser_profile": "fresh temporary Chrome profile under docs/_inbox/search_surface_capture_tmp",
+    "browser_mode": "visible_chrome_remote_debugging",
+    "requested_viewport": "desktop 1280x720 window-size, no mobile emulation",
+    "google_params": "hl=en&gl=us&pws=0"
+  },
+  "queries": [
+    {
+      "id": "06_baccarat_rouge_540_dupe",
+      "query": "Baccarat Rouge 540 dupe",
+      "reason": "strong dupe action signal",
+      "required_focus": [
+        "SERP",
+        "PAA",
+        "product modules",
+        "forums",
+        "PAS/related searches"
+      ],
+      "capture_started_at_iso": "2026-06-24T15:15:45.606Z",
+      "files": {
+        "serp_top": {
+          "png": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\06_baccarat_rouge_540_dupe\\serp_top.png",
+          "html": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\06_baccarat_rouge_540_dupe\\serp_top.html",
+          "txt": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\06_baccarat_rouge_540_dupe\\serp_top.txt",
+          "json": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\06_baccarat_rouge_540_dupe\\serp_top.json"
+        },
+        "serp_full": {
+          "png": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\06_baccarat_rouge_540_dupe\\serp_full.png",
+          "html": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\06_baccarat_rouge_540_dupe\\serp_full.html",
+          "txt": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\06_baccarat_rouge_540_dupe\\serp_full.txt",
+          "json": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\06_baccarat_rouge_540_dupe\\serp_full.json"
+        }
+      },
+      "serp_top": {
+        "kind": "serp_top",
+        "requested_query": "Baccarat Rouge 540 dupe",
+        "extracted_at_browser_iso": "2026-06-24T15:15:49.492Z",
+        "location_href": "https://www.google.com/search?q=Baccarat%20Rouge%20540%20dupe&hl=en&gl=us&pws=0&sei=ofQ7avHENfCHjuMP18n0uA0",
+        "document_title": "Baccarat Rouge 540 dupe - Google Search",
+        "viewport": {
+          "width": 1264,
+          "height": 625,
+          "device_pixel_ratio": 1
+        },
+        "navigator": {
+          "language": "en-US",
+          "languages": [
+            "en-US",
+            "en"
+          ],
+          "platform": "Win32",
+          "webdriver": false,
+          "timezone": "Asia/Singapore"
+        },
+        "session_state": {
+          "sign_in_text_visible": true,
+          "google_account_text_visible": false,
+          "captcha_or_unusual_traffic_visible": false,
+          "consent_text_visible": false
+        },
+        "modules": {
+          "people_also_ask": true,
+          "people_also_search_for": true,
+          "related_searches": false,
+          "shopping_or_products": true,
+          "popular_products": false,
+          "more_products": true,
+          "sponsored_or_ads": false,
+          "video": true,
+          "forums": true,
+          "discussions_and_forums": false,
+          "images": true
+        },
+        "autocomplete_suggestions": [],
+        "organic_results": [
+          {
+            "title": "I'm looking for close dupes of Baccarat Rouge 540. Can ... Reddit · r/Colognes 170+ comments · 8 months ago",
+            "href": "https://www.reddit.com/r/Colognes/comments/1nwmudi/im_looking_for_close_dupes_of_baccarat_rouge_540/",
+            "snippet_or_container_text": "I'm looking for close dupes of Baccarat Rouge 540. Can ... Reddit · r/Colognes 170+ comments · 8 months ago"
+          },
+          {
+            "title": "Battle between 10+ Maison Francis Kurkdjian Baccarat Rouge ... scentgourmand.com http://www.scentgourmand.com › battle-between-10-m...",
+            "href": "http://www.scentgourmand.com/battle-between-10-maison-francis-kurkdjian-baccarat-rouge-540-dupes-which-wins/",
+            "snippet_or_container_text": "Battle between 10+ Maison Francis Kurkdjian Baccarat Rouge ... scentgourmand.com http://www.scentgourmand.com › battle-between-10-m..."
+          },
+          {
+            "title": "7 Best Baccarat Rouge 540 Dupes, Tested and Reviewed ... Cosmopolitan https://www.cosmopolitan.com › Beauty & Style › Beauty",
+            "href": "https://www.cosmopolitan.com/style-beauty/beauty/g69098218/best-bacarrat-rouge-dupes/",
+            "snippet_or_container_text": "7 Best Baccarat Rouge 540 Dupes, Tested and Reviewed ... Cosmopolitan https://www.cosmopolitan.com › Beauty & Style › Beauty"
+          },
+          {
+            "title": "Smells Like Baccarat Rouge... But Budget Friendly! Designer ... YouTube · Jaheisha 1.2K+ views · 7 months ago",
+            "href": "https://www.youtube.com/watch?v=Cb8zcAAXV60",
+            "snippet_or_container_text": "Smells Like Baccarat Rouge... But Budget Friendly! Designer ... YouTube · Jaheisha 1.2K+ views · 7 months ago"
+          },
+          {
+            "title": "Beauty in Review: Baccarat Rouge 540 Dupes Royally Pink https://www.royallypink.com › 2022/04 › beauty-in-re...",
+            "href": "https://www.royallypink.com/2022/04/beauty-in-review-baccarat-rouge-540.html",
+            "snippet_or_container_text": "Beauty in Review: Baccarat Rouge 540 Dupes Royally Pink https://www.royallypink.com › 2022/04 › beauty-in-re..."
+          },
+          {
+            "title": "Vocal Performance U005 Eau de Parfum For Unisex ... Amazon.com https://www.amazon.com › Vocal-Performance-Inspired-...",
+            "href": "https://www.amazon.com/Vocal-Performance-Inspired-Kurkdjian-Phthalate/dp/B0B3W8JW39",
+            "snippet_or_container_text": "Vocal Performance U005 Eau de Parfum For Unisex ... Amazon.com https://www.amazon.com › Vocal-Performance-Inspired-..."
+          },
+          {
+            "title": "I found the exact Baccarat Rouge 540 DUPE. This is INSANE ... Instagram · bethennyfrankel 32.4K+ likes · 2 years ago",
+            "href": "https://www.instagram.com/reel/C0QOTPkrSyr/?hl=en",
+            "snippet_or_container_text": "I found the exact Baccarat Rouge 540 DUPE. This is INSANE ... Instagram · bethennyfrankel 32.4K+ likes · 2 years ago"
+          }
+        ],
+        "people_also_ask_lines": [
+          "What dupe smells most like Baccarat Rouge 540?",
+          "What perfume smells like Baccarat Rouge?",
+          "What is the best dupe for Baccarat Rouge 540 Maison Francis Kurkdjian?",
+          "What is Baccarat Rouge 540 compared to?",
+          "Web results",
+          "Battle between 10+ Maison Francis Kurkdjian Baccarat Rouge ...",
+          "scentgourmand.com",
+          "http://www.scentgourmand.com › battle-between-10-m...",
+          "Jul 16, 2022 — For an all-rounder dupe, I would say Al Haramain's is worth it. I think it's the closest-smelling at a reasonable price point.Read more",
+          "Pros and cons: Unbelievably versatile ⋅ Appropriate for many seasons, occasions, and times of day ⋅ View full list",
+          "Videos",
+          "6 Dupe Of BR540 Tested – Which One is CLOSEST?"
+        ],
+        "people_also_search_lines": [
+          "Baccarat Rouge 540 dupe Zara",
+          "Baccarat rouge 540 dupe reddit",
+          "Baccarat Rouge 540 dupe price",
+          "Baccarat Rouge 540 dupe Amazon",
+          "Baccarat Rouge 540 dupe Bath and Body Works",
+          "Baccarat Rouge 540 dupe men",
+          "Baccarat Rouge 540 dupe Dossier",
+          "Baccarat rouge 540 dupe sephora",
+          "Page Navigation",
+          "1",
+          "2",
+          "3"
+        ],
+        "related_search_lines": [],
+        "product_or_shopping_lines": [
+          "Shopping",
+          "Dossier Ambery Saffron: Priced around $49, this is widely regarded as one of the best 1-to-1 matches, mimicking the original's airy, sweet, and woody aura perfectly.",
+          "Armaf Club de Nuit Untold: Available for around $40-$50, this Eau de Parfum is frequently praised by fragrance enthusiasts as borderline identical to BR540 with incredible projection.",
+          "Lattafa Ana Abiyedh Rouge: A budget-friendly option (usually $20-$30) that gives you the luminous, cotton-candy and amber warmth of BR540, though it can have a slight sharpness upon initial spray.",
+          "Zara Red Temptation: At around $30, this remains one of the most accessible and popular high-street alternatives that flawlessly hits those saffron, jasmine, and woody amber notes.",
+          "Ariana Grande Cloud: Priced around $35-$45, this is a softer, sweeter, and more coconut/praline-forward take on the DNA. While not an exact clone, it shares the same woody, airy base that makes BR540 so universally loved.",
+          "Sol de Janeiro Cheirosa 68: A beautiful, floral and vanilla-forward body mist version that provides that same intoxicating jasmine and amber warmth for roughly $24.",
+          "Lattafa Ana Abiyedh First Impression ($15 Baccarat Rouge 540 Dupe)",
+          "Jul 16, 2022 — For an all-rounder dupe, I would say Al Haramain's is worth it. I think it's the closest-smelling at a reasonable price point.Read more",
+          "More products",
+          "$65.80",
+          "$20.95",
+          "Free delivery on $100+",
+          "$19.95",
+          "$59.00",
+          "$69",
+          "Free delivery on $75+",
+          "$40.00",
+          "$39.20",
+          "$49",
+          "Free delivery on $40+",
+          "$39.00",
+          "Walmart - THE CLONE LLC",
+          "$65.00",
+          "Free delivery on $150+",
+          "Would you buy a dupe perfume? My deep dive reminded me of my conversation with Marc Chaya, former CEO of @Maison Francis Kurkdjian … link in profile for full video. #bacarratrouge540 #baccaratrouge540 #dupeparfum",
+          "Smelling like Baccarat Rouge 540 but spent $22. I am not taking questions at this time. 🫶🏼✨ The dupe era is fully here and I refuse to go back to paying designer prices when this exists. Warm, sweet, that iconic cherry almond vibe — and three people asked m",
+          "As does the original, Crystal No.23 has notes of jasmine, amber, cedarwood, and saffron. It is 1 oz and $40 but there is a bigger size; for $50 you get 2oz.Read more",
+          "Amazon.com",
+          "https://www.amazon.com › Vocal-Performance-Inspired-...",
+          "Baccarat Rouge 540 dupe price",
+          "Baccarat Rouge 540 dupe Amazon",
+          "Baccarat rouge 540 dupe sephora"
+        ],
+        "video_or_forum_lines": [
+          "Videos",
+          "Short videos",
+          "YouTube",
+          "I'm looking for close dupes of Baccarat Rouge 540. Can you ... - Reddit",
+          "Reddit",
+          "Reddit · r/Colognes",
+          "More results from www.reddit.com",
+          "YouTube · Fragrance House",
+          "YouTube · Scentkollectionz",
+          "Would you buy a dupe perfume? My deep dive reminded me of my conversation with Marc Chaya, former CEO of @Maison Francis Kurkdjian … link in profile for full video. #bacarratrouge540 #baccaratrouge540 #dupeparfum",
+          "Sir Candle Man · TikTok",
+          "TikTok",
+          "YouTube · Jaheisha",
+          "Baccarat rouge 540 dupe reddit"
+        ],
+        "footer_or_location_lines": [
+          "Unknown - Can't determine location",
+          "- Update location",
+          "HelpSend feedbackPrivacyTerms"
+        ],
+        "possible_non_us_storefront_or_locale_signals": [],
+        "all_links_sample": [
+          {
+            "text": "Accessibility help",
+            "href": "https://support.google.com/websearch/answer/181196?hl=en"
+          },
+          {
+            "text": "",
+            "href": "https://www.google.com/webhp?hl=en&ictx=2&sa=X&ved=0ahUKEwjb9LHMlaCVAxXPxjgGHYYbDIkQPQgK"
+          },
+          {
+            "text": "",
+            "href": "https://www.google.com/webhp?hl=en&ictx=0&sa=X&ved=0ahUKEwjb9LHMlaCVAxXPxjgGHYYbDIkQpYkNCAw"
+          },
+          {
+            "text": "Google apps",
+            "href": "https://www.google.com.sg/intl/en/about/products?tab=wh"
+          },
+          {
+            "text": "Sign in",
+            "href": "https://accounts.google.com/ServiceLogin?hl=en&passive=true&continue=https://www.google.com/search%3Fq%3DBaccarat%2520Rouge%2520540%2520dupe%26hl%3Den%26gl%3Dus%26pws%3D0%26sei%3DofQ7avHENfCHjuMP18n0uA0&ec=futura_srp_og_si_72236_p"
+          },
+          {
+            "text": "Shopping",
+            "href": "https://www.google.com/search?sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&udm=28&fbs=ABfTbFVyMZGZf1hfvX9uKjN_-G8cqCQj_06QnZs315LoFmPf5bBLHMJ0vMQmTbuI72DM7jnxvATrUU2Yg9dwuUGnsUHcA8ltRxGSueAm4xbJB7-U9Vk4K2G3aCoTcvC5pL-W3Bc4wKvyblIDvW9t3J41edOYhCyumrIO3nro7L99GH8kliwMVqQ0hvbksXIL7xFJBI_8mwByDhHJj3T0-O3ElCMyZrfalw&q=Baccarat+Rouge+540+dupe&ved=1t:220175&ictx=111"
+          },
+          {
+            "text": "Images",
+            "href": "https://www.google.com/search?sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&udm=2&fbs=ABfTbFVyMZGZf1hfvX9uKjN_-G8cqCQj_06QnZs315LoFmPf5bBLHMJ0vMQmTbuI72DM7jnxvATrUU2Yg9dwuUGnsUHcA8ltRxGSueAm4xbJB7-U9Vk4K2G3aCoTcvC5pL-W3Bc4wKvyblIDvW9t3J41edOYhCyumrIO3nro7L99GH8kliwMVqQ0hvbksXIL7xFJBI_8mwByDhHJj3T0-O3ElCMyZrfalw&q=Baccarat+Rouge+540+dupe&sa=X&ved=2ahUKEwjb9LHMlaCVAxXPxjgGHYYbDIkQtKgLegQIFxAB"
+          },
+          {
+            "text": "Videos",
+            "href": "https://www.google.com/search?sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&udm=7&fbs=ABfTbFVyMZGZf1hfvX9uKjN_-G8cqCQj_06QnZs315LoFmPf5bBLHMJ0vMQmTbuI72DM7jnxvATrUU2Yg9dwuUGnsUHcA8ltRxGSueAm4xbJB7-U9Vk4K2G3aCoTcvC5pL-W3Bc4wKvyblIDvW9t3J41edOYhCyumrIO3nro7L99GH8kliwMVqQ0hvbksXIL7xFJBI_8mwByDhHJj3T0-O3ElCMyZrfalw&q=Baccarat+Rouge+540+dupe&sa=X&ved=2ahUKEwjb9LHMlaCVAxXPxjgGHYYbDIkQtKgLegQIGhAB"
+          },
+          {
+            "text": "Short videos",
+            "href": "https://www.google.com/search?sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&udm=39&fbs=ABfTbFVyMZGZf1hfvX9uKjN_-G8cqCQj_06QnZs315LoFmPf5bBLHMJ0vMQmTbuI72DM7jnxvATrUU2Yg9dwuUGnsUHcA8ltRxGSueAm4xbJB7-U9Vk4K2G3aCoTcvC5pL-W3Bc4wKvyblIDvW9t3J41edOYhCyumrIO3nro7L99GH8kliwMVqQ0hvbksXIL7xFJBI_8mwByDhHJj3T0-O3ElCMyZrfalw&q=Baccarat+Rouge+540+dupe&sa=X&ved=2ahUKEwjb9LHMlaCVAxXPxjgGHYYbDIkQs6gLegQIGBAB"
+          },
+          {
+            "text": "News",
+            "href": "https://www.google.com/search?sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&q=Baccarat+Rouge+540+dupe&tbm=nws&source=lnms&fbs=ABfTbFVyMZGZf1hfvX9uKjN_-G8cqCQj_06QnZs315LoFmPf5bBLHMJ0vMQmTbuI72DM7jnxvATrUU2Yg9dwuUGnsUHcA8ltRxGSueAm4xbJB7-U9Vk4K2G3aCoTcvC5pL-W3Bc4wKvyblIDvW9t3J41edOYhCyumrIO3nro7L99GH8kliwMVqQ0hvbksXIL7xFJBI_8mwByDhHJj3T0-O3ElCMyZrfalw&sa=X&ved=2ahUKEwjb9LHMlaCVAxXPxjgGHYYbDIkQ0pQJegQIGxAB"
+          },
+          {
+            "text": "Forums",
+            "href": "https://www.google.com/search?sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&udm=18&fbs=ABfTbFVyMZGZf1hfvX9uKjN_-G8cqCQj_06QnZs315LoFmPf5bBLHMJ0vMQmTbuI72DM7jnxvATrUU2Yg9dwuUGnsUHcA8ltRxGSueAm4xbJB7-U9Vk4K2G3aCoTcvC5pL-W3Bc4wKvyblIDvW9t3J41edOYhCyumrIO3nro7L99GH8kliwMVqQ0hvbksXIL7xFJBI_8mwByDhHJj3T0-O3ElCMyZrfalw&q=Baccarat+Rouge+540+dupe&sa=X&ved=2ahUKEwjb9LHMlaCVAxXPxjgGHYYbDIkQs6gLegQIdRAB"
+          },
+          {
+            "text": "Web",
+            "href": "https://www.google.com/search?sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&udm=web&fbs=ABfTbFVyMZGZf1hfvX9uKjN_-G8cqCQj_06QnZs315LoFmPf5bBLHMJ0vMQmTbuI72DM7jnxvATrUU2Yg9dwuUGnsUHcA8ltRxGSueAm4xbJB7-U9Vk4K2G3aCoTcvC5pL-W3Bc4wKvyblIDvW9t3J41edOYhCyumrIO3nro7L99GH8kliwMVqQ0hvbksXIL7xFJBI_8mwByDhHJj3T0-O3ElCMyZrfalw&q=Baccarat+Rouge+540+dupe&sa=X&ved=2ahUKEwjb9LHMlaCVAxXPxjgGHYYbDIkQs6gLegQIdxAB"
+          },
+          {
+            "text": "Maps",
+            "href": "https://maps.google.com/maps?sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&output=search&q=Baccarat+Rouge+540+dupe&source=lnms&fbs=ABfTbFVyMZGZf1hfvX9uKjN_-G8cqCQj_06QnZs315LoFmPf5bBLHMJ0vMQmTbuI72DM7jnxvATrUU2Yg9dwuUGnsUHcA8ltRxGSueAm4xbJB7-U9Vk4K2G3aCoTcvC5pL-W3Bc4wKvyblIDvW9t3J41edOYhCyumrIO3nro7L99GH8kliwMVqQ0hvbksXIL7xFJBI_8mwByDhHJj3T0-O3ElCMyZrfalw&entry=mc&ved=1t:200715&ictx=111"
+          },
+          {
+            "text": "Books",
+            "href": "https://www.google.com/search?sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&q=Baccarat+Rouge+540+dupe&udm=36&source=lnms&fbs=ABfTbFVyMZGZf1hfvX9uKjN_-G8cqCQj_06QnZs315LoFmPf5bBLHMJ0vMQmTbuI72DM7jnxvATrUU2Yg9dwuUGnsUHcA8ltRxGSueAm4xbJB7-U9Vk4K2G3aCoTcvC5pL-W3Bc4wKvyblIDvW9t3J41edOYhCyumrIO3nro7L99GH8kliwMVqQ0hvbksXIL7xFJBI_8mwByDhHJj3T0-O3ElCMyZrfalw&sa=X&ved=2ahUKEwjb9LHMlaCVAxXPxjgGHYYbDIkQ0pQJegQIdhAB"
+          },
+          {
+            "text": "Any time",
+            "href": "https://www.google.com/search?q=Baccarat%20Rouge%20540%20dupe&hl=en&gl=us&pws=0&sei=ofQ7avHENfCHjuMP18n0uA0#"
+          },
+          {
+            "text": "Past hour",
+            "href": "https://www.google.com/search?q=Baccarat+Rouge+540+dupe&sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&source=lnt&tbs=qdr:h&sa=X&ved=2ahUKEwjb9LHMlaCVAxXPxjgGHYYbDIkQpwV6BAgHEAY"
+          },
+          {
+            "text": "Past 24 hours",
+            "href": "https://www.google.com/search?q=Baccarat+Rouge+540+dupe&sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&source=lnt&tbs=qdr:d&sa=X&ved=2ahUKEwjb9LHMlaCVAxXPxjgGHYYbDIkQpwV6BAgHEAc"
+          },
+          {
+            "text": "Past week",
+            "href": "https://www.google.com/search?q=Baccarat+Rouge+540+dupe&sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&source=lnt&tbs=qdr:w&sa=X&ved=2ahUKEwjb9LHMlaCVAxXPxjgGHYYbDIkQpwV6BAgHEAg"
+          },
+          {
+            "text": "Past month",
+            "href": "https://www.google.com/search?q=Baccarat+Rouge+540+dupe&sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&source=lnt&tbs=qdr:m&sa=X&ved=2ahUKEwjb9LHMlaCVAxXPxjgGHYYbDIkQpwV6BAgHEAk"
+          },
+          {
+            "text": "Past year",
+            "href": "https://www.google.com/search?q=Baccarat+Rouge+540+dupe&sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&source=lnt&tbs=qdr:y&sa=X&ved=2ahUKEwjb9LHMlaCVAxXPxjgGHYYbDIkQpwV6BAgHEAo"
+          },
+          {
+            "text": "All results",
+            "href": "https://www.google.com/search?q=Baccarat%20Rouge%20540%20dupe&hl=en&gl=us&pws=0&sei=ofQ7avHENfCHjuMP18n0uA0#"
+          },
+          {
+            "text": "Verbatim",
+            "href": "https://www.google.com/search?q=Baccarat+Rouge+540+dupe&sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&source=lnt&tbs=li:1&sa=X&ved=2ahUKEwjb9LHMlaCVAxXPxjgGHYYbDIkQpwV6BAgHEBE"
+          },
+          {
+            "text": "View all",
+            "href": "https://www.google.com/search?q=Baccarat%20Rouge%20540%20dupe&hl=en&gl=us&pws=0&sei=ofQ7avHENfCHjuMP18n0uA0&udm=2&source=univ&sa=X&ved=0CAAQjYkUahcKEwjIoZHNlaCVAxUAAAAAHQAAAAAQAg"
+          },
+          {
+            "text": "Dossier (+1) - View related links",
+            "href": "https://dossier.co/products/ambery-saffron"
+          },
+          {
+            "text": "Dossier (+3) - View related links",
+            "href": "https://dossier.co/products/ambery-saffron"
+          },
+          {
+            "text": "YouTube (+1) - View related links",
+            "href": "https://www.youtube.com/watch?v=N6k947-cJTw"
+          },
+          {
+            "text": "Who What Wear - View related links",
+            "href": "https://www.whowhatwear.com/baccarat-rouge-540-dupe"
+          },
+          {
+            "text": "Who What Wear - View related links",
+            "href": "https://www.whowhatwear.com/baccarat-rouge-540-dupe"
+          },
+          {
+            "text": "Who What Wear - View related links",
+            "href": "https://www.whowhatwear.com/baccarat-rouge-540-dupe"
+          },
+          {
+            "text": "I'm looking for close dupes of Baccarat Rouge 540. Can you ... - Reddit. Opens in new tab.",
+            "href": "https://www.reddit.com/r/Colognes/comments/1nwmudi/im_looking_for_close_dupes_of_baccarat_rouge_540/"
+          },
+          {
+            "text": "Baccarat Rouge 540 Dupe Perfume inspired by MFK : Ambery Saffron. Opens in new tab.",
+            "href": "https://dossier.co/products/ambery-saffron"
+          },
+          {
+            "text": "Lattafa Ana Abiyedh First Impression ($15 Baccarat Rouge 540 Dupe). Opens in new tab.",
+            "href": "https://www.youtube.com/watch?v=N6k947-cJTw"
+          },
+          {
+            "text": "9 Baccarat Rouge 540 Dupes That Are Too Good to Gatekeep. Opens in new tab.",
+            "href": "https://www.whowhatwear.com/baccarat-rouge-540-dupe"
+          },
+          {
+            "text": "The Best Dupes for Maison Francis Kurkdjian Baccarat Rouge 540. Opens in new tab.",
+            "href": "https://www.jomashop.com/blog/articles/the-best-dupes-for-maison-francis-kurkdjian-baccarat-rouge-540"
+          },
+          {
+            "text": "Baccarat Rouge 540 Dupe Perfume inspired by MFK : Ambery Saffron. Opens in new tab.",
+            "href": "https://dossier.co/products/ambery-saffron"
+          },
+          {
+            "text": "Inside the Complex World of Fragrance Dupes. Opens in new tab.",
+            "href": "https://www.allure.com/story/inside-the-complex-world-of-fragrance-dupes"
+          },
+          {
+            "text": "Budget-Friendly Perfumes: Find Your Perfect Match!. Opens in new tab.",
+            "href": "https://www.tiktok.com/@ashley.paiige/video/7266111667384159530"
+          },
+          {
+            "text": "I'm looking for close dupes of Baccarat Rouge 540. Can you ... - Reddit. Opens in new tab.",
+            "href": "https://www.reddit.com/r/Colognes/comments/1nwmudi/im_looking_for_close_dupes_of_baccarat_rouge_540/"
+          },
+          {
+            "text": "Baccarat Rouge 540 Dupe Perfume inspired by MFK : Ambery Saffron. Opens in new tab.",
+            "href": "https://dossier.co/products/ambery-saffron"
+          },
+          {
+            "text": "Lattafa Ana Abiyedh First Impression ($15 Baccarat Rouge 540 Dupe). Opens in new tab.",
+            "href": "https://www.youtube.com/watch?v=N6k947-cJTw"
+          },
+          {
+            "text": "Learn more",
+            "href": "https://support.google.com/websearch?p=ai_overviews"
+          },
+          {
+            "text": "",
+            "href": "https://dossier.co/products/ambery-saffron"
+          },
+          {
+            "text": "",
+            "href": "https://www.jomashop.com/blog/articles/the-best-dupes-for-maison-francis-kurkdjian-baccarat-rouge-540"
+          },
+          {
+            "text": "",
+            "href": "https://www.reddit.com/r/Colognes/comments/1nwmudi/im_looking_for_close_dupes_of_baccarat_rouge_540/"
+          },
+          {
+            "text": "",
+            "href": "https://www.youtube.com/watch?v=N6k947-cJTw"
+          },
+          {
+            "text": "",
+            "href": "https://www.whowhatwear.com/baccarat-rouge-540-dupe"
+          },
+          {
+            "text": "",
+            "href": "https://www.allure.com/story/inside-the-complex-world-of-fragrance-dupes"
+          },
+          {
+            "text": "",
+            "href": "https://www.tiktok.com/@ashley.paiige/video/7266111667384159530"
+          },
+          {
+            "text": "Privacy Policy",
+            "href": "https://policies.google.com/privacy?hl=en"
+          },
+          {
+            "text": "Privacy Policy",
+            "href": "https://policies.google.com/privacy?hl=en"
+          },
+          {
+            "text": "I'm looking for close dupes of Baccarat Rouge 540. Can ... Reddit · r/Colognes 170+ comments · 8 months ago",
+            "href": "https://www.reddit.com/r/Colognes/comments/1nwmudi/im_looking_for_close_dupes_of_baccarat_rouge_540/"
+          },
+          {
+            "text": "Read more",
+            "href": "https://www.reddit.com/r/Colognes/comments/1nwmudi/im_looking_for_close_dupes_of_baccarat_rouge_540/#:~:text=Club%20De%20Nuit%20untold%20is,Untold%2C%20and%20it's%20borderline%20identical."
+          },
+          {
+            "text": "178 answers",
+            "href": "https://www.reddit.com/r/Colognes/comments/1nwmudi/im_looking_for_close_dupes_of_baccarat_rouge_540/nhh8maf/"
+          },
+          {
+            "text": "Another comparative review of Baccarat Rouge ...",
+            "href": "https://www.reddit.com/r/fragrance/comments/1c86515/another_comparative_review_of_baccarat_rouge_540/"
+          },
+          {
+            "text": "Best Baccarat Rouge dupe I've ever tried. : r ...",
+            "href": "https://www.reddit.com/r/AustralianMakeup/comments/13klcdg/best_baccarat_rouge_dupe_ive_ever_tried/"
+          },
+          {
+            "text": "More results from www.reddit.com",
+            "href": "https://www.google.com/search?q=Baccarat+Rouge+540+dupe+site:www.reddit.com&sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&sa=X&ved=2ahUKEwjb9LHMlaCVAxXPxjgGHYYbDIkQrQIoAnoECCoQAw"
+          },
+          {
+            "text": "Battle between 10+ Maison Francis Kurkdjian Baccarat Rouge ... scentgourmand.com http://www.scentgourmand.com › battle-between-10-m...",
+            "href": "http://www.scentgourmand.com/battle-between-10-maison-francis-kurkdjian-baccarat-rouge-540-dupes-which-wins/"
+          },
+          {
+            "text": "Read more",
+            "href": "http://www.scentgourmand.com/battle-between-10-maison-francis-kurkdjian-baccarat-rouge-540-dupes-which-wins/#:~:text=For%20an%20all%2Drounder%20dupe%2C%20I,at%20a%20reasonable%20price%20point."
+          },
+          {
+            "text": "View full list",
+            "href": "http://www.scentgourmand.com/battle-between-10-maison-francis-kurkdjian-baccarat-rouge-540-dupes-which-wins/"
+          },
+          {
+            "text": "6 Dupe Of BR540 Tested – Which One is CLOSEST? YouTube · Fragrance House Feb 23, 2026",
+            "href": "https://www.youtube.com/watch?v=7UPGTBC4qYE"
+          },
+          {
+            "text": "6 Dupe Of BR540 Tested – Which One is CLOSEST?YouTube·Fragrance House·Feb 23, 2026",
+            "href": "https://www.youtube.com/watch?v=7UPGTBC4qYE"
+          },
+          {
+            "text": "YouTube",
+            "href": "https://www.youtube.com/watch?v=7UPGTBC4qYE"
+          },
+          {
+            "text": "I BOUGHT ALL THE BACCARAT ROUGE 540 DUPES SO ... YouTube · Scentkollectionz Aug 17, 2024",
+            "href": "https://www.youtube.com/watch?v=Clo56GEFssY"
+          },
+          {
+            "text": "I BOUGHT ALL THE BACCARAT ROUGE 540 DUPES SO ...YouTube·Scentkollectionz·Aug 17, 2024",
+            "href": "https://www.youtube.com/watch?v=Clo56GEFssY"
+          },
+          {
+            "text": "YouTube",
+            "href": "https://www.youtube.com/watch?v=Clo56GEFssY"
+          },
+          {
+            "text": "Baccarat Rouge 540 will always be her, but if you want the ... Instagram · Dr. Felicia Brown, PhD Oct 28, 2025",
+            "href": "https://www.instagram.com/reel/DQX5XFwgXI1/?hl=en"
+          },
+          {
+            "text": "0:54",
+            "href": "https://www.instagram.com/reel/DQX5XFwgXI1/?hl=en"
+          },
+          {
+            "text": "View all",
+            "href": "https://www.google.com/search?sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&udm=7&q=Baccarat+Rouge+540+dupe&sa=X&ved=2ahUKEwjb9LHMlaCVAxXPxjgGHYYbDIkQ8ccDKAJ6BAhHEAQ"
+          },
+          {
+            "text": "7 Best Baccarat Rouge 540 Dupes, Tested and Reviewed ... Cosmopolitan https://www.cosmopolitan.com › Beauty & Style › Beauty",
+            "href": "https://www.cosmopolitan.com/style-beauty/beauty/g69098218/best-bacarrat-rouge-dupes/"
+          },
+          {
+            "text": "Smells of high quality and refined · Last well on me with medium sillageFragrantica",
+            "href": "https://www.fragrantica.com/perfume/Clean/Amber-Saffron-35241.html"
+          },
+          {
+            "text": "Smells exactly like the original · Mixture of too sweet and too citrussyReddit",
+            "href": "https://www.reddit.com/r/fragrance/comments/w91qxq/oil_perfumery_mini_review/"
+          },
+          {
+            "text": "Baccarat Rouge 540 Extrait Dupes: Which One Is Closest? #baccarat #540 #fragrance #cologne #perfumeYouTube·OnlyFumes·Jun 7, 2026",
+            "href": "https://www.youtube.com/watch?v=n1ILZs6st0I"
+          },
+          {
+            "text": "YouTube",
+            "href": "https://www.youtube.com/watch?v=n1ILZs6st0I"
+          },
+          {
+            "text": "Baccarat Rouge 540 Extrait Dupes: Which One Is Closest? #baccarat #540 #fragrance #cologne #perfume 1.6K+ views · 2 weeks ago OnlyFumes YouTube",
+            "href": "https://www.youtube.com/watch?v=n1ILZs6st0I"
+          },
+          {
+            "text": "Four dupes just ruined my day 400+ comments · 1 month ago r/fragranceclones Reddit",
+            "href": "https://www.reddit.com/r/fragranceclones/comments/1t8qf0z/four_dupes_just_ruined_my_day/"
+          },
+          {
+            "text": "0:42 Would you buy a dupe perfume? My deep dive reminded me of my conversation with Marc Chaya, former CEO of @Maison Francis Kurkdjian … link in profile for full video. #bacarratrouge540 #baccaratrouge540 #dupeparfum 2.5K+ views · 4 weeks ",
+            "href": "https://www.tiktok.com/@sircandleman/video/7645349874065607950"
+          },
+          {
+            "text": "Best BR540 dupe?? Popular comment · Cloud. But assuming you have a 70ml bottle that's like 850 sprays, this is a beast fragrance you can get away with one spritz for daily use for over 2 years. It will expire, your nose and tastes will chan",
+            "href": "https://www.reddit.com/r/fragrance/comments/1t7yzxf/best_br540_dupe/"
+          },
+          {
+            "text": "What’s your favorite BR540 dupe? Popular comment · in order from the best for me: * IBRAQ Balas Rose * Al Haramain Amber Oud Rouge (discontinued) * Orientica Amber Rouge * Club de Nuit Untold * Al Haramain Amber Oud Ruby all BR540 dupes nee",
+            "href": "https://www.reddit.com/r/fragheadph/comments/1t97qoc/whats_your_favorite_br540_dupe/"
+          },
+          {
+            "text": "0:58 Smelling like Baccarat Rouge 540 but spent $22. I am not taking questions at this time. 🫶🏼✨ The dupe era is fully here and I refuse to go back to paying designer prices when this exists. Warm, sweet, that iconic cherry almond vibe — ",
+            "href": "https://www.tiktok.com/@oneeggisanoeuf/video/7641845148950908181"
+          },
+          {
+            "text": "I smelled a beautiful fragrance on someone at the pub last night and asked her what perfume she's wearing. She said Parfum de Marly Delina and Bacarrat Rouge 540. Any dupes that are closer to these perfumes? Can't afford the real one at the",
+            "href": "https://www.facebook.com/groups/1484391433000951/posts/1678742703565822/"
+          },
+          {
+            "text": "Smells Like Baccarat Rouge... But Budget Friendly! Designer ... YouTube · Jaheisha 1.2K+ views · 7 months ago",
+            "href": "https://www.youtube.com/watch?v=Cb8zcAAXV60"
+          },
+          {
+            "text": "Smells Like Baccarat Rouge... But Budget Friendly! Designer ...YouTube·Jaheisha·Nov 21, 2025",
+            "href": "https://www.youtube.com/watch?v=Cb8zcAAXV60"
+          },
+          {
+            "text": "YouTube",
+            "href": "https://www.youtube.com/watch?v=Cb8zcAAXV60"
+          },
+          {
+            "text": "Beauty in Review: Baccarat Rouge 540 Dupes Royally Pink https://www.royallypink.com › 2022/04 › beauty-in-re...",
+            "href": "https://www.royallypink.com/2022/04/beauty-in-review-baccarat-rouge-540.html"
+          },
+          {
+            "text": "Read more",
+            "href": "https://www.royallypink.com/2022/04/beauty-in-review-baccarat-rouge-540.html#:~:text=As%20does%20the%20original%2C%20Crystal,for%20%2450%20you%20get%202oz."
+          },
+          {
+            "text": "View full list",
+            "href": "https://www.royallypink.com/2022/04/beauty-in-review-baccarat-rouge-540.html"
+          },
+          {
+            "text": "Vocal Performance U005 Eau de Parfum For Unisex ... Amazon.com https://www.amazon.com › Vocal-Performance-Inspired-...",
+            "href": "https://www.amazon.com/Vocal-Performance-Inspired-Kurkdjian-Phthalate/dp/B0B3W8JW39"
+          },
+          {
+            "text": "Read more",
+            "href": "https://www.amazon.com/Vocal-Performance-Inspired-Kurkdjian-Phthalate/dp/B0B3W8JW39#:~:text=U005%20Eau%20de%20Parfum%20For,Fragrance%20Dupe%20Consentrated%20Long%20Lasting"
+          },
+          {
+            "text": "I found the exact Baccarat Rouge 540 DUPE. This is INSANE ... Instagram · bethennyfrankel 32.4K+ likes · 2 years ago",
+            "href": "https://www.instagram.com/reel/C0QOTPkrSyr/?hl=en"
+          },
+          {
+            "text": "1:27",
+            "href": "https://www.instagram.com/reel/C0QOTPkrSyr/?hl=en"
+          },
+          {
+            "text": "Baccarat Rouge 540 dupe Zara",
+            "href": "https://www.google.com/search?sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&q=Baccarat+Rouge+540+dupe+Zara&sa=X&ved=2ahUKEwjb9LHMlaCVAxXPxjgGHYYbDIkQ1QJ6BAgyEAE"
+          },
+          {
+            "text": "Baccarat rouge 540 dupe reddit",
+            "href": "https://www.google.com/search?sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&q=Baccarat+rouge+540+dupe+reddit&sa=X&ved=2ahUKEwjb9LHMlaCVAxXPxjgGHYYbDIkQ1QJ6BAhEEAE"
+          },
+          {
+            "text": "Baccarat Rouge 540 dupe price",
+            "href": "https://www.google.com/search?sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&q=Baccarat+Rouge+540+dupe+price&sa=X&ved=2ahUKEwjb9LHMlaCVAxXPxjgGHYYbDIkQ1QJ6BAhDEAE"
+          },
+          {
+            "text": "Baccarat Rouge 540 dupe Amazon",
+            "href": "https://www.google.com/search?sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&q=Baccarat+Rouge+540+dupe+Amazon&sa=X&ved=2ahUKEwjb9LHMlaCVAxXPxjgGHYYbDIkQ1QJ6BAhCEAE"
+          },
+          {
+            "text": "Baccarat Rouge 540 dupe Bath and Body Works",
+            "href": "https://www.google.com/search?sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&q=Baccarat+Rouge+540+dupe+Bath+and+Body+Works&sa=X&ved=2ahUKEwjb9LHMlaCVAxXPxjgGHYYbDIkQ1QJ6BAhAEAE"
+          },
+          {
+            "text": "Baccarat Rouge 540 dupe men",
+            "href": "https://www.google.com/search?sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&q=Baccarat+Rouge+540+dupe+men&sa=X&ved=2ahUKEwjb9LHMlaCVAxXPxjgGHYYbDIkQ1QJ6BAg-EAE"
+          },
+          {
+            "text": "Baccarat Rouge 540 dupe Dossier",
+            "href": "https://www.google.com/search?sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&q=Baccarat+Rouge+540+dupe+Dossier&sa=X&ved=2ahUKEwjb9LHMlaCVAxXPxjgGHYYbDIkQ1QJ6BAg4EAE"
+          },
+          {
+            "text": "Baccarat rouge 540 dupe sephora",
+            "href": "https://www.google.com/search?sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&q=Baccarat+rouge+540+dupe+sephora&sa=X&ved=2ahUKEwjb9LHMlaCVAxXPxjgGHYYbDIkQ1QJ6BAg2EAE"
+          },
+          {
+            "text": "2",
+            "href": "https://www.google.com/search?q=Baccarat+Rouge+540+dupe&sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&ei=ofQ7apugO8-N4-EPhrewyAg&start=10&sa=N&sstk=AU9db-D5W_mhn_k4U4E8TT1pW9vv7LnYMQ_otKXhEiQVWcCBDamPE8kNKdeDsnrDqBPc4VXLpTI6YFKRLN_rVSQ5apd83DX2ahGUsQ&ved=2ahUKEwjb9LHMlaCVAxXPxjgGHYYbDIkQ8tMDegQISxAE"
+          },
+          {
+            "text": "3",
+            "href": "https://www.google.com/search?q=Baccarat+Rouge+540+dupe&sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&ei=ofQ7apugO8-N4-EPhrewyAg&start=20&sa=N&sstk=AU9db-D5W_mhn_k4U4E8TT1pW9vv7LnYMQ_otKXhEiQVWcCBDamPE8kNKdeDsnrDqBPc4VXLpTI6YFKRLN_rVSQ5apd83DX2ahGUsQ&ved=2ahUKEwjb9LHMlaCVAxXPxjgGHYYbDIkQ8tMDegQISxAG"
+          },
+          {
+            "text": "4",
+            "href": "https://www.google.com/search?q=Baccarat+Rouge+540+dupe&sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&ei=ofQ7apugO8-N4-EPhrewyAg&start=30&sa=N&sstk=AU9db-D5W_mhn_k4U4E8TT1pW9vv7LnYMQ_otKXhEiQVWcCBDamPE8kNKdeDsnrDqBPc4VXLpTI6YFKRLN_rVSQ5apd83DX2ahGUsQ&ved=2ahUKEwjb9LHMlaCVAxXPxjgGHYYbDIkQ8tMDegQISxAI"
+          },
+          {
+            "text": "5",
+            "href": "https://www.google.com/search?q=Baccarat+Rouge+540+dupe&sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&ei=ofQ7apugO8-N4-EPhrewyAg&start=40&sa=N&sstk=AU9db-D5W_mhn_k4U4E8TT1pW9vv7LnYMQ_otKXhEiQVWcCBDamPE8kNKdeDsnrDqBPc4VXLpTI6YFKRLN_rVSQ5apd83DX2ahGUsQ&ved=2ahUKEwjb9LHMlaCVAxXPxjgGHYYbDIkQ8tMDegQISxAK"
+          },
+          {
+            "text": "6",
+            "href": "https://www.google.com/search?q=Baccarat+Rouge+540+dupe&sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&ei=ofQ7apugO8-N4-EPhrewyAg&start=50&sa=N&sstk=AU9db-D5W_mhn_k4U4E8TT1pW9vv7LnYMQ_otKXhEiQVWcCBDamPE8kNKdeDsnrDqBPc4VXLpTI6YFKRLN_rVSQ5apd83DX2ahGUsQ&ved=2ahUKEwjb9LHMlaCVAxXPxjgGHYYbDIkQ8tMDegQISxAM"
+          },
+          {
+            "text": "7",
+            "href": "https://www.google.com/search?q=Baccarat+Rouge+540+dupe&sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&ei=ofQ7apugO8-N4-EPhrewyAg&start=60&sa=N&sstk=AU9db-D5W_mhn_k4U4E8TT1pW9vv7LnYMQ_otKXhEiQVWcCBDamPE8kNKdeDsnrDqBPc4VXLpTI6YFKRLN_rVSQ5apd83DX2ahGUsQ&ved=2ahUKEwjb9LHMlaCVAxXPxjgGHYYbDIkQ8tMDegQISxAO"
+          },
+          {
+            "text": "8",
+            "href": "https://www.google.com/search?q=Baccarat+Rouge+540+dupe&sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&ei=ofQ7apugO8-N4-EPhrewyAg&start=70&sa=N&sstk=AU9db-D5W_mhn_k4U4E8TT1pW9vv7LnYMQ_otKXhEiQVWcCBDamPE8kNKdeDsnrDqBPc4VXLpTI6YFKRLN_rVSQ5apd83DX2ahGUsQ&ved=2ahUKEwjb9LHMlaCVAxXPxjgGHYYbDIkQ8tMDegQISxAQ"
+          },
+          {
+            "text": "Next",
+            "href": "https://www.google.com/search?q=Baccarat+Rouge+540+dupe&sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&ei=ofQ7apugO8-N4-EPhrewyAg&start=10&sa=N&sstk=AU9db-D5W_mhn_k4U4E8TT1pW9vv7LnYMQ_otKXhEiQVWcCBDamPE8kNKdeDsnrDqBPc4VXLpTI6YFKRLN_rVSQ5apd83DX2ahGUsQ&ved=2ahUKEwjb9LHMlaCVAxXPxjgGHYYbDIkQ8NMDegQISxAS"
+          },
+          {
+            "text": "Unknown - Can't determine location",
+            "href": "https://www.google.com/search?q=Baccarat%20Rouge%20540%20dupe&hl=en&gl=us&pws=0&sei=ofQ7avHENfCHjuMP18n0uA0#"
+          },
+          {
+            "text": "Help",
+            "href": "https://support.google.com/websearch/?p=ws_results_help&hl=en&fg=1"
+          },
+          {
+            "text": "Send feedback",
+            "href": "https://www.google.com/search?q=Baccarat%20Rouge%20540%20dupe&hl=en&gl=us&pws=0&sei=ofQ7avHENfCHjuMP18n0uA0#"
+          },
+          {
+            "text": "Privacy",
+            "href": "https://policies.google.com/privacy?hl=en&fg=1"
+          },
+          {
+            "text": "Terms",
+            "href": "https://policies.google.com/terms?hl=en&fg=1"
+          }
+        ],
+        "visible_text_line_count": 223
+      },
+      "serp_full": {
+        "kind": "serp_full",
+        "requested_query": "Baccarat Rouge 540 dupe",
+        "extracted_at_browser_iso": "2026-06-24T15:15:57.236Z",
+        "location_href": "https://www.google.com/search?q=Baccarat%20Rouge%20540%20dupe&hl=en&gl=us&pws=0&sei=ofQ7avHENfCHjuMP18n0uA0",
+        "document_title": "Baccarat Rouge 540 dupe - Google Search",
+        "viewport": {
+          "width": 1264,
+          "height": 625,
+          "device_pixel_ratio": 1
+        },
+        "navigator": {
+          "language": "en-US",
+          "languages": [
+            "en-US",
+            "en"
+          ],
+          "platform": "Win32",
+          "webdriver": false,
+          "timezone": "Asia/Singapore"
+        },
+        "session_state": {
+          "sign_in_text_visible": true,
+          "google_account_text_visible": false,
+          "captcha_or_unusual_traffic_visible": false,
+          "consent_text_visible": false
+        },
+        "modules": {
+          "people_also_ask": true,
+          "people_also_search_for": true,
+          "related_searches": false,
+          "shopping_or_products": true,
+          "popular_products": false,
+          "more_products": true,
+          "sponsored_or_ads": false,
+          "video": true,
+          "forums": true,
+          "discussions_and_forums": false,
+          "images": true
+        },
+        "autocomplete_suggestions": [],
+        "organic_results": [
+          {
+            "title": "I'm looking for close dupes of Baccarat Rouge 540. Can ... Reddit · r/Colognes 170+ comments · 8 months ago",
+            "href": "https://www.reddit.com/r/Colognes/comments/1nwmudi/im_looking_for_close_dupes_of_baccarat_rouge_540/",
+            "snippet_or_container_text": "I'm looking for close dupes of Baccarat Rouge 540. Can ... Reddit · r/Colognes 170+ comments · 8 months ago"
+          },
+          {
+            "title": "Battle between 10+ Maison Francis Kurkdjian Baccarat Rouge ... scentgourmand.com http://www.scentgourmand.com › battle-between-10-m...",
+            "href": "http://www.scentgourmand.com/battle-between-10-maison-francis-kurkdjian-baccarat-rouge-540-dupes-which-wins/",
+            "snippet_or_container_text": "Battle between 10+ Maison Francis Kurkdjian Baccarat Rouge ... scentgourmand.com http://www.scentgourmand.com › battle-between-10-m..."
+          },
+          {
+            "title": "7 Best Baccarat Rouge 540 Dupes, Tested and Reviewed ... Cosmopolitan https://www.cosmopolitan.com › Beauty & Style › Beauty",
+            "href": "https://www.cosmopolitan.com/style-beauty/beauty/g69098218/best-bacarrat-rouge-dupes/",
+            "snippet_or_container_text": "7 Best Baccarat Rouge 540 Dupes, Tested and Reviewed ... Cosmopolitan https://www.cosmopolitan.com › Beauty & Style › Beauty"
+          },
+          {
+            "title": "Smells Like Baccarat Rouge... But Budget Friendly! Designer ... YouTube · Jaheisha 1.2K+ views · 7 months ago",
+            "href": "https://www.youtube.com/watch?v=Cb8zcAAXV60",
+            "snippet_or_container_text": "Smells Like Baccarat Rouge... But Budget Friendly! Designer ... YouTube · Jaheisha 1.2K+ views · 7 months ago"
+          },
+          {
+            "title": "Beauty in Review: Baccarat Rouge 540 Dupes Royally Pink https://www.royallypink.com › 2022/04 › beauty-in-re...",
+            "href": "https://www.royallypink.com/2022/04/beauty-in-review-baccarat-rouge-540.html",
+            "snippet_or_container_text": "Beauty in Review: Baccarat Rouge 540 Dupes Royally Pink https://www.royallypink.com › 2022/04 › beauty-in-re..."
+          },
+          {
+            "title": "Vocal Performance U005 Eau de Parfum For Unisex ... Amazon.com https://www.amazon.com › Vocal-Performance-Inspired-...",
+            "href": "https://www.amazon.com/Vocal-Performance-Inspired-Kurkdjian-Phthalate/dp/B0B3W8JW39",
+            "snippet_or_container_text": "Vocal Performance U005 Eau de Parfum For Unisex ... Amazon.com https://www.amazon.com › Vocal-Performance-Inspired-..."
+          },
+          {
+            "title": "I found the exact Baccarat Rouge 540 DUPE. This is INSANE ... Instagram · bethennyfrankel 32.4K+ likes · 2 years ago",
+            "href": "https://www.instagram.com/reel/C0QOTPkrSyr/?hl=en",
+            "snippet_or_container_text": "I found the exact Baccarat Rouge 540 DUPE. This is INSANE ... Instagram · bethennyfrankel 32.4K+ likes · 2 years ago"
+          }
+        ],
+        "people_also_ask_lines": [
+          "What dupe smells most like Baccarat Rouge 540?",
+          "What perfume smells like Baccarat Rouge?",
+          "What is the best dupe for Baccarat Rouge 540 Maison Francis Kurkdjian?",
+          "What is Baccarat Rouge 540 compared to?",
+          "Web results",
+          "Battle between 10+ Maison Francis Kurkdjian Baccarat Rouge ...",
+          "scentgourmand.com",
+          "http://www.scentgourmand.com › battle-between-10-m...",
+          "Jul 16, 2022 — For an all-rounder dupe, I would say Al Haramain's is worth it. I think it's the closest-smelling at a reasonable price point.Read more",
+          "Pros and cons: Unbelievably versatile ⋅ Appropriate for many seasons, occasions, and times of day ⋅ View full list",
+          "Videos",
+          "6 Dupe Of BR540 Tested – Which One is CLOSEST?"
+        ],
+        "people_also_search_lines": [
+          "Baccarat Rouge 540 dupe Zara",
+          "Baccarat rouge 540 dupe reddit",
+          "Baccarat Rouge 540 dupe price",
+          "Baccarat Rouge 540 dupe Amazon",
+          "Baccarat Rouge 540 dupe Bath and Body Works",
+          "Baccarat Rouge 540 dupe men",
+          "Baccarat Rouge 540 dupe Dossier",
+          "Baccarat rouge 540 dupe sephora",
+          "Page Navigation",
+          "1",
+          "2",
+          "3"
+        ],
+        "related_search_lines": [],
+        "product_or_shopping_lines": [
+          "Shopping",
+          "Dossier Ambery Saffron: Priced around $49, this is widely regarded as one of the best 1-to-1 matches, mimicking the original's airy, sweet, and woody aura perfectly.",
+          "Armaf Club de Nuit Untold: Available for around $40-$50, this Eau de Parfum is frequently praised by fragrance enthusiasts as borderline identical to BR540 with incredible projection.",
+          "Lattafa Ana Abiyedh Rouge: A budget-friendly option (usually $20-$30) that gives you the luminous, cotton-candy and amber warmth of BR540, though it can have a slight sharpness upon initial spray.",
+          "Zara Red Temptation: At around $30, this remains one of the most accessible and popular high-street alternatives that flawlessly hits those saffron, jasmine, and woody amber notes.",
+          "Ariana Grande Cloud: Priced around $35-$45, this is a softer, sweeter, and more coconut/praline-forward take on the DNA. While not an exact clone, it shares the same woody, airy base that makes BR540 so universally loved.",
+          "Sol de Janeiro Cheirosa 68: A beautiful, floral and vanilla-forward body mist version that provides that same intoxicating jasmine and amber warmth for roughly $24.",
+          "Lattafa Ana Abiyedh First Impression ($15 Baccarat Rouge 540 Dupe)",
+          "Jul 16, 2022 — For an all-rounder dupe, I would say Al Haramain's is worth it. I think it's the closest-smelling at a reasonable price point.Read more",
+          "More products",
+          "$65.80",
+          "$20.95",
+          "Free delivery on $100+",
+          "$19.95",
+          "$59.00",
+          "$69",
+          "Free delivery on $75+",
+          "$40.00",
+          "$39.20",
+          "$49",
+          "Free delivery on $40+",
+          "$39.00",
+          "Walmart - THE CLONE LLC",
+          "$65.00",
+          "Free delivery on $150+",
+          "Would you buy a dupe perfume? My deep dive reminded me of my conversation with Marc Chaya, former CEO of @Maison Francis Kurkdjian … link in profile for full video. #bacarratrouge540 #baccaratrouge540 #dupeparfum",
+          "Smelling like Baccarat Rouge 540 but spent $22. I am not taking questions at this time. 🫶🏼✨ The dupe era is fully here and I refuse to go back to paying designer prices when this exists. Warm, sweet, that iconic cherry almond vibe — and three people asked m",
+          "As does the original, Crystal No.23 has notes of jasmine, amber, cedarwood, and saffron. It is 1 oz and $40 but there is a bigger size; for $50 you get 2oz.Read more",
+          "Amazon.com",
+          "https://www.amazon.com › Vocal-Performance-Inspired-...",
+          "Baccarat Rouge 540 dupe price",
+          "Baccarat Rouge 540 dupe Amazon",
+          "Baccarat rouge 540 dupe sephora"
+        ],
+        "video_or_forum_lines": [
+          "Videos",
+          "Short videos",
+          "YouTube",
+          "I'm looking for close dupes of Baccarat Rouge 540. Can you ... - Reddit",
+          "Reddit",
+          "Reddit · r/Colognes",
+          "More results from www.reddit.com",
+          "YouTube · Fragrance House",
+          "YouTube · Scentkollectionz",
+          "Would you buy a dupe perfume? My deep dive reminded me of my conversation with Marc Chaya, former CEO of @Maison Francis Kurkdjian … link in profile for full video. #bacarratrouge540 #baccaratrouge540 #dupeparfum",
+          "Sir Candle Man · TikTok",
+          "TikTok",
+          "YouTube · Jaheisha",
+          "Baccarat rouge 540 dupe reddit"
+        ],
+        "footer_or_location_lines": [
+          "Unknown - Can't determine location",
+          "- Update location",
+          "HelpSend feedbackPrivacyTerms"
+        ],
+        "possible_non_us_storefront_or_locale_signals": [],
+        "all_links_sample": [
+          {
+            "text": "Accessibility help",
+            "href": "https://support.google.com/websearch/answer/181196?hl=en"
+          },
+          {
+            "text": "",
+            "href": "https://www.google.com/webhp?hl=en&ictx=2&sa=X&ved=0ahUKEwjb9LHMlaCVAxXPxjgGHYYbDIkQPQgK"
+          },
+          {
+            "text": "",
+            "href": "https://www.google.com/webhp?hl=en&ictx=0&sa=X&ved=0ahUKEwjb9LHMlaCVAxXPxjgGHYYbDIkQpYkNCAw"
+          },
+          {
+            "text": "Google apps",
+            "href": "https://www.google.com.sg/intl/en/about/products?tab=wh"
+          },
+          {
+            "text": "Sign in",
+            "href": "https://accounts.google.com/ServiceLogin?hl=en&passive=true&continue=https://www.google.com/search%3Fq%3DBaccarat%2520Rouge%2520540%2520dupe%26hl%3Den%26gl%3Dus%26pws%3D0%26sei%3DofQ7avHENfCHjuMP18n0uA0&ec=futura_srp_og_si_72236_p"
+          },
+          {
+            "text": "Shopping",
+            "href": "https://www.google.com/search?sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&udm=28&fbs=ABfTbFVyMZGZf1hfvX9uKjN_-G8cqCQj_06QnZs315LoFmPf5bBLHMJ0vMQmTbuI72DM7jnxvATrUU2Yg9dwuUGnsUHcA8ltRxGSueAm4xbJB7-U9Vk4K2G3aCoTcvC5pL-W3Bc4wKvyblIDvW9t3J41edOYhCyumrIO3nro7L99GH8kliwMVqQ0hvbksXIL7xFJBI_8mwByDhHJj3T0-O3ElCMyZrfalw&q=Baccarat+Rouge+540+dupe&ved=1t:220175&ictx=111"
+          },
+          {
+            "text": "Images",
+            "href": "https://www.google.com/search?sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&udm=2&fbs=ABfTbFVyMZGZf1hfvX9uKjN_-G8cqCQj_06QnZs315LoFmPf5bBLHMJ0vMQmTbuI72DM7jnxvATrUU2Yg9dwuUGnsUHcA8ltRxGSueAm4xbJB7-U9Vk4K2G3aCoTcvC5pL-W3Bc4wKvyblIDvW9t3J41edOYhCyumrIO3nro7L99GH8kliwMVqQ0hvbksXIL7xFJBI_8mwByDhHJj3T0-O3ElCMyZrfalw&q=Baccarat+Rouge+540+dupe&sa=X&ved=2ahUKEwjb9LHMlaCVAxXPxjgGHYYbDIkQtKgLegQIFxAB"
+          },
+          {
+            "text": "Videos",
+            "href": "https://www.google.com/search?sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&udm=7&fbs=ABfTbFVyMZGZf1hfvX9uKjN_-G8cqCQj_06QnZs315LoFmPf5bBLHMJ0vMQmTbuI72DM7jnxvATrUU2Yg9dwuUGnsUHcA8ltRxGSueAm4xbJB7-U9Vk4K2G3aCoTcvC5pL-W3Bc4wKvyblIDvW9t3J41edOYhCyumrIO3nro7L99GH8kliwMVqQ0hvbksXIL7xFJBI_8mwByDhHJj3T0-O3ElCMyZrfalw&q=Baccarat+Rouge+540+dupe&sa=X&ved=2ahUKEwjb9LHMlaCVAxXPxjgGHYYbDIkQtKgLegQIGhAB"
+          },
+          {
+            "text": "Short videos",
+            "href": "https://www.google.com/search?sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&udm=39&fbs=ABfTbFVyMZGZf1hfvX9uKjN_-G8cqCQj_06QnZs315LoFmPf5bBLHMJ0vMQmTbuI72DM7jnxvATrUU2Yg9dwuUGnsUHcA8ltRxGSueAm4xbJB7-U9Vk4K2G3aCoTcvC5pL-W3Bc4wKvyblIDvW9t3J41edOYhCyumrIO3nro7L99GH8kliwMVqQ0hvbksXIL7xFJBI_8mwByDhHJj3T0-O3ElCMyZrfalw&q=Baccarat+Rouge+540+dupe&sa=X&ved=2ahUKEwjb9LHMlaCVAxXPxjgGHYYbDIkQs6gLegQIGBAB"
+          },
+          {
+            "text": "News",
+            "href": "https://www.google.com/search?sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&q=Baccarat+Rouge+540+dupe&tbm=nws&source=lnms&fbs=ABfTbFVyMZGZf1hfvX9uKjN_-G8cqCQj_06QnZs315LoFmPf5bBLHMJ0vMQmTbuI72DM7jnxvATrUU2Yg9dwuUGnsUHcA8ltRxGSueAm4xbJB7-U9Vk4K2G3aCoTcvC5pL-W3Bc4wKvyblIDvW9t3J41edOYhCyumrIO3nro7L99GH8kliwMVqQ0hvbksXIL7xFJBI_8mwByDhHJj3T0-O3ElCMyZrfalw&sa=X&ved=2ahUKEwjb9LHMlaCVAxXPxjgGHYYbDIkQ0pQJegQIGxAB"
+          },
+          {
+            "text": "Forums",
+            "href": "https://www.google.com/search?sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&udm=18&fbs=ABfTbFVyMZGZf1hfvX9uKjN_-G8cqCQj_06QnZs315LoFmPf5bBLHMJ0vMQmTbuI72DM7jnxvATrUU2Yg9dwuUGnsUHcA8ltRxGSueAm4xbJB7-U9Vk4K2G3aCoTcvC5pL-W3Bc4wKvyblIDvW9t3J41edOYhCyumrIO3nro7L99GH8kliwMVqQ0hvbksXIL7xFJBI_8mwByDhHJj3T0-O3ElCMyZrfalw&q=Baccarat+Rouge+540+dupe&sa=X&ved=2ahUKEwjb9LHMlaCVAxXPxjgGHYYbDIkQs6gLegQIdRAB"
+          },
+          {
+            "text": "Web",
+            "href": "https://www.google.com/search?sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&udm=web&fbs=ABfTbFVyMZGZf1hfvX9uKjN_-G8cqCQj_06QnZs315LoFmPf5bBLHMJ0vMQmTbuI72DM7jnxvATrUU2Yg9dwuUGnsUHcA8ltRxGSueAm4xbJB7-U9Vk4K2G3aCoTcvC5pL-W3Bc4wKvyblIDvW9t3J41edOYhCyumrIO3nro7L99GH8kliwMVqQ0hvbksXIL7xFJBI_8mwByDhHJj3T0-O3ElCMyZrfalw&q=Baccarat+Rouge+540+dupe&sa=X&ved=2ahUKEwjb9LHMlaCVAxXPxjgGHYYbDIkQs6gLegQIdxAB"
+          },
+          {
+            "text": "Maps",
+            "href": "https://maps.google.com/maps?sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&output=search&q=Baccarat+Rouge+540+dupe&source=lnms&fbs=ABfTbFVyMZGZf1hfvX9uKjN_-G8cqCQj_06QnZs315LoFmPf5bBLHMJ0vMQmTbuI72DM7jnxvATrUU2Yg9dwuUGnsUHcA8ltRxGSueAm4xbJB7-U9Vk4K2G3aCoTcvC5pL-W3Bc4wKvyblIDvW9t3J41edOYhCyumrIO3nro7L99GH8kliwMVqQ0hvbksXIL7xFJBI_8mwByDhHJj3T0-O3ElCMyZrfalw&entry=mc&ved=1t:200715&ictx=111"
+          },
+          {
+            "text": "Books",
+            "href": "https://www.google.com/search?sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&q=Baccarat+Rouge+540+dupe&udm=36&source=lnms&fbs=ABfTbFVyMZGZf1hfvX9uKjN_-G8cqCQj_06QnZs315LoFmPf5bBLHMJ0vMQmTbuI72DM7jnxvATrUU2Yg9dwuUGnsUHcA8ltRxGSueAm4xbJB7-U9Vk4K2G3aCoTcvC5pL-W3Bc4wKvyblIDvW9t3J41edOYhCyumrIO3nro7L99GH8kliwMVqQ0hvbksXIL7xFJBI_8mwByDhHJj3T0-O3ElCMyZrfalw&sa=X&ved=2ahUKEwjb9LHMlaCVAxXPxjgGHYYbDIkQ0pQJegQIdhAB"
+          },
+          {
+            "text": "Any time",
+            "href": "https://www.google.com/search?q=Baccarat%20Rouge%20540%20dupe&hl=en&gl=us&pws=0&sei=ofQ7avHENfCHjuMP18n0uA0#"
+          },
+          {
+            "text": "Past hour",
+            "href": "https://www.google.com/search?q=Baccarat+Rouge+540+dupe&sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&source=lnt&tbs=qdr:h&sa=X&ved=2ahUKEwjb9LHMlaCVAxXPxjgGHYYbDIkQpwV6BAgHEAY"
+          },
+          {
+            "text": "Past 24 hours",
+            "href": "https://www.google.com/search?q=Baccarat+Rouge+540+dupe&sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&source=lnt&tbs=qdr:d&sa=X&ved=2ahUKEwjb9LHMlaCVAxXPxjgGHYYbDIkQpwV6BAgHEAc"
+          },
+          {
+            "text": "Past week",
+            "href": "https://www.google.com/search?q=Baccarat+Rouge+540+dupe&sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&source=lnt&tbs=qdr:w&sa=X&ved=2ahUKEwjb9LHMlaCVAxXPxjgGHYYbDIkQpwV6BAgHEAg"
+          },
+          {
+            "text": "Past month",
+            "href": "https://www.google.com/search?q=Baccarat+Rouge+540+dupe&sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&source=lnt&tbs=qdr:m&sa=X&ved=2ahUKEwjb9LHMlaCVAxXPxjgGHYYbDIkQpwV6BAgHEAk"
+          },
+          {
+            "text": "Past year",
+            "href": "https://www.google.com/search?q=Baccarat+Rouge+540+dupe&sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&source=lnt&tbs=qdr:y&sa=X&ved=2ahUKEwjb9LHMlaCVAxXPxjgGHYYbDIkQpwV6BAgHEAo"
+          },
+          {
+            "text": "All results",
+            "href": "https://www.google.com/search?q=Baccarat%20Rouge%20540%20dupe&hl=en&gl=us&pws=0&sei=ofQ7avHENfCHjuMP18n0uA0#"
+          },
+          {
+            "text": "Verbatim",
+            "href": "https://www.google.com/search?q=Baccarat+Rouge+540+dupe&sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&source=lnt&tbs=li:1&sa=X&ved=2ahUKEwjb9LHMlaCVAxXPxjgGHYYbDIkQpwV6BAgHEBE"
+          },
+          {
+            "text": "View all",
+            "href": "https://www.google.com/search?q=Baccarat%20Rouge%20540%20dupe&hl=en&gl=us&pws=0&sei=ofQ7avHENfCHjuMP18n0uA0&udm=2&source=univ&sa=X&ved=0CAAQjYkUahcKEwjIoZHNlaCVAxUAAAAAHQAAAAAQAg"
+          },
+          {
+            "text": "Dossier (+1) - View related links",
+            "href": "https://dossier.co/products/ambery-saffron"
+          },
+          {
+            "text": "Dossier (+3) - View related links",
+            "href": "https://dossier.co/products/ambery-saffron"
+          },
+          {
+            "text": "YouTube (+1) - View related links",
+            "href": "https://www.youtube.com/watch?v=N6k947-cJTw"
+          },
+          {
+            "text": "Who What Wear - View related links",
+            "href": "https://www.whowhatwear.com/baccarat-rouge-540-dupe"
+          },
+          {
+            "text": "Who What Wear - View related links",
+            "href": "https://www.whowhatwear.com/baccarat-rouge-540-dupe"
+          },
+          {
+            "text": "Who What Wear - View related links",
+            "href": "https://www.whowhatwear.com/baccarat-rouge-540-dupe"
+          },
+          {
+            "text": "I'm looking for close dupes of Baccarat Rouge 540. Can you ... - Reddit. Opens in new tab.",
+            "href": "https://www.reddit.com/r/Colognes/comments/1nwmudi/im_looking_for_close_dupes_of_baccarat_rouge_540/"
+          },
+          {
+            "text": "Baccarat Rouge 540 Dupe Perfume inspired by MFK : Ambery Saffron. Opens in new tab.",
+            "href": "https://dossier.co/products/ambery-saffron"
+          },
+          {
+            "text": "Lattafa Ana Abiyedh First Impression ($15 Baccarat Rouge 540 Dupe). Opens in new tab.",
+            "href": "https://www.youtube.com/watch?v=N6k947-cJTw"
+          },
+          {
+            "text": "9 Baccarat Rouge 540 Dupes That Are Too Good to Gatekeep. Opens in new tab.",
+            "href": "https://www.whowhatwear.com/baccarat-rouge-540-dupe"
+          },
+          {
+            "text": "The Best Dupes for Maison Francis Kurkdjian Baccarat Rouge 540. Opens in new tab.",
+            "href": "https://www.jomashop.com/blog/articles/the-best-dupes-for-maison-francis-kurkdjian-baccarat-rouge-540"
+          },
+          {
+            "text": "Baccarat Rouge 540 Dupe Perfume inspired by MFK : Ambery Saffron. Opens in new tab.",
+            "href": "https://dossier.co/products/ambery-saffron"
+          },
+          {
+            "text": "Inside the Complex World of Fragrance Dupes. Opens in new tab.",
+            "href": "https://www.allure.com/story/inside-the-complex-world-of-fragrance-dupes"
+          },
+          {
+            "text": "Budget-Friendly Perfumes: Find Your Perfect Match!. Opens in new tab.",
+            "href": "https://www.tiktok.com/@ashley.paiige/video/7266111667384159530"
+          },
+          {
+            "text": "I'm looking for close dupes of Baccarat Rouge 540. Can you ... - Reddit. Opens in new tab.",
+            "href": "https://www.reddit.com/r/Colognes/comments/1nwmudi/im_looking_for_close_dupes_of_baccarat_rouge_540/"
+          },
+          {
+            "text": "Baccarat Rouge 540 Dupe Perfume inspired by MFK : Ambery Saffron. Opens in new tab.",
+            "href": "https://dossier.co/products/ambery-saffron"
+          },
+          {
+            "text": "Lattafa Ana Abiyedh First Impression ($15 Baccarat Rouge 540 Dupe). Opens in new tab.",
+            "href": "https://www.youtube.com/watch?v=N6k947-cJTw"
+          },
+          {
+            "text": "Learn more",
+            "href": "https://support.google.com/websearch?p=ai_overviews"
+          },
+          {
+            "text": "",
+            "href": "https://dossier.co/products/ambery-saffron"
+          },
+          {
+            "text": "",
+            "href": "https://www.jomashop.com/blog/articles/the-best-dupes-for-maison-francis-kurkdjian-baccarat-rouge-540"
+          },
+          {
+            "text": "",
+            "href": "https://www.reddit.com/r/Colognes/comments/1nwmudi/im_looking_for_close_dupes_of_baccarat_rouge_540/"
+          },
+          {
+            "text": "",
+            "href": "https://www.youtube.com/watch?v=N6k947-cJTw"
+          },
+          {
+            "text": "",
+            "href": "https://www.whowhatwear.com/baccarat-rouge-540-dupe"
+          },
+          {
+            "text": "",
+            "href": "https://www.allure.com/story/inside-the-complex-world-of-fragrance-dupes"
+          },
+          {
+            "text": "",
+            "href": "https://www.tiktok.com/@ashley.paiige/video/7266111667384159530"
+          },
+          {
+            "text": "Privacy Policy",
+            "href": "https://policies.google.com/privacy?hl=en"
+          },
+          {
+            "text": "Privacy Policy",
+            "href": "https://policies.google.com/privacy?hl=en"
+          },
+          {
+            "text": "I'm looking for close dupes of Baccarat Rouge 540. Can ... Reddit · r/Colognes 170+ comments · 8 months ago",
+            "href": "https://www.reddit.com/r/Colognes/comments/1nwmudi/im_looking_for_close_dupes_of_baccarat_rouge_540/"
+          },
+          {
+            "text": "Read more",
+            "href": "https://www.reddit.com/r/Colognes/comments/1nwmudi/im_looking_for_close_dupes_of_baccarat_rouge_540/#:~:text=Club%20De%20Nuit%20untold%20is,Untold%2C%20and%20it's%20borderline%20identical."
+          },
+          {
+            "text": "178 answers",
+            "href": "https://www.reddit.com/r/Colognes/comments/1nwmudi/im_looking_for_close_dupes_of_baccarat_rouge_540/nhh8maf/"
+          },
+          {
+            "text": "Another comparative review of Baccarat Rouge ...",
+            "href": "https://www.reddit.com/r/fragrance/comments/1c86515/another_comparative_review_of_baccarat_rouge_540/"
+          },
+          {
+            "text": "Best Baccarat Rouge dupe I've ever tried. : r ...",
+            "href": "https://www.reddit.com/r/AustralianMakeup/comments/13klcdg/best_baccarat_rouge_dupe_ive_ever_tried/"
+          },
+          {
+            "text": "More results from www.reddit.com",
+            "href": "https://www.google.com/search?q=Baccarat+Rouge+540+dupe+site:www.reddit.com&sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&sa=X&ved=2ahUKEwjb9LHMlaCVAxXPxjgGHYYbDIkQrQIoAnoECCoQAw"
+          },
+          {
+            "text": "TikTok (+3) - View related links",
+            "href": "https://www.tiktok.com/@perfumesiren/video/7461047431166184747"
+          },
+          {
+            "text": "TikTok (+1) - View related links",
+            "href": "https://www.tiktok.com/@perfumesiren/video/7461047431166184747"
+          },
+          {
+            "text": "Top 10 BEST BACCARAT ROUGE 540 Alternatives!RedolessenceYouTube · Apr 8, 2024",
+            "href": "https://www.youtube.com/watch?v=1xQuiDjQqns&t=11"
+          },
+          {
+            "text": "",
+            "href": "https://www.tiktok.com/@perfumesiren/video/7461047431166184747"
+          },
+          {
+            "text": "",
+            "href": "https://www.instagram.com/reel/DSW-X8AEtRR/?hl=en"
+          },
+          {
+            "text": "1:58",
+            "href": "https://www.instagram.com/reel/DSW-X8AEtRR/?hl=en"
+          },
+          {
+            "text": "",
+            "href": "https://www.youtube.com/shorts/CM14k0OTJcA"
+          },
+          {
+            "text": "1:08",
+            "href": "https://www.youtube.com/shorts/CM14k0OTJcA"
+          },
+          {
+            "text": "",
+            "href": "https://www.jomashop.com/blog/articles/the-best-dupes-for-maison-francis-kurkdjian-baccarat-rouge-540"
+          },
+          {
+            "text": "",
+            "href": "https://www.reddit.com/r/fragranceclones/comments/1izy34h/best_dupe_for_bacarrat_rouge_540_please/"
+          },
+          {
+            "text": "",
+            "href": "https://www.venbafragrance.com/products/maison-francis-kurkdjian-baccarat-rouge-540-extrait"
+          },
+          {
+            "text": "",
+            "href": "https://www.macao.ubuy.com/en/product/F4WKOBP2I-barakkat-rouge-540-extrait-de-parfum-100ml-3-4fl-oz-unisex-perfume-our-impression-of-baccarat-rouge-540-long-lasting-spray"
+          },
+          {
+            "text": "Top Baccarat Rouge 540 Dupes Explored - TikTok. Opens in new tab.",
+            "href": "https://www.tiktok.com/@perfumesiren/video/7461047431166184747"
+          },
+          {
+            "text": "The best fragrance dupes for BACCARAT ROUGE 540 Noor .... Opens in new tab.",
+            "href": "https://www.instagram.com/reel/DSW-X8AEtRR/?hl=en"
+          },
+          {
+            "text": "1:58",
+            "href": "https://www.instagram.com/reel/DSW-X8AEtRR/?hl=en"
+          },
+          {
+            "text": "The BEST Affordable Fragrance! Smells exactly like Baccarat Rouge .... Opens in new tab.",
+            "href": "https://www.youtube.com/shorts/CM14k0OTJcA"
+          },
+          {
+            "text": "1:08",
+            "href": "https://www.youtube.com/shorts/CM14k0OTJcA"
+          },
+          {
+            "text": "The Best Dupes for Maison Francis Kurkdjian Baccarat Rouge 540. Opens in new tab.",
+            "href": "https://www.jomashop.com/blog/articles/the-best-dupes-for-maison-francis-kurkdjian-baccarat-rouge-540"
+          },
+          {
+            "text": "Best dupe for Bacarrat Rouge 540 please?! : r/fragranceclones. Opens in new tab.",
+            "href": "https://www.reddit.com/r/fragranceclones/comments/1izy34h/best_dupe_for_bacarrat_rouge_540_please/"
+          },
+          {
+            "text": "Baccarat Rouge 540 Extrait de Parfum — MFK | Venba. Opens in new tab.",
+            "href": "https://www.venbafragrance.com/products/maison-francis-kurkdjian-baccarat-rouge-540-extrait"
+          },
+          {
+            "text": "Barqat Rouge unisex perfume 3.4oz100ml eau de Macao | Ubuy. Opens in new tab.",
+            "href": "https://www.macao.ubuy.com/en/product/F4WKOBP2I-barakkat-rouge-540-extrait-de-parfum-100ml-3-4fl-oz-unisex-perfume-our-impression-of-baccarat-rouge-540-long-lasting-spray"
+          },
+          {
+            "text": "Learn more",
+            "href": "https://support.google.com/websearch?p=ai_overviews"
+          },
+          {
+            "text": "Battle between 10+ Maison Francis Kurkdjian Baccarat Rouge ... scentgourmand.com http://www.scentgourmand.com › battle-between-10-m...",
+            "href": "http://www.scentgourmand.com/battle-between-10-maison-francis-kurkdjian-baccarat-rouge-540-dupes-which-wins/"
+          },
+          {
+            "text": "Read more",
+            "href": "http://www.scentgourmand.com/battle-between-10-maison-francis-kurkdjian-baccarat-rouge-540-dupes-which-wins/#:~:text=For%20an%20all%2Drounder%20dupe%2C%20I,at%20a%20reasonable%20price%20point."
+          },
+          {
+            "text": "View full list",
+            "href": "http://www.scentgourmand.com/battle-between-10-maison-francis-kurkdjian-baccarat-rouge-540-dupes-which-wins/"
+          },
+          {
+            "text": "6 Dupe Of BR540 Tested – Which One is CLOSEST? YouTube · Fragrance House Feb 23, 2026",
+            "href": "https://www.youtube.com/watch?v=7UPGTBC4qYE"
+          },
+          {
+            "text": "6 Dupe Of BR540 Tested – Which One is CLOSEST?YouTube·Fragrance House·Feb 23, 2026",
+            "href": "https://www.youtube.com/watch?v=7UPGTBC4qYE"
+          },
+          {
+            "text": "YouTube",
+            "href": "https://www.youtube.com/watch?v=7UPGTBC4qYE"
+          },
+          {
+            "text": "I BOUGHT ALL THE BACCARAT ROUGE 540 DUPES SO ... YouTube · Scentkollectionz Aug 17, 2024",
+            "href": "https://www.youtube.com/watch?v=Clo56GEFssY"
+          },
+          {
+            "text": "I BOUGHT ALL THE BACCARAT ROUGE 540 DUPES SO ...YouTube·Scentkollectionz·Aug 17, 2024",
+            "href": "https://www.youtube.com/watch?v=Clo56GEFssY"
+          },
+          {
+            "text": "YouTube",
+            "href": "https://www.youtube.com/watch?v=Clo56GEFssY"
+          },
+          {
+            "text": "Baccarat Rouge 540 will always be her, but if you want the ... Instagram · Dr. Felicia Brown, PhD Oct 28, 2025",
+            "href": "https://www.instagram.com/reel/DQX5XFwgXI1/?hl=en"
+          },
+          {
+            "text": "0:54",
+            "href": "https://www.instagram.com/reel/DQX5XFwgXI1/?hl=en"
+          },
+          {
+            "text": "View all",
+            "href": "https://www.google.com/search?sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&udm=7&q=Baccarat+Rouge+540+dupe&sa=X&ved=2ahUKEwjb9LHMlaCVAxXPxjgGHYYbDIkQ8ccDKAJ6BAhHEAQ"
+          },
+          {
+            "text": "7 Best Baccarat Rouge 540 Dupes, Tested and Reviewed ... Cosmopolitan https://www.cosmopolitan.com › Beauty & Style › Beauty",
+            "href": "https://www.cosmopolitan.com/style-beauty/beauty/g69098218/best-bacarrat-rouge-dupes/"
+          },
+          {
+            "text": "Smells of high quality and refined · Last well on me with medium sillageFragrantica",
+            "href": "https://www.fragrantica.com/perfume/Clean/Amber-Saffron-35241.html"
+          },
+          {
+            "text": "Smells exactly like the original · Mixture of too sweet and too citrussyReddit",
+            "href": "https://www.reddit.com/r/fragrance/comments/w91qxq/oil_perfumery_mini_review/"
+          },
+          {
+            "text": "Baccarat Rouge 540 Extrait Dupes: Which One Is Closest? #baccarat #540 #fragrance #cologne #perfumeYouTube·OnlyFumes·Jun 7, 2026",
+            "href": "https://www.youtube.com/watch?v=n1ILZs6st0I"
+          },
+          {
+            "text": "YouTube",
+            "href": "https://www.youtube.com/watch?v=n1ILZs6st0I"
+          },
+          {
+            "text": "Baccarat Rouge 540 Extrait Dupes: Which One Is Closest? #baccarat #540 #fragrance #cologne #perfume 1.6K+ views · 2 weeks ago OnlyFumes YouTube",
+            "href": "https://www.youtube.com/watch?v=n1ILZs6st0I"
+          },
+          {
+            "text": "Four dupes just ruined my day 400+ comments · 1 month ago r/fragranceclones Reddit",
+            "href": "https://www.reddit.com/r/fragranceclones/comments/1t8qf0z/four_dupes_just_ruined_my_day/"
+          },
+          {
+            "text": "0:42 Would you buy a dupe perfume? My deep dive reminded me of my conversation with Marc Chaya, former CEO of @Maison Francis Kurkdjian … link in profile for full video. #bacarratrouge540 #baccaratrouge540 #dupeparfum 2.5K+ views · 4 weeks ",
+            "href": "https://www.tiktok.com/@sircandleman/video/7645349874065607950"
+          },
+          {
+            "text": "Best BR540 dupe?? Popular comment · Cloud. But assuming you have a 70ml bottle that's like 850 sprays, this is a beast fragrance you can get away with one spritz for daily use for over 2 years. It will expire, your nose and tastes will chan",
+            "href": "https://www.reddit.com/r/fragrance/comments/1t7yzxf/best_br540_dupe/"
+          },
+          {
+            "text": "What’s your favorite BR540 dupe? Popular comment · in order from the best for me: * IBRAQ Balas Rose * Al Haramain Amber Oud Rouge (discontinued) * Orientica Amber Rouge * Club de Nuit Untold * Al Haramain Amber Oud Ruby all BR540 dupes nee",
+            "href": "https://www.reddit.com/r/fragheadph/comments/1t97qoc/whats_your_favorite_br540_dupe/"
+          },
+          {
+            "text": "0:58 Smelling like Baccarat Rouge 540 but spent $22. I am not taking questions at this time. 🫶🏼✨ The dupe era is fully here and I refuse to go back to paying designer prices when this exists. Warm, sweet, that iconic cherry almond vibe — ",
+            "href": "https://www.tiktok.com/@oneeggisanoeuf/video/7641845148950908181"
+          },
+          {
+            "text": "I smelled a beautiful fragrance on someone at the pub last night and asked her what perfume she's wearing. She said Parfum de Marly Delina and Bacarrat Rouge 540. Any dupes that are closer to these perfumes? Can't afford the real one at the",
+            "href": "https://www.facebook.com/groups/1484391433000951/posts/1678742703565822/"
+          },
+          {
+            "text": "Smells Like Baccarat Rouge... But Budget Friendly! Designer ... YouTube · Jaheisha 1.2K+ views · 7 months ago",
+            "href": "https://www.youtube.com/watch?v=Cb8zcAAXV60"
+          },
+          {
+            "text": "Smells Like Baccarat Rouge... But Budget Friendly! Designer ...YouTube·Jaheisha·Nov 21, 2025",
+            "href": "https://www.youtube.com/watch?v=Cb8zcAAXV60"
+          },
+          {
+            "text": "YouTube",
+            "href": "https://www.youtube.com/watch?v=Cb8zcAAXV60"
+          },
+          {
+            "text": "Beauty in Review: Baccarat Rouge 540 Dupes Royally Pink https://www.royallypink.com › 2022/04 › beauty-in-re...",
+            "href": "https://www.royallypink.com/2022/04/beauty-in-review-baccarat-rouge-540.html"
+          },
+          {
+            "text": "Read more",
+            "href": "https://www.royallypink.com/2022/04/beauty-in-review-baccarat-rouge-540.html#:~:text=As%20does%20the%20original%2C%20Crystal,for%20%2450%20you%20get%202oz."
+          },
+          {
+            "text": "View full list",
+            "href": "https://www.royallypink.com/2022/04/beauty-in-review-baccarat-rouge-540.html"
+          },
+          {
+            "text": "Vocal Performance U005 Eau de Parfum For Unisex ... Amazon.com https://www.amazon.com › Vocal-Performance-Inspired-...",
+            "href": "https://www.amazon.com/Vocal-Performance-Inspired-Kurkdjian-Phthalate/dp/B0B3W8JW39"
+          },
+          {
+            "text": "Read more",
+            "href": "https://www.amazon.com/Vocal-Performance-Inspired-Kurkdjian-Phthalate/dp/B0B3W8JW39#:~:text=U005%20Eau%20de%20Parfum%20For,Fragrance%20Dupe%20Consentrated%20Long%20Lasting"
+          },
+          {
+            "text": "I found the exact Baccarat Rouge 540 DUPE. This is INSANE ... Instagram · bethennyfrankel 32.4K+ likes · 2 years ago",
+            "href": "https://www.instagram.com/reel/C0QOTPkrSyr/?hl=en"
+          },
+          {
+            "text": "1:27",
+            "href": "https://www.instagram.com/reel/C0QOTPkrSyr/?hl=en"
+          },
+          {
+            "text": "Baccarat Rouge 540 dupe Zara",
+            "href": "https://www.google.com/search?sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&q=Baccarat+Rouge+540+dupe+Zara&sa=X&ved=2ahUKEwjb9LHMlaCVAxXPxjgGHYYbDIkQ1QJ6BAgyEAE"
+          },
+          {
+            "text": "Baccarat rouge 540 dupe reddit",
+            "href": "https://www.google.com/search?sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&q=Baccarat+rouge+540+dupe+reddit&sa=X&ved=2ahUKEwjb9LHMlaCVAxXPxjgGHYYbDIkQ1QJ6BAhEEAE"
+          },
+          {
+            "text": "Baccarat Rouge 540 dupe price",
+            "href": "https://www.google.com/search?sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&q=Baccarat+Rouge+540+dupe+price&sa=X&ved=2ahUKEwjb9LHMlaCVAxXPxjgGHYYbDIkQ1QJ6BAhDEAE"
+          },
+          {
+            "text": "Baccarat Rouge 540 dupe Amazon",
+            "href": "https://www.google.com/search?sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&q=Baccarat+Rouge+540+dupe+Amazon&sa=X&ved=2ahUKEwjb9LHMlaCVAxXPxjgGHYYbDIkQ1QJ6BAhCEAE"
+          },
+          {
+            "text": "Baccarat Rouge 540 dupe Bath and Body Works",
+            "href": "https://www.google.com/search?sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&q=Baccarat+Rouge+540+dupe+Bath+and+Body+Works&sa=X&ved=2ahUKEwjb9LHMlaCVAxXPxjgGHYYbDIkQ1QJ6BAhAEAE"
+          },
+          {
+            "text": "Baccarat Rouge 540 dupe men",
+            "href": "https://www.google.com/search?sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&q=Baccarat+Rouge+540+dupe+men&sa=X&ved=2ahUKEwjb9LHMlaCVAxXPxjgGHYYbDIkQ1QJ6BAg-EAE"
+          },
+          {
+            "text": "Baccarat Rouge 540 dupe Dossier",
+            "href": "https://www.google.com/search?sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&q=Baccarat+Rouge+540+dupe+Dossier&sa=X&ved=2ahUKEwjb9LHMlaCVAxXPxjgGHYYbDIkQ1QJ6BAg4EAE"
+          },
+          {
+            "text": "Baccarat rouge 540 dupe sephora",
+            "href": "https://www.google.com/search?sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&q=Baccarat+rouge+540+dupe+sephora&sa=X&ved=2ahUKEwjb9LHMlaCVAxXPxjgGHYYbDIkQ1QJ6BAg2EAE"
+          },
+          {
+            "text": "2",
+            "href": "https://www.google.com/search?q=Baccarat+Rouge+540+dupe&sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&ei=ofQ7apugO8-N4-EPhrewyAg&start=10&sa=N&sstk=AU9db-D5W_mhn_k4U4E8TT1pW9vv7LnYMQ_otKXhEiQVWcCBDamPE8kNKdeDsnrDqBPc4VXLpTI6YFKRLN_rVSQ5apd83DX2ahGUsQ&ved=2ahUKEwjb9LHMlaCVAxXPxjgGHYYbDIkQ8tMDegQISxAE"
+          },
+          {
+            "text": "3",
+            "href": "https://www.google.com/search?q=Baccarat+Rouge+540+dupe&sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&ei=ofQ7apugO8-N4-EPhrewyAg&start=20&sa=N&sstk=AU9db-D5W_mhn_k4U4E8TT1pW9vv7LnYMQ_otKXhEiQVWcCBDamPE8kNKdeDsnrDqBPc4VXLpTI6YFKRLN_rVSQ5apd83DX2ahGUsQ&ved=2ahUKEwjb9LHMlaCVAxXPxjgGHYYbDIkQ8tMDegQISxAG"
+          },
+          {
+            "text": "4",
+            "href": "https://www.google.com/search?q=Baccarat+Rouge+540+dupe&sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&ei=ofQ7apugO8-N4-EPhrewyAg&start=30&sa=N&sstk=AU9db-D5W_mhn_k4U4E8TT1pW9vv7LnYMQ_otKXhEiQVWcCBDamPE8kNKdeDsnrDqBPc4VXLpTI6YFKRLN_rVSQ5apd83DX2ahGUsQ&ved=2ahUKEwjb9LHMlaCVAxXPxjgGHYYbDIkQ8tMDegQISxAI"
+          },
+          {
+            "text": "5",
+            "href": "https://www.google.com/search?q=Baccarat+Rouge+540+dupe&sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&ei=ofQ7apugO8-N4-EPhrewyAg&start=40&sa=N&sstk=AU9db-D5W_mhn_k4U4E8TT1pW9vv7LnYMQ_otKXhEiQVWcCBDamPE8kNKdeDsnrDqBPc4VXLpTI6YFKRLN_rVSQ5apd83DX2ahGUsQ&ved=2ahUKEwjb9LHMlaCVAxXPxjgGHYYbDIkQ8tMDegQISxAK"
+          },
+          {
+            "text": "6",
+            "href": "https://www.google.com/search?q=Baccarat+Rouge+540+dupe&sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&ei=ofQ7apugO8-N4-EPhrewyAg&start=50&sa=N&sstk=AU9db-D5W_mhn_k4U4E8TT1pW9vv7LnYMQ_otKXhEiQVWcCBDamPE8kNKdeDsnrDqBPc4VXLpTI6YFKRLN_rVSQ5apd83DX2ahGUsQ&ved=2ahUKEwjb9LHMlaCVAxXPxjgGHYYbDIkQ8tMDegQISxAM"
+          },
+          {
+            "text": "7",
+            "href": "https://www.google.com/search?q=Baccarat+Rouge+540+dupe&sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&ei=ofQ7apugO8-N4-EPhrewyAg&start=60&sa=N&sstk=AU9db-D5W_mhn_k4U4E8TT1pW9vv7LnYMQ_otKXhEiQVWcCBDamPE8kNKdeDsnrDqBPc4VXLpTI6YFKRLN_rVSQ5apd83DX2ahGUsQ&ved=2ahUKEwjb9LHMlaCVAxXPxjgGHYYbDIkQ8tMDegQISxAO"
+          },
+          {
+            "text": "8",
+            "href": "https://www.google.com/search?q=Baccarat+Rouge+540+dupe&sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&ei=ofQ7apugO8-N4-EPhrewyAg&start=70&sa=N&sstk=AU9db-D5W_mhn_k4U4E8TT1pW9vv7LnYMQ_otKXhEiQVWcCBDamPE8kNKdeDsnrDqBPc4VXLpTI6YFKRLN_rVSQ5apd83DX2ahGUsQ&ved=2ahUKEwjb9LHMlaCVAxXPxjgGHYYbDIkQ8tMDegQISxAQ"
+          },
+          {
+            "text": "Next",
+            "href": "https://www.google.com/search?q=Baccarat+Rouge+540+dupe&sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&ei=ofQ7apugO8-N4-EPhrewyAg&start=10&sa=N&sstk=AU9db-D5W_mhn_k4U4E8TT1pW9vv7LnYMQ_otKXhEiQVWcCBDamPE8kNKdeDsnrDqBPc4VXLpTI6YFKRLN_rVSQ5apd83DX2ahGUsQ&ved=2ahUKEwjb9LHMlaCVAxXPxjgGHYYbDIkQ8NMDegQISxAS"
+          },
+          {
+            "text": "Unknown - Can't determine location",
+            "href": "https://www.google.com/search?q=Baccarat%20Rouge%20540%20dupe&hl=en&gl=us&pws=0&sei=ofQ7avHENfCHjuMP18n0uA0#"
+          },
+          {
+            "text": "Help",
+            "href": "https://support.google.com/websearch/?p=ws_results_help&hl=en&fg=1"
+          },
+          {
+            "text": "Send feedback",
+            "href": "https://www.google.com/search?q=Baccarat%20Rouge%20540%20dupe&hl=en&gl=us&pws=0&sei=ofQ7avHENfCHjuMP18n0uA0#"
+          },
+          {
+            "text": "Privacy",
+            "href": "https://policies.google.com/privacy?hl=en&fg=1"
+          },
+          {
+            "text": "Terms",
+            "href": "https://policies.google.com/terms?hl=en&fg=1"
+          }
+        ],
+        "visible_text_line_count": 223
+      },
+      "capture_finished_at_iso": "2026-06-24T15:15:57.242Z"
+    }
+  ]
+}

@@ -41,6 +41,12 @@ monitoring everyone at full density (throughput forbids it) but by **tiering den
 everyone is on the radar via a cheap heartbeat; the read budget concentrates where the momentum /
 wind-calling signal is.
 
+Momentum and engagement are allocation signals, not authority. They may decide
+which already-authorized creator/post gets denser capture or quicker recheck, but
+they do not authorize a new source-access route, prove demand or buyer pull,
+certify credibility/independence, clear readiness or validation, or create an
+automatic sprint / Capture commitment.
+
 ## Core vs satellite split
 
 - **CORE (platform-agnostic; this doc):** the tier model (A/B/C), the age-bucket scheduler structure,
@@ -114,7 +120,9 @@ platform-shaped). This is adaptive density catching momentum in flight.
 A Tier-C heartbeat catching a follower/subscriber jump **promotes** the creator to Tier-A density;
 fading momentum **demotes** back toward C. The momentum signal — the product's core read — thus does
 **double duty as the coverage allocator**: the thing we are trying to detect is the thing that decides
-where to spend the budget.
+where to spend the budget. Low, flat, or missing engagement does not erase the
+actor from scope by itself; it lowers capture density only under the declared
+roster and cadence rules.
 
 ## Capture-once-then-recheck lifecycle
 

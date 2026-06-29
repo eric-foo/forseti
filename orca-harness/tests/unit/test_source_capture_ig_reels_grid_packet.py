@@ -7,6 +7,7 @@ from pathlib import Path
 import pytest
 
 from data_lake.root import DataLakeRoot, raw_shard
+import runners.run_source_capture_ig_reels_grid_packet as reels_grid_runner
 from runners.run_source_capture_ig_reels_grid_packet import _bio_links
 from runners.run_source_capture_ig_reels_grid_packet import _detect_ig_block
 from runners.run_source_capture_ig_reels_grid_packet import main as reels_grid_main
@@ -354,27 +355,37 @@ def test_reels_grid_runner_missing_capture_timestamp_is_unknown_not_known(tmp_pa
     assert observed_metric["coverage_window"] is None
 
 
-def test_reels_grid_main_rejects_output_when_orca_data_root_is_set(
+def test_reels_grid_main_prefers_explicit_output_over_orca_data_root(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     root = DataLakeRoot.for_test(tmp_path / "orca-data")
     output = tmp_path / "scratch-output"
+    captured: dict[str, object] = {}
+
+    def fake_run_source_capture_ig_reels_grid_packet(**kwargs):
+        captured.update(kwargs)
+        return 0, str(output.resolve())
+
     monkeypatch.setenv("ORCA_DATA_ROOT", str(root.path))
+    monkeypatch.setattr(
+        reels_grid_runner,
+        "run_source_capture_ig_reels_grid_packet",
+        fake_run_source_capture_ig_reels_grid_packet,
+    )
 
-    with pytest.raises(SystemExit) as excinfo:
-        reels_grid_main(
-            [
-                "--handle",
-                "hyram",
-                "--decision-question",
-                "capture hyram reels grid",
-                "--output",
-                str(output),
-            ]
-        )
+    assert reels_grid_main(
+        [
+            "--handle",
+            "hyram",
+            "--decision-question",
+            "capture hyram reels grid",
+            "--output",
+            str(output),
+        ]
+    ) == 0
 
-    assert excinfo.value.code == 2
-    assert not output.exists()
+    assert captured["output_directory"] == output
+    assert captured["data_root"] is None
 
 
 def test_bio_links_captures_title_and_url_with_lynx_fallback() -> None:

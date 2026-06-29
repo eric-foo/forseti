@@ -19,17 +19,20 @@ Spec: youtube_transcript_product_extraction_spec_v0.md (daemon-readiness contrac
 
 from __future__ import annotations
 
+import hashlib
 import json
 
 from cleaning.transcript_product_extractor import TranscriptInput
 from cleaning.transcript_product_lake import (
     PRODUCT_MENTIONS_LANE,
     PRODUCT_MENTIONS_SET_LANE,
+    build_transcript_source_lineage,
     cues_from_asr_record,
     cues_from_json3,
     extract_products_into_lake,
     mentions_record_id,
 )
+from data_lake.silver_lineage import SilverAnchor, SilverDerivedRef, SilverRawRef
 
 _ASR_LANE = "transcript_asr"
 
@@ -49,6 +52,23 @@ def _body_ending_with(loaded, files: dict[str, str], suffix: str) -> bytes | Non
     return None
 
 
+def _file_id_ending_with(files: dict[str, str], suffix: str) -> str | None:
+    """The preserved file_id whose packet-relative path ends with ``suffix`` (for a raw_ref)."""
+    for file_id, path in files.items():
+        if path.endswith(suffix):
+            return file_id
+    return None
+
+
+def _preserved_by_id(manifest: dict) -> dict[str, dict]:
+    """Map preserved file_id -> its manifest entry (carries relative_packet_path + sha256)."""
+    return {
+        pf["file_id"]: pf
+        for pf in manifest.get("preserved_files", [])
+        if isinstance(pf, dict) and pf.get("file_id")
+    }
+
+
 def _capture_metadata(loaded, files: dict[str, str]) -> dict:
     body = _body_ending_with(loaded, files, "capture_metadata.json")
     if body is None:
@@ -60,22 +80,29 @@ def _capture_metadata(loaded, files: dict[str, str]) -> dict:
         return {}
 
 
-def _asr_records(data_root, audio_packet_id: str) -> list[dict]:
-    """Read transcript_asr derived records by path (derived records carry no by-key hash)."""
+def _asr_records(data_root, audio_packet_id: str) -> list[tuple[dict, str, str]]:
+    """Read transcript_asr derived records by path, returning ``(record, record_id, sha256)``.
+
+    The record_id (file name) and content sha256 let a consumer reference the EXACT
+    consumed transcript record (closing same-shortcode ambiguity). Derived records carry
+    no by-key hash, so sha256 is computed from the record file bytes -- equal to the
+    derivation-time member_sha256 the lake committed in the transcript_asr set marker.
+    """
     lane_dir = data_root.lane_dir(subtree="derived", raw_anchor=audio_packet_id, lane=_ASR_LANE)
     if not lane_dir.is_dir():
         return []
-    records: list[dict] = []
+    records: list[tuple[dict, str, str]] = []
     # transcript_asr record ids carry no extension (asr_packet.py), so read every file, not *.json.
     for record_file in sorted(lane_dir.iterdir()):
         if not record_file.is_file():
             continue
         try:
-            data = json.loads(record_file.read_text(encoding="utf-8"))
+            body = record_file.read_bytes()
+            data = json.loads(body.decode("utf-8"))
         except (OSError, ValueError):
             continue
         if isinstance(data, dict):
-            records.append(data)
+            records.append((data, record_file.name, hashlib.sha256(body).hexdigest()))
     return records
 
 
@@ -107,18 +134,56 @@ def _transcripts_for_packet(data_root, packet_id: str) -> list[TranscriptInput]:
     transcripts: list[TranscriptInput] = []
     if surface == "youtube_captions":
         json3 = _body_ending_with(loaded, files, ".json3")
-        if json3 is not None:
+        json3_file_id = _file_id_ending_with(files, ".json3")
+        if json3 is not None and json3_file_id and meta_video_id:
             cues = cues_from_json3(json3)
-            if cues and meta_video_id:
-                transcripts.append(TranscriptInput(meta_video_id, packet_id, "caption", cues))
+            if cues:
+                # Caption transcript is read from a raw json3 preserved file -> raw_ref to it.
+                preserved = _preserved_by_id(manifest).get(json3_file_id, {})
+                raw_ref = SilverRawRef(
+                    packet_id=packet_id,
+                    file_id=json3_file_id,
+                    relative_packet_path=str(preserved.get("relative_packet_path") or "") or None,
+                    sha256=str(preserved.get("sha256") or "") or None,
+                    hash_basis="raw_stored_bytes",
+                    anchor=SilverAnchor(kind="file"),
+                    relation="consumed",
+                )
+                lineage = build_transcript_source_lineage(
+                    namespace="youtube",
+                    source_surface=surface,
+                    video_id=meta_video_id,
+                    raw_ref=raw_ref,
+                )
+                transcripts.append(
+                    TranscriptInput(meta_video_id, packet_id, "caption", cues, source_lineage=lineage)
+                )
     elif surface == "youtube_audio":
-        for record in _asr_records(data_root, packet_id):
+        for record, record_id, record_sha in _asr_records(data_root, packet_id):
             if record.get("posture") != "transcribed":
                 continue
             cues = cues_from_asr_record(record)
             video_id = str(record.get("video_id") or meta_video_id)
             if cues and video_id:
-                transcripts.append(TranscriptInput(video_id, packet_id, "asr", cues))
+                # The ASR transcript IS a derived record -> derived_ref to the EXACT record consumed.
+                derived_ref = SilverDerivedRef(
+                    raw_anchor=packet_id,
+                    lane=_ASR_LANE,
+                    record_id=record_id,
+                    sha256=record_sha,
+                    hash_basis="derived_record_bytes",
+                    relation="consumed",
+                )
+                lineage = build_transcript_source_lineage(
+                    namespace="youtube",
+                    source_surface=surface,
+                    video_id=video_id,
+                    derived_ref=derived_ref,
+                    captured_at=str(record.get("retrieval_time_utc") or "") or None,
+                )
+                transcripts.append(
+                    TranscriptInput(video_id, packet_id, "asr", cues, source_lineage=lineage)
+                )
     return transcripts
 
 

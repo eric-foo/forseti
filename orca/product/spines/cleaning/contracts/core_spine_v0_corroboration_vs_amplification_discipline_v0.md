@@ -78,6 +78,14 @@ the wedge and must stay rigorous.
   structure, it does not adjudicate credibility.
 - Treat the corroboration-vs-amplification call as a sharpenable judgment competency
   (e.g., consultant-loop / case backlog), not a solved rule.
+- Engagement context is one of the mechanical inputs that makes this judgment
+  inspectable. Cleaning may preserve high/low reaction metrics, source order,
+  reply depth, repetition, and disagreement structure, but only as context for
+  Judgment to inspect. High source-visible engagement should be carried forward
+  as possible resonance weight with its direction, visible audience fit, baseline
+  context, and discount reasons, but Cleaning must not decide the final
+  resonance weight, whether high engagement equals independent corroboration, or
+  whether low engagement makes the signal useless.
 
 ## Non-Claims
 

@@ -1,0 +1,111 @@
+<!-- fixture_expected: fail -->
+<!-- fixture_failure: unknown mode must not bypass cutoff enforcement by passing as a valid handoff mode -->
+
+# Commission Signal Board Fixture: bad unknown handoff mode
+
+### 1. Commission Intake Receipt
+
+```yaml
+commission_id: fixture_bad_unknown_handoff_mode
+mode: unknown
+candidate_or_subject: Fixture Product Unknown Mode
+decision_context: Exercise failure when unknown mode could otherwise bypass cutoff checks.
+market_or_geography: US
+time_window: 2018-2020
+evidence_cutoff_at: 2020-12-31
+input_status: complete
+missing_required_inputs: []
+cutoff_rule: only source observations observable on or before 2020-12-31 may enter downstream handoff
+non_goals_preserved:
+  - no demand classification
+  - no graph construction
+```
+
+### 2. Boundary Statement
+
+This is an evidence/signals-only fixture, not a demand verdict, proof claim, graph artifact, forecast, judgment, or client output.
+
+### 3. Source-Family Coverage Plan
+
+| Source family | Subfamily / surface | Capture posture | Why check it | Expected observable | Evidence status | Surface cutoff status | Cutoff status | Notes |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| forums_community | Reddit public thread | manual_only | Unknown mode must fail before handoff | Dated consumer question | source_backed | existed_by_cutoff | uncertain | Must not pass as a valid handoff mode |
+
+### 4. Signal Board Rows
+
+| Row ID | Source family | Subfamily | Surface | Observable | Signal role | Row purpose | Recency status | Recency attention | Graph role | Graph weight hint | Evidence status | Provenance needed | Surface cutoff status | Cutoff status | Handoff note |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| SBR-001 | forums_community | Reddit | public thread | dated consumer question | consumer_language | signal_unit | recent | high | node_candidate | medium | source_backed | URL and thread date supplied | existed_by_cutoff | uncertain | Unknown mode must not make this pass |
+
+### 5. Mandatory Counterevidence Paths
+
+| Path ID | What could disconfirm or weaken the signal | Source families to check | Why it matters | Evidence status | Cutoff rule |
+| --- | --- | --- | --- | --- | --- |
+| CP-001 | Unknown mode could hide cutoff ambiguity | forums_community | Cutoff enforcement remains explicit | gap | Must be observable by cutoff |
+
+### 6. Campaign And Duplication Risk
+
+| Risk ID | Possible duplication/campaign pattern | Surfaces implicated | Required check | Evidence status | Handoff note |
+| --- | --- | --- | --- | --- | --- |
+| DR-001 | Unknown mode could obscure run boundary | forums_community | Reject unknown mode | gap | Do not hand off |
+
+### 7. Graph Retrieval Brief
+
+```yaml
+graph_retrieval_brief:
+  seed_entities:
+    - Fixture Product Unknown Mode
+  adjacent_entities_to_check: []
+  creator_slices: []
+  source_families:
+    - forums_community
+  mandatory_counterevidence_paths:
+    - CP-001
+  node_types_to_retrieve:
+    - source_surface
+  edge_types_to_retrieve:
+    - mentions
+  campaign_overlap_checks:
+    - DR-001
+  graph_weight_notes: relation utility only; graph weight is not signal strength
+  surface_cutoff_notes: cutoff is intentionally uncertain
+  forecast_targets_supported_without_probabilities: []
+  backtest_cutoff_date: 2020-12-31
+  future_info_exclusion_rule: exclude observations not observable on or before 2020-12-31
+```
+
+### 8. Demand-Classifier Handoff Packet
+
+```yaml
+classifier_handoff_packet:
+  candidate_or_subject: Fixture Product Unknown Mode
+  decision_context: Exercise failure when unknown mode could otherwise bypass cutoff checks.
+  mode: unknown
+  cutoff_date: 2020-12-31
+  signal_rows_for_handoff:
+    - SBR-001
+  counterevidence_rows_for_handoff: []
+  source_family_gaps: []
+  provenance_gaps: []
+  cutoff_uncertainties:
+    - SBR-001 cutoff observability not yet proven.
+  classifier_mapping_status: classifier_owned
+  prohibited_claims:
+    - no demand verdict
+    - no buyer-proof claim
+    - no validation or readiness claim
+    - no graph score
+    - no forecast probability
+```
+
+### 9. Visible Limitations
+
+This fixture proves that unknown handoff mode is rejected mechanically.
+
+### 10. Board Status And Run Boundary
+
+```yaml
+board_status: COLLECTION_BOARD_ONLY
+run_boundary: CHAT_ONLY_BOARD_COMPLETE
+next_authorized_step: Resolve mode before classifier handoff.
+```

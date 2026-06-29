@@ -152,6 +152,12 @@ present. Projection does not own ECR; ECR does not own projection.
     fitness attack: "compact + Judgment-readable" is inherently lossy, so the rule that
     salience is not projection's to decide is the load-bearing guard.)*
 
+11. **Projection may carry engagement facts, not engagement meaning.** When a
+    public-reaction source exposes engagement context, Projection may carry the
+    row-bound metric facts and metric posture into the mechanical view so
+    Cleaning and Judgment can inspect them. Projection must not label those facts
+    as demand support, credibility, independence, artificial amplification,
+    Signal Use, Decision Strength, or Action Ceiling.
 ## 4. Candidate Projected-Unit Fields
 
 > **Candidate shape, NOT a ratified schema.** These are the projection receipt's
@@ -195,6 +201,11 @@ given frame (e.g., a badge that *is* the sponsored label), it is **not** noise �
 **Preserve (in the view):**
 - **Evidence rows** — posts, comments, replies, documents, reviews — regardless of
   apparent value/score/repetition/embarrassment/bot-likeness/deletion (boundary note).
+- **Source-visible public-reaction engagement facts** — upvotes, helpful votes,
+  likes, views, shares, comment counts, reply counts, source-native score state,
+  visible sort/rank/order, pinned/hearted/official-response markers, metric
+  posture, and missingness — when those facts are exposed by the source and bind
+  to a preserved evidence row.
 - **Semantic bindings** — reply->parent, rating->text, variant->price, variant->availability,
   term->bundle, channel->call, label->item.
 - **Thread / related-context hierarchy** — original/parent claim, signal-bearing reply

@@ -25,10 +25,11 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 import sys
 import time
 from pathlib import Path
-from typing import Sequence
+from typing import TYPE_CHECKING, Sequence
 from urllib.parse import urljoin, urlparse
 
 if __package__ in {None, ""}:
@@ -61,6 +62,9 @@ from source_capture.price_payload_extraction import (
     join_tiers_with_amounts,
 )
 import re
+
+if TYPE_CHECKING:
+    from data_lake.root import DataLakeRoot
 
 DEFAULT_PAGE_URL = "https://chatgpt.com/pricing/"
 DEFAULT_ANNOUNCEMENT_URL = "https://openai.com/index/introducing-chatgpt-pro/"
@@ -212,7 +216,8 @@ def run_price_payload_capture(
     page_url: str,
     announcement_url: str | None,
     currency: str,
-    output_directory: Path,
+    output_directory: Path | None = None,
+    data_root: "DataLakeRoot | None" = None,
     decision_question: str,
     capture_context: str,
     operator_category: str,
@@ -223,6 +228,9 @@ def run_price_payload_capture(
     max_page_attempts: int = 3,
     page_retry_backoff_seconds: float = 1.5,
 ) -> tuple[int, str]:
+    if (output_directory is None) == (data_root is None):
+        raise ValueError("exactly one of output_directory or data_root is required")
+
     # --- 1+2. page (structure) + prices-chunk discovery, with degraded-page retry ---
     # An intermittent server variant serves a thin module-preload list (the prices
     # chunk absent) ~17% of the time; it heals on a page re-fetch. Only a discovery
@@ -284,11 +292,17 @@ def run_price_payload_capture(
             time.sleep(page_retry_backoff_seconds)
 
     if page_res is None:
-        _write_failure_artifact(output_directory, page_url, attempts)
+        artifact_note = (
+            "per-attempt evidence preserved in rung15_capture_failure.json"
+            if output_directory is not None
+            else "no packet artifact written in data-lake mode before a complete packet exists"
+        )
+        if output_directory is not None:
+            _write_failure_artifact(output_directory, page_url, attempts)
         last_class = attempts[-1].get("failure_class") if attempts else None
         return 3, (f"rung-1.5 capture failed: prices payload not found after "
                    f"{max_page_attempts} page attempt(s) (last failure_class={last_class}); "
-                   f"per-attempt evidence preserved in rung15_capture_failure.json")
+                   f"{artifact_note}")
     capture_ts = page_res.metadata["capture_timestamp"]
     chunk_text = chunk_res.body.decode("utf-8", "replace")
 
@@ -560,6 +574,7 @@ def run_price_payload_capture(
 
     result = stage_and_write_packet(
         output_directory=output_directory,
+        data_root=data_root,
         staged_artifacts=artifacts,
         source_slices=slices,
         source_family="vendor_pricing_page",
@@ -609,7 +624,12 @@ def _build_parser() -> argparse.ArgumentParser:
     p.add_argument("--announcement-url", default=DEFAULT_ANNOUNCEMENT_URL,
                    help="effective-date companion source; pass '' to skip")
     p.add_argument("--currency", default="usd")
-    p.add_argument("--output", type=Path, required=True)
+    p.add_argument("--output", type=Path, default=None)
+    p.add_argument(
+        "--data-root",
+        default=None,
+        help="Commit into the Orca data lake at this root; explicit --data-root is mutually exclusive with --output. ORCA_DATA_ROOT is used only when --output is omitted.",
+    )
     p.add_argument("--decision-question",
                    default="OpenAI ChatGPT consumer pricing tiers + amounts + effective date")
     p.add_argument("--capture-context",
@@ -631,11 +651,28 @@ def main(argv: Sequence[str] | None = None) -> int:
     args = parser.parse_args(argv)
     announcement_url = args.announcement_url or None
     try:
+        data_root = None
+        data_root_requested = args.data_root is not None or (args.output is None and os.environ.get("ORCA_DATA_ROOT"))
+        if args.output is not None and args.data_root is not None:
+            parser.exit(
+                status=2,
+                message="rung-1.5 price-payload capture failed: exactly one of --output or --data-root/ORCA_DATA_ROOT is required\n",
+            )
+        if args.output is None and not data_root_requested:
+            parser.exit(
+                status=2,
+                message="rung-1.5 price-payload capture failed: exactly one of --output or --data-root/ORCA_DATA_ROOT is required\n",
+            )
+        if data_root_requested:
+            from data_lake.root import DataLakeRoot
+
+            data_root = DataLakeRoot.resolve(explicit=args.data_root)
         exit_code, message = run_price_payload_capture(
             page_url=args.url,
             announcement_url=announcement_url,
             currency=args.currency.lower(),
-            output_directory=args.output,
+            output_directory=args.output if data_root is None else None,
+            data_root=data_root,
             decision_question=args.decision_question,
             capture_context=args.capture_context,
             operator_category=args.operator_category,

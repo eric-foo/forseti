@@ -46,6 +46,11 @@ validation, readiness, implementation completion, backend selection, client laun
 approval, or permission to delete/rename an external data root without an explicit
 operator action.
 
+Owner shard decision recorded 2026-06-28: v4.1 uses lowercase, unsalted,
+three-character SHA-256 hex prefix sharding for raw and derived anchors:
+`packet_shard = sha256(packet_id).hexdigest()[:3]` and
+`anchor_shard = sha256(raw_anchor).hexdigest()[:3]`.
+
 ## Decision In One Screen
 
 ```text
@@ -117,6 +122,18 @@ Forward v4.1 roots use this grammar:
           query_tables/
           manifests/
 ```
+
+Shard rules:
+
+- `<packet_shard>` is the first three lowercase hex characters of
+  `sha256(packet_id)`. It is physical fanout only, carries no semantic meaning,
+  and by-key readers recompute it from `packet_id`.
+- `<anchor_shard>` is the first three lowercase hex characters of
+  `sha256(raw_anchor)`. For packet-depth anchors this is the same basis as the
+  raw packet id; a future lane that narrows a raw anchor below packet depth must
+  preserve a stable `raw_anchor` string before writing.
+- Shards are lowercase hex, unsalted, fixed-width, and not stored as authority.
+  Availability refs must include the shard-bearing raw path.
 
 Folder rules:
 
@@ -285,6 +302,7 @@ direction_change_propagation:
     - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_physicality_location_contract_v0.md
     - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_silver_vault_record_contract_v0.md
     - docs/workflows/capture_spine_runner_data_lake_dump_audit_handoff_v0.md
+    - orca-harness/data_lake/root.py
   downstream_surfaces_checked:
     - .agents/workflow-overlay/source-of-truth.md
     - .agents/workflow-overlay/source-loading.md
@@ -296,11 +314,6 @@ direction_change_propagation:
       reason: >
         AGENTS.md carries project behavior and routes Orca project facts to the
         overlay/docs; it does not enumerate data-lake folder grammar.
-    - path: orca-harness/data_lake/root.py
-      reason: >
-        Runtime implementation is intentionally not patched in this docs turn;
-        the parallel audit handoff is updated to make v4.1-compatible runner
-        writes the next verification target.
   stale_language_search: >
     rg -n "bronze/|silver/|gold/|Do not rename folders|indexes/derived_retrieval/silver_vault"
     orca/product/spines/data_lake docs/workflows/capture_spine_runner_data_lake_dump_audit_handoff_v0.md

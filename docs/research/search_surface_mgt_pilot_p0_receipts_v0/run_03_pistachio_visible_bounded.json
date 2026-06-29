@@ -1,0 +1,1905 @@
+{
+  "target": "US indie/DTC fragrance search-surface receipts",
+  "purpose": "preserve direct Google-like search-native surfaces for Search-Surface MGT P0 clusters",
+  "status_boundary": "capture_request_only_not_judgment_evidence_not_product_lead_action_not_durable_demand_proof",
+  "started_at_iso": "2026-06-24T15:12:20.191Z",
+  "operator_timezone": "Asia/Singapore",
+  "host_timezone_offset_minutes": -480,
+  "host": {
+    "platform": "win32",
+    "release": "10.0.26200",
+    "node": "v24.15.0",
+    "chrome_exe": "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
+    "browser_profile": "fresh temporary Chrome profile under docs/_inbox/search_surface_capture_tmp",
+    "browser_mode": "visible_chrome_remote_debugging",
+    "requested_viewport": "desktop 1280x720 window-size, no mobile emulation",
+    "google_params": "hl=en&gl=us&pws=0"
+  },
+  "queries": [
+    {
+      "id": "03_pistachio_perfume",
+      "query": "pistachio perfume",
+      "reason": "strong note-led shopping/currentness surface",
+      "required_focus": [
+        "SERP",
+        "PAA",
+        "product modules",
+        "PAS/related searches",
+        "short-video modules"
+      ],
+      "capture_started_at_iso": "2026-06-24T15:12:20.203Z",
+      "files": {
+        "serp_top": {
+          "png": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\03_pistachio_perfume\\serp_top.png",
+          "html": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\03_pistachio_perfume\\serp_top.html",
+          "txt": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\03_pistachio_perfume\\serp_top.txt",
+          "json": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\03_pistachio_perfume\\serp_top.json"
+        },
+        "serp_full": {
+          "png": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\03_pistachio_perfume\\serp_full.png",
+          "html": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\03_pistachio_perfume\\serp_full.html",
+          "txt": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\03_pistachio_perfume\\serp_full.txt",
+          "json": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\03_pistachio_perfume\\serp_full.json"
+        }
+      },
+      "serp_top": {
+        "kind": "serp_top",
+        "requested_query": "pistachio perfume",
+        "extracted_at_browser_iso": "2026-06-24T15:12:24.430Z",
+        "location_href": "https://www.google.com/search?q=pistachio%20perfume&hl=en&gl=us&pws=0&sei=1PM7asqPHYGE4-EPhOf6-A0",
+        "document_title": "pistachio perfume - Google Search",
+        "viewport": {
+          "width": 1264,
+          "height": 625,
+          "device_pixel_ratio": 1
+        },
+        "navigator": {
+          "language": "en-US",
+          "languages": [
+            "en-US",
+            "en"
+          ],
+          "platform": "Win32",
+          "webdriver": false,
+          "timezone": "Asia/Singapore"
+        },
+        "session_state": {
+          "sign_in_text_visible": true,
+          "google_account_text_visible": false,
+          "captcha_or_unusual_traffic_visible": false,
+          "consent_text_visible": false
+        },
+        "modules": {
+          "people_also_ask": true,
+          "people_also_search_for": true,
+          "related_searches": false,
+          "shopping_or_products": true,
+          "popular_products": true,
+          "more_products": true,
+          "sponsored_or_ads": false,
+          "video": true,
+          "forums": true,
+          "discussions_and_forums": false,
+          "images": true
+        },
+        "autocomplete_suggestions": [],
+        "organic_results": [
+          {
+            "title": "Pistachio Eau de Parfum D.S. & DURGA https://www.dsanddurga.com › products › pistachio",
+            "href": "https://www.dsanddurga.com/products/pistachio?srsltid=AfmBOorHvjwywtK3ILNCQozLILSPGClzlARFFM5NgPYTepVM6sSDK9W2",
+            "snippet_or_container_text": "Pistachio Eau de Parfum D.S. & DURGA https://www.dsanddurga.com › products › pistachio"
+          },
+          {
+            "title": "Best pistachio scent? : r/Perfumes Reddit · r/Perfumes 50+ comments · 1 year ago",
+            "href": "https://www.reddit.com/r/Perfumes/comments/1ds4mtk/best_pistachio_scent/",
+            "snippet_or_container_text": "Best pistachio scent? : r/Perfumes Reddit · r/Perfumes 50+ comments · 1 year ago"
+          },
+          {
+            "title": "Pistachio Brûlée Eau de Parfum Le Monde Gourmand https://www.gourmandbeauty.com › products › pistachi...",
+            "href": "https://www.gourmandbeauty.com/products/pistachio-brulee-eau-de-parfum?srsltid=AfmBOopOecK3uO3OKeNVWvuE3cfuj_GPnkCb52ms4I3Wh4J-X55M6RJb",
+            "snippet_or_container_text": "Pistachio Brûlée Eau de Parfum Le Monde Gourmand https://www.gourmandbeauty.com › products › pistachi..."
+          },
+          {
+            "title": "Team Tries: the 5 best pistachio perfumes - Get the GlossGet the Glosshttps://www.getthegloss.com › Fragrance",
+            "href": "https://www.getthegloss.com/beauty/fragrance/team-tries-best-pistachio-perfumes/#:~:text=But%20what%20do%20pistachio%20scents,notes%2C%20such%20as%20vanilla.%E2%80%9D",
+            "snippet_or_container_text": "Team Tries: the 5 best pistachio perfumes - Get the GlossGet the Glosshttps://www.getthegloss.com › FragranceGet the Glosshttps://www.getthegloss.com › Fragrance"
+          },
+          {
+            "title": "Pistachio Fragrantica https://www.fragrantica.com › notes › Pistachio-221",
+            "href": "https://www.fragrantica.com/notes/Pistachio-221.html",
+            "snippet_or_container_text": "Pistachio Fragrantica https://www.fragrantica.com › notes › Pistachio-221"
+          },
+          {
+            "title": "THE BEST PISTACHIO FRAGRANCES I'VE EVER SMELLED ... YouTube · Ai_TheGreat 4.7K+ views · 1 year ago",
+            "href": "https://www.youtube.com/watch?v=7IPGbBNneQs",
+            "snippet_or_container_text": "THE BEST PISTACHIO FRAGRANCES I'VE EVER SMELLED ... YouTube · Ai_TheGreat 4.7K+ views · 1 year ago"
+          },
+          {
+            "title": "Pistachio Fragrances Sephora https://www.sephora.com › buy › p...",
+            "href": "https://www.sephora.com/buy/pistachio-fragrances",
+            "snippet_or_container_text": "Pistachio Fragrances Sephora https://www.sephora.com › buy › p... · Translate this page"
+          },
+          {
+            "title": "Team Tries: the 5 best pistachio perfumes Get the Gloss https://www.getthegloss.com › Fragrance",
+            "href": "https://www.getthegloss.com/beauty/fragrance/team-tries-best-pistachio-perfumes/",
+            "snippet_or_container_text": "Team Tries: the 5 best pistachio perfumes Get the Gloss https://www.getthegloss.com › Fragrance"
+          },
+          {
+            "title": "Pistachio Perfumes Are Up 852.5% Who What Wear https://www.whowhatwear.com › Beauty › Fragrance",
+            "href": "https://www.whowhatwear.com/beauty/fragrance/pistachio-perfume-trend",
+            "snippet_or_container_text": "Pistachio Perfumes Are Up 852.5% Who What Wear https://www.whowhatwear.com › Beauty › Fragrance"
+          }
+        ],
+        "people_also_ask_lines": [
+          "What is the best pistachio perfume?",
+          "What does pistachio in perfume smell like?",
+          "What is the most attractive smell in perfume?",
+          "Is pistachio a good perfume?",
+          "Web results",
+          "Pistachio",
+          "Fragrantica",
+          "https://www.fragrantica.com › notes › Pistachio-221",
+          "Odor profile: a green nutty savory note. Vanilla perfume more than ambery notes , overpriced and has a synthetic scent, similar to cheap Dubai perfumes.",
+          "Things to know",
+          "Popular Brands",
+          "."
+        ],
+        "people_also_search_lines": [
+          "Pistachio perfume Lattafa",
+          "PISTACHIO perfume Zara",
+          "Pistachio perfume arabic",
+          "Pistachio perfume KAYALI",
+          "Pistachio perfume Khair",
+          "Pistachio perfume ds&durga",
+          "Pistachio perfume Fine'ry",
+          "Pistachio perfume sephora",
+          "Page Navigation",
+          "1",
+          "2",
+          "3"
+        ],
+        "related_search_lines": [],
+        "product_or_shopping_lines": [
+          "Shopping",
+          "Target",
+          "Walmart",
+          "Ulta Beauty",
+          "Price",
+          "On sale",
+          "Buy",
+          "Under $70",
+          "For Sale",
+          "Popular products",
+          "$28.00",
+          "$12.00",
+          "$25",
+          "Free delivery on $75+",
+          "$29.60",
+          "$47",
+          "Free delivery on $59+",
+          "$29.99",
+          "Walmart - VivaBella",
+          "$21.41",
+          "$34",
+          "$32.00",
+          "Sephora",
+          "Free delivery on $50+",
+          "$25.90",
+          "$29.95",
+          "$12.89",
+          "Free delivery on $35+",
+          "$26.00",
+          "Free delivery on $40+",
+          "$225.00 · In stock · 3.6 (83) · Free delivery · 14-day returns",
+          "What’s the best pistachio perfume? I found a really good Pistachio Brûlée one at Ulta but want one that’s a little more mature or upscale. Thoughts??",
+          "$191.25",
+          "$225",
+          "$100.00",
+          "$125",
+          "$50",
+          "Free delivery on $65+",
+          "$8.18",
+          "$13",
+          "$19.99",
+          "$39",
+          "$20.00",
+          "$26",
+          "$18.00",
+          "$22.04",
+          "$35",
+          "Odor profile: a green nutty savory note. Vanilla perfume more than ambery notes , overpriced and has a synthetic scent, similar to cheap Dubai perfumes.",
+          "More products",
+          "$24.74",
+          "$49.00",
+          "Free delivery on $100+",
+          "LOW PRICE",
+          "$189.43",
+          "Usually $225",
+          "$29.00",
+          "$8.95",
+          "$18.50"
+        ],
+        "video_or_forum_lines": [
+          "Short videos",
+          "Videos",
+          "Reddit · r/Perfumes",
+          "More results from www.reddit.com",
+          "Fragrantica",
+          "https://www.fragrantica.com › notes › Pistachio-221",
+          "YouTube · Ai_TheGreat",
+          "A Strong, Sexy Pistachio Fit For A King! | Mind Games Kingside Review #perfume #fragrance #tiktok",
+          "Daniel Rene Music · YouTube",
+          "Reddit",
+          "please give these baddies a long winter's nap 😴 #perfumetiktok #perfumetok #fragrancetiktok #greenscreen",
+          "PL Smells · TikTok",
+          "Sydney Everhart · YouTube",
+          "TikTok star & online content creator",
+          "TheCherysTv · YouTube",
+          "Kathleensmells · TikTok"
+        ],
+        "footer_or_location_lines": [
+          "Unknown - Can't determine location",
+          "- Update location",
+          "HelpSend feedbackPrivacyTerms"
+        ],
+        "possible_non_us_storefront_or_locale_signals": [
+          "Pistachio, cardamom, roasted almond, vanilla crÃ¨me, and patchouli. Rich, creamy, and true â€” it's pistachio, and that's exactly all it needs to be.",
+          "Mar 30, 2026 — Team Tries: the 5 best pistachio perfumes · DS & Durga Pistachio EDP, £155 for 50ml · M&S Sweet Pistachio EDP, £16 for 50ml · Kayali Yum Pistachio ...Read more"
+        ],
+        "all_links_sample": [
+          {
+            "text": "Accessibility help",
+            "href": "https://support.google.com/websearch/answer/181196?hl=en"
+          },
+          {
+            "text": "",
+            "href": "https://www.google.com/webhp?hl=en&ictx=2&sa=X&ved=0ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQPQgK"
+          },
+          {
+            "text": "",
+            "href": "https://www.google.com/webhp?hl=en&ictx=0&sa=X&ved=0ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQpYkNCAw"
+          },
+          {
+            "text": "Google apps",
+            "href": "https://www.google.com.sg/intl/en/about/products?tab=wh"
+          },
+          {
+            "text": "Sign in",
+            "href": "https://accounts.google.com/ServiceLogin?hl=en&passive=true&continue=https://www.google.com/search%3Fq%3Dpistachio%2520perfume%26hl%3Den%26gl%3Dus%26pws%3D0%26sei%3D1PM7asqPHYGE4-EPhOf6-A0&ec=futura_srp_og_si_72236_p"
+          },
+          {
+            "text": "AI Mode",
+            "href": "https://www.google.com/search?q=pistachio+perfume&sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&udm=50&fbs=ABfTbFVyMZGZf1hfvX9uKjN_-G8cqCQj_06QnZs315LoFmPf5bBLHMJ0vMQmTbuI72DM7jmSm18uaHUIcIw77cYBDAp2cWq8_uMKmJ1HlImTFIfxtmeM7pX7AD292Pldeg6G770XMyaQAsPhpehMMrp2tkAhXxUyOzX4DjKIAFkdtS8B40HS7UX811pSOTYciw5siU0ualiepy7Cr5ypoctPPcTbUJyIhg&aep=1&ntc=1&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQ2J8OegQIERAD"
+          },
+          {
+            "text": "Shopping",
+            "href": "https://www.google.com/search?sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&udm=28&fbs=ABfTbFVyMZGZf1hfvX9uKjN_-G8cqCQj_06QnZs315LoFmPf5bBLHMJ0vMQmTbuI72DM7jmSm18uaHUIcIw77cYBDAp2cWq8_uMKmJ1HlImTFIfxtmeM7pX7AD292Pldeg6G770XMyaQAsPhpehMMrp2tkAhXxUyOzX4DjKIAFkdtS8B40HS7UX811pSOTYciw5siU0ualiepy7Cr5ypoctPPcTbUJyIhg&q=pistachio+perfume&ved=1t:220175&ictx=111"
+          },
+          {
+            "text": "Images",
+            "href": "https://www.google.com/search?sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&udm=2&fbs=ABfTbFVyMZGZf1hfvX9uKjN_-G8cqCQj_06QnZs315LoFmPf5bBLHMJ0vMQmTbuI72DM7jmSm18uaHUIcIw77cYBDAp2cWq8_uMKmJ1HlImTFIfxtmeM7pX7AD292Pldeg6G770XMyaQAsPhpehMMrp2tkAhXxUyOzX4DjKIAFkdtS8B40HS7UX811pSOTYciw5siU0ualiepy7Cr5ypoctPPcTbUJyIhg&q=pistachio+perfume&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQtKgLegQIFhAB"
+          },
+          {
+            "text": "Short videos",
+            "href": "https://www.google.com/search?sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&udm=39&fbs=ABfTbFVyMZGZf1hfvX9uKjN_-G8cqCQj_06QnZs315LoFmPf5bBLHMJ0vMQmTbuI72DM7jmSm18uaHUIcIw77cYBDAp2cWq8_uMKmJ1HlImTFIfxtmeM7pX7AD292Pldeg6G770XMyaQAsPhpehMMrp2tkAhXxUyOzX4DjKIAFkdtS8B40HS7UX811pSOTYciw5siU0ualiepy7Cr5ypoctPPcTbUJyIhg&q=pistachio+perfume&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQs6gLegQIExAB"
+          },
+          {
+            "text": "Videos",
+            "href": "https://www.google.com/search?sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&udm=vids&fbs=ABfTbFVyMZGZf1hfvX9uKjN_-G8cqCQj_06QnZs315LoFmPf5bBLHMJ0vMQmTbuI72DM7jmSm18uaHUIcIw77cYBDAp2cWq8_uMKmJ1HlImTFIfxtmeM7pX7AD292Pldeg6G770XMyaQAsPhpehMMrp2tkAhXxUyOzX4DjKIAFkdtS8B40HS7UX811pSOTYciw5siU0ualiepy7Cr5ypoctPPcTbUJyIhg&q=pistachio+perfume&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQtKgLegQIFBAB"
+          },
+          {
+            "text": "News",
+            "href": "https://www.google.com/search?sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&q=pistachio+perfume&tbm=nws&source=lnms&fbs=ABfTbFVyMZGZf1hfvX9uKjN_-G8cqCQj_06QnZs315LoFmPf5bBLHMJ0vMQmTbuI72DM7jmSm18uaHUIcIw77cYBDAp2cWq8_uMKmJ1HlImTFIfxtmeM7pX7AD292Pldeg6G770XMyaQAsPhpehMMrp2tkAhXxUyOzX4DjKIAFkdtS8B40HS7UX811pSOTYciw5siU0ualiepy7Cr5ypoctPPcTbUJyIhg&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQ0pQJegQIFRAB"
+          },
+          {
+            "text": "Forums",
+            "href": "https://www.google.com/search?sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&udm=18&fbs=ABfTbFVyMZGZf1hfvX9uKjN_-G8cqCQj_06QnZs315LoFmPf5bBLHMJ0vMQmTbuI72DM7jmSm18uaHUIcIw77cYBDAp2cWq8_uMKmJ1HlImTFIfxtmeM7pX7AD292Pldeg6G770XMyaQAsPhpehMMrp2tkAhXxUyOzX4DjKIAFkdtS8B40HS7UX811pSOTYciw5siU0ualiepy7Cr5ypoctPPcTbUJyIhg&q=pistachio+perfume&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQs6gLegUIrgEQAQ"
+          },
+          {
+            "text": "Web",
+            "href": "https://www.google.com/search?sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&udm=web&fbs=ABfTbFVyMZGZf1hfvX9uKjN_-G8cqCQj_06QnZs315LoFmPf5bBLHMJ0vMQmTbuI72DM7jmSm18uaHUIcIw77cYBDAp2cWq8_uMKmJ1HlImTFIfxtmeM7pX7AD292Pldeg6G770XMyaQAsPhpehMMrp2tkAhXxUyOzX4DjKIAFkdtS8B40HS7UX811pSOTYciw5siU0ualiepy7Cr5ypoctPPcTbUJyIhg&q=pistachio+perfume&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQs6gLegUIrwEQAQ"
+          },
+          {
+            "text": "Maps",
+            "href": "https://maps.google.com/maps?sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&output=search&q=pistachio+perfume&source=lnms&fbs=ABfTbFVyMZGZf1hfvX9uKjN_-G8cqCQj_06QnZs315LoFmPf5bBLHMJ0vMQmTbuI72DM7jmSm18uaHUIcIw77cYBDAp2cWq8_uMKmJ1HlImTFIfxtmeM7pX7AD292Pldeg6G770XMyaQAsPhpehMMrp2tkAhXxUyOzX4DjKIAFkdtS8B40HS7UX811pSOTYciw5siU0ualiepy7Cr5ypoctPPcTbUJyIhg&entry=mc&ved=1t:200715&ictx=111"
+          },
+          {
+            "text": "Books",
+            "href": "https://www.google.com/search?sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&q=pistachio+perfume&udm=36&source=lnms&fbs=ABfTbFVyMZGZf1hfvX9uKjN_-G8cqCQj_06QnZs315LoFmPf5bBLHMJ0vMQmTbuI72DM7jmSm18uaHUIcIw77cYBDAp2cWq8_uMKmJ1HlImTFIfxtmeM7pX7AD292Pldeg6G770XMyaQAsPhpehMMrp2tkAhXxUyOzX4DjKIAFkdtS8B40HS7UX811pSOTYciw5siU0ualiepy7Cr5ypoctPPcTbUJyIhg&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQ0pQJegUIvQEQAQ"
+          },
+          {
+            "text": "Any time",
+            "href": "https://www.google.com/search?q=pistachio%20perfume&hl=en&gl=us&pws=0&sei=1PM7asqPHYGE4-EPhOf6-A0#"
+          },
+          {
+            "text": "Past hour",
+            "href": "https://www.google.com/search?q=pistachio+perfume&sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&source=lnt&tbs=qdr:h&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQpwV6BAgHEAY"
+          },
+          {
+            "text": "Past 24 hours",
+            "href": "https://www.google.com/search?q=pistachio+perfume&sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&source=lnt&tbs=qdr:d&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQpwV6BAgHEAc"
+          },
+          {
+            "text": "Past week",
+            "href": "https://www.google.com/search?q=pistachio+perfume&sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&source=lnt&tbs=qdr:w&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQpwV6BAgHEAg"
+          },
+          {
+            "text": "Past month",
+            "href": "https://www.google.com/search?q=pistachio+perfume&sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&source=lnt&tbs=qdr:m&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQpwV6BAgHEAk"
+          },
+          {
+            "text": "Past year",
+            "href": "https://www.google.com/search?q=pistachio+perfume&sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&source=lnt&tbs=qdr:y&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQpwV6BAgHEAo"
+          },
+          {
+            "text": "All results",
+            "href": "https://www.google.com/search?q=pistachio%20perfume&hl=en&gl=us&pws=0&sei=1PM7asqPHYGE4-EPhOf6-A0#"
+          },
+          {
+            "text": "Verbatim",
+            "href": "https://www.google.com/search?q=pistachio+perfume&sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&source=lnt&tbs=li:1&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQpwV6BAgHEBE"
+          },
+          {
+            "text": "Women's",
+            "href": "https://www.google.com/search?q=women%27s+pistachio+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoRcGlzdGFjaGlvIHBlcmZ1bWUyFwgBEgdXb21lbidzOgoI-JZIENqoSTAFWL2qIGAC&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQ268JKAB6BAgYEAY"
+          },
+          {
+            "text": "Men's",
+            "href": "https://www.google.com/search?q=men%27s+pistachio+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoRcGlzdGFjaGlvIHBlcmZ1bWUyFQgBEgVNZW4nczoKCPiWSBDbqEkwBVi9qiBgAg&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQ268JKAF6BAgYEAc"
+          },
+          {
+            "text": "Unisex",
+            "href": "https://www.google.com/search?q=unisex+pistachio+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoRcGlzdGFjaGlvIHBlcmZ1bWUyFggBEgZVbmlzZXg6Cgj4lkgQ3KhJMAVYvaogYAI&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQ268JKAJ6BAgYEAg"
+          },
+          {
+            "text": "4 and up",
+            "href": "https://www.google.com/search?q=pistachio+perfume&hl=en&gl=us&pws=0&shoprs=CAESBWIDCJADGB4qEXBpc3RhY2hpbyBwZXJmdW1lMhUIHhIINCBhbmQgdXAiBWIDCJADQARgAg&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQ268JKAB6BAgYEAw"
+          },
+          {
+            "text": "Bath & Body Works",
+            "href": "https://www.google.com/search?q=bath+%26+body+works+pistachio+perfume&hl=en&gl=us&pws=0&shoprs=CAEYAioRcGlzdGFjaGlvIHBlcmZ1bWUyFQgCEhFCYXRoICYgQm9keSBXb3Jrc1i9qiBgAg&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQ268JKAB6BAgYEBE"
+          },
+          {
+            "text": "Target",
+            "href": "https://www.google.com/search?q=target+pistachio+perfume&hl=en&gl=us&pws=0&shoprs=CAEYAioRcGlzdGFjaGlvIHBlcmZ1bWUyCggCEgZUYXJnZXRYvaogYAI&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQ268JKAF6BAgYEBI"
+          },
+          {
+            "text": "Walmart",
+            "href": "https://www.google.com/search?q=walmart+pistachio+perfume&hl=en&gl=us&pws=0&shoprs=CAEYAioRcGlzdGFjaGlvIHBlcmZ1bWUyCwgCEgdXYWxtYXJ0WL2qIGAC&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQ268JKAJ6BAgYEBM"
+          },
+          {
+            "text": "Ulta Beauty",
+            "href": "https://www.google.com/search?q=ulta+beauty+pistachio+perfume&hl=en&gl=us&pws=0&shoprs=CAEYAioRcGlzdGFjaGlvIHBlcmZ1bWUyDwgCEgtVbHRhIEJlYXV0eVi9qiBgAg&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQ268JKAN6BAgYEBQ"
+          },
+          {
+            "text": "Fragrance",
+            "href": "https://www.google.com/search?q=fragrance+pistachio+perfume&hl=en&gl=us&pws=0&shoprs=CAEYCSoRcGlzdGFjaGlvIHBlcmZ1bWUyDQgJEglGcmFncmFuY2VgAg&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQ268JKAB6BAgYEBo"
+          },
+          {
+            "text": "Unisex Perfume",
+            "href": "https://www.google.com/search?q=unisex+perfume+pistachio&hl=en&gl=us&pws=0&shoprs=CAEYCSoRcGlzdGFjaGlvIHBlcmZ1bWUyEggJEg5VbmlzZXggUGVyZnVtZWAC&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQ268JKAF6BAgYEBs"
+          },
+          {
+            "text": "Candles",
+            "href": "https://www.google.com/search?q=candles+pistachio+perfume&hl=en&gl=us&pws=0&shoprs=CAEYCSoRcGlzdGFjaGlvIHBlcmZ1bWUyCwgJEgdDYW5kbGVzYAI&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQ268JKAJ6BAgYEBw"
+          },
+          {
+            "text": "Travel Size",
+            "href": "https://www.google.com/search?q=travel+size+pistachio+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoRcGlzdGFjaGlvIHBlcmZ1bWUyHQgBEgtUcmF2ZWwgU2l6ZToMCO6IqAEQ74ioATADWL2qIGAC&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQ268JKAB6BAgYECA"
+          },
+          {
+            "text": "Set",
+            "href": "https://www.google.com/search?q=set+pistachio+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoRcGlzdGFjaGlvIHBlcmZ1bWUyEwgBEgNTZXQ6Cgidqy0QnqstMANYvaogYAI&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQ268JKAF6BAgYECE"
+          },
+          {
+            "text": "Vegan",
+            "href": "https://www.google.com/search?q=vegan+pistachio+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoRcGlzdGFjaGlvIHBlcmZ1bWUyFwgBEgVWZWdhbjoMCMK9hwEQw72HATADWL2qIGAC&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQ268JKAJ6BAgYECI"
+          },
+          {
+            "text": "Gifts for Mothers",
+            "href": "https://www.google.com/search?q=gifts+for+mothers+pistachio+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoRcGlzdGFjaGlvIHBlcmZ1bWUyIQgBEhFHaWZ0cyBmb3IgTW90aGVyczoKCPLqPBDz6jwwA1i9qiBgAg&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQ268JKAN6BAgYECM"
+          },
+          {
+            "text": "Spray",
+            "href": "https://www.google.com/search?q=spray+pistachio+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoRcGlzdGFjaGlvIHBlcmZ1bWUyFQgBEgVTcHJheToKCMi5RhDJuUYwAFi9qiBgAg&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQ268JKAB6BAgYECk"
+          },
+          {
+            "text": "Oil",
+            "href": "https://www.google.com/search?q=oil+pistachio+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoRcGlzdGFjaGlvIHBlcmZ1bWUyEwgBEgNPaWw6CgjIuUYQ0rlGMABYvaogYAI&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQ268JKAF6BAgYECo"
+          },
+          {
+            "text": "Roll-on",
+            "href": "https://www.google.com/search?q=roll-on+pistachio+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoRcGlzdGFjaGlvIHBlcmZ1bWUyFwgBEgdSb2xsLW9uOgoIyLlGENO5RjAAWL2qIGAC&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQ268JKAJ6BAgYECs"
+          },
+          {
+            "text": "Under $70",
+            "href": "https://www.google.com/search?q=pistachio+perfume+under+$70&hl=en&gl=us&pws=0&shoprs=CAESDRILEQAAAAB2sJBBGAEYBSoRcGlzdGFjaGlvIHBlcmZ1bWUyIggFEglVbmRlciAkNzAYAiINEgsRAAAAAHawkEEYASoCGAFYvaogYAI&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQ268JKAB6BAgYEC8"
+          },
+          {
+            "text": "Over $70",
+            "href": "https://www.google.com/search?q=pistachio+perfume+over+$70&hl=en&gl=us&pws=0&shoprs=CAESDRILCQAAAAB2sJBBGAEYBSoRcGlzdGFjaGlvIHBlcmZ1bWUyIQgFEghPdmVyICQ3MBgCIg0SCwkAAAAAdrCQQRgBKgIYAVi9qiBgAg&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQ268JKAF6BAgYEDA"
+          },
+          {
+            "text": "Price: low to high",
+            "href": "https://www.google.com/search?q=pistachio+perfume&hl=en&gl=us&pws=0&shoprs=CAEYFyoRcGlzdGFjaGlvIHBlcmZ1bWUyHAgXEhJQcmljZTogbG93IHRvIGhpZ2gqBBABGAFgAogBAQ&udm=3&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQ268JKAB6BAgYEDc"
+          },
+          {
+            "text": "Price: high to low",
+            "href": "https://www.google.com/search?q=pistachio+perfume&hl=en&gl=us&pws=0&shoprs=CAEYFyoRcGlzdGFjaGlvIHBlcmZ1bWUyHAgXEhJQcmljZTogaGlnaCB0byBsb3cqBBABGAFgAogBAg&udm=3&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQ268JKAF6BAgYEDg"
+          },
+          {
+            "text": "Eau de Parfum",
+            "href": "https://www.google.com/search?q=eau+de+parfum+pistachio+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoRcGlzdGFjaGlvIHBlcmZ1bWUyHQgBEg1FYXUgZGUgUGFyZnVtOgoI3qotENuqLTACWL2qIGAC&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQ268JKAB6BAgYEDw"
+          },
+          {
+            "text": "Body Spray",
+            "href": "https://www.google.com/search?q=body+spray+pistachio+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoRcGlzdGFjaGlvIHBlcmZ1bWUyGwgBEgpCb2R5IFNwcmF5OgsI3qotEKbqqAEwAli9qiBgAg&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQ268JKAF6BAgYED0"
+          },
+          {
+            "text": "Eau de Toilette",
+            "href": "https://www.google.com/search?q=eau+de+toilette+pistachio+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoRcGlzdGFjaGlvIHBlcmZ1bWUyHwgBEg9FYXUgZGUgVG9pbGV0dGU6Cgjeqi0Q36otMAJYvaogYAI&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQ268JKAJ6BAgYED4"
+          },
+          {
+            "text": "Cologne",
+            "href": "https://www.google.com/search?q=cologne+pistachio+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoRcGlzdGFjaGlvIHBlcmZ1bWUyFwgBEgdDb2xvZ25lOgoI3qotENyqLTACWL2qIGAC&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQ268JKAN6BAgYED8"
+          },
+          {
+            "text": "Cruelty-free",
+            "href": "https://www.google.com/search?q=cruelty-free+pistachio+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoRcGlzdGFjaGlvIHBlcmZ1bWUyHggBEgxDcnVlbHR5LWZyZWU6DAjdorQBENf4wgEwAFi9qiBgAg&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQ268JKAB6BAgYEEM"
+          },
+          {
+            "text": "Organic",
+            "href": "https://www.google.com/search?q=organic+pistachio+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoRcGlzdGFjaGlvIHBlcmZ1bWUyGQgBEgdPcmdhbmljOgwI3aK0ARDeorQBMABYvaogYAI&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQ268JKAF6BAgYEEQ"
+          },
+          {
+            "text": "Victoria's Secret",
+            "href": "https://www.google.com/search?q=victoria%27s+secret+pistachio+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoRcGlzdGFjaGlvIHBlcmZ1bWUyIQgBEhFWaWN0b3JpYSdzIFNlY3JldDoKCIPzPBDG5D0wAVi9qiBgAg&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQ268JKAB6BAgYEEg"
+          },
+          {
+            "text": "Kayali",
+            "href": "https://www.google.com/search?q=kayali+pistachio+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoRcGlzdGFjaGlvIHBlcmZ1bWUyFwgBEgZLYXlhbGk6CwiD8zwQ9OiRAzABWL2qIGAC&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQ268JKAF6BAgYEEk"
+          },
+          {
+            "text": "D.S. & Durga",
+            "href": "https://www.google.com/search?q=d.s.+%26+durga+pistachio+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoRcGlzdGFjaGlvIHBlcmZ1bWUyHQgBEgxELlMuICYgRHVyZ2E6CwiD8zwQmdOqATABWL2qIGAC&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQ268JKAJ6BAgYEEo"
+          },
+          {
+            "text": "ZARA",
+            "href": "https://www.google.com/search?q=zara+pistachio+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoRcGlzdGFjaGlvIHBlcmZ1bWUyFAgBEgRaQVJBOgoIg_M8EI26PjABWL2qIGAC&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQ268JKAN6BAgYEEs"
+          },
+          {
+            "text": "Free shipping",
+            "href": "https://www.google.com/search?q=pistachio+perfume+free+shipping&hl=en&gl=us&pws=0&shoprs=CAESBFICEAEYGSoRcGlzdGFjaGlvIHBlcmZ1bWUyFwgZEg1GcmVlIHNoaXBwaW5nIgRSAhABYAI&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQ268JKAB6BAgYEFE"
+          },
+          {
+            "text": "Women's",
+            "href": "https://www.google.com/search?q=women%27s+pistachio+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoRcGlzdGFjaGlvIHBlcmZ1bWUyFwgBEgdXb21lbidzOgoI-JZIENqoSTAFWL2qIGAB&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQip4GKAF6BAgYEFY"
+          },
+          {
+            "text": "Nearby",
+            "href": "https://www.google.com/search?q=pistachio+perfume+nearby&hl=en&gl=us&pws=0&shoprs=CAEYAyoRcGlzdGFjaGlvIHBlcmZ1bWUyDAgDEgZOZWFyYnkYAli9qiBgAQ&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQip4GKAJ6BAgYEFc"
+          },
+          {
+            "text": "On sale",
+            "href": "https://www.google.com/search?q=pistachio+perfume+sale&hl=en&gl=us&pws=0&shoprs=CAESBEoCGAEYBioRcGlzdGFjaGlvIHBlcmZ1bWUyEwgGEgdPbiBzYWxlGAIiBEoCGAFYvaogYAE&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQip4GKAN6BAgYEFg"
+          },
+          {
+            "text": "Men's",
+            "href": "https://www.google.com/search?q=men%27s+pistachio+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoRcGlzdGFjaGlvIHBlcmZ1bWUyFQgBEgVNZW4nczoKCPiWSBDbqEkwBVi9qiBgAQ&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQip4GKAR6BAgYEFk"
+          },
+          {
+            "text": "Bath & Body Works",
+            "href": "https://www.google.com/search?q=bath+%26+body+works+pistachio+perfume&hl=en&gl=us&pws=0&shoprs=CAEYAioRcGlzdGFjaGlvIHBlcmZ1bWUyFQgCEhFCYXRoICYgQm9keSBXb3Jrc1i9qiBgAQ&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQip4GKAV6BAgYEFo"
+          },
+          {
+            "text": "Reviews",
+            "href": "https://www.google.com/search?q=reviews+pistachio+perfume&hl=en&gl=us&pws=0&shoprs=CAEYEioRcGlzdGFjaGlvIHBlcmZ1bWUyCwgSEgdSZXZpZXdzYAE&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQip4GKAZ6BAgYEFw"
+          },
+          {
+            "text": "Fragrance",
+            "href": "https://www.google.com/search?q=fragrance+pistachio+perfume&hl=en&gl=us&pws=0&shoprs=CAEYCSoRcGlzdGFjaGlvIHBlcmZ1bWUyDQgJEglGcmFncmFuY2VgAQ&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQip4GKAd6BAgYEF0"
+          },
+          {
+            "text": "Buy",
+            "href": "https://www.google.com/search?q=buy+pistachio+perfume&hl=en&gl=us&pws=0&shoprs=CAEYEioRcGlzdGFjaGlvIHBlcmZ1bWUyBwgSEgNCdXlgAQ&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQip4GKAh6BAgYEF4"
+          },
+          {
+            "text": "Unisex",
+            "href": "https://www.google.com/search?q=unisex+pistachio+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoRcGlzdGFjaGlvIHBlcmZ1bWUyFggBEgZVbmlzZXg6Cgj4lkgQ3KhJMAVYvaogYAE&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQip4GKAl6BAgYEF8"
+          },
+          {
+            "text": "Travel Size",
+            "href": "https://www.google.com/search?q=travel+size+pistachio+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoRcGlzdGFjaGlvIHBlcmZ1bWUyHQgBEgtUcmF2ZWwgU2l6ZToMCO6IqAEQ74ioATADWL2qIGAB&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQip4GKAp6BAgYEGA"
+          },
+          {
+            "text": "Get it by Fri",
+            "href": "https://www.google.com/search?q=pistachio+perfume&hl=en&gl=us&pws=0&shoprs=CAESDZoBCgoIEAI4AUAFSAEYFCoRcGlzdGFjaGlvIHBlcmZ1bWUyJggUEg1HZXQgaXQgYnkgRnJpIg2aAQoKCBACOAFABUgBKgQQARgBYAE&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQip4GKAt6BAgYEGE"
+          },
+          {
+            "text": "Spray",
+            "href": "https://www.google.com/search?q=spray+pistachio+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoRcGlzdGFjaGlvIHBlcmZ1bWUyFQgBEgVTcHJheToKCMi5RhDJuUYwAFi9qiBgAQ&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQip4GKAx6BAgYEGI"
+          },
+          {
+            "text": "Brand",
+            "href": "https://www.google.com/search?q=brand+pistachio+perfume&hl=en&gl=us&pws=0&shoprs=CAEYEioRcGlzdGFjaGlvIHBlcmZ1bWUyCQgSEgVCcmFuZGAB&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQip4GKA16BAgYEGM"
+          },
+          {
+            "text": "Price",
+            "href": "https://www.google.com/search?q=price+pistachio+perfume&hl=en&gl=us&pws=0&shoprs=CAEYEioRcGlzdGFjaGlvIHBlcmZ1bWUyCQgSEgVQcmljZWAB&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQip4GKA56BAgYEGQ"
+          },
+          {
+            "text": "Under $70",
+            "href": "https://www.google.com/search?q=pistachio+perfume+under+$70&hl=en&gl=us&pws=0&shoprs=CAESDRILEQAAAAB2sJBBGAEYBSoRcGlzdGFjaGlvIHBlcmZ1bWUyIggFEglVbmRlciAkNzAYAiINEgsRAAAAAHawkEEYASoCGAFYvaogYAE&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQip4GKA96BAgYEGU"
+          },
+          {
+            "text": "Oil",
+            "href": "https://www.google.com/search?q=oil+pistachio+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoRcGlzdGFjaGlvIHBlcmZ1bWUyEwgBEgNPaWw6CgjIuUYQ0rlGMABYvaogYAE&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQip4GKBB6BAgYEGY"
+          },
+          {
+            "text": "Set",
+            "href": "https://www.google.com/search?q=set+pistachio+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoRcGlzdGFjaGlvIHBlcmZ1bWUyEwgBEgNTZXQ6Cgidqy0QnqstMANYvaogYAE&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQip4GKBF6BAgYEGc"
+          },
+          {
+            "text": "Eau de Parfum",
+            "href": "https://www.google.com/search?q=eau+de+parfum+pistachio+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoRcGlzdGFjaGlvIHBlcmZ1bWUyHQgBEg1FYXUgZGUgUGFyZnVtOgoI3qotENuqLTACWL2qIGAB&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQip4GKBJ6BAgYEGg"
+          },
+          {
+            "text": "Original",
+            "href": "https://www.google.com/search?q=original+pistachio+perfume&hl=en&gl=us&pws=0&shoprs=CAEYEioRcGlzdGFjaGlvIHBlcmZ1bWUyDAgSEghPcmlnaW5hbGAB&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQip4GKBN6BAgYEGk"
+          },
+          {
+            "text": "Unisex Perfume",
+            "href": "https://www.google.com/search?q=unisex+perfume+pistachio&hl=en&gl=us&pws=0&shoprs=CAEYCSoRcGlzdGFjaGlvIHBlcmZ1bWUyEggJEg5VbmlzZXggUGVyZnVtZWAB&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQip4GKBR6BAgYEGo"
+          },
+          {
+            "text": "Target",
+            "href": "https://www.google.com/search?q=target+pistachio+perfume&hl=en&gl=us&pws=0&shoprs=CAEYAioRcGlzdGFjaGlvIHBlcmZ1bWUyCggCEgZUYXJnZXRYvaogYAE&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQip4GKBV6BAgYEGs"
+          },
+          {
+            "text": "Free",
+            "href": "https://www.google.com/search?q=free+pistachio+perfume&hl=en&gl=us&pws=0&shoprs=CAEYEioRcGlzdGFjaGlvIHBlcmZ1bWUyCAgSEgRGcmVlYAE&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQip4GKBZ6BAgYEG0"
+          },
+          {
+            "text": "Sweet",
+            "href": "https://www.google.com/search?q=sweet+pistachio+perfume&hl=en&gl=us&pws=0&shoprs=CAEYEioRcGlzdGFjaGlvIHBlcmZ1bWUyCQgSEgVTd2VldGAB&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQip4GKBd6BAgYEG4"
+          },
+          {
+            "text": "For Sale",
+            "href": "https://www.google.com/search?q=pistachio+perfume+for+sale&hl=en&gl=us&pws=0&shoprs=CAEYEioRcGlzdGFjaGlvIHBlcmZ1bWUyDAgSEghGb3IgU2FsZWAB&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQip4GKBh6BAgYEG8"
+          },
+          {
+            "text": "Vegan",
+            "href": "https://www.google.com/search?q=vegan+pistachio+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoRcGlzdGFjaGlvIHBlcmZ1bWUyFwgBEgVWZWdhbjoMCMK9hwEQw72HATADWL2qIGAB&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQip4GKBl6BAgYEHA"
+          },
+          {
+            "text": "Walmart",
+            "href": "https://www.google.com/search?q=walmart+pistachio+perfume&hl=en&gl=us&pws=0&shoprs=CAEYAioRcGlzdGFjaGlvIHBlcmZ1bWUyCwgCEgdXYWxtYXJ0WL2qIGAB&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQip4GKBp6BAgYEHE"
+          },
+          {
+            "text": "Doesn't get too heavy or cooling on my skin · Juicy, sweet, and freshTikTok",
+            "href": "https://www.tiktok.com/@kelsielynnxoxo/video/7479221499551943941"
+          },
+          {
+            "text": "Smells incredible · Kind of sour to my noseTikTok",
+            "href": "https://www.tiktok.com/@musingsofacurvylady/video/7458289074701356319"
+          },
+          {
+            "text": "Lovely perfume for day time wear · Nutty freshnessReddit",
+            "href": "https://www.reddit.com/r/desifemfrag/comments/1fcvvpq/khair_pistachio_review/"
+          },
+          {
+            "text": "Struggles to sustain itself on my skin · Smells too fresh and almost screechyReddit",
+            "href": "https://www.reddit.com/r/fragrance/comments/11z5e26/kayali_yum_pistachio_gelato_33_review/"
+          },
+          {
+            "text": "Pistachio Eau de Parfum D.S. & DURGA https://www.dsanddurga.com › products › pistachio",
+            "href": "https://www.dsanddurga.com/products/pistachio?srsltid=AfmBOorHvjwywtK3ILNCQozLILSPGClzlARFFM5NgPYTepVM6sSDK9W2"
+          },
+          {
+            "text": "",
+            "href": "https://www.dsanddurga.com/products/pistachio?srsltid=AfmBOorHvjwywtK3ILNCQozLILSPGClzlARFFM5NgPYTepVM6sSDK9W2"
+          },
+          {
+            "text": "83",
+            "href": "https://www.google.com/search?q=Pistachio+-+D.S.+%26+DURGA&ibp=oshop&prds=catalogid:15996303830647569594,headlineOfferDocid:14284529237859957475,rds:PC_3427942167259651787%7CPROD_PC_3427942167259651787,pvo:21,query:Pistachio+-+D.S.+%26+DURGA,pvt:hg&hl=en-US&gl=us&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQrd8PegQIIBAG"
+          },
+          {
+            "text": "Best pistachio scent? : r/Perfumes Reddit · r/Perfumes 50+ comments · 1 year ago",
+            "href": "https://www.reddit.com/r/Perfumes/comments/1ds4mtk/best_pistachio_scent/"
+          },
+          {
+            "text": "51 answers",
+            "href": "https://www.reddit.com/r/Perfumes/comments/1ds4mtk/best_pistachio_scent/lazuy76/"
+          },
+          {
+            "text": "Favourite Fragrances with Pistachio? : r/FemFragLab ...",
+            "href": "https://www.reddit.com/r/FemFragLab/comments/1iiy6t3/favourite_fragrances_with_pistachio/"
+          },
+          {
+            "text": "What are your favourite pistachio fragrances? : r ...",
+            "href": "https://www.reddit.com/r/FemFragLab/comments/12myyer/what_are_your_favourite_pistachio_fragrances/"
+          },
+          {
+            "text": "More results from www.reddit.com",
+            "href": "https://www.google.com/search?q=pistachio+perfume+site:www.reddit.com&sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQrQIoAnoECBwQAw"
+          },
+          {
+            "text": "Pistachio Brûlée Eau de Parfum Le Monde Gourmand https://www.gourmandbeauty.com › products › pistachi...",
+            "href": "https://www.gourmandbeauty.com/products/pistachio-brulee-eau-de-parfum?srsltid=AfmBOopOecK3uO3OKeNVWvuE3cfuj_GPnkCb52ms4I3Wh4J-X55M6RJb"
+          },
+          {
+            "text": "Read more",
+            "href": "https://www.gourmandbeauty.com/products/pistachio-brulee-eau-de-parfum?srsltid=AfmBOopOecK3uO3OKeNVWvuE3cfuj_GPnkCb52ms4I3Wh4J-X55M6RJb#:~:text=Our%20first%20ever%20fragrance%2C%20Pistachio,and%20(not%20so)%20Vanilla%20Bean."
+          },
+          {
+            "text": "",
+            "href": "https://www.gourmandbeauty.com/products/pistachio-brulee-eau-de-parfum?srsltid=AfmBOopOecK3uO3OKeNVWvuE3cfuj_GPnkCb52ms4I3Wh4J-X55M6RJb"
+          },
+          {
+            "text": "Smells incredible · Kind of sour to my noseTikTok",
+            "href": "https://www.tiktok.com/@musingsofacurvylady/video/7458289074701356319"
+          },
+          {
+            "text": "Lovely perfume for day time wear · Nutty freshnessReddit",
+            "href": "https://www.reddit.com/r/desifemfrag/comments/1fcvvpq/khair_pistachio_review/"
+          },
+          {
+            "text": "Very fresh and light · Does not last very longTikTok",
+            "href": "https://www.tiktok.com/@perfumerism/video/7232326673964862725"
+          },
+          {
+            "text": "Smells nice--like cookies · The notes are weird and quite peculiar to meFragrantica",
+            "href": "https://www.fragrantica.com/perfume/Rosy-Earnest/Pistachio-Delight-92219.html"
+          },
+          {
+            "text": "Light and energizing profile · Perfect for everyday wearNow Smell This",
+            "href": "https://nstperfume.com/2025/01/24/elizabeth-arden-green-tea-pistachio-crunch-new-fragrance/"
+          },
+          {
+            "text": "Give me specific examples of pistachio perfumes",
+            "href": "https://www.google.com/search?sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&udm=50&q=What+does+pistachio+in+perfume+smell+like%3F+Give+me+specific+examples+of+pistachio+perfumes&aep=64&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQy8AQKAB6BAg-EAc"
+          },
+          {
+            "text": "List popular brands",
+            "href": "https://www.google.com/search?sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&udm=50&q=What+does+pistachio+in+perfume+smell+like%3F+List+popular+brands&aep=64&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQy8AQKAF6BAg-EAg"
+          },
+          {
+            "text": "Explain \"gourmand\" scent",
+            "href": "https://www.google.com/search?sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&udm=50&q=What+does+pistachio+in+perfume+smell+like%3F+Explain+%22gourmand%22+scent&aep=64&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQy8AQKAJ6BAg-EAk"
+          },
+          {
+            "text": "Team Tries: the 5 best pistachio perfumes - Get the GlossGet the Glosshttps://www.getthegloss.com › Fragrance",
+            "href": "https://www.getthegloss.com/beauty/fragrance/team-tries-best-pistachio-perfumes/#:~:text=But%20what%20do%20pistachio%20scents,notes%2C%20such%20as%20vanilla.%E2%80%9D"
+          },
+          {
+            "text": "Pistachio Fragrantica https://www.fragrantica.com › notes › Pistachio-221",
+            "href": "https://www.fragrantica.com/notes/Pistachio-221.html"
+          },
+          {
+            "text": "Kayali (Yum Pistachio Gelato)",
+            "href": "https://www.google.com/search?sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&q=Kayali+(Yum+Pistachio+Gelato)&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQxccNegUIxAIQAQ"
+          },
+          {
+            "text": "D.S. & Durga (Pistachio)",
+            "href": "https://www.google.com/search?sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&q=D.S.+%26+Durga+(Pistachio)&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQxccNegUIxAIQAg"
+          },
+          {
+            "text": "Sol de Janeiro (Sol Cheirosa '62)",
+            "href": "https://www.google.com/search?sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&q=Sol+de+Janeiro+(Sol+Cheirosa+%2762)&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQxccNegUIxAIQAw"
+          },
+          {
+            "text": "Le Monde Gourmand (Pistachio Brûlée)",
+            "href": "https://www.google.com/search?sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&q=Le+Monde+Gourmand+(Pistachio+Br%C3%BBl%C3%A9e)&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQxccNegUIxAIQBA"
+          },
+          {
+            "text": "Finery (Pistachio Please)",
+            "href": "https://www.google.com/search?sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&q=Finery+(Pistachio+Please)&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQxccNegUIxAIQBQ"
+          },
+          {
+            "text": "Theodoros Kalotinis Pistachio",
+            "href": "https://www.google.com/search?sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&q=Theodoros+Kalotinis+Pistachio&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQxccNegUIogMQAQ"
+          },
+          {
+            "text": "Zara Pistachio Butter",
+            "href": "https://www.google.com/search?sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&q=Zara+Pistachio+Butter&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQxccNegUItQMQAQ"
+          },
+          {
+            "text": "Hermès Un Jardin à Cythère",
+            "href": "https://www.google.com/search?sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&q=Herm%C3%A8s+Un+Jardin+%C3%A0+Cyth%C3%A8re&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQxccNegUIzwMQAQ"
+          },
+          {
+            "text": "Born To Standout in Nuts",
+            "href": "https://www.google.com/search?sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&q=Born+To+Standout+in+Nuts&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQxccNegUIowMQAQ"
+          },
+          {
+            "text": "Khair Pistachio by Paris Corner",
+            "href": "https://www.google.com/search?sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&q=Khair+Pistachio+by+Paris+Corner&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQxccNegUIvQMQAQ"
+          },
+          {
+            "text": "Top 20 Pistachio Fragrances That Smell Absolutely Delicious",
+            "href": "https://www.youtube.com/watch?v=GALZBH0xgXQ&t=189"
+          },
+          {
+            "text": "Favourite Fragrances with Pistachio? : r/FemFragLab - Reddit",
+            "href": "https://www.reddit.com/r/FemFragLab/comments/1iiy6t3/favourite_fragrances_with_pistachio/#:~:text=I%20like%20yum%20pistachio%20gelato,cozy%2C%20comfy%2C%20creamy%20pistachio."
+          },
+          {
+            "text": "Favourite Fragrances with Pistachio? : r/FemFragLab - Reddit",
+            "href": "https://www.reddit.com/r/FemFragLab/comments/1iiy6t3/favourite_fragrances_with_pistachio/#:~:text=DS%20&%20Durga%20Pistachio!,and%20base%20notes%20of%20pistachio.&text=Khair%20Pistachio%20is%20a%20nice%2C%20light%20pistachio%20scent."
+          },
+          {
+            "text": "Top 5 Best Pistachio Perfumes Reviewed",
+            "href": "https://www.tiktok.com/@redolessence/video/7491114738961632555"
+          },
+          {
+            "text": "Pistachio Perfumes Suggestion : r/FemFragLab - Reddit",
+            "href": "https://www.reddit.com/r/FemFragLab/comments/1ptrriu/pistachio_perfumes_suggestion/"
+          },
+          {
+            "text": "Team Tries: the 5 best pistachio perfumes - Get the Gloss",
+            "href": "https://www.getthegloss.com/beauty/fragrance/team-tries-best-pistachio-perfumes/"
+          },
+          {
+            "text": "The Best Pistachio Perfumes of 2026 | Stories | Harrods US",
+            "href": "https://www.harrods.com/en-us/c/stories/beauty/best-pistachio-perfumes#:~:text=Herm%C3%A8s%20Un%20Jardin%20%C3%A0%20Cyth%C3%A8re,world%20in%20one%20enticing%20perfume."
+          },
+          {
+            "text": "Pistachio Is Summer '26's #1 Perfume Note: The 11 Best Scents",
+            "href": "https://www.whowhatwear.com/beauty/fragrance/pistachio-perfume-trend#:~:text=The%20Top%205%20Pistachio%20Perfumes%2C%20Listed,$300"
+          },
+          {
+            "text": "The Best Pistachio Perfumes of 2026 | Stories | Harrods UK",
+            "href": "https://www.harrods.com/en-gb/c/stories/beauty/best-pistachio-perfumes"
+          },
+          {
+            "text": "Top 20 Pistachio Fragrances That Smell Absolutely Delicious",
+            "href": "https://www.youtube.com/watch?v=GALZBH0xgXQ&t=189"
+          },
+          {
+            "text": "Top 5 Best Pistachio Perfumes Reviewed",
+            "href": "https://www.tiktok.com/@redolessence/video/7491114738961632555"
+          },
+          {
+            "text": "Team Tries: the 5 best pistachio perfumes - Get the Gloss",
+            "href": "https://www.getthegloss.com/beauty/fragrance/team-tries-best-pistachio-perfumes/"
+          },
+          {
+            "text": "Pistachio Is Summer '26's #1 Perfume Note: The 11 Best Scents",
+            "href": "https://www.whowhatwear.com/beauty/fragrance/pistachio-perfume-trend#:~:text=The%20Top%205%20Pistachio%20Perfumes%2C%20Listed,$300"
+          },
+          {
+            "text": "Favourite Fragrances with Pistachio? : r/FemFragLab - Reddit",
+            "href": "https://www.reddit.com/r/FemFragLab/comments/1iiy6t3/favourite_fragrances_with_pistachio/#:~:text=I%20like%20yum%20pistachio%20gelato,cozy%2C%20comfy%2C%20creamy%20pistachio."
+          },
+          {
+            "text": "Favourite Fragrances with Pistachio? : r/FemFragLab - Reddit",
+            "href": "https://www.reddit.com/r/FemFragLab/comments/1iiy6t3/favourite_fragrances_with_pistachio/#:~:text=DS%20&%20Durga%20Pistachio!,and%20base%20notes%20of%20pistachio.&text=Khair%20Pistachio%20is%20a%20nice%2C%20light%20pistachio%20scent."
+          },
+          {
+            "text": "Pistachio Perfumes Suggestion : r/FemFragLab - Reddit",
+            "href": "https://www.reddit.com/r/FemFragLab/comments/1ptrriu/pistachio_perfumes_suggestion/"
+          },
+          {
+            "text": "The Best Pistachio Perfumes of 2026 | Stories | Harrods US",
+            "href": "https://www.harrods.com/en-us/c/stories/beauty/best-pistachio-perfumes#:~:text=Herm%C3%A8s%20Un%20Jardin%20%C3%A0%20Cyth%C3%A8re,world%20in%20one%20enticing%20perfume."
+          },
+          {
+            "text": "The Best Pistachio Perfumes of 2026 | Stories | Harrods UK",
+            "href": "https://www.harrods.com/en-gb/c/stories/beauty/best-pistachio-perfumes"
+          },
+          {
+            "text": "What are the popular brands of pistachio perfume?",
+            "href": "https://www.google.com/search?sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&q=what+are+the+popular+brands+of+pistachio+perfume&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQrooIegQIMxAP"
+          },
+          {
+            "text": "Kayali Yum Pistachio Gelato | 33",
+            "href": "https://www.google.com/search?sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&q=Kayali+Yum+Pistachio+Gelato+%7C+33&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQxccNegUI6AEQAQ"
+          },
+          {
+            "text": "D.S. & DURGA Pistachio",
+            "href": "https://www.google.com/search?sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&q=D.S.+%26+DURGA+Pistachio&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQxccNegUI9AEQAQ"
+          },
+          {
+            "text": "Fine'ry. Pistachio Please",
+            "href": "https://www.google.com/search?sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&q=Fine%27ry.+Pistachio+Please&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQxccNegUIhQIQAQ"
+          },
+          {
+            "text": "Ellis Brooklyn Forever Pistachio",
+            "href": "https://www.google.com/search?sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&q=Ellis+Brooklyn+Forever+Pistachio&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQxccNegUIkgIQAQ"
+          },
+          {
+            "text": "PISTACHIO AGREEMENT : r/DIYfragrance - Reddit",
+            "href": "https://www.reddit.com/r/DIYfragrance/comments/1kegx0v/pistachio_agreement/#:~:text=Pistachio%20Thiazole:%202%2Dethyl%2D4%2Dmethyl%20thiazole%20is%20suggested%20as,combined%20with%20other%20gourmand%20and%20nutty%20materials."
+          },
+          {
+            "text": "PISTACHIO AGREEMENT : r/DIYfragrance - Reddit",
+            "href": "https://www.reddit.com/r/DIYfragrance/comments/1kegx0v/pistachio_agreement/#:~:text=Pyrazine%20Compounds:%20Pyrazines%2C%20including%202%2C3%2Ddimethylpyrazine%20(walnut%20pyrazine)%2C,three%20being%20more%20commonly%20available%20for%20perfumery."
+          },
+          {
+            "text": "Pistachio Eau de Parfum | D.S. & DURGA",
+            "href": "https://www.dsanddurga.com/products/pistachio"
+          },
+          {
+            "text": "Green Tea Pistachio Crunch Eau de Toilette Fragrance - Elizabeth Arden",
+            "href": "https://www.elizabetharden.com/products/green-tea-pistachio-crunch-eau-de-toilette#:~:text=Full%20Ingredients:%20Alcohol%20Denat.,B05697"
+          },
+          {
+            "text": "Pistachio Delight - eau de parfum",
+            "href": "https://rosyandearnest.com/en-us/products/pistachio-delight-eau-de-parfum"
+          },
+          {
+            "text": "fine'ry. Eau de Parfum Women's Perfume - Pistachio Please - 2 fl oz",
+            "href": "https://www.target.com/p/fine-39-ry-eau-de-women-39-s-parfum-perfume-pistachio-please-2-fl-oz/-/A-89260305#:~:text=Ingredients:,benzyl%20salicylate%2C%20linalool%2C%20farnesol."
+          },
+          {
+            "text": "FOREVER PISTACHIO Perfume Mist - Ellis Brooklyn",
+            "href": "https://www.ellisbrooklyn.com/products/forever-pistachio-perfume-mist#:~:text=Pick%20two%20samples,%2C%20Terpinolene%2C%20Tetramethyl%20Acetyloctahydronaphthalenes%2C%20Vanillin"
+          },
+          {
+            "text": "Pistachio Please - Eau de Parfum - Finery Fragrance",
+            "href": "https://fineryfragrance.com/products/pistachio-please-parfum-perfume"
+          },
+          {
+            "text": "Yum Pistachio Gelato | 33 Kayali Fragrances for women and men",
+            "href": "https://www.fragrantica.com/perfume/Kayali-Fragrances/Yum-Pistachio-Gelato-33-79846.html"
+          },
+          {
+            "text": "What Does Pistachio Smell Like? Perfumery Guide - CA Perfume Club",
+            "href": "https://caperfume.com/pages/discover-ingredient/pistachio#:~:text=How%20is%20a%20captivating%20Pistachio,the%20backbone%20of%20the%20accord."
+          },
+          {
+            "text": "Green Tea Pistachio Crunch Eau de Toilette Fragrance - Elizabeth Arden",
+            "href": "https://www.elizabetharden.com/products/green-tea-pistachio-crunch-eau-de-toilette#:~:text=Full%20Ingredients:%20Alcohol%20Denat.,B05697"
+          },
+          {
+            "text": "Pistachio Please - Eau de Parfum - Finery Fragrance",
+            "href": "https://fineryfragrance.com/products/pistachio-please-parfum-perfume"
+          },
+          {
+            "text": "Yum Pistachio Gelato | 33 Kayali Fragrances for women and men",
+            "href": "https://www.fragrantica.com/perfume/Kayali-Fragrances/Yum-Pistachio-Gelato-33-79846.html"
+          },
+          {
+            "text": "What Does Pistachio Smell Like? Perfumery Guide - CA Perfume Club",
+            "href": "https://caperfume.com/pages/discover-ingredient/pistachio#:~:text=How%20is%20a%20captivating%20Pistachio,the%20backbone%20of%20the%20accord."
+          },
+          {
+            "text": "PISTACHIO AGREEMENT : r/DIYfragrance - Reddit",
+            "href": "https://www.reddit.com/r/DIYfragrance/comments/1kegx0v/pistachio_agreement/#:~:text=Pistachio%20Thiazole:%202%2Dethyl%2D4%2Dmethyl%20thiazole%20is%20suggested%20as,combined%20with%20other%20gourmand%20and%20nutty%20materials."
+          },
+          {
+            "text": "Pistachio Delight - eau de parfum",
+            "href": "https://rosyandearnest.com/en-us/products/pistachio-delight-eau-de-parfum"
+          },
+          {
+            "text": "Pistachio Eau de Parfum | D.S. & DURGA",
+            "href": "https://www.dsanddurga.com/products/pistachio"
+          },
+          {
+            "text": "FOREVER PISTACHIO Perfume Mist - Ellis Brooklyn",
+            "href": "https://www.ellisbrooklyn.com/products/forever-pistachio-perfume-mist#:~:text=Pick%20two%20samples,%2C%20Terpinolene%2C%20Tetramethyl%20Acetyloctahydronaphthalenes%2C%20Vanillin"
+          },
+          {
+            "text": "PISTACHIO AGREEMENT : r/DIYfragrance - Reddit",
+            "href": "https://www.reddit.com/r/DIYfragrance/comments/1kegx0v/pistachio_agreement/#:~:text=Pyrazine%20Compounds:%20Pyrazines%2C%20including%202%2C3%2Ddimethylpyrazine%20(walnut%20pyrazine)%2C,three%20being%20more%20commonly%20available%20for%20perfumery."
+          },
+          {
+            "text": "fine'ry. Eau de Parfum Women's Perfume - Pistachio Please - 2 fl oz",
+            "href": "https://www.target.com/p/fine-39-ry-eau-de-women-39-s-parfum-perfume-pistachio-please-2-fl-oz/-/A-89260305#:~:text=Ingredients:,benzyl%20salicylate%2C%20linalool%2C%20farnesol."
+          },
+          {
+            "text": "What are the ingredients in pistachio perfume?",
+            "href": "https://www.google.com/search?sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&q=what+are+the+ingredients+in+pistachio+perfume&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQrooIegQIMxAe"
+          },
+          {
+            "text": "Ellis Brooklyn's Pistachio",
+            "href": "https://www.google.com/search?sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&q=Ellis+Brooklyn%27s+Pistachio&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQxccNegUI3QIQAQ"
+          },
+          {
+            "text": "Afnan Kiana",
+            "href": "https://www.google.com/search?sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&q=Afnan+Kiana&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQxccNegUI5gIQAQ"
+          },
+          {
+            "text": "Angel Stellar by Mugler",
+            "href": "https://www.google.com/search?sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&q=Angel+Stellar+by+Mugler&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQxccNegUI8QIQAQ"
+          },
+          {
+            "text": "Pistachio Biscotti by Pistache",
+            "href": "https://www.google.com/search?sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&q=Pistachio+Biscotti+by+Pistache&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQxccNegUI-AIQAQ"
+          },
+          {
+            "text": "54sPerfume Talk: fragrance reviews, cologne exploringYouTube · Dec 28, 2024",
+            "href": "https://www.youtube.com/watch?v=mVyjBZIYOSM&t=395"
+          },
+          {
+            "text": "D.S. & Durga Pistachio EDP",
+            "href": "https://www.google.com/search?sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&q=D.S.+%26+Durga+Pistachio+EDP&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQxccNegUI8gIQAQ"
+          },
+          {
+            "text": "Un Pistache (Obvious)",
+            "href": "https://www.google.com/search?sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&q=Un+Pistache+(Obvious)&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQxccNegUIiwMQAQ"
+          },
+          {
+            "text": "Miim.Miic No. 57 Pistachio Tonka Woods",
+            "href": "https://www.google.com/search?sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&q=Miim.Miic+No.+57+Pistachio+Tonka+Woods&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQxccNegUIrAMQAQ"
+          },
+          {
+            "text": "59sTop Notes by TopeYouTube · Apr 4, 2025",
+            "href": "https://www.youtube.com/watch?v=ExxO3GmqqHI&t=505"
+          },
+          {
+            "text": "Paris Corner Khair Pistachio",
+            "href": "https://www.google.com/search?sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&q=Paris+Corner+Khair+Pistachio&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQxccNegUImwMQAQ"
+          },
+          {
+            "text": "Pistachio Dream by Sand + Fog",
+            "href": "https://www.google.com/search?sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&q=Pistachio+Dream+by+Sand+%2B+Fog&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQxccNegUIwwMQAQ"
+          },
+          {
+            "text": "57sRedolessenceYouTube · Sep 21, 2025",
+            "href": "https://www.youtube.com/shorts/HPoLyoo54bQ"
+          },
+          {
+            "text": "Top 20 Pistachio Fragrances That Smell Absolutely Delicious",
+            "href": "https://www.youtube.com/watch?v=GALZBH0xgXQ&t=538"
+          },
+          {
+            "text": "Best Pistachio Perfume? I Put Them to the Test! (Top 5 Pistachio Fragrances ...",
+            "href": "https://www.youtube.com/watch?v=ExxO3GmqqHI&t=483"
+          },
+          {
+            "text": "THE BEST PISTACHIO FRAGRANCES I'VE EVER ...",
+            "href": "https://www.youtube.com/watch?v=7IPGbBNneQs&t=205"
+          },
+          {
+            "text": "The Best and Worst Pistachio Perfumes",
+            "href": "https://www.youtube.com/watch?v=a4u48iKhNRA&t=256"
+          },
+          {
+            "text": "5 Pistachio Fragrances with performance! Try these if you want ...",
+            "href": "https://www.instagram.com/reel/DMAmGYOsMXi/#:~:text=The%20number%20one%20pistachio%20fragrance%2C%20the%20best,pistachio%20macaron.%20It%20is%20smooth%2C%20creamy%2C%20and"
+          },
+          {
+            "text": "4 affordable Pistachio Fragrances - the snobby foodie",
+            "href": "https://www.thesnobbyfoodie.com/books-bubbly/pistachio#:~:text=Paris%20Corner%20Khair%20Pistachio,and%20it%20balances%20everything%20out."
+          },
+          {
+            "text": "Pistachio Is Summer '26's #1 Perfume Note: The 11 Best Scents",
+            "href": "https://www.whowhatwear.com/beauty/fragrance/pistachio-perfume-trend#:~:text=Almost%20every%20editor%20I%20know,hidden%20among%20other%20gourmand%20notes."
+          }
+        ],
+        "visible_text_line_count": 496
+      },
+      "serp_full": {
+        "kind": "serp_full",
+        "requested_query": "pistachio perfume",
+        "extracted_at_browser_iso": "2026-06-24T15:12:34.244Z",
+        "location_href": "https://www.google.com/search?q=pistachio%20perfume&hl=en&gl=us&pws=0&sei=1PM7asqPHYGE4-EPhOf6-A0",
+        "document_title": "pistachio perfume - Google Search",
+        "viewport": {
+          "width": 1264,
+          "height": 625,
+          "device_pixel_ratio": 1
+        },
+        "navigator": {
+          "language": "en-US",
+          "languages": [
+            "en-US",
+            "en"
+          ],
+          "platform": "Win32",
+          "webdriver": false,
+          "timezone": "Asia/Singapore"
+        },
+        "session_state": {
+          "sign_in_text_visible": true,
+          "google_account_text_visible": false,
+          "captcha_or_unusual_traffic_visible": false,
+          "consent_text_visible": false
+        },
+        "modules": {
+          "people_also_ask": true,
+          "people_also_search_for": true,
+          "related_searches": false,
+          "shopping_or_products": true,
+          "popular_products": true,
+          "more_products": true,
+          "sponsored_or_ads": false,
+          "video": true,
+          "forums": true,
+          "discussions_and_forums": false,
+          "images": true
+        },
+        "autocomplete_suggestions": [],
+        "organic_results": [
+          {
+            "title": "Pistachio Eau de Parfum D.S. & DURGA https://www.dsanddurga.com › products › pistachio",
+            "href": "https://www.dsanddurga.com/products/pistachio?srsltid=AfmBOorHvjwywtK3ILNCQozLILSPGClzlARFFM5NgPYTepVM6sSDK9W2",
+            "snippet_or_container_text": "Pistachio Eau de Parfum D.S. & DURGA https://www.dsanddurga.com › products › pistachio"
+          },
+          {
+            "title": "Best pistachio scent? : r/Perfumes Reddit · r/Perfumes 50+ comments · 1 year ago",
+            "href": "https://www.reddit.com/r/Perfumes/comments/1ds4mtk/best_pistachio_scent/",
+            "snippet_or_container_text": "Best pistachio scent? : r/Perfumes Reddit · r/Perfumes 50+ comments · 1 year ago"
+          },
+          {
+            "title": "Pistachio Brûlée Eau de Parfum Le Monde Gourmand https://www.gourmandbeauty.com › products › pistachi...",
+            "href": "https://www.gourmandbeauty.com/products/pistachio-brulee-eau-de-parfum?srsltid=AfmBOopOecK3uO3OKeNVWvuE3cfuj_GPnkCb52ms4I3Wh4J-X55M6RJb",
+            "snippet_or_container_text": "Pistachio Brûlée Eau de Parfum Le Monde Gourmand https://www.gourmandbeauty.com › products › pistachi..."
+          },
+          {
+            "title": "Team Tries: the 5 best pistachio perfumes - Get the GlossGet the Glosshttps://www.getthegloss.com › Fragrance",
+            "href": "https://www.getthegloss.com/beauty/fragrance/team-tries-best-pistachio-perfumes/#:~:text=But%20what%20do%20pistachio%20scents,notes%2C%20such%20as%20vanilla.%E2%80%9D",
+            "snippet_or_container_text": "Team Tries: the 5 best pistachio perfumes - Get the GlossGet the Glosshttps://www.getthegloss.com › FragranceGet the Glosshttps://www.getthegloss.com › Fragrance"
+          },
+          {
+            "title": "Pistachio Fragrantica https://www.fragrantica.com › notes › Pistachio-221",
+            "href": "https://www.fragrantica.com/notes/Pistachio-221.html",
+            "snippet_or_container_text": "Pistachio Fragrantica https://www.fragrantica.com › notes › Pistachio-221"
+          },
+          {
+            "title": "THE BEST PISTACHIO FRAGRANCES I'VE EVER SMELLED ... YouTube · Ai_TheGreat 4.7K+ views · 1 year ago",
+            "href": "https://www.youtube.com/watch?v=7IPGbBNneQs",
+            "snippet_or_container_text": "THE BEST PISTACHIO FRAGRANCES I'VE EVER SMELLED ... YouTube · Ai_TheGreat 4.7K+ views · 1 year ago"
+          },
+          {
+            "title": "Pistachio Fragrances Sephora https://www.sephora.com › buy › p...",
+            "href": "https://www.sephora.com/buy/pistachio-fragrances",
+            "snippet_or_container_text": "Pistachio Fragrances Sephora https://www.sephora.com › buy › p... · Translate this page"
+          },
+          {
+            "title": "Team Tries: the 5 best pistachio perfumes Get the Gloss https://www.getthegloss.com › Fragrance",
+            "href": "https://www.getthegloss.com/beauty/fragrance/team-tries-best-pistachio-perfumes/",
+            "snippet_or_container_text": "Team Tries: the 5 best pistachio perfumes Get the Gloss https://www.getthegloss.com › Fragrance"
+          },
+          {
+            "title": "Pistachio Perfumes Are Up 852.5% Who What Wear https://www.whowhatwear.com › Beauty › Fragrance",
+            "href": "https://www.whowhatwear.com/beauty/fragrance/pistachio-perfume-trend",
+            "snippet_or_container_text": "Pistachio Perfumes Are Up 852.5% Who What Wear https://www.whowhatwear.com › Beauty › Fragrance"
+          }
+        ],
+        "people_also_ask_lines": [
+          "What is the best pistachio perfume?",
+          "What does pistachio in perfume smell like?",
+          "What is the most attractive smell in perfume?",
+          "Is pistachio a good perfume?",
+          "Web results",
+          "Pistachio",
+          "Fragrantica",
+          "https://www.fragrantica.com › notes › Pistachio-221",
+          "Odor profile: a green nutty savory note. Vanilla perfume more than ambery notes , overpriced and has a synthetic scent, similar to cheap Dubai perfumes.",
+          "Things to know",
+          "Popular Brands",
+          "."
+        ],
+        "people_also_search_lines": [
+          "Pistachio perfume Lattafa",
+          "PISTACHIO perfume Zara",
+          "Pistachio perfume arabic",
+          "Pistachio perfume KAYALI",
+          "Pistachio perfume Khair",
+          "Pistachio perfume ds&durga",
+          "Pistachio perfume Fine'ry",
+          "Pistachio perfume sephora",
+          "Page Navigation",
+          "1",
+          "2",
+          "3"
+        ],
+        "related_search_lines": [],
+        "product_or_shopping_lines": [
+          "Shopping",
+          "Target",
+          "Walmart",
+          "Ulta Beauty",
+          "Price",
+          "On sale",
+          "Buy",
+          "Under $70",
+          "For Sale",
+          "Popular products",
+          "$28.00",
+          "$12.00",
+          "$25",
+          "Free delivery on $75+",
+          "$29.60",
+          "$47",
+          "Free delivery on $59+",
+          "$29.99",
+          "Walmart - VivaBella",
+          "$21.41",
+          "$34",
+          "$32.00",
+          "Sephora",
+          "Free delivery on $50+",
+          "$25.90",
+          "$29.95",
+          "$12.89",
+          "Free delivery on $35+",
+          "$26.00",
+          "Free delivery on $40+",
+          "$225.00 · In stock · 3.6 (83) · Free delivery · 14-day returns",
+          "What’s the best pistachio perfume? I found a really good Pistachio Brûlée one at Ulta but want one that’s a little more mature or upscale. Thoughts??",
+          "$191.25",
+          "$225",
+          "$100.00",
+          "$125",
+          "$50",
+          "Free delivery on $65+",
+          "$8.18",
+          "$13",
+          "$19.99",
+          "$39",
+          "$20.00",
+          "$26",
+          "$18.00",
+          "$22.04",
+          "$35",
+          "Odor profile: a green nutty savory note. Vanilla perfume more than ambery notes , overpriced and has a synthetic scent, similar to cheap Dubai perfumes.",
+          "More products",
+          "$24.74",
+          "$49.00",
+          "Free delivery on $100+",
+          "LOW PRICE",
+          "$189.43",
+          "Usually $225",
+          "$29.00",
+          "$8.95",
+          "$18.50"
+        ],
+        "video_or_forum_lines": [
+          "Short videos",
+          "Videos",
+          "Reddit · r/Perfumes",
+          "More results from www.reddit.com",
+          "Fragrantica",
+          "https://www.fragrantica.com › notes › Pistachio-221",
+          "YouTube · Ai_TheGreat",
+          "A Strong, Sexy Pistachio Fit For A King! | Mind Games Kingside Review #perfume #fragrance #tiktok",
+          "Daniel Rene Music · YouTube",
+          "Reddit",
+          "please give these baddies a long winter's nap 😴 #perfumetiktok #perfumetok #fragrancetiktok #greenscreen",
+          "PL Smells · TikTok",
+          "Sydney Everhart · YouTube",
+          "TikTok star & online content creator",
+          "TheCherysTv · YouTube",
+          "Kathleensmells · TikTok"
+        ],
+        "footer_or_location_lines": [
+          "Unknown - Can't determine location",
+          "- Update location",
+          "HelpSend feedbackPrivacyTerms"
+        ],
+        "possible_non_us_storefront_or_locale_signals": [
+          "Pistachio, cardamom, roasted almond, vanilla crÃ¨me, and patchouli. Rich, creamy, and true â€” it's pistachio, and that's exactly all it needs to be.",
+          "Mar 30, 2026 — Team Tries: the 5 best pistachio perfumes · DS & Durga Pistachio EDP, £155 for 50ml · M&S Sweet Pistachio EDP, £16 for 50ml · Kayali Yum Pistachio ...Read more"
+        ],
+        "all_links_sample": [
+          {
+            "text": "Accessibility help",
+            "href": "https://support.google.com/websearch/answer/181196?hl=en"
+          },
+          {
+            "text": "",
+            "href": "https://www.google.com/webhp?hl=en&ictx=2&sa=X&ved=0ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQPQgK"
+          },
+          {
+            "text": "",
+            "href": "https://www.google.com/webhp?hl=en&ictx=0&sa=X&ved=0ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQpYkNCAw"
+          },
+          {
+            "text": "Google apps",
+            "href": "https://www.google.com.sg/intl/en/about/products?tab=wh"
+          },
+          {
+            "text": "Sign in",
+            "href": "https://accounts.google.com/ServiceLogin?hl=en&passive=true&continue=https://www.google.com/search%3Fq%3Dpistachio%2520perfume%26hl%3Den%26gl%3Dus%26pws%3D0%26sei%3D1PM7asqPHYGE4-EPhOf6-A0&ec=futura_srp_og_si_72236_p"
+          },
+          {
+            "text": "AI Mode",
+            "href": "https://www.google.com/search?q=pistachio+perfume&sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&udm=50&fbs=ABfTbFVyMZGZf1hfvX9uKjN_-G8cqCQj_06QnZs315LoFmPf5bBLHMJ0vMQmTbuI72DM7jmSm18uaHUIcIw77cYBDAp2cWq8_uMKmJ1HlImTFIfxtmeM7pX7AD292Pldeg6G770XMyaQAsPhpehMMrp2tkAhXxUyOzX4DjKIAFkdtS8B40HS7UX811pSOTYciw5siU0ualiepy7Cr5ypoctPPcTbUJyIhg&aep=1&ntc=1&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQ2J8OegQIERAD"
+          },
+          {
+            "text": "Shopping",
+            "href": "https://www.google.com/search?sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&udm=28&fbs=ABfTbFVyMZGZf1hfvX9uKjN_-G8cqCQj_06QnZs315LoFmPf5bBLHMJ0vMQmTbuI72DM7jmSm18uaHUIcIw77cYBDAp2cWq8_uMKmJ1HlImTFIfxtmeM7pX7AD292Pldeg6G770XMyaQAsPhpehMMrp2tkAhXxUyOzX4DjKIAFkdtS8B40HS7UX811pSOTYciw5siU0ualiepy7Cr5ypoctPPcTbUJyIhg&q=pistachio+perfume&ved=1t:220175&ictx=111"
+          },
+          {
+            "text": "Images",
+            "href": "https://www.google.com/search?sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&udm=2&fbs=ABfTbFVyMZGZf1hfvX9uKjN_-G8cqCQj_06QnZs315LoFmPf5bBLHMJ0vMQmTbuI72DM7jmSm18uaHUIcIw77cYBDAp2cWq8_uMKmJ1HlImTFIfxtmeM7pX7AD292Pldeg6G770XMyaQAsPhpehMMrp2tkAhXxUyOzX4DjKIAFkdtS8B40HS7UX811pSOTYciw5siU0ualiepy7Cr5ypoctPPcTbUJyIhg&q=pistachio+perfume&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQtKgLegQIFhAB"
+          },
+          {
+            "text": "Short videos",
+            "href": "https://www.google.com/search?sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&udm=39&fbs=ABfTbFVyMZGZf1hfvX9uKjN_-G8cqCQj_06QnZs315LoFmPf5bBLHMJ0vMQmTbuI72DM7jmSm18uaHUIcIw77cYBDAp2cWq8_uMKmJ1HlImTFIfxtmeM7pX7AD292Pldeg6G770XMyaQAsPhpehMMrp2tkAhXxUyOzX4DjKIAFkdtS8B40HS7UX811pSOTYciw5siU0ualiepy7Cr5ypoctPPcTbUJyIhg&q=pistachio+perfume&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQs6gLegQIExAB"
+          },
+          {
+            "text": "Videos",
+            "href": "https://www.google.com/search?sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&udm=vids&fbs=ABfTbFVyMZGZf1hfvX9uKjN_-G8cqCQj_06QnZs315LoFmPf5bBLHMJ0vMQmTbuI72DM7jmSm18uaHUIcIw77cYBDAp2cWq8_uMKmJ1HlImTFIfxtmeM7pX7AD292Pldeg6G770XMyaQAsPhpehMMrp2tkAhXxUyOzX4DjKIAFkdtS8B40HS7UX811pSOTYciw5siU0ualiepy7Cr5ypoctPPcTbUJyIhg&q=pistachio+perfume&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQtKgLegQIFBAB"
+          },
+          {
+            "text": "News",
+            "href": "https://www.google.com/search?sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&q=pistachio+perfume&tbm=nws&source=lnms&fbs=ABfTbFVyMZGZf1hfvX9uKjN_-G8cqCQj_06QnZs315LoFmPf5bBLHMJ0vMQmTbuI72DM7jmSm18uaHUIcIw77cYBDAp2cWq8_uMKmJ1HlImTFIfxtmeM7pX7AD292Pldeg6G770XMyaQAsPhpehMMrp2tkAhXxUyOzX4DjKIAFkdtS8B40HS7UX811pSOTYciw5siU0ualiepy7Cr5ypoctPPcTbUJyIhg&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQ0pQJegQIFRAB"
+          },
+          {
+            "text": "Forums",
+            "href": "https://www.google.com/search?sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&udm=18&fbs=ABfTbFVyMZGZf1hfvX9uKjN_-G8cqCQj_06QnZs315LoFmPf5bBLHMJ0vMQmTbuI72DM7jmSm18uaHUIcIw77cYBDAp2cWq8_uMKmJ1HlImTFIfxtmeM7pX7AD292Pldeg6G770XMyaQAsPhpehMMrp2tkAhXxUyOzX4DjKIAFkdtS8B40HS7UX811pSOTYciw5siU0ualiepy7Cr5ypoctPPcTbUJyIhg&q=pistachio+perfume&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQs6gLegUIrgEQAQ"
+          },
+          {
+            "text": "Web",
+            "href": "https://www.google.com/search?sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&udm=web&fbs=ABfTbFVyMZGZf1hfvX9uKjN_-G8cqCQj_06QnZs315LoFmPf5bBLHMJ0vMQmTbuI72DM7jmSm18uaHUIcIw77cYBDAp2cWq8_uMKmJ1HlImTFIfxtmeM7pX7AD292Pldeg6G770XMyaQAsPhpehMMrp2tkAhXxUyOzX4DjKIAFkdtS8B40HS7UX811pSOTYciw5siU0ualiepy7Cr5ypoctPPcTbUJyIhg&q=pistachio+perfume&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQs6gLegUIrwEQAQ"
+          },
+          {
+            "text": "Maps",
+            "href": "https://maps.google.com/maps?sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&output=search&q=pistachio+perfume&source=lnms&fbs=ABfTbFVyMZGZf1hfvX9uKjN_-G8cqCQj_06QnZs315LoFmPf5bBLHMJ0vMQmTbuI72DM7jmSm18uaHUIcIw77cYBDAp2cWq8_uMKmJ1HlImTFIfxtmeM7pX7AD292Pldeg6G770XMyaQAsPhpehMMrp2tkAhXxUyOzX4DjKIAFkdtS8B40HS7UX811pSOTYciw5siU0ualiepy7Cr5ypoctPPcTbUJyIhg&entry=mc&ved=1t:200715&ictx=111"
+          },
+          {
+            "text": "Books",
+            "href": "https://www.google.com/search?sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&q=pistachio+perfume&udm=36&source=lnms&fbs=ABfTbFVyMZGZf1hfvX9uKjN_-G8cqCQj_06QnZs315LoFmPf5bBLHMJ0vMQmTbuI72DM7jmSm18uaHUIcIw77cYBDAp2cWq8_uMKmJ1HlImTFIfxtmeM7pX7AD292Pldeg6G770XMyaQAsPhpehMMrp2tkAhXxUyOzX4DjKIAFkdtS8B40HS7UX811pSOTYciw5siU0ualiepy7Cr5ypoctPPcTbUJyIhg&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQ0pQJegUIvQEQAQ"
+          },
+          {
+            "text": "Any time",
+            "href": "https://www.google.com/search?q=pistachio%20perfume&hl=en&gl=us&pws=0&sei=1PM7asqPHYGE4-EPhOf6-A0#"
+          },
+          {
+            "text": "Past hour",
+            "href": "https://www.google.com/search?q=pistachio+perfume&sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&source=lnt&tbs=qdr:h&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQpwV6BAgHEAY"
+          },
+          {
+            "text": "Past 24 hours",
+            "href": "https://www.google.com/search?q=pistachio+perfume&sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&source=lnt&tbs=qdr:d&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQpwV6BAgHEAc"
+          },
+          {
+            "text": "Past week",
+            "href": "https://www.google.com/search?q=pistachio+perfume&sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&source=lnt&tbs=qdr:w&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQpwV6BAgHEAg"
+          },
+          {
+            "text": "Past month",
+            "href": "https://www.google.com/search?q=pistachio+perfume&sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&source=lnt&tbs=qdr:m&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQpwV6BAgHEAk"
+          },
+          {
+            "text": "Past year",
+            "href": "https://www.google.com/search?q=pistachio+perfume&sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&source=lnt&tbs=qdr:y&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQpwV6BAgHEAo"
+          },
+          {
+            "text": "All results",
+            "href": "https://www.google.com/search?q=pistachio%20perfume&hl=en&gl=us&pws=0&sei=1PM7asqPHYGE4-EPhOf6-A0#"
+          },
+          {
+            "text": "Verbatim",
+            "href": "https://www.google.com/search?q=pistachio+perfume&sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&source=lnt&tbs=li:1&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQpwV6BAgHEBE"
+          },
+          {
+            "text": "Women's",
+            "href": "https://www.google.com/search?q=women%27s+pistachio+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoRcGlzdGFjaGlvIHBlcmZ1bWUyFwgBEgdXb21lbidzOgoI-JZIENqoSTAFWL2qIGAC&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQ268JKAB6BAgYEAY"
+          },
+          {
+            "text": "Men's",
+            "href": "https://www.google.com/search?q=men%27s+pistachio+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoRcGlzdGFjaGlvIHBlcmZ1bWUyFQgBEgVNZW4nczoKCPiWSBDbqEkwBVi9qiBgAg&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQ268JKAF6BAgYEAc"
+          },
+          {
+            "text": "Unisex",
+            "href": "https://www.google.com/search?q=unisex+pistachio+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoRcGlzdGFjaGlvIHBlcmZ1bWUyFggBEgZVbmlzZXg6Cgj4lkgQ3KhJMAVYvaogYAI&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQ268JKAJ6BAgYEAg"
+          },
+          {
+            "text": "4 and up",
+            "href": "https://www.google.com/search?q=pistachio+perfume&hl=en&gl=us&pws=0&shoprs=CAESBWIDCJADGB4qEXBpc3RhY2hpbyBwZXJmdW1lMhUIHhIINCBhbmQgdXAiBWIDCJADQARgAg&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQ268JKAB6BAgYEAw"
+          },
+          {
+            "text": "Bath & Body Works",
+            "href": "https://www.google.com/search?q=bath+%26+body+works+pistachio+perfume&hl=en&gl=us&pws=0&shoprs=CAEYAioRcGlzdGFjaGlvIHBlcmZ1bWUyFQgCEhFCYXRoICYgQm9keSBXb3Jrc1i9qiBgAg&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQ268JKAB6BAgYEBE"
+          },
+          {
+            "text": "Target",
+            "href": "https://www.google.com/search?q=target+pistachio+perfume&hl=en&gl=us&pws=0&shoprs=CAEYAioRcGlzdGFjaGlvIHBlcmZ1bWUyCggCEgZUYXJnZXRYvaogYAI&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQ268JKAF6BAgYEBI"
+          },
+          {
+            "text": "Walmart",
+            "href": "https://www.google.com/search?q=walmart+pistachio+perfume&hl=en&gl=us&pws=0&shoprs=CAEYAioRcGlzdGFjaGlvIHBlcmZ1bWUyCwgCEgdXYWxtYXJ0WL2qIGAC&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQ268JKAJ6BAgYEBM"
+          },
+          {
+            "text": "Ulta Beauty",
+            "href": "https://www.google.com/search?q=ulta+beauty+pistachio+perfume&hl=en&gl=us&pws=0&shoprs=CAEYAioRcGlzdGFjaGlvIHBlcmZ1bWUyDwgCEgtVbHRhIEJlYXV0eVi9qiBgAg&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQ268JKAN6BAgYEBQ"
+          },
+          {
+            "text": "Fragrance",
+            "href": "https://www.google.com/search?q=fragrance+pistachio+perfume&hl=en&gl=us&pws=0&shoprs=CAEYCSoRcGlzdGFjaGlvIHBlcmZ1bWUyDQgJEglGcmFncmFuY2VgAg&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQ268JKAB6BAgYEBo"
+          },
+          {
+            "text": "Unisex Perfume",
+            "href": "https://www.google.com/search?q=unisex+perfume+pistachio&hl=en&gl=us&pws=0&shoprs=CAEYCSoRcGlzdGFjaGlvIHBlcmZ1bWUyEggJEg5VbmlzZXggUGVyZnVtZWAC&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQ268JKAF6BAgYEBs"
+          },
+          {
+            "text": "Candles",
+            "href": "https://www.google.com/search?q=candles+pistachio+perfume&hl=en&gl=us&pws=0&shoprs=CAEYCSoRcGlzdGFjaGlvIHBlcmZ1bWUyCwgJEgdDYW5kbGVzYAI&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQ268JKAJ6BAgYEBw"
+          },
+          {
+            "text": "Travel Size",
+            "href": "https://www.google.com/search?q=travel+size+pistachio+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoRcGlzdGFjaGlvIHBlcmZ1bWUyHQgBEgtUcmF2ZWwgU2l6ZToMCO6IqAEQ74ioATADWL2qIGAC&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQ268JKAB6BAgYECA"
+          },
+          {
+            "text": "Set",
+            "href": "https://www.google.com/search?q=set+pistachio+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoRcGlzdGFjaGlvIHBlcmZ1bWUyEwgBEgNTZXQ6Cgidqy0QnqstMANYvaogYAI&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQ268JKAF6BAgYECE"
+          },
+          {
+            "text": "Vegan",
+            "href": "https://www.google.com/search?q=vegan+pistachio+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoRcGlzdGFjaGlvIHBlcmZ1bWUyFwgBEgVWZWdhbjoMCMK9hwEQw72HATADWL2qIGAC&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQ268JKAJ6BAgYECI"
+          },
+          {
+            "text": "Gifts for Mothers",
+            "href": "https://www.google.com/search?q=gifts+for+mothers+pistachio+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoRcGlzdGFjaGlvIHBlcmZ1bWUyIQgBEhFHaWZ0cyBmb3IgTW90aGVyczoKCPLqPBDz6jwwA1i9qiBgAg&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQ268JKAN6BAgYECM"
+          },
+          {
+            "text": "Spray",
+            "href": "https://www.google.com/search?q=spray+pistachio+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoRcGlzdGFjaGlvIHBlcmZ1bWUyFQgBEgVTcHJheToKCMi5RhDJuUYwAFi9qiBgAg&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQ268JKAB6BAgYECk"
+          },
+          {
+            "text": "Oil",
+            "href": "https://www.google.com/search?q=oil+pistachio+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoRcGlzdGFjaGlvIHBlcmZ1bWUyEwgBEgNPaWw6CgjIuUYQ0rlGMABYvaogYAI&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQ268JKAF6BAgYECo"
+          },
+          {
+            "text": "Roll-on",
+            "href": "https://www.google.com/search?q=roll-on+pistachio+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoRcGlzdGFjaGlvIHBlcmZ1bWUyFwgBEgdSb2xsLW9uOgoIyLlGENO5RjAAWL2qIGAC&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQ268JKAJ6BAgYECs"
+          },
+          {
+            "text": "Under $70",
+            "href": "https://www.google.com/search?q=pistachio+perfume+under+$70&hl=en&gl=us&pws=0&shoprs=CAESDRILEQAAAAB2sJBBGAEYBSoRcGlzdGFjaGlvIHBlcmZ1bWUyIggFEglVbmRlciAkNzAYAiINEgsRAAAAAHawkEEYASoCGAFYvaogYAI&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQ268JKAB6BAgYEC8"
+          },
+          {
+            "text": "Over $70",
+            "href": "https://www.google.com/search?q=pistachio+perfume+over+$70&hl=en&gl=us&pws=0&shoprs=CAESDRILCQAAAAB2sJBBGAEYBSoRcGlzdGFjaGlvIHBlcmZ1bWUyIQgFEghPdmVyICQ3MBgCIg0SCwkAAAAAdrCQQRgBKgIYAVi9qiBgAg&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQ268JKAF6BAgYEDA"
+          },
+          {
+            "text": "Price: low to high",
+            "href": "https://www.google.com/search?q=pistachio+perfume&hl=en&gl=us&pws=0&shoprs=CAEYFyoRcGlzdGFjaGlvIHBlcmZ1bWUyHAgXEhJQcmljZTogbG93IHRvIGhpZ2gqBBABGAFgAogBAQ&udm=3&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQ268JKAB6BAgYEDc"
+          },
+          {
+            "text": "Price: high to low",
+            "href": "https://www.google.com/search?q=pistachio+perfume&hl=en&gl=us&pws=0&shoprs=CAEYFyoRcGlzdGFjaGlvIHBlcmZ1bWUyHAgXEhJQcmljZTogaGlnaCB0byBsb3cqBBABGAFgAogBAg&udm=3&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQ268JKAF6BAgYEDg"
+          },
+          {
+            "text": "Eau de Parfum",
+            "href": "https://www.google.com/search?q=eau+de+parfum+pistachio+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoRcGlzdGFjaGlvIHBlcmZ1bWUyHQgBEg1FYXUgZGUgUGFyZnVtOgoI3qotENuqLTACWL2qIGAC&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQ268JKAB6BAgYEDw"
+          },
+          {
+            "text": "Body Spray",
+            "href": "https://www.google.com/search?q=body+spray+pistachio+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoRcGlzdGFjaGlvIHBlcmZ1bWUyGwgBEgpCb2R5IFNwcmF5OgsI3qotEKbqqAEwAli9qiBgAg&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQ268JKAF6BAgYED0"
+          },
+          {
+            "text": "Eau de Toilette",
+            "href": "https://www.google.com/search?q=eau+de+toilette+pistachio+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoRcGlzdGFjaGlvIHBlcmZ1bWUyHwgBEg9FYXUgZGUgVG9pbGV0dGU6Cgjeqi0Q36otMAJYvaogYAI&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQ268JKAJ6BAgYED4"
+          },
+          {
+            "text": "Cologne",
+            "href": "https://www.google.com/search?q=cologne+pistachio+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoRcGlzdGFjaGlvIHBlcmZ1bWUyFwgBEgdDb2xvZ25lOgoI3qotENyqLTACWL2qIGAC&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQ268JKAN6BAgYED8"
+          },
+          {
+            "text": "Cruelty-free",
+            "href": "https://www.google.com/search?q=cruelty-free+pistachio+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoRcGlzdGFjaGlvIHBlcmZ1bWUyHggBEgxDcnVlbHR5LWZyZWU6DAjdorQBENf4wgEwAFi9qiBgAg&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQ268JKAB6BAgYEEM"
+          },
+          {
+            "text": "Organic",
+            "href": "https://www.google.com/search?q=organic+pistachio+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoRcGlzdGFjaGlvIHBlcmZ1bWUyGQgBEgdPcmdhbmljOgwI3aK0ARDeorQBMABYvaogYAI&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQ268JKAF6BAgYEEQ"
+          },
+          {
+            "text": "Victoria's Secret",
+            "href": "https://www.google.com/search?q=victoria%27s+secret+pistachio+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoRcGlzdGFjaGlvIHBlcmZ1bWUyIQgBEhFWaWN0b3JpYSdzIFNlY3JldDoKCIPzPBDG5D0wAVi9qiBgAg&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQ268JKAB6BAgYEEg"
+          },
+          {
+            "text": "Kayali",
+            "href": "https://www.google.com/search?q=kayali+pistachio+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoRcGlzdGFjaGlvIHBlcmZ1bWUyFwgBEgZLYXlhbGk6CwiD8zwQ9OiRAzABWL2qIGAC&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQ268JKAF6BAgYEEk"
+          },
+          {
+            "text": "D.S. & Durga",
+            "href": "https://www.google.com/search?q=d.s.+%26+durga+pistachio+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoRcGlzdGFjaGlvIHBlcmZ1bWUyHQgBEgxELlMuICYgRHVyZ2E6CwiD8zwQmdOqATABWL2qIGAC&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQ268JKAJ6BAgYEEo"
+          },
+          {
+            "text": "ZARA",
+            "href": "https://www.google.com/search?q=zara+pistachio+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoRcGlzdGFjaGlvIHBlcmZ1bWUyFAgBEgRaQVJBOgoIg_M8EI26PjABWL2qIGAC&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQ268JKAN6BAgYEEs"
+          },
+          {
+            "text": "Free shipping",
+            "href": "https://www.google.com/search?q=pistachio+perfume+free+shipping&hl=en&gl=us&pws=0&shoprs=CAESBFICEAEYGSoRcGlzdGFjaGlvIHBlcmZ1bWUyFwgZEg1GcmVlIHNoaXBwaW5nIgRSAhABYAI&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQ268JKAB6BAgYEFE"
+          },
+          {
+            "text": "Women's",
+            "href": "https://www.google.com/search?q=women%27s+pistachio+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoRcGlzdGFjaGlvIHBlcmZ1bWUyFwgBEgdXb21lbidzOgoI-JZIENqoSTAFWL2qIGAB&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQip4GKAF6BAgYEFY"
+          },
+          {
+            "text": "Nearby",
+            "href": "https://www.google.com/search?q=pistachio+perfume+nearby&hl=en&gl=us&pws=0&shoprs=CAEYAyoRcGlzdGFjaGlvIHBlcmZ1bWUyDAgDEgZOZWFyYnkYAli9qiBgAQ&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQip4GKAJ6BAgYEFc"
+          },
+          {
+            "text": "On sale",
+            "href": "https://www.google.com/search?q=pistachio+perfume+sale&hl=en&gl=us&pws=0&shoprs=CAESBEoCGAEYBioRcGlzdGFjaGlvIHBlcmZ1bWUyEwgGEgdPbiBzYWxlGAIiBEoCGAFYvaogYAE&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQip4GKAN6BAgYEFg"
+          },
+          {
+            "text": "Men's",
+            "href": "https://www.google.com/search?q=men%27s+pistachio+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoRcGlzdGFjaGlvIHBlcmZ1bWUyFQgBEgVNZW4nczoKCPiWSBDbqEkwBVi9qiBgAQ&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQip4GKAR6BAgYEFk"
+          },
+          {
+            "text": "Bath & Body Works",
+            "href": "https://www.google.com/search?q=bath+%26+body+works+pistachio+perfume&hl=en&gl=us&pws=0&shoprs=CAEYAioRcGlzdGFjaGlvIHBlcmZ1bWUyFQgCEhFCYXRoICYgQm9keSBXb3Jrc1i9qiBgAQ&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQip4GKAV6BAgYEFo"
+          },
+          {
+            "text": "Reviews",
+            "href": "https://www.google.com/search?q=reviews+pistachio+perfume&hl=en&gl=us&pws=0&shoprs=CAEYEioRcGlzdGFjaGlvIHBlcmZ1bWUyCwgSEgdSZXZpZXdzYAE&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQip4GKAZ6BAgYEFw"
+          },
+          {
+            "text": "Fragrance",
+            "href": "https://www.google.com/search?q=fragrance+pistachio+perfume&hl=en&gl=us&pws=0&shoprs=CAEYCSoRcGlzdGFjaGlvIHBlcmZ1bWUyDQgJEglGcmFncmFuY2VgAQ&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQip4GKAd6BAgYEF0"
+          },
+          {
+            "text": "Buy",
+            "href": "https://www.google.com/search?q=buy+pistachio+perfume&hl=en&gl=us&pws=0&shoprs=CAEYEioRcGlzdGFjaGlvIHBlcmZ1bWUyBwgSEgNCdXlgAQ&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQip4GKAh6BAgYEF4"
+          },
+          {
+            "text": "Unisex",
+            "href": "https://www.google.com/search?q=unisex+pistachio+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoRcGlzdGFjaGlvIHBlcmZ1bWUyFggBEgZVbmlzZXg6Cgj4lkgQ3KhJMAVYvaogYAE&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQip4GKAl6BAgYEF8"
+          },
+          {
+            "text": "Travel Size",
+            "href": "https://www.google.com/search?q=travel+size+pistachio+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoRcGlzdGFjaGlvIHBlcmZ1bWUyHQgBEgtUcmF2ZWwgU2l6ZToMCO6IqAEQ74ioATADWL2qIGAB&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQip4GKAp6BAgYEGA"
+          },
+          {
+            "text": "Get it by Fri",
+            "href": "https://www.google.com/search?q=pistachio+perfume&hl=en&gl=us&pws=0&shoprs=CAESDZoBCgoIEAI4AUAFSAEYFCoRcGlzdGFjaGlvIHBlcmZ1bWUyJggUEg1HZXQgaXQgYnkgRnJpIg2aAQoKCBACOAFABUgBKgQQARgBYAE&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQip4GKAt6BAgYEGE"
+          },
+          {
+            "text": "Spray",
+            "href": "https://www.google.com/search?q=spray+pistachio+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoRcGlzdGFjaGlvIHBlcmZ1bWUyFQgBEgVTcHJheToKCMi5RhDJuUYwAFi9qiBgAQ&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQip4GKAx6BAgYEGI"
+          },
+          {
+            "text": "Brand",
+            "href": "https://www.google.com/search?q=brand+pistachio+perfume&hl=en&gl=us&pws=0&shoprs=CAEYEioRcGlzdGFjaGlvIHBlcmZ1bWUyCQgSEgVCcmFuZGAB&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQip4GKA16BAgYEGM"
+          },
+          {
+            "text": "Price",
+            "href": "https://www.google.com/search?q=price+pistachio+perfume&hl=en&gl=us&pws=0&shoprs=CAEYEioRcGlzdGFjaGlvIHBlcmZ1bWUyCQgSEgVQcmljZWAB&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQip4GKA56BAgYEGQ"
+          },
+          {
+            "text": "Under $70",
+            "href": "https://www.google.com/search?q=pistachio+perfume+under+$70&hl=en&gl=us&pws=0&shoprs=CAESDRILEQAAAAB2sJBBGAEYBSoRcGlzdGFjaGlvIHBlcmZ1bWUyIggFEglVbmRlciAkNzAYAiINEgsRAAAAAHawkEEYASoCGAFYvaogYAE&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQip4GKA96BAgYEGU"
+          },
+          {
+            "text": "Oil",
+            "href": "https://www.google.com/search?q=oil+pistachio+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoRcGlzdGFjaGlvIHBlcmZ1bWUyEwgBEgNPaWw6CgjIuUYQ0rlGMABYvaogYAE&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQip4GKBB6BAgYEGY"
+          },
+          {
+            "text": "Set",
+            "href": "https://www.google.com/search?q=set+pistachio+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoRcGlzdGFjaGlvIHBlcmZ1bWUyEwgBEgNTZXQ6Cgidqy0QnqstMANYvaogYAE&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQip4GKBF6BAgYEGc"
+          },
+          {
+            "text": "Eau de Parfum",
+            "href": "https://www.google.com/search?q=eau+de+parfum+pistachio+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoRcGlzdGFjaGlvIHBlcmZ1bWUyHQgBEg1FYXUgZGUgUGFyZnVtOgoI3qotENuqLTACWL2qIGAB&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQip4GKBJ6BAgYEGg"
+          },
+          {
+            "text": "Original",
+            "href": "https://www.google.com/search?q=original+pistachio+perfume&hl=en&gl=us&pws=0&shoprs=CAEYEioRcGlzdGFjaGlvIHBlcmZ1bWUyDAgSEghPcmlnaW5hbGAB&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQip4GKBN6BAgYEGk"
+          },
+          {
+            "text": "Unisex Perfume",
+            "href": "https://www.google.com/search?q=unisex+perfume+pistachio&hl=en&gl=us&pws=0&shoprs=CAEYCSoRcGlzdGFjaGlvIHBlcmZ1bWUyEggJEg5VbmlzZXggUGVyZnVtZWAB&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQip4GKBR6BAgYEGo"
+          },
+          {
+            "text": "Target",
+            "href": "https://www.google.com/search?q=target+pistachio+perfume&hl=en&gl=us&pws=0&shoprs=CAEYAioRcGlzdGFjaGlvIHBlcmZ1bWUyCggCEgZUYXJnZXRYvaogYAE&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQip4GKBV6BAgYEGs"
+          },
+          {
+            "text": "Free",
+            "href": "https://www.google.com/search?q=free+pistachio+perfume&hl=en&gl=us&pws=0&shoprs=CAEYEioRcGlzdGFjaGlvIHBlcmZ1bWUyCAgSEgRGcmVlYAE&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQip4GKBZ6BAgYEG0"
+          },
+          {
+            "text": "Sweet",
+            "href": "https://www.google.com/search?q=sweet+pistachio+perfume&hl=en&gl=us&pws=0&shoprs=CAEYEioRcGlzdGFjaGlvIHBlcmZ1bWUyCQgSEgVTd2VldGAB&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQip4GKBd6BAgYEG4"
+          },
+          {
+            "text": "For Sale",
+            "href": "https://www.google.com/search?q=pistachio+perfume+for+sale&hl=en&gl=us&pws=0&shoprs=CAEYEioRcGlzdGFjaGlvIHBlcmZ1bWUyDAgSEghGb3IgU2FsZWAB&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQip4GKBh6BAgYEG8"
+          },
+          {
+            "text": "Vegan",
+            "href": "https://www.google.com/search?q=vegan+pistachio+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoRcGlzdGFjaGlvIHBlcmZ1bWUyFwgBEgVWZWdhbjoMCMK9hwEQw72HATADWL2qIGAB&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQip4GKBl6BAgYEHA"
+          },
+          {
+            "text": "Walmart",
+            "href": "https://www.google.com/search?q=walmart+pistachio+perfume&hl=en&gl=us&pws=0&shoprs=CAEYAioRcGlzdGFjaGlvIHBlcmZ1bWUyCwgCEgdXYWxtYXJ0WL2qIGAB&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQip4GKBp6BAgYEHE"
+          },
+          {
+            "text": "Doesn't get too heavy or cooling on my skin · Juicy, sweet, and freshTikTok",
+            "href": "https://www.tiktok.com/@kelsielynnxoxo/video/7479221499551943941"
+          },
+          {
+            "text": "Smells incredible · Kind of sour to my noseTikTok",
+            "href": "https://www.tiktok.com/@musingsofacurvylady/video/7458289074701356319"
+          },
+          {
+            "text": "Lovely perfume for day time wear · Nutty freshnessReddit",
+            "href": "https://www.reddit.com/r/desifemfrag/comments/1fcvvpq/khair_pistachio_review/"
+          },
+          {
+            "text": "Struggles to sustain itself on my skin · Smells too fresh and almost screechyReddit",
+            "href": "https://www.reddit.com/r/fragrance/comments/11z5e26/kayali_yum_pistachio_gelato_33_review/"
+          },
+          {
+            "text": "Pistachio Eau de Parfum D.S. & DURGA https://www.dsanddurga.com › products › pistachio",
+            "href": "https://www.dsanddurga.com/products/pistachio?srsltid=AfmBOorHvjwywtK3ILNCQozLILSPGClzlARFFM5NgPYTepVM6sSDK9W2"
+          },
+          {
+            "text": "",
+            "href": "https://www.dsanddurga.com/products/pistachio?srsltid=AfmBOorHvjwywtK3ILNCQozLILSPGClzlARFFM5NgPYTepVM6sSDK9W2"
+          },
+          {
+            "text": "83",
+            "href": "https://www.google.com/search?q=Pistachio+-+D.S.+%26+DURGA&ibp=oshop&prds=catalogid:15996303830647569594,headlineOfferDocid:14284529237859957475,rds:PC_3427942167259651787%7CPROD_PC_3427942167259651787,pvo:21,query:Pistachio+-+D.S.+%26+DURGA,pvt:hg&hl=en-US&gl=us&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQrd8PegQIIBAG"
+          },
+          {
+            "text": "Best pistachio scent? : r/Perfumes Reddit · r/Perfumes 50+ comments · 1 year ago",
+            "href": "https://www.reddit.com/r/Perfumes/comments/1ds4mtk/best_pistachio_scent/"
+          },
+          {
+            "text": "51 answers",
+            "href": "https://www.reddit.com/r/Perfumes/comments/1ds4mtk/best_pistachio_scent/lazuy76/"
+          },
+          {
+            "text": "Favourite Fragrances with Pistachio? : r/FemFragLab ...",
+            "href": "https://www.reddit.com/r/FemFragLab/comments/1iiy6t3/favourite_fragrances_with_pistachio/"
+          },
+          {
+            "text": "What are your favourite pistachio fragrances? : r ...",
+            "href": "https://www.reddit.com/r/FemFragLab/comments/12myyer/what_are_your_favourite_pistachio_fragrances/"
+          },
+          {
+            "text": "More results from www.reddit.com",
+            "href": "https://www.google.com/search?q=pistachio+perfume+site:www.reddit.com&sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQrQIoAnoECBwQAw"
+          },
+          {
+            "text": "Pistachio Brûlée Eau de Parfum Le Monde Gourmand https://www.gourmandbeauty.com › products › pistachi...",
+            "href": "https://www.gourmandbeauty.com/products/pistachio-brulee-eau-de-parfum?srsltid=AfmBOopOecK3uO3OKeNVWvuE3cfuj_GPnkCb52ms4I3Wh4J-X55M6RJb"
+          },
+          {
+            "text": "Read more",
+            "href": "https://www.gourmandbeauty.com/products/pistachio-brulee-eau-de-parfum?srsltid=AfmBOopOecK3uO3OKeNVWvuE3cfuj_GPnkCb52ms4I3Wh4J-X55M6RJb#:~:text=Our%20first%20ever%20fragrance%2C%20Pistachio,and%20(not%20so)%20Vanilla%20Bean."
+          },
+          {
+            "text": "",
+            "href": "https://www.gourmandbeauty.com/products/pistachio-brulee-eau-de-parfum?srsltid=AfmBOopOecK3uO3OKeNVWvuE3cfuj_GPnkCb52ms4I3Wh4J-X55M6RJb"
+          },
+          {
+            "text": "Smells incredible · Kind of sour to my noseTikTok",
+            "href": "https://www.tiktok.com/@musingsofacurvylady/video/7458289074701356319"
+          },
+          {
+            "text": "Lovely perfume for day time wear · Nutty freshnessReddit",
+            "href": "https://www.reddit.com/r/desifemfrag/comments/1fcvvpq/khair_pistachio_review/"
+          },
+          {
+            "text": "Very fresh and light · Does not last very longTikTok",
+            "href": "https://www.tiktok.com/@perfumerism/video/7232326673964862725"
+          },
+          {
+            "text": "Smells nice--like cookies · The notes are weird and quite peculiar to meFragrantica",
+            "href": "https://www.fragrantica.com/perfume/Rosy-Earnest/Pistachio-Delight-92219.html"
+          },
+          {
+            "text": "Light and energizing profile · Perfect for everyday wearNow Smell This",
+            "href": "https://nstperfume.com/2025/01/24/elizabeth-arden-green-tea-pistachio-crunch-new-fragrance/"
+          },
+          {
+            "text": "YouTube (+4) - View related links",
+            "href": "https://www.youtube.com/watch?v=7IPGbBNneQs"
+          },
+          {
+            "text": "Get the Gloss (+3) - View related links",
+            "href": "https://www.getthegloss.com/beauty/fragrance/team-tries-best-pistachio-perfumes/"
+          },
+          {
+            "text": "Get the Gloss (+4) - View related links",
+            "href": "https://www.getthegloss.com/beauty/fragrance/team-tries-best-pistachio-perfumes/"
+          },
+          {
+            "text": "Reddit r/Perfumes",
+            "href": "https://www.reddit.com/r/Perfumes/comments/1ds4mtk/best_pistachio_scent/"
+          },
+          {
+            "text": "1:36",
+            "href": "https://www.tiktok.com/@noraknowsbeauty/video/7526184161564986637"
+          },
+          {
+            "text": "5 Best Pistachio Fragrances for Lasting PerformancenoraknowsbeautyTikTok · Jul 12, 2025",
+            "href": "https://www.tiktok.com/@noraknowsbeauty/video/7526184161564986637"
+          },
+          {
+            "text": "",
+            "href": "https://www.youtube.com/watch?v=7IPGbBNneQs"
+          },
+          {
+            "text": "",
+            "href": "https://www.tiktok.com/@redolessence/video/7491114738961632555"
+          },
+          {
+            "text": "2:33",
+            "href": "https://www.tiktok.com/@redolessence/video/7491114738961632555"
+          },
+          {
+            "text": "",
+            "href": "https://www.getthegloss.com/beauty/fragrance/team-tries-best-pistachio-perfumes/"
+          },
+          {
+            "text": "",
+            "href": "https://www.whowhatwear.com/beauty/fragrance/pistachio-perfume-trend"
+          },
+          {
+            "text": "",
+            "href": "https://www.reddit.com/r/Perfumes/comments/1ds4mtk/best_pistachio_scent/"
+          },
+          {
+            "text": "",
+            "href": "https://www.mecca.com/en-au/mecca-memo/fragrance/best-sweet-perfumes/"
+          },
+          {
+            "text": "",
+            "href": "https://www.instyle.com/winter-gourmands-11867369"
+          },
+          {
+            "text": "",
+            "href": "https://www.trendaroma.com/pistachio-scents-are-trending-in-2025/"
+          },
+          {
+            "text": "",
+            "href": "https://www.tirabeauty.com/article/articles/we-break-down-the-perfect-fragrance-for-every-type-of-occasion"
+          },
+          {
+            "text": "",
+            "href": "https://www.womanandhome.com/beauty/pistachio-perfumes/"
+          },
+          {
+            "text": "",
+            "href": "https://www.lemon8-app.com/experience/kayali-summer-scent-review?region=us"
+          },
+          {
+            "text": "",
+            "href": "https://farawayplaces.co/a-guide-to-all-the-sol-de-janeiro-fragrances/"
+          },
+          {
+            "text": "",
+            "href": "https://www.reddit.com/r/FemFragLab/comments/1ptrriu/pistachio_perfumes_suggestion/"
+          },
+          {
+            "text": "",
+            "href": "https://www.jomashop.com/blog/articles/the-sweet-side-of-nutty-10-pistachio-fragrances-youll-crave"
+          },
+          {
+            "text": "",
+            "href": "https://www.google.com/search?q=product&prds=pvt:hg,productid:4517820362633003622,catalogid:9199472392105837786,gpcid:4718378072927705958,mid:576462794107891899&ibp=oshop"
+          },
+          {
+            "text": "",
+            "href": "https://www.google.com/search?q=product&prds=pvt:hg,productid:14007851403238941814,catalogid:4284393576844817976,gpcid:9374889278403892012,mid:576462885383386619&ibp=oshop"
+          },
+          {
+            "text": "THE BEST PISTACHIO FRAGRANCES I'VE EVER .... Opens in new tab.",
+            "href": "https://www.youtube.com/watch?v=7IPGbBNneQs"
+          },
+          {
+            "text": "Top 5 Best Pistachio Perfumes Reviewed. Opens in new tab.",
+            "href": "https://www.tiktok.com/@redolessence/video/7491114738961632555"
+          },
+          {
+            "text": "2:33",
+            "href": "https://www.tiktok.com/@redolessence/video/7491114738961632555"
+          },
+          {
+            "text": "Team Tries: the 5 best pistachio perfumes - Get the Gloss. Opens in new tab.",
+            "href": "https://www.getthegloss.com/beauty/fragrance/team-tries-best-pistachio-perfumes/"
+          },
+          {
+            "text": "Pistachio Is Summer '26's #1 Perfume Note: The 11 Best Scents. Opens in new tab.",
+            "href": "https://www.whowhatwear.com/beauty/fragrance/pistachio-perfume-trend"
+          },
+          {
+            "text": "Best pistachio scent? : r/Perfumes - Reddit. Opens in new tab.",
+            "href": "https://www.reddit.com/r/Perfumes/comments/1ds4mtk/best_pistachio_scent/"
+          },
+          {
+            "text": "The Best Sweet Perfumes At MECCA | MECCA Memo. Opens in new tab.",
+            "href": "https://www.mecca.com/en-au/mecca-memo/fragrance/best-sweet-perfumes/"
+          },
+          {
+            "text": "10 Tempting Winter Gourmands That Smell Freshly Baked. Opens in new tab.",
+            "href": "https://www.instyle.com/winter-gourmands-11867369"
+          },
+          {
+            "text": "Pistachio Scents Are In: A Delicious New Trend in Perfumery • TrendAroma Marketing. Opens in new tab.",
+            "href": "https://www.trendaroma.com/pistachio-scents-are-trending-in-2025/"
+          },
+          {
+            "text": "6 perfumes for every special occasion. Opens in new tab.",
+            "href": "https://www.tirabeauty.com/article/articles/we-break-down-the-perfect-fragrance-for-every-type-of-occasion"
+          },
+          {
+            "text": "8 chic and creamy pistachio perfumes to wear this year. Opens in new tab.",
+            "href": "https://www.womanandhome.com/beauty/pistachio-perfumes/"
+          },
+          {
+            "text": "What Are the Best Kayali Summer Scents? | 2025 real user experience on Lemon8. Opens in new tab.",
+            "href": "https://www.lemon8-app.com/experience/kayali-summer-scent-review?region=us"
+          },
+          {
+            "text": "Sol de Janeiro Perfume Guide: All Scents Ranked & What They Smell Like. Opens in new tab.",
+            "href": "https://farawayplaces.co/a-guide-to-all-the-sol-de-janeiro-fragrances/"
+          },
+          {
+            "text": "Pistachio Perfumes Suggestion : r/FemFragLab - Reddit. Opens in new tab.",
+            "href": "https://www.reddit.com/r/FemFragLab/comments/1ptrriu/pistachio_perfumes_suggestion/"
+          },
+          {
+            "text": "The Sweet Side of Nutty: 10 Pistachio Fragrances You'll Crave. Opens in new tab.",
+            "href": "https://www.jomashop.com/blog/articles/the-sweet-side-of-nutty-10-pistachio-fragrances-youll-crave"
+          },
+          {
+            "text": "Give me specific examples of pistachio perfumes",
+            "href": "https://www.google.com/search?sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&udm=50&q=What+does+pistachio+in+perfume+smell+like%3F+Give+me+specific+examples+of+pistachio+perfumes&aep=64&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQy8AQKAB6BAg-EAc"
+          },
+          {
+            "text": "List popular brands",
+            "href": "https://www.google.com/search?sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&udm=50&q=What+does+pistachio+in+perfume+smell+like%3F+List+popular+brands&aep=64&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQy8AQKAF6BAg-EAg"
+          },
+          {
+            "text": "Explain \"gourmand\" scent",
+            "href": "https://www.google.com/search?sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&udm=50&q=What+does+pistachio+in+perfume+smell+like%3F+Explain+%22gourmand%22+scent&aep=64&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQy8AQKAJ6BAg-EAk"
+          },
+          {
+            "text": "Team Tries: the 5 best pistachio perfumes - Get the GlossGet the Glosshttps://www.getthegloss.com › Fragrance",
+            "href": "https://www.getthegloss.com/beauty/fragrance/team-tries-best-pistachio-perfumes/#:~:text=But%20what%20do%20pistachio%20scents,notes%2C%20such%20as%20vanilla.%E2%80%9D"
+          },
+          {
+            "text": "Pistachio Fragrantica https://www.fragrantica.com › notes › Pistachio-221",
+            "href": "https://www.fragrantica.com/notes/Pistachio-221.html"
+          },
+          {
+            "text": "Kayali (Yum Pistachio Gelato)",
+            "href": "https://www.google.com/search?sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&q=Kayali+(Yum+Pistachio+Gelato)&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQxccNegUIxAIQAQ"
+          },
+          {
+            "text": "D.S. & Durga (Pistachio)",
+            "href": "https://www.google.com/search?sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&q=D.S.+%26+Durga+(Pistachio)&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQxccNegUIxAIQAg"
+          },
+          {
+            "text": "Sol de Janeiro (Sol Cheirosa '62)",
+            "href": "https://www.google.com/search?sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&q=Sol+de+Janeiro+(Sol+Cheirosa+%2762)&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQxccNegUIxAIQAw"
+          },
+          {
+            "text": "Le Monde Gourmand (Pistachio Brûlée)",
+            "href": "https://www.google.com/search?sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&q=Le+Monde+Gourmand+(Pistachio+Br%C3%BBl%C3%A9e)&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQxccNegUIxAIQBA"
+          },
+          {
+            "text": "Finery (Pistachio Please)",
+            "href": "https://www.google.com/search?sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&q=Finery+(Pistachio+Please)&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQxccNegUIxAIQBQ"
+          },
+          {
+            "text": "Theodoros Kalotinis Pistachio",
+            "href": "https://www.google.com/search?sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&q=Theodoros+Kalotinis+Pistachio&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQxccNegUIogMQAQ"
+          },
+          {
+            "text": "Zara Pistachio Butter",
+            "href": "https://www.google.com/search?sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&q=Zara+Pistachio+Butter&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQxccNegUItQMQAQ"
+          },
+          {
+            "text": "Hermès Un Jardin à Cythère",
+            "href": "https://www.google.com/search?sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&q=Herm%C3%A8s+Un+Jardin+%C3%A0+Cyth%C3%A8re&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQxccNegUIzwMQAQ"
+          },
+          {
+            "text": "Born To Standout in Nuts",
+            "href": "https://www.google.com/search?sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&q=Born+To+Standout+in+Nuts&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQxccNegUIowMQAQ"
+          },
+          {
+            "text": "Khair Pistachio by Paris Corner",
+            "href": "https://www.google.com/search?sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&q=Khair+Pistachio+by+Paris+Corner&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQxccNegUIvQMQAQ"
+          },
+          {
+            "text": "Top 20 Pistachio Fragrances That Smell Absolutely Delicious",
+            "href": "https://www.youtube.com/watch?v=GALZBH0xgXQ&t=189"
+          },
+          {
+            "text": "Favourite Fragrances with Pistachio? : r/FemFragLab - Reddit",
+            "href": "https://www.reddit.com/r/FemFragLab/comments/1iiy6t3/favourite_fragrances_with_pistachio/#:~:text=I%20like%20yum%20pistachio%20gelato,cozy%2C%20comfy%2C%20creamy%20pistachio."
+          },
+          {
+            "text": "Favourite Fragrances with Pistachio? : r/FemFragLab - Reddit",
+            "href": "https://www.reddit.com/r/FemFragLab/comments/1iiy6t3/favourite_fragrances_with_pistachio/#:~:text=DS%20&%20Durga%20Pistachio!,and%20base%20notes%20of%20pistachio.&text=Khair%20Pistachio%20is%20a%20nice%2C%20light%20pistachio%20scent."
+          },
+          {
+            "text": "Top 5 Best Pistachio Perfumes Reviewed",
+            "href": "https://www.tiktok.com/@redolessence/video/7491114738961632555"
+          },
+          {
+            "text": "Pistachio Perfumes Suggestion : r/FemFragLab - Reddit",
+            "href": "https://www.reddit.com/r/FemFragLab/comments/1ptrriu/pistachio_perfumes_suggestion/"
+          },
+          {
+            "text": "Team Tries: the 5 best pistachio perfumes - Get the Gloss",
+            "href": "https://www.getthegloss.com/beauty/fragrance/team-tries-best-pistachio-perfumes/"
+          },
+          {
+            "text": "The Best Pistachio Perfumes of 2026 | Stories | Harrods US",
+            "href": "https://www.harrods.com/en-us/c/stories/beauty/best-pistachio-perfumes#:~:text=Herm%C3%A8s%20Un%20Jardin%20%C3%A0%20Cyth%C3%A8re,world%20in%20one%20enticing%20perfume."
+          },
+          {
+            "text": "Pistachio Is Summer '26's #1 Perfume Note: The 11 Best Scents",
+            "href": "https://www.whowhatwear.com/beauty/fragrance/pistachio-perfume-trend#:~:text=The%20Top%205%20Pistachio%20Perfumes%2C%20Listed,$300"
+          },
+          {
+            "text": "The Best Pistachio Perfumes of 2026 | Stories | Harrods UK",
+            "href": "https://www.harrods.com/en-gb/c/stories/beauty/best-pistachio-perfumes"
+          },
+          {
+            "text": "Top 20 Pistachio Fragrances That Smell Absolutely Delicious",
+            "href": "https://www.youtube.com/watch?v=GALZBH0xgXQ&t=189"
+          },
+          {
+            "text": "Top 5 Best Pistachio Perfumes Reviewed",
+            "href": "https://www.tiktok.com/@redolessence/video/7491114738961632555"
+          },
+          {
+            "text": "Team Tries: the 5 best pistachio perfumes - Get the Gloss",
+            "href": "https://www.getthegloss.com/beauty/fragrance/team-tries-best-pistachio-perfumes/"
+          },
+          {
+            "text": "Pistachio Is Summer '26's #1 Perfume Note: The 11 Best Scents",
+            "href": "https://www.whowhatwear.com/beauty/fragrance/pistachio-perfume-trend#:~:text=The%20Top%205%20Pistachio%20Perfumes%2C%20Listed,$300"
+          },
+          {
+            "text": "Favourite Fragrances with Pistachio? : r/FemFragLab - Reddit",
+            "href": "https://www.reddit.com/r/FemFragLab/comments/1iiy6t3/favourite_fragrances_with_pistachio/#:~:text=I%20like%20yum%20pistachio%20gelato,cozy%2C%20comfy%2C%20creamy%20pistachio."
+          },
+          {
+            "text": "Favourite Fragrances with Pistachio? : r/FemFragLab - Reddit",
+            "href": "https://www.reddit.com/r/FemFragLab/comments/1iiy6t3/favourite_fragrances_with_pistachio/#:~:text=DS%20&%20Durga%20Pistachio!,and%20base%20notes%20of%20pistachio.&text=Khair%20Pistachio%20is%20a%20nice%2C%20light%20pistachio%20scent."
+          },
+          {
+            "text": "Pistachio Perfumes Suggestion : r/FemFragLab - Reddit",
+            "href": "https://www.reddit.com/r/FemFragLab/comments/1ptrriu/pistachio_perfumes_suggestion/"
+          },
+          {
+            "text": "The Best Pistachio Perfumes of 2026 | Stories | Harrods US",
+            "href": "https://www.harrods.com/en-us/c/stories/beauty/best-pistachio-perfumes#:~:text=Herm%C3%A8s%20Un%20Jardin%20%C3%A0%20Cyth%C3%A8re,world%20in%20one%20enticing%20perfume."
+          },
+          {
+            "text": "The Best Pistachio Perfumes of 2026 | Stories | Harrods UK",
+            "href": "https://www.harrods.com/en-gb/c/stories/beauty/best-pistachio-perfumes"
+          },
+          {
+            "text": "What are the popular brands of pistachio perfume?",
+            "href": "https://www.google.com/search?sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&q=what+are+the+popular+brands+of+pistachio+perfume&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQrooIegQIMxAP"
+          },
+          {
+            "text": "Kayali Yum Pistachio Gelato | 33",
+            "href": "https://www.google.com/search?sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&q=Kayali+Yum+Pistachio+Gelato+%7C+33&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQxccNegUI6AEQAQ"
+          },
+          {
+            "text": "D.S. & DURGA Pistachio",
+            "href": "https://www.google.com/search?sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&q=D.S.+%26+DURGA+Pistachio&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQxccNegUI9AEQAQ"
+          },
+          {
+            "text": "Fine'ry. Pistachio Please",
+            "href": "https://www.google.com/search?sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&q=Fine%27ry.+Pistachio+Please&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQxccNegUIhQIQAQ"
+          },
+          {
+            "text": "Ellis Brooklyn Forever Pistachio",
+            "href": "https://www.google.com/search?sca_esv=d5a5f35ee25e06b2&hl=en&gl=us&pws=0&q=Ellis+Brooklyn+Forever+Pistachio&sa=X&ved=2ahUKEwjP97jqlKCVAxVIxzgGHfIrMPwQxccNegUIkgIQAQ"
+          },
+          {
+            "text": "PISTACHIO AGREEMENT : r/DIYfragrance - Reddit",
+            "href": "https://www.reddit.com/r/DIYfragrance/comments/1kegx0v/pistachio_agreement/#:~:text=Pistachio%20Thiazole:%202%2Dethyl%2D4%2Dmethyl%20thiazole%20is%20suggested%20as,combined%20with%20other%20gourmand%20and%20nutty%20materials."
+          },
+          {
+            "text": "PISTACHIO AGREEMENT : r/DIYfragrance - Reddit",
+            "href": "https://www.reddit.com/r/DIYfragrance/comments/1kegx0v/pistachio_agreement/#:~:text=Pyrazine%20Compounds:%20Pyrazines%2C%20including%202%2C3%2Ddimethylpyrazine%20(walnut%20pyrazine)%2C,three%20being%20more%20commonly%20available%20for%20perfumery."
+          }
+        ],
+        "visible_text_line_count": 496
+      },
+      "capture_finished_at_iso": "2026-06-24T15:12:34.250Z"
+    }
+  ],
+  "finished_at_iso": "2026-06-24T15:12:34.251Z"
+}

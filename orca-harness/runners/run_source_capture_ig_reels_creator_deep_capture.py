@@ -345,6 +345,50 @@ def _summary_line(captured: CapturedReel) -> str:
     )
 
 
+def run_creator_deep_capture(
+    *,
+    handle: str,
+    top_n: int = DEFAULT_TOP_N,
+    model: str = DEFAULT_MODEL,
+    data_root: str | None = None,
+    max_rows: int = DEFAULT_GRID_MAX_ROWS,
+    capture_fetcher: Callable[..., IgReelsGridCaptureResult] = fetch_ig_reels_grid_capture,
+    capture_fn: CaptureFn | None = None,
+    persist_fn: PersistFn | None = None,
+) -> tuple[list[RankedReel], list[CapturedReel]]:
+    """Run the creator grid-rank -> top-N deep-capture sequence for callers.
+
+    The CLI keeps printing human summaries; orchestrators use this function to get structured
+    outcomes while preserving the same injected/offline-testable capture core.
+    """
+    if top_n < 0:
+        raise ValueError("top_n must be non-negative")
+    ranked, _capture = scan_creator_reels_ranked(
+        handle=handle,
+        max_rows=max_rows,
+        capture_fetcher=capture_fetcher,
+    )
+    resolved_persist_fn = persist_fn
+    if resolved_persist_fn is None and (data_root is not None or os.environ.get("ORCA_DATA_ROOT")):
+        resolved_persist_fn = lambda result, _ranked: _persist_deep_capture(result, data_root_arg=data_root)
+
+    if capture_fn is not None:
+        return ranked, select_and_capture_top_reels(
+            ranked,
+            top_n=top_n,
+            capture_fn=capture_fn,
+            persist_fn=resolved_persist_fn,
+        )
+
+    with tempfile.TemporaryDirectory(prefix="orca_creator_deepcap_") as scratch:
+        captured = select_and_capture_top_reels(
+            ranked,
+            top_n=top_n,
+            capture_fn=_make_capture_fn(scratch, model=model),
+            persist_fn=resolved_persist_fn,
+        )
+    return ranked, captured
+
 def main(argv: Sequence[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         description=(

@@ -1,20 +1,19 @@
-# Orca Commission Signal Board Prompt Adjudication Packet v0
+# Orca Commission Signal Board Prompt Structure Rules v0
 
 ```yaml
 retrieval_header_version: 1
-artifact_role: Product artifact (decision-prep / correction packet)
+artifact_role: Prompt Structure Rules
 scope: >
-  Recasts the temporary backtesting-first Orca commission prompt as a signal
-  and evidence board candidate, not a gate, demand check, proof step, or
-  classifier. Maps prompt sections to the corrected commission boundary before
-  any durable prompt or implementation work.
+  Durable rules for the Commission Signal Board Prompt Structure: the board is
+  a signal and evidence routing structure, not a gate, demand check, proof step,
+  classifier, retrieval process, or implementation authorization.
 use_when:
-  - Deciding whether to turn the temporary commission prompt into an Orca durable signal-board prompt.
+  - Checking the durable rules behind the Commission Signal Board Prompt Structure.
   - Checking which prompt sections are adopted, modified, deferred, or rejected under the evidence/signals-only boundary.
   - Preparing owner sign-off on commission signal-board naming, source-routing, and classifier handoff.
 authority_boundary: retrieval_only
 open_next:
-  - orca/product/spines/commission_signal_board/prompts/orca_commission_signal_board_prompt_v0.md
+  - orca/product/spines/commission_signal_board/prompts/orca_commission_signal_board_prompt_structure_v0.md
   - orca/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md
   - .agents/workflow-overlay/prompt-orchestration.md
   - orca/product/spines/scanning/admissibility_checkability/orca_demand_scan_gate_adjudication_packet_v0.md
@@ -22,7 +21,7 @@ open_next:
   - orca/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md
 stale_if:
   - The owner chooses a different durable name for the commission signal/evidence object.
-  - A durable commission signal-board prompt is authored through prompt-orchestration.
+  - A later Commission Signal Board Prompt Structure supersedes this rules doc.
   - A demand-classifier handoff contract supersedes this evidence/signals-only boundary.
 ```
 
@@ -34,7 +33,7 @@ orca_start_preflight:
   overlay_read: yes
   source_pack: custom S2 product anchor plus target prompt, adjacent classifier/proof context, and historical gate-named artifacts
   edit_permission: docs-write
-  target_scope: product-lead decision-prep artifact; no prompt artifact, no implementation, no runtime authorization
+  target_scope: product-lead Prompt Structure Rules artifact; no prompt artifact, no implementation, no runtime authorization
   dirty_state_checked: yes
   blocked_if_missing: AGENTS.md, overlay README, source-loading, prompt-orchestration, buyer-proof packet, adjacent demand/gate context artifacts, temporary prompt
 ```
@@ -87,6 +86,15 @@ The manual/local CSB validator now enforces those row-shape fields and enum
 values, but only as output shape: same-strength newer/current URL-backed rows
 can deserve more scan attention, and that attention is not buyer proof, demand
 classification, classifier mapping, evidence weighting, or graph weight.
+
+Public-reaction engagement belongs in the board as resonance context, not
+judgment. CSB may ask rows to preserve source-visible upvotes, helpful votes,
+likes, views, shares, comment counts, reply counts, score state, visible
+sort/rank/order, pinned/hearted/official-response markers, direction, visible
+audience-fit basis, baseline context, and discount reasons when supplied or
+source-backed. CSB must not turn those facts into demand proof, Commit/Scale
+support, credibility, independence, graph weight, classifier mapping, final
+resonance weight, or Action Ceiling.
 
 The temporary prompt is too high-lock-in to adopt wholesale because it mixes
 five different objects in one artifact: commission intake, venue playbook,
@@ -209,11 +217,40 @@ noise, provenance, independence, and graph behavior.
 | Reviews | retailer reviews, marketplace reviews, brand-site reviews, specialist fragrance reviews | experience claims, recency, complaints, repeat-use hints, contradiction checks | Do not collapse to aggregate stars; preserve recency and source conventions. |
 | Creator / social video | Instagram, TikTok, YouTube, shorts/reels, affiliate/creator posts, later Reddit creator/community personalities | attention spread, creator clusters, campaign risk, audience language, propagation timing | IG has current adjacent capture/discovery work; TikTok/YouTube/Reddit creator profiles are planned/deferred seams. |
 | Retail / PDP | Sephora, Ulta, Amazon, Nordstrom, brand PDPs, retailer search/category pages | availability, assortment, stock/discounting posture, review context, retailer corroboration | Retail/PDP is corroborative and operationally useful; it is not consumer-origin by itself. |
-| Search / discovery | Google Trends, search-volume provider, SERP, marketplace search, on-site search | interest traces, query language, discovery routes, counterevidence queries | Search-interest can carry attention/interest signal; methodology and pins stay owned by the search/AEO lane. |
+| Search / discovery | Google Trends, search-volume provider, SERP, preserved SERP packets, marketplace search, on-site search | interest traces, query language, discovery routes, hidden-venue pointers, counterevidence queries | Search-interest can carry attention/interest signal. Search-Surface MGT is a source-route scout only; methodology and pins stay with owning search-interest/AEO specs, while execution routes to Scanning frontier/exact-query work or Capture direct-source requests. |
 | AEO / answer engines | Google AI Overviews, Gemini, ChatGPT, other answer-engine surfaces | answer visibility, cited-source ecosystem, entity association, visibility gaps | Visibility annotation only unless a later owner-approved schema amendment changes this; never an independent demand-origin surface today. |
 | News / editorial / trade | trade publications, editorial, newsletters, specialist blogs, press | launch chronology, industry framing, awareness, third-party narrative | News is a distinct family; LinkedIn reposts of news point back to the actual source. |
 | Professional / org-motion | ATS/careers pages, hiring pages, founder/executive public posts, partnership announcements, LinkedIn when explicitly routed | hiring/movement, organizational intent, operator-side propagation | ATS/careers pages are better movement sources than LinkedIn. LinkedIn remains no-live/planning-only unless separately authorized. |
 | Owned channels | brand site, brand socials, email archive, product pages, press releases | official chronology, brand claims, launch framing | High chronology value, low independence. |
+
+### Search-Surface MGT Standing Route Card
+
+Standing behavior: when a commission has an open question about market language,
+comparison/confusion, hidden venues, or counterevidence queries, the board should
+consider a Search-Surface MGT route row rather than leaving search discovery as
+background prose.
+
+Use this row pattern:
+
+```yaml
+source_family: search_discovery
+source_subfamily: search_surface_mgt
+signal_role: search_interest
+row_purpose: source_route
+evidence_status: provided | source_backed | to_retrieve | gap
+```
+
+CSB may point to preserved SERP packets as routing evidence, but it does not run
+Google capture, score search demand, or treat query count, rank, repeated SERP
+presence, PAA/PAS, product modules, or autocomplete as proof.
+
+Preferred handoff:
+
+```text
+CSB source-route row
+-> Scanning exact-query / frontier selection
+-> Capture P1 direct-source acquisition when concrete URLs or surfaces exist
+```
 
 ## Graph-Light Contract
 

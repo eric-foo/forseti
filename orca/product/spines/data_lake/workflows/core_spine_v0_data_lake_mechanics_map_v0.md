@@ -14,6 +14,7 @@ use_when:
 authority_boundary: retrieval_only
 open_next:
   - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_core_contract_v0.md
+  - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_capture_propagation_classification_contract_v0.md
   - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_storage_contract_v0.md
   - orca/product/spines/capture/core/packet_schema/source_capture_tenant_payload_attachment_boundary_v0.md
   - orca/product/spines/capture/core/packet_schema/source_capture_core_payload_split_explainer_v0.md
@@ -186,6 +187,12 @@ the storage contract and engine-selection boundary. This mechanics map remains t
 map; the core contract refines it by separating lake-owned findability from
 Mechanical Source Projection, keeping availability signals content-free, and
 preserving physical storage as a deferred gate.
+
+Use `orca/product/spines/data_lake/authority/core_spine_v0_data_lake_capture_propagation_classification_contract_v0.md`
+when a Data Lake / Capture-facing change needs propagation classification across
+lake semantics, raw packet-runner seams, behavioral projection parity,
+source-family-local acquisition routes, or downstream residual/gold-boundary
+semantics.
 
 ## Direction Change Propagation
 

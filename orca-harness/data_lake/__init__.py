@@ -18,6 +18,8 @@ from data_lake.root import (
     ROOT_MARKER_CONTRACT_VERSION,
     ROOT_MARKER_DEFAULT_LABEL,
     ROOT_MARKER_FILENAME,
+    anchor_shard,
+    raw_shard,
 )
 
 __all__ = [
@@ -30,4 +32,6 @@ __all__ = [
     "ROOT_MARKER_CONTRACT_VERSION",
     "ROOT_MARKER_DEFAULT_LABEL",
     "ROOT_MARKER_FILENAME",
+    "anchor_shard",
+    "raw_shard",
 ]

@@ -44,9 +44,11 @@ non-authorizing: it grants no capture/build/merge authority; each probe runs und
 authorization and per-operation network approval.
 
 **MVP scope:** the risk posture + the read + the route catalog + the pointer + the guardrails.
-Per-source **recipe cards** are authored BY probes and accumulate over time. TikTok is the first
-*intended* probe target; the recon index shows TikTok/Instagram have no technical recon yet, so any
-social card is speculative until probed.
+Per-source **recipe cards** are authored BY probes and accumulate over time. TikTok still has no
+technical recon in this index. Instagram now has several probed public-web routes, including a
+route-specific 2026-06-29 live diagnostic: standalone anonymous `yt-dlp` can return an empty media
+response while the browser-rendered deep-capture route still exposes a transient media handle that
+can be downloaded immediately for ASR. That is a route residual, not an Instagram transcript NO-GO.
 
 ## Risk posture (owner-authorized, pre-commercial)
 
@@ -177,6 +179,7 @@ Pick the cheapest route that fits the located substrate. A symptom quick-referen
 | content present but reworded | tool returned paraphrase (fidelity fail) | a route that preserves bytes (browser page content / embedded-state extract) |
 | 403 *and* headless also 403 | NOT "browser won't help" — visible-context / anti-bot detection | standard browser controls (headed / local channel / settle); then visible browser + user action; then anti-bot fingerprint/challenge route |
 | anti-bot challenge on PUBLIC content | bot detection (Cloudflare/Kasada/Akamai/etc.) | browser-rendered access diagnosis; standard browser controls first when plausible; then anti-bot route (fingerprint/challenge handling, proxy/geo) — authorized, human-rate |
+| route-specific empty media response (e.g. IG standalone `yt-dlp`) | media resolver route is stale, brittle, or lacks the page-rendered handle; not proof the source item lacks audio | browser-rendered item deep-capture; extract the route-native transient media handle from the rendered DOM and use it immediately, or record `no_audio_handle` / render posture |
 | login-wall | access-control gate (Step 0) | use OWN entitled access, or stop — do NOT defeat it |
 | reviews/section missing | IntersectionObserver lazy-load not fired | progressive/incremental scroll (Sephora) |
 
@@ -195,6 +198,7 @@ menu.** Cheapest fit wins.
 | standard browser controls (headed / local channel / settle) | headless/browser-channel/settle-sensitive interstitials before anti-detect escalation | med | rendered bytes; visible text/title separated from residual DOM challenge markers | public |
 | visible browser + user action | headless-detected 403; user-gated download (PDF) | med-high | real bytes via the real UI path | public; own entitled access if gated |
 | progressive / incremental scroll | lazy-load / IntersectionObserver content (reviews) | med | first-party-rendered bytes | public |
+| rendered social item deep-capture (transient media handle) | source item where comments and/or audio handle live in rendered DOM, especially when a standalone media resolver returns empty/unavailable | med-high | visible comments plus immediate ASR from a route-native transient handle; signed media URL is redacted and not durable evidence | public browser render; no auth-gate defeat; human-rate |
 | anti-bot / cloakbrowser + proxy/geo | anti-bot challenge on public content; geo friction | high | rendered bytes *(expected, not yet demonstrated — see route maturity)* | public; authorized under Risk posture; human-rate; no secrets/exit-IP |
 | vendor-API first-party render | reviews/widgets a vendor API renders into the DOM (Bazaarvoice) | low-med | the API's real values | public via the page |
 | embedded-state / internal-API extract | signal in `__APOLLO_STATE__` / `__NEXT_DATA__` / a JSON blob / a public page's own internal API | low | exact embedded values (cite field+value) | public via the page (not an auth-gated private API) |
@@ -211,6 +215,14 @@ which is NO-GO. Reach NO-GO only after the matching routes are exhausted, with t
 reviews; worktree-pending). The `anti-bot / cloakbrowser + proxy/geo` route is *setup/architecture-
 ready, not yet end-to-end capture-proven* — treat its fidelity as **expected, not demonstrated**,
 until a probe proves it. Don't cite an unproven route as evidence of capturability.
+
+**IG live media-route diagnostic (2026-06-29).** For public Instagram Reels, a standalone
+anonymous `yt-dlp` media fetch can fail before ASR with Instagram's empty-media response even when
+the reel page renders publicly. Treat that as failure of the standalone media-resolver route. The
+next matching route is rendered reel deep-capture: one browser render yields comments plus a
+transient IG-CDN media handle for immediate ASR. The observed diagnostic does **not** prove durable
+media/video preservation, canonical-lake persistence, logged-in access, or scale cadence; it only
+prevents the empty-media failure from being promoted into an IG transcript NO-GO.
 
 Proxy profiles are shared Source Capture browser-route configuration, not CloakBrowser-owned
 state. A runner may opt into a registered proxy profile by label while keeping endpoint,
@@ -257,17 +269,21 @@ original de-correlated review's scope.
 ## Recency / Current-State Preservation Priority
 
 When a scanning or CSB handoff marks a URL or venue as recent/current-state
-high-attention, Capture treats that as preservation urgency and source-drift
-risk. Prefer preserving the current visible state before older context when the
-request is otherwise within scope and route-matched. Same-strength newer/current
-source states may deserve earlier capture than older source states, especially
-for stockout/restock, waitlist, review text, availability, price, or changing PDP
-/ social / forum surfaces.
+high-attention, or when a handoff or the source itself exposes source-visible
+public-reaction engagement/resonance facts, Capture treats that as preservation
+urgency and source-drift risk. Prefer preserving the current visible state before
+older context when the request is otherwise within scope and route-matched.
+Same-strength newer/current source states, or source states with more
+source-visible reaction context, may deserve earlier capture than older or
+lower-context source states, especially for stockout/restock, waitlist, review
+text, availability, price, or changing PDP / social / forum surfaces.
 
 This priority does not prove demand, change the access-control gate, select a
-route by itself, or let scanning bind Capture's route. Capture still runs Step 0,
-chooses the cheapest matching route, and records the captured state as source
-facts, not proof.
+route by itself, or let scanning bind Capture's route. Engagement counts,
+source-native scores, visible rank/order, comments, likes, views, shares,
+helpful votes, or official-response markers stay source facts. Capture still
+runs Step 0, chooses the cheapest matching route, and records the captured state
+as source facts, not proof.
 
 ## Step 3 — The verdict + receipt
 
@@ -310,9 +326,12 @@ capture-spine spec slice F, pending build).
 - **No route for mobile/app-only substrate.** If a probe finds the signal lives only in a phone app
   with no public web surface, that's a **CATALOG_GAP / catalog amendment** (a new route), not a
   default NO-GO.
-- **No technical recon for TikTok/Instagram, and no media/video capture recipe.** Any card for those
-  surfaces is speculative until probed. (Under the amended posture their *public* surfaces are now
-  in-scope; their login-walled surfaces remain access-gated.)
+- **TikTok still has no technical recon in this index.** Any TikTok card is speculative until
+  probed. Instagram public-web capture is no longer an absent-recon surface: grid, profile-feed,
+  discovery, and deep-capture routes have probe evidence in the recon index. Remaining IG media
+  residual: durable full media/video preservation is still unproven, and standalone anonymous
+  `yt-dlp` audio may return an empty media response even when rendered deep-capture can still
+  produce ASR from a transient handle. Login-walled/private IG surfaces remain access-gated.
 - **Anti-bot capability is authorized but not yet proven.** Authorization (Risk posture) is not the
   same as a working defeat of a given anti-bot system; whether a specific challenge can be passed
   at human-rate is an engineering question a probe answers.
@@ -321,6 +340,61 @@ capture-spine spec slice F, pending build).
 - **Recipe cards are not yet authored.** This MVP is the method only.
 
 ## Direction Change Propagation
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    IG live-capture route doctrine now classifies standalone anonymous `yt-dlp` empty-media
+    failures as route-specific residuals, not IG transcript NO-GO; the next matching public
+    live transcript route is browser-rendered deep-capture, while durable media/video
+    preservation, canonical F-lake persistence, logged-in access, proxy use, and scale cadence
+    remain unproven.
+  trigger: workflow_authority
+  related_triggers:
+    - validation_philosophy
+  controlling_sources_updated:
+    - orca/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md
+    - orca/product/spines/capture/core/source_capture_toolbox/capture_recon_index_v0.md
+    - docs/workflows/ig_behavioral_live_validation_receipt_v0.md
+  downstream_surfaces_checked:
+    - docs/workflows/orca_repo_map_v0.md
+    - .agents/workflow-overlay/source-loading.md
+    - docs/workflows/ig_backfix_against_youtube_behavioral_contract_spec_v0.md
+    - docs/workflows/shared_capture_core_ig_youtube_tiktok_planning_v0.md
+    - orca-harness/runners/run_source_capture_ig_reels_deep_capture.py
+    - orca-harness/source_capture/ig_reels_deep_capture.py
+    - orca-harness/source_capture/transcript/ig_reels_audio_packet.py
+  intentionally_not_updated:
+    - path: .agents/workflow-overlay/source-loading.md
+      reason: >
+        Source-loading already binds all capture-spine activity to this playbook plus the recon
+        index. The IG route detail belongs here and in the recon index, not in the overlay read-pack
+        rule.
+    - path: docs/workflows/ig_backfix_against_youtube_behavioral_contract_spec_v0.md
+      reason: >
+        The spec already treats deep-capture and standalone audio as IG-owned transcript surfaces
+        and does not promote standalone `yt-dlp` failure to an IG transcript NO-GO. No route
+        preference duplication added.
+    - path: docs/workflows/shared_capture_core_ig_youtube_tiktok_planning_v0.md
+      reason: >
+        The planning note already keeps IG acquisition route, transient media handling, and ASR
+        priority platform-owned. This patch changes IG route diagnosis only, not shared-core
+        boundaries.
+  stale_language_search: >
+    rg -n "TikTok/Instagram|no technical recon yet|No technical recon for TikTok/Instagram|media/video capture recipe|full transcript/deep-capture validation|audio-route live residuals|explicit TikTok/Instagram recon gap"
+    docs/workflows/orca_repo_map_v0.md orca/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md orca/product/spines/capture/core/source_capture_toolbox/capture_recon_index_v0.md docs/workflows/ig_behavioral_live_validation_receipt_v0.md
+  stale_language_search_result: >
+    Executed 2026-06-29 after edits and re-run after this receipt insertion. Before the receipt
+    was inserted, `rg` exited 1 with no matches. After insertion, the only retained hit is the
+    receipt's own search-literal line; no checked routing prose keeps the stale route/gap wording.
+  non_claims:
+    - not validation
+    - not readiness
+    - not source-access approval
+    - not canonical F-lake validation
+    - not durable media/video preservation
+    - not shared-core implementation authorization
+```
 
 ```yaml
 direction_change_propagation:
@@ -334,7 +408,7 @@ direction_change_propagation:
     - workflow_authority
   controlling_sources_updated:
     - orca/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md
-    - orca/product/spines/commission_signal_board/prompts/orca_commission_signal_board_prompt_v0.md
+    - orca/product/spines/commission_signal_board/prompts/orca_commission_signal_board_prompt_structure_v0.md
     - orca/product/spines/judgment/demand_read/core/judgment_spine_demand_read_machinery_architecture_v0.md
     - docs/workflows/orca_repo_map_v0.md
   downstream_surfaces_checked:

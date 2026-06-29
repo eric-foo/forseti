@@ -1,0 +1,351 @@
+{
+  "creator_public_handle_linkage_ledger": {
+    "schema_version": "creator_public_handle_linkage_ledger_v0",
+    "ledger_id": "synthetic_creator_public_handle_linkage_ledger_v0",
+    "ledger_mode": "synthetic_fixture",
+    "authority_pointers": [
+      "docs/decisions/wind_caller_calibration_carveout_v0.md",
+      "orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_spec_v0.md"
+    ],
+    "source_policy_posture": "Tier-2-B public-handle-to-public-handle linkage only; no non-public-handle joins; synthetic test fixture.",
+    "platform_accounts": [
+      {
+        "platform_account_id": "acct_synthetic_glow_ig",
+        "platform": "instagram",
+        "platform_public_account_id_or_none": "synthetic_ig_001",
+        "public_handle": "synthetic_glow_lab_ig",
+        "public_profile_url": "https://example.test/instagram/synthetic_glow_lab_ig",
+        "handle_source_pointer": "synthetic_fixture:profile:ig:glow_lab",
+        "handle_observed_at": "2026-06-27T00:00:00Z",
+        "public_display_name_or_none": "Synthetic Glow Lab",
+        "display_name_source_pointer_or_none": "synthetic_fixture:profile:ig:glow_lab",
+        "display_name_source_field_or_none": "profile.display_name",
+        "synthetic_fixture": true
+      },
+      {
+        "platform_account_id": "acct_synthetic_glow_tt",
+        "platform": "tiktok",
+        "platform_public_account_id_or_none": "synthetic_tt_001",
+        "public_handle": "synthetic_glow_lab_tt",
+        "public_profile_url": "https://example.test/tiktok/synthetic_glow_lab_tt",
+        "handle_source_pointer": "synthetic_fixture:profile:tiktok:glow_lab",
+        "handle_observed_at": "2026-06-27T00:00:00Z",
+        "public_display_name_or_none": "Synthetic Glow Lab",
+        "display_name_source_pointer_or_none": "synthetic_fixture:profile:tiktok:glow_lab",
+        "display_name_source_field_or_none": "profile.display_name",
+        "synthetic_fixture": true
+      },
+      {
+        "platform_account_id": "acct_synthetic_glow_yt",
+        "platform": "youtube",
+        "platform_public_account_id_or_none": "synthetic_yt_001",
+        "public_handle": "synthetic_glow_lab_yt",
+        "public_profile_url": "https://example.test/youtube/synthetic_glow_lab_yt",
+        "handle_source_pointer": "synthetic_fixture:profile:youtube:glow_lab",
+        "handle_observed_at": "2026-06-27T00:00:00Z",
+        "public_display_name_or_none": "Synthetic Glow Lab",
+        "display_name_source_pointer_or_none": "synthetic_fixture:profile:youtube:glow_lab",
+        "display_name_source_field_or_none": "profile.title",
+        "synthetic_fixture": true
+      },
+      {
+        "platform_account_id": "acct_synthetic_barrier_ig",
+        "platform": "instagram",
+        "platform_public_account_id_or_none": "synthetic_ig_002",
+        "public_handle": "synthetic_barrier_notes_ig",
+        "public_profile_url": "https://example.test/instagram/synthetic_barrier_notes_ig",
+        "handle_source_pointer": "synthetic_fixture:profile:ig:barrier_notes",
+        "handle_observed_at": "2026-06-27T00:00:00Z",
+        "public_display_name_or_none": "Barrier Notes",
+        "display_name_source_pointer_or_none": "synthetic_fixture:profile:ig:barrier_notes",
+        "display_name_source_field_or_none": "profile.display_name",
+        "synthetic_fixture": true
+      },
+      {
+        "platform_account_id": "acct_synthetic_barrier_tt",
+        "platform": "tiktok",
+        "platform_public_account_id_or_none": "synthetic_tt_002",
+        "public_handle": "synthetic_barrier_notes_tt",
+        "public_profile_url": "https://example.test/tiktok/synthetic_barrier_notes_tt",
+        "handle_source_pointer": "synthetic_fixture:profile:tiktok:barrier_notes",
+        "handle_observed_at": "2026-06-27T00:00:00Z",
+        "public_display_name_or_none": "Barrier Notes",
+        "display_name_source_pointer_or_none": "synthetic_fixture:profile:tiktok:barrier_notes",
+        "display_name_source_field_or_none": "profile.display_name",
+        "synthetic_fixture": true
+      },
+      {
+        "platform_account_id": "acct_synthetic_barrier_yt",
+        "platform": "youtube",
+        "platform_public_account_id_or_none": "synthetic_yt_002",
+        "public_handle": "synthetic_barrier_notes_yt",
+        "public_profile_url": "https://example.test/youtube/synthetic_barrier_notes_yt",
+        "handle_source_pointer": "synthetic_fixture:profile:youtube:barrier_notes",
+        "handle_observed_at": "2026-06-27T00:00:00Z",
+        "public_display_name_or_none": "Barrier Notes",
+        "display_name_source_pointer_or_none": "synthetic_fixture:profile:youtube:barrier_notes",
+        "display_name_source_field_or_none": "profile.title",
+        "synthetic_fixture": true
+      },
+      {
+        "platform_account_id": "acct_synthetic_mist_ig",
+        "platform": "instagram",
+        "platform_public_account_id_or_none": "synthetic_ig_003",
+        "public_handle": "synthetic_mist_notes_ig",
+        "public_profile_url": "https://example.test/instagram/synthetic_mist_notes_ig",
+        "handle_source_pointer": "synthetic_fixture:profile:ig:mist_notes",
+        "handle_observed_at": "2026-06-27T00:00:00Z",
+        "public_display_name_or_none": "Mist Notes",
+        "display_name_source_pointer_or_none": "synthetic_fixture:profile:ig:mist_notes",
+        "display_name_source_field_or_none": "profile.display_name",
+        "synthetic_fixture": true
+      },
+      {
+        "platform_account_id": "acct_synthetic_mist_yt",
+        "platform": "youtube",
+        "platform_public_account_id_or_none": "synthetic_yt_003",
+        "public_handle": "synthetic_mist_notes_yt",
+        "public_profile_url": "https://example.test/youtube/synthetic_mist_notes_yt",
+        "handle_source_pointer": "synthetic_fixture:profile:youtube:mist_notes",
+        "handle_observed_at": "2026-06-27T00:00:00Z",
+        "public_display_name_or_none": "Mist Archive",
+        "display_name_source_pointer_or_none": "synthetic_fixture:profile:youtube:mist_notes",
+        "display_name_source_field_or_none": "profile.title",
+        "synthetic_fixture": true
+      },
+      {
+        "platform_account_id": "acct_fixture_oil_ig",
+        "platform": "instagram",
+        "platform_public_account_id_or_none": "synthetic_ig_004",
+        "public_handle": "fixture_oil_log_ig",
+        "public_profile_url": "https://example.test/instagram/fixture_oil_log_ig",
+        "handle_source_pointer": "synthetic_fixture:profile:ig:oil_log",
+        "handle_observed_at": "2026-06-27T00:00:00Z",
+        "public_display_name_or_none": "Oil Log",
+        "display_name_source_pointer_or_none": "synthetic_fixture:profile:ig:oil_log",
+        "display_name_source_field_or_none": "profile.display_name",
+        "synthetic_fixture": true
+      },
+      {
+        "platform_account_id": "acct_fixture_oil_tt",
+        "platform": "tiktok",
+        "platform_public_account_id_or_none": "synthetic_tt_004",
+        "public_handle": "fixture_oil_log_tt",
+        "public_profile_url": "https://example.test/tiktok/fixture_oil_log_tt",
+        "handle_source_pointer": "synthetic_fixture:profile:tiktok:oil_log",
+        "handle_observed_at": "2026-06-27T00:00:00Z",
+        "public_display_name_or_none": "Oil Log",
+        "display_name_source_pointer_or_none": "synthetic_fixture:profile:tiktok:oil_log",
+        "display_name_source_field_or_none": "profile.display_name",
+        "synthetic_fixture": true
+      }
+    ],
+    "account_link_evidence": [
+      {
+        "evidence_id": "ev_glow_self_declared_cross_link",
+        "evidence_type": "self_declared_cross_link",
+        "evidence_strength": "strong",
+        "account_ids": [
+          "acct_synthetic_glow_ig",
+          "acct_synthetic_glow_tt",
+          "acct_synthetic_glow_yt"
+        ],
+        "source_pointer": "synthetic_fixture:profile:ig:glow_lab:bio_links",
+        "source_field": "profile.bio_links",
+        "observed_at": "2026-06-27T00:00:00Z",
+        "review_actor": "fixture_operator",
+        "llm_assisted": false,
+        "independence_key": "self_declared_cross_link",
+        "notes": "Synthetic profile bio links to the other synthetic public handles."
+      },
+      {
+        "evidence_id": "ev_barrier_handle_similarity",
+        "evidence_type": "handle_similarity",
+        "evidence_strength": "weak",
+        "account_ids": [
+          "acct_synthetic_barrier_ig",
+          "acct_synthetic_barrier_tt",
+          "acct_synthetic_barrier_yt"
+        ],
+        "source_pointer": "synthetic_fixture:profile:all:barrier_notes:handles",
+        "source_field": "profile.public_handle",
+        "observed_at": "2026-06-27T00:00:00Z",
+        "review_actor": "fixture_operator",
+        "llm_assisted": true,
+        "independence_key": "handle_family",
+        "notes": "Synthetic handles share the same stem with platform suffixes."
+      },
+      {
+        "evidence_id": "ev_barrier_bio_overlap",
+        "evidence_type": "bio_text_overlap",
+        "evidence_strength": "weak",
+        "account_ids": [
+          "acct_synthetic_barrier_ig",
+          "acct_synthetic_barrier_tt",
+          "acct_synthetic_barrier_yt"
+        ],
+        "source_pointer": "synthetic_fixture:profile:all:barrier_notes:bios",
+        "source_field": "profile.bio_text",
+        "observed_at": "2026-06-27T00:00:00Z",
+        "review_actor": "fixture_operator",
+        "llm_assisted": false,
+        "independence_key": "bio_text_family",
+        "notes": "Synthetic bios repeat the same invented phrase."
+      },
+      {
+        "evidence_id": "ev_barrier_topic_overlap",
+        "evidence_type": "content_topic_overlap",
+        "evidence_strength": "weak",
+        "account_ids": [
+          "acct_synthetic_barrier_ig",
+          "acct_synthetic_barrier_tt",
+          "acct_synthetic_barrier_yt"
+        ],
+        "source_pointer": "synthetic_fixture:profile:all:barrier_notes:topic_tags",
+        "source_field": "profile.public_topic_tags",
+        "observed_at": "2026-06-27T00:00:00Z",
+        "review_actor": "fixture_operator",
+        "llm_assisted": false,
+        "independence_key": "topic_family",
+        "notes": "Synthetic topic tags overlap across three public handles."
+      },
+      {
+        "evidence_id": "ev_mist_conflicting_link_hub",
+        "evidence_type": "conflicting_public_link_hub",
+        "evidence_strength": "disconfirming",
+        "account_ids": [
+          "acct_synthetic_mist_ig",
+          "acct_synthetic_mist_yt"
+        ],
+        "source_pointer": "synthetic_fixture:profile:youtube:mist_notes:link_hub",
+        "source_field": "profile.public_link_hub",
+        "observed_at": "2026-06-27T00:00:00Z",
+        "review_actor": "fixture_operator",
+        "llm_assisted": false,
+        "independence_key": "conflicting_link_hub",
+        "notes": "Synthetic YouTube link hub declares a different synthetic account family."
+      },
+      {
+        "evidence_id": "ev_oil_handle_similarity",
+        "evidence_type": "handle_similarity",
+        "evidence_strength": "weak",
+        "account_ids": [
+          "acct_fixture_oil_ig",
+          "acct_fixture_oil_tt"
+        ],
+        "source_pointer": "synthetic_fixture:profile:all:oil_log:handles",
+        "source_field": "profile.public_handle",
+        "observed_at": "2026-06-27T00:00:00Z",
+        "review_actor": "fixture_operator",
+        "llm_assisted": true,
+        "independence_key": "handle_family",
+        "notes": "Synthetic weak candidate only; not enough evidence for probable."
+      }
+    ],
+    "creator_records": [
+      {
+        "creator_record_id": "cphl_synthetic_glow_001",
+        "link_state": "declared_public_account_link",
+        "platform_account_ids": [
+          "acct_synthetic_glow_ig",
+          "acct_synthetic_glow_tt",
+          "acct_synthetic_glow_yt"
+        ],
+        "evidence_ids": [
+          "ev_glow_self_declared_cross_link"
+        ],
+        "review_state": "human_reviewed_declared",
+        "link_rationale": "Synthetic declared cross-link case with explicit public account links.",
+        "limitations": "Synthetic only; no real creator represented.",
+        "created_at": "2026-06-27T00:00:00Z",
+        "updated_at": "2026-06-27T00:00:00Z",
+        "non_claims": [
+          "not real-world identity proof",
+          "not non-public-handle join",
+          "not contact or outreach authorization",
+          "not follower or audience graph",
+          "not public person-level product surface"
+        ]
+      },
+      {
+        "creator_record_id": "cphl_synthetic_barrier_001",
+        "link_state": "probable_public_account_link",
+        "platform_account_ids": [
+          "acct_synthetic_barrier_ig",
+          "acct_synthetic_barrier_tt",
+          "acct_synthetic_barrier_yt"
+        ],
+        "evidence_ids": [
+          "ev_barrier_handle_similarity",
+          "ev_barrier_bio_overlap",
+          "ev_barrier_topic_overlap"
+        ],
+        "review_state": "human_reviewed_probable",
+        "link_rationale": "Synthetic probable case from three independent weak public-handle evidence families.",
+        "limitations": "No single declaring source; remains probable rather than declared.",
+        "created_at": "2026-06-27T00:00:00Z",
+        "updated_at": "2026-06-27T00:00:00Z",
+        "non_claims": [
+          "not real-world identity proof",
+          "not non-public-handle join",
+          "not contact or outreach authorization",
+          "not follower or audience graph",
+          "not public person-level product surface"
+        ]
+      },
+      {
+        "creator_record_id": "cphl_synthetic_mist_001",
+        "link_state": "rejected_public_account_link",
+        "platform_account_ids": [
+          "acct_synthetic_mist_ig",
+          "acct_synthetic_mist_yt"
+        ],
+        "evidence_ids": [
+          "ev_mist_conflicting_link_hub"
+        ],
+        "review_state": "operator_rejected",
+        "link_rationale": "Synthetic rejection case preserving the disconfirming public evidence.",
+        "limitations": "Rejected link; do not collapse the two synthetic accounts.",
+        "created_at": "2026-06-27T00:00:00Z",
+        "updated_at": "2026-06-27T00:00:00Z",
+        "non_claims": [
+          "not real-world identity proof",
+          "not non-public-handle join",
+          "not contact or outreach authorization",
+          "not follower or audience graph",
+          "not public person-level product surface"
+        ]
+      },
+      {
+        "creator_record_id": "cphl_fixture_oil_001",
+        "link_state": "candidate_public_account_link",
+        "platform_account_ids": [
+          "acct_fixture_oil_ig",
+          "acct_fixture_oil_tt"
+        ],
+        "evidence_ids": [
+          "ev_oil_handle_similarity"
+        ],
+        "review_state": "candidate_needs_review",
+        "link_rationale": "Synthetic weak candidate with only handle similarity.",
+        "limitations": "Candidate only; not enough evidence to collapse records.",
+        "created_at": "2026-06-27T00:00:00Z",
+        "updated_at": "2026-06-27T00:00:00Z",
+        "non_claims": [
+          "not real-world identity proof",
+          "not non-public-handle join",
+          "not contact or outreach authorization",
+          "not follower or audience graph",
+          "not public person-level product surface"
+        ]
+      }
+    ],
+    "non_claims": [
+      "not real-world identity proof",
+      "not non-public-handle join",
+      "not contact or outreach authorization",
+      "not follower or audience graph",
+      "not public person-level product surface"
+    ]
+  }
+}

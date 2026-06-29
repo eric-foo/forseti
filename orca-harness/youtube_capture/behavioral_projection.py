@@ -18,6 +18,9 @@ YOUTUBE_BEHAVIORAL_PROJECTION_VERSION = "v0"
 
 CAPTION_SURFACE = "youtube_captions"
 AUDIO_SURFACE = "youtube_audio"
+WATCH_METADATA_SURFACE = "youtube_watch_metadata_comments"
+WATCH_CAPTURE_JSON_NAME = "youtube_watch_capture.json"
+METADATA_DISCOVERY_FAILED_RESIDUAL_PREFIX = "youtube_metadata_packet_discovery_failed"
 ASR_LANE = "transcript_asr"
 ASR_SET_LANE = "transcript_asr__set"
 
@@ -71,6 +74,12 @@ def normalize_youtube_metadata_packet(
         }
     comments = packet.get("comments")
     comment_rows = comments if isinstance(comments, list) else []
+    availability = packet.get("availability")
+    if not isinstance(availability, Mapping):
+        availability = {}
+    metric_receipts = packet.get("metric_receipts")
+    if not isinstance(metric_receipts, Mapping):
+        metric_receipts = {}
     receipts = packet.get("receipts")
     if not isinstance(receipts, Mapping):
         receipts = {
@@ -83,6 +92,10 @@ def normalize_youtube_metadata_packet(
     return {
         "platform": "youtube",
         "platform_video_id": video_id,
+        "capture_packet_id": _string_or_none(packet.get("capture_packet_id")),
+        "source_surface": _string_or_none(packet.get("source_surface")),
+        "capture_schema_version": _string_or_none(packet.get("capture_schema_version")),
+        "capture_timestamp": _string_or_none(packet.get("capture_timestamp")),
         "surface_type": _string_or_none(packet.get("surface_type")),
         "watch_url": _string_or_none(packet.get("watch_url")) or f"https://www.youtube.com/watch?v={video_id}",
         "canonical_url": _string_or_none(packet.get("canonical_url"))
@@ -91,6 +104,8 @@ def normalize_youtube_metadata_packet(
         "channel": _compact_dict(dict(channel)),
         "metadata": _compact_dict(dict(metadata)),
         "engagement": _compact_dict(dict(engagement)),
+        "availability": _compact_dict(dict(availability)),
+        "metric_receipts": _compact_dict(dict(metric_receipts)),
         "comments": {
             "posture": _string_or_none(packet.get("comments_posture")) or "unknown",
             "comment_count_text": _string_or_none(packet.get("comment_count_text")),
@@ -99,6 +114,74 @@ def normalize_youtube_metadata_packet(
         },
         "receipts": _compact_dict(dict(receipts)),
     }
+
+
+def metadata_packet_for_video(
+    data_root,
+    platform_video_id: str,
+    *,
+    rebuild_availability: bool = False,
+) -> dict[str, Any] | None:
+    """Discover the latest committed YouTube watch metadata/comment packet for one video."""
+    packet, _ = _metadata_packet_for_video(
+        data_root,
+        platform_video_id,
+        rebuild_availability=rebuild_availability,
+    )
+    return packet
+
+
+def _metadata_packet_for_video(
+    data_root,
+    platform_video_id: str,
+    *,
+    rebuild_availability: bool = False,
+) -> tuple[dict[str, Any] | None, list[str]]:
+    if rebuild_availability:
+        data_root.rebuild_availability()
+
+    candidates: list[dict[str, Any]] = []
+    residuals: list[str] = []
+    for packet_id in data_root.list_available(source_family="youtube"):
+        try:
+            loaded = data_root.load_raw_packet(packet_id)
+        except DataLakeRootError:
+            continue
+        if loaded.manifest.get("source_surface") != WATCH_METADATA_SURFACE:
+            continue
+        files = _file_paths(loaded.manifest)
+        packet, discovery_error = _watch_metadata_packet(packet_id=packet_id, loaded=loaded, files=files)
+        if discovery_error is not None:
+            _append_residual_once(
+                residuals,
+                _metadata_discovery_failed_residual(packet_id=packet_id, reason=discovery_error),
+            )
+            continue
+        packet_video_id = _string_or_none(packet.get("platform_video_id") or packet.get("video_id"))
+        if packet_video_id is None:
+            _append_residual_once(
+                residuals,
+                _metadata_discovery_failed_residual(
+                    packet_id=packet_id,
+                    reason="missing_platform_video_id",
+                ),
+            )
+            continue
+        if packet_video_id != platform_video_id:
+            continue
+        candidates.append(packet)
+    if not candidates:
+        return None, residuals
+    return (
+        max(
+            candidates,
+            key=lambda packet: (
+                _string_or_none(packet.get("capture_timestamp")) or "",
+                _string_or_none(packet.get("capture_packet_id")) or "",
+            ),
+        ),
+        residuals,
+    )
 
 
 def transcript_sources_for_video(
@@ -187,6 +270,7 @@ def _discovery_failure_source(*, platform_video_id: str, packet_id: str, error: 
 def project_youtube_behavioral_item(
     *,
     metadata_packet: Mapping[str, Any] | None = None,
+    metadata_discovery_residuals: Sequence[str] = (),
     transcript_sources: Sequence[Mapping[str, Any]] = (),
     extraction_results: Sequence[Mapping[str, Any]] = (),
     platform_video_id: str | None = None,
@@ -206,6 +290,10 @@ def project_youtube_behavioral_item(
         raise ValueError("platform_video_id is required when metadata and sources do not supply one")
 
     residuals: list[str] = []
+    for residual in metadata_discovery_residuals:
+        normalized_residual = _string_or_none(residual)
+        if normalized_residual is not None:
+            _append_residual_once(residuals, normalized_residual)
     if metadata is None:
         _append_residual_once(residuals, "youtube_metadata_packet_absent")
     elif metadata_video_id != video_id:
@@ -266,11 +354,20 @@ def project_youtube_behavioral_item_from_lake(
     rebuild_availability: bool = False,
     comment_sample_limit: int = 5,
 ) -> dict[str, Any]:
-    """Convenience wrapper for the common "metadata packet + local transcript lake" case."""
+    """Convenience wrapper for the common "video id + local capture lake" case."""
+    if rebuild_availability:
+        data_root.rebuild_availability()
+    discovered_metadata = metadata_packet
+    metadata_discovery_residuals: list[str] = []
+    if discovered_metadata is None:
+        discovered_metadata, metadata_discovery_residuals = _metadata_packet_for_video(
+            data_root, platform_video_id, rebuild_availability=False
+        )
     return project_youtube_behavioral_item(
-        metadata_packet=metadata_packet,
+        metadata_packet=discovered_metadata,
+        metadata_discovery_residuals=metadata_discovery_residuals,
         transcript_sources=transcript_sources_for_video(
-            data_root, platform_video_id, rebuild_availability=rebuild_availability
+            data_root, platform_video_id, rebuild_availability=False
         ),
         extraction_results=extraction_results,
         platform_video_id=platform_video_id,
@@ -636,6 +733,42 @@ def _body_ending_with(loaded, files: Mapping[str, str], suffix: str) -> bytes | 
     return None
 
 
+def _watch_metadata_packet(
+    *, packet_id: str, loaded, files: Mapping[str, str]
+) -> tuple[dict[str, Any] | None, str | None]:
+    body = _body_ending_with(loaded, files, WATCH_CAPTURE_JSON_NAME)
+    if body is None:
+        return None, "missing_capture_json"
+    try:
+        payload = json.loads(body.decode("utf-8"))
+    except ValueError:
+        return None, "invalid_capture_json"
+    if not isinstance(payload, Mapping):
+        return None, "capture_payload_not_object"
+    nested_packet = payload.get("packet")
+    packet = dict(nested_packet) if isinstance(nested_packet, Mapping) else {}
+
+    platform_video_id = _string_or_none(payload.get("platform_video_id"))
+    if platform_video_id is not None:
+        packet.setdefault("platform_video_id", platform_video_id)
+        packet.setdefault("video_id", platform_video_id)
+    for field in ("watch_url", "capture_timestamp", "capture_schema_version"):
+        value = _string_or_none(payload.get(field))
+        if value is not None:
+            packet.setdefault(field, value)
+    for field in ("availability", "metric_receipts"):
+        value = payload.get(field)
+        if isinstance(value, Mapping):
+            packet.setdefault(field, value)
+    packet["capture_packet_id"] = packet_id
+    packet["source_surface"] = _string_or_none(loaded.manifest.get("source_surface")) or WATCH_METADATA_SURFACE
+    return packet, None
+
+
+def _metadata_discovery_failed_residual(*, packet_id: str, reason: str) -> str:
+    return f"{METADATA_DISCOVERY_FAILED_RESIDUAL_PREFIX}:{packet_id}:{reason}"
+
+
 def _capture_metadata(loaded, files: Mapping[str, str]) -> dict[str, Any]:
     body = _body_ending_with(loaded, files, "capture_metadata.json")
     if body is None:
@@ -724,8 +857,10 @@ def _int_or_none(value: Any) -> int | None:
 __all__ = [
     "AUDIO_SURFACE",
     "CAPTION_SURFACE",
+    "WATCH_METADATA_SURFACE",
     "YOUTUBE_BEHAVIORAL_PROJECTION_METHOD",
     "YOUTUBE_BEHAVIORAL_PROJECTION_VERSION",
+    "metadata_packet_for_video",
     "normalize_youtube_metadata_packet",
     "project_youtube_behavioral_item",
     "project_youtube_behavioral_item_from_lake",

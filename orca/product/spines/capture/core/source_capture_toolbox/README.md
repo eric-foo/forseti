@@ -53,7 +53,7 @@ packet without redefining Capture obligations.
 
 | Source | What It Controls |
 | --- | --- |
-| `orca/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md` | Canonical capture method: Step 0 access gate, route catalog/selection, receipt discipline, and recency/current-state preservation priority. Recent/current high-attention markers raise preservation urgency only; they do not prove demand, change access, or bind a route. |
+| `orca/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md` | Canonical capture method: Step 0 access gate, route catalog/selection, receipt discipline, and recency/current-state / engagement-resonance preservation priority. Recent/current high-attention or source-visible public-reaction markers raise preservation urgency only; they do not prove demand, change access, create a score, or bind a route. |
 | `docs/decisions/data_capture_spine_source_access_tooling_build_authorization_v0.md` | Whether bounded source-access tooling builds are authorized, including first/second/third-tranche scope, selected anti-blocking backend, and which adapters remain separately gated. |
 | `docs/product/data_capture_source_access_method_plan_v0.md` | Candidate methods, sequence discipline, source-family method notes, and risk posture. |
 | `docs/product/data_capture_source_access_boundary_decision_v0.md` | Source-access boundary, entitlement/disclosability standard, and hard stops. |
@@ -79,7 +79,12 @@ packet without redefining Capture obligations.
 | `orca/product/spines/capture/core/source_families/retail_pdp/fragrance_purchase_review_row_capture_pilot_v0.md` | Five-site fragrance purchase-review row-capture receipt: ignored JSONL corpus location, per-source row counts, extraction substrates, validation read, and packet-window residuals; no raw review bodies in tracked docs. |
 | `orca/product/spines/capture/core/source_families/retail_pdp/fragrance_purchase_review_widget_expansion_probe_v0.md` | Five-site fragrance purchase-review widget-expansion probe receipt: Judge.me/Yotpo route findings, pagination totals, rating/media filter diagnostics, ignored raw response paths, and current row-completion residuals; no raw review bodies in tracked docs. |
 | `orca/product/spines/capture/core/source_families/retail_pdp/fragrance_purchase_review_focused_coverage_mgt_v0.md` | Focused fragrance purchase-review coverage MGT target: Luckyscent pinned-route receipt, row-selection policy, adaptive cap, adapter shape, drift fallback contract, and accepted residuals; no raw review bodies in tracked docs. |
+| `orca/product/spines/capture/core/source_families/social_media/youtube/youtube_creator_observation_ledger_spec_v0.md` | YouTube-first creator/channel observation ledger contract for admitted Shorts pools: one-platform source-backed observations, data-lake packet refs, metric absence posture, and explicit non-linkage/non-metric boundaries before profile projection or SQLite. |
+| `orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_observation_ledger_v0.json` | Static source-backed seed ledger for the full 200-row fragrance Shorts pool: 31 observed YouTube creator/channel groups, 200 matched raw lake packets, no cross-platform linkage, no metric rollups, no transcript bodies. Verifier: `orca-harness/capture_spine/youtube_creator_observation/`. |
 | `orca/product/spines/capture/core/source_families/social_media/instagram/ig_creator_roster_frontier_ledger_spec_v0.md` | Proposed current-main IG beauty creator roster/frontier ledger contract: append-only public-name observations, depth-1 discovery provenance, privacy invariants, ontology boundary, and current `250 -> 500 -> 1,000` roster gates. Non-authorizing. |
+| `orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_spec_v0.md` | Dedicated Tier-2-B public-handle linkage contract across Instagram, TikTok, and YouTube: static table-shaped ledger, declared/probable/candidate/rejected link states, public evidence thresholds, validator expectations, and non-claims. No live capture, no contact/outreach, no person identity proof. |
+| `orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json` | Empty static `public_handle_ledger` scaffold for source-backed Instagram/TikTok/YouTube public-handle joins. Validated by the creator public-handle linkage validator; no invented rows, live capture, contact/outreach, SQLite, or person identity proof. |
+| `orca/product/spines/capture/core/source_families/social_media/creator_profile_current_view_spec_v0.md` | Owner-directed target view for a one-stop current creator profile: joins public-handle identity, per-content metric observations, aggregate metric rollups, and ideal-audience snapshots without turning the identity ledger into one giant ledger. No SQLite adoption, dashboard implementation, live capture, or public person-level surface. |
 
 ## Armory Components
 
@@ -437,6 +442,32 @@ ledger/privacy/frontier semantics and aligns roster sizing to current main:
 It is proposed docs-only context. It is not adoption, validation, readiness,
 capture authorization, outreach authorization, a crawler, a scheduler/runtime
 spec, an ontology amendment, or a public person-level product surface.
+
+### Creator Public-Handle Linkage Ledger Spec
+
+Purpose: define the dedicated Tier-2-B public-handle-to-public-handle linkage shape for creator accounts across Instagram, TikTok, and YouTube before any SQLite/runtime promotion.
+
+The spec is at
+`orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_spec_v0.md`; the current empty product ledger scaffold is at `orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json`. The local validator is `orca-harness/capture_spine/creator_public_handle_linkage/` with synthetic/adversarial tests under `orca-harness/tests/unit/test_creator_public_handle_linkage.py`.
+
+It is static ledger/validator work only. It is not live capture, contact/outreach authorization, non-public-handle joining, real-world identity proof, SQLite adoption, or a public person-level product surface.
+
+### Creator Profile Current View Spec
+
+Purpose: define the dashboard-ready one-stop creator profile view that joins
+identity, aggregate influence rollups, and ideal-audience enrichment without
+putting mutable metrics or audience fields into the identity linkage ledger.
+
+The spec is at
+`orca/product/spines/capture/core/source_families/social_media/creator_profile_current_view_spec_v0.md`.
+It treats average views and engagement rate as metric rollups keyed to the
+creator/account spine; individual reels/videos stay in metric observations.
+SQLite or another storage engine can physicalize the sibling tables later, after
+source-backed row tests.
+
+It is a product/view contract only. It is not a data-lake job, SQLite adoption,
+dashboard implementation, live capture authorization, metric-score validation,
+or public person-level product surface.
 
 ### Source-Quality Example Ladder
 

@@ -15,6 +15,7 @@ from data_lake.root import (
     DataLakeRoot,
     DataLakeRootError,
     RAW_SHARD_HEX_WIDTH,
+    anchor_shard,
     raw_shard,
 )
 
@@ -30,8 +31,9 @@ def _manifest_bytes(pid: str) -> bytes:
                         "source_surface": "s", "preserved_files": []}) + "\n").encode("utf-8")
 
 
-def test_raw_shard_is_deterministic_3_hex():
+def test_shards_are_deterministic_3_hex():
     assert raw_shard(_PID) == raw_shard(_PID)
+    assert anchor_shard(_PID) == raw_shard(_PID)
     assert len(raw_shard(_PID)) == RAW_SHARD_HEX_WIDTH == 3
     assert all(c in "0123456789abcdef" for c in raw_shard(_PID))
 

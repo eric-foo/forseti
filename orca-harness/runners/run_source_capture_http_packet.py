@@ -198,7 +198,7 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--data-root",
         default=None,
-        help="Commit into the Orca data lake at this root (or set ORCA_DATA_ROOT); mutually exclusive with --output.",
+        help="Commit into the Orca data lake at this root; explicit --data-root is mutually exclusive with --output. ORCA_DATA_ROOT is used only when --output is omitted.",
     )
     parser.add_argument(
         "--capture-context",
@@ -239,7 +239,15 @@ def main(argv: Sequence[str] | None = None) -> int:
         require_series_identity(args)
         data_root = None
         output_directory = args.output
-        if args.data_root is not None or os.environ.get("ORCA_DATA_ROOT"):
+        if output_directory is not None and args.data_root is not None:
+            parser.exit(
+                status=2,
+                message="exactly one of --output or --data-root/ORCA_DATA_ROOT is required\n",
+            )
+        data_root_requested = args.data_root is not None or (
+            output_directory is None and os.environ.get("ORCA_DATA_ROOT")
+        )
+        if data_root_requested:
             from data_lake.root import DataLakeRoot
 
             data_root = DataLakeRoot.resolve(explicit=args.data_root)

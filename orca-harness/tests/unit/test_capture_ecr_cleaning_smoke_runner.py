@@ -235,7 +235,7 @@ def test_runner_writes_ecr_receipts_and_cleaning_packet_for_youtube(tmp_path: Pa
         "youtube_sources": 1,
         "youtube_asr_sources": 0,
         "ecr_receipts": 1,
-        "cleaning_handles": 1,
+        "cleaning_handles": 2,
         "cleaning_transform_entries": 0,
     }
 
@@ -261,17 +261,33 @@ def test_runner_writes_ecr_receipts_and_cleaning_packet_for_youtube(tmp_path: Pa
         for posture in receipt["postures"]["source_visibility"]
     )
 
-    # Exactly one projection-less, file-anchor cleaning handle carrying the ECR ref.
-    assert len(cleaning_packet.handles) == 1
-    handle = cleaning_packet.handles[0]
-    assert handle.source_family == "youtube"
-    assert handle.source_surface == "youtube_captions"
-    assert handle.projection_ref is None
-    assert handle.raw_anchor.anchor_kind == "file"
-    assert handle.raw_anchor.anchor_value is None
-    assert handle.raw_anchor.relative_packet_path.endswith(".json3")
-    assert handle.ecr_ref is not None
-    assert handle.ecr_ref.packet_id == handle.raw_anchor.packet_id
+    youtube_handles = [
+        handle
+        for handle in cleaning_packet.handles
+        if handle.handle_id.startswith("youtube:hyram:")
+    ]
+    assert len(youtube_handles) == 2
+    assert all(handle.source_family == "youtube" for handle in youtube_handles)
+    assert all(handle.source_surface == "youtube_captions" for handle in youtube_handles)
+    assert all(handle.projection_ref is None for handle in youtube_handles)
+    assert all(handle.raw_anchor.anchor_kind == "file" for handle in youtube_handles)
+    assert all(handle.ecr_ref is not None for handle in youtube_handles)
+    assert all(
+        handle.ecr_ref.packet_id == handle.raw_anchor.packet_id
+        for handle in youtube_handles
+        if handle.ecr_ref is not None
+    )
+    assert any(
+        handle.raw_anchor.relative_packet_path.endswith(".json3")
+        for handle in youtube_handles
+    )
+    youtube_source = next(
+        source for source in summary["sources"] if source["source_label"] == "youtube:hyram"
+    )
+    assert youtube_source["source_surface"] == "youtube_captions"
+    assert youtube_source["slice_count"] == 1
+    assert youtube_source["preserved_file_count"] == 2
+    assert youtube_source["handle_count"] == 2
     assert summary["findings"] == []
 
 
@@ -1952,7 +1968,10 @@ def _write_youtube_packet_dir(
         caption_kind="manual",
         original_language_assumed=False,
         json3_bytes=json3_bytes,
-        flat_text=None,
+        flat_text=(
+            "CeraVe Hydrating Cleanser\n"
+            "and the Paula's Choice BHA exfoliant"
+        ),
         cue_count=len(cues),
         title="Skincare routine fixture",
         channel_id="UCfixturechannel",

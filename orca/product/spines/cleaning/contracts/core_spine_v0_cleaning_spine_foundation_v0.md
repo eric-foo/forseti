@@ -162,6 +162,72 @@ owner-authorized.
 | Clustering mechanics | Candidate/deferred only: group related instances by a declared mechanical basis when separately owner-authorized or explicitly labeled as unresolved routing. | Membership list, grouping basis, counts, raw/projection anchors, warnings, unresolved ambiguity, and candidate/deferred status. |
 | Receipt / ledger propagation | Carry capture, projection, ECR, and Cleaning warnings forward. | Warning provenance, layer owner, source anchor, and whether Judgment must reopen raw. |
 
+### Public-Reaction Engagement Context
+
+Cleaning may produce an `engagement_context` working view for public-reaction
+sources only in a separately owner-authorized Cleaning pass, or when explicitly
+labeled as unresolved routing, and only when Capture or Projection preserved
+source-visible engagement facts. This section defines the allowed shape for that
+mechanic; it does not by itself authorize a Cleaning build, lake writer, standing
+automation, or cross-packet derivation. This is a mechanical context view, not a
+new Projection layer and not a Judgment read.
+
+Allowed `engagement_context` contents include:
+
+- input handle, raw anchor, projection row, and ECR reference when present;
+- metric basis and canonical `metric_posture` (`observed`, `hidden`,
+  `approximate`, `unavailable_with_reason`, or `not_attempted`);
+- row-bound source-visible values, such as upvotes, helpful votes, likes, views,
+  shares, comment counts, reply counts, source-native score state, visible
+  sort/rank/order, and pinned/hearted/official-response markers;
+- high-engagement units, low-engagement repeated units, disagreement or
+  counter-units, and source-order context as navigation aids;
+- source-visible resonance qualifiers such as positive, negative, mixed, or
+  unclear direction; visible audience-fit basis; baseline context when
+  mechanically available; and discount reasons as raw context, not Judgment
+  effect;
+- timing, hierarchy, parent/child chain, and metric-to-row binding;
+- residuals, omissions, warnings, and raw-pull triggers.
+
+Forbidden `engagement_context` contents include credible, not credible,
+independent corroboration, artificial amplification, supports demand,
+weak/strong evidence, final resonance weight, Signal Use, Decision Strength,
+Action Ceiling, or any ranking that treats engagement as proof. If the correct
+next statement is what the engagement means, the owner is Judgment, not
+Cleaning.
+
+Candidate shape:
+
+```yaml
+engagement_context_candidate:
+  input_handle_id: "<cleaning input handle>"
+  raw_anchor: "<packet/slice/hash or modality-appropriate anchor>"
+  projection_anchor: "<projection row, when used>"
+  metric_basis: ["<source-visible metric names>"]
+  metric_posture: "<observed | hidden | approximate | unavailable_with_reason | not_attempted>"
+  resonance_direction_context: "<positive | negative | mixed | unclear | unknown>"
+  visible_audience_fit_basis: "<high | medium | low | unknown, with source-visible reason>"
+  baseline_context: "<above_typical | typical | below_typical | unknown>"
+  discount_reasons: ["<manipulation risk | audience mismatch | ambiguity | other visible context>"]
+  row_bound_units:
+    - unit_ref: "<comment/review/reply/media row ref>"
+      visible_metric_facts: {}
+      hierarchy_ref: "<parent/reply/thread/review binding>"
+  navigation_groups:
+    high_engagement_units: []
+    low_engagement_repeated_units: []
+    disagreement_or_counter_units: []
+  residuals_and_warnings:
+    omissions: []
+    residuals: []
+    warnings: []
+    raw_pull_triggers: []
+  non_claims:
+    - no_credibility_decision
+    - no_independence_effect
+    - no_signal_use_or_action_ceiling
+    - no_demand_proof
+```
 Cleaning must not remove evidence rows because they appear low-value, low-score,
 repetitive, embarrassing, bot-like, deleted, awkward, unhelpful, confusing, or
 non-salient. Compactness is never salience.

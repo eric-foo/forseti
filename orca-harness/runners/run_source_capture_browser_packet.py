@@ -2,13 +2,16 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
+import shutil
 import sys
 from pathlib import Path
-from typing import Sequence
+from typing import TYPE_CHECKING, Sequence
 
 if __package__ in {None, ""}:
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
+from harness_utils import generate_ulid
 from source_capture import (
     CaptureModeCategory,
     PacketTiming,
@@ -19,6 +22,10 @@ from source_capture import (
     unknown_with_reason,
     write_local_source_capture_packet,
 )
+
+if TYPE_CHECKING:
+    from data_lake.root import DataLakeRoot
+
 from source_capture.adapters import BrowserSnapshotFailure, fetch_browser_snapshot_capture
 from source_capture.adapters.browser_snapshot import (
     ALLOWED_WAIT_UNTIL,
@@ -54,7 +61,8 @@ def run_source_capture_browser_packet(
     source_family: str,
     source_surface: str,
     decision_question: str,
-    output_directory: Path,
+    output_directory: Path | None = None,
+    data_root: "DataLakeRoot | None" = None,
     capture_context: str,
     operator_category: str,
     capture_mode: CaptureModeCategory,
@@ -77,6 +85,9 @@ def run_source_capture_browser_packet(
     headless: bool = True,
     browser_channel: str | None = None,
 ) -> tuple[int, str]:
+    if (output_directory is None) == (data_root is None):
+        raise ValueError("exactly one of output_directory or data_root is required")
+
     capture_result = fetch_browser_snapshot_capture(
         url=url,
         timeout_seconds=timeout_seconds,
@@ -93,8 +104,14 @@ def run_source_capture_browser_packet(
 
     packet_warnings = list(warnings) + capture_result.warning_notes
     packet_limitations = list(limitations) + capture_result.limitation_notes
-    staging_parent = output_directory.parent
-    staging_parent.mkdir(parents=True, exist_ok=True)
+    staging_root: Path | None = None
+    if data_root is not None:
+        staging_parent = data_root.stage_raw_packet(generate_ulid())
+        staging_root = staging_parent
+    else:
+        assert output_directory is not None
+        staging_parent = output_directory.parent
+        staging_parent.mkdir(parents=True, exist_ok=True)
     staged_paths = [
         staging_parent / "browser_rendered_dom.html",
         staging_parent / "browser_visible_text.txt",
@@ -147,6 +164,7 @@ def run_source_capture_browser_packet(
 
         result = write_local_source_capture_packet(
             output_directory=output_directory,
+            data_root=data_root,
             input_files=written_paths,
             source_family=source_family,
             source_surface=source_surface,
@@ -195,6 +213,8 @@ def run_source_capture_browser_packet(
                 staging_path.unlink()
             except FileNotFoundError:
                 pass
+        if staging_root is not None:
+            shutil.rmtree(staging_root, ignore_errors=True)
     return 0, result.output_directory
 
 
@@ -225,7 +245,12 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--source-family", default="web_page")
     parser.add_argument("--source-surface", default="browser_snapshot")
     parser.add_argument("--decision-question", required=True)
-    parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--output", type=Path, default=None)
+    parser.add_argument(
+        "--data-root",
+        default=None,
+        help="Commit into the Orca data lake at this root; explicit --data-root is mutually exclusive with --output. ORCA_DATA_ROOT is used only when --output is omitted.",
+    )
     parser.add_argument(
         "--capture-context",
         default="honest browser snapshot source capture without stored session or anti-detect behavior",
@@ -275,12 +300,29 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser = _build_parser()
     args = parser.parse_args(argv)
     try:
+        data_root = None
+        data_root_requested = args.data_root is not None or (args.output is None and os.environ.get("ORCA_DATA_ROOT"))
+        if args.output is not None and args.data_root is not None:
+            parser.exit(
+                status=2,
+                message="source capture browser snapshot failed: exactly one of --output or --data-root/ORCA_DATA_ROOT is required\n",
+            )
+        if args.output is None and not data_root_requested:
+            parser.exit(
+                status=2,
+                message="source capture browser snapshot failed: exactly one of --output or --data-root/ORCA_DATA_ROOT is required\n",
+            )
+        if data_root_requested:
+            from data_lake.root import DataLakeRoot
+
+            data_root = DataLakeRoot.resolve(explicit=args.data_root)
         exit_code, message = run_source_capture_browser_packet(
             url=args.url,
             source_family=args.source_family,
             source_surface=args.source_surface,
             decision_question=args.decision_question,
-            output_directory=args.output,
+            output_directory=args.output if data_root is None else None,
+            data_root=data_root,
             capture_context=args.capture_context,
             operator_category=args.operator_category,
             capture_mode=CaptureModeCategory(args.capture_mode),

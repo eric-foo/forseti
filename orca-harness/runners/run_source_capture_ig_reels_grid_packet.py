@@ -722,12 +722,12 @@ def _build_parser() -> argparse.ArgumentParser:
     input_group.add_argument("--handle", default=None, help="IG handle, with or without @.")
     input_group.add_argument("--profile-url", default=None, help="Absolute instagram.com/<handle>/reels/ URL.")
     parser.add_argument("--decision-question", required=True)
-    target_group = parser.add_mutually_exclusive_group(required=True)
+    target_group = parser.add_mutually_exclusive_group(required=False)
     target_group.add_argument("--output", type=Path, default=None)
     target_group.add_argument(
         "--data-root",
         default=None,
-        help="Commit into the Orca data lake at this root (or set ORCA_DATA_ROOT); mutually exclusive with --output.",
+        help="Commit into the Orca data lake at this root; explicit --data-root is mutually exclusive with --output. ORCA_DATA_ROOT is used only when --output is omitted.",
     )
     parser.add_argument("--max-rows", type=int, default=DEFAULT_MAX_ROWS)
     parser.add_argument("--timeout-seconds", type=float, default=DEFAULT_IG_REELS_TIMEOUT_SECONDS)
@@ -802,8 +802,16 @@ def main(argv: Sequence[str] | None = None) -> int:
             profile_root=args.proxy_profile_root,
         )
         data_root = None
-        data_root_requested = args.data_root is not None or os.environ.get("ORCA_DATA_ROOT")
-        if args.output is not None and data_root_requested:
+        data_root_requested = args.data_root is not None or (args.output is None and os.environ.get("ORCA_DATA_ROOT"))
+        if args.output is not None and args.data_root is not None:
+            parser.exit(
+                status=2,
+                message=(
+                    "source capture ig reels-grid failed: exactly one of --output or "
+                    "--data-root/ORCA_DATA_ROOT is required\n"
+                ),
+            )
+        if args.output is None and not data_root_requested:
             parser.exit(
                 status=2,
                 message=(

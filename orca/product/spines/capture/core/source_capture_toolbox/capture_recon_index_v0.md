@@ -132,12 +132,13 @@ doctrine should encode.
 | CloakBrowser packet-runner architecture | `orca/product/spines/capture/core/source_capture_toolbox/cloakbrowser_packet_runner_architecture_v0.md` | API shape from public docs + introspection; no-secret/anonymous seam | `TARGET_RECOMMENDED` (adapter-contract-first) | HIGH (arch) |
 | Screening browser read wrapper | `docs/workflows/screening_read_service_build_receipt_v0.md`; code at `orca-harness/source_capture/screening_browser_read.py` | CloakBrowser render -> visible text only; `block_shell` classified on visible text to avoid residual Cloudflare DOM-script false positives | Implemented on PR branch; no packet / no manifest / no ECR | HIGH |
 
-### Social networks (policy boundary; technical probe largely absent)
+### Social networks (policy boundary; technical route coverage uneven)
 | Source probed | Path | Rung / where signal lives | Reported verdict | Signal |
 | --- | --- | --- | --- | --- |
 | LinkedIn official policy | `orca/product/spines/capture/core/source_capture_toolbox/linkedin_reddit_source_capture_armory_concurrent_structure_architecture_v0.md` | Policy docs (2026-06-05): scraping/automation forbidden absent authorization | **Boundary-only** — official/API/manual/entitled routes only; no scraping | MODERATE-HIGH |
 | Instagram wind-caller — own `@foo_yu_quan` + third-party `@hyram` *(2026-06-14)* | `orca/product/spines/capture/core/source_families/social_media/instagram/ig_wind_caller_capture_feasibility_recon_v0.md` | Attended logged-in browser (own + 1 public third-party, no wall). **Grid = index only**; capture is **per-item: each `/p/` AND `/reel/` page, one-by-one**. Per item → **full verbatim caption in the rendered DOM node** (meta `og:description` truncates ~59% on a post, ~86% on a reel) + **likes/comments/date/`#ad` sponsorship flag**. Enumerate via **scroll pagination** (12 → 48 / 3 passes). Stats → profile `og:description`/header + Social Blade free (recent daily window; deep history premium) + `web_profile_info` JSON (counts only). `direct_http` NO-GO for signal (200 shell; API **429 cookieless** → **200 logged-in**). | **GO (demonstrated, n=2)** — self-capture calls via DOM (moat), **buy** stats series (Social Blade free). Residual: sustained cadence (H5), full enumeration, robust caption selector, **reel view/play count (in GraphQL JSON, not page DOM)**. Harness-native authenticated capture **already exists** (browser_snapshot + auth_state + runners + cadence, authorized/reviewed); IG = compose + small delta (loop runner, extraction, reel warm-JSON, block markers) — see ig_wind_caller_calls_capture_build_architecture_v0.md. | HIGH ⭐ |
 | Instagram reel **view/play count** — `@hyram` 3 reels *(2026-06-14)* | `orca/product/spines/capture/core/source_families/social_media/instagram/ig_reel_viewcount_capture_feasibility_recon_v0.md` | **Profile-feed JSON** (`web_profile_info` + grid `graphql/query` pagination), **logged-out 200**, `video_view_count` per media keyed by `shortcode` — **not** on the reel permalink page (surfaces A/B/C empty there). | **GO logged-out — incl. deep history.** `video_view_count` reachable **cookieless in a browser context** (refines prior "API 429 cookieless"); cursor-following the grid `end_cursor` paginated **25 pages, all `200`, 365 media back to 2017**, **no wall / no `429`**; **session run byte-identical → unnecessary**. Residual: sustained cadence at scale (H5 / multi-account-over-time). | HIGH ⭐ |
+| Instagram Reels **deep-capture transcript route** *(2026-06-29 no-write live diagnostics)* | `docs/workflows/ig_behavioral_live_validation_receipt_v0.md`; code route `orca-harness/runners/run_source_capture_ig_reels_deep_capture.py` + `orca-harness/source_capture/ig_reels_deep_capture.py` | Standalone anonymous `yt-dlp` media fetch returned Instagram empty-media responses for a prior legacy-success shortcode and a grid-selected shortcode. The rendered reel page still exposed a transient IG-CDN media handle; the one-render deep-capture route downloaded that handle immediately and ASR'd it while also parsing comments from the same render. | **GO for route-specific public deep-capture ASR diagnostic.** Standalone `yt-dlp` empty media is a route residual, not an IG transcript NO-GO. Residuals: no canonical F-lake write in this diagnostic, no durable media/video preservation claim, no cookies/login/proxy, and route cadence/stability remain open. | HIGH ⭐ |
 | Instagram creator **discovery** — suggested/related-accounts edge — `@jeremyfragrance` / `@nikkietutorials` / `@hyram` *(2026-06-15)* | `orca/product/spines/capture/core/source_families/social_media/instagram/ig_creator_discovery_suggested_accounts_recon_v0.md` | **`web_profile_info` JSON** `data.user.edge_related_profiles` — the tolerant **200-cookieless** surface (same as calls/stats/reel-views); node = `username`+`id`+`full_name`+`is_verified`+`is_private`+`profile_pic_url`; sub-niche-coherent | **GO (logged-out, n=3)** — edge populated logged-out (19 / 32 related accounts for two seeds; `hyram` empty via crawler-strip/opt-out variant). Snowball feasible (`username`+`id` → next wpi). 6 reqs all 200, no 401/429. Residual: snowball depth / coherence / follower-bands / crawler-strip retry / wpi own ceiling = Phase 2. | HIGH ⭐ |
 | YouTube long-form + Shorts — 5 creators *(2026-06-21)* | `orca/product/spines/capture/core/source_families/social_media/youtube/youtube_capture_recon_v0.md` | **Embedded `ytInitialPlayerResponse`** in served HTML (logged-out, no JS): exact `viewCount`/`lengthSeconds`/absolute-ISO `publishDate`/`channelId`/`author`/description. **Comments** via `youtubei/v1/next` panel-scoped continuation — same route both surfaces, paginated, `publishedTime` **relative-only**. | **GO (n=10 logged-out)** — long-form & Shorts share substrate + field paths + comments route → **unified one-runner + `surface_type` switch** (no split trigger fires). Residual: `comments_disabled` posture (NASA), surface_type discriminator = serving-surface not duration, like abbreviated at scale, live/age-restricted/EU-consent unsampled; **capture not yet persisted (recon only)**. | HIGH ⭐ |
 
@@ -170,12 +171,12 @@ needs deeper snowball. Production at-scale + the discovery-read posture remain o
   **TikTok has no technical recon at all.** **YouTube is now probed** (2026-06-21 — **GO**,
   n=10 logged-out; long-form + Shorts unified, served-HTML embedded state + `youtubei` comments;
   see the Social networks table). **Instagram is now probed** (own-account
-  wind-caller recon, 2026-06-14 — **GO demonstrated** at the attended logged-in browser rung;
-  see the Social networks table). The only other social probe is the LinkedIn *policy*
-  boundary. Any TikTok recipe card is **speculative** until probed; social surfaces carry the
-  heaviest ToS/auth-wall/anti-bot posture (entitlement gate, Pattern 4, applies before any
-  technical attempt). No media/video capture recipe exists either. (IG media/video capture is
-  likewise still unprobed — the IG recon covered caption text + stats, not media bytes.)
+  wind-caller recon, reel view/play count, creator discovery, and a 2026-06-29 public deep-capture
+  transcript diagnostic; see the Social networks table). The only other social probe is the
+  LinkedIn *policy* boundary. Any TikTok recipe card is **speculative** until probed; social
+  surfaces carry the heaviest ToS/auth-wall/anti-bot posture (entitlement gate, Pattern 4, applies
+  before any technical attempt). Full durable media/video preservation is still unprobed for IG; the
+  deep-capture diagnostic proves only transient handle use for immediate ASR, not stored media bytes.
 
 ## Pending-merge / external (not on main; include before the doctrine finalizes)
 
@@ -187,7 +188,7 @@ needs deeper snowball. Production at-scale + the discovery-read posture remain o
 ## Non-claims
 
 Not an authorization, not a build spec, not validation/readiness/acceptance, not legal
-advice. Verdicts are as reported by each source doc. The absence of a TikTok/IG probe is a
+advice. Verdicts are as reported by each source doc. The absence of a TikTok probe is a
 **sweep result** (no such recon surfaced across the main-tree docs), not a proof that none
 could exist. Worktree-resident findings are **claimed by their lanes** and unverified here
 until merged.

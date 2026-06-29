@@ -13,6 +13,7 @@ and `shared/`.
   - `commission_signal_board/` — commission contract, signal board, dispatch rules, work orders
   - `scanning/` — scan core, admissibility/checkability, source families (discovery-side)
   - `capture/` — capture contracts, operating model, packet schema, source-capture toolbox, demand-durability indicators, source families (acquisition-side)
+  - `creator_signal/` — product-facing creator intelligence surfaces: profile IA, aggregate influence display, ideal-audience/content-fit display, freshness, limitations, and source drill-back over Capture-owned creator records
   - `ecr/` — Evidence Candidate Record + Signal Content Record
   - `cleaning/` — cleaning contracts, transformations, integrity labels, normalization
   - `judgment/` — conductor, claim ladder, source-side receipts, demand-read, product-learning machinery, learning loops, toolkit gaps
@@ -26,7 +27,9 @@ and `shared/`.
 
 - Tree bound by `docs/decisions/orca_spine_first_target_structure_binding_v0.md`
   (+ `docs/decisions/orca_data_lake_spine_promotion_binding_v0.md` for the
-  `data_lake/` spine).
+  `data_lake/` spine and
+  `docs/decisions/orca_creator_signal_spine_promotion_binding_v0.md` for the
+  `creator_signal/` spine).
 - Placement enforced by `.agents/workflow-overlay/artifact-folders.md` +
   `repo-structure.yaml`.
 - Route card: `docs/workflows/orca_repo_map_v0.md`.

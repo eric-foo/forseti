@@ -58,7 +58,7 @@ proof-case (see the meta-rule below).
   will stay strong over the decision horizon.
 - **C3 durable-projection-basis criterion** (C3 contract, PROPOSED): a read that
   calls **durable** without a named persistence basis fails; a read that treats
-  weak/attention-only input as transient demand also fails.
+  weak, attention-only, or resonance-only input as transient demand also fails.
 - **Two-axis demand-state model** (settled, main #78): **durable/transient**
   (persistence horizon, resolved at C3) and **real/manufactured** (integrity,
   resolved upstream at C1 + C2). "Hollow" retired.
@@ -80,8 +80,8 @@ deductive:
 2. Transient is also strong demand: real current-window demand whose durability is
    not called, or whose evidence supports decay.
 3. Therefore a read that calls **durable** without naming a persistence basis
-   fails, and a read that labels weak/attention-only input **transient demand**
-   fails.
+   fails, and a read that labels weak, attention-only, or resonance-only input
+   **transient demand** fails.
 4. Therefore a later durable outcome does not by itself make a compliant
    transient call wrong; it may show what the absent live monitor would have
    upgraded.
@@ -120,8 +120,8 @@ The two verdict axes have **opposite** gradeability at t=0:
 
 | # | Axis | Graded against | Pass condition |
 | --- | --- | --- | --- |
-| 1 | **Persistence-basis faithfulness** | evidence only | Called **durable** only with a named persistence-projection basis in the packet; called **transient** when demand was strong current-window but no durable basis was present or evidence supported decay. Weak/attention-only input was not labeled transient demand. *Hindsight outcome-label match is not part of this axis.* |
-| 2 | **Action-appropriateness** | evidence only | The action ceiling is right on the packet's evidence under the floor/ceiling cap rule (≥2 independent converging origins for a material verb; single origin → hold/low-commitment; engagement-only cannot carry Commit-grade). Correct **even if the bolder move later won**, when the read lacked the information that justified it. |
+| 1 | **Persistence-basis faithfulness** | evidence only | Called **durable** only with a named persistence-projection basis in the packet; called **transient** when demand was strong current-window but no durable basis was present or evidence supported decay. Weak, attention-only, or resonance-only input was not labeled transient demand. *Hindsight outcome-label match is not part of this axis.* |
+| 2 | **Action-appropriateness** | evidence only | The action ceiling is right on the packet's evidence under the floor/ceiling cap rule (≥2 independent converging origins for a material verb; single origin → hold/low-commitment; engagement/resonance-only cannot carry Commit-grade). Correct **even if the bolder move later won**, when the read lacked the information that justified it. |
 | 3 | **C4 / driver-validation** | **outcome** (legitimate) | C4 named the *real* driver the outcome later confirmed. This is where the outcome can audit foresight and whether the named durability/decay basis was directionally meaningful. |
 | 4 | **Contamination-resistance (JSG-08)** | **outcome** (legitimate) | Resolved every ambiguity *against* the known outcome (anti-tells); no non-packet knowledge; honest no-contamination attestation. |
 | 5 | **Evidence-defensibility** | evidence only | Handled every ≤cutoff signal correctly; no missed *in-packet* lift signal. (Did it use what it had — not whether it predicted what it could not see.) |

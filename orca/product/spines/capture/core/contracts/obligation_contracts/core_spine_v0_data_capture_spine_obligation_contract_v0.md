@@ -205,6 +205,12 @@ Minimum obligation:
 - visible-structure preservation: preserve layout, headings, tables, nesting,
   ordering, grouping, proximity, emphasis, packaging cues, and other visible
   structure when those carry signal;
+- public-reaction engagement preservation: for public-reaction surfaces,
+  preserve source-visible upvotes, helpful votes, likes, views, shares, comment
+  counts, reply counts, source-native score state, visible sort/rank/order,
+  pinned/hearted/official-response markers, metric posture, and missingness
+  when the source exposes them; these are context facts, not demand, credibility,
+  independence, or action labels;
 - modality preservation: preserve screenshots, images, gallery/media state,
   page chrome, audio, video, dynamic rendering, or interaction state when
   text-only capture would lose signal meaning;
@@ -361,7 +367,15 @@ unrelated thread branches or forum material.
 
 For review surfaces, preserve rating, text, recency posture, visible
 experience timing, moderation/incentive/sorting posture where available, and
-long-context positive or negative detail when it carries signal.
+long-context positive or negative detail when it carries signal. Helpful-vote
+or reaction counts are preserved as source-visible engagement context when
+available, not as review quality or demand labels.
+
+For public-reaction sources such as comments, replies, reviews, or social/video
+surfaces, preserve the relationship between the reaction metric and the evidence
+unit it belongs to. A count without the comment/review it ranks is not enough;
+a comment/review without its visible engagement context is a visible limitation
+when that context was source-exposed and material to the Decision Frame.
 
 For docs, changelogs, pricing pages, API docs, policies, and versioned pages,
 preserve version, edit, deprecation, future/current, cache, archive, and

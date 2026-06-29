@@ -23,9 +23,12 @@ from __future__ import annotations
 import json
 import re
 from dataclasses import dataclass, field
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from pydantic import ValidationError
+
+if TYPE_CHECKING:
+    from data_lake.silver_lineage import SilverLineage
 
 from cleaning.audience_extractor import (
     RawApiProvider,
@@ -54,14 +57,22 @@ def _norm(text: str) -> str:
 class TranscriptInput:
     """The unit Pass 1 reads: a transcript's identity + its ms-timed cues.
 
-    `cues` is a list of {start_ms, end_ms, text}. Identity (video_id/anchor/source) is
-    authoritative and flows into every record (CE1) — the model never supplies it.
+    `cues` is a list of {start_ms, end_ms, text}. Identity (video_id/anchor/source,
+    plus optional lineage/source-key details) is authoritative and flows into every
+    record (CE1) — the model never supplies it.
     """
 
     video_id: str
     transcript_anchor: str
     transcript_source: str  # "asr" | "caption"
     cues: list[dict]
+    # Exact source the cues came from, threaded by the runner so the product-mention
+    # record can reference the precise consumed transcript (closing same-shortcode
+    # ambiguity). Optional/additive: a producer that has not adopted lineage passes None.
+    source_lineage: "SilverLineage | None" = None
+    transcript_source_key: str | None = None
+    source_route: str | None = None
+    asr_record_id: str | None = None
 
     @property
     def joined_text(self) -> str:

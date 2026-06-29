@@ -2,9 +2,10 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 from pathlib import Path
-from typing import Sequence
+from typing import TYPE_CHECKING, Sequence
 
 if __package__ in {None, ""}:
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -18,6 +19,10 @@ from source_capture import (
     not_attempted,
     unknown_with_reason,
 )
+
+if TYPE_CHECKING:
+    from data_lake.root import DataLakeRoot
+
 from source_capture.cli_support import build_optional_fact
 from source_capture.packet_assembly import stage_and_write_packet, staged_file_id_map
 from source_capture.adapters import MediaAssetCaptureFailure, fetch_media_assets
@@ -47,7 +52,8 @@ def run_source_capture_media_packet(
     source_family: str,
     source_surface: str,
     decision_question: str,
-    output_directory: Path,
+    output_directory: Path | None = None,
+    data_root: "DataLakeRoot | None" = None,
     capture_context: str,
     operator_category: str,
     capture_mode: CaptureModeCategory,
@@ -65,6 +71,9 @@ def run_source_capture_media_packet(
     timeout_seconds: float,
     max_bytes: int,
 ) -> tuple[int, str]:
+    if (output_directory is None) == (data_root is None):
+        raise ValueError("exactly one of output_directory or data_root is required")
+
     batch = fetch_media_assets(
         asset_urls=list(asset_urls),
         timeout_seconds=timeout_seconds,
@@ -179,6 +188,7 @@ def run_source_capture_media_packet(
     packet_slices.sort(key=lambda item: item.slice_id)
     result = stage_and_write_packet(
         output_directory=output_directory,
+        data_root=data_root,
         staged_artifacts=artifacts,
         source_slices=packet_slices,
         source_family=source_family,
@@ -283,7 +293,12 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--source-locator", default=None)
     parser.add_argument("--source-locator-unknown-reason", default=None)
     parser.add_argument("--decision-question", required=True)
-    parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--output", type=Path, default=None)
+    parser.add_argument(
+        "--data-root",
+        default=None,
+        help="Commit into the Orca data lake at this root; explicit --data-root is mutually exclusive with --output. ORCA_DATA_ROOT is used only when --output is omitted.",
+    )
     parser.add_argument(
         "--capture-context",
         default="explicit media asset source capture with Direct HTTP helper",
@@ -323,12 +338,29 @@ def main(argv: Sequence[str] | None = None) -> int:
             source_locator=args.source_locator,
             unknown_reason=args.source_locator_unknown_reason,
         )
+        data_root = None
+        data_root_requested = args.data_root is not None or (args.output is None and os.environ.get("ORCA_DATA_ROOT"))
+        if args.output is not None and args.data_root is not None:
+            parser.exit(
+                status=2,
+                message="source capture media asset failed: exactly one of --output or --data-root/ORCA_DATA_ROOT is required\n",
+            )
+        if args.output is None and not data_root_requested:
+            parser.exit(
+                status=2,
+                message="source capture media asset failed: exactly one of --output or --data-root/ORCA_DATA_ROOT is required\n",
+            )
+        if data_root_requested:
+            from data_lake.root import DataLakeRoot
+
+            data_root = DataLakeRoot.resolve(explicit=args.data_root)
         exit_code, message = run_source_capture_media_packet(
             asset_urls=args.asset_url,
             source_family=args.source_family,
             source_surface=args.source_surface,
             decision_question=args.decision_question,
-            output_directory=args.output,
+            output_directory=args.output if data_root is None else None,
+            data_root=data_root,
             capture_context=args.capture_context,
             operator_category=args.operator_category,
             capture_mode=CaptureModeCategory(args.capture_mode),

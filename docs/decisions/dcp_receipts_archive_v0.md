@@ -979,6 +979,115 @@ direction_change_propagation:
     - not runtime model routing (access mode and package shape are operator/commission constraints)
 ```
 
+```yaml
+# repo-mode discovery discharges a downstream independent-review gate; added 2026-06-13 (CA + owner decision).
+direction_change_propagation:
+  doctrine_changed: >
+    The repo-mode delegated review-and-patch loop -- cross-vendor delegate runs full-artifact discovery and
+    authors the bounded fix; CA adjudicates and independently verifies via class-sweep + byte/scope checks --
+    SATISFIES a cross_vendor_discovery independent-review requirement for the patched artifact, so a separate
+    standalone post-patch re-scan is not additionally required to clear a downstream leakage gate.
+    Proportionality is owner-set by assurance tier (buyer-proof may still require a separate pass;
+    product-learning / N-case batch may rely on the delegated pass); the one non-independent sliver (the
+    delegate's own edited lines) must be mechanically verifiable and the limitation recorded. Contrasts
+    no_repo, which still requires the bounded same-vendor post-patch recheck. Validation/who-constraint
+    framing only; not runtime-model routing.
+  trigger: review_authority
+  related_triggers: [validation_philosophy]
+  controlling_sources_updated:
+    - .agents/workflow-overlay/delegated-review-patch.md
+  downstream_surfaces_checked:
+    - path: .agents/workflow-overlay/review-lanes.md
+      note: >
+        two-bar rule is consistent (it already names cross_vendor_discovery as the discovery bar); a one-line
+        cross-ref that the bar can be DELIVERED via the repo-mode delegated loop is recommended and deferred to
+        a low-risk follow-up, not required (no stale routing without it).
+    - path: orca/product/spines/judgment/conductor/conductor_construction_integrity_probe_addendum_v1.md
+      note: >
+        the R6 pre-freeze leakage gate is the consuming gate; conductor v1 is PROPOSED/pending ratification, so
+        not edited mid-flight -- reconcile (R6 independent leakage review is satisfiable via the delegated loop)
+        at its next revision/ratification.
+    - path: .agents/workflow-overlay/validation-gates.md
+      note: no new validation gate; this clarifies when an existing independent-review requirement is met.
+  intentionally_not_updated:
+    - path: AGENTS.md
+      reason: the delegated-review-patch pointer already routes here; no top-level rule change.
+  receipt_section_hygiene: >
+    This file's inline receipt section now exceeds the <=2-most-recent-inline limit (source-of-truth.md DCP
+    contract; it already held 4 before this change). Rotation of the older receipts to
+    docs/decisions/dcp_receipts_archive_v0.md plus the required archive-pointer line is owed as a separate
+    low-risk hygiene pass; deferred here to keep this doctrine change focused and reviewable.
+  non_claims:
+    - not validation
+    - not readiness
+    - not a bound/mandatory/machine-routable review lane (the convention stays provisional)
+    - not runtime model routing
+```
+
+```yaml
+# incomplete commission route-out fallback bound 2026-06-16 (CA decision).
+direction_change_propagation:
+  doctrine_changed: >
+    Incomplete delegated-review-patch commissions now route through
+    workflow-prompt-orchestrator as paste-ready route-out prompts when target
+    and purpose are inferable, with missing operator-owned fields marked
+    operator_to_fill; multi-file implementation/code diffs are routed to the
+    appropriate review prompt instead of being stretched into this convention.
+  trigger: review_authority
+  related_triggers: [workflow_authority, output_authority]
+  controlling_sources_updated:
+    - .agents/workflow-overlay/delegated-review-patch.md
+  receipt_storage_updated:
+    - docs/decisions/dcp_receipts_archive_v0.md
+  downstream_surfaces_checked:
+    - .agents/workflow-overlay/prompt-orchestration.md
+    - .agents/workflow-overlay/review-lanes.md
+    - .agents/workflow-overlay/source-loading.md
+    - .agents/workflow-overlay/skill-adoption.md
+    - AGENTS.md
+  intentionally_not_updated:
+    - path: .agents/workflow-overlay/prompt-orchestration.md
+      reason: >
+        Already owns prompt-orchestrator authoring, paste-ready-chat output,
+        repo-aware prompt preflight, and source-gated review method sequencing;
+        this patch routes to that owner instead of duplicating its contract.
+    - path: .agents/workflow-overlay/review-lanes.md
+      reason: >
+        Already defines delegated review-and-patch as provisional, opt-in, and
+        not machine-routable; the non-eligible target boundary belongs in the
+        convention file rather than in the general lane index.
+    - path: workflow-delegated-review-patch skill source and plugin cache
+      reason: >
+        External/user/plugin skill source is protected and not Orca project
+        authority. This Orca behavior is bound in the overlay; reusable upstream
+        skill-source changes require a separate skill-governance/deployment turn.
+    - path: AGENTS.md
+      reason: >
+        Already routes delegated review-and-patch to the owning overlay file; a
+        root restatement would fork the rule.
+  stale_language_search: >
+    rg -n "incomplete commission|operator_to_fill|prompt_orchestrator_route_out|multi-file implementation|code diff|machine-routable|workflow-prompt-orchestrator"
+    .agents/workflow-overlay AGENTS.md
+    plus targeted checks for protected external skill-source boundaries and
+    prompt-orchestrator review defaults.
+  stale_language_search_result: >
+    Executed 2026-06-16. Live hits are the new route-out fallback and interface
+    fields in delegated-review-patch.md; existing prompt-orchestrator ownership
+    in AGENTS.md and prompt-orchestration.md; existing delegated-review-patch
+    non-machine-routable text in delegated-review-patch.md and review-lanes.md;
+    and existing skill-adoption/source-of-truth text that protects external,
+    user-level, plugin, and installed skill source from ordinary Orca work. No
+    checked live surface instructed agents to hand-draft route-out prompts,
+    force multi-file code diffs into delegated review-and-patch, or edit
+    external reusable skill source in this Orca overlay turn.
+  non_claims:
+    - not validation
+    - not readiness
+    - not a bound/mandatory/machine-routable review lane (the convention stays provisional)
+    - not runtime model routing
+    - not reusable skill-source deployment
+```
+
 ## From .agents/workflow-overlay/artifact-folders.md
 
 ### Direction Change Propagation - Source Capture Armory Product Folder
