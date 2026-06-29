@@ -54,6 +54,7 @@ Wiring Cleaning now, in any shape, would persist near-empty records ("empty-reco
   - **(B) `derived_retrieval` view** -- a non-authoritative, rebuildable reverse-lookup / cluster cache over the per-packet records (`derived_layout_contract:134`); **full-rebuild only** (a new packet can change clusters globally, so incremental update is a fake-success trap).
 - **Persistence-boundary implication (AR-02):** the in-memory `CleaningPacket` is **not** the per-packet authoritative object (it can hold handles from multiple packets and carries no packet invariant). The lake writer must **split / validate Cleaning output by raw anchor** to produce per-packet records.
 - **Invariants to preserve:** cross-packet artifacts **reference, never restate** per-packet truth; each epistemic kind stays a sibling lane; raw is immutable and re-verified on read.
+- **Engagement-context implication:** a future cleaned `engagement_context` record is a per-packet Cleaning-derived Silver record under this same shape, not Gold and not a new storage tier. It may preserve source-visible resonance qualifiers such as direction, visible audience-fit basis, baseline context, and discount reasons, but not their Judgment effect. Cross-packet engagement comparisons, resonance-context candidates, or clusters wait for the same assembly / `derived_retrieval` triggers as other cross-packet Cleaning output.
 
 ## Un-Defer Triggers (how to "unclear")
 

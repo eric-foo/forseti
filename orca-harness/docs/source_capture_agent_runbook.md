@@ -29,6 +29,11 @@ The agent may:
 - inspect `manifest.json`, `receipt.md`, and `raw/`;
 - report packet path, exit code, preserved files, warnings, and limitations.
 
+When the source exposes engagement/resonance facts such as visible rank/order,
+comments, likes, views, shares, helpful votes, source-native scores, or official
+response markers, the agent may preserve and report them as source-visible facts
+only.
+
 The agent must not:
 
 - decide whether evidence is true, important, credible, duplicative, or useful;
@@ -42,7 +47,9 @@ The agent must not:
 - use no-entitlement login bypass, credential misuse, undisclosed session/cookie
   use, or any method Orca would refuse to disclose internally;
 - claim validation, readiness, ECR receipt, Cleaning output, Judgment output,
-  buyer proof, or commercial readiness.
+  buyer proof, demand proof, credibility, independence, Action Ceiling, source
+  quality, commercial readiness, or that engagement/resonance changed the
+  authorized route.
 
 If the requested capture needs ordinary anonymous browser-rendered content,
 JavaScript rendering, or screenshot preservation for one supplied URL, use the

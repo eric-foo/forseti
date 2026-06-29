@@ -31,6 +31,7 @@ validator = _load_validator()
         "valid_empty_backtest_output.txt",
         "valid_source_backed_backtest_output.txt",
         "valid_source_backed_forward_output.txt",
+        "valid_adjacent_research_proof_output.txt",
     ],
 )
 def test_valid_commission_signal_board_outputs_pass(fixture_name: str) -> None:
@@ -38,9 +39,78 @@ def test_valid_commission_signal_board_outputs_pass(fixture_name: str) -> None:
     assert findings == []
 
 
+
+def test_signal_board_nonclaim_sentence_does_not_mask_later_overclaim() -> None:
+    text = (FIXTURE_DIR / "valid_source_backed_backtest_output.txt").read_text(encoding="utf-8")
+    text = text.replace(
+        "Eligible for classifier handoff",
+        "Engagement does not prove demand. High engagement proves demand.",
+        1,
+    )
+
+    findings = validator.validate_text(text)
+
+    assert "engagement_as_proof" in {finding.code for finding in findings}
+
+
+def test_signal_board_engagement_overclaim_does_not_cross_sentence_boundary() -> None:
+    text = (FIXTURE_DIR / "valid_source_backed_backtest_output.txt").read_text(encoding="utf-8")
+    text = text.replace("Eligible for classifier handoff", "Engagement is high. Our research proves demand.", 1)
+
+    findings = validator.validate_text(text)
+
+    assert findings == []
+
+
+def test_signal_board_zero_row_board_still_checks_engagement_overclaim() -> None:
+    text = (FIXTURE_DIR / "valid_source_backed_backtest_output.txt").read_text(encoding="utf-8")
+    text, replacements = re.subn(r"(\| Row ID .*?\n\| --- .*?\n)(?:\| SBR-.*?\n)+", r"\1", text, count=1)
+    assert replacements == 1
+    text = text.replace("relation utility only; graph weight is not signal strength", "High engagement proves demand", 1)
+
+    findings = validator.validate_text(text)
+
+    assert "engagement_as_proof" in {finding.code for finding in findings}
+
+def test_signal_board_allows_engagement_nonclaim_boundary() -> None:
+    text = (FIXTURE_DIR / "valid_source_backed_backtest_output.txt").read_text(encoding="utf-8")
+    text = text.replace(
+        "Eligible for classifier handoff",
+        "Engagement does not prove demand, graph weight, or Commit/Scale support; eligible for classifier handoff",
+        1,
+    )
+
+    findings = validator.validate_text(text)
+
+    assert findings == []
+
+
+@pytest.mark.parametrize(
+    ("phrase", "expected_code"),
+    [
+        ("High engagement proves demand", "engagement_as_proof"),
+        ("Demand is proven by high engagement", "engagement_as_proof"),
+        ("High engagement sets graph weight", "engagement_graph_weight_shortcut"),
+        ("Graph weight is high because of high engagement", "engagement_graph_weight_shortcut"),
+        ("High engagement clears Commit/Scale support", "engagement_commit_scale_shortcut"),
+        ("Public reaction confirms credibility", "engagement_credibility_shortcut"),
+        ("Reaction volume clears Action Ceiling", "engagement_action_ceiling_shortcut"),
+        ("This row assigns final resonance weight", "engagement_final_resonance_weight"),
+    ],
+)
+def test_signal_board_flags_engagement_overclaim_classes(phrase: str, expected_code: str) -> None:
+    text = (FIXTURE_DIR / "valid_source_backed_backtest_output.txt").read_text(encoding="utf-8")
+    text = text.replace("Eligible for classifier handoff", phrase, 1)
+
+    findings = validator.validate_text(text)
+
+    assert expected_code in {finding.code for finding in findings}
+
+
 @pytest.mark.parametrize(
     ("fixture_name", "expected_code", "expected_row_id"),
     [
+        ("bad_engagement_overclaim_output.txt", "engagement_as_proof", ""),
         ("bad_uncertain_cutoff_in_handoff_output.txt", "handoff_row_cutoff_invalid", "SBR-001"),
         ("bad_aeo_future_info_in_handoff_output.txt", "handoff_row_aeo_visibility", "SBR-001"),
         ("bad_to_retrieve_in_handoff_output.txt", "handoff_row_not_source_backed", "SBR-001"),

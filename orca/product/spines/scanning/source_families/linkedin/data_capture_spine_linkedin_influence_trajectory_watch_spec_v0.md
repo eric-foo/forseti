@@ -25,6 +25,10 @@ public-actor basis is still required (architecture person-basis rule); a
 trajectory only *strengthens* confidence or *flags* a smaller actor as worth
 watching. It is explicitly **not** the social graph — relationship-graph capture
 stays forbidden (see Hard Stops and `data_capture_spine_future_exploration_lanes_v0.md`).
+Visible engagement or influence counts are public-reaction resonance context for
+watch ordering only. They do not prove demand, buyer pull, credibility,
+independence, source quality, validation, readiness, or a Capture route, and low
+or missing counts do not disqualify an otherwise qualified public-actor basis.
 
 ## What is tracked — and only this
 
@@ -48,6 +52,9 @@ profile body, no post content, no contact fields.
   privacy drift.
 - **Visible counts/bands only**; minimization unchanged; every row stays
   **planning-only**.
+- Engagement counts stay attached to their source surface and timestamp as
+  source-visible facts; they are not normalized into scores or promotion
+  verdicts.
 - The social graph stays forbidden; trajectory ≠ graph.
 - Storage is a **local, operator-held planning artifact** — not a durable people
   dataset, datastore, scheduler, or dashboard.
@@ -59,7 +66,8 @@ profile body, no post content, no contact fields.
 A rising trajectory may flag a **smaller** actor (below absolute-count
 expectations) as worth watching or considering — but **promotion still requires
 the separate promotion gate and a concrete public-actor basis.** Trajectory never
-auto-promotes and never substitutes for the basis.
+auto-promotes and never substitutes for the basis. The safe use is
+"inspect/watch this sooner," not "this actor is proven important."
 
 ## Where it lives / status
 

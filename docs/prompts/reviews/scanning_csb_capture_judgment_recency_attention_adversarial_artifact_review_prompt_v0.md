@@ -115,8 +115,8 @@ Authority and review mechanics:
 Target commit and changed files:
 - Git commit `13a1becb3841a2596430dc345674c86fa697e098`
 - `docs/workflows/orca_repo_map_v0.md`
-- `orca/product/spines/commission_signal_board/authority/orca_commission_signal_board_prompt_adjudication_packet_v0.md`
-- `orca/product/spines/commission_signal_board/prompts/orca_commission_signal_board_prompt_v0.md`
+- `orca/product/spines/commission_signal_board/authority/orca_commission_signal_board_prompt_structure_rules_v0.md`
+- `orca/product/spines/commission_signal_board/prompts/orca_commission_signal_board_prompt_structure_v0.md`
 - `orca/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md`
 - `orca/product/spines/judgment/demand_read/core/judgment_spine_demand_read_machinery_architecture_v0.md`
 

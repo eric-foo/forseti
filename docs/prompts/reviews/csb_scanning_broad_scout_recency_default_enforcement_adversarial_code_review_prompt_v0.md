@@ -91,9 +91,9 @@ Then read the review target:
 - `.agents/hooks/check_commission_signal_board_output.py`
 - `orca-harness/tests/unit/test_commission_signal_board_output_validator.py`
 - `orca-harness/tests/fixtures/commission_signal_board_outputs/`
-- `orca/product/spines/commission_signal_board/prompts/orca_commission_signal_board_prompt_v0.md`
+- `orca/product/spines/commission_signal_board/prompts/orca_commission_signal_board_prompt_structure_v0.md`
 - `orca/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md`
-- `orca/product/spines/commission_signal_board/authority/orca_commission_signal_board_prompt_adjudication_packet_v0.md`
+- `orca/product/spines/commission_signal_board/authority/orca_commission_signal_board_prompt_structure_rules_v0.md`
 
 Read adjacent doctrine surfaces needed for leakage checks:
 
@@ -126,8 +126,8 @@ M orca-harness/tests/fixtures/commission_signal_board_outputs/valid_empty_backte
 M orca-harness/tests/fixtures/commission_signal_board_outputs/valid_source_backed_backtest_output.txt
 M orca-harness/tests/fixtures/commission_signal_board_outputs/valid_source_backed_forward_output.txt
 M orca-harness/tests/unit/test_commission_signal_board_output_validator.py
-M orca/product/spines/commission_signal_board/authority/orca_commission_signal_board_prompt_adjudication_packet_v0.md
-M orca/product/spines/commission_signal_board/prompts/orca_commission_signal_board_prompt_v0.md
+M orca/product/spines/commission_signal_board/authority/orca_commission_signal_board_prompt_structure_rules_v0.md
+M orca/product/spines/commission_signal_board/prompts/orca_commission_signal_board_prompt_structure_v0.md
 M orca/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md
 ```
 

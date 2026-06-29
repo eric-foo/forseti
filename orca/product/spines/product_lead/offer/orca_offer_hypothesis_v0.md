@@ -78,7 +78,7 @@ are superseded — reread-required. Deltas:
   multi-venue fused demand signal anchored on costly behavior (reviews,
   forums/community, search interest, retail presence) with integrity labels,
   plus org-motion corroboration at brand (Brand) AND parent level (Org) through the routes
-  currently bound by the owning capture decisions. Engagement volume alone
+  currently bound by the owning capture decisions. Engagement/resonance volume alone
   never carries a read; reviews are admissible as one fused venue with bias
   flags (J-curve self-selection; FTC 16 CFR 465) — the single-substrate
   "reviews-confirmatory-only" rule from the pricing wedge is replaced by
@@ -331,7 +331,7 @@ Qualifying conditions for the first proof offer:
   origins — de-correlated by origination, per the buyer-proof Demand-Substrate
   Hard Gate (laundered/shared-origination siblings of one event do not count) —
   across the venue families (reviews, forums/community, search interest, retail
-  presence), including costly-behavior evidence — not engagement volume alone.
+  presence), including costly-behavior evidence — not engagement/resonance volume alone.
 - Org-motion corroboration obtainable at org level through the capture
   lane's currently bound routes; route changes are capture-lane decisions
   under the owner's measured-ToS-risk posture (absurd-level approaches,

@@ -1,0 +1,1859 @@
+{
+  "target": "US indie/DTC fragrance search-surface receipts",
+  "purpose": "preserve direct Google-like search-native surfaces for Search-Surface MGT P0 clusters",
+  "status_boundary": "capture_request_only_not_judgment_evidence_not_product_lead_action_not_durable_demand_proof",
+  "started_at_iso": "2026-06-24T15:13:30.314Z",
+  "operator_timezone": "Asia/Singapore",
+  "host_timezone_offset_minutes": -480,
+  "host": {
+    "platform": "win32",
+    "release": "10.0.26200",
+    "node": "v24.15.0",
+    "chrome_exe": "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
+    "browser_profile": "fresh temporary Chrome profile under docs/_inbox/search_surface_capture_tmp",
+    "browser_mode": "visible_chrome_remote_debugging",
+    "requested_viewport": "desktop 1280x720 window-size, no mobile emulation",
+    "google_params": "hl=en&gl=us&pws=0"
+  },
+  "queries": [
+    {
+      "id": "04_vanilla_skin_perfume",
+      "query": "vanilla skin perfume",
+      "reason": "texture/format crossover: EDP/body mist/oil",
+      "required_focus": [
+        "SERP",
+        "product modules",
+        "PAA",
+        "PAS/related searches"
+      ],
+      "capture_started_at_iso": "2026-06-24T15:13:30.329Z",
+      "files": {
+        "serp_top": {
+          "png": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\04_vanilla_skin_perfume\\serp_top.png",
+          "html": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\04_vanilla_skin_perfume\\serp_top.html",
+          "txt": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\04_vanilla_skin_perfume\\serp_top.txt",
+          "json": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\04_vanilla_skin_perfume\\serp_top.json"
+        },
+        "serp_full": {
+          "png": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\04_vanilla_skin_perfume\\serp_full.png",
+          "html": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\04_vanilla_skin_perfume\\serp_full.html",
+          "txt": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\04_vanilla_skin_perfume\\serp_full.txt",
+          "json": "docs\\research\\search_surface_mgt_pilot_p0_receipts_v0\\receipts\\04_vanilla_skin_perfume\\serp_full.json"
+        }
+      },
+      "serp_top": {
+        "kind": "serp_top",
+        "requested_query": "vanilla skin perfume",
+        "extracted_at_browser_iso": "2026-06-24T15:13:33.141Z",
+        "location_href": "https://www.google.com/search?q=vanilla%20skin%20perfume&hl=en&gl=us&pws=0&sei=GvQ7asGQJZfb4-EPubHZ6QQ",
+        "document_title": "vanilla skin perfume - Google Search",
+        "viewport": {
+          "width": 1264,
+          "height": 625,
+          "device_pixel_ratio": 1
+        },
+        "navigator": {
+          "language": "en-US",
+          "languages": [
+            "en-US",
+            "en"
+          ],
+          "platform": "Win32",
+          "webdriver": false,
+          "timezone": "Asia/Singapore"
+        },
+        "session_state": {
+          "sign_in_text_visible": true,
+          "google_account_text_visible": false,
+          "captcha_or_unusual_traffic_visible": false,
+          "consent_text_visible": false
+        },
+        "modules": {
+          "people_also_ask": true,
+          "people_also_search_for": false,
+          "related_searches": false,
+          "shopping_or_products": true,
+          "popular_products": true,
+          "more_products": true,
+          "sponsored_or_ads": false,
+          "video": true,
+          "forums": true,
+          "discussions_and_forums": false,
+          "images": true
+        },
+        "autocomplete_suggestions": [],
+        "organic_results": [
+          {
+            "title": "PHLUR Vanilla Skin Body Mist, 8 Fl Oz Amazon.com https://www.amazon.com › PHLUR-Vanilla-Skin-Body-...",
+            "href": "https://www.amazon.com/PHLUR-Vanilla-Skin-Body-Mist/dp/B0D3FK6KCB",
+            "snippet_or_container_text": "PHLUR Vanilla Skin Body Mist, 8 Fl Oz Amazon.com https://www.amazon.com › PHLUR-Vanilla-Skin-Body-..."
+          },
+          {
+            "title": "Vanilla Skin Perfume & Body Mist Phlur https://phlur.com › collections › vanilla-skin",
+            "href": "https://phlur.com/collections/vanilla-skin?srsltid=AfmBOoocR3hLtF78nE0ub4nIYj0S0oVN8c8KGztYrB37VzizEQ8dJ1FX",
+            "snippet_or_container_text": "Vanilla Skin Perfume & Body Mist Phlur https://phlur.com › collections › vanilla-skin"
+          },
+          {
+            "title": "How do y'all feel about Phlur Vanilla skin? I finally purchased! Reddit · r/Perfumes 20+ comments · 1 year ago",
+            "href": "https://www.reddit.com/r/Perfumes/comments/1igxp3x/how_do_yall_feel_about_phlur_vanilla_skin_i/",
+            "snippet_or_container_text": "How do y'all feel about Phlur Vanilla skin? I finally purchased! Reddit · r/Perfumes 20+ comments · 1 year ago"
+          },
+          {
+            "title": "Vanilla Skin Phlur for women and men Fragrantica https://www.fragrantica.com › perfume › Vanilla-Skin-...",
+            "href": "https://www.fragrantica.com/perfume/Phlur/Vanilla-Skin-95817.html",
+            "snippet_or_container_text": "Vanilla Skin Phlur for women and men Fragrantica https://www.fragrantica.com › perfume › Vanilla-Skin-..."
+          },
+          {
+            "title": "VANILLA SKIN REVIEW & COMPARISON! DO YOU NEED ... YouTube · Brittany I PocketsandBowsTV 21.1K+ views · 1 year ago",
+            "href": "https://www.youtube.com/watch?v=yZ8x12QTRuw",
+            "snippet_or_container_text": "VANILLA SKIN REVIEW & COMPARISON! DO YOU NEED ... YouTube · Brittany I PocketsandBowsTV 21.1K+ views · 1 year ago"
+          },
+          {
+            "title": "Watch PHLUR vanilla smoke, vanilla skin, perfume #fragrance ... Amazon.com https://www.amazon.com › live › video",
+            "href": "https://www.amazon.com/live/video/08ff40243432454a98928997abb79d20",
+            "snippet_or_container_text": "Watch PHLUR vanilla smoke, vanilla skin, perfume #fragrance ... Amazon.com https://www.amazon.com › live › video"
+          },
+          {
+            "title": "Review: Phlur Vanilla Skin The Everygirl https://theeverygirl.com › phlur-vanilla-skin-review",
+            "href": "https://theeverygirl.com/phlur-vanilla-skin-review/",
+            "snippet_or_container_text": "Review: Phlur Vanilla Skin The Everygirl https://theeverygirl.com › phlur-vanilla-skin-review"
+          },
+          {
+            "title": "Phlur Vanilla Skin Body & Hair Fragrance Mist Sephora https://www.sephora.com › ... › Body Mist & Hair Mist",
+            "href": "https://www.sephora.com/product/phlur-vanilla-skin-hair-body-fragrance-mist-P509017",
+            "snippet_or_container_text": "Phlur Vanilla Skin Body & Hair Fragrance Mist Sephora https://www.sephora.com › ... › Body Mist & Hair Mist"
+          }
+        ],
+        "people_also_ask_lines": [
+          "What does vanilla skin perfume smell like?",
+          "What is the best smelling vanilla fragrance?",
+          "Where can I buy Phlur vanilla skin?",
+          "Why does vanilla perfume turn guys on?",
+          "Things to know",
+          "Scent Notes",
+          ".",
+          "What are the scent notes of Vanilla Skin perfume?",
+          "Availability",
+          ".",
+          "Where can I buy Vanilla Skin perfume?",
+          "Brand"
+        ],
+        "people_also_search_lines": [],
+        "related_search_lines": [],
+        "product_or_shopping_lines": [
+          "Shopping",
+          "Price",
+          "Under $20",
+          "$20 - $60",
+          "Over $60",
+          "$",
+          "Price: low to high",
+          "Price: high to low",
+          "Buy",
+          "On sale",
+          "For Sale",
+          "Ulta Beauty",
+          "Target",
+          "Sephora",
+          "Amazon.com",
+          "https://www.amazon.com › PHLUR-Vanilla-Skin-Body-...",
+          "Vanilla Skin is a multidimensional take on an intoxicating vanilla perfume. Shop Phlur's Vanilla Skin perfume and body mist in full size and travel size.",
+          "4.7 store rating (4.4K) · $16 to $317 · Free delivery over $50 · 30-day returns",
+          "Popular products",
+          "$32.00",
+          "$39.00",
+          "Free delivery on $50+",
+          "$28.00",
+          "Free delivery on $35+",
+          "$111.00",
+          "$131",
+          "$12.89",
+          "$16.99",
+          "$19.95",
+          "Free delivery on $100+",
+          "$45.00",
+          "$52",
+          "$49.00",
+          "Where can I buy Phlur vanilla skin?",
+          "Where can I buy Vanilla Skin perfume?",
+          "https://www.amazon.com › live › video",
+          "Shop with expert advice from Sloane Vosen in their latest video PHLUR vanilla smoke, vanilla skin, perfume #fragrance.",
+          "Amazon.com · Sloane Vosen · Nov 12, 2025",
+          "More products",
+          "$5.19",
+          "$59.00",
+          "$14.87",
+          "Walmart",
+          "Next-day delivery $7",
+          "$32",
+          "$39.95",
+          "Free delivery on $399+",
+          "$43.20",
+          "phlurusshop.com",
+          "$26.00",
+          "$65.00",
+          "Free delivery on $150+",
+          "$25.00",
+          "Free delivery on $75+",
+          "Fragrance is more than just a scent—it's a feeling, a memory, a whole mood. ✨ @phlur Lately, I've been reaching for these PHLUR favorites depending on my vibe: 💚 Father Figure – grounding, confident, and effortlessly cool. 💜 Missing Person – soft, comforting, and like the warmest hug. 🧡 Vanilla Skin – playful, cozy, and a little bit irresistible. I love that fragrance lets you embrace every version of yourself. Some days I want to feel nostalgic, some days empowered, and some days I just want to smell delicious. Which PHLUR fragrance matches your mood today? 👇 #PHLUR #PHLURFragrances #Sephora #FragranceLover #PerfumeCollection ScentOfTheDay PerfumeObsessed BeautyOver50 FragranceCommunity BeautyByBev",
+          "On teste Vanilla skin @Phlur Fragrances *produit offert ils viennent d’arriver chez @SEPHORA 👀 #phlurfragrance #phlur #sephorafrance",
+          "Our ICONS are how it all started for @phlur … Missing Person, Father Figure, and Vanilla Skin. Three scents, so different yet universally loved, because each one reflects a piece of us. Missing Person, that cozy craving for love. Father Figure, the air of confidence and cool. Vanilla Skin, the sensual side we all carry within. When I met @sunisalee last year and learned she wore Vanilla Skin during the biggest competition of her life, I knew she had to be the face of our Icons campaign. She embodies all three … every complicated layer we hold inside. Suni is iconic because she broke barriers … the first Hmong American Olympian, the first Asian American woman to win all-around gold. But what makes her our icon is what came after. A health battle nearly ended her career, and instead of letting it stop her, she fought her way back to Paris and won again. She doesn’t let setbacks set her back … she rises through them and comes out better than before. But she’s also so loving and wants to",
+          "Har du hunnit testa Phlur än? Jag blev ju totalt förälskad i Vanilla Skin kroppsoljan så var tvungen att se om parfymen var lika god 🤭 #phlurfragrance #phlur #parfym #fragrance @Phlur Fragrances @Sephora Scandinavia"
+        ],
+        "video_or_forum_lines": [
+          "Short videos",
+          "Videos",
+          "Reddit · r/Perfumes",
+          "More results from www.reddit.com",
+          "Fragrantica",
+          "https://www.fragrantica.com › perfume › Vanilla-Skin-...",
+          "YouTube · Brittany I PocketsandBowsTV",
+          "https://www.amazon.com › live › video",
+          "Shop with expert advice from Sloane Vosen in their latest video PHLUR vanilla smoke, vanilla skin, perfume #fragrance.",
+          "KiraKirby · TikTok",
+          "Reddit",
+          "Sibylle · TikTok",
+          "Popular comment · If you're just getting into fragrances, delete TikTok. \"Viral\" on TikTok is a reflection of which brands are paying the most money to the most shills.",
+          "Rana Sheibani · TikTok",
+          "Sniff with Steph · YouTube"
+        ],
+        "footer_or_location_lines": [
+          "Unknown - Can't determine location",
+          "- Update location",
+          "HelpSend feedbackPrivacyTerms"
+        ],
+        "possible_non_us_storefront_or_locale_signals": [],
+        "all_links_sample": [
+          {
+            "text": "Accessibility help",
+            "href": "https://support.google.com/websearch/answer/181196?hl=en"
+          },
+          {
+            "text": "",
+            "href": "https://www.google.com/webhp?hl=en&ictx=2&sa=X&ved=0ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQPQgK"
+          },
+          {
+            "text": "",
+            "href": "https://www.google.com/webhp?hl=en&ictx=0&sa=X&ved=0ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQpYkNCAw"
+          },
+          {
+            "text": "Google apps",
+            "href": "https://www.google.com.sg/intl/en/about/products?tab=wh"
+          },
+          {
+            "text": "Sign in",
+            "href": "https://accounts.google.com/ServiceLogin?hl=en&passive=true&continue=https://www.google.com/search%3Fq%3Dvanilla%2520skin%2520perfume%26hl%3Den%26gl%3Dus%26pws%3D0%26sei%3DGvQ7asGQJZfb4-EPubHZ6QQ&ec=futura_srp_og_si_72236_p"
+          },
+          {
+            "text": "AI Mode",
+            "href": "https://www.google.com/search?q=vanilla+skin+perfume&sca_esv=d8ad4d1a78452d8c&hl=en&gl=us&pws=0&udm=50&fbs=ABfTbFVyMZGZf1hfvX9uKjN_-G8cqCQj_06QnZs315LoFmPf5bBLHMJ0vMQmTbuI72DM7jmSm18uaHUIcIw77cYBDAp2cWq8_uMKmJ1HlImTFIfxtmeM7pX7AD292Pldeg6G770XMyaQAsPhpehMMrp2tkAhXxUyOzX4DjKIAFkdtS8B40HS7UX811pSOTYciw5siU0ualiepy7Cr5ypoctPPcTbUJyIhg&aep=1&ntc=1&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQ2J8OegQICxAD"
+          },
+          {
+            "text": "Shopping",
+            "href": "https://www.google.com/search?sca_esv=d8ad4d1a78452d8c&hl=en&gl=us&pws=0&udm=28&fbs=ABfTbFVyMZGZf1hfvX9uKjN_-G8cqCQj_06QnZs315LoFmPf5bBLHMJ0vMQmTbuI72DM7jmSm18uaHUIcIw77cYBDAp2cWq8_uMKmJ1HlImTFIfxtmeM7pX7AD292Pldeg6G770XMyaQAsPhpehMMrp2tkAhXxUyOzX4DjKIAFkdtS8B40HS7UX811pSOTYciw5siU0ualiepy7Cr5ypoctPPcTbUJyIhg&q=vanilla+skin+perfume&ved=1t:220175&ictx=111"
+          },
+          {
+            "text": "Images",
+            "href": "https://www.google.com/search?sca_esv=d8ad4d1a78452d8c&hl=en&gl=us&pws=0&udm=2&fbs=ABfTbFVyMZGZf1hfvX9uKjN_-G8cqCQj_06QnZs315LoFmPf5bBLHMJ0vMQmTbuI72DM7jmSm18uaHUIcIw77cYBDAp2cWq8_uMKmJ1HlImTFIfxtmeM7pX7AD292Pldeg6G770XMyaQAsPhpehMMrp2tkAhXxUyOzX4DjKIAFkdtS8B40HS7UX811pSOTYciw5siU0ualiepy7Cr5ypoctPPcTbUJyIhg&q=vanilla+skin+perfume&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQtKgLegQIExAB"
+          },
+          {
+            "text": "Short videos",
+            "href": "https://www.google.com/search?sca_esv=d8ad4d1a78452d8c&hl=en&gl=us&pws=0&udm=39&fbs=ABfTbFVyMZGZf1hfvX9uKjN_-G8cqCQj_06QnZs315LoFmPf5bBLHMJ0vMQmTbuI72DM7jmSm18uaHUIcIw77cYBDAp2cWq8_uMKmJ1HlImTFIfxtmeM7pX7AD292Pldeg6G770XMyaQAsPhpehMMrp2tkAhXxUyOzX4DjKIAFkdtS8B40HS7UX811pSOTYciw5siU0ualiepy7Cr5ypoctPPcTbUJyIhg&q=vanilla+skin+perfume&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQs6gLegQIDhAB"
+          },
+          {
+            "text": "Videos",
+            "href": "https://www.google.com/search?sca_esv=d8ad4d1a78452d8c&hl=en&gl=us&pws=0&udm=7&fbs=ABfTbFVyMZGZf1hfvX9uKjN_-G8cqCQj_06QnZs315LoFmPf5bBLHMJ0vMQmTbuI72DM7jmSm18uaHUIcIw77cYBDAp2cWq8_uMKmJ1HlImTFIfxtmeM7pX7AD292Pldeg6G770XMyaQAsPhpehMMrp2tkAhXxUyOzX4DjKIAFkdtS8B40HS7UX811pSOTYciw5siU0ualiepy7Cr5ypoctPPcTbUJyIhg&q=vanilla+skin+perfume&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQtKgLegQIDxAB"
+          },
+          {
+            "text": "News",
+            "href": "https://www.google.com/search?sca_esv=d8ad4d1a78452d8c&hl=en&gl=us&pws=0&q=vanilla+skin+perfume&tbm=nws&source=lnms&fbs=ABfTbFVyMZGZf1hfvX9uKjN_-G8cqCQj_06QnZs315LoFmPf5bBLHMJ0vMQmTbuI72DM7jmSm18uaHUIcIw77cYBDAp2cWq8_uMKmJ1HlImTFIfxtmeM7pX7AD292Pldeg6G770XMyaQAsPhpehMMrp2tkAhXxUyOzX4DjKIAFkdtS8B40HS7UX811pSOTYciw5siU0ualiepy7Cr5ypoctPPcTbUJyIhg&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQ0pQJegQIEBAB"
+          },
+          {
+            "text": "Forums",
+            "href": "https://www.google.com/search?sca_esv=d8ad4d1a78452d8c&hl=en&gl=us&pws=0&udm=18&fbs=ABfTbFVyMZGZf1hfvX9uKjN_-G8cqCQj_06QnZs315LoFmPf5bBLHMJ0vMQmTbuI72DM7jmSm18uaHUIcIw77cYBDAp2cWq8_uMKmJ1HlImTFIfxtmeM7pX7AD292Pldeg6G770XMyaQAsPhpehMMrp2tkAhXxUyOzX4DjKIAFkdtS8B40HS7UX811pSOTYciw5siU0ualiepy7Cr5ypoctPPcTbUJyIhg&q=vanilla+skin+perfume&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQs6gLegUIkQEQAQ"
+          },
+          {
+            "text": "Web",
+            "href": "https://www.google.com/search?sca_esv=d8ad4d1a78452d8c&hl=en&gl=us&pws=0&udm=web&fbs=ABfTbFVyMZGZf1hfvX9uKjN_-G8cqCQj_06QnZs315LoFmPf5bBLHMJ0vMQmTbuI72DM7jmSm18uaHUIcIw77cYBDAp2cWq8_uMKmJ1HlImTFIfxtmeM7pX7AD292Pldeg6G770XMyaQAsPhpehMMrp2tkAhXxUyOzX4DjKIAFkdtS8B40HS7UX811pSOTYciw5siU0ualiepy7Cr5ypoctPPcTbUJyIhg&q=vanilla+skin+perfume&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQs6gLegUIkgEQAQ"
+          },
+          {
+            "text": "Maps",
+            "href": "https://maps.google.com/maps?sca_esv=d8ad4d1a78452d8c&hl=en&gl=us&pws=0&output=search&q=vanilla+skin+perfume&source=lnms&fbs=ABfTbFVyMZGZf1hfvX9uKjN_-G8cqCQj_06QnZs315LoFmPf5bBLHMJ0vMQmTbuI72DM7jmSm18uaHUIcIw77cYBDAp2cWq8_uMKmJ1HlImTFIfxtmeM7pX7AD292Pldeg6G770XMyaQAsPhpehMMrp2tkAhXxUyOzX4DjKIAFkdtS8B40HS7UX811pSOTYciw5siU0ualiepy7Cr5ypoctPPcTbUJyIhg&entry=mc&ved=1t:200715&ictx=111"
+          },
+          {
+            "text": "Books",
+            "href": "https://www.google.com/search?sca_esv=d8ad4d1a78452d8c&hl=en&gl=us&pws=0&q=vanilla+skin+perfume&udm=36&source=lnms&fbs=ABfTbFVyMZGZf1hfvX9uKjN_-G8cqCQj_06QnZs315LoFmPf5bBLHMJ0vMQmTbuI72DM7jmSm18uaHUIcIw77cYBDAp2cWq8_uMKmJ1HlImTFIfxtmeM7pX7AD292Pldeg6G770XMyaQAsPhpehMMrp2tkAhXxUyOzX4DjKIAFkdtS8B40HS7UX811pSOTYciw5siU0ualiepy7Cr5ypoctPPcTbUJyIhg&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQ0pQJegUIoQEQAQ"
+          },
+          {
+            "text": "Any time",
+            "href": "https://www.google.com/search?q=vanilla%20skin%20perfume&hl=en&gl=us&pws=0&sei=GvQ7asGQJZfb4-EPubHZ6QQ#"
+          },
+          {
+            "text": "Past hour",
+            "href": "https://www.google.com/search?q=vanilla+skin+perfume&sca_esv=d8ad4d1a78452d8c&hl=en&gl=us&pws=0&source=lnt&tbs=qdr:h&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQpwV6BAgFEAY"
+          },
+          {
+            "text": "Past 24 hours",
+            "href": "https://www.google.com/search?q=vanilla+skin+perfume&sca_esv=d8ad4d1a78452d8c&hl=en&gl=us&pws=0&source=lnt&tbs=qdr:d&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQpwV6BAgFEAc"
+          },
+          {
+            "text": "Past week",
+            "href": "https://www.google.com/search?q=vanilla+skin+perfume&sca_esv=d8ad4d1a78452d8c&hl=en&gl=us&pws=0&source=lnt&tbs=qdr:w&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQpwV6BAgFEAg"
+          },
+          {
+            "text": "Past month",
+            "href": "https://www.google.com/search?q=vanilla+skin+perfume&sca_esv=d8ad4d1a78452d8c&hl=en&gl=us&pws=0&source=lnt&tbs=qdr:m&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQpwV6BAgFEAk"
+          },
+          {
+            "text": "Past year",
+            "href": "https://www.google.com/search?q=vanilla+skin+perfume&sca_esv=d8ad4d1a78452d8c&hl=en&gl=us&pws=0&source=lnt&tbs=qdr:y&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQpwV6BAgFEAo"
+          },
+          {
+            "text": "All results",
+            "href": "https://www.google.com/search?q=vanilla%20skin%20perfume&hl=en&gl=us&pws=0&sei=GvQ7asGQJZfb4-EPubHZ6QQ#"
+          },
+          {
+            "text": "Verbatim",
+            "href": "https://www.google.com/search?q=vanilla+skin+perfume&sca_esv=d8ad4d1a78452d8c&hl=en&gl=us&pws=0&source=lnt&tbs=li:1&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQpwV6BAgFEBE"
+          },
+          {
+            "text": "Women's",
+            "href": "https://www.google.com/search?q=women%27s+vanilla+skin+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoUdmFuaWxsYSBza2luIHBlcmZ1bWUyFwgBEgdXb21lbidzOgoI-JZIENqoSTAFWICrIGAC&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQ268JKAB6BAgqEAY"
+          },
+          {
+            "text": "Men's",
+            "href": "https://www.google.com/search?q=men%27s+vanilla+skin+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoUdmFuaWxsYSBza2luIHBlcmZ1bWUyFQgBEgVNZW4nczoKCPiWSBDbqEkwBViAqyBgAg&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQ268JKAF6BAgqEAc"
+          },
+          {
+            "text": "Unisex",
+            "href": "https://www.google.com/search?q=unisex+vanilla+skin+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoUdmFuaWxsYSBza2luIHBlcmZ1bWUyFggBEgZVbmlzZXg6Cgj4lkgQ3KhJMAVYgKsgYAI&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQ268JKAJ6BAgqEAg"
+          },
+          {
+            "text": "4 and up",
+            "href": "https://www.google.com/search?q=vanilla+skin+perfume&hl=en&gl=us&pws=0&shoprs=CAESBWIDCJADGB4qFHZhbmlsbGEgc2tpbiBwZXJmdW1lMhUIHhIINCBhbmQgdXAiBWIDCJADQARgAg&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQ268JKAB6BAgqEAw"
+          },
+          {
+            "text": "Under $20",
+            "href": "https://www.google.com/search?q=vanilla+skin+perfume+under+$20&hl=en&gl=us&pws=0&shoprs=CAESDRILEQAAAADQEnNBGAEYBSoUdmFuaWxsYSBza2luIHBlcmZ1bWUyIggFEglVbmRlciAkMjAYAiINEgsRAAAAANASc0EYASoCGAFYgKsgYAI&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQ268JKAB6BAgqEBE"
+          },
+          {
+            "text": "$20 - $60",
+            "href": "https://www.google.com/search?q=vanilla+skin+perfume+between+$20+and+$60&hl=en&gl=us&pws=0&shoprs=CAESFhIUCQAAAADQEnNBEQAAAAA4nIxBGAEYBSoUdmFuaWxsYSBza2luIHBlcmZ1bWUyKwgFEgkkMjAgLSAkNjAYAiIWEhQJAAAAANASc0ERAAAAADicjEEYASoCGAFYgKsgYAI&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQ268JKAF6BAgqEBI"
+          },
+          {
+            "text": "Over $60",
+            "href": "https://www.google.com/search?q=vanilla+skin+perfume+over+$60&hl=en&gl=us&pws=0&shoprs=CAESDRILCQAAAAA4nIxBGAEYBSoUdmFuaWxsYSBza2luIHBlcmZ1bWUyIQgFEghPdmVyICQ2MBgCIg0SCwkAAAAAOJyMQRgBKgIYAViAqyBgAg&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQ268JKAJ6BAgqEBM"
+          },
+          {
+            "text": "Price: low to high",
+            "href": "https://www.google.com/search?q=vanilla+skin+perfume&hl=en&gl=us&pws=0&shoprs=CAEYFyoUdmFuaWxsYSBza2luIHBlcmZ1bWUyHAgXEhJQcmljZTogbG93IHRvIGhpZ2gqBBABGAFgAogBAQ&udm=3&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQ268JKAB6BAgqEBo"
+          },
+          {
+            "text": "Price: high to low",
+            "href": "https://www.google.com/search?q=vanilla+skin+perfume&hl=en&gl=us&pws=0&shoprs=CAEYFyoUdmFuaWxsYSBza2luIHBlcmZ1bWUyHAgXEhJQcmljZTogaGlnaCB0byBsb3cqBBABGAFgAogBAg&udm=3&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQ268JKAF6BAgqEBs"
+          },
+          {
+            "text": "Oil",
+            "href": "https://www.google.com/search?q=oil+vanilla+skin+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoUdmFuaWxsYSBza2luIHBlcmZ1bWUyEwgBEgNPaWw6CgjIuUYQ0rlGMABYgKsgYAI&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQ268JKAB6BAgqEB8"
+          },
+          {
+            "text": "Spray",
+            "href": "https://www.google.com/search?q=spray+vanilla+skin+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoUdmFuaWxsYSBza2luIHBlcmZ1bWUyFQgBEgVTcHJheToKCMi5RhDJuUYwAFiAqyBgAg&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQ268JKAF6BAgqECA"
+          },
+          {
+            "text": "Roll-on",
+            "href": "https://www.google.com/search?q=roll-on+vanilla+skin+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoUdmFuaWxsYSBza2luIHBlcmZ1bWUyFwgBEgdSb2xsLW9uOgoIyLlGENO5RjAAWICrIGAC&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQ268JKAJ6BAgqECE"
+          },
+          {
+            "text": "Phlur",
+            "href": "https://www.google.com/search?q=phlur+vanilla+skin+perfume&hl=en&gl=us&pws=0&shoprs=CAEYAioUdmFuaWxsYSBza2luIHBlcmZ1bWUyCQgCEgVQaGx1cliAqyBgAg&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQ268JKAB6BAgqECU"
+          },
+          {
+            "text": "Bath & Body Works",
+            "href": "https://www.google.com/search?q=bath+%26+body+works+vanilla+skin+perfume&hl=en&gl=us&pws=0&shoprs=CAEYAioUdmFuaWxsYSBza2luIHBlcmZ1bWUyFQgCEhFCYXRoICYgQm9keSBXb3Jrc1iAqyBgAg&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQ268JKAF6BAgqECY"
+          },
+          {
+            "text": "Ulta Beauty",
+            "href": "https://www.google.com/search?q=ulta+beauty+vanilla+skin+perfume&hl=en&gl=us&pws=0&shoprs=CAEYAioUdmFuaWxsYSBza2luIHBlcmZ1bWUyDwgCEgtVbHRhIEJlYXV0eViAqyBgAg&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQ268JKAJ6BAgqECc"
+          },
+          {
+            "text": "Target",
+            "href": "https://www.google.com/search?q=target+vanilla+skin+perfume&hl=en&gl=us&pws=0&shoprs=CAEYAioUdmFuaWxsYSBza2luIHBlcmZ1bWUyCggCEgZUYXJnZXRYgKsgYAI&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQ268JKAN6BAgqECg"
+          },
+          {
+            "text": "Set",
+            "href": "https://www.google.com/search?q=set+vanilla+skin+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoUdmFuaWxsYSBza2luIHBlcmZ1bWUyEwgBEgNTZXQ6Cgidqy0QnqstMANYgKsgYAI&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQ268JKAB6BAgqEC4"
+          },
+          {
+            "text": "Travel Size",
+            "href": "https://www.google.com/search?q=travel+size+vanilla+skin+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoUdmFuaWxsYSBza2luIHBlcmZ1bWUyHQgBEgtUcmF2ZWwgU2l6ZToMCO6IqAEQ74ioATADWICrIGAC&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQ268JKAF6BAgqEC8"
+          },
+          {
+            "text": "Vegan",
+            "href": "https://www.google.com/search?q=vegan+vanilla+skin+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoUdmFuaWxsYSBza2luIHBlcmZ1bWUyFwgBEgVWZWdhbjoMCMK9hwEQw72HATADWICrIGAC&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQ268JKAJ6BAgqEDA"
+          },
+          {
+            "text": "Paraben-free",
+            "href": "https://www.google.com/search?q=paraben-free+vanilla+skin+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoUdmFuaWxsYSBza2luIHBlcmZ1bWUyHggBEgxQYXJhYmVuLWZyZWU6DAik24gBEKXbiAEwA1iAqyBgAg&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQ268JKAN6BAgqEDE"
+          },
+          {
+            "text": "Moisturizers",
+            "href": "https://www.google.com/search?q=moisturizers+vanilla+skin+perfume&hl=en&gl=us&pws=0&shoprs=CAEYCSoUdmFuaWxsYSBza2luIHBlcmZ1bWUyEAgJEgxNb2lzdHVyaXplcnNgAg&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQ268JKAB6BAgqEDc"
+          },
+          {
+            "text": "Essential & Fragrance Oils",
+            "href": "https://www.google.com/search?q=essential+%26+fragrance+oils+vanilla+skin+perfume&hl=en&gl=us&pws=0&shoprs=CAEYCSoUdmFuaWxsYSBza2luIHBlcmZ1bWUyHggJEhpFc3NlbnRpYWwgJiBGcmFncmFuY2UgT2lsc2AC&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQ268JKAF6BAgqEDg"
+          },
+          {
+            "text": "Deodorant",
+            "href": "https://www.google.com/search?q=deodorant+vanilla+skin+perfume&hl=en&gl=us&pws=0&shoprs=CAEYCSoUdmFuaWxsYSBza2luIHBlcmZ1bWUyDQgJEglEZW9kb3JhbnRgAg&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQ268JKAJ6BAgqEDk"
+          },
+          {
+            "text": "Unisex Perfume",
+            "href": "https://www.google.com/search?q=unisex+perfume+vanilla+skin&hl=en&gl=us&pws=0&shoprs=CAEYCSoUdmFuaWxsYSBza2luIHBlcmZ1bWUyEggJEg5VbmlzZXggUGVyZnVtZWAC&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQ268JKAN6BAgqEDo"
+          },
+          {
+            "text": "Eau de Parfum",
+            "href": "https://www.google.com/search?q=eau+de+parfum+vanilla+skin+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoUdmFuaWxsYSBza2luIHBlcmZ1bWUyHQgBEg1FYXUgZGUgUGFyZnVtOgoI3qotENuqLTACWICrIGAC&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQ268JKAB6BAgqEEA"
+          },
+          {
+            "text": "Body Spray",
+            "href": "https://www.google.com/search?q=body+spray+vanilla+skin+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoUdmFuaWxsYSBza2luIHBlcmZ1bWUyGwgBEgpCb2R5IFNwcmF5OgsI3qotEKbqqAEwAliAqyBgAg&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQ268JKAF6BAgqEEE"
+          },
+          {
+            "text": "Cologne",
+            "href": "https://www.google.com/search?q=cologne+vanilla+skin+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoUdmFuaWxsYSBza2luIHBlcmZ1bWUyFwgBEgdDb2xvZ25lOgoI3qotENyqLTACWICrIGAC&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQ268JKAJ6BAgqEEI"
+          },
+          {
+            "text": "Eau de Toilette",
+            "href": "https://www.google.com/search?q=eau+de+toilette+vanilla+skin+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoUdmFuaWxsYSBza2luIHBlcmZ1bWUyHwgBEg9FYXUgZGUgVG9pbGV0dGU6Cgjeqi0Q36otMAJYgKsgYAI&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQ268JKAN6BAgqEEM"
+          },
+          {
+            "text": "Cruelty-free",
+            "href": "https://www.google.com/search?q=cruelty-free+vanilla+skin+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoUdmFuaWxsYSBza2luIHBlcmZ1bWUyHggBEgxDcnVlbHR5LWZyZWU6DAjdorQBENf4wgEwAFiAqyBgAg&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQ268JKAB6BAgqEEc"
+          },
+          {
+            "text": "Organic",
+            "href": "https://www.google.com/search?q=organic+vanilla+skin+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoUdmFuaWxsYSBza2luIHBlcmZ1bWUyGQgBEgdPcmdhbmljOgwI3aK0ARDeorQBMABYgKsgYAI&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQ268JKAF6BAgqEEg"
+          },
+          {
+            "text": "Fair Trade",
+            "href": "https://www.google.com/search?q=fair+trade+vanilla+skin+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoUdmFuaWxsYSBza2luIHBlcmZ1bWUyHAgBEgpGYWlyIFRyYWRlOgwI3aK0ARDY-MIBMABYgKsgYAI&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQ268JKAJ6BAgqEEk"
+          },
+          {
+            "text": "CLEAN",
+            "href": "https://www.google.com/search?q=clean+vanilla+skin+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoUdmFuaWxsYSBza2luIHBlcmZ1bWUyFQgBEgVDTEVBTjoKCIPzPBD26D0wAViAqyBgAg&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQ268JKAB6BAgqEE0"
+          },
+          {
+            "text": "Victoria's Secret",
+            "href": "https://www.google.com/search?q=victoria%27s+secret+vanilla+skin+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoUdmFuaWxsYSBza2luIHBlcmZ1bWUyIQgBEhFWaWN0b3JpYSdzIFNlY3JldDoKCIPzPBDG5D0wAViAqyBgAg&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQ268JKAF6BAgqEE4"
+          },
+          {
+            "text": "TOM FORD",
+            "href": "https://www.google.com/search?q=tom+ford+vanilla+skin+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoUdmFuaWxsYSBza2luIHBlcmZ1bWUyGQgBEghUT00gRk9SRDoLCIPzPBDOz4kEMAFYgKsgYAI&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQ268JKAJ6BAgqEE8"
+          },
+          {
+            "text": "Pacifica",
+            "href": "https://www.google.com/search?q=pacifica+vanilla+skin+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoUdmFuaWxsYSBza2luIHBlcmZ1bWUyGAgBEghQYWNpZmljYToKCIPzPBD04z0wAViAqyBgAg&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQ268JKAN6BAgqEFA"
+          },
+          {
+            "text": "Free shipping",
+            "href": "https://www.google.com/search?q=vanilla+skin+perfume+free+shipping&hl=en&gl=us&pws=0&shoprs=CAESBFICEAEYGSoUdmFuaWxsYSBza2luIHBlcmZ1bWUyFwgZEg1GcmVlIHNoaXBwaW5nIgRSAhABYAI&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQ268JKAB6BAgqEFY"
+          },
+          {
+            "text": "Women's",
+            "href": "https://www.google.com/search?q=women%27s+vanilla+skin+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoUdmFuaWxsYSBza2luIHBlcmZ1bWUyFwgBEgdXb21lbidzOgoI-JZIENqoSTAFWICrIGAB&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQip4GKAF6BAgqEFs"
+          },
+          {
+            "text": "Men's",
+            "href": "https://www.google.com/search?q=men%27s+vanilla+skin+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoUdmFuaWxsYSBza2luIHBlcmZ1bWUyFQgBEgVNZW4nczoKCPiWSBDbqEkwBViAqyBgAQ&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQip4GKAJ6BAgqEFw"
+          },
+          {
+            "text": "Nearby",
+            "href": "https://www.google.com/search?q=vanilla+skin+perfume+nearby&hl=en&gl=us&pws=0&shoprs=CAEYAyoUdmFuaWxsYSBza2luIHBlcmZ1bWUyDAgDEgZOZWFyYnkYAliAqyBgAQ&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQip4GKAN6BAgqEF0"
+          },
+          {
+            "text": "Under $20",
+            "href": "https://www.google.com/search?q=vanilla+skin+perfume+under+$20&hl=en&gl=us&pws=0&shoprs=CAESDRILEQAAAADQEnNBGAEYBSoUdmFuaWxsYSBza2luIHBlcmZ1bWUyIggFEglVbmRlciAkMjAYAiINEgsRAAAAANASc0EYASoCGAFYgKsgYAE&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQip4GKAR6BAgqEF4"
+          },
+          {
+            "text": "Reviews",
+            "href": "https://www.google.com/search?q=reviews+vanilla+skin+perfume&hl=en&gl=us&pws=0&shoprs=CAEYEioUdmFuaWxsYSBza2luIHBlcmZ1bWUyCwgSEgdSZXZpZXdzYAE&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQip4GKAV6BAgqEF8"
+          },
+          {
+            "text": "Buy",
+            "href": "https://www.google.com/search?q=buy+vanilla+skin+perfume&hl=en&gl=us&pws=0&shoprs=CAEYEioUdmFuaWxsYSBza2luIHBlcmZ1bWUyBwgSEgNCdXlgAQ&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQip4GKAZ6BAgqEGA"
+          },
+          {
+            "text": "Oil",
+            "href": "https://www.google.com/search?q=oil+vanilla+skin+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoUdmFuaWxsYSBza2luIHBlcmZ1bWUyEwgBEgNPaWw6CgjIuUYQ0rlGMABYgKsgYAE&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQip4GKAd6BAgqEGE"
+          },
+          {
+            "text": "Get it by Fri",
+            "href": "https://www.google.com/search?q=vanilla+skin+perfume&hl=en&gl=us&pws=0&shoprs=CAESDZoBCgoIEAI4AUAFSAEYFCoUdmFuaWxsYSBza2luIHBlcmZ1bWUyJggUEg1HZXQgaXQgYnkgRnJpIg2aAQoKCBACOAFABUgBKgQQARgBYAE&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQip4GKAh6BAgqEGI"
+          },
+          {
+            "text": "Phlur",
+            "href": "https://www.google.com/search?q=phlur+vanilla+skin+perfume&hl=en&gl=us&pws=0&shoprs=CAEYAioUdmFuaWxsYSBza2luIHBlcmZ1bWUyCQgCEgVQaGx1cliAqyBgAQ&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQip4GKAl6BAgqEGM"
+          },
+          {
+            "text": "Spray",
+            "href": "https://www.google.com/search?q=spray+vanilla+skin+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoUdmFuaWxsYSBza2luIHBlcmZ1bWUyFQgBEgVTcHJheToKCMi5RhDJuUYwAFiAqyBgAQ&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQip4GKAp6BAgqEGU"
+          },
+          {
+            "text": "Bath & Body Works",
+            "href": "https://www.google.com/search?q=bath+%26+body+works+vanilla+skin+perfume&hl=en&gl=us&pws=0&shoprs=CAEYAioUdmFuaWxsYSBza2luIHBlcmZ1bWUyFQgCEhFCYXRoICYgQm9keSBXb3Jrc1iAqyBgAQ&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQip4GKAt6BAgqEGY"
+          },
+          {
+            "text": "Unisex",
+            "href": "https://www.google.com/search?q=unisex+vanilla+skin+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoUdmFuaWxsYSBza2luIHBlcmZ1bWUyFggBEgZVbmlzZXg6Cgj4lkgQ3KhJMAVYgKsgYAE&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQip4GKAx6BAgqEGg"
+          },
+          {
+            "text": "Set",
+            "href": "https://www.google.com/search?q=set+vanilla+skin+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoUdmFuaWxsYSBza2luIHBlcmZ1bWUyEwgBEgNTZXQ6Cgidqy0QnqstMANYgKsgYAE&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQip4GKA16BAgqEGk"
+          },
+          {
+            "text": "Travel Size",
+            "href": "https://www.google.com/search?q=travel+size+vanilla+skin+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoUdmFuaWxsYSBza2luIHBlcmZ1bWUyHQgBEgtUcmF2ZWwgU2l6ZToMCO6IqAEQ74ioATADWICrIGAB&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQip4GKA56BAgqEGo"
+          },
+          {
+            "text": "On sale",
+            "href": "https://www.google.com/search?q=vanilla+skin+perfume+sale&hl=en&gl=us&pws=0&shoprs=CAESBEoCGAEYBioUdmFuaWxsYSBza2luIHBlcmZ1bWUyEwgGEgdPbiBzYWxlGAIiBEoCGAFYgKsgYAE&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQip4GKA96BAgqEGs"
+          },
+          {
+            "text": "Moisturizers",
+            "href": "https://www.google.com/search?q=moisturizers+vanilla+skin+perfume&hl=en&gl=us&pws=0&shoprs=CAEYCSoUdmFuaWxsYSBza2luIHBlcmZ1bWUyEAgJEgxNb2lzdHVyaXplcnNgAQ&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQip4GKBB6BAgqEGw"
+          },
+          {
+            "text": "For Sale",
+            "href": "https://www.google.com/search?q=vanilla+skin+perfume+for+sale&hl=en&gl=us&pws=0&shoprs=CAEYEioUdmFuaWxsYSBza2luIHBlcmZ1bWUyDAgSEghGb3IgU2FsZWAB&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQip4GKBF6BAgqEG0"
+          },
+          {
+            "text": "Ulta Beauty",
+            "href": "https://www.google.com/search?q=ulta+beauty+vanilla+skin+perfume&hl=en&gl=us&pws=0&shoprs=CAEYAioUdmFuaWxsYSBza2luIHBlcmZ1bWUyDwgCEgtVbHRhIEJlYXV0eViAqyBgAQ&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQip4GKBJ6BAgqEG4"
+          },
+          {
+            "text": "Essential & Fragrance Oils",
+            "href": "https://www.google.com/search?q=essential+%26+fragrance+oils+vanilla+skin+perfume&hl=en&gl=us&pws=0&shoprs=CAEYCSoUdmFuaWxsYSBza2luIHBlcmZ1bWUyHggJEhpFc3NlbnRpYWwgJiBGcmFncmFuY2UgT2lsc2AB&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQip4GKBN6BAgqEHA"
+          },
+          {
+            "text": "Eau de Parfum",
+            "href": "https://www.google.com/search?q=eau+de+parfum+vanilla+skin+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoUdmFuaWxsYSBza2luIHBlcmZ1bWUyHQgBEg1FYXUgZGUgUGFyZnVtOgoI3qotENuqLTACWICrIGAB&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQip4GKBR6BAgqEHE"
+          },
+          {
+            "text": "Target",
+            "href": "https://www.google.com/search?q=target+vanilla+skin+perfume&hl=en&gl=us&pws=0&shoprs=CAEYAioUdmFuaWxsYSBza2luIHBlcmZ1bWUyCggCEgZUYXJnZXRYgKsgYAE&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQip4GKBV6BAgqEHI"
+          },
+          {
+            "text": "Sephora",
+            "href": "https://www.google.com/search?q=sephora+vanilla+skin+perfume&hl=en&gl=us&pws=0&shoprs=CAEYAioUdmFuaWxsYSBza2luIHBlcmZ1bWUyCwgCEgdTZXBob3JhWICrIGAB&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQip4GKBZ6BAgqEHQ"
+          },
+          {
+            "text": "Body Spray",
+            "href": "https://www.google.com/search?q=body+spray+vanilla+skin+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoUdmFuaWxsYSBza2luIHBlcmZ1bWUyGwgBEgpCb2R5IFNwcmF5OgsI3qotEKbqqAEwAliAqyBgAQ&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQip4GKBd6BAgqEHY"
+          },
+          {
+            "text": "Roll-on",
+            "href": "https://www.google.com/search?q=roll-on+vanilla+skin+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoUdmFuaWxsYSBza2luIHBlcmZ1bWUyFwgBEgdSb2xsLW9uOgoIyLlGENO5RjAAWICrIGAB&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQip4GKBh6BAgqEHc"
+          },
+          {
+            "text": "Girl",
+            "href": "https://www.google.com/search?q=girl+vanilla+skin+perfume&hl=en&gl=us&pws=0&shoprs=CAEYEioUdmFuaWxsYSBza2luIHBlcmZ1bWUyCAgSEgRHaXJsYAE&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQip4GKBl6BAgqEHg"
+          },
+          {
+            "text": "Cruelty-free",
+            "href": "https://www.google.com/search?q=cruelty-free+vanilla+skin+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoUdmFuaWxsYSBza2luIHBlcmZ1bWUyHggBEgxDcnVlbHR5LWZyZWU6DAjdorQBENf4wgEwAFiAqyBgAQ&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQip4GKBp6BAgqEHk"
+          },
+          {
+            "text": "PHLUR Vanilla Skin Body Mist, 8 Fl Oz Amazon.com https://www.amazon.com › PHLUR-Vanilla-Skin-Body-...",
+            "href": "https://www.amazon.com/PHLUR-Vanilla-Skin-Body-Mist/dp/B0D3FK6KCB"
+          },
+          {
+            "text": "",
+            "href": "https://www.amazon.com/PHLUR-Vanilla-Skin-Body-Mist/dp/B0D3FK6KCB"
+          },
+          {
+            "text": "Vanilla Skin Perfume & Body Mist Phlur https://phlur.com › collections › vanilla-skin",
+            "href": "https://phlur.com/collections/vanilla-skin?srsltid=AfmBOoocR3hLtF78nE0ub4nIYj0S0oVN8c8KGztYrB37VzizEQ8dJ1FX"
+          },
+          {
+            "text": "4.4K",
+            "href": "https://www.google.com/m/storepages?q=phlur.com&c=US&hl=en-US"
+          },
+          {
+            "text": "How do y'all feel about Phlur Vanilla skin? I finally purchased! Reddit · r/Perfumes 20+ comments · 1 year ago",
+            "href": "https://www.reddit.com/r/Perfumes/comments/1igxp3x/how_do_yall_feel_about_phlur_vanilla_skin_i/"
+          },
+          {
+            "text": "Read more",
+            "href": "https://www.reddit.com/r/Perfumes/comments/1igxp3x/how_do_yall_feel_about_phlur_vanilla_skin_i/#:~:text=vanilla%20skin%20on%20me%20has,it%20had%20more%20power%20%3A("
+          },
+          {
+            "text": "Ok.. let's talk about Vanilla Skin by Phlur : r/Perfumes ...",
+            "href": "https://www.reddit.com/r/Perfumes/comments/1bki12s/ok_lets_talk_about_vanilla_skin_by_phlur/"
+          },
+          {
+            "text": "A quick impression of the new Phlur Vanilla Skin EDP ...",
+            "href": "https://www.reddit.com/r/FemFragLab/comments/1dop6eb/a_quick_impression_of_the_new_phlur_vanilla_skin/"
+          },
+          {
+            "text": "More results from www.reddit.com",
+            "href": "https://www.google.com/search?q=vanilla+skin+perfume+site:www.reddit.com&sca_esv=d8ad4d1a78452d8c&hl=en&gl=us&pws=0&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQrQIoAnoECBwQAw"
+          },
+          {
+            "text": "Vanilla Skin Phlur for women and men Fragrantica https://www.fragrantica.com › perfume › Vanilla-Skin-...",
+            "href": "https://www.fragrantica.com/perfume/Phlur/Vanilla-Skin-95817.html"
+          },
+          {
+            "text": "VANILLA SKIN REVIEW & COMPARISON! DO YOU NEED ... YouTube · Brittany I PocketsandBowsTV 21.1K+ views · 1 year ago",
+            "href": "https://www.youtube.com/watch?v=yZ8x12QTRuw"
+          },
+          {
+            "text": "VANILLA SKIN REVIEW & COMPARISON! DO YOU NEED ...YouTube·Brittany I PocketsandBowsTV·Aug 8, 2024",
+            "href": "https://www.youtube.com/watch?v=yZ8x12QTRuw"
+          },
+          {
+            "text": "YouTube",
+            "href": "https://www.youtube.com/watch?v=yZ8x12QTRuw"
+          },
+          {
+            "text": "Amazing and long lasting · Smells like vanilla and plasticFragrantica",
+            "href": "https://www.fragrantica.com/perfume/Phlur/Vanilla-Skin-95817.html"
+          },
+          {
+            "text": "Impressive longevity · Cozy and irresistibly sniffableFragrantica",
+            "href": "https://www.fragrantica.com/perfume/Phlur/Vanilla-Skin-87258.html"
+          },
+          {
+            "text": "Staying power is intense · Really nicely blended perfumeFragrantica",
+            "href": "https://www.fragrantica.com/perfume/Le-Monde-Gourmand/Vanille-Brillante-78554.html"
+          },
+          {
+            "text": "Really nice vanilla · Unusual and worth a try if you enjoy vanillaParfumo",
+            "href": "https://www.parfumo.com/Perfumes/Kayali/vanilla-28-eau-de-parfum"
+          },
+          {
+            "text": "Tell me about Phlur fragrances",
+            "href": "https://www.google.com/search?sca_esv=d8ad4d1a78452d8c&hl=en&gl=us&pws=0&udm=50&q=Where+can+I+buy+Phlur+vanilla+skin%3F+Tell+me+about+Phlur+fragrances&aep=64&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQy8AQKAB6BAhDEAc"
+          },
+          {
+            "text": "List other popular Phlur scents",
+            "href": "https://www.google.com/search?sca_esv=d8ad4d1a78452d8c&hl=en&gl=us&pws=0&udm=50&q=Where+can+I+buy+Phlur+vanilla+skin%3F+List+other+popular+Phlur+scents&aep=64&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQy8AQKAF6BAhDEAg"
+          },
+          {
+            "text": "Compare Vanilla Skin to other vanilla perfumes",
+            "href": "https://www.google.com/search?sca_esv=d8ad4d1a78452d8c&hl=en&gl=us&pws=0&udm=50&q=Where+can+I+buy+Phlur+vanilla+skin%3F+Compare+Vanilla+Skin+to+other+vanilla+perfumes&aep=64&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQy8AQKAJ6BAhDEAk"
+          },
+          {
+            "text": "Tell me more about vanilla's aphrodisiac qualities",
+            "href": "https://www.google.com/search?sca_esv=d8ad4d1a78452d8c&hl=en&gl=us&pws=0&udm=50&q=Why+does+vanilla+perfume+turn+guys+on%3F+Tell+me+more+about+vanilla%27s+aphrodisiac+qualities&aep=64&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQy8AQKAB6BAhGEAc"
+          },
+          {
+            "text": "List other scents that men find attractive",
+            "href": "https://www.google.com/search?sca_esv=d8ad4d1a78452d8c&hl=en&gl=us&pws=0&udm=50&q=Why+does+vanilla+perfume+turn+guys+on%3F+List+other+scents+that+men+find+attractive&aep=64&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQy8AQKAF6BAhGEAg"
+          },
+          {
+            "text": "Explain how scents trigger memories",
+            "href": "https://www.google.com/search?sca_esv=d8ad4d1a78452d8c&hl=en&gl=us&pws=0&udm=50&q=Why+does+vanilla+perfume+turn+guys+on%3F+Explain+how+scents+trigger+memories&aep=64&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQy8AQKAJ6BAhGEAk"
+          },
+          {
+            "text": "Vanilla Skin Perfume - Full Size Fragrance - Phlur",
+            "href": "https://phlur.com/products/vanilla-skin-perfume"
+          },
+          {
+            "text": "SOTD Review: Vanilla Skin by Phlur : r/FragranceStories - Reddit",
+            "href": "https://www.reddit.com/r/FragranceStories/comments/1lmvv1o/sotd_review_vanilla_skin_by_phlur/#:~:text=I%20don't%20want%20to,fine%20while%20still%20being%20interesting.&text=I%20think%20you%20put%20words,would%20describe%20what%20I%20smell.&text=I%20usually%20am%20not%20a,pick%20up%20a%20sample!!&text=Thank%20you%F0%9F%A4%97%20yes%2C%20defo%20give%20it%20a%20try!&text=Oops%20hit%20reply%20too%20soon,re%20my%20next%20big%20discovery.&text=I%20got%20a%20discovery%20set,lovely%20warm%2C%20tropical%20summer%20perfume."
+          },
+          {
+            "text": "Vanilla Skin (type) - Fragrance Oil",
+            "href": "https://midwestfragranceco.com/products/vanilla-skin-type-fragrance-oil#:~:text=Scent%20Description,Cloud%2C%20Sweet%20Dream%2C%20Vanilla%20Veil"
+          },
+          {
+            "text": "Discover the Irresistible Vanilla Skin Fragrance",
+            "href": "https://www.tiktok.com/@enigivensunday/video/7567119435006266655"
+          },
+          {
+            "text": "Phlur Vanilla Skin Oil and Perfume Review!",
+            "href": "https://www.youtube.com/shorts/50WxthUf25A"
+          },
+          {
+            "text": "PHLUR Vanilla Skin Eau De Parfum - Space NK",
+            "href": "https://www.spacenk.com/us/fragrance/personal-fragrance/fragrance/vanilla-skin-eau-de-parfum-MUK200052288.html#:~:text=Description&text=Indulge%20in%20the%20enchanting%20allure,that%20leaves%20a%20lasting%20impression."
+          },
+          {
+            "text": "Vanilla Skin Perfume - Full Size Fragrance - Phlur",
+            "href": "https://phlur.com/products/vanilla-skin-perfume"
+          },
+          {
+            "text": "Phlur Vanilla Skin Oil and Perfume Review!",
+            "href": "https://www.youtube.com/shorts/50WxthUf25A"
+          },
+          {
+            "text": "PHLUR Vanilla Skin Eau De Parfum - Space NK",
+            "href": "https://www.spacenk.com/us/fragrance/personal-fragrance/fragrance/vanilla-skin-eau-de-parfum-MUK200052288.html#:~:text=Description&text=Indulge%20in%20the%20enchanting%20allure,that%20leaves%20a%20lasting%20impression."
+          },
+          {
+            "text": "Vanilla Skin (type) - Fragrance Oil",
+            "href": "https://midwestfragranceco.com/products/vanilla-skin-type-fragrance-oil#:~:text=Scent%20Description,Cloud%2C%20Sweet%20Dream%2C%20Vanilla%20Veil"
+          },
+          {
+            "text": "SOTD Review: Vanilla Skin by Phlur : r/FragranceStories - Reddit",
+            "href": "https://www.reddit.com/r/FragranceStories/comments/1lmvv1o/sotd_review_vanilla_skin_by_phlur/#:~:text=I%20don't%20want%20to,fine%20while%20still%20being%20interesting.&text=I%20think%20you%20put%20words,would%20describe%20what%20I%20smell.&text=I%20usually%20am%20not%20a,pick%20up%20a%20sample!!&text=Thank%20you%F0%9F%A4%97%20yes%2C%20defo%20give%20it%20a%20try!&text=Oops%20hit%20reply%20too%20soon,re%20my%20next%20big%20discovery.&text=I%20got%20a%20discovery%20set,lovely%20warm%2C%20tropical%20summer%20perfume."
+          },
+          {
+            "text": "Discover the Irresistible Vanilla Skin Fragrance",
+            "href": "https://www.tiktok.com/@enigivensunday/video/7567119435006266655"
+          },
+          {
+            "text": "What are the scent notes of Vanilla Skin perfume?",
+            "href": "https://www.google.com/search?sca_esv=d8ad4d1a78452d8c&hl=en&gl=us&pws=0&q=what+are+the+scent+notes+of+vanilla+skin+perfume&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQrooIegQIORAP"
+          },
+          {
+            "text": "PHLUR Vanilla Skin",
+            "href": "https://www.google.com/search?sca_esv=d8ad4d1a78452d8c&hl=en&gl=us&pws=0&q=PHLUR+Vanilla+Skin&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQxccNegUIpgEQAQ"
+          },
+          {
+            "text": "Amazon.com : PHLUR Vanilla Skin Body Mist, 8 Fl Oz",
+            "href": "https://www.amazon.com/PHLUR-Vanilla-Skin-Body-Mist/dp/B0D3FK6KCB#:~:text=Amazon.com%20:%20PHLUR%20Vanilla%20Skin,PHLUR"
+          },
+          {
+            "text": "Phlur Vanilla Skin Body & Hair Fragrance Mist - Sephora",
+            "href": "https://www.sephora.com/product/phlur-vanilla-skin-hair-body-fragrance-mist-P509017#:~:text=832-,%7C,Learn%20more%20here."
+          },
+          {
+            "text": "Vanilla Skin Body Mist - Phlur",
+            "href": "https://phlur.com/products/vanilla-skin-body-mist#:~:text=Vanilla%20Skin%20Body%20Mist%20%E2%80%93%20Phlur"
+          },
+          {
+            "text": "PHLUR Vanilla Skin Body & Hair Fragrance Mist",
+            "href": "https://www.kohls.com/product/prd-6652588/phlur-vanilla-skin-body-hair-fragrance-mist.jsp"
+          },
+          {
+            "text": "Pyrex Vanilla Skin Body & Hair Fragrance Mist - Kohl's",
+            "href": "https://www.kohls.com/product/prd-6652588/pyrex-vanilla-skin-body-hair-fragrance-mist.jsp#:~:text=Earn%205%25%20Rewards%20on%20this,in%20or%20join%20Kohl's%20Rewards."
+          },
+          {
+            "text": "Vanilla Skin Eau de Parfum (Women) - Nordstrom",
+            "href": "https://www.nordstrom.com/s/phlur-vanilla-skin-eau-de-parfum/8040559#:~:text=Vanilla%20Skin%20Eau%20de%20Parfum,Celebrating%20125%20Years"
+          },
+          {
+            "text": "PHLUR Vanilla Skin Body & Hair Fragrance Mist - Sephora",
+            "href": "https://www.sephora.com/ca/en/product/phlur-vanilla-skin-hair-body-fragrance-mist-P509017#:~:text=Vanilla%20Skin%20Body%20&%20Hair%20Fragrance%20Mist%20%2D%20PHLUR%20%7C%20Sephora"
+          },
+          {
+            "text": "PHLUR Vanilla Skin Hair & Body Fragrance Mist - Anthropologie",
+            "href": "https://www.anthropologie.com/shop/phlur-vanilla-skin-hair-body-fragrance-mist"
+          },
+          {
+            "text": "Vanilla Skin Hair & Body Fragrance Mist (Women) - Nordstrom",
+            "href": "https://www.nordstrom.com/s/phlur-vanilla-skin-hair-body-fragrance-mist/7886034#:~:text=Vanilla%20Skin%20Hair%20&%20Body%20Fragrance%20Mist%20(Women)%20%7C%20Nordstrom"
+          },
+          {
+            "text": "Amazon.com : PHLUR Vanilla Skin Body Mist, 8 Fl Oz",
+            "href": "https://www.amazon.com/PHLUR-Vanilla-Skin-Body-Mist/dp/B0D3FK6KCB#:~:text=Amazon.com%20:%20PHLUR%20Vanilla%20Skin,PHLUR"
+          },
+          {
+            "text": "Phlur Vanilla Skin Body & Hair Fragrance Mist - Sephora",
+            "href": "https://www.sephora.com/product/phlur-vanilla-skin-hair-body-fragrance-mist-P509017#:~:text=832-,%7C,Learn%20more%20here."
+          },
+          {
+            "text": "PHLUR Vanilla Skin Body & Hair Fragrance Mist",
+            "href": "https://www.kohls.com/product/prd-6652588/phlur-vanilla-skin-body-hair-fragrance-mist.jsp"
+          },
+          {
+            "text": "Pyrex Vanilla Skin Body & Hair Fragrance Mist - Kohl's",
+            "href": "https://www.kohls.com/product/prd-6652588/pyrex-vanilla-skin-body-hair-fragrance-mist.jsp#:~:text=Earn%205%25%20Rewards%20on%20this,in%20or%20join%20Kohl's%20Rewards."
+          },
+          {
+            "text": "Vanilla Skin Body Mist - Phlur",
+            "href": "https://phlur.com/products/vanilla-skin-body-mist#:~:text=Vanilla%20Skin%20Body%20Mist%20%E2%80%93%20Phlur"
+          },
+          {
+            "text": "Vanilla Skin Eau de Parfum (Women) - Nordstrom",
+            "href": "https://www.nordstrom.com/s/phlur-vanilla-skin-eau-de-parfum/8040559#:~:text=Vanilla%20Skin%20Eau%20de%20Parfum,Celebrating%20125%20Years"
+          },
+          {
+            "text": "PHLUR Vanilla Skin Body & Hair Fragrance Mist - Sephora",
+            "href": "https://www.sephora.com/ca/en/product/phlur-vanilla-skin-hair-body-fragrance-mist-P509017#:~:text=Vanilla%20Skin%20Body%20&%20Hair%20Fragrance%20Mist%20%2D%20PHLUR%20%7C%20Sephora"
+          },
+          {
+            "text": "PHLUR Vanilla Skin Hair & Body Fragrance Mist - Anthropologie",
+            "href": "https://www.anthropologie.com/shop/phlur-vanilla-skin-hair-body-fragrance-mist"
+          },
+          {
+            "text": "Vanilla Skin Hair & Body Fragrance Mist (Women) - Nordstrom",
+            "href": "https://www.nordstrom.com/s/phlur-vanilla-skin-hair-body-fragrance-mist/7886034#:~:text=Vanilla%20Skin%20Hair%20&%20Body%20Fragrance%20Mist%20(Women)%20%7C%20Nordstrom"
+          },
+          {
+            "text": "Where can I buy Vanilla Skin perfume?",
+            "href": "https://www.google.com/search?sca_esv=d8ad4d1a78452d8c&hl=en&gl=us&pws=0&q=where+can+i+buy+vanilla+skin+perfume&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQrooIegQIORAe"
+          },
+          {
+            "text": "I Tried All 25 Phlur Fragrances. Here's How I'm Ranking Them ... - PureWow",
+            "href": "https://www.purewow.com/beauty/phlur-fragrance-review#:~:text=Founded%20in%202015%2C%20Phlur%20explores,harmony%20within%20the%20entire%20line."
+          },
+          {
+            "text": "Amazon.com : PHLUR Vanilla Skin Body Mist, 8 Fl Oz",
+            "href": "https://www.amazon.com/PHLUR-Vanilla-Skin-Body-Mist/dp/B0D3FK6KCB#:~:text=Amazon.com%20:%20PHLUR%20Vanilla%20Skin,PHLUR"
+          },
+          {
+            "text": "Vanilla Skin by @phlur Fragrances🤍✨ Soft, warm, and seriously addictive ...",
+            "href": "https://www.instagram.com/reel/DVPCmXUEYnQ/#:~:text=Vanilla%20Skin%20by%20@phlur%20Fragrances%F0%9F%A4%8D%E2%9C%A8%20Soft%2C%20warm%2C,partner%20tries%20to%20steal%20it!%20%23phlurpartner%20%23phlur%23phlurfragrances"
+          },
+          {
+            "text": "Review of Vanilla Skin by PHLUR: A Scent Exploration",
+            "href": "https://www.tiktok.com/@misscently/video/7525894889855339798"
+          },
+          {
+            "text": "Discover Vanilla Skin Fragrance by Phlur",
+            "href": "https://www.tiktok.com/@kylieoguma/video/7507335109146627358"
+          },
+          {
+            "text": "Phlur Vanilla Skin Body & Hair Fragrance Mist - Sephora",
+            "href": "https://www.sephora.com/product/phlur-vanilla-skin-hair-body-fragrance-mist-P509017"
+          },
+          {
+            "text": "Phlur Vanilla Skin Oil and Perfume Review!",
+            "href": "https://www.youtube.com/shorts/50WxthUf25A"
+          },
+          {
+            "text": "Review: Phlur Vanilla Skin - The Everygirl",
+            "href": "https://theeverygirl.com/phlur-vanilla-skin-review/#:~:text=If%20you're%20on%20the,Phlur"
+          },
+          {
+            "text": "PHLUR Vanilla Skin Eau de Parfum - Kohl's",
+            "href": "https://www.kohls.com/product/prd-7095736/phlur-vanilla-skin-eau-de-parfum.jsp#:~:text=The%20Modern%20Fine%20Fragrance%20of,sophistication%20to%20your%20fragrance%20collection."
+          },
+          {
+            "text": "Amazon.com : PHLUR Vanilla Skin Body Mist, 8 Fl Oz",
+            "href": "https://www.amazon.com/PHLUR-Vanilla-Skin-Body-Mist/dp/B0D3FK6KCB#:~:text=Amazon.com%20:%20PHLUR%20Vanilla%20Skin,PHLUR"
+          },
+          {
+            "text": "Vanilla Skin by @phlur Fragrances🤍✨ Soft, warm, and seriously addictive ...",
+            "href": "https://www.instagram.com/reel/DVPCmXUEYnQ/#:~:text=Vanilla%20Skin%20by%20@phlur%20Fragrances%F0%9F%A4%8D%E2%9C%A8%20Soft%2C%20warm%2C,partner%20tries%20to%20steal%20it!%20%23phlurpartner%20%23phlur%23phlurfragrances"
+          },
+          {
+            "text": "Phlur Vanilla Skin Body & Hair Fragrance Mist - Sephora",
+            "href": "https://www.sephora.com/product/phlur-vanilla-skin-hair-body-fragrance-mist-P509017"
+          },
+          {
+            "text": "Phlur Vanilla Skin Oil and Perfume Review!",
+            "href": "https://www.youtube.com/shorts/50WxthUf25A"
+          },
+          {
+            "text": "Review: Phlur Vanilla Skin - The Everygirl",
+            "href": "https://theeverygirl.com/phlur-vanilla-skin-review/#:~:text=If%20you're%20on%20the,Phlur"
+          },
+          {
+            "text": "PHLUR Vanilla Skin Eau de Parfum - Kohl's",
+            "href": "https://www.kohls.com/product/prd-7095736/phlur-vanilla-skin-eau-de-parfum.jsp#:~:text=The%20Modern%20Fine%20Fragrance%20of,sophistication%20to%20your%20fragrance%20collection."
+          },
+          {
+            "text": "I Tried All 25 Phlur Fragrances. Here's How I'm Ranking Them ... - PureWow",
+            "href": "https://www.purewow.com/beauty/phlur-fragrance-review#:~:text=Founded%20in%202015%2C%20Phlur%20explores,harmony%20within%20the%20entire%20line."
+          },
+          {
+            "text": "Discover Vanilla Skin Fragrance by Phlur",
+            "href": "https://www.tiktok.com/@kylieoguma/video/7507335109146627358"
+          },
+          {
+            "text": "Review of Vanilla Skin by PHLUR: A Scent Exploration",
+            "href": "https://www.tiktok.com/@misscently/video/7525894889855339798"
+          },
+          {
+            "text": "What is the brand behind Vanilla Skin perfume?",
+            "href": "https://www.google.com/search?sca_esv=d8ad4d1a78452d8c&hl=en&gl=us&pws=0&q=what+is+the+brand+behind+vanilla+skin+perfume&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQrooIegQIORAt"
+          },
+          {
+            "text": "Phlur Vanilla Skin perfume",
+            "href": "https://www.google.com/search?sca_esv=d8ad4d1a78452d8c&hl=en&gl=us&pws=0&q=Phlur+Vanilla+Skin+perfume&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQxccNegUItgEQAQ"
+          },
+          {
+            "text": "Vanilla Skin Perfume - Full Size Fragrance - Phlur",
+            "href": "https://phlur.com/products/vanilla-skin-perfume#:~:text=This%20is%20my%20new%20favorite,New%20signature%20vanilla"
+          },
+          {
+            "text": "Phlur Vanilla Skin Body & Hair Fragrance Mist - Sephora",
+            "href": "https://www.sephora.com/product/phlur-vanilla-skin-hair-body-fragrance-mist-P509017"
+          },
+          {
+            "text": "Phlur Vanilla Skin oil and perfume review! #fragrance #redolessence ...",
+            "href": "https://www.instagram.com/reel/DUMIoJwEdN-/#:~:text=And%20if%20you're%20looking%20for%20amped%2Dup%20longevity%2C,get%20a%20solid%20eight%20hours%20from%20the"
+          },
+          {
+            "text": "Do Phlur body mists really last and project? : r/FemFragLab - Reddit",
+            "href": "https://www.reddit.com/r/FemFragLab/comments/1p32tn8/do_phlur_body_mists_really_last_and_project/#:~:text=I%20LOVE%20Phlur%20Vanilla%20Skin,Thanks!"
+          },
+          {
+            "text": "Phlur vanilla skin : r/MeccaBeautyLoop - Reddit",
+            "href": "https://www.reddit.com/r/MeccaBeautyLoop/comments/1syldls/phlur_vanilla_skin/"
+          },
+          {
+            "text": "Vanilla Skin by @phlur Fragrances🤍✨ Soft, warm, and seriously addictive ...",
+            "href": "https://www.instagram.com/reel/DVPCmXUEYnQ/#:~:text=Vanilla%20Skin%20by%20@phlur%20Fragrances%F0%9F%A4%8D%E2%9C%A8%20Soft%2C%20warm%2C,partner%20tries%20to%20steal%20it!%20%23phlurpartner%20%23phlur%23phlurfragrances"
+          },
+          {
+            "text": "Phlur Vanilla Skin Oil and Perfume Review!",
+            "href": "https://www.youtube.com/shorts/50WxthUf25A"
+          },
+          {
+            "text": "So Phlur made a Vanilla Skin body oil… and I had to try it. The ... - Instagram",
+            "href": "https://www.instagram.com/reel/DTdhxXtCQNu/#:~:text=Phlur%20has%20listened%20to%20our,on%20the%20skin%208+%20hours!"
+          },
+          {
+            "text": "Vanilla Skin Perfume - Full Size Fragrance - Phlur",
+            "href": "https://phlur.com/products/vanilla-skin-perfume#:~:text=This%20is%20my%20new%20favorite,New%20signature%20vanilla"
+          },
+          {
+            "text": "Phlur Vanilla Skin oil and perfume review! #fragrance #redolessence ...",
+            "href": "https://www.instagram.com/reel/DUMIoJwEdN-/#:~:text=And%20if%20you're%20looking%20for%20amped%2Dup%20longevity%2C,get%20a%20solid%20eight%20hours%20from%20the"
+          },
+          {
+            "text": "Phlur Vanilla Skin Oil and Perfume Review!",
+            "href": "https://www.youtube.com/shorts/50WxthUf25A"
+          },
+          {
+            "text": "Phlur Vanilla Skin Body & Hair Fragrance Mist - Sephora",
+            "href": "https://www.sephora.com/product/phlur-vanilla-skin-hair-body-fragrance-mist-P509017"
+          },
+          {
+            "text": "Vanilla Skin by @phlur Fragrances🤍✨ Soft, warm, and seriously addictive ...",
+            "href": "https://www.instagram.com/reel/DVPCmXUEYnQ/#:~:text=Vanilla%20Skin%20by%20@phlur%20Fragrances%F0%9F%A4%8D%E2%9C%A8%20Soft%2C%20warm%2C,partner%20tries%20to%20steal%20it!%20%23phlurpartner%20%23phlur%23phlurfragrances"
+          },
+          {
+            "text": "So Phlur made a Vanilla Skin body oil… and I had to try it. The ... - Instagram",
+            "href": "https://www.instagram.com/reel/DTdhxXtCQNu/#:~:text=Phlur%20has%20listened%20to%20our,on%20the%20skin%208+%20hours!"
+          },
+          {
+            "text": "Do Phlur body mists really last and project? : r/FemFragLab - Reddit",
+            "href": "https://www.reddit.com/r/FemFragLab/comments/1p32tn8/do_phlur_body_mists_really_last_and_project/#:~:text=I%20LOVE%20Phlur%20Vanilla%20Skin,Thanks!"
+          },
+          {
+            "text": "Phlur vanilla skin : r/MeccaBeautyLoop - Reddit",
+            "href": "https://www.reddit.com/r/MeccaBeautyLoop/comments/1syldls/phlur_vanilla_skin/"
+          },
+          {
+            "text": "What is the longevity of Vanilla Skin perfume?",
+            "href": "https://www.google.com/search?sca_esv=d8ad4d1a78452d8c&hl=en&gl=us&pws=0&q=what+is+the+longevity+of+vanilla+skin+perfume&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQrooIegQIORA8"
+          },
+          {
+            "text": "Phlur Vanilla Skin Eau de Parfum",
+            "href": "https://www.google.com/search?sca_esv=d8ad4d1a78452d8c&hl=en&gl=us&pws=0&q=Phlur+Vanilla+Skin+Eau+de+Parfum&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQxccNegUItQEQAQ"
+          },
+          {
+            "text": "Vanilla Skin Perfume & Body Mist - Phlur",
+            "href": "https://phlur.com/collections/vanilla-skin#:~:text=Vanilla%20Skin%20%2D%20100mL,Deluxe%20Mini%20Trio"
+          }
+        ],
+        "visible_text_line_count": 399
+      },
+      "serp_full": {
+        "kind": "serp_full",
+        "requested_query": "vanilla skin perfume",
+        "extracted_at_browser_iso": "2026-06-24T15:13:42.779Z",
+        "location_href": "https://www.google.com/search?q=vanilla%20skin%20perfume&hl=en&gl=us&pws=0&sei=GvQ7asGQJZfb4-EPubHZ6QQ",
+        "document_title": "vanilla skin perfume - Google Search",
+        "viewport": {
+          "width": 1264,
+          "height": 625,
+          "device_pixel_ratio": 1
+        },
+        "navigator": {
+          "language": "en-US",
+          "languages": [
+            "en-US",
+            "en"
+          ],
+          "platform": "Win32",
+          "webdriver": false,
+          "timezone": "Asia/Singapore"
+        },
+        "session_state": {
+          "sign_in_text_visible": true,
+          "google_account_text_visible": false,
+          "captcha_or_unusual_traffic_visible": false,
+          "consent_text_visible": false
+        },
+        "modules": {
+          "people_also_ask": true,
+          "people_also_search_for": false,
+          "related_searches": false,
+          "shopping_or_products": true,
+          "popular_products": true,
+          "more_products": true,
+          "sponsored_or_ads": false,
+          "video": true,
+          "forums": true,
+          "discussions_and_forums": false,
+          "images": true
+        },
+        "autocomplete_suggestions": [],
+        "organic_results": [
+          {
+            "title": "PHLUR Vanilla Skin Body Mist, 8 Fl Oz Amazon.com https://www.amazon.com › PHLUR-Vanilla-Skin-Body-...",
+            "href": "https://www.amazon.com/PHLUR-Vanilla-Skin-Body-Mist/dp/B0D3FK6KCB",
+            "snippet_or_container_text": "PHLUR Vanilla Skin Body Mist, 8 Fl Oz Amazon.com https://www.amazon.com › PHLUR-Vanilla-Skin-Body-..."
+          },
+          {
+            "title": "Vanilla Skin Perfume & Body Mist Phlur https://phlur.com › collections › vanilla-skin",
+            "href": "https://phlur.com/collections/vanilla-skin?srsltid=AfmBOoocR3hLtF78nE0ub4nIYj0S0oVN8c8KGztYrB37VzizEQ8dJ1FX",
+            "snippet_or_container_text": "Vanilla Skin Perfume & Body Mist Phlur https://phlur.com › collections › vanilla-skin"
+          },
+          {
+            "title": "How do y'all feel about Phlur Vanilla skin? I finally purchased! Reddit · r/Perfumes 20+ comments · 1 year ago",
+            "href": "https://www.reddit.com/r/Perfumes/comments/1igxp3x/how_do_yall_feel_about_phlur_vanilla_skin_i/",
+            "snippet_or_container_text": "How do y'all feel about Phlur Vanilla skin? I finally purchased! Reddit · r/Perfumes 20+ comments · 1 year ago"
+          },
+          {
+            "title": "Vanilla Skin Phlur for women and men Fragrantica https://www.fragrantica.com › perfume › Vanilla-Skin-...",
+            "href": "https://www.fragrantica.com/perfume/Phlur/Vanilla-Skin-95817.html",
+            "snippet_or_container_text": "Vanilla Skin Phlur for women and men Fragrantica https://www.fragrantica.com › perfume › Vanilla-Skin-..."
+          },
+          {
+            "title": "VANILLA SKIN REVIEW & COMPARISON! DO YOU NEED ... YouTube · Brittany I PocketsandBowsTV 21.1K+ views · 1 year ago",
+            "href": "https://www.youtube.com/watch?v=yZ8x12QTRuw",
+            "snippet_or_container_text": "VANILLA SKIN REVIEW & COMPARISON! DO YOU NEED ... YouTube · Brittany I PocketsandBowsTV 21.1K+ views · 1 year ago"
+          },
+          {
+            "title": "Watch PHLUR vanilla smoke, vanilla skin, perfume #fragrance ... Amazon.com https://www.amazon.com › live › video",
+            "href": "https://www.amazon.com/live/video/08ff40243432454a98928997abb79d20",
+            "snippet_or_container_text": "Watch PHLUR vanilla smoke, vanilla skin, perfume #fragrance ... Amazon.com https://www.amazon.com › live › video"
+          },
+          {
+            "title": "Review: Phlur Vanilla Skin The Everygirl https://theeverygirl.com › phlur-vanilla-skin-review",
+            "href": "https://theeverygirl.com/phlur-vanilla-skin-review/",
+            "snippet_or_container_text": "Review: Phlur Vanilla Skin The Everygirl https://theeverygirl.com › phlur-vanilla-skin-review"
+          },
+          {
+            "title": "Phlur Vanilla Skin Body & Hair Fragrance Mist Sephora https://www.sephora.com › ... › Body Mist & Hair Mist",
+            "href": "https://www.sephora.com/product/phlur-vanilla-skin-hair-body-fragrance-mist-P509017",
+            "snippet_or_container_text": "Phlur Vanilla Skin Body & Hair Fragrance Mist Sephora https://www.sephora.com › ... › Body Mist & Hair Mist"
+          }
+        ],
+        "people_also_ask_lines": [
+          "What does vanilla skin perfume smell like?",
+          "What is the best smelling vanilla fragrance?",
+          "Where can I buy Phlur vanilla skin?",
+          "Why does vanilla perfume turn guys on?",
+          "Things to know",
+          "Scent Notes",
+          ".",
+          "What are the scent notes of Vanilla Skin perfume?",
+          "Availability",
+          ".",
+          "Where can I buy Vanilla Skin perfume?",
+          "Brand"
+        ],
+        "people_also_search_lines": [],
+        "related_search_lines": [],
+        "product_or_shopping_lines": [
+          "Shopping",
+          "Price",
+          "Under $20",
+          "$20 - $60",
+          "Over $60",
+          "$",
+          "Price: low to high",
+          "Price: high to low",
+          "Buy",
+          "On sale",
+          "For Sale",
+          "Ulta Beauty",
+          "Target",
+          "Sephora",
+          "Amazon.com",
+          "https://www.amazon.com › PHLUR-Vanilla-Skin-Body-...",
+          "Vanilla Skin is a multidimensional take on an intoxicating vanilla perfume. Shop Phlur's Vanilla Skin perfume and body mist in full size and travel size.",
+          "4.7 store rating (4.4K) · $16 to $317 · Free delivery over $50 · 30-day returns",
+          "Popular products",
+          "$32.00",
+          "$39.00",
+          "Free delivery on $50+",
+          "$28.00",
+          "Free delivery on $35+",
+          "$111.00",
+          "$131",
+          "$12.89",
+          "$16.99",
+          "$19.95",
+          "Free delivery on $100+",
+          "$45.00",
+          "$52",
+          "$49.00",
+          "Where can I buy Phlur vanilla skin?",
+          "Where can I buy Vanilla Skin perfume?",
+          "https://www.amazon.com › live › video",
+          "Shop with expert advice from Sloane Vosen in their latest video PHLUR vanilla smoke, vanilla skin, perfume #fragrance.",
+          "Amazon.com · Sloane Vosen · Nov 12, 2025",
+          "More products",
+          "$5.19",
+          "$59.00",
+          "$14.87",
+          "Walmart",
+          "Next-day delivery $7",
+          "$32",
+          "$39.95",
+          "Free delivery on $399+",
+          "$43.20",
+          "phlurusshop.com",
+          "$26.00",
+          "$65.00",
+          "Free delivery on $150+",
+          "$25.00",
+          "Free delivery on $75+",
+          "Fragrance is more than just a scent—it's a feeling, a memory, a whole mood. ✨ @phlur Lately, I've been reaching for these PHLUR favorites depending on my vibe: 💚 Father Figure – grounding, confident, and effortlessly cool. 💜 Missing Person – soft, comforting, and like the warmest hug. 🧡 Vanilla Skin – playful, cozy, and a little bit irresistible. I love that fragrance lets you embrace every version of yourself. Some days I want to feel nostalgic, some days empowered, and some days I just want to smell delicious. Which PHLUR fragrance matches your mood today? 👇 #PHLUR #PHLURFragrances #Sephora #FragranceLover #PerfumeCollection ScentOfTheDay PerfumeObsessed BeautyOver50 FragranceCommunity BeautyByBev",
+          "On teste Vanilla skin @Phlur Fragrances *produit offert ils viennent d’arriver chez @SEPHORA 👀 #phlurfragrance #phlur #sephorafrance",
+          "Our ICONS are how it all started for @phlur … Missing Person, Father Figure, and Vanilla Skin. Three scents, so different yet universally loved, because each one reflects a piece of us. Missing Person, that cozy craving for love. Father Figure, the air of confidence and cool. Vanilla Skin, the sensual side we all carry within. When I met @sunisalee last year and learned she wore Vanilla Skin during the biggest competition of her life, I knew she had to be the face of our Icons campaign. She embodies all three … every complicated layer we hold inside. Suni is iconic because she broke barriers … the first Hmong American Olympian, the first Asian American woman to win all-around gold. But what makes her our icon is what came after. A health battle nearly ended her career, and instead of letting it stop her, she fought her way back to Paris and won again. She doesn’t let setbacks set her back … she rises through them and comes out better than before. But she’s also so loving and wants to",
+          "Har du hunnit testa Phlur än? Jag blev ju totalt förälskad i Vanilla Skin kroppsoljan så var tvungen att se om parfymen var lika god 🤭 #phlurfragrance #phlur #parfym #fragrance @Phlur Fragrances @Sephora Scandinavia"
+        ],
+        "video_or_forum_lines": [
+          "Short videos",
+          "Videos",
+          "Reddit · r/Perfumes",
+          "More results from www.reddit.com",
+          "Fragrantica",
+          "https://www.fragrantica.com › perfume › Vanilla-Skin-...",
+          "YouTube · Brittany I PocketsandBowsTV",
+          "https://www.amazon.com › live › video",
+          "Shop with expert advice from Sloane Vosen in their latest video PHLUR vanilla smoke, vanilla skin, perfume #fragrance.",
+          "KiraKirby · TikTok",
+          "Reddit",
+          "Sibylle · TikTok",
+          "Popular comment · If you're just getting into fragrances, delete TikTok. \"Viral\" on TikTok is a reflection of which brands are paying the most money to the most shills.",
+          "Rana Sheibani · TikTok",
+          "Sniff with Steph · YouTube"
+        ],
+        "footer_or_location_lines": [
+          "Unknown - Can't determine location",
+          "- Update location",
+          "HelpSend feedbackPrivacyTerms"
+        ],
+        "possible_non_us_storefront_or_locale_signals": [],
+        "all_links_sample": [
+          {
+            "text": "Accessibility help",
+            "href": "https://support.google.com/websearch/answer/181196?hl=en"
+          },
+          {
+            "text": "",
+            "href": "https://www.google.com/webhp?hl=en&ictx=2&sa=X&ved=0ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQPQgK"
+          },
+          {
+            "text": "",
+            "href": "https://www.google.com/webhp?hl=en&ictx=0&sa=X&ved=0ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQpYkNCAw"
+          },
+          {
+            "text": "Google apps",
+            "href": "https://www.google.com.sg/intl/en/about/products?tab=wh"
+          },
+          {
+            "text": "Sign in",
+            "href": "https://accounts.google.com/ServiceLogin?hl=en&passive=true&continue=https://www.google.com/search%3Fq%3Dvanilla%2520skin%2520perfume%26hl%3Den%26gl%3Dus%26pws%3D0%26sei%3DGvQ7asGQJZfb4-EPubHZ6QQ&ec=futura_srp_og_si_72236_p"
+          },
+          {
+            "text": "AI Mode",
+            "href": "https://www.google.com/search?q=vanilla+skin+perfume&sca_esv=d8ad4d1a78452d8c&hl=en&gl=us&pws=0&udm=50&fbs=ABfTbFVyMZGZf1hfvX9uKjN_-G8cqCQj_06QnZs315LoFmPf5bBLHMJ0vMQmTbuI72DM7jmSm18uaHUIcIw77cYBDAp2cWq8_uMKmJ1HlImTFIfxtmeM7pX7AD292Pldeg6G770XMyaQAsPhpehMMrp2tkAhXxUyOzX4DjKIAFkdtS8B40HS7UX811pSOTYciw5siU0ualiepy7Cr5ypoctPPcTbUJyIhg&aep=1&ntc=1&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQ2J8OegQICxAD"
+          },
+          {
+            "text": "Shopping",
+            "href": "https://www.google.com/search?sca_esv=d8ad4d1a78452d8c&hl=en&gl=us&pws=0&udm=28&fbs=ABfTbFVyMZGZf1hfvX9uKjN_-G8cqCQj_06QnZs315LoFmPf5bBLHMJ0vMQmTbuI72DM7jmSm18uaHUIcIw77cYBDAp2cWq8_uMKmJ1HlImTFIfxtmeM7pX7AD292Pldeg6G770XMyaQAsPhpehMMrp2tkAhXxUyOzX4DjKIAFkdtS8B40HS7UX811pSOTYciw5siU0ualiepy7Cr5ypoctPPcTbUJyIhg&q=vanilla+skin+perfume&ved=1t:220175&ictx=111"
+          },
+          {
+            "text": "Images",
+            "href": "https://www.google.com/search?sca_esv=d8ad4d1a78452d8c&hl=en&gl=us&pws=0&udm=2&fbs=ABfTbFVyMZGZf1hfvX9uKjN_-G8cqCQj_06QnZs315LoFmPf5bBLHMJ0vMQmTbuI72DM7jmSm18uaHUIcIw77cYBDAp2cWq8_uMKmJ1HlImTFIfxtmeM7pX7AD292Pldeg6G770XMyaQAsPhpehMMrp2tkAhXxUyOzX4DjKIAFkdtS8B40HS7UX811pSOTYciw5siU0ualiepy7Cr5ypoctPPcTbUJyIhg&q=vanilla+skin+perfume&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQtKgLegQIExAB"
+          },
+          {
+            "text": "Short videos",
+            "href": "https://www.google.com/search?sca_esv=d8ad4d1a78452d8c&hl=en&gl=us&pws=0&udm=39&fbs=ABfTbFVyMZGZf1hfvX9uKjN_-G8cqCQj_06QnZs315LoFmPf5bBLHMJ0vMQmTbuI72DM7jmSm18uaHUIcIw77cYBDAp2cWq8_uMKmJ1HlImTFIfxtmeM7pX7AD292Pldeg6G770XMyaQAsPhpehMMrp2tkAhXxUyOzX4DjKIAFkdtS8B40HS7UX811pSOTYciw5siU0ualiepy7Cr5ypoctPPcTbUJyIhg&q=vanilla+skin+perfume&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQs6gLegQIDhAB"
+          },
+          {
+            "text": "Videos",
+            "href": "https://www.google.com/search?sca_esv=d8ad4d1a78452d8c&hl=en&gl=us&pws=0&udm=7&fbs=ABfTbFVyMZGZf1hfvX9uKjN_-G8cqCQj_06QnZs315LoFmPf5bBLHMJ0vMQmTbuI72DM7jmSm18uaHUIcIw77cYBDAp2cWq8_uMKmJ1HlImTFIfxtmeM7pX7AD292Pldeg6G770XMyaQAsPhpehMMrp2tkAhXxUyOzX4DjKIAFkdtS8B40HS7UX811pSOTYciw5siU0ualiepy7Cr5ypoctPPcTbUJyIhg&q=vanilla+skin+perfume&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQtKgLegQIDxAB"
+          },
+          {
+            "text": "News",
+            "href": "https://www.google.com/search?sca_esv=d8ad4d1a78452d8c&hl=en&gl=us&pws=0&q=vanilla+skin+perfume&tbm=nws&source=lnms&fbs=ABfTbFVyMZGZf1hfvX9uKjN_-G8cqCQj_06QnZs315LoFmPf5bBLHMJ0vMQmTbuI72DM7jmSm18uaHUIcIw77cYBDAp2cWq8_uMKmJ1HlImTFIfxtmeM7pX7AD292Pldeg6G770XMyaQAsPhpehMMrp2tkAhXxUyOzX4DjKIAFkdtS8B40HS7UX811pSOTYciw5siU0ualiepy7Cr5ypoctPPcTbUJyIhg&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQ0pQJegQIEBAB"
+          },
+          {
+            "text": "Forums",
+            "href": "https://www.google.com/search?sca_esv=d8ad4d1a78452d8c&hl=en&gl=us&pws=0&udm=18&fbs=ABfTbFVyMZGZf1hfvX9uKjN_-G8cqCQj_06QnZs315LoFmPf5bBLHMJ0vMQmTbuI72DM7jmSm18uaHUIcIw77cYBDAp2cWq8_uMKmJ1HlImTFIfxtmeM7pX7AD292Pldeg6G770XMyaQAsPhpehMMrp2tkAhXxUyOzX4DjKIAFkdtS8B40HS7UX811pSOTYciw5siU0ualiepy7Cr5ypoctPPcTbUJyIhg&q=vanilla+skin+perfume&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQs6gLegUIkQEQAQ"
+          },
+          {
+            "text": "Web",
+            "href": "https://www.google.com/search?sca_esv=d8ad4d1a78452d8c&hl=en&gl=us&pws=0&udm=web&fbs=ABfTbFVyMZGZf1hfvX9uKjN_-G8cqCQj_06QnZs315LoFmPf5bBLHMJ0vMQmTbuI72DM7jmSm18uaHUIcIw77cYBDAp2cWq8_uMKmJ1HlImTFIfxtmeM7pX7AD292Pldeg6G770XMyaQAsPhpehMMrp2tkAhXxUyOzX4DjKIAFkdtS8B40HS7UX811pSOTYciw5siU0ualiepy7Cr5ypoctPPcTbUJyIhg&q=vanilla+skin+perfume&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQs6gLegUIkgEQAQ"
+          },
+          {
+            "text": "Maps",
+            "href": "https://maps.google.com/maps?sca_esv=d8ad4d1a78452d8c&hl=en&gl=us&pws=0&output=search&q=vanilla+skin+perfume&source=lnms&fbs=ABfTbFVyMZGZf1hfvX9uKjN_-G8cqCQj_06QnZs315LoFmPf5bBLHMJ0vMQmTbuI72DM7jmSm18uaHUIcIw77cYBDAp2cWq8_uMKmJ1HlImTFIfxtmeM7pX7AD292Pldeg6G770XMyaQAsPhpehMMrp2tkAhXxUyOzX4DjKIAFkdtS8B40HS7UX811pSOTYciw5siU0ualiepy7Cr5ypoctPPcTbUJyIhg&entry=mc&ved=1t:200715&ictx=111"
+          },
+          {
+            "text": "Books",
+            "href": "https://www.google.com/search?sca_esv=d8ad4d1a78452d8c&hl=en&gl=us&pws=0&q=vanilla+skin+perfume&udm=36&source=lnms&fbs=ABfTbFVyMZGZf1hfvX9uKjN_-G8cqCQj_06QnZs315LoFmPf5bBLHMJ0vMQmTbuI72DM7jmSm18uaHUIcIw77cYBDAp2cWq8_uMKmJ1HlImTFIfxtmeM7pX7AD292Pldeg6G770XMyaQAsPhpehMMrp2tkAhXxUyOzX4DjKIAFkdtS8B40HS7UX811pSOTYciw5siU0ualiepy7Cr5ypoctPPcTbUJyIhg&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQ0pQJegUIoQEQAQ"
+          },
+          {
+            "text": "Any time",
+            "href": "https://www.google.com/search?q=vanilla%20skin%20perfume&hl=en&gl=us&pws=0&sei=GvQ7asGQJZfb4-EPubHZ6QQ#"
+          },
+          {
+            "text": "Past hour",
+            "href": "https://www.google.com/search?q=vanilla+skin+perfume&sca_esv=d8ad4d1a78452d8c&hl=en&gl=us&pws=0&source=lnt&tbs=qdr:h&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQpwV6BAgFEAY"
+          },
+          {
+            "text": "Past 24 hours",
+            "href": "https://www.google.com/search?q=vanilla+skin+perfume&sca_esv=d8ad4d1a78452d8c&hl=en&gl=us&pws=0&source=lnt&tbs=qdr:d&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQpwV6BAgFEAc"
+          },
+          {
+            "text": "Past week",
+            "href": "https://www.google.com/search?q=vanilla+skin+perfume&sca_esv=d8ad4d1a78452d8c&hl=en&gl=us&pws=0&source=lnt&tbs=qdr:w&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQpwV6BAgFEAg"
+          },
+          {
+            "text": "Past month",
+            "href": "https://www.google.com/search?q=vanilla+skin+perfume&sca_esv=d8ad4d1a78452d8c&hl=en&gl=us&pws=0&source=lnt&tbs=qdr:m&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQpwV6BAgFEAk"
+          },
+          {
+            "text": "Past year",
+            "href": "https://www.google.com/search?q=vanilla+skin+perfume&sca_esv=d8ad4d1a78452d8c&hl=en&gl=us&pws=0&source=lnt&tbs=qdr:y&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQpwV6BAgFEAo"
+          },
+          {
+            "text": "All results",
+            "href": "https://www.google.com/search?q=vanilla%20skin%20perfume&hl=en&gl=us&pws=0&sei=GvQ7asGQJZfb4-EPubHZ6QQ#"
+          },
+          {
+            "text": "Verbatim",
+            "href": "https://www.google.com/search?q=vanilla+skin+perfume&sca_esv=d8ad4d1a78452d8c&hl=en&gl=us&pws=0&source=lnt&tbs=li:1&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQpwV6BAgFEBE"
+          },
+          {
+            "text": "Women's",
+            "href": "https://www.google.com/search?q=women%27s+vanilla+skin+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoUdmFuaWxsYSBza2luIHBlcmZ1bWUyFwgBEgdXb21lbidzOgoI-JZIENqoSTAFWICrIGAC&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQ268JKAB6BAgqEAY"
+          },
+          {
+            "text": "Men's",
+            "href": "https://www.google.com/search?q=men%27s+vanilla+skin+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoUdmFuaWxsYSBza2luIHBlcmZ1bWUyFQgBEgVNZW4nczoKCPiWSBDbqEkwBViAqyBgAg&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQ268JKAF6BAgqEAc"
+          },
+          {
+            "text": "Unisex",
+            "href": "https://www.google.com/search?q=unisex+vanilla+skin+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoUdmFuaWxsYSBza2luIHBlcmZ1bWUyFggBEgZVbmlzZXg6Cgj4lkgQ3KhJMAVYgKsgYAI&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQ268JKAJ6BAgqEAg"
+          },
+          {
+            "text": "4 and up",
+            "href": "https://www.google.com/search?q=vanilla+skin+perfume&hl=en&gl=us&pws=0&shoprs=CAESBWIDCJADGB4qFHZhbmlsbGEgc2tpbiBwZXJmdW1lMhUIHhIINCBhbmQgdXAiBWIDCJADQARgAg&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQ268JKAB6BAgqEAw"
+          },
+          {
+            "text": "Under $20",
+            "href": "https://www.google.com/search?q=vanilla+skin+perfume+under+$20&hl=en&gl=us&pws=0&shoprs=CAESDRILEQAAAADQEnNBGAEYBSoUdmFuaWxsYSBza2luIHBlcmZ1bWUyIggFEglVbmRlciAkMjAYAiINEgsRAAAAANASc0EYASoCGAFYgKsgYAI&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQ268JKAB6BAgqEBE"
+          },
+          {
+            "text": "$20 - $60",
+            "href": "https://www.google.com/search?q=vanilla+skin+perfume+between+$20+and+$60&hl=en&gl=us&pws=0&shoprs=CAESFhIUCQAAAADQEnNBEQAAAAA4nIxBGAEYBSoUdmFuaWxsYSBza2luIHBlcmZ1bWUyKwgFEgkkMjAgLSAkNjAYAiIWEhQJAAAAANASc0ERAAAAADicjEEYASoCGAFYgKsgYAI&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQ268JKAF6BAgqEBI"
+          },
+          {
+            "text": "Over $60",
+            "href": "https://www.google.com/search?q=vanilla+skin+perfume+over+$60&hl=en&gl=us&pws=0&shoprs=CAESDRILCQAAAAA4nIxBGAEYBSoUdmFuaWxsYSBza2luIHBlcmZ1bWUyIQgFEghPdmVyICQ2MBgCIg0SCwkAAAAAOJyMQRgBKgIYAViAqyBgAg&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQ268JKAJ6BAgqEBM"
+          },
+          {
+            "text": "Price: low to high",
+            "href": "https://www.google.com/search?q=vanilla+skin+perfume&hl=en&gl=us&pws=0&shoprs=CAEYFyoUdmFuaWxsYSBza2luIHBlcmZ1bWUyHAgXEhJQcmljZTogbG93IHRvIGhpZ2gqBBABGAFgAogBAQ&udm=3&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQ268JKAB6BAgqEBo"
+          },
+          {
+            "text": "Price: high to low",
+            "href": "https://www.google.com/search?q=vanilla+skin+perfume&hl=en&gl=us&pws=0&shoprs=CAEYFyoUdmFuaWxsYSBza2luIHBlcmZ1bWUyHAgXEhJQcmljZTogaGlnaCB0byBsb3cqBBABGAFgAogBAg&udm=3&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQ268JKAF6BAgqEBs"
+          },
+          {
+            "text": "Oil",
+            "href": "https://www.google.com/search?q=oil+vanilla+skin+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoUdmFuaWxsYSBza2luIHBlcmZ1bWUyEwgBEgNPaWw6CgjIuUYQ0rlGMABYgKsgYAI&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQ268JKAB6BAgqEB8"
+          },
+          {
+            "text": "Spray",
+            "href": "https://www.google.com/search?q=spray+vanilla+skin+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoUdmFuaWxsYSBza2luIHBlcmZ1bWUyFQgBEgVTcHJheToKCMi5RhDJuUYwAFiAqyBgAg&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQ268JKAF6BAgqECA"
+          },
+          {
+            "text": "Roll-on",
+            "href": "https://www.google.com/search?q=roll-on+vanilla+skin+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoUdmFuaWxsYSBza2luIHBlcmZ1bWUyFwgBEgdSb2xsLW9uOgoIyLlGENO5RjAAWICrIGAC&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQ268JKAJ6BAgqECE"
+          },
+          {
+            "text": "Phlur",
+            "href": "https://www.google.com/search?q=phlur+vanilla+skin+perfume&hl=en&gl=us&pws=0&shoprs=CAEYAioUdmFuaWxsYSBza2luIHBlcmZ1bWUyCQgCEgVQaGx1cliAqyBgAg&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQ268JKAB6BAgqECU"
+          },
+          {
+            "text": "Bath & Body Works",
+            "href": "https://www.google.com/search?q=bath+%26+body+works+vanilla+skin+perfume&hl=en&gl=us&pws=0&shoprs=CAEYAioUdmFuaWxsYSBza2luIHBlcmZ1bWUyFQgCEhFCYXRoICYgQm9keSBXb3Jrc1iAqyBgAg&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQ268JKAF6BAgqECY"
+          },
+          {
+            "text": "Ulta Beauty",
+            "href": "https://www.google.com/search?q=ulta+beauty+vanilla+skin+perfume&hl=en&gl=us&pws=0&shoprs=CAEYAioUdmFuaWxsYSBza2luIHBlcmZ1bWUyDwgCEgtVbHRhIEJlYXV0eViAqyBgAg&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQ268JKAJ6BAgqECc"
+          },
+          {
+            "text": "Target",
+            "href": "https://www.google.com/search?q=target+vanilla+skin+perfume&hl=en&gl=us&pws=0&shoprs=CAEYAioUdmFuaWxsYSBza2luIHBlcmZ1bWUyCggCEgZUYXJnZXRYgKsgYAI&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQ268JKAN6BAgqECg"
+          },
+          {
+            "text": "Set",
+            "href": "https://www.google.com/search?q=set+vanilla+skin+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoUdmFuaWxsYSBza2luIHBlcmZ1bWUyEwgBEgNTZXQ6Cgidqy0QnqstMANYgKsgYAI&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQ268JKAB6BAgqEC4"
+          },
+          {
+            "text": "Travel Size",
+            "href": "https://www.google.com/search?q=travel+size+vanilla+skin+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoUdmFuaWxsYSBza2luIHBlcmZ1bWUyHQgBEgtUcmF2ZWwgU2l6ZToMCO6IqAEQ74ioATADWICrIGAC&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQ268JKAF6BAgqEC8"
+          },
+          {
+            "text": "Vegan",
+            "href": "https://www.google.com/search?q=vegan+vanilla+skin+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoUdmFuaWxsYSBza2luIHBlcmZ1bWUyFwgBEgVWZWdhbjoMCMK9hwEQw72HATADWICrIGAC&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQ268JKAJ6BAgqEDA"
+          },
+          {
+            "text": "Paraben-free",
+            "href": "https://www.google.com/search?q=paraben-free+vanilla+skin+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoUdmFuaWxsYSBza2luIHBlcmZ1bWUyHggBEgxQYXJhYmVuLWZyZWU6DAik24gBEKXbiAEwA1iAqyBgAg&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQ268JKAN6BAgqEDE"
+          },
+          {
+            "text": "Moisturizers",
+            "href": "https://www.google.com/search?q=moisturizers+vanilla+skin+perfume&hl=en&gl=us&pws=0&shoprs=CAEYCSoUdmFuaWxsYSBza2luIHBlcmZ1bWUyEAgJEgxNb2lzdHVyaXplcnNgAg&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQ268JKAB6BAgqEDc"
+          },
+          {
+            "text": "Essential & Fragrance Oils",
+            "href": "https://www.google.com/search?q=essential+%26+fragrance+oils+vanilla+skin+perfume&hl=en&gl=us&pws=0&shoprs=CAEYCSoUdmFuaWxsYSBza2luIHBlcmZ1bWUyHggJEhpFc3NlbnRpYWwgJiBGcmFncmFuY2UgT2lsc2AC&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQ268JKAF6BAgqEDg"
+          },
+          {
+            "text": "Deodorant",
+            "href": "https://www.google.com/search?q=deodorant+vanilla+skin+perfume&hl=en&gl=us&pws=0&shoprs=CAEYCSoUdmFuaWxsYSBza2luIHBlcmZ1bWUyDQgJEglEZW9kb3JhbnRgAg&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQ268JKAJ6BAgqEDk"
+          },
+          {
+            "text": "Unisex Perfume",
+            "href": "https://www.google.com/search?q=unisex+perfume+vanilla+skin&hl=en&gl=us&pws=0&shoprs=CAEYCSoUdmFuaWxsYSBza2luIHBlcmZ1bWUyEggJEg5VbmlzZXggUGVyZnVtZWAC&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQ268JKAN6BAgqEDo"
+          },
+          {
+            "text": "Eau de Parfum",
+            "href": "https://www.google.com/search?q=eau+de+parfum+vanilla+skin+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoUdmFuaWxsYSBza2luIHBlcmZ1bWUyHQgBEg1FYXUgZGUgUGFyZnVtOgoI3qotENuqLTACWICrIGAC&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQ268JKAB6BAgqEEA"
+          },
+          {
+            "text": "Body Spray",
+            "href": "https://www.google.com/search?q=body+spray+vanilla+skin+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoUdmFuaWxsYSBza2luIHBlcmZ1bWUyGwgBEgpCb2R5IFNwcmF5OgsI3qotEKbqqAEwAliAqyBgAg&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQ268JKAF6BAgqEEE"
+          },
+          {
+            "text": "Cologne",
+            "href": "https://www.google.com/search?q=cologne+vanilla+skin+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoUdmFuaWxsYSBza2luIHBlcmZ1bWUyFwgBEgdDb2xvZ25lOgoI3qotENyqLTACWICrIGAC&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQ268JKAJ6BAgqEEI"
+          },
+          {
+            "text": "Eau de Toilette",
+            "href": "https://www.google.com/search?q=eau+de+toilette+vanilla+skin+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoUdmFuaWxsYSBza2luIHBlcmZ1bWUyHwgBEg9FYXUgZGUgVG9pbGV0dGU6Cgjeqi0Q36otMAJYgKsgYAI&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQ268JKAN6BAgqEEM"
+          },
+          {
+            "text": "Cruelty-free",
+            "href": "https://www.google.com/search?q=cruelty-free+vanilla+skin+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoUdmFuaWxsYSBza2luIHBlcmZ1bWUyHggBEgxDcnVlbHR5LWZyZWU6DAjdorQBENf4wgEwAFiAqyBgAg&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQ268JKAB6BAgqEEc"
+          },
+          {
+            "text": "Organic",
+            "href": "https://www.google.com/search?q=organic+vanilla+skin+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoUdmFuaWxsYSBza2luIHBlcmZ1bWUyGQgBEgdPcmdhbmljOgwI3aK0ARDeorQBMABYgKsgYAI&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQ268JKAF6BAgqEEg"
+          },
+          {
+            "text": "Fair Trade",
+            "href": "https://www.google.com/search?q=fair+trade+vanilla+skin+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoUdmFuaWxsYSBza2luIHBlcmZ1bWUyHAgBEgpGYWlyIFRyYWRlOgwI3aK0ARDY-MIBMABYgKsgYAI&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQ268JKAJ6BAgqEEk"
+          },
+          {
+            "text": "CLEAN",
+            "href": "https://www.google.com/search?q=clean+vanilla+skin+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoUdmFuaWxsYSBza2luIHBlcmZ1bWUyFQgBEgVDTEVBTjoKCIPzPBD26D0wAViAqyBgAg&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQ268JKAB6BAgqEE0"
+          },
+          {
+            "text": "Victoria's Secret",
+            "href": "https://www.google.com/search?q=victoria%27s+secret+vanilla+skin+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoUdmFuaWxsYSBza2luIHBlcmZ1bWUyIQgBEhFWaWN0b3JpYSdzIFNlY3JldDoKCIPzPBDG5D0wAViAqyBgAg&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQ268JKAF6BAgqEE4"
+          },
+          {
+            "text": "TOM FORD",
+            "href": "https://www.google.com/search?q=tom+ford+vanilla+skin+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoUdmFuaWxsYSBza2luIHBlcmZ1bWUyGQgBEghUT00gRk9SRDoLCIPzPBDOz4kEMAFYgKsgYAI&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQ268JKAJ6BAgqEE8"
+          },
+          {
+            "text": "Pacifica",
+            "href": "https://www.google.com/search?q=pacifica+vanilla+skin+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoUdmFuaWxsYSBza2luIHBlcmZ1bWUyGAgBEghQYWNpZmljYToKCIPzPBD04z0wAViAqyBgAg&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQ268JKAN6BAgqEFA"
+          },
+          {
+            "text": "Free shipping",
+            "href": "https://www.google.com/search?q=vanilla+skin+perfume+free+shipping&hl=en&gl=us&pws=0&shoprs=CAESBFICEAEYGSoUdmFuaWxsYSBza2luIHBlcmZ1bWUyFwgZEg1GcmVlIHNoaXBwaW5nIgRSAhABYAI&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQ268JKAB6BAgqEFY"
+          },
+          {
+            "text": "Women's",
+            "href": "https://www.google.com/search?q=women%27s+vanilla+skin+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoUdmFuaWxsYSBza2luIHBlcmZ1bWUyFwgBEgdXb21lbidzOgoI-JZIENqoSTAFWICrIGAB&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQip4GKAF6BAgqEFs"
+          },
+          {
+            "text": "Men's",
+            "href": "https://www.google.com/search?q=men%27s+vanilla+skin+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoUdmFuaWxsYSBza2luIHBlcmZ1bWUyFQgBEgVNZW4nczoKCPiWSBDbqEkwBViAqyBgAQ&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQip4GKAJ6BAgqEFw"
+          },
+          {
+            "text": "Nearby",
+            "href": "https://www.google.com/search?q=vanilla+skin+perfume+nearby&hl=en&gl=us&pws=0&shoprs=CAEYAyoUdmFuaWxsYSBza2luIHBlcmZ1bWUyDAgDEgZOZWFyYnkYAliAqyBgAQ&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQip4GKAN6BAgqEF0"
+          },
+          {
+            "text": "Under $20",
+            "href": "https://www.google.com/search?q=vanilla+skin+perfume+under+$20&hl=en&gl=us&pws=0&shoprs=CAESDRILEQAAAADQEnNBGAEYBSoUdmFuaWxsYSBza2luIHBlcmZ1bWUyIggFEglVbmRlciAkMjAYAiINEgsRAAAAANASc0EYASoCGAFYgKsgYAE&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQip4GKAR6BAgqEF4"
+          },
+          {
+            "text": "Reviews",
+            "href": "https://www.google.com/search?q=reviews+vanilla+skin+perfume&hl=en&gl=us&pws=0&shoprs=CAEYEioUdmFuaWxsYSBza2luIHBlcmZ1bWUyCwgSEgdSZXZpZXdzYAE&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQip4GKAV6BAgqEF8"
+          },
+          {
+            "text": "Buy",
+            "href": "https://www.google.com/search?q=buy+vanilla+skin+perfume&hl=en&gl=us&pws=0&shoprs=CAEYEioUdmFuaWxsYSBza2luIHBlcmZ1bWUyBwgSEgNCdXlgAQ&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQip4GKAZ6BAgqEGA"
+          },
+          {
+            "text": "Oil",
+            "href": "https://www.google.com/search?q=oil+vanilla+skin+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoUdmFuaWxsYSBza2luIHBlcmZ1bWUyEwgBEgNPaWw6CgjIuUYQ0rlGMABYgKsgYAE&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQip4GKAd6BAgqEGE"
+          },
+          {
+            "text": "Get it by Fri",
+            "href": "https://www.google.com/search?q=vanilla+skin+perfume&hl=en&gl=us&pws=0&shoprs=CAESDZoBCgoIEAI4AUAFSAEYFCoUdmFuaWxsYSBza2luIHBlcmZ1bWUyJggUEg1HZXQgaXQgYnkgRnJpIg2aAQoKCBACOAFABUgBKgQQARgBYAE&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQip4GKAh6BAgqEGI"
+          },
+          {
+            "text": "Phlur",
+            "href": "https://www.google.com/search?q=phlur+vanilla+skin+perfume&hl=en&gl=us&pws=0&shoprs=CAEYAioUdmFuaWxsYSBza2luIHBlcmZ1bWUyCQgCEgVQaGx1cliAqyBgAQ&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQip4GKAl6BAgqEGM"
+          },
+          {
+            "text": "Spray",
+            "href": "https://www.google.com/search?q=spray+vanilla+skin+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoUdmFuaWxsYSBza2luIHBlcmZ1bWUyFQgBEgVTcHJheToKCMi5RhDJuUYwAFiAqyBgAQ&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQip4GKAp6BAgqEGU"
+          },
+          {
+            "text": "Bath & Body Works",
+            "href": "https://www.google.com/search?q=bath+%26+body+works+vanilla+skin+perfume&hl=en&gl=us&pws=0&shoprs=CAEYAioUdmFuaWxsYSBza2luIHBlcmZ1bWUyFQgCEhFCYXRoICYgQm9keSBXb3Jrc1iAqyBgAQ&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQip4GKAt6BAgqEGY"
+          },
+          {
+            "text": "Unisex",
+            "href": "https://www.google.com/search?q=unisex+vanilla+skin+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoUdmFuaWxsYSBza2luIHBlcmZ1bWUyFggBEgZVbmlzZXg6Cgj4lkgQ3KhJMAVYgKsgYAE&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQip4GKAx6BAgqEGg"
+          },
+          {
+            "text": "Set",
+            "href": "https://www.google.com/search?q=set+vanilla+skin+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoUdmFuaWxsYSBza2luIHBlcmZ1bWUyEwgBEgNTZXQ6Cgidqy0QnqstMANYgKsgYAE&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQip4GKA16BAgqEGk"
+          },
+          {
+            "text": "Travel Size",
+            "href": "https://www.google.com/search?q=travel+size+vanilla+skin+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoUdmFuaWxsYSBza2luIHBlcmZ1bWUyHQgBEgtUcmF2ZWwgU2l6ZToMCO6IqAEQ74ioATADWICrIGAB&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQip4GKA56BAgqEGo"
+          },
+          {
+            "text": "On sale",
+            "href": "https://www.google.com/search?q=vanilla+skin+perfume+sale&hl=en&gl=us&pws=0&shoprs=CAESBEoCGAEYBioUdmFuaWxsYSBza2luIHBlcmZ1bWUyEwgGEgdPbiBzYWxlGAIiBEoCGAFYgKsgYAE&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQip4GKA96BAgqEGs"
+          },
+          {
+            "text": "Moisturizers",
+            "href": "https://www.google.com/search?q=moisturizers+vanilla+skin+perfume&hl=en&gl=us&pws=0&shoprs=CAEYCSoUdmFuaWxsYSBza2luIHBlcmZ1bWUyEAgJEgxNb2lzdHVyaXplcnNgAQ&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQip4GKBB6BAgqEGw"
+          },
+          {
+            "text": "For Sale",
+            "href": "https://www.google.com/search?q=vanilla+skin+perfume+for+sale&hl=en&gl=us&pws=0&shoprs=CAEYEioUdmFuaWxsYSBza2luIHBlcmZ1bWUyDAgSEghGb3IgU2FsZWAB&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQip4GKBF6BAgqEG0"
+          },
+          {
+            "text": "Ulta Beauty",
+            "href": "https://www.google.com/search?q=ulta+beauty+vanilla+skin+perfume&hl=en&gl=us&pws=0&shoprs=CAEYAioUdmFuaWxsYSBza2luIHBlcmZ1bWUyDwgCEgtVbHRhIEJlYXV0eViAqyBgAQ&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQip4GKBJ6BAgqEG4"
+          },
+          {
+            "text": "Essential & Fragrance Oils",
+            "href": "https://www.google.com/search?q=essential+%26+fragrance+oils+vanilla+skin+perfume&hl=en&gl=us&pws=0&shoprs=CAEYCSoUdmFuaWxsYSBza2luIHBlcmZ1bWUyHggJEhpFc3NlbnRpYWwgJiBGcmFncmFuY2UgT2lsc2AB&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQip4GKBN6BAgqEHA"
+          },
+          {
+            "text": "Eau de Parfum",
+            "href": "https://www.google.com/search?q=eau+de+parfum+vanilla+skin+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoUdmFuaWxsYSBza2luIHBlcmZ1bWUyHQgBEg1FYXUgZGUgUGFyZnVtOgoI3qotENuqLTACWICrIGAB&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQip4GKBR6BAgqEHE"
+          },
+          {
+            "text": "Target",
+            "href": "https://www.google.com/search?q=target+vanilla+skin+perfume&hl=en&gl=us&pws=0&shoprs=CAEYAioUdmFuaWxsYSBza2luIHBlcmZ1bWUyCggCEgZUYXJnZXRYgKsgYAE&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQip4GKBV6BAgqEHI"
+          },
+          {
+            "text": "Sephora",
+            "href": "https://www.google.com/search?q=sephora+vanilla+skin+perfume&hl=en&gl=us&pws=0&shoprs=CAEYAioUdmFuaWxsYSBza2luIHBlcmZ1bWUyCwgCEgdTZXBob3JhWICrIGAB&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQip4GKBZ6BAgqEHQ"
+          },
+          {
+            "text": "Body Spray",
+            "href": "https://www.google.com/search?q=body+spray+vanilla+skin+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoUdmFuaWxsYSBza2luIHBlcmZ1bWUyGwgBEgpCb2R5IFNwcmF5OgsI3qotEKbqqAEwAliAqyBgAQ&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQip4GKBd6BAgqEHY"
+          },
+          {
+            "text": "Roll-on",
+            "href": "https://www.google.com/search?q=roll-on+vanilla+skin+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoUdmFuaWxsYSBza2luIHBlcmZ1bWUyFwgBEgdSb2xsLW9uOgoIyLlGENO5RjAAWICrIGAB&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQip4GKBh6BAgqEHc"
+          },
+          {
+            "text": "Girl",
+            "href": "https://www.google.com/search?q=girl+vanilla+skin+perfume&hl=en&gl=us&pws=0&shoprs=CAEYEioUdmFuaWxsYSBza2luIHBlcmZ1bWUyCAgSEgRHaXJsYAE&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQip4GKBl6BAgqEHg"
+          },
+          {
+            "text": "Cruelty-free",
+            "href": "https://www.google.com/search?q=cruelty-free+vanilla+skin+perfume&hl=en&gl=us&pws=0&shoprs=CAEYASoUdmFuaWxsYSBza2luIHBlcmZ1bWUyHggBEgxDcnVlbHR5LWZyZWU6DAjdorQBENf4wgEwAFiAqyBgAQ&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQip4GKBp6BAgqEHk"
+          },
+          {
+            "text": "PHLUR Vanilla Skin Body Mist, 8 Fl Oz Amazon.com https://www.amazon.com › PHLUR-Vanilla-Skin-Body-...",
+            "href": "https://www.amazon.com/PHLUR-Vanilla-Skin-Body-Mist/dp/B0D3FK6KCB"
+          },
+          {
+            "text": "",
+            "href": "https://www.amazon.com/PHLUR-Vanilla-Skin-Body-Mist/dp/B0D3FK6KCB"
+          },
+          {
+            "text": "Vanilla Skin Perfume & Body Mist Phlur https://phlur.com › collections › vanilla-skin",
+            "href": "https://phlur.com/collections/vanilla-skin?srsltid=AfmBOoocR3hLtF78nE0ub4nIYj0S0oVN8c8KGztYrB37VzizEQ8dJ1FX"
+          },
+          {
+            "text": "4.4K",
+            "href": "https://www.google.com/m/storepages?q=phlur.com&c=US&hl=en-US"
+          },
+          {
+            "text": "How do y'all feel about Phlur Vanilla skin? I finally purchased! Reddit · r/Perfumes 20+ comments · 1 year ago",
+            "href": "https://www.reddit.com/r/Perfumes/comments/1igxp3x/how_do_yall_feel_about_phlur_vanilla_skin_i/"
+          },
+          {
+            "text": "Read more",
+            "href": "https://www.reddit.com/r/Perfumes/comments/1igxp3x/how_do_yall_feel_about_phlur_vanilla_skin_i/#:~:text=vanilla%20skin%20on%20me%20has,it%20had%20more%20power%20%3A("
+          },
+          {
+            "text": "Ok.. let's talk about Vanilla Skin by Phlur : r/Perfumes ...",
+            "href": "https://www.reddit.com/r/Perfumes/comments/1bki12s/ok_lets_talk_about_vanilla_skin_by_phlur/"
+          },
+          {
+            "text": "A quick impression of the new Phlur Vanilla Skin EDP ...",
+            "href": "https://www.reddit.com/r/FemFragLab/comments/1dop6eb/a_quick_impression_of_the_new_phlur_vanilla_skin/"
+          },
+          {
+            "text": "More results from www.reddit.com",
+            "href": "https://www.google.com/search?q=vanilla+skin+perfume+site:www.reddit.com&sca_esv=d8ad4d1a78452d8c&hl=en&gl=us&pws=0&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQrQIoAnoECBwQAw"
+          },
+          {
+            "text": "Vanilla Skin Phlur for women and men Fragrantica https://www.fragrantica.com › perfume › Vanilla-Skin-...",
+            "href": "https://www.fragrantica.com/perfume/Phlur/Vanilla-Skin-95817.html"
+          },
+          {
+            "text": "VANILLA SKIN REVIEW & COMPARISON! DO YOU NEED ... YouTube · Brittany I PocketsandBowsTV 21.1K+ views · 1 year ago",
+            "href": "https://www.youtube.com/watch?v=yZ8x12QTRuw"
+          },
+          {
+            "text": "VANILLA SKIN REVIEW & COMPARISON! DO YOU NEED ...YouTube·Brittany I PocketsandBowsTV·Aug 8, 2024",
+            "href": "https://www.youtube.com/watch?v=yZ8x12QTRuw"
+          },
+          {
+            "text": "YouTube",
+            "href": "https://www.youtube.com/watch?v=yZ8x12QTRuw"
+          },
+          {
+            "text": "Amazing and long lasting · Smells like vanilla and plasticFragrantica",
+            "href": "https://www.fragrantica.com/perfume/Phlur/Vanilla-Skin-95817.html"
+          },
+          {
+            "text": "Impressive longevity · Cozy and irresistibly sniffableFragrantica",
+            "href": "https://www.fragrantica.com/perfume/Phlur/Vanilla-Skin-87258.html"
+          },
+          {
+            "text": "Staying power is intense · Really nicely blended perfumeFragrantica",
+            "href": "https://www.fragrantica.com/perfume/Le-Monde-Gourmand/Vanille-Brillante-78554.html"
+          },
+          {
+            "text": "Really nice vanilla · Unusual and worth a try if you enjoy vanillaParfumo",
+            "href": "https://www.parfumo.com/Perfumes/Kayali/vanilla-28-eau-de-parfum"
+          },
+          {
+            "text": "Phlur (+3) - View related links",
+            "href": "https://phlur.com/products/vanilla-skin-perfume"
+          },
+          {
+            "text": "Phlur (+1) - View related links",
+            "href": "https://phlur.com/products/vanilla-skin-perfume"
+          },
+          {
+            "text": "Reddit",
+            "href": "https://www.reddit.com/r/Perfumes/comments/1bki12s/ok_lets_talk_about_vanilla_skin_by_phlur/"
+          },
+          {
+            "text": "Phlur (+1) - View related links",
+            "href": "https://phlur.com/products/vanilla-skin-perfume"
+          },
+          {
+            "text": "Sephora",
+            "href": "https://www.sephora.com/product/phlur-vanilla-skin-eau-de-parfum-P511943"
+          },
+          {
+            "text": "PHLUR",
+            "href": "https://phlur.com/products/vanilla-skin-perfume?srsltid=AfmBOoqbalE7Bq0z9vIJRP8sdjV-CfjwgwiuBC_Qxb9BhFWZyu-zPlqD"
+          },
+          {
+            "text": "Phlur (+1) - View related links",
+            "href": "https://phlur.com/products/vanilla-skin-perfume"
+          },
+          {
+            "text": "",
+            "href": "https://phlur.com/products/vanilla-skin-perfume"
+          },
+          {
+            "text": "",
+            "href": "https://www.amazon.com/PHLUR-Vanilla-Skin-Body-Mist/dp/B0D3FK6KCB"
+          },
+          {
+            "text": "",
+            "href": "https://www.amazon.com/PHLUR-Vanilla-Skin-Eau-Parfum/dp/B0DGX5N1RD"
+          },
+          {
+            "text": "",
+            "href": "https://www.sephora.com/product/phlur-vanilla-skin-eau-de-parfum-P511943"
+          },
+          {
+            "text": "",
+            "href": "https://www.reddit.com/r/Perfumes/comments/1bki12s/ok_lets_talk_about_vanilla_skin_by_phlur/"
+          },
+          {
+            "text": "Vanilla Skin Perfume - Full Size Fragrance - Phlur. Opens in new tab.",
+            "href": "https://phlur.com/products/vanilla-skin-perfume"
+          },
+          {
+            "text": "Amazon.com : PHLUR Vanilla Skin Body Mist, 8 Fl Oz. Opens in new tab.",
+            "href": "https://www.amazon.com/PHLUR-Vanilla-Skin-Body-Mist/dp/B0D3FK6KCB"
+          },
+          {
+            "text": "Amazon.com : PHLUR Vanilla Skin Perfume for Women & Men, 50 mL. Opens in new tab.",
+            "href": "https://www.amazon.com/PHLUR-Vanilla-Skin-Eau-Parfum/dp/B0DGX5N1RD"
+          },
+          {
+            "text": "PHLUR Vanilla Skin Eau de Parfum - Sephora. Opens in new tab.",
+            "href": "https://www.sephora.com/product/phlur-vanilla-skin-eau-de-parfum-P511943"
+          },
+          {
+            "text": "Ok.. let's talk about Vanilla Skin by Phlur : r/Perfumes - Reddit. Opens in new tab.",
+            "href": "https://www.reddit.com/r/Perfumes/comments/1bki12s/ok_lets_talk_about_vanilla_skin_by_phlur/"
+          },
+          {
+            "text": "Ok.. let's talk about Vanilla Skin by Phlur : r/Perfumes - Reddit. Opens in new tab.",
+            "href": "https://www.reddit.com/r/Perfumes/comments/1bki12s/ok_lets_talk_about_vanilla_skin_by_phlur/"
+          },
+          {
+            "text": "Tell me about Phlur fragrances",
+            "href": "https://www.google.com/search?sca_esv=d8ad4d1a78452d8c&hl=en&gl=us&pws=0&udm=50&q=Where+can+I+buy+Phlur+vanilla+skin%3F+Tell+me+about+Phlur+fragrances&aep=64&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQy8AQKAB6BAhDEAc"
+          },
+          {
+            "text": "List other popular Phlur scents",
+            "href": "https://www.google.com/search?sca_esv=d8ad4d1a78452d8c&hl=en&gl=us&pws=0&udm=50&q=Where+can+I+buy+Phlur+vanilla+skin%3F+List+other+popular+Phlur+scents&aep=64&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQy8AQKAF6BAhDEAg"
+          },
+          {
+            "text": "Compare Vanilla Skin to other vanilla perfumes",
+            "href": "https://www.google.com/search?sca_esv=d8ad4d1a78452d8c&hl=en&gl=us&pws=0&udm=50&q=Where+can+I+buy+Phlur+vanilla+skin%3F+Compare+Vanilla+Skin+to+other+vanilla+perfumes&aep=64&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQy8AQKAJ6BAhDEAk"
+          },
+          {
+            "text": "Tell me more about vanilla's aphrodisiac qualities",
+            "href": "https://www.google.com/search?sca_esv=d8ad4d1a78452d8c&hl=en&gl=us&pws=0&udm=50&q=Why+does+vanilla+perfume+turn+guys+on%3F+Tell+me+more+about+vanilla%27s+aphrodisiac+qualities&aep=64&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQy8AQKAB6BAhGEAc"
+          },
+          {
+            "text": "List other scents that men find attractive",
+            "href": "https://www.google.com/search?sca_esv=d8ad4d1a78452d8c&hl=en&gl=us&pws=0&udm=50&q=Why+does+vanilla+perfume+turn+guys+on%3F+List+other+scents+that+men+find+attractive&aep=64&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQy8AQKAF6BAhGEAg"
+          },
+          {
+            "text": "Explain how scents trigger memories",
+            "href": "https://www.google.com/search?sca_esv=d8ad4d1a78452d8c&hl=en&gl=us&pws=0&udm=50&q=Why+does+vanilla+perfume+turn+guys+on%3F+Explain+how+scents+trigger+memories&aep=64&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQy8AQKAJ6BAhGEAk"
+          },
+          {
+            "text": "Vanilla Skin Perfume - Full Size Fragrance - Phlur",
+            "href": "https://phlur.com/products/vanilla-skin-perfume"
+          },
+          {
+            "text": "SOTD Review: Vanilla Skin by Phlur : r/FragranceStories - Reddit",
+            "href": "https://www.reddit.com/r/FragranceStories/comments/1lmvv1o/sotd_review_vanilla_skin_by_phlur/#:~:text=I%20don't%20want%20to,fine%20while%20still%20being%20interesting.&text=I%20think%20you%20put%20words,would%20describe%20what%20I%20smell.&text=I%20usually%20am%20not%20a,pick%20up%20a%20sample!!&text=Thank%20you%F0%9F%A4%97%20yes%2C%20defo%20give%20it%20a%20try!&text=Oops%20hit%20reply%20too%20soon,re%20my%20next%20big%20discovery.&text=I%20got%20a%20discovery%20set,lovely%20warm%2C%20tropical%20summer%20perfume."
+          },
+          {
+            "text": "Vanilla Skin (type) - Fragrance Oil",
+            "href": "https://midwestfragranceco.com/products/vanilla-skin-type-fragrance-oil#:~:text=Scent%20Description,Cloud%2C%20Sweet%20Dream%2C%20Vanilla%20Veil"
+          },
+          {
+            "text": "Discover the Irresistible Vanilla Skin Fragrance",
+            "href": "https://www.tiktok.com/@enigivensunday/video/7567119435006266655"
+          },
+          {
+            "text": "Phlur Vanilla Skin Oil and Perfume Review!",
+            "href": "https://www.youtube.com/shorts/50WxthUf25A"
+          },
+          {
+            "text": "PHLUR Vanilla Skin Eau De Parfum - Space NK",
+            "href": "https://www.spacenk.com/us/fragrance/personal-fragrance/fragrance/vanilla-skin-eau-de-parfum-MUK200052288.html#:~:text=Description&text=Indulge%20in%20the%20enchanting%20allure,that%20leaves%20a%20lasting%20impression."
+          },
+          {
+            "text": "Vanilla Skin Perfume - Full Size Fragrance - Phlur",
+            "href": "https://phlur.com/products/vanilla-skin-perfume"
+          },
+          {
+            "text": "Phlur Vanilla Skin Oil and Perfume Review!",
+            "href": "https://www.youtube.com/shorts/50WxthUf25A"
+          },
+          {
+            "text": "PHLUR Vanilla Skin Eau De Parfum - Space NK",
+            "href": "https://www.spacenk.com/us/fragrance/personal-fragrance/fragrance/vanilla-skin-eau-de-parfum-MUK200052288.html#:~:text=Description&text=Indulge%20in%20the%20enchanting%20allure,that%20leaves%20a%20lasting%20impression."
+          },
+          {
+            "text": "Vanilla Skin (type) - Fragrance Oil",
+            "href": "https://midwestfragranceco.com/products/vanilla-skin-type-fragrance-oil#:~:text=Scent%20Description,Cloud%2C%20Sweet%20Dream%2C%20Vanilla%20Veil"
+          },
+          {
+            "text": "SOTD Review: Vanilla Skin by Phlur : r/FragranceStories - Reddit",
+            "href": "https://www.reddit.com/r/FragranceStories/comments/1lmvv1o/sotd_review_vanilla_skin_by_phlur/#:~:text=I%20don't%20want%20to,fine%20while%20still%20being%20interesting.&text=I%20think%20you%20put%20words,would%20describe%20what%20I%20smell.&text=I%20usually%20am%20not%20a,pick%20up%20a%20sample!!&text=Thank%20you%F0%9F%A4%97%20yes%2C%20defo%20give%20it%20a%20try!&text=Oops%20hit%20reply%20too%20soon,re%20my%20next%20big%20discovery.&text=I%20got%20a%20discovery%20set,lovely%20warm%2C%20tropical%20summer%20perfume."
+          },
+          {
+            "text": "Discover the Irresistible Vanilla Skin Fragrance",
+            "href": "https://www.tiktok.com/@enigivensunday/video/7567119435006266655"
+          },
+          {
+            "text": "What are the scent notes of Vanilla Skin perfume?",
+            "href": "https://www.google.com/search?sca_esv=d8ad4d1a78452d8c&hl=en&gl=us&pws=0&q=what+are+the+scent+notes+of+vanilla+skin+perfume&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQrooIegQIORAP"
+          },
+          {
+            "text": "PHLUR Vanilla Skin",
+            "href": "https://www.google.com/search?sca_esv=d8ad4d1a78452d8c&hl=en&gl=us&pws=0&q=PHLUR+Vanilla+Skin&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQxccNegUIpgEQAQ"
+          },
+          {
+            "text": "Amazon.com : PHLUR Vanilla Skin Body Mist, 8 Fl Oz",
+            "href": "https://www.amazon.com/PHLUR-Vanilla-Skin-Body-Mist/dp/B0D3FK6KCB#:~:text=Amazon.com%20:%20PHLUR%20Vanilla%20Skin,PHLUR"
+          },
+          {
+            "text": "Phlur Vanilla Skin Body & Hair Fragrance Mist - Sephora",
+            "href": "https://www.sephora.com/product/phlur-vanilla-skin-hair-body-fragrance-mist-P509017#:~:text=832-,%7C,Learn%20more%20here."
+          },
+          {
+            "text": "Vanilla Skin Body Mist - Phlur",
+            "href": "https://phlur.com/products/vanilla-skin-body-mist#:~:text=Vanilla%20Skin%20Body%20Mist%20%E2%80%93%20Phlur"
+          },
+          {
+            "text": "PHLUR Vanilla Skin Body & Hair Fragrance Mist",
+            "href": "https://www.kohls.com/product/prd-6652588/phlur-vanilla-skin-body-hair-fragrance-mist.jsp"
+          },
+          {
+            "text": "Pyrex Vanilla Skin Body & Hair Fragrance Mist - Kohl's",
+            "href": "https://www.kohls.com/product/prd-6652588/pyrex-vanilla-skin-body-hair-fragrance-mist.jsp#:~:text=Earn%205%25%20Rewards%20on%20this,in%20or%20join%20Kohl's%20Rewards."
+          },
+          {
+            "text": "Vanilla Skin Eau de Parfum (Women) - Nordstrom",
+            "href": "https://www.nordstrom.com/s/phlur-vanilla-skin-eau-de-parfum/8040559#:~:text=Vanilla%20Skin%20Eau%20de%20Parfum,Celebrating%20125%20Years"
+          },
+          {
+            "text": "PHLUR Vanilla Skin Body & Hair Fragrance Mist - Sephora",
+            "href": "https://www.sephora.com/ca/en/product/phlur-vanilla-skin-hair-body-fragrance-mist-P509017#:~:text=Vanilla%20Skin%20Body%20&%20Hair%20Fragrance%20Mist%20%2D%20PHLUR%20%7C%20Sephora"
+          },
+          {
+            "text": "PHLUR Vanilla Skin Hair & Body Fragrance Mist - Anthropologie",
+            "href": "https://www.anthropologie.com/shop/phlur-vanilla-skin-hair-body-fragrance-mist"
+          },
+          {
+            "text": "Vanilla Skin Hair & Body Fragrance Mist (Women) - Nordstrom",
+            "href": "https://www.nordstrom.com/s/phlur-vanilla-skin-hair-body-fragrance-mist/7886034#:~:text=Vanilla%20Skin%20Hair%20&%20Body%20Fragrance%20Mist%20(Women)%20%7C%20Nordstrom"
+          },
+          {
+            "text": "Amazon.com : PHLUR Vanilla Skin Body Mist, 8 Fl Oz",
+            "href": "https://www.amazon.com/PHLUR-Vanilla-Skin-Body-Mist/dp/B0D3FK6KCB#:~:text=Amazon.com%20:%20PHLUR%20Vanilla%20Skin,PHLUR"
+          },
+          {
+            "text": "Phlur Vanilla Skin Body & Hair Fragrance Mist - Sephora",
+            "href": "https://www.sephora.com/product/phlur-vanilla-skin-hair-body-fragrance-mist-P509017#:~:text=832-,%7C,Learn%20more%20here."
+          },
+          {
+            "text": "PHLUR Vanilla Skin Body & Hair Fragrance Mist",
+            "href": "https://www.kohls.com/product/prd-6652588/phlur-vanilla-skin-body-hair-fragrance-mist.jsp"
+          },
+          {
+            "text": "Pyrex Vanilla Skin Body & Hair Fragrance Mist - Kohl's",
+            "href": "https://www.kohls.com/product/prd-6652588/pyrex-vanilla-skin-body-hair-fragrance-mist.jsp#:~:text=Earn%205%25%20Rewards%20on%20this,in%20or%20join%20Kohl's%20Rewards."
+          },
+          {
+            "text": "Vanilla Skin Body Mist - Phlur",
+            "href": "https://phlur.com/products/vanilla-skin-body-mist#:~:text=Vanilla%20Skin%20Body%20Mist%20%E2%80%93%20Phlur"
+          },
+          {
+            "text": "Vanilla Skin Eau de Parfum (Women) - Nordstrom",
+            "href": "https://www.nordstrom.com/s/phlur-vanilla-skin-eau-de-parfum/8040559#:~:text=Vanilla%20Skin%20Eau%20de%20Parfum,Celebrating%20125%20Years"
+          },
+          {
+            "text": "PHLUR Vanilla Skin Body & Hair Fragrance Mist - Sephora",
+            "href": "https://www.sephora.com/ca/en/product/phlur-vanilla-skin-hair-body-fragrance-mist-P509017#:~:text=Vanilla%20Skin%20Body%20&%20Hair%20Fragrance%20Mist%20%2D%20PHLUR%20%7C%20Sephora"
+          },
+          {
+            "text": "PHLUR Vanilla Skin Hair & Body Fragrance Mist - Anthropologie",
+            "href": "https://www.anthropologie.com/shop/phlur-vanilla-skin-hair-body-fragrance-mist"
+          },
+          {
+            "text": "Vanilla Skin Hair & Body Fragrance Mist (Women) - Nordstrom",
+            "href": "https://www.nordstrom.com/s/phlur-vanilla-skin-hair-body-fragrance-mist/7886034#:~:text=Vanilla%20Skin%20Hair%20&%20Body%20Fragrance%20Mist%20(Women)%20%7C%20Nordstrom"
+          },
+          {
+            "text": "Where can I buy Vanilla Skin perfume?",
+            "href": "https://www.google.com/search?sca_esv=d8ad4d1a78452d8c&hl=en&gl=us&pws=0&q=where+can+i+buy+vanilla+skin+perfume&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQrooIegQIORAe"
+          },
+          {
+            "text": "I Tried All 25 Phlur Fragrances. Here's How I'm Ranking Them ... - PureWow",
+            "href": "https://www.purewow.com/beauty/phlur-fragrance-review#:~:text=Founded%20in%202015%2C%20Phlur%20explores,harmony%20within%20the%20entire%20line."
+          },
+          {
+            "text": "Amazon.com : PHLUR Vanilla Skin Body Mist, 8 Fl Oz",
+            "href": "https://www.amazon.com/PHLUR-Vanilla-Skin-Body-Mist/dp/B0D3FK6KCB#:~:text=Amazon.com%20:%20PHLUR%20Vanilla%20Skin,PHLUR"
+          },
+          {
+            "text": "Vanilla Skin by @phlur Fragrances🤍✨ Soft, warm, and seriously addictive ...",
+            "href": "https://www.instagram.com/reel/DVPCmXUEYnQ/#:~:text=Vanilla%20Skin%20by%20@phlur%20Fragrances%F0%9F%A4%8D%E2%9C%A8%20Soft%2C%20warm%2C,partner%20tries%20to%20steal%20it!%20%23phlurpartner%20%23phlur%23phlurfragrances"
+          },
+          {
+            "text": "Review of Vanilla Skin by PHLUR: A Scent Exploration",
+            "href": "https://www.tiktok.com/@misscently/video/7525894889855339798"
+          },
+          {
+            "text": "Discover Vanilla Skin Fragrance by Phlur",
+            "href": "https://www.tiktok.com/@kylieoguma/video/7507335109146627358"
+          },
+          {
+            "text": "Phlur Vanilla Skin Body & Hair Fragrance Mist - Sephora",
+            "href": "https://www.sephora.com/product/phlur-vanilla-skin-hair-body-fragrance-mist-P509017"
+          },
+          {
+            "text": "Phlur Vanilla Skin Oil and Perfume Review!",
+            "href": "https://www.youtube.com/shorts/50WxthUf25A"
+          },
+          {
+            "text": "Review: Phlur Vanilla Skin - The Everygirl",
+            "href": "https://theeverygirl.com/phlur-vanilla-skin-review/#:~:text=If%20you're%20on%20the,Phlur"
+          },
+          {
+            "text": "PHLUR Vanilla Skin Eau de Parfum - Kohl's",
+            "href": "https://www.kohls.com/product/prd-7095736/phlur-vanilla-skin-eau-de-parfum.jsp#:~:text=The%20Modern%20Fine%20Fragrance%20of,sophistication%20to%20your%20fragrance%20collection."
+          },
+          {
+            "text": "Amazon.com : PHLUR Vanilla Skin Body Mist, 8 Fl Oz",
+            "href": "https://www.amazon.com/PHLUR-Vanilla-Skin-Body-Mist/dp/B0D3FK6KCB#:~:text=Amazon.com%20:%20PHLUR%20Vanilla%20Skin,PHLUR"
+          },
+          {
+            "text": "Vanilla Skin by @phlur Fragrances🤍✨ Soft, warm, and seriously addictive ...",
+            "href": "https://www.instagram.com/reel/DVPCmXUEYnQ/#:~:text=Vanilla%20Skin%20by%20@phlur%20Fragrances%F0%9F%A4%8D%E2%9C%A8%20Soft%2C%20warm%2C,partner%20tries%20to%20steal%20it!%20%23phlurpartner%20%23phlur%23phlurfragrances"
+          },
+          {
+            "text": "Phlur Vanilla Skin Body & Hair Fragrance Mist - Sephora",
+            "href": "https://www.sephora.com/product/phlur-vanilla-skin-hair-body-fragrance-mist-P509017"
+          },
+          {
+            "text": "Phlur Vanilla Skin Oil and Perfume Review!",
+            "href": "https://www.youtube.com/shorts/50WxthUf25A"
+          },
+          {
+            "text": "Review: Phlur Vanilla Skin - The Everygirl",
+            "href": "https://theeverygirl.com/phlur-vanilla-skin-review/#:~:text=If%20you're%20on%20the,Phlur"
+          },
+          {
+            "text": "PHLUR Vanilla Skin Eau de Parfum - Kohl's",
+            "href": "https://www.kohls.com/product/prd-7095736/phlur-vanilla-skin-eau-de-parfum.jsp#:~:text=The%20Modern%20Fine%20Fragrance%20of,sophistication%20to%20your%20fragrance%20collection."
+          },
+          {
+            "text": "I Tried All 25 Phlur Fragrances. Here's How I'm Ranking Them ... - PureWow",
+            "href": "https://www.purewow.com/beauty/phlur-fragrance-review#:~:text=Founded%20in%202015%2C%20Phlur%20explores,harmony%20within%20the%20entire%20line."
+          },
+          {
+            "text": "Discover Vanilla Skin Fragrance by Phlur",
+            "href": "https://www.tiktok.com/@kylieoguma/video/7507335109146627358"
+          },
+          {
+            "text": "Review of Vanilla Skin by PHLUR: A Scent Exploration",
+            "href": "https://www.tiktok.com/@misscently/video/7525894889855339798"
+          },
+          {
+            "text": "What is the brand behind Vanilla Skin perfume?",
+            "href": "https://www.google.com/search?sca_esv=d8ad4d1a78452d8c&hl=en&gl=us&pws=0&q=what+is+the+brand+behind+vanilla+skin+perfume&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQrooIegQIORAt"
+          },
+          {
+            "text": "Phlur Vanilla Skin perfume",
+            "href": "https://www.google.com/search?sca_esv=d8ad4d1a78452d8c&hl=en&gl=us&pws=0&q=Phlur+Vanilla+Skin+perfume&sa=X&ved=2ahUKEwit0_KLlaCVAxWioGMGHaZOK5oQxccNegUItgEQAQ"
+          },
+          {
+            "text": "Vanilla Skin Perfume - Full Size Fragrance - Phlur",
+            "href": "https://phlur.com/products/vanilla-skin-perfume#:~:text=This%20is%20my%20new%20favorite,New%20signature%20vanilla"
+          }
+        ],
+        "visible_text_line_count": 399
+      },
+      "capture_finished_at_iso": "2026-06-24T15:13:42.784Z"
+    }
+  ]
+}
