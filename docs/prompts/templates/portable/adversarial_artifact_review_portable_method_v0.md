@@ -4,13 +4,14 @@
 retrieval_header_version: 1
 artifact_role: Prompt template
 scope: >
-  Self-contained, model-agnostic adversarial artifact review METHOD for repo-agnostic /
-  cross-family reviewers that cannot invoke Orca review skills or read the overlay. Bundle the
-  PORTABLE METHOD block below as component (c) of any no-repo cross-family review package,
+  Self-contained, model-agnostic adversarial artifact review METHOD only for no_repo
+  reviewers without repository, skill, or overlay access. Bundle the PORTABLE METHOD
+  block below as component (c) of an explicit no_repo adversarial review package,
   alongside the review target and the authority excerpts it must conform to.
 use_when:
-  - Commissioning a cross-family / external / no-repo adversarial review of a non-code artifact.
-  - Any reviewer lacking Orca skill/overlay access must follow the embedded method instead of "invoking" a skill.
+  - Commissioning an explicit no_repo adversarial review of a non-code artifact because the reviewer cannot inspect the repository/worktree or invoke Orca skills/overlay.
+  - Any reviewer lacking repository, Orca skill, or overlay access must follow the embedded method instead of "invoking" a skill.
+  - Cross-family, external, couriered, paste-ready, or portable delivery by itself does not select this method; use repo-bound review when repository access exists.
 authority_boundary: retrieval_only
 derived_from:
   - docs/prompts/templates/review/adversarial_artifact_review_v0.md@0cb80057795215b3311d00c3d0ad603fbef78fe92e5ae24d8042490b8b60c3fc
@@ -26,7 +27,7 @@ stale_if:
 model_neutrality: Method/posture only. It never names, recommends, ranks, or routes a runtime model. The cross-family property is satisfied by the operator's model choice, not by this file.
 ```
 
-> **How to use:** deliver the delimited PORTABLE METHOD block to the reviewer — **pasted in chat, or shipped as the bundle `README`** (the no_repo package shape is bound in `.agents/workflow-overlay/delegated-review-patch.md`) — together with the review target and the authority excerpts it must conform to — **always including the authoring environment's foundational behavior + scope-discipline doctrine** (for Orca: the `AGENTS.md` kernel, which carries the *Smallest Complete Intervention* rule), since conformance to it is part of the review. The reviewer needs nothing else — no repo, no skills, no overlay.
+> **How to use:** deliver the delimited PORTABLE METHOD block only to an explicit no_repo reviewer -- **pasted in chat, or shipped as the bundle `README`** (the no_repo package shape is bound in `.agents/workflow-overlay/delegated-review-patch.md`) -- together with the review target and the authority excerpts it must conform to -- **always including the authoring environment's foundational behavior + scope-discipline doctrine** (for Orca: the `AGENTS.md` kernel, which carries the *Smallest Complete Intervention* rule), since conformance to it is part of the review. If the reviewer can inspect the repository or worktree, route to the repo-bound review path instead of this portable method.
 
 ---
 

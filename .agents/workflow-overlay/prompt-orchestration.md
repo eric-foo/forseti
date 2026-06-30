@@ -378,15 +378,25 @@ authorized step.
 
 Every Orca review prompt and any review-return or courier prompt must also
 instruct the *adjudicator* -- the reviewer in a self-review, the commissioning
-Chief Architect in a delegated pass, never the delegate mid-review -- to close,
-after the verdict, with a next-moves pass: batch all admin/lifecycle follow-ups
-(commit, push, PR, merge) into one named step with no deep-thinking, and
-deep-think only the material moves, the few substantive next steps that need
-judgment. This is the tail mirror of the deep-thinking-first rule above: it runs
-after adjudication, does not widen review scope or authorize patching, and
-produces the closeout's next step. The exact admin/material shape is owned by
-`.agents/workflow-overlay/communication-style.md` (Review Adjudication Next
+Chief Architect in a delegated pass, never the delegate mid-review -- to close
+adjudication in this order: first adjudicate the findings, diff, verdict, and
+residuals as claims; if any blocker, major, material unresolved issue, or
+material uncertainty remains, route the smallest complete closure step for that
+issue; only if no unresolved material issue remains, batch all admin/lifecycle
+follow-ups (commit, push, PR, merge) into exactly one named land step with no
+deep-thinking, then deep-think the 1-3 material moves that need judgment. This is
+the tail mirror of the deep-thinking-first rule above: it runs after
+adjudication, does not widen review scope or authorize patching, and produces the
+closeout's next step. The exact adjudication-state/admin/material shape is owned
+by `.agents/workflow-overlay/communication-style.md` (Review Adjudication Next
 Step); do not restate it here.
+
+Delegated review-and-patch commissions are repo-mode by default. `no_repo` is
+selected only when the commission explicitly records `access: no_repo` and the
+reason repository access is unavailable or intentionally excluded. Cross-vendor,
+external, couriered, paste-ready, or portable delivery does not imply `no_repo`;
+if the reviewing controller can inspect and patch the named repo/worktree, the
+commission must assume repo access.
 
 Review prompts, wrappers, handoffs, and closeouts must not recommend,
 prescribe, rank, or imply runtime model choice for review lanes. They may route

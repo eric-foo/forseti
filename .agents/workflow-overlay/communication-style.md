@@ -135,18 +135,26 @@ Chief Architect adjudication unless Orca later binds another owner.
 ## Review Adjudication Next Step
 
 When a Chief Architect adjudicates a review -- delegated or self-review, keeping
-or vetoing findings -- the closeout's next step is derived, not improvised, and
-splits the follow-ups:
+or vetoing findings -- the closeout's next step is derived, not improvised.
+First adjudicate the review's findings, diff, verdict, and residuals as claims.
+Then route the next step by the adjudicated state:
 
-- Admin/lifecycle steps (commit, push, PR, merge) collapse into one batched
-  "land" step, with no deep-thinking -- they are rote.
-- Material moves get the deep-thinking: the 1-3 substantive next steps that need
-  judgment, each named with why it compounds and its main risk.
+- If any blocker, major, material unresolved issue, or material uncertainty
+  remains, the next step is the smallest complete closure route for that issue.
+  Do not deep-think downstream material moves until the review is clean enough
+  to move on.
+- If no unresolved material issue remains, admin/lifecycle steps (commit, push,
+  PR, merge) collapse into exactly one batched "land" step, with no
+  deep-thinking -- they are rote.
+- After a clean adjudication, material moves get the deep-thinking: the next 1-3
+  substantive steps that need judgment, each named with why it compounds and its
+  main risk. Pure admin never counts as one of those material steps.
 
-No material moves means the land step is the whole next step, so the pass stays
-cheap on every adjudication instead of becoming ceremony. It fills the closeout's
-`next_action` (YAML form) or "next authorized step" (prose form); `next_action`
-stays a single string -- land step first, then the material moves when they
+No material moves means the one land step is the whole next step, so the pass
+stays cheap on every adjudication instead of becoming ceremony. It fills the
+closeout's `next_action` (YAML form) or "next authorized step" (prose form);
+`next_action` stays a single string -- unresolved-review closure first when
+needed; otherwise the one land step first, then the material moves when they
 exist. Review prompts and review-return prompts carry this as their next-moves
 tail (see `.agents/workflow-overlay/prompt-orchestration.md`, Review Prompt
 Defaults). This governs an adjudicated review's next step; it does not change the
