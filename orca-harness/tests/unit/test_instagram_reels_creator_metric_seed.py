@@ -6,12 +6,15 @@ import re
 import statistics
 from pathlib import Path
 
+import pytest
+
 from capture_spine.creator_profile_current.instagram_metric_seed import (
     build_instagram_reels_creator_metric_seed_from_files,
     discover_instagram_reels_projection_paths_from_lake,
 )
 from data_lake.root import DataLakeRoot, raw_shard
 from source_capture.ig_reels_grid_projection import PROJECTION_IG_REELS_GRID_LANE
+import runners.run_instagram_reels_creator_metric_seed_materialize as metric_seed_runner
 
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -256,7 +259,7 @@ def test_instagram_reels_metric_seed_discovers_lake_projections_and_dedupes_exac
     )
     strong = root.append_record(
         subtree="derived",
-        raw_anchor=packet_id,
+        raw_anchor="projection_anchor_fixture",
         lane=PROJECTION_IG_REELS_GRID_LANE,
         record_id="strong.json",
         data=strong_body,
@@ -286,6 +289,198 @@ def test_instagram_reels_metric_seed_discovers_lake_projections_and_dedupes_exac
     assert seed["metric_observations"][0]["source_packet_pointer_or_none"] == str(
         root.path / "raw" / raw_shard(packet_id) / packet_id
     )
+
+
+def test_instagram_reels_metric_seed_legacy_flat_projection_uses_flat_raw_pointer(
+    tmp_path: Path,
+) -> None:
+    packet_id = "01KWBMNTESWZVSVD3YASDAXK0A"
+    lake_root = tmp_path / "legacy-lake"
+    legacy = lake_root / "derived" / packet_id / PROJECTION_IG_REELS_GRID_LANE / "legacy.json"
+    legacy.parent.mkdir(parents=True)
+    legacy.write_text(
+        json.dumps(
+            _projection(
+                packet_id=packet_id,
+                rows=[
+                    _profile_row("fixturecreator", 20, "2026-06-29T00:01:00Z", packet_id=packet_id),
+                    _reel_row("fixturecreator", "ABC", "view_count", 100, "2026-06-29T00:01:00Z", packet_id=packet_id),
+                    _reel_row("fixturecreator", "ABC", "like_count", 10, "2026-06-29T00:01:00Z", packet_id=packet_id),
+                    _reel_row("fixturecreator", "ABC", "comment_count", 5, "2026-06-29T00:01:00Z", packet_id=packet_id),
+                ],
+            ),
+            sort_keys=True,
+        ),
+        encoding="utf-8",
+    )
+    account_ledger = {
+        "platform_accounts": [
+            {
+                "platform_account_id": "acct_ig_fixture_001",
+                "platform": "instagram",
+                "public_handle": "fixturecreator",
+                "public_profile_url": "https://www.instagram.com/fixturecreator/",
+                "handle_source_pointer": "fixture#/rows/0",
+                "handle_observed_at": "2026-06-29T00:00:00Z",
+            }
+        ]
+    }
+
+    document = build_instagram_reels_creator_metric_seed_from_files(
+        projection_paths=[legacy],
+        account_ledger=account_ledger,
+        generated_at_utc="2026-06-29T00:02:00Z",
+    )
+    seed = document["instagram_reels_creator_metric_seed"]
+
+    assert seed["source_inputs"][0]["source_pointer"] == str(legacy)
+    assert seed["metric_observations"][0]["source_packet_pointer_or_none"] == str(
+        lake_root / "raw" / packet_id
+    )
+
+
+@pytest.mark.parametrize(
+    ("argv", "message"),
+    [
+        (
+            ["--check", "--from-lake", "--projection", "fixture.json"],
+            "--from-lake cannot be combined with explicit --projection files",
+        ),
+        (["--check", "--data-root", "C:\\tmp\\lake"], "--data-root requires --from-lake"),
+        (["--check"], "provide at least one --projection or use --from-lake"),
+    ],
+)
+def test_instagram_reels_metric_seed_runner_rejects_invalid_source_modes(
+    argv: list[str], message: str, capsys: pytest.CaptureFixture[str]
+) -> None:
+    with pytest.raises(SystemExit) as exc_info:
+        metric_seed_runner.main(argv)
+
+    assert exc_info.value.code == 2
+    assert message in capsys.readouterr().err
+
+
+def test_instagram_reels_metric_seed_runner_uses_explicit_projection_without_lake(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    projection = tmp_path / "projection.json"
+    output = tmp_path / "seed.json"
+    ledger = tmp_path / "ledger.json"
+    calls: dict[str, object] = {}
+
+    class ResolveFails:
+        @staticmethod
+        def resolve(*, explicit: Path | None = None) -> object:
+            raise AssertionError("DataLakeRoot.resolve should not run for explicit projection mode")
+
+    monkeypatch.setattr(metric_seed_runner, "DataLakeRoot", ResolveFails)
+    monkeypatch.setattr(
+        metric_seed_runner,
+        "discover_instagram_reels_projection_paths_from_lake",
+        lambda data_root: (_ for _ in ()).throw(AssertionError("discovery should not run")),
+    )
+    monkeypatch.setattr(
+        metric_seed_runner,
+        "load_json",
+        lambda path: {"creator_public_handle_linkage_ledger": {"platform_accounts": []}},
+    )
+
+    def fake_build(*, projection_paths, account_ledger, generated_at_utc):
+        calls["projection_paths"] = projection_paths
+        calls["account_ledger"] = account_ledger
+        calls["generated_at_utc"] = generated_at_utc
+        return {"seed": True}
+
+    monkeypatch.setattr(metric_seed_runner, "build_instagram_reels_creator_metric_seed_from_files", fake_build)
+    monkeypatch.setattr(metric_seed_runner, "dump_instagram_reels_creator_metric_seed", lambda document: "rendered\n")
+
+    result = metric_seed_runner.main(
+        [
+            "--write",
+            "--projection",
+            str(projection),
+            "--account-ledger",
+            str(ledger),
+            "--output",
+            str(output),
+            "--generated-at-utc",
+            "2026-06-30T00:00:00Z",
+        ]
+    )
+
+    assert result == 0
+    assert calls == {
+        "projection_paths": [projection],
+        "account_ledger": {"platform_accounts": []},
+        "generated_at_utc": "2026-06-30T00:00:00Z",
+    }
+    assert output.read_text(encoding="utf-8") == "rendered\n"
+    assert str(output) in capsys.readouterr().out
+
+
+def test_instagram_reels_metric_seed_runner_from_lake_uses_discovered_paths(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    projection = tmp_path / "projection.json"
+    data_root_path = tmp_path / "lake"
+    output = tmp_path / "seed.json"
+    ledger = tmp_path / "ledger.json"
+    resolved_root = object()
+    calls: dict[str, object] = {}
+
+    class FakeDataLakeRoot:
+        @staticmethod
+        def resolve(*, explicit: Path | None = None) -> object:
+            calls["explicit"] = explicit
+            return resolved_root
+
+    monkeypatch.setattr(metric_seed_runner, "DataLakeRoot", FakeDataLakeRoot)
+
+    def fake_discover(data_root: object) -> list[Path]:
+        calls["data_root"] = data_root
+        return [projection]
+
+    monkeypatch.setattr(metric_seed_runner, "discover_instagram_reels_projection_paths_from_lake", fake_discover)
+    monkeypatch.setattr(
+        metric_seed_runner,
+        "load_json",
+        lambda path: {"creator_public_handle_linkage_ledger": {"platform_accounts": []}},
+    )
+
+    def fake_build(*, projection_paths, account_ledger, generated_at_utc):
+        calls["projection_paths"] = projection_paths
+        calls["account_ledger"] = account_ledger
+        calls["generated_at_utc"] = generated_at_utc
+        return {"seed": True}
+
+    monkeypatch.setattr(metric_seed_runner, "build_instagram_reels_creator_metric_seed_from_files", fake_build)
+    monkeypatch.setattr(metric_seed_runner, "dump_instagram_reels_creator_metric_seed", lambda document: "rendered\n")
+
+    result = metric_seed_runner.main(
+        [
+            "--write",
+            "--from-lake",
+            "--data-root",
+            str(data_root_path),
+            "--account-ledger",
+            str(ledger),
+            "--output",
+            str(output),
+            "--generated-at-utc",
+            "2026-06-30T00:00:00Z",
+        ]
+    )
+
+    assert result == 0
+    assert calls == {
+        "explicit": data_root_path,
+        "data_root": resolved_root,
+        "projection_paths": [projection],
+        "account_ledger": {"platform_accounts": []},
+        "generated_at_utc": "2026-06-30T00:00:00Z",
+    }
+    assert output.read_text(encoding="utf-8") == "rendered\n"
+    assert str(output) in capsys.readouterr().out
 
 
 def _projection(*, rows: list[dict], packet_id: str = "packet_fixture") -> dict:

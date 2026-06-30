@@ -8,7 +8,7 @@ import statistics
 from pathlib import Path
 from typing import Any, Iterable, Mapping
 
-from data_lake.root import DataLakeRoot, anchor_shard, raw_shard
+from data_lake.root import DataLakeRoot, raw_shard
 from source_capture.ig_reels_grid_projection import PROJECTION_IG_REELS_GRID_LANE
 
 
@@ -425,7 +425,7 @@ def _source_packet_pointer(path: Path, packet_id: str) -> str | None:
     derived_index = parts.index("derived")
     root = Path(*parts[:derived_index])
     after_derived = parts[derived_index + 1 :]
-    if len(after_derived) >= 4 and after_derived[0] == anchor_shard(packet_id):
+    if len(after_derived) >= 4 and after_derived[2] == PROJECTION_IG_REELS_GRID_LANE:
         return str(root / "raw" / raw_shard(packet_id) / packet_id)
     return str(root / "raw" / packet_id)
 
