@@ -26,6 +26,7 @@ from __future__ import annotations
 import json
 from dataclasses import dataclass
 from datetime import datetime, timezone
+from pathlib import Path
 from typing import TYPE_CHECKING, Any, Iterable, Mapping
 
 from capture_spine.creator_profile_current.silver_metric_producer import (
@@ -290,10 +291,146 @@ def _parse_instant(value: str) -> datetime:
     return parsed
 
 
+_IG_RAW_SOURCE_FAMILY = "instagram_creator"
+_SUPPORTED_PLATFORMS = ("instagram", "youtube")
+
+
+class CreatorRollupDiscoveryError(ValueError):
+    """Raised when platform-aware discovery cannot resolve the expected account
+    set to rollup records. Subclasses ``ValueError`` for fail-closed
+    compatibility; ``reason`` is the machine code (currently
+    ``missing_account_rollup``) and ``account_id`` is an expected account that
+    resolved to no rollup record.
+    """
+
+    def __init__(self, reason: str, account_id: str, detail: str) -> None:
+        self.reason = reason
+        self.account_id = account_id
+        super().__init__(f"{reason} for account {account_id!r}: {detail}")
+
+
+def discover_creator_metric_rollup_records(
+    data_root: "DataLakeRoot", *, account_ledger: Mapping[str, Any]
+) -> dict[str, list[dict[str, Any]]]:
+    """Discover the creator-metric rollup Silver records currently in the lake,
+    per expected account, with platform-aware discovery driven by the account
+    ledger. Returns ``{account_id: [raw rollup records]}`` -- ALL current records
+    per account; reducing each account to its single latest rollup is
+    ``select_latest_rollup_per_account``'s job.
+
+    Discovery is platform-aware because the two producers anchor rollups
+    differently (verified against ``origin/main``):
+
+    - **Instagram** (packet-anchored): ``list_available(source_family=
+      "instagram_creator")`` -> packet ids -> ``lane_dir(raw_anchor=<packet_id>)``;
+      map each rollup to its account via ``subject.ref.orca_platform_account_id``
+      and keep the expected IG accounts. The ``instagram_creator`` family also
+      holds packets with no rollup record (e.g. grid-metadata), which are simply
+      skipped.
+    - **YouTube** (account-anchored): for each expected YT account, read
+      ``lane_dir(raw_anchor=<platform_account_id>)`` directly.
+
+    Fail closed on the EXPECTED account set (the ledger), not on "did we find any
+    packets": every ledger account must resolve to >= 1 rollup record, else raise
+    ``CreatorRollupDiscoveryError("missing_account_rollup", account_id)``. So a
+    non-empty ``instagram_creator`` packet set that holds observations but no
+    rollup for an expected account still fails closed.
+
+    The caller ensures the availability index is current (the IG capture pipeline
+    records availability at commit; the operator snapshot runner rebuilds it
+    first). This function does not write.
+    """
+    accounts_by_platform = _expected_accounts_by_platform(account_ledger)
+    found: dict[str, list[dict[str, Any]]] = {
+        account_id: [] for ids in accounts_by_platform.values() for account_id in ids
+    }
+    seen_record_ids: dict[str, set[str]] = {account_id: set() for account_id in found}
+
+    expected_ig = accounts_by_platform.get("instagram", set())
+    if expected_ig:
+        for packet_id in data_root.list_available(source_family=_IG_RAW_SOURCE_FAMILY):
+            lane_dir = data_root.lane_dir(
+                subtree="derived", raw_anchor=packet_id, lane=METRIC_ROLLUP_LANE
+            )
+            for record in _read_rollup_records(lane_dir):
+                account_id = _rollup_record_account(record)
+                if account_id in expected_ig:
+                    _add_unique_record(found, seen_record_ids, account_id, record)
+
+    for account_id in accounts_by_platform.get("youtube", set()):
+        lane_dir = data_root.lane_dir(
+            subtree="derived", raw_anchor=account_id, lane=METRIC_ROLLUP_LANE
+        )
+        for record in _read_rollup_records(lane_dir):
+            # Account-anchored: the rollup's subject account must equal the anchor.
+            if _rollup_record_account(record) == account_id:
+                _add_unique_record(found, seen_record_ids, account_id, record)
+
+    missing = sorted(account_id for account_id, records in found.items() if not records)
+    if missing:
+        raise CreatorRollupDiscoveryError(
+            "missing_account_rollup",
+            missing[0],
+            f"{len(missing)} expected account(s) resolved to no rollup record: {missing}",
+        )
+    return found
+
+
+def _expected_accounts_by_platform(account_ledger: Mapping[str, Any]) -> dict[str, set[str]]:
+    accounts = account_ledger.get("platform_accounts")
+    if not isinstance(accounts, list) or not accounts:
+        raise ValueError(
+            "discover_creator_metric_rollup_records: account ledger has no platform_accounts"
+        )
+    by_platform: dict[str, set[str]] = {}
+    for entry in accounts:
+        account_id = entry.get("platform_account_id")
+        platform = entry.get("platform")
+        if not account_id:
+            continue
+        if platform not in _SUPPORTED_PLATFORMS:
+            raise ValueError(
+                f"discover_creator_metric_rollup_records: account {account_id!r} has unsupported "
+                f"platform {platform!r} (expected one of {_SUPPORTED_PLATFORMS})"
+            )
+        by_platform.setdefault(platform, set()).add(account_id)
+    return by_platform
+
+
+def _read_rollup_records(lane_dir: Path) -> list[dict[str, Any]]:
+    if not lane_dir.is_dir():
+        return []
+    records: list[dict[str, Any]] = []
+    for record_path in sorted(lane_dir.glob("*.json")):
+        record = json.loads(record_path.read_text(encoding="utf-8"))
+        if record.get("payload_kind") == METRIC_ROLLUP_PAYLOAD_KIND:
+            records.append(record)
+    return records
+
+
+def _rollup_record_account(record: Mapping[str, Any]) -> str:
+    return record["payload"]["observation"]["subject"]["ref"]["orca_platform_account_id"]
+
+
+def _add_unique_record(
+    found: dict[str, list[dict[str, Any]]],
+    seen_record_ids: dict[str, set[str]],
+    account_id: str,
+    record: Mapping[str, Any],
+) -> None:
+    record_id = record.get("record_id")
+    if record_id in seen_record_ids[account_id]:
+        return
+    seen_record_ids[account_id].add(record_id)
+    found[account_id].append(dict(record))
+
+
 __all__ = [
+    "CreatorRollupDiscoveryError",
     "LatestRollupSelectionError",
     "RollupRunCandidate",
     "SelectedRollup",
+    "discover_creator_metric_rollup_records",
     "read_creator_metric_rollups_from_lake",
     "select_latest_rollup_per_account",
 ]
