@@ -44,6 +44,13 @@ Neither receipt captured `/api/comment/list` response bodies, so the exact
 comment packet contract (`cid`, `uid`, exact `create_time`, cursor, `has_more`)
 and the per-account ceiling remain unmeasured.
 
+A later existing-Chrome diagnostic confirmed that the already-running user
+Chrome session can render the pinned video comments without a visible login gate
+or challenge, but the current Chrome-extension surface exposes only DOM and
+`pageAssets`, not XHR/fetch response bodies. Do not spend more probe budget on
+Chrome-extension DOM reads for packet proof; the remaining bottleneck is a
+response-body capture surface for the page-owned comment request.
+
 ## Pre-conditions (all required before any capture)
 
 1. **Dedicated, non-personal account.** Never a personal/primary account. Treat it as **burnable**; a ban costs only this account.

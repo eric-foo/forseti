@@ -209,10 +209,37 @@ display strings, not exact timestamps.
 
 ## API Capture Boundary
 
+`/api/comment/list` is not a public API route to call directly. It is TikTok's
+page-owned web endpoint: the browser page issues a signed request after the
+comments surface opens. The lane target is the response body from that
+page-owned request, not a forged direct request.
+
 The live Chrome control surface did not provide response-body access for
 page-owned XHR/fetch traffic. The available Chrome tab capability exposed page
 assets, not XHR bodies, and the page-scope resource check did not yield
 packet-grade `/api/comment/list` bodies.
+
+### Existing Chrome Follow-Up Diagnostic
+
+A later same-day follow-up reused the already-running user Chrome session
+instead of launching a new Playwright browser. The pinned video tab was clean:
+no visible login gate, no visible slider/captcha/verify marker, and comments
+rendered after clicking `Read or add comments 1256 comments`.
+
+Observed through the supported Chrome extension surface:
+
+- `pageAssets` was the only extra tab capability; it inventoried scripts,
+  images, stylesheets, fonts, and video assets, not XHR/fetch response bodies.
+- After comments opened, `pageAssets` showed the comment sidebar script but no
+  comment-list response body surface.
+- The read-only page evaluation scope did not expose `performance` or resource
+  timing entries, so a page-generated `/api/comment/list` URL could not be
+  recovered there.
+- A bounded DOM/React-object scan found visible comment handles/text/date strings
+  but no hidden `cid`, commenter `uid`, exact `create_time`, cursor, or
+  `has_more`.
+- No raw signed URL, cookies, storage state, tokens, headers, or raw response
+  body were printed or written.
 
 Therefore this receipt does not claim any of:
 
@@ -227,6 +254,9 @@ Therefore this receipt does not claim any of:
 
 - The sessioned route is clean for public profile DOM, profile hydration, video
   hydration, and first-page visible comment DOM on this locked fixture.
+- Existing user Chrome is a good manual/session surface for TikTok rendering,
+  but the current Chrome-extension automation surface is not a packet-grade
+  response-body capture surface.
 - The profile-grid route has enough observed anchors to seed a low-cost 5-video
   rung without extra discovery.
 - Visible grid view counts are abbreviated display text and should not be treated
@@ -260,3 +290,5 @@ Therefore this receipt does not claim any of:
 3. If the pinned packet run succeeds, use the profile payload's grid anchors for
    the 5-video rung at human cadence, stop on the first challenge, and update the
    ceiling ledger.
+4. Do not repeat DOM-only Chrome-extension probing for packet proof; use a
+   supported response-body capture surface or stop with the body-access blocker.

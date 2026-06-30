@@ -231,6 +231,12 @@ Current measured updates:
 - Packet boundary: `/api/comment/list` response bodies were not captured through
   the Chrome surface, so sessioned `cid`, `uid`, exact comment `create_time`,
   cursor, and `has_more` remain unproven.
+- Existing-Chrome diagnostic: a later same-day pass reused the already-running
+  logged-in Chrome tab and again rendered comments cleanly. The only supported
+  extra Chrome capability was `pageAssets`, which exposes static/media assets but
+  not XHR/fetch bodies; read-only page evaluation also lacked `performance`
+  resource timing. This makes Chrome-extension DOM probing a dead end for
+  packet-grade comment fields.
 
 Updated next move: `PINNED_RESPONSE_CAPTURE_NEXT`. More DOM probing is now lower
 value than a pinned harness run that observes the page-owned `/api/comment/list`

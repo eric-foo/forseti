@@ -174,7 +174,13 @@ and 20 visible top-level comment DOM rows without visible login/slider/verify
 markers. It still does **not** capture `/api/comment/list` response bodies, so
 sessioned packet fields (`cid`, `uid`, exact comment `create_time`, cursor,
 `has_more`), exact grid-view normalization, per-account ceiling, transcript/ASR,
-and durable media remain unproven.
+and durable media remain unproven. A same-day existing-Chrome follow-up confirmed
+the pinned video and comments render cleanly in the logged-in user Chrome
+session, but the current Chrome-extension surface exposes only `pageAssets`
+(static/media asset inventory), not XHR/fetch response bodies, and its read-only
+page scope lacks resource-timing access. Treat more Chrome-extension DOM probing
+as non-packet-grade; the next proof must use a supported response-body capture
+surface for the page-owned `/api/comment/list` request.
 
 ## Coverage map
 
