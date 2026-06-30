@@ -3,7 +3,7 @@
 ```yaml
 retrieval_header_version: 1
 artifact_role: Capture spec
-scope: Behavior/contract spec for the TikTok public creator-momentum + top-comment capture lane, prioritizing (1) lowest bot detectability and (2) horizontal scalability. Logged-out, real-browser, ride-the-page's-own-requests.
+scope: Behavior/contract spec for the TikTok public creator-momentum + top-comment capture lane, prioritizing (1) lowest practical bot detectability and (2) horizontal scalability. Sessioned/cookied real-browser, ride-the-page's-own-requests.
 use_when:
   - Implementing or reviewing the TikTok capture lane.
   - Deciding the anti-detection + scale design before any build.
@@ -24,7 +24,7 @@ Owner decision: **logged-out capture is too brittle** (highly session-trust-depe
 
 ## Purpose
 
-Capture, logged-out, at scale, with the lowest practical detection footprint: (a) per-video/creator **momentum metadata**, and (b) a bounded set of **top/relevant comments** with commenter identity and exact timestamps — sufficient for downstream anti-bot / data-integrity analysis. The 30/60-minute comment-window requirement is **dropped** (not needed for bot detection); comments are a top/relevant *sample*, not a chronological census.
+Capture public TikTok videos under a dedicated authenticated session, at human-rate, with the lowest practical detection footprint: (a) per-video/creator **momentum metadata**, and (b) a bounded set of **top/relevant comments** with commenter identity and exact timestamps — sufficient for downstream anti-bot / data-integrity analysis. The 30/60-minute comment-window requirement is **dropped** (not needed for bot detection); comments are a top/relevant *sample*, not a chronological census.
 
 ## Design spine (resolves the detectability-vs-scale tension)
 
@@ -71,11 +71,13 @@ Capture runs under an **authenticated session** whose cookies authenticate it. R
 
 **Per video, top/relevant comments (first page + ≤1 pagination), from `/api/comment/list`:** per comment `cid`, `text`, `create_time` (raw unix → exact), `digg_count`, `reply_comment_total`, `user{uid, unique_id, nickname}`. Envelope: `total`, `has_more`, `cursor`. Order is TikTok's default **relevance** sort (no web time-filter exists — confirmed); capture the source order verbatim, do not re-rank.
 
-**Receipts (every capture):** source URL, retrieval timestamp, raw response bytes + sha256, captured-from posture (`real_browser_logged_out`), request count used, limitations, non-claims. (Secrets excluded per C7.)
+**Receipts (every capture):** source URL, retrieval timestamp, raw response bytes + sha256, captured-from posture (`entitled_session`), request count used, limitations, non-claims, and no-secret confirmation. (Secrets excluded per C7.)
+
+**Source text / transcript boundary:** TikTok description (`desc`), hashtags/mentions (`textExtra`), music metadata, and captured public comments are source text. Source-native captions, speech transcript, ASR, durable audio, and durable video bytes are **not proven by this spec** and remain out of scope unless a later source-family probe targets them.
 
 ## Explicitly out of scope
 
-30/60-minute comment windows; full-comment pagination / chronological census; login / own-account / private content; media/video bytes; signature forging; reply-thread expansion beyond the first-page `reply_comment_total` count.
+30/60-minute comment windows; full-comment pagination / chronological census; personal account use; agent-entered credentials; private or access-controlled content; media/video/audio bytes; source-native captions; speech transcript; ASR; signature forging; reply-thread expansion beyond the first-page `reply_comment_total` count.
 
 ## Validation plan
 
@@ -85,7 +87,7 @@ Capture runs under an **authenticated session** whose cookies authenticate it. R
 
 ## Harness fit (reuse, minimal new surface)
 
-- **Reused unchanged:** packet `models.py` (+ typed `MetricObservation` for stats), `cadence.py` (C4), `writer.py`/`packet_assembly.py`, `block_shell.py`/`rendered_access.py` (C6), `proxy_profiles.py` (C5), `auth_state.py` only as a negative boundary (C8 = no auth). The page-XHR-capture primitive `browser_snapshot.py::fetch_browser_context_responses` is the C2 mechanism (already used by the IG lane).
+- **Reused unchanged:** packet `models.py` (+ typed `MetricObservation` for stats), `cadence.py` (C4), `writer.py`/`packet_assembly.py`, `block_shell.py`/`rendered_access.py` (C6), `proxy_profiles.py` (C5), and `auth_state.py` / authenticated browser session bootstrap only for the C8' dedicated-account session boundary. The page-XHR-capture primitive `browser_snapshot.py::fetch_browser_context_responses` is the C2 mechanism (already used by the IG lane).
 - **New (TikTok satellite):** `tiktok_parse.py` (blob + comment-list parsers), a non-headless capture runner (C1–C3, C6: warmed context, request cap, comment/list intercept), `tiktok_projection.py`. The required change vs the failed recon runs is **running the existing browser primitive non-headless with warmed cookies + assets allowed**, not new capture logic.
 
 ## Open decisions (owner-owned) / Non-claims
