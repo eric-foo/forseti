@@ -731,6 +731,28 @@ def test_source_surface_catalog_rows_require_current_generated_catalog(
         )
 
 
+def test_source_surface_catalog_rows_absent_surface_returns_consistent_shape(
+    tmp_path: Path,
+) -> None:
+    # A current catalog with no matching (family, surface) bucket must return the SAME
+    # key set as a populated result, so a downstream consumer that iterates
+    # attachment_record_query_rows does not KeyError on the no-match path.
+    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    _write_reddit_packet(root, tmp_path)
+    assert rebuild_catalog(root)["status"] == "rebuilt"
+
+    rows = source_surface_catalog_rows(
+        root,
+        source_family="instagram_creator",
+        source_surface="surface_not_present_v0",
+    )
+
+    assert rows["catalog_query_paths"] == {}
+    assert rows["packet_rows"] == []
+    assert rows["attachment_record_query_rows"] == []
+    assert rows["attachment_record_rows"] == []
+
+
 def test_catalog_coverage_census_caps_issue_samples(tmp_path: Path) -> None:
     root = DataLakeRoot.for_test(tmp_path / "orca-data")
     for index in range(30):

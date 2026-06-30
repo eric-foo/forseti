@@ -343,6 +343,7 @@ def source_surface_catalog_rows(
             "source_surface": surface,
             "catalog_query_paths": {},
             "packet_rows": [],
+            "attachment_record_query_rows": [],
             "attachment_record_rows": [],
         }
     packet_rows = [
