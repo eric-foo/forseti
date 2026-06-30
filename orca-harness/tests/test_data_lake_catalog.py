@@ -11,6 +11,7 @@ from data_lake.catalog import (
     BRONZE_CATALOG_SCHEMA_VERSION,
     CATALOG_RELATIVE_ROOT,
     _attachment_record_id,
+    catalog_coverage_census,
     inspect_catalog,
     load_attachment_record_body,
     rebuild_catalog,
@@ -633,6 +634,54 @@ def test_attachment_records_cover_multi_file_packet_without_file_id_as_record_id
         [json.dumps({"kind": "json"}, sort_keys=True).encode("utf-8"), b"\xff\x00\xfe"]
     )
 
+def test_catalog_coverage_census_is_observed_only_and_read_only(tmp_path: Path) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    _write_reddit_packet(root, tmp_path)
+    _write_ig_reels_grid_packet(root, tmp_path)
+
+    missing = catalog_coverage_census(root)
+
+    assert missing["status"] == "issues_found"
+    assert missing["catalog_status"] == "issues_found"
+    assert missing["expected_packet_count"] == 2
+    assert missing["indexed_packet_count"] == 0
+    assert missing["attachment_record_count"] == 2
+    assert missing["source_surface_count"] == 2
+    assert "not a capture-lane registry" in missing["semantics"]
+    assert "not generated-catalog currentness unless catalog_status is ok" in missing["semantics"]
+    assert missing["catalog_issue_summary"]["issue_counts"]["missing_files"] > 0
+    assert missing["catalog_issue_summary"]["issue_sample_limit"] == 25
+    assert "missing_files" in missing["catalog_issue_summary"]["issue_samples"]
+    assert "missing_files" not in set(missing["catalog_issue_summary"])
+    assert not _catalog_root(root).exists()
+
+    assert rebuild_catalog(root)["status"] == "rebuilt"
+    catalog_root = _catalog_root(root)
+    before = _snapshot(catalog_root)
+
+    census = catalog_coverage_census(root)
+
+    assert census["status"] == "ok"
+    assert census["catalog_status"] == "ok"
+    assert _snapshot(catalog_root) == before
+    assert census["source_family_count"] == 2
+    families = {row["source_family"]: row for row in census["source_families"]}
+    assert families["instagram_creator"]["registered_surface_count"] == 1
+    assert families["reddit"]["universal_only_surface_count"] == 1
+    surfaces = {
+        (row["source_family"], row["source_surface"]): row
+        for row in census["source_surfaces"]
+    }
+    ig_surface = surfaces[("instagram_creator", "ig_reels_grid_dom_passive_json")]
+    assert ig_surface["coverage_basis"] == "verified_raw_packet_manifests"
+    assert ig_surface["catalog_query_paths"]["by_source_surface"].startswith(
+        "by_source_surface/"
+    )
+    assert ig_surface["catalog_query_paths"][
+        "attachment_records_by_source_surface"
+    ].startswith("attachment_records/by_source_surface/")
+
+
 def test_catalog_runner_reports_root_resolution_error(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:
@@ -692,3 +741,32 @@ def test_catalog_runner_inspects_and_rebuilds(
 
     assert catalog_runner.main(["--data-root", str(root.path)]) == 0
     assert json.loads(capsys.readouterr().out)["status"] == "ok"
+
+
+def test_catalog_runner_emits_read_only_coverage_census(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    _write_reddit_packet(root, tmp_path)
+
+    def fake_resolve(*, explicit=None, **_kwargs):
+        assert explicit == str(root.path)
+        return root
+
+    monkeypatch.setattr(catalog_runner.DataLakeRoot, "resolve", staticmethod(fake_resolve))
+
+    assert catalog_runner.main(["--data-root", str(root.path), "--census"]) == 1
+    missing = json.loads(capsys.readouterr().out)
+    assert missing["census_kind"] == "bronze_catalog_observed_coverage_census"
+    assert missing["catalog_status"] == "issues_found"
+    assert not _catalog_root(root).exists()
+
+    assert catalog_runner.main(["--data-root", str(root.path), "--rebuild"]) == 0
+    capsys.readouterr()
+    before = _snapshot(_catalog_root(root))
+
+    assert catalog_runner.main(["--data-root", str(root.path), "--census"]) == 0
+    census = json.loads(capsys.readouterr().out)
+    assert census["catalog_status"] == "ok"
+    assert census["source_surfaces"][0]["source_family"] == "reddit"
+    assert _snapshot(_catalog_root(root)) == before

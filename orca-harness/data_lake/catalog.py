@@ -79,6 +79,31 @@ _ATTACHMENT_RECORD_FIELD_SEMANTICS = {
 }
 
 
+_COVERAGE_CENSUS_SEMANTICS = (
+    "read_only_observed_bronze_coverage_from_verified_raw_packet_manifests; "
+    "not a capture-lane registry, not source-family completeness, not generated-catalog "
+    "currentness unless catalog_status is ok, not Silver readiness, and not validation"
+)
+_COVERAGE_CENSUS_FIELD_SEMANTICS = {
+    "catalog_status": (
+        "status from inspect_catalog; ok means generated catalog files byte-match the "
+        "raw-derived expected snapshot, issues_found means consumers must treat query "
+        "path hints as stale/missing/orphan-risk until rebuild; the census carries "
+        "bounded issue samples only, and full lists stay in inspect mode"
+    ),
+    "source_families": (
+        "observed packet totals grouped by source_family, including null when manifests "
+        "do not carry a non-blank source_family; not a supported-lane registry"
+    ),
+    "source_surfaces": (
+        "observed (source_family, source_surface) buckets with packet and generated "
+        "Attachment Record counts; rows are source-family-agnostic and include future "
+        "surfaces without requiring a lake-core schema change"
+    ),
+}
+
+_COVERAGE_CENSUS_ISSUE_SAMPLE_LIMIT = 25
+
 @dataclass(frozen=True)
 class CatalogFacet:
     facet_type: str
@@ -200,6 +225,39 @@ def inspect_catalog(root: DataLakeRoot) -> dict[str, Any]:
     }
 
 
+def catalog_coverage_census(root: DataLakeRoot) -> dict[str, Any]:
+    """Return an inspect-only Bronze coverage census over the current catalog state."""
+    report = inspect_catalog(root)
+    source_surfaces = [_coverage_census_surface_row(row) for row in report["source_surfaces"]]
+    source_families = _coverage_census_source_families(source_surfaces)
+    return {
+        "status": report["status"],
+        "census_kind": "bronze_catalog_observed_coverage_census",
+        "authority": _CATALOG_AUTHORITY,
+        "catalog_version": report["catalog_version"],
+        "catalog_schema_version": report["catalog_schema_version"],
+        "coverage_basis": "verified_raw_packet_manifests_compared_to_generated_catalog",
+        "semantics": _COVERAGE_CENSUS_SEMANTICS,
+        "field_semantics": _COVERAGE_CENSUS_FIELD_SEMANTICS,
+        "catalog_status": report["status"],
+        "catalog_issue_summary": _coverage_census_issue_summary(report),
+        "expected_packet_count": report["expected_packet_count"],
+        "indexed_packet_count": report["indexed_packet_count"],
+        "attachment_record_count": report["attachment_record_count"],
+        "source_family_count": len(source_families),
+        "source_surface_count": report["source_surface_count"],
+        "source_families": source_families,
+        "source_surfaces": source_surfaces,
+        "stable_query_paths": {
+            "all_packets": "all_packets.jsonl",
+            "source_surfaces": "source_surfaces.json",
+            "attachment_records_root": "attachment_records/",
+            "by_packet_root": "by_packet/",
+        },
+        "catalog_root": report["catalog_root"],
+    }
+
+
 def _build_entries(root: DataLakeRoot) -> list[dict[str, Any]]:
     entries: list[dict[str, Any]] = []
     for packet_id in _iter_committed_packet_ids(root):
@@ -242,6 +300,76 @@ def _build_entries(root: DataLakeRoot) -> list[dict[str, Any]]:
         entry["_attachment_records"] = packet_attachment_records
         entries.append(entry)
     return sorted(entries, key=lambda item: item["packet_id"])
+
+
+def _coverage_census_surface_row(row: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "source_family": row.get("source_family"),
+        "source_surface": row.get("source_surface"),
+        "packet_count": row.get("packet_count", 0),
+        "attachment_record_count": row.get("attachment_record_count", 0),
+        "facet_extractor": row.get("facet_extractor"),
+        "facet_namespaces": row.get("facet_namespaces", []),
+        "coverage_basis": "verified_raw_packet_manifests",
+        "catalog_query_paths": {
+            "by_source_surface": row.get("by_source_surface_path"),
+            "attachment_records_by_source_surface": row.get("attachment_records_path"),
+        },
+    }
+
+
+def _coverage_census_source_families(
+    source_surfaces: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    buckets: dict[str | None, dict[str, Any]] = {}
+    for row in source_surfaces:
+        source_family = _string_or_none(row.get("source_family"))
+        bucket = buckets.setdefault(
+            source_family,
+            {
+                "source_family": source_family,
+                "packet_count": 0,
+                "attachment_record_count": 0,
+                "source_surface_count": 0,
+                "registered_surface_count": 0,
+                "universal_only_surface_count": 0,
+            },
+        )
+        bucket["packet_count"] += row.get("packet_count", 0)
+        bucket["attachment_record_count"] += row.get("attachment_record_count", 0)
+        bucket["source_surface_count"] += 1
+        if row.get("facet_extractor") == "registered":
+            bucket["registered_surface_count"] += 1
+        else:
+            bucket["universal_only_surface_count"] += 1
+    return [
+        bucket
+        for _, bucket in sorted(buckets.items(), key=lambda item: item[0] or "")
+    ]
+
+
+def _coverage_census_issue_summary(report: dict[str, Any]) -> dict[str, Any]:
+    issue_fields = (
+        "missing_packets",
+        "orphaned_packets",
+        "stale_packets",
+        "catalog_read_failures",
+        "missing_files",
+        "orphaned_files",
+        "stale_files",
+    )
+    issue_counts = {field: len(report[field]) for field in issue_fields}
+    issue_samples = {
+        field: report[field][:_COVERAGE_CENSUS_ISSUE_SAMPLE_LIMIT]
+        for field in issue_fields
+        if report[field]
+    }
+    return {
+        "issue_counts": issue_counts,
+        "issue_samples": issue_samples,
+        "issue_sample_limit": _COVERAGE_CENSUS_ISSUE_SAMPLE_LIMIT,
+        "full_issue_report": "run run_data_lake_catalog.py without --census for full issue lists",
+    }
 
 
 def _iter_committed_packet_ids(root: DataLakeRoot) -> list[str]:
@@ -938,6 +1066,7 @@ __all__ = [
     "BRONZE_CATALOG_VERSION",
     "CATALOG_RELATIVE_ROOT",
     "CatalogFacet",
+    "catalog_coverage_census",
     "inspect_catalog",
     "load_attachment_record_body",
     "rebuild_catalog",

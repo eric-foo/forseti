@@ -8,7 +8,7 @@ from pathlib import Path
 if __package__ in {None, ""}:
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from data_lake.catalog import inspect_catalog, rebuild_catalog
+from data_lake.catalog import catalog_coverage_census, inspect_catalog, rebuild_catalog
 from data_lake.root import DataLakeRoot, DataLakeRootError
 
 
@@ -22,11 +22,23 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help="Replace the generated catalog from committed raw packets.",
     )
+    parser.add_argument(
+        "--census",
+        action="store_true",
+        help="Emit a read-only Bronze source-surface and Attachment Record coverage census.",
+    )
     args = parser.parse_args(argv)
+    if args.rebuild and args.census:
+        parser.error("--census cannot be combined with --rebuild")
 
     try:
         root = DataLakeRoot.resolve(explicit=args.data_root)
-        report = rebuild_catalog(root) if args.rebuild else inspect_catalog(root)
+        if args.rebuild:
+            report = rebuild_catalog(root)
+        elif args.census:
+            report = catalog_coverage_census(root)
+        else:
+            report = inspect_catalog(root)
     except DataLakeRootError as exc:
         report = {"status": "error", "error": str(exc)}
         print(json.dumps(report, indent=2, sort_keys=True))
