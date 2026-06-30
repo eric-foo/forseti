@@ -56,8 +56,9 @@ The binding authority is
 Current Bronze capability status is recorded in
 `orca/product/spines/data_lake/authority/core_spine_v0_data_lake_bronze_mgt_baseline_declaration_v0.md`:
 Bronze is Mini God Tier / 90-95 for typed raw-truth retrievability, not full
-God Tier. Silver may consume the public Bronze catalog and Attachment Record
-surfaces, but Silver does not declare Bronze GT.
+God Tier. After PR #525 runner-seam enforcement, Silver may consume the public
+Bronze catalog and Attachment Record surfaces for source-backed `raw_refs`, but
+Silver does not declare Bronze GT.
 
 ## Subfolder grammar
 
@@ -80,7 +81,7 @@ R2 landed the lake's authority + workflow substance:
   invariants, durable record names, fail-closed resolution), and the three
   blocker-resolution decision contracts (raw admission + key grammar; write-boundary
   enforcement; derived layout + index rebuild), plus the Bronze MGT baseline
-  declaration that marks the post-PR-520 Bronze catalog / Attachment Record
+  declaration that marks the post-PR-525 Bronze catalog / Attachment Record
   surface as a 90-95 typed-retrievability baseline rather than full GT — all
   without selecting an engine/backend, queue, runtime, or Judgment behavior.
 - `workflows/` — the canonical mechanics map (the version co-authored with the

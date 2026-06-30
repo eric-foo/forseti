@@ -160,8 +160,38 @@ Header invariants:
 | `content_hash` | Required durable integrity hash for the canonical record content; hash basis must be explicit and must not include the `content_hash` field itself. |
 | `observed_at` | Time the fact was observed at or about the source. Nullable only for internal relationship records with no source observation time. |
 | `captured_at` | Time Orca captured the source material or producer input. |
-| `raw_refs` | Required for source-backed records; each ref must resolve packet/slice/file and carry `sha256` plus `hash_basis` where the source material is hash-checkable. |
+| `raw_refs` | Required for source-backed records; each ref must resolve packet/slice/file and carry `sha256` plus `hash_basis` where the source material is hash-checkable. Source-family payload refs must honor the Bronze intake boundary below. |
 | `derived_refs` | Required when a record corrects, supersedes, conflicts with, or is generated from prior derived records. |
+
+## Bronze Intake And Attachment Record Boundary
+
+Silver source-backed records must enter raw truth through Bronze-owned surfaces,
+not raw-path inference.
+
+Allowed Bronze intake surfaces are:
+
+- raw packet refs from CapturePacket manifests or Bronze catalog packet rows;
+- source-surface rows returned by public catalog helpers;
+- Attachment Record query rows and `load_attachment_record_body` for
+  source-family payload bodies.
+
+When a Silver producer derives a source-backed fact from a source-family payload
+body and an Attachment Record row exists, `raw_refs` must carry an AR-backed raw
+ref rather than a private packet-member path guess. The Silver record does not
+copy the body as authority; it carries enough AR material to re-resolve and
+verify the body: `attachment_record_id`, schema version, physicalization,
+`packet_id`, packet/body ref, `body_sha256`, `hash_basis`, `source_family`,
+`source_surface`, `payload_kind`, `payload_schema_version`, and any
+producer-owned provenance required by that producer contract.
+
+If no Attachment Record row exists, a Silver producer may cite hash-checkable raw
+packet refs when its contract allows that fallback, but it must make the missing
+typed AR residual visible. Missing AR is not evidence that the source payload was
+absent.
+
+Silver must not declare Bronze full GT, reimplement private catalog safe-name or
+path rules, or treat generated Bronze catalog files as authority over raw packet
+material.
 
 ## Not Silver: Cleaning Audit Packs
 
@@ -568,6 +598,10 @@ The contract is satisfied when downstream scoping can prove, in principle, that:
 14. Client carveout replicas or exports are generated from Silver records and
     read-model manifests, preserve refs/high-watermarks, and are not a separate
     source of truth.
+15. Source-backed Silver `raw_refs` consume public Bronze packet/catalog/AR
+    surfaces rather than private raw folder semantics.
+16. AR-backed source-family payload refs are body-hash-verifiable, and missing
+    AR rows become visible residual/posture instead of inferred absence.
 
 ## Mini God Tier Accepted Residuals
 
@@ -622,6 +656,8 @@ Implementation scoping may rely on:
 - the three authoritative `record_kind` values;
 - `payload_kind` as the Silver payload discriminator;
 - `producer_row_kind` as the source-family subtype carrier;
+- public Bronze catalog and Attachment Record helper consumption for
+  source-backed raw refs;
 - entity records as identity-only;
 - correction/conflict semantics as relationship records;
 - metric observations as posture/value/reason/coverage-window coupled;
@@ -657,12 +693,14 @@ spec_handoff:
     - record_kind: entity | relationship | observation
     - payload_kind as Silver payload discriminator
     - producer_row_kind as source-family subtype carrier
+    - Bronze catalog / Attachment Record surfaces for source-backed raw refs
     - MetricObservation posture/value/reason/coverage-window coupling
   acceptance_criteria:
     - records are append-only one-record-per-file
     - entity records are identity-only
     - non-observed metrics carry no value and have reason
     - generated read models are manifest-backed and rebuildable
+    - source-backed raw_refs use public Bronze packet/catalog/AR surfaces
     - Creator Vault envelopes contain no forbidden Judgment/dossier fields
   deferred_open_questions:
     - exact serialization syntax
@@ -677,66 +715,6 @@ spec_handoff:
 ```
 
 ## Direction Change Propagation
-
-```yaml
-direction_change_propagation:
-  doctrine_changed: >
-    Silver Vault v4.1 now explicitly clarifies Creator Vault generated read-model
-    placement and sync semantics: account/content envelopes stay sibling read
-    homes, TikTok/Youtube/Instagram path examples are read-model keys only,
-    acknowledgement refs remain lane receipts/manifests rather than envelope
-    authority, relationship/source-ref examples are concrete for future
-    read-model scoping, and client carveout replicas/exports are generated from
-    Silver records and read-model manifests rather than separate capture sources
-    by default.
-  trigger: architecture_doctrine
-  related_triggers:
-    - product_doctrine
-  controlling_sources_updated:
-    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_silver_vault_record_contract_v0.md
-  downstream_surfaces_checked:
-    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_v4_1_forward_epoch_contract_v0.md
-    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_physicality_location_contract_v0.md
-    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_derived_layout_index_rebuild_contract_v0.md
-    - orca-harness/data_lake/root.py
-    - orca-harness/tests/test_data_lake_root.py
-    - docs/review-outputs/adversarial-artifact-reviews/data_lake_v4_1_root_epoch_mixed_artifact_code_review_v0.md
-  intentionally_not_updated:
-    - path: orca/product/spines/data_lake/authority/core_spine_v0_data_lake_v4_1_forward_epoch_contract_v0.md
-      reason: >
-        Already owns only the generic v4.1 folder grammar and states Creator
-        Vault is generated/non-authoritative; platform examples and carveout sync
-        belong in the Silver Vault record/read-model contract.
-    - path: orca/product/spines/data_lake/authority/core_spine_v0_data_lake_physicality_location_contract_v0.md
-      reason: >
-        Owns physical slot invariants and does not enumerate Creator Vault
-        platform keys or client-replica semantics.
-    - path: orca/product/spines/data_lake/authority/core_spine_v0_data_lake_derived_layout_index_rebuild_contract_v0.md
-      reason: >
-        Owns derived/ack addressing and rebuildability; this patch uses that
-        boundary without changing addressing or opening new derived_retrieval
-        view classes.
-    - path: orca-harness/data_lake/root.py
-      reason: >
-        Runtime already creates only the generic Creator Vault account/content
-        homes; no platform-specific folders, builder code, runner changes, or
-        live data-root mutation are authorized by this contract clarification.
-    - path: orca-harness/tests/test_data_lake_root.py
-      reason: >
-        Existing tests verify the generic skeleton from LAKE_SUBDIRECTORIES; no
-        runtime path list changed.
-  stale_language_search: >
-    rg -n "Creator Vault|creator_vault|carveout|replica|acknowledgement|tiktok|TikTok"
-    orca/product/spines/data_lake/authority orca-harness/data_lake/root.py
-    orca-harness/tests/test_data_lake_root.py
-  non_claims:
-    - not validation
-    - not readiness
-    - not implementation authorization
-    - not runner PR work
-    - not client replica implementation
-    - not live external data-root mutation
-```
 
 ```yaml
 direction_change_propagation:
@@ -795,4 +773,54 @@ direction_change_propagation:
     - not landed (lane branch only; no commit/push/PR)
 ```
 
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Silver Vault now binds source-backed raw intake to public Bronze packet,
+    catalog, and Attachment Record surfaces: Silver raw_refs must not infer
+    meaning from raw folder layout, must carry AR-backed refs for source-family
+    payload bodies when AR rows exist, and must make missing typed AR rows a
+    visible residual instead of inferred absence.
+  trigger: architecture_doctrine
+  related_triggers:
+    - workflow_authority
+  controlling_sources_updated:
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_silver_vault_record_contract_v0.md
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_attachment_record_implementation_contract_v0.md
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_bronze_mgt_baseline_declaration_v0.md
+    - orca/product/spines/data_lake/README.md
+    - docs/workflows/orca_repo_map_v0.md
+  downstream_surfaces_checked:
+    - AGENTS.md
+    - .agents/workflow-overlay/README.md
+    - .agents/workflow-overlay/source-loading.md
+    - .agents/workflow-overlay/source-of-truth.md
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_core_contract_v0.md
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_medallion_gold_readiness_contract_v0.md
+    - orca-harness/data_lake/catalog.py
+  intentionally_not_updated:
+    - path: orca/product/spines/data_lake/authority/core_spine_v0_data_lake_core_contract_v0.md
+      reason: >
+        The core contract already owns the raw packet / Attachment Record logical
+        boundary. This patch binds Silver consumption mechanics without changing
+        the parent no-smart-lake boundary.
+    - path: orca/product/spines/data_lake/authority/core_spine_v0_data_lake_medallion_gold_readiness_contract_v0.md
+      reason: >
+        Medallion semantics are unchanged: Bronze remains raw evidence and Silver
+        remains source-backed semantic records. This patch only names the public
+        Bronze surfaces Silver must use.
+    - path: orca-harness/data_lake/catalog.py
+      reason: >
+        The required public Bronze helpers and AR body loader already exist in
+        the post-PR-525 baseline; this patch does not authorize new runtime code.
+  stale_language_search: >
+    rg -n "Silver.*Bronze|raw_refs|Attachment Record|full God Tier|bronze_mgt"
+    orca/product/spines/data_lake docs/workflows/orca_repo_map_v0.md orca-harness/data_lake/catalog.py
+  non_claims:
+    - not validation
+    - not readiness
+    - not implementation authorization
+    - not full Bronze God Tier
+    - not Silver producer implementation
+```
 Older receipts archived verbatim in `docs/decisions/dcp_receipts_archive_v0.md`.
