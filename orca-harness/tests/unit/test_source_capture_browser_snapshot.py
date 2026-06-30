@@ -163,6 +163,12 @@ class _FakeObservationPage:
         if "scrollHeight" in script:
             self.event_log.append("scroll_height")
             return self.height
+        if "postLoadAction" in script:
+            self.event_log.append("post_load_action")
+            if self.response_callback is not None and not self.response_emitted:
+                self.response_callback(_FakeObservationResponse(self.event_log))  # type: ignore[operator]
+                self.response_emitted = True
+            return {"postLoadAction": arg}
         self.event_log.append("dom_extract")
         return {"items": [{"text": "before scroll"}]}
 
@@ -661,6 +667,8 @@ def test_fetch_browser_page_observation_capture_threads_lazy_load_scroll_control
         dom_extract_script="() => ({items: []})",
         dom_extract_arg={},
         response_url_predicate=lambda url: "widget" in url,
+        post_load_action_script="() => true",
+        post_load_action_arg={"target": "comments"},
         lazy_load_scroll_passes=2,
         lazy_load_scroll_step_px=650,
         engine=engine,
@@ -668,6 +676,8 @@ def test_fetch_browser_page_observation_capture_threads_lazy_load_scroll_control
 
     assert isinstance(result, BrowserPageObservationSuccess)
     assert engine.capture_kwargs is not None
+    assert engine.capture_kwargs["post_load_action_script"] == "() => true"
+    assert engine.capture_kwargs["post_load_action_arg"] == {"target": "comments"}
     assert engine.capture_kwargs["lazy_load_scroll_passes"] == 2
     assert engine.capture_kwargs["lazy_load_scroll_step_px"] == 650
 
@@ -689,6 +699,15 @@ def test_fetch_browser_page_observation_capture_rejects_negative_lazy_load_scrol
             dom_extract_arg={},
             response_url_predicate=lambda _: False,
             lazy_load_scroll_step_px=-1,
+            engine=_ok_page_observation_engine(),
+        )
+    with pytest.raises(ValueError, match="post_load_action_script must not be blank"):
+        fetch_browser_page_observation_capture(
+            url="https://example.com/source",
+            dom_extract_script="() => ({items: []})",
+            dom_extract_arg={},
+            response_url_predicate=lambda _: False,
+            post_load_action_script="   ",
             engine=_ok_page_observation_engine(),
         )
 
@@ -716,6 +735,7 @@ def test_playwright_page_observation_extracts_dom_before_lazy_load_scroll_and_re
     )
 
     assert result.metadata["dom_observation_stage"] == "pre_lazy_load_scroll"
+    assert result.metadata["post_load_action_executed"] is False
     assert result.metadata["lazy_load_scroll_passes_executed"] == 1
     assert result.metadata["lazy_load_scroll_stop_reason"] == "requested_passes_complete"
     assert result.dom_observation == {"items": [{"text": "before scroll"}]}
@@ -723,6 +743,33 @@ def test_playwright_page_observation_extracts_dom_before_lazy_load_scroll_and_re
     assert event_log.index("inner_text") < event_log.index("dom_extract")
     assert event_log.index("dom_extract") < event_log.index("scroll")
     assert event_log.index("scroll") < event_log.index("response_text")
+
+
+def test_playwright_page_observation_runs_post_load_action_before_dom_and_reads_responses(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    event_log: list[str] = []
+    page = _FakeObservationPage(event_log)
+    _install_fake_playwright(monkeypatch, page)
+
+    result = browser_snapshot_module._PlaywrightBrowserSnapshotEngine().capture_page_observation(
+        url="https://example.com/source",
+        timeout_seconds=1,
+        wait_until="load",
+        viewport_width=1280,
+        viewport_height=720,
+        dom_extract_script="() => ({items: []})",
+        dom_extract_arg={},
+        response_url_predicate=lambda url: "widget" in url,
+        post_load_action_script="async (arg) => { window.__postLoadAction = arg; }",
+        post_load_action_arg={"target": "comments"},
+    )
+
+    assert result.metadata["post_load_action_executed"] is True
+    assert result.responses[0].body_text == "{}"
+    assert event_log.index("post_load_action") < event_log.index("inner_text")
+    assert event_log.index("post_load_action") < event_log.index("dom_extract")
+    assert event_log.index("dom_extract") < event_log.index("response_text")
 
 
 def test_playwright_page_observation_reports_lazy_load_cap_warning(
@@ -756,6 +803,24 @@ def test_playwright_page_observation_reports_lazy_load_cap_warning(
         f"to {browser_snapshot_module._MAX_SCROLL_PASSES}"
     ]
     assert event_log.count("scroll") == browser_snapshot_module._MAX_SCROLL_PASSES
+
+
+def test_read_observed_page_responses_omits_cookie_headers() -> None:
+    event_log: list[str] = []
+    response = _FakeObservationResponse(event_log)
+    response.headers = {
+        "content-type": "application/json",
+        "cookie": "session=SECRET",
+        "set-cookie": "session=SECRET",
+    }
+
+    preserved = browser_snapshot_module._read_observed_page_responses(
+        [response],
+        max_response_bytes=100,
+    )
+
+    assert preserved[0].response_headers == {"content-type": "application/json"}
+    assert preserved[0].body_text == "{}"
 
 
 def test_bounded_lazy_load_scrolls_stepwise_after_observation_extraction() -> None:

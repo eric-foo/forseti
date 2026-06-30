@@ -7,7 +7,7 @@ scope: Canonical F-lake YouTube behavioral measurement corpus after expanding be
 use_when:
   - Checking whether YouTube behavioral evidence is statistically measurable.
   - Distinguishing caption-route source/caption coverage from full behavioral completion.
-  - Recovering the current YouTube canonical F-lake corpus counts after the 2026-06-30 expansion run.
+  - Recovering the current YouTube canonical F-lake corpus counts after the 2026-06-30 expansion run and leading-dash residual retry.
 open_next:
   - docs/workflows/ig_youtube_behavioral_e2e_closeout_receipt_v0.md
   - docs/workflows/youtube_behavioral_contract_from_merged_main_v0.md
@@ -34,25 +34,25 @@ batch was not provider-API extraction.
 Observed canonical `F:/orca-data-lake` state:
 
 ```text
-YOUTUBE_PACKET_COUNT 62
-YOUTUBE_VIDEO_COUNT 32
+YOUTUBE_PACKET_COUNT 64
+YOUTUBE_VIDEO_COUNT 33
 SURFACE_COMBOS
-youtube_captions+youtube_watch_metadata_comments 30
+youtube_captions+youtube_watch_metadata_comments 31
 youtube_watch_metadata_comments 2
 PROJECTION_STATUS_COUNTS
-complete 30
+complete 31
 no_extraction_eligible_sources 2
-YOUTUBE_PRODUCT_RECORDS 30
-YOUTUBE_PRODUCT_MENTIONS_TOTAL 120
+YOUTUBE_PRODUCT_RECORDS 31
+YOUTUBE_PRODUCT_MENTIONS_TOTAL 122
 ```
 
 Interpretation:
 
-- Caption-route source/caption coverage is measurable at `n=30`: every item in that cell has both
+- Caption-route source/caption coverage is measurable at `n=31`: every item in that cell has both
   `youtube_watch_metadata_comments` and `youtube_captions` packets.
-- Caption-route behavioral projection completion is now measurable at `30/30` for that cell: every
+- Caption-route behavioral projection completion is now measurable at `31/31` for that cell: every
   caption-ready video has a completed source-lineage-bearing Silver product-mention record.
-- Whole observed YouTube-video completion is `30/32`; the remaining two videos are watch-only
+- Whole observed YouTube-video completion is `31/33`; the remaining two videos are watch-only
   current-source failures with no extraction-eligible transcript source.
 - ASR/no-caption fallback is not measurable: the attempted ASR seed wrote a watch packet, but audio
   download failed and the caption probe reported the video as removed/unavailable.
@@ -62,7 +62,7 @@ Interpretation:
 ## Corpus Build
 
 The expansion used the existing YouTube Shorts fragrance seed as the candidate source and targeted
-30 caption-route videos with both watch metadata/comments and caption transcript packets.
+30 caption-route videos with both watch metadata/comments and caption transcript packets. A follow-up leading-dash residual retry added one more watch+caption video, bringing the current caption-route cell to 31.
 
 Starting state before this pass:
 
@@ -93,14 +93,32 @@ Failed/residual candidates observed during corpus construction:
 
 | Video id | Route expectation | Observed result | Interpretation |
 | --- | --- | --- | --- |
-| `-V7MN2IWMpA` | caption | runner invocation failed with argparse rc=2 for both watch and caption | Batch invocation edge for leading-dash video ids; not a source-route result. Use `--video-id=-V7MN2IWMpA` or patch a batch helper before retrying. |
+| `-V7MN2IWMpA` | caption | fixed in follow-up: watch packet, caption packet, and Silver product-mention record now read back complete | Former batch invocation edge for leading-dash video ids; now included in the complete caption-route corpus. |
 | `JcwT5rvhXIc` | caption | watch packet wrote; caption failed as removed by uploader | Current-source unavailability; contributes watch-only/no-transcript case, not caption-route success. |
 | `as7hye0qgYc` | ASR | watch packet wrote; ASR audio download failed; caption probe says removed by uploader | ASR/no-caption stratum remains unmeasured and needs replacement candidates. |
 
-Complete caption-route video ids:
+## Leading-Dash Residual Retry
+
+A follow-up residual-burndown patch normalized only the `--video-id <value>` argv pair when the value is a valid 11-character YouTube id that starts with `-`. The formerly failing command shape then reached live capture and wrote canonical F-lake packets for `-V7MN2IWMpA`.
+
+Observed packet and Silver writes:
 
 ```text
-17mhHUkRLvg, 1K9ej-6aP6g, 5QDcTenklxg, 5e4y5yNagRI, 6k8ebJw50tU, 7S40eU8FDCY, Fd-aChpt_Ss, FqTrOZbh_DE, JMmEIv_oG4o, Ln1LUflj8d0, MN3AI-mrPWk, Tb-_V-JVNfk, Uj4bVTM6dm8, VOGZUccarFc, WEqUWKA4FUI, WcSRnnwSAJM, XDscn2sgW3w, _Gp2AmN74E8, bPJCH9iQUhI, ekaQONEC2ys, hfyoVdOAYt4, jo03W7cBwBM, ljZ7_JHXNdw, rmDwkTrzNxo, sy-rczzFrYg, uaCSynFfPpc, vl-QUTwtneY, vtwo-iaOszA, xK8bmugSpgQ, xZ6vd9fyBbw
+WATCH_PACKET F:/orca-data-lake/raw/dca/01KWBVE0XV1E1MRY3KS538ZJE3
+CAPTION_PACKET F:/orca-data-lake/raw/266/01KWBVEVSGVEE3VHY3F5RK4ZQ1
+SILVER_RECORD F:/orca-data-lake/derived/266/01KWBVEVSGVEE3VHY3F5RK4ZQ1/silver__cleaning__product_mentions/mentions_codex_operator_youtube_residual_burndown_v0__8a95674a2ab08d69.json
+MENTIONS 2
+REJECTED 0
+PROJECTION -V7MN2IWMpA status=complete sources=1 complete_sources=1 mentions=2 residuals=[]
+```
+
+First F-lake retry note: the initial watch retry got past argparse but failed during staging after writing only `raw/01_raw_watch.html` under `F:/orca-data-lake/.staging/01KWBVATV7KWQWK4FP2JDND4MD`. The immediate retry succeeded with the committed watch packet above; the partial staging directory was verified and removed.
+
+Complete caption-route video ids:
+
+
+```text
+-V7MN2IWMpA, 17mhHUkRLvg, 1K9ej-6aP6g, 5QDcTenklxg, 5e4y5yNagRI, 6k8ebJw50tU, 7S40eU8FDCY, Fd-aChpt_Ss, FqTrOZbh_DE, JMmEIv_oG4o, Ln1LUflj8d0, MN3AI-mrPWk, Tb-_V-JVNfk, Uj4bVTM6dm8, VOGZUccarFc, WEqUWKA4FUI, WcSRnnwSAJM, XDscn2sgW3w, _Gp2AmN74E8, bPJCH9iQUhI, ekaQONEC2ys, hfyoVdOAYt4, jo03W7cBwBM, ljZ7_JHXNdw, rmDwkTrzNxo, sy-rczzFrYg, uaCSynFfPpc, vl-QUTwtneY, vtwo-iaOszA, xK8bmugSpgQ, xZ6vd9fyBbw
 ```
 
 Watch-only video ids:
@@ -111,7 +129,7 @@ JcwT5rvhXIc, as7hye0qgYc
 
 ## Product Extraction Boundary
 
-No provider extraction was available during either corpus pass:
+No provider extraction was available during the corpus passes or leading-dash retry:
 
 ```text
 OPENAI_API_KEY_SET False
@@ -122,7 +140,7 @@ ORCA_PRODUCT_EXTRACT_MODEL <unset>
 
 The first two YouTube product records were the earlier explicitly labeled operator records. The
 follow-up batch then read the 28 remaining caption-ready transcripts and wrote them through the same
-validated silver write boundary:
+validated silver write boundary. The later leading-dash retry added one more operator-assisted record through that same boundary:
 
 ```text
 DRY_PARSE
@@ -140,13 +158,13 @@ WRITTEN_MENTION_TOTAL 108
 EMPTY_COMPLETE_WRITES 2
 ```
 
-Fresh readback after the batch:
+Fresh readback after the batch and leading-dash residual retry:
 
 ```text
-YOUTUBE_PRODUCT_RECORDS_COMPLETE 30
-YOUTUBE_PRODUCT_MENTIONS_TOTAL 120
-YOUTUBE_PRODUCT_BACKENDS {"codex_operator_manual_current_thread": 2, "codex_operator_measurement_batch_current_thread": 28}
-YOUTUBE_PRODUCT_LINEAGE_SURFACES {"youtube_captions": 30}
+YOUTUBE_PRODUCT_RECORDS_COMPLETE 31
+YOUTUBE_PRODUCT_MENTIONS_TOTAL 122
+YOUTUBE_PRODUCT_BACKENDS {"codex_operator_assisted": 1, "codex_operator_manual_current_thread": 2, "codex_operator_measurement_batch_current_thread": 28}
+YOUTUBE_PRODUCT_LINEAGE_SURFACES {"youtube_captions": 31}
 ```
 
 Two batch records are complete zero-mention records because the caption text did not carry a safe
@@ -162,16 +180,17 @@ turn the batch into live provider-API extraction.
 
 ## Projection Matrix
 
-Fresh projection readback after the operator/Codex batch:
+Fresh projection readback after the operator/Codex batch and leading-dash residual retry:
 
 ```text
 PROJECTION_STATUS_COUNTS
-complete 30
+complete 31
 no_extraction_eligible_sources 2
 ```
 
 | Video id | Surfaces | Status | Sources | Eligible | Complete sources | Caption cues | Extraction statuses |
 | --- | --- | --- | ---: | ---: | ---: | ---: | --- |
+| `-V7MN2IWMpA` | `youtube_captions+youtube_watch_metadata_comments` | `complete` | 1 | 1 | 1 | 191 | `extracted` |
 | `17mhHUkRLvg` | `youtube_captions+youtube_watch_metadata_comments` | `complete` | 1 | 1 | 1 | 101 | `extracted` |
 | `1K9ej-6aP6g` | `youtube_captions+youtube_watch_metadata_comments` | `complete` | 1 | 1 | 1 | 65 | `extracted` |
 | `5QDcTenklxg` | `youtube_captions+youtube_watch_metadata_comments` | `complete` | 1 | 1 | 1 | 85 | `extracted` |
@@ -209,9 +228,9 @@ no_extraction_eligible_sources 2
 
 | Claim | Status | Basis |
 | --- | --- | --- |
-| YouTube caption-route source/caption corpus is statistically measurable | observed | 30 videos with both watch metadata/comments and caption transcript packets |
-| YouTube caption-route behavioral projection completion is statistically measurable | observed | 30 of 30 caption-ready videos project `complete` after source-lineage-bearing product extraction records |
-| YouTube operator/Codex product-extraction batch is parser-guarded | observed | 108 requested mentions accepted by `parse_mentions(...)`, 0 rejected, 28 record sets written |
+| YouTube caption-route source/caption corpus is statistically measurable | observed | 31 videos with both watch metadata/comments and caption transcript packets |
+| YouTube caption-route behavioral projection completion is statistically measurable | observed | 31 of 31 caption-ready videos project `complete` after source-lineage-bearing product extraction records |
+| YouTube operator/Codex product-extraction records are parser-guarded | observed | 108 batch mentions plus 2 leading-dash retry mentions accepted by `parse_mentions(...)`, 0 rejected, 29 follow-up record sets written |
 | YouTube live provider-API extraction is measured | not observed | no provider API key/config was present; records are explicitly labeled operator/Codex |
 | YouTube ASR/no-caption route is statistically measurable | not observed | attempted ASR seed is currently unavailable; no complete ASR transcript packet observed |
 | YouTube platform-wide behavioral completeness is statistically measurable | not proven | corpus is seed-biased and missing ASR/provider-extraction coverage |
@@ -223,7 +242,7 @@ no_extraction_eligible_sources 2
    ideally 10, complete ASR transcript cases before claiming fallback-route measurement.
 2. Decide whether the current lane accepts operator/Codex parser-guarded extraction as sufficient
    caption-route behavioral evidence, or requires a provider-API rerun when credentials exist.
-3. Fix or wrap batch invocation for leading-dash YouTube ids before retrying `-V7MN2IWMpA`.
+3. Keep the leading-dash argv normalization covered in runner tests so future batches can pass `--video-id -...` without special quoting.
 4. Rerun this receipt after ASR expansion; only then set a platform-level behavioral-completeness
    threshold such as per-route completion rate and residual ceilings.
 
