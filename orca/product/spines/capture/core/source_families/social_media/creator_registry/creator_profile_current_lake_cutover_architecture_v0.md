@@ -325,6 +325,21 @@ thing that is genuinely automatic is rollup *consumption* (`materialize` stays
 platform-agnostic at the rollup layer); discovery is explicitly account-aware for
 YT (above), and everything else is staged work.
 
+**Seed-retirement rule (stage 4 — DONE).** With the committed YT rollup snapshot
+materialized into the view, the hand-authored YT seed is retired as the rollup
+*authority*: `materialize` (via `run_creator_profile_current_materialize`) now
+sources YT rollups from
+`youtube_shorts_fragrance_creator_metric_rollup_snapshot_v0.json`, not the seed,
+and the view's YT `source_inputs` / `metric_snapshot_pointer` cite the snapshot.
+The seed stays committed (not deleted — see *Non-Goals*) as the no-drift value
+oracle. The evidence that now stands in for the seed as rollup authority: (a) the
+stage-2 capture-fed no-drift gate
+`test_youtube_capture_fed_lake_path_rollups_equal_committed_seed_no_drift`, which
+proves the lake path reproduces every materialize-consumed seed rollup field
+value-equal; (b) the committed freshness receipt; and (c) the on-demand
+`run_live_lake_freshness_gate --platform youtube`, which together prove the
+snapshot tracks the live lake.
+
 ## Reversibility / rollback (AR-07)
 
 The cut-over reverts as a set, not "one input swap":
