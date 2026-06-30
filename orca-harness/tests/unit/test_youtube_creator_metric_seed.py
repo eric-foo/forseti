@@ -5,6 +5,10 @@ import json
 import statistics
 from pathlib import Path
 
+from capture_spine.creator_profile_current.youtube_metric_seed import (
+    build_youtube_shorts_fragrance_creator_metric_seed_from_files,
+)
+
 
 ROOT = Path(__file__).resolve().parents[3]
 SEED_PATH = (
@@ -267,3 +271,16 @@ def test_youtube_creator_metric_seed_source_hashes_match_current_files() -> None
         path = ROOT / source["source_pointer"]
         assert path.is_file(), source["source_pointer"]
         assert source["sha256"] == _sha256(path)
+
+
+def test_youtube_creator_metric_seed_builder_reproduces_committed_seed() -> None:
+    committed_document = _json(SEED_PATH)
+    committed_seed = committed_document["youtube_shorts_fragrance_creator_metric_seed"]
+
+    built_document = build_youtube_shorts_fragrance_creator_metric_seed_from_files(
+        source_files=[ROOT / source["source_pointer"] for source in committed_seed["source_inputs"]],
+        account_ledger=_account_ledger(),
+        generated_at_utc=committed_seed["generated_at_utc"],
+    )
+
+    assert built_document == committed_document
