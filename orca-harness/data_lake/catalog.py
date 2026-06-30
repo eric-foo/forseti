@@ -18,8 +18,32 @@ from data_lake.root import DataLakeRoot, raw_shard
 from harness_utils import hash_file
 
 BRONZE_CATALOG_VERSION = "bronze_catalog_v0"
+BRONZE_CATALOG_SCHEMA_VERSION = "bronze_catalog_v0_schema_1"
 CATALOG_RELATIVE_ROOT = ("indexes", "derived_retrieval", "bronze_catalog", "v0")
 _PACKET_ID_RE = re.compile(r"[0123456789ABCDEFGHJKMNPQRSTVWXYZ]{26}")
+_CATALOG_AUTHORITY = "generated_from_raw_packet_manifests; raw remains authoritative"
+_SOURCE_SURFACE_COMPLETENESS = (
+    "observed_source_surface_coverage_only; not capture_support, silver_readiness, "
+    "projection_coverage, source_family_completeness, or validation"
+)
+_SOURCE_SURFACE_FIELD_SEMANTICS = {
+    "by_source_surface_path": (
+        "relative generated JSONL bucket for this source_surface string when present; "
+        "the bucket may include multiple source families and consumers must still "
+        "filter rows by source_family when needed"
+    ),
+    "facet_extractor": (
+        "registered means a source-specific facet extractor is wired for this "
+        "observed source_family/source_surface pair; universal_only means only "
+        "universal packet facets were emitted; neither value claims semantic "
+        "completeness, capture support, Silver readiness, or projection coverage"
+    ),
+    "facet_namespaces": (
+        "sorted union of facet namespaces observed across packets in the "
+        "source-surface bucket; namespace presence does not mean every packet has "
+        "that namespace"
+    ),
+}
 
 
 @dataclass(frozen=True)
@@ -63,6 +87,7 @@ def rebuild_catalog(root: DataLakeRoot) -> dict[str, Any]:
     return {
         "status": "rebuilt",
         "catalog_version": BRONZE_CATALOG_VERSION,
+        "catalog_schema_version": BRONZE_CATALOG_SCHEMA_VERSION,
         "packet_count": len(entries),
         "source_surface_count": len(source_surfaces),
         "source_surfaces": source_surfaces,
@@ -122,6 +147,7 @@ def inspect_catalog(root: DataLakeRoot) -> dict[str, Any]:
     return {
         "status": "issues_found" if issues else "ok",
         "catalog_version": BRONZE_CATALOG_VERSION,
+        "catalog_schema_version": BRONZE_CATALOG_SCHEMA_VERSION,
         "expected_packet_count": len(expected),
         "indexed_packet_count": len(existing),
         "source_surface_count": len(source_surfaces),
@@ -152,6 +178,7 @@ def _build_entries(root: DataLakeRoot) -> list[dict[str, Any]]:
         entries.append(
             {
                 "catalog_version": BRONZE_CATALOG_VERSION,
+                "catalog_schema_version": BRONZE_CATALOG_SCHEMA_VERSION,
                 "packet_id": packet_id,
                 "raw_path": _rel(root, container),
                 "manifest_relpath": _rel(root, manifest_path),
@@ -222,7 +249,16 @@ def _catalog_snapshot(
     snapshot["all_packets.jsonl"] = _jsonl_bytes(_query_row(entry) for entry in entries)
     snapshot["source_surfaces.json"] = _json_bytes(
         {
+            "authority": _CATALOG_AUTHORITY,
             "catalog_version": BRONZE_CATALOG_VERSION,
+            "catalog_schema_version": BRONZE_CATALOG_SCHEMA_VERSION,
+            "completeness": _SOURCE_SURFACE_COMPLETENESS,
+            "field_semantics": _SOURCE_SURFACE_FIELD_SEMANTICS,
+            "stable_query_paths": {
+                "all_packets": "all_packets.jsonl",
+                "by_packet_root": "by_packet/",
+                "by_source_surface_path_field": "source_surfaces[].by_source_surface_path",
+            },
             "source_surface_count": len(source_surfaces),
             "source_surfaces": source_surfaces,
         }
@@ -244,8 +280,9 @@ def _catalog_snapshot(
         )
     snapshot["manifest.json"] = _json_bytes(
         {
-            "authority": "generated_from_raw_packet_manifests; raw remains authoritative",
+            "authority": _CATALOG_AUTHORITY,
             "catalog_version": BRONZE_CATALOG_VERSION,
+            "catalog_schema_version": BRONZE_CATALOG_SCHEMA_VERSION,
             "packet_count": len(entries),
         }
     )
@@ -261,6 +298,7 @@ def _source_surface_summary(entries: list[dict[str, Any]]) -> list[dict[str, Any
             {
                 "source_family": key[0],
                 "source_surface": key[1],
+                "by_source_surface_path": _source_surface_bucket_path(key[1]),
                 "packet_count": 0,
                 "facet_extractor": "universal_only",
                 "facet_namespaces": set(),
@@ -277,6 +315,7 @@ def _source_surface_summary(entries: list[dict[str, Any]]) -> list[dict[str, Any
         {
             "source_family": bucket["source_family"],
             "source_surface": bucket["source_surface"],
+            "by_source_surface_path": bucket["by_source_surface_path"],
             "packet_count": bucket["packet_count"],
             "facet_extractor": bucket["facet_extractor"],
             "facet_namespaces": sorted(bucket["facet_namespaces"]),
@@ -285,6 +324,12 @@ def _source_surface_summary(entries: list[dict[str, Any]]) -> list[dict[str, Any
             buckets.items(), key=lambda item: (item[0][0] or "", item[0][1] or "")
         )
     ]
+
+
+def _source_surface_bucket_path(source_surface: object) -> str | None:
+    if isinstance(source_surface, str) and source_surface:
+        return f"by_source_surface/{_safe_name(source_surface)}.jsonl"
+    return None
 
 
 def _universal_facets(manifest: dict[str, Any]) -> list[CatalogFacet]:
@@ -518,6 +563,7 @@ def _facet_sort_key(facet: dict[str, str]) -> tuple[str, str, str, str]:
 
 
 __all__ = [
+    "BRONZE_CATALOG_SCHEMA_VERSION",
     "BRONZE_CATALOG_VERSION",
     "CATALOG_RELATIVE_ROOT",
     "CatalogFacet",

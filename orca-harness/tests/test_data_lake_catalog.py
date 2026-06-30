@@ -6,7 +6,12 @@ from pathlib import Path
 
 import pytest
 
-from data_lake.catalog import CATALOG_RELATIVE_ROOT, inspect_catalog, rebuild_catalog
+from data_lake.catalog import (
+    BRONZE_CATALOG_SCHEMA_VERSION,
+    CATALOG_RELATIVE_ROOT,
+    inspect_catalog,
+    rebuild_catalog,
+)
 from data_lake.root import DataLakeRoot, DataLakeRootError, raw_shard
 import runners.run_data_lake_catalog as catalog_runner
 from source_capture.models import known_fact
@@ -48,22 +53,31 @@ def _write_reddit_packet(
     )
 
 
-def _write_ig_reels_grid_packet(root: DataLakeRoot, tmp_path: Path):
+def _write_ig_reels_grid_packet(
+    root: DataLakeRoot,
+    tmp_path: Path,
+    *,
+    shortcode: str | None = "REEL123",
+    session_identity: str = "ig-session",
+):
+    joined_rows = []
+    if shortcode is not None:
+        joined_rows.append(
+            {
+                "dom_row": {
+                    "shortcode": shortcode,
+                    "kind": "reel",
+                    "permalink_url": f"https://www.instagram.com/reel/{shortcode}/",
+                }
+            }
+        )
     payload = {
         "creator_profile_snapshot": {
             "source_profile": "hyram",
             "numeric_id": "5802114508",
             "profile_grid_url": "https://www.instagram.com/hyram/reels/",
         },
-        "joined_rows": [
-            {
-                "dom_row": {
-                    "shortcode": "REEL123",
-                    "kind": "reel",
-                    "permalink_url": "https://www.instagram.com/reel/REEL123/",
-                }
-            }
-        ],
+        "joined_rows": joined_rows,
     }
     src = tmp_path / "ig_reels_grid_capture.json"
     src.write_text(json.dumps(payload, sort_keys=True), encoding="utf-8")
@@ -75,7 +89,7 @@ def _write_ig_reels_grid_packet(root: DataLakeRoot, tmp_path: Path):
         source_locator=known_fact("https://www.instagram.com/hyram/reels/"),
         decision_question="is this creator gaining momentum?",
         capture_context="catalog fixture",
-        session_identity="ig-session",
+        session_identity=session_identity,
     )
 
 
@@ -86,10 +100,14 @@ def _facet_rows(root: DataLakeRoot) -> list[dict]:
     return rows
 
 
-def _source_surface_rows(root: DataLakeRoot) -> list[dict]:
+def _source_surface_payload(root: DataLakeRoot) -> dict:
     return json.loads(
         (_catalog_root(root) / "source_surfaces.json").read_text(encoding="utf-8")
-    )["source_surfaces"]
+    )
+
+
+def _source_surface_rows(root: DataLakeRoot) -> list[dict]:
+    return _source_surface_payload(root)["source_surfaces"]
 
 
 def test_rebuild_catalog_indexes_universal_and_ig_facets(tmp_path: Path) -> None:
@@ -100,6 +118,7 @@ def test_rebuild_catalog_indexes_universal_and_ig_facets(tmp_path: Path) -> None
     report = rebuild_catalog(root)
 
     assert report["status"] == "rebuilt"
+    assert report["catalog_schema_version"] == BRONZE_CATALOG_SCHEMA_VERSION
     assert report["packet_count"] == 2
     assert report["source_surface_count"] == 2
     assert inspect_catalog(root)["status"] == "ok"
@@ -109,6 +128,7 @@ def test_rebuild_catalog_indexes_universal_and_ig_facets(tmp_path: Path) -> None
         (_catalog_root(root) / "by_packet" / f"{ig_pid}.json").read_text(encoding="utf-8")
     )
     assert ig_entry["raw_path"] == f"raw/{raw_shard(ig_pid)}/{ig_pid}"
+    assert ig_entry["catalog_schema_version"] == BRONZE_CATALOG_SCHEMA_VERSION
     assert ig_entry["source_family"] == "instagram_creator"
     facets_by_namespace = {facet["namespace"]: facet["value"] for facet in ig_entry["facets"]}
     expected_facets = {
@@ -139,17 +159,34 @@ def test_rebuild_catalog_indexes_universal_and_ig_facets(tmp_path: Path) -> None
         (row["source_family"], row["source_surface"]): row
         for row in report["source_surfaces"]
     }
+    surface_payload = _source_surface_payload(root)
+    assert (
+        surface_payload["authority"]
+        == "generated_from_raw_packet_manifests; raw remains authoritative"
+    )
+    assert surface_payload["catalog_schema_version"] == BRONZE_CATALOG_SCHEMA_VERSION
+    assert "not capture_support" in surface_payload["completeness"]
+    assert "neither value claims" in surface_payload["field_semantics"]["facet_extractor"]
+    assert "union" in surface_payload["field_semantics"]["facet_namespaces"]
+    assert surface_payload["stable_query_paths"]["all_packets"] == "all_packets.jsonl"
     generated_surface_rows = {
         (row["source_family"], row["source_surface"]): row
-        for row in _source_surface_rows(root)
+        for row in surface_payload["source_surfaces"]
     }
     assert generated_surface_rows == report_surface_rows
+    reddit_surface_path = report_surface_rows[("reddit", "r/B2BMarketing")][
+        "by_source_surface_path"
+    ]
+    assert reddit_surface_path.startswith("by_source_surface/")
+    assert (_catalog_root(root) / reddit_surface_path).is_file()
     assert report_surface_rows[("reddit", "r/B2BMarketing")]["packet_count"] == 1
     assert (
         report_surface_rows[("reddit", "r/B2BMarketing")]["facet_extractor"]
         == "universal_only"
     )
     ig_surface = report_surface_rows[("instagram_creator", "ig_reels_grid_dom_passive_json")]
+    assert ig_surface["by_source_surface_path"].startswith("by_source_surface/")
+    assert (_catalog_root(root) / ig_surface["by_source_surface_path"]).is_file()
     assert ig_surface["packet_count"] == 1
     assert ig_surface["facet_extractor"] == "registered"
     assert {
@@ -181,6 +218,7 @@ def test_rebuild_catalog_marks_unknown_future_surface_universal_only(tmp_path: P
         for row in report["source_surfaces"]
     }
     future_row = rows[("future_creator_network", "future_creator_feed_v1")]
+    assert future_row["by_source_surface_path"].startswith("by_source_surface/")
     assert future_row["packet_count"] == 1
     assert future_row["facet_extractor"] == "universal_only"
     assert {
@@ -211,6 +249,83 @@ def test_inspect_catalog_reports_missing_and_stale_generated_index(tmp_path: Pat
     assert stale["status"] == "issues_found"
     assert stale["stale_packets"] == [packet_id]
     assert f"by_packet/{packet_id}.json" in stale["stale_files"]
+
+
+def test_inspect_catalog_reports_missing_and_stale_source_surfaces_file(tmp_path: Path) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    _write_reddit_packet(root, tmp_path)
+
+    assert rebuild_catalog(root)["status"] == "rebuilt"
+    source_surfaces = _catalog_root(root) / "source_surfaces.json"
+    source_surfaces.unlink()
+
+    missing = inspect_catalog(root)
+    assert missing["status"] == "issues_found"
+    assert "source_surfaces.json" in missing["missing_files"]
+
+    assert rebuild_catalog(root)["status"] == "rebuilt"
+    payload = _source_surface_payload(root)
+    payload["source_surface_count"] = 999
+    source_surfaces.write_text(
+        json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
+
+    stale = inspect_catalog(root)
+    assert stale["status"] == "issues_found"
+    assert "source_surfaces.json" in stale["stale_files"]
+
+
+def test_source_surface_summary_counts_multiple_packets_and_documents_union(
+    tmp_path: Path,
+) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    _write_ig_reels_grid_packet(root, tmp_path, shortcode="REEL123", session_identity="ig-a")
+    _write_ig_reels_grid_packet(root, tmp_path, shortcode=None, session_identity="ig-b")
+
+    report = rebuild_catalog(root)
+
+    row = {
+        (item["source_family"], item["source_surface"]): item
+        for item in report["source_surfaces"]
+    }[("instagram_creator", "ig_reels_grid_dom_passive_json")]
+    assert row["packet_count"] == 2
+    assert row["facet_extractor"] == "registered"
+    assert "instagram_shortcode" in row["facet_namespaces"]
+    assert "session_identity" in row["facet_namespaces"]
+    bucket_rows = [
+        json.loads(line)
+        for line in (_catalog_root(root) / row["by_source_surface_path"])
+        .read_text(encoding="utf-8")
+        .splitlines()
+    ]
+    assert len(bucket_rows) == 2
+
+
+def test_source_surface_summary_handles_empty_family_and_surface(tmp_path: Path) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    src = tmp_path / "empty_surface_payload.json"
+    src.write_text(json.dumps({"body": "empty surface"}, sort_keys=True), encoding="utf-8")
+    write_local_source_capture_packet(
+        data_root=root,
+        input_files=[src],
+        source_family=" ",
+        source_surface=" ",
+        source_locator=known_fact("https://example.invalid/empty-surface"),
+        decision_question="does an empty source surface remain inspectable?",
+        capture_context="catalog fixture",
+        session_identity="empty-session",
+    )
+
+    report = rebuild_catalog(root)
+
+    row = report["source_surfaces"][0]
+    assert row["source_family"] is None
+    assert row["source_surface"] is None
+    assert row["by_source_surface_path"] is None
+    assert row["packet_count"] == 1
+    assert row["facet_extractor"] == "universal_only"
+    assert set(row["facet_namespaces"]) == {"session_identity", "source_locator_sha256"}
+    assert inspect_catalog(root)["status"] == "ok"
 
 
 def test_rebuild_catalog_replaces_orphaned_generated_files_byte_identically(tmp_path: Path) -> None:
