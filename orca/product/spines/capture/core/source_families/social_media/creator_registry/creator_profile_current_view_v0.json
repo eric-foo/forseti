@@ -5118,7 +5118,7 @@
               "Rollup covers selected Instagram Reels grid rows only; it is not a full-account average.",
               "View, like, and comment counts are capture-time observations and may have changed since capture.",
               "Cross-platform rollups are not authorized without promoted public-handle linkage evidence.",
-              "Average/median views are computed over 12 selected reels and 36 metric observations for @vanzzcoser; sample adequacy is stronger_admitted_pool_n_8_plus and the value is not a representative creator average.",
+              "Average/median views are computed over 12 selected reels and 36 metric observations for @milanscents; sample adequacy is stronger_admitted_pool_n_8_plus and the value is not a representative creator average.",
               "The selected IG reels grid selection can bias view averages relative to the creator's full Instagram output.",
               "Engagement rate is computed only from source-backed selected-grid view, like, and comment counts.",
               "Profile follower_count is not included in rollup math."
@@ -5129,27 +5129,27 @@
               "average_comment_count": {
                 "metric_unit": "count",
                 "posture": "observed",
-                "value_or_none": 57.5
+                "value_or_none": 108.17
               },
               "average_like_count": {
                 "metric_unit": "count",
                 "posture": "observed",
-                "value_or_none": 11306.75
+                "value_or_none": 2552.92
               },
               "average_views": {
                 "metric_unit": "count",
                 "posture": "observed",
-                "value_or_none": 208089.17
+                "value_or_none": 70628.33
               },
               "engagement_rate": {
                 "metric_unit": "rate",
                 "posture": "observed",
-                "value_or_none": 0.054612
+                "value_or_none": 0.037677
               },
               "median_views": {
                 "metric_unit": "count",
                 "posture": "observed",
-                "value_or_none": 25208.0
+                "value_or_none": 45850.5
               },
               "posting_cadence": {
                 "metric_unit": "rate",
@@ -5166,7 +5166,7 @@
             },
             "observation_count": 36,
             "platform_account_ids": [
-              "acct_ig_reels_003"
+              "acct_ig_reels_004"
             ],
             "platform_scope": "instagram",
             "rollup_window": "custom",
@@ -5215,13 +5215,13 @@
               "ig_reels_metric_obs_v0_110",
               "ig_reels_metric_obs_v0_111"
             ],
-            "view_count_max": 1482520,
-            "view_count_min": 9753
+            "view_count_max": 246436,
+            "view_count_min": 5123
           }
         ],
         "freshness": {
           "audience_computed_at_or_none": null,
-          "identity_updated_at": "2026-06-29T14:26:49Z",
+          "identity_updated_at": "2026-06-30T12:33:04Z",
           "metrics_computed_at_or_none": "2026-06-29T14:50:03Z",
           "profile_view_computed_at": "2026-06-29T14:50:03Z"
         },
@@ -5229,7 +5229,7 @@
         "identity_evidence_summary": {
           "account_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/32",
           "source_pointers": [
-            "F:\\orca-data-lake\\derived\\01KW9WD600VE4NXCKF364N8ZH9\\projection_ig_reels_grid\\01KW9WDN2BSPC5RM6X7EMC4HE8.json#/rows/0"
+            "F:\\orca-data-lake\\derived\\057\\01KWC89MF50H39PEQRG9V53FYY\\projection_ig_reels_grid\\01KWC8A2KRT2E6CER7DS764BXZ.json#/rows/0"
           ],
           "summary": "Single-platform instagram public account observed from source-backed creator metric or observation rows; no promoted cross-platform public-handle linkage exists in this ledger."
         },
@@ -5254,22 +5254,22 @@
           "not dashboard readiness",
           "not SQLite or data-lake physicalization"
         ],
-        "platform_account_id_or_none": "acct_ig_reels_003",
+        "platform_account_id_or_none": "acct_ig_reels_004",
         "platform_accounts": [
           {
             "display_name_source_field_or_none": null,
             "display_name_source_pointer_or_none": null,
-            "handle_observed_at": "2026-06-29T14:26:49Z",
-            "handle_source_pointer": "F:\\orca-data-lake\\derived\\01KW9WD600VE4NXCKF364N8ZH9\\projection_ig_reels_grid\\01KW9WDN2BSPC5RM6X7EMC4HE8.json#/rows/0",
+            "handle_observed_at": "2026-06-30T12:33:04Z",
+            "handle_source_pointer": "F:\\orca-data-lake\\derived\\057\\01KWC89MF50H39PEQRG9V53FYY\\projection_ig_reels_grid\\01KWC8A2KRT2E6CER7DS764BXZ.json#/rows/0",
             "platform": "instagram",
-            "platform_account_id": "acct_ig_reels_003",
+            "platform_account_id": "acct_ig_reels_004",
             "platform_public_account_id_or_none": null,
             "public_display_name_or_none": null,
-            "public_handle": "vanzzcoser",
-            "public_profile_url": "https://www.instagram.com/vanzzcoser/"
+            "public_handle": "milanscents",
+            "public_profile_url": "https://www.instagram.com/milanscents/"
           }
         ],
-        "profile_subject_id": "acct_ig_reels_003",
+        "profile_subject_id": "acct_ig_reels_004",
         "profile_subject_kind": "platform_account",
         "review_state_or_none": null,
         "source_drill_back": {
@@ -5322,7 +5322,7 @@
     "source_inputs": [
       {
         "role": "source-backed platform accounts and identity state",
-        "sha256": "620a1e87a7ecd31df3f06905b1ca2b4317a13c509180585a8ccd7824e3f1afad",
+        "sha256": "095e17e64904e1702cee3e338589f6564f544cb7c149701d50f4faf042add201",
         "source_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json"
       },
       {
@@ -5332,7 +5332,7 @@
       },
       {
         "role": "source-backed metric observations and selected-grid Instagram metric rollups",
-        "sha256": "9bbedec1c42c9920af889d9b3c4e0c7ce4a1b2635c5f97590f560d4b3ac0531b",
+        "sha256": "c8d5e26f0fa5dacda5f561e475ff797d5ac7bc6f6cb7b89d924a23ae311c3e38",
         "source_pointer": "orca/product/spines/capture/core/source_families/social_media/instagram/instagram_reels_creator_metric_seed_v0.json"
       }
     ],

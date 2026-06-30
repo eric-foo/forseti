@@ -398,13 +398,13 @@
         "display_name_source_field_or_none": null
       },
       {
-        "platform_account_id": "acct_ig_reels_003",
+        "platform_account_id": "acct_ig_reels_004",
         "platform": "instagram",
         "platform_public_account_id_or_none": null,
-        "public_handle": "vanzzcoser",
-        "public_profile_url": "https://www.instagram.com/vanzzcoser/",
-        "handle_source_pointer": "F:\\orca-data-lake\\derived\\01KW9WD600VE4NXCKF364N8ZH9\\projection_ig_reels_grid\\01KW9WDN2BSPC5RM6X7EMC4HE8.json#/rows/0",
-        "handle_observed_at": "2026-06-29T14:26:49Z",
+        "public_handle": "milanscents",
+        "public_profile_url": "https://www.instagram.com/milanscents/",
+        "handle_source_pointer": "F:\\orca-data-lake\\derived\\057\\01KWC89MF50H39PEQRG9V53FYY\\projection_ig_reels_grid\\01KWC8A2KRT2E6CER7DS764BXZ.json#/rows/0",
+        "handle_observed_at": "2026-06-30T12:33:04Z",
         "public_display_name_or_none": null,
         "display_name_source_pointer_or_none": null,
         "display_name_source_field_or_none": null
