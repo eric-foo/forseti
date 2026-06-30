@@ -68,6 +68,7 @@ def run_producer(
     projection_paths: Sequence[str | Path],
     account_ledger: Mapping[str, Any],
     generated_at_utc: str,
+    use_bronze_attachment_records: bool = False,
 ) -> CreatorMetricSilverResult:
     """Append rollup + observation records to the lake from raw grid projections.
     The testable core -- lake-parameterized so it runs against ``for_test``."""
@@ -76,6 +77,7 @@ def run_producer(
         projection_paths=projection_paths,
         account_ledger=account_ledger,
         generated_at_utc=generated_at_utc,
+        use_bronze_attachment_records=use_bronze_attachment_records,
     )
 
 
@@ -107,6 +109,14 @@ def _build_parser() -> argparse.ArgumentParser:
         "--generated-at-utc",
         help="Timestamp for the derived records. Defaults to now (UTC).",
     )
+    parser.add_argument(
+        "--use-bronze-attachment-records",
+        action="store_true",
+        help=(
+            "Upgrade observation raw_refs from packet/file refs to public Bronze "
+            "Attachment Record refs when generated catalog rows exist."
+        ),
+    )
     return parser
 
 
@@ -127,6 +137,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             projection_paths=args.projections,
             account_ledger=account_ledger,
             generated_at_utc=generated_at,
+            use_bronze_attachment_records=args.use_bronze_attachment_records,
         )
     except Exception as exc:  # noqa: BLE001 - operator feedback; fail-closed, no partial-success masking
         parser.exit(status=2, message=f"creator metric rollup producer failed: {type(exc).__name__}: {exc}\n")

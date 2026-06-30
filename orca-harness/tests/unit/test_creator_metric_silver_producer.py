@@ -21,7 +21,10 @@ from capture_spine.creator_profile_current.silver_metric_producer import (
     METRIC_ROLLUP_PAYLOAD_KIND,
     derive_creator_metric_silver_records_from_projections,
 )
+from data_lake.catalog import rebuild_catalog
 from data_lake.root import DataLakeRoot
+from source_capture.models import known_fact
+from source_capture.writer import write_local_source_capture_packet
 
 PACKET_ID = "packet_fixture"
 GENERATED_AT = "2026-06-29T00:02:00Z"
@@ -128,6 +131,38 @@ def _run(tmp_path: Path):
     )
 
 
+def _projection_rows_for_anchor(packet_id: str, raw_anchor: dict) -> list[dict]:
+    rows = _projection_rows()
+    for row in rows:
+        row["row_id"] = str(row["row_id"]).replace(PACKET_ID, packet_id)
+        row["raw_ref"] = dict(row["raw_ref"], packet_id=packet_id)
+        row["raw_anchor"] = dict(raw_anchor)
+    return rows
+
+
+def _commit_bronze_reels_packet(data_root: DataLakeRoot, tmp_path: Path) -> tuple[str, dict]:
+    raw = tmp_path / "ig_reels_grid_capture.json"
+    raw.write_text(json.dumps({"grid": "fixture"}, sort_keys=True), encoding="utf-8")
+    result = write_local_source_capture_packet(
+        data_root=data_root,
+        input_files=[raw],
+        source_family="instagram_creator",
+        source_surface="ig_reels_grid_dom_passive_json",
+        source_locator=known_fact("https://www.instagram.com/fixturecreator/reels/"),
+        decision_question="creator metric AR-backed raw refs",
+        capture_context="creator metric Silver AR proof test",
+    )
+    packet_id = result.packet.packet_id
+    preserved = data_root.load_raw_packet(packet_id).manifest["preserved_files"][0]
+    raw_anchor = {
+        "file_id": preserved["file_id"],
+        "relative_packet_path": preserved["relative_packet_path"],
+        "sha256": preserved["sha256"],
+        "hash_basis": preserved["hash_basis"],
+    }
+    return packet_id, raw_anchor
+
+
 def test_producer_emits_conformant_metric_observation_records(tmp_path: Path) -> None:
     result = _run(tmp_path)
     # 1 profile follower + 2 reels x (view, like, comment) = 7 observations.
@@ -152,6 +187,72 @@ def test_producer_emits_conformant_metric_observation_records(tmp_path: Path) ->
         else:
             assert observation["metric_value"] is None
             assert posture["reason_detail"]
+
+
+def test_observation_raw_refs_use_bronze_attachment_records_when_requested(tmp_path: Path) -> None:
+    data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    packet_id, raw_anchor = _commit_bronze_reels_packet(data_root, tmp_path)
+    assert rebuild_catalog(data_root)["status"] == "rebuilt"
+    projection = tmp_path / "projection.json"
+    projection.write_text(
+        json.dumps({"packet_id": packet_id, "rows": _projection_rows_for_anchor(packet_id, raw_anchor)}),
+        encoding="utf-8",
+    )
+
+    result = derive_creator_metric_silver_records_from_projections(
+        data_root=data_root,
+        projection_paths=[projection],
+        account_ledger=_account_ledger(),
+        generated_at_utc=GENERATED_AT,
+        use_bronze_attachment_records=True,
+    )
+
+    assert result.observation_records
+    for record in result.observation_records:
+        raw_ref = record["raw_refs"][0]
+        assert raw_ref["raw_ref_kind"] == "bronze_attachment_record"
+        assert raw_ref["attachment_record_id"].startswith("ar_")
+        assert raw_ref["attachment_record_schema_version"] == "bronze_attachment_record_v0_schema_2"
+        assert raw_ref["attachment_record_physicalization"] == "manifest_equivalent_entry_over_raw_packet_body_v0"
+        assert raw_ref["packet_id"] == packet_id
+        assert raw_ref["file_id"] == raw_anchor["file_id"]
+        assert raw_ref["relative_packet_path"] == raw_anchor["relative_packet_path"]
+        assert raw_ref["body_sha256"] == raw_anchor["sha256"]
+        assert raw_ref["body_ref"] == {
+            "kind": "raw_packet_relative_path",
+            "packet_id": packet_id,
+            "file_id": raw_anchor["file_id"],
+            "relative_packet_path": raw_anchor["relative_packet_path"],
+            "body_sha256": raw_anchor["sha256"],
+            "hash_basis": "raw_stored_bytes",
+        }
+        assert raw_ref["source_family"] == "instagram_creator"
+        assert raw_ref["source_surface"] == "ig_reels_grid_dom_passive_json"
+        assert raw_ref["payload_kind"] == "json_body"
+        assert "lineage_limitations" not in record
+
+
+def test_missing_bronze_attachment_record_stays_visible_when_requested(tmp_path: Path) -> None:
+    data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    assert rebuild_catalog(data_root)["status"] == "rebuilt"
+    projection = tmp_path / "projection.json"
+    projection.write_text(json.dumps({"packet_id": PACKET_ID, "rows": _projection_rows()}), encoding="utf-8")
+
+    result = derive_creator_metric_silver_records_from_projections(
+        data_root=data_root,
+        projection_paths=[projection],
+        account_ledger=_account_ledger(),
+        generated_at_utc=GENERATED_AT,
+        use_bronze_attachment_records=True,
+    )
+
+    raw_ref = result.observation_records[0]["raw_refs"][0]
+    assert raw_ref["raw_ref_kind"] == "raw_packet_fallback_missing_attachment_record"
+    assert raw_ref["typed_attachment_record_status"] == "missing"
+    assert raw_ref["attachment_record_residual"] == "typed_attachment_record_missing_for_raw_ref"
+    assert result.observation_records[0]["lineage_limitations"] == [
+        {"reason": "other", "detail": "typed_attachment_record_missing_for_raw_ref"}
+    ]
 
 
 def test_observation_records_written_and_reload_with_stable_hash(tmp_path: Path) -> None:

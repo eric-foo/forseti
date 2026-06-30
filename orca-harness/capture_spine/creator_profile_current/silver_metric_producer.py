@@ -11,6 +11,10 @@ sibling ``creator_metric_silver_record_contract_v0`` doc.
 Boundary: this producer does NOT compute metrics. Every number comes from
 ``build_instagram_reels_creator_metric_seed_from_files``; this module only wraps
 those values in Silver Vault envelopes and appends them through the lake writer.
+When requested, observation ``raw_refs`` are upgraded from packet/file refs to
+AR-backed refs by reading the public Bronze source-surface catalog helper; a
+missing AR row stays visible as lineage limitation instead of becoming inferred
+absence.
 
 Scope (v0), kept deliberately small for a first reviewable slice:
 - emits MetricObservation + MetricRollupObservation observation records only;
@@ -25,10 +29,12 @@ Scope (v0), kept deliberately small for a first reviewable slice:
   is an operational step outside this module.
 
 Accepted residuals (named for the delegated review, not hidden):
-- Observations carry ``raw_refs`` to the raw packet; the intermediate IG reels
-  grid projection is recorded in ``provenance`` (pointer + row id), NOT as a
-  formal ``derived_refs`` edge, because the reused seed observation does not
-  carry the projection record's lake address (lane/record_id/content_hash).
+- Observations carry ``raw_refs`` to the raw packet by default, or to the
+  generated Bronze Attachment Record when ``use_bronze_attachment_records`` is
+  set. The intermediate IG reels grid projection is recorded in ``provenance``
+  (pointer + row id), NOT as a formal ``derived_refs`` edge, because the reused
+  seed observation does not carry the projection record's lake address
+  (lane/record_id/content_hash).
 - A computed rollup aggregate uses ``metric_posture.kind: observed`` when it is
   source-backed (inherited verbatim from the seed); this reuse of the
   observed posture for a derived value is the load-bearing contract choice.
@@ -45,6 +51,7 @@ from capture_spine.creator_profile_current.instagram_metric_seed import (
     build_instagram_reels_creator_metric_seed_from_files,
 )
 from harness_utils import generate_ulid
+from data_lake.catalog import source_surface_catalog_rows
 from data_lake.silver_record import append_silver_record
 
 if TYPE_CHECKING:
@@ -72,6 +79,11 @@ _ROLLUP_PRODUCER_ID = (
 )
 _PLATFORM_NAMESPACE = "instagram"
 _SOURCE_FAMILY = "social_media"
+_IG_BRONZE_SOURCE_FAMILY = "instagram_creator"
+_IG_BRONZE_SOURCE_SURFACE = "ig_reels_grid_dom_passive_json"
+_BRONZE_AR_RAW_REF_KIND = "bronze_attachment_record"
+_RAW_PACKET_FALLBACK_REF_KIND = "raw_packet_fallback_missing_attachment_record"
+_MISSING_AR_LIMITATION = "typed_attachment_record_missing_for_raw_ref"
 
 # Non-claims attached to every emitted record. The registry/profile boundaries
 # already in the codebase are the source of truth for these tokens; the producer
@@ -102,6 +114,7 @@ def derive_creator_metric_silver_records_from_projections(
     projection_paths: Sequence[str | Path],
     account_ledger: Mapping[str, Any],
     generated_at_utc: str,
+    use_bronze_attachment_records: bool = False,
 ) -> CreatorMetricSilverResult:
     """Derive and append Silver Vault MetricObservation + MetricRollupObservation
     records from IG reels-grid projection files.
@@ -124,12 +137,21 @@ def derive_creator_metric_silver_records_from_projections(
         observation["platform_account_id"]: observation["platform_subject_key"]
         for observation in seed["metric_observations"]
     }
+    bronze_attachment_records_by_raw_ref = (
+        _bronze_attachment_records_by_raw_ref(data_root)
+        if use_bronze_attachment_records
+        else {}
+    )
 
     observation_records: list[dict[str, Any]] = []
     observation_paths: list[Path] = []
     ref_by_seed_observation_id: dict[str, dict[str, str]] = {}
     for seed_observation in seed["metric_observations"]:
-        record = build_metric_observation_record(seed_observation=seed_observation)
+        record = build_metric_observation_record(
+            seed_observation=seed_observation,
+            bronze_attachment_records_by_raw_ref=bronze_attachment_records_by_raw_ref,
+            use_bronze_attachment_records=use_bronze_attachment_records,
+        )
         path = append_silver_record(
             data_root,
             raw_anchor=_require_source_packet_id(seed_observation),
@@ -174,7 +196,12 @@ def derive_creator_metric_silver_records_from_projections(
     )
 
 
-def build_metric_observation_record(*, seed_observation: Mapping[str, Any]) -> dict[str, Any]:
+def build_metric_observation_record(
+    *,
+    seed_observation: Mapping[str, Any],
+    bronze_attachment_records_by_raw_ref: Mapping[tuple[str, str, str, str], Mapping[str, Any]] | None = None,
+    use_bronze_attachment_records: bool = False,
+) -> dict[str, Any]:
     """Wrap one seed metric observation in a Silver Vault MetricObservation record."""
     posture = seed_observation["metric_posture"]
     value = seed_observation.get("metric_value_or_none")
@@ -185,6 +212,12 @@ def build_metric_observation_record(*, seed_observation: Mapping[str, Any]) -> d
         what=f"observation {seed_observation.get('metric_observation_id')!r}",
     )
     observed_at = seed_observation["observed_at"]
+    raw_ref = _raw_ref(
+        seed_observation,
+        bronze_attachment_records_by_raw_ref=bronze_attachment_records_by_raw_ref or {},
+        use_bronze_attachment_records=use_bronze_attachment_records,
+    )
+    lineage_limitations = _raw_ref_lineage_limitations(raw_ref)
     record: dict[str, Any] = {
         "record_id": f"{generate_ulid()}.json",
         "raw_anchor": _require_source_packet_id(seed_observation),
@@ -203,7 +236,7 @@ def build_metric_observation_record(*, seed_observation: Mapping[str, Any]) -> d
         "source_surface": seed_observation.get("chosen_source_surface_or_none") or "instagram_reels_grid",
         "observed_at": observed_at,
         "captured_at": observed_at,
-        "raw_refs": [_raw_ref(seed_observation)],
+        "raw_refs": [raw_ref],
         "derived_refs": [],
         "payload": {
             "observation": {
@@ -229,6 +262,8 @@ def build_metric_observation_record(*, seed_observation: Mapping[str, Any]) -> d
         },
         "non_claims": sorted(set(_REQUIRED_NON_CLAIMS)),
     }
+    if lineage_limitations:
+        record["lineage_limitations"] = lineage_limitations
     record["content_hash"] = f"sha256:{_content_hash(record)}"
     return record
 
@@ -386,9 +421,14 @@ def _rollup_metric(metric: Mapping[str, Any], *, what: str) -> dict[str, Any]:
     }
 
 
-def _raw_ref(seed_observation: Mapping[str, Any]) -> dict[str, Any]:
+def _raw_ref(
+    seed_observation: Mapping[str, Any],
+    *,
+    bronze_attachment_records_by_raw_ref: Mapping[tuple[str, str, str, str], Mapping[str, Any]],
+    use_bronze_attachment_records: bool,
+) -> dict[str, Any]:
     anchor = seed_observation.get("raw_anchor") or {}
-    return {
+    raw_ref = {
         "packet_id": seed_observation.get("source_packet_id_or_none"),
         "file_id": anchor.get("file_id"),
         "relative_packet_path": anchor.get("relative_packet_path"),
@@ -396,6 +436,98 @@ def _raw_ref(seed_observation: Mapping[str, Any]) -> dict[str, Any]:
         "sha256": anchor.get("sha256"),
         "hash_basis": anchor.get("hash_basis"),
     }
+    if not use_bronze_attachment_records:
+        return raw_ref
+
+    key = _raw_ref_key(raw_ref)
+    attachment_record = (
+        bronze_attachment_records_by_raw_ref.get(key) if key is not None else None
+    )
+    if attachment_record is None:
+        raw_ref.update(
+            {
+                "raw_ref_kind": _RAW_PACKET_FALLBACK_REF_KIND,
+                "typed_attachment_record_status": "missing",
+                "attachment_record_residual": _MISSING_AR_LIMITATION,
+            }
+        )
+        return raw_ref
+
+    raw_ref.update(
+        {
+            "raw_ref_kind": _BRONZE_AR_RAW_REF_KIND,
+            "attachment_record_id": attachment_record.get("attachment_record_id"),
+            "attachment_record_schema_version": attachment_record.get(
+                "attachment_record_schema_version"
+            ),
+            "attachment_record_physicalization": attachment_record.get(
+                "attachment_record_physicalization"
+            ),
+            "body_ref_kind": attachment_record.get("body_ref_kind"),
+            "body_ref": attachment_record.get("body_ref"),
+            "body_sha256": attachment_record.get("body_sha256"),
+            "source_family": attachment_record.get("source_family"),
+            "source_surface": attachment_record.get("source_surface"),
+            "source_slice_ids": attachment_record.get("source_slice_ids", []),
+            "payload_kind": attachment_record.get("payload_kind"),
+            "payload_schema_version": attachment_record.get("payload_schema_version"),
+            "replay_version_pins": attachment_record.get("replay_version_pins"),
+        }
+    )
+    return raw_ref
+
+
+def _bronze_attachment_records_by_raw_ref(
+    data_root: "DataLakeRoot",
+) -> dict[tuple[str, str, str, str], Mapping[str, Any]]:
+    rows = source_surface_catalog_rows(
+        data_root,
+        source_family=_IG_BRONZE_SOURCE_FAMILY,
+        source_surface=_IG_BRONZE_SOURCE_SURFACE,
+    )
+    by_key: dict[tuple[str, str, str, str], Mapping[str, Any]] = {}
+    for row in rows["attachment_record_rows"]:
+        key = _attachment_record_key(row)
+        if key is not None:
+            by_key[key] = row
+    return by_key
+
+
+def _attachment_record_key(record: Mapping[str, Any]) -> tuple[str, str, str, str] | None:
+    packet_id = record.get("packet_id")
+    file_id = record.get("file_id")
+    relative_packet_path = record.get("relative_packet_path")
+    body_sha256 = record.get("body_sha256")
+    if not all(
+        isinstance(value, str) and value.strip()
+        for value in (packet_id, file_id, relative_packet_path, body_sha256)
+    ):
+        return None
+    return (packet_id, file_id, relative_packet_path, body_sha256)
+
+
+def _raw_ref_key(record: Mapping[str, Any]) -> tuple[str, str, str, str] | None:
+    packet_id = record.get("packet_id")
+    file_id = record.get("file_id")
+    relative_packet_path = record.get("relative_packet_path")
+    sha256 = record.get("sha256")
+    if not all(
+        isinstance(value, str) and value.strip()
+        for value in (packet_id, file_id, relative_packet_path, sha256)
+    ):
+        return None
+    return (packet_id, file_id, relative_packet_path, sha256)
+
+
+def _raw_ref_lineage_limitations(raw_ref: Mapping[str, Any]) -> list[dict[str, str]]:
+    if raw_ref.get("typed_attachment_record_status") != "missing":
+        return []
+    return [
+        {
+            "reason": "other",
+            "detail": _MISSING_AR_LIMITATION,
+        }
+    ]
 
 
 def _assert_posture_value_coupling(*, posture: str, value: Any, reason: Any, what: str) -> None:
