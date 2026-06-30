@@ -18,9 +18,11 @@ use_when:
   - Checking the R2-populated authority/workflow routing and placement closeout status.
 authority_boundary: retrieval_only
 open_next:
+  - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_bronze_mgt_baseline_declaration_v0.md
   - docs/decisions/orca_data_lake_spine_promotion_binding_v0.md
   - docs/decisions/orca_spine_first_target_structure_binding_v0.md
 stale_if:
+  - The Bronze MGT baseline declaration is amended or superseded.
   - The Data Lake medallion/gold-readiness contract is amended.
   - The data_lake spine shape or its shared_foundation kind is amended.
   - A later accepted placement decision moves the repo-structure migration planning docs into the spine.
@@ -51,6 +53,13 @@ layer.
 The binding authority is
 `docs/decisions/orca_data_lake_spine_promotion_binding_v0.md`.
 
+Current Bronze capability status is recorded in
+`orca/product/spines/data_lake/authority/core_spine_v0_data_lake_bronze_mgt_baseline_declaration_v0.md`:
+Bronze is Mini God Tier / 90-95 for typed raw-truth retrievability, not full
+God Tier. After PR #525 runner-seam enforcement, Silver may consume the public
+Bronze catalog and Attachment Record surfaces for source-backed `raw_refs`, but
+Silver does not declare Bronze GT.
+
 ## Subfolder grammar
 
 | Folder | Holds |
@@ -71,9 +80,10 @@ R2 landed the lake's authority + workflow substance:
   physicality-location contract (external data root, directory grammar, location
   invariants, durable record names, fail-closed resolution), and the three
   blocker-resolution decision contracts (raw admission + key grammar; write-boundary
-  enforcement; derived layout + index rebuild) that close the gating physicalization
-  blockers — all without selecting an engine/backend, queue, runtime, or Judgment
-  behavior.
+  enforcement; derived layout + index rebuild), plus the Bronze MGT baseline
+  declaration that marks the post-PR-525 Bronze catalog / Attachment Record
+  surface as a 90-95 typed-retrievability baseline rather than full GT — all
+  without selecting an engine/backend, queue, runtime, or Judgment behavior.
 - `workflows/` — the canonical mechanics map (the version co-authored with the
   contracts, confirmed canonical via a 3-way reconciliation), which **supersedes
   and retires** the transitional `orca/product/shared/data_lake_mechanics/` copy.

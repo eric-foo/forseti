@@ -1443,7 +1443,6 @@ direction_change_propagation:
     - not storage-engine selection
 ```
 
-
 ## From .agents/workflow-overlay/prompt-orchestration.md
 ```yaml
 direction_change_propagation:
@@ -1561,6 +1560,7 @@ direction_change_propagation:
     - not source promotion
     - not implementation authorization
 ```
+
 
 ```yaml
 direction_change_propagation:
@@ -1771,4 +1771,65 @@ direction_change_propagation:
     - not a bound/mandatory/machine-routable review lane (the convention stays provisional)
     - not runtime model routing
     - not standing implementation/code-patch authorization (per-commission only)
+```
+## From orca/product/spines/data_lake/authority/core_spine_v0_data_lake_silver_vault_record_contract_v0.md
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Silver Vault v4.1 now explicitly clarifies Creator Vault generated read-model
+    placement and sync semantics: account/content envelopes stay sibling read
+    homes, TikTok/Youtube/Instagram path examples are read-model keys only,
+    acknowledgement refs remain lane receipts/manifests rather than envelope
+    authority, relationship/source-ref examples are concrete for future
+    read-model scoping, and client carveout replicas/exports are generated from
+    Silver records and read-model manifests rather than separate capture sources
+    by default.
+  trigger: architecture_doctrine
+  related_triggers:
+    - product_doctrine
+  controlling_sources_updated:
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_silver_vault_record_contract_v0.md
+  downstream_surfaces_checked:
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_v4_1_forward_epoch_contract_v0.md
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_physicality_location_contract_v0.md
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_derived_layout_index_rebuild_contract_v0.md
+    - orca-harness/data_lake/root.py
+    - orca-harness/tests/test_data_lake_root.py
+    - docs/review-outputs/adversarial-artifact-reviews/data_lake_v4_1_root_epoch_mixed_artifact_code_review_v0.md
+  intentionally_not_updated:
+    - path: orca/product/spines/data_lake/authority/core_spine_v0_data_lake_v4_1_forward_epoch_contract_v0.md
+      reason: >
+        Already owns only the generic v4.1 folder grammar and states Creator
+        Vault is generated/non-authoritative; platform examples and carveout sync
+        belong in the Silver Vault record/read-model contract.
+    - path: orca/product/spines/data_lake/authority/core_spine_v0_data_lake_physicality_location_contract_v0.md
+      reason: >
+        Owns physical slot invariants and does not enumerate Creator Vault
+        platform keys or client-replica semantics.
+    - path: orca/product/spines/data_lake/authority/core_spine_v0_data_lake_derived_layout_index_rebuild_contract_v0.md
+      reason: >
+        Owns derived/ack addressing and rebuildability; this patch uses that
+        boundary without changing addressing or opening new derived_retrieval
+        view classes.
+    - path: orca-harness/data_lake/root.py
+      reason: >
+        Runtime already creates only the generic Creator Vault account/content
+        homes; no platform-specific folders, builder code, runner changes, or
+        live data-root mutation are authorized by this contract clarification.
+    - path: orca-harness/tests/test_data_lake_root.py
+      reason: >
+        Existing tests verify the generic skeleton from LAKE_SUBDIRECTORIES; no
+        runtime path list changed.
+  stale_language_search: >
+    rg -n "Creator Vault|creator_vault|carveout|replica|acknowledgement|tiktok|TikTok"
+    orca/product/spines/data_lake/authority orca-harness/data_lake/root.py
+    orca-harness/tests/test_data_lake_root.py
+  non_claims:
+    - not validation
+    - not readiness
+    - not implementation authorization
+    - not runner PR work
+    - not client replica implementation
+    - not live external data-root mutation
 ```

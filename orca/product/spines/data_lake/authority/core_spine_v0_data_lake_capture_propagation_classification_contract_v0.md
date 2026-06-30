@@ -76,12 +76,16 @@ This structure is doctrine-led and code-backed where the invariant is concrete.
    record a `direction_change_propagation` receipt or blocker when it changes
    durable doctrine.
 2. **Code-backed layer.** Existing packet-runner lake-seam enforcement remains
-   scoped to raw `SourceCapturePacket` producers via
+   scoped to raw `SourceCapturePacket` producers and explicit raw-packet
+   orchestrators via
    `orca-harness/tests/contract/test_capture_runner_lake_seam_coverage.py`.
    That test checks the concrete runner seam: `--data-root`, `ORCA_DATA_ROOT`
    fallback only when local output is omitted, `DataLakeRoot.resolve`,
    exclusive local/lake output modes, and `data_root=` forwarding into packet
-   writers.
+   writers. It discovers source-capture packet writers by behavior, not name
+   alone, so ASR-style writers such as `write_asr_transcript` stay covered, and
+   it pins the current Bronze-writer runner surface so additions/removals are
+   explicit.
 3. **Review layer.** Platform behavioral parity, source-family-local promotion,
    and downstream residual/gold-boundary semantics remain source-backed review
    obligations until a later owner-authorized source makes a narrower invariant
@@ -110,7 +114,7 @@ Before patching a Data Lake / Capture propagation-relevant source:
 | Change class | Propagation class | Required same-class check | Explicit non-propagation |
 | --- | --- | --- | --- |
 | Data Lake raw, by-key, derived, or medallion semantics | Generic Data Lake / downstream boundary propagation | Check Data Lake core, medallion, Silver Vault, projection doctrine, ECR submap, and Data/Cleaning boundary for raw preservation, append-only derived records, residual visibility, and Gold leakage. | Do not infer platform capture routes, Cleaning transforms, Judgment outputs, or runtime readiness from lake storage semantics. |
-| Raw `SourceCapturePacket` runner output seam | Generic packet-runner lake-seam propagation | Check raw packet-producing capture runners and `orca-harness/tests/contract/test_capture_runner_lake_seam_coverage.py` for `--data-root`, `ORCA_DATA_ROOT` fallback only when output is omitted, `DataLakeRoot.resolve`, exclusive local/lake output modes, and `data_root=` forwarding into packet writers. | Do not apply this to every runner. Offline projections, materializers, smoke/audit runners, report builders, and other non-packet entrypoints are not covered by this seam merely because they live in `orca-harness/runners/`. |
+| Raw `SourceCapturePacket` runner output seam | Generic packet-runner lake-seam propagation | Check raw packet-producing capture runners, explicit raw-packet orchestrators, and `orca-harness/tests/contract/test_capture_runner_lake_seam_coverage.py` for the current Bronze-writer surface, behavior-discovered source-capture packet writers, `--data-root`, `ORCA_DATA_ROOT` fallback only when output is omitted, `DataLakeRoot.resolve`, exclusive local/lake output modes, and `data_root=` forwarding into packet writers/sub-runners. | Do not apply this to every runner. Offline projections, materializers, smoke/audit runners, report builders, derived-only Silver writers, and other non-packet entrypoints are not covered by this seam merely because they live in `orca-harness/runners/` or touch `--data-root`. |
 | Platform behavioral projection shape | Platform behavioral parity check | Check source-family behavioral projections for projection-only/no-acquisition boundary, platform object key, canonical source selection, transcript source rollup, extraction/completeness status, residual naming, persistence/correlation anchors, and metric posture/count-candidate visibility where applicable. | Do not copy YouTube caption/watch/youtubei/ASR route mechanics into Instagram/TikTok, or copy Instagram grid/audio/deep-capture mechanics into YouTube/TikTok. |
 | Platform acquisition route or source-surface discovery | Source-family-local | Keep the route in the owning source-family Capture lane and its runner/source docs. Promote only if two non-overlapping source families prove the same platform-independent primitive and the owner accepts promotion. | Do not generalize YouTube watch metadata, captions, `youtubei`, or ASR fallback into IG/TikTok. Do not generalize Instagram reels grid DOM/passive JSON, standalone audio, deep-capture render, source-surface disagreement, or static-post view-count handling into YouTube/TikTok. |
 | Downstream consumer residual/completeness semantics | Downstream boundary propagation | Check projection doctrine, ECR, Cleaning boundary, Data Lake medallion, and any consumer read model for named residuals, missingness/posture visibility, raw-pull flags, raw/derived refs, and Gold/Judgment containment. | Do not convert residuals into prose-only warnings, success booleans, priority signals, hidden filters, or Judgment-like labels outside Judgment. |
@@ -146,10 +150,19 @@ Accepted residuals:
   lake-routing rule covering every runner. Acceptable now: only raw
   `SourceCapturePacket` producers carry raw lake truth, and the seam coverage
   test already scopes to them. Offline projections, materializers, and
-  audit/report runners write no raw truth. Remaining risk: a future non-packet
-  runner that should route into the lake is not caught by the packet-producer
+  audit/report runners write no raw truth. Remaining risk: current or future
+  non-packet lake writers, such as IG Reels deep-capture records, need their own
+  seam if the owner wants them enforced; they are not caught by the packet-producer
   seam. Upgrade trigger: a non-packet entrypoint needs lake routing, scoping its
   own seam rather than widening this bucket.
+- **Manual raw-packet orchestrator enumeration.** Foregone: static discovery of
+  every orchestrator through injected runner callables, aliases, or lane wrappers.
+  Acceptable now: current lake-wired raw-packet orchestrators are explicitly
+  listed in `BRONZE_PACKET_ORCHESTRATORS`, including Fragrantica MGT and the IG
+  Reels lane orchestrator, and the test enforces `data_root=` forwarding into
+  listed raw-packet subrunners. Remaining risk: a future orchestrator can be
+  missed until manually added. Upgrade trigger: another hidden orchestrator class
+  appears or the owner authorizes a stronger orchestrator discovery rule.
 - **No forced acquisition-route uniformity across YouTube, Instagram, TikTok, or
   future source families.** Foregone: a shared cross-platform acquisition
   primitive now. Acceptable now: acquisition routes are platform-specific
@@ -293,6 +306,53 @@ direction_change_propagation:
     - not runtime authority
     - not storage selection
     - not platform completeness
+```
+
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Tightens the code-backed packet-runner lake-seam enforcement description to match the live
+    contract test: Bronze writer coverage now includes behavior-discovered source-capture packet
+    writer functions (including ASR-style writers whose names do not end in _packet), an explicit
+    current Bronze-writer runner surface, explicit raw-packet orchestrator forwarding including
+    the current IG Reels lane orchestrator, and an accepted residual for manual orchestrator
+    enumeration. The non-propagation boundary is unchanged: this does not become a universal rule
+    for every lake-touching runner, derived-only Silver writer, audit/report runner, materializer,
+    or projection entrypoint.
+  trigger: validation_philosophy
+  related_triggers:
+    - architecture_doctrine
+  controlling_sources_updated:
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_capture_propagation_classification_contract_v0.md
+    - orca-harness/tests/contract/test_capture_runner_lake_seam_coverage.py
+  downstream_surfaces_checked:
+    - orca-harness/runners/run_fragrantica_mgt_capture.py
+    - orca-harness/runners/run_ig_reels_lane_orchestrator.py
+    - orca-harness/runners/run_source_capture_ig_reels_grid_packet.py
+    - orca-harness/runners/run_source_capture_ig_reels_audio_packet.py
+    - orca-harness/runners/run_source_capture_youtube_asr_packet.py
+    - orca-harness/source_capture/transcript/asr_packet.py
+    - orca-harness/source_capture/transcript/ig_reels_audio_packet.py
+    - orca-harness/source_capture/transcript/caption_packet.py
+    - orca-harness/source_capture/youtube_watch_packet.py
+  intentionally_not_updated:
+    - path: docs/workflows/orca_repo_map_v0.md
+      reason: >
+        The map already routes packet-runner lake-seam questions through this contract and the
+        test path; no new source family, top-level route, or artifact home is introduced.
+    - path: orca/product/spines/data_lake/authority/core_spine_v0_data_lake_core_contract_v0.md
+      reason: >
+        Raw preservation and by-key findability are unchanged. This patch tightens runner-seam
+        coverage only.
+  verification: >
+    `python -m pytest -q orca-harness\tests\contract\test_capture_runner_lake_seam_coverage.py`
+    passed with 9 tests after the enforcement change.
+  non_claims:
+    - not validation of live source access
+    - not proof every lake-touching runner is a Bronze writer
+    - not a universal runner-output rule
+    - not Silver, projection, ECR, Cleaning, or Judgment readiness
 ```
 
 Older receipts, when cycled out, belong in `docs/decisions/dcp_receipts_archive_v0.md`.

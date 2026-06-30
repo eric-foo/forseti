@@ -11,9 +11,11 @@ if __package__ in {None, ""}:
 
 from capture_spine.creator_profile_current.instagram_metric_seed import (
     build_instagram_reels_creator_metric_seed_from_files,
+    discover_instagram_reels_projection_paths_from_lake,
     dump_instagram_reels_creator_metric_seed,
     load_json,
 )
+from data_lake.root import DataLakeRoot
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -53,8 +55,18 @@ def _build_parser() -> argparse.ArgumentParser:
         "--projection",
         type=Path,
         action="append",
-        required=True,
+        default=[],
         help="IG reels-grid projection JSON file. Repeat for multiple projections.",
+    )
+    parser.add_argument(
+        "--from-lake",
+        action="store_true",
+        help="Discover IG reels-grid projections from the data lake derived layout.",
+    )
+    parser.add_argument(
+        "--data-root",
+        type=Path,
+        help="Data lake root for --from-lake. Defaults to ORCA_DATA_ROOT/config resolution.",
     )
     parser.add_argument(
         "--generated-at-utc",
@@ -71,11 +83,22 @@ def main(argv: Sequence[str] | None = None) -> int:
     if args.check == args.write:
         parser.error("choose exactly one of --check or --write")
 
+    if args.from_lake and args.projection:
+        parser.error("--from-lake cannot be combined with explicit --projection files")
+    if args.data_root is not None and not args.from_lake:
+        parser.error("--data-root requires --from-lake")
+    if not args.from_lake and not args.projection:
+        parser.error("provide at least one --projection or use --from-lake")
+
     generated_at = args.generated_at_utc or _existing_generated_at(args.output) or _now_utc()
     try:
+        projection_paths = list(args.projection)
+        if args.from_lake:
+            data_root = DataLakeRoot.resolve(explicit=args.data_root)
+            projection_paths = discover_instagram_reels_projection_paths_from_lake(data_root)
         account_document = load_json(args.account_ledger)
         document = build_instagram_reels_creator_metric_seed_from_files(
-            projection_paths=args.projection,
+            projection_paths=projection_paths,
             account_ledger=account_document["creator_public_handle_linkage_ledger"],
             generated_at_utc=generated_at,
         )
