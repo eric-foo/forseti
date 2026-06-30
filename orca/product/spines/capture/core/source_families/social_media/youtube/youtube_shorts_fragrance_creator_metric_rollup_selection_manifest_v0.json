@@ -1,0 +1,280 @@
+{
+  "creator_metric_rollup_selection_manifest": {
+    "entries": [
+      {
+        "profile_subject_id": "acct_yt_fragrance_001",
+        "seen_content_hashes": [
+          "sha256:1fe62f4bc96c5ba76c31ebe24a24311ab230e8efa21d2d4042d987651360fcb0"
+        ],
+        "selected_content_hash": "sha256:1fe62f4bc96c5ba76c31ebe24a24311ab230e8efa21d2d4042d987651360fcb0",
+        "selected_record_id": "01KWCZ28MH5C52NF99X54069QD.json",
+        "selection_run_id": 1
+      },
+      {
+        "profile_subject_id": "acct_yt_fragrance_002",
+        "seen_content_hashes": [
+          "sha256:65954e67ac125b7e3082c28105b0981facf2598d4daa603c8f1cdffbc3b5b7cc"
+        ],
+        "selected_content_hash": "sha256:65954e67ac125b7e3082c28105b0981facf2598d4daa603c8f1cdffbc3b5b7cc",
+        "selected_record_id": "01KWCZ28MNV6MY16YJK100FX34.json",
+        "selection_run_id": 1
+      },
+      {
+        "profile_subject_id": "acct_yt_fragrance_003",
+        "seen_content_hashes": [
+          "sha256:c9cd3b50d557b365d376971c557a926899ec8fe2201a73bd8e8b0c300e2f174f"
+        ],
+        "selected_content_hash": "sha256:c9cd3b50d557b365d376971c557a926899ec8fe2201a73bd8e8b0c300e2f174f",
+        "selected_record_id": "01KWCZ28MSB97FKH84ETJMYGBD.json",
+        "selection_run_id": 1
+      },
+      {
+        "profile_subject_id": "acct_yt_fragrance_004",
+        "seen_content_hashes": [
+          "sha256:4cb7fdd612c02dbb947da33a230b327ded188ed7c9ffbe83aeea8549146dac89"
+        ],
+        "selected_content_hash": "sha256:4cb7fdd612c02dbb947da33a230b327ded188ed7c9ffbe83aeea8549146dac89",
+        "selected_record_id": "01KWCZ28MWG9KNZ82EMPF5JCYS.json",
+        "selection_run_id": 1
+      },
+      {
+        "profile_subject_id": "acct_yt_fragrance_005",
+        "seen_content_hashes": [
+          "sha256:137eecff75653e9d98cfd21a39a4eaea2d55a3e637987e873e52ab4d24887a1c"
+        ],
+        "selected_content_hash": "sha256:137eecff75653e9d98cfd21a39a4eaea2d55a3e637987e873e52ab4d24887a1c",
+        "selected_record_id": "01KWCZ28MZ81FTJ782HMQ168NP.json",
+        "selection_run_id": 1
+      },
+      {
+        "profile_subject_id": "acct_yt_fragrance_006",
+        "seen_content_hashes": [
+          "sha256:a57a0706bcf7e5124dc154a514aaa88f8ed5c7f6909ce89f869dba764c4387b0"
+        ],
+        "selected_content_hash": "sha256:a57a0706bcf7e5124dc154a514aaa88f8ed5c7f6909ce89f869dba764c4387b0",
+        "selected_record_id": "01KWCZ28N2JA3Y59MMPMN2H7JP.json",
+        "selection_run_id": 1
+      },
+      {
+        "profile_subject_id": "acct_yt_fragrance_007",
+        "seen_content_hashes": [
+          "sha256:7b4e13a53389f4093366ba9269f0abc2dc8c91f66c7459272fe9e909e8b623b1"
+        ],
+        "selected_content_hash": "sha256:7b4e13a53389f4093366ba9269f0abc2dc8c91f66c7459272fe9e909e8b623b1",
+        "selected_record_id": "01KWCZ28N5DE43APMVADJVK2H2.json",
+        "selection_run_id": 1
+      },
+      {
+        "profile_subject_id": "acct_yt_fragrance_008",
+        "seen_content_hashes": [
+          "sha256:248f32c995afc935d7cade76be2676ba07dd2156358b1e67492c24f2fb829070"
+        ],
+        "selected_content_hash": "sha256:248f32c995afc935d7cade76be2676ba07dd2156358b1e67492c24f2fb829070",
+        "selected_record_id": "01KWCZ28N81PA73JW1WDTX3W2T.json",
+        "selection_run_id": 1
+      },
+      {
+        "profile_subject_id": "acct_yt_fragrance_009",
+        "seen_content_hashes": [
+          "sha256:4782b5102bf7219b13b2ca733a028966c915dc05ba2e618ae4fe789c6b481ec9"
+        ],
+        "selected_content_hash": "sha256:4782b5102bf7219b13b2ca733a028966c915dc05ba2e618ae4fe789c6b481ec9",
+        "selected_record_id": "01KWCZ28NCV9PGWG87XJJ5SET1.json",
+        "selection_run_id": 1
+      },
+      {
+        "profile_subject_id": "acct_yt_fragrance_010",
+        "seen_content_hashes": [
+          "sha256:e1e0adfb41a723b9588b2d02116663f430c7b6ad8b27475191782f155b84bf2b"
+        ],
+        "selected_content_hash": "sha256:e1e0adfb41a723b9588b2d02116663f430c7b6ad8b27475191782f155b84bf2b",
+        "selected_record_id": "01KWCZ28NFD2MJ5ABVWY74GKVH.json",
+        "selection_run_id": 1
+      },
+      {
+        "profile_subject_id": "acct_yt_fragrance_011",
+        "seen_content_hashes": [
+          "sha256:50dd970571cf5061d5de0e376887d9c1480554ca175aefb4311f5ff4b6c40c29"
+        ],
+        "selected_content_hash": "sha256:50dd970571cf5061d5de0e376887d9c1480554ca175aefb4311f5ff4b6c40c29",
+        "selected_record_id": "01KWCZ28NJ380MCQGRCSSFFJN7.json",
+        "selection_run_id": 1
+      },
+      {
+        "profile_subject_id": "acct_yt_fragrance_012",
+        "seen_content_hashes": [
+          "sha256:9fe66d348ae281e3b2e42daee01f6a0e7ed9344804d66fce1e720da19a13ca09"
+        ],
+        "selected_content_hash": "sha256:9fe66d348ae281e3b2e42daee01f6a0e7ed9344804d66fce1e720da19a13ca09",
+        "selected_record_id": "01KWCZ28NN9KS7GX9XGYQW57K5.json",
+        "selection_run_id": 1
+      },
+      {
+        "profile_subject_id": "acct_yt_fragrance_013",
+        "seen_content_hashes": [
+          "sha256:1e4efa574ea39ad96953e4afd1f6f2498cb3091759740d9a1c2be30f12396b4b"
+        ],
+        "selected_content_hash": "sha256:1e4efa574ea39ad96953e4afd1f6f2498cb3091759740d9a1c2be30f12396b4b",
+        "selected_record_id": "01KWCZ28NRDV0A3DDPB4855FS6.json",
+        "selection_run_id": 1
+      },
+      {
+        "profile_subject_id": "acct_yt_fragrance_014",
+        "seen_content_hashes": [
+          "sha256:2933be384f8744f8e80e80a0d723709ca0e8621e8e820354ffbcfd9eb5ff0e2e"
+        ],
+        "selected_content_hash": "sha256:2933be384f8744f8e80e80a0d723709ca0e8621e8e820354ffbcfd9eb5ff0e2e",
+        "selected_record_id": "01KWCZ28NVX9AQZZQZK1NNB7MB.json",
+        "selection_run_id": 1
+      },
+      {
+        "profile_subject_id": "acct_yt_fragrance_015",
+        "seen_content_hashes": [
+          "sha256:ed6506c21a6cd05ac9ba79229237e5502e8b4f20d8d8586b31b2d4ce4ca0aa01"
+        ],
+        "selected_content_hash": "sha256:ed6506c21a6cd05ac9ba79229237e5502e8b4f20d8d8586b31b2d4ce4ca0aa01",
+        "selected_record_id": "01KWCZ28NZCXNYQ5TF0VR5VW9J.json",
+        "selection_run_id": 1
+      },
+      {
+        "profile_subject_id": "acct_yt_fragrance_016",
+        "seen_content_hashes": [
+          "sha256:b8b2670bb6c143ce56b1db551b3dda8d48e8bee69d5d0677f149b50a6e1fc9b3"
+        ],
+        "selected_content_hash": "sha256:b8b2670bb6c143ce56b1db551b3dda8d48e8bee69d5d0677f149b50a6e1fc9b3",
+        "selected_record_id": "01KWCZ28P3GTFMHQXMZNJQCWKF.json",
+        "selection_run_id": 1
+      },
+      {
+        "profile_subject_id": "acct_yt_fragrance_017",
+        "seen_content_hashes": [
+          "sha256:524d60fab61e8fe1d2d798929f08c4fa632c720bf321d952a5c999ee770283cd"
+        ],
+        "selected_content_hash": "sha256:524d60fab61e8fe1d2d798929f08c4fa632c720bf321d952a5c999ee770283cd",
+        "selected_record_id": "01KWCZ28P6VV19SJ2N3SDKYPVQ.json",
+        "selection_run_id": 1
+      },
+      {
+        "profile_subject_id": "acct_yt_fragrance_018",
+        "seen_content_hashes": [
+          "sha256:37d3282296d30216c1aa6c73663fd61264ae78191e9d373dc6b3477c021d9fce"
+        ],
+        "selected_content_hash": "sha256:37d3282296d30216c1aa6c73663fd61264ae78191e9d373dc6b3477c021d9fce",
+        "selected_record_id": "01KWCZ28P9T81PR64GRPPBX9QA.json",
+        "selection_run_id": 1
+      },
+      {
+        "profile_subject_id": "acct_yt_fragrance_020",
+        "seen_content_hashes": [
+          "sha256:5fa7a0c54d936d9c6735b7693760a8baae77dbf75c7b87e01904702b83ceedd0"
+        ],
+        "selected_content_hash": "sha256:5fa7a0c54d936d9c6735b7693760a8baae77dbf75c7b87e01904702b83ceedd0",
+        "selected_record_id": "01KWCZ28PC9SBRRW8HXK5GJ9C2.json",
+        "selection_run_id": 1
+      },
+      {
+        "profile_subject_id": "acct_yt_fragrance_021",
+        "seen_content_hashes": [
+          "sha256:1ef9a0b85956d24e111ab09b77b00fea75cd3bbe44772c869cefda079b3db7e7"
+        ],
+        "selected_content_hash": "sha256:1ef9a0b85956d24e111ab09b77b00fea75cd3bbe44772c869cefda079b3db7e7",
+        "selected_record_id": "01KWCZ28PFNK0YXSKKXG7HZCC1.json",
+        "selection_run_id": 1
+      },
+      {
+        "profile_subject_id": "acct_yt_fragrance_022",
+        "seen_content_hashes": [
+          "sha256:57a5a92e0e741787b79a1ef1d5d7fa12ddccc5fa1794436778cd0ab6c71e89dd"
+        ],
+        "selected_content_hash": "sha256:57a5a92e0e741787b79a1ef1d5d7fa12ddccc5fa1794436778cd0ab6c71e89dd",
+        "selected_record_id": "01KWCZ28PKNBERQD7PT1C7XMEC.json",
+        "selection_run_id": 1
+      },
+      {
+        "profile_subject_id": "acct_yt_fragrance_023",
+        "seen_content_hashes": [
+          "sha256:fae17f180d99be4a55115e507e4bef53e0602f2dd2c3aede8fc86a7c7bd5d13e"
+        ],
+        "selected_content_hash": "sha256:fae17f180d99be4a55115e507e4bef53e0602f2dd2c3aede8fc86a7c7bd5d13e",
+        "selected_record_id": "01KWCZ28PP30KKDSSX2TM5QADK.json",
+        "selection_run_id": 1
+      },
+      {
+        "profile_subject_id": "acct_yt_fragrance_024",
+        "seen_content_hashes": [
+          "sha256:9672b8a625c3fde1b4cced67af60b2eefb486bd5e537d093d7035a0eda921321"
+        ],
+        "selected_content_hash": "sha256:9672b8a625c3fde1b4cced67af60b2eefb486bd5e537d093d7035a0eda921321",
+        "selected_record_id": "01KWCZ28PSBFGKXCPZSKAXDC0R.json",
+        "selection_run_id": 1
+      },
+      {
+        "profile_subject_id": "acct_yt_fragrance_025",
+        "seen_content_hashes": [
+          "sha256:4898d8bdccacb680a1031bf63d9198dc8079c0d2a853449b0fae159e8a301a75"
+        ],
+        "selected_content_hash": "sha256:4898d8bdccacb680a1031bf63d9198dc8079c0d2a853449b0fae159e8a301a75",
+        "selected_record_id": "01KWCZ28PXQ1NM2S736K0FXRSJ.json",
+        "selection_run_id": 1
+      },
+      {
+        "profile_subject_id": "acct_yt_fragrance_026",
+        "seen_content_hashes": [
+          "sha256:d89bd86035d898cd1730f9faee23aafea0012d53d4b70b0a1438705b54a43053"
+        ],
+        "selected_content_hash": "sha256:d89bd86035d898cd1730f9faee23aafea0012d53d4b70b0a1438705b54a43053",
+        "selected_record_id": "01KWCZ28Q0ZKG1P6BZNYDXA511.json",
+        "selection_run_id": 1
+      },
+      {
+        "profile_subject_id": "acct_yt_fragrance_027",
+        "seen_content_hashes": [
+          "sha256:faae1a009379f1ec8c5fde1aa106d5a228c4f8edf67be8c1dedc75b2f06e9619"
+        ],
+        "selected_content_hash": "sha256:faae1a009379f1ec8c5fde1aa106d5a228c4f8edf67be8c1dedc75b2f06e9619",
+        "selected_record_id": "01KWCZ28Q3BMQYZ6Q1MEBWDAGD.json",
+        "selection_run_id": 1
+      },
+      {
+        "profile_subject_id": "acct_yt_fragrance_028",
+        "seen_content_hashes": [
+          "sha256:aa5f964466274ade5511968484b039d59f81986d2fc626c1d0c84d63cb42bc25"
+        ],
+        "selected_content_hash": "sha256:aa5f964466274ade5511968484b039d59f81986d2fc626c1d0c84d63cb42bc25",
+        "selected_record_id": "01KWCZ28Q6F1VS71D7TJ1693E6.json",
+        "selection_run_id": 1
+      },
+      {
+        "profile_subject_id": "acct_yt_fragrance_029",
+        "seen_content_hashes": [
+          "sha256:18e879c78315a775b29937ed685a6f326a1280895081b0d1619576ea1bfb125e"
+        ],
+        "selected_content_hash": "sha256:18e879c78315a775b29937ed685a6f326a1280895081b0d1619576ea1bfb125e",
+        "selected_record_id": "01KWCZ28Q9SYJQ8P1CG6ZRV3SF.json",
+        "selection_run_id": 1
+      },
+      {
+        "profile_subject_id": "acct_yt_fragrance_030",
+        "seen_content_hashes": [
+          "sha256:d0d2d5acd705e93d62e9e186122ad3fff395bc00bf3d2cdb07e8576817f47379"
+        ],
+        "selected_content_hash": "sha256:d0d2d5acd705e93d62e9e186122ad3fff395bc00bf3d2cdb07e8576817f47379",
+        "selected_record_id": "01KWCZ28QDMDFCS682KNPEJZ5R.json",
+        "selection_run_id": 1
+      },
+      {
+        "profile_subject_id": "acct_yt_fragrance_031",
+        "seen_content_hashes": [
+          "sha256:c13b3936899212c5e44c5cbeae5ffb9861eae07d31b12e6710e209ab7a3c617b"
+        ],
+        "selected_content_hash": "sha256:c13b3936899212c5e44c5cbeae5ffb9861eae07d31b12e6710e209ab7a3c617b",
+        "selected_record_id": "01KWCZ28QFWZN9ACR2XZX2YJTC.json",
+        "selection_run_id": 1
+      }
+    ],
+    "parent_manifest_sha256": null,
+    "platform_scope": "youtube",
+    "schema_version": "creator_metric_rollup_selection_manifest_v0",
+    "selection_run_id": 1
+  }
+}
