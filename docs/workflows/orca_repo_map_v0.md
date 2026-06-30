@@ -531,6 +531,13 @@ by the authorization decisions named below; surfaces outside them (production
 runtime, commercial fetch, broad crawling, ECR, Cleaning, Judgment
 design) remain gated.
 
+Current Parfumo native fragrance route (2026-06-30): direct-HTTP capture
+wrapper `orca-harness/runners/run_parfumo_mgt_capture.py` (preflightable;
+live network capture still requires owner authorization), mechanical projection
+`orca-harness/source_capture/parfumo_projection.py` plus
+`orca-harness/runners/run_parfumo_projection.py`, and Cleaning audit/Silver
+adapters `orca-harness/cleaning/parfumo.py` and `orca-harness/cleaning/parfumo_lake.py`; tests live in `orca-harness/tests/test_parfumo_native_pipeline_lake.py` and `orca-harness/tests/unit/test_parfumo_*`. Basenotes remains access-blocked; no anti-bot evasion or Silver-via-raw exception is authorized by this map entry.
+
 | Path | Use for |
 | --- | --- |
 | `orca-harness/capture_spine/` | Capture-spine planning/validation/materialization helpers: Reddit Graph Frontier, LinkedIn lane/frontier validators, `creator_public_handle_linkage/` for the static public-handle linkage ledger validator, `youtube_creator_observation/` for the YouTube creator observation ledger rebuild/live-lake verifier, and `creator_profile_current/` for deriving the checked-in creator-profile-current view from sibling account-linkage and metric-seed ledgers. Navigation context only; not live capture, runtime readiness, SQLite adoption, person identity proof, or a claim that all future metric rollups are source-backed. |
