@@ -4,13 +4,13 @@
 retrieval_header_version: 1
 artifact_role: Product architecture declaration
 scope: >
-  Declares the post-PR-520 Bronze lake baseline as Mini God Tier / 90-95
+  Declares the post-PR-525 Bronze lake baseline as Mini God Tier / 90-95
   typed raw-truth retrievability, while explicitly refusing a full God Tier
   claim.
 use_when:
   - Deciding whether downstream Silver lanes may consume the current Bronze catalog and Attachment Record surfaces.
   - Checking whether Bronze may be described as full God Tier.
-  - Planning the next Bronze/Silver convergence unit after PR #520.
+  - Planning the next Bronze/Silver convergence unit after PR #525.
 authority_boundary: retrieval_only
 open_next:
   - docs/decisions/orca_mini_god_tier_doctrine_v0.md
@@ -30,6 +30,12 @@ stale_if:
 
 Bronze is declared Mini God Tier / 90-95 for the current typed raw-truth
 retrievability slice. It is not declared full God Tier.
+
+As of PR #525, this declaration includes the runner-enforcement pass that made
+current lake-writing runners point at the Bronze seam contract or carry explicit
+classification as a non-raw-packet/manual-orchestrator residual. The baseline
+marker remains `bronze_mgt_baseline_recorded_v0`; the post-PR-525 change
+reaffirms the declaration rather than minting a new runtime status enum.
 
 This declaration is architecture and routing doctrine. It is not validation,
 readiness, proof, implementation authorization, storage-engine selection,
@@ -71,12 +77,45 @@ Full God Tier is intentionally not claimed because material residuals remain:
 | No incumbent-field migration/replay | Historical direct fields remain legacy-readable and transitional. | A separately authorized dual-read or replay lane closes migration mechanics. |
 | No full source-family semantic registry | Bronze records generic payload kind and universal facets; source-specific semantic extractors remain opt-in. | Multiple source families need a shared registry and the lake-core-field promotion rule is satisfied. |
 | No derived-result physical home closeout | Bronze raw retrievability is stronger than before, but downstream derived-store and acknowledgement physical homes remain separately governed. | The derived layout/index rebuild and write-boundary lanes close with code/tests. |
-| No live-lake coverage proof for every lane | Tests cover generic future surfaces and current IG/Reddit fixtures, but not every active/future capture family. | Each lake-interacting lane rebases to this baseline and proves its own consumption path. |
+| No live-lake coverage proof for every lane | Tests cover generic future surfaces, current IG/Reddit fixtures, and current runner seam coverage, but not every active/future capture family. | Each lake-interacting lane rebases to this baseline and proves its own consumption path. |
 
 These residuals are accepted under the Mini God Tier doctrine because the
 baseline captures most of the immediate value: typed discoverability,
 hash-checkable replay, source-surface coordination, and future-family
 adaptability without taking on the lock-in of full storage migration.
+
+## Full God Tier Upgrade Path And Worth
+
+Full Bronze God Tier is not a Silver prerequisite. Silver should now consume the
+public Bronze catalog and Attachment Record surfaces; that consumer pressure is
+the right way to expose which Bronze residuals are actually expensive.
+
+To upgrade Bronze from MGT to full GT, the remaining material work is:
+
+1. Replace manual runner/orchestrator enumeration with a deterministic discovery
+   gate for all raw-packet writers and all explicitly non-raw-packet lake
+   touchpoints.
+2. Select Manifest v2 or an equivalent packet-index serialization and migration
+   path, including dual-read/replay rules for legacy packet material.
+3. Select the final Attachment Record body layout or backend posture, including
+   immutable hash verification, retention/lawful-erasure posture, and migration
+   mechanics.
+4. Promote the catalog/availability/index rebuild checks into a lake-doctor or
+   CI-owned gate over representative fixture lakes and real lane fixtures.
+5. Prove at least one Silver producer consumes Bronze by catalog/AR helper, not
+   raw folder semantics, and carries verified refs into Silver `raw_refs`.
+6. Repeat that consumer proof across enough source families to validate the
+   generic model without promoting source-family fields into lake core.
+7. Run de-correlated review on the full Bronze/Silver contract and code path
+   before any full GT claim.
+
+The long-term answer is yes, full GT is likely worth it once scale, query
+latency, compliance posture, or external reliability promises make the residuals
+operationally expensive. It is not worth paying the full cost before Silver
+convergence because MGT deliberately avoided irreversible layout/backend choices;
+switching later should mostly cost migration/replay and stricter discovery
+coverage, not a semantic rewrite, if downstream lanes honor the public Bronze
+surfaces now.
 
 ## Silver Consumption Boundary
 
@@ -121,12 +160,13 @@ the table above.
 ```yaml
 direction_change_propagation:
   doctrine_changed: >
-    Data Lake Bronze now has an explicit post-PR-520 Mini God Tier / 90-95
+    Data Lake Bronze now has an explicit post-PR-525 Mini God Tier / 90-95
     baseline declaration for typed raw-truth retrievability: Silver may consume
-    the public Bronze catalog and Attachment Record surfaces, but Bronze is not
-    full God Tier and keeps named residuals for Manifest v2, body-store layout,
-    backend/engine selection, incumbent-field migration/replay, source-family
-    semantic registry, derived-result physical home, and all-lane live coverage.
+    the public Bronze catalog and Attachment Record surfaces after runner-seam
+    enforcement, but Bronze is not full God Tier and keeps named residuals for
+    Manifest v2, body-store layout, backend/engine selection, incumbent-field
+    migration/replay, source-family semantic registry, derived-result physical
+    home, deterministic all-runner discovery, and all-lane live coverage.
   trigger: architecture_doctrine
   related_triggers:
     - workflow_authority
