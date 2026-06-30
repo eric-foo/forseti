@@ -45,7 +45,7 @@ from capture_spine.creator_profile_current.instagram_metric_seed import (
     build_instagram_reels_creator_metric_seed_from_files,
 )
 from harness_utils import generate_ulid
-from data_lake.canonical_json import canonical_record_bytes as _json_bytes
+from data_lake.silver_record import append_silver_record
 
 if TYPE_CHECKING:
     from data_lake.root import DataLakeRoot
@@ -130,12 +130,12 @@ def derive_creator_metric_silver_records_from_projections(
     ref_by_seed_observation_id: dict[str, dict[str, str]] = {}
     for seed_observation in seed["metric_observations"]:
         record = build_metric_observation_record(seed_observation=seed_observation)
-        path = data_root.append_record(
-            subtree="derived",
+        path = append_silver_record(
+            data_root,
             raw_anchor=_require_source_packet_id(seed_observation),
             lane=METRIC_OBSERVATION_LANE,
             record_id=record["record_id"],
-            data=_json_bytes(record),
+            record=record,
         )
         observation_records.append(record)
         observation_paths.append(path)
@@ -155,12 +155,12 @@ def derive_creator_metric_silver_records_from_projections(
             account_handle=handle_by_account_id.get(seed_rollup["profile_subject_id"]),
             raw_anchor=rollup_raw_anchor,
         )
-        path = data_root.append_record(
-            subtree="derived",
+        path = append_silver_record(
+            data_root,
             raw_anchor=rollup_raw_anchor,
             lane=METRIC_ROLLUP_LANE,
             record_id=record["record_id"],
-            data=_json_bytes(record),
+            record=record,
         )
         rollup_records.append(record)
         rollup_paths.append(path)

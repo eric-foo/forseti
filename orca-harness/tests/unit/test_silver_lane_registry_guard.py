@@ -112,14 +112,16 @@ def test_front_door_exemption_is_limited_to_append_silver_record() -> None:
 
 def test_registry_pins_envelope_lanes_and_pending_baseline() -> None:
     registry = _load_registry()
-    pending = {"creator_metric_silver", "creator_metric_rollup_silver"}
     assert "cleaning_fragrantica_silver" in registry.SILVER_ENVELOPE_LANES
-    # Exact set (not subset): a new pending lane cannot be grandfathered unnoticed.
-    assert set(registry.FRONT_DOOR_PENDING) == pending
-    assert set(registry.FRONT_DOOR_PENDING_BASELINE) == pending
+    # FRONT_DOOR_PENDING is EMPTY since the Batch-3 creator-metric migration: every
+    # silver_envelope lane now writes through the validating front-door, so nothing is
+    # exempt. The exact-set check (pending == baseline) still guards a silent re-add.
+    assert registry.FRONT_DOOR_PENDING == {}
+    assert set(registry.FRONT_DOOR_PENDING_BASELINE) == set()
     assert registry.validate_registry() == []
     assert all(reason.strip() for reason in registry.FRONT_DOOR_PENDING.values())
-    # The Fragrantica silver lane is already on the front-door -- it must NOT be pending.
-    assert "cleaning_fragrantica_silver" not in registry.FRONT_DOOR_PENDING
-    # Every pending lane is a real envelope lane (no stale baseline entries).
+    # The creator-metric lanes are real envelope lanes but are NOT pending (migrated).
+    assert "creator_metric_silver" in registry.SILVER_ENVELOPE_LANES
+    assert "creator_metric_silver" not in registry.FRONT_DOOR_PENDING
+    # Every pending lane (none) is a real envelope lane.
     assert set(registry.FRONT_DOOR_PENDING) <= set(registry.SILVER_ENVELOPE_LANES)

@@ -114,7 +114,30 @@ def test_validate_rejects_non_observed_metric_without_reason() -> None:
     observation = record["payload"]["observation"]
     observation["metric_posture"]["kind"] = "unavailable_with_reason"
     observation["metric_value"] = None
-    with pytest.raises(SilverRecordError, match="requires a posture reason_code"):
+    with pytest.raises(SilverRecordError, match="requires a posture reason"):
+        validate_silver_vault_record(record)
+
+
+def test_validate_accepts_non_observed_metric_with_reason_detail() -> None:
+    # The contract requires "a reason is present", not specifically reason_code; the
+    # controlled signal is the posture kind. A non-observed metric whose reason is in
+    # reason_detail (the creator_metric shape) is valid and must pass the front-door.
+    record = _metric_record()
+    observation = record["payload"]["observation"]
+    observation["metric_posture"] = {
+        "kind": "unavailable_with_reason",
+        "reason_code": None,
+        "reason_detail": "metric not rendered in the captured surface",
+    }
+    observation["metric_value"] = None
+    validate_silver_vault_record(record)
+
+
+def test_validate_rejects_observed_metric_with_reason_detail() -> None:
+    # observed => both reason fields null (contract: "reason fields are absent/null").
+    record = _metric_record()
+    record["payload"]["observation"]["metric_posture"]["reason_detail"] = "should not be here"
+    with pytest.raises(SilverRecordError, match="must not carry a posture reason"):
         validate_silver_vault_record(record)
 
 
