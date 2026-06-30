@@ -539,6 +539,11 @@ def _build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Package local Chrome-extension rendered artifacts instead of running direct HTTP.",
     )
+    parser.add_argument(
+        "--direct-http",
+        action="store_true",
+        help="Run the direct-HTTP canary/fallback route explicitly.",
+    )
     parser.add_argument("--rendered-dom", type=Path, default=None)
     parser.add_argument("--visible-text", type=Path, default=None)
     parser.add_argument("--route-receipt", type=Path, default=None)
@@ -570,6 +575,9 @@ def main(argv: Sequence[str] | None = None) -> int:
         if args.preflight_only:
             print(preflight_parfumo_mgt_capture(url=args.url, output_root=args.output_root))
             return 0
+
+        if args.targeted_rendered == args.direct_http:
+            raise ValueError("choose exactly one capture route: --targeted-rendered or --direct-http")
 
         data_root = None
         data_root_requested = args.data_root is not None or os.environ.get("ORCA_DATA_ROOT")

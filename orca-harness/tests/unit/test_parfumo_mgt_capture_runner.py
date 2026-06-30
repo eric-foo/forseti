@@ -36,6 +36,13 @@ def test_parfumo_capture_rejects_non_product_url(tmp_path: Path) -> None:
         preflight_parfumo_mgt_capture(url="https://www.parfumo.com/Users/rimazy", output_root=tmp_path / "out")
 
 
+def test_parfumo_cli_requires_explicit_capture_route(tmp_path: Path) -> None:
+    with pytest.raises(SystemExit) as exc_info:
+        runner_module.main(["--url", _LOCATOR, "--output-root", str(tmp_path / "out")])
+
+    assert exc_info.value.code == 2
+
+
 def test_parfumo_capture_runner_uses_injected_http_runner_without_network(tmp_path: Path) -> None:
     calls: list[dict[str, object]] = []
 
@@ -95,7 +102,7 @@ def test_parfumo_cli_uses_orca_data_root_env_without_losing_output_root(
     monkeypatch.setattr(runner_module, "run_parfumo_mgt_capture", fake_run_parfumo_mgt_capture)
 
     output_root = tmp_path / "out"
-    exit_code = runner_module.main(["--url", _LOCATOR, "--output-root", str(output_root)])
+    exit_code = runner_module.main(["--direct-http", "--url", _LOCATOR, "--output-root", str(output_root)])
 
     assert exit_code == 0
     assert resolve_calls == [None]

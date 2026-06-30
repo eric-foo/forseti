@@ -120,6 +120,42 @@ def test_builds_parfumo_projection_from_targeted_rendered_packet_without_slice_d
     assert statement.source_visible_fields["statement_text"] == "Airy amber trail."
 
 
+def test_targeted_projection_parses_live_rendered_parfumo_cards(tmp_path: Path) -> None:
+    packet_dir = _write_targeted_packet(tmp_path, html=_LIVE_RENDERED_HTML)
+
+    projection = build_parfumo_projection_from_packet_directory(packet_or_manifest_path=packet_dir)
+
+    assert projection.loss_ledger.preserved_review_cards == 1
+    assert projection.loss_ledger.preserved_statements == 1
+
+    review = next(row for row in projection.rows if row.row_kind == "fragrance_review_card_current_window")
+    assert review.raw_ref.slice_id == "parfumo_targeted:review_source_visible_high_rating"
+    assert review.source_visible_fields["review_id"] == "258984"
+    assert review.source_visible_fields["author_display_name"] == "NoirAlethea"
+    assert review.source_visible_fields["date_published"] == "2023-06-26"
+    assert review.source_visible_fields["date_display_text"] == "06/26/2023"
+    assert review.source_visible_fields["rating"] == 10.0
+    assert review.source_visible_fields["tab_label"] == "Positive"
+    assert review.source_visible_fields["review_text"] == (
+        "Due to the way BR540 makes me feel, I can only imagine black magic."
+    )
+    assert review.source_visible_fields["source_item_url"].endswith("/reviews/258984")
+
+    statement = next(
+        row for row in projection.rows if row.row_kind == "fragrance_statement_current_window"
+    )
+    assert statement.raw_ref.slice_id == "parfumo_targeted:statement_latest_recent"
+    assert statement.source_visible_fields["statement_id"] == "2397523"
+    assert statement.source_visible_fields["author_display_name"] == "Ceesie"
+    assert statement.source_visible_fields["date_published"] is None
+    assert statement.source_visible_fields["date_display_text"] == "6 months ago"
+    assert statement.source_visible_fields["rating"] == 4.0
+    assert statement.source_visible_fields["statement_text"] == (
+        "It just does not add up in my mind. It is a scrubber for me."
+    )
+    assert statement.source_visible_fields["source_item_url"].endswith("/statements/2397523")
+
+
 def test_targeted_projection_residualizes_rating_buckets_without_source_visible_rating(
     tmp_path: Path,
 ) -> None:
@@ -361,6 +397,53 @@ _TARGETED_HTML = f"""
       <time datetime="2026-06-24">06/24/26</time>
       <p data-role="statement-text">Airy amber trail.</p>
     </article>
+  </main>
+</body></html>
+"""
+
+_LIVE_RENDERED_HTML = f"""
+<html><head>
+  <link rel="canonical" href="{_LOCATOR}"/>
+  <title>Baccarat Rouge 540 by Maison Francis Kurkdjian (Eau de Parfum) & Perfume Facts</title>
+</head><body>
+  <main data-perfume-id="67720" data-rating-count="5179" data-review-count="369"
+        data-statement-count="1390">
+    <div id="reviews_holder">
+      <nav class="flex ptabs">
+        <div class="action_reviews_order" data-o="order_date_desc"><span>Latest</span></div>
+        <div class="active action_reviews_order" data-o="order_scent_desc"><span>Positive</span></div>
+        <div class="action_reviews_order" data-o="order_scent_asc"><span>Negative</span></div>
+      </nav>
+      <article class="review review_article_258984 rounded" itemprop="review" itemscope="" itemtype="https://schema.org/Review">
+        <div class="review_header flex" id="review_258984">
+          <div class="text-sm lightgrey grey" itemprop="datePublished" content="2023-06-26">06/26/2023</div>
+          <a href="https://www.parfumo.com/Perfumes/Maison_Francis_Kurkdjian/Baccarat_Rouge_540_Eau_de_Parfum/reviews/258984">
+            <span itemprop="reviewRating" itemscope="" itemtype="https://schema.org/Rating">
+              <meta itemprop="ratingValue" content="10">
+              <span class="nr blue">10</span>Scent
+            </span>
+          </a>
+        </div>
+        <span itemprop="author" itemscope="" itemtype="https://schema.org/Person"><span itemprop="name">NoirAlethea</span></span>
+        <div itemprop="reviewBody">
+          <div class="leading-7" id="r_text_258984">Due to the way BR540 makes me feel, I can only imagine black magic.</div>
+        </div>
+      </article>
+    </div>
+    <div id="statements_holder">
+      <div class="statement-bubble">
+        <div class="statement-top-left">
+          <div class="nowrap"><a href="https://www.parfumo.com/Users/Ceesie/statements">Ceesie</a></div>
+          <div class="text-xs lightblue2">6 months ago</div>
+        </div>
+        <a href="https://www.parfumo.com/Perfumes/Maison_Francis_Kurkdjian/Baccarat_Rouge_540_Eau_de_Parfum/statements/2397523">
+          <span class="nr blue">4</span>Scent
+          <span class="nr red">9</span>Longevity
+          <span class="nr purple">6</span>Sillage
+        </a>
+        <div id="s_text_content_2397523">It just does not add up in my mind. It is a scrubber for me.</div>
+      </div>
+    </div>
   </main>
 </body></html>
 """

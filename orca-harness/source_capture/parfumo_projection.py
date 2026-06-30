@@ -4,8 +4,10 @@ import html
 import json
 import re
 from collections import Counter
+from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal, Mapping
+from urllib.parse import unquote
 
 from pydantic import Field, field_validator, model_validator
 
@@ -326,6 +328,13 @@ class _ProjectedParfumoHtml(StrictModel):
     residuals: list[str] = Field(default_factory=list)
 
 
+@dataclass(frozen=True)
+class _TextCardStart:
+    start: int
+    tag: str
+    explicit_id: str | None = None
+
+
 def _project_parfumo_html(
     body: bytes,
     *,
@@ -527,6 +536,11 @@ def _filter_targeted_projection(
 
 def _targeted_review_slice_id(row: ParfumoProjectionRow) -> str:
     """Return the one targeted review slice this source-visible review belongs to."""
+    tab_id = row.source_visible_fields.get("tab_id")
+    if tab_id == "order_scent_desc":
+        return _TARGETED_REVIEW_HIGH_RATING_SLICE
+    if tab_id == "order_scent_asc":
+        return _TARGETED_REVIEW_LOW_RATING_SLICE
     if _has_high_rating_bucket_cue(row):
         return _TARGETED_REVIEW_HIGH_RATING_SLICE
     if _has_low_rating_bucket_cue(row):
@@ -675,19 +689,51 @@ def _review_tab_rows(
     brand_or_house: str | None,
 ) -> list[ParfumoProjectionRow]:
     rows = []
+    tab_matches: list[tuple[str, str, str, str | None, bool]] = []
     pattern = re.compile(
         r'<(?:button|a)[^>]+data-tab=["\']([^"\']+)["\'][^>]*>(.*?)</(?:button|a)>',
         flags=re.IGNORECASE | re.DOTALL,
     )
-    for index, match in enumerate(pattern.finditer(text), start=1):
+    for match in pattern.finditer(text):
         tab_id = match.group(1)
         tab_body = match.group(0)
+        tab_matches.append(
+            (
+                tab_id,
+                match.group(2),
+                f'[data-tab="{tab_id}"]',
+                _first_match(match.group(2), r"([\d,.]+)"),
+                _attr_present(tab_body, "data-active", "true")
+                or _attr_present(tab_body, "aria-selected", "true"),
+            )
+        )
+
+    order_pattern = re.compile(
+        r'<div[^>]+class=["\'][^"\']*\baction_reviews_order\b[^"\']*["\'][^>]+data-o=["\']([^"\']+)["\'][^>]*>(.*?)</div>',
+        flags=re.IGNORECASE | re.DOTALL,
+    )
+    for match in order_pattern.finditer(text):
+        tab_id = match.group(1)
+        tab_body = match.group(0)
+        tab_matches.append(
+            (
+                tab_id,
+                match.group(2),
+                f'[data-o="{tab_id}"]',
+                None,
+                "active" in ((_attr_value(tab_body, "class") or "").split()),
+            )
+        )
+
+    for index, (tab_id, label_html, anchor_value, displayed_count, active) in enumerate(
+        tab_matches, start=1
+    ):
         rows.append(
             ParfumoProjectionRow(
                 row_id=f"{source_slice.slice_id}:parfumo:review_tab:{tab_id}",
                 row_kind="fragrance_review_tab",
                 raw_ref=raw_ref,
-                raw_anchor=_with_anchor(raw_anchor, "html_selector", f'[data-tab="{tab_id}"]'),
+                raw_anchor=_with_anchor(raw_anchor, "html_selector", anchor_value),
                 source_object_site_id=source_object_site_id,
                 source_object_name=source_object_name,
                 brand_or_house=brand_or_house,
@@ -695,10 +741,9 @@ def _review_tab_rows(
                 source_order=index,
                 source_visible_fields={
                     "tab_id": tab_id,
-                    "tab_label": _text(match.group(2)),
-                    "active": _attr_present(tab_body, "data-active", "true")
-                    or _attr_present(tab_body, "aria-selected", "true"),
-                    "displayed_count": _parse_count(_first_match(match.group(2), r"([\d,.]+)")),
+                    "tab_label": _text(label_html),
+                    "active": active,
+                    "displayed_count": _parse_count(displayed_count),
                 },
             )
         )
@@ -717,20 +762,22 @@ def _text_card_rows(
     brand_or_house: str | None,
     tab_labels: Mapping[str | None, Any | None],
 ) -> tuple[list[ParfumoProjectionRow], list[ParfumoProjectionBinding]]:
-    attr = f"data-{kind}-id"
-    pattern = re.compile(
-        rf'<(?P<tag>article|div|li)[^>]*\b{attr}=["\'](?P<id>[^"\']+)["\'][^>]*>',
-        flags=re.IGNORECASE,
-    )
-    starts = list(pattern.finditer(text))
+    starts = _text_card_starts(text, kind=kind)
     rows: list[ParfumoProjectionRow] = []
     bindings: list[ParfumoProjectionBinding] = []
     source_order_by_tab: Counter[str] = Counter()
-    for index, match in enumerate(starts):
-        item_id = html.unescape(match.group("id")).strip()
-        segment_end = starts[index + 1].start() if index + 1 < len(starts) else len(text)
-        segment = _bounded_segment(text, match.start(), segment_end, match.group("tag"))
-        tab_id = _text_card_tab_id(kind=kind, segment=segment, position=match.start(), text=text)
+    seen: set[tuple[str, str]] = set()
+    for index, start in enumerate(starts):
+        segment_end = starts[index + 1].start if index + 1 < len(starts) else len(text)
+        segment = _bounded_segment(text, start.start, segment_end, start.tag)
+        item_id = _text_card_item_id(segment, kind=kind, explicit_id=start.explicit_id)
+        if item_id is None:
+            continue
+        seen_key = (kind, item_id)
+        if seen_key in seen:
+            continue
+        seen.add(seen_key)
+        tab_id = _text_card_tab_id(kind=kind, segment=segment, position=start.start, text=text)
         source_order_by_tab[str(tab_id)] += 1
         row_kind = (
             "fragrance_review_card_current_window"
@@ -738,7 +785,7 @@ def _text_card_rows(
             else "fragrance_statement_current_window"
         )
         row_id = f"{source_slice.slice_id}:parfumo:{kind}:{tab_id or 'unknown'}:{item_id}"
-        row_anchor = _with_anchor(raw_anchor, "html_selector", f'[{attr}="{item_id}"]')
+        row_anchor = _with_anchor(raw_anchor, "html_selector", _text_card_anchor(kind, item_id))
         row = ParfumoProjectionRow(
             row_id=row_id,
             row_kind=row_kind,
@@ -775,6 +822,70 @@ def _text_card_rows(
     return rows, bindings
 
 
+def _text_card_starts(text: str, *, kind: Literal["review", "statement"]) -> list[_TextCardStart]:
+    attr = f"data-{kind}-id"
+    starts: list[_TextCardStart] = []
+    data_attr_pattern = re.compile(
+        rf'<(?P<tag>article|div|li)[^>]*\b{attr}=["\'](?P<id>[^"\']+)["\'][^>]*>',
+        flags=re.IGNORECASE,
+    )
+    for match in data_attr_pattern.finditer(text):
+        starts.append(
+            _TextCardStart(
+                start=match.start(),
+                tag=match.group("tag"),
+                explicit_id=html.unescape(match.group("id")).strip(),
+            )
+        )
+
+    if kind == "review":
+        live_review_pattern = re.compile(
+            r'<(?P<tag>article)\b(?=[^>]*(?:itemprop=["\']review["\']|class=["\'][^"\']*\breview(?:[\s_-]|["\'])))[^>]*>',
+            flags=re.IGNORECASE,
+        )
+        starts.extend(
+            _TextCardStart(start=match.start(), tag=match.group("tag"))
+            for match in live_review_pattern.finditer(text)
+        )
+    else:
+        live_statement_pattern = re.compile(
+            r'<(?P<tag>div)\b(?=[^>]*class=["\'][^"\']*\bstatement-bubble\b)[^>]*>',
+            flags=re.IGNORECASE,
+        )
+        starts.extend(
+            _TextCardStart(start=match.start(), tag=match.group("tag"))
+            for match in live_statement_pattern.finditer(text)
+        )
+
+    return sorted(starts, key=lambda item: item.start)
+
+
+def _text_card_item_id(
+    segment: str,
+    *,
+    kind: Literal["review", "statement"],
+    explicit_id: str | None,
+) -> str | None:
+    if explicit_id:
+        return explicit_id
+    if kind == "review":
+        return (
+            _first_match(segment, r"\breview_article_([A-Za-z0-9_-]+)", flags=re.IGNORECASE)
+            or _first_match(segment, r'\bid=["\']review_([^"\']+)["\']', flags=re.IGNORECASE)
+            or _first_match(segment, r'/reviews/([^"\'/?#\s]+)', flags=re.IGNORECASE)
+        )
+    return (
+        _first_match(segment, r'/statements/([^"\'/?#\s]+)', flags=re.IGNORECASE)
+        or _first_match(segment, r'\bid=["\']s_text(?:_content)?_([^"\']+)["\']', flags=re.IGNORECASE)
+    )
+
+
+def _text_card_anchor(kind: Literal["review", "statement"], item_id: str) -> str:
+    if kind == "review":
+        return f'[data-review-id="{item_id}"], article.review_article_{item_id}, a[href*="/reviews/{item_id}"]'
+    return f'[data-statement-id="{item_id}"], a[href*="/statements/{item_id}"], #s_text_content_{item_id}'
+
+
 def _text_row_fields(
     segment: str,
     *,
@@ -795,29 +906,43 @@ def _text_row_fields(
             r'<a[^>]+href=["\']([^"\']*(?:/Users/|/User/)[^"\']+)["\']',
             flags=re.IGNORECASE,
         ),
-        "date_published": _first_match(
-            segment,
-            r'<time[^>]+datetime=["\']([^"\']+)["\']',
-            flags=re.IGNORECASE,
-        ),
-        "date_display_text": _text(_first_match(segment, r"<time[^>]*>(.*?)</time>", flags=re.DOTALL)),
+        "date_published": _date_published(segment),
+        "date_display_text": _date_display_text(segment),
         text_field: text_value,
         f"{kind}_text_length_chars": len(text_value) if text_value is not None else None,
-        "rating": _to_float(_attr_value(segment, "data-rating")),
+        "rating": _text_row_rating(segment),
         "helpful_count": _parse_count(_attr_value(segment, "data-helpful-count")),
-        "source_item_url": _first_match(
-            segment,
-            r'<a[^>]+href=["\']([^"\']*(?:review|statement)[^"\']+)["\']',
-            flags=re.IGNORECASE,
-        ),
+        "source_item_url": _source_item_url(segment, kind=kind, item_id=item_id),
     }
+
+
+def _source_item_url(
+    segment: str,
+    *,
+    kind: Literal["review", "statement"],
+    item_id: str,
+) -> str | None:
+    path = "reviews" if kind == "review" else "statements"
+    escaped_id = re.escape(item_id)
+    return (
+        _first_match(
+            segment,
+            rf'<a[^>]+href=["\']([^"\']*/Perfumes/[^"\']*/{path}/{escaped_id}[^"\']*)["\']',
+            flags=re.IGNORECASE,
+        )
+        or _first_match(
+            segment,
+            rf'<a[^>]+href=["\']([^"\']*/{path}/{escaped_id}[^"\']*)["\']',
+            flags=re.IGNORECASE,
+        )
+    )
 
 
 def _text_row_residuals(segment: str, *, kind: Literal["review", "statement"]) -> list[str]:
     residuals = []
     if _author_name(segment) is None:
         residuals.append("author_display_name_absent")
-    if re.search(r"<time\b", segment, flags=re.IGNORECASE) is None:
+    if _date_published(segment) is None:
         residuals.append("date_published_absent")
     if _source_text(segment, kind=kind) is None:
         residuals.append(f"{kind}_text_absent")
@@ -963,6 +1088,8 @@ def _looks_like_parfumo_body(
             or "data-perfume-id" in sample
             or "data-review-id" in sample
             or "data-statement-id" in sample
+            or 'itemprop="review"' in sample
+            or "statement-bubble" in sample
         )
     return (
         "parfumo.com/perfumes/" in sample
@@ -1015,9 +1142,16 @@ def _with_anchor(
 
 
 def _bounded_segment(text: str, start: int, max_end: int, tag: str) -> str:
-    close = re.search(rf"</{re.escape(tag)}>", text[start:max_end], flags=re.IGNORECASE)
-    if close is not None:
-        return text[start : start + close.end()]
+    depth = 0
+    tag_pattern = re.compile(rf"</?{re.escape(tag)}\b[^>]*>", flags=re.IGNORECASE)
+    for match in tag_pattern.finditer(text[start:max_end]):
+        token = match.group(0)
+        if token.startswith("</"):
+            depth -= 1
+            if depth == 0:
+                return text[start : start + match.end()]
+        elif not token.endswith("/>"):
+            depth += 1
     return text[start:max_end]
 
 
@@ -1033,6 +1167,9 @@ def _text_card_tab_id(
         return explicit
     if kind == "statement":
         return "statements"
+    active_order = _active_review_order_tab_before(text, position)
+    if active_order is not None:
+        return active_order
     panels: list[tuple[int, str]] = []
     for match in re.finditer(r"<[^>]+>", text, flags=re.IGNORECASE):
         tag = match.group(0)
@@ -1050,8 +1187,27 @@ def _text_card_tab_id(
     return active or "reviews"
 
 
+def _active_review_order_tab_before(text: str, position: int) -> str | None:
+    active = None
+    pattern = re.compile(r"<[^>]+>", flags=re.IGNORECASE)
+    for match in pattern.finditer(text[:position]):
+        tag = match.group(0)
+        if _attr_value(tag, "data-o") is None:
+            continue
+        class_value = _attr_value(tag, "class") or ""
+        if "action_reviews_order" not in class_value.split():
+            continue
+        if "active" in class_value.split():
+            active = _attr_value(tag, "data-o")
+    return active
+
+
 def _source_text(segment: str, *, kind: Literal["review", "statement"]) -> str | None:
+    id_prefix = "r" if kind == "review" else "s"
     for pattern in (
+        rf'<[^>]+id=["\']{id_prefix}_text_content_[^"\']+["\'][^>]*>(.*?)</[^>]+>',
+        rf'<[^>]+id=["\']{id_prefix}_text_[^"\']+["\'][^>]*>(.*?)</[^>]+>',
+        r'<[^>]+itemprop=["\']reviewBody["\'][^>]*>\s*<[^>]+id=["\']r_text_[^"\']+["\'][^>]*>(.*?)</[^>]+>',
         rf'<[^>]+data-role=["\']{kind}-text["\'][^>]*>(.*?)</[^>]+>',
         r'<p[^>]+class=["\'][^"\']*(?:review|statement)[_-]?text[^"\']*["\'][^>]*>(.*?)</p>',
         r"<p[^>]*>(.*?)</p>",
@@ -1063,14 +1219,91 @@ def _source_text(segment: str, *, kind: Literal["review", "statement"]) -> str |
 
 
 def _author_name(segment: str) -> str | None:
-    return (
+    value = (
         _attr_value(segment, "data-author")
         or _first_match(
             segment,
+            r'itemprop=["\']author["\'][^>]*>.*?itemprop=["\']name["\'][^>]*>(.*?)</[^>]+>',
+            flags=re.IGNORECASE | re.DOTALL,
+        )
+        or _first_match(
+            segment,
             r'<[^>]+class=["\'][^"\']*author[^"\']*["\'][^>]*>(.*?)</[^>]+>',
-            flags=re.DOTALL,
+            flags=re.IGNORECASE | re.DOTALL,
         )
         or _first_match(segment, r'<meta[^>]+itemprop=["\']author["\'][^>]+content=["\']([^"\']+)["\']')
+        or _first_match(segment, r'/Users/([^"\'/?#\s]+)', flags=re.IGNORECASE)
+    )
+    return _clean_author_name(value)
+
+
+def _clean_author_name(value: str | None) -> str | None:
+    if value is None:
+        return None
+    cleaned = _text(unquote(value))
+    return cleaned or None
+
+
+def _date_published(segment: str) -> str | None:
+    return (
+        _first_match(segment, r'<time[^>]+datetime=["\']([^"\']+)["\']', flags=re.IGNORECASE)
+        or _first_match(
+            segment,
+            r'itemprop=["\']datePublished["\'][^>]+content=["\']([^"\']+)["\']',
+            flags=re.IGNORECASE,
+        )
+        or _first_match(
+            segment,
+            r'<meta[^>]+itemprop=["\']datePublished["\'][^>]+content=["\']([^"\']+)["\']',
+            flags=re.IGNORECASE,
+        )
+    )
+
+
+def _date_display_text(segment: str) -> str | None:
+    return (
+        _text(_first_match(segment, r"<time[^>]*>(.*?)</time>", flags=re.IGNORECASE | re.DOTALL))
+        or _text(
+            _first_match(
+                segment,
+                r'itemprop=["\']datePublished["\'][^>]*>(.*?)</[^>]+>',
+                flags=re.IGNORECASE | re.DOTALL,
+            )
+        )
+        or _text(
+            _first_match(
+                segment,
+                r'<[^>]+class=["\'][^"\']*\b(?:lightblue2|date|time)[^"\']*["\'][^>]*>(.*?)</[^>]+>',
+                flags=re.IGNORECASE | re.DOTALL,
+            )
+        )
+    )
+
+
+def _text_row_rating(segment: str) -> float | None:
+    return (
+        _to_float(_attr_value(segment, "data-rating"))
+        or _to_float(
+            _first_match(
+                segment,
+                r'itemprop=["\']ratingValue["\'][^>]+content=["\']([^"\']+)["\']',
+                flags=re.IGNORECASE,
+            )
+        )
+        or _to_float(
+            _first_match(
+                segment,
+                r'<[^>]+itemprop=["\']ratingValue["\'][^>]*>([^<]+)</[^>]+>',
+                flags=re.IGNORECASE,
+            )
+        )
+        or _to_float(
+            _first_match(
+                segment,
+                r'<span[^>]+class=["\'][^"\']*\bnr\b[^"\']*\bblue\b[^"\']*["\'][^>]*>\s*([0-9]+(?:[.,][0-9]+)?)\s*</span>\s*Scent',
+                flags=re.IGNORECASE,
+            )
+        )
     )
 
 
