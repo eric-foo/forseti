@@ -19,6 +19,10 @@ import pytest
 from capture_spine.creator_profile_current.instagram_metric_seed import (
     build_instagram_reels_creator_metric_seed_from_files,
 )
+from capture_spine.creator_profile_current.live_lake_freshness_gate import (
+    SNAPSHOT_BEHIND_LAKE,
+    check_live_lake_freshness,
+)
 from capture_spine.creator_profile_current.silver_metric_producer import (
     derive_creator_metric_silver_records_from_projections,
 )
@@ -46,6 +50,7 @@ from runners.run_creator_metric_rollup_snapshot import (
     main as run_snapshot_main,
     run_snapshot,
 )
+from runners.run_live_lake_freshness_gate import main as run_freshness_gate_main
 from source_capture.models import known_fact
 from source_capture.writer import write_local_source_capture_packet
 
@@ -571,3 +576,61 @@ def test_ig_lake_path_rollups_equal_seed_builder_no_drift(tmp_path: Path) -> Non
     seed_rollups = seed["instagram_reels_creator_metric_seed"]["metric_rollups"]
 
     assert snapshot_rollups == seed_rollups
+
+
+# -- live-lake freshness gate (AR-02, §6) ------------------------------------
+
+def test_live_lake_freshness_gate_is_fresh_when_snapshot_matches_lake(tmp_path: Path) -> None:
+    # The committed snapshot was generated from this exact lake state, so the gate
+    # re-runs selection against the live lake and finds the same content-addressed
+    # watermark -> FRESH, no drift.
+    data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    _write_ig_rollup(data_root, tmp_path, slot="a", generated_at=LATE)
+    run = _ig_snapshot(data_root, generated_at=LATE)
+
+    result = check_live_lake_freshness(
+        data_root,
+        account_ledger=_ig_discovery_ledger(IG_ACCOUNT),
+        platform="instagram",
+        committed_snapshot=run.snapshot,
+        committed_manifest=run.manifest,
+    )
+    assert result.is_fresh
+    assert result.reason is None
+    assert result.committed_watermark == result.live_watermark
+    assert result.drifted_accounts == ()
+
+
+def test_live_lake_freshness_gate_fires_when_lake_advances(tmp_path: Path) -> None:
+    # A newer rollup appended after the snapshot (a fresh capture the operator did
+    # not regen into the registry) is the silent-drift case: the gate must catch it
+    # as snapshot_behind_lake and name the drifted account.
+    data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    _write_ig_rollup(data_root, tmp_path, slot="a", generated_at=LATE, views=(100, 300))
+    run = _ig_snapshot(data_root, generated_at=LATE)
+
+    _write_ig_rollup(data_root, tmp_path, slot="b", generated_at=LATER, views=(999, 1500))
+
+    result = check_live_lake_freshness(
+        data_root,
+        account_ledger=_ig_discovery_ledger(IG_ACCOUNT),
+        platform="instagram",
+        committed_snapshot=run.snapshot,
+        committed_manifest=run.manifest,
+    )
+    assert not result.is_fresh
+    assert result.reason == SNAPSHOT_BEHIND_LAKE
+    assert result.committed_watermark != result.live_watermark
+    assert IG_ACCOUNT in result.drifted_accounts
+
+
+def test_live_lake_freshness_gate_main_against_live_lake_when_available() -> None:
+    # main()/resolve is the only real-lake-bound path; operator-local, skip in CI.
+    if not os.environ.get("ORCA_DATA_ROOT"):
+        pytest.skip("ORCA_DATA_ROOT is not set; the freshness gate is an operator-local live-lake check")
+    try:
+        code = run_freshness_gate_main(["--platform", "instagram"])
+    except SystemExit as exc:
+        code = exc.code
+    # FRESH (0), drift or a clean fail-closed (2) -- never an uncaught crash.
+    assert code in (0, 2)
