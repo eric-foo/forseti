@@ -19,7 +19,7 @@
       },
       {
         "source_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json",
-        "sha256": "620a1e87a7ecd31df3f06905b1ca2b4317a13c509180585a8ccd7824e3f1afad",
+        "sha256": "095e17e64904e1702cee3e338589f6564f544cb7c149701d50f4faf042add201",
         "role": "maps YouTube channel ids to platform_account ids for account-scoped profile subjects"
       },
       {

@@ -5327,7 +5327,7 @@
       },
       {
         "role": "source-backed metric observations and admitted-pool YouTube metric rollups",
-        "sha256": "433791cc770330bda7cb1a6d34eadc2daa411d6253bee7d79657932c6a45604c",
+        "sha256": "8a100891eeb7b93cb187d0916494479a8167f32f4224fe0647700e42de477231",
         "source_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json"
       },
       {

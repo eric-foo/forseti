@@ -94,7 +94,7 @@ def test_instagram_reels_creator_metric_seed_counts_and_boundaries() -> None:
         for account in _account_ledger()["platform_accounts"]
         if account["platform"] == "instagram"
     }
-    assert set(accounts) == {"acct_ig_reels_001", "acct_ig_reels_002", "acct_ig_reels_003"}
+    assert set(accounts) == {"acct_ig_reels_001", "acct_ig_reels_002", "acct_ig_reels_004"}
     assert {observation["platform_account_id"] for observation in seed["metric_observations"]} == set(accounts)
 
     for observation in seed["metric_observations"]:

@@ -92,7 +92,7 @@ def test_product_public_handle_ledger_seed_loads_and_validates() -> None:
     assert first_account["public_handle"] == "BowTieFragranceGuy"
 
     ig_accounts = [account for account in wrapper["platform_accounts"] if account["platform"] == "instagram"]
-    assert [account["public_handle"] for account in ig_accounts] == ["hyram", "jeremyfragrance", "vanzzcoser"]
+    assert [account["public_handle"] for account in ig_accounts] == ["hyram", "jeremyfragrance", "milanscents"]
     assert all(account["platform_public_account_id_or_none"] is None for account in ig_accounts)
 
 
