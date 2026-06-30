@@ -15,10 +15,14 @@ reconciliation -- this validator does not re-shape a producer's lineage. The gen
 ABOVE it, so the Cleaning audit pack (no ``record_kind``) and projection/ECR records
 keep writing generically.
 
-Not enforced in v0 (named residuals): the audit/projection/ECR negative constraints
-(a non-Silver derived record must not carry ``record_kind``) and the universal
-write-path guard (a producer that bypasses this front-door and writes a Silver lane
-through the raw writer is not yet structurally blocked).
+Companions that close the v0 residuals: the write-path guard
+``.agents/hooks/check_silver_lane_registry.py`` (a producer writing a Silver lane
+through the raw writer instead of this front-door fails CI, save the named
+FRONT_DOOR_PENDING lanes), and the no-blur NEGATIVE mirror
+``data_lake.non_silver_record`` (a projection / cleaning-audit / ECR / signal-content
+/ transcript record must not carry ``record_kind`` or this ``schema_version``, and
+must carry its own role posture). Remaining residual: that negative mirror is enforced
+by a conformance test, not yet wired into every producer's write path.
 """
 from __future__ import annotations
 
