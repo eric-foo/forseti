@@ -536,7 +536,9 @@ wrapper `orca-harness/runners/run_parfumo_mgt_capture.py` (preflightable;
 live network capture still requires owner authorization), mechanical projection
 `orca-harness/source_capture/parfumo_projection.py` plus
 `orca-harness/runners/run_parfumo_projection.py`, and Cleaning audit/Silver
-adapters `orca-harness/cleaning/parfumo.py` and `orca-harness/cleaning/parfumo_lake.py`; tests live in `orca-harness/tests/test_parfumo_native_pipeline_lake.py` and `orca-harness/tests/unit/test_parfumo_*`. Basenotes remains access-blocked; no anti-bot evasion or Silver-via-raw exception is authorized by this map entry.
+adapters `orca-harness/cleaning/parfumo.py` and `orca-harness/cleaning/parfumo_lake.py`; tests live in `orca-harness/tests/test_parfumo_native_pipeline_lake.py` and `orca-harness/tests/unit/test_parfumo_*`.
+
+Current Basenotes native fragrance route (2026-06-30): rendered CloakBrowser capture through the residential proxy profile `reddit-res-01` (anonymous egress is Cloudflare-challenged at the headless-automation / TLS-fingerprint layer, NOT by IP; route pinned in `docs/research/orca_fragrance_native_database_live_probe_v0.md` PIN-003 + the Proxy Route Verification Addendum; live network capture still requires owner authorization), wrapper `orca-harness/runners/run_basenotes_mgt_capture.py`, mechanical projection `orca-harness/source_capture/basenotes_projection.py` (reviews parsed from schema.org JSON-LD) plus `orca-harness/runners/run_basenotes_projection.py`, and Cleaning audit/Silver adapters `orca-harness/cleaning/basenotes.py` and `orca-harness/cleaning/basenotes_lake.py`; tests live in `orca-harness/tests/test_basenotes_native_pipeline_lake.py` and `orca-harness/tests/unit/test_basenotes_*`. Silver routes through the `append_silver_record` front-door (no Silver-via-raw exception); no anti-bot evasion is used or authorized (the residential proxy is an existing owner-authorized capture route, not evasion). Full review corpus is a named residual: in-page JSON-LD carries a subset (about 6 of 18), with `/reviews/` plus sentiment sub-URLs as the archive gate.
 
 | Path | Use for |
 | --- | --- |
