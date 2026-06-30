@@ -13,6 +13,7 @@ their account id, and fails closed on a blank subject native_id.
 from __future__ import annotations
 
 from collections import Counter
+from copy import deepcopy
 import hashlib
 import json
 from pathlib import Path
@@ -29,10 +30,15 @@ from capture_spine.creator_profile_current.youtube_silver_metric_producer import
     build_metric_observation_record,
     derive_youtube_creator_metric_silver_records_from_seed,
 )
+from data_lake.catalog import rebuild_catalog
 from data_lake.root import DataLakeRoot
+from source_capture.youtube_watch_packet import YoutubeWatchFetch, write_youtube_watch_packet
 
 EXPECTED_OBSERVATIONS = 196
 EXPECTED_ROLLUPS = 30
+YOUTUBE_AR_PROOF_VIDEO_ID = "as7hye0qgYc"
+YOUTUBE_AR_PROOF_WATCH_HTML = b"<html>ytInitialPlayerResponse</html>"
+YOUTUBE_AR_PROOF_CAPTURED_AT = "2026-06-21T00:00:00Z"
 
 
 def _content_hash(record: dict) -> str:
@@ -48,6 +54,129 @@ def _content_hash(record: dict) -> str:
 
 def _committed_seed_document() -> dict:
     return json.loads(DEFAULT_YOUTUBE_SEED_PATH.read_text(encoding="utf-8-sig"))
+
+
+def _metric_observed(value: int, path: str, artifact: str) -> dict:
+    return {
+        "posture": "observed",
+        "value": value,
+        "source_route": path.rsplit(".", 1)[0],
+        "source_path": path,
+        "artifact": artifact,
+    }
+
+
+def _metric_unavailable(reason: str) -> dict:
+    return {
+        "posture": "unavailable_with_reason",
+        "reason": reason,
+        "routes_checked": ["youtube_watch_metadata_comments"],
+    }
+
+
+def _youtube_watch_packet(*, view_count: int) -> dict:
+    return {
+        "video_id": YOUTUBE_AR_PROOF_VIDEO_ID,
+        "surface_type": "watch",
+        "watch_url": f"https://www.youtube.com/watch?v={YOUTUBE_AR_PROOF_VIDEO_ID}",
+        "channel": {"channel_id": "UCzKrJ5NSA9o7RHYRG12kHZw", "author": "JeremyFragrance"},
+        "metadata": {
+            "title": "UNIQUE BLUE, By SUPERZ",
+            "length_seconds": 42,
+            "publish_date": "2026-06-20",
+        },
+        "engagement": {
+            "view_count": view_count,
+            "view_count_source_path": "player.microformat",
+            "like_count": 34,
+        },
+        "availability": {"video_state": "playable", "comments_state": "comments_not_exposed"},
+        "metric_receipts": {
+            "view_count": _metric_observed(
+                view_count, "ytInitialPlayerResponse.videoDetails.viewCount", "raw_watch.html"
+            ),
+            "like_count": _metric_observed(
+                34,
+                "ytInitialPlayerResponse.microformat.playerMicroformatRenderer.likeCount",
+                "raw_watch.html",
+            ),
+            "comment_sample_count": _metric_unavailable("comments not exposed in AR proof fixture"),
+            "total_comment_count": _metric_unavailable("comments not exposed in AR proof fixture"),
+        },
+        "comments_posture": "comments_not_exposed",
+        "comments": [],
+        "receipts": {"http_status": 200, "retrieval_time_utc": YOUTUBE_AR_PROOF_CAPTURED_AT},
+    }
+
+
+def _commit_youtube_watch_packet(data_root: DataLakeRoot, *, view_count: int) -> tuple[str, dict]:
+    code, output_dir = write_youtube_watch_packet(
+        YoutubeWatchFetch(
+            video_id=YOUTUBE_AR_PROOF_VIDEO_ID,
+            raw_watch_html=YOUTUBE_AR_PROOF_WATCH_HTML,
+            packet=_youtube_watch_packet(view_count=view_count),
+        ),
+        data_root=data_root,
+        decision_question="creator metric YT AR-backed raw refs",
+        now_iso=YOUTUBE_AR_PROOF_CAPTURED_AT,
+    )
+    assert code == 0
+    packet_id = Path(output_dir).name
+    preserved = data_root.load_raw_packet(packet_id).manifest["preserved_files"][0]
+    assert preserved["relative_packet_path"].endswith("raw_watch.html")
+    return packet_id, preserved
+
+
+def _single_observation_seed_document(*, packet_id: str, watch_hash: str, view_count: int) -> dict:
+    seed_document = _committed_seed_document()
+    seed = deepcopy(seed_document[YOUTUBE_SEED_WRAPPER_KEY])
+    seed_observation = deepcopy(seed["metric_observations"][0])
+    seed_observation.update(
+        {
+            "source_packet_id_or_none": packet_id,
+            "source_packet_pointer_or_none": None,
+            "source_watch_html_sha256_or_none": watch_hash,
+            "source_watch_byte_size_or_none": len(YOUTUBE_AR_PROOF_WATCH_HTML),
+            "source_pointer": "youtube_watch_packet_fixture#/metric_receipts/view_count",
+            "source_field": "/metric_receipts/view_count/value",
+            "source_file": "youtube_watch_packet_fixture",
+            "source_row_id_or_none": "fixture:youtube_watch_packet:view_count",
+            "metric_value_or_none": view_count,
+            "observed_at": YOUTUBE_AR_PROOF_CAPTURED_AT,
+        }
+    )
+    rollup = deepcopy(
+        next(
+            item
+            for item in seed["metric_rollups"]
+            if seed_observation["metric_observation_id"] in item["source_metric_observation_ids"]
+        )
+    )
+    rollup.update(
+        {
+            "profile_subject_id": seed_observation["platform_account_id"],
+            "platform_account_ids": [seed_observation["platform_account_id"]],
+            "platform_subject_key": seed_observation["platform_subject_key"],
+            "platform_subject_key_type": seed_observation["platform_subject_key_type"],
+            "source_metric_observation_ids": [seed_observation["metric_observation_id"]],
+            "observation_count": 1,
+            "view_count_min": view_count,
+            "view_count_max": view_count,
+            "computed_at": YOUTUBE_AR_PROOF_CAPTURED_AT,
+        }
+    )
+    rollup["metric_rollups"]["average_views"]["value_or_none"] = float(view_count)
+    rollup["metric_rollups"]["median_views"]["value_or_none"] = float(view_count)
+    rollup["sample_support"] = {
+        "observation_count": 1,
+        "sample_adequacy": "thin_n_1_to_3",
+        "representativeness_posture": "admitted_pool_only_not_representative_creator_average",
+        "surface_handling": "downgrade_or_withhold_summary_claim",
+    }
+    seed["metric_observations"] = [seed_observation]
+    seed["metric_rollups"] = [rollup]
+    seed_document[YOUTUBE_SEED_WRAPPER_KEY] = seed
+    return seed_document
 
 
 def _run(tmp_path: Path):
@@ -110,6 +239,71 @@ def test_producer_emits_conformant_metric_observation_records(tmp_path: Path) ->
         else:
             assert observation["metric_value"] is None
             assert posture["reason_detail"]
+
+
+def test_observation_raw_refs_use_bronze_attachment_records_when_requested(tmp_path: Path) -> None:
+    data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    view_count = 479
+    packet_id, preserved = _commit_youtube_watch_packet(data_root, view_count=view_count)
+    assert rebuild_catalog(data_root)["status"] == "rebuilt"
+    seed_document = _single_observation_seed_document(
+        packet_id=packet_id, watch_hash=preserved["sha256"], view_count=view_count
+    )
+
+    result = derive_youtube_creator_metric_silver_records_from_seed(
+        data_root=data_root,
+        seed_document=seed_document,
+        use_bronze_attachment_records=True,
+    )
+
+    assert len(result.observation_records) == 1
+    record = result.observation_records[0]
+    raw_ref = record["raw_refs"][0]
+    assert raw_ref["raw_ref_kind"] == "bronze_attachment_record"
+    assert raw_ref["attachment_record_id"].startswith("ar_")
+    assert raw_ref["attachment_record_schema_version"] == "bronze_attachment_record_v0_schema_2"
+    assert raw_ref["attachment_record_physicalization"] == "manifest_equivalent_entry_over_raw_packet_body_v0"
+    assert raw_ref["packet_id"] == packet_id
+    assert raw_ref["file_id"] == preserved["file_id"]
+    assert raw_ref["relative_packet_path"] == preserved["relative_packet_path"]
+    assert raw_ref["body_sha256"] == preserved["sha256"]
+    assert raw_ref["sha256"] == preserved["sha256"]
+    assert raw_ref["hash_basis"] == "raw_stored_bytes"
+    assert raw_ref["body_ref"] == {
+        "kind": "raw_packet_relative_path",
+        "packet_id": packet_id,
+        "file_id": preserved["file_id"],
+        "relative_packet_path": preserved["relative_packet_path"],
+        "body_sha256": preserved["sha256"],
+        "hash_basis": "raw_stored_bytes",
+    }
+    assert raw_ref["source_family"] == "youtube"
+    assert raw_ref["source_surface"] == "youtube_watch_metadata_comments"
+    assert raw_ref["payload_kind"] == "html_body"
+    assert "lineage_limitations" not in record
+
+
+def test_missing_bronze_attachment_record_stays_visible_when_requested(tmp_path: Path) -> None:
+    data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    assert rebuild_catalog(data_root)["status"] == "rebuilt"
+    seed_document = _single_observation_seed_document(
+        packet_id="01KWYTARPROOFFALLBACK0001", watch_hash="f" * 64, view_count=479
+    )
+
+    result = derive_youtube_creator_metric_silver_records_from_seed(
+        data_root=data_root,
+        seed_document=seed_document,
+        use_bronze_attachment_records=True,
+    )
+
+    raw_ref = result.observation_records[0]["raw_refs"][0]
+    assert raw_ref["raw_ref_kind"] == "raw_packet_fallback_missing_attachment_record"
+    assert raw_ref["typed_attachment_record_status"] == "missing"
+    assert raw_ref["attachment_record_residual"] == "typed_attachment_record_missing_for_raw_ref"
+    assert result.observation_records[0]["lineage_limitations"] == [
+        {"reason": "other", "detail": "typed_attachment_record_missing_for_raw_ref"}
+    ]
+
 
 
 def test_observation_no_drift_against_committed_seed(tmp_path: Path) -> None:

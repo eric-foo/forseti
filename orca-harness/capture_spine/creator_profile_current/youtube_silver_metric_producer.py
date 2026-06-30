@@ -45,6 +45,10 @@ YouTube-specific anchoring (resolved in scoping; an honest divergence from IG):
   ``source_field``, ``source_file``, ``source_packet_id_or_none``) plus the
   captured watch/shorts HTML sha256s, which ARE the hash-checkable source
   material per the Silver Vault ``raw_refs`` rule.
+- When requested, observation ``raw_refs`` are upgraded through the public Bronze
+  source-surface catalog helper for YouTube watch Attachment Records. The join is
+  packet id + body hash, because the seed does not carry packet-relative body
+  paths; missing or ambiguous AR rows stay visible as lineage limitations.
 
 Accepted residuals (named for review, not hidden):
 - Derives from the committed proof seed JSON rather than recomputing from source
@@ -71,6 +75,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any, Mapping
 
 from harness_utils import generate_ulid
+from data_lake.catalog import source_surface_catalog_rows
 from data_lake.silver_record import append_silver_record
 
 if TYPE_CHECKING:
@@ -120,6 +125,13 @@ _ROLLUP_PRODUCER_ID = (
 _PLATFORM_NAMESPACE = "youtube"
 _SOURCE_FAMILY = "social_media"
 _SOURCE_SURFACE = "youtube_shorts"
+_YOUTUBE_BRONZE_SOURCE_FAMILY = "youtube"
+_YOUTUBE_BRONZE_SOURCE_SURFACE = "youtube_watch_metadata_comments"
+_BRONZE_AR_RAW_REF_KIND = "bronze_attachment_record"
+_RAW_PACKET_FALLBACK_MISSING_AR_REF_KIND = "raw_packet_fallback_missing_attachment_record"
+_RAW_PACKET_FALLBACK_AMBIGUOUS_AR_REF_KIND = "raw_packet_fallback_ambiguous_attachment_record"
+_MISSING_AR_LIMITATION = "typed_attachment_record_missing_for_raw_ref"
+_AMBIGUOUS_AR_LIMITATION = "typed_attachment_record_ambiguous_for_raw_ref"
 
 # Non-claims attached to every emitted record. YouTube observes only view_count,
 # so the engagement/like/comment non-claim is load-bearing here (it is not on the
@@ -149,6 +161,7 @@ def derive_youtube_creator_metric_silver_records_from_seed(
     *,
     data_root: "DataLakeRoot",
     seed_document: Mapping[str, Any],
+    use_bronze_attachment_records: bool = False,
 ) -> YoutubeCreatorMetricSilverResult:
     """Wrap the committed YouTube creator-metric seed's observations + per-account
     rollups in Silver Vault envelopes and append them through the lake writer.
@@ -157,12 +170,23 @@ def derive_youtube_creator_metric_silver_records_from_seed(
     observation records' content hashes into ``derived_refs`` (the canonical
     Silver lineage, mirroring the IG producer)."""
     seed = seed_document[YOUTUBE_SEED_WRAPPER_KEY]
+    bronze_attachment_records_by_packet_body_hash = (
+        _bronze_attachment_records_by_packet_body_hash(data_root)
+        if use_bronze_attachment_records
+        else {}
+    )
 
     observation_records: list[dict[str, Any]] = []
     observation_paths: list[Path] = []
     ref_by_seed_observation_id: dict[str, dict[str, str]] = {}
     for seed_observation in seed["metric_observations"]:
-        record = build_metric_observation_record(seed_observation=seed_observation)
+        record = build_metric_observation_record(
+            seed_observation=seed_observation,
+            bronze_attachment_records_by_packet_body_hash=(
+                bronze_attachment_records_by_packet_body_hash
+            ),
+            use_bronze_attachment_records=use_bronze_attachment_records,
+        )
         path = append_silver_record(
             data_root,
             raw_anchor=_require_source_packet_id(seed_observation),
@@ -210,17 +234,27 @@ def derive_youtube_creator_metric_silver_records_from_seed_file(
     *,
     data_root: "DataLakeRoot",
     seed_path: str | Path = DEFAULT_YOUTUBE_SEED_PATH,
+    use_bronze_attachment_records: bool = False,
 ) -> YoutubeCreatorMetricSilverResult:
     """Convenience wrapper: read the committed seed JSON from ``seed_path`` (the
     real committed seed by default) and derive Silver records from it. Uses
     ``utf-8-sig`` to tolerate a BOM, matching the seed's own test loader."""
     seed_document = json.loads(Path(seed_path).read_text(encoding="utf-8-sig"))
     return derive_youtube_creator_metric_silver_records_from_seed(
-        data_root=data_root, seed_document=seed_document
+        data_root=data_root,
+        seed_document=seed_document,
+        use_bronze_attachment_records=use_bronze_attachment_records,
     )
 
 
-def build_metric_observation_record(*, seed_observation: Mapping[str, Any]) -> dict[str, Any]:
+def build_metric_observation_record(
+    *,
+    seed_observation: Mapping[str, Any],
+    bronze_attachment_records_by_packet_body_hash: Mapping[
+        tuple[str, str], list[Mapping[str, Any]]
+    ] | None = None,
+    use_bronze_attachment_records: bool = False,
+) -> dict[str, Any]:
     """Wrap one committed seed metric observation in a Silver Vault
     MetricObservation record."""
     posture = seed_observation["metric_posture"]
@@ -233,6 +267,14 @@ def build_metric_observation_record(*, seed_observation: Mapping[str, Any]) -> d
         what=f"observation {seed_observation.get('metric_observation_id')!r}",
     )
     observed_at = seed_observation["observed_at"]
+    raw_ref = _raw_ref(
+        seed_observation,
+        bronze_attachment_records_by_packet_body_hash=(
+            bronze_attachment_records_by_packet_body_hash or {}
+        ),
+        use_bronze_attachment_records=use_bronze_attachment_records,
+    )
+    lineage_limitations = _raw_ref_lineage_limitations(raw_ref)
     record: dict[str, Any] = {
         "record_id": f"{generate_ulid()}.json",
         "raw_anchor": _require_source_packet_id(seed_observation),
@@ -249,7 +291,7 @@ def build_metric_observation_record(*, seed_observation: Mapping[str, Any]) -> d
         "source_surface": _SOURCE_SURFACE,
         "observed_at": observed_at,
         "captured_at": observed_at,
-        "raw_refs": [_raw_ref(seed_observation)],
+        "raw_refs": [raw_ref],
         "derived_refs": [],
         "payload": {
             "observation": {
@@ -282,6 +324,8 @@ def build_metric_observation_record(*, seed_observation: Mapping[str, Any]) -> d
         },
         "non_claims": sorted(set(_REQUIRED_NON_CLAIMS)),
     }
+    if lineage_limitations:
+        record["lineage_limitations"] = lineage_limitations
     record["content_hash"] = f"sha256:{_content_hash(record)}"
     return record
 
@@ -445,7 +489,14 @@ def _rollup_metric(metric: Mapping[str, Any], *, what: str) -> dict[str, Any]:
     }
 
 
-def _raw_ref(seed_observation: Mapping[str, Any]) -> dict[str, Any]:
+def _raw_ref(
+    seed_observation: Mapping[str, Any],
+    *,
+    bronze_attachment_records_by_packet_body_hash: Mapping[
+        tuple[str, str], list[Mapping[str, Any]]
+    ],
+    use_bronze_attachment_records: bool,
+) -> dict[str, Any]:
     """Build an honest portable provenance ref from the fields the YouTube seed
     actually declares as portable (the YouTube seed carries NO IG-style
     raw_anchor dict). ``sha256``+``hash_basis`` use the captured watch-page HTML
@@ -456,7 +507,7 @@ def _raw_ref(seed_observation: Mapping[str, Any]) -> dict[str, Any]:
         "source_watch_html_sha256_or_none",
         what=f"metric observation {seed_observation.get('metric_observation_id')!r} raw_ref",
     )
-    return {
+    raw_ref: dict[str, Any] = {
         "packet_id": seed_observation.get("source_packet_id_or_none"),
         "source_pointer": seed_observation.get("source_pointer"),
         "source_field": seed_observation.get("source_field"),
@@ -467,6 +518,110 @@ def _raw_ref(seed_observation: Mapping[str, Any]) -> dict[str, Any]:
         "watch_html_sha256": watch_hash,
         "shorts_html_sha256": seed_observation.get("source_shorts_html_sha256_or_none"),
     }
+    if not use_bronze_attachment_records:
+        return raw_ref
+
+    key = _raw_ref_packet_body_key(raw_ref)
+    candidates = (
+        bronze_attachment_records_by_packet_body_hash.get(key, [])
+        if key is not None
+        else []
+    )
+    if len(candidates) != 1:
+        raw_ref.update(
+            _fallback_raw_ref_fields(
+                residual=(
+                    _AMBIGUOUS_AR_LIMITATION
+                    if len(candidates) > 1
+                    else _MISSING_AR_LIMITATION
+                )
+            )
+        )
+        return raw_ref
+
+    attachment_record = candidates[0]
+    body_sha256 = attachment_record.get("body_sha256") or watch_hash
+    raw_ref.update(
+        {
+            "raw_ref_kind": _BRONZE_AR_RAW_REF_KIND,
+            "attachment_record_id": attachment_record.get("attachment_record_id"),
+            "attachment_record_schema_version": attachment_record.get(
+                "attachment_record_schema_version"
+            ),
+            "attachment_record_physicalization": attachment_record.get(
+                "attachment_record_physicalization"
+            ),
+            "file_id": attachment_record.get("file_id"),
+            "relative_packet_path": attachment_record.get("relative_packet_path"),
+            "body_ref_kind": attachment_record.get("body_ref_kind"),
+            "body_ref": attachment_record.get("body_ref"),
+            "body_sha256": body_sha256,
+            "sha256": body_sha256,
+            "hash_basis": attachment_record.get("hash_basis"),
+            "source_family": attachment_record.get("source_family"),
+            "source_surface": attachment_record.get("source_surface"),
+            "source_slice_ids": attachment_record.get("source_slice_ids", []),
+            "payload_kind": attachment_record.get("payload_kind"),
+            "payload_schema_version": attachment_record.get("payload_schema_version"),
+            "replay_version_pins": attachment_record.get("replay_version_pins"),
+        }
+    )
+    return raw_ref
+
+
+def _fallback_raw_ref_fields(*, residual: str) -> dict[str, str]:
+    if residual == _AMBIGUOUS_AR_LIMITATION:
+        return {
+            "raw_ref_kind": _RAW_PACKET_FALLBACK_AMBIGUOUS_AR_REF_KIND,
+            "typed_attachment_record_status": "ambiguous",
+            "attachment_record_residual": residual,
+        }
+    return {
+        "raw_ref_kind": _RAW_PACKET_FALLBACK_MISSING_AR_REF_KIND,
+        "typed_attachment_record_status": "missing",
+        "attachment_record_residual": _MISSING_AR_LIMITATION,
+    }
+
+
+def _bronze_attachment_records_by_packet_body_hash(
+    data_root: "DataLakeRoot",
+) -> dict[tuple[str, str], list[Mapping[str, Any]]]:
+    rows = source_surface_catalog_rows(
+        data_root,
+        source_family=_YOUTUBE_BRONZE_SOURCE_FAMILY,
+        source_surface=_YOUTUBE_BRONZE_SOURCE_SURFACE,
+    )
+    by_key: dict[tuple[str, str], list[Mapping[str, Any]]] = {}
+    for row in rows["attachment_record_rows"]:
+        key = _packet_body_hash_key(row)
+        if key is not None:
+            by_key.setdefault(key, []).append(row)
+    return by_key
+
+
+def _packet_body_hash_key(record: Mapping[str, Any]) -> tuple[str, str] | None:
+    packet_id = record.get("packet_id")
+    body_sha256 = record.get("body_sha256")
+    if not all(isinstance(value, str) and value.strip() for value in (packet_id, body_sha256)):
+        return None
+    return (packet_id, body_sha256)
+
+
+def _raw_ref_packet_body_key(record: Mapping[str, Any]) -> tuple[str, str] | None:
+    packet_id = record.get("packet_id")
+    sha256 = record.get("sha256")
+    if not all(isinstance(value, str) and value.strip() for value in (packet_id, sha256)):
+        return None
+    return (packet_id, sha256)
+
+
+def _raw_ref_lineage_limitations(raw_ref: Mapping[str, Any]) -> list[dict[str, str]]:
+    status = raw_ref.get("typed_attachment_record_status")
+    if status not in {"missing", "ambiguous"}:
+        return []
+    residual = raw_ref.get("attachment_record_residual")
+    detail = residual if isinstance(residual, str) else _MISSING_AR_LIMITATION
+    return [{"reason": "other", "detail": detail}]
 
 
 def _assert_posture_value_coupling(*, posture: str, value: Any, reason: Any, what: str) -> None:
