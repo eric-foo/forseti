@@ -37,13 +37,14 @@ recommendation). The delegated-review-patch invariants are carried verbatim from
 - operating_contract_pointer: `.agents/workflow-overlay/delegated-review-patch.md` (the controller treats this as its contract).
 - review_lane: artifact → `workflow-adversarial-artifact-review` (the target is a prompt artifact, not code).
 - mode: `base-subagent` (single bounded high-stakes file; judgment-coupled — not split-executor).
-- access: **`no_repo` default** (ship the target verbatim; controller returns findings; CA applies + runs the required bounded same-vendor post-patch recheck) **OR `repo`** if the operator's controller has repo access (controller patches the target directly and returns a diff; the cross-vendor repo-mode discovery then needs no separate re-scan). Operator picks at dispatch and records it.
+- access: **`repo` default** (controller inspects the repository/worktree, patches the target directly, and returns a diff; the cross-vendor repo-mode discovery then needs no separate re-scan). Use **`no_repo` only** if the operator records that repository access is unavailable or intentionally excluded; then ship the target verbatim, the controller returns advisory findings, and the CA applies accepted changes plus runs the required bounded same-vendor post-patch recheck. Operator picks at dispatch and records it.
 
 ### Actor / model-family receipt (de-correlation = who-constraint, not a model recommendation)
 - author_home_model_family: **Anthropic / Claude (Opus 4.8)** — authored both the original commission and this 2026-06-14 refresh, and adjudicates what is kept.
 - controller_model_family: **must be a DIFFERENT vendor (non-Anthropic, e.g., OpenAI/GPT)** — operator binds the concrete model at dispatch; unknown/undisclosed lineage cannot satisfy the cross-vendor bar.
 - current_receiving_actor_role: `controller`.
-- dispatch_mode: `external-controller-courier` (no_repo) or `runtime-subagent` (repo).
+- dispatch_mode: `runtime-subagent` or repo-access external-controller-courier (repo), or `external-controller-courier` with explicit no_repo only when repository access is unavailable or intentionally excluded.
+- post_return_adjudication: The CA first adjudicates the returned findings/diff/verdict as claims. If no material issue remains, admin is exactly one land step and the CA deep-thinks the next 1-3 material moves; if a material issue remains, route the smallest complete closure step instead.
 - de_correlation_status: **satisfied only if the controller vendor ≠ Anthropic.** If only a same-vendor reviewer is available, do NOT claim the cross-vendor discovery (no-new-seam) bar — run the same-vendor sanity tier and record the limitation (`delegated-review-patch.md` De-correlation).
 
 ## Target
