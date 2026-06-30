@@ -1,22 +1,25 @@
-"""Coverage flag: packet-producing capture runners must carry the Data Lake seam.
+"""Coverage flag: Bronze-writing capture runners must carry the Data Lake seam.
 
 A runner that writes a SourceCapturePacket must either route into the lake
 (``--data-root`` / ``data_root`` -> commit into the lake) or be explicitly
 acknowledged as not-yet-synced. This is the enforced version of the manual
 "which runners route into the lake?" survey.
 
-The detector follows imported packet-writer names from ``source_capture.*`` so
-new thin wrappers such as ``write_youtube_watch_packet`` cannot bypass the seam
-contract just because they do not call ``stage_and_write_packet`` directly.
+The detector follows imported writer behavior from ``source_capture.*`` so new
+thin wrappers such as ``write_asr_transcript`` or ``write_youtube_watch_packet``
+cannot bypass the seam contract just because their name does not end in
+``_packet`` or because they do not call ``stage_and_write_packet`` directly.
 """
 from __future__ import annotations
 
 import ast
 import re
 from dataclasses import dataclass
+from functools import cache
 from pathlib import Path
 
 _RUNNERS_DIR = Path(__file__).resolve().parents[2] / "runners"
+_SOURCE_CAPTURE_DIR = Path(__file__).resolve().parents[2] / "source_capture"
 
 _DIRECT_PACKET_WRITER_TOKENS = {"write_local_source_capture_packet", "stage_and_write_packet"}
 _PACKET_WRITER_NAME_RE = re.compile(r"write_.*_packet$")
@@ -34,6 +37,42 @@ _EXPLICIT_PAIR_REJECT_TOKENS = (
 # Each MUST carry a reason. Remove an entry when you wire its seam. Adding a new
 # packet runner without the seam and without an entry here fails the test below.
 KNOWN_UNSYNCED: dict[str, str] = {}
+
+# Current Bronze writer surface. This is the explicit audit answer for "which
+# runners are supposed to write raw Bronze evidence?" Direct writers call a
+# SourceCapturePacket writer. Orchestrators forward data_root into raw-packet
+# sub-runners and are tested separately below.
+EXPECTED_BRONZE_WRITER_RUNNERS = frozenset(
+    {
+        "run_fragrantica_mgt_capture.py",
+        "run_source_capture_antiblock_http_packet.py",
+        "run_source_capture_archive_packet.py",
+        "run_source_capture_authenticated_browser_packet.py",
+        "run_source_capture_browser_packet.py",
+        "run_source_capture_cloakbrowser_packet.py",
+        "run_source_capture_historical_packet.py",
+        "run_source_capture_http_packet.py",
+        "run_source_capture_ig_calls_packet.py",
+        "run_source_capture_ig_reels_audio_packet.py",
+        "run_source_capture_ig_reels_grid_packet.py",
+        "run_source_capture_media_packet.py",
+        "run_source_capture_packet.py",
+        "run_source_capture_price_payload_packet.py",
+        "run_source_capture_youtube_asr_packet.py",
+        "run_source_capture_youtube_caption_packet.py",
+        "run_source_capture_youtube_watch_packet.py",
+    }
+)
+
+BRONZE_PACKET_ORCHESTRATORS: dict[str, tuple[str, ...]] = {
+    "run_fragrantica_mgt_capture.py": ("http_runner", "cloakbrowser_runner"),
+}
+
+FORBIDDEN_RUNNER_RAW_PUBLICATION_CALLS = {
+    "allocate_raw_packet_dir",
+    "publish_raw_packet",
+    "record_availability",
+}
 
 
 @dataclass(frozen=True)
@@ -107,11 +146,45 @@ def _call_name(node: ast.Call) -> str | None:
     return None
 
 
-def _is_packet_writer_name(name: str | None) -> bool:
-    return bool(name) and (name in _DIRECT_PACKET_WRITER_TOKENS or _PACKET_WRITER_NAME_RE.fullmatch(name))
+def _called_names(node: ast.AST) -> set[str]:
+    return {
+        name
+        for child in ast.walk(node)
+        if isinstance(child, ast.Call)
+        for name in [_call_name(child)]
+        if name is not None
+    }
+
+
+@cache
+def _source_capture_packet_writer_names() -> frozenset[str]:
+    """Function names in source_capture that eventually stage/write a raw packet."""
+    function_calls: dict[str, set[str]] = {}
+    for path in sorted(_SOURCE_CAPTURE_DIR.rglob("*.py")):
+        tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+        for node in ast.walk(tree):
+            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                function_calls[node.name] = _called_names(node)
+
+    writers = set(_DIRECT_PACKET_WRITER_TOKENS)
+    changed = True
+    while changed:
+        changed = False
+        for name, calls in function_calls.items():
+            if name not in writers and calls.intersection(writers):
+                writers.add(name)
+                changed = True
+    return frozenset(writers)
+
+
+def _is_packet_writer_name(name: str | None, packet_writer_names: set[str] | frozenset[str]) -> bool:
+    return bool(name) and (
+        name in packet_writer_names or bool(_PACKET_WRITER_NAME_RE.fullmatch(name))
+    )
 
 
 def _source_capture_imports(tree: ast.AST) -> tuple[set[str], set[str]]:
+    packet_writer_names = _source_capture_packet_writer_names()
     writer_names = set(_DIRECT_PACKET_WRITER_TOKENS)
     module_aliases: set[str] = set()
     for node in ast.walk(tree):
@@ -119,7 +192,7 @@ def _source_capture_imports(tree: ast.AST) -> tuple[set[str], set[str]]:
             if not (node.module or "").startswith("source_capture"):
                 continue
             for alias in node.names:
-                if _is_packet_writer_name(alias.name):
+                if _is_packet_writer_name(alias.name, packet_writer_names):
                     writer_names.add(alias.asname or alias.name)
         elif isinstance(node, ast.Import):
             for alias in node.names:
@@ -131,7 +204,7 @@ def _source_capture_imports(tree: ast.AST) -> tuple[set[str], set[str]]:
 def _is_imported_module_writer_call(node: ast.Call, module_aliases: set[str]) -> bool:
     if not isinstance(node.func, ast.Attribute):
         return False
-    if not _is_packet_writer_name(node.func.attr):
+    if not _is_packet_writer_name(node.func.attr, _source_capture_packet_writer_names()):
         return False
     return isinstance(node.func.value, ast.Name) and node.func.value.id in module_aliases
 
@@ -177,6 +250,18 @@ def _packet_producers() -> dict[str, _RunnerSeam]:
     return producers
 
 
+def _bronze_writer_runners() -> frozenset[str]:
+    return frozenset(_packet_producers()).union(BRONZE_PACKET_ORCHESTRATORS)
+
+
+def _calls_named(tree: ast.AST, names: tuple[str, ...]) -> list[ast.Call]:
+    return [
+        node
+        for node in ast.walk(tree)
+        if isinstance(node, ast.Call) and _call_name(node) in names
+    ]
+
+
 def test_detector_follows_source_capture_module_import_packet_writer_alias() -> None:
     tree = ast.parse(
         """
@@ -193,6 +278,19 @@ def main(root):
     assert len(calls) == 1
     assert calls[0].name == "write_youtube_watch_packet"
     assert calls[0].forwards_data_root is True
+
+
+def test_detector_discovers_indirect_source_capture_packet_writers() -> None:
+    writers = _source_capture_packet_writer_names()
+
+    assert "write_asr_transcript" in writers
+    assert "write_ig_reels_asr_transcript" in writers
+    assert "write_caption_packet" in writers
+    assert "write_youtube_watch_packet" in writers
+
+
+def test_current_bronze_writer_runner_surface_is_explicit() -> None:
+    assert _bronze_writer_runners() == EXPECTED_BRONZE_WRITER_RUNNERS
 
 def test_every_packet_runner_is_lake_wired_or_acknowledged() -> None:
     producers = _packet_producers()
@@ -253,4 +351,47 @@ def test_packet_runner_lake_seams_reach_packet_writers() -> None:
     assert not missing, (
         "Packet-producing runner(s) expose a lake seam but do not forward data_root= "
         f"into every packet writer call: {missing}"
+    )
+
+
+def test_bronze_packet_orchestrators_forward_data_root_to_subrunners() -> None:
+    missing: dict[str, list[str]] = {}
+    for filename, callee_names in BRONZE_PACKET_ORCHESTRATORS.items():
+        path = _RUNNERS_DIR / filename
+        tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+        calls = _calls_named(tree, callee_names)
+        problems = [
+            f"{_call_name(call)} line {call.lineno}"
+            for call in calls
+            if not any(keyword.arg == "data_root" for keyword in call.keywords)
+        ]
+        if not calls:
+            problems.append(f"no calls found for {callee_names!r}")
+        if problems:
+            missing[filename] = problems
+
+    assert not missing, (
+        "Bronze packet orchestrator(s) must forward data_root= to raw-packet subrunners: "
+        f"{missing}"
+    )
+
+
+def test_bronze_writers_do_not_directly_publish_raw_packets() -> None:
+    offenders: dict[str, list[str]] = {}
+    for filename in sorted(_bronze_writer_runners()):
+        path = _RUNNERS_DIR / filename
+        tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+        hits = [
+            f"{_call_name(node)} line {node.lineno}"
+            for node in ast.walk(tree)
+            if isinstance(node, ast.Call)
+            and _call_name(node) in FORBIDDEN_RUNNER_RAW_PUBLICATION_CALLS
+        ]
+        if hits:
+            offenders[filename] = hits
+
+    assert not offenders, (
+        "Bronze writer runner(s) must not publish/mark raw packets directly; "
+        "route raw commits through source_capture.writer or packet_assembly: "
+        f"{offenders}"
     )
