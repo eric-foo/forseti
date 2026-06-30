@@ -14,7 +14,7 @@
     "source_inputs": [
       {
         "source_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json",
-        "sha256": "620a1e87a7ecd31df3f06905b1ca2b4317a13c509180585a8ccd7824e3f1afad",
+        "sha256": "095e17e64904e1702cee3e338589f6564f544cb7c149701d50f4faf042add201",
         "role": "source-backed known public platform accounts and linkage state"
       }
     ],
@@ -1189,12 +1189,12 @@
         ]
       },
       {
-        "platform_account_id": "acct_ig_reels_003",
+        "platform_account_id": "acct_ig_reels_004",
         "platform": "instagram",
         "platform_public_account_id_or_none": null,
-        "public_handle": "vanzzcoser",
-        "normalized_public_handle": "vanzzcoser",
-        "public_profile_url": "https://www.instagram.com/vanzzcoser/",
+        "public_handle": "milanscents",
+        "normalized_public_handle": "milanscents",
+        "public_profile_url": "https://www.instagram.com/milanscents/",
         "creator_record_id_or_none": null,
         "identity_state": "single_platform_observed",
         "discovery_state": "known_account",
@@ -1202,15 +1202,15 @@
         "linkage_state": "single_platform_observed",
         "routing_decision": "dedupe_exact_platform_account_then_attach_new_discovery_evidence",
         "freshness": {
-          "identity_observed_at": "2026-06-29T14:26:49Z",
+          "identity_observed_at": "2026-06-30T12:33:04Z",
           "last_discovery_observed_at_or_none": null,
-          "last_capture_observed_at_or_none": "2026-06-29T14:50:03Z",
+          "last_capture_observed_at_or_none": "2026-06-30T12:33:04Z",
           "metrics_freshness_state_or_none": "partial"
         },
         "lookup_keys": [
-          "platform_account_id:acct_ig_reels_003",
-          "platform:instagram:handle:vanzzcoser",
-          "platform:instagram:url:https://www.instagram.com/vanzzcoser/"
+          "platform_account_id:acct_ig_reels_004",
+          "platform:instagram:handle:milanscents",
+          "platform:instagram:url:https://www.instagram.com/milanscents/"
         ],
         "source_pointers": [
           "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/32"
