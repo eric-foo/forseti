@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 from cleaning.models import CLEANING_CORE_VERSION, REQUIRED_NON_CLAIMS, CleaningInputHandle, CleaningPacket
-from cleaning.parfumo import build_parfumo_cleaning_packet
+from cleaning.parfumo import PARFUMO_RATING_CARRY_RULE, build_parfumo_cleaning_packet
 from data_lake.canonical_json import canonical_record_bytes as _json_bytes
 from data_lake.silver_record import append_silver_record
 from harness_utils import generate_ulid
@@ -30,9 +30,15 @@ CLEANING_AUDIT_PACK_SCHEMA_VERSION = "cleaning_audit_pack_v0"
 SILVER_VAULT_RECORD_SCHEMA_VERSION = "silver_vault_record_v0"
 PARFUMO_AUDIT_PACK_PRODUCER_SCHEMA_VERSION = "parfumo_cleaning_audit_pack_v0"
 PARFUMO_SILVER_PRODUCER_SCHEMA_VERSION = "parfumo_cleaning_silver_textobservation_v0"
+PARFUMO_SILVER_METRIC_PRODUCER_SCHEMA_VERSION = "parfumo_cleaning_silver_metricobservation_v0"
 PARFUMO_CLEANING_METHOD_ID = "parfumo_cleaning_method_v0"
 TEXT_NORMALIZATION_RULE = "parfumo_text_whitespace_normalization"
-PARFUMO_RATING_METRIC_RESIDUAL = "parfumo_rating_metric_observations_deferred"
+PARFUMO_RATING_METRIC_ABSENT_RESIDUAL = (
+    "parfumo_review_rating_metric_absent_no_source_visible_numeric_rating"
+)
+_REVIEW_RATING_METRIC_SPECS: tuple[tuple[str, str, str], ...] = (
+    ("rating", "review_rating", "parfumo_rating_0_10"),
+)
 
 DISCRIMINATOR_LOCALITY_NON_CLAIM = (
     "record_family_and_audit_kind_local_to_cleaning_audit_pack_v0_no_lake_wide_dispatch"
@@ -67,7 +73,10 @@ def derive_parfumo_cleaning_into_lake(
         packet=packet,
         raw_file_bytes_by_file_id=loaded.bodies,
     )
-    cleaning_packet = build_parfumo_cleaning_packet(projection)
+    cleaning_packet = build_parfumo_cleaning_packet(
+        projection,
+        source_surface=packet.source_surface,
+    )
 
     audit_seed = record_id if record_id is not None else generate_ulid()
     audit_record_name = f"{audit_seed}.json"
@@ -90,6 +99,15 @@ def derive_parfumo_cleaning_into_lake(
         audit_lane=PARFUMO_CLEANING_AUDIT_LANE,
         audit_record_id=audit_record_name,
         audit_content_hash=audit_record["content_hash"],
+    )
+    silver_records.extend(
+        parfumo_post_cleaned_silver_metric_records(
+            packet=packet,
+            cleaning_packet=cleaning_packet,
+            audit_lane=PARFUMO_CLEANING_AUDIT_LANE,
+            audit_record_id=audit_record_name,
+            audit_content_hash=audit_record["content_hash"],
+        )
     )
     silver_paths: list[Path] = []
     for silver_record in silver_records:
@@ -156,7 +174,6 @@ def parfumo_cleaning_audit_pack_payload(
                 "not_demand_signal",
                 "not_evidence_unit_binding",
                 "not_judgment",
-                "not_metric_observation_promotion",
                 "not_sentiment_analysis",
                 "not_silver_fact",
                 DISCRIMINATOR_LOCALITY_NON_CLAIM,
@@ -198,6 +215,52 @@ def parfumo_post_cleaned_silver_records(
                 audit_content_hash=audit_content_hash,
             )
         )
+    return records
+
+
+def parfumo_post_cleaned_silver_metric_records(
+    *,
+    packet: SourceCapturePacket,
+    cleaning_packet: CleaningPacket,
+    audit_lane: str,
+    audit_record_id: str,
+    audit_content_hash: str,
+) -> list[dict[str, Any]]:
+    """Return observed Silver MetricObservations for source-visible Parfumo review ratings."""
+    capture_time = _known_capture_time(packet)
+    handle_by_id = {handle.handle_id: handle for handle in cleaning_packet.handles}
+    records: list[dict[str, Any]] = []
+    for entry in cleaning_packet.transform_ledger:
+        if entry.transform.method_or_rule != PARFUMO_RATING_CARRY_RULE:
+            continue
+        handle = handle_by_id.get(entry.input_handle_id)
+        carried = entry.transform.transformed_value
+        if handle is None or carried is None:
+            continue
+        try:
+            rating_fields = json.loads(carried)
+        except (TypeError, ValueError):
+            continue
+        if not isinstance(rating_fields, dict):
+            continue
+        for rating_field, metric_name, unit in _REVIEW_RATING_METRIC_SPECS:
+            value = rating_fields.get(rating_field)
+            if isinstance(value, bool) or not isinstance(value, (int, float)):
+                continue
+            records.append(
+                _post_cleaned_metric_record(
+                    packet=packet,
+                    handle=handle,
+                    metric_name=metric_name,
+                    metric_value=float(value),
+                    unit=unit,
+                    record_id=f"{generate_ulid()}.json",
+                    capture_time=capture_time,
+                    audit_lane=audit_lane,
+                    audit_record_id=audit_record_id,
+                    audit_content_hash=audit_content_hash,
+                )
+            )
     return records
 
 
@@ -265,7 +328,78 @@ def _post_cleaned_silver_record(
                 "not_corpus_completeness",
                 "not_demand_signal",
                 "not_judgment",
-                "not_metric_observation_promotion",
+                "not_sentiment_analysis",
+            }
+        ),
+    }
+    record["content_hash"] = f"sha256:{_content_hash(record)}"
+    return record
+
+
+def _post_cleaned_metric_record(
+    *,
+    packet: SourceCapturePacket,
+    handle: CleaningInputHandle,
+    metric_name: str,
+    metric_value: float,
+    unit: str,
+    record_id: str,
+    capture_time: str,
+    audit_lane: str,
+    audit_record_id: str,
+    audit_content_hash: str,
+) -> dict[str, Any]:
+    record: dict[str, Any] = {
+        "record_id": record_id,
+        "raw_anchor": packet.packet_id,
+        "lane_namespace": PARFUMO_CLEANING_SILVER_LANE,
+        "producer_id": _SILVER_PRODUCER_ID,
+        "schema_version": SILVER_VAULT_RECORD_SCHEMA_VERSION,
+        "producer_schema_version": PARFUMO_SILVER_METRIC_PRODUCER_SCHEMA_VERSION,
+        "content_hash": "",
+        "content_hash_basis": _CONTENT_HASH_BASIS,
+        "record_kind": "observation",
+        "payload_kind": "MetricObservation",
+        "producer_row_kind": "parfumo_review_rating",
+        "source_family": packet.source_family,
+        "source_surface": packet.source_surface,
+        "observed_at": capture_time,
+        "captured_at": capture_time,
+        "raw_refs": [_handle_raw_ref(handle)],
+        "derived_refs": [
+            {
+                "edge_type": "derived_from_record",
+                "lane_namespace": audit_lane,
+                "record_id": audit_record_id,
+                "content_hash": audit_content_hash,
+                "content_hash_basis": _CONTENT_HASH_BASIS,
+            }
+        ],
+        "payload": {
+            "observation": {
+                "subject": _silver_subject(handle),
+                "metric_name": metric_name,
+                "metric_value": metric_value,
+                "metric_posture": {
+                    "kind": "observed",
+                    "reason_code": None,
+                    "reason_detail": None,
+                },
+                "coverage_window": {"start": None, "end": None},
+                "source_surface": packet.source_surface,
+                "source_publication_or_event": None,
+                "source_surface_count_candidates": [],
+                "unit": unit,
+            }
+        },
+        "provenance": {
+            "cleaning_method_id": PARFUMO_CLEANING_METHOD_ID,
+        },
+        "non_claims": sorted(
+            {
+                "not_corpus_completeness",
+                "not_demand_signal",
+                "not_judgment",
                 "not_sentiment_analysis",
             }
         ),
@@ -295,12 +429,13 @@ def _known_capture_time(packet: SourceCapturePacket) -> str:
 
 
 def _coverage(cleaning_packet: CleaningPacket) -> dict[str, Any]:
-    residual_set = {PARFUMO_RATING_METRIC_RESIDUAL}
-    residual_set.update(
+    residual_set = {
         residual
         for handle in cleaning_packet.handles
         for residual in handle.residuals
-    )
+    }
+    if not _has_source_visible_rating_metric(cleaning_packet):
+        residual_set.add(PARFUMO_RATING_METRIC_ABSENT_RESIDUAL)
     residuals = sorted(residual_set)
     return {
         "basis": "parfumo_current_window_cleaning_packet",
@@ -318,6 +453,13 @@ def _coverage(cleaning_packet: CleaningPacket) -> dict[str, Any]:
             }
         ),
     }
+
+
+def _has_source_visible_rating_metric(cleaning_packet: CleaningPacket) -> bool:
+    return any(
+        entry.transform.method_or_rule == PARFUMO_RATING_CARRY_RULE
+        for entry in cleaning_packet.transform_ledger
+    )
 
 
 def _handle_raw_ref(handle: CleaningInputHandle) -> dict[str, str | None]:
@@ -393,5 +535,6 @@ __all__ = [
     "ParfumoCleaningLakeResult",
     "derive_parfumo_cleaning_into_lake",
     "parfumo_cleaning_audit_pack_payload",
+    "parfumo_post_cleaned_silver_metric_records",
     "parfumo_post_cleaned_silver_records",
 ]

@@ -1,6 +1,7 @@
 """Parfumo-specific adapter into the Cleaning Spine v0 core."""
 from __future__ import annotations
 
+import json
 import re
 from typing import Any
 
@@ -16,12 +17,21 @@ from cleaning.models import (
 )
 from cleaning.projection import cleaning_input_handles_from_projection_rows
 from ecr.models import ECR_SOURCE_SIDE_REF_KIND
-from source_capture.parfumo_projection import ParfumoProjectionPacket, ParfumoProjectionRow
+from source_capture.parfumo_projection import (
+    PARFUMO_DIRECT_HTTP_SOURCE_SURFACE,
+    PARFUMO_TARGETED_RENDERED_SOURCE_SURFACE,
+    ParfumoProjectionPacket,
+    ParfumoProjectionRow,
+)
 
 PARFUMO_CLEANING_HANDLE_PREFIX = "cleaning:parfumo"
+PARFUMO_RATING_CARRY_RULE = "parfumo_source_visible_rating_field_carry"
 
 _PARFUMO_SOURCE_FAMILY = "fragrance_native_database"
-_PARFUMO_SOURCE_SURFACE = "parfumo_product_page_direct_http"
+_PARFUMO_SOURCE_SURFACES = (
+    PARFUMO_DIRECT_HTTP_SOURCE_SURFACE,
+    PARFUMO_TARGETED_RENDERED_SOURCE_SURFACE,
+)
 _ECR_REF_STATUS_BY_CONVENTION = "by_convention_not_existence_checked"
 
 _TEXT_ROW_KINDS = {
@@ -39,6 +49,9 @@ _PACKET_RAW_PULL_TRIGGERS_BY_RESIDUAL = {
     "linked_media_assets_not_preserved_by_direct_http_packet": (
         "inspect_raw_before_media_dependent_claim"
     ),
+    "linked_media_assets_not_preserved_by_targeted_rendered_packet": (
+        "inspect_raw_before_media_dependent_claim"
+    ),
     "review_attached_photo_proof_not_present": (
         "inspect_raw_before_photo_dependent_claim"
     ),
@@ -49,11 +62,17 @@ def build_parfumo_cleaning_packet(
     projection: ParfumoProjectionPacket,
     *,
     attach_ecr_ref: bool = True,
+    source_surface: str = PARFUMO_DIRECT_HTTP_SOURCE_SURFACE,
 ) -> CleaningPacket:
     """Build a CleaningPacket from a Parfumo projection packet."""
+    if source_surface not in _PARFUMO_SOURCE_SURFACES:
+        raise ValueError(
+            "Parfumo Cleaning requires "
+            f"source_surface in {_PARFUMO_SOURCE_SURFACES!r}; got {source_surface!r}"
+        )
     handles = cleaning_input_handles_from_projection_rows(
         source_family=_PARFUMO_SOURCE_FAMILY,
-        source_surface=_PARFUMO_SOURCE_SURFACE,
+        source_surface=source_surface,
         projection_packet=projection,
         handle_id_prefix=PARFUMO_CLEANING_HANDLE_PREFIX,
     )
@@ -143,6 +162,28 @@ def _text_row_transform_entries(
             )
         )
 
+    rating = fields.get("rating")
+    if (
+        row.row_kind == "fragrance_review_card_current_window"
+        and isinstance(rating, (int, float))
+        and not isinstance(rating, bool)
+    ):
+        rating_json = json.dumps({"rating": float(rating)}, sort_keys=True, separators=(",", ":"))
+        entries.append(
+            CleaningTransformLedgerEntry(
+                input_handle_id=input_handle_id,
+                transform=CleaningTransform(
+                    transform_class=CleaningTransformClass.PROPAGATION,
+                    rule_scope=CleaningRuleScope.SOURCE_FAMILY_ADAPTATION,
+                    method_or_rule=PARFUMO_RATING_CARRY_RULE,
+                    input_grain=CleaningInputGrain.ROW,
+                    original_value=rating_json,
+                    transformed_value=rating_json,
+                ),
+                preservation=_preservation(),
+            )
+        )
+
     return entries
 
 
@@ -222,4 +263,8 @@ def _raw_pull_triggers_for_packet_residuals(residuals: list[str]) -> list[str]:
     )
 
 
-__all__ = ["PARFUMO_CLEANING_HANDLE_PREFIX", "build_parfumo_cleaning_packet"]
+__all__ = [
+    "PARFUMO_CLEANING_HANDLE_PREFIX",
+    "PARFUMO_RATING_CARRY_RULE",
+    "build_parfumo_cleaning_packet",
+]

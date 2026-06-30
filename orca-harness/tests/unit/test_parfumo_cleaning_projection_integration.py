@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from cleaning.parfumo import build_parfumo_cleaning_packet
+from cleaning.parfumo import PARFUMO_RATING_CARRY_RULE, build_parfumo_cleaning_packet
 from source_capture.models import known_fact
 from source_capture.parfumo_projection import build_parfumo_projection
 from source_capture.writer import write_local_source_capture_packet
@@ -17,7 +17,7 @@ _HTML = """
 </head><body>
   <main data-perfume-id="67720" data-rating-count="5176" data-review-count="369" data-statement-count="1390">
     <script>const routes = {reviews: "/action/perfume/get_reviews.php", statements: "/action/perfume/get_statements.php", p_id: 67720};</script>
-    <article data-review-id="900001" data-author="  Rimazy  ">
+    <article data-review-id="900001" data-author="  Rimazy  " data-rating="8.0">
       <time datetime="2026-06-25">06/25/26</time>
       <p data-role="review-text">This   perfume
       died young.</p>
@@ -53,6 +53,15 @@ def test_parfumo_projection_builds_cleaning_packet_with_text_transforms(tmp_path
     assert rules.count("parfumo_text_whitespace_normalization") == 2
     assert "parfumo_author_display_name_whitespace_normalization" in rules
     assert "parfumo_text_length_bin" in rules
+    assert PARFUMO_RATING_CARRY_RULE in rules
+
+    rating_entries = [
+        entry
+        for entry in cleaning_packet.transform_ledger
+        if entry.transform.method_or_rule == PARFUMO_RATING_CARRY_RULE
+    ]
+    assert len(rating_entries) == 1
+    assert json.loads(rating_entries[0].transform.transformed_value) == {"rating": 8.0}
 
     text_values = {
         entry.transform.transformed_value
