@@ -19,8 +19,9 @@ from harness_utils import hash_file
 from source_capture.models import HASH_BASIS_VALUES
 
 BRONZE_CATALOG_VERSION = "bronze_catalog_v0"
-BRONZE_CATALOG_SCHEMA_VERSION = "bronze_catalog_v0_schema_1"
-BRONZE_ATTACHMENT_RECORD_SCHEMA_VERSION = "bronze_attachment_record_v0_schema_1"
+BRONZE_CATALOG_SCHEMA_VERSION = "bronze_catalog_v0_schema_2"
+BRONZE_ATTACHMENT_RECORD_SCHEMA_VERSION = "bronze_attachment_record_v0_schema_2"
+BRONZE_ATTACHMENT_RECORD_PHYSICALIZATION = "manifest_equivalent_entry_over_raw_packet_body_v0"
 CATALOG_RELATIVE_ROOT = ("indexes", "derived_retrieval", "bronze_catalog", "v0")
 _PACKET_ID_RE = re.compile(r"[0123456789ABCDEFGHJKMNPQRSTVWXYZ]{26}")
 _CATALOG_AUTHORITY = "generated_from_raw_packet_manifests; raw remains authoritative"
@@ -60,13 +61,24 @@ _SOURCE_SURFACE_FIELD_SEMANTICS = {
     ),
 }
 _ATTACHMENT_RECORD_COMPLETENESS = (
-    "generated_preserved_file_entries_only; not final Attachment Record physicalization, "
+    "physicalized_manifest_equivalent_attachment_records_over_preserved_raw_packet_bodies; "
+    "body remains a hash-checked raw packet member, not a copied attachments/ body; "
     "not Manifest v2, not source-family payload validation, and not downstream currentness"
 )
 _ATTACHMENT_RECORD_FIELD_SEMANTICS = {
     "attachment_record_id": (
         "stable generated key derived from packet_id, preserved file_id, "
         "relative_packet_path, and body_sha256; it is not the positional file_id"
+    ),
+    "attachment_record_physicalization": (
+        "manifest_equivalent_entry_over_raw_packet_body_v0 means the typed entry is "
+        "generated under the Bronze catalog and resolves an immutable preserved body "
+        "inside its raw packet; no body copy is created"
+    ),
+    "body_ref": (
+        "structured reference to the preserved raw packet member; it repeats packet_id, "
+        "file_id, relative_packet_path, body_sha256, and hash_basis so consumers do not "
+        "inherit positional file_id or staging-path semantics"
     ),
     "body_ref_kind": (
         "raw_packet_relative_path means the body remains in the raw packet and is "
@@ -100,7 +112,7 @@ _COVERAGE_CENSUS_FIELD_SEMANTICS = {
     ),
     "attachment_record_count": (
         "raw-derived expected generated Attachment Record row total over preserved "
-        "packet bodies; not final Attachment Record physicalization"
+        "packet bodies; body remains a hash-checked raw packet member, not a copied attachments/ body"
     ),
     "indexed_attachment_record_count": (
         "parseable row total observed in generated "
@@ -770,6 +782,7 @@ def _packet_attachment_records(
         records.append(
             {
                 "attachment_record_schema_version": BRONZE_ATTACHMENT_RECORD_SCHEMA_VERSION,
+                "attachment_record_physicalization": BRONZE_ATTACHMENT_RECORD_PHYSICALIZATION,
                 "attachment_record_id": record_id,
                 "attachment_record_id_basis": (
                     "sha256(json_array[packet_id,file_id,relative_packet_path,body_sha256])"
@@ -789,12 +802,29 @@ def _packet_attachment_records(
                 "original_path": _string_or_none(preserved.get("original_path")),
                 "relative_packet_path": relative_packet_path,
                 "body_ref_kind": _RAW_PACKET_BODY_REF_KIND,
+                "body_ref": {
+                    "kind": _RAW_PACKET_BODY_REF_KIND,
+                    "packet_id": entry["packet_id"],
+                    "file_id": file_id,
+                    "relative_packet_path": relative_packet_path,
+                    "body_sha256": body_sha256,
+                    "hash_basis": hash_basis,
+                },
                 "body_sha256": body_sha256,
                 "hash_basis": hash_basis,
                 "size_bytes": size_bytes,
                 "payload_kind": _payload_kind(relative_packet_path, body),
                 "payload_kind_basis": "generic_body_classification",
+                "payload_schema_version": _payload_schema_version(manifest, preserved),
                 "raw_packet_manifest_version": _string_or_none(manifest.get("manifest_version")),
+                "replay_version_pins": {
+                    "raw_packet_manifest_version": _string_or_none(manifest.get("manifest_version")),
+                    "source_capture_obligation_contract_version": _string_or_none(
+                        manifest.get("obligation_contract_version")
+                    ),
+                    "catalog_schema_version": BRONZE_CATALOG_SCHEMA_VERSION,
+                    "attachment_record_schema_version": BRONZE_ATTACHMENT_RECORD_SCHEMA_VERSION,
+                },
                 "posture_summary": _posture_summary(manifest),
                 "stable_query_paths": {
                     "by_attachment_record": (
@@ -858,6 +888,13 @@ def _visible_fact_summary(value: object) -> dict[str, str | None] | None:
         "value": _string_or_none(value.get("value")),
         "reason": _string_or_none(value.get("reason")),
     }
+
+
+def _payload_schema_version(manifest: dict[str, Any], preserved: dict[str, Any]) -> str | None:
+    preserved_value = _string_or_none(preserved.get("payload_schema_version"))
+    if preserved_value is not None:
+        return preserved_value
+    return _string_or_none(manifest.get("payload_schema_version"))
 
 
 def _payload_kind(relative_packet_path: str, body: bytes) -> str:
@@ -1075,6 +1112,7 @@ def _attachment_record_snapshot(attachment_records: list[dict[str, Any]]) -> dic
             "catalog_version": BRONZE_CATALOG_VERSION,
             "catalog_schema_version": BRONZE_CATALOG_SCHEMA_VERSION,
             "attachment_record_schema_version": BRONZE_ATTACHMENT_RECORD_SCHEMA_VERSION,
+            "attachment_record_physicalization": BRONZE_ATTACHMENT_RECORD_PHYSICALIZATION,
             "attachment_record_count": len(attachment_records),
             "completeness": _ATTACHMENT_RECORD_COMPLETENESS,
             "field_semantics": _ATTACHMENT_RECORD_FIELD_SEMANTICS,
@@ -1108,6 +1146,7 @@ def _attachment_record_snapshot(attachment_records: list[dict[str, Any]]) -> dic
 def _attachment_query_row(record: dict[str, Any]) -> dict[str, Any]:
     return {
         "attachment_record_id": record["attachment_record_id"],
+        "attachment_record_physicalization": record["attachment_record_physicalization"],
         "packet_id": record["packet_id"],
         "source_family": record.get("source_family"),
         "source_surface": record.get("source_surface"),
@@ -1134,6 +1173,23 @@ def load_attachment_record_body(root: DataLakeRoot, attachment_record: dict[str,
     )
     _require_supported_attachment_record_body_ref_kind(expected_body_ref_kind)
     _require_supported_attachment_record_hash_basis(expected_hash_basis, file_id=file_id)
+    body_ref = attachment_record.get("body_ref")
+    if body_ref is not None:
+        if not isinstance(body_ref, dict):
+            raise DataLakeRootError("Attachment Record body_ref must be an object when present")
+        expected_body_ref = {
+            "kind": expected_body_ref_kind,
+            "packet_id": packet_id,
+            "file_id": file_id,
+            "relative_packet_path": relative_packet_path,
+            "body_sha256": expected_sha256,
+            "hash_basis": expected_hash_basis,
+        }
+        for key, expected_value in expected_body_ref.items():
+            if body_ref.get(key) != expected_value:
+                raise DataLakeRootError(
+                    f"Attachment Record body_ref mismatch for {file_id!r}: {key}"
+                )
     loaded = root.load_raw_packet(packet_id)
     preserved = _preserved_file_by_id(loaded.manifest, file_id)
     if preserved.get("relative_packet_path") != relative_packet_path:
@@ -1260,6 +1316,7 @@ def _facet_sort_key(facet: dict[str, str]) -> tuple[str, str, str, str]:
 
 
 __all__ = [
+    "BRONZE_ATTACHMENT_RECORD_PHYSICALIZATION",
     "BRONZE_ATTACHMENT_RECORD_SCHEMA_VERSION",
     "BRONZE_CATALOG_SCHEMA_VERSION",
     "BRONZE_CATALOG_VERSION",
