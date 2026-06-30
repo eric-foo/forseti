@@ -2,11 +2,12 @@
 
 One home for the byte format a lake JSON record is persisted in, so producers
 cannot drift the serialization (``indent``/``sort_keys``/``ensure_ascii``/
-``allow_nan``) by keeping private copies. Three byte-identical copies of this
+``allow_nan``) by keeping private copies. Four byte-identical copies of this
 function previously lived in ``data_lake.silver_record``,
-``cleaning.fragrantica_lake`` and
-``capture_spine.creator_profile_current.silver_metric_producer``; this is their
-single source of truth.
+``cleaning.fragrantica_lake``,
+``capture_spine.creator_profile_current.silver_metric_producer`` and
+``capture_spine.creator_profile_current.youtube_silver_metric_producer``; this is
+their single source of truth.
 
 It sits in the base ``data_lake`` layer and imports nothing from
 ``cleaning``/``capture_spine``/``source_capture``, so every adopter depends

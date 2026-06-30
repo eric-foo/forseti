@@ -104,6 +104,42 @@ FRONT_DOOR_PENDING: dict[str, str] = {
 }
 
 
+# The exact, frozen set of lanes FRONT_DOOR_PENDING is allowed to contain. The
+# guard fails if FRONT_DOOR_PENDING drifts from this baseline, so a NEW
+# silver_envelope bypass cannot be silently grandfathered -- adding one requires
+# a deliberate, reviewed edit here. When a migration genuinely lands, remove the
+# lane from both FRONT_DOOR_PENDING and this baseline together.
+FRONT_DOOR_PENDING_BASELINE = frozenset(
+    {
+        "creator_metric_silver",
+        "creator_metric_rollup_silver",
+    }
+)
+
+
+def validate_registry() -> list[str]:
+    """Registry invariants the no-blur guard enforces before scanning: the
+    FRONT_DOOR_PENDING allowlist has not drifted from its named baseline, and
+    every pending lane is a real silver_envelope lane carrying a migration
+    reason. Returns a list of human-readable violation messages (empty = valid)."""
+    errors: list[str] = []
+    pending = set(FRONT_DOOR_PENDING)
+    baseline = set(FRONT_DOOR_PENDING_BASELINE)
+    if pending != baseline:
+        errors.append(
+            "FRONT_DOOR_PENDING drifted from FRONT_DOOR_PENDING_BASELINE "
+            f"(added={sorted(pending - baseline)!r}, removed={sorted(baseline - pending)!r}); "
+            "a new silver_envelope lane must use the front-door, not be grandfathered here. "
+            "Update the baseline deliberately only when a migration genuinely lands."
+        )
+    for lane, reason in FRONT_DOOR_PENDING.items():
+        if LANE_ROLES.get(lane) is not LaneRole.SILVER_ENVELOPE:
+            errors.append(f"FRONT_DOOR_PENDING lane {lane!r} is not declared as silver_envelope.")
+        if not reason.strip():
+            errors.append(f"FRONT_DOOR_PENDING lane {lane!r} has no migration reason.")
+    return errors
+
+
 SILVER_ENVELOPE_LANES = frozenset(
     lane for lane, role in LANE_ROLES.items() if role is LaneRole.SILVER_ENVELOPE
 )
@@ -130,10 +166,12 @@ __all__ = [
     "LaneRole",
     "LANE_ROLES",
     "FRONT_DOOR_PENDING",
+    "FRONT_DOOR_PENDING_BASELINE",
     "SILVER_ENVELOPE_LANES",
     "SILVER_LANES",
     "SILVER_ENVELOPE_FRONT_DOOR_MODULE",
     "SILVER_ENVELOPE_FRONT_DOOR_FUNC",
+    "validate_registry",
     "role_of",
     "is_silver_named",
 ]
