@@ -44,7 +44,15 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--record-id-prefix",
         default=None,
-        help="Optional create-only derived record id prefix for --bronze-source-surface mode.",
+        help="Optional stable derived record id namespace for --bronze-source-surface mode.",
+    )
+    parser.add_argument(
+        "--skip-existing",
+        action="store_true",
+        help=(
+            "With --bronze-source-surface, skip stable projection records that already exist "
+            "instead of failing the rerun."
+        ),
     )
     parser.add_argument(
         "--output",
@@ -64,6 +72,8 @@ def main(argv: Sequence[str] | None = None) -> int:
                 raise ValueError("--output is only valid with --packet; lake mode appends a derived record")
             if args.record_id_prefix is not None:
                 raise ValueError("--record-id-prefix is only valid with --bronze-source-surface")
+            if args.skip_existing:
+                raise ValueError("--skip-existing is only valid with --bronze-source-surface")
             if args.data_root is None and not os.environ.get("ORCA_DATA_ROOT"):
                 raise ValueError("--data-root/ORCA_DATA_ROOT is required with --packet-id")
             data_root = DataLakeRoot.resolve(explicit=args.data_root)
@@ -86,6 +96,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             projected = project_ig_reels_grid_from_bronze_catalog(
                 data_root=data_root,
                 record_id_prefix=args.record_id_prefix,
+                skip_existing=args.skip_existing,
             )
             print(json.dumps([str(path) for _projection, path in projected], indent=2))
             return 0
@@ -94,6 +105,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             raise ValueError("--record-id is only valid with --packet-id")
         if args.record_id_prefix is not None:
             raise ValueError("--record-id-prefix is only valid with --bronze-source-surface")
+        if args.skip_existing:
+            raise ValueError("--skip-existing is only valid with --bronze-source-surface")
         if args.data_root is not None:
             raise ValueError("--data-root is only valid with --packet-id or --bronze-source-surface")
         if args.output is not None:

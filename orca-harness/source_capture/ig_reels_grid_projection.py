@@ -26,6 +26,7 @@ Cleaning, ECR, Judgment, a momentum/traction score, or a capture path.
 """
 from __future__ import annotations
 
+import hashlib
 import json
 import re
 from pathlib import Path
@@ -35,6 +36,7 @@ from urllib.parse import urlparse
 from pydantic import Field, field_validator, model_validator
 
 from data_lake.catalog import load_attachment_record_body, source_surface_catalog_rows
+from data_lake.root import DataLakeRootError
 from harness_utils import generate_ulid
 from schemas.case_models import StrictModel
 from source_capture.ig_projection import (
@@ -70,10 +72,12 @@ IG_REELS_PROJECTION_CERTIFICATION = "view_only; not_cleaned; not_normalized; not
 
 # Append-only derived lane namespace for the IG reels-grid projection's Silver record.
 PROJECTION_IG_REELS_GRID_LANE = "projection_ig_reels_grid"
+BRONZE_CATALOG_IG_REELS_GRID_RECORD_ID_PREFIX = "bronze_catalog_ig_reels_grid_v0"
 
 _IG_SOURCE_FAMILY = "instagram_creator"
 _IG_REELS_GRID_SOURCE_SURFACE = "ig_reels_grid_dom_passive_json"
 _CAPTURE_FILE_BASENAME = "ig_reels_grid_capture.json"
+_BRONZE_CATALOG_RECORD_ID_DIGEST_CHARS = 16
 
 # Mirrors the capture runner's `_preferred_candidate` JSON-surface order. It is a
 # mechanical, versioned policy (pinned by the capture file's selection_policy_version),
@@ -383,12 +387,15 @@ def project_ig_reels_grid_from_bronze_catalog(
     *,
     data_root: "DataLakeRoot",
     record_id_prefix: str | None = None,
+    skip_existing: bool = False,
 ) -> list[tuple[IgReelsGridProjectionPacket, Path]]:
     """Project all IG reels-grid packets discovered via the Bronze source-surface index.
 
     This is the downstream proof path: packet ids and AR rows come from the generated
     Bronze catalog query files, and body bytes are resolved through generated AR rows
-    rather than by guessing raw packet directories.
+    rather than by guessing raw packet directories. Derived record ids are stable over
+    packet + AR identity, never catalog position; existing stable records fail closed
+    unless ``skip_existing`` is explicitly enabled for incremental convergence.
     """
     catalog_rows = source_surface_catalog_rows(
         data_root,
@@ -401,9 +408,43 @@ def project_ig_reels_grid_from_bronze_catalog(
         if packet_id is not None:
             attachment_records_by_packet.setdefault(packet_id, []).append(record)
 
-    projected: list[tuple[IgReelsGridProjectionPacket, Path]] = []
-    for index, packet_row in enumerate(catalog_rows["packet_rows"], start=1):
+    planned: list[tuple[str, list[dict[str, Any]], str, Path]] = []
+    for packet_row in catalog_rows["packet_rows"]:
         packet_id = _required_catalog_string(packet_row.get("packet_id"), "packet_id")
+        attachment_records = sorted(
+            attachment_records_by_packet.get(packet_id, []),
+            key=lambda item: _string_or_none(item.get("attachment_record_id")) or "",
+        )
+        record_id = _bronze_catalog_projection_record_id(
+            record_id_prefix=record_id_prefix,
+            packet_id=packet_id,
+            attachment_records=attachment_records,
+        )
+        target_path = data_root.record_path(
+            subtree="derived",
+            raw_anchor=packet_id,
+            lane=PROJECTION_IG_REELS_GRID_LANE,
+            record_id=f"{record_id}.json",
+        )
+        planned.append((packet_id, attachment_records, record_id, target_path))
+
+    existing_targets = [
+        str(target_path)
+        for _packet_id, _attachment_records, _record_id, target_path in planned
+        if target_path.exists()
+    ]
+    if existing_targets and not skip_existing:
+        raise DataLakeRootError(
+            "Bronze catalog projection target already exists for stable record id; "
+            "rerun would duplicate a logical projection. Use skip_existing=True/"
+            "--skip-existing to converge or choose a different record_id_prefix: "
+            + ", ".join(existing_targets)
+        )
+
+    projected: list[tuple[IgReelsGridProjectionPacket, Path]] = []
+    for packet_id, attachment_records, record_id, target_path in planned:
+        if target_path.exists() and skip_existing:
+            continue
         loaded = data_root.load_raw_packet(packet_id)
         packet = SourceCapturePacket.model_validate(loaded.manifest)
         raw_file_bytes_by_file_id = {
@@ -411,7 +452,7 @@ def project_ig_reels_grid_from_bronze_catalog(
                 data_root, record
             )
             for record in sorted(
-                attachment_records_by_packet.get(packet_id, []),
+                attachment_records,
                 key=lambda item: _string_or_none(item.get("file_id")) or "",
             )
         }
@@ -419,7 +460,6 @@ def project_ig_reels_grid_from_bronze_catalog(
             packet=packet,
             raw_file_bytes_by_file_id=raw_file_bytes_by_file_id,
         )
-        record_id = f"{record_id_prefix}_{index:04d}" if record_id_prefix else None
         derived_path = _append_ig_reels_grid_projection(
             data_root=data_root,
             packet_id=packet_id,
@@ -428,6 +468,53 @@ def project_ig_reels_grid_from_bronze_catalog(
         )
         projected.append((projection, derived_path))
     return projected
+
+
+def _bronze_catalog_projection_record_id(
+    *,
+    record_id_prefix: str | None,
+    packet_id: str,
+    attachment_records: list[dict[str, Any]],
+) -> str:
+    prefix = (
+        record_id_prefix
+        if record_id_prefix is not None
+        else BRONZE_CATALOG_IG_REELS_GRID_RECORD_ID_PREFIX
+    )
+    material = json.dumps(
+        {
+            "packet_id": packet_id,
+            "projection_method": IG_REELS_PROJECTION_METHOD,
+            "projection_version": IG_REELS_PROJECTION_VERSION,
+            "source_family": _IG_SOURCE_FAMILY,
+            "source_surface": _IG_REELS_GRID_SOURCE_SURFACE,
+            "attachment_records": [
+                {
+                    "attachment_record_id": _required_catalog_string(
+                        record.get("attachment_record_id"), "attachment_record_id"
+                    ),
+                    "file_id": _required_catalog_string(record.get("file_id"), "file_id"),
+                    "relative_packet_path": _required_catalog_string(
+                        record.get("relative_packet_path"), "relative_packet_path"
+                    ),
+                    "body_sha256": _required_catalog_string(
+                        record.get("body_sha256"), "body_sha256"
+                    ),
+                }
+                for record in sorted(
+                    attachment_records,
+                    key=lambda item: _string_or_none(item.get("attachment_record_id")) or "",
+                )
+            ],
+        },
+        ensure_ascii=True,
+        separators=(",", ":"),
+        sort_keys=True,
+    )
+    digest = hashlib.sha256(material.encode("utf-8")).hexdigest()[
+        :_BRONZE_CATALOG_RECORD_ID_DIGEST_CHARS
+    ]
+    return f"{prefix}_{digest}"
 
 
 def _append_ig_reels_grid_projection(
@@ -874,6 +961,7 @@ def _list_len(value: object) -> int | None:
 
 
 __all__ = [
+    "BRONZE_CATALOG_IG_REELS_GRID_RECORD_ID_PREFIX",
     "IG_REELS_PROJECTION_CERTIFICATION",
     "IG_REELS_PROJECTION_METHOD",
     "IG_REELS_PROJECTION_VERSION",
