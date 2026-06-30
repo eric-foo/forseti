@@ -112,10 +112,18 @@ replaces `seed["metric_rollups"]` as the rollup source:
   (the exact Silver `MetricRollupObservation` it was lifted from), plus a
   `snapshot_provenance` header (`snapshot_generated_at`, `lake_high_watermark`,
   `selection_run_id`, per-platform).
-- **No-drift bridge:** the first IG snapshot is asserted **byte-equal** to
-  today's `seed["metric_rollups"]`, so the regenerated view is **byte-identical**
-  to the committed view. This proves the *adapter* is no-drift; it does **not**
-  prove lake freshness (AR-03).
+- **No-drift bridge:** the first IG snapshot's rollups are asserted
+  **value-equal** to today's `seed["metric_rollups"]` — **not** raw-byte-equal.
+  Snapshot rollups are canonically keyed (lifted from canonical Silver records)
+  while the seed's key order is hand-authored, so a raw-byte compare false-fails
+  on key order alone (cross-vendor review finding). And because `materialize`
+  deep-copies rollup fields into the view (`_profile_rollup`) and dumps with
+  `sort_keys` off, a snapshot-fed view would otherwise reorder nested metric keys
+  vs the seed-fed view. **§5 therefore canonicalizes the view serialization**
+  (`sort_keys` on the view dump; re-emit the committed view once) so the
+  regenerated view stays byte-identical regardless of rollup source key order.
+  This proves the *adapter* is no-drift; it does **not** prove lake freshness
+  (AR-03).
 - The **seed stays committed** for metadata and as the no-drift oracle.
 
 ### How materialize consumes it (AR-05 — exact schema delta)
@@ -354,11 +362,13 @@ The cut-over reverts as a set, not "one input swap":
    temp-lake tested incl. an account-anchored (YT-shaped) rollup.
 3. Operator runner `run_creator_metric_rollup_snapshot.py` (`DataLakeRoot.resolve`)
    + freshness-receipt emission + the write-time receipt gate.
-4. Operator generates the first IG snapshot; assert == today's seed rollups
-   (no-drift bridge).
+4. Operator generates the first IG snapshot; assert rollups **value-equal** to
+   today's seed rollups (no-drift bridge — not raw-byte-equal; see *Recommended v0*).
 5. Re-point `materialize` to the IG snapshot (keep the YT seed); rename the view
-   pointer field + update validator/spec/tests; regenerated view byte-identical
-   except the renamed pointer.
+   pointer field + update validator/spec/tests; **canonicalize the view dump
+   (`sort_keys`) and re-emit the committed view once** so snapshot-vs-seed rollup
+   key order does not change it; regenerated view then byte-identical except the
+   renamed pointer.
 6. Add the `live_lake_freshness_gate` + the scheduled drift check + its failure
    surface.
 7. Flip the CI tests' expected paths (seed → snapshot) and `--check`.
