@@ -6,7 +6,7 @@ artifact_role: Research artifact
 scope: CSB-first live probe and capture-route pinning receipt for fragrance-native databases.
 use_when:
   - Seeding Capture from a bounded Scanning/probe pass over Fragrantica, Parfumo, and Basenotes.
-  - Reconstructing why Fragrantica and Parfumo are preservation candidates while Basenotes is not pinned in this environment.
+  - Reconstructing why Fragrantica and Parfumo are preservation candidates, and the Basenotes capture route (anonymous egress Cloudflare-challenged; residential-proxy CloakBrowser pinned 2026-06-30 -- see the Proxy Route Verification Addendum).
 authority_boundary: retrieval_only
 source_paths:
   - docs/research/orca_specialist_fragrance_precursor_surface_csb_board_v0.md
@@ -42,7 +42,7 @@ closeout_state: capture_preservation_only
 
 ## Broad Scout Return
 
-This bounded `broad_scout_return` checked three fragrance-native database frontiers from the CSB board: Fragrantica, Parfumo, and Basenotes. It included exact-query discovery for Basenotes and Parfumo URL resolution, venue evaluation by direct HTTP, anti-block HTTP, and visible browser reads, hidden venue pointers for correct Parfumo product routing, negatives and access notes for Basenotes, and recency/current-state preservation pressure where public product pages returned source-visible body markers. Recommended main deepening: run packet-grade preservation only for Fragrantica and Parfumo using their pinned direct-HTTP product routes; keep Basenotes as a no-pin re-probe target until a new access fact appears.
+This bounded `broad_scout_return` checked three fragrance-native database frontiers from the CSB board: Fragrantica, Parfumo, and Basenotes. It included exact-query discovery for Basenotes and Parfumo URL resolution, venue evaluation by direct HTTP, anti-block HTTP, and visible browser reads, hidden venue pointers for correct Parfumo product routing, negatives and access notes for Basenotes, and recency/current-state preservation pressure where public product pages returned source-visible body markers. Recommended main deepening: run packet-grade preservation for Fragrantica and Parfumo via their pinned direct-HTTP product routes, and for Basenotes via the residential-proxy CloakBrowser route now pinned 2026-06-30 (anonymous routes are Cloudflare-challenged; see the Proxy Route Verification Addendum).
 
 The probe did not rank databases, prove demand, scrape at volume, create monitoring, stage packets, touch ECR, or authorize Data Lake work.
 
@@ -469,12 +469,53 @@ next_route_condition: >
   access interstitial.
 ```
 
+### Basenotes Proxy Route Verification Addendum (2026-06-30)
+
+```yaml
+verification_date: 2026-06-30
+operator_request: Test Basenotes with CloakBrowser; if blocked, proxied CloakBrowser (one residential profile).
+method: >
+  Existing CloakBrowser adapter (no evasion built); proxy referenced by label only; scratch
+  only, nothing written to the data lake.
+egress_direct_anonymous:
+  ip: 121.7.247.114
+  geo: Singapore / SG
+  network: AS9506 Singtel
+  outcome: challenged_by_cloudflare
+egress_residential_proxy:
+  label: reddit-res-01
+  category: residential_rotating
+  ip_observed: 72.89.223.118
+  geo: New York / US
+  network: AS701 Verizon
+  outcome: renders_real_content
+results:
+  anonymous_cloakbrowser: access_blocked (residual_challenge_marker; title "Just a moment..."; ~261 chars)
+  proxy_cloakbrowser_product_page: no_block_marker; 3/3 clean repeat runs; ~3825 chars; title "Mojave Ghost by Byredo - Basenotes"
+  proxy_cloakbrowser_homepage: no_block_marker (generalizes beyond a single product page)
+  url_verified: https://www.basenotes.com/fragrances/mojave-ghost-by-byredo.26143979/
+finding: >
+  The block is egress-reputation, not a hard wall. This host's direct Singapore Singtel egress
+  is Cloudflare-challenged (likely flagged from prior probe volume plus geo mismatch on a
+  US-leaning site); a fresh US residential proxy exit renders real content reliably. Basenotes
+  capture route = proxied CloakBrowser through reddit-res-01.
+open_depth_caveat: >
+  Product page and fragrance notes render, but deep-scroll did not grow the captured text (3825
+  chars at both shallow and deep scroll) -- review BODIES are not on the product page via scroll.
+  The review corpus is likely behind a Reviews tab / sub-URL: a per-source extraction discovery
+  item for the projection builder, not an access blocker.
+not_claimed:
+  - full Basenotes review corpus captured
+  - run-to-run guarantee (Cloudflare is probabilistic; treat an occasional challenge as retry/limitation)
+  - fixture admission or Data Lake handoff
+```
+
 ## Route Pins
 | Pin ID | Source | Step 0 access classification | Signal substrate | Cheapest working route | Verdict | Re-probe trigger |
 | --- | --- | --- | --- | --- | --- | --- |
 | PIN-001 | Fragrantica | publicly-viewable public web content | large product-page HTML plus search HTML | `direct_http` with at least 2 MB cap for product pages | pinned_for_capture_probe | route returns block shell, body degrades, product markers disappear, or packet field extraction cannot preserve source-visible content |
 | PIN-002 | Parfumo | publicly-viewable public web content | product-page HTML; perfume-search locator route | `direct_http`; resolve exact product URL through `s_perfumes_x.php` when needed | pinned_for_capture_probe | route returns block shell, product URL changes, search locator changes, or packet field extraction cannot preserve source-visible content |
-| PIN-003 | Basenotes | publicly-viewable but bot-mitigated in current environment | source content not reached; Cloudflare challenge seen across direct, anti-block, browser, search-snippet, and known exact-product routes | none pinned | no_working_pin_current_environment_reconfirmed_exact_product | new anti-bot/proxy route, manual visible-browser success, usable archive/snippet locator, verified non-interstitial exact product URL, or owner-supplied entitled bytes |
+| PIN-003 | Basenotes | publicly-viewable; anonymous egress Cloudflare-challenged, reachable via residential proxy | product-page HTML + on-page fragrance notes (review bodies likely behind a Reviews tab/sub-URL) | `cloakbrowser_snapshot` through residential proxy profile `reddit-res-01` (anonymous CloakBrowser is blocked) | pinned_for_capture_probe (2026-06-30: residential-proxy route verified, 3/3 + homepage) | proxy stops rendering content (Cloudflare tightens / proxy pool flagged), product URL changes, or extraction cannot preserve source-visible content |
 
 ## Candidate Decision
 
@@ -484,15 +525,17 @@ candidate_decision:
   independent_origins_seen:
     - Fragrantica product page substrate reachable by direct HTTP
     - Parfumo product page substrate reachable by direct HTTP
+    - Basenotes product page substrate reachable via residential-proxy CloakBrowser (2026-06-30)
   reason: >
-    The probe found two preservation-worthy public product-page substrates and
-    one high-value but currently blocked source. This supports packet-grade
-    preservation requests for Fragrantica and Parfumo only, not demand proof,
-    not full database capture, and not a Basenotes capture route.
+    The probe found three preservation-worthy public product-page substrates:
+    Fragrantica and Parfumo via anonymous routes, and Basenotes via the
+    residential-proxy CloakBrowser route (verified 2026-06-30). This supports
+    packet-grade preservation requests for all three; it is not demand proof,
+    not full database capture, and not full review-corpus extraction.
 ```
 
 ## Closeout
 
 `capture_preservation_only`.
 
-Fragrantica is pinned as a direct-HTTP product-page preservation route and current-window review substrate, but it is not complete review-corpus capture. Parfumo is pinned as a direct product-page plus first-party AJAX pagination route for a future complete reviews/statements capture, but this addendum did not run the full 369-review / 1390-statement corpus. Basenotes is explicitly not pinned in this environment; direct HTTP, anti-block HTTP, screening browser, search-page CloakBrowser, and known exact-product CloakBrowser all failed to reach source content. One Fragrantica packet landed in the configured ORCA data root during the completeness check; that is a generated packet fact only, not fixture admission, routine Data Lake handoff, ECR, Cleaning, Judgment, monitoring, commercial readiness, or full-database crawling.
+Fragrantica is pinned as a direct-HTTP product-page preservation route and current-window review substrate, but it is not complete review-corpus capture. Parfumo is pinned as a direct product-page plus first-party AJAX pagination route for a future complete reviews/statements capture, but this addendum did not run the full 369-review / 1390-statement corpus. Basenotes is now pinned (2026-06-30) to the residential-proxy CloakBrowser route: anonymous routes (direct HTTP, anti-block HTTP, screening browser, anonymous CloakBrowser) are Cloudflare-challenged from this host's Singapore Singtel egress, but CloakBrowser through the residential proxy profile `reddit-res-01` (US Verizon exit) renders real product content reliably (3/3 product page + homepage); review-corpus extraction depth remains open (reviews likely behind a Reviews tab/sub-URL). One Fragrantica packet landed in the configured ORCA data root during the completeness check; that is a generated packet fact only, not fixture admission, routine Data Lake handoff, ECR, Cleaning, Judgment, monitoring, commercial readiness, or full-database crawling.

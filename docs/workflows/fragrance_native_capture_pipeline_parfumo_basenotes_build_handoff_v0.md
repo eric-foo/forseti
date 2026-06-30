@@ -13,7 +13,7 @@ scope: >
 use_when:
   - Building the Parfumo capture -> projection -> Cleaning -> Silver pipeline.
   - Deciding the generalize-shared vs clone-per-source architecture fork.
-  - Scoping the Basenotes capture-access unblock (separate from pipeline work).
+  - Building the Basenotes pipeline via the residential-proxy CloakBrowser route (verified; see the research probe's Proxy Route Verification Addendum).
 authority_boundary: retrieval_only
 open_next:
   - docs/workflows/fragrantica_capture_to_data_lake_projection_ecr_cleaning_handoff_v0.md
