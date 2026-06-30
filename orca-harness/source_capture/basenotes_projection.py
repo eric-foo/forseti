@@ -408,6 +408,7 @@ def _product_jsonld(text: str) -> dict[str, Any]:
     Basenotes embeds the product + its in-page review subset as a single
     ``<script type="application/ld+json">`` Product object. Returns ``{}`` when no
     parseable Product block is present (caller treats that as reviews absent)."""
+    first_product: dict[str, Any] | None = None
     for block in re.finditer(
         r'<script[^>]+type=["\']application/ld\+json["\'][^>]*>(.*?)</script>',
         text,
@@ -419,9 +420,13 @@ def _product_jsonld(text: str) -> dict[str, Any]:
         except (json.JSONDecodeError, ValueError):
             continue
         for candidate in _iter_jsonld_objects(parsed):
-            if candidate.get("@type") == "Product":
+            if not _jsonld_type_includes(candidate.get("@type"), "Product"):
+                continue
+            if first_product is None:
+                first_product = candidate
+            if _has_jsonld_reviews(candidate.get("review")):
                 return candidate
-    return {}
+    return first_product or {}
 
 
 def _iter_jsonld_objects(parsed: Any):
@@ -436,6 +441,23 @@ def _iter_jsonld_objects(parsed: Any):
         for item in parsed:
             if isinstance(item, dict):
                 yield item
+
+
+def _jsonld_type_includes(value: Any, expected: str) -> bool:
+    if isinstance(value, str):
+        return value == expected
+    if isinstance(value, list):
+        return any(item == expected for item in value)
+    return False
+
+
+def _has_jsonld_reviews(value: Any) -> bool:
+    if not isinstance(value, list):
+        return False
+    return any(
+        isinstance(item, dict) and _jsonld_type_includes(item.get("@type"), "Review")
+        for item in value
+    )
 
 
 def _product_context(text: str, product_jsonld: Mapping[str, Any]) -> dict[str, Any | None]:

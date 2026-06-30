@@ -81,6 +81,38 @@ def test_builds_basenotes_projection_from_cloakbrowser_packet(tmp_path: Path) ->
     )
 
 
+def test_basenotes_projection_prefers_review_bearing_product_jsonld_when_multiple_blocks(
+    tmp_path: Path,
+) -> None:
+    metadata_only_product = (
+        '<script type="application/ld+json">'
+        '{"@context":"http://schema.org","@type":"Product","name":"Metadata Only",'
+        '"brand":{"@type":"Brand","name":"Wrong House"}}'
+        '</script>'
+    )
+    html = _fixture_html().replace(
+        '<script type="application/ld+json"> {',
+        f'{metadata_only_product}\n<script type="application/ld+json"> {{',
+        1,
+    )
+    result = _write_packet(tmp_path, html=html)
+
+    projection = build_basenotes_projection(
+        packet=result.packet,
+        raw_file_bytes_by_file_id=_raw_file_bytes(result.output_directory),
+    )
+
+    assert projection.loss_ledger.preserved_review_cards == 6
+    product = next(row for row in projection.rows if row.row_kind == "fragrance_product_snapshot")
+    assert product.source_visible_fields["source_object_name"] == "Mojave Ghost"
+    review_texts = {
+        row.source_visible_fields["review_text"]
+        for row in projection.rows
+        if row.row_kind == "fragrance_review_card_current_window"
+    }
+    assert "Ectoplasmic. A wisp of something and then poof, it's gone. Spooky." in review_texts
+
+
 def test_basenotes_projection_archive_gate_carries_review_suburl_and_sentiment_tabs(
     tmp_path: Path,
 ) -> None:
