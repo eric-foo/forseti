@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 import sys
 from datetime import datetime, timezone
@@ -571,7 +572,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             return 0
 
         data_root = None
-        if args.data_root is not None:
+        data_root_requested = args.data_root is not None or os.environ.get("ORCA_DATA_ROOT")
+        if data_root_requested:
             from data_lake.root import DataLakeRoot
 
             data_root = DataLakeRoot.resolve(explicit=args.data_root)

@@ -110,6 +110,20 @@ def _call_name(node: ast.Call) -> str | None:
 def _is_packet_writer_name(name: str | None) -> bool:
     return bool(name) and (name in _DIRECT_PACKET_WRITER_TOKENS or _PACKET_WRITER_NAME_RE.fullmatch(name))
 
+def _cli_flags(tree: ast.AST) -> set[str]:
+    flags: set[str] = set()
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.Call) or _call_name(node) != "add_argument":
+            continue
+        for arg in node.args:
+            if (
+                isinstance(arg, ast.Constant)
+                and isinstance(arg.value, str)
+                and arg.value.startswith("--")
+            ):
+                flags.add(arg.value)
+    return flags
+
 
 def _source_capture_imports(tree: ast.AST) -> tuple[set[str], set[str]]:
     writer_names = set(_DIRECT_PACKET_WRITER_TOKENS)
@@ -162,12 +176,13 @@ def _packet_producers() -> dict[str, _RunnerSeam]:
     for path in sorted(_RUNNERS_DIR.glob("run_*.py")):
         src = path.read_text(encoding="utf-8")
         tree = ast.parse(src, filename=str(path))
+        flags = _cli_flags(tree)
         writer_names, module_aliases = _source_capture_imports(tree)
         calls = _producer_calls(tree, writer_names, module_aliases)
         if calls:
             producers[path.name] = _RunnerSeam(
-                exposes_output_arg="--output" in src,
-                exposes_data_root_arg="--data-root" in src,
+                exposes_output_arg="--output" in flags,
+                exposes_data_root_arg="--data-root" in flags,
                 exposes_env_fallback="ORCA_DATA_ROOT" in src,
                 resolves_data_root="DataLakeRoot.resolve" in src,
                 rejects_output_and_data_root=_has_any_token(src, _EXPLICIT_PAIR_REJECT_TOKENS),
@@ -193,6 +208,20 @@ def main(root):
     assert len(calls) == 1
     assert calls[0].name == "write_youtube_watch_packet"
     assert calls[0].forwards_data_root is True
+
+def test_detector_distinguishes_packet_output_from_summary_output_root() -> None:
+    tree = ast.parse(
+        """
+def build_parser(parser):
+    parser.add_argument("--output-root")
+    parser.add_argument("--data-root")
+"""
+    )
+
+    flags = _cli_flags(tree)
+
+    assert "--output-root" in flags
+    assert "--output" not in flags
 
 def test_every_packet_runner_is_lake_wired_or_acknowledged() -> None:
     producers = _packet_producers()

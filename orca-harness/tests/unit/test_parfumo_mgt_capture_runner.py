@@ -5,6 +5,8 @@ from pathlib import Path
 
 import pytest
 
+import runners.run_parfumo_mgt_capture as runner_module
+
 from runners.run_parfumo_mgt_capture import (
     DIRECT_HTTP_SLOT,
     DIRECT_HTTP_SURFACE,
@@ -68,6 +70,38 @@ def test_parfumo_capture_runner_uses_injected_http_runner_without_network(tmp_pa
     assert summary["packet_roles"][DIRECT_HTTP_SLOT]["source_surface"] == DIRECT_HTTP_SURFACE
     assert "not anti-bot evasion" in summary["non_claims"]
     assert calls and calls[0]["source_surface"] == DIRECT_HTTP_SURFACE
+
+
+def test_parfumo_cli_uses_orca_data_root_env_without_losing_output_root(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    from data_lake.root import DataLakeRoot
+
+    sentinel_data_root = object()
+    resolve_calls: list[Path | None] = []
+    run_calls: list[dict[str, object]] = []
+
+    def fake_resolve(*, explicit=None, **kwargs):
+        resolve_calls.append(explicit)
+        return sentinel_data_root
+
+    def fake_run_parfumo_mgt_capture(**kwargs):
+        run_calls.append(kwargs)
+        return 0, str(tmp_path / "summary.json")
+
+    monkeypatch.setenv("ORCA_DATA_ROOT", str(tmp_path / "lake-root"))
+    monkeypatch.setattr(DataLakeRoot, "resolve", staticmethod(fake_resolve))
+    monkeypatch.setattr(runner_module, "run_parfumo_mgt_capture", fake_run_parfumo_mgt_capture)
+
+    output_root = tmp_path / "out"
+    exit_code = runner_module.main(["--url", _LOCATOR, "--output-root", str(output_root)])
+
+    assert exit_code == 0
+    assert resolve_calls == [None]
+    assert run_calls
+    assert run_calls[0]["data_root"] is sentinel_data_root
+    assert run_calls[0]["output_root"] == output_root
 
 
 def test_parfumo_targeted_rendered_runner_packages_local_artifacts_without_network(
