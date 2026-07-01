@@ -1833,3 +1833,131 @@ direction_change_propagation:
     - not client replica implementation
     - not live external data-root mutation
 ```
+
+## From .agents/workflow-overlay/source-loading.md
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Spine read packs (Data Capture Spine CA, Data Capture Intake Surface / MSP
+    Pressure-Test Target, Judgment Spine Evidence Ladder) reshaped to
+    front-door pointer form matching the ECR pack model: each pack now leads
+    with its retrieval_only front-door submap and routes to owner docs on
+    demand. Embedded spine state (slot-by-slot pressure-test authorization-chain
+    walk, CloakBrowser selection, Reddit ordering, RQ status) relocated verbatim
+    to the spine-owned closeout synthesis. Source-loading.md is navigation only;
+    state of the work lives in the spine-owned doc it belongs to.
+  trigger: workflow_authority
+  related_triggers:
+    - architecture_doctrine
+    - lifecycle_boundary
+  controlling_sources_updated:
+    - .agents/workflow-overlay/source-loading.md
+    - orca/product/spines/capture/core/operating_model/data_capture_spine_pressure_test_closeout_synthesis_v0.md
+  downstream_surfaces_checked:
+    - .agents/workflow-overlay/prompt-orchestration.md
+    - .agents/workflow-overlay/README.md
+    - docs/workflows/orca_repo_map_v0.md
+    - docs/research/judgment-spine/judgment_spine_consolidation_map_v0.md
+    - docs/workflows/data_capture_spine_consolidation_map_v0.md
+  intentionally_not_updated:
+    - path: .agents/workflow-overlay/prompt-orchestration.md
+      reason: >
+        Prompt orchestration binds source-loading as the read-pack authority and
+        points here; it does not reproduce pack contents. The front-door reshape
+        does not change the binding rule.
+    - path: .agents/workflow-overlay/README.md
+      reason: >
+        The overlay index already names source-loading.md as the read-pack owner.
+        No section owner or overlay path changed.
+    - path: docs/workflows/orca_repo_map_v0.md
+      reason: >
+        The repo map already points to the section anchors
+        (source-loading.md#data-capture-intake-surface--msp-pressure-test-target-pack
+        etc.) and does not reproduce pack contents. Section headings are
+        unchanged so existing anchors remain valid.
+    - path: docs/research/judgment-spine/judgment_spine_consolidation_map_v0.md
+      reason: >
+        The Judgment Spine consolidation map is the front door this pack now
+        points to; it is not a downstream consumer of pack contents. No changes
+        needed there.
+    - path: docs/workflows/data_capture_spine_consolidation_map_v0.md
+      reason: >
+        The Data Capture Spine consolidation map is the front door this pack now
+        points to; it is not a downstream consumer of pack contents. No changes
+        needed there.
+  stale_language_search: >
+    rg -n "MSP|pressure-test|read pack" .agents/workflow-overlay/
+  stale_language_search_result: >
+    Executed 2026-06-13 after edits. Hits in .agents/workflow-overlay/:
+    artifact-folders.md:197 ("read packs reference unchanged paths until
+    Phase-2 apply" — DCP receipt comment, not stale); README.md:19 ("read
+    packs, and context-bloat controls" — description of source-loading.md,
+    accurate); source-loading.md — section title "Data Capture Intake Surface /
+    MSP Pressure-Test Target Pack" (correct, kept), "pressure-test" in navigation
+    text (correct nav context, not state prose), "read pack" in capsule-limit
+    prose and Expansion Rules (both accurate descriptions of navigation artifacts,
+    not stale); source-of-truth.md — references to source-loading.md description
+    (accurate). No hit retained the inline authorization-chain state narrative
+    or bulk file-list in source-loading.md; none points to a stale-language
+    conflict requiring a further fix.
+  non_claims:
+    - not validation
+    - not readiness
+    - not source promotion
+    - not implementation authorization
+    - not ECR or Judgment design
+```
+
+## From orca/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Capture now interprets scanning/CSB recency-currentness as preservation
+    urgency and source-drift risk, not proof or route binding: same-strength
+    newer/current source states may deserve earlier capture when the request is
+    otherwise in scope and route-matched.
+  trigger: product_doctrine
+  related_triggers:
+    - workflow_authority
+  controlling_sources_updated:
+    - orca/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md
+    - orca/product/spines/commission_signal_board/prompts/orca_commission_signal_board_prompt_structure_v0.md
+    - orca/product/spines/judgment/demand_read/core/judgment_spine_demand_read_machinery_architecture_v0.md
+    - docs/workflows/orca_repo_map_v0.md
+  downstream_surfaces_checked:
+    - AGENTS.md
+    - .agents/workflow-overlay/source-of-truth.md
+    - docs/workflows/data_capture_spine_consolidation_map_v0.md
+    - orca/product/spines/capture/core/source_capture_toolbox/README.md
+    - orca/product/spines/capture/core/source_capture_toolbox/capture_recon_index_v0.md
+    - orca/product/spines/scanning/README.md
+    - orca/product/spines/scanning/scan_core/orca_scanning_intelligent_walk_mgt_operating_model_v0.md
+  intentionally_not_updated:
+    - path: docs/workflows/data_capture_spine_consolidation_map_v0.md
+      reason: >
+        The submap remains a pointer surface and already routes capture-method
+        questions to this playbook; no route ownership changed.
+    - path: orca/product/spines/capture/core/source_capture_toolbox/README.md
+      reason: >
+        The Source Capture Armory index already points operators to this playbook
+        for method routing; duplicating recency semantics there would create a
+        second wording surface.
+  stale_language_search: >
+    rg -n "recency|recent|current-state|currentness|preservation urgency|route binding|proof|access-control gate"
+    orca/product/spines/capture orca/product/spines/scanning docs/workflows/data_capture_spine_consolidation_map_v0.md docs/workflows/orca_repo_map_v0.md
+    (run 2026-06-23)
+  stale_language_search_result: >
+    Hits were accepted recency/currentness preservation-priority language,
+    repo-map routing summaries, existing capture/scanning safeguards, harvested
+    historical source text, or explicit no-proof/no-route-binding/no-access-gate
+    boundaries. No controlling Capture/scanning surface was found that lets
+    recency/currentness prove demand, authorize access, or bind a Capture route.
+  non_claims:
+    - not validation
+    - not readiness
+    - not capture authorization
+    - not source-access authorization
+    - not buyer proof
+```

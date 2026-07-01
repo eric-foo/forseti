@@ -111,7 +111,14 @@ solves; the diagnosis selects the route. Blind climbing wastes probes and can mi
    the same route class requires a new fact, changed approach, or a changed environment; stay
    human-rate; and never cross the access-control line. The recurring expensive error is a premature
    "blocked" that abandons capturable material (Daimler, Sephora, Teal, WSO); the opposite error is
-   thrashing the same route forever, or escalating volume past human rate.
+   thrashing the same route forever, or escalating volume past human rate. Before promoting an
+   empty or erroring probe result into NO-GO, "blocked", or an empty-source verdict, prove the
+   instrument first — run the same probe method against a known-positive control, or confirm with a
+   second independent method, inside the same re-probe bounds above (different hypothesis,
+   human-rate, access-control line intact). An erroring probe supports only "probe failed
+   (tooling)", never "target absent": the recorded false negatives in this class are a broken
+   scroll capture misread as anti-bot obliteration (Sephora) and an archive CDX timeout misread as
+   an empty archive.
 
 **Screening-side consumer (reverse pointer, 2026-06-12; updated 2026-06-21).**
 These read-escalation patterns (Guardrail 4 + the Step 2 pointer) are distilled
@@ -293,7 +300,9 @@ as source facts, not proof.
 - **PARTIAL:** reachable but fidelity-limited (paraphrase / asserted-only) or partial coverage
   (availability without body; first page only; bounded enumeration).
 - **NO-GO:** not capturable within the access boundary — record *why* (matching routes tried; or the
-  auth/access-control gate that can't be legitimately passed).
+  auth/access-control gate that can't be legitimately passed). When the terminal failure mode was
+  empty or erroring probe output, the receipt must show the Guardrail 4 instrument check
+  (known-positive control or second independent method).
 - **CATALOG_GAP:** capture is in-scope (public, not auth-gated) but this playbook has no matching
   route for the substrate/problem (e.g. mobile/app-only). Record the missing-route candidate; do
   **not** call it NO-GO.
@@ -399,53 +408,56 @@ direction_change_propagation:
 ```yaml
 direction_change_propagation:
   doctrine_changed: >
-    Capture now interprets scanning/CSB recency-currentness as preservation
-    urgency and source-drift risk, not proof or route binding: same-strength
-    newer/current source states may deserve earlier capture when the request is
-    otherwise in scope and route-matched.
+    Guardrail 4 now requires an instrument check before promoting an empty or
+    erroring probe result into NO-GO, "blocked", or an empty-source verdict
+    (same probe method against a known-positive control, or a second
+    independent method, inside the existing re-probe bounds); Step 3 NO-GO
+    receipts must show that check when the terminal failure mode was
+    empty/erroring output.
   trigger: product_doctrine
   related_triggers:
-    - workflow_authority
+    - validation_philosophy
   controlling_sources_updated:
     - orca/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md
-    - orca/product/spines/commission_signal_board/prompts/orca_commission_signal_board_prompt_structure_v0.md
-    - orca/product/spines/judgment/demand_read/core/judgment_spine_demand_read_machinery_architecture_v0.md
-    - docs/workflows/orca_repo_map_v0.md
+    - orca/product/spines/foundation/vertical_exploration/orca_vertical_exploration_guide_v0.md
   downstream_surfaces_checked:
-    - AGENTS.md
-    - .agents/workflow-overlay/source-of-truth.md
-    - docs/workflows/data_capture_spine_consolidation_map_v0.md
-    - orca/product/spines/capture/core/source_capture_toolbox/README.md
+    - .agents/workflow-overlay/source-loading.md
     - orca/product/spines/capture/core/source_capture_toolbox/capture_recon_index_v0.md
-    - orca/product/spines/scanning/README.md
-    - orca/product/spines/scanning/scan_core/orca_scanning_intelligent_walk_mgt_operating_model_v0.md
+    - docs/workflows/orca_repo_map_v0.md
   intentionally_not_updated:
-    - path: docs/workflows/data_capture_spine_consolidation_map_v0.md
+    - path: .agents/workflow-overlay/source-loading.md
       reason: >
-        The submap remains a pointer surface and already routes capture-method
-        questions to this playbook; no route ownership changed.
-    - path: orca/product/spines/capture/core/source_capture_toolbox/README.md
+        Its auto-load binding of capture-spine activity to this playbook is
+        unchanged; the new clause is method content owned here.
+    - path: orca/product/spines/capture/core/source_capture_toolbox/capture_recon_index_v0.md
       reason: >
-        The Source Capture Armory index already points operators to this playbook
-        for method routing; duplicating recency semantics there would create a
-        second wording surface.
+        Its lessons already push escalation and re-probe before recording
+        NO-GO ("Blocked is a hypothesis, not a verdict"); the verdict-promotion
+        precondition is a method rule owned by this playbook, per the
+        anti-fork rule.
+    - path: docs/workflows/orca_repo_map_v0.md
+      reason: >
+        The repo map routes to this playbook at file level; no section
+        renumbering or anchor change (Guardrail 4 extended in place).
   stale_language_search: >
-    rg -n "recency|recent|current-state|currentness|preservation urgency|route binding|proof|access-control gate"
-    orca/product/spines/capture orca/product/spines/scanning docs/workflows/data_capture_spine_consolidation_map_v0.md docs/workflows/orca_repo_map_v0.md
-    (run 2026-06-23)
+    rg -in "known-positive|instrument check|second independent method"
+    orca/product/spines .agents/workflow-overlay/
   stale_language_search_result: >
-    Hits were accepted recency/currentness preservation-priority language,
-    repo-map routing summaries, existing capture/scanning safeguards, harvested
-    historical source text, or explicit no-proof/no-route-binding/no-access-gate
-    boundaries. No controlling Capture/scanning surface was found that lets
-    recency/currentness prove demand, authorize access, or bind a Capture route.
+    Executed 2026-07-02 after edits. Hits are the new Guardrail 4 clause, the
+    Step 3 NO-GO reference, and this receipt only — no conflicting or
+    duplicated verdict-promotion rule elsewhere. The Walker-kit dated sync note
+    carries the screening-posture restatement in its own vocabulary
+    ("sanity-check the instrument on a known-good public page"). The retired
+    demand-read term "hollow" was deliberately avoided in the new clause.
   non_claims:
     - not validation
     - not readiness
     - not capture authorization
-    - not source-access authorization
-    - not buyer proof
+    - no claim that past NO-GO receipts are invalidated
 ```
+
+Older receipts for this file live verbatim in
+`docs/decisions/dcp_receipts_archive_v0.md`.
 
 ## Non-claims
 

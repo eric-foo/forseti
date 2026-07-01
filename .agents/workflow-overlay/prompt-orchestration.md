@@ -12,6 +12,12 @@ authority_boundary: retrieval_only
 
 This file defines Orca's lightweight prompt-orchestration layer: Orca-owned prompt mechanics, output modes, preflight, and validation gates, without importing `jb` project policy and preserving Orca's explicit-authorization boundary for implementation and runtime work.
 
+**Routine read shape** (owned by `.agents/workflow-overlay/source-loading.md`,
+Targeted Read Protocol): for routine prompt authoring, read the "Orca Prompt
+Preflight" section below plus the single section for your prompt family; a
+full-file read is for fused, delegated-review-patch, and novel or cross-lane
+prompt authoring.
+
 ## Orca Prompt Preflight
 
 Routine Orca prompts apply this core inline — no skill reload. It is the checkable
