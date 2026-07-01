@@ -54,6 +54,19 @@ targeted reads, and ten decisive excerpts for routine source discovery.
 | P5 | Is coverage check ownership discoverable? | `rg -n "C1|C2|C3|C4|dir_is_covered|Reachability semantics" .agents/hooks/check_map_links.py` | `check_map_links.py` exposes C1-C4, C3 folder coverage, strict mode, and `dir_is_covered` pointing to the MGT decision. | Pass. |
 | P6 | Is the cold-lane budget itself visible? | `rg -n "four full-file reads|eight targeted|ten decisive|cold-lane retrievability bar" .agents/workflow-overlay/source-loading.md` | Source-loading lines 245-257 bind the 4/8/10 budget and call budget excess a retrievability defect signal. | Pass. |
 
+## Batch 2 Adversarial Review
+
+Advisory review only; not a formal verdict, validation, readiness, or mandatory
+patch queue. The review attacked whether Batch 2 could create fake confidence by
+proving only easy paths.
+
+| Finding | Attack | Adjudication | Closure |
+| --- | --- | --- | --- |
+| AR-B2-01 | Generated inventory is not god-tier if `header_index.py --index` fails on ordinary repo text. | Accepted. The Windows `charmap` failure made the generated catalog unreliable in this probe. | Closed in this batch by configuring `header_index.py` stdout/stderr as UTF-8 with replacement fallback; selftest and filtered `--index` probe passed after patch. |
+| AR-B2-02 | Health visibility can create false confidence if the backlog is visible but ignored. | Accepted. `66 missing headers, 0 orphans` is a visible backlog, not readiness. | Carried to Batch 3 as header-value triage; no broad backfill authorized. |
+| AR-B2-03 | A small probe cannot prove a standing gardener will never be needed. | Accepted residual. This batch can reject gardener-by-default, not gardener-forever. | Keep promotion-on-touch as default; require repeated measured retrieval failure before a standing gardener is reconsidered. |
+| AR-B2-04 | The new workflow probe record might itself be a repo-map event. | Downgraded. It lives under already mapped `docs/workflows/` and does not create a new route family. | `check_repo_map_freshness.py --changed --strict` was run with an explicit repo-map ack. |
+
 ## Batch 2 Patch Result
 
 The probe found one implementation defect in the generated inventory layer:
