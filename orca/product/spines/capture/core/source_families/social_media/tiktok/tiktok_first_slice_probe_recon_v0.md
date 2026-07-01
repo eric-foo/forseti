@@ -83,7 +83,7 @@ A second attempt to measure the logged-out ceiling hit a **genuine TikTok slider
 3. **Comments:** open the Comments tab (or trigger its fetch), **intercept `/api/comment/list` responses**, paginate via cursor. Capture `cid`/`create_time`/`uid`/`text`/`digg_count`/`reply_comment_total`.
 4. **Timestamps:** prefer API `create_time`; video post time also via `id >> 32`.
 5. **Stop conditions:** HTTP 403 / "[BLOCKED]" / captcha → stop, cool down, do not hammer.
-6. **Harness fit:** `browser_snapshot.py::fetch_browser_context_responses` is already the right primitive (the IG lane uses it to capture a page's own XHR); the change needed is **running it non-headless / anti-detect with assets allowed + device-cookie warmup**, not new capture logic.
+6. **Harness fit:** the packet-grade harness seam is `browser_snapshot.py::fetch_browser_page_observation_capture` with a response predicate for `/api/comment/list` and a bounded post-load action that opens comments. `fetch_browser_context_responses` is an explicit-fetch helper, so it must not be used as the TikTok signed-request route.
 
 ## Non-claims
 

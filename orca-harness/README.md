@@ -149,6 +149,22 @@ browser automation, Archive.org packages, API SDKs, scraper frameworks,
 proxy/session behavior, archived-HTML meaning extraction, OCR, ECR, Cleaning,
 Judgment, buyer-proof, or commercial-readiness logic.
 
+Use the TikTok SCI admission runner when page-owned TikTok artifacts have
+already been captured and need parser/sanitizer enforcement before packet
+admission:
+
+```powershell
+python runners/run_source_capture_tiktok_video_packet.py --video-id "7629774409762442526" --video-url "https://www.tiktok.com/@funmimonet/video/7629774409762442526" --comment-list-json ".\_test_runs\tiktok_comment_list_sanitized.json" --video-item-json ".\_test_runs\tiktok_video_item_sanitized.json" --subtitle-webvtt ".\_test_runs\tiktok_subtitle.vtt" --output ".\_test_runs\tiktok_video_admission_packet"
+```
+
+This runner is the lean code-enforced slice only: it admits sanitized
+single-video comment/subtitle/profile-list fields, keeps raw signed URLs,
+cookies, tokens, storage-state, and raw response bodies out of the packet, and
+prints the complete-lane note on successful runs and in `--help`.
+The complete TikTok lane still requires live browser/profile-grid capture,
+creator batch cadence, projection bridging, and recon/playbook updates.
+
+
 Use the Browser Snapshot runner when one supplied URL needs anonymous browser
 rendering or screenshot preservation:
 

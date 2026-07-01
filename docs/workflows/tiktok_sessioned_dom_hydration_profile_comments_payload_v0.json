@@ -1,0 +1,897 @@
+{
+  "artifact": "tiktok_sessioned_dom_hydration_profile_comments_payload_v0",
+  "date": "2026-06-30",
+  "session_boundary": {
+    "mode": "entitled_session",
+    "public_content_only": true,
+    "single_tiktok_tab_reused": true,
+    "secrets_read_exported_or_written": false,
+    "challenge_solving_attempted": false
+  },
+  "profile": {
+    "url": "https://www.tiktok.com/@tiktok",
+    "title": "TikTok (@tiktok) | TikTok",
+    "scrollY": 1936,
+    "challengeMarkers": {
+      "hasLoginText": false,
+      "hasSliderChallenge": false,
+      "hasVerifyText": false
+    },
+    "hydration": {
+      "present": true,
+      "defaultScopeKeys": [
+        "webapp.app-context",
+        "webapp.biz-context",
+        "webapp.i18n-translation",
+        "seo.abtest",
+        "webapp.user-detail",
+        "webapp.a-b"
+      ],
+      "profile": {
+        "id": "107955",
+        "uniqueId": "tiktok",
+        "nickname": "TikTok",
+        "verified": true,
+        "privateAccount": false,
+        "signatureLength": 32,
+        "stats": {
+          "diggCount": 0,
+          "followerCount": 94600000,
+          "followingCount": 3,
+          "friendCount": 1,
+          "heart": 461000000,
+          "heartCount": 461000000,
+          "videoCount": 1463
+        }
+      }
+    },
+    "profileDom": {
+      "userTitle": "TikTok",
+      "userSubtitle": "tiktok",
+      "userBio": "One TikTok can make a big impact",
+      "userLink": "linktr.ee/tiktok"
+    },
+    "selectorCounts": {
+      "userBio": 1,
+      "userLink": 1,
+      "userPostItem": 95,
+      "userSubtitle": 1,
+      "userTitle": 1,
+      "videoViews": 95
+    },
+    "grid": {
+      "uniqueAnchorCount": 94,
+      "rows": [
+        {
+          "href": "https://www.tiktok.com/@tiktok/video/7655821093684448542",
+          "index": 1,
+          "video_id": "7655821093684448542",
+          "view_text": "123K"
+        },
+        {
+          "href": "https://www.tiktok.com/@tiktok/video/7655739740422950174",
+          "index": 2,
+          "video_id": "7655739740422950174",
+          "view_text": "87.5K"
+        },
+        {
+          "href": "https://www.tiktok.com/@tiktok/video/7655732127413112095",
+          "index": 3,
+          "video_id": "7655732127413112095",
+          "view_text": "28.2M"
+        },
+        {
+          "href": "https://www.tiktok.com/@tiktok/video/7655021741516885279",
+          "index": 4,
+          "video_id": "7655021741516885279",
+          "view_text": "79.6K"
+        },
+        {
+          "href": "https://www.tiktok.com/@tiktok/video/7654716883307990302",
+          "index": 5,
+          "video_id": "7654716883307990302",
+          "view_text": "472.7K"
+        },
+        {
+          "href": "https://www.tiktok.com/@tiktok/video/7654341587425692942",
+          "index": 6,
+          "video_id": "7654341587425692942",
+          "view_text": "32.1M"
+        },
+        {
+          "href": "https://www.tiktok.com/@tiktok/video/7653150706425138446",
+          "index": 7,
+          "video_id": "7653150706425138446",
+          "view_text": "153.3K"
+        },
+        {
+          "href": "https://www.tiktok.com/@tiktok/video/7652870361331043614",
+          "index": 8,
+          "video_id": "7652870361331043614",
+          "view_text": "282.7K"
+        },
+        {
+          "href": "https://www.tiktok.com/@tiktok/video/7651659857640033566",
+          "index": 9,
+          "video_id": "7651659857640033566",
+          "view_text": "177.5K"
+        },
+        {
+          "href": "https://www.tiktok.com/@tiktok/video/7650608519288245534",
+          "index": 10,
+          "video_id": "7650608519288245534",
+          "view_text": "168.7K"
+        },
+        {
+          "href": "https://www.tiktok.com/@tiktok/video/7650573331304860958",
+          "index": 11,
+          "video_id": "7650573331304860958",
+          "view_text": "27.4M"
+        },
+        {
+          "href": "https://www.tiktok.com/@tiktok/video/7650547481587109150",
+          "index": 12,
+          "video_id": "7650547481587109150",
+          "view_text": "5.6M"
+        },
+        {
+          "href": "https://www.tiktok.com/@tiktok/video/7650300237860424990",
+          "index": 13,
+          "video_id": "7650300237860424990",
+          "view_text": "6.4M"
+        },
+        {
+          "href": "https://www.tiktok.com/@tiktok/video/7649091368656194847",
+          "index": 14,
+          "video_id": "7649091368656194847",
+          "view_text": "182.3K"
+        },
+        {
+          "href": "https://www.tiktok.com/@tiktok/video/7647963131938901278",
+          "index": 15,
+          "video_id": "7647963131938901278",
+          "view_text": "13.2M"
+        },
+        {
+          "href": "https://www.tiktok.com/@tiktok/video/7646496890783010078",
+          "index": 16,
+          "video_id": "7646496890783010078",
+          "view_text": "191.6K"
+        },
+        {
+          "href": "https://www.tiktok.com/@tiktok/video/7645395404045028639",
+          "index": 17,
+          "video_id": "7645395404045028639",
+          "view_text": "46.7M"
+        },
+        {
+          "href": "https://www.tiktok.com/@tiktok/video/7645356725259865375",
+          "index": 18,
+          "video_id": "7645356725259865375",
+          "view_text": "7.2M"
+        },
+        {
+          "href": "https://www.tiktok.com/@tiktok/video/7644982860780260639",
+          "index": 19,
+          "video_id": "7644982860780260639",
+          "view_text": "50.3M"
+        },
+        {
+          "href": "https://www.tiktok.com/@tiktok/video/7644644020869811486",
+          "index": 20,
+          "video_id": "7644644020869811486",
+          "view_text": "156.9K"
+        },
+        {
+          "href": "https://www.tiktok.com/@tiktok/video/7644289514600451358",
+          "index": 21,
+          "video_id": "7644289514600451358",
+          "view_text": "12.6M"
+        },
+        {
+          "href": "https://www.tiktok.com/@tiktok/video/7642770753292635422",
+          "index": 22,
+          "video_id": "7642770753292635422",
+          "view_text": "295.1K"
+        },
+        {
+          "href": "https://www.tiktok.com/@tiktok/video/7642540102207524126",
+          "index": 23,
+          "video_id": "7642540102207524126",
+          "view_text": "151.3K"
+        },
+        {
+          "href": "https://www.tiktok.com/@tiktok/video/7642519488302222622",
+          "index": 24,
+          "video_id": "7642519488302222622",
+          "view_text": "143.7K"
+        },
+        {
+          "href": "https://www.tiktok.com/@tiktok/video/7642410275831827742",
+          "index": 25,
+          "video_id": "7642410275831827742",
+          "view_text": "1.7M"
+        },
+        {
+          "href": "https://www.tiktok.com/@tiktok/video/7641647587056962846",
+          "index": 26,
+          "video_id": "7641647587056962846",
+          "view_text": "1.5M"
+        },
+        {
+          "href": "https://www.tiktok.com/@tiktok/video/7641268387934489886",
+          "index": 27,
+          "video_id": "7641268387934489886",
+          "view_text": "10M"
+        },
+        {
+          "href": "https://www.tiktok.com/@tiktok/video/7637896329779350814",
+          "index": 28,
+          "video_id": "7637896329779350814",
+          "view_text": "297.9K"
+        },
+        {
+          "href": "https://www.tiktok.com/@tiktok/video/7636131611674692894",
+          "index": 29,
+          "video_id": "7636131611674692894",
+          "view_text": "393.7K"
+        },
+        {
+          "href": "https://www.tiktok.com/@tiktok/video/7634616554583231774",
+          "index": 30,
+          "video_id": "7634616554583231774",
+          "view_text": "421.8K"
+        },
+        {
+          "href": "https://www.tiktok.com/@tiktok/video/7633821937415834910",
+          "index": 31,
+          "video_id": "7633821937415834910",
+          "view_text": "1.7M"
+        },
+        {
+          "href": "https://www.tiktok.com/@tiktok/video/7632035781472734495",
+          "index": 32,
+          "video_id": "7632035781472734495",
+          "view_text": "342.2K"
+        },
+        {
+          "href": "https://www.tiktok.com/@tiktok/video/7631229398531788062",
+          "index": 33,
+          "video_id": "7631229398531788062",
+          "view_text": "287.3K"
+        },
+        {
+          "href": "https://www.tiktok.com/@tiktok/video/7631201918366289165",
+          "index": 34,
+          "video_id": "7631201918366289165",
+          "view_text": "6.2M"
+        },
+        {
+          "href": "https://www.tiktok.com/@tiktok/video/7628619815690833183",
+          "index": 35,
+          "video_id": "7628619815690833183",
+          "view_text": "410.5K"
+        },
+        {
+          "href": "https://www.tiktok.com/@tiktok/video/7627209981670001950",
+          "index": 36,
+          "video_id": "7627209981670001950",
+          "view_text": "308.8K"
+        },
+        {
+          "href": "https://www.tiktok.com/@tiktok/video/7626810027520593183",
+          "index": 37,
+          "video_id": "7626810027520593183",
+          "view_text": "249.3K"
+        },
+        {
+          "href": "https://www.tiktok.com/@tiktok/video/7624178064527740190",
+          "index": 38,
+          "video_id": "7624178064527740190",
+          "view_text": "34.7M"
+        },
+        {
+          "href": "https://www.tiktok.com/@tiktok/video/7623530460693515550",
+          "index": 39,
+          "video_id": "7623530460693515550",
+          "view_text": "267.8K"
+        },
+        {
+          "href": "https://www.tiktok.com/@tiktok/video/7622064700431289630",
+          "index": 40,
+          "video_id": "7622064700431289630",
+          "view_text": "117.1M"
+        },
+        {
+          "href": "https://www.tiktok.com/@tiktok/video/7622051063377546527",
+          "index": 41,
+          "video_id": "7622051063377546527",
+          "view_text": "11.9M"
+        },
+        {
+          "href": "https://www.tiktok.com/@tiktok/video/7622029139947605279",
+          "index": 42,
+          "video_id": "7622029139947605279",
+          "view_text": "169.5K"
+        },
+        {
+          "href": "https://www.tiktok.com/@tiktok/video/7621658376077888798",
+          "index": 43,
+          "video_id": "7621658376077888798",
+          "view_text": "23.3M"
+        },
+        {
+          "href": "https://www.tiktok.com/@tiktok/video/7621282555890814238",
+          "index": 44,
+          "video_id": "7621282555890814238",
+          "view_text": "33.4M"
+        },
+        {
+          "href": "https://www.tiktok.com/@tiktok/video/7620867673357962527",
+          "index": 45,
+          "video_id": "7620867673357962527",
+          "view_text": "212.2K"
+        },
+        {
+          "href": "https://www.tiktok.com/@tiktok/video/7620485918108994847",
+          "index": 46,
+          "video_id": "7620485918108994847",
+          "view_text": "199.3K"
+        },
+        {
+          "href": "https://www.tiktok.com/@tiktok/video/7619450446956006686",
+          "index": 47,
+          "video_id": "7619450446956006686",
+          "view_text": "19M"
+        },
+        {
+          "href": "https://www.tiktok.com/@tiktok/video/7619106677672938783",
+          "index": 48,
+          "video_id": "7619106677672938783",
+          "view_text": "189K"
+        },
+        {
+          "href": "https://www.tiktok.com/@tiktok/video/7618998507441114399",
+          "index": 49,
+          "video_id": "7618998507441114399",
+          "view_text": "175.5K"
+        },
+        {
+          "href": "https://www.tiktok.com/@tiktok/video/7617895203818556702",
+          "index": 50,
+          "video_id": "7617895203818556702",
+          "view_text": "6M"
+        },
+        {
+          "href": "https://www.tiktok.com/@tiktok/video/7616875015815826718",
+          "index": 51,
+          "video_id": "7616875015815826718",
+          "view_text": "36.6M"
+        },
+        {
+          "href": "https://www.tiktok.com/@tiktok/video/7616779488235408671",
+          "index": 52,
+          "video_id": "7616779488235408671",
+          "view_text": "9.7M"
+        },
+        {
+          "href": "https://www.tiktok.com/@tiktok/video/7616453211829882143",
+          "index": 53,
+          "video_id": "7616453211829882143",
+          "view_text": "240.9K"
+        },
+        {
+          "href": "https://www.tiktok.com/@tiktok/video/7616381803850485023",
+          "index": 54,
+          "video_id": "7616381803850485023",
+          "view_text": "154K"
+        },
+        {
+          "href": "https://www.tiktok.com/@tiktok/video/7615325926091443487",
+          "index": 55,
+          "video_id": "7615325926091443487",
+          "view_text": "12.8M"
+        },
+        {
+          "href": "https://www.tiktok.com/@tiktok/video/7614295022346784030",
+          "index": 56,
+          "video_id": "7614295022346784030",
+          "view_text": "506.1K"
+        },
+        {
+          "href": "https://www.tiktok.com/@tiktok/video/7614183000707829023",
+          "index": 57,
+          "video_id": "7614183000707829023",
+          "view_text": "404.7K"
+        },
+        {
+          "href": "https://www.tiktok.com/@tiktok/video/7613535956422921502",
+          "index": 58,
+          "video_id": "7613535956422921502",
+          "view_text": "316.2K"
+        },
+        {
+          "href": "https://www.tiktok.com/@tiktok/video/7613112503618358558",
+          "index": 59,
+          "video_id": "7613112503618358558",
+          "view_text": "262.1K"
+        },
+        {
+          "href": "https://www.tiktok.com/@tiktok/video/7611566383280819487",
+          "index": 60,
+          "video_id": "7611566383280819487",
+          "view_text": "442.1K"
+        },
+        {
+          "href": "https://www.tiktok.com/@tiktok/video/7611261456629140766",
+          "index": 61,
+          "video_id": "7611261456629140766",
+          "view_text": "287.8K"
+        },
+        {
+          "href": "https://www.tiktok.com/@tiktok/video/7610957726612573471",
+          "index": 62,
+          "video_id": "7610957726612573471",
+          "view_text": "301.9K"
+        },
+        {
+          "href": "https://www.tiktok.com/@tiktok/video/7610902358427454751",
+          "index": 63,
+          "video_id": "7610902358427454751",
+          "view_text": "155.4K"
+        },
+        {
+          "href": "https://www.tiktok.com/@tiktok/video/7610779311666122014",
+          "index": 64,
+          "video_id": "7610779311666122014",
+          "view_text": "163.2K"
+        },
+        {
+          "href": "https://www.tiktok.com/@tiktok/video/7610545287651740958",
+          "index": 65,
+          "video_id": "7610545287651740958",
+          "view_text": "230.9K"
+        },
+        {
+          "href": "https://www.tiktok.com/@tiktok/video/7610491084011097375",
+          "index": 66,
+          "video_id": "7610491084011097375",
+          "view_text": "87.6M"
+        },
+        {
+          "href": "https://www.tiktok.com/@tiktok/video/7609439184545139999",
+          "index": 67,
+          "video_id": "7609439184545139999",
+          "view_text": "383.3K"
+        },
+        {
+          "href": "https://www.tiktok.com/@tiktok/video/7609386308527459615",
+          "index": 68,
+          "video_id": "7609386308527459615",
+          "view_text": "240.6K"
+        },
+        {
+          "href": "https://www.tiktok.com/@tiktok/video/7609062596628483359",
+          "index": 69,
+          "video_id": "7609062596628483359",
+          "view_text": "56.5M"
+        },
+        {
+          "href": "https://www.tiktok.com/@tiktok/video/7609005511958088991",
+          "index": 70,
+          "video_id": "7609005511958088991",
+          "view_text": "11.8M"
+        },
+        {
+          "href": "https://www.tiktok.com/@tiktok/video/7608692534491057439",
+          "index": 71,
+          "video_id": "7608692534491057439",
+          "view_text": "195.1K"
+        },
+        {
+          "href": "https://www.tiktok.com/@tiktok/video/7608661627482737950",
+          "index": 72,
+          "video_id": "7608661627482737950",
+          "view_text": "168.3K"
+        },
+        {
+          "href": "https://www.tiktok.com/@tiktok/video/7608313475290402079",
+          "index": 73,
+          "video_id": "7608313475290402079",
+          "view_text": "266.7K"
+        },
+        {
+          "href": "https://www.tiktok.com/@tiktok/video/7607916273514679582",
+          "index": 74,
+          "video_id": "7607916273514679582",
+          "view_text": "391.9K"
+        },
+        {
+          "href": "https://www.tiktok.com/@tiktok/video/7607552555073260830",
+          "index": 75,
+          "video_id": "7607552555073260830",
+          "view_text": "5.4M"
+        },
+        {
+          "href": "https://www.tiktok.com/@tiktok/video/7606504884602424606",
+          "index": 76,
+          "video_id": "7606504884602424606",
+          "view_text": "431.1K"
+        },
+        {
+          "href": "https://www.tiktok.com/@tiktok/video/7606463158772862238",
+          "index": 77,
+          "video_id": "7606463158772862238",
+          "view_text": "194.4K"
+        },
+        {
+          "href": "https://www.tiktok.com/@tiktok/video/7605639783636897055",
+          "index": 78,
+          "video_id": "7605639783636897055",
+          "view_text": "353.5K"
+        },
+        {
+          "href": "https://www.tiktok.com/@tiktok/video/7603856272261254431",
+          "index": 79,
+          "video_id": "7603856272261254431",
+          "view_text": "641K"
+        },
+        {
+          "href": "https://www.tiktok.com/@tiktok/video/7603823876878961951",
+          "index": 80,
+          "video_id": "7603823876878961951",
+          "view_text": "265.9K"
+        },
+        {
+          "href": "https://www.tiktok.com/@tiktok/video/7603060574972398878",
+          "index": 81,
+          "video_id": "7603060574972398878",
+          "view_text": "386.9K"
+        },
+        {
+          "href": "https://www.tiktok.com/@tiktok/video/7602713277616934175",
+          "index": 82,
+          "video_id": "7602713277616934175",
+          "view_text": "271.9M"
+        },
+        {
+          "href": "https://www.tiktok.com/@tiktok/video/7602673095043779870",
+          "index": 83,
+          "video_id": "7602673095043779870",
+          "view_text": "316.5K"
+        },
+        {
+          "href": "https://www.tiktok.com/@tiktok/video/7601302444773100831",
+          "index": 84,
+          "video_id": "7601302444773100831",
+          "view_text": "479.7M"
+        },
+        {
+          "href": "https://www.tiktok.com/@tiktok/video/7600849824572869919",
+          "index": 85,
+          "video_id": "7600849824572869919",
+          "view_text": "370.6K"
+        },
+        {
+          "href": "https://www.tiktok.com/@tiktok/video/7600180987158433055",
+          "index": 86,
+          "video_id": "7600180987158433055",
+          "view_text": "347.1K"
+        },
+        {
+          "href": "https://www.tiktok.com/@tiktok/video/7599702164797263134",
+          "index": 87,
+          "video_id": "7599702164797263134",
+          "view_text": "326.3K"
+        },
+        {
+          "href": "https://www.tiktok.com/@tiktok/video/7598617494466727198",
+          "index": 88,
+          "video_id": "7598617494466727198",
+          "view_text": "619.6K"
+        },
+        {
+          "href": "https://www.tiktok.com/@tiktok/video/7598236456275987743",
+          "index": 89,
+          "video_id": "7598236456275987743",
+          "view_text": "372.2K"
+        },
+        {
+          "href": "https://www.tiktok.com/@tiktok/video/7597867426683915551",
+          "index": 90,
+          "video_id": "7597867426683915551",
+          "view_text": "365.1K"
+        },
+        {
+          "href": "https://www.tiktok.com/@tiktok/video/7597538089044626719",
+          "index": 91,
+          "video_id": "7597538089044626719",
+          "view_text": "241.1K"
+        },
+        {
+          "href": "https://www.tiktok.com/@tiktok/video/7597474635466247454",
+          "index": 92,
+          "video_id": "7597474635466247454",
+          "view_text": "198.2K"
+        },
+        {
+          "href": "https://www.tiktok.com/@tiktok/video/7595999057470885150",
+          "index": 93,
+          "video_id": "7595999057470885150",
+          "view_text": "657.5K"
+        },
+        {
+          "href": "https://www.tiktok.com/@tiktok/video/7595247839345741086",
+          "index": 94,
+          "video_id": "7595247839345741086",
+          "view_text": "395.5K"
+        }
+      ]
+    }
+  },
+  "video": {
+    "url": "https://www.tiktok.com/@tiktok/video/7642770753292635422",
+    "title": "Midnight Sun: Zara Larsson-Inspired Remix Night | TikTok",
+    "challengeMarkers": {
+      "hasLoginText": false,
+      "hasSliderChallenge": false,
+      "hasVerifyText": false
+    },
+    "hydration": {
+      "present": true,
+      "parseOk": true,
+      "defaultScopeKeys": [
+        "webapp.app-context",
+        "webapp.biz-context",
+        "webapp.i18n-translation",
+        "seo.abtest",
+        "webapp.video-detail",
+        "webapp.a-b"
+      ],
+      "video": {
+        "author": {
+          "id": "107955",
+          "nickname": "TikTok",
+          "privateAccount": false,
+          "uniqueId": "tiktok",
+          "verified": true
+        },
+        "createTime": "1779471253",
+        "desc": "Shout out all the iconic @Zara Larsson stans who helped inspire Midnight Sun: Girls Trip \ud83e\udea9",
+        "id": "7642770753292635422",
+        "music": {
+          "authorName": "TikTok",
+          "duration": 54,
+          "id": "7642770792052280095",
+          "original": true,
+          "title": "original sound"
+        },
+        "stats": {
+          "collectCount": "967",
+          "commentCount": 1256,
+          "diggCount": 10500,
+          "playCount": 295100,
+          "shareCount": 908
+        },
+        "statsV2": {
+          "collectCount": "967",
+          "commentCount": "1256",
+          "diggCount": "10500",
+          "playCount": "295100",
+          "repostCount": "0",
+          "shareCount": "908"
+        },
+        "textExtra": [
+          {
+            "hashtagName": "",
+            "type": 0,
+            "userId": "205879097384816641",
+            "userUniqueId": "zaralarsson"
+          }
+        ]
+      }
+    },
+    "selectorCounts": {
+      "commentCount": 2,
+      "commentIcon": 2,
+      "commentInput": 1,
+      "commentPost": 1,
+      "commentReply1": 20,
+      "commentText": 1,
+      "commentLevel1": 20,
+      "commentUsername1": 20,
+      "comments": 1
+    },
+    "comments": {
+      "topLevelCount": 20,
+      "uniqueProfileHrefCount": 20,
+      "rows": [
+        {
+          "index": 1,
+          "like_text": "104",
+          "reply_expansion_text": "1",
+          "text": "how can tiktok have tiktok",
+          "unique_id": "raja_iblis136",
+          "username": "BRRRO",
+          "visible_date": "5-26"
+        },
+        {
+          "index": 2,
+          "like_text": "45",
+          "reply_expansion_text": "7",
+          "text": "Tiktok pls stop hiding me from the algorithm and make me famous plsss,I'll even follow you",
+          "unique_id": "zozo90917",
+          "username": "Zozo",
+          "visible_date": "5-23"
+        },
+        {
+          "index": 3,
+          "like_text": "7",
+          "reply_expansion_text": "1",
+          "text": "Hello tiktok give me 10k follower",
+          "unique_id": "fahad.chuddha3",
+          "username": "Fahad Chudd\u062da\ufffd",
+          "visible_date": "5-28"
+        },
+        {
+          "index": 4,
+          "like_text": "56",
+          "reply_expansion_text": "1",
+          "text": "response to Kory mann?",
+          "unique_id": "user_liaxoxo",
+          "username": "Benjamin wadsworths wife\ud83e\udebd",
+          "visible_date": "5-23"
+        },
+        {
+          "index": 5,
+          "like_text": "28",
+          "reply_expansion_text": "5",
+          "text": "way ??",
+          "unique_id": "noorcute931",
+          "username": "N/OOR\u2740",
+          "visible_date": "5-23"
+        },
+        {
+          "index": 6,
+          "like_text": "8",
+          "reply_expansion_text": "1",
+          "text": "wow very good sister I like Tik Tok",
+          "unique_id": "nazul.islam62",
+          "username": "Nazrul  Islam",
+          "visible_date": "5-25"
+        },
+        {
+          "index": 7,
+          "like_text": "12",
+          "reply_expansion_text": "1",
+          "text": "I want to go viral \ud83e\udd7a",
+          "unique_id": "christiekickie",
+          "username": "THRIFT BY TINAH",
+          "visible_date": "5-23"
+        },
+        {
+          "index": 8,
+          "like_text": "13",
+          "reply_expansion_text": "1",
+          "text": "tik tok give me a blue tick in 2 hours",
+          "unique_id": "ziddilarka508",
+          "username": "\ud83d\udc9d\ud835\udcd0\ud835\udceb\ud835\udced\ud835\udcfe\ud835\udcf5\ud835\udcf5\ud835\udcea\ud835\udcf1 \ud835\udcda\ud835\udcf1\ud835\udcea\ud835\udcf7\ud83d\udc9e",
+          "visible_date": "5-25"
+        },
+        {
+          "index": 9,
+          "like_text": "8",
+          "reply_expansion_text": "1",
+          "text": "Please can you send a blue tick send a 5 minutes",
+          "unique_id": "ch.zeeshan.khalid.larr.1",
+          "username": "CH ZEESHAN KHALID LARR\ud83d\udc8e",
+          "visible_date": "5-29"
+        },
+        {
+          "index": 10,
+          "like_text": "6",
+          "reply_expansion_text": "1",
+          "text": "[Sticker] why my video doesn't going viral",
+          "unique_id": "lo.ol.l4",
+          "username": "\u2764\ufe0f\ud83e\udd8b",
+          "visible_date": "5-23"
+        },
+        {
+          "index": 11,
+          "like_text": "6",
+          "reply_expansion_text": "1",
+          "text": "Please 100k views my video \ud83e\udd0d\ud83d\udda4",
+          "unique_id": "bhoataly",
+          "username": "\u0628\u0627\u0628\u0627 \u0628\u0627\u063a\u06cc \u0622\u0644\u06d2\ud83e\udd77\ud83c\udfff\ud83e\udd85",
+          "visible_date": "5-23"
+        },
+        {
+          "index": 12,
+          "like_text": "17",
+          "reply_expansion_text": "1",
+          "text": "today is my birthday",
+          "unique_id": "marjan__914",
+          "username": "\u0274\u1d0d_\u1d0d\u1d00\u0280\u1d0a\u1d00\u0274  \ud83e\udee7",
+          "visible_date": "5-23"
+        },
+        {
+          "index": 13,
+          "like_text": "17",
+          "reply_expansion_text": "1",
+          "text": "hello tik Tok please give me a blue tick just 2 Month \u2764\ufe0f\ud83d\udc40",
+          "unique_id": "usman.butt01171",
+          "username": "\ud80c\udda9\uff35\uff33\uff2d\uff21\uff2e \uff22\uff35\uff34\uff34",
+          "visible_date": "5-25"
+        },
+        {
+          "index": 14,
+          "like_text": "16",
+          "reply_expansion_text": "2",
+          "text": "i love Tik Tok",
+          "unique_id": "satsuki.ena",
+          "username": "love Ena",
+          "visible_date": "5-23"
+        },
+        {
+          "index": 15,
+          "like_text": "11",
+          "reply_expansion_text": "1",
+          "text": "i\u2019m 18",
+          "unique_id": "sxbermxse",
+          "username": "Maseproductionss",
+          "visible_date": "5-23"
+        },
+        {
+          "index": 16,
+          "like_text": "28",
+          "reply_expansion_text": "2",
+          "text": "First",
+          "unique_id": "thewarrior482",
+          "username": "heaven",
+          "visible_date": "5-23"
+        },
+        {
+          "index": 17,
+          "like_text": "11",
+          "reply_expansion_text": "1",
+          "text": "Why can\u2019t I message people",
+          "unique_id": "float_your_self",
+          "username": "\u20df",
+          "visible_date": "5-23"
+        },
+        {
+          "index": 18,
+          "like_text": "13",
+          "reply_expansion_text": "1",
+          "text": "kom like",
+          "unique_id": "lanshao2",
+          "username": "Juu",
+          "visible_date": "5-23"
+        },
+        {
+          "index": 19,
+          "like_text": "11",
+          "reply_expansion_text": null,
+          "text": "TIKTOK VERIFI RUBY BRIDGES",
+          "unique_id": "oliviahugs6",
+          "username": "\u22c6\u02da\u0fd4 \ud835\udcf8\ud835\udcf5\ud835\udcf2\ud835\udcff\ud835\udcf2\ud835\udcea \ud835\udf17\ud835\udf1a\u02da\u22c6",
+          "visible_date": "5-24"
+        },
+        {
+          "index": 20,
+          "like_text": "8",
+          "reply_expansion_text": "1",
+          "text": "https://www.tiktok.com/@onlylnxy?_r=1&_t=ZS-96eoBG1QU2K",
+          "unique_id": "onlylnxy",
+          "username": "Lnxy\ud83d\udcab",
+          "visible_date": "5-25"
+        }
+      ]
+    },
+    "api_body_capture": {
+      "comment_list_response_bodies_captured": false,
+      "packet_grade_fields_observed": false,
+      "note": "Chrome read-only page scope did not expose response bodies. A sanitized page-scope resource check did not provide /api/comment/list bodies; the Chrome pageAssets capability exposes assets only, not XHR bodies."
+    }
+  }
+}
