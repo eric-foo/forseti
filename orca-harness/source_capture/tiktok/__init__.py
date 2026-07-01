@@ -36,6 +36,14 @@ from source_capture.tiktok.batch_projection import (
     build_tiktok_batch_projection_from_lake,
     build_tiktok_batch_projection_from_packet_directory,
 )
+from source_capture.tiktok.live_batch_probe import (
+    TIKTOK_LIVE_BATCH_CADENCE_JSON_NAME,
+    TIKTOK_LIVE_BATCH_GRID_JSON_NAME,
+    TIKTOK_LIVE_BATCH_PROBE_SCHEMA_VERSION,
+    TikTokLiveBatchProbeOutputPaths,
+    run_tiktok_live_batch_probe,
+    write_tiktok_live_batch_probe_outputs,
+)
 from source_capture.tiktok.video_packet import (
     TIKTOK_VIDEO_CAPTURE_SCHEMA_VERSION,
     TIKTOK_VIDEO_CAPTURE_SURFACE,
@@ -53,9 +61,13 @@ __all__ = [
     "TIKTOK_BATCH_PROJECTION_METHOD",
     "TIKTOK_BATCH_PROJECTION_VERSION",
     "TIKTOK_COMMENT_LIST_ROUTE",
+    "TIKTOK_LIVE_BATCH_CADENCE_JSON_NAME",
+    "TIKTOK_LIVE_BATCH_GRID_JSON_NAME",
+    "TIKTOK_LIVE_BATCH_PROBE_SCHEMA_VERSION",
     "TIKTOK_PROFILE_LIST_SURFACES",
     "TIKTOK_VIDEO_CAPTURE_SCHEMA_VERSION",
     "TIKTOK_VIDEO_CAPTURE_SURFACE",
+    "TikTokLiveBatchProbeOutputPaths",
     "TiktokComment",
     "TiktokCommentListAdmission",
     "TiktokProfileListItem",
@@ -74,6 +86,8 @@ __all__ = [
     "parse_comment_list_bytes",
     "parse_profile_list_items",
     "parse_webvtt_cues",
+    "run_tiktok_live_batch_probe",
     "write_tiktok_batch_packet",
+    "write_tiktok_live_batch_probe_outputs",
     "write_tiktok_video_packet",
 ]

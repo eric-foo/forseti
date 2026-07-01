@@ -548,7 +548,7 @@ def _normalize_subtitle_infos(infos: Sequence[Any]) -> list[JsonObject]:
             "source": _first_str(info.get("Source"), info.get("source")),
             "version": _first_str(info.get("Version"), info.get("version")),
         }
-        if info.get("Url") or info.get("url"):
+        if info.get("Url") or info.get("url") or _as_bool(info.get("url_present_but_redacted")):
             safe["url_redacted"] = True
         if info.get("UrlExpire") or info.get("url_expire"):
             safe["url_expire_redacted"] = True
