@@ -160,6 +160,7 @@ def test_live_probe_writes_sanitized_staging_compatible_with_batch_admission(
     assert packet_payload["batch_summary"]["captured_comment_count"] == 1
     assert packet_payload["batch_summary"]["subtitle_info_video_count"] == 1
     assert packet_payload["videos"][0]["subtitles"]["posture"] == "source_native_subtitle_not_captured"
+    assert packet_payload["videos"][0]["subtitles"]["subtitle_infos"][0]["url_redacted"] is True
 
 
 def test_live_probe_stops_on_platform_challenge(tmp_path: Path) -> None:
@@ -204,6 +205,51 @@ def test_live_probe_stops_on_platform_challenge(tmp_path: Path) -> None:
     assert cadence["completed_count"] == 0
     assert cadence["challenge_count"] == 1
     assert cadence["failures"][0]["reason"] == "platform_challenge_observed"
+    assert len(engine.calls) == 1
+
+
+def test_live_probe_stops_on_missing_video_detail_hydration(tmp_path: Path) -> None:
+    auth_root = _auth_state(tmp_path)
+    engine = _FakeObservationEngine(
+        outcomes=[
+            BrowserPageObservationSuccess(
+                requested_url="https://www.tiktok.com/@funmi/video/7390000000000000001",
+                final_url="https://www.tiktok.com/@funmi/video/7390000000000000001",
+                title="TikTok",
+                visible_text="video loaded",
+                dom_observation={"hydration_json_text": None},
+                responses=[],
+                metadata={},
+                warning_notes=[],
+                limitation_notes=[],
+            ),
+            _success_observation(video_id="7390000000000000002"),
+        ]
+    )
+
+    paths = write_tiktok_live_batch_probe_outputs(
+        creator_handle="funmi",
+        creator_profile_url="https://www.tiktok.com/@funmi",
+        video_urls=[
+            "https://www.tiktok.com/@funmi/video/7390000000000000001",
+            "https://www.tiktok.com/@funmi/video/7390000000000000002",
+        ],
+        state_label="test-session",
+        session_mode=AuthenticatedSessionMode.FREE_ACCOUNT_CREATED,
+        auth_state_root=auth_root,
+        output_dir=tmp_path / "out",
+        cadence_min_gap_seconds=0,
+        cadence_max_gap_seconds=0,
+        random_seed=1,
+        engine=engine,
+        sleep_fn=lambda _seconds: None,
+    )
+
+    cadence = json.loads(paths.cadence_result_json_path.read_text(encoding="utf-8"))
+    assert cadence["attempted_count"] == 1
+    assert cadence["completed_count"] == 0
+    assert cadence["challenge_count"] == 1
+    assert cadence["failures"][0]["reason"] == "missing_video_detail_hydration"
     assert len(engine.calls) == 1
 
 

@@ -249,16 +249,23 @@ def run_tiktok_live_batch_probe(
 
         item_struct = _extract_item_struct(capture_result.dom_observation)
         if item_struct is None:
+            # C6 names an empty/stripped shell as a genuine-block symptom alongside
+            # captcha text and 403 HTML; stop like a detected challenge instead of
+            # hammering the remaining cadence-planned videos.
+            challenge_count += 1
             failures.append(
                 _failure_entry(
                     video_url=video_url,
                     video_id=video_id,
                     observed_utc=observed_utc,
                     reason="missing_video_detail_hydration",
-                    detail="No video itemStruct found in TikTok hydration blob.",
+                    detail=(
+                        "No video itemStruct found in TikTok hydration blob; treated as a "
+                        "possible empty/stripped-shell block signal (C6) and the probe stopped."
+                    ),
                 )
             )
-            continue
+            break
 
         item_video_id = str(item_struct.get("id") or "").strip()
         if item_video_id and item_video_id != video_id:
