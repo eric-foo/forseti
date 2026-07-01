@@ -20,8 +20,9 @@ open_next:
   - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_attachment_record_implementation_contract_v0.md
   - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_silver_vault_record_contract_v0.md
 branch_or_commit: >
-  Authored on codex/bronze-full-gt-scoping at 89501743dfd6aa0a2b4423e8f1d5fe1042758af7,
-  based on the PR #542 branch while PR #542 was still open and not merged.
+  Authored on codex/bronze-full-gt-scoping as a stacked scoping artifact after
+  PR #542 head 89501743dfd6aa0a2b4423e8f1d5fe1042758af7; verify current git state
+  and PR #542 state before lifecycle claims.
 stale_if:
   - PR #542 is materially rewritten, closed without merge, superseded, or merged with a different proof boundary.
   - Bronze MGT baseline, Data Lake storage, Attachment Record, or Silver Vault contracts are superseded.
@@ -107,6 +108,22 @@ consumer surfaces:
   join shape that could invalidate the generic model.
 - The YouTube ambiguous-AR branch is either test-pinned or explicitly carried as
   code-present but not test-proven.
+
+## A-D To MGT 1-7 Crosswalk
+
+The A-D labels refine, rather than replace, the Bronze MGT declaration's numbered
+full-GT upgrade path and the handoff's owner-stated 1-2 / 3 / 4 / 5-6 / 7
+batching preference:
+
+| Scoping batch | MGT upgrade item(s) | Crosswalk note |
+| --- | --- | --- |
+| A | 1-2 | Keeps deterministic writer/touchpoint discovery ahead of Manifest v2 or equivalent migration selection. |
+| B | 3, AR body-layout side | Covers Attachment Record body layout/backend posture as a physicalization fork, without selecting layout or backend. |
+| C | 3, retention/lawful-erasure/backend lock-in side | Splits the retention, lawful-erasure, and backend lock-in posture out of item 3 so those high-lock-in choices stay visible before physicalization. |
+| D | 4-6 | Merges lake-doctor/CI and representative consumer-proof threshold because fail-capable checks and proof breadth must be read together before any future full-GT claim. |
+
+Item 7 remains the later de-correlated full Bronze/Silver review and closeout
+boundary. That review gate is named here but not entered by A-D scoping.
 
 ## Batch A - Discovery Plus Manifest/Eq Migration Fork
 

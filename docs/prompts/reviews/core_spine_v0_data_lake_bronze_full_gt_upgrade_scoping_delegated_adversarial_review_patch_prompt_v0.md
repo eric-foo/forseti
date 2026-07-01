@@ -18,10 +18,10 @@ open_next:
   - .agents/workflow-overlay/prompt-orchestration.md
   - docs/prompts/templates/review/adversarial_artifact_review_v0.md
 input_hashes:
-  - orca/product/spines/data_lake/workflows/core_spine_v0_data_lake_bronze_full_gt_upgrade_scoping_v0.md: sha256:DBF60C295E640A3E66F370220EC728E0E02B5AF1104418861550EBD2D4582072
+  - orca/product/spines/data_lake/workflows/core_spine_v0_data_lake_bronze_full_gt_upgrade_scoping_v0.md: sha256:0A0B01FA6AE2A6F5185BEC2AE5846409AFEFE3A5EB5F411E5564F939C9D4A6C7
 branch_or_commit: >
-  Authored on codex/bronze-full-gt-scoping at 89501743dfd6aa0a2b4423e8f1d5fe1042758af7;
-  target is branch-based while PR #542 is open and not merged.
+  Target hash re-pinned during home-model adjudication on codex/bronze-full-gt-scoping;
+  reviewer must fresh-read current HEAD because the branch may advance after this prompt is filed.
 stale_if:
   - The target artifact hash differs from the value above.
   - PR #542 is materially rewritten, closed without merge, superseded, or merged with a different proof boundary.
@@ -59,7 +59,7 @@ controlling_source_state: >
   Target hash, branch, and HEAD were checked by the dispatcher before prompt
   filing. Controller must fresh-read and verify before making strict or
   actionable claims.
-branch_or_commit_reference: "codex/bronze-full-gt-scoping at 89501743dfd6aa0a2b4423e8f1d5fe1042758af7; PR #542 branch-based, not merged"
+branch_or_commit_reference: "codex/bronze-full-gt-scoping; target hash is the content pin; PR #542 branch-based, not merged at prompt authoring"
 doctrine_change_decision: >
   This prompt does not change product doctrine, validation doctrine, workflow
   authority, review authority, or lifecycle boundaries. Reviewer may recommend
@@ -104,7 +104,7 @@ Workspace:
 `C:\Users\vmon7\Desktop\projects\orca\worktrees\bronze-full-gt-scoping`
 
 Expected branch/reference:
-`codex/bronze-full-gt-scoping` at `89501743dfd6aa0a2b4423e8f1d5fe1042758af7`.
+`codex/bronze-full-gt-scoping`; fresh-read current HEAD at dispatch.
 
 PR/base state:
 This target is branch-based while PR #542 is open and not merged. Do not treat
@@ -118,7 +118,7 @@ Review target and only editable file:
 `orca/product/spines/data_lake/workflows/core_spine_v0_data_lake_bronze_full_gt_upgrade_scoping_v0.md`
 
 Pinned review target hash:
-`sha256:DBF60C295E640A3E66F370220EC728E0E02B5AF1104418861550EBD2D4582072`
+`sha256:0A0B01FA6AE2A6F5185BEC2AE5846409AFEFE3A5EB5F411E5564F939C9D4A6C7`
 
 Review report destination:
 `docs/review-outputs/adversarial-artifact-reviews/core_spine_v0_data_lake_bronze_full_gt_upgrade_scoping_delegated_adversarial_review_patch_v0.md`
