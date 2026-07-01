@@ -21,8 +21,17 @@ from capture_spine.creator_profile_current.silver_metric_producer import (
     METRIC_ROLLUP_PAYLOAD_KIND,
     derive_creator_metric_silver_records_from_projections,
 )
+from capture_spine.creator_profile_current.silver_metric_reader import (
+    discover_creator_metric_rollup_records,
+    read_creator_metric_rollups_from_lake,
+)
+from capture_spine.creator_profile_current.silver_metric_snapshot import (
+    SNAPSHOT_WRAPPER_KEY,
+    generate_creator_metric_rollup_snapshot,
+    validate_snapshot,
+)
 from data_lake.catalog import rebuild_catalog
-from data_lake.root import DataLakeRoot
+from data_lake.root import DataLakeRoot, DataLakeRootError
 from source_capture.models import known_fact
 from source_capture.writer import write_local_source_capture_packet
 
@@ -232,6 +241,42 @@ def test_observation_raw_refs_use_bronze_attachment_records_when_requested(tmp_p
         assert "lineage_limitations" not in record
 
 
+def test_ar_mode_records_round_trip_through_reader_discovery_and_snapshot(tmp_path: Path) -> None:
+    data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    packet_id, raw_anchor = _commit_bronze_reels_packet(data_root, tmp_path)
+    assert rebuild_catalog(data_root)["status"] == "rebuilt"
+    projection = tmp_path / "projection.json"
+    projection.write_text(
+        json.dumps({"packet_id": packet_id, "rows": _projection_rows_for_anchor(packet_id, raw_anchor)}),
+        encoding="utf-8",
+    )
+
+    result = derive_creator_metric_silver_records_from_projections(
+        data_root=data_root,
+        projection_paths=[projection],
+        account_ledger=_account_ledger(),
+        generated_at_utc=GENERATED_AT,
+        use_bronze_attachment_records=True,
+    )
+    seed_rollup = result.seed_document["instagram_reels_creator_metric_seed"]["metric_rollups"][0]
+
+    reconstructed = read_creator_metric_rollups_from_lake(data_root, raw_anchors=[packet_id])
+    assert reconstructed == [seed_rollup]
+
+    discovered = discover_creator_metric_rollup_records(data_root, account_ledger=_account_ledger())
+    assert sorted(discovered) == ["acct_ig_fixture_001"]
+    assert len(discovered["acct_ig_fixture_001"]) == 1
+
+    snapshot = generate_creator_metric_rollup_snapshot(
+        data_root,
+        account_ledger=_account_ledger(),
+        platform="instagram",
+        snapshot_generated_at=GENERATED_AT,
+    ).snapshot
+    assert validate_snapshot(snapshot) == []
+    assert snapshot[SNAPSHOT_WRAPPER_KEY]["metric_rollups"] == [seed_rollup]
+
+
 def test_missing_bronze_attachment_record_stays_visible_when_requested(tmp_path: Path) -> None:
     data_root = DataLakeRoot.for_test(tmp_path / "lake")
     assert rebuild_catalog(data_root)["status"] == "rebuilt"
@@ -253,6 +298,26 @@ def test_missing_bronze_attachment_record_stays_visible_when_requested(tmp_path:
     assert result.observation_records[0]["lineage_limitations"] == [
         {"reason": "other", "detail": "typed_attachment_record_missing_for_raw_ref"}
     ]
+
+    on_disk = json.loads(result.observation_paths[0].read_text(encoding="utf-8"))
+    assert on_disk["lineage_limitations"] == [
+        {"reason": "other", "detail": "typed_attachment_record_missing_for_raw_ref"}
+    ]
+
+
+def test_bronze_attachment_records_require_current_catalog_when_requested(tmp_path: Path) -> None:
+    data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    projection = tmp_path / "projection.json"
+    projection.write_text(json.dumps({"packet_id": PACKET_ID, "rows": _projection_rows()}), encoding="utf-8")
+
+    with pytest.raises(DataLakeRootError, match="Bronze catalog is not current"):
+        derive_creator_metric_silver_records_from_projections(
+            data_root=data_root,
+            projection_paths=[projection],
+            account_ledger=_account_ledger(),
+            generated_at_utc=GENERATED_AT,
+            use_bronze_attachment_records=True,
+        )
 
 
 def test_observation_records_written_and_reload_with_stable_hash(tmp_path: Path) -> None:
