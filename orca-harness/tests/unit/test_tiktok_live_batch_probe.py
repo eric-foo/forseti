@@ -107,6 +107,8 @@ def test_live_probe_writes_sanitized_staging_compatible_with_batch_admission(
                         }
                     ),
                     response_headers={"content-type": "application/json"},
+                    request_method="GET",
+                    resource_type="fetch",
                 ),
             )
         ]
@@ -134,6 +136,8 @@ def test_live_probe_writes_sanitized_staging_compatible_with_batch_admission(
     assert cadence["attempted_count"] == 1
     assert cadence["completed_count"] == 1
     assert cadence["results"][0]["comment_responses"][0]["url_summary"]["query_key_count"] == 3
+    assert cadence["results"][0]["comment_responses"][0]["request_method"] == "GET"
+    assert cadence["results"][0]["comment_responses"][0]["resource_type"] == "fetch"
     assert "https://www.tiktok.com/api/comment/list/" not in serialized
     assert '"body_text"' not in serialized
     assert str(auth_root) not in serialized
@@ -162,6 +166,83 @@ def test_live_probe_writes_sanitized_staging_compatible_with_batch_admission(
     assert packet_payload["videos"][0]["subtitles"]["posture"] == "source_native_subtitle_not_captured"
     assert packet_payload["videos"][0]["subtitles"]["subtitle_infos"][0]["url_redacted"] is True
 
+
+def test_live_probe_filters_non_get_comment_list_responses_when_method_available(
+    tmp_path: Path,
+) -> None:
+    auth_root = _auth_state(tmp_path)
+    response_url = (
+        "https://www.tiktok.com/api/comment/list/"
+        "?aweme_id=7390000000000000001&cursor=0&count=20"
+    )
+    get_body = json.dumps(
+        {
+            "cursor": 20,
+            "has_more": 0,
+            "total": 1,
+            "comments": [
+                {
+                    "cid": "7291",
+                    "text": "Real body",
+                    "create_time": 1710000000,
+                    "user": {"uid": "u1", "unique_id": "viewer_one"},
+                }
+            ],
+        }
+    )
+    engine = _FakeObservationEngine(
+        outcomes=[
+            _success_observation(
+                video_id="7390000000000000001",
+                responses=[
+                    BrowserPageResponse(
+                        requested_url=response_url,
+                        final_url=response_url,
+                        status=200,
+                        ok=True,
+                        body_text="",
+                        response_headers={"content-type": "application/json"},
+                        request_method="OPTIONS",
+                        resource_type="fetch",
+                    ),
+                    BrowserPageResponse(
+                        requested_url=response_url,
+                        final_url=response_url,
+                        status=200,
+                        ok=True,
+                        body_text=get_body,
+                        response_headers={"content-type": "application/json"},
+                        request_method="GET",
+                        resource_type="fetch",
+                    ),
+                ],
+            )
+        ]
+    )
+
+    paths = write_tiktok_live_batch_probe_outputs(
+        creator_handle="funmi",
+        creator_profile_url="https://www.tiktok.com/@funmi",
+        video_urls=["https://www.tiktok.com/@funmi/video/7390000000000000001"],
+        state_label="test-session",
+        session_mode=AuthenticatedSessionMode.FREE_ACCOUNT_CREATED,
+        auth_state_root=auth_root,
+        output_dir=tmp_path / "out",
+        cadence_min_gap_seconds=0,
+        cadence_max_gap_seconds=0,
+        random_seed=1,
+        engine=engine,
+        sleep_fn=lambda _seconds: None,
+    )
+
+    cadence = json.loads(paths.cadence_result_json_path.read_text(encoding="utf-8"))
+    row = cadence["results"][0]
+    assert row["capture_receipt"]["response_count"] == 2
+    assert row["capture_receipt"]["matched_comment_response_count"] == 1
+    assert len(row["comment_responses"]) == 1
+    assert row["comment_responses"][0]["request_method"] == "GET"
+    assert row["comment_responses"][0]["body_assessment"]["json_parse_ok"] is True
+    assert row["comment_responses"][0]["body_assessment"]["comment_count"] == 1
 
 def test_live_probe_stops_on_platform_challenge(tmp_path: Path) -> None:
     auth_root = _auth_state(tmp_path)
@@ -296,6 +377,7 @@ def _success_observation(
     *,
     video_id: str,
     response: BrowserPageResponse | None = None,
+    responses: list[BrowserPageResponse] | None = None,
 ) -> BrowserPageObservationSuccess:
     return BrowserPageObservationSuccess(
         requested_url=f"https://www.tiktok.com/@funmi/video/{video_id}",
@@ -303,7 +385,7 @@ def _success_observation(
         title="TikTok",
         visible_text="video loaded",
         dom_observation={"hydration_json_text": json.dumps(_hydration(video_id))},
-        responses=[response] if response is not None else [],
+        responses=responses if responses is not None else ([response] if response is not None else []),
         metadata={},
         warning_notes=[],
         limitation_notes=[],

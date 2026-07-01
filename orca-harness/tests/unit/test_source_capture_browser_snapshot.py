@@ -103,13 +103,20 @@ class _FakeLazyScrollPage:
         self.waits.append(timeout_ms)
 
 
+class _FakeObservationRequest:
+    def __init__(self, *, method: str = "GET", resource_type: str = "fetch") -> None:
+        self.method = method
+        self.resource_type = resource_type
+
+
 class _FakeObservationResponse:
-    def __init__(self, event_log: list[str]) -> None:
+    def __init__(self, event_log: list[str], *, method: str = "GET", resource_type: str = "fetch") -> None:
         self.event_log = event_log
         self.url = "https://api.example.test/widget"
         self.status = 200
         self.ok = True
         self.headers = {"content-type": "application/json"}
+        self.request = _FakeObservationRequest(method=method, resource_type=resource_type)
 
     def text(self) -> str:
         self.event_log.append("response_text")
@@ -821,6 +828,8 @@ def test_read_observed_page_responses_omits_cookie_headers() -> None:
 
     assert preserved[0].response_headers == {"content-type": "application/json"}
     assert preserved[0].body_text == "{}"
+    assert preserved[0].request_method == "GET"
+    assert preserved[0].resource_type == "fetch"
 
 
 def test_bounded_lazy_load_scrolls_stepwise_after_observation_extraction() -> None:
