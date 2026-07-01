@@ -16,6 +16,7 @@ use_when:
 authority_boundary: retrieval_only
 open_next:
   - orca/product/spines/data_lake/workflows/core_spine_v0_data_lake_bronze_full_gt_upgrade_scoping_v0.md
+  - orca/product/spines/data_lake/workflows/core_spine_v0_data_lake_bronze_full_gt_physicalization_decision_brief_v0.md
   - docs/workflows/bronze_silver_two_family_consumer_proof_closeout_v0.md
   - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_bronze_mgt_baseline_declaration_v0.md
   - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_storage_contract_v0.md
@@ -27,6 +28,8 @@ branch_or_commit: >
   Authored on codex/bronze-full-gt-next-decisions stacked on
   codex/bronze-full-gt-scoping at 165e5d802d78b1dbbf309b5d2a852dd493dca733.
   Recheck base state if PR #546 is merged, retargeted, or rewritten.
+superseded_by:
+  - orca/product/spines/data_lake/workflows/core_spine_v0_data_lake_bronze_full_gt_physicalization_decision_brief_v0.md
 stale_if:
   - PR #546 is closed without merge, materially rewritten, or superseded.
   - The Bronze MGT baseline, Storage Contract, Attachment Record contract, or Silver Vault contract changes.
@@ -46,6 +49,18 @@ first inventory writers and non-raw lake touchpoints, then decide Manifest or
 equivalent serialization; separately gate AR body layout/backend; separately
 gate retention/lawful-erasure/backend lock-in; and only then allow proof/CI work
 to expand.
+
+## Post-Merge Supersession Note
+
+This packet remains useful as the A-D source inventory and decision-request
+record. It is no longer the active continuation anchor after PR #555 hardened
+the non-raw touchpoint inventory and scratch-safe enumeration gate.
+
+Use
+`core_spine_v0_data_lake_bronze_full_gt_physicalization_decision_brief_v0.md`
+for the next physicalization decision. Do not use this packet's older
+"Next Material Steps" to start a new PR/review/admin loop, third proof, backend
+selection, or runtime implementation.
 
 ## Source And Assumption Gate
 
@@ -371,16 +386,14 @@ entry contract.
 
 ## Next Material Steps
 
-1. Admin land step: commit, push, open the stacked PR, and attach the
-   lane-scoped delegated review-patch prompt for this artifact.
-2. Delegated review-patch: de-correlated controller reviews this artifact and
-   patches only this artifact if bounded wording fixes are needed; all other
-   sources are read-only/flag-only.
-3. After home-model adjudication, choose one of two material branches:
-   Batch A implementation-scoping for deterministic inventory, or a Batch B/C
-   ADR pass if the owner wants architecture selection before inventory code.
-4. Batch D remains a gate on future proof expansion: do not start a third proof
-   before the ambiguous-AR and materially-different-test conditions are settled.
+1. Continue from
+   `core_spine_v0_data_lake_bronze_full_gt_physicalization_decision_brief_v0.md`.
+2. Decide or explicitly defer Gate 1: Attachment Record body layout/backend
+   relationship.
+3. Decide or explicitly defer Gate 2: retention/lawful-erasure/backend lock-in.
+4. Only after those gates are answered or consciously deferred, scope
+   implementation or proof/CI expansion. Do not start third-proof work as a
+   substitute for the physicalization decision.
 
 ## Non-Claims
 
