@@ -15,7 +15,7 @@ via exit code — so they are **harness-portable**: the *logic* runs anywhere; o
 | Script | When | Effect |
 |---|---|---|
 | `guard_protected_actions.py` | **pre-tool** (before a shell/write tool runs) | **HARD-blocks** (exit 2) irreversible / main-affecting actions: an agent's `gh pr merge` → main, push-to-main, force-push, `reset --hard`, `git clean`, and writes into protected external roots. **Allows** a benign lane-branch push. Fires in **all** permission modes. **Fails OPEN** on internal error. |
-| `.codex/hooks/orca_guard_codex_adapter.py` | Codex **PreToolUse** adapter | Runs `guard_protected_actions.py`, converts guard denials into Codex's native JSON `permissionDecision: deny` response, and maps Codex `apply_patch` patch targets through the existing EP-01 protected-path check. |
+| `.codex/hooks/orca_guard_codex_adapter.py` | Codex **PreToolUse** adapter | Runs `guard_protected_actions.py`, converts guard denials into Codex's native JSON `permissionDecision: deny` response, maps Codex `apply_patch` patch targets through the existing EP-01 protected-path check, blocks writes into registered non-current worktrees, and blocks raw shell durable-write primitives for repo source/docs files. |
 | `pre_push_guard.py` | local Git **pre-push** adapter policy | Blocks pushes targeting `main`, branch deletes, non-fast-forward updates, and unverifiable update safety when `.githooks/pre-push` is installed through `core.hooksPath`. Bypassable with `--no-verify`; misses GitHub API merges. |
 | `check_retrieval_header.py` | **post-tool** (after a write) | Advisory (exit 0): warns if an in-scope artifact is missing its retrieval header. Forward-only; never blocks. |
 | `check_dcp_receipt_hygiene.py` | manual / commit / CI candidate | Advisory by default; `--strict` fails on deterministic DCP receipt storage defects in changed durable docs: more than two inline receipts, missing archive pointer, or unauthorized standalone DCP receipt files. Shape only; never receipt truth, validation, readiness, or acceptance. |
@@ -93,6 +93,17 @@ It also parses Codex `apply_patch` headers (`*** Add/Update/Delete File:` and
 `*** Move to:`) and checks those paths through the EP-01 protected-path rule,
 because Codex reports patch edits as `tool_name: "apply_patch"` rather than
 Claude-style `Write` / `Edit` events.
+
+The adapter additionally blocks Codex write tools when the target is inside a
+registered git worktree other than the one running the hook. If a lane needs
+that worktree, reroot Codex in the target worktree and rerun the lane-start
+writeability preflight; do not edit nested worktrees from the parent checkout.
+
+For `Bash` / `PowerShell`, the adapter blocks raw durable-write primitives when
+the command text names repo source/docs file types (`.md`, `.py`, `.yml`,
+`.yaml`, `.json`, `.toml`, `.ps1`). This is a prevention guard for the known
+failure class, not universal shell-write detection; use `apply_patch` from the
+active worktree for source edits.
 
 The repo-map checker also parses Codex `apply_patch` headers in PostToolUse
 mode. If the edited target is `docs/workflows/orca_repo_map_v0.md` and Git still
