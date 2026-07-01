@@ -67,11 +67,17 @@ defensible.
 it names a verdict, diff, findings, or residual risk. The return/courier prompt
 must instruct the commissioning Chief Architect to close the adjudication with
 `.agents/workflow-overlay/communication-style.md` -> **Review Adjudication Next
-Step**: first adjudicate the findings, diff, verdict, and residuals as claims; if
-a material issue remains, route the smallest complete closure step for that
-issue; only after a clean adjudication, batch admin/lifecycle follow-ups into
-exactly one land step with no deep-thinking and deep-think only the 1-3 material
-next moves that need judgment. This is a prompt-return obligation for the
+Step**: first adjudicate the findings, diff, verdict, and residuals as claims;
+close any self-closable material issue -- one whose closure sits inside the
+adjudicator's own authority and the commissioned scope, such as applying the
+adjudicator's own modify/reject adjudications to the target -- in the same
+turn; route a smallest-complete closure step only for an issue that genuinely
+needs another review round, another lane, an architecture pass, or an owner
+decision; once clean, batch admin/lifecycle follow-ups into exactly one land
+step with no deep-thinking and deep-think the 1-5 material next moves that need
+judgment. The land step plus the material moves are a required tail of the
+adjudication closeout, not an optional pass -- an adjudication that ends at the
+verdict without them is incomplete. This is a prompt-return obligation for the
 adjudicator, not permission for the delegate to decide what is kept or to widen
 review scope.
 
@@ -343,67 +349,6 @@ lifecycle mechanics into Orca; jb is cited only as cross-project provenance.
 ## Direction Change Propagation
 
 ```yaml
-# repo-access default and clean-adjudication next-moves hardening 2026-06-30 (CA decision).
-direction_change_propagation:
-  doctrine_changed: >
-    Delegated review-and-patch commissions now bind repo as the default access
-    mode. no_repo is selected only by an explicit commission value plus a reason
-    repository access is unavailable or intentionally excluded; cross-vendor,
-    external, couriered, paste-ready-chat, or portable-method dispatch does not
-    imply repo-blindness. Review-return adjudication is also tightened: the CA
-    adjudicates findings/diff/verdict/residuals first; if a material issue
-    remains, the next step is closure for that issue; only after a clean
-    adjudication does admin collapse into exactly one land step and material
-    next moves receive deep thinking.
-  trigger: review_authority
-  related_triggers: [workflow_authority, output_authority]
-  controlling_sources_updated:
-    - .agents/workflow-overlay/delegated-review-patch.md
-    - .agents/workflow-overlay/prompt-orchestration.md
-    - .agents/workflow-overlay/communication-style.md
-    - .agents/workflow-overlay/template-registry.md
-    - docs/prompts/templates/portable/adversarial_artifact_review_portable_method_v0.md
-    - docs/prompts/templates/review/delegated_review_return_adjudication_v0.md
-    - docs/prompts/reviews/ontology_commission_refresh_delegated_review_patch_prompt_v0.md
-    - docs/prompts/reviews/ontology_backbone_architecture_delegated_review_prompt_v0.md
-    - docs/decisions/dcp_receipts_archive_v0.md
-  downstream_surfaces_checked:
-    - path: .agents/workflow-overlay/review-lanes.md
-      note: >
-        Review-lane model-neutrality, findings-first defaults, provenance fields,
-        and CA consumption order stay intact; the access default and adjudication
-        tail are delegated-review/prompt mechanics, not lane authority changes.
-    - path: AGENTS.md
-      note: >
-        Already routes delegated-review-patch, prompt artifacts, review lanes, and
-        doctrine-changing work to the owning overlay/prompt sources; no root
-        restatement added.
-    - path: docs/workflows/orca_repo_map_v0.md
-      note: >
-        Existing index lines still route delegated-review-patch and prompt
-        orchestration to the owning overlay files; no new top-level source folder
-        or lifecycle boundary was introduced.
-  receipt_storage_updated:
-    - docs/decisions/dcp_receipts_archive_v0.md
-  stale_language_search: >
-    rg --hidden --glob '!worktrees/**' --glob '!.git/**' --glob '!docs/review-inputs/**' -n
-    "no_repo[^\n]{0,80}(default|expected)|expected dispatch|repo-blind cross-vendor|cross-family / external / no-repo|repo-agnostic / cross-family|The reviewer needs nothing else -- no repo|The reviewer needs nothing else — no repo"
-    .agents docs AGENTS.md
-  stale_language_search_result: >
-    Executed 2026-06-30 after patch and rechecked after the delegated review
-    report was written. No live prompt, template, or overlay surface still
-    defaults delegated review-and-patch to no_repo or treats cross-vendor,
-    external, couriered, paste-ready, or portable delivery as repo-blind by
-    default. Remaining hits are only quoted stale-search literals in this receipt
-    and the delegated review-patch commission prompt, archived DCP history in
-    docs/decisions/dcp_receipts_archive_v0.md, and review-output notes under
-    docs/review-outputs/ including the current delegated review report.
-  non_claims:
-    - not validation
-    - not readiness
-    - not a bound/mandatory/machine-routable review lane
-    - not runtime model routing
-    - not standing implementation/code-patch authorization
 # review adjudication next-moves tail bound 2026-06-30 (CA decision).
 direction_change_propagation:
   doctrine_changed: >
@@ -466,6 +411,63 @@ direction_change_propagation:
     - not a bound/mandatory/machine-routable review lane
     - not runtime model routing
     - not standing implementation/code-patch authorization
+# same-turn self-closure and required next-moves tail 2026-07-02 (CA decision).
+direction_change_propagation:
+  doctrine_changed: >
+    Review adjudication closeout is hardened for one-turn completion: a
+    self-closable material issue (closure within the adjudicator's own authority
+    and the commissioned scope, such as applying the adjudicator's own
+    modify/reject adjudications to the target) is closed in the same turn
+    instead of ending the turn on a closure route; the material-move deep-think
+    widens from 1-3 to 1-5; and the land-step plus material-moves tail becomes a
+    required closeout element (1-5 named steps, or an explicit "none" with a
+    one-line reason), so an adjudication that stops at the verdict is malformed.
+  trigger: review_authority
+  related_triggers: [output_authority, workflow_authority]
+  controlling_sources_updated:
+    - .agents/workflow-overlay/communication-style.md
+    - .agents/workflow-overlay/prompt-orchestration.md
+    - .agents/workflow-overlay/delegated-review-patch.md
+    - docs/prompts/templates/review/delegated_review_return_adjudication_v0.md
+  downstream_surfaces_checked:
+    - path: .agents/workflow-overlay/review-lanes.md
+      note: >
+        Lane authority, findings-first defaults, and the head deep-thinking-first
+        rule are unchanged; this edit tightens the adjudicator's closeout
+        mechanics only and stays deferred here for shape.
+    - path: AGENTS.md
+      note: >
+        Already routes delegated-review-patch and review/prompt doctrine to the
+        owning overlay files; no root restatement added.
+    - path: docs/workflows/orca_repo_map_v0.md
+      note: >
+        Index lines for the overlay files and the template stay accurate; this
+        is an in-file doctrine edit, not a structural or navigation change.
+  intentionally_not_updated:
+    - path: .agents/workflow-overlay/review-lanes.md
+      reason: >
+        Its findings fields and lane rules already defer the closeout tail to
+        communication-style.md; dual-homing the tail would fork the owner.
+  receipt_storage_updated:
+    - docs/decisions/dcp_receipts_archive_v0.md
+  stale_language_search: >
+    rg -n "1-3 material|until the review is clean|only after a clean adjudication|only if no unresolved material issue|only when status is clean"
+    .agents docs/prompts/templates AGENTS.md docs/workflows
+  stale_language_search_result: >
+    Executed 2026-07-02 after edits. In the declared scope the remaining hits
+    are the retained non-self-closable bullet in communication-style.md, the
+    historical 2026-06-30 inline receipt in delegated-review-patch.md, and the
+    quoted search literals inside these receipts; no live doctrine or template
+    surface still gates the material-moves tail on a pre-closure clean state,
+    caps material moves at 1-3, or leaves the tail optional. A wider sweep of
+    docs/prompts/reviews and docs/prompts/patches found the old wording only in
+    three already-executed commission dispatch prompts, kept as historical lane
+    records and not rewritten.
+  non_claims:
+    - not validation
+    - not readiness
+    - not a bound/mandatory/machine-routable review lane
+    - not runtime model routing
 
 ```
 

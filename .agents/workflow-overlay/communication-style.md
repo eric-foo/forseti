@@ -139,19 +139,32 @@ or vetoing findings -- the closeout's next step is derived, not improvised.
 First adjudicate the review's findings, diff, verdict, and residuals as claims.
 Then route the next step by the adjudicated state:
 
-- If any blocker, major, material unresolved issue, or material uncertainty
-  remains, the next step is the smallest complete closure route for that issue.
-  Do not deep-think downstream material moves until the review is clean enough
-  to move on.
-- If no unresolved material issue remains, admin/lifecycle steps (commit, push,
+- If a remaining material issue is self-closable -- its closure sits inside the
+  adjudicator's own existing authority and the already-commissioned scope, such
+  as applying the adjudicator's own modify/reject adjudications to the target on
+  the lane branch -- the adjudicator closes it in the same turn and re-checks
+  the adjudicated state before continuing. Do not end the turn on a closure
+  route the adjudicator could have executed itself; that spends a whole
+  round-trip on work this turn already had authority to finish.
+- If a blocker, major, material unresolved issue, or material uncertainty
+  remains that is not self-closable -- it needs another review round, another
+  lane, an architecture pass, or an owner decision -- the next step is the
+  smallest complete closure route for that issue. Do not deep-think downstream
+  material moves until the review is clean enough to move on.
+- Once no unresolved material issue remains, admin/lifecycle steps (commit, push,
   PR, merge) collapse into exactly one batched "land" step, with no
   deep-thinking -- they are rote.
-- After a clean adjudication, material moves get the deep-thinking: the next 1-3
+- After a clean adjudication, material moves get the deep-thinking: the next 1-5
   substantive steps that need judgment, each named with why it compounds and its
   main risk. Pure admin never counts as one of those material steps.
 
-No material moves means the one land step is the whole next step, so the pass
-stays cheap on every adjudication instead of becoming ceremony. It fills the
+The tail is a required part of every adjudication closeout, not an optional
+pass: the closeout ends with the one land step (or the closure route when a
+non-self-closable issue blocks) plus the material moves -- 1-5 named steps, or
+an explicit "none" with a one-line reason. A closeout that stops at the verdict
+without this tail is malformed, not merely terse. No material moves means the
+one land step is the whole next step, so the pass stays cheap on every
+adjudication instead of becoming ceremony. It fills the
 closeout's `next_action` (YAML form) or "next authorized step" (prose form);
 `next_action` stays a single string -- unresolved-review closure first when
 needed; otherwise the one land step first, then the material moves when they
@@ -315,6 +328,61 @@ direction_change_propagation:
     - not readiness
     - not source promotion
     - not implementation authorization
+# same-turn self-closure and required next-moves tail 2026-07-02 (CA decision).
+direction_change_propagation:
+  doctrine_changed: >
+    Review adjudication closeout is hardened for one-turn completion: a
+    self-closable material issue (closure within the adjudicator's own authority
+    and the commissioned scope, such as applying the adjudicator's own
+    modify/reject adjudications to the target) is closed in the same turn
+    instead of ending the turn on a closure route; the material-move deep-think
+    widens from 1-3 to 1-5; and the land-step plus material-moves tail becomes a
+    required closeout element (1-5 named steps, or an explicit "none" with a
+    one-line reason), so an adjudication that stops at the verdict is malformed.
+  trigger: review_authority
+  related_triggers: [output_authority, workflow_authority]
+  controlling_sources_updated:
+    - .agents/workflow-overlay/communication-style.md
+    - .agents/workflow-overlay/prompt-orchestration.md
+    - .agents/workflow-overlay/delegated-review-patch.md
+    - docs/prompts/templates/review/delegated_review_return_adjudication_v0.md
+  downstream_surfaces_checked:
+    - path: .agents/workflow-overlay/review-lanes.md
+      note: >
+        Lane authority, findings-first defaults, and the head deep-thinking-first
+        rule are unchanged; this edit tightens the adjudicator's closeout
+        mechanics only and stays deferred here for shape.
+    - path: AGENTS.md
+      note: >
+        Already routes delegated-review-patch and review/prompt doctrine to the
+        owning overlay files; no root restatement added.
+    - path: docs/workflows/orca_repo_map_v0.md
+      note: >
+        Index lines for the overlay files and the template stay accurate; this
+        is an in-file doctrine edit, not a structural or navigation change.
+  intentionally_not_updated:
+    - path: .agents/workflow-overlay/review-lanes.md
+      reason: >
+        Its findings fields and lane rules already defer the closeout tail to
+        communication-style.md; dual-homing the tail would fork the owner.
+  stale_language_search: >
+    rg -n "1-3 material|until the review is clean|only after a clean adjudication|only if no unresolved material issue|only when status is clean"
+    .agents docs/prompts/templates AGENTS.md docs/workflows
+  stale_language_search_result: >
+    Executed 2026-07-02 after edits. In the declared scope the remaining hits
+    are the retained non-self-closable bullet in communication-style.md, the
+    historical 2026-06-30 inline receipt in delegated-review-patch.md, and the
+    quoted search literals inside these receipts; no live doctrine or template
+    surface still gates the material-moves tail on a pre-closure clean state,
+    caps material moves at 1-3, or leaves the tail optional. A wider sweep of
+    docs/prompts/reviews and docs/prompts/patches found the old wording only in
+    three already-executed commission dispatch prompts, kept as historical lane
+    records and not rewritten.
+  non_claims:
+    - not validation
+    - not readiness
+    - not a bound/mandatory/machine-routable review lane
+    - not runtime model routing
 ```
 
 Receipts cycled out of this inline section move verbatim to `docs/decisions/dcp_receipts_archive_v0.md`.

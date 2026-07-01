@@ -1833,3 +1833,69 @@ direction_change_propagation:
     - not client replica implementation
     - not live external data-root mutation
 ```
+
+## From .agents/workflow-overlay/delegated-review-patch.md
+
+```yaml
+# repo-access default and clean-adjudication next-moves hardening 2026-06-30 (CA decision).
+direction_change_propagation:
+  doctrine_changed: >
+    Delegated review-and-patch commissions now bind repo as the default access
+    mode. no_repo is selected only by an explicit commission value plus a reason
+    repository access is unavailable or intentionally excluded; cross-vendor,
+    external, couriered, paste-ready-chat, or portable-method dispatch does not
+    imply repo-blindness. Review-return adjudication is also tightened: the CA
+    adjudicates findings/diff/verdict/residuals first; if a material issue
+    remains, the next step is closure for that issue; only after a clean
+    adjudication does admin collapse into exactly one land step and material
+    next moves receive deep thinking.
+  trigger: review_authority
+  related_triggers: [workflow_authority, output_authority]
+  controlling_sources_updated:
+    - .agents/workflow-overlay/delegated-review-patch.md
+    - .agents/workflow-overlay/prompt-orchestration.md
+    - .agents/workflow-overlay/communication-style.md
+    - .agents/workflow-overlay/template-registry.md
+    - docs/prompts/templates/portable/adversarial_artifact_review_portable_method_v0.md
+    - docs/prompts/templates/review/delegated_review_return_adjudication_v0.md
+    - docs/prompts/reviews/ontology_commission_refresh_delegated_review_patch_prompt_v0.md
+    - docs/prompts/reviews/ontology_backbone_architecture_delegated_review_prompt_v0.md
+    - docs/decisions/dcp_receipts_archive_v0.md
+  downstream_surfaces_checked:
+    - path: .agents/workflow-overlay/review-lanes.md
+      note: >
+        Review-lane model-neutrality, findings-first defaults, provenance fields,
+        and CA consumption order stay intact; the access default and adjudication
+        tail are delegated-review/prompt mechanics, not lane authority changes.
+    - path: AGENTS.md
+      note: >
+        Already routes delegated-review-patch, prompt artifacts, review lanes, and
+        doctrine-changing work to the owning overlay/prompt sources; no root
+        restatement added.
+    - path: docs/workflows/orca_repo_map_v0.md
+      note: >
+        Existing index lines still route delegated-review-patch and prompt
+        orchestration to the owning overlay files; no new top-level source folder
+        or lifecycle boundary was introduced.
+  receipt_storage_updated:
+    - docs/decisions/dcp_receipts_archive_v0.md
+  stale_language_search: >
+    rg --hidden --glob '!worktrees/**' --glob '!.git/**' --glob '!docs/review-inputs/**' -n
+    "no_repo[^\n]{0,80}(default|expected)|expected dispatch|repo-blind cross-vendor|cross-family / external / no-repo|repo-agnostic / cross-family|The reviewer needs nothing else -- no repo|The reviewer needs nothing else — no repo"
+    .agents docs AGENTS.md
+  stale_language_search_result: >
+    Executed 2026-06-30 after patch and rechecked after the delegated review
+    report was written. No live prompt, template, or overlay surface still
+    defaults delegated review-and-patch to no_repo or treats cross-vendor,
+    external, couriered, paste-ready, or portable delivery as repo-blind by
+    default. Remaining hits are only quoted stale-search literals in this receipt
+    and the delegated review-patch commission prompt, archived DCP history in
+    docs/decisions/dcp_receipts_archive_v0.md, and review-output notes under
+    docs/review-outputs/ including the current delegated review report.
+  non_claims:
+    - not validation
+    - not readiness
+    - not a bound/mandatory/machine-routable review lane
+    - not runtime model routing
+    - not standing implementation/code-patch authorization
+```
