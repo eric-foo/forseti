@@ -21,6 +21,13 @@ from source_capture.tiktok.batch_packet import (
     TIKTOK_BATCH_CAPTURE_SURFACE,
     write_tiktok_batch_packet,
 )
+from source_capture.tiktok.batch_coverage import (
+    TIKTOK_BATCH_COVERAGE_METHOD,
+    TIKTOK_BATCH_COVERAGE_SCHEMA_VERSION,
+    build_tiktok_batch_coverage_from_lake,
+    build_tiktok_batch_coverage_from_packet_directory,
+    build_tiktok_batch_coverage_from_payload,
+)
 from source_capture.tiktok.video_packet import (
     TIKTOK_VIDEO_CAPTURE_SCHEMA_VERSION,
     TIKTOK_VIDEO_CAPTURE_SURFACE,
@@ -32,6 +39,8 @@ __all__ = [
     "TIKTOK_BATCH_CAPTURE_JSON_NAME",
     "TIKTOK_BATCH_CAPTURE_SCHEMA_VERSION",
     "TIKTOK_BATCH_CAPTURE_SURFACE",
+    "TIKTOK_BATCH_COVERAGE_METHOD",
+    "TIKTOK_BATCH_COVERAGE_SCHEMA_VERSION",
     "TIKTOK_COMMENT_LIST_ROUTE",
     "TIKTOK_PROFILE_LIST_SURFACES",
     "TIKTOK_VIDEO_CAPTURE_SCHEMA_VERSION",
@@ -42,6 +51,9 @@ __all__ = [
     "TiktokSubtitleInfo",
     "TiktokWebVttCue",
     "assert_no_sensitive_tiktok_material",
+    "build_tiktok_batch_coverage_from_lake",
+    "build_tiktok_batch_coverage_from_packet_directory",
+    "build_tiktok_batch_coverage_from_payload",
     "decoded_aweme_id_create_time_utc",
     "extract_subtitle_infos",
     "find_sensitive_tiktok_material",
