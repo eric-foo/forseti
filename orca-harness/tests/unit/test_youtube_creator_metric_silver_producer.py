@@ -305,6 +305,36 @@ def test_missing_bronze_attachment_record_stays_visible_when_requested(tmp_path:
     ]
 
 
+def test_ambiguous_bronze_attachment_record_stays_visible_when_requested(tmp_path: Path) -> None:
+    data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    view_count = 479
+    packet_id, preserved = _commit_youtube_watch_packet(data_root, view_count=view_count)
+    seed_document = _single_observation_seed_document(
+        packet_id=packet_id, watch_hash=preserved["sha256"], view_count=view_count
+    )
+    seed_observation = seed_document[YOUTUBE_SEED_WRAPPER_KEY]["metric_observations"][0]
+    ambiguous_candidates = [
+        {"attachment_record_id": "ar_candidate_1"},
+        {"attachment_record_id": "ar_candidate_2"},
+    ]
+
+    record = build_metric_observation_record(
+        seed_observation=seed_observation,
+        bronze_attachment_records_by_packet_body_hash={
+            (packet_id, preserved["sha256"]): ambiguous_candidates
+        },
+        use_bronze_attachment_records=True,
+    )
+
+    raw_ref = record["raw_refs"][0]
+    assert raw_ref["raw_ref_kind"] == "raw_packet_fallback_ambiguous_attachment_record"
+    assert raw_ref["typed_attachment_record_status"] == "ambiguous"
+    assert raw_ref["attachment_record_residual"] == "typed_attachment_record_ambiguous_for_raw_ref"
+    assert raw_ref["packet_id"] == packet_id
+    assert raw_ref["sha256"] == preserved["sha256"]
+    assert record["lineage_limitations"] == [
+        {"reason": "other", "detail": "typed_attachment_record_ambiguous_for_raw_ref"}
+    ]
 
 def test_observation_no_drift_against_committed_seed(tmp_path: Path) -> None:
     result, seed = _run(tmp_path)

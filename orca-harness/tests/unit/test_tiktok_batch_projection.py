@@ -77,6 +77,20 @@ def test_tiktok_batch_projection_from_packet_directory_anchors_rows_and_excludes
     assert "tiktokcdn" not in projection_text
 
 
+def test_tiktok_batch_projection_pins_materially_different_raw_body_join_shape(
+    tmp_path: Path,
+) -> None:
+    projection = build_tiktok_batch_projection_from_packet_directory(_write_fixture_packet(tmp_path))
+
+    assert len(projection.rows) == 2
+    assert {row.raw_ref.packet_id for row in projection.rows} == {projection.packet_id}
+    assert [row.raw_ref.slice_id for row in projection.rows] == ["videos/0", "videos/1"]
+    assert {row.raw_anchor.relative_packet_path for row in projection.rows} == {
+        projection.rows[0].raw_anchor.relative_packet_path
+    }
+    assert [row.raw_anchor.json_pointer for row in projection.rows] == ["/videos/0", "/videos/1"]
+    assert projection.binding_map == []
+    assert "not_persisted_derived_projection_lane" in projection.non_claims
 
 def test_tiktok_batch_projection_uses_raw_video_index_when_coverage_rows_have_gap(
     tmp_path: Path,

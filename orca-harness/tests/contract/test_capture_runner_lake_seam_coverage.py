@@ -14,12 +14,14 @@ from __future__ import annotations
 
 import ast
 import re
+from collections import Counter
 from dataclasses import dataclass
 from functools import cache
 from pathlib import Path
 
-_RUNNERS_DIR = Path(__file__).resolve().parents[2] / "runners"
-_SOURCE_CAPTURE_DIR = Path(__file__).resolve().parents[2] / "source_capture"
+_HARNESS_ROOT = Path(__file__).resolve().parents[2]
+_RUNNERS_DIR = _HARNESS_ROOT / "runners"
+_SOURCE_CAPTURE_DIR = _HARNESS_ROOT / "source_capture"
 
 _DIRECT_PACKET_WRITER_TOKENS = {"write_local_source_capture_packet", "stage_and_write_packet"}
 _PACKET_WRITER_NAME_RE = re.compile(r"write_.*_packet$")
@@ -79,6 +81,56 @@ FORBIDDEN_RUNNER_RAW_PUBLICATION_CALLS = {
     "publish_raw_packet",
     "record_availability",
 }
+
+NON_RAW_LAKE_TOUCHPOINT_CALLS = {
+    "append_record",
+    "append_record_set",
+    "append_silver_record",
+    "load_attachment_record_body",
+    "rebuild_catalog",
+    "source_surface_catalog_rows",
+}
+
+EXPECTED_NON_RAW_LAKE_TOUCHPOINTS = Counter(
+    {
+        ("capture_spine/creator_profile_current/silver_metric_producer.py", "append_silver_record"): 2,
+        (
+            "capture_spine/creator_profile_current/silver_metric_producer.py",
+            "source_surface_catalog_rows",
+        ): 1,
+        (
+            "capture_spine/creator_profile_current/youtube_silver_metric_producer.py",
+            "append_silver_record",
+        ): 2,
+        (
+            "capture_spine/creator_profile_current/youtube_silver_metric_producer.py",
+            "source_surface_catalog_rows",
+        ): 1,
+        ("cleaning/basenotes_lake.py", "append_record"): 1,
+        ("cleaning/basenotes_lake.py", "append_silver_record"): 1,
+        ("cleaning/fragrantica_lake.py", "append_record"): 1,
+        ("cleaning/fragrantica_lake.py", "append_silver_record"): 1,
+        ("cleaning/parfumo_lake.py", "append_record"): 1,
+        ("cleaning/parfumo_lake.py", "append_silver_record"): 1,
+        ("cleaning/transcript_product_lake.py", "append_record_set"): 1,
+        ("data_lake/silver_record.py", "append_record"): 1,
+        ("ecr/lake.py", "append_record_set"): 1,
+        ("runners/run_data_lake_catalog.py", "rebuild_catalog"): 1,
+        ("signal_content/lake.py", "append_record"): 1,
+        ("source_capture/basenotes_projection.py", "append_record"): 1,
+        ("source_capture/fragrance_review_lake.py", "append_record"): 1,
+        ("source_capture/fragrantica_projection.py", "append_record"): 1,
+        ("source_capture/ig_projection.py", "append_record"): 1,
+        ("source_capture/ig_reels_deep_capture_lake.py", "append_record_set"): 1,
+        ("source_capture/ig_reels_grid_projection.py", "append_record"): 1,
+        ("source_capture/ig_reels_grid_projection.py", "load_attachment_record_body"): 1,
+        ("source_capture/ig_reels_grid_projection.py", "source_surface_catalog_rows"): 1,
+        ("source_capture/parfumo_projection.py", "append_record"): 1,
+        ("source_capture/retail_pdp_projection.py", "append_record"): 1,
+        ("source_capture/transcript/asr_packet.py", "append_record_set"): 1,
+        ("source_capture/transcript/ig_reels_audio_packet.py", "append_record"): 1,
+    }
+)
 
 
 @dataclass(frozen=True)
@@ -275,6 +327,22 @@ def _bronze_writer_runners() -> frozenset[str]:
     return frozenset(_packet_producers()).union(BRONZE_PACKET_ORCHESTRATORS)
 
 
+def _non_raw_lake_touchpoints() -> Counter[tuple[str, str]]:
+    """Current non-raw lake write/read touchpoints that must be classified before GT forks."""
+    touchpoints: Counter[tuple[str, str]] = Counter()
+    for path in sorted(_HARNESS_ROOT.rglob("*.py")):
+        relative_path = path.relative_to(_HARNESS_ROOT).as_posix()
+        if relative_path.startswith("tests/"):
+            continue
+        tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+        for node in ast.walk(tree):
+            if not isinstance(node, ast.Call):
+                continue
+            name = _call_name(node)
+            if name in NON_RAW_LAKE_TOUCHPOINT_CALLS:
+                touchpoints[(relative_path, name)] += 1
+    return touchpoints
+
 def _calls_named(tree: ast.AST, names: tuple[str, ...]) -> list[ast.Call]:
     return [
         node
@@ -313,6 +381,19 @@ def test_detector_discovers_indirect_source_capture_packet_writers() -> None:
 def test_current_bronze_writer_runner_surface_is_explicit() -> None:
     assert _bronze_writer_runners() == EXPECTED_BRONZE_WRITER_RUNNERS
 
+
+def test_non_raw_lake_touchpoint_inventory_is_explicit() -> None:
+    actual = _non_raw_lake_touchpoints()
+    added = +(actual - EXPECTED_NON_RAW_LAKE_TOUCHPOINTS)
+    removed = +(EXPECTED_NON_RAW_LAKE_TOUCHPOINTS - actual)
+
+    assert actual == EXPECTED_NON_RAW_LAKE_TOUCHPOINTS, (
+        "Non-raw Data Lake touchpoint inventory changed. Classify each new or removed "
+        "touchpoint before selecting Manifest v2, a manifest-equivalent index, or a "
+        "physicalization backend.\n"
+        f"added={dict(sorted(added.items()))}\n"
+        f"removed={dict(sorted(removed.items()))}"
+    )
 
 def test_detector_distinguishes_packet_output_from_summary_output_root() -> None:
     tree = ast.parse(
