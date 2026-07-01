@@ -70,7 +70,7 @@ cap here is the doctrine-adoption ceremony itself, not a number.
 | Pre-sale execution evidence tiers | judgment_spine_pre_sale_execution_evidence_tier_policy_v0.md | ACTIVE |
 | Deletion-Evidence Doctrine (governed-deletion safety; register + strict gate) | deletion_evidence_doctrine_v0.md | ACTIVE — `check_deletion_evidence.py --strict` in ci.yml; register `deletion_evidence_register_v0.yaml` |
 | Ontology<->Runtime Drift-Check Contract (W2b leak-surface semantics) | ontology_runtime_drift_check_contract_v0.md | OWNER-RATIFIED 2026-06-19 — `check_ontology_drift.py --strict` in ci.yml |
-| Repo-Map Architecture (Mini God Tier) — map/submap/header tiers + coverage invariant | orca_repo_map_architecture_mgt_v0.md | OWNER-INVOKED MGT DESIGN 2026-06-19 (design lens; reachability-coverage invariant gated by `check_map_links`) |
+| Repo-Map Architecture (Mini God Tier) — map/submap/header tiers, generated index/health, recent-change satellite, promotion-on-touch + coverage invariant | orca_repo_map_architecture_mgt_v0.md | OWNER-LOCKED STACK 2026-07-02 (design lens; reachability gated by `check_map_links`; generated inventory/health by `header_index`) |
 
 ## Product-lane doctrine (docs/product/)
 
