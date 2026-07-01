@@ -49,7 +49,7 @@
               "The admitted pool is fragrance and transcript-bearing, so selection can bias view averages relative to the creator's full Shorts or channel output."
             ],
             "metric_rollup_id": "yt_fragrance_account_view_rollup_v0_001",
-            "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json#/youtube_shorts_fragrance_creator_metric_seed/metric_rollups/0",
+            "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_rollup_snapshot_v0.json#/creator_metric_rollup_snapshot/metric_rollups/0",
             "metric_rollups": {
               "average_comment_count": {
                 "metric_unit": "count",
@@ -172,8 +172,8 @@
         "review_state_or_none": null,
         "source_drill_back": {
           "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/0",
-          "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json#/youtube_shorts_fragrance_creator_metric_seed/metric_rollups/0",
-          "metric_snapshot_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json",
+          "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_rollup_snapshot_v0.json#/creator_metric_rollup_snapshot/metric_rollups/0",
+          "metric_snapshot_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_rollup_snapshot_v0.json",
           "source_metric_observation_ids": [
             "yt_fragrance_short_view_obs_v0_046",
             "yt_fragrance_short_view_obs_v0_072",
@@ -201,7 +201,7 @@
               "The admitted pool is fragrance and transcript-bearing, so selection can bias view averages relative to the creator's full Shorts or channel output."
             ],
             "metric_rollup_id": "yt_fragrance_account_view_rollup_v0_002",
-            "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json#/youtube_shorts_fragrance_creator_metric_seed/metric_rollups/1",
+            "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_rollup_snapshot_v0.json#/creator_metric_rollup_snapshot/metric_rollups/1",
             "metric_rollups": {
               "average_comment_count": {
                 "metric_unit": "count",
@@ -328,8 +328,8 @@
         "review_state_or_none": null,
         "source_drill_back": {
           "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/1",
-          "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json#/youtube_shorts_fragrance_creator_metric_seed/metric_rollups/1",
-          "metric_snapshot_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json",
+          "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_rollup_snapshot_v0.json#/creator_metric_rollup_snapshot/metric_rollups/1",
+          "metric_snapshot_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_rollup_snapshot_v0.json",
           "source_metric_observation_ids": [
             "yt_fragrance_short_view_obs_v0_031",
             "yt_fragrance_short_view_obs_v0_044",
@@ -361,7 +361,7 @@
               "The admitted pool is fragrance and transcript-bearing, so selection can bias view averages relative to the creator's full Shorts or channel output."
             ],
             "metric_rollup_id": "yt_fragrance_account_view_rollup_v0_003",
-            "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json#/youtube_shorts_fragrance_creator_metric_seed/metric_rollups/2",
+            "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_rollup_snapshot_v0.json#/creator_metric_rollup_snapshot/metric_rollups/2",
             "metric_rollups": {
               "average_comment_count": {
                 "metric_unit": "count",
@@ -482,8 +482,8 @@
         "review_state_or_none": null,
         "source_drill_back": {
           "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/2",
-          "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json#/youtube_shorts_fragrance_creator_metric_seed/metric_rollups/2",
-          "metric_snapshot_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json",
+          "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_rollup_snapshot_v0.json#/creator_metric_rollup_snapshot/metric_rollups/2",
+          "metric_snapshot_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_rollup_snapshot_v0.json",
           "source_metric_observation_ids": [
             "yt_fragrance_short_view_obs_v0_117",
             "yt_fragrance_short_view_obs_v0_137",
@@ -509,7 +509,7 @@
               "The admitted pool is fragrance and transcript-bearing, so selection can bias view averages relative to the creator's full Shorts or channel output."
             ],
             "metric_rollup_id": "yt_fragrance_account_view_rollup_v0_004",
-            "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json#/youtube_shorts_fragrance_creator_metric_seed/metric_rollups/3",
+            "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_rollup_snapshot_v0.json#/creator_metric_rollup_snapshot/metric_rollups/3",
             "metric_rollups": {
               "average_comment_count": {
                 "metric_unit": "count",
@@ -628,8 +628,8 @@
         "review_state_or_none": null,
         "source_drill_back": {
           "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/3",
-          "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json#/youtube_shorts_fragrance_creator_metric_seed/metric_rollups/3",
-          "metric_snapshot_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json",
+          "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_rollup_snapshot_v0.json#/creator_metric_rollup_snapshot/metric_rollups/3",
+          "metric_snapshot_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_rollup_snapshot_v0.json",
           "source_metric_observation_ids": [
             "yt_fragrance_short_view_obs_v0_196"
           ]
@@ -653,7 +653,7 @@
               "The admitted pool is fragrance and transcript-bearing, so selection can bias view averages relative to the creator's full Shorts or channel output."
             ],
             "metric_rollup_id": "yt_fragrance_account_view_rollup_v0_005",
-            "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json#/youtube_shorts_fragrance_creator_metric_seed/metric_rollups/4",
+            "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_rollup_snapshot_v0.json#/creator_metric_rollup_snapshot/metric_rollups/4",
             "metric_rollups": {
               "average_comment_count": {
                 "metric_unit": "count",
@@ -781,8 +781,8 @@
         "review_state_or_none": null,
         "source_drill_back": {
           "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/4",
-          "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json#/youtube_shorts_fragrance_creator_metric_seed/metric_rollups/4",
-          "metric_snapshot_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json",
+          "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_rollup_snapshot_v0.json#/creator_metric_rollup_snapshot/metric_rollups/4",
+          "metric_snapshot_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_rollup_snapshot_v0.json",
           "source_metric_observation_ids": [
             "yt_fragrance_short_view_obs_v0_011",
             "yt_fragrance_short_view_obs_v0_012",
@@ -815,7 +815,7 @@
               "The admitted pool is fragrance and transcript-bearing, so selection can bias view averages relative to the creator's full Shorts or channel output."
             ],
             "metric_rollup_id": "yt_fragrance_account_view_rollup_v0_006",
-            "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json#/youtube_shorts_fragrance_creator_metric_seed/metric_rollups/5",
+            "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_rollup_snapshot_v0.json#/creator_metric_rollup_snapshot/metric_rollups/5",
             "metric_rollups": {
               "average_comment_count": {
                 "metric_unit": "count",
@@ -939,8 +939,8 @@
         "review_state_or_none": null,
         "source_drill_back": {
           "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/5",
-          "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json#/youtube_shorts_fragrance_creator_metric_seed/metric_rollups/5",
-          "metric_snapshot_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json",
+          "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_rollup_snapshot_v0.json#/creator_metric_rollup_snapshot/metric_rollups/5",
+          "metric_snapshot_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_rollup_snapshot_v0.json",
           "source_metric_observation_ids": [
             "yt_fragrance_short_view_obs_v0_095",
             "yt_fragrance_short_view_obs_v0_109",
@@ -969,7 +969,7 @@
               "The admitted pool is fragrance and transcript-bearing, so selection can bias view averages relative to the creator's full Shorts or channel output."
             ],
             "metric_rollup_id": "yt_fragrance_account_view_rollup_v0_007",
-            "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json#/youtube_shorts_fragrance_creator_metric_seed/metric_rollups/6",
+            "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_rollup_snapshot_v0.json#/creator_metric_rollup_snapshot/metric_rollups/6",
             "metric_rollups": {
               "average_comment_count": {
                 "metric_unit": "count",
@@ -1094,8 +1094,8 @@
         "review_state_or_none": null,
         "source_drill_back": {
           "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/6",
-          "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json#/youtube_shorts_fragrance_creator_metric_seed/metric_rollups/6",
-          "metric_snapshot_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json",
+          "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_rollup_snapshot_v0.json#/creator_metric_rollup_snapshot/metric_rollups/6",
+          "metric_snapshot_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_rollup_snapshot_v0.json",
           "source_metric_observation_ids": [
             "yt_fragrance_short_view_obs_v0_032",
             "yt_fragrance_short_view_obs_v0_045",
@@ -1125,7 +1125,7 @@
               "The admitted pool is fragrance and transcript-bearing, so selection can bias view averages relative to the creator's full Shorts or channel output."
             ],
             "metric_rollup_id": "yt_fragrance_account_view_rollup_v0_008",
-            "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json#/youtube_shorts_fragrance_creator_metric_seed/metric_rollups/7",
+            "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_rollup_snapshot_v0.json#/creator_metric_rollup_snapshot/metric_rollups/7",
             "metric_rollups": {
               "average_comment_count": {
                 "metric_unit": "count",
@@ -1247,8 +1247,8 @@
         "review_state_or_none": null,
         "source_drill_back": {
           "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/7",
-          "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json#/youtube_shorts_fragrance_creator_metric_seed/metric_rollups/7",
-          "metric_snapshot_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json",
+          "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_rollup_snapshot_v0.json#/creator_metric_rollup_snapshot/metric_rollups/7",
+          "metric_snapshot_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_rollup_snapshot_v0.json",
           "source_metric_observation_ids": [
             "yt_fragrance_short_view_obs_v0_138",
             "yt_fragrance_short_view_obs_v0_153",
@@ -1275,7 +1275,7 @@
               "The admitted pool is fragrance and transcript-bearing, so selection can bias view averages relative to the creator's full Shorts or channel output."
             ],
             "metric_rollup_id": "yt_fragrance_account_view_rollup_v0_009",
-            "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json#/youtube_shorts_fragrance_creator_metric_seed/metric_rollups/8",
+            "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_rollup_snapshot_v0.json#/creator_metric_rollup_snapshot/metric_rollups/8",
             "metric_rollups": {
               "average_comment_count": {
                 "metric_unit": "count",
@@ -1401,8 +1401,8 @@
         "review_state_or_none": null,
         "source_drill_back": {
           "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/8",
-          "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json#/youtube_shorts_fragrance_creator_metric_seed/metric_rollups/8",
-          "metric_snapshot_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json",
+          "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_rollup_snapshot_v0.json#/creator_metric_rollup_snapshot/metric_rollups/8",
+          "metric_snapshot_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_rollup_snapshot_v0.json",
           "source_metric_observation_ids": [
             "yt_fragrance_short_view_obs_v0_013",
             "yt_fragrance_short_view_obs_v0_014",
@@ -1433,7 +1433,7 @@
               "The admitted pool is fragrance and transcript-bearing, so selection can bias view averages relative to the creator's full Shorts or channel output."
             ],
             "metric_rollup_id": "yt_fragrance_account_view_rollup_v0_010",
-            "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json#/youtube_shorts_fragrance_creator_metric_seed/metric_rollups/9",
+            "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_rollup_snapshot_v0.json#/creator_metric_rollup_snapshot/metric_rollups/9",
             "metric_rollups": {
               "average_comment_count": {
                 "metric_unit": "count",
@@ -1563,8 +1563,8 @@
         "review_state_or_none": null,
         "source_drill_back": {
           "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/9",
-          "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json#/youtube_shorts_fragrance_creator_metric_seed/metric_rollups/9",
-          "metric_snapshot_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json",
+          "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_rollup_snapshot_v0.json#/creator_metric_rollup_snapshot/metric_rollups/9",
+          "metric_snapshot_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_rollup_snapshot_v0.json",
           "source_metric_observation_ids": [
             "yt_fragrance_short_view_obs_v0_002",
             "yt_fragrance_short_view_obs_v0_003",
@@ -1599,7 +1599,7 @@
               "The admitted pool is fragrance and transcript-bearing, so selection can bias view averages relative to the creator's full Shorts or channel output."
             ],
             "metric_rollup_id": "yt_fragrance_account_view_rollup_v0_011",
-            "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json#/youtube_shorts_fragrance_creator_metric_seed/metric_rollups/10",
+            "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_rollup_snapshot_v0.json#/creator_metric_rollup_snapshot/metric_rollups/10",
             "metric_rollups": {
               "average_comment_count": {
                 "metric_unit": "count",
@@ -1727,8 +1727,8 @@
         "review_state_or_none": null,
         "source_drill_back": {
           "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/10",
-          "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json#/youtube_shorts_fragrance_creator_metric_seed/metric_rollups/10",
-          "metric_snapshot_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json",
+          "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_rollup_snapshot_v0.json#/creator_metric_rollup_snapshot/metric_rollups/10",
+          "metric_snapshot_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_rollup_snapshot_v0.json",
           "source_metric_observation_ids": [
             "yt_fragrance_short_view_obs_v0_001",
             "yt_fragrance_short_view_obs_v0_026",
@@ -1761,7 +1761,7 @@
               "The admitted pool is fragrance and transcript-bearing, so selection can bias view averages relative to the creator's full Shorts or channel output."
             ],
             "metric_rollup_id": "yt_fragrance_account_view_rollup_v0_012",
-            "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json#/youtube_shorts_fragrance_creator_metric_seed/metric_rollups/11",
+            "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_rollup_snapshot_v0.json#/creator_metric_rollup_snapshot/metric_rollups/11",
             "metric_rollups": {
               "average_comment_count": {
                 "metric_unit": "count",
@@ -1886,8 +1886,8 @@
         "review_state_or_none": null,
         "source_drill_back": {
           "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/11",
-          "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json#/youtube_shorts_fragrance_creator_metric_seed/metric_rollups/11",
-          "metric_snapshot_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json",
+          "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_rollup_snapshot_v0.json#/creator_metric_rollup_snapshot/metric_rollups/11",
+          "metric_snapshot_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_rollup_snapshot_v0.json",
           "source_metric_observation_ids": [
             "yt_fragrance_short_view_obs_v0_076",
             "yt_fragrance_short_view_obs_v0_096",
@@ -1917,7 +1917,7 @@
               "The admitted pool is fragrance and transcript-bearing, so selection can bias view averages relative to the creator's full Shorts or channel output."
             ],
             "metric_rollup_id": "yt_fragrance_account_view_rollup_v0_013",
-            "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json#/youtube_shorts_fragrance_creator_metric_seed/metric_rollups/12",
+            "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_rollup_snapshot_v0.json#/creator_metric_rollup_snapshot/metric_rollups/12",
             "metric_rollups": {
               "average_comment_count": {
                 "metric_unit": "count",
@@ -2043,8 +2043,8 @@
         "review_state_or_none": null,
         "source_drill_back": {
           "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/12",
-          "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json#/youtube_shorts_fragrance_creator_metric_seed/metric_rollups/12",
-          "metric_snapshot_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json",
+          "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_rollup_snapshot_v0.json#/creator_metric_rollup_snapshot/metric_rollups/12",
+          "metric_snapshot_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_rollup_snapshot_v0.json",
           "source_metric_observation_ids": [
             "yt_fragrance_short_view_obs_v0_047",
             "yt_fragrance_short_view_obs_v0_059",
@@ -2075,7 +2075,7 @@
               "The admitted pool is fragrance and transcript-bearing, so selection can bias view averages relative to the creator's full Shorts or channel output."
             ],
             "metric_rollup_id": "yt_fragrance_account_view_rollup_v0_014",
-            "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json#/youtube_shorts_fragrance_creator_metric_seed/metric_rollups/13",
+            "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_rollup_snapshot_v0.json#/creator_metric_rollup_snapshot/metric_rollups/13",
             "metric_rollups": {
               "average_comment_count": {
                 "metric_unit": "count",
@@ -2198,8 +2198,8 @@
         "review_state_or_none": null,
         "source_drill_back": {
           "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/13",
-          "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json#/youtube_shorts_fragrance_creator_metric_seed/metric_rollups/13",
-          "metric_snapshot_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json",
+          "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_rollup_snapshot_v0.json#/creator_metric_rollup_snapshot/metric_rollups/13",
+          "metric_snapshot_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_rollup_snapshot_v0.json",
           "source_metric_observation_ids": [
             "yt_fragrance_short_view_obs_v0_078",
             "yt_fragrance_short_view_obs_v0_112",
@@ -2227,7 +2227,7 @@
               "The admitted pool is fragrance and transcript-bearing, so selection can bias view averages relative to the creator's full Shorts or channel output."
             ],
             "metric_rollup_id": "yt_fragrance_account_view_rollup_v0_015",
-            "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json#/youtube_shorts_fragrance_creator_metric_seed/metric_rollups/14",
+            "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_rollup_snapshot_v0.json#/creator_metric_rollup_snapshot/metric_rollups/14",
             "metric_rollups": {
               "average_comment_count": {
                 "metric_unit": "count",
@@ -2350,8 +2350,8 @@
         "review_state_or_none": null,
         "source_drill_back": {
           "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/14",
-          "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json#/youtube_shorts_fragrance_creator_metric_seed/metric_rollups/14",
-          "metric_snapshot_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json",
+          "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_rollup_snapshot_v0.json#/creator_metric_rollup_snapshot/metric_rollups/14",
+          "metric_snapshot_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_rollup_snapshot_v0.json",
           "source_metric_observation_ids": [
             "yt_fragrance_short_view_obs_v0_077",
             "yt_fragrance_short_view_obs_v0_111",
@@ -2379,7 +2379,7 @@
               "The admitted pool is fragrance and transcript-bearing, so selection can bias view averages relative to the creator's full Shorts or channel output."
             ],
             "metric_rollup_id": "yt_fragrance_account_view_rollup_v0_016",
-            "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json#/youtube_shorts_fragrance_creator_metric_seed/metric_rollups/15",
+            "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_rollup_snapshot_v0.json#/creator_metric_rollup_snapshot/metric_rollups/15",
             "metric_rollups": {
               "average_comment_count": {
                 "metric_unit": "count",
@@ -2502,8 +2502,8 @@
         "review_state_or_none": null,
         "source_drill_back": {
           "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/15",
-          "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json#/youtube_shorts_fragrance_creator_metric_seed/metric_rollups/15",
-          "metric_snapshot_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json",
+          "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_rollup_snapshot_v0.json#/creator_metric_rollup_snapshot/metric_rollups/15",
+          "metric_snapshot_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_rollup_snapshot_v0.json",
           "source_metric_observation_ids": [
             "yt_fragrance_short_view_obs_v0_116",
             "yt_fragrance_short_view_obs_v0_136",
@@ -2531,7 +2531,7 @@
               "The admitted pool is fragrance and transcript-bearing, so selection can bias view averages relative to the creator's full Shorts or channel output."
             ],
             "metric_rollup_id": "yt_fragrance_account_view_rollup_v0_017",
-            "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json#/youtube_shorts_fragrance_creator_metric_seed/metric_rollups/16",
+            "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_rollup_snapshot_v0.json#/creator_metric_rollup_snapshot/metric_rollups/16",
             "metric_rollups": {
               "average_comment_count": {
                 "metric_unit": "count",
@@ -2650,8 +2650,8 @@
         "review_state_or_none": null,
         "source_drill_back": {
           "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/16",
-          "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json#/youtube_shorts_fragrance_creator_metric_seed/metric_rollups/16",
-          "metric_snapshot_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json",
+          "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_rollup_snapshot_v0.json#/creator_metric_rollup_snapshot/metric_rollups/16",
+          "metric_snapshot_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_rollup_snapshot_v0.json",
           "source_metric_observation_ids": [
             "yt_fragrance_short_view_obs_v0_033"
           ]
@@ -2675,7 +2675,7 @@
               "The admitted pool is fragrance and transcript-bearing, so selection can bias view averages relative to the creator's full Shorts or channel output."
             ],
             "metric_rollup_id": "yt_fragrance_account_view_rollup_v0_018",
-            "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json#/youtube_shorts_fragrance_creator_metric_seed/metric_rollups/17",
+            "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_rollup_snapshot_v0.json#/creator_metric_rollup_snapshot/metric_rollups/17",
             "metric_rollups": {
               "average_comment_count": {
                 "metric_unit": "count",
@@ -2805,8 +2805,8 @@
         "review_state_or_none": null,
         "source_drill_back": {
           "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/17",
-          "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json#/youtube_shorts_fragrance_creator_metric_seed/metric_rollups/17",
-          "metric_snapshot_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json",
+          "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_rollup_snapshot_v0.json#/creator_metric_rollup_snapshot/metric_rollups/17",
+          "metric_snapshot_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_rollup_snapshot_v0.json",
           "source_metric_observation_ids": [
             "yt_fragrance_short_view_obs_v0_020",
             "yt_fragrance_short_view_obs_v0_021",
@@ -2841,7 +2841,7 @@
               "The admitted pool is fragrance and transcript-bearing, so selection can bias view averages relative to the creator's full Shorts or channel output."
             ],
             "metric_rollup_id": "yt_fragrance_account_view_rollup_v0_019",
-            "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json#/youtube_shorts_fragrance_creator_metric_seed/metric_rollups/18",
+            "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_rollup_snapshot_v0.json#/creator_metric_rollup_snapshot/metric_rollups/18",
             "metric_rollups": {
               "average_comment_count": {
                 "metric_unit": "count",
@@ -2962,8 +2962,8 @@
         "review_state_or_none": null,
         "source_drill_back": {
           "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/18",
-          "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json#/youtube_shorts_fragrance_creator_metric_seed/metric_rollups/18",
-          "metric_snapshot_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json",
+          "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_rollup_snapshot_v0.json#/creator_metric_rollup_snapshot/metric_rollups/18",
+          "metric_snapshot_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_rollup_snapshot_v0.json",
           "source_metric_observation_ids": [
             "yt_fragrance_short_view_obs_v0_079",
             "yt_fragrance_short_view_obs_v0_097",
@@ -2989,7 +2989,7 @@
               "The admitted pool is fragrance and transcript-bearing, so selection can bias view averages relative to the creator's full Shorts or channel output."
             ],
             "metric_rollup_id": "yt_fragrance_account_view_rollup_v0_020",
-            "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json#/youtube_shorts_fragrance_creator_metric_seed/metric_rollups/19",
+            "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_rollup_snapshot_v0.json#/creator_metric_rollup_snapshot/metric_rollups/19",
             "metric_rollups": {
               "average_comment_count": {
                 "metric_unit": "count",
@@ -3113,8 +3113,8 @@
         "review_state_or_none": null,
         "source_drill_back": {
           "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/19",
-          "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json#/youtube_shorts_fragrance_creator_metric_seed/metric_rollups/19",
-          "metric_snapshot_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json",
+          "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_rollup_snapshot_v0.json#/creator_metric_rollup_snapshot/metric_rollups/19",
+          "metric_snapshot_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_rollup_snapshot_v0.json",
           "source_metric_observation_ids": [
             "yt_fragrance_short_view_obs_v0_075",
             "yt_fragrance_short_view_obs_v0_094",
@@ -3143,7 +3143,7 @@
               "The admitted pool is fragrance and transcript-bearing, so selection can bias view averages relative to the creator's full Shorts or channel output."
             ],
             "metric_rollup_id": "yt_fragrance_account_view_rollup_v0_021",
-            "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json#/youtube_shorts_fragrance_creator_metric_seed/metric_rollups/20",
+            "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_rollup_snapshot_v0.json#/creator_metric_rollup_snapshot/metric_rollups/20",
             "metric_rollups": {
               "average_comment_count": {
                 "metric_unit": "count",
@@ -3273,8 +3273,8 @@
         "review_state_or_none": null,
         "source_drill_back": {
           "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/20",
-          "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json#/youtube_shorts_fragrance_creator_metric_seed/metric_rollups/20",
-          "metric_snapshot_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json",
+          "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_rollup_snapshot_v0.json#/creator_metric_rollup_snapshot/metric_rollups/20",
+          "metric_snapshot_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_rollup_snapshot_v0.json",
           "source_metric_observation_ids": [
             "yt_fragrance_short_view_obs_v0_008",
             "yt_fragrance_short_view_obs_v0_009",
@@ -3309,7 +3309,7 @@
               "The admitted pool is fragrance and transcript-bearing, so selection can bias view averages relative to the creator's full Shorts or channel output."
             ],
             "metric_rollup_id": "yt_fragrance_account_view_rollup_v0_022",
-            "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json#/youtube_shorts_fragrance_creator_metric_seed/metric_rollups/21",
+            "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_rollup_snapshot_v0.json#/creator_metric_rollup_snapshot/metric_rollups/21",
             "metric_rollups": {
               "average_comment_count": {
                 "metric_unit": "count",
@@ -3432,8 +3432,8 @@
         "review_state_or_none": null,
         "source_drill_back": {
           "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/21",
-          "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json#/youtube_shorts_fragrance_creator_metric_seed/metric_rollups/21",
-          "metric_snapshot_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json",
+          "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_rollup_snapshot_v0.json#/creator_metric_rollup_snapshot/metric_rollups/21",
+          "metric_snapshot_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_rollup_snapshot_v0.json",
           "source_metric_observation_ids": [
             "yt_fragrance_short_view_obs_v0_118",
             "yt_fragrance_short_view_obs_v0_139",
@@ -3461,7 +3461,7 @@
               "The admitted pool is fragrance and transcript-bearing, so selection can bias view averages relative to the creator's full Shorts or channel output."
             ],
             "metric_rollup_id": "yt_fragrance_account_view_rollup_v0_023",
-            "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json#/youtube_shorts_fragrance_creator_metric_seed/metric_rollups/22",
+            "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_rollup_snapshot_v0.json#/creator_metric_rollup_snapshot/metric_rollups/22",
             "metric_rollups": {
               "average_comment_count": {
                 "metric_unit": "count",
@@ -3588,8 +3588,8 @@
         "review_state_or_none": null,
         "source_drill_back": {
           "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/22",
-          "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json#/youtube_shorts_fragrance_creator_metric_seed/metric_rollups/22",
-          "metric_snapshot_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json",
+          "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_rollup_snapshot_v0.json#/creator_metric_rollup_snapshot/metric_rollups/22",
+          "metric_snapshot_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_rollup_snapshot_v0.json",
           "source_metric_observation_ids": [
             "yt_fragrance_short_view_obs_v0_015",
             "yt_fragrance_short_view_obs_v0_016",
@@ -3621,7 +3621,7 @@
               "The admitted pool is fragrance and transcript-bearing, so selection can bias view averages relative to the creator's full Shorts or channel output."
             ],
             "metric_rollup_id": "yt_fragrance_account_view_rollup_v0_024",
-            "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json#/youtube_shorts_fragrance_creator_metric_seed/metric_rollups/23",
+            "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_rollup_snapshot_v0.json#/creator_metric_rollup_snapshot/metric_rollups/23",
             "metric_rollups": {
               "average_comment_count": {
                 "metric_unit": "count",
@@ -3747,8 +3747,8 @@
         "review_state_or_none": null,
         "source_drill_back": {
           "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/23",
-          "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json#/youtube_shorts_fragrance_creator_metric_seed/metric_rollups/23",
-          "metric_snapshot_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json",
+          "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_rollup_snapshot_v0.json#/creator_metric_rollup_snapshot/metric_rollups/23",
+          "metric_snapshot_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_rollup_snapshot_v0.json",
           "source_metric_observation_ids": [
             "yt_fragrance_short_view_obs_v0_023",
             "yt_fragrance_short_view_obs_v0_024",
@@ -3779,7 +3779,7 @@
               "The admitted pool is fragrance and transcript-bearing, so selection can bias view averages relative to the creator's full Shorts or channel output."
             ],
             "metric_rollup_id": "yt_fragrance_account_view_rollup_v0_025",
-            "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json#/youtube_shorts_fragrance_creator_metric_seed/metric_rollups/24",
+            "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_rollup_snapshot_v0.json#/creator_metric_rollup_snapshot/metric_rollups/24",
             "metric_rollups": {
               "average_comment_count": {
                 "metric_unit": "count",
@@ -3908,8 +3908,8 @@
         "review_state_or_none": null,
         "source_drill_back": {
           "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/24",
-          "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json#/youtube_shorts_fragrance_creator_metric_seed/metric_rollups/24",
-          "metric_snapshot_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json",
+          "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_rollup_snapshot_v0.json#/creator_metric_rollup_snapshot/metric_rollups/24",
+          "metric_snapshot_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_rollup_snapshot_v0.json",
           "source_metric_observation_ids": [
             "yt_fragrance_short_view_obs_v0_005",
             "yt_fragrance_short_view_obs_v0_006",
@@ -3943,7 +3943,7 @@
               "The admitted pool is fragrance and transcript-bearing, so selection can bias view averages relative to the creator's full Shorts or channel output."
             ],
             "metric_rollup_id": "yt_fragrance_account_view_rollup_v0_026",
-            "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json#/youtube_shorts_fragrance_creator_metric_seed/metric_rollups/25",
+            "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_rollup_snapshot_v0.json#/creator_metric_rollup_snapshot/metric_rollups/25",
             "metric_rollups": {
               "average_comment_count": {
                 "metric_unit": "count",
@@ -4070,8 +4070,8 @@
         "review_state_or_none": null,
         "source_drill_back": {
           "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/25",
-          "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json#/youtube_shorts_fragrance_creator_metric_seed/metric_rollups/25",
-          "metric_snapshot_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json",
+          "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_rollup_snapshot_v0.json#/creator_metric_rollup_snapshot/metric_rollups/25",
+          "metric_snapshot_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_rollup_snapshot_v0.json",
           "source_metric_observation_ids": [
             "yt_fragrance_short_view_obs_v0_048",
             "yt_fragrance_short_view_obs_v0_060",
@@ -4103,7 +4103,7 @@
               "The admitted pool is fragrance and transcript-bearing, so selection can bias view averages relative to the creator's full Shorts or channel output."
             ],
             "metric_rollup_id": "yt_fragrance_account_view_rollup_v0_027",
-            "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json#/youtube_shorts_fragrance_creator_metric_seed/metric_rollups/26",
+            "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_rollup_snapshot_v0.json#/creator_metric_rollup_snapshot/metric_rollups/26",
             "metric_rollups": {
               "average_comment_count": {
                 "metric_unit": "count",
@@ -4223,8 +4223,8 @@
         "review_state_or_none": null,
         "source_drill_back": {
           "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/26",
-          "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json#/youtube_shorts_fragrance_creator_metric_seed/metric_rollups/26",
-          "metric_snapshot_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json",
+          "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_rollup_snapshot_v0.json#/creator_metric_rollup_snapshot/metric_rollups/26",
+          "metric_snapshot_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_rollup_snapshot_v0.json",
           "source_metric_observation_ids": [
             "yt_fragrance_short_view_obs_v0_119",
             "yt_fragrance_short_view_obs_v0_175"
@@ -4249,7 +4249,7 @@
               "The admitted pool is fragrance and transcript-bearing, so selection can bias view averages relative to the creator's full Shorts or channel output."
             ],
             "metric_rollup_id": "yt_fragrance_account_view_rollup_v0_028",
-            "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json#/youtube_shorts_fragrance_creator_metric_seed/metric_rollups/27",
+            "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_rollup_snapshot_v0.json#/creator_metric_rollup_snapshot/metric_rollups/27",
             "metric_rollups": {
               "average_comment_count": {
                 "metric_unit": "count",
@@ -4371,8 +4371,8 @@
         "review_state_or_none": null,
         "source_drill_back": {
           "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/27",
-          "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json#/youtube_shorts_fragrance_creator_metric_seed/metric_rollups/27",
-          "metric_snapshot_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json",
+          "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_rollup_snapshot_v0.json#/creator_metric_rollup_snapshot/metric_rollups/27",
+          "metric_snapshot_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_rollup_snapshot_v0.json",
           "source_metric_observation_ids": [
             "yt_fragrance_short_view_obs_v0_098",
             "yt_fragrance_short_view_obs_v0_114",
@@ -4399,7 +4399,7 @@
               "The admitted pool is fragrance and transcript-bearing, so selection can bias view averages relative to the creator's full Shorts or channel output."
             ],
             "metric_rollup_id": "yt_fragrance_account_view_rollup_v0_029",
-            "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json#/youtube_shorts_fragrance_creator_metric_seed/metric_rollups/28",
+            "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_rollup_snapshot_v0.json#/creator_metric_rollup_snapshot/metric_rollups/28",
             "metric_rollups": {
               "average_comment_count": {
                 "metric_unit": "count",
@@ -4520,8 +4520,8 @@
         "review_state_or_none": null,
         "source_drill_back": {
           "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/28",
-          "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json#/youtube_shorts_fragrance_creator_metric_seed/metric_rollups/28",
-          "metric_snapshot_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json",
+          "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_rollup_snapshot_v0.json#/creator_metric_rollup_snapshot/metric_rollups/28",
+          "metric_snapshot_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_rollup_snapshot_v0.json",
           "source_metric_observation_ids": [
             "yt_fragrance_short_view_obs_v0_115",
             "yt_fragrance_short_view_obs_v0_135",
@@ -4547,7 +4547,7 @@
               "The admitted pool is fragrance and transcript-bearing, so selection can bias view averages relative to the creator's full Shorts or channel output."
             ],
             "metric_rollup_id": "yt_fragrance_account_view_rollup_v0_030",
-            "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json#/youtube_shorts_fragrance_creator_metric_seed/metric_rollups/29",
+            "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_rollup_snapshot_v0.json#/creator_metric_rollup_snapshot/metric_rollups/29",
             "metric_rollups": {
               "average_comment_count": {
                 "metric_unit": "count",
@@ -4671,8 +4671,8 @@
         "review_state_or_none": null,
         "source_drill_back": {
           "identity_ledger_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/29",
-          "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json#/youtube_shorts_fragrance_creator_metric_seed/metric_rollups/29",
-          "metric_snapshot_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json",
+          "metric_rollup_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_rollup_snapshot_v0.json#/creator_metric_rollup_snapshot/metric_rollups/29",
+          "metric_snapshot_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_rollup_snapshot_v0.json",
           "source_metric_observation_ids": [
             "yt_fragrance_short_view_obs_v0_017",
             "yt_fragrance_short_view_obs_v0_018",
@@ -5326,9 +5326,9 @@
         "source_pointer": "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json"
       },
       {
-        "role": "source-backed metric observations and admitted-pool YouTube metric rollups",
-        "sha256": "8a100891eeb7b93cb187d0916494479a8167f32f4224fe0647700e42de477231",
-        "source_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json"
+        "role": "lake-backed admitted-pool YouTube metric rollups (live-lake snapshot)",
+        "sha256": "139c88aaf107daca345aeeb669800ade508b57432073be87110fc900e5ba3cf3",
+        "source_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_rollup_snapshot_v0.json"
       },
       {
         "role": "lake-backed selected-grid Instagram metric rollups (live-lake snapshot)",
