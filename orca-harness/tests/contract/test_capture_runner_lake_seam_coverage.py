@@ -61,6 +61,8 @@ EXPECTED_BRONZE_WRITER_RUNNERS = frozenset(
         "run_source_capture_media_packet.py",
         "run_source_capture_packet.py",
         "run_source_capture_price_payload_packet.py",
+        "run_source_capture_tiktok_batch_packet.py",
+        "run_source_capture_tiktok_video_packet.py",
         "run_source_capture_youtube_asr_packet.py",
         "run_source_capture_youtube_caption_packet.py",
         "run_source_capture_youtube_watch_packet.py",

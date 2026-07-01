@@ -32,7 +32,7 @@ Current evidence supports this narrower claim:
 - IG canonical `F:/orca-data-lake` behavioral projection is working and currently reads 19 items:
   12 `complete`, 2 `complete_with_residuals`, and 5 `no_extraction_eligible_sources`.
 - YouTube behavioral projection contract is present on merged main and focused projection tests pass.
-- The expanded canonical YouTube F-lake caption-route corpus now reads back as 30 complete
+- The expanded canonical YouTube F-lake caption-route corpus now reads back as 31 complete
   videos: watch metadata/comments packets, caption transcript packets, source-lineage-bearing
   Silver product-mention records, and behavioral projections all read back complete.
 - YouTube platform-wide e2e is **not** proven: the observed set is seed-biased, uses
@@ -44,7 +44,7 @@ Therefore the correct closeout status is:
 ```text
 BEHAVIORAL_CONTRACT_SYNC_IMPLEMENTED
 CANONICAL_IG_E2E_OBSERVED_WITH_RESIDUALS
-CANONICAL_YT_F_LAKE_CAPTION_ROUTE_E2E_OBSERVED_N30
+CANONICAL_YT_F_LAKE_CAPTION_ROUTE_E2E_OBSERVED_N31
 PLATFORM_WIDE_COMPLETENESS_NOT_CLAIMED
 ```
 
@@ -99,7 +99,7 @@ Fresh code-source checks:
 - `orca-harness/youtube_capture/behavioral_projection.py` exposes metadata/comment normalization,
   transcript-source discovery, extraction rollup, residuals, and read-only lake projection.
 - `orca-harness/data_lake/root.py` confirms `list_available(...)` reads the existing availability
-  index and `rebuild_availability()` is a write. This receipt did not rebuild the F-lake index.
+  index and `rebuild_availability()` is a write. The initial receipt did not rebuild the F-lake index; the later leading-dash residual-burndown verification rebuilt availability before the fresh YouTube readback.
 
 ## Fresh IG F-Lake Read
 
@@ -262,24 +262,24 @@ Interpretation:
 The expanded measurement receipt now supersedes the initial two-video YouTube evidence for
 caption-route measurement.
 
-Fresh canonical `F:/orca-data-lake` readback after the operator/Codex extraction batch:
+Fresh canonical `F:/orca-data-lake` readback after the operator/Codex extraction batch and leading-dash residual retry:
 
 ```text
-YOUTUBE_PACKET_COUNT 62
-YOUTUBE_VIDEO_COUNT 32
+YOUTUBE_PACKET_COUNT 64
+YOUTUBE_VIDEO_COUNT 33
 SURFACE_COMBOS
-youtube_captions+youtube_watch_metadata_comments 30
+youtube_captions+youtube_watch_metadata_comments 31
 youtube_watch_metadata_comments 2
-YOUTUBE_PRODUCT_RECORDS_COMPLETE 30
-YOUTUBE_PRODUCT_MENTIONS_TOTAL 120
-YOUTUBE_PRODUCT_BACKENDS {"codex_operator_manual_current_thread": 2, "codex_operator_measurement_batch_current_thread": 28}
-YOUTUBE_PRODUCT_LINEAGE_SURFACES {"youtube_captions": 30}
+YOUTUBE_PRODUCT_RECORDS_COMPLETE 31
+YOUTUBE_PRODUCT_MENTIONS_TOTAL 122
+YOUTUBE_PRODUCT_BACKENDS {"codex_operator_assisted": 1, "codex_operator_manual_current_thread": 2, "codex_operator_measurement_batch_current_thread": 28}
+YOUTUBE_PRODUCT_LINEAGE_SURFACES {"youtube_captions": 31}
 PROJECTION_STATUS_COUNTS
-complete 30
+complete 31
 no_extraction_eligible_sources 2
 ```
 
-Operator/Codex product-extraction batch receipt:
+Operator/Codex product-extraction batch receipt, plus one later leading-dash retry record reflected in the readback above:
 
 ```text
 DRY_PARSE requested_mentions=108 accepted_mentions=108 rejected_mentions=0
@@ -293,10 +293,10 @@ EMPTY_COMPLETE_WRITES 2
 Interpretation:
 
 - The prior YouTube caption-route evidence is no longer just two videos; the measurable caption-route
-  cell is now `30/30` complete in the behavioral projection.
+  cell is now `31/31` complete in the behavioral projection.
 - The two remaining YouTube videos are watch-only/no-transcript current-source failures:
   `JcwT5rvhXIc` and `as7hye0qgYc`.
-- This remains non-provider extraction. The batch used explicit operator/Codex extraction with the
+- This remains non-provider extraction. The batch and leading-dash retry used explicit operator/Codex extraction with the
   existing `parse_mentions(...)` quote guard and the existing source-lineage write boundary.
 - ASR/no-caption fallback remains the main YouTube residual for platform-wide completeness.
 
@@ -324,7 +324,7 @@ Use these claim levels:
 | IG canonical F-lake has complete items | observed | 12 items read as `complete=true` |
 | IG canonical F-lake is globally complete | not proven | 2 residual-complete items and 5 no-eligible-source items remain |
 | YT behavioral projection contract exists and focused tests pass | observed | current source read plus 105-test focused run |
-| YT canonical F-lake bounded caption-route e2e is complete | observed | 30-video F-lake readback: watch packets, caption packets, source-lineage-bearing product-mention records, and complete projections |
+| YT canonical F-lake bounded caption-route e2e is complete | observed | 31-video F-lake readback: watch packets, caption packets, source-lineage-bearing product-mention records, and complete projections |
 | YT canonical F-lake platform-wide e2e is complete | not proven | ASR/no-caption and creator-scale behavior are not covered; product extraction is operator/Codex, not provider API |
 | IG/YT behaviorally complete platform-wide | not proven | IG residuals remain and YouTube ASR/no-caption remains unmeasured |
 
@@ -346,5 +346,5 @@ Recommended next lane, if the owner wants to continue:
 - Not YouTube platform-wide F-lake e2e validation, ASR/no-caption fallback validation, or live provider-API extraction.
 - Not shared IG/YT core.
 - Not a scheduler, production, live-scale, proxy, login, private-account, durable media/video, ECR, Cleaning, Judgment, or gold-verdict claim.
-- Not a data-lake availability-index rebuild.
-- Not a code patch or runtime behavior change.
+- Not a data-lake availability-index schema or semantics change.
+- Not a broad runtime behavior change beyond the bounded YouTube runner argv-normalization patch documented in the YouTube corpus receipt.
