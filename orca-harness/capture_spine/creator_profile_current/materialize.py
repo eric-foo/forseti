@@ -31,16 +31,25 @@ INSTAGRAM_SNAPSHOT_POINTER = (
     "orca/product/spines/capture/core/source_families/social_media/instagram/"
     "instagram_reels_creator_metric_rollup_snapshot_v0.json"
 )
+YOUTUBE_SNAPSHOT_POINTER = (
+    "orca/product/spines/capture/core/source_families/social_media/youtube/"
+    "youtube_shorts_fragrance_creator_metric_rollup_snapshot_v0.json"
+)
 
-# Lake cut-over §5: Instagram rollups are read from the committed lake SNAPSHOT
-# (value-equal to the retained seed, which stays as the no-drift oracle).
-# YouTube stays seed-fed until its own fold-in stage (§8 / AR-06). The IG seed
-# entry is retained so the equivalence/oracle paths can still materialize from it.
+# Lake cut-over §5/§8: both Instagram and YouTube rollups are read from the
+# committed lake SNAPSHOT (value-equal to the retained seed, which stays as the
+# no-drift oracle). The seed entries are retained so the equivalence/oracle
+# paths can still materialize from them.
 _METRIC_SEED_CONFIG_BY_NAME = {
     "youtube_shorts_fragrance_creator_metric_seed_v0.json": {
         "wrapper": "youtube_shorts_fragrance_creator_metric_seed",
         "pointer": YOUTUBE_METRIC_SEED_POINTER,
         "role": "source-backed metric observations and admitted-pool YouTube metric rollups",
+    },
+    "youtube_shorts_fragrance_creator_metric_rollup_snapshot_v0.json": {
+        "wrapper": "creator_metric_rollup_snapshot",
+        "pointer": YOUTUBE_SNAPSHOT_POINTER,
+        "role": "lake-backed admitted-pool YouTube metric rollups (live-lake snapshot)",
     },
     "instagram_reels_creator_metric_rollup_snapshot_v0.json": {
         "wrapper": "creator_metric_rollup_snapshot",

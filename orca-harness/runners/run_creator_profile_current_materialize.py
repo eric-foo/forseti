@@ -41,7 +41,9 @@ DEFAULT_ACCOUNT_LEDGER = (
     / "creator_registry"
     / "creator_public_handle_linkage_ledger_v0.json"
 )
-DEFAULT_YOUTUBE_METRIC_SEED = (
+# Lake cut-over §5/§8: both Instagram and YouTube materialize from their
+# committed lake snapshots (each seed stays the no-drift value oracle).
+DEFAULT_YOUTUBE_SNAPSHOT = (
     ROOT
     / "orca"
     / "product"
@@ -51,10 +53,8 @@ DEFAULT_YOUTUBE_METRIC_SEED = (
     / "source_families"
     / "social_media"
     / "youtube"
-    / "youtube_shorts_fragrance_creator_metric_seed_v0.json"
+    / "youtube_shorts_fragrance_creator_metric_rollup_snapshot_v0.json"
 )
-# Lake cut-over §5: Instagram materializes from the committed lake snapshot
-# (YouTube stays seed-fed until its §8 fold-in).
 DEFAULT_INSTAGRAM_SNAPSHOT = (
     ROOT
     / "orca"
@@ -67,7 +67,7 @@ DEFAULT_INSTAGRAM_SNAPSHOT = (
     / "instagram"
     / "instagram_reels_creator_metric_rollup_snapshot_v0.json"
 )
-DEFAULT_METRIC_SEEDS = (DEFAULT_YOUTUBE_METRIC_SEED, DEFAULT_INSTAGRAM_SNAPSHOT)
+DEFAULT_METRIC_SEEDS = (DEFAULT_YOUTUBE_SNAPSHOT, DEFAULT_INSTAGRAM_SNAPSHOT)
 
 
 def _build_parser() -> argparse.ArgumentParser:
@@ -84,7 +84,7 @@ def _build_parser() -> argparse.ArgumentParser:
         type=Path,
         action="append",
         dest="metric_seeds",
-        help="Metric seed JSON file. Repeat for multiple platform seeds. Defaults to current YouTube + Instagram seeds.",
+        help="Metric seed/snapshot JSON file. Repeat for multiple platform sources. Defaults to current YouTube + Instagram lake snapshots.",
     )
     parser.add_argument(
         "--generated-at-utc",
