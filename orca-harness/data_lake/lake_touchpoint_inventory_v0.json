@@ -411,6 +411,11 @@
       {
         "a2_fork_impact": "manifest_shape",
         "kind": "direct_packet_writer",
+        "runner": "run_source_capture_youtube_rss_monitor.py"
+      },
+      {
+        "a2_fork_impact": "manifest_shape",
+        "kind": "direct_packet_writer",
         "runner": "run_source_capture_youtube_watch_packet.py"
       }
     ],
