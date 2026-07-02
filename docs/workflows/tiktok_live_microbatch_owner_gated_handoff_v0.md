@@ -42,8 +42,8 @@ input_hashes:
   docs/workflows/tiktok_behavioral_sync_fresh_lane_handoff_v0.md: 0fcda55434efb97791c495e112e7682f9cc1b42d
   docs/workflows/tiktok_comment_response_capture_pr559_adjudication_handoff_v0.md: 5a814dad39d79222ea78631e395ff382d4fc7396
   docs/workflows/tiktok_funmi_n30_comment_subtitle_cadence_analysis_v0.md: 8385e43615e76a2503e9f36468dbdcd7c92268a3
-  orca-harness/source_capture/adapters/browser_snapshot.py: 2fa6a16fd0d2b7bf58b7fbe7633c7712577af4ee
-  orca-harness/source_capture/tiktok/live_batch_probe.py: b169d1157d6fc14511a7ad8cfdfac0898f97af56
+  orca-harness/source_capture/adapters/browser_snapshot.py: c69014f5fb4eb21901c3770b6eb8a058ebd1b65c
+  orca-harness/source_capture/tiktok/live_batch_probe.py: e7acde53493c25616dce4443a8cf06b41a967054
   orca-harness/source_capture/tiktok/blocker_triage.py: 19816ad967bc57c53aa750dfc9cf59902e5455cd
   orca-harness/source_capture/tiktok/batch_packet.py: b6758d7615a96804e48714283f1925577c7dc22c
   orca-harness/source_capture/tiktok/admission.py: 45a86b554772a58300b23be077a48b32f8dcd8de
@@ -200,11 +200,17 @@ handoff depends on:
 - The pointer-action page-text gate now uses visible `innerText` rather than
   hidden `textContent`, so hidden TikTok strings such as `captcha` cannot by
   themselves satisfy a diagnostic pointer gate.
-- The owner-authorized diagnostic close action is named
+- The owner-authorized DOM diagnostic close action is named
   `tiktok_challenge_modal_close_diagnostic_pointer_v0`. It is opt-in via
   `--allow-challenge-close-diagnostic`, page-text gated on challenge/security
   markers, targets `Close`/`Dismiss` or exact `X`/`×`, prefers the top-right
-  candidate, and uses the same bounded pointer movement substrate. It is a
+  candidate, and uses the same bounded pointer movement substrate.
+- The owner-authorized visual diagnostic close action is named
+  `tiktok_challenge_modal_visual_close_diagnostic_pointer_v0`. It runs only under
+  `--allow-challenge-close-diagnostic`, after the comment-surface route, and uses
+  a viewport screenshot to scan the upper-right crop for a small high-contrast
+  X-shaped glyph. It records only sanitized proof fields such as crop box,
+  screenshot hash, candidate count, confidence, and clicked state. It is a
   blocker-diagnosis path only: a click forces stop semantics and cannot produce
   a clean capture row.
 - The first corrected live retry on 2026-07-03 used the comment-surface sequence
@@ -389,16 +395,17 @@ direct 3-5 creator execution packet until a
 one-video route-yield gate captures at least one admitted page-owned
 `/api/comment/list` response under the current runner and then admits cleanly.
 
-Current live state after the benign-overlay patch: two 2026-07-03 one-video
-Funmi retries stopped on `platform_challenge_observed`; the matched marker was
-`drag the slider`, with `attempted_count=1`, `completed_count=0`,
-`challenge_count=1`, and no result row. Attempt 08 used the clean path with
-`challenge_close_diagnostic_allowed=false`; attempt 09 used the owner-authorized
-close diagnostic and still found no close target (`target_found=false`,
-`clicked=false`, `matched_count=0`, `candidate_count=0`). No admission or
-expansion is authorized from either receipt. These attempts did not live-prove
-the benign `Got it` dismissal because the run reached the real challenge stop
-class first.
+Current live state after the visual-X diagnostic patch: the latest
+2026-07-03 one-video Funmi retry stopped as
+`challenge_close_diagnostic_only`, with `attempted_count=1`,
+`completed_count=0`, `challenge_count=1`, no result row, no admission, and no
+expansion. The selected diagnostic receipt was
+`tiktok_challenge_modal_visual_close_diagnostic_pointer_v0` with
+`target_found=true`, `clicked=true`, `target_kind=visual_x`,
+`visual_fallback_candidate_count=1`, `visual_fallback_confidence=0.721`, and
+crop `{x:576,y:0,width:704,height:251}`. This proves the visual X can be found
+and clicked; it does not prove clean capture because the forced stop semantics
+are intentional after a challenge-close diagnostic click.
 
 
 ## Changed / Inspected / Tested Files In This Handoff Lane
@@ -420,19 +427,16 @@ Inspected:
 Validation completed:
 
 - `PYTHONPATH=orca-harness python -m pytest -q orca-harness/tests/unit/test_source_capture_browser_snapshot.py orca-harness/tests/unit/test_tiktok_blocker_triage.py orca-harness/tests/unit/test_tiktok_live_batch_probe.py orca-harness/tests/unit/test_tiktok_batch_admission.py`
-  -> exit 0 with all targeted tests passing.
-- One live retry without challenge-close diagnostic using auth-state label
-  `tiktok-batch1-20260630` and `session_mode=client_provided_session`; result
-  stopped on `platform_challenge_observed` with `matched_marker=drag the slider`,
-  `attempted_count=1`, `completed_count=0`, `challenge_count=1`, no admission,
-  and no expansion.
-- One owner-authorized diagnostic live retry with
-  `--allow-challenge-close-diagnostic`; result again stopped on
-  `platform_challenge_observed`, diagnostic close `target_found=false`,
-  `clicked=false`, `candidate_count=0`, no admission, and no expansion.
-- Forbidden-marker scans over both latest retry scratch outputs returned no
-  matches.
-- Temporary copied auth-state files were removed after each run.
+  -> exit 0 with 67 targeted tests passing.
+- One owner-authorized diagnostic live retry after the visual-X patch using
+  auth-state label `tiktok-batch1-20260630` and
+  `session_mode=client_provided_session`; result stopped on
+  `challenge_close_diagnostic_only` with visual diagnostic `target_found=true`,
+  `clicked=true`, `target_kind=visual_x`, no result row, no admission, and no
+  expansion.
+- Forbidden-marker scan over the latest retry scratch output returned no matches.
+- Temporary copied auth-state files were removed after each run and verified
+  absent.
 
 
 ## Dangerous To Reuse
@@ -481,6 +485,7 @@ challenge, unresolved blocker, or zero-comment-response route diagnosis. Do
 not solve CAPTCHA/slider challenges, do not click challenge-close controls to
 claim success, do not expand directly to 3-5 creators, and do not do product
 extraction. If the current owner explicitly authorizes
-`--allow-challenge-close-diagnostic`, treat any clicked close receipt as a stop
+`--allow-challenge-close-diagnostic`, the runner may use the DOM close diagnostic
+and the visual-X close diagnostic, but treat any clicked close receipt as a stop
 receipt only, never as proof.
 ```

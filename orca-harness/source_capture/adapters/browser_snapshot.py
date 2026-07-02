@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import io
 import random
+from hashlib import sha256
 from dataclasses import dataclass, field
 from enum import StrEnum
 from importlib import import_module
@@ -39,6 +41,7 @@ class BrowserPagePointerAction:
     target_fraction_min: float = 0.35
     target_fraction_max: float = 0.65
     prefer_top_right: bool = False
+    visual_top_right_x_fallback: bool = False
     random_seed: int = 0
 
 
@@ -1223,6 +1226,7 @@ def _normalize_pointer_action(
         target_fraction_min=action.target_fraction_min,
         target_fraction_max=action.target_fraction_max,
         prefer_top_right=bool(action.prefer_top_right),
+        visual_top_right_x_fallback=bool(action.visual_top_right_x_fallback),
         random_seed=int(action.random_seed),
     )
 
@@ -1239,6 +1243,183 @@ def _normalize_pointer_actions(
         normalized.append(normalized_action)
     return tuple(normalized)
 
+
+def _find_visual_top_right_x_target(page: object) -> dict[str, object]:
+    result: dict[str, object] = {
+        "target_found": False,
+        "target_kind": "visual_x",
+        "box": None,
+        "visual_fallback_attempted": True,
+        "visual_fallback_target_found": False,
+        "visual_fallback_candidate_count": 0,
+        "visual_fallback_confidence": None,
+        "visual_fallback_screenshot_sha256": None,
+        "visual_fallback_crop_box": None,
+        "visual_fallback_failure": None,
+    }
+    try:
+        screenshot_png = page.screenshot(full_page=False)
+    except Exception:
+        result["visual_fallback_failure"] = "visual_fallback_screenshot_failed"
+        return result
+    if not isinstance(screenshot_png, bytes) or not screenshot_png:
+        result["visual_fallback_failure"] = "visual_fallback_empty_screenshot"
+        return result
+    result["visual_fallback_screenshot_sha256"] = sha256(screenshot_png).hexdigest()
+    try:
+        from PIL import Image
+    except Exception:
+        result["visual_fallback_failure"] = "visual_fallback_image_dependency_unavailable"
+        return result
+    try:
+        image = Image.open(io.BytesIO(screenshot_png)).convert("L")
+    except Exception:
+        result["visual_fallback_failure"] = "visual_fallback_image_decode_failed"
+        return result
+
+    image_width, image_height = image.size
+    if image_width <= 0 or image_height <= 0:
+        result["visual_fallback_failure"] = "visual_fallback_invalid_image_size"
+        return result
+    crop_x = int(image_width * 0.45)
+    crop_y = 0
+    crop_width = image_width - crop_x
+    crop_height = max(1, int(image_height * 0.35))
+    result["visual_fallback_crop_box"] = {
+        "x": crop_x,
+        "y": crop_y,
+        "width": crop_width,
+        "height": crop_height,
+    }
+    candidates = _visual_x_candidates(image, crop_x, crop_y, crop_width, crop_height)
+    result["visual_fallback_candidate_count"] = len(candidates)
+    if not candidates:
+        return result
+    selected = max(candidates, key=lambda candidate: candidate["score"])
+    result["target_found"] = True
+    result["visual_fallback_target_found"] = True
+    result["visual_fallback_confidence"] = round(float(selected["score"]), 3)
+    result["box"] = {
+        "x": float(selected["x"]),
+        "y": float(selected["y"]),
+        "width": float(selected["width"]),
+        "height": float(selected["height"]),
+    }
+    return result
+
+
+def _visual_x_candidates(
+    image: object,
+    crop_x: int,
+    crop_y: int,
+    crop_width: int,
+    crop_height: int,
+) -> list[dict[str, float]]:
+    pixels = image.load()  # type: ignore[attr-defined]
+    foreground_sets: list[set[tuple[int, int]]] = [set(), set()]
+    x_end = crop_x + crop_width
+    y_end = crop_y + crop_height
+    for y in range(crop_y, y_end):
+        for x in range(crop_x, x_end):
+            try:
+                value = int(pixels[x, y])
+            except Exception:
+                continue
+            if value <= 96:
+                foreground_sets[0].add((x, y))
+            elif value >= 216:
+                foreground_sets[1].add((x, y))
+
+    candidates: list[dict[str, float]] = []
+    for foreground_pixels in foreground_sets:
+        visited: set[tuple[int, int]] = set()
+        for seed in foreground_pixels:
+            if seed in visited:
+                continue
+            stack = [seed]
+            visited.add(seed)
+            component: list[tuple[int, int]] = []
+            while stack:
+                x, y = stack.pop()
+                component.append((x, y))
+                for nx in (x - 1, x, x + 1):
+                    for ny in (y - 1, y, y + 1):
+                        if nx == x and ny == y:
+                            continue
+                        neighbor = (nx, ny)
+                        if neighbor in visited or neighbor not in foreground_pixels:
+                            continue
+                        visited.add(neighbor)
+                        stack.append(neighbor)
+            candidate = _score_visual_x_component(
+                component, crop_x, crop_y, crop_width, crop_height
+            )
+            if candidate is not None:
+                candidates.append(candidate)
+    return candidates
+
+
+def _score_visual_x_component(
+    component: list[tuple[int, int]],
+    crop_x: int,
+    crop_y: int,
+    crop_width: int,
+    crop_height: int,
+) -> dict[str, float] | None:
+    if len(component) < 12:
+        return None
+    xs = [point[0] for point in component]
+    ys = [point[1] for point in component]
+    min_x = min(xs)
+    max_x = max(xs)
+    min_y = min(ys)
+    max_y = max(ys)
+    width = max_x - min_x + 1
+    height = max_y - min_y + 1
+    if width < 8 or height < 8 or width > 44 or height > 44:
+        return None
+    ratio = width / height
+    if ratio < 0.55 or ratio > 1.8:
+        return None
+    density = len(component) / float(width * height)
+    if density < 0.08 or density > 0.65:
+        return None
+    diagonal_tolerance = 0.24
+    main_diagonal = 0
+    anti_diagonal = 0
+    center = 0
+    for x, y in component:
+        nx = (x - min_x) / max(1, width - 1)
+        ny = (y - min_y) / max(1, height - 1)
+        if abs(nx - ny) <= diagonal_tolerance:
+            main_diagonal += 1
+        if abs((nx + ny) - 1.0) <= diagonal_tolerance:
+            anti_diagonal += 1
+        if 0.25 <= nx <= 0.75 and 0.25 <= ny <= 0.75:
+            center += 1
+    component_size = float(len(component))
+    main_share = main_diagonal / component_size
+    anti_share = anti_diagonal / component_size
+    center_share = center / component_size
+    if main_share < 0.22 or anti_share < 0.22 or center_share < 0.08:
+        return None
+    x_position = ((min_x + max_x) / 2.0 - crop_x) / max(1, crop_width)
+    y_position = ((min_y + max_y) / 2.0 - crop_y) / max(1, crop_height)
+    score = (
+        min(main_share, anti_share)
+        + (center_share * 0.35)
+        + (x_position * 0.2)
+        + ((1.0 - y_position) * 0.15)
+    )
+    padding = 4
+    return {
+        "x": float(max(0, min_x - padding)),
+        "y": float(max(0, min_y - padding)),
+        "width": float(width + padding * 2),
+        "height": float(height + padding * 2),
+        "score": score,
+    }
+
 def _run_pointer_action(page: object, action: BrowserPagePointerAction) -> dict[str, object]:
     receipt: dict[str, object] = {
         "action_name": action.action_name,
@@ -1252,6 +1433,8 @@ def _run_pointer_action(page: object, action: BrowserPagePointerAction) -> dict[
         "page_text_gate_matched": None,
         "selection_strategy": None,
     }
+    if action.visual_top_right_x_fallback:
+        receipt["visual_fallback_attempted"] = False
     try:
         target = page.evaluate(
             _POINTER_ACTION_TARGET_SCRIPT,
@@ -1284,7 +1467,30 @@ def _run_pointer_action(page: object, action: BrowserPagePointerAction) -> dict[
         receipt["selection_strategy"] = selection_strategy
     box = target.get("box")
     if not receipt["target_found"] or not isinstance(box, dict):
-        return receipt
+        if action.visual_top_right_x_fallback and receipt.get("page_text_gate_matched") is not False:
+            visual_target = _find_visual_top_right_x_target(page)
+            for key in (
+                "visual_fallback_attempted",
+                "visual_fallback_target_found",
+                "visual_fallback_candidate_count",
+                "visual_fallback_confidence",
+                "visual_fallback_screenshot_sha256",
+                "visual_fallback_crop_box",
+                "visual_fallback_failure",
+            ):
+                value = visual_target.get(key)
+                if value is not None:
+                    receipt[key] = value
+            visual_box = visual_target.get("box")
+            if bool(visual_target.get("target_found")) and isinstance(visual_box, dict):
+                receipt["target_found"] = True
+                receipt["target_kind"] = "visual_x"
+                receipt["selection_strategy"] = "top_right_visual_x"
+                box = visual_box
+            else:
+                return receipt
+        else:
+            return receipt
 
     try:
         x = float(box["x"])

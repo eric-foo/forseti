@@ -53,6 +53,9 @@ TIKTOK_DISMISS_BENIGN_OVERLAY_POINTER_ACTION_NAME = "tiktok_dismiss_benign_overl
 TIKTOK_CHALLENGE_CLOSE_DIAGNOSTIC_POINTER_ACTION_NAME = (
     "tiktok_challenge_modal_close_diagnostic_pointer_v0"
 )
+TIKTOK_CHALLENGE_VISUAL_CLOSE_DIAGNOSTIC_POINTER_ACTION_NAME = (
+    "tiktok_challenge_modal_visual_close_diagnostic_pointer_v0"
+)
 TIKTOK_COMMENT_SURFACE_TOGGLE_POINTER_SEQUENCE_NAME = (
     "comment_surface_toggle_pointer_sequence_v0"
 )
@@ -520,6 +523,10 @@ def _tiktok_live_pointer_actions(
             random_seed=random_seed,
         ),
         *comment_actions,
+        _tiktok_challenge_visual_close_diagnostic_pointer_action(
+            video_id=video_id,
+            random_seed=random_seed,
+        ),
     )
 
 
@@ -606,6 +613,7 @@ def _tiktok_challenge_close_diagnostic_pointer_action(
         target_fraction_min=0.35,
         target_fraction_max=0.65,
         prefer_top_right=True,
+        visual_top_right_x_fallback=True,
         random_seed=_stable_pointer_seed(
             video_id=video_id,
             random_seed=random_seed,
@@ -613,6 +621,33 @@ def _tiktok_challenge_close_diagnostic_pointer_action(
         ),
     )
 
+
+def _tiktok_challenge_visual_close_diagnostic_pointer_action(
+    *,
+    video_id: str,
+    random_seed: int | None,
+) -> BrowserPagePointerAction:
+    return BrowserPagePointerAction(
+        action_name=TIKTOK_CHALLENGE_VISUAL_CLOSE_DIAGNOSTIC_POINTER_ACTION_NAME,
+        candidate_selector=(
+            "button,[role=\"button\"],[aria-label],[title],[data-e2e],"
+            "[data-testid],[data-test-id],[class]"
+        ),
+        text_markers=("__tiktok_visual_close_diagnostic_never_dom_match__",),
+        exact_text_markers=("__tiktok_visual_close_diagnostic_never_dom_match__",),
+        wait_after_ms=2000,
+        move_steps_min=6,
+        move_steps_max=12,
+        target_fraction_min=0.35,
+        target_fraction_max=0.65,
+        prefer_top_right=True,
+        visual_top_right_x_fallback=True,
+        random_seed=_stable_pointer_seed(
+            video_id=video_id,
+            random_seed=random_seed,
+            action_name=TIKTOK_CHALLENGE_VISUAL_CLOSE_DIAGNOSTIC_POINTER_ACTION_NAME,
+        ),
+    )
 
 def _tiktok_open_comments_pointer_action(
     *,
@@ -768,6 +803,7 @@ def _comment_action_summary(capture_result: BrowserPageObservationSuccess) -> Js
             continue
         if summary.get("action_name") in {
             TIKTOK_CHALLENGE_CLOSE_DIAGNOSTIC_POINTER_ACTION_NAME,
+            TIKTOK_CHALLENGE_VISUAL_CLOSE_DIAGNOSTIC_POINTER_ACTION_NAME,
             TIKTOK_DISMISS_BENIGN_OVERLAY_POINTER_ACTION_NAME,
         }:
             continue
@@ -815,11 +851,22 @@ def _challenge_close_diagnostic_summary(
     capture_result: BrowserPageObservationSuccess,
 ) -> JsonObject:
     metadata = _as_dict(capture_result.metadata)
+    diagnostic_summaries: list[JsonObject] = []
+    diagnostic_names = {
+        TIKTOK_CHALLENGE_CLOSE_DIAGNOSTIC_POINTER_ACTION_NAME,
+        TIKTOK_CHALLENGE_VISUAL_CLOSE_DIAGNOSTIC_POINTER_ACTION_NAME,
+    }
     for action in _as_list(metadata.get("post_load_pointer_actions")):
         summary = _pointer_action_summary(_as_dict(action))
-        if summary.get("action_name") == TIKTOK_CHALLENGE_CLOSE_DIAGNOSTIC_POINTER_ACTION_NAME:
+        if summary.get("action_name") in diagnostic_names:
+            diagnostic_summaries.append(summary)
+    for summary in diagnostic_summaries:
+        if _first_bool(summary.get("clicked")) is True:
             return summary
-    return {}
+    for summary in diagnostic_summaries:
+        if summary.get("action_name") == TIKTOK_CHALLENGE_VISUAL_CLOSE_DIAGNOSTIC_POINTER_ACTION_NAME:
+            return summary
+    return diagnostic_summaries[0] if diagnostic_summaries else {}
 
 
 def _pointer_action_summary(action: JsonObject) -> JsonObject:
@@ -836,6 +883,27 @@ def _pointer_action_summary(action: JsonObject) -> JsonObject:
             "page_text_gate_matched": _first_bool(action.get("page_text_gate_matched")),
             "selection_strategy": _first_str(action.get("selection_strategy")),
             "failure": _first_str(action.get("failure")),
+            "visual_fallback_attempted": _first_bool(
+                action.get("visual_fallback_attempted")
+            ),
+            "visual_fallback_target_found": _first_bool(
+                action.get("visual_fallback_target_found")
+            ),
+            "visual_fallback_candidate_count": _first_int(
+                action.get("visual_fallback_candidate_count")
+            ),
+            "visual_fallback_confidence": _first_float(
+                action.get("visual_fallback_confidence")
+            ),
+            "visual_fallback_screenshot_sha256": _first_str(
+                action.get("visual_fallback_screenshot_sha256")
+            ),
+            "visual_fallback_crop_box": _as_dict(
+                action.get("visual_fallback_crop_box")
+            ) or None,
+            "visual_fallback_failure": _first_str(
+                action.get("visual_fallback_failure")
+            ),
         }
     )
 
@@ -1247,6 +1315,15 @@ def _first_bool(value: Any) -> bool | None:
     return None
 
 
+def _first_float(value: Any) -> float | None:
+    if value is None or isinstance(value, bool):
+        return None
+    try:
+        return float(value)  # type: ignore[arg-type]
+    except (TypeError, ValueError):
+        return None
+
+
 def _drop_none(value: JsonObject) -> JsonObject:
     result: JsonObject = {}
     for key, item in value.items():
@@ -1265,6 +1342,7 @@ __all__ = [
     "TIKTOK_LIVE_BATCH_PROBE_SCHEMA_VERSION",
     "TIKTOK_CHALLENGE_AFTER_CLOSE_DIAGNOSTIC_REASON",
     "TIKTOK_CHALLENGE_CLOSE_DIAGNOSTIC_POINTER_ACTION_NAME",
+    "TIKTOK_CHALLENGE_VISUAL_CLOSE_DIAGNOSTIC_POINTER_ACTION_NAME",
     "TIKTOK_CHALLENGE_CLOSE_DIAGNOSTIC_REASON",
     "TIKTOK_COMMENT_ROUTE_NO_RESPONSE_REASON",
     "TIKTOK_DISMISS_BENIGN_OVERLAY_POINTER_ACTION_NAME",

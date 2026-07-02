@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import io
 import json
 import shutil
 import uuid
@@ -157,6 +158,7 @@ class _FakeObservationPage:
         height: int = 3_000,
         pointer_target: dict[str, object] | None = None,
         pointer_targets: list[dict[str, object]] | None = None,
+        screenshot_png: bytes = b"",
     ) -> None:
         self.event_log = event_log
         self.height = height
@@ -165,6 +167,7 @@ class _FakeObservationPage:
         self.response_emitted = False
         self.pointer_target = pointer_target
         self.pointer_targets = list(pointer_targets or [])
+        self.screenshot_png = screenshot_png
         self.mouse = _FakeObservationMouse(self)
 
     def route(self, *_args: object, **_kwargs: object) -> None:
@@ -182,6 +185,10 @@ class _FakeObservationPage:
 
     def wait_for_selector(self, *_args: object, **_kwargs: object) -> None:
         self.event_log.append("wait_for_selector")
+
+    def screenshot(self, **_kwargs: object) -> bytes:
+        self.event_log.append("screenshot")
+        return self.screenshot_png
 
     def emit_response_once(self) -> None:
         if self.response_callback is not None and not self.response_emitted:
@@ -285,6 +292,18 @@ def _install_fake_playwright(monkeypatch: pytest.MonkeyPatch, page: _FakeObserva
         return original_import_module(name)
 
     monkeypatch.setattr(browser_snapshot_module, "import_module", fake_import_module)
+
+
+def _visual_x_screenshot_png() -> bytes:
+    from PIL import Image, ImageDraw
+
+    image = Image.new("RGB", (240, 120), "white")
+    draw = ImageDraw.Draw(image)
+    draw.line((198, 10, 220, 32), fill="black", width=3)
+    draw.line((220, 10, 198, 32), fill="black", width=3)
+    buffer = io.BytesIO()
+    image.save(buffer, format="PNG")
+    return buffer.getvalue()
 
 
 def test_fetch_browser_snapshot_capture_with_fake_engine_preserves_browser_artifacts() -> None:
@@ -1121,6 +1140,126 @@ def test_playwright_page_observation_records_pointer_no_target_without_click(
     assert "mouse_click" not in event_log
     assert not any(event.startswith("mouse_move:") for event in event_log)
 
+
+def test_playwright_page_observation_uses_visual_x_fallback_without_dom_target(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    event_log: list[str] = []
+    page = _FakeObservationPage(
+        event_log,
+        pointer_target={
+            "candidate_count": 0,
+            "matched_count": 0,
+            "target_found": False,
+            "target_kind": None,
+            "page_text_gate_matched": True,
+            "selection_strategy": "top_right",
+            "box": None,
+        },
+        screenshot_png=_visual_x_screenshot_png(),
+    )
+    _install_fake_playwright(monkeypatch, page)
+
+    result = browser_snapshot_module._PlaywrightBrowserSnapshotEngine().capture_page_observation(
+        url="https://example.com/source",
+        timeout_seconds=1,
+        wait_until="load",
+        viewport_width=1280,
+        viewport_height=720,
+        dom_extract_script="() => ({items: []})",
+        dom_extract_arg={},
+        response_url_predicate=lambda url: "widget" in url,
+        post_load_pointer_action=BrowserPagePointerAction(
+            action_name="challenge_close_diag",
+            candidate_selector="button",
+            text_markers=("close",),
+            exact_text_markers=("x",),
+            page_text_markers=("drag the slider",),
+            wait_after_ms=2000,
+            move_steps_min=5,
+            move_steps_max=5,
+            random_seed=11,
+            prefer_top_right=True,
+            visual_top_right_x_fallback=True,
+        ),
+    )
+
+    receipt = result.metadata["post_load_pointer_action"]
+    assert isinstance(receipt, dict)
+    assert receipt["candidate_count"] == 0
+    assert receipt["matched_count"] == 0
+    assert receipt["page_text_gate_matched"] is True
+    assert receipt["target_found"] is True
+    assert receipt["target_kind"] == "visual_x"
+    assert receipt["selection_strategy"] == "top_right_visual_x"
+    assert receipt["clicked"] is True
+    assert receipt["move_steps"] == 5
+    assert receipt["wait_ms"] == 2000
+    assert receipt["visual_fallback_attempted"] is True
+    assert receipt["visual_fallback_target_found"] is True
+    assert receipt["visual_fallback_candidate_count"] >= 1
+    assert receipt["visual_fallback_confidence"] > 0
+    assert len(receipt["visual_fallback_screenshot_sha256"]) == 64
+    assert receipt["visual_fallback_crop_box"] == {
+        "x": 108,
+        "y": 0,
+        "width": 132,
+        "height": 42,
+    }
+    assert "x" not in receipt
+    assert "y" not in receipt
+    assert event_log.index("pointer_target_lookup") < event_log.index("screenshot")
+    assert event_log.index("screenshot") < event_log.index("mouse_move:5")
+    assert event_log.index("mouse_move:5") < event_log.index("mouse_click")
+    assert event_log.index("mouse_click") < event_log.index("wait:2000")
+
+
+def test_playwright_page_observation_skips_visual_x_fallback_without_page_gate(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    event_log: list[str] = []
+    page = _FakeObservationPage(
+        event_log,
+        pointer_target={
+            "candidate_count": 0,
+            "matched_count": 0,
+            "target_found": False,
+            "target_kind": None,
+            "page_text_gate_matched": False,
+            "selection_strategy": "top_right",
+            "box": None,
+        },
+        screenshot_png=_visual_x_screenshot_png(),
+    )
+    _install_fake_playwright(monkeypatch, page)
+
+    result = browser_snapshot_module._PlaywrightBrowserSnapshotEngine().capture_page_observation(
+        url="https://example.com/source",
+        timeout_seconds=1,
+        wait_until="load",
+        viewport_width=1280,
+        viewport_height=720,
+        dom_extract_script="() => ({items: []})",
+        dom_extract_arg={},
+        response_url_predicate=lambda url: "widget" in url,
+        post_load_pointer_action=BrowserPagePointerAction(
+            action_name="challenge_close_diag",
+            candidate_selector="button",
+            text_markers=("close",),
+            exact_text_markers=("x",),
+            page_text_markers=("drag the slider",),
+            random_seed=11,
+            visual_top_right_x_fallback=True,
+        ),
+    )
+
+    receipt = result.metadata["post_load_pointer_action"]
+    assert isinstance(receipt, dict)
+    assert receipt["target_found"] is False
+    assert receipt["clicked"] is False
+    assert receipt["visual_fallback_attempted"] is False
+    assert "screenshot" not in event_log
+    assert "mouse_click" not in event_log
 
 def test_playwright_page_observation_reports_lazy_load_cap_warning(
     monkeypatch: pytest.MonkeyPatch,

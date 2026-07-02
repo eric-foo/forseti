@@ -29,6 +29,7 @@ from source_capture.tiktok.live_batch_probe import (
     TIKTOK_CHALLENGE_AFTER_CLOSE_DIAGNOSTIC_REASON,
     TIKTOK_CHALLENGE_CLOSE_DIAGNOSTIC_POINTER_ACTION_NAME,
     TIKTOK_CHALLENGE_CLOSE_DIAGNOSTIC_REASON,
+    TIKTOK_CHALLENGE_VISUAL_CLOSE_DIAGNOSTIC_POINTER_ACTION_NAME,
     TIKTOK_COMMENT_ROUTE_NO_RESPONSE_REASON,
     TIKTOK_COMMENT_SURFACE_TOGGLE_POINTER_SEQUENCE_NAME,
     TIKTOK_DISMISS_BENIGN_OVERLAY_POINTER_ACTION_NAME,
@@ -418,6 +419,7 @@ def test_live_probe_challenge_close_diagnostic_flag_prepends_close_action(
         TIKTOK_OPEN_COMMENTS_POINTER_ACTION_NAME,
         TIKTOK_OPEN_MORE_LIKE_THIS_POINTER_ACTION_NAME,
         TIKTOK_REOPEN_COMMENTS_POINTER_ACTION_NAME,
+        TIKTOK_CHALLENGE_VISUAL_CLOSE_DIAGNOSTIC_POINTER_ACTION_NAME,
     ]
     close_action = pointer_actions[1]
     assert close_action.page_text_markers == (
@@ -428,6 +430,13 @@ def test_live_probe_challenge_close_diagnostic_flag_prepends_close_action(
     )
     assert close_action.exact_text_markers == ("x", "×")
     assert close_action.prefer_top_right is True
+    assert close_action.visual_top_right_x_fallback is True
+    visual_close_action = pointer_actions[5]
+    assert visual_close_action.action_name == (
+        TIKTOK_CHALLENGE_VISUAL_CLOSE_DIAGNOSTIC_POINTER_ACTION_NAME
+    )
+    assert visual_close_action.page_text_markers == ()
+    assert visual_close_action.visual_top_right_x_fallback is True
     assert cadence["capture_contract"]["challenge_close_diagnostic_allowed"] is True
     assert cadence["capture_contract"]["challenge_close_counts_as_success"] is False
     assert cadence["completed_count"] == 1
@@ -442,15 +451,44 @@ def test_live_probe_challenge_close_diagnostic_is_not_completion(
     tmp_path: Path,
 ) -> None:
     auth_root = _auth_state(tmp_path)
+    dom_close_receipt = _pointer_action_receipt(
+        action_name=TIKTOK_CHALLENGE_CLOSE_DIAGNOSTIC_POINTER_ACTION_NAME,
+        wait_ms=0,
+        page_text_gate_matched=False,
+        selection_strategy="top_right",
+    )
+    dom_close_receipt.update(
+        {
+            "candidate_count": 0,
+            "matched_count": 0,
+            "target_found": False,
+            "clicked": False,
+            "move_steps": None,
+        }
+    )
+    visual_close_receipt = _pointer_action_receipt(
+        action_name=TIKTOK_CHALLENGE_VISUAL_CLOSE_DIAGNOSTIC_POINTER_ACTION_NAME,
+        wait_ms=2000,
+        selection_strategy="top_right_visual_x",
+    )
+    visual_close_receipt.update(
+        {
+            "candidate_count": 0,
+            "matched_count": 0,
+            "target_kind": "visual_x",
+            "visual_fallback_attempted": True,
+            "visual_fallback_target_found": True,
+            "visual_fallback_candidate_count": 1,
+            "visual_fallback_confidence": 0.812,
+            "visual_fallback_screenshot_sha256": "a" * 64,
+            "visual_fallback_crop_box": {"x": 576, "y": 0, "width": 704, "height": 324},
+        }
+    )
     pointer_sequence = [
         _benign_overlay_action_receipt(),
-        _pointer_action_receipt(
-            action_name=TIKTOK_CHALLENGE_CLOSE_DIAGNOSTIC_POINTER_ACTION_NAME,
-            wait_ms=2000,
-            page_text_gate_matched=True,
-            selection_strategy="top_right",
-        ),
+        dom_close_receipt,
         *_pointer_action_sequence_receipt(),
+        visual_close_receipt,
     ]
     engine = _FakeObservationEngine(
         outcomes=[
@@ -491,7 +529,7 @@ def test_live_probe_challenge_close_diagnostic_is_not_completion(
     assert triage["blocker_class"] == "challenge_close_diagnostic"
     assert triage["action"] == "stop"
     assert triage["action_taken"] is True
-    assert triage["challenge_close_diagnostic"] == pointer_sequence[1]
+    assert triage["challenge_close_diagnostic"] == pointer_sequence[-1]
     assert triage["comment_action"]["action_count"] == 3
     assert triage["matched_comment_response_count"] == 1
     assert triage["admitted_comment_response_count"] == 1
@@ -501,15 +539,44 @@ def test_live_probe_challenge_after_close_diagnostic_keeps_challenge_stop(
     tmp_path: Path,
 ) -> None:
     auth_root = _auth_state(tmp_path)
+    dom_close_receipt = _pointer_action_receipt(
+        action_name=TIKTOK_CHALLENGE_CLOSE_DIAGNOSTIC_POINTER_ACTION_NAME,
+        wait_ms=0,
+        page_text_gate_matched=False,
+        selection_strategy="top_right",
+    )
+    dom_close_receipt.update(
+        {
+            "candidate_count": 0,
+            "matched_count": 0,
+            "target_found": False,
+            "clicked": False,
+            "move_steps": None,
+        }
+    )
+    visual_close_receipt = _pointer_action_receipt(
+        action_name=TIKTOK_CHALLENGE_VISUAL_CLOSE_DIAGNOSTIC_POINTER_ACTION_NAME,
+        wait_ms=2000,
+        selection_strategy="top_right_visual_x",
+    )
+    visual_close_receipt.update(
+        {
+            "candidate_count": 0,
+            "matched_count": 0,
+            "target_kind": "visual_x",
+            "visual_fallback_attempted": True,
+            "visual_fallback_target_found": True,
+            "visual_fallback_candidate_count": 1,
+            "visual_fallback_confidence": 0.812,
+            "visual_fallback_screenshot_sha256": "a" * 64,
+            "visual_fallback_crop_box": {"x": 576, "y": 0, "width": 704, "height": 324},
+        }
+    )
     pointer_sequence = [
         _benign_overlay_action_receipt(),
-        _pointer_action_receipt(
-            action_name=TIKTOK_CHALLENGE_CLOSE_DIAGNOSTIC_POINTER_ACTION_NAME,
-            wait_ms=2000,
-            page_text_gate_matched=True,
-            selection_strategy="top_right",
-        ),
+        dom_close_receipt,
         *_pointer_action_sequence_receipt(),
+        visual_close_receipt,
     ]
     engine = _FakeObservationEngine(
         outcomes=[
@@ -547,7 +614,7 @@ def test_live_probe_challenge_after_close_diagnostic_keeps_challenge_stop(
     triage = failure["blocker_triage"]
     assert triage["reason"] == "platform_challenge_observed"
     assert triage["matched_marker"] == "drag the slider"
-    assert triage["challenge_close_diagnostic"] == pointer_sequence[1]
+    assert triage["challenge_close_diagnostic"] == pointer_sequence[-1]
 
 
 
