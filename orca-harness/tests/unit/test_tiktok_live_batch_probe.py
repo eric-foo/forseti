@@ -28,6 +28,8 @@ from source_capture.tiktok.blocker_triage import (
 from source_capture.tiktok.live_batch_probe import (
     TIKTOK_COMMENT_ROUTE_NO_RESPONSE_REASON,
     TIKTOK_OPEN_COMMENTS_POINTER_ACTION_NAME,
+    TIKTOK_OPEN_MORE_LIKE_THIS_POINTER_ACTION_NAME,
+    TIKTOK_REOPEN_COMMENTS_POINTER_ACTION_NAME,
     is_tiktok_comment_list_url,
     write_tiktok_live_batch_probe_outputs,
 )
@@ -54,6 +56,7 @@ class _FakeObservationEngine:
         post_load_action_script: str | None = None,
         post_load_action_arg: object = None,
         post_load_pointer_action: BrowserPagePointerAction | None = None,
+        post_load_pointer_actions: tuple[BrowserPagePointerAction, ...] = (),
         selector: str | None = None,
         selector_timeout_seconds: float = 5.0,
         max_response_bytes: int = 5_000_000,
@@ -73,6 +76,7 @@ class _FakeObservationEngine:
                 "storage_state_path": storage_state_path,
                 "post_load_action_script": post_load_action_script,
                 "post_load_pointer_action": post_load_pointer_action,
+                "post_load_pointer_actions": post_load_pointer_actions,
                 "response_predicate_matches_comment_list": response_url_predicate(
                     "https://www.tiktok.com/api/comment/list/?aweme_id=7390000000000000001&cursor=0"
                 ),
@@ -168,26 +172,32 @@ def test_live_probe_writes_sanitized_staging_compatible_with_batch_admission(
         "action_taken": False,
     }
     assert cadence["results"][0]["capture_receipt"]["comment_action"] == {
-        "action_name": TIKTOK_OPEN_COMMENTS_POINTER_ACTION_NAME,
-        "candidate_count": 5,
-        "matched_count": 1,
-        "target_found": True,
-        "clicked": True,
-        "move_steps": 7,
-        "wait_ms": 2500,
-        "target_kind": "button",
+        "action_count": 3,
+        "action_sequence": _pointer_action_sequence_receipt(),
+        "clicked_all_targets": True,
     }
     assert engine.calls[0]["headless"] is False
     assert engine.calls[0]["post_load_action_script"] is None
-    pointer_action = engine.calls[0]["post_load_pointer_action"]
-    assert isinstance(pointer_action, BrowserPagePointerAction)
-    assert pointer_action.action_name == TIKTOK_OPEN_COMMENTS_POINTER_ACTION_NAME
-    assert pointer_action.candidate_selector == (
+    assert engine.calls[0]["post_load_pointer_action"] is None
+    pointer_actions = engine.calls[0]["post_load_pointer_actions"]
+    assert isinstance(pointer_actions, tuple)
+    assert [action.action_name for action in pointer_actions] == [
+        TIKTOK_OPEN_COMMENTS_POINTER_ACTION_NAME,
+        TIKTOK_OPEN_MORE_LIKE_THIS_POINTER_ACTION_NAME,
+        TIKTOK_REOPEN_COMMENTS_POINTER_ACTION_NAME,
+    ]
+    assert pointer_actions[0].candidate_selector == (
         '[data-e2e="comment-icon"],[data-e2e*="comment"],button,[role="button"],a'
     )
-    assert pointer_action.text_markers == ("comment", "comments")
-    assert pointer_action.move_steps_min == 6
-    assert pointer_action.move_steps_max == 12
+    assert pointer_actions[0].text_markers == ("comment", "comments")
+    assert pointer_actions[0].move_steps_min == 6
+    assert pointer_actions[0].move_steps_max == 12
+    assert pointer_actions[1].text_markers == (
+        "more like this",
+        "more-like-this",
+        "more_like_this",
+    )
+    assert pointer_actions[2].wait_after_ms == 3500
     assert engine.calls[0]["response_predicate_matches_comment_list"] is True
 
     code, message = write_tiktok_batch_packet(
@@ -393,7 +403,11 @@ def test_live_probe_stops_on_zero_comment_list_response(tmp_path: Path) -> None:
         "reason": TIKTOK_COMMENT_ROUTE_NO_RESPONSE_REASON,
         "action_mode": "diagnosis_only",
         "action_taken": False,
-        "comment_action": _pointer_action_receipt(),
+        "comment_action": {
+            "action_count": 3,
+            "action_sequence": _pointer_action_sequence_receipt(),
+            "clicked_all_targets": True,
+        },
         "response_count": 0,
         "matched_comment_response_count": 0,
         "admitted_comment_response_count": 0,
@@ -639,6 +653,7 @@ def _success_observation(
     response: BrowserPageResponse | None = None,
     responses: list[BrowserPageResponse] | None = None,
 ) -> BrowserPageObservationSuccess:
+    pointer_sequence = _pointer_action_sequence_receipt()
     return BrowserPageObservationSuccess(
         requested_url=f"https://www.tiktok.com/@funmi/video/{video_id}",
         final_url=f"https://www.tiktok.com/@funmi/video/{video_id}",
@@ -646,21 +661,45 @@ def _success_observation(
         visible_text="video loaded",
         dom_observation={"hydration_json_text": json.dumps(_hydration(video_id))},
         responses=responses if responses is not None else ([response] if response is not None else []),
-        metadata={"post_load_pointer_action": _pointer_action_receipt()},
+        metadata={
+            "post_load_pointer_action": pointer_sequence[-1],
+            "post_load_pointer_actions": pointer_sequence,
+        },
         warning_notes=[],
         limitation_notes=[],
     )
 
 
-def _pointer_action_receipt() -> dict[str, object]:
+def _pointer_action_sequence_receipt() -> list[dict[str, object]]:
+    return [
+        _pointer_action_receipt(
+            action_name=TIKTOK_OPEN_COMMENTS_POINTER_ACTION_NAME,
+            wait_ms=2000,
+        ),
+        _pointer_action_receipt(
+            action_name=TIKTOK_OPEN_MORE_LIKE_THIS_POINTER_ACTION_NAME,
+            wait_ms=2000,
+        ),
+        _pointer_action_receipt(
+            action_name=TIKTOK_REOPEN_COMMENTS_POINTER_ACTION_NAME,
+            wait_ms=3500,
+        ),
+    ]
+
+
+def _pointer_action_receipt(
+    *,
+    action_name: str = TIKTOK_OPEN_COMMENTS_POINTER_ACTION_NAME,
+    wait_ms: int = 2500,
+) -> dict[str, object]:
     return {
-        "action_name": TIKTOK_OPEN_COMMENTS_POINTER_ACTION_NAME,
+        "action_name": action_name,
         "candidate_count": 5,
         "matched_count": 1,
         "target_found": True,
         "clicked": True,
         "move_steps": 7,
-        "wait_ms": 2500,
+        "wait_ms": wait_ms,
         "target_kind": "button",
     }
 

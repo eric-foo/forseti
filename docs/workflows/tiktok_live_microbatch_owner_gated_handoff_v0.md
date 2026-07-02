@@ -42,8 +42,8 @@ input_hashes:
   docs/workflows/tiktok_behavioral_sync_fresh_lane_handoff_v0.md: 0fcda55434efb97791c495e112e7682f9cc1b42d
   docs/workflows/tiktok_comment_response_capture_pr559_adjudication_handoff_v0.md: 5a814dad39d79222ea78631e395ff382d4fc7396
   docs/workflows/tiktok_funmi_n30_comment_subtitle_cadence_analysis_v0.md: 8385e43615e76a2503e9f36468dbdcd7c92268a3
-  orca-harness/source_capture/adapters/browser_snapshot.py: 2f06de77e724aaf2a0ba58bef14a5367b60992ec
-  orca-harness/source_capture/tiktok/live_batch_probe.py: bde58b80a09b27989393fde36ca22b945deea213
+  orca-harness/source_capture/adapters/browser_snapshot.py: 626200271254fbec54185226c9be220c19f80b9a
+  orca-harness/source_capture/tiktok/live_batch_probe.py: aac1a950af1ddfeee82c97b7d26844a1c43ed4a4
   orca-harness/source_capture/tiktok/blocker_triage.py: b0c7d320dc09ee4f65c59d1014deebf2b03d0d80
   orca-harness/source_capture/tiktok/batch_packet.py: b6758d7615a96804e48714283f1925577c7dc22c
   orca-harness/source_capture/tiktok/admission.py: 45a86b554772a58300b23be077a48b32f8dcd8de
@@ -51,7 +51,7 @@ input_hashes:
   orca-harness/runners/run_source_capture_tiktok_batch_packet.py: 856b76df0be96b47040486260b52a427444072d9
 stale_if:
   - PR #583 is reverted or the TikTok blocker-triage/live-probe stop behavior is superseded.
-  - `live_batch_probe.py`, `blocker_triage.py`, `batch_packet.py`, or `admission.py` changes materially.
+  - `browser_snapshot.py`, `live_batch_probe.py`, `blocker_triage.py`, `batch_packet.py`, or `admission.py` changes materially.
   - The TikTok behavioral-sync handoff, PR #559 handoff, or Funmi N30 receipt changes materially.
   - The TikTok capture lane spec or sessioned warm-probe plan changes materially.
   - The owner changes live-run account-risk posture, session posture, or no-CAPTCHA-solving policy.
@@ -175,9 +175,17 @@ handoff depends on:
   with `attempted_count=1`, `completed_count=0`, `challenge_count=0`, and
   `comment_list_response_absent`. The pointer action found/clicked a matched
   role button (`candidate_count=48`, `matched_count=3`) but observed zero
-  page-owned comment-list responses. After that retry, the pointer target script
-  was further hardened to prefer exact `data-e2e="comment-icon"`; that exact
-  priority patch is locally tested but not yet live-proven.
+  page-owned comment-list responses.
+- Owner correction on 2026-07-03: the known zero-comment route opener is to
+  open comments, click the `More like this` tab, then return to comments. The
+  runner now performs that bounded pointer sequence and records each action in
+  sanitized metadata.
+- The first corrected live retry on 2026-07-03 used that sequence on the Funmi
+  video and stopped with `attempted_count=1`, `completed_count=0`,
+  `challenge_count=1`, `reason=platform_challenge_observed`, and zero admitted
+  comment-list responses. No admission, expansion, challenge solving,
+  challenge-close click, or product extraction occurred.
+
 
 ## Exact Next Authorized Action
 
@@ -219,8 +227,10 @@ handoff depends on:
    It does not expose `--auth-state-root`; the default auth-state root is from
    `source_capture/auth_state.py` unless the code has changed.
 
-4. Run exactly one known public video first, using current CLI help as source of
-   truth. Shape:
+4. If owner/human account-posture review reauthorizes another live retry, run
+   exactly one known public video first, using current CLI help as source of
+   truth. The current runner performs the bounded comments -> `More like this`
+   -> comments route opener internally. Shape:
 
    ```powershell
    $env:PYTHONPATH = "orca-harness"
@@ -237,6 +247,7 @@ handoff depends on:
    Do not add flags that are not present in `--help`. Keep default cadence unless
    the owner explicitly directs a different small-N cadence.
 
+
 5. Inspect the first-video outputs before admission or expansion:
 
    - `tiktok_live_grid_result.json`
@@ -245,6 +256,8 @@ handoff depends on:
    Required to continue: `attempted_count=1`, `completed_count=1`,
    `challenge_count=0`, no failures, capture contract clean, and
    `results[0].capture_receipt.admitted_comment_response_count >= 1`.
+
+   If `challenge_count` is nonzero or failures contain a challenge/auth stop, stop.
 
    If `admitted_comment_response_count` is zero, stop and report
    `comment_list_response_absent` with the comment-action receipt. Do not admit
@@ -322,10 +335,10 @@ Fresh-read sources used while writing this handoff:
 - `tiktok_funmi_n30_comment_subtitle_cadence_analysis_v0.md`: measured
   Funmi/session N30 result with `30/30` comment responses, 596 parsed comments,
   and `26/26` WebVTT success when subtitle metadata existed.
-- `browser_snapshot.py`: shared page-response observer and pointer target script;
-  marker matching includes stable data attributes such as `data-e2e`.
-- `live_batch_probe.py`: local staging writer, stop hooks, TikTok comment-icon
-  pointer-action parameters, zero-response stop, sensitive-material assertion,
+- `browser_snapshot.py`: shared page-response observer, bounded pointer target script,
+  and multi-action pointer-sequence metadata.
+- `live_batch_probe.py`: local staging writer, stop hooks, TikTok
+  comments/More-like-this/comments pointer-action sequence, zero-response stop,
   output names, and capture contract.
 - `blocker_triage.py`: challenge/auth-wall stop, missing itemStruct reload
   candidate classification, ambiguous dismiss stop, and classification-only model.
@@ -335,31 +348,44 @@ Fresh-read sources used while writing this handoff:
 
 ## Current Task State
 
-Corrected after the 2026-07-02 zero-response micro-batch diagnostic and a
-one-video Funmi route-yield retry that stopped with `comment_list_response_absent`.
-This handoff is not reusable as a direct 3-5 creator execution packet until a
+Corrected after the 2026-07-02 zero-response micro-batch diagnostic, the
+one-video Funmi zero-yield retries, and the 2026-07-03 owner correction that
+the route opener must toggle comments -> `More like this` -> comments. This
+handoff is not reusable as a direct 3-5 creator execution packet until a
 one-video route-yield gate captures at least one admitted page-owned
-`/api/comment/list` response under the current runner. The exact `comment-icon`
-priority patch is ready for the next one-video retry, not for broad expansion.
+`/api/comment/list` response under the current runner and then admits cleanly.
+
+Current live state: the corrected 2026-07-03 one-video retry stopped on
+`platform_challenge_observed` with `challenge_count=1`; no admission or
+expansion is authorized from that receipt. A further live retry should start
+from owner/human account-posture review, not from blind repetition.
+
 
 ## Changed / Inspected / Tested Files In This Handoff Lane
 
 Changed:
 
 - `docs/workflows/tiktok_live_microbatch_owner_gated_handoff_v0.md`
-- `docs/workflows/orca_repo_map_v0.md` if the companion repo-map row is present
-  in the same commit/PR
+- `orca-harness/source_capture/adapters/browser_snapshot.py`
+- `orca-harness/source_capture/tiktok/live_batch_probe.py`
+- `orca-harness/tests/unit/test_source_capture_browser_snapshot.py`
+- `orca-harness/tests/unit/test_tiktok_live_batch_probe.py`
 
 Inspected:
 
-- All files in `open_next`, plus `.agents/workflow-overlay/retrieval-metadata.md`
-  and `docs/workflows/orca_repo_map_v0.md`.
+- All files in `open_next` needed for this live route-yield gate and stop-state
+  repair.
 
-Validation expected for this docs-only handoff:
+Validation completed:
 
-- `git diff --check`
-- repo-map/header checks if available in the local hook surface
-- no live TikTok/browser/network run
+- `PYTHONPATH=orca-harness python -m pytest -q orca-harness/tests/unit/test_source_capture_browser_snapshot.py orca-harness/tests/unit/test_tiktok_live_batch_probe.py orca-harness/tests/unit/test_tiktok_batch_admission.py`
+  -> `54 passed`
+- One owner-authorized live retry using auth-state label `tiktok-batch1-20260630`
+  and `session_mode=client_provided_session`; result stopped on
+  `platform_challenge_observed` before admission/expansion.
+- Forbidden-marker scan over the latest retry scratch output returned no matches.
+- Temporary copied auth-state files were removed after the run.
+
 
 ## Dangerous To Reuse
 
@@ -370,6 +396,8 @@ Validation expected for this docs-only handoff:
 - Do not reuse pre-PR #583 assumptions that itemStruct-present rows can ignore a
   blocker-triage stop verdict.
 - Do not reuse any command that adds non-existent live-runner flags.
+- Do not repeat live retries blindly after `platform_challenge_observed`; require
+  owner/human account-posture review before another live browser action.
 - Do not reuse the old continuation gate that allowed a 3-5 creator run after
   sanitized staging plus admission alone. Zero comment-list response yield is a
   stop/diagnosis class, not a completed capture row.
@@ -393,10 +421,14 @@ not perform work excluded by the packet's Drift Guard unless explicitly redirect
 by the current user.
 
 First task after getting your bearings: verify owner/live-run preconditions and
-run the TikTok live route-yield gate exactly as bounded there: one known public
-video first, sanitized staging, at least one admitted page-owned `/api/comment/list`
-response required before admission/expansion, and stop on the first real challenge,
-unresolved blocker, or zero-comment-response route diagnosis. Do not solve
-CAPTCHA/slider challenges, do not click challenge-close controls to claim success,
-do not expand directly to 3-5 creators, and do not do product extraction.
+the current stop state. Do not run another live retry blindly: the latest
+corrected route opener stopped on `platform_challenge_observed`. If the owner
+explicitly reauthorizes after human account/session review, run only the
+one-video route-yield gate first, using the bounded comments -> More like this
+-> comments sequence; require at least one admitted page-owned
+`/api/comment/list` response before admission/expansion; stop on any real
+challenge, unresolved blocker, or zero-comment-response route diagnosis. Do
+not solve CAPTCHA/slider challenges, do not click challenge-close controls to
+claim success, do not expand directly to 3-5 creators, and do not do product
+extraction.
 ```

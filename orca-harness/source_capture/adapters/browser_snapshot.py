@@ -198,6 +198,7 @@ class BrowserPageObservationEngine(Protocol):
         post_load_action_script: str | None = None,
         post_load_action_arg: object = None,
         post_load_pointer_action: BrowserPagePointerAction | None = None,
+        post_load_pointer_actions: Sequence[BrowserPagePointerAction] = (),
         selector: str | None = None,
         selector_timeout_seconds: float = 5.0,
         max_response_bytes: int = DEFAULT_MAX_ARTIFACT_BYTES,
@@ -392,6 +393,7 @@ def fetch_browser_page_observation_capture(
     post_load_action_script: str | None = None,
     post_load_action_arg: object = None,
     post_load_pointer_action: BrowserPagePointerAction | None = None,
+    post_load_pointer_actions: Sequence[BrowserPagePointerAction] = (),
     timeout_seconds: float = DEFAULT_TIMEOUT_SECONDS,
     wait_until: str = "load",
     viewport_width: int = DEFAULT_VIEWPORT_WIDTH,
@@ -427,7 +429,14 @@ def fetch_browser_page_observation_capture(
     if post_load_action_script is not None and not post_load_action_script.strip():
         raise ValueError("post_load_action_script must not be blank")
     normalized_pointer_action = _normalize_pointer_action(post_load_pointer_action)
-    if post_load_action_script is not None and normalized_pointer_action is not None:
+    normalized_pointer_actions = _normalize_pointer_actions(post_load_pointer_actions)
+    if normalized_pointer_action is not None and normalized_pointer_actions:
+        raise ValueError(
+            "post_load_pointer_action and post_load_pointer_actions are mutually exclusive"
+        )
+    if post_load_action_script is not None and (
+        normalized_pointer_action is not None or normalized_pointer_actions
+    ):
         raise ValueError("post_load_action_script and post_load_pointer_action are mutually exclusive")
     if wait_until not in ALLOWED_WAIT_UNTIL:
         allowed = ", ".join(sorted(ALLOWED_WAIT_UNTIL))
@@ -447,6 +456,7 @@ def fetch_browser_page_observation_capture(
             post_load_action_script=post_load_action_script,
             post_load_action_arg=post_load_action_arg,
             post_load_pointer_action=normalized_pointer_action,
+            post_load_pointer_actions=normalized_pointer_actions,
             selector=selector,
             selector_timeout_seconds=selector_timeout_seconds,
             max_response_bytes=max_response_bytes,
@@ -676,6 +686,7 @@ class _PlaywrightBrowserSnapshotEngine:
         post_load_action_script: str | None = None,
         post_load_action_arg: object = None,
         post_load_pointer_action: BrowserPagePointerAction | None = None,
+        post_load_pointer_actions: Sequence[BrowserPagePointerAction] = (),
         selector: str | None = None,
         selector_timeout_seconds: float = 5.0,
         max_response_bytes: int = DEFAULT_MAX_ARTIFACT_BYTES,
@@ -761,10 +772,15 @@ class _PlaywrightBrowserSnapshotEngine:
                                 f"browser_page_observation selector wait failed: {exc}"
                             )
                     pointer_action_receipt: dict[str, object] | None = None
+                    pointer_action_receipts: list[dict[str, object]] = []
                     if post_load_action_script is not None:
                         page.evaluate(post_load_action_script, post_load_action_arg)
                     if post_load_pointer_action is not None:
                         pointer_action_receipt = _run_pointer_action(page, post_load_pointer_action)
+                        pointer_action_receipts.append(pointer_action_receipt)
+                    for pointer_action in post_load_pointer_actions:
+                        pointer_action_receipt = _run_pointer_action(page, pointer_action)
+                        pointer_action_receipts.append(pointer_action_receipt)
                     try:
                         visible_text = page.locator("body").inner_text(timeout=timeout_ms)
                     except Exception as exc:
@@ -803,8 +819,9 @@ class _PlaywrightBrowserSnapshotEngine:
                         "settle_seconds": settle_seconds,
                         "dom_observation_stage": "pre_lazy_load_scroll",
                         "post_load_action_executed": post_load_action_script is not None
-                        or post_load_pointer_action is not None,
+                        or bool(pointer_action_receipts),
                         "post_load_pointer_action": pointer_action_receipt,
+                        "post_load_pointer_actions": pointer_action_receipts,
                         "lazy_load_scroll_passes": lazy_load_scroll_passes,
                         "lazy_load_scroll_step_px": lazy_load_scroll_step_px,
                         "lazy_load_scroll_passes_executed": lazy_load_scroll_result.executed_passes,
@@ -1157,6 +1174,18 @@ def _normalize_pointer_action(
         random_seed=int(action.random_seed),
     )
 
+
+
+def _normalize_pointer_actions(
+    actions: Sequence[BrowserPagePointerAction],
+) -> tuple[BrowserPagePointerAction, ...]:
+    normalized: list[BrowserPagePointerAction] = []
+    for action in actions:
+        normalized_action = _normalize_pointer_action(action)
+        if normalized_action is None:
+            raise ValueError("post_load_pointer_actions entries must not be None")
+        normalized.append(normalized_action)
+    return tuple(normalized)
 
 def _run_pointer_action(page: object, action: BrowserPagePointerAction) -> dict[str, object]:
     receipt: dict[str, object] = {

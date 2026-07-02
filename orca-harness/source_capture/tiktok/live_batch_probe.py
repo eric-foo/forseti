@@ -47,6 +47,8 @@ TIKTOK_VIDEO_DOM_EXTRACT_SCRIPT = r"""
 """.strip()
 
 TIKTOK_OPEN_COMMENTS_POINTER_ACTION_NAME = "tiktok_open_comments_pointer_v0"
+TIKTOK_OPEN_MORE_LIKE_THIS_POINTER_ACTION_NAME = "tiktok_open_more_like_this_pointer_v0"
+TIKTOK_REOPEN_COMMENTS_POINTER_ACTION_NAME = "tiktok_reopen_comments_pointer_v0"
 TIKTOK_COMMENT_LIST_RESPONSE_CAP = 2
 TIKTOK_COMMENT_ROUTE_NO_RESPONSE_REASON = "comment_list_response_absent"
 
@@ -188,7 +190,7 @@ def run_tiktok_live_batch_probe(
             dom_extract_script=TIKTOK_VIDEO_DOM_EXTRACT_SCRIPT,
             dom_extract_arg=None,
             response_url_predicate=is_tiktok_comment_list_url,
-            post_load_pointer_action=_tiktok_open_comments_pointer_action(
+            post_load_pointer_actions=_tiktok_comment_route_pointer_actions(
                 video_id=video_id,
                 random_seed=random_seed,
             ),
@@ -321,8 +323,8 @@ def run_tiktok_live_batch_probe(
                     reason=TIKTOK_COMMENT_ROUTE_NO_RESPONSE_REASON,
                     detail=(
                         "No page-owned TikTok /api/comment/list response was observed after "
-                        "the bounded comment-open action; probe stopped before treating this "
-                        "as a completed comment-capture row."
+                        "the bounded comments/more-like-this/comments route-opening action; "
+                        "probe stopped before treating this as a completed comment-capture row."
                     ),
                     blocker_triage={
                         "blocker_class": "comment_route_zero_yield",
@@ -401,29 +403,86 @@ def _blocker_triage_receipt(triage: TikTokBlockerTriage) -> JsonObject:
     return receipt
 
 
+def _tiktok_comment_route_pointer_actions(
+    *,
+    video_id: str,
+    random_seed: int | None,
+) -> tuple[BrowserPagePointerAction, ...]:
+    return (
+        _tiktok_open_comments_pointer_action(
+            video_id=video_id,
+            random_seed=random_seed,
+            action_name=TIKTOK_OPEN_COMMENTS_POINTER_ACTION_NAME,
+            wait_after_ms=2000,
+        ),
+        _tiktok_open_more_like_this_pointer_action(
+            video_id=video_id,
+            random_seed=random_seed,
+        ),
+        _tiktok_open_comments_pointer_action(
+            video_id=video_id,
+            random_seed=random_seed,
+            action_name=TIKTOK_REOPEN_COMMENTS_POINTER_ACTION_NAME,
+            wait_after_ms=3500,
+        ),
+    )
+
+
 def _tiktok_open_comments_pointer_action(
+    *,
+    video_id: str,
+    random_seed: int | None,
+    action_name: str,
+    wait_after_ms: int,
+) -> BrowserPagePointerAction:
+    return BrowserPagePointerAction(
+        action_name=action_name,
+        candidate_selector=(
+            '[data-e2e="comment-icon"],[data-e2e*="comment"],button,[role="button"],a'
+        ),
+        text_markers=("comment", "comments"),
+        wait_after_ms=wait_after_ms,
+        move_steps_min=6,
+        move_steps_max=12,
+        target_fraction_min=0.35,
+        target_fraction_max=0.65,
+        random_seed=_stable_pointer_seed(
+            video_id=video_id,
+            random_seed=random_seed,
+            action_name=action_name,
+        ),
+    )
+
+
+def _tiktok_open_more_like_this_pointer_action(
     *,
     video_id: str,
     random_seed: int | None,
 ) -> BrowserPagePointerAction:
     return BrowserPagePointerAction(
-        action_name=TIKTOK_OPEN_COMMENTS_POINTER_ACTION_NAME,
+        action_name=TIKTOK_OPEN_MORE_LIKE_THIS_POINTER_ACTION_NAME,
         candidate_selector=(
-            '[data-e2e="comment-icon"],[data-e2e*="comment"],button,[role="button"],a'
+            '[role="tab"],button,[role="button"],a,[data-e2e*="more-like"],'
+            '[data-e2e*="more_like"],[data-testid*="more-like"],'
+            '[data-test-id*="more-like"]'
         ),
-        text_markers=("comment", "comments"),
-        wait_after_ms=2500,
+        text_markers=("more like this", "more-like-this", "more_like_this"),
+        wait_after_ms=2000,
         move_steps_min=6,
         move_steps_max=12,
         target_fraction_min=0.35,
         target_fraction_max=0.65,
-        random_seed=_stable_pointer_seed(video_id=video_id, random_seed=random_seed),
+        random_seed=_stable_pointer_seed(
+            video_id=video_id,
+            random_seed=random_seed,
+            action_name=TIKTOK_OPEN_MORE_LIKE_THIS_POINTER_ACTION_NAME,
+        ),
     )
 
 
-def _stable_pointer_seed(*, video_id: str, random_seed: int | None) -> int:
+def _stable_pointer_seed(*, video_id: str, random_seed: int | None, action_name: str) -> int:
     base_seed = random_seed if random_seed is not None else 0
-    material = f"{base_seed}:{video_id}:{TIKTOK_OPEN_COMMENTS_POINTER_ACTION_NAME}"
+    material = f"{base_seed}:{video_id}:{action_name}"
     return int(sha256(material.encode("utf-8")).hexdigest()[:16], 16)
 
 
@@ -514,21 +573,27 @@ def _page_owned_comment_list_responses(
 
 
 def _comment_action_summary(capture_result: BrowserPageObservationSuccess) -> JsonObject:
-    action = _as_dict(_as_dict(capture_result.metadata).get("post_load_pointer_action"))
+    metadata = _as_dict(capture_result.metadata)
+    action_sequence = [
+        _pointer_action_summary(_as_dict(action))
+        for action in _as_list(metadata.get("post_load_pointer_actions"))
+    ]
+    action_sequence = [action for action in action_sequence if action]
+    if len(action_sequence) > 1:
+        return {
+            "action_count": len(action_sequence),
+            "action_sequence": action_sequence,
+            "clicked_all_targets": all(
+                action.get("target_found") is True and action.get("clicked") is True
+                for action in action_sequence
+            ),
+        }
+    if len(action_sequence) == 1:
+        return action_sequence[0]
+
+    action = _as_dict(metadata.get("post_load_pointer_action"))
     if action:
-        return _drop_none(
-            {
-                "action_name": _first_str(action.get("action_name")),
-                "candidate_count": _first_int(action.get("candidate_count")),
-                "matched_count": _first_int(action.get("matched_count")),
-                "target_found": _first_bool(action.get("target_found")),
-                "clicked": _first_bool(action.get("clicked")),
-                "move_steps": _first_int(action.get("move_steps")),
-                "wait_ms": _first_int(action.get("wait_ms")),
-                "target_kind": _first_str(action.get("target_kind")),
-                "failure": _first_str(action.get("failure")),
-            }
-        )
+        return _pointer_action_summary(action)
 
     legacy_action = _as_dict(_as_dict(capture_result.dom_observation).get("comment_action"))
     if not legacy_action:
@@ -539,6 +604,23 @@ def _comment_action_summary(capture_result: BrowserPageObservationSuccess) -> Js
             "clicked": _first_bool(legacy_action.get("clicked")),
         }
     )
+
+
+def _pointer_action_summary(action: JsonObject) -> JsonObject:
+    return _drop_none(
+        {
+            "action_name": _first_str(action.get("action_name")),
+            "candidate_count": _first_int(action.get("candidate_count")),
+            "matched_count": _first_int(action.get("matched_count")),
+            "target_found": _first_bool(action.get("target_found")),
+            "clicked": _first_bool(action.get("clicked")),
+            "move_steps": _first_int(action.get("move_steps")),
+            "wait_ms": _first_int(action.get("wait_ms")),
+            "target_kind": _first_str(action.get("target_kind")),
+            "failure": _first_str(action.get("failure")),
+        }
+    )
+
 
 def _is_page_owned_comment_list_response(response: BrowserPageResponse) -> bool:
     if not is_tiktok_comment_list_url(response.final_url or response.requested_url):

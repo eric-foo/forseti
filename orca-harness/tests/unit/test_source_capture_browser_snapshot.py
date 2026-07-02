@@ -156,6 +156,7 @@ class _FakeObservationPage:
         *,
         height: int = 3_000,
         pointer_target: dict[str, object] | None = None,
+        pointer_targets: list[dict[str, object]] | None = None,
     ) -> None:
         self.event_log = event_log
         self.height = height
@@ -163,6 +164,7 @@ class _FakeObservationPage:
         self.response_callback: object | None = None
         self.response_emitted = False
         self.pointer_target = pointer_target
+        self.pointer_targets = list(pointer_targets or [])
         self.mouse = _FakeObservationMouse(self)
 
     def route(self, *_args: object, **_kwargs: object) -> None:
@@ -204,6 +206,8 @@ class _FakeObservationPage:
             return {"postLoadAction": arg}
         if "candidate_selector" in script and "target_found" in script:
             self.event_log.append("pointer_target_lookup")
+            if self.pointer_targets:
+                return self.pointer_targets.pop(0)
             return self.pointer_target or {
                 "candidate_count": 0,
                 "matched_count": 0,
@@ -754,6 +758,52 @@ def test_fetch_browser_page_observation_capture_threads_pointer_action_to_engine
     )
 
 
+
+
+def test_fetch_browser_page_observation_capture_threads_pointer_actions_to_engine() -> None:
+    engine = _ok_page_observation_engine()
+    pointer_actions = (
+        BrowserPagePointerAction(
+            action_name=" open_comments ",
+            candidate_selector=" button ",
+            text_markers=(" Comments ",),
+            random_seed=7,
+        ),
+        BrowserPagePointerAction(
+            action_name=" more_like_this ",
+            candidate_selector=" [role='tab'] ",
+            text_markers=(" More like this ",),
+            random_seed=8,
+        ),
+    )
+
+    result = fetch_browser_page_observation_capture(
+        url="https://example.com/source",
+        dom_extract_script="() => ({items: []})",
+        dom_extract_arg={},
+        response_url_predicate=lambda url: "widget" in url,
+        post_load_pointer_actions=pointer_actions,
+        engine=engine,
+    )
+
+    assert isinstance(result, BrowserPageObservationSuccess)
+    assert engine.capture_kwargs is not None
+    assert engine.capture_kwargs["post_load_action_script"] is None
+    assert engine.capture_kwargs["post_load_pointer_action"] is None
+    assert engine.capture_kwargs["post_load_pointer_actions"] == (
+        BrowserPagePointerAction(
+            action_name="open_comments",
+            candidate_selector="button",
+            text_markers=("comments",),
+            random_seed=7,
+        ),
+        BrowserPagePointerAction(
+            action_name="more_like_this",
+            candidate_selector="[role='tab']",
+            text_markers=("more like this",),
+            random_seed=8,
+        ),
+    )
 def test_pointer_action_target_script_matches_data_attributes() -> None:
     script = browser_snapshot_module._POINTER_ACTION_TARGET_SCRIPT
     assert "data-e2e" in script
@@ -934,6 +984,79 @@ def test_playwright_page_observation_runs_pointer_action_before_dom_and_reads_re
     assert event_log.index("dom_extract") < event_log.index("response_text")
 
 
+
+
+def test_playwright_page_observation_runs_pointer_action_sequence_before_dom(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    event_log: list[str] = []
+    page = _FakeObservationPage(
+        event_log,
+        pointer_targets=[
+            {
+                "candidate_count": 3,
+                "matched_count": 1,
+                "target_found": True,
+                "target_kind": "tab",
+                "box": {"x": 10, "y": 20, "width": 100, "height": 50},
+            },
+            {
+                "candidate_count": 5,
+                "matched_count": 2,
+                "target_found": True,
+                "target_kind": "button",
+                "box": {"x": 30, "y": 40, "width": 120, "height": 60},
+            },
+        ],
+    )
+    _install_fake_playwright(monkeypatch, page)
+
+    result = browser_snapshot_module._PlaywrightBrowserSnapshotEngine().capture_page_observation(
+        url="https://example.com/source",
+        timeout_seconds=1,
+        wait_until="load",
+        viewport_width=1280,
+        viewport_height=720,
+        dom_extract_script="() => ({items: []})",
+        dom_extract_arg={},
+        response_url_predicate=lambda url: "widget" in url,
+        post_load_pointer_actions=(
+            BrowserPagePointerAction(
+                action_name="open_more_like_this",
+                candidate_selector="[role='tab']",
+                text_markers=("more like this",),
+                wait_after_ms=1000,
+                move_steps_min=3,
+                move_steps_max=3,
+                random_seed=11,
+            ),
+            BrowserPagePointerAction(
+                action_name="reopen_comments",
+                candidate_selector="button",
+                text_markers=("comments",),
+                wait_after_ms=2000,
+                move_steps_min=4,
+                move_steps_max=4,
+                random_seed=12,
+            ),
+        ),
+    )
+
+    receipts = result.metadata["post_load_pointer_actions"]
+    assert isinstance(receipts, list)
+    assert [receipt["action_name"] for receipt in receipts] == [
+        "open_more_like_this",
+        "reopen_comments",
+    ]
+    assert receipts[0]["target_kind"] == "tab"
+    assert receipts[1]["target_kind"] == "button"
+    assert result.metadata["post_load_pointer_action"] == receipts[-1]
+    assert result.metadata["post_load_action_executed"] is True
+    assert result.responses[0].body_text == "{}"
+    assert event_log.count("pointer_target_lookup") == 2
+    assert event_log.count("mouse_click") == 2
+    assert event_log.index("wait:2000") < event_log.index("inner_text")
+    assert event_log.index("dom_extract") < event_log.index("response_text")
 def test_playwright_page_observation_records_pointer_no_target_without_click(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
