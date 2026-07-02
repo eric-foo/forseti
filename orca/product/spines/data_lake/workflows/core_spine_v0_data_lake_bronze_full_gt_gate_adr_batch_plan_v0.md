@@ -30,14 +30,23 @@ stale_if:
 
 ## Status
 
-`GATE_ADR_BATCH_PLAN_RECORDED_V0; B2_B3_AUTHORED_AWAITING_B5_REVIEW_AND_RATIFICATION`.
+`GATE_ADR_BATCH_PLAN_RECORDED_V0; B5_EXECUTED_AND_ADJUDICATED_AWAITING_OWNER_RATIFICATION`.
 
 B2 and B3 were authored 2026-07-02:
 `core_spine_v0_data_lake_bronze_full_gt_gate1_attachment_record_body_layout_adr_v0.md`
-(packet-member default; sidecar reserved; G1-D locked behind Gate 2) and
+(packet-member default; sidecar reserved; G1-D locked behind Gate 2 plus a
+backend/physicalization ADR) and
 `core_spine_v0_data_lake_bronze_full_gt_gate2_retention_lawful_erasure_posture_adr_v0.md`
-(explicit deferral with the full accepted-residual record). Both await B5
-delegated review and owner ratification; nothing is selected yet.
+(explicit deferral with the full accepted-residual record). B5 executed
+2026-07-02 (GPT-5 controller: cross_vendor_discovery for both ADRs,
+same_vendor_sanity for the brief recheck; `[gate1-adr]` patched for AR-01
+stale raw-path grammar and AR-02 G1-D under-gating, both CA-adjudicated and
+kept; `[gate2-adr]` and `[brief-recheck]` no-patch). Report:
+`docs/review-outputs/adversarial-artifact-reviews/core_spine_v0_data_lake_bronze_full_gt_gate_adr_batch_delegated_adversarial_review_patch_v0.md`.
+The only remaining batch step is owner ratification of both gates. The brief's
+cross-vendor discovery bar remains open (two same-vendor passes so far); the
+owner may accept it as a residual at ratification or commission a
+non-OpenAI-family pass.
 
 This is a planning and sequencing record. It is not implementation
 authorization, gate ratification, backend/layout/retention selection,

@@ -51,11 +51,13 @@ orca_start_preflight:
 
 ```text
 Selected (pending ratification): PACKET-MEMBER is the default physical body
-home. An Attachment Record body lands as immutable packet material under
-raw/<packet_id>/ at capture/publish time, exactly as preserved files land
-today. The attachments/ sidecar slot stays RESERVED, usable only through a
-future ADR when a body genuinely cannot land inside its packet. External
-blob/database bodies (G1-D) stay locked behind Gate 2. Durable entry
+home. An Attachment Record body lands as immutable packet material inside the
+packet's raw container under the current raw-admission grammar, exactly as
+preserved files land today; this selects the body relationship, not a new raw
+path schema. The attachments/ sidecar slot stays RESERVED, usable only through
+a future ADR when a body genuinely cannot land inside its packet. External
+blob/database bodies (G1-D) stay locked behind Gate 2 plus a separate
+backend/physicalization ADR that proves the storage invariants. Durable entry
 serialization (Manifest v2 vs packet-index) stays deferred to the A2 fork,
 which stays gated on the A1 deterministic inventory.
 ```
@@ -72,7 +74,7 @@ serialization or backend before the A1 inventory and Gate 2 exist.
 | G1-A incumbent generated-AR posture | Keep generated AR entries over preserved bodies; layout formally undecided. | Subsumed | Its physical substance IS packet-member; this ADR ratifies that substance instead of leaving it incidental. |
 | G1-B packet-member / bundle body | Body is immutable packet material with a compact keyed entry. | **Selected as default** | Matches current proven reality; strongest raw-authority fit; hash basis and packet identity stay local; no second body home. |
 | G1-C hash-pinned sidecar under `attachments/` | Body lives beside packets, keyed and hash-pinned. | Deferred (slot reserved) | No current body needs it; a second home doubles resolution/verification paths. Reopen trigger below. |
-| G1-D external blob/database row | Body in backend material with hash-checked ref. | Rejected until Gate 2 | Highest lock-in; the storage contract's engine boundary and Gate 2 must be satisfied first. |
+| G1-D external blob/database row | Body in backend material with hash-checked ref. | Rejected until Gate 2 plus a backend/physicalization ADR | Highest lock-in; the storage contract's engine boundary and Gate 2 must be satisfied before an external body store is even eligible. |
 
 Sidecar reopen trigger: a concrete body that cannot land inside its packet at
 publish time - late-arriving material for a pinned packet, or media whose size
@@ -94,8 +96,12 @@ rejected per the AR contract).
    the rule. A verifier re-reads the packet-relative file and re-hashes those
    bytes; nothing else (no manifest text, no metadata) is inside the basis.
 3. **Physical relationship.** Packet-member: the body is immutable material
-   inside `raw/<packet_id>/`, written once at staging/publish. `attachments/`
-   reserved (deferred), external bodies rejected until Gate 2.
+   inside the packet's raw container under the raw-admission key grammar
+   (currently `raw/<packet_shard>/<packet_id>/`, with by-key lookup recomputing
+   the shard), written once at staging/publish. The body reference remains
+   packet-relative; this ADR does not create a second raw path contract.
+   `attachments/` reserved (deferred), external bodies rejected until Gate 2
+   plus a backend/physicalization ADR.
 4. **Public read surface.** `source_surface_catalog_rows`,
    `load_attachment_record_body`, and their successors remain the only public
    resolution path; Silver resolves and hash-verifies through them and never
@@ -106,10 +112,12 @@ rejected per the AR contract).
 6. **Rebuild rule.** All indexes/catalog state rebuild from committed packet
    material and keys; nothing about this selection makes any index
    load-bearing.
-7. **Replay/migration implication.** Zero migration: existing packets already
-   satisfy the selected shape. Incumbent direct fields stay legacy-readable
-   (storage contract blocker-2 direction); corrections/replays append new
-   packet material; pinned packets are never mutated in place.
+7. **Replay/migration implication.** Zero body-home migration for the currently
+   exercised preserved-body shape: existing packets already satisfy the selected
+   relationship. Raw path grammar, Manifest/index serialization, dual-read, and
+   replay mechanics remain separate decisions. Incumbent direct fields stay
+   legacy-readable (storage contract blocker-2 direction); corrections/replays
+   append new packet material; pinned packets are never mutated in place.
 8. **Rejected shapes.** Everything the AR contract rejects, affirmed;
    plus, from this ADR: no second body home without a ratified ADR; no body
    bytes promoted into lake-core fields; no consumer resolution that bypasses
@@ -125,7 +133,8 @@ rejected per the AR contract).
   bodies; a media-heavy source family may hit the sidecar reopen trigger.
 - **Backend remains unselected.** Packet-member is a layout relationship, not
   a filesystem commitment; a future backend must reproduce this relationship
-  and prove the storage-contract invariants.
+  and prove the storage-contract invariants. Gate 2 ratification or deferral
+  alone does not unlock G1-D external bodies.
 
 ## Owner Ratification
 
