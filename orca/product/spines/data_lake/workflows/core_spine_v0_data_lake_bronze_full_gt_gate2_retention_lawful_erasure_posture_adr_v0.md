@@ -27,10 +27,10 @@ stale_if:
 
 ## Status
 
-`GATE2_ADR_AUTHORED_AWAITING_RATIFICATION_V0`.
+`GATE2_ADR_RATIFIED_V0` (owner-ratified 2026-07-02; see Owner Ratification).
 
-This is a decision-request record. It selects nothing until the owner ratifies
-it. It is not a compliance posture, not legal advice, not erasure capability,
+This record was authored as a decision request and is now the accepted Gate 2
+posture: an explicit, bounded deferral. It is not a compliance posture, not legal advice, not erasure capability,
 not backend selection, not implementation authorization, not validation,
 readiness, or a Bronze full-GT claim.
 
@@ -135,10 +135,61 @@ backend-native controls) against the then-current data classes.
 
 ```yaml
 gate2_ratification:
-  decision: ratified | modified | rejected   # owner_to_fill
-  ratified_by: owner_to_fill
-  date: owner_to_fill
-  modifications: owner_to_fill_or_none
+  decision: ratified
+  ratified_by: owner (Eric), in-session instruction "2 gates OK"
+  date: 2026-07-02
+  modifications: none
+```
+
+## Direction Change Propagation
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Gate 2 is owner-ratified as an explicit deferral carrying the full
+    accepted-residual record: lawful erasure is an accepted residual with a
+    written claim ceiling; append-only tombstone/supersession is the working
+    unavailability posture; the forbidden backend classes/operations while
+    deferred and the four revisit triggers (owner call, data-class change,
+    any backend ADR opening, external demand) become standing doctrine.
+  trigger: architecture_doctrine
+  related_triggers:
+    - lifecycle_boundary
+  controlling_sources_updated:
+    - orca/product/spines/data_lake/workflows/core_spine_v0_data_lake_bronze_full_gt_gate2_retention_lawful_erasure_posture_adr_v0.md
+  downstream_surfaces_checked:
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_storage_contract_v0.md
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_physicality_location_contract_v0.md
+    - orca/product/spines/data_lake/workflows/core_spine_v0_data_lake_bronze_full_gt_physicalization_decision_brief_v0.md
+    - orca/product/spines/data_lake/workflows/core_spine_v0_data_lake_bronze_full_gt_gate_adr_batch_plan_v0.md
+  intentionally_not_updated:
+    - path: orca/product/spines/data_lake/authority/ (storage, physicality contracts)
+      reason: >
+        Contract fold-in is the named follow-on lane (see the post-ratification
+        handoff packet); their "retention and lawful-erasure remain later
+        physicalization constraints" language remains accurate - this ADR is
+        that later constraint, now decided as a bounded deferral.
+    - path: orca/product/spines/data_lake/workflows/core_spine_v0_data_lake_bronze_full_gt_physicalization_decision_brief_v0.md
+      reason: >
+        Its stale_if self-fires on this ratification by design; it becomes
+        historical gate framing without an edit.
+  stale_language_search: >
+    rg -c "lawful[- ]erasure|erasure posture"
+    orca/product/spines/data_lake/authority
+  stale_language_search_result: >
+    Executed 2026-07-02 after recording ratification. Hits: storage contract
+    (1: "retention and lawful-erasure policy remain later physicalization
+    constraints" - this ADR is that later constraint, now decided as a bounded
+    deferral), AR implementation contract (3: deferred-decision mentions),
+    Bronze MGT baseline (1: residual mention). All are deferral language this
+    ADR satisfies; fold-in will repoint them explicitly. No live surface
+    contradicts the ratified posture.
+  non_claims:
+    - not erasure capability, retention compliance, or legal advice (the claim
+      ceiling in this ADR governs what may be said)
+    - not backend/engine selection
+    - not implementation authorization
+    - not validation, readiness, or Bronze full GT
 ```
 
 ## Non-Claims

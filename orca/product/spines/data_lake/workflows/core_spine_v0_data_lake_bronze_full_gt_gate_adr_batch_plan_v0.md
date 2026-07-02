@@ -30,7 +30,15 @@ stale_if:
 
 ## Status
 
-`GATE_ADR_BATCH_PLAN_RECORDED_V0; B5_EXECUTED_AND_ADJUDICATED_AWAITING_OWNER_RATIFICATION`.
+`GATE_ADR_BATCH_PLAN_RECORDED_V0; BATCH_COMPLETE_BOTH_GATES_RATIFIED_2026_07_02`.
+
+Both gates were ratified by the owner on 2026-07-02 (recorded in each ADR's
+Owner Ratification block). The batch is complete and this plan is now a
+historical record. Post-ratification continuation lives in
+`docs/hygiene/bronze_full_gt_post_ratification_handoff_v0.md` (contract
+fold-in with DCP receipts, then implementation scoping). The brief's
+cross-vendor discovery residual remains open: the owner has not yet accepted
+it or commissioned a non-OpenAI-family pass.
 
 B2 and B3 were authored 2026-07-02:
 `core_spine_v0_data_lake_bronze_full_gt_gate1_attachment_record_body_layout_adr_v0.md`

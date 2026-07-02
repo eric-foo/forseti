@@ -27,10 +27,10 @@ stale_if:
 
 ## Status
 
-`GATE1_ADR_AUTHORED_AWAITING_RATIFICATION_V0`.
+`GATE1_ADR_RATIFIED_V0` (owner-ratified 2026-07-02; see Owner Ratification).
 
-This is a decision-request record. It selects nothing until the owner ratifies
-it. It is not implementation authorization, backend/engine selection, Manifest
+This record was authored as a decision request and is now the accepted Gate 1
+decision. It is not implementation authorization, backend/engine selection, Manifest
 v2 or serialization selection, migration authority, validation, readiness, or a
 Bronze full-GT claim. On ratification, folding the decision into the authority
 contracts is a separate step carrying its own `direction_change_propagation`
@@ -140,10 +140,59 @@ rejected per the AR contract).
 
 ```yaml
 gate1_ratification:
-  decision: ratified | modified | rejected   # owner_to_fill
-  ratified_by: owner_to_fill
-  date: owner_to_fill
-  modifications: owner_to_fill_or_none
+  decision: ratified
+  ratified_by: owner (Eric), in-session instruction "2 gates OK"
+  date: 2026-07-02
+  modifications: none
+```
+
+## Direction Change Propagation
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Gate 1 is owner-ratified: packet-member is the accepted default Attachment
+    Record body relationship, with the attachments/ sidecar slot reserved
+    behind its named reopen trigger and G1-D external bodies locked behind
+    Gate 2 plus a separate backend/physicalization ADR. Bronze physicalization
+    posture for the body relationship changes from undecided to decided.
+  trigger: architecture_doctrine
+  related_triggers:
+    - lifecycle_boundary
+  controlling_sources_updated:
+    - orca/product/spines/data_lake/workflows/core_spine_v0_data_lake_bronze_full_gt_gate1_attachment_record_body_layout_adr_v0.md
+  downstream_surfaces_checked:
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_attachment_record_implementation_contract_v0.md
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_storage_contract_v0.md
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_physicality_location_contract_v0.md
+    - orca/product/spines/data_lake/workflows/core_spine_v0_data_lake_bronze_full_gt_physicalization_decision_brief_v0.md
+    - orca/product/spines/data_lake/workflows/core_spine_v0_data_lake_bronze_full_gt_gate_adr_batch_plan_v0.md
+  intentionally_not_updated:
+    - path: orca/product/spines/data_lake/authority/ (AR implementation, storage, physicality contracts)
+      reason: >
+        Contract fold-in is the named follow-on lane (see the post-ratification
+        handoff packet); each fold-in edit carries its own receipt. Their
+        deferred-layout language remains accurate until fold-in lands.
+    - path: orca/product/spines/data_lake/workflows/core_spine_v0_data_lake_bronze_full_gt_physicalization_decision_brief_v0.md
+      reason: >
+        Its stale_if self-fires on this ratification by design; it becomes
+        historical gate framing without an edit.
+  stale_language_search: >
+    rg -n "placement deferred|physical home unfrozen|remain deferred|layout remains"
+    orca/product/spines/data_lake/authority
+  stale_language_search_result: >
+    Executed 2026-07-02 after recording ratification. Hits: physicality
+    contract ("Attachment physical home unfrozen", "placement deferred"),
+    storage contract ("sidecar/member layout ... remain deferred"), AR
+    implementation contract ("exact layout remains open") - the fold-in
+    surfaces named in intentionally_not_updated - plus unrelated deferrals
+    (raw-admission shard width, medallion field schemas) outside Gate 1 scope.
+    No other live surface claims Gate 1 is undecided.
+  non_claims:
+    - not implementation authorization
+    - not backend/engine selection
+    - not Manifest v2 or serialization selection (A2 stays gated on A1)
+    - not validation, readiness, or Bronze full GT
 ```
 
 ## Non-Claims
