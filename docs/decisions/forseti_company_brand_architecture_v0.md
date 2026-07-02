@@ -9,7 +9,8 @@ scope: >
   carve depth (brand-level only, entity split trigger-gated), the
   vertical-scope doctrine (generic engine, vertical-deep product data, one
   creator-intelligence brand per market world with verticals as coverage
-  editions), the sub-brand working name (Aphrodite, pending screen), and the
+  editions), the sub-brand working name (Aphrodite, adopted; light-check-
+  then-buy posture per the D7 amendment), and the
   near-term web posture. Owner-ratified in-thread 2026-07-02. A direction
   lock only — not validation, willingness-to-pay, buyer proof, or readiness.
 use_when:
@@ -158,11 +159,12 @@ design-partner demo), itself gated behind foundation-first; a public
 marketing posture is a later owner decision after willingness-to-pay
 evidence.
 
-## D7 — Sub-brand working name: Aphrodite (pending screen)
+## D7 — Sub-brand working name: Aphrodite
 
-Owner-proposed 2026-07-02 ("how about Aphrodite"). Status: **WORKING NAME —
-not final until the trademark/collision screen clears and the owner confirms
-post-screen.**
+Owner-proposed 2026-07-02 ("how about Aphrodite"). Status at first
+ratification: **WORKING NAME** pending screen — amended same day to
+**ADOPTED WORKING NAME with a light-check-then-buy posture** (see the D7
+Amendment below, which governs).
 
 - Fit: satisfies D5's naming consequence (beauty-world-wide, not
   fragrance-locked), memorable, consumer-credible; endorsement form
@@ -180,11 +182,47 @@ post-screen.**
 - Gate: the acquisition lane's second tranche (buying the sub-brand's domain
   and handles) must not fire until (a) the screen clears this name and (b)
   the owner confirms it post-screen. This tightens the trigger already named
-  in the acquisition handoff packet.
+  in the acquisition handoff packet. [SUPERSEDED by the 2026-07-02 amendment
+  below — the hard gate is replaced by a light-check-then-buy posture.]
+
+## D7 Amendment (2026-07-02) — name confirmed, gate relaxed
+
+Owner reconsidered the D7 gate in the same session ("wait i thought for sub
+name we can literally use anything since the big name is what matters"),
+weighed the mythology-consistency question ("should the mythologies be from
+same origin? e.g. forseti from... norse?") including the Norse-system
+alternatives (Freyja, Idunn), and confirmed the name: "lets jsut do
+aphrodite then."
+
+- **Name: Aphrodite, confirmed as the adopted working name.** Mixed
+  mythology (Greek sub-brand under the Norse company name) is accepted as a
+  non-issue — the sub-brand's job is instant scene legibility, which
+  Aphrodite wins; a single-pantheon naming system was considered and
+  declined.
+- **Gate relaxed.** Rationale adopted: under the endorsed thin-sub-brand
+  architecture (D2), sub-brand equity is deliberately low and a pre-launch
+  rename is cheap by design, so trademark exposure — a legal question, not a
+  brand-equity question — scales with public commercial use, which is gated
+  far away (D6 holding + waitlist; foundation-first sequencing). The D7 hard
+  gate is replaced with:
+  1. a **light collision sanity check** (software/analytics/influencer-tool
+     uses of "Aphrodite") before any asset spend on the name;
+  2. **formal trademark clearance deferred** to the first public commercial
+     use under the name (Vetting-v0-or-later, itself owner-gated);
+  3. pre-launch rename acknowledged as the cheap fallback if either check
+     turns something up.
+- The Soki London Aphrodite capture datapoint is downgraded from gate
+  justification to background context (it is a class-3 cosmetics product,
+  not a software collision).
+- **Unchanged:** the Forseti screen (D1) remains step 1 of the acquisition
+  lane and still gates company brand spend — the company name is on the
+  domain, email, eventual contracts, and every endorsement line, so its
+  rigor is not relaxed.
 
 ## Open items (not decided here)
 
-- Final sub-brand name confirmation (post-screen; D7).
+- Formal trademark clearance for Aphrodite at first public commercial use
+  (D7 amendment; the light sanity check precedes any asset spend).
 - Defensive domain variants (owner decides at purchase time; memo owed by the
   acquisition lane).
 - Entity split (trigger-gated; D3).
@@ -255,4 +293,38 @@ direction_change_propagation:
     - not buyer proof
     - not willingness-to-pay evidence
     - ratification locks a direction; every gated lane keeps its own authorization boundary
+# D7 amendment 2026-07-02 (same session, owner words quoted in the amendment section).
+direction_change_propagation:
+  doctrine_changed: >
+    D7 amended: Aphrodite confirmed as the adopted working sub-brand name
+    (mixed mythology accepted; Norse-system alternative declined), and the
+    hard second-tranche gate (screen-clears + owner-confirms) is replaced by
+    a light collision sanity check before asset spend with formal clearance
+    deferred to first public commercial use. The Forseti company-name screen
+    (D1) is unchanged.
+  trigger: product_doctrine
+  related_triggers: []
+  controlling_sources_updated:
+    - docs/decisions/forseti_company_brand_architecture_v0.md
+  downstream_surfaces_checked:
+    - docs/workflows/forseti_brand_asset_acquisition_lane_handoff_v0.md   # committed lane packet; predates the naming decision by design — its confirm-don't-trust pass and stale_if route the receiver to this record, and the owner-courier kickoff carries the delta; no retro-edit
+  intentionally_not_updated:
+    - path: docs/workflows/forseti_brand_asset_acquisition_lane_handoff_v0.md
+      reason: >
+        Retro-editing a committed handoff packet would fork the decision
+        record; the packet already instructs the receiver to check
+        docs/decisions/ for superseding Forseti records at lane start.
+  stale_language_search: >
+    rg -in "second tranche|working name|aphrodite" docs/decisions/forseti_company_brand_architecture_v0.md docs/workflows/forseti_brand_asset_acquisition_lane_handoff_v0.md
+  stale_language_search_result: >
+    Executed 2026-07-02 after the amendment edits. In this record the old
+    hard-gate language survives only inside the D7 body bullet explicitly
+    marked SUPERSEDED and in this receipt's own description. The handoff
+    packet retains its pre-naming "second tranche" trigger wording as a
+    point-in-time lane artifact, resolved via its stale_if pointer to this
+    record.
+  non_claims:
+    - not validation
+    - not readiness
+    - not trademark clearance (the light check and deferred formal clearance remain to be executed)
 ```
