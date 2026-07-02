@@ -96,6 +96,21 @@ def test_gate_fails_on_seeded_reasonless_exclusion() -> None:
     ), violations
 
 
+def test_gate_fails_on_seeded_reasoned_exclusion_drift() -> None:
+    declared = copy.deepcopy(load_declared_inventory())
+    declared["exclusions"].append(
+        {"target": "seeded/reasoned_but_not_generated", "reason": "plausible but stale"}
+    )
+
+    violations = inventory_violations(declared, build_inventory())
+
+    assert any(
+        "stale exclusions entry" in violation
+        and "seeded/reasoned_but_not_generated" in violation
+        for violation in violations
+    ), violations
+
+
 def test_gate_fails_on_seeded_undispositioned_unknown() -> None:
     declared = copy.deepcopy(load_declared_inventory())
     declared["unknowns"].append(
@@ -111,6 +126,30 @@ def test_gate_fails_on_seeded_undispositioned_unknown() -> None:
     assert any(
         "unknown without a resolved owner disposition" in violation
         and "seeded/unclassified_touchpoint" in violation
+        for violation in violations
+    ), violations
+
+
+def test_gate_fails_on_seeded_resolved_unknown_missing_disposition_detail() -> None:
+    declared = copy.deepcopy(load_declared_inventory())
+    declared["unknowns"].append(
+        {
+            "target": "seeded/thin_resolved_unknown",
+            "question": "is this a lake touchpoint?",
+            "owner_disposition": {"status": "resolved"},
+        }
+    )
+
+    violations = inventory_violations(declared, build_inventory())
+
+    assert any(
+        "resolved unknown without a concrete disposition" in violation
+        and "seeded/thin_resolved_unknown" in violation
+        for violation in violations
+    ), violations
+    assert any(
+        "resolved unknown without owner-attribution evidence" in violation
+        and "seeded/thin_resolved_unknown" in violation
         for violation in violations
     ), violations
 

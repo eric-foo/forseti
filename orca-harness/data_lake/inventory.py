@@ -186,6 +186,17 @@ def call_name(node: ast.Call) -> str | None:
     return None
 
 
+def dotted_name(node: ast.AST) -> str | None:
+    if isinstance(node, ast.Name):
+        return node.id
+    if isinstance(node, ast.Attribute):
+        parent = dotted_name(node.value)
+        if parent is None:
+            return None
+        return f"{parent}.{node.attr}"
+    return None
+
+
 def called_names(node: ast.AST) -> set[str]:
     return {
         name
@@ -280,10 +291,12 @@ def source_capture_imports(tree: ast.AST) -> tuple[set[str], set[str]]:
             for alias in node.names:
                 if is_packet_writer_name(alias.name, packet_writer_names):
                     writer_names.add(alias.asname or alias.name)
+                else:
+                    module_aliases.add(alias.asname or alias.name)
         elif isinstance(node, ast.Import):
             for alias in node.names:
                 if alias.name.startswith("source_capture."):
-                    module_aliases.add(alias.asname or alias.name.split(".")[-1])
+                    module_aliases.add(alias.asname or alias.name)
     return writer_names, module_aliases
 
 
@@ -292,7 +305,8 @@ def is_imported_module_writer_call(node: ast.Call, module_aliases: set[str]) -> 
         return False
     if not is_packet_writer_name(node.func.attr, source_capture_packet_writer_names()):
         return False
-    return isinstance(node.func.value, ast.Name) and node.func.value.id in module_aliases
+    base_name = dotted_name(node.func.value)
+    return base_name in module_aliases
 
 
 def producer_calls(
@@ -459,6 +473,7 @@ def inventory_violations(declared: dict, discovered: dict) -> list[str]:
         ("raw_packet_writers", "runner_seams"),
         ("raw_packet_writers", "writer_functions"),
         ("non_raw_touchpoints", None),
+        ("exclusions", None),
     ):
         label = f"{family}.{subfamily}" if subfamily else family
         declared_set = _entry_set(declared, family, subfamily)
@@ -478,6 +493,19 @@ def inventory_violations(declared: dict, discovered: dict) -> list[str]:
             violations.append(
                 "unknown without a resolved owner disposition (owner-attributable via the "
                 f"human-gated PR merge; pending fails the gate): {unknown.get('target')!r}"
+            )
+            continue
+        if not str(unknown.get("target", "")).strip():
+            violations.append("resolved unknown without a target")
+        if not str(unknown.get("question", "")).strip():
+            violations.append(f"resolved unknown without a question: {unknown.get('target')!r}")
+        if not str(disposition.get("disposition", "")).strip():
+            violations.append(
+                f"resolved unknown without a concrete disposition: {unknown.get('target')!r}"
+            )
+        if not str(disposition.get("recorded_by", "")).strip():
+            violations.append(
+                f"resolved unknown without owner-attribution evidence: {unknown.get('target')!r}"
             )
 
     return violations

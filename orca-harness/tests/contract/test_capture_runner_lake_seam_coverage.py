@@ -154,6 +154,42 @@ def main(root):
     assert calls[0].forwards_data_root is True
 
 
+def test_detector_follows_unaliased_source_capture_module_import_packet_writer() -> None:
+    tree = ast.parse(
+        """
+import source_capture.youtube_watch_packet
+
+def main(root):
+    return source_capture.youtube_watch_packet.write_youtube_watch_packet(fetch, data_root=root)
+"""
+    )
+
+    writer_names, module_aliases = _source_capture_imports(tree)
+    calls = _producer_calls(tree, writer_names, module_aliases)
+
+    assert len(calls) == 1
+    assert calls[0].name == "write_youtube_watch_packet"
+    assert calls[0].forwards_data_root is True
+
+
+def test_detector_follows_from_imported_source_capture_module_packet_writer() -> None:
+    tree = ast.parse(
+        """
+from source_capture import youtube_watch_packet
+
+def main(root):
+    return youtube_watch_packet.write_youtube_watch_packet(fetch, data_root=root)
+"""
+    )
+
+    writer_names, module_aliases = _source_capture_imports(tree)
+    calls = _producer_calls(tree, writer_names, module_aliases)
+
+    assert len(calls) == 1
+    assert calls[0].name == "write_youtube_watch_packet"
+    assert calls[0].forwards_data_root is True
+
+
 def test_detector_discovers_indirect_source_capture_packet_writers() -> None:
     writers = _source_capture_packet_writer_names()
 
@@ -180,6 +216,7 @@ def test_non_raw_lake_touchpoint_inventory_is_explicit() -> None:
         f"removed={dict(sorted(removed.items()))}"
     )
 
+
 def test_non_raw_lake_touchpoint_inventory_reads_tracked_source_only() -> None:
     relative_paths = {
         path.relative_to(_HARNESS_ROOT).as_posix() for path in _tracked_harness_python_files()
@@ -188,6 +225,7 @@ def test_non_raw_lake_touchpoint_inventory_reads_tracked_source_only() -> None:
     assert "data_lake/root.py" in relative_paths
     assert not any(path.startswith("tests/") for path in relative_paths)
     assert not any(path.startswith("_test_runs/") for path in relative_paths)
+
 
 def test_detector_distinguishes_packet_output_from_summary_output_root() -> None:
     tree = ast.parse(

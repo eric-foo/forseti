@@ -57,10 +57,16 @@ def _packet_container(root: DataLakeRoot, packet_id: str) -> Path:
 
 def _corrupt_preserved_body(root: DataLakeRoot, packet_id: str, body: str) -> Path:
     """Overwrite the preserved body file's stored bytes (tamper simulation)."""
+    assert body, "tamper helper requires a non-empty body"
     original = json.dumps({"b": body}, sort_keys=True).encode("utf-8")
+    replacement_body = "z" * len(body)
+    if replacement_body == body:
+        replacement_body = "y" * len(body)
+    tampered = json.dumps({"b": replacement_body}, sort_keys=True).encode("utf-8")
+    assert len(tampered) == len(original), "tamper must preserve size to prove SHA checking"
     for path in sorted(_packet_container(root, packet_id).rglob("*")):
         if path.is_file() and path.read_bytes() == original:
-            path.write_bytes(json.dumps({"b": "tampered"}, sort_keys=True).encode("utf-8"))
+            path.write_bytes(tampered)
             return path
     raise AssertionError("preserved body file not found in packet container")
 
@@ -132,7 +138,7 @@ def test_proof_02_violation_rewriting_an_existing_record_is_refused(tmp_path: Pa
             record_id="record_01.json",
             data=b'{"ok": true}',
         )
-        with pytest.raises(DataLakeRootError):
+        with pytest.raises(DataLakeRootError, match="refusing to overwrite existing record"):
             root.append_record(
                 subtree=subtree,
                 raw_anchor=packet_id,
@@ -159,7 +165,7 @@ def test_proof_03_violation_missing_packet_fails_closed(tmp_path: Path) -> None:
     root = DataLakeRoot.for_test(tmp_path / "orca-data")
     _capture(root, tmp_path, "alpha")
 
-    with pytest.raises(DataLakeRootError):
+    with pytest.raises(DataLakeRootError, match="raw packet not committed"):
         root.load_raw_packet("0" * 26)
 
 
@@ -183,7 +189,7 @@ def test_proof_04_violation_tampered_body_fails_verified_read(tmp_path: Path) ->
 
     _corrupt_preserved_body(root, packet_id, body)
 
-    with pytest.raises(DataLakeRootError):
+    with pytest.raises(DataLakeRootError, match="preserved file sha256 mismatch"):
         root.load_raw_packet(packet_id)
 
 
@@ -226,7 +232,7 @@ def test_proof_05_violation_tampered_body_fails_public_ar_resolution(tmp_path: P
 
     _corrupt_preserved_body(root, packet_id, body)
 
-    with pytest.raises(DataLakeRootError):
+    with pytest.raises(DataLakeRootError, match="preserved file sha256 mismatch"):
         load_attachment_record_body(root, record)
 
 
@@ -266,7 +272,7 @@ def test_proof_06_violation_reads_survive_index_loss_so_indexes_carry_no_authori
     assert loaded.manifest["packet_id"] == packet_id
     # The generated catalog is gone and must fail loudly (stale reads refused),
     # while raw truth stays readable by key: indexes are caches, never authority.
-    with pytest.raises(DataLakeRootError):
+    with pytest.raises(DataLakeRootError, match="Bronze catalog is not current"):
         source_surface_catalog_rows(
             root, source_family=_SOURCE_FAMILY, source_surface=_SOURCE_SURFACE
         )
