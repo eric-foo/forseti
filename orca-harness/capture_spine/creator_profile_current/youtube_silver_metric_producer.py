@@ -133,17 +133,30 @@ _RAW_PACKET_FALLBACK_AMBIGUOUS_AR_REF_KIND = "raw_packet_fallback_ambiguous_atta
 _MISSING_AR_LIMITATION = "typed_attachment_record_missing_for_raw_ref"
 _AMBIGUOUS_AR_LIMITATION = "typed_attachment_record_ambiguous_for_raw_ref"
 
-# Non-claims attached to every emitted record. YouTube observes only view_count,
-# so the engagement/like/comment non-claim is load-bearing here (it is not on the
-# IG set, which observes likes/comments).
-_REQUIRED_NON_CLAIMS = (
+# Non-claims attached to every emitted record. The engagement/like/comment
+# non-claim is CONDITIONAL: it is load-bearing for view-count-only records (the
+# committed genesis seed), but must not attach to a record that actually carries
+# an observed engagement-family metric (live watch-packet documents expose
+# like/comment inputs) -- a false non-claim is an honesty bug, not caution.
+_BASE_NON_CLAIMS = (
     "not a representative creator average",
     "not channel-wide creator influence",
     "not cross-platform identity linkage",
     "not a follower graph or audience estimate",
     "not buyer proof",
-    "not an engagement-rate, like, or comment metric",
 )
+_ENGAGEMENT_NON_CLAIM = "not an engagement-rate, like, or comment metric"
+_ENGAGEMENT_OBSERVATION_METRIC_NAMES = frozenset({"like_count", "total_comment_count", "comment_count"})
+_ENGAGEMENT_ROLLUP_METRIC_NAMES = frozenset(
+    {"engagement_rate", "average_like_count", "average_comment_count"}
+)
+
+
+def _record_non_claims(*, engagement_bearing: bool) -> list[str]:
+    claims = set(_BASE_NON_CLAIMS)
+    if not engagement_bearing:
+        claims.add(_ENGAGEMENT_NON_CLAIM)
+    return sorted(claims)
 
 
 @dataclass(frozen=True)
@@ -322,7 +335,12 @@ def build_metric_observation_record(
             "creator_handle_query": seed_observation.get("creator_handle_query"),
             "observed_at_source": seed_observation.get("observed_at_source"),
         },
-        "non_claims": sorted(set(_REQUIRED_NON_CLAIMS)),
+        "non_claims": _record_non_claims(
+            engagement_bearing=(
+                posture == "observed"
+                and seed_observation["metric_name"] in _ENGAGEMENT_OBSERVATION_METRIC_NAMES
+            )
+        ),
     }
     if lineage_limitations:
         record["lineage_limitations"] = lineage_limitations
@@ -417,7 +435,13 @@ def build_metric_rollup_record(
             "seed_metric_rollup_id": seed_rollup["metric_rollup_id"],
             "public_handle": seed_rollup.get("public_handle"),
         },
-        "non_claims": sorted(set(_REQUIRED_NON_CLAIMS)),
+        "non_claims": _record_non_claims(
+            engagement_bearing=any(
+                seed_rollup["metric_rollups"][name]["posture"] == "observed"
+                for name in _ENGAGEMENT_ROLLUP_METRIC_NAMES
+                if name in seed_rollup["metric_rollups"]
+            )
+        ),
     }
     record["content_hash"] = f"sha256:{_content_hash(record)}"
     return record
