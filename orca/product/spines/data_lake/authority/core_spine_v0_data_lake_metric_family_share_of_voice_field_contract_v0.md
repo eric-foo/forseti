@@ -54,9 +54,9 @@ Every number must recompute from committed records cited by ref.
 | `metric_family` | Literal `source_backed_brand_line_share_of_voice`. |
 | `family_schema_version` | This contract's field-schema version (`1` for v0); any field change bumps it. |
 | `platform` | Exactly one platform (`instagram` / `youtube` / `tiktok` / …). Per-platform only — a readout spanning platforms is forbidden (medallion cross-platform identity limitation). |
-| `cohort` | Declared, never inferred: `{cohort_id, definition, member_basis: "captured_set", member_count}`. The definition states how members were selected; `member_basis` is always the captured set — cohort membership claims about uncaptured creators are unrepresentable. |
-| `coverage_window` | `{start, end, window_basis}` with `window_basis: capture_time \| source_publication_time`. `capture_time` is universally available (every packet records it). `source_publication_time` is surface-dependent: records lacking publication evidence in the window scope must be surfaced under `coverage.publication_time_missing` (posture, not silent exclusion). |
-| `selection_policy_versions` | Must include: extractor rubric version(s) of the consumed mention records, `silver_lineage_gate` (source-backed-complete), `family_schema_version`, and `brand_grouping` (see Grouping). |
+| `cohort` | Declared, never inferred: `{cohort_id, definition, member_basis: "captured_set", member_count, member_refs \| cohort_manifest_ref}`. The refs/manifest identify the captured source objects included in the cohort and must reconcile to `coverage.source_objects_in_scope`; cohort membership claims about uncaptured creators are unrepresentable. |
+| `coverage_window` | `{start, end, window_basis}` with `window_basis: capture_time \| source_publication_time`. `capture_time` is evaluated against `captured_at` or equivalent packet capture metadata (universally available — every packet records it). `source_publication_time` is evaluated only when a committed source-backed record carries source publication/event timing evidence (`observed_at`, `source_publication_or_event`, or a source-family equivalent); records lacking the selected basis are excluded from numerator AND denominator and counted under `coverage.window_basis_missing` — never silently dropped. If no source-backed record in scope has the selected basis in-window, the readout is `unavailable_with_reason` and emits no share rows. |
+| `selection_policy_versions` | Must include: extractor rubric version(s) of the consumed mention records, `silver_lineage_gate: "source_backed_complete"` (the live status literal), `family_schema_version`, `brand_grouping` (see Grouping), and `cohort_selection` (the version or manifest identity behind `cohort.member_refs` / `cohort_manifest_ref`). |
 
 ## Grouping Fields
 
@@ -73,14 +73,24 @@ Every number must recompute from committed records cited by ref.
   contract violation.
 - Group keys: `{brand, line}`. `brand` may be the extractor's literal
   `"unknown"` — reported as its own row, never merged or dropped.
+- **Zero-row comparison set:** a readout may emit `mention_count: 0` rows for
+  unobserved brand/line keys ONLY when it carries a declared `comparison_set`
+  (`brand_line_keys`, `basis`, `comparison_set_ref` or manifest, and policy
+  version in `selection_policy_versions`). Without that field, rows are
+  observed keys only — the absence of a row is not a zero, and a zero row can
+  never be invented for a cherry-picked competitor.
 
 ## Numerator / Denominator / Share Fields
 
-- `mention_count` (numerator, per `{brand, line}` row): count of mentions in
-  source-backed-complete `silver__cleaning__product_mentions` records within
-  scope. Each row must carry `mention_refs`: dereferenceable committed-record
-  refs (`raw_anchor`, `lane`, `record_id`, `sha256`) — every bar clicks back to
-  transcript evidence.
+- `mention_count` (numerator, per `{brand, line}` row): count of MENTION-LEVEL
+  entries in `source_backed_complete` `silver__cleaning__product_mentions`
+  records within scope. Each row must carry `mention_refs`: dereferenceable
+  committed mention refs (`raw_anchor`, `lane`, `record_id`, `sha256`,
+  `mention_id`, `source_pointer`, `start_ms`, `end_ms`) — every counted
+  mention clicks back to transcript evidence. Record-level refs alone are
+  insufficient: when one committed record contains multiple matching
+  mentions, each matching mention emits its own ref, and
+  `mention_count == len(mention_refs)` must hold exactly.
 - `denominator`: total mentions across all rows in the same scope, with
   mandatory `denominator_basis: "captured_source_backed_mentions_only"`. No
   field may ever represent a market total, uncaptured population, or
@@ -99,10 +109,16 @@ Every number must recompute from committed records cited by ref.
 
 `coverage`: `{packets_in_scope, packets_with_transcripts,
 mention_records_in_scope, mention_records_excluded_not_source_backed,
-publication_time_missing (when window_basis is source_publication_time)}` —
-the counts a reader needs to judge how much captured evidence stands behind
-the shares. Excluded non-source-backed records are counted residuals (seam
-contract lineage gate), never silently dropped and never evidence.
+window_basis_missing (when window_basis is source_publication_time),
+source_objects_in_scope, source_objects_with_transcripts,
+source_backed_records_with_zero_mentions, cohort_selection_residuals}` — the
+counts a reader needs to judge how much captured evidence stands behind the
+shares. Excluded non-source-backed records are counted residuals (seam
+contract lineage gate), never silently dropped and never evidence. Records
+missing the selected window basis are counted separately from lineage-gate
+exclusions, so a publication-time readout cannot hide denominator shrinkage
+behind a generic coverage count. `source_objects_in_scope` must reconcile to
+the cohort's `member_refs` / `cohort_manifest_ref`.
 
 ## Posture Semantics
 
@@ -178,4 +194,45 @@ direction_change_propagation:
     - not validation or readiness
     - not view-build execution
     - not brand canonicalization or cohort selection
+```
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Adjudicated amendment pass (2026-07-03) closing the accepted findings of
+    the repo-mode cross-vendor delegated review (OpenAI GPT-5 Codex, pinned
+    commit cf43db5f): (F1) mention-LEVEL refs required (mention_id +
+    source_pointer + start_ms/end_ms per counted mention;
+    mention_count == len(mention_refs) exactly) so shares are mechanically
+    recomputable when one record carries multiple matching mentions; (F2)
+    window-basis inclusion rules bound — source_publication_time evaluates
+    only records carrying publication/event timing evidence, missing-basis
+    records are excluded from numerator AND denominator and counted under
+    coverage.window_basis_missing, all-missing scopes go
+    unavailable_with_reason; (F3) cohorts gain member_refs/cohort_manifest_ref
+    reconciling to coverage.source_objects_in_scope, selection_policy_versions
+    gains cohort_selection, and zero rows for unobserved keys require a
+    declared source-backed comparison_set (absence of a row is not a zero);
+    (F4) silver_lineage_gate bound to the live literal
+    "source_backed_complete"; coverage block expanded (window_basis_missing,
+    source_objects_in_scope/with_transcripts,
+    source_backed_records_with_zero_mentions, cohort_selection_residuals).
+    The reviewer's rewrite of the original receipt was rejected — receipts are
+    append-only history; this receipt records the amendment instead.
+  trigger: architecture_doctrine
+  controlling_sources_updated:
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_metric_family_share_of_voice_field_contract_v0.md
+  adjudication_provenance: >
+    Findings and diff from the commissioned repo-mode review (reviewed_by:
+    OpenAI GPT-5 Codex; authored_by: Anthropic claude-fable-5;
+    de_correlation_bar: cross_vendor_discovery; access: repo, pinned commit
+    cf43db5f); hunks 1-4 accepted, hunk 5 rejected (receipt rewrite);
+    durable report at docs/review-outputs/adversarial-artifact-reviews/
+    sov_field_contract_adversarial_artifact_review_v0.md. Repo-mode discovery
+    discharges the independent-review gate for this artifact per the
+    delegated-review-patch overlay.
+  non_claims:
+    - not validation or readiness
+    - not view-build execution
+    - findings closure bounded by the CA class-sweep + byte/scope checks in the review report
 ```
