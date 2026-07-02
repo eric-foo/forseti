@@ -754,6 +754,14 @@ def test_fetch_browser_page_observation_capture_threads_pointer_action_to_engine
     )
 
 
+def test_pointer_action_target_script_matches_data_attributes() -> None:
+    script = browser_snapshot_module._POINTER_ACTION_TARGET_SCRIPT
+    assert "data-e2e" in script
+    assert "data-testid" in script
+    assert "data-test-id" in script
+    assert "dataE2E === 'comment-icon'" in script
+
+
 def test_fetch_browser_page_observation_capture_rejects_negative_lazy_load_scroll_controls() -> None:
     with pytest.raises(ValueError, match="lazy_load_scroll_passes must be zero or greater"):
         fetch_browser_page_observation_capture(

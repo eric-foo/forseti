@@ -1062,30 +1062,55 @@ _POINTER_ACTION_TARGET_SCRIPT = r"""
     target_kind: null,
     box: null,
   };
+  let fallback = null;
+  let priority = null;
+  const candidateFromNode = (node) => {
+    const rect = node.getBoundingClientRect();
+    if (!rect || rect.width <= 0 || rect.height <= 0) {
+      return null;
+    }
+    const tag = String(node.tagName || '').toLowerCase();
+    const role = String(node.getAttribute('role') || '').toLowerCase();
+    return {
+      target_kind: tag === 'button' ? 'button' : role === 'button' ? 'role_button' : tag === 'a' ? 'link' : 'candidate',
+      box: {
+        x: rect.x,
+        y: rect.y,
+        width: rect.width,
+        height: rect.height,
+      },
+    };
+  };
   for (const node of candidates) {
+    const dataE2E = String(node.getAttribute('data-e2e') || '').toLowerCase();
     const text = [
       node.getAttribute('aria-label'),
       node.getAttribute('title'),
+      dataE2E,
+      node.getAttribute('data-testid'),
+      node.getAttribute('data-test-id'),
       node.textContent,
     ].filter(Boolean).join(' ').toLowerCase();
     if (!markers.some((marker) => text.includes(marker))) {
       continue;
     }
     result.matched_count += 1;
-    const rect = node.getBoundingClientRect();
-    if (result.target_found || !rect || rect.width <= 0 || rect.height <= 0) {
+    const candidate = candidateFromNode(node);
+    if (candidate === null) {
       continue;
     }
-    const tag = String(node.tagName || '').toLowerCase();
-    const role = String(node.getAttribute('role') || '').toLowerCase();
+    if (fallback === null) {
+      fallback = candidate;
+    }
+    if (priority === null && dataE2E === 'comment-icon') {
+      priority = candidate;
+    }
+  }
+  const selected = priority || fallback;
+  if (selected !== null) {
     result.target_found = true;
-    result.target_kind = tag === 'button' ? 'button' : role === 'button' ? 'role_button' : tag === 'a' ? 'link' : 'candidate';
-    result.box = {
-      x: rect.x,
-      y: rect.y,
-      width: rect.width,
-      height: rect.height,
-    };
+    result.target_kind = selected.target_kind;
+    result.box = selected.box;
   }
   return result;
 }

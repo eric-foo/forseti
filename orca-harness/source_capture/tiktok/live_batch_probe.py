@@ -48,6 +48,7 @@ TIKTOK_VIDEO_DOM_EXTRACT_SCRIPT = r"""
 
 TIKTOK_OPEN_COMMENTS_POINTER_ACTION_NAME = "tiktok_open_comments_pointer_v0"
 TIKTOK_COMMENT_LIST_RESPONSE_CAP = 2
+TIKTOK_COMMENT_ROUTE_NO_RESPONSE_REASON = "comment_list_response_absent"
 
 _TIKTOK_VIDEO_URL_RE = re.compile(r"^/@(?P<handle>[^/]+)/video/(?P<video_id>\d+)$")
 
@@ -309,6 +310,37 @@ def run_tiktok_live_batch_probe(
         )
         assert_no_sensitive_tiktok_material(row)
         assert_no_sensitive_tiktok_material(grid_candidate)
+
+        comment_receipt = _as_dict(row.get("capture_receipt"))
+        if _first_int(comment_receipt.get("admitted_comment_response_count"), 0) == 0:
+            failures.append(
+                _failure_entry(
+                    video_url=video_url,
+                    video_id=video_id,
+                    observed_utc=observed_utc,
+                    reason=TIKTOK_COMMENT_ROUTE_NO_RESPONSE_REASON,
+                    detail=(
+                        "No page-owned TikTok /api/comment/list response was observed after "
+                        "the bounded comment-open action; probe stopped before treating this "
+                        "as a completed comment-capture row."
+                    ),
+                    blocker_triage={
+                        "blocker_class": "comment_route_zero_yield",
+                        "action": "stop",
+                        "reason": TIKTOK_COMMENT_ROUTE_NO_RESPONSE_REASON,
+                        "action_mode": "diagnosis_only",
+                        "action_taken": False,
+                        "comment_action": _as_dict(comment_receipt.get("comment_action")),
+                        "response_count": _first_int(comment_receipt.get("response_count"), 0),
+                        "matched_comment_response_count": _first_int(
+                            comment_receipt.get("matched_comment_response_count"), 0
+                        ),
+                        "admitted_comment_response_count": 0,
+                    },
+                )
+            )
+            break
+
         results.append(row)
         grid_items.append(grid_candidate)
 
@@ -376,7 +408,9 @@ def _tiktok_open_comments_pointer_action(
 ) -> BrowserPagePointerAction:
     return BrowserPagePointerAction(
         action_name=TIKTOK_OPEN_COMMENTS_POINTER_ACTION_NAME,
-        candidate_selector='button,[role="button"],a',
+        candidate_selector=(
+            '[data-e2e="comment-icon"],[data-e2e*="comment"],button,[role="button"],a'
+        ),
         text_markers=("comment", "comments"),
         wait_after_ms=2500,
         move_steps_min=6,
@@ -923,6 +957,7 @@ __all__ = [
     "TIKTOK_LIVE_BATCH_CADENCE_JSON_NAME",
     "TIKTOK_LIVE_BATCH_GRID_JSON_NAME",
     "TIKTOK_LIVE_BATCH_PROBE_SCHEMA_VERSION",
+    "TIKTOK_COMMENT_ROUTE_NO_RESPONSE_REASON",
     "TIKTOK_VIDEO_DOM_EXTRACT_SCRIPT",
     "TikTokLiveBatchProbeOutputPaths",
     "detect_tiktok_challenge",

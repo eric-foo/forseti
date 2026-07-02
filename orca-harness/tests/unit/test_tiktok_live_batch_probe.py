@@ -26,6 +26,7 @@ from source_capture.tiktok.blocker_triage import (
     TIKTOK_BLOCKER_CLASS_NO_BLOCKER,
 )
 from source_capture.tiktok.live_batch_probe import (
+    TIKTOK_COMMENT_ROUTE_NO_RESPONSE_REASON,
     TIKTOK_OPEN_COMMENTS_POINTER_ACTION_NAME,
     is_tiktok_comment_list_url,
     write_tiktok_live_batch_probe_outputs,
@@ -181,7 +182,9 @@ def test_live_probe_writes_sanitized_staging_compatible_with_batch_admission(
     pointer_action = engine.calls[0]["post_load_pointer_action"]
     assert isinstance(pointer_action, BrowserPagePointerAction)
     assert pointer_action.action_name == TIKTOK_OPEN_COMMENTS_POINTER_ACTION_NAME
-    assert pointer_action.candidate_selector == 'button,[role="button"],a'
+    assert pointer_action.candidate_selector == (
+        '[data-e2e="comment-icon"],[data-e2e*="comment"],button,[role="button"],a'
+    )
     assert pointer_action.text_markers == ("comment", "comments")
     assert pointer_action.move_steps_min == 6
     assert pointer_action.move_steps_max == 12
@@ -351,6 +354,52 @@ def test_live_probe_caps_admitted_comment_list_responses(tmp_path: Path) -> None
     ] == ["7290", "7291"]
 
 
+def test_live_probe_stops_on_zero_comment_list_response(tmp_path: Path) -> None:
+    auth_root = _auth_state(tmp_path)
+    engine = _FakeObservationEngine(
+        outcomes=[
+            _success_observation(video_id="7390000000000000001", responses=[]),
+            _success_observation(video_id="7390000000000000002", response=_comment_response()),
+        ]
+    )
+
+    paths = write_tiktok_live_batch_probe_outputs(
+        creator_handle="funmi",
+        creator_profile_url="https://www.tiktok.com/@funmi",
+        video_urls=[
+            "https://www.tiktok.com/@funmi/video/7390000000000000001",
+            "https://www.tiktok.com/@funmi/video/7390000000000000002",
+        ],
+        state_label="test-session",
+        session_mode=AuthenticatedSessionMode.FREE_ACCOUNT_CREATED,
+        auth_state_root=auth_root,
+        output_dir=tmp_path / "out",
+        cadence_min_gap_seconds=0,
+        cadence_max_gap_seconds=0,
+        random_seed=1,
+        engine=engine,
+        sleep_fn=lambda _seconds: None,
+    )
+
+    cadence = json.loads(paths.cadence_result_json_path.read_text(encoding="utf-8"))
+    assert cadence["attempted_count"] == 1
+    assert cadence["completed_count"] == 0
+    assert cadence["challenge_count"] == 0
+    assert cadence["results"] == []
+    assert cadence["failures"][0]["reason"] == TIKTOK_COMMENT_ROUTE_NO_RESPONSE_REASON
+    assert cadence["failures"][0]["blocker_triage"] == {
+        "blocker_class": "comment_route_zero_yield",
+        "action": "stop",
+        "reason": TIKTOK_COMMENT_ROUTE_NO_RESPONSE_REASON,
+        "action_mode": "diagnosis_only",
+        "action_taken": False,
+        "comment_action": _pointer_action_receipt(),
+        "response_count": 0,
+        "matched_comment_response_count": 0,
+        "admitted_comment_response_count": 0,
+    }
+    assert len(engine.calls) == 1
+
 def test_live_probe_stops_on_platform_challenge(tmp_path: Path) -> None:
     auth_root = _auth_state(tmp_path)
     engine = _FakeObservationEngine(
@@ -467,12 +516,12 @@ def test_live_probe_does_not_stop_on_close_text_without_blocker_candidate(
                 dom_observation={
                     "hydration_json_text": json.dumps(_hydration("7390000000000000001"))
                 },
-                responses=[],
+                responses=[_comment_response()],
                 metadata={"post_load_pointer_action": _pointer_action_receipt()},
                 warning_notes=[],
                 limitation_notes=[],
             ),
-            _success_observation(video_id="7390000000000000002"),
+            _success_observation(video_id="7390000000000000002", response=_comment_response()),
         ]
     )
 
@@ -543,6 +592,46 @@ def _auth_state(tmp_path: Path) -> Path:
     )
     return auth_root
 
+
+def _comment_response(
+    *,
+    video_id: str = "7390000000000000001",
+    cid: str = "7291",
+) -> BrowserPageResponse:
+    response_url = (
+        "https://www.tiktok.com/api/comment/list/"
+        f"?aweme_id={video_id}&cursor=0&count=20"
+    )
+    return BrowserPageResponse(
+        requested_url=response_url,
+        final_url=response_url,
+        status=200,
+        ok=True,
+        body_text=json.dumps(
+            {
+                "cursor": 20,
+                "has_more": 0,
+                "total": 1,
+                "comments": [
+                    {
+                        "cid": cid,
+                        "text": "Route proof",
+                        "create_time": 1710000000,
+                        "digg_count": 1,
+                        "reply_comment_total": 0,
+                        "user": {
+                            "uid": "u1",
+                            "unique_id": "viewer_one",
+                            "nickname": "Viewer One",
+                        },
+                    }
+                ],
+            }
+        ),
+        response_headers={"content-type": "application/json"},
+        request_method="GET",
+        resource_type="fetch",
+    )
 
 def _success_observation(
     *,
