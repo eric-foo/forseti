@@ -305,6 +305,12 @@ def detect_video_state(*, status, final_url, html, player):
         or "consent.youtube.com" in final_low
     ):
         return "login_required", "served route requires sign-in/consent before metadata is exposed"
+    if play_status and play_status != "OK":
+        return (
+            "unknown",
+            f"ytInitialPlayerResponse.playabilityStatus.status={play_status} blocks playback; "
+            "no specific availability classification matched",
+        )
     if status == 200 and player:
         return "playable", "ytInitialPlayerResponse present; no blocking playability reason found"
     return "unknown", "could not classify video availability from served route"
