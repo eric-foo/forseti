@@ -180,9 +180,11 @@ lake indexes rebuild --root <ORCA_DATA_ROOT> --target availability|derived_retri
 
 ## Deferred / Out Of Scope
 
-Exact serialization, manifest/version shape, sidecar/member layout,
-engine/backend, queue/scheduler, per-lane record schemas, the `derived_retrieval`
-builder/population, validation suite, and implementation route.
+Exact serialization, manifest/version shape, engine/backend, queue/scheduler,
+per-lane record schemas, the `derived_retrieval` builder/population, validation
+suite, and implementation route. (AR-body sidecar/member layout, formerly
+deferred here, was ratified 2026-07-02 by the Gate 1 body-layout ADR:
+packet-member default, sidecar reserved behind its reopen trigger.)
 
 ## Non-Claims
 

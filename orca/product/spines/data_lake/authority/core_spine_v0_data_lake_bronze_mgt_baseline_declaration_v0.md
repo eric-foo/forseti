@@ -99,7 +99,11 @@ To upgrade Bronze from MGT to full GT, the remaining material work is:
    path, including dual-read/replay rules for legacy packet material.
 3. Select the final Attachment Record body layout or backend posture, including
    immutable hash verification, retention/lawful-erasure posture, and migration
-   mechanics.
+   mechanics. (Partially closed 2026-07-02: body layout ratified by the Gate 1
+   body-layout ADR — packet-member default; retention/lawful-erasure posture
+   recorded by the ratified Gate 2 deferral ADR with its claim ceiling.
+   Deterministic hash-verification proof, backend posture, and migration
+   mechanics remain open.)
 4. Promote the catalog/availability/index rebuild checks into a lake-doctor or
    CI-owned gate over representative fixture lakes and real lane fixtures.
 5. Prove at least one Silver producer consumes Bronze by catalog/AR helper, not
