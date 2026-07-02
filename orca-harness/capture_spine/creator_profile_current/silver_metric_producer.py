@@ -41,14 +41,28 @@ Accepted residuals (named for the delegated review, not hidden):
 """
 from __future__ import annotations
 
-import hashlib
-import json
 from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Mapping, Sequence
 
 from capture_spine.creator_profile_current.instagram_metric_seed import (
     build_instagram_reels_creator_metric_seed_from_files,
+)
+from capture_spine.creator_profile_current.silver_envelope_core import (
+    BASE_NON_CLAIMS as _REQUIRED_NON_CLAIMS,
+    CONTENT_HASH_BASIS as _CONTENT_HASH_BASIS,
+    METRIC_OBSERVATION_LANE,
+    METRIC_OBSERVATION_PAYLOAD_KIND,
+    METRIC_ROLLUP_LANE,
+    METRIC_ROLLUP_PAYLOAD_KIND,
+    SILVER_VAULT_RECORD_SCHEMA_VERSION,
+    SOURCE_FAMILY as _SOURCE_FAMILY,
+    assert_posture_value_coupling as _assert_posture_value_coupling,
+    content_hash as _content_hash,
+    metric_posture as _metric_posture,
+    require_source_packet_id as _require_source_packet_id,
+    required_subject_native_id as _required_subject_native_id,
+    rollup_metric as _rollup_metric,
 )
 from harness_utils import generate_ulid
 from data_lake.catalog import source_surface_catalog_rows
@@ -58,17 +72,11 @@ if TYPE_CHECKING:
     from data_lake.root import DataLakeRoot
 
 
-SILVER_VAULT_RECORD_SCHEMA_VERSION = "silver_vault_record_v0"
 SEED_WRAPPER_KEY = "instagram_reels_creator_metric_seed"
 
-METRIC_OBSERVATION_LANE = "creator_metric_silver"
-METRIC_ROLLUP_LANE = "creator_metric_rollup_silver"
-METRIC_OBSERVATION_PAYLOAD_KIND = "MetricObservation"
-METRIC_ROLLUP_PAYLOAD_KIND = "MetricRollupObservation"
 METRIC_OBSERVATION_PRODUCER_SCHEMA_VERSION = "creator_metric_silver_metricobservation_v0"
 METRIC_ROLLUP_PRODUCER_SCHEMA_VERSION = "creator_metric_silver_metricrollupobservation_v0"
 
-_CONTENT_HASH_BASIS = "canonical_json_excluding_content_hash"
 _OBS_PRODUCER_ID = (
     "orca-harness.capture_spine.creator_profile_current.silver_metric_producer"
     ".derive_creator_metric_silver_records_from_projections#metric_observation"
@@ -78,23 +86,11 @@ _ROLLUP_PRODUCER_ID = (
     ".derive_creator_metric_silver_records_from_projections#metric_rollup"
 )
 _PLATFORM_NAMESPACE = "instagram"
-_SOURCE_FAMILY = "social_media"
 _IG_BRONZE_SOURCE_FAMILY = "instagram_creator"
 _IG_BRONZE_SOURCE_SURFACE = "ig_reels_grid_dom_passive_json"
 _BRONZE_AR_RAW_REF_KIND = "bronze_attachment_record"
 _RAW_PACKET_FALLBACK_REF_KIND = "raw_packet_fallback_missing_attachment_record"
 _MISSING_AR_LIMITATION = "typed_attachment_record_missing_for_raw_ref"
-
-# Non-claims attached to every emitted record. The registry/profile boundaries
-# already in the codebase are the source of truth for these tokens; the producer
-# restates them so a record is never mistaken for representative or buyer truth.
-_REQUIRED_NON_CLAIMS = (
-    "not a representative creator average",
-    "not channel-wide creator influence",
-    "not cross-platform identity linkage",
-    "not a follower graph or audience estimate",
-    "not buyer proof",
-)
 
 
 @dataclass(frozen=True)
@@ -399,28 +395,6 @@ def _rollup_subject(seed_rollup: Mapping[str, Any], account_handle: str | None) 
     return {"ref_type": "entity_key", "ref": ref}
 
 
-def _required_subject_native_id(value: Any, *, what: str) -> str:
-    if not isinstance(value, str) or not value.strip():
-        raise ValueError(f"{what} requires a non-empty entity_key native_id")
-    return value
-
-
-def _metric_posture(kind: str, reason: str | None) -> dict[str, Any]:
-    return {"kind": kind, "reason_code": None, "reason_detail": reason}
-
-
-def _rollup_metric(metric: Mapping[str, Any], *, what: str) -> dict[str, Any]:
-    posture = metric["posture"]
-    value = metric.get("value_or_none")
-    reason = metric.get("posture_reason_or_none")
-    _assert_posture_value_coupling(posture=posture, value=value, reason=reason, what=what)
-    return {
-        "metric_value": value,
-        "metric_posture": _metric_posture(posture, reason),
-        "unit": metric["metric_unit"],
-    }
-
-
 def _raw_ref(
     seed_observation: Mapping[str, Any],
     *,
@@ -530,32 +504,6 @@ def _raw_ref_lineage_limitations(raw_ref: Mapping[str, Any]) -> list[dict[str, s
     ]
 
 
-def _assert_posture_value_coupling(*, posture: str, value: Any, reason: Any, what: str) -> None:
-    """Enforce the Silver posture/value coupling: observed <=> numeric value and
-    no reason; non-observed <=> null value and a reason. Booleans are not numbers.
-    Fails loud rather than emitting a fake-shaped record."""
-    if posture == "observed":
-        if value is None or isinstance(value, bool) or not isinstance(value, (int, float)):
-            raise ValueError(f"{what}: observed posture requires a numeric metric value, got {value!r}")
-        if reason:
-            raise ValueError(f"{what}: observed posture must not carry a posture reason")
-    else:
-        if value is not None:
-            raise ValueError(f"{what}: non-observed posture must carry a null value, got {value!r}")
-        if not reason:
-            raise ValueError(f"{what}: non-observed posture requires a posture reason")
-
-
-def _require_source_packet_id(seed_observation: Mapping[str, Any]) -> str:
-    packet_id = seed_observation.get("source_packet_id_or_none")
-    if not packet_id:
-        raise ValueError(
-            f"metric observation {seed_observation.get('metric_observation_id')!r} lacks a "
-            "source packet id; cannot anchor a source-backed Silver record."
-        )
-    return packet_id
-
-
 def _rollup_raw_anchor(seed_rollup: Mapping[str, Any], observations_by_id: Mapping[str, Mapping[str, Any]]) -> str:
     packet_ids = set()
     for source_id in seed_rollup["source_metric_observation_ids"]:
@@ -571,22 +519,6 @@ def _rollup_raw_anchor(seed_rollup: Mapping[str, Any], observations_by_id: Mappi
             "a per-account rollup must anchor to a single selected projection packet."
         )
     return next(iter(packet_ids))
-
-
-def _content_hash(record: dict[str, Any]) -> str:
-    canonical = dict(record)
-    canonical.pop("content_hash", None)
-    return hashlib.sha256(_canonical_json_bytes(canonical)).hexdigest()
-
-
-def _canonical_json_bytes(value: Any) -> bytes:
-    return json.dumps(
-        value,
-        ensure_ascii=False,
-        sort_keys=True,
-        separators=(",", ":"),
-        allow_nan=False,
-    ).encode("utf-8")
 
 
 __all__ = [

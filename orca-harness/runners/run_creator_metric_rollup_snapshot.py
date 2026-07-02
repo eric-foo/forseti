@@ -93,6 +93,11 @@ _PLATFORM_OUTPUTS: dict[str, _PlatformOutputs] = {
         manifest=_SOCIAL_MEDIA / "instagram" / "instagram_reels_creator_metric_rollup_selection_manifest_v0.json",
         receipt=_SOCIAL_MEDIA / "instagram" / "instagram_reels_creator_metric_rollup_freshness_receipt_v0.json",
     ),
+    "tiktok": _PlatformOutputs(
+        snapshot=_SOCIAL_MEDIA / "tiktok" / "tiktok_profile_grid_creator_metric_rollup_snapshot_v0.json",
+        manifest=_SOCIAL_MEDIA / "tiktok" / "tiktok_profile_grid_creator_metric_rollup_selection_manifest_v0.json",
+        receipt=_SOCIAL_MEDIA / "tiktok" / "tiktok_profile_grid_creator_metric_rollup_freshness_receipt_v0.json",
+    ),
     "youtube": _PlatformOutputs(
         snapshot=_SOCIAL_MEDIA / "youtube" / "youtube_shorts_fragrance_creator_metric_rollup_snapshot_v0.json",
         manifest=_SOCIAL_MEDIA / "youtube" / "youtube_shorts_fragrance_creator_metric_rollup_selection_manifest_v0.json",
@@ -332,6 +337,11 @@ def main(argv: Sequence[str] | None = None) -> int:
         SnapshotGenerationError,
         LatestRollupSelectionError,
         CreatorRollupDiscoveryError,
+        # Plain ValueError covers discovery's remaining fail-closed paths (e.g.
+        # the requested platform has no ledger accounts at all yet), so a
+        # premature "--platform tiktok" run fails loud-and-clear, not with a
+        # traceback.
+        ValueError,
     ) as exc:
         parser.exit(status=2, message=f"creator metric rollup snapshot failed: {exc}\n")
 
