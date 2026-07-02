@@ -188,6 +188,18 @@ classification and must carry preflight manually.
 `python .agents/hooks/check_prompt_provenance.py --selftest` checks the decision
 logic.
 
+**Google search-surface route guard (advisory + CI).**
+`.agents/hooks/check_search_surface_google_route.py` checks the parameterized
+Google route shell for changed durable docs: Google Search capture URLs use
+`hl=en&gl=us&pws=0`, route-using artifacts carry the physical-locality
+non-claim, and blocked Google pages with visible exit-IP content are not
+preserved in durable docs. Wired in `.claude/settings.json`,
+`.codex/hooks.json`, and `.github/workflows/ci.yml`. Authority:
+`docs/decisions/search_surface_google_parameterized_us_capture_route_v0.md` plus
+the enforcement-placement principle in `.agents/workflow-overlay/validation-gates.md`.
+Shape only; US-parameterized is not physically US-local. It is not
+physical-locality proof, validation, readiness, demand proof, Judgment evidence, or Product Lead evidence.
+
 **SCI reminder (advisory).** A PreToolUse hook (matcher `Bash|PowerShell`
 in `.claude/settings.json`, gated to `git commit`) runs:
 
