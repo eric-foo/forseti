@@ -329,6 +329,23 @@ have been recommended (resident judgment; cf. the receipt-field provenance
 gate). Registered in `.github/workflows/ci.yml` and `.githooks/commit-msg`;
 `--selftest` present.
 
+**Local pre-push doc-gate mirror** (`.agents/hooks/pre_push_guard.py`, the
+policy behind the `.githooks/pre-push` adapter). For a push whose update lines
+pass the guard's safety checks, the guard also runs the strict doc gates CI
+runs — `check_map_links.py --strict`, `header_index.py --strict`,
+`check_review_routing.py --strict` (diff-scoped checkers default to base
+`origin/main`, the same base CI resolves for a PR) — so a forward-only gate
+miss, e.g. a reviewer-authored `docs/review-outputs/**` report missing its
+retrieval header (the PR #613 red round), fails at the push boundary instead
+of costing a CI round. Same checkers, same rule owners; the mirror adds no
+rule. A nonzero or unlaunchable gate blocks the push (the GATE FAIL bucket
+above); the checkers' own infra-gap fail-opens are unchanged. Write-time note:
+the EP-06 retrieval-header advisory already covers `docs/review-outputs/**`
+writes at the Claude Code write boundary; this mirror is the harness-agnostic
+catch for writes that advisory cannot see or that ignored it. Local Git hook
+only: bypassable with `--no-verify`; CI remains the authoritative boundary; a
+green pre-push is not validation, readiness, or approval.
+
 
 ## Future Gates
 

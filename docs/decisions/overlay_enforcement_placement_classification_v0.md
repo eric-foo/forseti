@@ -29,6 +29,40 @@ Prepare-only **proposal + classification**. It inventories and classifies rules 
 
 Scope guard: this is the **enforcement-placement step only**. Binding the shared distillation doctrine to Orca is a separate later task and is explicitly out of scope here (see § Step 4).
 
+## Update — 2026-07-03: strict doc gates mirrored into the local pre-push guard
+
+Not a new EP handle — a placement extension of already-built substrates
+(`header_index.py --strict`, `check_review_routing.py --strict`,
+`check_map_links.py --strict`), mirrored into
+`.agents/hooks/pre_push_guard.py` (the `.githooks/pre-push` adapter policy)
+under explicit current-turn owner authorization (the PR #613 red-round
+follow-up turn).
+
+- **What changed:** for a push whose update lines pass the guard's existing
+  safety checks, the guard now runs the three strict doc gates CI runs
+  (diff-scoped base `origin/main`, same as CI) and blocks the push on any
+  nonzero, unlaunchable, or timed-out gate (the GATE FAIL bucket); the
+  checkers' own infra-gap fail-opens (e.g. unresolvable `origin/main`) are
+  unchanged, so CI stays the backstop for infra gaps.
+- **Provenance:** PR #613 — a delegated-review report under
+  `docs/review-outputs/**` missing its retrieval header reached CI and cost a
+  red round. The write-time advisory (the EP-06 hook, wired and verified
+  firing on exactly that miss shape this session) is non-blocking and
+  harness-local, so the miss class needed a harness-agnostic local boundary
+  before CI. Named residual: the Codex PostToolUse wiring does not include the
+  EP-06 header advisory (and the checker does not parse `apply_patch`
+  payloads), so Codex-side writes see no write-time reminder; they are caught
+  by this pre-push mirror and CI.
+- **Verified this session:** `pre_push_guard.py --selftest` 8/8 PASS (5
+  pre-existing update-line cases + 3 injected-runner gate cases); live allow
+  fire (clean lane payload → 3 gates run, exit 0, ~5s combined) and live block
+  fire (temp commit with a headerless `docs/review-outputs/` probe → exit 1
+  carrying the `header_index` MISSING-HEADER finding).
+- No overlay rule changed (the validation-gates "Enforcement Placement"
+  section gained registry documentation only); placement is not authority, so
+  no `direction_change_propagation` receipt is owed. Bypassable with
+  `--no-verify`; not validation, readiness, or approval.
+
 ## Update — 2026-07-02: EP-35 (review-routing disposition gate) built and wired
 
 A new Enforcement Placement handle — **EP-35, beyond the EP-01..EP-34 set** —
