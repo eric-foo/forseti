@@ -464,6 +464,7 @@ def test_live_probe_stops_on_platform_challenge(tmp_path: Path) -> None:
     )
     assert cadence["failures"][0]["blocker_triage"]["action"] == TIKTOK_BLOCKER_ACTION_STOP
     assert cadence["failures"][0]["blocker_triage"]["action_taken"] is False
+    assert cadence["failures"][0]["blocker_triage"]["matched_marker"] == "verify to continue"
     assert len(engine.calls) == 1
 
 

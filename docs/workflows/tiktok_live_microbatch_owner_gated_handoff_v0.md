@@ -44,7 +44,7 @@ input_hashes:
   docs/workflows/tiktok_funmi_n30_comment_subtitle_cadence_analysis_v0.md: 8385e43615e76a2503e9f36468dbdcd7c92268a3
   orca-harness/source_capture/adapters/browser_snapshot.py: 626200271254fbec54185226c9be220c19f80b9a
   orca-harness/source_capture/tiktok/live_batch_probe.py: dc2989412d8e355453283abaff935a449ddd0af5
-  orca-harness/source_capture/tiktok/blocker_triage.py: b0c7d320dc09ee4f65c59d1014deebf2b03d0d80
+  orca-harness/source_capture/tiktok/blocker_triage.py: 19816ad967bc57c53aa750dfc9cf59902e5455cd
   orca-harness/source_capture/tiktok/batch_packet.py: b6758d7615a96804e48714283f1925577c7dc22c
   orca-harness/source_capture/tiktok/admission.py: 45a86b554772a58300b23be077a48b32f8dcd8de
   orca-harness/runners/run_source_capture_tiktok_live_batch_probe.py: a541072ee177f46892b9f8d697376376383750e6
@@ -342,8 +342,9 @@ Fresh-read sources used while writing this handoff:
 - `live_batch_probe.py`: local staging writer, stop hooks, TikTok
   comments/More-like-this/comments pointer-action sequence, zero-response stop,
   output names, and capture contract.
-- `blocker_triage.py`: challenge/auth-wall stop, missing itemStruct reload
-  candidate classification, ambiguous dismiss stop, and classification-only model.
+- `blocker_triage.py`: challenge/auth-wall stop, allow-list `matched_marker`
+  receipts, missing itemStruct reload candidate classification, ambiguous dismiss
+  stop, and classification-only model.
 - `batch_packet.py` and `admission.py`: network-free sanitized batch admission,
   summary fields, and sensitive-material enforcement.
 - Runner help for both TikTok live probe and batch admission CLIs.
