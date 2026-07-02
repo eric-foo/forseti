@@ -157,7 +157,9 @@ the whole router.
 ## Subagent Model Tiering
 
 When delegating to a spawned subagent, choose the model tier per
-`docs/decisions/subagent_model_tiering_doctrine_v0.md`.
+`docs/decisions/subagent_model_tiering_doctrine_v0.md`. The same doctrine also
+owns the session-lane tier defaults for delegated review lanes (its
+"Session-lane tier defaults" section).
 
 In Claude Code, default delegable work to the Sonnet `worker` agent type;
 trivial rote to the Haiku `mechanical` type; reserve Opus (`general-purpose`,
