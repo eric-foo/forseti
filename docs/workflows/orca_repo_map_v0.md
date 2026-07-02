@@ -401,6 +401,21 @@ disposition gate). Disposition presence/shape only — never review quality,
 reason truth, or whether review should have been recommended (resident
 judgment). `--audit` = per-commit advisory history view; `--selftest` present.
 
+**Handoff-pointer resolution gate (EP-36).** `.agents/hooks/check_handoff_pointers.py`
+— diff-scoped, forward-only CI gate (registered in `.github/workflows/ci.yml`):
+handoff-packet paths (`docs/workflows/*handoff*.md`, `docs/prompts/handoffs/*.md`)
+referenced in changed durable `.md` files must resolve in the same tree, or the
+pointer line must carry an explicit pin (`branch` / `PR #N` / `origin/<ref>`)
+or exemption marker (`does not exist yet`, `nonresolving:`, superseded/removed
+wording). Practical consequence: a handoff packet merges no later than the
+first main-bound artifact that points at it, or the pointer pins the authoring
+branch — cold receiving lanes resolve required reads from `origin/main`. No
+write-time hook by design (the defect is merge topology, invisible at the
+write boundary). Rule owner: `.agents/workflow-overlay/validation-gates.md`
+(Handoff-pointer resolution gate). Pointer shape only — never packet content
+freshness, pin truth, or source-choice correctness. `--audit` = whole-corpus
+backlog view (never gated); `--selftest` present.
+
 **Future agents: reuse this pattern.** To enforce the next load-bearing,
 deterministically-checkable rule, do not add another instruction -- add a
 sibling checker under `.agents/hooks/` that references the rule's authority

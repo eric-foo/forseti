@@ -43,6 +43,8 @@ CASES = [
      [["--strict"], ["--selftest"]], [["--report"]]),
     ("check_placement.py",
      [["--strict"], ["--selftest"]], [["--hook"]]),
+    ("check_handoff_pointers.py",
+     [["--strict"], ["--selftest"]], [["--check"], ["--audit"]]),
 ]
 
 GATING = [(hook, mode) for hook, gating, _ in CASES for mode in gating]

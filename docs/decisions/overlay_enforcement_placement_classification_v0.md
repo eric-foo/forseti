@@ -29,6 +29,53 @@ Prepare-only **proposal + classification**. It inventories and classifies rules 
 
 Scope guard: this is the **enforcement-placement step only**. Binding the shared distillation doctrine to Orca is a separate later task and is explicitly out of scope here (see § Step 4).
 
+## Update — 2026-07-03: EP-36 (handoff-pointer resolution gate) built and wired
+
+A new Enforcement Placement handle — **EP-36, beyond the EP-01..EP-35 set** —
+built and wired under explicit current-turn owner authorization ("Design and
+land the smallest complete enforcement", the handoff-resolution turn).
+
+- **What it enforces:** a changed durable `.md` file must not reference a
+  handoff-packet path (`docs/workflows/*handoff*.md`, `docs/prompts/handoffs/*.md`)
+  that does not resolve in the same tree, unless the pointer line carries an
+  explicit resolution pin (`branch` / `PR #<n>` / `origin/<ref>` vocabulary) or
+  an exemption marker. Rule owner:
+  `.agents/workflow-overlay/validation-gates.md` (Handoff-pointer resolution
+  gate, with inline DCP receipt); the checker references it.
+- **Provenance:** handoff packets referenced by courier prompts twice failed
+  cold-agent resolution because they lived only on unmerged authoring branches
+  (observed: `docs/workflows/yt_shorts_grid_tier_assessment_handoff_v0.md`, reachable only on its authoring branch
+  — both the receiving agent and a delegated reviewer failed to find it from
+  `main`). A build-time corpus measurement showed the class is systemic:
+  `--audit` found 17 unresolved handoff-family pointers across at least six
+  distinct packets (forward-only backlog, surfaced, never gated), while the
+  broader all-paths rot backlog (~883 unresolved references in filed prompts)
+  ruled out any whole-corpus gate.
+- **Classification: PARTIAL.** Pointer extraction + in-tree resolution +
+  pin/exemption vocabulary presence are SUBSTRATE (diff-scoped, forward-only).
+  The over-edges stay resident: whether a pinned branch still exists, whether
+  packet content is current, whether the cited packet was the right source,
+  and couriers that never land in the repo (chat bodies, PR comments,
+  `docs/_inbox/` scratch — governed by prompt-orchestration.md). Referenced
+  output DESTINATIONS (e.g. `docs/review-outputs/**` report paths) are
+  deliberately out of the checked family: they legitimately do not exist at
+  authoring time, so gating them would false-block (measured: nearly all 35
+  review-io unresolved references were destinations). PLACEMENT IS NOT
+  AUTHORITY: a green run is pointer shape, never proof the packet is fresh or
+  correct.
+- **Built:** `.agents/hooks/check_handoff_pointers.py` (`--strict` CI gate,
+  `--check`, `--audit`, `--selftest`, `--force-internal-error`; infra-gap
+  fail-open, GATE FAIL on internal error in gating modes, mirroring
+  `check_review_routing.py`). Wired: `.github/workflows/ci.yml` step +
+  `test_hook_internal_error_gating.py` CASES row. A write-time PostToolUse
+  advisory was intentionally NOT built: the defect is a merge-topology
+  property (packet on a different unmerged branch), invisible at the write
+  boundary where the packet usually exists in the author's own tree.
+
+This trips `stale_if` (a further substrate built). The DCP receipt lives in
+`validation-gates.md` (an overlay rule was added there — like EP-35, this one
+IS a doctrine change). Not validation, readiness, or approval.
+
 ## Update — 2026-07-02: EP-35 (review-routing disposition gate) built and wired
 
 A new Enforcement Placement handle — **EP-35, beyond the EP-01..EP-34 set** —
