@@ -98,9 +98,13 @@ Consumption seam (2026-07-02):
 shared derived-lane consumption layer — obligation-fingerprint pickup by key,
 lane-owned ack records with the LANE_ROLES namespace rule, the six-point
 conformance contract, the rebuild-command binding for the gate-opened
-`undone`/`by_mention` views, and the on-demand-first metrics policy (first
-metric families `operator_to_fill`). The shared helper, rebuild runner, and
-proving-consumer migration live in `orca-harness/` with their tests.
+`undone`/`by_mention` views, and the on-demand-first metrics policy. First
+metric families owner-named 2026-07-02 (share-of-voice; movement-threshold);
+`authority/core_spine_v0_data_lake_metric_family_share_of_voice_field_contract_v0.md`
+binds share-of-voice's field-level posture/coverage contract (its view build
+is a separate, now-unblocked work unit; movement-threshold stays
+gate-blocked). The shared helper, rebuild runner, and proving-consumer
+migration live in `orca-harness/` with their tests.
 
 Placement closeout (2026-06-20): the 2 repo-structure migration planning docs
 (`data_lake_spine_first_migration_{plan,inventory}_v0.md`) intentionally stay in

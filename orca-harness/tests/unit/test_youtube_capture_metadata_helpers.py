@@ -75,6 +75,26 @@ def test_detect_video_state_specific_non_ok_states():
         assert state == expected
 
 
+def test_detect_video_state_blocking_playability_status_is_never_playable():
+    # Observed lake failure shape: playabilityStatus ERROR "Video unavailable"
+    # with no videoDetails must not fall through to the playable fallback.
+    cases = [
+        {"playabilityStatus": {"status": "ERROR", "reason": "Video unavailable"}},
+        {"playabilityStatus": {"status": "UNPLAYABLE", "reason": "This video cannot be played here"}},
+    ]
+
+    for player in cases:
+        state, reason = detect_video_state(
+            status=200,
+            final_url="https://www.youtube.com/watch?v=abcdefghijk",
+            html=_html(player),
+            player=player,
+        )
+        assert state != "playable"
+        assert state == "unknown"
+        assert player["playabilityStatus"]["status"] in reason
+
+
 def test_detect_video_state_player_present_fallback_is_not_shadowed_by_chrome_login():
     state, reason = detect_video_state(
         status=200,

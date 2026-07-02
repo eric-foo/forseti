@@ -54,7 +54,9 @@ Ack      = append-only lane-owned record in acknowledgements/, namespace =
 Views    = rebuildable caches under indexes/derived_retrieval/object_level/;
            built by the rebuild runner; never consulted by pickup.
 Metrics  = computed on demand by default; precomputed only as rebuildable
-           manifest-backed views; first families operator_to_fill.
+           manifest-backed views; first families owner-named, each
+           view-blocked until its field-level contract binds (share-of-voice
+           bound; movement-threshold not yet).
 ```
 
 ## Pickup Contract
@@ -242,8 +244,11 @@ contract.
   decision for a named family must first bind that family's field-level
   posture, reason, and coverage contract (field names and minimal
   semantics), so posture/coverage cannot be nominally present but
-  semantically empty. Neither family above has this binding yet; both remain
-  view-build-blocked until it lands.
+  semantically empty. Gate state:
+  `source_backed_brand_line_share_of_voice` — bound by
+  `core_spine_v0_data_lake_metric_family_share_of_voice_field_contract_v0.md`
+  (2026-07-02; view build is a separate bounded work unit);
+  `movement_threshold_crossings` — not bound; view-build-blocked.
 
 ## Accepted Residuals
 

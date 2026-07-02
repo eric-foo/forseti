@@ -39,9 +39,12 @@ WHY (enforcement placement)
   links carry the same rot risk.
 
 HARD BOUNDARY
-  Read-only.  No git calls.  No writes.  Fails OPEN on internal error
-  (--strict: prints the error, exits 0 so the gate does not ghost-fail).
-  --check always exits 0.  --strict exits 1 only when actual findings exist.
+  Read-only.  No git calls.  No writes.  An unexpected internal exception is
+  the GATE FAIL bucket in gating modes (validation-gates.md; EP-35 FIND-02
+  class sweep): --strict/--strict-inline/--selftest exit 1 on internal error;
+  advisory modes (--check, --report-orca) print the error and exit 0 so a
+  checker bug never bricks the agent.  The repo-root infra-gap fail-open is
+  unchanged.  --check always exits 0.
 
 MODES
   check_map_links.py --strict         CI gate; print findings; exit 1 if any (C1-C4), else 0
@@ -1050,6 +1053,10 @@ def selftest() -> int:
 # ---------------------------------------------------------------------------
 
 def main(argv: list[str]) -> int:
+    # Forced-exception probe: proves the __main__ gating handler
+    # (orca-harness/tests/unit/test_hook_internal_error_gating.py).
+    if "--force-internal-error" in argv:
+        raise RuntimeError("forced internal error (probe)")
     if "--selftest" in argv:
         return selftest()
     try:
@@ -1079,5 +1086,11 @@ if __name__ == "__main__":
     try:
         sys.exit(main(sys.argv[1:]))
     except Exception as exc:
-        sys.stderr.write("check_map_links: internal error, allowing: %s\n" % exc)
-        sys.exit(0)  # fail open
+        # GATE FAIL bucket in gating modes (validation-gates.md; EP-35
+        # delegated review FIND-02 class sweep): an internal checker bug must
+        # not read as a green gate. Advisory modes fail open so a bug never
+        # bricks the agent.
+        sys.stderr.write("check_map_links: internal error: %s\n" % exc)
+        gating = ("--strict" in sys.argv[1:] or "--strict-inline" in sys.argv[1:]
+                  or "--selftest" in sys.argv[1:])
+        sys.exit(1 if gating else 0)
