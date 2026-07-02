@@ -25,6 +25,12 @@ from source_capture.tiktok.admission import (
     decoded_aweme_id_create_time_utc,
     json_dumps_sanitized,
 )
+from source_capture.tiktok.blocker_triage import (
+    TIKTOK_BLOCKER_ACTION_STOP,
+    TIKTOK_BLOCKER_CLASS_CHALLENGE_OR_SECURITY,
+    TikTokBlockerTriage,
+    classify_tiktok_capture,
+)
 
 
 TIKTOK_LIVE_BATCH_PROBE_SCHEMA_VERSION = "tiktok_live_batch_probe_v0"
@@ -44,16 +50,6 @@ TIKTOK_OPEN_COMMENTS_POINTER_ACTION_NAME = "tiktok_open_comments_pointer_v0"
 TIKTOK_COMMENT_LIST_RESPONSE_CAP = 2
 
 _TIKTOK_VIDEO_URL_RE = re.compile(r"^/@(?P<handle>[^/]+)/video/(?P<video_id>\d+)$")
-_CHALLENGE_MARKERS = (
-    "verify to continue",
-    "drag the slider",
-    "captcha",
-    "security check",
-    "too many attempts",
-    "maximum number of attempts",
-    "unusual traffic",
-)
-
 
 JsonObject = dict[str, Any]
 SleepFn = Callable[[float], None]
@@ -220,7 +216,8 @@ def run_tiktok_live_batch_probe(
             )
             continue
 
-        challenge_reason = detect_tiktok_challenge(capture_result)
+        blocker_triage = classify_tiktok_capture(capture_result)
+        challenge_reason = _challenge_reason_from_triage(blocker_triage)
         if challenge_reason is not None:
             challenge_count += 1
             failures.append(
@@ -230,11 +227,16 @@ def run_tiktok_live_batch_probe(
                     observed_utc=observed_utc,
                     reason=challenge_reason,
                     detail="TikTok challenge/auth-wall marker observed; probe stopped.",
+                    blocker_triage=_blocker_triage_receipt(blocker_triage),
                 )
             )
             break
 
         item_struct = _extract_item_struct(capture_result.dom_observation)
+        blocker_triage = classify_tiktok_capture(
+            capture_result,
+            item_struct_present=item_struct is not None,
+        )
         if item_struct is None:
             # C6 names an empty/stripped shell as a genuine-block symptom alongside
             # captcha text and 403 HTML; stop like a detected challenge instead of
@@ -250,6 +252,29 @@ def run_tiktok_live_batch_probe(
                         "No video itemStruct found in TikTok hydration blob; treated as a "
                         "possible empty/stripped-shell block signal (C6) and the probe stopped."
                     ),
+                    blocker_triage=_blocker_triage_receipt(blocker_triage),
+                )
+            )
+            break
+
+        if blocker_triage.action == TIKTOK_BLOCKER_ACTION_STOP:
+            # itemStruct can be present alongside an unresolved ambiguous-stop
+            # marker (e.g. an unclassified dismiss control); the triage's own
+            # stop verdict must be honored even though hydration loaded, or C6's
+            # "do not hammer on an unresolved block signal" invariant is silently
+            # defeated.
+            challenge_count += 1
+            failures.append(
+                _failure_entry(
+                    video_url=video_url,
+                    video_id=video_id,
+                    observed_utc=observed_utc,
+                    reason=blocker_triage.reason,
+                    detail=(
+                        "TikTok blocker triage returned a stop action despite present "
+                        "hydration/itemStruct; probe stopped."
+                    ),
+                    blocker_triage=_blocker_triage_receipt(blocker_triage),
                 )
             )
             break
@@ -280,6 +305,7 @@ def run_tiktok_live_batch_probe(
             capture_result=capture_result,
             observed_utc=observed_utc,
             grid_candidate=grid_candidate,
+            blocker_triage=blocker_triage,
         )
         assert_no_sensitive_tiktok_material(row)
         assert_no_sensitive_tiktok_material(grid_candidate)
@@ -327,16 +353,20 @@ def is_tiktok_comment_list_url(url: str) -> bool:
 
 
 def detect_tiktok_challenge(capture_result: BrowserPageObservationSuccess) -> str | None:
-    final_url = capture_result.final_url.lower()
-    title = (capture_result.title or "").lower()
-    visible_text = capture_result.visible_text.lower()
-    haystack = "\n".join((final_url, title, visible_text))
-    if "/login" in final_url:
-        return "login_or_auth_wall_observed"
-    for marker in _CHALLENGE_MARKERS:
-        if marker in haystack:
-            return "platform_challenge_observed"
+    return _challenge_reason_from_triage(classify_tiktok_capture(capture_result))
+
+
+def _challenge_reason_from_triage(triage: TikTokBlockerTriage) -> str | None:
+    if triage.blocker_class == TIKTOK_BLOCKER_CLASS_CHALLENGE_OR_SECURITY:
+        return triage.reason
     return None
+
+
+def _blocker_triage_receipt(triage: TikTokBlockerTriage) -> JsonObject:
+    receipt = triage.to_receipt()
+    receipt["action_mode"] = "classification_only"
+    receipt["action_taken"] = False
+    return receipt
 
 
 def _tiktok_open_comments_pointer_action(
@@ -393,6 +423,7 @@ def _cadence_row_from_capture(
     capture_result: BrowserPageObservationSuccess,
     observed_utc: str,
     grid_candidate: JsonObject,
+    blocker_triage: TikTokBlockerTriage,
 ) -> JsonObject:
     subtitle_infos = _sanitize_subtitle_infos(_subtitle_infos_from_item_struct(item_struct))
     matched_comment_response_count = sum(
@@ -424,6 +455,7 @@ def _cadence_row_from_capture(
             "page_url_sha256": _sha256_text(video_url),
             "final_url_sha256": _sha256_text(capture_result.final_url),
             "response_count": len(capture_result.responses),
+            "blocker_triage": _blocker_triage_receipt(blocker_triage),
             "comment_action": _comment_action_summary(capture_result),
             "matched_comment_response_count": matched_comment_response_count,
             "admitted_comment_response_count": len(comment_list_responses),
@@ -726,6 +758,7 @@ def _failure_entry(
     observed_utc: str,
     reason: str,
     detail: str,
+    blocker_triage: JsonObject | None = None,
 ) -> JsonObject:
     safe_detail = detail
     if reason.startswith("capture_failed:"):
@@ -740,6 +773,8 @@ def _failure_entry(
         "detail_length": len(detail),
         "page_url_sha256": _sha256_text(video_url),
     }
+    if blocker_triage is not None:
+        entry["blocker_triage"] = blocker_triage
     assert_no_sensitive_tiktok_material(entry)
     return entry
 

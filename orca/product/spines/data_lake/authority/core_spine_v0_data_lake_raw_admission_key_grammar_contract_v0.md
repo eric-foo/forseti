@@ -110,10 +110,11 @@ the primary raw path must not encode any of those meanings. **By-key lookup MUST
 recompute the shard from `packet_id`; it MUST NOT require an Availability Index,
 locator, queue, scan, or runtime event to find committed raw.** A duplicate
 `packet_id` or an existing sharded target is a collision/refusal path, never an
-overwrite or dedupe. Inner packet layout (member vs sidecar vs equivalent),
-manifest/index serialization, the exact shard width, and backend remain deferred to
-physicalization; incumbent packet-relative body paths inside the container remain
-acceptable. (Shard prefix adopted 2026-06-25; a future shard-width change is a
+overwrite or dedupe. Inner packet layout (how material is organized within the
+packet container), manifest/index serialization, the exact shard width, and backend
+remain deferred to physicalization; the AR-body member-vs-sidecar fork is ratified
+(packet-member default per the Gate 1 body-layout ADR, 2026-07-02); incumbent
+packet-relative body paths inside the container remain acceptable. (Shard prefix adopted 2026-06-25; a future shard-width change is a
 separate owner-gated migration.)
 
 ## Identity Invariants
@@ -143,10 +144,11 @@ separate owner-gated migration.)
 ## Deferred / Out Of Scope
 
 Storage engine/backend (object store, database, SQL-capable embedded engine,
-or equivalent), manifest version, member-vs-sidecar layout, attachment
-serialization, queue/event runtime, derived-record physical home, migration/replay
-tooling, canonical identity, cross-packet dedupe, semantic object/event identity,
-validation suite, and implementation route.
+or equivalent), manifest version, attachment serialization, queue/event runtime,
+derived-record physical home, migration/replay tooling, canonical identity,
+cross-packet dedupe, semantic object/event identity, validation suite, and
+implementation route. (AR-body member-vs-sidecar layout, formerly deferred here,
+was ratified 2026-07-02 by the Gate 1 body-layout ADR: packet-member default.)
 
 ## Non-Claims
 
