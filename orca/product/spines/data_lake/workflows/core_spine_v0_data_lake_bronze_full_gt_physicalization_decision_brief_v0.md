@@ -115,10 +115,13 @@ Minimum Gate 1 output:
    external data root, external immutable blob/row, or explicit deferral.
 4. The public read surface: how `source_surface_catalog_rows`,
    `load_attachment_record_body`, or successors continue to resolve bodies.
-5. The rebuild rule: indexes remain rebuildable and non-authoritative.
-6. The replay/migration implication: incumbent direct fields stay
+5. The authority split: generated catalog rows, Attachment Record rows, and
+   indexes remain rebuildable read surfaces, not raw authority or private
+   physical-layout contracts.
+6. The rebuild rule: indexes remain rebuildable and non-authoritative.
+7. The replay/migration implication: incumbent direct fields stay
    legacy-readable; pinned packets are not mutated in place.
-7. The rejected shapes: what future implementers must not infer from this
+8. The rejected shapes: what future implementers must not infer from this
    decision.
 
 Gate 1 option ledger:
@@ -166,6 +169,9 @@ Minimum Gate 2 output:
    what deterministic tests must prove.
 5. What backend choices are forbidden because they make the policy impossible
    or too expensive to reverse.
+6. If the answer is deferral, the accepted-residual record: residual scope,
+   claim ceiling, forbidden backend classes or operations while deferred, and
+   revisit triggers that force a retention/lawful-erasure ADR before lock-in.
 
 Gate 2 option ledger:
 
@@ -200,7 +206,8 @@ Backend candidates are implementation mechanisms, not architecture owners.
 The next owner call should choose exactly one:
 
 1. **Defer physicalization.** Keep the current MGT posture, acknowledge that
-   full GT remains blocked, and scope only non-locking CI/lake-doctor work.
+   full GT remains blocked, record the accepted residuals plus forbidden
+   choices and revisit triggers, and scope only non-locking CI/lake-doctor work.
 2. **Proceed with Gate 1 ADR.** Decide packet-member versus hash-pinned sidecar
    versus explicit deferral while keeping backend unselected until Gate 2.
 3. **Proceed with Gate 2 ADR first.** If lawful erasure or retention policy is
@@ -238,7 +245,7 @@ Remaining material blockers before any full-GT claim:
 - Gate 1 body relationship selected or explicitly deferred with accepted
   residuals.
 - Gate 2 retention/lawful-erasure posture selected or explicitly accepted as a
-  residual.
+  residual, including forbidden backend operations and revisit triggers.
 - Implementation scope proves write-once raw, append-only derived/ack,
   read-by-key, hash verification, public AR body resolution, and index rebuild.
 - Third-proof threshold is applied only to a materially different raw-body or

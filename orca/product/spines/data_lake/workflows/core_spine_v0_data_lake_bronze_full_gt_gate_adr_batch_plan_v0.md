@@ -71,21 +71,28 @@ authored artifact in it. Steps B2-B4 belong to one authoring lane and one PR.
   to a controller from a non-OpenAI vendor family (the brief's author family).
   The commissioning CA adjudicates the return per
   `docs/prompts/templates/review/delegated_review_return_adjudication_v0.md`
-  and lands accepted patches via a lane PR.
+  and lands accepted patches via a lane PR. Executed 2026-07-02 at the
+  same-vendor sanity tier (the operator couriered to a GPT-5 controller, the
+  same vendor as the author family); both major findings were patched and
+  CA-adjudicated as kept. Cross-vendor discovery for the brief remains
+  unsatisfied and rides B5's `[brief-recheck]`.
 - **B2 - Gate 1 ADR authoring.** Author the Attachment Record body-relationship
   ADR from the brief's Gate 1 section: carry G1-B (packet-member/bundle) versus
   G1-C (hash-pinned sidecar) as the live comparison with G1-A as the MGT
-  fallback; do not select G1-D before Gate 2. The ADR must produce all seven
+  fallback; do not select G1-D before Gate 2. The ADR must produce all eight
   minimum Gate 1 outputs (body key, hash_basis, physical relationship, public
-  read surface, rebuild rule, replay/migration implication, rejected shapes),
-  a recommendation, and an explicit owner-ratification block.
+  read surface, authority split, rebuild rule, replay/migration implication,
+  rejected shapes), a recommendation, and an explicit owner-ratification block.
 - **B3 - Gate 2 explicit-posture ADR.** Record the retention/lawful-erasure
   posture as a first-class decide-or-defer artifact. Default form given the
-  owner signal: explicit deferral with accepted residuals - lawful erasure named
-  as an accepted residual, append-only tombstone/supersession (G2-B) as the
-  working unavailability posture, forbidden backend classes (any backend whose
-  adoption would make the deferred erasure posture irreversible or would carry
-  retention policy implicitly), and named revisit triggers. If the owner
+  owner signal: explicit deferral carrying the accepted-residual record the
+  patched brief requires - residual scope (lawful erasure named as an accepted
+  residual), an explicit claim ceiling, append-only tombstone/supersession
+  (G2-B) as the working unavailability posture, forbidden backend classes or
+  operations while deferred (any backend whose adoption would make the deferred
+  erasure posture irreversible or would carry retention policy implicitly), and
+  revisit triggers that force a retention/lawful-erasure ADR before lock-in. If
+  the owner
   instead declares erasure load-bearing, this step escalates to a full Gate 2
   decision ADR and precedes B2 ratification.
 - **B4 - Routing updates.** Patch the brief's `open_next` to reach both ADRs,
@@ -95,7 +102,9 @@ authored artifact in it. Steps B2-B4 belong to one authoring lane and one PR.
   multi-target with label tags (`[gate1-adr]`, `[gate2-adr]`, plus
   `[brief-recheck]` when B1 patched the brief), cross-vendor from the batch
   author, followed by CA adjudication and then owner ratification of both
-  gates. Cross-gate consistency (G1-D locked behind Gate 2; sidecar keying
+  gates. Because B1 executed at same-vendor sanity, the `[brief-recheck]`
+  target also carries the brief's outstanding cross-vendor discovery bar, so
+  B5's controller must be non-OpenAI-family. Cross-gate consistency (G1-D locked behind Gate 2; sidecar keying
   versus erasure separability; replay/migration versus tombstone semantics) is
   an explicit review axis - this interaction is why the two ADRs review as one
   pass rather than two.
