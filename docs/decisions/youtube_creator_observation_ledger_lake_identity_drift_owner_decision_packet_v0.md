@@ -2,7 +2,7 @@
 
 ```yaml
 retrieval_header_version: 1
-artifact_role: Owner decision packet (pending provenance decision, not an accepted decision)
+artifact_role: Owner decision record (Option B2 accepted, owner direction 2026-07-02)
 scope: Evidence and options for the disposition of the YouTube Shorts fragrance creator observation ledger's live-lake reconciliation after the 2026-06-28 lake epoch change orphaned its bound data-lake root.
 use_when:
   - Deciding whether the ledger re-binds to the v4.1 lake, freezes as a historical fixture on the retired root, or both via a new ledger version.
@@ -14,16 +14,51 @@ open_next:
   - orca/product/spines/capture/core/source_families/social_media/youtube/youtube_creator_observation_ledger_spec_v0.md
   - orca-harness/capture_spine/youtube_creator_observation/validation.py
 stale_if:
-  - The owner decides among the options below (the applying change supersedes this packet's "pending" framing).
+  - A later owner decision supersedes Option B2 or re-binds the ledger to a different lake root.
   - Either lake root at F:\orca-data-lake or F:\orca-data-lake-legacy-v0-20260628T174129Z is moved, deleted, or re-initialized.
 ```
 
 ## Status
 
-`PENDING_OWNER_DECISION`. Prepared 2026-07-02 from a read-only investigation.
-No edit has been made to the ledger, its spec, `validation.py`, or any test.
-This packet decides nothing; it prepares the decision for owner sign-off
-because it touches product-spine provenance doctrine.
+`ACCEPTED_OPTION_B2` (owner direction 2026-07-02, in-session, after reviewing
+this packet). Superseded framing: sections below were authored while the
+decision was pending and are retained as the decision basis. Owner inputs
+answered at acceptance:
+
+1. Disposition: **Option B2** - ledger v0 stays a static historical fixture
+   bound to the retired root; the opt-in reconciliation is kept, re-aimed at
+   the preserved archived root.
+2. Legacy-root preservation: **keep as-is** at
+   `F:\orca-data-lake-legacy-v0-20260628T174129Z` (owner declined deletion
+   2026-07-02; ~10 MB, 1,648 files at that decision).
+3. Shared test variable: **split** - this ledger's check moved to a dedicated
+   `ORCA_ARCHIVED_LAKE_TEST_ROOT` opt-in (agent default under the accepted
+   B2 residual, stated at application).
+4. The standing epoch-vs-ledger doctrine question remains **open** - not
+   decided by this record.
+
+## Application Record (2026-07-02)
+
+Applied surfaces (see the DCP receipt at the end of this file):
+
+- `orca-harness/tests/unit/test_youtube_creator_observation_ledger.py`: the
+  opt-in test renamed to `..._archived_lake_refs_when_available` and re-keyed
+  from `ORCA_LIVE_LAKE_TEST_ROOT` to `ORCA_ARCHIVED_LAKE_TEST_ROOT`, so
+  live-lake suite runs no longer false-alarm on this fixture and this check
+  no longer targets the live lake.
+- `orca-harness/tests/conftest.py`: hermeticity comment extended to name the
+  new archived-lake opt-in variable.
+- `orca/product/spines/capture/core/source_families/social_media/youtube/youtube_creator_observation_ledger_spec_v0.md`:
+  root-binding paragraph now records the retired/archived root status and the
+  archived-evidence-check semantics.
+- `docs/workflows/orca_repo_map_v0.md` and
+  `docs/workflows/data_capture_spine_consolidation_map_v0.md`: live routing
+  rows repointed from "live-lake verifier" to the archived-lake evidence
+  check.
+- The ledger JSON and `validation.py` are intentionally unchanged (B2 core:
+  the ledger's recorded provenance was already truthful; the validator is
+  root-agnostic and its `live_lake_*` error-code vocabulary is
+  fixture-asserted).
 
 ## Problem
 
@@ -157,9 +192,70 @@ changed yet.
 
 ## Non-Claims
 
-Not validation, readiness, acceptance, or approval; not a ledger, spec,
-validator, or test edit; not a doctrine change; not proof of payload-byte
-integrity in the legacy root (the probe verified existence and the validator's
-metadata fields, not content hashes); not a retention guarantee for either
-lake root; not authority over the 14 other artifacts referencing the retired
-root.
+Not validation or readiness; not proof of payload-byte integrity in the
+archived root (the probe verified existence and the validator's metadata
+fields, not content hashes); not a retention guarantee for either lake root
+beyond the owner's keep-as-is direction; not authority over the other
+artifacts referencing the retired root; not a decision on the standing
+epoch-vs-ledger doctrine question; the ledger JSON and `validation.py` remain
+unchanged.
+
+## Direction Change Propagation
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    The YouTube Shorts fragrance creator observation ledger v0 is owner-accepted
+    (Option B2) as a static historical fixture bound to the retired
+    orca-canonical v0 lake root preserved at
+    F:\orca-data-lake-legacy-v0-20260628T174129Z; its packet-ref reconciliation
+    is re-aimed from the live lake to that archived root via a dedicated opt-in
+    (ORCA_ARCHIVED_LAKE_TEST_ROOT), shifting the check's semantics from
+    live-lake reconciliation to archived-evidence integrity.
+  trigger: lifecycle_boundary
+  related_triggers:
+    - validation_philosophy
+  controlling_sources_updated:
+    - docs/decisions/youtube_creator_observation_ledger_lake_identity_drift_owner_decision_packet_v0.md
+    - orca/product/spines/capture/core/source_families/social_media/youtube/youtube_creator_observation_ledger_spec_v0.md
+    - orca-harness/tests/unit/test_youtube_creator_observation_ledger.py
+    - orca-harness/tests/conftest.py
+    - docs/workflows/orca_repo_map_v0.md
+    - docs/workflows/data_capture_spine_consolidation_map_v0.md
+  downstream_surfaces_checked:
+    - AGENTS.md                                     # no ledger/lake-root reference; routes via overlay; no change
+    - .agents/workflow-overlay/README.md            # no reference; no change
+    - .agents/workflow-overlay/validation-gates.md  # gate semantics unchanged; the check stays opt-in
+    - orca-harness/capture_spine/youtube_creator_observation/validation.py  # root-agnostic; unchanged by design
+    - orca-harness/tests/unit/test_creator_metric_silver_snapshot.py        # keeps ORCA_LIVE_LAKE_TEST_ROOT for live-lake checks; unaffected
+    - orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_observation_ledger_v0.json  # provenance already truthful; unchanged (B2 core)
+  intentionally_not_updated:
+    - path: orca-harness/capture_spine/youtube_creator_observation/validation.py
+      reason: >
+        Root-agnostic by construction; renaming
+        validate_youtube_creator_observation_ledger_against_live_lake or its
+        live_lake_* error codes would churn fixture-asserted vocabulary for no
+        behavior change.
+    - path: docs/prompts/reviews/silver_lineage_kit_enforcement_codex_cross_vendor_adversarial_code_review_prompt_v0.md
+      reason: >
+        Historical review prompt; its environment caveat names the old test
+        name as a point-in-time record.
+    - path: >
+        docs/review-inputs/youtube_shorts_fragrance_* (7 artifacts),
+        orca-harness/runners/poll_and_extract.ps1,
+        docs/workflows/capture_spine_runner_data_lake_dump_audit_handoff_v0.md
+      reason: >
+        They cite the retired root as their own point-in-time provenance; this
+        record scopes the observation ledger only. Any wider sweep belongs to
+        the open standing epoch-vs-ledger doctrine question.
+  stale_language_search: >
+    rg -n "ORCA_LIVE_LAKE_TEST_ROOT|live_lake_refs_when_available|live-lake
+    verifier" across the repo after edits (run 2026-07-02, results recorded in
+    the applying PR).
+  non_claims:
+    - not validation
+    - not readiness
+    - not payload-byte integrity proof for the archived root
+    - not a retention guarantee beyond the owner's keep-as-is direction
+    - not a decision on the standing epoch-vs-ledger doctrine question
+```
