@@ -113,7 +113,10 @@ authored artifact in it. Steps B2-B4 belong to one authoring lane and one PR.
   author, followed by CA adjudication and then owner ratification of both
   gates. Because B1 executed at same-vendor sanity, the `[brief-recheck]`
   target also carries the brief's outstanding cross-vendor discovery bar, so
-  B5's controller must be non-OpenAI-family. Cross-gate consistency (G1-D locked behind Gate 2; sidecar keying
+  B5's controller must be non-OpenAI-family - and non-Anthropic-family for
+  the ADR targets, since the batch ADRs were Claude-authored. The B5
+  commission prompt is filed at
+  `docs/prompts/reviews/core_spine_v0_data_lake_bronze_full_gt_gate_adr_batch_delegated_adversarial_review_patch_prompt_v0.md`. Cross-gate consistency (G1-D locked behind Gate 2; sidecar keying
   versus erasure separability; replay/migration versus tombstone semantics) is
   an explicit review axis - this interaction is why the two ADRs review as one
   pass rather than two.
