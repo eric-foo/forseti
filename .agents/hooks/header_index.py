@@ -242,24 +242,30 @@ def _extract_header_fields(lines: list[str]) -> dict:
 def walk_durable_mds(root: Path) -> list[str]:
     """Return all in-scope durable .md relpaths (POSIX) under the repo root.
 
-    Pure walk — does not check for header presence.
+    Pure walk — does not check for header presence. Walks only the
+    IN_SCOPE_PREFIXES roots: scope_folder() accepts nothing outside them, so
+    the result set is identical to a whole-repo walk while out-of-scope
+    subtrees (product spines, harness, nested worktrees in a main checkout)
+    cost no I/O.
     """
     results: list[str] = []
-    for dirpath, dirnames, filenames in os.walk(root):
-        # Prune excluded subtrees early
-        rel_dir = Path(dirpath).relative_to(root).as_posix()
-        # Prune hidden/large non-relevant dirs
-        dirnames[:] = [
-            d for d in dirnames
-            if not (d.startswith(".git") or d == "node_modules" or d == "__pycache__")
-        ]
-        for fname in filenames:
-            if not fname.endswith(".md"):
-                continue
-            fpath = Path(dirpath) / fname
-            relposix = fpath.relative_to(root).as_posix()
-            if scope_folder(relposix) is not None:
-                results.append(relposix)
+    for prefix in IN_SCOPE_PREFIXES:
+        base = root / prefix
+        if not base.is_dir():
+            continue
+        for dirpath, dirnames, filenames in os.walk(base):
+            # Prune hidden/large non-relevant dirs
+            dirnames[:] = [
+                d for d in dirnames
+                if not (d.startswith(".git") or d == "node_modules" or d == "__pycache__")
+            ]
+            for fname in filenames:
+                if not fname.endswith(".md"):
+                    continue
+                fpath = Path(dirpath) / fname
+                relposix = fpath.relative_to(root).as_posix()
+                if scope_folder(relposix) is not None:
+                    results.append(relposix)
     return sorted(results)
 
 

@@ -42,6 +42,7 @@ from __future__ import annotations
 import json
 import subprocess
 import sys
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 import os
 
@@ -143,9 +144,14 @@ def build_capsule(source: str, root: str, branch: str, head: str,
 
 
 def _git(root: Path, *args: str) -> str:
-    """Run a git command with a short timeout; '' on any failure (fail open)."""
+    """Run a git command with a short timeout; '' on any failure (fail open).
+
+    --no-optional-locks: gather() runs these read-only calls concurrently, and
+    without it a `git status` may take index.lock for an opportunistic refresh
+    and make a sibling call fail (which would silently misreport tree state).
+    """
     try:
-        res = subprocess.run(["git", "-C", str(root), *args],
+        res = subprocess.run(["git", "--no-optional-locks", "-C", str(root), *args],
                              capture_output=True, text=True, timeout=5)
     except (FileNotFoundError, OSError, subprocess.TimeoutExpired):
         return ""
@@ -197,19 +203,32 @@ def ontology_expansion_line(root: Path) -> str | None:
 
 
 def gather(root: Path, source: str) -> str:
-    branch = _git(root, "rev-parse", "--abbrev-ref", "HEAD").strip()
-    head = _git(root, "log", "-1", "--format=%h %s").strip()
-    subjects = [s for s in _git(root, "log", "-3", "--format=%s").splitlines() if s]
-    counts = tree_counts(_git(root, "status", "--porcelain"))
-    cfg = config_dirt(_git(root, "status", "--porcelain", "--", *CONFIG_SURFACE))
-    raw_diff = _git(root, "diff", "--name-only", "origin/main", "--", "AGENTS.md", ".agents")
+    # All eight child calls are independent reads; run them concurrently so
+    # session start waits for the slowest child, not the serial sum. Each
+    # child keeps its own timeout and fail-open contract unchanged.
+    with ThreadPoolExecutor(max_workers=8) as pool:
+        f_branch = pool.submit(_git, root, "rev-parse", "--abbrev-ref", "HEAD")
+        f_head = pool.submit(_git, root, "log", "-1", "--format=%h %s")
+        f_subjects = pool.submit(_git, root, "log", "-3", "--format=%s")
+        f_status = pool.submit(_git, root, "status", "--porcelain")
+        f_cfg = pool.submit(_git, root, "status", "--porcelain", "--", *CONFIG_SURFACE)
+        f_diff = pool.submit(_git, root, "diff", "--name-only", "origin/main",
+                             "--", "AGENTS.md", ".agents")
+        f_health = pool.submit(retrieval_health_line, root)
+        f_expansion = pool.submit(ontology_expansion_line, root)
+    branch = f_branch.result().strip()
+    head = f_head.result().strip()
+    subjects = [s for s in f_subjects.result().splitlines() if s]
+    counts = tree_counts(f_status.result())
+    cfg = config_dirt(f_cfg.result())
+    raw_diff = f_diff.result()
     # _git returns "" on failure; use None sentinel only when git itself errors
     # (we cannot distinguish "" output from error via _git's current contract,
     # so treat the empty-string-on-error case as fail-open: an empty diff output
     # means "matches", which is the safe/non-alarming default).
     doctrine = doctrine_lag_line(raw_diff)
-    health = retrieval_health_line(root)
-    expansion = ontology_expansion_line(root)
+    health = f_health.result()
+    expansion = f_expansion.result()
     return build_capsule(source, str(root), branch, head, subjects, counts, cfg,
                          doctrine=doctrine, retrieval_health=health,
                          ontology_expansion=expansion)
