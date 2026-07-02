@@ -17,10 +17,12 @@ from data_lake.consumption import (
     ack_record_id,
     append_ack,
     find_acks,
+    find_retractions,
     is_acknowledged,
     iter_all_acks,
     obligation_fingerprint,
     pickup,
+    retract_ack,
 )
 from data_lake.root import DataLakeRoot, DataLakeRootError
 from source_capture.models import known_fact
@@ -46,7 +48,13 @@ def _commit_packet(root: DataLakeRoot, tmp_path: Path, body: str) -> str:
 
 
 def _static_obligation(raw_anchor: str) -> dict:
-    return {"obligation_schema": 1, "inputs": []}
+    return {"obligation_schema": 1, "consumer": "conformance_suite", "inputs": []}
+
+
+def _obligation(**over) -> dict:
+    base = {"obligation_schema": 1, "consumer": "conformance_suite"}
+    base.update(over)
+    return base
 
 
 _EVIDENCE = [{"kind": "test_marker", "ref": "r1"}]
@@ -55,15 +63,42 @@ _EVIDENCE = [{"kind": "test_marker", "ref": "r1"}]
 # --- namespace rule -----------------------------------------------------------
 
 
-def test_ack_namespace_must_be_registered(tmp_path: Path) -> None:
+def test_ack_namespace_must_be_registered_for_active_paths(tmp_path: Path) -> None:
     root = DataLakeRoot.for_test(tmp_path / "lake")
     with pytest.raises(ConsumptionSeamError):
         append_ack(root, raw_anchor="A" * 26, ack_namespace="not_a_lane",
-                   obligation={}, evidence=_EVIDENCE)
-    with pytest.raises(ConsumptionSeamError):
-        find_acks(root, raw_anchor="A" * 26, ack_namespace="not_a_lane")
+                   obligation=_obligation(), evidence=_EVIDENCE)
     with pytest.raises(ConsumptionSeamError):
         list(pickup(root, ack_namespace="not_a_lane", obligation_fn=_static_obligation))
+    # history readers are NOT registry-gated (registry evolution must not make
+    # history unreadable); an unknown namespace simply has no history.
+    assert find_acks(root, raw_anchor="A" * 26, ack_namespace="not_a_lane") == []
+    assert find_retractions(root, raw_anchor="A" * 26, ack_namespace="not_a_lane") == []
+
+
+def test_history_survives_registry_evolution(tmp_path: Path, monkeypatch) -> None:
+    # Simulate a lane being retired from LANE_ROLES after acks were written:
+    # history stays readable; active consumer paths fail LOUDLY (never silent).
+    import data_lake.consumption as consumption
+
+    root = DataLakeRoot.for_test(tmp_path / "lake")
+    pid = _commit_packet(root, tmp_path, "alpha")
+    obligation = _static_obligation(pid)
+    append_ack(root, raw_anchor=pid, ack_namespace=_NS, obligation=obligation, evidence=_EVIDENCE)
+
+    evolved = {lane: role for lane, role in consumption.LANE_ROLES.items() if lane != _NS}
+    monkeypatch.setattr(consumption, "LANE_ROLES", evolved)
+
+    # append-only completion history remains valid and readable
+    assert len(find_acks(root, raw_anchor=pid, ack_namespace=_NS)) == 1
+    # the undone-view walk keeps working over retired-namespace history
+    assert {(pid, _NS)} == {(a, n) for a, n, _f in iter_all_acks(root)}
+    # an ACTIVE consumer using the retired namespace fails loudly at its own call
+    with pytest.raises(ConsumptionSeamError):
+        list(pickup(root, ack_namespace=_NS, obligation_fn=_static_obligation))
+    with pytest.raises(ConsumptionSeamError):
+        append_ack(root, raw_anchor=pid, ack_namespace=_NS,
+                   obligation=obligation, evidence=_EVIDENCE)
 
 
 # --- no fake done: evidence is mandatory ---------------------------------------
@@ -105,9 +140,74 @@ def test_pickup_yields_committed_then_skips_after_ack(tmp_path: Path) -> None:
 def test_ack_overwrite_hard_fails(tmp_path: Path) -> None:
     root = DataLakeRoot.for_test(tmp_path / "lake")
     pid = _commit_packet(root, tmp_path, "alpha")
-    append_ack(root, raw_anchor=pid, ack_namespace=_NS, obligation={"v": 1}, evidence=_EVIDENCE)
+    append_ack(root, raw_anchor=pid, ack_namespace=_NS, obligation=_obligation(v=1), evidence=_EVIDENCE)
     with pytest.raises(DataLakeRootError):
-        append_ack(root, raw_anchor=pid, ack_namespace=_NS, obligation={"v": 1}, evidence=_EVIDENCE)
+        append_ack(root, raw_anchor=pid, ack_namespace=_NS, obligation=_obligation(v=1), evidence=_EVIDENCE)
+
+
+# --- minimum obligation envelope + evidence shape (contract-validated) -----------
+
+
+def test_obligation_envelope_is_enforced(tmp_path: Path) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "lake")
+    pid = _commit_packet(root, tmp_path, "alpha")
+    with pytest.raises(ConsumptionSeamError):
+        append_ack(root, raw_anchor=pid, ack_namespace=_NS,
+                   obligation={"inputs": []}, evidence=_EVIDENCE)  # no schema/consumer
+    with pytest.raises(ConsumptionSeamError):
+        append_ack(root, raw_anchor=pid, ack_namespace=_NS,
+                   obligation={"obligation_schema": 1, "consumer": " "}, evidence=_EVIDENCE)
+    with pytest.raises(ConsumptionSeamError):
+        list(pickup(root, ack_namespace=_NS, obligation_fn=lambda _a: {"bare": True}))
+
+
+def test_evidence_entries_require_kind(tmp_path: Path) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "lake")
+    pid = _commit_packet(root, tmp_path, "alpha")
+    with pytest.raises(ConsumptionSeamError):
+        append_ack(root, raw_anchor=pid, ack_namespace=_NS,
+                   obligation=_obligation(), evidence=[{"ref": "r1"}])  # no kind
+    with pytest.raises(ConsumptionSeamError):
+        append_ack(root, raw_anchor=pid, ack_namespace=_NS,
+                   obligation=_obligation(), evidence=["not-a-mapping"])
+
+
+# --- retraction cycle (conformance obligation 7) ----------------------------------
+
+
+def test_retraction_resurfaces_then_reack_is_representable(tmp_path: Path) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "lake")
+    pid = _commit_packet(root, tmp_path, "alpha")
+    obligation = _static_obligation(pid)
+
+    append_ack(root, raw_anchor=pid, ack_namespace=_NS, obligation=obligation, evidence=_EVIDENCE)
+    assert list(pickup(root, ack_namespace=_NS, obligation_fn=_static_obligation)) == []
+
+    retract_ack(root, raw_anchor=pid, ack_namespace=_NS, obligation=obligation,
+                reason="recorded evidence cited the wrong marker")
+    assert not is_acknowledged(root, raw_anchor=pid, ack_namespace=_NS, obligation=obligation)
+    resurfaced = [item.raw_anchor for item in
+                  pickup(root, ack_namespace=_NS, obligation_fn=_static_obligation)]
+    assert resurfaced == [pid]
+
+    # truthful re-acknowledgement lands at the next deterministic id, no overwrite
+    append_ack(root, raw_anchor=pid, ack_namespace=_NS, obligation=obligation, evidence=_EVIDENCE)
+    assert is_acknowledged(root, raw_anchor=pid, ack_namespace=_NS, obligation=obligation)
+    assert list(pickup(root, ack_namespace=_NS, obligation_fn=_static_obligation)) == []
+    # full append-only history: two acks + one retraction
+    assert len(find_acks(root, raw_anchor=pid, ack_namespace=_NS)) == 2
+    assert len(find_retractions(root, raw_anchor=pid, ack_namespace=_NS)) == 1
+
+
+def test_retraction_requires_reason_and_existing_ack(tmp_path: Path) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "lake")
+    pid = _commit_packet(root, tmp_path, "alpha")
+    obligation = _static_obligation(pid)
+    with pytest.raises(ConsumptionSeamError):
+        retract_ack(root, raw_anchor=pid, ack_namespace=_NS, obligation=obligation, reason="x")
+    append_ack(root, raw_anchor=pid, ack_namespace=_NS, obligation=obligation, evidence=_EVIDENCE)
+    with pytest.raises(ConsumptionSeamError):
+        retract_ack(root, raw_anchor=pid, ack_namespace=_NS, obligation=obligation, reason="  ")
 
 
 # --- obligation growth re-pickup --------------------------------------------------
@@ -119,7 +219,7 @@ def test_obligation_growth_resurfaces_anchor(tmp_path: Path) -> None:
     inputs: list[str] = []
 
     def obligation(_anchor: str) -> dict:
-        return {"obligation_schema": 1, "inputs": sorted(inputs)}
+        return {"obligation_schema": 1, "consumer": "conformance_suite", "inputs": sorted(inputs)}
 
     append_ack(root, raw_anchor=pid, ack_namespace=_NS,
                obligation=obligation(pid), evidence=_EVIDENCE)
@@ -147,10 +247,12 @@ def test_missed_event_recovery_by_key(tmp_path: Path) -> None:
     entry = root.path / "indexes" / "availability" / f"{pid}.json"
     assert entry.is_file()
     entry.unlink()
-    assert list(pickup(root, ack_namespace=_NS, obligation_fn=_static_obligation)) == []
 
-    # By-key reconcile (the authoritative backstop) finds the committed work.
-    assert root.rebuild_availability() == 1
+    # A visibly opted-out pickup over the stale surface misses the work — the
+    # exact hazard the contract's reconcile precondition exists to prevent...
+    assert list(pickup(root, ack_namespace=_NS, obligation_fn=_static_obligation,
+                       reconcile=False)) == []
+    # ...while the DEFAULT pickup reconciles by key first and finds it.
     undone = [item.raw_anchor for item in
               pickup(root, ack_namespace=_NS, obligation_fn=_static_obligation)]
     assert undone == [pid]
@@ -209,9 +311,12 @@ def test_iter_all_acks_walks_the_tree(tmp_path: Path) -> None:
     first = _commit_packet(root, tmp_path, "alpha")
     second = _commit_packet(root, tmp_path, "beta")
     append_ack(root, raw_anchor=first, ack_namespace=_NS,
-               obligation={"v": 1}, evidence=_EVIDENCE)
+               obligation=_obligation(v=1), evidence=_EVIDENCE)
     append_ack(root, raw_anchor=second, ack_namespace="ecr_timing",
-               obligation={"v": 2}, evidence=_EVIDENCE)
+               obligation=_obligation(v=2), evidence=_EVIDENCE)
+    # a retraction fact is history, not an ack — the walk yields ack facts only
+    retract_ack(root, raw_anchor=first, ack_namespace=_NS,
+                obligation=_obligation(v=1), reason="test retraction")
 
     seen = {(anchor, namespace) for anchor, namespace, _ack in iter_all_acks(root)}
     assert seen == {(first, _NS), (second, "ecr_timing")}

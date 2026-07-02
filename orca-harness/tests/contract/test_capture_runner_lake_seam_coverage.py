@@ -123,7 +123,6 @@ EXPECTED_NON_RAW_LAKE_TOUCHPOINTS = Counter(
         ("data_lake/catalog.py", "inspect_catalog"): 2,
         ("data_lake/consumption.py", "append_record"): 1,
         ("data_lake/consumption.py", "lane_dir"): 1,
-        ("data_lake/consumption.py", "record_path"): 1,
         ("data_lake/derived_retrieval_views.py", "lane_dir"): 1,
         ("data_lake/silver_record.py", "append_record"): 1,
         ("ecr/lake.py", "append_record_set"): 1,

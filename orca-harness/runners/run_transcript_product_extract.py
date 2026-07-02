@@ -261,12 +261,16 @@ def run_extraction(
     Returns one status dict per processed packet/transcript.
     """
     results: list[dict] = []
+    # Visible reconcile opt-out per the seam contract: this runner reconciles
+    # ITSELF first (best-effort, so one corrupt manifest cannot abort the whole
+    # daemon batch) instead of using pickup's fail-loud default reconcile.
     _reconcile_availability(data_root)
     for item in pickup(
         data_root,
         ack_namespace=_ACK_NAMESPACE,
         obligation_fn=lambda packet_id: _packet_obligation(data_root, packet_id, model),
         source_family="youtube",
+        reconcile=False,
     ):
         packet_id = item.raw_anchor
         try:

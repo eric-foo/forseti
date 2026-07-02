@@ -108,7 +108,7 @@ def _seeded_root(root: DataLakeRoot, tmp_path: Path) -> tuple[str, str]:
         root,
         raw_anchor=first,
         ack_namespace=_NS,
-        obligation={"obligation_schema": 1, "inputs": []},
+        obligation={"obligation_schema": 1, "consumer": "indexes_rebuild_test", "inputs": []},
         evidence=[{"kind": "test_marker", "ref": "r1"}],
     )
     return first, second
@@ -136,10 +136,13 @@ def test_rebuild_builds_views_and_manifests(tmp_path: Path) -> None:
     assert by_mention["residuals"][0]["status"] == "source_lineage_missing"
     assert by_mention["residuals"][0]["raw_anchor"] == second
 
-    # undone view: adopted-namespace backlog only, weaker semantics stated in-body.
+    # undone view: adopted-namespace backlog only, weaker semantics stated in-body,
+    # zero-rows disclosure fields pinned (seam contract disclosure obligation).
     assert undone["adopted_namespaces"] == [_NS]
     assert undone["undone"][_NS] == sorted([second])
     assert "never pickup authority" in undone["semantics"]
+    assert "NOT current-obligation satisfied" in undone["zero_rows_meaning"]
+    assert undone["anchors_with_acks"] == {_NS: 1}
 
     for view_name in ("by_mention", "undone"):
         manifest = json.loads(

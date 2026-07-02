@@ -86,7 +86,15 @@ def build_undone_view(root) -> tuple[dict, list[str]]:
         "view": "undone",
         "view_schema_version": VIEW_SCHEMA_VERSION,
         "semantics": _UNDONE_SEMANTICS,
+        "zero_rows_meaning": (
+            "zero ack records for the namespace — NOT current-obligation satisfied; "
+            "stale-ack/grown-obligation backlog is visible only to lane-side pickup"
+        ),
         "adopted_namespaces": sorted(acked_by_namespace),
+        "anchors_with_acks": {
+            namespace: len(anchors)
+            for namespace, anchors in sorted(acked_by_namespace.items())
+        },
         "undone": {
             namespace: sorted(set(committed) - anchors)
             for namespace, anchors in sorted(acked_by_namespace.items())
