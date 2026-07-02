@@ -2137,3 +2137,56 @@ direction_change_propagation:
     - not schema finalization
     - not storage-engine selection
 ```
+
+## From .agents/workflow-overlay/source-loading.md
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    New Thread Triggers now prefers a handoff packet plus a fresh lane over
+    /compact-and-continue at phase boundaries; Targeted Read Protocol now binds
+    the routine read shape for prompt-orchestration.md (Orca Prompt Preflight
+    plus the single family section; full-file reads reserved for fused,
+    delegated-review-patch, and novel or cross-lane authoring).
+  trigger: workflow_authority
+  controlling_sources_updated:
+    - .agents/workflow-overlay/source-loading.md
+    - .agents/workflow-overlay/prompt-orchestration.md
+  downstream_surfaces_checked:
+    - AGENTS.md
+    - .agents/workflow-overlay/source-of-truth.md
+    - .agents/workflow-overlay/skill-adoption.md
+    - docs/workflows/orca_repo_map_v0.md
+  intentionally_not_updated:
+    - path: AGENTS.md
+      reason: >
+        Already states the routine-vs-full prompt-authoring split this read
+        shape serves; the new rule points at that split rather than restating
+        it.
+    - path: .agents/workflow-overlay/source-of-truth.md
+      reason: >
+        Precompact/handoff packet skill bindings unchanged; the new trigger
+        governs when to prefer a fresh lane, not how packets are built.
+    - path: .agents/workflow-overlay/skill-adoption.md
+      reason: >
+        workflow-precompact adoption status unchanged; the skill remains the
+        packet mechanic when compaction is chosen.
+    - path: docs/workflows/orca_repo_map_v0.md
+      reason: >
+        Repo-map section anchors into this file are unchanged (checked
+        2026-07-02; anchors reference read-pack sections, not the edited
+        sections).
+  stale_language_search: >
+    rg -in "compact-and-continue|/compact|precompact" AGENTS.md .agents/workflow-overlay/
+  stale_language_search_result: >
+    Executed 2026-07-02 after edits. Hits: the new trigger itself
+    (source-loading.md), this receipt's own text, precompact packet-skill
+    bindings in source-of-truth.md and skill-adoption.md, and the AGENTS.md
+    precompact-is-a-thin-restore-pointer rule — all compatible: they govern
+    packet mechanics when compaction or handoff happens; none instructs
+    compact-and-continue at phase boundaries.
+  non_claims:
+    - not validation
+    - not readiness
+    - no token-savings efficacy claim
+```
