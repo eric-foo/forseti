@@ -114,9 +114,11 @@ def test_youtube_shorts_fragrance_creator_observation_ledger_rebuilds_from_sourc
 
 
 def test_youtube_shorts_fragrance_creator_observation_ledger_live_lake_refs_when_available() -> None:
-    data_root = os.environ.get("ORCA_DATA_ROOT")
+    # Explicit operator opt-in only; ambient ORCA_DATA_ROOT must never pull a
+    # production lake into the suite (it is deleted per-test in conftest).
+    data_root = os.environ.get("ORCA_LIVE_LAKE_TEST_ROOT")
     if not data_root:
-        pytest.skip("ORCA_DATA_ROOT is not set; live lake reconciliation is an operator-local check")
+        pytest.skip("ORCA_LIVE_LAKE_TEST_ROOT is not set; live lake reconciliation is an explicit operator opt-in")
 
     validate_youtube_creator_observation_ledger_against_live_lake(_ledger(), data_root)
 
