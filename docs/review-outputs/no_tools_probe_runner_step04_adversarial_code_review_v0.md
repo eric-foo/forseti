@@ -14,6 +14,17 @@ authority_hashes_verified: true
 
 # Adversarial Code Review: No-Tools Memorization Probe Runner STEP-04
 
+
+```yaml
+retrieval_header_version: 1
+artifact_role: Adversarial code review report
+scope: Adversarial code review of the no-tools memorization probe runner STEP-04 implementation.
+use_when:
+  - Auditing STEP-04 no-tools probe runner review findings.
+  - Checking no-tools execution contract enforcement and fake-clean-pass risks.
+authority_boundary: retrieval_only
+```
+
 ## 1. Commission
 
 **Central question:** Does the STEP-04 implementation faithfully enforce the v0.14 no-tools execution contract without creating fake clean-pass paths, runtime/model-call side effects, participant-packet exposure paths, or overclaiming readiness?

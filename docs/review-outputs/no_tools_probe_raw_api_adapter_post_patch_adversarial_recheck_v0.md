@@ -22,6 +22,17 @@ patch_caused_regressions: none
 
 # Post-Patch Adversarial Recheck: Raw-API No-Tools Adapter
 
+
+```yaml
+retrieval_header_version: 1
+artifact_role: Post-patch adversarial recheck report
+scope: Closure recheck for raw-API no-tools adapter M-01/M-02 patches.
+use_when:
+  - Checking closure of raw-API no-tools adapter major findings.
+  - Auditing touched-scope blocker/major regression scan for the raw-API adapter patch.
+authority_boundary: retrieval_only
+```
+
 ## 1. Commission
 
 Closure-only recheck of two prior major findings from

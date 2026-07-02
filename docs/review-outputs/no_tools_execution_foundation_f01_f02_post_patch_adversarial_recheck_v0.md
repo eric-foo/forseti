@@ -33,6 +33,17 @@ patch_caused_regressions: []
 
 # Bounded Adversarial Closure/Blast-Radius Recheck: No-Tools Execution Foundation F-01/F-02
 
+
+```yaml
+retrieval_header_version: 1
+artifact_role: Post-patch adversarial recheck report
+scope: Closure and blast-radius recheck for no-tools execution foundation F-01/F-02 patches.
+use_when:
+  - Checking closure of no-tools execution foundation F-01/F-02 findings.
+  - Auditing the bounded docs-only post-patch recheck.
+authority_boundary: retrieval_only
+```
+
 ## 1. Commission and Scope
 
 **Commission.** Does the docs-only F-01/F-02 patch (five files, docs-only) close both major

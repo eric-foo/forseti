@@ -14,6 +14,17 @@ authority_hashes_verified: true
 
 # Bounded Post-Patch Adversarial Recheck: No-Tools Probe Runner STEP-04
 
+
+```yaml
+retrieval_header_version: 1
+artifact_role: Post-patch adversarial recheck report
+scope: Post-patch adversarial recheck for no-tools probe runner STEP-04 findings R-01 through R-06.
+use_when:
+  - Checking closure of STEP-04 no-tools probe runner findings.
+  - Auditing touched-scope regression scan after the STEP-04 patch.
+authority_boundary: retrieval_only
+```
+
 ## 1. Commission
 
 **Central questions:**

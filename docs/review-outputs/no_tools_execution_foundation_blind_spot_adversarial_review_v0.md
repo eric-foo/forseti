@@ -35,6 +35,17 @@ tests_run:
 
 # Bounded System-Level Adversarial Blind-Spot Review: No-Tools Execution Foundation
 
+
+```yaml
+retrieval_header_version: 1
+artifact_role: Adversarial review report
+scope: System-level blind-spot review of the no-tools execution foundation coherence.
+use_when:
+  - Auditing the no-tools execution foundation blind-spot review.
+  - Checking prior foundation findings before no-tools smoke/probe follow-up work.
+authority_boundary: retrieval_only
+```
+
 ## 1. Commission and Stance
 
 **Central question.** Is the no-tools execution foundation coherent enough to support

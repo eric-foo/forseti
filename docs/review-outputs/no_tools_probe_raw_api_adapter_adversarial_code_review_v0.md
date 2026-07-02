@@ -22,6 +22,17 @@ advisory_findings:
 
 # Adversarial Code Review: Raw-API No-Tools Memorization-Probe Adapter
 
+
+```yaml
+retrieval_header_version: 1
+artifact_role: Adversarial code review report
+scope: Adversarial code review of the raw-API no-tools memorization-probe adapter.
+use_when:
+  - Auditing raw-API no-tools adapter review findings.
+  - Checking fake-clean-pass risks in no-tools raw provider execution plumbing.
+authority_boundary: retrieval_only
+```
+
 ## 1. Commission
 
 **Central question:** Can the raw-API no-tools adapter accidentally turn an unclean provider
