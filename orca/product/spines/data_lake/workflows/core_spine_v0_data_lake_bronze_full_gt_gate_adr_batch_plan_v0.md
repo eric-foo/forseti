@@ -14,6 +14,8 @@ use_when:
   - Checking what is batched now versus deferred until owner ratification of both gates.
 authority_boundary: retrieval_only
 open_next:
+  - orca/product/spines/data_lake/workflows/core_spine_v0_data_lake_bronze_full_gt_gate1_attachment_record_body_layout_adr_v0.md
+  - orca/product/spines/data_lake/workflows/core_spine_v0_data_lake_bronze_full_gt_gate2_retention_lawful_erasure_posture_adr_v0.md
   - orca/product/spines/data_lake/workflows/core_spine_v0_data_lake_bronze_full_gt_physicalization_decision_brief_v0.md
   - docs/prompts/reviews/core_spine_v0_data_lake_bronze_full_gt_physicalization_decision_brief_delegated_adversarial_review_patch_prompt_v0.md
   - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_attachment_record_implementation_contract_v0.md
@@ -28,7 +30,14 @@ stale_if:
 
 ## Status
 
-`GATE_ADR_BATCH_PLAN_RECORDED_V0`.
+`GATE_ADR_BATCH_PLAN_RECORDED_V0; B2_B3_AUTHORED_AWAITING_B5_REVIEW_AND_RATIFICATION`.
+
+B2 and B3 were authored 2026-07-02:
+`core_spine_v0_data_lake_bronze_full_gt_gate1_attachment_record_body_layout_adr_v0.md`
+(packet-member default; sidecar reserved; G1-D locked behind Gate 2) and
+`core_spine_v0_data_lake_bronze_full_gt_gate2_retention_lawful_erasure_posture_adr_v0.md`
+(explicit deferral with the full accepted-residual record). Both await B5
+delegated review and owner ratification; nothing is selected yet.
 
 This is a planning and sequencing record. It is not implementation
 authorization, gate ratification, backend/layout/retention selection,
