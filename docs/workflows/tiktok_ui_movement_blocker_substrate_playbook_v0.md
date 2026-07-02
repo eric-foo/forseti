@@ -80,6 +80,10 @@ The substrate is:
    upper-right screenshot clicker.
 6. Scan outputs for forbidden markers before any admission claim. Auth-state files
    copied for a live run must be removed and verified absent after the run.
+   Batch admission is code-gated to reject challenge/diagnostic cadence: nonzero
+   `challenge_count`, non-empty `failures`, `first_failure_reason`,
+   `captcha_solving=true`, `challenge_close_counts_as_success=true`, or
+   `challenge_close_diagnostic_allowed=true` cannot be admitted.
 
 ## Receipt Fields To Inspect
 

@@ -43,11 +43,11 @@ input_hashes:
   docs/workflows/tiktok_behavioral_sync_fresh_lane_handoff_v0.md: 0fcda55434efb97791c495e112e7682f9cc1b42d
   docs/workflows/tiktok_comment_response_capture_pr559_adjudication_handoff_v0.md: 5a814dad39d79222ea78631e395ff382d4fc7396
   docs/workflows/tiktok_funmi_n30_comment_subtitle_cadence_analysis_v0.md: 8385e43615e76a2503e9f36468dbdcd7c92268a3
-  docs/workflows/tiktok_ui_movement_blocker_substrate_playbook_v0.md: a6785da28a6fa3cca2c928b037172b40b7480258
+  docs/workflows/tiktok_ui_movement_blocker_substrate_playbook_v0.md: c9c7f561c1d121bf4a2cb259f4fb4ac5971d81db
   orca-harness/source_capture/adapters/browser_snapshot.py: c69014f5fb4eb21901c3770b6eb8a058ebd1b65c
   orca-harness/source_capture/tiktok/live_batch_probe.py: 15fb5239c33da41ee4946d6b4e5d1c9b126a0c9e
   orca-harness/source_capture/tiktok/blocker_triage.py: 19816ad967bc57c53aa750dfc9cf59902e5455cd
-  orca-harness/source_capture/tiktok/batch_packet.py: b6758d7615a96804e48714283f1925577c7dc22c
+  orca-harness/source_capture/tiktok/batch_packet.py: 97e3db09f1f895a2a758ea6b9f58fbe1b0580053
   orca-harness/source_capture/tiktok/admission.py: 45a86b554772a58300b23be077a48b32f8dcd8de
   orca-harness/runners/run_source_capture_tiktok_live_batch_probe.py: 9551ced836e3c2699b68bc7356d05b8b8b569093
   orca-harness/runners/run_source_capture_tiktok_batch_packet.py: 856b76df0be96b47040486260b52a427444072d9
@@ -216,6 +216,10 @@ handoff depends on:
   screenshot hash, candidate count, confidence, and clicked state. It is a
   blocker-diagnosis path only: a click forces stop semantics and cannot produce
   a clean capture row.
+- Batch admission is now code-gated against non-clean live cadence. `batch_packet.py`
+  rejects nonzero `challenge_count`, non-empty `failures`, `first_failure_reason`,
+  `captcha_solving=true`, `challenge_close_counts_as_success=true`, and
+  `challenge_close_diagnostic_allowed=true` before producing a packet.
 - The first corrected live retry on 2026-07-03 used the comment-surface sequence
   on the Funmi video and stopped with `attempted_count=1`, `completed_count=0`,
   `challenge_count=1`, `reason=platform_challenge_observed`, and zero admitted
@@ -431,6 +435,7 @@ Changed:
 - `orca/product/spines/capture/core/source_families/social_media/tiktok/tiktok_sessioned_capture_warm_probe_plan_v0.md`
 - `orca-harness/source_capture/adapters/browser_snapshot.py`
 - `orca-harness/source_capture/tiktok/live_batch_probe.py`
+- `orca-harness/source_capture/tiktok/batch_packet.py`
 - `orca-harness/runners/run_source_capture_tiktok_live_batch_probe.py`
 - `orca-harness/tests/unit/test_source_capture_browser_snapshot.py`
 - `orca-harness/tests/unit/test_tiktok_live_batch_probe.py`
@@ -443,7 +448,7 @@ Inspected:
 Validation completed:
 
 - `PYTHONPATH=orca-harness python -m pytest -q orca-harness/tests/unit/test_source_capture_browser_snapshot.py orca-harness/tests/unit/test_tiktok_blocker_triage.py orca-harness/tests/unit/test_tiktok_live_batch_probe.py orca-harness/tests/unit/test_tiktok_batch_admission.py`
-  -> exit 0 with 67 targeted tests passing.
+  -> exit 0 with 70 targeted tests passing.
 - Three owner-authorized diagnostic live retries after the visual-X patch using
   auth-state label `tiktok-batch1-20260630` and
   `session_mode=client_provided_session`; the last two were explicit recurrence

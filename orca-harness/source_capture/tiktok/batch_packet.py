@@ -461,6 +461,9 @@ def _validate_staging_contracts(grid_payload: JsonObject, cadence_payloads: Sequ
     contracts = [_as_dict(grid_payload.get("capture_contract"))]
     contracts.extend(_as_dict(payload.get("capture_contract")) for payload in cadence_payloads)
     forbidden_true = (
+        "captcha_solving",
+        "challenge_close_counts_as_success",
+        "challenge_close_diagnostic_allowed",
         "direct_forged_api_calls",
         "cookies_or_tokens_persisted",
         "raw_endpoint_urls_persisted",
@@ -468,11 +471,38 @@ def _validate_staging_contracts(grid_payload: JsonObject, cadence_payloads: Sequ
         "raw_subtitle_urls_persisted",
         "raw_subtitle_bodies_persisted",
     )
+    required_true = (
+        "page_owned_comment_list_response",
+        "page_owned_video_navigation",
+        "staging_only",
+        "stop_on_challenge",
+    )
     for index, contract in enumerate(contracts):
         for key in forbidden_true:
             if contract.get(key) is True:
                 raise ValueError(f"capture_contract[{index}] indicates {key}=true")
+        for key in required_true:
+            if contract.get(key) is not True:
+                raise ValueError(f"capture_contract[{index}] must indicate {key}=true")
 
+    for index, payload in enumerate(cadence_payloads):
+        challenge_count = _first_int(payload.get("challenge_count"), 0) or 0
+        if challenge_count:
+            raise ValueError(
+                f"cadence_result_json[{index}] challenge_count={challenge_count} cannot be admitted"
+            )
+        failures = _as_list(payload.get("failures"))
+        if failures:
+            raise ValueError(
+                f"cadence_result_json[{index}] contains {len(failures)} failure entries; "
+                "failed cadence cannot be admitted"
+            )
+        first_failure_reason = _first_str(payload.get("first_failure_reason"))
+        if first_failure_reason:
+            raise ValueError(
+                f"cadence_result_json[{index}] has first_failure_reason={first_failure_reason}; "
+                "failed cadence cannot be admitted"
+            )
 
 def _summarize_contracts(grid_payload: JsonObject, cadence_payloads: Sequence[JsonObject]) -> JsonObject:
     contracts = [_as_dict(grid_payload.get("capture_contract")), *[_as_dict(payload.get("capture_contract")) for payload in cadence_payloads]]
