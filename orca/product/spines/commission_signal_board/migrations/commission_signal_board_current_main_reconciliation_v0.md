@@ -84,7 +84,7 @@ the observed baseline:
 docs/product/product_lead/orca_commission_signal_board_prompt_adjudication_packet_v0.md
 docs/prompts/product-planning/orca_commission_signal_board_prompt_v0.md
 docs/workflows/commission_signal_board_playbook_v0.md
-docs/prompts/handoffs/commission_signal_board_spine_pilot_reconciliation_handoff_prompt_v0.md
+docs/prompts/handoffs/commission_signal_board_spine_pilot_reconciliation_handoff_prompt_v0.md  (historical copy on branch origin/codex/commission-spine-structure, PR #239 closed unmerged)
 docs/migration/commission_signal_board_migration_inventory_v0.md
 docs/migration/commission_signal_board_spine_pilot_migration_plan_v0.md
 ```
