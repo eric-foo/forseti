@@ -3126,3 +3126,188 @@ direction_change_propagation:
     - not readiness
     - no token-savings efficacy claim
 ```
+## From orca/product/spines/data_lake/authority/core_spine_v0_data_lake_attachment_record_implementation_contract_v0.md
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Attachment Record implementation doctrine now binds Silver consumption: AR
+    entries are typed raw-payload refs over preserved Bronze bodies, Silver
+    records carry AR-backed raw_refs when deriving facts from source-family
+    payload bodies, and missing AR rows remain visible residual/posture rather
+    than inferred absence.
+  trigger: architecture_doctrine
+  related_triggers:
+    - workflow_authority
+  controlling_sources_updated:
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_attachment_record_implementation_contract_v0.md
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_silver_vault_record_contract_v0.md
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_bronze_mgt_baseline_declaration_v0.md
+    - orca/product/spines/data_lake/README.md
+    - docs/workflows/orca_repo_map_v0.md
+  downstream_surfaces_checked:
+    - AGENTS.md
+    - .agents/workflow-overlay/README.md
+    - .agents/workflow-overlay/source-loading.md
+    - .agents/workflow-overlay/source-of-truth.md
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_core_contract_v0.md
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_storage_contract_v0.md
+    - orca-harness/data_lake/catalog.py
+  intentionally_not_updated:
+    - path: orca/product/spines/data_lake/authority/core_spine_v0_data_lake_storage_contract_v0.md
+      reason: >
+        Storage still owns Manifest v2, sidecar/member/body-store layout,
+        backend, migration, retention, and lawful-erasure choices. This patch
+        binds consumer shape without selecting those physicalization decisions.
+    - path: orca/product/spines/data_lake/authority/core_spine_v0_data_lake_core_contract_v0.md
+      reason: >
+        Core already defines Attachment Records as source-payload refs and
+        forbids cleaned/Judgment meaning. This patch narrows downstream Silver
+        consumption mechanics without changing the parent boundary.
+    - path: orca-harness/data_lake/catalog.py
+      reason: >
+        Existing post-PR-525 catalog helpers expose AR rows and body hash
+        verification; no runtime implementation is authorized here.
+  stale_language_search: >
+    rg -n "Attachment Record|raw_refs|Silver|Manifest v2|body store|full God Tier"
+    orca/product/spines/data_lake orca-harness/data_lake/catalog.py docs/workflows/orca_repo_map_v0.md
+  non_claims:
+    - not validation
+    - not readiness
+    - not runtime implementation authorization
+    - not Manifest v2 selection
+    - not body-store layout selection
+    - not Silver producer implementation
+```
+
+## From orca/product/spines/data_lake/authority/core_spine_v0_data_lake_storage_contract_v0.md
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Data Lake Storage Contract v0 retires the blanket no-storage-engine posture:
+    the contract still selects no engine itself, but a bounded data-lake
+    physicalization or implementation lane may now choose a concrete
+    filesystem/database/SQL-capable embedded engine (for example DuckDB),
+    object-store, warehouse/lakehouse, or hybrid backend when it preserves raw
+    immutability, append-only derived/ack records, rebuildable non-authoritative
+    indexes, by-key discovery, the no-smart-lake boundary, and external
+    operational-data placement or an explicit supersession of that placement
+    model.
+  trigger: architecture_doctrine
+  related_triggers:
+    - lifecycle_boundary
+  controlling_sources_updated:
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_storage_contract_v0.md
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_core_contract_v0.md
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_physicality_location_contract_v0.md
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_attachment_record_implementation_contract_v0.md
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_derived_layout_index_rebuild_contract_v0.md
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_write_boundary_enforcement_contract_v0.md
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_raw_admission_key_grammar_contract_v0.md
+    - orca/product/spines/data_lake/workflows/core_spine_v0_data_lake_mechanics_map_v0.md
+    - orca/product/spines/data_lake/README.md
+    - docs/workflows/orca_repo_map_v0.md
+    - orca-harness/data_lake/__init__.py
+    - orca-harness/data_lake/root.py
+    - docs/decisions/dcp_receipts_archive_v0.md
+  downstream_surfaces_checked:
+    - AGENTS.md
+    - .agents/workflow-overlay/README.md
+    - .agents/workflow-overlay/source-loading.md
+    - .agents/workflow-overlay/source-of-truth.md
+    - .agents/workflow-overlay/validation-gates.md
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_medallion_gold_readiness_contract_v0.md
+  intentionally_not_updated:
+    - path: orca/product/spines/data_lake/authority/core_spine_v0_data_lake_medallion_gold_readiness_contract_v0.md
+      reason: >
+        It governs bronze/silver/pre-gold/gold-ready/gold semantics, not storage
+        engine choice. Its backend non-claims remain correct as "not selected by
+        this contract" and do not block a storage-contract physicalization lane.
+  stale_language_search: >
+    rg -n "no storage engine|No storage engine|selects no storage engine|select a storage engine|storage-engine selection|No backend/queue/scheduler/engine|No queue/engine|non-selecting storage contract|physical engine"
+    orca/product/spines/data_lake orca-harness/data_lake docs/workflows/orca_repo_map_v0.md
+  stale_language_search_result: >
+    Executed 2026-06-25 after edits. Remaining hits are expected and
+    non-blocking: the new storage contract rule retires the old blanket no-engine
+    posture and names the deliberate engine-selection boundary; mechanics,
+    derived-layout, and physicality contracts now say no engine is selected by
+    that artifact or map; storage and physicality prior DCP/non-claim hits are
+    historical/non-authorizing receipts; the query appears in this receipt. No
+    live current surface still says the Data Lake selects no storage engine,
+    uses a non-selecting storage contract, or forbids a bounded downstream
+    engine/backend selection.
+  non_claims:
+    - not validation
+    - not readiness
+    - not implementation authorization
+    - not a selected engine/backend
+    - not Manifest v2 selection
+    - not sidecar selection
+    - not queue/runtime selection
+```
+
+## From orca/product/spines/data_lake/authority/core_spine_v0_data_lake_physicality_location_contract_v0.md
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Data Lake Physicality Location Contract v0 records the location boundary:
+    operational data lives under one operator-configured external data root
+    (ORCA_DATA_ROOT, generalized; example F:\orca-data), separate from the Git
+    repo; the v0 directory grammar is raw/ attachments/ derived/ acknowledgements/
+    and a split indexes/availability (content-free) plus indexes/derived_retrieval
+    (rebuildable, non-authoritative); raw is immutable, derived/ack append-only,
+    indexes rebuildable; root resolution is fail-closed including not-mounted and a
+    root-marker identity check; durable record names are mechanical
+    (SourceObjectMovementThresholdCrossingRecord, DecisionEvidenceAssemblyView,
+    DecisionEvidenceAssemblyReceipt, DecisionEvidenceAssemblyProfile) with no
+    GoldReady prefix and gold only as Judgment output; storage engine, backend,
+    serialization, queue, runtime, and migration remain deferred.
+  trigger: architecture_doctrine
+  related_triggers:
+    - lifecycle_boundary
+    - workflow_authority
+  controlling_sources_updated:
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_physicality_location_contract_v0.md
+    - orca/product/spines/data_lake/README.md
+  downstream_surfaces_checked:
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_core_contract_v0.md
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_storage_contract_v0.md
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_medallion_gold_readiness_contract_v0.md
+    - orca/product/spines/data_lake/workflows/core_spine_v0_data_lake_mechanics_map_v0.md
+    - docs/workflows/orca_repo_map_v0.md
+    - .gitignore
+  intentionally_not_updated:
+    - path: orca/product/spines/data_lake/authority/core_spine_v0_data_lake_storage_contract_v0.md
+      reason: >
+        The Storage Contract remains the non-selecting physicalization-blocker owner.
+        This contract adds the location boundary and directory grammar without
+        reopening storage-slot or blocker ownership.
+    - path: orca/product/spines/data_lake/authority/core_spine_v0_data_lake_medallion_gold_readiness_contract_v0.md
+      reason: >
+        The medallion contract already defers physical home and names the data lake
+        physicality lane as a downstream consumer. This contract is that downstream
+        location decision and does not change medallion semantics.
+    - path: docs/workflows/orca_repo_map_v0.md
+      reason: >
+        Repo-map registration is a separate hygiene/routing step on the shared map;
+        this lane records the contract and its local README pointer without editing
+        the shared repo map. Registration is a recommended follow-up.
+  stale_language_search: >
+    rg -n "ORCA_DATA_ROOT|physicality location|external data root|orca-data|indexes/availability|indexes/derived_retrieval|SourceObjectMovementThresholdCrossingRecord|DecisionEvidenceAssembly"
+    orca/product/spines/data_lake docs/workflows/orca_repo_map_v0.md
+  stale_language_search_result: >
+    To be executed against the data_lake spine and repo map after landing; this lane
+    introduces the ORCA_DATA_ROOT and physicality-location vocabulary, so expected
+    hits are this contract and the data_lake README pointer. No prior live data-lake
+    source is expected to define a competing data-root location boundary.
+  non_claims:
+    - not validation
+    - not readiness
+    - not implementation authorization
+    - not backend or storage-engine selection
+    - not serialization, manifest, or schema finalization
+    - not queue/runtime design
+    - not migration authorization
+```

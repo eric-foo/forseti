@@ -71,7 +71,7 @@ Full God Tier is intentionally not claimed because material residuals remain:
 
 | Residual | Why accepted now | Upgrade trigger |
 | --- | --- | --- |
-| No Manifest v2 selection | The current catalog physicalizes manifest-equivalent entries without forcing a packet-format migration. | Accepted Manifest v2 or equivalent packet-index serialization decision. |
+| No Manifest v2 selection | The current catalog physicalizes manifest-equivalent entries without forcing a packet-format migration. | Accepted Manifest v2 or equivalent packet-index serialization decision. (Trigger fired 2026-07-03: the A2 entry-serialization ADR ratified the packet-index shape; this residual is closed. Manifest v2 itself stays reserved behind that ADR's revisit triggers.) |
 | No copied Attachment Record body store | Bodies remain preserved raw packet members, which preserves raw authority and avoids a second source of truth. | A storage lane selects sidecar/member/body-store layout with hash-checked immutability. |
 | No final backend/engine selection | The storage contract allows later bounded engine selection but does not choose one here. | A physicalization lane selects and tests the backend while preserving lake invariants. |
 | No incumbent-field migration/replay | Historical direct fields remain legacy-readable and transitional. | A separately authorized dual-read or replay lane closes migration mechanics. |
@@ -102,7 +102,12 @@ To upgrade Bronze from MGT to full GT, the remaining material work is:
    owner-dispositioned unknowns; see the physicalization proof closeout
    record.)
 2. Select Manifest v2 or an equivalent packet-index serialization and migration
-   path, including dual-read/replay rules for legacy packet material.
+   path, including dual-read/replay rules for legacy packet material. (Closed
+   at selection tier 2026-07-03: the A2 entry-serialization ADR ratified the
+   manifest-equivalent packet index with the versioned entry schema plus
+   deterministic derivation rule as the canonical object, and bound the
+   deprecation-without-mutation and replay boundary; incumbent-field migration
+   mechanics remain the blocker-2 deferred direction.)
 3. Select the final Attachment Record body layout or backend posture, including
    immutable hash verification, retention/lawful-erasure posture, and migration
    mechanics. (Partially closed 2026-07-02: body layout ratified by the Gate 1
