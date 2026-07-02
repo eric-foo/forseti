@@ -264,6 +264,28 @@ def parse_exact_count_text(text):
     return _integer(match.group(1))
 
 
+COMMENTS_PANEL_BADGE_SOURCE_PATH = (
+    "ytInitialData.engagementPanels.engagementPanelTitleHeaderRenderer.contextualInfo"
+)
+
+
+def extract_comments_panel_count(initial_data):
+    """Total comment count from the Comments engagement-panel badge in the served
+    watch HTML. Returns ``(exact_count_or_none, badge_text_or_none)``; a rounded
+    K/M badge yields ``(None, text)`` so callers stay fail-closed on non-exact text.
+    YouTube renders this badge as an exact integer below 1,000 and rounds above."""
+    for hdr in collect(initial_data or {}, "engagementPanelTitleHeaderRenderer"):
+        if not isinstance(hdr, dict):
+            continue
+        if _text_from_youtube_runs(hdr.get("title")) != "Comments":
+            continue
+        badge = _text_from_youtube_runs(hdr.get("contextualInfo"))
+        if badge is None:
+            continue
+        return parse_exact_count_text(badge), badge
+    return None, None
+
+
 def _playability_reason(player):
     status = ((player or {}).get("playabilityStatus") or {})
     return " ".join(
@@ -339,6 +361,7 @@ def fetch_youtube_watch(vid, *, comment_pages=COMMENT_PAGES):
     )
     view_count, view_count_source_path = extract_view_count(html)
     like_count, like_count_source_path = extract_like_count(html)
+    panel_comment_count, panel_comment_count_text = extract_comments_panel_count(initial_data)
     capture_time = datetime.datetime.utcnow().isoformat() + "Z"
     pkt = {
         "video_id": vid,
@@ -360,8 +383,10 @@ def fetch_youtube_watch(vid, *, comment_pages=COMMENT_PAGES):
             "like_count_source_path": like_count_source_path,
             "like_count_text": first(r'"accessibilityText":"([0-9,.KMB]+ likes?)"', html),
             "comment_sample_count": None,
-            "total_comment_count": None,
-            "total_comment_count_source_path": None,
+            "total_comment_count": panel_comment_count,
+            "total_comment_count_source_path": (
+                COMMENTS_PANEL_BADGE_SOURCE_PATH if panel_comment_count is not None else None
+            ),
         },
         "availability": {
             "video_state": video_state,
@@ -389,6 +414,7 @@ def fetch_youtube_watch(vid, *, comment_pages=COMMENT_PAGES):
         },
         "comments_posture": None,
         "comment_count_text": None,
+        "comments_panel_count_text": panel_comment_count_text,
         "comments": [],
         "receipts": {
             "source_url": final_url,
@@ -419,10 +445,6 @@ def fetch_youtube_watch(vid, *, comment_pages=COMMENT_PAGES):
             comments_reason,
             routes_checked=["ytInitialData.engagementPanelSectionListRenderer.continuationCommand.token"],
         )
-        pkt["metric_receipts"]["total_comment_count"] = _metric_unavailable(
-            comments_reason,
-            routes_checked=["youtubei_next.commentsHeaderRenderer.countText"],
-        )
     elif api_key and ver:
         page, got = 0, []
         while token and page < comment_pages:
@@ -443,7 +465,7 @@ def fetch_youtube_watch(vid, *, comment_pages=COMMENT_PAGES):
                     count_text = _text_from_youtube_runs(ct[0]) or json.dumps(ct[0])[:120]
                     pkt["comment_count_text"] = count_text
                     exact_count = parse_exact_count_text(count_text)
-                    if exact_count is not None:
+                    if exact_count is not None and pkt["engagement"]["total_comment_count"] is None:
                         pkt["engagement"]["total_comment_count"] = exact_count
                         pkt["engagement"]["total_comment_count_source_path"] = (
                             "youtubei_next.commentsHeaderRenderer.countText"
@@ -472,17 +494,6 @@ def fetch_youtube_watch(vid, *, comment_pages=COMMENT_PAGES):
             "youtubei_next.commentEntityPayload",
             artifact="youtubei_next_page_*.json",
         )
-        if pkt["engagement"]["total_comment_count"] is not None:
-            pkt["metric_receipts"]["total_comment_count"] = _metric_observed(
-                pkt["engagement"]["total_comment_count"],
-                pkt["engagement"]["total_comment_count_source_path"],
-                artifact="youtubei_next_page_01.json",
-            )
-        else:
-            pkt["metric_receipts"]["total_comment_count"] = _metric_unavailable(
-                "source-native total comment count was not exposed as an exact count in commentsHeaderRenderer.countText",
-                routes_checked=["youtubei_next.commentsHeaderRenderer.countText"],
-            )
     else:
         comments_state = "comments_not_exposed"
         comments_reason = "comments continuation token was present but INNERTUBE_API_KEY/clientVersion was not exposed"
@@ -493,9 +504,34 @@ def fetch_youtube_watch(vid, *, comment_pages=COMMENT_PAGES):
             comments_reason,
             routes_checked=["ytInitialData comment token", "served_html.INNERTUBE_API_KEY"],
         )
+    total_comment_routes = [COMMENTS_PANEL_BADGE_SOURCE_PATH]
+    if comment_page_bodies:
+        total_comment_routes.append("youtubei_next.commentsHeaderRenderer.countText")
+    if pkt["engagement"]["total_comment_count"] is not None:
+        total_source_path = pkt["engagement"]["total_comment_count_source_path"]
+        pkt["metric_receipts"]["total_comment_count"] = _metric_observed(
+            pkt["engagement"]["total_comment_count"],
+            total_source_path,
+            artifact="raw_watch.html"
+            if total_source_path.startswith("ytInitialData")
+            else "youtubei_next_page_01.json",
+        )
+    elif panel_comment_count_text is not None:
         pkt["metric_receipts"]["total_comment_count"] = _metric_unavailable(
-            comments_reason,
-            routes_checked=["youtubei_next.commentsHeaderRenderer.countText"],
+            f"Comments panel badge text {panel_comment_count_text!r} is not an exact integer "
+            "count (rounded or non-numeric); exact totals are never derived from rounded text",
+            routes_checked=total_comment_routes,
+        )
+    elif comment_page_bodies:
+        pkt["metric_receipts"]["total_comment_count"] = _metric_unavailable(
+            "source-native total comment count was not exposed as an exact count in the "
+            "Comments panel badge or commentsHeaderRenderer.countText",
+            routes_checked=total_comment_routes,
+        )
+    else:
+        pkt["metric_receipts"]["total_comment_count"] = _metric_unavailable(
+            f"{comments_reason}; the Comments panel badge in served HTML also did not expose a count",
+            routes_checked=total_comment_routes,
         )
     pkt["comment_page_receipts"] = [
         {
