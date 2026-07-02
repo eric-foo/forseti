@@ -10,6 +10,12 @@ use_when:
 authority_boundary: retrieval_only
 ```
 
+**Routine read shape** (owned by `.agents/workflow-overlay/source-loading.md`,
+Targeted Read Protocol): closeout checks read "Current Gates"; prompt
+authoring reads "Prompt Orchestration Gates"; product-proof work reads
+"Product Proof Gates"; enforcement-placement decisions read "Enforcement
+Placement"; a full-file read is for editing validation doctrine.
+
 Validation must be able to fail. Missing evidence is not a pass.
 
 Validation reports must preserve failure visibility by bucket:

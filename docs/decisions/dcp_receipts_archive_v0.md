@@ -2027,3 +2027,44 @@ direction_change_propagation:
     - not runtime model routing
     - not standing implementation/code-patch authorization
 ```
+
+## From .agents/workflow-overlay/source-loading.md
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Source-loading now binds the canonical capture-method playbook
+    (source_capture_playbook_v0.md + its open_next recon-index) as a required start-read for
+    capture-spine activity, and points scanning/screening activity at the screening-side Walker
+    Equipment Kit (escalating to the playbook only for packet-grade capture). Previously the
+    playbook was canonical but referenced by no overlay surface and reachable only one hop from a
+    pack — not an auto-load start-read.
+  trigger: workflow_authority
+  controlling_sources_updated:
+    - .agents/workflow-overlay/source-loading.md
+  downstream_surfaces_checked:
+    - orca/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md
+    - orca/product/spines/capture/core/source_capture_toolbox/capture_recon_index_v0.md
+    - orca/product/spines/foundation/vertical_exploration/orca_vertical_exploration_guide_v0.md
+    - docs/workflows/orca_repo_map_v0.md
+  intentionally_not_updated:
+    - path: orca/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md
+      reason: >
+        It is the target being bound and is already canonical; no content change is needed to make
+        it a start-read.
+    - path: docs/workflows/orca_repo_map_v0.md
+      reason: >
+        The repo map already routes to the playbook / recon-index; adding a source-loading
+        start-read does not change the map's pointers.
+  stale_language_search: >
+    rg -n "capture_investigation_playbook|source_capture_playbook" .agents/workflow-overlay/
+  stale_language_search_result: >
+    Executed 2026-06-14 in the worktree. No matches in .agents/workflow-overlay/ — the overlay
+    referenced neither the canonical nor the retired playbook name before this edit, so this adds
+    the first overlay binding and there is no stale retired-name reference to repoint.
+  non_claims:
+    - not validation
+    - not readiness
+    - not authorization to capture, build, or run (the playbook stays non-authorizing doctrine;
+      per-probe network approval still required)
+```

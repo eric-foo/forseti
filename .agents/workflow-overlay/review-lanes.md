@@ -11,6 +11,13 @@ use_when:
 authority_boundary: retrieval_only
 ```
 
+**Routine read shape** (owned by `.agents/workflow-overlay/source-loading.md`,
+Targeted Read Protocol): routine review work reads "Current Lanes" plus the
+one section the task touches ("Review Doctrine" for formal lane bindings,
+"Template Retrieval Binding" when retrieving a template, "Rules" for reviewer
+conduct); a full-file read is for editing lane doctrine or adjudicating a
+lane-authority conflict.
+
 ## Current Lanes
 
 - Artifact review: read-only review of docs, decisions, prompts, and migration artifacts. Reviewers may write reports only under `docs/review-outputs/` unless a prompt authorizes a different Orca-owned report path.

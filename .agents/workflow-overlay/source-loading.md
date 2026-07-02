@@ -154,13 +154,37 @@ details.
 ## Targeted Read Protocol
 
 Prefer targeted sections over full files whenever a file is long, historical,
-or adjacent rather than controlling.
+or adjacent rather than controlling. A controlling file is not an exemption:
+the overlay's own high-traffic files carry the routine read shapes below, and
+the bounded read is the compliant act for routine work — full reads of these
+files are for their named full-read cases, not a safe default.
 
-For `.agents/workflow-overlay/prompt-orchestration.md` specifically: routine
-prompt authoring (per the `AGENTS.md` routine-vs-full authoring split) reads
-the "Orca Prompt Preflight" section plus the single section for the prompt
-family at hand; full-file reads are reserved for fused, delegated-review-patch,
-and novel or cross-lane prompt authoring.
+### Routine Read Shapes (overlay high-traffic files)
+
+- `.agents/workflow-overlay/prompt-orchestration.md` — routine prompt
+  authoring (per the `AGENTS.md` routine-vs-full authoring split) reads
+  "Orca Prompt Preflight" plus the single section for the prompt family at
+  hand. Full read: fused, delegated-review-patch, and novel or cross-lane
+  authoring.
+- `.agents/workflow-overlay/delegated-review-patch.md` — commissioning reads
+  "When it applies", "The loop", "Access selection rule", "De-correlation",
+  and the "Overlay Interface" block; return adjudication reads "Adjudication
+  closeout". Full read: editing the convention or resolving a novel dispute
+  about it.
+- `.agents/workflow-overlay/review-lanes.md` — routine review work reads
+  "Current Lanes" plus the one section the task touches ("Review Doctrine"
+  for formal lane bindings, "Template Retrieval Binding" when retrieving a
+  template, "Rules" for reviewer conduct). Full read: editing lane doctrine
+  or adjudicating a lane-authority conflict.
+- `.agents/workflow-overlay/validation-gates.md` — closeout checks read
+  "Current Gates"; prompt authoring reads "Prompt Orchestration Gates";
+  product-proof work reads "Product Proof Gates"; enforcement-placement
+  decisions read "Enforcement Placement". Full read: editing validation
+  doctrine.
+- This file — routine Orca work reads "Rule", "Orca Start Preflight", and
+  the one pack or protocol section the task names; prompt or capsule
+  authoring adds "Prompt Source Capsules". Full read: editing source-loading
+  doctrine.
 
 ### High-Context Guard
 
@@ -539,45 +563,6 @@ the claim `not proven`.
 ```yaml
 direction_change_propagation:
   doctrine_changed: >
-    Source-loading now binds the canonical capture-method playbook
-    (source_capture_playbook_v0.md + its open_next recon-index) as a required start-read for
-    capture-spine activity, and points scanning/screening activity at the screening-side Walker
-    Equipment Kit (escalating to the playbook only for packet-grade capture). Previously the
-    playbook was canonical but referenced by no overlay surface and reachable only one hop from a
-    pack — not an auto-load start-read.
-  trigger: workflow_authority
-  controlling_sources_updated:
-    - .agents/workflow-overlay/source-loading.md
-  downstream_surfaces_checked:
-    - orca/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md
-    - orca/product/spines/capture/core/source_capture_toolbox/capture_recon_index_v0.md
-    - orca/product/spines/foundation/vertical_exploration/orca_vertical_exploration_guide_v0.md
-    - docs/workflows/orca_repo_map_v0.md
-  intentionally_not_updated:
-    - path: orca/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md
-      reason: >
-        It is the target being bound and is already canonical; no content change is needed to make
-        it a start-read.
-    - path: docs/workflows/orca_repo_map_v0.md
-      reason: >
-        The repo map already routes to the playbook / recon-index; adding a source-loading
-        start-read does not change the map's pointers.
-  stale_language_search: >
-    rg -n "capture_investigation_playbook|source_capture_playbook" .agents/workflow-overlay/
-  stale_language_search_result: >
-    Executed 2026-06-14 in the worktree. No matches in .agents/workflow-overlay/ — the overlay
-    referenced neither the canonical nor the retired playbook name before this edit, so this adds
-    the first overlay binding and there is no stale retired-name reference to repoint.
-  non_claims:
-    - not validation
-    - not readiness
-    - not authorization to capture, build, or run (the playbook stays non-authorizing doctrine;
-      per-probe network approval still required)
-```
-
-```yaml
-direction_change_propagation:
-  doctrine_changed: >
     New Thread Triggers now prefers a handoff packet plus a fresh lane over
     /compact-and-continue at phase boundaries; Targeted Read Protocol now binds
     the routine read shape for prompt-orchestration.md (Orca Prompt Preflight
@@ -620,6 +605,57 @@ direction_change_propagation:
     precompact-is-a-thin-restore-pointer rule — all compatible: they govern
     packet mechanics when compaction or handoff happens; none instructs
     compact-and-continue at phase boundaries.
+  non_claims:
+    - not validation
+    - not readiness
+    - no token-savings efficacy claim
+```
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Targeted Read Protocol now owns a Routine Read Shapes registry for the
+    overlay's high-traffic files (prompt-orchestration, delegated-review-patch,
+    review-lanes, validation-gates, and this file), with matching head notes
+    at each file's top. "Controlling" no longer exempts these files from
+    targeted reads: the bounded read is the compliant act for routine work,
+    with named full-read cases per file.
+  trigger: workflow_authority
+  controlling_sources_updated:
+    - .agents/workflow-overlay/source-loading.md
+    - .agents/workflow-overlay/delegated-review-patch.md
+    - .agents/workflow-overlay/review-lanes.md
+    - .agents/workflow-overlay/validation-gates.md
+  downstream_surfaces_checked:
+    - .agents/workflow-overlay/prompt-orchestration.md
+    - .agents/workflow-overlay/README.md
+    - AGENTS.md
+    - docs/workflows/orca_repo_map_v0.md
+  intentionally_not_updated:
+    - path: .agents/workflow-overlay/prompt-orchestration.md
+      reason: >
+        Its head note (2026-07-02) already carries its routine read shape; the
+        registry entry here names the same shape without changing it.
+    - path: .agents/workflow-overlay/README.md
+      reason: >
+        Overlay index descriptions and section owners are unchanged.
+    - path: AGENTS.md
+      reason: >
+        Already routes source-loading discipline to this file; no kernel
+        restatement.
+    - path: docs/workflows/orca_repo_map_v0.md
+      reason: >
+        Heading additions only; no section renames, so existing anchors into
+        these files remain valid.
+  stale_language_search: >
+    rg -in "routine read shape|full-file read|read shapes"
+    .agents/workflow-overlay/ AGENTS.md
+  stale_language_search_result: >
+    Executed 2026-07-02 after edits. Hits are the five head notes, the new
+    registry section, this receipt family, and pre-existing consistent
+    capsule-budget/expansion lines ("at most four full-file reads", "prefer
+    targeted section reads over full-file reads"). No surface still frames
+    full reads of these files as the default-compliant act.
   non_claims:
     - not validation
     - not readiness
