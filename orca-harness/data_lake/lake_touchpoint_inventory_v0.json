@@ -1,0 +1,473 @@
+{
+  "authority_note": "Generated inventory of code surfaces; never lake authority; regenerated and diffed by tests/contract/test_data_lake_inventory_gate.py; a2_fork_impact is routing metadata for the deferred A2 decision, not a selection.",
+  "exclusions": [
+    {
+      "reason": "test code is not a production lake touchpoint; discovery scans tracked non-test harness source only",
+      "target": "orca-harness/tests/**"
+    },
+    {
+      "reason": "discovery reads `git ls-files` output only, so untracked scratch cannot become a silent lake touchpoint",
+      "target": "non-git-tracked files"
+    }
+  ],
+  "inventory_version": 1,
+  "non_raw_touchpoints": [
+    {
+      "a2_fork_impact": "none",
+      "call": "append_silver_record",
+      "count": 2,
+      "module": "capture_spine/creator_profile_current/silver_metric_producer.py"
+    },
+    {
+      "a2_fork_impact": "packet_index",
+      "call": "source_surface_catalog_rows",
+      "count": 1,
+      "module": "capture_spine/creator_profile_current/silver_metric_producer.py"
+    },
+    {
+      "a2_fork_impact": "none",
+      "call": "lane_dir",
+      "count": 3,
+      "module": "capture_spine/creator_profile_current/silver_metric_reader.py"
+    },
+    {
+      "a2_fork_impact": "none",
+      "call": "append_silver_record",
+      "count": 2,
+      "module": "capture_spine/creator_profile_current/youtube_silver_metric_producer.py"
+    },
+    {
+      "a2_fork_impact": "packet_index",
+      "call": "source_surface_catalog_rows",
+      "count": 1,
+      "module": "capture_spine/creator_profile_current/youtube_silver_metric_producer.py"
+    },
+    {
+      "a2_fork_impact": "none",
+      "call": "append_record",
+      "count": 1,
+      "module": "cleaning/basenotes_lake.py"
+    },
+    {
+      "a2_fork_impact": "none",
+      "call": "append_silver_record",
+      "count": 1,
+      "module": "cleaning/basenotes_lake.py"
+    },
+    {
+      "a2_fork_impact": "none",
+      "call": "append_record",
+      "count": 1,
+      "module": "cleaning/fragrantica_lake.py"
+    },
+    {
+      "a2_fork_impact": "none",
+      "call": "append_silver_record",
+      "count": 1,
+      "module": "cleaning/fragrantica_lake.py"
+    },
+    {
+      "a2_fork_impact": "none",
+      "call": "append_record",
+      "count": 1,
+      "module": "cleaning/parfumo_lake.py"
+    },
+    {
+      "a2_fork_impact": "none",
+      "call": "append_silver_record",
+      "count": 1,
+      "module": "cleaning/parfumo_lake.py"
+    },
+    {
+      "a2_fork_impact": "none",
+      "call": "append_record_set",
+      "count": 1,
+      "module": "cleaning/transcript_product_lake.py"
+    },
+    {
+      "a2_fork_impact": "packet_index",
+      "call": "inspect_catalog",
+      "count": 2,
+      "module": "data_lake/catalog.py"
+    },
+    {
+      "a2_fork_impact": "none",
+      "call": "append_record",
+      "count": 1,
+      "module": "data_lake/silver_record.py"
+    },
+    {
+      "a2_fork_impact": "none",
+      "call": "append_record_set",
+      "count": 1,
+      "module": "ecr/lake.py"
+    },
+    {
+      "a2_fork_impact": "none",
+      "call": "lane_dir",
+      "count": 1,
+      "module": "runners/run_capture_ecr_cleaning_smoke.py"
+    },
+    {
+      "a2_fork_impact": "none",
+      "call": "record_path",
+      "count": 1,
+      "module": "runners/run_cleaning_spine_periodic_audit.py"
+    },
+    {
+      "a2_fork_impact": "packet_index",
+      "call": "catalog_coverage_census",
+      "count": 1,
+      "module": "runners/run_data_lake_catalog.py"
+    },
+    {
+      "a2_fork_impact": "packet_index",
+      "call": "inspect_catalog",
+      "count": 1,
+      "module": "runners/run_data_lake_catalog.py"
+    },
+    {
+      "a2_fork_impact": "packet_index",
+      "call": "rebuild_catalog",
+      "count": 1,
+      "module": "runners/run_data_lake_catalog.py"
+    },
+    {
+      "a2_fork_impact": "none",
+      "call": "is_record_set_complete",
+      "count": 1,
+      "module": "runners/run_ig_reels_lane_orchestrator.py"
+    },
+    {
+      "a2_fork_impact": "none",
+      "call": "is_record_set_complete",
+      "count": 3,
+      "module": "runners/run_ig_reels_product_extract.py"
+    },
+    {
+      "a2_fork_impact": "none",
+      "call": "is_record_set_complete",
+      "count": 1,
+      "module": "runners/run_source_capture_ig_reels_deep_capture.py"
+    },
+    {
+      "a2_fork_impact": "none",
+      "call": "is_record_set_complete",
+      "count": 1,
+      "module": "runners/run_transcript_product_extract.py"
+    },
+    {
+      "a2_fork_impact": "none",
+      "call": "lane_dir",
+      "count": 1,
+      "module": "runners/run_transcript_product_extract.py"
+    },
+    {
+      "a2_fork_impact": "none",
+      "call": "record_path",
+      "count": 1,
+      "module": "runners/run_transcript_product_extract.py"
+    },
+    {
+      "a2_fork_impact": "none",
+      "call": "append_record",
+      "count": 1,
+      "module": "signal_content/lake.py"
+    },
+    {
+      "a2_fork_impact": "none",
+      "call": "append_record",
+      "count": 1,
+      "module": "source_capture/basenotes_projection.py"
+    },
+    {
+      "a2_fork_impact": "none",
+      "call": "append_record",
+      "count": 1,
+      "module": "source_capture/fragrance_review_lake.py"
+    },
+    {
+      "a2_fork_impact": "none",
+      "call": "append_record",
+      "count": 1,
+      "module": "source_capture/fragrantica_projection.py"
+    },
+    {
+      "a2_fork_impact": "none",
+      "call": "append_record",
+      "count": 1,
+      "module": "source_capture/ig_projection.py"
+    },
+    {
+      "a2_fork_impact": "none",
+      "call": "is_record_set_complete",
+      "count": 2,
+      "module": "source_capture/ig_reels_behavioral_lake.py"
+    },
+    {
+      "a2_fork_impact": "none",
+      "call": "lane_dir",
+      "count": 1,
+      "module": "source_capture/ig_reels_behavioral_lake.py"
+    },
+    {
+      "a2_fork_impact": "none",
+      "call": "record_path",
+      "count": 1,
+      "module": "source_capture/ig_reels_behavioral_lake.py"
+    },
+    {
+      "a2_fork_impact": "none",
+      "call": "append_record_set",
+      "count": 1,
+      "module": "source_capture/ig_reels_deep_capture_lake.py"
+    },
+    {
+      "a2_fork_impact": "none",
+      "call": "append_record",
+      "count": 1,
+      "module": "source_capture/ig_reels_grid_projection.py"
+    },
+    {
+      "a2_fork_impact": "packet_index",
+      "call": "load_attachment_record_body",
+      "count": 1,
+      "module": "source_capture/ig_reels_grid_projection.py"
+    },
+    {
+      "a2_fork_impact": "none",
+      "call": "record_path",
+      "count": 1,
+      "module": "source_capture/ig_reels_grid_projection.py"
+    },
+    {
+      "a2_fork_impact": "packet_index",
+      "call": "source_surface_catalog_rows",
+      "count": 1,
+      "module": "source_capture/ig_reels_grid_projection.py"
+    },
+    {
+      "a2_fork_impact": "none",
+      "call": "append_record",
+      "count": 1,
+      "module": "source_capture/parfumo_projection.py"
+    },
+    {
+      "a2_fork_impact": "none",
+      "call": "append_record",
+      "count": 1,
+      "module": "source_capture/retail_pdp_projection.py"
+    },
+    {
+      "a2_fork_impact": "none",
+      "call": "append_record_set",
+      "count": 1,
+      "module": "source_capture/transcript/asr_packet.py"
+    },
+    {
+      "a2_fork_impact": "none",
+      "call": "append_record",
+      "count": 1,
+      "module": "source_capture/transcript/ig_reels_audio_packet.py"
+    },
+    {
+      "a2_fork_impact": "none",
+      "call": "is_record_set_complete",
+      "count": 1,
+      "module": "youtube_capture/behavioral_projection.py"
+    },
+    {
+      "a2_fork_impact": "none",
+      "call": "lane_dir",
+      "count": 1,
+      "module": "youtube_capture/behavioral_projection.py"
+    }
+  ],
+  "raw_packet_writers": {
+    "runner_seams": [
+      {
+        "a2_fork_impact": "manifest_shape",
+        "kind": "direct_packet_writer",
+        "runner": "run_fragrance_review_lake_packet.py"
+      },
+      {
+        "a2_fork_impact": "manifest_shape",
+        "kind": "orchestrator",
+        "runner": "run_fragrantica_mgt_capture.py"
+      },
+      {
+        "a2_fork_impact": "manifest_shape",
+        "kind": "orchestrator",
+        "runner": "run_ig_reels_lane_orchestrator.py"
+      },
+      {
+        "a2_fork_impact": "manifest_shape",
+        "kind": "direct_packet_writer",
+        "runner": "run_parfumo_mgt_capture.py"
+      },
+      {
+        "a2_fork_impact": "manifest_shape",
+        "kind": "direct_packet_writer",
+        "runner": "run_source_capture_antiblock_http_packet.py"
+      },
+      {
+        "a2_fork_impact": "manifest_shape",
+        "kind": "direct_packet_writer",
+        "runner": "run_source_capture_archive_packet.py"
+      },
+      {
+        "a2_fork_impact": "manifest_shape",
+        "kind": "direct_packet_writer",
+        "runner": "run_source_capture_authenticated_browser_packet.py"
+      },
+      {
+        "a2_fork_impact": "manifest_shape",
+        "kind": "direct_packet_writer",
+        "runner": "run_source_capture_browser_packet.py"
+      },
+      {
+        "a2_fork_impact": "manifest_shape",
+        "kind": "direct_packet_writer",
+        "runner": "run_source_capture_cloakbrowser_packet.py"
+      },
+      {
+        "a2_fork_impact": "manifest_shape",
+        "kind": "direct_packet_writer",
+        "runner": "run_source_capture_historical_packet.py"
+      },
+      {
+        "a2_fork_impact": "manifest_shape",
+        "kind": "direct_packet_writer",
+        "runner": "run_source_capture_http_packet.py"
+      },
+      {
+        "a2_fork_impact": "manifest_shape",
+        "kind": "direct_packet_writer",
+        "runner": "run_source_capture_ig_calls_packet.py"
+      },
+      {
+        "a2_fork_impact": "manifest_shape",
+        "kind": "direct_packet_writer",
+        "runner": "run_source_capture_ig_reels_audio_packet.py"
+      },
+      {
+        "a2_fork_impact": "manifest_shape",
+        "kind": "direct_packet_writer",
+        "runner": "run_source_capture_ig_reels_grid_packet.py"
+      },
+      {
+        "a2_fork_impact": "manifest_shape",
+        "kind": "direct_packet_writer",
+        "runner": "run_source_capture_media_packet.py"
+      },
+      {
+        "a2_fork_impact": "manifest_shape",
+        "kind": "direct_packet_writer",
+        "runner": "run_source_capture_packet.py"
+      },
+      {
+        "a2_fork_impact": "manifest_shape",
+        "kind": "direct_packet_writer",
+        "runner": "run_source_capture_price_payload_packet.py"
+      },
+      {
+        "a2_fork_impact": "manifest_shape",
+        "kind": "direct_packet_writer",
+        "runner": "run_source_capture_tiktok_batch_packet.py"
+      },
+      {
+        "a2_fork_impact": "manifest_shape",
+        "kind": "direct_packet_writer",
+        "runner": "run_source_capture_tiktok_video_packet.py"
+      },
+      {
+        "a2_fork_impact": "manifest_shape",
+        "kind": "direct_packet_writer",
+        "runner": "run_source_capture_youtube_asr_packet.py"
+      },
+      {
+        "a2_fork_impact": "manifest_shape",
+        "kind": "direct_packet_writer",
+        "runner": "run_source_capture_youtube_caption_packet.py"
+      },
+      {
+        "a2_fork_impact": "manifest_shape",
+        "kind": "direct_packet_writer",
+        "runner": "run_source_capture_youtube_watch_packet.py"
+      }
+    ],
+    "writer_functions": [
+      {
+        "a2_fork_impact": "manifest_shape",
+        "defined_in": [
+          "source_capture/packet_assembly.py"
+        ],
+        "function": "stage_and_write_packet"
+      },
+      {
+        "a2_fork_impact": "manifest_shape",
+        "defined_in": [
+          "source_capture/transcript/asr_packet.py"
+        ],
+        "function": "write_asr_transcript"
+      },
+      {
+        "a2_fork_impact": "manifest_shape",
+        "defined_in": [
+          "source_capture/audience_post_packet.py"
+        ],
+        "function": "write_audience_post_packet"
+      },
+      {
+        "a2_fork_impact": "manifest_shape",
+        "defined_in": [
+          "source_capture/transcript/caption_packet.py"
+        ],
+        "function": "write_caption_packet"
+      },
+      {
+        "a2_fork_impact": "manifest_shape",
+        "defined_in": [
+          "source_capture/fragrance_review_lake.py"
+        ],
+        "function": "write_fragrance_review_capture_packet"
+      },
+      {
+        "a2_fork_impact": "manifest_shape",
+        "defined_in": [
+          "source_capture/transcript/ig_reels_audio_packet.py"
+        ],
+        "function": "write_ig_reels_asr_transcript"
+      },
+      {
+        "a2_fork_impact": "manifest_shape",
+        "defined_in": [
+          "source_capture/writer.py"
+        ],
+        "function": "write_local_source_capture_packet"
+      },
+      {
+        "a2_fork_impact": "manifest_shape",
+        "defined_in": [
+          "source_capture/tiktok/batch_packet.py"
+        ],
+        "function": "write_tiktok_batch_packet"
+      },
+      {
+        "a2_fork_impact": "manifest_shape",
+        "defined_in": [
+          "source_capture/tiktok/video_packet.py"
+        ],
+        "function": "write_tiktok_video_packet"
+      },
+      {
+        "a2_fork_impact": "manifest_shape",
+        "defined_in": [
+          "source_capture/youtube_watch_packet.py"
+        ],
+        "function": "write_youtube_watch_packet"
+      }
+    ]
+  },
+  "unknowns": []
+}

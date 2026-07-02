@@ -94,7 +94,13 @@ To upgrade Bronze from MGT to full GT, the remaining material work is:
 
 1. Replace manual runner/orchestrator enumeration with a deterministic discovery
    gate for all raw-packet writers and all explicitly non-raw-packet lake
-   touchpoints.
+   touchpoints. (Closed at source-inventory tier 2026-07-02:
+   `orca-harness/data_lake/inventory.py` plus the A1 gate
+   `orca-harness/tests/contract/test_data_lake_inventory_gate.py` —
+   deterministic, fail-capable discovery diffed against the checked-in
+   `lake_touchpoint_inventory_v0.json`, with reasoned exclusions and
+   owner-dispositioned unknowns; see the physicalization proof closeout
+   record.)
 2. Select Manifest v2 or an equivalent packet-index serialization and migration
    path, including dual-read/replay rules for legacy packet material.
 3. Select the final Attachment Record body layout or backend posture, including
@@ -106,6 +112,12 @@ To upgrade Bronze from MGT to full GT, the remaining material work is:
    mechanics remain open.)
 4. Promote the catalog/availability/index rebuild checks into a lake-doctor or
    CI-owned gate over representative fixture lakes and real lane fixtures.
+   (Partially closed 2026-07-02: PROOF-01..06 in
+   `orca-harness/tests/test_data_lake_physicalization_proof.py` are CI-owned
+   deterministic fixture-lake proofs — write-once, append-only, read-by-key,
+   hash verification, public AR resolution, byte-identical
+   availability+catalog rebuild — each fail-capable via a seeded violation;
+   the "real lane fixtures" breadth remains open.)
 5. Prove at least one Silver producer consumes Bronze by catalog/AR helper, not
    raw folder semantics, and carries verified refs into Silver `raw_refs`.
 6. Repeat that consumer proof across enough source families to validate the
