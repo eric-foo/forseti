@@ -1,5 +1,19 @@
 # Orca Bootstrap Record
 
+```yaml
+retrieval_header_version: 1
+artifact_role: Bootstrap workflow record
+scope: Initial Orca docs-first workspace bootstrap state, decisions, source hashes, and rollback notes.
+use_when:
+  - Reconstructing Orca bootstrap provenance.
+  - Checking early workspace initialization decisions.
+  - Investigating import queue or branch-casing bootstrap context.
+open_next:
+  - .agents/workflow-overlay/README.md
+  - docs/migration/import_queue.md
+authority_boundary: retrieval_only
+```
+
 ## Bootstrap Metadata
 
 - Bootstrap turn: 06-orca-docs-first-bootstrap

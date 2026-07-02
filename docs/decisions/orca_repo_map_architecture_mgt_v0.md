@@ -4,23 +4,30 @@
 retrieval_header_version: 1
 artifact_role: Orca decision record (owner-invoked mini-god-tier architecture)
 scope: >
-  The tiered Orca repo-map architecture and the reachability-coverage invariant.
-  Binds what the central map owns vs what submaps and retrieval headers own, and
-  defines "covered" as a gateable invariant (ancestor-area reachability, NOT
-  row-per-folder). Consumed by the coverage checker and the map-rebuild work.
+  The locked Orca repo-map retrieval architecture: curated map, dense-area
+  submaps, retrieval headers, generated on-demand inventory/health, session
+  health capsule, recent-change satellite, promotion-on-touch, and the
+  reachability-coverage invariant. Binds what the central map owns vs what
+  generated and satellite surfaces own.
 use_when:
   - Building, rebuilding, or gating the repo map / submaps.
   - Defining or changing what folder "coverage" means in check_map_links.
   - Deciding whether a folder needs its own map row (it usually does not).
+  - Deciding whether a recent-change note should be promoted into map/submap/header routing.
+  - Checking whether a standing gardener or committed generated inventory is justified.
 authority_boundary: retrieval_only
 open_next:
   - docs/workflows/orca_repo_map_v0.md
   - .agents/hooks/check_map_links.py
+  - .agents/hooks/header_index.py
+  - .agents/hooks/session_context_capsule.py
+  - docs/workflows/repo_map_recent_changes/README.md
   - docs/decisions/orca_mini_god_tier_doctrine_v0.md
   - docs/migration/orca_second_pass_consolidation_plan_v0.md
 stale_if:
-  - A later owner decision amends the tiers or the coverage invariant.
+  - A later owner decision amends the tiers, coverage invariant, generated inventory role, health-surface role, or promotion-on-touch boundary.
   - The owner elects the maximal (god-tier) row-per-doc central manifest instead.
+  - Evidence from retrieval probes proves a standing gardener is necessary.
 ```
 
 ## Status
@@ -48,6 +55,34 @@ complete central index (the god-tier *artifact*) is rejected — in Orca's
 multi-lane, about-to-bloat-cut repo it is a merge-conflict magnet and duplicates
 the headers, adding nothing over (headers + `--index` + the git PR diff). Rigor
 lives in the gate, not the file.
+
+### 2026-07-02 lock amendment: full retrieval stack
+
+The selected target architecture is now locked as a stack, not just the original
+three-tier map/submap/header shape:
+
+1. **Curated main map**: stable routing, major areas, source-pack orientation,
+   active-hook discoverability, and submap registry; not a full inventory.
+2. **Dense-area submaps**: localized human navigation for areas too dense for
+   the main map.
+3. **Retrieval headers**: durable-doc labels that travel with each artifact and
+   provide role, scope, use_when, stale_if, and open_next hints.
+4. **Generated on-demand inventory and health**: `header_index.py --index` is
+   the complete file-level catalog when needed; `--health --oneline` is the
+   advisory backlog surface.
+5. **Session capsule health line**: `session_context_capsule.py` exposes the
+   retrieval-health count at lane start so cold lanes see backlog without walking
+   the tree.
+6. **Recent-change satellite**: `docs/workflows/repo_map_recent_changes/` is
+   low-conflict context for map-affecting changes, not route truth and not a
+   replacement for map/submap/header updates.
+7. **Promotion-on-touch**: promote a recent-change note only when it prevents a
+   recurring broad read, stabilizes a route, or changes durable navigation.
+
+Rejected shapes remain rejected unless a later probe proves a gap: manual full
+main-map inventory, committed generated inventory artifacts, and a standing
+periodic gardener loop. A gardener may become justified only after measured
+retrieval failures or backlog behavior show that promotion-on-touch is not enough.
 
 ### The three tiers
 
@@ -84,6 +119,9 @@ notes do **not** confer coverage.
    more code than a substring "is it named" test — but it is the correct predicate.
 5. **Index quality depends on header discipline** — already separately gated by
    `header_index`, so not a new risk.
+6. **Promotion-on-touch is judgment-based.** It intentionally does not promise
+   that every recent-change note is promoted on a schedule; Batch 2 retrieval
+   probes must prove a real repeated failure before a standing gardener is built.
 
 The Pareto bet: accept (1)+(2) as the price; win low-churn + stable-across-bloat
 + zero duplication as the prize.
@@ -114,8 +152,74 @@ The Pareto bet: accept (1)+(2) as the price; win low-churn + stable-across-bloat
   the map rebuild, and the submaps are separate authorized builds.
 - Not a claim that the map is currently complete under this invariant — it is the
   target the rebuild converges to.
+- Not a claim that retrieval health is clean; the current advisory health count
+  remains probe evidence, not readiness.
+- Not authorization for a standing gardener, committed generated inventory, or
+  broad header backfill.
 
 ## Direction Change Propagation
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Repo-map MGT architecture is locked as a full retrieval stack: curated main
+    map, dense-area submaps, retrieval headers, generated on-demand
+    inventory/health, session-capsule health line, recent-change satellite, and
+    promotion-on-touch. Manual full inventory, committed generated inventory,
+    and standing gardener loops remain rejected unless retrieval probes prove a
+    repeated failure.
+  trigger: architecture_doctrine
+  related_triggers:
+    - workflow_authority
+    - validation_philosophy
+  controlling_sources_updated:
+    - docs/decisions/orca_repo_map_architecture_mgt_v0.md
+    - docs/decisions/orca_doctrine_index_v0.md
+    - docs/workflows/repo_map_retrieval_probe_batch_2_v0.md
+    - .agents/hooks/header_index.py
+  downstream_surfaces_checked:
+    - AGENTS.md
+    - .agents/workflow-overlay/README.md
+    - .agents/workflow-overlay/source-of-truth.md
+    - .agents/workflow-overlay/source-loading.md
+    - .agents/workflow-overlay/validation-gates.md
+    - docs/workflows/orca_repo_map_v0.md
+    - docs/workflows/repo_map_recent_changes/README.md
+    - .agents/hooks/check_map_links.py
+    - .agents/hooks/session_context_capsule.py
+    - docs/prompts/deep-thinking/repo_map_god_tier_architecture_3subagent_prompt_v1.md
+  intentionally_not_updated:
+    - path: docs/workflows/orca_repo_map_v0.md
+      reason: >
+        The current map already exposes the recent-change satellite and active
+        hook surfaces; this lock amends the decision record rather than adding a
+        high-conflict top-map chronology or full inventory.
+    - path: .agents/workflow-overlay/validation-gates.md
+      reason: >
+        Enforcement placement and the retrieval-header index gate already name
+        `header_index.py --index`, `--health`, `--health --oneline`, and
+        `--strict`; the Batch 2 hook fix changes Windows output robustness, not
+        the gate contract.
+    - path: .agents/hooks/check_map_links.py
+      reason: >
+        C3 reachability semantics already point to this decision record; the
+        lock amendment does not change the predicate.
+  stale_language_search: >
+    rg -n "Repo-Map Architecture|promotion-on-touch|gardener|committed generated inventory|header_index --index|repo_map_recent_changes" docs/decisions docs/workflows .agents/workflow-overlay .agents/hooks docs/prompts/deep-thinking/repo_map_god_tier_architecture_3subagent_prompt_v1.md
+  stale_language_search_result: >
+    Executed 2026-07-02 during the lock/probe patch. Live hits are this amended
+    decision, the patched 3-subagent prompt, the recent-change README/map route,
+    validation-gates/header_index hook documentation, and historical or adjacent
+    uses of repo-map/gardener language. No checked live surface still selects a
+    manual full inventory, committed generated inventory, or standing gardener as
+    the default architecture.
+  non_claims:
+    - not validation
+    - not readiness
+    - not proof that retrieval health is clean
+    - not source-of-truth promotion beyond this decision record
+    - not implementation authorization beyond the bounded header_index Windows-output fix
+```
 
 ```yaml
 direction_change_propagation:
@@ -163,3 +267,5 @@ direction_change_propagation:
     - not implementation of the checker or map rebuild
     - MGT is a design lens, not a claim tier
 ```
+
+Older receipts, when cycled out, are archived verbatim in docs/decisions/dcp_receipts_archive_v0.md.
