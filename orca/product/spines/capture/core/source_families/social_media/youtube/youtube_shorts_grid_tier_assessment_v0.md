@@ -54,12 +54,11 @@ remain owner decisions and are not resolved here.
   total (3 grid + 2 watch), ~12 s pacing, stop-on-first-wall.
 - Wall outcome: **no wall signals** — all requests HTTP 200, no
   `consent.youtube.com` redirect, no "Sign in to confirm you" interstitial.
-- Probe timestamps (UTC, observed): 2026-07-02T16:19:27Z through
-  2026-07-02T16:20:17Z.
-- Raw probe output: scratch-only (session scratchpad); the load-bearing
-  observations are inlined below. No lake commit was made for this probe; the
-  owner-authorized option to commit probe captures to the lake was not needed
-  for the assessment deliverable.
+- Two runs, same bound (5 requests each). Run 1 (targeted extraction,
+  scratch-only): 2026-07-02T16:19:27Z–16:20:17Z. Run 2 (full-fidelity,
+  owner-requested, committed to the lake): 2026-07-02T16:36:10Z–16:36:59Z.
+  See "Run 2: Full-Fidelity Evidence Commit" below for the durable raw
+  evidence; the load-bearing observations are inlined throughout.
 
 ## Observed: YT Shorts channel grid, logged-out
 
@@ -108,6 +107,38 @@ exact-count source. Any YT view-spike rule computed on grid values operates on
 quantized numbers (e.g. a 1.5K→1.6K step is the smallest observable move at
 that scale). Whether that quantization is acceptable for the spike trigger is
 an owner product-parameter decision, surfaced here and not resolved.
+
+## Run 2: Full-Fidelity Evidence Commit (owner-requested)
+
+Everything capturable from the probe surfaces is persisted raw in the lake as
+one SourceCapturePacket (probe-scoped surface; every existing YouTube consumer
+filters on `source_surface` and skips it, verified in
+`youtube_watch_packet_metric_document.py` / `behavioral_projection.py`):
+
+- Lake packet: `raw/f16/01KWHV1Q2E48SS4A9QXGRR90B5` (`ORCA_DATA_ROOT` =
+  `F:\orca-data-lake`), `source_family: youtube`,
+  `source_surface: yt_shorts_channel_grid_probe_v0`.
+- Contents (12 staged artifacts + writer manifest/receipt): per channel the
+  raw served grid HTML, the FULL parsed `ytInitialData`, and the COMPLETE
+  tile renderer JSON; per comparison video the raw watch-page HTML; plus the
+  probe manifest with per-request status, final URL, byte size, sha256,
+  timestamps.
+- Raw sha256 anchors: grid JeremyFragrance `f19e5bf8…`, grid GentsScents
+  `202f7dc8…`, grid Redolessence `676da6b8…`, watch iG92pxnu7J4 `94f60d39…`,
+  watch vwT__IK7XGU `cd89d15a…` (full hashes in the packet's
+  `probe_manifest.json`).
+- Run 2 reproduced Run 1: same tile counts (48/13/48), zero wall signals,
+  views-only tile fields. Date-absence strengthened: a key scan over the
+  three COMPLETE persisted tile payloads (all 109 tiles) found zero
+  date-bearing keys (`publishedTimeText`/`publishDate`/`dateText`/
+  `uploadDate`) — publish timing is definitively not on this surface.
+- Deep-tier date proof: both watch pages expose exact `publishDate`
+  (iG92pxnu7J4: `2026-07-02T02:00:05-07:00`; vwT__IK7XGU:
+  `2026-07-02T01:57:35-07:00`) — publish timing is a deep-tier field.
+- Incidental spike-relevant observation: between runs (~17 min), exact watch
+  views moved 1,597 → 1,658 and 5,263 → 5,940 on these same-day-published
+  Shorts; the grid's rounded text ("1.5K"/"5.2K" at Run 1) is the coarse
+  signal a grid-tier spike rule would see.
 
 ## Comparison: IG /reels/ grid (code + committed-artifact read; not probed)
 
