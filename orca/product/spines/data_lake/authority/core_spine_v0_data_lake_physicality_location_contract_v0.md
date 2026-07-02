@@ -16,6 +16,7 @@ use_when:
   - Scoping data-root configuration, fail-closed resolution, or directory placement.
   - Naming a durable Data Lake record and checking it does not leak gold/Judgment/actor semantics.
 open_next:
+  - orca/product/spines/data_lake/workflows/core_spine_v0_data_lake_bronze_full_gt_gate1_attachment_record_body_layout_adr_v0.md
   - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_raw_admission_key_grammar_contract_v0.md
   - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_write_boundary_enforcement_contract_v0.md
   - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_storage_contract_v0.md
@@ -39,7 +40,7 @@ authority_boundary: retrieval_only
 
 ## Status
 
-`TARGET_PHYSICALITY_LOCATION_CONTRACT_RECORDED_V0`.
+`TARGET_PHYSICALITY_LOCATION_CONTRACT_RECORDED_V0; GATE1_BODY_HOME_RESOLVED_V0`.
 
 This is a planning and architecture contract. It is not implementation authority,
 validation, readiness, backend selection, storage-engine selection, queue design,
@@ -140,9 +141,10 @@ The lake is strict about where bytes land. It is not smart about what they mean.
     derived_retrieval/       # lane-owned analytical retrieval aids — rebuildable,
                              #   non-authoritative; NOT truth / actor history / dossier
 
-* attachment bodies may instead live as packet members under raw/<packet_id>/;
-  the sibling-file-vs-packet-member placement is deferred to the Attachment Record
-  implementation direction.
+* attachment bodies land as packet members under raw/<packet_shard>/<packet_id>/
+  by default (Gate 1 body-layout ADR, owner-ratified 2026-07-02); the
+  attachments/ slot is reserved, usable only through a future ADR on that ADR's
+  named reopen trigger (a body that genuinely cannot land inside its packet).
 ```
 
 These names are **logical slot homes**, not a frozen path schema. `raw/<packet_id>/...`
@@ -154,7 +156,7 @@ decisions; it is not locked here.
 | Slot | Owns (lake-side) | Must not become |
 | --- | --- | --- |
 | `raw/` | Raw Packet Store: immutable `SourceCapturePacket` bundles, stable packet/slice/file handles, `sha256`, `hash_basis`. | Cleaned truth, canonical identity, mutable packet history. |
-| `attachments/` | Attachment Record bodies: source-family payload bodies, immutable/hash-checkable, keyed to packet/slice/file. | Cleaned values, dedupe/credibility/Judgment labels, downstream-use strength. |
+| `attachments/` | RESERVED (Gate 1 body-layout ADR, 2026-07-02): no default occupant — Attachment Record bodies land as packet members under `raw/`. The slot opens only through a future ADR on the sidecar reopen trigger; any future occupant stays immutable/hash-checkable and keyed to packet/slice/file. | Cleaned values, dedupe/credibility/Judgment labels, downstream-use strength, or a second default body home without a ratified ADR. |
 | `derived/` | Derived Result Store: append-only lane-owned derived records keyed to raw; each epistemic kind a sibling. | Second raw source of truth, merged cross-kind blob, rewritten/deleted history. |
 | `acknowledgements/` | Acknowledgement Log: append-only lane-owned completion/ack facts keyed to raw. | Lake-consumed control flow for scheduling, gating, retry, or calling a lane. |
 | `indexes/availability/` | Availability Index: content-free committed/readable-by-key state with checkable refs; rebuildable. | Analytical reverse index, event bus, scheduler, router, retry gate, priority/success tracker. |
@@ -187,8 +189,9 @@ Rules:
 ## Record Home Mapping
 
 - Raw Packet Store -> `raw/`.
-- Attachment Record -> `attachments/` or packet-member under `raw/<packet_id>/`
-  (placement deferred).
+- Attachment Record body -> packet-member under `raw/<packet_shard>/<packet_id>/`
+  (ratified default, Gate 1 body-layout ADR 2026-07-02); `attachments/` stays
+  reserved behind the sidecar reopen trigger.
 - Availability Index -> `indexes/availability/`.
 - Derived Result Store -> `derived/`.
 - Acknowledgement Log -> `acknowledgements/`.
@@ -278,8 +281,10 @@ what it foregoes:
   Risk: later raw-tree reshape. Mitigated: raw immutable + rebuildable indexes make a
   reshape a replay/rebuild, not a mutation. Upgrade trigger: packet-admission/key-rule
   decision lands.
-- **Attachment physical home unfrozen** (sibling file vs packet member). Owned by the
-  Attachment Record implementation direction. Upgrade trigger: that lane closes.
+- **Attachment physical home — resolved 2026-07-02** (was: unfrozen, sibling file
+  vs packet member). The Gate 1 body-layout ADR ratified packet-member as the
+  default home; `attachments/` stays reserved behind its reopen trigger. Kept
+  as a closed-residual record; no longer an accepted residual.
 - **`indexes/derived_retrieval/` representation + rebuild command not built.**
   Rebuildable and disposable, so cheap to defer; the medallion contract prefers
   on-demand retrieval. Upgrade trigger: first consumer needs a reverse lookup -> the
@@ -296,8 +301,10 @@ Resolution status (updated as blocker-resolution decisions land 2026-06-21):
 
 1. Packet-admission criteria + packet/slice/object/event key rules — **RESOLVED** by
    the raw admission + key grammar decision contract.
-2. Attachment Record physical representation — directional (Attachment Record
-   implementation contract); exact layout/serialization build-deferred.
+2. Attachment Record physical representation — layout **RESOLVED** (Gate 1
+   body-layout ADR, owner-ratified 2026-07-02: packet-member default, sidecar
+   reserved); entry serialization (A2) still deferred, gated on the A1
+   deterministic inventory.
 3. Enforcement assignment for write-once raw, no-cleaning-in-lake, append-only
    derived/ack, no-new-core-field pressure — **RESOLVED** by the write-boundary
    enforcement decision contract.
@@ -329,7 +336,8 @@ Resolution status (updated as blocker-resolution decisions land 2026-06-21):
 
 - Storage engine or backend inside this contract; engine/backend choice belongs
   to the Storage Contract physicalization boundary.
-- Serialization, Manifest v2, or sidecar vs packet-member layout.
+- Serialization or Manifest v2. (Sidecar vs packet-member layout is now
+  ratified by the Gate 1 body-layout ADR, not selected by this contract.)
 - Projection cache, runtime queue, or scheduler.
 - ECR, SCR, Cleaning, Judgment, or Evidence Unit (EvidenceUnit) schema.
 - Field-level schema for any named record.
@@ -352,6 +360,48 @@ Resolution status (updated as blocker-resolution decisions land 2026-06-21):
    Contract physicalization decision explicitly selects or supersedes them.
 
 ## Direction Change Propagation
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Fold-in of the owner-ratified Gate 1 body-layout ADR (2026-07-02): the
+    directory-grammar footnote resolves to packet-member under
+    raw/<packet_shard>/<packet_id>/, the attachments/ slot is recorded as
+    RESERVED behind the sidecar reopen trigger, the record-home mapping drops
+    "placement deferred", the "Attachment physical home unfrozen" MGT residual
+    closes, and implementation blocker 2's layout half is marked RESOLVED
+    (entry serialization stays deferred to A2 behind the A1 deterministic
+    inventory).
+  trigger: architecture_doctrine
+  controlling_sources_updated:
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_physicality_location_contract_v0.md
+  downstream_surfaces_checked:
+    - orca/product/spines/data_lake/workflows/core_spine_v0_data_lake_bronze_full_gt_gate1_attachment_record_body_layout_adr_v0.md
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_storage_contract_v0.md
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_attachment_record_implementation_contract_v0.md
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_raw_admission_key_grammar_contract_v0.md
+    - orca/product/spines/data_lake/README.md
+    - docs/workflows/orca_repo_map_v0.md
+  intentionally_not_updated:
+    - path: orca/product/spines/data_lake/README.md
+      reason: >
+        Its Attachment Record mentions are ownership language with no
+        placement-deferred claim.
+  stale_language_search: >
+    rg -n "placement deferred|physical home unfrozen"
+    orca/product/spines/data_lake docs/workflows/orca_repo_map_v0.md
+  stale_language_search_result: >
+    Executed 2026-07-02 after edits. The only remaining hits sit inside the
+    Gate 1 ADR's own historical receipt text (its pre-fold-in stale-language
+    record); no live surface still says the attachment body placement is
+    deferred or the physical home unfrozen.
+  non_claims:
+    - not validation
+    - not readiness
+    - not implementation authorization
+    - not backend or storage-engine selection
+    - not a Bronze full-GT claim
+```
 
 ```yaml
 direction_change_propagation:
@@ -415,6 +465,9 @@ direction_change_propagation:
     - not queue/runtime design
     - not migration authorization
 ```
+
+Older receipts, when cycled out, are archived in
+`docs/decisions/dcp_receipts_archive_v0.md`.
 
 ## Non-Claims
 

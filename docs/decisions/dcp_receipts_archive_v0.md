@@ -2068,3 +2068,72 @@ direction_change_propagation:
     - not authorization to capture, build, or run (the playbook stays non-authorizing doctrine;
       per-probe network approval still required)
 ```
+
+## From orca/product/spines/data_lake/authority/core_spine_v0_data_lake_storage_contract_v0.md
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Data Lake Storage Contract v0 now records the blocker-2 incumbent-field
+    direction: existing direct packet/slice fields remain legacy-readable and
+    transitional, are not precedent for new direct source-family fields, are not
+    promoted to universal lake core, and may only move through future dual-read
+    or replay under separate authorization; pinned packets are not mutated.
+  trigger: architecture_doctrine
+  related_triggers:
+    - lifecycle_boundary
+  controlling_sources_updated:
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_storage_contract_v0.md
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_core_contract_v0.md
+    - orca/product/spines/data_lake/workflows/core_spine_v0_data_lake_mechanics_map_v0.md
+    - orca/product/spines/capture/core/packet_schema/source_capture_tenant_payload_attachment_boundary_v0.md
+    - docs/workflows/orca_repo_map_v0.md
+    - docs/decisions/dcp_receipts_archive_v0.md
+  downstream_surfaces_checked:
+    - AGENTS.md
+    - .agents/workflow-overlay/README.md
+    - .agents/workflow-overlay/source-loading.md
+    - .agents/workflow-overlay/source-of-truth.md
+    - .agents/workflow-overlay/validation-gates.md
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_attachment_record_implementation_contract_v0.md
+    - orca/product/spines/capture/core/packet_schema/source_capture_packet_schema_evolution_architecture_v0.md
+    - orca-harness/source_capture/models.py
+    - orca-harness/source_capture/writer.py
+    - orca-harness/source_capture/ig_projection.py
+    - orca-harness/source_capture/retail_pdp_projection.py
+  intentionally_not_updated:
+    - path: orca-harness/source_capture/models.py and writer/projection code
+      reason: >
+        This patch records architecture direction only. Existing fields and
+        readers remain live and readable; no runtime migration, dual-read
+        implementation, replay implementation, or schema mutation is authorized.
+    - path: orca/product/spines/data_lake/authority/core_spine_v0_data_lake_attachment_record_implementation_contract_v0.md
+      reason: >
+        It already defers the migration/replay plan for incumbent direct fields.
+        This patch settles the high-level fate in the storage/core/boundary
+        sources without choosing dual-read mechanics or replay triggers.
+  stale_language_search: >
+    rg -n "Decide the fate of incumbent direct fields|Before physicalization, the incumbent field fate must be decided|Whether current `metric_observations` remain|Whether demand pins remain|migrate incumbent fields|legacy-readable transitional|future dual-read or replay"
+    orca/product/spines/data_lake/authority/core_spine_v0_data_lake_storage_contract_v0.md
+    orca/product/spines/data_lake/authority/core_spine_v0_data_lake_core_contract_v0.md
+    orca/product/spines/data_lake/workflows/core_spine_v0_data_lake_mechanics_map_v0.md
+    orca/product/spines/capture/core/packet_schema/source_capture_tenant_payload_attachment_boundary_v0.md
+    orca/product/spines/data_lake/authority/core_spine_v0_data_lake_attachment_record_implementation_contract_v0.md
+    docs/workflows/orca_repo_map_v0.md
+  stale_language_search_result: >
+    Executed 2026-06-18 after edits. No live target text still says incumbent
+    direct-field fate must be decided, nor that current metric observations or
+    demand pins have an open high-level fate. Hits are expected: the storage,
+    core, mechanics map, attachment-boundary, and repo-map text now state the
+    accepted legacy-readable / future-dual-read-or-replay direction; the storage
+    contract keeps "migrate incumbent fields" only as a non-goal; this receipt
+    contains the query. No hit authorizes migration, schema finalization,
+    runtime implementation, validation, readiness, or storage-engine selection.
+  non_claims:
+    - not validation
+    - not readiness
+    - not implementation authorization
+    - not migration authorization
+    - not schema finalization
+    - not storage-engine selection
+```
