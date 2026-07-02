@@ -1,5 +1,16 @@
 # Handoff Packet
 
+```yaml
+retrieval_header_version: 1
+artifact_role: Handoff packet
+scope: Creator registry folder move handoff preserving PR conflict and stale open_next remediation context.
+use_when:
+  - Resuming or auditing the creator registry folder move handoff packet.
+  - Diagnosing PR conflict or stale retrieval-link fallout from the creator registry folder move.
+  - Checking why creator-registry follow-up work should continue from the main-compatible branch.
+authority_boundary: retrieval_only
+```
+
 ## Load Contract
 
 - packet_version: workflow-handoff max v0
