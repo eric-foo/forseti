@@ -104,6 +104,13 @@ Cleaning sits after Data Capture, mechanical source projection where used, and
 Evidence Candidate Record receipt material. Its job is the transformation
 ledger and the cleaned working view.
 
+When persisted to the Data Lake, the transformation ledger lives as a derived
+processing-audit sibling under the Data Lake's derived-record grammar — schema
+`cleaning_audit_pack_v0`, a shared envelope any Cleaning lane reuses, filed in a
+per-source lane — not a Silver fact record; cleaned-working-view facts that go to
+Silver carry a one-way provenance pointer back to that audit pack. See the Silver
+Vault record contract's "Not Silver: Cleaning Audit Packs" boundary.
+
 | Layer | Cleaning may use | Cleaning must not take over |
 | --- | --- | --- |
 | Data Capture Spine | Raw packet anchors (CapturePacket), source identity, timing, visibility, capture context, and projection packet references. | Source acquisition, access-path decisions, source truth, capture operations, projection ownership, or source-envelope removal authority. |

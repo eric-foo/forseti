@@ -1,0 +1,24 @@
+{
+  "creator_metric_rollup_freshness_receipt": {
+    "lake_high_watermark": "sha256:4fb7598334a053d652ef603aa629ad3636db945013acd7a1df19533d455607e0",
+    "per_account": [
+      {
+        "content_hash": "sha256:7e42739273e3c725bd9d6fa7634cedf8325b264c750ef46b6df99ad79d0de4d5",
+        "profile_subject_id": "acct_ig_reels_001"
+      },
+      {
+        "content_hash": "sha256:d6a8332c261b64f6637b0fd920d43c4598b26039d26df1603c3e2f40abe67483",
+        "profile_subject_id": "acct_ig_reels_002"
+      },
+      {
+        "content_hash": "sha256:83682894379b3cc680f93998190179c22eba21dceee1f1f4d5613c8320580e8a",
+        "profile_subject_id": "acct_ig_reels_004"
+      }
+    ],
+    "platform_scope": "instagram",
+    "reconciled_at": "2026-06-30T14:49:28Z",
+    "schema_version": "creator_metric_rollup_freshness_receipt_v0",
+    "selection_run_id": 1,
+    "snapshot_generated_at": "2026-06-30T14:49:28Z"
+  }
+}

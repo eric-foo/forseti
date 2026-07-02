@@ -21,18 +21,18 @@ WHY (enforcement placement)
   The prompt contract is owned by .agents/workflow-overlay/prompt-orchestration.md
   ("Orca Prompt Preflight" + "Author Through The Prompt Orchestrator"). Whether
   the contract was applied is not mechanically checkable from one tool call, so
-  the checkable part — a write into the prompt surface — gets a deterministic,
-  always-fires injection of the checklist, per the Enforcement Placement
-  principle in .agents/workflow-overlay/validation-gates.md.
+  the checkable part -- a write into the canonical prompt surface -- gets a
+  deterministic, always-fires injection of the checklist, per the Enforcement
+  Placement principle in .agents/workflow-overlay/validation-gates.md.
 
-HARD BOUNDARY — remind only, never block, never verdict.
+HARD BOUNDARY -- remind only, never block, never verdict.
   Exit 0 always; fails OPEN. It cannot verify the contract was or was not
-  applied, so the reminder asserts no violation. It misses paste-ready-chat
-  prompts that never touch disk -- now a residual TECHNICAL limit, not an
-  accepted authoring path: prompt-orchestration.md ("Durable and cross-recipient
-  prompts are authored as a FILE-WRITE under docs/prompts/**") requires durable /
-  cross-recipient prompts to touch disk, so they fire this hook; chat-only is
-  reserved for trivial single-target inline prompts.
+  applied, so the reminder asserts no violation. It does not fire for
+  lane-scoped prompts carried in chat, a lane PR body/comment, or ignored
+  docs/_inbox scratch; those are accepted only when prompt-orchestration.md
+  classifies them as lane-scoped execution prompts and the author carries the
+  preflight in the prompt body or PR comment. Canonical prompt artifacts still
+  write under docs/prompts/** and fire this hook.
 
 MODES
   check_prompt_provenance.py --hook      PostToolUse hook (stdin JSON, exit 0)

@@ -62,12 +62,15 @@ actor_model_family_receipt:
 - **`repo`** (controller has the branch / PR #110): run the loop — review, then patch the
   target file directly in the working tree (do not commit), return a unified diff + per-change
   neutral citations + verdict + residual-risk note. Everything off the target is read-only.
-- **`no_repo`** (repo-blind cross-vendor reviewer — the expected dispatch): advisory **findings
-  only, no diff**. The deliverable is supplied as a **verbatim file attachment** pinned to the
-  sha below; the CA (home model) applies accepted changes, then runs a **bounded same-vendor
-  post-patch recheck** (closure-of-findings + any new blocker/major in the touched delta) before
-  keep. `no_repo` is strictly weaker than `repo` (de-correlated review preserved, de-correlated
-  patch authorship lost).
+- **`no_repo`** (explicit fallback only when the reviewer lacks repo access; cross-vendor or
+  external dispatch alone does not select no_repo): advisory **findings only, no diff**. The
+  deliverable is supplied as a **verbatim file attachment** pinned to the sha below; the CA
+  (home model) applies accepted changes, then runs a **bounded same-vendor post-patch recheck**
+  (closure-of-findings + any new blocker/major in the touched delta) before keep. `no_repo` is
+  strictly weaker than `repo` (de-correlated review preserved, de-correlated patch authorship lost).
+- Post-return adjudication: the CA first adjudicates returned findings/diff/verdict as claims. If
+  no material issue remains, admin is exactly one land step and the CA deep-thinks the next 1-3
+  material moves; if a material issue remains, route the smallest complete closure step instead.
 
 ## Target (the only editable scope; everything else is flag-only)
 

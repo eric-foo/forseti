@@ -17,6 +17,7 @@ if __package__ in {None, ""}:
 
 from source_capture.transcript import write_asr_transcript
 from source_capture.transcript.audio_asr import download_audio, transcribe_audio
+from runners._youtube_cli import normalize_video_id_argv
 
 
 def main(argv: Sequence[str] | None = None) -> int:
@@ -24,7 +25,10 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument("--video-id", required=True)
     parser.add_argument("--data-root", default=None, help="Orca data lake root (or ORCA_DATA_ROOT). ASR is data-lake-mode.")
     parser.add_argument("--model", default="small")
-    args = parser.parse_args(argv)
+    raw_argv = sys.argv[1:] if argv is None else argv
+    args = parser.parse_args(
+        normalize_video_id_argv(raw_argv, option_strings=parser._option_string_actions)
+    )
 
     from data_lake.root import DataLakeRoot
 

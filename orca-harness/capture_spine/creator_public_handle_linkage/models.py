@@ -62,4 +62,3 @@ DEFAULT_LINKAGE_NON_CLAIMS: tuple[str, ...] = (
     "not follower or audience graph",
     "not public person-level product surface",
 )
-

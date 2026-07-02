@@ -9,11 +9,16 @@ from email.message import Message
 import io
 import json
 from pathlib import Path
+from types import SimpleNamespace
 from urllib.error import HTTPError
 
 import pytest
 
 from runners import run_source_capture_ig_reels_deep_capture as deep_capture_runner
+from source_capture.adapters.browser_snapshot import (
+    BrowserSnapshotFailure,
+    BrowserSnapshotFailureKind,
+)
 
 from source_capture.ig_reels_deep_capture import (
     ReelDeepCapture,
@@ -286,3 +291,62 @@ def test_deep_capture_downloader_rejects_http_media_url_before_fetch(
     assert download("http://scontent.cdninstagram.com/o1/v/clip.mp4") is None
     assert opened == []
     assert not (tmp_path / "reel_audio.mp4").exists()
+
+
+# --- _render retry/robustness (offline: the browser-snapshot capture is an injected fake) ---
+
+
+def _snapshot_failure(kind: BrowserSnapshotFailureKind) -> BrowserSnapshotFailure:
+    return BrowserSnapshotFailure(
+        requested_url="https://www.instagram.com/reel/X/", failure_kind=kind, message="boom"
+    )
+
+
+def test_render_retries_transient_failure_then_succeeds() -> None:
+    calls: list[dict] = []
+    slept: list[float] = []
+    outcomes = [
+        _snapshot_failure(BrowserSnapshotFailureKind.TIMEOUT),
+        _snapshot_failure(BrowserSnapshotFailureKind.EMPTY_RENDERED_DOM),
+        SimpleNamespace(rendered_dom="<html>reel</html>"),
+    ]
+
+    def capture(**kwargs: object):
+        calls.append(kwargs)
+        return outcomes[len(calls) - 1]
+
+    dom = deep_capture_runner._render("DaGUhsKsYL9", capture_fn=capture, sleep_fn=slept.append)
+
+    assert dom == "<html>reel</html>"
+    assert len(calls) == 3
+    # the regression guard: deep-capture must wait on `load`, never the flaky `networkidle`
+    assert all(call["wait_until"] == "load" for call in calls)
+    assert slept == [2.0, 4.0]  # linear backoff between attempts, none after the success
+
+
+def test_render_returns_none_after_exhausting_transient_retries() -> None:
+    calls: list[dict] = []
+    slept: list[float] = []
+
+    def capture(**kwargs: object):
+        calls.append(kwargs)
+        return _snapshot_failure(BrowserSnapshotFailureKind.TIMEOUT)
+
+    dom = deep_capture_runner._render("ABC", attempts=3, capture_fn=capture, sleep_fn=slept.append)
+
+    assert dom is None
+    assert len(calls) == 3 and slept == [2.0, 4.0]
+
+
+def test_render_does_not_retry_permanent_failure() -> None:
+    calls: list[dict] = []
+    slept: list[float] = []
+
+    def capture(**kwargs: object):
+        calls.append(kwargs)
+        return _snapshot_failure(BrowserSnapshotFailureKind.DEPENDENCY_UNAVAILABLE)
+
+    dom = deep_capture_runner._render("ABC", capture_fn=capture, sleep_fn=slept.append)
+
+    assert dom is None
+    assert len(calls) == 1 and slept == []  # permanent failure: no retry, no backoff

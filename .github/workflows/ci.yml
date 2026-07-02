@@ -38,6 +38,9 @@ jobs:
       - name: retrieval header index (forward-only gate)
         working-directory: ${{ github.workspace }}
         run: python .agents/hooks/header_index.py --strict
+      - name: Google search-surface route guard
+        working-directory: ${{ github.workspace }}
+        run: python .agents/hooks/check_search_surface_google_route.py --strict
       - name: CSB-first scanning artifact check
         working-directory: ${{ github.workspace }}
         run: python .agents/hooks/check_csb_scanning_artifact.py --diff origin/main --strict
@@ -56,3 +59,6 @@ jobs:
       - name: dcp receipt shape (changed docs carry well-formed receipts)
         working-directory: ${{ github.workspace }}
         run: python .agents/hooks/check_dcp_receipt.py --strict
+      - name: silver-lane write contract (no-blur binding)
+        working-directory: ${{ github.workspace }}
+        run: python .agents/hooks/check_silver_lane_registry.py --strict

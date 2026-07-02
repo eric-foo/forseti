@@ -248,6 +248,17 @@ Companion to EP-06. Adds three non-blocking surfaces and one CI gate:
   back to whole-repo strict.
 Registered in `.github/workflows/ci.yml` after the existing link-check step.
 
+**Google search-surface route guard**
+(`.agents/hooks/check_search_surface_google_route.py`). Diff-scoped CI plus
+advisory PostToolUse checker for the mechanically checkable shell of
+`docs/decisions/search_surface_google_parameterized_us_capture_route_v0.md`:
+Google Search capture URLs in changed durable docs carry the bound route
+parameters; artifacts using the route carry the physical-locality non-claim; and
+blocked Google pages with visible exit-IP content are not preserved in durable
+docs. This is route-shape enforcement only. It is not physical-locality proof,
+source sufficiency, validation, readiness, demand proof, Judgment evidence, or
+Product Lead evidence.
+
 **Retrieval-header forbidden-field scan** (`.agents/hooks/check_retrieval_header.py`,
 EP-07 forbidden-field subset — the part previously deferred). The shared header
 predicate (`header_problems_for_lines`, used by both the write-time `--hook` and
@@ -279,6 +290,7 @@ pointer, and "no standalone receipt files" rules are deliberately NOT gated here
 Registered in `.github/workflows/ci.yml`; whole-repo advisory backlog via
 `--audit`; `--selftest` present.
 
+
 ## Future Gates
 
 - Orca independence dry run: UNKNOWN - requires owner input.
@@ -286,6 +298,59 @@ Registered in `.github/workflows/ci.yml`; whole-repo advisory backlog via
 - Runtime or integration validation: UNKNOWN - requires owner input.
 
 ## Direction Change Propagation
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Google search-surface route-shape enforcement is now an active validation-gate
+    instance: a diff-scoped CI checker plus advisory PostToolUse hooks enforce
+    the mechanically checkable shell of the parameterized Google route decision
+    while preserving the non-claim that passing shape is not physical-locality,
+    source-sufficiency, validation, readiness, demand, Judgment, or Product Lead
+    proof.
+  trigger: validation_philosophy
+  related_triggers:
+    - workflow_authority
+    - output_authority
+  controlling_sources_updated:
+    - .agents/workflow-overlay/validation-gates.md
+    - docs/decisions/search_surface_google_parameterized_us_capture_route_v0.md
+    - .agents/hooks/check_search_surface_google_route.py
+    - .claude/settings.json
+    - .codex/hooks.json
+    - .github/workflows/ci.yml
+  downstream_surfaces_checked:
+    - AGENTS.md
+    - .agents/workflow-overlay/README.md
+    - .agents/workflow-overlay/source-of-truth.md
+    - .agents/workflow-overlay/artifact-roles.md
+    - .agents/workflow-overlay/prompt-orchestration.md
+    - .agents/workflow-overlay/delegated-review-patch.md
+    - docs/workflows/orca_repo_map_v0.md
+    - .agents/hooks/README.md
+  intentionally_not_updated:
+    - path: AGENTS.md
+      reason: >
+        AGENTS.md already routes validation and enforcement-placement changes to
+        the overlay. Adding a Google-specific route rule to the behavior kernel
+        would create a narrower duplicate source.
+    - path: .agents/workflow-overlay/README.md
+      reason: >
+        README already points project work to validation-gates, prompt
+        orchestration, and source-of-truth. The active instance is recorded here
+        and in the repo map/hook README.
+  stale_language_search: >
+    rg -n "Google search-surface|US-parameterized|physical-locality|check_search_surface_google_route"
+    .agents docs orca
+  non_claims:
+    - not validation
+    - not readiness
+    - not source sufficiency
+    - not demand proof
+    - not Judgment evidence
+    - not Product Lead evidence
+    - not physical-locality proof
+```
 
 ```yaml
 direction_change_propagation:

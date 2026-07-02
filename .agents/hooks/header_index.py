@@ -81,6 +81,18 @@ import subprocess
 import sys
 from pathlib import Path
 
+
+def _configure_stdio() -> None:
+    """Keep report modes printable when repo text contains non-ASCII."""
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            stream.reconfigure(encoding="utf-8", errors="replace")
+        except (AttributeError, OSError, ValueError):
+            pass
+
+
+_configure_stdio()
+
 # ---------------------------------------------------------------------------
 # Import shared decisions from check_retrieval_header (canonical source)
 # ---------------------------------------------------------------------------

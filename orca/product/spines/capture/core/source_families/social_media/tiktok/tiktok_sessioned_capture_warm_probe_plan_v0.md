@@ -8,7 +8,7 @@ use_when:
   - Setting up or running authenticated TikTok capture after the owner pivot to sessioned.
   - Measuring the per-account detection ceiling before any scale run.
 authority_boundary: retrieval_only
-status: plan only — execution gated (human login + per-operation network approval). Survivability still UNMEASURED; this plan is how it gets measured.
+status: plan + expanded partial sessioned DOM/hydration receipts; full packet-response contract and per-account ceiling still UNMEASURED. Execution remains gated (human login + per-operation network approval).
 derived_from:
   - orca/product/spines/capture/core/source_families/social_media/tiktok/tiktok_capture_lane_spec_v0.md   # C1–C8' invariants
   - orca/product/spines/capture/core/source_families/social_media/tiktok/tiktok_first_slice_probe_recon_v0.md   # what's reachable + detection addendum
@@ -26,6 +26,30 @@ non_claims: one-account/one-session measurement; ban risk accepted; public conte
 Two outputs from one runbook:
 1. **Capture:** per-video creator-momentum metadata + top/relevant comments (with exact `create_time`/`cid`/`uid`), under an authenticated session, at the spec's paced per-page pattern.
 2. **Measurement:** the **per-account detection ceiling** — how many videos the paced pattern captures from one warmed account before TikTok issues a real challenge — which sets the scale math (`throughput ≈ accounts × per-account-ceiling × paced-rate`).
+
+## Latest partial execution receipt
+
+`docs/workflows/tiktok_sessioned_warm_probe_receipt_v0.md` records a 2026-06-30
+N=1 headed sessioned probe on the pinned first-slice fixture. The sessioned route
+loaded without visible login/challenge signals, parsed the embedded video-detail
+blob, and rendered visible comment DOM after a comments-control click.
+
+`docs/workflows/tiktok_sessioned_dom_hydration_profile_comments_receipt_v0.md`
+extends that DOM/hydration evidence in the same lane: one Chrome TikTok tab,
+public content only, no session-secret reads, 94 `@tiktok` profile-grid anchors
+after bounded scroll, exact video-detail hydration for the pinned fixture, and
+20 visible top-level comment DOM rows.
+
+Neither receipt captured `/api/comment/list` response bodies, so the exact
+comment packet contract (`cid`, `uid`, exact `create_time`, cursor, `has_more`)
+and the per-account ceiling remain unmeasured.
+
+A later existing-Chrome diagnostic confirmed that the already-running user
+Chrome session can render the pinned video comments without a visible login gate
+or challenge, but the current Chrome-extension surface exposes only DOM and
+`pageAssets`, not XHR/fetch response bodies. Do not spend more probe budget on
+Chrome-extension DOM reads for packet proof; the remaining bottleneck is a
+response-body capture surface for the page-owned comment request.
 
 ## Pre-conditions (all required before any capture)
 
@@ -66,7 +90,7 @@ Per run record: account label (not credentials), session mode (`entitled_session
 
 ## Harness fit
 
-Reuse: `browser_snapshot.py::fetch_browser_context_responses` (comment/list intercept), `cadence.py` (C4), `auth_state.py` + `run_source_capture_browser_session_bootstrap.py` + `run_source_capture_authenticated_browser_packet.py` (sessioned context, human login), `packet_assembly`/`writer` (receipts), `block_shell`/`rendered_access` (challenge detection). New TikTok-specific: `tiktok_parse.py` (blob + comment-list parsers) and the sessioned capture runner that enforces the ≤3-request cap + stop-on-challenge. The change vs the failed headless runs is **non-headless + warmed authenticated session**, not new capture logic.
+Reuse: `browser_snapshot.py::fetch_browser_page_observation_capture` (page response observer plus post-load comment-panel action), `cadence.py` (C4), `auth_state.py` + `run_source_capture_browser_session_bootstrap.py` + `run_source_capture_authenticated_browser_packet.py` (sessioned context, human login), `packet_assembly`/`writer` (receipts), `block_shell`/`rendered_access` (challenge detection). New TikTok-specific: `tiktok_parse.py` (blob + comment-list parsers) and the sessioned capture runner that enforces the ≤3-request cap + stop-on-challenge. The change vs the failed headless runs is **non-headless + warmed authenticated session plus page-owned response observation**, not forged request logic.
 
 ## Non-claims
 

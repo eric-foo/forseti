@@ -27,12 +27,34 @@ INSTAGRAM_METRIC_SEED_POINTER = (
     "orca/product/spines/capture/core/source_families/social_media/instagram/"
     "instagram_reels_creator_metric_seed_v0.json"
 )
+INSTAGRAM_SNAPSHOT_POINTER = (
+    "orca/product/spines/capture/core/source_families/social_media/instagram/"
+    "instagram_reels_creator_metric_rollup_snapshot_v0.json"
+)
+YOUTUBE_SNAPSHOT_POINTER = (
+    "orca/product/spines/capture/core/source_families/social_media/youtube/"
+    "youtube_shorts_fragrance_creator_metric_rollup_snapshot_v0.json"
+)
 
+# Lake cut-over §5/§8: both Instagram and YouTube rollups are read from the
+# committed lake SNAPSHOT (value-equal to the retained seed, which stays as the
+# no-drift oracle). The seed entries are retained so the equivalence/oracle
+# paths can still materialize from them.
 _METRIC_SEED_CONFIG_BY_NAME = {
     "youtube_shorts_fragrance_creator_metric_seed_v0.json": {
         "wrapper": "youtube_shorts_fragrance_creator_metric_seed",
         "pointer": YOUTUBE_METRIC_SEED_POINTER,
         "role": "source-backed metric observations and admitted-pool YouTube metric rollups",
+    },
+    "youtube_shorts_fragrance_creator_metric_rollup_snapshot_v0.json": {
+        "wrapper": "creator_metric_rollup_snapshot",
+        "pointer": YOUTUBE_SNAPSHOT_POINTER,
+        "role": "lake-backed admitted-pool YouTube metric rollups (live-lake snapshot)",
+    },
+    "instagram_reels_creator_metric_rollup_snapshot_v0.json": {
+        "wrapper": "creator_metric_rollup_snapshot",
+        "pointer": INSTAGRAM_SNAPSHOT_POINTER,
+        "role": "lake-backed selected-grid Instagram metric rollups (live-lake snapshot)",
     },
     "instagram_reels_creator_metric_seed_v0.json": {
         "wrapper": "instagram_reels_creator_metric_seed",
@@ -138,8 +160,8 @@ def build_creator_profile_current_view_document(
             account_index=account_index[account["platform_account_id"]],
             rollup=rollups_by_subject[account["platform_account_id"]]["rollup"],
             rollup_index=rollup_index[account["platform_account_id"]],
-            metric_seed_pointer=rollups_by_subject[account["platform_account_id"]]["pointer"],
-            metric_seed_wrapper=rollups_by_subject[account["platform_account_id"]]["wrapper"],
+            metric_source_pointer=rollups_by_subject[account["platform_account_id"]]["pointer"],
+            metric_source_wrapper=rollups_by_subject[account["platform_account_id"]]["wrapper"],
             generated_at_utc=generated_at_utc,
         )
         for account in accounts
@@ -200,7 +222,14 @@ def build_creator_profile_current_view_document(
 
 
 def dump_creator_profile_current_view(document: dict[str, Any]) -> str:
-    return json.dumps(document, indent=2, ensure_ascii=False) + "\n"
+    # Canonical key ordering (sort_keys=True) so the serialized view is stable
+    # regardless of the source rollups' internal key order. Lake cut-over §5
+    # prerequisite: rollups lifted from canonical Silver records carry sorted
+    # nested keys while the hand-authored seed's order is arbitrary, and
+    # _profile_rollup deep-copies those nested dicts into the view -- without this,
+    # re-pointing materialize from the seed onto the snapshot would reorder nested
+    # metric keys and spuriously change the committed view's bytes.
+    return json.dumps(document, indent=2, ensure_ascii=False, sort_keys=True) + "\n"
 
 
 def _build_platform_account_profile(
@@ -209,13 +238,13 @@ def _build_platform_account_profile(
     account_index: int,
     rollup: dict[str, Any],
     rollup_index: int,
-    metric_seed_pointer: str,
-    metric_seed_wrapper: str,
+    metric_source_pointer: str,
+    metric_source_wrapper: str,
     generated_at_utc: str,
 ) -> dict[str, Any]:
     account_id = account["platform_account_id"]
     platform = account["platform"]
-    metric_rollup_pointer = f"{metric_seed_pointer}#/{metric_seed_wrapper}/metric_rollups/{rollup_index}"
+    metric_rollup_pointer = f"{metric_source_pointer}#/{metric_source_wrapper}/metric_rollups/{rollup_index}"
     source_pointers = [account["handle_source_pointer"]]
     display_pointer = account.get("display_name_source_pointer_or_none")
     if display_pointer:
@@ -257,7 +286,7 @@ def _build_platform_account_profile(
                 f"platform_accounts/{account_index}"
             ),
             "metric_rollup_pointer": metric_rollup_pointer,
-            "metric_seed_pointer": metric_seed_pointer,
+            "metric_snapshot_pointer": metric_source_pointer,
             "source_metric_observation_ids": deepcopy(rollup["source_metric_observation_ids"]),
         },
         "limitations": _profile_limitations(platform=platform, rollup=rollup),

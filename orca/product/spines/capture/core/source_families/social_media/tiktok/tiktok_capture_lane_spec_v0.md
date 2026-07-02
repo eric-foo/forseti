@@ -3,7 +3,7 @@
 ```yaml
 retrieval_header_version: 1
 artifact_role: Capture spec
-scope: Behavior/contract spec for the TikTok public creator-momentum + top-comment capture lane, prioritizing (1) lowest bot detectability and (2) horizontal scalability. Logged-out, real-browser, ride-the-page's-own-requests.
+scope: Behavior/contract spec for the TikTok public creator-momentum + top-comment capture lane, prioritizing (1) lowest practical bot detectability and (2) horizontal scalability. Sessioned/cookied real-browser, ride-the-page's-own-requests.
 use_when:
   - Implementing or reviewing the TikTok capture lane.
   - Deciding the anti-detection + scale design before any build.
@@ -24,7 +24,7 @@ Owner decision: **logged-out capture is too brittle** (highly session-trust-depe
 
 ## Purpose
 
-Capture, logged-out, at scale, with the lowest practical detection footprint: (a) per-video/creator **momentum metadata**, and (b) a bounded set of **top/relevant comments** with commenter identity and exact timestamps — sufficient for downstream anti-bot / data-integrity analysis. The 30/60-minute comment-window requirement is **dropped** (not needed for bot detection); comments are a top/relevant *sample*, not a chronological census.
+Capture public TikTok videos under a dedicated authenticated session, at human-rate, with the lowest practical detection footprint: (a) per-video/creator **momentum metadata**, and (b) a bounded set of **top/relevant comments** with commenter identity and exact timestamps — sufficient for downstream anti-bot / data-integrity analysis. The 30/60-minute comment-window requirement is **dropped** (not needed for bot detection); comments are a top/relevant *sample*, not a chronological census.
 
 ## Design spine (resolves the detectability-vs-scale tension)
 
@@ -71,11 +71,15 @@ Capture runs under an **authenticated session** whose cookies authenticate it. R
 
 **Per video, top/relevant comments (first page + ≤1 pagination), from `/api/comment/list`:** per comment `cid`, `text`, `create_time` (raw unix → exact), `digg_count`, `reply_comment_total`, `user{uid, unique_id, nickname}`. Envelope: `total`, `has_more`, `cursor`. Order is TikTok's default **relevance** sort (no web time-filter exists — confirmed); capture the source order verbatim, do not re-rank.
 
-**Receipts (every capture):** source URL, retrieval timestamp, raw response bytes + sha256, captured-from posture (`real_browser_logged_out`), request count used, limitations, non-claims. (Secrets excluded per C7.)
+**Receipts (every capture):** source URL at runtime; persisted receipts carry URL path/hash only, retrieval timestamp, response body sha256/size, parsed public fields, captured-from posture (`entitled_session`), request count used, limitations, non-claims, and no-secret confirmation. Raw response bodies, signed URLs, cookies/tokens, and storage-state paths are excluded per C7.
 
+**Source text / transcript boundary:** TikTok description (`desc`), hashtags/mentions (`textExtra`), music metadata, and captured public comments are source text. A later Funmi/session N=30 cadence receipt measured source-native subtitle metadata plus WebVTT body admission when `video.subtitleInfos` exists (`26/30` metadata present; `26/26` WebVTT parse success when present). Treat this as `source_native_subtitle_webvtt` evidence for that creator/session, labeled with TikTok's source field such as `ASR` when present. It is not owner-generated ASR, not durable audio/video preservation, not cross-creator subtitle coverage, and not a platform-wide transcript guarantee.
+
+
+**Implementation note (2026-07-01):** Network-free parsed-batch admission now exists for the Funmi N30 staging shape via `orca-harness/source_capture/tiktok/batch_packet.py` and `orca-harness/runners/run_source_capture_tiktok_batch_packet.py`, with focused tests in `orca-harness/tests/unit/test_tiktok_batch_admission.py`. The verified data-lake packet is `F:\orca-data-lake\raw\97c\01KWCYZ9P72W4SJD7NDPRQT0DB` (`tiktok_creator_batch_comment_subtitle_admission`): 30 videos, 596 parsed comments, 26 transcript-bearing source-native WebVTT captures, 1044 cues, and deterministic typed extraction seeds. A first live staging producer now exists via `orca-harness/source_capture/tiktok/live_batch_probe.py` and `orca-harness/runners/run_source_capture_tiktok_live_batch_probe.py`, with fake-engine tests in `orca-harness/tests/unit/test_tiktok_live_batch_probe.py`; it runs one creator per invocation, uses headed/sessioned page-owned comment-list observation, writes sanitized grid/cadence staging JSON for the existing admission gate, stops on challenge, and records subtitle metadata only while deferring subtitle body fetch. The code is not itself a live run, profile-grid automation proof, cross-creator ceiling proof, durable media/video preservation, final product extraction, Cleaning, ECR, or Judgment.
 ## Explicitly out of scope
 
-30/60-minute comment windows; full-comment pagination / chronological census; login / own-account / private content; media/video bytes; signature forging; reply-thread expansion beyond the first-page `reply_comment_total` count.
+30/60-minute comment windows; full-comment pagination / chronological census; personal account use; agent-entered credentials; private or access-controlled content; media/video/audio bytes; owner-generated ASR unless separately authorized; source-native subtitle claims when `subtitleInfos` is absent; cross-creator subtitle coverage unless separately measured; signature forging; reply-thread expansion beyond the first-page `reply_comment_total` count.
 
 ## Validation plan
 
@@ -85,13 +89,13 @@ Capture runs under an **authenticated session** whose cookies authenticate it. R
 
 ## Harness fit (reuse, minimal new surface)
 
-- **Reused unchanged:** packet `models.py` (+ typed `MetricObservation` for stats), `cadence.py` (C4), `writer.py`/`packet_assembly.py`, `block_shell.py`/`rendered_access.py` (C6), `proxy_profiles.py` (C5), `auth_state.py` only as a negative boundary (C8 = no auth). The page-XHR-capture primitive `browser_snapshot.py::fetch_browser_context_responses` is the C2 mechanism (already used by the IG lane).
-- **New (TikTok satellite):** `tiktok_parse.py` (blob + comment-list parsers), a non-headless capture runner (C1–C3, C6: warmed context, request cap, comment/list intercept), `tiktok_projection.py`. The required change vs the failed recon runs is **running the existing browser primitive non-headless with warmed cookies + assets allowed**, not new capture logic.
+- **Reused substrate, lightly extended browser seam:** packet `models.py` (+ typed `MetricObservation` for stats), `cadence.py` (C4), `writer.py`/`packet_assembly.py`, `block_shell.py`/`rendered_access.py` (C6), `proxy_profiles.py` (C5), and `auth_state.py` / authenticated browser session bootstrap only for the C8' dedicated-account session boundary. The reusable browser response seam is `browser_snapshot.py::fetch_browser_page_observation_capture`: attach a response predicate before navigation, run headed/sessioned, execute a bounded post-load page action to open comments, then preserve only matching page-emitted `/api/comment/list` responses. `fetch_browser_context_responses` is not the TikTok C2 mechanism because it performs explicit in-page `fetch(url)` calls.
+- **New (TikTok satellite):** `source_capture/tiktok/admission.py` (network-free parsers/sanitizers), `video_packet.py`, `batch_packet.py`, `batch_coverage.py`, `batch_projection.py`, and `live_batch_probe.py` plus `run_source_capture_tiktok_live_batch_probe.py` for one-creator live staging (C1-C3, C6: headed/sessioned, request cap, comment-panel post-load action, comment/list response predicate, sanitized staging only). The required change vs the failed recon runs is **running the existing browser observation seam non-headless/sessioned with assets allowed**, not forged request logic.
 
 ## Open decisions (owner-owned) / Non-claims
 
 - **Volume + provenance target** (how many creators/videos/comments, freshness, first-party-required?) is unset and **flips the scale design** (self-capture vs vendor-for-bulk + first-party-anchor).
 - **Proxy strategy** (residential vs mobile, pool size) is a cost-vs-detectability owner decision.
-- **Detection ceiling is UNMEASURED** — N=1 ran clean; no bulk evidence. Selector/signature/field drift is expected (maintenance).
+- **Detection ceiling is PARTIALLY MEASURED, not settled** - one Funmi/session cadence run completed N=30 with zero challenges and clean page-owned comment/subtitle capture. Cross-creator coverage, higher-volume survivability, longer-run account safety, and selector/signature/field drift remain unmeasured.
 - This is a spec only: no build authority, no validation/readiness, no deployment. **Authenticated (sessioned) public capture via a dedicated burnable account** under the owner Risk posture; carries **account-ban and ToS exposure the owner has explicitly accepted** for this lane. Commenter handles/uids are public comment metadata for aggregate integrity analysis, not individual dossiers. Not legal advice.
 ```

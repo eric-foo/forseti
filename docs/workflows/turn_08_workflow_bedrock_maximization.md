@@ -1,5 +1,18 @@
 # Turn 08 Workflow Bedrock Maximization
 
+```yaml
+retrieval_header_version: 1
+artifact_role: Workflow strategy record
+scope: Turn 08 docs-first sequencing strategy for deep-thinking, product planning, and feature planning workflow methods.
+use_when:
+  - Reconstructing early Orca workflow-method sequencing decisions.
+  - Checking why product planning precedes feature planning for Orca work.
+open_next:
+  - .agents/workflow-overlay/source-loading.md
+  - .agents/workflow-overlay/skill-adoption.md
+authority_boundary: retrieval_only
+```
+
 - Status: PROPOSED_LOCK
 - Date: 2026-05-13
 - Scope: docs-first workflow strategy for maximizing the first three Orca workflow methods

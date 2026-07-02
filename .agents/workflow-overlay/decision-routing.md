@@ -157,7 +157,9 @@ the whole router.
 ## Subagent Model Tiering
 
 When delegating to a spawned subagent, choose the model tier per
-`docs/decisions/subagent_model_tiering_doctrine_v0.md`.
+`docs/decisions/subagent_model_tiering_doctrine_v0.md`. The same doctrine also
+owns the session-lane tier defaults for delegated review lanes (its
+"Session-lane tier defaults" section).
 
 In Claude Code, default delegable work to the Sonnet `worker` agent type;
 trivial rote to the Haiku `mechanical` type; reserve Opus (`general-purpose`,
@@ -182,8 +184,83 @@ architect will consume, the dispatch must provide forked context, a bounded
 source capsule, or explicit required reads plus the source-readiness and
 return-shape contract in `.agents/workflow-overlay/prompt-orchestration.md`.
 
+## Orchestrator Context Economy
+
+In a long-running orchestrator or Chief Architect thread, every token that
+enters the context is re-read by every subsequent call: orchestrator cost is
+context size times remaining calls, so bulk output that lands early is paid
+for hundreds of times.
+
+Dispatch, do not inline, any mechanical work loop expected to take more than a
+few (~4+) tool round-trips whose success is verifiable by exit code, diff, or
+test count — test-fix loops, batch normalizations, CI polling, bulk file
+edits. Route it to a pinned `worker` or `mechanical` subagent (per Subagent
+Model Tiering above) with a narrow contract: target path(s), exact commands,
+acceptance condition, and return shape. Bulk intermediate output (test dumps,
+batch listings, poll output) stays in the subagent; only a compact summary
+returns to the orchestrator context. This is a heuristic for context economy,
+not a mechanical gate.
+
+Judgment work — adjudication, doctrine wording, contract design, anything
+where the orchestrator's accumulated context materially improves the output —
+stays inline. The binding constraint on dispatch is judgment fidelity, not
+token math.
+
 ## Non-Claims
 
 Cynefin routing is not validation, readiness, approval, acceptance, review,
 implementation authorization, source-of-truth promotion, or proof that a route
 will work. It is a pre-planning constraint on how the next move is chosen.
+
+## Direction Change Propagation
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Added the Orchestrator Context Economy rule: long-running orchestrator/CA
+    threads dispatch mechanical loops (more than a few verifiable tool
+    round-trips) to pinned worker/mechanical subagents with narrow contracts;
+    bulk intermediate output returns as a compact summary only; judgment work
+    stays inline.
+  trigger: workflow_authority
+  controlling_sources_updated:
+    - .agents/workflow-overlay/decision-routing.md
+  downstream_surfaces_checked:
+    - AGENTS.md
+    - .agents/workflow-overlay/README.md
+    - .agents/workflow-overlay/source-loading.md
+    - docs/workflows/orca_repo_map_v0.md
+  intentionally_not_updated:
+    - path: AGENTS.md
+      reason: >
+        AGENTS.md already routes delegated work to decision-routing.md; the new
+        subsection is discovered on that existing mandatory path. No kernel
+        change needed.
+    - path: .agents/workflow-overlay/README.md
+      reason: >
+        The overlay index already names decision-routing.md for delegated-work
+        routing; no section-owner change.
+    - path: .agents/workflow-overlay/source-loading.md
+      reason: >
+        Its fresh-lane-over-compact trigger is thread-lifecycle doctrine with
+        its own receipt; the dispatch rule lives here only, per the anti-fork
+        rule.
+    - path: docs/workflows/orca_repo_map_v0.md
+      reason: >
+        The repo map references decision-routing.md at file level; no section
+        anchors into this file changed (checked 2026-07-02).
+  stale_language_search: >
+    rg -in "mechanical loop|context economy|dispatch.*mechanical|orchestrator context"
+    AGENTS.md .agents/workflow-overlay/
+  stale_language_search_result: >
+    Executed 2026-07-02 after edits. The only hits are the new Orchestrator
+    Context Economy section itself; no other surface carries a conflicting or
+    duplicate dispatch rule.
+  non_claims:
+    - not validation
+    - not readiness
+    - no token-savings efficacy claim
+```
+
+Older receipts for this file live verbatim in
+`docs/decisions/dcp_receipts_archive_v0.md`.

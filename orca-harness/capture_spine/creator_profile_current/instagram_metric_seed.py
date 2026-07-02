@@ -8,6 +8,9 @@ import statistics
 from pathlib import Path
 from typing import Any, Iterable, Mapping
 
+from data_lake.root import DataLakeRoot, raw_shard
+from source_capture.ig_reels_grid_projection import PROJECTION_IG_REELS_GRID_LANE
+
 
 INSTAGRAM_REELS_CREATOR_METRIC_SEED_WRAPPER = "instagram_reels_creator_metric_seed"
 INSTAGRAM_REELS_CREATOR_METRIC_SEED_SCHEMA_VERSION = "instagram_reels_creator_metric_seed_v0"
@@ -24,6 +27,21 @@ def load_json(path: str | Path) -> dict[str, Any]:
     if not isinstance(value, dict):
         raise ValueError(f"JSON document must be an object: {path}")
     return value
+
+
+def discover_instagram_reels_projection_paths_from_lake(data_root: DataLakeRoot) -> list[Path]:
+    """Return unique IG reels-grid projection files from flat and sharded lake layouts.
+
+    Physical dedupe is exact-content only. Semantic username/currentness selection
+    stays in ``build_instagram_reels_creator_metric_seed_from_files``.
+    """
+    by_sha256: dict[str, Path] = {}
+    for path in _iter_instagram_reels_projection_paths_from_lake(data_root):
+        digest = hashlib.sha256(path.read_bytes()).hexdigest()
+        current = by_sha256.get(digest)
+        if current is None or str(path) < str(current):
+            by_sha256[digest] = path
+    return sorted(by_sha256.values(), key=lambda item: str(item))
 
 
 def build_instagram_reels_creator_metric_seed_from_files(
@@ -406,7 +424,37 @@ def _source_packet_pointer(path: Path, packet_id: str) -> str | None:
         return None
     derived_index = parts.index("derived")
     root = Path(*parts[:derived_index])
+    after_derived = parts[derived_index + 1 :]
+    if len(after_derived) >= 4 and after_derived[2] == PROJECTION_IG_REELS_GRID_LANE:
+        return str(root / "raw" / raw_shard(packet_id) / packet_id)
     return str(root / "raw" / packet_id)
+
+
+def _iter_instagram_reels_projection_paths_from_lake(data_root: DataLakeRoot) -> list[Path]:
+    derived = data_root.path / "derived"
+    if not derived.is_dir():
+        return []
+    paths: list[Path] = []
+    for first in sorted(derived.iterdir()):
+        if not first.is_dir():
+            continue
+        legacy_lane = first / PROJECTION_IG_REELS_GRID_LANE
+        paths.extend(_json_files(legacy_lane))
+        for anchor in sorted(first.iterdir()):
+            if not anchor.is_dir():
+                continue
+            sharded_lane = anchor / PROJECTION_IG_REELS_GRID_LANE
+            paths.extend(_json_files(sharded_lane))
+    return sorted(paths, key=lambda item: str(item))
+
+
+def _json_files(path: Path) -> list[Path]:
+    if not path.is_dir():
+        return []
+    return sorted(
+        (item for item in path.iterdir() if item.is_file() and item.suffix == ".json"),
+        key=lambda item: str(item),
+    )
 
 
 def _observation_limitations(*, metric: str, content_kind: str) -> list[str]:

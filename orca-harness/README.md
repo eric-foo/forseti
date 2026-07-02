@@ -149,6 +149,22 @@ browser automation, Archive.org packages, API SDKs, scraper frameworks,
 proxy/session behavior, archived-HTML meaning extraction, OCR, ECR, Cleaning,
 Judgment, buyer-proof, or commercial-readiness logic.
 
+Use the TikTok SCI admission runner when page-owned TikTok artifacts have
+already been captured and need parser/sanitizer enforcement before packet
+admission:
+
+```powershell
+python runners/run_source_capture_tiktok_video_packet.py --video-id "7629774409762442526" --video-url "https://www.tiktok.com/@funmimonet/video/7629774409762442526" --comment-list-json ".\_test_runs\tiktok_comment_list_sanitized.json" --video-item-json ".\_test_runs\tiktok_video_item_sanitized.json" --subtitle-webvtt ".\_test_runs\tiktok_subtitle.vtt" --output ".\_test_runs\tiktok_video_admission_packet"
+```
+
+This runner is the lean code-enforced slice only: it admits sanitized
+single-video comment/subtitle/profile-list fields, keeps raw signed URLs,
+cookies, tokens, storage-state, and raw response bodies out of the packet, and
+prints the complete-lane note on successful runs and in `--help`.
+The complete TikTok lane still requires live browser/profile-grid capture,
+creator batch cadence, projection bridging, and recon/playbook updates.
+
+
 Use the Browser Snapshot runner when one supplied URL needs anonymous browser
 rendering or screenshot preservation:
 
@@ -220,6 +236,30 @@ unless a separate fixture-admission decision says otherwise. They can include
 machine-specific `original_path` provenance values and copied raw source files;
 do not treat them as canonical fixtures merely because they sit under
 `reports/`.
+
+## Fragrance Review Coverage Runner
+
+Use the fragrance review coverage runner when an operator already has saved
+Judge.me widget JSON responses and optional PDP HTML for one fragrance product
+and needs a no-network focused coverage receipt:
+
+```powershell
+python runners/run_fragrance_review_coverage.py --widget-response ".\_test_runs\luckyscent_widget_page_1.json" --pdp-html ".\_test_runs\luckyscent_pdp.html" --product-url "https://www.luckyscent.com/products/example-fragrance" --output ".\_test_runs\fragrance_review_coverage.json" --as-of-date "2026-06-29"
+```
+
+The runner preserves source-visible review row metadata, PDP JSON-LD aggregate
+rating/count, selected/skipped row ids, rating/month/length/media/verified
+counts, and route residuals. Only selected reader rows keep verbatim body text;
+skipped rows keep metadata, body hashes, word counts, and skip reasons. Keep
+outputs that contain review text in ignored/local paths unless a later lane
+authorizes durable review-body storage.
+
+This runner follows the focused review-coverage policy in
+`orca/product/spines/capture/core/source_families/retail_pdp/fragrance_purchase_review_focused_coverage_mgt_v0.md`.
+It does not fetch network sources, discover products, crawl reviews, create
+Source Capture Packets or durable Attachment Records, score review integrity,
+label pain/pleasure/sentiment, or run ECR, Cleaning, Judgment, buyer-proof, or
+commercial-readiness logic.
 
 ## Source Observability Runner
 

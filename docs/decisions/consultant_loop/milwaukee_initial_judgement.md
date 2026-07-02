@@ -7,7 +7,7 @@ scope: Pre-cutoff assistant judgment for the Milwaukee fiscal-decision case, sto
 use_when:
   - After the user's blind judgment has been sealed.
   - Comparing pre-cutoff judgment logic without using post-cutoff outcomes.
-authority_boundary: non_authoritative
+authority_boundary: retrieval_only
 ```
 
 ## Seal
@@ -17,6 +17,10 @@ Milwaukee fiscal-decision case. This note contains a recommendation based only
 on the pre-cutoff participant packet and clean pre-cutoff source families. It
 does not contain the actual decision, consulting recommendation, implementation
 status, post-cutoff facts, outcome calibration, or result-quality claims.
+
+Authority boundary: this is a sealed comparison artifact only. It is not Orca
+decision authority, source-of-truth authority, validation evidence, readiness
+evidence, or outcome calibration.
 
 Cutoff: 2023-07-10 23:59 CT
 

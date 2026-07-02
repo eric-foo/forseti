@@ -138,7 +138,7 @@ _ALLOWED_SOURCE_DRILL_BACK_KEYS = frozenset(
     {
         "identity_ledger_pointer",
         "metric_rollup_pointer",
-        "metric_seed_pointer",
+        "metric_snapshot_pointer",
         "source_metric_observation_ids",
     }
 )
@@ -372,7 +372,7 @@ def _validate_source_drill_back(
             "source_drill_back identity pointer must match identity evidence account pointer",
         )
     _validate_non_empty_str(value["metric_rollup_pointer"], "source_drill_back.metric_rollup_pointer")
-    _validate_non_empty_str(value["metric_seed_pointer"], "source_drill_back.metric_seed_pointer")
+    _validate_non_empty_str(value["metric_snapshot_pointer"], "source_drill_back.metric_snapshot_pointer")
     source_ids = _validate_str_list(
         value["source_metric_observation_ids"],
         "source_drill_back.source_metric_observation_ids",

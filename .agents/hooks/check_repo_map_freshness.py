@@ -16,7 +16,7 @@ WHAT THIS ENFORCES
 
 WHY THIS EXISTS (enforcement placement)
   "Update the repo map" was carried only by instruction, so a capable agent
-  could add a new top-level folder or a new harness runner and nothing would
+  could add a new top-level folder or a new direct harness area and nothing would
   notice at the moment the map went stale - the omission surfaced only later, as
   a wrong route. Per the Enforcement Placement principle in
       .agents/workflow-overlay/validation-gates.md  (-> "Enforcement Placement")
@@ -24,7 +24,7 @@ WHY THIS EXISTS (enforcement placement)
   write-time hook + this portable checker), not left to end-of-thread memory.
 
   Honest boundary: this catches STRUCTURAL omission (new top-level folder, new
-  harness runner/adapter) - ``stale_if`` #1 and #2 - with a hard commit gate,
+  direct harness area) - ``stale_if`` #1 and #2 - with a hard commit gate,
   nudges (advisory only) on source-of-truth edits (#5), and nudges (advisory
   only) when new files land under a map-described directory without a map update,
   so a stale directory description can be caught before it silently rots
@@ -101,12 +101,9 @@ MAP_SURFACES = (MAP,) + SUBMAPS
 # judgment question. High-precision-only in the strict gate keeps false blocks ~0.
 SOURCE_OF_TRUTH = ".agents/workflow-overlay/source-of-truth.md"
 
-# Harness subtrees whose new units (runners/adapters) the map names explicitly, so
-# a new basename absent from the map text is a high-precision staleness signal.
-HARNESS_UNIT_GLOBS = (
-    "orca-harness/runners/*.py",
-    "orca-harness/adapters/*.py",
-)
+# The map owns area-level harness navigation. Already mapped directories such as
+# `orca-harness/runners/` are discoverable by directory and do not require every
+# new file basename to be listed in the shared map.
 
 # Always-excluded noise (scratch, skill copies, project config, VCS). The map's
 # own "do not enumerate" list is merged on top of this at runtime.
@@ -266,14 +263,25 @@ def new_top_level_area(relposix: str, map_text: str) -> str | None:
     return None if area.lower() in map_text.lower() else area
 
 
-def new_harness_unit(relposix: str, map_text: str) -> str | None:
-    """Return the path if it is a harness runner/adapter the map does not name."""
-    name = Path(relposix).name
-    if name == "__init__.py":
+def new_harness_area(relposix: str, map_text: str) -> str | None:
+    """Return a direct orca-harness area absent from the map, or None.
+
+    The map owns area-level navigation, not a complete list of every runner or
+    adapter file. This keeps mapped harness folders discoverable by directory
+    while avoiding repeated edits to the same high-contention map rows.
+    """
+    parts = relposix.split("/")
+    if not parts or parts[0] != "orca-harness":
         return None
-    if not any(fnmatch.fnmatch(relposix, g) for g in HARNESS_UNIT_GLOBS):
+    if len(parts) == 1:
         return None
-    return None if name.lower() in map_text.lower() else relposix
+    if len(parts) == 2:
+        name = parts[1]
+        if name == "__init__.py" or name.startswith("."):
+            return None
+        return None if name.lower() in map_text.lower() else relposix
+    area = "orca-harness/" + parts[1]
+    return None if area.lower() in map_text.lower() else area + "/"
 
 
 def structural_trigger(relposix: str, map_text: str,
@@ -287,10 +295,10 @@ def structural_trigger(relposix: str, map_text: str,
     if area is not None:
         return ("new top-level area `%s/` is not in the repo map "
                 "(stale_if #1)" % area)
-    unit = new_harness_unit(relposix, map_text)
-    if unit is not None:
-        return ("new harness unit `%s` is not named in the repo map's "
-                "Orca Harness section (stale_if #2)" % unit)
+    harness_area = new_harness_area(relposix, map_text)
+    if harness_area is not None:
+        return ("new harness area `%s` is not in the repo map's "
+                "Orca Harness section (stale_if #2)" % harness_area)
     return None
 
 
@@ -311,7 +319,7 @@ def description_drift(added: list[str], map_text: str, extra: tuple[str, ...],
     there (the silent-drift class: e.g. a new ASR module under transcript/ while
     the row still says ASR 'is not present'). Stays silent when the map was
     touched (the author is presumably refreshing it), for scratch/__init__ paths,
-    and for additions the structural gate already reports (new area/harness unit)."""
+    and for additions the structural gate already reports (new area/harness area)."""
     if map_touched or not map_text:
         return []
     dirs = mapped_dirs(map_text)
@@ -323,7 +331,7 @@ def description_drift(added: list[str], map_text: str, extra: tuple[str, ...],
             continue
         if is_excluded(rel, extra) or Path(rel).name == "__init__.py":
             continue
-        if new_top_level_area(rel, map_text) or new_harness_unit(rel, map_text):
+        if new_top_level_area(rel, map_text) or new_harness_area(rel, map_text):
             continue  # already reported by the structural gate
         for d in dirs:  # longest-first: most specific mapped dir wins
             if rel != d and rel.startswith(d):
@@ -587,8 +595,8 @@ def main(argv: list[str]) -> int:
 def selftest() -> int:
     """Pure-decision cases against a tiny synthetic map text."""
     map_text = (
-        "| `orca-harness/runners/` | CLI entrypoints ... "
-        "run_reddit_candidate_intake_live.py ... |\n"
+        "| `orca-harness/runners/` | CLI entrypoints; enumerate with git ls-files. |\n"
+        "| `orca-harness/source_capture/` | Source capture package. |\n"
         "| `.agents/workflow-overlay/` | overlay |\n"
         "| `docs/decisions/` | Decision records. |\n"
         "Active Hooks ... `.agents/hooks/check_retrieval_header.py` ...\n"
@@ -600,11 +608,12 @@ def selftest() -> int:
         # (path, expect_structural_trigger?)
         ("docs/playbooks/x.md", True),                 # new top-level area
         ("tooling/x.py", True),                        # new repo-root area
-        ("orca-harness/runners/run_new_thing.py", True),   # new runner
-        ("orca-harness/adapters/new_adapter.py", True),    # new adapter
+        ("orca-harness/runners/run_new_thing.py", False),  # mapped runner area
+        ("orca-harness/source_capture/new_module.py", False),  # mapped harness area
+        ("orca-harness/new_area/tool.py", True),       # new direct harness area
+        ("orca-harness/new_root_file.py", True),       # new direct harness file
         ("docs/decisions/new_decision_v0.md", False),  # mapped folder convention
         (".agents/hooks/sibling.py", False),           # area already in map text
-        ("orca-harness/runners/run_reddit_candidate_intake_live.py", False),  # named
         ("orca-harness/runners/__init__.py", False),   # package init, ignored
         ("orca-harness/_test_runs/out.json", False),   # default scratch exclude
         ("orca-harness/cases/tr/v0/scores/s.json", False),  # map-listed scratch

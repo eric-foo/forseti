@@ -162,7 +162,10 @@ own screens earned. It updates by dated note as ledgers learn new walls.
 >    `screening_read` or visible-text `screening_browser_read` before recording
 >    a final ACCESS-NOTE. For browser reads, judge the visible text/title;
 >    hidden full-DOM challenge residue alone is not a source wall. Record which
->    shapes you tried. "Blocked" is a hypothesis, not a verdict.
+>    shapes you tried. "Blocked" is a hypothesis, not a verdict. (2026-07-02,
+>    playbook Guardrail 4 sync: before recording VENUE-DRY off an empty or
+>    erroring read, sanity-check the instrument on a known-good public page —
+>    an erroring read is "read failed", not "venue empty".)
 > 4. KNOWN WALLS (do not burn moves rediscovering): reddit.com is unreachable
 >    via the agent fetch tool (tool-level block) AND unreliable in external
 >    search indexes. For Reddit real reads, record the needed public locator or

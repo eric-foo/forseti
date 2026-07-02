@@ -45,7 +45,14 @@ foreach ($hook in $requiredHooks) {
     }
 }
 
-if (-not $IsWindows) {
+$isWindowsVariable = Get-Variable -Name IsWindows -ErrorAction SilentlyContinue
+if ($isWindowsVariable) {
+    $runningOnWindows = [bool]$isWindowsVariable.Value
+} else {
+    $runningOnWindows = ($env:OS -eq 'Windows_NT')
+}
+
+if (-not $runningOnWindows) {
     foreach ($hook in $requiredHooks) {
         $path = Join-Path $repoRoot (Join-Path $hookPath $hook)
         chmod +x $path

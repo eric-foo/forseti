@@ -19,6 +19,9 @@ EXTRACTION_PROBLEM_STATUSES = {
     "partial_needs_cleanup",
     "discovery_failed",
     "ambiguous_anchor_result",
+    "source_lineage_missing",
+    "source_lineage_incomplete",
+    "source_lineage_invalid",
 }
 SOURCE_COMPLETION_PROBLEMS = {
     "partial_needs_cleanup",
@@ -411,6 +414,8 @@ def _attach_extraction_status(
             out["extraction_record_path"] = result.get("path")
         if "error" in result:
             out["extraction_error"] = result.get("error")
+        if "source_backed_status" in result:
+            out["source_backed_status"] = result.get("source_backed_status")
     return out
 
 
@@ -523,6 +528,7 @@ def _source_extraction_statuses(sources: Sequence[Mapping[str, Any]]) -> list[di
                 "extraction_status": source.get("extraction_status"),
                 "extraction_record_path": source.get("extraction_record_path"),
                 "extraction_error": source.get("extraction_error"),
+                "source_backed_status": source.get("source_backed_status"),
             }
         )
         for source in sources

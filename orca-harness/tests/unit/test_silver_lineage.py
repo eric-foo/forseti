@@ -13,6 +13,10 @@ from pydantic import ValidationError
 
 from data_lake.silver_lineage import (
     SILVER_LINEAGE_SCHEMA_VERSION,
+    SOURCE_BACKED_COMPLETE_STATUS,
+    SOURCE_LINEAGE_INCOMPLETE_STATUS,
+    SOURCE_LINEAGE_INVALID_STATUS,
+    SOURCE_LINEAGE_MISSING_STATUS,
     SilverDerivedRef,
     SilverLineage,
     SilverLineageLimitation,
@@ -20,6 +24,8 @@ from data_lake.silver_lineage import (
     SilverRawRef,
     SilverRowLocator,
     SilverSourceObject,
+    is_silver_record_source_backed_complete,
+    silver_record_source_backed_status,
     validate_silver_lineage,
 )
 
@@ -110,6 +116,40 @@ def test_limitations_only_is_valid_but_not_complete() -> None:
 
 def test_ref_backed_lineage_is_complete() -> None:
     assert _derived_lineage().is_source_backed_complete() is True
+
+
+def test_silver_record_source_backed_status_reads_persisted_fields() -> None:
+    fields = _derived_lineage().to_record_fields()
+
+    assert silver_record_source_backed_status(fields) == SOURCE_BACKED_COMPLETE_STATUS
+    assert is_silver_record_source_backed_complete(fields) is True
+
+
+def test_silver_record_source_backed_status_flags_missing_lineage() -> None:
+    assert (
+        silver_record_source_backed_status({"mention_count": 0}) == SOURCE_LINEAGE_MISSING_STATUS
+    )
+    assert is_silver_record_source_backed_complete({"mention_count": 0}) is False
+
+
+def test_silver_record_source_backed_status_flags_invalid_lineage() -> None:
+    fields = _derived_lineage().to_record_fields()
+    fields["producer_id"] = "  "
+
+    assert silver_record_source_backed_status(fields) == SOURCE_LINEAGE_INVALID_STATUS
+
+
+def test_silver_record_source_backed_status_flags_limitations_only() -> None:
+    fields = SilverLineage(
+        producer_id="p",
+        producer_schema_version="v",
+        source_surface="s",
+        lineage_limitations=[
+            SilverLineageLimitation(reason=SilverLineageLimitationReason.TRANSIENT_SOURCE_NOT_PERSISTED)
+        ],
+    ).to_record_fields()
+
+    assert silver_record_source_backed_status(fields) == SOURCE_LINEAGE_INCOMPLETE_STATUS
 
 
 # --- row locator (AR-02) -----------------------------------------------------

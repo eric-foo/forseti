@@ -229,6 +229,36 @@ return_shape: exact requested fields, file:line cites for load-bearing claims,
 stop_conditions: <task-specific stops>
 ```
 
+## Session-lane tier defaults (operator-owned)
+
+The same tiering applies to whole delegated session lanes — the worktree lanes
+the operator opens — not only to spawned subagents. Defaults, chosen by the
+operator when opening the lane:
+
+- **CA / orchestrator threads → judgment tier (Opus).** Adjudication, doctrine
+  authoring, cross-lane reconciliation, and anything that decides what is kept.
+- **Home-side review lanes → workhorse tier (Sonnet).** Under the two-bar rule,
+  cross-family discovery review runs on a de-correlated external model by
+  construction, so the home-side lane's model never carries the discovery bar.
+  Home-side review lanes — verification and post-patch rechecks,
+  closure-of-findings, receipt/shape/inventory checks, and same-vendor
+  sanity-tier code review — default to the Sonnet workhorse. This matches the
+  `no_repo` post-patch recheck who-constraint in
+  `.agents/workflow-overlay/delegated-review-patch.md` (same-family,
+  lower/mechanical tier), extended to repo-mode verification lanes.
+- **Escalate to the judgment tier** when the lane authors or adjudicates
+  doctrine or contract-bearing surfaces, or the commission explicitly requires
+  top-tier judgment. Escalation stays an easy conscious choice, never blocked.
+- **Escalation guard:** a verification-tier lane that surfaces a new
+  blocker/major outside its closure scope stops and returns it for a
+  judgment-tier or freshly commissioned discovery pass; it does not adjudicate
+  the new finding in-lane.
+- Commissions may record `intended_tier: discovery | verification` as an
+  operator_to_fill who-constraint so the operator knows which tier to pick when
+  opening the receiving lane. Like `dispatch_class`, this is lane-time
+  operator/tooling choice and must never appear as a runtime-model
+  recommendation inside model-neutral review-lane artifacts.
+
 ## Non-claims
 
 Advisory delegation doctrine. Not validation, readiness, a cost guarantee, or a
@@ -290,4 +320,62 @@ direction_change_propagation:
     - not runtime enforcement
     - not durable model availability
     - not automatic source loading
+```
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Tiering now covers whole delegated session lanes, not only spawned
+    subagents: CA/orchestrator threads default to the judgment tier; home-side
+    review lanes (verification/recheck, closure-of-findings, receipt/shape
+    checks, same-vendor sanity-tier code review) default to the Sonnet
+    workhorse, since cross-family discovery runs on a de-correlated external
+    model by construction; a verification-tier lane that finds a new
+    blocker/major outside closure scope escalates instead of adjudicating
+    in-lane; commissions may carry intended_tier as an operator_to_fill
+    who-constraint.
+  trigger: workflow_authority
+  related_triggers:
+    - review_authority
+  controlling_sources_updated:
+    - docs/decisions/subagent_model_tiering_doctrine_v0.md
+    - .agents/workflow-overlay/decision-routing.md
+  downstream_surfaces_checked:
+    - .agents/workflow-overlay/delegated-review-patch.md
+    - .agents/workflow-overlay/review-lanes.md
+    - .agents/workflow-overlay/prompt-orchestration.md
+    - AGENTS.md
+  intentionally_not_updated:
+    - path: .agents/workflow-overlay/delegated-review-patch.md
+      reason: >
+        Its no_repo recheck who-constraint and model-ladder ownership already
+        state the lower-tier verification pattern this section extends; the
+        session-lane default points at it rather than restating it.
+    - path: .agents/workflow-overlay/review-lanes.md
+      reason: >
+        Review-lane model-neutrality is preserved: this doctrine governs
+        operator lane-time choice, never review-prompt model content; the
+        two-bar rule wording is unchanged.
+    - path: .agents/workflow-overlay/prompt-orchestration.md
+      reason: >
+        No prompt mechanics change; intended_tier is a commission
+        operator_to_fill field, not a new preflight field.
+    - path: AGENTS.md
+      reason: >
+        Already routes delegation and doctrine work to the owning overlay
+        sources; carries no model policy.
+  stale_language_search: >
+    rg -in "session-lane|sanity tier|verification/sanity|lower/mechanical|intended_tier"
+    .agents/workflow-overlay/ docs/decisions/subagent_model_tiering_doctrine_v0.md AGENTS.md
+  stale_language_search_result: >
+    Executed 2026-07-02 after edits. Hits are the new section, its
+    decision-routing pointer, and the pre-existing two-bar verification-tier
+    language in delegated-review-patch.md and review-lanes.md ("lower/mechanical
+    tier, e.g., Opus -> Sonnet") that this section formalizes — consistent, no
+    fork or contradiction.
+  non_claims:
+    - not validation
+    - not readiness
+    - not a review-prompt model recommendation
+    - no measured cost-savings claim
 ```
