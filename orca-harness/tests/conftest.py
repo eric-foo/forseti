@@ -21,7 +21,8 @@ def _no_ambient_data_lake(monkeypatch: pytest.MonkeyPatch) -> None:
     # ambient environment (ORCA_DATA_ROOT env fallbacks would otherwise publish
     # into a real lake). Tests that need a lake set ORCA_DATA_ROOT themselves
     # against a scratch root; live-lake reconciliation is an explicit opt-in
-    # via ORCA_LIVE_LAKE_TEST_ROOT.
+    # via ORCA_LIVE_LAKE_TEST_ROOT (archived-lake reconciliation for
+    # retired-root-bound fixtures via ORCA_ARCHIVED_LAKE_TEST_ROOT).
     monkeypatch.delenv("ORCA_DATA_ROOT", raising=False)
 
 
