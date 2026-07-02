@@ -253,10 +253,45 @@ def test_runner_extracts_asr_transcript_then_skips_on_rerun(tmp_path) -> None:
     assert first[0]["status"] == "extracted"
     assert first[0]["video_id"] == "vid12345678"
 
-    # idempotent: a second pass finds the completed set and skips (does not re-extract).
+    # the completed packet is acknowledged: the ack record is the durable completion fact.
+    acks = list((data_root.path / "acknowledgements").glob(f"**/{PRODUCT_MENTIONS_LANE}/*"))
+    assert len(acks) == 1
+    ack = json.loads(acks[0].read_text(encoding="utf-8"))
+    assert ack["record_kind"] == "acknowledgement"
+    assert ack["obligation"]["model"] == "m"
+    assert ack["evidence"][0]["kind"] == "record_set_complete"
+
+    # idempotent: a second pass skips the acked packet at the seam WITHOUT loading
+    # raw bodies — no per-run status entries, no re-extraction.
     second = run_extraction(data_root=data_root, transport=transport, provider=_PROVIDER, model="m", api_key="k")
-    assert len(second) == 1
-    assert second[0]["status"] == "skipped_done"
+    assert second == []
+
+
+def test_runner_late_asr_record_resurfaces_acked_packet(tmp_path) -> None:
+    # obligation growth: a new transcript_asr record lands AFTER the packet was
+    # acknowledged -> the fingerprint changes, the packet is re-picked, the still-done
+    # transcript is re-verified (skipped_done), and a SECOND ack records the new inputs.
+    data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    _commit_asr_transcript(data_root)
+    transport = FakeTransport(_anthropic([_item()]))
+    first = run_extraction(data_root=data_root, transport=transport, provider=_PROVIDER, model="m", api_key="k")
+    assert first[0]["status"] == "extracted"
+
+    packet_dir = next((data_root.path / "raw").glob("*/*"))
+    packet_id = packet_dir.name
+    data_root.append_record(
+        subtree="derived", raw_anchor=packet_id, lane="transcript_asr",
+        record_id="late_asr_record",
+        data=json.dumps({"posture": "no_speech", "video_id": "vid99999999"}).encode("utf-8"),
+    )
+
+    second = run_extraction(data_root=data_root, transport=transport, provider=_PROVIDER, model="m", api_key="k")
+    assert [r["status"] for r in second] == ["skipped_done"]
+    acks = list((data_root.path / "acknowledgements").glob(f"**/{PRODUCT_MENTIONS_LANE}/*"))
+    assert len(acks) == 2  # append-only completion history
+
+    third = run_extraction(data_root=data_root, transport=transport, provider=_PROVIDER, model="m", api_key="k")
+    assert third == []
 
 
 # --- runner: caption path, end-to-end -----------------------------------------
@@ -356,12 +391,16 @@ def test_runner_marks_zero_mention_transcript_done(tmp_path) -> None:
     empty = FakeTransport(_anthropic([]))
     first = run_extraction(data_root=data_root, transport=empty, provider=_PROVIDER, model="m", api_key="k")
     assert len(first) == 1 and first[0]["status"] == "extracted"
+    # completed + acked: the second pass skips at the seam with no status entries.
     second = run_extraction(data_root=data_root, transport=empty, provider=_PROVIDER, model="m", api_key="k")
-    assert second[0]["status"] == "skipped_done"
+    assert second == []
 
 
 def test_runner_reports_partial_needs_cleanup(tmp_path) -> None:
-    # crash between the member write and the completion marker: delete the marker, then re-run.
+    # crash between the member write and the completion marker: neither the marker
+    # nor the packet ack exists (the ack is written only after ALL transcripts
+    # complete, so a crash mid-packet leaves the packet unacknowledged and it
+    # re-surfaces every run until the operator remediates).
     data_root = DataLakeRoot.for_test(tmp_path / "lake")
     _commit_asr_transcript(data_root, "vid12345678")
     transport = FakeTransport(_anthropic([_item()]))
@@ -369,8 +408,12 @@ def test_runner_reports_partial_needs_cleanup(tmp_path) -> None:
     assert first[0]["status"] == "extracted"
     marker = next((data_root.path / "derived").glob(f"**/{PRODUCT_MENTIONS_SET_LANE}/*"))
     marker.unlink()
+    ack = next((data_root.path / "acknowledgements").glob(f"**/{PRODUCT_MENTIONS_LANE}/*"))
+    ack.unlink()
     second = run_extraction(data_root=data_root, transport=transport, provider=_PROVIDER, model="m", api_key="k")
     assert second[0]["status"] == "partial_needs_cleanup"
+    # a partial packet is never acknowledged: it must keep surfacing for cleanup.
+    assert list((data_root.path / "acknowledgements").glob(f"**/{PRODUCT_MENTIONS_LANE}/*")) == []
 
 
 # --- daemon-readiness: failure isolation at both grains (review major) --------

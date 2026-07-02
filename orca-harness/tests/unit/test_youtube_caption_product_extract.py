@@ -107,9 +107,10 @@ def test_runner_extracts_youtube_caption_then_skips_on_rerun(tmp_path) -> None:
     assert mention["video_id"] == _VIDEO_ID
     assert mention["start_ms"] == 3000  # CE5: timestamp from the cue containing the source_pointer
 
+    # rerun is a no-op: the acked packet is skipped at the consumption seam without
+    # loading raw bodies — no status entries, and the transport is never called again.
     second = run_extraction(
         data_root=data_root, transport=transport, provider=_PROVIDER, model="m", api_key="k"
     )
-    assert len(second) == 1
-    assert second[0]["status"] == "skipped_done"
-    assert transport.calls == 1  # rerun is a no-op: the skip path never calls the transport again
+    assert second == []
+    assert transport.calls == 1

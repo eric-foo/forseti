@@ -94,6 +94,24 @@
       "a2_fork_impact": "none",
       "call": "append_record",
       "count": 1,
+      "module": "data_lake/consumption.py"
+    },
+    {
+      "a2_fork_impact": "none",
+      "call": "lane_dir",
+      "count": 1,
+      "module": "data_lake/consumption.py"
+    },
+    {
+      "a2_fork_impact": "none",
+      "call": "lane_dir",
+      "count": 1,
+      "module": "data_lake/derived_retrieval_views.py"
+    },
+    {
+      "a2_fork_impact": "none",
+      "call": "append_record",
+      "count": 1,
       "module": "data_lake/silver_record.py"
     },
     {

@@ -93,6 +93,15 @@ R2 landed the lake's authority + workflow substance:
   contracts, confirmed canonical via a 3-way reconciliation), which **supersedes
   and retires** the transitional `orca/product/shared/data_lake_mechanics/` copy.
 
+Consumption seam (2026-07-02):
+`authority/core_spine_v0_data_lake_consumption_seam_contract_v0.md` adds the
+shared derived-lane consumption layer — obligation-fingerprint pickup by key,
+lane-owned ack records with the LANE_ROLES namespace rule, the six-point
+conformance contract, the rebuild-command binding for the gate-opened
+`undone`/`by_mention` views, and the on-demand-first metrics policy (first
+metric families `operator_to_fill`). The shared helper, rebuild runner, and
+proving-consumer migration live in `orca-harness/` with their tests.
+
 Placement closeout (2026-06-20): the 2 repo-structure migration planning docs
 (`data_lake_spine_first_migration_{plan,inventory}_v0.md`) intentionally stay in
 `docs/migration/` as repo-structure migration records. They are not
