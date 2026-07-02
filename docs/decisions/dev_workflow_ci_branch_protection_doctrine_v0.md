@@ -297,8 +297,10 @@ This record does not assert that any server-side gate is active. It is not.
 13. **PR cadence — major durable point, not every subpoint.** A lane should open a focused PR after
    each **major durable point**: one coherent, owner-reviewable decision or artifact boundary that
    future agents may rely on. Examples include a first customer / ICP target selection, proof-gate
-   change, buyer-risk doctrine change, data-spine boundary change, roster-scope implication, or
-   implementation-scoping decision. Do **not** split every thought, objection, or supporting
+   change, buyer-risk doctrine change, data-spine boundary change, roster-scope implication, or an
+   implementation-scoping decision that closes its work unit (item 14: a scoping artifact produced
+   mid-chain under pre-granted implementation authority rides with its chain, not as its own PR).
+   Do **not** split every thought, objection, or supporting
    refinement into its own PR; group subpoints when they change the same durable point, share the same
    controlling sources, and should be reviewed with the same validation and non-claims. If a new major
    point emerges while a lane is already open, either include it only when it is directly coupled to
@@ -306,6 +308,31 @@ This record does not assert that any server-side gate is active. It is not.
    what decision changed, why it changed, what stance shifted or was magnified, changed files,
    explicit non-claims, and validation run. This cadence does not grant standing commit, push, or PR
    authority; `.agents/workflow-overlay/safety-rules.md` still requires explicit authorization.
+14. **PR boundary — per work unit, fixed at commissioning (owner-directed 2026-07-02).** A lane PR
+   is cut per **work unit**, not per pipeline stage. A planning/scoping-only artifact (a route,
+   spec, or scoping decision) is not a standalone PR by default: it rides with the work unit that
+   produced it, or the chain continues into implementation when authority allows. Where the PR
+   boundary sits is decided **at commissioning time** by the commissioning artifact (the handoff
+   packet or `/fused` invocation), recorded in the edit-permission grant every such artifact already
+   states (the `read-only | docs-write | patch-only | implementation-authorized` preflight field
+   owned by `.agents/workflow-overlay/prompt-orchestration.md`):
+   - **Pre-granted bounded implementation authority** → the full scope→spec→implement→review chain
+     is one work unit landing as **one lane PR**; the owner steers at commissioning time.
+   - **Authority deliberately withheld** → the mid-chain owner authorization fork **is** the
+     explicit work-unit boundary, and the chain lands as **split PRs**. Withholding is a deliberate
+     commissioning choice, never the default drift.
+   **Named exceptions — splitting stays correct even with pre-granted authority:** (a) the earlier
+   half carries shared-authority doctrine that other concurrent lanes need on `main` promptly
+   (example: PR #585 landed the Gate 1/2 contract fold-in together with a read-only scoping route
+   while implementation stayed split behind a packet-mandated owner fork); (b) authority is
+   deliberately withheld for a mid-chain owner fork (the second bullet above); (c) high-lock-in
+   probe-first slicing per the Smallest Complete Intervention rule (`AGENTS.md`).
+   **Boundaries:** this rule governs PR *topology*, not merge *authority* — items 7/9/11 and the
+   human gate on landing to `main` are unchanged, and pre-granting implementation authority remains
+   an owner choice recorded in the commissioning artifact, never an agent default. It is not a
+   license for big-bang PRs: item 13's cadence and the Smallest Complete Intervention rule still
+   govern work-unit size; this item only fixes where the PR boundary sits relative to the owner
+   authorization fork.
 
 ## Why core-only CI (evidence)
 
@@ -1169,4 +1196,77 @@ direction_change_propagation:
     - not readiness
     - not review approval
     - not blanket agent merge authority
+```
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Adds Decision item 14 (owner-directed 2026-07-02): a lane PR is cut per WORK UNIT, not per
+    pipeline stage, and a planning/scoping-only artifact is not a standalone PR by default — it
+    rides with the work unit that produced it, or the chain continues when authority allows. The
+    commissioning artifact (handoff packet or /fused invocation) fixes the boundary at commissioning
+    time via the edit-permission grant it already states: pre-granted bounded implementation
+    authority means the full scope→spec→implement→review chain lands as one lane PR; deliberately
+    withheld authority makes the mid-chain owner authorization fork the explicit work-unit boundary
+    (split PRs — a deliberate choice, never the default drift). Named exceptions where splitting
+    stays correct even with pre-granted authority: (a) the earlier half carries shared-authority
+    doctrine other concurrent lanes need on main promptly (example: PR #585), (b) authority withheld
+    for a mid-chain owner fork, (c) high-lock-in probe-first slicing per Smallest Complete
+    Intervention. Item 13's example list is reconciled in place: an implementation-scoping decision
+    is a PR-worthy durable point only when it closes its work unit.
+  trigger: workflow_authority
+  related_triggers:
+    - lifecycle_boundary
+  controlling_sources_updated:
+    - docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md
+  downstream_surfaces_checked:
+    - AGENTS.md
+    - .agents/workflow-overlay/prompt-orchestration.md
+    - .agents/workflow-overlay/decision-routing.md
+    - .agents/workflow-overlay/safety-rules.md
+    - docs/workflows/orca_repo_map_v0.md
+  intentionally_not_updated:
+    - path: AGENTS.md
+      reason: >
+        Already routes landing through this doctrine's per-lane PR flow and already speaks in
+        work-unit vocabulary ("when a repo-changing work unit completes verified on its own lane
+        branch or worktree..."); the boundary rule lives here, so no kernel restatement is added.
+    - path: .agents/workflow-overlay/prompt-orchestration.md
+      reason: >
+        The commissioning-time authority-grant field already exists — the edit-permission preflight
+        enum (read-only | docs-write | patch-only | implementation-authorized) that every handoff
+        and routine prompt must state — so item 14 points at it and no new field or pointer is
+        added.
+    - path: .agents/workflow-overlay/decision-routing.md
+      reason: >
+        Owns pre-planning routing and delegation, not PR topology; the stale-language search found
+        no cadence or boundary language there to reconcile.
+    - path: .agents/workflow-overlay/safety-rules.md
+      reason: >
+        Its work-unit completion rule already defers merge conditions and policy to this doctrine;
+        item 14 changes topology only and grants no authority, so nothing there moves.
+    - path: docs/workflows/orca_repo_map_v0.md
+      reason: >
+        Already indexes this doctrine at file level; an in-file decision item is not a structural
+        or navigation change.
+  stale_language_search: >
+    rg -in "one focused PR|PR cadence|per-lane PR|work unit" AGENTS.md .agents/workflow-overlay/
+    docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md
+    (run 2026-07-02 in the sad-shirley worktree off origin/main @ 1dfbb2d0, before and after edits)
+  stale_language_search_result: >
+    Executed 2026-07-02. The only surface that presented a scoping artifact as a default standalone
+    PR boundary was item 13's example list ("...or implementation-scoping decision"), now qualified
+    in place with a pointer to item 14. All other hits are compatible: item 3's one-focused-PR flow
+    (one focused PR per work unit), items 10/11's "lands via a per-lane PR" closing lines,
+    AGENTS.md's work-unit completion rule and routing line, safety-rules.md's deference to this
+    doctrine, prompt-orchestration.md's lane-scoped-prompt and work-unit filing rules, and the
+    historical append-only DCP receipts (correctly not edited).
+  non_claims:
+    - not validation, readiness, or acceptance of any lane's content
+    - governs PR topology only; grants no commit, push, PR, or merge authority — items 7/9/11 and
+      the human gate on landing to main are unchanged
+    - pre-granting implementation authority remains an owner choice recorded in the commissioning
+      artifact, never an agent default
+    - not a retro-classification of past PRs (PR #585 was correct under its commissioning packet)
+    - a behavioral/doctrine rule, not code; live only insofar as commissioning artifacts follow it
 ```
