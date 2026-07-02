@@ -27,7 +27,7 @@ open_next:
   - orca-harness/source_capture/tiktok/batch_packet.py
   - orca-harness/source_capture/tiktok/admission.py
 authoring_branch: codex/tiktok-bounded-pointer-action
-authoring_base_observed: origin/main @ 025991be35c934edde3066e6c6158b73eedbf0cb
+authoring_base_observed: origin/main @ 82613874bb45fcb7fd4209de6eaf2501d21729eb
 stale_if:
   - The reviewer cannot identify the PR/branch head being reviewed.
   - Any target source/test file differs from the PR/branch head under review.
@@ -48,7 +48,7 @@ preflight_defaults: `docs/prompts/templates/shared/orca_preflight_defaults_v0.md
 - expected_worktree: repo-backed checkout or worktree for branch `codex/tiktok-bounded-pointer-action`.
 - expected_branch: `codex/tiktok-bounded-pointer-action` unless the dispatcher supplies a PR checkout that resolves to the same branch head.
 - expected_head: derive from `git rev-parse HEAD` at dispatch; do not trust this prompt for the final head SHA.
-- expected_pr: dispatcher-supplied PR for `codex/tiktok-bounded-pointer-action`, if opened.
+- expected_pr: `https://github.com/eric-foo/orca/pull/575` (draft at prompt update).
 - dirty_state_allowance: prompt/report docs may be dirty or untracked. Target source/test files must be clean relative to the reviewed head.
 - target_files_or_dirs:
   - `orca-harness/source_capture/adapters/browser_snapshot.py`
