@@ -21,6 +21,7 @@ authority_boundary: retrieval_only
 
 - Worktree: `.codex/worktrees/repo-map-god-tier-architecture-prompt`
 - Starting branch state: `codex/repo-map-god-tier-architecture-prompt` clean against `origin/codex/repo-map-god-tier-architecture-prompt`.
+- Commission trace: owner instruction in the repo-map PR lane to do Batch 3, Batch 4, Batch 5, then one mega adversarial delegated review; this record is the durable trace for this batch, not independent authorization for future sweeps.
 - Batch 2 baseline: `docs/workflows/repo_map_retrieval_probe_batch_2_v0.md` recorded 66 missing headers, 0 orphans, and the Windows `header_index.py --index` encoding defect that was fixed in `.agents/hooks/header_index.py`.
 - Governing source: `.agents/workflow-overlay/retrieval-metadata.md` requires headers for new or materially touched durable human-authored workflow artifacts, but explicitly says not to backfill every existing file by default.
 
@@ -41,7 +42,7 @@ Patch accepted:
 Deferred by design:
 
 - Historical prompt and review-output backfill remains on-touch unless a separate proof slice authorizes a targeted retrieval sweep.
-- Generated migration inventories and moved-path indexes are not promoted by this batch; the retrieval-metadata contract excludes generated outputs unless future Orca work authorizes generated artifacts.
+- Generated migration inventories and moved-path indexes are not promoted by this batch. Under `.agents/workflow-overlay/retrieval-metadata.md`, generated outputs remain header-excluded unless later promoted into a durable Orca artifact role; mere authorization to exist as a generated output is not a header trigger.
 - Hygiene packets stay deferred unless they are still live routing queues. In particular, old single-consumption checkpoint or cross-repo handoff material should not be made more prominent without confirming it is still current.
 
 Accepted residual:

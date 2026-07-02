@@ -19,10 +19,11 @@ authority_boundary: retrieval_only
 ## Review Provenance
 
 - review_type: delegated adversarial artifact review plus home-model adjudication
-- reviewed_by: unrecorded
-- authored_by: unrecorded
+- reviewed_by: gpt-5-codex-inherited-subagent
+- authored_by: gpt-5-codex-home-model
 - de_correlation_bar: same_vendor_sanity
-- same_vendor_rationale: Bounded documentation/header hardening review; no cross-vendor discovery or no-new-seam claim is made.
+- same_vendor_rationale: Bounded documentation/header hardening review using an in-session inherited subagent from the same GPT-5/Codex family; no cross-vendor discovery or no-new-seam claim is made.
+- model_identity_note: Exact runtime build/version was not exposed by the subagent/tooling surface; these fields record the known GPT-5/Codex family-level identity rather than inventing finer precision.
 - delegated_reviewer: in-session subagent `019f1f72-0f1c-7042-8dc1-3d03a19c9f82`
 - output_mode: filesystem-output
 - report_path: `docs/review-outputs/adversarial-artifact-reviews/repo_map_retrieval_batches_3_5_mega_adversarial_review_v0.md`
@@ -104,6 +105,73 @@ patch_queue_entry authorized:
 
 - No. This review is decision input and home-model adjudication, not an executor-ready patch queue.
 
+
+## Returned Delegated Recheck Adjudication
+
+A second delegated read-only adversarial review return was couriered back after this report was first written. Its finding IDs are namespaced here as `AR-MEGA-RR-*` to avoid colliding with the original `AR-MEGA-01` finding above.
+
+### AR-MEGA-RR-01 - Accepted And Patched
+
+phase: correctness / source-fidelity
+
+finding:
+
+- The Batch 3-5 record paraphrased the generated-output exclusion as ending when future Orca work authorizes generated artifacts. The overlay's rule is narrower: generated outputs are excluded, and the retrieval-header contract applies if an excluded file is later promoted into a durable Orca artifact role.
+
+adjudication:
+
+- Accepted.
+- Patched `docs/workflows/repo_map_retrieval_batches_3_5_v0.md` to state that mere authorization to exist as a generated output is not a retrieval-header trigger; promotion into a durable Orca artifact role is the trigger.
+
+minimum_closure_condition:
+
+- The batch record matches `.agents/workflow-overlay/retrieval-metadata.md` on generated-output exclusion and promotion-time header application.
+
+### AR-MEGA-RR-02 - Accepted And Patched
+
+phase: friction / provenance measurement
+
+finding:
+
+- The report recorded `reviewed_by: unrecorded` and `authored_by: unrecorded` while also recording `de_correlation_bar: same_vendor_sanity`; this left the same-vendor measurement weak even though the in-session subagent and home model family were knowable at the family level.
+
+adjudication:
+
+- Accepted with precision limit.
+- Patched the provenance block to record `gpt-5-codex-inherited-subagent` and `gpt-5-codex-home-model`, plus a note that exact runtime build/version was not exposed by tooling.
+- The report still makes no cross-vendor discovery or no-new-seam claim.
+
+minimum_closure_condition:
+
+- The durable record carries the known family-level reviewer/author identity and does not fabricate narrower build precision.
+
+### AR-MEGA-RR-03 - Accepted And Patched
+
+phase: friction / authorization trace
+
+finding:
+
+- The Batch 3-5 record required future off-touch sweeps to have a separate authorizing proof slice but did not name the commission under which this batch's own targeted off-touch slice ran.
+
+adjudication:
+
+- Accepted.
+- Patched `docs/workflows/repo_map_retrieval_batches_3_5_v0.md` to name the owner instruction in the repo-map PR lane for Batch 3, Batch 4, Batch 5, then one mega adversarial delegated review.
+- The trace is recorded as the durable context for this batch only; it is not independent authorization for future sweeps.
+
+minimum_closure_condition:
+
+- The batch record names the current batch commission and does not allow future records to treat this retrieval-only record as standing authorization.
+
+## Operator Closeout Source
+
+- returned_review_source: attached delegated read-only adversarial artifact review return in the home thread
+- accepted_findings: `AR-MEGA-RR-01`, `AR-MEGA-RR-02`, `AR-MEGA-RR-03`
+- rejected_findings: none
+- modified_findings: `AR-MEGA-RR-02` accepted with a precision limit: family-level GPT-5/Codex identity is recorded; exact runtime build/version remains not exposed by tooling
+- kept_changes: generated-output wording corrected; batch commission trace added; review provenance made measurable at known family level
+- validation_gap: no cross-vendor discovery review was run; no no-new-seam claim is made
+- remaining_risk: 61 historical missing headers remain accepted advisory backlog under the on-touch policy
 ## Non-Findings
 
 - The targeted headers do not violate the no-broad-backfill rule: Batch 3 touched a small set of foundational workflow, migration, review-input, and decision-boundary artifacts rather than sweeping historical prompts/review outputs.
