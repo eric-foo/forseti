@@ -453,6 +453,58 @@ def test_live_probe_stops_on_missing_video_detail_hydration(tmp_path: Path) -> N
     assert len(engine.calls) == 1
 
 
+def test_live_probe_does_not_stop_on_close_text_without_blocker_candidate(
+    tmp_path: Path,
+) -> None:
+    auth_root = _auth_state(tmp_path)
+    engine = _FakeObservationEngine(
+        outcomes=[
+            BrowserPageObservationSuccess(
+                requested_url="https://www.tiktok.com/@funmi/video/7390000000000000001",
+                final_url="https://www.tiktok.com/@funmi/video/7390000000000000001",
+                title="TikTok",
+                visible_text="Close",
+                dom_observation={
+                    "hydration_json_text": json.dumps(_hydration("7390000000000000001"))
+                },
+                responses=[],
+                metadata={"post_load_pointer_action": _pointer_action_receipt()},
+                warning_notes=[],
+                limitation_notes=[],
+            ),
+            _success_observation(video_id="7390000000000000002"),
+        ]
+    )
+
+    paths = write_tiktok_live_batch_probe_outputs(
+        creator_handle="funmi",
+        creator_profile_url="https://www.tiktok.com/@funmi",
+        video_urls=[
+            "https://www.tiktok.com/@funmi/video/7390000000000000001",
+            "https://www.tiktok.com/@funmi/video/7390000000000000002",
+        ],
+        state_label="test-session",
+        session_mode=AuthenticatedSessionMode.FREE_ACCOUNT_CREATED,
+        auth_state_root=auth_root,
+        output_dir=tmp_path / "out",
+        cadence_min_gap_seconds=0,
+        cadence_max_gap_seconds=0,
+        random_seed=1,
+        engine=engine,
+        sleep_fn=lambda _seconds: None,
+    )
+
+    cadence = json.loads(paths.cadence_result_json_path.read_text(encoding="utf-8"))
+    assert cadence["attempted_count"] == 2
+    assert cadence["completed_count"] == 2
+    assert cadence["challenge_count"] == 0
+    assert cadence["failures"] == []
+    first_triage = cadence["results"][0]["capture_receipt"]["blocker_triage"]
+    assert first_triage["blocker_class"] == TIKTOK_BLOCKER_CLASS_NO_BLOCKER
+    assert first_triage["action"] == TIKTOK_BLOCKER_ACTION_CONTINUE
+    assert "Close" not in json.dumps(cadence)
+    assert len(engine.calls) == 2
+
 def test_live_probe_runner_exposes_no_secret_or_storage_path_flags() -> None:
     forbidden_destinations = {"password", "username", "token", "cookie", "profile"}
     forbidden_options = {

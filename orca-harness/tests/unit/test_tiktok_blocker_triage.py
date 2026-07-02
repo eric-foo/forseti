@@ -93,6 +93,19 @@ def test_blocker_triage_hydration_without_item_struct_is_empty_shell() -> None:
     assert triage.reason == "missing_item_struct_or_empty_shell"
 
 
+def test_blocker_triage_close_text_without_candidate_does_not_stop() -> None:
+    triage = classify_tiktok_blocker(
+        final_url="https://www.tiktok.com/@funmi/video/7390000000000000001",
+        title="TikTok",
+        visible_text="Close",
+        hydration_present=True,
+        item_struct_present=True,
+    )
+
+    assert triage.blocker_class == TIKTOK_BLOCKER_CLASS_NO_BLOCKER
+    assert triage.action == TIKTOK_BLOCKER_ACTION_CONTINUE
+
+
 def test_blocker_triage_unknown_x_only_is_ambiguous_stop() -> None:
     triage = classify_tiktok_blocker(
         final_url="https://www.tiktok.com/@funmi/video/7390000000000000001",

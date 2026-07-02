@@ -26,6 +26,7 @@ from source_capture.tiktok.admission import (
     json_dumps_sanitized,
 )
 from source_capture.tiktok.blocker_triage import (
+    TIKTOK_BLOCKER_ACTION_STOP,
     TIKTOK_BLOCKER_CLASS_CHALLENGE_OR_SECURITY,
     TikTokBlockerTriage,
     classify_tiktok_capture,
@@ -250,6 +251,28 @@ def run_tiktok_live_batch_probe(
                     detail=(
                         "No video itemStruct found in TikTok hydration blob; treated as a "
                         "possible empty/stripped-shell block signal (C6) and the probe stopped."
+                    ),
+                    blocker_triage=_blocker_triage_receipt(blocker_triage),
+                )
+            )
+            break
+
+        if blocker_triage.action == TIKTOK_BLOCKER_ACTION_STOP:
+            # itemStruct can be present alongside an unresolved ambiguous-stop
+            # marker (e.g. an unclassified dismiss control); the triage's own
+            # stop verdict must be honored even though hydration loaded, or C6's
+            # "do not hammer on an unresolved block signal" invariant is silently
+            # defeated.
+            challenge_count += 1
+            failures.append(
+                _failure_entry(
+                    video_url=video_url,
+                    video_id=video_id,
+                    observed_utc=observed_utc,
+                    reason=blocker_triage.reason,
+                    detail=(
+                        "TikTok blocker triage returned a stop action despite present "
+                        "hydration/itemStruct; probe stopped."
                     ),
                     blocker_triage=_blocker_triage_receipt(blocker_triage),
                 )

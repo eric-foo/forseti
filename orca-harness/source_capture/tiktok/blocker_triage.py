@@ -38,7 +38,6 @@ _BENIGN_OVERLAY_MARKERS = (
 _DISMISS_MARKERS = (
     "not now",
     "maybe later",
-    "close",
     "continue in browser",
     "accept all",
     "got it",
