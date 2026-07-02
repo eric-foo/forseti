@@ -51,11 +51,11 @@ to become one giant ledger.
 Already authored as source contracts/scaffold:
 
 - Low-level current-view contract:
-  `orca/product/spines/capture/core/source_families/social_media/creator_profile_current_view_spec_v0.md`
+  `orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_profile_current_view_spec_v0.md`
 - Public handle linkage contract:
-  `orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_spec_v0.md`
+  `orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_spec_v0.md`
 - Static identity ledger scaffold:
-  `orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json`
+  `orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json`
 
 The low-level Capture contract defines the intended separation:
 

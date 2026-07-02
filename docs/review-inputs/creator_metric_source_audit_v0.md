@@ -99,7 +99,7 @@ The hard pushback is important: this seed is useful, but it is not the final cre
 
 This seed now supports a static `creator_profile_current` export:
 
-`orca/product/spines/capture/core/source_families/social_media/creator_profile_current_view_v0.json`
+`orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_profile_current_view_v0.json`
 
 The export should:
 
