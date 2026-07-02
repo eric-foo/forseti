@@ -6,6 +6,10 @@ from pathlib import Path
 
 import pytest
 
+from data_lake.attachment_record_entry import (
+    DERIVATION_RULE_VERSION,
+    ENTRY_SERIALIZATION_VERSION,
+)
 from data_lake.catalog import (
     BRONZE_ATTACHMENT_RECORD_PHYSICALIZATION,
     BRONZE_ATTACHMENT_RECORD_SCHEMA_VERSION,
@@ -384,6 +388,8 @@ def test_attachment_records_index_preserved_bodies_and_resolve_bytes(
         "source_capture_obligation_contract_version": "core_spine_v0_data_capture_spine_obligation_contract_v0",
         "catalog_schema_version": BRONZE_CATALOG_SCHEMA_VERSION,
         "attachment_record_schema_version": BRONZE_ATTACHMENT_RECORD_SCHEMA_VERSION,
+        "entry_serialization_version": ENTRY_SERIALIZATION_VERSION,
+        "derivation_rule_version": DERIVATION_RULE_VERSION,
     }
     assert reddit_record["source_slice_ids"] == ["slice_01"]
     assert reddit_record["posture_summary"]["access_posture"]["value"] == "local_file_only"

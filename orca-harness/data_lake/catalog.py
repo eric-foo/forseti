@@ -14,14 +14,26 @@ from dataclasses import dataclass
 from pathlib import Path, PurePosixPath
 from typing import Any, Callable, Iterable
 
+from data_lake.attachment_record_entry import (
+    ATTACHMENT_RECORD_PHYSICALIZATION,
+    ATTACHMENT_RECORD_SCHEMA_VERSION,
+    RAW_PACKET_BODY_REF_KIND,
+    SUPPORTED_ATTACHMENT_RECORD_BODY_REF_KINDS,
+    SUPPORTED_ATTACHMENT_RECORD_HASH_BASIS,
+    attachment_record_id,
+    derive_attachment_record_entries,
+    require_supported_hash_basis,
+    visible_fact_value,
+)
 from data_lake.root import DataLakeRoot, DataLakeRootError, raw_shard
 from harness_utils import hash_file
-from source_capture.models import HASH_BASIS_VALUES
 
 BRONZE_CATALOG_VERSION = "bronze_catalog_v0"
-BRONZE_CATALOG_SCHEMA_VERSION = "bronze_catalog_v0_schema_2"
-BRONZE_ATTACHMENT_RECORD_SCHEMA_VERSION = "bronze_attachment_record_v0_schema_2"
-BRONZE_ATTACHMENT_RECORD_PHYSICALIZATION = "manifest_equivalent_entry_over_raw_packet_body_v0"
+BRONZE_CATALOG_SCHEMA_VERSION = "bronze_catalog_v0_schema_3"
+# Canonical A2 objects live in data_lake.attachment_record_entry (the pinned
+# serializer); these names are compatibility aliases for existing consumers.
+BRONZE_ATTACHMENT_RECORD_SCHEMA_VERSION = ATTACHMENT_RECORD_SCHEMA_VERSION
+BRONZE_ATTACHMENT_RECORD_PHYSICALIZATION = ATTACHMENT_RECORD_PHYSICALIZATION
 BRONZE_BASELINE_STATUS = "bronze_mgt_baseline_recorded_v0"
 BRONZE_BASELINE_SEMANTICS = (
     "mini_god_tier_90_95_typed_retrievability_baseline; not full God Tier, "
@@ -31,10 +43,9 @@ BRONZE_BASELINE_SEMANTICS = (
 CATALOG_RELATIVE_ROOT = ("indexes", "derived_retrieval", "bronze_catalog", "v0")
 _PACKET_ID_RE = re.compile(r"[0123456789ABCDEFGHJKMNPQRSTVWXYZ]{26}")
 _CATALOG_AUTHORITY = "generated_from_raw_packet_manifests; raw remains authoritative"
-_RAW_PACKET_BODY_REF_KIND = "raw_packet_relative_path"
-_RAW_STORED_BYTES_HASH_BASIS = "raw_stored_bytes"
-_SUPPORTED_ATTACHMENT_RECORD_HASH_BASIS = frozenset({_RAW_STORED_BYTES_HASH_BASIS})
-_SUPPORTED_ATTACHMENT_RECORD_BODY_REF_KINDS = frozenset({_RAW_PACKET_BODY_REF_KIND})
+_RAW_PACKET_BODY_REF_KIND = RAW_PACKET_BODY_REF_KIND
+_SUPPORTED_ATTACHMENT_RECORD_HASH_BASIS = SUPPORTED_ATTACHMENT_RECORD_HASH_BASIS
+_SUPPORTED_ATTACHMENT_RECORD_BODY_REF_KINDS = SUPPORTED_ATTACHMENT_RECORD_BODY_REF_KINDS
 _SOURCE_SURFACE_COMPLETENESS = (
     "observed_source_surface_coverage_only; not capture_support, silver_readiness, "
     "projection_coverage, source_family_completeness, or validation"
@@ -768,169 +779,37 @@ def _packet_index_entry(entry: dict[str, Any]) -> dict[str, Any]:
 def _packet_attachment_records(
     entry: dict[str, Any], manifest: dict[str, Any], bodies: dict[str, bytes]
 ) -> list[dict[str, Any]]:
-    preserved_files = manifest.get("preserved_files")
-    if not isinstance(preserved_files, list):
-        return []
-    source_slices_by_file = _source_slice_ids_by_file(manifest.get("source_slices"))
-    records: list[dict[str, Any]] = []
-    for preserved in preserved_files:
-        if not isinstance(preserved, dict):
-            continue
-        file_id = _required_string(preserved.get("file_id"), "preserved_files.file_id")
-        relative_packet_path = _required_string(
-            preserved.get("relative_packet_path"), "preserved_files.relative_packet_path"
-        )
-        body_sha256 = _required_string(preserved.get("sha256"), "preserved_files.sha256")
-        hash_basis = _required_string(preserved.get("hash_basis"), "preserved_files.hash_basis")
-        _require_supported_attachment_record_hash_basis(hash_basis, file_id=file_id)
-        size_bytes = preserved.get("size_bytes")
-        if type(size_bytes) is not int:
-            raise DataLakeRootError(f"preserved file {file_id!r} missing integer size_bytes")
-        body = bodies.get(file_id)
-        if body is None:
-            raise DataLakeRootError(f"preserved body {file_id!r} missing after verified load")
-        record_id = _attachment_record_id(
-            packet_id=entry["packet_id"],
-            file_id=file_id,
-            relative_packet_path=relative_packet_path,
-            body_sha256=body_sha256,
-        )
-        records.append(
-            {
-                "attachment_record_schema_version": BRONZE_ATTACHMENT_RECORD_SCHEMA_VERSION,
-                "attachment_record_physicalization": BRONZE_ATTACHMENT_RECORD_PHYSICALIZATION,
-                "attachment_record_id": record_id,
-                "attachment_record_id_basis": (
-                    "sha256(json_array[packet_id,file_id,relative_packet_path,body_sha256])"
-                ),
-                "authority": _CATALOG_AUTHORITY,
-                "catalog_version": BRONZE_CATALOG_VERSION,
-                "catalog_schema_version": BRONZE_CATALOG_SCHEMA_VERSION,
-                "packet_id": entry["packet_id"],
-                "raw_path": entry["raw_path"],
-                "manifest_relpath": entry["manifest_relpath"],
-                "manifest_sha256": entry["manifest_sha256"],
-                "source_family": entry.get("source_family"),
-                "source_surface": entry.get("source_surface"),
-                "source_locator": entry.get("source_locator"),
-                "source_slice_ids": source_slices_by_file.get(file_id, []),
-                "file_id": file_id,
-                "original_path": _string_or_none(preserved.get("original_path")),
-                "relative_packet_path": relative_packet_path,
-                "body_ref_kind": _RAW_PACKET_BODY_REF_KIND,
-                "body_ref": {
-                    "kind": _RAW_PACKET_BODY_REF_KIND,
-                    "packet_id": entry["packet_id"],
-                    "file_id": file_id,
-                    "relative_packet_path": relative_packet_path,
-                    "body_sha256": body_sha256,
-                    "hash_basis": hash_basis,
-                },
-                "body_sha256": body_sha256,
-                "hash_basis": hash_basis,
-                "size_bytes": size_bytes,
-                "payload_kind": _payload_kind(relative_packet_path, body),
-                "payload_kind_basis": "generic_body_classification",
-                "payload_schema_version": _payload_schema_version(manifest, preserved),
-                "raw_packet_manifest_version": _string_or_none(manifest.get("manifest_version")),
-                "replay_version_pins": {
-                    "raw_packet_manifest_version": _string_or_none(manifest.get("manifest_version")),
-                    "source_capture_obligation_contract_version": _string_or_none(
-                        manifest.get("obligation_contract_version")
-                    ),
-                    "catalog_schema_version": BRONZE_CATALOG_SCHEMA_VERSION,
-                    "attachment_record_schema_version": BRONZE_ATTACHMENT_RECORD_SCHEMA_VERSION,
-                },
-                "posture_summary": _posture_summary(manifest),
-                "stable_query_paths": {
-                    "by_attachment_record": (
-                        f"attachment_records/by_attachment_record/{record_id}.json"
-                    ),
-                    "by_packet": (
-                        "attachment_records/by_packet/"
-                        f"{_safe_name(entry['packet_id'])}.jsonl"
-                    ),
-                },
-            }
-        )
-    return sorted(records, key=lambda item: item["attachment_record_id"])
-
-
-def _attachment_record_id(
-    *, packet_id: str, file_id: str, relative_packet_path: str, body_sha256: str
-) -> str:
-    material = json.dumps(
-        [packet_id, file_id, relative_packet_path, body_sha256],
-        ensure_ascii=True,
-        separators=(",", ":"),
+    """Materialize catalog AR rows: canonical entries from the pinned A2
+    serializer plus catalog-only decorations. The canonical part is owned by
+    ``data_lake.attachment_record_entry``; this wrapper adds only generated
+    read-state fields (authority note, catalog versions, query paths)."""
+    canonical_entries = derive_attachment_record_entries(
+        packet_id=entry["packet_id"],
+        raw_path=entry["raw_path"],
+        manifest_relpath=entry["manifest_relpath"],
+        manifest_sha256=entry["manifest_sha256"],
+        manifest=manifest,
+        bodies=bodies,
     )
-    return f"ar_{hashlib.sha256(material.encode('utf-8')).hexdigest()[:32]}"
-
-
-def _source_slice_ids_by_file(source_slices: object) -> dict[str, list[str]]:
-    by_file: dict[str, list[str]] = {}
-    if not isinstance(source_slices, list):
-        return by_file
-    for item in source_slices:
-        if not isinstance(item, dict):
-            continue
-        slice_id = _string_or_none(item.get("slice_id"))
-        preserved_file_ids = item.get("preserved_file_ids")
-        if slice_id is None or not isinstance(preserved_file_ids, list):
-            continue
-        for file_id in preserved_file_ids:
-            if isinstance(file_id, str) and file_id:
-                by_file.setdefault(file_id, []).append(slice_id)
-    return {file_id: sorted(set(slice_ids)) for file_id, slice_ids in by_file.items()}
-
-
-def _posture_summary(manifest: dict[str, Any]) -> dict[str, dict[str, str | None] | None]:
-    return {
-        "access_posture": _visible_fact_summary(manifest.get("access_posture")),
-        "archive_history_posture": _visible_fact_summary(manifest.get("archive_history_posture")),
-        "media_modality_posture": _visible_fact_summary(manifest.get("media_modality_posture")),
-        "re_capture_relationship": _visible_fact_summary(manifest.get("re_capture_relationship")),
-    }
-
-
-def _visible_fact_summary(value: object) -> dict[str, str | None] | None:
-    if not isinstance(value, dict):
-        return None
-    status = _string_or_none(value.get("status"))
-    if status is None:
-        return None
-    return {
-        "status": status,
-        "value": _string_or_none(value.get("value")),
-        "reason": _string_or_none(value.get("reason")),
-    }
-
-
-def _payload_schema_version(manifest: dict[str, Any], preserved: dict[str, Any]) -> str | None:
-    preserved_value = _string_or_none(preserved.get("payload_schema_version"))
-    if preserved_value is not None:
-        return preserved_value
-    return _string_or_none(manifest.get("payload_schema_version"))
-
-
-def _payload_kind(relative_packet_path: str, body: bytes) -> str:
-    suffix = PurePosixPath(relative_packet_path).suffix.lower()
-    if suffix == ".json":
-        try:
-            json.loads(body.decode("utf-8"))
-        except (UnicodeDecodeError, ValueError):
-            return "text_body"
-        return "json_body"
-    if suffix in {".html", ".htm"}:
-        return "html_body"
-    try:
-        text = body.decode("utf-8")
-    except UnicodeDecodeError:
-        return "binary_body"
-    stripped = text.lstrip().lower()
-    if stripped.startswith("<!doctype html") or stripped.startswith("<html"):
-        return "html_body"
-    return "text_body"
+    records: list[dict[str, Any]] = []
+    for canonical in canonical_entries:
+        record = dict(canonical)
+        record["authority"] = _CATALOG_AUTHORITY
+        record["catalog_version"] = BRONZE_CATALOG_VERSION
+        record["catalog_schema_version"] = BRONZE_CATALOG_SCHEMA_VERSION
+        replay_version_pins = dict(record["replay_version_pins"])
+        replay_version_pins["catalog_schema_version"] = BRONZE_CATALOG_SCHEMA_VERSION
+        record["replay_version_pins"] = replay_version_pins
+        record["stable_query_paths"] = {
+            "by_attachment_record": (
+                f"attachment_records/by_attachment_record/{record['attachment_record_id']}.json"
+            ),
+            "by_packet": (
+                f"attachment_records/by_packet/{_safe_name(entry['packet_id'])}.jsonl"
+            ),
+        }
+        records.append(record)
+    return records
 
 
 def _required_string(value: object, field: str) -> str:
@@ -948,20 +827,10 @@ def _require_supported_attachment_record_body_ref_kind(body_ref_kind: str) -> No
         )
 
 
-def _require_supported_attachment_record_hash_basis(hash_basis: str, *, file_id: str) -> None:
-    if hash_basis not in HASH_BASIS_VALUES:
-        allowed_list = ", ".join(sorted(HASH_BASIS_VALUES))
-        raise DataLakeRootError(
-            f"unsupported preserved file hash_basis {hash_basis!r} for {file_id!r}; "
-            f"expected Source Capture hash_basis in {{{allowed_list}}}"
-        )
-    if hash_basis not in _SUPPORTED_ATTACHMENT_RECORD_HASH_BASIS:
-        allowed_list = ", ".join(sorted(_SUPPORTED_ATTACHMENT_RECORD_HASH_BASIS))
-        raise DataLakeRootError(
-            f"preserved file hash_basis {hash_basis!r} for {file_id!r} is valid upstream "
-            "but unsupported by generated Attachment Record raw body resolution; "
-            f"expected one of {{{allowed_list}}}"
-        )
+# Owned by the pinned A2 serializer; kept under the private catalog names for
+# the reader-side checks in load_attachment_record_body and existing importers.
+_require_supported_attachment_record_hash_basis = require_supported_hash_basis
+_attachment_record_id = attachment_record_id
 
 
 def _universal_facets(manifest: dict[str, Any]) -> list[CatalogFacet]:
@@ -1307,10 +1176,8 @@ def _safe_name(value: str) -> str:
     return f"{cleaned[:64] or 'blank'}__{digest}"
 
 
-def _visible_fact_value(value: object) -> str | None:
-    if isinstance(value, dict) and value.get("status") == "known":
-        return _string_or_none(value.get("value"))
-    return None
+# Owned by the pinned A2 serializer (same known-status extraction rule).
+_visible_fact_value = visible_fact_value
 
 
 def _string_or_none(value: object) -> str | None:

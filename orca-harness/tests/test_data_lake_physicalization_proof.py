@@ -24,6 +24,7 @@ from pathlib import Path
 
 import pytest
 
+from data_lake.attachment_record_entry import derive_entries_by_key, serialize_entries
 from data_lake.catalog import (
     load_attachment_record_body,
     rebuild_catalog,
@@ -276,3 +277,49 @@ def test_proof_06_violation_reads_survive_index_loss_so_indexes_carry_no_authori
         source_surface_catalog_rows(
             root, source_family=_SOURCE_FAMILY, source_surface=_SOURCE_SURFACE
         )
+
+
+# --- PROOF-07: zero-index canonical entry derivation (ratified A2) --------------
+
+
+def test_proof_07_canonical_entries_derive_by_key_with_zero_indexes(tmp_path: Path) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    packet_id = _capture(root, tmp_path, "alpha").packet.packet_id
+    assert rebuild_catalog(root)["status"] == "rebuilt"
+    rows = source_surface_catalog_rows(
+        root, source_family=_SOURCE_FAMILY, source_surface=_SOURCE_SURFACE
+    )["attachment_record_rows"]
+    catalog_only = {"authority", "catalog_version", "catalog_schema_version", "stable_query_paths"}
+    materialized_canonical = []
+    for row in rows:
+        canonical = {key: value for key, value in row.items() if key not in catalog_only}
+        pins = dict(canonical["replay_version_pins"])
+        pins.pop("catalog_schema_version", None)
+        canonical["replay_version_pins"] = pins
+        materialized_canonical.append(canonical)
+
+    shutil.rmtree(root.path / "indexes")
+
+    derived = derive_entries_by_key(root, packet_id)
+    assert serialize_entries(derived) == serialize_entries(materialized_canonical), (
+        "by-key derivation with zero indexes must reproduce the canonical part of "
+        "the materialized rows byte-for-byte; the pinned schema + derivation rule "
+        "is the canonical object, never the materialized row"
+    )
+
+
+def test_proof_07_violation_unknown_manifest_version_is_refused_not_coerced(
+    tmp_path: Path,
+) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    packet_id = _capture(root, tmp_path, "alpha").packet.packet_id
+
+    manifest_path = _packet_container(root, packet_id) / "manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    manifest["manifest_version"] = "source_capture_packet_manifest_v99_future"
+    manifest_path.write_text(json.dumps(manifest, sort_keys=True), encoding="utf-8")
+
+    # Central dispatch fails closed: an unrecognized sealed-packet format is
+    # refused for a deliberate new derivation rule, never silently coerced.
+    with pytest.raises(DataLakeRootError, match="unsupported raw packet manifest_version"):
+        derive_entries_by_key(root, packet_id)
