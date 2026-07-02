@@ -34,13 +34,15 @@ TIKTOK_VIDEO_DOM_EXTRACT_SCRIPT = r"""
 () => {
   const hydration = document.querySelector('#__UNIVERSAL_DATA_FOR_REHYDRATION__');
   return {
-    hydration_json_text: hydration ? hydration.textContent : null
+    hydration_json_text: hydration ? hydration.textContent : null,
+    comment_action: window.__orcaTikTokCommentAction || null
   };
 }
 """.strip()
 
 TIKTOK_OPEN_COMMENTS_POST_LOAD_SCRIPT = r"""
-() => {
+async () => {
+  const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
   const candidates = Array.from(document.querySelectorAll('button,[role="button"],a'));
   const target = candidates.find((node) => {
     const text = [
@@ -50,11 +52,14 @@ TIKTOK_OPEN_COMMENTS_POST_LOAD_SCRIPT = r"""
     ].filter(Boolean).join(' ').toLowerCase();
     return text.includes('comment') || text.includes('comments');
   });
+  const result = { candidate_count: candidates.length, clicked: false };
   if (target && typeof target.click === 'function') {
     target.click();
-    return { clicked: true };
+    result.clicked = true;
   }
-  return { clicked: false };
+  window.__orcaTikTokCommentAction = result;
+  await sleep(2500);
+  return result;
 }
 """.strip()
 
@@ -393,7 +398,7 @@ def _cadence_row_from_capture(
         "comment_responses": [
             _comment_response_from_page_response(response, observed_utc=observed_utc)
             for response in capture_result.responses
-            if is_tiktok_comment_list_url(response.final_url or response.requested_url)
+            if _is_page_owned_comment_list_response(response)
         ],
         "hydration": {
             "subtitle_info_count": len(subtitle_infos),
@@ -408,10 +413,11 @@ def _cadence_row_from_capture(
             "page_url_sha256": _sha256_text(video_url),
             "final_url_sha256": _sha256_text(capture_result.final_url),
             "response_count": len(capture_result.responses),
+            "comment_action": _comment_action_summary(capture_result.dom_observation),
             "matched_comment_response_count": sum(
                 1
                 for response in capture_result.responses
-                if is_tiktok_comment_list_url(response.final_url or response.requested_url)
+                if _is_page_owned_comment_list_response(response)
             ),
             "warning_count": len(capture_result.warning_notes),
             "limitation_count": len(capture_result.limitation_notes),
@@ -419,11 +425,33 @@ def _cadence_row_from_capture(
     }
 
 
+def _comment_action_summary(dom_observation: object) -> JsonObject:
+    action = _as_dict(_as_dict(dom_observation).get("comment_action"))
+    if not action:
+        return {}
+    return _drop_none(
+        {
+            "candidate_count": _first_int(action.get("candidate_count")),
+            "clicked": _first_bool(action.get("clicked")),
+        }
+    )
+
+def _is_page_owned_comment_list_response(response: BrowserPageResponse) -> bool:
+    if not is_tiktok_comment_list_url(response.final_url or response.requested_url):
+        return False
+    method = (response.request_method or "").upper()
+    if method and method != "GET":
+        return False
+    resource_type = (response.resource_type or "").lower()
+    if resource_type and resource_type not in {"fetch", "xhr"}:
+        return False
+    return True
+
 def _comment_response_from_page_response(
     response: BrowserPageResponse, *, observed_utc: str
 ) -> JsonObject:
     body_text = response.body_text or ""
-    return {
+    result: JsonObject = {
         "observed_utc": observed_utc,
         "status": response.status,
         "ok": response.ok,
@@ -431,6 +459,11 @@ def _comment_response_from_page_response(
         "body_assessment": _comment_body_assessment(body_text),
         "limitation_notes": list(response.limitation_notes),
     }
+    if response.request_method is not None:
+        result["request_method"] = response.request_method
+    if response.resource_type is not None:
+        result["resource_type"] = response.resource_type
+    return result
 
 
 def _comment_body_assessment(body_text: str) -> JsonObject:

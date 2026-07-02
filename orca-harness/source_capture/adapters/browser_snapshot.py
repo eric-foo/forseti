@@ -97,6 +97,8 @@ class BrowserPageResponse:
     body_text: str
     response_headers: dict[str, str]
     limitation_notes: list[str] = field(default_factory=list)
+    request_method: str | None = None
+    resource_type: str | None = None
 
 
 @dataclass(frozen=True)
@@ -974,6 +976,7 @@ def _read_observed_page_responses(
             for key, value in response.headers.items()
             if str(key).lower() not in {"set-cookie", "cookie"}
         }
+        request_method, resource_type = _response_request_metadata(response)
         limitations: list[str] = []
         body_text = ""
         try:
@@ -997,9 +1000,27 @@ def _read_observed_page_responses(
                 body_text=body_text,
                 response_headers=headers,
                 limitation_notes=limitations,
+                request_method=request_method,
+                resource_type=resource_type,
             )
         )
     return preserved
+
+
+def _response_request_metadata(response: object) -> tuple[str | None, str | None]:
+    try:
+        request = getattr(response, "request")
+    except Exception:
+        return None, None
+    try:
+        method = str(getattr(request, "method", "") or "").upper() or None
+    except Exception:
+        method = None
+    try:
+        resource_type = str(getattr(request, "resource_type", "") or "").lower() or None
+    except Exception:
+        resource_type = None
+    return method, resource_type
 
 
 def _run_bounded_lazy_load_scrolls(
