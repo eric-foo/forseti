@@ -7,17 +7,18 @@ scope: >
   Assessment (not implementation) of the YouTube Shorts channel grid as the
   cheap DAILY capture tier under the owner's 2026-07-02 two-tier daily-cadence
   direction, with a code/artifact comparison against the IG /reels/ grid and
-  TikTok profile-grid capture surfaces. Records observed per-tile fields, route
-  viability logged-out, per-video view-capture proof, gaps, and a grid-tier
-  shape recommendation feeding the owner fork. Commissioned by
-  docs/workflows/yt_shorts_grid_tier_assessment_handoff_v0.md.
+  TikTok profile-grid capture surfaces, and an owner-directed follow-up probe
+  of the public channel RSS feed surface (exact views/dates/likes). Records
+  observed per-item fields, route viability logged-out, per-video view-capture
+  proof, gaps, and a cheap-tier shape recommendation feeding the owner fork.
+  Commissioned by docs/workflows/yt_shorts_grid_tier_assessment_handoff_v0.md.
 use_when:
   - Deciding the per-platform shape of the daily grid capture tier
     (views-only vs engagement-bearing vs unusable).
   - Checking what the YT Shorts grid exposed per tile logged-out on the probe
     date, and how that compares to IG/TT grid surfaces in existing capture code.
 stale_if:
-  - A later YT grid probe observes different tile fields, tile depth, access
+  - A later YT grid or RSS-feed probe observes different fields, depth, access
     posture, or wall behavior.
   - The IG reels-grid or TikTok capture modules materially change what their
     grid surfaces expose.
@@ -27,16 +28,30 @@ authority_boundary: retrieval_only
 
 ## Recommendation (feeds the owner fork; does not resolve it)
 
-**Option (a): the YT grid tier is views-only and spike-triggers deep
-watch-packet capture.** The logged-out YT Shorts channel grid works today and
-exposes per-video views (rounded display text) but no likes, no comments, and
-no publish date per tile. That matches the owner's stated YT spike rule ("view
-spike for yt shorts") exactly. IG and TT grid surfaces ARE engagement-bearing
-in our existing capture paths (views + likes + comments per item), so their
-richer view/like/comment spike rule is feasible from grid tier alone.
+**Revised after the owner-directed Run 3 (RSS surface): the recommended cheap
+daily YT monitor is the public channel RSS feed, with the Shorts grid demoted
+to enumeration/backfill/fallback.** Per roster channel per day, one logged-out
+~18-53 KB XML fetch (`youtube.com/feeds/videos.xml?channel_id=UC…`) yields the
+15 most recent uploads with EXACT view counts, EXACT publish timestamps, and
+like counts (starRating; validated against watch-page likes) — strictly richer
+and ~60x cheaper than the grid page, whose tiles carry only rounded view text.
+Every new upload enters the feed regardless of format, so new-Shorts detection
+is complete at daily cadence; the grid's remaining jobs are the Shorts-vs-video
+classification of new IDs, catalog enumeration/backfill beyond the feed's
+15-entry window (48 tiles/fetch), and fallback if a feed misbehaves. Comment
+counts exist on NO cheap logged-out YT batch surface (feed schema carries
+none; grid tiles carry none) — they stay deep-tier, or the official Data API
+(an owner fork: new credential + API-declared provenance). The owner's YT
+trigger is a VIEW spike, which the feed serves with exact numbers.
 
-Spike thresholds, rounded-count spike semantics, and daily-cadence scheduling
-remain owner decisions and are not resolved here.
+The original grid-only finding stands unchanged beneath this: if only the grid
+is used, it is views-only (option (a) of the commissioning packet's fork). IG
+and TT grid surfaces ARE engagement-bearing in our existing capture paths
+(views + likes + comments per item), so their richer view/like/comment spike
+rule is feasible from grid tier alone.
+
+Spike thresholds, rounded-vs-exact spike semantics, and daily-cadence
+scheduling remain owner decisions and are not resolved here.
 
 ## Probe Method And Authorization
 
@@ -140,6 +155,44 @@ filters on `source_surface` and skips it, verified in
   Shorts; the grid's rounded text ("1.5K"/"5.2K" at Run 1) is the coarse
   signal a grid-tier spike rule would see.
 
+## Run 3: RSS Feed Surface (owner-directed follow-up)
+
+The owner asked whether the missing metrics could come from another cheap
+surface; the public channel RSS feed was probed (1 discovery request) and then
+validated (4 roster feeds, ~12 s pacing, zero walls, raw XML preserved).
+
+- Lake packet: `raw/1c8/01KWHWAB07R3PG1WP0VHM1HP7A`,
+  `source_surface: yt_channel_rss_feed_probe_v0` (probe-scoped; skipped by all
+  existing consumers). Contents: 4 raw feed XMLs + parsed summary with
+  per-entry values and sha256s.
+- **Uniform across all 4 roster feeds** (JeremyFragrance, GentsScents,
+  Redolessence, Cubaknow): 15 entries each; 15/15 with exact integer
+  `media:statistics views`; 15/15 with `media:starRating count`; 15/15 with
+  exact `published` timestamps; **zero comment-bearing fields** in any raw XML
+  (regex scan over the full documents).
+- **starRating count = like count, validated**: against the Run-2 persisted
+  watch pages (zero extra requests), iG92pxnu7J4 watch `likeCount` 40 (16:36Z)
+  vs feed starRating 42 (~16:50Z); vwT__IK7XGU 347 vs 355 — consistent with
+  like accrual on same-day videos. The owner manually re-checked vwT__IK7XGU
+  later and observed 366 (secondary report, consistent trajectory).
+- **Exact-date cross-validation**: feed `published` for iG92pxnu7J4
+  (`2026-07-02T09:00:05+00:00`) equals the watch page's `publishDate`
+  (`2026-07-02T02:00:05-07:00`).
+- **Freshness**: the feed carried a video published ~3 h before Run 2
+  (egy7B9shReU) that the Run-2 grid capture did not yet show.
+- **Format-mix nuance, measured**: feed↔grid-tile overlap was 12/15
+  (JeremyFragrance), 12/15 (Redolessence), but **0/15 for GentsScents** —
+  its 13 Shorts are old and its recent 15 uploads are all long-form. This
+  confirms the feed is a NEW-uploads window: it misses old Shorts catalogs
+  (irrelevant for monitoring; nothing new to detect) and covers every new
+  upload of any format (the monitoring case). New feed IDs need a
+  Shorts-vs-video classification step — grid membership or the
+  spike-triggered deep fetch resolves it.
+- Prior art check: no RSS route exists anywhere in the harness or capture
+  doctrine (repo sweep); the only mention is an aside in
+  `orca-harness/source_capture/transcript/asr_packet.py` that publish timing
+  is "available via the caption/RSS path". This surface is new to the lane.
+
 ## Comparison: IG /reels/ grid (code + committed-artifact read; not probed)
 
 Basis: `orca-harness/source_capture/ig_reels_grid_capture.py` (blob `51f18fab`),
@@ -183,9 +236,10 @@ Basis: `orca-harness/runners/run_source_capture_tiktok_video_packet.py` (blob
 
 ## Cross-Platform Grid-Tier Summary
 
-| Surface | Access posture | Views/tile | Likes/tile | Comments/tile | Publish timing/tile | Evidence basis |
+| Surface | Access posture | Views/item | Likes/item | Comments/item | Publish timing/item | Evidence basis |
 |---|---|---|---|---|---|---|
 | YT `@channel/shorts` grid | logged-out HTTP | Yes (rounded text) | No | No | No (grid order only) | live probe (this doc) |
+| YT channel RSS feed (15 newest uploads) | logged-out HTTP (XML) | Yes (exact) | Yes (starRating, validated) | No | Yes (exact) | live probe, 4 roster feeds (this doc) |
 | IG `/reels/` grid | logged-out browser + passive JSON | Yes (numeric) | Yes | Yes | Yes (taken_at) | code + committed captures |
 | TT profile grid | sessioned | Yes (numeric) | Yes (digg) | Yes | Yes (createTime) | code + committed receipt |
 
@@ -203,7 +257,14 @@ is made.
 
 - **Rounded grid views**: K/M-scale quantization bounds the smallest
   observable view delta; spike semantics on rounded values are an owner call.
-  Never precision-inflate grid values into exact counts.
+  Never precision-inflate grid values into exact counts. (Mooted for the
+  monitor role if the RSS surface is adopted — feed views are exact.)
+- **RSS residuals**: the feed window is the 15 newest uploads mixed across
+  formats (new-ID Shorts classification needed; measured 0/15 Shorts overlap
+  on a long-form-recent channel); starRating=likes validated on N=2 videos;
+  feed behavior verified on N=4 roster channels on one day; no comment counts
+  on this or any cheap logged-out YT batch surface (deep tier or the official
+  Data API — an owner fork — are the only comment-count routes).
 - **No per-tile publish date on YT**: new-content detection must rely on grid
   order + first-seen diffing against prior captures, or defer timing to the
   deep tier.
