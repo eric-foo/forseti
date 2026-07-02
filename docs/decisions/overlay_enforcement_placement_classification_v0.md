@@ -29,6 +29,50 @@ Prepare-only **proposal + classification**. It inventories and classifies rules 
 
 Scope guard: this is the **enforcement-placement step only**. Binding the shared distillation doctrine to Orca is a separate later task and is explicitly out of scope here (see § Step 4).
 
+## Update — 2026-07-02: EP-35 (review-routing disposition gate) built and wired
+
+A new Enforcement Placement handle — **EP-35, beyond the EP-01..EP-34 set** —
+built and wired under explicit current-turn owner authorization ("Do the B and
+C", the fused-lane audit turn).
+
+- **What it enforces:** a change touching code roots (`orca-harness/`,
+  `.agents/hooks/`) must carry its review disposition — a review artifact added
+  under `docs/prompts/reviews/` / `docs/review-outputs/` in the same change, or
+  a shape-valid `review_routing_status: routed <existing path> | blocked --
+  <reason> | not_needed -- <reason>` line in the change's commit messages. Rule
+  owner: `.agents/workflow-overlay/validation-gates.md` (Review-routing
+  disposition gate, with inline DCP receipt); the checker references it.
+- **Provenance:** the 2026-07-02 fused-lane audit found only ~2 of 8 assessable
+  fused implementation lanes filed their carried delegated-review handoff
+  same-turn; four claimed it in commit prose without filing it; the
+  `review_routing_status` closeout field lived only in chat, so nothing durable
+  was checkable. The 06-17 prose hardening of the fused skill did not hold —
+  enforcement moves to a commit-visible substrate. `--audit` at build time:
+  51 of 67 code-root landings in the trailing 120 first-parent main commits
+  carried no disposition (forward-only backlog, never gated).
+- **Classification: PARTIAL.** Disposition presence + token shape + `routed`
+  path existence are SUBSTRATE (diff-scoped, forward-only). The truth of a
+  `not_needed`/`blocked` reason, the quality of a filed review, and — the
+  over-edge — *whether review should have been recommended at all* stay
+  resident judgment (the fused/scoping/review contracts). PLACEMENT IS NOT
+  AUTHORITY: a green run is disposition shape, never proof a review happened
+  or was sufficient.
+- **Built:** `.agents/hooks/check_review_routing.py` (`--strict` CI gate,
+  `--report`/`--check`, `--commit-msg` local advisory, `--audit`, `--selftest`;
+  fail-open only on infra gaps, mirroring `check_dcp_receipt.py`). Wired:
+  `.github/workflows/ci.yml` step + `.githooks/commit-msg` advisory line.
+  Verified this session: `--selftest` 21/21 PASS; `--audit --limit 120`
+  reproduced the audit findings (e.g. PR #577 flagged; PRs #575/#555, which
+  filed review artifacts, pass); `--strict` OK on the build lane itself.
+- **Companion (out of Orca scope):** the fused skill closeout edit (rendering
+  default-authorized; durable stamp obligation) is user-level skill source
+  (`~/.claude/skills/fused/SKILL.md`), protected from agent edit; the owner
+  applies it separately.
+
+This trips `stale_if` (a further substrate built). The DCP receipt lives in
+`validation-gates.md` (an overlay rule was added there — unlike the EP-06/32/04
+builds, this one IS a doctrine change). Not validation, readiness, or approval.
+
 ## Update — 2026-06-28: EP-34 (session HEAD-drift guard) considered → kept resident (premise verified-false; owner-declined the stateful version)
 
 A new Enforcement Placement handle — **EP-34, beyond the EP-01..EP-33 set** — recorded as
