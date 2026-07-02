@@ -51,9 +51,14 @@ WHY THIS EXISTS (enforcement placement)
     .agents/workflow-overlay/validation-gates.md -> "Enforcement Placement"
 
 HARD BOUNDARY
-  Read-only.  No writes.  Fails OPEN on internal error (prints the error,
-  exits 0) so a broken index never stalls CI or a session.  --strict is
-  diff-scoped only; it NEVER falls back to whole-repo strict.
+  Read-only.  No writes.  An unexpected internal exception (including a
+  broken/missing check_retrieval_header.py sibling) is the GATE FAIL bucket
+  in gating modes (validation-gates.md; EP-35 FIND-02 class sweep):
+  --strict/--selftest exit 1 on internal error; advisory modes (--index,
+  --health, --report-orca) print the error and exit 0 so a broken index
+  never stalls a session.  Infra-gap fail-opens (unresolvable repo root or
+  base ref) are unchanged.  --strict is diff-scoped only; it NEVER falls
+  back to whole-repo strict.
 
 MODES (summary)
   header_index.py --index
@@ -757,6 +762,10 @@ def run_report_orca(root: Path) -> int:
 
 
 def main(argv: list[str]) -> int:
+    # Forced-exception probe: proves the __main__ gating handler
+    # (orca-harness/tests/unit/test_hook_internal_error_gating.py).
+    if "--force-internal-error" in argv:
+        raise RuntimeError("forced internal error (probe)")
     if not _CRH_AVAILABLE:
         print(
             "header_index: ERROR: could not import check_retrieval_header.py: %s" % _CRH_ERR,
@@ -767,8 +776,10 @@ def main(argv: list[str]) -> int:
             "directory as this script (.agents/hooks/).",
             file=sys.stderr,
         )
-        # Fail open on import error so CI doesn't ghost-fail
-        return 0
+        # A broken/missing sibling checker is an internal defect, not an infra
+        # gap: GATE FAIL in gating modes (EP-35 FIND-02 class sweep); advisory
+        # modes stay fail-open so a broken import never stalls a session.
+        return 1 if ("--strict" in argv or "--selftest" in argv) else 0
 
     if "--selftest" in argv:
         return selftest()
@@ -806,5 +817,10 @@ if __name__ == "__main__":
     try:
         sys.exit(main(sys.argv[1:]))
     except Exception as exc:
-        sys.stderr.write("header_index: internal error, failing open: %s\n" % exc)
-        sys.exit(0)  # fail open
+        # GATE FAIL bucket in gating modes (validation-gates.md; EP-35
+        # delegated review FIND-02 class sweep): an internal checker bug must
+        # not read as a green gate. Advisory modes fail open so a bug never
+        # bricks the agent.
+        sys.stderr.write("header_index: internal error: %s\n" % exc)
+        gating = "--strict" in sys.argv[1:] or "--selftest" in sys.argv[1:]
+        sys.exit(1 if gating else 0)

@@ -113,12 +113,17 @@ def test_youtube_shorts_fragrance_creator_observation_ledger_rebuilds_from_sourc
     validate_source_rebuild(_ledger(), _source_creator_ledger())
 
 
-def test_youtube_shorts_fragrance_creator_observation_ledger_live_lake_refs_when_available() -> None:
+def test_youtube_shorts_fragrance_creator_observation_ledger_archived_lake_refs_when_available() -> None:
     # Explicit operator opt-in only; ambient ORCA_DATA_ROOT must never pull a
     # production lake into the suite (it is deleted per-test in conftest).
-    data_root = os.environ.get("ORCA_LIVE_LAKE_TEST_ROOT")
+    # This ledger is a static historical fixture bound to the RETIRED lake root
+    # (orca-canonical / v0), preserved as an archive outside the live lake, so it
+    # takes its own opt-in variable: pointing it at the live (v4.1+) lake fails
+    # closed at live_lake_root_uuid_mismatch by design. See
+    # docs/decisions/youtube_creator_observation_ledger_lake_identity_drift_owner_decision_packet_v0.md.
+    data_root = os.environ.get("ORCA_ARCHIVED_LAKE_TEST_ROOT")
     if not data_root:
-        pytest.skip("ORCA_LIVE_LAKE_TEST_ROOT is not set; live lake reconciliation is an explicit operator opt-in")
+        pytest.skip("ORCA_ARCHIVED_LAKE_TEST_ROOT is not set; archived-evidence reconciliation is an explicit operator opt-in")
 
     validate_youtube_creator_observation_ledger_against_live_lake(_ledger(), data_root)
 

@@ -140,8 +140,8 @@ If `F:\orca-data-lake` is accessible, verify only non-invasive root identity/sta
 ## Operator-Supplied Current Context To Verify, Not Trust
 
 - Data lake target: `F:\orca-data-lake`.
-- Data lake root UUID observed in prior thread context: `01KW1E6N133JT0XCN2KCN0V5A4`.
-- Current IG recurring setup: a Windows scheduled task named `OrcaIGExtract` runs every 15 minutes and calls a lane-specific PowerShell poller. It was temporarily changed to visible/persistent `-NoExit` mode for debugging because the owner wants to see what is happening.
+- Data lake root UUID observed 2026-07-02: `01KW7N6ERSVVANCEZ8SD6YW3EQ` (v4.1 forward epoch, re-initialized 2026-06-28 under `epoch_policy: clean_forward_epoch`; the prior v0 root `01KW1E6N133JT0XCN2KCN0V5A4` is preserved at `F:\orca-data-lake-legacy-v0-20260628T174129Z`). Epoch changes retire root identity without migrating packets; the poller architecture must account for that.
+- Current IG recurring setup: the Windows scheduled task `OrcaIGExtract` (15-minute repetition) was disabled by owner direction on 2026-07-02. Its recorded action still points at a poller copy in a since-removed worktree (`worktrees\ig-reels-extract-routine\...`), so re-enabling the lane also requires re-pointing the task action. The repo poller is `orca-harness/runners/poll_and_extract.ps1`, re-pinned to the v4.1 root on 2026-07-02 with a loud `blocked_root_uuid_mismatch` status on lake-identity drift.
 - Normal desired behavior after debugging: no focus-stealing recurring shell windows; durable lake/status/log evidence should make the automation observable without interrupting the operator.
 - The YouTube product-extraction lane should use the GPT-family/Codex route like the IG extraction setup, not a Sonnet/browser recurring process.
 - The earlier Sonnet/browser work was a separate one-off quality-check/extraction lane, not the desired recurring automation shape.

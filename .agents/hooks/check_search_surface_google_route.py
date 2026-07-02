@@ -445,6 +445,10 @@ def selftest() -> int:
 
 
 def main(argv: list[str]) -> int:
+    # Forced-exception probe: proves the __main__ gating handler
+    # (orca-harness/tests/unit/test_hook_internal_error_gating.py).
+    if "--force-internal-error" in argv:
+        raise RuntimeError("forced internal error (probe)")
     try:
         root = repo_root()
     except Exception as exc:
@@ -483,7 +487,10 @@ if __name__ == "__main__":
     try:
         sys.exit(main(sys.argv[1:]))
     except Exception as exc:
-        sys.stderr.write(
-            f"check_search_surface_google_route: internal error, failing open: {exc}\n"
-        )
-        sys.exit(0)
+        # GATE FAIL bucket in gating modes (validation-gates.md; EP-35
+        # delegated review FIND-02 class sweep): an internal checker bug must
+        # not read as a green gate. Advisory/--hook modes fail open so a bug
+        # never bricks the agent.
+        sys.stderr.write(f"check_search_surface_google_route: internal error: {exc}\n")
+        gating = "--strict" in sys.argv[1:] or "--selftest" in sys.argv[1:]
+        sys.exit(1 if gating else 0)

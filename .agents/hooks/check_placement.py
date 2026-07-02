@@ -415,6 +415,10 @@ def selftest() -> int:
 
 
 def main(argv: list[str]) -> int:
+    # Forced-exception probe: proves the __main__ gating handler
+    # (orca-harness/tests/unit/test_hook_internal_error_gating.py).
+    if "--force-internal-error" in argv:
+        raise RuntimeError("forced internal error (probe)")
     root = repo_root()
     if "--selftest" in argv:
         return selftest()
@@ -431,8 +435,10 @@ if __name__ == "__main__":
     except SystemExit:
         raise
     except Exception as exc:  # fail OPEN in the advisory paths; never brick the agent
-        if "--strict" in sys.argv:
-            sys.stderr.write(f"check_placement: internal error in --strict: {exc}\n")
+        # --selftest joins --strict as a gating mode (GATE FAIL bucket,
+        # validation-gates.md; EP-35 FIND-02 class sweep).
+        if "--strict" in sys.argv or "--selftest" in sys.argv:
+            sys.stderr.write(f"check_placement: internal error in gating mode: {exc}\n")
             sys.exit(1)
         sys.stderr.write(f"check_placement: internal error, allowing: {exc}\n")
         sys.exit(0)

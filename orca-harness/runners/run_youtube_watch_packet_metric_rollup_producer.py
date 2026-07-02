@@ -78,15 +78,20 @@ def run_watch_packet_producer(
     account_ledger: Mapping[str, Any],
     generated_at_utc: str,
     use_bronze_attachment_records: bool = False,
+    excluded_video_ids: Mapping[str, str] | None = None,
 ) -> YoutubeCreatorMetricSilverResult:
     """Build the live watch-packet metric document, then append its observation
     + rollup records to the lake. The testable core -- lake-parameterized so it
-    runs against ``DataLakeRoot.for_test``."""
+    runs against ``DataLakeRoot.for_test``. ``excluded_video_ids`` is the
+    explicit operator-exclusion map for observably-dead admitted videos; the
+    builder records every exclusion loudly and fails closed on unknown ids or
+    an account-fatal exclusion set."""
     document = build_youtube_watch_packet_metric_document(
         data_root,
         creator_ledger=creator_ledger,
         account_ledger=account_ledger,
         generated_at_utc=generated_at_utc,
+        excluded_video_ids=excluded_video_ids,
     )
     return derive_youtube_creator_metric_silver_records_from_seed(
         data_root=data_root,
@@ -145,6 +150,23 @@ def _build_parser() -> argparse.ArgumentParser:
             "Record refs when generated catalog rows exist."
         ),
     )
+    parser.add_argument(
+        "--exclude-video",
+        action="append",
+        dest="excluded_videos",
+        default=None,
+        metavar="VIDEO_ID",
+        help=(
+            "Explicitly exclude an admitted video from this cycle (repeatable). Requires "
+            "--exclusion-reason. Recorded loudly in the document and affected rollup "
+            "limitations; fails closed on unknown ids or account-fatal exclusion sets."
+        ),
+    )
+    parser.add_argument(
+        "--exclusion-reason",
+        default=None,
+        help="Operator-attested reason applied to every --exclude-video id (required with exclusions).",
+    )
     return parser
 
 
@@ -152,6 +174,34 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser = _build_parser()
     args = parser.parse_args(argv)
     generated_at = args.generated_at_utc or _now_utc()
+
+    excluded_video_ids: dict[str, str] | None = None
+    if args.excluded_videos:
+        seen: set[str] = set()
+        duplicate_videos: set[str] = set()
+        for video_id in args.excluded_videos:
+            if video_id in seen:
+                duplicate_videos.add(video_id)
+            seen.add(video_id)
+        if duplicate_videos:
+            parser.exit(
+                status=2,
+                message=(
+                    "--exclude-video was provided more than once for: "
+                    + ", ".join(sorted(duplicate_videos))
+                    + "\n"
+                ),
+            )
+        if not args.exclusion_reason or not args.exclusion_reason.strip():
+            parser.exit(
+                status=2,
+                message="--exclude-video requires a non-empty --exclusion-reason\n",
+            )
+        excluded_video_ids = {
+            video_id: args.exclusion_reason.strip() for video_id in args.excluded_videos
+        }
+    elif args.exclusion_reason:
+        parser.exit(status=2, message="--exclusion-reason requires at least one --exclude-video\n")
 
     try:
         data_root = DataLakeRoot.resolve(explicit=args.data_root)
@@ -171,6 +221,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             account_ledger=account_ledger,
             generated_at_utc=generated_at,
             use_bronze_attachment_records=args.use_bronze_attachment_records,
+            excluded_video_ids=excluded_video_ids,
         )
     except Exception as exc:  # noqa: BLE001 - operator feedback; fail-closed, no partial-success masking
         parser.exit(
@@ -189,6 +240,11 @@ def main(argv: Sequence[str] | None = None) -> int:
         f"at computed_at={generated_at} "
         f"({engagement_rollups} rollup(s) carry observed engagement metrics)"
     )
+    if excluded_video_ids:
+        print(
+            f"  operator exclusions ({len(excluded_video_ids)}): "
+            + "; ".join(f"{vid} ({reason})" for vid, reason in sorted(excluded_video_ids.items()))
+        )
     for path in result.rollup_paths:
         print(f"  rollup: {path}")
     return 0

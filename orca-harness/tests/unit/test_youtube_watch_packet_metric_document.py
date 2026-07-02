@@ -393,6 +393,91 @@ def test_account_with_no_observed_views_fails_closed(tmp_path: Path) -> None:
     assert excinfo.value.subject == "acct_yt_bravo"
 
 
+def test_operator_exclusion_builds_survivor_only_rollup(tmp_path: Path) -> None:
+    # Exclude alpha's engagement-bearing video: no packet is demanded for it,
+    # the rollup covers only the survivor, and the exclusion is named loudly.
+    data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    _commit_packet(
+        data_root, captured_at=T1, video_id="vidAlpha002", channel_id=ALPHA_CHANNEL, view_count=200
+    )
+    _commit_packet(
+        data_root,
+        captured_at=T1,
+        video_id="vidBravo001",
+        channel_id=BRAVO_CHANNEL,
+        view_count=50,
+        like_count=5,
+        total_comment_count=2,
+    )
+    data_root.rebuild_availability()
+    seed = _build(
+        data_root,
+        excluded_video_ids={"vidAlpha001": "video unavailable (playabilityStatus ERROR), reproduced twice 2026-07-02"},
+    )[YOUTUBE_SHORTS_FRAGRANCE_CREATOR_METRIC_SEED_WRAPPER]
+
+    assert seed["counts"]["operator_excluded_admitted_videos"] == 1
+    assert seed["counts"]["admitted_creator_videos"] == 2
+    assert seed["counts"]["metric_observations_total"] == 4
+    assert seed["operator_exclusions"] == [
+        {
+            "video_id": "vidAlpha001",
+            "reason": "video unavailable (playabilityStatus ERROR), reproduced twice 2026-07-02",
+        }
+    ]
+    assert all(
+        observation["content_id_or_none"] != "vidAlpha001"
+        for observation in seed["metric_observations"]
+    )
+    alpha = next(r for r in seed["metric_rollups"] if r["profile_subject_id"] == "acct_yt_alpha")
+    # Survivor-only math: only vidAlpha002 remains.
+    assert alpha["metric_rollups"]["average_views"]["value_or_none"] == 200.0
+    assert alpha["view_count_min"] == alpha["view_count_max"] == 200
+    assert alpha["observation_count"] == 1 == len(alpha["source_metric_observation_ids"])
+    assert alpha["sample_support"]["observation_count"] == 1
+    assert alpha["sample_support"]["sample_adequacy"] == "thin_n_1_to_3"
+    joined = " ".join(alpha["limitations"])
+    assert "explicit operator exclusion" in joined
+    assert "vidAlpha001" in joined
+    assert "playabilityStatus ERROR" in joined
+    # Untouched account carries no exclusion language.
+    bravo = next(r for r in seed["metric_rollups"] if r["profile_subject_id"] == "acct_yt_bravo")
+    assert "operator exclusion" not in " ".join(bravo["limitations"])
+
+
+def test_default_path_has_no_exclusion_artifacts(tmp_path: Path) -> None:
+    data_root = _lake_with_default_captures(tmp_path)
+    seed = _build(data_root)[YOUTUBE_SHORTS_FRAGRANCE_CREATOR_METRIC_SEED_WRAPPER]
+    assert seed["counts"]["operator_excluded_admitted_videos"] == 0
+    assert seed["operator_exclusions"] == []
+    for rollup in seed["metric_rollups"]:
+        assert "operator exclusion" not in " ".join(rollup["limitations"])
+
+
+def test_excluding_unknown_video_fails_closed(tmp_path: Path) -> None:
+    data_root = _lake_with_default_captures(tmp_path)
+    with pytest.raises(WatchPacketMetricDocumentError) as excinfo:
+        _build(data_root, excluded_video_ids={"vidUnknown01": "not in the pool"})
+    assert excinfo.value.reason == "unknown_excluded_video"
+
+
+def test_exclusion_without_reason_fails_closed(tmp_path: Path) -> None:
+    data_root = _lake_with_default_captures(tmp_path)
+    with pytest.raises(WatchPacketMetricDocumentError) as excinfo:
+        _build(data_root, excluded_video_ids={"vidAlpha001": "  "})
+    assert excinfo.value.reason == "missing_exclusion_reason"
+
+
+def test_account_fully_excluded_fails_closed(tmp_path: Path) -> None:
+    data_root = _lake_with_default_captures(tmp_path)
+    with pytest.raises(WatchPacketMetricDocumentError) as excinfo:
+        _build(
+            data_root,
+            excluded_video_ids={"vidBravo001": "video unavailable"},
+        )
+    assert excinfo.value.reason == "account_fully_excluded"
+    assert BRAVO_CHANNEL in str(excinfo.value)
+
+
 def test_discovery_ignores_unexpected_videos(tmp_path: Path) -> None:
     data_root = _lake_with_default_captures(tmp_path)
     _commit_packet(
