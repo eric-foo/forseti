@@ -13,6 +13,12 @@ use_when:
   - Dispatching the commissioned de-correlated review of the SoV field contract.
   - Re-dispatching the same bundle unchanged (verify hashes first).
 authority_boundary: retrieval_only
+superseded_by: >
+  docs/prompts/reviews/sov_field_contract_repo_adversarial_artifact_review_patch_commission_prompt_v0.md
+  (owner chose repo-access dispatch, 2026-07-02). Do NOT also dispatch this
+  no_repo bundle for the same commission — a duplicate review double-counts
+  findings. Retained as the fallback shape if a repo-blind dispatch is ever
+  needed for this target.
 ```
 
 ## Pinned fields
