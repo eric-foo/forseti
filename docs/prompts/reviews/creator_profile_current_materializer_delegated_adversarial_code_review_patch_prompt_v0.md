@@ -25,8 +25,8 @@ open_next:
   - orca-harness/capture_spine/creator_profile_current/materialize.py
   - orca-harness/runners/run_creator_profile_current_materialize.py
   - orca-harness/tests/unit/test_creator_profile_current_static_view.py
-  - orca/product/spines/capture/core/source_families/social_media/creator_profile_current_view_v0.json
-  - orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_v0.json
+  - orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_profile_current_view_v0.json
+  - orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json
   - orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json
 input_hashes:
   docs/workflows/orca_repo_map_v0.md: ECA433CF1DEC346339B4F6DEA2B1941C9FC1A92CD0A16F2E03FA4A5717F8606E

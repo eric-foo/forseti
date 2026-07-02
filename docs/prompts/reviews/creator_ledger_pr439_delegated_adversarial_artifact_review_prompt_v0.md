@@ -17,9 +17,9 @@ open_next:
   - .agents/workflow-overlay/delegated-review-patch.md
   - .agents/workflow-overlay/review-lanes.md
   - .agents/workflow-overlay/prompt-orchestration.md
-  - orca/product/spines/capture/core/source_families/social_media/creator_profile_current_view_spec_v0.md
+  - orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_profile_current_view_spec_v0.md
   - orca/product/spines/creator_signal/creator_intelligence_profile_surface_v0.md
-  - orca/product/spines/capture/core/source_families/social_media/creator_profile_current_view_v0.json
+  - orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_profile_current_view_v0.json
 stale_if:
   - The review target commit changes from 23dce2d4ede2418fb3e73e325b045dc61b5fa03b.
   - The base branch changes from codex/channel-neutral-creator-identity-architecture-prompt-pr412.

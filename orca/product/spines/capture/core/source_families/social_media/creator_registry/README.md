@@ -63,7 +63,7 @@ owns how the buyer/operator sees the resulting profile.
 ## Dedupe Rule
 
 Discovery should still observe known creators again. A repeat observation is
-useful signal. The registry index only prevents duplicate work:
+useful signal. The registry index only prevents duplicate rows and duplicate work:
 
 ```text
 Discovery observes a handle or URL
@@ -83,6 +83,7 @@ Discovery observes a handle or URL
 - not a social follower graph
 - not SQLite or dashboard implementation
 - not buyer proof
+
 ## Direction Change Propagation
 
 ```yaml
@@ -105,29 +106,23 @@ direction_change_propagation:
     - orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_profile_current_view_spec_v0.md
     - orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_profile_current_lake_native_record_mapping_v0.md
   downstream_surfaces_checked:
-    - .agents/workflow-overlay/artifact-folders.md
-    - .agents/workflow-overlay/source-of-truth.md
     - docs/workflows/data_capture_spine_consolidation_map_v0.md
+    - docs/workflows/orca_repo_map_v0.md
     - orca/product/spines/capture/core/source_capture_toolbox/README.md
     - orca/product/spines/creator_signal/README.md
     - orca/product/spines/creator_signal/creator_intelligence_profile_surface_v0.md
     - orca-harness/capture_spine/creator_profile_current/materialize.py
+    - orca-harness/capture_spine/creator_profile_current/instagram_metric_seed.py
     - orca-harness/runners/run_creator_profile_current_materialize.py
+    - orca-harness/runners/run_instagram_reels_creator_metric_seed_materialize.py
     - orca-harness/tests/unit/test_creator_registry_index.py
     - orca-harness/tests/unit/test_creator_profile_current_static_view.py
     - orca-harness/tests/unit/test_creator_public_handle_linkage.py
+    - orca-harness/tests/unit/test_instagram_reels_creator_metric_seed.py
     - orca-harness/tests/unit/test_youtube_creator_metric_seed.py
   intentionally_not_updated:
-    - path: docs/prompts/ and docs/review-outputs/ historical prompt/review files
-      reason: Historical commission/review artifacts keep point-in-time source paths by design; active product, map, code, and test surfaces were updated.
-  stale_language_search: >
-    rg -n "source_families/social_media/creator_(profile_current|public_handle)"
-    orca/product orca-harness docs/workflows/data_capture_spine_consolidation_map_v0.md
-  stale_language_search_result: >
-    No active old flat-path hits after the move; historical prompts/reviews were
-    intentionally outside this search. Direct placement classify returned ok for
-    the new creator_registry README, index spec, index JSON, linkage ledger, and
-    profile-current JSON.
+    - path: docs/prompts/, docs/review-inputs/, and docs/review-outputs/ historical prompt/review body prose
+      reason: Historical commission/review artifacts keep point-in-time source paths in their body narrative by design; their open_next retrieval headers were repointed to the new creator_registry/ paths so the strict retrieval link gate stays green, and active product, map, code, and test surfaces were updated.
   non_claims:
     - not validation
     - not readiness

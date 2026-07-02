@@ -24,6 +24,13 @@
             "commandWindows": "python \"$(git rev-parse --show-toplevel)/.agents/hooks/check_repo_map_freshness.py\" --hook",
             "timeout": 10,
             "statusMessage": "Checking Orca repo-map commit policy"
+          },
+          {
+            "type": "command",
+            "command": "python \"$(git rev-parse --show-toplevel)/.agents/hooks/check_search_surface_google_route.py\" --hook",
+            "commandWindows": "python \"$(git rev-parse --show-toplevel)/.agents/hooks/check_search_surface_google_route.py\" --hook",
+            "timeout": 10,
+            "statusMessage": "Checking Orca Google search-surface route policy"
           }
         ]
       }

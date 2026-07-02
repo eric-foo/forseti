@@ -13,12 +13,14 @@ use_when:
 open_next:
   - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_storage_contract_v0.md
   - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_core_contract_v0.md
+  - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_silver_vault_record_contract_v0.md
   - orca/product/spines/capture/core/packet_schema/source_capture_tenant_payload_attachment_boundary_v0.md
   - orca/product/spines/capture/core/packet_schema/source_capture_packet_schema_evolution_architecture_v0.md
 stale_if:
   - Data Lake Storage Contract v0 reopens or supersedes the blocker-1 direction.
   - Source Capture packet manifest/read-write mechanics change attachment or preserved-file reference semantics.
   - A later accepted Manifest v2, sidecar/member layout, backend, migration, or lawful-erasure decision supersedes this contract.
+  - The Silver Vault raw-ref or Bronze intake boundary changes.
 authority_boundary: retrieval_only
 ```
 
@@ -139,6 +141,32 @@ tests appropriate to that lane, that:
 7. No lake write/read path calls ECR, SCR, Cleaning, Projection, Judgment, a
    scheduler, or a retry engine as part of storing or exposing the keyed
    Attachment Record fact.
+8. A Silver producer can resolve an Attachment Record through public Bronze
+   surfaces, verify the body hash, and carry the AR-backed source ref into
+   Silver `raw_refs` without reading private packet-member paths.
+
+## Silver Consumption Contract
+
+Attachment Records are the typed raw-payload cards Silver may cite when it turns
+source-family payload bodies into source-backed semantic records. The preserved
+body remains Bronze raw evidence; Silver carries a ref, not a second source body.
+
+For source-family payload bodies, the Silver-side ref should carry enough AR
+entry material to re-resolve and verify the body: `attachment_record_id`,
+Attachment Record schema version, physicalization, `packet_id`, packet/body ref,
+`body_sha256`, `hash_basis`, `source_family`, `source_surface`, `payload_kind`,
+`payload_schema_version`, replay/version pins, and producer-owned provenance
+needed by the Silver producer contract.
+
+A Silver producer that finds no Attachment Record row may fall back to
+hash-checkable raw packet refs only when its own contract allows that fallback;
+the missing typed AR row must remain visible as residual/posture. The fallback is
+not proof that the payload was absent and does not let the producer infer folder
+semantics.
+
+This contract still does not authorize runtime AR implementation, a new storage
+layout, Manifest v2, migration, or a Silver producer. It only binds the consumer
+shape that a future implementation must satisfy.
 
 ## Deferred Decisions
 
@@ -161,3 +189,59 @@ This artifact does not authorize runtime implementation, engine/backend
 selection, packet mutation, manifest migration, source-family schema design,
 derived-record persistence, queue runtime, validation, approval, readiness, or
 architecture completion.
+
+## Direction Change Propagation
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Attachment Record implementation doctrine now binds Silver consumption: AR
+    entries are typed raw-payload refs over preserved Bronze bodies, Silver
+    records carry AR-backed raw_refs when deriving facts from source-family
+    payload bodies, and missing AR rows remain visible residual/posture rather
+    than inferred absence.
+  trigger: architecture_doctrine
+  related_triggers:
+    - workflow_authority
+  controlling_sources_updated:
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_attachment_record_implementation_contract_v0.md
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_silver_vault_record_contract_v0.md
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_bronze_mgt_baseline_declaration_v0.md
+    - orca/product/spines/data_lake/README.md
+    - docs/workflows/orca_repo_map_v0.md
+  downstream_surfaces_checked:
+    - AGENTS.md
+    - .agents/workflow-overlay/README.md
+    - .agents/workflow-overlay/source-loading.md
+    - .agents/workflow-overlay/source-of-truth.md
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_core_contract_v0.md
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_storage_contract_v0.md
+    - orca-harness/data_lake/catalog.py
+  intentionally_not_updated:
+    - path: orca/product/spines/data_lake/authority/core_spine_v0_data_lake_storage_contract_v0.md
+      reason: >
+        Storage still owns Manifest v2, sidecar/member/body-store layout,
+        backend, migration, retention, and lawful-erasure choices. This patch
+        binds consumer shape without selecting those physicalization decisions.
+    - path: orca/product/spines/data_lake/authority/core_spine_v0_data_lake_core_contract_v0.md
+      reason: >
+        Core already defines Attachment Records as source-payload refs and
+        forbids cleaned/Judgment meaning. This patch narrows downstream Silver
+        consumption mechanics without changing the parent boundary.
+    - path: orca-harness/data_lake/catalog.py
+      reason: >
+        Existing post-PR-525 catalog helpers expose AR rows and body hash
+        verification; no runtime implementation is authorized here.
+  stale_language_search: >
+    rg -n "Attachment Record|raw_refs|Silver|Manifest v2|body store|full God Tier"
+    orca/product/spines/data_lake orca-harness/data_lake/catalog.py docs/workflows/orca_repo_map_v0.md
+  non_claims:
+    - not validation
+    - not readiness
+    - not runtime implementation authorization
+    - not Manifest v2 selection
+    - not body-store layout selection
+    - not Silver producer implementation
+```
+
+Older receipts are archived in `docs/decisions/dcp_receipts_archive_v0.md`.

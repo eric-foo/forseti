@@ -126,7 +126,68 @@ def test_projects_complete_audio_backed_ig_behavior_record() -> None:
     ]
 
 
-def test_deep_capture_transcript_is_visible_but_residualized_until_feed_adapter_exists() -> None:
+def test_deep_capture_transcript_is_extraction_eligible_and_exact_keyed() -> None:
+    deep_key = f"{_SHORTCODE}:asr:deepcap_1.json"
+    projection = project_ig_reels_behavioral_item(
+        platform_item_id=_SHORTCODE,
+        grid_rows=[_grid_row()],
+        comment_sets=[_comment_set()],
+        standalone_audio_transcript_records=[_audio_transcript()],
+        deep_capture_transcript_records=[_deep_transcript()],
+        extraction_results=[
+            {"anchor": "audio-packet-1", "video_id": _SHORTCODE, "status": "extracted"},
+            {
+                "anchor": _SHORTCODE,
+                "video_id": _SHORTCODE,
+                "status": "extracted",
+                "transcript_source_key": deep_key,
+                "path": "derived/shortcode/product_mentions/deep",
+            },
+        ],
+    )
+
+    deep_source = [
+        source
+        for source in projection["transcript"]["sources"]
+        if source["source_route"] == "deep_capture_render_audio"
+    ][0]
+    assert deep_source["posture"] == "transcribed"
+    assert deep_source["extraction_eligible"] is True
+    assert deep_source["non_eligible_reason"] is None
+    assert deep_source["transcript_source_key"] == deep_key
+    assert deep_source["extraction_status"] == "extracted"
+    assert projection["transcript"]["canonical_source"]["source_route"] == "deep_capture_render_audio"
+    assert projection["behavioral_completeness"] == {
+        "status": "complete",
+        "complete": True,
+        "residuals": [],
+    }
+
+
+def test_non_extraction_residual_blocks_complete_behavior_claim() -> None:
+    deep_key = f"{_SHORTCODE}:asr:deepcap_1.json"
+    projection = project_ig_reels_behavioral_item(
+        platform_item_id=_SHORTCODE,
+        comment_sets=[_comment_set()],
+        deep_capture_transcript_records=[_deep_transcript()],
+        extraction_results=[
+            {
+                "anchor": _SHORTCODE,
+                "video_id": _SHORTCODE,
+                "status": "extracted",
+                "transcript_source_key": deep_key,
+                "path": "derived/shortcode/product_mentions/deep",
+            },
+        ],
+    )
+
+    assert projection["transcript"]["extraction_rollup"]["status"] == "complete"
+    assert projection["behavioral_completeness"]["status"] == "complete_with_residuals"
+    assert projection["behavioral_completeness"]["complete"] is False
+    assert f"ig_grid_candidate_absent:{_SHORTCODE}" in projection["behavioral_completeness"]["residuals"]
+
+
+def test_unextracted_deep_capture_transcript_blocks_complete_claim() -> None:
     projection = project_ig_reels_behavioral_item(
         platform_item_id=_SHORTCODE,
         grid_rows=[_grid_row()],
@@ -141,17 +202,10 @@ def test_deep_capture_transcript_is_visible_but_residualized_until_feed_adapter_
         for source in projection["transcript"]["sources"]
         if source["source_route"] == "deep_capture_render_audio"
     ][0]
-    assert deep_source["posture"] == "transcribed"
-    assert deep_source["extraction_eligible"] is False
-    assert deep_source["non_eligible_reason"] == "deep_capture_not_in_extraction_feed"
-    assert deep_source["extraction_status"] == "not_extraction_eligible"
-    assert projection["transcript"]["canonical_source"]["source_route"] == "deep_capture_render_audio"
-    assert projection["behavioral_completeness"]["status"] == "complete_with_residuals"
+    assert deep_source["extraction_eligible"] is True
+    assert deep_source["extraction_status"] == "not_attempted"
+    assert projection["behavioral_completeness"]["status"] == "partial"
     assert projection["behavioral_completeness"]["complete"] is False
-    assert (
-        "ig_transcript_source_not_extraction_eligible:"
-        f"{_SHORTCODE}:asr:deepcap_1.json"
-    ) in projection["behavioral_completeness"]["residuals"]
 
 
 def test_failed_extraction_stays_visible_and_blocks_complete_claim() -> None:
@@ -211,7 +265,9 @@ def test_canonical_standalone_audio_prefers_latest_capture_time() -> None:
     )
 
     assert projection["transcript"]["canonical_source"]["transcript_anchor"] == "audio-new"
-    assert projection["behavioral_completeness"]["status"] == "complete"
+    assert projection["transcript"]["extraction_rollup"]["status"] == "complete"
+    assert projection["behavioral_completeness"]["status"] == "complete_with_residuals"
+    assert projection["behavioral_completeness"]["complete"] is False
 
 
 def test_real_shape_records_without_in_body_record_ids_are_residualized() -> None:

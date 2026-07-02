@@ -189,4 +189,3 @@ If you rerun checks, report exact commands and outcomes. If you do not rerun, st
 - Do not make SQLite, dashboard, capture-lane, or Silver-lake producer recommendations unless a validator bug depends on them.
 - Do not claim validation, readiness, approval, or merge safety.
 - If the source state is wrong or the review lane cannot be loaded, return the nearest blocker rather than reviewing a substitute source pack.
-

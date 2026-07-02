@@ -7,9 +7,11 @@
       "docs/decisions/wind_caller_calibration_carveout_v0.md",
       "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_spec_v0.md",
       "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_observation_ledger_v0.json",
-      "docs/review-inputs/youtube_shorts_fragrance_creator_ledger_v0.json"
+      "docs/review-inputs/youtube_shorts_fragrance_creator_ledger_v0.json",
+      "orca/product/spines/capture/core/source_families/social_media/instagram/ig_profile_grid_dom_engagement_recon_and_spec_v0.md",
+      "orca/product/spines/capture/core/source_families/social_media/instagram/instagram_reels_creator_metric_seed_v0.json"
     ],
-    "source_policy_posture": "Populated pre-SQLite public_handle_ledger seed with real YouTube platform_account rows from the source-backed YouTube Shorts fragrance creator observation ledger. The public_handle values are source/capture handle-query labels, not guaranteed current YouTube @handles and not public-handle stitching evidence. creator_records and account_link_evidence stay empty until source-backed cross-platform public-handle evidence exists; no non-public-handle joins; no live platform capture; no contact, outreach, audience, follower, or person-identity surface.",
+    "source_policy_posture": "Populated pre-SQLite public_handle_ledger seed with real YouTube platform_account rows from the source-backed YouTube Shorts fragrance creator observation ledger and real Instagram platform_account rows from IG reels-grid projection artifacts. Public_handle values are source/capture labels, not guaranteed current platform handles and not public-handle stitching evidence. creator_records and account_link_evidence stay empty until source-backed cross-platform public-handle evidence exists; no non-public-handle joins; no contact, outreach, audience, follower graph, or person-identity surface.",
     "platform_accounts": [
       {
         "platform_account_id": "acct_yt_fragrance_001",
@@ -370,6 +372,42 @@
         "public_display_name_or_none": "TLTG Reviews",
         "display_name_source_pointer_or_none": "docs/review-inputs/youtube_shorts_fragrance_creator_ledger_v0.json#/creators/30/observed_author_names",
         "display_name_source_field_or_none": "observed_author_names[0].author"
+      },
+      {
+        "platform_account_id": "acct_ig_reels_001",
+        "platform": "instagram",
+        "platform_public_account_id_or_none": null,
+        "public_handle": "hyram",
+        "public_profile_url": "https://www.instagram.com/hyram/",
+        "handle_source_pointer": "F:\\orca-data-lake\\derived\\01KW9T4ESARHD545RRPGCWWY1P\\projection_ig_reels_grid\\01KW9TYBFCV1Y6K3FVRJAPANQ3.json#/rows/0",
+        "handle_observed_at": "2026-06-29T13:47:06Z",
+        "public_display_name_or_none": null,
+        "display_name_source_pointer_or_none": null,
+        "display_name_source_field_or_none": null
+      },
+      {
+        "platform_account_id": "acct_ig_reels_002",
+        "platform": "instagram",
+        "platform_public_account_id_or_none": null,
+        "public_handle": "jeremyfragrance",
+        "public_profile_url": "https://www.instagram.com/jeremyfragrance/",
+        "handle_source_pointer": "F:\\orca-data-lake\\derived\\01KW9T5SGKBYD8HRVP3154F4Y8\\projection_ig_reels_grid\\01KW9TYSZA4A4Z4XQXW91S0VVY.json#/rows/0",
+        "handle_observed_at": "2026-06-29T13:47:50Z",
+        "public_display_name_or_none": null,
+        "display_name_source_pointer_or_none": null,
+        "display_name_source_field_or_none": null
+      },
+      {
+        "platform_account_id": "acct_ig_reels_004",
+        "platform": "instagram",
+        "platform_public_account_id_or_none": null,
+        "public_handle": "milanscents",
+        "public_profile_url": "https://www.instagram.com/milanscents/",
+        "handle_source_pointer": "F:\\orca-data-lake\\derived\\057\\01KWC89MF50H39PEQRG9V53FYY\\projection_ig_reels_grid\\01KWC8A2KRT2E6CER7DS764BXZ.json#/rows/0",
+        "handle_observed_at": "2026-06-30T12:33:04Z",
+        "public_display_name_or_none": null,
+        "display_name_source_pointer_or_none": null,
+        "display_name_source_field_or_none": null
       }
     ],
     "account_link_evidence": [],

@@ -8,8 +8,10 @@
     }
   },
   "enabledPlugins": {
-    "agent-workflow@agent-workflow-local": true
-  },
+  "agent-workflow@agent-workflow-local": true,
+  "anthropic-skills@inline": false,
+  "cowork-plugin-management@inline": false
+},
   "hooks": {
     "PreToolUse": [
       {
@@ -56,6 +58,11 @@
             "type": "command",
             "command": "python \"$CLAUDE_PROJECT_DIR/.agents/hooks/check_prompt_provenance.py\" --hook",
             "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "python \"$CLAUDE_PROJECT_DIR/.agents/hooks/check_search_surface_google_route.py\" --hook",
+            "timeout": 10
           }
         ]
       }
@@ -89,21 +96,51 @@
     ]
   },
   "permissions": {
-    "allow": [
-      "Bash(git commit*)",
-      "PowerShell(git commit*)"
-    ],
-    "ask": [
-      "Bash(git push*)",
-      "PowerShell(git push*)",
-      "Bash(git remote*)",
-      "PowerShell(git remote*)",
-      "Bash(gh pr*)",
-      "PowerShell(gh pr*)",
-      "Bash(git reset --hard*)",
-      "PowerShell(git reset --hard*)",
-      "Bash(git clean*)",
-      "PowerShell(git clean*)"
-    ]
+  "allow": [
+    "Bash(git commit*)",
+    "PowerShell(git commit*)",
+    "Bash(git fetch origin)",
+    "Bash(git fetch origin *)",
+    "PowerShell(git fetch origin)",
+    "PowerShell(git fetch origin *)",
+    "PowerShell(git status *)",
+    "PowerShell(git log *)",
+    "PowerShell(git diff *)",
+    "PowerShell(git show *)",
+    "PowerShell(git rev-parse *)",
+    "Bash(gh pr view *)",
+    "Bash(gh pr checks *)",
+    "Bash(gh pr diff *)",
+    "Bash(gh pr list *)",
+    "PowerShell(gh pr view *)",
+    "PowerShell(gh pr checks *)",
+    "PowerShell(gh pr diff *)",
+    "PowerShell(gh pr list *)",
+    "PowerShell(python .agents/hooks/check_silver_lane_registry.py *)"
+  ],
+  "ask": [
+    "Bash(git push*)",
+    "PowerShell(git push*)",
+    "Bash(git remote*)",
+    "PowerShell(git remote*)",
+    "Bash(gh pr create*)",
+    "Bash(gh pr merge*)",
+    "Bash(gh pr comment*)",
+    "Bash(gh pr edit*)",
+    "Bash(gh pr close*)",
+    "Bash(gh pr ready*)",
+    "Bash(gh pr review*)",
+    "PowerShell(gh pr create*)",
+    "PowerShell(gh pr merge*)",
+    "PowerShell(gh pr comment*)",
+    "PowerShell(gh pr edit*)",
+    "PowerShell(gh pr close*)",
+    "PowerShell(gh pr ready*)",
+    "PowerShell(gh pr review*)",
+    "Bash(git reset --hard*)",
+    "PowerShell(git reset --hard*)",
+    "Bash(git clean*)",
+    "PowerShell(git clean*)"
+  ]
   }
 }

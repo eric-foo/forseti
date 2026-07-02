@@ -1,0 +1,372 @@
+{
+  "creator_metric_rollup_snapshot": {
+    "metric_rollups": [
+      {
+        "calculation_recipe_version": "creator_metric_rollup_instagram_reels_grid_engagement_v0",
+        "computed_at": "2026-06-30T14:15:50Z",
+        "content_kind_inclusion_rule": "Instagram Reels from the selected /reels/ grid projection only; static posts and profile follower_count are excluded from rollup math",
+        "creator_record_id_or_none": null,
+        "freshness_state": "partial",
+        "limitations": [
+          "Rollup covers selected Instagram Reels grid rows only; it is not a full-account average.",
+          "View, like, and comment counts are capture-time observations and may have changed since capture.",
+          "Cross-platform rollups are not authorized without promoted public-handle linkage evidence.",
+          "Average/median views are computed over 12 selected reels and 36 metric observations for @hyram; sample adequacy is stronger_admitted_pool_n_8_plus and the value is not a representative creator average.",
+          "The selected IG reels grid selection can bias view averages relative to the creator's full Instagram output.",
+          "Engagement rate is computed only from source-backed selected-grid view, like, and comment counts.",
+          "Profile follower_count is not included in rollup math."
+        ],
+        "metric_rollup_id": "ig_reels_account_engagement_rollup_v0_001",
+        "metric_rollups": {
+          "average_comment_count": {
+            "metric_unit": "count",
+            "posture": "observed",
+            "value_or_none": 66
+          },
+          "average_like_count": {
+            "metric_unit": "count",
+            "posture": "observed",
+            "value_or_none": 3455.75
+          },
+          "average_views": {
+            "metric_unit": "count",
+            "posture": "observed",
+            "value_or_none": 145593.33
+          },
+          "engagement_rate": {
+            "metric_unit": "rate",
+            "posture": "observed",
+            "value_or_none": 0.024189
+          },
+          "median_views": {
+            "metric_unit": "count",
+            "posture": "observed",
+            "value_or_none": 58963.5
+          },
+          "posting_cadence": {
+            "metric_unit": "rate",
+            "posture": "not_attempted",
+            "posture_reason_or_none": "cadence recipe is out of scope for this IG metric seed",
+            "value_or_none": null
+          },
+          "recent_velocity": {
+            "metric_unit": "rate",
+            "posture": "not_attempted",
+            "posture_reason_or_none": "velocity recipe is out of scope for this IG metric seed",
+            "value_or_none": null
+          }
+        },
+        "observation_count": 36,
+        "platform_account_ids": [
+          "acct_ig_reels_001"
+        ],
+        "platform_scope": "instagram",
+        "profile_subject_id": "acct_ig_reels_001",
+        "profile_subject_kind": "platform_account",
+        "rollup_window": "custom",
+        "rollup_window_description": "selected_latest_ig_reels_grid_projection_v0; not a full-account history window",
+        "sample_support": {
+          "observation_count": 36,
+          "representativeness_posture": "admitted_pool_only_not_representative_creator_average",
+          "sample_adequacy": "stronger_admitted_pool_n_8_plus",
+          "surface_handling": "show_only_with_visible_admitted_pool_limitation"
+        },
+        "source_metric_observation_ids": [
+          "ig_reels_metric_obs_v0_002",
+          "ig_reels_metric_obs_v0_003",
+          "ig_reels_metric_obs_v0_004",
+          "ig_reels_metric_obs_v0_005",
+          "ig_reels_metric_obs_v0_006",
+          "ig_reels_metric_obs_v0_007",
+          "ig_reels_metric_obs_v0_008",
+          "ig_reels_metric_obs_v0_009",
+          "ig_reels_metric_obs_v0_010",
+          "ig_reels_metric_obs_v0_011",
+          "ig_reels_metric_obs_v0_012",
+          "ig_reels_metric_obs_v0_013",
+          "ig_reels_metric_obs_v0_014",
+          "ig_reels_metric_obs_v0_015",
+          "ig_reels_metric_obs_v0_016",
+          "ig_reels_metric_obs_v0_017",
+          "ig_reels_metric_obs_v0_018",
+          "ig_reels_metric_obs_v0_019",
+          "ig_reels_metric_obs_v0_020",
+          "ig_reels_metric_obs_v0_021",
+          "ig_reels_metric_obs_v0_022",
+          "ig_reels_metric_obs_v0_023",
+          "ig_reels_metric_obs_v0_024",
+          "ig_reels_metric_obs_v0_025",
+          "ig_reels_metric_obs_v0_026",
+          "ig_reels_metric_obs_v0_027",
+          "ig_reels_metric_obs_v0_028",
+          "ig_reels_metric_obs_v0_029",
+          "ig_reels_metric_obs_v0_030",
+          "ig_reels_metric_obs_v0_031",
+          "ig_reels_metric_obs_v0_032",
+          "ig_reels_metric_obs_v0_033",
+          "ig_reels_metric_obs_v0_034",
+          "ig_reels_metric_obs_v0_035",
+          "ig_reels_metric_obs_v0_036",
+          "ig_reels_metric_obs_v0_037"
+        ],
+        "view_count_max": 741197,
+        "view_count_min": 32183
+      },
+      {
+        "calculation_recipe_version": "creator_metric_rollup_instagram_reels_grid_engagement_v0",
+        "computed_at": "2026-06-30T14:15:50Z",
+        "content_kind_inclusion_rule": "Instagram Reels from the selected /reels/ grid projection only; static posts and profile follower_count are excluded from rollup math",
+        "creator_record_id_or_none": null,
+        "freshness_state": "partial",
+        "limitations": [
+          "Rollup covers selected Instagram Reels grid rows only; it is not a full-account average.",
+          "View, like, and comment counts are capture-time observations and may have changed since capture.",
+          "Cross-platform rollups are not authorized without promoted public-handle linkage evidence.",
+          "Average/median views are computed over 12 selected reels and 36 metric observations for @jeremyfragrance; sample adequacy is stronger_admitted_pool_n_8_plus and the value is not a representative creator average.",
+          "The selected IG reels grid selection can bias view averages relative to the creator's full Instagram output.",
+          "Engagement rate is computed only from source-backed selected-grid view, like, and comment counts.",
+          "Profile follower_count is not included in rollup math."
+        ],
+        "metric_rollup_id": "ig_reels_account_engagement_rollup_v0_002",
+        "metric_rollups": {
+          "average_comment_count": {
+            "metric_unit": "count",
+            "posture": "observed",
+            "value_or_none": 21
+          },
+          "average_like_count": {
+            "metric_unit": "count",
+            "posture": "observed",
+            "value_or_none": 319.08
+          },
+          "average_views": {
+            "metric_unit": "count",
+            "posture": "observed",
+            "value_or_none": 27470.5
+          },
+          "engagement_rate": {
+            "metric_unit": "rate",
+            "posture": "observed",
+            "value_or_none": 0.01238
+          },
+          "median_views": {
+            "metric_unit": "count",
+            "posture": "observed",
+            "value_or_none": 16994.0
+          },
+          "posting_cadence": {
+            "metric_unit": "rate",
+            "posture": "not_attempted",
+            "posture_reason_or_none": "cadence recipe is out of scope for this IG metric seed",
+            "value_or_none": null
+          },
+          "recent_velocity": {
+            "metric_unit": "rate",
+            "posture": "not_attempted",
+            "posture_reason_or_none": "velocity recipe is out of scope for this IG metric seed",
+            "value_or_none": null
+          }
+        },
+        "observation_count": 36,
+        "platform_account_ids": [
+          "acct_ig_reels_002"
+        ],
+        "platform_scope": "instagram",
+        "profile_subject_id": "acct_ig_reels_002",
+        "profile_subject_kind": "platform_account",
+        "rollup_window": "custom",
+        "rollup_window_description": "selected_latest_ig_reels_grid_projection_v0; not a full-account history window",
+        "sample_support": {
+          "observation_count": 36,
+          "representativeness_posture": "admitted_pool_only_not_representative_creator_average",
+          "sample_adequacy": "stronger_admitted_pool_n_8_plus",
+          "surface_handling": "show_only_with_visible_admitted_pool_limitation"
+        },
+        "source_metric_observation_ids": [
+          "ig_reels_metric_obs_v0_039",
+          "ig_reels_metric_obs_v0_040",
+          "ig_reels_metric_obs_v0_041",
+          "ig_reels_metric_obs_v0_042",
+          "ig_reels_metric_obs_v0_043",
+          "ig_reels_metric_obs_v0_044",
+          "ig_reels_metric_obs_v0_045",
+          "ig_reels_metric_obs_v0_046",
+          "ig_reels_metric_obs_v0_047",
+          "ig_reels_metric_obs_v0_048",
+          "ig_reels_metric_obs_v0_049",
+          "ig_reels_metric_obs_v0_050",
+          "ig_reels_metric_obs_v0_051",
+          "ig_reels_metric_obs_v0_052",
+          "ig_reels_metric_obs_v0_053",
+          "ig_reels_metric_obs_v0_054",
+          "ig_reels_metric_obs_v0_055",
+          "ig_reels_metric_obs_v0_056",
+          "ig_reels_metric_obs_v0_057",
+          "ig_reels_metric_obs_v0_058",
+          "ig_reels_metric_obs_v0_059",
+          "ig_reels_metric_obs_v0_060",
+          "ig_reels_metric_obs_v0_061",
+          "ig_reels_metric_obs_v0_062",
+          "ig_reels_metric_obs_v0_063",
+          "ig_reels_metric_obs_v0_064",
+          "ig_reels_metric_obs_v0_065",
+          "ig_reels_metric_obs_v0_066",
+          "ig_reels_metric_obs_v0_067",
+          "ig_reels_metric_obs_v0_068",
+          "ig_reels_metric_obs_v0_069",
+          "ig_reels_metric_obs_v0_070",
+          "ig_reels_metric_obs_v0_071",
+          "ig_reels_metric_obs_v0_072",
+          "ig_reels_metric_obs_v0_073",
+          "ig_reels_metric_obs_v0_074"
+        ],
+        "view_count_max": 147919,
+        "view_count_min": 4960
+      },
+      {
+        "calculation_recipe_version": "creator_metric_rollup_instagram_reels_grid_engagement_v0",
+        "computed_at": "2026-06-30T14:15:50Z",
+        "content_kind_inclusion_rule": "Instagram Reels from the selected /reels/ grid projection only; static posts and profile follower_count are excluded from rollup math",
+        "creator_record_id_or_none": null,
+        "freshness_state": "partial",
+        "limitations": [
+          "Rollup covers selected Instagram Reels grid rows only; it is not a full-account average.",
+          "View, like, and comment counts are capture-time observations and may have changed since capture.",
+          "Cross-platform rollups are not authorized without promoted public-handle linkage evidence.",
+          "Average/median views are computed over 12 selected reels and 36 metric observations for @milanscents; sample adequacy is stronger_admitted_pool_n_8_plus and the value is not a representative creator average.",
+          "The selected IG reels grid selection can bias view averages relative to the creator's full Instagram output.",
+          "Engagement rate is computed only from source-backed selected-grid view, like, and comment counts.",
+          "Profile follower_count is not included in rollup math."
+        ],
+        "metric_rollup_id": "ig_reels_account_engagement_rollup_v0_003",
+        "metric_rollups": {
+          "average_comment_count": {
+            "metric_unit": "count",
+            "posture": "observed",
+            "value_or_none": 108.17
+          },
+          "average_like_count": {
+            "metric_unit": "count",
+            "posture": "observed",
+            "value_or_none": 2552.92
+          },
+          "average_views": {
+            "metric_unit": "count",
+            "posture": "observed",
+            "value_or_none": 70628.33
+          },
+          "engagement_rate": {
+            "metric_unit": "rate",
+            "posture": "observed",
+            "value_or_none": 0.037677
+          },
+          "median_views": {
+            "metric_unit": "count",
+            "posture": "observed",
+            "value_or_none": 45850.5
+          },
+          "posting_cadence": {
+            "metric_unit": "rate",
+            "posture": "not_attempted",
+            "posture_reason_or_none": "cadence recipe is out of scope for this IG metric seed",
+            "value_or_none": null
+          },
+          "recent_velocity": {
+            "metric_unit": "rate",
+            "posture": "not_attempted",
+            "posture_reason_or_none": "velocity recipe is out of scope for this IG metric seed",
+            "value_or_none": null
+          }
+        },
+        "observation_count": 36,
+        "platform_account_ids": [
+          "acct_ig_reels_004"
+        ],
+        "platform_scope": "instagram",
+        "profile_subject_id": "acct_ig_reels_004",
+        "profile_subject_kind": "platform_account",
+        "rollup_window": "custom",
+        "rollup_window_description": "selected_latest_ig_reels_grid_projection_v0; not a full-account history window",
+        "sample_support": {
+          "observation_count": 36,
+          "representativeness_posture": "admitted_pool_only_not_representative_creator_average",
+          "sample_adequacy": "stronger_admitted_pool_n_8_plus",
+          "surface_handling": "show_only_with_visible_admitted_pool_limitation"
+        },
+        "source_metric_observation_ids": [
+          "ig_reels_metric_obs_v0_076",
+          "ig_reels_metric_obs_v0_077",
+          "ig_reels_metric_obs_v0_078",
+          "ig_reels_metric_obs_v0_079",
+          "ig_reels_metric_obs_v0_080",
+          "ig_reels_metric_obs_v0_081",
+          "ig_reels_metric_obs_v0_082",
+          "ig_reels_metric_obs_v0_083",
+          "ig_reels_metric_obs_v0_084",
+          "ig_reels_metric_obs_v0_085",
+          "ig_reels_metric_obs_v0_086",
+          "ig_reels_metric_obs_v0_087",
+          "ig_reels_metric_obs_v0_088",
+          "ig_reels_metric_obs_v0_089",
+          "ig_reels_metric_obs_v0_090",
+          "ig_reels_metric_obs_v0_091",
+          "ig_reels_metric_obs_v0_092",
+          "ig_reels_metric_obs_v0_093",
+          "ig_reels_metric_obs_v0_094",
+          "ig_reels_metric_obs_v0_095",
+          "ig_reels_metric_obs_v0_096",
+          "ig_reels_metric_obs_v0_097",
+          "ig_reels_metric_obs_v0_098",
+          "ig_reels_metric_obs_v0_099",
+          "ig_reels_metric_obs_v0_100",
+          "ig_reels_metric_obs_v0_101",
+          "ig_reels_metric_obs_v0_102",
+          "ig_reels_metric_obs_v0_103",
+          "ig_reels_metric_obs_v0_104",
+          "ig_reels_metric_obs_v0_105",
+          "ig_reels_metric_obs_v0_106",
+          "ig_reels_metric_obs_v0_107",
+          "ig_reels_metric_obs_v0_108",
+          "ig_reels_metric_obs_v0_109",
+          "ig_reels_metric_obs_v0_110",
+          "ig_reels_metric_obs_v0_111"
+        ],
+        "view_count_max": 246436,
+        "view_count_min": 5123
+      }
+    ],
+    "platform_scope": "instagram",
+    "schema_version": "creator_metric_rollup_snapshot_v0",
+    "snapshot_provenance": {
+      "lake_high_watermark": "sha256:4fb7598334a053d652ef603aa629ad3636db945013acd7a1df19533d455607e0",
+      "per_account": [
+        {
+          "content_hash": "sha256:7e42739273e3c725bd9d6fa7634cedf8325b264c750ef46b6df99ad79d0de4d5",
+          "lane_namespace": "creator_metric_rollup_silver",
+          "profile_subject_id": "acct_ig_reels_001",
+          "raw_anchor": "01KW9T4ESARHD545RRPGCWWY1P",
+          "record_id": "01KWCE5T0R7XB9M3CZSPH4B6NA.json",
+          "selection_run_id": 1
+        },
+        {
+          "content_hash": "sha256:d6a8332c261b64f6637b0fd920d43c4598b26039d26df1603c3e2f40abe67483",
+          "lane_namespace": "creator_metric_rollup_silver",
+          "profile_subject_id": "acct_ig_reels_002",
+          "raw_anchor": "01KW9T5SGKBYD8HRVP3154F4Y8",
+          "record_id": "01KWCE5T0V1SMBC22ZN65V4BFN.json",
+          "selection_run_id": 1
+        },
+        {
+          "content_hash": "sha256:83682894379b3cc680f93998190179c22eba21dceee1f1f4d5613c8320580e8a",
+          "lane_namespace": "creator_metric_rollup_silver",
+          "profile_subject_id": "acct_ig_reels_004",
+          "raw_anchor": "01KWC89MF50H39PEQRG9V53FYY",
+          "record_id": "01KWCE5T3DM92QQNV4DX52CM7H.json",
+          "selection_run_id": 1
+        }
+      ],
+      "selection_run_id": 1,
+      "snapshot_generated_at": "2026-06-30T14:49:28Z"
+    }
+  }
+}

@@ -1,5 +1,17 @@
 # Bundle Manifest
 
+```yaml
+retrieval_header_version: 1
+artifact_role: Review input manifest
+scope: Hash manifest for the repo-structure binding v0 delegated review input bundle.
+use_when:
+  - Verifying the repo-structure binding delegated review bundle.
+  - Reconstructing review-input provenance for the placement substrate.
+open_next:
+  - docs/decisions/orca_repo_structure_binding_v0.md
+authority_boundary: retrieval_only
+```
+
 Assembled: 2026-06-11 (repo-structure binding v0 fused turn)
 
 | File | SHA-256 |

@@ -147,7 +147,7 @@ direction_change_propagation:
     - orca/product/README.md
     - orca/product/spines/creator_signal/README.md
     - orca/product/spines/creator_signal/creator_intelligence_profile_surface_v0.md
-    - orca/product/spines/capture/core/source_families/social_media/creator_profile_current_view_spec_v0.md
+    - orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_profile_current_view_spec_v0.md
     - docs/workflows/orca_repo_map_v0.md
     - docs/workflows/data_capture_spine_consolidation_map_v0.md
   downstream_surfaces_checked:
@@ -156,7 +156,7 @@ direction_change_propagation:
     - .agents/workflow-overlay/source-of-truth.md
     - .agents/workflow-overlay/artifact-folders.md
     - docs/review-inputs/creator_signal_spine_pre_ratification_review_input_v0.md
-    - orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_spec_v0.md
+    - orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_spec_v0.md
     - orca/product/spines/capture/core/source_families/social_media/instagram/ig_creator_ideal_audience_inference_spec_v0.md
     - docs/decisions/orca_audience_ballot_taxonomy_v0.md
   intentionally_not_updated:
@@ -170,7 +170,7 @@ direction_change_propagation:
         This is a docs/product promotion and surface-boundary pass only. It
         authorizes no runtime schema, validator expansion, dashboard, data-lake
         job, source access, or tests.
-    - path: orca/product/spines/capture/core/source_families/social_media/creator_public_handle_linkage_ledger_spec_v0.md
+    - path: orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_spec_v0.md
       reason: >
         Identity linkage ownership remains unchanged. The high-level surface
         consumes identity rows but does not add metric, audience, contact, or

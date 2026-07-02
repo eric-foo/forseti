@@ -22,6 +22,7 @@ from source_capture.youtube_watch_packet import (
     write_youtube_watch_packet,
 )
 from youtube_capture.capture_youtube_v0 import fetch_youtube_watch
+from runners._youtube_cli import normalize_video_id_argv
 
 
 def run_source_capture_youtube_watch_packet(
@@ -77,7 +78,10 @@ def _build_parser() -> argparse.ArgumentParser:
 
 def main(argv: Sequence[str] | None = None) -> int:
     parser = _build_parser()
-    args = parser.parse_args(argv)
+    raw_argv = sys.argv[1:] if argv is None else argv
+    args = parser.parse_args(
+        normalize_video_id_argv(raw_argv, option_strings=parser._option_string_actions)
+    )
     try:
         data_root = None
         data_root_requested = args.data_root is not None or (args.output is None and os.environ.get("ORCA_DATA_ROOT"))

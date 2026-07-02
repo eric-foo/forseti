@@ -74,10 +74,10 @@ All three are rebuildable `derived_retrieval` views: non-authoritative, regenera
 | View | Key | Maps to | Rebuilt from |
 | --- | --- | --- | --- |
 | `by_creator` | `source_family` + observed public handle/id (per-platform, object-level) | packet + silver-record refs | creator field already on silver records (e.g. `EvidenceRecord.creator_id`; channel_id in caption `capture_metadata.json`) |
-| `by_mention` | brand / product-line entity (object-level) | packet + silver-record refs | the existing `silver__cleaning__product_mentions` records (brand/line/stance already extracted) |
+| `by_mention` | brand / product-line entity (object-level) | packet + silver-record refs | source-backed-complete `silver__cleaning__product_mentions` records (brand/line/stance already extracted) |
 | `undone` | extraction status (`committed − done`) | packets needing extraction | availability (committed raw) minus completion markers (`is_record_set_complete`) |
 
-Note `by_mention` needs **no new capture** — the mention data already lands in silver; this only indexes it.
+Note `by_mention` needs **no new capture** — the mention data already lands in silver; this only indexes it. The evidence view must still apply the read-side Silver lineage gate: records whose `silver_record_source_backed_status` is missing, incomplete, invalid, or limitations-only may be counted as explicit residuals or cleanup inputs, but must not enter the source-backed mention evidence index.
 
 ## How best to build it (the deep-think)
 

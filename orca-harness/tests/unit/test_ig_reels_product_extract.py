@@ -8,11 +8,13 @@ skipped (surface filter), and that failure is isolated at both grains.
 from __future__ import annotations
 
 import json
+from pathlib import Path
 from typing import Any
 
 from cleaning.audience_extractor import RawApiProvider
 from cleaning.transcript_product_lake import PRODUCT_MENTIONS_LANE, PRODUCT_MENTIONS_SET_LANE
 from data_lake.root import DataLakeRoot
+from schemas.audience_comment_models import AudienceComment
 from runners.run_ig_reels_product_extract import (
     count_partial_extractions,
     count_pending_extractions,
@@ -26,6 +28,13 @@ from source_capture import (
     known_fact,
     not_applicable,
     not_attempted,
+)
+from source_capture.ig_reels_deep_capture import ReelDeepCaptureResult
+from source_capture.ig_reels_deep_capture_lake import (
+    DEEP_CAPTURE_SET_LANE,
+    REEL_TRANSCRIPT_LANE,
+    deep_capture_record_id,
+    write_reel_deep_capture_into_lake,
 )
 from source_capture.packet_assembly import staged_file_id_map, stage_and_write_packet
 from source_capture.transcript.ig_reels_audio_packet import write_ig_reels_asr_transcript
@@ -74,13 +83,72 @@ class RaiseThenValidTransport:
         return self.valid
 
 
-def _commit_ig_audio_transcript(data_root, shortcode: str = "DZ69knlsDb1", posture: str = "transcribed") -> None:
+def _commit_ig_audio_transcript(
+    data_root,
+    shortcode: str = "DZ69knlsDb1",
+    posture: str = "transcribed",
+) -> tuple[str, str]:
     cues = _cues() if posture == "transcribed" else []
-    write_ig_reels_asr_transcript(
+    code, msg = write_ig_reels_asr_transcript(
         shortcode=shortcode, audio_bytes=f"fake-audio-{shortcode}".encode(), audio_ext="m4a",
         transcribe_fn=lambda _path: (posture, cues, {"tool": "faster-whisper", "model": "test"}),
         data_root=data_root,
     )
+    assert code == 0
+    rel_path = Path(msg.split(" ")[0])
+    return rel_path.parts[-3], rel_path.name
+
+
+def _commit_ig_deep_capture(data_root, shortcode: str = "DZ69knlsDb1", posture: str = "transcribed") -> str:
+    cues = tuple(_cues() if posture in {"ok", "transcribed"} else [])
+    result = ReelDeepCaptureResult(
+        reel_shortcode=shortcode,
+        comments=(
+            AudienceComment(
+                comment_id=f"comment-{shortcode}",
+                reel_shortcode=shortcode,
+                author_username="zoe",
+                text="works",
+                like_count=1,
+                created_at_unix=1782400000,
+            ),
+        ),
+        transcript_posture=posture,
+        transcript_cues=cues,
+        media_url_used="https://x.fbcdn.net/o1/v/clip.mp4",
+    )
+    write_reel_deep_capture_into_lake(
+        data_root=data_root,
+        result=result,
+        generated_at="2026-06-29T00:01:00Z",
+    )
+    return deep_capture_record_id(result)
+
+
+def _assert_exact_transcript_lineage(
+    record: dict[str, Any],
+    *,
+    source_surface: str,
+    native_id: str,
+    raw_anchor: str,
+    lane: str,
+    record_id: str,
+    completion_lane: str | None = None,
+) -> None:
+    assert "silver_lineage" not in record
+    assert record["lineage_schema_version"] == "silver_lineage_v0"
+    assert record["source_surface"] == source_surface
+    assert record["source_object"]["namespace"] == "instagram"
+    assert record["source_object"]["kind"] == "transcript"
+    assert record["source_object"]["native_id"] == native_id
+    assert len(record["derived_refs"]) == 1
+    ref = record["derived_refs"][0]
+    assert ref["raw_anchor"] == raw_anchor
+    assert ref["lane"] == lane
+    assert ref["record_id"] == record_id
+    assert ref["hash_basis"] == "derived_record_bytes"
+    assert len(ref["sha256"]) == 64
+    assert ref["record_set_completion_lane"] == completion_lane
 
 
 def _commit_ig_grid_packet(data_root) -> None:
@@ -137,22 +205,120 @@ def _commit_ig_grid_packet(data_root) -> None:
 
 def test_runner_extracts_ig_transcript_then_skips_on_rerun(tmp_path) -> None:
     data_root = DataLakeRoot.for_test(tmp_path / "lake")
-    _commit_ig_audio_transcript(data_root)
+    audio_packet_id, asr_record_id = _commit_ig_audio_transcript(data_root)
+    source_key = f"{audio_packet_id}:asr:{asr_record_id}"
 
     transport = FakeTransport(_anthropic([_item()]))
     first = run_extraction(data_root=data_root, transport=transport, provider=_PROVIDER, model="m", api_key="k")
     assert len(first) == 1
     assert first[0]["status"] == "extracted"
     assert first[0]["video_id"] == "DZ69knlsDb1"
+    assert first[0]["transcript_source_key"] == source_key
+    assert first[0]["source_route"] == "standalone_audio_packet"
+    assert first[0]["asr_record_id"] == asr_record_id
 
     written = json.loads((data_root.path / first[0]["path"]).read_text(encoding="utf-8"))
     assert written["mention_count"] == 1
     assert written["mentions"][0]["start_ms"] == 3000  # CE5 timestamp from the cue
     assert written["mentions"][0]["video_id"] == "DZ69knlsDb1"
+    assert written["transcript_source_key"] == source_key
+    assert written["source_route"] == "standalone_audio_packet"
+    assert written["asr_record_id"] == asr_record_id
+    _assert_exact_transcript_lineage(
+        written,
+        source_surface="ig_reels_audio",
+        native_id="DZ69knlsDb1",
+        raw_anchor=audio_packet_id,
+        lane="transcript_asr",
+        record_id=asr_record_id,
+    )
 
     second = run_extraction(data_root=data_root, transport=transport, provider=_PROVIDER, model="m", api_key="k")
     assert len(second) == 1
     assert second[0]["status"] == "skipped_done"
+
+
+def test_runner_extracts_deep_capture_transcript_records(tmp_path) -> None:
+    data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    deep_record_id = _commit_ig_deep_capture(data_root)
+    deep_key = f"DZ69knlsDb1:asr:{deep_record_id}"
+    assert count_pending_extractions(data_root=data_root, model="m") == 1
+
+    transport = FakeTransport(_anthropic([_item()]))
+    first = run_extraction(data_root=data_root, transport=transport, provider=_PROVIDER, model="m", api_key="k")
+    assert first == [
+        {
+            "anchor": "DZ69knlsDb1",
+            "video_id": "DZ69knlsDb1",
+            "transcript_source_key": deep_key,
+            "source_route": "deep_capture_render_audio",
+            "asr_record_id": deep_record_id,
+            "status": "extracted",
+            "path": first[0]["path"],
+        }
+    ]
+
+    written = json.loads((data_root.path / first[0]["path"]).read_text(encoding="utf-8"))
+    assert written["transcript_anchor"] == "DZ69knlsDb1"
+    assert written["transcript_source"] == "asr"
+    assert written["transcript_source_key"] == deep_key
+    assert written["source_route"] == "deep_capture_render_audio"
+    assert written["asr_record_id"] == deep_record_id
+    _assert_exact_transcript_lineage(
+        written,
+        source_surface="ig_reels_deep_capture_render_audio",
+        native_id="DZ69knlsDb1",
+        raw_anchor="DZ69knlsDb1",
+        lane=REEL_TRANSCRIPT_LANE,
+        record_id=deep_record_id,
+        completion_lane=DEEP_CAPTURE_SET_LANE,
+    )
+
+    second = run_extraction(data_root=data_root, transport=transport, provider=_PROVIDER, model="m", api_key="k")
+    assert len(second) == 1
+    assert second[0]["status"] == "skipped_done"
+    assert second[0]["transcript_source_key"] == deep_key
+
+
+def test_runner_surfaces_deep_capture_shortcode_mismatch_without_fake_success(tmp_path) -> None:
+    data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    deep_record_id = _commit_ig_deep_capture(data_root)
+    transcript_path = data_root.record_path(
+        subtree="derived",
+        raw_anchor="DZ69knlsDb1",
+        lane=REEL_TRANSCRIPT_LANE,
+        record_id=deep_record_id,
+    )
+    transcript_record = json.loads(transcript_path.read_text(encoding="utf-8"))
+    transcript_record["reel_shortcode"] = "OtherShort"
+    transcript_path.write_text(json.dumps(transcript_record, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+    results = run_extraction(
+        data_root=data_root,
+        transport=FakeTransport(_anthropic([_item()])),
+        provider=_PROVIDER,
+        model="m",
+        api_key="k",
+    )
+
+    assert len(results) == 1
+    assert results[0]["status"] == "discovery_failed"
+    assert results[0]["transcript_source_key"] == f"DZ69knlsDb1:asr:{deep_record_id}"
+    assert "shortcode mismatch" in results[0]["error"]
+    assert count_pending_extractions(data_root=data_root, model="m") == 0
+
+
+def test_runner_extracts_legacy_ok_deep_capture_transcript_records(tmp_path) -> None:
+    data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    deep_record_id = _commit_ig_deep_capture(data_root, posture="ok")
+    deep_key = f"DZ69knlsDb1:asr:{deep_record_id}"
+    assert count_pending_extractions(data_root=data_root, model="m") == 1
+
+    transport = FakeTransport(_anthropic([_item()]))
+    first = run_extraction(data_root=data_root, transport=transport, provider=_PROVIDER, model="m", api_key="k")
+    assert len(first) == 1
+    assert first[0]["status"] == "extracted"
+    assert first[0]["transcript_source_key"] == deep_key
 
 
 def test_check_count_tracks_completed_mentions_for_model(tmp_path) -> None:

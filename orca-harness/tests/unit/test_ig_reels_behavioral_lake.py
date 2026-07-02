@@ -13,6 +13,8 @@ from source_capture.ig_reels_behavioral_lake import (
 )
 from source_capture.ig_reels_deep_capture import ReelDeepCaptureResult
 from source_capture.ig_reels_deep_capture_lake import (
+    DEEP_CAPTURE_SET_LANE,
+    REEL_TRANSCRIPT_LANE,
     deep_capture_record_id,
     write_reel_deep_capture_into_lake,
 )
@@ -42,7 +44,20 @@ def test_lake_adapter_injects_durable_record_ids_from_real_lake_paths(tmp_path: 
     root = DataLakeRoot.for_test(tmp_path / "lake")
     audio_packet_id, asr_record_id = _write_audio_transcript(root)
     deep_record_id = _write_deep_capture(root)
-    _write_product_mentions(root, raw_anchor=audio_packet_id)
+    _write_product_mentions(
+        root,
+        raw_anchor=audio_packet_id,
+        transcript_source_key=f"{audio_packet_id}:asr:{asr_record_id}",
+        source_route="standalone_audio_packet",
+        asr_record_id=asr_record_id,
+    )
+    _write_product_mentions(
+        root,
+        raw_anchor=_SHORTCODE,
+        transcript_source_key=f"{_SHORTCODE}:asr:{deep_record_id}",
+        source_route="deep_capture_render_audio",
+        asr_record_id=deep_record_id,
+    )
 
     projection = project_ig_reels_behavioral_item_from_lake(
         data_root=root,
@@ -69,9 +84,40 @@ def test_lake_adapter_injects_durable_record_ids_from_real_lake_paths(tmp_path: 
     residuals = projection["behavioral_completeness"]["residuals"]
     assert "unknown_record" not in json.dumps(projection, sort_keys=True)
     assert not any("record_id_absent" in residual for residual in residuals)
+    assert projection["transcript"]["extraction_rollup"]["status"] == "complete"
     assert projection["behavioral_completeness"]["status"] == "complete_with_residuals"
     assert projection["behavioral_completeness"]["complete"] is False
+    assert f"ig_grid_candidate_absent:{_SHORTCODE}" in residuals
 
+
+def test_lake_adapter_blocks_complete_product_record_without_source_lineage(tmp_path: Path) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "lake")
+    _write_grid_packet(root)
+    deep_record_id = _write_deep_capture(root)
+    deep_key = f"{_SHORTCODE}:asr:{deep_record_id}"
+    _write_product_mentions(
+        root,
+        raw_anchor=_SHORTCODE,
+        transcript_source_key=deep_key,
+        source_route="deep_capture_render_audio",
+        asr_record_id=deep_record_id,
+        source_lineage=False,
+    )
+
+    projection = project_ig_reels_behavioral_item_from_lake(
+        data_root=root,
+        platform_item_id=_SHORTCODE,
+    )
+
+    source_status = projection["extraction"]["source_statuses"][0]
+    assert source_status["extraction_status"] == "source_lineage_missing"
+    assert source_status["source_backed_status"] == "source_lineage_missing"
+    assert projection["transcript"]["extraction_rollup"]["status"] == "failed"
+    assert projection["behavioral_completeness"]["complete"] is False
+    assert (
+        f"ig_transcript_extraction_source_lineage_missing:{deep_key}"
+        in projection["behavioral_completeness"]["residuals"]
+    )
 
 def test_lake_adapter_projects_requested_missing_item_without_hidden_success(tmp_path: Path) -> None:
     root = DataLakeRoot.for_test(tmp_path / "lake")
@@ -394,11 +440,22 @@ def _write_corrupt_product_mentions(root: DataLakeRoot, *, raw_anchor: str) -> N
     )
 
 
-def _write_product_mentions(root: DataLakeRoot, *, raw_anchor: str) -> None:
+def _write_product_mentions(
+    root: DataLakeRoot,
+    *,
+    raw_anchor: str,
+    transcript_source_key: str | None = None,
+    source_route: str | None = None,
+    asr_record_id: str | None = None,
+    source_lineage: bool = True,
+) -> None:
     payload = {
         "video_id": _SHORTCODE,
         "transcript_anchor": raw_anchor,
         "transcript_source": "asr",
+        "transcript_source_key": transcript_source_key,
+        "source_route": source_route,
+        "asr_record_id": asr_record_id,
         "model": "test",
         "rubric_version": "test",
         "mention_count": 0,
@@ -406,6 +463,14 @@ def _write_product_mentions(root: DataLakeRoot, *, raw_anchor: str) -> None:
         "mentions": [],
         "rejected": [],
     }
+    if source_lineage:
+        payload.update(
+            _source_lineage_fields(
+                raw_anchor=raw_anchor,
+                source_route=source_route,
+                asr_record_id=asr_record_id,
+            )
+        )
     root.append_record_set(
         subtree="derived",
         raw_anchor=raw_anchor,
@@ -417,3 +482,38 @@ def _write_product_mentions(root: DataLakeRoot, *, raw_anchor: str) -> None:
         },
         completion_lane=PRODUCT_MENTIONS_SET_LANE,
     )
+
+
+def _source_lineage_fields(
+    *,
+    raw_anchor: str,
+    source_route: str | None,
+    asr_record_id: str | None,
+) -> dict[str, object]:
+    if source_route == "deep_capture_render_audio":
+        source_surface = "ig_reels_deep_capture_render_audio"
+        derived_ref = {
+            "ref_type": "derived_record",
+            "raw_anchor": raw_anchor,
+            "lane": REEL_TRANSCRIPT_LANE,
+            "record_id": asr_record_id or "deepcap_unknown.json",
+            "record_set_completion_lane": DEEP_CAPTURE_SET_LANE,
+        }
+    else:
+        source_surface = "ig_reels_audio"
+        derived_ref = {
+            "ref_type": "derived_record",
+            "raw_anchor": raw_anchor,
+            "lane": "transcript_asr",
+            "record_id": asr_record_id or "asr_unknown.json",
+        }
+    return {
+        "lineage_schema_version": "silver_lineage_v0",
+        "producer_id": "cleaning.transcript_product_extractor",
+        "producer_schema_version": "test",
+        "source_surface": source_surface,
+        "source_object": {"namespace": "instagram", "kind": "transcript", "native_id": _SHORTCODE},
+        "raw_refs": [],
+        "derived_refs": [derived_ref],
+        "lineage_limitations": [],
+    }

@@ -7,6 +7,7 @@ runner is idempotent (skip-if-done), and that the json3->cues parser preserves t
 
 from __future__ import annotations
 
+import hashlib
 import json
 from pathlib import Path
 from typing import Any
@@ -14,16 +15,19 @@ from typing import Any
 import pytest
 
 from cleaning.audience_extractor import RawApiProvider
-from cleaning.transcript_product_extractor import TranscriptInput
+from cleaning.transcript_product_extractor import TranscriptInput, parse_mentions
 from cleaning.transcript_product_lake import (
     PRODUCT_MENTIONS_LANE,
     PRODUCT_MENTIONS_SET_LANE,
+    build_transcript_source_lineage,
     cues_from_asr_record,
     cues_from_json3,
     extract_products_into_lake,
     mentions_record_id,
+    write_product_mentions_result_into_lake,
 )
 from data_lake.root import DataLakeRoot, DataLakeRootError
+from data_lake.silver_lineage import SilverDerivedRef
 from runners.run_transcript_product_extract import run_extraction
 from source_capture.transcript.asr_packet import write_asr_transcript
 from source_capture.transcript.youtube_captions import CaptionFetch
@@ -181,6 +185,27 @@ def test_driver_persists_to_silver_lane(tmp_path) -> None:
     assert written["mentions"][0]["start_ms"] == 3000  # CE5 timestamp from the cue
 
 
+def test_operator_result_writer_reuses_silver_lane_shape(tmp_path) -> None:
+    data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    transcript = _transcript()
+    parsed = parse_mentions(json.dumps([_item()]), transcript, model="operator")
+
+    paths = write_product_mentions_result_into_lake(
+        data_root=data_root,
+        transcript=transcript,
+        result=parsed,
+        model="operator",
+        extraction_backend="operator_codex_assisted",
+        extraction_provenance={"packet_kind": "ig_reels_operator_product_extract_v0"},
+    )
+
+    rec = json.loads(paths[PRODUCT_MENTIONS_LANE].read_text(encoding="utf-8"))
+    assert rec["extraction_backend"] == "operator_codex_assisted"
+    assert rec["extraction_provenance"]["packet_kind"] == "ig_reels_operator_product_extract_v0"
+    assert rec["mention_count"] == 1
+    assert rec["mentions"][0]["video_id"] == "vid12345678"
+
+
 def test_driver_refuses_duplicate_write(tmp_path) -> None:
     data_root = DataLakeRoot.for_test(tmp_path / "lake")
     kw = dict(data_root=data_root, transcript=_transcript(), transport=FakeTransport(_anthropic([_item()])),
@@ -299,12 +324,29 @@ def test_cues_from_asr_record_guards_non_list() -> None:
     assert cues_from_asr_record({"cues": good}) == good
 
 
-def test_mentions_record_id_keys_on_content_and_model() -> None:
+def test_mentions_record_id_keys_on_content_model_and_optional_source_key() -> None:
     t1 = _transcript()
     t2 = TranscriptInput("vid12345678", _ANCHOR, "asr", [{"start_ms": 0, "end_ms": 1, "text": "totally other words"}])
+    t3 = TranscriptInput(
+        "vid12345678",
+        _ANCHOR,
+        "asr",
+        _cues(),
+        transcript_source_key="vid12345678:asr:deepcap-a",
+    )
+    t4 = TranscriptInput(
+        "vid12345678",
+        _ANCHOR,
+        "asr",
+        _cues(),
+        transcript_source_key="vid12345678:asr:deepcap-b",
+    )
+    expected_no_key_id = f"mentions_m__{hashlib.sha256(t1.joined_text.encode('utf-8')).hexdigest()[:16]}.json"
+    assert mentions_record_id(t1, "m") == expected_no_key_id  # no-key legacy formula
     assert mentions_record_id(t1, "m") == mentions_record_id(t1, "m")  # stable across calls
     assert mentions_record_id(t1, "m") != mentions_record_id(t2, "m")  # content-keyed
     assert mentions_record_id(t1, "m1") != mentions_record_id(t1, "m2")  # model-keyed (R1 backfill)
+    assert mentions_record_id(t3, "m") != mentions_record_id(t4, "m")  # exact source-keyed when present
 
 
 def test_runner_marks_zero_mention_transcript_done(tmp_path) -> None:
@@ -358,3 +400,82 @@ def test_runner_isolates_corrupt_packet_discovery(tmp_path) -> None:
     statuses = {r["status"] for r in results}
     assert "extracted" in statuses
     assert "discovery_failed" in statuses
+
+
+# --- silver lineage adoption: exact consumed-source reference -----------------
+
+
+def _derived_ref() -> SilverDerivedRef:
+    return SilverDerivedRef(
+        raw_anchor=_ANCHOR, lane="transcript_asr", record_id="asr_test__deadbeefdeadbeef",
+        sha256="b" * 64, hash_basis="derived_record_bytes",
+    )
+
+
+def test_driver_persists_silver_lineage_in_place(tmp_path) -> None:
+    # AR-01: lineage lands in TOP-LEVEL header-shaped fields, never a nested silver_lineage block.
+    data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    lineage = build_transcript_source_lineage(
+        namespace="youtube", source_surface="youtube_audio", video_id="vid12345678",
+        derived_ref=_derived_ref(),
+    )
+    transcript = TranscriptInput("vid12345678", _ANCHOR, "asr", _cues(), source_lineage=lineage)
+    paths = extract_products_into_lake(
+        data_root=data_root, transcript=transcript, transport=FakeTransport(_anthropic([_item()])),
+        provider=_PROVIDER, model="m", api_key="k",
+    )
+    rec = json.loads(paths[PRODUCT_MENTIONS_LANE].read_text(encoding="utf-8"))
+    assert "silver_lineage" not in rec
+    assert rec["lineage_schema_version"] == "silver_lineage_v0"
+    assert rec["derived_refs"][0]["lane"] == "transcript_asr"
+    assert rec["derived_refs"][0]["record_id"] == "asr_test__deadbeefdeadbeef"
+    assert rec["raw_refs"] == []
+    assert rec["source_object"]["kind"] == "transcript"
+
+
+def test_driver_without_lineage_omits_lineage_fields(tmp_path) -> None:
+    # Additive: a producer that has not adopted lineage (e.g. the IG runner, Patch 3) still
+    # writes, and the record simply carries no lineage fields -- no fake/empty lineage.
+    data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    paths = extract_products_into_lake(
+        data_root=data_root, transcript=_transcript(), transport=FakeTransport(_anthropic([_item()])),
+        provider=_PROVIDER, model="m", api_key="k",
+    )
+    rec = json.loads(paths[PRODUCT_MENTIONS_LANE].read_text(encoding="utf-8"))
+    for key in ("derived_refs", "raw_refs", "lineage_schema_version", "source_object"):
+        assert key not in rec
+
+
+def test_runner_asr_record_references_exact_transcript(tmp_path) -> None:
+    # End-to-end: the product-mention record references the EXACT transcript_asr record consumed.
+    data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    _commit_asr_transcript(data_root)
+    results = run_extraction(
+        data_root=data_root, transport=FakeTransport(_anthropic([_item()])),
+        provider=_PROVIDER, model="m", api_key="k",
+    )
+    assert results[0]["status"] == "extracted"
+    record_path = next((data_root.path / "derived").glob(f"**/{PRODUCT_MENTIONS_LANE}/*"))
+    ref = json.loads(record_path.read_text(encoding="utf-8"))["derived_refs"][0]
+    assert ref["ref_type"] == "derived_record" and ref["lane"] == "transcript_asr"
+    target = data_root.record_path(
+        subtree="derived", raw_anchor=ref["raw_anchor"], lane=ref["lane"], record_id=ref["record_id"]
+    )
+    assert target.is_file()  # the ref resolves to a real committed record...
+    assert ref["sha256"] == hashlib.sha256(target.read_bytes()).hexdigest()  # ...and is verifiable
+
+
+def test_runner_caption_record_references_raw_json3(tmp_path) -> None:
+    data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    write_caption_packet(_caption_fetch(), data_root=data_root, decision_question="Q")
+    results = run_extraction(
+        data_root=data_root, transport=FakeTransport(_anthropic([_item()])),
+        provider=_PROVIDER, model="m", api_key="k",
+    )
+    assert results[0]["status"] == "extracted"
+    record_path = next((data_root.path / "derived").glob(f"**/{PRODUCT_MENTIONS_LANE}/*"))
+    rec = json.loads(record_path.read_text(encoding="utf-8"))
+    ref = rec["raw_refs"][0]
+    assert ref["ref_type"] == "raw_packet" and ref["hash_basis"] == "raw_stored_bytes"
+    assert ref["file_id"] and len(ref["sha256"]) == 64
+    assert rec["derived_refs"] == []

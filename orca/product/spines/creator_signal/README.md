@@ -16,7 +16,6 @@ authority_boundary: retrieval_only
 open_next:
   - docs/decisions/orca_creator_signal_spine_promotion_binding_v0.md
   - orca/product/spines/creator_signal/creator_intelligence_profile_surface_v0.md
-  - orca/product/spines/capture/core/source_families/social_media/creator_registry/README.md
   - orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_profile_current_view_spec_v0.md
 stale_if:
   - The Creator Signal spine identity or product_signal kind is amended.

@@ -63,7 +63,27 @@ Architect reserves final authority over what is kept and may veto any change it
 judges to add no benefit or net-negative value, even when individually
 defensible.
 
-**Access modes — `repo` (default) and `no_repo`.** The commission records `access: repo | no_repo` — an operator/commission access constraint, not a model choice. In **`repo`** mode the loop above runs as written: the de-correlated delegate patches the named target and returns a diff. In **`no_repo`** mode the delegate has no repo access and **does not patch**; it runs advisory-only and returns findings (not a diff), and the **CA applies** accepted changes within the bounded scope. `no_repo` preserves de-correlated *review* but **not** de-correlated *patch authorship*, so it is **strictly weaker than `repo` mode** and **requires a bounded post-patch re-review** before keep — closure-of-findings plus any new blocker/major in the touched delta. The no-repo review method is target-kind specific: `authored_artifact` uses the portable review method (registry id `portable-adversarial-artifact-review-method`), while `delegated_code_review_and_patch` uses a repo-blind code-review package/prompt that preserves `workflow-code-review` method requirements as far as no-repo access permits. Because the post-patch recheck is a narrow, near-mechanical verification against the findings' explicit closure conditions rather than open seam-discovery, it runs as a **same-family, different (lower / mechanical-tier) model** (a who-constraint, not a runtime-model recommendation), **not** a cross-family pass. **Cross-family de-correlation is reserved for discovery** (the original full adversarial review) and is **required to claim** the *survives-an-adversarial-review-with-no-new-seam* standard; a bounded same-family recheck does not by itself support that claim. The recheck is CA-adjudicated before anything is kept. The package ships the review target as a **verbatim file attachment** with an independently confirmable file hash (embedded-in-markdown copies are not byte-confirmable); and the package assembler/CA runs the target-kind method's **freshness gate** before bundling, recording the result in the commission. The default package shape is a **self-contained bundle**: the verbatim target attachment(s) plus a guardrail-complete `README` that carries the method, the authority excerpts, and the target's contract, delivered with a **thin-wrapper** chat prompt that points the reviewer at the in-bundle `README` — the wrapper still carries the cross-vendor who-constraint, which must not migrate silently into the bundle. When the reviewer cannot read in-bundle files, fall back to **inlining** the method block in the chat prompt; never ship a wrapper that points at a `README` a repo-blind reviewer cannot open. The de-correlation who-constraint, CA adjudication, `NEEDS_ARCHITECTURE_PASS`, and the strict-claim boundary are otherwise unchanged.
+**Adjudication closeout.** The delegated return is not complete merely because
+it names a verdict, diff, findings, or residual risk. The return/courier prompt
+must instruct the commissioning Chief Architect to close the adjudication with
+`.agents/workflow-overlay/communication-style.md` -> **Review Adjudication Next
+Step**: first adjudicate the findings, diff, verdict, and residuals as claims;
+close any self-closable material issue -- one whose closure sits inside the
+adjudicator's own authority and the commissioned scope, such as applying the
+adjudicator's own modify/reject adjudications to the target -- in the same
+turn; route a smallest-complete closure step only for an issue that genuinely
+needs another review round, another lane, an architecture pass, or an owner
+decision; once clean, batch admin/lifecycle follow-ups into exactly one land
+step with no deep-thinking and deep-think the 1-5 material next moves that need
+judgment. The land step plus the material moves are a required tail of the
+adjudication closeout, not an optional pass -- an adjudication that ends at the
+verdict without them is incomplete. This is a prompt-return obligation for the
+adjudicator, not permission for the delegate to decide what is kept or to widen
+review scope.
+
+**Access selection rule.** `repo` is the default access mode. Use `no_repo` only when the commission explicitly records `access: no_repo` and records why repository access is unavailable or intentionally excluded. Cross-vendor, external, couriered, paste-ready-chat, or portable-method dispatch does **not** imply `no_repo`; a de-correlated controller with repo/worktree access still runs repo mode. If access is missing from an otherwise inferable commission, the route-out prompt marks `access: operator_to_fill` but names `repo` as the default, not `no_repo`.
+
+**Access modes — `repo` (default) and `no_repo`.** The commission records `access: repo | no_repo` — an operator/commission access constraint, not a model choice. In **`repo`** mode the loop above runs as written: the de-correlated delegate patches the named target and returns a diff. In **`no_repo`** mode the delegate has no repo access and **does not patch**; it runs advisory-only and returns findings (not a diff), and the **CA applies** accepted changes within the bounded scope. `no_repo` preserves de-correlated *review* but **not** de-correlated *patch authorship*, so it is **strictly weaker than `repo` mode** and **requires a bounded post-patch re-review** before keep — closure-of-findings plus any new blocker/major in the touched delta. The no-repo review method is target-kind specific: `authored_artifact` uses the portable review method (registry id `portable-adversarial-artifact-review-method`), while `delegated_code_review_and_patch` uses a repo-blind code-review package/prompt that preserves `workflow-code-review` method requirements as far as no-repo access permits. Because the post-patch recheck is a narrow, near-mechanical verification against the findings' explicit closure conditions rather than open seam-discovery, it runs as a **same-family, different (lower / mechanical-tier) model** (a who-constraint, not a runtime-model recommendation), **not** a cross-family pass. **Cross-family de-correlation is reserved for discovery** (the original full adversarial review) and is **required to claim** the *survives-an-adversarial-review-with-no-new-seam* standard; a bounded same-family recheck does not by itself support that claim. The recheck is CA-adjudicated before anything is kept. The no_repo package ships the review target as a **verbatim file attachment** with an independently confirmable file hash (embedded-in-markdown copies are not byte-confirmable); and the package assembler/CA runs the target-kind method's **freshness gate** before bundling, recording the result in the commission. The standard no_repo package shape is a **self-contained bundle**: the verbatim target attachment(s) plus a guardrail-complete `README` that carries the method, the authority excerpts, and the target's contract, delivered with a **thin-wrapper** chat prompt that points the reviewer at the in-bundle `README` — the wrapper still carries the cross-vendor who-constraint, which must not migrate silently into the bundle. When the reviewer cannot read in-bundle files, fall back to **inlining** the method block in the chat prompt; never ship a wrapper that points at a `README` a repo-blind reviewer cannot open. The de-correlation who-constraint, CA adjudication, `NEEDS_ARCHITECTURE_PASS`, and the strict-claim boundary are otherwise unchanged.
 
 **Citations.** The delegate's citations are neutral in tone — factual source
 evidence, no advocacy or editorializing — but decision-sufficient in substance,
@@ -276,7 +296,14 @@ delegated_review_patch_overlay_interface:
       if no different-family model is available, do not claim this lane; fall
       back to source-read-only review + CA self-review and record the limitation.
   access_modes:
-    values: [repo, no_repo]   # default repo; operator/commission access constraint, NOT model routing
+    default: repo
+    values: [repo, no_repo]   # operator/commission access constraint, NOT model routing
+    selection_rule: >
+      repo is the default. no_repo requires an explicit commission value plus the
+      reason repository access is unavailable or intentionally excluded.
+      Cross-vendor, external, couriered, paste-ready-chat, or portable-method
+      dispatch does not imply no_repo; a controller with repo/worktree access
+      remains repo mode.
     no_repo: >
       delegate advisory-only (returns findings, not a diff); authored_artifact uses
       portable-adversarial-artifact-review-method, while delegated_code_review_and_patch uses a
@@ -293,7 +320,11 @@ delegated_review_patch_overlay_interface:
     - Source-Gated Method Contract REFERENCE-LOAD / SOURCE-LOAD / SOURCE_CONTEXT_READY (.agents/workflow-overlay/prompt-orchestration.md)
     - source packs and read budgets (.agents/workflow-overlay/source-loading.md)
   output_destinations:
-    delegate_return: unified diff + neutral source citations + verdict + residual-risk note (paste-ready courier to the commissioning Chief Architect)
+    delegate_return: >
+      unified diff + neutral source citations + verdict + residual-risk note,
+      plus an adjudicator next-moves tail that points the commissioning Chief
+      Architect to communication-style.md -> Review Adjudication Next Step
+      (paste-ready courier; delegate does not decide what is kept)
     prompt_orchestrator_route_out: paste-ready-chat route-out prompt with operator_to_fill fields when target/purpose are inferable but commission fields are unbound
     durable_review_report: docs/review-outputs/ or docs/review-outputs/adversarial-artifact-reviews/ when a durable report is commissioned
     patch_application: the CA-named target in-repo — single authored file, or the named multi-file set in delegated_code_review_and_patch — under the commission (patch / integration execution authority per .agents/workflow-overlay/review-lanes.md)
@@ -318,79 +349,126 @@ lifecycle mechanics into Orca; jb is cited only as cross-project provenance.
 ## Direction Change Propagation
 
 ```yaml
-# delegated_code_review_and_patch sibling mode bound 2026-06-28 (CA decision).
+# review adjudication next-moves tail bound 2026-06-30 (CA decision).
 direction_change_propagation:
   doctrine_changed: >
-    The delegated review-and-patch convention now defines a delegated_code_review_and_patch
-    sibling mode for bounded multi-file implementation/code diffs, replacing the prior flat
-    exclusion (the 2026-06-16 "do not stretch this convention to a multi-file code diff" text,
-    now rotated to the archive). The sibling mode keeps the code review lane (workflow-code-review,
-    deep-thinking first, source-gated) as its review method -- NOT artifact review and not a merge
-    of the two -- bounds the patch to an explicitly named multi-file set that cannot silently widen
-    (everything outside it flag-only), names validation/test obligations that can fail, and keeps
-    patch authority an explicit commission subordinate to the implementation-authorization boundary
-    in safety-rules.md / AGENTS.md. All other convention machinery (commission, de-correlation /
-    two-bar, repo/no_repo access-mode obligations, CA adjudication of the returned diff before keep,
-    NEEDS_ARCHITECTURE_PASS, strict-claim boundary, no runtime-model recommendation) is inherited
-    unchanged. Legitimizes the shape practice already ran as a disclosed per-commission deviation
-    (e.g. docs/prompts/reviews/source_capture_lenient_read_slice_delegated_adversarial_code_review_and_patch_prompt_v0.md).
+    Delegated review-and-patch returns now explicitly carry the existing Review
+    Adjudication Next Step tail: the return/courier prompt instructs the
+    commissioning Chief Architect, after adjudicating the verdict/diff/findings,
+    to batch admin/lifecycle follow-ups into one no-deep-thinking land step and
+    deep-think only the 1-3 material next moves that need judgment. This hardens
+    the delegated-review seam without moving the admin/material shape out of
+    communication-style.md or changing prompt-orchestration.md's review prompt
+    default.
   trigger: review_authority
-  related_triggers: [workflow_authority]
+  related_triggers: [workflow_authority, output_authority]
   controlling_sources_updated:
     - .agents/workflow-overlay/delegated-review-patch.md
-    - .agents/workflow-overlay/review-lanes.md          # lane-index summary line de-narrowed to name the code-diff sibling mode
-    - docs/workflows/orca_repo_map_v0.md                # repo-map index line de-narrowed likewise
-  receipt_storage_updated:
-    - docs/decisions/dcp_receipts_archive_v0.md          # 2026-06-13 and 2026-06-16 receipts rotated here verbatim
   downstream_surfaces_checked:
+    - path: .agents/workflow-overlay/communication-style.md
+      note: >
+        Already owns the exact Review Adjudication Next Step shape; no copy or
+        fork added here beyond a pointer.
     - path: .agents/workflow-overlay/prompt-orchestration.md
       note: >
-        "delegated-review-patch ... author through the full skill" routing is target-kind-agnostic;
-        a delegated_code_review_and_patch prompt is still a delegated-review-patch prompt routed
-        through the full skill, and Review Prompt Defaults already own the code-review method
-        (deep-thinking first, source-gated) the sibling mode points to. No edit.
-    - path: .agents/workflow-overlay/safety-rules.md
-      note: >
-        Already requires explicit bounded authorization for implementation/source-changing work;
-        the sibling mode defers to that boundary (the commission IS the authorization) and grants
-        no standing code-patch authority. Unchanged.
-    - path: .agents/workflow-overlay/artifact-roles.md
-      note: >
-        "reviewers are read-only unless explicitly assigned patch execution" stays true; the
-        commission is exactly that explicit assignment. Unchanged.
-    - path: .agents/workflow-overlay/skill-adoption.md
-      note: >
-        Its workflow-delegated-review-patch row ("bounded de-correlated review-and-patch hardening
-        pass") is target-kind-agnostic and stays accurate. Unchanged.
+        Already requires every review prompt and review-return/courier prompt to
+        instruct the adjudicator to run the next-moves pass after the verdict.
+        No edit.
     - path: .agents/workflow-overlay/review-lanes.md
       note: >
-        "implementation/code review and artifact review remain separate lanes" stays true -- the
-        sibling mode USES the code review lane as its review method, it does not merge the lanes;
-        two-bar de-correlation and reviewed_by/authored_by provenance already cover code review.
+        Review-lane findings still own minimum_closure_condition and
+        next_authorized_action; this patch only binds the delegated return's
+        adjudication closeout tail. No edit.
     - path: AGENTS.md
-      note: routes delegated review-and-patch to the owning overlay file; no root restatement (a fork). Unchanged.
+      note: >
+        Already routes delegated-review-patch and prompt artifacts to the owning
+        overlay/prompt-orchestration sources; no root restatement added.
+    - path: docs/workflows/orca_repo_map_v0.md
+      note: >
+        Its delegated-review-patch index line remains accurate; no new section
+        or artifact path was added.
+  intentionally_not_updated:
+    - path: .agents/workflow-overlay/communication-style.md
+      reason: >
+        The admin/material next-step shape already exists there and remains the
+        single owner.
+    - path: .agents/workflow-overlay/prompt-orchestration.md
+      reason: >
+        The review prompt default already carries the review-return/courier
+        prompt obligation; duplicating the shape there would fork the owner.
   stale_language_search: >
-    rg -ni "multi-file|implementation/code|code diff|delegated_code_review|patch execution|source-read-only"
-    .agents/workflow-overlay docs/workflows/orca_repo_map_v0.md AGENTS.md
+    rg -ni "Review Adjudication Next Step|next-moves pass|admin/lifecycle|delegate_return|operator_closeout_source|review-return"
+    .agents docs/prompts/templates docs/workflows AGENTS.md
   stale_language_search_result: >
-    Executed 2026-06-28. The prior flat exclusion in delegated-review-patch.md is replaced by the
-    sibling-mode route; the interface non_eligible_target_boundary is replaced by
-    code_diff_target_routing + target_kinds. review-lanes.md line ~29 and repo-map line ~497
-    narrowing phrase ("high-stakes authored artifacts") now name the code-diff sibling mode. The
-    2026-06-16 receipt's exclusion sentence ("multi-file ... routed to the appropriate review prompt
-    instead of being stretched into this convention") was the only inline contradiction; it has been
-    rotated verbatim to docs/decisions/dcp_receipts_archive_v0.md as superseded history, not left
-    inline. "reviewers are read-only unless explicitly assigned patch execution" (artifact-roles.md,
-    review-lanes.md) and "implementation/code review and artifact review remain separate lanes"
-    (review-lanes.md) are unchanged and consistent -- the sibling mode commissions patch execution
-    explicitly and uses the code review lane as its method. No live surface still presents multi-file
-    code diffs as categorically ineligible for the convention.
+    Executed 2026-06-30. communication-style.md owns the shape; prompt-orchestration.md
+    already binds review prompts and review-return/courier prompts; delegated-review-patch.md
+    was the only live overlay seam whose delegate_return output still stopped at
+    diff/citations/verdict/residual-risk without naming the adjudicator next-moves
+    tail. No prompt template or repo-map contradiction found.
   non_claims:
     - not validation
     - not readiness
-    - not a bound/mandatory/machine-routable review lane (the convention stays provisional)
+    - not a bound/mandatory/machine-routable review lane
     - not runtime model routing
-    - not standing implementation/code-patch authorization (per-commission only)
+    - not standing implementation/code-patch authorization
+# same-turn self-closure and required next-moves tail 2026-07-02 (CA decision).
+direction_change_propagation:
+  doctrine_changed: >
+    Review adjudication closeout is hardened for one-turn completion: a
+    self-closable material issue (closure within the adjudicator's own authority
+    and the commissioned scope, such as applying the adjudicator's own
+    modify/reject adjudications to the target) is closed in the same turn
+    instead of ending the turn on a closure route; the material-move deep-think
+    widens from 1-3 to 1-5; and the land-step plus material-moves tail becomes a
+    required closeout element (1-5 named steps, or an explicit "none" with a
+    one-line reason), so an adjudication that stops at the verdict is malformed.
+  trigger: review_authority
+  related_triggers: [output_authority, workflow_authority]
+  controlling_sources_updated:
+    - .agents/workflow-overlay/communication-style.md
+    - .agents/workflow-overlay/prompt-orchestration.md
+    - .agents/workflow-overlay/delegated-review-patch.md
+    - docs/prompts/templates/review/delegated_review_return_adjudication_v0.md
+  downstream_surfaces_checked:
+    - path: .agents/workflow-overlay/review-lanes.md
+      note: >
+        Lane authority, findings-first defaults, and the head deep-thinking-first
+        rule are unchanged; this edit tightens the adjudicator's closeout
+        mechanics only and stays deferred here for shape.
+    - path: AGENTS.md
+      note: >
+        Already routes delegated-review-patch and review/prompt doctrine to the
+        owning overlay files; no root restatement added.
+    - path: docs/workflows/orca_repo_map_v0.md
+      note: >
+        Index lines for the overlay files and the template stay accurate; this
+        is an in-file doctrine edit, not a structural or navigation change.
+  intentionally_not_updated:
+    - path: .agents/workflow-overlay/review-lanes.md
+      reason: >
+        Its findings fields and lane rules already defer the closeout tail to
+        communication-style.md; dual-homing the tail would fork the owner.
+  receipt_storage_updated:
+    - docs/decisions/dcp_receipts_archive_v0.md
+  stale_language_search: >
+    rg -n "1-3 material|until the review is clean|only after a clean adjudication|only if no unresolved material issue|only when status is clean"
+    .agents docs/prompts/templates AGENTS.md docs/workflows
+  stale_language_search_result: >
+    Executed 2026-07-02 after edits. In the declared scope the remaining hits
+    are the retained non-self-closable bullet in communication-style.md, the
+    historical 2026-06-30 inline receipt in delegated-review-patch.md, and the
+    quoted search literals inside these receipts; no live doctrine or template
+    surface still gates the material-moves tail on a pre-closure clean state,
+    caps material moves at 1-3, or leaves the tail optional. A wider sweep of
+    docs/prompts/reviews and docs/prompts/patches found the old wording only in
+    three already-executed commission dispatch prompts, kept as historical lane
+    records and not rewritten.
+  non_claims:
+    - not validation
+    - not readiness
+    - not a bound/mandatory/machine-routable review lane
+    - not runtime model routing
+
 ```
 
 Older receipts archived verbatim in `docs/decisions/dcp_receipts_archive_v0.md`.

@@ -17,6 +17,10 @@ from cleaning.transcript_product_lake import (
     PRODUCT_MENTIONS_LANE,
     PRODUCT_MENTIONS_SET_LANE,
 )
+from data_lake.silver_lineage import (
+    SOURCE_BACKED_COMPLETE_STATUS,
+    silver_record_source_backed_status,
+)
 from source_capture.ig_reels_behavioral_projection import project_ig_reels_behavioral_item
 from source_capture.ig_reels_deep_capture_lake import (
     AUDIENCE_COMMENTS_LANE,
@@ -248,13 +252,21 @@ def _collect_product_extraction_results(
             )
         except Exception:  # noqa: BLE001
             complete = False
-        status = "extracted" if complete else "partial_needs_cleanup"
+        source_backed_status = silver_record_source_backed_status(body)
+        if complete and source_backed_status != SOURCE_BACKED_COMPLETE_STATUS:
+            status = source_backed_status
+        else:
+            status = "extracted" if complete else "partial_needs_cleanup"
         index.setdefault(shortcode, _BehavioralInputs()).extraction_results.append(
             {
                 "anchor": anchor,
                 "video_id": shortcode,
                 "status": status,
                 "path": str(record_path),
+                "transcript_source_key": _string_or_none(body.get("transcript_source_key")),
+                "source_route": _string_or_none(body.get("source_route")),
+                "asr_record_id": _string_or_none(body.get("asr_record_id")),
+                "source_backed_status": source_backed_status,
             }
         )
 

@@ -1442,3 +1442,588 @@ direction_change_propagation:
     - not sidecar selection
     - not storage-engine selection
 ```
+
+## From .agents/workflow-overlay/prompt-orchestration.md
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Operating Economy reform -- reduce no-value latency without losing any
+    defect-catching friction. (1) AGENTS.md adds an "Operating Economy" section
+    (act-default on reversible work; the "can I pick a defensible default and
+    proceed?" test; the harness permission prompts / protected-action guard ARE
+    the irreversibility gate, so no chat double-ask; surface a risky assumption
+    [keep] != ask permission for a clear reversible action [cut]; load each skill
+    once per thread; pre-build gates and precompact are triggered-only and
+    precompact is a thin restore pointer) and refines the kernel "surface
+    ambiguity" line accordingly. (2) The orchestrator mandate is NARROWED:
+    routine prompts apply the new ~12-line "Orca Prompt Preflight" core inline
+    (no skill reload); fused, delegated-review-patch, and novel/cross-lane prompts
+    still author through the full workflow-prompt-orchestrator skill. The full
+    Required Preflight Fields / Review Prompt Defaults / Output Modes obligations
+    are unchanged -- the core is an additive fast-path, not a reduced obligation.
+    (3) The existing docs/prompts/** PostToolUse hook (check_prompt_provenance.py,
+    config-proposal P5) is evolved to INJECT the preflight core instead of a bare
+    "use the orchestrator" pointer -- the real, agent-agnostic enforcement that
+    replaces the invoke-ritual; its now-stale strong-mandate message is corrected
+    to the narrowed two-depth routing.
+  trigger: workflow_authority
+  related_triggers:
+    - output_authority
+  reviewed_by: >
+    Cross-vendor delegated adversarial artifact review (non-Claude / GPT-family,
+    provisional convention) run and CA-adjudicated 2026-06-19; findings AR-01
+    (six-point core readable as the whole contract), AR-02 (routine/novel boundary
+    self-classifying), AR-03 (irreversibility-gate wording overclaims for ungated
+    hard-to-reverse actions), AR-04 (edit-permission enum inconsistent across
+    surfaces) all accepted and folded in pre-merge. Decision input only, not a
+    bound-lane verdict.
+  controlling_sources_updated:
+    - AGENTS.md
+    - .agents/workflow-overlay/prompt-orchestration.md
+    - .agents/hooks/check_prompt_provenance.py
+    - docs/workflows/orca_repo_map_v0.md     # Active Hooks note: faithful restatement of the evolved hook
+    - docs/decisions/dcp_receipts_archive_v0.md  # receipt rotation target (older receipt moved here verbatim)
+  downstream_surfaces_checked:
+    - .agents/workflow-overlay/README.md
+    - .agents/workflow-overlay/source-of-truth.md
+    - .agents/workflow-overlay/validation-gates.md
+    - .agents/workflow-overlay/decision-routing.md
+    - .agents/workflow-overlay/delegated-review-patch.md
+    - .agents/workflow-overlay/skill-adoption.md
+    - .claude/settings.json
+    - .agents/hooks/remind_sci.py
+  intentionally_not_updated:
+    - path: .agents/workflow-overlay/README.md
+      reason: >
+        The overlay index already names prompt-orchestration.md as the prompt /
+        preflight owner and AGENTS.md as the kernel; the preflight core and the
+        Operating Economy section live in those owners, so no index restatement
+        is needed.
+    - path: .agents/workflow-overlay/source-of-truth.md
+      reason: >
+        Source hierarchy and the propagation contract are unchanged; this change
+        consumes that contract (receipt + rotation), it does not alter it.
+    - path: .agents/workflow-overlay/validation-gates.md
+      reason: >
+        Its Prompt Orchestration Gates defer to prompt-orchestration.md as the
+        prompt-mechanics owner and carry no "must author through the orchestrator"
+        text (verified by grep); the narrowed two-depth routing lives in the owner
+        file, so no gate text changes.
+    - path: .agents/workflow-overlay/decision-routing.md
+      reason: >
+        Its Enforcement Placement pointer and Cynefin triggers are unchanged; the
+        evolved hook is the same boundary substrate it already describes in
+        principle, not a new gate.
+    - path: .agents/workflow-overlay/delegated-review-patch.md
+      reason: >
+        Its incomplete-commission route-out through workflow-prompt-orchestrator
+        is exactly a "use the full skill" case under the narrowed routing --
+        preserved, not stale; no edit.
+    - path: .agents/workflow-overlay/skill-adoption.md
+      reason: >
+        Its orchestrator references are adoption cautions, not the authoring
+        mandate (verified by grep); unaffected by the narrowing.
+    - path: .claude/settings.json
+      reason: >
+        The hook is evolved in place (same file, same PostToolUse Write|Edit
+        wiring); no registration change, so settings.json is unchanged.
+    - path: .agents/hooks/remind_sci.py
+      reason: >
+        Its _SCI_VERBATIM mirrors the AGENTS.md "Smallest Complete Intervention"
+        section, which is untouched (only the kernel "surface ambiguity" line, the
+        mandate line, and a new Operating Economy section change); the mirror stays
+        in sync. Verified by selftest.
+  stale_language_search: >
+    rg -i -n "through.{0,40}workflow-prompt-orchestrator|never hand-draft|must be authored through"
+    .agents docs AGENTS.md (run 2026-06-19 in worktree cranky-driscoll-c4e109)
+  stale_language_search_result: >
+    Executed 2026-06-19 post-edit. In scope (.agents, docs, AGENTS.md) every hit is
+    reconciled: AGENTS.md and prompt-orchestration.md ("Author Through" +
+    "Authoring-route precondition") now carry the narrowed two-depth routing
+    (novel-case "author through the full skill"); the repo map "Active Hooks" note
+    and check_prompt_provenance.py (docstring + the line recording that the prior
+    strong-mandate message went stale) carry the corrected wording;
+    prompt-orchestration.md's other hits are this receipt's own reason text and query
+    string; and delegated-review-patch.md "Route the request through
+    workflow-prompt-orchestrator" is the explicit full-skill route-out for an
+    incomplete commission -- one of the "use the full skill" cases, consistent with
+    the narrowing (not stale). No in-scope surface retains an unqualified "author
+    every prompt through the orchestrator" mandate. A whole-repo sweep additionally
+    finds restatements under orca/product/** (fragrance satellite, capture and
+    commission-board artifacts) saying "author through the orchestrator"; these are
+    product-lane artifacts, not doctrine-routing surfaces, and stay valid (the
+    full-skill path is never wrong, only sometimes more than a routine prompt needs)
+    -- reconciling them is out of scope for this kernel change.
+  non_claims:
+    - not validation
+    - not readiness
+    - not source promotion
+    - not implementation authorization
+```
+
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Durable and cross-recipient Orca prompts (review, handoff, commission,
+    wrapper, rerun, patch — and any prompt handed to another model/agent/thread/
+    worktree) must now be authored as a FILE-WRITE under docs/prompts/**, not
+    chat-only; paste-ready-chat carries a copy of the filed body, not a substitute
+    for filing. This retracts the previously-accepted limitation that the
+    docs/prompts/** provenance hook (check_prompt_provenance.py) misses
+    paste-ready-chat prompts that never touch disk: by requiring durable prompts
+    to touch disk, the hook always fires and injects the preflight (incl. source
+    pack / required reads + the Source-Gated Method Contract), so source-loading
+    is enforced for every durable prompt. chat-only is reserved for trivial,
+    single-target inline prompts.
+  trigger: workflow_authority
+  related_triggers:
+    - output_authority
+  controlling_sources_updated:
+    - .agents/workflow-overlay/prompt-orchestration.md
+    - .agents/hooks/check_prompt_provenance.py
+  downstream_surfaces_checked:
+    - AGENTS.md
+    - .agents/workflow-overlay/validation-gates.md
+    - .agents/workflow-overlay/source-loading.md
+    - .agents/workflow-overlay/communication-style.md
+    - .agents/workflow-overlay/template-registry.md
+    - .agents/workflow-overlay/delegated-review-patch.md
+    - .claude/settings.json
+    - docs/decisions/dcp_receipts_archive_v0.md
+  intentionally_not_updated:
+    - path: AGENTS.md
+      reason: >
+        The kernel routes prompt detail to prompt-orchestration.md; the filing
+        rule lives in that owner file, so no root restatement is added.
+    - path: .agents/workflow-overlay/validation-gates.md
+      reason: >
+        Its Authoring-route precondition already requires the prompt contract to
+        have been applied at the correct depth; the filing rule is part of that
+        contract in the owner file, so the gate needs no new text.
+    - path: .agents/workflow-overlay/source-loading.md
+      reason: >
+        Owns the read-pack / orca_start_preflight the hook injects; this rule
+        routes durable prompts through that preflight and changes nothing in the
+        load-side owner.
+    - path: .agents/workflow-overlay/communication-style.md
+      reason: >
+        Owns the general chat shape; the paste-ready-chat output-mode tightening
+        lives in prompt-orchestration.md (output-mode owner), so no duplicate here.
+        Its chat-only hits are review/decision OUTPUT, not prompt authoring.
+    - path: .agents/workflow-overlay/template-registry.md
+      reason: >
+        Lists paste-ready-chat as the delivery mode of FILED docs/prompts/templates/**
+        templates; consistent with "filed artifact + paste copy." No mode removed.
+    - path: .agents/workflow-overlay/delegated-review-patch.md
+      reason: >
+        Its paste-ready-chat route-out is a cross-recipient prompt; under the new
+        rule that is a filed artifact with paste-ready-chat as its copy — consistent.
+        A one-line "filed + copy" clarification is optional, not required; flagged,
+        not silently forked.
+    - path: .claude/settings.json
+      reason: >
+        The hook wiring is unchanged (same PostToolUse Write|Edit registration);
+        only the hook docstring note is updated to reflect the doctrinal closure.
+    - path: docs/decisions/dcp_receipts_archive_v0.md
+      reason: >
+        Receipt-rotation target only — the prior 2026-06-15 fitness_reference
+        receipt was moved there verbatim to keep this file at the
+        two-most-recent-inline limit. Not a doctrine surface.
+  stale_language_search: >
+    rg -i "paste-ready-chat|never touch disk|chat-only|authored.{0,20}file-write"
+    .agents/workflow-overlay AGENTS.md (run 2026-06-20)
+  stale_language_search_result: >
+    Executed 2026-06-20; the terms appear in 5 overlay files (not 1).
+    prompt-orchestration.md carries the new filing rule + paste-ready-chat tightening
+    (the change itself). communication-style.md uses chat-only for review/decision
+    OUTPUT, not prompt authoring — consistent. template-registry.md lists
+    paste-ready-chat as the delivery mode of FILED docs/prompts/templates/** templates
+    — consistent with "filed + paste copy." validation-gates.md names the output-mode
+    enum — consistent. delegated-review-patch.md specifies a paste-ready-chat route-out
+    prompt: under the new rule a cross-recipient route-out is a filed artifact with
+    paste-ready-chat as its copy — consistent, optional one-line clarification flagged
+    (not silently forked). No live surface presents chat-only / paste-ready-without-a-file
+    as an accepted authoring path for a durable or cross-recipient prompt.
+  non_claims:
+    - not validation
+    - not readiness
+    - not source promotion
+    - not implementation authorization
+```
+
+```yaml
+direction_change_propagation:
+  change_id: subagent_validation_probe_timeout_2026_06_20
+  trigger: workflow_authority | validation_philosophy
+  changed_sources:
+    - .agents/workflow-overlay/prompt-orchestration.md
+  reason: >
+    A delegated ontology-tagging lane repeatedly invoked a newly authored
+    validation hook that hung during selftest and left background Python
+    processes. The subagent contract needed an explicit smoke-timeout stop rule
+    for new/custom validation surfaces before retry or completion claims.
+  controlling_sources_checked:
+    - AGENTS.md
+    - .agents/workflow-overlay/README.md
+    - .agents/workflow-overlay/decision-routing.md
+    - .agents/workflow-overlay/validation-gates.md
+    - .agents/workflow-overlay/source-of-truth.md
+    - .agents/workflow-overlay/prompt-orchestration.md
+  downstream_surfaces_checked:
+    - .agents/workflow-overlay/decision-routing.md
+    - .agents/workflow-overlay/validation-gates.md
+    - .agents/workflow-overlay/source-of-truth.md
+  intentionally_not_updated:
+    - path: .agents/workflow-overlay/decision-routing.md
+      reason: >
+        It already owns delegation routing and runtime-payload safety; the new
+        rule is the prompt/dispatch execution contract for subagent validation
+        probes, so it belongs in prompt-orchestration.md.
+    - path: .agents/workflow-overlay/validation-gates.md
+      reason: >
+        Known gate semantics and CI timeouts are unchanged. The new 30-second
+        limit is a smoke-probe stop condition for newly introduced or materially
+        changed validation commands, not a replacement gate timeout.
+    - path: .agents/workflow-overlay/source-of-truth.md
+      reason: >
+        Source hierarchy and propagation mechanics are unchanged; this receipt
+        consumes the existing doctrine-change propagation contract.
+  non_claims:
+    - not validation
+    - not readiness
+    - not source promotion
+    - not implementation authorization
+```
+
+```yaml
+# archived from .agents/workflow-overlay/delegated-review-patch.md on 2026-06-30 by repo-access-default patch.
+# delegated_code_review_and_patch sibling mode bound 2026-06-28 (CA decision).
+direction_change_propagation:
+  doctrine_changed: >
+    The delegated review-and-patch convention now defines a delegated_code_review_and_patch
+    sibling mode for bounded multi-file implementation/code diffs, replacing the prior flat
+    exclusion (the 2026-06-16 "do not stretch this convention to a multi-file code diff" text,
+    now rotated to the archive). The sibling mode keeps the code review lane (workflow-code-review,
+    deep-thinking first, source-gated) as its review method -- NOT artifact review and not a merge
+    of the two -- bounds the patch to an explicitly named multi-file set that cannot silently widen
+    (everything outside it flag-only), names validation/test obligations that can fail, and keeps
+    patch authority an explicit commission subordinate to the implementation-authorization boundary
+    in safety-rules.md / AGENTS.md. All other convention machinery (commission, de-correlation /
+    two-bar, repo/no_repo access-mode obligations, CA adjudication of the returned diff before keep,
+    NEEDS_ARCHITECTURE_PASS, strict-claim boundary, no runtime-model recommendation) is inherited
+    unchanged. Legitimizes the shape practice already ran as a disclosed per-commission deviation
+    (e.g. docs/prompts/reviews/source_capture_lenient_read_slice_delegated_adversarial_code_review_and_patch_prompt_v0.md).
+  trigger: review_authority
+  related_triggers: [workflow_authority]
+  controlling_sources_updated:
+    - .agents/workflow-overlay/delegated-review-patch.md
+    - .agents/workflow-overlay/review-lanes.md          # lane-index summary line de-narrowed to name the code-diff sibling mode
+    - docs/workflows/orca_repo_map_v0.md                # repo-map index line de-narrowed likewise
+  receipt_storage_updated:
+    - docs/decisions/dcp_receipts_archive_v0.md          # 2026-06-13 and 2026-06-16 receipts rotated here verbatim
+  downstream_surfaces_checked:
+    - path: .agents/workflow-overlay/prompt-orchestration.md
+      note: >
+        "delegated-review-patch ... author through the full skill" routing is target-kind-agnostic;
+        a delegated_code_review_and_patch prompt is still a delegated-review-patch prompt routed
+        through the full skill, and Review Prompt Defaults already own the code-review method
+        (deep-thinking first, source-gated) the sibling mode points to. No edit.
+    - path: .agents/workflow-overlay/safety-rules.md
+      note: >
+        Already requires explicit bounded authorization for implementation/source-changing work;
+        the sibling mode defers to that boundary (the commission IS the authorization) and grants
+        no standing code-patch authority. Unchanged.
+    - path: .agents/workflow-overlay/artifact-roles.md
+      note: >
+        "reviewers are read-only unless explicitly assigned patch execution" stays true; the
+        commission is exactly that explicit assignment. Unchanged.
+    - path: .agents/workflow-overlay/skill-adoption.md
+      note: >
+        Its workflow-delegated-review-patch row ("bounded de-correlated review-and-patch hardening
+        pass") is target-kind-agnostic and stays accurate. Unchanged.
+    - path: .agents/workflow-overlay/review-lanes.md
+      note: >
+        "implementation/code review and artifact review remain separate lanes" stays true -- the
+        sibling mode USES the code review lane as its review method, it does not merge the lanes;
+        two-bar de-correlation and reviewed_by/authored_by provenance already cover code review.
+    - path: AGENTS.md
+      note: routes delegated review-and-patch to the owning overlay file; no root restatement (a fork). Unchanged.
+  stale_language_search: >
+    rg -ni "multi-file|implementation/code|code diff|delegated_code_review|patch execution|source-read-only"
+    .agents/workflow-overlay docs/workflows/orca_repo_map_v0.md AGENTS.md
+  stale_language_search_result: >
+    Executed 2026-06-28. The prior flat exclusion in delegated-review-patch.md is replaced by the
+    sibling-mode route; the interface non_eligible_target_boundary is replaced by
+    code_diff_target_routing + target_kinds. review-lanes.md line ~29 and repo-map line ~497
+    narrowing phrase ("high-stakes authored artifacts") now name the code-diff sibling mode. The
+    2026-06-16 receipt's exclusion sentence ("multi-file ... routed to the appropriate review prompt
+    instead of being stretched into this convention") was the only inline contradiction; it has been
+    rotated verbatim to docs/decisions/dcp_receipts_archive_v0.md as superseded history, not left
+    inline. "reviewers are read-only unless explicitly assigned patch execution" (artifact-roles.md,
+    review-lanes.md) and "implementation/code review and artifact review remain separate lanes"
+    (review-lanes.md) are unchanged and consistent -- the sibling mode commissions patch execution
+    explicitly and uses the code review lane as its method. No live surface still presents multi-file
+    code diffs as categorically ineligible for the convention.
+  non_claims:
+    - not validation
+    - not readiness
+    - not a bound/mandatory/machine-routable review lane (the convention stays provisional)
+    - not runtime model routing
+    - not standing implementation/code-patch authorization (per-commission only)
+```
+## From orca/product/spines/data_lake/authority/core_spine_v0_data_lake_silver_vault_record_contract_v0.md
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Silver Vault v4.1 now explicitly clarifies Creator Vault generated read-model
+    placement and sync semantics: account/content envelopes stay sibling read
+    homes, TikTok/Youtube/Instagram path examples are read-model keys only,
+    acknowledgement refs remain lane receipts/manifests rather than envelope
+    authority, relationship/source-ref examples are concrete for future
+    read-model scoping, and client carveout replicas/exports are generated from
+    Silver records and read-model manifests rather than separate capture sources
+    by default.
+  trigger: architecture_doctrine
+  related_triggers:
+    - product_doctrine
+  controlling_sources_updated:
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_silver_vault_record_contract_v0.md
+  downstream_surfaces_checked:
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_v4_1_forward_epoch_contract_v0.md
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_physicality_location_contract_v0.md
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_derived_layout_index_rebuild_contract_v0.md
+    - orca-harness/data_lake/root.py
+    - orca-harness/tests/test_data_lake_root.py
+    - docs/review-outputs/adversarial-artifact-reviews/data_lake_v4_1_root_epoch_mixed_artifact_code_review_v0.md
+  intentionally_not_updated:
+    - path: orca/product/spines/data_lake/authority/core_spine_v0_data_lake_v4_1_forward_epoch_contract_v0.md
+      reason: >
+        Already owns only the generic v4.1 folder grammar and states Creator
+        Vault is generated/non-authoritative; platform examples and carveout sync
+        belong in the Silver Vault record/read-model contract.
+    - path: orca/product/spines/data_lake/authority/core_spine_v0_data_lake_physicality_location_contract_v0.md
+      reason: >
+        Owns physical slot invariants and does not enumerate Creator Vault
+        platform keys or client-replica semantics.
+    - path: orca/product/spines/data_lake/authority/core_spine_v0_data_lake_derived_layout_index_rebuild_contract_v0.md
+      reason: >
+        Owns derived/ack addressing and rebuildability; this patch uses that
+        boundary without changing addressing or opening new derived_retrieval
+        view classes.
+    - path: orca-harness/data_lake/root.py
+      reason: >
+        Runtime already creates only the generic Creator Vault account/content
+        homes; no platform-specific folders, builder code, runner changes, or
+        live data-root mutation are authorized by this contract clarification.
+    - path: orca-harness/tests/test_data_lake_root.py
+      reason: >
+        Existing tests verify the generic skeleton from LAKE_SUBDIRECTORIES; no
+        runtime path list changed.
+  stale_language_search: >
+    rg -n "Creator Vault|creator_vault|carveout|replica|acknowledgement|tiktok|TikTok"
+    orca/product/spines/data_lake/authority orca-harness/data_lake/root.py
+    orca-harness/tests/test_data_lake_root.py
+  non_claims:
+    - not validation
+    - not readiness
+    - not implementation authorization
+    - not runner PR work
+    - not client replica implementation
+    - not live external data-root mutation
+```
+
+## From .agents/workflow-overlay/source-loading.md
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Spine read packs (Data Capture Spine CA, Data Capture Intake Surface / MSP
+    Pressure-Test Target, Judgment Spine Evidence Ladder) reshaped to
+    front-door pointer form matching the ECR pack model: each pack now leads
+    with its retrieval_only front-door submap and routes to owner docs on
+    demand. Embedded spine state (slot-by-slot pressure-test authorization-chain
+    walk, CloakBrowser selection, Reddit ordering, RQ status) relocated verbatim
+    to the spine-owned closeout synthesis. Source-loading.md is navigation only;
+    state of the work lives in the spine-owned doc it belongs to.
+  trigger: workflow_authority
+  related_triggers:
+    - architecture_doctrine
+    - lifecycle_boundary
+  controlling_sources_updated:
+    - .agents/workflow-overlay/source-loading.md
+    - orca/product/spines/capture/core/operating_model/data_capture_spine_pressure_test_closeout_synthesis_v0.md
+  downstream_surfaces_checked:
+    - .agents/workflow-overlay/prompt-orchestration.md
+    - .agents/workflow-overlay/README.md
+    - docs/workflows/orca_repo_map_v0.md
+    - docs/research/judgment-spine/judgment_spine_consolidation_map_v0.md
+    - docs/workflows/data_capture_spine_consolidation_map_v0.md
+  intentionally_not_updated:
+    - path: .agents/workflow-overlay/prompt-orchestration.md
+      reason: >
+        Prompt orchestration binds source-loading as the read-pack authority and
+        points here; it does not reproduce pack contents. The front-door reshape
+        does not change the binding rule.
+    - path: .agents/workflow-overlay/README.md
+      reason: >
+        The overlay index already names source-loading.md as the read-pack owner.
+        No section owner or overlay path changed.
+    - path: docs/workflows/orca_repo_map_v0.md
+      reason: >
+        The repo map already points to the section anchors
+        (source-loading.md#data-capture-intake-surface--msp-pressure-test-target-pack
+        etc.) and does not reproduce pack contents. Section headings are
+        unchanged so existing anchors remain valid.
+    - path: docs/research/judgment-spine/judgment_spine_consolidation_map_v0.md
+      reason: >
+        The Judgment Spine consolidation map is the front door this pack now
+        points to; it is not a downstream consumer of pack contents. No changes
+        needed there.
+    - path: docs/workflows/data_capture_spine_consolidation_map_v0.md
+      reason: >
+        The Data Capture Spine consolidation map is the front door this pack now
+        points to; it is not a downstream consumer of pack contents. No changes
+        needed there.
+  stale_language_search: >
+    rg -n "MSP|pressure-test|read pack" .agents/workflow-overlay/
+  stale_language_search_result: >
+    Executed 2026-06-13 after edits. Hits in .agents/workflow-overlay/:
+    artifact-folders.md:197 ("read packs reference unchanged paths until
+    Phase-2 apply" — DCP receipt comment, not stale); README.md:19 ("read
+    packs, and context-bloat controls" — description of source-loading.md,
+    accurate); source-loading.md — section title "Data Capture Intake Surface /
+    MSP Pressure-Test Target Pack" (correct, kept), "pressure-test" in navigation
+    text (correct nav context, not state prose), "read pack" in capsule-limit
+    prose and Expansion Rules (both accurate descriptions of navigation artifacts,
+    not stale); source-of-truth.md — references to source-loading.md description
+    (accurate). No hit retained the inline authorization-chain state narrative
+    or bulk file-list in source-loading.md; none points to a stale-language
+    conflict requiring a further fix.
+  non_claims:
+    - not validation
+    - not readiness
+    - not source promotion
+    - not implementation authorization
+    - not ECR or Judgment design
+```
+
+## From orca/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Capture now interprets scanning/CSB recency-currentness as preservation
+    urgency and source-drift risk, not proof or route binding: same-strength
+    newer/current source states may deserve earlier capture when the request is
+    otherwise in scope and route-matched.
+  trigger: product_doctrine
+  related_triggers:
+    - workflow_authority
+  controlling_sources_updated:
+    - orca/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md
+    - orca/product/spines/commission_signal_board/prompts/orca_commission_signal_board_prompt_structure_v0.md
+    - orca/product/spines/judgment/demand_read/core/judgment_spine_demand_read_machinery_architecture_v0.md
+    - docs/workflows/orca_repo_map_v0.md
+  downstream_surfaces_checked:
+    - AGENTS.md
+    - .agents/workflow-overlay/source-of-truth.md
+    - docs/workflows/data_capture_spine_consolidation_map_v0.md
+    - orca/product/spines/capture/core/source_capture_toolbox/README.md
+    - orca/product/spines/capture/core/source_capture_toolbox/capture_recon_index_v0.md
+    - orca/product/spines/scanning/README.md
+    - orca/product/spines/scanning/scan_core/orca_scanning_intelligent_walk_mgt_operating_model_v0.md
+  intentionally_not_updated:
+    - path: docs/workflows/data_capture_spine_consolidation_map_v0.md
+      reason: >
+        The submap remains a pointer surface and already routes capture-method
+        questions to this playbook; no route ownership changed.
+    - path: orca/product/spines/capture/core/source_capture_toolbox/README.md
+      reason: >
+        The Source Capture Armory index already points operators to this playbook
+        for method routing; duplicating recency semantics there would create a
+        second wording surface.
+  stale_language_search: >
+    rg -n "recency|recent|current-state|currentness|preservation urgency|route binding|proof|access-control gate"
+    orca/product/spines/capture orca/product/spines/scanning docs/workflows/data_capture_spine_consolidation_map_v0.md docs/workflows/orca_repo_map_v0.md
+    (run 2026-06-23)
+  stale_language_search_result: >
+    Hits were accepted recency/currentness preservation-priority language,
+    repo-map routing summaries, existing capture/scanning safeguards, harvested
+    historical source text, or explicit no-proof/no-route-binding/no-access-gate
+    boundaries. No controlling Capture/scanning surface was found that lets
+    recency/currentness prove demand, authorize access, or bind a Capture route.
+  non_claims:
+    - not validation
+    - not readiness
+    - not capture authorization
+    - not source-access authorization
+    - not buyer proof
+```
+
+## From .agents/workflow-overlay/delegated-review-patch.md
+
+```yaml
+# repo-access default and clean-adjudication next-moves hardening 2026-06-30 (CA decision).
+direction_change_propagation:
+  doctrine_changed: >
+    Delegated review-and-patch commissions now bind repo as the default access
+    mode. no_repo is selected only by an explicit commission value plus a reason
+    repository access is unavailable or intentionally excluded; cross-vendor,
+    external, couriered, paste-ready-chat, or portable-method dispatch does not
+    imply repo-blindness. Review-return adjudication is also tightened: the CA
+    adjudicates findings/diff/verdict/residuals first; if a material issue
+    remains, the next step is closure for that issue; only after a clean
+    adjudication does admin collapse into exactly one land step and material
+    next moves receive deep thinking.
+  trigger: review_authority
+  related_triggers: [workflow_authority, output_authority]
+  controlling_sources_updated:
+    - .agents/workflow-overlay/delegated-review-patch.md
+    - .agents/workflow-overlay/prompt-orchestration.md
+    - .agents/workflow-overlay/communication-style.md
+    - .agents/workflow-overlay/template-registry.md
+    - docs/prompts/templates/portable/adversarial_artifact_review_portable_method_v0.md
+    - docs/prompts/templates/review/delegated_review_return_adjudication_v0.md
+    - docs/prompts/reviews/ontology_commission_refresh_delegated_review_patch_prompt_v0.md
+    - docs/prompts/reviews/ontology_backbone_architecture_delegated_review_prompt_v0.md
+    - docs/decisions/dcp_receipts_archive_v0.md
+  downstream_surfaces_checked:
+    - path: .agents/workflow-overlay/review-lanes.md
+      note: >
+        Review-lane model-neutrality, findings-first defaults, provenance fields,
+        and CA consumption order stay intact; the access default and adjudication
+        tail are delegated-review/prompt mechanics, not lane authority changes.
+    - path: AGENTS.md
+      note: >
+        Already routes delegated-review-patch, prompt artifacts, review lanes, and
+        doctrine-changing work to the owning overlay/prompt sources; no root
+        restatement added.
+    - path: docs/workflows/orca_repo_map_v0.md
+      note: >
+        Existing index lines still route delegated-review-patch and prompt
+        orchestration to the owning overlay files; no new top-level source folder
+        or lifecycle boundary was introduced.
+  receipt_storage_updated:
+    - docs/decisions/dcp_receipts_archive_v0.md
+  stale_language_search: >
+    rg --hidden --glob '!worktrees/**' --glob '!.git/**' --glob '!docs/review-inputs/**' -n
+    "no_repo[^\n]{0,80}(default|expected)|expected dispatch|repo-blind cross-vendor|cross-family / external / no-repo|repo-agnostic / cross-family|The reviewer needs nothing else -- no repo|The reviewer needs nothing else — no repo"
+    .agents docs AGENTS.md
+  stale_language_search_result: >
+    Executed 2026-06-30 after patch and rechecked after the delegated review
+    report was written. No live prompt, template, or overlay surface still
+    defaults delegated review-and-patch to no_repo or treats cross-vendor,
+    external, couriered, paste-ready, or portable delivery as repo-blind by
+    default. Remaining hits are only quoted stale-search literals in this receipt
+    and the delegated review-patch commission prompt, archived DCP history in
+    docs/decisions/dcp_receipts_archive_v0.md, and review-output notes under
+    docs/review-outputs/ including the current delegated review report.
+  non_claims:
+    - not validation
+    - not readiness
+    - not a bound/mandatory/machine-routable review lane
+    - not runtime model routing
+    - not standing implementation/code-patch authorization
+```

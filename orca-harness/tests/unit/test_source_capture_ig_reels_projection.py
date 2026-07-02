@@ -1,17 +1,25 @@
 from __future__ import annotations
 
 import json
+from pathlib import Path
 
 import pytest
 
+from data_lake.catalog import rebuild_catalog
+from data_lake.root import DataLakeRoot, DataLakeRootError
+import runners.run_ig_reels_grid_projection as ig_reels_runner
 from source_capture.ig_reels_grid_projection import (
+    BRONZE_CATALOG_IG_REELS_GRID_RECORD_ID_PREFIX,
     IG_REELS_PROJECTION_CERTIFICATION,
     IG_REELS_PROJECTION_METHOD,
+    PROJECTION_IG_REELS_GRID_LANE,
     IgProjectionRawAnchor,
     IgProjectionRawRef,
     IgReelsGridProjectionRow,
     build_ig_reels_grid_projection,
     build_ig_reels_grid_projection_from_packet_directory,
+    project_ig_reels_grid_from_bronze_catalog,
+    project_ig_reels_grid_into_lake,
 )
 from source_capture.models import (
     CaptureModeCategory,
@@ -28,6 +36,7 @@ from source_capture.models import (
     not_attempted,
     unknown_with_reason,
 )
+from source_capture.writer import write_local_source_capture_packet
 
 CAPTURE_TIME = "2026-06-22T20:48:29Z"
 SELECTION_POLICY_VERSION = "ig_reels_grid_capture_selection_v0"
@@ -69,19 +78,29 @@ def test_projection_carries_source_surface_disagreement() -> None:
     assert "clips_user_json_metadata" in projection.loss_ledger.source_surfaces_observed
 
 
-def test_projection_missing_json_join_is_marked() -> None:
+def test_projection_missing_json_join_promotes_parseable_dom_grid_metric() -> None:
     packet, raw = _reels_packet()
 
     projection = build_ig_reels_grid_projection(packet=packet, raw_file_bytes_by_file_id=raw)
 
     view = _row(projection, "ig_reels_grid_02", "view_count")
     assert view.join_status == "missing_json"
-    assert view.posture is MetricPosture.UNAVAILABLE_WITH_REASON
-    assert view.value is None
-    assert view.chosen_source_surface is None
-    # DOM still carried even with no JSON join.
-    assert [c.source_surface for c in view.source_surface_count_candidates] == ["dom_grid_engagement"]
+    assert view.posture is MetricPosture.OBSERVED
+    assert view.value == 1630
+    assert view.reason is None
+    assert view.chosen_source_surface == "dom_grid_engagement"
+    assert "metric_value_from_dom_grid_no_passive_json_join" in view.selection_limitations
+    assert "ig_reels_dom_grid_metric_promoted:view_count" in view.residuals
+    assert [(c.source_surface, c.value, c.raw_text) for c in view.source_surface_count_candidates] == [
+        ("dom_grid_engagement", 1630, "1,630")
+    ]
 
+    like = _row(projection, "ig_reels_grid_02", "like_count")
+    comment = _row(projection, "ig_reels_grid_02", "comment_count")
+    assert like.value == 9
+    assert like.chosen_source_surface == "dom_grid_engagement"
+    assert comment.value == 0
+    assert comment.chosen_source_surface == "dom_grid_engagement"
 
 def test_projection_forces_static_post_view_count_not_applicable() -> None:
     packet, raw = _reels_packet()
@@ -157,6 +176,220 @@ def test_projection_from_directory_certifies_view_only(tmp_path) -> None:
     assert projection.certification == IG_REELS_PROJECTION_CERTIFICATION
     assert projection.selection_policy_version == SELECTION_POLICY_VERSION
     assert projection.loss_ledger.preserved_metric_rows == len(projection.rows)
+
+
+
+
+def test_project_reels_grid_into_lake_appends_verified_projection(tmp_path) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    packet_id = _commit_reels_packet(root, tmp_path)
+
+    projection, derived_path = project_ig_reels_grid_into_lake(
+        data_root=root,
+        packet_id=packet_id,
+        record_id="rec1",
+    )
+
+    assert derived_path == root.record_path(
+        subtree="derived",
+        raw_anchor=packet_id,
+        lane=PROJECTION_IG_REELS_GRID_LANE,
+        record_id="rec1.json",
+    )
+    assert derived_path.is_file()
+    assert projection.packet_id == packet_id
+
+    container = root.find_packet(packet_id)
+    assert container is not None
+    expected = build_ig_reels_grid_projection_from_packet_directory(packet_or_manifest_path=container)
+    expected_bytes = (
+        f"{json.dumps(expected.model_dump(mode='json'), indent=2, sort_keys=True)}\n"
+    ).encode("utf-8")
+    assert derived_path.read_bytes() == expected_bytes
+
+    assert root.load_raw_packet(packet_id).manifest["packet_id"] == packet_id
+
+
+def test_project_reels_grid_rederive_appends_sibling_not_overwrite(tmp_path) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    packet_id = _commit_reels_packet(root, tmp_path)
+
+    _, first = project_ig_reels_grid_into_lake(data_root=root, packet_id=packet_id)
+    _, second = project_ig_reels_grid_into_lake(data_root=root, packet_id=packet_id)
+
+    lane_dir = root.lane_dir(
+        subtree="derived",
+        raw_anchor=packet_id,
+        lane=PROJECTION_IG_REELS_GRID_LANE,
+    )
+    assert first != second
+    assert len(list(lane_dir.glob("*.json"))) == 2
+
+
+def test_project_reels_grid_explicit_record_id_is_create_only(tmp_path) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    packet_id = _commit_reels_packet(root, tmp_path)
+
+    project_ig_reels_grid_into_lake(data_root=root, packet_id=packet_id, record_id="rec1")
+    with pytest.raises(DataLakeRootError):
+        project_ig_reels_grid_into_lake(data_root=root, packet_id=packet_id, record_id="rec1")
+
+
+def test_project_reels_grid_from_bronze_catalog_uses_source_surface_and_ar_rows(
+    tmp_path,
+) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    packet_id = _commit_reels_packet(root, tmp_path)
+    assert rebuild_catalog(root)["status"] == "rebuilt"
+
+    projected = project_ig_reels_grid_from_bronze_catalog(
+        data_root=root,
+        record_id_prefix="bronzeproof",
+    )
+
+    assert len(projected) == 1
+    projection, derived_path = projected[0]
+    assert projection.packet_id == packet_id
+    _assert_stable_bronze_record_path(root, derived_path, packet_id, "bronzeproof")
+    assert derived_path.is_file()
+    assert _row(projection, "ig_reels_grid_01", "view_count").chosen_source_surface == (
+        "clips_user_json_metadata"
+    )
+
+
+def test_project_reels_grid_from_bronze_catalog_defaults_to_stable_non_duplicate_record_id(
+    tmp_path,
+) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    packet_id = _commit_reels_packet(root, tmp_path)
+    assert rebuild_catalog(root)["status"] == "rebuilt"
+
+    projected = project_ig_reels_grid_from_bronze_catalog(data_root=root)
+
+    assert len(projected) == 1
+    _projection, derived_path = projected[0]
+    _assert_stable_bronze_record_path(
+        root,
+        derived_path,
+        packet_id,
+        BRONZE_CATALOG_IG_REELS_GRID_RECORD_ID_PREFIX,
+    )
+    with pytest.raises(DataLakeRootError, match="stable record id"):
+        project_ig_reels_grid_from_bronze_catalog(data_root=root)
+    lane_dir = root.lane_dir(
+        subtree="derived",
+        raw_anchor=packet_id,
+        lane=PROJECTION_IG_REELS_GRID_LANE,
+    )
+    assert len(list(lane_dir.glob("*.json"))) == 1
+
+
+def test_project_reels_grid_from_bronze_catalog_skip_existing_converges_grown_catalog(
+    tmp_path,
+) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    first_packet_id = _commit_reels_packet(root, tmp_path)
+    assert rebuild_catalog(root)["status"] == "rebuilt"
+    first_projected = project_ig_reels_grid_from_bronze_catalog(
+        data_root=root,
+        record_id_prefix="bronzeproof",
+    )
+    assert len(first_projected) == 1
+
+    second_packet_id = _commit_reels_packet(root, tmp_path)
+    assert second_packet_id != first_packet_id
+    assert rebuild_catalog(root)["status"] == "rebuilt"
+
+    with pytest.raises(DataLakeRootError, match="stable record id"):
+        project_ig_reels_grid_from_bronze_catalog(
+            data_root=root,
+            record_id_prefix="bronzeproof",
+        )
+    second_lane_dir = root.lane_dir(
+        subtree="derived",
+        raw_anchor=second_packet_id,
+        lane=PROJECTION_IG_REELS_GRID_LANE,
+    )
+    assert not second_lane_dir.is_dir()
+
+    created = project_ig_reels_grid_from_bronze_catalog(
+        data_root=root,
+        record_id_prefix="bronzeproof",
+        skip_existing=True,
+    )
+
+    assert len(created) == 1
+    projection, derived_path = created[0]
+    assert projection.packet_id == second_packet_id
+    _assert_stable_bronze_record_path(root, derived_path, second_packet_id, "bronzeproof")
+    assert derived_path != first_projected[0][1]
+    assert (
+        project_ig_reels_grid_from_bronze_catalog(
+            data_root=root,
+            record_id_prefix="bronzeproof",
+            skip_existing=True,
+        )
+        == []
+    )
+
+
+def test_project_reels_grid_from_bronze_catalog_requires_current_catalog(tmp_path) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    _commit_reels_packet(root, tmp_path)
+
+    with pytest.raises(DataLakeRootError, match="Bronze catalog is not current"):
+        project_ig_reels_grid_from_bronze_catalog(data_root=root)
+
+
+def test_runner_projects_reels_grid_from_bronze_source_surface(
+    tmp_path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    packet_id = _commit_reels_packet(root, tmp_path)
+    assert rebuild_catalog(root)["status"] == "rebuilt"
+
+    def fake_resolve(*, explicit=None, **_kwargs):
+        assert explicit == str(root.path)
+        return root
+
+    monkeypatch.setattr(ig_reels_runner.DataLakeRoot, "resolve", staticmethod(fake_resolve))
+
+    assert ig_reels_runner.main(
+        [
+            "--data-root",
+            str(root.path),
+            "--bronze-source-surface",
+            "--record-id-prefix",
+            "runnerproof",
+        ]
+    ) == 0
+
+    paths = json.loads(capsys.readouterr().out)
+    assert len(paths) == 1
+    derived_path = Path(paths[0])
+    _assert_stable_bronze_record_path(root, derived_path, packet_id, "runnerproof")
+
+    assert ig_reels_runner.main(
+        [
+            "--data-root",
+            str(root.path),
+            "--bronze-source-surface",
+            "--record-id-prefix",
+            "runnerproof",
+            "--skip-existing",
+        ]
+    ) == 0
+    assert json.loads(capsys.readouterr().out) == []
+
+
+def test_runner_rejects_skip_existing_outside_bronze_source_surface(
+    tmp_path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    with pytest.raises(SystemExit) as excinfo:
+        ig_reels_runner.main(["--packet", str(tmp_path), "--skip-existing"])
+
+    assert excinfo.value.code == 2
+    assert "--skip-existing is only valid with --bronze-source-surface" in capsys.readouterr().err
 
 
 def test_projection_carries_present_but_null_json_surface() -> None:
@@ -289,9 +522,10 @@ def test_projection_profile_missing_metric_field_anchors_snapshot_object() -> No
     assert projection.loss_ledger.structure_preserved is False
 
 
-def test_projection_chosen_source_surface_is_never_dom() -> None:
-    # The carried value matches ONLY the DOM candidate (no JSON surface holds it). DOM is
-    # carried for disagreement but must never be reported as the value's source surface.
+def test_projection_does_not_reattribute_json_selected_value_to_dom() -> None:
+    # This is already an observed upstream value, so projection does not infer DOM source
+    # provenance merely because the number matches only DOM. DOM fallback is only for
+    # unavailable metrics where JSON did not join.
     joined = [
         {
             "dom_row": _dom_row(0, "DZdomonly00", "reel", "655", "9", "0"),
@@ -312,6 +546,35 @@ def test_projection_chosen_source_surface_is_never_dom() -> None:
         "clips_user_json_metadata": 999,
     }
 
+
+def test_projection_dom_grid_fallback_parses_compact_k_m_counts() -> None:
+    joined = [
+        {
+            "dom_row": _dom_row(0, "DZcompact00", "reel", "1.4M", "73.5K", "536"),
+            "source_surface_candidates": [],
+        }
+    ]
+    slices = [
+        _slice(
+            "ig_reels_grid_01",
+            f"https://www.instagram.com/{HANDLE}/reel/DZcompact00/",
+            [_gap("view_count"), _gap("like_count"), _gap("comment_count")],
+            limitations=["no_passive_json_join_for_shortcode"],
+        )
+    ]
+    packet, raw = _packet_with(joined_rows=joined, slices=slices)
+
+    projection = build_ig_reels_grid_projection(packet=packet, raw_file_bytes_by_file_id=raw)
+
+    view = _row(projection, "ig_reels_grid_01", "view_count")
+    like = _row(projection, "ig_reels_grid_01", "like_count")
+    comment = _row(projection, "ig_reels_grid_01", "comment_count")
+    assert view.value == 1400000
+    assert like.value == 73500
+    assert comment.value == 536
+    assert {view.chosen_source_surface, like.chosen_source_surface, comment.chosen_source_surface} == {
+        "dom_grid_engagement"
+    }
 
 def test_projection_static_already_not_applicable_is_preserved() -> None:
     # A static /p/ row whose view_count is ALREADY not_applicable passes through unchanged
@@ -340,6 +603,26 @@ def test_projection_static_already_not_applicable_is_preserved() -> None:
     assert view.posture is MetricPosture.NOT_APPLICABLE
     assert view.value is None
     assert projection.loss_ledger.static_view_count_not_applicable_rows == 0
+
+
+def _assert_stable_bronze_record_path(
+    root: DataLakeRoot,
+    derived_path: Path,
+    packet_id: str,
+    prefix: str,
+) -> None:
+    assert derived_path == root.record_path(
+        subtree="derived",
+        raw_anchor=packet_id,
+        lane=PROJECTION_IG_REELS_GRID_LANE,
+        record_id=derived_path.name,
+    )
+    assert derived_path.name.startswith(f"{prefix}_")
+    assert derived_path.name.endswith(".json")
+    digest = derived_path.name.removeprefix(f"{prefix}_").removesuffix(".json")
+    assert len(digest) == 16
+    assert all(char in "0123456789abcdef" for char in digest)
+    assert derived_path.name != f"{prefix}_0001.json"
 
 
 def _packet_with(*, joined_rows, slices, snapshot=None) -> tuple[SourceCapturePacket, dict[str, bytes]]:
@@ -474,6 +757,33 @@ def _json_candidate(
         "pinned_on_timeline": None,
         "raw_node_keys_sample": ["shortcode", "video_view_count"],
     }
+
+
+
+
+def _commit_reels_packet(root: DataLakeRoot, tmp_path) -> str:
+    packet, _raw = _reels_packet()
+    capture_path = tmp_path / "ig_reels_grid_capture.json"
+    capture_path.write_bytes(_json_bytes(_capture_payload()))
+    result = write_local_source_capture_packet(
+        data_root=root,
+        input_files=[capture_path],
+        source_family="instagram_creator",
+        source_surface="ig_reels_grid_dom_passive_json",
+        source_locator=known_fact(FINAL_URL),
+        decision_question="creator monitoring",
+        capture_context="logged-out IG public /reels/ grid capture",
+        capture_mode=CaptureModeCategory.AUTOMATED_EXTRACTION,
+        operator_category="ig_reels_grid_cli_operator",
+        source_slices=packet.source_slices,
+        access_posture=known_fact("ig_logged_out_reels_grid_browser_capture"),
+        archive_history_posture=not_attempted("IG reels-grid runner does not query archive services"),
+        media_modality_posture=known_fact("DOM media-anchor text and passive JSON preserved"),
+        re_capture_relationship=not_applicable("no prior source capture packet"),
+        limitations=packet.limitations,
+        receipt_non_claims=["not projection"],
+    )
+    return result.packet.packet_id
 
 
 def _reels_packet(

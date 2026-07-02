@@ -19,10 +19,12 @@ authority_boundary: retrieval_only
 open_next:
   - orca-harness/scoring/product_fusion.py
   - orca-harness/cleaning/transcript_product_lake.py
+  - orca-harness/data_lake/silver_lineage.py
   - orca-harness/ecr/lake.py
   - orca-harness/data_lake/root.py
 stale_if:
   - The fusion's input schema ProductMention, or its output ProductVerdict / ProductVerdictSet, changes shape.
+  - The Silver lineage source-backed status helper changes shape or status vocabulary.
   - The data lake record-set / append-only / completion-marker contract changes.
   - The audience-comment capture lane silver__capture__audience_comments changes shape (the downstream-brain section references it as the brain's second input).
   - The owner authorizes the deferred cross-creator / cross-video aggregation (then its section is built).
@@ -42,9 +44,14 @@ Persist a Pass-2 `ProductVerdictSet` to the data lake as a **gold** derived laye
 The silver mentions are stored **per-transcript (per-video)**, keyed by `transcript_anchor`, with **no creator index** (`cleaning/transcript_product_lake.py`: `derived/<transcript_anchor>/silver__cleaning__product_mentions/`). The transcript specs' v0 gold layout is likewise per-video. So v0 gold is **per-video**:
 
 1. Read one transcript's silver mentions at `derived/<transcript_anchor>/silver__cleaning__product_mentions/`.
-2. Parse them into `ProductMention`s.
-3. `fuse_product_verdicts(mentions, creator_id=<video owner>)` — `creator_id` is **caller-supplied** (the video's owner from capture metadata; the silver lane carries none).
-4. Write the `ProductVerdictSet` to `derived/<transcript_anchor>/gold__scoring__product_verdicts/<record_id>` as an all-or-nothing record-set with a completion marker.
+2. For each completed mention record-set, require
+   `silver_record_source_backed_status(record) == "source_backed_complete"` before it can feed a
+   gold verdict. Completion marker alone is not source-backed evidence.
+3. Parse only eligible records into `ProductMention`s. Records with missing, incomplete, invalid,
+   or limitations-only lineage stay residualized; they must not be silently grandfathered into a
+   complete gold claim.
+4. `fuse_product_verdicts(mentions, creator_id=<video owner>)` — `creator_id` is **caller-supplied** (the video's owner from capture metadata; the silver lane carries none).
+5. Write the `ProductVerdictSet` to `derived/<transcript_anchor>/gold__scoring__product_verdicts/<record_id>` as an all-or-nothing record-set with a completion marker.
 
 ## The pattern to mirror
 
@@ -82,9 +89,12 @@ The brain combines them: the creator verdict says *the creator endorsed it*; the
 
 1. New `scoring/product_verdict_lake.py` (mirror `cleaning/transcript_product_lake.py`): `derive_product_verdicts_into_lake(*, data_root, transcript_anchor, creator_id, ...)` — load the silver mentions for `transcript_anchor`, parse to `ProductMention`s, `fuse_product_verdicts`, `append_record_set` the gold set.
 2. A thin runner (mirror the transcript/ECR runners), daemon-ready, skip-if-complete via `is_record_set_complete`.
-3. Offline fixture tests (mirror `test_audience_fusion` / `test_product_fusion` discipline) — no LLM, no network.
-4. Delegated cross-vendor review (contract-bearing lake surface).
-5. DCP: the gold layer moves from "scoped" to "shipped" in the YouTube + IG transcript specs.
+3. Read-side lineage tests: a completed silver mention record with missing, invalid, or
+   limitations-only lineage does not feed `fuse_product_verdicts` and cannot produce a complete
+   gold verdict; a source-backed-complete record still projects.
+4. Offline fixture tests (mirror `test_audience_fusion` / `test_product_fusion` discipline) — no LLM, no network.
+5. Delegated cross-vendor review (contract-bearing lake surface).
+6. DCP: the gold layer moves from "scoped" to "shipped" in the YouTube + IG transcript specs.
 
 ## Deferred — NOT v0 (cross-creator aggregation)
 

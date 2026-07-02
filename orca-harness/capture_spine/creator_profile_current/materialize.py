@@ -6,7 +6,7 @@ import hashlib
 import json
 from copy import deepcopy
 from pathlib import Path
-from typing import Any
+from typing import Any, Sequence
 
 from capture_spine.creator_profile_current.validation import (
     CREATOR_PROFILE_CURRENT_VIEW_SCHEMA_VERSION,
@@ -23,6 +23,45 @@ YOUTUBE_METRIC_SEED_POINTER = (
     "orca/product/spines/capture/core/source_families/social_media/youtube/"
     "youtube_shorts_fragrance_creator_metric_seed_v0.json"
 )
+INSTAGRAM_METRIC_SEED_POINTER = (
+    "orca/product/spines/capture/core/source_families/social_media/instagram/"
+    "instagram_reels_creator_metric_seed_v0.json"
+)
+INSTAGRAM_SNAPSHOT_POINTER = (
+    "orca/product/spines/capture/core/source_families/social_media/instagram/"
+    "instagram_reels_creator_metric_rollup_snapshot_v0.json"
+)
+YOUTUBE_SNAPSHOT_POINTER = (
+    "orca/product/spines/capture/core/source_families/social_media/youtube/"
+    "youtube_shorts_fragrance_creator_metric_rollup_snapshot_v0.json"
+)
+
+# Lake cut-over §5/§8: both Instagram and YouTube rollups are read from the
+# committed lake SNAPSHOT (value-equal to the retained seed, which stays as the
+# no-drift oracle). The seed entries are retained so the equivalence/oracle
+# paths can still materialize from them.
+_METRIC_SEED_CONFIG_BY_NAME = {
+    "youtube_shorts_fragrance_creator_metric_seed_v0.json": {
+        "wrapper": "youtube_shorts_fragrance_creator_metric_seed",
+        "pointer": YOUTUBE_METRIC_SEED_POINTER,
+        "role": "source-backed metric observations and admitted-pool YouTube metric rollups",
+    },
+    "youtube_shorts_fragrance_creator_metric_rollup_snapshot_v0.json": {
+        "wrapper": "creator_metric_rollup_snapshot",
+        "pointer": YOUTUBE_SNAPSHOT_POINTER,
+        "role": "lake-backed admitted-pool YouTube metric rollups (live-lake snapshot)",
+    },
+    "instagram_reels_creator_metric_rollup_snapshot_v0.json": {
+        "wrapper": "creator_metric_rollup_snapshot",
+        "pointer": INSTAGRAM_SNAPSHOT_POINTER,
+        "role": "lake-backed selected-grid Instagram metric rollups (live-lake snapshot)",
+    },
+    "instagram_reels_creator_metric_seed_v0.json": {
+        "wrapper": "instagram_reels_creator_metric_seed",
+        "pointer": INSTAGRAM_METRIC_SEED_POINTER,
+        "role": "source-backed metric observations and selected-grid Instagram metric rollups",
+    },
+}
 
 _PROFILE_ROLLUP_FIELDS = (
     "metric_rollup_id",
@@ -54,35 +93,57 @@ def load_json(path: str | Path) -> dict[str, Any]:
 def build_creator_profile_current_view_from_files(
     *,
     account_ledger_path: str | Path,
-    metric_seed_path: str | Path,
+    metric_seed_path: str | Path | None = None,
+    metric_seed_paths: Sequence[str | Path] | None = None,
     generated_at_utc: str,
 ) -> dict[str, Any]:
     account_path = Path(account_ledger_path)
-    metric_path = Path(metric_seed_path)
     account_document = load_json(account_path)
-    metric_seed_document = load_json(metric_path)
+    metric_paths = _normalize_metric_seed_paths(metric_seed_path=metric_seed_path, metric_seed_paths=metric_seed_paths)
+    metric_seed_inputs = [_load_metric_seed_input(path) for path in metric_paths]
     return build_creator_profile_current_view_document(
         account_ledger=account_document["creator_public_handle_linkage_ledger"],
-        metric_seed=metric_seed_document["youtube_shorts_fragrance_creator_metric_seed"],
+        metric_seeds=[seed_input["seed"] for seed_input in metric_seed_inputs],
         generated_at_utc=generated_at_utc,
         source_input_hashes={
             ACCOUNT_LEDGER_POINTER: _sha256_repo_text(account_path),
-            YOUTUBE_METRIC_SEED_POINTER: _sha256_repo_text(metric_path),
+            **{
+                seed_input["pointer"]: _sha256_repo_text(seed_input["path"])
+                for seed_input in metric_seed_inputs
+            },
         },
+        metric_seed_inputs=metric_seed_inputs,
     )
 
 
 def build_creator_profile_current_view_document(
     *,
     account_ledger: dict[str, Any],
-    metric_seed: dict[str, Any],
+    metric_seed: dict[str, Any] | None = None,
+    metric_seeds: Sequence[dict[str, Any]] | None = None,
     generated_at_utc: str,
     source_input_hashes: dict[str, str],
+    metric_seed_inputs: Sequence[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     accounts = account_ledger["platform_accounts"]
-    rollups = metric_seed["metric_rollups"]
+    seeds = _normalize_metric_seeds(metric_seed=metric_seed, metric_seeds=metric_seeds)
+    rollup_records = _collect_metric_rollup_records(seeds, metric_seed_inputs)
     accounts_by_id = {account["platform_account_id"]: account for account in accounts}
-    rollups_by_subject = {rollup["profile_subject_id"]: rollup for rollup in rollups}
+    rollups_by_subject = {record["rollup"]["profile_subject_id"]: record for record in rollup_records}
+    if len(rollups_by_subject) != len(rollup_records):
+        duplicate_subjects = sorted(
+            {
+                record["rollup"]["profile_subject_id"]
+                for record in rollup_records
+                if sum(
+                    1
+                    for other in rollup_records
+                    if other["rollup"]["profile_subject_id"] == record["rollup"]["profile_subject_id"]
+                )
+                > 1
+            }
+        )
+        raise ValueError(f"creator profile materialization received duplicate metric rollups: {duplicate_subjects!r}")
     if set(accounts_by_id) != set(rollups_by_subject):
         missing_rollups = sorted(set(accounts_by_id) - set(rollups_by_subject))
         missing_accounts = sorted(set(rollups_by_subject) - set(accounts_by_id))
@@ -92,13 +153,15 @@ def build_creator_profile_current_view_document(
         )
 
     account_index = {account["platform_account_id"]: index for index, account in enumerate(accounts)}
-    rollup_index = {rollup["profile_subject_id"]: index for index, rollup in enumerate(rollups)}
+    rollup_index = {record["rollup"]["profile_subject_id"]: record["rollup_index"] for record in rollup_records}
     profiles = [
         _build_platform_account_profile(
             account=account,
             account_index=account_index[account["platform_account_id"]],
-            rollup=rollups_by_subject[account["platform_account_id"]],
+            rollup=rollups_by_subject[account["platform_account_id"]]["rollup"],
             rollup_index=rollup_index[account["platform_account_id"]],
+            metric_source_pointer=rollups_by_subject[account["platform_account_id"]]["pointer"],
+            metric_source_wrapper=rollups_by_subject[account["platform_account_id"]]["wrapper"],
             generated_at_utc=generated_at_utc,
         )
         for account in accounts
@@ -111,7 +174,7 @@ def build_creator_profile_current_view_document(
         "generated_at_utc": generated_at_utc,
         "source_policy_posture": (
             "Static creator-profile-current export derived from the public-handle "
-            "platform-account ledger and the YouTube creator metric seed. Profiles "
+            "platform-account ledger and platform creator metric seeds. Profiles "
             "are account-scoped unless promoted public-handle linkage exists."
         ),
         "authority_pointers": [
@@ -125,19 +188,22 @@ def build_creator_profile_current_view_document(
                 "sha256": source_input_hashes[ACCOUNT_LEDGER_POINTER],
                 "role": "source-backed platform accounts and identity state",
             },
-            {
-                "source_pointer": YOUTUBE_METRIC_SEED_POINTER,
-                "sha256": source_input_hashes[YOUTUBE_METRIC_SEED_POINTER],
-                "role": "source-backed metric observations and admitted-pool metric rollups",
-            },
+            *[
+                {
+                    "source_pointer": seed_input["pointer"],
+                    "sha256": source_input_hashes[seed_input["pointer"]],
+                    "role": seed_input["role"],
+                }
+                for seed_input in _metric_seed_inputs_for_source_list(seeds, metric_seed_inputs)
+            ],
         ],
         "counts": _counts(profiles),
         "profiles": profiles,
         "accepted_residuals": [
             "Profiles are static JSON export rows, not a runtime database or dashboard.",
-            "All current rows are YouTube platform_account subjects; creator_record subjects remain absent until promoted cross-platform linkage exists.",
-            "Aggregate views are admitted-pool rollups, not full-channel or all-content creator averages.",
-            "Missing engagement inputs remain explicit missingness rather than zero-filled metrics.",
+            "Current rows are platform_account subjects; creator_record subjects remain absent until promoted cross-platform linkage exists.",
+            "Aggregate views are admitted-pool or selected-grid rollups, not full-channel or all-content creator averages.",
+            "Engagement inputs remain platform/source limited; missing inputs stay explicit missingness rather than zero-filled metrics.",
         ],
         "non_claims": [
             "not SQLite adoption",
@@ -146,7 +212,7 @@ def build_creator_profile_current_view_document(
             "not buyer proof",
             "not live capture authorization",
             "not cross-platform identity proof",
-            "not engagement-rate support",
+            "not universal engagement-rate support",
             "not channel-wide influence",
         ],
     }
@@ -156,7 +222,14 @@ def build_creator_profile_current_view_document(
 
 
 def dump_creator_profile_current_view(document: dict[str, Any]) -> str:
-    return json.dumps(document, indent=2, ensure_ascii=False) + "\n"
+    # Canonical key ordering (sort_keys=True) so the serialized view is stable
+    # regardless of the source rollups' internal key order. Lake cut-over §5
+    # prerequisite: rollups lifted from canonical Silver records carry sorted
+    # nested keys while the hand-authored seed's order is arbitrary, and
+    # _profile_rollup deep-copies those nested dicts into the view -- without this,
+    # re-pointing materialize from the seed onto the snapshot would reorder nested
+    # metric keys and spuriously change the committed view's bytes.
+    return json.dumps(document, indent=2, ensure_ascii=False, sort_keys=True) + "\n"
 
 
 def _build_platform_account_profile(
@@ -165,10 +238,13 @@ def _build_platform_account_profile(
     account_index: int,
     rollup: dict[str, Any],
     rollup_index: int,
+    metric_source_pointer: str,
+    metric_source_wrapper: str,
     generated_at_utc: str,
 ) -> dict[str, Any]:
     account_id = account["platform_account_id"]
-    metric_rollup_pointer = f"{YOUTUBE_METRIC_SEED_POINTER}#/youtube_shorts_fragrance_creator_metric_seed/metric_rollups/{rollup_index}"
+    platform = account["platform"]
+    metric_rollup_pointer = f"{metric_source_pointer}#/{metric_source_wrapper}/metric_rollups/{rollup_index}"
     source_pointers = [account["handle_source_pointer"]]
     display_pointer = account.get("display_name_source_pointer_or_none")
     if display_pointer:
@@ -185,8 +261,8 @@ def _build_platform_account_profile(
         "platform_accounts": [deepcopy(account)],
         "identity_evidence_summary": {
             "summary": (
-                "Single-platform YouTube public account observed from source-backed "
-                "creator observation rows; no promoted cross-platform public-handle "
+                f"Single-platform {platform} public account observed from source-backed "
+                "creator metric or observation rows; no promoted cross-platform public-handle "
                 "linkage exists in this ledger."
             ),
             "account_pointer": (
@@ -210,21 +286,13 @@ def _build_platform_account_profile(
                 f"platform_accounts/{account_index}"
             ),
             "metric_rollup_pointer": metric_rollup_pointer,
-            "metric_seed_pointer": YOUTUBE_METRIC_SEED_POINTER,
+            "metric_snapshot_pointer": metric_source_pointer,
             "source_metric_observation_ids": deepcopy(rollup["source_metric_observation_ids"]),
         },
-        "limitations": [
-            "Profile is account-scoped to one YouTube platform account; it is not a linked creator_record.",
-            "Metric rollup covers the admitted fragrance Shorts source pool only; it is not a channel-wide average.",
-            "Engagement rate, average likes, and average total comments are unavailable until source-backed numerator fields exist.",
-            "Ideal/content-fit audience profile is not joined in this static view.",
-            "Cross-platform aggregate influence is blocked until promoted public-handle linkage evidence exists.",
-            "Average/median view rollups are directional admitted-pool statistics; sample_support must be shown or used to downgrade thin rows before influence-summary presentation.",
-            "The admitted pool is fragrance and transcript-bearing, so selection can bias view averages relative to the creator's full Shorts or channel output.",
-        ],
+        "limitations": _profile_limitations(platform=platform, rollup=rollup),
         "non_claims": [
             "not channel-wide creator influence",
-            "not engagement rate",
+            "not platform-wide engagement rate",
             "not buyer proof",
             "not public person-level identity",
             "not contact or outreach authorization",
@@ -233,6 +301,29 @@ def _build_platform_account_profile(
             "not SQLite or data-lake physicalization",
         ],
     }
+
+
+def _profile_limitations(*, platform: str, rollup: dict[str, Any]) -> list[str]:
+    engagement = rollup["metric_rollups"]["engagement_rate"]
+    if engagement["posture"] == "observed":
+        engagement_limitation = (
+            "Engagement rate is source-backed only for the admitted/selected source pool; "
+            "it is not a platform-wide engagement benchmark."
+        )
+    else:
+        engagement_limitation = (
+            "Engagement rate, average likes, and average total comments are unavailable until "
+            "source-backed numerator fields exist."
+        )
+    return [
+        f"Profile is account-scoped to one {platform} platform account; it is not a linked creator_record.",
+        "Metric rollup covers the admitted/selected source pool only; it is not a channel-wide average.",
+        engagement_limitation,
+        "Ideal/content-fit audience profile is not joined in this static view.",
+        "Cross-platform aggregate influence is blocked until promoted public-handle linkage evidence exists.",
+        "Average/median view rollups are directional admitted-pool statistics; sample_support must be shown or used to downgrade thin rows before influence-summary presentation.",
+        "The admitted pool is fragrance and transcript-bearing, so selection can bias view averages relative to the creator's full Shorts or channel output.",
+    ]
 
 
 def _profile_rollup(rollup: dict[str, Any], metric_rollup_pointer: str) -> dict[str, Any]:
@@ -265,6 +356,98 @@ def _counts(profiles: list[dict[str, Any]]) -> dict[str, int]:
             if any(rollup["platform_scope"] == "cross_platform" for rollup in profile["current_metric_rollups"])
         ),
     }
+
+
+def _normalize_metric_seed_paths(
+    *,
+    metric_seed_path: str | Path | None,
+    metric_seed_paths: Sequence[str | Path] | None,
+) -> list[Path]:
+    if metric_seed_path is not None and metric_seed_paths is not None:
+        raise ValueError("provide either metric_seed_path or metric_seed_paths, not both")
+    if metric_seed_paths is not None:
+        paths = [Path(path) for path in metric_seed_paths]
+    elif metric_seed_path is not None:
+        paths = [Path(metric_seed_path)]
+    else:
+        raise ValueError("at least one metric seed path is required")
+    if not paths:
+        raise ValueError("at least one metric seed path is required")
+    return paths
+
+
+def _load_metric_seed_input(path: Path) -> dict[str, Any]:
+    config = _METRIC_SEED_CONFIG_BY_NAME.get(path.name)
+    if config is None:
+        raise ValueError(f"unsupported metric seed file: {path}")
+    document = load_json(path)
+    wrapper = config["wrapper"]
+    if wrapper not in document:
+        raise ValueError(f"metric seed file missing wrapper {wrapper!r}: {path}")
+    return {
+        "path": path,
+        "seed": document[wrapper],
+        "wrapper": wrapper,
+        "pointer": config["pointer"],
+        "role": config["role"],
+    }
+
+
+def _normalize_metric_seeds(
+    *,
+    metric_seed: dict[str, Any] | None,
+    metric_seeds: Sequence[dict[str, Any]] | None,
+) -> list[dict[str, Any]]:
+    if metric_seed is not None and metric_seeds is not None:
+        raise ValueError("provide either metric_seed or metric_seeds, not both")
+    if metric_seeds is not None:
+        seeds = list(metric_seeds)
+    elif metric_seed is not None:
+        seeds = [metric_seed]
+    else:
+        raise ValueError("at least one metric seed is required")
+    if not seeds:
+        raise ValueError("at least one metric seed is required")
+    return seeds
+
+
+def _metric_seed_inputs_for_source_list(
+    seeds: Sequence[dict[str, Any]],
+    metric_seed_inputs: Sequence[dict[str, Any]] | None,
+) -> list[dict[str, Any]]:
+    if metric_seed_inputs is not None:
+        return list(metric_seed_inputs)
+    if len(seeds) == 1:
+        return [
+            {
+                "wrapper": "youtube_shorts_fragrance_creator_metric_seed",
+                "pointer": YOUTUBE_METRIC_SEED_POINTER,
+                "role": _METRIC_SEED_CONFIG_BY_NAME["youtube_shorts_fragrance_creator_metric_seed_v0.json"]["role"],
+            }
+        ]
+    raise ValueError("metric_seed_inputs are required when materializing multiple in-memory seeds")
+
+
+def _collect_metric_rollup_records(
+    seeds: Sequence[dict[str, Any]],
+    metric_seed_inputs: Sequence[dict[str, Any]] | None,
+) -> list[dict[str, Any]]:
+    seed_inputs = _metric_seed_inputs_for_source_list(seeds, metric_seed_inputs)
+    if len(seed_inputs) != len(seeds):
+        raise ValueError("metric_seed_inputs length must match metric_seeds length")
+    records: list[dict[str, Any]] = []
+    for seed, seed_input in zip(seeds, seed_inputs, strict=True):
+        rollups = seed["metric_rollups"]
+        for index, rollup in enumerate(rollups):
+            records.append(
+                {
+                    "rollup": rollup,
+                    "rollup_index": index,
+                    "pointer": seed_input["pointer"],
+                    "wrapper": seed_input["wrapper"],
+                }
+            )
+    return records
 
 
 def _sha256_repo_text(path: Path) -> str:

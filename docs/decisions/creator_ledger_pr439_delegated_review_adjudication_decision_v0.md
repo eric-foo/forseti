@@ -12,8 +12,8 @@ open_next:
   - docs/review-outputs/adversarial-artifact-reviews/creator_ledger_pr439_delegated_adversarial_artifact_review_v0.md
   - docs/prompts/reviews/creator_ledger_pr439_delegated_adversarial_artifact_review_prompt_v0.md
   - orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json
-  - orca/product/spines/capture/core/source_families/social_media/creator_profile_current_view_v0.json
-  - orca/product/spines/capture/core/source_families/social_media/creator_profile_current_view_spec_v0.md
+  - orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_profile_current_view_v0.json
+  - orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_profile_current_view_spec_v0.md
   - orca/product/spines/creator_signal/creator_intelligence_profile_surface_v0.md
 stale_if:
   - The creator metric seed or creator_profile_current view is regenerated without carrying sample_support and representativeness posture.

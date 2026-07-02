@@ -76,6 +76,7 @@ doctrine should encode.
 | --- | --- | --- | --- | --- |
 | Sephora PDP reviews **(worktree, pending-merge)** | `orca-cloak-scroll-wt/orca-harness/docs/source_capture_review_rendering_findings_v0.md` | Bazaarvoice API, first-party-rendered into DOM, lazy-load on **progressive scroll**; bot wall **passed** legitimately | **GO via incremental scroll** (corrects a prior false "anti-bot-gated" claim) | HIGH ⭐ |
 | ClickUp on Trustpilot / G2 | `orca/product/spines/capture/core/operating_model/core_spine_v0_data_capture_spine_pressure_test_review_surface_v0.md` | Live public review text; rating+text+date coupling, reviewer-status labels | Captured; review-surface satellite guidance formalized | MODERATE |
+| Niche fragrance purchase-review PDPs (Luckyscent, Twisted Lily, ZGO, Indigo, Ministry of Scent) | `orca/product/spines/capture/core/source_families/retail_pdp/fragrance_purchase_review_retailer_recon_v0.md` | Retailer-specific substrate: Luckyscent/Twisted Lily row-level reviews need CloakBrowser render+scroll; Ministry and the selected ZGO fixture expose rows via Direct HTTP; selected Indigo fixture exposes rendered JSON-LD / Judge.me `Review` rows | Five row-positive fixtures after known-reviewed ZGO/Indigo re-probe; not source-wide completeness proof | HIGH |
 
 ### Forums / threads
 | Source probed | Path | Rung / where signal lives | Reported verdict | Signal |
@@ -131,14 +132,16 @@ doctrine should encode.
 | CloakBrowser packet-runner architecture | `orca/product/spines/capture/core/source_capture_toolbox/cloakbrowser_packet_runner_architecture_v0.md` | API shape from public docs + introspection; no-secret/anonymous seam | `TARGET_RECOMMENDED` (adapter-contract-first) | HIGH (arch) |
 | Screening browser read wrapper | `docs/workflows/screening_read_service_build_receipt_v0.md`; code at `orca-harness/source_capture/screening_browser_read.py` | CloakBrowser render -> visible text only; `block_shell` classified on visible text to avoid residual Cloudflare DOM-script false positives | Implemented on PR branch; no packet / no manifest / no ECR | HIGH |
 
-### Social networks (policy boundary; technical probe largely absent)
+### Social networks (policy boundary; technical route coverage uneven)
 | Source probed | Path | Rung / where signal lives | Reported verdict | Signal |
 | --- | --- | --- | --- | --- |
 | LinkedIn official policy | `orca/product/spines/capture/core/source_capture_toolbox/linkedin_reddit_source_capture_armory_concurrent_structure_architecture_v0.md` | Policy docs (2026-06-05): scraping/automation forbidden absent authorization | **Boundary-only** — official/API/manual/entitled routes only; no scraping | MODERATE-HIGH |
 | Instagram wind-caller — own `@foo_yu_quan` + third-party `@hyram` *(2026-06-14)* | `orca/product/spines/capture/core/source_families/social_media/instagram/ig_wind_caller_capture_feasibility_recon_v0.md` | Attended logged-in browser (own + 1 public third-party, no wall). **Grid = index only**; capture is **per-item: each `/p/` AND `/reel/` page, one-by-one**. Per item → **full verbatim caption in the rendered DOM node** (meta `og:description` truncates ~59% on a post, ~86% on a reel) + **likes/comments/date/`#ad` sponsorship flag**. Enumerate via **scroll pagination** (12 → 48 / 3 passes). Stats → profile `og:description`/header + Social Blade free (recent daily window; deep history premium) + `web_profile_info` JSON (counts only). `direct_http` NO-GO for signal (200 shell; API **429 cookieless** → **200 logged-in**). | **GO (demonstrated, n=2)** — self-capture calls via DOM (moat), **buy** stats series (Social Blade free). Residual: sustained cadence (H5), full enumeration, robust caption selector, **reel view/play count (in GraphQL JSON, not page DOM)**. Harness-native authenticated capture **already exists** (browser_snapshot + auth_state + runners + cadence, authorized/reviewed); IG = compose + small delta (loop runner, extraction, reel warm-JSON, block markers) — see ig_wind_caller_calls_capture_build_architecture_v0.md. | HIGH ⭐ |
 | Instagram reel **view/play count** — `@hyram` 3 reels *(2026-06-14)* | `orca/product/spines/capture/core/source_families/social_media/instagram/ig_reel_viewcount_capture_feasibility_recon_v0.md` | **Profile-feed JSON** (`web_profile_info` + grid `graphql/query` pagination), **logged-out 200**, `video_view_count` per media keyed by `shortcode` — **not** on the reel permalink page (surfaces A/B/C empty there). | **GO logged-out — incl. deep history.** `video_view_count` reachable **cookieless in a browser context** (refines prior "API 429 cookieless"); cursor-following the grid `end_cursor` paginated **25 pages, all `200`, 365 media back to 2017**, **no wall / no `429`**; **session run byte-identical → unnecessary**. Residual: sustained cadence at scale (H5 / multi-account-over-time). | HIGH ⭐ |
+| Instagram Reels **deep-capture transcript route** *(2026-06-29 no-write live diagnostics)* | `docs/workflows/ig_behavioral_live_validation_receipt_v0.md`; code route `orca-harness/runners/run_source_capture_ig_reels_deep_capture.py` + `orca-harness/source_capture/ig_reels_deep_capture.py` | Standalone anonymous `yt-dlp` media fetch returned Instagram empty-media responses for a prior legacy-success shortcode and a grid-selected shortcode. The rendered reel page still exposed a transient IG-CDN media handle; the one-render deep-capture route downloaded that handle immediately and ASR'd it while also parsing comments from the same render. | **GO for route-specific public deep-capture ASR diagnostic.** Standalone `yt-dlp` empty media is a route residual, not an IG transcript NO-GO. Residuals: no canonical F-lake write in this diagnostic, no durable media/video preservation claim, no cookies/login/proxy, and route cadence/stability remain open. | HIGH ⭐ |
 | Instagram creator **discovery** — suggested/related-accounts edge — `@jeremyfragrance` / `@nikkietutorials` / `@hyram` *(2026-06-15)* | `orca/product/spines/capture/core/source_families/social_media/instagram/ig_creator_discovery_suggested_accounts_recon_v0.md` | **`web_profile_info` JSON** `data.user.edge_related_profiles` — the tolerant **200-cookieless** surface (same as calls/stats/reel-views); node = `username`+`id`+`full_name`+`is_verified`+`is_private`+`profile_pic_url`; sub-niche-coherent | **GO (logged-out, n=3)** — edge populated logged-out (19 / 32 related accounts for two seeds; `hyram` empty via crawler-strip/opt-out variant). Snowball feasible (`username`+`id` → next wpi). 6 reqs all 200, no 401/429. Residual: snowball depth / coherence / follower-bands / crawler-strip retry / wpi own ceiling = Phase 2. | HIGH ⭐ |
 | YouTube long-form + Shorts — 5 creators *(2026-06-21)* | `orca/product/spines/capture/core/source_families/social_media/youtube/youtube_capture_recon_v0.md` | **Embedded `ytInitialPlayerResponse`** in served HTML (logged-out, no JS): exact `viewCount`/`lengthSeconds`/absolute-ISO `publishDate`/`channelId`/`author`/description. **Comments** via `youtubei/v1/next` panel-scoped continuation — same route both surfaces, paginated, `publishedTime` **relative-only**. | **GO (n=10 logged-out)** — long-form & Shorts share substrate + field paths + comments route → **unified one-runner + `surface_type` switch** (no split trigger fires). Residual: `comments_disabled` posture (NASA), surface_type discriminator = serving-surface not duration, like abbreviated at scale, live/age-restricted/EU-consent unsampled; **capture not yet persisted (recon only)**. | HIGH ⭐ |
+| TikTok creator/profile grid + video metadata + top comments *(2026-06-21/22; public+sessioned diagnostics 2026-06-30)* | `orca/product/spines/capture/core/source_families/social_media/tiktok/tiktok_first_slice_probe_recon_v0.md`; `orca/product/spines/capture/core/source_families/social_media/tiktok/tiktok_capture_lane_spec_v0.md`; `orca/product/spines/capture/core/source_families/social_media/tiktok/tiktok_sessioned_capture_warm_probe_plan_v0.md`; `docs/workflows/tiktok_public_route_live_diagnostic_receipt_v0.md`; `docs/workflows/tiktok_sessioned_warm_probe_receipt_v0.md`; `docs/workflows/tiktok_sessioned_profile_grid_dom_receipt_v0.md` | Real/non-headless cookied browser; profile grid DOM selectors (`user-title`, `user-bio`, `user-link`, `user-post-item`, `video-views`); page-owned embedded blobs for profile/video metadata/stats/author/music/textExtra; page-emitted `/api/comment/list` responses for public top/relevant comments with exact `create_time`, `cid`, and commenter ids in the first slice. The 2026-06-30 sessioned profile-grid pass loaded `@tiktok` without visible login/challenge signals, parsed `webapp.user-detail`, observed 31 `user-post-item` / `video-views` nodes, and captured 24 unique video anchors in a bounded structured sample. The 2026-06-30 sessioned video pass rendered comment DOM but did not capture the `/api/comment/list` response body. Direction update pivots sustained capture to **sessioned/cookied dedicated account** because logged-out/public route is brittle. | **PARTIAL / first-slice GO, scale unmeasured.** Profile-grid DOM is now sessioned N=1 clean for the locked fixture; video metadata is sessioned N=1 clean; visible comment DOM is sessioned N=1 clean. Exact sessioned `cid`/`uid`/`create_time` packet fields, exact grid-view-count normalization, grid pagination/depth, and per-account ceiling remain unmeasured. Public diagnostic parsed metadata but stopped on a visible slider challenge before comment capture. Sessioned warm-probe plan still requires dedicated non-personal account, human login, per-operation network approval, account-ban risk acceptance, no secrets in packets, public content only, packet-grade response capture, and stop-on-challenge. Transcript/audio/ASR and durable media/video are not proven. | HIGH ⭐ |
 
 **IG reel view/play count (2026-06-14).** Closes part of the prior IG recon's "reel view/play count (in GraphQL JSON, not page DOM)" residual and **refines** its "`web_profile_info` API 429 cookieless → 200 logged-in" line: in a real browser context (IG's `X-IG-App-ID`/web headers) `web_profile_info` returned **200 cookieless** carrying `video_view_count` per media, keyed by `shortcode`; the earlier 429 was the **header-less `direct_http`** rung, not a browser-context XHR. The signal lives in the **profile feed**, not the reel page, so a build folds into the **existing logged-out grid load** — not a per-reel or session capture. **IG reel view/play count — corrected (2026-06-14).** First reported "walls early" from a UI-scroll probe; that was an **artifact** (a DOM login-heuristic that fired regardless of auth, and `mouse.wheel` never triggering IG's infinite-scroll — identical logged-out/session results were the tell — recon **Pattern 1**). The valid method, **following the grid's own `end_cursor` via the `graphql/query`**, paginated **25 pages all `200`, 365 media back to 2017-08-22**, **logged-out**, no wall / no `429`; the **session run was byte-identical** → session buys nothing. Net: `video_view_count` is reachable **logged-out incl. deep history**; the session lane is **retired** for this purpose. **One residual:** sustained cadence at scale (H5 / multi-account-over-time).
 
@@ -161,20 +164,57 @@ needs deeper snowball. Production at-scale + the discovery-read posture remain o
 `ig_creator_discovery_suggested_accounts_recon_v0.md` is the finding;
 `ig_creator_discovery_spec_v0.md` is the capability spec.
 
+**TikTok sessioned DOM/hydration update (2026-06-30).** A later same-lane
+receipt, `docs/workflows/tiktok_sessioned_dom_hydration_profile_comments_receipt_v0.md`,
+extends the partial TikTok state: one sessioned Chrome TikTok tab, no duplicate
+TikTok tabs, public content only, no session-secret reads/writes, profile
+hydration + stable DOM selectors, 95 `user-post-item` / `video-views` nodes, 94
+unique profile-grid video anchors, pinned-video `webapp.video-detail` hydration,
+and 20 visible top-level comment DOM rows without visible login/slider/verify
+markers. It still does **not** capture `/api/comment/list` response bodies, so
+sessioned packet fields (`cid`, `uid`, exact comment `create_time`, cursor,
+`has_more`), exact grid-view normalization, per-account ceiling, transcript/ASR,
+and durable media remain unproven. A same-day existing-Chrome follow-up confirmed
+the pinned video and comments render cleanly in the logged-in user Chrome
+session, but the current Chrome-extension surface exposes only `pageAssets`
+(static/media asset inventory), not XHR/fetch response bodies, and its read-only
+page scope lacks resource-timing access. Treat more Chrome-extension DOM probing
+as non-packet-grade; the next proof must use a supported response-body capture
+surface for the page-owned `/api/comment/list` request.
+
+**TikTok Funmi N30 comment/subtitle cadence + batch admission update (2026-07-01).**
+`docs/workflows/tiktok_funmi_n30_comment_subtitle_cadence_analysis_v0.md`
+supersedes the response-body-unmeasured part of the prior Funmi sessioned
+state for one creator/session: 30/30 videos completed with page-owned
+`/api/comment/list` parsed fields, 0 challenges, 0 failures, and no raw
+response body or endpoint persistence. Source-native WebVTT subtitles parsed
+for 26/26 videos where `subtitleInfos` existed; the other 4/30 lacked
+`subtitleInfos`. A durable sanitized parsed-batch SourceCapturePacket now exists
+at `F:\orca-data-lake\raw\97c\01KWCYZ9P72W4SJD7NDPRQT0DB` with source surface
+`tiktok_creator_batch_comment_subtitle_admission`, preserving 596 parsed comment
+rows, 1044 WebVTT cues, and deterministic typed extraction seeds. This does not
+prove cross-creator coverage, higher-volume account safety, full comment census,
+durable media/video preservation, final product extraction, or platform-wide
+subtitle availability.
+
 ## Coverage map
 
 - **Well-covered:** forums/threads (Reddit ×4, WSO), pricing (M&I, Teal, OpenAI-lane), archive/history (Daimler, Unity), docs-PDF body (Daimler — the strongest anti-bot escalation case), browser runner (CloakBrowser), reviews (ClickUp + Sephora-pending).
 - **Thin / single-fixture:** docs-changelog (Kubernetes only), reviews (one merged fixture; the strong one is worktree-pending), SPA embedded-state (Ulta worktree-pending only).
 - **ABSENT / PARTIAL — directly relevant to the stated multi-source product direction:**
-  **TikTok has no technical recon at all.** **YouTube is now probed** (2026-06-21 — **GO**,
+  **TikTok is no longer absent, but remains partial.** First-slice TikTok recon and a sessioned
+  capture spec/warm-probe plan now exist (see Social networks table), proving route existence for
+  public page-owned metadata and top/relevant comment responses in a real cookied browser while
+  leaving sessioned detection ceiling, scale reliability, durable media/video, cross-creator subtitle coverage,
+  final product extraction, and projection implementation unproven. Parsed batch packet admission is now proven for Funmi N30. **YouTube is now probed** (2026-06-21 — **GO**,
   n=10 logged-out; long-form + Shorts unified, served-HTML embedded state + `youtubei` comments;
   see the Social networks table). **Instagram is now probed** (own-account
-  wind-caller recon, 2026-06-14 — **GO demonstrated** at the attended logged-in browser rung;
-  see the Social networks table). The only other social probe is the LinkedIn *policy*
-  boundary. Any TikTok recipe card is **speculative** until probed; social surfaces carry the
-  heaviest ToS/auth-wall/anti-bot posture (entitlement gate, Pattern 4, applies before any
-  technical attempt). No media/video capture recipe exists either. (IG media/video capture is
-  likewise still unprobed — the IG recon covered caption text + stats, not media bytes.)
+  wind-caller recon, reel view/play count, creator discovery, and a 2026-06-29 public deep-capture
+  transcript diagnostic; see the Social networks table). The only other social probe is the
+  LinkedIn *policy* boundary. Social surfaces carry the heaviest ToS/auth-wall/anti-bot posture
+  (entitlement gate, Pattern 4, applies before any technical attempt). Full durable media/video
+  preservation is still unprobed for IG; the deep-capture diagnostic proves only transient handle
+  use for immediate ASR, not stored media bytes.
 
 ## Pending-merge / external (not on main; include before the doctrine finalizes)
 
@@ -186,7 +226,8 @@ needs deeper snowball. Production at-scale + the discovery-read posture remain o
 ## Non-claims
 
 Not an authorization, not a build spec, not validation/readiness/acceptance, not legal
-advice. Verdicts are as reported by each source doc. The absence of a TikTok/IG probe is a
-**sweep result** (no such recon surfaced across the main-tree docs), not a proof that none
-could exist. Worktree-resident findings are **claimed by their lanes** and unverified here
-until merged.
+advice. Verdicts are as reported by each source doc. TikTok's first-slice route is no
+longer absent, but scale reliability, sessioned detection ceiling, cross-creator
+subtitle/transcript coverage, durable media/video, final product extraction, and
+projection remain unproven. Parsed Funmi N30 batch packet admission is proven.
+Worktree-resident findings are

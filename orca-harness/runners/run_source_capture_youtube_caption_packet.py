@@ -18,6 +18,7 @@ if __package__ in {None, ""}:
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from source_capture.transcript import fetch_youtube_caption_artifacts, write_caption_packet
+from runners._youtube_cli import normalize_video_id_argv
 
 
 def main(argv: Sequence[str] | None = None) -> int:
@@ -33,7 +34,10 @@ def main(argv: Sequence[str] | None = None) -> int:
         "--decision-question",
         default="Capture YouTube public caption transcript for the creator-momentum signal (transcript spine v0).",
     )
-    args = parser.parse_args(argv)
+    raw_argv = sys.argv[1:] if argv is None else argv
+    args = parser.parse_args(
+        normalize_video_id_argv(raw_argv, option_strings=parser._option_string_actions)
+    )
 
     data_root = None
     output_directory = args.output

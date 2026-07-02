@@ -1,15 +1,17 @@
 """Daemon-ready runner: extract product mentions from every committed Instagram Reel transcript.
 
 The IG analogue of `run_transcript_product_extract` (YouTube). Decoupled / choreography (not a
-call-chain): independently scans the lake for committed IG-Reel audio packets and extracts any
-whose transcript lacks a completed mentions record-set. Daemon-ready by the same contract —
-idempotent (skip-if-done via the completion marker), stateless/resumable, per-item failure
-isolated at BOTH grains (a corrupt packet -> `discovery_failed`; a transcript whose extraction
-raises -> `failed`; the batch never aborts), single entrypoint (`run_extraction`).
+call-chain): independently scans the lake for committed IG-Reel audio packets and deep-capture
+transcript records, then extracts any transcript lacking a completed mentions record-set.
+Daemon-ready by the same contract — idempotent (skip-if-done via the completion marker),
+stateless/resumable, and per-item failure isolated after candidate enumeration at BOTH grains
+(a corrupt packet -> `discovery_failed`; a transcript whose extraction raises -> `failed`).
+Enumeration-time filesystem failures still surface instead of being laundered into fake success.
 
 IG is its OWN runner (not an edit to the YouTube runner, which hardcodes
-`list_available(source_family="youtube")`): discovery keys on source_family=instagram_creator and
-the ig_reels_audio surface. IG Reels have no caption track, so the ASR path is the only route. The
+`list_available(source_family="youtube")`): packet discovery keys on source_family=instagram_creator
+and the ig_reels_audio surface; per-reel deep capture is discovered from its completed derived
+record sets. IG Reels have no caption track, so ASR is the transcript kind for both routes. The
 extract+persist seam (`cleaning.transcript_product_lake`) and the schema are source-family-agnostic
 and reused verbatim.
 
@@ -24,6 +26,7 @@ ig_reels_transcript_product_extraction_spec_v0.md (IG delta; daemon-readiness in
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import sys
 from pathlib import Path
@@ -36,15 +39,25 @@ from cleaning.transcript_product_extractor import TranscriptInput
 from cleaning.transcript_product_lake import (
     PRODUCT_MENTIONS_LANE,
     PRODUCT_MENTIONS_SET_LANE,
+    build_transcript_source_lineage,
     cues_from_asr_record,
     extract_products_into_lake,
     mentions_record_id,
+)
+from data_lake.silver_lineage import SilverDerivedRef
+from source_capture.ig_reels_deep_capture_lake import (
+    DEEP_CAPTURE_SET_LANE,
+    REEL_TRANSCRIPT_LANE,
 )
 
 _ASR_LANE = "transcript_asr"
 _IG_SOURCE_FAMILY = "instagram_creator"
 _IG_AUDIO_SURFACE = "ig_reels_audio"
 DEFAULT_EXTRACTION_MODEL = "codex-extraction-v0"
+_DEEP_CAPTURE_ROUTE = "deep_capture_render_audio"
+_DEEP_CAPTURE_SURFACE = "ig_reels_deep_capture_render_audio"
+# Production ASR emits "transcribed"; "ok" is accepted for older deep-capture records.
+_DEEP_CAPTURE_SUCCESS_POSTURES = {"transcribed", "ok"}
 
 
 def _file_paths(manifest: dict) -> dict[str, str]:
@@ -88,22 +101,61 @@ def _record_path(data_root, *, raw_anchor: str, lane: str, record_id: str):
         )
     return data_root.path / "derived" / raw_anchor / lane / record_id
 
-def _asr_records(data_root, audio_packet_id: str) -> list[dict]:
-    """Read transcript_asr derived records by path (derived records carry no by-key hash)."""
+def _asr_records(data_root, audio_packet_id: str) -> list[tuple[dict, str, str]]:
+    """Read transcript_asr derived records by path, returning (record, record_id, sha256).
+
+    The record_id and sha256 let product-mention Silver lineage reference the exact
+    transcript record consumed, rather than only the packet/shortcode anchor.
+    """
     lane_dir = _lane_dir(data_root, raw_anchor=audio_packet_id, lane=_ASR_LANE)
     if not lane_dir.is_dir():
         return []
-    records: list[dict] = []
+    records: list[tuple[dict, str, str]] = []
     for record_file in sorted(lane_dir.iterdir()):
         if not record_file.is_file():
             continue
         try:
-            data = json.loads(record_file.read_text(encoding="utf-8"))
+            body = record_file.read_bytes()
+            data = json.loads(body.decode("utf-8"))
         except (OSError, ValueError):
             continue
         if isinstance(data, dict):
-            records.append(data)
+            records.append((data, record_file.name, hashlib.sha256(body).hexdigest()))
     return records
+
+
+def _read_derived_json_record(data_root, *, raw_anchor: str, lane: str, record_id: str) -> tuple[dict, str] | None:
+    path = _record_path(data_root, raw_anchor=raw_anchor, lane=lane, record_id=record_id)
+    try:
+        body = path.read_bytes()
+        data = json.loads(body.decode("utf-8"))
+    except (OSError, ValueError):
+        return None
+    return (data, hashlib.sha256(body).hexdigest()) if isinstance(data, dict) else None
+
+
+def _iter_derived_lane_records(data_root, lane: str):
+    derived = data_root.path / "derived"
+    if not derived.is_dir():
+        return
+    for shard_dir in sorted(derived.iterdir()):
+        if not shard_dir.is_dir():
+            continue
+        for anchor_dir in sorted(shard_dir.iterdir()):
+            if not anchor_dir.is_dir():
+                continue
+            lane_dir = anchor_dir / lane
+            if not lane_dir.is_dir():
+                continue
+            for record_file in sorted(lane_dir.iterdir()):
+                if record_file.is_file():
+                    yield anchor_dir.name, record_file.name
+
+
+def _transcript_source_key(*, transcript_anchor: str, source_kind: str, asr_record_id: str | None = None) -> str:
+    if source_kind == "asr":
+        return f"{transcript_anchor}:asr:{asr_record_id or 'unknown_record'}"
+    return f"{transcript_anchor}:{source_kind}"
 
 
 def _candidate_packet_ids(data_root) -> list[str]:
@@ -121,9 +173,10 @@ def _transcripts_for_packet(data_root, packet_id: str) -> list[TranscriptInput]:
     """Normalize one committed IG packet into TranscriptInput(s). MAY RAISE on a corrupt packet
     (fail-closed `load_raw_packet` sha mismatch) — the caller isolates per packet.
 
-    Only the ig_reels_audio surface carries a transcript (as a derived `transcript_asr` record);
-    the instagram_creator family also holds grid-metadata packets with NO audio, which are skipped
-    here. Only `transcribed` records with cues are used.
+    Only the ig_reels_audio packet surface carries packet-backed transcripts; deep-capture
+    transcript records are discovered separately from their completed derived record sets.
+    The instagram_creator family also holds grid-metadata packets with NO audio, which are
+    skipped here. Only `transcribed` records with cues are used.
     """
     loaded = data_root.load_raw_packet(packet_id)
     manifest = loaded.manifest
@@ -134,14 +187,209 @@ def _transcripts_for_packet(data_root, packet_id: str) -> list[TranscriptInput]:
     meta_shortcode = str(meta.get("platform_shortcode") or "")
 
     transcripts: list[TranscriptInput] = []
-    for record in _asr_records(data_root, packet_id):
+    for record, record_id, record_sha in _asr_records(data_root, packet_id):
         if record.get("posture") != "transcribed":
             continue
         cues = cues_from_asr_record(record)
         shortcode = str(record.get("video_id") or meta_shortcode)
         if cues and shortcode:
-            transcripts.append(TranscriptInput(shortcode, packet_id, "asr", cues))
+            source_key = _transcript_source_key(
+                transcript_anchor=packet_id,
+                source_kind="asr",
+                asr_record_id=record_id,
+            )
+            lineage = build_transcript_source_lineage(
+                namespace="instagram",
+                source_surface=_IG_AUDIO_SURFACE,
+                video_id=shortcode,
+                derived_ref=SilverDerivedRef(
+                    raw_anchor=packet_id,
+                    lane=_ASR_LANE,
+                    record_id=record_id,
+                    sha256=record_sha,
+                    hash_basis="derived_record_bytes",
+                    relation="consumed",
+                ),
+                captured_at=str(record.get("retrieval_time_utc") or "") or None,
+            )
+            transcripts.append(
+                TranscriptInput(
+                    shortcode,
+                    packet_id,
+                    "asr",
+                    cues,
+                    source_lineage=lineage,
+                    transcript_source_key=source_key,
+                    source_route="standalone_audio_packet",
+                    asr_record_id=record_id,
+                )
+            )
     return transcripts
+
+
+def _deep_capture_transcript_candidates(data_root) -> list[tuple[TranscriptInput | None, dict | None]]:
+    candidates: list[tuple[TranscriptInput | None, dict | None]] = []
+    for shortcode, record_id in _iter_derived_lane_records(data_root, DEEP_CAPTURE_SET_LANE) or ():
+        source_key = _transcript_source_key(
+            transcript_anchor=shortcode,
+            source_kind="asr",
+            asr_record_id=record_id,
+        )
+        failure_identity = {
+            "anchor": shortcode,
+            "video_id": shortcode,
+            "transcript_source_key": source_key,
+            "source_route": _DEEP_CAPTURE_ROUTE,
+            "asr_record_id": record_id,
+        }
+        try:
+            complete = data_root.is_record_set_complete(
+                subtree="derived",
+                raw_anchor=shortcode,
+                record_id=record_id,
+                completion_lane=DEEP_CAPTURE_SET_LANE,
+            )
+        except Exception as exc:  # noqa: BLE001 - one damaged marker must not abort the batch
+            candidates.append(
+                (
+                    None,
+                    {
+                        **failure_identity,
+                        "status": "discovery_failed",
+                        "error": f"{type(exc).__name__}: {exc}"[:200],
+                    },
+                )
+            )
+            continue
+        if not complete:
+            candidates.append(
+                (
+                    None,
+                    {
+                        **failure_identity,
+                        "status": "discovery_failed",
+                        "error": "ValueError: incomplete deep-capture record set",
+                    },
+                )
+            )
+            continue
+        loaded = _read_derived_json_record(
+            data_root,
+            raw_anchor=shortcode,
+            lane=REEL_TRANSCRIPT_LANE,
+            record_id=record_id,
+        )
+        if loaded is None:
+            candidates.append(
+                (
+                    None,
+                    {
+                        **failure_identity,
+                        "status": "discovery_failed",
+                        "error": "ValueError: deep-capture transcript record unreadable",
+                    },
+                )
+            )
+            continue
+        record, record_sha = loaded
+        record_shortcode = str(record.get("reel_shortcode") or "").strip()
+        if not record_shortcode:
+            candidates.append(
+                (
+                    None,
+                    {
+                        **failure_identity,
+                        "status": "discovery_failed",
+                        "error": "ValueError: deep-capture transcript shortcode absent",
+                    },
+                )
+            )
+            continue
+        if record_shortcode != shortcode:
+            candidates.append(
+                (
+                    None,
+                    {
+                        **failure_identity,
+                        "status": "discovery_failed",
+                        "error": f"ValueError: deep-capture shortcode mismatch: {record_shortcode!r} != {shortcode!r}",
+                    },
+                )
+            )
+            continue
+        if record.get("transcript_posture") not in _DEEP_CAPTURE_SUCCESS_POSTURES:
+            continue
+        cues = cues_from_asr_record(record)
+        if not cues:
+            continue
+        lineage = build_transcript_source_lineage(
+            namespace="instagram",
+            source_surface=_DEEP_CAPTURE_SURFACE,
+            video_id=record_shortcode,
+            derived_ref=SilverDerivedRef(
+                raw_anchor=shortcode,
+                lane=REEL_TRANSCRIPT_LANE,
+                record_id=record_id,
+                sha256=record_sha,
+                hash_basis="derived_record_bytes",
+                relation="consumed",
+                record_set_completion_lane=DEEP_CAPTURE_SET_LANE,
+            ),
+            captured_at=str(record.get("generated_at") or "") or None,
+        )
+        candidates.append(
+            (
+                TranscriptInput(
+                    record_shortcode,
+                    record_shortcode,
+                    "asr",
+                    cues,
+                    source_lineage=lineage,
+                    transcript_source_key=source_key,
+                    source_route=_DEEP_CAPTURE_ROUTE,
+                    asr_record_id=record_id,
+                ),
+                None,
+            )
+        )
+    return candidates
+
+
+def discover_transcript_candidates(data_root) -> list[tuple[TranscriptInput | None, dict | None]]:
+    """Return all IG transcript candidates with discovery failures isolated per source.
+
+    The order matches ``run_extraction``: committed packet-backed transcripts first, then
+    completed deep-capture transcripts. A candidate is ``(transcript, None)``; a damaged
+    source is ``(None, failure_dict)`` so callers can surface the failure without aborting.
+    """
+    candidates: list[tuple[TranscriptInput | None, dict | None]] = []
+    for packet_id in _candidate_packet_ids(data_root):
+        try:
+            transcripts = _transcripts_for_packet(data_root, packet_id)
+        except Exception as exc:  # noqa: BLE001 - corrupt packet discovery must not abort the poll
+            candidates.append(
+                (
+                    None,
+                    {
+                        "packet_id": packet_id,
+                        "status": "discovery_failed",
+                        "error": f"{type(exc).__name__}: {exc}"[:200],
+                    },
+                )
+            )
+            continue
+        candidates.extend((transcript, None) for transcript in transcripts)
+    candidates.extend(_deep_capture_transcript_candidates(data_root))
+    return candidates
+
+
+def iter_transcripts(data_root) -> list[TranscriptInput]:
+    """Return transcript candidates only, dropping isolated discovery failures."""
+    return [
+        transcript
+        for transcript, failure in discover_transcript_candidates(data_root)
+        if transcript is not None and failure is None
+    ]
 
 
 def _mentions_set_state(data_root, transcript: TranscriptInput, model: str) -> str:
@@ -181,6 +429,12 @@ def pending_extraction_counts(*, data_root, model: str = DEFAULT_EXTRACTION_MODE
             state = _mentions_set_state(data_root, transcript, model)
             if state in counts:
                 counts[state] += 1
+    for transcript, _failure in _deep_capture_transcript_candidates(data_root):
+        if transcript is None:
+            continue
+        state = _mentions_set_state(data_root, transcript, model)
+        if state in counts:
+            counts[state] += 1
     return counts
 
 
@@ -211,61 +465,93 @@ def run_extraction(
     dict per packet/transcript.
     """
     results: list[dict] = []
-    for packet_id in _candidate_packet_ids(data_root):
-        try:
-            transcripts = _transcripts_for_packet(data_root, packet_id)
-        except Exception as exc:  # noqa: BLE001 - a corrupt packet -> discovery_failed, batch continues
-            results.append(
-                {"packet_id": packet_id, "status": "discovery_failed", "error": f"{type(exc).__name__}: {exc}"[:200]}
-            )
+    for transcript, failure in discover_transcript_candidates(data_root):
+        if failure is not None:
+            results.append(failure)
             continue
-        for transcript in transcripts:
-            anchor = transcript.transcript_anchor
-            try:
-                rid = mentions_record_id(transcript, model)
-                if data_root.is_record_set_complete(
-                    subtree="derived",
-                    raw_anchor=anchor,
-                    record_id=rid,
-                    completion_lane=PRODUCT_MENTIONS_SET_LANE,
-                ):
-                    results.append(
-                        {"anchor": anchor, "video_id": transcript.video_id, "status": "skipped_done"}
-                    )
-                    continue
-                member_path = _record_path(
-                    data_root, raw_anchor=anchor, lane=PRODUCT_MENTIONS_LANE, record_id=rid
-                )
-                if member_path.exists():
-                    results.append(
-                        {"anchor": anchor, "video_id": transcript.video_id, "status": "partial_needs_cleanup"}
-                    )
-                    continue
-                paths = extract_products_into_lake(
-                    data_root=data_root,
-                    transcript=transcript,
-                    transport=transport,
-                    provider=provider,
-                    model=model,
-                    api_key=api_key,
-                    record_id=rid,
-                    max_tokens=max_tokens,
-                )
-                written = next(iter(paths.values()), None)
-                results.append(
-                    {
-                        "anchor": anchor,
-                        "video_id": transcript.video_id,
-                        "status": "extracted",
-                        "path": str(written) if written is not None else None,
-                    }
-                )
-            except Exception as exc:  # noqa: BLE001 - per-item failure isolation (daemon-ready)
-                results.append(
-                    {"anchor": anchor, "video_id": transcript.video_id, "status": "failed", "error": f"{type(exc).__name__}: {exc}"[:200]}
-                )
+        if transcript is None:
+            continue
+        _extract_one_transcript(
+            data_root=data_root,
+            transcript=transcript,
+            transport=transport,
+            provider=provider,
+            model=model,
+            api_key=api_key,
+            max_tokens=max_tokens,
+            results=results,
+        )
     return results
 
+
+def _result_identity(transcript: TranscriptInput) -> dict:
+    return {
+        key: value
+        for key, value in {
+            "anchor": transcript.transcript_anchor,
+            "video_id": transcript.video_id,
+            "transcript_source_key": transcript.transcript_source_key,
+            "source_route": transcript.source_route,
+            "asr_record_id": transcript.asr_record_id,
+        }.items()
+        if value is not None
+    }
+
+
+def _extract_one_transcript(
+    *,
+    data_root,
+    transcript: TranscriptInput,
+    transport,
+    provider,
+    model: str,
+    api_key: str,
+    max_tokens: int,
+    results: list[dict],
+) -> None:
+    anchor = transcript.transcript_anchor
+    try:
+        rid = mentions_record_id(transcript, model)
+        if data_root.is_record_set_complete(
+            subtree="derived",
+            raw_anchor=anchor,
+            record_id=rid,
+            completion_lane=PRODUCT_MENTIONS_SET_LANE,
+        ):
+            results.append({**_result_identity(transcript), "status": "skipped_done"})
+            return
+        member_path = _record_path(
+            data_root, raw_anchor=anchor, lane=PRODUCT_MENTIONS_LANE, record_id=rid
+        )
+        if member_path.exists():
+            results.append({**_result_identity(transcript), "status": "partial_needs_cleanup"})
+            return
+        paths = extract_products_into_lake(
+            data_root=data_root,
+            transcript=transcript,
+            transport=transport,
+            provider=provider,
+            model=model,
+            api_key=api_key,
+            record_id=rid,
+            max_tokens=max_tokens,
+        )
+        written = next(iter(paths.values()), None)
+        results.append(
+            {
+                **_result_identity(transcript),
+                "status": "extracted",
+                "path": str(written) if written is not None else None,
+            }
+        )
+    except Exception as exc:  # noqa: BLE001 - per-item failure isolation (daemon-ready)
+        results.append(
+            {
+                **_result_identity(transcript),
+                "status": "failed",
+                "error": f"{type(exc).__name__}: {exc}"[:200],
+            }
+        )
 
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(

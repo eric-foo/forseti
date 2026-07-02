@@ -17,23 +17,27 @@ disagreement (e.g. DOM 2,984 vs web_profile_info 655 vs /clips/user 2,984). The
 disagreement survives only in the preserved ``ig_reels_grid_capture.json``.
 
 This projection re-unites the two: it carries the slice's selected value+posture
-verbatim AND re-attaches every source surface's value for that metric from the
-preserved capture file, so a downstream reader sees the disagreement instead of
-one unqualified number. It is mechanical and re-derivable: it carries raw facts
-and anchors, computes ``chosen_source_surface`` by matching the carried value to
-a surface (it does NOT re-run selection), and enforces the spec's static
-``view_count = not_applicable`` rule. It is not Cleaning, ECR, Judgment, a
-momentum/traction score, or a capture path.
+verbatim when JSON joined, promotes parseable DOM-grid counts only when JSON did
+not join, and re-attaches every source surface's value for that metric from the
+preserved capture file. It is mechanical and re-derivable: it carries raw facts
+and anchors, computes ``chosen_source_surface`` from the chosen source, and
+enforces the spec's static ``view_count = not_applicable`` rule. It is not
+Cleaning, ECR, Judgment, a momentum/traction score, or a capture path.
 """
 from __future__ import annotations
 
+import hashlib
 import json
+import re
 from pathlib import Path
-from typing import Any, Literal, Mapping
+from typing import TYPE_CHECKING, Any, Literal, Mapping
 from urllib.parse import urlparse
 
 from pydantic import Field, field_validator, model_validator
 
+from data_lake.catalog import load_attachment_record_body, source_surface_catalog_rows
+from data_lake.root import DataLakeRootError
+from harness_utils import generate_ulid
 from schemas.case_models import StrictModel
 from source_capture.ig_projection import (
     IgProjectionRawAnchor,
@@ -58,13 +62,22 @@ from source_capture.models import (
     VisibleFactStatus,
 )
 
+if TYPE_CHECKING:
+    from data_lake.root import DataLakeRoot
+
 
 IG_REELS_PROJECTION_METHOD = "ig_reels_grid_mechanical_projection"
 IG_REELS_PROJECTION_VERSION = "v0"
 IG_REELS_PROJECTION_CERTIFICATION = "view_only; not_cleaned; not_normalized; not_judgment_ready"
 
+# Append-only derived lane namespace for the IG reels-grid projection's Silver record.
+PROJECTION_IG_REELS_GRID_LANE = "projection_ig_reels_grid"
+BRONZE_CATALOG_IG_REELS_GRID_RECORD_ID_PREFIX = "bronze_catalog_ig_reels_grid_v0"
+
 _IG_SOURCE_FAMILY = "instagram_creator"
+_IG_REELS_GRID_SOURCE_SURFACE = "ig_reels_grid_dom_passive_json"
 _CAPTURE_FILE_BASENAME = "ig_reels_grid_capture.json"
+_BRONZE_CATALOG_RECORD_ID_DIGEST_CHARS = 16
 
 # Mirrors the capture runner's `_preferred_candidate` JSON-surface order. It is a
 # mechanical, versioned policy (pinned by the capture file's selection_policy_version),
@@ -342,6 +355,185 @@ def write_ig_reels_grid_projection(
     return projection
 
 
+def project_ig_reels_grid_into_lake(
+    *,
+    data_root: "DataLakeRoot",
+    packet_id: str,
+    record_id: str | None = None,
+) -> tuple[IgReelsGridProjectionPacket, Path]:
+    """Project a committed raw IG reels-grid packet into an append-only derived record.
+
+    The packet is read by key through ``DataLakeRoot.load_raw_packet``, so preserved
+    files are re-hashed against the manifest before projection. The derived record
+    is appended at ``derived/<shard>/<packet_id>/projection_ig_reels_grid/<record-id>.json``.
+    This adds no capture, Cleaning, ECR, Judgment, or creator-profile rollup.
+    """
+    loaded = data_root.load_raw_packet(packet_id)
+    packet = SourceCapturePacket.model_validate(loaded.manifest)
+    projection = build_ig_reels_grid_projection(
+        packet=packet,
+        raw_file_bytes_by_file_id=loaded.bodies,
+    )
+    derived_path = _append_ig_reels_grid_projection(
+        data_root=data_root,
+        packet_id=packet_id,
+        projection=projection,
+        record_id=record_id,
+    )
+    return projection, derived_path
+
+
+def project_ig_reels_grid_from_bronze_catalog(
+    *,
+    data_root: "DataLakeRoot",
+    record_id_prefix: str | None = None,
+    skip_existing: bool = False,
+) -> list[tuple[IgReelsGridProjectionPacket, Path]]:
+    """Project all IG reels-grid packets discovered via the Bronze source-surface index.
+
+    This is the downstream proof path: packet ids and AR rows come from the generated
+    Bronze catalog query files, and body bytes are resolved through generated AR rows
+    rather than by guessing raw packet directories. Derived record ids are stable over
+    packet + AR identity, never catalog position; existing stable records fail closed
+    unless ``skip_existing`` is explicitly enabled for incremental convergence.
+    """
+    catalog_rows = source_surface_catalog_rows(
+        data_root,
+        source_family=_IG_SOURCE_FAMILY,
+        source_surface=_IG_REELS_GRID_SOURCE_SURFACE,
+    )
+    attachment_records_by_packet: dict[str, list[dict[str, Any]]] = {}
+    for record in catalog_rows["attachment_record_rows"]:
+        packet_id = _string_or_none(record.get("packet_id"))
+        if packet_id is not None:
+            attachment_records_by_packet.setdefault(packet_id, []).append(record)
+
+    planned: list[tuple[str, list[dict[str, Any]], str, Path]] = []
+    for packet_row in catalog_rows["packet_rows"]:
+        packet_id = _required_catalog_string(packet_row.get("packet_id"), "packet_id")
+        attachment_records = sorted(
+            attachment_records_by_packet.get(packet_id, []),
+            key=lambda item: _string_or_none(item.get("attachment_record_id")) or "",
+        )
+        record_id = _bronze_catalog_projection_record_id(
+            record_id_prefix=record_id_prefix,
+            packet_id=packet_id,
+            attachment_records=attachment_records,
+        )
+        target_path = data_root.record_path(
+            subtree="derived",
+            raw_anchor=packet_id,
+            lane=PROJECTION_IG_REELS_GRID_LANE,
+            record_id=f"{record_id}.json",
+        )
+        planned.append((packet_id, attachment_records, record_id, target_path))
+
+    existing_targets = [
+        str(target_path)
+        for _packet_id, _attachment_records, _record_id, target_path in planned
+        if target_path.exists()
+    ]
+    if existing_targets and not skip_existing:
+        raise DataLakeRootError(
+            "Bronze catalog projection target already exists for stable record id; "
+            "rerun would duplicate a logical projection. Use skip_existing=True/"
+            "--skip-existing to converge or choose a different record_id_prefix: "
+            + ", ".join(existing_targets)
+        )
+
+    projected: list[tuple[IgReelsGridProjectionPacket, Path]] = []
+    for packet_id, attachment_records, record_id, target_path in planned:
+        if target_path.exists() and skip_existing:
+            continue
+        loaded = data_root.load_raw_packet(packet_id)
+        packet = SourceCapturePacket.model_validate(loaded.manifest)
+        raw_file_bytes_by_file_id = {
+            _required_catalog_string(record.get("file_id"), "file_id"): load_attachment_record_body(
+                data_root, record
+            )
+            for record in sorted(
+                attachment_records,
+                key=lambda item: _string_or_none(item.get("file_id")) or "",
+            )
+        }
+        projection = build_ig_reels_grid_projection(
+            packet=packet,
+            raw_file_bytes_by_file_id=raw_file_bytes_by_file_id,
+        )
+        derived_path = _append_ig_reels_grid_projection(
+            data_root=data_root,
+            packet_id=packet_id,
+            projection=projection,
+            record_id=record_id,
+        )
+        projected.append((projection, derived_path))
+    return projected
+
+
+def _bronze_catalog_projection_record_id(
+    *,
+    record_id_prefix: str | None,
+    packet_id: str,
+    attachment_records: list[dict[str, Any]],
+) -> str:
+    prefix = (
+        record_id_prefix
+        if record_id_prefix is not None
+        else BRONZE_CATALOG_IG_REELS_GRID_RECORD_ID_PREFIX
+    )
+    material = json.dumps(
+        {
+            "packet_id": packet_id,
+            "projection_method": IG_REELS_PROJECTION_METHOD,
+            "projection_version": IG_REELS_PROJECTION_VERSION,
+            "source_family": _IG_SOURCE_FAMILY,
+            "source_surface": _IG_REELS_GRID_SOURCE_SURFACE,
+            "attachment_records": [
+                {
+                    "attachment_record_id": _required_catalog_string(
+                        record.get("attachment_record_id"), "attachment_record_id"
+                    ),
+                    "file_id": _required_catalog_string(record.get("file_id"), "file_id"),
+                    "relative_packet_path": _required_catalog_string(
+                        record.get("relative_packet_path"), "relative_packet_path"
+                    ),
+                    "body_sha256": _required_catalog_string(
+                        record.get("body_sha256"), "body_sha256"
+                    ),
+                }
+                for record in sorted(
+                    attachment_records,
+                    key=lambda item: _string_or_none(item.get("attachment_record_id")) or "",
+                )
+            ],
+        },
+        ensure_ascii=True,
+        separators=(",", ":"),
+        sort_keys=True,
+    )
+    digest = hashlib.sha256(material.encode("utf-8")).hexdigest()[
+        :_BRONZE_CATALOG_RECORD_ID_DIGEST_CHARS
+    ]
+    return f"{prefix}_{digest}"
+
+
+def _append_ig_reels_grid_projection(
+    *,
+    data_root: "DataLakeRoot",
+    packet_id: str,
+    projection: IgReelsGridProjectionPacket,
+    record_id: str | None,
+) -> Path:
+    record = record_id if record_id is not None else generate_ulid()
+    return data_root.append_record(
+        subtree="derived",
+        raw_anchor=packet_id,
+        lane=PROJECTION_IG_REELS_GRID_LANE,
+        record_id=f"{record}.json",
+        data=_projection_json_text(projection).encode("utf-8"),
+    )
+
+
 def _project_profile_observation(
     *,
     source_slice: SourceCaptureSlice,
@@ -422,6 +614,9 @@ def _project_media_observation(
     value = observation.value
     reason = observation.reason
     forced_static = False
+    dom_grid_fallback = False
+    row_residuals = list(row_residuals or [])
+    selection_limitations = list(source_slice.limitations)
     # Static-post enforcement (spec: static view_count is not_applicable, never a number).
     # Belt-and-suspenders: the reels runner already filters /p/ rows out of the traction
     # series, so this normally never fires; it keeps a static row that slips through from
@@ -431,6 +626,15 @@ def _project_media_observation(
         value = None
         reason = _STATIC_VIEW_COUNT_NOT_APPLICABLE_REASON
         forced_static = True
+    elif posture == MetricPosture.UNAVAILABLE_WITH_REASON and content_kind == "reel":
+        dom_value = _dom_grid_candidate_value(candidates)
+        if dom_value is not None:
+            posture = MetricPosture.OBSERVED
+            value = dom_value
+            reason = None
+            dom_grid_fallback = True
+            selection_limitations.append("metric_value_from_dom_grid_no_passive_json_join")
+            row_residuals.append(f"ig_reels_dom_grid_metric_promoted:{observation.metric}")
 
     content_url = _known_value(source_slice.locator)
     pointer = f"/joined_rows/{joined_index}" if joined_index is not None else None
@@ -448,15 +652,17 @@ def _project_media_observation(
         value=value,
         reason=reason,
         coverage_window=observation.coverage_window,
-        chosen_source_surface=_chosen_surface(value if posture == MetricPosture.OBSERVED else None, candidates),
+        chosen_source_surface=DOM_GRID_ENGAGEMENT
+        if dom_grid_fallback
+        else _chosen_surface(value if posture == MetricPosture.OBSERVED else None, candidates),
         source_surface_count_candidates=candidates,
         join_status=join_status,
         selection_policy_version=selection_policy_version,
-        selection_limitations=list(source_slice.limitations),
+        selection_limitations=selection_limitations,
         capture_time=_known_value(source_slice.timing.capture_time),
         source_publication_or_event=_known_value(source_slice.timing.source_publication_or_event),
         source_visible_fields=_media_source_visible_fields(json_candidates),
-        residuals=list(row_residuals or []),
+        residuals=row_residuals,
     )
     return row, forced_static
 
@@ -495,6 +701,13 @@ def _media_surface_candidates(
     return candidates
 
 
+def _dom_grid_candidate_value(candidates: list[IgReelsSurfaceCountCandidate]) -> int | None:
+    for candidate in candidates:
+        if candidate.source_surface == DOM_GRID_ENGAGEMENT and candidate.value is not None:
+            return candidate.value
+    return None
+
+
 def _chosen_surface(selected_value: int | None, candidates: list[IgReelsSurfaceCountCandidate]) -> str | None:
     """Attribute the carried (already-selected) value to the surface it matches.
 
@@ -504,15 +717,14 @@ def _chosen_surface(selected_value: int | None, candidates: list[IgReelsSurfaceC
     """
     if selected_value is None:
         return None
-    # Attribute to the surface the upstream selection would have used: JSON surfaces in
-    # the capture's preference order first, DOM/unknown last. This resolves value ties
-    # (e.g. DOM == /clips/user, the jeremyfragrance case) to the same JSON surface the
-    # runner sourced the value from, without re-running selection.
+    # Attribute upstream JSON-selected values to the surface the runner would have used:
+    # JSON surfaces in the capture's preference order first, DOM/unknown last. DOM-grid
+    # fallback is handled explicitly before this helper.
     for candidate in sorted(
         candidates, key=lambda item: _SURFACE_PREFERENCE.get(item.source_surface, 99)
     ):
-        # The runner sources every metric value from a JSON source_surface_candidate, never
-        # from DOM; DOM is carried for disagreement but is never the value's source surface.
+        # For an already-observed upstream value, DOM is carried for disagreement but is not
+        # attributed as the JSON-selected source surface.
         if candidate.source_surface == DOM_GRID_ENGAGEMENT:
             continue
         if candidate.value == selected_value:
@@ -701,6 +913,13 @@ def _known_value(fact) -> str | None:
     return fact.value if fact.status == VisibleFactStatus.KNOWN else None
 
 
+def _required_catalog_string(value: object, field: str) -> str:
+    text = _string_or_none(value)
+    if text is None:
+        raise ValueError(f"Bronze catalog row missing required {field}")
+    return text
+
+
 def _projection_json_text(projection: IgReelsGridProjectionPacket) -> str:
     return f"{json.dumps(projection.model_dump(mode='json'), indent=2, sort_keys=True)}\n"
 
@@ -727,9 +946,13 @@ def _int_or_none(value: object) -> int | None:
         return int(value)
     if isinstance(value, str):
         stripped = value.replace(",", "").strip()
-        return int(stripped) if stripped.isdigit() else None
+        if stripped.isdigit():
+            return int(stripped)
+        compact = re.fullmatch(r"([0-9]+(?:\.[0-9]+)?)([KkMm])", stripped)
+        if compact:
+            multiplier = 1000 if compact.group(2).lower() == "k" else 1000000
+            return int(float(compact.group(1)) * multiplier)
     return None
-
 
 def _list_len(value: object) -> int | None:
     if isinstance(value, (list, tuple)):
@@ -738,6 +961,7 @@ def _list_len(value: object) -> int | None:
 
 
 __all__ = [
+    "BRONZE_CATALOG_IG_REELS_GRID_RECORD_ID_PREFIX",
     "IG_REELS_PROJECTION_CERTIFICATION",
     "IG_REELS_PROJECTION_METHOD",
     "IG_REELS_PROJECTION_VERSION",
@@ -745,7 +969,10 @@ __all__ = [
     "IgReelsGridProjectionPacket",
     "IgReelsGridProjectionRow",
     "IgReelsSurfaceCountCandidate",
+    "PROJECTION_IG_REELS_GRID_LANE",
     "build_ig_reels_grid_projection",
     "build_ig_reels_grid_projection_from_packet_directory",
+    "project_ig_reels_grid_from_bronze_catalog",
+    "project_ig_reels_grid_into_lake",
     "write_ig_reels_grid_projection",
 ]

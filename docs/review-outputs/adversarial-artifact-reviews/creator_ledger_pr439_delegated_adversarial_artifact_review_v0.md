@@ -16,8 +16,8 @@ authority_boundary: retrieval_only
 open_next:
   - docs/prompts/reviews/creator_ledger_pr439_delegated_adversarial_artifact_review_prompt_v0.md
   - orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_seed_v0.json
-  - orca/product/spines/capture/core/source_families/social_media/creator_profile_current_view_v0.json
-  - orca/product/spines/capture/core/source_families/social_media/creator_profile_current_view_spec_v0.md
+  - orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_profile_current_view_v0.json
+  - orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_profile_current_view_spec_v0.md
   - orca/product/spines/creator_signal/creator_intelligence_profile_surface_v0.md
 stale_if:
   - The review target commit changes from 23dce2d4ede2418fb3e73e325b045dc61b5fa03b.

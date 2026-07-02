@@ -14,9 +14,6 @@ use_when:
   - Checking the evidence threshold for declared, probable, candidate, or rejected public-handle links.
   - Validating a static creator public-handle linkage fixture before any database migration.
 open_next:
-  - orca/product/spines/capture/core/source_families/social_media/creator_registry/README.md
-  - orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_registry_index_spec_v0.md
-  - orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_registry_index_v0.json
   - orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_profile_current_view_spec_v0.md
   - orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json
   - docs/decisions/wind_caller_calibration_carveout_v0.md
@@ -73,13 +70,11 @@ Use a static table-shaped ledger first:
 The ledger is intentionally relational even when stored as JSON. SQLite can
 come later by mapping each list to a table without changing the core contract.
 
-The check-before-work list is a separate registry index, not this identity
-ledger. Use `creator_registry_index_v0.json` for Discovery/Capture dedupe and
-routing. The one-stop operator surface is also a separate derived view. Use
-`creator_profile_current_view_spec_v0.md` for the dashboard-ready join over
-identity, metric observations, metric rollups, and ideal-audience profile
-snapshots. Average views, engagement rate, and other influence rollups must not
-be added to `creator_records`.
+The one-stop operator surface is a separate derived view, not this identity
+ledger. Use `creator_profile_current_view_spec_v0.md` for the dashboard-ready
+join over identity, metric observations, metric rollups, and ideal-audience
+profile snapshots. Average views, engagement rate, and other influence rollups
+must not be added to `creator_records`.
 
 Single-platform accounts are not `creator_records`. They live as
 `platform_account` subjects in the current profile view until public-handle

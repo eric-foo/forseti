@@ -1,0 +1,127 @@
+"""The silver-lane write-path guard enforces the no-blur binding.
+
+Runs the guard's own selftest (its pass/fail fixtures), proves the live repo has
+no silver-lane write violations, and pins the registry's load-bearing facts (the
+envelope lanes and the named FRONT_DOOR_PENDING baseline). Also pins the
+hardening invariants: strict mode fails unresolvable lanes, conflicting aliases
+stay unresolved, and the front-door exemption is scoped to append_silver_record.
+"""
+from __future__ import annotations
+
+import ast
+import importlib.util
+import subprocess
+import sys
+from pathlib import Path
+
+REPO_ROOT = Path(__file__).resolve().parents[3]
+HOOK = REPO_ROOT / ".agents" / "hooks" / "check_silver_lane_registry.py"
+REGISTRY_PATH = REPO_ROOT / "orca-harness" / "data_lake" / "lane_registry.py"
+
+
+def _run(*args: str) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(
+        [sys.executable, str(HOOK), *args],
+        capture_output=True,
+        text=True,
+        cwd=REPO_ROOT,
+    )
+
+
+def _load_module(name: str, path: Path):
+    spec = importlib.util.spec_from_file_location(name, path)
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[name] = module  # register so @dataclass can resolve cls.__module__
+    spec.loader.exec_module(module)
+    return module
+
+
+def _load_registry():
+    return _load_module("lane_registry_under_test", REGISTRY_PATH)
+
+
+def _load_hook():
+    return _load_module("silver_lane_guard_under_test", HOOK)
+
+
+def test_guard_selftest_passes() -> None:
+    result = _run("--selftest", "--strict")
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert "SELFTEST OK" in result.stdout
+
+
+def test_live_repo_has_no_silver_lane_write_violations() -> None:
+    result = _run("--strict")
+    assert result.returncode == 0, result.stdout + result.stderr
+
+
+def test_strict_mode_fails_unresolved_lane_arguments() -> None:
+    result = _run(
+        "--strict",
+        "orca-harness/tests/fixtures/silver_lane_guard/fail_unresolved_lane_strict.py",
+    )
+    assert result.returncode == 1, result.stdout + result.stderr
+    assert "unresolved_lane_argument" in result.stdout
+
+
+def test_strict_mode_notes_dynamic_members_without_failing() -> None:
+    # A dynamic members dict is a coverage NOTE, not a strict failure: legitimate
+    # record-set producers (e.g. the ecr deriver) build members dynamically.
+    result = _run(
+        "--strict",
+        "orca-harness/tests/fixtures/silver_lane_guard/note_unresolved_members.py",
+    )
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert "not statically resolved" in result.stdout
+    assert "unresolved_lane_argument" not in result.stdout
+
+
+def test_alias_constant_conflicts_are_unresolved() -> None:
+    guard = _load_hook()
+    parsed = {
+        Path("a.py"): ast.parse('LANE_A = "cleaning_fragrantica_silver"\nLANE = LANE_A\n'),
+        Path("b.py"): ast.parse('LANE_B = "projection_ig"\nLANE = LANE_B\n'),
+    }
+    consts = guard._build_global_consts(parsed)
+    assert "LANE" not in consts
+
+
+def test_front_door_exemption_is_limited_to_append_silver_record() -> None:
+    guard = _load_hook()
+    registry = _load_registry()
+    tree = ast.parse(
+        "def append_silver_record(data_root, lane):\n"
+        "    data_root.append_record(lane=lane)\n"
+        "\n"
+        "def other_helper(data_root):\n"
+        '    data_root.append_record(lane="cleaning_fragrantica_silver")\n'
+    )
+    findings, unresolved = guard._scan_tree(
+        registry.SILVER_ENVELOPE_FRONT_DOOR_MODULE,
+        tree,
+        {},
+        registry,
+        is_front_door_module=True,
+    )
+    # append_silver_record's parameterized lane is exempt (not flagged unresolved);
+    # a sibling raw writer in the same module is NOT exempt.
+    assert not unresolved
+    assert [finding.code for finding in findings] == ["envelope_lane_bypass"]
+
+
+def test_registry_pins_envelope_lanes_and_pending_baseline() -> None:
+    registry = _load_registry()
+    assert "cleaning_fragrantica_silver" in registry.SILVER_ENVELOPE_LANES
+    # FRONT_DOOR_PENDING is EMPTY since the Batch-3 creator-metric migration: every
+    # silver_envelope lane now writes through the validating front-door, so nothing is
+    # exempt. The exact-set check (pending == baseline) still guards a silent re-add.
+    assert registry.FRONT_DOOR_PENDING == {}
+    assert set(registry.FRONT_DOOR_PENDING_BASELINE) == set()
+    assert registry.validate_registry() == []
+    assert all(reason.strip() for reason in registry.FRONT_DOOR_PENDING.values())
+    # The creator-metric lanes are real envelope lanes but are NOT pending (migrated).
+    assert "creator_metric_silver" in registry.SILVER_ENVELOPE_LANES
+    assert "creator_metric_silver" not in registry.FRONT_DOOR_PENDING
+    # Every pending lane (none) is a real envelope lane.
+    assert set(registry.FRONT_DOOR_PENDING) <= set(registry.SILVER_ENVELOPE_LANES)
