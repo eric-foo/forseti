@@ -2068,3 +2068,176 @@ direction_change_propagation:
     - not authorization to capture, build, or run (the playbook stays non-authorizing doctrine;
       per-probe network approval still required)
 ```
+
+## From .agents/workflow-overlay/validation-gates.md
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Google search-surface route-shape enforcement is now an active validation-gate
+    instance: a diff-scoped CI checker plus advisory PostToolUse hooks enforce
+    the mechanically checkable shell of the parameterized Google route decision
+    while preserving the non-claim that passing shape is not physical-locality,
+    source-sufficiency, validation, readiness, demand, Judgment, or Product Lead
+    proof.
+  trigger: validation_philosophy
+  related_triggers:
+    - workflow_authority
+    - output_authority
+  controlling_sources_updated:
+    - .agents/workflow-overlay/validation-gates.md
+    - docs/decisions/search_surface_google_parameterized_us_capture_route_v0.md
+    - .agents/hooks/check_search_surface_google_route.py
+    - .claude/settings.json
+    - .codex/hooks.json
+    - .github/workflows/ci.yml
+  downstream_surfaces_checked:
+    - AGENTS.md
+    - .agents/workflow-overlay/README.md
+    - .agents/workflow-overlay/source-of-truth.md
+    - .agents/workflow-overlay/artifact-roles.md
+    - .agents/workflow-overlay/prompt-orchestration.md
+    - .agents/workflow-overlay/delegated-review-patch.md
+    - docs/workflows/orca_repo_map_v0.md
+    - .agents/hooks/README.md
+  intentionally_not_updated:
+    - path: AGENTS.md
+      reason: >
+        AGENTS.md already routes validation and enforcement-placement changes to
+        the overlay. Adding a Google-specific route rule to the behavior kernel
+        would create a narrower duplicate source.
+    - path: .agents/workflow-overlay/README.md
+      reason: >
+        README already points project work to validation-gates, prompt
+        orchestration, and source-of-truth. The active instance is recorded here
+        and in the repo map/hook README.
+  stale_language_search: >
+    rg -n "Google search-surface|US-parameterized|physical-locality|check_search_surface_google_route"
+    .agents docs orca
+  non_claims:
+    - not validation
+    - not readiness
+    - not source sufficiency
+    - not demand proof
+    - not Judgment evidence
+    - not Product Lead evidence
+    - not physical-locality proof
+```
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Orca validation doctrine now includes a receipt-field provenance
+    (non-self-certification) gate: a check, predicate, acceptance, or completion
+    claim must not clear on a self-asserted field value; clearing requires an
+    owner-produced, provenance-bound, or independently verifiable value, else the
+    check is indeterminate_until_authored.
+  trigger: validation_philosophy
+  controlling_sources_updated:
+    - .agents/workflow-overlay/validation-gates.md
+  downstream_surfaces_checked:
+    - AGENTS.md
+    - CLAUDE.md
+    - .agents/workflow-overlay/README.md
+    - .agents/workflow-overlay/source-loading.md
+    - docs/workflows/orca_repo_map_v0.md
+    - .agents/workflow-overlay/review-lanes.md
+    - .agents/workflow-overlay/prompt-orchestration.md
+  intentionally_not_updated:
+    - path: external workflow source and plugin skill source
+      reason: >
+        Deliberately Orca-only. jb already carries equivalent discipline
+        (source-authority ceilings, no-fake-fallback, "user-confirmed is not
+        verified"), so there is nothing to spread now. This rule is a candidate
+        for external promotion later, which is a separate governed skill-source
+        change, not an Orca-lane edit.
+    - path: jb project sources
+      reason: >
+        Out of scope and already covered by jb's own evidence/claim discipline;
+        Orca must not edit jb authority.
+    - path: orca/product/spines/judgment/claim_ladder/judgment_spine_evidence_ladder_architecture_v0.md and the JS gate/owner-contract docs
+      reason: >
+        They already encode this discipline for Judgment Spine gates (e.g., the
+        no-tools contract Receipt Provenance Boundary). This overlay gate
+        generalizes it without restating their semantics.
+    - path: .agents/workflow-overlay/review-lanes.md
+      reason: >
+        No duplicate rule added. validation-gates.md is overlay and already read
+        by every Orca agent, so the gate reaches review and authoring without a
+        pointer; single-source preserved.
+  stale_language_search: >
+    rg -n "self-asserted|self-certif|provenance|indeterminate_until_authored|verifiable"
+    .agents/workflow-overlay/validation-gates.md
+  stale_language_search_result: >
+    Executed on 2026-06-03 after adding the gate. The terms appear only in the
+    new Current Gates bullet and this receipt; no conflicting or duplicate rule
+    exists elsewhere in the file, and no prior language stated that a
+    self-asserted field is sufficient to clear a gate. No hit converted the gate
+    into a validation, readiness, PASS, acceptance, or judgment-quality claim.
+  non_claims:
+    - not validation
+    - not readiness
+    - the gate's existence does not prove it is enforced or that any artifact passes it
+    - not a kernel or jb change
+```
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    New forward-only CI gate: changed durable docs must carry a retrieval header
+    and be map-reachable (substring-present in repo map or any submap); whole-repo
+    backlog surfaced advisory-only via --health + the session capsule.
+  trigger: validation_philosophy
+  controlling_sources_updated:
+    - .agents/workflow-overlay/validation-gates.md
+    - .agents/hooks/header_index.py
+    - .github/workflows/ci.yml
+    - .agents/hooks/session_context_capsule.py
+  downstream_surfaces_checked:
+    - AGENTS.md
+    - .agents/workflow-overlay/README.md
+    - .agents/workflow-overlay/source-loading.md
+    - docs/workflows/orca_repo_map_v0.md
+    - .agents/hooks/check_retrieval_header.py
+  intentionally_not_updated:
+    - path: AGENTS.md
+      reason: >
+        AGENTS.md triggers overlay-load for validation gates; the gate is
+        registered in validation-gates.md which AGENTS.md already routes to.
+        No new trigger word is needed.
+    - path: .agents/workflow-overlay/README.md
+      reason: >
+        README routes to validation-gates.md. The new gate is registered there;
+        no new overlay-level pointer needed.
+    - path: .agents/workflow-overlay/source-loading.md
+      reason: >
+        Source-loading packs are unchanged; the new hook is a CI substrate, not
+        a source-loading artifact or context-budget item.
+    - path: docs/workflows/orca_repo_map_v0.md
+      reason: >
+        The repo map's Active Hooks section already documents the pattern;
+        this DCP receipt is in validation-gates.md (the enforcement-placement
+        authority). A separate map entry is deferred as a hygiene-level note,
+        not a DCP-required propagation.
+    - path: .agents/hooks/check_retrieval_header.py
+      reason: >
+        check_retrieval_header.py is unchanged; header_index.py imports from it
+        without modification. Its own selftest continues to pass.
+  stale_language_search: >
+    rg -i -n "retrieval header|header_index|missing header" .agents
+  stale_language_search_result: >
+    Executed 2026-06-13 after adding header_index.py. Hits are in:
+    check_map_links.py (retrieval header mention, unrelated), check_retrieval_header.py
+    (canonical source, unchanged), header_index.py (new file, expected),
+    session_context_capsule.py (new capsule line, expected), README.md (hook table),
+    prompt-orchestration.md and retrieval-metadata.md (authority docs, unchanged),
+    source-loading.md (use_when reference, unchanged). No pre-existing stale
+    language; no checked surface required a new CA to block the gate or omit the
+    header requirement.
+  non_claims:
+    - not validation
+    - not readiness
+    - the gate's existence does not prove any artifact passes it
+    - not a kernel or jb change
+    - --strict passing for a PR does not prove the whole repo is header-complete
+```
