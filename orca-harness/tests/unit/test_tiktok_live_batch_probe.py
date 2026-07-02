@@ -17,6 +17,14 @@ from source_capture.auth_state import (
     write_auth_state_metadata,
 )
 from source_capture.tiktok.batch_packet import write_tiktok_batch_packet
+from source_capture.tiktok.blocker_triage import (
+    TIKTOK_BLOCKER_ACTION_CONTINUE,
+    TIKTOK_BLOCKER_ACTION_RELOAD_ONCE_CANDIDATE,
+    TIKTOK_BLOCKER_ACTION_STOP,
+    TIKTOK_BLOCKER_CLASS_CHALLENGE_OR_SECURITY,
+    TIKTOK_BLOCKER_CLASS_INFRASTRUCTURE_RELOAD,
+    TIKTOK_BLOCKER_CLASS_NO_BLOCKER,
+)
 from source_capture.tiktok.live_batch_probe import (
     TIKTOK_OPEN_COMMENTS_POINTER_ACTION_NAME,
     is_tiktok_comment_list_url,
@@ -146,6 +154,18 @@ def test_live_probe_writes_sanitized_staging_compatible_with_batch_admission(
     assert '"body_text"' not in serialized
     assert str(auth_root) not in serialized
     assert str(engine.calls[0]["storage_state_path"]) not in serialized
+    assert cadence["results"][0]["capture_receipt"]["blocker_triage"] == {
+        "blocker_class": TIKTOK_BLOCKER_CLASS_NO_BLOCKER,
+        "action": TIKTOK_BLOCKER_ACTION_CONTINUE,
+        "reason": "no_blocker_markers_observed",
+        "challenge_marker_seen": False,
+        "dismiss_candidate_count": 0,
+        "reload_candidate_count": 0,
+        "hydration_present": True,
+        "item_struct_present": True,
+        "action_mode": "classification_only",
+        "action_taken": False,
+    }
     assert cadence["results"][0]["capture_receipt"]["comment_action"] == {
         "action_name": TIKTOK_OPEN_COMMENTS_POINTER_ACTION_NAME,
         "candidate_count": 5,
@@ -373,6 +393,11 @@ def test_live_probe_stops_on_platform_challenge(tmp_path: Path) -> None:
     assert cadence["completed_count"] == 0
     assert cadence["challenge_count"] == 1
     assert cadence["failures"][0]["reason"] == "platform_challenge_observed"
+    assert cadence["failures"][0]["blocker_triage"]["blocker_class"] == (
+        TIKTOK_BLOCKER_CLASS_CHALLENGE_OR_SECURITY
+    )
+    assert cadence["failures"][0]["blocker_triage"]["action"] == TIKTOK_BLOCKER_ACTION_STOP
+    assert cadence["failures"][0]["blocker_triage"]["action_taken"] is False
     assert len(engine.calls) == 1
 
 
@@ -418,6 +443,13 @@ def test_live_probe_stops_on_missing_video_detail_hydration(tmp_path: Path) -> N
     assert cadence["completed_count"] == 0
     assert cadence["challenge_count"] == 1
     assert cadence["failures"][0]["reason"] == "missing_video_detail_hydration"
+    assert cadence["failures"][0]["blocker_triage"]["blocker_class"] == (
+        TIKTOK_BLOCKER_CLASS_INFRASTRUCTURE_RELOAD
+    )
+    assert cadence["failures"][0]["blocker_triage"]["action"] == (
+        TIKTOK_BLOCKER_ACTION_RELOAD_ONCE_CANDIDATE
+    )
+    assert cadence["failures"][0]["blocker_triage"]["action_taken"] is False
     assert len(engine.calls) == 1
 
 
