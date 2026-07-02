@@ -12,7 +12,7 @@ use_when:
     follow-up patching.
 authority_boundary: retrieval_only
 reviewed_by: openai-gpt-5-codex
-authored_by: unrecorded
+authored_by: claude-fable-5  # CA-supplied at adjudication per review-lanes provenance rule
 branch_or_commit: claude/competent-jennings-692f70 @ 650b7ea8b995785585cba5c3ddabf5a5e0016e49
 open_next:
   - .agents/hooks/check_review_routing.py
@@ -22,8 +22,8 @@ open_next:
 ## Review Provenance
 
 - `reviewed_by`: openai-gpt-5-codex.
-- `authored_by`: `unrecorded`; the implementation author model/version was not supplied, and is not inferred from Git author or worktree naming.
-- De-correlation measurement: not proven because `authored_by` is unrecorded.
+- `authored_by`: `claude-fable-5` — reviewer recorded `unrecorded`; supplied by the commissioning CA at return adjudication (2026-07-02), per the review-lanes rule that these fields are operator/CA-set on the durable record.
+- De-correlation measurement: cross-vendor satisfied at adjudication (openai-gpt-5-codex vs claude-fable-5 — OpenAI vs Anthropic lineage); the reviewer's own `not proven` stance at review time was correct given the then-unrecorded field.
 - Requested output path: `docs/review-outputs/ep35_review_routing_disposition_gate_delegated_adversarial_code_review_v0.md`.
 - Note: the requested path did not exist before this review. It was treated as the required durable review-output path, not as a source prompt.
 

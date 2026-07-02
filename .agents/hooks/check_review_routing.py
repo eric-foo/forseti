@@ -46,10 +46,15 @@ WHAT THIS GATE DOES *NOT* DO (the over-edge boundary -- PLACEMENT IS NOT AUTHORI
 DETECTION CONTRACT (mirrors check_dcp_receipt.py / header_index.py --strict)
   base ref priority: $GITHUB_BASE_REF -> origin/<ref>; else --base <ref>; else
   origin/main. Diff is three-dot `base...HEAD` (the PR's net change),
-  name-status. Commit messages come from `git log base..HEAD`. NO HEAD~1
-  fallback. If the base cannot be resolved or git fails, fail OPEN (exit 0,
-  loud warning) -- the universal Orca infra-gap stance; in CI the base is
-  always present (fetch-depth: 0). Forward-only by construction: only the
+  name-status. Rename/copy rows touch BOTH paths -- a rename out of a code
+  root is a code-root change (FIND-01, EP-35 delegated review). Commit
+  messages come from `git log base..HEAD`. NO HEAD~1 fallback. If the base
+  cannot be resolved or git fails, fail OPEN (exit 0, loud warning) -- the
+  universal Orca infra-gap stance; in CI the base is always present
+  (fetch-depth: 0). Fail-open is for INFRASTRUCTURE GAPS ONLY: in --strict and
+  --selftest an unexpected internal exception exits nonzero (the GATE FAIL
+  bucket, validation-gates.md; FIND-02, EP-35 delegated review); advisory
+  modes fail open on internal error. Forward-only by construction: only the
   current diff is gated, never historical backlog (see --audit for that view).
 
 MODES
@@ -102,6 +107,26 @@ def touches_code_root(paths: list[str]) -> bool:
 
 def adds_review_artifact(added_paths: list[str]) -> bool:
     return any(p.startswith(REVIEW_ROOTS) for p in added_paths)
+
+
+def parse_name_status(lines: list[str]) -> tuple[list[str], list[str]]:
+    """(touched, added) from `git diff --name-status` output lines.
+
+    Rename/copy rows (`Rnnn<TAB>old<TAB>new`, `Cnnn<TAB>old<TAB>new`) touch
+    BOTH paths -- keeping only the destination let a rename out of a code root
+    bypass the gate (FIND-01, EP-35 delegated review). `added` carries the
+    destination path only. Pure function (testable)."""
+    touched: list[str] = []
+    added: list[str] = []
+    for ln in lines:
+        parts = [p.strip() for p in ln.split("\t")]
+        if len(parts) < 2:
+            continue
+        status = parts[0]
+        touched.extend(p for p in parts[1:] if p)
+        if status.startswith(("A", "R", "C")):
+            added.append(parts[-1])
+    return touched, added
 
 
 def _reason_of(remainder: str) -> str:
@@ -195,17 +220,7 @@ def diff_paths(root: Path, base_ref: str) -> tuple[list[str], list[str]] | None:
     )
     if rc != 0:
         return None
-    touched: list[str] = []
-    added: list[str] = []
-    for ln in out.splitlines():
-        parts = ln.split("\t")
-        if len(parts) < 2:
-            continue
-        status, path = parts[0].strip(), parts[-1].strip()
-        touched.append(path)
-        if status.startswith("A") or status.startswith("R") or status.startswith("C"):
-            added.append(path)
-    return touched, added
+    return parse_name_status(out.splitlines())
 
 
 def range_messages(root: Path, base_ref: str) -> str:
@@ -261,15 +276,7 @@ def run_commit_msg(root: Path, msg_file: str) -> int:
     rc, out = _git(root, ["diff", "--cached", "--name-status"])
     if rc != 0:
         return 0
-    touched: list[str] = []
-    added: list[str] = []
-    for ln in out.splitlines():
-        parts = ln.split("\t")
-        if len(parts) < 2:
-            continue
-        touched.append(parts[-1].strip())
-        if parts[0].strip().startswith(("A", "R", "C")):
-            added.append(parts[-1].strip())
+    touched, added = parse_name_status(out.splitlines())
     findings = evaluate(touched, added, message, worktree_path_exists(root))
     if findings:
         print("check_review_routing (advisory): this commit touches a code root with "
@@ -295,15 +302,7 @@ def run_audit(root: Path, limit: int) -> int:
         rc, out = _git(root, ["diff", "--name-status", "%s^" % sha, sha])
         if rc != 0:
             continue  # root commit or unreadable parent
-        touched: list[str] = []
-        added: list[str] = []
-        for ln in out.splitlines():
-            parts = ln.split("\t")
-            if len(parts) < 2:
-                continue
-            touched.append(parts[-1].strip())
-            if parts[0].strip().startswith(("A", "R", "C")):
-                added.append(parts[-1].strip())
+        touched, added = parse_name_status(out.splitlines())
         if not touches_code_root(touched):
             continue
         scoped += 1
@@ -392,6 +391,19 @@ def selftest() -> int:
           evaluate(["orca-harness/a.py"], [],
                    "we should add review_routing_status later\n", exists_none) != [], True)
 
+    # --- parse_name_status (FIND-01: rename out of a code root stays in scope) ---
+    t, a = parse_name_status(["R100\torca-harness/a.py\tdocs/moved/a.py"])
+    check("rename OUT of code root keeps old path touched",
+          "orca-harness/a.py" in t, True)
+    check("rename destination is the added path", a, ["docs/moved/a.py"])
+    check("rename-out triggers scope (missing disposition found)",
+          evaluate(t, a, "", exists_none) != [], True)
+    t2, a2 = parse_name_status(
+        ["M\torca-harness/b.py", "A\tdocs/review-outputs/r.md", "short-noise-line"])
+    check("plain rows parse; noise skipped", (t2, a2),
+          (["orca-harness/b.py", "docs/review-outputs/r.md"],
+           ["docs/review-outputs/r.md"]))
+
     # --- reason stripping ---
     check("reason separator variants", _reason_of("-- because reasons"), "because reasons")
     check("empty reason", _reason_of("  --  "), "")
@@ -454,6 +466,10 @@ def main(argv: list[str]) -> int:
 if __name__ == "__main__":
     try:
         sys.exit(main(sys.argv[1:]))
-    except Exception as exc:  # never ghost-fail; print and fail open
-        sys.stderr.write("check_review_routing: internal error, allowing: %s\n" % exc)
-        sys.exit(0)
+    except Exception as exc:
+        # GATE FAIL bucket in gating modes (validation-gates.md; FIND-02,
+        # EP-35 delegated review): an internal checker bug must not read as a
+        # green gate. Advisory modes fail open so a bug never bricks the agent.
+        sys.stderr.write("check_review_routing: internal error: %s\n" % exc)
+        gating = "--strict" in sys.argv[1:] or "--selftest" in sys.argv[1:]
+        sys.exit(1 if gating else 0)
