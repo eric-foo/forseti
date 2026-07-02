@@ -13,6 +13,7 @@ from harness_utils import utc_now_z
 from source_capture.adapters.browser_snapshot import (
     BrowserPageObservationEngine,
     BrowserPageObservationSuccess,
+    BrowserPagePointerAction,
     BrowserPageResponse,
     BrowserSnapshotFailure,
     fetch_browser_page_observation_capture,
@@ -34,34 +35,13 @@ TIKTOK_VIDEO_DOM_EXTRACT_SCRIPT = r"""
 () => {
   const hydration = document.querySelector('#__UNIVERSAL_DATA_FOR_REHYDRATION__');
   return {
-    hydration_json_text: hydration ? hydration.textContent : null,
-    comment_action: window.__orcaTikTokCommentAction || null
+    hydration_json_text: hydration ? hydration.textContent : null
   };
 }
 """.strip()
 
-TIKTOK_OPEN_COMMENTS_POST_LOAD_SCRIPT = r"""
-async () => {
-  const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-  const candidates = Array.from(document.querySelectorAll('button,[role="button"],a'));
-  const target = candidates.find((node) => {
-    const text = [
-      node.getAttribute('aria-label'),
-      node.getAttribute('title'),
-      node.textContent
-    ].filter(Boolean).join(' ').toLowerCase();
-    return text.includes('comment') || text.includes('comments');
-  });
-  const result = { candidate_count: candidates.length, clicked: false };
-  if (target && typeof target.click === 'function') {
-    target.click();
-    result.clicked = true;
-  }
-  window.__orcaTikTokCommentAction = result;
-  await sleep(2500);
-  return result;
-}
-""".strip()
+TIKTOK_OPEN_COMMENTS_POINTER_ACTION_NAME = "tiktok_open_comments_pointer_v0"
+TIKTOK_COMMENT_LIST_RESPONSE_CAP = 2
 
 _TIKTOK_VIDEO_URL_RE = re.compile(r"^/@(?P<handle>[^/]+)/video/(?P<video_id>\d+)$")
 _CHALLENGE_MARKERS = (
@@ -211,8 +191,10 @@ def run_tiktok_live_batch_probe(
             dom_extract_script=TIKTOK_VIDEO_DOM_EXTRACT_SCRIPT,
             dom_extract_arg=None,
             response_url_predicate=is_tiktok_comment_list_url,
-            post_load_action_script=TIKTOK_OPEN_COMMENTS_POST_LOAD_SCRIPT,
-            post_load_action_arg=None,
+            post_load_pointer_action=_tiktok_open_comments_pointer_action(
+                video_id=video_id,
+                random_seed=random_seed,
+            ),
             timeout_seconds=timeout_seconds,
             wait_until=wait_until,
             viewport_width=viewport_width,
@@ -357,6 +339,30 @@ def detect_tiktok_challenge(capture_result: BrowserPageObservationSuccess) -> st
     return None
 
 
+def _tiktok_open_comments_pointer_action(
+    *,
+    video_id: str,
+    random_seed: int | None,
+) -> BrowserPagePointerAction:
+    return BrowserPagePointerAction(
+        action_name=TIKTOK_OPEN_COMMENTS_POINTER_ACTION_NAME,
+        candidate_selector='button,[role="button"],a',
+        text_markers=("comment", "comments"),
+        wait_after_ms=2500,
+        move_steps_min=6,
+        move_steps_max=12,
+        target_fraction_min=0.35,
+        target_fraction_max=0.65,
+        random_seed=_stable_pointer_seed(video_id=video_id, random_seed=random_seed),
+    )
+
+
+def _stable_pointer_seed(*, video_id: str, random_seed: int | None) -> int:
+    base_seed = random_seed if random_seed is not None else 0
+    material = f"{base_seed}:{video_id}:{TIKTOK_OPEN_COMMENTS_POINTER_ACTION_NAME}"
+    return int(sha256(material.encode("utf-8")).hexdigest()[:16], 16)
+
+
 def _build_probe_cadence_plan(
     *,
     video_count: int,
@@ -389,6 +395,12 @@ def _cadence_row_from_capture(
     grid_candidate: JsonObject,
 ) -> JsonObject:
     subtitle_infos = _sanitize_subtitle_infos(_subtitle_infos_from_item_struct(item_struct))
+    matched_comment_response_count = sum(
+        1
+        for response in capture_result.responses
+        if _is_page_owned_comment_list_response(response)
+    )
+    comment_list_responses = _page_owned_comment_list_responses(capture_result)
     return {
         "video_id": video_id,
         "url_path": urlparse(video_url).path,
@@ -397,8 +409,7 @@ def _cadence_row_from_capture(
         "grid_candidate": grid_candidate,
         "comment_responses": [
             _comment_response_from_page_response(response, observed_utc=observed_utc)
-            for response in capture_result.responses
-            if _is_page_owned_comment_list_response(response)
+            for response in comment_list_responses
         ],
         "hydration": {
             "subtitle_info_count": len(subtitle_infos),
@@ -413,26 +424,53 @@ def _cadence_row_from_capture(
             "page_url_sha256": _sha256_text(video_url),
             "final_url_sha256": _sha256_text(capture_result.final_url),
             "response_count": len(capture_result.responses),
-            "comment_action": _comment_action_summary(capture_result.dom_observation),
-            "matched_comment_response_count": sum(
-                1
-                for response in capture_result.responses
-                if _is_page_owned_comment_list_response(response)
-            ),
+            "comment_action": _comment_action_summary(capture_result),
+            "matched_comment_response_count": matched_comment_response_count,
+            "admitted_comment_response_count": len(comment_list_responses),
+            "comment_response_cap": TIKTOK_COMMENT_LIST_RESPONSE_CAP,
             "warning_count": len(capture_result.warning_notes),
             "limitation_count": len(capture_result.limitation_notes),
         },
     }
 
 
-def _comment_action_summary(dom_observation: object) -> JsonObject:
-    action = _as_dict(_as_dict(dom_observation).get("comment_action"))
-    if not action:
+def _page_owned_comment_list_responses(
+    capture_result: BrowserPageObservationSuccess,
+) -> list[BrowserPageResponse]:
+    responses: list[BrowserPageResponse] = []
+    for response in capture_result.responses:
+        if not _is_page_owned_comment_list_response(response):
+            continue
+        responses.append(response)
+        if len(responses) >= TIKTOK_COMMENT_LIST_RESPONSE_CAP:
+            break
+    return responses
+
+
+def _comment_action_summary(capture_result: BrowserPageObservationSuccess) -> JsonObject:
+    action = _as_dict(_as_dict(capture_result.metadata).get("post_load_pointer_action"))
+    if action:
+        return _drop_none(
+            {
+                "action_name": _first_str(action.get("action_name")),
+                "candidate_count": _first_int(action.get("candidate_count")),
+                "matched_count": _first_int(action.get("matched_count")),
+                "target_found": _first_bool(action.get("target_found")),
+                "clicked": _first_bool(action.get("clicked")),
+                "move_steps": _first_int(action.get("move_steps")),
+                "wait_ms": _first_int(action.get("wait_ms")),
+                "target_kind": _first_str(action.get("target_kind")),
+                "failure": _first_str(action.get("failure")),
+            }
+        )
+
+    legacy_action = _as_dict(_as_dict(capture_result.dom_observation).get("comment_action"))
+    if not legacy_action:
         return {}
     return _drop_none(
         {
-            "candidate_count": _first_int(action.get("candidate_count")),
-            "clicked": _first_bool(action.get("clicked")),
+            "candidate_count": _first_int(legacy_action.get("candidate_count")),
+            "clicked": _first_bool(legacy_action.get("clicked")),
         }
     )
 
@@ -850,7 +888,6 @@ __all__ = [
     "TIKTOK_LIVE_BATCH_CADENCE_JSON_NAME",
     "TIKTOK_LIVE_BATCH_GRID_JSON_NAME",
     "TIKTOK_LIVE_BATCH_PROBE_SCHEMA_VERSION",
-    "TIKTOK_OPEN_COMMENTS_POST_LOAD_SCRIPT",
     "TIKTOK_VIDEO_DOM_EXTRACT_SCRIPT",
     "TikTokLiveBatchProbeOutputPaths",
     "detect_tiktok_challenge",

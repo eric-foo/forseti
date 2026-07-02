@@ -8,6 +8,7 @@ from typing import Callable
 from runners import run_source_capture_tiktok_live_batch_probe as runner
 from source_capture.adapters.browser_snapshot import (
     BrowserPageObservationSuccess,
+    BrowserPagePointerAction,
     BrowserPageResponse,
 )
 from source_capture.auth_state import (
@@ -17,6 +18,7 @@ from source_capture.auth_state import (
 )
 from source_capture.tiktok.batch_packet import write_tiktok_batch_packet
 from source_capture.tiktok.live_batch_probe import (
+    TIKTOK_OPEN_COMMENTS_POINTER_ACTION_NAME,
     is_tiktok_comment_list_url,
     write_tiktok_live_batch_probe_outputs,
 )
@@ -42,6 +44,7 @@ class _FakeObservationEngine:
         response_url_predicate: Callable[[str], bool],
         post_load_action_script: str | None = None,
         post_load_action_arg: object = None,
+        post_load_pointer_action: BrowserPagePointerAction | None = None,
         selector: str | None = None,
         selector_timeout_seconds: float = 5.0,
         max_response_bytes: int = 5_000_000,
@@ -60,6 +63,7 @@ class _FakeObservationEngine:
                 "headless": headless,
                 "storage_state_path": storage_state_path,
                 "post_load_action_script": post_load_action_script,
+                "post_load_pointer_action": post_load_pointer_action,
                 "response_predicate_matches_comment_list": response_url_predicate(
                     "https://www.tiktok.com/api/comment/list/?aweme_id=7390000000000000001&cursor=0"
                 ),
@@ -142,8 +146,25 @@ def test_live_probe_writes_sanitized_staging_compatible_with_batch_admission(
     assert '"body_text"' not in serialized
     assert str(auth_root) not in serialized
     assert str(engine.calls[0]["storage_state_path"]) not in serialized
+    assert cadence["results"][0]["capture_receipt"]["comment_action"] == {
+        "action_name": TIKTOK_OPEN_COMMENTS_POINTER_ACTION_NAME,
+        "candidate_count": 5,
+        "matched_count": 1,
+        "target_found": True,
+        "clicked": True,
+        "move_steps": 7,
+        "wait_ms": 2500,
+        "target_kind": "button",
+    }
     assert engine.calls[0]["headless"] is False
-    assert engine.calls[0]["post_load_action_script"]
+    assert engine.calls[0]["post_load_action_script"] is None
+    pointer_action = engine.calls[0]["post_load_pointer_action"]
+    assert isinstance(pointer_action, BrowserPagePointerAction)
+    assert pointer_action.action_name == TIKTOK_OPEN_COMMENTS_POINTER_ACTION_NAME
+    assert pointer_action.candidate_selector == 'button,[role="button"],a'
+    assert pointer_action.text_markers == ("comment", "comments")
+    assert pointer_action.move_steps_min == 6
+    assert pointer_action.move_steps_max == 12
     assert engine.calls[0]["response_predicate_matches_comment_list"] is True
 
     code, message = write_tiktok_batch_packet(
@@ -239,10 +260,76 @@ def test_live_probe_filters_non_get_comment_list_responses_when_method_available
     row = cadence["results"][0]
     assert row["capture_receipt"]["response_count"] == 2
     assert row["capture_receipt"]["matched_comment_response_count"] == 1
+    assert row["capture_receipt"]["admitted_comment_response_count"] == 1
     assert len(row["comment_responses"]) == 1
     assert row["comment_responses"][0]["request_method"] == "GET"
     assert row["comment_responses"][0]["body_assessment"]["json_parse_ok"] is True
     assert row["comment_responses"][0]["body_assessment"]["comment_count"] == 1
+
+def test_live_probe_caps_admitted_comment_list_responses(tmp_path: Path) -> None:
+    auth_root = _auth_state(tmp_path)
+    response_url = (
+        "https://www.tiktok.com/api/comment/list/"
+        "?aweme_id=7390000000000000001&cursor=0&count=20"
+    )
+    responses = [
+        BrowserPageResponse(
+            requested_url=response_url,
+            final_url=response_url,
+            status=200,
+            ok=True,
+            body_text=json.dumps(
+                {
+                    "cursor": index * 20,
+                    "has_more": 1,
+                    "total": 3,
+                    "comments": [
+                        {
+                            "cid": f"729{index}",
+                            "text": f"Body {index}",
+                            "create_time": 1710000000 + index,
+                            "user": {"uid": f"u{index}", "unique_id": f"viewer_{index}"},
+                        }
+                    ],
+                }
+            ),
+            response_headers={"content-type": "application/json"},
+            request_method="GET",
+            resource_type="fetch",
+        )
+        for index in range(3)
+    ]
+    engine = _FakeObservationEngine(
+        outcomes=[_success_observation(video_id="7390000000000000001", responses=responses)]
+    )
+
+    paths = write_tiktok_live_batch_probe_outputs(
+        creator_handle="funmi",
+        creator_profile_url="https://www.tiktok.com/@funmi",
+        video_urls=["https://www.tiktok.com/@funmi/video/7390000000000000001"],
+        state_label="test-session",
+        session_mode=AuthenticatedSessionMode.FREE_ACCOUNT_CREATED,
+        auth_state_root=auth_root,
+        output_dir=tmp_path / "out",
+        cadence_min_gap_seconds=0,
+        cadence_max_gap_seconds=0,
+        random_seed=1,
+        engine=engine,
+        sleep_fn=lambda _seconds: None,
+    )
+
+    cadence = json.loads(paths.cadence_result_json_path.read_text(encoding="utf-8"))
+    row = cadence["results"][0]
+    assert row["capture_receipt"]["response_count"] == 3
+    assert row["capture_receipt"]["matched_comment_response_count"] == 3
+    assert row["capture_receipt"]["admitted_comment_response_count"] == 2
+    assert row["capture_receipt"]["comment_response_cap"] == 2
+    assert len(row["comment_responses"]) == 2
+    assert [
+        response["body_assessment"]["comments"][0]["cid"]
+        for response in row["comment_responses"]
+    ] == ["7290", "7291"]
+
 
 def test_live_probe_stops_on_platform_challenge(tmp_path: Path) -> None:
     auth_root = _auth_state(tmp_path)
@@ -255,7 +342,7 @@ def test_live_probe_stops_on_platform_challenge(tmp_path: Path) -> None:
                 visible_text="Drag the slider to verify to continue",
                 dom_observation={"hydration_json_text": None},
                 responses=[],
-                metadata={},
+                metadata={"post_load_pointer_action": _pointer_action_receipt()},
                 warning_notes=[],
                 limitation_notes=[],
             ),
@@ -300,7 +387,7 @@ def test_live_probe_stops_on_missing_video_detail_hydration(tmp_path: Path) -> N
                 visible_text="video loaded",
                 dom_observation={"hydration_json_text": None},
                 responses=[],
-                metadata={},
+                metadata={"post_load_pointer_action": _pointer_action_receipt()},
                 warning_notes=[],
                 limitation_notes=[],
             ),
@@ -386,10 +473,23 @@ def _success_observation(
         visible_text="video loaded",
         dom_observation={"hydration_json_text": json.dumps(_hydration(video_id))},
         responses=responses if responses is not None else ([response] if response is not None else []),
-        metadata={},
+        metadata={"post_load_pointer_action": _pointer_action_receipt()},
         warning_notes=[],
         limitation_notes=[],
     )
+
+
+def _pointer_action_receipt() -> dict[str, object]:
+    return {
+        "action_name": TIKTOK_OPEN_COMMENTS_POINTER_ACTION_NAME,
+        "candidate_count": 5,
+        "matched_count": 1,
+        "target_found": True,
+        "clicked": True,
+        "move_steps": 7,
+        "wait_ms": 2500,
+        "target_kind": "button",
+    }
 
 
 def _hydration(video_id: str) -> dict[str, object]:

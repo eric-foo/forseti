@@ -17,6 +17,7 @@ from source_capture.adapters.browser_snapshot import (
     BrowserContextResponse,
     BrowserContextResponsesSuccess,
     BrowserPageObservationSuccess,
+    BrowserPagePointerAction,
     BrowserPageResponse,
     BrowserSnapshotFailure,
     BrowserSnapshotFailureKind,
@@ -132,13 +133,37 @@ class _FakeObservationLocator:
         return "before scroll"
 
 
+class _FakeObservationMouse:
+    def __init__(self, page: "_FakeObservationPage") -> None:
+        self.page = page
+        self.moves: list[tuple[float, float, int]] = []
+        self.clicks: list[tuple[float, float]] = []
+
+    def move(self, x: float, y: float, *, steps: int) -> None:
+        self.moves.append((x, y, steps))
+        self.page.event_log.append(f"mouse_move:{steps}")
+
+    def click(self, x: float, y: float) -> None:
+        self.clicks.append((x, y))
+        self.page.event_log.append("mouse_click")
+        self.page.emit_response_once()
+
+
 class _FakeObservationPage:
-    def __init__(self, event_log: list[str], *, height: int = 3_000) -> None:
+    def __init__(
+        self,
+        event_log: list[str],
+        *,
+        height: int = 3_000,
+        pointer_target: dict[str, object] | None = None,
+    ) -> None:
         self.event_log = event_log
         self.height = height
         self.url = "https://example.com/source"
         self.response_callback: object | None = None
         self.response_emitted = False
+        self.pointer_target = pointer_target
+        self.mouse = _FakeObservationMouse(self)
 
     def route(self, *_args: object, **_kwargs: object) -> None:
         self.event_log.append("route")
@@ -156,6 +181,11 @@ class _FakeObservationPage:
     def wait_for_selector(self, *_args: object, **_kwargs: object) -> None:
         self.event_log.append("wait_for_selector")
 
+    def emit_response_once(self) -> None:
+        if self.response_callback is not None and not self.response_emitted:
+            self.response_callback(_FakeObservationResponse(self.event_log))  # type: ignore[operator]
+            self.response_emitted = True
+
     def locator(self, selector: str) -> _FakeObservationLocator:
         assert selector == "body"
         return _FakeObservationLocator(self.event_log)
@@ -163,19 +193,24 @@ class _FakeObservationPage:
     def evaluate(self, script: str, arg: object | None = None) -> object:
         if "scrollTo" in script:
             self.event_log.append("scroll")
-            if self.response_callback is not None and not self.response_emitted:
-                self.response_callback(_FakeObservationResponse(self.event_log))  # type: ignore[operator]
-                self.response_emitted = True
+            self.emit_response_once()
             return None
         if "scrollHeight" in script:
             self.event_log.append("scroll_height")
             return self.height
         if "postLoadAction" in script:
             self.event_log.append("post_load_action")
-            if self.response_callback is not None and not self.response_emitted:
-                self.response_callback(_FakeObservationResponse(self.event_log))  # type: ignore[operator]
-                self.response_emitted = True
+            self.emit_response_once()
             return {"postLoadAction": arg}
+        if "candidate_selector" in script and "target_found" in script:
+            self.event_log.append("pointer_target_lookup")
+            return self.pointer_target or {
+                "candidate_count": 0,
+                "matched_count": 0,
+                "target_found": False,
+                "target_kind": None,
+                "box": None,
+            }
         self.event_log.append("dom_extract")
         return {"items": [{"text": "before scroll"}]}
 
@@ -685,8 +720,38 @@ def test_fetch_browser_page_observation_capture_threads_lazy_load_scroll_control
     assert engine.capture_kwargs is not None
     assert engine.capture_kwargs["post_load_action_script"] == "() => true"
     assert engine.capture_kwargs["post_load_action_arg"] == {"target": "comments"}
+    assert engine.capture_kwargs["post_load_pointer_action"] is None
     assert engine.capture_kwargs["lazy_load_scroll_passes"] == 2
     assert engine.capture_kwargs["lazy_load_scroll_step_px"] == 650
+
+
+def test_fetch_browser_page_observation_capture_threads_pointer_action_to_engine() -> None:
+    engine = _ok_page_observation_engine()
+    pointer_action = BrowserPagePointerAction(
+        action_name=" open_comments ",
+        candidate_selector=" button ",
+        text_markers=(" Comments ",),
+        random_seed=7,
+    )
+
+    result = fetch_browser_page_observation_capture(
+        url="https://example.com/source",
+        dom_extract_script="() => ({items: []})",
+        dom_extract_arg={},
+        response_url_predicate=lambda url: "widget" in url,
+        post_load_pointer_action=pointer_action,
+        engine=engine,
+    )
+
+    assert isinstance(result, BrowserPageObservationSuccess)
+    assert engine.capture_kwargs is not None
+    assert engine.capture_kwargs["post_load_action_script"] is None
+    assert engine.capture_kwargs["post_load_pointer_action"] == BrowserPagePointerAction(
+        action_name="open_comments",
+        candidate_selector="button",
+        text_markers=("comments",),
+        random_seed=7,
+    )
 
 
 def test_fetch_browser_page_observation_capture_rejects_negative_lazy_load_scroll_controls() -> None:
@@ -717,8 +782,33 @@ def test_fetch_browser_page_observation_capture_rejects_negative_lazy_load_scrol
             post_load_action_script="   ",
             engine=_ok_page_observation_engine(),
         )
-
-
+    with pytest.raises(ValueError, match="mutually exclusive"):
+        fetch_browser_page_observation_capture(
+            url="https://example.com/source",
+            dom_extract_script="() => ({items: []})",
+            dom_extract_arg={},
+            response_url_predicate=lambda _: False,
+            post_load_action_script="() => true",
+            post_load_pointer_action=BrowserPagePointerAction(
+                action_name="open",
+                candidate_selector="button",
+                text_markers=("comment",),
+            ),
+            engine=_ok_page_observation_engine(),
+        )
+    with pytest.raises(ValueError, match="text_markers"):
+        fetch_browser_page_observation_capture(
+            url="https://example.com/source",
+            dom_extract_script="() => ({items: []})",
+            dom_extract_arg={},
+            response_url_predicate=lambda _: False,
+            post_load_pointer_action=BrowserPagePointerAction(
+                action_name="open",
+                candidate_selector="button",
+                text_markers=("   ",),
+            ),
+            engine=_ok_page_observation_engine(),
+        )
 
 
 def test_playwright_page_observation_extracts_dom_before_lazy_load_scroll_and_reads_responses_after(
@@ -777,6 +867,106 @@ def test_playwright_page_observation_runs_post_load_action_before_dom_and_reads_
     assert event_log.index("post_load_action") < event_log.index("inner_text")
     assert event_log.index("post_load_action") < event_log.index("dom_extract")
     assert event_log.index("dom_extract") < event_log.index("response_text")
+
+
+def test_playwright_page_observation_runs_pointer_action_before_dom_and_reads_responses(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    event_log: list[str] = []
+    page = _FakeObservationPage(
+        event_log,
+        pointer_target={
+            "candidate_count": 3,
+            "matched_count": 1,
+            "target_found": True,
+            "target_kind": "button",
+            "box": {"x": 10, "y": 20, "width": 100, "height": 50},
+        },
+    )
+    _install_fake_playwright(monkeypatch, page)
+
+    result = browser_snapshot_module._PlaywrightBrowserSnapshotEngine().capture_page_observation(
+        url="https://example.com/source",
+        timeout_seconds=1,
+        wait_until="load",
+        viewport_width=1280,
+        viewport_height=720,
+        dom_extract_script="() => ({items: []})",
+        dom_extract_arg={},
+        response_url_predicate=lambda url: "widget" in url,
+        post_load_pointer_action=BrowserPagePointerAction(
+            action_name="test_pointer_v0",
+            candidate_selector="button",
+            text_markers=("comments",),
+            wait_after_ms=2500,
+            move_steps_min=7,
+            move_steps_max=7,
+            random_seed=11,
+        ),
+    )
+
+    receipt = result.metadata["post_load_pointer_action"]
+    assert isinstance(receipt, dict)
+    assert receipt["action_name"] == "test_pointer_v0"
+    assert receipt["candidate_count"] == 3
+    assert receipt["matched_count"] == 1
+    assert receipt["target_found"] is True
+    assert receipt["clicked"] is True
+    assert receipt["move_steps"] == 7
+    assert receipt["wait_ms"] == 2500
+    assert receipt["target_kind"] == "button"
+    assert "x" not in receipt
+    assert "y" not in receipt
+    assert result.metadata["post_load_action_executed"] is True
+    assert result.responses[0].body_text == "{}"
+    assert event_log.index("pointer_target_lookup") < event_log.index("mouse_move:7")
+    assert event_log.index("mouse_move:7") < event_log.index("mouse_click")
+    assert event_log.index("mouse_click") < event_log.index("wait:2500")
+    assert event_log.index("wait:2500") < event_log.index("inner_text")
+    assert event_log.index("dom_extract") < event_log.index("response_text")
+
+
+def test_playwright_page_observation_records_pointer_no_target_without_click(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    event_log: list[str] = []
+    page = _FakeObservationPage(
+        event_log,
+        pointer_target={
+            "candidate_count": 4,
+            "matched_count": 0,
+            "target_found": False,
+            "target_kind": None,
+            "box": None,
+        },
+    )
+    _install_fake_playwright(monkeypatch, page)
+
+    result = browser_snapshot_module._PlaywrightBrowserSnapshotEngine().capture_page_observation(
+        url="https://example.com/source",
+        timeout_seconds=1,
+        wait_until="load",
+        viewport_width=1280,
+        viewport_height=720,
+        dom_extract_script="() => ({items: []})",
+        dom_extract_arg={},
+        response_url_predicate=lambda url: "widget" in url,
+        post_load_pointer_action=BrowserPagePointerAction(
+            action_name="test_pointer_v0",
+            candidate_selector="button",
+            text_markers=("comments",),
+            random_seed=11,
+        ),
+    )
+
+    receipt = result.metadata["post_load_pointer_action"]
+    assert isinstance(receipt, dict)
+    assert receipt["candidate_count"] == 4
+    assert receipt["matched_count"] == 0
+    assert receipt["target_found"] is False
+    assert receipt["clicked"] is False
+    assert "mouse_click" not in event_log
+    assert not any(event.startswith("mouse_move:") for event in event_log)
 
 
 def test_playwright_page_observation_reports_lazy_load_cap_warning(

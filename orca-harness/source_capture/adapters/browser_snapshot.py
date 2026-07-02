@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import random
 from dataclasses import dataclass, field
 from enum import StrEnum
 from importlib import import_module
@@ -23,6 +24,19 @@ _SCROLL_PASS_SETTLE_MS = 2000
 # Safety cap so an infinite-scroll page (whose scrollHeight keeps growing) cannot
 # loop unbounded even if a caller passes a very large scroll_passes.
 _MAX_SCROLL_PASSES = 40
+
+
+@dataclass(frozen=True)
+class BrowserPagePointerAction:
+    action_name: str
+    candidate_selector: str
+    text_markers: tuple[str, ...]
+    wait_after_ms: int = 2500
+    move_steps_min: int = 6
+    move_steps_max: int = 12
+    target_fraction_min: float = 0.35
+    target_fraction_max: float = 0.65
+    random_seed: int = 0
 
 
 class BrowserSnapshotFailureKind(StrEnum):
@@ -183,6 +197,7 @@ class BrowserPageObservationEngine(Protocol):
         response_url_predicate: Callable[[str], bool],
         post_load_action_script: str | None = None,
         post_load_action_arg: object = None,
+        post_load_pointer_action: BrowserPagePointerAction | None = None,
         selector: str | None = None,
         selector_timeout_seconds: float = 5.0,
         max_response_bytes: int = DEFAULT_MAX_ARTIFACT_BYTES,
@@ -376,6 +391,7 @@ def fetch_browser_page_observation_capture(
     response_url_predicate: Callable[[str], bool],
     post_load_action_script: str | None = None,
     post_load_action_arg: object = None,
+    post_load_pointer_action: BrowserPagePointerAction | None = None,
     timeout_seconds: float = DEFAULT_TIMEOUT_SECONDS,
     wait_until: str = "load",
     viewport_width: int = DEFAULT_VIEWPORT_WIDTH,
@@ -410,6 +426,9 @@ def fetch_browser_page_observation_capture(
         raise ValueError("selector_timeout_seconds must be zero or greater")
     if post_load_action_script is not None and not post_load_action_script.strip():
         raise ValueError("post_load_action_script must not be blank")
+    normalized_pointer_action = _normalize_pointer_action(post_load_pointer_action)
+    if post_load_action_script is not None and normalized_pointer_action is not None:
+        raise ValueError("post_load_action_script and post_load_pointer_action are mutually exclusive")
     if wait_until not in ALLOWED_WAIT_UNTIL:
         allowed = ", ".join(sorted(ALLOWED_WAIT_UNTIL))
         raise ValueError(f"wait_until must be one of: {allowed}")
@@ -427,6 +446,7 @@ def fetch_browser_page_observation_capture(
             response_url_predicate=response_url_predicate,
             post_load_action_script=post_load_action_script,
             post_load_action_arg=post_load_action_arg,
+            post_load_pointer_action=normalized_pointer_action,
             selector=selector,
             selector_timeout_seconds=selector_timeout_seconds,
             max_response_bytes=max_response_bytes,
@@ -655,6 +675,7 @@ class _PlaywrightBrowserSnapshotEngine:
         response_url_predicate: Callable[[str], bool],
         post_load_action_script: str | None = None,
         post_load_action_arg: object = None,
+        post_load_pointer_action: BrowserPagePointerAction | None = None,
         selector: str | None = None,
         selector_timeout_seconds: float = 5.0,
         max_response_bytes: int = DEFAULT_MAX_ARTIFACT_BYTES,
@@ -739,8 +760,11 @@ class _PlaywrightBrowserSnapshotEngine:
                             warning_notes.append(
                                 f"browser_page_observation selector wait failed: {exc}"
                             )
+                    pointer_action_receipt: dict[str, object] | None = None
                     if post_load_action_script is not None:
                         page.evaluate(post_load_action_script, post_load_action_arg)
+                    if post_load_pointer_action is not None:
+                        pointer_action_receipt = _run_pointer_action(page, post_load_pointer_action)
                     try:
                         visible_text = page.locator("body").inner_text(timeout=timeout_ms)
                     except Exception as exc:
@@ -778,7 +802,9 @@ class _PlaywrightBrowserSnapshotEngine:
                         "wait_until": wait_until,
                         "settle_seconds": settle_seconds,
                         "dom_observation_stage": "pre_lazy_load_scroll",
-                        "post_load_action_executed": post_load_action_script is not None,
+                        "post_load_action_executed": post_load_action_script is not None
+                        or post_load_pointer_action is not None,
+                        "post_load_pointer_action": pointer_action_receipt,
                         "lazy_load_scroll_passes": lazy_load_scroll_passes,
                         "lazy_load_scroll_step_px": lazy_load_scroll_step_px,
                         "lazy_load_scroll_passes_executed": lazy_load_scroll_result.executed_passes,
@@ -1022,6 +1048,162 @@ def _response_request_metadata(response: object) -> tuple[str | None, str | None
         resource_type = None
     return method, resource_type
 
+
+_POINTER_ACTION_TARGET_SCRIPT = r"""
+(args) => {
+  const markers = Array.isArray(args.text_markers)
+    ? args.text_markers.map((value) => String(value || '').toLowerCase()).filter(Boolean)
+    : [];
+  const candidates = Array.from(document.querySelectorAll(String(args.candidate_selector || '')));
+  const result = {
+    candidate_count: candidates.length,
+    matched_count: 0,
+    target_found: false,
+    target_kind: null,
+    box: null,
+  };
+  for (const node of candidates) {
+    const text = [
+      node.getAttribute('aria-label'),
+      node.getAttribute('title'),
+      node.textContent,
+    ].filter(Boolean).join(' ').toLowerCase();
+    if (!markers.some((marker) => text.includes(marker))) {
+      continue;
+    }
+    result.matched_count += 1;
+    const rect = node.getBoundingClientRect();
+    if (result.target_found || !rect || rect.width <= 0 || rect.height <= 0) {
+      continue;
+    }
+    const tag = String(node.tagName || '').toLowerCase();
+    const role = String(node.getAttribute('role') || '').toLowerCase();
+    result.target_found = true;
+    result.target_kind = tag === 'button' ? 'button' : role === 'button' ? 'role_button' : tag === 'a' ? 'link' : 'candidate';
+    result.box = {
+      x: rect.x,
+      y: rect.y,
+      width: rect.width,
+      height: rect.height,
+    };
+  }
+  return result;
+}
+""".strip()
+
+
+def _normalize_pointer_action(
+    action: BrowserPagePointerAction | None,
+) -> BrowserPagePointerAction | None:
+    if action is None:
+        return None
+    action_name = action.action_name.strip()
+    if not action_name:
+        raise ValueError("post_load_pointer_action.action_name must not be blank")
+    candidate_selector = action.candidate_selector.strip()
+    if not candidate_selector:
+        raise ValueError("post_load_pointer_action.candidate_selector must not be blank")
+    text_markers = tuple(marker.strip().lower() for marker in action.text_markers if marker.strip())
+    if not text_markers:
+        raise ValueError("post_load_pointer_action.text_markers must contain at least one marker")
+    if action.wait_after_ms < 0:
+        raise ValueError("post_load_pointer_action.wait_after_ms must be zero or greater")
+    if action.move_steps_min <= 0 or action.move_steps_max <= 0:
+        raise ValueError("post_load_pointer_action move steps must be greater than zero")
+    if action.move_steps_min > action.move_steps_max:
+        raise ValueError("post_load_pointer_action.move_steps_min must be <= move_steps_max")
+    if not 0.0 <= action.target_fraction_min <= 1.0:
+        raise ValueError("post_load_pointer_action.target_fraction_min must be between 0 and 1")
+    if not 0.0 <= action.target_fraction_max <= 1.0:
+        raise ValueError("post_load_pointer_action.target_fraction_max must be between 0 and 1")
+    if action.target_fraction_min > action.target_fraction_max:
+        raise ValueError(
+            "post_load_pointer_action.target_fraction_min must be <= target_fraction_max"
+        )
+    return BrowserPagePointerAction(
+        action_name=action_name,
+        candidate_selector=candidate_selector,
+        text_markers=text_markers,
+        wait_after_ms=action.wait_after_ms,
+        move_steps_min=action.move_steps_min,
+        move_steps_max=action.move_steps_max,
+        target_fraction_min=action.target_fraction_min,
+        target_fraction_max=action.target_fraction_max,
+        random_seed=int(action.random_seed),
+    )
+
+
+def _run_pointer_action(page: object, action: BrowserPagePointerAction) -> dict[str, object]:
+    receipt: dict[str, object] = {
+        "action_name": action.action_name,
+        "candidate_count": 0,
+        "matched_count": 0,
+        "target_found": False,
+        "clicked": False,
+        "move_steps": None,
+        "wait_ms": 0,
+        "target_kind": None,
+    }
+    try:
+        target = page.evaluate(
+            _POINTER_ACTION_TARGET_SCRIPT,
+            {
+                "candidate_selector": action.candidate_selector,
+                "text_markers": list(action.text_markers),
+            },
+        )
+    except Exception:
+        receipt["failure"] = "pointer_action_lookup_failed"
+        return receipt
+
+    if not isinstance(target, dict):
+        receipt["failure"] = "pointer_action_lookup_failed"
+        return receipt
+    receipt["candidate_count"] = _safe_int(target.get("candidate_count"), default=0)
+    receipt["matched_count"] = _safe_int(target.get("matched_count"), default=0)
+    receipt["target_found"] = bool(target.get("target_found"))
+    target_kind = target.get("target_kind")
+    if isinstance(target_kind, str) and target_kind:
+        receipt["target_kind"] = target_kind
+    box = target.get("box")
+    if not receipt["target_found"] or not isinstance(box, dict):
+        return receipt
+
+    try:
+        x = float(box["x"])
+        y = float(box["y"])
+        width = float(box["width"])
+        height = float(box["height"])
+    except (KeyError, TypeError, ValueError):
+        receipt["failure"] = "pointer_action_lookup_failed"
+        return receipt
+    if width <= 0 or height <= 0:
+        receipt["failure"] = "pointer_action_lookup_failed"
+        return receipt
+
+    rng = random.Random(action.random_seed)
+    click_x = x + width * rng.uniform(action.target_fraction_min, action.target_fraction_max)
+    click_y = y + height * rng.uniform(action.target_fraction_min, action.target_fraction_max)
+    move_steps = rng.randint(action.move_steps_min, action.move_steps_max)
+    try:
+        page.mouse.move(click_x, click_y, steps=move_steps)
+        page.mouse.click(click_x, click_y)
+        if action.wait_after_ms > 0:
+            page.wait_for_timeout(action.wait_after_ms)
+    except Exception:
+        receipt["failure"] = "pointer_action_click_failed"
+        return receipt
+    receipt["clicked"] = True
+    receipt["move_steps"] = move_steps
+    receipt["wait_ms"] = action.wait_after_ms
+    return receipt
+
+
+def _safe_int(value: object, *, default: int) -> int:
+    try:
+        return int(value)  # type: ignore[arg-type]
+    except (TypeError, ValueError):
+        return default
 
 def _run_bounded_lazy_load_scrolls(
     page: object,
