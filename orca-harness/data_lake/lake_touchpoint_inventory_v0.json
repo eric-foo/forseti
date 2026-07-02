@@ -1,5 +1,5 @@
 {
-  "authority_note": "Generated inventory of code surfaces; never lake authority; regenerated and diffed by tests/contract/test_data_lake_inventory_gate.py; a2_fork_impact is routing metadata for the deferred A2 decision, not a selection.",
+  "authority_note": "Generated inventory of code surfaces; never lake authority; regenerated and diffed by tests/contract/test_data_lake_inventory_gate.py; a2_fork_impact is routing metadata for the deferred A2 decision, not a selection; identity_binding documents each runner's served-content-to-requested-subject binding posture (unbound is a visible acknowledged gap, not a pass).",
   "exclusions": [
     {
       "reason": "test code is not a production lake touchpoint; discovery scans tracked non-test harness source only",
@@ -10,7 +10,7 @@
       "target": "non-git-tracked files"
     }
   ],
-  "inventory_version": 1,
+  "inventory_version": 2,
   "non_raw_touchpoints": [
     {
       "a2_fork_impact": "none",
@@ -305,116 +305,208 @@
     "runner_seams": [
       {
         "a2_fork_impact": "manifest_shape",
+        "identity_binding": {
+          "reason": "preserved bytes must match the companion receipt's capture-time body_sha256/body_byte_count witness (_verify_capture_witness, block-don't-fake), which binds bytes to the attested capture but not to the product subject: product_url attribution comes from the receipt or the --product-url override without a served-content identity check",
+          "status": "unbound"
+        },
         "kind": "direct_packet_writer",
         "runner": "run_fragrance_review_lake_packet.py"
       },
       {
         "a2_fork_impact": "manifest_shape",
+        "identity_binding": {
+          "reason": "orchestrator over URL-subject sub-runners (http_runner/cloakbrowser_runner): it shape-validates the requested Fragrantica product URL and forwards it; the sub-runner packets record requested and served final URLs and assert no subject identity beyond the URL",
+          "status": "not_applicable"
+        },
         "kind": "orchestrator",
         "runner": "run_fragrantica_mgt_capture.py"
       },
       {
         "a2_fork_impact": "manifest_shape",
+        "identity_binding": {
+          "reason": "orchestrator that performs no acquisition of its own: grid capture owns the subject seam (see run_source_capture_ig_reels_grid_packet.py) and the orchestrator only enforces that downstream lanes target the same reel (explicit-selector split-brain guard)",
+          "status": "not_applicable"
+        },
         "kind": "orchestrator",
         "runner": "run_ig_reels_lane_orchestrator.py"
       },
       {
         "a2_fork_impact": "manifest_shape",
+        "identity_binding": {
+          "reason": "the direct-HTTP slot records requested/served final-URL provenance only; the targeted-rendered path admits operator-supplied local Chrome-extension artifacts attributed to the requested product URL with a browser-secret scan but no served-content identity check",
+          "status": "unbound"
+        },
         "kind": "direct_packet_writer",
         "runner": "run_parfumo_mgt_capture.py"
       },
       {
         "a2_fork_impact": "manifest_shape",
+        "identity_binding": {
+          "reason": "subject is the requested URL itself: requested_url is preserved as source_locator and the served final_url on the slice; block-shell classification explicitly refuses to certify the body as source content; no subject identity beyond the URL is asserted",
+          "status": "not_applicable"
+        },
         "kind": "direct_packet_writer",
         "runner": "run_source_capture_antiblock_http_packet.py"
       },
       {
         "a2_fork_impact": "manifest_shape",
+        "identity_binding": {
+          "mechanism": "verify_archive_body gates body preservation: the served snapshot's original-URL identity must match the requested URL (served_url_identity_mismatch) and the served time must satisfy the cutoff; a verification-failed body is not preserved as addressable content (G-002) and surfaces as attempt_failed plus a limitation",
+          "status": "bound"
+        },
         "kind": "direct_packet_writer",
         "runner": "run_source_capture_archive_packet.py"
       },
       {
         "a2_fork_impact": "manifest_shape",
+        "identity_binding": {
+          "reason": "subject is the requested URL itself: requested_url is preserved as source_locator and the served final_url on the slice; login-wall/challenge markers surface as limitations; content sufficiency is explicitly not asserted",
+          "status": "not_applicable"
+        },
         "kind": "direct_packet_writer",
         "runner": "run_source_capture_authenticated_browser_packet.py"
       },
       {
         "a2_fork_impact": "manifest_shape",
+        "identity_binding": {
+          "reason": "subject is the requested URL itself: requested_url is preserved as source_locator and the served final_url on the slice; content sufficiency is explicitly not asserted",
+          "status": "not_applicable"
+        },
         "kind": "direct_packet_writer",
         "runner": "run_source_capture_browser_packet.py"
       },
       {
         "a2_fork_impact": "manifest_shape",
+        "identity_binding": {
+          "reason": "subject is the requested URL itself (browser_snapshot shape with proxy-category disclosure): requested_url is preserved as source_locator and the served final_url on the slice; no subject identity beyond the URL is asserted",
+          "status": "not_applicable"
+        },
         "kind": "direct_packet_writer",
         "runner": "run_source_capture_cloakbrowser_packet.py"
       },
       {
         "a2_fork_impact": "manifest_shape",
+        "identity_binding": {
+          "mechanism": "the ladder preserves a body only when the winning rung's verification passed: archive rungs verify the served snapshot's original-URL identity and served time against the requested URL/cutoff, and the publisher-history rung verifies the served revid/sha and timestamp (PH-01/PH-02); unverified outcomes stay locate-metadata-only with attempt_failed",
+          "status": "bound"
+        },
         "kind": "direct_packet_writer",
         "runner": "run_source_capture_historical_packet.py"
       },
       {
         "a2_fork_impact": "manifest_shape",
+        "identity_binding": {
+          "reason": "subject is the requested URL itself: requested_url is preserved as source_locator and the served final_url on the slice; the packet claims fetched-URL provenance only",
+          "status": "not_applicable"
+        },
         "kind": "direct_packet_writer",
         "runner": "run_source_capture_http_packet.py"
       },
       {
         "a2_fork_impact": "manifest_shape",
+        "identity_binding": {
+          "reason": "item slices are enumerated from the served profile page (within-capture consistency) and the served profile final_url is recorded, but the served profile's identity (og fields, web_profile_info username) is never compared to the requested account, so a redirected or mis-served profile would be committed under the requested locator",
+          "status": "unbound"
+        },
         "kind": "direct_packet_writer",
         "runner": "run_source_capture_ig_calls_packet.py"
       },
       {
         "a2_fork_impact": "manifest_shape",
+        "identity_binding": {
+          "reason": "the packet asserts platform_shortcode and the canonical reel URL copied from the request; the yt-dlp download is selected by largest file rather than a served-id-keyed name and the audio bytes carry no observable identity to check",
+          "status": "unbound"
+        },
         "kind": "direct_packet_writer",
         "runner": "run_source_capture_ig_reels_audio_packet.py"
       },
       {
         "a2_fork_impact": "manifest_shape",
+        "identity_binding": {
+          "reason": "handle-shape normalization plus login/challenge-redirect detection fail visibly and the served final_url is recorded, but the served grid/web_profile_info identity is never compared to the requested handle",
+          "status": "unbound"
+        },
         "kind": "direct_packet_writer",
         "runner": "run_source_capture_ig_reels_grid_packet.py"
       },
       {
         "a2_fork_impact": "manifest_shape",
+        "identity_binding": {
+          "reason": "subjects are the explicit asset URLs: each slice preserves the served final_url and per-asset metadata; the optional --source-locator is recorded as an operator declaration, not a verified subject",
+          "status": "not_applicable"
+        },
         "kind": "direct_packet_writer",
         "runner": "run_source_capture_media_packet.py"
       },
       {
         "a2_fork_impact": "manifest_shape",
+        "identity_binding": {
+          "reason": "no acquisition: packages operator-supplied local files under an operator-declared source locator (which may itself be unknown-with-reason); there is no runner-fetched served content to match",
+          "status": "not_applicable"
+        },
         "kind": "direct_packet_writer",
         "runner": "run_source_capture_packet.py"
       },
       {
         "a2_fork_impact": "manifest_shape",
+        "identity_binding": {
+          "reason": "subject is the requested pricing/announcement URL set: chunk URLs are discovered from the served page's module-preload list (structural provenance) and certify_extraction is a content-integrity discriminator, not a subject identity claim beyond the URLs",
+          "status": "not_applicable"
+        },
         "kind": "direct_packet_writer",
         "runner": "run_source_capture_price_payload_packet.py"
       },
       {
         "a2_fork_impact": "manifest_shape",
+        "identity_binding": {
+          "reason": "creator_handle and creator_profile_url are checked for request self-consistency and grid-enrichment items with a mismatched authorUniqueId are dropped, but the admitted cadence rows are attributed to the requested creator without a served-content author check",
+          "status": "unbound"
+        },
         "kind": "direct_packet_writer",
         "runner": "run_source_capture_tiktok_batch_packet.py"
       },
       {
         "a2_fork_impact": "manifest_shape",
+        "identity_binding": {
+          "reason": "video-id format and canonical-URL shape are enforced and profile-list rows are filtered to the requested id, but the admitted comment/subtitle artifacts are attributed to the requested video without a served-content id check",
+          "status": "unbound"
+        },
         "kind": "direct_packet_writer",
         "runner": "run_source_capture_tiktok_video_packet.py"
       },
       {
         "a2_fork_impact": "manifest_shape",
+        "identity_binding": {
+          "mechanism": "yt-dlp writes the downloaded audio under the SERVED video id (%(id)s output template) and download_audio accepts only the file named exactly <requested id>.*, so a mis-served id fails closed as a download failure; no additional served-metadata check is performed",
+          "status": "bound"
+        },
         "kind": "direct_packet_writer",
         "runner": "run_source_capture_youtube_asr_packet.py"
       },
       {
         "a2_fork_impact": "manifest_shape",
+        "identity_binding": {
+          "mechanism": "yt-dlp writes the caption track under the SERVED video id (%(id)s output template) and fetch_youtube_caption_artifacts accepts only <requested id>*.json3, so a mis-served id fails closed as no-caption; extract_info metadata (title/channel_id) is recorded without an independent check",
+          "status": "bound"
+        },
         "kind": "direct_packet_writer",
         "runner": "run_source_capture_youtube_caption_packet.py"
       },
       {
         "a2_fork_impact": "manifest_shape",
+        "identity_binding": {
+          "mechanism": "_validate_parsed_channel_identity runs immediately after parsing: the served feed-level yt:channelId must match the requested roster channel (accepting the observed no-UC-prefix variant), any entry-level yt:channelId differing from the request fails, and missing feed identity fails closed; a mismatch is a visible per-channel failure with no packet write",
+          "status": "bound"
+        },
         "kind": "direct_packet_writer",
         "runner": "run_source_capture_youtube_rss_monitor.py"
       },
       {
         "a2_fork_impact": "manifest_shape",
+        "identity_binding": {
+          "reason": "platform_video_id is copied from the request after an id-format check; the served watch HTML's canonical URL and channelId are preserved in the capture JSON but never compared to the requested video id",
+          "status": "unbound"
+        },
         "kind": "direct_packet_writer",
         "runner": "run_source_capture_youtube_watch_packet.py"
       }
