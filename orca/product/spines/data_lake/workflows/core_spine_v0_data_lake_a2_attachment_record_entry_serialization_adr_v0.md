@@ -28,9 +28,10 @@ stale_if:
 
 ## Status
 
-`A2_ADR_AWAITING_RATIFICATION_V0`.
+`A2_ADR_RATIFIED_V0` (owner-ratified 2026-07-03; see Owner Ratification).
 
-This record is a decision request. It is not implementation authorization,
+This record was authored as a decision request and is now the accepted A2
+decision. It is not implementation authorization,
 backend/engine selection (Gate 2 trigger T3 governs any backend ADR),
 retention/erasure semantics (Gate 2 claim ceiling governs), Manifest v2
 authoring, migration authority, validation, readiness, or a Bronze full-GT
@@ -51,7 +52,7 @@ orca_start_preflight:
 ## Decision In One Screen
 
 ```text
-Selected (pending ratification): A2-F2 — the manifest-equivalent packet
+Selected (owner-ratified 2026-07-03): A2-F2 — the manifest-equivalent packet
 index — with one sharpening: the durable canonical object is the VERSIONED
 ENTRY SCHEMA PLUS ITS DETERMINISTIC DERIVATION RULE, never any materialized
 index row. Raw packet manifests stay frozen exactly as sealed. Materialized
@@ -173,10 +174,63 @@ optimization, without touching sealed packets.
 
 ```yaml
 a2_ratification:
-  decision: pending
-  ratified_by:
-  date:
-  modifications:
+  decision: ratified
+  ratified_by: owner (Eric), in-session instruction "thats okay - lets do it then"
+  date: 2026-07-03
+  modifications: none
+```
+
+## Direction Change Propagation
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    A2 is owner-ratified: the durable canonical Attachment Record entry object
+    is the versioned entry schema plus its deterministic derivation rule
+    (A2-F2), never a materialized row; Manifest v2 is reserved behind revisit
+    triggers T-A2-1..3; hybrid-forever and a packet-member AR file are
+    rejected; attachment_record_id is locked to query-locator status. The
+    Bronze entry-serialization posture changes from deferred to decided.
+  trigger: architecture_doctrine
+  related_triggers:
+    - lifecycle_boundary
+  controlling_sources_updated:
+    - orca/product/spines/data_lake/workflows/core_spine_v0_data_lake_a2_attachment_record_entry_serialization_adr_v0.md
+    - docs/workflows/orca_repo_map_v0.md
+  downstream_surfaces_checked:
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_attachment_record_implementation_contract_v0.md
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_storage_contract_v0.md
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_physicality_location_contract_v0.md
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_bronze_mgt_baseline_declaration_v0.md
+    - orca/product/spines/data_lake/workflows/core_spine_v0_data_lake_bronze_full_gt_physicalization_proof_closeout_v0.md
+    - orca/product/spines/data_lake/workflows/core_spine_v0_data_lake_bronze_full_gt_gate1_attachment_record_body_layout_adr_v0.md
+  intentionally_not_updated:
+    - path: orca/product/spines/data_lake/authority/ (AR implementation, storage, physicality contracts) and the MGT baseline item 2
+      reason: >
+        Contract fold-in is the named follow-on step, mirroring the Gate 1/2
+        pattern; each fold-in edit carries its own receipt. Their
+        "A2 deferred / serialization remains deferred" language remains
+        accurate until fold-in lands.
+    - path: orca/product/spines/data_lake/workflows/ (Gate 1 ADR, upgrade scoping, proof scoping route)
+      reason: >
+        Historical records whose A2-open statements were true when authored;
+        their stale_if conditions or historical status already govern.
+  stale_language_search: >
+    rg -n "A2 stays|A2 remains|gated on the A1|gated on A1|serialization.*remain
+    deferred|remains open and stays gated|A2 owner decision|Manifest v2 or an
+    equivalent" orca/product/spines/data_lake docs/workflows/orca_repo_map_v0.md
+  stale_language_search_result: >
+    Executed 2026-07-03 after recording ratification. Hits: AR implementation
+    contract (3 live A2-deferral lines), storage contract slot row, physicality
+    contract blocker 2, MGT baseline item 2, and the proof-closeout repo-map
+    row - the fold-in surfaces named in intentionally_not_updated - plus
+    historical gate/scoping records. No other live surface claims A2 is
+    undecided.
+  non_claims:
+    - not implementation authorization
+    - not backend/engine selection (Gate 2 trigger T3 governs)
+    - not retention or erasure semantics (Gate 2 claim ceiling governs)
+    - not validation, readiness, or Bronze full GT
 ```
 
 ## Non-Claims
