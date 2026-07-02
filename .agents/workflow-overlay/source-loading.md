@@ -156,6 +156,12 @@ details.
 Prefer targeted sections over full files whenever a file is long, historical,
 or adjacent rather than controlling.
 
+For `.agents/workflow-overlay/prompt-orchestration.md` specifically: routine
+prompt authoring (per the `AGENTS.md` routine-vs-full authoring split) reads
+the "Orca Prompt Preflight" section plus the single section for the prompt
+family at hand; full-file reads are reserved for fused, delegated-review-patch,
+and novel or cross-lane prompt authoring.
+
 ### High-Context Guard
 
 Before the route, blocker, edit boundary, source-loading unit, or strict claim is
@@ -496,7 +502,11 @@ Start a new thread or create a compact handoff prompt before continuing when:
   than the intended CA task;
 - a repo map refresh and a CA prompt are both needed and would compete for
   context;
-- the current thread has substantial unrelated history that could bias the CA.
+- the current thread has substantial unrelated history that could bias the CA;
+- the current thread is at a phase boundary and approaching compaction: prefer
+  a handoff packet plus a fresh lane over `/compact`-and-continue — compaction
+  resets file-read state and re-grounding costs more than a cold-lane boot from
+  the packet.
 
 The handoff should name the source pack, the target output, the non-goals, and
 the files explicitly excluded from default loading.
@@ -525,79 +535,6 @@ If a claim needs one of those statuses, load the controlling authority or mark
 the claim `not proven`.
 
 ## Direction Change Propagation
-
-```yaml
-direction_change_propagation:
-  doctrine_changed: >
-    Spine read packs (Data Capture Spine CA, Data Capture Intake Surface / MSP
-    Pressure-Test Target, Judgment Spine Evidence Ladder) reshaped to
-    front-door pointer form matching the ECR pack model: each pack now leads
-    with its retrieval_only front-door submap and routes to owner docs on
-    demand. Embedded spine state (slot-by-slot pressure-test authorization-chain
-    walk, CloakBrowser selection, Reddit ordering, RQ status) relocated verbatim
-    to the spine-owned closeout synthesis. Source-loading.md is navigation only;
-    state of the work lives in the spine-owned doc it belongs to.
-  trigger: workflow_authority
-  related_triggers:
-    - architecture_doctrine
-    - lifecycle_boundary
-  controlling_sources_updated:
-    - .agents/workflow-overlay/source-loading.md
-    - orca/product/spines/capture/core/operating_model/data_capture_spine_pressure_test_closeout_synthesis_v0.md
-  downstream_surfaces_checked:
-    - .agents/workflow-overlay/prompt-orchestration.md
-    - .agents/workflow-overlay/README.md
-    - docs/workflows/orca_repo_map_v0.md
-    - docs/research/judgment-spine/judgment_spine_consolidation_map_v0.md
-    - docs/workflows/data_capture_spine_consolidation_map_v0.md
-  intentionally_not_updated:
-    - path: .agents/workflow-overlay/prompt-orchestration.md
-      reason: >
-        Prompt orchestration binds source-loading as the read-pack authority and
-        points here; it does not reproduce pack contents. The front-door reshape
-        does not change the binding rule.
-    - path: .agents/workflow-overlay/README.md
-      reason: >
-        The overlay index already names source-loading.md as the read-pack owner.
-        No section owner or overlay path changed.
-    - path: docs/workflows/orca_repo_map_v0.md
-      reason: >
-        The repo map already points to the section anchors
-        (source-loading.md#data-capture-intake-surface--msp-pressure-test-target-pack
-        etc.) and does not reproduce pack contents. Section headings are
-        unchanged so existing anchors remain valid.
-    - path: docs/research/judgment-spine/judgment_spine_consolidation_map_v0.md
-      reason: >
-        The Judgment Spine consolidation map is the front door this pack now
-        points to; it is not a downstream consumer of pack contents. No changes
-        needed there.
-    - path: docs/workflows/data_capture_spine_consolidation_map_v0.md
-      reason: >
-        The Data Capture Spine consolidation map is the front door this pack now
-        points to; it is not a downstream consumer of pack contents. No changes
-        needed there.
-  stale_language_search: >
-    rg -n "MSP|pressure-test|read pack" .agents/workflow-overlay/
-  stale_language_search_result: >
-    Executed 2026-06-13 after edits. Hits in .agents/workflow-overlay/:
-    artifact-folders.md:197 ("read packs reference unchanged paths until
-    Phase-2 apply" — DCP receipt comment, not stale); README.md:19 ("read
-    packs, and context-bloat controls" — description of source-loading.md,
-    accurate); source-loading.md — section title "Data Capture Intake Surface /
-    MSP Pressure-Test Target Pack" (correct, kept), "pressure-test" in navigation
-    text (correct nav context, not state prose), "read pack" in capsule-limit
-    prose and Expansion Rules (both accurate descriptions of navigation artifacts,
-    not stale); source-of-truth.md — references to source-loading.md description
-    (accurate). No hit retained the inline authorization-chain state narrative
-    or bulk file-list in source-loading.md; none points to a stale-language
-    conflict requiring a further fix.
-  non_claims:
-    - not validation
-    - not readiness
-    - not source promotion
-    - not implementation authorization
-    - not ECR or Judgment design
-```
 
 ```yaml
 direction_change_propagation:
@@ -637,3 +574,57 @@ direction_change_propagation:
     - not authorization to capture, build, or run (the playbook stays non-authorizing doctrine;
       per-probe network approval still required)
 ```
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    New Thread Triggers now prefers a handoff packet plus a fresh lane over
+    /compact-and-continue at phase boundaries; Targeted Read Protocol now binds
+    the routine read shape for prompt-orchestration.md (Orca Prompt Preflight
+    plus the single family section; full-file reads reserved for fused,
+    delegated-review-patch, and novel or cross-lane authoring).
+  trigger: workflow_authority
+  controlling_sources_updated:
+    - .agents/workflow-overlay/source-loading.md
+    - .agents/workflow-overlay/prompt-orchestration.md
+  downstream_surfaces_checked:
+    - AGENTS.md
+    - .agents/workflow-overlay/source-of-truth.md
+    - .agents/workflow-overlay/skill-adoption.md
+    - docs/workflows/orca_repo_map_v0.md
+  intentionally_not_updated:
+    - path: AGENTS.md
+      reason: >
+        Already states the routine-vs-full prompt-authoring split this read
+        shape serves; the new rule points at that split rather than restating
+        it.
+    - path: .agents/workflow-overlay/source-of-truth.md
+      reason: >
+        Precompact/handoff packet skill bindings unchanged; the new trigger
+        governs when to prefer a fresh lane, not how packets are built.
+    - path: .agents/workflow-overlay/skill-adoption.md
+      reason: >
+        workflow-precompact adoption status unchanged; the skill remains the
+        packet mechanic when compaction is chosen.
+    - path: docs/workflows/orca_repo_map_v0.md
+      reason: >
+        Repo-map section anchors into this file are unchanged (checked
+        2026-07-02; anchors reference read-pack sections, not the edited
+        sections).
+  stale_language_search: >
+    rg -in "compact-and-continue|/compact|precompact" AGENTS.md .agents/workflow-overlay/
+  stale_language_search_result: >
+    Executed 2026-07-02 after edits. Hits: the new trigger itself
+    (source-loading.md), this receipt's own text, precompact packet-skill
+    bindings in source-of-truth.md and skill-adoption.md, and the AGENTS.md
+    precompact-is-a-thin-restore-pointer rule — all compatible: they govern
+    packet mechanics when compaction or handoff happens; none instructs
+    compact-and-continue at phase boundaries.
+  non_claims:
+    - not validation
+    - not readiness
+    - no token-savings efficacy claim
+```
+
+Older receipts for this file live verbatim in
+`docs/decisions/dcp_receipts_archive_v0.md`.
