@@ -389,6 +389,18 @@ this pattern:
 Both enforce shape, never truth; a clean run is not validation, readiness, or
 approval.
 
+**Review-routing disposition gate (EP-35).** `.agents/hooks/check_review_routing.py`
+— diff-scoped, forward-only CI gate (registered in `.github/workflows/ci.yml`)
+plus a local `.githooks/commit-msg` advisory: a change touching code roots
+(`orca-harness/`, `.agents/hooks/`) must add a review artifact under
+`docs/prompts/reviews/` / `docs/review-outputs/` in the same change, or carry a
+shape-valid `review_routing_status:` commit-message line
+(`routed <existing path>` / `blocked -- reason` / `not_needed -- reason`).
+Rule owner: `.agents/workflow-overlay/validation-gates.md` (Review-routing
+disposition gate). Disposition presence/shape only — never review quality,
+reason truth, or whether review should have been recommended (resident
+judgment). `--audit` = per-commit advisory history view; `--selftest` present.
+
 **Future agents: reuse this pattern.** To enforce the next load-bearing,
 deterministically-checkable rule, do not add another instruction -- add a
 sibling checker under `.agents/hooks/` that references the rule's authority
