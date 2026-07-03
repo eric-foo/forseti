@@ -19,6 +19,7 @@ from cleaning.transcript_product_lake import PRODUCT_MENTIONS_LANE, mentions_rec
 from data_lake.consumption import find_acks
 from data_lake.root import DataLakeRoot
 from schemas.audience_comment_models import AudienceComment
+from runners import run_ig_reels_product_extract as ig_runner
 from runners.run_ig_reels_product_extract import (
     count_partial_extractions,
     count_pending_extractions,
@@ -411,6 +412,54 @@ def test_runner_skips_non_transcribed_asr(tmp_path) -> None:
     acks = find_acks(data_root, raw_anchor=pid, ack_namespace=PRODUCT_MENTIONS_LANE)
     assert len(acks) == 1
     assert acks[0]["evidence"] == [{"kind": "no_extractable_transcripts", "raw_anchor": pid}]
+
+
+def test_runner_surfaces_malformed_packet_asr_record_without_ack(tmp_path) -> None:
+    data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    pid, asr_record_id = _commit_ig_audio_transcript(data_root)
+    asr_path = data_root.record_path(
+        subtree="derived",
+        raw_anchor=pid,
+        lane="transcript_asr",
+        record_id=asr_record_id,
+    )
+    asr_path.write_text("{not-json\n", encoding="utf-8")
+
+    results = run_extraction(
+        data_root=data_root, transport=FakeTransport(_anthropic([_item()])),
+        provider=_PROVIDER, model="m", api_key="k",
+    )
+    assert len(results) == 1
+    assert results[0]["packet_id"] == pid
+    assert results[0]["status"] == "discovery_failed"
+    assert "transcript_asr record" in results[0]["error"]
+    assert find_acks(data_root, raw_anchor=pid, ack_namespace=PRODUCT_MENTIONS_LANE) == []
+
+    second = run_extraction(
+        data_root=data_root, transport=FakeTransport(_anthropic([_item()])),
+        provider=_PROVIDER, model="m", api_key="k",
+    )
+    assert len(second) == 1
+    assert second[0]["status"] == "discovery_failed"
+    assert find_acks(data_root, raw_anchor=pid, ack_namespace=PRODUCT_MENTIONS_LANE) == []
+
+
+def test_rubric_version_grows_packet_obligation_without_llm_reextract(tmp_path, monkeypatch) -> None:
+    data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    pid, _rid = _commit_ig_audio_transcript(data_root)
+    original_rubric = ig_runner.EXTRACTOR_RUBRIC_VERSION
+    transport = FakeTransport(_anthropic([_item()]))
+
+    first = run_extraction(data_root=data_root, transport=transport, provider=_PROVIDER, model="m", api_key="k")
+    assert [r["status"] for r in first] == ["extracted"]
+    assert run_extraction(data_root=data_root, transport=transport, provider=_PROVIDER, model="m", api_key="k") == []
+
+    monkeypatch.setattr(ig_runner, "EXTRACTOR_RUBRIC_VERSION", "test-rubric-vnext")
+    third = run_extraction(data_root=data_root, transport=transport, provider=_PROVIDER, model="m", api_key="k")
+    assert [r["status"] for r in third] == ["skipped_done"]
+    acks = find_acks(data_root, raw_anchor=pid, ack_namespace=PRODUCT_MENTIONS_LANE)
+    assert len(acks) == 2
+    assert {ack["obligation"]["rubric_version"] for ack in acks} == {original_rubric, "test-rubric-vnext"}
 
 
 def test_late_asr_record_grows_obligation_and_resurfaces_packet(tmp_path) -> None:
