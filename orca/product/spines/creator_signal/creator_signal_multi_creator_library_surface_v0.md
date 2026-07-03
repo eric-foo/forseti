@@ -111,6 +111,9 @@ platforms=youtube:30,instagram:3
 posting_cadence=not_attempted:33
 recent_velocity=not_attempted:33
 sample_adequacy=stronger_admitted_pool_n_8_plus:30,limited_n_4_to_7:1,thin_n_1_to_3:2
+identity_state=single_platform_observed:33
+link_state_or_none=null:33
+review_state_or_none=null:33
 ```
 
 No `creator_record` (cross-platform-linked) profile exists. Every profile is
@@ -149,7 +152,11 @@ Structural rules for the default view:
    through tabs, sections, or an equivalent mandatory platform filter. There
    is no single default list that spans platforms. A creator row's platform
    determines which section/tab it appears in; a user may not default-load a
-   combined YouTube+Instagram sorted list.
+   combined YouTube+Instagram sorted list. A "mandatory platform filter," if
+   used instead of tabs/sections, must default to, and offer only,
+   single-platform states — it must not default to or expose an
+   all-platforms/combined option, since that would reproduce the exact
+   combined list this rule forbids under a filter label.
 2. **No mixed-platform global rank.** This contract does not define, and
    forbids defining, one global rank, score, or ordering that spans platforms.
    `platform_scope: cross_platform` metrics do not exist in the current data
@@ -178,14 +185,17 @@ reachable without opening the full profile:
   `out_of_window`, `not_attempted`, `not_applicable`).
 - **Selected sort metric and posture:** which metric the library is currently
   sorted by (if any) and that metric's posture for this row.
-- **Sample-support cue:** visible on every row (see Sorting Semantics and
-  Display Tiers below; this is not merely reachable, it is visible whenever
-  the library is in a sorted/ranked state).
+- **Sample-support cue:** visible on every row (see Display Tiers below; this
+  is not merely reachable, and it is required whenever the library is in a
+  sorted state or presents a filtered/highlighted/selectively-ordered subset,
+  not only a literal ranked state).
 - **Freshness cue:** at minimum the metric computation timestamp or a
   stale/current/partial/blocked state.
 - **Declared-deferred metric state:** `posting_cadence` and `recent_velocity`
   must render a visible "not yet available" state at scan-row granularity for
-  every row (see Sorting Semantics; this closes MC-02).
+  every row, as its own always-visible item independent of the currently
+  selected sort/scan metric (see Display Tiers, which names this explicitly
+  rather than leaving it to this general statement alone; this closes MC-02).
 - **Missingness/limitations cue:** a visible cue when a shown or sortable
   metric is non-observed, or when the row's rollup carries a limitation
   material to interpretation.
@@ -234,12 +244,29 @@ reachable without opening the full profile:
 - platform;
 - identity/handle;
 - the metric family currently selected for sort or scan, with its posture;
-- sample-support cue (required whenever the library is in a sorted state,
-  not merely reachable — this closes MC-03);
+- `posting_cadence` and `recent_velocity` declared-deferred state, rendered
+  as a visibly-labeled "not yet available" item independent of whether
+  either is the currently-selected sort/scan metric — they can never be
+  that metric while `not_attempted` (Sorting Semantics forbids selecting
+  them as a sort key in that state), so this item is required on its own,
+  not inherited from the "currently selected metric" bullet above (this
+  closes MC-02 at the layer that actually governs a collapsed row, not only
+  in Row Model's general "every row" statement);
+- sample-support cue, required whenever the library is in a sorted state
+  **or** presents a filtered, highlighted, or otherwise selectively ordered
+  subset of a platform's rows relative to that platform's full row set —
+  not merely reachable, and not limited to a literal "sorted" state, since
+  a filtered-but-unranked view carries the same false-merit-impression risk
+  a sorted view does (this closes MC-03 including the unranked/filtered
+  entry state Default View rule 3 permits);
 - freshness cue;
 - a visible missingness cue when any shown metric is non-observed;
 - a reachable claim-boundary cue (may be a compact affordance, e.g., an
-  always-visible "what this doesn't prove" link, rather than the full text).
+  always-visible "what this doesn't prove" link, rather than the full text),
+  placed adjacent to the sort control or shown at first sort-selection when
+  the library is in a sorted state — location on the first screen alone is
+  not sufficient in a sorted view specifically, since that is the context
+  where an implied merit ranking is most likely to form unnoticed.
 
 **Details drawer or equivalent (per row, on demand):**
 
@@ -307,6 +334,15 @@ this contract lands. When built, it:
   (`profiles_with_ideal_audience_profiles: 0`,
   `creator_record_profiles: 0`, `cross_platform_rollup_profiles: 0`,
   `posting_cadence`/`recent_velocity` both `not_attempted: 33`);
+- **may not** invent or imply resolution for a `candidate_public_account_link`
+  or `rejected_public_account_link` `link_state_or_none`/`review_state_or_none`
+  state, since the current data carries `null` for both on every row; if a
+  future data refresh populates either field within this contract's existing
+  schema, re-derive this boundary against the live view before Step 3 treats
+  that row as anything more than single-platform-observed identity/
+  disambiguation context, per
+  `creator_profile_current_record_contract_v0.md`'s Identity And
+  Cross-Platform Promise;
 - must name explicitly, in its own closeout, that the ideal-audience section
   is exercised only in its always-null state given current data, rather than
   implying full row-treatment coverage across all possible states (per the
