@@ -1,5 +1,15 @@
 # TikTok Silver Pipeline — Delegated Review Adjudication (v0)
 
+```yaml
+retrieval_header_version: 1
+artifact_role: Orca review output
+scope: Delegated review adjudication record for PR #622 TikTok metric-parity Silver pipeline findings.
+use_when:
+  - Checking how the delegated review findings for PR #622 were adjudicated and fixed.
+  - Auditing the TikTok metric-parity Silver pipeline review residuals before merge consideration.
+authority_boundary: retrieval_only
+```
+
 - **Subject:** PR #622 / branch `claude/tiktok-silver-pipeline` — TikTok metric-parity Silver pipeline + shared silver-envelope core.
 - **Review mode:** de-correlated adversarial review, couriered by the owner to a separate reviewer session; findings returned to the commissioning (home) session for adjudication.
 - **Adjudication commit:** `fix(tiktok): close 3 delegated-review findings` (this change).
