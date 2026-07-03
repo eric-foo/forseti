@@ -1206,6 +1206,19 @@ def test_playwright_page_observation_uses_visual_x_fallback_without_dom_target(
         "width": 132,
         "height": 42,
     }
+    click_x, click_y = page.mouse.clicks[0]
+    assert receipt["click_point"] == {
+        "x": round(click_x, 3),
+        "y": round(click_y, 3),
+    }
+    assert receipt["target_box"]["x"] <= receipt["click_point"]["x"]
+    assert receipt["target_box"]["y"] <= receipt["click_point"]["y"]
+    assert receipt["click_point"]["x"] <= (
+        receipt["target_box"]["x"] + receipt["target_box"]["width"]
+    )
+    assert receipt["click_point"]["y"] <= (
+        receipt["target_box"]["y"] + receipt["target_box"]["height"]
+    )
     assert "x" not in receipt
     assert "y" not in receipt
     assert event_log.index("pointer_target_lookup") < event_log.index("screenshot")

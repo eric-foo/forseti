@@ -1519,6 +1519,16 @@ def _run_pointer_action(page: object, action: BrowserPagePointerAction) -> dict[
     receipt["clicked"] = True
     receipt["move_steps"] = move_steps
     receipt["wait_ms"] = action.wait_after_ms
+    receipt["target_box"] = {
+        "x": round(x, 3),
+        "y": round(y, 3),
+        "width": round(width, 3),
+        "height": round(height, 3),
+    }
+    receipt["click_point"] = {
+        "x": round(click_x, 3),
+        "y": round(click_y, 3),
+    }
     return receipt
 
 

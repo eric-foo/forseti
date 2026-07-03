@@ -62,6 +62,12 @@ The X/Close follow-through did run. The sanitized action receipt recorded:
 - `visual_fallback_screenshot_sha256=e234672a86f921786f5bc9fafd1cbc6abbbb2271386bd08be8546fafd90b02fa`
 - `visual_fallback_crop_box={"x":576,"y":0,"width":704,"height":251}`
 
+Receipt limitation: this historical run was recorded before the pointer-action
+receipt retained `target_box` and `click_point`, so it proves the visual-X
+substrate path reported a page-level click but does not preserve the exact
+viewport coordinate. Current runner receipts now retain those sanitized geometry
+fields for future audits, without retaining screenshot bodies or raw DOM.
+
 The blocker remained after the click:
 
 - `blocker_class=challenge_or_security`

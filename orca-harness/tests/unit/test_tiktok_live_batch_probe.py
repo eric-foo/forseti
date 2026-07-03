@@ -580,6 +580,8 @@ def test_live_probe_challenge_close_followthrough_admits_post_close_comments(
             "visual_fallback_confidence": 0.812,
             "visual_fallback_screenshot_sha256": "b" * 64,
             "visual_fallback_crop_box": {"x": 576, "y": 0, "width": 704, "height": 324},
+            "target_box": {"x": 796.0, "y": 190.0, "width": 16.0, "height": 16.0},
+            "click_point": {"x": 803.3, "y": 197.4},
         }
     )
     visual_followthrough_receipt = _pointer_action_receipt(
@@ -662,6 +664,8 @@ def test_live_probe_challenge_close_followthrough_admits_post_close_comments(
     assert receipt["challenge_close_action"]["action_name"] == (
         TIKTOK_CHALLENGE_CLOSE_FOLLOWTHROUGH_POINTER_ACTION_NAME
     )
+    assert receipt["challenge_close_action"]["target_box"]["x"] == 796.0
+    assert receipt["challenge_close_action"]["click_point"] == {"x": 803.3, "y": 197.4}
     assert receipt["admitted_comment_response_count"] == 1
     assert len(row["comment_responses"]) == 1
 

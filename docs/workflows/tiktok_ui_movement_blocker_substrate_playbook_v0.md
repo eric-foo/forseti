@@ -79,6 +79,13 @@ The substrate is:
 | Login/auth wall redirect, credential prompt, or account risk wall | None unless separately mapped as benign logged-out upsell | Never by default | Stop and report blocker. Do not enter credentials or manipulate account state. |
 | Unknown dismiss/reload blocker | None until mapped | No | Stop or patch a named substrate action with tests; do not generic-click around blockers. |
 
+Do not collapse TikTok's benign new-user education / scroll prompt into the
+slider/captcha blocker class. A scroll/onboarding prompt is benign-overlay
+dismissal when it has no challenge/security marker. The slider/captcha blocker
+is the modal whose copy includes markers such as `Drag the slider to fit the
+puzzle`; its only authorized follow-through target is the modal's internal
+X/Close control, never the puzzle, browser tab, or browser/window close chrome.
+
 ## Logged-Out Limit-Mapping Mode
 
 Logged-out runs are allowed to measure TikTok's public creator/video/comment
@@ -166,7 +173,7 @@ For challenge-close diagnostics:
 - visual-only fields: `visual_fallback_attempted`,
   `visual_fallback_target_found`, `visual_fallback_candidate_count`,
   `visual_fallback_confidence`, `visual_fallback_crop_box`,
-  `visual_fallback_screenshot_sha256`
+  `visual_fallback_screenshot_sha256`, `target_box`, `click_point`
 
 A clicked diagnostic receipt is evidence that the close control was reachable;
 it is not capture success. A clicked follow-through receipt is evidence that the

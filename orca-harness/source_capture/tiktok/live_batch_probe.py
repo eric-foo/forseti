@@ -1063,6 +1063,8 @@ def _pointer_action_summary(action: JsonObject) -> JsonObject:
             "page_text_gate_matched": _first_bool(action.get("page_text_gate_matched")),
             "selection_strategy": _first_str(action.get("selection_strategy")),
             "failure": _first_str(action.get("failure")),
+            "target_box": _as_dict(action.get("target_box")) or None,
+            "click_point": _as_dict(action.get("click_point")) or None,
             "visual_fallback_attempted": _first_bool(
                 action.get("visual_fallback_attempted")
             ),
