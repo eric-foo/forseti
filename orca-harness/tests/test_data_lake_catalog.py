@@ -442,7 +442,7 @@ def test_attachment_records_index_preserved_bodies_and_resolve_bytes(
     assert by_packet[ig.packet.packet_id]["source_family"] == "instagram_creator"
 
 
-def test_bronze_catalog_surfaces_mgt_baseline_not_full_gt(tmp_path: Path) -> None:
+def test_bronze_catalog_surfaces_full_gt_ratified_baseline(tmp_path: Path) -> None:
     root = DataLakeRoot.for_test(tmp_path / "orca-data")
     _write_reddit_packet(root, tmp_path)
 
@@ -462,7 +462,10 @@ def test_bronze_catalog_surfaces_mgt_baseline_not_full_gt(tmp_path: Path) -> Non
         census,
     ):
         assert payload["bronze_baseline_status"] == BRONZE_BASELINE_STATUS
-        assert "not full God Tier" in payload["bronze_baseline_semantics"]
+        assert "full_god_tier" in payload["bronze_baseline_semantics"]
+        assert "no production-lake validation" in payload["bronze_baseline_semantics"]
+        assert "no backend/engine selection" in payload["bronze_baseline_semantics"]
+        assert "no erasure capability" in payload["bronze_baseline_semantics"]
 
 
 def test_inspect_catalog_reports_missing_and_stale_generated_index(tmp_path: Path) -> None:
