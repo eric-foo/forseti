@@ -34,11 +34,15 @@ BRONZE_CATALOG_SCHEMA_VERSION = "bronze_catalog_v0_schema_3"
 # serializer); these names are compatibility aliases for existing consumers.
 BRONZE_ATTACHMENT_RECORD_SCHEMA_VERSION = ATTACHMENT_RECORD_SCHEMA_VERSION
 BRONZE_ATTACHMENT_RECORD_PHYSICALIZATION = ATTACHMENT_RECORD_PHYSICALIZATION
-BRONZE_BASELINE_STATUS = "bronze_mgt_baseline_recorded_v0"
+BRONZE_BASELINE_STATUS = "bronze_full_gt_ratified_v0"
 BRONZE_BASELINE_SEMANTICS = (
-    "mini_god_tier_90_95_typed_retrievability_baseline; not full God Tier, "
-    "not validation, readiness, Manifest v2, body-copy storage, source-family "
-    "payload validation, or downstream currentness"
+    "full_god_tier_typed_raw_truth_retrievability_and_physicalization; "
+    "fixture-proof tier only, under the ratified Gate 2 claim ceiling; "
+    "ratified per core_spine_v0_data_lake_bronze_full_gt_declaration_v0, "
+    "which is authoritative for the claim and its full exclusion list -- "
+    "this field only surfaces it, non-authoritative; named exclusions "
+    "include no production-lake validation, no backend/engine selection, "
+    "and no erasure capability"
 )
 CATALOG_RELATIVE_ROOT = ("indexes", "derived_retrieval", "bronze_catalog", "v0")
 _PACKET_ID_RE = re.compile(r"[0123456789ABCDEFGHJKMNPQRSTVWXYZ]{26}")
