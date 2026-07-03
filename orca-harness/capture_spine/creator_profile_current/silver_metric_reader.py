@@ -292,7 +292,8 @@ def _parse_instant(value: str) -> datetime:
 
 
 _IG_RAW_SOURCE_FAMILY = "instagram_creator"
-_SUPPORTED_PLATFORMS = ("instagram", "youtube")
+_TIKTOK_RAW_SOURCE_FAMILY = "tiktok"
+_SUPPORTED_PLATFORMS = ("instagram", "tiktok", "youtube")
 
 
 class CreatorRollupDiscoveryError(ValueError):
@@ -318,8 +319,8 @@ def discover_creator_metric_rollup_records(
     per account; reducing each account to its single latest rollup is
     ``select_latest_rollup_per_account``'s job.
 
-    Discovery is platform-aware because the two producers anchor rollups
-    differently (verified against ``origin/main``):
+    Discovery is platform-aware because the producers anchor rollups
+    differently (IG/YT verified against ``origin/main``):
 
     - **Instagram** (packet-anchored): ``list_available(source_family=
       "instagram_creator")`` -> packet ids -> ``lane_dir(raw_anchor=<packet_id>)``;
@@ -327,6 +328,10 @@ def discover_creator_metric_rollup_records(
       and keep the expected IG accounts. The ``instagram_creator`` family also
       holds packets with no rollup record (e.g. grid-metadata), which are simply
       skipped.
+    - **TikTok** (packet-anchored, the IG shape): ``list_available(source_family=
+      "tiktok")`` -> packet ids -> ``lane_dir(raw_anchor=<packet_id>)``; the
+      ``tiktok`` family also holds non-metric packets (e.g. single-video
+      admissions), which are simply skipped.
     - **YouTube** (account-anchored): for each expected YT account, read
       ``lane_dir(raw_anchor=<platform_account_id>)`` directly.
 
@@ -346,15 +351,20 @@ def discover_creator_metric_rollup_records(
     }
     seen_record_ids: dict[str, set[str]] = {account_id: set() for account_id in found}
 
-    expected_ig = accounts_by_platform.get("instagram", set())
-    if expected_ig:
-        for packet_id in data_root.list_available(source_family=_IG_RAW_SOURCE_FAMILY):
+    for platform, source_family in (
+        ("instagram", _IG_RAW_SOURCE_FAMILY),
+        ("tiktok", _TIKTOK_RAW_SOURCE_FAMILY),
+    ):
+        expected = accounts_by_platform.get(platform, set())
+        if not expected:
+            continue
+        for packet_id in data_root.list_available(source_family=source_family):
             lane_dir = data_root.lane_dir(
                 subtree="derived", raw_anchor=packet_id, lane=METRIC_ROLLUP_LANE
             )
             for record in _read_rollup_records(lane_dir):
                 account_id = _rollup_record_account(record)
-                if account_id in expected_ig:
+                if account_id in expected:
                     _add_unique_record(found, seen_record_ids, account_id, record)
 
     for account_id in accounts_by_platform.get("youtube", set()):

@@ -35,6 +35,10 @@ YOUTUBE_SNAPSHOT_POINTER = (
     "orca/product/spines/capture/core/source_families/social_media/youtube/"
     "youtube_shorts_fragrance_creator_metric_rollup_snapshot_v0.json"
 )
+TIKTOK_SNAPSHOT_POINTER = (
+    "orca/product/spines/capture/core/source_families/social_media/tiktok/"
+    "tiktok_profile_grid_creator_metric_rollup_snapshot_v0.json"
+)
 
 # Lake cut-over §5/§8: both Instagram and YouTube rollups are read from the
 # committed lake SNAPSHOT (value-equal to the retained seed, which stays as the
@@ -60,6 +64,13 @@ _METRIC_SEED_CONFIG_BY_NAME = {
         "wrapper": "instagram_reels_creator_metric_seed",
         "pointer": INSTAGRAM_METRIC_SEED_POINTER,
         "role": "source-backed metric observations and selected-grid Instagram metric rollups",
+    },
+    # TikTok has no committed seed JSON (its metric document is built live from
+    # batch-admission lake packets); the snapshot is its only committed artifact.
+    "tiktok_profile_grid_creator_metric_rollup_snapshot_v0.json": {
+        "wrapper": "creator_metric_rollup_snapshot",
+        "pointer": TIKTOK_SNAPSHOT_POINTER,
+        "role": "lake-backed profile-grid TikTok metric rollups (live-lake snapshot)",
     },
 }
 

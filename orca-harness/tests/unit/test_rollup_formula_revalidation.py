@@ -17,6 +17,7 @@ from pathlib import Path
 
 from capture_spine.creator_profile_current.rollup_formula_revalidation import (
     _recompute_ig,
+    _recompute_tiktok,
     _SourceRow,
     revalidate_creator_metric_rollups,
 )
@@ -360,3 +361,48 @@ def test_recompute_ig_rejects_mixed_subset_engagement_inputs() -> None:
     failures = _recompute_ig(observation={}, metrics={}, rows=rows)
     assert failures
     assert any("complete reel trio" in f for f in failures)
+
+
+# -- TikTok recompute: engagement inputs must be grouped by content_id ---------
+
+def test_recompute_tiktok_rejects_mixed_subset_engagement_inputs() -> None:
+    # The exact tamper the delegated review probed: view from video A, like from
+    # video B, comment from video A. Counts are equal (1/1/1) so a count-only
+    # check would pass, but NO single content has all three -- there is no
+    # complete video trio, so the grouped recompute must fail.
+    rows = [
+        _SourceRow(metric_name="view_count", value=1000, content_id="videoA"),
+        _SourceRow(metric_name="like_count", value=50, content_id="videoB"),
+        _SourceRow(metric_name="total_comment_count", value=9, content_id="videoA"),
+    ]
+    failures = _recompute_tiktok(observation={}, metrics={}, rows=rows)
+    assert failures
+    assert any("complete video trio" in f for f in failures)
+
+
+def test_recompute_tiktok_uses_only_complete_content_groups() -> None:
+    # videoA is a complete trio; videoB has only a like (its view/comment are
+    # gaps). The producer computes over complete videos only, so the recompute
+    # must ignore videoB entirely and require metrics computed from videoA alone.
+    rows = [
+        _SourceRow(metric_name="view_count", value=1000, content_id="videoA"),
+        _SourceRow(metric_name="like_count", value=50, content_id="videoA"),
+        _SourceRow(metric_name="total_comment_count", value=9, content_id="videoA"),
+        _SourceRow(metric_name="like_count", value=99999, content_id="videoB"),
+    ]
+    # engagement over the complete group only: (50 + 9) / 1000 = 0.059
+    metrics = {
+        "average_views": {"metric_posture": {"kind": "observed"}, "metric_value": 1000.0},
+        "view_count_min": {"metric_posture": {"kind": "observed"}, "metric_value": 1000},
+        "view_count_max": {"metric_posture": {"kind": "observed"}, "metric_value": 1000},
+        "median_views": {"metric_posture": {"kind": "observed"}, "metric_value": 1000.0},
+        "average_like_count": {"metric_posture": {"kind": "observed"}, "metric_value": 50.0},
+        "average_comment_count": {"metric_posture": {"kind": "observed"}, "metric_value": 9.0},
+        "engagement_rate": {"metric_posture": {"kind": "observed"}, "metric_value": 0.059},
+        "posting_cadence": {"metric_posture": {"kind": "not_attempted"}},
+        "recent_velocity": {"metric_posture": {"kind": "not_attempted"}},
+    }
+    # videoB's stray like (99999) must NOT contaminate the average_like_count of 50
+    observation = {"view_count_min": 1000, "view_count_max": 1000}
+    failures = _recompute_tiktok(observation=observation, metrics=metrics, rows=rows)
+    assert failures == []

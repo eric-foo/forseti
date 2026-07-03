@@ -602,13 +602,31 @@ def _normalize_cue(cue: Any, source_order: int) -> JsonObject | None:
 
 
 def _normalize_stats(stats: JsonObject) -> JsonObject:
-    return {
-        "playCount": _first_int(stats.get("playCount"), stats.get("play_count"), 0),
-        "diggCount": _first_int(stats.get("diggCount"), stats.get("digg_count"), 0),
-        "commentCount": _first_int(stats.get("commentCount"), stats.get("comment_count"), 0),
-        "shareCount": _first_int(stats.get("shareCount"), stats.get("share_count"), 0),
-        "collectCount": _first_int(stats.get("collectCount"), stats.get("collect_count"), 0),
-    }
+    """Preserve only source-present stat values; NEVER synthesize a 0 for an
+    absent stat. An absent key is omitted so the downstream metric seed emits a
+    loud ``unavailable_with_reason`` gap instead of a fabricated observed 0
+    (the no-zero-fill invariant). A present exact-integer value (incl. a
+    digit-string) is stored as an int; a present but non-exact value (e.g. a
+    rounded ``"1.2M"``) is preserved raw so the seed's non-integer guard fails
+    closed on it rather than it being coerced or silently dropped. The
+    batch-summary sums below zero-default absent stats separately -- that is a
+    display aggregate, not a per-video metric truth."""
+    normalized: JsonObject = {}
+    for canonical, snake in (
+        ("playCount", "play_count"),
+        ("diggCount", "digg_count"),
+        ("commentCount", "comment_count"),
+        ("shareCount", "share_count"),
+        ("collectCount", "collect_count"),
+    ):
+        raw = stats.get(canonical)
+        if raw is None:
+            raw = stats.get(snake)
+        if raw is None:
+            continue  # absent -> omit -> loud gap downstream, never a synthesized 0
+        parsed = _first_int(raw)
+        normalized[canonical] = parsed if parsed is not None else raw
+    return normalized
 
 
 def _normalize_music(music: JsonObject) -> JsonObject:

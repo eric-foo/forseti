@@ -21,6 +21,10 @@ and independently recomputes the rollup formulas per
   (YT live watch packets): per-metric observed subsets for averages;
   engagement_rate over complete-input videos only (grouped by content id),
   round 6.
+- ``creator_metric_rollup_tiktok_profile_grid_engagement_v0`` (TikTok batch
+  admission): complete video trios (view/like/total_comment per video, the IG
+  shape); averages round 2; engagement_rate = (sum(likes) + sum(comments)) /
+  sum(views), round 6.
 
 The recompute here is an INDEPENDENT restatement of each recipe (mirroring how
 the producer tests re-implement the content hash) -- it deliberately does not
@@ -62,6 +66,7 @@ _IG_RECIPE = "creator_metric_rollup_instagram_reels_grid_engagement_v0"
 _YT_WATCH_PACKET_RECIPE = (
     "creator_metric_rollup_admitted_youtube_shorts_watch_packet_engagement_v0"
 )
+_TIKTOK_RECIPE = "creator_metric_rollup_tiktok_profile_grid_engagement_v0"
 _NEVER_COMPUTED_METRICS = ("posting_cadence", "recent_velocity")
 
 
@@ -206,6 +211,8 @@ def _revalidate_one_rollup(
         failures.extend(_recompute_ig(observation, metrics, source_rows))
     elif recipe == _YT_WATCH_PACKET_RECIPE:
         failures.extend(_recompute_yt_watch_packet(observation, metrics, source_rows))
+    elif recipe == _TIKTOK_RECIPE:
+        failures.extend(_recompute_tiktok(observation, metrics, source_rows))
     else:
         failures.append(
             f"unknown calculation_recipe_version {recipe!r}: this recipe has no independent "
@@ -339,6 +346,57 @@ def _recompute_ig(
     views = [values["view_count"] for values in complete]
     likes = [values["like_count"] for values in complete]
     comments = [values["comment_count"] for values in complete]
+    failures.extend(_check_view_stats(observation, metrics, views))
+    failures.extend(_check_observed(metrics, "average_like_count", round(statistics.mean(likes), 2)))
+    failures.extend(
+        _check_observed(metrics, "average_comment_count", round(statistics.mean(comments), 2))
+    )
+    denominator = sum(views)
+    if denominator > 0:
+        failures.extend(
+            _check_observed(
+                metrics,
+                "engagement_rate",
+                round((sum(likes) + sum(comments)) / denominator, 6),
+            )
+        )
+    else:
+        failures.extend(_check_not_observed(metrics, "engagement_rate"))
+    failures.extend(_check_never_computed(metrics))
+    return failures
+
+
+def _recompute_tiktok(
+    observation: Mapping[str, Any],
+    metrics: Mapping[str, Any],
+    rows: list[_SourceRow],
+) -> list[str]:
+    # Mirror the producer's recipe EXACTLY: every rollup metric (views,
+    # like/comment averages, engagement) is computed over complete-input videos
+    # only -- a video with all three of view/like/comment observed. Group by
+    # content_id and keep only complete groups; equal per-metric COUNTS are not
+    # enough (view from video A + like from video B + comment from video A gives
+    # 1/1/1 but no complete video), so a count-only check would validate a
+    # mixed-subset rollup.
+    failures: list[str] = []
+    by_content: dict[str, dict[str, Any]] = {}
+    for row in rows:
+        if row.value is not None:
+            by_content.setdefault(row.content_id, {})[row.metric_name] = row.value
+    complete = [
+        values
+        for values in by_content.values()
+        if all(name in values for name in ("view_count", "like_count", "total_comment_count"))
+    ]
+    if not complete:
+        failures.append(
+            "TikTok recipe requires at least one complete video trio "
+            "(view_count + like_count + total_comment_count observed for the same content_id)"
+        )
+        return failures
+    views = [values["view_count"] for values in complete]
+    likes = [values["like_count"] for values in complete]
+    comments = [values["total_comment_count"] for values in complete]
     failures.extend(_check_view_stats(observation, metrics, views))
     failures.extend(_check_observed(metrics, "average_like_count", round(statistics.mean(likes), 2)))
     failures.extend(

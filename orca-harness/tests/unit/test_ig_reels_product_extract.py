@@ -1,9 +1,12 @@
 """Offline integration tests for the IG Reels product-extraction runner (IG transcript spine v0).
 
 No network, no credentials. Commits real IG-Reel ASR transcripts into a temp lake, runs the
-extractor through a fake transport, and asserts mentions land in the silver lane, that the runner
-is idempotent (skip-if-done), that grid-metadata packets in the SAME instagram_creator family are
-skipped (surface filter), and that failure is isolated at both grains.
+extractor through a fake transport, and asserts mentions land in the silver lane, that the
+packet-backed route rides the consumption seam (acked-and-unchanged packets emit no rerun
+entries; obligation growth re-surfaces a packet; partials block the ack), that the deep-capture
+route stays marker-based and NEVER acks its non-committed shortcode anchors, that grid-metadata
+packets in the SAME instagram_creator family are skipped (surface filter), and that failure is
+isolated at both grains.
 """
 from __future__ import annotations
 
@@ -12,12 +15,15 @@ from pathlib import Path
 from typing import Any
 
 from cleaning.audience_extractor import RawApiProvider
-from cleaning.transcript_product_lake import PRODUCT_MENTIONS_LANE, PRODUCT_MENTIONS_SET_LANE
+from cleaning.transcript_product_lake import PRODUCT_MENTIONS_LANE, mentions_record_id
+from data_lake.consumption import find_acks
 from data_lake.root import DataLakeRoot
 from schemas.audience_comment_models import AudienceComment
+from runners import run_ig_reels_product_extract as ig_runner
 from runners.run_ig_reels_product_extract import (
     count_partial_extractions,
     count_pending_extractions,
+    iter_transcripts,
     main,
     run_extraction,
 )
@@ -233,9 +239,17 @@ def test_runner_extracts_ig_transcript_then_skips_on_rerun(tmp_path) -> None:
         record_id=asr_record_id,
     )
 
+    # The completed packet is acknowledged at the consumption seam with the
+    # record-set completion evidence, under this runner's own consumer identity.
+    acks = find_acks(data_root, raw_anchor=audio_packet_id, ack_namespace=PRODUCT_MENTIONS_LANE)
+    assert len(acks) == 1
+    assert acks[0]["obligation"]["consumer"] == "ig_reels_product_extract"
+    assert acks[0]["evidence"][0]["kind"] == "record_set_complete"
+
+    # rerun is a no-op: the acked packet is skipped at the seam without loading
+    # raw bodies and emits NO status entries.
     second = run_extraction(data_root=data_root, transport=transport, provider=_PROVIDER, model="m", api_key="k")
-    assert len(second) == 1
-    assert second[0]["status"] == "skipped_done"
+    assert second == []
 
 
 def test_runner_extracts_deep_capture_transcript_records(tmp_path) -> None:
@@ -274,10 +288,14 @@ def test_runner_extracts_deep_capture_transcript_records(tmp_path) -> None:
         completion_lane=DEEP_CAPTURE_SET_LANE,
     )
 
+    # Deep-capture route is OUT of the seam: marker-based skip-if-done means the
+    # rerun still emits a per-run entry, and NO ack is ever written under the
+    # non-committed shortcode anchor.
     second = run_extraction(data_root=data_root, transport=transport, provider=_PROVIDER, model="m", api_key="k")
     assert len(second) == 1
     assert second[0]["status"] == "skipped_done"
     assert second[0]["transcript_source_key"] == deep_key
+    assert find_acks(data_root, raw_anchor="DZ69knlsDb1", ack_namespace=PRODUCT_MENTIONS_LANE) == []
 
 
 def test_runner_surfaces_deep_capture_shortcode_mismatch_without_fake_success(tmp_path) -> None:
@@ -360,11 +378,17 @@ def test_runner_skips_grid_metadata_packet_in_same_family(tmp_path) -> None:
     data_root = DataLakeRoot.for_test(tmp_path / "lake")
     _commit_ig_grid_packet(data_root)
     _commit_ig_audio_transcript(data_root)
+    transport = FakeTransport(_anthropic([_item()]))
     results = run_extraction(
-        data_root=data_root, transport=FakeTransport(_anthropic([_item()])),
-        provider=_PROVIDER, model="m", api_key="k",
+        data_root=data_root, transport=transport, provider=_PROVIDER, model="m", api_key="k",
     )
     assert [r["status"] for r in results] == ["extracted"]  # the grid packet produced no transcript
+    # Both packets are acked (audio: record-set evidence; grid: no-extractable evidence),
+    # so the rerun emits nothing at all.
+    second = run_extraction(
+        data_root=data_root, transport=transport, provider=_PROVIDER, model="m", api_key="k",
+    )
+    assert second == []
 
 
 def test_runner_empty_lake_yields_no_results(tmp_path) -> None:
@@ -378,12 +402,98 @@ def test_runner_empty_lake_yields_no_results(tmp_path) -> None:
 
 def test_runner_skips_non_transcribed_asr(tmp_path) -> None:
     data_root = DataLakeRoot.for_test(tmp_path / "lake")
-    _commit_ig_audio_transcript(data_root, "DaALKgOsWn0", posture="no_speech")
+    pid, _rid = _commit_ig_audio_transcript(data_root, "DaALKgOsWn0", posture="no_speech")
     results = run_extraction(
         data_root=data_root, transport=FakeTransport(_anthropic([_item()])),
         provider=_PROVIDER, model="m", api_key="k",
     )
     assert results == []
+    # No extractable transcript: the discovery outcome IS the completion evidence.
+    acks = find_acks(data_root, raw_anchor=pid, ack_namespace=PRODUCT_MENTIONS_LANE)
+    assert len(acks) == 1
+    assert acks[0]["evidence"] == [{"kind": "no_extractable_transcripts", "raw_anchor": pid}]
+
+
+def test_runner_surfaces_malformed_packet_asr_record_without_ack(tmp_path) -> None:
+    data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    pid, asr_record_id = _commit_ig_audio_transcript(data_root)
+    asr_path = data_root.record_path(
+        subtree="derived",
+        raw_anchor=pid,
+        lane="transcript_asr",
+        record_id=asr_record_id,
+    )
+    asr_path.write_text("{not-json\n", encoding="utf-8")
+
+    results = run_extraction(
+        data_root=data_root, transport=FakeTransport(_anthropic([_item()])),
+        provider=_PROVIDER, model="m", api_key="k",
+    )
+    assert len(results) == 1
+    assert results[0]["packet_id"] == pid
+    assert results[0]["status"] == "discovery_failed"
+    assert "transcript_asr record" in results[0]["error"]
+    assert find_acks(data_root, raw_anchor=pid, ack_namespace=PRODUCT_MENTIONS_LANE) == []
+
+    second = run_extraction(
+        data_root=data_root, transport=FakeTransport(_anthropic([_item()])),
+        provider=_PROVIDER, model="m", api_key="k",
+    )
+    assert len(second) == 1
+    assert second[0]["status"] == "discovery_failed"
+    assert find_acks(data_root, raw_anchor=pid, ack_namespace=PRODUCT_MENTIONS_LANE) == []
+
+
+def test_rubric_version_grows_packet_obligation_without_llm_reextract(tmp_path, monkeypatch) -> None:
+    data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    pid, _rid = _commit_ig_audio_transcript(data_root)
+    original_rubric = ig_runner.EXTRACTOR_RUBRIC_VERSION
+    transport = FakeTransport(_anthropic([_item()]))
+
+    first = run_extraction(data_root=data_root, transport=transport, provider=_PROVIDER, model="m", api_key="k")
+    assert [r["status"] for r in first] == ["extracted"]
+    assert run_extraction(data_root=data_root, transport=transport, provider=_PROVIDER, model="m", api_key="k") == []
+
+    monkeypatch.setattr(ig_runner, "EXTRACTOR_RUBRIC_VERSION", "test-rubric-vnext")
+    third = run_extraction(data_root=data_root, transport=transport, provider=_PROVIDER, model="m", api_key="k")
+    assert [r["status"] for r in third] == ["skipped_done"]
+    acks = find_acks(data_root, raw_anchor=pid, ack_namespace=PRODUCT_MENTIONS_LANE)
+    assert len(acks) == 2
+    assert {ack["obligation"]["rubric_version"] for ack in acks} == {original_rubric, "test-rubric-vnext"}
+
+
+def test_late_asr_record_grows_obligation_and_resurfaces_packet(tmp_path) -> None:
+    data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    pid, _rid = _commit_ig_audio_transcript(data_root, "DaALKgOsWn0", posture="no_speech")
+    transport = FakeTransport(_anthropic([_item()]))
+    assert run_extraction(data_root=data_root, transport=transport, provider=_PROVIDER, model="m", api_key="k") == []
+
+    # A late-arriving transcribed ASR record changes the packet's obligation
+    # fingerprint: the SAME acked packet re-surfaces, extracts, and re-acks
+    # (seam conformance: obligation-growth re-pickup).
+    late = {
+        "video_id": "DaALKgOsWn0",
+        "shortcode": "DaALKgOsWn0",
+        "posture": "transcribed",
+        "cue_count": 2,
+        "cues": _cues(),
+        "retrieval_time_utc": "2026-07-03T00:00:00Z",
+    }
+    data_root.append_record(
+        subtree="derived",
+        raw_anchor=pid,
+        lane="transcript_asr",
+        record_id="late_asr_record",
+        data=(json.dumps(late, ensure_ascii=False) + "\n").encode("utf-8"),
+    )
+
+    second = run_extraction(data_root=data_root, transport=transport, provider=_PROVIDER, model="m", api_key="k")
+    assert [r["status"] for r in second] == ["extracted"]
+    assert second[0]["asr_record_id"] == "late_asr_record"
+    assert len(find_acks(data_root, raw_anchor=pid, ack_namespace=PRODUCT_MENTIONS_LANE)) == 2
+
+    third = run_extraction(data_root=data_root, transport=transport, provider=_PROVIDER, model="m", api_key="k")
+    assert third == []
 
 
 def test_runner_marks_zero_mention_transcript_done(tmp_path) -> None:
@@ -393,21 +503,34 @@ def test_runner_marks_zero_mention_transcript_done(tmp_path) -> None:
     first = run_extraction(data_root=data_root, transport=empty, provider=_PROVIDER, model="m", api_key="k")
     assert len(first) == 1 and first[0]["status"] == "extracted"
     second = run_extraction(data_root=data_root, transport=empty, provider=_PROVIDER, model="m", api_key="k")
-    assert second[0]["status"] == "skipped_done"
+    assert second == []  # acked at the seam; no per-run entry
 
 
 def test_runner_reports_partial_needs_cleanup(tmp_path) -> None:
     data_root = DataLakeRoot.for_test(tmp_path / "lake")
     _commit_ig_audio_transcript(data_root)
-    transport = FakeTransport(_anthropic([_item()]))
-    first = run_extraction(data_root=data_root, transport=transport, provider=_PROVIDER, model="m", api_key="k")
-    assert first[0]["status"] == "extracted"
-    marker = next((data_root.path / "derived").glob(f"**/{PRODUCT_MENTIONS_SET_LANE}/*"))
-    marker.unlink()
+    # Simulate a crash between the member write and its completion marker, BEFORE
+    # any ack exists: the member record is present, the marker and the ack are not.
+    transcript = iter_transcripts(data_root)[0]
+    rid = mentions_record_id(transcript, "m")
+    data_root.append_record(
+        subtree="derived",
+        raw_anchor=transcript.transcript_anchor,
+        lane=PRODUCT_MENTIONS_LANE,
+        record_id=rid,
+        data=b"{}",
+    )
     assert count_pending_extractions(data_root=data_root, model="m") == 0
     assert count_partial_extractions(data_root=data_root, model="m") == 1
+
+    transport = FakeTransport(_anthropic([_item()]))
+    first = run_extraction(data_root=data_root, transport=transport, provider=_PROVIDER, model="m", api_key="k")
+    assert [r["status"] for r in first] == ["partial_needs_cleanup"]
+    # A partial blocks the ack, so the packet re-surfaces every run until the
+    # operator remediates — never a silently acked fake-done.
+    assert find_acks(data_root, raw_anchor=transcript.transcript_anchor, ack_namespace=PRODUCT_MENTIONS_LANE) == []
     second = run_extraction(data_root=data_root, transport=transport, provider=_PROVIDER, model="m", api_key="k")
-    assert second[0]["status"] == "partial_needs_cleanup"
+    assert [r["status"] for r in second] == ["partial_needs_cleanup"]
 
 
 def test_runner_isolates_per_item_extraction_failure(tmp_path) -> None:

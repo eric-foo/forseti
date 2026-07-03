@@ -79,7 +79,9 @@ endorsed sub-brand on its own website** ("<sub-brand> by Forseti").
 - The sub-brand site is the scene-native front for an authenticity-driven
   niche community, endorsed visibly "by Forseti" so trust flows upward.
 - Each brand's assets (domain, handles) stay separately owned and cleanly
-  separable.
+  separable. [Refined by D8, 2026-07-02: pre-launch, the sub-brand site is a
+  separable site project at aphrodite.forsetihq.com; its own apex domain and
+  handles bundle at the public-launch gate.]
 - Ratification receipt: recommended 2026-07-02 with this rationale; owner
   accepted the design in the same exchange ("it makes sense") and directed
   the action translation plus the acquisition lane spin-off consistent with
@@ -219,6 +221,58 @@ aphrodite then."
   domain, email, eventual contracts, and every endorsement line, so its
   rigor is not relaxed.
 
+## D8 — Web-presence foundation (2026-07-02)
+
+Owner-ratified in-thread same day (proposal accepted: "looks like no issue
+then. let's handoff for the company design"). Refines D2 and D6 into a
+concrete web foundation; it changes no gate and launches nothing.
+
+1. **One apex domain.** forsetihq.com is the only domain bought pre-launch.
+   The Aphrodite surface lives at **aphrodite.forsetihq.com** until the
+   public-launch gate; the own-domain question, handle registration, and
+   D7's deferred formal trademark clearance all bundle at that gate as one
+   owner decision. Rationale: every available "Aphrodite" apex domain is a
+   compromised string (the clean ones are unobtainable for a famous
+   mythological name), a gated Vetting v0 demo needs no scene-native domain,
+   and a pre-launch subdomain-to-domain move is DNS plus a redirect because
+   no equity has accrued. This refines D2: "own scene-native website" means
+   an own, separable site project — not an own apex domain pre-launch.
+   Consequence: the acquisition lane's second tranche is emptied (no
+   Aphrodite domain or handles are bought now; the Forseti tranche is
+   untouched).
+2. **Separability rule.** Aphrodite pages are built as a separable site
+   project deployed to the subdomain, never entangled with the forsetihq
+   site code, so D2's clean-separability survives and a future move or
+   spin-out is DNS work, not a rebuild.
+3. **forsetihq.com holding page** (the only near-term surface): positioning
+   line; one "what we're building" paragraph in claim-defense-compliant
+   "built to" wording; waitlist email capture; a minimal privacy notice
+   (waitlist emails are personal data — required from day one); contact.
+   Reserved future slots so the page grows instead of being rebuilt: the
+   standard/receipts page (only when a publishing motion is separately
+   authorized) and about. No feed/dashboard vocabulary anywhere on this
+   property.
+4. **Identity, deliberately minimal per brand.** Text wordmark, one-to-two
+   colors, one-to-two typefaces; Forseti in a calibrated/judicial register;
+   Aphrodite in a scene-native beauty register later; the "by Forseti"
+   endorsement line is the only shared element. No logo project, no brand
+   book pre-launch — brand-design spend beyond the minimal kit is sunk cost
+   while the moat is the data engine.
+5. **Tech posture.** Static sites; no CMS, backend, or auth; a simple,
+   swappable waitlist form provider; static hosting (e.g. Vercel, Netlify,
+   or Pages); analytics minimal or none at holding stage. **Website code
+   lives outside this repository** in its own repo; this repository stays
+   doctrine-only per its folder rules.
+6. **Design order: forsetihq first.** It carries the only near-term job
+   (holding + waitlist on a domain being bought now), and its identity is
+   the input to the endorsement line Aphrodite later carries. Aphrodite
+   design fires at the Vetting v0 trigger, not before — its demo UI should
+   be shaped by the actual claim-object product design, which does not exist
+   yet.
+7. **Build boundary.** The holding page may be designed, built, and deployed
+   dark (preview URL only). Pointing DNS or otherwise making anything
+   public, and every account creation or purchase, are owner-executed.
+
 ## Open items (not decided here)
 
 - Formal trademark clearance for Aphrodite at first public commercial use
@@ -327,4 +381,41 @@ direction_change_propagation:
     - not validation
     - not readiness
     - not trademark clearance (the light check and deferred formal clearance remain to be executed)
+# D8 web-presence foundation 2026-07-02 (same session; ratified with the design-lane handoff request).
+direction_change_propagation:
+  doctrine_changed: >
+    D8 adds the web-presence foundation: one apex domain (forsetihq.com) with
+    Aphrodite on aphrodite.forsetihq.com until the public-launch gate (where
+    own-domain, handles, and D7 formal clearance bundle); separable-site rule
+    for Aphrodite pages; holding-page content contract incl. privacy notice;
+    minimal per-brand identity; static/no-backend tech posture with site code
+    outside this repo; forsetihq-first design order; deploy-dark build
+    boundary with owner-executed DNS/purchases. Refines D2/D6; empties the
+    acquisition lane's Aphrodite tranche.
+  trigger: product_doctrine
+  related_triggers: []
+  controlling_sources_updated:
+    - docs/decisions/forseti_company_brand_architecture_v0.md
+  downstream_surfaces_checked:
+    - docs/workflows/forseti_brand_asset_acquisition_lane_handoff_v0.md   # committed packet; its second-tranche trigger wording is further superseded by D8 via the packet's existing stale_if routing; no retro-edit, owner-courier kickoff carries the delta
+    - orca/product/spines/creator_signal/creator_signal_product_architecture_v0.md  # Vetting v0 stack note (static/Astro/Vite, shared access gate) is consistent with D8's tech posture; unchanged
+  intentionally_not_updated:
+    - path: docs/workflows/forseti_brand_asset_acquisition_lane_handoff_v0.md
+      reason: >
+        Same rule as the D7 amendment: committed lane packets are
+        point-in-time artifacts whose stale_if routes receivers to this
+        record; the decision layer is not forked into retro-edits.
+  stale_language_search: >
+    rg -in "aphroditehq|aphrodite domain|second tranche|own domain|scene-native website"
+    docs/decisions/forseti_company_brand_architecture_v0.md docs/workflows/forseti_brand_asset_acquisition_lane_handoff_v0.md
+  stale_language_search_result: >
+    Executed 2026-07-02 after the D8 edits. In this record, pre-D8 second-
+    tranche and own-domain language survives only in the D7 body bullet
+    already marked SUPERSEDED, the D7 amendment text D8 further narrows, and
+    these receipts. The acquisition packet retains its point-in-time
+    second-tranche wording, resolved via its stale_if pointer to this record.
+  non_claims:
+    - not validation
+    - not readiness
+    - not a website build authorization by itself (the design-lane handoff carries the bounded authorization)
 ```
