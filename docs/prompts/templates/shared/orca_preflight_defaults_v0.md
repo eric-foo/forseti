@@ -1,14 +1,14 @@
-# Orca Preflight Defaults v0
+# Forseti Preflight Defaults v0
 
 ```yaml
 retrieval_header_version: 1
 artifact_role: Preflight defaults (repo-constant prompt preflight bindings)
 scope: >
-  Repo-constant preflight field values that every Orca repo-aware prompt may
+  Repo-constant preflight field values that every Forseti repo-aware prompt may
   reference rather than restate. Does not remove the requirement to state
   per-prompt deltas.
 use_when:
-  - Authoring a new Orca repo-aware prompt and referencing constant fields.
+  - Authoring a new Forseti repo-aware prompt and referencing constant fields.
   - Checking which preflight fields are repo-constant vs. per-prompt required.
 authority_boundary: retrieval_only
 ```
@@ -31,7 +31,7 @@ prompt cites this artifact.
 | `workspace_path` | `C:\Users\vmon7\Desktop\projects\orca` |
 | `agents_md_read` | Required on intake |
 | `overlay_readme_read` | `.agents/workflow-overlay/README.md` — required on intake |
-| `external_source_boundary` | External workflow source is read-only from Orca work; `jb` is not Orca authority |
+| `external_source_boundary` | External workflow source is read-only from Forseti work; `jb` is not Forseti authority |
 | `retrieval_header_version` | `1` (for new durable artifacts) |
 | `authority_boundary` | `retrieval_only` (for new durable artifacts) |
 

@@ -9,8 +9,8 @@ scope: >
   block below as component (c) of an explicit no_repo adversarial review package,
   alongside the review target and the authority excerpts it must conform to.
 use_when:
-  - Commissioning an explicit no_repo adversarial review of a non-code artifact because the reviewer cannot inspect the repository/worktree or invoke Orca skills/overlay.
-  - Any reviewer lacking repository, Orca skill, or overlay access must follow the embedded method instead of "invoking" a skill.
+  - Commissioning an explicit no_repo adversarial review of a non-code artifact because the reviewer cannot inspect the repository/worktree or invoke Forseti skills/overlay.
+  - Any reviewer lacking repository, Forseti skill, or overlay access must follow the embedded method instead of "invoking" a skill.
   - Cross-family, external, couriered, paste-ready, or portable delivery by itself does not select this method; use repo-bound review when repository access exists.
 authority_boundary: retrieval_only
 derived_from:
@@ -27,7 +27,7 @@ stale_if:
 model_neutrality: Method/posture only. It never names, recommends, ranks, or routes a runtime model. The cross-family property is satisfied by the operator's model choice, not by this file.
 ```
 
-> **How to use:** deliver the delimited PORTABLE METHOD block only to an explicit no_repo reviewer -- **pasted in chat, or shipped as the bundle `README`** (the no_repo package shape is bound in `.agents/workflow-overlay/delegated-review-patch.md`) -- together with the review target and the authority excerpts it must conform to -- **always including the authoring environment's foundational behavior + scope-discipline doctrine** (for Orca: the `AGENTS.md` kernel, which carries the *Smallest Complete Intervention* rule), since conformance to it is part of the review. If the reviewer can inspect the repository or worktree, route to the repo-bound review path instead of this portable method.
+> **How to use:** deliver the delimited PORTABLE METHOD block only to an explicit no_repo reviewer -- **pasted in chat, or shipped as the bundle `README`** (the no_repo package shape is bound in `.agents/workflow-overlay/delegated-review-patch.md`) -- together with the review target and the authority excerpts it must conform to -- **always including the authoring environment's foundational behavior + scope-discipline doctrine** (for Forseti: the `AGENTS.md` kernel, which carries the *Smallest Complete Intervention* rule), since conformance to it is part of the review. If the reviewer can inspect the repository or worktree, route to the repo-bound review path instead of this portable method.
 
 ---
 
@@ -78,4 +78,4 @@ Your findings are **decision input only** for the commissioning owner — not ap
 
 ---
 
-*Provenance: this method is a faithful, flattened distillation of the `derived_from` sources (the Orca adversarial-artifact-review template + the Review Doctrine in `review-lanes.md`), made self-contained for reviewers without skill/overlay/repo access. The orca header and this footer are repository metadata; only the delimited PORTABLE METHOD block is shipped to the reviewer. Re-derive when a `derived_from` hash changes.*
+*Provenance: this method is a faithful, flattened distillation of the `derived_from` sources (the Forseti adversarial-artifact-review template + the Review Doctrine in `review-lanes.md`), made self-contained for reviewers without skill/overlay/repo access. The repository header and this footer are repository metadata; only the delimited PORTABLE METHOD block is shipped to the reviewer. Re-derive when a `derived_from` hash changes.*

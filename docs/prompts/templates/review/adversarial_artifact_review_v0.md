@@ -3,7 +3,7 @@
 ```yaml
 retrieval_header_version: 1
 artifact_role: Prompt template
-scope: Read-only adversarial review template for non-code Orca artifacts.
+scope: Read-only adversarial review template for non-code Forseti artifacts.
 use_when:
   - Reviewing prompts, research artifacts, product docs, decisions, or workflow artifacts.
 authority_boundary: retrieval_only
@@ -20,7 +20,7 @@ Use shared contract:
 `docs/prompts/templates/shared/orca_prompt_behavior_contract_v0.md`
 
 ```text
-You are performing a read-only adversarial artifact review for Orca.
+You are performing a read-only adversarial artifact review for Forseti.
 
 Review target:
 [FILL_ARTIFACT_PATH_OR_TEXT]
@@ -86,7 +86,7 @@ authorize patching.
 Review authority:
 Use findings-first review output by default. Formal verdicts, blocked/ready
 status, validation pass/fail claims, approval, readiness, mandatory
-remediation, patch queues, and executor-ready handoffs require explicit Orca
+remediation, patch queues, and executor-ready handoffs require explicit Forseti
 overlay or prompt binding. In this template, `critical`, `major`, and `minor`
 severity labels are finding-priority labels only; they are not approval,
 rejection, readiness, validation, or mandatory-remediation authority.
@@ -177,6 +177,6 @@ Review-use boundary:
 This is a read-only review. Treat findings and non-findings as decision input
 only, not as approval, validation, product proof, mandatory remediation, or
 executor-ready instructions. Do not anchor downstream work to this review as
-binding authority unless a separate authorized Orca decision, patch,
+binding authority unless a separate authorized Forseti decision, patch,
 validation, or implementation lane accepts it.
 ```

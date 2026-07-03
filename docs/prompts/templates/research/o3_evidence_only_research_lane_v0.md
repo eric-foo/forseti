@@ -20,7 +20,7 @@ Use shared contract:
 `docs/prompts/templates/shared/orca_prompt_behavior_contract_v0.md`
 
 ```text
-You are running an evidence-gathering-only public research lane for Orca.
+You are running an evidence-gathering-only public research lane for Forseti.
 
 Goal:
 [FILL_EVIDENCE_GOAL]
