@@ -66,6 +66,25 @@ source-access intervention; and never call the route unchallenged clean capture.
 DOM-visible comments are lower-tier `captured_visible_dom` evidence, not
 page-owned response evidence.
 
+
+## 2026-07-03 TikTok Challenge-Close Facts To Preserve
+
+Do not send a fresh thread back through the same diagnosis loop:
+
+- There are two different UI things: the TikTok teaching/scroll overlay and the
+  slider/captcha/security modal. Only the latter is the challenge-close lane.
+- Geometric visual-X fallback is invalid as X proof for TikTok. Receipts with
+  `visual_fallback_geometric_target=true` were historical coordinate guesses.
+- Current code disables geometric fallback for TikTok challenge-close actions.
+- The latest live receipt clicked a real DOM close target with
+  `target_kind=button`, `page_text_gate_matched=true`, and `clicked=true`; TikTok
+  still did not accept the close because post-click visual candidates remained.
+- Failed close means `challenge_close_accepted=false`, no
+  `challenge_close_followthrough=true`, no `comment_action` mislabel, and
+  `admitted_comment_response_count=0` even if a comment-list response was matched.
+- DOM-visible fallback admits only comment-body-like text. Count badges such as
+  `303` or `1.2K comments` do not count.
+
 ## Goal Handoff
 
 - long_term_goal: Make the TikTok source-capture lane produce sanitized, admissible, page-owned live staging data under real sessioned conditions without violating account-risk, no-CAPTCHA-solving, no-secret, and no-product-extraction boundaries.

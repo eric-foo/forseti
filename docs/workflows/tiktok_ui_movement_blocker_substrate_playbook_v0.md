@@ -40,10 +40,22 @@ ad hoc Playwright clicks in a live lane unless the substrate itself is missing a
 needed bounded capability and the patch adds tests plus a receipt.
 
 Known targetability diagnostics are not useful work once pinned. The 2026-07-03
-TikTok slider/challenge X was already proven repeatedly targetable by the
-visual-X substrate, but `clicked=true` did not prove TikTok accepted the close;
-future lanes must spend run budget on accepted-close proof and comment yield, not
-on re-proving pointer delivery.
+TikTok slider/challenge work produced three durable lessons future lanes must not
+re-litigate:
+
+- A benign TikTok teaching/scroll overlay is not the same blocker as the slider /
+  captcha / security modal.
+- `visual_fallback_geometric_target=true` is only a guessed coordinate; it is not
+  proof that an X was detected or clicked. TikTok challenge-close actions must keep
+  geometric fallback disabled.
+- The latest authoritative live receipt proves a real DOM close target can be
+  clicked (`target_kind=button`, `page_text_gate_matched=true`, `clicked=true`),
+  but post-click visual candidates remained and the close was not accepted
+  (`challenge_close_accepted=false`). Matched comment responses after failed close
+  are diagnostic only; admitted count must stay zero.
+
+Future lanes must spend run budget on accepted-close proof and real comment yield,
+not on re-proving pointer delivery.
 
 Current owner source-access redirect: for public TikTok content, an X-able
 slider/captcha/security modal is no longer a hard capture blocker when the
@@ -66,8 +78,9 @@ rendered page no longer shows challenge/security text, the close receipt has
 candidates are captured after the named comments -> `More like this` -> comments
 route. DOM-visible comments are lower-tier `captured_visible_dom` evidence, not
 page-owned response evidence; count-only/tab text such as `303`, `1.2K comments`,
-`Comments`, or `Log in to comment` is not a comment body and cannot admit. If the final visual close follow-through fails
-post-click verification, the pointer sequence must stop before comment-route
+`Comments`, or `Log in to comment` is not a comment body and cannot admit. If the
+final visual close follow-through fails post-click verification, the pointer
+sequence must stop before comment-route
 actions; failed-close receipts must not carry `challenge_close_followthrough=true`
 or label the close action as `comment_action`. A `visual_fallback_geometric_target=true`
 receipt is a coordinate guess, not proof that an X was detected or clicked, and

@@ -72,6 +72,22 @@ running or recommending any live TikTok action.
 Do not trust this packet's hashes after `stale_if` fires. Use them as compare
 targets only.
 
+
+## 2026-07-03 TikTok Challenge-Close Facts To Preserve
+
+This packet must keep future live lanes from replaying the same confusion:
+
+- Teaching/scroll overlays and slider/captcha/security modals are distinct.
+- `clicked=true` is pointer delivery only. Close acceptance requires post-click
+  challenge text absence, no post-click visual-X candidates, and final blocker
+  triage clear.
+- Geometric visual-X coordinate guesses are not X-click proof; TikTok
+  challenge-close actions disable geometric fallback.
+- Latest authoritative logged-out Funmi receipt: real DOM close target clicked,
+  `challenge_close_accepted=false`, `matched_comment_response_count=1`,
+  `admitted_comment_response_count=0`, `results=[]`.
+- Count-only DOM text like `303` is a comment-count badge, not a comment body.
+
 ## Goal Handoff
 
 ```yaml

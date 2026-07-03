@@ -139,6 +139,7 @@ TIKTOK_LOGGED_OUT_SESSION_MODE = "public_logged_out"
 TIKTOK_DOM_VISIBLE_COMMENT_CANDIDATE_CAP = 12
 TIKTOK_DOM_VISIBLE_COMMENT_TEXT_MAX_CHARS = 500
 _URL_IN_TEXT_RE = re.compile(r"https?://\S+")
+# DOM fallback must capture comment-body-like text, not visible count badges.
 _COUNT_ONLY_TEXT_RE = re.compile(r"^[\d\s,._+-]+[kmb]?(?:\s+comments?)?$", re.IGNORECASE)
 
 _TIKTOK_VIDEO_URL_RE = re.compile(r"^/@(?P<handle>[^/]+)/video/(?P<video_id>\d+)$")
@@ -905,6 +906,7 @@ def _tiktok_challenge_close_pointer_action(
         prefer_top_right=True,
         visual_top_right_x_fallback=True,
         visual_x_target_zone="center_modal",
+        # Geometric fallback caused false X-click claims on TikTok challenge modals.
         visual_x_geometric_fallback=False,
         post_click_absent_text_markers=TIKTOK_CHALLENGE_TEXT_MARKERS,
         post_click_visual_target_absence_check=True,
@@ -969,6 +971,7 @@ def _tiktok_challenge_visual_close_pointer_action(
         prefer_top_right=True,
         visual_top_right_x_fallback=True,
         visual_x_target_zone="center_modal",
+        # Geometric fallback caused false X-click claims on TikTok challenge modals.
         visual_x_geometric_fallback=False,
         post_click_absent_text_markers=TIKTOK_CHALLENGE_TEXT_MARKERS,
         post_click_visual_target_absence_check=True,
