@@ -416,6 +416,24 @@ write boundary). Rule owner: `.agents/workflow-overlay/validation-gates.md`
 freshness, pin truth, or source-choice correctness. `--audit` = whole-corpus
 backlog view (never gated); `--selftest` present.
 
+**Full-GT claim tripwire.** `.agents/hooks/check_full_gt_claims.py` — diff-scoped,
+forward-only CI gate (registered in `.github/workflows/ci.yml` as
+`--changed --strict`): ADDED lines of changed `.md` files must not carry
+unballasted "full God Tier" claim language outside the claim-owning/record
+surfaces (the two Bronze declarations, data_lake README + spine workflows,
+repo map, DCP archive, `docs/review-outputs/**`, `docs/prompts/**`,
+`docs/hygiene/**`). A line passes with bounding ballast (negation / ceiling /
+fixture / claim-tier wording) or the deliberate `full-gt-claim-ack` token.
+Rule authority: the Bronze full-GT declaration's Erosion Guards (claim
+inflation), referenced never restated. Shape only — never claim truth. `.py`
+surfaces out of scope (tests + declaration govern). PostToolUse `--hook` mode
+exists; registration in `.claude/settings.json` is owner-gated. `--selftest`
+present. Companion tier-2 schema gate:
+`orca-harness/tests/contract/test_data_lake_core_field_gate.py` pins the
+lake-core field/key sets per the write-boundary contract's No-New-Core-Field
+Enforcement (any drift fails; update the pin only with the cited owner
+decision).
+
 **Future agents: reuse this pattern.** To enforce the next load-bearing,
 deterministically-checkable rule, do not add another instruction -- add a
 sibling checker under `.agents/hooks/` that references the rule's authority
