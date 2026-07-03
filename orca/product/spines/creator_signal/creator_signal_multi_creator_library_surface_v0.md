@@ -32,10 +32,11 @@ stale_if:
 
 ## Status
 
-`OWNER_ACCEPTED_PRODUCT_SURFACE_CONTRACT_V0`.
+`PR_REVIEW_PRODUCT_SURFACE_CONTRACT_V0`.
 
-This is the first accepted Creator Signal multi-creator display contract. It is
-docs/product only. It does not create a dashboard, storage engine, live capture
+This is the proposed first Creator Signal multi-creator display contract for PR
+#638. It becomes accepted only after owner/maintainer acceptance and merge. It is
+product-document only. It does not create a dashboard, storage engine, live capture
 flow, API, SQLite table, data-lake job, real creator rows beyond what already
 exists in `creator_profile_current`, outreach mechanism, or runtime
 implementation.
@@ -252,15 +253,18 @@ reachable without opening the full profile:
   not inherited from the "currently selected metric" bullet above (this
   closes MC-02 at the layer that actually governs a collapsed row, not only
   in Row Model's general "every row" statement);
-- sample-support cue, required whenever the library is in a sorted state
-  **or** presents a filtered, highlighted, or otherwise selectively ordered
-  subset of a platform's rows relative to that platform's full row set —
+- sample-support cue, required whenever the row shows any metric rollup. When
+  the library is in a sorted state **or** presents a filtered, highlighted, or
+  otherwise selectively ordered subset of a platform's rows relative to that
+  platform's full row set —
   not merely reachable, and not limited to a literal "sorted" state, since
   a filtered-but-unranked view carries the same false-merit-impression risk
   a sorted view does (this closes MC-03 including the unranked/filtered
   entry state Default View rule 3 permits);
 - freshness cue;
-- a visible missingness cue when any shown metric is non-observed;
+- a visible missingness and limitations cue when any shown metric is non-observed
+  or the row's rollup carries an interpretation-material limitation, including
+  source-pool-limited, admitted-pool-only, or non-representative sample posture;
 - a reachable claim-boundary cue (may be a compact affordance, e.g., an
   always-visible "what this doesn't prove" link, rather than the full text),
   placed adjacent to the sort control or shown at first sort-selection when
@@ -312,12 +316,10 @@ contract closes that gap by requiring the affordance at the library level.
 
 Do not use the literal customer-facing word **leaderboard** for this surface,
 except in a forbidden-language/non-claim note (as in this section and the Hard
-Constraints in the commissioning prompt for this contract). Per the
-adversarial review's recommendation, prefer **library**, **catalog**,
-**ranked table**, or **ranked scan** in customer-facing copy — "ranked table"
-carries materially less winner/loser implication than "leaderboard," but even
-that language remains unsafe unless the reachable non-claims affordance above
-is present.
+Constraints in the commissioning prompt for this contract). In customer-facing
+copy, prefer **library** or **catalog**. **Ranked table** or **ranked scan** may
+appear only as internal review/history/source terminology or as a non-customer
+implementation note; they are not the customer-facing surface name.
 
 ## Static Projection Handoff Boundary (Step 3)
 
