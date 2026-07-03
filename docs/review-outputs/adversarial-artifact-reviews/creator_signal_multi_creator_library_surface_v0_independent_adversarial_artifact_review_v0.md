@@ -8,6 +8,7 @@ use_when:
   - Checking whether the self-reviewed library contract received an independent review.
   - Reviewing the contract patch before static projection implementation.
 authority_boundary: retrieval_only
+review_use_boundary: Findings are decision input only; they are not approval, validation, mandatory remediation, or executor-ready patch authority unless separately authorized.
 status: completed_patch_applied
 created: 2026-07-03
 reviewed_by: OpenAI Codex (GPT-5, current session)
