@@ -522,11 +522,15 @@ specific implication and should be preferred in customer-facing copy.
 
 ## Review-Use Boundary
 
+review_use_boundary: >
+  Findings and non-findings are decision input only, not approval, validation,
+  mandatory remediation, or patch authority.
+
 This is a read-only adversarial artifact review. Findings and non-findings
 above are decision input only -- not approval, validation, mandatory
 remediation, implementation authorization, dashboard authorization, live
 capture authorization, lake-write authorization, identity-write authorization,
-or outreach/lead-list authority. No `patch_queue_entry` is included (none
+outreach/lead-list authority, or patch authority. No `patch_queue_entry` is included (none
 authorized by the commissioning prompt, which explicitly forbids it and
 scopes this lane to read-only review). Closure of MC-01 through MC-05
 requires an owner decision on the four named guards, followed by the Batch 1
