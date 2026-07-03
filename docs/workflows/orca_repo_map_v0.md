@@ -401,6 +401,21 @@ disposition gate). Disposition presence/shape only — never review quality,
 reason truth, or whether review should have been recommended (resident
 judgment). `--audit` = per-commit advisory history view; `--selftest` present.
 
+**Local pre-push doc-gate mirror.** `.agents/hooks/pre_push_guard.py` (the
+policy behind the tracked `.githooks/pre-push` adapter, installed via
+`.github/scripts/install-local-hooks.ps1`) blocks pushes targeting `main`,
+branch deletes, and non-fast-forward updates, and — for allowed lane pushes —
+mirrors the strict CI doc gates (`check_map_links.py --strict`,
+`header_index.py --strict`, `check_review_routing.py --strict`; diff-scoped
+base `origin/main`, same as CI) so a durable-doc gate miss (e.g. a headerless
+`docs/review-outputs/` report, PR #613) fails at the push boundary instead of
+costing a red CI round. Blocks on any gate failure; the checkers' infra-gap
+fail-opens are unchanged; bypassable with `--no-verify`; CI stays the
+authoritative gate. `python .agents/hooks/pre_push_guard.py --selftest`
+checks the decision logic. Rule owner:
+`.agents/workflow-overlay/validation-gates.md` -> "Enforcement Placement"
+(Local pre-push doc-gate mirror).
+
 **Handoff-pointer resolution gate (EP-36).** `.agents/hooks/check_handoff_pointers.py`
 — diff-scoped, forward-only CI gate (registered in `.github/workflows/ci.yml`):
 handoff-packet paths (`docs/workflows/*handoff*.md`, `docs/prompts/handoffs/*.md`)
