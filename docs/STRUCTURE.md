@@ -1,23 +1,23 @@
-# Orca Docs Structure
+# Forseti Docs Structure
 
 ```yaml
 retrieval_header_version: 1
 artifact_role: Docs usage guide
-scope: Docs folder usage guide for future Orca agents.
+scope: Docs folder usage guide for future Forseti agents.
 use_when:
-  - Deciding where an Orca artifact belongs.
+  - Deciding where a Forseti artifact belongs.
   - Promoting material out of docs/_inbox.
 authority_boundary: retrieval_only
 ```
 
 This file is a quick navigation guide for future agents. It is not a complete
-file inventory and does not create folder authority. The Orca overlay in
+file inventory and does not create folder authority. The Forseti overlay in
 `.agents/workflow-overlay/` remains the authority if anything here conflicts
 with it.
 
 ## Rule Of Thumb
 
-Keep durable Orca artifacts under `docs/` or the overlay unless a later Orca
+Keep durable Forseti artifacts under `docs/` or the overlay unless a later Forseti
 decision creates a narrower location. Do not create implementation folders,
 runtimes, packages, tests, scrapers, or automation unless a later turn
 explicitly authorizes implementation.
@@ -49,7 +49,7 @@ Accepted prompt-family folders are bound by
 - `docs/prompts/reruns/`: retry prompts that preserve frozen decisions.
 - `docs/prompts/patches/`: patch prompt drafts; applying patches needs separate authority.
 - `docs/prompts/wrappers/`: thin wrapper prompts that reference full prompt artifacts.
-- `docs/prompts/templates/`: Orca-local prompt templates, subordinate to `.agents/workflow-overlay/template-registry.md`.
+- `docs/prompts/templates/`: Forseti-local prompt templates, subordinate to `.agents/workflow-overlay/template-registry.md`.
 
 Template child folders such as `_generic/`, `research/`, `review/`, `shared/`,
 and `wrappers/` are navigation aids under `docs/prompts/templates/`; check the

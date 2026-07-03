@@ -1,4 +1,4 @@
-﻿# Skill Adoption
+# Skill Adoption
 
 ```yaml
 retrieval_header_version: 1
@@ -143,26 +143,24 @@ deploy, activate, or make the skill resolver-visible; that remains a separate
 skill-governance action under the Protected Skill Boundary.
 
 - `orca-product-lead` — accepted/frozen 2026-06-08; refreshed + re-frozen
-  2026-06-12; refreshed + re-pinned 2026-06-20 (owner-authorized skill-edit:
-  active thesis summary folded to the decision-led, evidence-backed thesis body;
-  product source pins confirmed at spine-first `orca/product/...` homes; both
+  2026-06-12; refreshed + re-pinned 2026-06-20; rebranded + re-pinned
+  2026-07-03 (owner-authorized skill-edits: active thesis summary folded to the
+  decision-led, evidence-backed thesis body; product source pins confirmed at
+  spine-first `orca/product/...` homes; visible skill prose rebranded to Forseti
+  while retaining the `orca-product-lead` compatibility command/path; both
   copies verified identical).
   - Source path: `.agents/skills/orca-product-lead/SKILL.md` (Forseti-local).
-  - Source sha256: `4E573BB652319AD9178ACA8F8F66FD71AE6A7B2E660BB642A1D633B5961A6F0A`
-    (re-pinned 2026-06-20 after the spine-first product-tree migration and
-    active-thesis integration; prior frozen sha
-    `37FD65B7833CE80AC251111C6D5E7A1F26C26106E948F2134BE5533340AA3510`,
-    `C8DEAA4DDEC94321ED47BA879D0C85269CACFEEE8D733B3634AB1A1C792634A3`,
-    `42EF7C2DCE667CFA09EA6F3F8CE369C7F55D7721D131692CB06C11152E908BB5`)
-    (working-tree bytes; updated at deployment 2026-06-08 when the status text was
-    added; supersedes the at-acceptance hash 2B011CE8; reread-required if the file
-    changes).
+  - Source sha256: `24E848BCCD063E70120BCCA51B723D9FE9EAF0DF44904A96FB6B915FF00B0E40`
+    (re-pinned 2026-07-03 after the Forseti rename migration; prior frozen
+    working-tree sha
+    `4E573BB652319AD9178ACA8F8F66FD71AE6A7B2E660BB642A1D633B5961A6F0A`;
+    reread-required if the file changes).
     (eol note: checkout filters may materialize CRLF or LF working-tree bytes,
-    so the durable identity is the git blob. In this worktree, on-disk
-    Get-FileHash reads
-    `4E573BB652319AD9178ACA8F8F66FD71AE6A7B2E660BB642A1D633B5961A6F0A`; git
-    content blob is `64d13bbc7e878ca8f73a884a1a193dd33553f49a` on both copies,
-    identical after the active-thesis/spine-first refresh.)
+    so the stable same-checkout identity used here is observed with
+    Get-FileHash. In this worktree, on-disk Get-FileHash reads
+    `24E848BCCD063E70120BCCA51B723D9FE9EAF0DF44904A96FB6B915FF00B0E40`; git
+    content blob is `deffee82ed3a3056bc888cf2a9adf4c6df3fbfa0` on both copies,
+    identical after the Forseti rename refresh.)
   - Scope: prepares — does not freeze, run outreach, produce, or build — any Forseti
     product decision (value proposition, offer, ICP / first-proof wedge,
     buyer-proof design, positioning / packaging, deliverable shape, pull / kill /
