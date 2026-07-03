@@ -10,8 +10,9 @@ WHAT THIS DOES
 
   A flagged line is allowed when ANY of these hold:
     - the file is in the allowlisted claim-owning/record path families below;
-    - the line carries bounding ballast (negation / boundary vocabulary such
-      as "not", "pending", "excluded", "ceiling", "fixture", "claim tier");
+    - every claim-bearing sentence/clause carries bounding ballast (negation /
+      boundary vocabulary such as "not", "pending", "excluded", "ceiling",
+      "fixture", "claim tier");
     - the line carries the deliberate, review-visible ack token
       `full-gt-claim-ack`.
 
@@ -52,6 +53,7 @@ RULE_AUTHORITY = (
 ACK_TOKEN = "full-gt-claim-ack"
 
 CLAIM_RE = re.compile(r"full[\s_-]*god[\s_-]*tier|\bfull[\s_-]*gt\b", re.IGNORECASE)
+CLAUSE_SPLIT_RE = re.compile(r"[.;:!?]")
 BALLAST_RE = re.compile(
     r"\b(?:not|never|no|pending|proposed|excluded|exclusion|exclusions|ceiling|"
     r"fixture|fixtures|residual|residuals|historical|superseded|toward|towards|"
@@ -86,6 +88,15 @@ def is_allowlisted(relposix: str) -> bool:
     return relposix.startswith(ALLOWLIST_PREFIXES)
 
 
+def has_bounding_ballast(line: str) -> bool:
+    if ACK_TOKEN in line:
+        return True
+    claim_segments = [
+        segment for segment in CLAUSE_SPLIT_RE.split(line) if CLAIM_RE.search(segment)
+    ]
+    return bool(claim_segments) and all(BALLAST_RE.search(segment) for segment in claim_segments)
+
+
 def classify_added_line(relposix: str, line: str) -> str | None:
     """Return a finding message for an added line, or None when the line is clean.
 
@@ -97,7 +108,7 @@ def classify_added_line(relposix: str, line: str) -> str | None:
         return None
     if is_allowlisted(relposix):
         return None
-    if BALLAST_RE.search(line):
+    if has_bounding_ballast(line):
         return None
     return (
         "unballasted full-GT claim language outside the claim-owning surfaces. "
@@ -223,6 +234,17 @@ def selftest() -> int:
     check("ballasted line is clean",
           classify_added_line("docs/decisions/some_new_note_v0.md",
                               "Bronze is not full God Tier for production surfaces."), None)
+    check("unrelated ballast sentence still fires",
+          classify_added_line("docs/decisions/some_new_note_v0.md",
+                              "This is not about production. Bronze is full God Tier.") is not None,
+          True)
+    check("one unballasted claim among clauses fires",
+          classify_added_line("docs/decisions/some_new_note_v0.md",
+                              "Bronze is not full God Tier; Silver is full God Tier.") is not None,
+          True)
+    check("same-clause pending ballast is clean",
+          classify_added_line("docs/decisions/some_new_note_v0.md",
+                              "Bronze full GT is pending an owner decision."), None)
     check("claim-tier ballast is clean",
           classify_added_line("docs/decisions/some_new_note_v0.md",
                               "Bronze's full-GT claim tier is owned by the declaration."), None)
@@ -245,7 +267,7 @@ def selftest() -> int:
         for failure in failures:
             print(f"SELFTEST FAIL {failure}")
         return 1
-    print("check_full_gt_claims --selftest: OK (8 cases)")
+    print("check_full_gt_claims --selftest: OK (11 cases)")
     return 0
 
 

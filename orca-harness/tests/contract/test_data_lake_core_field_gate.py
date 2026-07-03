@@ -26,9 +26,14 @@ import pytest
 from data_lake.attachment_record_entry import derive_entries_by_key
 from data_lake.root import DataLakeRoot
 from source_capture.models import (
+    CoverageWindow,
+    MetricObservation,
+    PacketTiming,
     PreservedFile,
+    ReceiptMetadata,
     SourceCapturePacket,
     SourceCaptureSlice,
+    VisibleFact,
     known_fact,
 )
 from source_capture.writer import write_local_source_capture_packet
@@ -96,6 +101,65 @@ _PRESERVED_FILE_FIELDS = [
     "relative_packet_path",
     "sha256",
     "size_bytes",
+]
+
+_VISIBLE_FACT_FIELDS = [
+    "reason",
+    "status",
+    "value",
+]
+
+_PACKET_TIMING_FIELDS = [
+    "archive_snapshot_time",
+    "capture_time",
+    "cutoff_posture",
+    "recapture_time",
+    "source_edit_or_version",
+    "source_publication_or_event",
+]
+
+_METRIC_OBSERVATION_FIELDS = [
+    "coverage_window",
+    "metric",
+    "posture",
+    "reason",
+    "value",
+]
+
+_COVERAGE_WINDOW_FIELDS = [
+    "end",
+    "start",
+]
+
+_RECEIPT_METADATA_FIELDS = [
+    "generated_at",
+    "non_claims",
+    "summary",
+    "title",
+]
+
+_ATTACHMENT_RECORD_BODY_REF_KEYS = [
+    "body_sha256",
+    "file_id",
+    "hash_basis",
+    "kind",
+    "packet_id",
+    "relative_packet_path",
+]
+
+_ATTACHMENT_RECORD_POSTURE_SUMMARY_KEYS = [
+    "access_posture",
+    "archive_history_posture",
+    "media_modality_posture",
+    "re_capture_relationship",
+]
+
+_ATTACHMENT_RECORD_REPLAY_VERSION_PINS_KEYS = [
+    "attachment_record_schema_version",
+    "derivation_rule_version",
+    "entry_serialization_version",
+    "raw_packet_manifest_version",
+    "source_capture_obligation_contract_version",
 ]
 
 _ATTACHMENT_RECORD_ENTRY_KEYS = [
@@ -166,10 +230,74 @@ def test_preserved_file_field_set_is_pinned() -> None:
     )
 
 
+def test_nested_source_capture_model_field_sets_are_pinned() -> None:
+    assert sorted(VisibleFact.model_fields) == _VISIBLE_FACT_FIELDS, _PROMOTION_RULE_MESSAGE
+    assert sorted(PacketTiming.model_fields) == _PACKET_TIMING_FIELDS, _PROMOTION_RULE_MESSAGE
+    assert sorted(MetricObservation.model_fields) == _METRIC_OBSERVATION_FIELDS, (
+        _PROMOTION_RULE_MESSAGE
+    )
+    assert sorted(CoverageWindow.model_fields) == _COVERAGE_WINDOW_FIELDS, (
+        _PROMOTION_RULE_MESSAGE
+    )
+    assert sorted(ReceiptMetadata.model_fields) == _RECEIPT_METADATA_FIELDS, (
+        _PROMOTION_RULE_MESSAGE
+    )
+
+
 def test_manifest_top_level_key_set_is_pinned(fixture_packet) -> None:
     _, result = fixture_packet
     manifest = json.loads(Path(result.manifest_path).read_text(encoding="utf-8"))
     assert sorted(manifest) == _SOURCE_CAPTURE_PACKET_FIELDS, _PROMOTION_RULE_MESSAGE
+
+
+def test_manifest_source_slice_and_receipt_key_sets_are_pinned(fixture_packet) -> None:
+    _, result = fixture_packet
+    manifest = json.loads(Path(result.manifest_path).read_text(encoding="utf-8"))
+    assert sorted(manifest["timing"]) == _PACKET_TIMING_FIELDS, _PROMOTION_RULE_MESSAGE
+    assert sorted(manifest["receipt_metadata"]) == _RECEIPT_METADATA_FIELDS, (
+        _PROMOTION_RULE_MESSAGE
+    )
+    assert manifest["source_slices"], "fixture produced no source slices; pin would be vacuous"
+    for entry in manifest["source_slices"]:
+        assert sorted(entry) == _SOURCE_CAPTURE_SLICE_FIELDS, _PROMOTION_RULE_MESSAGE
+        assert sorted(entry["timing"]) == _PACKET_TIMING_FIELDS, _PROMOTION_RULE_MESSAGE
+
+
+def test_manifest_visible_fact_key_sets_are_pinned(fixture_packet) -> None:
+    _, result = fixture_packet
+    manifest = json.loads(Path(result.manifest_path).read_text(encoding="utf-8"))
+    visible_facts = [
+        manifest["source_locator"],
+        manifest["requested_decision_context"],
+        manifest["capture_context"],
+        manifest["actor_audience_context"],
+        manifest["access_posture"],
+        manifest["archive_history_posture"],
+        manifest["media_modality_posture"],
+        manifest["re_capture_relationship"],
+        manifest["timing"]["source_publication_or_event"],
+        manifest["timing"]["source_edit_or_version"],
+        manifest["timing"]["capture_time"],
+        manifest["timing"]["recapture_time"],
+        manifest["timing"]["cutoff_posture"],
+    ]
+    for entry in manifest["source_slices"]:
+        visible_facts.extend(
+            [
+                entry["locator"],
+                entry["access_posture"],
+                entry["archive_history_posture"],
+                entry["media_modality_posture"],
+                entry["re_capture_relationship"],
+                entry["timing"]["source_publication_or_event"],
+                entry["timing"]["source_edit_or_version"],
+                entry["timing"]["capture_time"],
+                entry["timing"]["recapture_time"],
+                entry["timing"]["cutoff_posture"],
+            ]
+        )
+    for fact in visible_facts:
+        assert sorted(fact) == _VISIBLE_FACT_FIELDS, _PROMOTION_RULE_MESSAGE
 
 
 def test_preserved_files_entry_key_set_is_pinned(fixture_packet) -> None:
@@ -186,3 +314,21 @@ def test_attachment_record_entry_key_set_is_pinned(fixture_packet) -> None:
     assert entries, "fixture packet produced no entries; pin would be vacuous"
     for entry in entries:
         assert sorted(entry) == _ATTACHMENT_RECORD_ENTRY_KEYS, _PROMOTION_RULE_MESSAGE
+
+
+def test_attachment_record_entry_nested_key_sets_are_pinned(fixture_packet) -> None:
+    root, result = fixture_packet
+    entries = derive_entries_by_key(root, result.packet.packet_id)
+    assert entries, "fixture packet produced no entries; pin would be vacuous"
+    for entry in entries:
+        assert sorted(entry["body_ref"]) == _ATTACHMENT_RECORD_BODY_REF_KEYS, (
+            _PROMOTION_RULE_MESSAGE
+        )
+        assert sorted(entry["posture_summary"]) == _ATTACHMENT_RECORD_POSTURE_SUMMARY_KEYS, (
+            _PROMOTION_RULE_MESSAGE
+        )
+        assert sorted(entry["replay_version_pins"]) == _ATTACHMENT_RECORD_REPLAY_VERSION_PINS_KEYS, (
+            _PROMOTION_RULE_MESSAGE
+        )
+        for summary in entry["posture_summary"].values():
+            assert sorted(summary) == _VISIBLE_FACT_FIELDS, _PROMOTION_RULE_MESSAGE
