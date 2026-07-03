@@ -3,6 +3,8 @@
 ```yaml
 retrieval_header_version: 1
 artifact_role: Orca review output
+reviewed_by: unrecorded
+authored_by: unrecorded
 scope: Delegated review adjudication record for PR #622 TikTok metric-parity Silver pipeline findings.
 use_when:
   - Checking how the delegated review findings for PR #622 were adjudicated and fixed.
@@ -14,6 +16,7 @@ authority_boundary: retrieval_only
 - **Review mode:** de-correlated adversarial review, couriered by the owner to a separate reviewer session; findings returned to the commissioning (home) session for adjudication.
 - **Adjudication commit:** `fix(tiktok): close 3 delegated-review findings` (this change).
 - **Non-authoring note:** this is a durable record of a review that occurred and how each finding was disposed. It is not itself a validation, readiness, or acceptance claim.
+- **Review-use boundary:** these findings and dispositions are decision input only; they are not approval, validation, mandatory remediation, or executor-ready patch authority unless separately accepted or authorized.
 
 ## Findings and disposition
 
