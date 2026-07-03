@@ -3,12 +3,17 @@
 
 WHAT THIS DOES
   Checks new or materially changed Orca review outputs for the mechanical
-  fields needed by later adjudication:
+  fields and artifact integrity needed by later adjudication:
 
     - retrieval header shape;
     - reviewed_by and authored_by provenance fields;
     - review-use boundary text that frames findings as decision input and not
-      approval, validation, mandatory remediation, or patch authority.
+      approval, validation, mandatory remediation, or patch authority;
+    - balanced, well-formed Markdown fences;
+    - embedded git diffs kept inside proper ```diff fences;
+    - no collapsed one-line diffs from unsafe report assembly;
+    - no future-tense provenance/check placeholders after final write;
+    - no trailing whitespace.
 
 RULE AUTHORITY
   .agents/workflow-overlay/review-lanes.md
@@ -24,6 +29,8 @@ MODES
   check_review_output_provenance.py --strict <path>     exit 1 if any finding
   check_review_output_provenance.py --staged [--strict] check git-staged paths
   check_review_output_provenance.py --changed [--strict] check changed + untracked
+  check_review_output_provenance.py --diff <base> [--strict]
+                                                      check base...HEAD paths
   check_review_output_provenance.py --selftest          fixture/selftest cases
 """
 from __future__ import annotations
@@ -52,6 +59,16 @@ NON_APPROVAL_RE = re.compile(
 FINDINGS_RE = re.compile(r"\bfindings?\b", re.IGNORECASE)
 REVIEW_USE_BOUNDARY_FIELD_RE = re.compile(
     r"(?mis)^\s*review_use_boundary\s*:\s*(?:>\s*)?(?P<value>.*?)(?=^\S|\Z)"
+)
+FENCE_RE = re.compile(r"^```(?P<info>.*)$")
+FENCE_INFO_RE = re.compile(r"^[A-Za-z0-9_-]+$")
+FUTURE_CHECK_RE = re.compile(
+    r"(?:"
+    r"must\s+be\s+checked\s+after\s+this\s+report\s+is\s+written|"
+    r"final\s+chat\s+closeout\s+records\s+the\s+observed\s+result|"
+    r"report\s+provenance\s+command\s+runs\s+after\s+durable\s+write"
+    r")",
+    re.IGNORECASE,
 )
 
 
@@ -108,6 +125,10 @@ def changed_paths(root: Path) -> list[str]:
     return paths
 
 
+def diff_paths(root: Path, base: str) -> list[str]:
+    return git_lines(root, ["diff", "--name-only", "--diff-filter=ACMR", f"{base}...HEAD"])
+
+
 def _load_retrieval_header_checker():
     hooks_dir = Path(__file__).resolve().parent
     module_path = hooks_dir / "check_retrieval_header.py"
@@ -144,6 +165,91 @@ def _has_review_use_boundary(text: str) -> bool:
         if DECISION_INPUT_RE.search(candidate) is not None and NON_APPROVAL_RE.search(candidate) is not None:
             return True
     return False
+
+
+def _fence_findings(relposix: str, lines: list[str]) -> list[Finding]:
+    findings: list[Finding] = []
+    fence_count = 0
+    active_info: str | None = None
+    inside_diff = False
+
+    for index, line in enumerate(lines, 1):
+        match = FENCE_RE.match(line)
+        if match:
+            fence_count += 1
+            raw_info = match.group("info")
+            normalized = raw_info.strip()
+            if raw_info != normalized or (normalized and FENCE_INFO_RE.fullmatch(normalized) is None):
+                findings.append(
+                    Finding(
+                        relposix,
+                        "malformed_code_fence",
+                        f"Line {index} has malformed fenced-code marker `{line}`; use bare ``` or a single language token.",
+                    )
+                )
+
+            if active_info is None:
+                active_info = normalized or ""
+                inside_diff = active_info == "diff"
+            else:
+                active_info = None
+                inside_diff = False
+            continue
+
+        if line.startswith("diff --git ") and not inside_diff:
+            findings.append(
+                Finding(
+                    relposix,
+                    "diff_line_outside_diff_fence",
+                    f"Line {index} starts with `diff --git` outside a ```diff fence.",
+                )
+            )
+
+        if inside_diff and line.startswith("diff --git ") and any(
+            token in line for token in (" index ", " --- ", " +++ ", " @@ ")
+        ):
+            findings.append(
+                Finding(
+                    relposix,
+                    "collapsed_diff_block",
+                    f"Line {index} looks like multiple git-diff lines collapsed into one line.",
+                )
+            )
+
+    if fence_count % 2:
+        findings.append(
+            Finding(
+                relposix,
+                "unbalanced_code_fences",
+                "Review output has an odd number of fenced-code markers.",
+            )
+        )
+    return findings
+
+
+def _integrity_findings(relposix: str, text: str) -> list[Finding]:
+    findings: list[Finding] = []
+    lines = text.splitlines()
+    findings.extend(_fence_findings(relposix, lines))
+
+    for index, line in enumerate(lines, 1):
+        if line.rstrip(" \t") != line:
+            findings.append(
+                Finding(
+                    relposix,
+                    "trailing_whitespace",
+                    f"Line {index} has trailing whitespace.",
+                )
+            )
+        if FUTURE_CHECK_RE.search(line):
+            findings.append(
+                Finding(
+                    relposix,
+                    "future_tense_review_output_check",
+                    f"Line {index} contains a future-tense provenance/check placeholder; record observed results only.",
+                )
+            )
+    return findings
 
 
 def check_text(relposix: str, text: str) -> list[Finding]:
@@ -191,6 +297,8 @@ def check_text(relposix: str, text: str) -> list[Finding]:
             )
         )
 
+    findings.extend(_integrity_findings(relposix, text))
+
     return findings
 
 
@@ -235,7 +343,7 @@ def report(findings: list[Finding], strict: bool) -> int:
     if findings and not strict:
         print(
             f"review-output-provenance: {len(findings)} advisory finding(s); "
-            "shape only, exit 0.",
+            "shape/integrity only, exit 0.",
             file=sys.stderr,
         )
     return 1 if strict and findings else 0
@@ -270,11 +378,12 @@ def selftest() -> int:
 
 def main(argv: list[str]) -> int:
     parser = argparse.ArgumentParser(
-        description="Check changed Orca review outputs for provenance and review-use boundary shape."
+        description="Check changed Orca review outputs for provenance, use-boundary, and integrity shape."
     )
     parser.add_argument("paths", nargs="*", help="explicit review-output files to check")
     parser.add_argument("--staged", action="store_true", help="check git-staged paths")
     parser.add_argument("--changed", action="store_true", help="check changed + staged + untracked paths")
+    parser.add_argument("--diff", metavar="BASE", help="check review-output files changed in BASE...HEAD")
     parser.add_argument("--strict", action="store_true", help="exit 1 if any finding exists")
     parser.add_argument("--selftest", action="store_true", help="run fixture/selftest cases")
     args = parser.parse_args(argv)
@@ -288,9 +397,11 @@ def main(argv: list[str]) -> int:
         relpaths.extend(staged_paths(root))
     if args.changed:
         relpaths.extend(changed_paths(root))
+    if args.diff:
+        relpaths.extend(diff_paths(root, args.diff))
     relpaths.extend(to_relposix(path, root) for path in args.paths)
 
-    selection_requested = bool(args.paths or args.staged or args.changed)
+    selection_requested = bool(args.paths or args.staged or args.changed or args.diff)
     if not relpaths and selection_requested:
         print("review-output-provenance: no review-output files selected -- OK")
         return 0
