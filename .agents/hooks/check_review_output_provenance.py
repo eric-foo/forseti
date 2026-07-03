@@ -24,6 +24,7 @@ MODES
   check_review_output_provenance.py --strict <path>     exit 1 if any finding
   check_review_output_provenance.py --staged [--strict] check git-staged paths
   check_review_output_provenance.py --changed [--strict] check changed + untracked
+  check_review_output_provenance.py --diff BASE [--strict] check committed BASE...HEAD (CI mode; --changed sees only the working tree, which is clean in CI)
   check_review_output_provenance.py --selftest          fixture/selftest cases
 """
 from __future__ import annotations
@@ -93,6 +94,32 @@ def git_lines(root: Path, args: list[str]) -> list[str]:
 
 def staged_paths(root: Path) -> list[str]:
     return git_lines(root, ["diff", "--cached", "--name-only", "--diff-filter=ACMR"])
+
+
+def diff_paths(root: Path, base_ref: str) -> list[str] | None:
+    """Added/modified relpaths in `base_ref...HEAD` (committed net change).
+
+    Returns None on a git infra gap (no HEAD, unresolvable base) so the caller
+    can fail OPEN loudly -- the universal Orca infra-gap stance; in CI the base
+    is always present (fetch-depth: 0). This is the CI-scoped mode: --changed
+    scans the working tree, which is always clean in a CI checkout.
+    """
+    try:
+        for probe in ("HEAD", base_ref):
+            result = subprocess.run(
+                ["git", "-C", str(root), "rev-parse", "--verify", "--quiet", probe],
+                capture_output=True,
+                text=True,
+            )
+            if result.returncode != 0:
+                return None
+    except (FileNotFoundError, OSError):
+        return None
+    return git_lines(
+        root,
+        ["diff", "--diff-filter=ACMR", "--find-renames", "--name-only",
+         f"{base_ref}...HEAD"],
+    )
 
 
 def changed_paths(root: Path) -> list[str]:
@@ -275,6 +302,8 @@ def main(argv: list[str]) -> int:
     parser.add_argument("paths", nargs="*", help="explicit review-output files to check")
     parser.add_argument("--staged", action="store_true", help="check git-staged paths")
     parser.add_argument("--changed", action="store_true", help="check changed + staged + untracked paths")
+    parser.add_argument("--diff", metavar="BASE_REF", default=None,
+                        help="check committed net change BASE_REF...HEAD (CI mode)")
     parser.add_argument("--strict", action="store_true", help="exit 1 if any finding exists")
     parser.add_argument("--selftest", action="store_true", help="run fixture/selftest cases")
     args = parser.parse_args(argv)
@@ -288,9 +317,19 @@ def main(argv: list[str]) -> int:
         relpaths.extend(staged_paths(root))
     if args.changed:
         relpaths.extend(changed_paths(root))
+    if args.diff:
+        diffed = diff_paths(root, args.diff)
+        if diffed is None:
+            print(
+                "review-output-provenance: WARNING infra gap (git or base ref "
+                f"{args.diff!r} unresolvable); failing open. In CI ensure fetch-depth: 0.",
+                file=sys.stderr,
+            )
+            return 0
+        relpaths.extend(diffed)
     relpaths.extend(to_relposix(path, root) for path in args.paths)
 
-    selection_requested = bool(args.paths or args.staged or args.changed)
+    selection_requested = bool(args.paths or args.staged or args.changed or args.diff)
     if not relpaths and selection_requested:
         print("review-output-provenance: no review-output files selected -- OK")
         return 0
