@@ -21,7 +21,7 @@ via exit code — so they are **harness-portable**: the *logic* runs anywhere; o
 | `check_dcp_receipt_hygiene.py` | manual / commit / CI candidate | Advisory by default; `--strict` fails on deterministic DCP receipt storage defects in changed durable docs: more than two inline receipts, missing archive pointer, or unauthorized standalone DCP receipt files. Shape only; never receipt truth, validation, readiness, or acceptance. |
 | `check_registry_list_sync.py` | manual / commit / CI candidate | Advisory by default; `--strict` fails on explicitly registered vocabulary-list drift. Current binding: Foundation Allowed Signal Uses must be contained by the engagement registry Signal Use Classification list. Shape only; never category correctness or auto-promotion. |
 | `check_engagement_stale_phrases.py` | manual / commit / CI candidate | Advisory by default; `--strict` fails on curated stale engagement/resonance doctrine phrases in live doctrine paths. Leakage detection only; default excludes historical prompts/reviews and DCP self-reference noise. |
-| `check_review_output_provenance.py` | manual / commit / CI candidate | Advisory by default; `--strict` fails on changed review outputs missing retrieval-header shape, `reviewed_by`, `authored_by`, or review-use boundary/non-approval wording. Shape only; never reviewer identity verification, de-correlation truth, approval, validation, or review quality. |
+| `check_review_output_provenance.py` | manual / commit / CI candidate | Advisory by default; `--strict` fails on changed review outputs missing retrieval-header shape, `reviewed_by`, `authored_by`, review-use boundary/non-approval wording, balanced/valid fences, proper `diff` fencing, non-collapsed diffs, observed-check wording, or whitespace hygiene. Shape/integrity only; never reviewer identity verification, de-correlation truth, approval, validation, or review quality. |
 | `check_review_routing.py` | **commit-msg** (advisory) + **CI** (`--strict`) | Diff-scoped, forward-only: a change touching code roots (`orca-harness/`, `.agents/hooks/`) must add a review artifact under `docs/prompts/reviews/`/`docs/review-outputs/` or carry a shape-valid `review_routing_status:` commit-message line (`routed <existing path>` / `blocked -- reason` / `not_needed -- reason`). Disposition presence/shape only; never review quality, reason truth, or whether review should have been recommended. |
 | `check_handoff_pointers.py` | **CI** (`--strict`) | Diff-scoped, forward-only: handoff-packet paths (`docs/workflows/*handoff*.md`, `docs/prompts/handoffs/*.md`) referenced in changed durable `.md` files must resolve in the same tree, or the pointer line must carry an explicit pin (`branch` / `PR #N` / `origin/<ref>`) or exemption marker. Pointer shape only; never packet content freshness, pin truth, or source-choice correctness. Backlog via `--audit` (never gated). |
 | `check_repo_map_freshness.py` | **post-tool** (after a write) | Reports structural drift vs the repo map as advisory output; exits 2 when the repo map itself is dirty after edit so the next action is an explicit-path commit; has a `--strict` gate for commit/CI use. |
@@ -67,6 +67,7 @@ python .agents/hooks/check_dcp_receipt_hygiene.py --selftest
 python .agents/hooks/check_registry_list_sync.py --selftest
 python .agents/hooks/check_engagement_stale_phrases.py --selftest
 python .agents/hooks/check_review_output_provenance.py --selftest
+python .agents/hooks/check_review_output_provenance.py --diff origin/main --strict
 python .agents/hooks/check_review_routing.py --selftest
 python .agents/hooks/check_handoff_pointers.py --selftest
 python .agents/hooks/check_repo_map_freshness.py --selftest
@@ -128,6 +129,7 @@ python .agents/hooks/check_dcp_receipt_hygiene.py --selftest
 python .agents/hooks/check_registry_list_sync.py --selftest
 python .agents/hooks/check_engagement_stale_phrases.py --selftest
 python .agents/hooks/check_review_output_provenance.py --selftest
+python .agents/hooks/check_review_output_provenance.py --diff origin/main --strict
 python .agents/hooks/check_review_routing.py --selftest
 python .agents/hooks/check_handoff_pointers.py --selftest
 python .agents/hooks/check_repo_map_freshness.py --selftest

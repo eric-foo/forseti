@@ -3,12 +3,17 @@
 
 WHAT THIS DOES
   Checks new or materially changed Orca review outputs for the mechanical
-  fields needed by later adjudication:
+  fields and artifact integrity needed by later adjudication:
 
     - retrieval header shape;
     - reviewed_by and authored_by provenance fields;
     - review-use boundary text that frames findings as decision input and not
-      approval, validation, mandatory remediation, or patch authority.
+      approval, validation, mandatory remediation, or patch authority;
+    - balanced, well-formed Markdown fences;
+    - embedded git diffs kept inside proper ```diff fences;
+    - no collapsed one-line diffs from unsafe report assembly;
+    - no future-tense provenance/check placeholders after final write;
+    - no trailing whitespace.
 
 RULE AUTHORITY
   .agents/workflow-overlay/review-lanes.md
@@ -24,7 +29,8 @@ MODES
   check_review_output_provenance.py --strict <path>     exit 1 if any finding
   check_review_output_provenance.py --staged [--strict] check git-staged paths
   check_review_output_provenance.py --changed [--strict] check changed + untracked
-  check_review_output_provenance.py --diff BASE [--strict] check committed BASE...HEAD (CI mode; --changed sees only the working tree, which is clean in CI)
+  check_review_output_provenance.py --diff BASE [--strict]
+                                                      check committed BASE...HEAD paths
   check_review_output_provenance.py --selftest          fixture/selftest cases
 """
 from __future__ import annotations
@@ -45,14 +51,44 @@ FIELD_RE_TEMPLATE = r"(?mi)^\s*{field}\s*:\s*(?P<value>.*?)\s*$"
 REVIEWED_BY_RE = re.compile(FIELD_RE_TEMPLATE.format(field="reviewed_by"))
 AUTHORED_BY_RE = re.compile(FIELD_RE_TEMPLATE.format(field="authored_by"))
 DECISION_INPUT_RE = re.compile(r"\bdecision\s+input\b", re.IGNORECASE)
-NON_APPROVAL_RE = re.compile(
-    r"\b(?:not|no|never)\b.{0,240}\b(?:approval|validation|mandatory\s+remediation|"
-    r"executor[- ]ready|patch\s+authority|readiness)\b",
-    re.IGNORECASE | re.DOTALL,
-)
+NEGATION_RE = re.compile(r"\b(?:not|no|never)\b", re.IGNORECASE)
+# Complete required non-claim set per .agents/workflow-overlay/review-lanes.md:
+# "not approval, validation, mandatory remediation, or executor-ready patch
+# authority" -- all four concepts must be present, not just one.
+REQUIRED_NON_CLAIM_TERMS = {
+    "approval": re.compile(r"\bapproval\b", re.IGNORECASE),
+    "validation": re.compile(r"\bvalidation\b", re.IGNORECASE),
+    "mandatory_remediation": re.compile(r"\bmandatory\s+remediation\b", re.IGNORECASE),
+    "patch_authority": re.compile(
+        r"\b(?:executor[- ]ready(?:\s+patch\s+authority)?|patch\s+authority)\b",
+        re.IGNORECASE,
+    ),
+}
+NON_CLAIM_WINDOW_CHARS = 400
 FINDINGS_RE = re.compile(r"\bfindings?\b", re.IGNORECASE)
 REVIEW_USE_BOUNDARY_FIELD_RE = re.compile(
     r"(?mis)^\s*review_use_boundary\s*:\s*(?:>\s*)?(?P<value>.*?)(?=^\S|\Z)"
+)
+FENCE_RE = re.compile(r"^```(?P<info>.*)$")
+FENCE_INFO_RE = re.compile(r"^[A-Za-z0-9_-]+$")
+# A future-tense provenance/check placeholder is a promise to check, verify,
+# confirm, or record a result at some point after the report is finalized,
+# rather than recording an observed result now. Match the semantic class
+# (future modal + checking verb, tied to a report-completion trigger), not
+# only the exact wordings the checker happened to be authored against.
+_FUTURE_MODAL = r"(?:will|must|should|shall|is\s+to|are\s+to)\s+be\s+(?:checked|verified|confirmed|recorded|reran|rerun|run)"
+_COMPLETION_TRIGGER = (
+    r"(?:after|once|when|upon)\s+(?:this\s+)?(?:report(?:\s+is)?\s+)?"
+    r"(?:written|saved|merged|committed|finalized|closed[- ]out|post[- ]write)"
+)
+FUTURE_CHECK_RE = re.compile(
+    r"(?:"
+    rf"{_FUTURE_MODAL}.{{0,100}}?{_COMPLETION_TRIGGER}|"
+    rf"{_COMPLETION_TRIGGER}.{{0,100}}?{_FUTURE_MODAL}|"
+    r"final\s+chat\s+closeout\s+records\s+the\s+observed\s+result|"
+    r"report\s+provenance\s+command\s+runs\s+after\s+durable\s+write"
+    r")",
+    re.IGNORECASE,
 )
 
 
@@ -78,6 +114,14 @@ def to_relposix(target: str, root: Path) -> str | None:
     return value[2:] if value.startswith("./") else value
 
 
+class GitSelectionError(RuntimeError):
+    """Raised when a git path-selection command could not be evaluated.
+
+    This is distinct from a git command that ran and legitimately selected
+    zero paths; callers must not treat the two as equivalent.
+    """
+
+
 def git_lines(root: Path, args: list[str]) -> list[str]:
     try:
         result = subprocess.run(
@@ -85,41 +129,17 @@ def git_lines(root: Path, args: list[str]) -> list[str]:
             capture_output=True,
             text=True,
         )
-    except (FileNotFoundError, OSError):
-        return []
+    except (FileNotFoundError, OSError) as exc:
+        raise GitSelectionError(f"git {' '.join(args)} could not run: {exc}") from exc
     if result.returncode != 0:
-        return []
+        stderr = result.stderr.strip()
+        detail = f": {stderr}" if stderr else ""
+        raise GitSelectionError(f"git {' '.join(args)} exited {result.returncode}{detail}")
     return [line.strip() for line in result.stdout.splitlines() if line.strip()]
 
 
 def staged_paths(root: Path) -> list[str]:
     return git_lines(root, ["diff", "--cached", "--name-only", "--diff-filter=ACMR"])
-
-
-def diff_paths(root: Path, base_ref: str) -> list[str] | None:
-    """Added/modified relpaths in `base_ref...HEAD` (committed net change).
-
-    Returns None on a git infra gap (no HEAD, unresolvable base) so the caller
-    can fail OPEN loudly -- the universal Orca infra-gap stance; in CI the base
-    is always present (fetch-depth: 0). This is the CI-scoped mode: --changed
-    scans the working tree, which is always clean in a CI checkout.
-    """
-    try:
-        for probe in ("HEAD", base_ref):
-            result = subprocess.run(
-                ["git", "-C", str(root), "rev-parse", "--verify", "--quiet", probe],
-                capture_output=True,
-                text=True,
-            )
-            if result.returncode != 0:
-                return None
-    except (FileNotFoundError, OSError):
-        return None
-    return git_lines(
-        root,
-        ["diff", "--diff-filter=ACMR", "--find-renames", "--name-only",
-         f"{base_ref}...HEAD"],
-    )
 
 
 def changed_paths(root: Path) -> list[str]:
@@ -134,6 +154,10 @@ def changed_paths(root: Path) -> list[str]:
                 paths.append(path)
     return paths
 
+
+def diff_paths(root: Path, base: str) -> list[str]:
+    """Added/modified relpaths in `base...HEAD` for CI-scoped committed diffs."""
+    return git_lines(root, ["diff", "--diff-filter=ACMR", "--find-renames", "--name-only", f"{base}...HEAD"])
 
 def _load_retrieval_header_checker():
     hooks_dir = Path(__file__).resolve().parent
@@ -166,11 +190,104 @@ def _review_use_boundary_candidates(text: str) -> list[str]:
     return candidates
 
 
+def _has_complete_non_claim_set(candidate: str) -> bool:
+    negation_match = NEGATION_RE.search(candidate)
+    if negation_match is None:
+        return False
+    window = candidate[negation_match.start() : negation_match.start() + NON_CLAIM_WINDOW_CHARS]
+    return all(pattern.search(window) is not None for pattern in REQUIRED_NON_CLAIM_TERMS.values())
+
+
 def _has_review_use_boundary(text: str) -> bool:
     for candidate in _review_use_boundary_candidates(text):
-        if DECISION_INPUT_RE.search(candidate) is not None and NON_APPROVAL_RE.search(candidate) is not None:
+        if DECISION_INPUT_RE.search(candidate) is not None and _has_complete_non_claim_set(candidate):
             return True
     return False
+
+
+def _fence_findings(relposix: str, lines: list[str]) -> list[Finding]:
+    findings: list[Finding] = []
+    fence_count = 0
+    active_info: str | None = None
+    inside_diff = False
+
+    for index, line in enumerate(lines, 1):
+        match = FENCE_RE.match(line)
+        if match:
+            fence_count += 1
+            raw_info = match.group("info")
+            normalized = raw_info.strip()
+            if raw_info != normalized or (normalized and FENCE_INFO_RE.fullmatch(normalized) is None):
+                findings.append(
+                    Finding(
+                        relposix,
+                        "malformed_code_fence",
+                        f"Line {index} has malformed fenced-code marker `{line}`; use bare ``` or a single language token.",
+                    )
+                )
+
+            if active_info is None:
+                active_info = normalized or ""
+                inside_diff = active_info == "diff"
+            else:
+                active_info = None
+                inside_diff = False
+            continue
+
+        if line.startswith("diff --git ") and not inside_diff:
+            findings.append(
+                Finding(
+                    relposix,
+                    "diff_line_outside_diff_fence",
+                    f"Line {index} starts with `diff --git` outside a ```diff fence.",
+                )
+            )
+
+        if inside_diff and line.startswith("diff --git ") and any(
+            token in line for token in (" index ", " --- ", " +++ ", " @@ ")
+        ):
+            findings.append(
+                Finding(
+                    relposix,
+                    "collapsed_diff_block",
+                    f"Line {index} looks like multiple git-diff lines collapsed into one line.",
+                )
+            )
+
+    if fence_count % 2:
+        findings.append(
+            Finding(
+                relposix,
+                "unbalanced_code_fences",
+                "Review output has an odd number of fenced-code markers.",
+            )
+        )
+    return findings
+
+
+def _integrity_findings(relposix: str, text: str) -> list[Finding]:
+    findings: list[Finding] = []
+    lines = text.splitlines()
+    findings.extend(_fence_findings(relposix, lines))
+
+    for index, line in enumerate(lines, 1):
+        if line.rstrip(" \t") != line:
+            findings.append(
+                Finding(
+                    relposix,
+                    "trailing_whitespace",
+                    f"Line {index} has trailing whitespace.",
+                )
+            )
+        if FUTURE_CHECK_RE.search(line):
+            findings.append(
+                Finding(
+                    relposix,
+                    "future_tense_review_output_check",
+                    f"Line {index} contains a future-tense provenance/check placeholder; record observed results only.",
+                )
+            )
+    return findings
 
 
 def check_text(relposix: str, text: str) -> list[Finding]:
@@ -218,6 +335,8 @@ def check_text(relposix: str, text: str) -> list[Finding]:
             )
         )
 
+    findings.extend(_integrity_findings(relposix, text))
+
     return findings
 
 
@@ -262,10 +381,25 @@ def report(findings: list[Finding], strict: bool) -> int:
     if findings and not strict:
         print(
             f"review-output-provenance: {len(findings)} advisory finding(s); "
-            "shape only, exit 0.",
+            "shape/integrity only, exit 0.",
             file=sys.stderr,
         )
     return 1 if strict and findings else 0
+
+
+FIXTURE_EXPECTED_RE = re.compile(r"fixture_expected:\s*(pass|fail)")
+FIXTURE_EXPECTED_CODES_RE = re.compile(r"fixture_expected_codes:\s*([^>]+?)\s*-->")
+
+
+def _fixture_metadata(text: str) -> tuple[str, set[str] | None]:
+    header = "\n".join(text.splitlines()[:5])
+    expected_match = FIXTURE_EXPECTED_RE.search(header)
+    expected = expected_match.group(1) if expected_match else ""
+    codes_match = FIXTURE_EXPECTED_CODES_RE.search(header)
+    if codes_match is None:
+        return expected, None
+    codes = {code.strip() for code in codes_match.group(1).split(",") if code.strip()}
+    return expected, codes
 
 
 def selftest() -> int:
@@ -278,16 +412,21 @@ def selftest() -> int:
 
     ok = True
     for path in fixture_paths:
-        first_line = path.read_text(encoding="utf-8").splitlines()[0]
-        match = re.search(r"fixture_expected:\s*(pass|fail)", first_line)
-        expected = match.group(1) if match else ""
+        text = path.read_text(encoding="utf-8")
+        expected, expected_codes = _fixture_metadata(text)
         relpath = "docs/review-outputs/adversarial-artifact-reviews/" + path.name
-        findings = check_text(relpath, path.read_text(encoding="utf-8"))
+        findings = check_text(relpath, text)
+        found_codes = {f.code for f in findings}
         passed = not findings
         if expected == "pass" and passed:
             print(f"PASS {path.name}")
         elif expected == "fail" and not passed:
-            print(f"PASS {path.name} expected fail: {', '.join(sorted({f.code for f in findings}))}")
+            if expected_codes is not None and not expected_codes.issubset(found_codes):
+                ok = False
+                missing = sorted(expected_codes - found_codes)
+                print(f"FAIL {path.name} missing expected codes {missing}; found={sorted(found_codes)}")
+            else:
+                print(f"PASS {path.name} expected fail: {', '.join(sorted(found_codes))}")
         else:
             ok = False
             print(f"FAIL {path.name} expected={expected or '<missing>'} findings={findings}")
@@ -297,7 +436,7 @@ def selftest() -> int:
 
 def main(argv: list[str]) -> int:
     parser = argparse.ArgumentParser(
-        description="Check changed Orca review outputs for provenance and review-use boundary shape."
+        description="Check changed Orca review outputs for provenance, use-boundary, and integrity shape."
     )
     parser.add_argument("paths", nargs="*", help="explicit review-output files to check")
     parser.add_argument("--staged", action="store_true", help="check git-staged paths")
@@ -313,20 +452,16 @@ def main(argv: list[str]) -> int:
 
     root = repo_root()
     relpaths: list[str | None] = []
-    if args.staged:
-        relpaths.extend(staged_paths(root))
-    if args.changed:
-        relpaths.extend(changed_paths(root))
-    if args.diff:
-        diffed = diff_paths(root, args.diff)
-        if diffed is None:
-            print(
-                "review-output-provenance: WARNING infra gap (git or base ref "
-                f"{args.diff!r} unresolvable); failing open. In CI ensure fetch-depth: 0.",
-                file=sys.stderr,
-            )
-            return 0
-        relpaths.extend(diffed)
+    try:
+        if args.staged:
+            relpaths.extend(staged_paths(root))
+        if args.changed:
+            relpaths.extend(changed_paths(root))
+        if args.diff:
+            relpaths.extend(diff_paths(root, args.diff))
+    except GitSelectionError as exc:
+        print(f"review-output-provenance: selection could not be evaluated: {exc}", file=sys.stderr)
+        return 2
     relpaths.extend(to_relposix(path, root) for path in args.paths)
 
     selection_requested = bool(args.paths or args.staged or args.changed or args.diff)
