@@ -159,6 +159,8 @@ class _FakeObservationPage:
         pointer_target: dict[str, object] | None = None,
         pointer_targets: list[dict[str, object]] | None = None,
         screenshot_png: bytes = b"",
+        screenshot_pngs: list[bytes] | None = None,
+        post_click_absence_result: dict[str, object] | None = None,
     ) -> None:
         self.event_log = event_log
         self.height = height
@@ -168,6 +170,13 @@ class _FakeObservationPage:
         self.pointer_target = pointer_target
         self.pointer_targets = list(pointer_targets or [])
         self.screenshot_png = screenshot_png
+        self.screenshot_pngs = list(screenshot_pngs or [])
+        self.post_click_absence_result = post_click_absence_result or {
+            "checked": True,
+            "marker_count": 0,
+            "absent": True,
+            "matched_marker": None,
+        }
         self.mouse = _FakeObservationMouse(self)
 
     def route(self, *_args: object, **_kwargs: object) -> None:
@@ -188,6 +197,8 @@ class _FakeObservationPage:
 
     def screenshot(self, **_kwargs: object) -> bytes:
         self.event_log.append("screenshot")
+        if self.screenshot_pngs:
+            return self.screenshot_pngs.pop(0)
         return self.screenshot_png
 
     def emit_response_once(self) -> None:
@@ -211,6 +222,9 @@ class _FakeObservationPage:
             self.event_log.append("post_load_action")
             self.emit_response_once()
             return {"postLoadAction": arg}
+        if "matched_marker" in script and "absent" in script:
+            self.event_log.append("post_click_absence_lookup")
+            return self.post_click_absence_result
         if "candidate_selector" in script and "target_found" in script:
             self.event_log.append("pointer_target_lookup")
             if self.pointer_targets:
@@ -315,6 +329,15 @@ def _visual_x_modal_and_far_right_screenshot_png() -> bytes:
     draw.line((166, 14, 148, 32), fill="black", width=3)
     draw.line((218, 8, 236, 26), fill="black", width=3)
     draw.line((236, 8, 218, 26), fill="black", width=3)
+    buffer = io.BytesIO()
+    image.save(buffer, format="PNG")
+    return buffer.getvalue()
+
+
+def _blank_screenshot_png() -> bytes:
+    from PIL import Image
+
+    image = Image.new("RGB", (240, 120), "white")
     buffer = io.BytesIO()
     image.save(buffer, format="PNG")
     return buffer.getvalue()
@@ -1292,6 +1315,80 @@ def test_playwright_page_observation_can_prefer_center_modal_visual_x(
     assert receipt.get("visual_fallback_geometric_target") is not True
     assert receipt["target_box"]["x"] < 190
     assert receipt["clicked"] is True
+
+
+def test_playwright_page_observation_records_post_click_close_verification(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    event_log: list[str] = []
+    page = _FakeObservationPage(
+        event_log,
+        pointer_target={
+            "candidate_count": 0,
+            "matched_count": 0,
+            "target_found": False,
+            "target_kind": None,
+            "page_text_gate_matched": True,
+            "selection_strategy": "top_right",
+            "box": None,
+        },
+        screenshot_pngs=[
+            _visual_x_modal_and_far_right_screenshot_png(),
+            _blank_screenshot_png(),
+        ],
+        post_click_absence_result={
+            "checked": True,
+            "marker_count": 4,
+            "absent": True,
+            "matched_marker": None,
+        },
+    )
+    _install_fake_playwright(monkeypatch, page)
+
+    result = browser_snapshot_module._PlaywrightBrowserSnapshotEngine().capture_page_observation(
+        url="https://example.com/source",
+        timeout_seconds=1,
+        wait_until="load",
+        viewport_width=1280,
+        viewport_height=720,
+        dom_extract_script="() => ({items: []})",
+        dom_extract_arg={},
+        response_url_predicate=lambda url: "widget" in url,
+        post_load_pointer_action=BrowserPagePointerAction(
+            action_name="challenge_modal_close",
+            candidate_selector="button",
+            text_markers=("close",),
+            exact_text_markers=("x",),
+            page_text_markers=("drag the slider",),
+            post_click_absent_text_markers=("drag the slider", "verify to continue", "captcha", "security check"),
+            post_click_visual_target_absence_check=True,
+            move_steps_min=5,
+            move_steps_max=5,
+            random_seed=11,
+            prefer_top_right=True,
+            visual_top_right_x_fallback=True,
+            visual_x_target_zone="center_modal",
+        ),
+    )
+
+    receipt = result.metadata["post_load_pointer_action"]
+    assert isinstance(receipt, dict)
+    assert receipt["clicked"] is True
+    assert receipt["post_click_absence_checked"] is True
+    assert receipt["post_click_absence_marker_count"] == 4
+    assert receipt["post_click_absence_verified"] is True
+    assert receipt["post_click_visual_check_attempted"] is True
+    assert receipt["post_click_visual_target_found"] is False
+    assert receipt["post_click_visual_target_absent"] is True
+    assert receipt["post_click_visual_candidate_count"] == 0
+    assert len(receipt["post_click_visual_screenshot_sha256"]) == 64
+    screenshot_indexes = [
+        index for index, event in enumerate(event_log) if event == "screenshot"
+    ]
+    assert len(screenshot_indexes) == 2
+    assert event_log.index("mouse_click") < event_log.index("wait:2500")
+    assert event_log.index("wait:2500") < event_log.index("post_click_absence_lookup")
+    assert event_log.index("post_click_absence_lookup") < screenshot_indexes[1]
 
 
 def test_playwright_page_observation_center_modal_uses_geometric_fallback(

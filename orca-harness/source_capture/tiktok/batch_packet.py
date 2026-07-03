@@ -297,6 +297,7 @@ def _normalize_access_intervention(receipt: JsonObject) -> JsonObject:
             else "challenge_close_action_observed"
         ),
         "followthrough": followthrough,
+        "accepted": _as_bool(receipt.get("challenge_close_accepted")),
         "action_name": _first_str(action.get("action_name")),
         "clicked": _as_bool(action.get("clicked")),
         "target_kind": _first_str(action.get("target_kind")),
@@ -313,6 +314,18 @@ def _normalize_access_intervention(receipt: JsonObject) -> JsonObject:
             action.get("visual_fallback_screenshot_sha256")
         ),
         "visual_fallback_crop_box": _as_dict(action.get("visual_fallback_crop_box")) or None,
+        "post_click_absence_verified": _as_bool(
+            action.get("post_click_absence_verified")
+        ),
+        "post_click_absence_matched_marker": _first_str(
+            action.get("post_click_absence_matched_marker")
+        ),
+        "post_click_visual_target_absent": _as_bool(
+            action.get("post_click_visual_target_absent")
+        ),
+        "post_click_visual_screenshot_sha256": _first_str(
+            action.get("post_click_visual_screenshot_sha256")
+        ),
     }
     clean = {key: value for key, value in result.items() if value is not None}
     assert_no_sensitive_tiktok_material(clean)

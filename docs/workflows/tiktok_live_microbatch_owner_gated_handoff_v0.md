@@ -109,14 +109,18 @@ five-creator zero-response run as a diagnostic receipt, not capture success.
 Current owner redirect for this lane: the prior stop-only challenge-X rule is
 superseded for X-able public TikTok challenge modals. Use
 `--allow-challenge-close-followthrough` when the owner authorizes a route-yield
-run through a visible X/Close. The runner may click X/Close through the named UI
-movement substrate, must never drag or solve the puzzle, and may continue only if
-challenge/security text clears and either a page-owned `/api/comment/list`
+run through a visible X/Close. The runner may attempt X/Close through the named
+UI movement substrate, must never drag or solve the puzzle, and may continue only
+if the close is accepted by post-click receipt checks: challenge/security text is
+absent and the centered visual-X is absent on the after-click screenshot. A
+`clicked=true` pointer receipt is not close proof. Continue only if accepted
+close follow-through is proven and either a page-owned `/api/comment/list`
 response or bounded DOM-visible comment candidates are captured after the named
 comments -> `More like this` -> comments route. DOM-visible comments are lower-
 tier `captured_visible_dom` evidence, not page-owned response evidence. Any
-admitted row must preserve the close action as a `source_access_intervention`;
-it is post-close follow-through, not an unchallenged clean route.
+admitted row must preserve the accepted close action as a
+`source_access_intervention`; it is post-close follow-through, not an
+unchallenged clean route.
 `--allow-challenge-close-diagnostic` remains stop-only for changed-condition
 checks.
 
@@ -152,11 +156,12 @@ The only live-run fork is whether to proceed past the first creator/video:
   authorized.
 - Do not report an `X` or `Close` click by itself as success. The allowed capture
   path is the explicit owner-authorized
-  `--allow-challenge-close-followthrough` route: click X/Close through the named
-  UI movement substrate, require challenge/security text to clear, require at
-  least one page-owned `/api/comment/list` response or bounded DOM-visible
-  comment candidate, and preserve the close action as a source-access
-  intervention. Diagnostic close mode remains
+  `--allow-challenge-close-followthrough` route: attempt X/Close through the
+  named UI movement substrate, require `challenge_close_accepted=true` from
+  post-click text and visual-X absence checks, require at least one page-owned
+  `/api/comment/list` response or bounded DOM-visible comment candidate, and
+  preserve the accepted close action as a source-access intervention. Diagnostic
+  close mode remains
   stop-only and cannot admit, expand, or count as a completed capture row.
 - Do not use a personal TikTok account. This lane assumes a dedicated,
   burnable, warmed account with human-performed login.
@@ -321,8 +326,10 @@ handoff depends on:
     receipt, and
     either `results[0].capture_receipt.admitted_comment_response_count >= 1` or
     `results[0].capture_receipt.dom_visible_comment_candidate_count >= 1`. If
-    `challenge_close_followthrough_count > 0`, verify the row and batch packet
-    preserve the close action as `source_access_intervention`.
+    `challenge_close_followthrough_count > 0`, verify
+    `results[0].capture_receipt.challenge_close_accepted=true` and verify the row
+    and batch packet preserve the accepted close action as
+    `source_access_intervention`.
 
     If `challenge_count` is nonzero, failures contain a challenge/auth stop, a
     challenge remains after follow-through, or a diagnostic challenge-close
@@ -446,10 +453,10 @@ receipt was `tiktok_challenge_modal_visual_close_diagnostic_pointer_v0` with
 (`9a466df6...` then `efdb3ebd...`), so this is recurring behavior rather than a
 single cached receipt. Any page-owned comment-list response observed after the
 challenge-close diagnostic click remains diagnostic only and cannot satisfy the
-clean route-yield/admission gate. This proves the visual X can be found and
-clicked repeatedly under the challenge-text gate; it does not prove clean
-capture because the forced stop semantics are intentional after a
-challenge-close diagnostic click.
+clean route-yield/admission gate. This proves a visual-X target can be found and
+a pointer click can be delivered under the challenge-text gate; it does not prove
+that TikTok accepted the close, because accepted close now requires post-click
+text and visual-X absence proof.
 
 
 ## Changed / Inspected / Tested Files In This Handoff Lane

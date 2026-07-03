@@ -124,6 +124,15 @@ TIKTOK_CHALLENGE_AFTER_CLOSE_DIAGNOSTIC_REASON = (
 TIKTOK_CHALLENGE_AFTER_CLOSE_FOLLOWTHROUGH_REASON = (
     "platform_challenge_observed_after_close_followthrough"
 )
+TIKTOK_CHALLENGE_X_CLOSE_NOT_ACCEPTED_REASON = (
+    "challenge_x_click_attempted_close_not_accepted"
+)
+TIKTOK_CHALLENGE_TEXT_MARKERS = (
+    "drag the slider",
+    "verify to continue",
+    "captcha",
+    "security check",
+)
 TIKTOK_COMMENT_LIST_RESPONSE_CAP = 2
 TIKTOK_COMMENT_ROUTE_NO_RESPONSE_REASON = "comment_list_response_absent"
 TIKTOK_LOGGED_OUT_SESSION_MODE = "public_logged_out"
@@ -325,6 +334,7 @@ def run_tiktok_live_batch_probe(
 
         challenge_close_action = _challenge_close_action_summary(capture_result)
         challenge_close_clicked = _first_bool(challenge_close_action.get("clicked")) is True
+        challenge_close_accepted = _challenge_close_accepted(challenge_close_action)
         blocker_triage = classify_tiktok_capture(capture_result)
         challenge_reason = _challenge_reason_from_triage(blocker_triage)
         if challenge_reason is not None:
@@ -362,6 +372,7 @@ def run_tiktok_live_batch_probe(
                             challenge_close_diagnostic=(
                                 challenge_close_clicked and not close_followthrough_failed
                             ),
+                            challenge_close_accepted=challenge_close_accepted,
                         ),
                         capture_result,
                         comment_response_cap=comment_response_cap,
@@ -391,7 +402,43 @@ def run_tiktok_live_batch_probe(
                 )
             )
             break
-        if challenge_close_clicked:
+        if (
+            challenge_close_clicked
+            and allow_challenge_close_followthrough
+            and not challenge_close_accepted
+        ):
+            challenge_count += 1
+            failures.append(
+                _failure_entry(
+                    video_url=video_url,
+                    video_id=video_id,
+                    observed_utc=observed_utc,
+                    reason=TIKTOK_CHALLENGE_X_CLOSE_NOT_ACCEPTED_REASON,
+                    detail=(
+                        "TikTok challenge X/Close received a pointer click, but the "
+                        "post-click verification did not prove the slider modal cleared; "
+                        "probe stopped before comment admission."
+                    ),
+                    blocker_triage=_with_comment_route_observation(
+                        _with_challenge_close_action(
+                            {
+                                "blocker_class": "challenge_close_not_accepted",
+                                "action": "stop",
+                                "reason": TIKTOK_CHALLENGE_X_CLOSE_NOT_ACCEPTED_REASON,
+                                "action_mode": "source_access_intervention",
+                                "action_taken": True,
+                            },
+                            challenge_close_action,
+                            challenge_close_followthrough=True,
+                            challenge_close_accepted=False,
+                        ),
+                        capture_result,
+                        comment_response_cap=comment_response_cap,
+                    ),
+                )
+            )
+            break
+        if challenge_close_accepted:
             challenge_close_followthrough_count += 1
 
         item_struct = _extract_item_struct(capture_result.dom_observation)
@@ -495,10 +542,13 @@ def run_tiktok_live_batch_probe(
                     blocker_triage=_comment_route_zero_yield_blocker_triage(
                         comment_receipt,
                         challenge_close_action=(
-                            challenge_close_action if challenge_close_clicked else None
+                            challenge_close_action if challenge_close_accepted else None
                         ),
                         challenge_close_followthrough=(
-                            allow_challenge_close_followthrough and challenge_close_clicked
+                            allow_challenge_close_followthrough and challenge_close_accepted
+                        ),
+                        challenge_close_accepted=(
+                            challenge_close_accepted if challenge_close_accepted else None
                         ),
                     ),
                 )
@@ -581,6 +631,7 @@ def _comment_route_zero_yield_blocker_triage(
     *,
     challenge_close_action: JsonObject | None = None,
     challenge_close_followthrough: bool = False,
+    challenge_close_accepted: bool | None = None,
 ) -> JsonObject:
     receipt = {
         "blocker_class": "comment_route_zero_yield",
@@ -606,6 +657,8 @@ def _comment_route_zero_yield_blocker_triage(
         receipt["challenge_close_action"] = challenge_close_action
     if challenge_close_followthrough:
         receipt["challenge_close_followthrough"] = True
+    if challenge_close_accepted is not None:
+        receipt["challenge_close_accepted"] = challenge_close_accepted
     return receipt
 
 
@@ -615,14 +668,31 @@ def _with_challenge_close_action(
     *,
     challenge_close_followthrough: bool = False,
     challenge_close_diagnostic: bool = False,
+    challenge_close_accepted: bool | None = None,
 ) -> JsonObject:
     if challenge_close_action:
         receipt["challenge_close_action"] = challenge_close_action
         if challenge_close_followthrough:
             receipt["challenge_close_followthrough"] = True
+        if challenge_close_accepted is not None:
+            receipt["challenge_close_accepted"] = challenge_close_accepted
         if challenge_close_diagnostic:
             receipt["challenge_close_diagnostic"] = challenge_close_action
     return receipt
+
+
+def _challenge_close_accepted(challenge_close_action: JsonObject) -> bool:
+    if _first_bool(challenge_close_action.get("clicked")) is not True:
+        return False
+    verification_values = [
+        value
+        for value in (
+            _first_bool(challenge_close_action.get("post_click_absence_verified")),
+            _first_bool(challenge_close_action.get("post_click_visual_target_absent")),
+        )
+        if value is not None
+    ]
+    return bool(verification_values) and all(verification_values)
 
 
 def _with_comment_route_observation(
@@ -812,12 +882,7 @@ def _tiktok_challenge_close_pointer_action(
             "[data-testid],[data-test-id],[class]"
         ),
         text_markers=("close", "dismiss"),
-        page_text_markers=(
-            "drag the slider",
-            "verify to continue",
-            "captcha",
-            "security check",
-        ),
+        page_text_markers=TIKTOK_CHALLENGE_TEXT_MARKERS,
         exact_text_markers=("x", "×"),
         wait_after_ms=2000,
         move_steps_min=6,
@@ -827,6 +892,8 @@ def _tiktok_challenge_close_pointer_action(
         prefer_top_right=True,
         visual_top_right_x_fallback=True,
         visual_x_target_zone="center_modal",
+        post_click_absent_text_markers=TIKTOK_CHALLENGE_TEXT_MARKERS,
+        post_click_visual_target_absence_check=True,
         random_seed=_stable_pointer_seed(
             video_id=video_id,
             random_seed=random_seed,
@@ -875,14 +942,7 @@ def _tiktok_challenge_visual_close_pointer_action(
         ),
         text_markers=("__tiktok_visual_close_diagnostic_never_dom_match__",),
         page_text_markers=(
-            (
-                "drag the slider",
-                "verify to continue",
-                "captcha",
-                "security check",
-            )
-            if require_visible_challenge_text
-            else ()
+            TIKTOK_CHALLENGE_TEXT_MARKERS if require_visible_challenge_text else ()
         ),
         exact_text_markers=("__tiktok_visual_close_diagnostic_never_dom_match__",),
         wait_after_ms=2000,
@@ -893,6 +953,8 @@ def _tiktok_challenge_visual_close_pointer_action(
         prefer_top_right=True,
         visual_top_right_x_fallback=True,
         visual_x_target_zone="center_modal",
+        post_click_absent_text_markers=TIKTOK_CHALLENGE_TEXT_MARKERS,
+        post_click_visual_target_absence_check=True,
         random_seed=_stable_pointer_seed(
             video_id=video_id,
             random_seed=random_seed,
@@ -1006,6 +1068,7 @@ def _cadence_row_from_capture(
     dom_visible_comments = _dom_visible_comment_candidates(capture_result)
     challenge_close_action = _as_dict(challenge_close_action)
     challenge_close_clicked = _first_bool(challenge_close_action.get("clicked")) is True
+    challenge_close_accepted = _challenge_close_accepted(challenge_close_action)
     capture_receipt = {
         "page_url_sha256": _sha256_text(video_url),
         "final_url_sha256": _sha256_text(capture_result.final_url),
@@ -1024,7 +1087,9 @@ def _cadence_row_from_capture(
         capture_receipt["comment_capture_fallback"] = "dom_visible_comment_candidates_v0"
     if challenge_close_action:
         capture_receipt["challenge_close_action"] = challenge_close_action
-    if challenge_close_followthrough_allowed and challenge_close_clicked:
+        if challenge_close_clicked:
+            capture_receipt["challenge_close_accepted"] = challenge_close_accepted
+    if challenge_close_followthrough_allowed and challenge_close_accepted:
         capture_receipt["challenge_close_followthrough"] = True
     return {
         "video_id": video_id,
@@ -1231,6 +1296,48 @@ def _pointer_action_summary(action: JsonObject) -> JsonObject:
             ),
             "visual_fallback_failure": _first_str(
                 action.get("visual_fallback_failure")
+            ),
+            "post_click_absence_checked": _first_bool(
+                action.get("post_click_absence_checked")
+            ),
+            "post_click_absence_marker_count": _first_int(
+                action.get("post_click_absence_marker_count")
+            ),
+            "post_click_absence_verified": _first_bool(
+                action.get("post_click_absence_verified")
+            ),
+            "post_click_absence_matched_marker": _first_str(
+                action.get("post_click_absence_matched_marker")
+            ),
+            "post_click_absence_failure": _first_str(
+                action.get("post_click_absence_failure")
+            ),
+            "post_click_visual_check_attempted": _first_bool(
+                action.get("post_click_visual_check_attempted")
+            ),
+            "post_click_visual_target_found": _first_bool(
+                action.get("post_click_visual_target_found")
+            ),
+            "post_click_visual_target_absent": _first_bool(
+                action.get("post_click_visual_target_absent")
+            ),
+            "post_click_visual_candidate_count": _first_int(
+                action.get("post_click_visual_candidate_count")
+            ),
+            "post_click_visual_confidence": _first_float(
+                action.get("post_click_visual_confidence")
+            ),
+            "post_click_visual_screenshot_sha256": _first_str(
+                action.get("post_click_visual_screenshot_sha256")
+            ),
+            "post_click_visual_crop_box": _as_dict(
+                action.get("post_click_visual_crop_box")
+            ) or None,
+            "post_click_visual_target_box": _as_dict(
+                action.get("post_click_visual_target_box")
+            ) or None,
+            "post_click_visual_failure": _first_str(
+                action.get("post_click_visual_failure")
             ),
         }
     )
@@ -1685,6 +1792,7 @@ __all__ = [
     "TIKTOK_CHALLENGE_CLOSE_DIAGNOSTIC_POINTER_ACTION_NAME",
     "TIKTOK_CHALLENGE_VISUAL_CLOSE_DIAGNOSTIC_POINTER_ACTION_NAME",
     "TIKTOK_CHALLENGE_CLOSE_FOLLOWTHROUGH_POINTER_ACTION_NAME",
+    "TIKTOK_CHALLENGE_X_CLOSE_NOT_ACCEPTED_REASON",
     "TIKTOK_CHALLENGE_VISUAL_CLOSE_FOLLOWTHROUGH_POINTER_ACTION_NAME",
     "TIKTOK_CHALLENGE_CLOSE_DIAGNOSTIC_REASON",
     "TIKTOK_COMMENT_ROUTE_NO_RESPONSE_REASON",

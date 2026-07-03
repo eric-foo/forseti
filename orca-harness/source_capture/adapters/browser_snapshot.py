@@ -43,6 +43,8 @@ class BrowserPagePointerAction:
     prefer_top_right: bool = False
     visual_top_right_x_fallback: bool = False
     visual_x_target_zone: str = "top_right"
+    post_click_absent_text_markers: tuple[str, ...] = ()
+    post_click_visual_target_absence_check: bool = False
     random_seed: int = 0
 
 
@@ -1179,6 +1181,26 @@ _POINTER_ACTION_TARGET_SCRIPT = r"""
 """.strip()
 
 
+_PAGE_TEXT_MARKER_ABSENCE_SCRIPT = r"""
+(markersArg) => {
+  const markers = Array.isArray(markersArg)
+    ? markersArg.map((value) => String(value || '').trim().toLowerCase()).filter(Boolean)
+    : [];
+  const pageText = [
+    document.title,
+    document.body ? document.body.innerText : '',
+  ].filter(Boolean).join(' ').toLowerCase();
+  const matched = markers.find((marker) => pageText.includes(marker)) || null;
+  return {
+    checked: markers.length > 0,
+    marker_count: markers.length,
+    absent: markers.length > 0 ? matched === null : null,
+    matched_marker: matched,
+  };
+}
+""".strip()
+
+
 def _normalize_pointer_action(
     action: BrowserPagePointerAction | None,
 ) -> BrowserPagePointerAction | None:
@@ -1196,6 +1218,11 @@ def _normalize_pointer_action(
     )
     exact_text_markers = tuple(
         marker.strip().lower() for marker in action.exact_text_markers if marker.strip()
+    )
+    post_click_absent_text_markers = tuple(
+        marker.strip().lower()
+        for marker in action.post_click_absent_text_markers
+        if marker.strip()
     )
     if not text_markers and not exact_text_markers:
         raise ValueError(
@@ -1234,6 +1261,10 @@ def _normalize_pointer_action(
         prefer_top_right=bool(action.prefer_top_right),
         visual_top_right_x_fallback=bool(action.visual_top_right_x_fallback),
         visual_x_target_zone=visual_x_target_zone,
+        post_click_absent_text_markers=post_click_absent_text_markers,
+        post_click_visual_target_absence_check=bool(
+            action.post_click_visual_target_absence_check
+        ),
         random_seed=int(action.random_seed),
     )
 
@@ -1251,7 +1282,12 @@ def _normalize_pointer_actions(
     return tuple(normalized)
 
 
-def _find_visual_top_right_x_target(page: object, *, target_zone: str = "top_right") -> dict[str, object]:
+def _find_visual_top_right_x_target(
+    page: object,
+    *,
+    target_zone: str = "top_right",
+    allow_geometric: bool = True,
+) -> dict[str, object]:
     result: dict[str, object] = {
         "target_found": False,
         "target_kind": "visual_x",
@@ -1308,9 +1344,11 @@ def _find_visual_top_right_x_target(page: object, *, target_zone: str = "top_rig
         modal_candidates = _center_modal_visual_x_candidates(candidates, image_width, image_height)
         if modal_candidates:
             selected = max(modal_candidates, key=lambda candidate: candidate["score"])
-        else:
+        elif allow_geometric:
             selected = _center_modal_geometric_close_candidate(image_width, image_height)
             result["visual_fallback_geometric_target"] = True
+        else:
+            return result
     if selected is None:
         selected = max(candidates, key=lambda candidate: candidate["score"])
     result["target_found"] = True
@@ -1468,6 +1506,74 @@ def _score_visual_x_component(
         "score": score,
     }
 
+def _page_text_marker_absence_result(
+    page: object,
+    markers: Sequence[str],
+) -> dict[str, object]:
+    result: dict[str, object] = {
+        "post_click_absence_checked": True,
+        "post_click_absence_marker_count": len(markers),
+        "post_click_absence_verified": False,
+    }
+    try:
+        marker_result = page.evaluate(_PAGE_TEXT_MARKER_ABSENCE_SCRIPT, list(markers))
+    except Exception:
+        result["post_click_absence_failure"] = "post_click_absence_lookup_failed"
+        return result
+    if not isinstance(marker_result, dict):
+        result["post_click_absence_failure"] = "post_click_absence_lookup_failed"
+        return result
+    absent = marker_result.get("absent")
+    if isinstance(absent, bool):
+        result["post_click_absence_verified"] = absent
+    matched_marker = marker_result.get("matched_marker")
+    if isinstance(matched_marker, str) and matched_marker:
+        result["post_click_absence_matched_marker"] = matched_marker
+    marker_count = marker_result.get("marker_count")
+    try:
+        result["post_click_absence_marker_count"] = int(marker_count)  # type: ignore[arg-type]
+    except (TypeError, ValueError):
+        pass
+    return result
+
+
+def _post_click_visual_absence_result(
+    page: object,
+    action: BrowserPagePointerAction,
+) -> dict[str, object]:
+    visual_target = _find_visual_top_right_x_target(
+        page,
+        target_zone=action.visual_x_target_zone,
+        allow_geometric=False,
+    )
+    target_found = bool(visual_target.get("target_found"))
+    failure = visual_target.get("visual_fallback_failure")
+    result: dict[str, object] = {
+        "post_click_visual_check_attempted": True,
+        "post_click_visual_target_found": target_found,
+        "post_click_visual_target_absent": (not target_found and failure is None),
+        "post_click_visual_candidate_count": _safe_int(
+            visual_target.get("visual_fallback_candidate_count"),
+            default=0,
+        ),
+    }
+    confidence = visual_target.get("visual_fallback_confidence")
+    if confidence is not None:
+        result["post_click_visual_confidence"] = confidence
+    screenshot_sha256 = visual_target.get("visual_fallback_screenshot_sha256")
+    if isinstance(screenshot_sha256, str) and screenshot_sha256:
+        result["post_click_visual_screenshot_sha256"] = screenshot_sha256
+    crop_box = visual_target.get("visual_fallback_crop_box")
+    if isinstance(crop_box, dict):
+        result["post_click_visual_crop_box"] = crop_box
+    box = visual_target.get("box")
+    if isinstance(box, dict):
+        result["post_click_visual_target_box"] = box
+    if isinstance(failure, str) and failure:
+        result["post_click_visual_failure"] = failure
+    return result
+
+
 def _run_pointer_action(page: object, action: BrowserPagePointerAction) -> dict[str, object]:
     receipt: dict[str, object] = {
         "action_name": action.action_name,
@@ -1581,6 +1687,15 @@ def _run_pointer_action(page: object, action: BrowserPagePointerAction) -> dict[
         "x": round(click_x, 3),
         "y": round(click_y, 3),
     }
+    if action.post_click_absent_text_markers:
+        receipt.update(
+            _page_text_marker_absence_result(
+                page,
+                action.post_click_absent_text_markers,
+            )
+        )
+    if action.post_click_visual_target_absence_check:
+        receipt.update(_post_click_visual_absence_result(page, action))
     return receipt
 
 

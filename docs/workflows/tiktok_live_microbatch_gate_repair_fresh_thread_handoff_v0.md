@@ -52,14 +52,16 @@ The current owner has changed the TikTok challenge-close policy after this PR
 #608 packet was written. Treat the diagnostic-only instructions in this packet
 as historical guardrails for `--allow-challenge-close-diagnostic`, not as the
 current route-yield rule for X-able public challenge modals. Current doctrine:
-use `--allow-challenge-close-followthrough` only when owner-authorized; click
+use `--allow-challenge-close-followthrough` only when owner-authorized; attempt
 X/Close through the named UI movement substrate; never drag or solve; continue
-only if challenge/security text clears and either a page-owned
-`/api/comment/list` response or bounded DOM-visible comment candidates are
-captured after the named comments -> `More like this` -> comments route;
-preserve the close action as a source-access intervention; and never call the
-route unchallenged clean capture. DOM-visible comments are lower-tier
-`captured_visible_dom` evidence, not page-owned response evidence.
+only if post-click receipt checks prove the close was accepted
+(`challenge_close_accepted=true` from challenge-text absence and centered
+visual-X absence) and either a page-owned `/api/comment/list` response or bounded
+DOM-visible comment candidates are captured after the named comments -> `More
+like this` -> comments route; preserve the accepted close action as a
+source-access intervention; and never call the route unchallenged clean capture.
+DOM-visible comments are lower-tier `captured_visible_dom` evidence, not
+page-owned response evidence.
 
 ## Goal Handoff
 
@@ -161,9 +163,10 @@ Continue only the PR #608 TikTok live microbatch gate-repair lane. The fresh thr
     alone as success; do not do product extraction; do not print/inspect/commit/
     persist auth contents; use UI movement substrate for blockers. Current owner
     doctrine allows `--allow-challenge-close-followthrough` for X-able public
-    challenge modals only when the post-close route yields a page-owned comment
-    response or bounded DOM-visible comment candidates and preserves the close
-    receipt as a source-access intervention. DOM-visible comments are lower-tier
+    challenge modals only when post-click checks prove the close was accepted,
+    the post-close route yields a page-owned comment response or bounded
+    DOM-visible comment candidates, and the accepted close receipt is preserved
+    as a source-access intervention. DOM-visible comments are lower-tier
     evidence, not page-owned response evidence. Cold agents must know the
     playbook exists.
     - Load-bearing: yes.
@@ -300,9 +303,9 @@ Continue only the PR #608 TikTok live microbatch gate-repair lane. The fresh thr
 - Stale idea: continue directly to a 3-5 creator microbatch.
   - Why stale/dangerous: current repaired lane requires one-video route-yield gate first after challenge/diagnostic findings.
   - Current replacement: land/adjudicate PR #608, then owner-gated one-video route-yield gate if authorized.
-- Stale idea: closing a slider/challenge X means the blocker is solved.
-  - Why stale/dangerous: it is diagnostic only and can be followed by traffic that must not be admitted.
-  - Current replacement: clicked challenge-close diagnostic forces stop and blocks admission/expansion.
+- Stale idea: a slider/challenge X click means the blocker is solved.
+  - Why stale/dangerous: `clicked=true` is pointer delivery only; it can be followed by traffic that must not be admitted if close acceptance is unproven.
+  - Current replacement: diagnostic close clicks force stop; follow-through close clicks require `challenge_close_accepted=true` before any comment evidence can admit.
 - Stale source: raw scratch/live observations as durable authority.
   - Why stale/dangerous: scratch is untracked and not source-of-truth.
   - Current replacement: use committed code, tests, handoff, playbook, and review report.
