@@ -39,7 +39,7 @@ This library does not prove buyer readiness, audience fit, creator quality, cros
 
 ## YouTube Library View
 
-| Creator | Platform | Subject ID | Avg views | Engagement | Sample | Freshness | Cadence / velocity | Client-safe note | Audit |
+| Creator | Platform | Subject ID | Avg views | Engagement | Sample | Freshness | Cadence / velocity | Scan caveat | Audit |
 |---|---|---|---:|---:|---|---|---|---|---|
 | [JusDeRose](https://www.youtube.com/channel/UCflkhyQuNBeiw3__1TUXXNg) | YouTube | `acct_yt_fragrance_012` | 160,954.29 | 3.46% | strong | 2026-07-02 (partial) | not yet available | admitted-pool only | [audit](creator_signal_multi_creator_library_static_projection_v0.md#details-acct-yt-fragrance-012) |
 | [GentsScents](https://www.youtube.com/channel/UC9IImcLkUdmURWtQhxu8VwQ) | YouTube | `acct_yt_fragrance_010` | 127,654.08 | 3.29% | strong | 2026-07-02 (partial) | not yet available | admitted-pool only | [audit](creator_signal_multi_creator_library_static_projection_v0.md#details-acct-yt-fragrance-010) |
@@ -74,7 +74,7 @@ This library does not prove buyer readiness, audience fit, creator quality, cros
 
 ## Instagram Library View
 
-| Creator | Platform | Subject ID | Avg views | Engagement | Sample | Freshness | Cadence / velocity | Client-safe note | Audit |
+| Creator | Platform | Subject ID | Avg views | Engagement | Sample | Freshness | Cadence / velocity | Scan caveat | Audit |
 |---|---|---|---:|---:|---|---|---|---|---|
 | [hyram](https://www.instagram.com/hyram/) | Instagram | `acct_ig_reels_001` | 145,593.33 | 2.42% | strong | 2026-06-30 (partial) | not yet available | admitted-pool only | [audit](creator_signal_multi_creator_library_static_projection_v0.md#details-acct-ig-reels-001) |
 | [milanscents](https://www.instagram.com/milanscents/) | Instagram | `acct_ig_reels_004` | 70,628.33 | 3.77% | strong | 2026-06-30 (partial) | not yet available | admitted-pool only | [audit](creator_signal_multi_creator_library_static_projection_v0.md#details-acct-ig-reels-004) |
@@ -86,7 +86,7 @@ Default client view:
 
 - Show the platform sections and compact row table.
 - Keep table order framed as a within-platform metric sort, not creator standing.
-- Keep `Sample`, `Freshness`, `Cadence / velocity`, and `Client-safe note` visible on every row.
+- Keep `Sample`, `Freshness`, `Cadence / velocity`, and `Scan caveat` visible on every row.
 
 When the client asks "why this row?" or "what does this not prove?":
 
@@ -100,4 +100,4 @@ When the client asks "why this row?" or "what does this not prove?":
 - No ideal-audience profile is populated in the current data.
 - No cross-platform rollup exists.
 - `posting_cadence` and `recent_velocity` are not yet populated for any row.
-- Source-pool-limited metrics can support a client conversation, but not a channel-wide performance claim or outreach decision by themselves.
+- Source-pool-limited metrics are not channel-wide performance evidence and are not an outreach basis by themselves.
