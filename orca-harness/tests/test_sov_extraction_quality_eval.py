@@ -146,8 +146,18 @@ def test_leak_scan_classifies_present_leaked_unknown(tmp_path: Path) -> None:
     assert scan["brand_present_in_transcript"] == 1
     assert scan["brand_absent_from_transcript_leaked"] == 1
     assert scan["leak_rate"] == 0.5
-    assert scan["per_brand"]["Dior"] == {"mentions": 1, "leaked": 0}
-    assert scan["per_brand"]["Creed"] == {"mentions": 1, "leaked": 1}
+    assert scan["per_brand"]["Dior"] == {
+        "mentions": 1,
+        "scanned": 1,
+        "leaked": 0,
+        "unscannable": 0,
+    }
+    assert scan["per_brand"]["Creed"] == {
+        "mentions": 1,
+        "scanned": 1,
+        "leaked": 1,
+        "unscannable": 0,
+    }
     assert scan["leaked_samples"][0]["brand"] == "Creed"
     assert scan["leaked_samples"][0]["raw_anchor"] == pid
 
@@ -201,12 +211,85 @@ def test_unresolvable_and_gate_failing_records_are_counted_never_scanned(
         "source_backed_complete": 1,
         "source_lineage_missing": 1,
     }
+    assert report["substrate"]["mentions_excluded_not_source_backed"] == 1
     assert report["transcript_resolution"]["records_by_disposition"] == {
         "no_raw_transcript_ref": 1
     }
     assert report["transcript_resolution"]["named_mentions_unscannable"] == 1
     assert report["knowledge_leak_scan"]["named_mentions_scanned"] == 0
     assert report["knowledge_leak_scan"]["leak_rate"] is None
+
+
+def test_raw_ref_mismatches_are_unscannable_not_fallback_scanned(
+    tmp_path: Path,
+) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "lake")
+    pid, json3_entry = _commit_caption_packet(root, tmp_path, "alpha", "Dior is spoken")
+
+    missing_file_ref = _lineage_fields(pid, json3_entry, "vid1")
+    missing_file_ref["raw_refs"][0]["file_id"] = "missing-json3-file"
+    _write_record(
+        root,
+        pid,
+        "m_missing_file.json",
+        {
+            "mentions": [_mention("m-1", "Dior", "Sauvage")],
+            **missing_file_ref,
+        },
+    )
+
+    bad_hash_ref = _lineage_fields(pid, json3_entry, "vid1")
+    bad_hash_ref["raw_refs"][0]["sha256"] = "0" * 64
+    _write_record(
+        root,
+        pid,
+        "m_bad_hash.json",
+        {
+            "mentions": [_mention("m-2", "Dior", "Sauvage")],
+            **bad_hash_ref,
+        },
+    )
+
+    report = run_eval(root)
+
+    # Neither record may be scanned against a substitute transcript: the wrong
+    # file_id and the wrong hash are counted dispositions, never fallbacks.
+    assert report["knowledge_leak_scan"]["named_mentions_scanned"] == 0
+    assert report["transcript_resolution"]["named_mentions_unscannable"] == 2
+    assert report["transcript_resolution"]["records_by_disposition"] == {
+        "raw_transcript_ref_hash_mismatch": 1,
+        "transcript_file_missing_in_packet": 1,
+    }
+    assert report["knowledge_leak_scan"]["per_brand"]["Dior"] == {
+        "mentions": 2,
+        "scanned": 0,
+        "leaked": 0,
+        "unscannable": 2,
+    }
+
+
+def test_records_without_named_mentions_get_not_attempted_disposition(
+    tmp_path: Path,
+) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "lake")
+    pid, json3_entry = _commit_caption_packet(root, tmp_path, "alpha", "unknown sample")
+    _write_record(
+        root,
+        pid,
+        "m_unknown_only.json",
+        {
+            "mentions": [_mention("m-1", "unknown", "mystery")],
+            **_lineage_fields(pid, json3_entry, "vid1"),
+        },
+    )
+
+    report = run_eval(root)
+
+    assert report["substrate"]["mentions_unknown_or_blank_brand"] == 1
+    assert report["transcript_resolution"]["records_by_disposition"] == {
+        "not_attempted_no_named_mentions": 1
+    }
+    assert report["knowledge_leak_scan"]["named_mentions_scanned"] == 0
 
 
 def test_runner_cli_fails_closed_on_in_repo_root(tmp_path: Path, capsys) -> None:
