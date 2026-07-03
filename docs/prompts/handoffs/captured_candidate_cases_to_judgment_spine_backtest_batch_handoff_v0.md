@@ -167,7 +167,7 @@ Transfer the 9 captured candidate cases to the judgment-spine batch owner with t
     - Compare target: blob `4f1c55c9e8188e03112446ccc22954bc0df89f3e` on `origin/main`
     - Last checked: 2026-06-15
     - Reuse rule: run against the pinned key only; a key change stops the batch.
-  - `docs/prompts/handoffs/near_half_reconciliation_handoff_to_read_machinery_lane_v0.md`
+  - `docs/prompts/handoffs/near_half_reconciliation_handoff_to_read_machinery_lane_v0.md` (on PR #66 / branch near-half-reconciliation-handoff-v0)
     - Role: #66 — the RETIRED near-half→read-machinery handoff (L3 context; NOT the corpus consumer).
     - Load-bearing: no (context that prevents re-conflation)
     - Compare target: on PR #66 / branch `near-half-reconciliation-handoff-v0`; reread-required (not on main).

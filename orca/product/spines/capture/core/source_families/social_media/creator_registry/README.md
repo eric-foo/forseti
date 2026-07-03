@@ -20,6 +20,7 @@ open_next:
   - orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_spec_v0.md
   - orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_profile_current_view_v0.json
   - orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_profile_current_view_spec_v0.md
+  - orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_profile_current_record_contract_v0.md
   - orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_profile_current_lake_native_record_mapping_v0.md
   - orca/product/spines/creator_signal/creator_intelligence_profile_surface_v0.md
 stale_if:
@@ -42,6 +43,9 @@ different speeds and carry different authority:
   rejected links.
 - `creator_profile_current_view_v0.json` is the current one-stop profile export:
   identity plus joined rollups and source drill-back for operator/dashboard use.
+- `creator_profile_current_record_contract_v0.md` pins the per-profile visible
+  field surface, consumer interpretation promise, and declared-deferred global
+  metric recipes for `posting_cadence` and `recent_velocity`.
 - Metric observations, rollups, capture receipts, and future audience snapshots
   remain in their owning Capture/Silver producer records. They are not copied
   into the registry index as raw truth.
