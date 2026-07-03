@@ -29,8 +29,8 @@ MODES
   check_review_output_provenance.py --strict <path>     exit 1 if any finding
   check_review_output_provenance.py --staged [--strict] check git-staged paths
   check_review_output_provenance.py --changed [--strict] check changed + untracked
-  check_review_output_provenance.py --diff <base> [--strict]
-                                                      check base...HEAD paths
+  check_review_output_provenance.py --diff BASE [--strict]
+                                                      check committed BASE...HEAD paths
   check_review_output_provenance.py --selftest          fixture/selftest cases
 """
 from __future__ import annotations
@@ -156,8 +156,8 @@ def changed_paths(root: Path) -> list[str]:
 
 
 def diff_paths(root: Path, base: str) -> list[str]:
-    return git_lines(root, ["diff", "--name-only", "--diff-filter=ACMR", f"{base}...HEAD"])
-
+    """Added/modified relpaths in `base...HEAD` for CI-scoped committed diffs."""
+    return git_lines(root, ["diff", "--diff-filter=ACMR", "--find-renames", "--name-only", f"{base}...HEAD"])
 
 def _load_retrieval_header_checker():
     hooks_dir = Path(__file__).resolve().parent
@@ -441,7 +441,8 @@ def main(argv: list[str]) -> int:
     parser.add_argument("paths", nargs="*", help="explicit review-output files to check")
     parser.add_argument("--staged", action="store_true", help="check git-staged paths")
     parser.add_argument("--changed", action="store_true", help="check changed + staged + untracked paths")
-    parser.add_argument("--diff", metavar="BASE", help="check review-output files changed in BASE...HEAD")
+    parser.add_argument("--diff", metavar="BASE_REF", default=None,
+                        help="check committed net change BASE_REF...HEAD (CI mode)")
     parser.add_argument("--strict", action="store_true", help="exit 1 if any finding exists")
     parser.add_argument("--selftest", action="store_true", help="run fixture/selftest cases")
     args = parser.parse_args(argv)

@@ -416,6 +416,37 @@ write boundary). Rule owner: `.agents/workflow-overlay/validation-gates.md`
 freshness, pin truth, or source-choice correctness. `--audit` = whole-corpus
 backlog view (never gated); `--selftest` present.
 
+**Full-GT claim tripwire.** `.agents/hooks/check_full_gt_claims.py` — diff-scoped,
+forward-only CI gate (registered in `.github/workflows/ci.yml` as
+`--changed --strict`): ADDED lines of changed `.md` files must not carry
+unballasted "full God Tier" claim language outside the claim-owning/record
+surfaces (the two Bronze declarations, data_lake README + spine workflows,
+repo map, DCP archive, `docs/review-outputs/**`, `docs/prompts/**`,
+`docs/hygiene/**`). A line passes with bounding ballast (negation / ceiling /
+fixture / claim-tier wording) or the deliberate `full-gt-claim-ack` token.
+Rule authority: the Bronze full-GT declaration's Erosion Guards (claim
+inflation), referenced never restated. Shape only — never claim truth. `.py`
+surfaces out of scope (tests + declaration govern). PostToolUse `--hook` mode
+exists; registration in `.claude/settings.json` is owner-gated. `--selftest`
+present. Companion tier-2 schema gate:
+`orca-harness/tests/contract/test_data_lake_core_field_gate.py` pins the
+lake-core field/key sets per the write-boundary contract's No-New-Core-Field
+Enforcement (any drift fails; update the pin only with the cited owner
+decision).
+
+**Review-output provenance gate.** `.agents/hooks/check_review_output_provenance.py`
+— diff-scoped, forward-only CI gate (registered in `.github/workflows/ci.yml`
+as `--diff origin/main --strict`): changed/added `docs/review-outputs/*.md`
+must carry a valid retrieval header, non-blank `reviewed_by`/`authored_by`
+(value `unrecorded` allowed, never blank/absent), and a review-use-boundary
+statement (findings are decision input, not approval/validation/readiness).
+Rule owners: `.agents/workflow-overlay/review-lanes.md` +
+`.agents/workflow-overlay/retrieval-metadata.md` (referenced, never restated).
+Shape only — never review quality, provenance truth, or de-correlation truth.
+`--changed`/`--staged` are working-tree modes for local use; `--diff` is the
+CI mode (a CI checkout's working tree is always clean). `--selftest` present
+(fixtures under `orca-harness/tests/fixtures/review_outputs/`).
+
 **Future agents: reuse this pattern.** To enforce the next load-bearing,
 deterministically-checkable rule, do not add another instruction -- add a
 sibling checker under `.agents/hooks/` that references the rule's authority
@@ -499,7 +530,7 @@ nickname: "crawling graph." The runner is
 | `orca/product/spines/data_lake/workflows/core_spine_v0_data_lake_bronze_full_gt_upgrade_scoping_v0.md` | Signal-first Bronze MGT to full-GT upgrade scoping record for batches A-D: discovery/Manifest fork, AR physicalization fork, retention/lawful-erasure/backend lock-in posture, and lake-doctor/CI plus representative proof threshold. Non-runtime; does not declare full GT. |
 | `orca/product/spines/foundation/` | Foundation spine: product contract, IPF/evidence standard, ontology (backbone + cards), demand-read taxonomy, vertical-exploration. |
 | `orca/product/spines/scanning/` | Scanning (discovery-side) spine: open `orca/product/spines/scanning/README.md` first. It routes to the MGT intelligent-walk model, default CSB broad-scout phase, recency/current-state frontier priority, proposed scan-core schema, admissibility/checkability surfaces, and source-family adapters. |
-| `orca/product/spines/capture/` | Capture (acquisition-side) spine: `core/` reusable acquisition layer containing source-access/candidate/corpus/obligation contracts, operating_model, packet_schema, Source Capture Toolbox, demand_durability_indicators, and source_families (`retail_pdp`, `social_media/{instagram,tiktok,youtube}`, plus the social-media-level creator public-handle linkage spec/current profile view spec and the YouTube creator-observation ledger spec/static seed). Dense - open the Data Capture submap. |
+| `orca/product/spines/capture/` | Capture (acquisition-side) spine: `core/` reusable acquisition layer containing source-access/candidate/corpus/obligation contracts, operating_model, packet_schema, Source Capture Toolbox, demand_durability_indicators, and source_families (`retail_pdp`, `social_media/{instagram,tiktok,youtube}`, plus the social-media-level creator public-handle linkage spec/current profile view spec/record contract and the YouTube creator-observation ledger spec/static seed). Dense - open the Data Capture submap. |
 | `orca/product/spines/creator_signal/` | Creator Signal product/signal spine (promotion-bound 2026-06-28). Owns product-facing creator intelligence surfaces: profile IA, aggregate influence display, ideal/content-fit audience display, freshness, limitations, and source drill-back over Capture-owned creator records. Binding: `docs/decisions/orca_creator_signal_spine_promotion_binding_v0.md`. |
 | `orca/product/spines/ecr/` | Evidence Candidate Record spine: evidence_candidate_record (SP-1/2/3/6 slices), signal_content (SCR direction + deriver, now deprecated/dormant as default pre-Judgment layer). |
 | `orca/product/spines/cleaning/` | Cleaning spine: cleaning-layer contracts. |
@@ -573,6 +604,7 @@ nickname: "crawling graph." The runner is
 | `docs/workflows/youtube_behavioral_measurement_corpus_receipt_v0.md` | Expanded canonical YouTube F-lake measurement corpus: 31 caption-route watch+caption videos, projection status counts, product-extraction boundary, ASR/no-caption gap, and next non-admin steps before statistical full-path completeness claims. |
 | `docs/workflows/data_capture_spine_consolidation_map_v0.md` | Data Capture Spine repo submap. Open before enumerating capture owner docs. |
 | `docs/workflows/tiktok_live_microbatch_owner_gated_handoff_v0.md` | Cold-lane handoff for the owner-gated TikTok live micro-batch after the bounded pointer-action and blocker-triage patches: 3-5 creators, checkpoint after the first creator, sanitized staging plus batch admission, stop on challenge, no CAPTCHA solving, no product extraction, and no scale/readiness claim. |
+| `docs/workflows/tiktok_ui_movement_blocker_substrate_playbook_v0.md` | Cold-agent playbook mapping TikTok live UI blocker classes to the bounded `BrowserPagePointerAction` substrate: benign overlay dismissal, comments -> More like this -> comments routing, DOM close diagnosis, visual-X close diagnosis, and no-solve/no-success stop semantics. |
 | `orca/product/spines/data_lake/authority/core_spine_v0_data_lake_capture_propagation_classification_contract_v0.md` | Accepted Data Lake / Capture propagation classification contract: classifies lake semantics, raw packet-runner seams, behavioral projection shape, source-family-local acquisition routes, and downstream residual/completeness semantics into same-class checks. |
 | `docs/decisions/data_lake_capture_propagation_classification_contract_proposal_v0.md` | Prepare-only proposal for narrow Data Lake / Capture propagation classification: generic lake/storage and packet-runner checks, platform behavioral parity checks, source-family-local acquisition routes, and downstream residual/Gold-boundary propagation. Proposal only; not accepted doctrine. |
 | `docs/workflows/ecr_spine_submap_v0.md` | ECR source-side spine repo submap (integrity postures SP-1/2/3/6 + deprecated/dormant Signal Content Record contract). Open before enumerating ECR/SCR owner docs. |

@@ -28,7 +28,9 @@ def test_blocker_triage_challenge_wins_over_dismiss_control() -> None:
     assert triage.action == TIKTOK_BLOCKER_ACTION_STOP
     assert triage.reason == "platform_challenge_observed"
     assert triage.challenge_marker_seen is True
-    assert triage.to_receipt()["marker_family"] == "challenge_or_security"
+    receipt = triage.to_receipt()
+    assert receipt["marker_family"] == "challenge_or_security"
+    assert receipt["matched_marker"] == "verify to continue"
 
 
 def test_blocker_triage_login_url_is_security_stop() -> None:
@@ -44,6 +46,7 @@ def test_blocker_triage_login_url_is_security_stop() -> None:
     assert triage.blocker_class == TIKTOK_BLOCKER_CLASS_CHALLENGE_OR_SECURITY
     assert triage.action == TIKTOK_BLOCKER_ACTION_STOP
     assert triage.reason == "login_or_auth_wall_observed"
+    assert triage.to_receipt()["matched_marker"] == "/login"
 
 
 def test_blocker_triage_benign_overlay_is_one_dismiss_candidate() -> None:

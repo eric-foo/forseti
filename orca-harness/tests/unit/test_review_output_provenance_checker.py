@@ -210,4 +210,4 @@ def test_diff_selector_uses_base_triple_dot(monkeypatch: pytest.MonkeyPatch) -> 
     monkeypatch.setattr(validator, "git_lines", fake_git_lines)
 
     assert validator.diff_paths(REPO_ROOT, "origin/main") == ["docs/review-outputs/x.md"]
-    assert calls == [["diff", "--name-only", "--diff-filter=ACMR", "origin/main...HEAD"]]
+    assert calls == [["diff", "--diff-filter=ACMR", "--find-renames", "--name-only", "origin/main...HEAD"]]

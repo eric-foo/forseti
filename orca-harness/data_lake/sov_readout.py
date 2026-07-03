@@ -255,14 +255,19 @@ def _well_formed_mention(mention: object) -> dict | None:
         return None
     if not (isinstance(source_pointer, str) and source_pointer.strip()):
         return None
-    if not (isinstance(start_ms, int) and isinstance(end_ms, int)):
+    if not (
+        type(start_ms) is int
+        and type(end_ms) is int
+        and start_ms >= 0
+        and end_ms >= start_ms
+    ):
         return None
     brand = mention.get("brand")
     if not (isinstance(brand, str) and brand.strip()):
-        brand = "unknown"
+        return None
     line = mention.get("line")
-    if not isinstance(line, str):
-        line = ""
+    if not (isinstance(line, str) and line.strip()):
+        return None
     return {
         "brand": brand,
         "line": line,

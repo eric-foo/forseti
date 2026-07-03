@@ -163,7 +163,7 @@ def test_observed_readout_mention_level_refs_and_shares(tmp_path: Path) -> None:
         "m2.json",
         {
             "rubric_version": "rubric_v0",
-            "mentions": [{**_mention("m-4", "x", "mystery scent"), "brand": ""}],
+            "mentions": [_mention("m-4", "unknown", "mystery scent")],
             **_lineage_fields(second, "vid2", captured_at=_IN_WINDOW),
         },
     )
@@ -190,7 +190,7 @@ def test_observed_readout_mention_level_refs_and_shares(tmp_path: Path) -> None:
         assert ref["mention_id"] and ref["source_pointer"]
         assert isinstance(ref["start_ms"], int) and isinstance(ref["end_ms"], int)
     assert dior["share"] == 2 / 4
-    # Empty brand is reported as its own "unknown" row, never merged or dropped.
+    # The extractor's literal "unknown" brand is its own row, never merged or dropped.
     assert rows[("unknown", "mystery scent")]["mention_count"] == 1
     assert sum(r["mention_count"] for r in view["rows"]) == view["denominator"]
 
@@ -462,6 +462,9 @@ def test_zero_mention_and_malformed_and_unreadable_are_disclosed(tmp_path: Path)
             "mentions": [
                 _mention("m-1", "Dior", "Sauvage"),
                 {"brand": "Broken", "line": "No Ref Fields"},  # malformed: no ref fields
+                {**_mention("m-2", "", "Blank Brand")},
+                {**_mention("m-3", "Broken", "")},
+                {**_mention("m-4", "Broken", "Bad Span", 200), "end_ms": 100},
             ],
             **_lineage_fields(first, "vid1", captured_at=_IN_WINDOW),
         },
@@ -488,8 +491,9 @@ def test_zero_mention_and_malformed_and_unreadable_are_disclosed(tmp_path: Path)
     assert view["denominator"] == 1
     coverage = view["coverage"]
     assert coverage["source_backed_records_with_zero_mentions"] == 1
-    assert coverage["malformed_mention_entries"] == 1
+    assert coverage["malformed_mention_entries"] == 4
     assert coverage["unreadable_mention_lane_records"] == 1
+    assert {(row["brand"], row["line"]) for row in view["rows"]} == {("Dior", "Sauvage")}
 
 
 def test_spec_validation_fails_closed(tmp_path: Path) -> None:
