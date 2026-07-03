@@ -354,13 +354,17 @@ def run_tiktok_live_batch_probe(
                         if challenge_close_clicked
                         else "TikTok challenge/auth-wall marker observed; probe stopped."
                     ),
-                    blocker_triage=_with_challenge_close_action(
-                        _blocker_triage_receipt(blocker_triage),
-                        challenge_close_action,
-                        challenge_close_followthrough=close_followthrough_failed,
-                        challenge_close_diagnostic=(
-                            challenge_close_clicked and not close_followthrough_failed
+                    blocker_triage=_with_comment_route_observation(
+                        _with_challenge_close_action(
+                            _blocker_triage_receipt(blocker_triage),
+                            challenge_close_action,
+                            challenge_close_followthrough=close_followthrough_failed,
+                            challenge_close_diagnostic=(
+                                challenge_close_clicked and not close_followthrough_failed
+                            ),
                         ),
+                        capture_result,
+                        comment_response_cap=comment_response_cap,
                     ),
                 )
             )
@@ -382,6 +386,7 @@ def run_tiktok_live_batch_probe(
                     blocker_triage=_challenge_close_diagnostic_blocker_receipt(
                         capture_result,
                         challenge_close_diagnostic=challenge_close_action,
+                        comment_response_cap=comment_response_cap,
                     ),
                 )
             )
@@ -620,31 +625,52 @@ def _with_challenge_close_action(
     return receipt
 
 
+def _with_comment_route_observation(
+    receipt: JsonObject,
+    capture_result: BrowserPageObservationSuccess,
+    *,
+    comment_response_cap: int,
+) -> JsonObject:
+    comment_list_responses = _page_owned_comment_list_responses(
+        capture_result,
+        response_cap=comment_response_cap,
+    )
+    receipt["benign_overlay_action"] = _benign_overlay_action_summary(capture_result)
+    receipt["comment_action"] = _comment_action_summary(capture_result)
+    receipt["response_count"] = len(capture_result.responses)
+    receipt["matched_comment_response_count"] = sum(
+        1
+        for response in capture_result.responses
+        if _is_page_owned_comment_list_response(response)
+    )
+    receipt["admitted_comment_response_count"] = len(comment_list_responses)
+    receipt["dom_visible_comment_candidate_count"] = len(
+        _dom_visible_comment_candidates(capture_result)
+    )
+    return receipt
+
+
 def _challenge_close_diagnostic_blocker_receipt(
     capture_result: BrowserPageObservationSuccess,
     *,
     challenge_close_diagnostic: JsonObject,
+    comment_response_cap: int,
 ) -> JsonObject:
-    comment_list_responses = _page_owned_comment_list_responses(capture_result)
-    return _drop_none(
-        {
-            "blocker_class": "challenge_close_diagnostic",
-            "action": "stop",
-            "reason": TIKTOK_CHALLENGE_CLOSE_DIAGNOSTIC_REASON,
-            "action_mode": "diagnosis_only",
-            "action_taken": True,
-            "challenge_close_diagnostic": challenge_close_diagnostic,
-            "benign_overlay_action": _benign_overlay_action_summary(capture_result),
-            "comment_action": _comment_action_summary(capture_result),
-            "response_count": len(capture_result.responses),
-            "matched_comment_response_count": sum(
-                1
-                for response in capture_result.responses
-                if _is_page_owned_comment_list_response(response)
-            ),
-            "admitted_comment_response_count": len(comment_list_responses),
-        }
+    receipt = _with_comment_route_observation(
+        _drop_none(
+            {
+                "blocker_class": "challenge_close_diagnostic",
+                "action": "stop",
+                "reason": TIKTOK_CHALLENGE_CLOSE_DIAGNOSTIC_REASON,
+                "action_mode": "diagnosis_only",
+                "action_taken": True,
+                "challenge_close_diagnostic": challenge_close_diagnostic,
+            }
+        ),
+        capture_result,
+        comment_response_cap=comment_response_cap,
     )
+    return _drop_none(receipt)
 
 
 def _tiktok_live_pointer_actions(

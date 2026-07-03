@@ -738,11 +738,16 @@ def test_live_probe_challenge_close_followthrough_stops_if_challenge_remains(
     assert cadence["results"] == []
     failure = cadence["failures"][0]
     assert failure["reason"] == TIKTOK_CHALLENGE_AFTER_CLOSE_FOLLOWTHROUGH_REASON
-    assert failure["blocker_triage"]["challenge_close_action"]["action_name"] == (
+    triage = failure["blocker_triage"]
+    assert triage["challenge_close_action"]["action_name"] == (
         TIKTOK_CHALLENGE_CLOSE_FOLLOWTHROUGH_POINTER_ACTION_NAME
     )
-    assert failure["blocker_triage"]["challenge_close_followthrough"] is True
-    assert "challenge_close_diagnostic" not in failure["blocker_triage"]
+    assert triage["challenge_close_followthrough"] is True
+    assert triage["comment_action"]["action_count"] == 3
+    assert triage["matched_comment_response_count"] == 1
+    assert triage["admitted_comment_response_count"] == 1
+    assert triage["dom_visible_comment_candidate_count"] == 0
+    assert "challenge_close_diagnostic" not in triage
 
 
 def test_live_probe_challenge_close_diagnostic_is_not_completion(
@@ -831,6 +836,7 @@ def test_live_probe_challenge_close_diagnostic_is_not_completion(
     assert triage["comment_action"]["action_count"] == 3
     assert triage["matched_comment_response_count"] == 1
     assert triage["admitted_comment_response_count"] == 1
+    assert triage["dom_visible_comment_candidate_count"] == 0
 
 
 def test_live_probe_challenge_after_close_diagnostic_keeps_challenge_stop(
@@ -913,6 +919,10 @@ def test_live_probe_challenge_after_close_diagnostic_keeps_challenge_stop(
     assert triage["reason"] == "platform_challenge_observed"
     assert triage["matched_marker"] == "drag the slider"
     assert triage["challenge_close_diagnostic"] == pointer_sequence[-1]
+    assert triage["comment_action"]["action_count"] == 3
+    assert triage["matched_comment_response_count"] == 1
+    assert triage["admitted_comment_response_count"] == 1
+    assert triage["dom_visible_comment_candidate_count"] == 0
 
 
 
