@@ -24,6 +24,11 @@ review_provenance:
   dispatch: docs/prompts/reviews/sov_extraction_quality_eval_repo_delegated_adversarial_code_review_patch_commission_prompt_v0.md
   reviewer_recommendation: patch-level (no NEEDS_ARCHITECTURE_PASS)
   findings: 1 high + 2 medium
+review_use_boundary: >
+  The reviewer's findings, diff, verdict, and test claims are decision input
+  for the home-CA adjudication only — not approval, not validation, not
+  mandatory remediation, not executor-ready patch authority, and not
+  readiness. What was kept is recorded by the adjudication below.
 non_claims: >
   Advisory review + CA adjudication only — not validation, readiness, or
   acceptance. Extractor recall/precision remain unmeasured (ground-truth unit
