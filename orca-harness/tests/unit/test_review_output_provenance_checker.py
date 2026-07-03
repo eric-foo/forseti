@@ -156,6 +156,50 @@ def test_trailing_whitespace_fails() -> None:
     assert "trailing_whitespace" in _codes_for_body("## Findings  \n\nNo fixture findings.\n")
 
 
+def test_future_tense_report_check_variant_wording_fails() -> None:
+    codes = _codes_for_body(
+        "## Validation Evidence\n\n"
+        "- The provenance check will be verified once this report is merged.\n"
+    )
+
+    assert "future_tense_review_output_check" in codes
+
+
+def test_review_use_boundary_missing_one_required_term_fails() -> None:
+    text = _text("valid_review_output.md").replace(
+        "They are not approval, validation,\n  mandatory remediation, or executor-ready patch authority until separately\n  accepted or authorized.",
+        "They are not approval, validation, or readiness until separately accepted or authorized.",
+        1,
+    )
+
+    assert "missing_review_use_boundary" in {
+        finding.code for finding in validator.check_text(SCOPE_PREFIX + "valid_review_output.md", text)
+    }
+
+
+def test_git_lines_raises_on_nonzero_git_exit() -> None:
+    with pytest.raises(validator.GitSelectionError):
+        validator.git_lines(REPO_ROOT, ["diff", "--name-only", "__definitely_missing_base__...HEAD"])
+
+
+def test_diff_mode_fails_closed_when_base_is_unresolvable(capsys: pytest.CaptureFixture[str]) -> None:
+    exit_code = validator.main(["--diff", "__definitely_missing_base__", "--strict"])
+
+    assert exit_code != 0
+    assert "could not be evaluated" in capsys.readouterr().err
+
+
+def test_selftest_expected_codes_catch_a_regressed_detection(monkeypatch: pytest.MonkeyPatch) -> None:
+    real_check_text = validator.check_text
+
+    def dropping_check_text(relpath: str, text: str) -> list[validator.Finding]:
+        return [f for f in real_check_text(relpath, text) if f.code != "malformed_code_fence"]
+
+    monkeypatch.setattr(validator, "check_text", dropping_check_text)
+
+    assert validator.selftest() == 1
+
+
 def test_diff_selector_uses_base_triple_dot(monkeypatch: pytest.MonkeyPatch) -> None:
     calls = []
 

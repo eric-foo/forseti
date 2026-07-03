@@ -1,5 +1,6 @@
 <!-- fixture_expected: fail -->
 <!-- fixture_purpose: malformed review-output integrity shapes fail -->
+<!-- fixture_expected_codes: malformed_code_fence,diff_line_outside_diff_fence,future_tense_review_output_check -->
 
 # Fixture Review Output
 

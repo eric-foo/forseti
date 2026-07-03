@@ -51,20 +51,40 @@ FIELD_RE_TEMPLATE = r"(?mi)^\s*{field}\s*:\s*(?P<value>.*?)\s*$"
 REVIEWED_BY_RE = re.compile(FIELD_RE_TEMPLATE.format(field="reviewed_by"))
 AUTHORED_BY_RE = re.compile(FIELD_RE_TEMPLATE.format(field="authored_by"))
 DECISION_INPUT_RE = re.compile(r"\bdecision\s+input\b", re.IGNORECASE)
-NON_APPROVAL_RE = re.compile(
-    r"\b(?:not|no|never)\b.{0,240}\b(?:approval|validation|mandatory\s+remediation|"
-    r"executor[- ]ready|patch\s+authority|readiness)\b",
-    re.IGNORECASE | re.DOTALL,
-)
+NEGATION_RE = re.compile(r"\b(?:not|no|never)\b", re.IGNORECASE)
+# Complete required non-claim set per .agents/workflow-overlay/review-lanes.md:
+# "not approval, validation, mandatory remediation, or executor-ready patch
+# authority" -- all four concepts must be present, not just one.
+REQUIRED_NON_CLAIM_TERMS = {
+    "approval": re.compile(r"\bapproval\b", re.IGNORECASE),
+    "validation": re.compile(r"\bvalidation\b", re.IGNORECASE),
+    "mandatory_remediation": re.compile(r"\bmandatory\s+remediation\b", re.IGNORECASE),
+    "patch_authority": re.compile(
+        r"\b(?:executor[- ]ready(?:\s+patch\s+authority)?|patch\s+authority)\b",
+        re.IGNORECASE,
+    ),
+}
+NON_CLAIM_WINDOW_CHARS = 400
 FINDINGS_RE = re.compile(r"\bfindings?\b", re.IGNORECASE)
 REVIEW_USE_BOUNDARY_FIELD_RE = re.compile(
     r"(?mis)^\s*review_use_boundary\s*:\s*(?:>\s*)?(?P<value>.*?)(?=^\S|\Z)"
 )
 FENCE_RE = re.compile(r"^```(?P<info>.*)$")
 FENCE_INFO_RE = re.compile(r"^[A-Za-z0-9_-]+$")
+# A future-tense provenance/check placeholder is a promise to check, verify,
+# confirm, or record a result at some point after the report is finalized,
+# rather than recording an observed result now. Match the semantic class
+# (future modal + checking verb, tied to a report-completion trigger), not
+# only the exact wordings the checker happened to be authored against.
+_FUTURE_MODAL = r"(?:will|must|should|shall|is\s+to|are\s+to)\s+be\s+(?:checked|verified|confirmed|recorded|reran|rerun|run)"
+_COMPLETION_TRIGGER = (
+    r"(?:after|once|when|upon)\s+(?:this\s+)?(?:report(?:\s+is)?\s+)?"
+    r"(?:written|saved|merged|committed|finalized|closed[- ]out|post[- ]write)"
+)
 FUTURE_CHECK_RE = re.compile(
     r"(?:"
-    r"must\s+be\s+checked\s+after\s+this\s+report\s+is\s+written|"
+    rf"{_FUTURE_MODAL}.{{0,100}}?{_COMPLETION_TRIGGER}|"
+    rf"{_COMPLETION_TRIGGER}.{{0,100}}?{_FUTURE_MODAL}|"
     r"final\s+chat\s+closeout\s+records\s+the\s+observed\s+result|"
     r"report\s+provenance\s+command\s+runs\s+after\s+durable\s+write"
     r")",
@@ -94,6 +114,14 @@ def to_relposix(target: str, root: Path) -> str | None:
     return value[2:] if value.startswith("./") else value
 
 
+class GitSelectionError(RuntimeError):
+    """Raised when a git path-selection command could not be evaluated.
+
+    This is distinct from a git command that ran and legitimately selected
+    zero paths; callers must not treat the two as equivalent.
+    """
+
+
 def git_lines(root: Path, args: list[str]) -> list[str]:
     try:
         result = subprocess.run(
@@ -101,10 +129,12 @@ def git_lines(root: Path, args: list[str]) -> list[str]:
             capture_output=True,
             text=True,
         )
-    except (FileNotFoundError, OSError):
-        return []
+    except (FileNotFoundError, OSError) as exc:
+        raise GitSelectionError(f"git {' '.join(args)} could not run: {exc}") from exc
     if result.returncode != 0:
-        return []
+        stderr = result.stderr.strip()
+        detail = f": {stderr}" if stderr else ""
+        raise GitSelectionError(f"git {' '.join(args)} exited {result.returncode}{detail}")
     return [line.strip() for line in result.stdout.splitlines() if line.strip()]
 
 
@@ -160,9 +190,17 @@ def _review_use_boundary_candidates(text: str) -> list[str]:
     return candidates
 
 
+def _has_complete_non_claim_set(candidate: str) -> bool:
+    negation_match = NEGATION_RE.search(candidate)
+    if negation_match is None:
+        return False
+    window = candidate[negation_match.start() : negation_match.start() + NON_CLAIM_WINDOW_CHARS]
+    return all(pattern.search(window) is not None for pattern in REQUIRED_NON_CLAIM_TERMS.values())
+
+
 def _has_review_use_boundary(text: str) -> bool:
     for candidate in _review_use_boundary_candidates(text):
-        if DECISION_INPUT_RE.search(candidate) is not None and NON_APPROVAL_RE.search(candidate) is not None:
+        if DECISION_INPUT_RE.search(candidate) is not None and _has_complete_non_claim_set(candidate):
             return True
     return False
 
@@ -349,6 +387,21 @@ def report(findings: list[Finding], strict: bool) -> int:
     return 1 if strict and findings else 0
 
 
+FIXTURE_EXPECTED_RE = re.compile(r"fixture_expected:\s*(pass|fail)")
+FIXTURE_EXPECTED_CODES_RE = re.compile(r"fixture_expected_codes:\s*([^>]+?)\s*-->")
+
+
+def _fixture_metadata(text: str) -> tuple[str, set[str] | None]:
+    header = "\n".join(text.splitlines()[:5])
+    expected_match = FIXTURE_EXPECTED_RE.search(header)
+    expected = expected_match.group(1) if expected_match else ""
+    codes_match = FIXTURE_EXPECTED_CODES_RE.search(header)
+    if codes_match is None:
+        return expected, None
+    codes = {code.strip() for code in codes_match.group(1).split(",") if code.strip()}
+    return expected, codes
+
+
 def selftest() -> int:
     root = repo_root()
     fixture_dir = root / "orca-harness" / "tests" / "fixtures" / "review_outputs"
@@ -359,16 +412,21 @@ def selftest() -> int:
 
     ok = True
     for path in fixture_paths:
-        first_line = path.read_text(encoding="utf-8").splitlines()[0]
-        match = re.search(r"fixture_expected:\s*(pass|fail)", first_line)
-        expected = match.group(1) if match else ""
+        text = path.read_text(encoding="utf-8")
+        expected, expected_codes = _fixture_metadata(text)
         relpath = "docs/review-outputs/adversarial-artifact-reviews/" + path.name
-        findings = check_text(relpath, path.read_text(encoding="utf-8"))
+        findings = check_text(relpath, text)
+        found_codes = {f.code for f in findings}
         passed = not findings
         if expected == "pass" and passed:
             print(f"PASS {path.name}")
         elif expected == "fail" and not passed:
-            print(f"PASS {path.name} expected fail: {', '.join(sorted({f.code for f in findings}))}")
+            if expected_codes is not None and not expected_codes.issubset(found_codes):
+                ok = False
+                missing = sorted(expected_codes - found_codes)
+                print(f"FAIL {path.name} missing expected codes {missing}; found={sorted(found_codes)}")
+            else:
+                print(f"PASS {path.name} expected fail: {', '.join(sorted(found_codes))}")
         else:
             ok = False
             print(f"FAIL {path.name} expected={expected or '<missing>'} findings={findings}")
@@ -393,12 +451,16 @@ def main(argv: list[str]) -> int:
 
     root = repo_root()
     relpaths: list[str | None] = []
-    if args.staged:
-        relpaths.extend(staged_paths(root))
-    if args.changed:
-        relpaths.extend(changed_paths(root))
-    if args.diff:
-        relpaths.extend(diff_paths(root, args.diff))
+    try:
+        if args.staged:
+            relpaths.extend(staged_paths(root))
+        if args.changed:
+            relpaths.extend(changed_paths(root))
+        if args.diff:
+            relpaths.extend(diff_paths(root, args.diff))
+    except GitSelectionError as exc:
+        print(f"review-output-provenance: selection could not be evaluated: {exc}", file=sys.stderr)
+        return 2
     relpaths.extend(to_relposix(path, root) for path in args.paths)
 
     selection_requested = bool(args.paths or args.staged or args.changed or args.diff)
