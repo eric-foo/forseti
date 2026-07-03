@@ -62,3 +62,18 @@ jobs:
       - name: silver-lane write contract (no-blur binding)
         working-directory: ${{ github.workspace }}
         run: python .agents/hooks/check_silver_lane_registry.py --strict
+      - name: review-routing disposition (code lanes carry review disposition)
+        working-directory: ${{ github.workspace }}
+        run: python .agents/hooks/check_review_routing.py --strict
+      - name: review-output provenance and integrity
+        working-directory: ${{ github.workspace }}
+        run: python .agents/hooks/check_review_output_provenance.py --diff origin/main --strict
+      - name: handoff-pointer resolution (packets resolve where referenced)
+        working-directory: ${{ github.workspace }}
+        run: python .agents/hooks/check_handoff_pointers.py --strict
+      - name: full-GT claim tripwire (new md claims stay bounded)
+        working-directory: ${{ github.workspace }}
+        run: python .agents/hooks/check_full_gt_claims.py --changed --strict
+      - name: review-output provenance (changed reports carry header + provenance + use boundary)
+        working-directory: ${{ github.workspace }}
+        run: python .agents/hooks/check_review_output_provenance.py --diff origin/main --strict

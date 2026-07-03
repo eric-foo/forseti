@@ -217,6 +217,14 @@ def _iter_write_calls(tree: ast.Module) -> Iterable[WriteCall]:
     return visitor.calls
 
 
+def _subtree_value(call: ast.Call, consts: dict[str, str]) -> str | None:
+    for kw in call.keywords:
+        if kw.arg == "subtree":
+            value, _excerpt = _resolve(kw.value, consts)
+            return value
+    return None
+
+
 def _scan_tree(
     relposix: str, tree: ast.Module, consts: dict[str, str], registry, is_front_door_module: bool
 ) -> tuple[list[Finding], list[Unresolved]]:
@@ -224,6 +232,13 @@ def _scan_tree(
     unresolved: list[Unresolved] = []
     for write_call in _iter_write_calls(tree):
         call = write_call.call
+        # A write whose subtree STATICALLY resolves to "acknowledgements" is an
+        # acknowledgement record (consumption seam), not a silver derived record:
+        # the silver envelope grammar lives under derived/, and ack namespaces
+        # legitimately reuse registered lane names (seam contract namespace rule).
+        # An unresolved or any other subtree keeps full scrutiny (fail-closed).
+        if _subtree_value(call, consts) == "acknowledgements":
+            continue
         # Exemption is scoped to the front-door FUNCTION, not the module: a raw
         # writer added elsewhere in silver_record.py is not blessed.
         is_front_door_call = (

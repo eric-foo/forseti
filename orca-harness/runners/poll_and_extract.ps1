@@ -6,7 +6,9 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
-$TargetUuid = "01KW1E6N133JT0XCN2KCN0V5A4"
+# Pinned lake identity: v4.1 forward epoch (F:\orca-data-lake re-initialized 2026-06-28);
+# the prior v0 root is archived at F:\orca-data-lake-legacy-v0-20260628T174129Z.
+$TargetUuid = "01KW7N6ERSVVANCEZ8SD6YW3EQ"
 $Model = "codex-extraction-v0"
 $RepoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..\..")).Path
 $HarnessPath = Join-Path $RepoRoot "orca-harness"
@@ -25,6 +27,8 @@ function Get-OrcaDriveLetters {
     return @((Get-PSDrive -PSProvider FileSystem | Where-Object { $_.Name -match "^[A-Za-z]$" } | Sort-Object Name).Name)
 }
 
+$script:RootUuidMismatches = @()
+
 function Resolve-OrcaLake {
     foreach ($d in Get-OrcaDriveLetters) {
         $marker = "${d}:\orca-data-lake\.orca-data-root"
@@ -37,6 +41,7 @@ function Resolve-OrcaLake {
             if ($u -eq $TargetUuid) {
                 return "${d}:\orca-data-lake"
             }
+            $script:RootUuidMismatches += ("{0}:\orca-data-lake root_uuid={1}" -f $d, $u)
         }
     }
     return $null
@@ -80,6 +85,15 @@ function Invoke-PartialCheck {
 
 $root = Resolve-OrcaLake
 if (-not $root) {
+    if ($script:RootUuidMismatches.Count -gt 0) {
+        Write-Output "lake=<root identity mismatch>"
+        Write-Output ("expected_root_uuid={0}" -f $TargetUuid)
+        foreach ($m in $script:RootUuidMismatches) {
+            Write-Output ("found={0}" -f $m)
+        }
+        Write-Output "status=blocked_root_uuid_mismatch"
+        exit 2
+    }
     Write-Output "lake=<not found>"
     Write-Output "status=skipped_lake_offline"
     exit 0

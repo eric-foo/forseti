@@ -137,7 +137,15 @@ A row is admissible only when:
   observation contract owns them.
 
 The current seed artifact reconciles every video id to the external lake root
-UUID `01KW1E6N133JT0XCN2KCN0V5A4`.
+UUID `01KW1E6N133JT0XCN2KCN0V5A4` (label `orca-canonical`, contract `v0`).
+That root was retired by the 2026-06-28 clean-forward lake epoch (v4.1) and is
+preserved as an archived root outside the live lake. Per the owner-accepted
+Option B2 in
+`docs/decisions/youtube_creator_observation_ledger_lake_identity_drift_owner_decision_packet_v0.md`,
+the seed ledger is a static historical fixture bound to that retired root, and
+its packet-ref reconciliation is an archived-evidence integrity check against
+the preserved root (opt-in via `ORCA_ARCHIVED_LAKE_TEST_ROOT`), not a live-lake
+check.
 
 ## Metrics Boundary
 

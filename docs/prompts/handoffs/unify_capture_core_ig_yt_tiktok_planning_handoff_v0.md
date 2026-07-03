@@ -24,7 +24,7 @@ authority_boundary: retrieval_only
 - handoff_path: `docs/prompts/handoffs/unify_capture_core_ig_yt_tiktok_planning_handoff_v0.md`
 - expected_branch: the receiver branches a FRESH planning lane/worktree off `origin/main`. Do NOT reuse `claude/calibrate-pass1-note-stance` (it is merged).
 - expected_head: `origin/main` @ `ba9b36b5` (Merge PR #414 — the IG Pass-1 extractor fix is on main).
-- expected_dirty_state_including_handoff_file: this handoff file is newly written + UNTRACKED in the sender worktree (not yet committed to main). Also pre-existing untracked `docs/prompts/handoffs/calibrate_pass1_note_adjective_stance_resume_handoff_v0.md` (a different lane, ignore).
+- expected_dirty_state_including_handoff_file: this handoff file is newly written + UNTRACKED in the sender worktree (not yet committed to main). Also pre-existing untracked `docs/prompts/handoffs/calibrate_pass1_note_adjective_stance_resume_handoff_v0.md` (a different lane, ignore). # nonresolving: that calibrate-pass1 packet was never committed on any branch
 - load_rule: confirm-don't-trust. Re-verify every load-bearing fact by READING the named files at `origin/main` before any strict/actionable claim. This packet is orientation, not authority. The sender analysed the IG lane deeply but did NOT analyse the YT lane — treat all YT pointers as unverified starting points.
 
 ## Goal Handoff
@@ -106,7 +106,7 @@ A fresh PLANNING lane designs the unified cross-platform capture core. NOTE: the
 
 - Branch (sender): `claude/calibrate-pass1-note-stance` @ `770295dc` (MERGED via #414; DO NOT reuse).
 - `origin/main` @ `ba9b36b5` (carries the IG Pass-1 fix). Receiver branches off this.
-- Dirty before this handoff: pre-existing untracked `docs/prompts/handoffs/calibrate_pass1_note_adjective_stance_resume_handoff_v0.md` (other lane).
+- Dirty before this handoff: pre-existing untracked `docs/prompts/handoffs/calibrate_pass1_note_adjective_stance_resume_handoff_v0.md` (other lane). # nonresolving: never committed on any branch
 - Dirty after writing this handoff: + `docs/prompts/handoffs/unify_capture_core_ig_yt_tiktok_planning_handoff_v0.md` (UNTRACKED). NOT committed. For the fresh lane to read it durably, the owner should commit/PR it to main (owner-gated) OR the fresh lane reads it from this worktree path.
 - Related: no worktree for the new lane yet — the receiver creates one off main.
 

@@ -85,6 +85,7 @@ functional equivalent:
 | Ideal/content-fit audience | Latest allowed Tier-1 ideal-audience profile fields: segment, audience_role, purchase_intent, skill_level, price_tier, with support bands and evidence pointers | Capture ideal-audience inference + ballot taxonomy |
 | Freshness | identity update timestamp, metric computation timestamp, audience computation timestamp, profile view computation timestamp, stale/partial/blocked state | Capture current view |
 | Limitations and missingness | unavailable metrics, hidden counts, blocked access, thin evidence, stale windows, gated Tier-2-A demographics, abstentions | Source owner for each row |
+| Non-claims | Explicit claim boundaries including no buyer proof, validation, readiness, contact/outreach authorization, public directory, lead-list authorization, or guaranteed performance | Creator Signal plus Capture record contract |
 | Source drill-back | links/pointers to identity, metric observation, metric rollup, audience snapshot, and packet/data-lake records when available | Capture/Data Lake as applicable |
 
 ## Aggregate influence rules
@@ -101,7 +102,8 @@ The surface must show or make available:
 - `computed_at`;
 - freshness state;
 - limitations and missing-data posture;
-- sample support and representativeness posture.
+- sample support and representativeness posture;
+- non-claims for any stronger interpretation the surface might otherwise imply.
 
 The surface must withhold or downgrade an influence summary when source windows
 are stale, input rows are blocked/hidden/absent, rollup recipe is missing, sample
@@ -173,11 +175,17 @@ A first screen should favor scanability over completeness:
 2. Platform accounts.
 3. Aggregate influence snapshot by platform/window.
 4. Ideal/content-fit audience snapshot.
-5. Freshness and limitations.
-6. Source drill-back.
+5. Freshness, limitations, and missingness cues.
+6. Non-claims or a clearly reachable claim-boundaries affordance.
+7. Source drill-back.
 
 Detailed per-content reels/videos stay below the fold or in drill-back. They are
 not copied into the identity ledger or into this surface contract as source truth.
+Full limitations, non-claims, and source drill-back may be collapsed for
+scanability, but material caveats must leave a visible cue on the first screen.
+This guidance covers a single creator/account profile; multi-creator ranking,
+shortlist, lead-list, or outreach surfaces need a separate accepted display
+contract before implementation.
 
 ## Physicalization and testing sequence
 

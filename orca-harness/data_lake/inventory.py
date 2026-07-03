@@ -1,0 +1,825 @@
+"""Deterministic Data Lake touchpoint inventory (the A1 inventory gate core).
+
+Single source for the AST discovery the seam-coverage contract test seeds and
+for the durable, checked-in touchpoint inventory record
+(``lake_touchpoint_inventory_v0.json``). The record enumerates, from tracked
+source only:
+
+1. raw-packet writers (runner seams, declared orchestrators, and the recursive
+   ``source_capture`` writer-function closure);
+2. non-raw lake touchpoints (derived/ack/silver/catalog call sites);
+3. explicit exclusions, each carrying a reason;
+4. unknowns, each carrying an owner disposition (a pending unknown fails the
+   gate; dispositions are owner-attributable via the human-gated PR merge,
+   never self-certified);
+5. the A2 serialization-fork impact tag per entry;
+6. an ``identity_binding`` declaration per runner seam: how the runner binds
+   SERVED content to the REQUESTED subject before a packet is committed
+   (``bound`` with a mechanism), or an honest ``unbound``/``not_applicable``
+   posture with a reason. Declared in ``RUNNER_IDENTITY_BINDINGS``, never
+   auto-discovered; a discovered runner without a declaration fails the gate,
+   so the wrong-subject-attribution question (F-01 in
+   ``docs/review-outputs/youtube_rss_monitor_delegated_adversarial_code_review_v0.md``)
+   is mandatory at build time for every new capture runner. The declaration
+   documents the current posture; ``unbound`` is a visible acknowledged gap,
+   not a pass.
+
+The fork-impact tag is deterministic routing metadata for the deferred A2
+decision (Manifest v2 vs manifest-equivalent packet index), assigned by
+surface class, never per-entry judgment:
+
+- raw-packet writers produce packet manifests -> ``manifest_shape``;
+- generated catalog / Attachment Record read surfaces consume or rebuild the
+  manifest-equivalent generated index -> ``packet_index``;
+- derived/ack append and record-set/lane-path surfaces touch neither shape ->
+  ``none``.
+
+The checked-in record is a generated inventory of code surfaces. It is never
+lake authority, never lives under the data root, and is regenerated and
+diffed by ``tests/contract/test_data_lake_inventory_gate.py``; updating it is
+a deliberate, reviewed edit. It does not select A2, a backend, or claim
+coverage beyond source-visible discovery.
+"""
+from __future__ import annotations
+
+import ast
+import json
+import re
+import subprocess
+from collections import Counter
+from dataclasses import dataclass
+from functools import cache
+from pathlib import Path
+
+HARNESS_ROOT = Path(__file__).resolve().parents[1]
+RUNNERS_DIR = HARNESS_ROOT / "runners"
+SOURCE_CAPTURE_DIR = HARNESS_ROOT / "source_capture"
+
+INVENTORY_VERSION = 2
+INVENTORY_PATH = HARNESS_ROOT / "data_lake" / "lake_touchpoint_inventory_v0.json"
+
+DIRECT_PACKET_WRITER_TOKENS = {"write_local_source_capture_packet", "stage_and_write_packet"}
+PACKET_WRITER_NAME_RE = re.compile(r"write_.*_packet$")
+ENV_OUTPUT_OMITTED_TOKENS = (
+    'args.output is None and os.environ.get("ORCA_DATA_ROOT")',
+    'output_directory is None and os.environ.get("ORCA_DATA_ROOT")',
+)
+EXPLICIT_PAIR_REJECT_TOKENS = (
+    "args.output is not None and args.data_root is not None",
+    "output_directory is not None and args.data_root is not None",
+    "add_mutually_exclusive_group",
+)
+
+# Packet-producing runners that intentionally do NOT route into the lake yet.
+# Each MUST carry a reason; entries surface in the inventory record as
+# exclusions and in the seam test as acknowledged-unsynced runners.
+KNOWN_UNSYNCED: dict[str, str] = {}
+
+# Orchestrator runners that forward data_root into raw-packet sub-runners
+# instead of calling a packet writer directly. Declared, not auto-discovered.
+BRONZE_PACKET_ORCHESTRATORS: dict[str, tuple[str, ...]] = {
+    "run_fragrantica_mgt_capture.py": ("http_runner", "cloakbrowser_runner"),
+    "run_ig_reels_lane_orchestrator.py": ("grid_runner",),
+}
+
+# Identity-binding declaration for every runner_seams entry (direct packet
+# writers AND declared orchestrators). Answers, per runner: how is SERVED
+# content bound to the REQUESTED subject before a packet is committed?
+#
+#   {"status": "bound", "mechanism": ...}       a real served-content identity
+#                                               check gates packet write
+#   {"status": "unbound", "reason": ...}        the packet asserts a subject
+#                                               beyond raw request provenance
+#                                               without a served-content check
+#                                               (visible acknowledged gap)
+#   {"status": "not_applicable", "reason": ...} no subject identity beyond the
+#                                               request itself is asserted
+#                                               (fetch-of-URL provenance or
+#                                               operator-declared admission)
+#
+# Every discovered Bronze-writing runner MUST have an entry; the inventory
+# gate and the seam-coverage test both fail on a missing or shape-invalid
+# declaration. Backfilled 2026-07-03 from a source read of each runner
+# (including the source_capture fetch/writer path it delegates to).
+RUNNER_IDENTITY_BINDINGS: dict[str, dict[str, str]] = {
+    "run_fragrance_review_lake_packet.py": {
+        "status": "unbound",
+        "reason": (
+            "preserved bytes must match the companion receipt's capture-time "
+            "body_sha256/body_byte_count witness (_verify_capture_witness, "
+            "block-don't-fake), which binds bytes to the attested capture but not to "
+            "the product subject: product_url attribution comes from the receipt or "
+            "the --product-url override without a served-content identity check"
+        ),
+    },
+    "run_fragrantica_mgt_capture.py": {
+        "status": "not_applicable",
+        "reason": (
+            "orchestrator over URL-subject sub-runners (http_runner/cloakbrowser_runner): "
+            "it shape-validates the requested Fragrantica product URL and forwards it; the "
+            "sub-runner packets record requested and served final URLs and assert no "
+            "subject identity beyond the URL"
+        ),
+    },
+    "run_ig_reels_lane_orchestrator.py": {
+        "status": "not_applicable",
+        "reason": (
+            "orchestrator that performs no acquisition of its own: grid capture owns the "
+            "subject seam (see run_source_capture_ig_reels_grid_packet.py) and the "
+            "orchestrator only enforces that downstream lanes target the same reel "
+            "(explicit-selector split-brain guard)"
+        ),
+    },
+    "run_parfumo_mgt_capture.py": {
+        "status": "unbound",
+        "reason": (
+            "the direct-HTTP slot records requested/served final-URL provenance only; the "
+            "targeted-rendered path admits operator-supplied local Chrome-extension "
+            "artifacts attributed to the requested product URL with a browser-secret scan "
+            "but no served-content identity check"
+        ),
+    },
+    "run_source_capture_antiblock_http_packet.py": {
+        "status": "not_applicable",
+        "reason": (
+            "subject is the requested URL itself: requested_url is preserved as "
+            "source_locator and the served final_url on the slice; block-shell "
+            "classification explicitly refuses to certify the body as source content; no "
+            "subject identity beyond the URL is asserted"
+        ),
+    },
+    "run_source_capture_archive_packet.py": {
+        "status": "bound",
+        "mechanism": (
+            "verify_archive_body gates body preservation: the served snapshot's "
+            "original-URL identity must match the requested URL "
+            "(served_url_identity_mismatch) and the served time must satisfy the cutoff; "
+            "a verification-failed body is not preserved as addressable content (G-002) "
+            "and surfaces as attempt_failed plus a limitation"
+        ),
+    },
+    "run_source_capture_authenticated_browser_packet.py": {
+        "status": "not_applicable",
+        "reason": (
+            "subject is the requested URL itself: requested_url is preserved as "
+            "source_locator and the served final_url on the slice; login-wall/challenge "
+            "markers surface as limitations; content sufficiency is explicitly not asserted"
+        ),
+    },
+    "run_source_capture_browser_packet.py": {
+        "status": "not_applicable",
+        "reason": (
+            "subject is the requested URL itself: requested_url is preserved as "
+            "source_locator and the served final_url on the slice; content sufficiency is "
+            "explicitly not asserted"
+        ),
+    },
+    "run_source_capture_cloakbrowser_packet.py": {
+        "status": "not_applicable",
+        "reason": (
+            "subject is the requested URL itself (browser_snapshot shape with "
+            "proxy-category disclosure): requested_url is preserved as source_locator and "
+            "the served final_url on the slice; no subject identity beyond the URL is "
+            "asserted"
+        ),
+    },
+    "run_source_capture_historical_packet.py": {
+        "status": "bound",
+        "mechanism": (
+            "the ladder preserves a body only when the winning rung's verification "
+            "passed: archive rungs verify the served snapshot's original-URL identity and "
+            "served time against the requested URL/cutoff, and the publisher-history rung "
+            "verifies the served revid/sha and timestamp (PH-01/PH-02); unverified "
+            "outcomes stay locate-metadata-only with attempt_failed"
+        ),
+    },
+    "run_source_capture_http_packet.py": {
+        "status": "not_applicable",
+        "reason": (
+            "subject is the requested URL itself: requested_url is preserved as "
+            "source_locator and the served final_url on the slice; the packet claims "
+            "fetched-URL provenance only"
+        ),
+    },
+    "run_source_capture_ig_calls_packet.py": {
+        "status": "unbound",
+        "reason": (
+            "item slices are enumerated from the served profile page (within-capture "
+            "consistency) and the served profile final_url is recorded, but the served "
+            "profile's identity (og fields, web_profile_info username) is never compared "
+            "to the requested account, so a redirected or mis-served profile would be "
+            "committed under the requested locator"
+        ),
+    },
+    "run_source_capture_ig_reels_audio_packet.py": {
+        "status": "unbound",
+        "reason": (
+            "the packet asserts platform_shortcode and the canonical reel URL copied from "
+            "the request; the yt-dlp download is selected by largest file rather than a "
+            "served-id-keyed name and the audio bytes carry no observable identity to check"
+        ),
+    },
+    "run_source_capture_ig_reels_grid_packet.py": {
+        "status": "unbound",
+        "reason": (
+            "handle-shape normalization plus login/challenge-redirect detection fail "
+            "visibly and the served final_url is recorded, but the served "
+            "grid/web_profile_info identity is never compared to the requested handle"
+        ),
+    },
+    "run_source_capture_media_packet.py": {
+        "status": "not_applicable",
+        "reason": (
+            "subjects are the explicit asset URLs: each slice preserves the served "
+            "final_url and per-asset metadata; the optional --source-locator is recorded "
+            "as an operator declaration, not a verified subject"
+        ),
+    },
+    "run_source_capture_packet.py": {
+        "status": "not_applicable",
+        "reason": (
+            "no acquisition: packages operator-supplied local files under an "
+            "operator-declared source locator (which may itself be unknown-with-reason); "
+            "there is no runner-fetched served content to match"
+        ),
+    },
+    "run_source_capture_price_payload_packet.py": {
+        "status": "not_applicable",
+        "reason": (
+            "subject is the requested pricing/announcement URL set: chunk URLs are "
+            "discovered from the served page's module-preload list (structural "
+            "provenance) and certify_extraction is a content-integrity discriminator, not "
+            "a subject identity claim beyond the URLs"
+        ),
+    },
+    "run_source_capture_tiktok_batch_packet.py": {
+        "status": "unbound",
+        "reason": (
+            "creator_handle and creator_profile_url are checked for request "
+            "self-consistency and grid-enrichment items with a mismatched authorUniqueId "
+            "are dropped, but the admitted cadence rows are attributed to the requested "
+            "creator without a served-content author check"
+        ),
+    },
+    "run_source_capture_tiktok_video_packet.py": {
+        "status": "unbound",
+        "reason": (
+            "video-id format and canonical-URL shape are enforced and profile-list rows "
+            "are filtered to the requested id, but the admitted comment/subtitle "
+            "artifacts are attributed to the requested video without a served-content id "
+            "check"
+        ),
+    },
+    "run_source_capture_youtube_asr_packet.py": {
+        "status": "bound",
+        "mechanism": (
+            "yt-dlp writes the downloaded audio under the SERVED video id (%(id)s output "
+            "template) and download_audio accepts only the file named exactly "
+            "<requested id>.*, so a mis-served id fails closed as a download failure; no "
+            "additional served-metadata check is performed"
+        ),
+    },
+    "run_source_capture_youtube_caption_packet.py": {
+        "status": "bound",
+        "mechanism": (
+            "yt-dlp writes the caption track under the SERVED video id (%(id)s output "
+            "template) and fetch_youtube_caption_artifacts accepts only "
+            "<requested id>*.json3, so a mis-served id fails closed as no-caption; "
+            "extract_info metadata (title/channel_id) is recorded without an independent "
+            "check"
+        ),
+    },
+    "run_source_capture_youtube_rss_monitor.py": {
+        "status": "bound",
+        "mechanism": (
+            "_validate_parsed_channel_identity runs immediately after parsing: the served "
+            "feed-level yt:channelId must match the requested roster channel (accepting "
+            "the observed no-UC-prefix variant), any entry-level yt:channelId differing "
+            "from the request fails, and missing feed identity fails closed; a mismatch "
+            "is a visible per-channel failure with no packet write"
+        ),
+    },
+    "run_source_capture_youtube_watch_packet.py": {
+        "status": "unbound",
+        "reason": (
+            "platform_video_id is copied from the request after an id-format check; the "
+            "served watch HTML's canonical URL and channelId are preserved in the capture "
+            "JSON but never compared to the requested video id"
+        ),
+    },
+}
+
+IDENTITY_BINDING_STATUSES = ("bound", "unbound", "not_applicable")
+# Which detail field each status must carry (single-sourced; the gate and the
+# seam-coverage test both validate through identity_binding_problems below).
+IDENTITY_BINDING_DETAIL_FIELDS = {
+    "bound": "mechanism",
+    "unbound": "reason",
+    "not_applicable": "reason",
+}
+
+NON_RAW_LAKE_TOUCHPOINT_CALLS = {
+    "append_record",
+    "append_record_set",
+    "append_silver_record",
+    "catalog_coverage_census",
+    "inspect_catalog",
+    "is_record_set_complete",
+    "lane_dir",
+    "load_attachment_record_body",
+    "rebuild_catalog",
+    "record_path",
+    "source_surface_catalog_rows",
+}
+
+# Surfaces that consume or rebuild the manifest-equivalent generated
+# catalog/AR index; the A2 fork's packet-index branch would reshape these.
+PACKET_INDEX_CALLS = {
+    "catalog_coverage_census",
+    "inspect_catalog",
+    "load_attachment_record_body",
+    "rebuild_catalog",
+    "source_surface_catalog_rows",
+}
+
+A2_FORK_IMPACT_VALUES = ("manifest_shape", "packet_index", "none")
+
+STRUCTURAL_EXCLUSIONS: tuple[dict[str, str], ...] = (
+    {
+        "target": "orca-harness/tests/**",
+        "reason": "test code is not a production lake touchpoint; discovery scans tracked non-test harness source only",
+    },
+    {
+        "target": "non-git-tracked files",
+        "reason": "discovery reads `git ls-files` output only, so untracked scratch cannot become a silent lake touchpoint",
+    },
+)
+
+
+def a2_fork_impact_for_call(call_name: str) -> str:
+    """Deterministic fork-impact class for a non-raw touchpoint call name."""
+    return "packet_index" if call_name in PACKET_INDEX_CALLS else "none"
+
+
+def identity_binding_problems(binding: object) -> list[str]:
+    """Shape problems for one identity_binding declaration (empty = shape-valid).
+
+    Single source for the rule; the inventory gate checks declared record
+    entries through it and the seam-coverage test checks the module
+    declarations through it.
+    """
+    if not isinstance(binding, dict):
+        return ["identity_binding must be an object with a status"]
+    status = binding.get("status")
+    if status not in IDENTITY_BINDING_STATUSES:
+        return [
+            f"invalid identity_binding status {status!r} "
+            f"(expected one of {list(IDENTITY_BINDING_STATUSES)})"
+        ]
+    problems: list[str] = []
+    detail_field = IDENTITY_BINDING_DETAIL_FIELDS[status]
+    if not str(binding.get(detail_field, "")).strip():
+        problems.append(
+            f"identity_binding status {status!r} requires a non-empty {detail_field!r}"
+        )
+    unexpected = sorted(set(binding) - {"status", detail_field})
+    if unexpected:
+        problems.append(f"identity_binding carries unexpected fields {unexpected}")
+    return problems
+
+
+def identity_binding_for_runner(runner: str) -> dict[str, str]:
+    """Declared binding for a runner, or an explicit undeclared marker.
+
+    The undeclared marker deliberately fails identity_binding_problems, so a
+    new capture runner cannot clear the gate by regenerating the record: the
+    question must be answered in RUNNER_IDENTITY_BINDINGS.
+    """
+    declared = RUNNER_IDENTITY_BINDINGS.get(runner)
+    if declared is None:
+        return {"status": "undeclared"}
+    return dict(declared)
+
+
+@dataclass(frozen=True)
+class ProducerCall:
+    name: str
+    line: int
+    forwards_data_root: bool
+
+
+@dataclass(frozen=True)
+class RunnerSeam:
+    exposes_output_arg: bool
+    exposes_data_root_arg: bool
+    exposes_env_fallback: bool
+    resolves_data_root: bool
+    rejects_output_and_data_root: bool
+    env_fallback_uses_output_omitted: bool
+    producer_calls: tuple[ProducerCall, ...]
+
+    @property
+    def forwards_data_root(self) -> bool:
+        return any(call.forwards_data_root for call in self.producer_calls)
+
+    @property
+    def has_seam(self) -> bool:
+        return (
+            self.exposes_data_root_arg
+            and self.exposes_env_fallback
+            and self.resolves_data_root
+            and self.forwards_data_root
+        )
+
+    @property
+    def has_exclusive_output_mode(self) -> bool:
+        if not self.exposes_output_arg:
+            return True
+        return self.rejects_output_and_data_root and self.env_fallback_uses_output_omitted
+
+    def missing_seam_parts(self) -> list[str]:
+        missing: list[str] = []
+        if not self.exposes_data_root_arg:
+            missing.append("--data-root argument")
+        if not self.exposes_env_fallback:
+            missing.append("ORCA_DATA_ROOT fallback")
+        if not self.resolves_data_root:
+            missing.append("DataLakeRoot.resolve")
+        if not self.forwards_data_root:
+            missing.append("data_root= forwarded into packet writer")
+        return missing
+
+    def missing_output_mode_parts(self) -> list[str]:
+        if not self.exposes_output_arg:
+            return []
+        missing: list[str] = []
+        if not self.rejects_output_and_data_root:
+            missing.append("explicit --output + --data-root rejection")
+        if not self.env_fallback_uses_output_omitted:
+            missing.append("ORCA_DATA_ROOT gated on --output being omitted")
+        return missing
+
+
+def has_any_token(src: str, tokens: tuple[str, ...]) -> bool:
+    return any(token in src for token in tokens)
+
+
+def call_name(node: ast.Call) -> str | None:
+    if isinstance(node.func, ast.Name):
+        return node.func.id
+    if isinstance(node.func, ast.Attribute):
+        return node.func.attr
+    return None
+
+
+def dotted_name(node: ast.AST) -> str | None:
+    if isinstance(node, ast.Name):
+        return node.id
+    if isinstance(node, ast.Attribute):
+        parent = dotted_name(node.value)
+        if parent is None:
+            return None
+        return f"{parent}.{node.attr}"
+    return None
+
+
+def called_names(node: ast.AST) -> set[str]:
+    return {
+        name
+        for child in ast.walk(node)
+        if isinstance(child, ast.Call)
+        for name in [call_name(child)]
+        if name is not None
+    }
+
+
+def calls_named(tree: ast.AST, names: tuple[str, ...]) -> list[ast.Call]:
+    return [
+        node
+        for node in ast.walk(tree)
+        if isinstance(node, ast.Call) and call_name(node) in names
+    ]
+
+
+@cache
+def _packet_writer_function_index() -> tuple[frozenset[str], tuple[tuple[str, tuple[str, ...]], ...]]:
+    """Recursive writer-function closure plus the files each writer is defined in."""
+    function_calls: dict[str, set[str]] = {}
+    definition_sites: dict[str, set[str]] = {}
+    for path in sorted(SOURCE_CAPTURE_DIR.rglob("*.py")):
+        relative = path.relative_to(HARNESS_ROOT).as_posix()
+        tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+        for node in ast.walk(tree):
+            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                function_calls[node.name] = called_names(node)
+                definition_sites.setdefault(node.name, set()).add(relative)
+
+    writers = set(DIRECT_PACKET_WRITER_TOKENS)
+    changed = True
+    while changed:
+        changed = False
+        for name, calls in function_calls.items():
+            if name not in writers and calls.intersection(writers):
+                writers.add(name)
+                changed = True
+    sites = tuple(
+        (name, tuple(sorted(definition_sites.get(name, set()))))
+        for name in sorted(writers)
+    )
+    return frozenset(writers), sites
+
+
+def source_capture_packet_writer_names() -> frozenset[str]:
+    """Function names in source_capture that eventually stage/write a raw packet."""
+    names, _sites = _packet_writer_function_index()
+    return names
+
+
+def packet_writer_function_sites() -> dict[str, tuple[str, ...]]:
+    """Writer-function name -> sorted defining files (empty for the seed tokens
+    when they are defined outside source_capture rglob, which does not happen
+    today)."""
+    _names, sites = _packet_writer_function_index()
+    return dict(sites)
+
+
+def is_packet_writer_name(
+    name: str | None, packet_writer_names: set[str] | frozenset[str]
+) -> bool:
+    return bool(name) and (
+        name in packet_writer_names or bool(PACKET_WRITER_NAME_RE.fullmatch(name))
+    )
+
+
+def cli_flags(tree: ast.AST) -> set[str]:
+    flags: set[str] = set()
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.Call) or call_name(node) != "add_argument":
+            continue
+        for arg in node.args:
+            if (
+                isinstance(arg, ast.Constant)
+                and isinstance(arg.value, str)
+                and arg.value.startswith("--")
+            ):
+                flags.add(arg.value)
+    return flags
+
+
+def source_capture_imports(tree: ast.AST) -> tuple[set[str], set[str]]:
+    packet_writer_names = source_capture_packet_writer_names()
+    writer_names = set(DIRECT_PACKET_WRITER_TOKENS)
+    module_aliases: set[str] = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.ImportFrom):
+            if not (node.module or "").startswith("source_capture"):
+                continue
+            for alias in node.names:
+                if is_packet_writer_name(alias.name, packet_writer_names):
+                    writer_names.add(alias.asname or alias.name)
+                else:
+                    module_aliases.add(alias.asname or alias.name)
+        elif isinstance(node, ast.Import):
+            for alias in node.names:
+                if alias.name.startswith("source_capture."):
+                    module_aliases.add(alias.asname or alias.name)
+    return writer_names, module_aliases
+
+
+def is_imported_module_writer_call(node: ast.Call, module_aliases: set[str]) -> bool:
+    if not isinstance(node.func, ast.Attribute):
+        return False
+    if not is_packet_writer_name(node.func.attr, source_capture_packet_writer_names()):
+        return False
+    base_name = dotted_name(node.func.value)
+    return base_name in module_aliases
+
+
+def producer_calls(
+    tree: ast.AST, writer_names: set[str], module_aliases: set[str]
+) -> tuple[ProducerCall, ...]:
+    calls: list[ProducerCall] = []
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.Call):
+            continue
+        name = call_name(node)
+        if name not in writer_names and not is_imported_module_writer_call(node, module_aliases):
+            continue
+        calls.append(
+            ProducerCall(
+                name=name or "<unknown>",
+                line=node.lineno,
+                forwards_data_root=any(keyword.arg == "data_root" for keyword in node.keywords),
+            )
+        )
+    return tuple(calls)
+
+
+def packet_producers() -> dict[str, RunnerSeam]:
+    """Map each packet-producing runner filename to its lake seam shape."""
+    producers: dict[str, RunnerSeam] = {}
+    for path in sorted(RUNNERS_DIR.glob("run_*.py")):
+        src = path.read_text(encoding="utf-8")
+        tree = ast.parse(src, filename=str(path))
+        flags = cli_flags(tree)
+        writer_names, module_aliases = source_capture_imports(tree)
+        calls = producer_calls(tree, writer_names, module_aliases)
+        if calls:
+            producers[path.name] = RunnerSeam(
+                exposes_output_arg="--output" in flags,
+                exposes_data_root_arg="--data-root" in flags,
+                exposes_env_fallback="ORCA_DATA_ROOT" in src,
+                resolves_data_root="DataLakeRoot.resolve" in src,
+                rejects_output_and_data_root=has_any_token(src, EXPLICIT_PAIR_REJECT_TOKENS),
+                env_fallback_uses_output_omitted=has_any_token(src, ENV_OUTPUT_OMITTED_TOKENS),
+                producer_calls=calls,
+            )
+    return producers
+
+
+def bronze_writer_runners() -> frozenset[str]:
+    return frozenset(packet_producers()).union(BRONZE_PACKET_ORCHESTRATORS)
+
+
+@cache
+def tracked_harness_python_files() -> tuple[Path, ...]:
+    result = subprocess.run(
+        ["git", "-C", str(HARNESS_ROOT.parent), "ls-files", "--", "orca-harness"],
+        check=True,
+        stdout=subprocess.PIPE,
+        text=True,
+    )
+    paths: list[Path] = []
+    for line in result.stdout.splitlines():
+        path = HARNESS_ROOT.parent / line
+        if path.suffix != ".py":
+            continue
+        relative_path = path.relative_to(HARNESS_ROOT).as_posix()
+        if relative_path.startswith("tests/"):
+            continue
+        paths.append(path)
+    return tuple(sorted(paths))
+
+
+def non_raw_lake_touchpoints() -> Counter[tuple[str, str]]:
+    """Current non-raw lake write/read touchpoints that must be classified before GT forks."""
+    touchpoints: Counter[tuple[str, str]] = Counter()
+    for path in tracked_harness_python_files():
+        relative_path = path.relative_to(HARNESS_ROOT).as_posix()
+        tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+        for node in ast.walk(tree):
+            if not isinstance(node, ast.Call):
+                continue
+            name = call_name(node)
+            if name in NON_RAW_LAKE_TOUCHPOINT_CALLS:
+                touchpoints[(relative_path, name)] += 1
+    return touchpoints
+
+
+def build_inventory() -> dict:
+    """Fresh deterministic inventory from tracked source. Pure discovery plus
+    module-declared exclusions; no filesystem writes."""
+    runner_entries = [
+        {
+            "runner": name,
+            "kind": "direct_packet_writer",
+            "a2_fork_impact": "manifest_shape",
+            "identity_binding": identity_binding_for_runner(name),
+        }
+        for name in sorted(packet_producers())
+    ] + [
+        {
+            "runner": name,
+            "kind": "orchestrator",
+            "a2_fork_impact": "manifest_shape",
+            "identity_binding": identity_binding_for_runner(name),
+        }
+        for name in sorted(BRONZE_PACKET_ORCHESTRATORS)
+    ]
+    writer_entries = [
+        {
+            "function": name,
+            "defined_in": list(sites),
+            "a2_fork_impact": "manifest_shape",
+        }
+        for name, sites in sorted(packet_writer_function_sites().items())
+    ]
+    touchpoint_entries = [
+        {
+            "module": module,
+            "call": call,
+            "count": count,
+            "a2_fork_impact": a2_fork_impact_for_call(call),
+        }
+        for (module, call), count in sorted(non_raw_lake_touchpoints().items())
+    ]
+    exclusions = [dict(entry) for entry in STRUCTURAL_EXCLUSIONS] + [
+        {
+            "target": runner,
+            "reason": reason,
+            "kind": "acknowledged_unsynced_packet_runner",
+        }
+        for runner, reason in sorted(KNOWN_UNSYNCED.items())
+    ]
+    return {
+        "inventory_version": INVENTORY_VERSION,
+        "authority_note": (
+            "Generated inventory of code surfaces; never lake authority; "
+            "regenerated and diffed by tests/contract/test_data_lake_inventory_gate.py; "
+            "a2_fork_impact is routing metadata for the deferred A2 decision, not a selection; "
+            "identity_binding documents each runner's served-content-to-requested-subject "
+            "binding posture (unbound is a visible acknowledged gap, not a pass)."
+        ),
+        "raw_packet_writers": {
+            "runner_seams": sorted(runner_entries, key=lambda e: e["runner"]),
+            "writer_functions": writer_entries,
+        },
+        "non_raw_touchpoints": touchpoint_entries,
+        "exclusions": exclusions,
+        "unknowns": [],
+    }
+
+
+def serialize_inventory(inventory: dict) -> str:
+    """Canonical serialization: sorted keys, two-space indent, trailing newline."""
+    return json.dumps(inventory, indent=2, sort_keys=True) + "\n"
+
+
+def load_declared_inventory(path: Path = INVENTORY_PATH) -> dict:
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+def inventory_violations(declared: dict, discovered: dict) -> list[str]:
+    """Gate checks: drift between declared and discovered, unreasoned
+    exclusions, and unknowns without a resolved owner disposition."""
+    violations: list[str] = []
+
+    if declared.get("inventory_version") != discovered.get("inventory_version"):
+        violations.append(
+            "inventory_version mismatch: declared="
+            f"{declared.get('inventory_version')!r} discovered={discovered.get('inventory_version')!r}"
+        )
+
+    def _entry_set(inventory: dict, family: str, subfamily: str | None = None) -> set[str]:
+        node = inventory.get(family, {})
+        entries = node.get(subfamily, []) if subfamily else node
+        if not isinstance(entries, list):
+            return set()
+        return {json.dumps(entry, sort_keys=True) for entry in entries}
+
+    for family, subfamily in (
+        ("raw_packet_writers", "runner_seams"),
+        ("raw_packet_writers", "writer_functions"),
+        ("non_raw_touchpoints", None),
+        ("exclusions", None),
+    ):
+        label = f"{family}.{subfamily}" if subfamily else family
+        declared_set = _entry_set(declared, family, subfamily)
+        discovered_set = _entry_set(discovered, family, subfamily)
+        for entry in sorted(discovered_set - declared_set):
+            violations.append(f"undeclared {label} entry (discovered, not in record): {entry}")
+        for entry in sorted(declared_set - discovered_set):
+            violations.append(f"stale {label} entry (declared, no longer discovered): {entry}")
+
+    declared_seams = declared.get("raw_packet_writers", {})
+    declared_seams = declared_seams.get("runner_seams", []) if isinstance(declared_seams, dict) else []
+    for entry in declared_seams if isinstance(declared_seams, list) else []:
+        if not isinstance(entry, dict):
+            continue  # non-object entries already surface as declared/discovered drift
+        runner = entry.get("runner")
+        if "identity_binding" not in entry:
+            violations.append(
+                "runner seam without an identity_binding (every capture runner must declare "
+                "how served content is bound to the requested subject in "
+                f"RUNNER_IDENTITY_BINDINGS): {runner!r}"
+            )
+            continue
+        for problem in identity_binding_problems(entry["identity_binding"]):
+            violations.append(f"runner seam {runner!r}: {problem}")
+
+    for exclusion in declared.get("exclusions", []):
+        if not str(exclusion.get("reason", "")).strip():
+            violations.append(f"exclusion without a reason: {exclusion.get('target')!r}")
+
+    for unknown in declared.get("unknowns", []):
+        disposition = unknown.get("owner_disposition") or {}
+        if disposition.get("status") != "resolved":
+            violations.append(
+                "unknown without a resolved owner disposition (owner-attributable via the "
+                f"human-gated PR merge; pending fails the gate): {unknown.get('target')!r}"
+            )
+            continue
+        if not str(unknown.get("target", "")).strip():
+            violations.append("resolved unknown without a target")
+        if not str(unknown.get("question", "")).strip():
+            violations.append(f"resolved unknown without a question: {unknown.get('target')!r}")
+        if not str(disposition.get("disposition", "")).strip():
+            violations.append(
+                f"resolved unknown without a concrete disposition: {unknown.get('target')!r}"
+            )
+        if not str(disposition.get("recorded_by", "")).strip():
+            violations.append(
+                f"resolved unknown without owner-attribution evidence: {unknown.get('target')!r}"
+            )
+
+    return violations

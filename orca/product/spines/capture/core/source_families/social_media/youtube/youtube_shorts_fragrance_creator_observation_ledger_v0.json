@@ -53,6 +53,44 @@
       "do_not_store_absence_as_zero": true,
       "open_next": "capture YouTube per-video metric observations from RSS/watch surfaces before computing creator rollups"
     },
+    "operator_video_retirements": [
+      {
+        "video_id": "DUafgG-TLms",
+        "reason": "video unavailable (playabilityStatus ERROR in captured watch HTML); reproduced on three sweeps 2026-06-30 through 2026-07-02 UTC",
+        "retired_at_utc": "2026-07-03T00:00:00Z",
+        "evidence_packet_ids": ["01KWH26C3055EQSZB3ATZ1JZQ3", "01KWHHKTR140851M850J85QY1Y", "01KWJ0KGHTJYED1X0DFMWWPR84"]
+      },
+      {
+        "video_id": "JcwT5rvhXIc",
+        "reason": "video unavailable (playabilityStatus ERROR in captured watch HTML); reproduced on four captures 2026-06-30 through 2026-07-02 UTC",
+        "retired_at_utc": "2026-07-03T00:00:00Z",
+        "evidence_packet_ids": ["01KWBPW19TTG7VQM2EKKHMM0N7", "01KWH28XAAFDJKCKY2JX1QNT6W", "01KWHHMFEBMCAKTMNCT5DEFJ5M", "01KWJ0PBDY085CGBWAPX1YHBHR"]
+      },
+      {
+        "video_id": "ZRxgla8xoM8",
+        "reason": "video unavailable (playabilityStatus ERROR in captured watch HTML); reproduced on three sweeps 2026-06-30 through 2026-07-02 UTC",
+        "retired_at_utc": "2026-07-03T00:00:00Z",
+        "evidence_packet_ids": ["01KWH455Q8W9102WZ5NEJRYESJ", "01KWHHNW0AJP31NZBCS81VBSWT", "01KWJ2GGZT42RY5Z8DCKSAEHS2"]
+      },
+      {
+        "video_id": "as7hye0qgYc",
+        "reason": "video unavailable (playabilityStatus ERROR in captured watch HTML); reproduced on four captures 2026-06-30 through 2026-07-02 UTC",
+        "retired_at_utc": "2026-07-03T00:00:00Z",
+        "evidence_packet_ids": ["01KWBPYB766MZ89C2D23VCS0DN", "01KWH1TR2QY5VRNYTPNNJY18QV", "01KWHHJGAN2M2H6DD4E34BE6VG", "01KWJ08QGH5ZZQ1HV5WR69VBHM"]
+      },
+      {
+        "video_id": "doNVRDk0X_Y",
+        "reason": "video unavailable (playabilityStatus ERROR in captured watch HTML); reproduced on three sweeps 2026-06-30 through 2026-07-02 UTC",
+        "retired_at_utc": "2026-07-03T00:00:00Z",
+        "evidence_packet_ids": ["01KWH25ZY1AYMGTY4CXWGDD3KD", "01KWHHK6A89PB3C3E9MH4Q8CQY", "01KWJ0K4NFBGNH8T1A05T590ZR"]
+      },
+      {
+        "video_id": "syjxpoKWbRM",
+        "reason": "video unavailable (playabilityStatus ERROR in captured watch HTML); reproduced on three sweeps 2026-06-30 through 2026-07-02 UTC",
+        "retired_at_utc": "2026-07-03T00:00:00Z",
+        "evidence_packet_ids": ["01KWH2M783G77YJTJ64X2H3CT1", "01KWHHN2D4M9H80HH77586QAVK", "01KWJ11GTKT62R5GPNDM68DKDJ"]
+      }
+    ],
     "creator_observations": [
       {
         "creator_observation_id": "yts_fragrance_creator_observation_v0_001",

@@ -269,6 +269,54 @@ def test_tiktok_batch_rejects_forbidden_staging_contract(tmp_path: Path) -> None
         )
 
 
+def test_tiktok_batch_rejects_challenge_cadence_for_admission(tmp_path: Path) -> None:
+    output = tmp_path / "packet"
+    cadence = json.loads(_cadence_payload().decode("utf-8"))
+    cadence["challenge_count"] = 1
+
+    with pytest.raises(ValueError, match="challenge_count=1 cannot be admitted"):
+        write_tiktok_batch_packet(
+            creator_handle="funmimonet",
+            creator_profile_url=PROFILE_URL,
+            grid_result_json=_grid_payload(),
+            cadence_result_jsons=[json.dumps(cadence).encode("utf-8")],
+            output_directory=output,
+            decision_question="admit TikTok creator batch",
+        )
+
+
+def test_tiktok_batch_rejects_failed_cadence_for_admission(tmp_path: Path) -> None:
+    output = tmp_path / "packet"
+    cadence = json.loads(_cadence_payload().decode("utf-8"))
+    cadence["failures"] = [{"reason": "challenge_close_diagnostic_only"}]
+
+    with pytest.raises(ValueError, match="contains 1 failure entries"):
+        write_tiktok_batch_packet(
+            creator_handle="funmimonet",
+            creator_profile_url=PROFILE_URL,
+            grid_result_json=_grid_payload(),
+            cadence_result_jsons=[json.dumps(cadence).encode("utf-8")],
+            output_directory=output,
+            decision_question="admit TikTok creator batch",
+        )
+
+
+def test_tiktok_batch_rejects_diagnostic_mode_contract(tmp_path: Path) -> None:
+    output = tmp_path / "packet"
+    cadence = json.loads(_cadence_payload().decode("utf-8"))
+    cadence["capture_contract"]["challenge_close_diagnostic_allowed"] = True
+
+    with pytest.raises(ValueError, match="challenge_close_diagnostic_allowed=true"):
+        write_tiktok_batch_packet(
+            creator_handle="funmimonet",
+            creator_profile_url=PROFILE_URL,
+            grid_result_json=_grid_payload(),
+            cadence_result_jsons=[json.dumps(cadence).encode("utf-8")],
+            output_directory=output,
+            decision_question="admit TikTok creator batch",
+        )
+
+
 def test_tiktok_batch_rejects_mismatched_completed_count(tmp_path: Path) -> None:
     output = tmp_path / "packet"
     cadence = json.loads(_cadence_payload().decode("utf-8"))

@@ -1,132 +1,132 @@
 {
   "creator_metric_rollup_freshness_receipt": {
-    "lake_high_watermark": "sha256:a8d05b9ffe342ead5ffb3dcaf093a50dfbebe8732c36461641796d7f6d1adbe3",
+    "lake_high_watermark": "sha256:f3fed570bd6fe6e819b0bde918c28500641a90a277baba0db236fae2c1328b59",
     "per_account": [
       {
-        "content_hash": "sha256:1fe62f4bc96c5ba76c31ebe24a24311ab230e8efa21d2d4042d987651360fcb0",
+        "content_hash": "sha256:c04da3080a700aed546968ea603d384d810c3549d680f8ddcef5cce9c77965bd",
         "profile_subject_id": "acct_yt_fragrance_001"
       },
       {
-        "content_hash": "sha256:65954e67ac125b7e3082c28105b0981facf2598d4daa603c8f1cdffbc3b5b7cc",
+        "content_hash": "sha256:7f739a5794607d8015a921543e5d8724e3439ac623b27d07315ee106725d5ae9",
         "profile_subject_id": "acct_yt_fragrance_002"
       },
       {
-        "content_hash": "sha256:c9cd3b50d557b365d376971c557a926899ec8fe2201a73bd8e8b0c300e2f174f",
+        "content_hash": "sha256:53aacd1ff9382f75c1f5f576be507c1469244cebe6b0e608a88ba371dd217a24",
         "profile_subject_id": "acct_yt_fragrance_003"
       },
       {
-        "content_hash": "sha256:4cb7fdd612c02dbb947da33a230b327ded188ed7c9ffbe83aeea8549146dac89",
+        "content_hash": "sha256:0258773ebd4449e7038d9e76d8beff2fd2c40267b336dedc76ee791f0c6ea503",
         "profile_subject_id": "acct_yt_fragrance_004"
       },
       {
-        "content_hash": "sha256:137eecff75653e9d98cfd21a39a4eaea2d55a3e637987e873e52ab4d24887a1c",
+        "content_hash": "sha256:9e2048ad40874bfcbf748ebe0049a7656fc9b2d582d363144cb97ccf6f99e3a8",
         "profile_subject_id": "acct_yt_fragrance_005"
       },
       {
-        "content_hash": "sha256:a57a0706bcf7e5124dc154a514aaa88f8ed5c7f6909ce89f869dba764c4387b0",
+        "content_hash": "sha256:cf66471b0c286a5d77299889522c0dfb930739bfa0ec633f1c586e46d4d79963",
         "profile_subject_id": "acct_yt_fragrance_006"
       },
       {
-        "content_hash": "sha256:7b4e13a53389f4093366ba9269f0abc2dc8c91f66c7459272fe9e909e8b623b1",
+        "content_hash": "sha256:5ceba56cad5394124de85c0db8e68b4bbf2930d6d75aa4b2fcd3a1e8c83071a6",
         "profile_subject_id": "acct_yt_fragrance_007"
       },
       {
-        "content_hash": "sha256:248f32c995afc935d7cade76be2676ba07dd2156358b1e67492c24f2fb829070",
+        "content_hash": "sha256:eb50756444e7f05ccd4086b1080e7f2b1e8e71b8de1fed96cdb7252da935e995",
         "profile_subject_id": "acct_yt_fragrance_008"
       },
       {
-        "content_hash": "sha256:4782b5102bf7219b13b2ca733a028966c915dc05ba2e618ae4fe789c6b481ec9",
+        "content_hash": "sha256:610215c2b20d5f77203f592827b0470b70d31b3fd08e7c549d6463c8798bbe49",
         "profile_subject_id": "acct_yt_fragrance_009"
       },
       {
-        "content_hash": "sha256:e1e0adfb41a723b9588b2d02116663f430c7b6ad8b27475191782f155b84bf2b",
+        "content_hash": "sha256:5785a618fd9e3dd37021278becf36b02be4b90444dacd6ea7a938b037b90954e",
         "profile_subject_id": "acct_yt_fragrance_010"
       },
       {
-        "content_hash": "sha256:50dd970571cf5061d5de0e376887d9c1480554ca175aefb4311f5ff4b6c40c29",
+        "content_hash": "sha256:6ed64f44dc25547401b4019c069865f9c245070c75766c5b6b28a5b920f56b0c",
         "profile_subject_id": "acct_yt_fragrance_011"
       },
       {
-        "content_hash": "sha256:9fe66d348ae281e3b2e42daee01f6a0e7ed9344804d66fce1e720da19a13ca09",
+        "content_hash": "sha256:ff2404e659826ba707c80028b69fa66dc3a296ef0552797a80d129ec9628a943",
         "profile_subject_id": "acct_yt_fragrance_012"
       },
       {
-        "content_hash": "sha256:1e4efa574ea39ad96953e4afd1f6f2498cb3091759740d9a1c2be30f12396b4b",
+        "content_hash": "sha256:5f37443f1deda1ebba7633e3f657ace42155c5e7e0e335b3b89c91db8258f78c",
         "profile_subject_id": "acct_yt_fragrance_013"
       },
       {
-        "content_hash": "sha256:2933be384f8744f8e80e80a0d723709ca0e8621e8e820354ffbcfd9eb5ff0e2e",
+        "content_hash": "sha256:a1efcd8fbc927194ffae434531a67dbfccaec8a162dde6c7a60365dcb4038a1c",
         "profile_subject_id": "acct_yt_fragrance_014"
       },
       {
-        "content_hash": "sha256:ed6506c21a6cd05ac9ba79229237e5502e8b4f20d8d8586b31b2d4ce4ca0aa01",
+        "content_hash": "sha256:4bae469fb0d282fd3c089991638f046f841d58a3e00f692bd589a66f0825461a",
         "profile_subject_id": "acct_yt_fragrance_015"
       },
       {
-        "content_hash": "sha256:b8b2670bb6c143ce56b1db551b3dda8d48e8bee69d5d0677f149b50a6e1fc9b3",
+        "content_hash": "sha256:837a501a408be33ad89aa516398ce4e6745eb84abce9df9797d1fe675ebb2745",
         "profile_subject_id": "acct_yt_fragrance_016"
       },
       {
-        "content_hash": "sha256:524d60fab61e8fe1d2d798929f08c4fa632c720bf321d952a5c999ee770283cd",
+        "content_hash": "sha256:dc9a964f41bbd437f619a127368ef9378fa1b398fb31f213d6a9f18b3e42ba75",
         "profile_subject_id": "acct_yt_fragrance_017"
       },
       {
-        "content_hash": "sha256:37d3282296d30216c1aa6c73663fd61264ae78191e9d373dc6b3477c021d9fce",
+        "content_hash": "sha256:1a21e2c9d270cdff05422e100e54d4acc52bd5ffba0e3e00d1f229ef22ac666b",
         "profile_subject_id": "acct_yt_fragrance_018"
       },
       {
-        "content_hash": "sha256:5fa7a0c54d936d9c6735b7693760a8baae77dbf75c7b87e01904702b83ceedd0",
+        "content_hash": "sha256:57650f131b9f0b5a347e4aca913b9eb4fcef238dfa9190cf4880ddd5600e8dc3",
         "profile_subject_id": "acct_yt_fragrance_020"
       },
       {
-        "content_hash": "sha256:1ef9a0b85956d24e111ab09b77b00fea75cd3bbe44772c869cefda079b3db7e7",
+        "content_hash": "sha256:a824388cfe8faf9908d2f11c15308c82cb18abdf5141639a10409c7db1de2c98",
         "profile_subject_id": "acct_yt_fragrance_021"
       },
       {
-        "content_hash": "sha256:57a5a92e0e741787b79a1ef1d5d7fa12ddccc5fa1794436778cd0ab6c71e89dd",
+        "content_hash": "sha256:5e2f884fe26667e1c5f2eb259617690cbdda15f975b0cf196c3341f1b66ab9d1",
         "profile_subject_id": "acct_yt_fragrance_022"
       },
       {
-        "content_hash": "sha256:fae17f180d99be4a55115e507e4bef53e0602f2dd2c3aede8fc86a7c7bd5d13e",
+        "content_hash": "sha256:f8f5bf728056c2863fac0eae9593f561469cc5cd525e59f78df5a58e0a1bc4be",
         "profile_subject_id": "acct_yt_fragrance_023"
       },
       {
-        "content_hash": "sha256:9672b8a625c3fde1b4cced67af60b2eefb486bd5e537d093d7035a0eda921321",
+        "content_hash": "sha256:76ffe5da5648d345a7d1bbe920e322c864989c49287138fdd5e273d94e433c15",
         "profile_subject_id": "acct_yt_fragrance_024"
       },
       {
-        "content_hash": "sha256:4898d8bdccacb680a1031bf63d9198dc8079c0d2a853449b0fae159e8a301a75",
+        "content_hash": "sha256:bfb6ae587de072356dc91d9199a2db546467239ec40663c732f6ca1c291ffd76",
         "profile_subject_id": "acct_yt_fragrance_025"
       },
       {
-        "content_hash": "sha256:d89bd86035d898cd1730f9faee23aafea0012d53d4b70b0a1438705b54a43053",
+        "content_hash": "sha256:00456267f647edfcae7d990cad2268e3691e47b29c004d10bfa3190d26fdb295",
         "profile_subject_id": "acct_yt_fragrance_026"
       },
       {
-        "content_hash": "sha256:faae1a009379f1ec8c5fde1aa106d5a228c4f8edf67be8c1dedc75b2f06e9619",
+        "content_hash": "sha256:634fec36c880d924c458becaa2bd7d32f108f8406d2520da00fbefb17e241472",
         "profile_subject_id": "acct_yt_fragrance_027"
       },
       {
-        "content_hash": "sha256:aa5f964466274ade5511968484b039d59f81986d2fc626c1d0c84d63cb42bc25",
+        "content_hash": "sha256:fcbd73ede6e30890f3a938fc591c997b43c62e63567755e1eb907674f4711dfe",
         "profile_subject_id": "acct_yt_fragrance_028"
       },
       {
-        "content_hash": "sha256:18e879c78315a775b29937ed685a6f326a1280895081b0d1619576ea1bfb125e",
+        "content_hash": "sha256:c57dc502b33a7435d0e19b1b15d2b5ebb75ce8730eba65f5e844a2ecc1350f22",
         "profile_subject_id": "acct_yt_fragrance_029"
       },
       {
-        "content_hash": "sha256:d0d2d5acd705e93d62e9e186122ad3fff395bc00bf3d2cdb07e8576817f47379",
+        "content_hash": "sha256:2b0a3cc576e30a1da81a9451d257fb5971cc4b3fd55da2e96b0d1d4045463ef0",
         "profile_subject_id": "acct_yt_fragrance_030"
       },
       {
-        "content_hash": "sha256:c13b3936899212c5e44c5cbeae5ffb9861eae07d31b12e6710e209ab7a3c617b",
+        "content_hash": "sha256:ae33873c98af2d5b9231f37ef68c34854e4577f89edb1bdc52f826ae299b44c1",
         "profile_subject_id": "acct_yt_fragrance_031"
       }
     ],
     "platform_scope": "youtube",
-    "reconciled_at": "2026-06-30T19:11:30Z",
+    "reconciled_at": "2026-07-02T18:57:43Z",
     "schema_version": "creator_metric_rollup_freshness_receipt_v0",
-    "selection_run_id": 1,
-    "snapshot_generated_at": "2026-06-30T19:11:30Z"
+    "selection_run_id": 3,
+    "snapshot_generated_at": "2026-07-02T18:57:43Z"
   }
 }

@@ -17,7 +17,7 @@ YOUTUBE_CREATOR_OBSERVATION_LEDGER_SCHEMA_VERSION = "youtube_creator_observation
 _WRAPPER_KEY = "youtube_creator_observation_ledger"
 
 _ALLOWED_TOP_LEVEL_KEYS = frozenset({_WRAPPER_KEY})
-_ALLOWED_WRAPPER_KEYS = frozenset(
+_REQUIRED_WRAPPER_KEYS = frozenset(
     {
         "schema_version",
         "ledger_id",
@@ -33,6 +33,12 @@ _ALLOWED_WRAPPER_KEYS = frozenset(
         "accepted_residuals",
         "non_claims",
     }
+)
+# operator_video_retirements is additive-optional on the v0 schema: existing
+# ledgers without it stay valid; when present it is validated fail-closed.
+_ALLOWED_WRAPPER_KEYS = _REQUIRED_WRAPPER_KEYS | {"operator_video_retirements"}
+_ALLOWED_RETIREMENT_KEYS = frozenset(
+    {"video_id", "reason", "retired_at_utc", "evidence_packet_ids"}
 )
 _ALLOWED_NICHE_KEYS = frozenset({"domain", "subdomain", "platform_surface", "membership_basis"})
 _ALLOWED_COUNTS_KEYS = frozenset(
@@ -138,6 +144,8 @@ _YOUTUBE_FORBIDDEN_OUTPUT_FIELDS = frozenset(
     }
 )
 _PACKET_ID_RE = re.compile(r"[0123456789ABCDEFGHJKMNPQRSTVWXYZ]{26}")
+_VIDEO_ID_RE = re.compile(r"[A-Za-z0-9_-]{11}")
+_UTC_TIMESTAMP_RE = re.compile(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z")
 _RAW_RELPATH_RE = re.compile(r"raw/[0-9a-f]{3}/[0123456789ABCDEFGHJKMNPQRSTVWXYZ]{26}")
 _METADATA_RELPATH_RE = re.compile(
     r"raw/[0-9a-f]{3}/[0123456789ABCDEFGHJKMNPQRSTVWXYZ]{26}/raw/[0-9]{2}_[A-Za-z0-9_]+_metadata\.json"
@@ -169,7 +177,7 @@ def validate_youtube_creator_observation_ledger(ledger: Mapping[str, Any]) -> No
     _reject_unknown_keys(ledger, _ALLOWED_TOP_LEVEL_KEYS, "ledger top-level")
     wrapper = _wrapper(ledger)
     _reject_unknown_keys(wrapper, _ALLOWED_WRAPPER_KEYS, "ledger")
-    _require(wrapper, tuple(_ALLOWED_WRAPPER_KEYS), "ledger")
+    _require(wrapper, tuple(_REQUIRED_WRAPPER_KEYS), "ledger")
     if wrapper["schema_version"] != YOUTUBE_CREATOR_OBSERVATION_LEDGER_SCHEMA_VERSION:
         _fail("invalid_schema_version", "unexpected YouTube creator observation schema_version")
     if wrapper["ledger_mode"] != "source_backed_static_fixture":
@@ -182,6 +190,7 @@ def validate_youtube_creator_observation_ledger(ledger: Mapping[str, Any]) -> No
     _validate_required_non_claims(wrapper["non_claims"], "ledger")
     observations = _validate_observations(wrapper["creator_observations"])
     _validate_counts(wrapper["counts"], observations)
+    _validate_operator_video_retirements(wrapper, observations)
 
 
 def validate_source_rebuild(ledger: Mapping[str, Any], source_creator_ledger: Mapping[str, Any]) -> None:
@@ -521,6 +530,65 @@ def _wrapper(ledger: Mapping[str, Any]) -> Mapping[str, Any]:
     if not isinstance(wrapper, Mapping):
         _fail("missing_ledger_wrapper", f"{_WRAPPER_KEY} wrapper is required")
     return wrapper
+
+
+def _validate_operator_video_retirements(
+    wrapper: Mapping[str, Any], observations: Sequence[Mapping[str, Any]]
+) -> None:
+    """Fail-closed validation of the optional operator retirement block: every
+    entry names an admitted-pool video exactly once, carries an attested reason
+    plus dead-capture evidence packet ids, and never masquerades as removal --
+    the compiled observations keep the video; producers exclude it loudly."""
+    block = wrapper.get("operator_video_retirements")
+    if block is None:
+        return
+    if not _is_list(block) or not block:
+        _fail(
+            "invalid_operator_video_retirements",
+            "operator_video_retirements must be a non-empty list when present",
+        )
+    pool: set[str] = set()
+    for observation in observations:
+        pool.update(observation["video_ids"])
+    seen: set[str] = set()
+    for index, entry in enumerate(block):
+        context = f"operator_video_retirements[{index}]"
+        if not isinstance(entry, Mapping):
+            _fail("invalid_operator_video_retirement", f"{context} must be an object")
+        _reject_unknown_keys(entry, _ALLOWED_RETIREMENT_KEYS, context)
+        _require(entry, tuple(sorted(_ALLOWED_RETIREMENT_KEYS)), context)
+        video_id = entry["video_id"]
+        if not isinstance(video_id, str) or not _VIDEO_ID_RE.fullmatch(video_id):
+            _fail("invalid_retirement_video_id", f"{context} video_id must be an 11-char YouTube id")
+        if video_id in seen:
+            _fail("duplicate_retirement_video_id", f"{context} duplicates retirement for {video_id}")
+        seen.add(video_id)
+        if video_id not in pool:
+            _fail(
+                "retirement_video_not_in_pool",
+                f"{context} names a video outside the admitted pool: {video_id}",
+            )
+        reason = entry["reason"]
+        if not isinstance(reason, str) or not reason.strip():
+            _fail("invalid_retirement_reason", f"{context} reason must be a non-empty string")
+        retired_at = entry["retired_at_utc"]
+        if not isinstance(retired_at, str) or not _UTC_TIMESTAMP_RE.fullmatch(retired_at):
+            _fail(
+                "invalid_retirement_timestamp",
+                f"{context} retired_at_utc must be an ISO-8601 UTC timestamp ending in Z",
+            )
+        evidence = entry["evidence_packet_ids"]
+        if not _is_list(evidence) or not evidence:
+            _fail(
+                "invalid_retirement_evidence",
+                f"{context} evidence_packet_ids must be a non-empty list",
+            )
+        for packet_id in evidence:
+            if not isinstance(packet_id, str) or not _PACKET_ID_RE.fullmatch(packet_id):
+                _fail(
+                    "invalid_retirement_evidence",
+                    f"{context} evidence_packet_ids entries must be ULID packet ids",
+                )
 
 
 def _reject_unknown_keys(value: Mapping[str, Any], allowed: frozenset[str], context: str) -> None:

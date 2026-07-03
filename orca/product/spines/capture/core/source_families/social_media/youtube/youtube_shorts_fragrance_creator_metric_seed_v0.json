@@ -14,7 +14,7 @@
     "source_inputs": [
       {
         "source_pointer": "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_observation_ledger_v0.json",
-        "sha256": "3ab2ca4fc786b6891539ede58f6d2f3cedc464846029b06f9e10b32004972427",
+        "sha256": "dd22f732e80e7430d7286f2c2bcad56f30cc0659e25f0c7c84dd16765e880cbf",
         "role": "maps admitted video ids to source-backed YouTube creator/channel observations and brand exclusion posture"
       },
       {

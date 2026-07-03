@@ -14,8 +14,8 @@ use_when:
   - Cross-family, external, couriered, paste-ready, or portable delivery by itself does not select this method; use repo-bound review when repository access exists.
 authority_boundary: retrieval_only
 derived_from:
-  - docs/prompts/templates/review/adversarial_artifact_review_v0.md@0cb80057795215b3311d00c3d0ad603fbef78fe92e5ae24d8042490b8b60c3fc
-  - .agents/workflow-overlay/review-lanes.md@231d2f6c99e1bcdd0ad950b82e6c6bcb18b5e7f99b001289f760e660aeabef51   # re-pinned 2026-06-14: #42 retired model-target (_generic/) templates -- change confined to the Template Retrieval Binding section, NOT the distilled reviewer stance/checks (PORTABLE METHOD sections 1-7), so pin-only. (2026-06-10: two-bar de-correlation / provenance machinery, pin-only; 2026-06-09: reviewed_by/authored_by bullets, pin-only.)
+  - docs/prompts/templates/review/adversarial_artifact_review_v0.md@c5c4e7d3913b59d60c592c86255abbafd82336910b90656e6bafcac57a33e9c4   # re-derived 2026-07-02: 1b0d60b5 added the source-read budget + closing read-budget audit to the template's output contract -- material; PORTABLE METHOD section 6 gains the provided-materials read-budget audit line. (Prior pin 0cb80057…b60c3fc.)
+  - .agents/workflow-overlay/review-lanes.md@ddc3e03b9ea995783e1d29100d502b025119460ae158bbb9e79f960e4729750d   # re-pinned 2026-07-02: 73f41506 (delegated_code_review_and_patch lane-index wording) + 82613874 (routine-read-shape head note) -- both confined to lane bindings/read-shape guidance, NOT the distilled reviewer stance/checks, so pin-only. (2026-06-14: #42 Template Retrieval Binding, pin-only; 2026-06-10: two-bar de-correlation / provenance machinery, pin-only; 2026-06-09: reviewed_by/authored_by bullets, pin-only. Prior pin 231d2f6c…abef51.)
 # Hash convention (recorded 2026-06-13 after an observed false-stale on a CRLF checkout): the
 # derived_from pins are SHA256 over git BLOB bytes (LF as stored; e.g. `git cat-file blob <rev>:<path>`),
 # NOT over CRLF working-tree bytes. Run the freshness gate like-for-like: a Get-FileHash mismatch on a
@@ -68,6 +68,8 @@ Lead with a compact `review_summary`, then findings:
       summary: <one line>
 
 Then list findings, ordered `critical` → `major` → `minor`. For each include: `severity`, `location`, `issue`, `evidence` (cite the target section **and** the conflicting authority excerpt), `impact`, `minimum_closure_condition` (the end state that resolves it — not how to implement), `next_authorized_action` (e.g. owner decision / rerun / re-allocate / no action), and an advisory remediation direction. Do **not** emit executor-ready patch steps. If you find no issues, say so and list residual risks / test gaps.
+
+Close with a one-line read-budget audit over the provided materials: which provided files you read in full versus skipped or skimmed, and why. It records coverage of the provided bundle; it is not a validation, readiness, or coverage claim.
 
 ### 7. Review-use boundary
 Your findings are **decision input only** for the commissioning owner — not approval, validation, readiness, product proof, mandatory remediation, or executor-ready instructions. Nothing downstream is bound by this review unless a separate authorized decision accepts it.

@@ -29,6 +29,97 @@ Prepare-only **proposal + classification**. It inventories and classifies rules 
 
 Scope guard: this is the **enforcement-placement step only**. Binding the shared distillation doctrine to Orca is a separate later task and is explicitly out of scope here (see § Step 4).
 
+## Update — 2026-07-03: EP-36 (handoff-pointer resolution gate) built and wired
+
+A new Enforcement Placement handle — **EP-36, beyond the EP-01..EP-35 set** —
+built and wired under explicit current-turn owner authorization ("Design and
+land the smallest complete enforcement", the handoff-resolution turn).
+
+- **What it enforces:** a changed durable `.md` file must not reference a
+  handoff-packet path (`docs/workflows/*handoff*.md`, `docs/prompts/handoffs/*.md`)
+  that does not resolve in the same tree, unless the pointer line carries an
+  explicit resolution pin (`branch` / `PR #<n>` / `origin/<ref>` vocabulary) or
+  an exemption marker. Rule owner:
+  `.agents/workflow-overlay/validation-gates.md` (Handoff-pointer resolution
+  gate, with inline DCP receipt); the checker references it.
+- **Provenance:** handoff packets referenced by courier prompts twice failed
+  cold-agent resolution because they lived only on unmerged authoring branches
+  (observed: `docs/workflows/yt_shorts_grid_tier_assessment_handoff_v0.md`, reachable only on its authoring branch
+  — both the receiving agent and a delegated reviewer failed to find it from
+  `main`). A build-time corpus measurement showed the class is systemic:
+  `--audit` found 17 unresolved handoff-family pointers across at least six
+  distinct packets (forward-only backlog, surfaced, never gated), while the
+  broader all-paths rot backlog (~883 unresolved references in filed prompts)
+  ruled out any whole-corpus gate.
+- **Classification: PARTIAL.** Pointer extraction + in-tree resolution +
+  pin/exemption vocabulary presence are SUBSTRATE (diff-scoped, forward-only).
+  The over-edges stay resident: whether a pinned branch still exists, whether
+  packet content is current, whether the cited packet was the right source,
+  and couriers that never land in the repo (chat bodies, PR comments,
+  `docs/_inbox/` scratch — governed by prompt-orchestration.md). Referenced
+  output DESTINATIONS (e.g. `docs/review-outputs/**` report paths) are
+  deliberately out of the checked family: they legitimately do not exist at
+  authoring time, so gating them would false-block (measured: nearly all 35
+  review-io unresolved references were destinations). PLACEMENT IS NOT
+  AUTHORITY: a green run is pointer shape, never proof the packet is fresh or
+  correct.
+- **Built:** `.agents/hooks/check_handoff_pointers.py` (`--strict` CI gate,
+  `--check`, `--audit`, `--selftest`, `--force-internal-error`; infra-gap
+  fail-open, GATE FAIL on internal error in gating modes, mirroring
+  `check_review_routing.py`). Wired: `.github/workflows/ci.yml` step +
+  `test_hook_internal_error_gating.py` CASES row. A write-time PostToolUse
+  advisory was intentionally NOT built: the defect is a merge-topology
+  property (packet on a different unmerged branch), invisible at the write
+  boundary where the packet usually exists in the author's own tree.
+
+This trips `stale_if` (a further substrate built). The DCP receipt lives in
+`validation-gates.md` (an overlay rule was added there — like EP-35, this one
+IS a doctrine change). Not validation, readiness, or approval.
+
+## Update — 2026-07-02: EP-35 (review-routing disposition gate) built and wired
+
+A new Enforcement Placement handle — **EP-35, beyond the EP-01..EP-34 set** —
+built and wired under explicit current-turn owner authorization ("Do the B and
+C", the fused-lane audit turn).
+
+- **What it enforces:** a change touching code roots (`orca-harness/`,
+  `.agents/hooks/`) must carry its review disposition — a review artifact added
+  under `docs/prompts/reviews/` / `docs/review-outputs/` in the same change, or
+  a shape-valid `review_routing_status: routed <existing path> | blocked --
+  <reason> | not_needed -- <reason>` line in the change's commit messages. Rule
+  owner: `.agents/workflow-overlay/validation-gates.md` (Review-routing
+  disposition gate, with inline DCP receipt); the checker references it.
+- **Provenance:** the 2026-07-02 fused-lane audit found only ~2 of 8 assessable
+  fused implementation lanes filed their carried delegated-review handoff
+  same-turn; four claimed it in commit prose without filing it; the
+  `review_routing_status` closeout field lived only in chat, so nothing durable
+  was checkable. The 06-17 prose hardening of the fused skill did not hold —
+  enforcement moves to a commit-visible substrate. `--audit` at build time:
+  51 of 67 code-root landings in the trailing 120 first-parent main commits
+  carried no disposition (forward-only backlog, never gated).
+- **Classification: PARTIAL.** Disposition presence + token shape + `routed`
+  path existence are SUBSTRATE (diff-scoped, forward-only). The truth of a
+  `not_needed`/`blocked` reason, the quality of a filed review, and — the
+  over-edge — *whether review should have been recommended at all* stay
+  resident judgment (the fused/scoping/review contracts). PLACEMENT IS NOT
+  AUTHORITY: a green run is disposition shape, never proof a review happened
+  or was sufficient.
+- **Built:** `.agents/hooks/check_review_routing.py` (`--strict` CI gate,
+  `--report`/`--check`, `--commit-msg` local advisory, `--audit`, `--selftest`;
+  fail-open only on infra gaps, mirroring `check_dcp_receipt.py`). Wired:
+  `.github/workflows/ci.yml` step + `.githooks/commit-msg` advisory line.
+  Verified this session: `--selftest` 21/21 PASS; `--audit --limit 120`
+  reproduced the audit findings (e.g. PR #577 flagged; PRs #575/#555, which
+  filed review artifacts, pass); `--strict` OK on the build lane itself.
+- **Companion (out of Orca scope):** the fused skill closeout edit (rendering
+  default-authorized; durable stamp obligation) is user-level skill source
+  (`~/.claude/skills/fused/SKILL.md`), protected from agent edit; the owner
+  applies it separately.
+
+This trips `stale_if` (a further substrate built). The DCP receipt lives in
+`validation-gates.md` (an overlay rule was added there — unlike the EP-06/32/04
+builds, this one IS a doctrine change). Not validation, readiness, or approval.
+
 ## Update — 2026-06-28: EP-34 (session HEAD-drift guard) considered → kept resident (premise verified-false; owner-declined the stateful version)
 
 A new Enforcement Placement handle — **EP-34, beyond the EP-01..EP-33 set** — recorded as

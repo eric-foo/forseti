@@ -11,6 +11,7 @@ use_when:
   - Checking whether a proposed storage implementation preserves the no-smart-lake boundary.
   - Reviewing whether source-family payload bodies are traceable, retrievable, and hash-checkable without becoming lake-core fields.
 open_next:
+  - orca/product/spines/data_lake/workflows/core_spine_v0_data_lake_bronze_full_gt_gate1_attachment_record_body_layout_adr_v0.md
   - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_storage_contract_v0.md
   - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_core_contract_v0.md
   - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_silver_vault_record_contract_v0.md
@@ -26,13 +27,16 @@ authority_boundary: retrieval_only
 
 ## Status
 
-`BLOCKER_1_IMPLEMENTATION_CONTRACT_RECORDED_V0`.
+`BLOCKER_1_IMPLEMENTATION_CONTRACT_RECORDED_V0; GATE1_BODY_LAYOUT_FOLDED_IN_V0; A2_ENTRY_SERIALIZATION_FOLDED_IN_V0`.
 
 This artifact converts the accepted blocker-1 direction into an
-implementation-facing contract. It is not code, implementation authority,
-validation, readiness, Manifest v2 selection, packet serialization, sidecar
-selection, migration authority, queue design, or engine/backend selection by
-this artifact. Engine/backend choice is delegated to the Storage Contract
+implementation-facing contract. The body-layout relationship it previously left
+open is now decided: the owner-ratified Gate 1 body-layout ADR (2026-07-02)
+selects packet-member as the default physical relationship (see Required Shape
+and Accepted Implementation Shapes below). It is not code, implementation
+authority, validation, readiness, Manifest v2 selection, packet serialization,
+migration authority, queue design, or engine/backend selection by this
+artifact. Engine/backend choice is delegated to the Storage Contract
 physicalization boundary.
 
 ## Contract Summary
@@ -55,13 +59,21 @@ route, retry, or call downstream lanes.
    packet-scoped attachment or file key when needed, source family, payload
    kind, payload schema version, replay/version pins, attachment reference,
    hash, `hash_basis`, and absence/refusal/residual posture summary.
-2. The attachment body carries the source-family payload body. It may later be a
-   packet member, sidecar, hash-pinned bundle member, or equivalent immutable
-   packet material, but this contract does not choose among those layouts.
+2. The attachment body carries the source-family payload body. The ratified
+   Gate 1 body-layout ADR (2026-07-02) selects packet-member as the default
+   physical relationship: the body lands as immutable packet material inside
+   the packet's raw container under the raw-admission key grammar
+   (`raw/<packet_shard>/<packet_id>/`), with a packet-relative body reference.
+   The `attachments/` sidecar slot stays reserved, usable only through a future
+   ADR on that ADR's named reopen trigger; external blob/database bodies (G1-D)
+   stay rejected until Gate 2 plus a separate backend/physicalization ADR
+   proves the storage invariants.
 3. The body must be immutable and checkable from the entry. The hash basis must
-   say what bytes are covered, following the current `PreservedFile` pattern as
-   evidence of a viable ref/hash/hash-basis discipline, not as a final
-   Attachment Record schema.
+   say what bytes are covered. Per the ratified Gate 1 ADR,
+   `hash_basis: raw_stored_bytes` — the hash covers exactly the stored body
+   file's bytes as published, per the `PreservedFile` discipline — is promoted
+   from viable-pattern evidence to the rule for packet-member bodies. This is
+   the hash-basis rule, not a final Attachment Record entry schema.
 4. The Availability Index must be rebuildable from committed packet,
    Attachment Record, key, reference, hash, and `hash_basis` material. It is a
    passive findability surface, not an event bus, scheduler, router, retry
@@ -77,16 +89,29 @@ route, retry, or call downstream lanes.
 
 ## Accepted Implementation Shapes
 
-These shapes remain acceptable for a future physicalization lane if they satisfy
-the required shape above:
+The Gate 1 body-layout ADR
+(`orca/product/spines/data_lake/workflows/core_spine_v0_data_lake_bronze_full_gt_gate1_attachment_record_body_layout_adr_v0.md`,
+owner-ratified 2026-07-02) adjudicated the previously open shapes:
 
-- compact manifest entry plus packet-bundle member body;
-- compact manifest entry plus immutable/hash-pinned sidecar body;
-- compact manifest-equivalent packet index entry plus equivalent immutable,
-  hash-checkable packet material.
+- compact manifest or manifest-equivalent packet-index entry plus
+  packet-member body — **selected default**;
+- compact entry plus immutable/hash-pinned sidecar body under `attachments/` —
+  reserved; usable only through a future ADR on the named reopen trigger (a
+  body that genuinely cannot land inside its packet);
+- external blob/database body — rejected until Gate 2 plus a separate
+  backend/physicalization ADR proves the storage invariants.
 
-The common requirement is the relationship: a compact keyed entry points to an
-immutable/checkable body. The exact layout remains open.
+The common requirement is unchanged: a compact keyed entry points to an
+immutable/checkable body. The entry-side serialization is now decided: the A2
+entry-serialization ADR
+(`orca/product/spines/data_lake/workflows/core_spine_v0_data_lake_a2_attachment_record_entry_serialization_adr_v0.md`,
+owner-ratified 2026-07-03) selects the manifest-equivalent packet index
+(A2-F2), with the durable canonical object being the versioned
+`AttachmentRecordEntry` schema plus its deterministic derivation rule — never
+a materialized row. Materialized catalog/index bytes remain generated,
+rebuildable, and non-authoritative. Manifest v2 stays reserved behind that
+ADR's revisit triggers; the generated `attachment_record_id` stays a
+cache/query locator, never canonical identity.
 
 ## Rejected Implementation Shapes
 
@@ -170,16 +195,29 @@ shape that a future implementation must satisfy.
 
 ## Deferred Decisions
 
+Resolved 2026-07-02 and no longer open here: exact packet-member versus sidecar
+versus equivalent layout — the Gate 1 body-layout ADR ratified packet-member as
+the default, with the sidecar reserved behind its reopen trigger.
+
+Resolved 2026-07-03 and no longer open here: entry serialization and
+versioning mechanics — the A2 entry-serialization ADR ratified the
+manifest-equivalent packet index (A2-F2) with the versioned entry schema plus
+deterministic derivation rule as the canonical object; Manifest v2 stays
+reserved behind that ADR's revisit triggers T-A2-1..3.
+
 This contract deliberately leaves the following decisions open:
 
-- exact packet member versus sidecar versus equivalent layout;
-- exact manifest/index serialization;
-- Manifest v2 or other versioning mechanics;
 - selected physical backend/engine, including database, object store,
   warehouse/lakehouse, DuckDB or another SQL-capable embedded engine, or queue;
 - migration or replay plan for incumbent direct fields;
 - SCR `FamilyDetailBase` governance;
-- lawful erasure, retention, WORM, or crypto-shredding mechanics;
+- lawful erasure, retention, WORM, or crypto-shredding mechanics — posture now
+  governed by the ratified Gate 2 deferral ADR
+  (`orca/product/spines/data_lake/workflows/core_spine_v0_data_lake_bronze_full_gt_gate2_retention_lawful_erasure_posture_adr_v0.md`):
+  a bounded accepted residual with a claim ceiling, tombstone/supersession as
+  the working unavailability posture, forbidden backend classes/operations
+  while deferred, and revisit triggers T1-T4; the mechanics remain undesigned
+  while that deferral stands;
 - enforcement placement for no-new-core-field pressure and append-only derived
   records.
 
@@ -195,53 +233,111 @@ architecture completion.
 ```yaml
 direction_change_propagation:
   doctrine_changed: >
-    Attachment Record implementation doctrine now binds Silver consumption: AR
-    entries are typed raw-payload refs over preserved Bronze bodies, Silver
-    records carry AR-backed raw_refs when deriving facts from source-family
-    payload bodies, and missing AR rows remain visible residual/posture rather
-    than inferred absence.
+    Fold-in of the owner-ratified A2 entry-serialization ADR (2026-07-03):
+    this contract now states the manifest-equivalent packet index (A2-F2) as
+    the ratified entry serialization, with the versioned AttachmentRecordEntry
+    schema plus deterministic derivation rule as the canonical object, never a
+    materialized row; Manifest v2 reserved behind revisit triggers T-A2-1..3;
+    attachment_record_id locked to query-locator status; the deferred-decisions
+    list closes its serialization and Manifest-v2 items.
   trigger: architecture_doctrine
-  related_triggers:
-    - workflow_authority
   controlling_sources_updated:
     - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_attachment_record_implementation_contract_v0.md
-    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_silver_vault_record_contract_v0.md
     - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_bronze_mgt_baseline_declaration_v0.md
-    - orca/product/spines/data_lake/README.md
-    - docs/workflows/orca_repo_map_v0.md
   downstream_surfaces_checked:
-    - AGENTS.md
-    - .agents/workflow-overlay/README.md
-    - .agents/workflow-overlay/source-loading.md
-    - .agents/workflow-overlay/source-of-truth.md
-    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_core_contract_v0.md
+    - orca/product/spines/data_lake/workflows/core_spine_v0_data_lake_a2_attachment_record_entry_serialization_adr_v0.md
     - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_storage_contract_v0.md
-    - orca-harness/data_lake/catalog.py
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_physicality_location_contract_v0.md
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_raw_admission_key_grammar_contract_v0.md
+    - docs/workflows/orca_repo_map_v0.md
   intentionally_not_updated:
-    - path: orca/product/spines/data_lake/authority/core_spine_v0_data_lake_storage_contract_v0.md
+    - path: orca/product/spines/data_lake/authority/core_spine_v0_data_lake_raw_admission_key_grammar_contract_v0.md
       reason: >
-        Storage still owns Manifest v2, sidecar/member/body-store layout,
-        backend, migration, retention, and lawful-erasure choices. This patch
-        binds consumer shape without selecting those physicalization decisions.
-    - path: orca/product/spines/data_lake/authority/core_spine_v0_data_lake_core_contract_v0.md
+        Its "manifest/index serialization ... remain deferred" line refers to
+        the raw container's inner mechanics from its own addressing scope; the
+        A2 ADR is the entry-side owner and this contract now points there.
+        Checked: no contradiction (its Accepted Residuals name storage-code
+        scoping as the serialization trigger, which is this lane).
+    - path: docs/workflows/orca_repo_map_v0.md
       reason: >
-        Core already defines Attachment Records as source-payload refs and
-        forbids cleaned/Judgment meaning. This patch narrows downstream Silver
-        consumption mechanics without changing the parent boundary.
-    - path: orca-harness/data_lake/catalog.py
-      reason: >
-        Existing post-PR-525 catalog helpers expose AR rows and body hash
-        verification; no runtime implementation is authorized here.
+        The A2 ADR row already reads ratified with fold-in as named follow-on;
+        the row updates once at lane closeout with the implementation
+        registration, not per contract edit.
   stale_language_search: >
-    rg -n "Attachment Record|raw_refs|Silver|Manifest v2|body store|full God Tier"
-    orca/product/spines/data_lake orca-harness/data_lake/catalog.py docs/workflows/orca_repo_map_v0.md
+    rg -n "A2 stays|A2 remains|gated on the A1|gated on A1|remains open and
+    stays gated|A2 fork" orca/product/spines/data_lake
+  stale_language_search_result: >
+    Executed 2026-07-03 after edits. Remaining hits are historical records
+    (Gate 1 ADR, next-material-decisions, scoping routes, proof closeout
+    residual list) and receipt/non-claims text inside already-ratified ADRs;
+    no live authority surface still claims the A2 fork is open.
   non_claims:
     - not validation
     - not readiness
-    - not runtime implementation authorization
-    - not Manifest v2 selection
-    - not body-store layout selection
-    - not Silver producer implementation
+    - not Manifest v2 authoring (reserved behind A2 revisit triggers)
+    - not backend selection (Gate 2 trigger T3 governs)
+    - not a Bronze full-GT claim
+```
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Fold-in of the owner-ratified Gate 1 body-layout ADR (2026-07-02): this
+    contract now states packet-member as the ratified default Attachment
+    Record body relationship (sidecar reserved behind its reopen trigger,
+    external bodies locked behind Gate 2 plus a backend/physicalization ADR,
+    hash_basis raw_stored_bytes promoted from viable-pattern evidence to the
+    rule), and its lawful-erasure deferral now points at the ratified Gate 2
+    deferral ADR; the A2 entry-serialization fork stays deferred, gated on the
+    A1 deterministic inventory.
+  trigger: architecture_doctrine
+  controlling_sources_updated:
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_attachment_record_implementation_contract_v0.md
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_raw_admission_key_grammar_contract_v0.md
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_derived_layout_index_rebuild_contract_v0.md
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_bronze_mgt_baseline_declaration_v0.md
+    - docs/workflows/orca_repo_map_v0.md
+  downstream_surfaces_checked:
+    - orca/product/spines/data_lake/workflows/core_spine_v0_data_lake_bronze_full_gt_gate1_attachment_record_body_layout_adr_v0.md
+    - orca/product/spines/data_lake/workflows/core_spine_v0_data_lake_bronze_full_gt_gate2_retention_lawful_erasure_posture_adr_v0.md
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_storage_contract_v0.md
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_physicality_location_contract_v0.md
+    - orca/product/spines/data_lake/workflows/core_spine_v0_data_lake_mechanics_map_v0.md
+    - orca/product/spines/data_lake/workflows/core_spine_v0_data_lake_bronze_lake_owner_explainer_v0.md
+    - orca/product/spines/data_lake/README.md
+  intentionally_not_updated:
+    - path: orca/product/spines/data_lake/workflows/core_spine_v0_data_lake_mechanics_map_v0.md
+      reason: >
+        Its only layout-deferral hit sits inside a historical DCP receipt, not
+        live routing text; no live sentence claims the body layout is open.
+    - path: orca/product/spines/data_lake/workflows/core_spine_v0_data_lake_bronze_lake_owner_explainer_v0.md
+      reason: >
+        It explains what the gates protect and routes live state through the
+        batch plan's open_next chain (synced in PR #579); the ratified
+        postures do not contradict its gates section, so its stale_if does
+        not fire.
+    - path: orca/product/spines/data_lake/README.md
+      reason: >
+        Its Attachment Record mentions are ownership language with no
+        layout-undecided claim.
+  stale_language_search: >
+    rg -n "placement deferred|physical home unfrozen|does not choose among
+    those layouts|exact layout remains open|sidecar/member layout|
+    member-vs-sidecar|member vs sidecar" orca/product/spines/data_lake
+    docs/workflows/orca_repo_map_v0.md
+  stale_language_search_result: >
+    Executed 2026-07-02 after edits. Remaining hits: this contract's stale_if
+    (a supersession condition, not an open-layout claim), the ratification
+    annotations added by this fold-in (raw-admission and derived-layout
+    contracts), the storage contract's annotated non-goal, and the gate ADR /
+    brief / batch-plan family (historical gate records). No live surface
+    still claims the AR body layout is undecided.
+  non_claims:
+    - not validation
+    - not readiness
+    - not implementation authorization
+    - not Manifest v2 or serialization selection (A2 stays gated on A1)
+    - not a Bronze full-GT claim
 ```
 
 Older receipts are archived in `docs/decisions/dcp_receipts_archive_v0.md`.

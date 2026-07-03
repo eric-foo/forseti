@@ -113,10 +113,17 @@ def test_youtube_shorts_fragrance_creator_observation_ledger_rebuilds_from_sourc
     validate_source_rebuild(_ledger(), _source_creator_ledger())
 
 
-def test_youtube_shorts_fragrance_creator_observation_ledger_live_lake_refs_when_available() -> None:
-    data_root = os.environ.get("ORCA_DATA_ROOT")
+def test_youtube_shorts_fragrance_creator_observation_ledger_archived_lake_refs_when_available() -> None:
+    # Explicit operator opt-in only; ambient ORCA_DATA_ROOT must never pull a
+    # production lake into the suite (it is deleted per-test in conftest).
+    # This ledger is a static historical fixture bound to the RETIRED lake root
+    # (orca-canonical / v0), preserved as an archive outside the live lake, so it
+    # takes its own opt-in variable: pointing it at the live (v4.1+) lake fails
+    # closed at live_lake_root_uuid_mismatch by design. See
+    # docs/decisions/youtube_creator_observation_ledger_lake_identity_drift_owner_decision_packet_v0.md.
+    data_root = os.environ.get("ORCA_ARCHIVED_LAKE_TEST_ROOT")
     if not data_root:
-        pytest.skip("ORCA_DATA_ROOT is not set; live lake reconciliation is an operator-local check")
+        pytest.skip("ORCA_ARCHIVED_LAKE_TEST_ROOT is not set; archived-evidence reconciliation is an explicit operator opt-in")
 
     validate_youtube_creator_observation_ledger_against_live_lake(_ledger(), data_root)
 
@@ -136,6 +143,8 @@ def _raises_rebuild_code(ledger: dict, expected_code: str) -> None:
 def _single_ref_live_lake_ledger() -> dict:
     ledger = copy.deepcopy(_ledger())
     wrapper = _ledger_wrapper(ledger)
+    # the trimmed single-video pool no longer contains the retired videos
+    wrapper.pop("operator_video_retirements", None)
     row = copy.deepcopy(wrapper["creator_observations"][0])
     ref = row["data_lake_packet_refs"][0]
     row["video_ids"] = [row["video_ids"][0]]
@@ -364,3 +373,97 @@ def test_youtube_creator_observation_ledger_live_lake_mismatch_uses_live_error_c
     with pytest.raises(YoutubeCreatorObservationLedgerError) as exc_info:
         validate_youtube_creator_observation_ledger_against_live_lake(ledger, tmp_path)
     assert exc_info.value.code == "live_lake_metadata_mismatch"
+
+
+# -- operator_video_retirements (additive-optional dead-video retirement block) --
+
+_DEAD_VIDEO_IDS = (
+    "DUafgG-TLms",
+    "JcwT5rvhXIc",
+    "ZRxgla8xoM8",
+    "as7hye0qgYc",
+    "doNVRDk0X_Y",
+    "syjxpoKWbRM",
+)
+
+
+def _retirements(ledger: dict) -> list[dict]:
+    return _ledger_wrapper(ledger)["operator_video_retirements"]
+
+
+def test_committed_ledger_carries_dead_video_retirements() -> None:
+    ledger = _ledger()
+    validate_youtube_creator_observation_ledger(ledger)
+
+    entries = _retirements(ledger)
+    assert sorted(entry["video_id"] for entry in entries) == sorted(_DEAD_VIDEO_IDS)
+    for entry in entries:
+        assert "playabilityStatus ERROR" in entry["reason"]
+        assert len(entry["evidence_packet_ids"]) >= 3
+
+
+def test_retirement_block_is_optional() -> None:
+    ledger = copy.deepcopy(_ledger())
+    del _ledger_wrapper(ledger)["operator_video_retirements"]
+
+    validate_youtube_creator_observation_ledger(ledger)
+
+
+def test_retirement_unknown_field_rejected() -> None:
+    ledger = copy.deepcopy(_ledger())
+    _retirements(ledger)[0]["became_playable_again"] = True
+
+    _raises_code(ledger, "unknown_field")
+
+
+def test_retirement_missing_field_rejected() -> None:
+    ledger = copy.deepcopy(_ledger())
+    del _retirements(ledger)[0]["reason"]
+
+    _raises_code(ledger, "missing_reason")
+
+
+def test_retirement_outside_pool_rejected() -> None:
+    ledger = copy.deepcopy(_ledger())
+    _retirements(ledger)[0]["video_id"] = "AAAAAAAAAAA"
+
+    _raises_code(ledger, "retirement_video_not_in_pool")
+
+
+def test_retirement_duplicate_rejected() -> None:
+    ledger = copy.deepcopy(_ledger())
+    entries = _retirements(ledger)
+    entries.append(copy.deepcopy(entries[0]))
+
+    _raises_code(ledger, "duplicate_retirement_video_id")
+
+
+def test_retirement_empty_reason_rejected() -> None:
+    ledger = copy.deepcopy(_ledger())
+    _retirements(ledger)[0]["reason"] = "  "
+
+    _raises_code(ledger, "invalid_retirement_reason")
+
+
+def test_retirement_bad_timestamp_rejected() -> None:
+    ledger = copy.deepcopy(_ledger())
+    _retirements(ledger)[0]["retired_at_utc"] = "2026-07-03"
+
+    _raises_code(ledger, "invalid_retirement_timestamp")
+
+
+def test_retirement_bad_or_empty_evidence_rejected() -> None:
+    ledger = copy.deepcopy(_ledger())
+    _retirements(ledger)[0]["evidence_packet_ids"] = ["not-a-ulid"]
+    _raises_code(ledger, "invalid_retirement_evidence")
+
+    ledger = copy.deepcopy(_ledger())
+    _retirements(ledger)[0]["evidence_packet_ids"] = []
+    _raises_code(ledger, "invalid_retirement_evidence")
+
+
+def test_retirement_empty_block_rejected() -> None:
+    ledger = copy.deepcopy(_ledger())
+    _ledger_wrapper(ledger)["operator_video_retirements"] = []
+
+    _raises_code(ledger, "invalid_operator_video_retirements")

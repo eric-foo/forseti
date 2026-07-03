@@ -18,6 +18,7 @@ use_when:
   - Checking the R2-populated authority/workflow routing and placement closeout status.
 authority_boundary: retrieval_only
 open_next:
+  - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_bronze_full_gt_declaration_v0.md
   - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_bronze_mgt_baseline_declaration_v0.md
   - orca/product/spines/data_lake/workflows/core_spine_v0_data_lake_bronze_lake_owner_explainer_v0.md
   - docs/decisions/orca_data_lake_spine_promotion_binding_v0.md
@@ -59,11 +60,16 @@ The binding authority is
 `docs/decisions/orca_data_lake_spine_promotion_binding_v0.md`.
 
 Current Bronze capability status is recorded in
-`orca/product/spines/data_lake/authority/core_spine_v0_data_lake_bronze_mgt_baseline_declaration_v0.md`:
-Bronze is Mini God Tier / 90-95 for typed raw-truth retrievability, not full
-God Tier. After PR #525 runner-seam enforcement, Silver may consume the public
-Bronze catalog and Attachment Record surfaces for source-backed `raw_refs`, but
-Silver does not declare Bronze GT.
+`orca/product/spines/data_lake/authority/core_spine_v0_data_lake_bronze_full_gt_declaration_v0.md`:
+Bronze is owner-ratified **full God Tier (2026-07-03)** for the typed
+raw-truth retrievability and physicalization slice — at fixture-proof tier,
+under the Gate 2 claim ceiling, with named exclusions (no production-lake
+validation, no backend/engine selection, no erasure capability, no
+Silver-family breadth beyond the two proven families). The MGT baseline
+declaration remains the historical record and upgrade-path provenance. Silver
+consumes the public Bronze catalog and Attachment Record surfaces for
+source-backed `raw_refs`; citing the declaration beyond its bounded claim is a
+misuse of the record.
 
 ## Subfolder grammar
 
@@ -92,6 +98,19 @@ R2 landed the lake's authority + workflow substance:
 - `workflows/` — the canonical mechanics map (the version co-authored with the
   contracts, confirmed canonical via a 3-way reconciliation), which **supersedes
   and retires** the transitional `orca/product/shared/data_lake_mechanics/` copy.
+
+Consumption seam (2026-07-02):
+`authority/core_spine_v0_data_lake_consumption_seam_contract_v0.md` adds the
+shared derived-lane consumption layer — obligation-fingerprint pickup by key,
+lane-owned ack records with the LANE_ROLES namespace rule, the six-point
+conformance contract, the rebuild-command binding for the gate-opened
+`undone`/`by_mention` views, and the on-demand-first metrics policy. First
+metric families owner-named 2026-07-02 (share-of-voice; movement-threshold);
+`authority/core_spine_v0_data_lake_metric_family_share_of_voice_field_contract_v0.md`
+binds share-of-voice's field-level posture/coverage contract (its view build
+is a separate, now-unblocked work unit; movement-threshold stays
+gate-blocked). The shared helper, rebuild runner, and proving-consumer
+migration live in `orca-harness/` with their tests.
 
 Placement closeout (2026-06-20): the 2 repo-structure migration planning docs
 (`data_lake_spine_first_migration_{plan,inventory}_v0.md`) intentionally stay in
