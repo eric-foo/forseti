@@ -7,9 +7,9 @@ packet is immutable and the derivation consumes no committed derived records, so
 policy tokens are the lane's ONLY growable input class), fails loud without acking on
 a damaged packet (S4), isolates per-packet failure (S5), and honors the seam
 boundaries (S6: registered ack namespace, committed anchors only, non-raising
-obligation) — plus the shared-family surface gate: basenotes/parfumo-surface packets
-are acknowledged with explicit out-of-scope evidence, never derived and never left
-re-surfacing forever.
+obligation) — plus the shared-family surface gate: known basenotes/parfumo-surface
+packets are acknowledged with explicit out-of-scope evidence, never derived and never
+left re-surfacing forever, while unknown future surfaces stay unacknowledged.
 """
 from __future__ import annotations
 
@@ -38,6 +38,9 @@ from source_capture.models import (
 from source_capture.writer import write_local_source_capture_packet
 
 _CAPTURE_TIME = "2026-06-28T18:57:58Z"
+_BASENOTES_SURFACE = "basenotes_product_page_cloakbrowser_deep_scroll_current_window"
+_PARFUMO_DIRECT_SURFACE = "parfumo_product_page_direct_http"
+_PARFUMO_RENDERED_SURFACE = "parfumo_product_page_chrome_extension_targeted_rendered_session"
 
 
 def _fragrantica_html() -> str:
@@ -183,6 +186,28 @@ def test_catchup_second_run_is_byte_unchanged_noop(tmp_path) -> None:
     assert _lake_tree_state(data_root) == before
 
 
+def test_output_shaping_policy_tokens_are_in_obligation() -> None:
+    obligation = frag_runner._packet_obligation()
+
+    assert obligation["projection_method"] == frag_runner.FRAGRANTICA_PROJECTION_METHOD
+    assert obligation["projection_version"] == frag_runner.FRAGRANTICA_PROJECTION_VERSION
+    assert obligation["projection_certification"] == frag_runner.FRAGRANTICA_PROJECTION_CERTIFICATION
+    assert obligation["cleaning_audit_pack_schema_version"] == (
+        frag_runner.CLEANING_AUDIT_PACK_SCHEMA_VERSION
+    )
+    assert obligation["silver_vault_record_schema_version"] == (
+        frag_runner.SILVER_VAULT_RECORD_SCHEMA_VERSION
+    )
+    assert obligation["cleaning_method_id"] == frag_runner.FRAGRANTICA_CLEANING_METHOD_ID
+    assert obligation["review_text_normalization_rule"] == (
+        frag_runner.REVIEW_TEXT_NORMALIZATION_RULE
+    )
+    assert obligation["review_vote_carry_rule"] == frag_runner.REVIEW_VOTE_CARRY_RULE
+    assert obligation["review_vote_metric_specs"] == [
+        list(spec) for spec in frag_runner._REVIEW_VOTE_METRIC_SPECS
+    ]
+
+
 def test_policy_bump_resurfaces_and_rederives(tmp_path, monkeypatch) -> None:
     # S3: the policy tokens are the lane's only re-trigger inputs (immutable raw,
     # no derived-record inputs). Bumping one re-surfaces the SAME anchor, derives
@@ -210,8 +235,39 @@ def test_policy_bump_resurfaces_and_rederives(tmp_path, monkeypatch) -> None:
     assert run_catchup(data_root=data_root) == []
 
 
-def test_shared_family_other_surface_acked_out_of_scope_never_derived(tmp_path) -> None:
-    # Surface gate: a basenotes-surface packet in the SAME family is acknowledged
+def test_cleaning_method_policy_bump_resurfaces_and_rederives(tmp_path, monkeypatch) -> None:
+    data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    pid = _commit_family_packet(data_root, tmp_path)
+    original_method = frag_runner.FRAGRANTICA_CLEANING_METHOD_ID
+
+    first = run_catchup(data_root=data_root)
+    assert [r["status"] for r in first] == ["derived"]
+    assert run_catchup(data_root=data_root) == []
+
+    monkeypatch.setattr(frag_runner, "FRAGRANTICA_CLEANING_METHOD_ID", "method-vnext")
+    third = run_catchup(data_root=data_root)
+    assert [r["status"] for r in third] == ["derived"]
+    assert third[0]["audit_record_id"] != first[0]["audit_record_id"]
+
+    acks = find_acks(data_root, raw_anchor=pid, ack_namespace=FRAGRANTICA_CLEANING_AUDIT_LANE)
+    assert {ack["obligation"]["cleaning_method_id"] for ack in acks} == {
+        original_method,
+        "method-vnext",
+    }
+
+
+@pytest.mark.parametrize(
+    ("surface", "name"),
+    [
+        (_BASENOTES_SURFACE, "basenotes"),
+        (_PARFUMO_DIRECT_SURFACE, "parfumo_direct"),
+        (_PARFUMO_RENDERED_SURFACE, "parfumo_rendered"),
+    ],
+)
+def test_shared_family_known_other_surface_acked_out_of_scope_never_derived(
+    tmp_path, surface: str, name: str
+) -> None:
+    # Surface gate: a known non-Fragrantica packet in the SAME family is acknowledged
     # with explicit out-of-scope evidence — never handed to the Fragrantica
     # deriver, never left re-surfacing forever — and stays fully available to its
     # own lane's namespace (zero cleaning records written under it).
@@ -219,9 +275,9 @@ def test_shared_family_other_surface_acked_out_of_scope_never_derived(tmp_path) 
     other = _commit_family_packet(
         data_root,
         tmp_path,
-        name="basenotes",
-        source_surface="basenotes_product_page_cloakbrowser_deep_scroll_current_window",
-        body_text="<html><body>a basenotes page</body></html>",
+        name=name,
+        source_surface=surface,
+        body_text=f"<html><body>a {name} page</body></html>",
     )
     frag = _commit_family_packet(data_root, tmp_path)
 
@@ -229,9 +285,7 @@ def test_shared_family_other_surface_acked_out_of_scope_never_derived(tmp_path) 
     by_packet = {r["packet_id"]: r for r in results}
     assert by_packet[frag]["status"] == "derived"
     assert by_packet[other]["status"] == "acked_no_cleanable_content"
-    assert by_packet[other]["source_surface"] == (
-        "basenotes_product_page_cloakbrowser_deep_scroll_current_window"
-    )
+    assert by_packet[other]["source_surface"] == surface
 
     # no cleaning records under the out-of-scope packet, but its ack exists with
     # the explicit out-of-scope evidence
@@ -242,11 +296,35 @@ def test_shared_family_other_surface_acked_out_of_scope_never_derived(tmp_path) 
         {
             "kind": "no_cleanable_content_for_surface",
             "raw_anchor": other,
-            "source_surface": "basenotes_product_page_cloakbrowser_deep_scroll_current_window",
+            "source_surface": surface,
+            "basis": "known_non_fragrantica_source_surface",
         }
     ]
 
     assert run_catchup(data_root=data_root) == []
+
+
+def test_unknown_family_surface_fails_loud_without_ack(tmp_path) -> None:
+    data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    pid = _commit_family_packet(
+        data_root,
+        tmp_path,
+        name="future",
+        source_surface="future_fragrance_surface",
+        body_text="<html><body>a future family surface</body></html>",
+    )
+
+    results = run_catchup(data_root=data_root)
+    assert results == [
+        {
+            "packet_id": pid,
+            "status": "unsupported_surface",
+            "source_surface": "future_fragrance_surface",
+            "error": "unrecognized fragrance_native_database surface for Fragrantica Cleaning",
+        }
+    ]
+    assert find_acks(data_root, raw_anchor=pid, ack_namespace=FRAGRANTICA_CLEANING_AUDIT_LANE) == []
+    assert pending_packets(data_root=data_root) == [pid]
 
 
 def test_damaged_packet_fails_loud_without_ack_and_resurfaces(tmp_path) -> None:

@@ -53,17 +53,27 @@ if __package__ in {None, ""}:
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from cleaning.fragrantica_lake import (
+    CLEANING_AUDIT_PACK_SCHEMA_VERSION,
     FRAGRANTICA_AUDIT_PACK_PRODUCER_SCHEMA_VERSION,
     FRAGRANTICA_CLEANING_AUDIT_LANE,
+    FRAGRANTICA_CLEANING_METHOD_ID,
     FRAGRANTICA_CLEANING_SILVER_LANE,
     FRAGRANTICA_SILVER_METRIC_PRODUCER_SCHEMA_VERSION,
     FRAGRANTICA_SILVER_PRODUCER_SCHEMA_VERSION,
+    REVIEW_TEXT_NORMALIZATION_RULE,
+    REVIEW_VOTE_CARRY_RULE,
+    SILVER_VAULT_RECORD_SCHEMA_VERSION,
+    _REVIEW_VOTE_METRIC_SPECS,
     derive_fragrantica_cleaning_into_lake,
 )
 from cleaning.models import CLEANING_CORE_VERSION
 from data_lake.consumption import PickupItem, append_ack, is_acknowledged, pickup
 from data_lake.root import DataLakeRootError, raw_shard
-from source_capture.fragrantica_projection import FRAGRANTICA_PROJECTION_VERSION
+from source_capture.fragrantica_projection import (
+    FRAGRANTICA_PROJECTION_CERTIFICATION,
+    FRAGRANTICA_PROJECTION_METHOD,
+    FRAGRANTICA_PROJECTION_VERSION,
+)
 
 # Seam ack namespace = the audit-pack lane (contract rule: an ack namespace must be
 # a lane declared in lane_registry.LANE_ROLES; exactly one audit pack exists per
@@ -72,6 +82,13 @@ _ACK_NAMESPACE = FRAGRANTICA_CLEANING_AUDIT_LANE
 _SEAM_CONSUMER = "fragrantica_cleaning_catchup"
 _SOURCE_FAMILY = "fragrance_native_database"
 _FRAGRANTICA_SURFACE = "fragrantica_product_page_direct_http"
+_KNOWN_OUT_OF_SCOPE_SURFACES = frozenset(
+    {
+        "basenotes_product_page_cloakbrowser_deep_scroll_current_window",
+        "parfumo_product_page_direct_http",
+        "parfumo_product_page_chrome_extension_targeted_rendered_session",
+    }
+)
 
 
 def _packet_obligation() -> dict:
@@ -84,10 +101,18 @@ def _packet_obligation() -> dict:
         "obligation_schema": 1,
         "consumer": _SEAM_CONSUMER,
         "cleaning_core_version": CLEANING_CORE_VERSION,
+        "projection_method": FRAGRANTICA_PROJECTION_METHOD,
         "projection_version": FRAGRANTICA_PROJECTION_VERSION,
+        "projection_certification": FRAGRANTICA_PROJECTION_CERTIFICATION,
+        "cleaning_audit_pack_schema_version": CLEANING_AUDIT_PACK_SCHEMA_VERSION,
         "audit_pack_schema_version": FRAGRANTICA_AUDIT_PACK_PRODUCER_SCHEMA_VERSION,
+        "silver_vault_record_schema_version": SILVER_VAULT_RECORD_SCHEMA_VERSION,
         "silver_schema_version": FRAGRANTICA_SILVER_PRODUCER_SCHEMA_VERSION,
         "silver_metric_schema_version": FRAGRANTICA_SILVER_METRIC_PRODUCER_SCHEMA_VERSION,
+        "cleaning_method_id": FRAGRANTICA_CLEANING_METHOD_ID,
+        "review_text_normalization_rule": REVIEW_TEXT_NORMALIZATION_RULE,
+        "review_vote_carry_rule": REVIEW_VOTE_CARRY_RULE,
+        "review_vote_metric_specs": [list(spec) for spec in _REVIEW_VOTE_METRIC_SPECS],
     }
 
 
@@ -215,6 +240,16 @@ def run_catchup(*, data_root) -> list[dict]:
             continue
         surface = entry.get("source_surface")
         if surface != _FRAGRANTICA_SURFACE:
+            if surface not in _KNOWN_OUT_OF_SCOPE_SURFACES:
+                results.append(
+                    {
+                        "packet_id": packet_id,
+                        "status": "unsupported_surface",
+                        "source_surface": surface,
+                        "error": "unrecognized fragrance_native_database surface for Fragrantica Cleaning",
+                    }
+                )
+                continue
             # Shared-family packet owned by another cleaning lane: no
             # Fragrantica-cleanable content, and a surface is immutable — the
             # discovery outcome IS the completion evidence (IG grid precedent).
@@ -223,6 +258,7 @@ def run_catchup(*, data_root) -> list[dict]:
                     "kind": "no_cleanable_content_for_surface",
                     "raw_anchor": packet_id,
                     "source_surface": surface,
+                    "basis": "known_non_fragrantica_source_surface",
                 }
             ]
             outcome = _ack_packet(data_root, item, evidence)
