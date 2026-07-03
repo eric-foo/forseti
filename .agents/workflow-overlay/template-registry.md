@@ -1,17 +1,17 @@
-# Template Registry
+﻿# Template Registry
 
 ```yaml
 retrieval_header_version: 1
-artifact_role: Orca overlay authority
-scope: Orca-owned prompt template registry for project-local templates.
+artifact_role: Forseti overlay authority
+scope: Forseti-owned prompt template registry for project-local templates.
 use_when:
-  - Resolving which Orca prompt template should be used.
+  - Resolving which Forseti prompt template should be used.
   - Checking whether prompt-orchestrator template fallback is allowed.
 authority_boundary: retrieval_only
 ```
 
-This registry binds Orca-local prompt templates. Reusable prompt-orchestrator
-mechanics may use the registry for template discovery, but Orca owns the
+This registry binds Forseti-local prompt templates. Reusable prompt-orchestrator
+mechanics may use the registry for template discovery, but Forseti owns the
 template paths, template targets, output modes, artifact roles, and non-claim
 boundaries.
 
@@ -24,18 +24,18 @@ Model-target templates (`_generic/`) were retired 2026-06-13 (unused; owner deci
 - Do not copy `jb` prompt templates, GAP/CV Engine paths, lifecycle mechanics,
   product policy, validation habits, or handoff rules.
 - Generic layout ideas from external templates are allowed only after binding to
-  Orca paths, roles, output modes, validation gates, and non-claims.
+  Forseti paths, roles, output modes, validation gates, and non-claims.
 - Template targets are prompt-shaping labels only. They do not recommend,
   require, rank, or route runtime model choice.
 - Implementation templates are unbound by default. Use them only when the
-  current turn or an accepted Orca decision explicitly authorizes a bounded
+  current turn or an accepted Forseti decision explicitly authorizes a bounded
   implementation scope and binds the target files, output mode, and non-claims.
 
 ## Registered Templates
 
 | Template kind | Primary path | Template target | Output mode | Status | Notes |
 | --- | --- | --- | --- | --- | --- |
-| `shared-behavior-contract` | `docs/prompts/templates/shared/orca_prompt_behavior_contract_v0.md` | model-neutral | template include | active | Common behavior clauses for Orca prompt templates. |
+| `shared-behavior-contract` | `docs/prompts/templates/shared/orca_prompt_behavior_contract_v0.md` | model-neutral | template include | active | Common behavior clauses for Forseti prompt templates. |
 | `shared-preflight-defaults` | `docs/prompts/templates/shared/orca_preflight_defaults_v0.md` | model-neutral | template include | active | Repo-constant preflight field bindings; required per-prompt deltas must still be stated. |
 | `research-evidence-lane-o3` | `docs/prompts/templates/research/o3_evidence_only_research_lane_v0.md` | o3 / o3-deep-research prompt posture | paste-ready-chat | active | Evidence-only public research lane template. |
 | `research-synthesis-gpt55` | `docs/prompts/templates/research/gpt_5_5_evidence_synthesis_v0.md` | GPT-5.5 prompt posture | paste-ready-chat | active | Synthesis from prior evidence-only lane outputs. |
@@ -47,7 +47,7 @@ Model-target templates (`_generic/`) were retired 2026-06-13 (unused; owner deci
 ## Unbound Template Kinds
 
 - `direct-implementation`: unbound by default; available only when a current
-  turn or accepted Orca decision explicitly authorizes bounded implementation.
+  turn or accepted Forseti decision explicitly authorizes bounded implementation.
 - `repo-code-review`: unbound unless implementation or code review is explicitly authorized.
 - `automation-runtime`: forbidden until a later explicit implementation turn or
-  accepted Orca decision names that runtime scope.
+  accepted Forseti decision names that runtime scope.

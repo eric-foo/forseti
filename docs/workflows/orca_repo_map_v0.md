@@ -1,9 +1,9 @@
-# Orca Repo Map v0
+﻿# Forseti Repo Map v0
 
 ```yaml
 retrieval_header_version: 1
 artifact_role: Repository map
-scope: Compact navigation map for Orca source loading and prompt setup.
+scope: Compact navigation map for Forseti source loading and prompt setup.
 use_when:
   - Choosing a bounded source pack before a CA prompt, review prompt, or product artifact.
   - Orienting a new thread without bulk-loading the repository.
@@ -49,7 +49,7 @@ propagation evidence.
 
 ## Active Hooks (IMPORTANT)
 
-ORCA enforces load-bearing, mechanically-checkable rules at **tool
+Forseti enforces load-bearing, mechanically-checkable rules at **tool
 boundaries**, not by instruction alone. The owning principle is
 `.agents/workflow-overlay/validation-gates.md` -> "Enforcement Placement"
 (cross-referenced from `.agents/workflow-overlay/decision-routing.md`); the per-rule classification is
@@ -174,7 +174,7 @@ to the PostToolUse array, then restart the session (hooks load at session start)
 **Prompt-preflight reminder (advisory).** A PostToolUse hook (matcher
 `Write|Edit|MultiEdit` in `.claude/settings.json`,
 `python .agents/hooks/check_prompt_provenance.py --hook`): after a canonical
-prompt write under `docs/prompts/**`, injects the **Orca Prompt Preflight**
+prompt write under `docs/prompts/**`, injects the **Forseti Prompt Preflight**
 (output mode · template kind · edit-permission+targets+branch · reviews
 findings-first + no runtime-model routing · doctrine-change -> propagation
 receipt · destinations) so a routine prompt applies the contract inline with no
@@ -530,13 +530,14 @@ nickname: "crawling graph." The runner is
 
 | Path | Role |
 | --- | --- |
-| `AGENTS.md` | Canonical root instructions, global behavior, and triggers to Orca owner docs. |
+| `AGENTS.md` | Canonical root instructions, global behavior, and triggers to Forseti owner docs. |
+| `docs/decisions/forseti_rename_migration_policy_v0.md` | Canonical rename policy: Forseti is the project/product name, Orca is the legacy alias, and lowercase compatibility paths remain until explicit migration. |
 | `repo-structure.yaml` | Machine structure map (router only): homes + scratch/tolerance declarations consumed by `check_placement.py` and agents. Placement authority stays in `.agents/workflow-overlay/artifact-folders.md`; binding/parameters in `docs/decisions/orca_repo_structure_binding_v0.md`. |
 | `.github/` | GitHub Actions workflows and local operational scripts for lane setup, merge-when-green, lane health, and local hook installation. Local automation only; not validation, readiness, or server-side branch protection. |
 | `.githooks/` | Tracked local Git hook adapters installed via `.github/scripts/install-local-hooks.ps1`; catches local Git push/commit boundaries where enabled. Bypassable with `--no-verify`; not a server-side lock. |
-| `.agents/workflow-overlay/` | Orca overlay authority for project facts, folders, source rules, prompt rules, validation, safety, and review lanes. |
+| `.agents/workflow-overlay/` | Forseti overlay authority for project facts, folders, source rules, prompt rules, validation, safety, and review lanes. |
 | `.agents/hooks/` | Portable enforcement/checker scripts for protected actions, retrieval headers, repo-map freshness, CSB-first scanning artifact receipt shape, and local Git pre-push policy. Harness adapters invoke some scripts; passing checks are not validation or readiness. |
-| `orca-harness/` | Bounded authorized implementation backing Data Capture source acquisition and the v0.14 Judgment Harness (capture adapters, source-observability, schemas, scoring, runners, fixtures, tests). Navigation context only; not runtime, acceptance, or readiness. See the Orca Harness section. |
+| `orca-harness/` | Bounded authorized implementation backing Data Capture source acquisition and the v0.14 Judgment Harness (capture adapters, source-observability, schemas, scoring, runners, fixtures, tests). Navigation context only; not runtime, acceptance, or readiness. See the Forseti Harness section. |
 | `orca/` | Declared top-level product-tree root. Product substance lives under `orca/product/`; runtime remains under `orca-harness/`. |
 | `orca/product/` | Spine-first product tree: product contracts, Core Spine artifacts, proof plans, source/evidence standards, offer, buyer-proof, demand-signal method/surface docs, satellites, case families, and shared product registries. Historical product-docs references resolve through `docs/migration/repo_structure_spine_first_v0/moved_paths_index.md`. |
 | `orca/product/spines/data_lake/` | Data Lake shared-foundation spine (promotion-bound 2026-06-18; contracts + mechanics landed by R2). Owns cross-layer storage contracts (raw-packet preservation, keyed retrievability, Attachment Record, passive Availability Index), the engine/backend selection boundary, the medallion/gold-readiness contract consumed by projection/ECR/cleaning/judgment, and the post-PR-525 Bronze MGT baseline declaration that lets Silver consume public Bronze catalog/AR surfaces without declaring Bronze full GT. Binding: `docs/decisions/orca_data_lake_spine_promotion_binding_v0.md`. |
@@ -581,9 +582,9 @@ nickname: "crawling graph." The runner is
 | `.agents/workflow-overlay/artifact-roles.md` | Artifact role bindings and permissions. |
 | `.agents/workflow-overlay/retrieval-metadata.md` | Retrieval-header contract. |
 | `.agents/workflow-overlay/prompt-orchestration.md` | Prompt artifact, wrapper, preflight, and rerun rules. |
-| `.agents/workflow-overlay/template-registry.md` | Orca-local prompt template registry. |
+| `.agents/workflow-overlay/template-registry.md` | Forseti-local prompt template registry. |
 | `.agents/workflow-overlay/product-proof.md` | Buyer-proof semantics and non-claims. |
-| `.agents/workflow-overlay/communication-style.md` | Orca response style. |
+| `.agents/workflow-overlay/communication-style.md` | Forseti response style. |
 | `.agents/workflow-overlay/validation-gates.md` | Validation gate expectations. |
 | `.agents/workflow-overlay/review-lanes.md` | Review lane rules. |
 | `.agents/workflow-overlay/delegated-review-patch.md` | Provisional, opt-in Delegated Review-and-Patch convention for high-stakes authored artifacts (and bounded multi-file code diffs via the `delegated_code_review_and_patch` sibling mode); not a bound review lane. |
@@ -627,7 +628,7 @@ nickname: "crawling graph." The runner is
 | `docs/research/judgment-spine/judgment_spine_consolidation_map_v0.md` | Judgment Spine submap. Open before enumerating Judgment owners across `docs/research/judgment-spine/` and `orca/product/spines/judgment/`. |
 | `orca/product/spines/capture/core/source_families/retail_pdp/retail_pdp_sidecar_operator_playbook_v0.md` | Operator playbook for the bounded Amazon/Sephora/Ulta Retail/PDP CloakBrowser sidecar smoke: canonical URLs, flags, scratch outputs, expected residuals, failure taxonomy, and code-enforceable follow-up flags. |
 
-## Orca Harness
+## Forseti Harness
 
 `orca-harness/` is bounded, authorized implementation backing Data Capture
 source acquisition and the v0.14 Judgment Harness. It is navigation context
@@ -690,12 +691,12 @@ Use these before broad product architecture or CA setup:
 
 | Path | Use for |
 | --- | --- |
-| `docs/decisions/orca_product_thesis_consumer_demand_v0.md` | Orca thesis (consumer-demand decision intelligence, beauty first; owner-ratified 2026-06-12; supersedes `docs/decisions/turn_08_product_thesis_v0.md`), value proposition, strategic center, product boundary. |
+| `docs/decisions/orca_product_thesis_consumer_demand_v0.md` | Forseti thesis (consumer-demand decision intelligence, beauty first; owner-ratified 2026-06-12; supersedes `docs/decisions/turn_08_product_thesis_v0.md`), value proposition, strategic center, product boundary. |
 | `orca/product/spines/product_lead/offer/orca_offer_hypothesis_v0.md` | Offer hypothesis, buyer-facing language, first proof offer, ICP boundary. |
 | `orca/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md` | First buyer-proof packet, proof gates, pull signals, kill/graduation criteria. |
 | `docs/decisions/orca_icp_wedge_consumer_demand_first_v0.md` | Current first-proof ICP wedge (beauty operator door; owner co-ratified 2026-06-12; supersedes pricing-first) and decision-family focus. |
 | `orca/product/spines/product_lead/proof_charter/orca_product_proof_lead_charter_v0.md` | Product proof lead role and proof execution boundary. |
-| `orca/product/spines/product_lead/proof_charter/orca_claim_defense_doctrine_v0.md` | Operative external-claims policy (owner-signed 2026-06-11): built-to vs proven-at, per-tier wording table, debunking triage. Read before any externally visible sentence about Orca's judgment evidence. |
+| `orca/product/spines/product_lead/proof_charter/orca_claim_defense_doctrine_v0.md` | Operative external-claims policy (owner-signed 2026-06-11): built-to vs proven-at, per-tier wording table, debunking triage. Read before any externally visible sentence about Forseti's judgment evidence. |
 
 ## Judgment Spine
 

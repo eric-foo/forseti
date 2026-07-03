@@ -2,11 +2,11 @@
 
 ```yaml
 retrieval_header_version: 1
-artifact_role: Orca overlay authority
+artifact_role: Forseti overlay authority
 scope: Source hierarchy, conflict rules, doctrine-change propagation, and known source documents.
 use_when:
-  - Resolving Orca source precedence.
-  - Checking whether a document is a known Orca source.
+  - Resolving Forseti source precedence.
+  - Checking whether a document is a known Forseti source.
   - Changing product, architecture, workflow, validation, review, output, or lifecycle doctrine.
 authority_boundary: retrieval_only
 ```
@@ -14,16 +14,16 @@ authority_boundary: retrieval_only
 ## Current Source Hierarchy
 
 1. Explicit user instruction for the current turn.
-2. Orca `AGENTS.md`.
+2. Forseti `AGENTS.md`.
 3. This overlay under `.agents/workflow-overlay/`.
-4. Orca docs under `docs/`, when they do not conflict with the overlay.
-5. Explicitly invoked or resolver-loaded skills may provide task-local mechanics only; they are not Orca project authority.
+4. Forseti docs under `docs/`, when they do not conflict with the overlay.
+5. Explicitly invoked or resolver-loaded skills may provide task-local mechanics only; they are not Forseti project authority.
 
 ## Conflict Rules
 
-- Orca overlay wins for Orca project facts.
-- External workflow sources do not own Orca project authority. Skills may provide task-local mechanics only when explicitly invoked or resolver-loaded.
-- Installed global/user/plugin skills are runtime copies or external tools, not Orca project authority.
+- Forseti overlay wins for Forseti project facts.
+- External workflow sources do not own Forseti project authority. Skills may provide task-local mechanics only when explicitly invoked or resolver-loaded.
+- Installed global/user/plugin skills are runtime copies or external tools, not Forseti project authority.
 - If a required source is missing, report a visible failure and name the missing file or decision.
 - Source hierarchy is not a read-all list. Use `.agents/workflow-overlay/source-loading.md` and `docs/workflows/orca_repo_map_v0.md` to choose bounded source packs.
 
@@ -32,7 +32,7 @@ authority_boundary: retrieval_only
 Checkpoint artifacts capture transient lane state for recovery or transfer:
 precompact working packets (`workflow-precompact`, under `docs/hygiene/`), cold
 cross-lane handoff packets (`workflow-handoff`), and any equivalent lane-state
-resume/snapshot note. They are convenience copies, never an Orca source of truth.
+resume/snapshot note. They are convenience copies, never a Forseti source of truth.
 
 - Non-authoritative. A checkpoint's volatile claims — what is built, what is
   authorized, current doctrine, or "where we are" — are orientation only.
@@ -45,9 +45,9 @@ resume/snapshot note. They are convenience copies, never an Orca source of truth
   pointer plus a re-confirm instruction (for example "authorization -> <decision>;
   build state -> glob disk"), not a copied snapshot that silently goes stale.
 
-This binds how Orca uses the `workflow-precompact` and `workflow-handoff` skills:
+This binds how Forseti uses the `workflow-precompact` and `workflow-handoff` skills:
 the skills supply mechanics, this overlay owns the lifecycle. It does not apply to
-Orca source-of-truth artifacts (decisions, contracts, architecture records) or to
+Forseti source-of-truth artifacts (decisions, contracts, architecture records) or to
 pointer-indexes (the repo map, this overlay) — those are the canonical sources a
 checkpoint points to and must never be deleted as "consumed." It also does not
 apply to authored handoff *prompts* under `docs/prompts/handoffs/` (the
@@ -350,16 +350,16 @@ Older receipts (#1–#13) archived verbatim in `docs/decisions/dcp_receipts_arch
 
 - `README.md`: workspace entrypoint.
 - `AGENTS.md`: agent operating instructions.
-- `CLAUDE.md`: Claude Code instruction shim that imports `AGENTS.md`; no Orca project authority of its own.
+- `CLAUDE.md`: Claude Code instruction shim that imports `AGENTS.md`; no Forseti project authority of its own.
 - `.agents/workflow-overlay/README.md`: overlay entrypoint.
-- `.agents/workflow-overlay/artifact-roles.md`: Orca artifact role bindings, permissions, freshness markers, and paired artifacts.
-- `.agents/workflow-overlay/source-loading.md`: Orca source-loading budgets, read packs, and context-bloat controls.
-- `.agents/workflow-overlay/decision-routing.md`: Orca Cynefin Routing Layer for non-trivial, ambiguous, cross-thread, delegated, doctrine-bearing, or messy-worktree work.
-- `.agents/workflow-overlay/retrieval-metadata.md`: Orca retrieval-header contract for durable human-authored workflow artifacts.
-- `.agents/workflow-overlay/prompt-orchestration.md`: Orca prompt artifact, wrapper, preflight, output mode, validation, and rerun bindings.
-- `.agents/workflow-overlay/template-registry.md`: Orca-owned prompt template registry for project-local templates.
-- `.agents/workflow-overlay/product-proof.md`: Orca buyer-proof semantics, trust-objection handling, pull signals, and product-proof non-claims.
-- `.agents/workflow-overlay/communication-style.md`: Orca response style for Chief Architect sequencing, review closeouts, and prompt handoffs.
+- `.agents/workflow-overlay/artifact-roles.md`: Forseti artifact role bindings, permissions, freshness markers, and paired artifacts.
+- `.agents/workflow-overlay/source-loading.md`: Forseti source-loading budgets, read packs, and context-bloat controls.
+- `.agents/workflow-overlay/decision-routing.md`: Forseti Cynefin Routing Layer for non-trivial, ambiguous, cross-thread, delegated, doctrine-bearing, or messy-worktree work.
+- `.agents/workflow-overlay/retrieval-metadata.md`: Forseti retrieval-header contract for durable human-authored workflow artifacts.
+- `.agents/workflow-overlay/prompt-orchestration.md`: Forseti prompt artifact, wrapper, preflight, output mode, validation, and rerun bindings.
+- `.agents/workflow-overlay/template-registry.md`: Forseti-owned prompt template registry for project-local templates.
+- `.agents/workflow-overlay/product-proof.md`: Forseti buyer-proof semantics, trust-objection handling, pull signals, and product-proof non-claims.
+- `.agents/workflow-overlay/communication-style.md`: Forseti response style for Chief Architect sequencing, review closeouts, and prompt handoffs.
 - `.agents/workflow-overlay/delegated-review-patch.md`: provisional opt-in Delegated Review-and-Patch convention; not a bound review lane, no strict claims.
 - `docs/STRUCTURE.md`: docs-folder usage guide for future agents; subordinate to this overlay if conflicts appear.
 - `docs/workflows/orca_bootstrap_record.md`: Turn 6 bootstrap record.
@@ -368,7 +368,8 @@ Older receipts (#1–#13) archived verbatim in `docs/decisions/dcp_receipts_arch
 - `docs/research/judgment-spine/judgment_spine_consolidation_map_v0.md`: retrieval-only entry map for Judgment Spine navigation; routes to owner sources, no validation/readiness/buyer-proof/scoring/model-execution/judgment-quality authority.
 - `docs/migration/import_queue.md`: read-only import queue state.
 - `docs/decisions/dcp_receipts_archive_v0.md`: verbatim archive of direction_change_propagation receipts cycled out of inline storage; retrieval-only, no source authority.
-- `docs/decisions/orca_product_thesis_consumer_demand_v0.md`: current Orca product thesis and value proposition (owner-ratified 2026-06-12; supersedes the earlier turn-08 thesis, retained as history).
+- `docs/decisions/forseti_rename_migration_policy_v0.md`: rename policy binding Forseti as the canonical project/product name and Orca as the legacy alias; controls live-vs-historical rename classes and compatibility migration sequencing.
+- `docs/decisions/orca_product_thesis_consumer_demand_v0.md`: current Forseti product thesis and value proposition (owner-ratified 2026-06-12; supersedes the earlier turn-08 thesis, retained as history).
 - `orca/product/spines/judgment/claim_ladder/judgment_spine_evidence_ladder_architecture_v0.md`: Judgment Spine claim-tier architecture for Product-Learning, Buyer-Proof, and Judgment-Quality evidence boundaries.
 - `orca/product/spines/judgment/conductor/judgment_spine_gate_ownership_map_v0.md`: Judgment Spine gate ownership map for source identity, packet freeze, no-tools isolation, memorization probe, sealed output, scoring, reveal/calibration, classification, and closeout blockers.
 - `orca/product/spines/judgment/conductor/judgment_spine_reveal_calibration_owner_contract_v0.md`: JSG-08 owner contract for outcome reveal/calibration receipt shape, satisfaction states, scoring relationship, and claim caps.

@@ -1,18 +1,18 @@
-# Communication Style
+﻿# Communication Style
 
 ```yaml
 retrieval_header_version: 1
-artifact_role: Orca overlay authority
-scope: Orca response style, chat-output topology, courier YAML shape, and adversarial review summary pattern.
+artifact_role: Forseti overlay authority
+scope: Forseti response style, chat-output topology, courier YAML shape, and adversarial review summary pattern.
 use_when:
-  - Checking Orca review closeout and courier YAML shape.
-  - Preparing or reviewing Orca prompt handoffs and Chief Architect sequencing.
+  - Checking Forseti review closeout and courier YAML shape.
+  - Preparing or reviewing Forseti prompt handoffs and Chief Architect sequencing.
 authority_boundary: retrieval_only
 ```
 
-This file records Orca-specific response style for Chief Architect sequencing,
+This file records Forseti-specific response style for Chief Architect sequencing,
 review closeouts, and prompt handoffs. It applies to user-facing chat and
-Orca-authored prompts unless a later user instruction asks for a different
+Forseti-authored prompts unless a later user instruction asks for a different
 shape.
 
 ## Default Shape
@@ -27,7 +27,7 @@ file-state language secondary unless exact repository state is the point.
 
 ## Chat Output Topology
 
-For decision-bearing Orca chat, use this order:
+For decision-bearing Forseti chat, use this order:
 
 1. Human summary.
 2. Agent-readable detail.
@@ -114,12 +114,12 @@ the block must be runnable from any directory:
 
 ## Chief Architect Review Consumption
 
-When an Orca Chief Architect or CA-facing handoff consumes one or more review
+When a Forseti Chief Architect or CA-facing handoff consumes one or more review
 reports, preserve this order:
 
 1. Commission: what the CA or owner asked the review to decide or inspect.
 2. Target: the exact artifact, prompt, diff, report, or surface reviewed.
-3. Authority: the Orca overlay, prompt, current instruction, or source boundary
+3. Authority: the Forseti overlay, prompt, current instruction, or source boundary
    that controls the review result.
 4. Decision criteria: the criteria the review was asked to apply.
 5. Evidence: the cited findings, source reads, gaps, and not-proven limits.
@@ -127,10 +127,10 @@ reports, preserve this order:
 
 Reviewer recommendations in `review_summary` are courier and decision input.
 They are not acceptance, approval, validation, readiness, mandatory
-remediation, or patch authority unless a separate Orca decision or execution
+remediation, or patch authority unless a separate Forseti decision or execution
 lane binds that result. Do not add a synthesis lane by merging multiple review
 reports into a new authority surface; unresolved review disagreement remains
-Chief Architect adjudication unless Orca later binds another owner.
+Chief Architect adjudication unless Forseti later binds another owner.
 
 ## Review Adjudication Next Step
 
@@ -202,7 +202,7 @@ review_summary:
   next_action: "One concrete next step"
 ```
 
-For Orca review prompts using `review-report` output mode, `report_path` is
+For Forseti review prompts using `review-report` output mode, `report_path` is
 valid only when the durable report was actually written. If no durable report
 exists because the review is explicitly chat-only or blocked before writing,
 replace `report_path` with `review_location: chat_only_current_thread` and keep
@@ -240,7 +240,7 @@ bullet). Same-family-vs-cross-family is computed by relating the two and is
 measured only when both carry real values; a present `unrecorded` value is a
 visible measurement gap, not success.
 
-Do not include these fields in Orca adversarial review summaries:
+Do not include these fields in Forseti adversarial review summaries:
 
 - `report_written`
 - `protected_path_check`
