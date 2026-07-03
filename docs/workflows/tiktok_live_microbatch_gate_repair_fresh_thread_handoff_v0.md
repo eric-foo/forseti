@@ -46,6 +46,18 @@ stale_if:
 - expected_dirty_state_before_handoff_file: only untracked `_scratch/`
 - load_rule: confirm-don't-trust; re-verify every load-bearing fact against its compare target before acting. This packet orients; it does not authorize live capture, merge, validation, or readiness by itself.
 
+## 2026-07-03 Owner Supersession
+
+The current owner has changed the TikTok challenge-close policy after this PR
+#608 packet was written. Treat the diagnostic-only instructions in this packet
+as historical guardrails for `--allow-challenge-close-diagnostic`, not as the
+current route-yield rule for X-able public challenge modals. Current doctrine:
+use `--allow-challenge-close-followthrough` only when owner-authorized; click
+X/Close through the named UI movement substrate; never drag or solve; continue
+only if challenge/security text clears and a page-owned `/api/comment/list`
+response is captured; preserve the close action as a source-access intervention;
+and never call the route unchallenged clean capture.
+
 ## Goal Handoff
 
 - long_term_goal: Make the TikTok source-capture lane produce sanitized, admissible, page-owned live staging data under real sessioned conditions without violating account-risk, no-CAPTCHA-solving, no-secret, and no-product-extraction boundaries.
@@ -65,9 +77,14 @@ stale_if:
 
 ## Drift Guard
 
-- invariant: challenge-close diagnosis is never capture success.
-  - why it matters: live probes can observe page-owned comment-list traffic after a diagnostic close click; that traffic must remain diagnostic only.
-  - violating it would break: batch admission safety and the no-CAPTCHA-solving boundary.
+- invariant: challenge-close diagnosis remains stop-only; owner-authorized
+  challenge-X follow-through is not unchallenged clean capture.
+  - why it matters: diagnostic close clicks can observe post-click traffic that
+    must remain diagnostic only, while current follow-through admission depends
+    on a separate post-close page-owned comment response and a preserved
+    source-access intervention receipt.
+  - violating it would break: batch admission safety and the no-CAPTCHA-solving
+    boundary.
 - invariant: batch admission must admit only clean live cadence.
   - why it matters: a diagnostic or failed cadence file must not become a sanitized batch packet.
   - violating it would break: the staging/admission proof boundary.
@@ -137,7 +154,13 @@ Continue only the PR #608 TikTok live microbatch gate-repair lane. The fresh thr
     - Last checked: current thread context.
     - Reuse rule: reread if acting on prompt/review/landing claims.
 - User constraints:
-  - Do not solve CAPTCHA/slider challenges; do not click challenge-close controls to claim success; do not do product extraction; do not print/inspect/commit/persist auth contents; use UI movement substrate for blockers; cold agents must know the playbook exists.
+  - Do not solve CAPTCHA/slider challenges; do not treat challenge-close clicks
+    alone as success; do not do product extraction; do not print/inspect/commit/
+    persist auth contents; use UI movement substrate for blockers. Current owner
+    doctrine allows `--allow-challenge-close-followthrough` for X-able public
+    challenge modals only when the post-close route yields a page-owned comment
+    response and preserves the close receipt as a source-access intervention.
+    Cold agents must know the playbook exists.
     - Load-bearing: yes.
     - Compare target: current conversation plus durable handoff/playbook references.
     - Reuse rule: preserve unless owner explicitly redirects.

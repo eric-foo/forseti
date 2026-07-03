@@ -103,13 +103,16 @@ The prior micro-batch packet version was corrupted for execution: it allowed
 continuation on sanitized staging plus admission alone. Treat the 2026-07-02
 five-creator zero-response run as a diagnostic receipt, not capture success.
 
-Current owner redirect for this lane: one diagnostic retry may add
-`--allow-challenge-close-diagnostic` after the owner observed a closeable slider
-X. This flag is diagnosis-only. If the close action clicks, the run must stop as
-`challenge_close_diagnostic_only` or
-`platform_challenge_observed_after_close_diagnostic`, with `completed_count=0`,
-`challenge_count=1`, no result row, no admission, no expansion, and no success
-claim from post-close observations.
+Current owner redirect for this lane: the prior stop-only challenge-X rule is
+superseded for X-able public TikTok challenge modals. Use
+`--allow-challenge-close-followthrough` when the owner authorizes a route-yield
+run through a visible X/Close. The runner may click X/Close through the named UI
+movement substrate, must never drag or solve the puzzle, and may continue only if
+challenge/security text clears and a page-owned `/api/comment/list` response is
+captured. Any admitted row must preserve the close action as a
+`source_access_intervention`; it is post-close follow-through, not an
+unchallenged clean route. `--allow-challenge-close-diagnostic` remains stop-only
+for changed-condition checks.
 
 ## Open Decision / Fork
 
@@ -117,16 +120,18 @@ The only live-run fork is whether to proceed past the first creator/video:
 
 - Continue to a 3-5 creator micro-batch only if the first video has
   `challenge_count=0`, no empty/stripped shell, no auth wall, no unresolved
-  blocker stop, no clicked challenge-close diagnostic receipt, `completed_count=1`,
-  and at least one admitted page-owned `/api/comment/list` response.
+  blocker stop, no clicked diagnostic challenge-close receipt,
+  `completed_count=1`, and at least one admitted page-owned
+  `/api/comment/list` response. If `challenge_close_followthrough_count > 0`,
+  the result row and batch packet must carry the source-access intervention.
 - Stop if comment-list response yield is zero. Record it as
   `comment_list_response_absent` / route-opening diagnosis, not as a completed
   capture row and not as TikTok route failure in general.
-- Stop if the first creator hits a real challenge class: slider/captcha/verify,
-  login/auth wall, ban/40x on the authenticated session, empty/stripped shell,
-  missing video-detail hydration, a clicked challenge-close diagnostic receipt,
-  or an unresolved actual dismiss/reload blocker that the triage classifies as
-  stop.
+- Stop if the first creator hits an unresolved challenge class: slider/captcha/
+  verify text that remains after follow-through, login/auth wall, ban/40x on the
+  authenticated session, empty/stripped shell, missing video-detail hydration, a
+  clicked diagnostic challenge-close receipt, or an unresolved actual
+  dismiss/reload blocker that the triage classifies as stop.
 - Retry once only for transport/infra noise clearly distinguished from TikTok,
   such as extension/proxy chrome-error style failures already called out by the
   TikTok recon/spec. Do not convert repeated infra failures into a TikTok ceiling.
@@ -135,11 +140,15 @@ The only live-run fork is whether to proceed past the first creator/video:
 
 ## Drift Guard
 
-- Do not solve CAPTCHA/slider/verification challenges.
-- Do not click an `X` or `Close` on a visible challenge and report success. The
-  only allowed exception is an explicit owner-authorized diagnostic run using
-  `--allow-challenge-close-diagnostic`; if it clicks, the receipt is a blocker
-  diagnosis only and cannot admit, expand, or count as a completed capture row.
+- Do not solve CAPTCHA/slider/verification challenges; no drag/solve path is
+  authorized.
+- Do not report an `X` or `Close` click by itself as success. The allowed capture
+  path is the explicit owner-authorized
+  `--allow-challenge-close-followthrough` route: click X/Close through the named
+  UI movement substrate, require challenge/security text to clear, require at
+  least one page-owned `/api/comment/list` response, and preserve the close
+  action as a source-access intervention. Diagnostic close mode remains
+  stop-only and cannot admit, expand, or count as a completed capture row.
 - Do not use a personal TikTok account. This lane assumes a dedicated,
   burnable, warmed account with human-performed login.
 - Do not enter credentials, inspect cookies/tokens, preserve storage-state paths,
@@ -202,20 +211,19 @@ handoff depends on:
 - The pointer-action page-text gate now uses visible `innerText` rather than
   hidden `textContent`, so hidden TikTok strings such as `captcha` cannot by
   themselves satisfy a diagnostic pointer gate.
-- The owner-authorized DOM diagnostic close action is named
-  `tiktok_challenge_modal_close_diagnostic_pointer_v0`. It is opt-in via
-  `--allow-challenge-close-diagnostic`, page-text gated on challenge/security
-  markers, targets `Close`/`Dismiss` or exact `X`/`×`, prefers the top-right
-  candidate, and uses the same bounded pointer movement substrate.
-- The owner-authorized visual diagnostic close action is named
-  `tiktok_challenge_modal_visual_close_diagnostic_pointer_v0`. It runs only under
-  `--allow-challenge-close-diagnostic`, after the comment-surface route, requires visible
-  challenge/security page text, and uses a viewport screenshot to scan the
-  upper-right crop for a small high-contrast
-  X-shaped glyph. It records only sanitized proof fields such as crop box,
-  screenshot hash, candidate count, confidence, and clicked state. It is a
-  blocker-diagnosis path only: a click forces stop semantics and cannot produce
-  a clean capture row.
+- The owner-authorized DOM follow-through close action is named
+  `tiktok_challenge_modal_close_followthrough_pointer_v0`; the visual fallback
+  action is named `tiktok_challenge_modal_visual_close_followthrough_pointer_v0`.
+  They run only under `--allow-challenge-close-followthrough`; the DOM close
+  action stays visible-challenge-text gated, while the visual-X follow-through
+  action may run when TikTok exposes the challenge marker only as hidden/residual
+  DOM text. They click only X/Close style controls and may admit only post-close
+  page-owned comment responses with the close receipt preserved.
+- The diagnostic close actions remain
+  `tiktok_challenge_modal_close_diagnostic_pointer_v0` and
+  `tiktok_challenge_modal_visual_close_diagnostic_pointer_v0`. They run only
+  under `--allow-challenge-close-diagnostic` and remain blocker-diagnosis paths:
+  any click forces stop semantics and cannot produce a capture row.
 - Batch admission is now code-gated against non-clean live cadence. `batch_packet.py`
   rejects nonzero `challenge_count`, non-empty `failures`, `first_failure_reason`,
   `captcha_solving=true`, `challenge_close_counts_as_success=true`, and
@@ -286,9 +294,10 @@ handoff depends on:
 
    Do not add flags that are not present in `--help`. Keep default cadence unless
    the owner explicitly directs a different small-N cadence. For the current
-   owner-authorized diagnostic retry only, add
-   `--allow-challenge-close-diagnostic`; do not use that flag for a clean
-   micro-batch proof or any admission/expansion claim.
+   owner-authorized X-able public challenge route-yield run, add
+   `--allow-challenge-close-followthrough`. Use
+   `--allow-challenge-close-diagnostic` only for stop-only changed-condition
+   checks, never for admission or expansion.
 
 
 5. Inspect the first-video outputs before admission or expansion:
@@ -297,12 +306,15 @@ handoff depends on:
    - `tiktok_live_cadence_result.json`
 
    Required to continue: `attempted_count=1`, `completed_count=1`,
-   `challenge_count=0`, no failures, no clicked challenge-close diagnostic
-   receipt, capture contract clean, and
-   `results[0].capture_receipt.admitted_comment_response_count >= 1`.
+    `challenge_count=0`, no failures, no clicked diagnostic challenge-close
+    receipt, and
+    `results[0].capture_receipt.admitted_comment_response_count >= 1`. If
+    `challenge_close_followthrough_count > 0`, verify the row and batch packet
+    preserve the close action as `source_access_intervention`.
 
-   If `challenge_count` is nonzero, failures contain a challenge/auth stop, or a
-   challenge-close diagnostic action clicked, stop. Do not run admission.
+    If `challenge_count` is nonzero, failures contain a challenge/auth stop, a
+    challenge remains after follow-through, or a diagnostic challenge-close
+    action clicked, stop. Do not run admission.
 
    If `admitted_comment_response_count` is zero, stop and report
    `comment_list_response_absent` with the comment-action receipt. Do not admit
@@ -505,12 +517,14 @@ one-video route-yield gate first. The current runner first attempts bounded
 benign-overlay dismissal, then uses
 `comment_surface_toggle_pointer_sequence_v0` (comments -> More like this ->
 comments); require at least one admitted page-owned
-`/api/comment/list` response before admission/expansion; stop on any real
-challenge, unresolved blocker, or zero-comment-response route diagnosis. Do
-not solve CAPTCHA/slider challenges, do not click challenge-close controls to
-claim success, do not expand directly to 3-5 creators, and do not do product
-extraction. If the current owner explicitly authorizes
-`--allow-challenge-close-diagnostic`, the runner may use the DOM close diagnostic
-and the visual-X close diagnostic, but treat any clicked close receipt as a stop
-receipt only, never as proof.
+`/api/comment/list` response before admission/expansion; stop on unresolved
+challenge text after follow-through, unresolved blocker, or zero-comment-response
+route diagnosis. Do not solve CAPTCHA/slider challenges,
+do not treat a close click alone as success, do not expand directly to 3-5
+creators, and do not do product extraction. If the current owner explicitly
+authorizes `--allow-challenge-close-followthrough`, the runner may close an
+X-able public challenge and then attempt the page-owned comment route; any
+admitted result must preserve the close action as a source-access intervention.
+Use `--allow-challenge-close-diagnostic` only for stop-only changed-condition
+checks.
 ```

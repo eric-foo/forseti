@@ -18,6 +18,38 @@ priorities: [lowest_bot_detectability, scalable]
 capture_mode: sessioned_cookied (owner decision 2026-06-22; supersedes the logged-out-primary posture in C8)
 ```
 
+## Direction Change Propagation - 2026-07-03 Challenge-X Follow-Through
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    TikTok capture doctrine now allows owner-authorized X-able public challenge
+    modal follow-through as a receipt-visible source-access intervention for
+    post-close page-owned comment capture, while preserving no-drag/no-solve,
+    unresolved-challenge stop, diagnostic-only close mode, and non-clean-route
+    limitations.
+  trigger: product_doctrine
+  related_triggers:
+    - workflow_authority
+    - validation_philosophy
+  controlling_sources_updated:
+    - orca/product/spines/capture/core/source_families/social_media/tiktok/tiktok_capture_lane_spec_v0.md
+    - docs/workflows/tiktok_ui_movement_blocker_substrate_playbook_v0.md
+  downstream_surfaces_checked:
+    - orca/product/spines/capture/core/source_families/social_media/tiktok/tiktok_sessioned_capture_warm_probe_plan_v0.md
+    - docs/workflows/tiktok_live_microbatch_owner_gated_handoff_v0.md
+    - docs/workflows/tiktok_live_microbatch_gate_repair_fresh_thread_handoff_v0.md
+    - orca-harness/source_capture/tiktok/live_batch_probe.py
+    - orca-harness/source_capture/tiktok/batch_packet.py
+  stale_language_search: >
+    rg -n "challenge-close diagnostics are never capture success|never solve a challenge|stop-on-challenge|challenge-close diagnostic only|closeability" docs/workflows/tiktok_ui_movement_blocker_substrate_playbook_v0.md docs/workflows/tiktok_live_microbatch_owner_gated_handoff_v0.md docs/workflows/tiktok_live_microbatch_gate_repair_fresh_thread_handoff_v0.md orca/product/spines/capture/core/source_families/social_media/tiktok orca-harness/source_capture/tiktok
+  non_claims:
+    - not validation
+    - not readiness
+    - not legal sufficiency
+    - not unchallenged clean capture
+```
+
 ## Direction update (2026-06-22) — sessioned/cookied
 
 Owner decision: **logged-out capture is too brittle** (highly session-trust-dependent; captchas observed, see recon addendum). The lane now captures via an **authenticated session** (cookied), which TikTok generally trusts more and challenges less. This **supersedes C8** (logged-out-only) with the account invariants in **C8'** below. Everything else (real browser, ride the page's own requests, ≤3 requests/video, cadence, identity distribution, secret hygiene) is unchanged and applies to the authenticated session. **Tradeoff accepted:** the failure mode shifts from captcha/throttle (recoverable) to **account ban** (loses the account + its accumulated trust) — mitigated by dedicated burnable accounts, conservative pacing, and human-performed login.
@@ -51,7 +83,7 @@ Inter-target and inter-request timing MUST use bounded jitter (harness `cadence.
 Scale by running N contexts in parallel, each with its **own** fingerprint + residential/mobile proxy + warmed cookies, each under a **per-context window volume cap**. Throughput = contexts × paced-rate. A single context MUST NOT exceed its window cap.
 
 ### C6 — Real-block detection → cooldown (and distinguish infra noise)
-Detect a genuine TikTok block — its own 403 HTML, captcha/verify interstitial, `msToken` rejection, or an empty/stripped shell — and on it: stop the context, cool down, do not hammer. The lane MUST distinguish a **true TikTok signal** from **transport/infra glitches** (e.g., an extension/proxy `[BLOCKED: JWT token]` `chrome-error` page is NOT a TikTok block — retry once before treating as detection).
+Detect a genuine TikTok block — its own 403 HTML, unresolved captcha/verify interstitial, `msToken` rejection, or an empty/stripped shell — and on it: stop the context, cool down, do not hammer. Owner-authorized X-able public challenge modals are a narrower route case: the runner may click X/Close exactly as a bounded source-access intervention, never drag/solve the puzzle, then continue only if challenge text clears and a page-owned `/api/comment/list` response is captured. This is recorded as post-close follow-through, not unchallenged clean capture. The lane MUST distinguish a **true TikTok signal** from **transport/infra glitches** (e.g., an extension/proxy `[BLOCKED: JWT token]` `chrome-error` page is NOT a TikTok block — retry once before treating as detection).
 
 ### C7 — Secret hygiene (G-2 contamination stop)
 No cookies, storage-state, `msToken`, signature params, proxy endpoints/credentials, exit IPs, or device IDs may be written into any packet. Packets record category-only provenance. A packet containing any of these is contaminated scratch, not admissible.
@@ -63,7 +95,7 @@ Capture runs under an **authenticated session** whose cookies authenticate it. R
 - **No credentials, cookies, storage-state, or tokens in any packet** (C7 / G-2) — even more load-bearing now that secrets exist.
 - **Provenance labeled `entitled_session`**, not `public_logged_out`. The comment data is still real public comments; only the access path is authenticated.
 - **Public content only** — no private/DM/access-controlled surfaces; authentication buys trust/stability, not access to non-public data.
-- **Account-level stop-on-challenge** (per C6): on captcha/challenge/ban signals, stop that account, cool down, rotate; never solve a challenge.
+- **Account-level stop-on-unresolved-challenge** (per C6): on ban, auth-wall, challenge text that remains after an authorized X/Close follow-through, or any non-closeable captcha/challenge signal, stop that account, cool down, rotate; never drag or solve a challenge.
 
 ## Data contract (fields)
 
@@ -76,7 +108,7 @@ Capture runs under an **authenticated session** whose cookies authenticate it. R
 **Source text / transcript boundary:** TikTok description (`desc`), hashtags/mentions (`textExtra`), music metadata, and captured public comments are source text. A later Funmi/session N=30 cadence receipt measured source-native subtitle metadata plus WebVTT body admission when `video.subtitleInfos` exists (`26/30` metadata present; `26/26` WebVTT parse success when present). Treat this as `source_native_subtitle_webvtt` evidence for that creator/session, labeled with TikTok's source field such as `ASR` when present. It is not owner-generated ASR, not durable audio/video preservation, not cross-creator subtitle coverage, and not a platform-wide transcript guarantee.
 
 
-**Implementation note (2026-07-01):** Network-free parsed-batch admission now exists for the Funmi N30 staging shape via `orca-harness/source_capture/tiktok/batch_packet.py` and `orca-harness/runners/run_source_capture_tiktok_batch_packet.py`, with focused tests in `orca-harness/tests/unit/test_tiktok_batch_admission.py`. The verified data-lake packet is `F:\orca-data-lake\raw\97c\01KWCYZ9P72W4SJD7NDPRQT0DB` (`tiktok_creator_batch_comment_subtitle_admission`): 30 videos, 596 parsed comments, 26 transcript-bearing source-native WebVTT captures, 1044 cues, and deterministic typed extraction seeds. A first live staging producer now exists via `orca-harness/source_capture/tiktok/live_batch_probe.py` and `orca-harness/runners/run_source_capture_tiktok_live_batch_probe.py`, with fake-engine tests in `orca-harness/tests/unit/test_tiktok_live_batch_probe.py`; it runs one creator per invocation, uses headed/sessioned page-owned comment-list observation, writes sanitized grid/cadence staging JSON for the existing admission gate, stops on challenge, and records subtitle metadata only while deferring subtitle body fetch. The code is not itself a live run, profile-grid automation proof, cross-creator ceiling proof, durable media/video preservation, final product extraction, Cleaning, ECR, or Judgment.
+**Implementation note (2026-07-01; amended 2026-07-03):** Network-free parsed-batch admission now exists for the Funmi N30 staging shape via `orca-harness/source_capture/tiktok/batch_packet.py` and `orca-harness/runners/run_source_capture_tiktok_batch_packet.py`, with focused tests in `orca-harness/tests/unit/test_tiktok_batch_admission.py`. The verified data-lake packet is `F:\orca-data-lake\raw\97c\01KWCYZ9P72W4SJD7NDPRQT0DB` (`tiktok_creator_batch_comment_subtitle_admission`): 30 videos, 596 parsed comments, 26 transcript-bearing source-native WebVTT captures, 1044 cues, and deterministic typed extraction seeds. A first live staging producer now exists via `orca-harness/source_capture/tiktok/live_batch_probe.py` and `orca-harness/runners/run_source_capture_tiktok_live_batch_probe.py`, with fake-engine tests in `orca-harness/tests/unit/test_tiktok_live_batch_probe.py`; it runs one creator per invocation, uses headed/sessioned or logged-out page-owned comment-list observation, writes sanitized grid/cadence staging JSON for the existing admission gate, normally stops on unresolved challenge, and now exposes owner-authorized `--allow-challenge-close-followthrough` for X-able public challenge modals. Follow-through clicks are preserved as source-access interventions and can admit only post-close page-owned comment responses; diagnostic close mode remains stop-only. The code is not itself a live run, profile-grid automation proof, cross-creator ceiling proof, durable media/video preservation, final product extraction, Cleaning, ECR, or Judgment.
 ## Explicitly out of scope
 
 30/60-minute comment windows; full-comment pagination / chronological census; personal account use; agent-entered credentials; private or access-controlled content; media/video/audio bytes; owner-generated ASR unless separately authorized; source-native subtitle claims when `subtitleInfos` is absent; cross-creator subtitle coverage unless separately measured; signature forging; reply-thread expansion beyond the first-page `reply_comment_total` count.
@@ -92,8 +124,10 @@ Capture runs under an **authenticated session** whose cookies authenticate it. R
 If a cold lane is confounded by TikTok UI movement or blocker behavior, open
 `docs/workflows/tiktok_ui_movement_blocker_substrate_playbook_v0.md` before any
 browser action. It maps blocker classes to the bounded `BrowserPagePointerAction`
-substrate and preserves the no-CAPTCHA-solving/no-success-from-challenge-close
-boundary.
+substrate and separates three cases: benign dismissals, owner-authorized
+X-able challenge follow-through, and diagnostic-only challenge close. The no-
+drag/no-solve boundary remains; post-close admission must preserve the source-
+access intervention.
 
 - **Reused substrate, lightly extended browser seam:** packet `models.py` (+ typed `MetricObservation` for stats), `cadence.py` (C4), `writer.py`/`packet_assembly.py`, `block_shell.py`/`rendered_access.py` (C6), `proxy_profiles.py` (C5), and `auth_state.py` / authenticated browser session bootstrap only for the C8' dedicated-account session boundary. The reusable browser response seam is `browser_snapshot.py::fetch_browser_page_observation_capture`: attach a response predicate before navigation, run headed/sessioned, execute a bounded post-load page action to open comments, then preserve only matching page-emitted `/api/comment/list` responses. `fetch_browser_context_responses` is not the TikTok C2 mechanism because it performs explicit in-page `fetch(url)` calls.
 - **New (TikTok satellite):** `source_capture/tiktok/admission.py` (network-free parsers/sanitizers), `video_packet.py`, `batch_packet.py`, `batch_coverage.py`, `batch_projection.py`, and `live_batch_probe.py` plus `run_source_capture_tiktok_live_batch_probe.py` for one-creator live staging (C1-C3, C6: headed/sessioned, request cap, comment-panel post-load action, comment/list response predicate, sanitized staging only). The required change vs the failed recon runs is **running the existing browser observation seam non-headless/sessioned with assets allowed**, not forged request logic.
@@ -103,5 +137,5 @@ boundary.
 - **Volume + provenance target** (how many creators/videos/comments, freshness, first-party-required?) is unset and **flips the scale design** (self-capture vs vendor-for-bulk + first-party-anchor).
 - **Proxy strategy** (residential vs mobile, pool size) is a cost-vs-detectability owner decision.
 - **Detection ceiling is PARTIALLY MEASURED, not settled** - one Funmi/session cadence run completed N=30 with zero challenges and clean page-owned comment/subtitle capture. Cross-creator coverage, higher-volume survivability, longer-run account safety, and selector/signature/field drift remain unmeasured.
-- This is a spec only: no build authority, no validation/readiness, no deployment. **Authenticated (sessioned) public capture via a dedicated burnable account** under the owner Risk posture; carries **account-ban and ToS exposure the owner has explicitly accepted** for this lane. Commenter handles/uids are public comment metadata for aggregate integrity analysis, not individual dossiers. Not legal advice.
+- This is a spec only: no build authority, no validation/readiness, no deployment. **Authenticated (sessioned) or logged-out public capture via owner-authorized bounded browser actions** under the owner Risk posture; X-able public challenge follow-through carries ToS/account-risk exposure and is not unchallenged clean capture. Commenter handles/uids are public comment metadata for aggregate integrity analysis, not individual dossiers. Not legal advice.
 ```

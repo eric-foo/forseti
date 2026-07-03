@@ -41,12 +41,19 @@ needed bounded capability and the patch adds tests plus a receipt.
 
 Known-closeability diagnostics are not useful work once pinned. The 2026-07-03
 TikTok slider/challenge X was already proven repeatedly closeable by the
-visual-X substrate; future lanes must not spend run budget re-proving that fact
-unless a material condition changed, such as account/session posture, browser
-context, route opener, target video/creator, or TikTok UI state. A closeable
-slider/captcha X is still a challenge/security blocker for admissible capture:
-do not use the close click to manufacture a completed row, admission, expansion,
-or success claim.
+visual-X substrate; future lanes must not spend run budget re-proving that fact.
+
+Current owner source-access redirect: for public TikTok content, an X-able
+slider/captcha/security modal is no longer a hard capture blocker when the
+current lane explicitly uses `--allow-challenge-close-followthrough`. The runner
+may click the X/Close control, then attempt the page-owned comment route. This
+is not CAPTCHA solving, not puzzle dragging, and not an unchallenged clean route.
+It is an owner-authorized source-access intervention that must be preserved in
+the receipt and batch payload. Continue only if the rendered page no longer shows
+challenge/security text and at least one page-owned `/api/comment/list` response
+is captured. If the challenge marker remains, or comment response yield is zero,
+stop visibly. The older `--allow-challenge-close-diagnostic` flag remains
+diagnosis-only and still forces stop.
 
 The substrate is:
 
@@ -66,8 +73,8 @@ The substrate is:
 | Benign TikTok onboarding/app prompt such as `Got it`, `Not now`, `Continue in browser` | `tiktok_dismiss_benign_overlay_pointer_v0` | Yes | Setup action only; excluded from comment-action count. |
 | Logged-out login upsell modal with a dismiss/close control and no challenge/security text | `tiktok_dismiss_benign_overlay_pointer_v0` or a named logged-out dismiss action if added later | Yes for logged-out limit mapping only | Setup action only; record the receipt and continue measuring public access. Do not enter credentials. |
 | Comment surface does not load comments until tab shuffle | `comment_surface_toggle_pointer_sequence_v0`: `tiktok_open_comments_pointer_v0` -> `tiktok_open_more_like_this_pointer_v0` -> `tiktok_reopen_comments_pointer_v0` | Yes | Clean only if at least one page-owned `/api/comment/list` response is admitted. Zero response is stop/diagnosis. |
-| DOM-exposed slider/captcha close control | `tiktok_challenge_modal_close_diagnostic_pointer_v0` | No for admissible capture; only with `--allow-challenge-close-diagnostic` | Diagnostic only. Closeability is already pinned; do not re-run only to prove it. If clicked, force stop as challenge-close diagnosis. |
-| Screenshot-visible but DOM-invisible slider/captcha X | `tiktok_challenge_modal_visual_close_diagnostic_pointer_v0` | No for admissible capture; only with `--allow-challenge-close-diagnostic` and visible challenge text | Diagnostic only. Closeability is already pinned; do not re-run only to prove it. If clicked, force stop as challenge-close diagnosis. |
+| DOM-exposed slider/captcha close control | `tiktok_challenge_modal_close_followthrough_pointer_v0` for follow-through; `tiktok_challenge_modal_close_diagnostic_pointer_v0` for diagnosis | Yes only with `--allow-challenge-close-followthrough`; diagnostic flag remains stop-only | Click X/Close, do not solve/drag, then attempt the comment route. Admit only if challenge text clears and page-owned comment response is captured; carry `source_access_intervention`. |
+| Screenshot-visible but DOM-invisible slider/captcha X | `tiktok_challenge_modal_visual_close_followthrough_pointer_v0` for follow-through; `tiktok_challenge_modal_visual_close_diagnostic_pointer_v0` for diagnosis | Yes only with `--allow-challenge-close-followthrough`; diagnostic visual-X remains visible-challenge-text gated and stop-only | Follow-through visual-X may run before comment routing even when TikTok exposes the challenge marker only as hidden/residual DOM text. Admit only if post-close challenge text clears and page-owned comments are captured, with the intervention preserved. |
 | Slider/captcha puzzle itself | None | Never | Do not drag, solve, or attempt puzzle interaction. |
 | Login/auth wall redirect, credential prompt, or account risk wall | None unless separately mapped as benign logged-out upsell | Never by default | Stop and report blocker. Do not enter credentials or manipulate account state. |
 | Unknown dismiss/reload blocker | None until mapped | No | Stop or patch a named substrate action with tests; do not generic-click around blockers. |
@@ -91,16 +98,19 @@ Allowed logged-out movement:
 Not allowed in logged-out capture:
 
 - dragging, solving, or interacting with slider/captcha puzzles;
-- treating a slider/captcha X click as capture success;
+- treating a slider/captcha X click by itself as capture success;
 - entering credentials, preserving auth state, or upgrading to a sessioned run
   without a fresh owner gate;
 - repeating closeability diagnostics after the same challenge/security X has
   already been pinned.
 
 If a logged-out run hits a closeable login upsell, dismiss once and continue. If
-it hits a slider/captcha/security challenge, stop and record the pinned blocker
-state; do not run a close diagnostic unless the lane objective is explicitly to
-check a changed blocker condition.
+it hits an X-able public slider/captcha/security modal and the current owner has
+authorized follow-through, use `--allow-challenge-close-followthrough` once and
+continue only on post-close page-owned comment response yield. If follow-through
+is not authorized, or if the challenge remains after the close click, stop and
+record the blocker state. Do not run a close diagnostic merely to re-prove X
+closeability.
 
 ## Cold-Agent Procedure
 
@@ -113,16 +123,19 @@ check a changed blocker condition.
    - live/sessioned gate: dedicated non-personal warmed account,
      human-performed login, authorized auth-state label/session mode, no
      duplicate TikTok tabs, and owner authorization for the live run.
-3. For a clean route-yield gate, run without `--allow-challenge-close-diagnostic`.
-   The runner may dismiss benign overlays and perform the comments -> More like
+3. For an unchallenged route-yield gate, run without challenge-close flags. The
+   runner may dismiss benign overlays and perform the comments -> More like
    this -> comments sequence.
-4. Continue only if the first video has `completed_count=1`, `challenge_count=0`,
-   no failures, and `admitted_comment_response_count >= 1`.
-5. If the owner explicitly authorizes challenge-close diagnosis, run with
+4. If the current owner authorizes X-able challenge follow-through, run with
+   `--allow-challenge-close-followthrough`. The runner attempts the challenge
+   X/Close action first, then the comments route. Continue only if the first
+   video has `completed_count=1`, `challenge_count=0`, no failures,
+   `admitted_comment_response_count >= 1`, and any close action is preserved as
+   `challenge_close_action` / `source_access_intervention`.
+5. If the owner explicitly authorizes challenge-close diagnosis instead, run with
    `--allow-challenge-close-diagnostic`. A DOM close click or visual-X close click
-   must stop the run and must not admit, expand, or claim capture success.
-   The visual-X diagnostic is challenge-text gated; it is not a generic
-   upper-right screenshot clicker.
+   must stop the run and must not admit, expand, or claim capture success. The
+   diagnostic path is retained only for changed-condition checks.
 6. Scan outputs for forbidden markers before any admission claim. Auth-state files
    copied for a live run must be removed and verified absent after the run.
    Batch admission is code-gated to reject challenge/diagnostic cadence: nonzero
@@ -147,17 +160,20 @@ For comment routing:
 
 For challenge-close diagnostics:
 
-- `blocker_triage.challenge_close_diagnostic.action_name`
+- `capture_receipt.challenge_close_action.action_name` for follow-through rows
+- `blocker_triage.challenge_close_diagnostic.action_name` for diagnostic stops
 - `target_found`, `clicked`, `target_kind`, `selection_strategy`
 - visual-only fields: `visual_fallback_attempted`,
   `visual_fallback_target_found`, `visual_fallback_candidate_count`,
   `visual_fallback_confidence`, `visual_fallback_crop_box`,
   `visual_fallback_screenshot_sha256`
 
-A clicked challenge-close diagnostic receipt is evidence that the close control
-was reachable. It is not evidence that TikTok capture succeeded. For the current
-TikTok slider/challenge X, closeability is already proven and should be treated
-as a pinned blocker fact, not a default next action.
+A clicked diagnostic receipt is evidence that the close control was reachable;
+it is not capture success. A clicked follow-through receipt is evidence that the
+owner-authorized X/Close intervention was performed before comment routing; the
+capture claim comes only from the post-close page-owned comment response and the
+sanitized admission payload. For the current TikTok slider/challenge X,
+closeability is already proven and should not be re-diagnosed.
 
 ## Patch Rule For New Blockers
 
@@ -180,27 +196,22 @@ capture row, admission, batch expansion, product extraction, or success claim.
 ```yaml
 direction_change_propagation:
   doctrine_changed: >
-    TikTok lanes must stop repeating already-pinned slider/challenge X
-    closeability diagnostics, while logged-out limit-mapping runs may dismiss
-    benign overlays and login upsells that expose a close control and no
-    challenge/security marker.
+    TikTok lanes now treat owner-authorized X-able public challenge modals as
+    close-follow-through access interventions rather than hard blockers, while
+    retaining no-solve/no-drag limits, diagnostic-only stop mode, post-close
+    challenge-text stop behavior, and receipt-visible admission limitations.
   trigger: workflow_authority
   controlling_sources_updated:
     - docs/workflows/tiktok_ui_movement_blocker_substrate_playbook_v0.md
-  downstream_surfaces_checked:
     - docs/workflows/tiktok_live_microbatch_owner_gated_handoff_v0.md
     - docs/workflows/tiktok_live_microbatch_gate_repair_fresh_thread_handoff_v0.md
+    - orca/product/spines/capture/core/contracts/source_access_boundary/data_capture_source_access_boundary_decision_v0.md
+    - orca/product/spines/capture/core/source_families/social_media/tiktok/tiktok_capture_lane_spec_v0.md
+    - orca/product/spines/capture/core/source_families/social_media/tiktok/tiktok_sessioned_capture_warm_probe_plan_v0.md
+  downstream_surfaces_checked:
     - .agents/workflow-overlay/safety-rules.md
+    - orca/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md
   intentionally_not_updated:
-    - path: docs/workflows/tiktok_live_microbatch_owner_gated_handoff_v0.md
-      reason: >
-        Already states the visual-X closeability recurrence and diagnostic-only
-        semantics; the new logged-out limit-mapping mode belongs in this
-        substrate playbook.
-    - path: docs/workflows/tiktok_live_microbatch_gate_repair_fresh_thread_handoff_v0.md
-      reason: >
-        It is a completed PR #608 landing handoff and already says
-        challenge-close diagnostics are never capture success.
     - path: .agents/workflow-overlay/safety-rules.md
       reason: >
         The external source-data capture rule already routes captures through

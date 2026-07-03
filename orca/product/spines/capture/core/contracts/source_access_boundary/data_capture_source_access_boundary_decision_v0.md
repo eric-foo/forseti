@@ -22,7 +22,7 @@ stale_if:
 
 ## Status And Decision
 
-Status: `ACCEPTED_SOURCE_ACCESS_BOUNDARY_DECISION_V0`, amended 2026-05-30.
+Status: `ACCEPTED_SOURCE_ACCESS_BOUNDARY_DECISION_V0`, amended 2026-05-30 and 2026-07-03.
 
 Primary decision: `LOOSEN_SOURCE_ACCESS_TO_DISCOVERABLE_OR_ENTITLED_DISCLOSABLE`.
 
@@ -71,6 +71,21 @@ Operationally, a method is in-bounds when **all** hold:
 **This still excludes (hard line, not risk-tolerance):** stolen credentials or cookies; nonconsensual sessions; security exploits; malware; credential stuffing; no-entitlement gate bypass; using obvious cross-account/private/admin spillover once noticed; accessing private messages, private groups, confidential docs, or personal account areas without consent; and any method Orca would refuse to disclose internally. These are out because they are explicitly illegal, internally non-disclosable, or too morally compromising for Orca's trust story.
 
 **Owner-accepted risk posture:** the permitted anti-blocking techniques carry real Terms-of-Service, reputational, and (for actively-enforcing sources such as Reddit) litigation risk. The owner accepts this risk as a deliberate, disclosable posture. This is not a claim of legal sufficiency; obtain real legal counsel before commercializing a scraping-based capability.
+
+## 2026-07-03 Challenge-Close Clarification
+
+For public or discoverable source surfaces, an owner-authorized click on the
+site's own X/Close control for a visible challenge modal is in-bounds disclosable
+challenge handling when it is used only to reach source material inside this
+boundary. It is not no-entitlement bypass and it is not, by itself, a source
+success claim. Any source-specific admission path that relies on this intervention
+must preserve the intervention receipt and separately verify post-close
+source-owned content or response yield.
+
+This clarification does not authorize dragging or solving CAPTCHA/slider puzzles,
+credential misuse, nonconsensual session use, private/admin spillover, or hiding
+the method. If the challenge remains visible after the close attempt, preserve it
+as a source-access limitation rather than treating it as captured evidence.
 
 ## Discovery, Materiality, And Provenance
 
@@ -154,6 +169,35 @@ direction_change_propagation:
     - "not readiness"
     - "not legal sufficiency"
     - "not runtime authorization"
+```
+
+## Direction Change Propagation - 2026-07-03 Challenge-Close Clarification
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Owner-authorized X/Close follow-through on a public challenge modal is
+    in-bounds disclosable challenge handling, not a hard blocker by itself, while
+    source-specific admission still requires post-close source-owned yield and a
+    preserved intervention receipt.
+  trigger: product_doctrine
+  controlling_sources_updated:
+    - orca/product/spines/capture/core/contracts/source_access_boundary/data_capture_source_access_boundary_decision_v0.md
+    - docs/workflows/tiktok_ui_movement_blocker_substrate_playbook_v0.md
+    - docs/workflows/tiktok_live_microbatch_owner_gated_handoff_v0.md
+    - docs/workflows/tiktok_live_microbatch_gate_repair_fresh_thread_handoff_v0.md
+    - orca/product/spines/capture/core/source_families/social_media/tiktok/tiktok_capture_lane_spec_v0.md
+    - orca/product/spines/capture/core/source_families/social_media/tiktok/tiktok_sessioned_capture_warm_probe_plan_v0.md
+  downstream_surfaces_checked:
+    - .agents/workflow-overlay/safety-rules.md
+    - orca/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md
+  stale_language_search: >
+    rg -n "challenge-close diagnostics are never capture success|do not click challenge-close controls to claim success|clicked challenge-close diagnostic receipt|diagnostic-only" docs/workflows/tiktok_ui_movement_blocker_substrate_playbook_v0.md docs/workflows/tiktok_live_microbatch_owner_gated_handoff_v0.md docs/workflows/tiktok_live_microbatch_gate_repair_fresh_thread_handoff_v0.md orca/product/spines/capture/core/source_families/social_media/tiktok orca-harness/source_capture/tiktok
+  non_claims:
+    - not validation
+    - not readiness
+    - not legal sufficiency
+    - not unchallenged clean capture
 ```
 
 ## Non-Claims

@@ -55,12 +55,26 @@ def build_parser() -> argparse.ArgumentParser:
             "capture is not clean admission proof."
         ),
     )
+    parser.add_argument(
+        "--allow-challenge-close-followthrough",
+        action="store_true",
+        help=(
+            "Owner-authorized public challenge X/Close follow-through: click a "
+            "dismiss control, then attempt the page-owned comment route. This "
+            "does not solve a puzzle and receipts preserve the intervention."
+        ),
+    )
     return parser
 
 
 def main(argv: list[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
+    if args.allow_challenge_close_diagnostic and args.allow_challenge_close_followthrough:
+        parser.error(
+            "--allow-challenge-close-diagnostic and "
+            "--allow-challenge-close-followthrough are mutually exclusive"
+        )
     if args.logged_out:
         if args.state_label is not None or args.session_mode is not None:
             parser.error("--logged-out cannot be combined with --state-label or --session-mode")
@@ -90,6 +104,7 @@ def main(argv: list[str] | None = None) -> int:
         cadence_window_seconds=args.cadence_window_seconds,
         random_seed=args.random_seed,
         allow_challenge_close_diagnostic=args.allow_challenge_close_diagnostic,
+        allow_challenge_close_followthrough=args.allow_challenge_close_followthrough,
     )
     print(f"grid_result_json={paths.grid_result_json_path}")
     print(f"cadence_result_json={paths.cadence_result_json_path}")
