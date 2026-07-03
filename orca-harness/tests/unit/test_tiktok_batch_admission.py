@@ -10,7 +10,7 @@ from data_lake.root import DataLakeRoot, raw_shard
 from runners.run_source_capture_tiktok_batch_packet import main as tiktok_batch_main, run_source_capture_tiktok_batch_packet
 from source_capture.models import SourceCapturePacket
 from source_capture.tiktok import COMPLETE_LANE_NOTE
-from source_capture.tiktok.batch_packet import write_tiktok_batch_packet
+from source_capture.tiktok.batch_packet import _normalize_stats, write_tiktok_batch_packet
 
 VIDEO_1 = "7629774409762442526"
 VIDEO_2 = "7629774409762442527"
@@ -141,6 +141,70 @@ def _result_row(video_id: str, create_time: int, *, subtitle: bool) -> dict[str,
         base["hydration"] = {"subtitle_info_count": 0, "subtitle_infos_sanitized": []}
         base["subtitle"] = {"attempted": False, "success": False}
     return base
+
+
+def test_normalize_stats_omits_absent_and_never_zero_fills() -> None:
+    # absent stats are OMITTED, not synthesized as 0 (the no-zero-fill invariant):
+    # the metric seed can only emit a loud gap if the key is genuinely absent.
+    assert _normalize_stats({"playCount": 1000, "commentCount": 12}) == {
+        "playCount": 1000,
+        "commentCount": 12,
+    }
+    assert _normalize_stats({}) == {}
+    # a digit-string exact count is coerced to int (the seed requires ints)
+    assert _normalize_stats({"playCount": "10800", "diggCount": 5}) == {
+        "playCount": 10800,
+        "diggCount": 5,
+    }
+    # a present but non-exact value (rounded display string) is preserved RAW so
+    # the seed's non-integer guard fails closed on it -- never coerced to a number
+    # and never dropped to a silent gap.
+    assert _normalize_stats({"playCount": 1000, "diggCount": "1.2M"}) == {
+        "playCount": 1000,
+        "diggCount": "1.2M",
+    }
+    # a null value is treated as absent -> omitted
+    assert _normalize_stats({"playCount": 1000, "shareCount": None}) == {"playCount": 1000}
+
+
+def _grid_payload_missing_digg() -> bytes:
+    grid = json.loads(_grid_payload())
+    del grid["response_items"][0]["stats"]["diggCount"]
+    return json.dumps(grid).encode("utf-8")
+
+
+def _cadence_payload_missing_digg() -> bytes:
+    # drop the grid_candidate fallback stat too, so the writer cannot backfill
+    cadence = json.loads(_cadence_payload())
+    del cadence["results"][0]["grid_candidate"]["stats"]["diggCount"]
+    return json.dumps(cadence).encode("utf-8")
+
+
+def test_write_omits_a_missing_stat_end_to_end_no_zero_fill(tmp_path: Path) -> None:
+    # End-to-end through the real writer (not a handcrafted payload): a source
+    # grid item missing diggCount must produce a preserved video whose stats
+    # OMITS diggCount, so the downstream metric seed emits a like_count gap
+    # rather than a fabricated observed 0.
+    output = tmp_path / "batch_packet"
+    code, message = write_tiktok_batch_packet(
+        creator_handle="@funmimonet",
+        creator_profile_url=PROFILE_URL,
+        grid_result_json=_grid_payload_missing_digg(),
+        cadence_result_jsons=[_cadence_payload_missing_digg()],
+        output_directory=output,
+        capture_timestamp="2026-06-30T17:02:46Z",
+    )
+    assert code == 0
+    payload = json.loads((output / "raw" / "01_tiktok_batch_capture.json").read_text(encoding="utf-8"))
+    first = next(v for v in payload["videos"] if v["video_id"] == VIDEO_1)
+    assert "diggCount" not in first["stats"]  # absent -> omitted, NOT 0
+    assert first["stats"]["playCount"] == 1000  # present stats still preserved
+    assert first["stats"]["commentCount"] == 12
+    # the second video keeps its complete stats
+    second = next(v for v in payload["videos"] if v["video_id"] == VIDEO_2)
+    assert second["stats"]["diggCount"] == 90
+    # batch-summary sum still works (absent treated as 0 for the display aggregate only)
+    assert payload["batch_summary"]["stats_sums"]["diggCount"] == 90
 
 
 def test_write_tiktok_batch_packet_preserves_sanitized_batch_payload(tmp_path: Path) -> None:
