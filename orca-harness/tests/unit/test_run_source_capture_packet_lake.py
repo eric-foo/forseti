@@ -9,6 +9,14 @@ from runners.run_source_capture_packet import main, run_source_capture_packet
 from source_capture.models import CaptureModeCategory, known_fact
 
 
+@pytest.fixture(autouse=True)
+def _isolate_from_operator_lake(monkeypatch: pytest.MonkeyPatch) -> None:
+    # The CLI treats a shell-inherited ORCA_DATA_ROOT as an implicit --data-root when
+    # --output is omitted, so without this the fail-closed CLI tests commit real junk
+    # packets into the operator's live lake instead of raising SystemExit.
+    monkeypatch.delenv("ORCA_DATA_ROOT", raising=False)
+
+
 def _run(root: DataLakeRoot, tmp_path: Path, source_family: str = "reddit"):
     src = tmp_path / "artifact.json"
     src.write_text('{"x": 1}', encoding="utf-8")

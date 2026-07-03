@@ -13,6 +13,7 @@ use_when:
   - Planning the next Bronze/Silver convergence unit after PR #525.
 authority_boundary: retrieval_only
 open_next:
+  - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_bronze_full_gt_declaration_v0.md
   - docs/decisions/orca_mini_god_tier_doctrine_v0.md
   - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_medallion_gold_readiness_contract_v0.md
   - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_attachment_record_implementation_contract_v0.md
@@ -27,6 +28,16 @@ stale_if:
 ## Status
 
 `BRONZE_MGT_BASELINE_RECORDED_V0`.
+
+> **Superseded for claim tier (2026-07-03).** The owner ratified the successor
+> declaration
+> `orca/product/spines/data_lake/authority/core_spine_v0_data_lake_bronze_full_gt_declaration_v0.md`
+> (stale_if #3 of this record fired). Bronze's current claim tier — full God
+> Tier for the typed raw-truth retrievability and physicalization slice, at
+> fixture-proof tier, under the Gate 2 claim ceiling and named exclusions — is
+> owned by that record. This baseline remains in place as the historical MGT
+> record and the upgrade-path provenance; the statements below describe the
+> 2026-06 baseline, not the current claim tier.
 
 Bronze is declared Mini God Tier / 90-95 for the current typed raw-truth
 retrievability slice. It is not declared full God Tier.
@@ -71,7 +82,7 @@ Full God Tier is intentionally not claimed because material residuals remain:
 
 | Residual | Why accepted now | Upgrade trigger |
 | --- | --- | --- |
-| No Manifest v2 selection | The current catalog physicalizes manifest-equivalent entries without forcing a packet-format migration. | Accepted Manifest v2 or equivalent packet-index serialization decision. |
+| No Manifest v2 selection | The current catalog physicalizes manifest-equivalent entries without forcing a packet-format migration. | Accepted Manifest v2 or equivalent packet-index serialization decision. (Trigger fired 2026-07-03: the A2 entry-serialization ADR ratified the packet-index shape; this residual is closed. Manifest v2 itself stays reserved behind that ADR's revisit triggers.) |
 | No copied Attachment Record body store | Bodies remain preserved raw packet members, which preserves raw authority and avoids a second source of truth. | A storage lane selects sidecar/member/body-store layout with hash-checked immutability. |
 | No final backend/engine selection | The storage contract allows later bounded engine selection but does not choose one here. | A physicalization lane selects and tests the backend while preserving lake invariants. |
 | No incumbent-field migration/replay | Historical direct fields remain legacy-readable and transitional. | A separately authorized dual-read or replay lane closes migration mechanics. |
@@ -94,9 +105,20 @@ To upgrade Bronze from MGT to full GT, the remaining material work is:
 
 1. Replace manual runner/orchestrator enumeration with a deterministic discovery
    gate for all raw-packet writers and all explicitly non-raw-packet lake
-   touchpoints.
+   touchpoints. (Closed at source-inventory tier 2026-07-02:
+   `orca-harness/data_lake/inventory.py` plus the A1 gate
+   `orca-harness/tests/contract/test_data_lake_inventory_gate.py` —
+   deterministic, fail-capable discovery diffed against the checked-in
+   `lake_touchpoint_inventory_v0.json`, with reasoned exclusions and
+   owner-dispositioned unknowns; see the physicalization proof closeout
+   record.)
 2. Select Manifest v2 or an equivalent packet-index serialization and migration
-   path, including dual-read/replay rules for legacy packet material.
+   path, including dual-read/replay rules for legacy packet material. (Closed
+   at selection tier 2026-07-03: the A2 entry-serialization ADR ratified the
+   manifest-equivalent packet index with the versioned entry schema plus
+   deterministic derivation rule as the canonical object, and bound the
+   deprecation-without-mutation and replay boundary; incumbent-field migration
+   mechanics remain the blocker-2 deferred direction.)
 3. Select the final Attachment Record body layout or backend posture, including
    immutable hash verification, retention/lawful-erasure posture, and migration
    mechanics. (Partially closed 2026-07-02: body layout ratified by the Gate 1
@@ -106,6 +128,12 @@ To upgrade Bronze from MGT to full GT, the remaining material work is:
    mechanics remain open.)
 4. Promote the catalog/availability/index rebuild checks into a lake-doctor or
    CI-owned gate over representative fixture lakes and real lane fixtures.
+   (Partially closed 2026-07-02: PROOF-01..06 in
+   `orca-harness/tests/test_data_lake_physicalization_proof.py` are CI-owned
+   deterministic fixture-lake proofs — write-once, append-only, read-by-key,
+   hash verification, public AR resolution, byte-identical
+   availability+catalog rebuild — each fail-capable via a seeded violation;
+   the "real lane fixtures" breadth remains open.)
 5. Prove at least one Silver producer consumes Bronze by catalog/AR helper, not
    raw folder semantics, and carries verified refs into Silver `raw_refs`.
 6. Repeat that consumer proof across enough source families to validate the

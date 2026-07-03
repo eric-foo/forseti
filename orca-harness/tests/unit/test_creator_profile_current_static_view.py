@@ -312,9 +312,17 @@ def test_creator_profile_current_does_not_smuggle_forbidden_scope() -> None:
             assert rollup["metric_rollups"]["average_comment_count"]["value_or_none"] is not None
             assert rollup["metric_rollups"]["engagement_rate"]["value_or_none"] is not None
         else:
-            assert rollup["metric_rollups"]["average_like_count"]["value_or_none"] is None
-            assert rollup["metric_rollups"]["average_comment_count"]["value_or_none"] is None
-            assert rollup["metric_rollups"]["engagement_rate"]["value_or_none"] is None
+            # YouTube engagement coverage is per-account capture reality (live
+            # watch packets expose like_count widely, total comments rarely) --
+            # the forbidden-scope guarantee is posture/value coupling, never a
+            # platform-frozen capability pin or a zero-filled value.
+            for name in ("average_like_count", "average_comment_count", "engagement_rate"):
+                metric = rollup["metric_rollups"][name]
+                if metric["posture"] == "observed":
+                    assert metric["value_or_none"] is not None
+                else:
+                    assert metric["value_or_none"] is None
+                    assert metric["posture_reason_or_none"]
 
 
 def test_creator_profile_validator_rejects_non_observed_metric_zero_fill() -> None:

@@ -5,3 +5,10 @@
 # and supports repo-map-ack: <reason> for deliberate non-route structural adds.
 
 python .agents/hooks/check_repo_map_freshness.py --commit-msg "$1"
+rc=$?
+
+# Advisory review-routing disposition nudge (never blocks; CI is the strict
+# boundary). Rule owner: .agents/workflow-overlay/validation-gates.md.
+python .agents/hooks/check_review_routing.py --commit-msg "$1"
+
+exit $rc

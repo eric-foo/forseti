@@ -2069,6 +2069,183 @@ direction_change_propagation:
       per-probe network approval still required)
 ```
 
+## From .agents/workflow-overlay/validation-gates.md
+
+The first archived receipt below concerns the US-parameterized Google
+search-surface route; as that route decision states, parameterized US
+capture is US-parameterized only, not physically US-local.
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Google search-surface route-shape enforcement is now an active validation-gate
+    instance: a diff-scoped CI checker plus advisory PostToolUse hooks enforce
+    the mechanically checkable shell of the parameterized Google route decision
+    while preserving the non-claim that passing shape is not physical-locality,
+    source-sufficiency, validation, readiness, demand, Judgment, or Product Lead
+    proof.
+  trigger: validation_philosophy
+  related_triggers:
+    - workflow_authority
+    - output_authority
+  controlling_sources_updated:
+    - .agents/workflow-overlay/validation-gates.md
+    - docs/decisions/search_surface_google_parameterized_us_capture_route_v0.md
+    - .agents/hooks/check_search_surface_google_route.py
+    - .claude/settings.json
+    - .codex/hooks.json
+    - .github/workflows/ci.yml
+  downstream_surfaces_checked:
+    - AGENTS.md
+    - .agents/workflow-overlay/README.md
+    - .agents/workflow-overlay/source-of-truth.md
+    - .agents/workflow-overlay/artifact-roles.md
+    - .agents/workflow-overlay/prompt-orchestration.md
+    - .agents/workflow-overlay/delegated-review-patch.md
+    - docs/workflows/orca_repo_map_v0.md
+    - .agents/hooks/README.md
+  intentionally_not_updated:
+    - path: AGENTS.md
+      reason: >
+        AGENTS.md already routes validation and enforcement-placement changes to
+        the overlay. Adding a Google-specific route rule to the behavior kernel
+        would create a narrower duplicate source.
+    - path: .agents/workflow-overlay/README.md
+      reason: >
+        README already points project work to validation-gates, prompt
+        orchestration, and source-of-truth. The active instance is recorded here
+        and in the repo map/hook README.
+  stale_language_search: >
+    rg -n "Google search-surface|US-parameterized|physical-locality|check_search_surface_google_route"
+    .agents docs orca
+  non_claims:
+    - not validation
+    - not readiness
+    - not source sufficiency
+    - not demand proof
+    - not Judgment evidence
+    - not Product Lead evidence
+    - not physical-locality proof
+```
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Orca validation doctrine now includes a receipt-field provenance
+    (non-self-certification) gate: a check, predicate, acceptance, or completion
+    claim must not clear on a self-asserted field value; clearing requires an
+    owner-produced, provenance-bound, or independently verifiable value, else the
+    check is indeterminate_until_authored.
+  trigger: validation_philosophy
+  controlling_sources_updated:
+    - .agents/workflow-overlay/validation-gates.md
+  downstream_surfaces_checked:
+    - AGENTS.md
+    - CLAUDE.md
+    - .agents/workflow-overlay/README.md
+    - .agents/workflow-overlay/source-loading.md
+    - docs/workflows/orca_repo_map_v0.md
+    - .agents/workflow-overlay/review-lanes.md
+    - .agents/workflow-overlay/prompt-orchestration.md
+  intentionally_not_updated:
+    - path: external workflow source and plugin skill source
+      reason: >
+        Deliberately Orca-only. jb already carries equivalent discipline
+        (source-authority ceilings, no-fake-fallback, "user-confirmed is not
+        verified"), so there is nothing to spread now. This rule is a candidate
+        for external promotion later, which is a separate governed skill-source
+        change, not an Orca-lane edit.
+    - path: jb project sources
+      reason: >
+        Out of scope and already covered by jb's own evidence/claim discipline;
+        Orca must not edit jb authority.
+    - path: orca/product/spines/judgment/claim_ladder/judgment_spine_evidence_ladder_architecture_v0.md and the JS gate/owner-contract docs
+      reason: >
+        They already encode this discipline for Judgment Spine gates (e.g., the
+        no-tools contract Receipt Provenance Boundary). This overlay gate
+        generalizes it without restating their semantics.
+    - path: .agents/workflow-overlay/review-lanes.md
+      reason: >
+        No duplicate rule added. validation-gates.md is overlay and already read
+        by every Orca agent, so the gate reaches review and authoring without a
+        pointer; single-source preserved.
+  stale_language_search: >
+    rg -n "self-asserted|self-certif|provenance|indeterminate_until_authored|verifiable"
+    .agents/workflow-overlay/validation-gates.md
+  stale_language_search_result: >
+    Executed on 2026-06-03 after adding the gate. The terms appear only in the
+    new Current Gates bullet and this receipt; no conflicting or duplicate rule
+    exists elsewhere in the file, and no prior language stated that a
+    self-asserted field is sufficient to clear a gate. No hit converted the gate
+    into a validation, readiness, PASS, acceptance, or judgment-quality claim.
+  non_claims:
+    - not validation
+    - not readiness
+    - the gate's existence does not prove it is enforced or that any artifact passes it
+    - not a kernel or jb change
+```
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    New forward-only CI gate: changed durable docs must carry a retrieval header
+    and be map-reachable (substring-present in repo map or any submap); whole-repo
+    backlog surfaced advisory-only via --health + the session capsule.
+  trigger: validation_philosophy
+  controlling_sources_updated:
+    - .agents/workflow-overlay/validation-gates.md
+    - .agents/hooks/header_index.py
+    - .github/workflows/ci.yml
+    - .agents/hooks/session_context_capsule.py
+  downstream_surfaces_checked:
+    - AGENTS.md
+    - .agents/workflow-overlay/README.md
+    - .agents/workflow-overlay/source-loading.md
+    - docs/workflows/orca_repo_map_v0.md
+    - .agents/hooks/check_retrieval_header.py
+  intentionally_not_updated:
+    - path: AGENTS.md
+      reason: >
+        AGENTS.md triggers overlay-load for validation gates; the gate is
+        registered in validation-gates.md which AGENTS.md already routes to.
+        No new trigger word is needed.
+    - path: .agents/workflow-overlay/README.md
+      reason: >
+        README routes to validation-gates.md. The new gate is registered there;
+        no new overlay-level pointer needed.
+    - path: .agents/workflow-overlay/source-loading.md
+      reason: >
+        Source-loading packs are unchanged; the new hook is a CI substrate, not
+        a source-loading artifact or context-budget item.
+    - path: docs/workflows/orca_repo_map_v0.md
+      reason: >
+        The repo map's Active Hooks section already documents the pattern;
+        this DCP receipt is in validation-gates.md (the enforcement-placement
+        authority). A separate map entry is deferred as a hygiene-level note,
+        not a DCP-required propagation.
+    - path: .agents/hooks/check_retrieval_header.py
+      reason: >
+        check_retrieval_header.py is unchanged; header_index.py imports from it
+        without modification. Its own selftest continues to pass.
+  stale_language_search: >
+    rg -i -n "retrieval header|header_index|missing header" .agents
+  stale_language_search_result: >
+    Executed 2026-06-13 after adding header_index.py. Hits are in:
+    check_map_links.py (retrieval header mention, unrelated), check_retrieval_header.py
+    (canonical source, unchanged), header_index.py (new file, expected),
+    session_context_capsule.py (new capsule line, expected), README.md (hook table),
+    prompt-orchestration.md and retrieval-metadata.md (authority docs, unchanged),
+    source-loading.md (use_when reference, unchanged). No pre-existing stale
+    language; no checked surface required a new CA to block the gate or omit the
+    header requirement.
+  non_claims:
+    - not validation
+    - not readiness
+    - the gate's existence does not prove any artifact passes it
+    - not a kernel or jb change
+    - --strict passing for a PR does not prove the whole repo is header-complete
+```
+
 ## From orca/product/spines/data_lake/authority/core_spine_v0_data_lake_storage_contract_v0.md
 
 ```yaml
@@ -2136,4 +2313,1061 @@ direction_change_propagation:
     - not migration authorization
     - not schema finalization
     - not storage-engine selection
+```
+
+## From docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Orca now has a developer-workflow doctrine: CI runs the orca-harness test suite on every PR and
+    push to main (live), behind a per-lane PR off main with a squash default and a rebase cadence.
+    The server-side hard merge gate (branch protection / rulesets) and auto-merge are the deferred
+    target — blocked on this private+free repo (HTTP 403) — so interim enforcement is a
+    merge-when-green discipline until a GitHub Pro/Team upgrade or public visibility unblocks the gate.
+  trigger: workflow_authority
+  related_triggers:
+    - lifecycle_boundary
+  controlling_sources_updated:
+    - docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md
+  downstream_surfaces_checked:
+    - AGENTS.md
+    - .agents/workflow-overlay/safety-rules.md
+    - .agents/workflow-overlay/source-of-truth.md
+    - docs/workflows/orca_repo_map_v0.md
+  intentionally_not_updated:
+    - path: .agents/workflow-overlay/safety-rules.md
+      reason: >
+        Its rule "do not commit, push, configure remotes, or create pull requests unless explicitly
+        authorized" is unchanged. This doctrine defines the merge gate and flow for when a lane is
+        authorized; it does not grant standing commit/push/PR authority.
+    - path: AGENTS.md
+      reason: >
+        The behavior kernel and authorization boundaries are unchanged; this is a decision record,
+        not a kernel rule, and AGENTS.md already routes durable doctrine into docs/decisions and the
+        overlay.
+    - path: docs/workflows/orca_repo_map_v0.md
+      reason: >
+        The repo map is clean on main but carries uncommitted edits in the concurrent ecr lane;
+        adding a pointer now would create a cross-lane merge conflict. The record lives in the
+        canonical docs/decisions/ folder and is discoverable there. A one-line pointer can be added
+        in a later turn once the repo-map lane settles.
+    - path: .agents/workflow-overlay/source-of-truth.md
+      reason: >
+        Source hierarchy and the propagation contract are unchanged; this record is a downstream
+        decision, not an overlay-authority or hierarchy change. The same cross-lane-dirty caution as
+        the repo map applies to its Known Source Documents list.
+  stale_language_search: >
+    rg -i -n "branch protection|github/workflows|github actions|required status check|auto.?merge|merge gate|continuous integration|enforce_admins|ci\.yml|status check"
+    .agents docs   (run against main's content in the worktree before first landing this record)
+  stale_language_search_result: >
+    Executed 2026-06-09. No prior CI, GitHub Actions, branch-protection, required-status-check,
+    auto-merge, or merge-gate doctrine exists in .agents/ or docs/. The only two hits are unrelated:
+    a "status check" cell in a fixture-receipt review table and a "status checks" mention meaning
+    `git status` in orca_bootstrap_record.md. This confirms the record is additive and forks no
+    existing rule. The 2026-06-09 amendment corrects only this record's own enforcement statements
+    and adds no doctrine vocabulary that conflicts with another surface.
+  non_claims:
+    - not validation
+    - not readiness
+    - not product, runtime, or judgment-quality readiness
+    - not deployment
+    - not blanket commit/push/PR authorization
+    - the interim discipline is not a server-enforced gate
+```
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    The merge-when-green interim is amended to structure B: agents prepare green PRs but do not
+    self-merge to main; a human or otherwise authorized action lands to main, now enforced by the
+    enforcement lane's protected-action guard (it blocks an agent's gh pr merge -> main and allows a
+    benign lane-branch push). This supersedes the prior "a solo lane self-merges once CI is green"
+    wording, and re-scopes .github/scripts/merge-when-green.ps1 as the human's check-then-merge tool,
+    not an agent self-merge path.
+  trigger: workflow_authority
+  related_triggers:
+    - lifecycle_boundary
+  controlling_sources_updated:
+    - docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md
+    - .github/scripts/merge-when-green.ps1
+  downstream_surfaces_checked:
+    - .agents/hooks/guard_protected_actions.py
+    - docs/decisions/overlay_enforcement_placement_classification_v0.md
+    - .agents/workflow-overlay/safety-rules.md
+    - AGENTS.md
+    - .agents/workflow-overlay/source-of-truth.md
+  intentionally_not_updated:
+    - path: .agents/hooks/guard_protected_actions.py
+      reason: >
+        The guard is the enforcement lane's surface (frozen, cross-lane). That lane built the
+        structure-B re-target; this doctrine records and relies on it, and does not edit it.
+    - path: docs/decisions/overlay_enforcement_placement_classification_v0.md
+      reason: >
+        The enforcement lane owns and updates the EP classification record for the guard; this
+        doctrine references the guard's behavior, it does not edit that record.
+    - path: .agents/workflow-overlay/safety-rules.md
+      reason: >
+        Its "do not push/merge unless authorized" rule is unchanged; structure B is the concrete
+        enforcement of it for main, and the guard cites safety-rules as its authority.
+    - path: AGENTS.md
+      reason: >
+        The lane-isolation trigger (PR #9) and behavior kernel are unchanged; the who-merges change
+        lives in this decision record, not the kernel.
+    - path: .agents/workflow-overlay/source-of-truth.md
+      reason: >
+        Source hierarchy and the propagation contract are unchanged; this is a downstream decision
+        amendment (and the file is coordination-frozen this turn regardless).
+  stale_language_search: >
+    rg -i -n "self-merge|self-merges|lane .*merges|merge-when-green|gh pr merge"
+    docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md .github/scripts/merge-when-green.ps1
+    (run 2026-06-09 in the doctrine-structure-b worktree)
+  stale_language_search_result: >
+    Executed 2026-06-09. Remaining "self-merge" mentions are the now-explicitly-superseded item 2
+    server-gated-target note and this receipt; item 7 and the helper are re-scoped to human-landed.
+    No surface still asserts agents self-merge to main as the live interim.
+  non_claims:
+    - not validation
+    - not readiness
+    - not an edit to the enforcement lane's guard or its classification record
+    - not a claim that the guard is bug-free or that every merge passed CI
+    - structure B is a guard-enforced interim, not the deferred server-side gate
+```
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Adds the lane-isolation integrity mechanism (Decision item 8): lane isolation is a judgment rule,
+    so its integrity is maintained by early detection — a read-only detector,
+    .github/scripts/lane-health-check.ps1 (PR #11), that flags uncommitted pile-up on a shared base,
+    worktree sprawl, and machine-local enforcement (a .agents/hooks/*.py present locally but not
+    tracked on origin/main). Detection was chosen over a hard SessionStart reminder; the detector is a
+    nudge, not a gate.
+  trigger: workflow_authority
+  related_triggers:
+    - lifecycle_boundary
+  controlling_sources_updated:
+    - docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md
+  downstream_surfaces_checked:
+    - .github/scripts/lane-health-check.ps1
+    - AGENTS.md
+    - .agents/hooks/guard_protected_actions.py
+  intentionally_not_updated:
+    - path: AGENTS.md
+      reason: >
+        The lane-isolation rule (PR #9) is unchanged; item 8 records the integrity mechanism for that
+        rule, not a new or altered kernel rule.
+    - path: .agents/hooks/guard_protected_actions.py
+      reason: >
+        Cross-lane, frozen. The detector only observes whether enforcement hooks are tracked on main;
+        it does not edit the guard. The guard's own on-main durability is a separate flag already
+        raised to the enforcement lane.
+  stale_language_search: >
+    rg -i -n "lane.?isolation|SessionStart|machine-local|early.detection|health.?check"
+    docs AGENTS.md .agents   (run 2026-06-09 in the doctrine-lane-isolation worktree off main @ 583d4f0)
+  stale_language_search_result: >
+    Executed 2026-06-09. Additive — no surface asserts a lane-isolation integrity mechanism or a
+    SessionStart reminder that item 8 would contradict. The only doctrine hit is the prior receipt's
+    note that the lane-isolation trigger (PR #9) is unchanged, which item 8 is consistent with. Other
+    hits are unrelated (a jb skills inventory in orca_bootstrap_record.md, and the workflow-health-check
+    kernel skill in skill-adoption.md).
+  non_claims:
+    - not validation, readiness, or acceptance of any lane's content
+    - the detector is a nudge, not a gate, and not a guarantee of lane hygiene
+    - not an edit to the enforcement lane's guard or its on-main durability
+```
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    States the structure-B guard's liveness boundary in Decision item 7 and the Status interim bullet:
+    guard enforcement is currently machine-local — the guard and its .claude/settings.json PreToolUse
+    registration are not tracked on origin/main, so a fresh clone, another machine, or CI is not yet
+    protected. Durable-on-main is the target, pending the guard + its registration landing via the
+    coordinator's hooks-cluster PR (a human lands it; the guard blocks an agent from merging its own
+    PR). On landing, EP-03 git-lifecycle merge protection becomes durable on every clone while EP-01
+    external-path protection stays per-machine. This is the enforcement lane's answer to the
+    lane-health detector's machine-local flag: A (durable-on-main) is the target, B (machine-local) is
+    the honest interim.
+  trigger: workflow_authority
+  related_triggers:
+    - lifecycle_boundary
+  controlling_sources_updated:
+    - docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md
+  downstream_surfaces_checked:
+    - .agents/hooks/guard_protected_actions.py
+    - .claude/settings.json
+    - docs/workflows/orca_repo_map_v0.md
+  intentionally_not_updated:
+    - path: .agents/hooks/guard_protected_actions.py
+      reason: >
+        Cross-lane, frozen, verified correct (selftest 32/32). Landing it on main is the coordinator's
+        hooks-cluster PR, not this doctrine edit; a human lands it because the guard blocks an agent
+        from merging its own PR.
+    - path: .claude/settings.json
+      reason: >
+        Coordinator-owned and frozen; origin/main carries no PreToolUse registration. Its landing
+        rides the same coordinated hooks-cluster PR.
+    - path: docs/workflows/orca_repo_map_v0.md
+      reason: >
+        Per the enforcement lane, its "Active Hooks" note has the same not-on-main incoherence for the
+        retrieval-header hook; that is the repo-map / hook owners' fix, flagged not edited here.
+  stale_language_search: >
+    rg -i -n "enforc" docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md
+    (run 2026-06-09 in the doctrine-lane-isolation worktree)
+  stale_language_search_result: >
+    Executed 2026-06-09. Both live "enforced" claims — the Status interim bullet and Decision item 7 —
+    now carry the machine-local liveness boundary. The remaining hits are the Enforcement-status
+    section, the server-enforced-gate non-claims, and the historical DCP receipts (which accurately
+    record prior changes); none present structure-B guard enforcement as durable on main while the
+    guard is untracked there.
+  non_claims:
+    - not validation, readiness, or acceptance
+    - structure-B guard enforcement is machine-local until the guard lands on main; this records the
+      boundary, it does not land the guard
+    - not an edit to the enforcement lane's guard, the coordinator's settings.json, or the repo map
+```
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Flips the structure-B guard liveness from machine-local interim (prior receipt) to DURABLE on main:
+    the guard and its .claude/settings.json PreToolUse registration landed via PR #15 and are verified
+    tracked + registered on origin/main, so a fresh clone is protected. This supersedes the "currently
+    machine-local / durable-on-main is the target, pending" framing in Decision item 7, the Status
+    interim bullet, and the prior boundary receipt. EP-03 git-lifecycle merge protection is durable on
+    every clone; EP-01 external-path protection stays per-machine. Closes the lane-health detector's
+    machine-local flag (Option A landed).
+  trigger: workflow_authority
+  related_triggers:
+    - lifecycle_boundary
+  controlling_sources_updated:
+    - docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md
+  downstream_surfaces_checked:
+    - .agents/hooks/guard_protected_actions.py
+    - .claude/settings.json
+  intentionally_not_updated:
+    - path: .agents/hooks/guard_protected_actions.py
+      reason: >
+        On main now (via PR #15, enforcement-lane-owned); this records its durable status, it does not
+        edit the guard.
+    - path: .claude/settings.json
+      reason: >
+        On main now (via PR #15, coordinator-owned); its guard registration is verified present, not
+        edited here.
+  verification: >
+    Observed 2026-06-09 before the flip: git ls-tree origin/main lists
+    .agents/hooks/guard_protected_actions.py, and origin/main:.claude/settings.json registers
+    "python .agents/hooks/guard_protected_actions.py" - so a fresh clone carries both the script and
+    its registration.
+  stale_language_search: >
+    rg -i -n "machine-local|not yet|pending|interim|Liveness|durable"
+    docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md
+    (run 2026-06-09 in the doctrine-flip-durable worktree)
+  stale_language_search_result: >
+    Executed 2026-06-09. The two live guard-liveness claims (Status bullet, Decision item 7) now read
+    "durable on main." Remaining interim/machine-local hits are: the structure-B-vs-server-gate
+    "interim" (still accurate - structure B remains the interim until the 403-blocked server gate), the
+    detector's check-name in item 8, and the historical DCP receipts (which record prior states). No
+    live surface still claims the guard is machine-local.
+  non_claims:
+    - not validation or readiness of any lane's content
+    - EP-01 external-path protection is per-machine, not durable-on-main
+    - the other two cluster hooks (retrieval-header, repo-map-freshness) landed with the guard for
+      registration coherence; their correctness is their owners' concern, not asserted here
+```
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Scopes the structure-B "durable on main" claim in Decision item 7 to its actual reach: the guard is
+    a Claude-Code-specific .claude/settings.json PreToolUse hook (matcher = Claude Code tool names), so
+    "a fresh clone is protected" holds for Claude Code sessions only. A non-Claude-Code harness (e.g.
+    Codex) is not guard-blocked until the same scripts are wired into its own config; the
+    harness-agnostic, unbypassable gate remains the deferred server-side branch protection. Corrects a
+    potential overstatement (the durable flip read as harness-agnostic).
+  trigger: workflow_authority
+  related_triggers:
+    - lifecycle_boundary
+  controlling_sources_updated:
+    - docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md
+  downstream_surfaces_checked:
+    - .claude/settings.json
+    - .agents/hooks/guard_protected_actions.py
+  intentionally_not_updated:
+    - path: .claude/settings.json
+      reason: >
+        The Claude-Code wiring is correct and on main; this records its harness scope, it does not
+        change the registration. Wiring other harnesses is per-harness work.
+  verification: >
+    origin/main:.claude/settings.json registers the guard under hooks.PreToolUse with matcher
+    "Bash|PowerShell|Write|Edit|MultiEdit|NotebookEdit" - Claude Code tool names - confirming the
+    enforcement is Claude-Code-scoped as wired.
+  non_claims:
+    - not validation or readiness
+    - does not claim any non-Claude-Code harness is protected; states the opposite until wired
+    - the harness-agnostic gate (server-side branch protection) remains deferred / 403-blocked
+```
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Relaxes structure B to structure B' (owner-ratified 2026-06-12): an agent MAY self-merge its own
+    PR via a direct `gh pr merge <N>`, but ONLY when the protected-action guard confirms the PR is
+    mergeStateStatus == CLEAN, every CI check has completed green, and it carries the opt-in
+    `agent-automerge` label. Every other state, the no-arg/ambiguous form, the `gh api .../merge`
+    form, a foreign `--repo`, or any lookup error/timeout FAILS CLOSED to a human merge, and the guard
+    prints the repo-scoped manual command. This supersedes the prior structure-B "agents do not
+    self-merge; a human lands every merge" wording and acts on the 2026-06-09 owner flag in the EP
+    classification record ("if you intend agent self-merge-when-green, relax the gh pr merge block").
+    The bar is CLEAN + green + label (not bare CLEAN) because, with branch protection 403-blocked, no
+    check is required and an empty/early check set can read CLEAN before CI starts; the rollup-green +
+    label requirements close that false-green race. EP-01 protected paths and EP-03 push-to-main /
+    force-push / destructive-clean are UNCHANGED. The guard stays Claude-Code-scoped; the
+    harness-agnostic server-side gate remains the deferred end-state.
+  trigger: workflow_authority
+  related_triggers:
+    - lifecycle_boundary
+  controlling_sources_updated:
+    - docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md
+    - .agents/hooks/guard_protected_actions.py
+    - AGENTS.md
+    - .agents/workflow-overlay/safety-rules.md
+  downstream_surfaces_checked:
+    - docs/decisions/overlay_enforcement_placement_classification_v0.md
+    - .claude/settings.json
+    - .github/scripts/merge-when-green.ps1
+    - .github/scripts/lane-health-check.ps1
+  intentionally_not_updated:
+    - path: .claude/settings.json
+      reason: >
+        The guard's PreToolUse registration and matcher are unchanged; the behavior change is wholly
+        inside the guard script. The `ask` rule `Bash/PowerShell(gh pr*)` is left in place as an
+        interactive-mode belt-and-suspenders (the human is still prompted in interactive mode; the
+        guard is the auto-mode enforcement). The `git commit` ask->allow owner hand-edit is a separate
+        classifier-bound change, not this lane's.
+    - path: .github/scripts/merge-when-green.ps1
+      reason: >
+        Still the human's check-then-merge tool; re-scoped in item 7 prose (it wraps `gh pr merge`
+        inside a script subprocess the PreToolUse guard does not see, so agents must not use it to
+        self-merge), but its content is unchanged.
+    - path: .github/scripts/lane-health-check.ps1
+      reason: >
+        The machine-local-enforcement detector is unaffected; the guard remains tracked on origin/main.
+    - path: docs/decisions/overlay_enforcement_placement_classification_v0.md
+      reason: >
+        The enforcement lane owns the guard's EP record and records this guard change there directly
+        (see its 2026-06-12 Update section); this doctrine references that record rather than the
+        reverse. (Listed here as a checked downstream surface, not unchanged — it IS updated, in its
+        own lane section.)
+  verification: >
+    Guard `--selftest` 46/46 PASS, exit 0 (CLEAN+green+label -> allow; no-label / non-CLEAN / pending /
+    empty-checkset / BLOCKED / unknown-PR / lookup-raises / no-number / gh-api-form / foreign-repo ->
+    block; merge-allowed + push-to-main -> block; all pre-existing EP-01 and EP-03 push/force/
+    destructive/benign cases unchanged). Live payload render: `gh pr merge` (no number) and the gh-api
+    form both exit 2 with the repo-scoped manual command in stderr; `git status` exits 0. CI re-runs
+    the orca-harness suite on this PR.
+  stale_language_search: >
+    grep -rin -E "self-merge|self-merges|human-gated|human-land|do not .*self|structure b"
+    AGENTS.md .agents/workflow-overlay
+    docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md
+    docs/decisions/overlay_enforcement_placement_classification_v0.md
+    (run 2026-06-12 in the guard-clean-self-merge worktree off origin/main @ b463c3c)
+  stale_language_search_result: >
+    Executed 2026-06-12. All LIVE surfaces now carry the conditional CLEAN self-merge: AGENTS.md line
+    60 (kernel landing clause), safety-rules.md line 25, the doctrine Status interim bullet, Decision
+    item 2's server-gated-target parenthetical, and Decision item 7. The remaining "structure B" /
+    "human lands every merge" / "agents do not self-merge" hits are the historical DCP receipts above
+    (append-only records of prior states, correctly not edited) and the EP record's 2026-06-09 owner
+    flag (now acted upon and recorded in that record's 2026-06-12 Update). No live surface still
+    asserts that agents never self-merge to main.
+  non_claims:
+    - not validation, readiness, or acceptance of any lane's content
+    - CLEAN + green + label is a CI-and-mergeability signal, NOT a human diff-review; main is not
+      deployed and a bad merge is reversible by a follow-up PR
+    - EP-01 protected paths and EP-03 push/force/destructive blocks are unchanged
+    - the guard is Claude-Code-scoped; a non-Claude-Code harness is neither blocked nor granted
+      self-merge until wired
+    - not durable on main until this amendment's own PR is landed by a human (the pre-amendment guard
+      blocks the agent from self-merging it)
+```
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Adds Decision item 9: an unattended GitHub Actions auto-merge bot
+    (.github/workflows/auto-merge.yml) that is the unattended extension of structure B' (item 7).
+    Where the guard lets the in-session agent self-merge a CLEAN + green + agent-automerge-labeled PR,
+    this workflow lands the SAME opt-in PRs with no agent session, triggered on CI completion plus a
+    3-hour cron backstop and workflow_dispatch. It carries its own in-code guardrails: the
+    agent-automerge label, mergeable == MERGEABLE, orca-harness-tests green (no failing/pending check),
+    behind_by == 0 (up-to-date with main), one merge per run, and squash + delete-branch. It uses an
+    immediate `gh pr merge --squash` that does NOT need the 403-blocked allow_auto_merge, so it is an
+    interim unattended auto-merge, NOT the deferred server-side gate. The EP-03 guard and
+    merge-when-green.ps1 are unchanged; the workflow runs in Actions, not through the PreToolUse hook.
+  trigger: workflow_authority
+  related_triggers:
+    - lifecycle_boundary
+  controlling_sources_updated:
+    - docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md
+    - .github/workflows/auto-merge.yml
+  downstream_surfaces_checked:
+    - .agents/hooks/guard_protected_actions.py
+    - .github/workflows/ci.yml
+    - .agents/workflow-overlay/safety-rules.md
+  intentionally_not_updated:
+    - path: .agents/hooks/guard_protected_actions.py
+      reason: >
+        Frozen enforcement-lane surface. The bot runs in Actions (not through the PreToolUse hook) and
+        carries its guardrails independently; the in-session guard's lack of an up-to-date check is a
+        documented residual and a deferred enforcement-lane follow-on, not closed here.
+    - path: .github/workflows/ci.yml
+      reason: >
+        Referenced by the bot's workflow_run trigger (workflows: [ci]) and as the orca-harness-tests
+        green gate; its content is unchanged.
+    - path: .agents/workflow-overlay/safety-rules.md
+      reason: >
+        The do-not-push/merge-unless-authorized rule is unchanged; the bot is an Actions actor, not an
+        agent lane, and the owner lands this lane's own PR.
+  verification: >
+    auto-merge.yml parses (python yaml.safe_load OK): workflow name auto-merge, concurrency group
+    auto-merge, env AUTOMERGE_LABEL=agent-automerge, permissions contents/pull-requests: write, triggers
+    workflow_run[ci] + schedule(0 */3 * * *) + workflow_dispatch. All label references are
+    agent-automerge while name/concurrency stay auto-merge; the jq eligibility filters were hand-traced
+    (green -> eligible; failing/pending/no-checks -> skip). NOT live-run: jq is not installed locally and
+    the workflow cannot run until on main; the first live merge is owner-triggered and fail-safe.
+  stale_language_search: >
+    rg -i -n "auto.?merge|allow_auto_merge|unattended|overnight"
+    docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md
+    (run 2026-06-14 in the automerge-bot-v0 worktree off origin/main @ 8e54aad)
+  stale_language_search_result: >
+    Executed 2026-06-14. Item 4 (native auto-merge deferred/blocked) now carries a parenthetical pointer
+    to the interim Actions-bot path (item 9); the Status section carries the unattended-auto-merge
+    bullet; item 9 is the canonical home. No live surface still implies the human merge is the only
+    interim or that no unattended auto-merge exists. The "deferred target" wording for the native
+    allow_auto_merge + server gate stays accurate (item 9 is explicitly not that gate).
+  non_claims:
+    - not validation, readiness, or acceptance of any lane's content
+    - the bot is code-backed and logic-checked, NOT a proven unattended merge; the first live run is
+      owner-triggered and fail-safe (ineligible PR skipped, never mis-merged)
+    - not the server-side branch-protection / native auto-merge gate (still 403-blocked); an interim
+      Actions-bot mechanism
+    - the in-session guard path still lacks an up-to-date check (documented residual); the guard is
+      unchanged this lane
+    - the owner lands this lane's own PR
+```
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Adds Decision item 10: a lane-start auto-prune standing rule (agent-instruction-only) that is the
+    CLEANUP complement to item 9's auto-merge bot. At each new lane's start the agent runs
+    `git fetch --prune origin`, then non-force `git worktree remove` of any [gone]-branch worktree with
+    no open PR, then `git branch -D` of those [gone] branches (both worktree-bound and branch-only),
+    bounded by load-bearing guards: non-force remove only, exclude open-PR worktrees, never the seal or
+    any [ahead]-unpushed worktree, glance for closed-unmerged before -D, and re-derive live every time.
+    It is NOT a destructive always-on automation, NOT a --force prune, NOT a creation throttle, and NOT
+    a guard edit; wiring the item-8 lane-health-check.ps1 detector to perform/prompt the prune is an
+    explicit optional follow-on, deliberately deferred (the detector stays read-only).
+  trigger: workflow_authority
+  related_triggers:
+    - lifecycle_boundary
+  controlling_sources_updated:
+    - docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md
+  downstream_surfaces_checked:
+    - .agents/hooks/guard_protected_actions.py
+    - .github/scripts/lane-health-check.ps1
+    - .github/workflows/auto-merge.yml
+    - AGENTS.md
+    - .agents/workflow-overlay/safety-rules.md
+  intentionally_not_updated:
+    - path: .agents/hooks/guard_protected_actions.py
+      reason: >
+        The EP-03 guard is the frozen enforcement-lane surface; this is a behavioral/doctrine rule and
+        does not edit or weaken it. Non-force worktree remove and branch -D on lane branches are not
+        guard-blocked actions; push-to-main / force-push / destructive clean stay hard-blocked.
+    - path: .github/scripts/lane-health-check.ps1
+      reason: >
+        The item-8 detector stays read-only; wiring it to perform or prompt the prune is the explicit
+        optional follow-on, intentionally not taken here to avoid introducing a destructive script.
+    - path: .github/workflows/auto-merge.yml
+      reason: >
+        Item 9's bot (the merge half) is unchanged; item 10 is its cleanup complement and composes with
+        it (a bot-merged lane's branch reads [gone] and becomes prunable at the next lane start).
+    - path: AGENTS.md
+      reason: >
+        The behavior kernel and authorization boundaries are unchanged; the owner placed this procedural
+        git rule in the decision record (not the terse global kernel), co-located with items 8 and 9.
+    - path: .agents/workflow-overlay/safety-rules.md
+      reason: >
+        The do-not-push/merge-unless-authorized rule is unchanged; this rule prunes only merged,
+        no-open-PR residue at lane start and grants no new push/merge authority.
+  verification: >
+    Re-verified 2026-06-15 against origin/main before drafting (origin/main advanced 7c804cb -> 5efd405
+    during the session; doctrine identical across both, empty diff): items 8 and 9 present and unchanged;
+    PR #97 (auto-merge bot) MERGED 2026-06-14T14:36:46Z; auto-merge.yml and lane-health-check.ps1 tracked
+    on origin/main. Live state grounding the guards: the only [gone] branch was
+    r6-rescan-commission-beautypie (PR #37 MERGED -> a genuine squash-merge, not closed-unmerged); the
+    [ahead] set was doctrine-harness-caveat, hooks-readme, judgment-spine-read-machinery-architecture-v0,
+    ledger-c2-read-contract-v0; the seal worktree orca-seal-wt [pilot-seal-outcome] present. The prune
+    commands are proven by this lane's predecessor backlog sweep (worktrees 53->29, six [gone] branches
+    deleted, dirty worktrees correctly refused by non-force remove). NO fresh destructive sweep was run
+    as part of authoring this rule.
+  stale_language_search: >
+    git grep -i -nE "auto.?prune|worktree remove|lane.?start.*prune|sprawl|manual sweep|cleanup.*manual|\[gone\]"
+    docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md AGENTS.md .agents/workflow-overlay
+    (run 2026-06-15 in the autoprune-rule worktree off origin/main @ 5efd405)
+  stale_language_search_result: >
+    Executed 2026-06-15. The only hits are item 8 and its DCP receipt naming "worktree sprawl" as drift
+    the read-only detector *surfaces*. No live surface claims cleanup is manual-only, that no prune rule
+    exists, or that sprawl is unaddressed, so item 10 forks no existing wording — it is purely additive
+    and acts on what item 8 only detects (the two compose: detect, then prune). No surface required an
+    edit.
+  non_claims:
+    - not validation, readiness, or acceptance of any lane's content
+    - a behavioral/doctrine rule, NOT code; "live" only insofar as agents follow it
+    - asserts no proven long-run bound on worktree/branch count (unproven until run across several lanes)
+    - not an edit to the EP-03 guard, the item-8 detector, or the item-9 bot
+    - not a destructive always-on automation, a --force prune, or a creation throttle
+```
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Adds Decision item 11: a standing self-label policy for WHEN the lane author applies the existing
+    opt-in agent-automerge marker. The merge mechanism is unchanged (items 7/9: bot/guard act only on
+    labeled PRs); this item sets the agent's default judgment — apply the label to its own CLEAN + green
+    PR by default for routine low-risk changes (additive docs, decisions/prompts/reviews the author is
+    confident in, or small scoped code with test coverage), and WITHHOLD it (leave for owner review) for
+    higher-risk changes: enforcement/safety surfaces (EP-01/EP-03 guard, hooks, settings.json, CI or
+    auto-merge workflows, this doctrine), contested doctrine/tradeoff decisions, high downstream lock-in
+    (schema/interface/persisted data), author uncertainty, or owner-requested review — when in doubt,
+    withhold. This shifts the routine-work default from "wait for the owner" to "land unattended" while
+    preserving the human gate where it matters. It grants NO new merge authority and is author judgment,
+    not a path Action; a deterministic path-scoped auto-label Action is an explicit deferred follow-on.
+  trigger: workflow_authority
+  related_triggers:
+    - lifecycle_boundary
+  controlling_sources_updated:
+    - docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md
+  downstream_surfaces_checked:
+    - .agents/hooks/guard_protected_actions.py
+    - .github/workflows/auto-merge.yml
+    - AGENTS.md
+    - .agents/workflow-overlay/safety-rules.md
+  intentionally_not_updated:
+    - path: .agents/hooks/guard_protected_actions.py
+      reason: >
+        The EP-03 guard is unchanged: self-merge still requires CLEAN + green + label and fails closed.
+        Item 11 sets which PRs the author labels, not what the guard allows; no authority is added.
+    - path: .github/workflows/auto-merge.yml
+      reason: >
+        The bot's guardrails (label, mergeable, green, up-to-date, one-per-run, squash+delete) are
+        unchanged; item 11 changes only the agent's default policy for applying the label it already reads.
+    - path: AGENTS.md
+      reason: >
+        The behavior kernel and the per-turn / accepted-handoff authorization to open a PR at all are
+        unchanged; this is a procedural default in the decision record, co-located with items 7/9/10.
+    - path: .agents/workflow-overlay/safety-rules.md
+      reason: >
+        The do-not-push/merge-unless-authorized rule is unchanged; item 11 grants no new authority and
+        applies only to a PR the lane was already authorized to open.
+  verification: >
+    Re-verified 2026-06-15 against origin/main @ f883b68 (item 10 landed via PR #104, MERGED
+    2026-06-15T08:05:22Z): items 7 and 9 present; item 7's "the opt-in label is the agent's deliberate
+    marker" framing (lines ~100-101) stays accurate — item 11 keeps the marker a deliberate per-PR
+    judgment and does not auto-apply it, so that wording is consistent and not edited. Item 7's "a human
+    lands every other case" (unlabeled / non-CLEAN / non-green) also stays accurate. All YAML blocks parse.
+  stale_language_search: >
+    git grep -i -nE "self.?label|opt.?in|deliberate marker|by default.*label|agent-automerge"
+    docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md AGENTS.md .agents/workflow-overlay
+    (run 2026-06-15 in the selflabel-default worktree off origin/main @ f883b68)
+  stale_language_search_result: >
+    Executed 2026-06-15. The agent-automerge / opt-in / deliberate-marker hits are all item 7 and item 9
+    MECHANISM wording, which item 11 preserves (the bot/guard still act only on labeled PRs; the marker
+    stays a deliberate per-PR judgment). No live surface claims the agent never self-applies the label or
+    that every PR must wait for the owner, so item 11 forks no existing rule — it is additive and only
+    sets the agent's default direction for applying the existing marker. The other opt-in hits are the
+    unrelated delegated-review-patch convention. No surface required an edit.
+  non_claims:
+    - not validation, readiness, or acceptance of any lane's content
+    - a behavioral/doctrine rule, NOT code; "live" only insofar as agents follow it
+    - grants no new merge authority; item 7's guard and the per-lane authorization are unchanged
+    - does not claim auto-landed PRs are correct (CI is a test-suite signal only; main is not deployed and
+      a bad merge is reversible by a follow-up PR)
+    - not a path-scoped auto-label automation (that deterministic variant is a deferred optional follow-on)
+```
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Flips the auto-merge bot (Decision item 9) from "code-backed, NOT a proven unattended merge" to
+    PROVEN: on 2026-06-15 the bot landed PR #121 with no agent session (merged by github-actions[bot]).
+    This was unblocked by PR #118, which added actions:read to the workflow permissions — the scope the
+    statusCheckRollup -> checkSuite.workflowRun eligibility query needs; before it, every bot run that
+    evaluated a labeled PR failed GraphQL "Resource not accessible by integration", so no earlier run had
+    actually merged. Updates the two LIVE surfaces (the Status "Unattended auto-merge" bullet and item 9's
+    Liveness line); the fail-safe behavior (ineligible PR skipped, never mis-merged) and the
+    not-the-server-side-gate framing are unchanged.
+  trigger: workflow_authority
+  related_triggers:
+    - lifecycle_boundary
+  controlling_sources_updated:
+    - docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md
+  downstream_surfaces_checked:
+    - .github/workflows/auto-merge.yml
+    - AGENTS.md
+    - .agents/workflow-overlay/safety-rules.md
+  intentionally_not_updated:
+    - path: .github/workflows/auto-merge.yml
+      reason: >
+        The actions:read fix already landed via PR #118; this record only flips the liveness claim it
+        enables. The workflow logic is unchanged.
+    - path: AGENTS.md
+      reason: >
+        The kernel routes "land via the per-lane PR flow" to this doctrine; the bot's existence (item 9)
+        and how to opt a PR in (item 11) live here, so no kernel edit is needed.
+    - path: .agents/workflow-overlay/safety-rules.md
+      reason: >
+        Merge authority is unchanged; proving the bot works grants no new authority.
+  verification: >
+    Observed 2026-06-15: PR #121 state MERGED, mergedBy.login = "github-actions"; auto-merge run
+    27541440896 logged "PR #121 is eligible (labeled, mergeable, green, up-to-date). Merging (squash)."
+    then "Merged PR #121 at 0a87d8f8...". Earlier bot run 27534994021 had failed on PR #116 with
+    "Resource not accessible by integration (...statusCheckRollup...checkSuite.workflowRun)"; actions:read
+    landed via PR #118 (MERGED 2026-06-15). The two live surfaces now read "proven".
+  stale_language_search: >
+    git grep -inE "first live run|first live merge|not.{0,4}a proven unattended|NOT.{0,4}claim a proven"
+    docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md
+    (run 2026-06-15 in the doctrine-automerge-bot-proven worktree off origin/main @ 9f10a8a7)
+  stale_language_search_result: >
+    Executed 2026-06-15. The two LIVE surfaces (Status "Unattended auto-merge" bullet, item 9 Liveness)
+    now read "proven". The remaining "first live run / first live merge / not a proven" hits are the
+    append-only DCP receipts that recorded the bot's addition and its actions:read fix — historical
+    records of prior states, correctly NOT edited.
+  non_claims:
+    - not validation, readiness, or acceptance of any lane's content
+    - the proven claim is one observed unattended bot merge (#121); it is NOT the server-side
+      branch-protection gate (still 403-blocked) and does not claim the bot is bug-free
+    - still fail-safe: an ineligible PR is skipped, never mis-merged
+    - the in-session PreToolUse guard is unchanged (and is harness/working-tree-scoped, not the bot)
+```
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Adds Decision item 12: adopts the up-to-date-before-merge MGT after recurring red push:main CI from
+    combination breaks (two independently-green PRs that break combined). Root cause: behind_by==0 is
+    enforced only for the bot (item 9), not the in-session guard (item 7 residual) or human/CLI merges.
+    Adopted: (1) bot-as-default merge path (routine PRs land via the bot, which enforces up-to-date;
+    extends item 11); (2) forward-ref annotation discipline (a branch-only open_next/derived_from link
+    must carry "# nonresolving: <reason>", which check_map_links already exempts as debt); (3) a red-main
+    detector workflow (.github/workflows/main-red-alert.yml) that opens/auto-closes a single tracking
+    issue on push:main red/green. Downgraded O2a (guard behind_by check) and O2b (merge-when-green
+    refuse-when-behind); deferred the server-side require-up-to-date gate (O1, 403-blocked). Foregone
+    limit named: a raw gh pr merge of a behind PR can still break main — detected fast, not prevented.
+  trigger: workflow_authority
+  related_triggers:
+    - lifecycle_boundary
+  controlling_sources_updated:
+    - docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md
+    - .github/workflows/main-red-alert.yml
+  downstream_surfaces_checked:
+    - .agents/hooks/guard_protected_actions.py
+    - .github/scripts/merge-when-green.ps1
+    - .agents/hooks/check_map_links.py
+    - .github/workflows/auto-merge.yml
+    - AGENTS.md
+  intentionally_not_updated:
+    - path: .agents/hooks/guard_protected_actions.py
+      reason: >
+        O2a (adding behind_by==0 to the guard's self-merge allowance) is downgraded, not adopted; the
+        frozen EP-03 guard is unchanged. Agents route through the bot (which enforces up-to-date) by default.
+    - path: .github/scripts/merge-when-green.ps1
+      reason: >
+        O2b (refuse-when-behind in the helper) is downgraded — a raw gh pr merge bypasses the helper, so
+        the substrate gives near-zero coverage of the actual path. Unchanged.
+    - path: .agents/hooks/check_map_links.py
+      reason: >
+        The "# nonresolving:" exemption already exists in the checker; item 12 adopts the DISCIPLINE of
+        using it for deliberate forward-refs. No checker change needed.
+    - path: .github/workflows/auto-merge.yml
+      reason: >
+        The bot already enforces behind_by==0; item 12 makes it the default path. The workflow is unchanged.
+    - path: AGENTS.md
+      reason: >
+        The kernel routes "land via the per-lane PR flow" to this doctrine; the bot-as-default habit and
+        the disciplines live here. No kernel edit.
+  verification: >
+    main-red-alert.yml parses (python yaml.safe_load OK): triggers workflow_run[ci] + workflow_dispatch;
+    permissions issues:write + actions:read; gated to push:main outcomes; dedup-by-title issue
+    open/comment/close. check_map_links --strict OK on the PR tree — item 12's path refs resolve
+    (main-red-alert.yml in this PR; check_map_links.py and merge-when-green.ps1 on main; the proposal is
+    referenced by PR number, not a path token). Liveness: the detector is code-backed and NOT yet proven
+    on a live red main (the first real push:main failure proves it), mirroring item 9's honest non-claim.
+  stale_language_search: >
+    git grep -inE "up.?to.?date|behind_by|combination break|main.?red|nonresolving"
+    docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md
+    (run 2026-06-15 in the dev-workflow-uptodate-mgt worktree; re-synced onto origin/main after #127/#129)
+  stale_language_search_result: >
+    Executed 2026-06-15. Item 9 (now flipped to proven by #127) notes the in-session guard "lacks an
+    up-to-date check (documented residual)"; item 12 is consistent with and acts on that note (downgrades
+    the guard fix O2a, adopts bot-as-default instead). No live surface claims up-to-date is enforced on
+    all paths, so item 12 forks no existing rule — it is additive.
+  non_claims:
+    - not validation, readiness, or acceptance of any lane's content
+    - the red-main detector is code-backed, NOT yet proven on a live red main; detective, not preventive
+    - up-to-date enforcement is not complete here (the raw-CLI / other-harness path is a named, accepted
+      residual); the complete, unbypassable gate remains the deferred server-side option (O1)
+    - O2a does not edit the EP-03 guard; O2b does not edit the helper; check_map_links is unchanged
+    - mini-god-tier is a capability-target lens, not a validation or readiness claim
+```
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Narrows the proven unattended auto-merge bot with deterministic risk routing:
+    `pr-risk-router.yml` labels PRs as auto-merge eligible, manual-review
+    required, or blocked; `auto-merge.yml` now requires both `agent-automerge`
+    and `risk/auto-merge-eligible` and skips manual/blocked PRs. Higher-risk PRs
+    get a deterministic merge packet, not automated approval. This narrows the
+    earlier label-only unattended path while preserving the non-claim that this
+    is not server-side branch protection.
+  trigger: workflow_authority
+  related_triggers:
+    - lifecycle_boundary
+  controlling_sources_updated:
+    - docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md
+    - .github/workflows/auto-merge.yml
+    - .github/workflows/pr-risk-router.yml
+  downstream_surfaces_checked:
+    - AGENTS.md
+    - .agents/workflow-overlay/safety-rules.md
+    - .agents/workflow-overlay/validation-gates.md
+    - docs/workflows/orca_repo_map_v0.md
+  intentionally_not_updated:
+    - path: AGENTS.md
+      reason: >
+        The behavior kernel and explicit authorization boundaries are unchanged;
+        this is a merge-routing workflow doctrine update, not a new global agent
+        rule.
+    - path: .agents/workflow-overlay/safety-rules.md
+      reason: >
+        The no-unauthorized commit/push/PR/merge rule is unchanged. The workflows
+        define repository automation behavior after explicit PR flow, not blanket
+        agent authority.
+    - path: .agents/workflow-overlay/validation-gates.md
+      reason: >
+        The existing enforcement-placement and non-self-certification rules
+        already cover this shape: deterministic labels are routing/check signal,
+        not validation or approval evidence.
+    - path: docs/workflows/orca_repo_map_v0.md
+      reason: >
+        The current map already indexes `.github/` as GitHub Actions workflows
+        and local operational scripts; no new top-level route is introduced.
+  non_claims:
+    - not server-side branch protection
+    - not native GitHub auto-merge
+    - not validation
+    - not readiness
+    - not review approval
+    - not blanket agent merge authority
+```
+
+## From .agents/workflow-overlay/source-loading.md
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    New Thread Triggers now prefers a handoff packet plus a fresh lane over
+    /compact-and-continue at phase boundaries; Targeted Read Protocol now binds
+    the routine read shape for prompt-orchestration.md (Orca Prompt Preflight
+    plus the single family section; full-file reads reserved for fused,
+    delegated-review-patch, and novel or cross-lane authoring).
+  trigger: workflow_authority
+  controlling_sources_updated:
+    - .agents/workflow-overlay/source-loading.md
+    - .agents/workflow-overlay/prompt-orchestration.md
+  downstream_surfaces_checked:
+    - AGENTS.md
+    - .agents/workflow-overlay/source-of-truth.md
+    - .agents/workflow-overlay/skill-adoption.md
+    - docs/workflows/orca_repo_map_v0.md
+  intentionally_not_updated:
+    - path: AGENTS.md
+      reason: >
+        Already states the routine-vs-full prompt-authoring split this read
+        shape serves; the new rule points at that split rather than restating
+        it.
+    - path: .agents/workflow-overlay/source-of-truth.md
+      reason: >
+        Precompact/handoff packet skill bindings unchanged; the new trigger
+        governs when to prefer a fresh lane, not how packets are built.
+    - path: .agents/workflow-overlay/skill-adoption.md
+      reason: >
+        workflow-precompact adoption status unchanged; the skill remains the
+        packet mechanic when compaction is chosen.
+    - path: docs/workflows/orca_repo_map_v0.md
+      reason: >
+        Repo-map section anchors into this file are unchanged (checked
+        2026-07-02; anchors reference read-pack sections, not the edited
+        sections).
+  stale_language_search: >
+    rg -in "compact-and-continue|/compact|precompact" AGENTS.md .agents/workflow-overlay/
+  stale_language_search_result: >
+    Executed 2026-07-02 after edits. Hits: the new trigger itself
+    (source-loading.md), this receipt's own text, precompact packet-skill
+    bindings in source-of-truth.md and skill-adoption.md, and the AGENTS.md
+    precompact-is-a-thin-restore-pointer rule — all compatible: they govern
+    packet mechanics when compaction or handoff happens; none instructs
+    compact-and-continue at phase boundaries.
+  non_claims:
+    - not validation
+    - not readiness
+    - no token-savings efficacy claim
+```
+## From orca/product/spines/data_lake/authority/core_spine_v0_data_lake_attachment_record_implementation_contract_v0.md
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Attachment Record implementation doctrine now binds Silver consumption: AR
+    entries are typed raw-payload refs over preserved Bronze bodies, Silver
+    records carry AR-backed raw_refs when deriving facts from source-family
+    payload bodies, and missing AR rows remain visible residual/posture rather
+    than inferred absence.
+  trigger: architecture_doctrine
+  related_triggers:
+    - workflow_authority
+  controlling_sources_updated:
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_attachment_record_implementation_contract_v0.md
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_silver_vault_record_contract_v0.md
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_bronze_mgt_baseline_declaration_v0.md
+    - orca/product/spines/data_lake/README.md
+    - docs/workflows/orca_repo_map_v0.md
+  downstream_surfaces_checked:
+    - AGENTS.md
+    - .agents/workflow-overlay/README.md
+    - .agents/workflow-overlay/source-loading.md
+    - .agents/workflow-overlay/source-of-truth.md
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_core_contract_v0.md
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_storage_contract_v0.md
+    - orca-harness/data_lake/catalog.py
+  intentionally_not_updated:
+    - path: orca/product/spines/data_lake/authority/core_spine_v0_data_lake_storage_contract_v0.md
+      reason: >
+        Storage still owns Manifest v2, sidecar/member/body-store layout,
+        backend, migration, retention, and lawful-erasure choices. This patch
+        binds consumer shape without selecting those physicalization decisions.
+    - path: orca/product/spines/data_lake/authority/core_spine_v0_data_lake_core_contract_v0.md
+      reason: >
+        Core already defines Attachment Records as source-payload refs and
+        forbids cleaned/Judgment meaning. This patch narrows downstream Silver
+        consumption mechanics without changing the parent boundary.
+    - path: orca-harness/data_lake/catalog.py
+      reason: >
+        Existing post-PR-525 catalog helpers expose AR rows and body hash
+        verification; no runtime implementation is authorized here.
+  stale_language_search: >
+    rg -n "Attachment Record|raw_refs|Silver|Manifest v2|body store|full God Tier"
+    orca/product/spines/data_lake orca-harness/data_lake/catalog.py docs/workflows/orca_repo_map_v0.md
+  non_claims:
+    - not validation
+    - not readiness
+    - not runtime implementation authorization
+    - not Manifest v2 selection
+    - not body-store layout selection
+    - not Silver producer implementation
+```
+
+## From orca/product/spines/data_lake/authority/core_spine_v0_data_lake_storage_contract_v0.md
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Data Lake Storage Contract v0 retires the blanket no-storage-engine posture:
+    the contract still selects no engine itself, but a bounded data-lake
+    physicalization or implementation lane may now choose a concrete
+    filesystem/database/SQL-capable embedded engine (for example DuckDB),
+    object-store, warehouse/lakehouse, or hybrid backend when it preserves raw
+    immutability, append-only derived/ack records, rebuildable non-authoritative
+    indexes, by-key discovery, the no-smart-lake boundary, and external
+    operational-data placement or an explicit supersession of that placement
+    model.
+  trigger: architecture_doctrine
+  related_triggers:
+    - lifecycle_boundary
+  controlling_sources_updated:
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_storage_contract_v0.md
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_core_contract_v0.md
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_physicality_location_contract_v0.md
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_attachment_record_implementation_contract_v0.md
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_derived_layout_index_rebuild_contract_v0.md
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_write_boundary_enforcement_contract_v0.md
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_raw_admission_key_grammar_contract_v0.md
+    - orca/product/spines/data_lake/workflows/core_spine_v0_data_lake_mechanics_map_v0.md
+    - orca/product/spines/data_lake/README.md
+    - docs/workflows/orca_repo_map_v0.md
+    - orca-harness/data_lake/__init__.py
+    - orca-harness/data_lake/root.py
+    - docs/decisions/dcp_receipts_archive_v0.md
+  downstream_surfaces_checked:
+    - AGENTS.md
+    - .agents/workflow-overlay/README.md
+    - .agents/workflow-overlay/source-loading.md
+    - .agents/workflow-overlay/source-of-truth.md
+    - .agents/workflow-overlay/validation-gates.md
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_medallion_gold_readiness_contract_v0.md
+  intentionally_not_updated:
+    - path: orca/product/spines/data_lake/authority/core_spine_v0_data_lake_medallion_gold_readiness_contract_v0.md
+      reason: >
+        It governs bronze/silver/pre-gold/gold-ready/gold semantics, not storage
+        engine choice. Its backend non-claims remain correct as "not selected by
+        this contract" and do not block a storage-contract physicalization lane.
+  stale_language_search: >
+    rg -n "no storage engine|No storage engine|selects no storage engine|select a storage engine|storage-engine selection|No backend/queue/scheduler/engine|No queue/engine|non-selecting storage contract|physical engine"
+    orca/product/spines/data_lake orca-harness/data_lake docs/workflows/orca_repo_map_v0.md
+  stale_language_search_result: >
+    Executed 2026-06-25 after edits. Remaining hits are expected and
+    non-blocking: the new storage contract rule retires the old blanket no-engine
+    posture and names the deliberate engine-selection boundary; mechanics,
+    derived-layout, and physicality contracts now say no engine is selected by
+    that artifact or map; storage and physicality prior DCP/non-claim hits are
+    historical/non-authorizing receipts; the query appears in this receipt. No
+    live current surface still says the Data Lake selects no storage engine,
+    uses a non-selecting storage contract, or forbids a bounded downstream
+    engine/backend selection.
+  non_claims:
+    - not validation
+    - not readiness
+    - not implementation authorization
+    - not a selected engine/backend
+    - not Manifest v2 selection
+    - not sidecar selection
+    - not queue/runtime selection
+```
+
+## From orca/product/spines/data_lake/authority/core_spine_v0_data_lake_physicality_location_contract_v0.md
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Data Lake Physicality Location Contract v0 records the location boundary:
+    operational data lives under one operator-configured external data root
+    (ORCA_DATA_ROOT, generalized; example F:\orca-data), separate from the Git
+    repo; the v0 directory grammar is raw/ attachments/ derived/ acknowledgements/
+    and a split indexes/availability (content-free) plus indexes/derived_retrieval
+    (rebuildable, non-authoritative); raw is immutable, derived/ack append-only,
+    indexes rebuildable; root resolution is fail-closed including not-mounted and a
+    root-marker identity check; durable record names are mechanical
+    (SourceObjectMovementThresholdCrossingRecord, DecisionEvidenceAssemblyView,
+    DecisionEvidenceAssemblyReceipt, DecisionEvidenceAssemblyProfile) with no
+    GoldReady prefix and gold only as Judgment output; storage engine, backend,
+    serialization, queue, runtime, and migration remain deferred.
+  trigger: architecture_doctrine
+  related_triggers:
+    - lifecycle_boundary
+    - workflow_authority
+  controlling_sources_updated:
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_physicality_location_contract_v0.md
+    - orca/product/spines/data_lake/README.md
+  downstream_surfaces_checked:
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_core_contract_v0.md
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_storage_contract_v0.md
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_medallion_gold_readiness_contract_v0.md
+    - orca/product/spines/data_lake/workflows/core_spine_v0_data_lake_mechanics_map_v0.md
+    - docs/workflows/orca_repo_map_v0.md
+    - .gitignore
+  intentionally_not_updated:
+    - path: orca/product/spines/data_lake/authority/core_spine_v0_data_lake_storage_contract_v0.md
+      reason: >
+        The Storage Contract remains the non-selecting physicalization-blocker owner.
+        This contract adds the location boundary and directory grammar without
+        reopening storage-slot or blocker ownership.
+    - path: orca/product/spines/data_lake/authority/core_spine_v0_data_lake_medallion_gold_readiness_contract_v0.md
+      reason: >
+        The medallion contract already defers physical home and names the data lake
+        physicality lane as a downstream consumer. This contract is that downstream
+        location decision and does not change medallion semantics.
+    - path: docs/workflows/orca_repo_map_v0.md
+      reason: >
+        Repo-map registration is a separate hygiene/routing step on the shared map;
+        this lane records the contract and its local README pointer without editing
+        the shared repo map. Registration is a recommended follow-up.
+  stale_language_search: >
+    rg -n "ORCA_DATA_ROOT|physicality location|external data root|orca-data|indexes/availability|indexes/derived_retrieval|SourceObjectMovementThresholdCrossingRecord|DecisionEvidenceAssembly"
+    orca/product/spines/data_lake docs/workflows/orca_repo_map_v0.md
+  stale_language_search_result: >
+    To be executed against the data_lake spine and repo map after landing; this lane
+    introduces the ORCA_DATA_ROOT and physicality-location vocabulary, so expected
+    hits are this contract and the data_lake README pointer. No prior live data-lake
+    source is expected to define a competing data-root location boundary.
+  non_claims:
+    - not validation
+    - not readiness
+    - not implementation authorization
+    - not backend or storage-engine selection
+    - not serialization, manifest, or schema finalization
+    - not queue/runtime design
+    - not migration authorization
+```
+
+## From .agents/workflow-overlay/validation-gates.md
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Incident-derived workflow hardening now separates patch correctness, GitHub
+    sandbox-egress classification, and validation-result bucket semantics: Codex/manual
+    patch misses stop-and-reread and require `git diff` hunk inspection before correctness
+    claims; `127.0.0.1:9` GitHub API failures are sandbox egress refusal, not repo/CI
+    failure; validation reports classify outputs as GATE PASS/FAIL, INFO/DEBT, or OUT
+    OF SCOPE, with unknown nonzero results failing closed.
+  trigger: workflow_authority
+  related_triggers:
+    - validation_philosophy
+  controlling_sources_updated:
+    - docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md
+    - .agents/workflow-overlay/validation-gates.md
+  downstream_surfaces_checked:
+    - AGENTS.md
+    - .agents/workflow-overlay/README.md
+    - .agents/workflow-overlay/decision-routing.md
+    - .github/workflows/ci.yml
+    - .agents/hooks/check_map_links.py
+    - .agents/hooks/check_doc_terms.py
+  intentionally_not_updated:
+    - path: AGENTS.md
+      reason: >
+        AGENTS.md already routes repo-changing lane work to the dev-workflow doctrine and
+        validation claims to the overlay; duplicating these scoped rules there would bloat
+        the shared instruction surface and create drift risk.
+    - path: .github/workflows/ci.yml
+      reason: >
+        No normalized validation wrapper is introduced yet. CI continues to run existing
+        individual gates directly; wrapper enforcement is deferred until there is a concrete
+        consumer.
+    - path: .agents/hooks/check_map_links.py
+      reason: >
+        Existing strict/report modes already distinguish gate output from annotated debt;
+        the new bucket policy governs reporting and any future wrapper rather than changing
+        this checker.
+    - path: .agents/hooks/check_doc_terms.py
+      reason: >
+        Existing `--check` / `--report-orca` modes are report-only and exit 0; the new
+        bucket policy names them INFO/DEBT unless a future gate promotes them explicitly.
+  stale_language_search: >
+    rg -n "git diff --check|127\.0\.0\.1:9|GATE PASS|GATE FAIL|INFO|DEBT|OUT OF SCOPE|check_doc_terms|check_map_links"
+    AGENTS.md .agents docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md .github .agents/hooks
+  stale_language_search_result: >
+    Executed 2026-06-20 during this patch. Existing and new hits are compatible: AGENTS.md already
+    routes to the owning doctrine/overlay; check_map_links and check_doc_terms document strict
+    versus report-only modes; ci.yml runs individual gates directly; no normalized wrapper consumer
+    exists today.
+  non_claims:
+    - not validation
+    - not readiness
+    - not a new hook or CI wrapper
+    - not a Claude Code edit-tool mandate
+    - the bucket policy does not prove any artifact passes a gate
 ```

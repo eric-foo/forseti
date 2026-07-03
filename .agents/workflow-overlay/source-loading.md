@@ -210,6 +210,35 @@ This guard does not weaken source authority. Strict claims still require the
 controlling source, and skipped sources must be reopened when they could
 materially change the current claim, route, blocker, or edit boundary.
 
+### Named Artifact Missing Fast Path
+
+When the current instruction names an exact repository path, treat that path as
+the search boundary until evidence proves otherwise. Do not turn a missing named
+file into a broad repository or all-worktree search by default.
+
+Use this ladder:
+
+1. Check the exact path once.
+2. If the path is inside a named worktree, search only that worktree for the
+   basename and at most two unique target tokens.
+3. In that same worktree, read the branch state with targeted Git evidence:
+   `git status --short --branch`, recent `git log --stat`, and
+   `git diff --name-status <base>...HEAD` when a base is known or inferable.
+4. If the missing path is under `docs/review-outputs/` or a review-output child
+   folder, and no source prompt/report exists there, classify it as a likely
+   intended output path rather than an input source. Then identify the review
+   target from the named worktree's branch diff, nearby review inputs, or
+   commission artifacts.
+5. If no unique target is visible after those checks, stop as
+   `BLOCKED_MISSING_SOURCE` or ask for the actual prompt/target. Do not infer a
+   different adjacent artifact just because it is visible.
+
+All-worktree searches under `.claude/worktrees`, `.codex/worktrees`, or similar
+roots are last resort only: use them when the named worktree itself is missing,
+the targeted branch evidence points outside the named worktree, or the owner
+explicitly asks for broad recovery. Record such a broad search as an expansion,
+not routine orientation.
+
 For each source read, keep a compact ledger entry:
 
 - file or source;
@@ -566,52 +595,72 @@ the claim `not proven`.
 ```yaml
 direction_change_propagation:
   doctrine_changed: >
-    New Thread Triggers now prefers a handoff packet plus a fresh lane over
-    /compact-and-continue at phase boundaries; Targeted Read Protocol now binds
-    the routine read shape for prompt-orchestration.md (Orca Prompt Preflight
-    plus the single family section; full-file reads reserved for fused,
-    delegated-review-patch, and novel or cross-lane authoring).
+    Source-loading now binds a named-artifact missing fast path: exact paths
+    are checked first and then constrained to the named worktree, review-output
+    misses are treated as likely intended output paths when no source artifact
+    exists there, target branch Git evidence precedes token search expansion,
+    and all-worktree search is last resort only.
   trigger: workflow_authority
   controlling_sources_updated:
     - .agents/workflow-overlay/source-loading.md
-    - .agents/workflow-overlay/prompt-orchestration.md
   downstream_surfaces_checked:
     - AGENTS.md
     - .agents/workflow-overlay/source-of-truth.md
-    - .agents/workflow-overlay/skill-adoption.md
+    - .agents/workflow-overlay/decision-routing.md
+    - .agents/workflow-overlay/review-lanes.md
+    - .agents/workflow-overlay/prompt-orchestration.md
+    - .agents/workflow-overlay/validation-gates.md
     - docs/workflows/orca_repo_map_v0.md
   intentionally_not_updated:
     - path: AGENTS.md
       reason: >
-        Already states the routine-vs-full prompt-authoring split this read
-        shape serves; the new rule points at that split rather than restating
-        it.
+        Already routes source-loading and workflow details to the overlay; a
+        root restatement would make the fast path harder to keep single-sourced.
     - path: .agents/workflow-overlay/source-of-truth.md
       reason: >
-        Precompact/handoff packet skill bindings unchanged; the new trigger
-        governs when to prefer a fresh lane, not how packets are built.
-    - path: .agents/workflow-overlay/skill-adoption.md
+        Source hierarchy still says missing required sources fail visibly. This
+        patch adds bounded discovery order in source-loading, not a new source
+        precedence rule.
+    - path: .agents/workflow-overlay/decision-routing.md
       reason: >
-        workflow-precompact adoption status unchanged; the skill remains the
-        packet mechanic when compaction is chosen.
+        The router already handles messy worktree and source-gap regimes. The
+        new fast path is source-loading mechanics under the existing router.
+    - path: .agents/workflow-overlay/review-lanes.md
+      reason: >
+        Review lane authority and report destinations are unchanged. The new
+        rule only decides how to discover a missing named artifact before the
+        review target is bound.
+    - path: .agents/workflow-overlay/prompt-orchestration.md
+      reason: >
+        Prompt output modes and review-report topology are unchanged. The new
+        rule is pre-prompt source discovery and points at source-loading.
+    - path: .agents/workflow-overlay/validation-gates.md
+      reason: >
+        No new check or completion gate is introduced. Existing gates still
+        validate the report, prompt, and source-loading claims once a target is
+        bound.
     - path: docs/workflows/orca_repo_map_v0.md
       reason: >
-        Repo-map section anchors into this file are unchanged (checked
-        2026-07-02; anchors reference read-pack sections, not the edited
-        sections).
+        The repo map already routes source-loading authority to this file; no
+        new artifact, path family, or map anchor was added.
   stale_language_search: >
-    rg -in "compact-and-continue|/compact|precompact" AGENTS.md .agents/workflow-overlay/
+    rg -in "exact path|all-worktree|worktrees|review-output|review report|missing source|broad search"
+    AGENTS.md .agents/workflow-overlay/ docs/workflows/orca_repo_map_v0.md
   stale_language_search_result: >
-    Executed 2026-07-02 after edits. Hits: the new trigger itself
-    (source-loading.md), this receipt's own text, precompact packet-skill
-    bindings in source-of-truth.md and skill-adoption.md, and the AGENTS.md
-    precompact-is-a-thin-restore-pointer rule — all compatible: they govern
-    packet mechanics when compaction or handoff happens; none instructs
-    compact-and-continue at phase boundaries.
+    Executed 2026-07-02 after edits. Hits are compatible: source-loading.md now
+    owns the fast path and already warns against broad status/source dumps;
+    source-of-truth.md still requires visible failure for missing required
+    sources; review-lanes.md and prompt-orchestration.md still own review
+    report destinations and failed-write topology; decision-routing.md handles
+    messy worktree routing; repo map lists review-output roots only. No checked
+    surface instructs broad all-worktree search before exact path, named
+    worktree, and branch-diff evidence.
   non_claims:
     - not validation
     - not readiness
-    - no token-savings efficacy claim
+    - not review target authority
+    - not permission to infer adjacent artifacts
+    - not a new validation gate
 ```
 
 ```yaml

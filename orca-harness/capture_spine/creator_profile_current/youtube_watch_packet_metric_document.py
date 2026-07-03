@@ -154,6 +154,7 @@ def build_youtube_watch_packet_metric_document(
     creator_ledger: Mapping[str, Any],
     account_ledger: Mapping[str, Any],
     generated_at_utc: str,
+    excluded_video_ids: Mapping[str, str] | None = None,
 ) -> dict[str, Any]:
     """Build the seed-shaped live metric document from committed watch packets.
 
@@ -162,7 +163,17 @@ def build_youtube_watch_packet_metric_document(
     key). Fails closed on: a missing/ambiguous watch packet for an expected
     video, a packet whose captured channel id diverges from the ledger, an
     account with zero observed view counts, or an account row missing from the
-    linkage ledger."""
+    linkage ledger.
+
+    ``excluded_video_ids`` is the explicit operator-exclusion mechanism for
+    observably-dead admitted videos (``{video_id: reason}``, every reason
+    non-empty): excluded ids leave the expected set BEFORE discovery, and the
+    exclusion is recorded loudly in the document counts, an
+    ``operator_exclusions`` block, and every affected account's rollup
+    limitations. It is never a silent fallback: an id not in the admitted
+    creator pool fails ``unknown_excluded_video``, and an exclusion set that
+    eliminates ALL of an account's videos fails ``account_fully_excluded`` (a
+    roster decision the operator must take to the owner, not a quiet shrink)."""
     ledger_video_rows = _ledger_video_rows(_unwrap_creator_ledger(dict(creator_ledger)))
     accounts_by_channel = _youtube_accounts_by_channel(account_ledger)
 
@@ -175,6 +186,28 @@ def build_youtube_watch_packet_metric_document(
     if not creator_video_rows:
         raise WatchPacketMetricDocumentError(
             "empty_admitted_pool", "", "creator observation ledger has no creator-classified videos"
+        )
+
+    exclusions = _validated_exclusions(excluded_video_ids, creator_video_rows)
+    excluded_by_channel: dict[str, list[str]] = {}
+    for video_id in exclusions:
+        channel = creator_video_rows[video_id]["creator"]["platform_subject_key"]
+        excluded_by_channel.setdefault(channel, []).append(video_id)
+        del creator_video_rows[video_id]
+    fully_excluded = sorted(
+        channel
+        for channel in excluded_by_channel
+        if not any(
+            row["creator"]["platform_subject_key"] == channel
+            for row in creator_video_rows.values()
+        )
+    )
+    if fully_excluded:
+        raise WatchPacketMetricDocumentError(
+            "account_fully_excluded",
+            fully_excluded[0],
+            "operator exclusions eliminate every admitted video for channel(s) "
+            f"{fully_excluded}; that is a roster decision, not an exclusion",
         )
 
     captures = discover_latest_watch_captures(
@@ -221,6 +254,10 @@ def build_youtube_watch_packet_metric_document(
             observation_ids_by_account_video=observation_ids_by_account_video,
             generated_at_utc=generated_at_utc,
             rollup_index=index,
+            excluded_videos={
+                video_id: exclusions[video_id]
+                for video_id in excluded_by_channel.get(rows[0]["channel_id"], [])
+            },
         )
         for index, (account_id, rows) in enumerate(
             sorted(rows_by_account.items(), key=lambda item: item[0]), start=1
@@ -281,6 +318,7 @@ def build_youtube_watch_packet_metric_document(
         "counts": {
             "admitted_creator_videos": len(creator_video_rows),
             "brand_or_platform_excluded_ledger_rows": excluded_video_count,
+            "operator_excluded_admitted_videos": len(exclusions),
             "metric_observations_total": len(observations),
             "unique_platform_accounts_with_observations": len(rows_by_account),
             "metric_rollups_total": len(rollups),
@@ -290,6 +328,10 @@ def build_youtube_watch_packet_metric_document(
                 if rollup["metric_rollups"]["engagement_rate"]["posture"] == "observed"
             ),
         },
+        "operator_exclusions": [
+            {"video_id": video_id, "reason": exclusions[video_id]}
+            for video_id in sorted(exclusions)
+        ],
         "metric_observations": observations,
         "metric_rollups": rollups,
         "accepted_residuals": [
@@ -310,6 +352,33 @@ def build_youtube_watch_packet_metric_document(
         ],
     }
     return {YOUTUBE_SHORTS_FRAGRANCE_CREATOR_METRIC_SEED_WRAPPER: document}
+
+
+def _validated_exclusions(
+    excluded_video_ids: Mapping[str, str] | None,
+    creator_video_rows: Mapping[str, Any],
+) -> dict[str, str]:
+    """Validate the operator-exclusion map: every id must be an admitted creator
+    video and every reason non-empty. Exclusion is operator-attested and loud,
+    never inferred -- a bad id or blank reason fails closed."""
+    if not excluded_video_ids:
+        return {}
+    out: dict[str, str] = {}
+    for video_id, reason in excluded_video_ids.items():
+        if video_id not in creator_video_rows:
+            raise WatchPacketMetricDocumentError(
+                "unknown_excluded_video",
+                video_id,
+                "excluded video is not an admitted creator-classified ledger video",
+            )
+        if not isinstance(reason, str) or not reason.strip():
+            raise WatchPacketMetricDocumentError(
+                "missing_exclusion_reason",
+                video_id,
+                "operator exclusion requires a non-empty reason",
+            )
+        out[video_id] = reason.strip()
+    return out
 
 
 # -- packet reading -----------------------------------------------------------
@@ -524,6 +593,7 @@ def _rollup(
     observation_ids_by_account_video: Mapping[tuple[str, str], list[str]],
     generated_at_utc: str,
     rollup_index: int,
+    excluded_videos: Mapping[str, str] | None = None,
 ) -> dict[str, Any]:
     account_id = account["platform_account_id"]
     views = [row["metric_values"]["view_count"] for row in rows if row["metric_values"]["view_count"] is not None]
@@ -591,6 +661,21 @@ def _rollup(
             "and total-comment counts together in the live watch packets."
         )
     )
+    exclusion_limitations = (
+        [
+            (
+                f"{len(excluded_videos)} admitted Short(s) excluded from this rollup by "
+                "explicit operator exclusion: "
+                + "; ".join(
+                    f"{video_id} ({excluded_videos[video_id]})"
+                    for video_id in sorted(excluded_videos)
+                )
+                + ". Metrics cover the remaining admitted pool only."
+            )
+        ]
+        if excluded_videos
+        else []
+    )
     return {
         "metric_rollup_id": f"yt_watch_account_metric_rollup_v0_{rollup_index:03d}",
         "profile_subject_kind": "platform_account",
@@ -620,6 +705,7 @@ def _rollup(
         "limitations": [
             "Rollup covers the admitted fragrance Shorts pool only; it is not a channel-wide average.",
             "Metrics are recaptured from live YouTube watch packets and are capture-time observations that may change after capture.",
+            *exclusion_limitations,
             engagement_limitation,
             "Cross-platform rollups are not authorized without promoted public-handle linkage evidence.",
             (

@@ -110,6 +110,37 @@ def test_front_door_exemption_is_limited_to_append_silver_record() -> None:
     assert [finding.code for finding in findings] == ["envelope_lane_bypass"]
 
 
+def test_ack_subtree_exemption_is_static_and_subtree_scoped() -> None:
+    # The consumption-seam exemption: a write whose subtree STATICALLY resolves to
+    # "acknowledgements" is an ack record, not a silver record — even with a dynamic
+    # lane (the shared helper's ack_namespace parameter) or an envelope lane NAME as
+    # the ack namespace. The same write under derived/ keeps full scrutiny.
+    guard = _load_hook()
+    registry = _load_registry()
+    tree = ast.parse(
+        '_ACK_SUBTREE = "acknowledgements"\n'
+        "\n"
+        "def append_ack(data_root, ack_namespace):\n"
+        "    data_root.append_record(subtree=_ACK_SUBTREE, lane=ack_namespace)\n"
+        "\n"
+        "def ack_envelope_name(data_root):\n"
+        '    data_root.append_record(subtree="acknowledgements", lane="cleaning_fragrantica_silver")\n'
+        "\n"
+        "def derived_bypass(data_root):\n"
+        '    data_root.append_record(subtree="derived", lane="cleaning_fragrantica_silver")\n'
+        "\n"
+        "def derived_dynamic(data_root, lane):\n"
+        '    data_root.append_record(subtree="derived", lane=lane)\n'
+    )
+    consts = guard._build_global_consts({Path("consumption.py"): tree})
+    findings, unresolved = guard._scan_tree(
+        "consumption.py", tree, consts, registry, is_front_door_module=False
+    )
+    # only the derived/ writes are scrutinized: one resolved bypass, one strict gap.
+    assert [finding.code for finding in findings] == ["envelope_lane_bypass"]
+    assert [(item.lineno, item.excerpt) for item in unresolved] == [(13, "lane")]
+
+
 def test_registry_pins_envelope_lanes_and_pending_baseline() -> None:
     registry = _load_registry()
     assert "cleaning_fragrantica_silver" in registry.SILVER_ENVELOPE_LANES

@@ -306,6 +306,147 @@ def test_live_recapture_loop_snapshot_freshness_view_and_revalidation(tmp_path: 
     assert report.failures_total == 0, [f.failures for f in report.findings if not f.ok]
 
 
+def test_operator_exclusions_flow_into_silver_rollup_limitations(tmp_path: Path) -> None:
+    data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    account_ledger = _account_ledger()
+    creator_ledger = _creator_ledger()
+    _commit_capture_cycle(data_root, captured_at=CAPTURE_T1, base_views=100)
+    result = run_watch_packet_producer(
+        data_root,
+        creator_ledger=creator_ledger,
+        account_ledger=account_ledger,
+        generated_at_utc=RUN_T1,
+        excluded_video_ids={"vidAlpha001": "video unavailable at capture"},
+    )
+    assert len(result.rollup_records) == 2
+    alpha = next(
+        r
+        for r in result.rollup_records
+        if r["payload"]["observation"]["subject"]["ref"]["orca_platform_account_id"]
+        == "acct_yt_alpha"
+    )
+    joined = " ".join(alpha["payload"]["observation"]["limitations"])
+    assert "explicit operator exclusion" in joined and "vidAlpha001" in joined
+    # Survivor-only math: alpha's only remaining video is vidAlpha002 (views*2).
+    metrics = alpha["payload"]["observation"]["metric_rollups"]
+    assert metrics["average_views"]["metric_value"] == 200.0
+
+    snapshot_dir = tmp_path / "committed"
+    snapshot_path = snapshot_dir / "youtube_shorts_fragrance_creator_metric_rollup_snapshot_v0.json"
+    manifest_path = snapshot_dir / "youtube_shorts_fragrance_creator_metric_rollup_selection_manifest_v0.json"
+    receipt_path = snapshot_dir / "youtube_shorts_fragrance_creator_metric_rollup_freshness_receipt_v0.json"
+    summary = run_snapshot(
+        data_root,
+        account_ledger=account_ledger,
+        platform="youtube",
+        snapshot_generated_at=RUN_T1,
+        reconciled_at=RUN_T1,
+        snapshot_path=snapshot_path,
+        manifest_path=manifest_path,
+        receipt_path=receipt_path,
+        write=True,
+    )
+    assert summary["accounts"] == 2
+    ledger_path = tmp_path / "creator_public_handle_linkage_ledger_v0.json"
+    ledger_path.write_text(
+        json.dumps({"creator_public_handle_linkage_ledger": account_ledger}, indent=2) + "\n",
+        encoding="utf-8",
+    )
+    view = build_creator_profile_current_view_from_files(
+        account_ledger_path=ledger_path,
+        metric_seed_paths=[snapshot_path],
+        generated_at_utc=RUN_T1,
+    )
+    wrapper = view["creator_profile_current_view"]
+    alpha_profile = next(p for p in wrapper["profiles"] if p["profile_subject_id"] == "acct_yt_alpha")
+    view_joined = " ".join(alpha_profile["current_metric_rollups"][0]["limitations"])
+    assert "explicit operator exclusion" in view_joined and "vidAlpha001" in view_joined
+
+
+def test_runner_flags_couple_exclusion_and_reason() -> None:
+    import pytest
+
+    from runners.run_youtube_watch_packet_metric_rollup_producer import main
+
+    with pytest.raises(SystemExit) as excinfo:
+        main(["--exclude-video", "vidAlpha001"])  # no --exclusion-reason
+    assert excinfo.value.code == 2
+    with pytest.raises(SystemExit) as excinfo:
+        main(["--exclusion-reason", "dead"])  # no --exclude-video
+    assert excinfo.value.code == 2
+    with pytest.raises(SystemExit) as excinfo:
+        main(
+            [
+                "--exclude-video", "vidAlpha001",
+                "--exclude-video", "vidAlpha001",
+                "--exclusion-reason", "dead",
+            ]
+        )
+    assert excinfo.value.code == 2
+
+
+def _retired_creator_ledger() -> dict:
+    """Creator ledger carrying a ledger-attested retirement of vidAlpha001."""
+    creator_ledger = _creator_ledger()
+    creator_ledger["youtube_creator_observation_ledger"]["operator_video_retirements"] = [
+        {
+            "video_id": "vidAlpha001",
+            "reason": "video unavailable (fixture retirement)",
+            "retired_at_utc": "2026-07-03T00:00:00Z",
+            "evidence_packet_ids": ["01KWH1TR2QY5VRNYTPNNJY18QV"],
+        }
+    ]
+    return creator_ledger
+
+
+def test_ledger_retirements_merge_into_effective_exclusions() -> None:
+    from runners.run_youtube_watch_packet_metric_rollup_producer import (
+        resolve_effective_exclusions,
+    )
+
+    retired_reason = "video unavailable (fixture retirement)"
+
+    # ledger-only: retirements become the effective exclusion map
+    merged, retired = resolve_effective_exclusions(None, _retired_creator_ledger())
+    assert merged == {"vidAlpha001": retired_reason}
+    assert retired == {"vidAlpha001": retired_reason}
+
+    # ledger + disjoint CLI exclusion: both apply, each with its own reason
+    merged, retired = resolve_effective_exclusions(
+        {"vidAlpha002": "transient capture glitch"}, _retired_creator_ledger()
+    )
+    assert merged == {
+        "vidAlpha001": retired_reason,
+        "vidAlpha002": "transient capture glitch",
+    }
+    assert retired == {"vidAlpha001": retired_reason}
+
+    # no retirement block: CLI exclusions pass through untouched, None stays None
+    passthrough, retired = resolve_effective_exclusions({"vidAlpha001": "x"}, _creator_ledger())
+    assert passthrough == {"vidAlpha001": "x"}
+    assert retired == {}
+    assert resolve_effective_exclusions(None, _creator_ledger()) == (None, {})
+
+
+def test_cli_exclusion_overlapping_ledger_retirement_fails_closed() -> None:
+    import pytest
+
+    from runners.run_youtube_watch_packet_metric_rollup_producer import (
+        resolve_effective_exclusions,
+    )
+
+    with pytest.raises(ValueError, match="duplicates ledger-retired video"):
+        resolve_effective_exclusions({"vidAlpha001": "dead again"}, _retired_creator_ledger())
+
+    # a retirement outside the admitted pool fails closed at the reader
+    ledger = _retired_creator_ledger()
+    ledger["youtube_creator_observation_ledger"]["operator_video_retirements"][0][
+        "video_id"
+    ] = "vidUnknown99"
+    with pytest.raises(ValueError, match="outside the admitted pool"):
+        resolve_effective_exclusions(None, ledger)
+
+
 def test_live_rollup_records_drop_the_engagement_non_claim(tmp_path: Path) -> None:
     data_root = DataLakeRoot.for_test(tmp_path / "lake")
     _commit_capture_cycle(data_root, captured_at=CAPTURE_T1, base_views=100)

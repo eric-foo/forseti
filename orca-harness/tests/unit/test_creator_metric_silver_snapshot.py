@@ -457,10 +457,13 @@ def test_runner_blocks_when_committed_manifest_invalid(tmp_path: Path) -> None:
     assert excinfo.value.reason == "manifest_chain_broken"
 
 
-def test_runner_main_against_live_lake_when_available() -> None:
-    # main()/resolve is the only real-lake-bound path; operator-local, skip in CI.
-    if not os.environ.get("ORCA_DATA_ROOT"):
-        pytest.skip("ORCA_DATA_ROOT is not set; the snapshot runner is an operator-local live-lake check")
+def test_runner_main_against_live_lake_when_available(monkeypatch) -> None:
+    # main()/resolve is the only real-lake-bound path; explicit operator opt-in
+    # only (ambient ORCA_DATA_ROOT is deleted per-test in conftest).
+    live_root = os.environ.get("ORCA_LIVE_LAKE_TEST_ROOT")
+    if not live_root:
+        pytest.skip("ORCA_LIVE_LAKE_TEST_ROOT is not set; the snapshot runner is an explicit opt-in live-lake check")
+    monkeypatch.setenv("ORCA_DATA_ROOT", live_root)
     try:
         code = run_snapshot_main(["--platform", "instagram"])  # dry-run
     except SystemExit as exc:
@@ -687,10 +690,13 @@ def test_live_lake_freshness_gate_fires_when_lake_advances(tmp_path: Path) -> No
     assert IG_ACCOUNT in result.drifted_accounts
 
 
-def test_live_lake_freshness_gate_main_against_live_lake_when_available() -> None:
-    # main()/resolve is the only real-lake-bound path; operator-local, skip in CI.
-    if not os.environ.get("ORCA_DATA_ROOT"):
-        pytest.skip("ORCA_DATA_ROOT is not set; the freshness gate is an operator-local live-lake check")
+def test_live_lake_freshness_gate_main_against_live_lake_when_available(monkeypatch) -> None:
+    # main()/resolve is the only real-lake-bound path; explicit operator opt-in
+    # only (ambient ORCA_DATA_ROOT is deleted per-test in conftest).
+    live_root = os.environ.get("ORCA_LIVE_LAKE_TEST_ROOT")
+    if not live_root:
+        pytest.skip("ORCA_LIVE_LAKE_TEST_ROOT is not set; the freshness gate is an explicit opt-in live-lake check")
+    monkeypatch.setenv("ORCA_DATA_ROOT", live_root)
     try:
         code = run_freshness_gate_main(["--platform", "instagram"])
     except SystemExit as exc:

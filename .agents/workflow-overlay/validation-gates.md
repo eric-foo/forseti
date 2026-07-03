@@ -46,6 +46,41 @@ Validation reports must preserve failure visibility by bucket:
   `PASS`, `ADEQUATE_NOW`, acceptance, or alignment-complete claims; it does not
   authorize a broad template sweep, automation, new skill, registry, or
   standalone receipt file.
+- Review-routing disposition gate: a change that touches code roots
+  (`orca-harness/`, `.agents/hooks/`) must carry its review disposition in the
+  same change — either a review artifact added under `docs/prompts/reviews/`
+  or `docs/review-outputs/`, or a shape-valid `review_routing_status:` line in
+  one of the change's commit messages:
+  `review_routing_status: routed <existing docs/prompts/reviews/... or docs/review-outputs/... path>`,
+  `review_routing_status: blocked -- <reason>`, or
+  `review_routing_status: not_needed -- <reason>`.
+  A carried recommended or required adversarial review may close only as
+  `routed` or `blocked`, never `not_needed` (the fused/review contracts own
+  that vocabulary; this gate does not weaken it). The disposition is routing
+  shape only: it is not review quality, review truth, severity authority,
+  validation, or readiness, and the gate never decides whether review SHOULD
+  have been recommended — that stays resident scoping judgment. Enforced
+  diff-scoped and forward-only by `.agents/hooks/check_review_routing.py`
+  (local `--commit-msg` advisory; CI `--strict`).
+- Handoff-pointer resolution gate: a changed durable `.md` file must not
+  reference a handoff-packet path (`docs/workflows/*handoff*.md`,
+  `docs/prompts/handoffs/*.md`) that does not resolve in the same tree,
+  unless the pointer line carries an explicit resolution pin (the word
+  `branch`, `PR #<n>`, or an `origin/<ref>` token — a fetch handle for a cold
+  reader) or an exemption marker (`does not exist yet`, `created on first`,
+  `not retrieval-indexed`, `nonresolving:`, or superseded/removed/deleted
+  wording for retired packets). Practical consequence: a handoff packet
+  merges no later than the first main-bound artifact that points at it (the
+  same PR is fine), or the pointer pins the authoring branch explicitly — a
+  cold receiving lane resolves required reads from `origin/main`, not from
+  unmerged authoring branches. The gate is pointer shape only: it never
+  proves a packet's content is current, that a pinned branch still exists, or
+  that the cited packet was the right source — that stays resident judgment.
+  Couriers that never land in the repo (chat bodies, PR comments, ignored
+  `docs/_inbox/` scratch) are outside its reach and stay governed by
+  `.agents/workflow-overlay/prompt-orchestration.md`. Enforced diff-scoped
+  and forward-only by `.agents/hooks/check_handoff_pointers.py` (CI
+  `--strict`; whole-corpus backlog via `--audit`, never gated).
 - Receipt-field provenance gate (non-self-certification): a gate, predicate,
   acceptance check, or completion claim must not clear on a self-asserted field
   value. A field clears only when it is owner-produced and provenance-bound or
@@ -296,6 +331,42 @@ pointer, and "no standalone receipt files" rules are deliberately NOT gated here
 Registered in `.github/workflows/ci.yml`; whole-repo advisory backlog via
 `--audit`; `--selftest` present.
 
+**Review-routing disposition gate** (`.agents/hooks/check_review_routing.py`,
+EP-35). Diff-scoped, forward-only CI gate plus a local commit-msg advisory: a
+change touching code roots must carry its review disposition — a review
+artifact filed in the same change, or a shape-valid `review_routing_status`
+line (grammar owned by the Current Gates bullet above), with `routed` paths
+verified to exist. Born from the 2026-07-02 fused-lane audit: most fused
+implementation lanes closed without filing the delegated-review handoff their
+contract carried, several claimed it in commit prose without filing it, and
+the disposition lived only in chat where nothing durable could check it
+(51 of 67 code-root landings in the trailing 120 main commits carried no
+disposition at build time — advisory backlog via `--audit`, never gated).
+The gate checks disposition PRESENCE and SHAPE only — never the truth of a
+`not_needed` reason, the quality of a filed review, or whether review should
+have been recommended (resident judgment; cf. the receipt-field provenance
+gate). Registered in `.github/workflows/ci.yml` and `.githooks/commit-msg`;
+`--selftest` present.
+
+**Handoff-pointer resolution gate** (`.agents/hooks/check_handoff_pointers.py`,
+EP-36). Diff-scoped, forward-only CI gate for the Current Gates bullet above:
+handoff-packet paths referenced in changed durable docs must resolve in the
+same tree, or the pointer line must carry an explicit pin or exemption marker.
+Born from repeated cold-agent resolution failures: packets authored on
+unmerged lane branches — e.g. `docs/workflows/yt_shorts_grid_tier_assessment_handoff_v0.md`, reachable only on its authoring branch — were
+referenced by filed courier/patch prompts that landed on `main`, so receiving
+agents and delegated reviewers starting cold from `main` could not find them
+(both the receiving agent and a delegated reviewer failed on that packet; the
+`--audit` backlog at build time showed 17 unresolved pointers across at least
+six distinct packets — surfaced, never gated). Because the gate runs on the
+landing PR's tree, it mechanically enforces the merge-ordering rule without
+needing to see lane starts. A write-time PostToolUse advisory was
+intentionally NOT built: the defect is a merge-topology property (packet on a
+different unmerged branch), invisible at the write boundary where the packet
+usually exists in the author's own tree. Registered in
+`.github/workflows/ci.yml`; `--selftest` present. Pointer shape only — a
+green run never proves packet content, freshness, or pin truth.
+
 
 ## Future Gates
 
@@ -308,228 +379,142 @@ Registered in `.github/workflows/ci.yml`; whole-repo advisory backlog via
 ```yaml
 direction_change_propagation:
   doctrine_changed: >
-    Google search-surface route-shape enforcement is now an active validation-gate
-    instance: a diff-scoped CI checker plus advisory PostToolUse hooks enforce
-    the mechanically checkable shell of the parameterized Google route decision
-    while preserving the non-claim that passing shape is not physical-locality,
-    source-sufficiency, validation, readiness, demand, Judgment, or Product Lead
-    proof.
+    Orca validation doctrine adds a review-routing disposition gate: a change
+    touching code roots (orca-harness/, .agents/hooks/) must carry its review
+    disposition -- a review artifact added under docs/prompts/reviews/ or
+    docs/review-outputs/ in the same change, or a shape-valid
+    review_routing_status line (routed <existing path> | blocked -- <reason> |
+    not_needed -- <reason>) in the change's commit messages -- enforced
+    diff-scoped and forward-only by .agents/hooks/check_review_routing.py
+    (EP-35) as a CI --strict gate plus a local commit-msg advisory. Born from
+    the 2026-07-02 fused-lane audit: fused implementation lanes carried a
+    delegated-review obligation whose disposition lived only in chat, so most
+    lanes closed without filing it and nothing durable could check the miss.
+  trigger: validation_philosophy
+  related_triggers:
+    - review_authority
+    - workflow_authority
+  controlling_sources_updated:
+    - .agents/workflow-overlay/validation-gates.md
+    - .agents/hooks/check_review_routing.py
+    - .github/workflows/ci.yml
+    - .githooks/commit-msg
+    - docs/decisions/overlay_enforcement_placement_classification_v0.md
+    - docs/workflows/orca_repo_map_v0.md
+    - .agents/hooks/README.md
+  downstream_surfaces_checked:
+    - AGENTS.md
+    - .agents/workflow-overlay/review-lanes.md
+    - .agents/workflow-overlay/delegated-review-patch.md
+    - .agents/workflow-overlay/prompt-orchestration.md
+    - .claude/settings.json
+  intentionally_not_updated:
+    - path: AGENTS.md
+      reason: >
+        Already routes validation and enforcement-placement changes to this
+        overlay file; a kernel restatement would fork the owner.
+    - path: .agents/workflow-overlay/review-lanes.md
+      reason: >
+        The gate binds no review lane and creates no verdict or severity
+        authority; a pointer would dual-home the disposition rule.
+    - path: .agents/workflow-overlay/delegated-review-patch.md
+      reason: >
+        The convention stays provisional and opt-in; the gate enforces
+        disposition visibility on code lanes generally, not this convention.
+    - path: .claude/settings.json
+      reason: >
+        No PostToolUse wiring; the disposition is a commit-message property,
+        not a file-write property. The local boundary is .githooks/commit-msg.
+    - path: user-level fused skill source (~/.claude/skills/fused/SKILL.md)
+      reason: >
+        Outside Orca authority (installed/user-level skill source is
+        protected); the owner applies the companion skill edit separately.
+  stale_language_search: >
+    rg -n "review_routing_status" .agents docs AGENTS.md
+  stale_language_search_result: >
+    Executed 2026-07-02 before this change: the token appeared only in one
+    workflow handoff note (flagged there as an unowned one-off field) and one
+    data-lake scoping record; no live overlay surface owned it. This change
+    makes validation-gates.md the owning surface; the checker references it
+    and does not restate it.
+  non_claims:
+    - not validation
+    - not readiness
+    - not review quality, severity, or verdict authority
+    - not a bound or mandatory review lane
+    - a green run is disposition shape only, never proof a review happened or was sufficient
+```
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Orca validation doctrine adds a handoff-pointer resolution gate: a changed
+    durable .md file must not reference a handoff-packet path
+    (docs/workflows/*handoff*.md, docs/prompts/handoffs/*.md) that does not
+    resolve in the same tree, unless the pointer line carries an explicit
+    resolution pin (branch / PR # / origin ref vocabulary) or an exemption
+    marker -- enforced diff-scoped and forward-only by
+    .agents/hooks/check_handoff_pointers.py (EP-36) as a CI --strict gate.
+    Born from repeated cold-agent resolution failures where handoff packets
+    lived only on unmerged authoring branches while filed prompts referencing
+    them landed on main, so receiving agents and delegated reviewers starting
+    cold from main could not resolve their required reads.
   trigger: validation_philosophy
   related_triggers:
     - workflow_authority
-    - output_authority
   controlling_sources_updated:
     - .agents/workflow-overlay/validation-gates.md
-    - docs/decisions/search_surface_google_parameterized_us_capture_route_v0.md
-    - .agents/hooks/check_search_surface_google_route.py
-    - .claude/settings.json
-    - .codex/hooks.json
+    - .agents/hooks/check_handoff_pointers.py
     - .github/workflows/ci.yml
-  downstream_surfaces_checked:
-    - AGENTS.md
-    - .agents/workflow-overlay/README.md
-    - .agents/workflow-overlay/source-of-truth.md
-    - .agents/workflow-overlay/artifact-roles.md
-    - .agents/workflow-overlay/prompt-orchestration.md
-    - .agents/workflow-overlay/delegated-review-patch.md
+    - orca-harness/tests/unit/test_hook_internal_error_gating.py
+    - docs/decisions/overlay_enforcement_placement_classification_v0.md
     - docs/workflows/orca_repo_map_v0.md
     - .agents/hooks/README.md
-  intentionally_not_updated:
-    - path: AGENTS.md
-      reason: >
-        AGENTS.md already routes validation and enforcement-placement changes to
-        the overlay. Adding a Google-specific route rule to the behavior kernel
-        would create a narrower duplicate source.
-    - path: .agents/workflow-overlay/README.md
-      reason: >
-        README already points project work to validation-gates, prompt
-        orchestration, and source-of-truth. The active instance is recorded here
-        and in the repo map/hook README.
-  stale_language_search: >
-    rg -n "Google search-surface|US-parameterized|physical-locality|check_search_surface_google_route"
-    .agents docs orca
-  non_claims:
-    - not validation
-    - not readiness
-    - not source sufficiency
-    - not demand proof
-    - not Judgment evidence
-    - not Product Lead evidence
-    - not physical-locality proof
-```
-
-```yaml
-direction_change_propagation:
-  doctrine_changed: >
-    Orca validation doctrine now includes a receipt-field provenance
-    (non-self-certification) gate: a check, predicate, acceptance, or completion
-    claim must not clear on a self-asserted field value; clearing requires an
-    owner-produced, provenance-bound, or independently verifiable value, else the
-    check is indeterminate_until_authored.
-  trigger: validation_philosophy
-  controlling_sources_updated:
-    - .agents/workflow-overlay/validation-gates.md
   downstream_surfaces_checked:
     - AGENTS.md
-    - CLAUDE.md
-    - .agents/workflow-overlay/README.md
-    - .agents/workflow-overlay/source-loading.md
-    - docs/workflows/orca_repo_map_v0.md
-    - .agents/workflow-overlay/review-lanes.md
     - .agents/workflow-overlay/prompt-orchestration.md
-  intentionally_not_updated:
-    - path: external workflow source and plugin skill source
-      reason: >
-        Deliberately Orca-only. jb already carries equivalent discipline
-        (source-authority ceilings, no-fake-fallback, "user-confirmed is not
-        verified"), so there is nothing to spread now. This rule is a candidate
-        for external promotion later, which is a separate governed skill-source
-        change, not an Orca-lane edit.
-    - path: jb project sources
-      reason: >
-        Out of scope and already covered by jb's own evidence/claim discipline;
-        Orca must not edit jb authority.
-    - path: orca/product/spines/judgment/claim_ladder/judgment_spine_evidence_ladder_architecture_v0.md and the JS gate/owner-contract docs
-      reason: >
-        They already encode this discipline for Judgment Spine gates (e.g., the
-        no-tools contract Receipt Provenance Boundary). This overlay gate
-        generalizes it without restating their semantics.
-    - path: .agents/workflow-overlay/review-lanes.md
-      reason: >
-        No duplicate rule added. validation-gates.md is overlay and already read
-        by every Orca agent, so the gate reaches review and authoring without a
-        pointer; single-source preserved.
-  stale_language_search: >
-    rg -n "self-asserted|self-certif|provenance|indeterminate_until_authored|verifiable"
-    .agents/workflow-overlay/validation-gates.md
-  stale_language_search_result: >
-    Executed on 2026-06-03 after adding the gate. The terms appear only in the
-    new Current Gates bullet and this receipt; no conflicting or duplicate rule
-    exists elsewhere in the file, and no prior language stated that a
-    self-asserted field is sufficient to clear a gate. No hit converted the gate
-    into a validation, readiness, PASS, acceptance, or judgment-quality claim.
-  non_claims:
-    - not validation
-    - not readiness
-    - the gate's existence does not prove it is enforced or that any artifact passes it
-    - not a kernel or jb change
-```
-
-```yaml
-direction_change_propagation:
-  doctrine_changed: >
-    New forward-only CI gate: changed durable docs must carry a retrieval header
-    and be map-reachable (substring-present in repo map or any submap); whole-repo
-    backlog surfaced advisory-only via --health + the session capsule.
-  trigger: validation_philosophy
-  controlling_sources_updated:
-    - .agents/workflow-overlay/validation-gates.md
-    - .agents/hooks/header_index.py
-    - .github/workflows/ci.yml
-    - .agents/hooks/session_context_capsule.py
-  downstream_surfaces_checked:
-    - AGENTS.md
-    - .agents/workflow-overlay/README.md
-    - .agents/workflow-overlay/source-loading.md
-    - docs/workflows/orca_repo_map_v0.md
-    - .agents/hooks/check_retrieval_header.py
-  intentionally_not_updated:
-    - path: AGENTS.md
-      reason: >
-        AGENTS.md triggers overlay-load for validation gates; the gate is
-        registered in validation-gates.md which AGENTS.md already routes to.
-        No new trigger word is needed.
-    - path: .agents/workflow-overlay/README.md
-      reason: >
-        README routes to validation-gates.md. The new gate is registered there;
-        no new overlay-level pointer needed.
-    - path: .agents/workflow-overlay/source-loading.md
-      reason: >
-        Source-loading packs are unchanged; the new hook is a CI substrate, not
-        a source-loading artifact or context-budget item.
-    - path: docs/workflows/orca_repo_map_v0.md
-      reason: >
-        The repo map's Active Hooks section already documents the pattern;
-        this DCP receipt is in validation-gates.md (the enforcement-placement
-        authority). A separate map entry is deferred as a hygiene-level note,
-        not a DCP-required propagation.
-    - path: .agents/hooks/check_retrieval_header.py
-      reason: >
-        check_retrieval_header.py is unchanged; header_index.py imports from it
-        without modification. Its own selftest continues to pass.
-  stale_language_search: >
-    rg -i -n "retrieval header|header_index|missing header" .agents
-  stale_language_search_result: >
-    Executed 2026-06-13 after adding header_index.py. Hits are in:
-    check_map_links.py (retrieval header mention, unrelated), check_retrieval_header.py
-    (canonical source, unchanged), header_index.py (new file, expected),
-    session_context_capsule.py (new capsule line, expected), README.md (hook table),
-    prompt-orchestration.md and retrieval-metadata.md (authority docs, unchanged),
-    source-loading.md (use_when reference, unchanged). No pre-existing stale
-    language; no checked surface required a new CA to block the gate or omit the
-    header requirement.
-  non_claims:
-    - not validation
-    - not readiness
-    - the gate's existence does not prove any artifact passes it
-    - not a kernel or jb change
-    - --strict passing for a PR does not prove the whole repo is header-complete
-```
-
-```yaml
-direction_change_propagation:
-  doctrine_changed: >
-    Incident-derived workflow hardening now separates patch correctness, GitHub
-    sandbox-egress classification, and validation-result bucket semantics: Codex/manual
-    patch misses stop-and-reread and require `git diff` hunk inspection before correctness
-    claims; `127.0.0.1:9` GitHub API failures are sandbox egress refusal, not repo/CI
-    failure; validation reports classify outputs as GATE PASS/FAIL, INFO/DEBT, or OUT
-    OF SCOPE, with unknown nonzero results failing closed.
-  trigger: workflow_authority
-  related_triggers:
-    - validation_philosophy
-  controlling_sources_updated:
-    - docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md
-    - .agents/workflow-overlay/validation-gates.md
-  downstream_surfaces_checked:
-    - AGENTS.md
-    - .agents/workflow-overlay/README.md
-    - .agents/workflow-overlay/decision-routing.md
-    - .github/workflows/ci.yml
+    - .agents/workflow-overlay/source-of-truth.md
+    - .claude/settings.json
     - .agents/hooks/check_map_links.py
-    - .agents/hooks/check_doc_terms.py
   intentionally_not_updated:
     - path: AGENTS.md
       reason: >
-        AGENTS.md already routes repo-changing lane work to the dev-workflow doctrine and
-        validation claims to the overlay; duplicating these scoped rules there would bloat
-        the shared instruction surface and create drift risk.
-    - path: .github/workflows/ci.yml
+        Already routes validation and enforcement-placement changes to this
+        overlay file; a kernel restatement would fork the owner.
+    - path: .agents/workflow-overlay/prompt-orchestration.md
       reason: >
-        No normalized validation wrapper is introduced yet. CI continues to run existing
-        individual gates directly; wrapper enforcement is deferred until there is a concrete
-        consumer.
+        Per the enforcement-placement principle a substrate-enforced rule is
+        not also carried as a resident instruction; prompt authors hit the CI
+        gate mechanically, and the existing worktree-preflight and
+        input-prompt-source rules already carry the judgment side (which
+        branch, which source) that stays resident.
+    - path: .claude/settings.json
+      reason: >
+        No PostToolUse wiring: the defect is a merge-topology property
+        (packet on a different unmerged branch), invisible at the write
+        boundary where the packet usually exists in the author's own tree;
+        the enforcing boundary is CI on the landing PR.
     - path: .agents/hooks/check_map_links.py
       reason: >
-        Existing strict/report modes already distinguish gate output from annotated debt;
-        the new bucket policy governs reporting and any future wrapper rather than changing
-        this checker.
-    - path: .agents/hooks/check_doc_terms.py
-      reason: >
-        Existing `--check` / `--report-orca` modes are report-only and exit 0; the new
-        bucket policy names them INFO/DEBT unless a future gate promotes them explicitly.
+        Its C1/C2/C4 checks gate map files, open_next headers, and inline
+        markdown links whole-corpus; the new gate covers prose/backtick
+        handoff pointers diff-scoped with pin/exemption vocabulary --
+        different scope and exemption grammar, kept as a sibling checker.
   stale_language_search: >
-    rg -n "git diff --check|127\\.0\\.0\\.1:9|GATE PASS|GATE FAIL|INFO|DEBT|OUT OF SCOPE|check_doc_terms|check_map_links"
-    AGENTS.md .agents docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md .github .agents/hooks
+    rg -in "handoff.*resolv|resolve.*handoff|unmerged.*handoff|check_handoff_pointers"
+    AGENTS.md .agents docs/workflows/orca_repo_map_v0.md
   stale_language_search_result: >
-    Executed 2026-06-20 during this patch. Existing and new hits are compatible: AGENTS.md already
-    routes to the owning doctrine/overlay; check_map_links and check_doc_terms document strict
-    versus report-only modes; ci.yml runs individual gates directly; no normalized wrapper consumer
-    exists today.
+    Executed 2026-07-03 after edits: hits are this gate's own rule text,
+    checker, README row, and registration surfaces, plus unrelated generic
+    mentions (the AGENTS.md jb-handoffs boundary sentence and skill-adoption
+    skill-name rows); no other surface carries a conflicting handoff-pointer
+    resolution rule.
   non_claims:
     - not validation
     - not readiness
-    - not a new hook or CI wrapper
-    - not a Claude Code edit-tool mandate
-    - the bucket policy does not prove any artifact passes a gate
+    - not packet content freshness, pin truth, or source-choice correctness
+    - not a courier-delivery guarantee for prompts that never land in the repo
+    - a green run is pointer shape only, never proof the right packet was cited
 ```
+
+Older receipts archived verbatim in `docs/decisions/dcp_receipts_archive_v0.md`.
