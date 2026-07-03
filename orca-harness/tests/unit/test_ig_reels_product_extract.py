@@ -444,6 +444,49 @@ def test_runner_surfaces_malformed_packet_asr_record_without_ack(tmp_path) -> No
     assert find_acks(data_root, raw_anchor=pid, ack_namespace=PRODUCT_MENTIONS_LANE) == []
 
 
+def test_runner_surfaces_unreadable_packet_asr_record_without_ack(tmp_path, monkeypatch) -> None:
+    # F1 also covers OSError (class-sweep follow-up from the YT-mirror adjudication,
+    # F-YT-001): the obligation snapshot must stay non-raising by fingerprinting the
+    # damage, while the actual transcript scan fails loud and blocks the ack.
+    data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    pid, asr_record_id = _commit_ig_audio_transcript(data_root)
+    asr_path = data_root.record_path(
+        subtree="derived",
+        raw_anchor=pid,
+        lane="transcript_asr",
+        record_id=asr_record_id,
+    )
+    real_read_bytes = Path.read_bytes
+
+    def maybe_raise_unreadable(path: Path) -> bytes:
+        if path == asr_path:
+            raise OSError("simulated unreadable ASR record")
+        return real_read_bytes(path)
+
+    monkeypatch.setattr(Path, "read_bytes", maybe_raise_unreadable)
+
+    obligation = ig_runner._packet_obligation(data_root, pid, "m")
+    assert obligation["asr_records"] == [[asr_record_id, "unreadable:OSError"]]
+
+    results = run_extraction(
+        data_root=data_root, transport=FakeTransport(_anthropic([_item()])),
+        provider=_PROVIDER, model="m", api_key="k",
+    )
+    assert len(results) == 1
+    assert results[0]["packet_id"] == pid
+    assert results[0]["status"] == "discovery_failed"
+    assert "unreadable" in results[0]["error"]
+    assert find_acks(data_root, raw_anchor=pid, ack_namespace=PRODUCT_MENTIONS_LANE) == []
+
+    second = run_extraction(
+        data_root=data_root, transport=FakeTransport(_anthropic([_item()])),
+        provider=_PROVIDER, model="m", api_key="k",
+    )
+    assert len(second) == 1
+    assert second[0]["status"] == "discovery_failed"
+    assert find_acks(data_root, raw_anchor=pid, ack_namespace=PRODUCT_MENTIONS_LANE) == []
+
+
 def test_rubric_version_grows_packet_obligation_without_llm_reextract(tmp_path, monkeypatch) -> None:
     data_root = DataLakeRoot.for_test(tmp_path / "lake")
     pid, _rid = _commit_ig_audio_transcript(data_root)
