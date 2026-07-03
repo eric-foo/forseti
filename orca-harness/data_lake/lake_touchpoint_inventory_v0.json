@@ -195,7 +195,7 @@
     {
       "a2_fork_impact": "none",
       "call": "lane_dir",
-      "count": 1,
+      "count": 2,
       "module": "runners/run_transcript_product_extract.py"
     },
     {
