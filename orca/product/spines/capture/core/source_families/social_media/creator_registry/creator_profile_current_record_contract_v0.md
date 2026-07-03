@@ -17,12 +17,14 @@ open_next:
   - orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_profile_current_view_spec_v0.md
   - orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_profile_current_lake_native_record_mapping_v0.md
   - orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_metric_silver_record_contract_v0.md
+  - orca/product/spines/creator_signal/creator_intelligence_profile_surface_v0.md
   - orca-harness/capture_spine/creator_profile_current/materialize.py
   - orca-harness/capture_spine/creator_profile_current/validation.py
 stale_if:
   - creator_profile_current_view_spec_v0.md changes the profile, metric rollup, or aggregate influence record shape.
   - creator_profile_current_view_v0.json changes current_metric_rollups metric keys or posture/value field names.
   - creator_metric_silver_record_contract_v0.md changes MetricRollupObservation posture or lineage semantics.
+  - creator_intelligence_profile_surface_v0.md changes customer-facing claim, limitation, missingness, freshness, non-claim, or source-drill-back display policy.
 ```
 
 ## Purpose
@@ -159,6 +161,14 @@ Consumers must surface or enforce these limitations before ranking, comparing,
 or summarizing creators. A metric with a large value and a thin/source-limited
 sample is still source-limited.
 
+A collapsed customer surface may summarize limitations, but the summary must
+carry every material missingness state that affects interpretation. If a
+metric in `current_metric_rollups` is `unavailable_with_reason`, `out_of_window`,
+`not_attempted`, or `not_applicable`, the customer surface must show that
+posture either adjacent to the metric or in an always-reachable
+limitations/missingness panel. Raw JSON-only posture is not enough for a
+customer-facing surface.
+
 ### non_claims
 
 `non_claims` is the hard negative promise panel. It names what the profile does
@@ -169,6 +179,11 @@ dashboard readiness, SQLite adoption, and data-lake physicalization.
 Consumers must not treat absent non-claim handling as permission to make the
 claim elsewhere. If a downstream surface wants to make one of these claims, it
 needs its own controlling source and proof.
+
+`non_claims` may be collapsed behind a claim-boundaries/details affordance, but
+it must not be omitted. A customer-facing surface that presents profile metrics,
+summaries, ranking inputs, or outreach-adjacent interpretation must make
+`non_claims` reachable before the customer relies on that interpretation.
 
 ### Nullable Or Stubbed Surfaces
 
@@ -191,6 +206,31 @@ The current materializer reads platform account identity rows and platform
 metric rollup snapshots, then copies the allowed rollup payload into
 `current_metric_rollups`. It does not compute global longitudinal stats inside
 the registry read model.
+
+### Progressive Disclosure Boundary
+
+This contract permits a clean first screen only as progressive disclosure, not
+as omission. A downstream single-profile customer surface may keep full
+`limitations`, `non_claims`, `source_drill_back`, formulas, and source row
+pointers in a details panel when all of these are true:
+
+- the primary surface keeps visible trust posture for every metric or summary it
+  shows, including freshness, sample/representativeness, and non-observed
+  metric posture when material;
+- the details panel exposes full `limitations`, `non_claims`, `source_drill_back`,
+  calculation recipe/version, and lineage before ranking, comparison,
+  shortlisting, outreach-adjacent interpretation, or any stronger product claim;
+- `not_attempted`, `unavailable_with_reason`, `out_of_window`, and
+  `not_applicable` values remain null-with-reason and are not displayed as zero,
+  ranked, averaged, or converted into a comparable score; and
+- claim-boundary cues are available from the start, even when the full text is
+  collapsed.
+
+This contract does not define a multi-creator ranking, grid, shortlist, lead
+list, or outreach workflow. Those surfaces require a separate accepted Creator
+Signal or successor display contract before implementation. Until then, this
+contract authorizes only per-profile interpretation plus manually checked
+comparisons that satisfy the rules below.
 
 ### Posture And Value Coupling
 
@@ -346,6 +386,12 @@ registry read model may copy the observed numeric value into the existing field.
 
 If the recipe changes, update the rollup `calculation_recipe_version` and
 recheck consumer compatibility before comparing old and new values.
+
+While `posting_cadence` or `recent_velocity` remain `not_attempted`, a customer
+surface that shows aggregate influence must expose that declared-deferred state
+either beside the metric family or in the limitations/missingness panel. A
+formula or field name alone must not imply the value is populated, formula-ready
+for ranking, or expected to be treated as zero.
 
 ## Accepted Residuals
 
