@@ -22,12 +22,18 @@ from data_lake.attachment_record_entry import (
     serialize_entries,
     serialize_entry,
 )
-from data_lake.catalog import rebuild_catalog, source_surface_catalog_rows
+from data_lake.catalog import (
+    BRONZE_CATALOG_SCHEMA_VERSION,
+    BRONZE_CATALOG_VERSION,
+    rebuild_catalog,
+    source_surface_catalog_rows,
+)
 from data_lake.root import DataLakeRoot, DataLakeRootError
 from source_capture.models import known_fact
 from source_capture.writer import write_local_source_capture_packet
 
 _CATALOG_ONLY_KEYS = {"authority", "catalog_version", "catalog_schema_version", "stable_query_paths"}
+_CATALOG_REPLAY_PIN_KEYS = {"catalog_schema_version"}
 
 
 def _capture(root: DataLakeRoot, tmp_path: Path, body: str):
@@ -52,6 +58,24 @@ def _canonical_projection(row: dict) -> dict:
     pins.pop("catalog_schema_version", None)
     canonical["replay_version_pins"] = pins
     return canonical
+
+
+def _assert_row_is_canonical_plus_catalog_decorations(row: dict, canonical: dict) -> None:
+    assert set(row) == set(canonical) | _CATALOG_ONLY_KEYS
+    assert row["catalog_version"] == BRONZE_CATALOG_VERSION
+    assert row["catalog_schema_version"] == BRONZE_CATALOG_SCHEMA_VERSION
+    assert isinstance(row["authority"], str) and row["authority"]
+    stable_query_paths = row["stable_query_paths"]
+    assert set(stable_query_paths) == {"by_attachment_record", "by_packet"}
+    assert stable_query_paths["by_attachment_record"] == (
+        f"attachment_records/by_attachment_record/{row['attachment_record_id']}.json"
+    )
+    assert stable_query_paths["by_packet"].startswith("attachment_records/by_packet/")
+    assert stable_query_paths["by_packet"].endswith(".jsonl")
+    row_pins = row["replay_version_pins"]
+    canonical_pins = canonical["replay_version_pins"]
+    assert set(row_pins) == set(canonical_pins) | _CATALOG_REPLAY_PIN_KEYS
+    assert row_pins["catalog_schema_version"] == BRONZE_CATALOG_SCHEMA_VERSION
 
 
 def test_every_entry_carries_the_ratified_version_pins(tmp_path: Path) -> None:
@@ -93,11 +117,19 @@ def test_by_key_derivation_equals_canonical_part_of_catalog_rows(tmp_path: Path)
     rows = source_surface_catalog_rows(
         root, source_family="reddit", source_surface="r/EntrySerializer"
     )["attachment_record_rows"]
+    derived_entries = derive_entries_by_key(root, packet_id)
+    derived_by_id = {entry["attachment_record_id"]: entry for entry in derived_entries}
+    rows_by_id = {
+        row["attachment_record_id"]: row for row in rows if row["packet_id"] == packet_id
+    }
+    assert set(rows_by_id) == set(derived_by_id)
+    for record_id, row in rows_by_id.items():
+        _assert_row_is_canonical_plus_catalog_decorations(row, derived_by_id[record_id])
     materialized_canonical = serialize_entries(
-        [_canonical_projection(row) for row in rows if row["packet_id"] == packet_id]
+        [_canonical_projection(rows_by_id[record_id]) for record_id in sorted(rows_by_id)]
     )
 
-    derived = serialize_entries(derive_entries_by_key(root, packet_id))
+    derived = serialize_entries([derived_by_id[record_id] for record_id in sorted(derived_by_id)])
 
     assert derived == materialized_canonical, (
         "the materialized catalog row must be exactly the canonical entry plus "
