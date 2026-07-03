@@ -138,3 +138,27 @@ signals only because final triage still saw the slider marker. They were not
 admitted as a capture row. A forbidden-marker scan over the output directory had
 only the expected contract strings `cookies_or_tokens_persisted=false`; no raw
 cookie/token/signed-URL marker was observed.
+
+## 2026-07-03 Sequence-Gated Follow-Through Rerun
+
+A later visible logged-out probe was run after the pointer-sequence gate and
+receipt-label fixes:
+
+- output_dir: `orca-harness\_scratch\tiktok_observe_one_sequence_gate_20260703_03\funmimonet_7629774409762442526`
+- observed_utc: `2026-07-03T12:58:49Z`
+- run_complete_utc: `2026-07-03T12:59:08Z`
+- outcome: `attempted_count=1`, `completed_count=0`, `challenge_count=1`, `results=[]`
+- stop_reason: `challenge_x_click_attempted_close_not_accepted`
+- `challenge_close_action.action_name=tiktok_challenge_modal_visual_close_followthrough_pointer_v0`
+- `challenge_close_action.clicked=true`
+- `challenge_close_action.click_point={"x":800.706,"y":200.024}`
+- `challenge_close_action.post_click_visual_candidate_count=3`
+- `challenge_close_action.post_click_visual_target_absent=false`
+- `challenge_close_accepted=false`
+- `matched_comment_response_count=0`
+- `admitted_comment_response_count=0`
+
+This is the current receipt shape future runs should expect when TikTok does not
+accept the X close: the visual X click is recorded, the remaining visual-X
+candidates fail close acceptance, no `challenge_close_followthrough=true` field is
+carried, and the stopped close action is not mislabeled as `comment_action`.

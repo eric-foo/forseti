@@ -1135,6 +1135,86 @@ def test_playwright_page_observation_runs_pointer_action_sequence_before_dom(
     assert event_log.count("mouse_click") == 2
     assert event_log.index("wait:2000") < event_log.index("inner_text")
     assert event_log.index("dom_extract") < event_log.index("response_text")
+
+
+def test_playwright_page_observation_stops_pointer_sequence_on_failed_post_click_verification(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    event_log: list[str] = []
+    page = _FakeObservationPage(
+        event_log,
+        pointer_targets=[
+            {
+                "candidate_count": 1,
+                "matched_count": 1,
+                "target_found": True,
+                "target_kind": "button",
+                "page_text_gate_matched": True,
+                "box": {"x": 10, "y": 20, "width": 100, "height": 50},
+            },
+            {
+                "candidate_count": 5,
+                "matched_count": 2,
+                "target_found": True,
+                "target_kind": "button",
+                "box": {"x": 30, "y": 40, "width": 120, "height": 60},
+            },
+        ],
+        screenshot_png=_visual_x_screenshot_png(),
+        post_click_absence_result={
+            "checked": True,
+            "marker_count": 1,
+            "absent": True,
+            "matched_marker": None,
+        },
+    )
+    _install_fake_playwright(monkeypatch, page)
+
+    result = browser_snapshot_module._PlaywrightBrowserSnapshotEngine().capture_page_observation(
+        url="https://example.com/source",
+        timeout_seconds=1,
+        wait_until="load",
+        viewport_width=1280,
+        viewport_height=720,
+        dom_extract_script="() => ({items: []})",
+        dom_extract_arg={},
+        response_url_predicate=lambda url: "widget" in url,
+        post_load_pointer_actions=(
+            BrowserPagePointerAction(
+                action_name="challenge_close",
+                candidate_selector="button",
+                text_markers=("close",),
+                page_text_markers=("drag the slider",),
+                post_click_absent_text_markers=("drag the slider",),
+                post_click_visual_target_absence_check=True,
+                stop_sequence_on_failed_post_click_verification=True,
+                wait_after_ms=1000,
+                move_steps_min=3,
+                move_steps_max=3,
+                random_seed=11,
+            ),
+            BrowserPagePointerAction(
+                action_name="reopen_comments",
+                candidate_selector="button",
+                text_markers=("comments",),
+                wait_after_ms=2000,
+                move_steps_min=4,
+                move_steps_max=4,
+                random_seed=12,
+            ),
+        ),
+    )
+
+    receipts = result.metadata["post_load_pointer_actions"]
+    assert isinstance(receipts, list)
+    assert [receipt["action_name"] for receipt in receipts] == ["challenge_close"]
+    assert receipts[0]["clicked"] is True
+    assert receipts[0]["post_click_absence_verified"] is True
+    assert receipts[0]["post_click_visual_target_absent"] is False
+    assert event_log.count("pointer_target_lookup") == 1
+    assert event_log.count("mouse_click") == 1
+    assert result.metadata["post_load_pointer_action"] == receipts[-1]
+
 def test_playwright_page_observation_records_pointer_no_target_without_click(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

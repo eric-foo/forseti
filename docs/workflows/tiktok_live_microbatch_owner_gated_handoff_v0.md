@@ -161,8 +161,9 @@ The only live-run fork is whether to proceed past the first creator/video:
   named UI movement substrate, require `challenge_close_accepted=true` from
   post-click text absence, no post-click visual-X candidates, and no final challenge/security
   triage marker, require at least one page-owned
-  `/api/comment/list` response or bounded DOM-visible comment candidate, and
-  preserve the accepted close action as a source-access intervention. Diagnostic
+  `/api/comment/list` response or bounded DOM-visible comment candidate, stop
+  before comment-route actions when close verification fails, and preserve the
+  accepted close action as a source-access intervention. Diagnostic
   close mode remains
   stop-only and cannot admit, expand, or count as a completed capture row.
 - Do not use a personal TikTok account. This lane assumes a dedicated,

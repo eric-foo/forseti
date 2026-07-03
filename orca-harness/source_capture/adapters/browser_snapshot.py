@@ -45,6 +45,7 @@ class BrowserPagePointerAction:
     visual_x_target_zone: str = "top_right"
     post_click_absent_text_markers: tuple[str, ...] = ()
     post_click_visual_target_absence_check: bool = False
+    stop_sequence_on_failed_post_click_verification: bool = False
     random_seed: int = 0
 
 
@@ -790,6 +791,8 @@ class _PlaywrightBrowserSnapshotEngine:
                     for pointer_action in post_load_pointer_actions:
                         pointer_action_receipt = _run_pointer_action(page, pointer_action)
                         pointer_action_receipts.append(pointer_action_receipt)
+                        if _should_stop_pointer_action_sequence(pointer_action, pointer_action_receipt):
+                            break
                     try:
                         visible_text = page.locator("body").inner_text(timeout=timeout_ms)
                     except Exception as exc:
@@ -1265,6 +1268,9 @@ def _normalize_pointer_action(
         post_click_visual_target_absence_check=bool(
             action.post_click_visual_target_absence_check
         ),
+        stop_sequence_on_failed_post_click_verification=bool(
+            action.stop_sequence_on_failed_post_click_verification
+        ),
         random_seed=int(action.random_seed),
     )
 
@@ -1576,6 +1582,31 @@ def _post_click_visual_absence_result(
         result["post_click_visual_failure"] = failure
     return result
 
+
+def _post_click_verification_accepted(receipt: dict[str, object]) -> bool:
+    verification_values = [
+        value
+        for value in (
+            receipt.get("post_click_absence_verified"),
+            receipt.get("post_click_visual_target_absent"),
+        )
+        if isinstance(value, bool)
+    ]
+    return bool(verification_values) and all(verification_values)
+
+
+def _should_stop_pointer_action_sequence(
+    action: BrowserPagePointerAction,
+    receipt: dict[str, object],
+) -> bool:
+    if not action.stop_sequence_on_failed_post_click_verification:
+        return False
+    clicked = receipt.get("clicked") is True
+    if receipt.get("page_text_gate_matched") is False and not clicked:
+        return False
+    if not clicked:
+        return True
+    return not _post_click_verification_accepted(receipt)
 
 def _run_pointer_action(page: object, action: BrowserPagePointerAction) -> dict[str, object]:
     receipt: dict[str, object] = {

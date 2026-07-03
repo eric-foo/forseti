@@ -59,8 +59,9 @@ the close was accepted (`challenge_close_accepted=true` from challenge-text
 absence, no centered post-click visual-X candidates, and no final challenge/security marker) and
 either a page-owned `/api/comment/list` response or bounded
 DOM-visible comment candidates are captured after the named comments -> `More
-like this` -> comments route; preserve the accepted close action as a
-source-access intervention; and never call the route unchallenged clean capture.
+like this` -> comments route; failed close verification stops before comment-route
+actions and must not be labeled `comment_action`; preserve the accepted close
+action as a source-access intervention; and never call the route unchallenged clean capture.
 DOM-visible comments are lower-tier `captured_visible_dom` evidence, not
 page-owned response evidence.
 

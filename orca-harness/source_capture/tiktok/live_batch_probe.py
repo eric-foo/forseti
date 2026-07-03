@@ -433,7 +433,7 @@ def run_tiktok_live_batch_probe(
                                 "action_taken": True,
                             },
                             challenge_close_action,
-                            challenge_close_followthrough=True,
+                            challenge_close_followthrough=False,
                             challenge_close_accepted=False,
                         ),
                         capture_result,
@@ -710,7 +710,9 @@ def _with_comment_route_observation(
         response_cap=comment_response_cap,
     )
     receipt["benign_overlay_action"] = _benign_overlay_action_summary(capture_result)
-    receipt["comment_action"] = _comment_action_summary(capture_result)
+    comment_action = _comment_action_summary(capture_result)
+    if comment_action:
+        receipt["comment_action"] = comment_action
     receipt["response_count"] = len(capture_result.responses)
     receipt["matched_comment_response_count"] = sum(
         1
@@ -928,6 +930,7 @@ def _tiktok_challenge_visual_close_followthrough_pointer_action(
         random_seed=random_seed,
         action_name=TIKTOK_CHALLENGE_VISUAL_CLOSE_FOLLOWTHROUGH_POINTER_ACTION_NAME,
         require_visible_challenge_text=False,
+        stop_sequence_on_failed_post_click_verification=True,
     )
 
 
@@ -937,6 +940,7 @@ def _tiktok_challenge_visual_close_pointer_action(
     random_seed: int | None,
     action_name: str,
     require_visible_challenge_text: bool = True,
+    stop_sequence_on_failed_post_click_verification: bool = False,
 ) -> BrowserPagePointerAction:
     return BrowserPagePointerAction(
         action_name=action_name,
@@ -959,6 +963,9 @@ def _tiktok_challenge_visual_close_pointer_action(
         visual_x_target_zone="center_modal",
         post_click_absent_text_markers=TIKTOK_CHALLENGE_TEXT_MARKERS,
         post_click_visual_target_absence_check=True,
+        stop_sequence_on_failed_post_click_verification=(
+            stop_sequence_on_failed_post_click_verification
+        ),
         random_seed=_stable_pointer_seed(
             video_id=video_id,
             random_seed=random_seed,
@@ -1207,6 +1214,8 @@ def _comment_action_summary(capture_result: BrowserPageObservationSuccess) -> Js
         }
     if len(action_sequence) == 1:
         return action_sequence[0]
+    if _as_list(metadata.get("post_load_pointer_actions")):
+        return {}
 
     action = _as_dict(metadata.get("post_load_pointer_action"))
     if action:
