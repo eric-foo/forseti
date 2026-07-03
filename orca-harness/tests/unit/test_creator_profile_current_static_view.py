@@ -178,7 +178,7 @@ def test_creator_profile_current_counts_and_boundaries() -> None:
         "creator_record_profiles": 0,
         "profiles_with_metric_rollups": 33,
         "profiles_with_ideal_audience_profiles": 0,
-        "engagement_rate_observed_profiles": 3,
+        "engagement_rate_observed_profiles": 31,
         "cross_platform_rollup_profiles": 0,
     }
     assert {profile["platform_accounts"][0]["platform"] for profile in view["profiles"]} == {"youtube", "instagram"}
@@ -202,12 +202,21 @@ def test_creator_profile_current_counts_and_boundaries() -> None:
         assert rollup["metric_rollups"]["median_views"]["posture"] == "observed"
         assert rollup["sample_support"]["representativeness_posture"] == "admitted_pool_only_not_representative_creator_average"
         assert any("not a representative creator average" in item for item in rollup["limitations"])
+        # Engagement rate is posture/value coupled on every platform: observed
+        # carries a numeric value, anything else carries null plus a reason.
+        # (YT flipped to observed at cycle 2 via the watch-packet badge route;
+        # platform-frozen pins here broke on every honest data refresh.)
+        engagement_rate = rollup["metric_rollups"]["engagement_rate"]
+        assert engagement_rate["posture"] in {"observed", "unavailable_with_reason"}
+        if engagement_rate["posture"] == "observed":
+            assert isinstance(engagement_rate["value_or_none"], (int, float))
+        else:
+            assert engagement_rate["value_or_none"] is None
+            assert engagement_rate["posture_reason_or_none"]
         if platform == "instagram":
-            assert rollup["metric_rollups"]["engagement_rate"]["posture"] == "observed"
+            assert engagement_rate["posture"] == "observed"
             assert rollup["metric_rollups"]["average_like_count"]["posture"] == "observed"
             assert rollup["metric_rollups"]["average_comment_count"]["posture"] == "observed"
-        else:
-            assert rollup["metric_rollups"]["engagement_rate"]["posture"] == "unavailable_with_reason"
 
 
 def test_creator_profile_current_rebuilds_from_identity_and_metric_seeds() -> None:
@@ -328,7 +337,11 @@ def test_creator_profile_current_does_not_smuggle_forbidden_scope() -> None:
 def test_creator_profile_validator_rejects_non_observed_metric_zero_fill() -> None:
     document = _bad_view_document()
     rollup = document["creator_profile_current_view"]["profiles"][0]["current_metric_rollups"][0]
-    rollup["metric_rollups"]["engagement_rate"]["value_or_none"] = 0
+    # posting_cadence is not_attempted by recipe construction on every rollup,
+    # so this stays a non-observed target across honest data refreshes
+    # (engagement_rate stopped being one when YT turned observed at cycle 2).
+    assert rollup["metric_rollups"]["posting_cadence"]["posture"] != "observed"
+    rollup["metric_rollups"]["posting_cadence"]["value_or_none"] = 0
 
     _assert_validation_code(document, "metric_value_for_non_observed_posture")
 
