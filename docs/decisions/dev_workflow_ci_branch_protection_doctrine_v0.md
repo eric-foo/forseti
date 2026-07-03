@@ -2,10 +2,10 @@
 
 ```yaml
 retrieval_header_version: 1
-artifact_role: Orca decision record
-scope: Orca developer-workflow doctrine — CI test gate, branch protection on main, per-lane PR flow, auto-merge, and rebase cadence.
+artifact_role: Forseti decision record
+scope: Forseti developer-workflow doctrine — CI test gate, branch protection on main, per-lane PR flow, auto-merge, and rebase cadence.
 use_when:
-  - Opening, merging, or gating a change to Orca's main branch.
+  - Opening, merging, or gating a change to Forseti's main branch.
   - Setting up or changing CI, branch protection, or the per-lane PR workflow.
   - Onboarding a new lane or worktree to the merge process.
 authority_boundary: retrieval_only
@@ -353,7 +353,7 @@ re-derivable and is re-run by CI on every PR; it is not a self-asserted pass.
 
 ## Explicitly not chosen
 
-- **Version matrix** — single supported target (Python 3.12); revisit if Orca supports more runtimes.
+- **Version matrix** — single supported target (Python 3.12); revisit if Forseti supports more runtimes.
 - **Path-filter** — would risk a stuck required check on docs-only PRs.
 - **Dependency caching** — install plus a ~30s suite is fast enough; add only if runs slow.
 - **Extras in CI** — the suite is green without them; if a future lane legitimately needs an extra to
