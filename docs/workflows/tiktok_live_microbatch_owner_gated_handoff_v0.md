@@ -159,7 +159,7 @@ The only live-run fork is whether to proceed past the first creator/video:
   path is the explicit owner-authorized
   `--allow-challenge-close-followthrough` route: attempt X/Close through the
   named UI movement substrate, require `challenge_close_accepted=true` from
-  post-click text and visual-X absence checks plus no final challenge/security
+  post-click text absence, no post-click visual-X candidates, and no final challenge/security
   triage marker, require at least one page-owned
   `/api/comment/list` response or bounded DOM-visible comment candidate, and
   preserve the accepted close action as a source-access intervention. Diagnostic
@@ -458,7 +458,7 @@ challenge-close diagnostic click remains diagnostic only and cannot satisfy the
 clean route-yield/admission gate. This proves a visual-X target can be found and
 a pointer click can be delivered under the challenge-text gate; it does not prove
 that TikTok accepted the close, because accepted close now requires post-click
-text and visual-X absence proof.
+text absence, no post-click visual-X candidates, and final-triage proof.
 
 
 ## Changed / Inspected / Tested Files In This Handoff Lane

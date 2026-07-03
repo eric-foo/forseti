@@ -119,15 +119,17 @@ The runner did press the centered modal X:
 - `target_box={"x":792.32,"y":187.2,"width":23.04,"height":21.6}`
 - `click_point={"x":800.706,"y":200.024}`
 - `post_click_absence_verified=true`
-- `post_click_visual_target_absent=true`
+- `post_click_visual_target_absent=true` (historical weak check; current code requires `post_click_visual_candidate_count=0`)
+- `post_click_visual_candidate_count=4`
 
 However, the final blocker triage still reported
 `matched_marker=drag the slider`. That means this rerun proves pointer delivery
-to the intended X and immediate action-level clearing checks, but it does not
-prove an admissible accepted close. The scratch receipt itself was written before
-the follow-up code patch and contains `challenge_close_accepted=true`; treat that
-field as a historical overclaim for this run. Current code now fails this state
-closed: if final triage still sees challenge/security text,
+to the intended X, but it does not prove the modal closed or that TikTok accepted
+the close. The scratch receipt itself was written before the follow-up code patches
+and contains historical overclaims: `challenge_close_accepted=true` and
+`post_click_visual_target_absent=true` despite remaining post-click visual-X
+candidates. Current code now fails this state closed: if post-click visual-X
+candidates remain or final triage still sees challenge/security text,
 `challenge_close_accepted=false` and no completed capture row can be admitted.
 
 The same receipt observed `matched_comment_response_count=1` and

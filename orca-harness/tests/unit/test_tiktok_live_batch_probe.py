@@ -589,6 +589,7 @@ def test_live_probe_challenge_close_followthrough_admits_post_close_comments(
             "post_click_visual_check_attempted": True,
             "post_click_visual_target_found": False,
             "post_click_visual_target_absent": True,
+            "post_click_visual_candidate_count": 0,
             "post_click_visual_screenshot_sha256": "c" * 64,
         }
     )
@@ -718,8 +719,9 @@ def test_live_probe_challenge_close_followthrough_stops_if_close_not_accepted(
             "post_click_absence_marker_count": 4,
             "post_click_absence_verified": True,
             "post_click_visual_check_attempted": True,
-            "post_click_visual_target_found": True,
+            "post_click_visual_target_found": False,
             "post_click_visual_target_absent": False,
+            "post_click_visual_candidate_count": 4,
             "post_click_visual_screenshot_sha256": "d" * 64,
         }
     )
@@ -765,6 +767,7 @@ def test_live_probe_challenge_close_followthrough_stops_if_close_not_accepted(
     triage = failure["blocker_triage"]
     assert triage["challenge_close_action"]["clicked"] is True
     assert triage["challenge_close_action"]["post_click_absence_verified"] is True
+    assert triage["challenge_close_action"]["post_click_visual_candidate_count"] == 4
     assert triage["challenge_close_action"]["post_click_visual_target_absent"] is False
     assert triage["challenge_close_accepted"] is False
     assert triage["matched_comment_response_count"] == 1
@@ -788,7 +791,8 @@ def test_live_probe_challenge_close_followthrough_stops_if_challenge_remains(
             "post_click_absence_verified": True,
             "post_click_visual_check_attempted": True,
             "post_click_visual_target_found": False,
-            "post_click_visual_target_absent": True,
+            "post_click_visual_target_absent": False,
+            "post_click_visual_candidate_count": 4,
         }
     )
     pointer_sequence = [

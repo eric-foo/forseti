@@ -52,10 +52,11 @@ may attempt the X/Close control, then attempt the page-owned comment route only
 if post-click verification proves the close was accepted. `clicked=true` means
 only that a pointer click was delivered; accepted follow-through requires
 challenge/security text absence and centered visual-X absence on the action-level
-after-click receipt, and final blocker triage must still report no
+after-click receipt, with `post_click_visual_target_absent=true` only when no
+post-click visual X candidates remain. Final blocker triage must still report no
 challenge/security marker. If final triage still sees `drag the slider`, `verify
 to continue`, `captcha`, or equivalent challenge/security text,
-`challenge_close_accepted=false` even when immediate post-click fields are true.
+`challenge_close_accepted=false` even when earlier click-delivery fields are true.
 This is not CAPTCHA solving, not puzzle dragging, and not an unchallenged clean
 route. It is an owner-authorized source-access intervention
 that must be preserved in the receipt and batch payload. Continue only if the
@@ -204,13 +205,15 @@ For challenge-close diagnostics:
   `target_box`, `click_point`
 - close-acceptance fields: `challenge_close_accepted`,
   `post_click_absence_verified`, `post_click_absence_matched_marker`,
-  `post_click_visual_target_absent`, `post_click_visual_screenshot_sha256`
+  `post_click_visual_target_absent`, `post_click_visual_candidate_count`,
+  `post_click_visual_screenshot_sha256`
 
 A clicked diagnostic receipt is evidence that a pointer click was delivered to a
 candidate close target; it is not capture success and does not prove the modal
 closed. A follow-through receipt is admissible only when the action-level post-click
-checks prove the challenge text and centered visual-X cleared and final blocker
-triage still reports no challenge/security marker (`challenge_close_accepted=true`).
+checks prove the challenge text cleared and no centered visual-X candidates remain,
+and final blocker triage still reports no challenge/security marker
+(`challenge_close_accepted=true`).
 The capture claim then comes only from post-close page-owned comment response
 evidence or lower-tier DOM-visible comment fallback evidence in the sanitized
 admission payload. For the current TikTok slider/challenge X, close-targeting is

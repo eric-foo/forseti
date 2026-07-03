@@ -1548,14 +1548,17 @@ def _post_click_visual_absence_result(
     )
     target_found = bool(visual_target.get("target_found"))
     failure = visual_target.get("visual_fallback_failure")
+    candidate_count = _safe_int(
+        visual_target.get("visual_fallback_candidate_count"),
+        default=-1,
+    )
     result: dict[str, object] = {
         "post_click_visual_check_attempted": True,
         "post_click_visual_target_found": target_found,
-        "post_click_visual_target_absent": (not target_found and failure is None),
-        "post_click_visual_candidate_count": _safe_int(
-            visual_target.get("visual_fallback_candidate_count"),
-            default=0,
+        "post_click_visual_target_absent": (
+            not target_found and failure is None and candidate_count == 0
         ),
+        "post_click_visual_candidate_count": candidate_count,
     }
     confidence = visual_target.get("visual_fallback_confidence")
     if confidence is not None:
