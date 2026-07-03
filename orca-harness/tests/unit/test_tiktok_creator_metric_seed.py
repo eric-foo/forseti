@@ -4,12 +4,12 @@ Fixture packets are committed through the REAL packet-assembly writer
 (``stage_and_write_packet``) into ``DataLakeRoot.for_test`` so the builder's
 verified by-key reads (manifest sha256s, preserved-file ids) are exercised
 end-to-end, while the preserved ``tiktok_batch_capture.json`` payload stays
-under direct test control -- required because the batch writer's
-``_normalize_stats`` zero-fills missing stats keys at write time, and the gap /
-non-integer fail-closed cases need payloads the writer would never emit. The
-happy-path video shape mirrors the real funmimonet lake packet
-(videos[].video_id/stats with exact playCount/diggCount/commentCount/
-shareCount/collectCount integers).
+under direct test control -- direct control lets the gap / non-integer
+fail-closed cases use exact payload shapes. The batch writer omits absent stats
+(it never zero-fills), so the end-to-end writer -> seed no-zero-fill path is
+covered in ``test_tiktok_batch_admission.py``. The happy-path video shape
+mirrors the real funmimonet lake packet (videos[].video_id/stats with exact
+playCount/diggCount/commentCount/shareCount/collectCount integers).
 """
 from __future__ import annotations
 

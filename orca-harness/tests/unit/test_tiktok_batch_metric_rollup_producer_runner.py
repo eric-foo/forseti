@@ -290,3 +290,30 @@ def test_producer_fails_closed_on_unmapped_captured_handle(tmp_path: Path) -> No
             account_id_by_handle={"scentwithbee": "acct_tt_scentwithbee"},
             generated_at_utc=RUN_T1,
         )
+
+
+# -- account-map identity fence: duplicate ledger handles must not overwrite ----
+
+def test_resolve_account_map_rejects_conflicting_ledger_rows() -> None:
+    # Two ledger rows normalizing to the same handle but different account ids
+    # must fail closed -- a duplicate ledger entry must never silently pick the
+    # later row and stamp durable Silver records with the wrong identity.
+    ledger = {
+        "platform_accounts": [
+            {"platform_account_id": "acct_tt_first", "platform": "tiktok", "public_handle": "@FunmiMonet"},
+            {"platform_account_id": "acct_tt_second", "platform": "tiktok", "public_handle": "funmimonet"},
+        ]
+    }
+    with pytest.raises(ValueError, match="two tiktok accounts for @funmimonet"):
+        resolve_account_map(None, ledger)
+
+
+def test_resolve_account_map_allows_idempotent_duplicate_ledger_rows() -> None:
+    # Same handle, same account id across rows is not a conflict.
+    ledger = {
+        "platform_accounts": [
+            {"platform_account_id": "acct_tt_funmimonet", "platform": "tiktok", "public_handle": "@FunmiMonet"},
+            {"platform_account_id": "acct_tt_funmimonet", "platform": "tiktok", "public_handle": "funmimonet"},
+        ]
+    }
+    assert resolve_account_map(None, ledger) == {"funmimonet": "acct_tt_funmimonet"}

@@ -355,16 +355,32 @@ def _recompute_tiktok(
     metrics: Mapping[str, Any],
     rows: list[_SourceRow],
 ) -> list[str]:
+    # Mirror the producer's recipe EXACTLY: every rollup metric (views,
+    # like/comment averages, engagement) is computed over complete-input videos
+    # only -- a video with all three of view/like/comment observed. Group by
+    # content_id and keep only complete groups; equal per-metric COUNTS are not
+    # enough (view from video A + like from video B + comment from video A gives
+    # 1/1/1 but no complete video), so a count-only check would validate a
+    # mixed-subset rollup.
     failures: list[str] = []
-    views = [row.value for row in rows if row.metric_name == "view_count"]
-    likes = [row.value for row in rows if row.metric_name == "like_count"]
-    comments = [row.value for row in rows if row.metric_name == "total_comment_count"]
-    if not (len(views) == len(likes) == len(comments)) or not views:
+    by_content: dict[str, dict[str, Any]] = {}
+    for row in rows:
+        if row.value is not None:
+            by_content.setdefault(row.content_id, {})[row.metric_name] = row.value
+    complete = [
+        values
+        for values in by_content.values()
+        if all(name in values for name in ("view_count", "like_count", "total_comment_count"))
+    ]
+    if not complete:
         failures.append(
-            "TikTok recipe requires complete video trios: "
-            f"views={len(views)}, likes={len(likes)}, comments={len(comments)}"
+            "TikTok recipe requires at least one complete video trio "
+            "(view_count + like_count + total_comment_count observed for the same content_id)"
         )
         return failures
+    views = [values["view_count"] for values in complete]
+    likes = [values["like_count"] for values in complete]
+    comments = [values["total_comment_count"] for values in complete]
     failures.extend(_check_view_stats(observation, metrics, views))
     failures.extend(_check_observed(metrics, "average_like_count", round(statistics.mean(likes), 2)))
     failures.extend(

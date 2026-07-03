@@ -126,7 +126,16 @@ def resolve_account_map(
                 raise ValueError(
                     f"ledger tiktok account for @{handle} must carry platform_account_id"
                 )
-            mapping[handle.strip().lstrip("@").casefold()] = account_id.strip()
+            key = handle.strip().lstrip("@").casefold()
+            account_id = account_id.strip()
+            existing = mapping.get(key)
+            if existing is not None and existing != account_id:
+                raise ValueError(
+                    f"ledger has two tiktok accounts for @{handle} ({existing!r} and "
+                    f"{account_id!r}); an ambiguous identity mapping must be resolved in the "
+                    "ledger, not picked silently"
+                )
+            mapping[key] = account_id
 
     for entry in cli_entries or []:
         handle, separator, account_id = entry.partition("=")
