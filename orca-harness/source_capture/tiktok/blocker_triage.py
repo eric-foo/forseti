@@ -63,6 +63,7 @@ class TikTokBlockerTriage:
     dismiss_candidate_count: int = 0
     reload_candidate_count: int = 0
     marker_family: str | None = None
+    matched_marker: str | None = None
 
     def to_receipt(self) -> dict[str, object]:
         receipt: dict[str, object] = {
@@ -79,6 +80,8 @@ class TikTokBlockerTriage:
             receipt["item_struct_present"] = self.item_struct_present
         if self.marker_family is not None:
             receipt["marker_family"] = self.marker_family
+        if self.matched_marker is not None:
+            receipt["matched_marker"] = self.matched_marker
         return receipt
 
 
@@ -127,8 +130,10 @@ def classify_tiktok_blocker(
             dismiss_candidate_count=dismiss_count,
             reload_candidate_count=reload_count,
             marker_family="login_or_auth_wall",
+            matched_marker="/login",
         )
-    if _contains_any(haystack, _CHALLENGE_MARKERS):
+    challenge_marker = _first_contained_marker(haystack, _CHALLENGE_MARKERS)
+    if challenge_marker is not None:
         return TikTokBlockerTriage(
             blocker_class=TIKTOK_BLOCKER_CLASS_CHALLENGE_OR_SECURITY,
             action=TIKTOK_BLOCKER_ACTION_STOP,
@@ -139,6 +144,7 @@ def classify_tiktok_blocker(
             dismiss_candidate_count=dismiss_count,
             reload_candidate_count=reload_count,
             marker_family="challenge_or_security",
+            matched_marker=challenge_marker,
         )
 
     reload_marker_seen = _contains_any(haystack, _RELOAD_MARKERS) or reload_count > 0
@@ -212,7 +218,14 @@ def classify_tiktok_blocker(
 
 
 def _contains_any(text: str, markers: tuple[str, ...]) -> bool:
-    return any(marker in text for marker in markers)
+    return _first_contained_marker(text, markers) is not None
+
+
+def _first_contained_marker(text: str, markers: tuple[str, ...]) -> str | None:
+    for marker in markers:
+        if marker in text:
+            return marker
+    return None
 
 
 def _as_dict(value: Any) -> dict[str, Any]:

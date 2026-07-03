@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import io
 import random
+from hashlib import sha256
 from dataclasses import dataclass, field
 from enum import StrEnum
 from importlib import import_module
@@ -31,11 +33,15 @@ class BrowserPagePointerAction:
     action_name: str
     candidate_selector: str
     text_markers: tuple[str, ...]
+    page_text_markers: tuple[str, ...] = ()
+    exact_text_markers: tuple[str, ...] = ()
     wait_after_ms: int = 2500
     move_steps_min: int = 6
     move_steps_max: int = 12
     target_fraction_min: float = 0.35
     target_fraction_max: float = 0.65
+    prefer_top_right: bool = False
+    visual_top_right_x_fallback: bool = False
     random_seed: int = 0
 
 
@@ -198,6 +204,7 @@ class BrowserPageObservationEngine(Protocol):
         post_load_action_script: str | None = None,
         post_load_action_arg: object = None,
         post_load_pointer_action: BrowserPagePointerAction | None = None,
+        post_load_pointer_actions: Sequence[BrowserPagePointerAction] = (),
         selector: str | None = None,
         selector_timeout_seconds: float = 5.0,
         max_response_bytes: int = DEFAULT_MAX_ARTIFACT_BYTES,
@@ -392,6 +399,7 @@ def fetch_browser_page_observation_capture(
     post_load_action_script: str | None = None,
     post_load_action_arg: object = None,
     post_load_pointer_action: BrowserPagePointerAction | None = None,
+    post_load_pointer_actions: Sequence[BrowserPagePointerAction] = (),
     timeout_seconds: float = DEFAULT_TIMEOUT_SECONDS,
     wait_until: str = "load",
     viewport_width: int = DEFAULT_VIEWPORT_WIDTH,
@@ -427,7 +435,14 @@ def fetch_browser_page_observation_capture(
     if post_load_action_script is not None and not post_load_action_script.strip():
         raise ValueError("post_load_action_script must not be blank")
     normalized_pointer_action = _normalize_pointer_action(post_load_pointer_action)
-    if post_load_action_script is not None and normalized_pointer_action is not None:
+    normalized_pointer_actions = _normalize_pointer_actions(post_load_pointer_actions)
+    if normalized_pointer_action is not None and normalized_pointer_actions:
+        raise ValueError(
+            "post_load_pointer_action and post_load_pointer_actions are mutually exclusive"
+        )
+    if post_load_action_script is not None and (
+        normalized_pointer_action is not None or normalized_pointer_actions
+    ):
         raise ValueError("post_load_action_script and post_load_pointer_action are mutually exclusive")
     if wait_until not in ALLOWED_WAIT_UNTIL:
         allowed = ", ".join(sorted(ALLOWED_WAIT_UNTIL))
@@ -447,6 +462,7 @@ def fetch_browser_page_observation_capture(
             post_load_action_script=post_load_action_script,
             post_load_action_arg=post_load_action_arg,
             post_load_pointer_action=normalized_pointer_action,
+            post_load_pointer_actions=normalized_pointer_actions,
             selector=selector,
             selector_timeout_seconds=selector_timeout_seconds,
             max_response_bytes=max_response_bytes,
@@ -676,6 +692,7 @@ class _PlaywrightBrowserSnapshotEngine:
         post_load_action_script: str | None = None,
         post_load_action_arg: object = None,
         post_load_pointer_action: BrowserPagePointerAction | None = None,
+        post_load_pointer_actions: Sequence[BrowserPagePointerAction] = (),
         selector: str | None = None,
         selector_timeout_seconds: float = 5.0,
         max_response_bytes: int = DEFAULT_MAX_ARTIFACT_BYTES,
@@ -761,10 +778,15 @@ class _PlaywrightBrowserSnapshotEngine:
                                 f"browser_page_observation selector wait failed: {exc}"
                             )
                     pointer_action_receipt: dict[str, object] | None = None
+                    pointer_action_receipts: list[dict[str, object]] = []
                     if post_load_action_script is not None:
                         page.evaluate(post_load_action_script, post_load_action_arg)
                     if post_load_pointer_action is not None:
                         pointer_action_receipt = _run_pointer_action(page, post_load_pointer_action)
+                        pointer_action_receipts.append(pointer_action_receipt)
+                    for pointer_action in post_load_pointer_actions:
+                        pointer_action_receipt = _run_pointer_action(page, pointer_action)
+                        pointer_action_receipts.append(pointer_action_receipt)
                     try:
                         visible_text = page.locator("body").inner_text(timeout=timeout_ms)
                     except Exception as exc:
@@ -803,8 +825,9 @@ class _PlaywrightBrowserSnapshotEngine:
                         "settle_seconds": settle_seconds,
                         "dom_observation_stage": "pre_lazy_load_scroll",
                         "post_load_action_executed": post_load_action_script is not None
-                        or post_load_pointer_action is not None,
+                        or bool(pointer_action_receipts),
                         "post_load_pointer_action": pointer_action_receipt,
+                        "post_load_pointer_actions": pointer_action_receipts,
                         "lazy_load_scroll_passes": lazy_load_scroll_passes,
                         "lazy_load_scroll_step_px": lazy_load_scroll_step_px,
                         "lazy_load_scroll_passes_executed": lazy_load_scroll_result.executed_passes,
@@ -1051,41 +1074,104 @@ def _response_request_metadata(response: object) -> tuple[str | None, str | None
 
 _POINTER_ACTION_TARGET_SCRIPT = r"""
 (args) => {
-  const markers = Array.isArray(args.text_markers)
-    ? args.text_markers.map((value) => String(value || '').toLowerCase()).filter(Boolean)
+  const normalizeMarkers = (values) => Array.isArray(values)
+    ? values.map((value) => String(value || '').trim().toLowerCase()).filter(Boolean)
     : [];
-  const candidates = Array.from(document.querySelectorAll(String(args.candidate_selector || '')));
+  const markers = normalizeMarkers(args.text_markers);
+  const exactMarkers = normalizeMarkers(args.exact_text_markers);
+  const pageTextMarkers = normalizeMarkers(args.page_text_markers);
+  const preferTopRight = Boolean(args.prefer_top_right);
   const result = {
-    candidate_count: candidates.length,
+    candidate_count: 0,
     matched_count: 0,
     target_found: false,
     target_kind: null,
     box: null,
+    page_text_gate_matched: pageTextMarkers.length === 0 ? null : false,
+    selection_strategy: preferTopRight ? 'top_right' : 'first_match',
   };
-  for (const node of candidates) {
-    const text = [
-      node.getAttribute('aria-label'),
-      node.getAttribute('title'),
-      node.textContent,
+  if (pageTextMarkers.length > 0) {
+    const pageText = [
+      document.title,
+      document.body ? document.body.innerText : '',
     ].filter(Boolean).join(' ').toLowerCase();
-    if (!markers.some((marker) => text.includes(marker))) {
-      continue;
+    if (!pageTextMarkers.some((marker) => pageText.includes(marker))) {
+      return result;
     }
-    result.matched_count += 1;
+    result.page_text_gate_matched = true;
+  }
+  const candidates = Array.from(document.querySelectorAll(String(args.candidate_selector || '')));
+  result.candidate_count = candidates.length;
+  let fallback = null;
+  let priority = null;
+  const matches = [];
+  const candidateFromNode = (node) => {
     const rect = node.getBoundingClientRect();
-    if (result.target_found || !rect || rect.width <= 0 || rect.height <= 0) {
-      continue;
+    if (!rect || rect.width <= 0 || rect.height <= 0) {
+      return null;
     }
     const tag = String(node.tagName || '').toLowerCase();
     const role = String(node.getAttribute('role') || '').toLowerCase();
-    result.target_found = true;
-    result.target_kind = tag === 'button' ? 'button' : role === 'button' ? 'role_button' : tag === 'a' ? 'link' : 'candidate';
-    result.box = {
-      x: rect.x,
-      y: rect.y,
-      width: rect.width,
-      height: rect.height,
+    return {
+      target_kind: tag === 'button' ? 'button' : role === 'button' ? 'role_button' : tag === 'a' ? 'link' : 'candidate',
+      box: {
+        x: rect.x,
+        y: rect.y,
+        width: rect.width,
+        height: rect.height,
+      },
     };
+  };
+  const textFieldsForNode = (node) => {
+    const dataE2E = String(node.getAttribute('data-e2e') || '').toLowerCase();
+    const fields = [
+      node.getAttribute('aria-label'),
+      node.getAttribute('title'),
+      dataE2E,
+      node.getAttribute('data-testid'),
+      node.getAttribute('data-test-id'),
+      node.getAttribute('class'),
+      node.textContent,
+    ].filter(Boolean).map((value) => String(value).trim().toLowerCase()).filter(Boolean);
+    return {dataE2E, fields, joined: fields.join(' ')};
+  };
+  const markerMatches = (fields, joined) => {
+    if (markers.some((marker) => joined.includes(marker))) {
+      return true;
+    }
+    return exactMarkers.some((marker) => fields.some((field) => field === marker));
+  };
+  for (const node of candidates) {
+    const {dataE2E, fields, joined} = textFieldsForNode(node);
+    if (!markerMatches(fields, joined)) {
+      continue;
+    }
+    result.matched_count += 1;
+    const candidate = candidateFromNode(node);
+    if (candidate === null) {
+      continue;
+    }
+    matches.push(candidate);
+    if (fallback === null) {
+      fallback = candidate;
+    }
+    if (priority === null && dataE2E === 'comment-icon') {
+      priority = candidate;
+    }
+  }
+  let selected = priority || fallback;
+  if (preferTopRight && matches.length > 0) {
+    selected = matches.slice().sort((left, right) => {
+      if (left.box.y !== right.box.y) {
+        return left.box.y - right.box.y;
+      }
+      return right.box.x - left.box.x;
+    })[0];
+  }
+  if (selected !== null) {
+    result.target_found = true;
+    result.target_kind = selected.target_kind;
+    result.box = selected.box;
   }
   return result;
 }
@@ -1104,8 +1190,16 @@ def _normalize_pointer_action(
     if not candidate_selector:
         raise ValueError("post_load_pointer_action.candidate_selector must not be blank")
     text_markers = tuple(marker.strip().lower() for marker in action.text_markers if marker.strip())
-    if not text_markers:
-        raise ValueError("post_load_pointer_action.text_markers must contain at least one marker")
+    page_text_markers = tuple(
+        marker.strip().lower() for marker in action.page_text_markers if marker.strip()
+    )
+    exact_text_markers = tuple(
+        marker.strip().lower() for marker in action.exact_text_markers if marker.strip()
+    )
+    if not text_markers and not exact_text_markers:
+        raise ValueError(
+            "post_load_pointer_action text_markers or exact_text_markers must contain at least one marker"
+        )
     if action.wait_after_ms < 0:
         raise ValueError("post_load_pointer_action.wait_after_ms must be zero or greater")
     if action.move_steps_min <= 0 or action.move_steps_max <= 0:
@@ -1124,14 +1218,207 @@ def _normalize_pointer_action(
         action_name=action_name,
         candidate_selector=candidate_selector,
         text_markers=text_markers,
+        page_text_markers=page_text_markers,
+        exact_text_markers=exact_text_markers,
         wait_after_ms=action.wait_after_ms,
         move_steps_min=action.move_steps_min,
         move_steps_max=action.move_steps_max,
         target_fraction_min=action.target_fraction_min,
         target_fraction_max=action.target_fraction_max,
+        prefer_top_right=bool(action.prefer_top_right),
+        visual_top_right_x_fallback=bool(action.visual_top_right_x_fallback),
         random_seed=int(action.random_seed),
     )
 
+
+
+def _normalize_pointer_actions(
+    actions: Sequence[BrowserPagePointerAction],
+) -> tuple[BrowserPagePointerAction, ...]:
+    normalized: list[BrowserPagePointerAction] = []
+    for action in actions:
+        normalized_action = _normalize_pointer_action(action)
+        if normalized_action is None:
+            raise ValueError("post_load_pointer_actions entries must not be None")
+        normalized.append(normalized_action)
+    return tuple(normalized)
+
+
+def _find_visual_top_right_x_target(page: object) -> dict[str, object]:
+    result: dict[str, object] = {
+        "target_found": False,
+        "target_kind": "visual_x",
+        "box": None,
+        "visual_fallback_attempted": True,
+        "visual_fallback_target_found": False,
+        "visual_fallback_candidate_count": 0,
+        "visual_fallback_confidence": None,
+        "visual_fallback_screenshot_sha256": None,
+        "visual_fallback_crop_box": None,
+        "visual_fallback_failure": None,
+    }
+    try:
+        screenshot_png = page.screenshot(full_page=False)
+    except Exception:
+        result["visual_fallback_failure"] = "visual_fallback_screenshot_failed"
+        return result
+    if not isinstance(screenshot_png, bytes) or not screenshot_png:
+        result["visual_fallback_failure"] = "visual_fallback_empty_screenshot"
+        return result
+    result["visual_fallback_screenshot_sha256"] = sha256(screenshot_png).hexdigest()
+    try:
+        from PIL import Image
+    except Exception:
+        result["visual_fallback_failure"] = "visual_fallback_image_dependency_unavailable"
+        return result
+    try:
+        image = Image.open(io.BytesIO(screenshot_png)).convert("L")
+    except Exception:
+        result["visual_fallback_failure"] = "visual_fallback_image_decode_failed"
+        return result
+
+    image_width, image_height = image.size
+    if image_width <= 0 or image_height <= 0:
+        result["visual_fallback_failure"] = "visual_fallback_invalid_image_size"
+        return result
+    crop_x = int(image_width * 0.45)
+    crop_y = 0
+    crop_width = image_width - crop_x
+    crop_height = max(1, int(image_height * 0.35))
+    result["visual_fallback_crop_box"] = {
+        "x": crop_x,
+        "y": crop_y,
+        "width": crop_width,
+        "height": crop_height,
+    }
+    candidates = _visual_x_candidates(image, crop_x, crop_y, crop_width, crop_height)
+    result["visual_fallback_candidate_count"] = len(candidates)
+    if not candidates:
+        return result
+    selected = max(candidates, key=lambda candidate: candidate["score"])
+    result["target_found"] = True
+    result["visual_fallback_target_found"] = True
+    result["visual_fallback_confidence"] = round(float(selected["score"]), 3)
+    result["box"] = {
+        "x": float(selected["x"]),
+        "y": float(selected["y"]),
+        "width": float(selected["width"]),
+        "height": float(selected["height"]),
+    }
+    return result
+
+
+def _visual_x_candidates(
+    image: object,
+    crop_x: int,
+    crop_y: int,
+    crop_width: int,
+    crop_height: int,
+) -> list[dict[str, float]]:
+    pixels = image.load()  # type: ignore[attr-defined]
+    foreground_sets: list[set[tuple[int, int]]] = [set(), set()]
+    x_end = crop_x + crop_width
+    y_end = crop_y + crop_height
+    for y in range(crop_y, y_end):
+        for x in range(crop_x, x_end):
+            try:
+                value = int(pixels[x, y])
+            except Exception:
+                continue
+            if value <= 96:
+                foreground_sets[0].add((x, y))
+            elif value >= 216:
+                foreground_sets[1].add((x, y))
+
+    candidates: list[dict[str, float]] = []
+    for foreground_pixels in foreground_sets:
+        visited: set[tuple[int, int]] = set()
+        for seed in foreground_pixels:
+            if seed in visited:
+                continue
+            stack = [seed]
+            visited.add(seed)
+            component: list[tuple[int, int]] = []
+            while stack:
+                x, y = stack.pop()
+                component.append((x, y))
+                for nx in (x - 1, x, x + 1):
+                    for ny in (y - 1, y, y + 1):
+                        if nx == x and ny == y:
+                            continue
+                        neighbor = (nx, ny)
+                        if neighbor in visited or neighbor not in foreground_pixels:
+                            continue
+                        visited.add(neighbor)
+                        stack.append(neighbor)
+            candidate = _score_visual_x_component(
+                component, crop_x, crop_y, crop_width, crop_height
+            )
+            if candidate is not None:
+                candidates.append(candidate)
+    return candidates
+
+
+def _score_visual_x_component(
+    component: list[tuple[int, int]],
+    crop_x: int,
+    crop_y: int,
+    crop_width: int,
+    crop_height: int,
+) -> dict[str, float] | None:
+    if len(component) < 12:
+        return None
+    xs = [point[0] for point in component]
+    ys = [point[1] for point in component]
+    min_x = min(xs)
+    max_x = max(xs)
+    min_y = min(ys)
+    max_y = max(ys)
+    width = max_x - min_x + 1
+    height = max_y - min_y + 1
+    if width < 8 or height < 8 or width > 44 or height > 44:
+        return None
+    ratio = width / height
+    if ratio < 0.55 or ratio > 1.8:
+        return None
+    density = len(component) / float(width * height)
+    if density < 0.08 or density > 0.65:
+        return None
+    diagonal_tolerance = 0.24
+    main_diagonal = 0
+    anti_diagonal = 0
+    center = 0
+    for x, y in component:
+        nx = (x - min_x) / max(1, width - 1)
+        ny = (y - min_y) / max(1, height - 1)
+        if abs(nx - ny) <= diagonal_tolerance:
+            main_diagonal += 1
+        if abs((nx + ny) - 1.0) <= diagonal_tolerance:
+            anti_diagonal += 1
+        if 0.25 <= nx <= 0.75 and 0.25 <= ny <= 0.75:
+            center += 1
+    component_size = float(len(component))
+    main_share = main_diagonal / component_size
+    anti_share = anti_diagonal / component_size
+    center_share = center / component_size
+    if main_share < 0.22 or anti_share < 0.22 or center_share < 0.08:
+        return None
+    x_position = ((min_x + max_x) / 2.0 - crop_x) / max(1, crop_width)
+    y_position = ((min_y + max_y) / 2.0 - crop_y) / max(1, crop_height)
+    score = (
+        min(main_share, anti_share)
+        + (center_share * 0.35)
+        + (x_position * 0.2)
+        + ((1.0 - y_position) * 0.15)
+    )
+    padding = 4
+    return {
+        "x": float(max(0, min_x - padding)),
+        "y": float(max(0, min_y - padding)),
+        "width": float(width + padding * 2),
+        "height": float(height + padding * 2),
+        "score": score,
+    }
 
 def _run_pointer_action(page: object, action: BrowserPagePointerAction) -> dict[str, object]:
     receipt: dict[str, object] = {
@@ -1143,13 +1430,20 @@ def _run_pointer_action(page: object, action: BrowserPagePointerAction) -> dict[
         "move_steps": None,
         "wait_ms": 0,
         "target_kind": None,
+        "page_text_gate_matched": None,
+        "selection_strategy": None,
     }
+    if action.visual_top_right_x_fallback:
+        receipt["visual_fallback_attempted"] = False
     try:
         target = page.evaluate(
             _POINTER_ACTION_TARGET_SCRIPT,
             {
                 "candidate_selector": action.candidate_selector,
                 "text_markers": list(action.text_markers),
+                "page_text_markers": list(action.page_text_markers),
+                "exact_text_markers": list(action.exact_text_markers),
+                "prefer_top_right": action.prefer_top_right,
             },
         )
     except Exception:
@@ -1165,9 +1459,38 @@ def _run_pointer_action(page: object, action: BrowserPagePointerAction) -> dict[
     target_kind = target.get("target_kind")
     if isinstance(target_kind, str) and target_kind:
         receipt["target_kind"] = target_kind
+    page_text_gate_matched = target.get("page_text_gate_matched")
+    if isinstance(page_text_gate_matched, bool):
+        receipt["page_text_gate_matched"] = page_text_gate_matched
+    selection_strategy = target.get("selection_strategy")
+    if isinstance(selection_strategy, str) and selection_strategy:
+        receipt["selection_strategy"] = selection_strategy
     box = target.get("box")
     if not receipt["target_found"] or not isinstance(box, dict):
-        return receipt
+        if action.visual_top_right_x_fallback and receipt.get("page_text_gate_matched") is not False:
+            visual_target = _find_visual_top_right_x_target(page)
+            for key in (
+                "visual_fallback_attempted",
+                "visual_fallback_target_found",
+                "visual_fallback_candidate_count",
+                "visual_fallback_confidence",
+                "visual_fallback_screenshot_sha256",
+                "visual_fallback_crop_box",
+                "visual_fallback_failure",
+            ):
+                value = visual_target.get(key)
+                if value is not None:
+                    receipt[key] = value
+            visual_box = visual_target.get("box")
+            if bool(visual_target.get("target_found")) and isinstance(visual_box, dict):
+                receipt["target_found"] = True
+                receipt["target_kind"] = "visual_x"
+                receipt["selection_strategy"] = "top_right_visual_x"
+                box = visual_box
+            else:
+                return receipt
+        else:
+            return receipt
 
     try:
         x = float(box["x"])
