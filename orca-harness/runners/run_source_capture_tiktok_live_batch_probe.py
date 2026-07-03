@@ -10,19 +10,24 @@ from source_capture.tiktok.live_batch_probe import write_tiktok_live_batch_probe
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=(
-            "Capture sanitized local TikTok live staging JSON for one creator. "
-            "This runner requires a pre-bootstrapped auth-state label and does not "
-            "write a SourceCapturePacket directly."
+            "Capture sanitized local TikTok staging JSON for one creator. "
+            "Sessioned mode requires a pre-bootstrapped auth-state label; "
+            "--logged-out uses no storage state. This runner does not write a "
+            "SourceCapturePacket directly."
         )
     )
     parser.add_argument("--creator-handle", required=True)
     parser.add_argument("--creator-profile-url", required=True)
     parser.add_argument("--video-url", action="append", required=True, dest="video_urls")
-    parser.add_argument("--state-label", required=True)
+    parser.add_argument("--state-label")
     parser.add_argument(
         "--session-mode",
-        required=True,
         choices=[mode.value for mode in AuthenticatedSessionMode],
+    )
+    parser.add_argument(
+        "--logged-out",
+        action="store_true",
+        help="Use no auth storage state; measure public logged-out TikTok access only.",
     )
     parser.add_argument("--output-dir", required=True, type=Path)
     parser.add_argument("--timeout-seconds", type=float, default=30.0)
@@ -54,13 +59,23 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main(argv: list[str] | None = None) -> int:
-    args = build_parser().parse_args(argv)
+    parser = build_parser()
+    args = parser.parse_args(argv)
+    if args.logged_out:
+        if args.state_label is not None or args.session_mode is not None:
+            parser.error("--logged-out cannot be combined with --state-label or --session-mode")
+        session_mode = None
+    else:
+        if args.state_label is None or args.session_mode is None:
+            parser.error("sessioned mode requires --state-label and --session-mode; use --logged-out for public logged-out capture")
+        session_mode = AuthenticatedSessionMode(args.session_mode)
     paths = write_tiktok_live_batch_probe_outputs(
         creator_handle=args.creator_handle,
         creator_profile_url=args.creator_profile_url,
         video_urls=args.video_urls,
         state_label=args.state_label,
-        session_mode=AuthenticatedSessionMode(args.session_mode),
+        session_mode=session_mode,
+        logged_out=args.logged_out,
         output_dir=args.output_dir,
         timeout_seconds=args.timeout_seconds,
         wait_until=args.wait_until,

@@ -32,6 +32,7 @@ from source_capture.tiktok.live_batch_probe import (
     TIKTOK_CHALLENGE_VISUAL_CLOSE_DIAGNOSTIC_POINTER_ACTION_NAME,
     TIKTOK_COMMENT_ROUTE_NO_RESPONSE_REASON,
     TIKTOK_COMMENT_SURFACE_TOGGLE_POINTER_SEQUENCE_NAME,
+    TIKTOK_LOGGED_OUT_SESSION_MODE,
     TIKTOK_DISMISS_BENIGN_OVERLAY_POINTER_ACTION_NAME,
     TIKTOK_OPEN_COMMENTS_POINTER_ACTION_NAME,
     TIKTOK_OPEN_MORE_LIKE_THIS_POINTER_ACTION_NAME,
@@ -236,6 +237,90 @@ def test_live_probe_writes_sanitized_staging_compatible_with_batch_admission(
     assert packet_payload["batch_summary"]["subtitle_info_video_count"] == 1
     assert packet_payload["videos"][0]["subtitles"]["posture"] == "source_native_subtitle_not_captured"
     assert packet_payload["videos"][0]["subtitles"]["subtitle_infos"][0]["url_redacted"] is True
+
+
+def test_live_probe_logged_out_mode_uses_no_storage_state_and_admits(
+    tmp_path: Path,
+) -> None:
+    video_id = "7390000000000000001"
+    engine = _FakeObservationEngine(
+        outcomes=[
+            _success_observation(
+                video_id=video_id,
+                responses=[
+                    _comment_response(video_id=video_id, cid="7291"),
+                    _comment_response(video_id=video_id, cid="7292"),
+                ],
+            )
+        ]
+    )
+
+    paths = write_tiktok_live_batch_probe_outputs(
+        creator_handle="funmi",
+        creator_profile_url="https://www.tiktok.com/@funmi",
+        video_urls=["https://www.tiktok.com/@funmi/video/7390000000000000001"],
+        logged_out=True,
+        output_dir=tmp_path / "out",
+        cadence_min_gap_seconds=0,
+        cadence_max_gap_seconds=0,
+        random_seed=1,
+        engine=engine,
+        sleep_fn=lambda _seconds: None,
+    )
+
+    assert engine.calls[0]["storage_state_path"] is None
+    grid = json.loads(paths.grid_result_json_path.read_text(encoding="utf-8"))
+    cadence = json.loads(paths.cadence_result_json_path.read_text(encoding="utf-8"))
+    assert cadence["completed_count"] == 1
+    assert cadence["capture_contract"]["session_mode"] == TIKTOK_LOGGED_OUT_SESSION_MODE
+    assert cadence["capture_contract"]["logged_out_public"] is True
+    row = cadence["results"][0]
+    assert row["capture_receipt"]["matched_comment_response_count"] == 2
+    assert row["capture_receipt"]["admitted_comment_response_count"] == 1
+    assert row["capture_receipt"]["comment_response_cap"] == 1
+    assert len(row["comment_responses"]) == 1
+    assert grid["capture_contract"]["logged_out_public"] is True
+
+    code, message = write_tiktok_batch_packet(
+        creator_handle="funmi",
+        creator_profile_url="https://www.tiktok.com/@funmi",
+        batch_label="fake-logged-out-probe",
+        decision_question="offline fake-engine logged-out admission compatibility",
+        grid_result_json=paths.grid_result_json_path.read_bytes(),
+        cadence_result_jsons=[paths.cadence_result_json_path.read_bytes()],
+        output_directory=tmp_path / "packet",
+        source_file_receipts=[],
+    )
+    assert code == 0
+    packet_payload = json.loads(
+        (Path(message) / "raw" / "01_tiktok_batch_capture.json").read_text(encoding="utf-8")
+    )
+    assert packet_payload["batch_summary"]["captured_comment_count"] == 1
+
+
+def test_live_probe_runner_rejects_logged_out_with_session_args(tmp_path: Path) -> None:
+    try:
+        runner.main(
+            [
+                "--creator-handle",
+                "funmi",
+                "--creator-profile-url",
+                "https://www.tiktok.com/@funmi",
+                "--video-url",
+                "https://www.tiktok.com/@funmi/video/7390000000000000001",
+                "--logged-out",
+                "--state-label",
+                "test-session",
+                "--session-mode",
+                AuthenticatedSessionMode.FREE_ACCOUNT_CREATED.value,
+                "--output-dir",
+                str(tmp_path / "out"),
+            ]
+        )
+    except SystemExit as exc:
+        assert exc.code == 2
+    else:
+        raise AssertionError("logged-out mode accepted sessioned auth arguments")
 
 
 def test_live_probe_filters_non_get_comment_list_responses_when_method_available(

@@ -65,6 +65,7 @@ TIKTOK_CHALLENGE_AFTER_CLOSE_DIAGNOSTIC_REASON = (
 )
 TIKTOK_COMMENT_LIST_RESPONSE_CAP = 2
 TIKTOK_COMMENT_ROUTE_NO_RESPONSE_REASON = "comment_list_response_absent"
+TIKTOK_LOGGED_OUT_SESSION_MODE = "public_logged_out"
 
 _TIKTOK_VIDEO_URL_RE = re.compile(r"^/@(?P<handle>[^/]+)/video/(?P<video_id>\d+)$")
 
@@ -83,8 +84,9 @@ def write_tiktok_live_batch_probe_outputs(
     creator_handle: str,
     creator_profile_url: str,
     video_urls: Sequence[str],
-    state_label: str,
-    session_mode: AuthenticatedSessionMode,
+    state_label: str | None = None,
+    session_mode: AuthenticatedSessionMode | None = None,
+    logged_out: bool = False,
     output_dir: Path,
     auth_state_root: Path | None = None,
     timeout_seconds: float = 30.0,
@@ -115,6 +117,7 @@ def write_tiktok_live_batch_probe_outputs(
         video_urls=video_urls,
         state_label=state_label,
         session_mode=session_mode,
+        logged_out=logged_out,
         auth_state_root=auth_state_root,
         timeout_seconds=timeout_seconds,
         wait_until=wait_until,
@@ -149,8 +152,9 @@ def run_tiktok_live_batch_probe(
     creator_handle: str,
     creator_profile_url: str,
     video_urls: Sequence[str],
-    state_label: str,
-    session_mode: AuthenticatedSessionMode,
+    state_label: str | None = None,
+    session_mode: AuthenticatedSessionMode | None = None,
+    logged_out: bool = False,
     auth_state_root: Path | None = None,
     timeout_seconds: float = 30.0,
     wait_until: str = "domcontentloaded",
@@ -176,11 +180,20 @@ def run_tiktok_live_batch_probe(
     if not normalized_video_urls:
         raise ValueError("at least one TikTok video URL is required")
 
-    storage_state_path = validate_auth_state_session_mode(
-        state_label,
-        session_mode=session_mode,
-        auth_state_root=auth_state_root,
-    )
+    if logged_out:
+        if state_label is not None or session_mode is not None:
+            raise ValueError("logged_out mode must not receive state_label or session_mode")
+        storage_state_path: Path | None = None
+        comment_response_cap = 1
+    else:
+        if state_label is None or session_mode is None:
+            raise ValueError("sessioned TikTok capture requires state_label and session_mode")
+        storage_state_path = validate_auth_state_session_mode(
+            state_label,
+            session_mode=session_mode,
+            auth_state_root=auth_state_root,
+        )
+        comment_response_cap = TIKTOK_COMMENT_LIST_RESPONSE_CAP
     cadence_plan = _build_probe_cadence_plan(
         video_count=len(normalized_video_urls),
         min_gap_seconds=cadence_min_gap_seconds,
@@ -362,6 +375,7 @@ def run_tiktok_live_batch_probe(
             observed_utc=observed_utc,
             grid_candidate=grid_candidate,
             blocker_triage=blocker_triage,
+            comment_response_cap=comment_response_cap,
         )
         assert_no_sensitive_tiktok_material(row)
         assert_no_sensitive_tiktok_material(grid_candidate)
@@ -409,6 +423,7 @@ def run_tiktok_live_batch_probe(
         "creator_profile_url": normalized_profile_url,
         "capture_contract": _capture_contract(
             session_mode=session_mode,
+            logged_out=logged_out,
             allow_challenge_close_diagnostic=allow_challenge_close_diagnostic,
         ),
         "response_items": grid_items,
@@ -425,6 +440,7 @@ def run_tiktok_live_batch_probe(
         "challenge_count": challenge_count,
         "capture_contract": _capture_contract(
             session_mode=session_mode,
+            logged_out=logged_out,
             allow_challenge_close_diagnostic=allow_challenge_close_diagnostic,
         ),
         "cadence_plan": cadence_plan.to_dict(),
@@ -744,6 +760,7 @@ def _cadence_row_from_capture(
     observed_utc: str,
     grid_candidate: JsonObject,
     blocker_triage: TikTokBlockerTriage,
+    comment_response_cap: int = TIKTOK_COMMENT_LIST_RESPONSE_CAP,
 ) -> JsonObject:
     subtitle_infos = _sanitize_subtitle_infos(_subtitle_infos_from_item_struct(item_struct))
     matched_comment_response_count = sum(
@@ -751,7 +768,10 @@ def _cadence_row_from_capture(
         for response in capture_result.responses
         if _is_page_owned_comment_list_response(response)
     )
-    comment_list_responses = _page_owned_comment_list_responses(capture_result)
+    comment_list_responses = _page_owned_comment_list_responses(
+        capture_result,
+        response_cap=comment_response_cap,
+    )
     return {
         "video_id": video_id,
         "url_path": urlparse(video_url).path,
@@ -780,7 +800,7 @@ def _cadence_row_from_capture(
             "comment_action": _comment_action_summary(capture_result),
             "matched_comment_response_count": matched_comment_response_count,
             "admitted_comment_response_count": len(comment_list_responses),
-            "comment_response_cap": TIKTOK_COMMENT_LIST_RESPONSE_CAP,
+            "comment_response_cap": comment_response_cap,
             "warning_count": len(capture_result.warning_notes),
             "limitation_count": len(capture_result.limitation_notes),
         },
@@ -789,13 +809,15 @@ def _cadence_row_from_capture(
 
 def _page_owned_comment_list_responses(
     capture_result: BrowserPageObservationSuccess,
+    *,
+    response_cap: int = TIKTOK_COMMENT_LIST_RESPONSE_CAP,
 ) -> list[BrowserPageResponse]:
     responses: list[BrowserPageResponse] = []
     for response in capture_result.responses:
         if not _is_page_owned_comment_list_response(response):
             continue
         responses.append(response)
-        if len(responses) >= TIKTOK_COMMENT_LIST_RESPONSE_CAP:
+        if len(responses) >= response_cap:
             break
     return responses
 
@@ -1189,9 +1211,17 @@ def _failure_entry(
 
 def _capture_contract(
     *,
-    session_mode: AuthenticatedSessionMode,
+    session_mode: AuthenticatedSessionMode | None,
+    logged_out: bool = False,
     allow_challenge_close_diagnostic: bool = False,
 ) -> JsonObject:
+    session_mode_value = (
+        TIKTOK_LOGGED_OUT_SESSION_MODE
+        if logged_out
+        else session_mode.value if session_mode is not None else None
+    )
+    if session_mode_value is None:
+        raise ValueError("session_mode is required unless logged_out is true")
     return {
         "captcha_solving": False,
         "challenge_close_diagnostic_allowed": allow_challenge_close_diagnostic,
@@ -1204,7 +1234,8 @@ def _capture_contract(
         "raw_endpoint_urls_persisted": False,
         "raw_subtitle_bodies_persisted": False,
         "raw_subtitle_urls_persisted": False,
-        "session_mode": session_mode.value,
+        "session_mode": session_mode_value,
+        "logged_out_public": logged_out,
         "staging_only": True,
         "stop_on_challenge": True,
         "subtitle_tier": "source_native_subtitle_metadata_only_live_probe_v0",

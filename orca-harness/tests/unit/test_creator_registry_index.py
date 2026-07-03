@@ -82,10 +82,10 @@ def test_creator_registry_index_counts_and_contract() -> None:
     assert registry["schema_version"] == "creator_registry_index_v0"
     assert registry["index_mode"] == "static_known_public_account_dedupe_index"
     assert registry["counts"] == {
-        "platform_accounts_total": 33,
+        "platform_accounts_total": 36,
         "creator_records_total": 0,
-        "known_account_rows_total": 33,
-        "platform_accounts_by_platform": {"instagram": 3, "youtube": 30},
+        "known_account_rows_total": 36,
+        "platform_accounts_by_platform": {"instagram": 3, "tiktok": 3, "youtube": 30},
     }
     assert registry["creator_records"] == []
     assert "not metric authority" in registry["non_claims"]
@@ -116,7 +116,11 @@ def test_creator_registry_index_mirrors_public_handle_ledger_accounts() -> None:
         assert indexed["creator_record_id_or_none"] is None
         assert indexed["identity_state"] == "single_platform_observed"
         assert indexed["discovery_state"] == "known_account"
-        assert indexed["capture_state"] == "identity_observed_metric_seed_available"
+        if source_account["platform"] == "tiktok":
+            assert indexed["capture_state"] == "identity_observed_profile_packet_available"
+            assert indexed["freshness"]["metrics_freshness_state_or_none"] is None
+        else:
+            assert indexed["capture_state"] == "identity_observed_metric_seed_available"
         assert indexed["linkage_state"] == "single_platform_observed"
         assert indexed["freshness"]["identity_observed_at"] == source_account["handle_observed_at"]
         assert f"platform:{source_account['platform']}:handle:{normalized_handle}" in indexed["lookup_keys"]
