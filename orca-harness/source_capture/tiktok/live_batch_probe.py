@@ -338,7 +338,7 @@ def run_tiktok_live_batch_probe(
         blocker_triage = classify_tiktok_capture(capture_result)
         challenge_reason = _challenge_reason_from_triage(blocker_triage)
         if challenge_reason is not None:
-            close_followthrough_failed = (
+            close_followthrough_attempted = (
                 allow_challenge_close_followthrough and challenge_close_clicked
             )
             challenge_count += 1
@@ -349,7 +349,7 @@ def run_tiktok_live_batch_probe(
                     observed_utc=observed_utc,
                     reason=(
                         TIKTOK_CHALLENGE_AFTER_CLOSE_FOLLOWTHROUGH_REASON
-                        if close_followthrough_failed
+                        if close_followthrough_attempted
                         else TIKTOK_CHALLENGE_AFTER_CLOSE_DIAGNOSTIC_REASON
                         if challenge_close_clicked
                         else challenge_reason
@@ -358,7 +358,7 @@ def run_tiktok_live_batch_probe(
                         "TikTok challenge/auth-wall marker remained visible after the "
                         "owner-authorized challenge-close followthrough pointer path; "
                         "probe stopped."
-                        if close_followthrough_failed
+                        if close_followthrough_attempted
                         else "TikTok challenge/auth-wall marker observed after the "
                         "challenge-close diagnostic pointer path; probe stopped."
                         if challenge_close_clicked
@@ -368,11 +368,15 @@ def run_tiktok_live_batch_probe(
                         _with_challenge_close_action(
                             _blocker_triage_receipt(blocker_triage),
                             challenge_close_action,
-                            challenge_close_followthrough=close_followthrough_failed,
+                            challenge_close_followthrough=False,
                             challenge_close_diagnostic=(
-                                challenge_close_clicked and not close_followthrough_failed
+                                challenge_close_clicked and not close_followthrough_attempted
                             ),
-                            challenge_close_accepted=challenge_close_accepted,
+                            challenge_close_accepted=(
+                                False
+                                if close_followthrough_attempted
+                                else challenge_close_accepted
+                            ),
                         ),
                         capture_result,
                         comment_response_cap=comment_response_cap,

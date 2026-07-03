@@ -111,9 +111,10 @@ superseded for X-able public TikTok challenge modals. Use
 `--allow-challenge-close-followthrough` when the owner authorizes a route-yield
 run through a visible X/Close. The runner may attempt X/Close through the named
 UI movement substrate, must never drag or solve the puzzle, and may continue only
-if the close is accepted by post-click receipt checks: challenge/security text is
-absent and the centered visual-X is absent on the after-click screenshot. A
-`clicked=true` pointer receipt is not close proof. Continue only if accepted
+if the close is accepted by action-level post-click receipt checks and final
+blocker triage: challenge/security text is absent, the centered visual-X is
+absent on the after-click screenshot, and final triage still reports no
+challenge/security marker. A `clicked=true` pointer receipt is not close proof. Continue only if accepted
 close follow-through is proven and either a page-owned `/api/comment/list`
 response or bounded DOM-visible comment candidates are captured after the named
 comments -> `More like this` -> comments route. DOM-visible comments are lower-
@@ -158,7 +159,8 @@ The only live-run fork is whether to proceed past the first creator/video:
   path is the explicit owner-authorized
   `--allow-challenge-close-followthrough` route: attempt X/Close through the
   named UI movement substrate, require `challenge_close_accepted=true` from
-  post-click text and visual-X absence checks, require at least one page-owned
+  post-click text and visual-X absence checks plus no final challenge/security
+  triage marker, require at least one page-owned
   `/api/comment/list` response or bounded DOM-visible comment candidate, and
   preserve the accepted close action as a source-access intervention. Diagnostic
   close mode remains

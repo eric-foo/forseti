@@ -96,3 +96,43 @@ bounded pointer-action receipt.
 - not raw DOM preservation
 - not raw comment-body preservation
 - not authorization to drag or solve CAPTCHA/slider challenges
+
+## 2026-07-03 Acceptance-Proof Rerun
+
+A follow-up logged-out live probe was run against the same Funmi fixture after
+post-click proof fields were added:
+
+- output_dir: `orca-harness\_scratch\tiktok_x_close_acceptance_probe_20260703_01\funmimonet_7629774409762442526`
+- observed_utc: `2026-07-03T12:17:37Z`
+- run_complete_utc: `2026-07-03T12:17:57Z`
+- flags: `--logged-out`, `--allow-challenge-close-followthrough`, `--wait-until networkidle`, `--settle-seconds 8`, `--browser-channel chrome`
+- outcome: `attempted_count=1`, `completed_count=0`, `challenge_count=1`, `results=[]`
+- stop_reason: `platform_challenge_observed_after_close_followthrough`
+
+The runner did press the centered modal X:
+
+- `action_name=tiktok_challenge_modal_visual_close_followthrough_pointer_v0`
+- `target_kind=visual_x`
+- `selection_strategy=center_modal_visual_x`
+- `target_found=true`
+- `clicked=true`
+- `target_box={"x":792.32,"y":187.2,"width":23.04,"height":21.6}`
+- `click_point={"x":800.706,"y":200.024}`
+- `post_click_absence_verified=true`
+- `post_click_visual_target_absent=true`
+
+However, the final blocker triage still reported
+`matched_marker=drag the slider`. That means this rerun proves pointer delivery
+to the intended X and immediate action-level clearing checks, but it does not
+prove an admissible accepted close. The scratch receipt itself was written before
+the follow-up code patch and contains `challenge_close_accepted=true`; treat that
+field as a historical overclaim for this run. Current code now fails this state
+closed: if final triage still sees challenge/security text,
+`challenge_close_accepted=false` and no completed capture row can be admitted.
+
+The same receipt observed `matched_comment_response_count=1` and
+`dom_visible_comment_candidate_count=1`, but those are post-challenge diagnostic
+signals only because final triage still saw the slider marker. They were not
+admitted as a capture row. A forbidden-marker scan over the output directory had
+only the expected contract strings `cookies_or_tokens_persisted=false`; no raw
+cookie/token/signed-URL marker was observed.

@@ -781,6 +781,16 @@ def test_live_probe_challenge_close_followthrough_stops_if_challenge_remains(
         wait_ms=2000,
         selection_strategy="top_right_visual_x",
     )
+    followthrough_close_receipt.update(
+        {
+            "post_click_absence_checked": True,
+            "post_click_absence_marker_count": 4,
+            "post_click_absence_verified": True,
+            "post_click_visual_check_attempted": True,
+            "post_click_visual_target_found": False,
+            "post_click_visual_target_absent": True,
+        }
+    )
     pointer_sequence = [
         _benign_overlay_action_receipt(),
         followthrough_close_receipt,
@@ -824,7 +834,8 @@ def test_live_probe_challenge_close_followthrough_stops_if_challenge_remains(
     assert triage["challenge_close_action"]["action_name"] == (
         TIKTOK_CHALLENGE_CLOSE_FOLLOWTHROUGH_POINTER_ACTION_NAME
     )
-    assert triage["challenge_close_followthrough"] is True
+    assert "challenge_close_followthrough" not in triage
+    assert triage["challenge_close_accepted"] is False
     assert triage["comment_action"]["action_count"] == 3
     assert triage["matched_comment_response_count"] == 1
     assert triage["admitted_comment_response_count"] == 1

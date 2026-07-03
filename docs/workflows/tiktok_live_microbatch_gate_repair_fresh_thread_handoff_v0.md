@@ -54,9 +54,10 @@ as historical guardrails for `--allow-challenge-close-diagnostic`, not as the
 current route-yield rule for X-able public challenge modals. Current doctrine:
 use `--allow-challenge-close-followthrough` only when owner-authorized; attempt
 X/Close through the named UI movement substrate; never drag or solve; continue
-only if post-click receipt checks prove the close was accepted
-(`challenge_close_accepted=true` from challenge-text absence and centered
-visual-X absence) and either a page-owned `/api/comment/list` response or bounded
+only if action-level post-click receipt checks and final blocker triage prove
+the close was accepted (`challenge_close_accepted=true` from challenge-text
+absence, centered visual-X absence, and no final challenge/security marker) and
+either a page-owned `/api/comment/list` response or bounded
 DOM-visible comment candidates are captured after the named comments -> `More
 like this` -> comments route; preserve the accepted close action as a
 source-access intervention; and never call the route unchallenged clean capture.
@@ -305,7 +306,7 @@ Continue only the PR #608 TikTok live microbatch gate-repair lane. The fresh thr
   - Current replacement: land/adjudicate PR #608, then owner-gated one-video route-yield gate if authorized.
 - Stale idea: a slider/challenge X click means the blocker is solved.
   - Why stale/dangerous: `clicked=true` is pointer delivery only; it can be followed by traffic that must not be admitted if close acceptance is unproven.
-  - Current replacement: diagnostic close clicks force stop; follow-through close clicks require `challenge_close_accepted=true` before any comment evidence can admit.
+  - Current replacement: diagnostic close clicks force stop; follow-through close clicks require `challenge_close_accepted=true`, including no final challenge/security triage marker, before any comment evidence can admit.
 - Stale source: raw scratch/live observations as durable authority.
   - Why stale/dangerous: scratch is untracked and not source-of-truth.
   - Current replacement: use committed code, tests, handoff, playbook, and review report.

@@ -51,9 +51,13 @@ current lane explicitly uses `--allow-challenge-close-followthrough`. The runner
 may attempt the X/Close control, then attempt the page-owned comment route only
 if post-click verification proves the close was accepted. `clicked=true` means
 only that a pointer click was delivered; accepted follow-through requires
-challenge/security text absence and centered visual-X absence on the after-click
-receipt. This is not CAPTCHA solving, not puzzle dragging, and not an
-unchallenged clean route. It is an owner-authorized source-access intervention
+challenge/security text absence and centered visual-X absence on the action-level
+after-click receipt, and final blocker triage must still report no
+challenge/security marker. If final triage still sees `drag the slider`, `verify
+to continue`, `captcha`, or equivalent challenge/security text,
+`challenge_close_accepted=false` even when immediate post-click fields are true.
+This is not CAPTCHA solving, not puzzle dragging, and not an unchallenged clean
+route. It is an owner-authorized source-access intervention
 that must be preserved in the receipt and batch payload. Continue only if the
 rendered page no longer shows challenge/security text, the close receipt has
 `challenge_close_accepted=true`, and either at least one page-owned
@@ -84,8 +88,8 @@ The substrate is:
 | Benign TikTok onboarding/app prompt such as `Got it`, `Not now`, `Continue in browser` | `tiktok_dismiss_benign_overlay_pointer_v0` | Yes | Setup action only; excluded from comment-action count. |
 | Logged-out login upsell modal with a dismiss/close control and no challenge/security text | `tiktok_dismiss_benign_overlay_pointer_v0` or a named logged-out dismiss action if added later | Yes for logged-out limit mapping only | Setup action only; record the receipt and continue measuring public access. Do not enter credentials. |
 | Comment surface does not load comments until tab shuffle | `comment_surface_toggle_pointer_sequence_v0`: `tiktok_open_comments_pointer_v0` -> `tiktok_open_more_like_this_pointer_v0` -> `tiktok_reopen_comments_pointer_v0` | Yes | Clean response-tier capture if at least one page-owned `/api/comment/list` response is admitted; lower-tier fallback if bounded DOM-visible comment candidates are captured after the route. Zero response and zero DOM-visible candidates is stop/diagnosis. |
-| DOM-exposed slider/captcha close control | `tiktok_challenge_modal_close_followthrough_pointer_v0` for follow-through; `tiktok_challenge_modal_close_diagnostic_pointer_v0` for diagnosis | Yes only with `--allow-challenge-close-followthrough`; diagnostic flag remains stop-only | Attempt X/Close, do not solve/drag, then continue only if post-click verification accepts the close (`challenge_close_accepted=true`) and page-owned comments or DOM-visible comment candidates are captured; carry `source_access_intervention`. |
-| Screenshot-visible but DOM-invisible slider/captcha X | `tiktok_challenge_modal_visual_close_followthrough_pointer_v0` for follow-through; `tiktok_challenge_modal_visual_close_diagnostic_pointer_v0` for diagnosis | Yes only with `--allow-challenge-close-followthrough`; diagnostic visual-X remains visible-challenge-text gated and stop-only | Follow-through visual-X may run before comment routing even when TikTok exposes the challenge marker only as hidden/residual DOM text. Continue only if post-click text/visual verification accepts the close and page-owned comments or DOM-visible comment candidates are captured, with the intervention preserved. |
+| DOM-exposed slider/captcha close control | `tiktok_challenge_modal_close_followthrough_pointer_v0` for follow-through; `tiktok_challenge_modal_close_diagnostic_pointer_v0` for diagnosis | Yes only with `--allow-challenge-close-followthrough`; diagnostic flag remains stop-only | Attempt X/Close, do not solve/drag, then continue only if post-click verification plus final blocker triage accepts the close (`challenge_close_accepted=true`) and page-owned comments or DOM-visible comment candidates are captured; carry `source_access_intervention`. |
+| Screenshot-visible but DOM-invisible slider/captcha X | `tiktok_challenge_modal_visual_close_followthrough_pointer_v0` for follow-through; `tiktok_challenge_modal_visual_close_diagnostic_pointer_v0` for diagnosis | Yes only with `--allow-challenge-close-followthrough`; diagnostic visual-X remains visible-challenge-text gated and stop-only | Follow-through visual-X may run before comment routing even when TikTok exposes the challenge marker only as hidden/residual DOM text. Continue only if post-click text/visual verification plus final blocker triage accepts the close and page-owned comments or DOM-visible comment candidates are captured, with the intervention preserved. |
 | Slider/captcha puzzle itself | None | Never | Do not drag, solve, or attempt puzzle interaction. |
 | Login/auth wall redirect, credential prompt, or account risk wall | None unless separately mapped as benign logged-out upsell | Never by default | Stop and report blocker. Do not enter credentials or manipulate account state. |
 | Unknown dismiss/reload blocker | None until mapped | No | Stop or patch a named substrate action with tests; do not generic-click around blockers. |
@@ -131,8 +135,9 @@ Not allowed in logged-out capture:
 If a logged-out run hits a closeable login upsell, dismiss once and continue. If
 it hits an X-able public slider/captcha/security modal and the current owner has
 authorized follow-through, use `--allow-challenge-close-followthrough` once and
-continue only when `challenge_close_accepted=true` and there is post-close
-page-owned comment response yield or DOM-visible comment candidate yield. If
+continue only when `challenge_close_accepted=true` includes no final challenge/security
+triage marker and there is post-close page-owned comment response yield or DOM-visible
+comment candidate yield. If
 follow-through is not authorized, if close acceptance is unproven, or if the
 challenge remains after the close click, stop and record the blocker state. Do
 not run a close diagnostic merely to re-prove X targetability.
@@ -203,8 +208,9 @@ For challenge-close diagnostics:
 
 A clicked diagnostic receipt is evidence that a pointer click was delivered to a
 candidate close target; it is not capture success and does not prove the modal
-closed. A follow-through receipt is admissible only when the post-click checks
-prove the challenge text and centered visual-X cleared (`challenge_close_accepted=true`).
+closed. A follow-through receipt is admissible only when the action-level post-click
+checks prove the challenge text and centered visual-X cleared and final blocker
+triage still reports no challenge/security marker (`challenge_close_accepted=true`).
 The capture claim then comes only from post-close page-owned comment response
 evidence or lower-tier DOM-visible comment fallback evidence in the sanitized
 admission payload. For the current TikTok slider/challenge X, close-targeting is
@@ -228,6 +234,46 @@ Never add a path where closing or dismissing a challenge can produce a completed
 capture row, admission, batch expansion, product extraction, or success claim.
 
 ## Direction Change Propagation
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    TikTok challenge-close acceptance now fails closed when final blocker triage
+    still sees challenge/security text, even if the action-level immediate
+    post-click absence checks were true; action-level fields remain observations,
+    not sufficient acceptance by themselves.
+  trigger: workflow_authority
+  related_triggers:
+    - output_authority
+  controlling_sources_updated:
+    - docs/workflows/tiktok_ui_movement_blocker_substrate_playbook_v0.md
+    - docs/workflows/tiktok_live_microbatch_owner_gated_handoff_v0.md
+    - docs/workflows/tiktok_live_microbatch_gate_repair_fresh_thread_handoff_v0.md
+    - docs/workflows/tiktok_logged_out_followthrough_live_receipt_v0.md
+    - orca-harness/source_capture/tiktok/live_batch_probe.py
+    - orca-harness/tests/unit/test_tiktok_live_batch_probe.py
+  downstream_surfaces_checked:
+    - .agents/workflow-overlay/source-of-truth.md
+    - .agents/workflow-overlay/safety-rules.md
+    - orca/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md
+  stale_language_search: >
+    rg -n "post-click receipt checks|challenge_close_accepted|final blocker triage|drag the slider"
+    docs/workflows/tiktok_ui_movement_blocker_substrate_playbook_v0.md
+    docs/workflows/tiktok_live_microbatch_owner_gated_handoff_v0.md
+    docs/workflows/tiktok_live_microbatch_gate_repair_fresh_thread_handoff_v0.md
+    docs/workflows/tiktok_logged_out_followthrough_live_receipt_v0.md
+  stale_language_search_result: >
+    Executed 2026-07-03 after edits. Remaining hits are intentional: acceptance
+    requires both action-level post-click absence checks and no final challenge
+    marker; historical live receipts that predate the patch are explicitly
+    labeled as overclaiming acceptance when final triage still saw `drag the slider`;
+    the older DCP block below is historical and superseded by this one.
+  non_claims:
+    - not validation
+    - not readiness
+    - not capture success
+    - not authorization to solve or drag CAPTCHA/slider challenges
+```
 
 ```yaml
 direction_change_propagation:
