@@ -6,6 +6,10 @@ from pathlib import Path
 
 import pytest
 
+from data_lake.attachment_record_entry import (
+    DERIVATION_RULE_VERSION,
+    ENTRY_SERIALIZATION_VERSION,
+)
 from data_lake.catalog import (
     BRONZE_ATTACHMENT_RECORD_PHYSICALIZATION,
     BRONZE_ATTACHMENT_RECORD_SCHEMA_VERSION,
@@ -384,6 +388,8 @@ def test_attachment_records_index_preserved_bodies_and_resolve_bytes(
         "source_capture_obligation_contract_version": "core_spine_v0_data_capture_spine_obligation_contract_v0",
         "catalog_schema_version": BRONZE_CATALOG_SCHEMA_VERSION,
         "attachment_record_schema_version": BRONZE_ATTACHMENT_RECORD_SCHEMA_VERSION,
+        "entry_serialization_version": ENTRY_SERIALIZATION_VERSION,
+        "derivation_rule_version": DERIVATION_RULE_VERSION,
     }
     assert reddit_record["source_slice_ids"] == ["slice_01"]
     assert reddit_record["posture_summary"]["access_posture"]["value"] == "local_file_only"
@@ -436,7 +442,7 @@ def test_attachment_records_index_preserved_bodies_and_resolve_bytes(
     assert by_packet[ig.packet.packet_id]["source_family"] == "instagram_creator"
 
 
-def test_bronze_catalog_surfaces_mgt_baseline_not_full_gt(tmp_path: Path) -> None:
+def test_bronze_catalog_surfaces_full_gt_ratified_baseline(tmp_path: Path) -> None:
     root = DataLakeRoot.for_test(tmp_path / "orca-data")
     _write_reddit_packet(root, tmp_path)
 
@@ -456,7 +462,10 @@ def test_bronze_catalog_surfaces_mgt_baseline_not_full_gt(tmp_path: Path) -> Non
         census,
     ):
         assert payload["bronze_baseline_status"] == BRONZE_BASELINE_STATUS
-        assert "not full God Tier" in payload["bronze_baseline_semantics"]
+        assert "full_god_tier" in payload["bronze_baseline_semantics"]
+        assert "no production-lake validation" in payload["bronze_baseline_semantics"]
+        assert "no backend/engine selection" in payload["bronze_baseline_semantics"]
+        assert "no erasure capability" in payload["bronze_baseline_semantics"]
 
 
 def test_inspect_catalog_reports_missing_and_stale_generated_index(tmp_path: Path) -> None:

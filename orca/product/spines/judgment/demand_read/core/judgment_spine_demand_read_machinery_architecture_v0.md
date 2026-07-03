@@ -61,7 +61,7 @@ pre-freeze leakage independent-review requirement at `product_learning` tier
 (residual: the delegate's own edited lines are covered by its class-sweep, not an
 independent pass). The CONSUME direction below is independently corroborated by
 the retiring near-half lane's own cold handoff
-(`docs/prompts/handoffs/near_half_reconciliation_handoff_to_read_machinery_lane_v0.md`,
+(`docs/prompts/handoffs/near_half_reconciliation_handoff_to_read_machinery_lane_v0.md`, unmerged PR #66,
 near-half artifacts verified on `origin/main`: architecture `5faf1728f8389870`,
 ledger `388352b83bac9860`).
 
@@ -350,7 +350,7 @@ lane held no overlapping architecture).
 - `orca/product/spines/judgment/conductor/conductor_construction_integrity_probe_addendum_v1.md`
   — current contamination doctrine (active recall dropped; JSG-08 tell-audit on
   the reasoning trace; outcome-USE not recognition).
-- `docs/prompts/handoffs/near_half_reconciliation_handoff_to_read_machinery_lane_v0.md`
+- `docs/prompts/handoffs/near_half_reconciliation_handoff_to_read_machinery_lane_v0.md` (on PR #66 / branch near-half-reconciliation-handoff-v0)
   — cross-lane provenance (inherited): the retiring near-half lane's directive to
   CONSUME the landed near-half artifacts, not re-derive. Near-half substrate
   hashes verified on `origin/main`: architecture `5faf1728f8389870`, ledger

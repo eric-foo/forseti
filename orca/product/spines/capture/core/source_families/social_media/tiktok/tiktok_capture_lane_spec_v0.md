@@ -89,6 +89,12 @@ Capture runs under an **authenticated session** whose cookies authenticate it. R
 
 ## Harness fit (reuse, minimal new surface)
 
+If a cold lane is confounded by TikTok UI movement or blocker behavior, open
+`docs/workflows/tiktok_ui_movement_blocker_substrate_playbook_v0.md` before any
+browser action. It maps blocker classes to the bounded `BrowserPagePointerAction`
+substrate and preserves the no-CAPTCHA-solving/no-success-from-challenge-close
+boundary.
+
 - **Reused substrate, lightly extended browser seam:** packet `models.py` (+ typed `MetricObservation` for stats), `cadence.py` (C4), `writer.py`/`packet_assembly.py`, `block_shell.py`/`rendered_access.py` (C6), `proxy_profiles.py` (C5), and `auth_state.py` / authenticated browser session bootstrap only for the C8' dedicated-account session boundary. The reusable browser response seam is `browser_snapshot.py::fetch_browser_page_observation_capture`: attach a response predicate before navigation, run headed/sessioned, execute a bounded post-load page action to open comments, then preserve only matching page-emitted `/api/comment/list` responses. `fetch_browser_context_responses` is not the TikTok C2 mechanism because it performs explicit in-page `fetch(url)` calls.
 - **New (TikTok satellite):** `source_capture/tiktok/admission.py` (network-free parsers/sanitizers), `video_packet.py`, `batch_packet.py`, `batch_coverage.py`, `batch_projection.py`, and `live_batch_probe.py` plus `run_source_capture_tiktok_live_batch_probe.py` for one-creator live staging (C1-C3, C6: headed/sessioned, request cap, comment-panel post-load action, comment/list response predicate, sanitized staging only). The required change vs the failed recon runs is **running the existing browser observation seam non-headless/sessioned with assets allowed**, not forged request logic.
 

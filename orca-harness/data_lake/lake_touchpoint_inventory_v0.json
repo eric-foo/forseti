@@ -122,6 +122,12 @@
     },
     {
       "a2_fork_impact": "none",
+      "call": "lane_dir",
+      "count": 1,
+      "module": "data_lake/sov_readout.py"
+    },
+    {
+      "a2_fork_impact": "none",
       "call": "append_record_set",
       "count": 1,
       "module": "ecr/lake.py"
@@ -173,6 +179,12 @@
       "call": "is_record_set_complete",
       "count": 1,
       "module": "runners/run_source_capture_ig_reels_deep_capture.py"
+    },
+    {
+      "a2_fork_impact": "none",
+      "call": "lane_dir",
+      "count": 1,
+      "module": "runners/run_sov_extraction_quality_eval.py"
     },
     {
       "a2_fork_impact": "none",

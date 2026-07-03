@@ -30,6 +30,7 @@ from capture_spine.creator_profile_current.silver_metric_snapshot import (
     generate_creator_metric_rollup_snapshot,
     validate_snapshot,
 )
+from data_lake.attachment_record_entry import ATTACHMENT_RECORD_SCHEMA_VERSION
 from data_lake.catalog import rebuild_catalog
 from data_lake.root import DataLakeRoot, DataLakeRootError
 from source_capture.models import known_fact
@@ -221,7 +222,7 @@ def test_observation_raw_refs_use_bronze_attachment_records_when_requested(tmp_p
         raw_ref = record["raw_refs"][0]
         assert raw_ref["raw_ref_kind"] == "bronze_attachment_record"
         assert raw_ref["attachment_record_id"].startswith("ar_")
-        assert raw_ref["attachment_record_schema_version"] == "bronze_attachment_record_v0_schema_2"
+        assert raw_ref["attachment_record_schema_version"] == ATTACHMENT_RECORD_SCHEMA_VERSION
         assert raw_ref["attachment_record_physicalization"] == "manifest_equivalent_entry_over_raw_packet_body_v0"
         assert raw_ref["packet_id"] == packet_id
         assert raw_ref["file_id"] == raw_anchor["file_id"]

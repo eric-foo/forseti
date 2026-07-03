@@ -301,10 +301,11 @@ Resolution status (updated as blocker-resolution decisions land 2026-06-21):
 
 1. Packet-admission criteria + packet/slice/object/event key rules — **RESOLVED** by
    the raw admission + key grammar decision contract.
-2. Attachment Record physical representation — layout **RESOLVED** (Gate 1
-   body-layout ADR, owner-ratified 2026-07-02: packet-member default, sidecar
-   reserved); entry serialization (A2) still deferred, gated on the A1
-   deterministic inventory.
+2. Attachment Record physical representation — **RESOLVED** in both halves:
+   layout (Gate 1 body-layout ADR, owner-ratified 2026-07-02: packet-member
+   default, sidecar reserved) and entry serialization (A2 ADR, owner-ratified
+   2026-07-03: manifest-equivalent packet index; versioned entry schema plus
+   deterministic derivation rule canonical).
 3. Enforcement assignment for write-once raw, no-cleaning-in-lake, append-only
    derived/ack, no-new-core-field pressure — **RESOLVED** by the write-boundary
    enforcement decision contract.
@@ -336,8 +337,9 @@ Resolution status (updated as blocker-resolution decisions land 2026-06-21):
 
 - Storage engine or backend inside this contract; engine/backend choice belongs
   to the Storage Contract physicalization boundary.
-- Serialization or Manifest v2. (Sidecar vs packet-member layout is now
-  ratified by the Gate 1 body-layout ADR, not selected by this contract.)
+- Manifest v2 (reserved behind the A2 ADR's revisit triggers). (Sidecar vs
+  packet-member layout and entry serialization are now ratified by the Gate 1
+  and A2 ADRs respectively — not selected by this contract.)
 - Projection cache, runtime queue, or scheduler.
 - ECR, SCR, Cleaning, Judgment, or Evidence Unit (EvidenceUnit) schema.
 - Field-level schema for any named record.
@@ -360,6 +362,41 @@ Resolution status (updated as blocker-resolution decisions land 2026-06-21):
    Contract physicalization decision explicitly selects or supersedes them.
 
 ## Direction Change Propagation
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Fold-in of the owner-ratified A2 entry-serialization ADR (2026-07-03):
+    implementation blocker 2 is now RESOLVED in both halves (Gate 1 layout +
+    A2 entry serialization), and the what-this-does-not-select list annotates
+    entry serialization as A2-ADR-owned with Manifest v2 reserved behind that
+    ADR's revisit triggers.
+  trigger: architecture_doctrine
+  controlling_sources_updated:
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_physicality_location_contract_v0.md
+  downstream_surfaces_checked:
+    - orca/product/spines/data_lake/workflows/core_spine_v0_data_lake_a2_attachment_record_entry_serialization_adr_v0.md
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_storage_contract_v0.md
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_attachment_record_implementation_contract_v0.md
+    - orca/product/spines/data_lake/README.md
+  intentionally_not_updated:
+    - path: orca/product/spines/data_lake/README.md
+      reason: >
+        Its lake-ownership summary carries no serialization-deferral claim;
+        checked, no stale language.
+  stale_language_search: >
+    rg -n "entry serialization|still deferred" orca/product/spines/data_lake/authority
+  stale_language_search_result: >
+    Executed 2026-07-03 after edits. Remaining hits are the ratified-state
+    statements added by this fold-in and historical receipt text; no live
+    surface still says entry serialization is deferred.
+  non_claims:
+    - not validation
+    - not readiness
+    - not implementation authorization by this contract
+    - not backend or storage-engine selection
+    - not a Bronze full-GT claim
+```
 
 ```yaml
 direction_change_propagation:
@@ -401,69 +438,6 @@ direction_change_propagation:
     - not implementation authorization
     - not backend or storage-engine selection
     - not a Bronze full-GT claim
-```
-
-```yaml
-direction_change_propagation:
-  doctrine_changed: >
-    Data Lake Physicality Location Contract v0 records the location boundary:
-    operational data lives under one operator-configured external data root
-    (ORCA_DATA_ROOT, generalized; example F:\orca-data), separate from the Git
-    repo; the v0 directory grammar is raw/ attachments/ derived/ acknowledgements/
-    and a split indexes/availability (content-free) plus indexes/derived_retrieval
-    (rebuildable, non-authoritative); raw is immutable, derived/ack append-only,
-    indexes rebuildable; root resolution is fail-closed including not-mounted and a
-    root-marker identity check; durable record names are mechanical
-    (SourceObjectMovementThresholdCrossingRecord, DecisionEvidenceAssemblyView,
-    DecisionEvidenceAssemblyReceipt, DecisionEvidenceAssemblyProfile) with no
-    GoldReady prefix and gold only as Judgment output; storage engine, backend,
-    serialization, queue, runtime, and migration remain deferred.
-  trigger: architecture_doctrine
-  related_triggers:
-    - lifecycle_boundary
-    - workflow_authority
-  controlling_sources_updated:
-    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_physicality_location_contract_v0.md
-    - orca/product/spines/data_lake/README.md
-  downstream_surfaces_checked:
-    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_core_contract_v0.md
-    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_storage_contract_v0.md
-    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_medallion_gold_readiness_contract_v0.md
-    - orca/product/spines/data_lake/workflows/core_spine_v0_data_lake_mechanics_map_v0.md
-    - docs/workflows/orca_repo_map_v0.md
-    - .gitignore
-  intentionally_not_updated:
-    - path: orca/product/spines/data_lake/authority/core_spine_v0_data_lake_storage_contract_v0.md
-      reason: >
-        The Storage Contract remains the non-selecting physicalization-blocker owner.
-        This contract adds the location boundary and directory grammar without
-        reopening storage-slot or blocker ownership.
-    - path: orca/product/spines/data_lake/authority/core_spine_v0_data_lake_medallion_gold_readiness_contract_v0.md
-      reason: >
-        The medallion contract already defers physical home and names the data lake
-        physicality lane as a downstream consumer. This contract is that downstream
-        location decision and does not change medallion semantics.
-    - path: docs/workflows/orca_repo_map_v0.md
-      reason: >
-        Repo-map registration is a separate hygiene/routing step on the shared map;
-        this lane records the contract and its local README pointer without editing
-        the shared repo map. Registration is a recommended follow-up.
-  stale_language_search: >
-    rg -n "ORCA_DATA_ROOT|physicality location|external data root|orca-data|indexes/availability|indexes/derived_retrieval|SourceObjectMovementThresholdCrossingRecord|DecisionEvidenceAssembly"
-    orca/product/spines/data_lake docs/workflows/orca_repo_map_v0.md
-  stale_language_search_result: >
-    To be executed against the data_lake spine and repo map after landing; this lane
-    introduces the ORCA_DATA_ROOT and physicality-location vocabulary, so expected
-    hits are this contract and the data_lake README pointer. No prior live data-lake
-    source is expected to define a competing data-root location boundary.
-  non_claims:
-    - not validation
-    - not readiness
-    - not implementation authorization
-    - not backend or storage-engine selection
-    - not serialization, manifest, or schema finalization
-    - not queue/runtime design
-    - not migration authorization
 ```
 
 Older receipts, when cycled out, are archived in

@@ -92,7 +92,7 @@ Nothing derived replaces raw truth.
 | Slot | Lake-side responsibility | Must not become | Physical status |
 | --- | --- | --- | --- |
 | Raw Packet Store | Preserve raw `SourceCapturePacket` bundles, stable packet/slice/file handles, `sha256`, and `hash_basis`. | Cleaned source truth, canonical identity, or mutable packet history. | Deferred. |
-| Attachment Record | Carry source-family payload body plus packet identity (`packet_id`), slice identity (`slice_id` when applicable), family, kind, schema version, replay pins, and absence/refusal/residual posture. | Cleaned value, dedupe decision, credibility label, Judgment label, or downstream-use strength. | Direction recorded: manifest-indexed immutable attachment bodies. Body layout ratified (Gate 1 body-layout ADR, 2026-07-02): packet-member default, `attachments/` sidecar reserved behind its reopen trigger, external bodies locked behind Gate 2 plus a backend ADR. Exact serialization, manifest version, backend, and migration remain deferred. Historical docs call this the logical typed-envelope boundary. |
+| Attachment Record | Carry source-family payload body plus packet identity (`packet_id`), slice identity (`slice_id` when applicable), family, kind, schema version, replay pins, and absence/refusal/residual posture. | Cleaned value, dedupe decision, credibility label, Judgment label, or downstream-use strength. | Direction recorded: manifest-indexed immutable attachment bodies. Body layout ratified (Gate 1 body-layout ADR, 2026-07-02): packet-member default, `attachments/` sidecar reserved behind its reopen trigger, external bodies locked behind Gate 2 plus a backend ADR. Entry serialization ratified (A2 ADR, 2026-07-03): manifest-equivalent packet index with the versioned entry schema plus deterministic derivation rule as the canonical object; materialized rows stay generated and non-authoritative. Backend and incumbent-field migration remain deferred. Historical docs call this the logical typed-envelope boundary. |
 | Availability Index | Record only that packet/slice/file material is committed and readable by stable keys with checkable refs. | Event bus, scheduler, lane router, retry gate, priority system, or success tracker. | Deferred; by-key scan/query must work before any queue. |
 | Derived Result Store | Hold append-only lane-owned derived records keyed to raw: projection receipts, ECR integrity records, SCR content records, Cleaning ledgers, and Judgment outputs. | Second raw source of truth, merged cross-kind blob, or rewritten or deleted derived history. | Deferred with derived-record physical-home blocker. |
 | Acknowledgement Log | Hold append-only lane-owned completion or acknowledgement facts keyed to raw. | Lake-consumed control flow for scheduling, gating, retrying, or calling another lane. | Deferred with derived-record physical-home blocker. |
@@ -127,8 +127,13 @@ before scoping storage code. The body layout is now ratified: packet-member
 default per the Gate 1 body-layout ADR
 (`orca/product/spines/data_lake/workflows/core_spine_v0_data_lake_bronze_full_gt_gate1_attachment_record_body_layout_adr_v0.md`,
 2026-07-02), with the `attachments/` sidecar reserved behind its reopen
-trigger. Exact serialization, manifest version, backend, and migration remain
-deferred.
+trigger. Entry serialization is now ratified: manifest-equivalent packet index
+per the A2 entry-serialization ADR
+(`orca/product/spines/data_lake/workflows/core_spine_v0_data_lake_a2_attachment_record_entry_serialization_adr_v0.md`,
+2026-07-03) — the versioned entry schema plus deterministic derivation rule is
+the canonical object; materialized rows stay generated and non-authoritative;
+Manifest v2 stays reserved behind that ADR's revisit triggers. Backend and
+incumbent-field migration remain deferred.
 
 Blocker 2 now has a direction, not a migration or code closeout. Existing
 direct packet/slice fields remain legacy-readable and transitional; they are
@@ -247,11 +252,13 @@ This contract does not:
 - select a storage engine inside this artifact; engine/backend selection is now
   a permitted downstream physicalization decision, not a forbidden doctrine
   change;
-- select Manifest v2;
+- select Manifest v2 (reserved behind the A2 ADR's revisit triggers, not by
+  this contract);
 - select sidecars;
 - select exact packet-member vs sidecar layout (now ratified by the Gate 1
   body-layout ADR, not by this contract);
-- select Attachment Record serialization;
+- select Attachment Record serialization (now ratified by the A2
+  entry-serialization ADR, not by this contract);
 - define a projection cache;
 - define a runtime queue or scheduler;
 - define ECR, SCR, Cleaning, Judgment, or Evidence Unit (EvidenceUnit) schemas;
@@ -262,6 +269,47 @@ This contract does not:
 - claim validation, readiness, approval, or acceptance.
 
 ## Direction Change Propagation
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Fold-in of the owner-ratified A2 entry-serialization ADR (2026-07-03): the
+    Attachment Record slot row and blocker-1 direction now state the ratified
+    manifest-equivalent packet index (versioned entry schema plus deterministic
+    derivation rule canonical; materialized rows generated and
+    non-authoritative), and the non-goals annotate Manifest v2 and entry
+    serialization as ADR-owned decisions, not contract selections.
+  trigger: architecture_doctrine
+  controlling_sources_updated:
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_storage_contract_v0.md
+  downstream_surfaces_checked:
+    - orca/product/spines/data_lake/workflows/core_spine_v0_data_lake_a2_attachment_record_entry_serialization_adr_v0.md
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_attachment_record_implementation_contract_v0.md
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_physicality_location_contract_v0.md
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_derived_layout_index_rebuild_contract_v0.md
+  intentionally_not_updated:
+    - path: orca/product/spines/data_lake/authority/core_spine_v0_data_lake_derived_layout_index_rebuild_contract_v0.md
+      reason: >
+        Its deferred list already carries the 2026-07-02 annotation pointing
+        layout decisions at the gate ADRs; its "exact serialization" deferral
+        concerns per-lane derived-record wire shapes it owns, not the AR entry
+        serialization the A2 ADR decided.
+  stale_language_search: >
+    rg -n "serialization.*remain deferred|remain deferred.*serialization|select
+    Attachment Record serialization" orca/product/spines/data_lake/authority
+  stale_language_search_result: >
+    Executed 2026-07-03 after edits. Remaining hits are the annotated non-goal
+    lines in this contract (ADR-ownership annotations added by this fold-in),
+    the derived-layout contract's per-lane wire-shape deferral (out of A2
+    scope), and historical receipt text. No live surface still defers the AR
+    entry serialization.
+  non_claims:
+    - not validation
+    - not readiness
+    - not implementation authorization by this contract
+    - not engine/backend selection
+    - not a Bronze full-GT claim
+```
 
 ```yaml
 direction_change_propagation:
@@ -310,71 +358,6 @@ direction_change_propagation:
     - not engine/backend selection
     - not erasure capability (the Gate 2 claim ceiling governs deletion language)
     - not a Bronze full-GT claim
-```
-
-```yaml
-direction_change_propagation:
-  doctrine_changed: >
-    Data Lake Storage Contract v0 retires the blanket no-storage-engine posture:
-    the contract still selects no engine itself, but a bounded data-lake
-    physicalization or implementation lane may now choose a concrete
-    filesystem/database/SQL-capable embedded engine (for example DuckDB),
-    object-store, warehouse/lakehouse, or hybrid backend when it preserves raw
-    immutability, append-only derived/ack records, rebuildable non-authoritative
-    indexes, by-key discovery, the no-smart-lake boundary, and external
-    operational-data placement or an explicit supersession of that placement
-    model.
-  trigger: architecture_doctrine
-  related_triggers:
-    - lifecycle_boundary
-  controlling_sources_updated:
-    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_storage_contract_v0.md
-    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_core_contract_v0.md
-    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_physicality_location_contract_v0.md
-    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_attachment_record_implementation_contract_v0.md
-    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_derived_layout_index_rebuild_contract_v0.md
-    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_write_boundary_enforcement_contract_v0.md
-    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_raw_admission_key_grammar_contract_v0.md
-    - orca/product/spines/data_lake/workflows/core_spine_v0_data_lake_mechanics_map_v0.md
-    - orca/product/spines/data_lake/README.md
-    - docs/workflows/orca_repo_map_v0.md
-    - orca-harness/data_lake/__init__.py
-    - orca-harness/data_lake/root.py
-    - docs/decisions/dcp_receipts_archive_v0.md
-  downstream_surfaces_checked:
-    - AGENTS.md
-    - .agents/workflow-overlay/README.md
-    - .agents/workflow-overlay/source-loading.md
-    - .agents/workflow-overlay/source-of-truth.md
-    - .agents/workflow-overlay/validation-gates.md
-    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_medallion_gold_readiness_contract_v0.md
-  intentionally_not_updated:
-    - path: orca/product/spines/data_lake/authority/core_spine_v0_data_lake_medallion_gold_readiness_contract_v0.md
-      reason: >
-        It governs bronze/silver/pre-gold/gold-ready/gold semantics, not storage
-        engine choice. Its backend non-claims remain correct as "not selected by
-        this contract" and do not block a storage-contract physicalization lane.
-  stale_language_search: >
-    rg -n "no storage engine|No storage engine|selects no storage engine|select a storage engine|storage-engine selection|No backend/queue/scheduler/engine|No queue/engine|non-selecting storage contract|physical engine"
-    orca/product/spines/data_lake orca-harness/data_lake docs/workflows/orca_repo_map_v0.md
-  stale_language_search_result: >
-    Executed 2026-06-25 after edits. Remaining hits are expected and
-    non-blocking: the new storage contract rule retires the old blanket no-engine
-    posture and names the deliberate engine-selection boundary; mechanics,
-    derived-layout, and physicality contracts now say no engine is selected by
-    that artifact or map; storage and physicality prior DCP/non-claim hits are
-    historical/non-authorizing receipts; the query appears in this receipt. No
-    live current surface still says the Data Lake selects no storage engine,
-    uses a non-selecting storage contract, or forbids a bounded downstream
-    engine/backend selection.
-  non_claims:
-    - not validation
-    - not readiness
-    - not implementation authorization
-    - not a selected engine/backend
-    - not Manifest v2 selection
-    - not sidecar selection
-    - not queue/runtime selection
 ```
 
 Older receipts are archived in `docs/decisions/dcp_receipts_archive_v0.md`.

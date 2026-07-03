@@ -90,7 +90,7 @@ Load the Parfumo contract and research context:
 - `docs/workflows/parfumo_targeted_capture_contract_v0.md`
 - `docs/research/orca_fragrance_native_database_live_probe_v0.md`
 - Historical handoff packet, if available in the repo object database:
-  `git show 5865f4d7a2fdd14114e04d8bac9fecc686fda17c:docs/workflows/fragrance_native_capture_pipeline_parfumo_basenotes_build_handoff_v0.md`
+  `git show 5865f4d7a2fdd14114e04d8bac9fecc686fda17c:docs/workflows/fragrance_native_capture_pipeline_parfumo_basenotes_build_handoff_v0.md` # nonresolving: removed on main in 3b23fa3e (PR #529); superseded by the live-probe pin registry above
 
 Load no-blur and front-door infrastructure:
 
