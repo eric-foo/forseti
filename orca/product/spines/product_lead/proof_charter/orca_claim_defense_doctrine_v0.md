@@ -1,10 +1,10 @@
-# Orca Claim Defense Doctrine v0 (Judgment-Quality Standard — claims policy)
+# Forseti Claim Defense Doctrine v0 (Judgment-Quality Standard — claims policy)
 
 ```yaml
 retrieval_header_version: 1
 artifact_role: Product doctrine (external-claims policy; owner-signed operative)
 scope: >
-  Binds how Orca talks about its judgment evidence externally: the claim spine
+  Binds how Forseti talks about its judgment evidence externally: the claim spine
   (built-to vs proven-at; the Judgment-Quality Standard frame; grader
   positioning), the per-tier approved/forbidden wording table (allowlist-first,
   activation keyed to the evidence ladder's closeout receipts), debunking
@@ -12,7 +12,7 @@ scope: >
   receipts inventory. Subordinate to the evidence ladder and the pre-sale
   execution evidence tier policy; mints no tiers and ships no claim.
 use_when:
-  - Drafting, reviewing, or approving ANY externally visible sentence about Orca's judgment evidence.
+  - Drafting, reviewing, or approving ANY externally visible sentence about Forseti's judgment evidence.
   - Responding to external criticism, skepticism, or a debunking attempt.
   - Checking what may be said at the current evidence tier, and what activates later.
 authority_boundary: retrieval_only
@@ -53,20 +53,20 @@ above).
 
 ## The Claim Spine
 
-1. **Built-to vs proven-at.** Orca markets being *built to* the Orca
+1. **Built-to vs proven-at.** Forseti markets being *built to* the Forseti
    Judgment-Quality Standard now; *proven at* a rung is claimable only when the
    ladder's receipt for that rung exists. The four words "built to" / "proven
    at" carry the entire external posture; no sentence may blur them.
-2. **The standard is the asset.** Orca defines and operates the evidence
+2. **The standard is the asset.** Forseti defines and operates the evidence
    standard for judgment claims; competitors must respond to our definition.
    The marketable claim is the standard's existence, rigor, and our visible
    discipline under it — never an attainment we have not receipted.
-3. **Grader positioning.** Orca is the grader, not the contestant — the PSA
+3. **Grader positioning.** Forseti is the grader, not the contestant — the PSA
    posture: PSA does not claim to own the best cards; it owns the grade the
    market trusts. Two leak-checks travel with the analogy wherever it is used:
-   (a) PSA grades third parties' assets; today Orca grades its own calls — the
+   (a) PSA grades third parties' assets; today Forseti grades its own calls — the
    integrity substitute is the receipts machinery, and, once sealed calls
-   mature, the stronger fact that **outcomes grade the sealed calls, not Orca**
+   mature, the stronger fact that **outcomes grade the sealed calls, not Forseti**
    (reality as co-grader); (b) grading *others'* judgment (vendors', buyers'
    internal calls) is a future business question the positioning keeps open,
    not a claim or commitment now.
@@ -92,7 +92,7 @@ defines nothing.
 ### Row 1 — NOW (claim cap: product_learning; basis: ladder `completed_product_learning_evidence` at best)
 
 APPROVED:
-- "Built to the Orca Judgment-Quality Standard." / "Built to a
+- "Built to the Forseti Judgment-Quality Standard." / "Built to a
   judgment-quality standard."
 - "We publish and operate an evidence standard for judgment claims — most
   vendors don't define one."
@@ -121,7 +121,7 @@ FORBIDDEN (until the named receipt exists):
 ### Row 2 — activates on a `completed_buyer_proof_evidence` receipt
 
 ADDS (with buyer consent and the receipt attached):
-- "A qualified decision owner used Orca's memo (Memo) for a live allocation
+- "A qualified decision owner used Forseti's memo (Memo) for a live allocation
   decision (DecisionEvent)."
 - Pull-signal and proof-memo-fit language as the buyer-proof receipt supports.
 
@@ -211,7 +211,7 @@ re-tiers an existing artifact.
 Not validation, readiness, buyer proof, or judgment-quality evidence. Ships no
 external claim by itself; every shipped claim still needs its receipt and its
 tier label. Not the public Judgment-Quality Standard document (that artifact is
-born at its recorded trigger: before Orca's first externally published
+born at its recorded trigger: before Forseti's first externally published
 evidence claim). Not marketing copy. The PSA analogy is positioning language,
 not a certification-business commitment. The wording table was owner-signed
 2026-06-11 (see Status); before that date the no-external-claims posture stood.
@@ -221,7 +221,7 @@ not a certification-business commitment. The wording table was owner-signed
 ```yaml
 direction_change_propagation:
   doctrine_changed: >
-    The Orca claim-defense doctrine (built-to vs proven-at claim spine,
+    The Forseti claim-defense doctrine (built-to vs proven-at claim spine,
     per-tier wording table, debunking triage, adjudicate-critique-as-review,
     receipts inventory) advanced from PROPOSED_PENDING_OWNER_SIGNOFF to
     owner-signed operative external-claims policy on 2026-06-11.

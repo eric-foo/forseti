@@ -1,12 +1,12 @@
-# Orca Offer Hypothesis v0
+# Forseti Offer Hypothesis v0
 
 ```yaml
 retrieval_header_version: 1
 artifact_role: Product artifact
-scope: Revised Orca offer hypothesis aligned to the value proposition, selected first ICP wedge, product docs, and owner feedback that the buyer-facing artifact is an executive decision deck.
+scope: Revised Forseti offer hypothesis aligned to the value proposition, selected first ICP wedge, product docs, and owner feedback that the buyer-facing artifact is an executive decision deck.
 use_when:
-  - Preparing Orca customer-discovery framing or buyer-facing offer language.
-  - Checking whether offer language preserves Orca product-proof boundaries.
+  - Preparing Forseti customer-discovery framing or buyer-facing offer language.
+  - Checking whether offer language preserves Forseti product-proof boundaries.
   - Comparing future ICP, commercial-frame, or deliverable-shape decisions against this hypothesis.
 authority_boundary: retrieval_only
 open_next:
@@ -107,7 +107,7 @@ this offer doc.)
 Owner direction confirms the first commercial target as US-market tractioned
 indie/DTC beauty or personal-care operators with a named decision owner and a
 live 30-90 day demand-allocation decision. This sharpens the first proof offer
-without narrowing the whole Orca value proposition.
+without narrowing the whole Forseti value proposition.
 
 The first offer should bias toward retail/channel expansion,
 launch/reposition, and inventory or purchase-depth commitments because those
@@ -117,7 +117,7 @@ data is conclusive. Tier/price, taste-shift pivot, and defend/hold decisions
 remain eligible when they pass the same gates.
 
 Retailer/category teams are deferred because their proprietary sell-through,
-basket, loyalty, and vendor data often weakens Orca's "internal data not
+basket, loyalty, and vendor data often weakens Forseti's "internal data not
 conclusive" premise. That is not a business-ending finding; it means retailers
 are a later buyer class after operator/fund proof, not the first 2-3 month
 door. Consumer fund screen remains the second door and PE/family-office
@@ -126,7 +126,7 @@ routes to accountable brand decision owners, but agency/incubator interest does
 not count as buyer proof by itself.
 
 Customer-provided proprietary data can later make the judgment stronger by
-letting Orca reconcile the public-signal read against the buyer's internal
+letting Forseti reconcile the public-signal read against the buyer's internal
 sell-through, CRM, panel, retail, or cohort evidence. It should not be a first
 proof input requirement. The first proof offer must work as a public-first memo
 plus evidence appendix before data intake, data science, dashboards,
@@ -134,7 +134,7 @@ integrations, or source-system buildout are considered.
 
 ## Source Use
 
-Controlling Orca sources:
+Controlling Forseti sources:
 
 - `docs/decisions/orca_product_thesis_consumer_demand_v0.md` — controlling
   thesis (owner-ratified 2026-06-12; supersedes `turn_08_product_thesis_v0.md`)
@@ -154,7 +154,7 @@ Reference heuristic:
 
 The offer-creation handbook is useful for structure: specific buyer, expensive
 problem, credible mechanism, economic upside, and repeatable delivery terms. It
-does not override Orca source hierarchy, product-proof gates, buyer-proof
+does not override Forseti source hierarchy, product-proof gates, buyer-proof
 non-claims, or docs-first limits.
 
 ## Product-Doc Sync Note
@@ -172,7 +172,7 @@ It should not front a memo in buyer meetings. Internally, the memo and evidence
 appendix still exist so the deck cannot become presentation theater.
 
 The selected first ICP wedge and the patched product-proof docs now constrain
-the first proof offer. This artifact should preserve the broader Orca value
+the first proof offer. This artifact should preserve the broader Forseti value
 proposition while making the first offer surface specific enough for buyer
 qualification.
 
@@ -200,9 +200,9 @@ The stronger offer is broader at the top and stricter underneath:
 - not a dashboard, market-monitoring feed, source dump, or free strategy deck.
 
 The only place to push back hard: "greatest" cannot mean unconstrained upside
-or whatever story feels most exciting. Orca can sell the greatest
+or whatever story feels most exciting. Forseti can sell the greatest
 evidence-supported decision, not the greatest unsupported bet. Otherwise the
-offer breaks the signal-quality judgment that makes Orca valuable.
+offer breaks the signal-quality judgment that makes Forseti valuable.
 
 ## Offer Name
 
@@ -221,7 +221,7 @@ an internal or commercial packaging question for a later Commercial Frame CA.
 
 ## Core Offer Hypothesis
 
-Orca turns messy, noisy, and contradictory public market signals into
+Forseti turns messy, noisy, and contradictory public market signals into
 executive-grade decision decks for foundational strategic and hyper-competitive
 decisions, helping leaders decide whether to accelerate, narrow, delay, defend,
 or reframe before budget, runway, launch focus, or strategic commitment is
@@ -232,7 +232,7 @@ consumer-demand allocation is its first application per the ratified thesis
 and wedge (2026-06-12).
 
 For a company facing a consequential strategic decision before internal data is
-conclusive, Orca gathers, cleans, classifies, source-backs, and constrains
+conclusive, Forseti gathers, cleans, classifies, source-backs, and constrains
 public customer, user, buyer, competitor, partner, community, and ecosystem
 signals into a decision deck and decision matrix.
 
@@ -245,7 +245,7 @@ First proof offer layer:
 For a US-market tractioned indie/DTC beauty or personal-care brand decision
 owner facing a live 30-90 day consumer-demand allocation decision -- especially
 retail/channel expansion, launch/reposition, or inventory/purchase-depth
-commitment -- before internal data is conclusive, Orca offers the decided
+commitment -- before internal data is conclusive, Forseti offers the decided
 answer: "this demand is real and durable / this demand is real-but-short-window /
 manufactured -- monitor, probe, commit, hold, scale, avoid, or reduce, and here is
 what would change the answer." The artifact is a decision memo + evidence appendix
@@ -260,7 +260,7 @@ bounded market-facing test of the broader offer.
 
 ## Buyer-Facing Draft
 
-Orca turns messy, noisy, and contradictory public market signals into
+Forseti turns messy, noisy, and contradictory public market signals into
 executive-grade decision decks for foundational strategic and hyper-competitive
 decisions, helping leaders decide whether to accelerate, narrow, delay, defend,
 or reframe before budget, runway, launch focus, or strategic commitment is
@@ -268,7 +268,7 @@ spent.
 
 Most teams either ignore public signals until backlash appears, or overreact to
 loud anecdotes, scattered posts, competitor narratives, and noisy community
-feedback. Orca gathers, cleans, classifies, source-backs, and constrains those
+feedback. Forseti gathers, cleans, classifies, source-backs, and constrains those
 signals into decision evidence, so the team can see the greatest
 evidence-supported path: what to move on, what to delay, what to defend, what
 to narrow, and what to reframe.
@@ -309,9 +309,9 @@ corroboration (brand and parent level, org-level only, through
 capture-lane-bound routes) strengthens but does not replace the demand lead.
 
 This updates the first proof offer, not the permanent company-wide value
-proposition. The broader Orca value proposition can still apply to other
+proposition. The broader Forseti value proposition can still apply to other
 foundational strategic and hyper-competitive decisions later, but they are out
-of the first proof offer unless a later accepted Orca decision replaces this
+of the first proof offer unless a later accepted Forseti decision replaces this
 wedge.
 
 Buyer / sponsor types for the first proof offer:
@@ -352,7 +352,7 @@ lock.
 
 ## Decision Families
 
-The broad Orca offer can later cover foundational strategic and
+The broad Forseti offer can later cover foundational strategic and
 hyper-competitive decisions, including:
 
 - product roadmap bets;
@@ -413,7 +413,7 @@ The problem is that public signals are not evidence until they are gathered,
 cleaned, deduplicated, source-backed, classified, and constrained by what they
 can actually support.
 
-Orca uses a manual decision-evidence process:
+Forseti uses a manual decision-evidence process:
 
 1. Bind one strategic decision question, owner or owner-context, deadline, and
    consequence.
@@ -634,7 +634,7 @@ readiness claims.
 
 ## Recommendation
 
-Use this revised offer hypothesis as the buyer-facing direction: Orca sells an
+Use this revised offer hypothesis as the buyer-facing direction: Forseti sells an
 executive-grade strategic decision deck and matrix built from public-signal
 evidence for foundational strategic and hyper-competitive decisions.
 
@@ -644,7 +644,7 @@ allocation decision (tier/price change, retail or channel expansion, launch /
 moratorium / reposition, taste-shift pivot) where internal data is not
 conclusive.
 
-Do not narrow the entire Orca value proposition to this wedge. The wedge is the
+Do not narrow the entire Forseti value proposition to this wedge. The wedge is the
 first market-facing proof container, chosen because it is specific enough to
 test buyer pull and broad enough to matter if it works.
 

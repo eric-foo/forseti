@@ -1,4 +1,4 @@
-# Orca ICP (Buyer) Wedge — Consumer-Demand-First (Beauty) Direction Proposal v0
+# Forseti ICP (Buyer) Wedge — Consumer-Demand-First (Beauty) Direction Proposal v0
 
 ```yaml
 retrieval_header_version: 1
@@ -78,13 +78,13 @@ route brand decision owners, but their interest is not buyer proof unless the
 accountable brand decision owner enters the proof loop.
 
 Customer-provided proprietary data is a later augmentation path, not a first
-proof dependency. Orca may eventually reconcile its public-signal judgment
+proof dependency. Forseti may eventually reconcile its public-signal judgment
 against buyer-provided sell-through, CRM, panel, retail, or cohort data under a
 separately authorized data-spine or proof lane. For this first door, the claim
 remains public-first: a manual memo plus evidence appendix must be credible
 before proprietary-data intake, data-science work, dashboards, integrations, or
 source-system buildout. Public evidence relevance is a plausibility premise,
-not a buyer-proof shortcut; Orca still has to observe decision-owner use or
+not a buyer-proof shortcut; Forseti still has to observe decision-owner use or
 pull before making proof claims.
 
 ```yaml
@@ -382,7 +382,7 @@ Honest tension carried forward: the pricing-first un-flip demoted reviews as
 biased (J-curve) and polluted (FTC 16 CFR 465) for the B2B competitor-customer
 read. The consumer-demand wedge knowingly moves the differentiated read onto
 that harder substrate — mitigated by multi-venue fusion (forums/social/search,
-not reviews-only), org-motion corroboration, and Orca's signal-quality
+not reviews-only), org-motion corroboration, and Forseti's signal-quality
 judgment (the thesis's strategic center), and measured by the batch-1
 calibration. That bias risk is a feature of the wedge to be priced in, not
 argued away.

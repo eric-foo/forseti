@@ -1,11 +1,11 @@
-# Orca Buyer Proof Packet v0
+# Forseti Buyer Proof Packet v0
 
 ```yaml
 retrieval_header_version: 1
 artifact_role: Product artifact
-scope: First buyer-proof packet for testing Orca's public-signal decision artifact promise.
+scope: First buyer-proof packet for testing Forseti's public-signal decision artifact promise.
 use_when:
-  - Running customer discovery for Orca buyer proof.
+  - Running customer discovery for Forseti buyer proof.
   - Deciding whether first memo production, executive deck production, proof kill, or proof graduation may proceed.
 authority_boundary: retrieval_only
 open_next:
@@ -101,7 +101,7 @@ diligence by owner decision at kill time. Agencies and incubators may later
 serve as routes to brand decision owners, but their interest is not buyer proof
 unless the accountable brand decision owner enters the memo/readback loop.
 
-Customer-provided proprietary data may later improve accuracy by letting Orca
+Customer-provided proprietary data may later improve accuracy by letting Forseti
 compare the public-signal judgment (Reading) against the buyer's internal demand
 evidence. This packet does not authorize that intake. For this first proof,
 requiring private/internal data, data science, dashboards, integrations, or
@@ -115,9 +115,9 @@ This packet tests one narrow first-proof claim:
 
 A real decision owner at a US-market tractioned indie/DTC beauty /
 personal-care brand (Brand) facing a live 30-90 day consumer-demand allocation
-decision — where internal data is not conclusive — will use an Orca decision
+decision — where internal data is not conclusive — will use a Forseti decision
 artifact to reduce allocation risk before committing inventory,
-retail/channel, launch, or pricing budget. Orca
+retail/channel, launch, or pricing budget. Forseti
 creates that artifact by capturing, cleaning, integrity-labeling, classifying
 (costly behavior, never engagement/resonance volume alone), and constraining messy
 public demand signals — reviews, forums, search interest, retail presence —
@@ -242,7 +242,7 @@ Subagents launched: 3.
 
 Evidence mode: delegated advisory directional, adversarial, and grounding lanes. Each lane was advisory input only; none was a verdict, implementation authority, or proof of readiness.
 
-Source mode: local Orca authority and repo-visible product artifacts only. No public web research was used. Archived contaminated replay outputs were not read.
+Source mode: local Forseti authority and repo-visible product artifacts only. No public web research was used. Archived contaminated replay outputs were not read.
 
 ## Target Buyer (Buyer)
 
@@ -335,21 +335,21 @@ transient demand; it should be read as qualitative resonance weight, but it caps
 the action ceiling unless gradeable costly behavior and origin integrity clear
 the gate.
 
-## Orca Promise
+## Forseti Promise
 
-Orca helps the decision owner reduce allocation risk before committing budget
+Forseti helps the decision owner reduce allocation risk before committing budget
 by discriminating projected durable demand from strong current-window transient
 demand and manufactured demand on fused, integrity-labeled public evidence.
 
-For this first proof, the promise is not "Orca predicts the trend." The promise is narrower:
+For this first proof, the promise is not "Forseti predicts the trend." The promise is narrower:
 
-Orca identifies the evidence-supported action ceiling for the live demand
+Forseti identifies the evidence-supported action ceiling for the live demand
 decision — monitor, probe, commit, hold, scale, avoid, or reduce — states what the public
 signal can and cannot support, and names what would change the answer.
 
 **Never-a-feed invariant (2026-06-14):** every output is a calibrated decision
 with an action ceiling — **never a feed or stream**. This is the structural lock
-that keeps Orca off the "monitoring-only pull" kill (below) and out of the
+that keeps Forseti off the "monitoring-only pull" kill (below) and out of the
 social-listening category, including when a read is monitored over time
 (transient → earn-durable): recurring engagement is sold as recurring
 *decisions*, never as a monitoring feed.
@@ -561,11 +561,11 @@ A single strong candidate may justify a follow-up conversation, but not graduati
 Graduate to product-bet planning only if all of the following are met and accepted:
 
 - Repeat means: At least two independent qualified decision owners in the same buyer segment and decision family produce Grade A or Grade B results, without reusing the same buyer or same internal decision.
-- At least two qualified decision owners use a manual Orca memo in a live allocation decision.
+- At least two qualified decision owners use a manual Forseti memo in a live allocation decision.
 - At least one buyer shows fixed-scope paid-decision-sprint-level pull or equivalent commercial commitment.
 - The memo plus evidence appendix format is repeatable enough to test again without building software.
 - Any executive deck layer is derived from the memo and appendix and does not become bespoke presentation consulting.
-- The strongest buyer value is Orca's decision judgment and action-ceiling discipline, not merely custom research labor.
+- The strongest buyer value is Forseti's decision judgment and action-ceiling discipline, not merely custom research labor.
 - The proof does not require dashboards, source systems, collection pipelines, source maps, automation, or data-spine design.
 - Non-claims remain intact.
 
