@@ -24,7 +24,10 @@ from pathlib import Path
 
 import pytest
 
+from data_lake.attachment_record_entry import derive_entries_by_key, serialize_entries
 from data_lake.catalog import (
+    BRONZE_CATALOG_SCHEMA_VERSION,
+    BRONZE_CATALOG_VERSION,
     load_attachment_record_body,
     rebuild_catalog,
     source_surface_catalog_rows,
@@ -35,6 +38,34 @@ from source_capture.writer import write_local_source_capture_packet
 
 _SOURCE_FAMILY = "reddit"
 _SOURCE_SURFACE = "r/PhysicalizationProof"
+_CATALOG_ONLY_KEYS = {"authority", "catalog_version", "catalog_schema_version", "stable_query_paths"}
+_CATALOG_REPLAY_PIN_KEYS = {"catalog_schema_version"}
+
+
+def _canonical_projection(row: dict) -> dict:
+    canonical = {key: value for key, value in row.items() if key not in _CATALOG_ONLY_KEYS}
+    pins = dict(canonical["replay_version_pins"])
+    pins.pop("catalog_schema_version", None)
+    canonical["replay_version_pins"] = pins
+    return canonical
+
+
+def _assert_row_is_canonical_plus_catalog_decorations(row: dict, canonical: dict) -> None:
+    assert set(row) == set(canonical) | _CATALOG_ONLY_KEYS
+    assert row["catalog_version"] == BRONZE_CATALOG_VERSION
+    assert row["catalog_schema_version"] == BRONZE_CATALOG_SCHEMA_VERSION
+    assert isinstance(row["authority"], str) and row["authority"]
+    stable_query_paths = row["stable_query_paths"]
+    assert set(stable_query_paths) == {"by_attachment_record", "by_packet"}
+    assert stable_query_paths["by_attachment_record"] == (
+        f"attachment_records/by_attachment_record/{row['attachment_record_id']}.json"
+    )
+    assert stable_query_paths["by_packet"].startswith("attachment_records/by_packet/")
+    assert stable_query_paths["by_packet"].endswith(".jsonl")
+    row_pins = row["replay_version_pins"]
+    canonical_pins = canonical["replay_version_pins"]
+    assert set(row_pins) == set(canonical_pins) | _CATALOG_REPLAY_PIN_KEYS
+    assert row_pins["catalog_schema_version"] == BRONZE_CATALOG_SCHEMA_VERSION
 
 
 def _capture(root: DataLakeRoot, tmp_path: Path, body: str):
@@ -276,3 +307,54 @@ def test_proof_06_violation_reads_survive_index_loss_so_indexes_carry_no_authori
         source_surface_catalog_rows(
             root, source_family=_SOURCE_FAMILY, source_surface=_SOURCE_SURFACE
         )
+
+
+# --- PROOF-07: zero-index canonical entry derivation (ratified A2) --------------
+
+
+def test_proof_07_canonical_entries_derive_by_key_with_zero_indexes(tmp_path: Path) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    packet_id = _capture(root, tmp_path, "alpha").packet.packet_id
+    assert rebuild_catalog(root)["status"] == "rebuilt"
+    rows = source_surface_catalog_rows(
+        root, source_family=_SOURCE_FAMILY, source_surface=_SOURCE_SURFACE
+    )["attachment_record_rows"]
+    derived_before_index_loss = derive_entries_by_key(root, packet_id)
+    derived_by_id = {
+        entry["attachment_record_id"]: entry for entry in derived_before_index_loss
+    }
+    rows_by_id = {
+        row["attachment_record_id"]: row for row in rows if row["packet_id"] == packet_id
+    }
+    assert set(rows_by_id) == set(derived_by_id)
+    for record_id, row in rows_by_id.items():
+        _assert_row_is_canonical_plus_catalog_decorations(row, derived_by_id[record_id])
+    materialized_canonical = [
+        _canonical_projection(rows_by_id[record_id]) for record_id in sorted(rows_by_id)
+    ]
+
+    shutil.rmtree(root.path / "indexes")
+
+    derived = derive_entries_by_key(root, packet_id)
+    assert serialize_entries(derived) == serialize_entries(materialized_canonical), (
+        "by-key derivation with zero indexes must reproduce the canonical part of "
+        "the materialized rows byte-for-byte; the pinned schema + derivation rule "
+        "is the canonical object, never the materialized row"
+    )
+
+
+def test_proof_07_violation_unknown_manifest_version_is_refused_not_coerced(
+    tmp_path: Path,
+) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    packet_id = _capture(root, tmp_path, "alpha").packet.packet_id
+
+    manifest_path = _packet_container(root, packet_id) / "manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    manifest["manifest_version"] = "source_capture_packet_manifest_v99_future"
+    manifest_path.write_text(json.dumps(manifest, sort_keys=True), encoding="utf-8")
+
+    # Central dispatch fails closed: an unrecognized sealed-packet format is
+    # refused for a deliberate new derivation rule, never silently coerced.
+    with pytest.raises(DataLakeRootError, match="unsupported raw packet manifest_version"):
+        derive_entries_by_key(root, packet_id)

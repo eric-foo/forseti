@@ -466,6 +466,41 @@ def _ledger_video_rows(creator_ledger: Mapping[str, Any]) -> dict[str, dict[str,
     return videos
 
 
+def ledger_video_retirements(creator_ledger: Mapping[str, Any]) -> dict[str, str]:
+    """Operator-attested dead-video retirements from the observation ledger's
+    optional ``operator_video_retirements`` block, as a video_id -> reason map.
+    Retired videos stay in the compiled pool (the ledger is a compiled fixture;
+    removal would desync its reconciled counts and packet refs) -- producers
+    exclude them loudly and the batch capture runner skips recapturing them.
+    Fails closed on malformed entries or retirements naming videos outside the
+    admitted pool, mirroring the builder's unknown-exclusion rule."""
+    ledger = _unwrap_creator_ledger(creator_ledger)
+    block = ledger.get("operator_video_retirements")
+    if block is None:
+        return {}
+    if not isinstance(block, list):
+        raise ValueError("operator_video_retirements must be a list")
+    pool = set(_ledger_video_rows(ledger))
+    retirements: dict[str, str] = {}
+    for entry in block:
+        if not isinstance(entry, Mapping):
+            raise ValueError("operator_video_retirements entries must be objects")
+        video_id = entry.get("video_id")
+        reason = entry.get("reason")
+        if not isinstance(video_id, str) or not video_id.strip():
+            raise ValueError("operator_video_retirements entry lacks a video_id")
+        if video_id in retirements:
+            raise ValueError(f"duplicate operator_video_retirements entry: {video_id}")
+        if video_id not in pool:
+            raise ValueError(
+                f"operator_video_retirements names a video outside the admitted pool: {video_id}"
+            )
+        if not isinstance(reason, str) or not reason.strip():
+            raise ValueError(f"operator_video_retirements entry for {video_id} lacks a reason")
+        retirements[video_id] = reason.strip()
+    return retirements
+
+
 def _youtube_accounts_by_channel(account_ledger: Mapping[str, Any]) -> dict[str, Mapping[str, Any]]:
     ledger = _unwrap_account_ledger(account_ledger)
     accounts = ledger.get("platform_accounts")

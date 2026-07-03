@@ -111,6 +111,76 @@ def test_gate_fails_on_seeded_reasoned_exclusion_drift() -> None:
     ), violations
 
 
+def test_gate_fails_on_seeded_runner_seam_missing_identity_binding() -> None:
+    declared = copy.deepcopy(load_declared_inventory())
+    entry = declared["raw_packet_writers"]["runner_seams"][0]
+    del entry["identity_binding"]
+
+    violations = inventory_violations(declared, build_inventory())
+
+    assert any(
+        "runner seam without an identity_binding" in violation and entry["runner"] in violation
+        for violation in violations
+    ), violations
+
+
+def test_gate_fails_on_seeded_undeclared_identity_binding_status() -> None:
+    # The exact shape build_inventory emits for a new runner with no
+    # RUNNER_IDENTITY_BINDINGS entry: regenerating the record must not clear
+    # the gate without answering the identity question.
+    declared = copy.deepcopy(load_declared_inventory())
+    entry = declared["raw_packet_writers"]["runner_seams"][0]
+    entry["identity_binding"] = {"status": "undeclared"}
+
+    violations = inventory_violations(declared, build_inventory())
+
+    assert any(
+        "invalid identity_binding status" in violation
+        and "undeclared" in violation
+        and entry["runner"] in violation
+        for violation in violations
+    ), violations
+
+
+def test_gate_fails_on_seeded_bound_identity_binding_without_mechanism() -> None:
+    declared = copy.deepcopy(load_declared_inventory())
+    entry = declared["raw_packet_writers"]["runner_seams"][0]
+    entry["identity_binding"] = {"status": "bound", "mechanism": "   "}
+
+    violations = inventory_violations(declared, build_inventory())
+
+    assert any(
+        "requires a non-empty 'mechanism'" in violation and entry["runner"] in violation
+        for violation in violations
+    ), violations
+
+
+def test_gate_fails_on_seeded_not_applicable_identity_binding_without_reason() -> None:
+    declared = copy.deepcopy(load_declared_inventory())
+    entry = declared["raw_packet_writers"]["runner_seams"][0]
+    entry["identity_binding"] = {"status": "not_applicable"}
+
+    violations = inventory_violations(declared, build_inventory())
+
+    assert any(
+        "requires a non-empty 'reason'" in violation and entry["runner"] in violation
+        for violation in violations
+    ), violations
+
+
+def test_gate_fails_on_seeded_identity_binding_with_unexpected_fields() -> None:
+    declared = copy.deepcopy(load_declared_inventory())
+    entry = declared["raw_packet_writers"]["runner_seams"][0]
+    entry["identity_binding"] = {"status": "bound", "mechanism": "real check", "reason": "stray"}
+
+    violations = inventory_violations(declared, build_inventory())
+
+    assert any(
+        "unexpected fields ['reason']" in violation and entry["runner"] in violation
+        for violation in violations
+    ), violations
+
+
 def test_gate_fails_on_seeded_undispositioned_unknown() -> None:
     declared = copy.deepcopy(load_declared_inventory())
     declared["unknowns"].append(

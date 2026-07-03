@@ -41,6 +41,15 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--cadence-max-gap-seconds", type=float, default=120.0)
     parser.add_argument("--cadence-window-seconds", type=float)
     parser.add_argument("--random-seed", type=int)
+    parser.add_argument(
+        "--allow-challenge-close-diagnostic",
+        action="store_true",
+        help=(
+            "Diagnostic only: use a bounded pointer click on a TikTok challenge "
+            "modal X/Close control before the comment route. Any resulting "
+            "capture is not clean admission proof."
+        ),
+    )
     return parser
 
 
@@ -65,6 +74,7 @@ def main(argv: list[str] | None = None) -> int:
         cadence_max_gap_seconds=args.cadence_max_gap_seconds,
         cadence_window_seconds=args.cadence_window_seconds,
         random_seed=args.random_seed,
+        allow_challenge_close_diagnostic=args.allow_challenge_close_diagnostic,
     )
     print(f"grid_result_json={paths.grid_result_json_path}")
     print(f"cadence_result_json={paths.cadence_result_json_path}")

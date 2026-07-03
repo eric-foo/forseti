@@ -159,7 +159,7 @@ Load Parfumo contract, research, and prior review context:
 - `docs/workflows/parfumo_targeted_capture_contract_v0.md`
 - `docs/research/orca_fragrance_native_database_live_probe_v0.md`
 - Historical handoff packet if available in the repo object database:
-  `git show 5865f4d7a2fdd14114e04d8bac9fecc686fda17c:docs/workflows/fragrance_native_capture_pipeline_parfumo_basenotes_build_handoff_v0.md`
+  `git show 5865f4d7a2fdd14114e04d8bac9fecc686fda17c:docs/workflows/fragrance_native_capture_pipeline_parfumo_basenotes_build_handoff_v0.md` # nonresolving: removed on main in 3b23fa3e (PR #529); superseded by the live-probe pin registry above
 - `docs/prompts/reviews/parfumo_targeted_projection_metrics_delegated_code_review_prompt_v0.md`
 - `docs/review-outputs/parfumo_targeted_projection_metrics_delegated_code_review_v0.md`
 
@@ -195,7 +195,7 @@ Optional local evidence to inspect if present, not authority and not fixture adm
 
 Treat these as hypotheses to verify, not proof:
 
-- The checked-out worktree path did not contain `docs/workflows/fragrance_native_capture_pipeline_parfumo_basenotes_build_handoff_v0.md`; the packet was recovered from the repo object database with the `git show 5865f4d...:<path>` command above.
+- The checked-out worktree path did not contain `docs/workflows/fragrance_native_capture_pipeline_parfumo_basenotes_build_handoff_v0.md`; the packet was recovered from the repo object database with the `git show 5865f4d...:<path>` command above. # nonresolving: removed on main in 3b23fa3e (PR #529)
 - The current lane holds Basenotes out of scope as access-blocked for this work, even though older packet text contains residential-proxy Basenotes language.
 - Commit 9066900f touched four files: the Parfumo projection parser, the Parfumo capture runner CLI route guard, and two unit test files.
 - Fresh rendered local probe evidence after 9066900f reportedly produced packet `01KWCNKC6HCEJ2DWDSMKGCESD1`, 14 projection rows, 5 latest review cards, 5 statement rows, and 10 bindings from a local Chrome-extension rendered Parfumo artifact. Treat this as inspectable local scratch only if the files are present; do not treat it as durable fixture admission or full-corpus capture.

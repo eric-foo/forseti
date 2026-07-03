@@ -385,6 +385,68 @@ def test_runner_flags_couple_exclusion_and_reason() -> None:
     assert excinfo.value.code == 2
 
 
+def _retired_creator_ledger() -> dict:
+    """Creator ledger carrying a ledger-attested retirement of vidAlpha001."""
+    creator_ledger = _creator_ledger()
+    creator_ledger["youtube_creator_observation_ledger"]["operator_video_retirements"] = [
+        {
+            "video_id": "vidAlpha001",
+            "reason": "video unavailable (fixture retirement)",
+            "retired_at_utc": "2026-07-03T00:00:00Z",
+            "evidence_packet_ids": ["01KWH1TR2QY5VRNYTPNNJY18QV"],
+        }
+    ]
+    return creator_ledger
+
+
+def test_ledger_retirements_merge_into_effective_exclusions() -> None:
+    from runners.run_youtube_watch_packet_metric_rollup_producer import (
+        resolve_effective_exclusions,
+    )
+
+    retired_reason = "video unavailable (fixture retirement)"
+
+    # ledger-only: retirements become the effective exclusion map
+    merged, retired = resolve_effective_exclusions(None, _retired_creator_ledger())
+    assert merged == {"vidAlpha001": retired_reason}
+    assert retired == {"vidAlpha001": retired_reason}
+
+    # ledger + disjoint CLI exclusion: both apply, each with its own reason
+    merged, retired = resolve_effective_exclusions(
+        {"vidAlpha002": "transient capture glitch"}, _retired_creator_ledger()
+    )
+    assert merged == {
+        "vidAlpha001": retired_reason,
+        "vidAlpha002": "transient capture glitch",
+    }
+    assert retired == {"vidAlpha001": retired_reason}
+
+    # no retirement block: CLI exclusions pass through untouched, None stays None
+    passthrough, retired = resolve_effective_exclusions({"vidAlpha001": "x"}, _creator_ledger())
+    assert passthrough == {"vidAlpha001": "x"}
+    assert retired == {}
+    assert resolve_effective_exclusions(None, _creator_ledger()) == (None, {})
+
+
+def test_cli_exclusion_overlapping_ledger_retirement_fails_closed() -> None:
+    import pytest
+
+    from runners.run_youtube_watch_packet_metric_rollup_producer import (
+        resolve_effective_exclusions,
+    )
+
+    with pytest.raises(ValueError, match="duplicates ledger-retired video"):
+        resolve_effective_exclusions({"vidAlpha001": "dead again"}, _retired_creator_ledger())
+
+    # a retirement outside the admitted pool fails closed at the reader
+    ledger = _retired_creator_ledger()
+    ledger["youtube_creator_observation_ledger"]["operator_video_retirements"][0][
+        "video_id"
+    ] = "vidUnknown99"
+    with pytest.raises(ValueError, match="outside the admitted pool"):
+        resolve_effective_exclusions(None, ledger)
+
+
 def test_live_rollup_records_drop_the_engagement_non_claim(tmp_path: Path) -> None:
     data_root = DataLakeRoot.for_test(tmp_path / "lake")
     _commit_capture_cycle(data_root, captured_at=CAPTURE_T1, base_views=100)

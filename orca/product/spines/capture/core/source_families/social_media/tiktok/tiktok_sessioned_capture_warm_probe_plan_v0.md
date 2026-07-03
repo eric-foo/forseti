@@ -78,6 +78,12 @@ Run the capture pattern across an **escalating batch** from the single warmed ac
 
 Slider/"verify" captcha; account challenge or logout-forced; ban/40x on the authenticated session; `msToken`/signature rejection; empty/stripped page; operator concern. On any: **stop that account, record the ceiling point, cool down; never solve a challenge; do not rotate to a new account within the same run without owner say-so.** Distinguish a real TikTok signal from transport/infra glitches (e.g., an extension `[BLOCKED: JWT token]` `chrome-error` is infra, not TikTok — retry once).
 
+If a cold lane is confounded by whether a blocker should use UI movement, open
+`docs/workflows/tiktok_ui_movement_blocker_substrate_playbook_v0.md`. It names
+the allowed bounded pointer-action substrate for benign overlays, comment routing,
+DOM close diagnosis, and visual-X close diagnosis, and it forbids treating any
+challenge-close click as capture success.
+
 ## Receipts / measurement ledger (no secrets — C7/G-2)
 
 Per run record: account label (not credentials), session mode (`entitled_session`), warm-up performed, batch ladder reached, per-video request count, **first-challenge point (video N + observed rate)**, verdict, and limitations. **Never** record credentials, cookies, storage-state, `msToken`, proxy endpoints, or exit IPs.

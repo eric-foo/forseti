@@ -14,8 +14,10 @@ Discovery internals are single-sourced in ``data_lake.inventory`` (which also
 feeds the A1 touchpoint inventory gate in
 ``test_data_lake_inventory_gate.py``); this test keeps its own assertion
 baselines and imports discovery from the module. ``KNOWN_UNSYNCED`` (the
-acknowledged-unsynced ledger, each entry with a reason) and
-``BRONZE_PACKET_ORCHESTRATORS`` are declared there.
+acknowledged-unsynced ledger, each entry with a reason),
+``BRONZE_PACKET_ORCHESTRATORS``, and ``RUNNER_IDENTITY_BINDINGS`` (the
+per-runner served-content-to-requested-subject binding declarations) are
+declared there.
 """
 from __future__ import annotations
 
@@ -25,8 +27,10 @@ from collections import Counter
 from data_lake.inventory import (
     BRONZE_PACKET_ORCHESTRATORS,
     KNOWN_UNSYNCED,
+    RUNNER_IDENTITY_BINDINGS,
     HARNESS_ROOT as _HARNESS_ROOT,
     RUNNERS_DIR as _RUNNERS_DIR,
+    identity_binding_problems as _identity_binding_problems,
     bronze_writer_runners as _bronze_writer_runners,
     call_name as _call_name,
     calls_named as _calls_named,
@@ -105,6 +109,7 @@ EXPECTED_NON_RAW_LAKE_TOUCHPOINTS = Counter(
         ("data_lake/consumption.py", "lane_dir"): 1,
         ("data_lake/derived_retrieval_views.py", "lane_dir"): 1,
         ("data_lake/silver_record.py", "append_record"): 1,
+        ("data_lake/sov_readout.py", "lane_dir"): 1,
         ("ecr/lake.py", "append_record_set"): 1,
         ("runners/run_capture_ecr_cleaning_smoke.py", "lane_dir"): 1,
         ("runners/run_cleaning_spine_periodic_audit.py", "record_path"): 1,
@@ -112,6 +117,7 @@ EXPECTED_NON_RAW_LAKE_TOUCHPOINTS = Counter(
         ("runners/run_data_lake_catalog.py", "inspect_catalog"): 1,
         ("runners/run_data_lake_catalog.py", "rebuild_catalog"): 1,
         ("runners/run_ig_reels_lane_orchestrator.py", "is_record_set_complete"): 1,
+        ("runners/run_sov_extraction_quality_eval.py", "lane_dir"): 1,
         ("runners/run_ig_reels_product_extract.py", "is_record_set_complete"): 3,
         ("runners/run_source_capture_ig_reels_deep_capture.py", "is_record_set_complete"): 1,
         ("runners/run_transcript_product_extract.py", "is_record_set_complete"): 1,
@@ -287,6 +293,39 @@ def test_packet_runner_output_modes_are_exclusive() -> None:
 def test_known_unsynced_entries_have_reasons() -> None:
     missing = [name for name, reason in KNOWN_UNSYNCED.items() if not reason.strip()]
     assert not missing, f"KNOWN_UNSYNCED entries need a reason: {missing}"
+
+
+def test_every_bronze_writer_runner_declares_identity_binding() -> None:
+    runners = _bronze_writer_runners()
+    missing = sorted(runners - set(RUNNER_IDENTITY_BINDINGS))
+    assert not missing, (
+        "Bronze-writing runner(s) without an identity_binding declaration.\n"
+        "Every capture runner must answer, at build time, how it binds served content "
+        "to the requested subject (F-01, docs/review-outputs/"
+        "youtube_rss_monitor_delegated_adversarial_code_review_v0.md): add a "
+        "bound/unbound/not_applicable entry to RUNNER_IDENTITY_BINDINGS in "
+        "data_lake/inventory.py for:\n"
+        f"  {missing}"
+    )
+
+    stale = sorted(set(RUNNER_IDENTITY_BINDINGS) - runners)
+    assert not stale, (
+        "RUNNER_IDENTITY_BINDINGS lists runner(s) that are no longer Bronze writers.\n"
+        f"Remove the stale declarations: {stale}"
+    )
+
+
+def test_runner_identity_binding_declarations_are_shape_valid() -> None:
+    problems = {
+        runner: issues
+        for runner, binding in sorted(RUNNER_IDENTITY_BINDINGS.items())
+        for issues in [_identity_binding_problems(binding)]
+        if issues
+    }
+    assert not problems, (
+        "identity_binding declaration(s) with shape problems (bound requires a "
+        f"mechanism; unbound/not_applicable require a reason): {problems}"
+    )
 
 
 def test_packet_runner_lake_seams_reach_packet_writers() -> None:

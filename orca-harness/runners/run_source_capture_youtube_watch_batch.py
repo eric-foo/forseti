@@ -51,6 +51,7 @@ from capture_spine.creator_profile_current.youtube_metric_seed import (
     _ledger_video_rows,
     _pool_index,
     _unwrap_creator_ledger,
+    ledger_video_retirements,
 )
 from data_lake.root import DataLakeRoot, DataLakeRootError
 from runners.run_source_capture_youtube_watch_packet import (
@@ -159,6 +160,11 @@ def run_youtube_watch_batch(
     pool = admitted_pool_video_ids(creator_ledger)
     if not pool:
         raise ValueError("YouTube creator observation ledger has no creator-classified videos")
+    ledger_retired = ledger_video_retirements(creator_ledger)
+    if all(video_id in ledger_retired for video_id in pool):
+        raise ValueError(
+            "operator_video_retirements retires every admitted video; refusing a no-op sweep"
+        )
     already_captured = _resume_captured_video_ids(resume_from)
 
     output_root.mkdir(parents=True, exist_ok=True)
@@ -189,6 +195,17 @@ def run_youtube_watch_batch(
     attempted_any = False
 
     for video_id in pool:
+        if video_id in ledger_retired:
+            rows.append(
+                {
+                    "video_id": video_id,
+                    "status": "skipped_ledger_retired",
+                    "packet_ref_or_error": None,
+                    "video_state_or_none": None,
+                    "attempted_at": None,
+                }
+            )
+            continue
         if video_id in already_captured:
             rows.append(
                 {
@@ -264,7 +281,7 @@ def run_youtube_watch_batch(
         if break_reason is not None
         else (
             "completed"
-            if all(r["status"] in {"captured", "skipped_resume"} for r in rows)
+            if all(r["status"] in {"captured", "skipped_resume", "skipped_ledger_retired"} for r in rows)
             and len(rows) == len(pool)
             else "completed_with_failures"
         )
@@ -401,6 +418,7 @@ def _build_summary(
 ) -> dict[str, Any]:
     captured = sum(1 for row in rows if row["status"] == "captured")
     skipped = sum(1 for row in rows if row["status"] == "skipped_resume")
+    ledger_retired = sum(1 for row in rows if row["status"] == "skipped_ledger_retired")
     failed = sum(1 for row in rows if row["status"] == "capture_failed")
     return {
         "runner": "youtube_watch_batch",
@@ -416,9 +434,13 @@ def _build_summary(
             "attempted": captured + failed,
             "captured": captured,
             "skipped_resume": skipped,
+            "skipped_ledger_retired": ledger_retired,
             "capture_failed": failed,
             "not_attempted": len(pool) - len(rows),
         },
+        "ledger_retired_video_ids": [
+            row["video_id"] for row in rows if row["status"] == "skipped_ledger_retired"
+        ],
         "failed_video_ids": [row["video_id"] for row in rows if row["status"] == "capture_failed"],
         "results": rows,
         "non_claims": [
@@ -506,9 +528,11 @@ def main(argv: Sequence[str] | None = None) -> int:
     counts = summary["counts"]
     print(
         f"{summary['status']}: captured={counts['captured']} failed={counts['capture_failed']} "
-        f"skipped={counts['skipped_resume']} not_attempted={counts['not_attempted']} "
-        f"of pool={counts['pool_total']}"
+        f"skipped={counts['skipped_resume']} ledger_retired={counts['skipped_ledger_retired']} "
+        f"not_attempted={counts['not_attempted']} of pool={counts['pool_total']}"
     )
+    if summary["ledger_retired_video_ids"]:
+        print(f"  ledger-retired (never recaptured): {', '.join(summary['ledger_retired_video_ids'])}")
     if summary["break_reason_or_none"]:
         print(f"  break: {summary['break_reason_or_none']}")
     if summary["failed_video_ids"]:

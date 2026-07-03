@@ -11,7 +11,7 @@ worktree: C:/Users/vmon7/Desktop/projects/orca/.claude/worktrees/brave-maxwell-6
 expected_branch: claude/brave-maxwell-69cf0f (off main @ 6f79445e)
 hash_verification: not_performed (planning memo, not a pinned-hash code review; source basis = read-only recon)
 edit_permission: read-only planning; edits confined to this memo only, no other source files touched, no live TikTok run
-commissioned_by: docs/prompts/handoffs/tiktok_capture_calibration_architecture_prompt_v0.md (codex/social-capture-browser-calibration-ig-only @ a0f42467)
+commissioned_by: docs/prompts/handoffs/tiktok_capture_calibration_architecture_prompt_v0.md (codex/social-capture-browser-calibration-ig-only @ a0f42467) # nonresolving: prompt file never committed on any branch; couriered from the commissioning lane worktree
 hardening_pass: de-correlated adversarial artifact review-and-patch (repo mode), 2026-06-21 — findings AR-01..AR-06 accepted, CA-adjudicated with citations re-verified; record at docs/review-outputs/tiktok_capture_calibration_architecture_review_findings_v0.md
 authored_by: Claude Opus 4.8 (Anthropic)
 reviewed_by: unrecorded (non-Anthropic delegate; operator did not record model+version)

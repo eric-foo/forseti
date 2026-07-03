@@ -27,7 +27,7 @@ ALPHA_CHANNEL = "UCalphaAlphaAlphaAlpha01"
 POOL = ("vidAlpha001", "vidAlpha002", "vidAlpha003")
 
 
-def _creator_ledger(*, include_brand_row: bool = False) -> dict:
+def _creator_ledger(*, include_brand_row: bool = False, retire: tuple[str, ...] = ()) -> dict:
     video_ids = list(POOL)
     pool_ids = [f"yt-frag-pool200-{index:03d}" for index in range(1, len(video_ids) + 1)]
     observations = [
@@ -51,7 +51,18 @@ def _creator_ledger(*, include_brand_row: bool = False) -> dict:
                 "video_ids": ["vidBrand0001"],
             }
         )
-    return {"youtube_creator_observation_ledger": {"creator_observations": observations}}
+    wrapper: dict = {"creator_observations": observations}
+    if retire:
+        wrapper["operator_video_retirements"] = [
+            {
+                "video_id": video_id,
+                "reason": "video unavailable (fixture retirement)",
+                "retired_at_utc": "2026-07-03T00:00:00Z",
+                "evidence_packet_ids": ["01KWH1TR2QY5VRNYTPNNJY18QV"],
+            }
+            for video_id in retire
+        ]
+    return {"youtube_creator_observation_ledger": wrapper}
 
 
 def _observed_receipt(value: int) -> dict:
@@ -166,6 +177,7 @@ def test_complete_sweep_exits_zero_and_paces_between_attempts(tmp_path: Path) ->
         "attempted": 3,
         "captured": 3,
         "skipped_resume": 0,
+        "skipped_ledger_retired": 0,
         "capture_failed": 0,
         "not_attempted": 0,
     }
@@ -175,6 +187,49 @@ def test_complete_sweep_exits_zero_and_paces_between_attempts(tmp_path: Path) ->
         # packet_ref is the committed packet id, readable from the lake.
         assert data_root.find_packet(row["packet_ref_or_error"]) is not None
     assert not (tmp_path / "cooldown.json").exists()
+
+
+def test_ledger_retired_videos_are_never_recaptured(tmp_path: Path) -> None:
+    data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    exit_code, summary, calls, sleeps = _run(
+        data_root,
+        tmp_path,
+        outcomes={},
+        creator_ledger=_creator_ledger(retire=("vidAlpha002",)),
+    )
+    assert exit_code == 0
+    assert summary["status"] == "completed"
+    # the retired video is skipped before any capture attempt or pacing
+    assert calls == ["vidAlpha001", "vidAlpha003"]
+    assert sleeps == [7.5]
+    assert summary["counts"]["skipped_ledger_retired"] == 1
+    assert summary["counts"]["captured"] == 2
+    assert summary["ledger_retired_video_ids"] == ["vidAlpha002"]
+    retired_row = next(r for r in summary["results"] if r["video_id"] == "vidAlpha002")
+    assert retired_row["status"] == "skipped_ledger_retired"
+    assert retired_row["attempted_at"] is None
+
+
+def test_all_videos_retired_refuses_noop_sweep(tmp_path: Path) -> None:
+    data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    with pytest.raises(ValueError, match="retires every admitted video"):
+        _run(
+            data_root,
+            tmp_path,
+            outcomes={},
+            creator_ledger=_creator_ledger(retire=POOL),
+        )
+
+
+def test_retirement_outside_pool_fails_closed(tmp_path: Path) -> None:
+    data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    with pytest.raises(ValueError, match="outside the admitted pool"):
+        _run(
+            data_root,
+            tmp_path,
+            outcomes={},
+            creator_ledger=_creator_ledger(retire=("vidUnknown99",)),
+        )
 
 
 def test_isolated_failure_continues_but_sweep_is_visibly_incomplete(tmp_path: Path) -> None:

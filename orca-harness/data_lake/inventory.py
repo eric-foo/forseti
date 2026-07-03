@@ -12,7 +12,17 @@ source only:
 4. unknowns, each carrying an owner disposition (a pending unknown fails the
    gate; dispositions are owner-attributable via the human-gated PR merge,
    never self-certified);
-5. the A2 serialization-fork impact tag per entry.
+5. the A2 serialization-fork impact tag per entry;
+6. an ``identity_binding`` declaration per runner seam: how the runner binds
+   SERVED content to the REQUESTED subject before a packet is committed
+   (``bound`` with a mechanism), or an honest ``unbound``/``not_applicable``
+   posture with a reason. Declared in ``RUNNER_IDENTITY_BINDINGS``, never
+   auto-discovered; a discovered runner without a declaration fails the gate,
+   so the wrong-subject-attribution question (F-01 in
+   ``docs/review-outputs/youtube_rss_monitor_delegated_adversarial_code_review_v0.md``)
+   is mandatory at build time for every new capture runner. The declaration
+   documents the current posture; ``unbound`` is a visible acknowledged gap,
+   not a pass.
 
 The fork-impact tag is deterministic routing metadata for the deferred A2
 decision (Manifest v2 vs manifest-equivalent packet index), assigned by
@@ -45,7 +55,7 @@ HARNESS_ROOT = Path(__file__).resolve().parents[1]
 RUNNERS_DIR = HARNESS_ROOT / "runners"
 SOURCE_CAPTURE_DIR = HARNESS_ROOT / "source_capture"
 
-INVENTORY_VERSION = 1
+INVENTORY_VERSION = 2
 INVENTORY_PATH = HARNESS_ROOT / "data_lake" / "lake_touchpoint_inventory_v0.json"
 
 DIRECT_PACKET_WRITER_TOKENS = {"write_local_source_capture_packet", "stage_and_write_packet"}
@@ -70,6 +80,242 @@ KNOWN_UNSYNCED: dict[str, str] = {}
 BRONZE_PACKET_ORCHESTRATORS: dict[str, tuple[str, ...]] = {
     "run_fragrantica_mgt_capture.py": ("http_runner", "cloakbrowser_runner"),
     "run_ig_reels_lane_orchestrator.py": ("grid_runner",),
+}
+
+# Identity-binding declaration for every runner_seams entry (direct packet
+# writers AND declared orchestrators). Answers, per runner: how is SERVED
+# content bound to the REQUESTED subject before a packet is committed?
+#
+#   {"status": "bound", "mechanism": ...}       a real served-content identity
+#                                               check gates packet write
+#   {"status": "unbound", "reason": ...}        the packet asserts a subject
+#                                               beyond raw request provenance
+#                                               without a served-content check
+#                                               (visible acknowledged gap)
+#   {"status": "not_applicable", "reason": ...} no subject identity beyond the
+#                                               request itself is asserted
+#                                               (fetch-of-URL provenance or
+#                                               operator-declared admission)
+#
+# Every discovered Bronze-writing runner MUST have an entry; the inventory
+# gate and the seam-coverage test both fail on a missing or shape-invalid
+# declaration. Backfilled 2026-07-03 from a source read of each runner
+# (including the source_capture fetch/writer path it delegates to).
+RUNNER_IDENTITY_BINDINGS: dict[str, dict[str, str]] = {
+    "run_fragrance_review_lake_packet.py": {
+        "status": "unbound",
+        "reason": (
+            "preserved bytes must match the companion receipt's capture-time "
+            "body_sha256/body_byte_count witness (_verify_capture_witness, "
+            "block-don't-fake), which binds bytes to the attested capture but not to "
+            "the product subject: product_url attribution comes from the receipt or "
+            "the --product-url override without a served-content identity check"
+        ),
+    },
+    "run_fragrantica_mgt_capture.py": {
+        "status": "not_applicable",
+        "reason": (
+            "orchestrator over URL-subject sub-runners (http_runner/cloakbrowser_runner): "
+            "it shape-validates the requested Fragrantica product URL and forwards it; the "
+            "sub-runner packets record requested and served final URLs and assert no "
+            "subject identity beyond the URL"
+        ),
+    },
+    "run_ig_reels_lane_orchestrator.py": {
+        "status": "not_applicable",
+        "reason": (
+            "orchestrator that performs no acquisition of its own: grid capture owns the "
+            "subject seam (see run_source_capture_ig_reels_grid_packet.py) and the "
+            "orchestrator only enforces that downstream lanes target the same reel "
+            "(explicit-selector split-brain guard)"
+        ),
+    },
+    "run_parfumo_mgt_capture.py": {
+        "status": "unbound",
+        "reason": (
+            "the direct-HTTP slot records requested/served final-URL provenance only; the "
+            "targeted-rendered path admits operator-supplied local Chrome-extension "
+            "artifacts attributed to the requested product URL with a browser-secret scan "
+            "but no served-content identity check"
+        ),
+    },
+    "run_source_capture_antiblock_http_packet.py": {
+        "status": "not_applicable",
+        "reason": (
+            "subject is the requested URL itself: requested_url is preserved as "
+            "source_locator and the served final_url on the slice; block-shell "
+            "classification explicitly refuses to certify the body as source content; no "
+            "subject identity beyond the URL is asserted"
+        ),
+    },
+    "run_source_capture_archive_packet.py": {
+        "status": "bound",
+        "mechanism": (
+            "verify_archive_body gates body preservation: the served snapshot's "
+            "original-URL identity must match the requested URL "
+            "(served_url_identity_mismatch) and the served time must satisfy the cutoff; "
+            "a verification-failed body is not preserved as addressable content (G-002) "
+            "and surfaces as attempt_failed plus a limitation"
+        ),
+    },
+    "run_source_capture_authenticated_browser_packet.py": {
+        "status": "not_applicable",
+        "reason": (
+            "subject is the requested URL itself: requested_url is preserved as "
+            "source_locator and the served final_url on the slice; login-wall/challenge "
+            "markers surface as limitations; content sufficiency is explicitly not asserted"
+        ),
+    },
+    "run_source_capture_browser_packet.py": {
+        "status": "not_applicable",
+        "reason": (
+            "subject is the requested URL itself: requested_url is preserved as "
+            "source_locator and the served final_url on the slice; content sufficiency is "
+            "explicitly not asserted"
+        ),
+    },
+    "run_source_capture_cloakbrowser_packet.py": {
+        "status": "not_applicable",
+        "reason": (
+            "subject is the requested URL itself (browser_snapshot shape with "
+            "proxy-category disclosure): requested_url is preserved as source_locator and "
+            "the served final_url on the slice; no subject identity beyond the URL is "
+            "asserted"
+        ),
+    },
+    "run_source_capture_historical_packet.py": {
+        "status": "bound",
+        "mechanism": (
+            "the ladder preserves a body only when the winning rung's verification "
+            "passed: archive rungs verify the served snapshot's original-URL identity and "
+            "served time against the requested URL/cutoff, and the publisher-history rung "
+            "verifies the served revid/sha and timestamp (PH-01/PH-02); unverified "
+            "outcomes stay locate-metadata-only with attempt_failed"
+        ),
+    },
+    "run_source_capture_http_packet.py": {
+        "status": "not_applicable",
+        "reason": (
+            "subject is the requested URL itself: requested_url is preserved as "
+            "source_locator and the served final_url on the slice; the packet claims "
+            "fetched-URL provenance only"
+        ),
+    },
+    "run_source_capture_ig_calls_packet.py": {
+        "status": "unbound",
+        "reason": (
+            "item slices are enumerated from the served profile page (within-capture "
+            "consistency) and the served profile final_url is recorded, but the served "
+            "profile's identity (og fields, web_profile_info username) is never compared "
+            "to the requested account, so a redirected or mis-served profile would be "
+            "committed under the requested locator"
+        ),
+    },
+    "run_source_capture_ig_reels_audio_packet.py": {
+        "status": "unbound",
+        "reason": (
+            "the packet asserts platform_shortcode and the canonical reel URL copied from "
+            "the request; the yt-dlp download is selected by largest file rather than a "
+            "served-id-keyed name and the audio bytes carry no observable identity to check"
+        ),
+    },
+    "run_source_capture_ig_reels_grid_packet.py": {
+        "status": "unbound",
+        "reason": (
+            "handle-shape normalization plus login/challenge-redirect detection fail "
+            "visibly and the served final_url is recorded, but the served "
+            "grid/web_profile_info identity is never compared to the requested handle"
+        ),
+    },
+    "run_source_capture_media_packet.py": {
+        "status": "not_applicable",
+        "reason": (
+            "subjects are the explicit asset URLs: each slice preserves the served "
+            "final_url and per-asset metadata; the optional --source-locator is recorded "
+            "as an operator declaration, not a verified subject"
+        ),
+    },
+    "run_source_capture_packet.py": {
+        "status": "not_applicable",
+        "reason": (
+            "no acquisition: packages operator-supplied local files under an "
+            "operator-declared source locator (which may itself be unknown-with-reason); "
+            "there is no runner-fetched served content to match"
+        ),
+    },
+    "run_source_capture_price_payload_packet.py": {
+        "status": "not_applicable",
+        "reason": (
+            "subject is the requested pricing/announcement URL set: chunk URLs are "
+            "discovered from the served page's module-preload list (structural "
+            "provenance) and certify_extraction is a content-integrity discriminator, not "
+            "a subject identity claim beyond the URLs"
+        ),
+    },
+    "run_source_capture_tiktok_batch_packet.py": {
+        "status": "unbound",
+        "reason": (
+            "creator_handle and creator_profile_url are checked for request "
+            "self-consistency and grid-enrichment items with a mismatched authorUniqueId "
+            "are dropped, but the admitted cadence rows are attributed to the requested "
+            "creator without a served-content author check"
+        ),
+    },
+    "run_source_capture_tiktok_video_packet.py": {
+        "status": "unbound",
+        "reason": (
+            "video-id format and canonical-URL shape are enforced and profile-list rows "
+            "are filtered to the requested id, but the admitted comment/subtitle "
+            "artifacts are attributed to the requested video without a served-content id "
+            "check"
+        ),
+    },
+    "run_source_capture_youtube_asr_packet.py": {
+        "status": "bound",
+        "mechanism": (
+            "yt-dlp writes the downloaded audio under the SERVED video id (%(id)s output "
+            "template) and download_audio accepts only the file named exactly "
+            "<requested id>.*, so a mis-served id fails closed as a download failure; no "
+            "additional served-metadata check is performed"
+        ),
+    },
+    "run_source_capture_youtube_caption_packet.py": {
+        "status": "bound",
+        "mechanism": (
+            "yt-dlp writes the caption track under the SERVED video id (%(id)s output "
+            "template) and fetch_youtube_caption_artifacts accepts only "
+            "<requested id>*.json3, so a mis-served id fails closed as no-caption; "
+            "extract_info metadata (title/channel_id) is recorded without an independent "
+            "check"
+        ),
+    },
+    "run_source_capture_youtube_rss_monitor.py": {
+        "status": "bound",
+        "mechanism": (
+            "_validate_parsed_channel_identity runs immediately after parsing: the served "
+            "feed-level yt:channelId must match the requested roster channel (accepting "
+            "the observed no-UC-prefix variant), any entry-level yt:channelId differing "
+            "from the request fails, and missing feed identity fails closed; a mismatch "
+            "is a visible per-channel failure with no packet write"
+        ),
+    },
+    "run_source_capture_youtube_watch_packet.py": {
+        "status": "unbound",
+        "reason": (
+            "platform_video_id is copied from the request after an id-format check; the "
+            "served watch HTML's canonical URL and channelId are preserved in the capture "
+            "JSON but never compared to the requested video id"
+        ),
+    },
+}
+
+IDENTITY_BINDING_STATUSES = ("bound", "unbound", "not_applicable")
+# Which detail field each status must carry (single-sourced; the gate and the
+# seam-coverage test both validate through identity_binding_problems below).
+IDENTITY_BINDING_DETAIL_FIELDS = {
+    "bound": "mechanism",
+    "unbound": "reason",
+    "not_applicable": "reason",
 }
 
 NON_RAW_LAKE_TOUCHPOINT_CALLS = {
@@ -113,6 +359,46 @@ STRUCTURAL_EXCLUSIONS: tuple[dict[str, str], ...] = (
 def a2_fork_impact_for_call(call_name: str) -> str:
     """Deterministic fork-impact class for a non-raw touchpoint call name."""
     return "packet_index" if call_name in PACKET_INDEX_CALLS else "none"
+
+
+def identity_binding_problems(binding: object) -> list[str]:
+    """Shape problems for one identity_binding declaration (empty = shape-valid).
+
+    Single source for the rule; the inventory gate checks declared record
+    entries through it and the seam-coverage test checks the module
+    declarations through it.
+    """
+    if not isinstance(binding, dict):
+        return ["identity_binding must be an object with a status"]
+    status = binding.get("status")
+    if status not in IDENTITY_BINDING_STATUSES:
+        return [
+            f"invalid identity_binding status {status!r} "
+            f"(expected one of {list(IDENTITY_BINDING_STATUSES)})"
+        ]
+    problems: list[str] = []
+    detail_field = IDENTITY_BINDING_DETAIL_FIELDS[status]
+    if not str(binding.get(detail_field, "")).strip():
+        problems.append(
+            f"identity_binding status {status!r} requires a non-empty {detail_field!r}"
+        )
+    unexpected = sorted(set(binding) - {"status", detail_field})
+    if unexpected:
+        problems.append(f"identity_binding carries unexpected fields {unexpected}")
+    return problems
+
+
+def identity_binding_for_runner(runner: str) -> dict[str, str]:
+    """Declared binding for a runner, or an explicit undeclared marker.
+
+    The undeclared marker deliberately fails identity_binding_problems, so a
+    new capture runner cannot clear the gate by regenerating the record: the
+    question must be answered in RUNNER_IDENTITY_BINDINGS.
+    """
+    declared = RUNNER_IDENTITY_BINDINGS.get(runner)
+    if declared is None:
+        return {"status": "undeclared"}
+    return dict(declared)
 
 
 @dataclass(frozen=True)
@@ -394,10 +680,20 @@ def build_inventory() -> dict:
     """Fresh deterministic inventory from tracked source. Pure discovery plus
     module-declared exclusions; no filesystem writes."""
     runner_entries = [
-        {"runner": name, "kind": "direct_packet_writer", "a2_fork_impact": "manifest_shape"}
+        {
+            "runner": name,
+            "kind": "direct_packet_writer",
+            "a2_fork_impact": "manifest_shape",
+            "identity_binding": identity_binding_for_runner(name),
+        }
         for name in sorted(packet_producers())
     ] + [
-        {"runner": name, "kind": "orchestrator", "a2_fork_impact": "manifest_shape"}
+        {
+            "runner": name,
+            "kind": "orchestrator",
+            "a2_fork_impact": "manifest_shape",
+            "identity_binding": identity_binding_for_runner(name),
+        }
         for name in sorted(BRONZE_PACKET_ORCHESTRATORS)
     ]
     writer_entries = [
@@ -430,7 +726,9 @@ def build_inventory() -> dict:
         "authority_note": (
             "Generated inventory of code surfaces; never lake authority; "
             "regenerated and diffed by tests/contract/test_data_lake_inventory_gate.py; "
-            "a2_fork_impact is routing metadata for the deferred A2 decision, not a selection."
+            "a2_fork_impact is routing metadata for the deferred A2 decision, not a selection; "
+            "identity_binding documents each runner's served-content-to-requested-subject "
+            "binding posture (unbound is a visible acknowledged gap, not a pass)."
         ),
         "raw_packet_writers": {
             "runner_seams": sorted(runner_entries, key=lambda e: e["runner"]),
@@ -482,6 +780,22 @@ def inventory_violations(declared: dict, discovered: dict) -> list[str]:
             violations.append(f"undeclared {label} entry (discovered, not in record): {entry}")
         for entry in sorted(declared_set - discovered_set):
             violations.append(f"stale {label} entry (declared, no longer discovered): {entry}")
+
+    declared_seams = declared.get("raw_packet_writers", {})
+    declared_seams = declared_seams.get("runner_seams", []) if isinstance(declared_seams, dict) else []
+    for entry in declared_seams if isinstance(declared_seams, list) else []:
+        if not isinstance(entry, dict):
+            continue  # non-object entries already surface as declared/discovered drift
+        runner = entry.get("runner")
+        if "identity_binding" not in entry:
+            violations.append(
+                "runner seam without an identity_binding (every capture runner must declare "
+                "how served content is bound to the requested subject in "
+                f"RUNNER_IDENTITY_BINDINGS): {runner!r}"
+            )
+            continue
+        for problem in identity_binding_problems(entry["identity_binding"]):
+            violations.append(f"runner seam {runner!r}: {problem}")
 
     for exclusion in declared.get("exclusions", []):
         if not str(exclusion.get("reason", "")).strip():

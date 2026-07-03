@@ -41,6 +41,7 @@ from typing import Any, Mapping, Sequence
 if __package__ in {None, ""}:
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
+from capture_spine.creator_profile_current.youtube_metric_seed import ledger_video_retirements
 from capture_spine.creator_profile_current.youtube_silver_metric_producer import (
     YoutubeCreatorMetricSilverResult,
     derive_youtube_creator_metric_silver_records_from_seed,
@@ -98,6 +99,28 @@ def run_watch_packet_producer(
         seed_document=document,
         use_bronze_attachment_records=use_bronze_attachment_records,
     )
+
+
+def resolve_effective_exclusions(
+    cli_exclusions: Mapping[str, str] | None,
+    creator_ledger: Mapping[str, Any],
+) -> tuple[dict[str, str] | None, dict[str, str]]:
+    """Merge the ledger's attested ``operator_video_retirements`` with per-cycle
+    CLI exclusions. Returns ``(effective_exclusions_or_none, ledger_retirements)``.
+    Raises ``ValueError`` on a CLI/ledger overlap: retirements apply
+    automatically, so a duplicate flag makes the recorded reason ambiguous."""
+    ledger_retirements = ledger_video_retirements(creator_ledger)
+    if cli_exclusions and ledger_retirements:
+        overlap = sorted(set(cli_exclusions) & set(ledger_retirements))
+        if overlap:
+            raise ValueError(
+                "--exclude-video duplicates ledger-retired video(s): "
+                + ", ".join(overlap)
+                + " (ledger retirements apply automatically; drop the flag or the ledger entry)"
+            )
+    if not ledger_retirements:
+        return (dict(cli_exclusions) if cli_exclusions else None), {}
+    return {**ledger_retirements, **(cli_exclusions or {})}, ledger_retirements
 
 
 def _account_of(record: Mapping[str, Any]) -> str | None:
@@ -215,6 +238,13 @@ def main(argv: Sequence[str] | None = None) -> int:
     account_ledger = account_document.get("creator_public_handle_linkage_ledger", account_document)
 
     try:
+        excluded_video_ids, ledger_retirements = resolve_effective_exclusions(
+            excluded_video_ids, creator_ledger
+        )
+    except ValueError as exc:
+        parser.exit(status=2, message=f"{exc}\n")
+
+    try:
         result = run_watch_packet_producer(
             data_root,
             creator_ledger=creator_ledger,
@@ -242,7 +272,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     )
     if excluded_video_ids:
         print(
-            f"  operator exclusions ({len(excluded_video_ids)}): "
+            f"  operator exclusions ({len(excluded_video_ids)}, "
+            f"{len(ledger_retirements)} from ledger operator_video_retirements): "
             + "; ".join(f"{vid} ({reason})" for vid, reason in sorted(excluded_video_ids.items()))
         )
     for path in result.rollup_paths:

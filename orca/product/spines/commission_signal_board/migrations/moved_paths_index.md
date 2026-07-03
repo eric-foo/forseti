@@ -49,7 +49,7 @@ one of these files.
 
 | Historical path | Current resolution |
 | --- | --- |
-| `docs/prompts/handoffs/commission_signal_board_spine_pilot_reconciliation_handoff_prompt_v0.md` | No current-main artifact observed; use the live CSB spine entry points instead. |
+| `docs/prompts/handoffs/commission_signal_board_spine_pilot_reconciliation_handoff_prompt_v0.md` | No current-main artifact observed; historical copy on branch `origin/codex/commission-spine-structure` (PR #239, closed unmerged); use the live CSB spine entry points instead. |
 | `docs/migration/commission_signal_board_migration_inventory_v0.md` | No current-main artifact observed; use this moved-path index and the Phase-2 CSB proposal for current structure context. |
 | `docs/migration/commission_signal_board_spine_pilot_migration_plan_v0.md` | No current-main artifact observed; use this moved-path index and the live CSB spine entry points instead. |
 
