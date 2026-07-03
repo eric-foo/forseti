@@ -334,6 +334,42 @@ def test_runner_surfaces_malformed_packet_asr_record_without_ack(tmp_path) -> No
     assert list((data_root.path / "acknowledgements").glob(f"**/{PRODUCT_MENTIONS_LANE}/*")) == []
 
 
+def test_runner_surfaces_unreadable_packet_asr_record_without_ack(tmp_path, monkeypatch) -> None:
+    # F1 also covers OSError: the obligation snapshot must stay non-raising by
+    # fingerprinting the damage, while the actual transcript scan fails loud.
+    data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    _commit_asr_transcript(data_root)
+    asr_record = next((data_root.path / "derived").glob("**/transcript_asr/*"))
+    packet_id = next((data_root.path / "raw").glob("*/*")).name
+    real_read_bytes = Path.read_bytes
+
+    def maybe_raise_unreadable(path: Path) -> bytes:
+        if path == asr_record:
+            raise OSError("simulated unreadable ASR record")
+        return real_read_bytes(path)
+
+    monkeypatch.setattr(Path, "read_bytes", maybe_raise_unreadable)
+
+    obligation = yt_runner._packet_obligation(data_root, packet_id, "m")
+    assert obligation["asr_records"] == [[asr_record.name, "unreadable:OSError"]]
+
+    results = run_extraction(
+        data_root=data_root, transport=FakeTransport(_anthropic([_item()])),
+        provider=_PROVIDER, model="m", api_key="k",
+    )
+    assert len(results) == 1
+    assert results[0]["status"] == "discovery_failed"
+    assert "unreadable" in results[0]["error"]
+    assert list((data_root.path / "acknowledgements").glob(f"**/{PRODUCT_MENTIONS_LANE}/*")) == []
+
+    second = run_extraction(
+        data_root=data_root, transport=FakeTransport(_anthropic([_item()])),
+        provider=_PROVIDER, model="m", api_key="k",
+    )
+    assert [r["status"] for r in second] == ["discovery_failed"]
+    assert list((data_root.path / "acknowledgements").glob(f"**/{PRODUCT_MENTIONS_LANE}/*")) == []
+
+
 def test_rubric_version_grows_packet_obligation_without_llm_reextract(tmp_path, monkeypatch) -> None:
     # F2 class (YouTube mirror): the extractor rubric is a processing-policy token
     # in the obligation envelope — a rubric change re-surfaces the acked packet
