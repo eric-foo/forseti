@@ -306,6 +306,20 @@ def _visual_x_screenshot_png() -> bytes:
     return buffer.getvalue()
 
 
+def _visual_x_modal_and_far_right_screenshot_png() -> bytes:
+    from PIL import Image, ImageDraw
+
+    image = Image.new("RGB", (240, 120), "white")
+    draw = ImageDraw.Draw(image)
+    draw.line((148, 14, 166, 32), fill="black", width=3)
+    draw.line((166, 14, 148, 32), fill="black", width=3)
+    draw.line((218, 8, 236, 26), fill="black", width=3)
+    draw.line((236, 8, 218, 26), fill="black", width=3)
+    buffer = io.BytesIO()
+    image.save(buffer, format="PNG")
+    return buffer.getvalue()
+
+
 def test_fetch_browser_snapshot_capture_with_fake_engine_preserves_browser_artifacts() -> None:
     result = fetch_browser_snapshot_capture(
         url="https://example.com/source",
@@ -1225,6 +1239,111 @@ def test_playwright_page_observation_uses_visual_x_fallback_without_dom_target(
     assert event_log.index("screenshot") < event_log.index("mouse_move:5")
     assert event_log.index("mouse_move:5") < event_log.index("mouse_click")
     assert event_log.index("mouse_click") < event_log.index("wait:2000")
+
+
+def test_playwright_page_observation_can_prefer_center_modal_visual_x(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    event_log: list[str] = []
+    page = _FakeObservationPage(
+        event_log,
+        pointer_target={
+            "candidate_count": 0,
+            "matched_count": 0,
+            "target_found": False,
+            "target_kind": None,
+            "page_text_gate_matched": True,
+            "selection_strategy": "top_right",
+            "box": None,
+        },
+        screenshot_png=_visual_x_modal_and_far_right_screenshot_png(),
+    )
+    _install_fake_playwright(monkeypatch, page)
+
+    result = browser_snapshot_module._PlaywrightBrowserSnapshotEngine().capture_page_observation(
+        url="https://example.com/source",
+        timeout_seconds=1,
+        wait_until="load",
+        viewport_width=1280,
+        viewport_height=720,
+        dom_extract_script="() => ({items: []})",
+        dom_extract_arg={},
+        response_url_predicate=lambda url: "widget" in url,
+        post_load_pointer_action=BrowserPagePointerAction(
+            action_name="challenge_modal_close",
+            candidate_selector="button",
+            text_markers=("close",),
+            exact_text_markers=("x",),
+            page_text_markers=("drag the slider",),
+            move_steps_min=5,
+            move_steps_max=5,
+            random_seed=11,
+            prefer_top_right=True,
+            visual_top_right_x_fallback=True,
+            visual_x_target_zone="center_modal",
+        ),
+    )
+
+    receipt = result.metadata["post_load_pointer_action"]
+    assert isinstance(receipt, dict)
+    assert receipt["visual_fallback_candidate_count"] >= 2
+    assert receipt["visual_fallback_target_zone"] == "center_modal"
+    assert receipt["selection_strategy"] == "center_modal_visual_x"
+    assert receipt.get("visual_fallback_geometric_target") is not True
+    assert receipt["target_box"]["x"] < 190
+    assert receipt["clicked"] is True
+
+
+def test_playwright_page_observation_center_modal_uses_geometric_fallback(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    event_log: list[str] = []
+    page = _FakeObservationPage(
+        event_log,
+        pointer_target={
+            "candidate_count": 0,
+            "matched_count": 0,
+            "target_found": False,
+            "target_kind": None,
+            "page_text_gate_matched": True,
+            "selection_strategy": "top_right",
+            "box": None,
+        },
+        screenshot_png=_visual_x_screenshot_png(),
+    )
+    _install_fake_playwright(monkeypatch, page)
+
+    result = browser_snapshot_module._PlaywrightBrowserSnapshotEngine().capture_page_observation(
+        url="https://example.com/source",
+        timeout_seconds=1,
+        wait_until="load",
+        viewport_width=1280,
+        viewport_height=720,
+        dom_extract_script="() => ({items: []})",
+        dom_extract_arg={},
+        response_url_predicate=lambda url: "widget" in url,
+        post_load_pointer_action=BrowserPagePointerAction(
+            action_name="challenge_modal_close",
+            candidate_selector="button",
+            text_markers=("close",),
+            exact_text_markers=("x",),
+            page_text_markers=("drag the slider",),
+            move_steps_min=5,
+            move_steps_max=5,
+            random_seed=11,
+            prefer_top_right=True,
+            visual_top_right_x_fallback=True,
+            visual_x_target_zone="center_modal",
+        ),
+    )
+
+    receipt = result.metadata["post_load_pointer_action"]
+    assert isinstance(receipt, dict)
+    assert receipt["visual_fallback_target_zone"] == "center_modal"
+    assert receipt["selection_strategy"] == "center_modal_visual_x"
+    assert receipt["visual_fallback_geometric_target"] is True
+    assert 130 <= receipt["target_box"]["x"] <= 160
+    assert receipt["clicked"] is True
 
 
 def test_playwright_page_observation_skips_visual_x_fallback_without_page_gate(

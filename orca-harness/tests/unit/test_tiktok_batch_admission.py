@@ -22,6 +22,7 @@ def _contract() -> dict[str, object]:
         "captcha_solving": False,
         "cookies_or_tokens_persisted": False,
         "direct_forged_api_calls": False,
+        "dom_visible_comment_fallback": True,
         "page_owned_comment_list_response": True,
         "page_owned_video_navigation": True,
         "raw_comment_response_bodies_persisted": False,
@@ -196,6 +197,56 @@ def test_write_tiktok_batch_packet_preserves_sanitized_batch_payload(tmp_path: P
     assert "X-Bogus" not in payload_text
     assert "msToken" not in payload_text
     assert "tiktokcdn" not in payload_text
+
+
+def test_write_tiktok_batch_packet_preserves_dom_visible_comment_fallback(tmp_path: Path) -> None:
+    output = tmp_path / "batch_packet"
+    row = _result_row(VIDEO_1, 1761930827, subtitle=False)
+    row["comment_responses"] = []
+    row["dom_visible_comment_candidates"] = [
+        {
+            "source_order": 0,
+            "text": "What perfume is this?",
+            "text_sha256": "domtextsha",
+            "text_char_count": 21,
+            "capture_posture": "visible_dom_after_comment_route",
+        }
+    ]
+    cadence = json.dumps(
+        {
+            "attempted_count": 1,
+            "completed_count": 1,
+            "challenge_count": 0,
+            "run_complete_utc": "2026-06-30T17:02:46Z",
+            "capture_contract": _contract(),
+            "results": [row],
+        }
+    ).encode("utf-8")
+
+    code, message = write_tiktok_batch_packet(
+        creator_handle="@funmimonet",
+        creator_profile_url=PROFILE_URL,
+        grid_result_json=_grid_payload(),
+        cadence_result_jsons=[cadence],
+        output_directory=output,
+        decision_question="admit TikTok DOM-visible comments",
+        batch_label="funmi_dom_fixture",
+        capture_timestamp="2026-06-30T17:02:46Z",
+    )
+
+    assert code == 0
+    assert Path(message) == output.resolve()
+    payload = json.loads((output / "raw" / "01_tiktok_batch_capture.json").read_text(encoding="utf-8"))
+    assert payload["batch_summary"]["comment_response_success_count"] == 0
+    assert payload["batch_summary"]["dom_visible_comment_video_count"] == 1
+    assert payload["batch_summary"]["captured_comment_count"] == 1
+    comments = payload["videos"][0]["comments"]
+    assert comments["posture"] == "captured_visible_dom"
+    assert comments["comments"][0]["text"] == "What perfume is this?"
+    assert comments["limitations"] == [
+        "dom_visible_comment_candidates_no_api_envelope",
+        "dom_visible_comment_candidates_no_reply_expansion",
+    ]
 
 
 def test_tiktok_batch_runner_can_commit_to_data_lake(tmp_path: Path) -> None:

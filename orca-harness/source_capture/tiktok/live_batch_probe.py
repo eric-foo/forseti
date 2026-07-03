@@ -40,8 +40,60 @@ TIKTOK_LIVE_BATCH_CADENCE_JSON_NAME = "tiktok_live_cadence_result.json"
 TIKTOK_VIDEO_DOM_EXTRACT_SCRIPT = r"""
 () => {
   const hydration = document.querySelector('#__UNIVERSAL_DATA_FOR_REHYDRATION__');
+  const normalizeText = (value) => String(value || '').replace(/\s+/g, ' ').trim();
+  const candidateSelectors = [
+    '[data-e2e="comment-item"]',
+    '[data-e2e*="comment-level"]',
+    '[data-e2e*="comment"]',
+    '[class*="CommentItem"]',
+    '[class*="comment-item"]'
+  ];
+  const hardSkipMarkers = [
+    'drag the slider',
+    'verify to continue',
+    'captcha',
+    'log in to comment'
+  ];
+  const exactSkipMarkers = [
+    'comments',
+    'you may like'
+  ];
+  const candidates = [];
+  const seen = new Set();
+  for (const selector of candidateSelectors) {
+    for (const node of Array.from(document.querySelectorAll(selector))) {
+      const rect = node.getBoundingClientRect();
+      if (!rect || rect.width <= 0 || rect.height <= 0) {
+        continue;
+      }
+      const text = normalizeText(node.innerText || node.textContent || '');
+      const lowered = text.toLowerCase();
+      if (text.length < 2 || text.length > 600 || exactSkipMarkers.includes(lowered)) {
+        continue;
+      }
+      if (hardSkipMarkers.some((marker) => lowered.includes(marker))) {
+        continue;
+      }
+      if (seen.has(text)) {
+        continue;
+      }
+      seen.add(text);
+      candidates.push({
+        text,
+        selector,
+        text_char_count: text.length
+      });
+      if (candidates.length >= 12) {
+        break;
+      }
+    }
+    if (candidates.length >= 12) {
+      break;
+    }
+  }
   return {
-    hydration_json_text: hydration ? hydration.textContent : null
+    hydration_json_text: hydration ? hydration.textContent : null,
+    visible_comment_candidates: candidates
   };
 }
 """.strip()
@@ -75,6 +127,9 @@ TIKTOK_CHALLENGE_AFTER_CLOSE_FOLLOWTHROUGH_REASON = (
 TIKTOK_COMMENT_LIST_RESPONSE_CAP = 2
 TIKTOK_COMMENT_ROUTE_NO_RESPONSE_REASON = "comment_list_response_absent"
 TIKTOK_LOGGED_OUT_SESSION_MODE = "public_logged_out"
+TIKTOK_DOM_VISIBLE_COMMENT_CANDIDATE_CAP = 12
+TIKTOK_DOM_VISIBLE_COMMENT_TEXT_MAX_CHARS = 500
+_URL_IN_TEXT_RE = re.compile(r"https?://\S+")
 
 _TIKTOK_VIDEO_URL_RE = re.compile(r"^/@(?P<handle>[^/]+)/video/(?P<video_id>\d+)$")
 
@@ -416,7 +471,10 @@ def run_tiktok_live_batch_probe(
         assert_no_sensitive_tiktok_material(grid_candidate)
 
         comment_receipt = _as_dict(row.get("capture_receipt"))
-        if _first_int(comment_receipt.get("admitted_comment_response_count"), 0) == 0:
+        if (
+            _first_int(comment_receipt.get("admitted_comment_response_count"), 0) == 0
+            and _first_int(comment_receipt.get("dom_visible_comment_candidate_count"), 0) == 0
+        ):
             failures.append(
                 _failure_entry(
                     video_url=video_url,
@@ -425,8 +483,9 @@ def run_tiktok_live_batch_probe(
                     reason=TIKTOK_COMMENT_ROUTE_NO_RESPONSE_REASON,
                     detail=(
                         "No page-owned TikTok /api/comment/list response was observed after "
-                        "the bounded comments/more-like-this/comments route-opening action; "
-                        "probe stopped before treating this as a completed comment-capture row."
+                        "the bounded comments/more-like-this/comments route-opening action, "
+                        "and no DOM-visible comment candidates were found; probe stopped before "
+                        "treating this as a completed comment-capture row."
                     ),
                     blocker_triage=_comment_route_zero_yield_blocker_triage(
                         comment_receipt,
@@ -533,6 +592,9 @@ def _comment_route_zero_yield_blocker_triage(
             comment_receipt.get("matched_comment_response_count"), 0
         ),
         "admitted_comment_response_count": 0,
+        "dom_visible_comment_candidate_count": _first_int(
+            comment_receipt.get("dom_visible_comment_candidate_count"), 0
+        ),
     }
     challenge_close_action = _as_dict(challenge_close_action)
     if challenge_close_action:
@@ -738,6 +800,7 @@ def _tiktok_challenge_close_pointer_action(
         target_fraction_max=0.65,
         prefer_top_right=True,
         visual_top_right_x_fallback=True,
+        visual_x_target_zone="center_modal",
         random_seed=_stable_pointer_seed(
             video_id=video_id,
             random_seed=random_seed,
@@ -803,6 +866,7 @@ def _tiktok_challenge_visual_close_pointer_action(
         target_fraction_max=0.65,
         prefer_top_right=True,
         visual_top_right_x_fallback=True,
+        visual_x_target_zone="center_modal",
         random_seed=_stable_pointer_seed(
             video_id=video_id,
             random_seed=random_seed,
@@ -913,6 +977,7 @@ def _cadence_row_from_capture(
         capture_result,
         response_cap=comment_response_cap,
     )
+    dom_visible_comments = _dom_visible_comment_candidates(capture_result)
     challenge_close_action = _as_dict(challenge_close_action)
     challenge_close_clicked = _first_bool(challenge_close_action.get("clicked")) is True
     capture_receipt = {
@@ -925,9 +990,12 @@ def _cadence_row_from_capture(
         "matched_comment_response_count": matched_comment_response_count,
         "admitted_comment_response_count": len(comment_list_responses),
         "comment_response_cap": comment_response_cap,
+        "dom_visible_comment_candidate_count": len(dom_visible_comments),
         "warning_count": len(capture_result.warning_notes),
         "limitation_count": len(capture_result.limitation_notes),
     }
+    if dom_visible_comments and not comment_list_responses:
+        capture_receipt["comment_capture_fallback"] = "dom_visible_comment_candidates_v0"
     if challenge_close_action:
         capture_receipt["challenge_close_action"] = challenge_close_action
     if challenge_close_followthrough_allowed and challenge_close_clicked:
@@ -942,6 +1010,7 @@ def _cadence_row_from_capture(
             _comment_response_from_page_response(response, observed_utc=observed_utc)
             for response in comment_list_responses
         ],
+        "dom_visible_comment_candidates": dom_visible_comments,
         "hydration": {
             "subtitle_info_count": len(subtitle_infos),
             "subtitle_infos_sanitized": subtitle_infos,
@@ -968,6 +1037,51 @@ def _page_owned_comment_list_responses(
         if len(responses) >= response_cap:
             break
     return responses
+
+
+def _dom_visible_comment_candidates(
+    capture_result: BrowserPageObservationSuccess,
+) -> list[JsonObject]:
+    observation = _as_dict(capture_result.dom_observation)
+    candidates: list[JsonObject] = []
+    seen: set[str] = set()
+    for raw in _as_list(observation.get("visible_comment_candidates")):
+        item = _as_dict(raw)
+        text = _clean_dom_comment_text(_first_str(item.get("text"), ""))
+        if not text:
+            continue
+        key = text.lower()
+        if key in seen:
+            continue
+        seen.add(key)
+        candidate = {
+            "source_order": len(candidates),
+            "text": text,
+            "text_sha256": _sha256_text(text),
+            "text_char_count": len(text),
+            "selector": _first_str(item.get("selector")),
+            "capture_posture": "visible_dom_after_comment_route",
+        }
+        assert_no_sensitive_tiktok_material(candidate)
+        candidates.append(_drop_none(candidate))
+        if len(candidates) >= TIKTOK_DOM_VISIBLE_COMMENT_CANDIDATE_CAP:
+            break
+    return candidates
+
+
+def _clean_dom_comment_text(value: str | None) -> str:
+    text = re.sub(r"\s+", " ", value or "").strip()
+    if not text:
+        return ""
+    lowered = text.lower()
+    if lowered in {"comments", "you may like", "log in to comment"}:
+        return ""
+    if any(marker in lowered for marker in ("drag the slider", "verify to continue", "captcha")):
+        return ""
+    text = _URL_IN_TEXT_RE.sub("[url redacted]", text)
+    if len(text) > TIKTOK_DOM_VISIBLE_COMMENT_TEXT_MAX_CHARS:
+        text = text[:TIKTOK_DOM_VISIBLE_COMMENT_TEXT_MAX_CHARS].rstrip()
+    return text
 
 
 def _comment_action_summary(capture_result: BrowserPageObservationSuccess) -> JsonObject:
@@ -1083,6 +1197,12 @@ def _pointer_action_summary(action: JsonObject) -> JsonObject:
             "visual_fallback_crop_box": _as_dict(
                 action.get("visual_fallback_crop_box")
             ) or None,
+            "visual_fallback_target_zone": _first_str(
+                action.get("visual_fallback_target_zone")
+            ),
+            "visual_fallback_geometric_target": _first_bool(
+                action.get("visual_fallback_geometric_target")
+            ),
             "visual_fallback_failure": _first_str(
                 action.get("visual_fallback_failure")
             ),
@@ -1384,6 +1504,7 @@ def _capture_contract(
         "challenge_close_counts_as_success": False,
         "cookies_or_tokens_persisted": False,
         "direct_forged_api_calls": False,
+        "dom_visible_comment_fallback": True,
         "page_owned_comment_list_response": True,
         "page_owned_video_navigation": True,
         "raw_comment_response_bodies_persisted": False,

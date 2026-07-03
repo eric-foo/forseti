@@ -76,20 +76,22 @@ targets only.
 
 ```yaml
 long_term_goal: >
-  Make the TikTok source-capture lane produce sanitized, admissible, page-owned
-  live staging data under real sessioned conditions without violating
-  stop-on-challenge or account-safety boundaries.
+  Make the TikTok source-capture lane produce sanitized, admissible live staging
+  data under real sessioned conditions without violating stop-on-challenge or
+  account-safety boundaries; page-owned comment responses remain response-tier,
+  while DOM-visible comments are explicitly lower-tier fallback evidence.
 anchor_goal: >
-  Repair the live micro-batch gate so one known public video must prove a real
-  page-owned `/api/comment/list` response before any cross-creator batch spends
-  more account/session budget.
+  Repair the live micro-batch gate so one known public video must prove either a
+  real page-owned `/api/comment/list` response or bounded DOM-visible comment
+  candidates before any cross-creator batch spends more account/session budget.
 success_signal: >
   For the first attempted creator/video, produce a run receipt with attempted,
   completed, challenge, and failure counts; at least one admitted page-owned
-  comment-list response; captured comment count; subtitle metadata yield;
-  admission path if completed; and explicit no-secret/no-raw-URL/no-cookie
-  confirmation. If comment-list yield is zero, stop as a diagnosis result and
-  do not expand. No product-value or scale claim.
+  comment-list response or DOM-visible comment candidate; captured comment count;
+  subtitle metadata yield; admission path if completed; and explicit
+  no-secret/no-raw-URL/no-cookie confirmation. If both comment-list and DOM
+  visible-comment yield are zero, stop as a diagnosis result and do not expand.
+  No product-value or scale claim.
 ```
 
 ## Active Objective
@@ -97,7 +99,8 @@ success_signal: >
 Run a bounded, owner-gated TikTok live route-yield gate using the current
 `run_source_capture_tiktok_live_batch_probe.py` runner: one known public video
 first, sanitized staging, no challenge solving, and no expansion unless the first
-video captures at least one real page-owned `/api/comment/list` response.
+video captures at least one real page-owned `/api/comment/list` response or
+bounded DOM-visible comment candidates.
 
 The prior micro-batch packet version was corrupted for execution: it allowed
 continuation on sanitized staging plus admission alone. Treat the 2026-07-02
@@ -108,11 +111,14 @@ superseded for X-able public TikTok challenge modals. Use
 `--allow-challenge-close-followthrough` when the owner authorizes a route-yield
 run through a visible X/Close. The runner may click X/Close through the named UI
 movement substrate, must never drag or solve the puzzle, and may continue only if
-challenge/security text clears and a page-owned `/api/comment/list` response is
-captured. Any admitted row must preserve the close action as a
-`source_access_intervention`; it is post-close follow-through, not an
-unchallenged clean route. `--allow-challenge-close-diagnostic` remains stop-only
-for changed-condition checks.
+challenge/security text clears and either a page-owned `/api/comment/list`
+response or bounded DOM-visible comment candidates are captured after the named
+comments -> `More like this` -> comments route. DOM-visible comments are lower-
+tier `captured_visible_dom` evidence, not page-owned response evidence. Any
+admitted row must preserve the close action as a `source_access_intervention`;
+it is post-close follow-through, not an unchallenged clean route.
+`--allow-challenge-close-diagnostic` remains stop-only for changed-condition
+checks.
 
 ## Open Decision / Fork
 
@@ -121,12 +127,14 @@ The only live-run fork is whether to proceed past the first creator/video:
 - Continue to a 3-5 creator micro-batch only if the first video has
   `challenge_count=0`, no empty/stripped shell, no auth wall, no unresolved
   blocker stop, no clicked diagnostic challenge-close receipt,
-  `completed_count=1`, and at least one admitted page-owned
-  `/api/comment/list` response. If `challenge_close_followthrough_count > 0`,
-  the result row and batch packet must carry the source-access intervention.
-- Stop if comment-list response yield is zero. Record it as
-  `comment_list_response_absent` / route-opening diagnosis, not as a completed
-  capture row and not as TikTok route failure in general.
+  `completed_count=1`, and either at least one admitted page-owned
+  `/api/comment/list` response or at least one bounded DOM-visible comment
+  candidate. If `challenge_close_followthrough_count > 0`, the result row and
+  batch packet must carry the source-access intervention.
+- Stop if both comment-list response yield and DOM-visible comment candidate
+  yield are zero. Record it as `comment_list_response_absent` / route-opening
+  diagnosis, not as a completed capture row and not as TikTok route failure in
+  general.
 - Stop if the first creator hits an unresolved challenge class: slider/captcha/
   verify text that remains after follow-through, login/auth wall, ban/40x on the
   authenticated session, empty/stripped shell, missing video-detail hydration, a
@@ -146,8 +154,9 @@ The only live-run fork is whether to proceed past the first creator/video:
   path is the explicit owner-authorized
   `--allow-challenge-close-followthrough` route: click X/Close through the named
   UI movement substrate, require challenge/security text to clear, require at
-  least one page-owned `/api/comment/list` response, and preserve the close
-  action as a source-access intervention. Diagnostic close mode remains
+  least one page-owned `/api/comment/list` response or bounded DOM-visible
+  comment candidate, and preserve the close action as a source-access
+  intervention. Diagnostic close mode remains
   stop-only and cannot admit, expand, or count as a completed capture row.
 - Do not use a personal TikTok account. This lane assumes a dedicated,
   burnable, warmed account with human-performed login.
@@ -156,7 +165,8 @@ The only live-run fork is whether to proceed past the first creator/video:
   bodies.
 - Do not run scale. This is a one-video route-yield gate first; a 3-5 creator
   micro-batch is allowed only after the first video captures at least one real
-  page-owned `/api/comment/list` response.
+  page-owned `/api/comment/list` response or bounded DOM-visible comment
+  candidates.
 - Do not add product-mention extraction or product-value analysis. The owner
   deferred that as low value for this step.
 - Do not forge TikTok signatures, call TikTok APIs directly, or replace the
@@ -218,7 +228,8 @@ handoff depends on:
   action stays visible-challenge-text gated, while the visual-X follow-through
   action may run when TikTok exposes the challenge marker only as hidden/residual
   DOM text. They click only X/Close style controls and may admit only post-close
-  page-owned comment responses with the close receipt preserved.
+  page-owned comment responses or DOM-visible comment candidates with the close
+  receipt preserved.
 - The diagnostic close actions remain
   `tiktok_challenge_modal_close_diagnostic_pointer_v0` and
   `tiktok_challenge_modal_visual_close_diagnostic_pointer_v0`. They run only
@@ -308,7 +319,8 @@ handoff depends on:
    Required to continue: `attempted_count=1`, `completed_count=1`,
     `challenge_count=0`, no failures, no clicked diagnostic challenge-close
     receipt, and
-    `results[0].capture_receipt.admitted_comment_response_count >= 1`. If
+    either `results[0].capture_receipt.admitted_comment_response_count >= 1` or
+    `results[0].capture_receipt.dom_visible_comment_candidate_count >= 1`. If
     `challenge_close_followthrough_count > 0`, verify the row and batch packet
     preserve the close action as `source_access_intervention`.
 
@@ -316,7 +328,8 @@ handoff depends on:
     challenge remains after follow-through, or a diagnostic challenge-close
     action clicked, stop. Do not run admission.
 
-   If `admitted_comment_response_count` is zero, stop and report
+   If both `admitted_comment_response_count` and
+   `dom_visible_comment_candidate_count` are zero, stop and report
    `comment_list_response_absent` with the comment-action receipt. Do not admit
    it as success and do not run more creators.
 
@@ -346,9 +359,10 @@ handoff depends on:
    live run. Local `--output` is the lower-risk default unless redirected.
 
 7. If and only if the first video captures at least one admitted page-owned
-   comment-list response and admits cleanly, run the remaining 2-4 creators with
-   the same small-N shape. Stop at the first real challenge class, unresolved
-   blocker stop, or zero-comment-response route diagnosis.
+   comment-list response or DOM-visible comment candidate and admits cleanly, run
+   the remaining 2-4 creators with the same small-N shape. Stop at the first real
+   challenge class, unresolved blocker stop, or zero-comment/zero-DOM route
+   diagnosis.
 
 8. Produce a receipt with:
 
@@ -356,7 +370,7 @@ handoff depends on:
    - creator count and video count attempted;
    - per-creator attempted/completed/challenge/failure counts;
    - first stop reason if any;
-   - comment-list response success count/yield and captured comment count;
+   - comment-list response success count/yield, DOM-visible comment candidate yield, and captured comment count;
    - subtitle metadata video count/yield, explicitly noting that this live runner
      defers subtitle body/WebVTT fetch;
    - admission success/failure path for each admitted output;
@@ -416,7 +430,8 @@ the route opener must use `comment_surface_toggle_pointer_sequence_v0`
 (comments -> `More like this` -> comments). This handoff is not reusable as a
 direct 3-5 creator execution packet until a
 one-video route-yield gate captures at least one admitted page-owned
-`/api/comment/list` response under the current runner and then admits cleanly.
+`/api/comment/list` response or bounded DOM-visible comment candidate under the
+current runner and then admits cleanly.
 
 Current live state after the visual-X diagnostic patch and two recurrence
 probes: the latest 2026-07-03 one-video Funmi retries stopped as
@@ -517,14 +532,16 @@ one-video route-yield gate first. The current runner first attempts bounded
 benign-overlay dismissal, then uses
 `comment_surface_toggle_pointer_sequence_v0` (comments -> More like this ->
 comments); require at least one admitted page-owned
-`/api/comment/list` response before admission/expansion; stop on unresolved
-challenge text after follow-through, unresolved blocker, or zero-comment-response
-route diagnosis. Do not solve CAPTCHA/slider challenges,
+`/api/comment/list` response or DOM-visible comment candidate before
+admission/expansion; stop on unresolved challenge text after follow-through,
+unresolved blocker, or zero-comment/zero-DOM route diagnosis. Do not solve
+CAPTCHA/slider challenges,
 do not treat a close click alone as success, do not expand directly to 3-5
 creators, and do not do product extraction. If the current owner explicitly
 authorizes `--allow-challenge-close-followthrough`, the runner may close an
-X-able public challenge and then attempt the page-owned comment route; any
-admitted result must preserve the close action as a source-access intervention.
+X-able public challenge and then attempt the page-owned/DOM-visible comment
+route; any admitted result must preserve the close action as a source-access
+intervention.
 Use `--allow-challenge-close-diagnostic` only for stop-only changed-condition
 checks.
 ```

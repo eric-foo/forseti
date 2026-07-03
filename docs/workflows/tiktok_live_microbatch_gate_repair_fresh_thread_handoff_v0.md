@@ -54,9 +54,12 @@ as historical guardrails for `--allow-challenge-close-diagnostic`, not as the
 current route-yield rule for X-able public challenge modals. Current doctrine:
 use `--allow-challenge-close-followthrough` only when owner-authorized; click
 X/Close through the named UI movement substrate; never drag or solve; continue
-only if challenge/security text clears and a page-owned `/api/comment/list`
-response is captured; preserve the close action as a source-access intervention;
-and never call the route unchallenged clean capture.
+only if challenge/security text clears and either a page-owned
+`/api/comment/list` response or bounded DOM-visible comment candidates are
+captured after the named comments -> `More like this` -> comments route;
+preserve the close action as a source-access intervention; and never call the
+route unchallenged clean capture. DOM-visible comments are lower-tier
+`captured_visible_dom` evidence, not page-owned response evidence.
 
 ## Goal Handoff
 
@@ -81,8 +84,8 @@ and never call the route unchallenged clean capture.
   challenge-X follow-through is not unchallenged clean capture.
   - why it matters: diagnostic close clicks can observe post-click traffic that
     must remain diagnostic only, while current follow-through admission depends
-    on a separate post-close page-owned comment response and a preserved
-    source-access intervention receipt.
+    on a separate post-close page-owned comment response or DOM-visible comment
+    fallback plus a preserved source-access intervention receipt.
   - violating it would break: batch admission safety and the no-CAPTCHA-solving
     boundary.
 - invariant: batch admission must admit only clean live cadence.
@@ -159,8 +162,10 @@ Continue only the PR #608 TikTok live microbatch gate-repair lane. The fresh thr
     persist auth contents; use UI movement substrate for blockers. Current owner
     doctrine allows `--allow-challenge-close-followthrough` for X-able public
     challenge modals only when the post-close route yields a page-owned comment
-    response and preserves the close receipt as a source-access intervention.
-    Cold agents must know the playbook exists.
+    response or bounded DOM-visible comment candidates and preserves the close
+    receipt as a source-access intervention. DOM-visible comments are lower-tier
+    evidence, not page-owned response evidence. Cold agents must know the
+    playbook exists.
     - Load-bearing: yes.
     - Compare target: current conversation plus durable handoff/playbook references.
     - Reuse rule: preserve unless owner explicitly redirects.

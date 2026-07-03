@@ -42,6 +42,7 @@ class BrowserPagePointerAction:
     target_fraction_max: float = 0.65
     prefer_top_right: bool = False
     visual_top_right_x_fallback: bool = False
+    visual_x_target_zone: str = "top_right"
     random_seed: int = 0
 
 
@@ -1214,6 +1215,11 @@ def _normalize_pointer_action(
         raise ValueError(
             "post_load_pointer_action.target_fraction_min must be <= target_fraction_max"
         )
+    visual_x_target_zone = action.visual_x_target_zone.strip().lower()
+    if visual_x_target_zone not in {"top_right", "center_modal"}:
+        raise ValueError(
+            "post_load_pointer_action.visual_x_target_zone must be top_right or center_modal"
+        )
     return BrowserPagePointerAction(
         action_name=action_name,
         candidate_selector=candidate_selector,
@@ -1227,6 +1233,7 @@ def _normalize_pointer_action(
         target_fraction_max=action.target_fraction_max,
         prefer_top_right=bool(action.prefer_top_right),
         visual_top_right_x_fallback=bool(action.visual_top_right_x_fallback),
+        visual_x_target_zone=visual_x_target_zone,
         random_seed=int(action.random_seed),
     )
 
@@ -1244,10 +1251,11 @@ def _normalize_pointer_actions(
     return tuple(normalized)
 
 
-def _find_visual_top_right_x_target(page: object) -> dict[str, object]:
+def _find_visual_top_right_x_target(page: object, *, target_zone: str = "top_right") -> dict[str, object]:
     result: dict[str, object] = {
         "target_found": False,
         "target_kind": "visual_x",
+        "visual_fallback_target_zone": target_zone,
         "box": None,
         "visual_fallback_attempted": True,
         "visual_fallback_target_found": False,
@@ -1295,7 +1303,16 @@ def _find_visual_top_right_x_target(page: object) -> dict[str, object]:
     result["visual_fallback_candidate_count"] = len(candidates)
     if not candidates:
         return result
-    selected = max(candidates, key=lambda candidate: candidate["score"])
+    selected = None
+    if target_zone == "center_modal":
+        modal_candidates = _center_modal_visual_x_candidates(candidates, image_width, image_height)
+        if modal_candidates:
+            selected = max(modal_candidates, key=lambda candidate: candidate["score"])
+        else:
+            selected = _center_modal_geometric_close_candidate(image_width, image_height)
+            result["visual_fallback_geometric_target"] = True
+    if selected is None:
+        selected = max(candidates, key=lambda candidate: candidate["score"])
     result["target_found"] = True
     result["visual_fallback_target_found"] = True
     result["visual_fallback_confidence"] = round(float(selected["score"]), 3)
@@ -1306,6 +1323,37 @@ def _find_visual_top_right_x_target(page: object) -> dict[str, object]:
         "height": float(selected["height"]),
     }
     return result
+
+
+def _center_modal_visual_x_candidates(
+    candidates: Sequence[dict[str, float]],
+    image_width: int,
+    image_height: int,
+) -> list[dict[str, float]]:
+    modal_candidates: list[dict[str, float]] = []
+    for candidate in candidates:
+        center_x = (candidate["x"] + candidate["width"] / 2.0) / max(1, image_width)
+        center_y = (candidate["y"] + candidate["height"] / 2.0) / max(1, image_height)
+        if 0.58 <= center_x <= 0.68 and 0.14 <= center_y <= 0.35:
+            modal_candidates.append(candidate)
+    return modal_candidates
+
+
+def _center_modal_geometric_close_candidate(
+    image_width: int,
+    image_height: int,
+) -> dict[str, float]:
+    width = max(16.0, min(28.0, image_width * 0.018))
+    height = max(16.0, min(28.0, image_height * 0.03))
+    center_x = image_width * 0.628
+    center_y = image_height * 0.275
+    return {
+        "x": max(0.0, center_x - width / 2.0),
+        "y": max(0.0, center_y - height / 2.0),
+        "width": width,
+        "height": height,
+        "score": 0.0,
+    }
 
 
 def _visual_x_candidates(
@@ -1468,7 +1516,9 @@ def _run_pointer_action(page: object, action: BrowserPagePointerAction) -> dict[
     box = target.get("box")
     if not receipt["target_found"] or not isinstance(box, dict):
         if action.visual_top_right_x_fallback and receipt.get("page_text_gate_matched") is not False:
-            visual_target = _find_visual_top_right_x_target(page)
+            visual_target = _find_visual_top_right_x_target(
+                page, target_zone=action.visual_x_target_zone
+            )
             for key in (
                 "visual_fallback_attempted",
                 "visual_fallback_target_found",
@@ -1476,6 +1526,8 @@ def _run_pointer_action(page: object, action: BrowserPagePointerAction) -> dict[
                 "visual_fallback_confidence",
                 "visual_fallback_screenshot_sha256",
                 "visual_fallback_crop_box",
+                "visual_fallback_target_zone",
+                "visual_fallback_geometric_target",
                 "visual_fallback_failure",
             ):
                 value = visual_target.get(key)
@@ -1485,7 +1537,7 @@ def _run_pointer_action(page: object, action: BrowserPagePointerAction) -> dict[
             if bool(visual_target.get("target_found")) and isinstance(visual_box, dict):
                 receipt["target_found"] = True
                 receipt["target_kind"] = "visual_x"
-                receipt["selection_strategy"] = "top_right_visual_x"
+                receipt["selection_strategy"] = f"{action.visual_x_target_zone}_visual_x"
                 box = visual_box
             else:
                 return receipt

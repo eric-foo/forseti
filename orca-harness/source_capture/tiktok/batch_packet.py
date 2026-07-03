@@ -37,6 +37,7 @@ TIKTOK_BATCH_NON_CLAIMS = (
     "not_raw_signed_endpoint_url_capture",
     "not_raw_cookie_token_or_storage_capture",
     "not_raw_comment_response_body_capture",
+    "not_page_owned_comment_list_response_when_dom_visible_fallback_used",
     "not_raw_subtitle_url_capture",
     "not_raw_subtitle_body_capture",
     "not_raw_media_video_or_audio_capture",
@@ -157,6 +158,7 @@ def write_tiktok_batch_packet(
         receipt_summary=(
             f"TikTok batch admission for @{handle}: videos={summary['video_count']}, "
             f"comment_responses={summary['comment_response_success_count']}, "
+            f"dom_visible_comment_videos={summary['dom_visible_comment_video_count']}, "
             f"captured_comments={summary['captured_comment_count']}, "
             f"subtitle_success={summary['subtitle_success_count']}."
         ),
@@ -320,6 +322,24 @@ def _normalize_access_intervention(receipt: JsonObject) -> JsonObject:
 def _normalize_comments(row: JsonObject) -> JsonObject:
     best = _best_comment_response(row)
     if best is None:
+        dom_comments = _normalize_dom_visible_comment_candidates(row)
+        if dom_comments:
+            result: JsonObject = {
+                "posture": "captured_visible_dom",
+                "response_status": None,
+                "body_sha256": None,
+                "body_size_bytes": 0,
+                "captured_comment_count": len(dom_comments),
+                "envelope": {},
+                "field_coverage": {"text": True},
+                "comments": dom_comments,
+                "limitations": [
+                    "dom_visible_comment_candidates_no_api_envelope",
+                    "dom_visible_comment_candidates_no_reply_expansion",
+                ],
+            }
+            assert_no_sensitive_tiktok_material(result)
+            return result
         return {
             "posture": "not_observed",
             "response_status": None,
@@ -378,6 +398,31 @@ def _normalize_comment(comment: Any, source_order: int) -> JsonObject | None:
     }
     assert_no_sensitive_tiktok_material(result)
     return result
+
+
+def _normalize_dom_visible_comment_candidates(row: JsonObject) -> list[JsonObject]:
+    comments: list[JsonObject] = []
+    for raw in _as_list(row.get("dom_visible_comment_candidates")):
+        item = _as_dict(raw)
+        text = _first_str(item.get("text"), "")
+        if not text:
+            continue
+        result: JsonObject = {
+            "source_order": len(comments),
+            "cid": None,
+            "text": text,
+            "create_time": None,
+            "create_time_utc": None,
+            "digg_count": None,
+            "reply_comment_total": None,
+            "user": {},
+            "source_posture": _first_str(item.get("capture_posture"), "visible_dom_after_comment_route"),
+            "text_sha256": _first_str(item.get("text_sha256"), _sha256_text(text)),
+            "text_char_count": _first_int(item.get("text_char_count"), len(text)),
+        }
+        assert_no_sensitive_tiktok_material(result)
+        comments.append(result)
+    return comments
 
 
 def _normalize_subtitles(row: JsonObject) -> JsonObject:
@@ -471,6 +516,7 @@ def _summarize_batch(videos: Sequence[JsonObject], cadence_payloads: Sequence[Js
         for key in ("playCount", "diggCount", "commentCount", "shareCount", "collectCount")
     }
     comment_success_count = sum(1 for video in videos if _as_dict(video.get("comments")).get("posture") == "captured_page_owned_response")
+    dom_visible_comment_count = sum(1 for video in videos if _as_dict(video.get("comments")).get("posture") == "captured_visible_dom")
     captured_comment_count = sum(_first_int(_as_dict(video.get("comments")).get("captured_comment_count"), 0) or 0 for video in videos)
     envelope_total = sum(_first_int(_as_dict(_as_dict(video.get("comments")).get("envelope")).get("total"), 0) or 0 for video in videos)
     subtitle_success_count = sum(1 for video in videos if _as_dict(video.get("subtitles")).get("posture") == "source_native_webvtt_captured")
@@ -492,6 +538,7 @@ def _summarize_batch(videos: Sequence[JsonObject], cadence_payloads: Sequence[Js
         "challenge_count": challenge_count,
         "challenge_close_followthrough_video_count": challenge_close_followthrough_count,
         "comment_response_success_count": comment_success_count,
+        "dom_visible_comment_video_count": dom_visible_comment_count,
         "captured_comment_count": captured_comment_count,
         "comment_envelope_total_sum": envelope_total,
         "subtitle_info_video_count": subtitle_info_count,
@@ -560,6 +607,7 @@ def _summarize_contracts(grid_payload: JsonObject, cadence_payloads: Sequence[Js
         "challenge_close_counts_as_success",
         "cookies_or_tokens_persisted",
         "direct_forged_api_calls",
+        "dom_visible_comment_fallback",
         "page_owned_comment_list_response",
         "page_owned_video_navigation",
         "raw_comment_response_bodies_persisted",

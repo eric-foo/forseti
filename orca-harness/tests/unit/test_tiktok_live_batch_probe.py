@@ -965,8 +965,55 @@ def test_live_probe_stops_on_zero_comment_list_response(tmp_path: Path) -> None:
         "response_count": 0,
         "matched_comment_response_count": 0,
         "admitted_comment_response_count": 0,
+        "dom_visible_comment_candidate_count": 0,
     }
     assert len(engine.calls) == 1
+
+
+def test_live_probe_completes_with_dom_visible_comment_fallback(tmp_path: Path) -> None:
+    auth_root = _auth_state(tmp_path)
+    engine = _FakeObservationEngine(
+        outcomes=[
+            _success_observation(
+                video_id="7390000000000000001",
+                responses=[],
+                dom_comment_candidates=[
+                    {
+                        "text": "What perfume is this?",
+                        "selector": '[data-e2e*="comment"]',
+                    }
+                ],
+            )
+        ]
+    )
+
+    paths = write_tiktok_live_batch_probe_outputs(
+        creator_handle="funmi",
+        creator_profile_url="https://www.tiktok.com/@funmi",
+        video_urls=["https://www.tiktok.com/@funmi/video/7390000000000000001"],
+        state_label="test-session",
+        session_mode=AuthenticatedSessionMode.FREE_ACCOUNT_CREATED,
+        auth_state_root=auth_root,
+        output_dir=tmp_path / "out",
+        cadence_min_gap_seconds=0,
+        cadence_max_gap_seconds=0,
+        random_seed=1,
+        engine=engine,
+        sleep_fn=lambda _seconds: None,
+    )
+
+    cadence = json.loads(paths.cadence_result_json_path.read_text(encoding="utf-8"))
+    assert cadence["attempted_count"] == 1
+    assert cadence["completed_count"] == 1
+    assert cadence["challenge_count"] == 0
+    assert cadence["failures"] == []
+    row = cadence["results"][0]
+    assert row["comment_responses"] == []
+    assert row["dom_visible_comment_candidates"][0]["text"] == "What perfume is this?"
+    receipt = row["capture_receipt"]
+    assert receipt["admitted_comment_response_count"] == 0
+    assert receipt["dom_visible_comment_candidate_count"] == 1
+    assert receipt["comment_capture_fallback"] == "dom_visible_comment_candidates_v0"
 
 def test_live_probe_stops_on_platform_challenge(tmp_path: Path) -> None:
     auth_root = _auth_state(tmp_path)
@@ -1209,14 +1256,18 @@ def _success_observation(
     responses: list[BrowserPageResponse] | None = None,
     pointer_sequence: list[dict[str, object]] | None = None,
     visible_text: str = "video loaded",
+    dom_comment_candidates: list[dict[str, object]] | None = None,
 ) -> BrowserPageObservationSuccess:
     pointer_sequence = pointer_sequence or _live_pointer_action_sequence_receipt()
+    dom_observation: dict[str, object] = {"hydration_json_text": json.dumps(_hydration(video_id))}
+    if dom_comment_candidates is not None:
+        dom_observation["visible_comment_candidates"] = dom_comment_candidates
     return BrowserPageObservationSuccess(
         requested_url=f"https://www.tiktok.com/@funmi/video/{video_id}",
         final_url=f"https://www.tiktok.com/@funmi/video/{video_id}",
         title="TikTok",
         visible_text=visible_text,
-        dom_observation={"hydration_json_text": json.dumps(_hydration(video_id))},
+        dom_observation=dom_observation,
         responses=responses if responses is not None else ([response] if response is not None else []),
         metadata={
             "post_load_pointer_action": pointer_sequence[-1],
