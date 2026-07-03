@@ -13,6 +13,7 @@ use_when:
   - Planning the next Bronze/Silver convergence unit after PR #525.
 authority_boundary: retrieval_only
 open_next:
+  - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_bronze_full_gt_declaration_v0.md
   - docs/decisions/orca_mini_god_tier_doctrine_v0.md
   - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_medallion_gold_readiness_contract_v0.md
   - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_attachment_record_implementation_contract_v0.md
@@ -27,6 +28,16 @@ stale_if:
 ## Status
 
 `BRONZE_MGT_BASELINE_RECORDED_V0`.
+
+> **Superseded for claim tier (2026-07-03).** The owner ratified the successor
+> declaration
+> `orca/product/spines/data_lake/authority/core_spine_v0_data_lake_bronze_full_gt_declaration_v0.md`
+> (stale_if #3 of this record fired). Bronze's current claim tier — full God
+> Tier for the typed raw-truth retrievability and physicalization slice, at
+> fixture-proof tier, under the Gate 2 claim ceiling and named exclusions — is
+> owned by that record. This baseline remains in place as the historical MGT
+> record and the upgrade-path provenance; the statements below describe the
+> 2026-06 baseline, not the current claim tier.
 
 Bronze is declared Mini God Tier / 90-95 for the current typed raw-truth
 retrievability slice. It is not declared full God Tier.
