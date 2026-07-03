@@ -16,6 +16,8 @@ from copy import deepcopy
 from pathlib import Path
 
 from capture_spine.creator_profile_current.rollup_formula_revalidation import (
+    _recompute_ig,
+    _SourceRow,
     revalidate_creator_metric_rollups,
 )
 from capture_spine.creator_profile_current.youtube_silver_metric_producer import (
@@ -341,3 +343,20 @@ def test_unknown_recipe_version_is_a_failure_not_a_skip(tmp_path: Path) -> None:
         "unknown calculation_recipe_version" in failure
         for failure in report.findings[0].failures
     )
+
+
+# -- IG recompute: engagement inputs must be grouped by content_id -----------
+
+def test_recompute_ig_rejects_mixed_subset_engagement_inputs() -> None:
+    # The exact tamper a restamped rollup could carry: view from reel A, like
+    # from reel B, comment from reel A. Counts are equal (1/1/1) so a
+    # count-only check would pass, but NO single reel has all three -- there is
+    # no complete reel trio, so the grouped recompute must fail.
+    rows = [
+        _SourceRow(metric_name="view_count", value=1000, content_id="reelA"),
+        _SourceRow(metric_name="like_count", value=50, content_id="reelB"),
+        _SourceRow(metric_name="comment_count", value=9, content_id="reelA"),
+    ]
+    failures = _recompute_ig(observation={}, metrics={}, rows=rows)
+    assert failures
+    assert any("complete reel trio" in f for f in failures)
