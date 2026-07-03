@@ -50,7 +50,7 @@ from data_lake.silver_lineage import (
     silver_record_source_backed_status,
 )
 
-EVAL_SCHEMA_VERSION = 1
+EVAL_SCHEMA_VERSION = 2
 LEAKED_SAMPLE_CAP = 20
 
 NON_CLAIMS = [
@@ -63,6 +63,10 @@ NON_CLAIMS = [
 
 def _is_named_brand(value: object) -> bool:
     return isinstance(value, str) and value.strip().casefold() not in {"", "unknown"}
+
+
+def _brand_tally() -> dict[str, int]:
+    return {"mentions": 0, "scanned": 0, "leaked": 0, "unscannable": 0}
 
 
 def _transcript_text_from_json3(raw: bytes) -> str:
@@ -82,19 +86,34 @@ def _resolve_transcript(root: DataLakeRoot, record: dict) -> tuple[str | None, s
     if json3_ref is None:
         return None, "no_raw_transcript_ref"
     packet_id = str(json3_ref.get("packet_id") or "")
+    file_id = str(json3_ref.get("file_id") or "")
+    relative_packet_path = str(json3_ref.get("relative_packet_path") or "")
+    if not packet_id or not file_id or not relative_packet_path:
+        return None, "invalid_raw_transcript_ref"
     try:
         loaded = root.load_raw_packet(packet_id)
     except DataLakeRootError:
         return None, "packet_load_failed"
-    body = loaded.bodies.get(str(json3_ref.get("file_id") or ""))
-    if body is None:
-        # Fall back to path-suffix match within the SAME packet the ref names.
-        for preserved in loaded.manifest.get("preserved_files") or []:
-            if isinstance(preserved, dict) and str(
-                preserved.get("relative_packet_path") or ""
-            ).endswith(".json3"):
-                body = loaded.bodies.get(str(preserved.get("file_id") or ""))
-                break
+
+    # Exact-ref discipline (adjudicated F1): the record's OWN file_id, path,
+    # and sha256 must all match the packet manifest entry. A suffix fallback
+    # could scan a DIFFERENT transcript and fabricate a present/leak verdict;
+    # any mismatch is a counted disposition, never a substitute scan.
+    preserved = None
+    for candidate in loaded.manifest.get("preserved_files") or []:
+        if isinstance(candidate, dict) and candidate.get("file_id") == file_id:
+            preserved = candidate
+            break
+    if not isinstance(preserved, dict):
+        return None, "transcript_file_missing_in_packet"
+    if str(preserved.get("relative_packet_path") or "") != relative_packet_path:
+        return None, "raw_transcript_ref_mismatch"
+    ref_sha = str(json3_ref.get("sha256") or "").casefold()
+    preserved_sha = str(preserved.get("sha256") or "").casefold()
+    if not ref_sha or ref_sha != preserved_sha:
+        return None, "raw_transcript_ref_hash_mismatch"
+
+    body = loaded.bodies.get(file_id)
     if body is None:
         return None, "transcript_file_missing_in_packet"
     text = _transcript_text_from_json3(body)
@@ -119,6 +138,7 @@ def run_eval(root: DataLakeRoot) -> dict:
     records_with_captured_at = 0
     records_with_observed_at = 0
     malformed_mention_entries = 0
+    mentions_excluded_not_source_backed = 0
     mentions_named = 0
     mentions_unknown_or_blank = 0
     named_scanned_present = 0
@@ -147,41 +167,57 @@ def run_eval(root: DataLakeRoot) -> dict:
             if record.get("observed_at"):
                 records_with_observed_at += 1
             if status != SOURCE_BACKED_COMPLETE_STATUS:
-                continue  # counted above; gate-failing records are never scanned
+                # Gate-failing records are never scanned, but their mention
+                # entries land in an explicit counted class (adjudicated F3).
+                mentions = record.get("mentions")
+                if isinstance(mentions, list):
+                    for mention in mentions:
+                        if isinstance(mention, dict):
+                            mentions_excluded_not_source_backed += 1
+                        else:
+                            malformed_mention_entries += 1
+                elif mentions is not None:
+                    malformed_mention_entries += 1
+                continue
 
             mentions = record.get("mentions")
             if not isinstance(mentions, list):
                 if mentions is not None:
                     malformed_mention_entries += 1
                 mentions = []
-            named_mentions: list[dict] = []
+            named_mentions: list[tuple[dict, str]] = []
             for mention in mentions:
                 if not isinstance(mention, dict):
                     malformed_mention_entries += 1
                     continue
                 if _is_named_brand(mention.get("brand")):
+                    brand = str(mention.get("brand")).strip()
                     mentions_named += 1
-                    named_mentions.append(mention)
+                    named_mentions.append((mention, brand))
+                    per_brand.setdefault(brand, _brand_tally())["mentions"] += 1
                 else:
                     mentions_unknown_or_blank += 1
 
-            transcript, disposition = (
-                _resolve_transcript(root, record) if named_mentions else (None, None)
-            )
-            if disposition is not None:
-                records_by_transcript_disposition[disposition] = (
-                    records_by_transcript_disposition.get(disposition, 0) + 1
-                )
             if not named_mentions:
+                records_by_transcript_disposition["not_attempted_no_named_mentions"] = (
+                    records_by_transcript_disposition.get("not_attempted_no_named_mentions", 0)
+                    + 1
+                )
                 continue
+
+            transcript, disposition = _resolve_transcript(root, record)
+            records_by_transcript_disposition[disposition] = (
+                records_by_transcript_disposition.get(disposition, 0) + 1
+            )
             if transcript is None:
                 named_unscannable += len(named_mentions)
+                for _mention, brand in named_mentions:
+                    per_brand[brand]["unscannable"] += 1
                 continue
             transcript_folded = transcript.casefold()
-            for mention in named_mentions:
-                brand = str(mention.get("brand")).strip()
-                tally = per_brand.setdefault(brand, {"mentions": 0, "leaked": 0})
-                tally["mentions"] += 1
+            for mention, brand in named_mentions:
+                tally = per_brand[brand]
+                tally["scanned"] += 1
                 if brand.casefold() in transcript_folded:
                     named_scanned_present += 1
                 else:
@@ -211,6 +247,7 @@ def run_eval(root: DataLakeRoot) -> dict:
             "records_with_captured_at": records_with_captured_at,
             "records_with_observed_at": records_with_observed_at,
             "malformed_mention_entries": malformed_mention_entries,
+            "mentions_excluded_not_source_backed": mentions_excluded_not_source_backed,
             "mentions_named_brand": mentions_named,
             "mentions_unknown_or_blank_brand": mentions_unknown_or_blank,
         },
