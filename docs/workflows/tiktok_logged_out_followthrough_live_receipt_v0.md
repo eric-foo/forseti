@@ -158,7 +158,47 @@ receipt-label fixes:
 - `matched_comment_response_count=0`
 - `admitted_comment_response_count=0`
 
-This is the current receipt shape future runs should expect when TikTok does not
-accept the X close: the visual X click is recorded, the remaining visual-X
-candidates fail close acceptance, no `challenge_close_followthrough=true` field is
-carried, and the stopped close action is not mislabeled as `comment_action`.
+This receipt is now historical because it carried `visual_fallback_geometric_target=true`;
+that means the harness clicked a guessed coordinate rather than a detected X pixel
+target. Current code disables geometric fallback for TikTok challenge-close actions.
+A valid future X-click receipt must have a detected visual-X target without
+`visual_fallback_geometric_target=true`; failed close verification must still carry
+no `challenge_close_followthrough=true` field and must not label the stopped close
+action as `comment_action`.
+
+
+## 2026-07-03 No-Geometric / Count-Badge Correction
+
+A subsequent visible logged-out run with geometric X guesses disabled produced no
+challenge and no X click, but initially completed from a DOM-visible candidate
+`303`. That value is a comment count badge, not a comment body. Current code now
+rejects count-only DOM text as fallback evidence; the run is not usable as comment
+body capture or creator-registry admission evidence.
+
+## 2026-07-03 No-Geometric / Admit-Zero Live Receipt
+
+After disabling geometric X guesses and forcing failure receipts to keep
+`admitted_comment_response_count=0`, a visible logged-out run produced:
+
+- output_dir: `orca-harness\_scratch\tiktok_observe_one_no_geometric_x_admit_zero_20260703_01\funmimonet_7629774409762442526`
+- observed_utc: `2026-07-03T13:11:02Z`
+- run_complete_utc: `2026-07-03T13:11:18Z`
+- outcome: `attempted_count=1`, `completed_count=0`, `challenge_count=1`, `results=[]`
+- stop_reason: `challenge_x_click_attempted_close_not_accepted`
+- `challenge_close_action.action_name=tiktok_challenge_modal_close_followthrough_pointer_v0`
+- `challenge_close_action.target_kind=button`
+- `challenge_close_action.clicked=true`
+- `challenge_close_action.page_text_gate_matched=true`
+- `challenge_close_action.visual_fallback_attempted=false`
+- `challenge_close_action.click_point={"x":803.058,"y":198.96}`
+- `challenge_close_action.post_click_visual_candidate_count=4`
+- `challenge_close_action.post_click_visual_target_absent=false`
+- `challenge_close_accepted=false`
+- `matched_comment_response_count=1`
+- `admitted_comment_response_count=0`
+- `dom_visible_comment_candidate_count=0`
+
+This is the current authoritative live receipt shape for the observed failed-close
+path: a real DOM close target can be clicked, but the close is not accepted while
+post-click visual candidates remain; response observations after the failed close
+stay diagnostic and are not admitted.

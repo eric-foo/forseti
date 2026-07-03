@@ -43,6 +43,7 @@ class BrowserPagePointerAction:
     prefer_top_right: bool = False
     visual_top_right_x_fallback: bool = False
     visual_x_target_zone: str = "top_right"
+    visual_x_geometric_fallback: bool = True
     post_click_absent_text_markers: tuple[str, ...] = ()
     post_click_visual_target_absence_check: bool = False
     stop_sequence_on_failed_post_click_verification: bool = False
@@ -1264,6 +1265,7 @@ def _normalize_pointer_action(
         prefer_top_right=bool(action.prefer_top_right),
         visual_top_right_x_fallback=bool(action.visual_top_right_x_fallback),
         visual_x_target_zone=visual_x_target_zone,
+        visual_x_geometric_fallback=bool(action.visual_x_geometric_fallback),
         post_click_absent_text_markers=post_click_absent_text_markers,
         post_click_visual_target_absence_check=bool(
             action.post_click_visual_target_absence_check
@@ -1657,7 +1659,9 @@ def _run_pointer_action(page: object, action: BrowserPagePointerAction) -> dict[
     if not receipt["target_found"] or not isinstance(box, dict):
         if action.visual_top_right_x_fallback and receipt.get("page_text_gate_matched") is not False:
             visual_target = _find_visual_top_right_x_target(
-                page, target_zone=action.visual_x_target_zone
+                page,
+                target_zone=action.visual_x_target_zone,
+                allow_geometric=action.visual_x_geometric_fallback,
             )
             for key in (
                 "visual_fallback_attempted",

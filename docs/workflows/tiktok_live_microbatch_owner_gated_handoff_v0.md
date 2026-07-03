@@ -162,8 +162,9 @@ The only live-run fork is whether to proceed past the first creator/video:
   post-click text absence, no post-click visual-X candidates, and no final challenge/security
   triage marker, require at least one page-owned
   `/api/comment/list` response or bounded DOM-visible comment candidate, stop
-  before comment-route actions when close verification fails, and preserve the
-  accepted close action as a source-access intervention. Diagnostic
+  before comment-route actions when close verification fails, reject geometric
+  visual-X coordinate guesses as X-click proof, and preserve the accepted close
+  action as a source-access intervention. Diagnostic
   close mode remains
   stop-only and cannot admit, expand, or count as a completed capture row.
 - Do not use a personal TikTok account. This lane assumes a dedicated,

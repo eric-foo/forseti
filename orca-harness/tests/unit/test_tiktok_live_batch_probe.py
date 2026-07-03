@@ -772,7 +772,7 @@ def test_live_probe_challenge_close_followthrough_stops_if_close_not_accepted(
     assert triage["challenge_close_action"]["post_click_visual_target_absent"] is False
     assert triage["challenge_close_accepted"] is False
     assert triage["matched_comment_response_count"] == 1
-    assert triage["admitted_comment_response_count"] == 1
+    assert triage["admitted_comment_response_count"] == 0
     assert triage["dom_visible_comment_candidate_count"] == 0
 
 
@@ -906,7 +906,7 @@ def test_live_probe_challenge_close_followthrough_stops_if_challenge_remains(
     assert triage["challenge_close_accepted"] is False
     assert triage["comment_action"]["action_count"] == 3
     assert triage["matched_comment_response_count"] == 1
-    assert triage["admitted_comment_response_count"] == 1
+    assert triage["admitted_comment_response_count"] == 0
     assert triage["dom_visible_comment_candidate_count"] == 0
     assert "challenge_close_diagnostic" not in triage
 
@@ -996,7 +996,7 @@ def test_live_probe_challenge_close_diagnostic_is_not_completion(
     assert triage["challenge_close_diagnostic"] == pointer_sequence[-1]
     assert triage["comment_action"]["action_count"] == 3
     assert triage["matched_comment_response_count"] == 1
-    assert triage["admitted_comment_response_count"] == 1
+    assert triage["admitted_comment_response_count"] == 0
     assert triage["dom_visible_comment_candidate_count"] == 0
 
 
@@ -1082,7 +1082,7 @@ def test_live_probe_challenge_after_close_diagnostic_keeps_challenge_stop(
     assert triage["challenge_close_diagnostic"] == pointer_sequence[-1]
     assert triage["comment_action"]["action_count"] == 3
     assert triage["matched_comment_response_count"] == 1
-    assert triage["admitted_comment_response_count"] == 1
+    assert triage["admitted_comment_response_count"] == 0
     assert triage["dom_visible_comment_candidate_count"] == 0
 
 
@@ -1185,6 +1185,56 @@ def test_live_probe_completes_with_dom_visible_comment_fallback(tmp_path: Path) 
     assert receipt["admitted_comment_response_count"] == 0
     assert receipt["dom_visible_comment_candidate_count"] == 1
     assert receipt["comment_capture_fallback"] == "dom_visible_comment_candidates_v0"
+
+
+def test_live_probe_rejects_dom_visible_count_badge_as_comment_fallback(
+    tmp_path: Path,
+) -> None:
+    auth_root = _auth_state(tmp_path)
+    engine = _FakeObservationEngine(
+        outcomes=[
+            _success_observation(
+                video_id="7390000000000000001",
+                responses=[],
+                dom_comment_candidates=[
+                    {
+                        "text": "303",
+                        "selector": '[data-e2e*="comment"]',
+                    },
+                    {
+                        "text": "1.2K comments",
+                        "selector": '[data-e2e*="comment"]',
+                    },
+                ],
+            )
+        ]
+    )
+
+    paths = write_tiktok_live_batch_probe_outputs(
+        creator_handle="funmi",
+        creator_profile_url="https://www.tiktok.com/@funmi",
+        video_urls=["https://www.tiktok.com/@funmi/video/7390000000000000001"],
+        state_label="test-session",
+        session_mode=AuthenticatedSessionMode.FREE_ACCOUNT_CREATED,
+        auth_state_root=auth_root,
+        output_dir=tmp_path / "out",
+        cadence_min_gap_seconds=0,
+        cadence_max_gap_seconds=0,
+        random_seed=1,
+        engine=engine,
+        sleep_fn=lambda _seconds: None,
+    )
+
+    cadence = json.loads(paths.cadence_result_json_path.read_text(encoding="utf-8"))
+    assert cadence["attempted_count"] == 1
+    assert cadence["completed_count"] == 0
+    assert cadence["challenge_count"] == 0
+    assert cadence["results"] == []
+    failure = cadence["failures"][0]
+    assert failure["reason"] == TIKTOK_COMMENT_ROUTE_NO_RESPONSE_REASON
+    triage = failure["blocker_triage"]
+    assert triage["dom_visible_comment_candidate_count"] == 0
+    assert triage["matched_comment_response_count"] == 0
 
 def test_live_probe_stops_on_platform_challenge(tmp_path: Path) -> None:
     auth_root = _auth_state(tmp_path)

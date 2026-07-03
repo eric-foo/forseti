@@ -65,10 +65,13 @@ rendered page no longer shows challenge/security text, the close receipt has
 `/api/comment/list` response is captured or bounded DOM-visible comment
 candidates are captured after the named comments -> `More like this` -> comments
 route. DOM-visible comments are lower-tier `captured_visible_dom` evidence, not
-page-owned response evidence. If the final visual close follow-through fails
+page-owned response evidence; count-only/tab text such as `303`, `1.2K comments`,
+`Comments`, or `Log in to comment` is not a comment body and cannot admit. If the final visual close follow-through fails
 post-click verification, the pointer sequence must stop before comment-route
 actions; failed-close receipts must not carry `challenge_close_followthrough=true`
-or label the close action as `comment_action`. If the challenge marker remains,
+or label the close action as `comment_action`. A `visual_fallback_geometric_target=true`
+receipt is a coordinate guess, not proof that an X was detected or clicked, and
+must not be cited as X-click evidence. If the challenge marker remains,
 close acceptance is false/missing, and neither response yield nor DOM-visible
 comment yield is present, stop visibly. The older
 `--allow-challenge-close-diagnostic` flag remains diagnosis-only and still forces

@@ -139,6 +139,7 @@ TIKTOK_LOGGED_OUT_SESSION_MODE = "public_logged_out"
 TIKTOK_DOM_VISIBLE_COMMENT_CANDIDATE_CAP = 12
 TIKTOK_DOM_VISIBLE_COMMENT_TEXT_MAX_CHARS = 500
 _URL_IN_TEXT_RE = re.compile(r"https?://\S+")
+_COUNT_ONLY_TEXT_RE = re.compile(r"^[\d\s,._+-]+[kmb]?(?:\s+comments?)?$", re.IGNORECASE)
 
 _TIKTOK_VIDEO_URL_RE = re.compile(r"^/@(?P<handle>[^/]+)/video/(?P<video_id>\d+)$")
 
@@ -380,6 +381,7 @@ def run_tiktok_live_batch_probe(
                         ),
                         capture_result,
                         comment_response_cap=comment_response_cap,
+                        admit_comment_responses=False,
                     ),
                 )
             )
@@ -438,6 +440,7 @@ def run_tiktok_live_batch_probe(
                         ),
                         capture_result,
                         comment_response_cap=comment_response_cap,
+                        admit_comment_responses=False,
                     ),
                 )
             )
@@ -704,6 +707,7 @@ def _with_comment_route_observation(
     capture_result: BrowserPageObservationSuccess,
     *,
     comment_response_cap: int,
+    admit_comment_responses: bool = True,
 ) -> JsonObject:
     comment_list_responses = _page_owned_comment_list_responses(
         capture_result,
@@ -719,7 +723,9 @@ def _with_comment_route_observation(
         for response in capture_result.responses
         if _is_page_owned_comment_list_response(response)
     )
-    receipt["admitted_comment_response_count"] = len(comment_list_responses)
+    receipt["admitted_comment_response_count"] = (
+        len(comment_list_responses) if admit_comment_responses else 0
+    )
     receipt["dom_visible_comment_candidate_count"] = len(
         _dom_visible_comment_candidates(capture_result)
     )
@@ -745,6 +751,7 @@ def _challenge_close_diagnostic_blocker_receipt(
         ),
         capture_result,
         comment_response_cap=comment_response_cap,
+        admit_comment_responses=False,
     )
     return _drop_none(receipt)
 
@@ -898,6 +905,7 @@ def _tiktok_challenge_close_pointer_action(
         prefer_top_right=True,
         visual_top_right_x_fallback=True,
         visual_x_target_zone="center_modal",
+        visual_x_geometric_fallback=False,
         post_click_absent_text_markers=TIKTOK_CHALLENGE_TEXT_MARKERS,
         post_click_visual_target_absence_check=True,
         random_seed=_stable_pointer_seed(
@@ -961,6 +969,7 @@ def _tiktok_challenge_visual_close_pointer_action(
         prefer_top_right=True,
         visual_top_right_x_fallback=True,
         visual_x_target_zone="center_modal",
+        visual_x_geometric_fallback=False,
         post_click_absent_text_markers=TIKTOK_CHALLENGE_TEXT_MARKERS,
         post_click_visual_target_absence_check=True,
         stop_sequence_on_failed_post_click_verification=(
@@ -1177,6 +1186,8 @@ def _clean_dom_comment_text(value: str | None) -> str:
         return ""
     lowered = text.lower()
     if lowered in {"comments", "you may like", "log in to comment"}:
+        return ""
+    if _COUNT_ONLY_TEXT_RE.fullmatch(lowered):
         return ""
     if any(marker in lowered for marker in ("drag the slider", "verify to continue", "captcha")):
         return ""
