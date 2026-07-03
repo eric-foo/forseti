@@ -28,6 +28,7 @@ from cleaning.transcript_product_lake import (
 )
 from data_lake.root import DataLakeRoot, DataLakeRootError
 from data_lake.silver_lineage import SilverDerivedRef
+from runners import run_transcript_product_extract as yt_runner
 from runners.run_transcript_product_extract import run_extraction
 from source_capture.transcript.asr_packet import write_asr_transcript
 from source_capture.transcript.youtube_captions import CaptionFetch
@@ -243,6 +244,15 @@ def _commit_asr_transcript(data_root, video_id: str = "vid12345678", posture: st
     )
 
 
+def _lake_tree_state(data_root) -> dict[str, str]:
+    """Every file under the lake root -> sha256, for byte-unchanged idempotence asserts."""
+    return {
+        str(p.relative_to(data_root.path)): hashlib.sha256(p.read_bytes()).hexdigest()
+        for p in sorted(data_root.path.rglob("*"))
+        if p.is_file()
+    }
+
+
 def test_runner_extracts_asr_transcript_then_skips_on_rerun(tmp_path) -> None:
     data_root = DataLakeRoot.for_test(tmp_path / "lake")
     _commit_asr_transcript(data_root)
@@ -262,9 +272,12 @@ def test_runner_extracts_asr_transcript_then_skips_on_rerun(tmp_path) -> None:
     assert ack["evidence"][0]["kind"] == "record_set_complete"
 
     # idempotent: a second pass skips the acked packet at the seam WITHOUT loading
-    # raw bodies — no per-run status entries, no re-extraction.
+    # raw bodies — no per-run status entries, no re-extraction, and the lake tree
+    # is byte-unchanged (zero writes, not merely zero failures).
+    before = _lake_tree_state(data_root)
     second = run_extraction(data_root=data_root, transport=transport, provider=_PROVIDER, model="m", api_key="k")
     assert second == []
+    assert _lake_tree_state(data_root) == before
 
 
 def test_runner_late_asr_record_resurfaces_acked_packet(tmp_path) -> None:
@@ -292,6 +305,58 @@ def test_runner_late_asr_record_resurfaces_acked_packet(tmp_path) -> None:
 
     third = run_extraction(data_root=data_root, transport=transport, provider=_PROVIDER, model="m", api_key="k")
     assert third == []
+
+
+def test_runner_surfaces_malformed_packet_asr_record_without_ack(tmp_path) -> None:
+    # F1 class (YouTube mirror of the IG adjudicated fix): a damaged transcript_asr
+    # record must be a LOUD packet discovery failure that blocks the ack and
+    # re-surfaces every run — never a silent skip that lets the packet ack as
+    # transcript-less over damaged input.
+    data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    _commit_asr_transcript(data_root)
+    asr_record = next((data_root.path / "derived").glob("**/transcript_asr/*"))
+    asr_record.write_text("{not-json\n", encoding="utf-8")
+
+    results = run_extraction(
+        data_root=data_root, transport=FakeTransport(_anthropic([_item()])),
+        provider=_PROVIDER, model="m", api_key="k",
+    )
+    assert len(results) == 1
+    assert results[0]["status"] == "discovery_failed"
+    assert "transcript_asr record" in results[0]["error"]
+    assert list((data_root.path / "acknowledgements").glob(f"**/{PRODUCT_MENTIONS_LANE}/*")) == []
+
+    second = run_extraction(
+        data_root=data_root, transport=FakeTransport(_anthropic([_item()])),
+        provider=_PROVIDER, model="m", api_key="k",
+    )
+    assert [r["status"] for r in second] == ["discovery_failed"]
+    assert list((data_root.path / "acknowledgements").glob(f"**/{PRODUCT_MENTIONS_LANE}/*")) == []
+
+
+def test_rubric_version_grows_packet_obligation_without_llm_reextract(tmp_path, monkeypatch) -> None:
+    # F2 class (YouTube mirror): the extractor rubric is a processing-policy token
+    # in the obligation envelope — a rubric change re-surfaces the acked packet
+    # for a RE-CHECK and re-ack under the new fingerprint, without re-running
+    # extraction (the mentions record id keys on model, not rubric).
+    data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    _commit_asr_transcript(data_root)
+    original_rubric = yt_runner.EXTRACTOR_RUBRIC_VERSION
+    transport = FakeTransport(_anthropic([_item()]))
+
+    first = run_extraction(data_root=data_root, transport=transport, provider=_PROVIDER, model="m", api_key="k")
+    assert [r["status"] for r in first] == ["extracted"]
+    assert run_extraction(data_root=data_root, transport=transport, provider=_PROVIDER, model="m", api_key="k") == []
+
+    monkeypatch.setattr(yt_runner, "EXTRACTOR_RUBRIC_VERSION", "test-rubric-vnext")
+    third = run_extraction(data_root=data_root, transport=transport, provider=_PROVIDER, model="m", api_key="k")
+    assert [r["status"] for r in third] == ["skipped_done"]
+    acks = [
+        json.loads(p.read_text(encoding="utf-8"))
+        for p in (data_root.path / "acknowledgements").glob(f"**/{PRODUCT_MENTIONS_LANE}/*")
+    ]
+    assert len(acks) == 2
+    assert {ack["obligation"]["rubric_version"] for ack in acks} == {original_rubric, "test-rubric-vnext"}
 
 
 # --- runner: caption path, end-to-end -----------------------------------------
