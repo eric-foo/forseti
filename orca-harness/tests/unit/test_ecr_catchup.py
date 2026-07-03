@@ -14,8 +14,10 @@ import hashlib
 import json
 from pathlib import Path
 
+import pytest
+
 from data_lake.consumption import find_acks
-from data_lake.root import DataLakeRoot
+from data_lake.root import DataLakeRoot, DataLakeRootError
 from ecr.lake import ECR_COMPLETION_LANE, ECR_LANES
 from runners import run_ecr_catchup as ecr_runner
 from runners.run_ecr_catchup import main, pending_packets, run_catchup
@@ -50,6 +52,12 @@ def _tamper_packet(data_root, packet_id: str) -> None:
     """Corrupt a committed packet's preserved bytes so the verified read fails closed."""
     preserved = next((data_root.path / "raw").glob(f"*/{packet_id}/raw/*"))
     preserved.write_bytes(b"tampered bytes\n")
+
+
+def _corrupt_manifest(data_root, packet_id: str) -> None:
+    container = data_root.find_packet(packet_id)
+    assert container is not None
+    (container / "manifest.json").write_text("{not-json\n", encoding="utf-8")
 
 
 def test_catchup_finds_backlog_derives_and_acks(tmp_path) -> None:
@@ -161,6 +169,34 @@ def test_damaged_packet_fails_loud_without_ack_and_resurfaces(tmp_path) -> None:
     second = run_catchup(data_root=data_root)
     assert [r["status"] for r in second] == ["derive_failed"]
     assert find_acks(data_root, raw_anchor=pid, ack_namespace=ECR_COMPLETION_LANE) == []
+
+
+def test_corrupt_manifest_reconcile_failure_still_processes_healthy_packet(tmp_path) -> None:
+    data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    bad = _commit_packet(data_root, tmp_path, "bad")
+    good = _commit_packet(data_root, tmp_path, "good")
+    _corrupt_manifest(data_root, bad)
+
+    results = run_catchup(data_root=data_root)
+    by_packet = {r["packet_id"]: r for r in results}
+
+    assert by_packet[bad]["status"] == "availability_reconcile_failed"
+    assert "JSONDecodeError" in by_packet[bad]["error"]
+    assert by_packet[good]["status"] == "derived"
+    good_acks = find_acks(data_root, raw_anchor=good, ack_namespace=ECR_COMPLETION_LANE)
+    assert len(good_acks) == 1
+    assert find_acks(data_root, raw_anchor=bad, ack_namespace=ECR_COMPLETION_LANE) == []
+
+
+def test_pending_packets_blocks_on_corrupt_manifest_reconcile_failure(tmp_path) -> None:
+    data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    pid = _commit_packet(data_root, tmp_path)
+    _corrupt_manifest(data_root, pid)
+
+    with pytest.raises(
+        DataLakeRootError, match="availability reconcile failed before pending check"
+    ):
+        pending_packets(data_root=data_root)
 
 
 def test_per_packet_failure_is_isolated(tmp_path) -> None:
