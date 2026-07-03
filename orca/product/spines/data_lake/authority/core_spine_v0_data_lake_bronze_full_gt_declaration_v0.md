@@ -4,10 +4,11 @@
 retrieval_header_version: 1
 artifact_role: Product architecture declaration
 scope: >
-  Proposed successor to the Bronze MGT baseline: declares Bronze full God Tier
-  for the typed raw-truth retrievability and physicalization slice, at
-  fixture-proof tier and under the ratified Gate 2 claim ceiling, pending owner
-  ratification in the block at the end of this record.
+  Owner-ratified successor to the Bronze MGT baseline for claim tier: declares
+  Bronze full God Tier for the typed raw-truth retrievability and
+  physicalization slice, at fixture-proof tier and under the ratified Gate 2
+  claim ceiling, with named exclusions. Ratified 2026-07-03 in the block at
+  the end of this record.
 use_when:
   - Checking whether Bronze may be described as full God Tier, and under exactly which claim boundary.
   - Tracing the evidence chain (ratified ADRs, proof gates, de-correlated reviews) behind the Bronze full-GT claim.
@@ -28,13 +29,15 @@ authority_boundary: retrieval_only
 
 ## Status
 
-`BRONZE_FULL_GT_PROPOSED_V0` — **pending owner ratification.**
+`BRONZE_FULL_GT_RATIFIED_V0` — owner-ratified 2026-07-03 (block at the end of
+this record).
 
-Until the ratification block at the end of this record reads
-`decision: ratified`, Bronze's authoritative claim tier remains the MGT
-baseline (`core_spine_v0_data_lake_bronze_mgt_baseline_declaration_v0.md`),
-and no surface may describe Bronze as full God Tier on the basis of this
-proposal.
+This record now owns Bronze's claim tier. The MGT baseline
+(`core_spine_v0_data_lake_bronze_mgt_baseline_declaration_v0.md`) is
+superseded for claim tier (its stale_if #3 fired) and remains in place as the
+historical baseline and upgrade-path provenance. The claim stays exactly as
+bounded below — the ratified label never widens the exclusions or the Gate 2
+claim ceiling.
 
 ## The Claim (exact and bounded)
 
@@ -111,7 +114,7 @@ full GT" list:
 | 3 | Body layout / backend posture / retention | **Dispositioned by ratified decisions**: Gate 1 selected packet-member; Gate 2 ratified the erasure deferral and claim ceiling; hash verification proven at fixture tier (PROOF-04/05). Backend selection remains excluded below (T3-gated). |
 | 4 | CI-owned rebuild/invariant gate over fixture lakes | **Closed at fixture tier** (PROOF-01..07 CI-owned). Real-lane fixture breadth remains excluded below. |
 | 5 | One Silver producer consumes Bronze via public helpers with verified `raw_refs` | **Closed at fixture-test tier**: the YouTube Silver metric producer consumes `source_surface_catalog_rows` and upgrades `raw_refs` through Bronze AR rows with explicit missing/ambiguous limitation kinds (`orca-harness/capture_spine/creator_profile_current/youtube_silver_metric_producer.py`). |
-| 6 | Repeat consumer proof across enough source families | **Open — excluded from this claim.** One family is proven through the public helpers; breadth stays consumer-pressure-driven follow-up work, not a Bronze physicalization gap. |
+| 6 | Repeat consumer proof across enough source families | **Partially closed; remainder excluded from this claim.** Two source-family Silver producers are proven through the public helpers (`docs/workflows/bronze_silver_two_family_consumer_proof_closeout_v0.md`, post-PR #537/#540); whether that breadth is "enough" stays consumer-pressure-driven follow-up work, not a Bronze physicalization gap. |
 | 7 | De-correlated review of the full contract + code path before any full GT claim | **Closed for Bronze** (the three adjudicated cross-vendor reviews above, ending with the assembled-whole closeout pass). The Silver-side contract/code path was not in that review's scope and is excluded below. |
 
 ## Named Exclusions (what this declaration does NOT claim)
@@ -129,8 +132,9 @@ full GT" list:
   owner-gated decision.
 - **No erasure capability** — Gate 2's ratified claim ceiling governs all
   deletion language.
-- **No Silver-family breadth and no Silver-side de-correlated review** — items
-  6 and the Silver half of item 7 above.
+- **No Silver-family breadth beyond the two proven families, and no
+  Silver-side de-correlated review** — the open remainder of item 6 and the
+  Silver half of item 7 above.
 - **Third-proof threshold not fired** — the materially-different third proof
   stays a tripwire (the YouTube ambiguous-AR branch remains
   code-present/not-test-proven); no source shape crossed the brief's threshold
@@ -148,29 +152,103 @@ Two erosion pressures are named so future lanes can refuse them explicitly:
   "The Claim" above. Citing it for readiness, production validation, erasure,
   backend maturity, or Silver-tier guarantees is a misuse of this record.
 
-## On Ratification (fold-in obligations, not performed here)
+## Ratification Fold-In (performed 2026-07-03)
 
-When (and only when) the owner ratifies below, a fold-in turn must:
+The fold-in obligations named at proposal time were performed in the
+ratification lane:
 
-1. Annotate the MGT baseline declaration as superseded-for-claim-tier by this
-   record (its stale_if #3 fires), leaving it in place as the historical
+1. The MGT baseline declaration is annotated as superseded-for-claim-tier by
+   this record (its stale_if #3 fired), left in place as the historical
    baseline record.
-2. Carry the `direction_change_propagation` receipt for the claim-tier change
-   (this proposal deliberately carries none — no controlling doctrine changes
-   until ratification).
-3. Register this record in the repo map / data_lake README routing.
+2. The `direction_change_propagation` receipt for the claim-tier change is
+   carried below.
+3. This record is registered in the data_lake README routing and the repo map.
 
 ## Owner Ratification
 
 ```yaml
 bronze_full_gt_ratification:
-  decision: pending
-  ratified_by:
-  date:
-  notes: >
-    Owner fills this block. Until decision reads `ratified`, Bronze's
-    authoritative claim tier remains the MGT baseline declaration and no
-    surface may cite this record as a full-GT claim.
+  decision: ratified
+  ratified_by: owner (Eric), in-session instruction "ratify" after merging PR #612
+  date: 2026-07-03
+  modifications: >
+    One factual strengthening folded in while recording ratification:
+    upgrade-path item 6 now cites the two-family Bronze/Silver consumer-proof
+    closeout (docs/workflows/bronze_silver_two_family_consumer_proof_closeout_v0.md,
+    post-PR #537/#540) instead of understating the proven breadth as one
+    family, and the matching exclusion is scoped to "beyond the two proven
+    families". No claim, exclusion, or ceiling was widened.
+```
+
+## Direction Change Propagation
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Bronze's claim tier changes: the owner ratified this declaration
+    (2026-07-03), so Bronze is full God Tier for the typed raw-truth
+    retrievability and physicalization slice — fixture-proof tier, Gate 2
+    claim ceiling, named exclusions (production-lake validation, real-lane
+    fixture breadth, backend/engine selection, migration/replay tooling,
+    erasure capability, Silver-family breadth beyond two proven families,
+    Silver-side review). The MGT baseline declaration is superseded for claim
+    tier and remains the historical baseline and upgrade-path provenance.
+  trigger: architecture_doctrine
+  related_triggers:
+    - workflow_authority
+  controlling_sources_updated:
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_bronze_full_gt_declaration_v0.md
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_bronze_mgt_baseline_declaration_v0.md
+    - orca/product/spines/data_lake/README.md
+    - orca/product/spines/data_lake/workflows/core_spine_v0_data_lake_bronze_lake_owner_explainer_v0.md
+    - docs/workflows/orca_repo_map_v0.md
+  downstream_surfaces_checked:
+    - orca-harness/data_lake/catalog.py
+    - orca-harness/tests/test_data_lake_catalog.py
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_medallion_gold_readiness_contract_v0.md
+    - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_storage_contract_v0.md
+    - docs/decisions/orca_mini_god_tier_doctrine_v0.md
+  intentionally_not_updated:
+    - path: orca-harness/data_lake/catalog.py
+      reason: >
+        The runtime marker BRONZE_BASELINE_STATUS ("bronze_mgt_baseline_recorded_v0",
+        semantics "not full God Tier") and its test assertion are runtime code,
+        outside this docs fold-in's authority; the baseline itself bound the
+        marker as additive and non-authoritative, and under-claiming is the
+        safe direction. Updating the marker to reflect the ratified tier is a
+        named bounded follow-up requiring its own implementation authorization
+        (it mints a new runtime status enum value that downstream asserts).
+    - path: orca/product/spines/data_lake/authority/core_spine_v0_data_lake_medallion_gold_readiness_contract_v0.md
+      reason: >
+        Layer semantics (bronze/silver/gold-ready/gold) are unchanged by a
+        Bronze claim-tier ratification; gold remains Judgment output.
+    - path: orca/product/spines/data_lake/authority/core_spine_v0_data_lake_storage_contract_v0.md
+      reason: >
+        Backend/engine selection remains reserved exactly as the contract
+        states; this declaration's backend exclusion defers to it and Gate 2 T3.
+    - path: docs/decisions/orca_mini_god_tier_doctrine_v0.md
+      reason: >
+        The MGT doctrine is an owner-invoked design lens, not a claim registry;
+        one artifact graduating from an MGT baseline changes no doctrine text.
+  stale_language_search: >
+    git grep -n -i -E "not full God Tier|not declared full|bronze_mgt_baseline_recorded|MGT|full GT|God Tier"
+    orca/product/spines/data_lake orca-harness/data_lake
+    orca-harness/tests/test_data_lake_catalog.py docs/workflows/orca_repo_map_v0.md
+  stale_language_search_result: >
+    Executed 2026-07-03 after edits. Remaining hits: the annotated historical
+    MGT baseline (its supersession note now governs; body text explicitly
+    labeled as describing the 2026-06 baseline), the runtime marker in
+    catalog.py:37-39 plus its test assertion (dispositioned above as the named
+    follow-up), historical workflow/ADR records whose "not a full-GT claim"
+    non-claims were true when written and remain true of those records, and
+    this declaration's own bounded-claim language. No live routing surface
+    (data_lake README, repo map, owner explainer) still asserts Bronze is
+    MGT-only or not full God Tier.
+  non_claims:
+    - not validation or readiness of any production lake
+    - not backend, engine, migration, replay, or erasure authorization
+    - not a Silver-tier claim
+    - not a runtime marker update (named follow-up, separately authorized)
 ```
 
 ## Non-Claims

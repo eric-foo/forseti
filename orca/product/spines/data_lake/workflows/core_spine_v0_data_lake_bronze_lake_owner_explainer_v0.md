@@ -82,17 +82,27 @@ contract in `authority/`.
 
 ## Mini God Tier versus full God Tier
 
-**Mini God Tier (where Bronze is now):** the *behavior* is proven. Typed raw
-truth goes in write-once, comes back by key, verifies by hash, and two Silver
-consumers read it through public surfaces. For everyday capture-and-consume
-work, Bronze is dependable today.
+> **Status update (2026-07-03):** the owner ratified the Bronze full-GT
+> declaration
+> (`authority/core_spine_v0_data_lake_bronze_full_gt_declaration_v0.md`), so
+> Bronze is now full God Tier for the bounded slice that record names —
+> fixture-proof tier, Gate 2 claim ceiling, backend still deliberately
+> unselected. The two paragraphs below explain what the ladder *meant*; the
+> declaration owns the current claim.
 
-**Full God Tier (the goal):** the *physical architecture* is also deliberately
-decided, implemented, and proven - how Attachment Record bodies are physically
-bound and laid out, what retention and lawful erasure mean, which storage
-backend carries it all, each chosen on purpose and demonstrated against the
-lake's invariants. The distance between the two is not more features; it is a
-small set of deliberately-undecided architecture choices.
+**Mini God Tier (where Bronze was until 2026-07-03):** the *behavior* is
+proven. Typed raw truth goes in write-once, comes back by key, verifies by
+hash, and two Silver consumers read it through public surfaces. For everyday
+capture-and-consume work, Bronze is dependable today.
+
+**Full God Tier (now ratified, within its named exclusions):** the *physical
+architecture* is also deliberately decided, implemented, and proven - how
+Attachment Record bodies are physically bound and laid out (Gate 1), what
+retention and lawful erasure mean (Gate 2's ratified deferral and claim
+ceiling), how the canonical entry is serialized and derived (A2), each chosen
+on purpose and demonstrated against the lake's invariants by CI-owned,
+fail-capable proofs. The storage backend remains deliberately unselected — a
+future backend must prove this architecture, never choose it.
 
 ## The two gates, and why they exist
 
