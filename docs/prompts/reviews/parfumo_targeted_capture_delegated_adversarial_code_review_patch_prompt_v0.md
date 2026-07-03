@@ -92,7 +92,7 @@ Required source reads:
 - `.agents/workflow-overlay/safety-rules.md`
 - `docs/workflows/parfumo_targeted_capture_contract_v0.md`
 - `docs/research/orca_fragrance_native_database_live_probe_v0.md`
-- historical packet content if available: `docs/workflows/fragrance_native_capture_pipeline_parfumo_basenotes_build_handoff_v0.md`
+- historical packet content if available: `docs/workflows/fragrance_native_capture_pipeline_parfumo_basenotes_build_handoff_v0.md` # nonresolving: removed on main in 3b23fa3e (PR #529); recover via `git show 5865f4d7a2fdd14114e04d8bac9fecc686fda17c:<path>`
 - `orca-harness/runners/run_parfumo_mgt_capture.py`
 - `orca-harness/tests/unit/test_parfumo_mgt_capture_runner.py`
 - `orca-harness/tests/contract/test_capture_runner_lake_seam_coverage.py`

@@ -127,7 +127,7 @@ Read:
 
 Also inspect these if present:
 
-- `docs/workflows/data_lake_r2_continuation_handoff_v0.md`
+- `docs/workflows/data_lake_r2_continuation_handoff_v0.md` # nonresolving: never committed on any branch; only ever observed untracked in the authoring worktree
 - `orca-harness/runners/run_source_capture_youtube_caption_packet.py`
 - `orca-harness/runners/run_source_capture_youtube_asr_packet.py`
 - any current lane-specific poller wrapper, especially `poll_and_extract.ps1`

@@ -252,7 +252,7 @@ The output is an audit report and patch recommendation, not a patch.
 - Branch: `codex/ig-reels-capture-spine`
 - Head: `20e0f42855579ab499c8793e49dfadb61e363eea`
 - Dirty or untracked state before handoff:
-  - Untracked examples included `.codex/hooks/run_orca_guard.py`, `_scratch/`, several `docs/hygiene/*_handoff_v0.md`, several `docs/prompts/*`, `docs/workflows/data_lake_r2_continuation_handoff_v0.md`, `docs/workflows/ig_reels_projection_to_ecr_consumption_decision_v0.md`, `orca/product/spines/data_lake/authority/core_spine_v0_data_lake_silver_vault_record_contract_v0.md`, and `worktrees/`.
+  - Untracked examples included `.codex/hooks/run_orca_guard.py`, `_scratch/`, several `docs/hygiene/*_handoff_v0.md`, several `docs/prompts/*`, `docs/workflows/data_lake_r2_continuation_handoff_v0.md`, `docs/workflows/ig_reels_projection_to_ecr_consumption_decision_v0.md`, `orca/product/spines/data_lake/authority/core_spine_v0_data_lake_silver_vault_record_contract_v0.md`, and `worktrees/`. # nonresolving: the untracked r2-continuation packet named here was never committed on any branch
 - Dirty or untracked state after writing the handoff file:
   - This packet adds one new untracked file: `docs/workflows/capture_spine_runner_data_lake_dump_audit_handoff_v0.md`.
 - Target files or artifacts:
