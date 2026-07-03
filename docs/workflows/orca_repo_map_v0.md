@@ -434,6 +434,19 @@ lake-core field/key sets per the write-boundary contract's No-New-Core-Field
 Enforcement (any drift fails; update the pin only with the cited owner
 decision).
 
+**Review-output provenance gate.** `.agents/hooks/check_review_output_provenance.py`
+— diff-scoped, forward-only CI gate (registered in `.github/workflows/ci.yml`
+as `--diff origin/main --strict`): changed/added `docs/review-outputs/*.md`
+must carry a valid retrieval header, non-blank `reviewed_by`/`authored_by`
+(value `unrecorded` allowed, never blank/absent), and a review-use-boundary
+statement (findings are decision input, not approval/validation/readiness).
+Rule owners: `.agents/workflow-overlay/review-lanes.md` +
+`.agents/workflow-overlay/retrieval-metadata.md` (referenced, never restated).
+Shape only — never review quality, provenance truth, or de-correlation truth.
+`--changed`/`--staged` are working-tree modes for local use; `--diff` is the
+CI mode (a CI checkout's working tree is always clean). `--selftest` present
+(fixtures under `orca-harness/tests/fixtures/review_outputs/`).
+
 **Future agents: reuse this pattern.** To enforce the next load-bearing,
 deterministically-checkable rule, do not add another instruction -- add a
 sibling checker under `.agents/hooks/` that references the rule's authority
