@@ -27,7 +27,7 @@ This is a static, source-backed Markdown snapshot of the Creator Signal Library 
 
 ## Source Snapshot
 
-- Repository snapshot: `origin/main@0f460b01362a849e40174d11dd89e4804f5f9d19` (this worktree's checked commit at authoring time)
+- Repository snapshot: `origin/main@0f460b01362a849e40174d11dd89e4804f5f9d19` (source-data baseline for this projection)
 - Input view file: `orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_profile_current_view_v0.json`
 - View `generated_at_utc`: `2026-07-02T14:10:00Z`
 - Reconfirmed data posture counts (verified by direct structural read of the committed JSON):
@@ -61,54 +61,54 @@ The library is organized by platform. There is no combined, all-platform table a
 
 ### How to read a row
 
-Each row shows the selected observed scan metric (`average_views`), a sample-support cue, a freshness cue, the declared-deferred `posting_cadence`/`recent_velocity` state, and a missingness/limitations cue — all visible without opening the row's Details entry. Sorting is a selected-metric sort within one platform section only. Open the linked handle to reach the row's full Details entry: limitations, non-claims, source drill-back pointers, calculation recipe version, and additional metric families.
+Each row shows platform, the selected observed scan metric (`average_views`), a sample-support cue, a freshness cue, the declared-deferred `posting_cadence`/`recent_velocity` state, and a missingness/limitations cue — all visible without opening the row's Details entry. Sorting is a selected-metric sort within one platform section only. Open the linked handle to reach the row's full Details entry: limitations, non-claims, source drill-back pointers, calculation recipe version, and additional metric families.
 
 ## YouTube Section (30 rows)
 
 Sorted by `average_views` (observed), descending, within this platform only.
 
-| Handle | Subject ID | Avg Views (observed) | Sample Support | Freshness | Cadence / Velocity | Missingness / Limitations |
-|---|---|---|---|---|---|---|
-| [JusDeRose](#details-acct-yt-fragrance-012) | `acct_yt_fragrance_012` | 160,954.29 (observed) | strong (admitted-pool, n>=8) | 2026-07-02 (partial) | not yet available (both) | admitted-pool only, not channel-wide |
-| [GentsScents](#details-acct-yt-fragrance-010) | `acct_yt_fragrance_010` | 127,654.08 (observed) | strong (admitted-pool, n>=8) | 2026-07-02 (partial) | not yet available (both) | admitted-pool only, not channel-wide |
-| [OliviaOlfactory](#details-acct-yt-fragrance-015) | `acct_yt_fragrance_015` | 104,980.60 (observed) | strong (admitted-pool, n>=8) | 2026-07-02 (partial) | not yet available (both) | admitted-pool only, not channel-wide |
-| [DemiRawling](#details-acct-yt-fragrance-006) | `acct_yt_fragrance_006` | 100,543.50 (observed) | strong (admitted-pool, n>=8) | 2026-07-02 (partial) | not yet available (both) | admitted-pool only, not channel-wide |
-| [TheScented](#details-acct-yt-fragrance-028) | `acct_yt_fragrance_028` | 73,836 (observed) | limited (n 4-7) | 2026-07-02 (partial) | not yet available (both) | limited sample; admitted-pool only, not channel-wide |
-| [CurlyScents](#details-acct-yt-fragrance-005) | `acct_yt_fragrance_005` | 64,618.90 (observed) | strong (admitted-pool, n>=8) | 2026-07-02 (partial) | not yet available (both) | admitted-pool only, not channel-wide |
-| [CurlyFragrance](#details-acct-yt-fragrance-004) | `acct_yt_fragrance_004` | 48,680 (observed) | thin (n 1-3) | 2026-07-02 (partial) | not yet available (both) | thin sample; admitted-pool only, not channel-wide |
-| [SchoolofScent](#details-acct-yt-fragrance-022) | `acct_yt_fragrance_022` | 32,946.92 (observed) | strong (admitted-pool, n>=8) | 2026-07-02 (partial) | not yet available (both) | admitted-pool only, not channel-wide |
-| [BowTieFragranceGuy](#details-acct-yt-fragrance-001) | `acct_yt_fragrance_001` | 27,558.80 (observed) | strong (admitted-pool, n>=8) | 2026-07-02 (partial) | not yet available (both) | admitted-pool only, not channel-wide |
-| [PostCologne](#details-acct-yt-fragrance-016) | `acct_yt_fragrance_016` | 25,756 (observed) | strong (admitted-pool, n>=8) | 2026-07-02 (partial) | not yet available (both) | admitted-pool only, not channel-wide |
-| [MonikaCioch](#details-acct-yt-fragrance-014) | `acct_yt_fragrance_014` | 24,483 (observed) | strong (admitted-pool, n>=8) | 2026-07-02 (partial) | not yet available (both) | admitted-pool only, not channel-wide |
-| [ChaosFragrances](#details-acct-yt-fragrance-002) | `acct_yt_fragrance_002` | 24,352.33 (observed) | strong (admitted-pool, n>=8) | 2026-07-02 (partial) | not yet available (both) | admitted-pool only, not channel-wide |
-| [FragranceKnowledge](#details-acct-yt-fragrance-007) | `acct_yt_fragrance_007` | 18,888.71 (observed) | strong (admitted-pool, n>=8) | 2026-07-02 (partial) | not yet available (both) | admitted-pool only, not channel-wide |
-| [Redolessence](#details-acct-yt-fragrance-018) | `acct_yt_fragrance_018` | 16,965.08 (observed) | strong (admitted-pool, n>=8) | 2026-07-02 (partial) | not yet available (both) | admitted-pool only, not channel-wide |
-| [ThePerfumeGuy](#details-acct-yt-fragrance-026) | `acct_yt_fragrance_026` | 15,496.91 (observed) | strong (admitted-pool, n>=8) | 2026-07-02 (partial) | not yet available (both) | engagement rate/avg likes unavailable; admitted-pool only, not channel-wide |
-| [TiffBenson](#details-acct-yt-fragrance-030) | `acct_yt_fragrance_030` | 12,634.33 (observed) | strong (admitted-pool, n>=8) | 2026-07-02 (partial) | not yet available (both) | admitted-pool only, not channel-wide |
-| [TheFragranceApprentice](#details-acct-yt-fragrance-025) | `acct_yt_fragrance_025` | 11,828.38 (observed) | strong (admitted-pool, n>=8) | 2026-07-02 (partial) | not yet available (both) | admitted-pool only, not channel-wide |
-| [ScentedMoments](#details-acct-yt-fragrance-020) | `acct_yt_fragrance_020` | 11,644.67 (observed) | strong (admitted-pool, n>=8) | 2026-07-02 (partial) | not yet available (both) | admitted-pool only, not channel-wide |
-| [ThePerfumeNest](#details-acct-yt-fragrance-027) | `acct_yt_fragrance_027` | 7,644.11 (observed) | strong (admitted-pool, n>=8) | 2026-07-02 (partial) | not yet available (both) | admitted-pool only, not channel-wide |
-| [MilaLeBlanc](#details-acct-yt-fragrance-013) | `acct_yt_fragrance_013` | 7,349.88 (observed) | strong (admitted-pool, n>=8) | 2026-07-02 (partial) | not yet available (both) | admitted-pool only, not channel-wide |
-| [Cubaknow](#details-acct-yt-fragrance-003) | `acct_yt_fragrance_003` | 6,877.67 (observed) | strong (admitted-pool, n>=8) | 2026-07-02 (partial) | not yet available (both) | admitted-pool only, not channel-wide |
-| [TLTGReviews](#details-acct-yt-fragrance-031) | `acct_yt_fragrance_031` | 6,293.83 (observed) | strong (admitted-pool, n>=8) | 2026-07-02 (partial) | not yet available (both) | admitted-pool only, not channel-wide |
-| [JeremyFragrance](#details-acct-yt-fragrance-011) | `acct_yt_fragrance_011` | 6,215 (observed) | strong (admitted-pool, n>=8) | 2026-07-02 (partial) | not yet available (both) | admitted-pool only, not channel-wide |
-| [Scenteno](#details-acct-yt-fragrance-021) | `acct_yt_fragrance_021` | 5,101.50 (observed) | strong (admitted-pool, n>=8) | 2026-07-02 (partial) | not yet available (both) | admitted-pool only, not channel-wide |
-| [funmimonet](#details-acct-yt-fragrance-009) | `acct_yt_fragrance_009` | 4,519.38 (observed) | strong (admitted-pool, n>=8) | 2026-07-02 (partial) | not yet available (both) | admitted-pool only, not channel-wide |
-| [FragranceView](#details-acct-yt-fragrance-008) | `acct_yt_fragrance_008` | 4,088.25 (observed) | strong (admitted-pool, n>=8) | 2026-07-02 (partial) | not yet available (both) | admitted-pool only, not channel-wide |
-| [SokiLondon](#details-acct-yt-fragrance-024) | `acct_yt_fragrance_024` | 2,520 (observed) | strong (admitted-pool, n>=8) | 2026-07-02 (partial) | not yet available (both) | admitted-pool only, not channel-wide |
-| [TheScentinel](#details-acct-yt-fragrance-029) | `acct_yt_fragrance_029` | 1,760.25 (observed) | strong (admitted-pool, n>=8) | 2026-07-02 (partial) | not yet available (both) | admitted-pool only, not channel-wide |
-| [SimplyPutScents](#details-acct-yt-fragrance-023) | `acct_yt_fragrance_023` | 829.20 (observed) | strong (admitted-pool, n>=8) | 2026-07-02 (partial) | not yet available (both) | admitted-pool only, not channel-wide |
-| [ProfessorPerfume](#details-acct-yt-fragrance-017) | `acct_yt_fragrance_017` | 107 (observed) | thin (n 1-3) | 2026-07-02 (partial) | not yet available (both) | engagement rate/avg comments unavailable; thin sample; admitted-pool only, not channel-wide |
+| Handle | Platform | Subject ID | Avg Views (observed) | Sample Support | Freshness | Cadence / Velocity | Missingness / Limitations |
+|---|---|---|---|---|---|---|---|
+| [JusDeRose](#details-acct-yt-fragrance-012) | YouTube | `acct_yt_fragrance_012` | 160,954.29 (observed) | strong (admitted-pool, n>=8) | 2026-07-02 (partial) | not yet available (both) | admitted-pool only, not channel-wide |
+| [GentsScents](#details-acct-yt-fragrance-010) | YouTube | `acct_yt_fragrance_010` | 127,654.08 (observed) | strong (admitted-pool, n>=8) | 2026-07-02 (partial) | not yet available (both) | admitted-pool only, not channel-wide |
+| [OliviaOlfactory](#details-acct-yt-fragrance-015) | YouTube | `acct_yt_fragrance_015` | 104,980.60 (observed) | strong (admitted-pool, n>=8) | 2026-07-02 (partial) | not yet available (both) | admitted-pool only, not channel-wide |
+| [DemiRawling](#details-acct-yt-fragrance-006) | YouTube | `acct_yt_fragrance_006` | 100,543.50 (observed) | strong (admitted-pool, n>=8) | 2026-07-02 (partial) | not yet available (both) | admitted-pool only, not channel-wide |
+| [TheScented](#details-acct-yt-fragrance-028) | YouTube | `acct_yt_fragrance_028` | 73,836 (observed) | limited (n 4-7) | 2026-07-02 (partial) | not yet available (both) | limited sample; admitted-pool only, not channel-wide |
+| [CurlyScents](#details-acct-yt-fragrance-005) | YouTube | `acct_yt_fragrance_005` | 64,618.90 (observed) | strong (admitted-pool, n>=8) | 2026-07-02 (partial) | not yet available (both) | admitted-pool only, not channel-wide |
+| [CurlyFragrance](#details-acct-yt-fragrance-004) | YouTube | `acct_yt_fragrance_004` | 48,680 (observed) | thin (n 1-3) | 2026-07-02 (partial) | not yet available (both) | thin sample; admitted-pool only, not channel-wide |
+| [SchoolofScent](#details-acct-yt-fragrance-022) | YouTube | `acct_yt_fragrance_022` | 32,946.92 (observed) | strong (admitted-pool, n>=8) | 2026-07-02 (partial) | not yet available (both) | admitted-pool only, not channel-wide |
+| [BowTieFragranceGuy](#details-acct-yt-fragrance-001) | YouTube | `acct_yt_fragrance_001` | 27,558.80 (observed) | strong (admitted-pool, n>=8) | 2026-07-02 (partial) | not yet available (both) | admitted-pool only, not channel-wide |
+| [PostCologne](#details-acct-yt-fragrance-016) | YouTube | `acct_yt_fragrance_016` | 25,756 (observed) | strong (admitted-pool, n>=8) | 2026-07-02 (partial) | not yet available (both) | admitted-pool only, not channel-wide |
+| [MonikaCioch](#details-acct-yt-fragrance-014) | YouTube | `acct_yt_fragrance_014` | 24,483 (observed) | strong (admitted-pool, n>=8) | 2026-07-02 (partial) | not yet available (both) | admitted-pool only, not channel-wide |
+| [ChaosFragrances](#details-acct-yt-fragrance-002) | YouTube | `acct_yt_fragrance_002` | 24,352.33 (observed) | strong (admitted-pool, n>=8) | 2026-07-02 (partial) | not yet available (both) | admitted-pool only, not channel-wide |
+| [FragranceKnowledge](#details-acct-yt-fragrance-007) | YouTube | `acct_yt_fragrance_007` | 18,888.71 (observed) | strong (admitted-pool, n>=8) | 2026-07-02 (partial) | not yet available (both) | admitted-pool only, not channel-wide |
+| [Redolessence](#details-acct-yt-fragrance-018) | YouTube | `acct_yt_fragrance_018` | 16,965.08 (observed) | strong (admitted-pool, n>=8) | 2026-07-02 (partial) | not yet available (both) | admitted-pool only, not channel-wide |
+| [ThePerfumeGuy](#details-acct-yt-fragrance-026) | YouTube | `acct_yt_fragrance_026` | 15,496.91 (observed) | strong (admitted-pool, n>=8) | 2026-07-02 (partial) | not yet available (both) | engagement rate/avg likes unavailable; admitted-pool only, not channel-wide |
+| [TiffBenson](#details-acct-yt-fragrance-030) | YouTube | `acct_yt_fragrance_030` | 12,634.33 (observed) | strong (admitted-pool, n>=8) | 2026-07-02 (partial) | not yet available (both) | admitted-pool only, not channel-wide |
+| [TheFragranceApprentice](#details-acct-yt-fragrance-025) | YouTube | `acct_yt_fragrance_025` | 11,828.38 (observed) | strong (admitted-pool, n>=8) | 2026-07-02 (partial) | not yet available (both) | admitted-pool only, not channel-wide |
+| [ScentedMoments](#details-acct-yt-fragrance-020) | YouTube | `acct_yt_fragrance_020` | 11,644.67 (observed) | strong (admitted-pool, n>=8) | 2026-07-02 (partial) | not yet available (both) | admitted-pool only, not channel-wide |
+| [ThePerfumeNest](#details-acct-yt-fragrance-027) | YouTube | `acct_yt_fragrance_027` | 7,644.11 (observed) | strong (admitted-pool, n>=8) | 2026-07-02 (partial) | not yet available (both) | admitted-pool only, not channel-wide |
+| [MilaLeBlanc](#details-acct-yt-fragrance-013) | YouTube | `acct_yt_fragrance_013` | 7,349.88 (observed) | strong (admitted-pool, n>=8) | 2026-07-02 (partial) | not yet available (both) | admitted-pool only, not channel-wide |
+| [Cubaknow](#details-acct-yt-fragrance-003) | YouTube | `acct_yt_fragrance_003` | 6,877.67 (observed) | strong (admitted-pool, n>=8) | 2026-07-02 (partial) | not yet available (both) | admitted-pool only, not channel-wide |
+| [TLTGReviews](#details-acct-yt-fragrance-031) | YouTube | `acct_yt_fragrance_031` | 6,293.83 (observed) | strong (admitted-pool, n>=8) | 2026-07-02 (partial) | not yet available (both) | admitted-pool only, not channel-wide |
+| [JeremyFragrance](#details-acct-yt-fragrance-011) | YouTube | `acct_yt_fragrance_011` | 6,215 (observed) | strong (admitted-pool, n>=8) | 2026-07-02 (partial) | not yet available (both) | admitted-pool only, not channel-wide |
+| [Scenteno](#details-acct-yt-fragrance-021) | YouTube | `acct_yt_fragrance_021` | 5,101.50 (observed) | strong (admitted-pool, n>=8) | 2026-07-02 (partial) | not yet available (both) | admitted-pool only, not channel-wide |
+| [funmimonet](#details-acct-yt-fragrance-009) | YouTube | `acct_yt_fragrance_009` | 4,519.38 (observed) | strong (admitted-pool, n>=8) | 2026-07-02 (partial) | not yet available (both) | admitted-pool only, not channel-wide |
+| [FragranceView](#details-acct-yt-fragrance-008) | YouTube | `acct_yt_fragrance_008` | 4,088.25 (observed) | strong (admitted-pool, n>=8) | 2026-07-02 (partial) | not yet available (both) | admitted-pool only, not channel-wide |
+| [SokiLondon](#details-acct-yt-fragrance-024) | YouTube | `acct_yt_fragrance_024` | 2,520 (observed) | strong (admitted-pool, n>=8) | 2026-07-02 (partial) | not yet available (both) | admitted-pool only, not channel-wide |
+| [TheScentinel](#details-acct-yt-fragrance-029) | YouTube | `acct_yt_fragrance_029` | 1,760.25 (observed) | strong (admitted-pool, n>=8) | 2026-07-02 (partial) | not yet available (both) | admitted-pool only, not channel-wide |
+| [SimplyPutScents](#details-acct-yt-fragrance-023) | YouTube | `acct_yt_fragrance_023` | 829.20 (observed) | strong (admitted-pool, n>=8) | 2026-07-02 (partial) | not yet available (both) | admitted-pool only, not channel-wide |
+| [ProfessorPerfume](#details-acct-yt-fragrance-017) | YouTube | `acct_yt_fragrance_017` | 107 (observed) | thin (n 1-3) | 2026-07-02 (partial) | not yet available (both) | engagement rate/avg comments unavailable; thin sample; admitted-pool only, not channel-wide |
 
 ## Instagram Section (3 rows)
 
 Sorted by `average_views` (observed), descending, within this platform only.
 
-| Handle | Subject ID | Avg Views (observed) | Sample Support | Freshness | Cadence / Velocity | Missingness / Limitations |
-|---|---|---|---|---|---|---|
-| [hyram](#details-acct-ig-reels-001) | `acct_ig_reels_001` | 145,593.33 (observed) | strong (admitted-pool, n>=8) | 2026-06-30 (partial) | not yet available (both) | admitted-pool only, not channel-wide |
-| [milanscents](#details-acct-ig-reels-004) | `acct_ig_reels_004` | 70,628.33 (observed) | strong (admitted-pool, n>=8) | 2026-06-30 (partial) | not yet available (both) | admitted-pool only, not channel-wide |
-| [jeremyfragrance](#details-acct-ig-reels-002) | `acct_ig_reels_002` | 27,470.50 (observed) | strong (admitted-pool, n>=8) | 2026-06-30 (partial) | not yet available (both) | admitted-pool only, not channel-wide |
+| Handle | Platform | Subject ID | Avg Views (observed) | Sample Support | Freshness | Cadence / Velocity | Missingness / Limitations |
+|---|---|---|---|---|---|---|---|
+| [hyram](#details-acct-ig-reels-001) | Instagram | `acct_ig_reels_001` | 145,593.33 (observed) | strong (admitted-pool, n>=8) | 2026-06-30 (partial) | not yet available (both) | admitted-pool only, not channel-wide |
+| [milanscents](#details-acct-ig-reels-004) | Instagram | `acct_ig_reels_004` | 70,628.33 (observed) | strong (admitted-pool, n>=8) | 2026-06-30 (partial) | not yet available (both) | admitted-pool only, not channel-wide |
+| [jeremyfragrance](#details-acct-ig-reels-002) | Instagram | `acct_ig_reels_002` | 27,470.50 (observed) | strong (admitted-pool, n>=8) | 2026-06-30 (partial) | not yet available (both) | admitted-pool only, not channel-wide |
 
 ## Details
 
@@ -1487,4 +1487,3 @@ Accepted residuals:
 ## Source Drill-Back
 
 Each row's Details entry carries its `identity_ledger_pointer`, `metric_rollup_pointer`, and `metric_snapshot_pointer` as repository-relative code paths with JSON-pointer fragments (`#/...`), exactly as recorded in the source view — not converted into public URLs and not claiming a source-access capability the JSON does not carry. A row's public account link (when present) is the source-recorded `public_profile_url` field itself, not a fabricated address.
-
