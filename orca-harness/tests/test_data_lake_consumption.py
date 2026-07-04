@@ -8,6 +8,8 @@ Contract section).
 from __future__ import annotations
 
 import json
+import threading
+import time
 from pathlib import Path
 
 import pytest
@@ -22,6 +24,7 @@ from data_lake.consumption import (
     iter_all_acks,
     obligation_fingerprint,
     pickup,
+    reconcile_availability_per_packet,
     retract_ack,
 )
 from data_lake.root import DataLakeRoot, DataLakeRootError
@@ -256,6 +259,80 @@ def test_missed_event_recovery_by_key(tmp_path: Path) -> None:
     undone = [item.raw_anchor for item in
               pickup(root, ack_namespace=_NS, obligation_fn=_static_obligation)]
     assert undone == [pid]
+
+
+# --- availability reconcile concurrency --------------------------------------------
+
+
+def test_reconcile_availability_per_packet_serializes_destructive_rebuild(
+    tmp_path: Path, monkeypatch
+) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "lake")
+    _commit_packet(root, tmp_path, "alpha")
+    _commit_packet(root, tmp_path, "beta")
+
+    original_record_availability = root.record_availability
+    active_recorders = 0
+    max_active_recorders = 0
+    record_calls = 0
+    counter_lock = threading.Lock()
+    start = threading.Barrier(2)
+    results: list[list[dict]] = []
+    errors: list[BaseException] = []
+
+    def slow_record_availability(packet_id: str):
+        nonlocal active_recorders, max_active_recorders, record_calls
+        with counter_lock:
+            active_recorders += 1
+            max_active_recorders = max(max_active_recorders, active_recorders)
+        try:
+            time.sleep(0.02)
+            return original_record_availability(packet_id)
+        finally:
+            with counter_lock:
+                active_recorders -= 1
+                record_calls += 1
+
+    monkeypatch.setattr(root, "record_availability", slow_record_availability)
+
+    def worker() -> None:
+        try:
+            start.wait(timeout=2)
+            results.append(reconcile_availability_per_packet(root))
+        except BaseException as exc:  # noqa: BLE001 - test thread must report failures
+            errors.append(exc)
+
+    threads = [threading.Thread(target=worker) for _ in range(2)]
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join(timeout=5)
+
+    assert not any(thread.is_alive() for thread in threads)
+    assert errors == []
+    assert results == [[], []]
+    assert record_calls == 4
+    assert max_active_recorders == 1
+    assert not (root.path / "indexes" / ".availability_reconcile.lock").exists()
+
+
+def test_reconcile_availability_per_packet_preserves_per_packet_failure_visibility(
+    tmp_path: Path,
+) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "lake")
+    good = _commit_packet(root, tmp_path, "good")
+    bad = _commit_packet(root, tmp_path, "bad")
+    packet = root.find_packet(bad)
+    assert packet is not None
+    (packet / "manifest.json").write_text("{not-json", encoding="utf-8")
+
+    failures = reconcile_availability_per_packet(root)
+
+    assert [entry["packet_id"] for entry in failures] == [bad]
+    assert failures[0]["status"] == "availability_reconcile_failed"
+    assert "JSONDecodeError" in failures[0]["error"]
+    assert good in root.list_available()
+    assert bad not in root.list_available()
 
 
 # --- view-independence --------------------------------------------------------------

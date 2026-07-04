@@ -44,6 +44,8 @@ from __future__ import annotations
 
 import hashlib
 import json
+import time
+from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
@@ -57,6 +59,9 @@ ACK_SCHEMA_VERSION = 1
 _ACK_SUBTREE = "acknowledgements"
 # record_id budget: "ack_" + 24 hex chars stays far inside the lake's safe-segment limit.
 _ACK_ID_HEX_LEN = 24
+_AVAILABILITY_RECONCILE_LOCK = ".availability_reconcile.lock"
+_AVAILABILITY_RECONCILE_LOCK_TIMEOUT_SECONDS = 300.0
+_AVAILABILITY_RECONCILE_LOCK_POLL_SECONDS = 0.05
 
 
 class ConsumptionSeamError(ValueError):
@@ -366,6 +371,30 @@ def pickup(
         )
 
 
+@contextmanager
+def _availability_reconcile_lock(root) -> Iterator[None]:
+    """Serialize the destructive availability-index rebuild across processes."""
+    indexes = root.path / "indexes"
+    indexes.mkdir(parents=True, exist_ok=True)
+    lock_dir = indexes / _AVAILABILITY_RECONCILE_LOCK
+    deadline = time.monotonic() + _AVAILABILITY_RECONCILE_LOCK_TIMEOUT_SECONDS
+    while True:
+        try:
+            lock_dir.mkdir()
+            break
+        except FileExistsError:
+            if time.monotonic() >= deadline:
+                raise TimeoutError(
+                    "timed out waiting for availability reconcile lock: "
+                    f"{lock_dir}"
+                )
+            time.sleep(_AVAILABILITY_RECONCILE_LOCK_POLL_SECONDS)
+    try:
+        yield
+    finally:
+        lock_dir.rmdir()
+
+
 def reconcile_availability_per_packet(root) -> list[dict]:
     """By-key availability reconcile with per-packet failure visibility — the
     seam's shared reconcile for daemon-shaped consumers.
@@ -385,34 +414,35 @@ def reconcile_availability_per_packet(root) -> list[dict]:
     check) must fail loud when any entry is returned — an empty pickup is a
     valid no-work claim only over a fully reconciled surface (seam contract).
     """
-    failures: list[dict] = []
-    avail = root.path / "indexes" / "availability"
-    if avail.is_dir():
-        for entry_file in avail.glob("*.json"):
-            entry_file.unlink()
-    avail.mkdir(parents=True, exist_ok=True)
+    with _availability_reconcile_lock(root):
+        failures: list[dict] = []
+        avail = root.path / "indexes" / "availability"
+        if avail.is_dir():
+            for entry_file in avail.glob("*.json"):
+                entry_file.unlink()
+        avail.mkdir(parents=True, exist_ok=True)
 
-    raw_dir = root.path / "raw"
-    if not raw_dir.is_dir():
+        raw_dir = root.path / "raw"
+        if not raw_dir.is_dir():
+            return failures
+        for shard_dir in sorted(p for p in raw_dir.iterdir() if p.is_dir()):
+            for container in sorted(p for p in shard_dir.iterdir() if p.is_dir()):
+                packet_id = container.name
+                if not (container / "manifest.json").is_file():
+                    continue
+                if shard_dir.name != raw_shard(packet_id):
+                    continue
+                try:
+                    root.record_availability(packet_id)
+                except Exception as exc:  # noqa: BLE001 - surface corrupt packet, continue batch
+                    failures.append(
+                        {
+                            "packet_id": packet_id,
+                            "status": "availability_reconcile_failed",
+                            "error": f"{type(exc).__name__}: {exc}"[:200],
+                        }
+                    )
         return failures
-    for shard_dir in sorted(p for p in raw_dir.iterdir() if p.is_dir()):
-        for container in sorted(p for p in shard_dir.iterdir() if p.is_dir()):
-            packet_id = container.name
-            if not (container / "manifest.json").is_file():
-                continue
-            if shard_dir.name != raw_shard(packet_id):
-                continue
-            try:
-                root.record_availability(packet_id)
-            except Exception as exc:  # noqa: BLE001 - surface corrupt packet, continue batch
-                failures.append(
-                    {
-                        "packet_id": packet_id,
-                        "status": "availability_reconcile_failed",
-                        "error": f"{type(exc).__name__}: {exc}"[:200],
-                    }
-                )
-    return failures
 
 
 def iter_all_acks(root) -> Iterator[tuple[str, str, dict]]:
