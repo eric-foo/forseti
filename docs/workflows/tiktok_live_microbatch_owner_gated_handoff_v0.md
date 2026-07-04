@@ -207,9 +207,10 @@ handoff depends on:
 - The live probe opens comments via a typed pointer action (`tiktok_open_comments_pointer_v0`)
   rather than a page-JS `element.click()` path. In `live_batch_probe.py`, the
   pointer action uses bounded movement steps and a target-fraction range.
-- The live probe writes local staging only: `tiktok_live_grid_result.json` and
-  `tiktok_live_cadence_result.json`. Batch admission is a separate network-free
-  step through `run_source_capture_tiktok_batch_packet.py`.
+- The live probe writes local staging by default: `tiktok_live_grid_result.json`
+  and `tiktok_live_cadence_result.json`. When the owner asks for packet or
+  bronze/data-lake output, the live runner can now chain the same network-free
+  batch admission gate through `--admit-output` or explicit `--data-root`.
 - `live_batch_probe.py` stops on textual challenge/auth-wall markers, missing
   video-detail hydration, and post-itemStruct blocker-triage `action=stop`.
 - `blocker_triage.py` is classification-only. The live probe records triage

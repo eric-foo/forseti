@@ -563,6 +563,81 @@ def test_live_probe_runner_can_chain_batch_admission_to_data_root(
     assert captured_kwargs["logged_out"] is True
 
 
+def test_live_probe_runner_can_chain_batch_admission_to_admit_output(
+    tmp_path: Path,
+    monkeypatch,
+    capsys,
+) -> None:
+    video_id = "7390000000000000001"
+    pre_paths = write_tiktok_live_batch_probe_outputs(
+        creator_handle="funmi",
+        creator_profile_url="https://www.tiktok.com/@funmi",
+        video_urls=[f"https://www.tiktok.com/@funmi/video/{video_id}"],
+        logged_out=True,
+        output_dir=tmp_path / "pre_staging_admit",
+        cadence_min_gap_seconds=0,
+        cadence_max_gap_seconds=0,
+        random_seed=1,
+        engine=_FakeObservationEngine(
+            outcomes=[
+                _success_observation(
+                    video_id=video_id,
+                    response=_comment_response(video_id=video_id),
+                )
+            ]
+        ),
+        sleep_fn=lambda _seconds: None,
+    )
+
+    def fake_write_tiktok_live_batch_probe_outputs(**_kwargs: object):
+        return pre_paths
+
+    monkeypatch.setattr(
+        runner,
+        "write_tiktok_live_batch_probe_outputs",
+        fake_write_tiktok_live_batch_probe_outputs,
+    )
+    admit_output = tmp_path / "packet"
+
+    code = runner.main(
+        [
+            "--creator-handle",
+            "funmi",
+            "--creator-profile-url",
+            "https://www.tiktok.com/@funmi",
+            "--video-url",
+            f"https://www.tiktok.com/@funmi/video/{video_id}",
+            "--logged-out",
+            "--output-dir",
+            str(tmp_path / "unused_staging_admit"),
+            "--admit-output",
+            str(admit_output),
+            "--batch-label",
+            "live-chain-admit-output-test",
+        ]
+    )
+
+    captured = capsys.readouterr()
+    assert code == 0
+    assert COMPLETE_LANE_NOTE in captured.out
+    packet_line = next(
+        line for line in captured.out.splitlines() if line.startswith("admitted_packet=")
+    )
+    assert Path(packet_line.split("=", 1)[1]) == admit_output.resolve()
+    packet_payload = json.loads(
+        (admit_output / "raw" / "01_tiktok_batch_capture.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    assert packet_payload["batch_summary"]["captured_comment_count"] == 1
+    assert packet_payload["source_file_receipts"][0]["file_name"] == (
+        "tiktok_live_grid_result.json"
+    )
+    assert packet_payload["source_file_receipts"][1]["file_name"] == (
+        "tiktok_live_cadence_result.json"
+    )
+
+
 def test_live_probe_runner_chain_rejects_failed_cadence_before_packet(
     tmp_path: Path,
     monkeypatch,
