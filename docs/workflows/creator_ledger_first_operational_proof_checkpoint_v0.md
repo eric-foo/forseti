@@ -57,7 +57,7 @@ Observed receipt summary from the preserved scan receipt:
 
 ```yaml
 schema_version: creator_registry_match_preflight_receipt_v0
-generated_at_utc: 2026-07-04T13:40:00Z
+generated_at_utc: 2026-07-04T18:30:00Z
 total_candidates: 10
 new_candidates: 10
 safe_to_capture_new: 10
@@ -65,8 +65,9 @@ existing_matches: 0
 ambiguous_matches: 0
 invalid_candidates: 0
 blocked_actions: 0
-registry_source_profiles_total_at_receipt: 33
-registry_source_generated_at_utc: 2026-07-02T14:10:00Z
+registry_source_profiles_total_at_receipt: 36
+registry_source_generated_at_utc: 2026-07-03T09:04:50Z
+registry_source_sha256: a0998cb1100dbeccb8e77768f847ba0f688edcf0105b6485abbffd02f0ac1e49
 ```
 
 Current `creator_profile_current_view_v0.json` counts observed while writing this
@@ -83,9 +84,10 @@ engagement_rate_observed_profiles: 31
 profiles_with_ideal_audience_profiles: 0
 ```
 
-The current profile-view count differs from the receipt's registry source count
-because the receipt preserves the registry source used by that scan at its run
-time. That is acceptable lineage, not a reason to rewrite the old receipt.
+The refreshed scan receipt and current profile view now agree on the 36-profile
+registry source. Earlier 33-profile orientation in the static projection and
+preflight rehearsal remains historical context only, not the source for this
+checkpoint's current receipt facts.
 
 ## Proof Loop Checkpoint
 
@@ -149,14 +151,12 @@ Accepted residuals for this checkpoint:
 - exact-match only; no fuzzy display-name duplicate detection;
 - no cross-platform identity proof or public person identity graph;
 - no capture execution, registry mutation, metric refresh, or Silver write;
-- source adequacy remains light: title/handle cues do not prove creator quality,
-  current activity, commercial fit, or channel-wide influence;
-- process residual remains in the historical scan: exploratory web searching
-  exceeded the owner-supplied exact-query cap before the finalized unit was
-  stabilized; and
-- current scan artifact prose still contains a historical receipt-provenance
-  residual that is superseded by the later receipt-content checker work and the
-  current usage note; this checkpoint follows the current usage note.
+- source adequacy remains light: public account metadata cues do not prove
+  creator quality, current activity, commercial fit, or channel-wide influence;
+- the refreshed scan supersedes the earlier cap-overrun-tainted candidate batch,
+  but does not prove discovery search adequacy beyond the bounded run; and
+- receipt-content checker coverage supports row consistency for this artifact,
+  but does not turn the scan into capture authorization or registry admission.
 
 ## Operational Meaning
 
