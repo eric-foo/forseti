@@ -81,8 +81,8 @@ POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
         "2301b2977bfcdeaa5963bc4e30b0b4c6adcc6d76075d8dda0d9351eb08d4d08c",
     ),
     "cleaning/transcript_product_lake.py": (
-        ("EXTRACTOR_RUBRIC_VERSION (cleaning/transcript_product_extractor.py; weak-envelope residual)",),
-        "9e646b6f13465e3b2198c12d76ed145bf7a76bda001699414180f89b64f29b11",
+        ("EXTRACTOR_RUBRIC_VERSION (cleaning/transcript_product_extractor.py)", "PRODUCT_MENTIONS_RECORD_SCHEMA_VERSION (record-shape token; weak-envelope residual closed)"),
+        "5e26f61b50082dd214ae6f2fe756308607a06009c09c84b33f9c95be1f2fddf4",
     ),
     "ecr/deriver.py": (
         ("ECR_DERIVER_VERSION",),
@@ -93,8 +93,8 @@ POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
         "e3daca78e9dc238844d6452a93a16728fb6b6e8f0e4be936df3e1a98e2ffa2da",
     ),
     "source_capture/fragrance_review_coverage.py": (
-        ("FRAGRANCE_REVIEW_COVERAGE_VERSION",),
-        "d50f706f5f231e4fbe81b47bb2f2c11b89d49b6b5669a82d8f73599e3fe75f88",
+        ("FRAGRANCE_REVIEW_COVERAGE_VERSION", "FRAGRANCE_REVIEW_RECORD_SCHEMA_VERSION (record-shape token; weak-envelope residual closed)"),
+        "b98de11e2a67abe4fd75c048926ba2b3e95b3dddfc9446a20cdef93adb6a1bad",
     ),
     "source_capture/fragrance_review_lake.py": (
         ("FRAGRANCE_REVIEW_COVERAGE_VERSION (source_capture/fragrance_review_coverage.py; weak-envelope residual)",),
@@ -113,16 +113,16 @@ POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
         "cb2759c216c9f2561778eac0fa2cfeece23870914a4a5d57e3931eb0d4dc422e",
     ),
     "source_capture/transcript/asr_packet.py": (
-        ("transcriber_policy envelope (run_asr_transcript_catchup) + record shape (weak-envelope residual: no schema version token)",),
-        "98739a399434db043e64da42368f127df0b5c80ab83c2809316e26131e53d7d2",
+        ("transcriber_policy envelope (run_asr_transcript_catchup)", "TRANSCRIPT_ASR_RECORD_SCHEMA_VERSION (record-shape token; weak-envelope residual closed)"),
+        "4d99991d5b27c82b8c22981dcddaa2ebd516249cab706e1016ea9379c44bb21e",
     ),
     "source_capture/transcript/audio_asr.py": (
         ("transcriber_policy envelope defaults (model/compute/decode params are CLI-enveloped)",),
         "1b74a9d9df8e111edee05f3350edca1de75f422cdb95715de310c43652a047d6",
     ),
     "source_capture/transcript/ig_reels_audio_packet.py": (
-        ("transcriber_policy envelope (run_asr_transcript_catchup) + record shape (weak-envelope residual: no schema version token)",),
-        "1748bc4e62e33c4cf4f6332b679e19bc591e7a71f4238e757ecf5ad2a5ac699f",
+        ("transcriber_policy envelope (run_asr_transcript_catchup)", "TRANSCRIPT_ASR_RECORD_SCHEMA_VERSION (record-shape token, shared from asr_packet.py; weak-envelope residual closed)"),
+        "e28bafa6c049d42fb115c52518c6a11d2d666bed386f518964b402589585502a",
     ),
 }
 
