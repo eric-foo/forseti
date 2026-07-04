@@ -166,7 +166,7 @@ BROAD_SCOUT_DETAIL_PATTERNS = {
     ),
 }
 
-ENGAGEMENT_RULE_AUTHORITY = "orca/product/shared/engagement_registry/engagement_logic_registry_v0.md"
+ENGAGEMENT_RULE_AUTHORITY = "forseti/product/shared/engagement_registry/engagement_logic_registry_v0.md"
 ENGAGEMENT_SIGNAL_RE = (
     r"(?:engagement(?:\s+counts?)?|public[- ]reaction|reaction\s+volume|"
     r"high[- ]engagement|low[- ]engagement|upvotes?|helpful\s+votes?|likes?|"

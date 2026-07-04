@@ -359,7 +359,7 @@ def selftest() -> int:
         "known_top_level": {"dirs": [".agents", "docs", "orca-harness"],
                             "files": ["AGENTS.md", "repo-structure.yaml"]},
         "docs_roles": [{"home": "docs/decisions", "entry": "docs/decisions/README.md"},
-                       {"home": "docs/product", "entry": "orca/product/README.md"},
+                       {"home": "docs/product", "entry": "forseti/product/README.md"},
                        {"home": "docs/_inbox", "entry": "docs/_inbox/README.md"}],
         "product_lanes": [{"name": "core_spine", "status": "planned"}],
         "scratch_rules": {"underscore_prefix_dirs": True,

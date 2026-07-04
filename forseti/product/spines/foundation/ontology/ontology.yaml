@@ -1,0 +1,172 @@
+# Orca Demand Ontology — machine-readable SSOT (W2a)
+#
+# This file is the SINGLE SOURCE OF TRUTH for the adopted demand-ontology type
+# names, namespaces, typed links, and dimensions. It is a faithful PROMOTION of
+# the prose naming authority (orca_ontology_backbone_architecture_v0.md, §2.1-2.5,
+# ADOPTED 2026-06-15) into machine-readable form — not a redesign. The backbone
+# doc remains the human rationale; on any conflict the backbone governs until this
+# SSOT and the backbone are reconciled. Validated by .agents/hooks/check_ontology_ssot.py
+# (parses; namespaces/links resolve; deferred set == the expansion backlog).
+#
+# Non-claims: SSOT of the ADOPTED backbone only — not validation/readiness/proof.
+# Deferred types stay deferred (#262); RESERVED types are names only. runtime_bindings
+# cover the ONLY 3 ontology<->runtime overlaps (the W2b drift-check scope); every
+# other type is SSOT-only (no runtime type to drift against).
+
+ontology_ssot_version: 0
+status: ADOPTED_2026-06-15            # core 15/18 adopted; Buyer + Org reserved
+type_cap: 18                          # "19th in = one out"; 17 used + 1 open slot
+source_authority: forseti/product/spines/foundation/ontology/orca_ontology_backbone_architecture_v0.md
+backlog: forseti/product/spines/foundation/ontology/ontology_expansion_backlog_v0.json
+
+# §2.1 stable-ID grammar (naming authority, NOT a registry)
+id_grammar:
+  pattern: "namespace:slug"           # lowercase, dot-separated sub-parts
+  canonical_form: dotted              # the canonical id is the dotted form
+  version_suffix_is_metadata: true    # "_v0" is metadata, not part of the ID; an ID survives any rename
+  legacy_storage_alias: harness_case_id   # existing *_v0 ids kept as storage alias (Case card)
+
+# §2.1 namespaces (one per type)
+namespaces:
+  vertical:    "a demand domain; sub-niche via dotted child (vertical:beauty.fragrance)"
+  brand:       "a consumer brand (brand:beautypie)"
+  product:     "the demand target: ingredient/category/format/claim/SKU (product:retinol)"
+  venue:       "a demand-signal surface (venue:basenotes)"
+  windcaller:  "a leading-indicator account/community/detector (windcaller:tiktok.hyram)"
+  call:        "a wind-caller's early public call (call:tiktok.hyram.2023-04-12)"
+  observation: "one captured demand signal (observation:basenotes.2023-04-12.3)"
+  trend:       "a TrendVector / demand movement (trend:beautypie.2023-05-01)"
+  decision:    "a live brand-decision event (decision:beautypie.repricing-2023)"
+  memo:        "a decision-risk memo (memo:beautypie.repricing-2023.1)"
+  reading:     "the Read action's calibrated output (reading:beautypie.repricing-2023.1)"
+  case:        "a backtest/proof case (case:beautypie.repricing-2023)"
+  outcome:     "a realized result (outcome:beautypie.repricing-2023)"
+  packet:      "a source-capture packet, by sha (packet:3b89a19b)"
+  evidence:    "a cleaned evidence unit (evidence:beautypie.repricing-2023.1)"
+  buyer:       "a qualified buyer / ICP entity a Memo serves (buyer:<slug>)"
+  org:         "a company/parent org behind a Brand (org:thg)"
+
+# §2.2 object-type roster (cap 18; "Read" is an ACTION not a type; dimensions are §2.4)
+types:
+  Vertical:      { namespace: vertical,    status: adopted,  states: [level] }
+  Brand:         { namespace: brand,       status: adopted,  states: [] }
+  Product:       { namespace: product,     status: adopted,  states: [target_type] }        # backing gap (§3)
+  Venue:         { namespace: venue,       status: adopted,  states: [access_shape, review_by] }
+  WindCaller:    { namespace: windcaller,  status: adopted,  states: [calibration_state, carve_out] }
+  Call:          { namespace: call,        status: adopted,  states: [] }
+  Observation:   { namespace: observation, status: adopted,  states: [integrity_flags] }
+  TrendVector:   { namespace: trend,       status: adopted,  states: [persistence_state, integrity_state] }
+  DecisionEvent: { namespace: decision,    status: adopted,  states: [trigger_status, discovery_status] }
+  Reading:       { namespace: reading,     status: adopted,  states: [read_type, action_ceiling, claim_tier] }
+  Memo:          { namespace: memo,        status: adopted,  states: [claim_tier, gate_state] }
+  Case:          { namespace: case,        status: adopted,  states: [known_outcome] }
+  Outcome:       { namespace: outcome,     status: adopted,  states: [] }
+  CapturePacket: { namespace: packet,      status: adopted,  states: [manifest_version, cutoff_posture] }
+  EvidenceUnit:  { namespace: evidence,    status: adopted,  states: [claim_tier] }
+  Buyer:         { namespace: buyer,       status: reserved, states: [qualification_status] }
+  Org:           { namespace: org,         status: reserved, states: [] }
+
+# §2.3 typed link map (every `from`/`to` must be a defined type)
+links:
+  structural:
+    - { from: Vertical,   rel: narrows_to,  to: Vertical }
+    - { from: Brand,      rel: in,          to: Vertical }
+    - { from: Brand,      rel: owned_by,    to: Org }
+    - { from: Org,        rel: subsidiary_of, to: Org }
+    - { from: Brand,      rel: offers,      to: Product }
+    - { from: Brand,      rel: can_act_as,  to: WindCaller }
+    - { from: WindCaller, rel: covers,      to: Vertical }
+  signal_flow:
+    - { from: WindCaller,   rel: made,         to: Call }
+    - { from: Call,         rel: opens,        to: TrendVector }
+    - { from: TrendVector,  rel: about,        to: Product }
+    - { from: TrendVector,  rel: about,        to: Brand }
+    - { from: Observation,  rel: from,         to: Venue }
+    - { from: Observation,  rel: supports,     to: TrendVector }
+    - { from: Observation,  rel: captured_in,  to: CapturePacket }
+    - { from: EvidenceUnit, rel: cleaned_from, to: Observation }
+    - { from: EvidenceUnit, rel: cleaned_from, to: CapturePacket }
+    - { from: Reading,      rel: of,           to: TrendVector }
+    - { from: Reading,      rel: for,          to: DecisionEvent }
+    - { from: Memo,         rel: elaborates,   to: Reading }
+  load_bearing:                       # §2.3 "the two load-bearing links" — design precisely
+    - { from: Observation, rel: derived_from,  to: Observation,
+        semantics: "provenance/laundering edge; a derived_from chain collapses to one origination family (G1 independence); directed, transitive for the collapse test; cycles invalid -> collapse until repaired" }
+    - { from: Observation, rel: diverges_from, to: Observation,
+        semantics: "cross-layer disagreement / astroturf tell; preserved as signal, never averaged; constrains the action ceiling and can defeat the G2 floor when the costly instance sits in the flagged coordinated layer; directed, non-collapsing" }
+  proof_calibration:
+    - { from: Memo,          rel: for,        to: DecisionEvent }
+    - { from: Memo,          rel: cites,      to: EvidenceUnit }
+    - { from: Memo,          rel: cites,      to: Observation }
+    - { from: Memo,          rel: serves,     to: Buyer }
+    - { from: Buyer,         rel: owns,       to: DecisionEvent }
+    - { from: Case,          rel: backtests,  to: DecisionEvent }
+    - { from: Reading,       rel: graded_by,  to: Outcome }
+    - { from: Call,          rel: graded_by,  to: Outcome }
+    - { from: Case,          rel: graded_by,  to: Outcome }
+    - { from: DecisionEvent, rel: concerns,   to: Brand }
+  corroboration:                      # §2.3 G4 — must NOT count toward the G1 independent-origin count
+    - { from: Org, rel: corroborates, to: TrendVector }
+
+# §2.3 guards (non-link invariants)
+guards:
+  self_originated: >
+    Brand-as-WindCaller observations/calls for that Brand's own Product/DecisionEvent are
+    labeled self_originated and excluded from the G1 independent-origin count.
+
+# §2.4 demand-state machinery — DIMENSIONS, not types
+dimensions:
+  persistence_state: { values: [durable, transient],    on: [TrendVector, Outcome] }
+  integrity_state:   { values: [real, manufactured],    on: [TrendVector, Outcome] }
+  action_ceiling:    { ladder: [Excluded, Watch, Probe, Test, Hold, Move, Commit], on: [Reading], capped_by: signal_integrity }
+  read_type:         { values: [durable-demand, transient-spike, manufactured-demand, brand-decision-event, wind-caller-calibration], on: [Reading] }
+  claim_tier:        { values: [product_learning, buyer_proof, judgment_quality], on: [Reading, Memo, Case, Outcome], receipt_gated: true }
+
+# §9 + backlog: deferred adoption, no auto-nudge (#262). MUST equal the backlog JSON's
+# deferred_no_auto_trigger (checked).
+deferred_no_auto_trigger:
+  - Org
+  - Buyer
+  - Memo
+  - Product
+  - WindCaller
+  - CapturePacket
+  - EvidenceUnit
+  - Observation
+  - TrendVector
+  - Call
+  - Reading
+
+# The ONLY ontology<->runtime overlaps (the W2b scoped drift-check target). Every
+# other type is SSOT-only. Name/field divergences below are reconciliation items
+# for W2b, not silent matches.
+runtime_bindings:
+  # The ONLY 3 ontology<->runtime overlaps (W2b scoped drift-check). A type NOT
+  # listed here is SSOT-only (derived). check_ontology_drift.py imports each runtime
+  # class and verifies these STRUCTURED INVARIANTS (cross-vendor reviewed 2026-06-19;
+  # not full field conformity -- the runtime types are harness-pipeline artifacts):
+  #   defined_at:  the class is DEFINED in (not re-exported into) its module;
+  #   requires_fields: load-bearing anchors that MUST exist on the runtime class;
+  #   forbids_fields:  fields whose presence would violate intent (e.g. AR-01);
+  #   name_alias:  canonical = the ontology name; the runtime name is a recorded
+  #     storage alias (ID-doctrine pattern: forward-only, both resolve, no rename;
+  #     MGT name-drift decision 2026-06-19);
+  #   not_payload_identifier: the runtime class name must NOT be a serialized type
+  #     discriminator (leak guard -- the condition that makes alias-only safe).
+  CapturePacket:
+    runtime: "orca-harness/source_capture/models.py:SourceCapturePacket"
+    name_alias: SourceCapturePacket
+    requires_fields: [manifest_version]
+    forbids_fields: []
+    not_payload_identifier: true
+  EvidenceUnit:
+    runtime: "orca-harness/schemas/case_models.py:EvidenceUnit"
+    requires_fields: [evidence_id, pre_decision_status]   # pre_decision_status = the claim_tier divergence mechanism
+    forbids_fields: [claim_tier]                          # AR-01: claim_tier is a receipt OUTCOME, never a standing runtime field
+    not_payload_identifier: true
+  Case:
+    runtime: "orca-harness/schemas/case_models.py:FacilitatorLedger"
+    composed_with: ["orca-harness/schemas/scoring_models.py:CaseReport"]
+    requires_fields: [case_id]
+    forbids_fields: []
+    not_payload_identifier: true

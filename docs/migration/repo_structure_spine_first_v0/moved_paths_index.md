@@ -27,6 +27,7 @@ resolve them here.
 
 | Old path | New path |
 | --- | --- |
+| `docs/product/` | `orca/product/` |
 | `docs/product/README.md` | `orca/product/README.md` |
 | `docs/product/core_spine/beauty_venue_card_set_v0.md` | `orca/product/satellites/beauty/beauty_venue_card_set_v0.md` |
 | `docs/product/core_spine/consumer_demand_candidate_pool_handoff_v0.md` | `orca/product/case_families/product_learning/fragrance/consumer_demand_candidate_pool_handoff_v0.md` |

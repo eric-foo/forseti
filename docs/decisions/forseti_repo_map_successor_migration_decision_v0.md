@@ -40,7 +40,7 @@ output_mode: file-write
 
 `docs/workflows/orca_repo_map_v0.md` remains only as a compatibility pointer so older links, historical receipts, prompts, and review artifacts keep resolving. New live routing, source-loading, checker defaults, and repo-structure entry points should use the Forseti map path.
 
-This lane does not migrate `orca/product/`, `orca-harness/`, package names, CI check names, skill IDs, or the start-preflight alias.
+This lane does not migrate `forseti/product/`, `orca-harness/`, package names, CI check names, skill IDs, or the start-preflight alias.
 
 ## External Identity Gate
 
@@ -116,7 +116,7 @@ direction_change_propagation:
       reason: >
         They are point-in-time provenance. The compatibility pointer keeps their
         links resolvable without rewriting history.
-    - path: orca/product/ and orca-harness/
+    - path: forseti/product/ and orca-harness/
       reason: >
         Product and harness root migration remain separate high-lock-in lanes.
     - path: eric-foo/orca hard-coded repo slug surfaces

@@ -116,7 +116,7 @@ VALID_GRAPH_ROLES = {
 }
 VALID_GRAPH_WEIGHT_HINTS = {"high", "medium", "low", "none"}
 ENGAGEMENT_RULE_AUTHORITY = (
-    "orca/product/spines/commission_signal_board/authority/"
+    "forseti/product/spines/commission_signal_board/authority/"
     "orca_commission_signal_board_prompt_structure_rules_v0.md"
 )
 ENGAGEMENT_SIGNAL_RE = (

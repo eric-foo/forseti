@@ -721,7 +721,7 @@ def selftest() -> int:
 # ---------------------------------------------------------------------------
 
 def run_report_orca(root: Path) -> int:
-    """--report-orca: REPORT MODE over orca/product/spines/**. ALWAYS exits 0.
+    """--report-orca: REPORT MODE over forseti/product/spines/**. ALWAYS exits 0.
 
     Measures retrieval-header PRESENCE/validity using the SAME structural predicate
     as the live header gate (header_problems_for_lines), applied directly so the
@@ -735,7 +735,7 @@ def run_report_orca(root: Path) -> int:
     """
     spines_root = root / "orca" / "product" / "spines"
     if not spines_root.is_dir():
-        print("header_index --report-orca: no orca/product/spines/ tree; nothing to report")
+        print("header_index --report-orca: no forseti/product/spines/ tree; nothing to report")
         return 0
 
     missing: list[str] = []
@@ -758,7 +758,7 @@ def run_report_orca(root: Path) -> int:
                 missing.append(relposix)
 
     print("header_index --report-orca (REPORT MODE, exit 0; not a gate):")
-    print("  scope: orca/product/spines/**  |  predicate shared with the live header gate")
+    print("  scope: forseti/product/spines/**  |  predicate shared with the live header gate")
     print("  durable .md scanned:             %d" % total)
     print("  MISSING / invalid header (debt): %d" % len(missing))
     print("  orphan / coverage:               deferred to W-map (dir_is_covered vacuous, F2)")

@@ -19,8 +19,8 @@ use_when:
   - Deciding whether a proposed brand/website/entity move fits the ratified company design.
 authority_boundary: retrieval_only
 open_next:
-  - orca/product/spines/creator_signal/creator_signal_product_architecture_v0.md
-  - orca/product/spines/creator_signal/creator_signal_market_sizing_v0.md
+  - forseti/product/spines/creator_signal/creator_signal_product_architecture_v0.md
+  - forseti/product/spines/creator_signal/creator_signal_market_sizing_v0.md
   - docs/workflows/forseti_brand_asset_acquisition_lane_handoff_v0.md
 stale_if:
   - The owner amends any decision below (dated amendments only; no silent rewrites).
@@ -42,7 +42,7 @@ the product records; it does not amend the product thesis
 (`docs/decisions/orca_product_thesis_consumer_demand_v0.md`), the wedge record
 (`docs/decisions/orca_icp_wedge_consumer_demand_first_v0.md`), or the Creator
 Signal carve-out architecture
-(`orca/product/spines/creator_signal/creator_signal_product_architecture_v0.md`,
+(`forseti/product/spines/creator_signal/creator_signal_product_architecture_v0.md`,
 ratified as working goal via PR #550 with Direction Update v0.1
 foundation-first sequencing — which continues to govern build sequencing).
 Per its own `stale_if`, the brand-asset acquisition handoff packet
@@ -154,7 +154,7 @@ Owner words (2026-07-02): "we probably dont need fully public yet so
 probably 1" (option 1 = holding + waitlist). No public product site, no
 marketing claims. Any copy on any surface obeys the claim-defense doctrine's
 wording discipline
-(`orca/product/spines/product_lead/proof_charter/orca_claim_defense_doctrine_v0.md`
+(`forseti/product/spines/product_lead/proof_charter/orca_claim_defense_doctrine_v0.md`
 — read fresh before authoring any outward-facing text). Build triggers for
 the sub-brand site: it becomes a build task at Vetting v0 (gated
 design-partner demo), itself gated behind foundation-first; a public
@@ -313,8 +313,8 @@ direction_change_propagation:
     - docs/decisions/forseti_company_brand_architecture_v0.md
   downstream_surfaces_checked:
     - docs/workflows/forseti_brand_asset_acquisition_lane_handoff_v0.md   # its stale_if names this record; supersession fires by design, no edit
-    - orca/product/spines/creator_signal/creator_signal_product_architecture_v0.md  # build sequencing + product architecture unchanged; brand layer sits above
-    - orca/product/spines/creator_signal/creator_signal_market_sizing_v0.md          # sizing/wedge-destination reasoning unchanged, consumed as-is
+    - forseti/product/spines/creator_signal/creator_signal_product_architecture_v0.md  # build sequencing + product architecture unchanged; brand layer sits above
+    - forseti/product/spines/creator_signal/creator_signal_market_sizing_v0.md          # sizing/wedge-destination reasoning unchanged, consumed as-is
     - docs/decisions/orca_product_thesis_consumer_demand_v0.md            # thesis center untouched; anti-positioning boundary is applied, not amended
     - docs/decisions/orca_icp_wedge_consumer_demand_first_v0.md           # wedge record untouched
     - AGENTS.md                                                           # no naming/brand content; routes to overlay — unchanged
@@ -398,7 +398,7 @@ direction_change_propagation:
     - docs/decisions/forseti_company_brand_architecture_v0.md
   downstream_surfaces_checked:
     - docs/workflows/forseti_brand_asset_acquisition_lane_handoff_v0.md   # committed packet; its second-tranche trigger wording is further superseded by D8 via the packet's existing stale_if routing; no retro-edit, owner-courier kickoff carries the delta
-    - orca/product/spines/creator_signal/creator_signal_product_architecture_v0.md  # Vetting v0 stack note (static/Astro/Vite, shared access gate) is consistent with D8's tech posture; unchanged
+    - forseti/product/spines/creator_signal/creator_signal_product_architecture_v0.md  # Vetting v0 stack note (static/Astro/Vite, shared access gate) is consistent with D8's tech posture; unchanged
   intentionally_not_updated:
     - path: docs/workflows/forseti_brand_asset_acquisition_lane_handoff_v0.md
       reason: >

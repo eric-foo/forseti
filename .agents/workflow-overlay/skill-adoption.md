@@ -146,7 +146,7 @@ skill-governance action under the Protected Skill Boundary.
   2026-06-12; refreshed + re-pinned 2026-06-20; rebranded + re-pinned
   2026-07-03 (owner-authorized skill-edits: active thesis summary folded to the
   decision-led, evidence-backed thesis body; product source pins confirmed at
-  spine-first `orca/product/...` homes; visible skill prose rebranded to Forseti
+  spine-first `forseti/product/...` homes; visible skill prose rebranded to Forseti
   while retaining the `orca-product-lead` compatibility command/path; both
   copies verified identical).
   - Source path: `.agents/skills/orca-product-lead/SKILL.md` (Forseti-local).

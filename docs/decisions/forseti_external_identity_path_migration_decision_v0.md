@@ -43,7 +43,7 @@ This means:
 
 - `eric-foo/orca` can become `eric-foo/forseti`, but that is an external owner-gated operation and must be paired with source updates for repo slug assumptions.
 - The local checkout folder can become `forseti`, but not by renaming the currently active workspace in-place while worktrees and running sessions depend on it. Prefer a fresh clone or a controlled move after active worktrees are closed.
-- `orca/product/`, `orca-harness/`, `orca-product-lead`, `orca_start_preflight`, and `orca-harness-tests` remain compatibility identifiers until their own migration units are planned and validated. The repo-map path has since moved to `docs/workflows/forseti_repo_map_v0.md`, with `docs/workflows/orca_repo_map_v0.md` retained as a compatibility pointer.
+- `forseti/product/`, `orca-harness/`, `orca-product-lead`, `orca_start_preflight`, and `orca-harness-tests` remain compatibility identifiers until their own migration units are planned and validated. The repo-map path has since moved to `docs/workflows/forseti_repo_map_v0.md`, with `docs/workflows/orca_repo_map_v0.md` retained as a compatibility pointer.
 - Live human-facing metadata that says Orca is current should be fixed when found. This decision includes one such bounded repair: `orca-harness/pyproject.toml` description now says Forseti while retaining package name `orca-harness`.
 
 ## Why
@@ -93,7 +93,7 @@ Grounding case: the repo already has a compatibility policy and audit. The corre
 | Remote URL defaults | `https://github.com/eric-foo/forseti.git` | Coupled to repo slug cutover. | Update `origin` after GitHub slug change; verify `git remote -v`. |
 | Protected-action repo slug | `eric-foo/forseti` | Coupled to repo slug cutover. | Patch `.agents/hooks/guard_protected_actions.py`; run selftest if available and review-routing gate. |
 | Merge script default repo | `eric-foo/forseti` | Coupled to repo slug cutover. | Patch `.github/scripts/merge-when-green.ps1`; verify PR commands. |
-| Product tree root | `forseti/product/` or `forseti/product/**` | Deferred. | Moved-path index, repo-map successor/update, overlay/source-loading/checker updates, deletion-evidence handling. |
+| Product tree root | `forseti/product/` or `forseti/product/**` | Executed by `docs/decisions/forseti_product_root_migration_decision_v0.md` on the stacked product-root lane. | Moved-path index, repo-map successor/update, overlay/source-loading/checker updates, deletion-evidence handling. |
 | Harness root | `forseti-harness/` | Deferred. | Package/import install plan, CI working-directory update, check-name migration, review-routing code-root update, full test run. |
 | Package name | `forseti-harness` | Deferred with harness root. | Packaging compatibility plan and downstream install/import check. |
 | CI check name | `forseti-harness-tests` | Deferred with harness root or explicit CI lane. | Auto-merge, branch-protection, PR risk router, and docs update. |
@@ -103,7 +103,7 @@ Grounding case: the repo already has a compatibility policy and audit. The corre
 
 ## What Changes Now
 
-This branch does not rename a root, package, check name, skill ID, repo-map path, remote, or GitHub repo slug.
+This earlier branch did not rename a root, package, check name, skill ID, repo-map path, remote, or GitHub repo slug. The later product-root migration executes only the product tree root row.
 
 It does fix one live metadata defect:
 
@@ -130,7 +130,7 @@ GitHub usually provides repository redirects after a rename, but this decision d
 1. Land this decision and metadata-label repair.
 2. Run an owner-gated external identity cutover for repo slug plus local folder/remotes.
 3. After external identity is stable, decide whether internal compatibility paths still cause enough confusion to justify migration.
-4. If yes, migrate `orca/product/` before `orca-harness/`; the repo-map path successor is handled by `docs/decisions/forseti_repo_map_successor_migration_decision_v0.md`, while the product tree remains the next authority/navigation root.
+4. If yes, migrate `forseti/product/` before `orca-harness/`; the repo-map path successor is handled by `docs/decisions/forseti_repo_map_successor_migration_decision_v0.md`, while the product tree remains the next authority/navigation root.
 5. Migrate `orca-harness/`, package name, and CI check name as one runtime lane only after package/install/test and auto-merge impacts are bound.
 6. Migrate `orca-product-lead` and retire `orca_start_preflight` only after the roots and repo-map path settle.
 
@@ -140,7 +140,7 @@ GitHub usually provides repository redirects after a rename, but this decision d
 | --- | --- |
 | Broad word-match rename | Would rewrite historical provenance and compatibility identifiers while leaving path/package behavior uncertain. |
 | Rename `orca-harness/` now because the README says Forseti | The root has 1188 tracked files and CI/package/checker dependencies. The README title is already repaired; the root is a compatibility ID. |
-| Rename `orca/product/` now as a docs-only move | Product paths are embedded in overlay, hooks, repo map, source-loading, and product artifacts. It needs moved-path and deletion evidence handling. |
+| Rename `forseti/product/` now as a docs-only move | Product paths are embedded in overlay, hooks, repo map, source-loading, and product artifacts. It needs moved-path and deletion evidence handling. |
 | Rename local active workspace in-place during this session | Running agents, worktrees, remotes, and absolute-path references can break mid-operation. Use fresh clone or controlled shutdown/move. |
 
 ## Non-Claims
@@ -156,7 +156,7 @@ direction_change_propagation:
   doctrine_changed: >
     After the Forseti rename audit, the next migration architecture splits
     external identity from internal compatibility paths: repo slug/local checkout
-    identity may be migrated first under owner gate, while orca/product/,
+    identity may be migrated first under owner gate, while forseti/product/,
     orca-harness/, repo-map path, skill IDs, start-preflight alias, and CI check
     names remain deferred migration units until moved-path indexes, validation,
     rollback, and dependency impacts are bound.

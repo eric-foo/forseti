@@ -8,8 +8,8 @@ WHAT THIS DOES
     must be contained by Engagement Logic Registry Signal Use Classification.
 
 RULE AUTHORITY
-  orca/product/shared/engagement_registry/engagement_logic_registry_v0.md
-  orca/product/spines/foundation/product_contract/core_spine_v0_information_production_foundation_v0.md
+  forseti/product/shared/engagement_registry/engagement_logic_registry_v0.md
+  forseti/product/spines/foundation/product_contract/core_spine_v0_information_production_foundation_v0.md
 
 BOUNDARY
   Shape/list sync only. This checker does not decide whether a category should
@@ -32,8 +32,8 @@ import re
 import subprocess
 import sys
 
-ENGAGEMENT_REGISTRY = "orca/product/shared/engagement_registry/engagement_logic_registry_v0.md"
-FOUNDATION = "orca/product/spines/foundation/product_contract/core_spine_v0_information_production_foundation_v0.md"
+ENGAGEMENT_REGISTRY = "forseti/product/shared/engagement_registry/engagement_logic_registry_v0.md"
+FOUNDATION = "forseti/product/spines/foundation/product_contract/core_spine_v0_information_production_foundation_v0.md"
 
 SECTION_HEADING_RE = re.compile(r"(?m)^(#{2,6})\s+(.+?)\s*$")
 BULLET_RE = re.compile(r"^\s*-\s+(.+?)\s*$")
