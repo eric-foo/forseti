@@ -27,6 +27,7 @@ open_next:
   - docs/decisions/wind_caller_calibration_carveout_v0.md              # wind-caller naming boundary (owner-signed)
   - orca/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md  # access-toolkit route for packet-grade capture walls
   - orca/product/spines/capture/core/source_capture_toolbox/capture_recon_index_v0.md      # source-class recon catalog for access-toolkit routing
+  - orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_registry_match_preflight_usage_v0.md  # exact-match preflight receipt for social creator/account capture handoffs
   - orca/product/spines/scanning/source_families/answer_engine/demand_search_interest_sourcing_and_gate_delta_spec_v0.md  # search-interest/AEO source-class recon
 input_hashes:
   # sha256 first-16-hex over git BLOB bytes (LF as stored; `git cat-file blob <rev>:<path>`),
@@ -90,6 +91,8 @@ stale_if:
   - The card set, exploration guide, candidate-pool handoff, or target-selection brief is amended or superseded on a surface this spec binds.
   - The thesis or the Demand-Substrate Hard Gate is amended.
   - The wind-caller calibration carve-out is amended on the naming / internal-use / external-boundary surface §6 binds.
+  - The Creator Registry match preflight usage note or runner changes the receipt
+    fields that clear new social creator/account capture.
 ```
 
 ## Status
@@ -548,6 +551,15 @@ Boundaries, all hard:
   ToS risk accepted, absurd-level rejected — applied there, not here).
 - Scan evidence stays screening-grade. Nothing the scan collected is
   packet-grade; capture re-acquires under its own provenance discipline.
+- For `creator_social` capture requests that ask Capture to start a new social
+  creator/account capture, the handoff carries the Creator Registry match
+  preflight receipt fields from
+  `orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_registry_match_preflight_usage_v0.md`.
+  New capture is not cleared unless the receipt row has
+  `intended_action: new_capture` and `can_start_new_capture: true`; a manual
+  registry/projection scan is orientation only and does not replace the runner
+  receipt. If the request is not a new social creator/account capture, mark the
+  preflight `not_applicable` rather than omitting the boundary.
 - Unresolved access walls are the ORCHESTRATOR's close-out duty: every wall
   routes to the capture seam (Source Capture Playbook / Source Capture Armory
   screening-read service / recon index) before that vertical's next scan (guide

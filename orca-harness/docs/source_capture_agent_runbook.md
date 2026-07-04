@@ -685,8 +685,10 @@ source_capture_agent_report:
   creator_registry_match_preflight:
     required_when: <new social creator/account capture; otherwise omit>
     receipt_path: <path to preflight receipt JSON>
+    intended_action: <new_capture|classify|update_existing>
     row_decision: <existing_match|new_candidate|ambiguous_match|invalid_candidate>
     action_status: <allowed|blocked>
+    can_start_new_capture: <true|false; must be true before starting new_capture>
   non_claims:
     - <receipt non-claim or none>
   mini_god_tier_source_quality_report:

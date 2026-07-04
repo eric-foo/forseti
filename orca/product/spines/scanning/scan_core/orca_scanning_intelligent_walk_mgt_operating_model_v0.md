@@ -34,6 +34,7 @@ open_next:
   - docs/workflows/screening_read_service_build_receipt_v0.md
   - orca/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md
   - orca/product/spines/capture/core/source_capture_toolbox/capture_recon_index_v0.md
+  - orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_registry_match_preflight_usage_v0.md
 stale_if:
   - The Mini God Tier doctrine is amended or re-pointed.
   - The Vertical Exploration Guide changes its walk contract, dry rule, or capture seam.
@@ -41,6 +42,8 @@ stale_if:
   - The default CSB broad-scout phase is amended, removed, or moved to another owner.
   - The recency/current-state priority is amended or superseded by a richer scan freshness contract.
   - A capture-owned request/route-binding contract supersedes the capture_request fields below.
+  - The Creator Registry match preflight usage note or runner changes the receipt
+    fields that clear new social creator/account capture.
   - A venue registry, atlas, crawler, monitor, or standing source-map decision is reopened by the owner.
 ```
 
@@ -384,6 +387,13 @@ urls:
 what_capture_should_verify:
 decision_window:
 route_binding_state: cited_current | unknown | blocked_outside_current_binding | not_applicable
+creator_registry_match_preflight:
+  required_when: new_social_creator_account_capture | not_applicable
+  receipt_path: null_or_path
+  intended_action: new_capture | classify | update_existing | not_applicable
+  row_decision: existing_match | new_candidate | ambiguous_match | invalid_candidate | not_applicable
+  action_status: allowed | blocked | not_applicable
+  can_start_new_capture: true | false | not_applicable
 screening_evidence_summary:
 uncertainty_or_access_limits:
 not_requested:
@@ -396,6 +406,14 @@ Capture decides route binding, entitlement/source policy, acquisition method,
 packet-grade preservation, manifests, and packet lifecycle. The scan may cite a
 known current binding or say `unknown`; it must not set, stretch, or recommend
 the route.
+
+For social creator/account capture requests, the
+`creator_registry_match_preflight` block is the scan-to-capture bridge into the
+Creator Registry exact-match runner. Starting a new social creator/account
+capture requires a preserved receipt row with `intended_action: new_capture` and
+`can_start_new_capture: true`; a visual registry/projection scan is orientation
+only and does not clear capture. Existing matches route to work against the
+matched registry identity, while ambiguous or invalid rows stop until resolved.
 
 ## Gate Packaging
 
