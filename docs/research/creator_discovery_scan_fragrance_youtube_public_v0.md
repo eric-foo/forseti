@@ -97,7 +97,7 @@ candidate_rows: 10
 
 The finalized unit used direct public YouTube account URL reads after source context and registry orientation. Public YouTube pages exposed only title/footer-level text through the web reader, so this scan treats each source as account-existence and title-or-handle evidence only, not creator quality evidence.
 
-Process residual: before stabilizing the final unit, the operator ran broader exploratory web searches that exceeded the owner-supplied exact-query cap. Those earlier searches are not used as evidence in the candidate rows below. This artifact is therefore a useful first live workflow rehearsal and preflight receipt, but not a cap-perfect discovery pass.
+Process residual: before stabilizing the final unit, the operator ran broader exploratory web searches that exceeded the owner-supplied `max_exact_queries: 8` cap; the exact count of those exploratory queries was not tracked and is not recorded here. Those earlier searches are not used as evidence in the candidate rows below, and the finalized unit's own accounting above (0 exact queries, 10 source reads, 10 candidate rows) is fully within all three run caps. This artifact is therefore a useful first live workflow rehearsal and preflight receipt, but not a cap-perfect discovery pass.
 
 Final source reads:
 
@@ -330,7 +330,7 @@ capture_requests:
 - Exact-match only: the receipt does not prove fuzzy duplicate absence, cross-platform identity, or display-name uniqueness.
 - Source adequacy not proven: title/handle visibility is enough for a first scan handoff row, not enough to claim quality, current activity, channel-wide influence, or commercial fit.
 - Receipt provenance residual: until a later checker patch verifies receipt existence/content, `check_csb_scanning_artifact.py` only checks shape and self-consistency. This artifact preserves a real receipt path and cites the runner command, but the checker alone should not be described as proof of receipt authenticity.
-- Process residual: the operator ran wider exploratory web searches before stabilizing this final unit, so this is not a clean cap-perfect discovery run.
+- Process residual: the operator ran wider exploratory web searches before stabilizing this final unit, exceeding the `max_exact_queries: 8` cap by an unrecorded amount (the exploratory-phase query count was not tracked); this is not a clean cap-perfect discovery run, though the finalized unit itself stayed within all three run caps.
 - No capture, registry mutation, metric refresh, Silver write, ECR, Cleaning, Judgment, outreach, follower graph, comment scraping, channel dossier, or standing monitoring was performed.
 
 ## Validation
