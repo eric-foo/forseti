@@ -165,9 +165,9 @@ session values into a packet or report.
 For TikTok sessioned live probes that need a source-access provenance check,
 use the CloakBrowser user-data warmup/export path so the local ignored
 auth-state sidecar can carry category-only provenance. The live runner flag
-`--require-harness-proxy-posture no_proxy_profile_loaded` proves only that
+`--require-harness-proxy-posture no_proxy_profile_loaded` attests only that
 the Source Capture harness did not load a proxy profile for that warmed user-data
-label; it is not full-network no-proxy egress proof and does not authorize
+label; it is not full-network no-proxy egress proof, is not a forgery-proof producer-identity ledger against deliberate local sidecar edits, and does not authorize
 printing, copying, or reporting cookies, storage-state JSON, proxy endpoints,
 exit IPs, profile paths, or device identifiers.
 

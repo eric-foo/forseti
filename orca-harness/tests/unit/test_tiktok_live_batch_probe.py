@@ -951,6 +951,37 @@ def test_live_probe_required_harness_proxy_posture_allows_matching_auth_state_pr
     )
 
 
+def test_live_probe_required_harness_proxy_posture_rejects_mismatched_posture_before_browser(
+    tmp_path: Path,
+) -> None:
+    auth_root = _auth_state_with_provenance(
+        tmp_path,
+        harness_proxy_profile_posture="proxy_profile_loaded",
+        proxy_category="residential_rotating",
+    )
+    engine = _FakeObservationEngine(outcomes=[])
+
+    try:
+        write_tiktok_live_batch_probe_outputs(
+            creator_handle="funmi",
+            creator_profile_url="https://www.tiktok.com/@funmi",
+            video_urls=["https://www.tiktok.com/@funmi/video/7390000000000000001"],
+            state_label="test-session",
+            session_mode=AuthenticatedSessionMode.FREE_ACCOUNT_CREATED,
+            auth_state_root=auth_root,
+            output_dir=tmp_path / "out",
+            required_harness_proxy_profile_posture="no_proxy_profile_loaded",
+            engine=engine,
+            sleep_fn=lambda _seconds: None,
+        )
+    except ValueError as exc:
+        assert "harness proxy-profile posture mismatch" in str(exc)
+    else:
+        raise AssertionError("mismatched proxy posture satisfied required provenance")
+
+    assert engine.calls == []
+
+
 def test_live_probe_filters_non_get_comment_list_responses_when_method_available(
     tmp_path: Path,
 ) -> None:

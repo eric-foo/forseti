@@ -90,7 +90,7 @@ def build_parser() -> argparse.ArgumentParser:
         ],
         default=None,
         help=(
-            "Require the auth-state provenance sidecar to prove the Source Capture "
+            "Require the auth-state provenance sidecar to attest the Source Capture "
             "harness proxy-profile posture before opening TikTok. This is not a "
             "full-network no-proxy egress proof."
         ),

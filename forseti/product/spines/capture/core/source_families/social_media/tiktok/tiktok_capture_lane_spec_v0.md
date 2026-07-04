@@ -92,7 +92,7 @@ direction_change_propagation:
     browser user-data provenance, export merges it into auth-state metadata,
     and the live runner may require harness_proxy_profile_posture such as
     no_proxy_profile_loaded; this remains harness proxy-profile posture only,
-    not full-network no-proxy egress proof.
+    not full-network no-proxy egress proof or a forgery-proof producer-identity ledger against deliberate local sidecar edits.
   trigger: validation_philosophy
   related_triggers:
     - workflow_authority
@@ -153,6 +153,7 @@ direction_change_propagation:
     - not readiness
     - not live capture success
     - not full-network no-proxy egress proof
+    - not forgery-proof local sidecar producer-identity proof
     - not CAPTCHA or slider-solving authorization
     - not account-safety or scale proof
 ```
@@ -233,7 +234,7 @@ Capture runs under an **authenticated session** whose cookies authenticate it. R
 - **Human-performed login** via a headed session bootstrap; the agent **never enters credentials** (harness: `run_source_capture_browser_session_bootstrap.py` → `run_source_capture_authenticated_browser_packet.py`).
 - **No credentials, cookies, storage-state, or tokens in any packet** (C7 / G-2) — even more load-bearing now that secrets exist.
 - **Provenance labeled `entitled_session`**, not `public_logged_out`. The comment data is still real public comments; only the access path is authenticated.
-- **Harness proxy-profile posture, not egress proof.** Warmed CloakBrowser user-data exports may carry a local ignored auth-state sidecar proving `harness_proxy_profile_posture` such as `no_proxy_profile_loaded`; the live runner may require it with `--require-harness-proxy-posture no_proxy_profile_loaded`. This proves only the Source Capture harness did not load a proxy profile for that warmed profile, not that the whole machine/network had no proxy/VPN/upstream egress layer.
+- **Harness proxy-profile posture, not egress proof.** Warmed CloakBrowser user-data exports may carry a local ignored auth-state sidecar attesting `harness_proxy_profile_posture` such as `no_proxy_profile_loaded`; the live runner may require it with `--require-harness-proxy-posture no_proxy_profile_loaded`. This attests only the Source Capture harness did not load a proxy profile for that warmed profile, not that the whole machine/network had no proxy/VPN/upstream egress layer, and not that a deliberate local actor could not forge or edit the ignored sidecar.
 - **Public content only** — no private/DM/access-controlled surfaces; authentication buys trust/stability, not access to non-public data.
 - **Account-level stop-on-unresolved-challenge** (per C6): on ban, auth-wall, challenge text that remains after an authorized X/Close follow-through, or any non-closeable captcha/challenge signal, stop that account, cool down, rotate; never drag or solve a challenge.
 

@@ -69,9 +69,10 @@ def write_browser_user_data_provenance(
             label=user_data_label,
         )
         if existing != payload:
+            provenance_path.unlink()
             raise ValueError(
                 "browser user-data provenance already exists with different content "
-                f"for label: {user_data_label}"
+                f"for label: {user_data_label}; stale provenance sidecar discarded"
             )
         return provenance_path
     write_sidecar(
@@ -82,6 +83,29 @@ def write_browser_user_data_provenance(
     )
     return provenance_path
 
+
+def assert_browser_user_data_provenance_compatible(
+    user_data_label: str,
+    *,
+    payload: dict,
+    user_data_root: Path | None = None,
+) -> None:
+    root = user_data_root or default_browser_user_data_root()
+    provenance_path = browser_user_data_provenance_path_for_label(
+        user_data_label, user_data_root=root
+    )
+    if not provenance_path.exists():
+        return
+    existing = read_sidecar(
+        provenance_path,
+        kind=_BROWSER_USER_DATA_KIND,
+        label=user_data_label,
+    )
+    if existing != payload:
+        raise ValueError(
+            "browser user-data provenance already exists with different content "
+            f"for label: {user_data_label}; choose a new user-data label or keep the same proxy posture"
+        )
 
 def read_browser_user_data_provenance(
     user_data_label: str, *, user_data_root: Path | None = None

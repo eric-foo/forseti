@@ -6,6 +6,8 @@ from enum import StrEnum
 from pathlib import Path
 from typing import Any, Mapping
 
+from source_capture.proxy_profiles import ProxyCategory
+
 
 SOURCE_ACCESS_PROVENANCE_SCHEMA_VERSION = 1
 SOURCE_ACCESS_PROVENANCE_KEY = "source_access_provenance"
@@ -275,7 +277,11 @@ def _validate_harness_proxy_profile_posture(value: object) -> str:
 def _validate_proxy_category(value: object) -> str:
     if not isinstance(value, str) or not value.strip():
         raise ValueError("proxy_category must be a non-empty string")
-    return value.strip()
+    normalized = value.strip()
+    allowed = {PROXY_CATEGORY_NONE, *(item.value for item in ProxyCategory)}
+    if normalized not in allowed:
+        raise ValueError(f"proxy_category must be one of {sorted(allowed)}")
+    return normalized
 
 
 def _validate_no_secret_scan(value: object) -> str:
