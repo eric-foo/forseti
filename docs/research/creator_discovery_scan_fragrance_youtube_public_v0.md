@@ -66,6 +66,9 @@ Current registry view inspected:
 - `generated_at_utc`: `2026-07-03T09:04:50Z`
 - `profiles_total`: 36
 - `platform_account_profiles`: 36
+- Platform split: 30 YouTube profiles, 3 Instagram profiles, and 3 TikTok
+  profiles. The YouTube handle list below is the 30-profile YouTube subset; the
+  full 36-profile registry view was still used by exact-match preflight.
 - YouTube handles observed in the current registry before filtering:
   `BowTieFragranceGuy`, `ChaosFragrances`, `Cubaknow`, `CurlyFragrance`,
   `CurlyScents`, `DemiRawling`, `FragranceKnowledge`, `FragranceView`,
@@ -177,11 +180,20 @@ These are handoff rows only. No capture was run.
 ```yaml
 capture_requests:
   - capture_request_id: fragrance_youtube_scan_001_aaron_terence_hughes
+    source_scan: docs/research/creator_discovery_scan_fragrance_youtube_public_v0.md
     platform: youtube
     public_profile_url: https://www.youtube.com/@AaronTerenceHughes
     display_name: Aaron Terence Hughes
     candidate_or_observation_ids:
       - fragrance_youtube_scan_001_aaron_terence_hughes
+    urls:
+      - url: https://www.youtube.com/@AaronTerenceHughes
+        venue: youtube_public_account
+        observation_supported: public fragrance-account candidate from source-visible metadata
+        gate_role: influence
+    what_capture_should_verify: Preserve the public account page and confirm whether it is a creator/reviewer account worth adding to the Creator Registry.
+    decision_window: current public/no-login account state as of 2026-07-04
+    route_binding_state: unknown
     creator_registry_match_preflight:
       required_when: new_social_creator_account_capture
       receipt_path: docs/research/creator_discovery_scan_fragrance_youtube_public_preflight_receipt_v0.json
@@ -190,12 +202,24 @@ capture_requests:
       decision: new_candidate
       action_status: allowed
       can_start_new_capture: true
+    screening_evidence_summary: Screen-light public YouTube account metadata indicates fragrance or perfume-review relevance; exact registry preflight found no existing match.
+    uncertainty_or_access_limits: Public/no-login channel page and search-result metadata only; account-content quality, activity, and creator fit were not established.
+    not_requested: [capture execution, route expansion, registry mutation, metric refresh, Silver write, ECR, Cleaning, or Judgment work]
   - capture_request_id: fragrance_youtube_scan_002_aromatix
+    source_scan: docs/research/creator_discovery_scan_fragrance_youtube_public_v0.md
     platform: youtube
     public_profile_url: https://www.youtube.com/@aromatixrrt
     display_name: AROMATIX
     candidate_or_observation_ids:
       - fragrance_youtube_scan_002_aromatix
+    urls:
+      - url: https://www.youtube.com/@aromatixrrt
+        venue: youtube_public_account
+        observation_supported: public fragrance-account candidate from source-visible metadata
+        gate_role: influence
+    what_capture_should_verify: Preserve the public account page and confirm whether it is a creator/reviewer account worth adding to the Creator Registry.
+    decision_window: current public/no-login account state as of 2026-07-04
+    route_binding_state: unknown
     creator_registry_match_preflight:
       required_when: new_social_creator_account_capture
       receipt_path: docs/research/creator_discovery_scan_fragrance_youtube_public_preflight_receipt_v0.json
@@ -204,12 +228,24 @@ capture_requests:
       decision: new_candidate
       action_status: allowed
       can_start_new_capture: true
+    screening_evidence_summary: Screen-light public YouTube account metadata indicates fragrance or perfume-review relevance; exact registry preflight found no existing match.
+    uncertainty_or_access_limits: Public/no-login channel page and search-result metadata only; account-content quality, activity, and creator fit were not established.
+    not_requested: [capture execution, route expansion, registry mutation, metric refresh, Silver write, ECR, Cleaning, or Judgment work]
   - capture_request_id: fragrance_youtube_scan_003_cal_cologne
+    source_scan: docs/research/creator_discovery_scan_fragrance_youtube_public_v0.md
     platform: youtube
     public_profile_url: https://www.youtube.com/@CalCologne
     display_name: Cal Cologne
     candidate_or_observation_ids:
       - fragrance_youtube_scan_003_cal_cologne
+    urls:
+      - url: https://www.youtube.com/@CalCologne
+        venue: youtube_public_account
+        observation_supported: public fragrance-account candidate from source-visible metadata
+        gate_role: influence
+    what_capture_should_verify: Preserve the public account page and confirm whether it is a creator/reviewer account worth adding to the Creator Registry.
+    decision_window: current public/no-login account state as of 2026-07-04
+    route_binding_state: unknown
     creator_registry_match_preflight:
       required_when: new_social_creator_account_capture
       receipt_path: docs/research/creator_discovery_scan_fragrance_youtube_public_preflight_receipt_v0.json
@@ -218,12 +254,24 @@ capture_requests:
       decision: new_candidate
       action_status: allowed
       can_start_new_capture: true
+    screening_evidence_summary: Screen-light public YouTube account metadata indicates fragrance or perfume-review relevance; exact registry preflight found no existing match.
+    uncertainty_or_access_limits: Public/no-login channel page and search-result metadata only; account-content quality, activity, and creator fit were not established.
+    not_requested: [capture execution, route expansion, registry mutation, metric refresh, Silver write, ECR, Cleaning, or Judgment work]
   - capture_request_id: fragrance_youtube_scan_004_eau_d_erica
+    source_scan: docs/research/creator_discovery_scan_fragrance_youtube_public_v0.md
     platform: youtube
     public_profile_url: https://www.youtube.com/@eauderica
     display_name: "Eau D' Erica"
     candidate_or_observation_ids:
       - fragrance_youtube_scan_004_eau_d_erica
+    urls:
+      - url: https://www.youtube.com/@eauderica
+        venue: youtube_public_account
+        observation_supported: public fragrance-account candidate from source-visible metadata
+        gate_role: influence
+    what_capture_should_verify: Preserve the public account page and confirm whether it is a creator/reviewer account worth adding to the Creator Registry.
+    decision_window: current public/no-login account state as of 2026-07-04
+    route_binding_state: unknown
     creator_registry_match_preflight:
       required_when: new_social_creator_account_capture
       receipt_path: docs/research/creator_discovery_scan_fragrance_youtube_public_preflight_receipt_v0.json
@@ -232,12 +280,24 @@ capture_requests:
       decision: new_candidate
       action_status: allowed
       can_start_new_capture: true
+    screening_evidence_summary: Screen-light public YouTube account metadata indicates fragrance or perfume-review relevance; exact registry preflight found no existing match.
+    uncertainty_or_access_limits: Public/no-login channel page and search-result metadata only; account-content quality, activity, and creator fit were not established.
+    not_requested: [capture execution, route expansion, registry mutation, metric refresh, Silver write, ECR, Cleaning, or Judgment work]
   - capture_request_id: fragrance_youtube_scan_005_erin_nicole_tv
+    source_scan: docs/research/creator_discovery_scan_fragrance_youtube_public_v0.md
     platform: youtube
     public_profile_url: https://www.youtube.com/@ErinNicoleTV
     display_name: Erin Nicole TV
     candidate_or_observation_ids:
       - fragrance_youtube_scan_005_erin_nicole_tv
+    urls:
+      - url: https://www.youtube.com/@ErinNicoleTV
+        venue: youtube_public_account
+        observation_supported: public fragrance-account candidate from source-visible metadata
+        gate_role: influence
+    what_capture_should_verify: Preserve the public account page and confirm whether it is a creator/reviewer account worth adding to the Creator Registry.
+    decision_window: current public/no-login account state as of 2026-07-04
+    route_binding_state: unknown
     creator_registry_match_preflight:
       required_when: new_social_creator_account_capture
       receipt_path: docs/research/creator_discovery_scan_fragrance_youtube_public_preflight_receipt_v0.json
@@ -246,12 +306,24 @@ capture_requests:
       decision: new_candidate
       action_status: allowed
       can_start_new_capture: true
+    screening_evidence_summary: Screen-light public YouTube account metadata indicates fragrance or perfume-review relevance; exact registry preflight found no existing match.
+    uncertainty_or_access_limits: Public/no-login channel page and search-result metadata only; account-content quality, activity, and creator fit were not established.
+    not_requested: [capture execution, route expansion, registry mutation, metric refresh, Silver write, ECR, Cleaning, or Judgment work]
   - capture_request_id: fragrance_youtube_scan_006_fbfragrances
+    source_scan: docs/research/creator_discovery_scan_fragrance_youtube_public_v0.md
     platform: youtube
     public_profile_url: https://www.youtube.com/@FBFragrances
     display_name: FBFragrances
     candidate_or_observation_ids:
       - fragrance_youtube_scan_006_fbfragrances
+    urls:
+      - url: https://www.youtube.com/@FBFragrances
+        venue: youtube_public_account
+        observation_supported: public fragrance-account candidate from source-visible metadata
+        gate_role: influence
+    what_capture_should_verify: Preserve the public account page and confirm whether it is a creator/reviewer account worth adding to the Creator Registry.
+    decision_window: current public/no-login account state as of 2026-07-04
+    route_binding_state: unknown
     creator_registry_match_preflight:
       required_when: new_social_creator_account_capture
       receipt_path: docs/research/creator_discovery_scan_fragrance_youtube_public_preflight_receipt_v0.json
@@ -260,12 +332,24 @@ capture_requests:
       decision: new_candidate
       action_status: allowed
       can_start_new_capture: true
+    screening_evidence_summary: Screen-light public YouTube account metadata indicates fragrance or perfume-review relevance; exact registry preflight found no existing match.
+    uncertainty_or_access_limits: Public/no-login channel page and search-result metadata only; account-content quality, activity, and creator fit were not established.
+    not_requested: [capture execution, route expansion, registry mutation, metric refresh, Silver write, ECR, Cleaning, or Judgment work]
   - capture_request_id: fragrance_youtube_scan_007_fragmental
+    source_scan: docs/research/creator_discovery_scan_fragrance_youtube_public_v0.md
     platform: youtube
     public_profile_url: https://www.youtube.com/@FRAGMENTAL
     display_name: FRAG-MENTAL
     candidate_or_observation_ids:
       - fragrance_youtube_scan_007_fragmental
+    urls:
+      - url: https://www.youtube.com/@FRAGMENTAL
+        venue: youtube_public_account
+        observation_supported: public fragrance-account candidate from source-visible metadata
+        gate_role: influence
+    what_capture_should_verify: Preserve the public account page and confirm whether it is a creator/reviewer account worth adding to the Creator Registry.
+    decision_window: current public/no-login account state as of 2026-07-04
+    route_binding_state: unknown
     creator_registry_match_preflight:
       required_when: new_social_creator_account_capture
       receipt_path: docs/research/creator_discovery_scan_fragrance_youtube_public_preflight_receipt_v0.json
@@ -274,12 +358,24 @@ capture_requests:
       decision: new_candidate
       action_status: allowed
       can_start_new_capture: true
+    screening_evidence_summary: Screen-light public YouTube account metadata indicates fragrance or perfume-review relevance; exact registry preflight found no existing match.
+    uncertainty_or_access_limits: Public/no-login channel page and search-result metadata only; account-content quality, activity, and creator fit were not established.
+    not_requested: [capture execution, route expansion, registry mutation, metric refresh, Silver write, ECR, Cleaning, or Judgment work]
   - capture_request_id: fragrance_youtube_scan_008_fragrance_flan
+    source_scan: docs/research/creator_discovery_scan_fragrance_youtube_public_v0.md
     platform: youtube
     public_profile_url: https://www.youtube.com/@FragranceFlan
     display_name: FragranceFlan
     candidate_or_observation_ids:
       - fragrance_youtube_scan_008_fragrance_flan
+    urls:
+      - url: https://www.youtube.com/@FragranceFlan
+        venue: youtube_public_account
+        observation_supported: public fragrance-account candidate from source-visible metadata
+        gate_role: influence
+    what_capture_should_verify: Preserve the public account page and confirm whether it is a creator/reviewer account worth adding to the Creator Registry.
+    decision_window: current public/no-login account state as of 2026-07-04
+    route_binding_state: unknown
     creator_registry_match_preflight:
       required_when: new_social_creator_account_capture
       receipt_path: docs/research/creator_discovery_scan_fragrance_youtube_public_preflight_receipt_v0.json
@@ -288,12 +384,24 @@ capture_requests:
       decision: new_candidate
       action_status: allowed
       can_start_new_capture: true
+    screening_evidence_summary: Screen-light public YouTube account metadata indicates fragrance or perfume-review relevance; exact registry preflight found no existing match.
+    uncertainty_or_access_limits: Public/no-login channel page and search-result metadata only; account-content quality, activity, and creator fit were not established.
+    not_requested: [capture execution, route expansion, registry mutation, metric refresh, Silver write, ECR, Cleaning, or Judgment work]
   - capture_request_id: fragrance_youtube_scan_009_ka_fragrances
+    source_scan: docs/research/creator_discovery_scan_fragrance_youtube_public_v0.md
     platform: youtube
     public_profile_url: https://www.youtube.com/@KAFragrances
     display_name: "K&A Fragrances"
     candidate_or_observation_ids:
       - fragrance_youtube_scan_009_ka_fragrances
+    urls:
+      - url: https://www.youtube.com/@KAFragrances
+        venue: youtube_public_account
+        observation_supported: public fragrance-account candidate from source-visible metadata
+        gate_role: influence
+    what_capture_should_verify: Preserve the public account page and confirm whether it is a creator/reviewer account worth adding to the Creator Registry.
+    decision_window: current public/no-login account state as of 2026-07-04
+    route_binding_state: unknown
     creator_registry_match_preflight:
       required_when: new_social_creator_account_capture
       receipt_path: docs/research/creator_discovery_scan_fragrance_youtube_public_preflight_receipt_v0.json
@@ -302,12 +410,24 @@ capture_requests:
       decision: new_candidate
       action_status: allowed
       can_start_new_capture: true
+    screening_evidence_summary: Screen-light public YouTube account metadata indicates fragrance or perfume-review relevance; exact registry preflight found no existing match.
+    uncertainty_or_access_limits: Public/no-login channel page and search-result metadata only; account-content quality, activity, and creator fit were not established.
+    not_requested: [capture execution, route expansion, registry mutation, metric refresh, Silver write, ECR, Cleaning, or Judgment work]
   - capture_request_id: fragrance_youtube_scan_010_the_perfume_reviewer
+    source_scan: docs/research/creator_discovery_scan_fragrance_youtube_public_v0.md
     platform: youtube
     public_profile_url: https://www.youtube.com/@theperfumereviewr
     display_name: The Perfume Reviewer
     candidate_or_observation_ids:
       - fragrance_youtube_scan_010_the_perfume_reviewer
+    urls:
+      - url: https://www.youtube.com/@theperfumereviewr
+        venue: youtube_public_account
+        observation_supported: public fragrance-account candidate from source-visible metadata
+        gate_role: influence
+    what_capture_should_verify: Preserve the public account page and confirm whether it is a creator/reviewer account worth adding to the Creator Registry.
+    decision_window: current public/no-login account state as of 2026-07-04
+    route_binding_state: unknown
     creator_registry_match_preflight:
       required_when: new_social_creator_account_capture
       receipt_path: docs/research/creator_discovery_scan_fragrance_youtube_public_preflight_receipt_v0.json
@@ -316,6 +436,9 @@ capture_requests:
       decision: new_candidate
       action_status: allowed
       can_start_new_capture: true
+    screening_evidence_summary: Screen-light public YouTube account metadata indicates fragrance or perfume-review relevance; exact registry preflight found no existing match.
+    uncertainty_or_access_limits: Public/no-login channel page and search-result metadata only; account-content quality, activity, and creator fit were not established.
+    not_requested: [capture execution, route expansion, registry mutation, metric refresh, Silver write, ECR, Cleaning, or Judgment work]
 ```
 
 ## Non-Claims And Residuals
