@@ -11,6 +11,7 @@ from typing import Any
 
 from capture_spine.creator_public_handle_linkage.models import CreatorPublicHandleLinkageError
 from capture_spine.creator_public_handle_linkage.validation import assert_no_forbidden_output_fields
+from data_lake.root import LEGACY_ROOT_MARKER_FILENAME, ROOT_MARKER_FILENAME
 
 
 YOUTUBE_CREATOR_OBSERVATION_LEDGER_SCHEMA_VERSION = "youtube_creator_observation_ledger_v0"
@@ -242,17 +243,22 @@ def validate_source_rebuild(ledger: Mapping[str, Any], source_creator_ledger: Ma
 def validate_youtube_creator_observation_ledger_against_live_lake(
     ledger: Mapping[str, Any], data_root: str | Path
 ) -> None:
-    """Read-only reconciliation against an available external Orca data root."""
+    """Read-only reconciliation against an external Forseti data root."""
     validate_youtube_creator_observation_ledger(ledger)
     wrapper = _wrapper(ledger)
     root = Path(data_root)
-    marker_path = root / ".orca-data-root"
+    primary_marker_path = root / ROOT_MARKER_FILENAME
+    legacy_marker_path = root / LEGACY_ROOT_MARKER_FILENAME
+    marker_path = primary_marker_path if primary_marker_path.is_file() else legacy_marker_path
     if not marker_path.is_file():
-        _fail("live_lake_marker_missing", f"missing data-root marker: {marker_path}")
+        _fail(
+            "live_lake_marker_missing",
+            f"missing data-root marker: {primary_marker_path} (legacy fallback: {legacy_marker_path})",
+        )
     marker = json.loads(marker_path.read_text(encoding="utf-8"))
     expected_uuid = _source_root_uuid(wrapper)
     if marker.get("root_uuid") != expected_uuid:
-        _fail("live_lake_root_uuid_mismatch", "ORCA_DATA_ROOT marker UUID does not match ledger source input")
+        _fail("live_lake_root_uuid_mismatch", "data-root marker UUID does not match ledger source input")
     for observation in wrapper["creator_observations"]:
         for ref in observation["data_lake_packet_refs"]:
             packet_dir = root / ref["packet_relpath"]

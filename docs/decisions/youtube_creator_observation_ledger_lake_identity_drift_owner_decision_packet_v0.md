@@ -65,8 +65,10 @@ Applied surfaces (see the DCP receipt at the end of this file):
 Current test code accepts `FORSETI_LIVE_LAKE_TEST_ROOT` and
 `FORSETI_ARCHIVED_LAKE_TEST_ROOT` as the primary opt-in variables, with legacy
 `ORCA_LIVE_LAKE_TEST_ROOT` and `ORCA_ARCHIVED_LAKE_TEST_ROOT` fallbacks. The
-older `ORCA_*` names below are retained as point-in-time evidence for the
-2026-07-02 decision/application record.
+validator reads `.forseti-data-root` first and accepts `.orca-data-root` as the
+legacy archived-root marker fallback. The older `ORCA_*` names below are
+retained as point-in-time evidence for the 2026-07-02 decision/application
+record.
 
 ## Problem
 

@@ -15,6 +15,7 @@ from capture_spine.youtube_creator_observation import (
     validate_youtube_creator_observation_ledger,
     validate_youtube_creator_observation_ledger_against_live_lake,
 )
+from data_lake.root import LEGACY_ROOT_MARKER_FILENAME, ROOT_MARKER_FILENAME
 
 
 LEDGER_PATH = (
@@ -194,11 +195,17 @@ def _single_ref_live_lake_ledger() -> dict:
     return ledger
 
 
-def _write_live_lake_ref(root: Path, ledger: dict, *, platform_video_id: str | None = None) -> None:
+def _write_live_lake_ref(
+    root: Path,
+    ledger: dict,
+    *,
+    platform_video_id: str | None = None,
+    marker_name: str = ROOT_MARKER_FILENAME,
+) -> None:
     wrapper = _ledger_wrapper(ledger)
     root_uuid = next(item["root_uuid"] for item in wrapper["source_inputs"] if "root_uuid" in item)
     ref = wrapper["creator_observations"][0]["data_lake_packet_refs"][0]
-    (root / ".orca-data-root").write_text(json.dumps({"root_uuid": root_uuid}), encoding="utf-8")
+    (root / marker_name).write_text(json.dumps({"root_uuid": root_uuid}), encoding="utf-8")
     packet_dir = root / ref["packet_relpath"]
     packet_dir.mkdir(parents=True)
     (packet_dir / "manifest.json").write_text(
@@ -394,6 +401,12 @@ def test_youtube_creator_observation_ledger_live_lake_mismatch_uses_live_error_c
         validate_youtube_creator_observation_ledger_against_live_lake(ledger, tmp_path)
     assert exc_info.value.code == "live_lake_metadata_mismatch"
 
+
+def test_youtube_creator_observation_ledger_accepts_legacy_orca_root_marker(tmp_path: Path) -> None:
+    ledger = _single_ref_live_lake_ledger()
+    _write_live_lake_ref(tmp_path, ledger, marker_name=LEGACY_ROOT_MARKER_FILENAME)
+
+    validate_youtube_creator_observation_ledger_against_live_lake(ledger, tmp_path)
 
 # -- operator_video_retirements (additive-optional dead-video retirement block) --
 
