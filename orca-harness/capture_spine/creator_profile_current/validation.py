@@ -16,6 +16,9 @@ from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Any
 
+from capture_spine.creator_profile_current.ideal_audience_snapshot import (
+    validate_creator_ideal_audience_profile_snapshot,
+)
 from capture_spine.creator_public_handle_linkage.models import CreatorPublicHandleLinkageError
 from capture_spine.creator_public_handle_linkage.validation import assert_no_forbidden_output_fields
 
@@ -254,7 +257,7 @@ def _validate_profiles(value: Any) -> list[Mapping[str, Any]]:
         _validate_profile_non_claims(profile["non_claims"])
         _validate_str_list(profile["limitations"], "profile_limitations", allow_empty=False)
         rollups = _validate_rollups(profile["current_metric_rollups"], profile)
-        _validate_unjoined_profile_surface(profile["ideal_audience_profile"], "ideal_audience_profile")
+        _validate_ideal_audience_profile(profile["ideal_audience_profile"], profile)
         _validate_unjoined_profile_surface(profile["wind_calling_summary"], "wind_calling_summary")
         _validate_source_drill_back(profile["source_drill_back"], profile["identity_evidence_summary"], rollups)
         _validate_freshness(profile["freshness"])
@@ -335,6 +338,32 @@ def _validate_identity_evidence_summary(value: Any) -> None:
 def _validate_unjoined_profile_surface(value: Any, context: str) -> None:
     if value is not None:
         _fail(f"unsupported_{context}", f"{context} is not joined into creator_profile_current_view_v0")
+
+
+def _validate_ideal_audience_profile(value: Any, profile: Mapping[str, Any]) -> None:
+    if value is None:
+        return
+    if not isinstance(value, Mapping):
+        _fail("invalid_ideal_audience_profile", "ideal_audience_profile must be an object or null")
+    try:
+        snapshot = validate_creator_ideal_audience_profile_snapshot(value)
+    except ValueError as exc:
+        _fail("invalid_ideal_audience_profile", f"invalid ideal_audience_profile snapshot: {exc}")
+    if snapshot["profile_subject_kind"] != profile["profile_subject_kind"]:
+        _fail("ideal_audience_profile_subject_mismatch", "ideal_audience_profile subject kind must match profile")
+    if snapshot["profile_subject_id"] != profile["profile_subject_id"]:
+        _fail("ideal_audience_profile_subject_mismatch", "ideal_audience_profile subject id must match profile")
+    if profile["profile_subject_kind"] == "platform_account":
+        if snapshot["platform_account_ids"] != [profile["platform_account_id_or_none"]]:
+            _fail(
+                "ideal_audience_profile_subject_mismatch",
+                "platform_account ideal_audience_profile must point at the same platform account",
+            )
+    elif snapshot["creator_record_id_or_none"] != profile["creator_record_id_or_none"]:
+        _fail(
+            "ideal_audience_profile_subject_mismatch",
+            "creator_record ideal_audience_profile must point at the same creator record",
+        )
 
 
 def _validate_rollups(value: Any, profile: Mapping[str, Any]) -> list[Mapping[str, Any]]:
