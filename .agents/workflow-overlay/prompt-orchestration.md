@@ -446,12 +446,19 @@ Actionable review findings should include:
 - `minimum_closure_condition`: what must become true before the finding can be
   treated as closed. It states the required end state, not how to implement it;
 - `next_authorized_action`: what the current lane may do next under its
-  authority.
+  authority;
+- `confidence`: the reviewer's certainty the finding is real (`high`, `medium`,
+  or `low`) -- a priority label only, never a reporting threshold.
 
 Within the commission-bound target and purpose, adversarial review prompts
-should ask reviewers to be maximally adversarial about material
-decision-relevant failure modes. Optional hardening may be named only when
-clearly labeled optional and non-required.
+should ask reviewers to be maximally adversarial and coverage-first: report
+every issue found, including uncertain and low-severity ones, each labeled
+with estimated severity and confidence; do not filter for importance or
+confidence at the find stage -- the adjudication pass ranks and filters.
+Low-confidence or minor findings may use a compact one-line form, and
+steelman-defeated candidates are listed one line each in a
+`considered_and_defended` section rather than silently dropped. Optional
+hardening may be named only when clearly labeled optional and non-required.
 
 For intent-bearing review targets, review prompts should bind or point at the
 `fitness_reference` (a goal plus an observable success signal, pointer-preferred)
@@ -657,7 +664,8 @@ Before using a generated Forseti prompt, apply these gates:
    (e) preserve Chief Architect consumption order for CA-facing reviews; do not add a synthesis lane;
    (f) do not recommend, prescribe, rank, or imply a runtime model;
    (g) for intent-bearing targets, anchor decision criteria to a bound fitness reference or require the review to name its absence as `no checkable success bar bound`;
-   (h) record `reviewed_by` and `authored_by` on every new or materially touched review output — operator/CA-supplied, `unrecorded` allowed, never fabricated; a present `unrecorded` value is a visible measurement gap, not a captured measurement.
+   (h) record `reviewed_by` and `authored_by` on every new or materially touched review output — operator/CA-supplied, `unrecorded` allowed, never fabricated; a present `unrecorded` value is a visible measurement gap, not a captured measurement;
+   (i) coverage-first find stage: reviewers report every issue found with severity and confidence labels; importance/confidence filtering happens at adjudication, not at find time; steelman-defeated candidates surface in `considered_and_defended`.
 12. Doctrine propagation satisfied: prompt, handoff, wrapper, review,
    output-mode, or execution-contract changes that alter durable doctrine carry
    a `direction_change_propagation` receipt or
