@@ -105,6 +105,8 @@ urls:
 what_capture_should_verify: whether current PDP availability needs preservation
 decision_window: fixture current-state window
 route_binding_state: unknown
+creator_registry_match_preflight:
+  required_when: not_applicable
 screening_evidence_summary: screen-light official PDP availability note
 uncertainty_or_access_limits: no packet-grade capture has been run
 not_requested:
