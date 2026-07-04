@@ -110,7 +110,7 @@ forseti_start_preflight:
 | `orca-harness/source_capture/audience_post_packet.py` | Verify AR-02 closure claim: `source_family`/`source_surface` literal values | `grep -n 'SUPPORTED_PLATFORMS\|source_family\|source_surface\|SURFACE_SUFFIX'` — confirms `source_family=fetch.platform`, `source_surface=f"{platform}_post_text"` | clean |
 | `orca-harness/cleaning/audience_post_input.py`, `orca-harness/cleaning/audience_extractor.py` | Verify AR-02 closure claim: cited cleaning consumers exist | file-existence check | clean |
 | `forseti/product/spines/capture/core/source_capture_toolbox/weapon_rung15_embedded_payload_extraction_v0.md`, `forseti/product/spines/capture/core/demand_durability_indicators/price_timeseries/demand_durability_indicator_price_timeseries_capture_profile_v0.md`, `forseti/product/spines/data_lake/README.md`, `orca-harness/docs/source_capture_packet.md` | Verify vendor_pricing_page README's `open_next` paths resolve | file-existence check | clean, all resolve |
-| `docs/workflows/youtube_post_ecr_cleaning_adapter_architecture_handoff_v0.md` (as cited by the YouTube README row) | Verify the new YouTube-row citation resolves | file-existence check | **missing at cited bare-filename location**; located instead at `docs/prompts/handoffs/youtube_post_ecr_cleaning_adapter_architecture_handoff_v0.md` via `grep -rl` (see AR-04) |
+| `docs/workflows/youtube_post_ecr_cleaning_adapter_architecture_handoff_v0.md` (nonresolving: AR-04 evidence citation, as cited by the YouTube README row before the follow-up fix) | Verify the new YouTube-row citation resolves | file-existence check | **missing at cited bare-filename location**; located instead at `docs/prompts/handoffs/youtube_post_ecr_cleaning_adapter_architecture_handoff_v0.md` via `grep -rl` (see AR-04) |
 | `python .agents/hooks/check_retrieval_header.py --strict <8 files>`, `check_repo_map_freshness.py --changed --strict`, `check_map_links.py --strict`, `header_index.py --health`, `check_handoff_pointers.py --strict`, `git diff --check e4b3e29f..414063dd` | Re-run validation evidence for the patch scope | exit codes / output | re-run, see Validation Evidence table below |
 
 **Source gaps (not read, named per source-loading economy):** full body of
@@ -161,7 +161,7 @@ imprecise.
   `docs/prompts/handoffs/youtube_post_ecr_cleaning_adapter_architecture_handoff_v0.md`
   (confirmed via `grep -rl`, one match).
 - evidence: `find`/path check for
-  `docs/workflows/youtube_post_ecr_cleaning_adapter_architecture_handoff_v0.md`
+  `docs/workflows/youtube_post_ecr_cleaning_adapter_architecture_handoff_v0.md` (nonresolving: AR-04 evidence citation)
   returns nothing; `grep -rl "youtube_post_ecr_cleaning_adapter"` returns
   exactly `docs/prompts/handoffs/youtube_post_ecr_cleaning_adapter_architecture_handoff_v0.md`
   and the YouTube README itself.
