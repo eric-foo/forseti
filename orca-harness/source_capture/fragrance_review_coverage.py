@@ -23,6 +23,24 @@ FRAGRANCE_REVIEW_COVERAGE_CERTIFICATION = (
     "source_visible_focused_coverage; not_cleaned; not_judgment_ready"
 )
 
+# Output-shaping selection policy, named so consumers can enumerate it into a
+# consumption-seam obligation envelope (a change here must re-surface committed
+# packets, never silently diverge from an envelope copy). Rating-band identity
+# stays expressed by the selection-reason names themselves; these are the
+# parametric thresholds and the adaptive-cap ranking.
+FRAGRANCE_REVIEW_SELECTION_RECENT_MONTHS = 12
+FRAGRANCE_REVIEW_SELECTION_LENGTH_MIN_WORDS = 75
+FRAGRANCE_REVIEW_SELECTION_REASON_PRIORITY: Mapping[str, int] = {
+    "core_rating_1": 0,
+    "core_rating_4": 1,
+    "review_media_attached": 2,
+    "length_75_plus": 3,
+    "recent_low_rating_without_1_star": 4,
+    "rating_5_recent_or_75_plus": 6,
+    "control_rating_2_3_recent_or_75_plus": 7,
+    "recent_12m": 8,
+}
+
 _FORBIDDEN_SOURCE_VISIBLE_FIELD_NAMES = frozenset(
     {
         "action_ceiling",
@@ -773,36 +791,30 @@ def _selection_reasons(
     has_one_star: bool,
 ) -> list[str]:
     reasons: list[str] = []
-    recent = _is_recent(row.review_month, as_of_date=as_of_date, months=12)
+    recent = _is_recent(
+        row.review_month, as_of_date=as_of_date, months=FRAGRANCE_REVIEW_SELECTION_RECENT_MONTHS
+    )
+    long_form = row.review_body_word_count >= FRAGRANCE_REVIEW_SELECTION_LENGTH_MIN_WORDS
     if row.rating_value == 1:
         reasons.append("core_rating_1")
     if row.rating_value == 4:
         reasons.append("core_rating_4")
     if row.media_attached_flag:
         reasons.append("review_media_attached")
-    if row.review_body_word_count >= 75:
+    if long_form:
         reasons.append("length_75_plus")
-    if row.rating_value in {2, 3} and (recent or row.review_body_word_count >= 75):
+    if row.rating_value in {2, 3} and (recent or long_form):
         reasons.append("control_rating_2_3_recent_or_75_plus")
     if row.rating_value == 2 and not has_one_star and recent and "recent_low_rating_without_1_star" not in reasons:
         reasons.append("recent_low_rating_without_1_star")
-    if row.rating_value == 5 and (recent or row.review_body_word_count >= 75):
+    if row.rating_value == 5 and (recent or long_form):
         reasons.append("rating_5_recent_or_75_plus")
     if recent and reasons:
         reasons.append("recent_12m")
     return reasons
 
 def _selection_priority(row: FragranceReviewCoverageRow, *, as_of_date: date) -> tuple[int, int, int, str]:
-    reason_priority = {
-        "core_rating_1": 0,
-        "core_rating_4": 1,
-        "review_media_attached": 2,
-        "length_75_plus": 3,
-        "recent_low_rating_without_1_star": 4,
-        "rating_5_recent_or_75_plus": 6,
-        "control_rating_2_3_recent_or_75_plus": 7,
-        "recent_12m": 8,
-    }
+    reason_priority = FRAGRANCE_REVIEW_SELECTION_REASON_PRIORITY
     priority = min((reason_priority.get(reason, 9) for reason in row.selection_reasons), default=9)
     verified_rank = 0 if row.verified_purchase_flag is True else 1
     month_rank = -_month_index(row.review_month) if row.review_month else 0
@@ -1084,6 +1096,9 @@ __all__ = [
     "FRAGRANCE_REVIEW_COVERAGE_CERTIFICATION",
     "FRAGRANCE_REVIEW_COVERAGE_METHOD",
     "FRAGRANCE_REVIEW_COVERAGE_VERSION",
+    "FRAGRANCE_REVIEW_SELECTION_LENGTH_MIN_WORDS",
+    "FRAGRANCE_REVIEW_SELECTION_REASON_PRIORITY",
+    "FRAGRANCE_REVIEW_SELECTION_RECENT_MONTHS",
     "FragranceReviewAggregateCompanion",
     "FragranceReviewCoverageInputError",
     "FragranceReviewCoverageReceipt",

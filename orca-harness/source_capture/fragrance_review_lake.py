@@ -34,7 +34,7 @@ from __future__ import annotations
 
 import hashlib
 import json
-from datetime import date
+from datetime import date, datetime
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Mapping, Sequence
 from urllib.parse import urlparse
@@ -264,6 +264,45 @@ def project_fragrance_review_into_lake(
     return receipt, derived_path
 
 
+def capture_as_of_date(manifest: Mapping[str, Any]) -> date:
+    """Resolve a committed packet's capture date as the pinned ``as_of_date`` for
+    a deterministic projection re-derivation.
+
+    The projection's selection policy is date-relative (recency windows), and
+    ``build_fragrance_review_coverage`` defaults to ``date.today()`` — fine for
+    an operator pointing at one packet, wrong for a catch-up consumer whose
+    output must be a pure function of (immutable raw bytes, policy). Pinning to
+    the packet's own slice ``timing.capture_time`` measures recency at the
+    moment the snapshot was taken and never drifts with the run date.
+
+    Fail-loud (block-don't-fake): raises ``FragranceReviewLakeInputError`` when
+    the manifest does not carry exactly one source slice (this tee writes one;
+    a multi-slice family packet has no single honest capture date) or when the
+    slice's ``capture_time`` is absent, not ``known``, or unparseable — never a
+    silent ``date.today()`` fallback.
+    """
+    slices = manifest.get("source_slices")
+    if not isinstance(slices, list) or len(slices) != 1 or not isinstance(slices[0], Mapping):
+        raise FragranceReviewLakeInputError(
+            "cannot resolve a capture as-of date: manifest must carry exactly one source slice "
+            f"(got {len(slices) if isinstance(slices, list) else type(slices).__name__})"
+        )
+    timing = slices[0].get("timing")
+    capture = timing.get("capture_time") if isinstance(timing, Mapping) else None
+    if not isinstance(capture, Mapping) or capture.get("status") != "known":
+        raise FragranceReviewLakeInputError(
+            "cannot resolve a capture as-of date: slice timing.capture_time is missing or not a "
+            "known fact; refusing a silent date.today() fallback (block-don't-fake)"
+        )
+    value = capture.get("value")
+    try:
+        return datetime.fromisoformat(str(value).replace("Z", "+00:00")).date()
+    except ValueError as exc:
+        raise FragranceReviewLakeInputError(
+            f"cannot resolve a capture as-of date: capture_time value {value!r} is not ISO-8601"
+        ) from exc
+
+
 def _verify_capture_witness(response: "FragranceWidgetResponseCapture", body_bytes: bytes) -> None:
     """Fail closed unless the companion's capture-time witness matches the bytes
     being preserved.
@@ -322,6 +361,7 @@ __all__ = [
     "FRAGRANCE_REVIEW_SOURCE_SURFACE",
     "PROJECTION_FRAGRANCE_REVIEW_LANE",
     "FragranceReviewLakeInputError",
+    "capture_as_of_date",
     "project_fragrance_review_into_lake",
     "write_fragrance_review_capture_packet",
 ]
