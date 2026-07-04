@@ -192,7 +192,7 @@ Use these classes before naming a TikTok state as a stop condition:
 For classification, do not stop at the top-level reason string. Inspect
 `blocker_triage.blocker_class`, `matched_marker`, `challenge_kind`,
 `comment_action.sequence_name`, `comment_action.action_sequence[*].action_name`,
-`pointer_action_chronology[*].action_name`, and `challenge_close_attempts[*]`.
+`pointer_action_chronology[*].action_name`, `challenge_close_attempts[*]`, and the post-click visual counts (`post_click_visual_candidate_count`, `post_click_visual_zone_candidate_count`) when present.
 `platform_challenge_observed` must break down into at least marker and kind;
 `drag the slider` maps to `challenge_kind=slider`. The filtered
 `comment_action` field intentionally omits retry, benign overlay, and
@@ -258,21 +258,24 @@ For challenge-close diagnostics:
 - `target_found`, `clicked`, `target_kind`, `selection_strategy`
 - visual-only fields: `visual_fallback_attempted`,
   `visual_fallback_target_found`, `visual_fallback_candidate_count`,
-  `visual_fallback_confidence`, `visual_fallback_crop_box`,
+  `visual_fallback_zone_candidate_count`, `visual_fallback_confidence`,
+  `visual_fallback_crop_box`,
   `visual_fallback_screenshot_sha256`, `visual_fallback_target_zone`,
   `visual_fallback_geometric_target`,
   `target_box`, `click_point`
 - close-acceptance fields: `challenge_close_accepted`,
   `post_click_absence_verified`, `post_click_absence_matched_marker`,
   `post_click_visual_target_absent`, `post_click_visual_candidate_count`,
-  `post_click_visual_screenshot_sha256`
+  `post_click_visual_zone_candidate_count`, `post_click_visual_screenshot_sha256`
 
 A clicked diagnostic receipt is evidence that a pointer click was delivered to a
 candidate close target; it is not capture success and does not prove the modal
 closed. A follow-through receipt is admissible only when the action-level post-click
-checks prove the challenge text cleared and no centered visual-X candidates remain,
-and final blocker triage still reports no challenge/security marker
-(`challenge_close_accepted=true`).
+checks satisfy the current close-acceptance predicate (`challenge_close_accepted=true`)
+and final blocker triage still reports no challenge/security marker. The zone
+candidate counts are diagnostic: `post_click_visual_zone_candidate_count=0` can
+show the centered modal X disappeared, but it does not override
+`post_click_visual_target_absent=false` or a final `drag the slider` marker.
 The capture claim then comes only from post-close page-owned comment response
 evidence or lower-tier DOM-visible comment fallback evidence in the sanitized
 admission payload. For the current TikTok slider/challenge X, close-targeting is

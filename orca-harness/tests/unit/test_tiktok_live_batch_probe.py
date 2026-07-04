@@ -929,6 +929,91 @@ def test_live_probe_prefers_late_accepted_close_over_earlier_failed_click(
     assert receipt["challenge_close_action"]["selection_strategy"] == "center_modal_visual_x"
     assert receipt["admitted_comment_response_count"] == 1
 
+def test_live_probe_prefers_late_failed_close_over_earlier_failed_click(
+    tmp_path: Path,
+) -> None:
+    auth_root = _auth_state(tmp_path)
+    early_failed_close_receipt = _pointer_action_receipt(
+        action_name=TIKTOK_CHALLENGE_CLOSE_FOLLOWTHROUGH_POINTER_ACTION_NAME,
+        wait_ms=2000,
+        selection_strategy="top_right",
+        page_text_gate_matched=True,
+        page_text_matched_marker="drag the slider",
+    )
+    early_failed_close_receipt.update(
+        {
+            "post_click_absence_checked": True,
+            "post_click_absence_marker_count": 4,
+            "post_click_absence_verified": True,
+            "post_click_visual_check_attempted": True,
+            "post_click_visual_target_found": True,
+            "post_click_visual_target_absent": False,
+            "post_click_visual_candidate_count": 3,
+        }
+    )
+    late_failed_visual_close_receipt = _pointer_action_receipt(
+        action_name=TIKTOK_CHALLENGE_VISUAL_CLOSE_FOLLOWTHROUGH_POINTER_ACTION_NAME,
+        wait_ms=2000,
+        selection_strategy="center_modal_visual_x",
+        page_text_gate_matched=True,
+        page_text_matched_marker="drag the slider",
+    )
+    late_failed_visual_close_receipt.update(
+        {
+            "target_kind": "visual_x",
+            "post_click_absence_checked": True,
+            "post_click_absence_marker_count": 4,
+            "post_click_absence_verified": True,
+            "post_click_visual_check_attempted": True,
+            "post_click_visual_target_found": False,
+            "post_click_visual_target_absent": False,
+            "post_click_visual_candidate_count": 22,
+            "post_click_visual_zone_candidate_count": 0,
+        }
+    )
+    pointer_sequence = [
+        _benign_overlay_action_receipt(),
+        early_failed_close_receipt,
+        *_pointer_action_sequence_receipt(),
+        late_failed_visual_close_receipt,
+    ]
+    engine = _FakeObservationEngine(
+        outcomes=[
+            _success_observation(
+                video_id="7390000000000000001",
+                response=_comment_response(video_id="7390000000000000001"),
+                pointer_sequence=pointer_sequence,
+            )
+        ]
+    )
+
+    paths = write_tiktok_live_batch_probe_outputs(
+        creator_handle="funmi",
+        creator_profile_url="https://www.tiktok.com/@funmi",
+        video_urls=["https://www.tiktok.com/@funmi/video/7390000000000000001"],
+        state_label="test-session",
+        session_mode=AuthenticatedSessionMode.FREE_ACCOUNT_CREATED,
+        auth_state_root=auth_root,
+        output_dir=tmp_path / "out",
+        cadence_min_gap_seconds=0,
+        cadence_max_gap_seconds=0,
+        random_seed=1,
+        allow_challenge_close_followthrough=True,
+        engine=engine,
+        sleep_fn=lambda _seconds: None,
+    )
+
+    cadence = json.loads(paths.cadence_result_json_path.read_text(encoding="utf-8"))
+    assert cadence["completed_count"] == 0
+    failure = cadence["failures"][0]
+    assert failure["reason"] == TIKTOK_CHALLENGE_X_CLOSE_NOT_ACCEPTED_REASON
+    close_action = failure["blocker_triage"]["challenge_close_action"]
+    assert close_action["action_name"] == (
+        TIKTOK_CHALLENGE_VISUAL_CLOSE_FOLLOWTHROUGH_POINTER_ACTION_NAME
+    )
+    assert close_action["post_click_visual_candidate_count"] == 22
+    assert close_action["post_click_visual_zone_candidate_count"] == 0
+
 def test_live_probe_challenge_close_followthrough_stops_if_close_not_accepted(
     tmp_path: Path,
 ) -> None:
@@ -1010,6 +1095,78 @@ def test_live_probe_challenge_close_followthrough_stops_if_close_not_accepted(
         action["action_name"] for action in triage["challenge_close_attempts"]
     ] == [TIKTOK_CHALLENGE_CLOSE_FOLLOWTHROUGH_POINTER_ACTION_NAME]
 
+
+def test_live_probe_failed_close_receipt_surfaces_center_modal_zone_candidate_count(
+    tmp_path: Path,
+) -> None:
+    auth_root = _auth_state(tmp_path)
+    followthrough_close_receipt = _pointer_action_receipt(
+        action_name=TIKTOK_CHALLENGE_CLOSE_FOLLOWTHROUGH_POINTER_ACTION_NAME,
+        wait_ms=2000,
+        selection_strategy="center_modal_visual_x",
+        page_text_gate_matched=True,
+        page_text_matched_marker="drag the slider",
+    )
+    followthrough_close_receipt.update(
+        {
+            "target_kind": "visual_x",
+            "post_click_absence_checked": True,
+            "post_click_absence_marker_count": 4,
+            "post_click_absence_verified": True,
+            "post_click_visual_check_attempted": True,
+            "post_click_visual_target_found": False,
+            "post_click_visual_target_absent": False,
+            # The center modal cleared (zone count 0) but stray top-right glyphs
+            # keep the broad candidate count high.
+            "post_click_visual_candidate_count": 22,
+            "post_click_visual_zone_candidate_count": 0,
+        }
+    )
+    pointer_sequence = [
+        _benign_overlay_action_receipt(),
+        followthrough_close_receipt,
+        *_pointer_action_sequence_receipt(),
+    ]
+    engine = _FakeObservationEngine(
+        outcomes=[
+            _success_observation(
+                video_id="7390000000000000001",
+                response=_comment_response(video_id="7390000000000000001"),
+                pointer_sequence=pointer_sequence,
+            )
+        ]
+    )
+
+    paths = write_tiktok_live_batch_probe_outputs(
+        creator_handle="funmi",
+        creator_profile_url="https://www.tiktok.com/@funmi",
+        video_urls=["https://www.tiktok.com/@funmi/video/7390000000000000001"],
+        state_label="test-session",
+        session_mode=AuthenticatedSessionMode.FREE_ACCOUNT_CREATED,
+        auth_state_root=auth_root,
+        output_dir=tmp_path / "out",
+        cadence_min_gap_seconds=0,
+        cadence_max_gap_seconds=0,
+        random_seed=1,
+        allow_challenge_close_followthrough=True,
+        engine=engine,
+        sleep_fn=lambda _seconds: None,
+    )
+
+    cadence = json.loads(paths.cadence_result_json_path.read_text(encoding="utf-8"))
+    assert cadence["completed_count"] == 0
+    assert cadence["challenge_count"] == 1
+    failure = cadence["failures"][0]
+    assert failure["reason"] == TIKTOK_CHALLENGE_X_CLOSE_NOT_ACCEPTED_REASON
+    triage = failure["blocker_triage"]
+    close_action = triage["challenge_close_action"]
+    # The receipt now distinguishes stray-glyph residue from a persisting modal.
+    assert close_action["post_click_visual_candidate_count"] == 22
+    assert close_action["post_click_visual_zone_candidate_count"] == 0
+    # Acceptance semantics are unchanged: the broad count still fails the close
+    # closed, so the zero admission and stop hold.
+    assert triage["challenge_close_accepted"] is False
+    assert cadence["results"] == []
 
 
 def test_live_probe_failed_close_without_comment_actions_has_no_comment_action_label(

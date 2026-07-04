@@ -1700,6 +1700,83 @@ def test_playwright_page_observation_post_click_visual_candidates_are_not_absent
     assert receipt["post_click_visual_target_absent"] is False
 
 
+def test_playwright_page_observation_center_modal_reports_zone_candidate_count(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    event_log: list[str] = []
+    page = _FakeObservationPage(
+        event_log,
+        pointer_target={
+            "candidate_count": 0,
+            "matched_count": 0,
+            "target_found": False,
+            "target_kind": None,
+            "page_text_gate_matched": True,
+            "selection_strategy": "top_right",
+            "box": None,
+        },
+        # Click-time screenshot has a center-modal X plus a stray far-right X;
+        # the post-click screenshot has only the stray far-right X (center modal
+        # cleared). The broad candidate count cannot tell those apart; the zone
+        # count can.
+        screenshot_pngs=[
+            _visual_x_modal_and_far_right_screenshot_png(),
+            _visual_x_screenshot_png(),
+        ],
+        post_click_absence_result={
+            "checked": True,
+            "marker_count": 4,
+            "absent": True,
+            "matched_marker": None,
+        },
+    )
+    _install_fake_playwright(monkeypatch, page)
+
+    result = browser_snapshot_module._PlaywrightBrowserSnapshotEngine().capture_page_observation(
+        url="https://example.com/source",
+        timeout_seconds=1,
+        wait_until="load",
+        viewport_width=1280,
+        viewport_height=720,
+        dom_extract_script="() => ({items: []})",
+        dom_extract_arg={},
+        response_url_predicate=lambda url: "widget" in url,
+        post_load_pointer_action=BrowserPagePointerAction(
+            action_name="challenge_modal_close",
+            candidate_selector="button",
+            text_markers=("close",),
+            exact_text_markers=("x",),
+            page_text_markers=("drag the slider",),
+            post_click_absent_text_markers=(
+                "drag the slider",
+                "verify to continue",
+                "captcha",
+                "security check",
+            ),
+            post_click_visual_target_absence_check=True,
+            move_steps_min=5,
+            move_steps_max=5,
+            random_seed=11,
+            prefer_top_right=True,
+            visual_top_right_x_fallback=True,
+            visual_x_target_zone="center_modal",
+        ),
+    )
+
+    receipt = result.metadata["post_load_pointer_action"]
+    assert isinstance(receipt, dict)
+    # Click-time: the crop holds both X-glyphs, but only one is in the modal zone.
+    assert receipt["visual_fallback_candidate_count"] >= 2
+    assert receipt["visual_fallback_zone_candidate_count"] == 1
+    # Post-click: the center modal is gone (zone count 0) but a stray glyph keeps
+    # the broad candidate count above zero.
+    assert receipt["post_click_visual_candidate_count"] > 0
+    assert receipt["post_click_visual_zone_candidate_count"] == 0
+    # Acceptance is deliberately unchanged: it still fails closed on the broad
+    # candidate count, so the diagnostic zone count does not loosen the gate.
+    assert receipt["post_click_visual_target_absent"] is False
+
+
 def test_playwright_page_observation_center_modal_uses_geometric_fallback(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

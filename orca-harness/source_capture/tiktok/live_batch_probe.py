@@ -1488,7 +1488,7 @@ def _challenge_close_action_summary(
     for summary in diagnostic_summaries:
         if _challenge_close_accepted(summary):
             return summary
-    for summary in diagnostic_summaries:
+    for summary in reversed(diagnostic_summaries):
         if _first_bool(summary.get("clicked")) is True:
             return summary
     for summary in diagnostic_summaries:
@@ -1532,6 +1532,9 @@ def _pointer_action_summary(action: JsonObject) -> JsonObject:
             ),
             "visual_fallback_candidate_count": _first_int(
                 action.get("visual_fallback_candidate_count")
+            ),
+            "visual_fallback_zone_candidate_count": _first_int(
+                action.get("visual_fallback_zone_candidate_count")
             ),
             "visual_fallback_confidence": _first_float(
                 action.get("visual_fallback_confidence")
@@ -1577,6 +1580,9 @@ def _pointer_action_summary(action: JsonObject) -> JsonObject:
             ),
             "post_click_visual_candidate_count": _first_int(
                 action.get("post_click_visual_candidate_count")
+            ),
+            "post_click_visual_zone_candidate_count": _first_int(
+                action.get("post_click_visual_zone_candidate_count")
             ),
             "post_click_visual_confidence": _first_float(
                 action.get("post_click_visual_confidence")

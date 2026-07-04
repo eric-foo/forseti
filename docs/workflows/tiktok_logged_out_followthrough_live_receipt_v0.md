@@ -233,3 +233,36 @@ The close action selected for the failure receipt was a DOM-exposed modal close:
 acceptance. Future cold agents must inspect `pointer_action_chronology` and
 `challenge_close_attempts` when present because `comment_action` intentionally
 filters retry, benign-overlay, and challenge-close actions.
+
+## 2026-07-04 Zone-Count Diagnostic Receipt
+
+After delegated review adjudication added center-modal zone-count diagnostics, a
+logged-out Funmi fixture probe was run with `--allow-challenge-close-followthrough`:
+
+- output_dir: `orca-harness\_scratch\tiktok_logged_out_x_close_zone_count_20260704_04`
+- observed_utc: `2026-07-04T09:07:50Z`
+- run_complete_utc: `2026-07-04T09:08:20Z`
+- outcome: `attempted_count=1`, `completed_count=0`, `challenge_count=1`, `results=[]`
+- stop_reason: `challenge_x_click_attempted_close_not_accepted`
+- `blocker_class=challenge_close_not_accepted`
+- `matched_marker=drag the slider`
+- `challenge_kind=slider`
+- `matched_comment_response_count=1`
+- `admitted_comment_response_count=0`
+- `dom_visible_comment_candidate_count=0`
+
+The selected close action was the DOM modal close:
+`action_name=tiktok_challenge_modal_close_followthrough_pointer_v0`,
+`target_kind=button`, `selection_strategy=top_right`, `clicked=true`,
+`click_point={"x":803.058,"y":198.96}`, `post_click_absence_verified=true`,
+`post_click_visual_candidate_count=4`,
+`post_click_visual_zone_candidate_count=0`, and
+`post_click_visual_target_absent=false`.
+
+Interpretation: the zone count says no centered modal-X candidate remained after
+that click, but broad visual candidates and final blocker triage still preserved
+`drag the slider`. This receipt does not justify loosening close acceptance: it
+remains `failed_close_zero_admission`, and the matched comment-list response is
+diagnostic only. The forbidden-marker scan over the grid/cadence JSON showed only
+the expected `creator_profile_url` URL lines and no token/CDN/subtitle/signed-URL
+markers.

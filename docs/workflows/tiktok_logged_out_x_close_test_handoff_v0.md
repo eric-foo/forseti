@@ -120,7 +120,7 @@ Before any further probe or patch, load
 TikTok states with the blocker taxonomy there. Do not call a state terminal by a
 single top-level reason string. Inspect `blocker_triage.blocker_class`,
 `matched_marker`, `challenge_kind`, `comment_action`, `pointer_action_chronology`,
-and `challenge_close_attempts`.
+`challenge_close_attempts`, and post-click visual counts (`post_click_visual_candidate_count`, `post_click_visual_zone_candidate_count`) when present.
 
 Current enforced behavior:
 
@@ -140,6 +140,11 @@ Current enforced behavior:
   observed one matched comment-list response, clicked the DOM close button, and
   still stopped as `challenge_close_not_accepted` / `challenge_kind=slider` with
   zero admission.
+- The 2026-07-04 zone-count Funmi receipt showed `post_click_visual_zone_candidate_count=0`
+  while `post_click_visual_candidate_count=4` and final triage still reported
+  `matched_marker=drag the slider`. Treat the zone count as diagnostic only;
+  it does not override failed close acceptance or zero admission.
+
 ## Exact Next Authorized Action
 
 1. Re-verify this packet's branch/head/status and source hashes. If any load-bearing source drifted, reread it before acting.

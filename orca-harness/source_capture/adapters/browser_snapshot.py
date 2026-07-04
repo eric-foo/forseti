@@ -1381,11 +1381,21 @@ def _find_visual_top_right_x_target(
     }
     candidates = _visual_x_candidates(image, crop_x, crop_y, crop_width, crop_height)
     result["visual_fallback_candidate_count"] = len(candidates)
+    modal_candidates: list[dict[str, float]] | None = None
+    if target_zone == "center_modal":
+        # The broad candidate_count spans the whole top-right crop and so includes
+        # unrelated page X-glyphs; the zone count isolates the center-modal close
+        # candidates the action actually targets, so a receipt reader can tell a
+        # persisting modal from stray glyphs. It is a diagnostic count only and
+        # does not change close-acceptance.
+        modal_candidates = _center_modal_visual_x_candidates(
+            candidates, image_width, image_height
+        )
+        result["visual_fallback_zone_candidate_count"] = len(modal_candidates)
     if not candidates:
         return result
     selected = None
     if target_zone == "center_modal":
-        modal_candidates = _center_modal_visual_x_candidates(candidates, image_width, image_height)
         if modal_candidates:
             selected = max(modal_candidates, key=lambda candidate: candidate["score"])
         elif allow_geometric:
@@ -1604,6 +1614,11 @@ def _post_click_visual_absence_result(
         ),
         "post_click_visual_candidate_count": candidate_count,
     }
+    zone_candidate_count = visual_target.get("visual_fallback_zone_candidate_count")
+    if zone_candidate_count is not None:
+        result["post_click_visual_zone_candidate_count"] = _safe_int(
+            zone_candidate_count, default=-1
+        )
     confidence = visual_target.get("visual_fallback_confidence")
     if confidence is not None:
         result["post_click_visual_confidence"] = confidence
@@ -1731,6 +1746,7 @@ def _run_pointer_action(
                 "visual_fallback_attempted",
                 "visual_fallback_target_found",
                 "visual_fallback_candidate_count",
+                "visual_fallback_zone_candidate_count",
                 "visual_fallback_confidence",
                 "visual_fallback_screenshot_sha256",
                 "visual_fallback_crop_box",
