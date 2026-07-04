@@ -155,6 +155,13 @@ goal_handoff:
   5. `docs/research/aphrodite_depth_rehearsal_extraction_recipe_v0.md` — the
      hand-run recipe this lane promotes to v1 (claim types, hashing rule,
      receipt rule, abstention rules).
+  5b. `docs/research/aphrodite_recipe_v1_second_opinion_adjudication_v0.md` —
+     the adjudicated cross-vendor second opinion on the v1 design (2026-07-05):
+     the five-panel claim-type baseline, YouTube adaptations, label sets,
+     candidate-set intake schema + synthetic buyer example, failure forecast,
+     and rulings M1–M4 that override the raw return where they conflict.
+     Recipe v1 is authored FROM this record; do not re-derive from the raw
+     v0 recipe alone.
   6. `docs/research/aphrodite_depth_rehearsal_round2_gentsscents_grade_v0.md`
      — the graded substrate this lane most likely builds on.
   7. `docs/decisions/orca_creator_signal_spine_promotion_binding_v0.md` — the
@@ -202,11 +209,11 @@ Produce the D-1 dress rehearsal end-to-end on ONE creator:
 1. **Corpus** — reuse or refresh the creator's captured substrate (owner
    choice above); freeze it in a corpus record (rehearsal round-1 precedent:
    ordered shortcode/hash list so every corpus-level hash is re-derivable).
-2. **Extraction (operator-run, recipe v1)** — promote the v0 recipe: all
-   claim types the five panels need (product mentions with stance +
-   attention weighting; ad detection/load/reception; purchase-intent and
-   audience-texture aggregates; adjacency inputs; momentum inputs that will
-   mostly abstain). Every claim: seven provenance fields + provenance_state.
+2. **Extraction (operator-run, recipe v1)** — promote the v0 recipe per the
+   adjudicated second-opinion record (read-first item 5b): the claim-type
+   baseline for all five panels, YouTube hashing/receipt/segmentation rules,
+   stance + purchase-intent label sets, with rulings M1–M4 applied. Every
+   claim: seven provenance fields + provenance_state.
 3. **Entity resolution** — mentions → dotted IDs against
    fragrance_reference_v0.yaml; unresolved mentions in an explicit table;
    note-family/tier coordinates come FROM the reference file, never asserted.
