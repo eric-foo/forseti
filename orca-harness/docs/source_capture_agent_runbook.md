@@ -529,9 +529,25 @@ python runners/run_source_capture_cloakbrowser_profile_warmup.py `
 
 The proxy endpoint and credentials are loaded from the ignored store only for
 the browser launch. Do not print, stage, commit, copy, or packetize the proxy
-profile file or endpoint. After warmup, rerun the session bootstrap with the
-same `--cloakbrowser-user-data-label` to save the harness storage-state label.
-The warmup runner writes no packet and saves no auth-state by itself.
+profile file or endpoint. After warmup, export the dedicated user-data profile
+to a harness storage-state label without navigating the login flow again:
+
+```powershell
+python runners/run_source_capture_browser_user_data_export.py `
+  --user-data-label "<local user-data label>" `
+  --state-label "<local state label>" `
+  --session-mode "<allowed session mode>"
+```
+
+The export runner opens the local CloakBrowser user-data directory by label,
+writes ignored storage-state JSON plus the session-mode sidecar under
+`orca-harness/_auth_state/`, writes no packet, and prints only labels and the
+session mode. It does not accept profile paths, storage-state paths, usernames,
+passwords, cookies, or tokens. If the warmup used a proxy, that state may be
+tried in a later non-proxy source-access run, but the egress switch can still
+produce an invalid session or challenge. Do not call it clean non-proxy capture
+proof until a non-proxy receipt validates under the normal gates. The warmup
+runner writes no packet and saves no auth-state by itself.
 
 Then capture one explicit URL with that saved state:
 

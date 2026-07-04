@@ -222,7 +222,11 @@ python runners/run_source_capture_authenticated_browser_packet.py --url "https:/
 
 The bootstrap command opens a headed browser for manual login and writes ignored
 local Playwright storage-state JSON plus a session-mode metadata sidecar under
-`_auth_state/`. The packet runner loads that state into a browser context,
+`_auth_state/`. After a permitted direct CloakBrowser profile warmup,
+`run_source_capture_browser_user_data_export.py` can export the dedicated
+ignored `_browser_user_data/` label to `_auth_state/` without re-running the
+login flow; it accepts only labels plus session mode and prints no browser URL,
+paths, cookies, or tokens. The packet runner loads that state into a browser context,
 refuses mismatched session-mode declarations, and preserves rendered DOM,
 visible text, a viewport screenshot, and metadata. It records session mode and
 state label, but never copies, hashes, prints, or preserves storage-state JSON,

@@ -306,6 +306,22 @@ Playwright storage-state JSON file plus a session-mode metadata sidecar under
 `orca-harness/_auth_state/`. It writes no packet. It does not accept username,
 password, token, cookie, or profile path arguments.
 
+When a permitted direct CloakBrowser warmup has already created a dedicated
+ignored user-data label, export that profile to an auth-state label without
+reopening the login flow:
+
+```powershell
+python runners/run_source_capture_browser_user_data_export.py `
+  --user-data-label "example-user-data" `
+  --state-label "example-client-session" `
+  --session-mode "client_provided_session"
+```
+
+The export runner writes the same local ignored storage-state JSON and sidecar
+shape under `_auth_state/`, writes no packet, prints no browser URL, and accepts
+only labels plus the declared session mode. It does not accept storage-state
+paths, user-data paths, usernames, passwords, tokens, or cookies.
+
 Then write a packet:
 
 ```powershell

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import shutil
+import sys
 import uuid
 from dataclasses import dataclass
 from pathlib import Path
@@ -10,8 +11,10 @@ import pytest
 
 from runners import run_source_capture_authenticated_browser_packet as auth_runner
 from runners import run_source_capture_browser_session_bootstrap as bootstrap_runner
+from runners import run_source_capture_browser_user_data_export as export_runner
 from runners import run_source_capture_cloakbrowser_profile_warmup as warmup_runner
 from runners.run_source_capture_browser_session_bootstrap import run_browser_session_bootstrap
+from runners.run_source_capture_browser_user_data_export import run_browser_user_data_export
 from runners.run_source_capture_cloakbrowser_profile_warmup import run_cloakbrowser_profile_warmup
 from source_capture import AuthenticatedSessionMode, CaptureModeCategory
 from source_capture.adapters.browser_snapshot import BrowserSnapshotSuccess
@@ -68,6 +71,30 @@ def test_authenticated_browser_clis_expose_no_secret_or_password_flags() -> None
     assert "--browser-backend" in options
     assert "--cloakbrowser-humanize" in options
     assert "--cloakbrowser-user-data-label" in options
+
+
+def test_browser_user_data_export_cli_exposes_no_secret_or_path_flags() -> None:
+    forbidden_destinations = {"password", "username", "token", "cookie", "profile", "user_data_dir"}
+    forbidden_options = {
+        "--password",
+        "--username",
+        "--token",
+        "--cookie",
+        "--profile",
+        "--profile-path",
+        "--storage-state-path",
+        "--user-data-dir",
+        "--login-url",
+    }
+    parser = export_runner._build_parser()
+    destinations = {action.dest for action in parser._actions}
+    options = {option for action in parser._actions for option in action.option_strings}
+
+    assert destinations.isdisjoint(forbidden_destinations)
+    assert options.isdisjoint(forbidden_options)
+    assert "--user-data-label" in options
+    assert "--state-label" in options
+    assert "--session-mode" in options
 
 
 def test_cloakbrowser_profile_warmup_cli_exposes_no_secret_or_path_flags() -> None:
@@ -228,6 +255,153 @@ def test_cloakbrowser_profile_warmup_uses_proxy_profile_label_without_secret_out
     assert "proxy.example" not in message
     assert str(profile_root) not in message
     assert not (scratch_dir / "_auth_state").exists()
+
+
+class _FakeExportEngine:
+    payload: str = '{"cookies": [], "origins": []}'
+
+    def __init__(self) -> None:
+        self.user_data_dirs: list[Path] = []
+
+    def export_storage_state(self, *, user_data_dir: Path, state_path: Path) -> None:
+        self.user_data_dirs.append(user_data_dir)
+        state_path.write_text(self.payload, encoding="utf-8")
+
+
+def test_browser_user_data_export_writes_auth_state_without_packet(scratch_dir: Path) -> None:
+    auth_root = scratch_dir / "_auth_state"
+    user_data_root = scratch_dir / "_browser_user_data"
+    user_data_dir = user_data_root / "tiktok-alt"
+    user_data_dir.mkdir(parents=True)
+    engine = _FakeExportEngine()
+
+    exit_code, message = run_browser_user_data_export(
+        user_data_label="tiktok-alt",
+        state_label="tiktok-alt-session",
+        session_mode=AuthenticatedSessionMode.CLIENT_PROVIDED,
+        auth_state_root=auth_root,
+        browser_user_data_root=user_data_root,
+        engine=engine,
+    )
+
+    state_path = auth_root / "tiktok-alt-session.json"
+    metadata_path = auth_root / "tiktok-alt-session.meta.json"
+    assert exit_code == 0
+    assert engine.user_data_dirs == [user_data_dir]
+    assert "client_provided_session" in message
+    assert "tiktok-alt-session" in message
+    assert "tiktok-alt" in message
+    assert str(auth_root) not in message
+    assert str(user_data_root) not in message
+    assert "about:blank" not in message
+    assert "https://" not in message
+    assert state_path.exists()
+    assert metadata_path.exists()
+    assert json.loads(metadata_path.read_text(encoding="utf-8")) == {
+        "auth_state_file": "tiktok-alt-session.json",
+        "session_mode": "client_provided_session",
+    }
+    assert not (scratch_dir / "manifest.json").exists()
+    assert not (scratch_dir / "receipt.md").exists()
+
+
+def test_browser_user_data_export_rejects_missing_user_data_before_state_write(
+    scratch_dir: Path,
+) -> None:
+    auth_root = scratch_dir / "_auth_state"
+    user_data_root = scratch_dir / "_browser_user_data"
+    engine = _FakeExportEngine()
+
+    with pytest.raises(ValueError, match="browser user-data directory does not exist"):
+        run_browser_user_data_export(
+            user_data_label="missing",
+            state_label="missing-session",
+            session_mode=AuthenticatedSessionMode.CLIENT_PROVIDED,
+            auth_state_root=auth_root,
+            browser_user_data_root=user_data_root,
+            engine=engine,
+        )
+
+    assert engine.user_data_dirs == []
+    assert not (auth_root / "missing-session.json").exists()
+    assert not (auth_root / "missing-session.meta.json").exists()
+
+
+
+def test_cloakbrowser_user_data_export_retries_visible_after_headless_failure(
+    scratch_dir: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    user_data_dir = scratch_dir / "user-data"
+    user_data_dir.mkdir()
+    state_path = scratch_dir / "state.json"
+    attempts: list[tuple[Path, bool, bool]] = []
+
+    class FakeContext:
+        def storage_state(self, *, path: str) -> None:
+            Path(path).write_text('{"cookies": [], "origins": []}', encoding="utf-8")
+
+        def close(self) -> None:
+            return
+
+    class FakeCloakBrowser:
+        def launch_persistent_context(
+            self,
+            user_data_dir_arg: Path,
+            *,
+            headless: bool,
+            stealth_args: bool,
+        ) -> FakeContext:
+            attempts.append((user_data_dir_arg, headless, stealth_args))
+            if headless:
+                raise RuntimeError("raw launch diagnostics with local path")
+            return FakeContext()
+
+    monkeypatch.setitem(sys.modules, "cloakbrowser", FakeCloakBrowser())
+
+    export_runner._CloakBrowserUserDataExportEngine().export_storage_state(
+        user_data_dir=user_data_dir,
+        state_path=state_path,
+    )
+
+    assert attempts == [(user_data_dir, True, True), (user_data_dir, False, True)]
+    assert json.loads(state_path.read_text(encoding="utf-8")) == {"cookies": [], "origins": []}
+
+
+def test_cloakbrowser_user_data_export_sanitizes_launch_failure(
+    scratch_dir: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    user_data_dir = scratch_dir / "user-data"
+    user_data_dir.mkdir()
+    state_path = scratch_dir / "state.json"
+    attempts: list[bool] = []
+
+    class FakeCloakBrowser:
+        def launch_persistent_context(
+            self,
+            user_data_dir_arg: Path,
+            *,
+            headless: bool,
+            stealth_args: bool,
+        ) -> object:
+            attempts.append(headless)
+            raise RuntimeError(f"raw launch diagnostics for {user_data_dir_arg}")
+
+    monkeypatch.setitem(sys.modules, "cloakbrowser", FakeCloakBrowser())
+
+    with pytest.raises(RuntimeError) as exc_info:
+        export_runner._CloakBrowserUserDataExportEngine().export_storage_state(
+            user_data_dir=user_data_dir,
+            state_path=state_path,
+        )
+
+    message = str(exc_info.value)
+    assert attempts == [True, False]
+    assert "raw launch diagnostics" not in message
+    assert str(user_data_dir) not in message
+    assert "Close any browser window using that user-data label" in message
+    assert not state_path.exists()
 
 
 def test_session_bootstrap_writes_auth_state_and_sidecar_without_packet(scratch_dir: Path) -> None:
