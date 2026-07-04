@@ -48,10 +48,13 @@ repo_map_reason: destination bound by the artifact-folders overlay file and the 
 - expected_dirty_state_including_handoff_file: clean tree; this packet is committed, not dirty
 - load_rule: confirm-don't-trust — re-verify every load-bearing fact against its compare target before acting; sender claims are hypotheses, not authority
 
-## RATIFICATION GATE (do this first)
+## RATIFICATION GATE (resolved — confirm, don't re-ask)
 
-The parent handoff's goal frame is a PROPOSAL. Before any census work,
-obtain the owner's ratification (or re-frame) of:
+**RATIFIED 2026-07-04**: the owner ratified the frame as proposed — see
+`docs/decisions/silver_vault_goal_frame_ratification_v0.md` (same PR as this
+packet), which quotes the ratified frame verbatim. At kickoff, confirm that
+record resolves on your `origin/main` and proceed; re-ask only if the owner
+has since superseded it. The ratified content, for orientation:
 
 1. **Mission**: make Silver the trustworthy READ layer — every silver record
    lineage-anchored and policy-fingerprinted, sibling supersession EXPLICIT,
@@ -67,13 +70,14 @@ obtain the owner's ratification (or re-frame) of:
    high-lock-in fork), then (d) vault schema tokens — or as re-ordered by
    the owner.
 
-Source: `docs/prompts/handoffs/data_lake_silver_vault_lane_handoff_prompt_v0.md` (resolve on PR #662, branch `claude/silver-vault-lane-handoff`; if #662 has merged, read it on `origin/main`).
-Without ratification: stop after presenting the frame; do not start the census.
+Proposal source: `docs/prompts/handoffs/data_lake_silver_vault_lane_handoff_prompt_v0.md` (resolve on PR #662, branch `claude/silver-vault-lane-handoff`; if #662 has merged, read it on `origin/main`).
+If the ratification record does not resolve on your `origin/main`: treat the
+gate as OPEN — present the frame and stop until the owner ratifies.
 
 ## Goal Handoff
 
-Pending ratification (fields from the proposal above; not authority until
-the owner ratifies):
+Ratified 2026-07-04 (see the ratification record above; verify it resolves
+before strict use):
 
 - long_term_goal: a trustworthy data lake whose layer-completion and read-correctness claims are executable.
 - anchor_goal: deliver the silver build-vs-classify ledger — every silver writer/reader enumerated from live source with its selection behavior classified — so the owner can steer unit (c) with evidence.
@@ -151,7 +155,9 @@ recommendation for the owner to steer unit (c).
 ## Exact Next Authorized Action
 
 1. `git fetch origin`; read `AGENTS.md` + overlay README; state isolation.
-2. Present the ratification gate to the owner; stop if not ratified.
+2. Confirm `docs/decisions/silver_vault_goal_frame_ratification_v0.md`
+   resolves on your `origin/main` (the gate is then satisfied); if it does
+   not resolve, present the frame to the owner and stop until ratified.
 3. Regenerate the writer/reader enumeration from
    `EXPECTED_NON_RAW_LAKE_TOUCHPOINTS` in
    `orca-harness/tests/contract/test_capture_runner_lake_seam_coverage.py`
@@ -209,8 +215,9 @@ recommendation for the owner to steer unit (c).
     - Last checked: 2026-07-04; Reuse rule: reread on current origin/main.
 - Source gaps: the exact current reader set is unverified by the sender
   beyond the gate rows above (deliberate — enumeration IS the unit).
-- Strict-only blockers: goal-frame ratification (owner); any live-lake read
-  (per-turn grant).
+- Strict-only blockers: any live-lake read (per-turn grant). The goal-frame
+  ratification is resolved by the record above when it resolves on
+  `origin/main`; otherwise it re-becomes an owner blocker.
 - Not-proven boundaries: nothing here proves any reader is correct or
   broken; the ledger classifies behavior, it does not adjudicate it.
 
