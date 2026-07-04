@@ -36,7 +36,7 @@ No-LLM zone (`runners/`): imports the cleaning driver but no LLM SDK
 (`tests/contract/test_no_llm_imports.py`). The Transport is INJECTED, so the live caller
 (subscription- or API-routed) is wired separately and this stays offline-testable.
 
-Spec: orca/product/spines/capture/core/source_families/social_media/instagram/
+Spec: forseti/product/spines/capture/core/source_families/social_media/instagram/
 ig_reels_transcript_product_extraction_spec_v0.md (IG delta; daemon-readiness inherited).
 """
 

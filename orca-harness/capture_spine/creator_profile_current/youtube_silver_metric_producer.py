@@ -105,7 +105,7 @@ YOUTUBE_SEED_WRAPPER_KEY = "youtube_shorts_fragrance_creator_metric_seed"
 # orca-harness/capture_spine/creator_profile_current/ -> repo root is parents[3].
 DEFAULT_YOUTUBE_SEED_PATH = (
     Path(__file__).resolve().parents[3]
-    / "orca"
+    / "forseti"
     / "product"
     / "spines"
     / "capture"

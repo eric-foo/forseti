@@ -46,6 +46,9 @@ HARD BOUNDARY
   checker bug never bricks the agent.  The repo-root infra-gap fail-open is
   unchanged.  --check always exits 0.
 
+  Moved-path indexes are resolution aids, not exemptions: an old path may pass
+  only when an indexed successor path resolves in the current tree.
+
 MODES
   check_map_links.py --strict         CI gate; print findings; exit 1 if any (C1-C4), else 0
   check_map_links.py --strict-inline  alias for --strict (C4 included; kept for caller compat)
@@ -61,6 +64,7 @@ from __future__ import annotations
 import os
 import re
 import sys
+from functools import lru_cache
 from pathlib import Path
 from typing import NamedTuple
 
@@ -81,6 +85,7 @@ def repo_root() -> Path:
 # optionally backtick-quoted or bare.  We also strip trailing punctuation.
 _PATH_PREFIXES = (
     "docs/", ".agents/", ".github/", "orca-harness/",
+    "forseti/", "forseti/product/",
     "AGENTS.md", "CLAUDE.md",
 )
 
@@ -91,6 +96,78 @@ _TOKEN_RE = re.compile(
 )
 
 _TRAILING_PUNCT = re.compile(r"[.,;:)\]>\"']+$")
+
+_MOVED_INDEX_ROW_RE = re.compile(r"^\|\s*`([^`]+)`\s*\|\s*`([^`]+)`\s*\|")
+
+
+@lru_cache(maxsize=8)
+def load_moved_paths(root_key: str) -> tuple[dict[str, str], dict[str, str]]:
+    """Load generated moved-path indexes under docs/migration/.
+
+    Returns (exact, prefixes). Exact entries map old file paths to successor
+    paths. Prefix entries come only from rows whose old/new values both end in
+    "/" and let directory-level legacy paths resolve without mass-rewriting
+    historical artifacts.
+    """
+    root = Path(root_key)
+    exact: dict[str, str] = {}
+    prefixes: dict[str, str] = {}
+    migration_root = root / "docs" / "migration"
+    if not migration_root.is_dir():
+        return exact, prefixes
+    for index in sorted(migration_root.glob("**/moved_paths_index.md")):
+        try:
+            lines = index.read_text(encoding="utf-8", errors="replace").splitlines()
+        except OSError:
+            continue
+        for line in lines:
+            match = _MOVED_INDEX_ROW_RE.match(line)
+            if not match:
+                continue
+            old = match.group(1).strip()
+            new = match.group(2).strip()
+            if not old or old == "---" or new == "---":
+                continue
+            if old.endswith("/") and new.endswith("/"):
+                prefixes[old] = new
+            else:
+                exact[old] = new
+    return exact, prefixes
+
+
+def resolve_moved_path(path: str, root: Path) -> str | None:
+    """Return an indexed successor path, following short chains, else None."""
+    original = path.replace("\\", "/").lstrip("./")
+    candidate = original
+    exact, prefixes = load_moved_paths(str(root))
+    seen: set[str] = set()
+    for _ in range(8):
+        if candidate in seen:
+            return None
+        seen.add(candidate)
+        if candidate in exact:
+            candidate = exact[candidate]
+            continue
+        matched = False
+        for old, new in sorted(prefixes.items(), key=lambda item: len(item[0]), reverse=True):
+            if candidate == old.rstrip("/") or candidate.startswith(old):
+                suffix = "" if candidate == old.rstrip("/") else candidate[len(old):]
+                candidate = new + suffix
+                matched = True
+                break
+        if matched:
+            continue
+        return candidate if candidate != original else None
+    return None
+
+
+def repo_path_exists(path: str, root: Path) -> bool:
+    """True if a repo-relative path exists directly or via moved-path index."""
+    norm = path.replace("/", os.sep)
+    if (root / norm).exists():
+        return True
+    successor = resolve_moved_path(path, root)
+    return bool(successor and (root / Path(successor.replace("/", os.sep))).exists())
 
 
 def extract_paths_from_line(line: str) -> list[str]:
@@ -220,8 +297,8 @@ def parse_open_next(header_text: str) -> tuple[list[str], int]:
 # confer coverage on their own (anti-vacuity). Coverage requires a NON-root
 # ancestor area to be declared. See docs/decisions/orca_repo_map_architecture_mgt_v0.md.
 _COVERAGE_ROOT_PREFIXES = frozenset({
-    "orca", "orca/product", "orca/product/spines",
-    "orca/product/satellites", "orca/product/case_families", "orca/product/shared",
+    "forseti", "forseti/product", "forseti/product/spines",
+    "forseti/product/satellites", "forseti/product/case_families", "forseti/product/shared",
     "docs", ".agents", "orca-harness",
 })
 # NOTE: .agents/workflow-overlay is a *declared area* that holds docs directly
@@ -249,7 +326,7 @@ def dir_is_covered(rel_dir: str, map_text: str) -> bool:
 
     Reachability semantics (docs/decisions/orca_repo_map_architecture_mgt_v0.md):
     a folder is covered iff it or an ancestor *area* is declared. Structural roots
-    (orca/product, docs, ...) never confer coverage (else the gate is vacuous); a
+    (forseti/product, docs, ...) never confer coverage (else the gate is vacuous); a
     sibling, a child (child-covers-parent), prose, an answer-cell path, or a debt
     note never confer it either.
 
@@ -377,9 +454,8 @@ def inline_link_exists(path: str, linking_file: Path, root: Path) -> bool:
     candidate_rel = linking_file.parent / norm
     if candidate_rel.exists():
         return True
-    # 2. Relative to repo root
-    candidate_root = root / norm
-    if candidate_root.exists():
+    # 2. Relative to repo root, including moved-path successor indexes
+    if repo_path_exists(path, root):
         return True
     return False
 
@@ -437,8 +513,7 @@ def run_c1(root: Path, map_files: list[Path]) -> list[Finding]:
             if is_exempt_line(line):
                 continue
             for token in extract_paths_from_line(line):
-                target = root / Path(token.replace("/", os.sep))
-                if not target.exists():
+                if not repo_path_exists(token, root):
                     findings.append(Finding(
                         check="C1",
                         source=rel_source,
@@ -454,8 +529,8 @@ def run_c2(root: Path, search_roots: list[Path] | None = None) -> tuple[list[Fin
     sum of all annotated nonresolving entries across all scanned files.
 
     search_roots defaults to [docs/, .agents/] -- the live strict scope, left
-    byte-for-byte unchanged. The orca/ report mode (--report-orca) passes
-    [orca/] to reuse this exact predicate over the product corpus WITHOUT
+    byte-for-byte unchanged. The Forseti product report mode (--report-forseti, or legacy --report-orca) passes
+    [forseti/] to reuse this exact predicate over the product corpus WITHOUT
     touching the strict path (frozen predicate = strict-minus-exit-0).
     """
     findings: list[Finding] = []
@@ -497,8 +572,7 @@ def run_c2(root: Path, search_roots: list[Path] | None = None) -> tuple[list[Fin
 
                 rel_source = fpath.relative_to(root).as_posix()
                 for entry in entries:
-                    target = root / Path(entry.replace("/", os.sep))
-                    if not target.exists():
+                    if not repo_path_exists(entry, root):
                         findings.append(Finding(
                             check="C2",
                             source=rel_source,
@@ -512,7 +586,7 @@ def run_c3(root: Path, map_text: str, scan_root: Path | None = None,
     """C3: every docs/ subdir with >=3 .md files directly must appear in the map.
 
     scan_root defaults to docs/ and min_md to 3 -- the live strict predicate,
-    left unchanged. The orca/ report mode passes scan_root=orca/product and
+    left unchanged. The product report mode passes scan_root=forseti/product and
     min_md=1 (the HARDER-than-C3 coverage rule from W0: every product folder
     that CONTAINS a .md must be map-covered). Empty structure-ahead-of-content
     slots hold 0 .md and are skipped by the min_md floor, so they never
@@ -532,7 +606,7 @@ def run_c3(root: Path, map_text: str, scan_root: Path | None = None,
         rel_dir = current.relative_to(root).as_posix()
 
         # The scanned root itself is not a coverable sub-folder (no ancestor
-        # area can declare it); skip it so the orca/product README root is not
+        # area can declare it); skip it so the forseti/product README root is not
         # spuriously flagged.
         if current == scan_root:
             continue
@@ -566,7 +640,7 @@ def run_c4(root: Path, search_roots: list[Path] | None = None) -> tuple[list[Fin
 
     Reuses the same os.walk pass and skip rules as C2 (no second walk).
     search_roots defaults to [docs/, .agents/] (live strict scope, unchanged);
-    the orca/ report mode passes [orca/].
+    the Forseti product report mode passes [forseti/].
     """
     findings: list[Finding] = []
     total_nonresolving = 0
@@ -660,26 +734,26 @@ def run_strict_inline(root: Path) -> int:
 
 
 def run_report_orca(root: Path) -> int:
-    """--report-orca: REPORT MODE over the orca/ product corpus. ALWAYS exits 0.
+    """Product-corpus report mode. ALWAYS exits 0.
 
     Frozen predicate (strict-minus-exit-0): computes EXACTLY the findings a
-    future orca/ strict gate will enforce -- C2 open_next resolution, C4 inline
-    link resolution, and the harder-than-C3 folder coverage (every orca/product/
-    folder with >=1 .md must be map-covered) -- but never gates. The live
-    docs/+.agents/ --strict scope and exit behavior are untouched; the Phase-3
-    ratchet flips the exit only. Header/orphan debt over orca/product/spines/**
+    future product-tree strict gate will enforce -- C2 open_next resolution, C4
+    inline link resolution, and the harder-than-C3 folder coverage (every
+    forseti/product/ folder with >=1 .md must be map-covered) -- but never gates.
+    The live docs/+.agents/ --strict scope and exit behavior are untouched; the
+    ratchet flips the exit only. Header/orphan debt over forseti/product/spines/**
     is reported by header_index, not here.
     """
-    orca_root = root / "orca"
-    if not orca_root.is_dir():
-        print("check_map_links --report-orca: no orca/ tree present; nothing to report")
+    product_root = root / "forseti"
+    if not product_root.is_dir():
+        print("check_map_links --report-forseti: no forseti/ tree present; nothing to report")
         return 0
 
-    roots = [orca_root]
+    roots = [product_root]
     map_text = load_map_text(collect_map_files(root))
     c2_findings, c2_nr = run_c2(root, search_roots=roots)
     c4_findings, c4_nr = run_c4(root, search_roots=roots)
-    cov_findings = run_c3(root, map_text, scan_root=root / "orca" / "product",
+    cov_findings = run_c3(root, map_text, scan_root=root / "forseti" / "product",
                           min_md=1, check_label="COV")
     findings = c2_findings + c4_findings + cov_findings
     nonresolving = c2_nr + c4_nr
@@ -688,8 +762,8 @@ def run_report_orca(root: Path) -> int:
     for f in findings:
         by_check[f.check] = by_check.get(f.check, 0) + 1
 
-    print("check_map_links --report-orca (REPORT MODE, exit 0; not a gate):")
-    print("  scope: orca/  |  predicate = strict-minus-exit-0 (Phase-3 flips exit only)")
+    print("check_map_links --report-forseti (REPORT MODE, exit 0; not a gate):")
+    print("  scope: forseti/  |  predicate = strict-minus-exit-0 (ratchet flips exit only)")
     print("  open_next unresolved (C2):                         %d" % by_check.get("C2", 0))
     print("  inline links unresolved (C4):                      %d" % by_check.get("C4", 0))
     print("  folders w/ >=1 .md not map-covered (COV>C3):       %d" % by_check.get("COV", 0))
@@ -900,8 +974,8 @@ def selftest() -> int:
          "docs/prompts/reviews/sub",
          "| `docs/prompts/reviews/` | Review prompts. |", True),
         ("non-root spine ancestor covers",
-         "orca/product/spines/capture/core/operating_model",
-         "| `orca/product/spines/capture/` | Capture spine. |", True),
+         "forseti/product/spines/capture/core/operating_model",
+         "| `forseti/product/spines/capture/` | Capture spine. |", True),
         ("sibling-prefix does NOT cover",
          "docs/foo",
          "| `docs/foobar/` | Unrelated. |", False),
@@ -915,8 +989,8 @@ def selftest() -> int:
          "docs/x/y",
          "| Question? | `docs/x/y/foo.md` |", False),
         ("structural root does NOT confer coverage",
-         "orca/product/spines/judgment/demand_read/c2_weighting",
-         "| `orca/product/` | Product tree. |", False),
+         "forseti/product/spines/judgment/demand_read/c2_weighting",
+         "| `forseti/product/` | Product tree. |", False),
         ("not-retrieval-indexed line no longer auto-covers",
          "docs/some/random/dir",
          "| `docs/hygiene/` | Queues, not retrieval-indexed. |", False),
@@ -1070,14 +1144,15 @@ def main(argv: list[str]) -> int:
         return run_strict_inline(root)
     if "--strict" in argv:
         return run_strict(root)
-    if "--report-orca" in argv:
+    if "--report-forseti" in argv or "--report-orca" in argv:
         return run_report_orca(root)
     # Default: print usage
-    print("Usage: check_map_links.py --strict | --strict-inline | --check | --report-orca | --selftest")
+    print("Usage: check_map_links.py --strict | --strict-inline | --check | --report-forseti | --report-orca | --selftest")
     print("  --strict         CI gate: exit 1 if any finding (C1/C2/C3/C4)")
     print("  --strict-inline  alias for --strict (C4 included; kept for caller compat)")
     print("  --check          human-readable report, always exit 0")
-    print("  --report-orca    REPORT MODE over orca/: measure debt, always exit 0 (not a gate)")
+    print("  --report-forseti REPORT MODE over forseti/: measure debt, always exit 0 (not a gate)")
+    print("  --report-orca    compatibility alias for --report-forseti")
     print("  --selftest       pure-function self-check")
     return 1
 

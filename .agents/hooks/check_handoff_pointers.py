@@ -442,7 +442,7 @@ def selftest() -> int:
     print()
     print("--- is_scanned_file ---")
     check("durable doc md", is_scanned_file("docs/prompts/reviews/p_v0.md"), True)
-    check("product corpus md", is_scanned_file("orca/product/spines/x/y_v0.md"), True)
+    check("product corpus md", is_scanned_file("forseti/product/spines/x/y_v0.md"), True)
     check("root AGENTS.md", is_scanned_file("AGENTS.md"), True)
     check("python file", is_scanned_file(".agents/hooks/check_handoff_pointers.py"), False)
     check("inbox scratch excluded", is_scanned_file("docs/_inbox/tmp_v0.md"), False)

@@ -21,7 +21,7 @@ Capture posture (proven by the 2026-06-25 audio-acquisition probe): a publicly-v
 bestaudio is fetchable anonymously; an audience-restricted Reel ("can't be seen by certain
 audiences") is a TYPED SKIP, never a hard failure.
 
-Spec: orca/product/spines/capture/core/source_families/social_media/instagram/
+Spec: forseti/product/spines/capture/core/source_families/social_media/instagram/
 ig_reels_transcript_product_extraction_spec_v0.md (IG delta over the YouTube CE1-CE10).
 """
 from __future__ import annotations

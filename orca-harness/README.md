@@ -259,7 +259,7 @@ outputs that contain review text in ignored/local paths unless a later lane
 authorizes durable review-body storage.
 
 This runner follows the focused review-coverage policy in
-`orca/product/spines/capture/core/source_families/retail_pdp/fragrance_purchase_review_focused_coverage_mgt_v0.md`.
+`forseti/product/spines/capture/core/source_families/retail_pdp/fragrance_purchase_review_focused_coverage_mgt_v0.md`.
 It does not fetch network sources, discover products, crawl reviews, create
 Source Capture Packets or durable Attachment Records, score review integrity,
 label pain/pleasure/sentiment, or run ECR, Cleaning, Judgment, buyer-proof, or

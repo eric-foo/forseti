@@ -28,7 +28,7 @@ from schemas.audience_inference_models import EvidenceRecord, ModalityFamily, Ou
 ROOT = Path(__file__).resolve().parents[3]
 VIEW_PATH = (
     ROOT
-    / "orca"
+    / "forseti"
     / "product"
     / "spines"
     / "capture"
@@ -40,7 +40,7 @@ VIEW_PATH = (
 )
 ACCOUNT_LEDGER_PATH = (
     ROOT
-    / "orca"
+    / "forseti"
     / "product"
     / "spines"
     / "capture"
@@ -52,7 +52,7 @@ ACCOUNT_LEDGER_PATH = (
 )
 YOUTUBE_METRIC_SEED_PATH = (
     ROOT
-    / "orca"
+    / "forseti"
     / "product"
     / "spines"
     / "capture"
@@ -64,7 +64,7 @@ YOUTUBE_METRIC_SEED_PATH = (
 )
 YOUTUBE_SNAPSHOT_PATH = (
     ROOT
-    / "orca"
+    / "forseti"
     / "product"
     / "spines"
     / "capture"
@@ -76,7 +76,7 @@ YOUTUBE_SNAPSHOT_PATH = (
 )
 INSTAGRAM_METRIC_SEED_PATH = (
     ROOT
-    / "orca"
+    / "forseti"
     / "product"
     / "spines"
     / "capture"
@@ -90,7 +90,7 @@ INSTAGRAM_METRIC_SEED_PATH = (
 # snapshots; each seed stays the no-drift value oracle (see _metric_seeds below).
 INSTAGRAM_SNAPSHOT_PATH = (
     ROOT
-    / "orca"
+    / "forseti"
     / "product"
     / "spines"
     / "capture"
@@ -341,9 +341,9 @@ def test_creator_profile_current_source_hashes_are_current() -> None:
     }
 
     expected_paths = {
-        "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json": ACCOUNT_LEDGER_PATH,
-        "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_rollup_snapshot_v0.json": YOUTUBE_SNAPSHOT_PATH,
-        "orca/product/spines/capture/core/source_families/social_media/instagram/instagram_reels_creator_metric_rollup_snapshot_v0.json": INSTAGRAM_SNAPSHOT_PATH,
+        "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json": ACCOUNT_LEDGER_PATH,
+        "forseti/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_rollup_snapshot_v0.json": YOUTUBE_SNAPSHOT_PATH,
+        "forseti/product/spines/capture/core/source_families/social_media/instagram/instagram_reels_creator_metric_rollup_snapshot_v0.json": INSTAGRAM_SNAPSHOT_PATH,
     }
 
     assert set(inputs_by_pointer) == set(expected_paths)
@@ -356,7 +356,7 @@ def test_creator_profile_source_input_files_are_lf_repo_text() -> None:
     for seed in _metric_seeds():
         for source in seed["source_inputs"]:
             source_pointer = source["source_pointer"]
-            if source_pointer.startswith(("docs/", "orca/")):
+            if source_pointer.startswith(("docs/", "forseti/")):
                 source_pointers.add(source_pointer)
 
     for source_pointer in sorted(source_pointers):

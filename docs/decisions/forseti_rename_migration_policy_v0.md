@@ -33,8 +33,8 @@ them.
 | --- | --- | --- |
 | Live authority/doctrine | `AGENTS.md`, `.agents/workflow-overlay/*.md`, current repo-map prose | Rename to Forseti now. Use "formerly Orca" only where transition clarity matters. |
 | Current route/index surfaces | `docs/workflows/forseti_repo_map_v0.md`, active submaps, current source packs | Use Forseti naming for live navigation; keep legacy pointers only for compatibility and historical links. |
-| Current product/architecture sources | product thesis, active spine contracts, current proof/claim/read-pack docs | Rename in the next product-spine batch unless the file is historical-only. |
-| Compatibility names | `orca/product/`, `orca-harness/`, `orca-product-lead`, lowercase `orca_*` filenames, import/package names | Do not rename blindly. Migrate with moved-path indexes, validation, and rollback notes. |
+| Current product/architecture sources | product thesis, active spine contracts, current proof/claim/read-pack docs | Use Forseti naming and the live `forseti/product/` root unless the file is historical-only. |
+| Compatibility names | historical `orca/product/` paths, `orca-harness/`, `orca-product-lead`, lowercase `orca_*` filenames, import/package names | Do not rename blindly. Migrate with moved-path indexes, validation, and rollback notes. |
 | Historical provenance | old prompts, review outputs, DCP receipts, dated migration notes, prior workstream records | Preserve by default. Add a supersession or alias note only when the artifact remains a live route. |
 | Scratch/inbox material | `docs/_inbox/`, unpromoted drafts, contaminated replays | Do not rename by default. Triage only when promoted or used as source. |
 
@@ -131,7 +131,7 @@ direction_change_propagation:
         as if the name existed then.
     - path: legacy lowercase compatibility paths and filenames
       reason: >
-        Paths such as orca/product/ and docs/workflows/orca_repo_map_v0.md need
+        Paths such as forseti/product/ and docs/workflows/orca_repo_map_v0.md need
         a validated compatibility migration rather than a text-only rename.
     - path: docs/prompts/** and docs/review-outputs/**
       reason: >

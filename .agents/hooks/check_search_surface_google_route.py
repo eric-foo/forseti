@@ -46,7 +46,7 @@ IN_SCOPE_PREFIXES = (
     "docs/review-inputs/",
     "docs/review-outputs/",
     "docs/workflows/",
-    "orca/product/",
+    "forseti/product/",
 )
 EXCLUDED_PARTS = ("/_inbox/", "/_scratch/", "/snapshots/")
 REQUIRED_SEARCH_PARAMS = {"hl": "en", "gl": "us", "pws": "0"}

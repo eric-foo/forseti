@@ -25,7 +25,7 @@ explicitly authorizes implementation.
 ## Core Folders
 
 - `docs/decisions/`: accepted or proposed decision records.
-- `orca/product/`: spine-first product tree for product contracts, Core Spine notes, satellite notes, evidence standards, source maps, proof plans, decision artifacts, memo substrates, evidence appendices, executive-deck shape drafts, Source Capture Toolbox notes, and demand-signal method/surface docs. Historical `docs/product/` paths resolve via `docs/migration/repo_structure_spine_first_v0/moved_paths_index.md`.
+- `forseti/product/`: spine-first product tree for product contracts, Core Spine notes, satellite notes, evidence standards, source maps, proof plans, decision artifacts, memo substrates, evidence appendices, executive-deck shape drafts, Source Capture Toolbox notes, and demand-signal method/surface docs. Historical `docs/product/` paths resolve via `docs/migration/repo_structure_spine_first_v0/moved_paths_index.md`.
 - `docs/prompts/`: reusable prompt artifacts and typed prompt families.
 - `docs/research/`: public/source research artifacts, evidence-only lane outputs, synthesis reports, candidate screens, backtestability notes, and rejected-source maps.
 - `docs/review-inputs/`: artifacts prepared for review.
@@ -86,7 +86,7 @@ The current research corpus subtree is
 
 ## Core And Satellite Product Work
 
-Use `orca/product/` for the Core + Satellite model:
+Use `forseti/product/` for the Core + Satellite model:
 
 - Core Spine artifacts define market-agnostic evidence mechanics.
 - Satellite artifacts define decision-specific and domain-specific context.
@@ -110,7 +110,7 @@ install status, resolver status, or edit permission.
 
 Use this promotion rule:
 
-- product truth -> `orca/product/` or `docs/decisions/`
+- product truth -> `forseti/product/` or `docs/decisions/`
 - research evidence, shortlist screens, and reject-pattern maps -> `docs/research/`
 - prompt artifact -> `docs/prompts/`
 - workflow record -> `docs/workflows/`

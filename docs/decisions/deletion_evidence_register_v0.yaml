@@ -264,3 +264,12 @@ deletions:
       semantic_delta: |
         No AEO probe evidence is discarded. The Phase-0 report and JSON evidence sidecar were rehomed from product-spine authority into docs/research/answer_engine/, preserving the report, evidence sidecar, and source-class reference surface while removing their mistaken authority posture as scanning product-spine files. The semantic change is placement and authority: research/probe evidence remains available for the answer-engine source-family spec, but the scanning spine no longer treats the probe report itself as a core method or source-family authority document.
       rollback: git revert <executing merge sha>
+  - targets:
+      - orca/product/spines/capture/core/source_families/retail_pdp/README.md
+    evidence:
+      reverse_ref_check: |
+        Product-root migration check: the deleted path is represented in docs/migration/forseti_product_root_migration_v0/moves_manifest.csv and moved_paths_index.md as a tracked move to the Forseti product root. Repo references to the old path are historical migration/proposal records or resolve through the moved-path index; the active successor is the Forseti README path named below.
+      successor: forseti/product/spines/capture/core/source_families/retail_pdp/README.md
+      semantic_delta: |
+        No unique product authority is deleted. The file is the retail_pdp source-family README moved from the legacy Orca product root to the live Forseti product root, with naming/path references updated for the rename. The source-family routing role is preserved at the successor path.
+      rollback: git revert <executing merge sha>

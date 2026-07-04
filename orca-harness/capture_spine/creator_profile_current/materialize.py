@@ -20,27 +20,27 @@ from capture_spine.creator_profile_current.validation import (
 
 WRAPPER_KEY = "creator_profile_current_view"
 ACCOUNT_LEDGER_POINTER = (
-    "orca/product/spines/capture/core/source_families/social_media/creator_registry/"
+    "forseti/product/spines/capture/core/source_families/social_media/creator_registry/"
     "creator_public_handle_linkage_ledger_v0.json"
 )
 YOUTUBE_METRIC_SEED_POINTER = (
-    "orca/product/spines/capture/core/source_families/social_media/youtube/"
+    "forseti/product/spines/capture/core/source_families/social_media/youtube/"
     "youtube_shorts_fragrance_creator_metric_seed_v0.json"
 )
 INSTAGRAM_METRIC_SEED_POINTER = (
-    "orca/product/spines/capture/core/source_families/social_media/instagram/"
+    "forseti/product/spines/capture/core/source_families/social_media/instagram/"
     "instagram_reels_creator_metric_seed_v0.json"
 )
 INSTAGRAM_SNAPSHOT_POINTER = (
-    "orca/product/spines/capture/core/source_families/social_media/instagram/"
+    "forseti/product/spines/capture/core/source_families/social_media/instagram/"
     "instagram_reels_creator_metric_rollup_snapshot_v0.json"
 )
 YOUTUBE_SNAPSHOT_POINTER = (
-    "orca/product/spines/capture/core/source_families/social_media/youtube/"
+    "forseti/product/spines/capture/core/source_families/social_media/youtube/"
     "youtube_shorts_fragrance_creator_metric_rollup_snapshot_v0.json"
 )
 TIKTOK_SNAPSHOT_POINTER = (
-    "orca/product/spines/capture/core/source_families/social_media/tiktok/"
+    "forseti/product/spines/capture/core/source_families/social_media/tiktok/"
     "tiktok_profile_grid_creator_metric_rollup_snapshot_v0.json"
 )
 
@@ -217,9 +217,9 @@ def build_creator_profile_current_view_document(
             "are account-scoped unless promoted public-handle linkage exists."
         ),
         "authority_pointers": [
-            "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_profile_current_view_spec_v0.md",
-            "orca/product/spines/creator_signal/creator_intelligence_profile_surface_v0.md",
-            "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_spec_v0.md",
+            "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_profile_current_view_spec_v0.md",
+            "forseti/product/spines/creator_signal/creator_intelligence_profile_surface_v0.md",
+            "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_spec_v0.md",
         ],
         "source_inputs": [
             {

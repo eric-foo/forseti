@@ -61,7 +61,7 @@ from runners.run_source_capture_youtube_watch_packet import (
 ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_CREATOR_LEDGER = (
     ROOT
-    / "orca"
+    / "forseti"
     / "product"
     / "spines"
     / "capture"

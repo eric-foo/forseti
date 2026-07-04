@@ -1,7 +1,7 @@
 """Ledger-driven daily YT tier-1 RSS monitor -- one packet per roster channel.
 
 The cheap daily tier under the owner's 2026-07-02 two-tier direction (assessed
-in ``orca/product/spines/capture/core/source_families/social_media/youtube/
+in ``forseti/product/spines/capture/core/source_families/social_media/youtube/
 youtube_shorts_grid_tier_assessment_v0.md``): per admitted roster channel, one
 logged-out fetch of the public channel feed
 (``youtube.com/feeds/videos.xml?channel_id=<UC...>``), parsed into typed
@@ -61,7 +61,7 @@ from source_capture.youtube_channel_rss import (
 ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_LINKAGE_LEDGER = (
     ROOT
-    / "orca"
+    / "forseti"
     / "product"
     / "spines"
     / "capture"

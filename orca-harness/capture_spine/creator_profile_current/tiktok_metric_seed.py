@@ -238,9 +238,9 @@ def build_tiktok_batch_creator_metric_seed_document(
             "not SQLite/runtime storage, and not dashboard readiness."
         ),
         "authority_pointers": [
-            "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_profile_current_view_spec_v0.md",
-            "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_spec_v0.md",
-            "orca/product/spines/capture/core/source_families/social_media/tiktok/tiktok_capture_lane_spec_v0.md",
+            "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_profile_current_view_spec_v0.md",
+            "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_spec_v0.md",
+            "forseti/product/spines/capture/core/source_families/social_media/tiktok/tiktok_capture_lane_spec_v0.md",
         ],
         "source_inputs": source_inputs,
         "selection_policy": {

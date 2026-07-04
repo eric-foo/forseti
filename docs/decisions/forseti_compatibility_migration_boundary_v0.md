@@ -23,7 +23,7 @@ The next fused lane may patch narrow live human-facing defects and compatibility
 
 Preserved compatibility identifiers are not rename defects:
 
-- `orca/product/`
+- historical `orca/product/` paths
 - `orca-harness/`
 - `docs/workflows/orca_repo_map_v0.md`
 - `orca-product-lead`
@@ -48,7 +48,7 @@ The right long-term state may still include deeper path/package migration, but i
 
 | Surface | Boundary |
 | --- | --- |
-| `orca/product/` | Preserve as the accepted product tree until a separately planned moved-path migration exists. |
+| `forseti/product/` | Live product tree root after the product-root successor migration; historical `orca/product/` paths resolve through `docs/migration/forseti_product_root_migration_v0/moved_paths_index.md`. |
 | `orca-harness/` | Preserve as the runtime/tooling root. A README label may say "Forseti harness" while noting the legacy path, but the directory remains. |
 | `docs/workflows/orca_repo_map_v0.md` | No longer the live repo-map path after the successor migration; retain only as a compatibility pointer to `docs/workflows/forseti_repo_map_v0.md`. |
 | `orca-product-lead` | Preserve as the accepted/frozen compatibility skill command/path until a skill migration explicitly handles source copy, deployment copy, invocation, collision, and rollback. |
@@ -125,7 +125,7 @@ direction_change_propagation:
         Its router-only compatibility paths remain correct; changing them would be the deferred path migration this decision forbids for the next fused pass.
     - path: .agents/workflow-overlay/artifact-folders.md
       reason: >
-        It still correctly declares orca/product/ and orca-product-lead compatibility surfaces; no folder authority changes now.
+        It now declares `forseti/product/` as the live product root and preserves historical `orca/product/` through a moved-path index; no runtime/package/skill migration happens here.
     - path: .agents/workflow-overlay/source-loading.md
       reason: >
         It already names forseti_start_preflight as preferred and orca_start_preflight as a legacy alias; no alias change now.
