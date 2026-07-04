@@ -63,6 +63,16 @@ Candidate rows must provide:
 For handle-only candidates, provide `platform`. Profile URLs may infer platform
 for known social hosts. Unsupported platforms or unknown profile URL hosts are invalid candidates.
 
+## Checker Scope Note
+
+Current `check_csb_scanning_artifact.py` enforcement is shape and
+self-consistency only for `creator_registry_match_preflight` blocks. It requires
+a concrete-looking `receipt_path` and the clearance-shaped row fields, but it
+does not verify that the cited receipt file exists or parse receipt content to
+prove the declared row fields are authentic. Treat checker results as scan
+artifact shape evidence, not receipt-authenticity proof, until a later
+content-verification checker lands against a real receipt-bearing scan artifact.
+
 ## Non-Claims
 
 This preflight is exact-match enforcement only:
