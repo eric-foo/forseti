@@ -12,7 +12,10 @@ from source_capture.auth_state import AuthenticatedSessionMode
 from source_capture.source_access_provenance import HarnessProxyProfilePosture
 from source_capture.tiktok.admission import COMPLETE_LANE_NOTE
 from source_capture.tiktok.batch_packet import write_tiktok_batch_packet
-from source_capture.tiktok.live_batch_probe import write_tiktok_live_batch_probe_outputs
+from source_capture.tiktok.live_batch_probe import (
+    TIKTOK_BROWSER_BACKEND_CLOAKBROWSER,
+    write_tiktok_live_batch_probe_outputs,
+)
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -79,8 +82,19 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--browser-backend",
         choices=("playwright", "cloakbrowser"),
-        default="playwright",
-        help="Browser backend for rendered page observation; cloakbrowser owns its Chromium binary.",
+        default=TIKTOK_BROWSER_BACKEND_CLOAKBROWSER,
+        help=(
+            "Browser backend for rendered page observation. TikTok packet-grade "
+            "capture defaults to cloakbrowser; playwright is diagnostic-only."
+        ),
+    )
+    parser.add_argument(
+        "--allow-diagnostic-browser-backend",
+        action="store_true",
+        help=(
+            "Allow non-CloakBrowser backend use for explicit diagnostics. "
+            "Diagnostic backend runs are not the TikTok packet-grade route."
+        ),
     )
     parser.add_argument(
         "--require-harness-proxy-posture",
@@ -147,13 +161,30 @@ def main(argv: list[str] | None = None) -> int:
             "--allow-challenge-close-diagnostic and "
             "--allow-challenge-close-followthrough are mutually exclusive"
         )
-    if args.browser_backend == "cloakbrowser" and args.browser_channel is not None:
+    if (
+        args.browser_backend != TIKTOK_BROWSER_BACKEND_CLOAKBROWSER
+        and not args.allow_diagnostic_browser_backend
+    ):
+        parser.error(
+            "--browser-backend playwright is diagnostic-only for TikTok; pass "
+            "--allow-diagnostic-browser-backend to opt in"
+        )
+    if (
+        args.browser_backend == TIKTOK_BROWSER_BACKEND_CLOAKBROWSER
+        and args.browser_channel is not None
+    ):
         parser.error("--browser-channel cannot be combined with --browser-backend cloakbrowser")
-    if args.cloakbrowser_humanize and args.browser_backend != "cloakbrowser":
+    if (
+        args.cloakbrowser_humanize
+        and args.browser_backend != TIKTOK_BROWSER_BACKEND_CLOAKBROWSER
+    ):
         parser.error("--cloakbrowser-humanize requires --browser-backend cloakbrowser")
     if args.human_challenge_handoff and not args.allow_challenge_close_followthrough:
         parser.error("--human-challenge-handoff requires --allow-challenge-close-followthrough")
-    cloakbrowser_humanize = args.cloakbrowser_humanize or args.browser_backend == "cloakbrowser"
+    cloakbrowser_humanize = (
+        args.cloakbrowser_humanize
+        or args.browser_backend == TIKTOK_BROWSER_BACKEND_CLOAKBROWSER
+    )
     if args.logged_out:
         if args.state_label is not None or args.session_mode is not None:
             parser.error("--logged-out cannot be combined with --state-label or --session-mode")

@@ -135,6 +135,9 @@ TIKTOK_CHALLENGE_AFTER_CLOSE_FOLLOWTHROUGH_REASON = (
 TIKTOK_CHALLENGE_X_CLOSE_NOT_ACCEPTED_REASON = (
     "challenge_x_click_attempted_close_not_accepted"
 )
+TIKTOK_MANUAL_CHALLENGE_ATTENTION_REQUIRED_REASON = (
+    "manual_challenge_attention_required"
+)
 TIKTOK_CHALLENGE_TEXT_MARKERS = (
     "drag the slider",
     "verify to continue",
@@ -424,6 +427,25 @@ def run_tiktok_live_batch_probe(
             close_followthrough_attempted = (
                 allow_challenge_close_followthrough and challenge_close_clicked
             )
+            blocker_receipt = _with_manual_challenge_attention_required(
+                _with_challenge_close_action(
+                    _blocker_triage_receipt(blocker_triage),
+                    challenge_close_action,
+                    challenge_close_followthrough=False,
+                    challenge_close_diagnostic=(
+                        challenge_close_clicked and not close_followthrough_attempted
+                    ),
+                    challenge_close_accepted=(
+                        False
+                        if close_followthrough_attempted
+                        else challenge_close_accepted
+                    ),
+                ),
+                human_challenge_handoff_enabled=human_challenge_handoff,
+                human_challenge_handoff_attempted=bool(
+                    _human_challenge_handoff_attempts(capture_result)
+                ),
+            )
             challenge_count += 1
             failures.append(
                 _failure_entry(
@@ -448,19 +470,7 @@ def run_tiktok_live_batch_probe(
                         else "TikTok challenge/auth-wall marker observed; probe stopped."
                     ),
                     blocker_triage=_with_comment_route_observation(
-                        _with_challenge_close_action(
-                            _blocker_triage_receipt(blocker_triage),
-                            challenge_close_action,
-                            challenge_close_followthrough=False,
-                            challenge_close_diagnostic=(
-                                challenge_close_clicked and not close_followthrough_attempted
-                            ),
-                            challenge_close_accepted=(
-                                False
-                                if close_followthrough_attempted
-                                else challenge_close_accepted
-                            ),
-                        ),
+                        blocker_receipt,
                         capture_result,
                         comment_response_cap=comment_response_cap,
                         admit_comment_responses=False,
@@ -496,6 +506,20 @@ def run_tiktok_live_batch_probe(
             and not challenge_close_accepted
         ):
             challenge_count += 1
+            blocker_receipt = _with_manual_challenge_attention_required(
+                _with_challenge_close_action(
+                    _challenge_close_not_accepted_blocker_receipt(
+                        challenge_close_action
+                    ),
+                    challenge_close_action,
+                    challenge_close_followthrough=False,
+                    challenge_close_accepted=False,
+                ),
+                human_challenge_handoff_enabled=human_challenge_handoff,
+                human_challenge_handoff_attempted=bool(
+                    _human_challenge_handoff_attempts(capture_result)
+                ),
+            )
             failures.append(
                 _failure_entry(
                     video_url=video_url,
@@ -508,14 +532,7 @@ def run_tiktok_live_batch_probe(
                         "probe stopped before comment admission."
                     ),
                     blocker_triage=_with_comment_route_observation(
-                        _with_challenge_close_action(
-                            _challenge_close_not_accepted_blocker_receipt(
-                                challenge_close_action
-                            ),
-                            challenge_close_action,
-                            challenge_close_followthrough=False,
-                            challenge_close_accepted=False,
-                        ),
+                        blocker_receipt,
                         capture_result,
                         comment_response_cap=comment_response_cap,
                         admit_comment_responses=False,
@@ -785,6 +802,29 @@ def _with_challenge_close_action(
             receipt["challenge_close_accepted"] = challenge_close_accepted
         if challenge_close_diagnostic:
             receipt["challenge_close_diagnostic"] = challenge_close_action
+    return receipt
+
+
+def _with_manual_challenge_attention_required(
+    receipt: JsonObject,
+    *,
+    human_challenge_handoff_enabled: bool,
+    human_challenge_handoff_attempted: bool,
+) -> JsonObject:
+    receipt["owner_attention_required"] = True
+    receipt["manual_challenge_attention_required"] = True
+    receipt["owner_attention_reason"] = (
+        TIKTOK_MANUAL_CHALLENGE_ATTENTION_REQUIRED_REASON
+    )
+    receipt["owner_attention_route"] = (
+        "harness_human_challenge_handoff_prompt"
+        if human_challenge_handoff_enabled
+        else "fail_closed_no_handoff_prompt"
+    )
+    receipt["human_challenge_handoff_enabled"] = human_challenge_handoff_enabled
+    receipt["human_challenge_handoff_attempted"] = human_challenge_handoff_attempted
+    receipt["agent_may_solve_challenge"] = False
+    receipt["owner_attention_counts_as_clean_capture"] = False
     return receipt
 
 
@@ -2309,6 +2349,7 @@ __all__ = [
     "TIKTOK_CHALLENGE_X_CLOSE_NOT_ACCEPTED_REASON",
     "TIKTOK_CHALLENGE_VISUAL_CLOSE_FOLLOWTHROUGH_POINTER_ACTION_NAME",
     "TIKTOK_CHALLENGE_CLOSE_DIAGNOSTIC_REASON",
+    "TIKTOK_MANUAL_CHALLENGE_ATTENTION_REQUIRED_REASON",
     "TIKTOK_COMMENT_ROUTE_NO_RESPONSE_REASON",
     "TIKTOK_DISMISS_BENIGN_OVERLAY_POINTER_ACTION_NAME",
     "TIKTOK_COMMENT_SURFACE_TOGGLE_POINTER_SEQUENCE_NAME",
