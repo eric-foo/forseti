@@ -109,8 +109,8 @@ Grounding case: the repo already has a compatibility policy and audit. The corre
 | GitHub repository slug | `eric-foo/forseti` | BLOCKED_TARGET_SLUG_OCCUPIED as of 2026-07-04: `gh repo view eric-foo/Forseti` resolves to a separate public repo (`R_kgDOTMfy1w`), while the live repo remains `eric-foo/orca` (`R_kgDOScCLJQ`). | Owner frees `eric-foo/Forseti` or selects another target slug; re-run the GitHub slug probe; then update the hard-coded slug plan. |
 | Local checkout folder | `C:\Users\vmon7\Desktop\projects\forseti` | Still recommended, but only as a controlled fresh clone or shutdown/move after active worktrees close; do not rename this active workspace in-place. | Repo slug target selected or deliberately decoupled; active worktrees/sessions closed or a fresh clone path chosen. |
 | Remote URL defaults | `https://github.com/eric-foo/forseti.git` | Blocked with repo slug cutover while `eric-foo/Forseti` is occupied. | Update `origin` only after the owner-gated repo rename succeeds; verify `git remote -v`. |
-| Protected-action repo slug | `eric-foo/forseti` | Blocked with repo slug cutover; current guard must keep `eric-foo/orca` while that remains the live GitHub repo. | Patch `.agents/hooks/guard_protected_actions.py` only after the external rename succeeds; run selftest and review-routing gate. |
-| Merge script default repo | `eric-foo/forseti` | Blocked with repo slug cutover; current script default must keep `eric-foo/orca` while that remains the live GitHub repo. | Patch `.github/scripts/merge-when-green.ps1` only after the external rename succeeds; verify PR commands. |
+| Protected-action repo slug | `eric-foo/forseti` | Compatibility-prepped: guard still defaults to `eric-foo/orca`, but can read `FORSETI_GITHUB_REPOSITORY` after the owner-gated repo rename. | After target slug is freed/selected and rename succeeds, set or promote the configured slug; run selftest and review-routing gate. |
+| Merge script default repo | `eric-foo/forseti` | Compatibility-prepped: merge helper still defaults to `eric-foo/orca`, but can read `FORSETI_GITHUB_REPOSITORY` after the owner-gated repo rename. | After target slug is freed/selected and rename succeeds, set or promote the configured slug; verify PR commands. |
 | Product tree root | `forseti/product/` or `forseti/product/**` | Executed by `docs/decisions/forseti_product_root_migration_decision_v0.md` on the stacked product-root lane. | Moved-path index, repo-map successor/update, overlay/source-loading/checker updates, deletion-evidence handling. |
 | Harness root | `forseti-harness/` | Deferred. | Package/import install plan, CI working-directory update, check-name migration, review-routing code-root update, full test run. |
 | Package name | `forseti-harness` | Deferred with harness root. | Packaging compatibility plan and downstream install/import check. |
@@ -122,6 +122,8 @@ Grounding case: the repo already has a compatibility policy and audit. The corre
 ## What Changes Now
 
 This earlier branch did not rename a root, package, check name, skill ID, repo-map path, remote, or GitHub repo slug. The later product-root migration executes only the product tree root row.
+
+Compatibility prep addendum (2026-07-04): the protected-action guard and human merge helper now keep `eric-foo/orca` as their default live repo while accepting `FORSETI_GITHUB_REPOSITORY` as the future cutover knob. This reduces rename-day risk without claiming the occupied `eric-foo/forseti` target is available.
 
 It does fix one live metadata defect:
 
@@ -261,16 +263,18 @@ direction_change_propagation:
     - docs/workflows/forseti_repo_map_v0.md
     - .agents/hooks/guard_protected_actions.py
     - .github/scripts/merge-when-green.ps1
-  intentionally_not_updated:
+  intentionally_updated_with_compatibility_indirection:
     - path: .agents/hooks/guard_protected_actions.py
       reason: >
-        The current GitHub repo is still `eric-foo/orca`; changing the guard to
-        the occupied target slug before the external rename would make protected
-        action checks disagree with reality.
+        The current GitHub repo is still `eric-foo/orca`, so the guard keeps that
+        default while accepting `FORSETI_GITHUB_REPOSITORY` as the future cutover
+        knob after the owner-gated external rename succeeds.
     - path: .github/scripts/merge-when-green.ps1
       reason: >
-        The merge helper must keep its current repo default until the owner-gated
-        GitHub rename actually succeeds.
+        The human merge helper keeps the current repo default but can read
+        `FORSETI_GITHUB_REPOSITORY`, avoiding a source patch during the rename-day
+        operational window.
+  intentionally_not_updated:
     - path: repo-structure.yaml
       reason: >
         No local checkout, top-level root, or runtime path changed in this
