@@ -651,7 +651,10 @@ def _comment_route_zero_yield_blocker_triage(
         "benign_overlay_action": _as_dict(
             comment_receipt.get("benign_overlay_action")
         ),
-        "comment_action": _as_dict(comment_receipt.get("comment_action")),
+        "comment_action": (
+            _as_dict(comment_receipt.get("comment_action"))
+            or _missing_comment_route_action_summary()
+        ),
         "response_count": _first_int(comment_receipt.get("response_count"), 0),
         "matched_comment_response_count": _first_int(
             comment_receipt.get("matched_comment_response_count"), 0
@@ -670,6 +673,14 @@ def _comment_route_zero_yield_blocker_triage(
         receipt["challenge_close_accepted"] = challenge_close_accepted
     return receipt
 
+
+def _missing_comment_route_action_summary() -> JsonObject:
+    return {
+        "sequence_name": TIKTOK_COMMENT_SURFACE_TOGGLE_POINTER_SEQUENCE_NAME,
+        "action_count": 0,
+        "action_sequence": [],
+        "clicked_all_targets": False,
+    }
 
 def _with_challenge_close_action(
     receipt: JsonObject,
@@ -985,7 +996,6 @@ def _tiktok_challenge_visual_close_followthrough_pointer_action(
         video_id=video_id,
         random_seed=random_seed,
         action_name=TIKTOK_CHALLENGE_VISUAL_CLOSE_FOLLOWTHROUGH_POINTER_ACTION_NAME,
-        require_visible_challenge_text=False,
         stop_sequence_on_failed_post_click_verification=True,
     )
 
@@ -1065,9 +1075,12 @@ def _tiktok_open_more_like_this_pointer_action(
     return BrowserPagePointerAction(
         action_name=TIKTOK_OPEN_MORE_LIKE_THIS_POINTER_ACTION_NAME,
         candidate_selector=(
-            '[role="tab"],button,[role="button"],a,[data-e2e*="more-like"],'
-            '[data-e2e*="more_like"],[data-testid*="more-like"],'
-            '[data-test-id*="more-like"]'
+            '[role="tab"],[aria-selected],button,[role="button"],a,'
+            '[data-e2e*="more-like"],[data-e2e*="more_like"],'
+            '[data-e2e*="you-may-like"],[data-e2e*="you_may_like"],'
+            '[data-testid*="more-like"],[data-testid*="you-may-like"],'
+            '[data-test-id*="more-like"],[data-test-id*="you-may-like"],'
+            'div,span,p'
         ),
         text_markers=(
             "more like this",
@@ -1077,11 +1090,13 @@ def _tiktok_open_more_like_this_pointer_action(
             "you-may-like",
             "you_may_like",
         ),
+        exact_text_markers=("more like this", "you may like"),
         wait_after_ms=2000,
         move_steps_min=6,
         move_steps_max=12,
         target_fraction_min=0.35,
         target_fraction_max=0.65,
+        prefer_smallest_match=True,
         random_seed=_stable_pointer_seed(
             video_id=video_id,
             random_seed=random_seed,

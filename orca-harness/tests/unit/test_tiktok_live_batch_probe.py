@@ -224,6 +224,9 @@ def test_live_probe_writes_sanitized_staging_compatible_with_batch_admission(
         "you-may-like",
         "you_may_like",
     )
+    assert "div,span,p" in pointer_actions[3].candidate_selector
+    assert pointer_actions[3].exact_text_markers == ("more like this", "you may like")
+    assert pointer_actions[3].prefer_smallest_match is True
     assert pointer_actions[4].wait_after_ms == 3500
     assert pointer_actions[7].wait_after_ms == 3500
     assert engine.calls[0]["response_predicate_matches_comment_list"] is True
@@ -662,7 +665,12 @@ def test_live_probe_challenge_close_followthrough_admits_post_close_comments(
         "captcha",
         "security check",
     )
-    assert pointer_actions[3].page_text_markers == ()
+    assert pointer_actions[3].page_text_markers == (
+        "drag the slider",
+        "verify to continue",
+        "captcha",
+        "security check",
+    )
     assert pointer_actions[3].visual_top_right_x_fallback is True
     assert pointer_actions[3].stop_sequence_on_failed_post_click_verification is True
     cadence = json.loads(paths.cadence_result_json_path.read_text(encoding="utf-8"))
@@ -1144,6 +1152,42 @@ def test_live_probe_stops_on_zero_comment_list_response(tmp_path: Path) -> None:
     }
     assert len(engine.calls) == 1
 
+
+def test_live_probe_zero_comment_response_reports_missing_comment_route_actions(tmp_path: Path) -> None:
+    auth_root = _auth_state(tmp_path)
+    engine = _FakeObservationEngine(
+        outcomes=[
+            _success_observation(
+                video_id="7390000000000000001",
+                responses=[],
+                pointer_sequence=[_retry_action_receipt(), _benign_overlay_action_receipt()],
+            ),
+        ]
+    )
+
+    paths = write_tiktok_live_batch_probe_outputs(
+        creator_handle="funmi",
+        creator_profile_url="https://www.tiktok.com/@funmi",
+        video_urls=["https://www.tiktok.com/@funmi/video/7390000000000000001"],
+        state_label="test-session",
+        session_mode=AuthenticatedSessionMode.FREE_ACCOUNT_CREATED,
+        auth_state_root=auth_root,
+        output_dir=tmp_path / "out",
+        cadence_min_gap_seconds=0,
+        cadence_max_gap_seconds=0,
+        random_seed=1,
+        engine=engine,
+        sleep_fn=lambda _seconds: None,
+    )
+
+    cadence = json.loads(paths.cadence_result_json_path.read_text(encoding="utf-8"))
+    triage = cadence["failures"][0]["blocker_triage"]
+    assert triage["comment_action"] == {
+        "sequence_name": TIKTOK_COMMENT_SURFACE_TOGGLE_POINTER_SEQUENCE_NAME,
+        "action_count": 0,
+        "action_sequence": [],
+        "clicked_all_targets": False,
+    }
 
 def test_live_probe_completes_with_dom_visible_comment_fallback(tmp_path: Path) -> None:
     auth_root = _auth_state(tmp_path)

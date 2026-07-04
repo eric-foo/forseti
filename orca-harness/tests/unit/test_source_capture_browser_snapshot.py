@@ -838,6 +838,7 @@ def test_fetch_browser_page_observation_capture_threads_pointer_actions_to_engin
             candidate_selector=" [role='tab'] ",
             text_markers=(" More like this ",),
             random_seed=8,
+            prefer_smallest_match=True,
         ),
     )
 
@@ -868,6 +869,7 @@ def test_fetch_browser_page_observation_capture_threads_pointer_actions_to_engin
             candidate_selector="[role='tab']",
             text_markers=("more like this",),
             random_seed=8,
+            prefer_smallest_match=True,
         ),
     )
 def test_pointer_action_target_script_matches_data_attributes() -> None:
@@ -879,6 +881,7 @@ def test_pointer_action_target_script_matches_data_attributes() -> None:
     assert "page_text_markers" in script
     assert "exact_text_markers" in script
     assert "prefer_top_right" in script
+    assert "prefer_smallest_match" in script
     assert "node.getAttribute('class')" in script
     assert "document.body.textContent" not in script
 

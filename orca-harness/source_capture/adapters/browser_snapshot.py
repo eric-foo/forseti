@@ -41,6 +41,7 @@ class BrowserPagePointerAction:
     target_fraction_min: float = 0.35
     target_fraction_max: float = 0.65
     prefer_top_right: bool = False
+    prefer_smallest_match: bool = False
     visual_top_right_x_fallback: bool = False
     visual_x_target_zone: str = "top_right"
     visual_x_geometric_fallback: bool = True
@@ -1088,6 +1089,7 @@ _POINTER_ACTION_TARGET_SCRIPT = r"""
   const exactMarkers = normalizeMarkers(args.exact_text_markers);
   const pageTextMarkers = normalizeMarkers(args.page_text_markers);
   const preferTopRight = Boolean(args.prefer_top_right);
+  const preferSmallestMatch = Boolean(args.prefer_smallest_match);
   const result = {
     candidate_count: 0,
     matched_count: 0,
@@ -1095,7 +1097,7 @@ _POINTER_ACTION_TARGET_SCRIPT = r"""
     target_kind: null,
     box: null,
     page_text_gate_matched: pageTextMarkers.length === 0 ? null : false,
-    selection_strategy: preferTopRight ? 'top_right' : 'first_match',
+    selection_strategy: preferTopRight ? 'top_right' : preferSmallestMatch ? 'smallest_match' : 'first_match',
   };
   if (pageTextMarkers.length > 0) {
     const pageText = [
@@ -1120,7 +1122,7 @@ _POINTER_ACTION_TARGET_SCRIPT = r"""
     const tag = String(node.tagName || '').toLowerCase();
     const role = String(node.getAttribute('role') || '').toLowerCase();
     return {
-      target_kind: tag === 'button' ? 'button' : role === 'button' ? 'role_button' : tag === 'a' ? 'link' : 'candidate',
+      target_kind: tag === 'button' ? 'button' : role === 'button' ? 'role_button' : role === 'tab' ? 'tab' : tag === 'a' ? 'link' : 'candidate',
       box: {
         x: rect.x,
         y: rect.y,
@@ -1167,6 +1169,19 @@ _POINTER_ACTION_TARGET_SCRIPT = r"""
     }
   }
   let selected = priority || fallback;
+  if (preferSmallestMatch && matches.length > 0) {
+    selected = matches.slice().sort((left, right) => {
+      const leftArea = left.box.width * left.box.height;
+      const rightArea = right.box.width * right.box.height;
+      if (leftArea !== rightArea) {
+        return leftArea - rightArea;
+      }
+      if (left.box.y !== right.box.y) {
+        return left.box.y - right.box.y;
+      }
+      return left.box.x - right.box.x;
+    })[0];
+  }
   if (preferTopRight && matches.length > 0) {
     selected = matches.slice().sort((left, right) => {
       if (left.box.y !== right.box.y) {
@@ -1263,6 +1278,7 @@ def _normalize_pointer_action(
         target_fraction_min=action.target_fraction_min,
         target_fraction_max=action.target_fraction_max,
         prefer_top_right=bool(action.prefer_top_right),
+        prefer_smallest_match=bool(action.prefer_smallest_match),
         visual_top_right_x_fallback=bool(action.visual_top_right_x_fallback),
         visual_x_target_zone=visual_x_target_zone,
         visual_x_geometric_fallback=bool(action.visual_x_geometric_fallback),
@@ -1634,6 +1650,7 @@ def _run_pointer_action(page: object, action: BrowserPagePointerAction) -> dict[
                 "page_text_markers": list(action.page_text_markers),
                 "exact_text_markers": list(action.exact_text_markers),
                 "prefer_top_right": action.prefer_top_right,
+                "prefer_smallest_match": action.prefer_smallest_match,
             },
         )
     except Exception:
