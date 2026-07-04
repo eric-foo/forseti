@@ -304,6 +304,33 @@ def test_shared_family_known_other_surface_acked_out_of_scope_never_derived(
     assert run_catchup(data_root=data_root) == []
 
 
+def test_out_of_scope_policy_change_re_surfaces_previous_ack(tmp_path, monkeypatch) -> None:
+    # F-IGRC-002 convention: the surface gate is fingerprinted policy — removing a
+    # surface from the known-out-of-scope set must re-surface its packets as
+    # visible unsupported_surface instead of leaving the old ack trusted.
+    data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    pid = _commit_family_packet(
+        data_root,
+        tmp_path,
+        name="parfumo",
+        source_surface="parfumo_product_page_direct_http",
+        body_text="<html><body>a parfumo page</body></html>",
+    )
+    assert [r["status"] for r in run_catchup(data_root=data_root)] == [
+        "acked_no_cleanable_content"
+    ]
+
+    monkeypatch.setattr(frag_runner, "_KNOWN_OUT_OF_SCOPE_SURFACES", frozenset())
+    second = run_catchup(data_root=data_root)
+
+    assert [r["status"] for r in second] == ["unsupported_surface"]
+    assert second[0]["source_surface"] == "parfumo_product_page_direct_http"
+    assert (
+        len(find_acks(data_root, raw_anchor=pid, ack_namespace=FRAGRANTICA_CLEANING_AUDIT_LANE))
+        == 1
+    )
+
+
 def test_unknown_family_surface_fails_loud_without_ack(tmp_path) -> None:
     data_root = DataLakeRoot.for_test(tmp_path / "lake")
     pid = _commit_family_packet(

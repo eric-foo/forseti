@@ -19,6 +19,11 @@ Before starting a new social creator capture, pass the candidate account batch
 through `orca-harness/runners/run_creator_registry_match_preflight.py` against
 the current `creator_profile_current_view_v0.json`.
 
+Write or preserve the emitted receipt and cite it in the scan/capture handoff or
+agent report before starting `new_capture`. A manual visual scan of the registry
+or static projection is useful orientation, but it is not a substitute for the
+runner receipt.
+
 The preflight emits a receipt for each candidate:
 
 - `existing_match`: do not create a new creator/account capture; update or work
@@ -30,6 +35,14 @@ The preflight emits a receipt for each candidate:
 
 The runner exits nonzero when a requested action is blocked, including
 `new_capture` on an existing or ambiguous candidate.
+
+Command shape:
+
+```powershell
+python orca-harness/runners/run_creator_registry_match_preflight.py `
+  --candidates "<candidate batch json>" `
+  --output "<receipt json>"
+```
 
 ## Candidate Input
 
@@ -54,6 +67,7 @@ This preflight is exact-match enforcement only:
 - not silver metric refresh
 - not registry mutation
 - not live social search
+- not a Source Capture packet writer
 
 ## Accepted Residuals
 

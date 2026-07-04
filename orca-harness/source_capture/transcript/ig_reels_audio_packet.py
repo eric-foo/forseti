@@ -119,6 +119,173 @@ def _bounded_model_token(model: object) -> str:
     return (token or "asr")[:_MAX_MODEL_TOKEN]
 
 
+def ig_asr_record_id(model: object, audio_sha256: str) -> str:
+    """Deterministic IG transcript record id for one audio packet + ASR model policy
+    (the bounded-token variant of ``asr_packet.asr_record_id``)."""
+    return f"asr_{_bounded_model_token(model)}__{audio_sha256[:16]}"
+
+
+def _run_ig_transcriber(
+    audio_bytes: bytes, audio_ext: str, transcribe_fn: TranscribeFn
+) -> tuple[str, list[dict], dict]:
+    """Run the injected transcriber on a temp file and normalize the posture/cue
+    coupling (never-fabricate; unknown postures collapse to `failed`)."""
+    fd, tmp_audio = tempfile.mkstemp(suffix=f".{audio_ext}", prefix="orca_ig_asr_")
+    try:
+        with os.fdopen(fd, "wb") as handle:
+            handle.write(audio_bytes)
+        try:
+            posture, cues, model_info = transcribe_fn(tmp_audio)
+        except Exception as exc:  # noqa: BLE001 - an injected transcriber raise still records a `failed` posture
+            posture, cues, model_info = "failed", [], {
+                "tool": "faster-whisper",
+                "model_digest": None,
+                "model_digest_basis": "transcriber raised before producing provenance",
+                "failure_type": type(exc).__name__,
+                "failure_message": str(exc)[:200],
+            }
+    finally:
+        try:
+            os.unlink(tmp_audio)
+        except OSError:
+            pass
+
+    if posture not in {"transcribed", "no_speech", "failed"}:
+        posture = "failed"
+    if posture == "transcribed" and not cues:
+        posture = "no_speech"
+    if posture != "transcribed":
+        cues = []
+    return posture, cues, model_info
+
+
+def _append_ig_transcript_record(
+    data_root,
+    *,
+    audio_packet_id: str,
+    shortcode: str,
+    audio_file_id: str,
+    audio_sha: str,
+    posture: str,
+    cues: list[dict],
+    model_info: dict,
+    ts: str,
+) -> tuple[str, str]:
+    """Append the IG transcript_asr derived record on the audio anchor and return
+    (record_id, record relpath)."""
+    record = {
+        "video_id": shortcode,            # IG shortcode carried in video_id (reused field; the
+        "shortcode": shortcode,           # extractor/runner key on video_id, the schema is agnostic)
+        "platform": "instagram",
+        "posture": posture,               # transcribed | no_speech | failed
+        "cue_count": len(cues),
+        "cues": cues,                     # each: {start_ms, end_ms, text}; empty unless transcribed
+        "provenance": {
+            **model_info,
+            "source_packet_id": audio_packet_id,
+            "source_file_id": audio_file_id,
+            "source_sha256": audio_sha,
+        },
+        "retrieval_time_utc": ts,
+    }
+    record_id = ig_asr_record_id(model_info.get("model", "asr"), audio_sha)
+    written = data_root.append_record(
+        subtree="derived",
+        raw_anchor=audio_packet_id,
+        lane="transcript_asr",
+        record_id=record_id,
+        data=(json.dumps(record, ensure_ascii=False, indent=2) + "\n").encode("utf-8"),
+    )
+    rel = written.relative_to(data_root.path.resolve()).as_posix()
+    return record_id, rel
+
+
+def _ig_policy_model_mismatch(expected_model: object | None, actual_model: object, audio_sha: str) -> str | None:
+    if expected_model is None:
+        return None
+    expected_record_id = ig_asr_record_id(expected_model, audio_sha)
+    actual_record_id = ig_asr_record_id(actual_model, audio_sha)
+    if actual_record_id == expected_record_id:
+        return None
+    return (
+        "transcriber model mismatch: "
+        f"policy model {expected_model!r} would write {expected_record_id}, "
+        f"but transcriber reported {actual_model!r} ({actual_record_id})"
+    )
+
+
+def transcribe_committed_ig_audio_packet(
+    data_root,
+    *,
+    packet_id: str,
+    transcribe_fn: TranscribeFn,
+    expected_model: object | None = None,
+    now_iso: str | None = None,
+) -> dict:
+    """Derive the transcript_asr record for an ALREADY COMMITTED IG Reel audio packet
+    (the catch-up half — verified by-key read, injected transcriber, derived record
+    on the EXISTING anchor).
+
+    Block-don't-burn (deliberate divergence from the capture fusion, which records
+    ``failed`` postures safely because every capture run mints a fresh packet): a
+    failed transcription here writes NO record — the deterministic model+audio
+    record id is append-only, and committing an environment failure would
+    permanently block retry under the same policy. Raises on a packet that is not
+    an IG audio packet shape (missing audio / capture_metadata / shortcode).
+    """
+    loaded = data_root.load_raw_packet(packet_id)
+    preserved = loaded.manifest.get("preserved_files") or []
+    audio_entry = next(
+        (pf for pf in preserved if ".audio." in str(pf.get("relative_packet_path", ""))), None
+    )
+    meta_entry = next(
+        (
+            pf
+            for pf in preserved
+            if str(pf.get("relative_packet_path", "")).endswith("capture_metadata.json")
+        ),
+        None,
+    )
+    if audio_entry is None or meta_entry is None:
+        raise ValueError(
+            f"committed packet {packet_id} is not an audio+metadata capture; refusing to transcribe"
+        )
+    identity = json.loads(loaded.bodies[meta_entry["file_id"]].decode("utf-8"))
+    shortcode = identity.get("platform_shortcode")
+    if not isinstance(shortcode, str) or not _IG_SHORTCODE.fullmatch(shortcode):
+        raise ValueError(f"committed packet {packet_id} carries no valid platform_shortcode")
+    audio_bytes = loaded.bodies[audio_entry["file_id"]]
+    audio_ext = _safe_audio_ext(str(audio_entry["relative_packet_path"]).rsplit(".", 1)[-1]) or "bin"
+    ts = now_iso or (datetime.datetime.utcnow().isoformat() + "Z")
+
+    posture, cues, model_info = _run_ig_transcriber(audio_bytes, audio_ext, transcribe_fn)
+    if posture == "failed":
+        return {
+            "posture": "failed",
+            "failure": str(model_info.get("failure_message") or "transcriber failed")[:200],
+        }
+    mismatch = _ig_policy_model_mismatch(expected_model, model_info.get("model", "asr"), audio_entry["sha256"])
+    if mismatch:
+        return {"posture": "failed", "failure": mismatch[:200]}
+    record_id, rel = _append_ig_transcript_record(
+        data_root,
+        audio_packet_id=packet_id,
+        shortcode=shortcode,
+        audio_file_id=audio_entry["file_id"],
+        audio_sha=audio_entry["sha256"],
+        posture=posture,
+        cues=cues,
+        model_info=model_info,
+        ts=ts,
+    )
+    return {
+        "posture": posture,
+        "record_id": record_id,
+        "record_relpath": rel,
+        "cue_count": len(cues),
+    }
+
+
 def classify_ig_fetch_failure(stderr: str) -> str:
     """Map yt-dlp stderr to a typed fetch status. Audience-restricted / login-walled -> a typed
     skip (`access_gated`); everything else -> `unavailable`. Pure (offline-testable)."""
@@ -261,58 +428,19 @@ def write_ig_reels_asr_transcript(
     )
     audio_packet_id = result.packet.packet_id
 
-    # Run the injected transcriber on a temp file (Windows-safe: write, close, transcribe, unlink).
-    fd, tmp_audio = tempfile.mkstemp(suffix=f".{safe_ext}", prefix="orca_ig_asr_")
-    try:
-        with os.fdopen(fd, "wb") as handle:
-            handle.write(audio_bytes)
-        try:
-            posture, cues, model_info = transcribe_fn(tmp_audio)
-        except Exception as exc:  # noqa: BLE001 - an injected transcriber raise still records a `failed` posture
-            posture, cues, model_info = "failed", [], {
-                "tool": "faster-whisper",
-                "model_digest": None,
-                "model_digest_basis": "transcriber raised before producing provenance",
-                "failure_type": type(exc).__name__,
-                "failure_message": str(exc)[:200],
-            }
-    finally:
-        try:
-            os.unlink(tmp_audio)
-        except OSError:
-            pass
-
-    # Posture/cue consistency + never-fabricate: only `transcribed` carries cues; unknown -> failed.
-    if posture not in {"transcribed", "no_speech", "failed"}:
-        posture = "failed"
-    if posture == "transcribed" and not cues:
-        posture = "no_speech"
-    if posture != "transcribed":
-        cues = []
-
-    record = {
-        "video_id": shortcode,            # IG shortcode carried in video_id (reused field; the
-        "shortcode": shortcode,           # extractor/runner key on video_id, the schema is agnostic)
-        "platform": "instagram",
-        "posture": posture,               # transcribed | no_speech | failed
-        "cue_count": len(cues),
-        "cues": cues,                     # each: {start_ms, end_ms, text}; empty unless transcribed
-        "provenance": {
-            **model_info,
-            "source_packet_id": audio_packet_id,
-            "source_file_id": file_ids[audio_name],
-            "source_sha256": audio_sha,
-        },
-        "retrieval_time_utc": ts,
-    }
-    model_token = _bounded_model_token(model_info.get("model", "asr"))
-    record_id = f"asr_{model_token}__{audio_sha[:16]}"
-    written = data_root.append_record(
-        subtree="derived",
-        raw_anchor=audio_packet_id,
-        lane="transcript_asr",
-        record_id=record_id,
-        data=(json.dumps(record, ensure_ascii=False, indent=2) + "\n").encode("utf-8"),
+    # Capture fusion keeps recording `failed` postures: each run mints a NEW audio
+    # packet, so a failed record never blocks a retry (unlike the committed-packet
+    # catch-up path — see ``transcribe_committed_ig_audio_packet``).
+    posture, cues, model_info = _run_ig_transcriber(audio_bytes, safe_ext, transcribe_fn)
+    _record_id, rel = _append_ig_transcript_record(
+        data_root,
+        audio_packet_id=audio_packet_id,
+        shortcode=shortcode,
+        audio_file_id=file_ids[audio_name],
+        audio_sha=audio_sha,
+        posture=posture,
+        cues=cues,
+        model_info=model_info,
+        ts=ts,
     )
-    rel = written.relative_to(data_root.path.resolve()).as_posix()
     return 0, f"{rel} [{posture}, {len(cues)} cues]"

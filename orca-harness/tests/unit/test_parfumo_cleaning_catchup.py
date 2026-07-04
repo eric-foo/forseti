@@ -216,6 +216,33 @@ def test_catchup_second_run_is_byte_unchanged_noop(tmp_path) -> None:
     assert _lake_tree_state(data_root) == before
 
 
+def test_out_of_scope_policy_change_re_surfaces_previous_ack(tmp_path, monkeypatch) -> None:
+    # F-IGRC-002 convention: the surface gate is fingerprinted policy — removing a
+    # surface from the known-out-of-scope set must re-surface its packets as
+    # visible unsupported_surface instead of leaving the old ack trusted.
+    from cleaning.parfumo_lake import PARFUMO_CLEANING_AUDIT_LANE as _audit_lane
+    from data_lake.consumption import find_acks as _find_acks
+
+    data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    pid = _commit_family_packet(
+        data_root,
+        tmp_path,
+        name="bn",
+        source_surface=_BASENOTES_SURFACE,
+        body_text="<html><body>a basenotes page</body></html>",
+    )
+    assert [r["status"] for r in run_catchup(data_root=data_root)] == [
+        "acked_no_cleanable_content"
+    ]
+
+    monkeypatch.setattr(pf_runner, "_KNOWN_OUT_OF_SCOPE_SURFACES", frozenset())
+    second = run_catchup(data_root=data_root)
+
+    assert [r["status"] for r in second] == ["unsupported_surface"]
+    assert second[0]["source_surface"] == _BASENOTES_SURFACE
+    assert len(_find_acks(data_root, raw_anchor=pid, ack_namespace=_audit_lane)) == 1
+
+
 def test_policy_bump_resurfaces_and_rederives(tmp_path, monkeypatch) -> None:
     data_root = DataLakeRoot.for_test(tmp_path / "lake")
     pid = _commit_family_packet(data_root, tmp_path)
