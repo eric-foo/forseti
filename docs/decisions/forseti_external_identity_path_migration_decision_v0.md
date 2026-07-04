@@ -41,7 +41,7 @@ The next executable migration should be **external identity first**: GitHub repo
 
 This means:
 
-- `eric-foo/orca` can become `eric-foo/forseti`, but that is an external owner-gated operation and must be paired with source updates for repo slug assumptions.
+- `eric-foo/orca` can become `eric-foo/forseti` only after the target slug is actually available or an alternate target is chosen; as of 2026-07-04, `eric-foo/Forseti` resolves to a separate public repository (`R_kgDOTMfy1w`), while the live repo remains `eric-foo/orca` (`R_kgDOScCLJQ`).
 - The local checkout folder can become `forseti`, but not by renaming the currently active workspace in-place while worktrees and running sessions depend on it. Prefer a fresh clone or a controlled move after active worktrees are closed.
 - `forseti/product/`, `orca-harness/`, `orca-product-lead`, `orca_start_preflight`, and `orca-harness-tests` remain compatibility identifiers until their own migration units are planned and validated. The repo-map path has since moved to `docs/workflows/forseti_repo_map_v0.md`, with `docs/workflows/orca_repo_map_v0.md` retained as a compatibility pointer.
 - Live human-facing metadata that says Orca is current should be fixed when found. This decision includes one such bounded repair: `orca-harness/pyproject.toml` description now says Forseti while retaining package name `orca-harness`.
@@ -49,6 +49,24 @@ This means:
 ## Why
 
 Leaving all repo and folder identity as Orca creates long-term confusion because new operators see the old name in clone URLs, local paths, scripts, and protected-action examples before they see the Forseti authority docs.
+
+## Current External Identity Gate
+
+Observed on 2026-07-04:
+
+```text
+gh repo view eric-foo/orca --json name,nameWithOwner,url,id,visibility
+{"id":"R_kgDOScCLJQ","name":"orca","nameWithOwner":"eric-foo/orca","url":"https://github.com/eric-foo/orca","visibility":"PUBLIC"}
+
+gh repo view eric-foo/Forseti --json name,nameWithOwner,url,id,visibility
+{"id":"R_kgDOTMfy1w","name":"Forseti","nameWithOwner":"eric-foo/Forseti","url":"https://github.com/eric-foo/Forseti","visibility":"PUBLIC"}
+```
+
+Status: `BLOCKED_TARGET_SLUG_OCCUPIED` for the named `eric-foo/forseti` target.
+Do not update remotes, protected-action repo slug, merge-script defaults, or live
+dev docs to `eric-foo/forseti` while the target slug resolves to another
+repository. The next owner-gated action is to free `eric-foo/Forseti` or choose
+an alternate slug, then re-run the slug probe before any source cutover.
 
 But internal path/package migration is materially larger than external identity migration. The observed blast radius is broad enough that a word-match or single-pass path rename would create fake success:
 
@@ -88,11 +106,11 @@ Grounding case: the repo already has a compatibility policy and audit. The corre
 
 | Unit | Target name | Status | Gate before execution |
 | --- | --- | --- | --- |
-| GitHub repository slug | `eric-foo/forseti` | Recommended next external identity unit. | Owner confirmation and update plan for hard-coded repo slug assumptions. |
-| Local checkout folder | `C:\Users\vmon7\Desktop\projects\forseti` | Recommended after or alongside repo slug cutover. | Do not move active workspaces in-place; use fresh clone or close active worktrees first. |
-| Remote URL defaults | `https://github.com/eric-foo/forseti.git` | Coupled to repo slug cutover. | Update `origin` after GitHub slug change; verify `git remote -v`. |
-| Protected-action repo slug | `eric-foo/forseti` | Coupled to repo slug cutover. | Patch `.agents/hooks/guard_protected_actions.py`; run selftest if available and review-routing gate. |
-| Merge script default repo | `eric-foo/forseti` | Coupled to repo slug cutover. | Patch `.github/scripts/merge-when-green.ps1`; verify PR commands. |
+| GitHub repository slug | `eric-foo/forseti` | BLOCKED_TARGET_SLUG_OCCUPIED as of 2026-07-04: `gh repo view eric-foo/Forseti` resolves to a separate public repo (`R_kgDOTMfy1w`), while the live repo remains `eric-foo/orca` (`R_kgDOScCLJQ`). | Owner frees `eric-foo/Forseti` or selects another target slug; re-run the GitHub slug probe; then update the hard-coded slug plan. |
+| Local checkout folder | `C:\Users\vmon7\Desktop\projects\forseti` | Still recommended, but only as a controlled fresh clone or shutdown/move after active worktrees close; do not rename this active workspace in-place. | Repo slug target selected or deliberately decoupled; active worktrees/sessions closed or a fresh clone path chosen. |
+| Remote URL defaults | `https://github.com/eric-foo/forseti.git` | Blocked with repo slug cutover while `eric-foo/Forseti` is occupied. | Update `origin` only after the owner-gated repo rename succeeds; verify `git remote -v`. |
+| Protected-action repo slug | `eric-foo/forseti` | Blocked with repo slug cutover; current guard must keep `eric-foo/orca` while that remains the live GitHub repo. | Patch `.agents/hooks/guard_protected_actions.py` only after the external rename succeeds; run selftest and review-routing gate. |
+| Merge script default repo | `eric-foo/forseti` | Blocked with repo slug cutover; current script default must keep `eric-foo/orca` while that remains the live GitHub repo. | Patch `.github/scripts/merge-when-green.ps1` only after the external rename succeeds; verify PR commands. |
 | Product tree root | `forseti/product/` or `forseti/product/**` | Executed by `docs/decisions/forseti_product_root_migration_decision_v0.md` on the stacked product-root lane. | Moved-path index, repo-map successor/update, overlay/source-loading/checker updates, deletion-evidence handling. |
 | Harness root | `forseti-harness/` | Deferred. | Package/import install plan, CI working-directory update, check-name migration, review-routing code-root update, full test run. |
 | Package name | `forseti-harness` | Deferred with harness root. | Packaging compatibility plan and downstream install/import check. |
@@ -117,22 +135,25 @@ Renaming the GitHub repository is an outward-facing external operation. It shoul
 
 Smallest complete owner-gated repo-identity lane:
 
-1. Owner confirms target slug `eric-foo/forseti`.
-2. Rename repo in GitHub settings or with an explicit owner-authorized `gh repo rename forseti` operation.
-3. Update local remotes to `https://github.com/eric-foo/forseti.git`.
-4. Patch hard-coded slug surfaces: `.agents/hooks/guard_protected_actions.py`, `.github/scripts/merge-when-green.ps1`, and live workflow/dev docs that are not historical prompts or review outputs.
-5. Verify `gh pr view`, protected-action guard behavior, merge script defaults, and CI.
+1. Owner frees the occupied `eric-foo/Forseti` slug or chooses an alternate target slug.
+2. Re-run the GitHub slug probe and stop if the target still resolves to another repository.
+3. Owner confirms the final target slug.
+4. Rename repo in GitHub settings or with an explicit owner-authorized `gh repo rename <target>` operation.
+5. Update local remotes to the renamed repo URL and verify `git remote -v`.
+6. Patch hard-coded slug surfaces: `.agents/hooks/guard_protected_actions.py`, `.github/scripts/merge-when-green.ps1`, and live workflow/dev docs that are not historical prompts or review outputs.
+7. Verify `gh pr view`, protected-action guard behavior, merge script defaults, and CI.
 
 GitHub usually provides repository redirects after a rename, but this decision does not rely on redirects as the long-term operating state.
 
 ## Recommended Sequence
 
-1. Land this decision and metadata-label repair.
-2. Run an owner-gated external identity cutover for repo slug plus local folder/remotes.
-3. After external identity is stable, decide whether internal compatibility paths still cause enough confusion to justify migration.
-4. If yes, migrate `forseti/product/` before `orca-harness/`; the repo-map path successor is handled by `docs/decisions/forseti_repo_map_successor_migration_decision_v0.md`, while the product tree remains the next authority/navigation root.
-5. Migrate `orca-harness/`, package name, and CI check name as one runtime lane only after package/install/test and auto-merge impacts are bound.
-6. Migrate `orca-product-lead` and retire `orca_start_preflight` only after the roots and repo-map path settle.
+1. Land this decision, metadata-label repair, and the later target-slug blocker update.
+2. Resolve the occupied target slug: owner frees `eric-foo/Forseti` or chooses an alternate, then re-probe GitHub before any rename.
+3. Run an owner-gated external identity cutover for repo slug plus local folder/remotes.
+4. After external identity is stable, decide whether internal compatibility paths still cause enough confusion to justify migration.
+5. If yes, migrate `forseti/product/` before `orca-harness/`; the repo-map path successor is handled by `docs/decisions/forseti_repo_map_successor_migration_decision_v0.md`, while the product tree remains the next authority/navigation root.
+6. Migrate `orca-harness/`, package name, and CI check name as one runtime lane only after package/install/test and auto-merge impacts are bound.
+7. Migrate `orca-product-lead` and retire `orca_start_preflight` only after the roots and repo-map path settle.
 
 ## Rejected Paths
 
@@ -218,3 +239,59 @@ direction_change_propagation:
     - not path/package migration
     - not GitHub repo rename execution
 ```
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    External repo identity cutover is now explicitly blocked on target-slug
+    availability: `eric-foo/Forseti` resolves to a separate public repository as
+    of 2026-07-04, so repo/remotes/protected-action/merge-script cutover must not
+    proceed until the owner frees that slug or chooses an alternate and the slug
+    probe is re-run.
+  trigger: lifecycle_boundary
+  related_triggers:
+    - workflow_authority
+    - output_authority
+  controlling_sources_updated:
+    - docs/decisions/forseti_external_identity_path_migration_decision_v0.md
+  downstream_surfaces_checked:
+    - AGENTS.md
+    - .agents/workflow-overlay/README.md
+    - .agents/workflow-overlay/source-of-truth.md
+    - docs/workflows/forseti_repo_map_v0.md
+    - .agents/hooks/guard_protected_actions.py
+    - .github/scripts/merge-when-green.ps1
+  intentionally_not_updated:
+    - path: .agents/hooks/guard_protected_actions.py
+      reason: >
+        The current GitHub repo is still `eric-foo/orca`; changing the guard to
+        the occupied target slug before the external rename would make protected
+        action checks disagree with reality.
+    - path: .github/scripts/merge-when-green.ps1
+      reason: >
+        The merge helper must keep its current repo default until the owner-gated
+        GitHub rename actually succeeds.
+    - path: repo-structure.yaml
+      reason: >
+        No local checkout, top-level root, or runtime path changed in this
+        blocker update.
+  stale_language_search: >
+    rg -n "eric-foo/orca|eric-foo/forseti|eric-foo/Forseti|repo slug|gh repo rename|remote URL|merge-when-green"
+    docs/decisions/forseti_external_identity_path_migration_decision_v0.md
+    docs/workflows/forseti_repo_map_v0.md .agents/hooks/guard_protected_actions.py
+    .github/scripts/merge-when-green.ps1 README.md AGENTS.md
+  stale_language_search_result: >
+    Executed 2026-07-04 in codex/forseti-external-identity-blocker. The live
+    repo slug remains in .agents/hooks/guard_protected_actions.py and
+    .github/scripts/merge-when-green.ps1 by design; the decision and repo-map
+    entries document the target-slug blocker instead of cutting over to the
+    occupied Forseti repository.
+  non_claims:
+    - not validation
+    - not readiness
+    - not GitHub repo rename execution
+    - not local checkout rename execution
+    - not path/package migration
+```
+
+Older receipts archived verbatim in `docs/decisions/dcp_receipts_archive_v0.md`.
