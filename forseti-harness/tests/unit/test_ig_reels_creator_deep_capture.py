@@ -393,7 +393,7 @@ def test_scan_then_select_end_to_end_offline() -> None:
     assert all(isinstance(c, CapturedReel) and c.ok for c in captured)
 
 
-def test_creator_main_persists_when_orca_data_root_env_set(
+def test_creator_main_persists_when_forseti_data_root_env_set(
     tmp_path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:
     root = DataLakeRoot.for_test(tmp_path / "orca-data")
@@ -415,7 +415,7 @@ def test_creator_main_persists_when_orca_data_root_env_set(
         seen["explicit"] = explicit
         return root
 
-    monkeypatch.setenv("ORCA_DATA_ROOT", str(root.path))
+    monkeypatch.setenv("FORSETI_DATA_ROOT", str(root.path))
     monkeypatch.setattr(deep_capture_runner.DataLakeRoot, "resolve", staticmethod(resolve))
     monkeypatch.setattr(creator_runner.tempfile, "TemporaryDirectory", _TempDir)
     monkeypatch.setattr(

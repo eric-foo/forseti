@@ -33,7 +33,7 @@ def test_youtube_caption_runner_rejects_explicit_output_and_data_root_before_fet
 
 def test_youtube_caption_runner_ignores_env_data_root_when_output_is_explicit(monkeypatch, tmp_path: Path) -> None:
     output = tmp_path / "packet"
-    monkeypatch.setenv("ORCA_DATA_ROOT", str(tmp_path / "lake"))
+    monkeypatch.setenv("FORSETI_DATA_ROOT", str(tmp_path / "lake"))
 
     def fake_fetch(video_id: str) -> object:
         assert video_id == _VIDEO_ID
@@ -72,7 +72,7 @@ def test_youtube_caption_runner_accepts_leading_dash_video_id(monkeypatch, tmp_p
 
 def test_youtube_caption_runner_rejects_data_root_flag_as_missing_video_id(monkeypatch, tmp_path: Path) -> None:
     resolved_root = object()
-    monkeypatch.setenv("ORCA_DATA_ROOT", str(tmp_path / "lake"))
+    monkeypatch.setenv("FORSETI_DATA_ROOT", str(tmp_path / "lake"))
 
     class FakeDataLakeRoot:
         @staticmethod

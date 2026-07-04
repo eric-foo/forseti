@@ -79,7 +79,7 @@ def test_parfumo_capture_runner_uses_injected_http_runner_without_network(tmp_pa
     assert calls and calls[0]["source_surface"] == DIRECT_HTTP_SURFACE
 
 
-def test_parfumo_cli_uses_orca_data_root_env_without_losing_output_root(
+def test_parfumo_cli_uses_forseti_data_root_env_without_losing_output_root(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> None:
@@ -97,7 +97,7 @@ def test_parfumo_cli_uses_orca_data_root_env_without_losing_output_root(
         run_calls.append(kwargs)
         return 0, str(tmp_path / "summary.json")
 
-    monkeypatch.setenv("ORCA_DATA_ROOT", str(tmp_path / "lake-root"))
+    monkeypatch.setenv("FORSETI_DATA_ROOT", str(tmp_path / "lake-root"))
     monkeypatch.setattr(DataLakeRoot, "resolve", staticmethod(fake_resolve))
     monkeypatch.setattr(runner_module, "run_parfumo_mgt_capture", fake_run_parfumo_mgt_capture)
 

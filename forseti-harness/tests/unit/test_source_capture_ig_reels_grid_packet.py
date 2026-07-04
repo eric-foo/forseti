@@ -355,7 +355,7 @@ def test_reels_grid_runner_missing_capture_timestamp_is_unknown_not_known(tmp_pa
     assert observed_metric["coverage_window"] is None
 
 
-def test_reels_grid_main_prefers_explicit_output_over_orca_data_root(
+def test_reels_grid_main_prefers_explicit_output_over_forseti_data_root(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     root = DataLakeRoot.for_test(tmp_path / "orca-data")
@@ -366,7 +366,7 @@ def test_reels_grid_main_prefers_explicit_output_over_orca_data_root(
         captured.update(kwargs)
         return 0, str(output.resolve())
 
-    monkeypatch.setenv("ORCA_DATA_ROOT", str(root.path))
+    monkeypatch.setenv("FORSETI_DATA_ROOT", str(root.path))
     monkeypatch.setattr(
         reels_grid_runner,
         "run_source_capture_ig_reels_grid_packet",
