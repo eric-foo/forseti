@@ -1,1 +1,1 @@
-"""Schema package for the Orca Step A harness."""
+"""Schema package for the Forseti harness."""

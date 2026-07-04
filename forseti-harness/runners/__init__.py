@@ -1,1 +1,1 @@
-"""Runner package for the Orca Step A harness."""
+"""Runner package for the Forseti harness."""
