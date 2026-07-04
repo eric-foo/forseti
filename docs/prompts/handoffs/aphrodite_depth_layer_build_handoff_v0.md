@@ -50,15 +50,15 @@ goal_handoff:
 
 ## Read first (controlling context, in order)
 
-1. `orca/product/spines/creator_signal/aphrodite_carveout_charter_v0.md` —
+1. `forseti/product/spines/creator_signal/aphrodite_carveout_charter_v0.md` —
    owner-ratified direction; Sections 3 (two-layer moat), 4 (five panels), 6
    (stratified capture policy), 7 (pre-build gates), 9 (accepted residuals).
-2. `orca/product/spines/creator_signal/aphrodite_derived_claim_provenance_contract_v0.md`
+2. `forseti/product/spines/creator_signal/aphrodite_derived_claim_provenance_contract_v0.md`
    — **binds all derived output**; the extractor must emit its fields.
-3. `orca/product/spines/creator_signal/aphrodite_depth_capture_tos_risk_sanity_check_v0.md`
+3. `forseti/product/spines/creator_signal/aphrodite_depth_capture_tos_risk_sanity_check_v0.md`
    — capture is inside the accepted boundary; carries FLAG 1 (commercial
    use/data rights, Phase-1 owner+legal) and FLAG 2 (materiality reacquisition).
-4. `orca/product/spines/creator_signal/creator_signal_product_architecture_v0.md`
+4. `forseti/product/spines/creator_signal/creator_signal_product_architecture_v0.md`
    — the Signal claim layer and the KEEP/BUILD/DEFER frame the depth layer sits in.
 5. `docs/decisions/orca_creator_signal_spine_promotion_binding_v0.md` — the
    Capture ↔ Creator Signal ownership boundary the build must respect.
