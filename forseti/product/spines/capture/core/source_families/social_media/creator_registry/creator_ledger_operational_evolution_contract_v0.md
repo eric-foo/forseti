@@ -5,12 +5,12 @@ retrieval_header_version: 1
 artifact_role: source_capture_family_architecture_contract
 scope: >
   Operational evolution contract for the Creator Ledger: how the registry,
-  public-handle linkage ledger, metric records, and current profile view evolve
-  additively so future capability upgrades do not require repeated data
-  remigration.
+  public-handle linkage ledger, metric records, source-family observations, and
+  current profile view evolve additively so future capability upgrades do not
+  require repeated data remigration.
 use_when:
   - Scoping Creator Registry or Creator Ledger changes that add identity, metric, audience, or product-surface capability.
-  - Checking whether a proposed creator-ledger upgrade should add a layer, field, view, or resolver instead of rewriting existing records.
+  - Checking whether a proposed creator-ledger upgrade should route to an owning sibling layer, field, view, or resolver instead of rewriting existing records.
   - Applying a God Tier or Mini God Tier capability lens to the Creator Ledger without mistaking audit completeness for efficacy.
 authority_boundary: retrieval_only
 open_next:
@@ -121,6 +121,26 @@ contract rather than changing what identity, metric, audience, or profile facts
 mean. A later storage engine may replace the physical home without changing
 ledger semantics if it preserves stable ids, lineage, posture/value coupling,
 limitations, and non-claims.
+
+## Capability Routing Matrix
+
+Use this matrix before adding fields or migrating existing Creator Ledger data.
+If a proposed capability does not fit one row cleanly, write an additive-upgrade
+intake before building and name the missing owner explicitly.
+
+| Capability pressure | Owning layer | Additive route | Must not do |
+| --- | --- | --- | --- |
+| Exact known-account lookup, duplicate new-capture prevention, or update-existing routing | Creator Registry exact-match index and preflight receipt | Preserve the existing account row and emit row-level preflight disposition or workflow receipt | Create a second platform account for an exact known account or rewrite profile-current rows as the decision log |
+| Repeat observation of a known public account on the same platform | Source-family observation ledger or capture-refresh handoff keyed by stable platform account / platform subject ids | Add a new observation row, packet ref, or handoff record beside the existing account; keep observation ids ledger-local | Treat the repeat observation as a new creator, overwrite the registry row, or store source facts only inside `creator_profile_current` |
+| Public handle, display-name, URL, or account-link drift | Public-handle linkage ledger or candidate-link review output | Add handle evidence, soft-link, rejected-link, or promoted-link records with review state | Collapse accounts into person identity without promoted linkage or silently mutate historical handle evidence |
+| Per-content source-visible metric facts | Capture-owned metric observation records or Silver MetricObservation records | Add source-backed metric observations with posture/value coupling and raw/source refs | Store absent metrics as zero or copy raw metric facts into registry/profile rows as source truth |
+| Aggregate influence, cadence, velocity, or freshness | MetricRollupObservation / Silver rollup records, then generated profile-current projection | Add recipe-versioned rollups with source observation ids, limitations, and freshness state | Recompute incompatible windows inside the read model or rank non-observed values as comparable zeros |
+| Cross-platform creator rollup or account cluster | Promoted public-handle linkage plus compatible metric observations / rollups | Promote linkage only after evidence supports it, then derive cluster/profile views from sibling rows | Sum account-level read-model values into a person claim before linkage and metric compatibility are proven |
+| Operator or buyer-facing interpretation | Creator Signal surface over `creator_profile_current` and source drill-back | Add presentation rules, limitation display, and claim boundaries over existing read-model fields | Turn a dashboard or profile card into an identity, metric, outreach, or buyer-proof source of truth |
+
+The routing decision is part of the efficacy-first standard. A capability that
+chooses the wrong owning layer can pass audit checks while still making future
+upgrades remigration-prone.
 
 ## Upgrade Pattern
 
@@ -262,6 +282,9 @@ Current sources support this state:
   registry;
 - the receipt-content checker now verifies cited Creator Registry preflight
   receipt content for detected scan artifacts;
+- the contract now carries a capability routing matrix that maps common
+  creator-memory pressures to owning sibling layers before data-shape changes
+  start;
 - the YouTube creator-observation ledger already provides a source-backed
   sibling observation layer: 31 YouTube creator/channel observations over 200
   admitted Shorts, with source rebuild verification, explicit metric absence, and
@@ -290,9 +313,11 @@ direction_change_propagation:
   doctrine_changed: >
     Creator Ledger evolution is now bound to a migration-stable additive model:
     preserve stable sibling records and generated views, add future capability
-    by fields/layers/resolvers instead of remigrating data, require a compact
-    additive-upgrade intake before future capability changes, and judge God Tier
-    progress primarily by operational efficacy rather than audit completeness.
+    by fields/layers/resolvers instead of remigrating data, use a capability
+    routing matrix to choose the owning sibling layer before data-shape changes,
+    require a compact additive-upgrade intake before future capability changes,
+    and judge God Tier progress primarily by operational efficacy rather than
+    audit completeness.
   trigger: architecture_doctrine
   related_triggers:
     - product_doctrine
@@ -334,7 +359,7 @@ direction_change_propagation:
         residual is superseded by the current usage note and checker reviews,
         but changing the scan record is not required to bind ledger evolution.
   stale_language_search: >
-    rg -n "creator ledger|Creator Ledger|God Tier|Mini God Tier|mini god tier|remigration|remigrate|migration-stable|additive-upgrade|upgrade intake|observation ledger|creator-observation|audit completeness|efficacy"
+    rg -n "creator ledger|Creator Ledger|God Tier|Mini God Tier|mini god tier|remigration|remigrate|migration-stable|additive-upgrade|upgrade intake|capability routing|routing matrix|observation ledger|creator-observation|audit completeness|efficacy"
     AGENTS.md
     .agents/workflow-overlay
     docs/workflows/forseti_repo_map_v0.md
