@@ -77,17 +77,17 @@ def test_instagram_reels_creator_metric_seed_counts_and_boundaries() -> None:
     assert seed["schema_version"] == "instagram_reels_creator_metric_seed_v0"
     assert seed["seed_mode"] == "source_backed_static_metric_observation_and_rollup_seed"
     assert seed["counts"] == {
-        "source_projection_files_supplied": 3,
+        "source_projection_files_supplied": 7,
         "source_projection_files_selected": 3,
-        "metric_observations_total": 111,
-        "content_metric_observations_total": 108,
+        "metric_observations_total": 84,
+        "content_metric_observations_total": 81,
         "profile_metric_observations_total": 3,
-        "unique_content_items_observed": 36,
+        "unique_content_items_observed": 27,
         "unique_platform_accounts_with_observations": 3,
         "metric_rollups_total": 3,
         "engagement_rate_rollups_observed": 3,
     }
-    assert len(seed["metric_observations"]) == 111
+    assert len(seed["metric_observations"]) == 84
     assert len(seed["metric_rollups"]) == 3
     assert all(_SHA256_RE.fullmatch(item["sha256"]) for item in seed["source_inputs"])
     assert all(item["source_pointer"].startswith("F:\\orca-data-lake\\derived\\") for item in seed["source_inputs"])
@@ -138,8 +138,15 @@ def test_instagram_reels_creator_metric_seed_rollups_recompute_from_observations
         comments = [item["comment_count"]["metric_value_or_none"] for item in complete_reels]
         observation_count = len(source_observations)
 
-        assert len(complete_reels) == 12
-        assert observation_count == 36
+        # Per-account, from the committed artifact: recency-primary selection means a
+        # newest-but-sparser capture legitimately carries fewer observations (the seed's
+        # selection_residuals name the bypassed fuller sibling).
+        expected_shape = {
+            "acct_ig_reels_001": (9, 3),
+            "acct_ig_reels_002": (36, 12),
+            "acct_ig_reels_004": (36, 12),
+        }[rollup["profile_subject_id"]]
+        assert (observation_count, len(complete_reels)) == expected_shape
         assert rollup["profile_subject_kind"] == "platform_account"
         assert rollup["creator_record_id_or_none"] is None
         assert rollup["platform_scope"] == "instagram"
