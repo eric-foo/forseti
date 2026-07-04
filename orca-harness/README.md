@@ -167,11 +167,15 @@ cookies, tokens, storage-state, and raw response bodies out of the packet, and
 prints the complete-lane note on successful runs and in `--help`.
 
 Use the TikTok one-creator live runner when the page-owned artifacts still need
-to be produced by the browser route. It writes sanitized staging JSON by default;
-add `--admit-output` for a local SourceCapturePacket or explicit `--data-root`
-for owner-authorized bronze/data-lake admission. The live runner chains the
-existing TikTok batch admission gate rather than duplicating lake logic, and it
-does not read ambient `ORCA_DATA_ROOT`.
+to be produced by the browser route. Cold agents should first open
+`../docs/workflows/tiktok_cold_agent_capture_enforcement_goal_v0.md` and
+`../docs/workflows/tiktok_ui_movement_blocker_substrate_playbook_v0.md`; those
+files bind the current blocker/action doctrine and no-solve owner-handoff
+boundary. The runner writes sanitized staging JSON by default; add
+`--admit-output` for a local SourceCapturePacket or explicit `--data-root` for
+owner-authorized bronze/data-lake admission. The live runner chains the existing
+TikTok batch admission gate rather than duplicating lake logic, and it does not
+read ambient `ORCA_DATA_ROOT`.
 
 ```powershell
 python runners/run_source_capture_tiktok_live_batch_probe.py `

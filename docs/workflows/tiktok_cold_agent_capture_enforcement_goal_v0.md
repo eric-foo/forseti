@@ -18,16 +18,17 @@ open_next:
   - .agents/workflow-overlay/decision-routing.md
   - docs/workflows/tiktok_ui_movement_blocker_substrate_playbook_v0.md
   - docs/decisions/tiktok_auth_state_provenance_sidecar_architecture_v0.md
-  - docs/workflows/tiktok_session_provenance_pr689_handoff_v0.md
   - forseti/product/spines/capture/core/source_families/social_media/tiktok/tiktok_capture_lane_spec_v0.md
   - forseti/product/spines/capture/core/source_families/social_media/tiktok/tiktok_sessioned_capture_warm_probe_plan_v0.md
+  - orca-harness/docs/source_capture_agent_runbook.md
+  - docs/review-outputs/tiktok_capture_enforcement_batches_1_4_post_adjudication_delegated_adversarial_code_review_v0.md
   - orca-harness/runners/run_source_capture_tiktok_live_batch_probe.py
   - orca-harness/source_capture/tiktok/live_batch_probe.py
   - orca-harness/source_capture/tiktok/blocker_triage.py
   - orca-harness/source_capture/source_access_provenance.py
-branch_or_commit: codex/tiktok-session-provenance-implementation @ af8a12fba6409958feed1fe0d5329da17ab8e301
+branch_or_commit: PR #709 / codex/tiktok-session-provenance-implementation; use the containing commit for this document, with implementation review target fb078dd08539c1392002dc0ca145a41a02656ddc.
 stale_if:
-  - PR #689 is merged, closed, rebased, or has a head different from af8a12fba6409958feed1fe0d5329da17ab8e301.
+  - PR #709 is merged, closed, or rebased without this document being checked against the final branch head.
   - The TikTok live runner, blocker triage, admission gate, or source-access provenance schema changes.
   - The owner changes no-secret, no-solve, owner-attention, or bronze-write policy.
   - A later TikTok probe proves a different browser/backend route is the packet-grade path.
@@ -90,6 +91,51 @@ thread_operating_target:
   drift_guard: Do not substitute another prose-only handoff for deterministic TikTok runner/admission enforcement where the rule is mechanically checkable.
   conflict_behavior: call_out_conflict_before_proceeding
 ```
+
+## Cold-Agent Operating Contract
+
+If a future agent is asked to run TikTok capture, start here, then open the
+playbook and runbook named in `open_next`. Do not reconstruct the route from
+older handoffs.
+
+Use the sanctioned one-fixture path:
+
+1. Use the TikTok one-creator live runner with `--browser-backend cloakbrowser`
+   unless the run is explicitly diagnostic.
+2. Use a dedicated, non-personal, already-exported auth-state label and
+   `--session-mode client_provided_session`.
+3. Require `--require-harness-proxy-posture no_proxy_profile_loaded` when the
+   lane depends on no harness-loaded proxy posture. This is harness proxy-profile
+   posture only, not full-network no-proxy proof.
+4. Include `--allow-challenge-close-followthrough` and
+   `--human-challenge-handoff` for the current owner-authorized path. The runner
+   may click only X/Close controls through named pointer actions; it never drags
+   or solves slider/captcha puzzles.
+5. Prefer local `--admit-output` first. Use explicit `--data-root` only when the
+   owner asks for immediate bronze/data-lake admission.
+6. Read `tiktok_live_probe_summary_json=` before opening larger JSON. It tells
+   the cold agent whether the run stopped at staging, owner attention,
+   fail-closed admission, local packet admission, or bronze admission.
+
+Known blockers are not all terminal:
+
+- intro/teaching/OK/Got-it/app prompts are benign setup actions;
+- Retry/Try again/Reload is clicked once as setup;
+- first-pass no-comments is not terminal until comments -> `You may like` /
+  `More like this` -> comments has run, including the bounded repeat;
+- `platform_challenge_observed` must be read with `matched_marker` and
+  `challenge_kind`; an X-able slider/captcha may attempt only X/Close when
+  follow-through is authorized;
+- if slider/captcha remains, hand off to the owner when possible; otherwise fail
+  closed. Owner/manual intervention is source-access intervention and never
+  clean capture.
+
+Code enforcement for BATCH-01 through BATCH-04 is implemented on PR #709 and
+was cross-vendor reviewed in
+`docs/review-outputs/tiktok_capture_enforcement_batches_1_4_post_adjudication_delegated_adversarial_code_review_v0.md`
+with recommendation `keep` and `patches_applied: 0`. The review is decision
+input, not validation, readiness, live TikTok success, account-safety proof,
+full-network no-proxy proof, CAPTCHA bypass, scale proof, or merge authority.
 
 ## Code-Enforced Findings
 
@@ -228,7 +274,7 @@ Validation target:
 
 - `--help` snapshot/behavior tests where practical.
 - DCP/header/handoff pointer gates if docs change.
-- One post-batch review prompt after BATCH-01..03 are implemented or when a bound review gate requires it.
+- Post-batch review for BATCH-01..04 is filed at `docs/review-outputs/tiktok_capture_enforcement_batches_1_4_post_adjudication_delegated_adversarial_code_review_v0.md`; new code changes still require their own review routing.
 
 ## First Batch Assumption-Gate Target
 
@@ -248,3 +294,70 @@ If these are verified, BATCH-01 is the right first fused target. If not, route t
 - This document does not authorize CAPTCHA/slider solving or secret inspection.
 - This document does not prove TikTok source access, account safety, subtitle coverage, bronze correctness, or scale.
 - The batches are implementation targets; each still needs source reads, tests, and review routing under the Orca overlay.
+
+## Direction Change Propagation - 2026-07-05 Cold-Agent Doctrine Pickup
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    TikTok cold-agent capture doctrine now has one mergeable entry contract:
+    this goal document points agents to the sanctioned live-runner path, blocker
+    playbook, runbook command, provenance ADR, lane spec, and completed
+    cross-vendor review report, and removes the branch-local PR689 handoff as a
+    load-bearing required read.
+  trigger: workflow_authority
+  related_triggers:
+    - output_authority
+  controlling_sources_updated:
+    - docs/workflows/tiktok_cold_agent_capture_enforcement_goal_v0.md
+    - docs/workflows/tiktok_ui_movement_blocker_substrate_playbook_v0.md
+    - orca-harness/docs/source_capture_agent_runbook.md
+    - orca-harness/README.md
+    - docs/workflows/forseti_repo_map_v0.md
+    - docs/review-outputs/tiktok_capture_enforcement_batches_1_4_post_adjudication_delegated_adversarial_code_review_v0.md
+  downstream_surfaces_checked:
+    - .agents/workflow-overlay/source-of-truth.md
+    - .agents/workflow-overlay/source-loading.md
+    - .agents/workflow-overlay/validation-gates.md
+    - .agents/workflow-overlay/safety-rules.md
+    - forseti/product/spines/capture/core/source_families/social_media/tiktok/tiktok_capture_lane_spec_v0.md
+    - docs/decisions/tiktok_auth_state_provenance_sidecar_architecture_v0.md
+  intentionally_not_updated:
+    - path: .agents/workflow-overlay/safety-rules.md
+      reason: >
+        The Source Capture Armory Runner Ladder rule already routes online
+        capture through armory runners; this change only makes the TikTok
+        runner/playbook entry route easier for a cold agent to find.
+    - path: forseti/product/spines/capture/core/source_families/social_media/tiktok/tiktok_capture_lane_spec_v0.md
+      reason: >
+        The lane spec already states the sessioned CloakBrowser route,
+        source-access intervention boundary, no-solve rule, provenance
+        limitation, transcript boundary, and admission non-claims; the patch
+        changes cold-agent pickup/navigation rather than lane contract.
+    - path: docs/decisions/tiktok_auth_state_provenance_sidecar_architecture_v0.md
+      reason: >
+        The architecture decision already owns the typed sidecar design and
+        no-proxy non-claim; this patch points agents to it without changing the
+        architecture.
+  stale_language_search: >
+    rg -n "tiktok_session_provenance_pr689_handoff|BATCH-01..03|human-login-only|no_proxy_profile_loaded|full-network no-proxy|CAPTCHA bypass|captcha bypass"
+    docs/workflows/tiktok_cold_agent_capture_enforcement_goal_v0.md
+    docs/workflows/tiktok_ui_movement_blocker_substrate_playbook_v0.md
+    orca-harness/docs/source_capture_agent_runbook.md orca-harness/README.md
+    docs/workflows/forseti_repo_map_v0.md
+    forseti/product/spines/capture/core/source_families/social_media/tiktok/tiktok_capture_lane_spec_v0.md
+  stale_language_search_result: >
+    Executed 2026-07-05 after edits. Hits are intentional: the new non-claim
+    saying this is not CAPTCHA bypass, the explicit instruction not to add a
+    human-login-only doctrine, and this receipt's own query string. No live
+    `open_next` or repo-map row still requires the branch-local PR689 handoff,
+    and no checked surface claims `no_proxy_profile_loaded` is full-network
+    no-proxy proof.
+  non_claims:
+    - not validation
+    - not readiness
+    - not live TikTok success
+    - not account-safety proof
+    - not full-network no-proxy proof
+    - not CAPTCHA or slider-solving authorization
+```

@@ -171,6 +171,17 @@ label; it is not full-network no-proxy egress proof, is not a forgery-proof prod
 printing, copying, or reporting cookies, storage-state JSON, proxy endpoints,
 exit IPs, profile paths, or device identifiers.
 
+For cold-agent TikTok work, open
+`docs/workflows/tiktok_cold_agent_capture_enforcement_goal_v0.md` and
+`docs/workflows/tiktok_ui_movement_blocker_substrate_playbook_v0.md` before
+patching or re-diagnosing blockers. The runner already owns the current setup
+actions: benign intro/OK prompts, one visible retry, the comments -> `You may
+like` / `More like this` -> comments route, challenge kind receipts, X/Close
+follow-through, owner handoff, and fail-closed admission. If a slider/captcha
+remains, ping/hand off to the owner when `--human-challenge-handoff` is enabled;
+otherwise fail closed. The agent must not drag or solve the puzzle, and any
+manual owner action is source-access intervention rather than clean capture.
+
 Recommended one-fixture sessioned TikTok command for a cold agent with an
 already-exported dedicated auth-state label:
 

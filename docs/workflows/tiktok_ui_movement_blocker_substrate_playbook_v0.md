@@ -21,6 +21,8 @@ open_next:
   - .agents/workflow-overlay/README.md
   - .agents/workflow-overlay/source-loading.md
   - .agents/workflow-overlay/safety-rules.md
+  - docs/workflows/tiktok_cold_agent_capture_enforcement_goal_v0.md
+  - orca-harness/docs/source_capture_agent_runbook.md
   - docs/workflows/tiktok_live_microbatch_owner_gated_handoff_v0.md
   - orca-harness/source_capture/adapters/browser_snapshot.py
   - orca-harness/source_capture/tiktok/live_batch_probe.py
@@ -57,6 +59,38 @@ re-litigate:
 Future lanes must spend run budget on accepted-close proof and real comment yield,
 not on re-proving pointer delivery.
 
+## Cold-Agent Fast Path
+
+For an ordinary sessioned TikTok capture attempt, do not start by re-diagnosing
+Chrome, Playwright, or blocker targetability. Use the runbook command for
+`run_source_capture_tiktok_live_batch_probe.py` with CloakBrowser, a dedicated
+exported auth-state label, `--require-harness-proxy-posture
+no_proxy_profile_loaded`, `--allow-challenge-close-followthrough`,
+`--human-challenge-handoff`, and local `--admit-output`. Then classify the
+result from `tiktok_live_probe_summary_json=` before opening larger JSON files.
+
+Treat these blocker classes as setup or owner-attention states, not generic
+stops:
+
+- onboarding, teaching, `OK`, `Got it`, app, cookie, and continue-in-browser
+  prompts are benign setup when no challenge/security marker is present;
+- visible `Retry`, `Retry again`, `Try again`, or `Reload` controls are clicked
+  once as setup;
+- no comments after the first route pass is not terminal until comments ->
+  `You may like` / `More like this` -> comments has run, including the bounded
+  repeat;
+- `platform_challenge_observed` is incomplete by itself. Read `matched_marker`
+  and `challenge_kind`; for `slider`/captcha/security cases, attempt only the
+  named X/Close follow-through when the lane has enabled the flag;
+- if a slider/captcha remains after the allowed X/Close path, use the owner
+  handoff when enabled. If no handoff is possible, fail closed. In both cases
+  the receipt is owner attention / source-access intervention, not clean
+  capture or admission success.
+
+Do not add a human-login-only instruction here. The lane requires dedicated
+non-personal accounts and already forbids agent-entered credentials. The
+operator-owned login/bootstrap/export mechanics stay in the runbook and auth
+state tooling, not in this blocker playbook.
 
 ## 2026-07-04 Browser Surface Pin
 
