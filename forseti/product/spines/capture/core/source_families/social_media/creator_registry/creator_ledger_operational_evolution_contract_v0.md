@@ -264,7 +264,11 @@ Accepted residuals for a Mini God Tier ledger slice:
 - no automatic registry mutation is allowed from scan rows alone;
 - no automatic quality, commercial-fit, or buyer-proof score is implied;
 - cross-platform rollups wait for promoted linkage and compatible observations;
-- metric freshness remains visible and may be stale; and
+- metric freshness remains visible and may be stale;
+- some enforcement remains prose-first and checkpoint-driven rather than
+  mechanical; repeated drift, repeated reviewer confusion, or repeated lane
+  dependency on the same rule is the upgrade trigger for a validator, runner
+  gate, or generated check; and
 - storage physicalization, replay tooling, and broad migration automation remain
   upgrade triggers, not prerequisites for the bounded operating shape.
 

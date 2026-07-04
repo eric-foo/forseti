@@ -124,8 +124,9 @@ This slice preserves migration stability because:
 - candidate ids and capture-request ids are additive evidence/handoff ids, not
   replacements for ledger-local platform account ids;
 - missingness and limitations remain visible in the scan artifact; and
-- current profile-view growth from 33 to 36 profiles does not invalidate the old
-  receipt, because the receipt is time-scoped evidence for that scan.
+- the refreshed receipt and current profile view agree on the same 36-profile
+  registry source; earlier 33-profile orientation remains historical context,
+  not a reason to remigrate the scan or registry.
 
 ### Efficacy Outcome
 
