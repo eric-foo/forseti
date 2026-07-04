@@ -18,6 +18,70 @@ priorities: [lowest_bot_detectability, scalable]
 capture_mode: sessioned_cookied (owner decision 2026-06-22; supersedes the logged-out-primary posture in C8)
 ```
 
+## Direction Change Propagation - 2026-07-04 Live Runner Bronze Admission Chain
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    TikTok live runs can now be asked to produce bronze/data-lake packets by
+    chaining the one-creator live runner's sanitized staging output through the
+    existing TikTok batch admission gate with `--admit-output` or an explicit
+    `--data-root`, while default live behavior remains staging-only and all
+    challenge/failure/no-secret gates still fail closed.
+  trigger: workflow_authority
+  related_triggers:
+    - product_doctrine
+    - validation_philosophy
+    - output_authority
+  controlling_sources_updated:
+    - orca/product/spines/capture/core/source_families/social_media/tiktok/tiktok_capture_lane_spec_v0.md
+    - orca-harness/runners/run_source_capture_tiktok_live_batch_probe.py
+    - orca-harness/tests/unit/test_tiktok_live_batch_probe.py
+    - orca-harness/docs/source_capture_agent_runbook.md
+    - orca-harness/README.md
+    - docs/workflows/tiktok_ui_movement_blocker_substrate_playbook_v0.md
+    - docs/workflows/orca_repo_map_v0.md
+    - orca/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md
+  downstream_surfaces_checked:
+    - .agents/workflow-overlay/source-of-truth.md
+    - .agents/workflow-overlay/safety-rules.md
+    - .agents/workflow-overlay/validation-gates.md
+    - orca/product/spines/capture/core/source_capture_toolbox/capture_recon_index_v0.md
+    - orca/product/spines/capture/core/source_families/social_media/tiktok/tiktok_sessioned_capture_warm_probe_plan_v0.md
+    - docs/workflows/tiktok_logged_out_x_close_test_handoff_v0.md
+    - docs/workflows/tiktok_live_microbatch_owner_gated_handoff_v0.md
+  intentionally_not_updated:
+    - path: .agents/workflow-overlay/safety-rules.md
+      reason: >
+        The Source Capture Armory Runner Ladder rule already routes online
+        capture through armory runners; this change binds a TikTok runner path
+        inside that ladder and does not change the global safety rule.
+    - path: orca/product/spines/capture/core/source_capture_toolbox/capture_recon_index_v0.md
+      reason: >
+        The index already says TikTok is partial rather than absent and that
+        parsed Funmi N30 batch packet admission is proven; this patch updates
+        execution/runbook surfaces, not the underlying recon verdict.
+  stale_language_search: >
+    rg -n "TikTok still has no technical recon|live staging only|does not write a SourceCapturePacket directly|explicit remaining TikTok recon gap|ORCA_DATA_ROOT"
+    orca-harness/README.md orca-harness/docs/source_capture_agent_runbook.md
+    docs/workflows/orca_repo_map_v0.md docs/workflows/tiktok_ui_movement_blocker_substrate_playbook_v0.md
+    orca/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md
+    orca/product/spines/capture/core/source_families/social_media/tiktok/tiktok_capture_lane_spec_v0.md
+  stale_language_search_result: >
+    Executed 2026-07-04 after edits. No stale "TikTok still has no technical
+    recon", "does not write a SourceCapturePacket directly", "live staging
+    only", or "explicit remaining TikTok recon gap" hits remained. The
+    remaining `ORCA_DATA_ROOT` hits are intentional non-use notes: the live
+    runner requires explicit `--data-root` for lake writes.
+  non_claims:
+    - not validation
+    - not readiness
+    - not live capture success
+    - not no-proxy provenance proof
+    - not authorization to solve or bypass CAPTCHA/slider challenges
+    - not cross-creator, scale, account-safety, or promotion proof
+```
+
 ## Direction Change Propagation - 2026-07-03 Challenge-X Follow-Through
 
 ```yaml
@@ -108,7 +172,8 @@ Capture runs under an **authenticated session** whose cookies authenticate it. R
 **Source text / transcript boundary:** TikTok description (`desc`), hashtags/mentions (`textExtra`), music metadata, and captured public comments are source text. A later Funmi/session N=30 cadence receipt measured source-native subtitle metadata plus WebVTT body admission when `video.subtitleInfos` exists (`26/30` metadata present; `26/26` WebVTT parse success when present). Treat this as `source_native_subtitle_webvtt` evidence for that creator/session, labeled with TikTok's source field such as `ASR` when present. It is not owner-generated ASR, not durable audio/video preservation, not cross-creator subtitle coverage, and not a platform-wide transcript guarantee.
 
 
-**Implementation note (2026-07-01; amended 2026-07-03):** Network-free parsed-batch admission now exists for the Funmi N30 staging shape via `orca-harness/source_capture/tiktok/batch_packet.py` and `orca-harness/runners/run_source_capture_tiktok_batch_packet.py`, with focused tests in `orca-harness/tests/unit/test_tiktok_batch_admission.py`. The verified data-lake packet is `F:\orca-data-lake\raw\97c\01KWCYZ9P72W4SJD7NDPRQT0DB` (`tiktok_creator_batch_comment_subtitle_admission`): 30 videos, 596 parsed comments, 26 transcript-bearing source-native WebVTT captures, 1044 cues, and deterministic typed extraction seeds. A first live staging producer now exists via `orca-harness/source_capture/tiktok/live_batch_probe.py` and `orca-harness/runners/run_source_capture_tiktok_live_batch_probe.py`, with fake-engine tests in `orca-harness/tests/unit/test_tiktok_live_batch_probe.py`; it runs one creator per invocation, uses headed/sessioned or logged-out page-owned comment-list observation, writes sanitized grid/cadence staging JSON for the existing admission gate, normally stops on unresolved challenge, and now exposes owner-authorized `--allow-challenge-close-followthrough` for X-able public challenge modals. Follow-through clicks are preserved as source-access interventions and can admit only post-close page-owned comment responses; diagnostic close mode remains stop-only. The code is not itself a live run, profile-grid automation proof, cross-creator ceiling proof, durable media/video preservation, final product extraction, Cleaning, ECR, or Judgment.
+**Implementation note (2026-07-01; amended 2026-07-04):** Network-free parsed-batch admission now exists for the Funmi N30 staging shape via `orca-harness/source_capture/tiktok/batch_packet.py` and `orca-harness/runners/run_source_capture_tiktok_batch_packet.py`, with focused tests in `orca-harness/tests/unit/test_tiktok_batch_admission.py`. The verified data-lake packet is `F:\orca-data-lake\raw\97c\01KWCYZ9P72W4SJD7NDPRQT0DB` (`tiktok_creator_batch_comment_subtitle_admission`): 30 videos, 596 parsed comments, 26 transcript-bearing source-native WebVTT captures, 1044 cues, and deterministic typed extraction seeds. The one-creator live producer exists via `orca-harness/source_capture/tiktok/live_batch_probe.py` and `orca-harness/runners/run_source_capture_tiktok_live_batch_probe.py`, with fake-engine tests in `orca-harness/tests/unit/test_tiktok_live_batch_probe.py`; it runs one creator per invocation, uses headed/sessioned or logged-out page-owned comment-list observation, and writes sanitized grid/cadence staging JSON by default. When the owner asks for packet/bronze output, the same runner can now chain the existing batch admission gate with `--admit-output` or an explicit `--data-root`; it intentionally does not read ambient `ORCA_DATA_ROOT`, and admission fails closed on challenge/failure/diagnostic contract markers before any packet or lake write. The existing batch runner already writes to the data lake through `--data-root`; the live runner now uses that same admission function rather than duplicating lake logic. Follow-through clicks are preserved as source-access interventions and can admit only post-close page-owned comment responses; diagnostic close mode remains stop-only. The code is not itself a successful live run, profile-grid automation proof, cross-creator ceiling proof, non-proxy provenance proof, durable media/video preservation, final product extraction, Cleaning, ECR, or Judgment.
+
 ## Explicitly out of scope
 
 30/60-minute comment windows; full-comment pagination / chronological census; personal account use; agent-entered credentials; private or access-controlled content; media/video/audio bytes; owner-generated ASR unless separately authorized; source-native subtitle claims when `subtitleInfos` is absent; cross-creator subtitle coverage unless separately measured; signature forging; reply-thread expansion beyond the first-page `reply_comment_total` count.
@@ -130,7 +195,7 @@ drag/no-solve boundary remains; post-close admission must preserve the source-
 access intervention.
 
 - **Reused substrate, lightly extended browser seam:** packet `models.py` (+ typed `MetricObservation` for stats), `cadence.py` (C4), `writer.py`/`packet_assembly.py`, `block_shell.py`/`rendered_access.py` (C6), `proxy_profiles.py` (C5), and `auth_state.py` / authenticated browser session bootstrap only for the C8' dedicated-account session boundary. The reusable browser response seam is `browser_snapshot.py::fetch_browser_page_observation_capture`: attach a response predicate before navigation, run headed/sessioned, execute a bounded post-load page action to open comments, then preserve only matching page-emitted `/api/comment/list` responses. `fetch_browser_context_responses` is not the TikTok C2 mechanism because it performs explicit in-page `fetch(url)` calls.
-- **New (TikTok satellite):** `source_capture/tiktok/admission.py` (network-free parsers/sanitizers), `video_packet.py`, `batch_packet.py`, `batch_coverage.py`, `batch_projection.py`, and `live_batch_probe.py` plus `run_source_capture_tiktok_live_batch_probe.py` for one-creator live staging (C1-C3, C6: headed/sessioned, request cap, comment-panel post-load action, comment/list response predicate, sanitized staging only). The required change vs the failed recon runs is **running the existing browser observation seam non-headless/sessioned with assets allowed**, not forged request logic.
+- **New (TikTok satellite):** `source_capture/tiktok/admission.py` (network-free parsers/sanitizers), `video_packet.py`, `batch_packet.py`, `batch_coverage.py`, `batch_projection.py`, and `live_batch_probe.py` plus `run_source_capture_tiktok_live_batch_probe.py` for one-creator live staging and optional admission chaining (C1-C3, C6: headed/sessioned, request cap, comment-panel post-load action, comment/list response predicate, sanitized staging by default, `--admit-output` / explicit `--data-root` through the existing batch gate when owner-requested). The required change vs the failed recon runs is **running the existing browser observation seam non-headless/sessioned with assets allowed**, not forged request logic.
 
 ## Open decisions (owner-owned) / Non-claims
 

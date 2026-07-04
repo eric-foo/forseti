@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable
 
+from data_lake.root import DataLakeRoot, raw_shard
 from runners import run_source_capture_tiktok_live_batch_probe as runner
 from source_capture.adapters.browser_snapshot import (
     BrowserPageObservationSuccess,
@@ -16,6 +17,7 @@ from source_capture.auth_state import (
     auth_state_path_for_label,
     write_auth_state_metadata,
 )
+from source_capture.tiktok.admission import COMPLETE_LANE_NOTE
 from source_capture.tiktok.batch_packet import write_tiktok_batch_packet
 import source_capture.tiktok.live_batch_probe as live_batch_probe
 from source_capture.tiktok.blocker_triage import (
@@ -464,6 +466,165 @@ def test_live_probe_runner_rejects_logged_out_with_session_args(tmp_path: Path) 
     else:
         raise AssertionError("logged-out mode accepted sessioned auth arguments")
 
+
+def test_live_probe_runner_can_chain_batch_admission_to_data_root(
+    tmp_path: Path,
+    monkeypatch,
+    capsys,
+) -> None:
+    video_id = "7390000000000000001"
+    pre_paths = write_tiktok_live_batch_probe_outputs(
+        creator_handle="funmi",
+        creator_profile_url="https://www.tiktok.com/@funmi",
+        video_urls=[f"https://www.tiktok.com/@funmi/video/{video_id}"],
+        logged_out=True,
+        output_dir=tmp_path / "pre_staging",
+        cadence_min_gap_seconds=0,
+        cadence_max_gap_seconds=0,
+        random_seed=1,
+        engine=_FakeObservationEngine(
+            outcomes=[
+                _success_observation(
+                    video_id=video_id,
+                    response=_comment_response(video_id=video_id),
+                )
+            ]
+        ),
+        sleep_fn=lambda _seconds: None,
+    )
+    captured_kwargs: dict[str, object] = {}
+
+    def fake_write_tiktok_live_batch_probe_outputs(**kwargs: object):
+        captured_kwargs.update(kwargs)
+        return pre_paths
+
+    monkeypatch.setattr(
+        runner,
+        "write_tiktok_live_batch_probe_outputs",
+        fake_write_tiktok_live_batch_probe_outputs,
+    )
+    root = DataLakeRoot.for_test(tmp_path / "lake")
+
+    def fake_resolve(
+        cls,
+        *,
+        explicit=None,
+        env=None,
+        config_path=None,
+        expected_uuid=None,
+        repo_root=None,
+    ):
+        assert explicit == str(root.path)
+        return root
+
+    monkeypatch.setattr(DataLakeRoot, "resolve", classmethod(fake_resolve))
+
+    code = runner.main(
+        [
+            "--creator-handle",
+            "funmi",
+            "--creator-profile-url",
+            "https://www.tiktok.com/@funmi",
+            "--video-url",
+            f"https://www.tiktok.com/@funmi/video/{video_id}",
+            "--logged-out",
+            "--output-dir",
+            str(tmp_path / "unused_staging"),
+            "--data-root",
+            str(root.path),
+            "--batch-label",
+            "live-chain-test",
+            "--decision-question",
+            "live runner admission chain",
+        ]
+    )
+
+    captured = capsys.readouterr()
+    assert code == 0
+    assert COMPLETE_LANE_NOTE in captured.out
+    packet_line = next(
+        line for line in captured.out.splitlines() if line.startswith("admitted_packet=")
+    )
+    packet_dir = Path(packet_line.split("=", 1)[1])
+    assert packet_dir.parent == root.path / "raw" / raw_shard(packet_dir.name)
+    assert root.find_packet(packet_dir.name) is not None
+    packet_payload = json.loads(
+        (packet_dir / "raw" / "01_tiktok_batch_capture.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    assert packet_payload["batch_summary"]["captured_comment_count"] == 1
+    assert packet_payload["source_file_receipts"][0]["file_name"] == (
+        "tiktok_live_grid_result.json"
+    )
+    assert packet_payload["source_file_receipts"][1]["file_name"] == (
+        "tiktok_live_cadence_result.json"
+    )
+    assert captured_kwargs["logged_out"] is True
+
+
+def test_live_probe_runner_chain_rejects_failed_cadence_before_packet(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    video_id = "7390000000000000001"
+    pre_paths = write_tiktok_live_batch_probe_outputs(
+        creator_handle="funmi",
+        creator_profile_url="https://www.tiktok.com/@funmi",
+        video_urls=[f"https://www.tiktok.com/@funmi/video/{video_id}"],
+        logged_out=True,
+        output_dir=tmp_path / "pre_staging_failed",
+        cadence_min_gap_seconds=0,
+        cadence_max_gap_seconds=0,
+        random_seed=1,
+        engine=_FakeObservationEngine(
+            outcomes=[
+                _success_observation(
+                    video_id=video_id,
+                    response=_comment_response(video_id=video_id),
+                )
+            ]
+        ),
+        sleep_fn=lambda _seconds: None,
+    )
+    cadence = json.loads(pre_paths.cadence_result_json_path.read_text(encoding="utf-8"))
+    cadence["challenge_count"] = 1
+    pre_paths.cadence_result_json_path.write_text(
+        json.dumps(cadence),
+        encoding="utf-8",
+    )
+
+    def fake_write_tiktok_live_batch_probe_outputs(**_kwargs: object):
+        return pre_paths
+
+    monkeypatch.setattr(
+        runner,
+        "write_tiktok_live_batch_probe_outputs",
+        fake_write_tiktok_live_batch_probe_outputs,
+    )
+    admit_output = tmp_path / "packet"
+
+    try:
+        runner.main(
+            [
+                "--creator-handle",
+                "funmi",
+                "--creator-profile-url",
+                "https://www.tiktok.com/@funmi",
+                "--video-url",
+                f"https://www.tiktok.com/@funmi/video/{video_id}",
+                "--logged-out",
+                "--output-dir",
+                str(tmp_path / "unused_staging"),
+                "--admit-output",
+                str(admit_output),
+            ]
+        )
+    except SystemExit as exc:
+        assert exc.code == 2
+    else:
+        raise AssertionError("failed cadence was admitted by the live runner chain")
+    assert not admit_output.exists()
 
 def test_live_probe_runner_rejects_diagnostic_and_followthrough_together(tmp_path: Path) -> None:
     try:

@@ -161,9 +161,29 @@ This runner is the lean code-enforced slice only: it admits sanitized
 single-video comment/subtitle/profile-list fields, keeps raw signed URLs,
 cookies, tokens, storage-state, and raw response bodies out of the packet, and
 prints the complete-lane note on successful runs and in `--help`.
-The complete TikTok lane still requires live browser/profile-grid capture,
-creator batch cadence, projection bridging, and recon/playbook updates.
 
+Use the TikTok one-creator live runner when the page-owned artifacts still need
+to be produced by the browser route. It writes sanitized staging JSON by default;
+add `--admit-output` for a local SourceCapturePacket or explicit `--data-root`
+for the bronze/data lake. The live runner chains the existing TikTok batch
+admission gate rather than duplicating lake logic, and it does not read ambient
+`ORCA_DATA_ROOT`.
+
+```powershell
+python runners/run_source_capture_tiktok_live_batch_probe.py `
+  --creator-handle "funmimonet" `
+  --creator-profile-url "https://www.tiktok.com/@funmimonet" `
+  --video-url "https://www.tiktok.com/@funmimonet/video/7629774409762442526" `
+  --state-label "<dedicated-tiktok-auth-state-label>" `
+  --session-mode client_provided_session `
+  --output-dir ".\_test_runs\tiktok_live_funmi" `
+  --browser-backend cloakbrowser `
+  --data-root "F:\orca-data-lake"
+```
+
+The complete TikTok lane still requires owner-authorized account posture,
+creator batch cadence, projection bridging, and recon/playbook updates before
+scale or promotion claims.
 
 Use the Browser Snapshot runner when one supplied URL needs anonymous browser
 rendering or screenshot preservation:

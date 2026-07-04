@@ -44,8 +44,10 @@ non-authorizing: it grants no capture/build/merge authority; each probe runs und
 authorization and per-operation network approval.
 
 **MVP scope:** the risk posture + the read + the route catalog + the pointer + the guardrails.
-Per-source **recipe cards** are authored BY probes and accumulate over time. TikTok still has no
-technical recon in this index. Instagram now has several probed public-web routes, including a
+Per-source **recipe cards** are authored BY probes and accumulate over time. TikTok now has
+partial technical recon and admitted Funmi N30 parsed-batch packet evidence, but cross-creator
+durability, account safety, durable media, and scale remain unproven. Instagram now has
+several probed public-web routes, including a
 route-specific 2026-06-29 live diagnostic: standalone anonymous `yt-dlp` can return an empty media
 response while the browser-rendered deep-capture route still exposes a transient media handle that
 can be downloaded immediately for ASR. That is a route residual, not an Instagram transcript NO-GO.
@@ -335,8 +337,10 @@ capture-spine spec slice F, pending build).
 - **No route for mobile/app-only substrate.** If a probe finds the signal lives only in a phone app
   with no public web surface, that's a **CATALOG_GAP / catalog amendment** (a new route), not a
   default NO-GO.
-- **TikTok still has no technical recon in this index.** Any TikTok card is speculative until
-  probed. Instagram public-web capture is no longer an absent-recon surface: grid, profile-feed,
+- **TikTok is partial, not absent.** First-slice and Funmi N30 parsed-batch admission evidence
+  exist, with live-runner blocker/admission doctrine now pinned in the TikTok playbook; cross-
+  creator durability, detection ceiling, account safety, durable media/video, and scale remain
+  unproven. Instagram public-web capture is no longer an absent-recon surface: grid, profile-feed,
   discovery, and deep-capture routes have probe evidence in the recon index. Remaining IG media
   residual: durable full media/video preservation is still unproven, and standalone anonymous
   `yt-dlp` audio may return an empty media response even when rendered deep-capture can still

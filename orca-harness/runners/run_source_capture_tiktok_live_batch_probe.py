@@ -1,9 +1,12 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 from pathlib import Path
 
 from source_capture.auth_state import AuthenticatedSessionMode
+from source_capture.tiktok.admission import COMPLETE_LANE_NOTE
+from source_capture.tiktok.batch_packet import write_tiktok_batch_packet
 from source_capture.tiktok.live_batch_probe import write_tiktok_live_batch_probe_outputs
 
 
@@ -12,8 +15,9 @@ def build_parser() -> argparse.ArgumentParser:
         description=(
             "Capture sanitized local TikTok staging JSON for one creator. "
             "Sessioned mode requires a pre-bootstrapped auth-state label; "
-            "--logged-out uses no storage state. This runner does not write a "
-            "SourceCapturePacket directly."
+            "--logged-out uses no storage state. By default this runner writes "
+            "staging JSON only; --admit-output or --data-root chains the "
+            "existing TikTok batch admission gate after staging."
         )
     )
     parser.add_argument("--creator-handle", required=True)
@@ -30,6 +34,31 @@ def build_parser() -> argparse.ArgumentParser:
         help="Use no auth storage state; measure public logged-out TikTok access only.",
     )
     parser.add_argument("--output-dir", required=True, type=Path)
+    admission_target = parser.add_mutually_exclusive_group(required=False)
+    admission_target.add_argument(
+        "--admit-output",
+        type=Path,
+        default=None,
+        help=(
+            "After live staging, admit through the network-free TikTok batch gate "
+            "into this local SourceCapturePacket directory."
+        ),
+    )
+    admission_target.add_argument(
+        "--data-root",
+        default=None,
+        help=(
+            "After live staging, admit through the network-free TikTok batch gate "
+            "into this explicit Orca data lake root. ORCA_DATA_ROOT is not read "
+            "by this live runner."
+        ),
+    )
+    parser.add_argument("--batch-label", default="tiktok_creator_batch")
+    parser.add_argument(
+        "--decision-question",
+        default="Admit TikTok creator-batch comment, subtitle, source-text, and typed extraction seed signals.",
+        help="Decision question for the optional batch-admission packet.",
+    )
     parser.add_argument("--timeout-seconds", type=float, default=30.0)
     parser.add_argument(
         "--wait-until",
@@ -144,7 +173,57 @@ def main(argv: list[str] | None = None) -> int:
     )
     print(f"grid_result_json={paths.grid_result_json_path}")
     print(f"cadence_result_json={paths.cadence_result_json_path}")
+    if args.admit_output is not None or args.data_root is not None:
+        try:
+            data_root = None
+            if args.data_root is not None:
+                from data_lake.root import DataLakeRoot
+
+                data_root = DataLakeRoot.resolve(explicit=args.data_root)
+            exit_code, admitted_path = write_tiktok_batch_packet(
+                creator_handle=args.creator_handle,
+                creator_profile_url=args.creator_profile_url,
+                grid_result_json=paths.grid_result_json_path.read_bytes(),
+                cadence_result_jsons=[paths.cadence_result_json_path.read_bytes()],
+                output_directory=args.admit_output if data_root is None else None,
+                data_root=data_root,
+                decision_question=args.decision_question,
+                batch_label=args.batch_label,
+                source_file_receipts=[
+                    _source_receipt(paths.grid_result_json_path, "grid_result_json"),
+                    _source_receipt(paths.cadence_result_json_path, "cadence_result_json_1"),
+                ],
+            )
+        except ValueError as exc:
+            parser.exit(status=2, message=f"source capture tiktok live batch admission failed: {exc}\n")
+        except Exception as exc:  # noqa: BLE001 - keep admission/lake failures visible
+            parser.exit(
+                status=3,
+                message=(
+                    "source capture tiktok live batch admission failed: "
+                    f"{type(exc).__name__}: {exc}\n"
+                ),
+            )
+        if exit_code != 0:
+            parser.exit(
+                status=exit_code,
+                message=f"source capture tiktok live batch admission failed: {admitted_path}\n",
+            )
+        print(COMPLETE_LANE_NOTE)
+        print(f"admitted_packet={admitted_path}")
     return 0
+
+
+def _source_receipt(path: Path, role: str) -> dict[str, object]:
+    raw = path.read_bytes()
+    resolved = str(path.resolve())
+    return {
+        "role": role,
+        "file_name": path.name,
+        "sha256": hashlib.sha256(raw).hexdigest(),
+        "size_bytes": len(raw),
+        "source_path_sha256": hashlib.sha256(resolved.encode("utf-8")).hexdigest(),
+    }
 
 
 if __name__ == "__main__":

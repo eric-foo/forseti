@@ -26,6 +26,9 @@ The agent may:
 - run Authenticated Browser Snapshot capture against one explicitly supplied URL
   using a previously bootstrapped storage-state label and an allowed session
   mode;
+- run the TikTok one-creator live probe against explicitly supplied public
+  creator/video URLs using the TikTok playbook posture, then optionally chain
+  its sanitized staging output through the existing TikTok batch admission gate;
 - inspect `manifest.json`, `receipt.md`, and `raw/`;
 - report packet path, exit code, preserved files, warnings, and limitations.
 
@@ -155,6 +158,7 @@ Use the narrowest runner that matches the supplied input.
 | Original URL plus archive need | `run_source_capture_archive_packet.py` | The operator needs Archive.org availability and maybe snapshot body. |
 | Browser-rendered or screenshot-needed page | `run_source_capture_browser_packet.py` | One supplied URL needs anonymous browser rendering or screenshot preservation. |
 | Login-visible or entitled browser session content | `run_source_capture_browser_session_bootstrap.py`, then `run_source_capture_authenticated_browser_packet.py` | The operator authorizes an allowed manual-login storage-state session. |
+| TikTok public creator/video lane | `run_source_capture_tiktok_live_batch_probe.py` | Use only with the TikTok playbook posture: explicitly supplied public creator/video URLs, headed/sessioned or owner-authorized logged-out run, dedicated non-personal warmed account for sessioned runs, CloakBrowser backend when pinned, and optional admission through `--admit-output` or explicit `--data-root`. |
 | Anti-blocking browser-rendered page | `run_source_capture_cloakbrowser_packet.py` | One supplied URL needs anonymous CloakBrowser rendering because ordinary Browser Snapshot controls (`--headed`, `--browser-channel`, `--settle-seconds`) are expected to fail or have failed. |
 | Retail/PDP anti-blocking capture plus local projection | `run_source_capture_cloakbrowser_packet.py --source-family retail_pdp --retail-pdp-projection-output <path>` | One supplied retailer PDP URL needs a Source Capture Packet and a separate no-network Retail/PDP projection JSON. For the current Amazon/Sephora/Ulta smoke commands, use `docs/product/source_capture_toolbox/retail_pdp_sidecar_operator_playbook_v0.md`. |
 | Reddit pre-commercial anti-blocking capture | `run_source_capture_cloakbrowser_packet.py` for one supplied old Reddit/thread URL only | The runner can preserve one supplied browser-visible URL through CloakBrowser; it does not discover Reddit targets, monitor threads, parse/consolidate comments, use credentials, or authorize broad crawling. |
@@ -204,6 +208,40 @@ offsets, and actual per-slot timestamps in `batch_summary.json`. Keep
 and stop on visible blocks instead of adding retries or proxy/browser fallback
 inside the same runner. Use `--delay-seconds` only when a fixed mechanical
 cadence is intentionally desired.
+
+### TikTok Live Probe To Packet / Bronze Lake
+
+When the owner asks an agent to run TikTok into the bronze/data lake, do not
+hand-copy staging JSON or inspect auth-state files. Run the live probe and let it
+chain the existing network-free TikTok batch admission gate:
+
+```powershell
+python runners/run_source_capture_tiktok_live_batch_probe.py `
+  --creator-handle "<handle>" `
+  --creator-profile-url "https://www.tiktok.com/@<handle>" `
+  --video-url "https://www.tiktok.com/@<handle>/video/<video_id>" `
+  --state-label "<dedicated-tiktok-auth-state-label>" `
+  --session-mode client_provided_session `
+  --output-dir "<scratch-output-dir>" `
+  --browser-backend cloakbrowser `
+  --data-root "F:\orca-data-lake"
+```
+
+Default live-run behavior is staging-only. `--admit-output <packet-dir>` writes
+a local SourceCapturePacket directory after staging; `--data-root <absolute lake
+root>` writes through the production data-lake resolver. This live runner
+intentionally does not read ambient `ORCA_DATA_ROOT`; lake writes require the
+explicit flag. Admission fails closed on nonzero challenge count, failures,
+first-failure reason, or diagnostic/challenge-close contract markers, and it
+preserves only sanitized page-owned comment/subtitle/source-text fields.
+
+Use only dedicated non-personal TikTok accounts for sessioned runs. Do not
+enter credentials, print proxy endpoints, inspect cookies/tokens/storage-state
+JSON, import a raw browser profile, drag/solve CAPTCHA, or claim non-proxy
+provenance from a label string. If the owner is present and authorizes slider
+handoff, add `--allow-challenge-close-followthrough --human-challenge-handoff`;
+the scripted UI substrate still attempts X/Close first, and any manual solve
+remains a receipt-visible source-access intervention, not clean capture.
 
 When a downstream agent needs to read Reddit outputs, generate two local view
 states from the existing JSON artifact instead of feeding the durable artifact
