@@ -89,6 +89,11 @@ _FAMILY_CONFIGS = (
                 "youtube_captions",
                 "youtube_watch_metadata_comments",
                 "youtube_channel_rss_feed",
+                # Probe surfaces verified non-audio from their live manifests
+                # (media_modality_posture: "media bytes out of scope"; grid
+                # HTML/JSON and feed XML respectively) — 2026-07-04 census.
+                "yt_shorts_channel_grid_probe_v0",
+                "yt_channel_rss_feed_probe_v0",
             }
         ),
         "record_id_fn": asr_record_id,
