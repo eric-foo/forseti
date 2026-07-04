@@ -92,7 +92,7 @@ option whose downside is capped because the data asset compounds regardless.**
 | Phase | What happens | Gate to enter | Customer-facing? |
 | --- | --- | --- | --- |
 | **0 — Foundation (now)** | Feed the evidence asset (registry growth, depth capture, ontology); strategy on paper; stay dark | — (current state) | No. Only the ratified holding page + waitlist (with role/decision-type fields per the D8 amendment, 2026-07-04) |
-| **1 — Prove payment** | One paid design-partner **Vetting Sprint** per buyer; readback; WTP evidence is the primary output | Foundation exit gate (deferred decision — register row D-1) fires Vetting v0; buyer probes separately owner-gated | Gated, design-partner only |
+| **1 — Prove payment** | One paid design-partner **Vetting Sprint** per buyer; readback; WTP evidence is the primary output | Foundation exit gate (register row D-1, ratified 2026-07-05) fires Vetting v0; buyer probes separately owner-gated | Gated, design-partner only |
 | **2 — Productize repeats** | Pricing/packaging/SaaS decisions; external claim schema lock | Full house graduation grammar adapted at sprint time; minimum repeat/pull anchor = ≥2 independent qualified buyers at Grade A/B + ≥1 paid-sprint-level pull | Gated |
 | **3 — Public launch** | Own domain, handles, formal trademark clearance, marketing posture | Owner decision; bundle per brand ADR D8 | Yes |
 
@@ -256,14 +256,40 @@ or a dry bounded batch. Every claim in this charter's scope is capped at
 2. **ToS-risk sanity check** — a capture-lane pass confirming comment and
    transcript capture at niche scale stays inside the owner's measured-risk
    posture, before the deep layer is committed at roster scale.
-3. **Foundation exit gate** — deferred decision (register row D-1); it gates
-   the Vetting v0 build, not foundation work itself.
+3. **Foundation exit gate** — ratified 2026-07-05 (register row D-1); it gates
+   the Vetting v0 build, not foundation work itself. Definition: the
+   foundation phase exits when one full dress rehearsal — display target
+   `aphrodite_vetting_sprint_panel_design_v0.md` — produces all six:
+   1. All five panels rendered via the operator-runner transport (no API
+      key) against a real captured creator.
+   2. Fit panel fully DERIVED: every fit element resolves against
+      `fragrance_reference_v0.yaml` coordinates; no operator-asserted fit
+      facts.
+   3. Provenance behavior demonstrated end-to-end, including at least one
+      honest withhold actually displayed (missing ≠ zero in practice, not
+      just on paper).
+   4. Candidate-set assembly rehearsed (register row R-3): the buyer-side
+      product-coordinate intake actually exercised, not stubbed.
+   5. Cross-vendor adversarial review of the rehearsal output returns
+      blocker/major-free, per the delegated-review lane.
+   6. Bounded-effort receipt: the rehearsal records what it cost
+      (reads/steps/time), proving repeatability rather than a heroic
+      one-off.
 
-**Gate status (2026-07-04):** gate 1 is discharged (existence) by
+   **Accelerator:** a waitlist-inbound buyer signal may pull the gate
+   forward — the rehearsal becomes the first design-partner Sprint prep
+   instead of a synthetic cycle. **FLAG-1 rider:** the commercial-use/
+   data-rights flag carries into Phase 1 unresolved and must appear in the
+   first Sprint's scope conversation; the gate does not silently discharge
+   it. **Excluded:** numeric roster thresholds (owner roster-decoupling
+   decision); numbers remain non-binding capture targets.
+
+**Gate status (2026-07-05):** gate 1 is discharged (existence) by
 `aphrodite_derived_claim_provenance_contract_v0.md`; gate 2 is discharged by
 `aphrodite_depth_capture_tos_risk_sanity_check_v0.md` (PASS for
 foundation-stage capture, with the commercial-use/data-rights flag carried to
-Phase 1). Gate 3 remains deferred (D-1). The depth-layer build itself is
+Phase 1). Gate 3 is defined (ratified 2026-07-05, D-1) and has not yet
+fired — the rehearsal has not run. The depth-layer build itself is
 packaged in `docs/prompts/handoffs/aphrodite_depth_layer_build_handoff_v0.md`
 and stays gated on explicit owner build-authorization.
 
@@ -276,7 +302,7 @@ and stays gated on explicit owner build-authorization.
 | R-3 | Candidate-set hybrid: assembly capability built + rehearsed; mix decided at first sprint | `DECIDE (ratified 2026-07-04)` | Owner: "deciding at first sprint, but we must have enough information to bring to them so hybrid" |
 | R-4 | Sprint panels: fit, sponsorship/ad-reception, purchase-intent, brand adjacency, momentum | `DECIDE (ratified 2026-07-04)` | Owner: "we need this for sure"; momentum owner-added same day |
 | R-5 | Two-layer moat doctrine + stratified capture shape | `DECIDE (ratified 2026-07-04)` | Owner "proceed" on the consolidated findings; capture numbers stay hypothesis-tier |
-| D-1 | Foundation exit gate definition (practice-run report vs numeric thresholds vs both) | `DEFER (owner-parked)` | Recorded recommendation: practice-run gate + numbers as non-binding capture targets. Trigger: foundation nears completion |
+| D-1 | Foundation exit gate = six-criteria practice-run dress rehearsal + waitlist accelerator + FLAG-1 rider; numeric thresholds excluded | `DECIDE (ratified 2026-07-05)` | Owner selection: "Ratify as proposed" on the six-criteria proposal; definition in §7 gate 3. Numbers stay non-binding capture targets (roster-decoupling) |
 | D-2 | Commercial frame (pricing bands, tiers, terms) | `DEFER` | Per-decision pricing *posture* is `DEFAULT`; the frame decision is a separate owner-gated pass. Trigger: first real paid conversation or repeat pull |
 | D-3 | External customer claim-object schema lock | `DEFER` | Ratified in Direction Update v0.1. Trigger: repeated paid use reveals stable claim fields |
 | D-4 | SaaS / gated library packaging | `DEFER` | Trigger: repeated paid buyers ask to reuse the evidence surface |
@@ -316,62 +342,9 @@ trigger. Without this table the MGT label would be hype.
 
 ## Direction Change Propagation
 
-```yaml
-direction_change_propagation:
-  doctrine_changed: >
-    Adds the Aphrodite carveout charter as the strategy register above the
-    product architecture: the brand-to-spine identity stitch and naming
-    boundary; the phase strategy with gates; the two-layer moat doctrine
-    (depth-now content/ontology layer, time-later longitudinal layer) as the
-    cashing order of the ratified evidence-graph moat; the ratified first
-    sellable unit (paid design-partner Vetting Sprint) with five evidence
-    panels; buyer-lane defaults; the stratified capture policy shape
-    (hypothesis-tier numbers); extraction-provenance and ToS-check pre-build
-    gates; and the DECIDE/DEFAULT/DEFER register with MGT accepted residuals.
-    Sequencing (foundation-first) and all ownership boundaries unchanged.
-  trigger: product_doctrine
-  related_triggers: []
-  controlling_sources_updated:
-    - forseti/product/spines/creator_signal/aphrodite_carveout_charter_v0.md
-    - docs/decisions/forseti_company_brand_architecture_v0.md   # D8 amendment (waitlist role fields), same lane
-    - forseti/product/spines/creator_signal/README.md               # index row for this charter
-  downstream_surfaces_checked:
-    - forseti/product/spines/creator_signal/creator_signal_product_architecture_v0.md  # foundation-first sequencing and Vetting v0 shape consistent; this charter sits above it and pulls nothing forward
-    - docs/decisions/orca_creator_signal_spine_promotion_binding_v0.md              # owns/does_not_own split untouched; charter routes to it
-    - .agents/workflow-overlay/product-proof.md                                     # proof semantics consumed, not redefined
-    - forseti/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md    # grammar reused; parent demand-substrate gate explicitly not transferred
-    - docs/workflows/orca_repo_map_v0.md                                            # decision/product records not exhaustively indexed (existing precedent); the spine README row carries the route
-    - AGENTS.md                                                                     # no naming/brand/product content; routes to overlay — unchanged
-  intentionally_not_updated:
-    - path: docs/workflows/orca_repo_map_v0.md
-      reason: >
-        Existing precedent (spine binding DCP): per-spine artifacts route via
-        the spine front door, which this lane updates; no repo-map row added.
-    - path: forseti/product/spines/creator_signal/creator_signal_product_architecture_v0.md
-      reason: >
-        Its Direction Update v0.1 remains the sequencing authority; this
-        charter routes to it rather than editing it. Its older Vetting v0
-        detail sections already carry the v0.1 supersession note.
-  stale_language_search: >
-    rg -in "aphrodite" --glob "!docs/_inbox/**" --glob "!forseti/product/spines/creator_signal/aphrodite_carveout_charter_v0.md" .
-  stale_language_search_result: >
-    Executed 2026-07-04 in the lane worktree with all three edits staged, before
-    commit. Hits in exactly four files, all expected: the brand ADR (the naming
-    authority plus this lane's D8 amendment), the web-foundation design-lane
-    handoff (a committed point-in-time packet whose stale_if routes receivers to
-    the ADR), one captured-evidence datapoint (the "Soki London Aphrodite"
-    fragrance product title in docs/review-inputs/youtube_shorts_fragrance_
-    tone_expansion200_capture_v0.json — evidence data, not routing), and the
-    spine README (this lane's new index row). No repo surface carries stale or
-    conflicting Aphrodite routing.
-  non_claims:
-    - not validation
-    - not readiness
-    - not buyer proof
-    - not willingness-to-pay evidence
-    - not implementation, capture, outreach, or publishing authorization
-    - charter is DRAFT pending delegated review and owner ratification
-```
+Older receipts for this file are archived verbatim in
+`docs/decisions/dcp_receipts_archive_v0.md` (charter-creation receipt,
+2026-07-04, moved 2026-07-05 under the two-inline-receipt rule).
 
 ```yaml
 direction_change_propagation:
@@ -441,4 +414,60 @@ direction_change_propagation:
     - not willingness-to-pay evidence
     - not implementation, capture, outreach, or publishing authorization
     - not a resizing of the market-sizing estimate (routing note only)
+```
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Register row D-1 (foundation exit gate definition) flips DEFER
+    (owner-parked) to DECIDE (ratified 2026-07-05): the foundation phase exits
+    on a six-criteria practice-run dress rehearsal (five panels rendered via
+    the operator-runner transport; fit panel fully DERIVED against
+    fragrance_reference_v0.yaml; provenance behavior end-to-end including at
+    least one honest withhold displayed; candidate-set assembly rehearsed per
+    register row R-3; cross-vendor adversarial review blocker/major-free;
+    bounded-effort receipt), plus a waitlist-inbound accelerator and the
+    FLAG-1 commercial-use/data-rights rider carried into Phase 1. Numeric
+    roster thresholds are excluded per the owner's roster-decoupling decision;
+    numbers remain non-binding capture targets. The definition lives in §7
+    gate 3; no other register row, phase boundary, or ownership boundary
+    changes. Defining the gate does not fire it: the rehearsal has not run,
+    and the depth-layer build keeps its own owner authorization.
+  trigger: product_doctrine
+  related_triggers: []
+  controlling_sources_updated:
+    - forseti/product/spines/creator_signal/aphrodite_carveout_charter_v0.md   # §2 phase-table gate cell, §7 gate 3 definition + gate status, §8 row D-1
+  downstream_surfaces_checked:
+    - forseti/product/spines/creator_signal/aphrodite_vetting_sprint_panel_design_v0.md   # (lands via PR #717, open at receipt time) names itself the display target for the D-1 dress rehearsal; its stale_if trigger "D-1 adopts different rehearsal criteria than this design assumes" does not fire — the ratified criteria adopt that design as the rehearsal target
+    - docs/prompts/handoffs/aphrodite_depth_layer_build_handoff_v0.md   # marks D-1 "OPEN (parked)" at lines 90/128; committed point-in-time packet whose load contract requires re-verifying the charter register before execution; its own text already states D-1 does not block the rehearsal
+    - forseti/product/spines/creator_signal/creator_signal_product_architecture_v0.md   # sequencing authority (foundation-first, Direction Update v0.1) untouched; the gate definition pulls no customer product forward
+    - forseti/product/spines/creator_signal/README.md   # charter index row already names it the decision register; no row text stale
+  intentionally_not_updated:
+    - path: docs/prompts/handoffs/aphrodite_depth_layer_build_handoff_v0.md
+      reason: >
+        Committed point-in-time handoff packet; per existing DCP precedent
+        (web-foundation handoff, charter-creation receipt) sealed packets are
+        not edited — their confirm-don't-trust load contract routes receivers
+        to re-read the charter register, which now carries the DECIDE row.
+    - path: forseti/product/spines/creator_signal/aphrodite_vetting_sprint_panel_design_v0.md
+      reason: >
+        Not on main at receipt time (PR #717 open); its stale_if for D-1 does
+        not fire because the ratified criteria match the design it assumes.
+  stale_language_search: >
+    rg -in "D-1|foundation exit gate" forseti/product/spines/creator_signal
+    docs/prompts/handoffs docs/decisions docs/workflows
+  stale_language_search_result: >
+    Executed 2026-07-05 on branch claude/d1-gate-ratification (base
+    origin/main e8ca2093) with all edits in the working tree, before commit.
+    Hits: this charter (controlling source), the depth-layer build handoff
+    (sealed point-in-time packet, handled above), and cleaning/judgment-spine
+    files whose matches are the unrelated "OD-1" token and a different lane's
+    "foundation" vocabulary — no Aphrodite surface carries stale
+    deferred-gate routing.
+  non_claims:
+    - not validation
+    - not readiness
+    - not buyer proof or willingness-to-pay evidence
+    - not rehearsal completion — the gate is defined, not fired
+    - not build authorization: depth-layer build and Vetting v0 keep their own owner gates
 ```

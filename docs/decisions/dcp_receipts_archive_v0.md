@@ -3371,3 +3371,62 @@ direction_change_propagation:
     - not a Claude Code edit-tool mandate
     - the bucket policy does not prove any artifact passes a gate
 ```
+
+## From forseti/product/spines/creator_signal/aphrodite_carveout_charter_v0.md
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Adds the Aphrodite carveout charter as the strategy register above the
+    product architecture: the brand-to-spine identity stitch and naming
+    boundary; the phase strategy with gates; the two-layer moat doctrine
+    (depth-now content/ontology layer, time-later longitudinal layer) as the
+    cashing order of the ratified evidence-graph moat; the ratified first
+    sellable unit (paid design-partner Vetting Sprint) with five evidence
+    panels; buyer-lane defaults; the stratified capture policy shape
+    (hypothesis-tier numbers); extraction-provenance and ToS-check pre-build
+    gates; and the DECIDE/DEFAULT/DEFER register with MGT accepted residuals.
+    Sequencing (foundation-first) and all ownership boundaries unchanged.
+  trigger: product_doctrine
+  related_triggers: []
+  controlling_sources_updated:
+    - forseti/product/spines/creator_signal/aphrodite_carveout_charter_v0.md
+    - docs/decisions/forseti_company_brand_architecture_v0.md   # D8 amendment (waitlist role fields), same lane
+    - forseti/product/spines/creator_signal/README.md               # index row for this charter
+  downstream_surfaces_checked:
+    - forseti/product/spines/creator_signal/creator_signal_product_architecture_v0.md  # foundation-first sequencing and Vetting v0 shape consistent; this charter sits above it and pulls nothing forward
+    - docs/decisions/orca_creator_signal_spine_promotion_binding_v0.md              # owns/does_not_own split untouched; charter routes to it
+    - .agents/workflow-overlay/product-proof.md                                     # proof semantics consumed, not redefined
+    - forseti/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md    # grammar reused; parent demand-substrate gate explicitly not transferred
+    - docs/workflows/orca_repo_map_v0.md                                            # decision/product records not exhaustively indexed (existing precedent); the spine README row carries the route
+    - AGENTS.md                                                                     # no naming/brand/product content; routes to overlay — unchanged
+  intentionally_not_updated:
+    - path: docs/workflows/orca_repo_map_v0.md
+      reason: >
+        Existing precedent (spine binding DCP): per-spine artifacts route via
+        the spine front door, which this lane updates; no repo-map row added.
+    - path: forseti/product/spines/creator_signal/creator_signal_product_architecture_v0.md
+      reason: >
+        Its Direction Update v0.1 remains the sequencing authority; this
+        charter routes to it rather than editing it. Its older Vetting v0
+        detail sections already carry the v0.1 supersession note.
+  stale_language_search: >
+    rg -in "aphrodite" --glob "!docs/_inbox/**" --glob "!forseti/product/spines/creator_signal/aphrodite_carveout_charter_v0.md" .
+  stale_language_search_result: >
+    Executed 2026-07-04 in the lane worktree with all three edits staged, before
+    commit. Hits in exactly four files, all expected: the brand ADR (the naming
+    authority plus this lane's D8 amendment), the web-foundation design-lane
+    handoff (a committed point-in-time packet whose stale_if routes receivers to
+    the ADR), one captured-evidence datapoint (the "Soki London Aphrodite"
+    fragrance product title in docs/review-inputs/youtube_shorts_fragrance_
+    tone_expansion200_capture_v0.json — evidence data, not routing), and the
+    spine README (this lane's new index row). No repo surface carries stale or
+    conflicting Aphrodite routing.
+  non_claims:
+    - not validation
+    - not readiness
+    - not buyer proof
+    - not willingness-to-pay evidence
+    - not implementation, capture, outreach, or publishing authorization
+    - charter is DRAFT pending delegated review and owner ratification
+```
