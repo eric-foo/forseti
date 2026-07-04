@@ -116,6 +116,8 @@ EXPECTED_NON_RAW_LAKE_TOUCHPOINTS = Counter(
         ("data_lake/sov_readout.py", "lane_dir"): 1,
         ("ecr/lake.py", "append_record_set"): 1,
         ("runners/run_capture_ecr_cleaning_smoke.py", "lane_dir"): 1,
+        ("runners/run_asr_transcript_catchup.py", "is_record_set_complete"): 1,
+        ("runners/run_asr_transcript_catchup.py", "record_path"): 2,
         ("runners/run_cleaning_spine_periodic_audit.py", "record_path"): 1,
         ("runners/run_data_lake_catalog.py", "catalog_coverage_census"): 1,
         ("runners/run_data_lake_catalog.py", "inspect_catalog"): 1,
