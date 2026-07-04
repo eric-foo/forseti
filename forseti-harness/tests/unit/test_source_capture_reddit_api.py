@@ -288,7 +288,7 @@ def test_real_oauth_client_sends_basic_then_bearer_and_returns_only_status_body(
     api_request = recorded[1]
     assert api_request.full_url.startswith("https://oauth.reddit.com/r/x/hot")
     assert api_request.get_header("Authorization") == "bearer TESTTOKEN"
-    assert "Orca" in (api_request.get_header("User-agent") or "")
+    assert "Forseti" in (api_request.get_header("User-agent") or "")
 
     # the seam returns ONLY status + body — no token/secret leaks back to the adapter
     assert isinstance(response, RedditApiResponse)

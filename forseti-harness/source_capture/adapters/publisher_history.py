@@ -54,7 +54,7 @@ DEFAULT_GITHUB_RAW_BASE = "https://raw.githubusercontent.com"
 # GitHub requires a declared User-Agent; an empty UA is rejected by the API. The publisher-history
 # rungs are honest stdlib fetches (no browser/api-client emulation), recorded in the UA.
 DEFAULT_PUBLISHER_HISTORY_USER_AGENT = (
-    "OrcaSourceCapturePublisherHistory/0.1 (stdlib honest fetch; no browser/api-client/archive)"
+    "ForsetiSourceCapturePublisherHistory/0.1 (stdlib honest fetch; no browser/api-client/archive)"
 )
 # PH-03: fetch a bounded window of revisions so the adapter can skip unproofed top entries and
 # find the next older proofed entry; keep it small to avoid large API responses.

@@ -7,6 +7,9 @@ from typing import Any, Iterable, Sequence
 from source_capture.adapters.browser_snapshot import BrowserPageResponse
 
 
+DEFAULT_WIDGET_FALLBACK_USER_AGENT = "Mozilla/5.0 (compatible; ForsetiSourceCapture/0.1)"
+
+
 def fetch_fragrance_widget_fallback_responses(
     *,
     urls: Sequence[str],
@@ -35,7 +38,7 @@ def fetch_fragrance_widget_fallback_response(
         url,
         headers={
             "Accept": "application/json,text/html;q=0.9,*/*;q=0.8",
-            "User-Agent": "Mozilla/5.0 (compatible; OrcaSourceCapture/0.1)",
+            "User-Agent": DEFAULT_WIDGET_FALLBACK_USER_AGENT,
         },
     )
     try:
