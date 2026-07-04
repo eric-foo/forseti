@@ -2,7 +2,7 @@
 """Review-output provenance and use-boundary checker.
 
 WHAT THIS DOES
-  Checks new or materially changed Orca review outputs for the mechanical
+  Checks new or materially changed Forseti review outputs for the mechanical
   fields and artifact integrity needed by later adjudication:
 
     - retrieval header shape;
@@ -436,7 +436,7 @@ def selftest() -> int:
 
 def main(argv: list[str]) -> int:
     parser = argparse.ArgumentParser(
-        description="Check changed Orca review outputs for provenance, use-boundary, and integrity shape."
+        description="Check changed Forseti review outputs for provenance, use-boundary, and integrity shape."
     )
     parser.add_argument("paths", nargs="*", help="explicit review-output files to check")
     parser.add_argument("--staged", action="store_true", help="check git-staged paths")

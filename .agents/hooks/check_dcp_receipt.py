@@ -56,7 +56,7 @@ DETECTION CONTRACT (mirrors header_index.py / check_deletion_evidence.py --stric
   origin/main. Diff is three-dot `base...HEAD` (the PR's net change), name-only,
   .md files only, added/modified (ACMR). NO HEAD~1 fallback. If the base cannot
   be resolved or git fails, fail OPEN (exit 0, loud warning) -- the universal
-  Orca infra-gap stance; in CI the base is always present (fetch-depth: 0).
+  Forseti infra-gap stance; in CI the base is always present (fetch-depth: 0).
 
   For each changed .md file, ALL real receipt blocks in that file are validated
   (not only diff-added lines): touching a doctrine file re-checks its receipts.
