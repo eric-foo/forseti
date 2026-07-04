@@ -75,8 +75,9 @@ that must be preserved in the receipt and batch payload. Continue only if the
 rendered page no longer shows challenge/security text, the close receipt has
 `challenge_close_accepted=true`, and either at least one page-owned
 `/api/comment/list` response is captured or bounded DOM-visible comment
-candidates are captured after the named comments -> `More like this` -> comments
-route. DOM-visible comments are lower-tier `captured_visible_dom` evidence, not
+candidates are captured after the named comments -> `You may like` / `More
+like this` -> comments route, including the bounded second route pass when the
+first pass yields zero comments. DOM-visible comments are lower-tier `captured_visible_dom` evidence, not
 page-owned response evidence; count-only/tab text such as `303`, `1.2K comments`,
 `Comments`, or `Log in to comment` is not a comment body and cannot admit. If the
 final visual close follow-through fails post-click verification, the pointer
@@ -105,9 +106,9 @@ The substrate is:
 
 | Blocker / UI state | Action substrate | Allowed in clean run? | Success semantics |
 | --- | --- | --- | --- |
-| Benign TikTok onboarding/app prompt such as `Got it`, `Not now`, `Continue in browser` | `tiktok_dismiss_benign_overlay_pointer_v0` | Yes | Setup action only; excluded from comment-action count. |
+| Benign TikTok onboarding/app prompt such as `Got it`, `OK`, `Not now`, `Continue in browser` | `tiktok_dismiss_benign_overlay_pointer_v0` | Yes | Setup action only; excluded from comment-action count; `OK` is matched as an exact button/control target, not as a broad page-text blocker marker. |
 | Logged-out login upsell modal with a dismiss/close control and no challenge/security text | `tiktok_dismiss_benign_overlay_pointer_v0` or a named logged-out dismiss action if added later | Yes for logged-out limit mapping only | Setup action only; record the receipt and continue measuring public access. Do not enter credentials. |
-| Comment surface does not load comments until tab shuffle | `comment_surface_toggle_pointer_sequence_v0`: `tiktok_open_comments_pointer_v0` -> `tiktok_open_more_like_this_pointer_v0` -> `tiktok_reopen_comments_pointer_v0` | Yes | Clean response-tier capture if at least one page-owned `/api/comment/list` response is admitted; lower-tier fallback if bounded DOM-visible comment candidates are captured after the route. Zero response and zero DOM-visible candidates is stop/diagnosis. |
+| Comment surface does not load comments until tab shuffle | `comment_surface_toggle_pointer_sequence_v0`: `tiktok_open_comments_pointer_v0` -> `tiktok_open_more_like_this_pointer_v0` (`You may like` / `More like this`) -> `tiktok_reopen_comments_pointer_v0`, repeated once before zero-yield classification | Yes | Clean response-tier capture if at least one page-owned `/api/comment/list` response is admitted; lower-tier fallback if bounded DOM-visible comment candidates are captured after the route. First-pass zero response is not terminal; zero response and zero DOM-visible candidates after the repeated bounded route remains zero evidence, not success. |
 | DOM-exposed slider/captcha close control | `tiktok_challenge_modal_close_followthrough_pointer_v0` for follow-through; `tiktok_challenge_modal_close_diagnostic_pointer_v0` for diagnosis | Yes only with `--allow-challenge-close-followthrough`; diagnostic flag remains stop-only | Attempt X/Close, do not solve/drag, then continue only if post-click verification plus final blocker triage accepts the close (`challenge_close_accepted=true`) and page-owned comments or DOM-visible comment candidates are captured; carry `source_access_intervention`. |
 | Screenshot-visible but DOM-invisible slider/captcha X | `tiktok_challenge_modal_visual_close_followthrough_pointer_v0` for follow-through; `tiktok_challenge_modal_visual_close_diagnostic_pointer_v0` for diagnosis | Yes only with `--allow-challenge-close-followthrough`; diagnostic visual-X remains visible-challenge-text gated and stop-only | Follow-through visual-X may run before comment routing even when TikTok exposes the challenge marker only as hidden/residual DOM text. Continue only if post-click text/visual verification plus final blocker triage accepts the close and page-owned comments or DOM-visible comment candidates are captured, with the intervention preserved. |
 | Slider/captcha puzzle itself | None | Never | Do not drag, solve, or attempt puzzle interaction. |
@@ -174,8 +175,9 @@ not run a close diagnostic merely to re-prove X targetability.
      human-performed login, authorized auth-state label/session mode, no
      duplicate TikTok tabs, and owner authorization for the live run.
 3. For an unchallenged route-yield gate, run without challenge-close flags. The
-   runner may dismiss benign overlays and perform the comments -> More like
-   this -> comments sequence.
+   runner may press visible retry controls, dismiss benign overlays, and perform
+   comments -> `You may like` / `More like this` -> comments twice before
+   treating zero response plus zero DOM-visible candidates as zero evidence.
 4. If the current owner authorizes X-able challenge follow-through, run with
    `--allow-challenge-close-followthrough`. The runner attempts the challenge
    X/Close action first, then the comments route. Continue only if the first
@@ -203,6 +205,7 @@ For benign overlay:
 
 For comment routing:
 
+- `capture_receipt.route_retry_action.action_name` when a visible retry control was clicked
 - `capture_receipt.comment_action.sequence_name`
 - `action_count`
 - `action_sequence[*].action_name`

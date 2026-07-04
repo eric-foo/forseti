@@ -60,7 +60,7 @@ stale_if:
   - options:
     - `accepted_close_with_comment_evidence`: continue only if `completed_count=1`, `challenge_close_accepted=true` when a close action occurred, and page-owned comment response evidence or bounded DOM-visible comment-body fallback is admitted.
     - `failed_close_zero_admission`: stop if TikTok receives the X/Close click but the slider/security modal remains or post-click visual candidates remain; report zero admission.
-    - `no_challenge_but_no_comments`: stop if no challenge appears but no page-owned comments or comment-body-like DOM fallback is captured.
+    - `route_retry_exhausted_zero_evidence`: after the runner presses visible Retry if present and repeats the comments -> `You may like` / `More like this` -> comments route, no page-owned comments or comment-body-like DOM fallback is captured. This is zero evidence, not capture success and not a reason to promote or expand.
   - already constrained / off the table: no CAPTCHA drag/solve, no login, no cookie/token/auth-state inspection or persistence, no product/Judgment extraction, no pagination or broad creator expansion, no registry/bronze promotion from diagnostic-only evidence.
   - trade-offs: one test is narrow enough to observe and debug; it cannot establish a cross-creator ceiling or durable TikTok access reliability.
   - owner of the call: owner/Chief Architect decides whether to expand after the one-test receipt; the receiver only classifies the receipt.
@@ -145,7 +145,7 @@ Run one logged-out, owner-observable TikTok X/Close follow-through test against 
 5. Stop and report one of these outcomes:
    - `accepted_close_with_comment_evidence`: `attempted_count=1`, `completed_count=1`, `challenge_count=0` or accepted source-access close preserved, and admitted page-owned comment response or comment-body-like DOM fallback evidence is present.
    - `failed_close_zero_admission`: `challenge_count=1`, `challenge_close_accepted=false`, or post-click visual candidates/final challenge markers remain; admitted comment count must be zero.
-   - `no_challenge_but_no_comments`: no challenge stop, but no admitted page-owned comment response and no comment-body-like DOM fallback.
+   - `route_retry_exhausted_zero_evidence`: no accepted evidence after visible Retry handling and the repeated comments -> `You may like` / `More like this` -> comments route; zero admission, no promotion, no expansion.
 6. Only if the output is `accepted_close_with_comment_evidence`, prepare a separate owner decision for whether to add the sanitized creator/comment result to the creator registry / bronze fragrance lane. Do not promote from this handoff automatically.
 
 ## Authority And Source Ledger
@@ -307,9 +307,9 @@ Run one logged-out, owner-observable TikTok X/Close follow-through test against 
 - Question: Will TikTok accept the X close in the next logged-out run?
   - Why still mutable: TikTok challenge state is live-site behavior.
   - What would resolve it: the fresh one-video receipt.
-- Question: Will logged-out public comments be captured after an accepted close or no-challenge route?
+- Question: Will logged-out public comments be captured after accepted close or no-challenge route plus the repeated comment-tab shuffle?
   - Why still mutable: prior runs did not produce admitted comment bodies under current gates.
-  - What would resolve it: page-owned `/api/comment/list` evidence or bounded DOM-visible comment-body fallback in a fresh completed receipt.
+  - What would resolve it: page-owned `/api/comment/list` evidence or bounded DOM-visible comment-body fallback in a fresh completed receipt after the retry/tab-shuffle route.
 - Question: Should successful comment evidence be promoted to creator registry / bronze fragrance lane?
   - Why still mutable: this handoff authorizes testing and classification only.
   - What would resolve it: a fresh admitted receipt plus owner decision to promote.
@@ -376,7 +376,7 @@ Run one logged-out, owner-observable TikTok X/Close follow-through test against 
 
 - Blocker or risk: TikTok may not present the slider challenge during the test.
   - Evidence: prior no-geometric/count-filter run did not trigger sliding CAPTCHA.
-  - Likely next action: classify as no-challenge route; inspect whether comments were admitted, but do not infer X-close success.
+  - Likely next action: run the repeated comment-tab shuffle; if comments still do not admit, classify as zero evidence after bounded route retry, not X-close success or promotion evidence.
 - Blocker or risk: TikTok may present the slider challenge and reject the close again.
   - Evidence: latest authoritative receipt clicked a real DOM button but kept `challenge_close_accepted=false`.
   - Likely next action: stop as `failed_close_zero_admission`.

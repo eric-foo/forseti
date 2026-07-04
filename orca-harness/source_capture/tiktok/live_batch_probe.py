@@ -102,6 +102,7 @@ TIKTOK_OPEN_COMMENTS_POINTER_ACTION_NAME = "tiktok_open_comments_pointer_v0"
 TIKTOK_OPEN_MORE_LIKE_THIS_POINTER_ACTION_NAME = "tiktok_open_more_like_this_pointer_v0"
 TIKTOK_REOPEN_COMMENTS_POINTER_ACTION_NAME = "tiktok_reopen_comments_pointer_v0"
 TIKTOK_DISMISS_BENIGN_OVERLAY_POINTER_ACTION_NAME = "tiktok_dismiss_benign_overlay_pointer_v0"
+TIKTOK_RETRY_VISIBLE_ERROR_POINTER_ACTION_NAME = "tiktok_retry_visible_error_pointer_v0"
 TIKTOK_CHALLENGE_CLOSE_DIAGNOSTIC_POINTER_ACTION_NAME = (
     "tiktok_challenge_modal_close_diagnostic_pointer_v0"
 )
@@ -764,6 +765,10 @@ def _tiktok_live_pointer_actions(
     allow_challenge_close_diagnostic: bool,
     allow_challenge_close_followthrough: bool,
 ) -> tuple[BrowserPagePointerAction, ...]:
+    retry_action = _tiktok_retry_visible_error_pointer_action(
+        video_id=video_id,
+        random_seed=random_seed,
+    )
     benign_overlay_action = _tiktok_dismiss_benign_overlay_pointer_action(
         video_id=video_id,
         random_seed=random_seed,
@@ -774,6 +779,7 @@ def _tiktok_live_pointer_actions(
     )
     if allow_challenge_close_followthrough:
         return (
+            retry_action,
             benign_overlay_action,
             _tiktok_challenge_close_followthrough_pointer_action(
                 video_id=video_id,
@@ -786,8 +792,9 @@ def _tiktok_live_pointer_actions(
             *comment_actions,
         )
     if not allow_challenge_close_diagnostic:
-        return (benign_overlay_action, *comment_actions)
+        return (retry_action, benign_overlay_action, *comment_actions)
     return (
+        retry_action,
         benign_overlay_action,
         _tiktok_challenge_close_diagnostic_pointer_action(
             video_id=video_id,
@@ -806,7 +813,7 @@ def _tiktok_comment_route_pointer_actions(
     video_id: str,
     random_seed: int | None,
 ) -> tuple[BrowserPagePointerAction, ...]:
-    return (
+    route_once = (
         _tiktok_open_comments_pointer_action(
             video_id=video_id,
             random_seed=random_seed,
@@ -824,6 +831,7 @@ def _tiktok_comment_route_pointer_actions(
             wait_after_ms=3500,
         ),
     )
+    return (*route_once, *route_once)
 
 
 def _tiktok_dismiss_benign_overlay_pointer_action(
@@ -842,9 +850,13 @@ def _tiktok_dismiss_benign_overlay_pointer_action(
             "scroll, use the",
             "browse your feed",
             "got it",
+            "press ok",
+            "tap ok",
+            "okay",
             "continue in browser",
             "open app",
         ),
+        exact_text_markers=("ok", "okay"),
         wait_after_ms=1500,
         move_steps_min=6,
         move_steps_max=12,
@@ -855,6 +867,40 @@ def _tiktok_dismiss_benign_overlay_pointer_action(
             video_id=video_id,
             random_seed=random_seed,
             action_name=TIKTOK_DISMISS_BENIGN_OVERLAY_POINTER_ACTION_NAME,
+        ),
+    )
+
+
+def _tiktok_retry_visible_error_pointer_action(
+    *,
+    video_id: str,
+    random_seed: int | None,
+) -> BrowserPagePointerAction:
+    return BrowserPagePointerAction(
+        action_name=TIKTOK_RETRY_VISIBLE_ERROR_POINTER_ACTION_NAME,
+        candidate_selector=(
+            'button,[role="button"],[aria-label],[title],[data-e2e],'
+            '[data-testid],[data-test-id],a'
+        ),
+        text_markers=("retry", "retry again", "try again", "reload"),
+        page_text_markers=(
+            "retry",
+            "retry again",
+            "try again",
+            "something went wrong",
+            "couldn't load",
+            "could not load",
+            "failed to load",
+        ),
+        wait_after_ms=2500,
+        move_steps_min=6,
+        move_steps_max=12,
+        target_fraction_min=0.35,
+        target_fraction_max=0.65,
+        random_seed=_stable_pointer_seed(
+            video_id=video_id,
+            random_seed=random_seed,
+            action_name=TIKTOK_RETRY_VISIBLE_ERROR_POINTER_ACTION_NAME,
         ),
     )
 
@@ -1023,7 +1069,14 @@ def _tiktok_open_more_like_this_pointer_action(
             '[data-e2e*="more_like"],[data-testid*="more-like"],'
             '[data-test-id*="more-like"]'
         ),
-        text_markers=("more like this", "more-like-this", "more_like_this"),
+        text_markers=(
+            "more like this",
+            "more-like-this",
+            "more_like_this",
+            "you may like",
+            "you-may-like",
+            "you_may_like",
+        ),
         wait_after_ms=2000,
         move_steps_min=6,
         move_steps_max=12,
@@ -1213,6 +1266,7 @@ def _comment_action_summary(capture_result: BrowserPageObservationSuccess) -> Js
             TIKTOK_CHALLENGE_CLOSE_FOLLOWTHROUGH_POINTER_ACTION_NAME,
             TIKTOK_CHALLENGE_VISUAL_CLOSE_FOLLOWTHROUGH_POINTER_ACTION_NAME,
             TIKTOK_DISMISS_BENIGN_OVERLAY_POINTER_ACTION_NAME,
+            TIKTOK_RETRY_VISIBLE_ERROR_POINTER_ACTION_NAME,
         }:
             continue
         action_sequence.append(summary)

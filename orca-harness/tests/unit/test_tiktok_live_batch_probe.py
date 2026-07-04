@@ -38,6 +38,7 @@ from source_capture.tiktok.live_batch_probe import (
     TIKTOK_COMMENT_SURFACE_TOGGLE_POINTER_SEQUENCE_NAME,
     TIKTOK_LOGGED_OUT_SESSION_MODE,
     TIKTOK_DISMISS_BENIGN_OVERLAY_POINTER_ACTION_NAME,
+    TIKTOK_RETRY_VISIBLE_ERROR_POINTER_ACTION_NAME,
     TIKTOK_OPEN_COMMENTS_POINTER_ACTION_NAME,
     TIKTOK_OPEN_MORE_LIKE_THIS_POINTER_ACTION_NAME,
     TIKTOK_REOPEN_COMMENTS_POINTER_ACTION_NAME,
@@ -186,7 +187,7 @@ def test_live_probe_writes_sanitized_staging_compatible_with_batch_admission(
     assert receipt["benign_overlay_action"] == _benign_overlay_action_receipt()
     assert receipt["comment_action"] == {
         "sequence_name": TIKTOK_COMMENT_SURFACE_TOGGLE_POINTER_SEQUENCE_NAME,
-        "action_count": 3,
+        "action_count": len(_pointer_action_sequence_receipt()),
         "action_sequence": _pointer_action_sequence_receipt(),
         "clicked_all_targets": True,
     }
@@ -196,30 +197,35 @@ def test_live_probe_writes_sanitized_staging_compatible_with_batch_admission(
     pointer_actions = engine.calls[0]["post_load_pointer_actions"]
     assert isinstance(pointer_actions, tuple)
     assert [action.action_name for action in pointer_actions] == [
+        TIKTOK_RETRY_VISIBLE_ERROR_POINTER_ACTION_NAME,
         TIKTOK_DISMISS_BENIGN_OVERLAY_POINTER_ACTION_NAME,
-        TIKTOK_OPEN_COMMENTS_POINTER_ACTION_NAME,
-        TIKTOK_OPEN_MORE_LIKE_THIS_POINTER_ACTION_NAME,
-        TIKTOK_REOPEN_COMMENTS_POINTER_ACTION_NAME,
+        *_comment_route_action_names(),
     ]
-    assert pointer_actions[0].text_markers == (
+    assert pointer_actions[0].text_markers == ("retry", "retry again", "try again", "reload")
+    assert pointer_actions[1].text_markers == (
         "got it",
         "not now",
         "continue in browser",
         "maybe later",
     )
-    assert "browse your feed" in pointer_actions[0].page_text_markers
-    assert pointer_actions[1].candidate_selector == (
+    assert "browse your feed" in pointer_actions[1].page_text_markers
+    assert pointer_actions[1].exact_text_markers == ("ok", "okay")
+    assert pointer_actions[2].candidate_selector == (
         '[data-e2e="comment-icon"],[data-e2e*="comment"],button,[role="button"],a'
     )
-    assert pointer_actions[1].text_markers == ("comment", "comments")
-    assert pointer_actions[1].move_steps_min == 6
-    assert pointer_actions[1].move_steps_max == 12
-    assert pointer_actions[2].text_markers == (
+    assert pointer_actions[2].text_markers == ("comment", "comments")
+    assert pointer_actions[2].move_steps_min == 6
+    assert pointer_actions[2].move_steps_max == 12
+    assert pointer_actions[3].text_markers == (
         "more like this",
         "more-like-this",
         "more_like_this",
+        "you may like",
+        "you-may-like",
+        "you_may_like",
     )
-    assert pointer_actions[3].wait_after_ms == 3500
+    assert pointer_actions[4].wait_after_ms == 3500
+    assert pointer_actions[7].wait_after_ms == 3500
     assert engine.calls[0]["response_predicate_matches_comment_list"] is True
 
     code, message = write_tiktok_batch_packet(
@@ -525,14 +531,13 @@ def test_live_probe_challenge_close_diagnostic_flag_prepends_close_action(
     cadence = json.loads(paths.cadence_result_json_path.read_text(encoding="utf-8"))
     pointer_actions = engine.calls[0]["post_load_pointer_actions"]
     assert [action.action_name for action in pointer_actions] == [
+        TIKTOK_RETRY_VISIBLE_ERROR_POINTER_ACTION_NAME,
         TIKTOK_DISMISS_BENIGN_OVERLAY_POINTER_ACTION_NAME,
         TIKTOK_CHALLENGE_CLOSE_DIAGNOSTIC_POINTER_ACTION_NAME,
-        TIKTOK_OPEN_COMMENTS_POINTER_ACTION_NAME,
-        TIKTOK_OPEN_MORE_LIKE_THIS_POINTER_ACTION_NAME,
-        TIKTOK_REOPEN_COMMENTS_POINTER_ACTION_NAME,
+        *_comment_route_action_names(),
         TIKTOK_CHALLENGE_VISUAL_CLOSE_DIAGNOSTIC_POINTER_ACTION_NAME,
     ]
-    close_action = pointer_actions[1]
+    close_action = pointer_actions[2]
     assert close_action.page_text_markers == (
         "drag the slider",
         "verify to continue",
@@ -542,7 +547,7 @@ def test_live_probe_challenge_close_diagnostic_flag_prepends_close_action(
     assert close_action.exact_text_markers == ("x", "×")
     assert close_action.prefer_top_right is True
     assert close_action.visual_top_right_x_fallback is True
-    visual_close_action = pointer_actions[5]
+    visual_close_action = pointer_actions[-1]
     assert visual_close_action.action_name == (
         TIKTOK_CHALLENGE_VISUAL_CLOSE_DIAGNOSTIC_POINTER_ACTION_NAME
     )
@@ -560,7 +565,7 @@ def test_live_probe_challenge_close_diagnostic_flag_prepends_close_action(
     assert receipt["benign_overlay_action"]["action_name"] == (
         TIKTOK_DISMISS_BENIGN_OVERLAY_POINTER_ACTION_NAME
     )
-    assert receipt["comment_action"]["action_count"] == 3
+    assert receipt["comment_action"]["action_count"] == len(_pointer_action_sequence_receipt())
 
 
 def test_live_probe_challenge_close_followthrough_admits_post_close_comments(
@@ -645,22 +650,21 @@ def test_live_probe_challenge_close_followthrough_admits_post_close_comments(
 
     pointer_actions = engine.calls[0]["post_load_pointer_actions"]
     assert [action.action_name for action in pointer_actions] == [
+        TIKTOK_RETRY_VISIBLE_ERROR_POINTER_ACTION_NAME,
         TIKTOK_DISMISS_BENIGN_OVERLAY_POINTER_ACTION_NAME,
         TIKTOK_CHALLENGE_CLOSE_FOLLOWTHROUGH_POINTER_ACTION_NAME,
         TIKTOK_CHALLENGE_VISUAL_CLOSE_FOLLOWTHROUGH_POINTER_ACTION_NAME,
-        TIKTOK_OPEN_COMMENTS_POINTER_ACTION_NAME,
-        TIKTOK_OPEN_MORE_LIKE_THIS_POINTER_ACTION_NAME,
-        TIKTOK_REOPEN_COMMENTS_POINTER_ACTION_NAME,
+        *_comment_route_action_names(),
     ]
-    assert pointer_actions[1].page_text_markers == (
+    assert pointer_actions[2].page_text_markers == (
         "drag the slider",
         "verify to continue",
         "captcha",
         "security check",
     )
-    assert pointer_actions[2].page_text_markers == ()
-    assert pointer_actions[2].visual_top_right_x_fallback is True
-    assert pointer_actions[2].stop_sequence_on_failed_post_click_verification is True
+    assert pointer_actions[3].page_text_markers == ()
+    assert pointer_actions[3].visual_top_right_x_fallback is True
+    assert pointer_actions[3].stop_sequence_on_failed_post_click_verification is True
     cadence = json.loads(paths.cadence_result_json_path.read_text(encoding="utf-8"))
     assert cadence["attempted_count"] == 1
     assert cadence["completed_count"] == 1
@@ -904,7 +908,7 @@ def test_live_probe_challenge_close_followthrough_stops_if_challenge_remains(
     )
     assert "challenge_close_followthrough" not in triage
     assert triage["challenge_close_accepted"] is False
-    assert triage["comment_action"]["action_count"] == 3
+    assert triage["comment_action"]["action_count"] == len(_pointer_action_sequence_receipt())
     assert triage["matched_comment_response_count"] == 1
     assert triage["admitted_comment_response_count"] == 0
     assert triage["dom_visible_comment_candidate_count"] == 0
@@ -994,7 +998,7 @@ def test_live_probe_challenge_close_diagnostic_is_not_completion(
     assert triage["action"] == "stop"
     assert triage["action_taken"] is True
     assert triage["challenge_close_diagnostic"] == pointer_sequence[-1]
-    assert triage["comment_action"]["action_count"] == 3
+    assert triage["comment_action"]["action_count"] == len(_pointer_action_sequence_receipt())
     assert triage["matched_comment_response_count"] == 1
     assert triage["admitted_comment_response_count"] == 0
     assert triage["dom_visible_comment_candidate_count"] == 0
@@ -1080,7 +1084,7 @@ def test_live_probe_challenge_after_close_diagnostic_keeps_challenge_stop(
     assert triage["reason"] == "platform_challenge_observed"
     assert triage["matched_marker"] == "drag the slider"
     assert triage["challenge_close_diagnostic"] == pointer_sequence[-1]
-    assert triage["comment_action"]["action_count"] == 3
+    assert triage["comment_action"]["action_count"] == len(_pointer_action_sequence_receipt())
     assert triage["matched_comment_response_count"] == 1
     assert triage["admitted_comment_response_count"] == 0
     assert triage["dom_visible_comment_candidate_count"] == 0
@@ -1129,7 +1133,7 @@ def test_live_probe_stops_on_zero_comment_list_response(tmp_path: Path) -> None:
         "benign_overlay_action": _benign_overlay_action_receipt(),
         "comment_action": {
             "sequence_name": TIKTOK_COMMENT_SURFACE_TOGGLE_POINTER_SEQUENCE_NAME,
-            "action_count": 3,
+            "action_count": len(_pointer_action_sequence_receipt()),
             "action_sequence": _pointer_action_sequence_receipt(),
             "clicked_all_targets": True,
         },
@@ -1417,6 +1421,17 @@ def test_comment_list_predicate_is_tiktok_path_only() -> None:
     assert not is_tiktok_comment_list_url("https://example.com/api/comment/list/?cursor=0")
 
 
+def _comment_route_action_names() -> list[str]:
+    return [
+        TIKTOK_OPEN_COMMENTS_POINTER_ACTION_NAME,
+        TIKTOK_OPEN_MORE_LIKE_THIS_POINTER_ACTION_NAME,
+        TIKTOK_REOPEN_COMMENTS_POINTER_ACTION_NAME,
+        TIKTOK_OPEN_COMMENTS_POINTER_ACTION_NAME,
+        TIKTOK_OPEN_MORE_LIKE_THIS_POINTER_ACTION_NAME,
+        TIKTOK_REOPEN_COMMENTS_POINTER_ACTION_NAME,
+    ]
+
+
 def _auth_state(tmp_path: Path) -> Path:
     auth_root = tmp_path / "auth"
     path = auth_state_path_for_label("test-session", auth_state_root=auth_root)
@@ -1500,7 +1515,16 @@ def _success_observation(
 
 
 def _live_pointer_action_sequence_receipt() -> list[dict[str, object]]:
-    return [_benign_overlay_action_receipt(), *_pointer_action_sequence_receipt()]
+    return [_retry_action_receipt(), _benign_overlay_action_receipt(), *_pointer_action_sequence_receipt()]
+
+
+def _retry_action_receipt() -> dict[str, object]:
+    return _pointer_action_receipt(
+        action_name=TIKTOK_RETRY_VISIBLE_ERROR_POINTER_ACTION_NAME,
+        wait_ms=2500,
+        page_text_gate_matched=False,
+        selection_strategy="first_match",
+    )
 
 
 def _benign_overlay_action_receipt() -> dict[str, object]:
@@ -1513,7 +1537,7 @@ def _benign_overlay_action_receipt() -> dict[str, object]:
 
 
 def _pointer_action_sequence_receipt() -> list[dict[str, object]]:
-    return [
+    route_once = [
         _pointer_action_receipt(
             action_name=TIKTOK_OPEN_COMMENTS_POINTER_ACTION_NAME,
             wait_ms=2000,
@@ -1527,6 +1551,7 @@ def _pointer_action_sequence_receipt() -> list[dict[str, object]]:
             wait_ms=3500,
         ),
     ]
+    return [*route_once, *route_once]
 
 
 def _pointer_action_receipt(

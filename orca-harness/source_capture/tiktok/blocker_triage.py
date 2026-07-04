@@ -44,6 +44,8 @@ _DISMISS_MARKERS = (
 )
 _RELOAD_MARKERS = (
     "reload",
+    "retry",
+    "retry again",
     "try again",
     "something went wrong",
     "couldn't load",
