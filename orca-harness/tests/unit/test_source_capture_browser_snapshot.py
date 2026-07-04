@@ -976,6 +976,29 @@ def test_cloakbrowser_page_observation_uses_cloak_launch(monkeypatch: pytest.Mon
     assert result.metadata["cloakbrowser_humanize"] is True
 
 
+def test_cloakbrowser_engine_rejects_non_observation_methods() -> None:
+    engine = browser_snapshot_module._CloakBrowserPageObservationEngine()
+
+    with pytest.raises(NotImplementedError, match="page observation only"):
+        engine.capture(
+            url="https://example.com/source",
+            timeout_seconds=1,
+            wait_until="load",
+            viewport_width=1280,
+            viewport_height=720,
+        )
+
+    with pytest.raises(NotImplementedError, match="page observation only"):
+        engine.capture_context_responses(
+            page_url="https://example.com/source",
+            requests=(),
+            timeout_seconds=1,
+            wait_until="load",
+            viewport_width=1280,
+            viewport_height=720,
+        )
+
+
 def test_page_observation_human_challenge_handoff_after_named_pointer_action(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

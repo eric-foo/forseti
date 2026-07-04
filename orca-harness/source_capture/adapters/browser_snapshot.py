@@ -1145,6 +1145,18 @@ class _CloakBrowserPageObservationEngine(_PlaywrightBrowserSnapshotEngine):
             human_challenge_handoff_prompt=human_challenge_handoff_prompt,
         )
 
+    def capture(self, **_: object) -> BrowserSnapshotEngineResult:
+        raise NotImplementedError(
+            "CloakBrowser supports page observation only; browser snapshot capture "
+            "would otherwise run through the Playwright engine."
+        )
+
+    def capture_context_responses(self, **_: object) -> BrowserContextResponsesSuccess:
+        raise NotImplementedError(
+            "CloakBrowser supports page observation only; browser context responses "
+            "would otherwise run through the Playwright engine."
+        )
+
     def capture_page_observation(
         self,
         *,
