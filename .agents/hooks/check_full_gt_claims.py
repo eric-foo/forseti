@@ -5,7 +5,7 @@ WHAT THIS DOES
   Checks ADDED lines of changed .md files for unballasted "full God Tier"
   claim language landing outside the claim-owning / record surfaces. This is
   the code substrate for the Erosion Guards ("claim inflation") named in
-  orca/product/spines/data_lake/authority/core_spine_v0_data_lake_bronze_full_gt_declaration_v0.md
+  forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_bronze_full_gt_declaration_v0.md
   -- referenced as rule authority, never restated here.
 
   A flagged line is allowed when ANY of these hold:
@@ -46,7 +46,7 @@ import sys
 from pathlib import Path
 
 RULE_AUTHORITY = (
-    "orca/product/spines/data_lake/authority/"
+    "forseti/product/spines/data_lake/authority/"
     "core_spine_v0_data_lake_bronze_full_gt_declaration_v0.md (Erosion Guards)"
 )
 
@@ -64,15 +64,15 @@ BALLAST_RE = re.compile(
 )
 
 ALLOWLIST_EXACT = {
-    "orca/product/spines/data_lake/authority/core_spine_v0_data_lake_bronze_full_gt_declaration_v0.md",
-    "orca/product/spines/data_lake/authority/core_spine_v0_data_lake_bronze_mgt_baseline_declaration_v0.md",
-    "orca/product/spines/data_lake/README.md",
+    "forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_bronze_full_gt_declaration_v0.md",
+    "forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_bronze_mgt_baseline_declaration_v0.md",
+    "forseti/product/spines/data_lake/README.md",
     "docs/workflows/forseti_repo_map_v0.md",
     "docs/workflows/orca_repo_map_v0.md",
     "docs/decisions/dcp_receipts_archive_v0.md",
 }
 ALLOWLIST_PREFIXES = (
-    "orca/product/spines/data_lake/workflows/",
+    "forseti/product/spines/data_lake/workflows/",
     "docs/review-outputs/",
     "docs/prompts/",
     "docs/hygiene/",
@@ -251,7 +251,7 @@ def selftest() -> int:
                               "Bronze's full-GT claim tier is owned by the declaration."), None)
     check("allowlisted path is clean",
           classify_added_line(
-              "orca/product/spines/data_lake/workflows/some_record_v0.md", plain), None)
+              "forseti/product/spines/data_lake/workflows/some_record_v0.md", plain), None)
     check("ack token is clean",
           classify_added_line("docs/decisions/some_new_note_v0.md",
                               plain + " full-gt-claim-ack: deliberate, reviewed."), None)

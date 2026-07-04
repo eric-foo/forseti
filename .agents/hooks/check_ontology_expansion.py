@@ -3,7 +3,7 @@
 reports which adopted ontology types are now buildable but still un-carded (rung 1).
 
 WHAT THIS DOES
-  Reads orca/product/spines/foundation/ontology/ontology_expansion_backlog_v0.json (the rung-0
+  Reads forseti/product/spines/foundation/ontology/ontology_expansion_backlog_v0.json (the rung-0
   backlog).  For each auto-nudge trigger, the nudge FIRES when BOTH hold:
     (a) the trigger artifact has landed on disk (trigger_path exists), and
     (b) at least one owed card is still missing (no file matches its card_glob
@@ -46,7 +46,7 @@ import json
 import sys
 from pathlib import Path
 
-BACKLOG_RELPATH = "orca/product/spines/foundation/ontology/ontology_expansion_backlog_v0.json"
+BACKLOG_RELPATH = "forseti/product/spines/foundation/ontology/ontology_expansion_backlog_v0.json"
 
 
 def repo_root() -> Path:
