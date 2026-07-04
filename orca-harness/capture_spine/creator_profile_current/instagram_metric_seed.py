@@ -9,7 +9,15 @@ from pathlib import Path
 from typing import Any, Iterable, Mapping
 
 from data_lake.root import DataLakeRoot, raw_shard
-from source_capture.ig_reels_grid_projection import PROJECTION_IG_REELS_GRID_LANE
+from data_lake.sibling_selection import (
+    SiblingCandidate,
+    parse_capture_instant,
+    select_current_record_per_subject,
+)
+from source_capture.ig_reels_grid_projection import (
+    PROJECTION_IG_REELS_GRID_LANE,
+    projection_record_id_derivation_rank,
+)
 
 
 INSTAGRAM_REELS_CREATOR_METRIC_SEED_WRAPPER = "instagram_reels_creator_metric_seed"
@@ -54,7 +62,7 @@ def build_instagram_reels_creator_metric_seed_from_files(
     if not projections:
         raise ValueError("at least one IG reels projection file is required")
 
-    selected = _select_projection_per_username(projections)
+    selected, selection_residuals = _select_projection_per_username(projections)
     accounts_by_handle = _instagram_accounts_by_handle(account_ledger)
 
     observations: list[dict[str, Any]] = []
@@ -133,8 +141,11 @@ def build_instagram_reels_creator_metric_seed_from_files(
         "selection_policy": {
             "included": "latest usable IG reels-grid projection per username from the supplied projection files",
             "projection_dedupe_rule": (
-                "group by projection username; choose the projection with the most observed metric rows, "
-                "then the latest capture_time, then lexical path as deterministic tie-break"
+                "group by projection username; collapse identical-content projections; within one packet "
+                "the projection lane's declared record-id derivation rank names the current derivation "
+                "(catch-up supersedes earlier siblings); across packets the newest parsed capture_time "
+                "wins; selection fails closed on ambiguous or unorderable siblings; observed row counts "
+                "and file paths never order the choice"
             ),
             "rollup_scope": "platform_account only; no creator_record or cross-platform rollups",
             "metric_value_rule": "only observed source-visible numeric values enter numeric aggregations; absent metrics are not zero-filled",
@@ -158,6 +169,7 @@ def build_instagram_reels_creator_metric_seed_from_files(
             ],
             "non_claim": "absolute local lake paths are not required to resolve outside the capture host",
         },
+        "selection_residuals": selection_residuals,
         "accepted_residuals": [
             "The seed uses selected IG reels-grid projections, not a full account crawl.",
             "Projection-file paths are local lake drill-back pointers and may not resolve outside the capture host.",
@@ -194,6 +206,11 @@ def _projection_summary(path: Path) -> dict[str, Any]:
     if not isinstance(packet_id, str) or not packet_id.strip():
         raise ValueError(f"IG projection has no packet_id: {path}")
     capture_times = [row.get("capture_time") for row in rows if isinstance(row, Mapping) and row.get("capture_time")]
+    capture_instants = [
+        instant
+        for instant in (parse_capture_instant(str(value)) for value in capture_times)
+        if instant is not None
+    ]
     observed_count = sum(1 for row in rows if isinstance(row, Mapping) and row.get("posture") == "observed")
     return {
         "path": path,
@@ -201,30 +218,61 @@ def _projection_summary(path: Path) -> dict[str, Any]:
         "rows": rows,
         "username": username.strip(),
         "packet_id": packet_id,
-        "capture_time": max(str(value) for value in capture_times) if capture_times else "",
+        "capture_time": max(capture_instants).isoformat() if capture_instants else "",
         "observed_count": observed_count,
         "sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
     }
 
 
-def _select_projection_per_username(projections: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    by_username: dict[str, list[dict[str, Any]]] = {}
-    for projection in projections:
-        by_username.setdefault(str(projection["username"]).casefold(), []).append(projection)
+def _select_projection_per_username(
+    projections: list[dict[str, Any]],
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    """Select the current projection per username via the lake's fail-closed
+    sibling-selection rule (``data_lake.sibling_selection``): identical content
+    collapses; within one packet the lane's declared record-id derivation rank names
+    the current derivation (catch-up supersedes earlier siblings); across packets the
+    newest parsed capture instant wins; ambiguous or unorderable siblings raise
+    instead of silently picking one. Observed row counts and file paths never order
+    the choice (F-IGRC-001).
+
+    Returns ``(selected summaries, selection residuals)``. A residual names each
+    username whose selected (newest) projection carries FEWER observed metric rows
+    than a bypassed sibling -- surfaced, never silently absorbed.
+    """
+    candidates = [
+        SiblingCandidate(
+            subject_key=str(projection["username"]).casefold(),
+            raw_anchor=str(projection["packet_id"]),
+            record_ref=str(projection["path"]),
+            content_hash=str(projection["sha256"]),
+            capture_instant_or_none=parse_capture_instant(projection["capture_time"]),
+            derivation_rank=projection_record_id_derivation_rank(Path(projection["path"]).name),
+            payload=projection,
+        )
+        for projection in projections
+    ]
+    selection = select_current_record_per_subject(candidates)
 
     selected: list[dict[str, Any]] = []
-    for candidates in by_username.values():
-        selected.append(
-            max(
-                candidates,
-                key=lambda item: (
-                    int(item["observed_count"]),
-                    str(item["capture_time"]),
-                    str(item["path"]),
-                ),
-            )
-        )
-    return selected
+    residuals: list[dict[str, Any]] = []
+    for subject_key in sorted(selection):
+        choice = selection[subject_key]
+        summary = choice.selected.payload
+        selected.append(summary)
+        for bypassed in choice.bypassed:
+            bypassed_summary = bypassed.payload
+            if int(bypassed_summary["observed_count"]) > int(summary["observed_count"]):
+                residuals.append(
+                    {
+                        "username": summary["username"],
+                        "reason": "newer_capture_fewer_observed_rows",
+                        "selected_projection": str(summary["path"]),
+                        "selected_observed_count": int(summary["observed_count"]),
+                        "bypassed_projection": str(bypassed_summary["path"]),
+                        "bypassed_observed_count": int(bypassed_summary["observed_count"]),
+                    }
+                )
+    return selected, residuals
 
 
 def _instagram_accounts_by_handle(account_ledger: Mapping[str, Any]) -> dict[str, Mapping[str, Any]]:
