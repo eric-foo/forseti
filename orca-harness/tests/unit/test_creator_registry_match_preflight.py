@@ -177,3 +177,42 @@ def test_duplicate_candidates_are_invalid(tmp_path: Path) -> None:
     assert [row["decision"] for row in rows] == ["invalid_candidate", "invalid_candidate"]
     assert {row["errors"][0]["code"] for row in rows} == {"duplicate_candidate_identity"}
     assert receipt[RECEIPT_WRAPPER_KEY]["summary"]["invalid_candidates"] == 2
+
+
+def test_unsupported_platform_is_invalid(tmp_path: Path) -> None:
+    result, receipt = _run_preflight(
+        tmp_path,
+        [
+            {
+                "candidate_id": "linkedin-candidate",
+                "platform": "linkedin",
+                "handle_or_url": "fragrance-person",
+                "intended_action": "new_capture",
+            }
+        ],
+    )
+
+    row = _result(receipt)
+    assert result == 2
+    assert row["decision"] == "invalid_candidate"
+    assert row["action_status"] == "blocked"
+    assert {error["code"] for error in row["errors"]} == {"unsupported_platform"}
+
+
+def test_unsupported_profile_url_host_is_invalid(tmp_path: Path) -> None:
+    result, receipt = _run_preflight(
+        tmp_path,
+        [
+            {
+                "candidate_id": "unknown-host",
+                "handle_or_url": "https://example.com/fragrance-person",
+                "intended_action": "new_capture",
+            }
+        ],
+    )
+
+    row = _result(receipt)
+    assert result == 2
+    assert row["decision"] == "invalid_candidate"
+    assert row["action_status"] == "blocked"
+    assert {error["code"] for error in row["errors"]} == {"unsupported_profile_url_host"}

@@ -40,6 +40,7 @@ _ALLOWED_CANDIDATE_KEYS = frozenset(
     }
 )
 _ALLOWED_INTENDED_ACTIONS = frozenset({"classify", "new_capture", "update_existing"})
+_ALLOWED_PLATFORMS = frozenset({"instagram", "tiktok", "youtube"})
 
 
 def load_json(path: str | Path) -> dict[str, Any]:
@@ -205,6 +206,8 @@ def _normalize_candidate(candidate: Mapping[str, Any], index: int) -> dict[str, 
 
     errors: list[dict[str, str]] = []
     platform = _optional_normalized_platform(candidate.get("platform"))
+    if platform and platform not in _ALLOWED_PLATFORMS:
+        errors.append({"code": "unsupported_platform", "message": "candidate platform is not supported"})
     inferred_platforms: set[str] = set()
     handles: set[str] = set()
     urls: set[str] = set()
@@ -217,6 +220,11 @@ def _normalize_candidate(candidate: Mapping[str, Any], index: int) -> dict[str, 
             inferred = _platform_from_url(value)
             if inferred:
                 inferred_platforms.add(inferred)
+            else:
+                errors.append({
+                    "code": "unsupported_profile_url_host",
+                    "message": "profile URL must be on a supported social host",
+                })
             urls.add(_normalize_url(value))
             handle_from_url = _handle_from_url(value, inferred or platform)
             if handle_from_url:

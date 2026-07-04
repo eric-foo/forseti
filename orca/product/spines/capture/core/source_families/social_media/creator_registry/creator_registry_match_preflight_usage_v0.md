@@ -42,7 +42,7 @@ Candidate rows must provide:
   `platform_public_account_id_or_none`
 
 For handle-only candidates, provide `platform`. Profile URLs may infer platform
-for known social hosts.
+for known social hosts. Unsupported platforms or unknown profile URL hosts are invalid candidates.
 
 ## Non-Claims
 
