@@ -5,7 +5,7 @@ retrieval_header_version: 1
 artifact_role: Workflow design check
 scope: >
   Checks whether the proposed Silver lineage kit is generic enough for current
-  Orca capture, projection, transcript, ECR/SCR, and Cleaning record shapes
+  Forseti capture, projection, transcript, ECR/SCR, and Cleaning record shapes
   before implementation.
 use_when:
   - Scoping or reviewing the Silver lineage helper/kit.
@@ -13,9 +13,9 @@ use_when:
   - Auditing whether a derived record may claim source-backed completeness.
 authority_boundary: retrieval_only
 open_next:
-  - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_silver_vault_record_contract_v0.md
-  - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_core_contract_v0.md
-  - orca/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md
+  - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_silver_vault_record_contract_v0.md
+  - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_core_contract_v0.md
+  - forseti/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md
   - orca-harness/data_lake/root.py
   - docs/review-outputs/adversarial-artifact-reviews/silver_lineage_kit_delegated_adversarial_review_v0.md
 input_hashes:
@@ -35,7 +35,7 @@ stale_if:
 ## Purpose
 
 This artifact answers one question before implementation: is the proposed Silver
-lineage kit broad enough for Orca's current sources of information?
+lineage kit broad enough for Forseti's current sources of information?
 
 Answer: yes, if the kit is a generic source-reference grammar plus explicit
 lineage limitations. No, if it is implemented as an IG/transcript-specific
