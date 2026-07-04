@@ -118,12 +118,35 @@ cycle 2 zero, final pending zero, byte-unchanged idempotence).
 
 ## Live dry-run status
 
-**Blocked pending a per-turn owner live-lake read grant** (and owner-operated
-ASR compute, or `--skip-asr` only when the ASR pending count is zero). Never
-simulated. Expected first-cycle work, carried from the predecessor lane's
-granted read (secondary report — re-verify at the dry-run, do not trust this
-copy): 6 fragrantica + 1 parfumo cleaning derivations; fragrance-review / grid /
-ASR backlogs as found. Second cycle and the final pending sweep must be zero.
+**Executed 2026-07-04** under a per-turn owner grant (`--run --skip-asr`,
+compute-free; ASR compute not granted this turn). Observed, two consecutive
+invocations:
+
+- First invocation, cycle 1 drained the real backlog: ECR 522 derived + 5
+  transient F:-drive I/O failures (WinError 433 device errors / one
+  Errno 13) that stayed unacked and retried clean in cycle 2 — ECR is now
+  fully caught up (527/527 acked); fragrantica 6 derived + 1
+  `acked_no_cleanable_content`; basenotes 7 `acked_no_cleanable_content`;
+  parfumo 6 acked + 1 `derive_failed`; ig-reels-grid 7 derived;
+  fragrance-review 0 pending. (The predecessor's carried counts are
+  superseded by these verified ones — the lake had grown.)
+- Second invocation at steady state: every driven lane second-cycle-zero;
+  output reduced to exactly the two residuals below. Exit 1 — truthful red.
+
+Remaining, loud, re-surfacing every run:
+
+1. `01KWCG89CBFH90Z4ABKYWKF5VE` (parfumo): `CleaningPacket` ValidationError —
+   the parfumo cleaning deriver yields an empty `handles` list for this
+   packet, so it fails validation and is never acked. A real defect caught
+   by the cadence; owned by the parfumo cleaning lane (outside this unit's
+   scope).
+2. ASR backlog 472 pending under `--skip-asr` (family-level count; the ASR
+   run would ack the non-audio surfaces out-of-scope compute-free, and the
+   real audio subset needs owner-operated ASR compute).
+
+The bronze completion signal (exit 0) is therefore NOT yet claimable: it
+requires the parfumo packet's lane-owned fix or disposition plus an
+ASR-inclusive (or ASR-drained) run with a zero final pending sweep.
 
 ## Residual ledger (accumulated, carried)
 
