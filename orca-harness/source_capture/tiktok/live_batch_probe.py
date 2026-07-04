@@ -19,7 +19,12 @@ from source_capture.adapters.browser_snapshot import (
     BrowserSnapshotFailure,
     fetch_browser_page_observation_capture,
 )
-from source_capture.auth_state import AuthenticatedSessionMode, validate_auth_state_session_mode
+from source_capture.auth_state import (
+    AuthenticatedSessionMode,
+    validate_auth_state_provenance_requirement,
+    validate_auth_state_session_mode,
+)
+from source_capture.source_access_provenance import HarnessProxyProfilePosture
 from source_capture.cadence import build_cadence_plan
 from source_capture.tiktok.admission import (
     assert_no_sensitive_tiktok_material,
@@ -194,6 +199,7 @@ def write_tiktok_live_batch_probe_outputs(
     selector_timeout_seconds: float = 5.0,
     browser_channel: str | None = None,
     browser_backend: str = TIKTOK_BROWSER_BACKEND_DEFAULT,
+    required_harness_proxy_profile_posture: str | HarnessProxyProfilePosture | None = None,
     cloakbrowser_humanize: bool = False,
     human_challenge_handoff: bool = False,
     human_challenge_handoff_timeout_seconds: float = TIKTOK_HUMAN_CHALLENGE_HANDOFF_TIMEOUT_SECONDS,
@@ -230,6 +236,7 @@ def write_tiktok_live_batch_probe_outputs(
         selector_timeout_seconds=selector_timeout_seconds,
         browser_channel=browser_channel,
         browser_backend=browser_backend,
+        required_harness_proxy_profile_posture=required_harness_proxy_profile_posture,
         cloakbrowser_humanize=cloakbrowser_humanize,
         human_challenge_handoff=human_challenge_handoff,
         human_challenge_handoff_timeout_seconds=human_challenge_handoff_timeout_seconds,
@@ -273,6 +280,7 @@ def run_tiktok_live_batch_probe(
     selector_timeout_seconds: float = 5.0,
     browser_channel: str | None = None,
     browser_backend: str = TIKTOK_BROWSER_BACKEND_DEFAULT,
+    required_harness_proxy_profile_posture: str | HarnessProxyProfilePosture | None = None,
     cloakbrowser_humanize: bool = False,
     human_challenge_handoff: bool = False,
     human_challenge_handoff_timeout_seconds: float = TIKTOK_HUMAN_CHALLENGE_HANDOFF_TIMEOUT_SECONDS,
@@ -316,16 +324,26 @@ def run_tiktok_live_batch_probe(
     if logged_out:
         if state_label is not None or session_mode is not None:
             raise ValueError("logged_out mode must not receive state_label or session_mode")
+        if required_harness_proxy_profile_posture is not None:
+            raise ValueError("required_harness_proxy_profile_posture requires sessioned mode")
         storage_state_path: Path | None = None
         comment_response_cap = 1
     else:
         if state_label is None or session_mode is None:
             raise ValueError("sessioned TikTok capture requires state_label and session_mode")
-        storage_state_path = validate_auth_state_session_mode(
-            state_label,
-            session_mode=session_mode,
-            auth_state_root=auth_state_root,
-        )
+        if required_harness_proxy_profile_posture is not None:
+            storage_state_path = validate_auth_state_provenance_requirement(
+                state_label,
+                session_mode=session_mode,
+                required_harness_proxy_profile_posture=required_harness_proxy_profile_posture,
+                auth_state_root=auth_state_root,
+            )
+        else:
+            storage_state_path = validate_auth_state_session_mode(
+                state_label,
+                session_mode=session_mode,
+                auth_state_root=auth_state_root,
+            )
         comment_response_cap = TIKTOK_COMMENT_LIST_RESPONSE_CAP
     cadence_plan = _build_probe_cadence_plan(
         video_count=len(normalized_video_urls),
@@ -635,6 +653,7 @@ def run_tiktok_live_batch_probe(
             session_mode=session_mode,
             logged_out=logged_out,
             browser_backend=browser_backend,
+            required_harness_proxy_profile_posture=required_harness_proxy_profile_posture,
             cloakbrowser_humanize=cloakbrowser_humanize,
             human_challenge_handoff=human_challenge_handoff,
             human_challenge_handoff_timeout_seconds=human_challenge_handoff_timeout_seconds,
@@ -658,6 +677,7 @@ def run_tiktok_live_batch_probe(
             session_mode=session_mode,
             logged_out=logged_out,
             browser_backend=browser_backend,
+            required_harness_proxy_profile_posture=required_harness_proxy_profile_posture,
             cloakbrowser_humanize=cloakbrowser_humanize,
             human_challenge_handoff=human_challenge_handoff,
             human_challenge_handoff_timeout_seconds=human_challenge_handoff_timeout_seconds,
@@ -2100,6 +2120,7 @@ def _capture_contract(
     session_mode: AuthenticatedSessionMode | None,
     logged_out: bool = False,
     browser_backend: str = TIKTOK_BROWSER_BACKEND_DEFAULT,
+    required_harness_proxy_profile_posture: str | HarnessProxyProfilePosture | None = None,
     cloakbrowser_humanize: bool = False,
     human_challenge_handoff: bool = False,
     human_challenge_handoff_timeout_seconds: float = TIKTOK_HUMAN_CHALLENGE_HANDOFF_TIMEOUT_SECONDS,
@@ -2115,6 +2136,11 @@ def _capture_contract(
         raise ValueError("session_mode is required unless logged_out is true")
     return {
         "browser_backend": browser_backend,
+        "required_harness_proxy_profile_posture": (
+            required_harness_proxy_profile_posture.value
+            if isinstance(required_harness_proxy_profile_posture, HarnessProxyProfilePosture)
+            else required_harness_proxy_profile_posture
+        ),
         "cloakbrowser_humanize": cloakbrowser_humanize,
         "captcha_solving": False,
         "human_challenge_handoff_allowed": human_challenge_handoff,

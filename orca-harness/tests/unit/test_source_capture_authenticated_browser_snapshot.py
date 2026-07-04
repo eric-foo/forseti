@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import builtins
+import hashlib
 import json
 import shutil
 import sys
@@ -20,8 +21,12 @@ from runners.run_source_capture_cloakbrowser_profile_warmup import run_cloakbrow
 from source_capture import AuthenticatedSessionMode, CaptureModeCategory
 from source_capture.adapters.browser_snapshot import BrowserSnapshotSuccess
 from source_capture.auth_state import auth_state_path_for_label, validate_auth_state_file, write_auth_state_metadata
-from source_capture.browser_user_data import browser_user_data_path_for_label
+from source_capture.browser_user_data import (
+    browser_user_data_path_for_label,
+    browser_user_data_provenance_path_for_label,
+)
 from source_capture.proxy_profiles import ProxyProfile
+from source_capture.source_access_provenance import build_browser_user_data_source_access_provenance
 
 
 @pytest.fixture
@@ -259,6 +264,77 @@ def test_cloakbrowser_profile_warmup_uses_proxy_profile_label_without_secret_out
 
 
 
+
+def test_cloakbrowser_profile_warmup_writes_no_proxy_profile_provenance_sidecar(
+    scratch_dir: Path,
+) -> None:
+    user_data_root = scratch_dir / "_browser_user_data"
+    engine = _FakeWarmupEngine()
+
+    run_cloakbrowser_profile_warmup(
+        login_url="https://example.com/login",
+        user_data_label="google-login",
+        user_data_root=user_data_root,
+        engine=engine,
+    )
+
+    provenance_path = browser_user_data_provenance_path_for_label(
+        "google-login",
+        user_data_root=user_data_root,
+    )
+    provenance = json.loads(provenance_path.read_text(encoding="utf-8"))
+    assert provenance["schema_version"] == 1
+    assert provenance["browser_backend"] == "cloakbrowser"
+    assert provenance["harness_proxy_profile_posture"] == "no_proxy_profile_loaded"
+    assert provenance["proxy_category"] == "none"
+    assert len(provenance["browser_user_data_label_sha256"]) == 64
+    assert "google-login" not in json.dumps(provenance)
+
+
+def test_cloakbrowser_profile_warmup_writes_proxy_profile_provenance_without_secret_material(
+    scratch_dir: Path,
+) -> None:
+    user_data_root = scratch_dir / "_browser_user_data"
+    profile_root = scratch_dir / "_proxy_profiles"
+    profile_root.mkdir(parents=True)
+    (profile_root / "reddit-res.json").write_text(
+        json.dumps({"server": "http://user:SUPER_SECRET_PROXY_VALUE@proxy.example:8080"}),
+        encoding="utf-8",
+    )
+    (profile_root / "reddit-res.meta.json").write_text(
+        json.dumps(
+            {
+                "profile_file": "reddit-res.json",
+                "proxy_category": "residential_rotating",
+                "geoip_enabled": False,
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    run_cloakbrowser_profile_warmup(
+        login_url="https://example.com/login",
+        user_data_label="google-login",
+        user_data_root=user_data_root,
+        proxy_profile_label="reddit-res",
+        proxy_profile_root=profile_root,
+        engine=_FakeWarmupEngine(),
+    )
+
+    provenance = json.loads(
+        browser_user_data_provenance_path_for_label(
+            "google-login",
+            user_data_root=user_data_root,
+        ).read_text(encoding="utf-8")
+    )
+    serialized = json.dumps(provenance)
+    assert provenance["harness_proxy_profile_posture"] == "proxy_profile_loaded"
+    assert provenance["proxy_category"] == "residential_rotating"
+    assert "SUPER_SECRET_PROXY_VALUE" not in serialized
+    assert "proxy.example" not in serialized
+    assert str(profile_root) not in serialized
+
+
 class _FakeDirectWarmupProcess:
     def __init__(self, *, poll_result: int | None) -> None:
         self.poll_result = poll_result
@@ -365,6 +441,77 @@ def test_browser_user_data_export_writes_auth_state_without_packet(scratch_dir: 
     }
     assert not (scratch_dir / "manifest.json").exists()
     assert not (scratch_dir / "receipt.md").exists()
+
+
+
+def test_browser_user_data_export_merges_user_data_provenance_into_auth_state(
+    scratch_dir: Path,
+) -> None:
+    auth_root = scratch_dir / "_auth_state"
+    user_data_root = scratch_dir / "_browser_user_data"
+    user_data_dir = user_data_root / "tiktok-alt"
+    user_data_dir.mkdir(parents=True)
+    provenance = build_browser_user_data_source_access_provenance(
+        user_data_label="tiktok-alt",
+        browser_backend="cloakbrowser",
+        proxy_category=None,
+    )
+    browser_user_data_provenance_path_for_label(
+        "tiktok-alt",
+        user_data_root=user_data_root,
+    ).write_text(json.dumps(provenance), encoding="utf-8")
+
+    run_browser_user_data_export(
+        user_data_label="tiktok-alt",
+        state_label="tiktok-alt-session",
+        session_mode=AuthenticatedSessionMode.CLIENT_PROVIDED,
+        auth_state_root=auth_root,
+        browser_user_data_root=user_data_root,
+        engine=_FakeExportEngine(),
+    )
+
+    state_path = auth_root / "tiktok-alt-session.json"
+    metadata = json.loads((auth_root / "tiktok-alt-session.meta.json").read_text(encoding="utf-8"))
+    source_access = metadata["source_access_provenance"]
+    assert metadata["schema_version"] == 1
+    assert source_access["source_access_posture"] == "client_provided_session"
+    assert source_access["browser_backend"] == "cloakbrowser"
+    assert source_access["harness_proxy_profile_posture"] == "no_proxy_profile_loaded"
+    assert source_access["proxy_category"] == "none"
+    assert source_access["warmup_user_data_label_sha256"] == provenance["browser_user_data_label_sha256"]
+    assert source_access["state_content_sha256"] == hashlib.sha256(state_path.read_bytes()).hexdigest()
+
+
+def test_browser_user_data_export_rejects_forbidden_user_data_provenance_and_discards_state(
+    scratch_dir: Path,
+) -> None:
+    auth_root = scratch_dir / "_auth_state"
+    user_data_root = scratch_dir / "_browser_user_data"
+    user_data_dir = user_data_root / "tiktok-alt"
+    user_data_dir.mkdir(parents=True)
+    provenance = build_browser_user_data_source_access_provenance(
+        user_data_label="tiktok-alt",
+        browser_backend="cloakbrowser",
+        proxy_category=None,
+    )
+    provenance["proxy_endpoint"] = "http://proxy.example:8080"
+    browser_user_data_provenance_path_for_label(
+        "tiktok-alt",
+        user_data_root=user_data_root,
+    ).write_text(json.dumps(provenance), encoding="utf-8")
+
+    with pytest.raises(ValueError, match="forbidden field"):
+        run_browser_user_data_export(
+            user_data_label="tiktok-alt",
+            state_label="tiktok-alt-session",
+            session_mode=AuthenticatedSessionMode.CLIENT_PROVIDED,
+            auth_state_root=auth_root,
+            browser_user_data_root=user_data_root,
+            engine=_FakeExportEngine(),
+        )
+
+    assert not (auth_root / "tiktok-alt-session.json").exists()
+    assert not (auth_root / "tiktok-alt-session.meta.json").exists()
 
 
 def test_browser_user_data_export_rejects_missing_user_data_before_state_write(

@@ -12,8 +12,12 @@ from urllib.parse import urlparse
 if __package__ in {None, ""}:
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from source_capture.browser_user_data import ensure_browser_user_data_directory
+from source_capture.browser_user_data import (
+    ensure_browser_user_data_directory,
+    write_browser_user_data_provenance,
+)
 from source_capture.proxy_profiles import ProxyProfile, load_proxy_profile_by_label
+from source_capture.source_access_provenance import build_browser_user_data_source_access_provenance
 
 
 MIN_DIRECT_WARMUP_RUNTIME_SECONDS = 3.0
@@ -51,6 +55,16 @@ def run_cloakbrowser_profile_warmup(
         login_url=normalized_url,
         user_data_dir=user_data_dir,
         proxy_profile=proxy_profile,
+    )
+    provenance = build_browser_user_data_source_access_provenance(
+        user_data_label=user_data_label,
+        browser_backend="cloakbrowser",
+        proxy_category=proxy_profile.proxy_category.value if proxy_profile is not None else None,
+    )
+    write_browser_user_data_provenance(
+        user_data_label,
+        payload=provenance,
+        user_data_root=user_data_root,
     )
     proxy_clause = (
         f" with proxy profile label {proxy_profile_label} ({proxy_profile.proxy_category.value})"
