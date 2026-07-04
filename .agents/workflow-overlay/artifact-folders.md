@@ -28,7 +28,7 @@ authority_boundary: retrieval_only
 - `docs/review-outputs/adversarial-artifact-reviews/`: adversarial artifact review reports.
 - `docs/workflows/`: workflow records, repo maps, validation notes, and operational records owned by Forseti.
 - `docs/migration/`: migration and import queue records.
-- `forseti/product/` (repo root): the **spine-first product tree** for product contracts, product proof plans, core-spine notes, satellite notes, evidence standards, source maps, decision artifacts, memo substrates, evidence appendices, executive-deck shape drafts, Source Capture Toolbox design notes, and demand-signal method/surface docs. The tree is bound by `docs/decisions/orca_spine_first_target_structure_binding_v0.md` and authorized by `docs/decisions/orca_spine_first_blocker_authorization_v0.md` (#254). Second-level axis: `spines/` (`foundation/`, `commission_signal_board/`, `scanning/`, `capture/`, `creator_signal/`, `ecr/`, `cleaning/`, `judgment/`, `product_lead/`, `data_lake/`), `satellites/`, `case_families/`, `shared/`. `creator_signal/` is a product-signal spine promotion-bound 2026-06-28 by `docs/decisions/orca_creator_signal_spine_promotion_binding_v0.md` for product-facing creator intelligence surfaces over Capture-owned creator records. `data_lake/` is a shared-foundation spine promotion-bound 2026-06-18 by `docs/decisions/orca_data_lake_spine_promotion_binding_v0.md` (R2 landed the contracts + mechanics into authority/+workflows/ and retired shared/data_lake_mechanics/; the 2 #239 repo-structure planning docs stay in `docs/migration/` as migration records). Per-spine structure is owned by the spine-first binding, not the machine map; `check_placement.py` treats `orca/` as a declared top-level area. Historical `docs/product/` references resolve through `docs/migration/repo_structure_spine_first_v0/moved_paths_index.md` by design. `docs/doctrine/` is intentionally NOT created by this migration (owner B3: index/router-only, seeded later).
+- `forseti/product/` (repo root): the **spine-first product tree** for product contracts, product proof plans, core-spine notes, satellite notes, evidence standards, source maps, decision artifacts, memo substrates, evidence appendices, executive-deck shape drafts, Source Capture Toolbox design notes, and demand-signal method/surface docs. The tree is bound by `docs/decisions/orca_spine_first_target_structure_binding_v0.md` and authorized by `docs/decisions/orca_spine_first_blocker_authorization_v0.md` (#254). Second-level axis: `spines/` (`foundation/`, `commission_signal_board/`, `scanning/`, `capture/`, `creator_signal/`, `ecr/`, `cleaning/`, `judgment/`, `product_lead/`, `data_lake/`), `satellites/`, `case_families/`, `shared/`. `creator_signal/` is a product-signal spine promotion-bound 2026-06-28 by `docs/decisions/orca_creator_signal_spine_promotion_binding_v0.md` for product-facing creator intelligence surfaces over Capture-owned creator records. `data_lake/` is a shared-foundation spine promotion-bound 2026-06-18 by `docs/decisions/orca_data_lake_spine_promotion_binding_v0.md` (R2 landed the contracts + mechanics into authority/+workflows/ and retired shared/data_lake_mechanics/; the 2 #239 repo-structure planning docs stay in `docs/migration/` as migration records). Per-spine structure is owned by the spine-first binding, not the machine map; `check_placement.py` treats `forseti/` as a declared top-level area via `repo-structure.yaml`. Historical `docs/product/` references resolve through `docs/migration/repo_structure_spine_first_v0/moved_paths_index.md` by design. `docs/doctrine/` is intentionally NOT created by this migration (owner B3: index/router-only, seeded later).
 - `repo-structure.yaml` (repo root): the machine structure map - router only, consumed by `.agents/hooks/check_placement.py` and agents for navigation. It declares homes and never states rules; this overlay file remains the placement authority and wins on conflict.
 - `docs/research/`: public/source research artifacts, evidence-only lane outputs, synthesis reports, candidate screens, and reject-pattern maps that support Forseti product or proof work without becoming product authority by default.
 - `docs/research/judgment-spine/harness/v0_14/smoke_tests/`: Judgment Harness v0.14 no-case smoke-test receipts and operator provenance records. Artifacts in this folder are plumbing evidence only and do not become real-case probe, validation, fixture-admission, product-proof, or judgment-quality evidence by location.
@@ -418,6 +418,60 @@ direction_change_propagation:
   non_claims:
     - not validation, readiness, or proof; placement/link shape only
     - not ratification of #232/#239 lanes as merged truth; content harvested, lanes still open
+```
+
+## Direction Change Propagation - Forseti Product Root Placement Wording
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Artifact-folder authority now names `forseti/`, not the legacy `orca/`
+    root, as the declared top-level area used for the live `forseti/product/`
+    tree; this aligns the accepted-folder prose with repo-structure.yaml after
+    the product-root migration.
+  trigger: architecture_doctrine
+  related_triggers:
+    - workflow_authority
+    - output_authority
+  controlling_sources_updated:
+    - .agents/workflow-overlay/artifact-folders.md
+  downstream_surfaces_checked:
+    - AGENTS.md
+    - .agents/workflow-overlay/source-of-truth.md
+    - .agents/workflow-overlay/validation-gates.md
+    - repo-structure.yaml
+    - docs/decisions/forseti_product_root_migration_decision_v0.md
+    - docs/workflows/forseti_repo_map_v0.md
+    - .agents/hooks/check_placement.py
+  intentionally_not_updated:
+    - path: .agents/workflow-overlay/artifact-folders.md historical DCP receipts
+      reason: >
+        Older direction_change_propagation receipts are point-in-time provenance
+        and retain their then-current Orca root language; the accepted-folder
+        bullet above is the live authority.
+    - path: repo-structure.yaml
+      reason: >
+        Already declares `forseti` as the current top-level product-tree root
+        and retains `orca-harness` only as an explicit runtime compatibility
+        root.
+    - path: .agents/hooks/check_placement.py
+      reason: >
+        The checker reads `known_top_level` from repo-structure.yaml; it does
+        not hard-code the live product root.
+  stale_language_search: >
+    rg -n "check_placement.py treats `orca/`|declared top-level area.*orca|known_top_level orca"
+    .agents/workflow-overlay/artifact-folders.md repo-structure.yaml
+    docs/workflows/forseti_repo_map_v0.md
+  stale_language_search_result: >
+    Executed 2026-07-04 after the edit. Hits are the historical Wave B receipt
+    line describing the old top-level addition, plus this receipt's own search
+    line; no live accepted-folder or repo-map prose says `check_placement.py`
+    treats `orca/` as the current product root.
+  non_claims:
+    - not validation
+    - not readiness
+    - not path/package migration
+    - not a rename of compatibility identifiers
 ```
 
 Older receipts archived verbatim in `docs/decisions/dcp_receipts_archive_v0.md`.
