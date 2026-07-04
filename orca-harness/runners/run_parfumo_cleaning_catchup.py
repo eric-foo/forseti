@@ -113,6 +113,12 @@ def _packet_obligation() -> dict:
     return {
         "obligation_schema": 1,
         "consumer": _SEAM_CONSUMER,
+        # Surface-gate policy (F-IGRC-002 convention): the gate decides derive vs
+        # out-of-scope ack vs visible-unsupported, so reclassifying a surface must
+        # re-fingerprint and re-surface previously acked packets.
+        "source_family": _SOURCE_FAMILY,
+        "in_scope_surfaces": sorted(_PARFUMO_SURFACES),
+        "known_out_of_scope_surfaces": sorted(_KNOWN_OUT_OF_SCOPE_SURFACES),
         "cleaning_core_version": CLEANING_CORE_VERSION,
         "projection_method": PARFUMO_PROJECTION_METHOD,
         "projection_version": PARFUMO_PROJECTION_VERSION,
