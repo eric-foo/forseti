@@ -14,6 +14,7 @@ open_next:
   - forseti/product/spines/capture/core/contracts/source_access_boundary/data_capture_source_access_method_plan_v0.md
   - forseti/product/spines/capture/core/contracts/source_access_boundary/data_capture_source_access_boundary_decision_v0.md
   - forseti/product/spines/capture/core/contracts/obligation_contracts/core_spine_v0_data_capture_spine_obligation_contract_v0.md
+  - forseti/product/spines/capture/core/source_families/README.md
 stale_if:
   - The source-access tooling build authorization is amended or superseded.
   - The source-access boundary decision materially changes hard stops or disclosability requirements.
@@ -49,11 +50,24 @@ The packet is the shared capture container. The Data Capture obligation contract
 remains the spine-level authority. Adapters are replaceable ways to fill the
 packet without redefining Capture obligations.
 
+## Known Source-Family Routing
+
+The Armory and playbook own source-access method and shared capture tooling.
+Known source families now have a separate cold-start route home:
+
+`forseti/product/spines/capture/core/source_families/README.md`
+
+Use that catalog after the access-method read identifies a known family. The
+catalog points to the family README, runner/projection/lake/cleaning seams, and
+accepted residuals. It does not restate Data Lake raw admission, derived layout,
+Silver, ECR, Cleaning, or Judgment authority.
+
 ## Controlling Sources
 
 | Source | What It Controls |
 | --- | --- |
 | `forseti/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md` | Canonical capture method: Step 0 access gate, route catalog/selection, receipt discipline, and recency/current-state / engagement-resonance preservation priority. Recent/current high-attention or source-visible public-reaction markers raise preservation urgency only; they do not prove demand, change access, create a score, or bind a route. |
+| `forseti/product/spines/capture/core/source_families/README.md` | Known source-family lane catalog: routes from the generic playbook/Armory into the owning family index for Fragrantica/Parfumo/Basenotes, Retail/PDP, Instagram, TikTok, YouTube, Reddit, creator registry, and cross-archive historical capture pointers. The catalog is routing-only; Data Lake, ECR, Cleaning, and runtime contracts remain in their owning lanes. |
 | `docs/decisions/data_capture_spine_source_access_tooling_build_authorization_v0.md` | Whether bounded source-access tooling builds are authorized, including first/second/third-tranche scope, selected anti-blocking backend, and which adapters remain separately gated. |
 | `docs/product/data_capture_source_access_method_plan_v0.md` | Candidate methods, sequence discipline, source-family method notes, and risk posture. |
 | `docs/product/data_capture_source_access_boundary_decision_v0.md` | Source-access boundary, entitlement/disclosability standard, and hard stops. |
@@ -781,6 +795,85 @@ rights-to-process sufficiency, retention policy, or commercial-readiness
 evidence. Reddit API and anti-blocking/CloakBrowser build authority comes from
 `docs/decisions/data_capture_spine_source_access_tooling_build_authorization_v0.md`,
 not from this README.
+
+## Direction Change Propagation - Source-Family Lane Catalog
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Owner-ratified option 1 for capture playbook/lake synchronization: the
+    Source Capture Playbook / Armory owns source-access method and shared
+    capture tooling; Capture source-family lane indexes own known-family
+    routing homes tying access routes to runners, projection, Data Lake, ECR,
+    and Cleaning pointers; Data Lake authority docs remain the sole owner of
+    raw admission, storage, derived layout, write boundary, Silver, and
+    medallion semantics.
+  trigger: workflow_authority
+  related_triggers:
+    - architecture_doctrine
+    - lifecycle_boundary
+  controlling_sources_updated:
+    - docs/prompts/handoffs/capture_playbook_lake_sync_handoff_v0.md
+    - forseti/product/spines/capture/core/source_capture_toolbox/README.md
+    - forseti/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md
+    - forseti/product/spines/capture/core/source_families/README.md
+    - forseti/product/spines/capture/core/source_families/fragrance_native_database/README.md
+    - forseti/product/spines/capture/core/source_families/retail_pdp/README.md
+    - forseti/product/spines/capture/core/source_families/social_media/instagram/README.md
+    - forseti/product/spines/capture/core/source_families/social_media/tiktok/README.md
+    - forseti/product/spines/capture/core/source_families/social_media/youtube/README.md
+    - forseti/product/spines/capture/core/source_families/social_media/reddit/README.md
+    - docs/workflows/data_capture_spine_consolidation_map_v0.md
+    - docs/workflows/forseti_repo_map_v0.md
+    - docs/workflows/repo_map_recent_changes/capture_source_family_lane_catalog_v0.md
+  downstream_surfaces_checked:
+    - AGENTS.md
+    - .agents/workflow-overlay/README.md
+    - .agents/workflow-overlay/source-loading.md
+    - .agents/workflow-overlay/source-of-truth.md
+    - .agents/workflow-overlay/decision-routing.md
+    - .agents/workflow-overlay/retrieval-metadata.md
+    - docs/workflows/artifact_retrievability_guide.md
+    - forseti/product/spines/scanning/source_families/linkedin/data_capture_spine_linkedin_lane_index_v0.md
+    - forseti/product/spines/data_lake/README.md
+    - forseti/product/spines/data_lake/authority/
+    - forseti/product/spines/capture/core/source_capture_toolbox/capture_recon_index_v0.md
+    - orca-harness/source_capture/
+    - orca-harness/runners/
+    - orca-harness/cleaning/
+  intentionally_not_updated:
+    - path: forseti/product/spines/data_lake/authority/
+      reason: >
+        This patch changes retrieval routing only. Data Lake raw admission,
+        storage, derived layout, write boundary, Silver, and medallion rules
+        remain unchanged and are pointed to from the catalog rather than copied.
+    - path: forseti/product/spines/capture/core/source_capture_toolbox/capture_recon_index_v0.md
+      reason: >
+        Recon verdicts and evidence did not change; the catalog routes to
+        existing family evidence without changing the evidence base.
+    - path: orca-harness/
+      reason: >
+        Runtime behavior, packet writers, projection helpers, cleaning writers,
+        and tests were inventory sources only; this lane was documentation/index
+        work under the Drift Guard.
+  stale_language_search: >
+    rg -n "not yet owner-ratified|ratify BEFORE|Open Decision / Fork|Proposes a three-way authority model|proposed access/routing/lake authority split before ratifying|proposed authority model is ratified" docs/prompts/handoffs/capture_playbook_lake_sync_handoff_v0.md forseti/product/spines/capture/core/source_capture_toolbox/README.md forseti/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md forseti/product/spines/capture/core/source_families docs/workflows/data_capture_spine_consolidation_map_v0.md docs/workflows/forseti_repo_map_v0.md
+  stale_language_search_result: >
+    Executed 2026-07-05 before receipt insertion: `rg` exited 1 with no matches.
+    Re-run after receipt insertion: the only hit is this receipt's own
+    `stale_language_search` literal; no active routing surface checked still
+    carries the stale unratified-option wording.
+  non_claims:
+    - not validation
+    - not readiness
+    - not source-access permission
+    - not live capture authorization
+    - not lake-write authorization
+    - not Data Lake authority change
+    - not ECR, Cleaning, Judgment, or buyer proof
+    - not runtime implementation
+```
+
 
 ## Direction Change Propagation - CloakBrowser Anonymous Snapshot v0
 

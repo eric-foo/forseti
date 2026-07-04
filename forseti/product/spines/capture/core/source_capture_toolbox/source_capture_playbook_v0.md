@@ -14,6 +14,7 @@ use_when:
 authority_boundary: retrieval_only
 open_next:
   - forseti/product/spines/capture/core/source_capture_toolbox/capture_recon_index_v0.md
+  - forseti/product/spines/capture/core/source_families/README.md
 stale_if:
   - A probe surfaces a route the catalog lacks (CATALOG_GAP) -> amend the catalog.
   - The owner changes the risk posture (e.g. commercial/licensed phase begins, or the access-control line moves).
@@ -51,6 +52,13 @@ several probed public-web routes, including a
 route-specific 2026-06-29 live diagnostic: standalone anonymous `yt-dlp` can return an empty media
 response while the browser-rendered deep-capture route still exposes a transient media handle that
 can be downloaded immediately for ASR. That is a route residual, not an Instagram transcript NO-GO.
+
+**Known-source routing:** If the target source/platform is already listed in
+`forseti/product/spines/capture/core/source_families/README.md`, open that family index before
+re-probing or searching the whole repo. This playbook owns the access gate and method; the
+source-family index owns the route home that ties access route, runner, projection, lake, ECR,
+and Cleaning pointers together. Data Lake contracts remain in the Data Lake spine and are not
+restated here.
 
 ## Risk posture (owner-authorized, pre-commercial)
 

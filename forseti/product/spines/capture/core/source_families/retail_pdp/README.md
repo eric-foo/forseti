@@ -12,6 +12,7 @@ use_when:
   - Finding the first Retail/PDP capture contracts, probes, or playbooks to open.
 authority_boundary: retrieval_only
 open_next:
+  - forseti/product/spines/capture/core/source_families/README.md
   - forseti/product/spines/capture/core/source_families/retail_pdp/retail_pdp_projection_contract_v0.md
   - forseti/product/spines/capture/core/source_families/retail_pdp/retail_pdp_typed_envelope_probe_v0.md
   - forseti/product/spines/capture/core/source_families/retail_pdp/fragrance_purchase_review_site_registry_v0.md
@@ -20,6 +21,7 @@ open_next:
   - forseti/product/spines/capture/core/source_families/retail_pdp/fragrance_purchase_review_widget_expansion_probe_v0.md
   - forseti/product/spines/capture/core/source_families/retail_pdp/fragrance_purchase_review_focused_coverage_mgt_v0.md
   - forseti/product/spines/capture/core/source_families/retail_pdp/fragrance_purchase_review_rendered_companion_probe_v0.md
+  - forseti/product/spines/data_lake/README.md
   - docs/workflows/data_capture_spine_consolidation_map_v0.md
 ```
 
@@ -30,3 +32,18 @@ Phase sibling status: no accepted
 `forseti/product/spines/scanning/source_families/retail_pdp/` directory exists in
 this worktree. If a Scanning Retail/PDP source family is later created, add the
 cross-pointer here and in the Scanning family entrypoint.
+
+## Capture-To-Lake Route Map
+
+| Layer | Current home | What to confirm |
+| --- | --- | --- |
+| Access / method | `retail_pdp_projection_contract_v0.md`, `retail_pdp_projection_playbook_v0.md`, `retail_pdp_sidecar_operator_playbook_v0.md` | Retailer-specific capture inputs, residual vocabulary, target DOM price/SKU binding posture, and the no-ECR/Cleaning/Judgment boundary. |
+| Retail/PDP packet/projection | `orca-harness/runners/run_source_capture_cloakbrowser_packet.py --source-family retail_pdp --retail-pdp-projection-output <path>`; `run_retail_pdp_projection.py`; `orca-harness/source_capture/retail_pdp_projection.py` | Packet-directory projection and optional sidecar only; no live broad crawl, scheduler, ECR, Cleaning, or Judgment. |
+| Fragrance purchase-review row capture | `fragrance_purchase_review_*` docs in this folder; `run_fragrance_review_coverage.py`; `run_fragrance_review_discovery.py`; `run_fragrance_review_lake_packet.py`; `orca-harness/source_capture/fragrance_review_lake.py` | Retailer review-positive PDP discovery, rendered/widget companion preservation, focused coverage, and preserved-body lake tee boundaries. |
+| Data Lake authority | `forseti/product/spines/data_lake/README.md` -> `authority/` | Raw admission, path grammar, derived layout, and Silver semantics. The family index does not own them. |
+
+## Non-Claims
+
+This entrypoint is not live capture authorization, validation, readiness,
+source completeness, ECR, Cleaning, Judgment, buyer proof, demand proof, or
+commercial-readiness evidence.
