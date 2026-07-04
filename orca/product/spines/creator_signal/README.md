@@ -49,6 +49,11 @@ Binding authority:
 | Path | Role |
 | --- | --- |
 | `creator_intelligence_profile_surface_v0.md` | First product surface contract for the one-stop creator intelligence profile. |
+| `creator_signal_product_architecture_v0.md` | Pre-ratification product architecture plan for the Creator Signal carve-out and Vetting v0 first increment. |
+| `creator_signal_market_sizing_v0.md` | Internal rough TAM/SAM/SOM market-sizing estimate for the Creator Signal carve-out (not demand validation or buyer proof). |
+| `creator_signal_multi_creator_library_surface_v0.md` | Product-facing display contract for the multi-creator Creator Signal Library surface. |
+| `creator_signal_multi_creator_library_static_projection_v0.md` | Static, source-backed Markdown projection of the Creator Signal Library over committed creator_profile_current rows. |
+| `creator_signal_multi_creator_library_client_projection_v0.md` | Client-readable static projection of the Creator Signal Library with audit detail one click away. |
 
 No subfolders are bound yet. Add folders only when a concrete artifact needs one
 and update the binding/route surfaces at the same time.
