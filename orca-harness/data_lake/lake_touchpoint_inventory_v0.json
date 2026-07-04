@@ -134,6 +134,18 @@
     },
     {
       "a2_fork_impact": "none",
+      "call": "is_record_set_complete",
+      "count": 1,
+      "module": "runners/run_asr_transcript_catchup.py"
+    },
+    {
+      "a2_fork_impact": "none",
+      "call": "record_path",
+      "count": 2,
+      "module": "runners/run_asr_transcript_catchup.py"
+    },
+    {
+      "a2_fork_impact": "none",
       "call": "lane_dir",
       "count": 1,
       "module": "runners/run_capture_ecr_cleaning_smoke.py"

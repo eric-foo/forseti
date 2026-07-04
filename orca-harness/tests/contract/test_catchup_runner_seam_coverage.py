@@ -29,6 +29,7 @@ from data_lake.inventory import RUNNERS_DIR as _RUNNERS_DIR
 # consumer runner must be added here AND satisfy the structural checks below.
 EXPECTED_SEAM_CONSUMER_RUNNERS = frozenset(
     {
+        "run_asr_transcript_catchup.py",
         "run_basenotes_cleaning_catchup.py",
         "run_ecr_catchup.py",
         "run_fragrance_review_projection_catchup.py",
