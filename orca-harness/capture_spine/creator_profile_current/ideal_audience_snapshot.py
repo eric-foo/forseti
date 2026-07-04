@@ -127,7 +127,11 @@ def build_creator_ideal_audience_profile_snapshot_from_profile(
     subject_id = _non_empty_str(profile_subject_id, "profile_subject_id")
     if profile.creator_id != subject_id:
         raise ValueError("ideal-audience profile creator_id must match profile_subject_id")
-    account_ids = [_non_empty_str(value, "platform_account_ids") for value in (platform_account_ids or [subject_id])]
+    if platform_account_ids is None:
+        if subject_kind != "platform_account":
+            raise ValueError("creator_record snapshots must specify platform_account_ids")
+        platform_account_ids = [subject_id]
+    account_ids = [_non_empty_str(value, "platform_account_ids") for value in platform_account_ids]
     if len(account_ids) != len(set(account_ids)):
         raise ValueError("platform_account_ids must be unique")
     if subject_kind == "platform_account":
