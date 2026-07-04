@@ -26,8 +26,8 @@ review_provenance:
     Recorded as a gap, not force-classified.
 review_use_boundary: >
   Findings, evidence, and the applied patch are decision input only — not
-  approval, validation, mandatory remediation beyond what is stated, or
-  readiness. The home/CA lane adjudicates whether the applied patch is kept.
+  approval, validation, mandatory remediation, readiness, or patch authority.
+  The home/CA lane adjudicates whether the applied patch is kept.
 ```
 
 ## Commission
@@ -125,7 +125,7 @@ No commit, push, merge, or PR action was taken; the patch remains uncommitted in
 
 ## Review Use Boundary
 
-This report's findings, applied patch, and validation evidence are decision input only. They are not approval, deployment readiness, or a claim that F2/F3 are acceptable to leave open — that is an owner call. `recommendation: patch_before_acceptance` (see courier below) reflects F2 being open, not a rejection of the applied F1 patch.
+This report's findings, applied patch, and validation evidence are decision input only. They are not approval, validation, mandatory remediation, deployment readiness, or patch authority. They also are not a claim that F2/F3 are acceptable to leave open - that is an owner call. recommendation: patch_before_acceptance (see courier below) reflects F2 being open, not a rejection of the applied F1 patch.
 
 ## Home / CA Adjudication Addendum
 
