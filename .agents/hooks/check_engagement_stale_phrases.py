@@ -7,7 +7,7 @@ WHAT THIS DOES
 
 RULE AUTHORITY
   docs/hygiene/engagement_resonance_enforcement_goal_handoff_v0.md
-  orca/product/shared/engagement_registry/engagement_logic_registry_v0.md
+  forseti/product/shared/engagement_registry/engagement_logic_registry_v0.md
 
 BOUNDARY
   Leakage detection only. This checker does not prove doctrine coherence,
@@ -32,10 +32,10 @@ import subprocess
 import sys
 
 HANDOFF_AUTHORITY = "docs/hygiene/engagement_resonance_enforcement_goal_handoff_v0.md"
-REGISTRY_AUTHORITY = "orca/product/shared/engagement_registry/engagement_logic_registry_v0.md"
+REGISTRY_AUTHORITY = "forseti/product/shared/engagement_registry/engagement_logic_registry_v0.md"
 
 LIVE_PREFIXES = (
-    "orca/product/",
+    "forseti/product/",
     "docs/decisions/",
 )
 EXCLUDED_PREFIXES = (
@@ -384,7 +384,7 @@ direction_change_propagation:
     cases = [
         (
             "live stale phrase",
-            codes("orca/product/x.md", "This says attention and routing cue."),
+            codes("forseti/product/x.md", "This says attention and routing cue."),
             (["stale_attention_routing_phrase"], 0),
         ),
         (
@@ -394,12 +394,12 @@ direction_change_propagation:
         ),
         (
             "current non-claim boundary not stale",
-            codes("orca/product/x.md", current_non_claims),
+            codes("forseti/product/x.md", current_non_claims),
             ([], 0),
         ),
         (
             "DCP self-reference ignored",
-            codes("orca/product/shared/engagement_registry/x.md", dcp_self_ref),
+            codes("forseti/product/shared/engagement_registry/x.md", dcp_self_ref),
             ([], 1),
         ),
         (

@@ -48,9 +48,13 @@ routing, and Chief Architect consumption rules.
   the actual review object unless the prompt or current user instruction binds
   that change.
 - Within the commission-bound target and purpose, adversarial reviewers should
-  be maximally adversarial about material decision-relevant failure modes. This
-  does not widen the target; it means the reviewer should not soften or skip a
-  material failure mode merely because remediation would be awkward.
+  be maximally adversarial and coverage-first: report every failure mode found,
+  including uncertain and low-severity ones. Materiality, severity, and
+  confidence are labels the reviewer attaches to a finding, never a threshold
+  for reporting it; filtering for importance belongs to the downstream
+  adjudication, not the find stage. This does not widen the target; it means
+  the reviewer must not soften, skip, or silently drop a failure mode because
+  remediation would be awkward, confidence is low, or the finding seems minor.
 - For intent-bearing review targets -- artifacts whose correctness is judged by
   fitness to an upstream goal (proofs, fixtures, calibration gates, plans,
   operating structures, runbooks, product-proof artifacts) rather than by
@@ -81,6 +85,18 @@ routing, and Chief Architect consumption rules.
   severity labels for finding priority when the prompt or template names those
   labels. Those labels do not by themselves create approval, rejection,
   readiness, validation, or mandatory remediation authority.
+- Findings carry a `confidence` label (`high` / `medium` / `low`) alongside
+  severity: the reviewer's own certainty that the finding is real. Like
+  severity, it is a priority label only and creates no approval, rejection,
+  readiness, or remediation authority. Low confidence is never a reason to
+  omit a finding; low-confidence or minor findings may use a compact one-line
+  form instead of the full finding shape.
+- A candidate finding the reviewer defeats with a steelman defense is not
+  silently discarded: it is listed one line each in a `considered_and_defended`
+  section (candidate plus the defense that held). These entries are not
+  findings and carry no severity, closure, or action fields; they exist so the
+  adjudicator can see the discard pile instead of inheriting the reviewer's
+  self-filter.
 - Actionable review findings should state the `minimum_closure_condition`:
   what must become true before the failure mode can be treated as resolved. The
   closure condition states the required end state, not how to implement it.
@@ -265,4 +281,55 @@ direction_change_propagation:
     - CROSS-VENDOR review resolved (GPT-5.5 Thinking / OpenAI: 1 major + 2 minor refinements accepted + applied -- vendor-key definition, same-vendor claim-ceiling, named de_correlation_bar field); not a kept change until the same-vendor bounded post-patch recheck resolves AND it is committed
     - resolves the prior internal contradiction (de_correlation_criterion "Opus->non-Opus" vs no_repo "same-family lower-tier"); family is now unambiguously vendor
     - not model routing/recommendation; a who-constraint only
+```
+
+## Direction Change Propagation — Coverage-First Find Stage
+
+```yaml
+# coverage-first find stage bound 2026-07-04 (owner decision).
+direction_change_propagation:
+  doctrine_changed: >
+    Adversarial review find stage is now coverage-first: reviewers report every
+    failure mode found, including uncertain and low-severity ones; materiality,
+    severity, and the new confidence label (high/medium/low) are priority
+    labels only, never reporting thresholds; importance filtering moves to the
+    adjudication pass; steelman-defeated candidates surface one-line in a
+    considered_and_defended section instead of being silently dropped;
+    low-confidence or minor findings may use a compact one-line form.
+    Findings-first authority, severity vocabulary, model-neutrality, and CA
+    adjudication ownership are unchanged. Motivation: current models follow
+    find-time importance/confidence bars literally, silently depressing recall;
+    the existing mandatory CA adjudication is the correct filter stage.
+  trigger: review_authority
+  related_triggers: [output_authority]
+  controlling_sources_updated:
+    - .agents/workflow-overlay/review-lanes.md
+    - .agents/workflow-overlay/prompt-orchestration.md
+  downstream_surfaces_checked:
+    - {path: docs/prompts/templates/review/adversarial_artifact_review_v0.md, note: coverage-first block, confidence field, compact one-line form, considered_and_defended section added}
+    - {path: docs/prompts/templates/portable/adversarial_artifact_review_portable_method_v0.md, note: re-derived in the same pass; both derived_from hashes re-pinned}
+    - {path: docs/decisions/adversarial_review_routing_policy_v0.md, note: prompt-filter recall confound added to section 7 as a named limitation and cross-family-arm charge}
+    - {path: .agents/workflow-overlay/communication-style.md, note: review_summary shape unchanged; blocking/advisory split already carries priority}
+    - {path: .agents/workflow-overlay/delegated-review-patch.md, note: defers the review method to the kernel lanes and this doctrine; inherits coverage-first; no edit}
+  intentionally_not_updated:
+    - {path: workflow-adversarial-artifact-review kernel skill, reason: plugin-owned under the Protected Skill Boundary; its downgrade-or-drop rule is reconciled template-side (considered_and_defended entries are not findings); a true skill fix is a separate skill-governance action}
+    - {path: workflow-code-review kernel skill, reason: its demote-to-risk / not-proven channel is already coverage-preserving}
+    - {path: .agents/workflow-overlay/validation-gates.md, reason: F4 single-source; the Review Doctrine here is the read path}
+    - {path: docs/prompts/reviews/ and docs/review-inputs/ and docs/hygiene/registration_integrity_review_README.md and docs/review-outputs/, reason: already-dispatched commission prompts, shipped no-repo bundles, and historical review reports quoting the prior doctrine are lane records, not rewritten; future bundles re-derive via the portable-method freshness gate}
+  stale_language_search: >
+    rg -ni "material,? decision-relevant" .agents docs AGENTS.md
+  stale_language_search_result: >
+    Executed 2026-07-04 after edits. Remaining hits are the intentional
+    historical quotation inside the new routing-policy section-7 confound
+    bullet, already-dispatched commission prompts under docs/prompts/reviews/,
+    shipped no-repo bundle READMEs (docs/review-inputs/*,
+    docs/hygiene/registration_integrity_review_README.md), and historical
+    review reports under docs/review-outputs/ -- all kept as historical lane
+    records. The portable method's stance line was rewritten in this same
+    pass. No live overlay, template, or preflight-checklist surface still
+    states the materiality reporting threshold.
+  non_claims:
+    - not validation, not readiness
+    - not runtime model routing or recommendation
+    - no recall-improvement efficacy claim until measured
 ```

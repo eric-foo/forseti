@@ -217,7 +217,7 @@ Validation reports must preserve failure visibility by bucket:
   buyer-proof, advisory, backtest, fixture, model-run, scoring, memo, deck,
   calibration, architecture, spec, prompt, wrapper, and runbook artifacts must
   classify the claim tier and closeout state using
-  `orca/product/spines/judgment/claim_ladder/judgment_spine_evidence_ladder_architecture_v0.md` before
+  `forseti/product/spines/judgment/claim_ladder/judgment_spine_evidence_ladder_architecture_v0.md` before
   making proof, readiness, validation, fixture-admission, scoring,
   blind-use-readiness, or judgment-quality claims. Product-Learning evidence
   cannot be reused as Buyer-Proof or Judgment-Quality evidence without the

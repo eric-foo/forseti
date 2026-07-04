@@ -3,7 +3,7 @@
 
 WHAT THIS DOES
   Reads the demand-ontology SSOT (`ontology.yaml`) and reports how the migrated
-  product corpus (`orca/product/`) uses ontology TYPE vocabulary:
+  product corpus (`forseti/product/`) uses ontology TYPE vocabulary:
 
     KNOWN references  -- distinctive ontology-type tokens that ARE in the SSOT
                          (canonical type names + runtime/storage aliases): a
@@ -28,7 +28,7 @@ WHY (enforcement placement)
 
 HARD BOUNDARY
   Read-only. No git calls. No writes. REPORT MODE only: the frozen predicate is
-  strict-minus-exit-0 -- it computes what a future orca/ strict gate would flag
+  strict-minus-exit-0 -- it computes what a future Forseti strict gate would flag
   but ALWAYS exits 0 (the Phase-3 ratchet flips the exit only). Fails OPEN on
   infrastructure gaps (no PyYAML, missing ontology.yaml / corpus): prints an
   advisory and exits 0, never ghost-fails. Excludes the ontology's own
@@ -36,7 +36,8 @@ HARD BOUNDARY
   _scratch/_inbox.
 
 MODES
-  check_doc_terms.py --report-orca   REPORT MODE over orca/product/; always exit 0
+  check_doc_terms.py --report-forseti REPORT MODE over forseti/product/; always exit 0
+  check_doc_terms.py --report-orca    compatibility alias for --report-forseti
   check_doc_terms.py --check         verbose human-readable report; always exit 0
   check_doc_terms.py --selftest      pure-function cases (+ live SSOT vocab); exit 0/1
 """
@@ -48,9 +49,9 @@ import sys
 from pathlib import Path
 from typing import NamedTuple
 
-YAML_REL = "orca/product/spines/foundation/ontology/ontology.yaml"
-CORPUS_REL = "orca/product"
-ONTOLOGY_HOME_REL = "orca/product/spines/foundation/ontology"  # the term home (excluded)
+YAML_REL = "forseti/product/spines/foundation/ontology/ontology.yaml"
+CORPUS_REL = "forseti/product"
+ONTOLOGY_HOME_REL = "forseti/product/spines/foundation/ontology"  # the term home (excluded)
 
 # A distinctive ontology-shaped token: >=2 CamelCase humps (Upper followed by
 # lower, repeated). Matches TrendVector / SourceCapturePacket; NOT single words
@@ -241,7 +242,7 @@ def _print_report(root: Path, verbose: bool) -> int:
     cand_refs = sum(c for c, _ in rep.candidates.values())
     cand_files = len({f for _, fs in rep.candidates.values() for f in fs})
 
-    print("check_doc_terms --report-orca (REPORT MODE, exit 0; not a gate):")
+    print("check_doc_terms --report-forseti (REPORT MODE, exit 0; not a gate):")
     print("  scope: %s/  (excl. foundation/ontology/, _scratch)  |  predicate = strict-minus-exit-0" % CORPUS_REL)
     print("  SSOT vocab: %d canonical types, %d aliases, head-nouns %s"
           % (len(canonical), len(aliases), "{%s}" % ", ".join(sorted(head_nouns))))
@@ -268,7 +269,7 @@ def _print_report(root: Path, verbose: bool) -> int:
     return 0
 
 
-def run_report_orca(root: Path) -> int:
+def run_report_forseti(root: Path) -> int:
     return _print_report(root, verbose=False)
 
 
@@ -354,10 +355,11 @@ def main(argv: list[str]) -> int:
         return 0
     if "--check" in argv:
         return run_check(root)
-    if "--report-orca" in argv:
-        return run_report_orca(root)
-    print("Usage: check_doc_terms.py --report-orca | --check | --selftest")
-    print("  --report-orca  REPORT MODE over orca/product/: usage map + new-term-candidates, exit 0")
+    if "--report-forseti" in argv or "--report-orca" in argv:
+        return run_report_forseti(root)
+    print("Usage: check_doc_terms.py --report-forseti | --report-orca | --check | --selftest")
+    print("  --report-forseti  REPORT MODE over forseti/product/: usage map + new-term-candidates, exit 0")
+    print("  --report-orca     compatibility alias for --report-forseti")
     print("  --check        verbose report (lists candidate files), exit 0")
     print("  --selftest     pure-function self-check")
     return 1

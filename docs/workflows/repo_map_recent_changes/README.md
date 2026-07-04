@@ -9,7 +9,7 @@ use_when:
   - Investigating recent repo-map churn or PR conflicts.
   - Deciding whether a change needs a map route, a submap route, or only retrieval context.
 open_next:
-  - docs/workflows/orca_repo_map_v0.md
+  - docs/workflows/forseti_repo_map_v0.md
   - .agents/hooks/check_repo_map_freshness.py
 downstream_consumers:
   - repo-map maintainers
@@ -17,7 +17,7 @@ downstream_consumers:
   - review authors
   - branch owners diagnosing repo-map conflicts
 stale_if:
-  - docs/workflows/orca_repo_map_v0.md changes repo-map freshness policy or map metadata rules.
+  - docs/workflows/forseti_repo_map_v0.md changes repo-map freshness policy or map metadata rules.
   - .agents/hooks/check_repo_map_freshness.py changes structural trigger behavior.
   - .agents/workflow-overlay/retrieval-metadata.md changes retrieval-header requirements for durable workflow artifacts.
 authority_boundary: retrieval_only
@@ -25,7 +25,7 @@ authority_boundary: retrieval_only
 
 This folder is the low-conflict place for optional recent-change notes when a
 repo-map-affecting change needs durable context but does not need to append a
-rolling chronology to `docs/workflows/orca_repo_map_v0.md`.
+rolling chronology to `docs/workflows/forseti_repo_map_v0.md`.
 
 Use one small file per change when the context is useful. Do not use this folder
 as a substitute for updating the actual map route or delegated submap when

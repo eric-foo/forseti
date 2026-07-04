@@ -19,11 +19,11 @@ _PLATFORM = "youtube"
 _REPO_ROOT = Path(__file__).resolve().parents[3]
 
 _CREATOR_OBSERVATION_LEDGER_POINTER = (
-    "orca/product/spines/capture/core/source_families/social_media/youtube/"
+    "forseti/product/spines/capture/core/source_families/social_media/youtube/"
     "youtube_shorts_fragrance_creator_observation_ledger_v0.json"
 )
 _ACCOUNT_LEDGER_POINTER = (
-    "orca/product/spines/capture/core/source_families/social_media/creator_registry/"
+    "forseti/product/spines/capture/core/source_families/social_media/creator_registry/"
     "creator_public_handle_linkage_ledger_v0.json"
 )
 _REVIEW_INPUT_POINTERS = (
@@ -142,10 +142,10 @@ def build_youtube_shorts_fragrance_creator_metric_seed_from_files(
             "readiness."
         ),
         "authority_pointers": [
-            "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_profile_current_view_spec_v0.md",
-            "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_creator_observation_ledger_spec_v0.md",
-            "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_spec_v0.md",
-            "orca/product/spines/creator_signal/creator_intelligence_profile_surface_v0.md",
+            "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_profile_current_view_spec_v0.md",
+            "forseti/product/spines/capture/core/source_families/social_media/youtube/youtube_creator_observation_ledger_spec_v0.md",
+            "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_spec_v0.md",
+            "forseti/product/spines/creator_signal/creator_intelligence_profile_surface_v0.md",
         ],
         "source_inputs": _source_inputs(source_by_pointer),
         "source_capture_playbook_posture": {

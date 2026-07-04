@@ -26,6 +26,9 @@ The agent may:
 - run Authenticated Browser Snapshot capture against one explicitly supplied URL
   using a previously bootstrapped storage-state label and an allowed session
   mode;
+- run the TikTok one-creator live probe against explicitly supplied public
+  creator/video URLs using the TikTok playbook posture, then optionally chain
+  its sanitized staging output through the existing TikTok batch admission gate;
 - run the Creator Registry match preflight runner against candidate social
   creator/account identities before starting new social creator/account
   capture;
@@ -135,7 +138,7 @@ date.
 For social creator/account capture where the operator intends to start a new
 creator capture, run the Creator Registry match preflight before capture and
 carry its receipt in the agent report or handoff. Use
-`orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_registry_match_preflight_usage_v0.md`
+`forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_registry_match_preflight_usage_v0.md`
 for candidate JSON shape, receipt outcomes, and the runner command. Do not start
 `new_capture` unless the candidate batch was preflighted with
 `intended_action: new_capture` and the resulting receipt row shows `decision:
@@ -683,10 +686,12 @@ source_capture_agent_report:
   authenticated_browser_caveat: <if authenticated browser packet, session mode/state label reported but no state contents or login-wall absence proof; otherwise none>
   visible_stop_if_any: <missing input, access failure, browser-needed, no packet, or none>
   creator_registry_match_preflight:
-    required_when: <new social creator/account capture; otherwise omit>
-    receipt_path: <path to preflight receipt JSON>
-    row_decision: <existing_match|new_candidate|ambiguous_match|invalid_candidate>
-    action_status: <allowed|blocked>
+    required_when: <new_social_creator_account_capture if this capture request is a new social creator/account capture, otherwise not_applicable; never omit this block>
+    receipt_path: <path to preflight receipt JSON, or not_applicable>
+    intended_action: <new_capture|classify|update_existing|not_applicable>
+    decision: <existing_match|new_candidate|ambiguous_match|invalid_candidate|not_applicable>
+    action_status: <allowed|blocked|not_applicable>
+    can_start_new_capture: <true|false|not_applicable; must be true before starting new_capture>
   non_claims:
     - <receipt non-claim or none>
   mini_god_tier_source_quality_report:

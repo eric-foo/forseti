@@ -278,10 +278,10 @@ def build_youtube_watch_packet_metric_document(
             "metrics exist only where the live packets expose the source-native inputs."
         ),
         "authority_pointers": [
-            "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_profile_current_view_spec_v0.md",
-            "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_creator_observation_ledger_spec_v0.md",
-            "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_spec_v0.md",
-            "orca/product/spines/creator_signal/creator_intelligence_profile_surface_v0.md",
+            "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_profile_current_view_spec_v0.md",
+            "forseti/product/spines/capture/core/source_families/social_media/youtube/youtube_creator_observation_ledger_spec_v0.md",
+            "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_spec_v0.md",
+            "forseti/product/spines/creator_signal/creator_intelligence_profile_surface_v0.md",
         ],
         "source_inputs": [
             {

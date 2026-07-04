@@ -21,7 +21,7 @@ from data_lake.root import DataLakeRoot
 ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_OUTPUT = (
     ROOT
-    / "orca"
+    / "forseti"
     / "product"
     / "spines"
     / "capture"
@@ -33,7 +33,7 @@ DEFAULT_OUTPUT = (
 )
 DEFAULT_ACCOUNT_LEDGER = (
     ROOT
-    / "orca"
+    / "forseti"
     / "product"
     / "spines"
     / "capture"

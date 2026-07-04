@@ -1,7 +1,7 @@
 # Creator profile source-input hashes are recorded over LF repo-text bytes.
 # Keep the checked-in JSON sources stable across Windows and CI without making
 # this a general hash-framework decision.
-orca/product/spines/capture/core/source_families/social_media/**/*.json text eol=lf
+forseti/product/spines/capture/core/source_families/social_media/**/*.json text eol=lf
 docs/review-inputs/youtube_shorts_fragrance_retained_recapture_v0.json text eol=lf
 docs/review-inputs/youtube_shorts_fragrance_replacement_capture_v0.json text eol=lf
 docs/review-inputs/youtube_shorts_fragrance_tone_expansion30_capture_v0.json text eol=lf

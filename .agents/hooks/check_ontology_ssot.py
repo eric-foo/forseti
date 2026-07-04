@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Ontology SSOT integrity check (W2a).
 
-Validates `orca/product/spines/foundation/ontology/ontology.yaml` as a faithful,
+Validates `forseti/product/spines/foundation/ontology/ontology.yaml` as a faithful,
 self-consistent promotion of the prose backbone
 (`orca_ontology_backbone_architecture_v0.md`):
 
@@ -32,7 +32,7 @@ import re
 import sys
 from pathlib import Path
 
-ONT_DIR = "orca/product/spines/foundation/ontology"
+ONT_DIR = "forseti/product/spines/foundation/ontology"
 YAML_REL = ONT_DIR + "/ontology.yaml"
 BACKLOG_REL = ONT_DIR + "/ontology_expansion_backlog_v0.json"
 BACKBONE_REL = ONT_DIR + "/orca_ontology_backbone_architecture_v0.md"

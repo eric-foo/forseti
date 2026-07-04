@@ -40,7 +40,7 @@ MAX_INLINE_RECEIPTS = 2
 SCOPE_PREFIXES = (
     ".agents/workflow-overlay/",
     "docs/",
-    "orca/product/",
+    "forseti/product/",
 )
 EXCLUDED_PREFIXES = (
     "docs/_inbox/",

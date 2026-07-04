@@ -13,7 +13,7 @@ from capture_spine.creator_profile_current.youtube_metric_seed import (
 ROOT = Path(__file__).resolve().parents[3]
 SEED_PATH = (
     ROOT
-    / "orca"
+    / "forseti"
     / "product"
     / "spines"
     / "capture"
@@ -25,7 +25,7 @@ SEED_PATH = (
 )
 CREATOR_LEDGER_PATH = (
     ROOT
-    / "orca"
+    / "forseti"
     / "product"
     / "spines"
     / "capture"
@@ -37,7 +37,7 @@ CREATOR_LEDGER_PATH = (
 )
 ACCOUNT_LEDGER_PATH = (
     ROOT
-    / "orca"
+    / "forseti"
     / "product"
     / "spines"
     / "capture"
