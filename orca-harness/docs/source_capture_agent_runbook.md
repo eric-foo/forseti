@@ -171,6 +171,32 @@ label; it is not full-network no-proxy egress proof, is not a forgery-proof prod
 printing, copying, or reporting cookies, storage-state JSON, proxy endpoints,
 exit IPs, profile paths, or device identifiers.
 
+Recommended one-fixture sessioned TikTok command for a cold agent with an
+already-exported dedicated auth-state label:
+
+```powershell
+python runners/run_source_capture_tiktok_live_batch_probe.py `
+  --creator-handle "<handle>" `
+  --creator-profile-url "https://www.tiktok.com/@<handle>" `
+  --video-url "https://www.tiktok.com/@<handle>/video/<video-id>" `
+  --state-label "<dedicated-tiktok-auth-state-label>" `
+  --session-mode client_provided_session `
+  --require-harness-proxy-posture no_proxy_profile_loaded `
+  --allow-challenge-close-followthrough `
+  --human-challenge-handoff `
+  --output-dir ".\_test_runs\tiktok_live_<handle>" `
+  --admit-output ".\_test_runs\tiktok_live_<handle>_packet"
+```
+
+Read the runner's `tiktok_live_probe_summary_json=` lines first. A staging
+summary with `outcome=staging_complete` and `admission_target=local_admit_output`
+means the local packet path was requested; `admission_target=bronze_data_root`
+means explicit data-lake admission was requested. `outcome=owner_attention_required`
+means a manual slider/captcha handoff is needed or was attempted; it is a
+source-access intervention, not clean capture. Any `fail_closed_*` outcome or
+admission summary with `fail_closed=true` stops the lane until the typed reason
+is resolved.
+
 If any required input is missing, do not invent it. Stop and report the smallest
 missing input.
 

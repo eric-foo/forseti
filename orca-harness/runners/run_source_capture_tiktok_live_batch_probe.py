@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import json
 import sys
 from pathlib import Path
 
@@ -18,6 +19,10 @@ from source_capture.tiktok.live_batch_probe import (
 )
 
 
+SUMMARY_LINE_PREFIX = "tiktok_live_probe_summary_json="
+SUMMARY_SCHEMA_VERSION = "tiktok_live_probe_summary_v0"
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=(
@@ -26,7 +31,24 @@ def build_parser() -> argparse.ArgumentParser:
             "--logged-out uses no storage state. By default this runner writes "
             "staging JSON only; --admit-output or --data-root chains the "
             "existing TikTok batch admission gate after staging."
-        )
+        ),
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog=(
+            "Recommended sessioned cold-agent command:\n"
+            "  python runners/run_source_capture_tiktok_live_batch_probe.py `\n"
+            "    --creator-handle \"<handle>\" `\n"
+            "    --creator-profile-url \"https://www.tiktok.com/@<handle>\" `\n"
+            "    --video-url \"https://www.tiktok.com/@<handle>/video/<video-id>\" `\n"
+            "    --state-label \"<dedicated-tiktok-auth-state-label>\" `\n"
+            "    --session-mode client_provided_session `\n"
+            "    --require-harness-proxy-posture no_proxy_profile_loaded `\n"
+            "    --allow-challenge-close-followthrough `\n"
+            "    --human-challenge-handoff `\n"
+            "    --output-dir \".\\_test_runs\\tiktok_live_<handle>\" `\n"
+            "    --admit-output \".\\_test_runs\\tiktok_live_<handle>_packet\"\n"
+            "\n"
+            "Use --data-root only when the owner explicitly wants immediate bronze/lake admission."
+        ),
     )
     parser.add_argument("--creator-handle", required=True)
     parser.add_argument("--creator-profile-url", required=True)
@@ -230,6 +252,29 @@ def main(argv: list[str] | None = None) -> int:
     )
     print(f"grid_result_json={paths.grid_result_json_path}")
     print(f"cadence_result_json={paths.cadence_result_json_path}")
+    admission_target = _admission_target_kind(
+        admit_output=args.admit_output,
+        data_root=args.data_root,
+    )
+    print(
+        _summary_line(
+            _staging_summary(
+                paths=paths,
+                admission_target=admission_target,
+                browser_backend=args.browser_backend,
+                session_mode=(
+                    "public_logged_out"
+                    if args.logged_out
+                    else args.session_mode
+                ),
+                provenance_requirement_status=(
+                    "validated"
+                    if required_harness_proxy_profile_posture is not None
+                    else "not_requested"
+                ),
+            )
+        )
+    )
     if args.admit_output is not None or args.data_root is not None:
         try:
             data_root = None
@@ -252,8 +297,26 @@ def main(argv: list[str] | None = None) -> int:
                 ],
             )
         except ValueError as exc:
+            print(
+                _summary_line(
+                    _admission_summary(
+                        admission_target=admission_target,
+                        outcome="fail_closed_admission_rejected",
+                        error_type=type(exc).__name__,
+                    )
+                )
+            )
             parser.exit(status=2, message=f"source capture tiktok live batch admission failed: {exc}\n")
         except Exception as exc:  # noqa: BLE001 - keep admission/lake failures visible
+            print(
+                _summary_line(
+                    _admission_summary(
+                        admission_target=admission_target,
+                        outcome="fail_closed_admission_infra_error",
+                        error_type=type(exc).__name__,
+                    )
+                )
+            )
             parser.exit(
                 status=3,
                 message=(
@@ -262,13 +325,195 @@ def main(argv: list[str] | None = None) -> int:
                 ),
             )
         if exit_code != 0:
+            print(
+                _summary_line(
+                    _admission_summary(
+                        admission_target=admission_target,
+                        outcome="fail_closed_admission_nonzero_exit",
+                        error_type="nonzero_exit",
+                    )
+                )
+            )
             parser.exit(
                 status=exit_code,
                 message=f"source capture tiktok live batch admission failed: {admitted_path}\n",
             )
         print(COMPLETE_LANE_NOTE)
+        print(
+            _summary_line(
+                _admission_summary(
+                    admission_target=admission_target,
+                    outcome=(
+                        "bronze_packet_admitted"
+                        if admission_target == "bronze_data_root"
+                        else "local_packet_admitted"
+                    ),
+                )
+            )
+        )
         print(f"admitted_packet={admitted_path}")
     return 0
+
+
+def _summary_line(payload: dict[str, object]) -> str:
+    return (
+        SUMMARY_LINE_PREFIX
+        + json.dumps(payload, sort_keys=True, separators=(",", ":"))
+    )
+
+
+def _admission_target_kind(*, admit_output: Path | None, data_root: str | None) -> str:
+    if admit_output is not None:
+        return "local_admit_output"
+    if data_root is not None:
+        return "bronze_data_root"
+    return "staging_only"
+
+
+def _staging_summary(
+    *,
+    paths,
+    admission_target: str,
+    browser_backend: str,
+    session_mode: str | None,
+    provenance_requirement_status: str,
+) -> dict[str, object]:
+    cadence = _read_json_object(paths.cadence_result_json_path)
+    results = _as_list(cadence.get("results"))
+    failures = _as_list(cadence.get("failures"))
+    owner_attention_required = _owner_attention_required(results=results, failures=failures)
+    challenge_count = _first_int(cadence.get("challenge_count"), 0)
+    failure_count = len(failures)
+    subtitle_reason_counts: dict[str, int] = {}
+    subtitle_success_count = 0
+    admitted_comment_response_count = 0
+    dom_visible_comment_candidate_count = 0
+    for row in results:
+        row_dict = _as_dict(row)
+        receipt = _as_dict(row_dict.get("capture_receipt"))
+        admitted_comment_response_count += _first_int(
+            receipt.get("admitted_comment_response_count"), 0
+        )
+        dom_visible_comment_candidate_count += _first_int(
+            receipt.get("dom_visible_comment_candidate_count"), 0
+        )
+        subtitle = _as_dict(row_dict.get("subtitle"))
+        reason = _first_str(subtitle.get("reason"))
+        if _as_bool(subtitle.get("success")) is True:
+            subtitle_success_count += 1
+        elif reason:
+            subtitle_reason_counts[reason] = subtitle_reason_counts.get(reason, 0) + 1
+    first_failure_reason = None
+    if failures:
+        first_failure_reason = _first_str(_as_dict(failures[0]).get("reason"))
+    return {
+        "schema_version": SUMMARY_SCHEMA_VERSION,
+        "stage": "staging",
+        "outcome": _staging_outcome(
+            completed_count=_first_int(cadence.get("completed_count"), 0),
+            challenge_count=challenge_count,
+            failure_count=failure_count,
+            owner_attention_required=owner_attention_required,
+        ),
+        "admission_target": admission_target,
+        "browser_backend": browser_backend,
+        "session_mode": session_mode,
+        "provenance_requirement_status": provenance_requirement_status,
+        "requested_video_count": _first_int(cadence.get("requested_video_count"), 0),
+        "attempted_count": _first_int(cadence.get("attempted_count"), 0),
+        "completed_count": _first_int(cadence.get("completed_count"), 0),
+        "challenge_count": challenge_count,
+        "failure_count": failure_count,
+        "first_failure_reason": first_failure_reason,
+        "owner_attention_required": owner_attention_required,
+        "admitted_comment_response_count": admitted_comment_response_count,
+        "dom_visible_comment_candidate_count": dom_visible_comment_candidate_count,
+        "subtitle_success_count": subtitle_success_count,
+        "subtitle_non_capture_reason_counts": subtitle_reason_counts,
+    }
+
+
+def _admission_summary(
+    *,
+    admission_target: str,
+    outcome: str,
+    error_type: str | None = None,
+) -> dict[str, object]:
+    summary: dict[str, object] = {
+        "schema_version": SUMMARY_SCHEMA_VERSION,
+        "stage": "admission",
+        "admission_target": admission_target,
+        "outcome": outcome,
+    }
+    if error_type is not None:
+        summary["error_type"] = error_type
+        summary["fail_closed"] = True
+    else:
+        summary["packet_path_printed"] = True
+    return summary
+
+
+def _staging_outcome(
+    *,
+    completed_count: int,
+    challenge_count: int,
+    failure_count: int,
+    owner_attention_required: bool,
+) -> str:
+    if owner_attention_required:
+        return "owner_attention_required"
+    if challenge_count > 0 or failure_count > 0:
+        return "fail_closed_staging_has_failures"
+    if completed_count > 0:
+        return "staging_complete"
+    return "fail_closed_no_completed_videos"
+
+
+def _owner_attention_required(*, results: list[object], failures: list[object]) -> bool:
+    for row in results:
+        receipt = _as_dict(_as_dict(row).get("capture_receipt"))
+        if _as_bool(receipt.get("owner_attention_required")) is True:
+            return True
+        if _as_bool(receipt.get("manual_challenge_attention_required")) is True:
+            return True
+    for failure in failures:
+        triage = _as_dict(_as_dict(failure).get("blocker_triage"))
+        if _as_bool(triage.get("owner_attention_required")) is True:
+            return True
+        if _as_bool(triage.get("manual_challenge_attention_required")) is True:
+            return True
+    return False
+
+
+def _read_json_object(path: Path) -> dict[str, object]:
+    value = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(value, dict):
+        raise ValueError(f"{path.name} must contain a JSON object")
+    return value
+
+
+def _as_dict(value: object) -> dict[str, object]:
+    return value if isinstance(value, dict) else {}
+
+
+def _as_list(value: object) -> list[object]:
+    return value if isinstance(value, list) else []
+
+
+def _first_int(value: object, default: int = 0) -> int:
+    if isinstance(value, bool):
+        return default
+    if isinstance(value, int):
+        return value
+    return default
+
+
+def _first_str(value: object) -> str | None:
+    return value if isinstance(value, str) and value else None
+
+
+def _as_bool(value: object) -> bool | None:
+    return value if isinstance(value, bool) else None
 
 
 def _source_receipt(path: Path, role: str) -> dict[str, object]:

@@ -102,6 +102,31 @@ class _FakeObservationEngine:
         return self.outcomes.pop(0)
 
 
+def _summary_payloads(output: str) -> list[dict[str, object]]:
+    return [
+        json.loads(line.split("=", 1)[1])
+        for line in output.splitlines()
+        if line.startswith(runner.SUMMARY_LINE_PREFIX)
+    ]
+
+
+def test_live_probe_runner_help_surfaces_sessioned_cold_agent_command(capsys) -> None:
+    try:
+        runner.main(["--help"])
+    except SystemExit as exc:
+        assert exc.code == 0
+    else:
+        raise AssertionError("help did not exit through argparse")
+
+    captured = capsys.readouterr()
+    assert "Recommended sessioned cold-agent command" in captured.out
+    assert "--require-harness-proxy-posture no_proxy_profile_loaded" in captured.out
+    assert "--allow-challenge-close-followthrough" in captured.out
+    assert "--human-challenge-handoff" in captured.out
+    assert "--admit-output" in captured.out
+
+
+
 def test_live_probe_writes_sanitized_staging_compatible_with_batch_admission(
     tmp_path: Path,
 ) -> None:
@@ -543,6 +568,14 @@ def test_live_probe_runner_can_chain_batch_admission_to_data_root(
 
     captured = capsys.readouterr()
     assert code == 0
+    summaries = _summary_payloads(captured.out)
+    assert [summary["stage"] for summary in summaries] == ["staging", "admission"]
+    assert summaries[0]["admission_target"] == "bronze_data_root"
+    assert summaries[0]["outcome"] == "staging_complete"
+    assert summaries[0]["admitted_comment_response_count"] == 1
+    assert summaries[1]["admission_target"] == "bronze_data_root"
+    assert summaries[1]["outcome"] == "bronze_packet_admitted"
+    assert summaries[1]["packet_path_printed"] is True
     assert COMPLETE_LANE_NOTE in captured.out
     packet_line = next(
         line for line in captured.out.splitlines() if line.startswith("admitted_packet=")
@@ -621,6 +654,14 @@ def test_live_probe_runner_can_chain_batch_admission_to_admit_output(
 
     captured = capsys.readouterr()
     assert code == 0
+    summaries = _summary_payloads(captured.out)
+    assert [summary["stage"] for summary in summaries] == ["staging", "admission"]
+    assert summaries[0]["admission_target"] == "local_admit_output"
+    assert summaries[0]["outcome"] == "staging_complete"
+    assert summaries[0]["browser_backend"] == "cloakbrowser"
+    assert summaries[1]["admission_target"] == "local_admit_output"
+    assert summaries[1]["outcome"] == "local_packet_admitted"
+    assert summaries[1]["packet_path_printed"] is True
     assert COMPLETE_LANE_NOTE in captured.out
     packet_line = next(
         line for line in captured.out.splitlines() if line.startswith("admitted_packet=")
@@ -643,6 +684,7 @@ def test_live_probe_runner_can_chain_batch_admission_to_admit_output(
 def test_live_probe_runner_chain_rejects_failed_cadence_before_packet(
     tmp_path: Path,
     monkeypatch,
+    capsys,
 ) -> None:
     video_id = "7390000000000000001"
     pre_paths = write_tiktok_live_batch_probe_outputs(
@@ -702,6 +744,14 @@ def test_live_probe_runner_chain_rejects_failed_cadence_before_packet(
     else:
         raise AssertionError("failed cadence was admitted by the live runner chain")
     assert not admit_output.exists()
+    captured = capsys.readouterr()
+    summaries = _summary_payloads(captured.out)
+    assert [summary["stage"] for summary in summaries] == ["staging", "admission"]
+    assert summaries[0]["outcome"] == "fail_closed_staging_has_failures"
+    assert summaries[0]["challenge_count"] == 1
+    assert summaries[1]["outcome"] == "fail_closed_admission_rejected"
+    assert summaries[1]["fail_closed"] is True
+
 
 def test_live_probe_runner_rejects_diagnostic_and_followthrough_together(tmp_path: Path) -> None:
     try:

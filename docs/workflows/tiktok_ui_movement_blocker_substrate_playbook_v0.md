@@ -264,7 +264,13 @@ challenge-close actions; use `pointer_action_chronology` for exact chronology.
    `--allow-challenge-close-diagnostic`. A DOM close click or visual-X close click
    must stop the run and must not admit, expand, or claim capture success. The
    diagnostic path is retained only for changed-condition checks.
-6. Scan outputs for forbidden markers before any admission claim. Auth-state files
+6. Scan the runner's `tiktok_live_probe_summary_json=` lines before opening
+   larger JSON files. `stage=staging` distinguishes `staging_complete`,
+   `owner_attention_required`, and `fail_closed_*`; `stage=admission`
+   distinguishes `local_packet_admitted`, `bronze_packet_admitted`, and
+   `fail_closed_admission_*`. A manual slider/captcha handoff is owner attention
+   and source-access intervention, not clean capture.
+7. Scan outputs for forbidden markers before any admission claim. Auth-state files
    copied for a live run must be removed and verified absent after the run.
    When the owner asks for a packet or bronze/data-lake write, prefer the live
    runner's own `--admit-output` or explicit `--data-root` chain so staging feeds

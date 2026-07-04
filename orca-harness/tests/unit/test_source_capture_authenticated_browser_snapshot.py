@@ -427,6 +427,15 @@ def test_browser_user_data_provenance_rejects_unknown_proxy_category() -> None:
         )
 
 
+def test_browser_user_data_provenance_rejects_none_category_as_loaded_proxy() -> None:
+    with pytest.raises(ValueError, match="proxy_category must name the proxy category"):
+        build_browser_user_data_source_access_provenance(
+            user_data_label="google-login",
+            browser_backend="cloakbrowser",
+            proxy_category="none",
+        )
+
+
 class _FakeDirectWarmupProcess:
     def __init__(self, *, poll_result: int | None) -> None:
         self.poll_result = poll_result
