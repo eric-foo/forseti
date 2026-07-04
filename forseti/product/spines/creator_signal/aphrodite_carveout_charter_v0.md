@@ -18,11 +18,11 @@ use_when:
 authority_boundary: retrieval_only
 open_next:
   - docs/decisions/forseti_company_brand_architecture_v0.md
-  - orca/product/spines/creator_signal/creator_signal_product_architecture_v0.md
+  - forseti/product/spines/creator_signal/creator_signal_product_architecture_v0.md
   - docs/decisions/orca_creator_signal_spine_promotion_binding_v0.md
-  - orca/product/spines/creator_signal/creator_signal_market_sizing_v0.md
+  - forseti/product/spines/creator_signal/creator_signal_market_sizing_v0.md
   - .agents/workflow-overlay/product-proof.md
-  - orca/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md
+  - forseti/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md
 stale_if:
   - The owner amends or supersedes this charter (dated amendments only; no silent rewrites).
   - A controlling record this charter routes to is superseded.
@@ -62,7 +62,7 @@ names by design:
   the buyer-facing identity, "Aphrodite by Forseti", living at
   `aphrodite.forsetihq.com` until the public-launch gate (D8).
 - **`creator_signal`** — the internal, brand-independent spine name and repo
-  home (`orca/product/spines/creator_signal/`, bound by
+  home (`forseti/product/spines/creator_signal/`, bound by
   `docs/decisions/orca_creator_signal_spine_promotion_binding_v0.md`).
 
 Naming boundary: Forseti is the canonical project name at the authority layer
@@ -191,7 +191,7 @@ no contact info and never leave the report.
 
 Proof semantics are consumed, not redefined, from
 `.agents/workflow-overlay/product-proof.md` and the graduation/kill grammar of
-`orca/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md`
+`forseti/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md`
 (adapted to this product at sprint time — the parent's demand-substrate gate
 does not transfer; the pull/praise, trust-objection/refusal, kill-discipline,
 and graduation grammar do): pull is paid-path behavior, never praise. The
@@ -319,14 +319,14 @@ direction_change_propagation:
   trigger: product_doctrine
   related_triggers: []
   controlling_sources_updated:
-    - orca/product/spines/creator_signal/aphrodite_carveout_charter_v0.md
+    - forseti/product/spines/creator_signal/aphrodite_carveout_charter_v0.md
     - docs/decisions/forseti_company_brand_architecture_v0.md   # D8 amendment (waitlist role fields), same lane
-    - orca/product/spines/creator_signal/README.md               # index row for this charter
+    - forseti/product/spines/creator_signal/README.md               # index row for this charter
   downstream_surfaces_checked:
-    - orca/product/spines/creator_signal/creator_signal_product_architecture_v0.md  # foundation-first sequencing and Vetting v0 shape consistent; this charter sits above it and pulls nothing forward
+    - forseti/product/spines/creator_signal/creator_signal_product_architecture_v0.md  # foundation-first sequencing and Vetting v0 shape consistent; this charter sits above it and pulls nothing forward
     - docs/decisions/orca_creator_signal_spine_promotion_binding_v0.md              # owns/does_not_own split untouched; charter routes to it
     - .agents/workflow-overlay/product-proof.md                                     # proof semantics consumed, not redefined
-    - orca/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md    # grammar reused; parent demand-substrate gate explicitly not transferred
+    - forseti/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md    # grammar reused; parent demand-substrate gate explicitly not transferred
     - docs/workflows/orca_repo_map_v0.md                                            # decision/product records not exhaustively indexed (existing precedent); the spine README row carries the route
     - AGENTS.md                                                                     # no naming/brand/product content; routes to overlay — unchanged
   intentionally_not_updated:
@@ -334,13 +334,13 @@ direction_change_propagation:
       reason: >
         Existing precedent (spine binding DCP): per-spine artifacts route via
         the spine front door, which this lane updates; no repo-map row added.
-    - path: orca/product/spines/creator_signal/creator_signal_product_architecture_v0.md
+    - path: forseti/product/spines/creator_signal/creator_signal_product_architecture_v0.md
       reason: >
         Its Direction Update v0.1 remains the sequencing authority; this
         charter routes to it rather than editing it. Its older Vetting v0
         detail sections already carry the v0.1 supersession note.
   stale_language_search: >
-    rg -in "aphrodite" --glob "!docs/_inbox/**" --glob "!orca/product/spines/creator_signal/aphrodite_carveout_charter_v0.md" .
+    rg -in "aphrodite" --glob "!docs/_inbox/**" --glob "!forseti/product/spines/creator_signal/aphrodite_carveout_charter_v0.md" .
   stale_language_search_result: >
     Executed 2026-07-04 in the lane worktree with all three edits staged, before
     commit. Hits in exactly four files, all expected: the brand ADR (the naming
