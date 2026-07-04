@@ -363,6 +363,69 @@ def test_instagram_reels_creator_metric_seed_orders_capture_times_by_parsed_inst
     assert seed["metric_rollups"][0]["metric_rollups"]["average_views"]["value_or_none"] == 100
 
 
+def test_instagram_reels_metric_seed_dedupe_keeps_catchup_rank_for_identical_content(
+    tmp_path: Path,
+) -> None:
+    # Observed on the live lake (2026-07-05): one packet carried three distinct
+    # ULID derivations PLUS a rank-1 catch-up byte-identical to the newest one.
+    # Discovery's content dedupe must keep the CATCH-UP path as the representative
+    # of the identical pair -- else its supersession rank is lost before selection
+    # and the three ULIDs tie ambiguous instead of being superseded.
+    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    packet_id = "01KWBMNTESWZVSVD3YASDAXK0A"
+    newest_body = json.dumps(
+        _projection(
+            packet_id=packet_id,
+            rows=[
+                _profile_row("fixturecreator", 30, "2026-06-29T13:48:30Z", packet_id=packet_id),
+                _reel_row("fixturecreator", "ABC", "view_count", 100, "2026-06-29T13:48:30Z", packet_id=packet_id),
+                _reel_row("fixturecreator", "ABC", "like_count", 10, "2026-06-29T13:48:30Z", packet_id=packet_id),
+                _reel_row("fixturecreator", "ABC", "comment_count", 5, "2026-06-29T13:48:30Z", packet_id=packet_id),
+            ],
+        ),
+        sort_keys=True,
+    ).encode("utf-8")
+    for record_id, body in (
+        ("01_old_a.json", json.dumps(_projection(packet_id=packet_id, rows=[_profile_row("fixturecreator", 10, "2026-06-29T13:48:30Z", packet_id=packet_id)]), sort_keys=True).encode("utf-8")),
+        ("01_old_b.json", json.dumps(_projection(packet_id=packet_id, rows=[_profile_row("fixturecreator", 20, "2026-06-29T13:48:30Z", packet_id=packet_id)]), sort_keys=True).encode("utf-8")),
+        ("01_newest.json", newest_body),
+        ("zz_ig_reels_grid_projection_catchup_v0_twin.json", newest_body),
+    ):
+        root.append_record(
+            subtree="derived",
+            raw_anchor=packet_id,
+            lane=PROJECTION_IG_REELS_GRID_LANE,
+            record_id=record_id,
+            data=body,
+        )
+
+    paths = discover_instagram_reels_projection_paths_from_lake(root)
+    assert sum(1 for path in paths if path.name.startswith("zz_")) == 1
+    assert not any(path.name == "01_newest.json" for path in paths)
+
+    document = build_instagram_reels_creator_metric_seed_from_files(
+        projection_paths=paths,
+        account_ledger={
+            "platform_accounts": [
+                {
+                    "platform_account_id": "acct_ig_fixture_001",
+                    "platform": "instagram",
+                    "public_handle": "fixturecreator",
+                    "public_profile_url": "https://www.instagram.com/fixturecreator/",
+                    "handle_source_pointer": "fixture#/rows/0",
+                    "handle_observed_at": "2026-06-29T00:00:00Z",
+                }
+            ]
+        },
+        generated_at_utc="2026-06-29T14:00:00Z",
+    )
+    seed = document["instagram_reels_creator_metric_seed"]
+    assert seed["source_inputs"][0]["source_pointer"].endswith(
+        "zz_ig_reels_grid_projection_catchup_v0_twin.json"
+    )
+    assert seed["metric_rollups"][0]["metric_rollups"]["average_views"]["value_or_none"] == 100
+
+
 def test_instagram_reels_metric_seed_discovers_lake_projections_and_dedupes_exact_duplicates(
     tmp_path: Path,
 ) -> None:
