@@ -19,7 +19,7 @@ from capture_spine.creator_profile_current.materialize import (
 ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_OUTPUT = (
     ROOT
-    / "orca"
+    / "forseti"
     / "product"
     / "spines"
     / "capture"
@@ -31,7 +31,7 @@ DEFAULT_OUTPUT = (
 )
 DEFAULT_ACCOUNT_LEDGER = (
     ROOT
-    / "orca"
+    / "forseti"
     / "product"
     / "spines"
     / "capture"
@@ -45,7 +45,7 @@ DEFAULT_ACCOUNT_LEDGER = (
 # committed lake snapshots (each seed stays the no-drift value oracle).
 DEFAULT_YOUTUBE_SNAPSHOT = (
     ROOT
-    / "orca"
+    / "forseti"
     / "product"
     / "spines"
     / "capture"
@@ -57,7 +57,7 @@ DEFAULT_YOUTUBE_SNAPSHOT = (
 )
 DEFAULT_INSTAGRAM_SNAPSHOT = (
     ROOT
-    / "orca"
+    / "forseti"
     / "product"
     / "spines"
     / "capture"

@@ -8,7 +8,7 @@ free over cached mentions; source-agnostic (serves YouTube + IG).
 
 Carries NO engagement/resonance signal: ``ProductMention`` has none, and engagement
 interpretation is the Judgment-owned Engagement Logic Registry's domain
-(``orca/product/shared/engagement_registry/engagement_logic_registry_v0.md``) — whose
+(``forseti/product/shared/engagement_registry/engagement_logic_registry_v0.md``) — whose
 weighting method is owner-deferred. This fusion answers only "what did the creator say about
 this product," never demand / credibility / independence / Action Ceiling.
 

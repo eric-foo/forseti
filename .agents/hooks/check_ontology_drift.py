@@ -41,7 +41,7 @@ import sys
 import typing
 from pathlib import Path
 
-YAML_REL = "orca/product/spines/foundation/ontology/ontology.yaml"
+YAML_REL = "forseti/product/spines/foundation/ontology/ontology.yaml"
 HARNESS_REL = "orca-harness"
 EXPECTED_BINDINGS = ("CapturePacket", "EvidenceUnit", "Case")
 EXPECTED_REQUIRED_FIELDS = {

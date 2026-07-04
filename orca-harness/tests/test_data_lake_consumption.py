@@ -320,3 +320,64 @@ def test_iter_all_acks_walks_the_tree(tmp_path: Path) -> None:
 
     seen = {(anchor, namespace) for anchor, namespace, _ack in iter_all_acks(root)}
     assert seen == {(first, _NS), (second, "ecr_timing")}
+
+
+# --- shared reconcile: purge-phase concurrency isolation ------------------------
+
+
+def test_reconcile_purge_tolerates_concurrently_removed_entry(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # 2026-07-04 live race class: a concurrent writer removed/replaced an
+    # availability entry between glob and unlink. Absent is the purged state,
+    # so the reconcile stays clean and rebuilds every committed packet.
+    from data_lake.consumption import reconcile_availability_per_packet
+
+    root = DataLakeRoot.for_test(tmp_path / "lake")
+    pid = _commit_packet(root, tmp_path, "healthy")
+
+    original_unlink = Path.unlink
+
+    def racing_unlink(self, *args, **kwargs):  # noqa: ANN001
+        if self.suffix == ".json" and self.parent.name == "availability":
+            original_unlink(self)  # the concurrent writer wins the race...
+            raise FileNotFoundError(2, "The system cannot find the file specified")
+        return original_unlink(self, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "unlink", racing_unlink)
+    failures = reconcile_availability_per_packet(root)
+    monkeypatch.undo()
+
+    assert failures == []
+    assert root.read_availability(pid) is not None  # rebuilt after the purge
+
+
+def test_reconcile_purge_surfaces_locked_entry_per_packet(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # A live-writer lock (Windows) or store fault on ONE entry is a visible
+    # per-packet failure, never a whole-batch crash: the other committed
+    # packet still purges, rebuilds, and stays available.
+    from data_lake.consumption import reconcile_availability_per_packet
+
+    root = DataLakeRoot.for_test(tmp_path / "lake")
+    locked = _commit_packet(root, tmp_path, "locked")
+    healthy = _commit_packet(root, tmp_path, "healthy2")
+
+    original_unlink = Path.unlink
+
+    def locking_unlink(self, *args, **kwargs):  # noqa: ANN001
+        if self.name == f"{locked}.json" and self.parent.name == "availability":
+            raise PermissionError(13, "Access is denied")
+        return original_unlink(self, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "unlink", locking_unlink)
+    failures = reconcile_availability_per_packet(root)
+    monkeypatch.undo()
+
+    assert [(f["packet_id"], f["status"]) for f in failures] == [
+        (locked, "availability_reconcile_failed")
+    ]
+    assert "PermissionError" in failures[0]["error"]
+    # The healthy packet was never hostage to the locked one.
+    assert root.read_availability(healthy) is not None

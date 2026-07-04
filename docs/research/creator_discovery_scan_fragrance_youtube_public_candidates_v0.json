@@ -1,0 +1,137 @@
+{
+  "creator_registry_match_preflight_candidates": {
+    "schema_version": "creator_registry_match_preflight_candidates_v0",
+    "candidates": [
+      {
+        "candidate_id": "fragrance_youtube_public_001_the_fragrance_decant_boutique",
+        "platform": "youtube",
+        "handle_or_url": "TheFragranceDecantBoutique",
+        "public_handle_or_none": "TheFragranceDecantBoutique",
+        "public_profile_url_or_none": "https://www.youtube.com/@TheFragranceDecantBoutique",
+        "platform_account_id_or_none": null,
+        "profile_subject_id_or_none": null,
+        "platform_public_account_id_or_none": null,
+        "display_name_or_none": "The Fragrance Decant Boutique",
+        "source_url_or_none": "https://www.youtube.com/@TheFragranceDecantBoutique",
+        "intended_action": "new_capture"
+      },
+      {
+        "candidate_id": "fragrance_youtube_public_002_brooklyn_fragrance_lover",
+        "platform": "youtube",
+        "handle_or_url": "BrooklynFragranceLover",
+        "public_handle_or_none": "BrooklynFragranceLover",
+        "public_profile_url_or_none": "https://www.youtube.com/@BrooklynFragranceLover",
+        "platform_account_id_or_none": null,
+        "profile_subject_id_or_none": null,
+        "platform_public_account_id_or_none": null,
+        "display_name_or_none": "Brooklyn Fragrance Lover",
+        "source_url_or_none": "https://www.youtube.com/@BrooklynFragranceLover",
+        "intended_action": "new_capture"
+      },
+      {
+        "candidate_id": "fragrance_youtube_public_003_ac_smells_good",
+        "platform": "youtube",
+        "handle_or_url": "ACSmellsGood",
+        "public_handle_or_none": "ACSmellsGood",
+        "public_profile_url_or_none": "https://www.youtube.com/@ACSmellsGood",
+        "platform_account_id_or_none": null,
+        "profile_subject_id_or_none": null,
+        "platform_public_account_id_or_none": null,
+        "display_name_or_none": "AC Smells Good",
+        "source_url_or_none": "https://www.youtube.com/@ACSmellsGood",
+        "intended_action": "new_capture"
+      },
+      {
+        "candidate_id": "fragrance_youtube_public_004_robes08",
+        "platform": "youtube",
+        "handle_or_url": "robes08",
+        "public_handle_or_none": "robes08",
+        "public_profile_url_or_none": "https://www.youtube.com/@robes08",
+        "platform_account_id_or_none": null,
+        "profile_subject_id_or_none": null,
+        "platform_public_account_id_or_none": null,
+        "display_name_or_none": "robes08",
+        "source_url_or_none": "https://www.youtube.com/@robes08",
+        "intended_action": "new_capture"
+      },
+      {
+        "candidate_id": "fragrance_youtube_public_005_cee_chronicles_talking_scents",
+        "platform": "youtube",
+        "handle_or_url": "CeeChroniclesTalkingScents",
+        "public_handle_or_none": "CeeChroniclesTalkingScents",
+        "public_profile_url_or_none": "https://www.youtube.com/@CeeChroniclesTalkingScents",
+        "platform_account_id_or_none": null,
+        "profile_subject_id_or_none": null,
+        "platform_public_account_id_or_none": null,
+        "display_name_or_none": "CeeChronicles-Talking Scents",
+        "source_url_or_none": "https://www.youtube.com/@CeeChroniclesTalkingScents",
+        "intended_action": "new_capture"
+      },
+      {
+        "candidate_id": "fragrance_youtube_public_006_mr_smelly_1977",
+        "platform": "youtube",
+        "handle_or_url": "MrSmelly1977",
+        "public_handle_or_none": "MrSmelly1977",
+        "public_profile_url_or_none": "https://www.youtube.com/@MrSmelly1977",
+        "platform_account_id_or_none": null,
+        "profile_subject_id_or_none": null,
+        "platform_public_account_id_or_none": null,
+        "display_name_or_none": "MrSmelly1977",
+        "source_url_or_none": "https://www.youtube.com/@MrSmelly1977",
+        "intended_action": "new_capture"
+      },
+      {
+        "candidate_id": "fragrance_youtube_public_007_my_world_of_fragrance",
+        "platform": "youtube",
+        "handle_or_url": "MyWorldofFragrance",
+        "public_handle_or_none": "MyWorldofFragrance",
+        "public_profile_url_or_none": "https://www.youtube.com/@MyWorldofFragrance",
+        "platform_account_id_or_none": null,
+        "profile_subject_id_or_none": null,
+        "platform_public_account_id_or_none": null,
+        "display_name_or_none": "My World of Fragrance",
+        "source_url_or_none": "https://www.youtube.com/@MyWorldofFragrance",
+        "intended_action": "new_capture"
+      },
+      {
+        "candidate_id": "fragrance_youtube_public_008_delicious_delights",
+        "platform": "youtube",
+        "handle_or_url": "DeliciousDelights",
+        "public_handle_or_none": "DeliciousDelights",
+        "public_profile_url_or_none": "https://www.youtube.com/@DeliciousDelights",
+        "platform_account_id_or_none": null,
+        "profile_subject_id_or_none": null,
+        "platform_public_account_id_or_none": null,
+        "display_name_or_none": "Delicious Delights",
+        "source_url_or_none": "https://www.youtube.com/@DeliciousDelights",
+        "intended_action": "new_capture"
+      },
+      {
+        "candidate_id": "fragrance_youtube_public_009_mona_kattan",
+        "platform": "youtube",
+        "handle_or_url": "MonaKattan",
+        "public_handle_or_none": "MonaKattan",
+        "public_profile_url_or_none": "https://www.youtube.com/@MonaKattan",
+        "platform_account_id_or_none": null,
+        "profile_subject_id_or_none": null,
+        "platform_public_account_id_or_none": null,
+        "display_name_or_none": "Mona Kattan",
+        "source_url_or_none": "https://www.youtube.com/@MonaKattan",
+        "intended_action": "new_capture"
+      },
+      {
+        "candidate_id": "fragrance_youtube_public_010_the_niche_fragrance_collector",
+        "platform": "youtube",
+        "handle_or_url": "TheNicheFragranceCollector",
+        "public_handle_or_none": "TheNicheFragranceCollector",
+        "public_profile_url_or_none": "https://www.youtube.com/@TheNicheFragranceCollector",
+        "platform_account_id_or_none": null,
+        "profile_subject_id_or_none": null,
+        "platform_public_account_id_or_none": null,
+        "display_name_or_none": "The Niche Fragrance Collector",
+        "source_url_or_none": "https://www.youtube.com/@TheNicheFragranceCollector",
+        "intended_action": "new_capture"
+      }
+    ]
+  }
+}

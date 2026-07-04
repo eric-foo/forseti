@@ -134,6 +134,18 @@
     },
     {
       "a2_fork_impact": "none",
+      "call": "is_record_set_complete",
+      "count": 1,
+      "module": "runners/run_asr_transcript_catchup.py"
+    },
+    {
+      "a2_fork_impact": "none",
+      "call": "record_path",
+      "count": 2,
+      "module": "runners/run_asr_transcript_catchup.py"
+    },
+    {
+      "a2_fork_impact": "none",
       "call": "lane_dir",
       "count": 1,
       "module": "runners/run_capture_ecr_cleaning_smoke.py"
@@ -482,6 +494,15 @@
         },
         "kind": "direct_packet_writer",
         "runner": "run_source_capture_tiktok_batch_packet.py"
+      },
+      {
+        "a2_fork_impact": "manifest_shape",
+        "identity_binding": {
+          "reason": "live probe validates requested creator/profile/video URL shape and can admit only sanitized page-owned staging through the TikTok batch gate, but the resulting packet is still attributed to the requested creator/video without an end-to-end served author identity proof",
+          "status": "unbound"
+        },
+        "kind": "direct_packet_writer",
+        "runner": "run_source_capture_tiktok_live_batch_probe.py"
       },
       {
         "a2_fork_impact": "manifest_shape",

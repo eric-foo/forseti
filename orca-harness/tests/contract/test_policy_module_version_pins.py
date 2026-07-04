@@ -112,6 +112,18 @@ POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
         ("PARFUMO_PROJECTION_VERSION",),
         "cb2759c216c9f2561778eac0fa2cfeece23870914a4a5d57e3931eb0d4dc422e",
     ),
+    "source_capture/transcript/asr_packet.py": (
+        ("transcriber_policy envelope (run_asr_transcript_catchup) + record shape (weak-envelope residual: no schema version token)",),
+        "98739a399434db043e64da42368f127df0b5c80ab83c2809316e26131e53d7d2",
+    ),
+    "source_capture/transcript/audio_asr.py": (
+        ("transcriber_policy envelope defaults (model/compute/decode params are CLI-enveloped)",),
+        "1b74a9d9df8e111edee05f3350edca1de75f422cdb95715de310c43652a047d6",
+    ),
+    "source_capture/transcript/ig_reels_audio_packet.py": (
+        ("transcriber_policy envelope (run_asr_transcript_catchup) + record shape (weak-envelope residual: no schema version token)",),
+        "1748bc4e62e33c4cf4f6332b679e19bc591e7a71f4238e757ecf5ad2a5ac699f",
+    ),
 }
 
 
