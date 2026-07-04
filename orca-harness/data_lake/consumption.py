@@ -384,12 +384,39 @@ def reconcile_availability_per_packet(root) -> list[dict]:
     returned entries; callers making a no-work claim (a ``pending``-style
     check) must fail loud when any entry is returned — an empty pickup is a
     valid no-work claim only over a fully reconciled surface (seam contract).
+
+    The purge half carries the same per-packet isolation as the rebuild half:
+    an entry a concurrent writer already removed is benign (absent is the
+    purged state), while an entry that cannot be deleted (live-writer lock,
+    store I/O fault — the 2026-07-04 live cadence-vs-capture race class)
+    becomes a visible ``availability_reconcile_failed`` entry for that packet
+    instead of crashing the whole batch.
     """
     failures: list[dict] = []
     avail = root.path / "indexes" / "availability"
     if avail.is_dir():
         for entry_file in avail.glob("*.json"):
-            entry_file.unlink()
+            try:
+                entry_file.unlink()
+            except FileNotFoundError:
+                # A concurrent writer or reconciler already removed/replaced
+                # this entry between glob and unlink; absent is exactly the
+                # state the purge wants — benign, continue.
+                continue
+            except OSError as exc:
+                # A live capture writer holds the entry open (Windows lock)
+                # or the store hiccuped mid-purge: the clean-slate claim
+                # fails for THIS packet only — a visible per-packet failure,
+                # never a whole-batch crash (same F-ECR-001 isolation as the
+                # rebuild half below). Callers making a no-work claim fail
+                # loud on it; the rebuild still regenerates healthy entries.
+                failures.append(
+                    {
+                        "packet_id": entry_file.stem,
+                        "status": "availability_reconcile_failed",
+                        "error": f"{type(exc).__name__}: {exc}"[:200],
+                    }
+                )
     avail.mkdir(parents=True, exist_ok=True)
 
     raw_dir = root.path / "raw"
