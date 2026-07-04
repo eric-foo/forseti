@@ -106,6 +106,11 @@ def _packet_obligation() -> dict:
     return {
         "obligation_schema": 1,
         "consumer": _SEAM_CONSUMER,
+        # Surface-gate policy (F-IGRC-002 convention): the gate decides derive vs
+        # visible-unsupported, so reclassifying the surface must re-fingerprint
+        # and re-surface previously acked packets.
+        "source_family": _SOURCE_FAMILY,
+        "in_scope_surface": _IN_SCOPE_SURFACE,
         "coverage_method": FRAGRANCE_REVIEW_COVERAGE_METHOD,
         "coverage_version": FRAGRANCE_REVIEW_COVERAGE_VERSION,
         "coverage_certification": FRAGRANCE_REVIEW_COVERAGE_CERTIFICATION,

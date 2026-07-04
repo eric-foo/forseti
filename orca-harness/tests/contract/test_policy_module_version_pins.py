@@ -104,9 +104,25 @@ POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
         ("FRAGRANTICA_PROJECTION_VERSION",),
         "141df55675bb97ff5e2efabab9789dc2ce4b2a934c15a6feabf4bf3ba9f7f04f",
     ),
+    "source_capture/ig_reels_grid_projection.py": (
+        ("IG_REELS_PROJECTION_VERSION",),
+        "5922a5f8e04cc7a50d45e2460572f3a977bcc871a30f9f465601c7bc864e3839",
+    ),
     "source_capture/parfumo_projection.py": (
         ("PARFUMO_PROJECTION_VERSION",),
         "cb2759c216c9f2561778eac0fa2cfeece23870914a4a5d57e3931eb0d4dc422e",
+    ),
+    "source_capture/transcript/asr_packet.py": (
+        ("transcriber_policy envelope (run_asr_transcript_catchup) + record shape (weak-envelope residual: no schema version token)",),
+        "98739a399434db043e64da42368f127df0b5c80ab83c2809316e26131e53d7d2",
+    ),
+    "source_capture/transcript/audio_asr.py": (
+        ("transcriber_policy envelope defaults (model/compute/decode params are CLI-enveloped)",),
+        "1b74a9d9df8e111edee05f3350edca1de75f422cdb95715de310c43652a047d6",
+    ),
+    "source_capture/transcript/ig_reels_audio_packet.py": (
+        ("transcriber_policy envelope (run_asr_transcript_catchup) + record shape (weak-envelope residual: no schema version token)",),
+        "12699b6ab91575a536d43221720c5357121f9bf6c0455212fcf828f4877f1a8e",
     ),
 }
 

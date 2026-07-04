@@ -299,6 +299,24 @@ def test_missing_capture_time_is_a_loud_derive_failure(tmp_path: Path) -> None:
     assert _acks(root, pid) == []
 
 
+def test_surface_gate_policy_change_re_surfaces_previous_ack(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # F-IGRC-002 convention: the surface gate is fingerprinted policy — moving the
+    # in-scope surface must re-surface previously derived-and-acked packets as
+    # visible unsupported_surface instead of leaving the old ack trusted.
+    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    pid = _commit_packet(root)
+    assert [r["status"] for r in catchup.run_catchup(data_root=root)] == ["derived"]
+
+    monkeypatch.setattr(catchup, "_IN_SCOPE_SURFACE", "relocated_widget_review_surface")
+    second = catchup.run_catchup(data_root=root)
+
+    assert [r["status"] for r in second] == ["unsupported_surface"]
+    assert second[0]["source_surface"] == "rendered_widget_review"
+    assert len(_acks(root, pid)) == 1
+
+
 def test_cli_requires_exactly_one_mode() -> None:
     with pytest.raises(SystemExit) as excinfo:
         catchup.main([])

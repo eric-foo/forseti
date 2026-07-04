@@ -46,7 +46,7 @@ word-match rename.
 
 ## Execution Shape
 
-- Moved 298 tracked product-tree paths from `orca/product/**` to
+- Moved 299 tracked product-tree paths from `orca/product/**` to
   `forseti/product/**` according to
   `docs/migration/forseti_product_root_migration_v0/moves_manifest.csv`.
 - Added a generated moved-path index with a root-prefix row plus file-level rows.

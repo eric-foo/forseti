@@ -21,7 +21,7 @@ stale_if:
 
 ## What This Applies
 
-298 tracked paths move from `orca/product/` to `forseti/product/`. The
+299 tracked paths move from `orca/product/` to `forseti/product/`. The
 move is a governed rename, not a semantic deletion. Historical prompts, reviews,
 receipts, and old migration records are not word-rewritten; they resolve through
 `moved_paths_index.md`.
