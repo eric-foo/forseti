@@ -1792,6 +1792,104 @@ def test_live_probe_challenge_close_followthrough_stops_if_close_not_accepted(
     ] == [TIKTOK_CHALLENGE_CLOSE_FOLLOWTHROUGH_POINTER_ACTION_NAME]
 
 
+def test_live_probe_close_not_accepted_reports_handoff_prompt_route_when_enabled(
+    tmp_path: Path,
+) -> None:
+    auth_root = _auth_state(tmp_path)
+    followthrough_close_receipt = _pointer_action_receipt(
+        action_name=TIKTOK_CHALLENGE_CLOSE_FOLLOWTHROUGH_POINTER_ACTION_NAME,
+        wait_ms=2000,
+        selection_strategy="center_modal_visual_x",
+        page_text_gate_matched=True,
+        page_text_matched_marker="drag the slider",
+    )
+    followthrough_close_receipt.update(
+        {
+            "target_kind": "visual_x",
+            "post_click_absence_checked": True,
+            "post_click_absence_marker_count": 4,
+            "post_click_absence_verified": True,
+            "post_click_visual_check_attempted": True,
+            "post_click_visual_target_found": False,
+            "post_click_visual_target_absent": False,
+            "post_click_visual_candidate_count": 4,
+        }
+    )
+    pointer_sequence = [
+        _benign_overlay_action_receipt(),
+        followthrough_close_receipt,
+        *_pointer_action_sequence_receipt(),
+    ]
+    handoff_attempt = {
+        "action_name": "human_challenge_handoff_v0",
+        "action_mode": "source_access_intervention",
+        "action_taken": True,
+        "captcha_solving_by_agent": False,
+        "prompted": True,
+        "prompt_surface": "test_prompt",
+        "matched_marker": "drag the slider",
+        "cleared": False,
+    }
+    engine = _FakeObservationEngine(
+        outcomes=[
+            BrowserPageObservationSuccess(
+                requested_url="https://www.tiktok.com/@funmi/video/7390000000000000001",
+                final_url="https://www.tiktok.com/@funmi/video/7390000000000000001",
+                title="TikTok",
+                visible_text="video loaded",
+                dom_observation={
+                    "hydration_json_text": json.dumps(_hydration("7390000000000000001"))
+                },
+                responses=[_comment_response(video_id="7390000000000000001")],
+                metadata={
+                    "post_load_pointer_action": pointer_sequence[-1],
+                    "post_load_pointer_actions": pointer_sequence,
+                    "human_challenge_handoff_attempts": [handoff_attempt],
+                },
+                warning_notes=[],
+                limitation_notes=[],
+            )
+        ]
+    )
+
+    paths = write_tiktok_live_batch_probe_outputs(
+        creator_handle="funmi",
+        creator_profile_url="https://www.tiktok.com/@funmi",
+        video_urls=["https://www.tiktok.com/@funmi/video/7390000000000000001"],
+        state_label="test-session",
+        session_mode=AuthenticatedSessionMode.FREE_ACCOUNT_CREATED,
+        auth_state_root=auth_root,
+        output_dir=tmp_path / "out",
+        cadence_min_gap_seconds=0,
+        cadence_max_gap_seconds=0,
+        random_seed=1,
+        allow_challenge_close_followthrough=True,
+        human_challenge_handoff=True,
+        engine=engine,
+        sleep_fn=lambda _seconds: None,
+    )
+
+    cadence = json.loads(paths.cadence_result_json_path.read_text(encoding="utf-8"))
+    assert cadence["completed_count"] == 0
+    failure = cadence["failures"][0]
+    assert failure["reason"] == TIKTOK_CHALLENGE_X_CLOSE_NOT_ACCEPTED_REASON
+    triage = failure["blocker_triage"]
+    assert triage["challenge_close_accepted"] is False
+    assert triage["owner_attention_required"] is True
+    assert triage["manual_challenge_attention_required"] is True
+    assert (
+        triage["owner_attention_reason"]
+        == TIKTOK_MANUAL_CHALLENGE_ATTENTION_REQUIRED_REASON
+    )
+    # Handoff enabled and attempted must route to the prompt path, not the
+    # fail-closed-no-handoff path, while still refusing to count as clean capture.
+    assert triage["owner_attention_route"] == "harness_human_challenge_handoff_prompt"
+    assert triage["human_challenge_handoff_enabled"] is True
+    assert triage["human_challenge_handoff_attempted"] is True
+    assert triage["agent_may_solve_challenge"] is False
+    assert triage["owner_attention_counts_as_clean_capture"] is False
+
+
 def test_live_probe_failed_close_receipt_surfaces_center_modal_zone_candidate_count(
     tmp_path: Path,
 ) -> None:
