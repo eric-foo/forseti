@@ -353,8 +353,8 @@ fails open. Reinstall = re-add the `SessionStart` entry, then restart the sessio
 checks future CSB-first scanning artifacts for minimum reviewable receipt shape:
 source context, caps, broad-scout accounting, CSB-row accountability, exact-query
 accounting, venue/hidden-venue accounting, observations, negatives/access notes,
-capture-request accounting, candidate closeout, and obvious recency/Capture
-overclaim leakage. CI runs `--diff origin/main --strict` forward-only over changed
+capture-request accounting including the Creator Registry preflight block,
+candidate closeout, and obvious recency/Capture overclaim leakage. CI runs `--diff origin/main --strict` forward-only over changed
 `docs/research/` artifacts that look like CSB-first scan outputs; explicit paths
 remain available when producing or reviewing a CSB-first scan artifact. It is not
 wired as an automatic PostToolUse hook. Fixtures live under

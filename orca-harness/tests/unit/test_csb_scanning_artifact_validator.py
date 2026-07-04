@@ -37,6 +37,12 @@ def _code_list(text: str) -> list[str]:
     return [finding.code for finding in validator.validate_text(text)]
 
 
+def _replace_creator_registry_preflight(text: str, replacement: str) -> str:
+    old = "creator_registry_match_preflight:\n  required_when: not_applicable\n"
+    assert old in text
+    return text.replace(old, replacement, 1)
+
+
 def test_valid_csb_first_scan_artifact_passes() -> None:
     assert validator.validate_text(_valid_text()) == []
 
@@ -374,6 +380,112 @@ def test_capture_request_url_entries_must_be_structured() -> None:
 
 def test_capture_request_not_requested_boundaries_required() -> None:
     assert "missing_capture_request_not_requested_boundaries" in _codes(_valid_text().replace("  - route expansion\n", "", 1))
+
+
+def test_capture_request_requires_creator_registry_preflight_block() -> None:
+    text = _replace_creator_registry_preflight(_valid_text(), "")
+
+    assert "missing_capture_request_fields" in _codes(text)
+
+
+def test_not_applicable_creator_registry_preflight_passes_for_non_social_capture() -> None:
+    codes = _codes(_valid_text())
+
+    assert "missing_creator_registry_match_preflight_fields" not in codes
+    assert "creator_registry_preflight_does_not_clear_new_capture" not in codes
+
+
+def test_not_applicable_creator_registry_preflight_rejects_new_capture_clearance() -> None:
+    text = _replace_creator_registry_preflight(
+        _valid_text(),
+        "creator_registry_match_preflight:\n"
+        "  required_when: not_applicable\n"
+        "  intended_action: new_capture\n"
+        "  can_start_new_capture: true\n",
+    )
+
+    assert "contradictory_creator_registry_match_preflight_not_applicable" in _codes(text)
+
+
+def test_not_applicable_creator_registry_preflight_rejects_can_start_alone() -> None:
+    text = _replace_creator_registry_preflight(
+        _valid_text(),
+        "creator_registry_match_preflight:\n"
+        "  required_when: not_applicable\n"
+        "  intended_action: classify\n"
+        "  can_start_new_capture: true\n",
+    )
+
+    assert "contradictory_creator_registry_match_preflight_not_applicable" in _codes(text)
+
+
+def test_not_applicable_creator_registry_preflight_rejects_clearance_shaped_decision_fields() -> None:
+    text = _replace_creator_registry_preflight(
+        _valid_text(),
+        "creator_registry_match_preflight:\n"
+        "  required_when: not_applicable\n"
+        "  decision: new_candidate\n"
+        "  action_status: allowed\n",
+    )
+
+    assert "contradictory_creator_registry_match_preflight_not_applicable" in _codes(text)
+
+
+def test_not_applicable_creator_registry_preflight_rejects_malformed_truthy_can_start() -> None:
+    text = _replace_creator_registry_preflight(
+        _valid_text(),
+        "creator_registry_match_preflight:\n"
+        "  required_when: not_applicable\n"
+        "  can_start_new_capture: 1\n",
+    )
+
+    assert "contradictory_creator_registry_match_preflight_not_applicable" in _codes(text)
+
+
+def test_new_social_creator_capture_preflight_can_clear_capture_request() -> None:
+    text = _replace_creator_registry_preflight(
+        _valid_text(),
+        "creator_registry_match_preflight:\n"
+        "  required_when: new_social_creator_account_capture\n"
+        "  receipt_path: docs/research/receipts/creator_registry_match_preflight_receipt.json\n"
+        "  intended_action: new_capture\n"
+        "  decision: new_candidate\n"
+        "  action_status: allowed\n"
+        "  can_start_new_capture: true\n",
+    )
+    codes = _codes(text)
+
+    assert "missing_creator_registry_match_preflight_fields" not in codes
+    assert "creator_registry_preflight_does_not_clear_new_capture" not in codes
+
+
+def test_new_social_creator_capture_preflight_requires_receipt_fields() -> None:
+    text = _replace_creator_registry_preflight(
+        _valid_text(),
+        "creator_registry_match_preflight:\n"
+        "  required_when: new_social_creator_account_capture\n"
+        "  intended_action: new_capture\n"
+        "  decision: new_candidate\n"
+        "  action_status: allowed\n"
+        "  can_start_new_capture: true\n",
+    )
+
+    assert "missing_creator_registry_match_preflight_fields" in _codes(text)
+
+
+def test_new_social_creator_capture_preflight_must_authorize_new_capture() -> None:
+    text = _replace_creator_registry_preflight(
+        _valid_text(),
+        "creator_registry_match_preflight:\n"
+        "  required_when: new_social_creator_account_capture\n"
+        "  receipt_path: docs/research/receipts/creator_registry_match_preflight_receipt.json\n"
+        "  intended_action: classify\n"
+        "  decision: new_candidate\n"
+        "  action_status: allowed\n"
+        "  can_start_new_capture: false\n",
+    )
+
+    assert "creator_registry_preflight_does_not_clear_new_capture" in _codes(text)
 
 
 @pytest.mark.parametrize("state", ["cited_current", "unknown", "blocked_outside_current_binding", "not_applicable"])
