@@ -15,6 +15,7 @@ from capture_spine.youtube_creator_observation import (
     validate_youtube_creator_observation_ledger,
     validate_youtube_creator_observation_ledger_against_live_lake,
 )
+from data_lake.root import LEGACY_ROOT_MARKER_FILENAME, ROOT_MARKER_FILENAME
 
 
 LEDGER_PATH = (
@@ -35,6 +36,22 @@ SOURCE_CREATOR_LEDGER_PATH = (
     / "review-inputs"
     / "youtube_shorts_fragrance_creator_ledger_v0.json"
 )
+FORSETI_ARCHIVED_LAKE_TEST_ROOT_ENV = "FORSETI_ARCHIVED_LAKE_TEST_ROOT"
+LEGACY_ORCA_ARCHIVED_LAKE_TEST_ROOT_ENV = "ORCA_ARCHIVED_LAKE_TEST_ROOT"
+
+
+def _archived_lake_test_root() -> str | None:
+    return os.environ.get(FORSETI_ARCHIVED_LAKE_TEST_ROOT_ENV) or os.environ.get(
+        LEGACY_ORCA_ARCHIVED_LAKE_TEST_ROOT_ENV
+    )
+
+
+def test_archived_lake_test_root_env_prefers_forseti(monkeypatch) -> None:
+    monkeypatch.setenv(FORSETI_ARCHIVED_LAKE_TEST_ROOT_ENV, "forseti-archived-root")
+    monkeypatch.setenv(LEGACY_ORCA_ARCHIVED_LAKE_TEST_ROOT_ENV, "orca-archived-root")
+    assert _archived_lake_test_root() == "forseti-archived-root"
+    monkeypatch.delenv(FORSETI_ARCHIVED_LAKE_TEST_ROOT_ENV)
+    assert _archived_lake_test_root() == "orca-archived-root"
 
 
 def _ledger() -> dict:
@@ -114,16 +131,20 @@ def test_youtube_shorts_fragrance_creator_observation_ledger_rebuilds_from_sourc
 
 
 def test_youtube_shorts_fragrance_creator_observation_ledger_archived_lake_refs_when_available() -> None:
-    # Explicit operator opt-in only; ambient ORCA_DATA_ROOT must never pull a
-    # production lake into the suite (it is deleted per-test in conftest).
-    # This ledger is a static historical fixture bound to the RETIRED lake root
-    # (orca-canonical / v0), preserved as an archive outside the live lake, so it
-    # takes its own opt-in variable: pointing it at the live (v4.1+) lake fails
-    # closed at live_lake_root_uuid_mismatch by design. See
+    # Explicit operator opt-in only; ambient FORSETI_DATA_ROOT/ORCA_DATA_ROOT
+    # must never pull a production lake into the suite (deleted per-test in
+    # conftest). This ledger is a static historical fixture bound to the RETIRED
+    # lake root (orca-canonical / v0), preserved as an archive outside the live
+    # lake, so it takes its own opt-in variable: pointing it at the live (v4.1+)
+    # lake fails closed at live_lake_root_uuid_mismatch by design. See
     # docs/decisions/youtube_creator_observation_ledger_lake_identity_drift_owner_decision_packet_v0.md.
-    data_root = os.environ.get("ORCA_ARCHIVED_LAKE_TEST_ROOT")
+    data_root = _archived_lake_test_root()
     if not data_root:
-        pytest.skip("ORCA_ARCHIVED_LAKE_TEST_ROOT is not set; archived-evidence reconciliation is an explicit operator opt-in")
+        pytest.skip(
+            "FORSETI_ARCHIVED_LAKE_TEST_ROOT is not set; legacy "
+            "ORCA_ARCHIVED_LAKE_TEST_ROOT is also accepted for this explicit "
+            "operator opt-in"
+        )
 
     validate_youtube_creator_observation_ledger_against_live_lake(_ledger(), data_root)
 
@@ -174,11 +195,17 @@ def _single_ref_live_lake_ledger() -> dict:
     return ledger
 
 
-def _write_live_lake_ref(root: Path, ledger: dict, *, platform_video_id: str | None = None) -> None:
+def _write_live_lake_ref(
+    root: Path,
+    ledger: dict,
+    *,
+    platform_video_id: str | None = None,
+    marker_name: str = ROOT_MARKER_FILENAME,
+) -> None:
     wrapper = _ledger_wrapper(ledger)
     root_uuid = next(item["root_uuid"] for item in wrapper["source_inputs"] if "root_uuid" in item)
     ref = wrapper["creator_observations"][0]["data_lake_packet_refs"][0]
-    (root / ".orca-data-root").write_text(json.dumps({"root_uuid": root_uuid}), encoding="utf-8")
+    (root / marker_name).write_text(json.dumps({"root_uuid": root_uuid}), encoding="utf-8")
     packet_dir = root / ref["packet_relpath"]
     packet_dir.mkdir(parents=True)
     (packet_dir / "manifest.json").write_text(
@@ -374,6 +401,12 @@ def test_youtube_creator_observation_ledger_live_lake_mismatch_uses_live_error_c
         validate_youtube_creator_observation_ledger_against_live_lake(ledger, tmp_path)
     assert exc_info.value.code == "live_lake_metadata_mismatch"
 
+
+def test_youtube_creator_observation_ledger_accepts_legacy_orca_root_marker(tmp_path: Path) -> None:
+    ledger = _single_ref_live_lake_ledger()
+    _write_live_lake_ref(tmp_path, ledger, marker_name=LEGACY_ROOT_MARKER_FILENAME)
+
+    validate_youtube_creator_observation_ledger_against_live_lake(ledger, tmp_path)
 
 # -- operator_video_retirements (additive-optional dead-video retirement block) --
 

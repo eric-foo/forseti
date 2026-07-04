@@ -68,6 +68,22 @@ IG_HANDLE = "hyram"
 LATE = "2026-06-30T00:02:00Z"
 LATER = "2026-07-01T00:02:00Z"
 EARLY = "2026-06-20T00:02:00Z"
+FORSETI_LIVE_LAKE_TEST_ROOT_ENV = "FORSETI_LIVE_LAKE_TEST_ROOT"
+LEGACY_ORCA_LIVE_LAKE_TEST_ROOT_ENV = "ORCA_LIVE_LAKE_TEST_ROOT"
+
+
+def _live_lake_test_root() -> str | None:
+    return os.environ.get(FORSETI_LIVE_LAKE_TEST_ROOT_ENV) or os.environ.get(
+        LEGACY_ORCA_LIVE_LAKE_TEST_ROOT_ENV
+    )
+
+
+def test_live_lake_test_root_env_prefers_forseti(monkeypatch) -> None:
+    monkeypatch.setenv(FORSETI_LIVE_LAKE_TEST_ROOT_ENV, "forseti-live-root")
+    monkeypatch.setenv(LEGACY_ORCA_LIVE_LAKE_TEST_ROOT_ENV, "orca-live-root")
+    assert _live_lake_test_root() == "forseti-live-root"
+    monkeypatch.delenv(FORSETI_LIVE_LAKE_TEST_ROOT_ENV)
+    assert _live_lake_test_root() == "orca-live-root"
 
 
 def _account_of(record: dict) -> str:
@@ -459,11 +475,14 @@ def test_runner_blocks_when_committed_manifest_invalid(tmp_path: Path) -> None:
 
 def test_runner_main_against_live_lake_when_available(monkeypatch) -> None:
     # main()/resolve is the only real-lake-bound path; explicit operator opt-in
-    # only (ambient ORCA_DATA_ROOT is deleted per-test in conftest).
-    live_root = os.environ.get("ORCA_LIVE_LAKE_TEST_ROOT")
+    # only (ambient FORSETI_DATA_ROOT/ORCA_DATA_ROOT are deleted per-test in conftest).
+    live_root = _live_lake_test_root()
     if not live_root:
-        pytest.skip("ORCA_LIVE_LAKE_TEST_ROOT is not set; the snapshot runner is an explicit opt-in live-lake check")
-    monkeypatch.setenv("ORCA_DATA_ROOT", live_root)
+        pytest.skip(
+            "FORSETI_LIVE_LAKE_TEST_ROOT is not set; legacy ORCA_LIVE_LAKE_TEST_ROOT "
+            "is also accepted for this explicit opt-in live-lake check"
+        )
+    monkeypatch.setenv("FORSETI_DATA_ROOT", live_root)
     try:
         code = run_snapshot_main(["--platform", "instagram"])  # dry-run
     except SystemExit as exc:
@@ -692,11 +711,14 @@ def test_live_lake_freshness_gate_fires_when_lake_advances(tmp_path: Path) -> No
 
 def test_live_lake_freshness_gate_main_against_live_lake_when_available(monkeypatch) -> None:
     # main()/resolve is the only real-lake-bound path; explicit operator opt-in
-    # only (ambient ORCA_DATA_ROOT is deleted per-test in conftest).
-    live_root = os.environ.get("ORCA_LIVE_LAKE_TEST_ROOT")
+    # only (ambient FORSETI_DATA_ROOT/ORCA_DATA_ROOT are deleted per-test in conftest).
+    live_root = _live_lake_test_root()
     if not live_root:
-        pytest.skip("ORCA_LIVE_LAKE_TEST_ROOT is not set; the freshness gate is an explicit opt-in live-lake check")
-    monkeypatch.setenv("ORCA_DATA_ROOT", live_root)
+        pytest.skip(
+            "FORSETI_LIVE_LAKE_TEST_ROOT is not set; legacy ORCA_LIVE_LAKE_TEST_ROOT "
+            "is also accepted for this explicit opt-in live-lake check"
+        )
+    monkeypatch.setenv("FORSETI_DATA_ROOT", live_root)
     try:
         code = run_freshness_gate_main(["--platform", "instagram"])
     except SystemExit as exc:
