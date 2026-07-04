@@ -106,7 +106,7 @@ POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
     ),
     "source_capture/ig_reels_grid_projection.py": (
         ("IG_REELS_PROJECTION_VERSION",),
-        "5922a5f8e04cc7a50d45e2460572f3a977bcc871a30f9f465601c7bc864e3839",
+        "6ad096feefc6e992c56135f87f6f343da9b3d05d895fd30c0435b3862ade1729",
     ),
     "source_capture/parfumo_projection.py": (
         ("PARFUMO_PROJECTION_VERSION",),

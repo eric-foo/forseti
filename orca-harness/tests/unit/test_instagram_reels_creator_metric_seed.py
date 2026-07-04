@@ -165,7 +165,7 @@ def test_instagram_reels_creator_metric_seed_rollups_recompute_from_observations
         assert any("selection can bias view averages" in item for item in rollup["limitations"])
 
 
-def test_instagram_reels_creator_metric_seed_builder_dedupes_projection_by_observed_rows(tmp_path: Path) -> None:
+def test_instagram_reels_creator_metric_seed_builder_selects_newest_capture_per_username(tmp_path: Path) -> None:
     account_ledger = {
         "platform_accounts": [
             {
@@ -178,25 +178,34 @@ def test_instagram_reels_creator_metric_seed_builder_dedupes_projection_by_obser
             }
         ]
     }
-    weak = tmp_path / "weak.json"
-    strong = tmp_path / "strong.json"
-    weak.write_text(json.dumps(_projection(rows=[_profile_row("fixturecreator", 10, "2026-06-29T00:00:00Z")])) , encoding="utf-8")
-    strong.write_text(
+    older = tmp_path / "older.json"
+    newer = tmp_path / "newer.json"
+    older.write_text(
         json.dumps(
             _projection(
+                packet_id="packet_older",
+                rows=[_profile_row("fixturecreator", 10, "2026-06-29T00:00:00Z", packet_id="packet_older")],
+            )
+        ),
+        encoding="utf-8",
+    )
+    newer.write_text(
+        json.dumps(
+            _projection(
+                packet_id="packet_newer",
                 rows=[
-                    _profile_row("fixturecreator", 20, "2026-06-29T00:01:00Z"),
-                    _reel_row("fixturecreator", "ABC", "view_count", 100, "2026-06-29T00:01:00Z"),
-                    _reel_row("fixturecreator", "ABC", "like_count", 10, "2026-06-29T00:01:00Z"),
-                    _reel_row("fixturecreator", "ABC", "comment_count", 5, "2026-06-29T00:01:00Z"),
-                ]
+                    _profile_row("fixturecreator", 20, "2026-06-29T00:01:00Z", packet_id="packet_newer"),
+                    _reel_row("fixturecreator", "ABC", "view_count", 100, "2026-06-29T00:01:00Z", packet_id="packet_newer"),
+                    _reel_row("fixturecreator", "ABC", "like_count", 10, "2026-06-29T00:01:00Z", packet_id="packet_newer"),
+                    _reel_row("fixturecreator", "ABC", "comment_count", 5, "2026-06-29T00:01:00Z", packet_id="packet_newer"),
+                ],
             )
         ),
         encoding="utf-8",
     )
 
     document = build_instagram_reels_creator_metric_seed_from_files(
-        projection_paths=[weak, strong],
+        projection_paths=[older, newer],
         account_ledger=account_ledger,
         generated_at_utc="2026-06-29T00:02:00Z",
     )
@@ -204,7 +213,9 @@ def test_instagram_reels_creator_metric_seed_builder_dedupes_projection_by_obser
 
     assert seed["counts"]["source_projection_files_supplied"] == 2
     assert seed["counts"]["source_projection_files_selected"] == 1
-    assert seed["source_inputs"][0]["source_pointer"] == str(strong)
+    assert seed["source_inputs"][0]["source_pointer"] == str(newer)
+    # The newest capture also carries the most observed rows here, so no residual.
+    assert seed["selection_residuals"] == []
     rollup = seed["metric_rollups"][0]
     assert rollup["observation_count"] == 3
     assert rollup["metric_rollups"]["average_views"]["value_or_none"] == 100
@@ -213,11 +224,83 @@ def test_instagram_reels_creator_metric_seed_builder_dedupes_projection_by_obser
     assert rollup["metric_rollups"]["engagement_rate"]["value_or_none"] == 0.15
 
 
+def test_instagram_reels_creator_metric_seed_newest_capture_with_fewer_rows_wins_and_surfaces_residual(
+    tmp_path: Path,
+) -> None:
+    # The F-IGRC-001 fix contract: recency decides -- a fuller-but-staler projection
+    # must NOT outrank a newer one -- and the bypassed fuller sibling is surfaced as
+    # a named residual instead of silently absorbed.
+    account_ledger = {
+        "platform_accounts": [
+            {
+                "platform_account_id": "acct_ig_fixture_001",
+                "platform": "instagram",
+                "public_handle": "fixturecreator",
+                "public_profile_url": "https://www.instagram.com/fixturecreator/",
+                "handle_source_pointer": "fixture#/rows/0",
+                "handle_observed_at": "2026-06-29T00:00:00Z",
+            }
+        ]
+    }
+    fuller_older = tmp_path / "fuller_older.json"
+    thinner_newer = tmp_path / "thinner_newer.json"
+    fuller_older.write_text(
+        json.dumps(
+            _projection(
+                packet_id="packet_older",
+                rows=[
+                    _profile_row("fixturecreator", 10, "2026-06-29T00:00:00Z", packet_id="packet_older"),
+                    _reel_row("fixturecreator", "ABC", "view_count", 90, "2026-06-29T00:00:00Z", packet_id="packet_older"),
+                    _reel_row("fixturecreator", "ABC", "like_count", 9, "2026-06-29T00:00:00Z", packet_id="packet_older"),
+                    _reel_row("fixturecreator", "ABC", "comment_count", 4, "2026-06-29T00:00:00Z", packet_id="packet_older"),
+                    _reel_row("fixturecreator", "DEF", "view_count", 80, "2026-06-29T00:00:00Z", packet_id="packet_older"),
+                    _reel_row("fixturecreator", "DEF", "like_count", 8, "2026-06-29T00:00:00Z", packet_id="packet_older"),
+                    _reel_row("fixturecreator", "DEF", "comment_count", 3, "2026-06-29T00:00:00Z", packet_id="packet_older"),
+                ],
+            )
+        ),
+        encoding="utf-8",
+    )
+    thinner_newer.write_text(
+        json.dumps(
+            _projection(
+                packet_id="packet_newer",
+                rows=[
+                    _profile_row("fixturecreator", 20, "2026-06-29T00:05:00Z", packet_id="packet_newer"),
+                    _reel_row("fixturecreator", "ABC", "view_count", 100, "2026-06-29T00:05:00Z", packet_id="packet_newer"),
+                    _reel_row("fixturecreator", "ABC", "like_count", 10, "2026-06-29T00:05:00Z", packet_id="packet_newer"),
+                    _reel_row("fixturecreator", "ABC", "comment_count", 5, "2026-06-29T00:05:00Z", packet_id="packet_newer"),
+                ],
+            )
+        ),
+        encoding="utf-8",
+    )
+
+    document = build_instagram_reels_creator_metric_seed_from_files(
+        projection_paths=[fuller_older, thinner_newer],
+        account_ledger=account_ledger,
+        generated_at_utc="2026-06-29T00:06:00Z",
+    )
+    seed = document["instagram_reels_creator_metric_seed"]
+
+    assert seed["source_inputs"][0]["source_pointer"] == str(thinner_newer)
+    (residual,) = seed["selection_residuals"]
+    assert residual == {
+        "username": "fixturecreator",
+        "reason": "newer_capture_fewer_observed_rows",
+        "selected_projection": str(thinner_newer),
+        "selected_observed_count": 4,
+        "bypassed_projection": str(fuller_older),
+        "bypassed_observed_count": 7,
+    }
+
+
 def test_instagram_reels_metric_seed_discovers_lake_projections_and_dedupes_exact_duplicates(
     tmp_path: Path,
 ) -> None:
     root = DataLakeRoot.for_test(tmp_path / "orca-data")
     packet_id = "01KWBMNTESWZVSVD3YASDAXK0A"
+    strong_packet_id = "01KWBMNTESWZVSVD3YASDAXK0B"
     account_ledger = {
         "platform_accounts": [
             {
@@ -239,12 +322,12 @@ def test_instagram_reels_metric_seed_discovers_lake_projections_and_dedupes_exac
     ).encode("utf-8")
     strong_body = json.dumps(
         _projection(
-            packet_id=packet_id,
+            packet_id=strong_packet_id,
             rows=[
-                _profile_row("fixturecreator", 20, "2026-06-29T00:01:00Z", packet_id=packet_id),
-                _reel_row("fixturecreator", "ABC", "view_count", 100, "2026-06-29T00:01:00Z", packet_id=packet_id),
-                _reel_row("fixturecreator", "ABC", "like_count", 10, "2026-06-29T00:01:00Z", packet_id=packet_id),
-                _reel_row("fixturecreator", "ABC", "comment_count", 5, "2026-06-29T00:01:00Z", packet_id=packet_id),
+                _profile_row("fixturecreator", 20, "2026-06-29T00:01:00Z", packet_id=strong_packet_id),
+                _reel_row("fixturecreator", "ABC", "view_count", 100, "2026-06-29T00:01:00Z", packet_id=strong_packet_id),
+                _reel_row("fixturecreator", "ABC", "like_count", 10, "2026-06-29T00:01:00Z", packet_id=strong_packet_id),
+                _reel_row("fixturecreator", "ABC", "comment_count", 5, "2026-06-29T00:01:00Z", packet_id=strong_packet_id),
             ],
         ),
         sort_keys=True,
@@ -287,7 +370,7 @@ def test_instagram_reels_metric_seed_discovers_lake_projections_and_dedupes_exac
     assert seed["counts"]["source_projection_files_selected"] == 1
     assert seed["source_inputs"][0]["source_pointer"] == str(strong)
     assert seed["metric_observations"][0]["source_packet_pointer_or_none"] == str(
-        root.path / "raw" / raw_shard(packet_id) / packet_id
+        root.path / "raw" / raw_shard(strong_packet_id) / strong_packet_id
     )
 
 
