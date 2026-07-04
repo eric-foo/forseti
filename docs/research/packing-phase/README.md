@@ -1,4 +1,4 @@
-# Orca Packing Phase
+# Forseti Packing Phase
 
 ```yaml
 retrieval_header_version: 1
@@ -13,7 +13,7 @@ open_next:
   - docs/research/judgment-spine/judgment_spine_thesis_v0.md
   - docs/research/judgment-spine/harness/v0_14/index.md
   - docs/research/judgment-spine/harness/v0_14/packing_to_harness_foundation_interface_architecture_v0.md
-  - orca/product/spines/foundation/product_contract/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
+  - forseti/product/spines/foundation/product_contract/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
 ```
 
 The Packing Phase turns cleaned, source-backed evidence material into judgment-ready case artifacts.
