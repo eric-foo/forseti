@@ -349,19 +349,23 @@ overlay README) — so a new or re-oriented lane does not re-derive mechanical s
 turn. Observed git state only; loads no doctrine, asserts nothing beyond git output; exit 0,
 fails open. Reinstall = re-add the `SessionStart` entry, then restart the session.
 
-**CSB-first scanning artifact checker (portable + CI diff-scoped).** `.agents/hooks/check_csb_scanning_artifact.py`
+**Scan artifact checker (portable + CI diff-scoped).** `.agents/hooks/check_csb_scanning_artifact.py`
 checks future CSB-first scanning artifacts for minimum reviewable receipt shape:
 source context, caps, broad-scout accounting, CSB-row accountability, exact-query
 accounting, venue/hidden-venue accounting, observations, negatives/access notes,
 capture-request accounting including the Creator Registry preflight block,
-candidate closeout, and obvious recency/Capture overclaim leakage. CI runs `--diff origin/main --strict` forward-only over changed
-`docs/research/` artifacts that look like CSB-first scan outputs; explicit paths
-remain available when producing or reviewing a CSB-first scan artifact. It is not
-wired as an automatic PostToolUse hook. Fixtures live under
+candidate closeout, and obvious recency/Capture overclaim leakage. It also
+verifies cited Creator Registry match-preflight receipt JSON content for detected
+`docs/research/` scan artifacts carrying `creator_registry_match_preflight`
+markers or for explicit checker paths. CI runs `--diff origin/main --strict`
+forward-only over changed `docs/research/` artifacts that look like CSB-first or
+Creator Registry preflight scan outputs; explicit paths remain available when
+producing or reviewing scan artifacts. It is not wired as an automatic
+PostToolUse hook. Fixtures live under
 `orca-harness/tests/fixtures/csb_scanning_artifacts/`; focused tests live at
 `orca-harness/tests/unit/test_csb_scanning_artifact_validator.py`. A pass is
-receipt-shape only, never scan-quality validation, buyer proof, candidate
-approval, or Capture route authorization.
+receipt-shape/receipt-content consistency only, never scan-quality validation,
+buyer proof, candidate approval, or Capture route authorization.
 
 **Doctrine-change receipt-shape gate (EP-09) + retrieval-header forbidden-field
 scan (EP-07).** Two further substrates built under owner authorization, following

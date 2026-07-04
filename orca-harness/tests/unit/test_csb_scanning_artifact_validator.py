@@ -519,3 +519,30 @@ def test_invalid_yaml_fence_fails() -> None:
     codes = _codes(text)
     assert "invalid_yaml_fence" in codes
     assert "missing_scan_intake_receipt" in codes
+
+
+def test_creator_registry_receipt_fixture_passes_via_artifact_path() -> None:
+    path = FIXTURE_DIR / "valid_creator_registry_preflight_scan.md"
+
+    assert validator.validate_artifact_path(REPO_ROOT, path) == []
+
+
+def test_creator_registry_receipt_mismatch_fixture_fails_via_artifact_path() -> None:
+    path = FIXTURE_DIR / "bad_creator_registry_preflight_mismatch.md"
+    codes = {finding.code for finding in validator.validate_artifact_path(REPO_ROOT, path)}
+
+    assert "creator_registry_receipt_field_mismatch" in codes
+
+
+def test_auto_targets_creator_registry_preflight_docs_research_artifacts(tmp_path: Path) -> None:
+    good = tmp_path / "docs" / "research" / "creator_scan.md"
+    ignored = tmp_path / "docs" / "prompts" / "creator_scan.md"
+    text = (FIXTURE_DIR / "valid_creator_registry_preflight_scan.md").read_text(encoding="utf-8")
+    good.parent.mkdir(parents=True)
+    ignored.parent.mkdir(parents=True)
+    good.write_text(text, encoding="utf-8")
+    ignored.write_text(text, encoding="utf-8")
+
+    targets = validator.auto_targets(tmp_path, ["docs/research/creator_scan.md", "docs/prompts/creator_scan.md"])
+
+    assert targets == [good]
