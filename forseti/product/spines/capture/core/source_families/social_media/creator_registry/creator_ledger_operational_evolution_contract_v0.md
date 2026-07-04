@@ -170,6 +170,32 @@ review records, and checker coverage when they protect these efficacy outcomes
 or prevent unsafe claims. Do not treat more audit surface by itself as God Tier
 progress.
 
+### Operational Proof Loop
+
+Every future Creator Ledger capability upgrade should leave one small efficacy
+checkpoint before it is treated as operational. The checkpoint is not a broad
+audit packet; it is the minimum evidence that the new capability made the ledger
+work better without remigrating existing data.
+
+A conforming checkpoint names:
+
+- owning layer: registry index, linkage ledger, metric observation/rollup,
+  current read model, or Creator Signal surface;
+- additive path: the new field, sibling record, resolver output, generated view,
+  or presentation rule added without rewriting historical source truth;
+- migration-stability evidence: stable ids, source pointers, posture/value
+  coupling, and limitations remain intact for existing records;
+- efficacy outcome: at least one primary efficacy test above improves or becomes
+  easier to verify; and
+- accepted residuals: the specific fuzzy identity, source freshness, metric
+  breadth, storage physicalization, or product-surface limits still left out.
+
+Audit checks, validators, review reports, hashes, and receipt verification may
+support the checkpoint, but they do not replace the efficacy outcome. A change
+with perfect audit shape and no better duplicate prevention, handoff usefulness,
+identity decision support, or product usefulness is not God Tier progress for
+this ledger.
+
 ## Mini God Tier Fit For This Ledger
 
 When the owner invokes Mini God Tier for the Creator Ledger, the target is a
