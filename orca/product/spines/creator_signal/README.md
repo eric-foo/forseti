@@ -49,6 +49,7 @@ Binding authority:
 | Path | Role |
 | --- | --- |
 | `creator_intelligence_profile_surface_v0.md` | First product surface contract for the one-stop creator intelligence profile. |
+| `aphrodite_carveout_charter_v0.md` | Carveout charter: Aphrodite identity stitch, phase strategy, two-layer moat doctrine, Vetting Sprint offer, decision register (DRAFT pending delegated review + owner ratification). |
 
 No subfolders are bound yet. Add folders only when a concrete artifact needs one
 and update the binding/route surfaces at the same time.

@@ -273,6 +273,23 @@ concrete web foundation; it changes no gate and launches nothing.
    dark (preview URL only). Pointing DNS or otherwise making anything
    public, and every account creation or purchase, are owner-executed.
 
+## D8 Amendment (2026-07-04) — waitlist role fields
+
+Owner-ratified in-thread ("Add the two fields (Recommended)", 2026-07-04,
+Aphrodite carveout charter session). The waitlist capture element of the D8
+web foundation — on the forsetihq.com holding page (D8 item 3) and on the
+Aphrodite pre-launch holding surface (D8 item 1) — may collect two **optional**
+self-reported fields alongside email: **role** and **decision type**. Purpose:
+passive buyer-lane sequencing signal for the Aphrodite carveout
+(`orca/product/spines/creator_signal/aphrodite_carveout_charter_v0.md`,
+register row R-2).
+
+- Optional fields only; email-only signup remains valid.
+- Same minimal-privacy-notice posture: the fields are personal data and live
+  under the existing D8 privacy notice; no new tracking, no analytics change.
+- Nothing else in D8 changes: no marketing claims, no gate moves, no build or
+  publish authorization.
+
 ## Open items (not decided here)
 
 - Formal trademark clearance for Aphrodite at first public commercial use
@@ -418,4 +435,37 @@ direction_change_propagation:
     - not validation
     - not readiness
     - not a website build authorization by itself (the design-lane handoff carries the bounded authorization)
+# D8 amendment 2026-07-04 (waitlist role fields; ratified in the Aphrodite carveout charter session).
+direction_change_propagation:
+  doctrine_changed: >
+    D8 amended: the waitlist capture on both holding surfaces may collect two
+    optional self-reported fields (role, decision type) alongside email, as
+    passive buyer-lane sequencing signal for the Aphrodite carveout. Optional
+    only; same privacy-notice posture; no other D8 element, gate, or
+    authorization changes.
+  trigger: product_doctrine
+  related_triggers: []
+  controlling_sources_updated:
+    - docs/decisions/forseti_company_brand_architecture_v0.md
+    - orca/product/spines/creator_signal/aphrodite_carveout_charter_v0.md   # register row R-2 records the ratification
+  downstream_surfaces_checked:
+    - docs/workflows/forseti_web_foundation_design_lane_handoff_v0.md   # committed lane packet; its stale_if routes the receiver to this record for superseding decisions; no retro-edit (same rule as the D7/D8 receipts above)
+  intentionally_not_updated:
+    - path: docs/workflows/forseti_web_foundation_design_lane_handoff_v0.md
+      reason: >
+        Committed lane packets are point-in-time artifacts; the packet already
+        instructs the receiver to check docs/decisions/ for superseding
+        Forseti records at lane start, which resolves this amendment.
+  stale_language_search: >
+    rg -in "waitlist" docs/decisions/forseti_company_brand_architecture_v0.md docs/workflows/forseti_web_foundation_design_lane_handoff_v0.md
+  stale_language_search_result: >
+    Executed 2026-07-04 with the amendment edits staged in the lane worktree.
+    Hits are D6/D8 posture language in this record (consistent — the amendment
+    adds fields to the same capture element), this amendment and receipt, and
+    the design-lane packet's point-in-time waitlist wording resolved via its
+    stale_if pointer as recorded above.
+  non_claims:
+    - not validation
+    - not readiness
+    - not a build or publish authorization
 ```
