@@ -4,15 +4,15 @@
 retrieval_header_version: 1
 artifact_role: Product architecture contract
 scope: >
-  Physicality-location contract for Orca's Data Lake: the repo-vs-operational-data
-  boundary, the operator-configured external data root (ORCA_DATA_ROOT), the v0
+  Physicality-location contract for Forseti's Data Lake: the repo-vs-operational-data
+  boundary, the operator-configured external data root (FORSETI_DATA_ROOT, with legacy ORCA_DATA_ROOT compatibility), the v0
   logical directory grammar (raw/ attachments/ derived/ acknowledgements/ and a
   split indexes/availability + indexes/derived_retrieval), the location invariants
   (raw immutable, derived/ack append-only, indexes rebuildable), durable stored
   record names, fail-closed root resolution, and accepted residuals. This is a
   location and directory-grammar contract, not a storage-engine or backend choice.
 use_when:
-  - Deciding where Orca operational data physically lives versus what stays in the Git repo.
+  - Deciding where Forseti operational data physically lives versus what stays in the Git repo.
   - Scoping data-root configuration, fail-closed resolution, or directory placement.
   - Naming a durable Data Lake record and checking it does not leak gold/Judgment/actor semantics.
 open_next:
@@ -68,10 +68,11 @@ data-lake storage folders unless a later accepted physicality contract
 explicitly supersedes this rule.
 Owner direction recorded 2026-06-21:
 
-- Real Orca operational data does not live in the Git repository; it lives under a
+- Real Forseti operational data does not live in the Git repository; it lives under a
   separate operator-configured external data root.
-- The pointer is generalized: `ORCA_DATA_ROOT=<operator-configured external data
-  root>`. The owner's current local example is `F:\orca-data` (a portable drive);
+- The pointer is generalized: `FORSETI_DATA_ROOT=<operator-configured external data
+  root>`. Legacy `ORCA_DATA_ROOT` remains accepted as a compatibility fallback.
+  The owner's current local example is `F:\orca-data` (a portable drive);
   the drive letter and medium are deployment choices, not part of the contract.
 - The v0 directory grammar is accepted as a logical grammar, with `indexes/` split
   into a content-free `availability/` subslot and a rebuildable, non-authoritative
@@ -100,7 +101,7 @@ external-root model, this contract must be explicitly superseded.
 The Git repository owns code, schemas, contracts, tests, small fixtures,
 example manifests, and config templates.
 Real operational data lives under one operator-configured external data root.
-The repo points at the root through configuration (ORCA_DATA_ROOT).
+The repo points at the root through configuration (FORSETI_DATA_ROOT; legacy ORCA_DATA_ROOT accepted).
 The root resolves OUTSIDE the repo working tree, or tools fail closed.
 Raw stays immutable; derived and acknowledgement records stay append-only;
 indexes stay rebuildable and carry no authority.
@@ -130,7 +131,7 @@ The lake is strict about where bytes land. It is not smart about what they mean.
 ## Directory Grammar (v0 logical)
 
 ```text
-<ORCA_DATA_ROOT>/
+<FORSETI_DATA_ROOT>/
   raw/                       # Raw Packet Store      — immutable, write-once
   attachments/               # Attachment Record     — immutable, hash-checkable*
   derived/                   # Derived Result Store  — append-only, keyed to raw
@@ -213,7 +214,7 @@ second source of truth.
 
 ## Configuration Contract
 
-- One required resolvable pointer: `ORCA_DATA_ROOT` -> an external absolute path.
+- One required primary resolvable pointer: `FORSETI_DATA_ROOT` -> an external absolute path. Legacy `ORCA_DATA_ROOT` remains accepted as a compatibility fallback during migration.
   The contract names no drive letter; the local example is `F:\orca-data`.
 - Resolution precedence (contract shape, not loader implementation): production
   precedence is explicit / per-run override -> environment variable -> optional
@@ -226,7 +227,7 @@ second source of truth.
   working tree, or **missing its expected root marker**. There is no silent or
   fallback write.
 - Root-identity check: because drive letters are reassignable (especially for
-  removable media), resolution must confirm the path is actually the Orca data root
+  removable media), resolution must confirm the path is actually the Forseti data root
   before writing, not merely that some path at that letter exists. The marker is a
   per-root identity (a root-local marker carrying a `root_uuid` compared against the
   configured/expected root identity), and writes use atomic write-then-rename that
@@ -243,7 +244,7 @@ second source of truth.
 ## Git Boundary
 
 - **Stays in repo:** code, schemas, contracts, tests, small fixtures, example
-  manifests, config templates (including an `ORCA_DATA_ROOT` example line), and
+  manifests, config templates (including a `FORSETI_DATA_ROOT` example line and legacy `ORCA_DATA_ROOT` compatibility note), and
   versioned definitions such as `DecisionEvidenceAssemblyProfile`.
 - **Never committed:** everything under the data root — `raw/`, `attachments/`,
   `derived/`, `acknowledgements/`, `indexes/` — plus the already-ignored captures,
@@ -259,7 +260,7 @@ second source of truth.
   the layout is location-independent (raw immutable, derived append-only, indexes
   rebuildable), moving to a different or fixed drive is: byte-faithful copy of
   `raw/`, `attachments/`, `derived/`, `acknowledgements/` (verify hashes), repoint
-  `ORCA_DATA_ROOT`, and rebuild `indexes/`. No schema migration, no rewrite.
+  `FORSETI_DATA_ROOT` (or legacy `ORCA_DATA_ROOT` during compatibility), and rebuild `indexes/`. No schema migration, no rewrite.
 - **`raw/` and `derived/` are the irreplaceable subtrees.** `raw/` cannot be rebuilt
   if lost; `derived/` is append-only history. `indexes/` is fully rebuildable.
   Operators deploying on removable or single-drive media must maintain an out-of-band

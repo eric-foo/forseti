@@ -9,7 +9,7 @@ scope: >
   forward write contract, and keep the canonical raw/derived/indexes physical
   grammar while applying v4.1 Silver Vault record and retrieval shape.
 use_when:
-  - Initializing a new v4.1 Orca data root.
+  - Initializing a new v4.1 Forseti data root.
   - Auditing capture runners for forward lake-write compliance.
   - Deciding whether old lake material should be migrated, archived, or ignored.
   - Resolving confusion between medallion labels and physical folder names.
@@ -91,9 +91,9 @@ carrying weak historical shape into the new foundation. The forward move is:
 Forward v4.1 roots use this grammar:
 
 ```text
-<ORCA_DATA_ROOT>/
-  .orca-data-root
-  .orca-lake-epoch.json
+<FORSETI_DATA_ROOT>/
+  .forseti-data-root
+  .forseti-lake-epoch.json
   .staging/
 
   raw/
@@ -158,7 +158,7 @@ Each v4.1 root must carry the existing root marker plus an epoch marker:
 {
   "contract_version": "v4.1",
   "created_at": "2026-06-28T00:00:00Z",
-  "label": "orca-canonical-v4-1",
+  "label": "forseti-canonical-v4-1",
   "root_uuid": "01..."
 }
 ```
@@ -172,8 +172,9 @@ Each v4.1 root must carry the existing root marker plus an epoch marker:
 }
 ```
 
-The existing `.orca-data-root` marker remains the root identity marker. The epoch
-marker records that this root is forward v4.1 and not a compatibility migration.
+The `.forseti-data-root` marker is the primary root identity marker. Legacy
+`.orca-data-root` roots remain readable only through explicit compatibility paths.
+The epoch marker records that this root is forward v4.1 and not a compatibility migration.
 
 ## Forward Writer Obligations
 
@@ -184,7 +185,7 @@ Every forward Source Capture packet writer that emits a durable packet must:
 - publish raw packet material under `raw/<packet_shard>/<packet_id>/`;
 - preserve `manifest.json`, raw files, hashes, and hash basis;
 - write or rebuild a content-free availability entry under `indexes/availability/`;
-- expose `--data-root` or `ORCA_DATA_ROOT` unless it is intentionally local-only
+- expose `--data-root` or `FORSETI_DATA_ROOT` (legacy `ORCA_DATA_ROOT` compatibility) unless it is intentionally local-only
   and documented as not a lake packet writer;
 - reject ambiguous output modes where both local `--output` and lake root are set;
 - never write Cleaning, ECR, Judgment, or Creator Vault meaning as part of raw

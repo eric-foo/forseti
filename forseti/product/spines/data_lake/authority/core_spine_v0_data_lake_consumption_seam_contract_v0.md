@@ -175,7 +175,7 @@ The shared suite lives at `orca-harness/tests/test_data_lake_consumption.py`.
 ## Rebuild Command Binding
 
 The command shape is pinned by the derived-layout contract
-(`lake indexes rebuild --root <ORCA_DATA_ROOT> --target
+(`lake indexes rebuild --root <FORSETI_DATA_ROOT> --target
 availability|derived_retrieval|all --prove-rebuildability`). The v0 entry
 point is `orca-harness/runners/run_data_lake_indexes_rebuild.py` (argparse,
 runner convention); the semantics, not the binary packaging, are the
