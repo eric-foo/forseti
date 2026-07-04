@@ -26,6 +26,9 @@ The agent may:
 - run Authenticated Browser Snapshot capture against one explicitly supplied URL
   using a previously bootstrapped storage-state label and an allowed session
   mode;
+- run the Creator Registry match preflight runner against candidate social
+  creator/account identities before starting new social creator/account
+  capture;
 - inspect `manifest.json`, `receipt.md`, and `raw/`;
 - report packet path, exit code, preserved files, warnings, and limitations.
 
@@ -134,8 +137,13 @@ creator capture, run the Creator Registry match preflight before capture and
 carry its receipt in the agent report or handoff. Use
 `orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_registry_match_preflight_usage_v0.md`
 for candidate JSON shape, receipt outcomes, and the runner command. Do not start
-`new_capture` unless the receipt row is `new_candidate` and action status is
-allowed. `existing_match` routes to updating or working against the matched
+`new_capture` unless the candidate batch was preflighted with
+`intended_action: new_capture` and the resulting receipt row shows `decision:
+new_candidate` and `can_start_new_capture: true` (`action_status: allowed`). A
+row that only shows `decision: new_candidate` and `action_status: allowed` from
+a `classify` or `update_existing` query does not clear `new_capture`; check
+`can_start_new_capture` directly rather than reconstructing the condition.
+`existing_match` routes to updating or working against the matched
 registry identity; `ambiguous_match` and `invalid_candidate` stop the capture
 until resolved. A manual visual scan of the registry or projection is useful
 orientation, but it is not a substitute for the preflight receipt.
@@ -1076,6 +1084,13 @@ direction_change_propagation:
     - path: "orca/product/spines/capture/core/source_families/social_media/creator_registry/README.md"
       reason: "Registry architecture and source split did not change; usage-note/runbook binding owns operator sequencing."
   stale_language_search: "rg -n \"Creator Registry match preflight|creator_registry_match_preflight|run_creator_registry_match_preflight|visual registry|projection scan|new social creator\" orca-harness/docs/source_capture_agent_runbook.md orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_registry_match_preflight_usage_v0.md orca/product/spines/capture/core/source_families/social_media/creator_registry/README.md orca-harness/README.md orca/product/spines/capture/core/source_capture_toolbox/README.md docs/workflows/orca_repo_map_v0.md"
+  stale_language_search_result: >
+    Executed 2026-07-04 after edits. Hits are only the new runbook/usage-note/
+    repo-map text itself (Required Inputs, Agent Boundary, agent-report
+    template, and the runners-index entry) plus this receipt's own quoted
+    search string. orca-harness/README.md, the source_capture_toolbox README,
+    and the creator_registry README carry no hits, consistent with the
+    intentionally_not_updated reasons above.
   non_claims:
     - "not validation"
     - "not readiness"
