@@ -230,8 +230,8 @@ Continue only PR #709: keep the branch conflict-clean against current `main`, pr
 - Branch: `codex/tiktok-session-provenance-implementation`
 - Head before handoff write: `15a5b31a8e6cc4682802a7a6b6d9ff3bb51fb171`
 - Expected final head after committing this handoff: `reread-required-current-PR-head`
-- Dirty or untracked state before handoff write: only pre-existing untracked `docs/workflows/tiktok_session_provenance_pr689_handoff_v0.md` after merge commit.
-- Dirty or untracked state after writing the handoff file: this handoff file and repo-map edit are dirty until committed; the PR689 handoff remains untracked and should not be treated as the active route.
+- Dirty or untracked state before handoff write: only pre-existing untracked superseded `docs/workflows/tiktok_session_provenance_pr689_handoff_v0.md` after merge commit.
+- Dirty or untracked state after writing the handoff file: this handoff file and repo-map edit are dirty until committed; the superseded PR689 handoff remains untracked and should not be treated as the active route.
 - Target files or artifacts: PR #709 branch, this handoff, repo-map entry, TikTok goal/playbook/runbook/review report, live runner, warmup runner, provenance source.
 - Related worktrees or branches: base `origin/main` at `1b40fc760c32ca9b0d4960333fe866583d202fd9`.
 
@@ -287,7 +287,7 @@ Continue only PR #709: keep the branch conflict-clean against current `main`, pr
 
 ## Superseded / Dangerous-To-Reuse Context
 
-- Stale instruction, idea, artifact, or finding: `docs/workflows/tiktok_session_provenance_pr689_handoff_v0.md`
+- Superseded stale instruction, idea, artifact, or finding: `docs/workflows/tiktok_session_provenance_pr689_handoff_v0.md`
   - Why stale or dangerous: it pins PR #689/head `af8a12f...` and pre-PR709 next actions.
   - Current replacement: this PR #709 handoff plus `docs/workflows/tiktok_cold_agent_capture_enforcement_goal_v0.md`.
 - Stale instruction, idea, artifact, or finding: treating `platform_challenge_observed` as a single terminal class.

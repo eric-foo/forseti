@@ -69,7 +69,7 @@ preflight_defaults: `docs/prompts/templates/shared/orca_preflight_defaults_v0.md
 - expected_pr: `https://github.com/eric-foo/orca/pull/709`
 - implementation_target_head: `fb078dd08539c1392002dc0ca145a41a02656ddc`
 - base_comparison: `origin/main...fb078dd08539c1392002dc0ca145a41a02656ddc`
-- dirty_state_allowance: clean target files, except reviewer-owned uncommitted patch output and the known unrelated untracked `docs/workflows/tiktok_session_provenance_pr689_handoff_v0.md`. If reviewing from the prompt-file commit that descends from `implementation_target_head`, review the implementation diff pinned above and treat the prompt-only descendant as dispatcher context, not implementation scope.
+- dirty_state_allowance: clean target files, except reviewer-owned uncommitted patch output and the known unrelated untracked superseded `docs/workflows/tiktok_session_provenance_pr689_handoff_v0.md`. If reviewing from the prompt-file commit that descends from `implementation_target_head`, review the implementation diff pinned above and treat the prompt-only descendant as dispatcher context, not implementation scope.
 - isolation_decision: use the existing PR worktree/branch; this is a review-and-patch pass, not a new implementation lane.
 - doctrine_change_decision: no new doctrine change requested. If the correct fix requires changing workflow, validation, review, safety, architecture, or prompt doctrine, return `NEEDS_ARCHITECTURE_PASS` or an off-scope finding instead of editing doctrine.
 - thread_operating_target_continuity:
