@@ -33,6 +33,7 @@ EXPECTED_SEAM_CONSUMER_RUNNERS = frozenset(
         "run_ecr_catchup.py",
         "run_fragrance_review_projection_catchup.py",
         "run_fragrantica_cleaning_catchup.py",
+        "run_ig_reels_grid_projection_catchup.py",
         "run_ig_reels_product_extract.py",
         "run_parfumo_cleaning_catchup.py",
         "run_transcript_product_extract.py",
