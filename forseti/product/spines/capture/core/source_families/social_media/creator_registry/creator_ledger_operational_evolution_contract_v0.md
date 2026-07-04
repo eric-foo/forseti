@@ -21,6 +21,7 @@ open_next:
   - forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_profile_current_record_contract_v0.md
   - forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_metric_silver_record_contract_v0.md
   - forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_registry_match_preflight_usage_v0.md
+  - forseti/product/spines/capture/core/source_families/social_media/youtube/youtube_creator_observation_ledger_spec_v0.md
   - docs/decisions/orca_mini_god_tier_doctrine_v0.md
 stale_if:
   - The Creator Registry folder no longer owns the social creator-ledger artifacts.
@@ -77,6 +78,7 @@ forseti_start_preflight:
     - forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_profile_current_record_contract_v0.md
     - forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_metric_silver_record_contract_v0.md
     - forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_registry_match_preflight_usage_v0.md
+    - forseti/product/spines/capture/core/source_families/social_media/youtube/youtube_creator_observation_ledger_spec_v0.md
     - docs/decisions/orca_mini_god_tier_doctrine_v0.md
 ```
 
@@ -259,7 +261,11 @@ Current sources support this state:
   rows and a preserved receipt, but did not execute capture or mutate the
   registry;
 - the receipt-content checker now verifies cited Creator Registry preflight
-  receipt content for detected scan artifacts; and
+  receipt content for detected scan artifacts;
+- the YouTube creator-observation ledger already provides a source-backed
+  sibling observation layer: 31 YouTube creator/channel observations over 200
+  admitted Shorts, with source rebuild verification, explicit metric absence, and
+  no cross-platform identity claim; and
 - `creator_profile_current` is still a generated/static read model, not a
   database, dashboard, or source of truth.
 
@@ -306,6 +312,7 @@ direction_change_propagation:
     - forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_profile_current_record_contract_v0.md
     - forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_metric_silver_record_contract_v0.md
     - forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_registry_match_preflight_usage_v0.md
+    - forseti/product/spines/capture/core/source_families/social_media/youtube/youtube_creator_observation_ledger_spec_v0.md
     - docs/decisions/orca_mini_god_tier_doctrine_v0.md
     - docs/research/creator_discovery_scan_fragrance_youtube_public_v0.md
   intentionally_not_updated:
@@ -327,7 +334,7 @@ direction_change_propagation:
         residual is superseded by the current usage note and checker reviews,
         but changing the scan record is not required to bind ledger evolution.
   stale_language_search: >
-    rg -n "creator ledger|Creator Ledger|God Tier|Mini God Tier|mini god tier|remigration|remigrate|migration-stable|additive-upgrade|upgrade intake|audit completeness|efficacy"
+    rg -n "creator ledger|Creator Ledger|God Tier|Mini God Tier|mini god tier|remigration|remigrate|migration-stable|additive-upgrade|upgrade intake|observation ledger|creator-observation|audit completeness|efficacy"
     AGENTS.md
     .agents/workflow-overlay
     docs/workflows/forseti_repo_map_v0.md
