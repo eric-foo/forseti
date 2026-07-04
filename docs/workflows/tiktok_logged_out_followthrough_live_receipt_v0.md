@@ -266,3 +266,62 @@ remains `failed_close_zero_admission`, and the matched comment-list response is
 diagnostic only. The forbidden-marker scan over the grid/cadence JSON showed only
 the expected `creator_profile_url` URL lines and no token/CDN/subtitle/signed-URL
 markers.
+
+## 2026-07-04 Browser-Surface Comparison Receipt
+
+The owner redirected the lane to compare browser surfaces after the logged-out
+Playwright route repeatedly hit the slider boundary. Three bounded observations
+were made against the same Funmi fixture:
+
+- Existing-owner Chrome through the Codex Chrome connector loaded the video,
+  performed comments -> `You may like` -> comments, and exposed visible comment
+  bodies plus one `eng-US` ASR `webvtt` subtitle track in hydration. This was
+  observation only: the connector's read-only page context did not expose
+  `fetch`, and no raw subtitle URL, cookie, token, or auth state was printed or
+  persisted.
+- Playwright-launched Chrome channel in a fresh ephemeral context loaded the page
+  and exposed `Comments` / `You may like`, but after the precise tab route the
+  final visible state included `drag the slider` and zero comment bodies.
+- Visible CloakBrowser with `humanize=True` and the Playwright backend completed
+  the same tab route with no final `drag the slider`, `captcha`, `verify`, or
+  `security` marker and 12 visible comment-body nodes.
+
+Interpretation: fresh Playwright Chrome is the current bad surface for this
+fixture; CloakBrowser is the next material engineering route to wire into the
+TikTok runner. This is not an admission receipt, not a page-owned comment-list
+response receipt, not cross-creator proof, and not authorization to solve
+slider/CAPTCHA puzzles automatically.
+
+## 2026-07-04 CloakBrowser Logged-Out Funmi Receipt
+
+Fresh receipt path:
+`orca-harness/_scratch/tiktok_logged_out_cloakbrowser_probe_20260704_02/`.
+
+Observed result:
+
+- `attempted_count=1`, `completed_count=1`, `challenge_count=0`, `failures=[]`.
+- Capture contract recorded `browser_backend=cloakbrowser`,
+  `cloakbrowser_humanize=true`, `logged_out_public=true`,
+  `captcha_solving=false`, and `human_challenge_handoff_allowed=true` with
+  `human_challenge_handoff_counts_as_clean_capture=false`.
+- No challenge close was needed: challenge close attempts were present in the
+  scripted follow-through sequence but `page_text_gate_matched=false`,
+  `target_found=false`, and `clicked=false` for the challenge close actions.
+  No `human_challenge_handoff_attempts` were recorded.
+- The comment route observed one page-owned `/api/comment/list/` fetch response;
+  `matched_comment_response_count=1`, `admitted_comment_response_count=1`,
+  `comment_response_cap=1`, and the response body assessment counted 20 comments
+  with envelope `total=303`.
+- DOM-visible comment fallback was not used in the admitted row:
+  `dom_visible_comment_candidate_count=0` and `comment_capture_fallback` absent.
+- Subtitle metadata was present (`subtitle_info_count=1`, sanitized ASR WebVTT
+  info), but transcript capture did not run because the live probe rejected the
+  subtitle URL host as `unsupported_subtitle_url_host_live_probe_v0`; raw subtitle
+  URLs/bodies remained unpersisted per contract.
+- Local runtime note: CloakBrowser printed an update notice from installed
+  `0.3.31` to upstream `0.4.7`. This does not invalidate the receipt, but the
+  wrapper should be updated before treating CloakBrowser posture as current.
+
+Classification: `accepted_close_with_comment_evidence` by the handoff taxonomy,
+but not registry promotion, not cross-creator durability, and not transcript
+coverage proof.

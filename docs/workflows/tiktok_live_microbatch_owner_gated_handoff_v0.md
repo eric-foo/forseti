@@ -260,6 +260,17 @@ handoff depends on:
   `tiktok_challenge_modal_visual_close_diagnostic_pointer_v0`. They run only
   under `--allow-challenge-close-diagnostic` and remain blocker-diagnosis paths:
   any click forces stop semantics and cannot produce a capture row.
+- Browser surface matters. The 2026-07-04 Funmi comparison found that
+  Playwright-launched Chrome channel in a fresh ephemeral context hit final
+  `drag the slider` after comments -> `You may like` -> comments, while visible
+  CloakBrowser with `humanize=True` completed the same route with 12 visible
+  comment-body nodes and no final challenge/security marker. Existing-owner
+  Chrome also reached visible comments but is observation-only unless routed
+  through packet-grade receipt and sanitization rules. The next engineering
+  surface is therefore a CloakBrowser-backed TikTok runner path
+  (`--browser-backend cloakbrowser`, no `--browser-channel`) with optional
+  `--human-challenge-handoff` only after scripted X/Close follow-through, not more
+  Playwright Chrome close-target diagnosis.
 - Batch admission is now code-gated against non-clean live cadence. `batch_packet.py`
   rejects nonzero `challenge_count`, non-empty `failures`, `first_failure_reason`,
   `captcha_solving=true`, `challenge_close_counts_as_success=true`, and
@@ -325,13 +336,15 @@ handoff depends on:
      --state-label "<existing-auth-state-label>" `
      --session-mode "<mode-from-auth-state-metadata>" `
      --output-dir "<scratch-output-dir>\creator_01" `
-     --browser-channel chrome
+     --browser-backend cloakbrowser
    ```
 
    Do not add flags that are not present in `--help`. Keep default cadence unless
    the owner explicitly directs a different small-N cadence. For the current
    owner-authorized X-able public challenge route-yield run, add
-   `--allow-challenge-close-followthrough`. Use
+   `--allow-challenge-close-followthrough`; if owner is present to solve a
+   remaining slider/captcha after scripted X/Close, add
+   `--human-challenge-handoff` and preserve the receipt intervention fields. Use
    `--allow-challenge-close-diagnostic` only for stop-only changed-condition
    checks, never for admission or expansion.
 

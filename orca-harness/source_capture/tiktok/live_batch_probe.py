@@ -136,6 +136,15 @@ TIKTOK_CHALLENGE_TEXT_MARKERS = (
     "captcha",
     "security check",
 )
+TIKTOK_BROWSER_BACKEND_PLAYWRIGHT = "playwright"
+TIKTOK_BROWSER_BACKEND_CLOAKBROWSER = "cloakbrowser"
+TIKTOK_HUMAN_CHALLENGE_HANDOFF_TIMEOUT_SECONDS = 180.0
+TIKTOK_HUMAN_CHALLENGE_HANDOFF_PROMPT = (
+    "TikTok slider/captcha/security text remained after the scripted X/Close "
+    "path. If authorized for this run, solve it manually in the open browser, "
+    "then click OK here. The receipt will mark human_challenge_handoff; the "
+    "agent does not drag or solve the puzzle."
+)
 TIKTOK_COMMENT_LIST_RESPONSE_CAP = 2
 TIKTOK_COMMENT_ROUTE_NO_RESPONSE_REASON = "comment_list_response_absent"
 TIKTOK_LOGGED_OUT_SESSION_MODE = "public_logged_out"
@@ -184,6 +193,10 @@ def write_tiktok_live_batch_probe_outputs(
     settle_seconds: float = 2.0,
     selector_timeout_seconds: float = 5.0,
     browser_channel: str | None = None,
+    browser_backend: str = TIKTOK_BROWSER_BACKEND_PLAYWRIGHT,
+    cloakbrowser_humanize: bool = False,
+    human_challenge_handoff: bool = False,
+    human_challenge_handoff_timeout_seconds: float = TIKTOK_HUMAN_CHALLENGE_HANDOFF_TIMEOUT_SECONDS,
     cadence_min_gap_seconds: float = 75.0,
     cadence_max_gap_seconds: float = 120.0,
     cadence_window_seconds: float | None = None,
@@ -216,6 +229,10 @@ def write_tiktok_live_batch_probe_outputs(
         settle_seconds=settle_seconds,
         selector_timeout_seconds=selector_timeout_seconds,
         browser_channel=browser_channel,
+        browser_backend=browser_backend,
+        cloakbrowser_humanize=cloakbrowser_humanize,
+        human_challenge_handoff=human_challenge_handoff,
+        human_challenge_handoff_timeout_seconds=human_challenge_handoff_timeout_seconds,
         cadence_min_gap_seconds=cadence_min_gap_seconds,
         cadence_max_gap_seconds=cadence_max_gap_seconds,
         cadence_window_seconds=cadence_window_seconds,
@@ -255,6 +272,10 @@ def run_tiktok_live_batch_probe(
     settle_seconds: float = 2.0,
     selector_timeout_seconds: float = 5.0,
     browser_channel: str | None = None,
+    browser_backend: str = TIKTOK_BROWSER_BACKEND_PLAYWRIGHT,
+    cloakbrowser_humanize: bool = False,
+    human_challenge_handoff: bool = False,
+    human_challenge_handoff_timeout_seconds: float = TIKTOK_HUMAN_CHALLENGE_HANDOFF_TIMEOUT_SECONDS,
     cadence_min_gap_seconds: float = 75.0,
     cadence_max_gap_seconds: float = 120.0,
     cadence_window_seconds: float | None = None,
@@ -278,6 +299,8 @@ def run_tiktok_live_batch_probe(
         raise ValueError(
             "challenge-close diagnostic and followthrough modes are mutually exclusive"
         )
+    if human_challenge_handoff and not allow_challenge_close_followthrough:
+        raise ValueError("human_challenge_handoff requires challenge-close followthrough mode")
 
     if logged_out:
         if state_label is not None or session_mode is not None:
@@ -336,6 +359,18 @@ def run_tiktok_live_batch_probe(
             storage_state_path=storage_state_path,
             headless=False,
             browser_channel=browser_channel,
+            browser_backend=browser_backend,
+            cloakbrowser_humanize=cloakbrowser_humanize,
+            human_challenge_handoff_markers=(
+                TIKTOK_CHALLENGE_TEXT_MARKERS if human_challenge_handoff else ()
+            ),
+            human_challenge_handoff_after_action_names=(
+                _tiktok_human_challenge_handoff_after_action_names()
+                if human_challenge_handoff
+                else ()
+            ),
+            human_challenge_handoff_timeout_seconds=human_challenge_handoff_timeout_seconds,
+            human_challenge_handoff_prompt=TIKTOK_HUMAN_CHALLENGE_HANDOFF_PROMPT,
             engine=engine,
         )
 
@@ -588,8 +623,12 @@ def run_tiktok_live_batch_probe(
         "capture_contract": _capture_contract(
             session_mode=session_mode,
             logged_out=logged_out,
+            browser_backend=browser_backend,
+            cloakbrowser_humanize=cloakbrowser_humanize,
+            human_challenge_handoff=human_challenge_handoff,
+            human_challenge_handoff_timeout_seconds=human_challenge_handoff_timeout_seconds,
             allow_challenge_close_diagnostic=allow_challenge_close_diagnostic,
-                allow_challenge_close_followthrough=allow_challenge_close_followthrough,
+            allow_challenge_close_followthrough=allow_challenge_close_followthrough,
         ),
         "response_items": grid_items,
         "run_complete_utc": run_complete_utc,
@@ -607,8 +646,12 @@ def run_tiktok_live_batch_probe(
         "capture_contract": _capture_contract(
             session_mode=session_mode,
             logged_out=logged_out,
+            browser_backend=browser_backend,
+            cloakbrowser_humanize=cloakbrowser_humanize,
+            human_challenge_handoff=human_challenge_handoff,
+            human_challenge_handoff_timeout_seconds=human_challenge_handoff_timeout_seconds,
             allow_challenge_close_diagnostic=allow_challenge_close_diagnostic,
-                allow_challenge_close_followthrough=allow_challenge_close_followthrough,
+            allow_challenge_close_followthrough=allow_challenge_close_followthrough,
         ),
         "cadence_plan": cadence_plan.to_dict(),
         "results": results,
@@ -801,6 +844,10 @@ def _with_comment_route_observation(
     challenge_close_attempts = _challenge_close_attempts(capture_result)
     if challenge_close_attempts:
         receipt["challenge_close_attempts"] = challenge_close_attempts
+    human_handoff_attempts = _human_challenge_handoff_attempts(capture_result)
+    if human_handoff_attempts:
+        receipt["human_challenge_handoff_attempts"] = human_handoff_attempts
+        receipt["human_challenge_handoff"] = True
     return receipt
 
 
@@ -922,6 +969,13 @@ def _interleave_challenge_diagnostic_actions(
             )
         )
     return tuple(interleaved)
+
+def _tiktok_human_challenge_handoff_after_action_names() -> tuple[str, ...]:
+    return (
+        TIKTOK_CHALLENGE_CLOSE_FOLLOWTHROUGH_POINTER_ACTION_NAME,
+        TIKTOK_CHALLENGE_VISUAL_CLOSE_FOLLOWTHROUGH_POINTER_ACTION_NAME,
+    )
+
 
 def _tiktok_comment_route_pointer_actions(
     *,
@@ -1291,6 +1345,10 @@ def _cadence_row_from_capture(
     challenge_close_attempts = _challenge_close_attempts(capture_result)
     if challenge_close_attempts:
         capture_receipt["challenge_close_attempts"] = challenge_close_attempts
+    human_handoff_attempts = _human_challenge_handoff_attempts(capture_result)
+    if human_handoff_attempts:
+        capture_receipt["human_challenge_handoff_attempts"] = human_handoff_attempts
+        capture_receipt["human_challenge_handoff"] = True
     if dom_visible_comments and not comment_list_responses:
         capture_receipt["comment_capture_fallback"] = "dom_visible_comment_candidates_v0"
     if challenge_close_action:
@@ -1442,6 +1500,17 @@ def _pointer_action_chronology(
     action = _as_dict(metadata.get("post_load_pointer_action"))
     summary = _pointer_action_summary(action) if action else {}
     return [summary] if summary else []
+
+
+def _human_challenge_handoff_attempts(
+    capture_result: BrowserPageObservationSuccess,
+) -> list[JsonObject]:
+    metadata = _as_dict(capture_result.metadata)
+    return [
+        _as_dict(attempt)
+        for attempt in _as_list(metadata.get("human_challenge_handoff_attempts"))
+        if _as_dict(attempt)
+    ]
 
 
 def _challenge_close_attempts(
@@ -2019,6 +2088,10 @@ def _capture_contract(
     *,
     session_mode: AuthenticatedSessionMode | None,
     logged_out: bool = False,
+    browser_backend: str = TIKTOK_BROWSER_BACKEND_PLAYWRIGHT,
+    cloakbrowser_humanize: bool = False,
+    human_challenge_handoff: bool = False,
+    human_challenge_handoff_timeout_seconds: float = TIKTOK_HUMAN_CHALLENGE_HANDOFF_TIMEOUT_SECONDS,
     allow_challenge_close_diagnostic: bool = False,
     allow_challenge_close_followthrough: bool = False,
 ) -> JsonObject:
@@ -2030,7 +2103,12 @@ def _capture_contract(
     if session_mode_value is None:
         raise ValueError("session_mode is required unless logged_out is true")
     return {
+        "browser_backend": browser_backend,
+        "cloakbrowser_humanize": cloakbrowser_humanize,
         "captcha_solving": False,
+        "human_challenge_handoff_allowed": human_challenge_handoff,
+        "human_challenge_handoff_counts_as_clean_capture": False,
+        "human_challenge_handoff_timeout_seconds": human_challenge_handoff_timeout_seconds,
         "challenge_close_diagnostic_allowed": allow_challenge_close_diagnostic,
         "challenge_close_followthrough_allowed": allow_challenge_close_followthrough,
         "challenge_close_counts_as_success": False,

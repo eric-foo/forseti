@@ -144,6 +144,25 @@ Current enforced behavior:
   while `post_click_visual_candidate_count=4` and final triage still reported
   `matched_marker=drag the slider`. Treat the zone count as diagnostic only;
   it does not override failed close acceptance or zero admission.
+- The 2026-07-04 browser-surface comparison showed existing-owner Chrome and
+  visible CloakBrowser could reach visible Funmi comment bodies through the
+  bounded comments -> `You may like` -> comments route, while fresh
+  Playwright-launched Chrome channel ended in final `drag the slider` with zero
+  comment bodies. Treat this as a routing pin for the next runner surface, not
+  as admission or expansion evidence.
+- The runner now has a CloakBrowser-backed route. Use `--browser-backend
+  cloakbrowser` without `--browser-channel`; CloakBrowser owns its Chromium
+  binary and `cloakbrowser_humanize` defaults on from the CLI for that backend.
+- `--human-challenge-handoff` is allowed only with
+  `--allow-challenge-close-followthrough`: the scripted UI substrate still
+  attempts X/Close first, and any manual slider/captcha solve is receipt-marked
+  as `human_challenge_handoff` / source-access intervention, never clean capture.
+- The post-fix CloakBrowser runner receipt
+  `tiktok_logged_out_cloakbrowser_probe_20260704_02` satisfied this handoff's
+  `accepted_close_with_comment_evidence` class: `attempted_count=1`,
+  `completed_count=1`, `challenge_count=0`, `failures=[]`, and one admitted
+  page-owned comment-list response. It still does not authorize registry
+  promotion or cross-creator expansion by itself.
 
 ## Exact Next Authorized Action
 
@@ -167,10 +186,12 @@ Current enforced behavior:
      --video-url "https://www.tiktok.com/@funmimonet/video/7629774409762442526" `
      --logged-out `
      --output-dir "orca-harness\_scratch\tiktok_logged_out_x_close_test_<YYYYMMDD>_<NN>" `
-     --browser-channel chrome `
+     --browser-backend cloakbrowser `
      --wait-until networkidle `
      --settle-seconds 8 `
-     --allow-challenge-close-followthrough
+     --allow-challenge-close-followthrough `
+     --human-challenge-handoff `
+     --human-challenge-handoff-timeout-seconds 180
    ```
 
 4. Inspect only `tiktok_live_grid_result.json` and `tiktok_live_cadence_result.json` under the new output directory. Do not paginate, do not scroll for more comments, and do not run additional creators in this handoff lane.

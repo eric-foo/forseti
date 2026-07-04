@@ -20,6 +20,10 @@ DEFAULT_VIEWPORT_WIDTH = 1280
 DEFAULT_VIEWPORT_HEIGHT = 720
 DEFAULT_MAX_ARTIFACT_BYTES = 5_000_000
 ALLOWED_WAIT_UNTIL = {"commit", "domcontentloaded", "load", "networkidle"}
+BROWSER_BACKEND_PLAYWRIGHT = "playwright"
+BROWSER_BACKEND_CLOAKBROWSER = "cloakbrowser"
+ALLOWED_BROWSER_BACKENDS = {BROWSER_BACKEND_PLAYWRIGHT, BROWSER_BACKEND_CLOAKBROWSER}
+DEFAULT_HUMAN_CHALLENGE_HANDOFF_TIMEOUT_SECONDS = 180.0
 # Pause after each scroll-to-bottom pass so lazy-loaded (infinite-scroll / "load
 # more") content can fetch and render before the next pass or the capture.
 _SCROLL_PASS_SETTLE_MS = 2000
@@ -424,11 +428,26 @@ def fetch_browser_page_observation_capture(
     storage_state_path: Path | None = None,
     headless: bool = True,
     browser_channel: str | None = None,
+    browser_backend: str = BROWSER_BACKEND_PLAYWRIGHT,
+    cloakbrowser_humanize: bool = False,
+    human_challenge_handoff_markers: Sequence[str] = (),
+    human_challenge_handoff_after_action_names: Sequence[str] = (),
+    human_challenge_handoff_timeout_seconds: float = DEFAULT_HUMAN_CHALLENGE_HANDOFF_TIMEOUT_SECONDS,
+    human_challenge_handoff_prompt: str | None = None,
     engine: BrowserPageObservationEngine | None = None,
 ) -> BrowserPageObservationResult:
     """Capture a rendered page observation plus selected same-load responses."""
     normalized_url = _validate_http_url(url)
     normalized_browser_channel = _normalize_browser_channel(browser_channel)
+    normalized_browser_backend = _normalize_browser_backend(browser_backend)
+    normalized_handoff_markers = _normalize_lower_text_tuple(
+        human_challenge_handoff_markers,
+        name="human_challenge_handoff_markers",
+    )
+    normalized_handoff_action_names = _normalize_name_tuple(
+        human_challenge_handoff_after_action_names,
+        name="human_challenge_handoff_after_action_names",
+    )
     _validate_positive_number("timeout_seconds", timeout_seconds)
     _validate_positive_int("viewport_width", viewport_width)
     _validate_positive_int("viewport_height", viewport_height)
@@ -441,6 +460,13 @@ def fetch_browser_page_observation_capture(
         raise ValueError("lazy_load_scroll_step_px must be zero or greater")
     if selector_timeout_seconds < 0:
         raise ValueError("selector_timeout_seconds must be zero or greater")
+    if human_challenge_handoff_timeout_seconds < 0:
+        raise ValueError("human_challenge_handoff_timeout_seconds must be zero or greater")
+    if (
+        normalized_browser_backend == BROWSER_BACKEND_CLOAKBROWSER
+        and normalized_browser_channel is not None
+    ):
+        raise ValueError("browser_channel is not supported with browser_backend='cloakbrowser'")
     if post_load_action_script is not None and not post_load_action_script.strip():
         raise ValueError("post_load_action_script must not be blank")
     normalized_pointer_action = _normalize_pointer_action(post_load_pointer_action)
@@ -457,7 +483,23 @@ def fetch_browser_page_observation_capture(
         allowed = ", ".join(sorted(ALLOWED_WAIT_UNTIL))
         raise ValueError(f"wait_until must be one of: {allowed}")
 
-    observation_engine = engine or _PlaywrightBrowserSnapshotEngine()
+    if engine is not None:
+        observation_engine = engine
+    elif normalized_browser_backend == BROWSER_BACKEND_CLOAKBROWSER:
+        observation_engine = _CloakBrowserPageObservationEngine(
+            cloakbrowser_humanize=cloakbrowser_humanize,
+            human_challenge_handoff_markers=normalized_handoff_markers,
+            human_challenge_handoff_after_action_names=normalized_handoff_action_names,
+            human_challenge_handoff_timeout_seconds=human_challenge_handoff_timeout_seconds,
+            human_challenge_handoff_prompt=human_challenge_handoff_prompt,
+        )
+    else:
+        observation_engine = _PlaywrightBrowserSnapshotEngine(
+            human_challenge_handoff_markers=normalized_handoff_markers,
+            human_challenge_handoff_after_action_names=normalized_handoff_action_names,
+            human_challenge_handoff_timeout_seconds=human_challenge_handoff_timeout_seconds,
+            human_challenge_handoff_prompt=human_challenge_handoff_prompt,
+        )
     try:
         return observation_engine.capture_page_observation(
             url=normalized_url,
@@ -591,6 +633,25 @@ def fetch_browser_context_responses(
 
 
 class _PlaywrightBrowserSnapshotEngine:
+    def __init__(
+        self,
+        *,
+        browser_backend: str = BROWSER_BACKEND_PLAYWRIGHT,
+        cloakbrowser_humanize: bool = False,
+        human_challenge_handoff_markers: Sequence[str] = (),
+        human_challenge_handoff_after_action_names: Sequence[str] = (),
+        human_challenge_handoff_timeout_seconds: float = DEFAULT_HUMAN_CHALLENGE_HANDOFF_TIMEOUT_SECONDS,
+        human_challenge_handoff_prompt: str | None = None,
+    ) -> None:
+        self.browser_backend = browser_backend
+        self.cloakbrowser_humanize = bool(cloakbrowser_humanize)
+        self.human_challenge_handoff_markers = tuple(human_challenge_handoff_markers)
+        self.human_challenge_handoff_after_action_names = tuple(
+            human_challenge_handoff_after_action_names
+        )
+        self.human_challenge_handoff_timeout_seconds = human_challenge_handoff_timeout_seconds
+        self.human_challenge_handoff_prompt = human_challenge_handoff_prompt
+
     def capture(
         self,
         *,
@@ -687,6 +748,28 @@ class _PlaywrightBrowserSnapshotEngine:
             finally:
                 browser.close()
 
+    def _launch_page_observation_browser(
+        self,
+        *,
+        playwright: object,
+        proxy_profile: ProxyProfile | None,
+        headless: bool,
+        browser_channel: str | None,
+    ) -> object:
+        launch_kwargs: dict[str, object] = {}
+        if proxy_profile is not None:
+            launch_kwargs["proxy"] = _playwright_proxy_settings(proxy_profile)
+        if browser_channel is not None:
+            launch_kwargs["channel"] = browser_channel
+        return playwright.chromium.launch(headless=headless, **launch_kwargs)
+
+    def _should_run_human_challenge_handoff_after_action(self, action_name: str) -> bool:
+        if not self.human_challenge_handoff_markers:
+            return False
+        if not self.human_challenge_handoff_after_action_names:
+            return True
+        return action_name in self.human_challenge_handoff_after_action_names
+
     def capture_page_observation(
         self,
         *,
@@ -727,12 +810,12 @@ class _PlaywrightBrowserSnapshotEngine:
         selected_responses: list[object] = []
         with sync_api.sync_playwright() as playwright:
             try:
-                launch_kwargs: dict[str, object] = {}
-                if proxy_profile is not None:
-                    launch_kwargs["proxy"] = _playwright_proxy_settings(proxy_profile)
-                if browser_channel is not None:
-                    launch_kwargs["channel"] = browser_channel
-                browser = playwright.chromium.launch(headless=headless, **launch_kwargs)
+                browser = self._launch_page_observation_browser(
+                    playwright=playwright,
+                    proxy_profile=proxy_profile,
+                    headless=headless,
+                    browser_channel=browser_channel,
+                )
             except Exception as exc:
                 if _looks_like_missing_browser_binary(exc):
                     raise _BrowserSnapshotDependencyUnavailable(
@@ -788,6 +871,28 @@ class _PlaywrightBrowserSnapshotEngine:
                             )
                     pointer_action_receipt: dict[str, object] | None = None
                     pointer_action_receipts: list[dict[str, object]] = []
+                    human_challenge_handoff_receipts: list[dict[str, object]] = []
+
+                    def maybe_run_handoff(after_action_name: str) -> None:
+                        if not self._should_run_human_challenge_handoff_after_action(
+                            after_action_name
+                        ):
+                            return
+                        handoff_receipt = _run_human_challenge_handoff(
+                            page,
+                            markers=self.human_challenge_handoff_markers,
+                            timeout_seconds=self.human_challenge_handoff_timeout_seconds,
+                            prompt=self.human_challenge_handoff_prompt,
+                        )
+                        if handoff_receipt is None:
+                            return
+                        handoff_receipt["after_action_name"] = after_action_name
+                        human_challenge_handoff_receipts.append(handoff_receipt)
+                        if handoff_receipt.get("cleared") is not True:
+                            warning_notes.append(
+                                "browser_page_observation human challenge handoff did not clear visible markers"
+                            )
+
                     if post_load_action_script is not None:
                         page.evaluate(post_load_action_script, post_load_action_arg)
                     observed_response_count = lambda: len(selected_responses)
@@ -798,6 +903,7 @@ class _PlaywrightBrowserSnapshotEngine:
                             observed_response_count=observed_response_count,
                         )
                         pointer_action_receipts.append(pointer_action_receipt)
+                        maybe_run_handoff(post_load_pointer_action.action_name)
                     for pointer_action in post_load_pointer_actions:
                         pointer_action_receipt = _run_pointer_action(
                             page,
@@ -805,6 +911,7 @@ class _PlaywrightBrowserSnapshotEngine:
                             observed_response_count=observed_response_count,
                         )
                         pointer_action_receipts.append(pointer_action_receipt)
+                        maybe_run_handoff(pointer_action.action_name)
                         if _should_stop_pointer_action_sequence(pointer_action, pointer_action_receipt):
                             break
                     try:
@@ -854,6 +961,22 @@ class _PlaywrightBrowserSnapshotEngine:
                         "lazy_load_scroll_stop_reason": lazy_load_scroll_result.stop_reason,
                         "headless": headless,
                         "browser_channel": browser_channel,
+                        "browser_backend": self.browser_backend,
+                        "cloakbrowser_humanize": (
+                            self.cloakbrowser_humanize
+                            if self.browser_backend == BROWSER_BACKEND_CLOAKBROWSER
+                            else False
+                        ),
+                        "human_challenge_handoff_marker_count": len(
+                            self.human_challenge_handoff_markers
+                        ),
+                        "human_challenge_handoff_after_action_names": list(
+                            self.human_challenge_handoff_after_action_names
+                        ),
+                        "human_challenge_handoff_timeout_seconds": (
+                            self.human_challenge_handoff_timeout_seconds
+                        ),
+                        "human_challenge_handoff_attempts": human_challenge_handoff_receipts,
                         "viewport_width": viewport_width,
                         "viewport_height": viewport_height,
                         "storage_state_loaded": storage_state_path is not None,
@@ -1001,6 +1124,280 @@ class _PlaywrightBrowserSnapshotEngine:
                     context.close()
             finally:
                 browser.close()
+
+
+class _CloakBrowserPageObservationEngine(_PlaywrightBrowserSnapshotEngine):
+    def __init__(
+        self,
+        *,
+        cloakbrowser_humanize: bool = False,
+        human_challenge_handoff_markers: Sequence[str] = (),
+        human_challenge_handoff_after_action_names: Sequence[str] = (),
+        human_challenge_handoff_timeout_seconds: float = DEFAULT_HUMAN_CHALLENGE_HANDOFF_TIMEOUT_SECONDS,
+        human_challenge_handoff_prompt: str | None = None,
+    ) -> None:
+        super().__init__(
+            browser_backend=BROWSER_BACKEND_CLOAKBROWSER,
+            cloakbrowser_humanize=cloakbrowser_humanize,
+            human_challenge_handoff_markers=human_challenge_handoff_markers,
+            human_challenge_handoff_after_action_names=human_challenge_handoff_after_action_names,
+            human_challenge_handoff_timeout_seconds=human_challenge_handoff_timeout_seconds,
+            human_challenge_handoff_prompt=human_challenge_handoff_prompt,
+        )
+
+    def capture_page_observation(
+        self,
+        *,
+        url: str,
+        timeout_seconds: float,
+        wait_until: str,
+        viewport_width: int,
+        viewport_height: int,
+        dom_extract_script: str,
+        dom_extract_arg: object,
+        response_url_predicate: Callable[[str], bool],
+        post_load_action_script: str | None = None,
+        post_load_action_arg: object = None,
+        post_load_pointer_action: BrowserPagePointerAction | None = None,
+        post_load_pointer_actions: Sequence[BrowserPagePointerAction] = (),
+        selector: str | None = None,
+        selector_timeout_seconds: float = 5.0,
+        max_response_bytes: int = DEFAULT_MAX_ARTIFACT_BYTES,
+        settle_seconds: float = 0.0,
+        lazy_load_scroll_passes: int = 0,
+        lazy_load_scroll_step_px: int = 0,
+        block_resource_types: Sequence[str] = (),
+        proxy_profile: ProxyProfile | None = None,
+        storage_state_path: Path | None = None,
+        headless: bool = True,
+        browser_channel: str | None = None,
+    ) -> BrowserPageObservationSuccess:
+        timeout_ms = timeout_seconds * 1000
+        selector_timeout_ms = selector_timeout_seconds * 1000
+        blocked_resource_types = set(block_resource_types)
+        selected_responses: list[object] = []
+        try:
+            browser = self._launch_page_observation_browser(
+                playwright=None,
+                proxy_profile=proxy_profile,
+                headless=headless,
+                browser_channel=browser_channel,
+            )
+        except Exception as exc:
+            if _looks_like_missing_browser_binary(exc):
+                raise _BrowserSnapshotDependencyUnavailable(
+                    "Playwright Chromium browser binary is not installed. "
+                    "Run `python -m playwright install chromium` before running browser page observations."
+                ) from exc
+            raise
+        try:
+            context_kwargs: dict[str, object] = {
+                "viewport": {
+                    "width": viewport_width,
+                    "height": viewport_height,
+                }
+            }
+            if storage_state_path is not None:
+                context_kwargs["storage_state"] = str(storage_state_path)
+            if proxy_profile is not None and proxy_profile.timezone is not None:
+                context_kwargs["timezone_id"] = proxy_profile.timezone
+            if proxy_profile is not None and proxy_profile.locale is not None:
+                context_kwargs["locale"] = proxy_profile.locale
+            context = browser.new_context(**context_kwargs)
+            try:
+                page = context.new_page()
+                if blocked_resource_types:
+                    page.route(
+                        "**/*",
+                        lambda route: route.abort()
+                        if route.request.resource_type in blocked_resource_types
+                        else route.continue_(),
+                    )
+                page.on(
+                    "response",
+                    lambda response: selected_responses.append(response)
+                    if response_url_predicate(str(response.url))
+                    else None,
+                )
+                page.goto(url, wait_until=wait_until, timeout=timeout_ms)
+                if settle_seconds > 0:
+                    page.wait_for_timeout(settle_seconds * 1000)
+
+                warning_notes: list[str] = []
+                if lazy_load_scroll_passes > _MAX_SCROLL_PASSES:
+                    warning_notes.append(
+                        "browser_page_observation lazy_load_scroll_passes capped "
+                        f"from {lazy_load_scroll_passes} to {_MAX_SCROLL_PASSES}"
+                    )
+                if selector is not None:
+                    try:
+                        page.wait_for_selector(selector, timeout=selector_timeout_ms)
+                    except Exception as exc:
+                        warning_notes.append(
+                            f"browser_page_observation selector wait failed: {exc}"
+                        )
+                pointer_action_receipt: dict[str, object] | None = None
+                pointer_action_receipts: list[dict[str, object]] = []
+                human_challenge_handoff_receipts: list[dict[str, object]] = []
+
+                def maybe_run_handoff(after_action_name: str) -> None:
+                    if not self._should_run_human_challenge_handoff_after_action(
+                        after_action_name
+                    ):
+                        return
+                    handoff_receipt = _run_human_challenge_handoff(
+                        page,
+                        markers=self.human_challenge_handoff_markers,
+                        timeout_seconds=self.human_challenge_handoff_timeout_seconds,
+                        prompt=self.human_challenge_handoff_prompt,
+                    )
+                    if handoff_receipt is None:
+                        return
+                    handoff_receipt["after_action_name"] = after_action_name
+                    human_challenge_handoff_receipts.append(handoff_receipt)
+                    if handoff_receipt.get("cleared") is not True:
+                        warning_notes.append(
+                            "browser_page_observation human challenge handoff did not clear visible markers"
+                        )
+
+                if post_load_action_script is not None:
+                    page.evaluate(post_load_action_script, post_load_action_arg)
+                observed_response_count = lambda: len(selected_responses)
+                if post_load_pointer_action is not None:
+                    pointer_action_receipt = _run_pointer_action(
+                        page,
+                        post_load_pointer_action,
+                        observed_response_count=observed_response_count,
+                    )
+                    pointer_action_receipts.append(pointer_action_receipt)
+                    maybe_run_handoff(post_load_pointer_action.action_name)
+                for pointer_action in post_load_pointer_actions:
+                    pointer_action_receipt = _run_pointer_action(
+                        page,
+                        pointer_action,
+                        observed_response_count=observed_response_count,
+                    )
+                    pointer_action_receipts.append(pointer_action_receipt)
+                    maybe_run_handoff(pointer_action.action_name)
+                    if _should_stop_pointer_action_sequence(pointer_action, pointer_action_receipt):
+                        break
+                try:
+                    visible_text = page.locator("body").inner_text(timeout=timeout_ms)
+                except Exception as exc:
+                    visible_text = ""
+                    warning_notes.append(
+                        f"browser_page_observation visible_text extraction failed: {exc}"
+                    )
+                dom_observation = page.evaluate(dom_extract_script, dom_extract_arg)
+                lazy_load_scroll_result = _run_bounded_lazy_load_scrolls(
+                    page,
+                    scroll_passes=lazy_load_scroll_passes,
+                    scroll_step_px=lazy_load_scroll_step_px,
+                )
+                responses = _read_observed_page_responses(
+                    selected_responses,
+                    max_response_bytes=max_response_bytes,
+                )
+                final_url = page.url
+                title = page.title()
+                if final_url != url:
+                    warning_notes.append(
+                        f"browser_page_observation landed at {final_url} from requested URL {url}"
+                    )
+                limitation_notes = [
+                    note
+                    for response in responses
+                    for note in response.limitation_notes
+                ]
+                metadata = {
+                    "requested_url": url,
+                    "final_url": final_url,
+                    "title": title,
+                    "capture_timestamp": utc_now_z(),
+                    "timeout_seconds": timeout_seconds,
+                    "wait_until": wait_until,
+                    "settle_seconds": settle_seconds,
+                    "dom_observation_stage": "pre_lazy_load_scroll",
+                    "post_load_action_executed": post_load_action_script is not None
+                    or bool(pointer_action_receipts),
+                    "post_load_pointer_action": pointer_action_receipt,
+                    "post_load_pointer_actions": pointer_action_receipts,
+                    "lazy_load_scroll_passes": lazy_load_scroll_passes,
+                    "lazy_load_scroll_step_px": lazy_load_scroll_step_px,
+                    "lazy_load_scroll_passes_executed": lazy_load_scroll_result.executed_passes,
+                    "lazy_load_scroll_stop_reason": lazy_load_scroll_result.stop_reason,
+                    "headless": headless,
+                    "browser_channel": browser_channel,
+                    "browser_backend": self.browser_backend,
+                    "cloakbrowser_humanize": (
+                        self.cloakbrowser_humanize
+                        if self.browser_backend == BROWSER_BACKEND_CLOAKBROWSER
+                        else False
+                    ),
+                    "human_challenge_handoff_marker_count": len(
+                        self.human_challenge_handoff_markers
+                    ),
+                    "human_challenge_handoff_after_action_names": list(
+                        self.human_challenge_handoff_after_action_names
+                    ),
+                    "human_challenge_handoff_timeout_seconds": (
+                        self.human_challenge_handoff_timeout_seconds
+                    ),
+                    "human_challenge_handoff_attempts": human_challenge_handoff_receipts,
+                    "viewport_width": viewport_width,
+                    "viewport_height": viewport_height,
+                    "storage_state_loaded": storage_state_path is not None,
+                    "blocked_resource_types": sorted(blocked_resource_types),
+                    "max_response_bytes": max_response_bytes,
+                    "response_count": len(responses),
+                    **_proxy_metadata(proxy_profile),
+                }
+                return BrowserPageObservationSuccess(
+                    requested_url=url,
+                    final_url=final_url,
+                    title=title,
+                    visible_text=visible_text,
+                    dom_observation=dom_observation,
+                    responses=responses,
+                    metadata=metadata,
+                    warning_notes=warning_notes,
+                    limitation_notes=limitation_notes,
+                )
+            finally:
+                context.close()
+        finally:
+            browser.close()
+
+    def _launch_page_observation_browser(
+        self,
+        *,
+        playwright: object,
+        proxy_profile: ProxyProfile | None,
+        headless: bool,
+        browser_channel: str | None,
+    ) -> object:
+        del playwright
+        if browser_channel is not None:
+            raise ValueError("browser_channel is not supported with browser_backend='cloakbrowser'")
+        try:
+            cloakbrowser = import_module("cloakbrowser")
+        except ModuleNotFoundError as exc:
+            raise _BrowserSnapshotDependencyUnavailable(
+                "CloakBrowser is not installed. Install cloakbrowser before running CloakBrowser page observations."
+            ) from exc
+        launch_kwargs: dict[str, object] = {
+            "headless": headless,
+            "stealth_args": True,
+            "backend": "playwright",
+            "humanize": self.cloakbrowser_humanize,
+        }
+        if proxy_profile is not None:
+            launch_kwargs["proxy"] = _playwright_proxy_settings(proxy_profile)
+            if proxy_profile.timezone is not None:
+                launch_kwargs["timezone"] = proxy_profile.timezone
+            if proxy_profile.locale is not None:
+                launch_kwargs["locale"] = proxy_profile.locale
+        return cloakbrowser.launch(**launch_kwargs)
 
 
 @dataclass(frozen=True)
@@ -1211,6 +1608,27 @@ _POINTER_ACTION_TARGET_SCRIPT = r"""
     result.box = selected.box;
   }
   return result;
+}
+""".strip()
+
+
+_PAGE_TEXT_MARKER_MATCH_SCRIPT = r"""
+(markersArg) => {
+  const markers = Array.isArray(markersArg)
+    ? markersArg.map((value) => String(value || '').trim().toLowerCase()).filter(Boolean)
+    : [];
+  const pageText = [
+    document.title,
+    document.body ? document.body.innerText : '',
+  ].filter(Boolean).join(' ').toLowerCase();
+  const matched = markers.find((marker) => pageText.includes(marker)) || null;
+  return {
+    human_challenge_marker_match: true,
+    checked: markers.length > 0,
+    matched: matched !== null,
+    matched_marker: matched,
+    marker_count: markers.length,
+  };
 }
 """.strip()
 
@@ -1560,6 +1978,40 @@ def _score_visual_x_component(
         "score": score,
     }
 
+def _page_text_marker_match_result(
+    page: object,
+    markers: Sequence[str],
+) -> dict[str, object]:
+    result: dict[str, object] = {
+        "checked": bool(markers),
+        "matched": False,
+        "matched_marker": None,
+        "marker_count": len(markers),
+    }
+    if not markers:
+        return result
+    try:
+        marker_result = page.evaluate(_PAGE_TEXT_MARKER_MATCH_SCRIPT, list(markers))
+    except Exception:
+        result["failure"] = "human_challenge_marker_lookup_failed"
+        return result
+    if not isinstance(marker_result, dict):
+        result["failure"] = "human_challenge_marker_lookup_failed"
+        return result
+    matched = marker_result.get("matched")
+    if isinstance(matched, bool):
+        result["matched"] = matched
+    matched_marker = marker_result.get("matched_marker")
+    if isinstance(matched_marker, str) and matched_marker:
+        result["matched_marker"] = matched_marker
+    marker_count = marker_result.get("marker_count")
+    try:
+        result["marker_count"] = int(marker_count)  # type: ignore[arg-type]
+    except (TypeError, ValueError):
+        pass
+    return result
+
+
 def _page_text_marker_absence_result(
     page: object,
     markers: Sequence[str],
@@ -1667,6 +2119,74 @@ def _should_stop_pointer_action_sequence(
     if not clicked:
         return True
     return not _post_click_verification_accepted(receipt)
+
+def _run_human_challenge_handoff(
+    page: object,
+    *,
+    markers: Sequence[str],
+    timeout_seconds: float,
+    prompt: str | None,
+) -> dict[str, object] | None:
+    initial_match = _page_text_marker_match_result(page, markers)
+    if initial_match.get("matched") is not True:
+        return None
+    prompt_text = prompt or (
+        "A slider/captcha/security marker remained after the scripted UI move. "
+        "Solve it manually in the open browser if authorized, then click OK here."
+    )
+    receipt: dict[str, object] = {
+        "action_name": "human_challenge_handoff_v0",
+        "action_mode": "source_access_intervention",
+        "action_taken": True,
+        "captcha_solving_by_agent": False,
+        "prompted": True,
+        "prompt_surface": _show_human_challenge_prompt(prompt_text),
+        "matched_marker": initial_match.get("matched_marker"),
+        "marker_count": initial_match.get("marker_count"),
+        "timeout_seconds": timeout_seconds,
+        "cleared": False,
+        "wait_ms": 0,
+    }
+    timeout_ms = int(timeout_seconds * 1000)
+    elapsed_ms = 0
+    poll_ms = 1000
+    while True:
+        current_match = _page_text_marker_match_result(page, markers)
+        if current_match.get("matched") is not True:
+            receipt["cleared"] = True
+            receipt["wait_ms"] = elapsed_ms
+            return receipt
+        matched_marker = current_match.get("matched_marker")
+        if isinstance(matched_marker, str) and matched_marker:
+            receipt["final_matched_marker"] = matched_marker
+        if elapsed_ms >= timeout_ms:
+            receipt["timeout_exceeded"] = True
+            receipt["wait_ms"] = elapsed_ms
+            return receipt
+        step_ms = min(poll_ms, timeout_ms - elapsed_ms)
+        if step_ms <= 0:
+            receipt["timeout_exceeded"] = True
+            receipt["wait_ms"] = elapsed_ms
+            return receipt
+        page.wait_for_timeout(step_ms)
+        elapsed_ms += step_ms
+
+
+def _show_human_challenge_prompt(prompt: str) -> str:
+    try:
+        import ctypes
+
+        ctypes.windll.user32.MessageBoxW(
+            0,
+            prompt,
+            "TikTok challenge handoff",
+            0x00000040 | 0x00040000,
+        )
+        return "windows_message_box"
+    except Exception:
+        print(prompt, flush=True)
+        return "stdout"
+
 
 def _run_pointer_action(
     page: object,
@@ -1940,6 +2460,30 @@ def _normalize_browser_channel(browser_channel: str | None) -> str | None:
     normalized = browser_channel.strip()
     if not normalized:
         raise ValueError("browser_channel must not be blank")
+    return normalized
+
+
+def _normalize_browser_backend(browser_backend: str) -> str:
+    normalized = browser_backend.strip().lower()
+    if not normalized:
+        raise ValueError("browser_backend must not be blank")
+    if normalized not in ALLOWED_BROWSER_BACKENDS:
+        allowed = ", ".join(sorted(ALLOWED_BROWSER_BACKENDS))
+        raise ValueError(f"browser_backend must be one of: {allowed}")
+    return normalized
+
+
+def _normalize_lower_text_tuple(markers: Sequence[str], *, name: str) -> tuple[str, ...]:
+    normalized = tuple(marker.strip().lower() for marker in markers if marker.strip())
+    if len(normalized) != len(set(normalized)):
+        raise ValueError(f"{name} must not contain duplicate entries")
+    return normalized
+
+
+def _normalize_name_tuple(values: Sequence[str], *, name: str) -> tuple[str, ...]:
+    normalized = tuple(value.strip() for value in values if value.strip())
+    if len(normalized) != len(set(normalized)):
+        raise ValueError(f"{name} must not contain duplicate entries")
     return normalized
 
 

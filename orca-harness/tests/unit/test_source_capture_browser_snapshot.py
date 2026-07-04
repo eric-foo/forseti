@@ -168,6 +168,7 @@ class _FakeObservationPage:
         screenshot_png: bytes = b"",
         screenshot_pngs: list[bytes] | None = None,
         post_click_absence_result: dict[str, object] | None = None,
+        marker_match_results: list[dict[str, object]] | None = None,
         response_url: str = "https://api.example.test/widget",
         response_method: str = "GET",
         response_resource_type: str = "fetch",
@@ -190,6 +191,7 @@ class _FakeObservationPage:
             "absent": True,
             "matched_marker": None,
         }
+        self.marker_match_results = list(marker_match_results or [])
         self.mouse = _FakeObservationMouse(self)
 
     def route(self, *_args: object, **_kwargs: object) -> None:
@@ -242,6 +244,16 @@ class _FakeObservationPage:
             self.event_log.append("post_load_action")
             self.emit_response_once()
             return {"postLoadAction": arg}
+        if "human_challenge_marker_match" in script:
+            self.event_log.append("human_marker_match")
+            if self.marker_match_results:
+                return self.marker_match_results.pop(0)
+            return {
+                "checked": True,
+                "matched": False,
+                "matched_marker": None,
+                "marker_count": 0,
+            }
         if "matched_marker" in script and "absent" in script:
             self.event_log.append("post_click_absence_lookup")
             return self.post_click_absence_result
@@ -315,6 +327,16 @@ class _FakePlaywrightSyncApi:
 
     def sync_playwright(self) -> _FakeSyncPlaywright:
         return _FakeSyncPlaywright(self.page)
+
+
+class _FakeCloakBrowserModule:
+    def __init__(self, page: _FakeObservationPage) -> None:
+        self.page = page
+        self.launch_kwargs: dict[str, object] | None = None
+
+    def launch(self, **kwargs: object) -> _FakeObservationBrowser:
+        self.launch_kwargs = dict(kwargs)
+        return _FakeObservationBrowser(self.page)
 
 
 def _install_fake_playwright(monkeypatch: pytest.MonkeyPatch, page: _FakeObservationPage) -> None:
@@ -892,6 +914,146 @@ def test_fetch_browser_page_observation_capture_threads_pointer_actions_to_engin
             prefer_smallest_match=True,
         ),
     )
+
+
+def test_fetch_browser_page_observation_capture_rejects_unknown_browser_backend() -> None:
+    with pytest.raises(ValueError, match="browser_backend must be one of"):
+        fetch_browser_page_observation_capture(
+            url="https://example.com/source",
+            dom_extract_script="() => ({items: []})",
+            dom_extract_arg={},
+            response_url_predicate=lambda url: "widget" in url,
+            browser_backend="unknown",
+            engine=_ok_page_observation_engine(),
+        )
+
+
+def test_fetch_browser_page_observation_capture_rejects_cloakbrowser_channel_mix() -> None:
+    with pytest.raises(ValueError, match="browser_channel is not supported"):
+        fetch_browser_page_observation_capture(
+            url="https://example.com/source",
+            dom_extract_script="() => ({items: []})",
+            dom_extract_arg={},
+            response_url_predicate=lambda url: "widget" in url,
+            browser_backend="cloakbrowser",
+            browser_channel="chrome",
+            engine=_ok_page_observation_engine(),
+        )
+
+
+def test_cloakbrowser_page_observation_uses_cloak_launch(monkeypatch: pytest.MonkeyPatch) -> None:
+    event_log: list[str] = []
+    page = _FakeObservationPage(event_log)
+    fake_cloakbrowser = _FakeCloakBrowserModule(page)
+
+    def fake_import_module(name: str) -> object:
+        if name == "playwright.sync_api":
+            return _FakePlaywrightSyncApi(page)
+        if name == "cloakbrowser":
+            return fake_cloakbrowser
+        raise ModuleNotFoundError(name)
+
+    monkeypatch.setattr(browser_snapshot_module, "import_module", fake_import_module)
+
+    result = browser_snapshot_module._CloakBrowserPageObservationEngine(
+        cloakbrowser_humanize=True
+    ).capture_page_observation(
+        url="https://example.com/source",
+        timeout_seconds=1,
+        wait_until="load",
+        viewport_width=1280,
+        viewport_height=720,
+        dom_extract_script="() => ({items: []})",
+        dom_extract_arg={},
+        response_url_predicate=lambda url: "widget" in url,
+    )
+
+    assert fake_cloakbrowser.launch_kwargs is not None
+    assert fake_cloakbrowser.launch_kwargs["backend"] == "playwright"
+    assert fake_cloakbrowser.launch_kwargs["stealth_args"] is True
+    assert fake_cloakbrowser.launch_kwargs["humanize"] is True
+    assert result.metadata["browser_backend"] == "cloakbrowser"
+    assert result.metadata["cloakbrowser_humanize"] is True
+
+
+def test_page_observation_human_challenge_handoff_after_named_pointer_action(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    event_log: list[str] = []
+    page = _FakeObservationPage(
+        event_log,
+        pointer_target={
+            "candidate_count": 1,
+            "matched_count": 1,
+            "target_found": True,
+            "target_kind": "button",
+            "box": {"x": 10, "y": 20, "width": 100, "height": 50},
+        },
+        marker_match_results=[
+            {
+                "checked": True,
+                "matched": True,
+                "matched_marker": "drag the slider",
+                "marker_count": 1,
+            },
+            {
+                "checked": True,
+                "matched": False,
+                "matched_marker": None,
+                "marker_count": 1,
+            },
+        ],
+    )
+    _install_fake_playwright(monkeypatch, page)
+    monkeypatch.setattr(
+        browser_snapshot_module,
+        "_show_human_challenge_prompt",
+        lambda _prompt: "test_prompt",
+    )
+
+    result = browser_snapshot_module._PlaywrightBrowserSnapshotEngine(
+        human_challenge_handoff_markers=("drag the slider",),
+        human_challenge_handoff_after_action_names=("challenge_close",),
+        human_challenge_handoff_timeout_seconds=1,
+    ).capture_page_observation(
+        url="https://example.com/source",
+        timeout_seconds=1,
+        wait_until="load",
+        viewport_width=1280,
+        viewport_height=720,
+        dom_extract_script="() => ({items: []})",
+        dom_extract_arg={},
+        response_url_predicate=lambda url: "widget" in url,
+        post_load_pointer_actions=(
+            BrowserPagePointerAction(
+                action_name="challenge_close",
+                candidate_selector="button",
+                text_markers=("close",),
+                wait_after_ms=0,
+            ),
+        ),
+    )
+
+    attempts = result.metadata["human_challenge_handoff_attempts"]
+    assert attempts == [
+        {
+            "action_name": "human_challenge_handoff_v0",
+            "action_mode": "source_access_intervention",
+            "action_taken": True,
+            "captcha_solving_by_agent": False,
+            "prompted": True,
+            "prompt_surface": "test_prompt",
+            "matched_marker": "drag the slider",
+            "marker_count": 1,
+            "timeout_seconds": 1,
+            "cleared": True,
+            "wait_ms": 0,
+            "after_action_name": "challenge_close",
+        }
+    ]
+    assert event_log.count("human_marker_match") == 2
+
+
 def test_pointer_action_target_script_matches_data_attributes() -> None:
     script = browser_snapshot_module._POINTER_ACTION_TARGET_SCRIPT
     assert "data-e2e" in script

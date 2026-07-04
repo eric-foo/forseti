@@ -57,6 +57,42 @@ re-litigate:
 Future lanes must spend run budget on accepted-close proof and real comment yield,
 not on re-proving pointer delivery.
 
+
+## 2026-07-04 Browser Surface Pin
+
+Cold agents must not collapse all "Chrome" or "Playwright" routes into one
+browser surface. The observed surfaces are materially different:
+
+- The Codex Chrome connector can use the owner's existing Chrome profile and
+  reached the Funmi fixture comments after the bounded
+  comments -> `You may like` -> comments route. It is useful for observation and
+  owner-visible diagnosis, but its read-only page scope is not packet-grade:
+  it exposed `subtitleInfos` but did not expose `fetch`, and it must not inspect
+  or persist cookies, tokens, auth state, raw signed subtitle URLs, or personal
+  Chrome profile data.
+- The current Playwright `--browser-channel chrome` route launches a new
+  Playwright-controlled Chrome context. It is not the owner's already-open Chrome
+  session. On 2026-07-04, the same Funmi route exposed the tab controls but
+  ended with final `drag the slider` and zero visible comment bodies.
+- A visible CloakBrowser route with `humanize=True` on the same fixture completed
+  comments -> `You may like` -> comments with no final challenge/security marker
+  and 12 visible comment-body nodes in the viewport.
+- The post-patch runner receipt
+  `tiktok_logged_out_cloakbrowser_probe_20260704_02` completed logged-out with
+  `completed_count=1`, `challenge_count=0`, one admitted page-owned
+  `/api/comment/list/` response, 20 assessed comments, no human handoff attempt,
+  and no transcript capture because the subtitle host was rejected by the live
+  probe allowlist.
+
+Use this pin as routing evidence, not admission evidence. The runner surface is
+`--browser-backend cloakbrowser`; do not combine it with `--browser-channel`.
+For TikTok slider/captcha handoff, `--human-challenge-handoff` requires
+`--allow-challenge-close-followthrough` and fires only after scripted X/Close
+actions. Any manual solve is source-access intervention in the receipt, not
+clean capture. This does not prove cross-creator durability, page-owned
+`/api/comment/list` response capture, subtitle transcript capture across
+creators, account safety at volume, or creator-registry promotion.
+
 Current owner source-access redirect: for public TikTok content, an X-able
 slider/captcha/security modal is no longer a hard capture blocker when the
 current lane explicitly uses `--allow-challenge-close-followthrough`. The runner

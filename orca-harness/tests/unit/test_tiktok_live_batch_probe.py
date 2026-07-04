@@ -17,6 +17,7 @@ from source_capture.auth_state import (
     write_auth_state_metadata,
 )
 from source_capture.tiktok.batch_packet import write_tiktok_batch_packet
+import source_capture.tiktok.live_batch_probe as live_batch_probe
 from source_capture.tiktok.blocker_triage import (
     TIKTOK_BLOCKER_ACTION_CONTINUE,
     TIKTOK_BLOCKER_ACTION_RELOAD_ONCE_CANDIDATE,
@@ -485,6 +486,112 @@ def test_live_probe_runner_rejects_diagnostic_and_followthrough_together(tmp_pat
         assert exc.code == 2
     else:
         raise AssertionError("diagnostic and followthrough modes were accepted together")
+
+
+def test_live_probe_threads_cloakbrowser_and_human_handoff_options(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    captured_kwargs: dict[str, object] = {}
+
+    def fake_fetch_browser_page_observation_capture(**kwargs: object) -> BrowserPageObservationSuccess:
+        captured_kwargs.update(kwargs)
+        return _success_observation(
+            video_id="7390000000000000001",
+            response=_comment_response(video_id="7390000000000000001"),
+            subtitle_url="https://v16.tiktokcdn.com/subtitle.webvtt",
+        )
+
+    monkeypatch.setattr(
+        live_batch_probe,
+        "fetch_browser_page_observation_capture",
+        fake_fetch_browser_page_observation_capture,
+    )
+
+    paths = write_tiktok_live_batch_probe_outputs(
+        creator_handle="funmi",
+        creator_profile_url="https://www.tiktok.com/@funmi",
+        video_urls=["https://www.tiktok.com/@funmi/video/7390000000000000001"],
+        logged_out=True,
+        output_dir=tmp_path / "out",
+        browser_backend="cloakbrowser",
+        cloakbrowser_humanize=True,
+        human_challenge_handoff=True,
+        human_challenge_handoff_timeout_seconds=7.0,
+        allow_challenge_close_followthrough=True,
+        sleep_fn=lambda _seconds: None,
+        subtitle_fetcher=lambda _url: b"WEBVTT\n\n00:00:00.000 --> 00:00:01.000\nhello\n",
+    )
+
+    assert captured_kwargs["browser_backend"] == "cloakbrowser"
+    assert captured_kwargs["cloakbrowser_humanize"] is True
+    assert captured_kwargs["human_challenge_handoff_markers"] == (
+        "drag the slider",
+        "verify to continue",
+        "captcha",
+        "security check",
+    )
+    assert captured_kwargs["human_challenge_handoff_after_action_names"] == (
+        TIKTOK_CHALLENGE_CLOSE_FOLLOWTHROUGH_POINTER_ACTION_NAME,
+        TIKTOK_CHALLENGE_VISUAL_CLOSE_FOLLOWTHROUGH_POINTER_ACTION_NAME,
+    )
+    assert captured_kwargs["human_challenge_handoff_timeout_seconds"] == 7.0
+
+    cadence = json.loads(paths.cadence_result_json_path.read_text(encoding="utf-8"))
+    contract = cadence["capture_contract"]
+    assert contract["browser_backend"] == "cloakbrowser"
+    assert contract["cloakbrowser_humanize"] is True
+    assert contract["human_challenge_handoff_allowed"] is True
+    assert contract["human_challenge_handoff_counts_as_clean_capture"] is False
+    assert contract["challenge_close_followthrough_allowed"] is True
+
+
+def test_live_probe_runner_rejects_human_handoff_without_followthrough(tmp_path: Path) -> None:
+    try:
+        runner.main(
+            [
+                "--creator-handle",
+                "funmi",
+                "--creator-profile-url",
+                "https://www.tiktok.com/@funmi",
+                "--video-url",
+                "https://www.tiktok.com/@funmi/video/7390000000000000001",
+                "--logged-out",
+                "--human-challenge-handoff",
+                "--output-dir",
+                str(tmp_path / "out"),
+            ]
+        )
+    except SystemExit as exc:
+        assert exc.code == 2
+    else:
+        raise AssertionError("human handoff was accepted without followthrough")
+
+
+def test_live_probe_runner_rejects_cloakbrowser_with_browser_channel(tmp_path: Path) -> None:
+    try:
+        runner.main(
+            [
+                "--creator-handle",
+                "funmi",
+                "--creator-profile-url",
+                "https://www.tiktok.com/@funmi",
+                "--video-url",
+                "https://www.tiktok.com/@funmi/video/7390000000000000001",
+                "--logged-out",
+                "--browser-backend",
+                "cloakbrowser",
+                "--browser-channel",
+                "chrome",
+                "--output-dir",
+                str(tmp_path / "out"),
+            ]
+        )
+    except SystemExit as exc:
+        assert exc.code == 2
+    else:
+        raise AssertionError("cloakbrowser backend accepted browser-channel")
+
 
 def test_live_probe_filters_non_get_comment_list_responses_when_method_available(
     tmp_path: Path,

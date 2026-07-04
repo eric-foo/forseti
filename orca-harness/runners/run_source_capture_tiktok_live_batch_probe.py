@@ -42,6 +42,31 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--settle-seconds", type=float, default=2.0)
     parser.add_argument("--selector-timeout-seconds", type=float, default=5.0)
     parser.add_argument("--browser-channel")
+    parser.add_argument(
+        "--browser-backend",
+        choices=("playwright", "cloakbrowser"),
+        default="playwright",
+        help="Browser backend for rendered page observation; cloakbrowser owns its Chromium binary.",
+    )
+    parser.add_argument(
+        "--cloakbrowser-humanize",
+        action="store_true",
+        help="Enable CloakBrowser humanized pointer/keyboard timing when using the cloakbrowser backend.",
+    )
+    parser.add_argument(
+        "--human-challenge-handoff",
+        action="store_true",
+        help=(
+            "After scripted challenge X/Close followthrough actions, prompt the "
+            "operator to solve a remaining slider/captcha in the visible browser. "
+            "The receipt marks this as a source-access intervention."
+        ),
+    )
+    parser.add_argument(
+        "--human-challenge-handoff-timeout-seconds",
+        type=float,
+        default=180.0,
+    )
     parser.add_argument("--cadence-min-gap-seconds", type=float, default=75.0)
     parser.add_argument("--cadence-max-gap-seconds", type=float, default=120.0)
     parser.add_argument("--cadence-window-seconds", type=float)
@@ -75,6 +100,11 @@ def main(argv: list[str] | None = None) -> int:
             "--allow-challenge-close-diagnostic and "
             "--allow-challenge-close-followthrough are mutually exclusive"
         )
+    if args.browser_backend == "cloakbrowser" and args.browser_channel is not None:
+        parser.error("--browser-channel cannot be combined with --browser-backend cloakbrowser")
+    if args.human_challenge_handoff and not args.allow_challenge_close_followthrough:
+        parser.error("--human-challenge-handoff requires --allow-challenge-close-followthrough")
+    cloakbrowser_humanize = args.cloakbrowser_humanize or args.browser_backend == "cloakbrowser"
     if args.logged_out:
         if args.state_label is not None or args.session_mode is not None:
             parser.error("--logged-out cannot be combined with --state-label or --session-mode")
@@ -99,6 +129,10 @@ def main(argv: list[str] | None = None) -> int:
         settle_seconds=args.settle_seconds,
         selector_timeout_seconds=args.selector_timeout_seconds,
         browser_channel=args.browser_channel,
+        browser_backend=args.browser_backend,
+        cloakbrowser_humanize=cloakbrowser_humanize,
+        human_challenge_handoff=args.human_challenge_handoff,
+        human_challenge_handoff_timeout_seconds=args.human_challenge_handoff_timeout_seconds,
         cadence_min_gap_seconds=args.cadence_min_gap_seconds,
         cadence_max_gap_seconds=args.cadence_max_gap_seconds,
         cadence_window_seconds=args.cadence_window_seconds,
