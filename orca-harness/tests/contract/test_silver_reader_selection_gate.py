@@ -15,7 +15,10 @@ residual of this gate, not a silent claim.
 """
 from __future__ import annotations
 
+import ast
+
 from data_lake.inventory import (
+    HARNESS_ROOT,
     SILVER_READER_SELECTION_POSTURES,
     lane_dir_reader_files,
     non_raw_lake_touchpoints,
@@ -133,6 +136,49 @@ def test_path_based_reader_census_is_declared_or_explicitly_excluded() -> None:
         "remove or reclassify them:\n"
         f"  {stale_exclusions}"
     )
+
+def _call_names(tree: ast.AST) -> set[str]:
+    names: set[str] = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Call):
+            func = node.func
+            if isinstance(func, ast.Name):
+                names.add(func.id)
+            elif isinstance(func, ast.Attribute):
+                names.add(func.attr)
+    return names
+
+
+def test_selection_rule_postures_visibly_use_their_named_mechanism() -> None:
+    """V2's core claim cannot rot: a file declared ``selection_rule`` must visibly
+    CALL its named mechanism (``shared:`` -- it consumes the data_lake rule) or
+    DEFINE it (``local:`` -- it is the declared home of an adjudicated rule its
+    consumers call). Import presence alone never satisfies this (F-SH-001)."""
+    problems: dict[str, str] = {}
+    for file_path, entry in sorted(SILVER_READER_SELECTION_POSTURES.items()):
+        if entry.get("posture") != "selection_rule":
+            continue
+        kind, _, callable_name = str(entry.get("mechanism", "")).partition(":")
+        tree = ast.parse((HARNESS_ROOT / file_path).read_text(encoding="utf-8"))
+        if kind == "shared" and callable_name not in _call_names(tree):
+            problems[file_path] = (
+                f"declares selection_rule via {entry.get('mechanism')!r} but never calls "
+                f"{callable_name!r} -- the declared posture has rotted or the rule was dropped"
+            )
+        if kind == "local":
+            defined = {
+                node.name for node in ast.walk(tree) if isinstance(node, ast.FunctionDef)
+            }
+            if callable_name not in defined:
+                problems[file_path] = (
+                    f"declares selection_rule via {entry.get('mechanism')!r} but no longer "
+                    f"defines {callable_name!r} -- the rule's declared home has rotted"
+                )
+    assert not problems, (
+        "selection_rule posture(s) not backed by visible use of the named rule:\n"
+        + "\n".join(f"  {path}: {why}" for path, why in problems.items())
+    )
+
 
 def test_reader_posture_declarations_are_shape_valid() -> None:
     problems = {

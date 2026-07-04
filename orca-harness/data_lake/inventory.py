@@ -377,6 +377,7 @@ SILVER_READER_SELECTION_POSTURES: dict[str, dict[str, str]] = {
     "capture_spine/creator_profile_current/silver_metric_reader.py": {
         "detection": "lane_dir",
         "posture": "selection_rule",
+        "mechanism": "local:select_latest_rollup_per_account",
         "reason": "select_latest_rollup_per_account: run-order primary, fail-closed on computed_at regression and unorderable ties (AR-04)",
     },
     "data_lake/consumption.py": {
@@ -422,6 +423,7 @@ SILVER_READER_SELECTION_POSTURES: dict[str, dict[str, str]] = {
     "capture_spine/creator_profile_current/instagram_metric_seed.py": {
         "detection": "declared_free_walk",
         "posture": "selection_rule",
+        "mechanism": "shared:select_current_record_per_subject",
         "reason": "path-based derived-tree discovery (sha-deduped) feeding data_lake.sibling_selection fail-closed per-username selection",
     },
     "runners/run_ig_reels_product_extract.py": {
@@ -433,19 +435,41 @@ SILVER_READER_SELECTION_POSTURES: dict[str, dict[str, str]] = {
 
 
 def silver_reader_posture_problems(entry: object) -> list[str]:
-    """Shape problems for one reader-posture declaration (empty = shape-valid)."""
+    """Shape problems for one reader-posture declaration (empty = shape-valid).
+
+    A ``selection_rule`` posture is V2's core claim and must NAME the callable
+    that implements it (``shared:<callable>`` = the data_lake.sibling_selection
+    rule is called; ``local:<callable>`` = the file is the declared home of an
+    adjudicated rule it defines and uses). The reader gate verifies visible USE
+    of the named callable, so a declared posture cannot rot when the code drops
+    the rule (F-SH-001: verify use, never mere declaration).
+    """
     if not isinstance(entry, dict):
         return ["reader posture must be an object with detection/posture/reason"]
     problems: list[str] = []
     if entry.get("detection") not in ("lane_dir", "declared_free_walk"):
         problems.append(f"invalid detection {entry.get('detection')!r}")
-    if entry.get("posture") not in SILVER_READER_POSTURES:
+    posture = entry.get("posture")
+    if posture not in SILVER_READER_POSTURES:
         problems.append(
-            f"invalid posture {entry.get('posture')!r} (expected one of {SILVER_READER_POSTURES})"
+            f"invalid posture {posture!r} (expected one of {SILVER_READER_POSTURES})"
         )
     reason = entry.get("reason")
     if not isinstance(reason, str) or not reason.strip():
         problems.append("reader posture requires a non-empty reason")
+    mechanism = entry.get("mechanism")
+    if posture == "selection_rule":
+        if not (
+            isinstance(mechanism, str)
+            and mechanism.partition(":")[0] in ("shared", "local")
+            and mechanism.partition(":")[2].isidentifier()
+        ):
+            problems.append(
+                "selection_rule posture requires mechanism 'shared:<callable>' or "
+                f"'local:<callable>'; got {mechanism!r}"
+            )
+    elif mechanism is not None:
+        problems.append(f"mechanism is only valid for selection_rule postures; got {mechanism!r}")
     return problems
 
 
