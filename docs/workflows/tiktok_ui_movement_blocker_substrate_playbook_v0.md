@@ -4,7 +4,7 @@
 retrieval_header_version: 1
 artifact_role: Workflow playbook
 scope: >
-  Cold-agent map for using Orca's bounded browser pointer-action substrate on
+  Cold-agent map for using Forseti's bounded browser pointer-action substrate on
   TikTok logged-out and live-run UI blockers without converting challenge
   interaction into capture success.
 use_when:
