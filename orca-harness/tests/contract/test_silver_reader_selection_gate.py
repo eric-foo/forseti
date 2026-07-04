@@ -18,9 +18,36 @@ from __future__ import annotations
 from data_lake.inventory import (
     SILVER_READER_SELECTION_POSTURES,
     lane_dir_reader_files,
+    non_raw_lake_touchpoints,
     silver_reader_posture_problems,
 )
 
+_PATH_BASED_TOUCHPOINT_CALLS = {"is_record_set_complete", "record_path"}
+_DECLARED_FREE_WALK_WITHOUT_TOUCHPOINT = {
+    # Direct filesystem discovery of derived projection files; no DataLakeRoot
+    # touchpoint appears in the unit (b) AST census.
+    "capture_spine/creator_profile_current/instagram_metric_seed.py",
+}
+_PATH_BASED_TOUCHPOINT_EXCLUSIONS = {
+    "runners/run_asr_transcript_catchup.py": (
+        "catch-up writer checks one deterministic current-policy transcript id "
+        "before acking; it does not select among sibling records"
+    ),
+    "runners/run_cleaning_spine_periodic_audit.py": (
+        "audit resolves explicitly named derived_record anchors; it is not pickup "
+        "authority over a sibling set"
+    ),
+    "runners/run_ig_reels_lane_orchestrator.py": (
+        "orchestrator checks completion markers for exact downstream outputs"
+    ),
+    "runners/run_source_capture_ig_reels_deep_capture.py": (
+        "deep-capture writer checks completion markers for exact record sets"
+    ),
+    "source_capture/ig_reels_grid_projection.py": (
+        "projection writer checks exact bronze-catalog proof paths while appending "
+        "stable derived records"
+    ),
+}
 
 def _declared(detection: str) -> set[str]:
     return {
@@ -66,6 +93,46 @@ def test_declared_free_walk_readers_exist_as_tracked_files() -> None:
         f"declarations: {missing}"
     )
 
+
+def test_path_based_reader_census_is_declared_or_explicitly_excluded() -> None:
+    """Unit (b)'s path-based lake touchpoint census must not become an invisible
+    reader registry bypass.
+
+    ``lane_dir`` callers are exact-matched mechanically above. Path-based walkers
+    cannot be classified by the lane_dir detector, so every such touchpoint is
+    either hand-declared as a reader posture or explicitly excluded with a reason.
+    """
+    path_based = {
+        file_path
+        for (file_path, call_name) in non_raw_lake_touchpoints()
+        if call_name in _PATH_BASED_TOUCHPOINT_CALLS
+        and file_path not in lane_dir_reader_files()
+    }
+    expected_declared = (
+        path_based - set(_PATH_BASED_TOUCHPOINT_EXCLUSIONS)
+    ) | _DECLARED_FREE_WALK_WITHOUT_TOUCHPOINT
+
+    undeclared = sorted(expected_declared - _declared("declared_free_walk"))
+    assert not undeclared, (
+        "Path-based derived-lane reader(s) are not declared in "
+        "SILVER_READER_SELECTION_POSTURES as declared_free_walk. Either declare "
+        "their selection posture or add a reasoned exclusion in this gate:\n"
+        f"  {undeclared}"
+    )
+
+    stale = sorted(_declared("declared_free_walk") - expected_declared)
+    assert not stale, (
+        "declared_free_walk posture(s) are no longer backed by the unit (b) "
+        "path-based reader census or the explicit filesystem-walk list:\n"
+        f"  {stale}"
+    )
+
+    stale_exclusions = sorted(set(_PATH_BASED_TOUCHPOINT_EXCLUSIONS) - path_based)
+    assert not stale_exclusions, (
+        "Path-based reader exclusion(s) no longer appear in the unit (b) census; "
+        "remove or reclassify them:\n"
+        f"  {stale_exclusions}"
+    )
 
 def test_reader_posture_declarations_are_shape_valid() -> None:
     problems = {

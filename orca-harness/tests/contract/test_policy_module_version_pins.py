@@ -126,11 +126,49 @@ POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
     ),
 }
 
+# Record-shape schema tokens close the weak-envelope class only if they are
+# actually stamped into newly written records. The module hash pins above force a
+# conscious bump/no-bump decision, but this direct guard catches a pin update that
+# accidentally drops the payload field itself.
+RECORD_SCHEMA_TOKEN_FIELD_SITES: dict[str, tuple[str, ...]] = {
+    "cleaning/transcript_product_lake.py": (
+        'PRODUCT_MENTIONS_RECORD_SCHEMA_VERSION = "transcript_product_mentions_record_v0"',
+        '"record_schema_version": PRODUCT_MENTIONS_RECORD_SCHEMA_VERSION',
+    ),
+    "source_capture/fragrance_review_coverage.py": (
+        'FRAGRANCE_REVIEW_RECORD_SCHEMA_VERSION = "fragrance_review_coverage_record_v0"',
+        'record_schema_version: Literal["fragrance_review_coverage_record_v0"]',
+        "FRAGRANCE_REVIEW_RECORD_SCHEMA_VERSION",
+    ),
+    "source_capture/transcript/asr_packet.py": (
+        'TRANSCRIPT_ASR_RECORD_SCHEMA_VERSION = "transcript_asr_record_v0"',
+        '"record_schema_version": TRANSCRIPT_ASR_RECORD_SCHEMA_VERSION',
+    ),
+    "source_capture/transcript/ig_reels_audio_packet.py": (
+        "from source_capture.transcript.asr_packet import TRANSCRIPT_ASR_RECORD_SCHEMA_VERSION",
+        '"record_schema_version": TRANSCRIPT_ASR_RECORD_SCHEMA_VERSION',
+    ),
+}
 
 def _lf_sha256(relative_path: str) -> str:
     data = (_HARNESS_ROOT / relative_path).read_bytes().replace(b"\r\n", b"\n")
     return hashlib.sha256(data).hexdigest()
 
+
+def test_record_schema_tokens_are_stamped_by_writers() -> None:
+    missing = {}
+    for module_path, required_tokens in sorted(RECORD_SCHEMA_TOKEN_FIELD_SITES.items()):
+        source = (_HARNESS_ROOT / module_path).read_text(encoding="utf-8")
+        missing_tokens = [token for token in required_tokens if token not in source]
+        if missing_tokens:
+            missing[module_path] = missing_tokens
+
+    assert not missing, (
+        "Record-shape schema token(s) are declared in a policy-pinned module but "
+        "are no longer stamped into the record payload/model field. Restore the "
+        "record_schema_version write or remove the weak-envelope closure claim: "
+        f"{missing}"
+    )
 
 def test_policy_modules_match_their_pins() -> None:
     drifted = {}
