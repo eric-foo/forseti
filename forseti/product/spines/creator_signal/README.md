@@ -50,6 +50,8 @@ Binding authority:
 | --- | --- |
 | `creator_intelligence_profile_surface_v0.md` | First product surface contract for the one-stop creator intelligence profile. |
 | `aphrodite_carveout_charter_v0.md` | Carveout charter: Aphrodite identity stitch, phase strategy, two-layer moat doctrine, Vetting Sprint offer, decision register (owner-ratified direction, 2026-07-04). |
+| `aphrodite_derived_claim_provenance_contract_v0.md` | Display/claim-language contract: derived (LLM-extracted) creator claims must carry derivation provenance to be shown; discharges charter pre-build gate 1. |
+| `aphrodite_depth_capture_tos_risk_sanity_check_v0.md` | Gate check: depth capture sits inside the accepted source-access boundary/measured-risk posture; discharges charter pre-build gate 2 (commercial-use flag carried to Phase 1). |
 | `creator_signal_product_architecture_v0.md` | Pre-ratification product architecture plan for the Creator Signal carve-out and Vetting v0 first increment. |
 | `creator_signal_market_sizing_v0.md` | Internal rough TAM/SAM/SOM market-sizing estimate for the Creator Signal carve-out (not demand validation or buyer proof). |
 | `creator_signal_multi_creator_library_surface_v0.md` | Product-facing display contract for the multi-creator Creator Signal Library surface. |
