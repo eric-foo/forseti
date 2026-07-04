@@ -1,7 +1,7 @@
 [project]
 name = "orca-harness"
 version = "0.14.0"
-description = "Deterministic Step A judgment harness rebuild for Orca"
+description = "Deterministic Step A judgment harness rebuild for Forseti"
 requires-python = ">=3.12"
 dependencies = [
   "Pillow>=10,<13",
