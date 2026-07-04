@@ -1,8 +1,9 @@
-﻿# Orca Docs
+# Forseti Docs
 
-This folder holds Orca-owned durable artifacts. It does not contain software
-implementation. The detailed navigation map is `STRUCTURE.md`; the Orca overlay
-in `.agents/workflow-overlay/` remains authoritative when there is a conflict.
+This folder holds Forseti-owned durable artifacts. It does not contain software
+implementation. The detailed navigation map is `STRUCTURE.md`; the Forseti
+overlay in `.agents/workflow-overlay/` remains authoritative when there is a
+conflict.
 
 - `decisions/`: decision records.
 - `product/`: product contracts, core-spine notes, satellite notes, evidence standards, source maps, decision artifacts, memo substrates, evidence appendices, and executive-deck shape drafts.

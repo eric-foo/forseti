@@ -5933,7 +5933,7 @@
     "source_inputs": [
       {
         "role": "source-backed platform accounts and identity state",
-        "sha256": "095e17e64904e1702cee3e338589f6564f544cb7c149701d50f4faf042add201",
+        "sha256": "c0f2152e649766bbf960a99ed2b85a4f3bade893097ab6d04d5f7c4bd030c8ef",
         "source_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json"
       },
       {

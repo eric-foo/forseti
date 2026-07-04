@@ -1,7 +1,7 @@
 """Pinned AttachmentRecordEntry schema + deterministic derivation rule (A2).
 
 This module is the canonical A2 object the owner ratified
-(`orca/product/spines/data_lake/workflows/core_spine_v0_data_lake_a2_attachment_record_entry_serialization_adr_v0.md`,
+(`forseti/product/spines/data_lake/workflows/core_spine_v0_data_lake_a2_attachment_record_entry_serialization_adr_v0.md`,
 2026-07-03): the durable thing is the versioned entry schema plus the
 deterministic derivation rule below — never any materialized row. Every
 materialization (the generated Bronze catalog, any future engine under the

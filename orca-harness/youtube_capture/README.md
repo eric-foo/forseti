@@ -14,7 +14,7 @@ YouTube **public-data** capture tooling (promoted from `_scratch/` 2026-06-21).
 - `verify_fingerprint_v0.py` — independent TLS/JA3 check vs a neutral echo service.
 
 **Method, conventions (code-enforced vs must-follow), residuals, ToS/legal posture:** see
-`orca/product/spines/capture/core/source_families/social_media/youtube/youtube_capture_agent_playbook_v0.md`
+`forseti/product/spines/capture/core/source_families/social_media/youtube/youtube_capture_agent_playbook_v0.md`
 and `youtube_capture_recon_v0.md`.
 
 Requires `curl_cffi` — install via the extra: `pip install -e "orca-harness[impersonate]"` (or

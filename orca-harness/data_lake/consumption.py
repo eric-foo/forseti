@@ -1,6 +1,6 @@
 """Consumption seam v0: shared derived-lane pickup/acknowledgement helper.
 
-Contract: ``orca/product/spines/data_lake/authority/core_spine_v0_data_lake_consumption_seam_contract_v0.md``.
+Contract: ``forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_consumption_seam_contract_v0.md``.
 Every derived lane discovers committed Bronze work and acknowledges completion
 the same tested way:
 
