@@ -27,6 +27,29 @@ non_claims: >
   decision. The commissioning Chief Architect adjudicates what is kept.
 ```
 
+```yaml
+review_summary:
+  status: completed
+  report_path: docs/review-outputs/adversarial-artifact-reviews/creator_registry_operational_preflight_delegated_review_patch_v0.md
+  recommendation: accept_with_patch
+  reviewed_by: "Anthropic claude-sonnet-5 (Claude Code)"
+  authored_by: "OpenAI / GPT / Codex"
+  de_correlation_bar: cross_vendor_discovery
+  same_vendor_rationale: null
+  findings_count: 4
+  blocking_findings: []
+  advisory_findings:
+    - "AR-03: folder README uses a pre-existing 'preflight/dedupe list' label for creator_registry_index_v0.json; out of PR #654 patch scope."
+  patches_applied:
+    - "AR-01: runbook new_capture gate now binds to intended_action: new_capture plus can_start_new_capture: true."
+    - "AR-02: runbook Agent Boundary now authorizes running the Creator Registry match preflight runner."
+    - "AR-04: DCP receipt now records the observed stale_language_search_result."
+  residual_risk:
+    - "AR-03 remains unpatched pending owner decision or a separate README-scoped pass."
+    - "Docs-only wording is not mechanically bound to the Python can_start_new_capture field name."
+  next_action: "Chief Architect adjudicates keep/modify/revert for the three applied hunks and owner decides whether AR-03 warrants a follow-up pass."
+```
+
 ## Commission
 
 Reviewed PR #654 target scope only:
